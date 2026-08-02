@@ -28,8 +28,13 @@ export const clampGain = (gain: number) =>
 
 export const MAX_FREQUENCY = 20000;
 export const MIN_FREQUENCY = 1;
-export const MAX_QUALITY = 100;
 export const MIN_QUALITY = 0.01;
+// Equalizer APO accepts very narrow filters, but values above 33.3333 make
+// the UI unnecessarily difficult to control and are not useful in practice.
+export const MAX_QUALITY = 33.3333;
+
+export const clampQuality = (quality: number) =>
+  Math.min(MAX_QUALITY, Math.max(MIN_QUALITY, quality));
 
 // Equalizer APO does not impose AQUA's old 20-band UI limit. 128 keeps the
 // editor responsive while allowing large imported and hand-built profiles.

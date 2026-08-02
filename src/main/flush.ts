@@ -20,6 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import {
   clampGain,
+  clampQuality,
   FilterTypeEnum,
   getDefaultState,
   IFiltersMap,
@@ -65,7 +66,7 @@ export const stateToString = (
             ].includes(type) || clampGain(gain) !== 0,
         )
         .map(({ frequency, gain, type, quality }, index) => {
-          return `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz Gain ${clampGain(gain)} dB Q ${quality}`;
+          return `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
         }),
     );
   }
@@ -102,7 +103,11 @@ const normalizeFilters = (filters: IFiltersMap): IFiltersMap =>
   Object.fromEntries(
     Object.entries(filters).map(([id, filter]) => [
       id,
-      { ...filter, gain: clampGain(filter.gain) },
+      {
+        ...filter,
+        gain: clampGain(filter.gain),
+        quality: clampQuality(filter.quality),
+      },
     ]),
   );
 
@@ -162,6 +167,7 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
         newFormat.filters[filter.id] = {
           ...filter,
           gain: clampGain(filter.gain),
+          quality: clampQuality(filter.quality),
         };
       });
       try {

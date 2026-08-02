@@ -467,7 +467,7 @@ export const setFrequency = (filterId: string, frequency: number) => {
  * Get a slider's quality
  * @deprecated - Removing with the context refactor
  * @param {string} filterId - id of the slider being adjusted
- * @returns { Promise<number> } quality - value in the range [0.001, 999.999]
+ * @returns { Promise<number> } quality - value in the range [0.01, 33.3333]
  */
 export const getQuality = (filterId: string): Promise<number> => {
   const channel = ChannelEnum.GET_FILTER_QUALITY;
@@ -478,7 +478,7 @@ export const getQuality = (filterId: string): Promise<number> => {
 /**
  * Adjusts a slider's quality
  * @param {string} filterId - id of the slider being adjusted
- * @param {number} quality - new quality value in [0.001, 999.999]
+ * @param {number} quality - new quality value in [0.01, 33.3333]
  */
 export const setQuality = (filterId: string, quality: number) => {
   const channel = ChannelEnum.SET_FILTER_QUALITY;

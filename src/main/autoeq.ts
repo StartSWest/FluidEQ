@@ -22,6 +22,7 @@ import { app } from 'electron';
 import {
   FilterTypeEnum,
   clampGain,
+  clampQuality,
   getDefaultFilterWithId,
   IFilter,
   IPresetV2,
@@ -129,7 +130,7 @@ export const getAutoEqPreset = (
       try {
         filter.frequency = Math.min(parseInt(filterMatch[2], 10), 20000);
         filter.gain = clampGain(parseFloat(filterMatch[3]));
-        filter.quality = parseFloat(filterMatch[4]);
+        filter.quality = clampQuality(parseFloat(filterMatch[4]));
       } catch (err) {
         throw new Error(
           `Filter parameter parse error on line ${i} for AutoEQ file: ${filePath}`,
