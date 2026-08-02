@@ -94,11 +94,16 @@ import {
   getAutoEqPreset,
   getAutoEqResponseList,
 } from './autoeq';
-import { checkAutoEqUpdate, updateAutoEqDatabase } from './autoeqUpdater';
+import {
+  checkAutoEqUpdate,
+  syncAutoEqDatabase,
+  updateAutoEqDatabase,
+} from './autoeqUpdater';
 import {
   getSquiglinkDeviceList,
   getSquiglinkPreset,
   getSquiglinkResponseList,
+  syncSquiglinkDatabase,
 } from './squiglink';
 import {
   assignDeviceProfile,
@@ -123,6 +128,41 @@ export default class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+
+const DATABASES_SYNCED_EVENT = 'databases-synced';
+
+const syncDatabasesOnStartup = async () => {
+  const [autoeqResult, squiglinkResult] = await Promise.allSettled([
+    syncAutoEqDatabase(),
+    syncSquiglinkDatabase(),
+  ]);
+
+  if (autoeqResult.status === 'rejected') {
+    console.warn(
+      'Unable to synchronize the AutoEq database',
+      autoeqResult.reason,
+    );
+  }
+  if (squiglinkResult.status === 'rejected') {
+    console.warn(
+      'Unable to synchronize the Squiglink database',
+      squiglinkResult.reason,
+    );
+  }
+
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+
+  mainWindow.webContents.send(DATABASES_SYNCED_EVENT, {
+    autoeq:
+      autoeqResult.status === 'fulfilled' ? autoeqResult.value : undefined,
+    squiglink:
+      squiglinkResult.status === 'fulfilled'
+        ? squiglinkResult.value
+        : undefined,
+  });
+};
 
 if (process.platform !== 'win32') {
   app.setPath('userData', path.join(app.getPath('temp'), 'fluideq-dev'));
@@ -1406,6 +1446,13 @@ const createMainWindow = async () => {
   // If ready-to-show was skipped by a fast dev-server response, reveal the
   // already-loaded window instead of leaving an invisible Electron process.
   revealMainWindow();
+
+  // Keep both public measurement databases current without blocking the first
+  // paint. The renderer receives an event when the background sync finishes
+  // and refreshes whichever source is currently selected.
+  syncDatabasesOnStartup().catch((error) => {
+    console.warn('Database startup synchronization failed', error);
+  });
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();

@@ -37,7 +37,7 @@ const readManifest = (manifestPath: string): IAutoEqDatabaseManifest =>
 const getCurrentManifest = () => {
   const downloaded = downloadedManifestPath();
   return readManifest(
-    fs.existsSync(downloaded) ? downloaded : bundledManifestPath()
+    fs.existsSync(downloaded) ? downloaded : bundledManifestPath(),
   );
 };
 
@@ -48,7 +48,9 @@ const fetchJson = async <Type>(url: string): Promise<Type> => {
       'User-Agent': 'FluidEQ-AutoEq-Updater',
     },
   });
-  if (!response.ok) throw new Error(`GitHub returned HTTP ${response.status}`);
+  if (!response.ok) {
+    throw new Error(`GitHub returned HTTP ${response.status}`);
+  }
   return (await response.json()) as Type;
 };
 
@@ -56,7 +58,9 @@ const getReleaseAssets = async () => {
   const release = await fetchJson<IReleaseResponse>(RELEASE_API);
   const manifest = release.assets.find((asset) => asset.name === MANIFEST_NAME);
   const archive = release.assets.find((asset) => asset.name === ARCHIVE_NAME);
-  if (!manifest || !archive) throw new Error('AutoEq database assets are missing.');
+  if (!manifest || !archive) {
+    throw new Error('AutoEq database assets are missing.');
+  }
   return { manifest, archive };
 };
 
@@ -64,13 +68,23 @@ export const checkAutoEqUpdate = async (): Promise<IAutoEqUpdateStatus> => {
   const current = getCurrentManifest();
   const { manifest } = await getReleaseAssets();
   const latest = await fetchJson<IAutoEqDatabaseManifest>(
-    manifest.browser_download_url
+    manifest.browser_download_url,
   );
   return {
     current,
     latest,
     updateAvailable: latest.sourceCommit !== current.sourceCommit,
   };
+};
+
+/**
+ * Synchronize the bundled AutoEq database with the latest published release.
+ * A current database is left untouched; a newer release is downloaded and
+ * swapped in atomically by updateAutoEqDatabase.
+ */
+export const syncAutoEqDatabase = async (): Promise<IAutoEqUpdateStatus> => {
+  const status = await checkAutoEqUpdate();
+  return status.updateAvailable ? updateAutoEqDatabase() : status;
 };
 
 const validateDatabase = (databasePath: string, expectedModels: number) => {
@@ -85,7 +99,7 @@ const validateDatabase = (databasePath: string, expectedModels: number) => {
 export const updateAutoEqDatabase = async (): Promise<IAutoEqUpdateStatus> => {
   const { archive, manifest } = await getReleaseAssets();
   const latest = await fetchJson<IAutoEqDatabaseManifest>(
-    manifest.browser_download_url
+    manifest.browser_download_url,
   );
   const userDataDir = app.getPath('userData');
   const updateDir = path.join(userDataDir, `autoeq-update-${Date.now()}`);
@@ -99,7 +113,9 @@ export const updateAutoEqDatabase = async (): Promise<IAutoEqUpdateStatus> => {
     const response = await fetch(archive.browser_download_url, {
       headers: { 'User-Agent': 'FluidEQ-AutoEq-Updater' },
     });
-    if (!response.ok) throw new Error(`Download failed with HTTP ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Download failed with HTTP ${response.status}`);
+    }
     fs.writeFileSync(archivePath, Buffer.from(await response.arrayBuffer()));
 
     await execFileAsync(process.platform === 'win32' ? 'tar.exe' : 'tar', [
@@ -111,19 +127,34 @@ export const updateAutoEqDatabase = async (): Promise<IAutoEqUpdateStatus> => {
     const nextDatabase = path.join(extractedDir, 'autoeq');
     validateDatabase(nextDatabase, latest.modelCount);
 
-    if (fs.existsSync(backupDir)) fs.rmSync(backupDir, { recursive: true });
-    if (fs.existsSync(downloadedDir)) fs.renameSync(downloadedDir, backupDir);
+    if (fs.existsSync(backupDir)) {
+      fs.rmSync(backupDir, { recursive: true });
+    }
+    if (fs.existsSync(downloadedDir)) {
+      fs.renameSync(downloadedDir, backupDir);
+    }
     try {
       fs.renameSync(nextDatabase, downloadedDir);
-      fs.writeFileSync(downloadedManifestPath(), JSON.stringify(latest, null, 2));
-      if (fs.existsSync(backupDir)) fs.rmSync(backupDir, { recursive: true });
+      fs.writeFileSync(
+        downloadedManifestPath(),
+        JSON.stringify(latest, null, 2),
+      );
+      if (fs.existsSync(backupDir)) {
+        fs.rmSync(backupDir, { recursive: true });
+      }
     } catch (error) {
-      if (fs.existsSync(downloadedDir)) fs.rmSync(downloadedDir, { recursive: true });
-      if (fs.existsSync(backupDir)) fs.renameSync(backupDir, downloadedDir);
+      if (fs.existsSync(downloadedDir)) {
+        fs.rmSync(downloadedDir, { recursive: true });
+      }
+      if (fs.existsSync(backupDir)) {
+        fs.renameSync(backupDir, downloadedDir);
+      }
       throw error;
     }
   } finally {
-    if (fs.existsSync(updateDir)) fs.rmSync(updateDir, { recursive: true });
+    if (fs.existsSync(updateDir)) {
+      fs.rmSync(updateDir, { recursive: true });
+    }
   }
 
   return { current: latest, latest, updateAvailable: false };

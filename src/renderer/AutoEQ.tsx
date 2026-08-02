@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { IAutoEqUpdateStatus, IEqSource } from 'common/constants';
 import { useAquaContext } from './utils/AquaContext';
@@ -84,23 +84,23 @@ const AutoEQ = () => {
   const currentSource =
     EQ_SOURCES.find((source) => source.id === sourceId) || EQ_SOURCES[0];
 
+  const fetchDeviceNames = useCallback(async () => {
+    try {
+      const list =
+        sourceId === 'autoeq'
+          ? await getAutoEqDeviceList()
+          : await getSquiglinkDeviceList();
+      setDevices(list);
+      setCurrentDevice('');
+      setCurrentResponse('');
+      setResponses([]);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  }, [setGlobalError, sourceId]);
+
   // Fetch supported devices from the selected source.
   useEffect(() => {
-    const fetchDeviceNames = async () => {
-      try {
-        const list =
-          sourceId === 'autoeq'
-            ? await getAutoEqDeviceList()
-            : await getSquiglinkDeviceList();
-        setDevices(list);
-        setCurrentDevice('');
-        setCurrentResponse('');
-        setResponses([]);
-      } catch (e) {
-        setGlobalError(e as ErrorDescription);
-      }
-    };
-
     fetchDeviceNames();
     if (sourceId === 'autoeq') {
       checkAutoEqUpdate()
@@ -111,18 +111,24 @@ const AutoEQ = () => {
       setUpdateStatus(undefined);
       setIsCheckingUpdate(false);
     }
-  }, [setGlobalError, sourceId]);
+  }, [fetchDeviceNames, sourceId]);
 
-  const refreshUpdateStatus = async () => {
-    setIsCheckingUpdate(true);
-    try {
-      setUpdateStatus(await checkAutoEqUpdate());
-    } catch {
-      setUpdateStatus(undefined);
-    } finally {
-      setIsCheckingUpdate(false);
-    }
-  };
+  // A background startup sync updates both databases without requiring a
+  // manual “Check again”. Refresh the visible list when it completes.
+  useEffect(() => {
+    const unsubscribe = window.electron.ipcRenderer.on(
+      'databases-synced',
+      (...args: unknown[]) => {
+        const result = args[0] as { autoeq?: IAutoEqUpdateStatus } | undefined;
+        if (sourceId === 'autoeq' && result?.autoeq) {
+          setUpdateStatus(result.autoeq);
+          setIsCheckingUpdate(false);
+        }
+        fetchDeviceNames();
+      },
+    );
+    return unsubscribe;
+  }, [fetchDeviceNames, sourceId]);
 
   const updateDatabase = async () => {
     setIsUpdating(true);
@@ -299,26 +305,16 @@ const AutoEQ = () => {
             </a>
           </span>
         )}
-        {sourceId === 'autoeq' &&
-          (updateStatus?.updateAvailable ? (
-            <Button
-              className="small"
-              ariaLabel="Update AutoEq database"
-              isDisabled={isUpdating}
-              handleChange={updateDatabase}
-            >
-              {isUpdating ? 'Updating...' : 'Update database'}
-            </Button>
-          ) : (
-            <Button
-              className="small"
-              ariaLabel="Check AutoEq database updates"
-              isDisabled={isCheckingUpdate || isUpdating}
-              handleChange={refreshUpdateStatus}
-            >
-              Check again
-            </Button>
-          ))}
+        {sourceId === 'autoeq' && updateStatus?.updateAvailable && (
+          <Button
+            className="small"
+            ariaLabel="Update AutoEq database"
+            isDisabled={isUpdating}
+            handleChange={updateDatabase}
+          >
+            {isUpdating ? 'Updating...' : 'Update database'}
+          </Button>
+        )}
       </div>
     </>
   );

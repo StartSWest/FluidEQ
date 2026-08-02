@@ -375,6 +375,20 @@ export const getSquiglinkDeviceList = async () =>
     .map((model) => model.key)
     .sort((left, right) => left.localeCompare(right));
 
+/**
+ * Refresh the public Squiglink phone book at application startup. The loader
+ * keeps a stale cache as an offline fallback, so a network failure does not
+ * prevent the existing device list from being used.
+ */
+export const syncSquiglinkDatabase = async (): Promise<{
+  modelCount: number;
+}> => {
+  phoneBookPromise = undefined;
+  const models = await loadPhoneBook();
+  phoneBookPromise = Promise.resolve(models);
+  return { modelCount: models.length };
+};
+
 export const getSquiglinkResponseList = async (device: string) =>
   getResponseOptions(await findModel(device)).map((option) => option.label);
 
