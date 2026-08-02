@@ -1057,14 +1057,13 @@ const createMainWindow = async () => {
 
   setWindowDimension(state.isGraphViewOn);
 
-  const rendererUrl = resolveHtmlPath('index.html');
-  await waitForRenderer(rendererUrl);
-  await mainWindow.loadURL(rendererUrl);
-
-  mainWindow.on('ready-to-show', () => {
-    if (!mainWindow) {
-      throw new Error('"mainWindow" is not defined');
+  let hasRevealedMainWindow = false;
+  const revealMainWindow = () => {
+    if (!mainWindow || hasRevealedMainWindow) {
+      return;
     }
+    hasRevealedMainWindow = true;
+
     if (process.env.START_MINIMIZED) {
       mainWindow.minimize();
     } else {
@@ -1072,14 +1071,24 @@ const createMainWindow = async () => {
     }
 
     if (isDebug) {
-      // When in debug mode, show dev tools after the app loads
+      // When in debug mode, show dev tools after the app loads.
       mainWindow.webContents.openDevTools();
     }
-  });
+  };
 
+  // Register this before loadURL: ready-to-show can fire during the load.
+  mainWindow.on('ready-to-show', revealMainWindow);
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  const rendererUrl = resolveHtmlPath('index.html');
+  await waitForRenderer(rendererUrl);
+  await mainWindow.loadURL(rendererUrl);
+
+  // If ready-to-show was skipped by a fast dev-server response, reveal the
+  // already-loaded window instead of leaving an invisible Electron process.
+  revealMainWindow();
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
