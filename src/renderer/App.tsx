@@ -25,6 +25,7 @@ import SideBar from './SideBar';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import PresetsBar from './PresetsBar';
 import AutoEQ from './AutoEQ';
+import DeviceProfiles from './DeviceProfiles';
 import {
   deletePreset,
   getPresetListFromFiles,
@@ -38,18 +39,40 @@ const AppContent = () => {
 
   return (
     <>
+      <header className="workspace-header">
+        <div className="workspace-header__identity">
+          <div className="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 48 48">
+              <path d="M5 24c6-13 12-13 18 0s12 13 20 0" />
+            </svg>
+          </div>
+          <div>
+            <div className="workspace-header__name">FluidEQ</div>
+            <div className="workspace-header__tagline">
+              Your sound. Every device. Automatically.
+            </div>
+          </div>
+        </div>
+        <div className="workspace-header__status">
+          <span className="status-dot" />
+          Equalizer APO connected
+        </div>
+      </header>
       <SideBar />
       <div className="middle-content">
         <AutoEQ />
         <MainContent />
       </div>
-      <PresetsBar
-        fetchPresets={getPresetListFromFiles}
-        loadPreset={loadPreset}
-        savePreset={savePreset}
-        renamePreset={renamePreset}
-        deletePreset={deletePreset}
-      />
+      <div className="right-content">
+        <DeviceProfiles />
+        <PresetsBar
+          fetchPresets={getPresetListFromFiles}
+          loadPreset={loadPreset}
+          savePreset={savePreset}
+          renamePreset={renamePreset}
+          deletePreset={deletePreset}
+        />
+      </div>
       <FrequencyResponseChart />
       {globalError && (
         <PrereqMissingModal

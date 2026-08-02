@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import path from 'path';
+import fs from 'fs';
 import { app } from 'electron';
 import { promisified as regedit, setExternalVBSLocation } from 'regedit';
 
@@ -54,9 +55,21 @@ const isSoftwareInstalled = async (softwareKey: string) => {
 
 export const isPeaceInstalled = () => isSoftwareInstalled('Peace');
 export const isEqualizerAPOInstalled = () =>
-  isSoftwareInstalled('EqualizerAPO');
+  process.platform === 'win32'
+    ? isSoftwareInstalled('EqualizerAPO')
+    : Promise.resolve(true);
 
 export const getConfigPath = async () => {
+  if (process.platform !== 'win32') {
+    const demoConfigPath = path.join(
+      app.getPath('userData'),
+      'demo-equalizerapo'
+    );
+    fs.mkdirSync(demoConfigPath, { recursive: true });
+    const configFile = path.join(demoConfigPath, 'config.txt');
+    if (!fs.existsSync(configFile)) fs.writeFileSync(configFile, '', 'utf8');
+    return demoConfigPath;
+  }
   const isInstalled = await isEqualizerAPOInstalled();
   if (!isInstalled) {
     throw new Error('Equalizer APO not installed');

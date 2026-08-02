@@ -47,6 +47,10 @@ enum ChannelEnum {
   LOAD_AUTO_EQ_PRESET = 'loadAutoEqPreset',
   CLEAR_GAINS = 'clearGains',
   SET_FIXED_BAND = 'setFixedBand',
+  GET_AUDIO_DEVICES = 'getAudioDevices',
+  GET_DEVICE_PROFILE_SETTINGS = 'getDeviceProfileSettings',
+  ASSIGN_DEVICE_PROFILE = 'assignDeviceProfile',
+  REMOVE_DEVICE_PROFILE = 'removeDeviceProfile',
 }
 
 export default ChannelEnum;

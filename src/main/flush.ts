@@ -30,14 +30,14 @@ import {
   validateState,
 } from '../common/validator';
 
-export const stateToString = (state: IState) => {
+export const stateToString = (state: IState, devicePattern = 'all') => {
   if (!state.isEnabled) {
     return '';
   }
 
   let output: string[] = [];
 
-  output.push('Device: all');
+  output.push(`Device: ${devicePattern}`);
   output.push('Channel: all');
   // This line MUST be "Preamp" without a capitalized P for Equalizer APO to work
   output.push(`Preamp: ${state.preAmp}dB`);

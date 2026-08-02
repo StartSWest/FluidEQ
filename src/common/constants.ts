@@ -28,7 +28,9 @@ export const MIN_FREQUENCY = 1;
 export const MAX_QUALITY = 100;
 export const MIN_QUALITY = 0.01;
 
-export const MAX_NUM_FILTERS = 20; // TODO: Investigate an appropriate value for this
+// Equalizer APO does not impose AQUA's old 20-band UI limit. 128 keeps the
+// editor responsive while allowing large imported and hand-built profiles.
+export const MAX_NUM_FILTERS = 128;
 export const MIN_NUM_FILTERS = 1;
 
 // Need to use LPQ and HPQ to allow users to adjust quality for low/high pass filters
@@ -106,6 +108,26 @@ export interface IPresetV1 {
 export interface IPresetV2 {
   preAmp: number;
   filters: IFiltersMap;
+}
+
+export interface IAudioDevice {
+  id: string;
+  name: string;
+  guid: string;
+  isDefault: boolean;
+  isActive: boolean;
+}
+
+export interface IDeviceProfileAssignment {
+  deviceId: string;
+  deviceName: string;
+  deviceGuid: string;
+  presetName: string;
+}
+
+export interface IDeviceProfileSettings {
+  version: 1;
+  assignments: Record<string, IDeviceProfileAssignment>;
 }
 
 /** ----- Default Values ----- */

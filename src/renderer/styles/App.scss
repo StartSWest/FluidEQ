@@ -23,8 +23,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 body {
   position: relative;
   color: white;
-  background: $primary-dark;
-  font-family: sans-serif;
+  background: radial-gradient(
+      circle at 16% 0%,
+      rgba($secondary-default, 0.08),
+      transparent 30%
+    ),
+    $primary-dark;
+  font-family: Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
   font-size: 1em;
   overflow-y: hidden;
   display: flex;
@@ -43,16 +49,17 @@ body {
     // Add grid for layout
     display: grid;
     grid-template-areas:
+      'workspace-header workspace-header workspace-header'
       'side-bar middle-content presets-bar'
       'graph-wrapper graph-wrapper graph-wrapper';
     grid-template-columns: $sidebar-width 1fr $preset-bar-width;
     // Keep fixed height for equalizer when graph view is on
-    grid-template-rows: $equalizer-height 1fr;
+    grid-template-rows: 56px $equalizer-height 1fr;
     gap: $spacing-s;
 
     &.minimized {
       // Forcibly allow equalizer content to grow when graph view is off
-      grid-template-rows: minmax(0px, 1fr);
+      grid-template-rows: 56px minmax(0px, 1fr);
       row-gap: 0px;
     }
   }
@@ -65,8 +72,92 @@ body {
   gap: $spacing-s;
 }
 
+.workspace-header {
+  grid-area: workspace-header;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 $spacing-s;
+}
+
+.workspace-header__identity {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+.brand-mark {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: 1px solid rgba($secondary-default, 0.35);
+  border-radius: 12px;
+  background: linear-gradient(
+    145deg,
+    rgba($secondary-default, 0.16),
+    rgba($analogous-1, 0.08)
+  );
+  box-shadow: 0 8px 30px rgba($secondary-default, 0.08);
+
+  svg {
+    width: 30px;
+    height: 30px;
+  }
+
+  path {
+    fill: none;
+    stroke: $secondary-light;
+    stroke-width: 3.5;
+    stroke-linecap: round;
+  }
+}
+
+.workspace-header__name {
+  font-size: 1.12rem;
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.workspace-header__tagline {
+  margin-top: 2px;
+  color: $primary-lighter;
+  font-size: 0.7rem;
+}
+
+.workspace-header__status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 11px;
+  color: $primary-lighter;
+  border: 1px solid rgba($primary-lighter, 0.15);
+  border-radius: 999px;
+  background: rgba($primary-default, 0.6);
+  font-size: 0.68rem;
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: $secondary-default;
+  box-shadow: 0 0 10px rgba($secondary-default, 0.8);
+}
+
+.right-content {
+  grid-area: presets-bar;
+  display: grid;
+  min-height: 0;
+  grid-template-rows: max-content minmax(0, 1fr);
+  gap: $spacing-s;
+}
+
 .title-bar {
-  background-color: $primary-dark;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background-color: #05080d;
   height: $title-bar-height;
   width: 100%;
   -webkit-app-region: drag; /* Allow user to drag the window using this titlebar */
@@ -76,19 +167,68 @@ body {
   span {
     height: 100%;
     display: flex;
-    margin-left: $spacing-m;
-    justify-content: end;
-    flex-direction: column;
+    align-items: center;
   }
+}
+
+.title-bar__brand {
+  gap: 7px;
+  margin-left: $spacing-m;
+  font-size: 0.72rem;
+  font-weight: 700;
+
+  svg {
+    width: 22px;
+    height: 16px;
+  }
+
+  path {
+    fill: none;
+    stroke: $secondary-default;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+  }
+}
+
+.title-bar__descriptor {
+  margin-right: $spacing-m;
+  color: #5c6a7c;
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
 }
 
 .graph-wrapper {
   grid-area: graph-wrapper;
   border-radius: $spacing-m;
-  border: $spacing-xxs solid $secondary-default;
+  border: 1px solid rgba($primary-lighter, 0.16);
+  background: rgba($primary-default, 0.72);
 
   // Prevent graph from overflowing out of the wrapper's available space
   overflow: hidden;
+}
+
+.eyebrow,
+.control-kicker {
+  color: $secondary-light;
+  font-size: 0.6rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+
+  h4 {
+    margin: 2px 0 0;
+  }
+
+  > span {
+    color: $primary-lighter;
+    font-size: 0.68rem;
+  }
 }
 
 .row {

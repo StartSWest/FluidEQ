@@ -69,11 +69,12 @@ const SideBar = () => {
       ) : (
         <>
           <div className="col center">
-            <h4>Enable</h4>
+            <span className="control-kicker">ENGINE</span>
+            <h4>System EQ</h4>
             <EqualizerEnablerSwitch id="equalizerEnabler" />
           </div>
           <div>
-            <h4>Pre-Amp Gain</h4>
+            <h4>Preamp</h4>
             <div>+30 dB</div>
             <Slider
               name="Pre-Amplification Gain (dB)"
@@ -86,11 +87,11 @@ const SideBar = () => {
             />
           </div>
           <div className="col center">
-            <h4>Auto Pre-amp</h4>
+            <h4>Protect from clipping</h4>
             <AutoPreAmpEnablerSwitch id="autoPreAmpEnabler" />
           </div>
           <div className="col center">
-            <h4>Graph EQ</h4>
+            <h4>Response graph</h4>
             <GraphViewSwitch id="graphViewEnabler" />
           </div>
         </>

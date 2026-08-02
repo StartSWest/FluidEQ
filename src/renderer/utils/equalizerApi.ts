@@ -27,6 +27,9 @@ import {
   FixedBandSizeEnum,
   IFiltersMap,
   IState,
+  IAudioDevice,
+  IDeviceProfileAssignment,
+  IDeviceProfileSettings,
   MAX_FREQUENCY,
   MAX_GAIN,
   MAX_QUALITY,
@@ -81,6 +84,8 @@ const buildResponseHandler = <
     | IState
     | IFiltersMap
     | string[]
+    | IAudioDevice[]
+    | IDeviceProfileSettings
 >(
   resultEvaluator: (
     result: Type,
@@ -111,6 +116,8 @@ const simpleResponseHandler = <
     | IState
     | IFiltersMap
     | string[]
+    | IAudioDevice[]
+    | IDeviceProfileSettings
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);
@@ -187,6 +194,35 @@ export const getPresetListFromFiles = (): Promise<string[]> => {
   const channel = ChannelEnum.GET_PRESET_FILE_LIST;
   window.electron.ipcRenderer.sendMessage(channel, []);
   return promisifyResult(simpleResponseHandler<string[]>(), channel);
+};
+
+export const getAudioDevices = (): Promise<IAudioDevice[]> => {
+  const channel = ChannelEnum.GET_AUDIO_DEVICES;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(simpleResponseHandler<IAudioDevice[]>(), channel);
+};
+
+export const getDeviceProfileSettings = (): Promise<IDeviceProfileSettings> => {
+  const channel = ChannelEnum.GET_DEVICE_PROFILE_SETTINGS;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(
+    simpleResponseHandler<IDeviceProfileSettings>(),
+    channel
+  );
+};
+
+export const assignDeviceProfile = (
+  assignment: IDeviceProfileAssignment
+): Promise<void> => {
+  const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
+  window.electron.ipcRenderer.sendMessage(channel, [assignment]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
+export const removeDeviceProfile = (deviceId: string): Promise<void> => {
+  const channel = ChannelEnum.REMOVE_DEVICE_PROFILE;
+  window.electron.ipcRenderer.sendMessage(channel, [deviceId]);
+  return promisifyResult(setterResponseHandler, channel);
 };
 
 /**

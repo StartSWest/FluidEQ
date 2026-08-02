@@ -1,0 +1,74 @@
+@import 'color';
+@import 'spacing';
+
+.device-profiles {
+  display: grid;
+  gap: $spacing-xs;
+  padding: $spacing-m;
+  border: 1px solid rgba($secondary-default, 0.24);
+  border-radius: 14px;
+  background: linear-gradient(
+    145deg,
+    rgba($secondary-default, 0.1),
+    $primary-default 64%
+  );
+  box-shadow: 0 18px 45px rgba($black, 0.22), inset 0 1px 0 rgba($white, 0.03);
+
+  h4 {
+    margin: 2px 0 0;
+  }
+
+  label {
+    color: $primary-lighter;
+    font-size: 0.75rem;
+  }
+
+  select {
+    min-width: 0;
+    width: 100%;
+    height: 32px;
+    padding: 0 $spacing-xs;
+    color: $white;
+    border: 1px solid rgba($primary-lighter, 0.2);
+    border-radius: $spacing-xs;
+    background: rgba($primary-dark, 0.82);
+  }
+}
+
+.device-profiles__heading,
+.device-profiles__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs;
+}
+
+.eyebrow {
+  color: $secondary-light;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+
+.default-badge {
+  padding: 3px 7px;
+  color: $primary-dark;
+  background: $analogous-2;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.link-button {
+  color: $secondary-light;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.device-profiles__hint {
+  margin: 2px 0 0;
+  color: $primary-lighter;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}

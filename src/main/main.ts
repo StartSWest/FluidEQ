@@ -69,6 +69,9 @@ import {
   FixedBandSizeEnum,
   getDefaultFilters,
   IFiltersMap,
+  IAudioDevice,
+  IDeviceProfileAssignment,
+  IDeviceProfileSettings,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
 import {
@@ -81,6 +84,16 @@ import {
   getAutoEqPreset,
   getAutoEqResponseList,
 } from './autoeq';
+import {
+  assignDeviceProfile,
+  discoverAudioDevices,
+  flushDeviceProfiles,
+  loadDeviceProfileSettings,
+  removeAssignmentsForPreset,
+  removeDeviceProfile,
+  renameAssignedPreset,
+  saveDeviceProfileSettings,
+} from './deviceProfiles';
 
 export default class AppUpdater {
   constructor() {
@@ -91,6 +104,11 @@ export default class AppUpdater {
 }
 
 let mainWindow: BrowserWindow | null = null;
+
+if (process.platform !== 'win32') {
+  app.setPath('userData', path.join(app.getPath('temp'), 'fluideq-dev'));
+  fs.mkdirSync(app.getPath('userData'), { recursive: true });
+}
 
 const setWindowDimension = (isExpanded: boolean) => {
   if (mainWindow) {
@@ -115,12 +133,13 @@ const setWindowDimension = (isExpanded: boolean) => {
 const userDataDir = app.getPath('userData');
 const presetPath = path.join(userDataDir, PRESETS_DIR);
 const state: IState = fetchSettings(userDataDir);
+const deviceProfileSettings = loadDeviceProfileSettings(userDataDir);
 let configPath = '';
 
 try {
   // create presets dir if it doesn't exist
   if (!fs.existsSync(presetPath)) {
-    fs.mkdirSync(presetPath);
+    fs.mkdirSync(presetPath, { recursive: true });
   }
 } catch (e) {
   console.error('Failed to make presets directory!!');
@@ -129,21 +148,23 @@ try {
 }
 
 // spawn child process to update presets folder so that it can support case-sensitive files
-exec(
-  `fsutil.exe file SetCaseSensitiveInfo "${presetPath}"`,
-  (err, stdout, stderr) => {
-    // Error handling should occur in this callback function
-    if (err) {
-      console.error(err.message.trim());
-      console.error(stdout.trim());
-      console.error(stderr.trim());
-      return;
-    }
+if (process.platform === 'win32') {
+  exec(
+    `fsutil.exe file SetCaseSensitiveInfo "${presetPath}"`,
+    (err, stdout, stderr) => {
+      // Error handling should occur in this callback function
+      if (err) {
+        console.error(err.message.trim());
+        console.error(stdout.trim());
+        console.error(stderr.trim());
+        return;
+      }
 
-    // Set case sensitive to true if an error was not thrown
-    state.isCaseSensitiveFs = true;
-  }
-);
+      // Set case sensitive to true if an error was not thrown
+      state.isCaseSensitiveFs = true;
+    }
+  );
+}
 
 const retryHelper = async (attempts: number, f: () => unknown) => {
   for (let i = 0; i < attempts; i += 1) {
@@ -151,8 +172,8 @@ const retryHelper = async (attempts: number, f: () => unknown) => {
       await f();
       return;
     } catch (e) {
-      if (i === attempts) {
-        throw new Error(`Failed to perform action after ${attempts} retrires`);
+      if (i === attempts - 1) {
+        throw new Error(`Failed to perform action after ${attempts} retries`);
       }
       // TODO: maybe add a backoff here?
       await new Promise((resolve) => {
@@ -204,7 +225,13 @@ const handleUpdateHelper = async <T>(
 
   try {
     // Flush changes to EqualizerAPO with a retry in case several requests to write are occuring at the same time
-    retryHelper(5, () => flush(state, configPath));
+    await retryHelper(5, () => {
+      if (Object.keys(deviceProfileSettings.assignments).length > 0) {
+        flushDeviceProfiles(deviceProfileSettings, presetPath, configPath);
+      } else {
+        flush(state, configPath);
+      }
+    });
   } catch (e) {
     handleError(event, channel, ErrorCode.FAILURE);
     return;
@@ -295,6 +322,8 @@ ipcMain.on(ChannelEnum.DELETE_PRESET, async (event, arg) => {
   console.log(`Deleting preset: ${presetName} at location ${pathToDelete}`);
   try {
     deletePreset(presetName, presetPath);
+    removeAssignmentsForPreset(deviceProfileSettings, presetName);
+    saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
     await handleUpdate(event, channel);
   } catch (e) {
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
@@ -335,6 +364,8 @@ ipcMain.on(ChannelEnum.RENAME_PRESET, async (event, arg) => {
     }
 
     renamePreset(oldName, newName, presetPath);
+    renameAssignedPreset(deviceProfileSettings, oldName, newName);
+    saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
     await handleUpdate(event, channel);
   } catch (e) {
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
@@ -355,6 +386,46 @@ ipcMain.on(ChannelEnum.GET_PRESET_FILE_LIST, async (event) => {
     console.error(e);
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
   }
+});
+
+ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
+  const channel = ChannelEnum.GET_AUDIO_DEVICES;
+  try {
+    const devices = await discoverAudioDevices();
+    const reply: TSuccess<IAudioDevice[]> = { result: devices };
+    event.reply(channel, reply);
+  } catch (e) {
+    console.error('Failed to enumerate Windows audio endpoints', e);
+    handleError(event, channel, ErrorCode.FAILURE);
+  }
+});
+
+ipcMain.on(ChannelEnum.GET_DEVICE_PROFILE_SETTINGS, async (event) => {
+  const reply: TSuccess<IDeviceProfileSettings> = {
+    result: deviceProfileSettings,
+  };
+  event.reply(ChannelEnum.GET_DEVICE_PROFILE_SETTINGS, reply);
+});
+
+ipcMain.on(ChannelEnum.ASSIGN_DEVICE_PROFILE, async (event, arg) => {
+  const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
+  const assignment = arg[0] as IDeviceProfileAssignment;
+  try {
+    fetchPreset(assignment.presetName, presetPath);
+    assignDeviceProfile(deviceProfileSettings, assignment);
+    saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+    await handleUpdate(event, channel);
+  } catch (e) {
+    console.error('Failed to assign device profile', e);
+    handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+  }
+});
+
+ipcMain.on(ChannelEnum.REMOVE_DEVICE_PROFILE, async (event, arg) => {
+  const channel = ChannelEnum.REMOVE_DEVICE_PROFILE;
+  removeDeviceProfile(deviceProfileSettings, arg[0]);
+  saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+  await handleUpdate(event, channel);
 });
 
 ipcMain.on(ChannelEnum.GET_AUTO_EQ_DEVICE_LIST, async (event) => {
@@ -684,6 +755,13 @@ if (process.env.NODE_ENV === 'production') {
 
 const isDebug =
   process.env.NODE_ENV === 'development' || process.env.DEBUG_PROD === 'true';
+
+// Containerized development environments often run as root and do not expose
+// Chromium's setuid sandbox. This is never enabled in packaged production.
+if (isDebug && process.getuid?.() === 0) {
+  app.commandLine.appendSwitch('no-sandbox');
+  app.commandLine.appendSwitch('disable-setuid-sandbox');
+}
 
 if (isDebug) {
   require('electron-debug')();

@@ -310,9 +310,13 @@ const PresetsBar = ({
 
   return (
     <div className="presets-bar">
-      <h4>Preset Menu</h4>
+      <div className="presets-bar__heading">
+        <span className="eyebrow">YOUR SOUND</span>
+        <h4>Named profiles</h4>
+        <p>Save unlimited tunings and attach any one to an output.</p>
+      </div>
       <div className="row">
-        <div className="preset-name">Name:&nbsp;</div>
+        <div className="preset-name">Profile name&nbsp;</div>
         <TextInput
           value={presetName}
           ariaLabel="Preset Name"
@@ -329,7 +333,7 @@ const PresetsBar = ({
         isDisabled={!!globalError || !presetName || !!newPresetNameError}
         handleChange={handleCreateOrSavePreset}
       >
-        Save current settings to preset
+        Save current EQ
       </Button>
       <List
         name="preset"
@@ -338,7 +342,7 @@ const PresetsBar = ({
         value={presetName}
         handleChange={handleChangeSelectedPreset}
         isDisabled={!!globalError}
-        emptyOptionsPlaceholder="No presets found."
+        emptyOptionsPlaceholder="No profiles yet. Create your first sound."
       />
       <Button
         ariaLabel="Load selected preset"
@@ -346,7 +350,7 @@ const PresetsBar = ({
         isDisabled={!!globalError || !isExistingPresetSelected}
         handleChange={handleLoadPreset}
       >
-        Load selected preset
+        Load selected profile
       </Button>
     </div>
   );

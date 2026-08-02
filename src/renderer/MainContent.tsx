@@ -89,17 +89,20 @@ const MainContent = () => {
   ) : (
     <>
       <div className="main-content-title">
-        <h4>Parametric EQ</h4>
+        <div>
+          <span className="eyebrow">FINE TUNE</span>
+          <h4>Parametric EQ</h4>
+        </div>
         <Button
           ariaLabel="Clear Gains"
           isDisabled={false}
           className="small"
           handleChange={clearFilterGains}
         >
-          Clear Gains
+          Reset gains
         </Button>
         <div />
-        <h5>Fixed Band Configs</h5>
+        <h5>Quick layouts</h5>
         {Object.values(FixedBandSizeEnum)
           .filter((s) => !Number.isNaN(Number(s)))
           .map((size) => (
