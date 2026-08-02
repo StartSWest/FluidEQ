@@ -81,7 +81,11 @@ $auto-eq-dropdown-width: 220px;
 .auto-eq {
   position: relative;
   z-index: 30;
-  grid-template-columns: minmax(240px, 1.2fr) minmax(210px, 1fr) max-content;
+  grid-template-columns:
+    minmax(190px, 0.8fr)
+    minmax(240px, 1.2fr)
+    minmax(210px, 1fr)
+    max-content;
   gap: 12px;
   padding: 12px;
   border-color: rgba($primary-lighter, 0.15);
@@ -114,6 +118,49 @@ $auto-eq-dropdown-width: 220px;
     width: 100%;
   }
 
+  .dropdown [role='menu'] > div:first-child {
+    min-width: 0;
+    max-width: calc(100% - 22px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .dropdown [role='menu'] .eq-source-option {
+    min-width: 0;
+    overflow: hidden;
+
+    strong {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    small {
+      display: none;
+    }
+  }
+
+  .dropdown .list .eq-source-option {
+    width: 100%;
+    min-width: 0;
+
+    strong,
+    small {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    small {
+      margin-top: 2px;
+      color: rgba($primary-lighter, 0.58);
+      font-size: 0.68rem;
+      white-space: normal;
+    }
+  }
+
   .dropdown .list-wrapper {
     max-height: 260px;
   }
@@ -130,6 +177,21 @@ $auto-eq-dropdown-width: 220px;
   .dropdown:not(.dropdown--filterable) .list-wrapper {
     width: max(100%, min(340px, 28vw));
     max-width: calc(100vw - 48px);
+  }
+
+  .autoeq-field--source .dropdown .list-wrapper {
+    width: max(100%, min(380px, 30vw));
+  }
+
+  .autoeq-field--source .dropdown .list strong,
+  .autoeq-field--source .dropdown .list small {
+    display: block;
+  }
+
+  .autoeq-field--source .dropdown .list small {
+    margin-top: 2px;
+    color: rgba($primary-lighter, 0.58);
+    font-size: 0.68rem;
   }
 }
 
@@ -159,7 +221,9 @@ $auto-eq-dropdown-width: 220px;
 
 @media (max-width: 1180px) {
   .auto-eq {
-    grid-template-columns: minmax(220px, 1fr) minmax(190px, 0.9fr);
+    grid-template-columns:
+      minmax(180px, 0.8fr)
+      minmax(220px, 1fr);
 
     > .button {
       grid-column: 2;

@@ -119,6 +119,15 @@ measurement source and rig so similarly named measurements are not mixed.
 Maintainers can refresh the snapshot with `pnpm autoeq:update` and validate
 every generated filter with `pnpm test:autoeq`.
 
+The optional **Squiglink / GadgetryTech** source is kept separate from the
+offline library. When selected in the app, FluidEQ reads the public
+`phone_book.json` and REW text measurements from
+[GadgetryTech's Squiglink headphone database](https://gadgetrytech.squig.link/headsets/)
+and fits the selected response locally into PEQ filters. The measurements are
+not bundled or republished by the installer; FluidEQ caches them only in the
+user data directory for offline continuity and keeps the source attribution
+link visible in the UI.
+
 FluidEQ is not affiliated with or endorsed by Dolby Laboratories. Dolby, Dolby
 Access, and Dolby Atmos are trademarks of their respective owner.
 

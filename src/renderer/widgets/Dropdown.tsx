@@ -98,6 +98,12 @@ const Dropdown = ({
     }
   }, [isDisabled]);
 
+  useEffect(() => {
+    if (isOpen && isFilterable) {
+      dropdownRef.current?.querySelector<HTMLInputElement>('input')?.focus();
+    }
+  }, [isFilterable, isOpen]);
+
   // Close the dropdown if the user clicks outside of the dropdown
   useClickOutside<HTMLDivElement>(dropdownRef, () => {
     setIsOpen(false);

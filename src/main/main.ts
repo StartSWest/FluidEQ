@@ -26,7 +26,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, desktopCapturer, ipcMain, shell } from 'electron';
 import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
@@ -87,6 +87,11 @@ import {
   getAutoEqResponseList,
 } from './autoeq';
 import { checkAutoEqUpdate, updateAutoEqDatabase } from './autoeqUpdater';
+import {
+  getSquiglinkDeviceList,
+  getSquiglinkPreset,
+  getSquiglinkResponseList,
+} from './squiglink';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -604,6 +609,47 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
   }
 });
 
+ipcMain.on(ChannelEnum.GET_SQUIGLINK_DEVICE_LIST, async (event) => {
+  const channel = ChannelEnum.GET_SQUIGLINK_DEVICE_LIST;
+  try {
+    const devices = await getSquiglinkDeviceList();
+    event.reply(channel, { result: devices } as TSuccess<string[]>);
+  } catch (error) {
+    console.error('Failed to get Squiglink device list', error);
+    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
+  }
+});
+
+ipcMain.on(ChannelEnum.GET_SQUIGLINK_RESPONSE_LIST, async (event, arg) => {
+  const channel = ChannelEnum.GET_SQUIGLINK_RESPONSE_LIST;
+  try {
+    const responses = await getSquiglinkResponseList(arg[0] as string);
+    event.reply(channel, { result: responses } as TSuccess<string[]>);
+  } catch (error) {
+    console.error('Failed to get Squiglink response list', error);
+    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
+  }
+});
+
+ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
+  const channel = ChannelEnum.LOAD_SQUIGLINK_PRESET;
+  const [deviceName, responseName] = arg as [string, string];
+  try {
+    const presetSettings = await getSquiglinkPreset(deviceName, responseName);
+    state.preAmp = presetSettings.preAmp;
+    state.filters = presetSettings.filters;
+    state.convolution = undefined;
+    state.isFlat = false;
+    await handleUpdate(event, channel, true);
+  } catch (error) {
+    console.error(
+      `Failed to load Squiglink preset from ${deviceName} / ${responseName}`,
+      error,
+    );
+    handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+  }
+});
+
 ipcMain.on(ChannelEnum.CHECK_AUTO_EQ_UPDATE, async (event) => {
   const channel = ChannelEnum.CHECK_AUTO_EQ_UPDATE;
   try {
@@ -1036,11 +1082,39 @@ const createMainWindow = async () => {
         return;
       }
 
-      // The analyser only needs loopback audio. Passing the requesting frame
-      // as the required video source avoids Windows Graphics Capture trying to
-      // open a physical monitor (which can fail with E_ACCESSDENIED under
-      // RDP, protected desktops, or certain GPU drivers).
-      callback({ video: request.frame, audio: 'loopback' });
+      // Chromium still requires a video source for getDisplayMedia even when
+      // the renderer only consumes the audio track. Use the FluidEQ window as
+      // that source instead of a monitor: monitor capture is what triggers
+      // WGC's CreateForMonitor/E_ACCESSDENIED failures on some Windows setups.
+      // The loopback audio stream remains system-wide and is independent of
+      // the video source.
+      const provideLoopbackSource = async () => {
+        try {
+          const sources = await desktopCapturer.getSources({
+            types: ['window'],
+            thumbnailSize: { width: 0, height: 0 },
+            fetchWindowIcons: false,
+          });
+          const windowSourceId = mainWindow?.getMediaSourceId();
+          const source =
+            sources.find((candidate) => candidate.id === windowSourceId) ||
+            sources.find((candidate) =>
+              candidate.name.toLowerCase().includes('fluideq'),
+            ) ||
+            sources[0];
+
+          if (source) {
+            callback({ video: source, audio: 'loopback' });
+          } else {
+            // A frame source is a valid final fallback if Windows does not
+            // expose any capturable windows (for example while minimized).
+            callback({ video: request.frame || undefined, audio: 'loopback' });
+          }
+        } catch {
+          callback({ video: request.frame || undefined, audio: 'loopback' });
+        }
+      };
+      provideLoopbackSource();
     },
   );
 

@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useEffect, useMemo, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
-import { IAutoEqUpdateStatus } from 'common/constants';
+import { IAutoEqUpdateStatus, IEqSource } from 'common/constants';
 import { useAquaContext } from './utils/AquaContext';
 import Button from './widgets/Button';
 import Dropdown from './widgets/Dropdown';
@@ -28,9 +28,29 @@ import {
   getAutoEqDeviceList,
   getAutoEqResponseList,
   loadAutoEqPreset,
+  getSquiglinkDeviceList,
+  getSquiglinkResponseList,
+  loadSquiglinkPreset,
   checkAutoEqUpdate,
   updateAutoEqDatabase,
 } from './utils/equalizerApi';
+
+const EQ_SOURCES: IEqSource[] = [
+  {
+    id: 'autoeq',
+    name: 'AutoEq official',
+    description: 'Generated parametric profiles from the AutoEq project.',
+    attributionUrl: 'https://github.com/jaakkopasanen/AutoEq',
+    online: false,
+  },
+  {
+    id: 'squiglink-gadgetrytech',
+    name: 'Squiglink / GadgetryTech',
+    description: 'Public headphone measurements, fitted locally into PEQ.',
+    attributionUrl: 'https://gadgetrytech.squig.link/headsets/',
+    online: true,
+  },
+];
 
 const AutoEQ = () => {
   const NO_DEVICE_SELECTION = 'Pick a device first! 🎧';
@@ -42,26 +62,42 @@ const AutoEQ = () => {
   const [responses, setResponses] = useState<string[]>([]);
   const [currentDevice, setCurrentDevice] = useState<string>('');
   const [currentResponse, setCurrentResponse] = useState<string>('');
+  const [sourceId, setSourceId] = useState<IEqSource['id']>('autoeq');
   const [updateStatus, setUpdateStatus] = useState<IAutoEqUpdateStatus>();
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  // Fetch supported devices from storage
+  const currentSource =
+    EQ_SOURCES.find((source) => source.id === sourceId) || EQ_SOURCES[0];
+
+  // Fetch supported devices from the selected source.
   useEffect(() => {
     const fetchDeviceNames = async () => {
       try {
-        setDevices(await getAutoEqDeviceList());
+        const list =
+          sourceId === 'autoeq'
+            ? await getAutoEqDeviceList()
+            : await getSquiglinkDeviceList();
+        setDevices(list);
+        setCurrentDevice('');
+        setCurrentResponse('');
+        setResponses([]);
       } catch (e) {
         setGlobalError(e as ErrorDescription);
       }
     };
 
     fetchDeviceNames();
-    checkAutoEqUpdate()
-      .then(setUpdateStatus)
-      .catch(() => undefined)
-      .finally(() => setIsCheckingUpdate(false));
-  }, [setGlobalError]);
+    if (sourceId === 'autoeq') {
+      checkAutoEqUpdate()
+        .then(setUpdateStatus)
+        .catch(() => setUpdateStatus(undefined))
+        .finally(() => setIsCheckingUpdate(false));
+    } else {
+      setUpdateStatus(undefined);
+      setIsCheckingUpdate(false);
+    }
+  }, [setGlobalError, sourceId]);
 
   const refreshUpdateStatus = async () => {
     setIsCheckingUpdate(true);
@@ -92,7 +128,11 @@ const AutoEQ = () => {
   // When user changes the current selected device, fetch the supported responses
   const handleDeviceChange = async (newValue: string) => {
     try {
-      setResponses(await getAutoEqResponseList(newValue));
+      const nextResponses =
+        sourceId === 'autoeq'
+          ? await getAutoEqResponseList(newValue)
+          : await getSquiglinkResponseList(newValue);
+      setResponses(nextResponses);
       setCurrentDevice(newValue);
       // Reset currentResponse to blank whenever it changes.
       setCurrentResponse('');
@@ -103,7 +143,11 @@ const AutoEQ = () => {
 
   const applyAutoEQ = async () => {
     try {
-      await loadAutoEqPreset(currentDevice, currentResponse);
+      if (sourceId === 'autoeq') {
+        await loadAutoEqPreset(currentDevice, currentResponse);
+      } else {
+        await loadSquiglinkPreset(currentDevice, currentResponse);
+      }
       performHealthCheck();
     } catch (e) {
       setGlobalError(e as ErrorDescription);
@@ -120,6 +164,21 @@ const AutoEQ = () => {
         };
       }),
     [devices],
+  );
+
+  const sourceOptions: IOptionEntry[] = useMemo(
+    () =>
+      EQ_SOURCES.map((source) => ({
+        value: source.id,
+        label: source.name,
+        display: (
+          <div className="eq-source-option">
+            <strong>{source.name}</strong>
+            <small>{source.description}</small>
+          </div>
+        ),
+      })),
+    [],
   );
 
   const responseOptions: IOptionEntry[] = useMemo(
@@ -141,9 +200,24 @@ const AutoEQ = () => {
           <span className="eyebrow">START FROM A REFERENCE</span>
           <h4>AutoEQ library</h4>
         </div>
-        <span>Community measurements</span>
+        <a href={currentSource.attributionUrl} target="_blank" rel="noreferrer">
+          {currentSource.name}
+        </a>
       </div>
       <div className="auto-eq">
+        <div className="autoeq-field autoeq-field--source">
+          <span>Measurement source</span>
+          <Dropdown
+            name="Measurement source"
+            options={sourceOptions}
+            value={sourceId}
+            handleChange={(newValue) =>
+              setSourceId(newValue as IEqSource['id'])
+            }
+            isDisabled={!!globalError}
+            filterPlaceholder="Search sources..."
+          />
+        </div>
         <div className="autoeq-field autoeq-field--model">
           <span>Headphone model</span>
           <Dropdown
@@ -182,36 +256,50 @@ const AutoEQ = () => {
         </Button>
       </div>
       <div className="autoeq-update">
-        <span>
-          {isCheckingUpdate && 'Checking official database...'}
-          {!isCheckingUpdate &&
-            updateStatus?.updateAvailable &&
-            `Update available (${updateStatus.latest?.modelCount.toLocaleString()} models)`}
-          {!isCheckingUpdate &&
-            updateStatus &&
-            !updateStatus.updateAvailable &&
-            `Official database up to date - ${updateStatus.current.modelCount.toLocaleString()} models`}
-          {!isCheckingUpdate && !updateStatus && 'Update check unavailable'}
-        </span>
-        {updateStatus?.updateAvailable ? (
-          <Button
-            className="small"
-            ariaLabel="Update AutoEq database"
-            isDisabled={isUpdating}
-            handleChange={updateDatabase}
-          >
-            {isUpdating ? 'Updating...' : 'Update database'}
-          </Button>
+        {sourceId === 'autoeq' ? (
+          <span>
+            {isCheckingUpdate && 'Checking official database...'}
+            {!isCheckingUpdate &&
+              updateStatus?.updateAvailable &&
+              `Update available (${updateStatus.latest?.modelCount.toLocaleString()} models)`}
+            {!isCheckingUpdate &&
+              updateStatus &&
+              !updateStatus.updateAvailable &&
+              `Official database up to date - ${updateStatus.current.modelCount.toLocaleString()} models`}
+            {!isCheckingUpdate && !updateStatus && 'Update check unavailable'}
+          </span>
         ) : (
-          <Button
-            className="small"
-            ariaLabel="Check AutoEq database updates"
-            isDisabled={isCheckingUpdate || isUpdating}
-            handleChange={refreshUpdateStatus}
-          >
-            Check again
-          </Button>
+          <span>
+            Live public measurements from{' '}
+            <a
+              href={currentSource.attributionUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              GadgetryTech on Squiglink
+            </a>
+          </span>
         )}
+        {sourceId === 'autoeq' &&
+          (updateStatus?.updateAvailable ? (
+            <Button
+              className="small"
+              ariaLabel="Update AutoEq database"
+              isDisabled={isUpdating}
+              handleChange={updateDatabase}
+            >
+              {isUpdating ? 'Updating...' : 'Update database'}
+            </Button>
+          ) : (
+            <Button
+              className="small"
+              ariaLabel="Check AutoEq database updates"
+              isDisabled={isCheckingUpdate || isUpdating}
+              handleChange={refreshUpdateStatus}
+            >
+              Check again
+            </Button>
+          ))}
       </div>
     </>
   );

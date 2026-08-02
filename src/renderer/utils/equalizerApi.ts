@@ -282,6 +282,29 @@ export const loadAutoEqPreset = (
   return promisifyResult(setterResponseHandler, channel);
 };
 
+export const getSquiglinkDeviceList = (): Promise<string[]> => {
+  const channel = ChannelEnum.GET_SQUIGLINK_DEVICE_LIST;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(simpleResponseHandler<string[]>(), channel);
+};
+
+export const getSquiglinkResponseList = (
+  deviceName: string,
+): Promise<string[]> => {
+  const channel = ChannelEnum.GET_SQUIGLINK_RESPONSE_LIST;
+  window.electron.ipcRenderer.sendMessage(channel, [deviceName]);
+  return promisifyResult(simpleResponseHandler<string[]>(), channel);
+};
+
+export const loadSquiglinkPreset = (
+  deviceName: string,
+  responseName: string,
+): Promise<void> => {
+  const channel = ChannelEnum.LOAD_SQUIGLINK_PRESET;
+  window.electron.ipcRenderer.sendMessage(channel, [deviceName, responseName]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
 export const checkAutoEqUpdate = (): Promise<IAutoEqUpdateStatus> => {
   const channel = ChannelEnum.CHECK_AUTO_EQ_UPDATE;
   window.electron.ipcRenderer.sendMessage(channel, []);

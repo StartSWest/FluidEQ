@@ -165,6 +165,14 @@ export interface IAutoEqUpdateStatus {
   updateAvailable: boolean;
 }
 
+export interface IEqSource {
+  id: 'autoeq' | 'squiglink-gadgetrytech';
+  name: string;
+  description: string;
+  attributionUrl: string;
+  online: boolean;
+}
+
 /** ----- Default Values ----- */
 
 export enum FixedBandSizeEnum {

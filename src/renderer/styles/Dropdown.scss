@@ -35,6 +35,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     justify-content: space-between;
     align-content: center;
     align-items: center;
+    min-width: 0;
 
     &:focus-visible {
       outline: $spacing-xxs solid $white;
@@ -60,6 +61,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     // Clip content in the selected entry that exceeds the container
     div:first-child {
+      min-width: 0;
+      flex: 1 1 auto;
       text-overflow: ellipsis;
       white-space: nowrap;
       overflow-x: clip;
@@ -111,6 +114,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 38px;
     height: auto;
     padding: 8px 11px;
+    overflow: hidden;
     border: 1px solid rgba($primary-lighter, 0.2);
     border-radius: 11px;
     background: linear-gradient(
@@ -159,6 +163,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 100%;
     max-height: min(360px, calc(100vh - 120px));
     margin-block-start: 5px;
+    min-width: 100%;
+    max-width: min(560px, calc(100vw - 32px));
   }
 
   .list-wrapper .list {

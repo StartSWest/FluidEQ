@@ -52,32 +52,24 @@ const captureSystemOutput = async (): Promise<MediaStream> => {
     throw new Error('Media capture is not available in this environment.');
   }
 
-  let legacyCaptureError: unknown;
-  if (navigator.mediaDevices.getUserMedia) {
+  let displayCaptureError: unknown;
+  // Prefer getDisplayMedia. Electron's main-process handler supplies a
+  // harmless window video source plus the Windows loopback audio stream. This
+  // avoids the legacy desktop constraints trying to open a physical monitor.
+  if (navigator.mediaDevices.getDisplayMedia) {
     try {
-      // Electron exposes the desktop loopback through Chromium's legacy
-      // desktop source constraints. Unlike getDisplayMedia, this path does
-      // not require a transient user gesture, so it can start with the app.
-      return await navigator.mediaDevices.getUserMedia({
-        audio: {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-          },
-        },
-        video: {
-          mandatory: {
-            chromeMediaSource: 'desktop',
-          },
-        },
-      } as MediaStreamConstraints);
+      return await navigator.mediaDevices.getDisplayMedia({
+        audio: true,
+        video: true,
+      });
     } catch (captureError) {
-      legacyCaptureError = captureError;
+      displayCaptureError = captureError;
     }
   }
 
-  if (!navigator.mediaDevices.getDisplayMedia) {
+  if (!navigator.mediaDevices.getUserMedia) {
     throw (
-      legacyCaptureError ||
+      displayCaptureError ||
       new Error(
         'Desktop loopback capture is not available in this environment.',
       )
@@ -85,15 +77,23 @@ const captureSystemOutput = async (): Promise<MediaStream> => {
   }
 
   try {
-    return await navigator.mediaDevices.getDisplayMedia({
-      audio: true,
-      // Electron requires a real video constraint for display capture. The
-      // main process supplies a valid source; we disable that track after the
-      // stream is created and analyse only its loopback audio.
-      video: true,
-    });
-  } catch (displayCaptureError) {
-    throw displayCaptureError || legacyCaptureError;
+    // Legacy fallback for older Electron builds. Newer builds use the
+    // display-media handler above, but keeping this path makes the analyser
+    // usable in a preview/portable environment too.
+    return await navigator.mediaDevices.getUserMedia({
+      audio: {
+        mandatory: {
+          chromeMediaSource: 'desktop',
+        },
+      },
+      video: {
+        mandatory: {
+          chromeMediaSource: 'desktop',
+        },
+      },
+    } as MediaStreamConstraints);
+  } catch (legacyCaptureError) {
+    throw legacyCaptureError || displayCaptureError;
   }
 };
 
