@@ -157,6 +157,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .list-wrapper {
     z-index: 20;
     width: 100%;
+    max-height: min(360px, calc(100vh - 120px));
     margin-block-start: 5px;
+  }
+
+  .list-wrapper .list {
+    max-height: min(310px, calc(100vh - 180px));
+    overscroll-behavior: contain;
+  }
+
+  .list-wrapper .list li {
+    min-height: 40px;
+    align-items: center;
+    line-height: 1.25;
   }
 }

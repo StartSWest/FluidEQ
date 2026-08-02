@@ -80,6 +80,7 @@ $auto-eq-dropdown-width: 220px;
 
 .auto-eq {
   position: relative;
+  z-index: 30;
   grid-template-columns: minmax(240px, 1.2fr) minmax(210px, 1fr) max-content;
   gap: 12px;
   padding: 12px;
@@ -94,9 +95,9 @@ $auto-eq-dropdown-width: 220px;
 
   &::before {
     position: absolute;
-    top: 12px;
-    bottom: 12px;
-    left: 0;
+    top: 10px;
+    bottom: 10px;
+    left: 8px;
     width: 2px;
     border-radius: 2px;
     background: linear-gradient($secondary-light, transparent);
@@ -118,13 +119,24 @@ $auto-eq-dropdown-width: 220px;
   }
 
   .dropdown .list {
-    max-height: 205px;
+    max-height: min(320px, calc(100vh - 170px));
+  }
+
+  .dropdown--filterable .list-wrapper {
+    width: max(100%, min(560px, 36vw));
+    max-width: calc(100vw - 48px);
+  }
+
+  .dropdown:not(.dropdown--filterable) .list-wrapper {
+    width: max(100%, min(340px, 28vw));
+    max-width: calc(100vw - 48px);
   }
 }
 
 .autoeq-field {
   display: grid;
   min-width: 0;
+  align-content: center;
   gap: 6px;
 
   > span {
@@ -133,6 +145,10 @@ $auto-eq-dropdown-width: 220px;
     font-weight: 650;
     letter-spacing: 0.02em;
   }
+}
+
+.autoeq-field--model {
+  min-width: 0;
 }
 
 .autoeq-update {

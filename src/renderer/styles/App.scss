@@ -399,8 +399,10 @@ body {
 
 .section-heading {
   display: flex;
-  align-items: end;
+  align-items: center;
   justify-content: space-between;
+  gap: 12px;
+  min-width: 0;
 
   h4 {
     margin: 2px 0 0;
@@ -573,7 +575,7 @@ body {
 .graph-wrapper {
   min-height: 250px;
   border-color: rgba($primary-lighter, 0.15);
-  border-radius: 20px;
+  border-radius: 18px;
   background:
     linear-gradient(180deg, rgba($white, 0.018), transparent 30%),
     rgba(#0d1420, 0.88);

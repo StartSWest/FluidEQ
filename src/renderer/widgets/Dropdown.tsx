@@ -140,7 +140,12 @@ const Dropdown = ({
   };
 
   return (
-    <div ref={dropdownRef} className={`dropdown dropdown--${placement}`}>
+    <div
+      ref={dropdownRef}
+      className={`dropdown dropdown--${placement}${
+        isFilterable ? ' dropdown--filterable' : ''
+      }`}
+    >
       <div
         role="menu"
         aria-label={name}

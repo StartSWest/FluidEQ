@@ -113,6 +113,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .presets-bar {
+  position: relative;
+  z-index: 10;
   min-height: 0;
   padding: 13px;
   gap: 6px;

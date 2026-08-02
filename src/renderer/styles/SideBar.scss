@@ -45,6 +45,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .side-bar {
+  position: relative;
+  z-index: 10;
   min-height: 0;
   justify-content: space-around;
   padding: 14px 12px;
