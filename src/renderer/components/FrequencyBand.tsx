@@ -254,6 +254,9 @@ const FrequencyBand = forwardRef(
         id={filter.id}
         className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}`}
         title={`${frequencyValue} Hz / ${filter.gain.toFixed(2)} dB / Q ${qualityValue.toFixed(2)}`}
+        // Select before the browser starts a slider drag so any interaction
+        // with this band's controls updates the selected-band editor.
+        onPointerDown={onSelect}
         onMouseEnter={() => onHover?.(true)}
         onMouseLeave={() => onHover?.(false)}
       >
