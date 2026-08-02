@@ -73,17 +73,17 @@ export default class MenuBuilder {
 
   buildDarwinTemplate(): MenuItemConstructorOptions[] {
     const subMenuAbout: DarwinMenuItemConstructorOptions = {
-      label: 'AQUA',
+      label: 'FluidEQ',
       submenu: [
         {
-          label: 'About AQUA',
+          label: 'About FluidEQ',
           selector: 'orderFrontStandardAboutPanel:',
         },
         { type: 'separator' },
         { label: 'Services', submenu: [] },
         { type: 'separator' },
         {
-          label: 'Hide AQUA',
+          label: 'Hide FluidEQ',
           accelerator: 'Command+H',
           selector: 'hide:',
         },
@@ -261,7 +261,7 @@ export default class MenuBuilder {
           {
             label: 'Documentation',
             click() {
-              shell.openExternal('https://github.com/h39s/AQUA');
+              shell.openExternal('https://github.com/StartSWest/FluidEQ');
             },
           },
         ],

@@ -24,14 +24,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-area: side-bar;
   padding: $spacing-s $spacing-l;
 
-  border-radius: $spacing-m;
-  background: $primary-default;
+  border: 1px solid rgba($primary-lighter, 0.14);
+  border-radius: 14px;
+  background: linear-gradient(
+    180deg,
+    rgba($primary-light, 0.48),
+    rgba($primary-default, 0.86)
+  );
+  box-shadow: 0 18px 45px rgba($black, 0.22);
 
   .switch[for='graphViewEnabler'] {
     margin-bottom: 1em;
   }
 
   h4 {
-    margin: 1em 0 1em 0;
+    margin: 0.55em 0 0.9em;
+    font-size: 0.76rem;
+    font-weight: 600;
   }
 }

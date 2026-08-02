@@ -1,68 +1,135 @@
-# AQUA
+# FluidEQ
 
-Quick link to download latest release: <https://github.com/h39s/AQUA/releases/latest/download/AQUAsetup.exe>
+> Your sound. Every device. Automatically.
 
-Welcome to AQUA, a modern platform for audio equalization on Windows. Please note that EqualizerAPO is a prerequisite for our application. Our current features include
+FluidEQ is a free, open-source system-wide parametric equalizer for Windows. It
+adds a modern workflow on top of [Equalizer APO](https://sourceforge.net/projects/equalizerapo/): create as many named EQ profiles as you need, attach a profile to an audio output, and let FluidEQ keep the right sound with the right device.
 
-* System-wide parametric audio equalization (through [EqualizerAPO](https://sourceforge.net/projects/equalizerapo/))
-* AutoEQ integration (credit to [Jaakko Pasanen](https://github.com/jaakkopasanen/AutoEq/tree/master/results) and [Ian Walton](https://github.com/iwalton3/AutoEq) for their preset results for the Harman, IEF, and IEF with bass targets)
-* Auto Pre-amp Gain to ensure your maximum gain never exceeds 0dB
-* Saving/loading equalizer presets
-* Graph visualizer for equalizer settings (between 10 Hz and 20 KHz)
-* Up to 20 filters (+ preamp gain) with adjustable
-  * Filter type (low shelf, peak, or high shelf)
-  * Centre frequency (1 Hz - 20 KHz)
-  * Gain (-30dB to 30dB)
-  * Quality (0.01 - 100.00)
+![FluidEQ interface preview](docs/fluid-eq-preview.svg)
 
-**AQUA is currently no longer under development. We really hope to be back with an update in the future with a potentially larger team of developers as our roadmap is still full of feature requests and substantial improvements. If you are interested in helping with development please reach out to us via [email](mailto:aqua.devteam@gmail.com) with a short introduction. Thank you for your understanding.**
+## Why FluidEQ
 
-![image](https://user-images.githubusercontent.com/20293445/222267346-b0e2064d-92c2-4334-9bff-d638f9535d12.png)
+- **Unlimited named profiles** — keep separate tunings for music, movies,
+  gaming, night listening, speakers, headphones, and more.
+- **Automatic device profiles** — assign an EQ to a stable Windows audio
+  endpoint ID. Selecting that output applies its profile automatically.
+- **Up to 128 parametric filters** — low shelf, peak, and high shelf filters
+  with frequency, gain, and Q controls.
+- **AutoEQ built in** — start from community headphone measurements and target
+  curves, then make the sound your own.
+- **Safer gain management** — Auto Pre-amp can keep the maximum boost at or
+  below 0 dB to reduce clipping.
+- **Real-time response graph** — see the combined curve from 10 Hz to 20 kHz.
+- **Local and account-free** — profiles stay on your computer. No cloud account
+  or proprietary audio driver is required.
 
+## How device switching works
 
-## Getting Started
+FluidEQ discovers Windows render endpoints and stores the stable endpoint GUID,
+not only the display name. It generates one Equalizer APO `Device:` block per
+assignment, so the right profile is already available when Windows changes the
+active output.
 
-To get started using AQUA, it only takes two easy steps:
-1. Install [EqualizerAPO](https://sourceforge.net/projects/equalizerapo/) if you don't have it currently installed (and make sure you run `configurator.exe` included as a part of EqualizerAPO to install the required drivers for the devices you would like to EQ).
-2. Download and run the executable `AQUAsetup.exe` from the latest [release](https://github.com/h39s/AQUA/releases).
+```text
+Device: {HEADPHONE-ENDPOINT-GUID}
+Include: FluidEQ/profiles/Sony XM5 - Music.txt
 
-## FAQ
+Device: {SPEAKER-ENDPOINT-GUID}
+Include: FluidEQ/profiles/Desktop Speakers.txt
+```
 
-By default, the Windows file system does not support case sensitive file names (i.e. you cannot have files/folders named `AQUA` and `aqua` in the same directory). 
+No virtual output device or custom kernel driver is needed.
 
-- On Windows 11, AQUA is able to enable case sensitivity specifically for our `presets` folder so users can save presets with case-sensitive names.
-- On Windows 10, if you would like to enable this feature you will have to install [WSL](https://learn.microsoft.com/en-us/windows/wsl/). You can do so by opening a PowerShell window as an administrator and running `wsl --install`.
-   - If you have existing presets saved in AQUA, you will need to temporarily empty the presets folder (`C:\Users\<username>\AppData\Roaming\aqua\presets`) before starting the app to enable case sensitivity. Your existing presets can then be copied back into the presets folder.
-- On Windows 7, 8, and 8.1, case sensitive preset naming is not available.
+## Getting started
 
-## Get In Touch
+FluidEQ currently targets Windows because Equalizer APO is the audio engine.
 
-If you find any bugs, have any feature requests, or want to give us any kind of feedback, we'd love to hear it! Please feel free to reach out to us via [email](mailto:aqua.devteam@gmail.com)!
+1. Install [Equalizer APO](https://sourceforge.net/projects/equalizerapo/).
+2. Open Equalizer APO's Configurator and enable every output you want FluidEQ
+   to manage. Restart Windows if prompted.
+3. Download the latest FluidEQ installer from
+   [Releases](https://github.com/StartSWest/FluidEQ/releases) when builds become
+   available.
+4. Create and save a named preset.
+5. In **Automatic EQ → Device profile**, choose an output and assign the preset.
 
-## Development Prerequisites
+> FluidEQ is under active early development. Until the first signed release is
+> published, use the development instructions below.
 
-1. Install [EqualizerAPO](https://sourceforge.net/projects/equalizerapo/)
-2. Install Visual Studio 2022. Check "Desktop Development with C++"
-3. Clone this repository
-4. Run `npm install` in the project folder
-   - May need to install latest node-gyp in npm ([link](https://github.com/nodejs/node-gyp/blob/master/docs/Updating-npm-bundled-node-gyp.md))
-   - When installing `node-gyp`, ensure msvs_version is set to 2022 in npm config
+## Development
+
+### Requirements
+
+- Windows 10 or 11
+- [Node.js](https://nodejs.org/) and pnpm 11
+- Visual Studio 2022 with **Desktop development with C++**
+- Equalizer APO for real system-audio integration
+
+### Run the app
+
+```powershell
+git clone https://github.com/StartSWest/FluidEQ.git
+cd FluidEQ
+pnpm install
+pnpm dev
+```
+
+`pnpm dev` starts the renderer, preload process, and Electron application. On
+non-Windows systems, FluidEQ exposes demonstration audio endpoints so the UI and
+device-assignment workflow can be developed without touching system audio.
+
+### Useful commands
+
+```powershell
+pnpm build
+pnpm test:unit
+pnpm lint
+pnpm package
+```
+
+## Current status
+
+The device-profile foundation is working. The next priorities are a signed
+Windows installer, profile search and organization, import/export, tray access,
+hotkeys, layered EQ, and per-application profiles. See the
+[issue tracker](https://github.com/StartSWest/FluidEQ/issues) to follow or help
+shape the roadmap.
+
+## Project history and attribution
+
+FluidEQ is a community-maintained derivative of
+[AQUA](https://github.com/h39s/AQUA), originally created by the AQUA Dev Team.
+The original project provided the Electron/React equalizer interface, Equalizer
+APO integration, AutoEQ support, filter controls, preset management, and graph
+visualization. FluidEQ preserves the original Git history, copyright notices,
+and GPL licensing while continuing the project with a new product identity and
+device-aware profile system.
+
+AutoEQ data and target results are credited to
+[Jaakko Pasanen](https://github.com/jaakkopasanen/AutoEq) and
+[Ian Walton](https://github.com/iwalton3/AutoEq). Equalizer APO is a separate
+GPL-licensed project by Jonas Thedering.
+
+FluidEQ is not affiliated with or endorsed by Dolby Laboratories. Dolby, Dolby
+Access, and Dolby Atmos are trademarks of their respective owner.
+
+See [NOTICE.md](NOTICE.md) for the complete derivative-work notice.
+
+## Contributing
+
+Bug reports, feature ideas, documentation improvements, tests, and code are
+welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull
+request.
 
 ## License
 
-AQUA: System-wide parametric audio equalizer interface
+FluidEQ is free software licensed under the
+[GNU General Public License v3.0 or later](LICENSE), matching the license of the
+upstream AQUA project.
 
-Copyright (C) 2023  AQUA Dev Team
+Copyright © 2023 AQUA Dev Team<br>
+FluidEQ modifications copyright © 2026 FluidEQ contributors
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License
-along with this program.  If not, see <https://www.gnu.org/licenses/>.
+You may use, study, modify, and redistribute this software under the GPL, but a
+distributed modified version must also provide its corresponding source code
+under the same license. This summary is not a substitute for the license text.

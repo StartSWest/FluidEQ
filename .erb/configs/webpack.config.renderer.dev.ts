@@ -36,7 +36,7 @@ if (
       'The DLL files are missing. Sit back while we build them for you with "npm run build-dll"'
     )
   );
-  execSync('npm run postinstall');
+  execSync('pnpm postinstall');
 }
 
 const configuration: webpack.Configuration = {
@@ -164,7 +164,7 @@ const configuration: webpack.Configuration = {
     },
     setupMiddlewares(middlewares) {
       console.log('Starting preload.js builder...');
-      const preloadProcess = spawn('npm', ['run', 'start:preload'], {
+      const preloadProcess = spawn('pnpm', ['start:preload'], {
         shell: true,
         stdio: 'inherit',
       })
@@ -172,7 +172,7 @@ const configuration: webpack.Configuration = {
         .on('error', (spawnError) => console.error(spawnError));
 
       console.log('Starting Main Process...');
-      spawn('npm', ['run', 'start:main'], {
+      spawn('pnpm', ['start:main'], {
         shell: true,
         stdio: 'inherit',
       })

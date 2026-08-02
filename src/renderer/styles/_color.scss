@@ -19,32 +19,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Colors
 
 // Primary
-$primary-dark: #1c313a;
-$primary-default: #455a64;
-$primary-light: #718792;
-$primary-lighter: #a0b7c2;
+$primary-dark: #070b12;
+$primary-default: #111824;
+$primary-light: #253247;
+$primary-lighter: #91a0b6;
 
 // Secondary
-$secondary-darker: linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)),
-  #0093c4;
-$secondary-dark: #0093c4;
-$secondary-default: #4fc3f7;
-$secondary-light: #8bf6ff;
+$secondary-darker: linear-gradient(135deg, #0e8d90, #11b8ad);
+$secondary-dark: #0e8d90;
+$secondary-default: #23d5c3;
+$secondary-light: #79f5e7;
 
 // Complementary
-$complementary: #f7844f;
+$complementary: #ff9b70;
 
 // Triadic
-$triadic-1: #844ff7;
-$triadic-2: #f74fc2;
+$triadic-1: #7c8cff;
+$triadic-2: #d778ff;
 
 // Analogous
-$analogous-1: #4f6ef7;
-$analogous-2: #4ff7d8;
+$analogous-1: #5e7bff;
+$analogous-2: #23d5c3;
 
 // Shade
 $black: #000000;
 $white: #ffffff;
 
 // Additional
-$red: #f74f6e;
+$red: #ff647c;

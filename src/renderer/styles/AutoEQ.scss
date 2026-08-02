@@ -32,8 +32,9 @@ $auto-eq-dropdown-width: 220px;
   height: min-content;
 
   padding: $spacing-s $spacing-m;
-  border-radius: $spacing-s;
-  background: $primary-default;
+  border: 1px solid rgba($primary-lighter, 0.14);
+  border-radius: 12px;
+  background: rgba($primary-default, 0.82);
 
   align-items: center;
   gap: $spacing-s;

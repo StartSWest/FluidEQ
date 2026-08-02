@@ -100,9 +100,15 @@ const AutoEQ = () => {
 
   return (
     <>
-      <h4 className="auto-eq-title">Auto EQ</h4>
+      <div className="section-heading auto-eq-title">
+        <div>
+          <span className="eyebrow">START FROM A REFERENCE</span>
+          <h4>AutoEQ library</h4>
+        </div>
+        <span>Community measurements</span>
+      </div>
       <div className="auto-eq">
-        Audio Device:
+        Headphone model
         <Dropdown
           name="Audio Device"
           options={deviceOptions}
@@ -112,7 +118,7 @@ const AutoEQ = () => {
           noSelectionPlaceholder={NO_DEVICE_SELECTION}
           isFilterable
         />
-        Target Frequency Response:
+        Target response
         <Dropdown
           name="Target Frequency Response"
           options={responseOptions}
@@ -130,7 +136,7 @@ const AutoEQ = () => {
           }
           handleChange={applyAutoEQ}
         >
-          Apply
+          Apply curve
         </Button>
       </div>
     </>

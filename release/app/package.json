@@ -1,15 +1,15 @@
 {
-  "name": "aqua",
-  "version": "1.1.1",
-  "description": "An audio equalizer app",
+  "name": "fluideq-app",
+  "version": "0.2.0",
+  "description": "Open-source system-wide parametric EQ with automatic per-device profiles",
   "license": "GPLv3",
   "author": {
-    "name": "JATY"
+    "name": "FluidEQ contributors"
   },
   "main": "./dist/main/main.js",
   "scripts": {
     "electron-rebuild": "node -r ts-node/register ../../.erb/scripts/electron-rebuild.js",
-    "postinstall": "npm run electron-rebuild && npm run link-modules",
+    "postinstall": "pnpm electron-rebuild && pnpm link-modules",
     "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
   },
   "dependencies": {

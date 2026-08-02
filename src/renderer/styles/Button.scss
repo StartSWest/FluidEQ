@@ -24,8 +24,9 @@ $button-width: 24px;
 $button-height: 100px;
 
 .button {
-  border-radius: 4px;
-  background-color: $secondary-default;
+  color: #03110f;
+  border-radius: 7px;
+  background: linear-gradient(135deg, $secondary-light, $secondary-default);
   margin: $spacing-xs;
 
   display: flex;
@@ -46,6 +47,6 @@ $button-height: 100px;
   }
 
   path {
-    fill: $white;
+    fill: $primary-dark;
   }
 }

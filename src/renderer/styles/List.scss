@@ -23,8 +23,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Apply custom styles for the list wrapper
   background: $primary-dark;
   color: $white;
-  border: solid $spacing-xxs $secondary-default;
-  border-radius: 4px;
+  border: 1px solid rgba($primary-lighter, 0.18);
+  border-radius: 8px;
   text-align: start;
 
   .list {
@@ -45,7 +45,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       font-size: small;
 
       &.selected {
-        background: $primary-light;
+        background: rgba($secondary-default, 0.16);
       }
 
       &:focus,

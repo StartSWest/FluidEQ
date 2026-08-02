@@ -1,8 +1,13 @@
 {
-  "description": "An audio equalizer app",
+  "name": "fluideq",
+  "version": "0.2.0",
+  "description": "Open-source system-wide parametric EQ with automatic per-device profiles",
   "keywords": [
     "electron",
-    "boilerplate",
+    "equalizer-apo",
+    "audio",
+    "parametric-eq",
+    "device-profiles",
     "react",
     "typescript",
     "ts",
@@ -11,32 +16,38 @@
     "hot",
     "reload"
   ],
-  "homepage": "https://github.com/h39s/AQUA",
+  "homepage": "https://github.com/StartSWest/FluidEQ",
+  "packageManager": "pnpm@11.7.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/h39s/AQUA.git"
+    "url": "git+https://github.com/StartSWest/FluidEQ.git"
   },
   "license": "GPLv3",
   "author": {
-    "name": "JATY"
+    "name": "FluidEQ contributors"
   },
+  "contributors": [
+    "AQUA Dev Team",
+    "FluidEQ contributors"
+  ],
   "main": "./src/main/main.ts",
   "scripts": {
-    "build": "concurrently \"npm run build:main\" \"npm run build:renderer\"",
+    "dev": "pnpm start",
+    "build": "concurrently \"pnpm build:main\" \"pnpm build:renderer\"",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.ts",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.ts",
-    "postinstall": "ts-node .erb/scripts/check-native-dep.js && electron-builder install-app-deps && cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.dev.dll.ts",
+    "postinstall": "ts-node .erb/scripts/postinstall.ts",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
-    "package": "ts-node ./.erb/scripts/clean.js dist && npm run build && electron-builder build --publish never",
+    "package": "ts-node ./.erb/scripts/clean.js dist && pnpm build && electron-builder build --publish never",
     "prepare": "husky install",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
-    "start": "ts-node ./.erb/scripts/check-port-in-use.js && npm run start:renderer",
-    "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only .",
+    "start": "ts-node ./.erb/scripts/check-port-in-use.js && pnpm start:renderer",
+    "start:main": "cross-env NODE_ENV=development electronmon -r ts-node/register/transpile-only . --no-sandbox",
     "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.preload.dev.ts",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.ts",
     "test": "jest",
-    "test:unit": "jest --testMatch **/__tests__/unit_tests/**/*.ts?(x)",
-    "test:cucumber": "jest --testMatch **/__tests__/cucumber_tests/*.ts?(x) --runInBand"
+    "test:unit": "jest --testMatch \"**/__tests__/unit_tests/**/*.ts?(x)\"",
+    "test:cucumber": "jest --testMatch \"**/__tests__/cucumber_tests/*.ts?(x)\" --runInBand"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [
@@ -126,6 +137,7 @@
     "@testing-library/react": "^13.2.0",
     "@testing-library/user-event": "^14.2.1",
     "@types/d3": "^7.4.0",
+    "@types/d3-dispatch": "3.0.6",
     "@types/jest": "^27.5.1",
     "@types/node": "17.0.33",
     "@types/react": "^18.0.9",
@@ -178,6 +190,7 @@
     "rimraf": "^3.0.2",
     "sass": "^1.51.0",
     "sass-loader": "^12.6.0",
+    "source-map-support": "^0.5.21",
     "style-loader": "^3.3.1",
     "terser-webpack-plugin": "^5.3.1",
     "ts-jest": "^28.0.2",
@@ -193,8 +206,8 @@
     "webpack-merge": "^5.8.0"
   },
   "build": {
-    "productName": "AQUA",
-    "appId": "org.jaty.AQUA",
+    "productName": "FluidEQ",
+    "appId": "com.gigabytz.fluideq",
     "asar": true,
     "asarUnpack": "**\\*.{node,dll}",
     "files": [
@@ -238,7 +251,7 @@
       "target": [
         "AppImage"
       ],
-      "category": "Development"
+      "category": "AudioVideo"
     },
     "directories": {
       "app": "release/app",
@@ -258,8 +271,8 @@
     ],
     "publish": {
       "provider": "github",
-      "owner": "h39s",
-      "repo": "AQUA"
+      "owner": "StartSWest",
+      "repo": "FluidEQ"
     }
   },
   "devEngines": {
