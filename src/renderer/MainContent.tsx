@@ -16,48 +16,92 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { Fragment, useMemo } from 'react';
+import { CSSProperties, useMemo, useState } from 'react';
 import {
+  FilterTypeEnum,
   FixedBandSizeEnum,
   MAX_NUM_FILTERS,
+  MAX_FREQUENCY,
+  MAX_GAIN,
+  MAX_QUALITY,
   MIN_NUM_FILTERS,
+  MIN_FREQUENCY,
+  MIN_GAIN,
+  MIN_QUALITY,
 } from 'common/constants';
-import { computeAvgFreq } from 'common/utils';
 import { ErrorDescription } from 'common/errors';
 import FrequencyBand from './components/FrequencyBand';
 import { FilterActionEnum, useAquaContext } from './utils/AquaContext';
 import './styles/MainContent.scss';
-import AddSliderDivider from './components/AddSliderDivider';
 import Spinner from './icons/Spinner';
 import { sortHelper } from './utils/utils';
 import Button from './widgets/Button';
-import { clearGains, setFixedBand } from './utils/equalizerApi';
+import {
+  addEqualizerSlider,
+  clearGains,
+  removeEqualizerSlider,
+  setFrequency,
+  setFixedBand,
+  setGain,
+  setQuality,
+  setType,
+} from './utils/equalizerApi';
+import Dropdown from './widgets/Dropdown';
+import NumberInput from './widgets/NumberInput';
+import { FILTER_OPTIONS } from './icons/FilterTypeIcon';
 
 const MainContent = () => {
-  const { filters, isLoading, dispatchFilter, setGlobalError } =
+  const { filters, isLoading, globalError, dispatchFilter, setGlobalError } =
     useAquaContext();
+  const [selectedFilterId, setSelectedFilterId] = useState('');
 
-  // Store widths for AddSliderDividers and FrequencyBands so we can manually position them
-  const DIVIDER_WIDTH = 28;
-  const BAND_WIDTH = 72.94;
+  const frequencySortedFilters = useMemo(
+    () => Object.values(filters).sort(sortHelper),
+    [filters],
+  );
 
-  const [idSortedFilters, freqSortedFilters, sortIndexMap] = useMemo(() => {
-    // Obtain a fixed order list of the filters
-    const fixedSort = Object.values(filters).sort((a, b) =>
-      a.id.localeCompare(b.id),
-    );
+  const density = useMemo(() => {
+    if (frequencySortedFilters.length <= 6) {
+      return 'full';
+    }
+    if (frequencySortedFilters.length <= 15) {
+      return 'compact';
+    }
+    return 'dense';
+  }, [frequencySortedFilters.length]);
 
-    // Obtain a visually sorted list of the filters
-    const visualSort = Object.values(filters).sort(sortHelper);
+  const selectedFilter = useMemo(
+    () => filters[selectedFilterId] ?? frequencySortedFilters[0] ?? undefined,
+    [filters, frequencySortedFilters, selectedFilterId],
+  );
 
-    // Compute a mapping from a filter id to its sorted index
-    const map: { [key: string]: number } = {};
-    Object.values(visualSort).forEach((f, index) => {
-      map[f.id] = index;
-    });
+  const updateSelectedFilter = async (
+    action: () => Promise<void>,
+    dispatchAction: Parameters<typeof dispatchFilter>[0],
+  ) => {
+    try {
+      await action();
+      dispatchFilter(dispatchAction);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
 
-    return [fixedSort, visualSort, map];
-  }, [filters]);
+  const deleteSelectedFilter = async () => {
+    if (!selectedFilter || frequencySortedFilters.length <= MIN_NUM_FILTERS) {
+      return;
+    }
+    try {
+      await removeEqualizerSlider(selectedFilter.id);
+      dispatchFilter({
+        type: FilterActionEnum.REMOVE,
+        id: selectedFilter.id,
+      });
+      setSelectedFilterId('');
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
 
   const clearFilterGains = async () => {
     try {
@@ -77,6 +121,41 @@ const MainContent = () => {
         type: FilterActionEnum.INIT,
         filters: newFilters,
       });
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+
+  const addFilter = async () => {
+    if (frequencySortedFilters.length >= MAX_NUM_FILTERS) {
+      return;
+    }
+
+    const boundaries = [
+      { frequency: 20 },
+      ...frequencySortedFilters,
+      { frequency: 20000 },
+    ];
+    let widestGapIndex = 0;
+    let widestRatio = 0;
+    for (let index = 0; index < boundaries.length - 1; index += 1) {
+      const ratio =
+        boundaries[index + 1].frequency / boundaries[index].frequency;
+      if (ratio > widestRatio) {
+        widestRatio = ratio;
+        widestGapIndex = index;
+      }
+    }
+    const frequency = Math.round(
+      Math.sqrt(
+        boundaries[widestGapIndex].frequency *
+          boundaries[widestGapIndex + 1].frequency,
+      ),
+    );
+
+    try {
+      const id = await addEqualizerSlider(frequency);
+      dispatchFilter({ type: FilterActionEnum.ADD, id, frequency });
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
@@ -102,6 +181,14 @@ const MainContent = () => {
           >
             Reset gains
           </Button>
+          <Button
+            ariaLabel="Add EQ filter"
+            isDisabled={frequencySortedFilters.length >= MAX_NUM_FILTERS}
+            className="small subtle"
+            handleChange={addFilter}
+          >
+            + Filter
+          </Button>
           <div className="quick-layouts">
             <span>Quick layouts</span>
             {Object.values(FixedBandSizeEnum)
@@ -120,58 +207,137 @@ const MainContent = () => {
           </div>
         </div>
       </div>
-      <div className="main-content">
-        <div className="col center band-label">
-          <span />
-          <span className="row-label">Filter Type</span>
-          <span className="row-label">Frequency (Hz)</span>
-          <span />
-          <span>+30dB</span>
-          <span />
-          <span>0dB</span>
-          <span />
-          <span>-30dB</span>
-          <span />
-          <span className="row-label">Gain (dB)</span>
-          <span className="row-label">Quality</span>
-          <span />
+      <div className={`main-content main-content--${density}`}>
+        <div className="eq-scale" aria-hidden="true">
+          <span>+30</span>
+          <span>0 dB</span>
+          <span>-30</span>
         </div>
-        <div className="bands row center">
-          <AddSliderDivider
-            newSliderFrequency={computeAvgFreq(null, freqSortedFilters[0])}
-            isMaxSliderCount={idSortedFilters.length >= MAX_NUM_FILTERS}
-          />
-          {idSortedFilters.map((filter) => {
-            const sliderIndex = sortIndexMap[filter.id];
-            return (
-              <Fragment key={`slider-${filter.id}`}>
-                <FrequencyBand
-                  filter={filter}
-                  isMinSliderCount={idSortedFilters.length <= MIN_NUM_FILTERS}
-                  // Manually position the frequency band
-                  style={{
-                    transform: `translateX(${
-                      DIVIDER_WIDTH + sliderIndex * (DIVIDER_WIDTH + BAND_WIDTH)
-                    }px)`,
-                  }}
-                />
-                <AddSliderDivider
-                  newSliderFrequency={computeAvgFreq(
-                    freqSortedFilters[sliderIndex],
-                    freqSortedFilters[sliderIndex + 1],
-                  )}
-                  isMaxSliderCount={idSortedFilters.length >= MAX_NUM_FILTERS}
-                  // Manually position the divider
-                  style={{
-                    transform: `translateX(${
-                      (sliderIndex + 1) * (DIVIDER_WIDTH + BAND_WIDTH)
-                    }px)`,
-                  }}
-                />
-              </Fragment>
-            );
-          })}
+        <div
+          className={`bands bands--${density}`}
+          style={
+            { '--band-count': frequencySortedFilters.length } as CSSProperties
+          }
+        >
+          {frequencySortedFilters.map((filter) => (
+            <FrequencyBand
+              key={filter.id}
+              filter={filter}
+              density={density}
+              flatLayout
+              isSelected={selectedFilter?.id === filter.id}
+              onSelect={() => setSelectedFilterId(filter.id)}
+              isMinSliderCount={
+                frequencySortedFilters.length <= MIN_NUM_FILTERS
+              }
+            />
+          ))}
         </div>
+        {selectedFilter && (
+          <div className="eq-flat-editor">
+            <div className="eq-flat-editor__identity">
+              <span>Selected band</span>
+              <strong>
+                {selectedFilter.frequency >= 1000
+                  ? `${Number((selectedFilter.frequency / 1000).toFixed(1))} kHz`
+                  : `${selectedFilter.frequency} Hz`}
+              </strong>
+            </div>
+            <div className="eq-flat-editor__control">
+              <span>Filter</span>
+              <Dropdown
+                name="selected-band-filter-type"
+                value={selectedFilter.type}
+                options={FILTER_OPTIONS}
+                isDisabled={!!globalError}
+                handleChange={(newValue) =>
+                  updateSelectedFilter(
+                    () => setType(selectedFilter.id, newValue),
+                    {
+                      type: FilterActionEnum.TYPE,
+                      id: selectedFilter.id,
+                      newValue: newValue as FilterTypeEnum,
+                    },
+                  )
+                }
+              />
+            </div>
+            <div className="eq-flat-editor__control">
+              <span>Frequency</span>
+              <NumberInput
+                name="selected-band-frequency"
+                value={selectedFilter.frequency}
+                min={MIN_FREQUENCY}
+                max={MAX_FREQUENCY}
+                isDisabled={false}
+                showArrows
+                handleSubmit={(newValue) =>
+                  updateSelectedFilter(
+                    () => setFrequency(selectedFilter.id, newValue),
+                    {
+                      type: FilterActionEnum.FREQUENCY,
+                      id: selectedFilter.id,
+                      newValue,
+                    },
+                  )
+                }
+              />
+            </div>
+            <div className="eq-flat-editor__control">
+              <span>Gain</span>
+              <NumberInput
+                name="selected-band-gain"
+                value={selectedFilter.gain}
+                min={MIN_GAIN}
+                max={MAX_GAIN}
+                isDisabled={false}
+                floatPrecision={2}
+                showArrows
+                handleSubmit={(newValue) =>
+                  updateSelectedFilter(
+                    () => setGain(selectedFilter.id, newValue),
+                    {
+                      type: FilterActionEnum.GAIN,
+                      id: selectedFilter.id,
+                      newValue,
+                    },
+                  )
+                }
+              />
+            </div>
+            <div className="eq-flat-editor__control">
+              <span>Quality (Q)</span>
+              <NumberInput
+                name="selected-band-quality"
+                value={selectedFilter.quality}
+                min={MIN_QUALITY}
+                max={MAX_QUALITY}
+                isDisabled={false}
+                floatPrecision={2}
+                showArrows
+                handleSubmit={(newValue) =>
+                  updateSelectedFilter(
+                    () => setQuality(selectedFilter.id, newValue),
+                    {
+                      type: FilterActionEnum.QUALITY,
+                      id: selectedFilter.id,
+                      newValue,
+                    },
+                  )
+                }
+              />
+            </div>
+            <button
+              type="button"
+              aria-label="Delete selected EQ band"
+              className="eq-flat-editor__delete"
+              disabled={frequencySortedFilters.length <= MIN_NUM_FILTERS}
+              onClick={deleteSelectedFilter}
+            >
+              Delete band
+            </button>
+          </div>
+        )}
       </div>
     </>
   );

@@ -30,6 +30,7 @@ interface ISliderProps {
   isDisabled?: boolean;
   sliderHeight?: string;
   label?: string;
+  showNumberInput?: boolean;
   setValue: (newValue: number) => Promise<void>;
 }
 
@@ -40,6 +41,7 @@ const Slider = ({
   value,
   sliderHeight = '150px',
   label,
+  showNumberInput = true,
   isDisabled = false,
   setValue,
 }: ISliderProps) => {
@@ -57,7 +59,7 @@ const Slider = ({
     async (newValue: number) => {
       await setValue(newValue);
     },
-    [setValue]
+    [setValue],
   );
 
   const handleInput = async (newValue: number) => {
@@ -80,16 +82,18 @@ const Slider = ({
         displayPrecision={2}
       />
       {label && <div>{label}</div>}
-      <NumberInput
-        name={`${name}-number`}
-        value={sliderValue}
-        min={min}
-        max={max}
-        handleSubmit={handleInput}
-        isDisabled={isDisabled || !!globalError}
-        floatPrecision={2}
-        showArrows
-      />
+      {showNumberInput && (
+        <NumberInput
+          name={`${name}-number`}
+          value={sliderValue}
+          min={min}
+          max={max}
+          handleSubmit={handleInput}
+          isDisabled={isDisabled || !!globalError}
+          floatPrecision={2}
+          showArrows
+        />
+      )}
     </div>
   );
 };

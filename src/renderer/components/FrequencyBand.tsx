@@ -35,7 +35,6 @@ import {
   useMemo,
   useState,
   WheelEvent,
-  CSSProperties,
   useCallback,
   useEffect,
 } from 'react';
@@ -57,12 +56,22 @@ import '../styles/FrequencyBand.scss';
 interface IFrequencyBandProps {
   filter: IFilter;
   isMinSliderCount: boolean;
-  style?: CSSProperties;
+  density?: 'full' | 'compact' | 'dense';
+  flatLayout?: boolean;
+  isSelected?: boolean;
+  onSelect?: () => void;
 }
 
 const FrequencyBand = forwardRef(
   (
-    { filter, isMinSliderCount, style }: IFrequencyBandProps,
+    {
+      filter,
+      isMinSliderCount,
+      density = 'full',
+      flatLayout = false,
+      isSelected = false,
+      onSelect,
+    }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
     const INTERVAL = 100;
@@ -224,39 +233,65 @@ const FrequencyBand = forwardRef(
         : offset * -1; // scroll down
     };
 
-    const sliderHeight = useMemo(
-      // Manually determine slider height
-      () => (isGraphViewOn ? '80px' : 'calc(100vh - 465px)'),
-      [isGraphViewOn],
-    );
+    const sliderHeight = useMemo(() => {
+      if (!isGraphViewOn) {
+        return 'clamp(140px, calc(100vh - 465px), 240px)';
+      }
+      if (density === 'dense') {
+        return '96px';
+      }
+      return density === 'compact' ? '90px' : '72px';
+    }, [density, isGraphViewOn]);
 
     return (
       // Need to specify the id here for the sorting to work
-      <div ref={ref} id={filter.id} className="col bandWrapper" style={style}>
-        <IconButton
-          icon={IconName.TRASH}
-          className="removeFilter"
-          handleClick={onRemoveEqualizerSlider}
-          isDisabled={isRemoveDisabled}
-        />
+      <div
+        ref={ref}
+        id={filter.id}
+        className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}`}
+        title={`${frequencyValue} Hz / ${filter.gain.toFixed(2)} dB / Q ${qualityValue.toFixed(2)}`}
+      >
+        {!flatLayout && (
+          <IconButton
+            icon={IconName.TRASH}
+            className="removeFilter"
+            handleClick={onRemoveEqualizerSlider}
+            isDisabled={isRemoveDisabled}
+          />
+        )}
         <div className="col band">
-          <Dropdown
-            name={`${frequencyValue}-filter-type`}
-            value={filter.type}
-            options={FILTER_OPTIONS}
-            isDisabled={!!globalError}
-            handleChange={handleFilterTypeSubmit}
-          />
-          <NumberInput
-            value={frequencyValue}
-            min={MIN_FREQUENCY}
-            max={MAX_FREQUENCY}
-            name={`${frequencyValue}-frequency`}
-            isDisabled={!!globalError}
-            showArrows
-            handleSubmit={handleFrequencySubmit}
-            onWheelValueChange={onWheelFrequency}
-          />
+          {!flatLayout && density !== 'dense' && (
+            <Dropdown
+              name={`${frequencyValue}-filter-type`}
+              value={filter.type}
+              options={FILTER_OPTIONS}
+              isDisabled={!!globalError}
+              handleChange={handleFilterTypeSubmit}
+            />
+          )}
+          {!flatLayout && density === 'full' ? (
+            <NumberInput
+              value={frequencyValue}
+              min={MIN_FREQUENCY}
+              max={MAX_FREQUENCY}
+              name={`${frequencyValue}-frequency`}
+              isDisabled={!!globalError}
+              showArrows
+              handleSubmit={handleFrequencySubmit}
+              onWheelValueChange={onWheelFrequency}
+            />
+          ) : (
+            <button
+              type="button"
+              className="band-frequency-caption"
+              aria-label={`Edit ${frequencyValue} Hz band`}
+              onClick={onSelect}
+            >
+              {frequencyValue >= 1000
+                ? `${Number((frequencyValue / 1000).toFixed(1))}k`
+                : frequencyValue}
+            </button>
+          )}
           <div className="col center slider">
             <Slider
               name={`${frequencyValue}-gain`}
@@ -266,18 +301,27 @@ const FrequencyBand = forwardRef(
               sliderHeight={sliderHeight}
               setValue={handleGainSubmit}
               isDisabled={isGainDisabled}
+              showNumberInput={!flatLayout && density === 'full'}
             />
           </div>
-          <NumberInput
-            value={qualityValue}
-            min={MIN_QUALITY}
-            max={MAX_QUALITY}
-            name={`${frequencyValue}-quality`}
-            isDisabled={!!globalError}
-            floatPrecision={2}
-            showArrows
-            handleSubmit={handleQualitySubmit}
-          />
+          {(flatLayout || density !== 'full') && (
+            <span className="band-gain-caption">
+              {filter.gain > 0 ? '+' : ''}
+              {filter.gain.toFixed(1)}
+            </span>
+          )}
+          {!flatLayout && density === 'full' && (
+            <NumberInput
+              value={qualityValue}
+              min={MIN_QUALITY}
+              max={MAX_QUALITY}
+              name={`${frequencyValue}-quality`}
+              isDisabled={!!globalError}
+              floatPrecision={2}
+              showArrows
+              handleSubmit={handleQualitySubmit}
+            />
+          )}
         </div>
       </div>
     );

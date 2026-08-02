@@ -90,6 +90,168 @@ $filter-dropdown-width: 52px;
   }
 }
 
+.bands .bandWrapper {
+  position: relative;
+  top: auto;
+  width: auto;
+  min-width: 0;
+  height: 100%;
+  padding: 4px 2px;
+  transform: none !important;
+  border-radius: 10px;
+
+  &.is-selected {
+    background: linear-gradient(
+      180deg,
+      rgba($secondary-default, 0.12),
+      rgba($secondary-default, 0.025)
+    );
+    box-shadow: inset 0 0 0 1px rgba($secondary-light, 0.18);
+  }
+
+  .band {
+    width: 100%;
+    height: 100%;
+    align-items: center;
+    justify-content: flex-start;
+
+    &::before,
+    &::after {
+      display: none;
+    }
+  }
+
+  .dropdown,
+  .number-input,
+  .slider {
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+  }
+
+  .dropdown [role='menu'] {
+    width: min(56px, calc(100% - 4px));
+  }
+
+  .number-input .input-wrapper {
+    max-width: calc(100% - 4px);
+  }
+
+  .number-input input[type='text'] {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .range {
+    width: 100%;
+  }
+
+  .removeFilter {
+    top: -5px;
+    right: 50%;
+    z-index: 5;
+    width: 18px;
+    height: 18px;
+    transform: translateX(50%);
+  }
+}
+
+.band-frequency-caption,
+.band-gain-caption {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  color: rgba($primary-lighter, 0.82);
+  font-size: 0.61rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  line-height: 18px;
+  text-overflow: clip;
+  white-space: nowrap;
+}
+
+button.band-frequency-caption {
+  padding: 0 3px;
+  border: 0;
+  border-radius: 5px;
+  background: transparent;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $secondary-light;
+    outline: 1px solid rgba($secondary-light, 0.3);
+  }
+}
+
+.band-gain-caption {
+  color: rgba($secondary-light, 0.86);
+  font-size: 0.55rem;
+}
+
+.bandWrapper--compact {
+  .band {
+    gap: 3px;
+  }
+
+  .dropdown [role='menu'] {
+    min-height: 28px;
+    padding: 4px 5px;
+
+    svg {
+      width: 27px;
+    }
+  }
+
+  .band-gain-caption {
+    font-size: 0.61rem;
+  }
+}
+
+.bands--full .bandWrapper {
+  padding-top: 12px;
+}
+
+.bandWrapper--dense {
+  padding-inline: 0;
+  border-radius: 5px;
+
+  .band {
+    gap: 1px;
+  }
+
+  .range input[type='range']::-webkit-slider-thumb {
+    width: 13px;
+    height: 13px;
+    margin-top: -5px;
+    border-width: 1px;
+  }
+
+  .removeFilter {
+    width: 15px;
+    height: 15px;
+  }
+
+  &:hover,
+  &:focus-within {
+    background: linear-gradient(
+      180deg,
+      rgba($secondary-default, 0.075),
+      rgba($secondary-default, 0.02)
+    );
+  }
+}
+
+@media (max-width: 760px) {
+  .bands .bandWrapper {
+    padding-inline: 1px;
+  }
+
+  .band-frequency-caption {
+    font-size: 0.52rem;
+  }
+}
+
 .bandWrapper {
   top: 6px;
   width: 68px;

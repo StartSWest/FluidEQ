@@ -44,12 +44,12 @@ describe('FrequencyBand', () => {
     setup(
       <AquaProviderWrapper value={defaultAquaContext}>
         <FrequencyBand filter={filter} isMinSliderCount={false} />
-      </AquaProviderWrapper>
+      </AquaProviderWrapper>,
     );
     expect(screen.getByLabelText(filterTypeDropdownLabel)).toBeInTheDocument();
     expect(screen.getByLabelText(trashIconLabel)).not.toHaveAttribute(
       'aria-disabled',
-      'true'
+      'true',
     );
   });
 
@@ -60,8 +60,8 @@ describe('FrequencyBand', () => {
           .filter(
             (filterType) =>
               !NO_GAIN_FILTER_TYPES.some(
-                (noGainFilterType) => noGainFilterType === filterType
-              )
+                (noGainFilterType) => noGainFilterType === filterType,
+              ),
           )
           .map((filterType) => {
             return (
@@ -72,7 +72,7 @@ describe('FrequencyBand', () => {
               />
             );
           })}
-      </AquaProviderWrapper>
+      </AquaProviderWrapper>,
     );
     const gainNumberInputs = screen.getAllByLabelText(filterGainNumberLabel);
     gainNumberInputs.forEach((input) => expect(input).not.toBeDisabled());
@@ -90,7 +90,7 @@ describe('FrequencyBand', () => {
             isMinSliderCount={false}
           />
         ))}
-      </AquaProviderWrapper>
+      </AquaProviderWrapper>,
     );
     const gainNumberInputs = screen.getAllByLabelText(filterGainNumberLabel);
     gainNumberInputs.forEach((input) => expect(input).toBeDisabled());
@@ -102,11 +102,34 @@ describe('FrequencyBand', () => {
     setup(
       <AquaProviderWrapper value={defaultAquaContext}>
         <FrequencyBand filter={filter} isMinSliderCount />
-      </AquaProviderWrapper>
+      </AquaProviderWrapper>,
     );
     expect(screen.getByLabelText(trashIconLabel)).toHaveAttribute(
       'aria-disabled',
-      'true'
+      'true',
     );
+  });
+
+  it('keeps the gain slider usable in dense layouts without wide inputs', () => {
+    const { container } = setup(
+      <AquaProviderWrapper value={defaultAquaContext}>
+        <FrequencyBand
+          filter={filter}
+          isMinSliderCount={false}
+          density="dense"
+          flatLayout
+        />
+      </AquaProviderWrapper>,
+    );
+
+    expect(container.querySelector('.bandWrapper--dense')).toBeInTheDocument();
+    expect(screen.getByLabelText(filterGainRangeLabel)).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(filterGainNumberLabel),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(filterTypeDropdownLabel),
+    ).not.toBeInTheDocument();
+    expect(screen.queryByLabelText(trashIconLabel)).not.toBeInTheDocument();
   });
 });
