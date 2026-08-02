@@ -76,8 +76,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 100%;
     width: 100%;
 
-    // Keep scrollbar visible to prevent filters' container height from changing
-    overflow-x: scroll;
+    // Allow horizontal scrolling only when the selected layout needs it.
+    overflow-x: auto;
     overflow-y: hidden;
   }
 }
@@ -153,7 +153,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .bands {
     padding-inline: 8px;
     scroll-behavior: smooth;
-    scrollbar-gutter: stable;
+    scrollbar-gutter: auto;
   }
 }
 
