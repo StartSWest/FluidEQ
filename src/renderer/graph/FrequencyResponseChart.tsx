@@ -16,7 +16,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { IFiltersMap, IFilter, MAX_GAIN, MIN_GAIN } from 'common/constants';
+import {
+  IFiltersMap,
+  IFilter,
+  MAX_FREQUENCY,
+  MAX_GAIN,
+  MAX_QUALITY,
+  MIN_FREQUENCY,
+  MIN_GAIN,
+  MIN_QUALITY,
+} from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import {
   useCallback,
@@ -27,11 +36,21 @@ import {
   useState,
 } from 'react';
 import Spinner from 'renderer/icons/Spinner';
-import { useAquaContext } from 'renderer/utils/AquaContext';
-import { setMainPreAmp } from 'renderer/utils/equalizerApi';
+import { FilterActionEnum, useAquaContext } from 'renderer/utils/AquaContext';
+import {
+  setFrequency,
+  setGain,
+  setMainPreAmp,
+  setQuality,
+} from 'renderer/utils/equalizerApi';
 import { clamp, useThrottleAndExecuteLatest } from 'renderer/utils/utils';
 import Chart, { ChartDimensions } from './Chart';
-import { IChartCurveData, IChartLineDataPointsById } from './ChartController';
+import {
+  IChartCurveData,
+  IChartLineDataPointsById,
+  IChartPointData,
+  IEditableChartPoint,
+} from './ChartController';
 import { getFilterLineData, getCombinedLineData } from './utils';
 import { ColorEnum, GrayScaleEnum } from '../styles/color';
 import { useLiveAudio } from '../audio/LiveAudioContext';
@@ -54,6 +73,10 @@ interface IGraphData {
   autoPreAmpValue: number;
 }
 
+type PendingPointEdit = Partial<
+  Pick<IFilter, 'frequency' | 'gain' | 'quality'>
+>;
+
 const FrequencyResponseChart = () => {
   const liveOutput = useLiveAudio();
   const {
@@ -66,10 +89,116 @@ const FrequencyResponseChart = () => {
     preAmp,
     setGlobalError,
     setPreAmp,
+    dispatchFilter,
+    selectedFilterId,
+    setSelectedFilterId,
   } = useAquaContext();
   const prevFilters = useRef<IFiltersMap>({});
   const prevFilterLines = useRef<IChartLineDataPointsById>({});
+  const pendingPointEdits = useRef<Record<string, PendingPointEdit>>({});
+  const pointEditTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {},
+  );
   const [isBalancing, setIsBalancing] = useState(false);
+
+  const flushPointEdit = useCallback(
+    async (filterId: string) => {
+      const timer = pointEditTimers.current[filterId];
+      if (timer) {
+        clearTimeout(timer);
+        delete pointEditTimers.current[filterId];
+      }
+      const edit = pendingPointEdits.current[filterId];
+      if (!edit) {
+        return;
+      }
+      delete pendingPointEdits.current[filterId];
+
+      try {
+        // Send the latest values in one ordered batch so APO never sees a
+        // half-updated point while it is being dragged.
+        if (edit.frequency !== undefined) {
+          await setFrequency(filterId, edit.frequency);
+        }
+        if (edit.gain !== undefined) {
+          await setGain(filterId, edit.gain);
+        }
+        if (edit.quality !== undefined) {
+          await setQuality(filterId, edit.quality);
+        }
+      } catch (error) {
+        setGlobalError(error as ErrorDescription);
+      }
+    },
+    [setGlobalError],
+  );
+
+  const queuePointEdit = useCallback(
+    (filterId: string, edit: PendingPointEdit) => {
+      pendingPointEdits.current[filterId] = {
+        ...pendingPointEdits.current[filterId],
+        ...edit,
+      };
+      if (!pointEditTimers.current[filterId]) {
+        pointEditTimers.current[filterId] = setTimeout(() => {
+          flushPointEdit(filterId);
+        }, 90);
+      }
+    },
+    [flushPointEdit],
+  );
+
+  const handlePointMove = useCallback(
+    (filterId: string, point: IChartPointData) => {
+      const frequency = Math.max(
+        MIN_FREQUENCY,
+        Math.min(MAX_FREQUENCY, Math.round(point.x)),
+      );
+      const gain =
+        Math.round(Math.max(MIN_GAIN, Math.min(MAX_GAIN, point.y)) * 100) / 100;
+      dispatchFilter({
+        type: FilterActionEnum.FREQUENCY,
+        id: filterId,
+        newValue: frequency,
+      });
+      dispatchFilter({
+        type: FilterActionEnum.GAIN,
+        id: filterId,
+        newValue: gain,
+      });
+      queuePointEdit(filterId, { frequency, gain });
+    },
+    [dispatchFilter, queuePointEdit],
+  );
+
+  const handlePointQualityWheel = useCallback(
+    (filterId: string, direction: number) => {
+      const filter = filters[filterId];
+      if (!filter) {
+        return;
+      }
+      let step = 1;
+      if (filter.quality < 1) {
+        step = 0.05;
+      } else if (filter.quality < 10) {
+        step = 0.1;
+      }
+      const quality =
+        Math.round(
+          Math.max(
+            MIN_QUALITY,
+            Math.min(MAX_QUALITY, filter.quality + direction * step),
+          ) * 100,
+        ) / 100;
+      dispatchFilter({
+        type: FilterActionEnum.QUALITY,
+        id: filterId,
+        newValue: quality,
+      });
+      queuePointEdit(filterId, { quality });
+    },
+    [dispatchFilter, filters, queuePointEdit],
+  );
 
   const { chartData, autoPreAmpValue }: IGraphData = useMemo(() => {
     const updatedFilterLines: IChartLineDataPointsById = {};
@@ -245,6 +374,31 @@ const FrequencyResponseChart = () => {
     [chartData, liveOutput.points],
   );
 
+  const editablePoints: IEditableChartPoint[] = useMemo(
+    () =>
+      Object.values(filters).map((filter) => ({
+        id: filter.id,
+        name: `${filter.type} band`,
+        data: { x: filter.frequency, y: filter.gain },
+        selected: selectedFilterId === filter.id,
+        onSelect: () => setSelectedFilterId(filter.id),
+        onChange: (point: IChartPointData) => handlePointMove(filter.id, point),
+        onCommit: () => {
+          flushPointEdit(filter.id);
+        },
+        onQualityWheel: (direction: number) =>
+          handlePointQualityWheel(filter.id, direction),
+      })),
+    [
+      filters,
+      flushPointEdit,
+      handlePointMove,
+      handlePointQualityWheel,
+      selectedFilterId,
+      setSelectedFilterId,
+    ],
+  );
+
   return isGraphViewOn ? (
     <div className="graph-wrapper" ref={ref}>
       <div className="live-output-controls">
@@ -263,6 +417,7 @@ const FrequencyResponseChart = () => {
         <span className="graph-legend graph-legend--live">
           Live output (dBFS)
         </span>
+        <span className="graph-edit-hint">Drag points · Ctrl+scroll: Q</span>
         <button
           type="button"
           onClick={liveOutput.isActive ? liveOutput.stop : liveOutput.start}
@@ -289,7 +444,11 @@ const FrequencyResponseChart = () => {
           <Spinner />
         </div>
       ) : (
-        <Chart data={displayData} dimensions={dimensions} />
+        <Chart
+          data={displayData}
+          dimensions={dimensions}
+          editablePoints={editablePoints}
+        />
       )}
     </div>
   ) : null;

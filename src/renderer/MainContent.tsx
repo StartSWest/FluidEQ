@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, useMemo, useState } from 'react';
+import { CSSProperties, useEffect, useMemo } from 'react';
 import {
   FilterTypeEnum,
   FixedBandSizeEnum,
@@ -48,12 +48,19 @@ import {
 } from './utils/equalizerApi';
 import Dropdown from './widgets/Dropdown';
 import NumberInput from './widgets/NumberInput';
+import Knob from './widgets/Knob';
 import { FILTER_OPTIONS } from './icons/FilterTypeIcon';
 
 const MainContent = () => {
-  const { filters, isLoading, globalError, dispatchFilter, setGlobalError } =
-    useAquaContext();
-  const [selectedFilterId, setSelectedFilterId] = useState('');
+  const {
+    filters,
+    isLoading,
+    globalError,
+    dispatchFilter,
+    setGlobalError,
+    selectedFilterId,
+    setSelectedFilterId,
+  } = useAquaContext();
 
   const frequencySortedFilters = useMemo(
     () => Object.values(filters).sort(sortHelper),
@@ -74,6 +81,15 @@ const MainContent = () => {
     () => filters[selectedFilterId] ?? frequencySortedFilters[0] ?? undefined,
     [filters, frequencySortedFilters, selectedFilterId],
   );
+
+  useEffect(() => {
+    if (
+      (!selectedFilterId || !filters[selectedFilterId]) &&
+      frequencySortedFilters[0]
+    ) {
+      setSelectedFilterId(frequencySortedFilters[0].id);
+    }
+  }, [filters, frequencySortedFilters, selectedFilterId, setSelectedFilterId]);
 
   const updateSelectedFilter = async (
     action: () => Promise<void>,
@@ -308,15 +324,14 @@ const MainContent = () => {
             </div>
             <div className="eq-flat-editor__control">
               <span>Quality (Q)</span>
-              <NumberInput
+              <Knob
                 name="selected-band-quality"
                 value={selectedFilter.quality}
                 min={MIN_QUALITY}
                 max={MAX_QUALITY}
                 isDisabled={false}
-                floatPrecision={2}
-                showArrows
-                handleSubmit={(newValue) =>
+                step={0.01}
+                handleChange={(newValue) =>
                   updateSelectedFilter(
                     () => setQuality(selectedFilter.id, newValue),
                     {

@@ -49,9 +49,7 @@ export enum FilterActionEnum {
 }
 
 type NumericalFilterAction =
-  | FilterActionEnum.FREQUENCY
-  | FilterActionEnum.GAIN
-  | FilterActionEnum.QUALITY;
+  FilterActionEnum.FREQUENCY | FilterActionEnum.GAIN | FilterActionEnum.QUALITY;
 
 export type FilterAction =
   | { type: FilterActionEnum.INIT; filters: IFiltersMap }
@@ -72,6 +70,9 @@ export interface IAquaContext extends IState {
   setAutoPreAmpOn: (newValue: boolean) => void;
   setGraphViewOn: (newValue: boolean) => void;
   setPreAmp: (newValue: number) => void;
+  /** Filter currently selected in the EQ editor and response graph. */
+  selectedFilterId: string;
+  setSelectedFilterId: (newValue: string) => void;
   dispatchFilter: FilterDispatch;
 }
 
@@ -79,12 +80,12 @@ const AquaContext = createContext<IAquaContext | undefined>(undefined);
 
 type IFilterReducer = (
   filters: IFiltersMap,
-  action: FilterAction
+  action: FilterAction,
 ) => IFiltersMap;
 
 const filterReducer: IFilterReducer = (
   filters: IFiltersMap,
-  action: FilterAction
+  action: FilterAction,
 ) => {
   switch (action.type) {
     case FilterActionEnum.INIT:
@@ -162,18 +163,19 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
 
   const [isEnabled, setIsEnabled] = useState<boolean>(DEFAULT_STATE.isEnabled);
   const [isAutoPreAmpOn, setAutoPreAmpOn] = useState<boolean>(
-    DEFAULT_STATE.isAutoPreAmpOn
+    DEFAULT_STATE.isAutoPreAmpOn,
   );
   const [isGraphViewOn, setIsGraphViewOn] = useState<boolean>(
-    DEFAULT_STATE.isGraphViewOn
+    DEFAULT_STATE.isGraphViewOn,
   );
   const [isCaseSensitiveFs, setIsCaseSensitiveFs] = useState<boolean>(
-    DEFAULT_STATE.isCaseSensitiveFs
+    DEFAULT_STATE.isCaseSensitiveFs,
   );
   const [preAmp, setPreAmp] = useState<number>(DEFAULT_STATE.preAmp);
+  const [selectedFilterId, setSelectedFilterId] = useState<string>('');
   const [filters, dispatchFilter] = useReducer(
     filterReducer,
-    DEFAULT_STATE.filters
+    DEFAULT_STATE.filters,
   );
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -222,6 +224,8 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
         setAutoPreAmpOn,
         setGraphViewOn,
         setPreAmp,
+        selectedFilterId,
+        setSelectedFilterId,
         dispatchFilter,
       }}
     >

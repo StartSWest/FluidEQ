@@ -54,6 +54,17 @@ export interface IChartCurveData {
   controlPoint?: IChartPointData;
 }
 
+export interface IEditableChartPoint {
+  id: string;
+  name: string;
+  data: IChartPointData;
+  selected: boolean;
+  onSelect: () => void;
+  onChange: (data: IChartPointData) => void;
+  onCommit: () => void;
+  onQualityWheel: (direction: number) => void;
+}
+
 interface IChartControllerProps {
   data: IChartCurveData[];
   width: number;

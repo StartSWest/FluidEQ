@@ -16,13 +16,18 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useMemo } from 'react';
+import { useMemo, useRef } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { ColorEnum } from '../styles/color';
 import Axis from './Axis';
 import GridLine from './GridLine';
-import useController, { IChartCurveData, IMarginLike } from './ChartController';
+import useController, {
+  IChartCurveData,
+  IEditableChartPoint,
+  IMarginLike,
+} from './ChartController';
 import Curve from './Curve';
+import EditablePoint from './EditablePoint';
 
 export interface ChartDimensions {
   height: number;
@@ -33,9 +38,10 @@ export interface ChartDimensions {
 interface IChartProps {
   data: IChartCurveData[];
   dimensions: ChartDimensions;
+  editablePoints?: IEditableChartPoint[];
 }
 
-const Chart = ({ data = [], dimensions }: IChartProps) => {
+const Chart = ({ data = [], dimensions, editablePoints = [] }: IChartProps) => {
   const { width, height, margins } = dimensions;
   const svgWidth = useMemo(
     () => Math.max(width - margins.left - margins.right, 0),
@@ -78,9 +84,11 @@ const Chart = ({ data = [], dimensions }: IChartProps) => {
     height: svgHeight,
     padding,
   });
+  const svgRef = useRef<SVGSVGElement>(null);
 
   return (
     <svg
+      ref={svgRef}
       width={svgWidth}
       height={svgHeight}
       style={{
@@ -121,6 +129,15 @@ const Chart = ({ data = [], dimensions }: IChartProps) => {
       />
       {data.map((e: IChartCurveData) => (
         <Curve key={e.id} data={e} xScale={xScaleFreq} yScale={yScaleGain} />
+      ))}
+      {editablePoints.map((point) => (
+        <EditablePoint
+          key={point.id}
+          point={point}
+          svgRef={svgRef}
+          xScale={xScaleFreq}
+          yScale={yScaleGain}
+        />
       ))}
       <clipPath id="chart-clip-path">
         <rect x={padding.left} width={chartWidth} height={chartHeight} />

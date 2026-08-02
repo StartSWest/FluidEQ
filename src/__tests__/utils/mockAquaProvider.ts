@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { getDefaultState } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import { FilterAction, IAquaContext } from 'renderer/utils/AquaContext';
@@ -38,6 +37,8 @@ const defaultAquaContext: IAquaContext = {
   setAutoPreAmpOn: (_newValue: boolean) => {},
   setGraphViewOn: (_newValue: boolean) => {},
   setPreAmp: (_newValue: number) => {},
+  selectedFilterId: '',
+  setSelectedFilterId: (_newValue: string) => {},
   dispatchFilter: (_action: FilterAction) => {},
 };
 

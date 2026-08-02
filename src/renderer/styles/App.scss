@@ -334,6 +334,51 @@ body {
   background: $complementary;
 }
 
+.graph-edit-hint {
+  color: rgba($primary-lighter, 0.68);
+  font-size: 0.6rem;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+
+.graph-edit-point {
+  outline: none;
+
+  &__halo {
+    fill: rgba($secondary-default, 0.12);
+    stroke: rgba($secondary-light, 0.3);
+    stroke-width: 1;
+    transition:
+      r 120ms ease,
+      fill 120ms ease,
+      stroke 120ms ease;
+  }
+
+  &__dot {
+    fill: $secondary-light;
+    stroke: rgba($white, 0.9);
+    stroke-width: 1.5;
+    filter: drop-shadow(0 0 5px rgba($secondary-default, 0.8));
+    transition:
+      r 120ms ease,
+      fill 120ms ease;
+  }
+
+  &:hover,
+  &:focus-visible,
+  &--selected {
+    .graph-edit-point__halo {
+      fill: rgba($secondary-default, 0.24);
+      stroke: $secondary-light;
+    }
+
+    .graph-edit-point__dot {
+      fill: $white;
+      filter: drop-shadow(0 0 9px rgba($secondary-light, 0.95));
+    }
+  }
+}
+
 .live-output-error {
   max-width: 240px;
   color: $red;
