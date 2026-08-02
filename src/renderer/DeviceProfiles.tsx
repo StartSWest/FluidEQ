@@ -7,17 +7,12 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import {
-  ChangeEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { IAudioDevice, IDeviceProfileSettings } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import Button from './widgets/Button';
+import Dropdown from './widgets/Dropdown';
+import { IOptionEntry } from './widgets/List';
 import { useAquaContext } from './utils/AquaContext';
 import {
   assignDeviceProfile,
@@ -57,16 +52,15 @@ const DeviceProfiles = () => {
       setPresets(nextPresets);
       setSettings(nextSettings);
       const activeDevice = nextDevices.find((device) => device.isDefault);
-      if (
-        activeDevice &&
-        activeDevice.id !== activeDeviceIdRef.current
-      ) {
+      if (activeDevice && activeDevice.id !== activeDeviceIdRef.current) {
         activeDeviceIdRef.current = activeDevice.id;
         setSelectedDeviceId(activeDevice.id);
         performHealthCheck();
       }
       setSelectedDeviceId((current) => {
-        if (nextDevices.some((device) => device.id === current)) return current;
+        if (nextDevices.some((device) => device.id === current)) {
+          return current;
+        }
         return (
           nextDevices.find((device) => device.isDefault)?.id ||
           nextDevices[0]?.id ||
@@ -86,7 +80,7 @@ const DeviceProfiles = () => {
 
   const selectedDevice = useMemo(
     () => devices.find((device) => device.id === selectedDeviceId),
-    [devices, selectedDeviceId]
+    [devices, selectedDeviceId],
   );
   const assignedPreset = selectedDeviceId
     ? settings.assignments[selectedDeviceId]?.presetName || ''
@@ -96,8 +90,7 @@ const DeviceProfiles = () => {
     setSelectedPreset(assignedPreset);
   }, [assignedPreset, selectedDeviceId]);
 
-  const handleDeviceChange = async (event: ChangeEvent<HTMLSelectElement>) => {
-    const deviceId = event.target.value;
+  const handleDeviceChange = async (deviceId: string) => {
     setIsBusy(true);
     try {
       await setDefaultAudioDevice(deviceId);
@@ -110,12 +103,41 @@ const DeviceProfiles = () => {
     }
   };
 
-  const handlePresetChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedPreset(event.target.value);
+  const handlePresetChange = (presetName: string) => {
+    setSelectedPreset(presetName);
   };
 
+  const deviceOptions: IOptionEntry[] = useMemo(
+    () =>
+      devices.map((device) => ({
+        value: device.id,
+        label: device.name,
+        display: (
+          <div className="device-option">
+            <span
+              className={device.isDefault ? 'device-dot active' : 'device-dot'}
+            />
+            <span>{device.name}</span>
+          </div>
+        ),
+      })),
+    [devices],
+  );
+
+  const presetOptions: IOptionEntry[] = useMemo(
+    () =>
+      presets.map((preset) => ({
+        value: preset,
+        label: preset,
+        display: <div>{preset}</div>,
+      })),
+    [presets],
+  );
+
   const handleAssign = async () => {
-    if (!selectedDevice || !selectedPreset) return;
+    if (!selectedDevice || !selectedPreset) {
+      return;
+    }
     setIsBusy(true);
     try {
       await assignDeviceProfile({
@@ -137,7 +159,9 @@ const DeviceProfiles = () => {
   };
 
   const handleRemove = async () => {
-    if (!selectedDeviceId) return;
+    if (!selectedDeviceId) {
+      return;
+    }
     setIsBusy(true);
     try {
       await removeDeviceProfile(selectedDeviceId);
@@ -166,35 +190,26 @@ const DeviceProfiles = () => {
         )}
       </div>
 
-      <label htmlFor="audio-device">Output device</label>
-      <select
-        id="audio-device"
+      <span className="device-profiles__label">Output device</span>
+      <Dropdown
+        name="Output device"
+        options={deviceOptions}
         value={selectedDeviceId}
-        onChange={handleDeviceChange}
-        disabled={!!globalError || isBusy}
-      >
-        {devices.map((device) => (
-          <option key={device.id} value={device.id}>
-            {device.isDefault ? '● ' : ''}
-            {device.name}
-          </option>
-        ))}
-      </select>
+        handleChange={handleDeviceChange}
+        isDisabled={!!globalError || isBusy || devices.length === 0}
+        emptyOptionsPlaceholder="No active outputs found"
+      />
 
-      <label htmlFor="device-preset">Profile for this output</label>
-      <select
-        id="device-preset"
+      <span className="device-profiles__label">Profile for this output</span>
+      <Dropdown
+        name="Profile for this output"
+        options={presetOptions}
         value={selectedPreset}
-        onChange={handlePresetChange}
-        disabled={!!globalError || isBusy || presets.length === 0}
-      >
-        <option value="">Choose a named profile…</option>
-        {presets.map((preset) => (
-          <option key={preset} value={preset}>
-            {preset}
-          </option>
-        ))}
-      </select>
+        handleChange={handlePresetChange}
+        isDisabled={!!globalError || isBusy || presets.length === 0}
+        noSelectionPlaceholder="Choose a named profile..."
+        emptyOptionsPlaceholder="Create a named profile first"
+      />
 
       <div className="device-profiles__actions">
         <Button

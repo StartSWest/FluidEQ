@@ -72,6 +72,8 @@ export const NO_GAIN_FILTER_TYPES = [
 export const WINDOW_WIDTH = 1428;
 export const WINDOW_HEIGHT = 625;
 export const WINDOW_HEIGHT_EXPANDED = 1036;
+export const WINDOW_MIN_WIDTH = 720;
+export const WINDOW_MIN_HEIGHT = 620;
 
 export const PREAMP_REGEX = /^Preamp: (-?\d+(?:\.\d+)?) dB$/;
 export const FILTER_REGEX =
@@ -184,7 +186,7 @@ export const getDefaultFilterWithId = (): IFilter => {
 };
 
 export const getDefaultFilters = (
-  size: FixedBandSizeEnum = FixedBandSizeEnum.TEN
+  size: FixedBandSizeEnum = FixedBandSizeEnum.TEN,
 ): IFiltersMap => {
   const filters: IFiltersMap = {};
   FIXED_BAND_FREQUENCIES[size].forEach((f) => {

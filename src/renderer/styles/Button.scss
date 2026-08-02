@@ -50,3 +50,52 @@ $button-height: 100px;
     fill: $primary-dark;
   }
 }
+
+.button {
+  min-height: 36px;
+  margin: 0;
+  border: 1px solid rgba($secondary-light, 0.38);
+  border-radius: 11px;
+  background: linear-gradient(135deg, $secondary-light, $secondary-default 70%);
+  box-shadow:
+    0 8px 22px rgba($secondary-default, 0.12),
+    inset 0 1px 0 rgba($white, 0.36);
+  font-weight: 700;
+  transition:
+    transform 150ms ease,
+    filter 150ms ease,
+    box-shadow 150ms ease;
+
+  &:hover:not([aria-disabled='true']) {
+    transform: translateY(-1px);
+    filter: brightness(1.06);
+    box-shadow:
+      0 11px 28px rgba($secondary-default, 0.2),
+      inset 0 1px 0 rgba($white, 0.42);
+  }
+
+  &:active:not([aria-disabled='true']) {
+    transform: translateY(0);
+  }
+
+  &[aria-disabled='true'] {
+    border-color: rgba($primary-lighter, 0.08);
+    background: rgba($primary-light, 0.55);
+    box-shadow: none;
+    opacity: 0.48;
+  }
+
+  &.small {
+    min-height: 32px;
+    padding: 7px 11px;
+    border-radius: 9px;
+    font-size: 0.72rem;
+  }
+
+  &.subtle {
+    color: $secondary-light;
+    border-color: rgba($secondary-light, 0.24);
+    background: rgba($secondary-default, 0.07);
+    box-shadow: none;
+  }
+}

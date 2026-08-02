@@ -28,6 +28,6 @@ npm-debug.log.*
 *.sass.d.ts
 *.scss.d.ts
 
-# eslint ignores hidden directories by default:
-# https://github.com/eslint/eslint/issues/8429
-!.erb
+# Build tooling is transpiled and verified by the production build. It is not
+# part of the application TypeScript project used by ESLint.
+.erb

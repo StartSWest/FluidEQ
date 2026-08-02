@@ -57,7 +57,7 @@ type IPresetReducer = (presetNames: string[], action: PresetAction) => string[];
 
 const presetReducer: IPresetReducer = (
   presetNames: string[],
-  action: PresetAction
+  action: PresetAction,
 ) => {
   switch (action.type) {
     case PresetActionEnum.INIT:
@@ -68,7 +68,7 @@ const presetReducer: IPresetReducer = (
       return presetNames.filter((name) => name !== action.presetName);
     case PresetActionEnum.RENAME:
       return presetNames.map((name) =>
-        name === action.oldName ? action.newName : name
+        name === action.oldName ? action.newName : name,
       );
     default:
       // This throw does not actually do anything because
@@ -101,7 +101,7 @@ const PresetsBar = ({
 
   const isExistingPresetSelected = useMemo(
     () => presetNames.some((n) => n === presetName),
-    [presetName, presetNames]
+    [presetName, presetNames],
   );
 
   // Fetch default presets and custom presets from storage
@@ -182,14 +182,14 @@ const PresetsBar = ({
         presetNames.some(
           (existingName) =>
             newName.toLocaleLowerCase() === existingName.toLocaleLowerCase() &&
-            existingName !== newName
+            existingName !== newName,
         )
       ) {
         return PresetErrorEnum.DUPLICATE;
       }
       return validatePresetName(newName);
     },
-    [isCaseSensitiveFs, presetNames, validatePresetName]
+    [isCaseSensitiveFs, presetNames, validatePresetName],
   );
 
   // Validating a preset rename
@@ -208,12 +208,13 @@ const PresetsBar = ({
         isCaseSensitiveFs
           ? presetNames.some(
               (existingName) =>
-                existingName !== oldName && existingName === newName
+                existingName !== oldName && existingName === newName,
             )
           : presetNames.some(
               (existingName) =>
                 existingName !== oldName &&
-                existingName.toLocaleLowerCase() === newName.toLocaleLowerCase()
+                existingName.toLocaleLowerCase() ===
+                  newName.toLocaleLowerCase(),
             )
       ) {
         return PresetErrorEnum.DUPLICATE;
@@ -221,7 +222,7 @@ const PresetsBar = ({
 
       return validatePresetName(newName);
     },
-    [isCaseSensitiveFs, presetNames, validatePresetName]
+    [isCaseSensitiveFs, presetNames, validatePresetName],
   );
 
   const handleChangeNewPresetName = (newValue: string) => {
@@ -258,7 +259,7 @@ const PresetsBar = ({
         // continue to run, the worst case is that the file still exists and that's all.
       }
     },
-    [deletePreset]
+    [deletePreset],
   );
 
   // Renaming an existing preset
@@ -278,7 +279,7 @@ const PresetsBar = ({
         setGlobalError(e as ErrorDescription);
       }
     },
-    [renamePreset, setGlobalError]
+    [renamePreset, setGlobalError],
   );
 
   const options: IOptionEntry[] = useMemo(() => {
@@ -312,8 +313,8 @@ const PresetsBar = ({
         <h4>Named profiles</h4>
         <p>Save unlimited tunings and attach any one to an output.</p>
       </div>
-      <div className="row">
-        <div className="preset-name">Profile name&nbsp;</div>
+      <div className="profile-compose">
+        <div className="preset-name">Profile name</div>
         <TextInput
           value={presetName}
           ariaLabel="Preset Name"

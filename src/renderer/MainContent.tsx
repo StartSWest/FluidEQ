@@ -44,7 +44,7 @@ const MainContent = () => {
   const [idSortedFilters, freqSortedFilters, sortIndexMap] = useMemo(() => {
     // Obtain a fixed order list of the filters
     const fixedSort = Object.values(filters).sort((a, b) =>
-      a.id.localeCompare(b.id)
+      a.id.localeCompare(b.id),
     );
 
     // Obtain a visually sorted list of the filters
@@ -93,29 +93,32 @@ const MainContent = () => {
           <span className="eyebrow">FINE TUNE</span>
           <h4>Parametric EQ</h4>
         </div>
-        <Button
-          ariaLabel="Clear Gains"
-          isDisabled={false}
-          className="small"
-          handleChange={clearFilterGains}
-        >
-          Reset gains
-        </Button>
-        <div />
-        <h5>Quick layouts</h5>
-        {Object.values(FixedBandSizeEnum)
-          .filter((s) => !Number.isNaN(Number(s)))
-          .map((size) => (
-            <Button
-              key={`${size}-band`}
-              ariaLabel={`${size} Band`}
-              isDisabled={false}
-              className="small"
-              handleChange={handleFixedBand(size as FixedBandSizeEnum)}
-            >
-              {`${size} Band`}
-            </Button>
-          ))}
+        <div className="eq-toolbar">
+          <Button
+            ariaLabel="Clear Gains"
+            isDisabled={false}
+            className="small subtle"
+            handleChange={clearFilterGains}
+          >
+            Reset gains
+          </Button>
+          <div className="quick-layouts">
+            <span>Quick layouts</span>
+            {Object.values(FixedBandSizeEnum)
+              .filter((s) => !Number.isNaN(Number(s)))
+              .map((size) => (
+                <Button
+                  key={`${size}-band`}
+                  ariaLabel={`${size} Band`}
+                  isDisabled={false}
+                  className="small"
+                  handleChange={handleFixedBand(size as FixedBandSizeEnum)}
+                >
+                  {`${size} Band`}
+                </Button>
+              ))}
+          </div>
+        </div>
       </div>
       <div className="main-content">
         <div className="col center band-label">
@@ -155,7 +158,7 @@ const MainContent = () => {
                 <AddSliderDivider
                   newSliderFrequency={computeAvgFreq(
                     freqSortedFilters[sliderIndex],
-                    freqSortedFilters[sliderIndex + 1]
+                    freqSortedFilters[sliderIndex + 1],
                   )}
                   isMaxSliderCount={idSortedFilters.length >= MAX_NUM_FILTERS}
                   // Manually position the divider

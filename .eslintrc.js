@@ -38,6 +38,14 @@ module.exports = {
       files: ['*.js'],
       parserOptions: { project: null },
     },
+    {
+      files: ['*.ts', '*.tsx'],
+      rules: {
+        'no-shadow': 'off',
+        'no-use-before-define': 'off',
+        'no-undef': 'off',
+      },
+    },
   ],
   settings: {
     'import/resolver': {

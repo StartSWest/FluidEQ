@@ -63,7 +63,7 @@ interface IFrequencyBandProps {
 const FrequencyBand = forwardRef(
   (
     { filter, isMinSliderCount, style }: IFrequencyBandProps,
-    ref: ForwardedRef<HTMLDivElement>
+    ref: ForwardedRef<HTMLDivElement>,
   ) => {
     const INTERVAL = 100;
     const { isGraphViewOn, globalError, setGlobalError, dispatchFilter } =
@@ -71,12 +71,12 @@ const FrequencyBand = forwardRef(
     const [isLoading, setIsLoading] = useState(false);
     const isRemoveDisabled = useMemo(
       () => isMinSliderCount || isLoading,
-      [isLoading, isMinSliderCount]
+      [isLoading, isMinSliderCount],
     );
     // Local copy of quality/freq value used so that the number input increases smoothly while throttling EQ APO writes
     const [qualityValue, setQualityValue] = useState<number>(filter.quality);
     const [frequencyValue, setFrequencyValue] = useState<number>(
-      filter.frequency
+      filter.frequency,
     );
 
     useEffect(() => {
@@ -109,12 +109,12 @@ const FrequencyBand = forwardRef(
         });
         await setGain(filter.id, newValue);
       },
-      [dispatchFilter, filter.id]
+      [dispatchFilter, filter.id],
     );
 
     const throttleSetGain = useThrottleAndExecuteLatest(
       normalSetGain,
-      INTERVAL
+      INTERVAL,
     );
 
     const normalSetQuality = useCallback(
@@ -126,12 +126,12 @@ const FrequencyBand = forwardRef(
         });
         await setQuality(filter.id, newValue);
       },
-      [dispatchFilter, filter.id]
+      [dispatchFilter, filter.id],
     );
 
     const throttleSetQuality = useThrottleAndExecuteLatest(
       normalSetQuality,
-      INTERVAL
+      INTERVAL,
     );
 
     const normalSetFrequency = useCallback(
@@ -143,12 +143,12 @@ const FrequencyBand = forwardRef(
         });
         await setFrequency(filter.id, newValue);
       },
-      [dispatchFilter, filter.id]
+      [dispatchFilter, filter.id],
     );
 
     const throttleSetFrequency = useThrottleAndExecuteLatest(
       normalSetFrequency,
-      INTERVAL
+      INTERVAL,
     );
 
     // *** Define handlers for handling changes in gain, frequency, quality and filter type ***
@@ -160,7 +160,7 @@ const FrequencyBand = forwardRef(
           setGlobalError(e as ErrorDescription);
         }
       },
-      [setGlobalError, throttleSetGain]
+      [setGlobalError, throttleSetGain],
     );
 
     const handleFrequencySubmit = async (newValue: number) => {
@@ -197,7 +197,7 @@ const FrequencyBand = forwardRef(
     const isGainDisabled = useMemo(
       () =>
         NO_GAIN_FILTER_TYPES.some((filterType) => filterType === filter.type),
-      [filter.type]
+      [filter.type],
     );
 
     const onRemoveEqualizerSlider = async () => {
@@ -226,8 +226,8 @@ const FrequencyBand = forwardRef(
 
     const sliderHeight = useMemo(
       // Manually determine slider height
-      () => (isGraphViewOn ? '161px' : 'calc(100vh - 465px)'),
-      [isGraphViewOn]
+      () => (isGraphViewOn ? '80px' : 'calc(100vh - 465px)'),
+      [isGraphViewOn],
     );
 
     return (
@@ -281,7 +281,7 @@ const FrequencyBand = forwardRef(
         </div>
       </div>
     );
-  }
+  },
 );
 
 export default FrequencyBand;

@@ -85,3 +85,42 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 }
+
+.number-input {
+  gap: 5px;
+
+  .input-wrapper {
+    min-height: 34px;
+    border: 1px solid rgba($primary-lighter, 0.2);
+    border-radius: 9px;
+    background: linear-gradient(
+      180deg,
+      rgba($primary-light, 0.24),
+      rgba($primary-dark, 0.9)
+    );
+    box-shadow: inset 0 1px 0 rgba($white, 0.025);
+
+    &:hover:not([aria-disabled='true']) {
+      border-color: rgba($secondary-light, 0.42);
+    }
+
+    &:focus-within {
+      border-color: $secondary-light;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba($secondary-default, 0.13);
+    }
+  }
+
+  input[type='text'] {
+    height: 30px;
+    padding: 5px 7px;
+    border-radius: 9px;
+    background: transparent;
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .arrows {
+    padding: 3px 5px 3px 1px;
+  }
+}

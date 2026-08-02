@@ -144,28 +144,32 @@ const AutoEQ = () => {
         <span>Community measurements</span>
       </div>
       <div className="auto-eq">
-        Headphone model
-        <Dropdown
-          name="Audio Device"
-          options={deviceOptions}
-          value={currentDevice}
-          handleChange={handleDeviceChange}
-          isDisabled={!!globalError}
-          noSelectionPlaceholder={NO_DEVICE_SELECTION}
-          emptyOptionsPlaceholder="No measured model matches your search."
-          filterPlaceholder="Search by brand or model..."
-          isFilterable
-        />
-        Measurement / target
-        <Dropdown
-          name="Target Frequency Response"
-          options={responseOptions}
-          value={currentResponse}
-          handleChange={(newValue) => setCurrentResponse(newValue)}
-          isDisabled={!!globalError || responses.length === 0}
-          emptyOptionsPlaceholder={NO_RESPONSES}
-          noSelectionPlaceholder={NO_RESPONSE_SELECTION}
-        />
+        <div className="autoeq-field autoeq-field--model">
+          <span>Headphone model</span>
+          <Dropdown
+            name="Audio Device"
+            options={deviceOptions}
+            value={currentDevice}
+            handleChange={handleDeviceChange}
+            isDisabled={!!globalError}
+            noSelectionPlaceholder={NO_DEVICE_SELECTION}
+            emptyOptionsPlaceholder="No measured model matches your search."
+            filterPlaceholder="Search by brand or model..."
+            isFilterable
+          />
+        </div>
+        <div className="autoeq-field">
+          <span>Measurement / target</span>
+          <Dropdown
+            name="Target Frequency Response"
+            options={responseOptions}
+            value={currentResponse}
+            handleChange={(newValue) => setCurrentResponse(newValue)}
+            isDisabled={!!globalError || responses.length === 0}
+            emptyOptionsPlaceholder={NO_RESPONSES}
+            noSelectionPlaceholder={NO_RESPONSE_SELECTION}
+          />
+        </div>
         <Button
           className="small"
           ariaLabel="Apply Auto EQ"

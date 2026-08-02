@@ -63,6 +63,8 @@ import {
   MIN_QUALITY,
   WINDOW_HEIGHT,
   WINDOW_HEIGHT_EXPANDED,
+  WINDOW_MIN_HEIGHT,
+  WINDOW_MIN_WIDTH,
   WINDOW_WIDTH,
   getDefaultFilterWithId,
   FixedBandSizeEnum,
@@ -118,13 +120,13 @@ const setWindowDimension = (isExpanded: boolean) => {
     const currWidth = mainWindow.getSize()[0];
     const currHeight = mainWindow.getSize()[1];
     if (isExpanded) {
-      mainWindow.setMinimumSize(WINDOW_WIDTH, WINDOW_HEIGHT_EXPANDED);
+      mainWindow.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT);
       mainWindow.setSize(
         currWidth,
-        Math.max(currHeight, WINDOW_HEIGHT_EXPANDED)
+        Math.max(currHeight, WINDOW_HEIGHT_EXPANDED),
       );
     } else {
-      mainWindow.setMinimumSize(WINDOW_WIDTH, WINDOW_HEIGHT);
+      mainWindow.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT);
       mainWindow.setSize(currWidth, WINDOW_HEIGHT);
     }
   }
@@ -166,7 +168,7 @@ if (process.platform === 'win32') {
 
       // Set case sensitive to true if an error was not thrown
       state.isCaseSensitiveFs = true;
-    }
+    },
   );
 }
 
@@ -190,7 +192,7 @@ const retryHelper = async (attempts: number, f: () => unknown) => {
 const handleError = (
   event: Electron.IpcMainEvent,
   channel: ChannelEnum | string,
-  errorCode: ErrorCode
+  errorCode: ErrorCode,
 ) => {
   const reply: TError = { errorCode };
   console.log(channel);
@@ -199,7 +201,7 @@ const handleError = (
 
 const updateConfigPath = async (
   event: Electron.IpcMainEvent,
-  channel: ChannelEnum | string
+  channel: ChannelEnum | string,
 ) => {
   try {
     // Retrive configPath assuming EqualizerAPO is installed
@@ -218,7 +220,7 @@ const updateConfigPath = async (
 const handleUpdateHelper = async <T>(
   event: Electron.IpcMainEvent,
   channel: ChannelEnum | string,
-  response: T
+  response: T,
 ) => {
   // Check whether EqualizerAPO is installed every time a change is made
   const isInstalled = await isEqualizerAPOInstalled();
@@ -247,7 +249,7 @@ const handleUpdateHelper = async <T>(
 
 const handleUpdate = async (
   event: Electron.IpcMainEvent,
-  channel: ChannelEnum | string
+  channel: ChannelEnum | string,
 ) => {
   return handleUpdateHelper<void>(event, channel, undefined);
 };
@@ -255,7 +257,7 @@ const handleUpdate = async (
 const doesFilterIdExist = (
   event: Electron.IpcMainEvent,
   channel: ChannelEnum,
-  filterId: string
+  filterId: string,
 ) => {
   // Filter id must exist
   if (!(filterId in state.filters)) {
@@ -307,7 +309,7 @@ ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
         preAmp: state.preAmp,
         filters: state.filters,
       },
-      presetPath
+      presetPath,
     );
     await handleUpdate(event, channel);
   } catch (e) {
@@ -400,8 +402,8 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
         getStateForAudioDevice(
           deviceProfileSettings,
           activeDevice.id,
-          presetPath
-        )
+          presetPath,
+        ),
       );
       save(state, userDataDir);
     }
@@ -430,7 +432,7 @@ ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
   const nextState = getStateForAudioDevice(
     deviceProfileSettings,
     arg[0] as string,
-    presetPath
+    presetPath,
   );
   activeAudioDeviceId = arg[0] as string;
   Object.assign(state, nextState);
@@ -509,7 +511,7 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     await handleUpdate(event, channel);
   } catch (ex) {
     console.log(
-      `Failed to load autoeq preset from ${deviceName} to ${responseName}`
+      `Failed to load autoeq preset from ${deviceName} to ${responseName}`,
     );
     console.log(ex);
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
@@ -835,7 +837,7 @@ ipcMain.handle('restart-windows-audio', async () => {
 
   const restartCommand = Buffer.from(
     'Restart-Service -Name Audiosrv -Force',
-    'utf16le'
+    'utf16le',
   ).toString('base64');
   const elevateCommand = [
     "$process = Start-Process -FilePath 'powershell.exe'",
@@ -854,9 +856,9 @@ ipcMain.handle('restart-windows-audio', async () => {
         resolve(
           error
             ? 'Windows Audio could not be restarted. Approve the administrator prompt and try again.'
-            : ''
+            : '',
         );
-      }
+      },
     );
   });
 });
@@ -888,7 +890,7 @@ const installExtensions = async () => {
   return installer
     .default(
       extensions.map((name) => installer[name]),
-      forceDownload
+      forceDownload,
     )
     .catch(console.log);
 };
@@ -909,9 +911,9 @@ const createMainWindow = async () => {
   mainWindow = new BrowserWindow({
     show: false,
     width: WINDOW_WIDTH,
-    minWidth: WINDOW_WIDTH,
+    minWidth: WINDOW_MIN_WIDTH,
     height: WINDOW_HEIGHT,
-    minHeight: WINDOW_HEIGHT,
+    minHeight: WINDOW_MIN_HEIGHT,
     icon: getAssetPath('icon.png'),
     resizable: true,
     webPreferences: {
@@ -952,7 +954,7 @@ const createMainWindow = async () => {
           callback({ video: screen, audio: 'loopback' });
         })
         .catch(() => callback({}));
-    }
+    },
   );
 
   setWindowDimension(state.isGraphViewOn);

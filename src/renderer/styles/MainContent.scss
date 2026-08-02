@@ -81,3 +81,104 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     overflow-y: hidden;
   }
 }
+
+.main-content-title {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 0 8px;
+
+  h4 {
+    margin: 2px 0 0;
+  }
+}
+
+.eq-toolbar,
+.quick-layouts {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.eq-toolbar {
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.quick-layouts {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+
+  > span {
+    margin-right: 3px;
+    color: rgba($primary-lighter, 0.72);
+    font-size: 0.67rem;
+    font-weight: 650;
+  }
+}
+
+.main-content {
+  min-width: 0;
+  min-height: 0;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: 4px;
+  padding: 10px 12px 8px 8px;
+  overflow: hidden;
+  border-color: rgba($primary-lighter, 0.15);
+  border-radius: 20px;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      rgba($analogous-1, 0.055),
+      transparent 36%
+    ),
+    linear-gradient(180deg, rgba($white, 0.018), transparent),
+    rgba(#0d1420, 0.9);
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.035),
+    0 20px 48px rgba($black, 0.18);
+
+  .band-label {
+    color: rgba($primary-lighter, 0.68);
+    font-size: 0.68rem;
+
+    .row-label {
+      color: rgba($white, 0.8);
+      font-weight: 650;
+    }
+  }
+
+  .bands {
+    padding-inline: 8px;
+    scroll-behavior: smooth;
+    scrollbar-gutter: stable;
+  }
+}
+
+@media (max-width: 1180px) {
+  .main-content-title {
+    align-items: flex-start;
+  }
+
+  .eq-toolbar {
+    flex-wrap: wrap;
+  }
+}
+
+@media (max-width: 760px) {
+  .main-content-title {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .eq-toolbar,
+  .quick-layouts {
+    justify-content: flex-start;
+  }
+
+  .main-content {
+    grid-template-columns: 92px minmax(0, 1fr);
+  }
+}

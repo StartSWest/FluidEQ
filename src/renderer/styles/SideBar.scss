@@ -43,3 +43,43 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-weight: 600;
   }
 }
+
+.side-bar {
+  min-height: 0;
+  justify-content: space-around;
+  padding: 14px 12px;
+  border-color: rgba($primary-lighter, 0.14);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba($secondary-default, 0.055), transparent 24%),
+    linear-gradient(180deg, rgba($primary-light, 0.45), rgba(#0e1520, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.035),
+    0 20px 48px rgba($black, 0.2);
+
+  h4 {
+    margin: 6px 0 9px;
+    color: rgba($white, 0.84);
+    font-size: 0.7rem;
+  }
+
+  > div {
+    width: 100%;
+  }
+}
+
+@media (max-width: 720px) {
+  .side-bar {
+    min-height: 120px;
+    flex-direction: row;
+    gap: 18px;
+
+    > div {
+      width: auto;
+    }
+
+    > div:nth-child(2) {
+      display: none;
+    }
+  }
+}
