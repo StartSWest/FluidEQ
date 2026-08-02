@@ -42,6 +42,10 @@ try {
         throw "Only $($profiles.Count) profiles were found; refusing to replace the bundled library."
     }
 
+    $windowsModelNames = [Collections.Generic.Dictionary[string,string]]::new(
+        [StringComparer]::OrdinalIgnoreCase
+    )
+
     foreach ($profile in $profiles) {
         $relativePath = $profile.FullName.Substring($resultsPath.Length + 1)
         $parts = $relativePath -split '[\\/]'
@@ -52,6 +56,10 @@ try {
         $source = $parts[0]
         $measurementRig = $parts[1]
         $model = $parts[2]
+        if (!$windowsModelNames.ContainsKey($model)) {
+            $windowsModelNames.Add($model, $model)
+        }
+        $model = $windowsModelNames[$model]
         $modelPath = Join-Path $stagingPath $model
         $responsePath = Join-Path $modelPath "$source ($measurementRig)"
 
