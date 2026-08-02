@@ -37,6 +37,14 @@ import {
 const AppContent = () => {
   const { isLoading, globalError, performHealthCheck } = useAquaContext();
 
+  const handleConfigureEqualizerApo = async () => {
+    const error =
+      await window.electron.ipcRenderer.openEqualizerApoConfigurator();
+    if (error) {
+      window.alert(error);
+    }
+  };
+
   return (
     <>
       <header className="workspace-header">
@@ -53,13 +61,24 @@ const AppContent = () => {
             </div>
           </div>
         </div>
-        <div className="workspace-header__status">
-          <span className={`status-dot${globalError ? ' error' : ''}`} />
-          {isLoading
-            ? 'Checking Equalizer APO'
-            : globalError
-              ? 'Equalizer APO unavailable'
-              : 'Equalizer APO connected'}
+        <div className="workspace-header__actions">
+          {!isLoading && !globalError && (
+            <button
+              type="button"
+              className="workspace-header__configure"
+              onClick={handleConfigureEqualizerApo}
+            >
+              Reconfigure APO
+            </button>
+          )}
+          <div className="workspace-header__status">
+            <span className={`status-dot${globalError ? ' error' : ''}`} />
+            {isLoading
+              ? 'Checking Equalizer APO'
+              : globalError
+                ? 'Equalizer APO unavailable'
+                : 'Equalizer APO connected'}
+          </div>
         </div>
       </header>
       <SideBar />

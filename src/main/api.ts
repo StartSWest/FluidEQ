@@ -47,6 +47,9 @@ const closeApp = () => {
   ipcRenderer.send('quit-app', []);
 };
 
+const openEqualizerApoConfigurator = () =>
+  ipcRenderer.invoke('open-equalizer-apo-configurator') as Promise<string>;
+
 export default {
   ipcRenderer: {
     sendMessage,
@@ -54,5 +57,6 @@ export default {
     once,
     removeListener,
     closeApp,
+    openEqualizerApoConfigurator,
   },
 };

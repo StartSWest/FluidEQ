@@ -137,6 +137,30 @@ body {
   font-size: 0.68rem;
 }
 
+.workspace-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.workspace-header__configure {
+  padding: 7px 11px;
+  color: $secondary-light;
+  border: 1px solid rgba($secondary-light, 0.3);
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.68rem;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    border-color: $secondary-light;
+    background: rgba($secondary-light, 0.08);
+    outline: none;
+  }
+}
+
 .status-dot {
   width: 7px;
   height: 7px;

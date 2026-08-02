@@ -35,6 +35,7 @@ describe('App', () => {
             _func: (...args: unknown[]) => void
           ) => {},
           closeApp: () => {},
+          openEqualizerApoConfigurator: async () => '',
         },
       }),
     });

@@ -748,6 +748,23 @@ ipcMain.on('quit-app', () => {
   app.quit();
 });
 
+ipcMain.handle('open-equalizer-apo-configurator', async () => {
+  try {
+    const equalizerApoRoot = path.dirname(await getConfigPath());
+    const configuratorPath = ['DeviceSelector.exe', 'Configurator.exe']
+      .map((fileName) => path.join(equalizerApoRoot, fileName))
+      .find((candidate) => fs.existsSync(candidate));
+
+    if (!configuratorPath) {
+      return 'Equalizer APO device configurator was not found.';
+    }
+
+    return shell.openPath(configuratorPath);
+  } catch {
+    return 'Equalizer APO is not installed or its installation could not be located.';
+  }
+});
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
