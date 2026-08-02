@@ -101,12 +101,31 @@ $filter-dropdown-width: 52px;
   border-radius: 10px;
 
   &.is-selected {
-    background: linear-gradient(
-      180deg,
-      rgba($secondary-default, 0.12),
-      rgba($secondary-default, 0.025)
-    );
-    box-shadow: inset 0 0 0 1px rgba($secondary-light, 0.18);
+    background:
+      radial-gradient(
+        circle at 50% 48%,
+        rgba($analogous-1, 0.2),
+        transparent 62%
+      ),
+      linear-gradient(
+        180deg,
+        rgba($secondary-default, 0.12),
+        rgba($secondary-default, 0.025)
+      );
+    box-shadow:
+      inset 0 0 0 1px rgba($analogous-1, 0.42),
+      0 0 20px rgba($analogous-1, 0.16);
+
+    .range input[type='range']::-webkit-slider-thumb {
+      background: linear-gradient(
+        145deg,
+        rgba($triadic-1, 0.98),
+        rgba($analogous-1, 0.92)
+      );
+      box-shadow:
+        0 0 0 3px rgba($analogous-1, 0.12),
+        0 0 12px rgba($analogous-1, 0.52);
+    }
   }
 
   &.is-hovered {
