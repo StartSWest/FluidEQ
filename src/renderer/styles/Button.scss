@@ -24,6 +24,9 @@ $button-width: 24px;
 $button-height: 100px;
 
 .button {
+  box-sizing: border-box;
+  min-width: max-content;
+  padding: 8px 13px;
   color: #03110f;
   border-radius: 7px;
   background: linear-gradient(135deg, $secondary-light, $secondary-default);
@@ -33,6 +36,8 @@ $button-height: 100px;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  line-height: 1.15;
+  white-space: nowrap;
 
   @extend %button-state;
 
@@ -87,7 +92,7 @@ $button-height: 100px;
 
   &.small {
     min-height: 32px;
-    padding: 7px 11px;
+    padding: 6px 10px;
     border-radius: 9px;
     font-size: 0.72rem;
   }

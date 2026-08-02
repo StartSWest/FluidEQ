@@ -99,6 +99,7 @@ const captureSystemOutput = async (): Promise<MediaStream> => {
 
 const useLiveOutputSpectrum = () => {
   const [isActive, setIsActive] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState('');
   const [points, setPoints] = useState<IChartPointData[]>([]);
   const [waveform, setWaveform] = useState<number[]>([]);
@@ -110,7 +111,16 @@ const useLiveOutputSpectrum = () => {
   );
   const isStartingRef = useRef(false);
   const autoStartRef = useRef(true);
+  const isPausedRef = useRef(false);
   const scheduleStartRef = useRef<() => void>(() => undefined);
+
+  const togglePaused = useCallback(() => {
+    setIsPaused((current) => {
+      const next = !current;
+      isPausedRef.current = next;
+      return next;
+    });
+  }, []);
 
   const stop = useCallback(() => {
     if (animationFrameRef.current !== undefined) {
@@ -122,6 +132,8 @@ const useLiveOutputSpectrum = () => {
     audioContextRef.current?.close().catch(() => undefined);
     audioContextRef.current = undefined;
     setIsActive(false);
+    isPausedRef.current = false;
+    setIsPaused(false);
     setPoints([]);
     setWaveform([]);
   }, []);
@@ -165,12 +177,17 @@ const useLiveOutputSpectrum = () => {
       let lastUpdate = 0;
       const update = (timestamp: number) => {
         if (timestamp - lastUpdate >= UPDATE_INTERVAL_MS) {
-          analyser.getFloatFrequencyData(frequencyData);
-          analyser.getByteTimeDomainData(timeDomainData);
-          setPoints(
-            createFrequencyPoints(frequencyData, activeAudioContext.sampleRate),
-          );
-          setWaveform(createWaveformPoints(timeDomainData));
+          if (!isPausedRef.current) {
+            analyser.getFloatFrequencyData(frequencyData);
+            analyser.getByteTimeDomainData(timeDomainData);
+            setPoints(
+              createFrequencyPoints(
+                frequencyData,
+                activeAudioContext.sampleRate,
+              ),
+            );
+            setWaveform(createWaveformPoints(timeDomainData));
+          }
           lastUpdate = timestamp;
         }
         animationFrameRef.current = requestAnimationFrame(update);
@@ -246,7 +263,7 @@ const useLiveOutputSpectrum = () => {
     };
   }, [scheduleStart, stop]);
 
-  return { error, isActive, points, waveform };
+  return { error, isActive, isPaused, points, togglePaused, waveform };
 };
 
 export default useLiveOutputSpectrum;

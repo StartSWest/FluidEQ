@@ -2,32 +2,45 @@ import { useMemo } from 'react';
 import { useLiveAudio } from './audio/LiveAudioContext';
 import './styles/WaveformVisualizer.scss';
 
-const WAVEFORM_WIDTH = 420;
-const WAVEFORM_HEIGHT = 58;
+export const WAVEFORM_WIDTH = 420;
+export const WAVEFORM_HEIGHT = 58;
+
+export const createWaveformPath = (samples: number[]) => {
+  const visibleSamples = samples.length > 0 ? samples : Array(96).fill(0.04);
+  const center = WAVEFORM_HEIGHT / 2;
+  const amplitude = 23;
+  const points = visibleSamples.map((sample, index) => {
+    const x = (index / (visibleSamples.length - 1)) * WAVEFORM_WIDTH;
+    const y = center - sample * amplitude;
+    return `${x.toFixed(1)},${y.toFixed(1)}`;
+  });
+  const lowerPoints = visibleSamples
+    .map((sample, index) => {
+      const x = (index / (visibleSamples.length - 1)) * WAVEFORM_WIDTH;
+      const y = center + sample * amplitude;
+      return `${x.toFixed(1)},${y.toFixed(1)}`;
+    })
+    .reverse();
+  return `M ${points.join(' L ')} L ${lowerPoints.join(' L ')} Z`;
+};
 
 const WaveformVisualizer = () => {
-  const { error, isActive, waveform } = useLiveAudio();
-  const waveformPath = useMemo(() => {
-    const samples = waveform.length > 0 ? waveform : Array(96).fill(0.04);
-    const center = WAVEFORM_HEIGHT / 2;
-    const amplitude = 23;
-    const points = samples.map((sample, index) => {
-      const x = (index / (samples.length - 1)) * WAVEFORM_WIDTH;
-      const y = center - sample * amplitude;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    });
-    const lowerPoints = samples
-      .map((sample, index) => {
-        const x = (index / (samples.length - 1)) * WAVEFORM_WIDTH;
-        const y = center + sample * amplitude;
-        return `${x.toFixed(1)},${y.toFixed(1)}`;
-      })
-      .reverse();
-    return `M ${points.join(' L ')} L ${lowerPoints.join(' L ')} Z`;
-  }, [waveform]);
+  const { error, isActive, isPaused, togglePaused, waveform } = useLiveAudio();
+  const waveformPath = useMemo(() => createWaveformPath(waveform), [waveform]);
 
   return (
-    <div className={`waveform-visualizer${isActive ? ' is-active' : ''}`}>
+    <button
+      type="button"
+      className={`waveform-visualizer${isActive ? ' is-active' : ''}${
+        isPaused ? ' is-paused' : ''
+      }`}
+      aria-label={
+        isPaused ? 'Resume live output waveform' : 'Pause live output waveform'
+      }
+      aria-pressed={isPaused}
+      title={isPaused ? 'Resume live output' : 'Pause live output'}
+      onClick={togglePaused}
+    >
       <div className="waveform-visualizer__meta">
         <span className="waveform-visualizer__signal">
           <span className="waveform-visualizer__signal-dot" />
@@ -55,7 +68,7 @@ const WaveformVisualizer = () => {
         />
       </svg>
       {error && <span className="waveform-visualizer__error">{error}</span>}
-    </div>
+    </button>
   );
 };
 

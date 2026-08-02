@@ -27,7 +27,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     cursor: pointer;
     background: $primary-dark;
     color: $white;
-    border: solid $spacing-xxs $secondary-default;
+    border: 1px solid rgba($primary-lighter, 0.11);
     border-radius: 4px;
     padding: $spacing-xs;
     font-size: small;
@@ -97,6 +97,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+.dropdown--open {
+  z-index: 1000;
+
+  .list-wrapper {
+    z-index: 1001;
+  }
+}
+
 .dropdown--up {
   .list-wrapper {
     top: auto;
@@ -104,6 +112,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin-block-start: 0;
     transform-origin: bottom center;
   }
+}
+
+.dropdown--left,
+.dropdown--right {
+  .list-wrapper {
+    top: 0;
+    bottom: auto;
+    margin-block-start: 0;
+    transform-origin: center;
+  }
+}
+
+.dropdown--left .list-wrapper {
+  right: calc(100% + 8px);
+  left: auto;
+}
+
+.dropdown--right .list-wrapper {
+  right: auto;
+  left: calc(100% + 8px);
 }
 
 .dropdown {
@@ -165,7 +193,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin-block-start: 5px;
     min-width: 100%;
     max-width: min(560px, calc(100vw - 32px));
-    border: 1px solid rgba($secondary-light, 0.32);
+    position: absolute;
+    overflow: visible;
+    border: 1px solid rgba($primary-lighter, 0.13);
     border-radius: 14px;
     background:
       linear-gradient(145deg, rgba(#152b3a, 0.97), rgba(#080f18, 0.97)),
@@ -181,6 +211,50 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: transparent;
     max-height: min(310px, calc(100vh - 180px));
     overscroll-behavior: contain;
+    overflow: auto;
+    border-radius: inherit;
+    scrollbar-color: rgba($secondary-default, 0.66) rgba(#071019, 0.48);
+    scrollbar-width: thin;
+
+    &::-webkit-scrollbar {
+      width: 7px;
+    }
+
+    &::-webkit-scrollbar-track {
+      border: 1px solid rgba($primary-lighter, 0.04);
+      border-radius: 999px;
+      background: rgba(#071019, 0.48);
+    }
+
+    &::-webkit-scrollbar-thumb {
+      min-height: 28px;
+      border: 1px solid rgba($primary-lighter, 0.08);
+      border-radius: 999px;
+      background: linear-gradient(
+        180deg,
+        rgba($secondary-default, 0.7),
+        rgba($primary-light, 0.72)
+      );
+
+      &:hover {
+        background: linear-gradient(
+          180deg,
+          rgba($secondary-light, 0.88),
+          rgba($secondary-default, 0.82)
+        );
+      }
+    }
+  }
+
+  .list-wrapper[style] {
+    display: flex;
+    flex-direction: column;
+
+    .list {
+      min-height: 0;
+      max-height: none;
+      flex: 1 1 auto;
+    }
   }
 
   .list-wrapper .list li {
@@ -198,4 +272,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       );
     }
   }
+}
+
+// Placement is emitted after the generic menu sizing rules so the adaptive
+// direction is never offset by the default downward margin.
+.dropdown.dropdown--up .list-wrapper {
+  top: auto;
+  bottom: calc(100% + 5px);
+  margin-block-start: 0;
+}
+
+.dropdown.dropdown--left .list-wrapper,
+.dropdown.dropdown--right .list-wrapper {
+  top: 0;
+  bottom: auto;
+  margin-block-start: 0;
 }

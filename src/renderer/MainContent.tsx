@@ -64,7 +64,6 @@ const MainContent = () => {
     hoveredFilterId,
     setHoveredFilterId,
   } = useAquaContext();
-
   const frequencySortedFilters = useMemo(
     () => Object.values(filters).sort(sortHelper),
     [filters],

@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   KeyboardEvent,
+  useCallback,
   useEffect,
   useMemo,
   useRef,
@@ -46,9 +47,11 @@ interface IDropdownProps {
   emptyOptionsPlaceholder?: ReactNode;
   isFilterable?: boolean;
   filterPlaceholder?: string;
-  placement?: 'up' | 'down';
+  placement?: 'up' | 'down' | 'left' | 'right';
   handleChange: (newValue: string) => void;
 }
+
+type DropdownPlacement = 'up' | 'down' | 'left' | 'right';
 
 const normalizeSearchText = (value: string) =>
   value
@@ -82,6 +85,11 @@ const Dropdown = ({
 }: IDropdownProps) => {
   const nullElement = createElement('div');
   const [isOpen, setIsOpen] = useState<boolean>(false);
+  const [menuPlacement, setMenuPlacement] =
+    useState<DropdownPlacement>(placement);
+  const [menuOffsetX, setMenuOffsetX] = useState(0);
+  const [menuMaxHeight, setMenuMaxHeight] = useState<number>();
+  const [menuMaxWidth, setMenuMaxWidth] = useState<number>();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [searchString, setSearchString] = useState<string>('');
@@ -91,6 +99,97 @@ const Dropdown = ({
       options.filter((option) => matchesDropdownSearch(option, searchString)),
     [options, searchString],
   );
+
+  const updateMenuPlacement = useCallback(() => {
+    const bounds = dropdownRef.current?.getBoundingClientRect();
+    if (!bounds) {
+      return;
+    }
+
+    const viewportPadding = 16;
+    const renderedMenu =
+      dropdownRef.current?.querySelector<HTMLElement>('.list-wrapper');
+    const renderedMenuBounds = renderedMenu?.getBoundingClientRect();
+    const menuHeight =
+      renderedMenuBounds?.height ??
+      Math.min(
+        360,
+        Math.max(82, filteredOptions.length * 40 + (isFilterable ? 54 : 0)),
+      );
+    const menuWidth = Math.min(
+      window.innerWidth - viewportPadding * 2,
+      renderedMenuBounds?.width ??
+        Math.max(bounds.width, Math.min(420, window.innerWidth - 32)),
+    );
+    const below = window.innerHeight - bounds.bottom - viewportPadding;
+    const above = bounds.top - viewportPadding;
+    const fitsBelow = below >= menuHeight;
+    const fitsAbove = above >= menuHeight;
+    const availableLeft = Math.max(0, bounds.left - viewportPadding);
+    const availableRight = Math.max(
+      0,
+      window.innerWidth - bounds.right - viewportPadding,
+    );
+    let nextPlacement: DropdownPlacement = placement;
+
+    if (placement === 'down' || placement === 'up') {
+      if (placement === 'down' && !fitsBelow && fitsAbove) {
+        nextPlacement = 'up';
+      } else if (placement === 'up' && !fitsAbove && fitsBelow) {
+        nextPlacement = 'down';
+      } else if (!fitsBelow && !fitsAbove) {
+        if (availableRight >= menuWidth || availableLeft >= menuWidth) {
+          nextPlacement = availableRight >= availableLeft ? 'right' : 'left';
+        } else {
+          nextPlacement = below >= above ? 'down' : 'up';
+        }
+      }
+    } else {
+      const preferredSideSpace =
+        placement === 'left' ? availableLeft : availableRight;
+      const alternateSideSpace =
+        placement === 'left' ? availableRight : availableLeft;
+      if (preferredSideSpace < menuWidth && alternateSideSpace >= menuWidth) {
+        nextPlacement = placement === 'left' ? 'right' : 'left';
+      }
+    }
+
+    const isHorizontalPlacement =
+      nextPlacement === 'left' || nextPlacement === 'right';
+    let availableHeight = Math.max(below, above);
+    if (nextPlacement === 'up') {
+      availableHeight = above;
+    } else if (nextPlacement === 'down') {
+      availableHeight = below;
+    }
+    const nextOffsetX = isHorizontalPlacement
+      ? 0
+      : Math.max(
+          viewportPadding - bounds.left,
+          Math.min(
+            0,
+            window.innerWidth - viewportPadding - bounds.left - menuWidth,
+          ),
+        );
+    const nextMaxWidth = isHorizontalPlacement
+      ? Math.max(
+          180,
+          Math.min(
+            window.innerWidth - viewportPadding * 2,
+            nextPlacement === 'left' ? availableLeft - 8 : availableRight - 8,
+          ),
+        )
+      : Math.max(180, window.innerWidth - viewportPadding * 2);
+
+    setMenuPlacement((current) =>
+      current === nextPlacement ? current : nextPlacement,
+    );
+    setMenuOffsetX((current) =>
+      current === nextOffsetX ? current : nextOffsetX,
+    );
+    setMenuMaxHeight(Math.max(80, Math.min(360, availableHeight)));
+    setMenuMaxWidth(nextMaxWidth);
+  }, [filteredOptions.length, isFilterable, placement]);
 
   useEffect(() => {
     if (isDisabled) {
@@ -103,6 +202,19 @@ const Dropdown = ({
       dropdownRef.current?.querySelector<HTMLInputElement>('input')?.focus();
     }
   }, [isFilterable, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+    updateMenuPlacement();
+    window.addEventListener('resize', updateMenuPlacement);
+    window.addEventListener('scroll', updateMenuPlacement, true);
+    return () => {
+      window.removeEventListener('resize', updateMenuPlacement);
+      window.removeEventListener('scroll', updateMenuPlacement, true);
+    };
+  }, [isOpen, updateMenuPlacement]);
 
   // Close the dropdown if the user clicks outside of the dropdown
   useClickOutside<HTMLDivElement>(dropdownRef, () => {
@@ -121,7 +233,13 @@ const Dropdown = ({
   );
 
   const toggleIsOpen = () => {
-    setIsOpen(!isOpen);
+    setIsOpen((current) => {
+      if (!current) {
+        setMenuPlacement(placement);
+        setMenuOffsetX(0);
+      }
+      return !current;
+    });
   };
 
   const handleClick = () => {
@@ -148,9 +266,9 @@ const Dropdown = ({
   return (
     <div
       ref={dropdownRef}
-      className={`dropdown dropdown--${placement}${
+      className={`dropdown dropdown--${menuPlacement}${
         isFilterable ? ' dropdown--filterable' : ''
-      }`}
+      }${isOpen ? ' dropdown--open' : ''}`}
     >
       <div
         role="menu"
@@ -186,6 +304,23 @@ const Dropdown = ({
                 handleChange={(newValue) => setSearchString(newValue)}
               />
             ) : undefined
+          }
+          style={
+            menuOffsetX !== 0 ||
+            menuMaxHeight !== undefined ||
+            menuMaxWidth !== undefined
+              ? {
+                  maxWidth:
+                    menuMaxWidth !== undefined
+                      ? `${menuMaxWidth}px`
+                      : 'calc(100vw - 24px)',
+                  maxHeight:
+                    menuMaxHeight !== undefined
+                      ? `${menuMaxHeight}px`
+                      : 'calc(100vh - 24px)',
+                  transform: `translateX(${menuOffsetX}px)`,
+                }
+              : undefined
           }
         />
       )}

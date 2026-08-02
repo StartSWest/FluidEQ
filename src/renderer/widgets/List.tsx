@@ -25,6 +25,7 @@ import {
   useMemo,
   ReactElement,
   ReactNode,
+  CSSProperties,
 } from 'react';
 import '../styles/List.scss';
 
@@ -45,6 +46,7 @@ interface IListProps {
   focusOnRender?: boolean;
   startingItem?: ReactElement;
   emptyOptionsPlaceholder?: ReactNode;
+  style?: CSSProperties;
 }
 
 const List = ({
@@ -58,13 +60,14 @@ const List = ({
   focusOnRender = false,
   startingItem,
   emptyOptionsPlaceholder = 'No options found.',
+  style,
 }: IListProps) => {
   const inputRefs = useMemo(
     () =>
       Array(options.length)
         .fill(0)
         .map(() => createRef<HTMLLIElement>()),
-    [options]
+    [options],
   );
 
   useEffect(() => {
@@ -83,7 +86,7 @@ const List = ({
     (newValue: string) => (e: MouseEvent) => {
       handleChange(newValue, e);
     },
-    [handleChange]
+    [handleChange],
   );
 
   const onMouseEnter = useCallback(
@@ -93,7 +96,7 @@ const List = ({
         inputRefs[index].current?.focus();
       }
     },
-    [inputRefs]
+    [inputRefs],
   );
 
   const handleItemKeyPress = useCallback(
@@ -111,11 +114,11 @@ const List = ({
         inputRefs[prev].current?.focus();
       }
     },
-    [inputRefs, isDisabled, handleChange, options.length]
+    [inputRefs, isDisabled, handleChange, options.length],
   );
 
   return (
-    <div className={`list-wrapper ${className || ''}`}>
+    <div className={`list-wrapper ${className || ''}`} style={style}>
       {startingItem && (
         <div role="menuitem" className="row starting-item">
           {startingItem}

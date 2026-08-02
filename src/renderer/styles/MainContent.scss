@@ -82,6 +82,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Let an open menu escape the compact EQ panel instead of being clipped by
+// its dense band grid. The rule is inactive during normal editing.
+.main-content:has(.dropdown--open),
+.main-content .bands:has(.dropdown--open) {
+  overflow: visible;
+}
+
 .main-content-title {
   display: flex;
   min-width: 0;
@@ -126,7 +133,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 4px;
   padding: 10px 12px 8px 8px;
   overflow: hidden;
-  border-color: rgba($primary-lighter, 0.15);
+  border-color: rgba($primary-lighter, 0.1);
   border-radius: 18px;
   background:
     radial-gradient(
