@@ -78,6 +78,7 @@ const MainContent = () => {
     }
     return 'dense';
   }, [frequencySortedFilters.length]);
+  const bandLayout = frequencySortedFilters.length <= 10 ? 'centered' : 'wide';
 
   const selectedFilter = useMemo(
     () => filters[selectedFilterId] ?? frequencySortedFilters[0] ?? undefined,
@@ -250,7 +251,7 @@ const MainContent = () => {
           <span>-20</span>
         </div>
         <div
-          className={`bands bands--${density}`}
+          className={`bands bands--${density} bands--${bandLayout}`}
           style={
             { '--band-count': frequencySortedFilters.length } as CSSProperties
           }

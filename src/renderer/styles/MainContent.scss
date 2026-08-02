@@ -242,6 +242,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
 }
 
+// Small layouts read better as a centered group. Once there are more than
+// ten bands, use all available width so the controls remain comfortably
+// interactive instead of creating a narrow island in the middle.
+.main-content .bands--centered {
+  width: min(100%, calc(var(--band-count) * 84px));
+  justify-self: center;
+  grid-template-columns: repeat(var(--band-count), minmax(0, 1fr));
+}
+
+.main-content .bands--wide {
+  width: 100%;
+  justify-self: stretch;
+  grid-template-columns: repeat(var(--band-count), minmax(0, 1fr));
+}
+
 .eq-flat-editor {
   display: grid;
   min-width: 0;
