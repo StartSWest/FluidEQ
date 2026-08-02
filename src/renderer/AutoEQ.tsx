@@ -118,7 +118,7 @@ const AutoEQ = () => {
           noSelectionPlaceholder={NO_DEVICE_SELECTION}
           isFilterable
         />
-        Target response
+        Measurement / target
         <Dropdown
           name="Target Frequency Response"
           options={responseOptions}

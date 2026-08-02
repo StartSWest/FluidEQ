@@ -20,17 +20,20 @@ describe('autoeq', () => {
 
   describe('getAutoEqResponseList', () => {
     it('should fetch auto eq response names', () => {
-      const responses = getAutoEqResponseList('autoeq', TEST_DATA_READ_DIR);
-      expect(responses).toMatchObject(['autoeqPreset']);
+      const responses = getAutoEqResponseList(
+        'autoeqPreset',
+        addFileToPath(TEST_DATA_READ_DIR, 'autoeq')
+      );
+      expect(responses).toMatchObject(['testResponse']);
     });
   });
 
   describe('getAutoEqPreset', () => {
     it('should fetch auto eq preset data', () => {
       const preset = getAutoEqPreset(
-        'autoeq',
         'autoeqPreset',
-        TEST_DATA_READ_DIR
+        'testResponse',
+        addFileToPath(TEST_DATA_READ_DIR, 'autoeq')
       );
 
       expect(preset).toMatchObject({

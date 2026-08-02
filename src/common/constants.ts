@@ -73,9 +73,9 @@ export const WINDOW_WIDTH = 1428;
 export const WINDOW_HEIGHT = 625;
 export const WINDOW_HEIGHT_EXPANDED = 1036;
 
-export const PREAMP_REGEX = /^Preamp: (-\d\.\d) dB$/;
+export const PREAMP_REGEX = /^Preamp: (-?\d+(?:\.\d+)?) dB$/;
 export const FILTER_REGEX =
-  /^Filter [1-9]\d?: ON (PK|LS|HS) Fc ([1-9]\d{0,3}|[1,2]\d{4}) Hz Gain (-?[1,2]?\d\.\d) dB Q (\d\.\d\d)$/;
+  /^Filter [1-9]\d*: ON (PK|LSC?|HSC?) Fc ([1-9]\d*(?:\.\d+)?) Hz Gain (-?\d+(?:\.\d+)?) dB Q (\d+(?:\.\d+)?)$/;
 
 /** ----- Application Interfaces ----- */
 

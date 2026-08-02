@@ -27,7 +27,7 @@ headphones.forEach((headphone) => {
   eqFiles.forEach((eqFile) => {
     const eqFilePath = `${headphonePath}/${eqFile}`;
     const eqParams = fs.readFileSync(eqFilePath, { encoding: 'utf8' });
-    const eqLines = eqParams.split('\n');
+    const eqLines = eqParams.split(/\r?\n/);
     if (eqLines[eqLines.length - 1] === '') {
       eqLines.pop();
     }
@@ -59,11 +59,13 @@ headphones.forEach((headphone) => {
       switch (filterMatch[1]) {
         case 'PK':
         case 'LS':
+        case 'LSC':
         case 'HS':
+        case 'HSC':
           break;
         default:
           throw new Error(
-            `Filter type not (PK|LS|HS) on line ${i} for AutoEQ file: ${eqFilePath}`
+            `Unsupported filter type on line ${i} for AutoEQ file: ${eqFilePath}`
           );
       }
       try {

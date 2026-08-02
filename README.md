@@ -110,6 +110,13 @@ AutoEQ data and target results are credited to
 [Ian Walton](https://github.com/iwalton3/AutoEq). Equalizer APO is a separate
 GPL-licensed project by Jonas Thedering.
 
+The bundled offline AutoEq library currently contains 6,028 headphone models
+and 8,850 parametric responses from the official AutoEq results snapshot at
+commit `7ae0f56d53074872b028649617a22bbb4232feb7`. Response names retain both the
+measurement source and rig so similarly named measurements are not mixed.
+Maintainers can refresh the snapshot with `pnpm autoeq:update` and validate
+every generated filter with `pnpm test:autoeq`.
+
 FluidEQ is not affiliated with or endorsed by Dolby Laboratories. Dolby, Dolby
 Access, and Dolby Atmos are trademarks of their respective owner.
 

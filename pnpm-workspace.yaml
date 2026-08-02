@@ -6,12 +6,17 @@ allowBuilds:
   '@parcel/watcher': true
   core-js: true
   core-js-pure: true
+  edgedriver: true
   electron: true
   electron-chromedriver: true
+  electron-winstaller: true
   ffi-napi: true
+  geckodriver: true
+  koffi: true
   lzma-native: true
   protobufjs: true
   ref-napi: true
+  unrs-resolver: true
 
 overrides:
   '@types/d3-dispatch': 3.0.7

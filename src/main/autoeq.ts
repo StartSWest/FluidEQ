@@ -37,14 +37,22 @@ if (!!app && !app.isPackaged) {
 }
 
 export const getAutoEqDeviceList = (autoeqDir: string = AUTOEQ_DIR) => {
-  return fs.readdirSync(autoeqDir);
+  return fs
+    .readdirSync(autoeqDir, { withFileTypes: true })
+    .filter((entry) => entry.isDirectory())
+    .map((entry) => entry.name)
+    .sort((left, right) => left.localeCompare(right));
 };
 
 export const getAutoEqResponseList = (
   device: string,
   autoeqDir: string = AUTOEQ_DIR
 ) => {
-  return fs.readdirSync(path.join(autoeqDir, device));
+  return fs
+    .readdirSync(path.join(autoeqDir, device), { withFileTypes: true })
+    .filter((entry) => entry.isFile())
+    .map((entry) => entry.name)
+    .sort((left, right) => left.localeCompare(right));
 };
 
 export const getAutoEqPreset = (
@@ -58,7 +66,7 @@ export const getAutoEqPreset = (
   const filePath = path.join(autoeqDir, device, response);
   const file = fs.readFileSync(filePath, 'utf8');
 
-  file.split('\n').forEach((line, i) => {
+  file.split(/\r?\n/).forEach((line, i) => {
     if (Object.keys(filters).length >= MAX_NUM_FILTERS) {
       // Ensure filters doesn't exceed filter count cap
       return;
@@ -95,14 +103,16 @@ export const getAutoEqPreset = (
           filter.type = FilterTypeEnum.PK;
           break;
         case 'LS':
+        case 'LSC':
           filter.type = FilterTypeEnum.LSC;
           break;
         case 'HS':
+        case 'HSC':
           filter.type = FilterTypeEnum.HSC;
           break;
         default:
           throw new Error(
-            `Filter type not (PK|LS|HS) on line ${i} for AutoEQ file: ${filePath}`
+            `Unsupported filter type on line ${i} for AutoEQ file: ${filePath}`
           );
       }
       try {

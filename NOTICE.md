@@ -16,8 +16,11 @@ preserved. FluidEQ is not presented as an official continuation endorsed by the
 original AQUA maintainers.
 
 The bundled AutoEQ-derived preset data remains attributable to its respective
-authors and source projects. Equalizer APO is a separate project and is not
-included as proprietary FluidEQ technology.
+authors and source projects. The current library was generated from the
+official AutoEq results at commit 7ae0f56d53074872b028649617a22bbb4232feb7.
+AutoEq is Copyright (c) 2018-2022 Jaakko Pasanen and distributed under the MIT
+License; its full license text is included in assets/licenses. Equalizer APO is
+a separate project and is not included as proprietary FluidEQ technology.
 
 No part of this notice changes or restricts the rights granted by the GPL. If
 this repository and the license text conflict, the license text controls.
