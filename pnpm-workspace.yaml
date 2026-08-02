@@ -22,3 +22,6 @@ overrides:
   '@types/d3-dispatch': 3.0.7
   eslint: 8.57.1
   typescript: 6.0.3
+
+storeDir: .pnpm-store
+confirmModulesPurge: false
