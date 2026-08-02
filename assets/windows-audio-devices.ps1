@@ -94,7 +94,10 @@ public static class AquaAudioDevices
             defaultDevice.GetId(out defaultId);
 
         IMMDeviceCollection collection;
-        Marshal.ThrowExceptionForHR(enumerator.EnumAudioEndpoints(0, 0xF, out collection));
+        // DEVICE_STATE_ACTIVE only. This matches the normal Windows output
+        // picker instead of returning disabled, unplugged and historical
+        // endpoints from the registry.
+        Marshal.ThrowExceptionForHR(enumerator.EnumAudioEndpoints(0, 0x1, out collection));
         uint count;
         collection.GetCount(out count);
         var friendlyNameKey = new PROPERTYKEY {
@@ -114,10 +117,13 @@ public static class AquaAudioDevices
             endpoint.OpenPropertyStore(0, out store);
             PROPVARIANT value;
             store.GetValue(ref friendlyNameKey, out value);
+            var friendlyName = value.AsString();
+            if (String.IsNullOrWhiteSpace(friendlyName))
+                continue;
             var marker = id.LastIndexOf("{");
             result.Add(new Device {
                 id = id,
-                name = value.AsString(),
+                name = friendlyName.Trim(),
                 guid = marker >= 0 ? id.Substring(marker) : id,
                 isDefault = String.Equals(id, defaultId, StringComparison.OrdinalIgnoreCase),
                 isActive = (state & 1) == 1

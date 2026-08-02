@@ -135,6 +135,7 @@ const presetPath = path.join(userDataDir, PRESETS_DIR);
 const state: IState = fetchSettings(userDataDir);
 const deviceProfileSettings = loadDeviceProfileSettings(userDataDir);
 let configPath = '';
+let activeAudioDeviceId = '';
 
 try {
   // create presets dir if it doesn't exist
@@ -388,6 +389,19 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
   const channel = ChannelEnum.GET_AUDIO_DEVICES;
   try {
     const devices = await discoverAudioDevices();
+    const activeDevice = devices.find((device) => device.isDefault);
+    if (activeDevice && activeDevice.id !== activeAudioDeviceId) {
+      activeAudioDeviceId = activeDevice.id;
+      Object.assign(
+        state,
+        getStateForAudioDevice(
+          deviceProfileSettings,
+          activeDevice.id,
+          presetPath
+        )
+      );
+      save(state, userDataDir);
+    }
     const reply: TSuccess<IAudioDevice[]> = { result: devices };
     event.reply(channel, reply);
   } catch (e) {
@@ -403,6 +417,7 @@ ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
     arg[0] as string,
     presetPath
   );
+  activeAudioDeviceId = arg[0] as string;
   Object.assign(state, nextState);
   await handleUpdate(event, channel);
 });

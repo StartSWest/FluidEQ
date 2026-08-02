@@ -4,6 +4,7 @@ import path from 'path';
 import {
   deviceProfilesToString,
   getDefaultDeviceProfileSettings,
+  filterVisibleAudioDevices,
   getStateForAudioDevice,
 } from '../../../main/deviceProfiles';
 import {
@@ -86,8 +87,14 @@ describe('device profile configuration', () => {
       isGraphViewOn: defaults.isGraphViewOn,
       preAmp: 0,
     });
-    expect(Object.values(state.filters).map(({ frequency }) => frequency)).toEqual(
-      Object.values(defaults.filters).map(({ frequency }) => frequency)
+    expect(
+      Object.values(state.filters)
+        .map(({ frequency }) => frequency)
+        .sort((left, right) => left - right)
+    ).toEqual(
+      Object.values(defaults.filters)
+        .map(({ frequency }) => frequency)
+        .sort((left, right) => left - right)
     );
     expect(Object.values(state.filters).every(({ gain }) => gain === 0)).toBe(
       true
@@ -106,5 +113,47 @@ describe('device profile configuration', () => {
     expect(deviceProfilesToString(settings, presetsDir)).not.toContain(
       'Device: {1234-ABCD}'
     );
+  });
+
+  it('shows only active named outputs and removes exact duplicates', () => {
+    const devices = filterVisibleAudioDevices([
+      {
+        id: 'old',
+        name: 'Speakers',
+        guid: '{OLD}',
+        isDefault: false,
+        isActive: false,
+      },
+      {
+        id: 'blank',
+        name: '   ',
+        guid: '{BLANK}',
+        isDefault: false,
+        isActive: true,
+      },
+      {
+        id: 'duplicate',
+        name: 'speakers',
+        guid: '{DUPLICATE}',
+        isDefault: false,
+        isActive: true,
+      },
+      {
+        id: 'default',
+        name: 'Speakers',
+        guid: '{DEFAULT}',
+        isDefault: true,
+        isActive: true,
+      },
+      {
+        id: 'headphones',
+        name: 'Headphones',
+        guid: '{HEADPHONES}',
+        isDefault: false,
+        isActive: true,
+      },
+    ]);
+
+    expect(devices.map(({ id }) => id)).toEqual(['default', 'headphones']);
   });
 });

@@ -161,6 +161,30 @@ export const getStateForAudioDevice = (
   }
 };
 
+export const filterVisibleAudioDevices = (
+  devices: IAudioDevice[]
+): IAudioDevice[] => {
+  const visibleByName = new Map<string, IAudioDevice>();
+
+  devices
+    .filter((device) => device.isActive && device.name.trim())
+    .sort((left, right) => Number(right.isDefault) - Number(left.isDefault))
+    .forEach((device) => {
+      const normalizedName = device.name.trim().toLocaleLowerCase();
+      if (!visibleByName.has(normalizedName)) {
+        visibleByName.set(normalizedName, {
+          ...device,
+          name: device.name.trim(),
+        });
+      }
+    });
+
+  return [...visibleByName.values()].sort((left, right) => {
+    if (left.isDefault !== right.isDefault) return left.isDefault ? -1 : 1;
+    return left.name.localeCompare(right.name);
+  });
+};
+
 export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
   if (process.platform !== 'win32') {
     return [
@@ -207,7 +231,9 @@ export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
     { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 }
   );
   const parsed = JSON.parse(stdout.trim() || '[]');
-  return (Array.isArray(parsed) ? parsed : [parsed]) as IAudioDevice[];
+  return filterVisibleAudioDevices(
+    (Array.isArray(parsed) ? parsed : [parsed]) as IAudioDevice[]
+  );
 };
 
 export const flushDeviceProfiles = (

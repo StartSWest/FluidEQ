@@ -62,7 +62,6 @@ const DeviceProfiles = () => {
       ) {
         activeDeviceIdRef.current = activeDevice.id;
         setSelectedDeviceId(activeDevice.id);
-        await activateAudioDeviceProfile(activeDevice.id);
         performHealthCheck();
       }
       setSelectedDeviceId((current) => {
