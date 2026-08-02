@@ -1003,6 +1003,38 @@ ipcMain.handle('restart-windows-audio', async () => {
   });
 });
 
+const sendWindowState = () => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  mainWindow.webContents.send('window-state-changed', {
+    isMaximized: mainWindow.isMaximized(),
+  });
+};
+
+ipcMain.handle('window-minimize', () => {
+  mainWindow?.minimize();
+});
+
+ipcMain.handle('window-toggle-maximize', () => {
+  if (!mainWindow) {
+    return false;
+  }
+  if (mainWindow.isMaximized()) {
+    mainWindow.unmaximize();
+  } else {
+    mainWindow.maximize();
+  }
+  sendWindowState();
+  return mainWindow.isMaximized();
+});
+
+ipcMain.handle('window-close', () => {
+  mainWindow?.close();
+});
+
+ipcMain.handle('window-is-maximized', () => mainWindow?.isMaximized() ?? false);
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
@@ -1058,16 +1090,11 @@ const createMainWindow = async () => {
     minHeight: WINDOW_MIN_HEIGHT,
     icon: getAssetPath('icon.png'),
     resizable: true,
+    frame: false,
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
-    },
-    titleBarStyle: 'hidden',
-    titleBarOverlay: {
-      color: '#1c313a',
-      symbolColor: '#ffffff',
-      height: 28,
     },
   });
 
@@ -1141,11 +1168,16 @@ const createMainWindow = async () => {
 
   // Register this before loadURL: ready-to-show can fire during the load.
   mainWindow.on('ready-to-show', revealMainWindow);
+  mainWindow.on('maximize', sendWindowState);
+  mainWindow.on('unmaximize', sendWindowState);
+  mainWindow.on('enter-full-screen', sendWindowState);
+  mainWindow.on('leave-full-screen', sendWindowState);
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
 
   const rendererUrl = resolveHtmlPath('index.html');
+  mainWindow.webContents.on('did-finish-load', sendWindowState);
   await waitForRenderer(rendererUrl);
   await mainWindow.loadURL(rendererUrl);
 

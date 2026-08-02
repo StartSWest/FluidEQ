@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type MouseEvent } from 'react';
 import { ErrorCode } from 'common/errors';
 import './styles/App.scss';
 import MainContent from './MainContent';
@@ -44,6 +44,37 @@ const AppContent = () => {
   const { isLoading, globalError, performHealthCheck } = useAquaContext();
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
+  const [isWindowMaximized, setIsWindowMaximized] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    window.electron.ipcRenderer
+      .isWindowMaximized()
+      .then((maximized) => {
+        if (mounted) {
+          setIsWindowMaximized(maximized);
+        }
+        return undefined;
+      })
+      .catch(() => {
+        // The window state is only visual; keep the restore control usable if
+        // the main process is not ready during a hot reload.
+      });
+
+    const unsubscribe = window.electron.ipcRenderer.on(
+      'window-state-changed',
+      (...args: unknown[]) => {
+        const state = args[0] as { isMaximized?: boolean } | undefined;
+        setIsWindowMaximized(Boolean(state?.isMaximized));
+      },
+    );
+
+    return () => {
+      mounted = false;
+      unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     if (globalError?.code === ErrorCode.EQUALIZER_APO_NOT_INSTALLED) {
@@ -97,6 +128,27 @@ const AppContent = () => {
     setShowAudioRestartRecommendation(false);
   };
 
+  const handleMinimizeWindow = () => {
+    window.electron.ipcRenderer.minimizeWindow().catch(() => undefined);
+  };
+
+  const handleToggleMaximizeWindow = async () => {
+    const maximized = await window.electron.ipcRenderer.toggleMaximizeWindow();
+    setIsWindowMaximized(maximized);
+  };
+
+  const handleCloseWindow = () => {
+    window.electron.ipcRenderer.closeWindow().catch(() => undefined);
+  };
+
+  const handleTitlebarDoubleClick = (event: MouseEvent<HTMLElement>) => {
+    const target = event.target as HTMLElement;
+    if (target.closest('button, a, input, select, textarea')) {
+      return;
+    }
+    handleToggleMaximizeWindow().catch(() => undefined);
+  };
+
   let connectionStatus = 'Equalizer APO connected';
   if (isLoading) {
     connectionStatus = 'Checking Equalizer APO';
@@ -106,7 +158,10 @@ const AppContent = () => {
 
   return (
     <>
-      <header className="workspace-header">
+      <header
+        className="workspace-header window-titlebar"
+        onDoubleClick={handleTitlebarDoubleClick}
+      >
         <div className="workspace-header__identity">
           <div className="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 48 48">
@@ -144,6 +199,50 @@ const AppContent = () => {
             <span className={`status-dot${globalError ? ' error' : ''}`} />
             {connectionStatus}
           </div>
+        </div>
+        <div
+          className="window-titlebar__controls"
+          onDoubleClick={(event) => event.stopPropagation()}
+        >
+          <button
+            type="button"
+            className="window-control"
+            aria-label="Minimize FluidEQ"
+            title="Minimize"
+            onClick={handleMinimizeWindow}
+          >
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M2 6h8" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="window-control"
+            aria-label={
+              isWindowMaximized ? 'Restore FluidEQ' : 'Maximize FluidEQ'
+            }
+            title={isWindowMaximized ? 'Restore' : 'Maximize'}
+            onClick={() => handleToggleMaximizeWindow().catch(() => undefined)}
+          >
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              {isWindowMaximized ? (
+                <path d="M4 3h6v6M2 5v5h6V4" />
+              ) : (
+                <path d="M2 2h8v8H2z" />
+              )}
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="window-control window-control--close"
+            aria-label="Close FluidEQ"
+            title="Close"
+            onClick={handleCloseWindow}
+          >
+            <svg viewBox="0 0 12 12" aria-hidden="true">
+              <path d="M3 3l6 6M9 3l-6 6" />
+            </svg>
+          </button>
         </div>
       </header>
       {showAudioRestartRecommendation && (

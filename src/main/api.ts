@@ -38,7 +38,7 @@ const once = (channel: Channels, func: (...args: unknown[]) => void) => {
 
 const removeListener = (
   channel: Channels,
-  func: (...args: unknown[]) => void
+  func: (...args: unknown[]) => void,
 ) => {
   ipcRenderer.removeListener(channel, (_event, ...args) => func(...args));
 };
@@ -53,6 +53,17 @@ const openEqualizerApoConfigurator = () =>
 const restartWindowsAudio = () =>
   ipcRenderer.invoke('restart-windows-audio') as Promise<string>;
 
+const minimizeWindow = () =>
+  ipcRenderer.invoke('window-minimize') as Promise<void>;
+
+const toggleMaximizeWindow = () =>
+  ipcRenderer.invoke('window-toggle-maximize') as Promise<boolean>;
+
+const closeWindow = () => ipcRenderer.invoke('window-close') as Promise<void>;
+
+const isWindowMaximized = () =>
+  ipcRenderer.invoke('window-is-maximized') as Promise<boolean>;
+
 export default {
   ipcRenderer: {
     sendMessage,
@@ -62,5 +73,9 @@ export default {
     closeApp,
     openEqualizerApoConfigurator,
     restartWindowsAudio,
+    minimizeWindow,
+    toggleMaximizeWindow,
+    closeWindow,
+    isWindowMaximized,
   },
 };
