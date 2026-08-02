@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ErrorDescription } from 'common/errors';
+import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { useCallback, useMemo } from 'react';
 import { disableAutoPreAmp, setMainPreAmp } from './utils/equalizerApi';
 import EqualizerEnablerSwitch from './components/EqualizerEnablerSwitch';
@@ -28,9 +29,6 @@ import GraphViewSwitch from './components/GraphViewSwitch';
 import Spinner from './icons/Spinner';
 
 const SideBar = () => {
-  const MIN = -30;
-  const MAX = 30;
-
   const {
     isGraphViewOn,
     isLoading,
@@ -51,13 +49,13 @@ const SideBar = () => {
         setGlobalError(e as ErrorDescription);
       }
     },
-    [setAutoPreAmpOn, setGlobalError, setPreAmp]
+    [setAutoPreAmpOn, setGlobalError, setPreAmp],
   );
 
   const sliderHeight = useMemo(
     // Manually determine slider height
     () => (isGraphViewOn ? '102px' : 'calc(100vh - 524px)'),
-    [isGraphViewOn]
+    [isGraphViewOn],
   );
 
   return (
@@ -75,15 +73,15 @@ const SideBar = () => {
           </div>
           <div>
             <h4>Preamp</h4>
-            <div>+30 dB</div>
+            <div>{MAX_GAIN > 0 ? `+${MAX_GAIN}` : MAX_GAIN} dB</div>
             <Slider
               name="Pre-Amplification Gain (dB)"
-              min={MIN}
-              max={MAX}
+              min={MIN_GAIN}
+              max={MAX_GAIN}
               value={preAmp}
               sliderHeight={sliderHeight}
               setValue={setGain}
-              label="-30 dB"
+              label={`${MIN_GAIN} dB`}
             />
           </div>
           <div className="col center">

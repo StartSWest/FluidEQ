@@ -7,7 +7,7 @@ Feature: Set preamplification gain
       And Aqua is running
       And Aqua equalizer state is enabled
     When I set gain of the preamp slider to the bottom
-    Then Aqua config should show a preamp gain of -30dB
+    Then Aqua config should show a preamp gain of -20dB
   
   Scenario: Set preamp gain using the arrows
     Given EqualizerAPO is installed

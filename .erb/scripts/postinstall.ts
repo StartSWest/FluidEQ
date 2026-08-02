@@ -22,5 +22,5 @@ runPnpm([
   'TS_NODE_TRANSPILE_ONLY=true',
   'webpack',
   '--config',
-  './.erb/configs/webpack.config.renderer.dev.dll.ts',
+  './.erb/configs/webpack.config.renderer.dev.dll.cjs',
 ]);

@@ -209,9 +209,9 @@ const MainContent = () => {
       </div>
       <div className={`main-content main-content--${density}`}>
         <div className="eq-scale" aria-hidden="true">
-          <span>+30</span>
+          <span>+20</span>
           <span>0 dB</span>
-          <span>-30</span>
+          <span>-20</span>
         </div>
         <div
           className={`bands bands--${density}`}

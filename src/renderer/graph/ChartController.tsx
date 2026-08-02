@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useMemo } from 'react';
 import * as d3 from 'd3';
+import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { Color } from 'renderer/styles/color';
 
 export const GRAPH_START = 10;
@@ -68,12 +69,12 @@ const useController = ({
 }: IChartControllerProps) => {
   const xMin = useMemo(
     () => d3.min(data, ({ line }) => d3.min(line.points, ({ x }) => x)) || 0,
-    [data]
+    [data],
   );
 
   const xMax = useMemo(
     () => d3.max(data, ({ line }) => d3.max(line.points, ({ x }) => x)) || 0,
-    [data]
+    [data],
   );
 
   const xScaleFreq = useMemo(
@@ -82,26 +83,26 @@ const useController = ({
         .scaleLog()
         .domain([GRAPH_START, GRAPH_END])
         .range([padding.left, width - padding.right]),
-    [padding.left, padding.right, width]
+    [padding.left, padding.right, width],
   );
 
   const yMin = useMemo(
     () => d3.min(data, ({ line }) => d3.min(line.points, ({ y }) => y)) || 0,
-    [data]
+    [data],
   );
 
   const yMax = useMemo(
     () => d3.max(data, ({ line }) => d3.max(line.points, ({ y }) => y)) || 0,
-    [data]
+    [data],
   );
 
   const yScaleGain = useMemo(
     () =>
       d3
         .scaleLinear()
-        .domain([-40, 40])
+        .domain([MIN_GAIN, MAX_GAIN])
         .range([height - padding.bottom, padding.top]),
-    [height, padding.bottom, padding.top]
+    [height, padding.bottom, padding.top],
   );
 
   const xTickFormat = (domainValue: d3.NumberValue) =>

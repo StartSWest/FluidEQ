@@ -58,10 +58,10 @@ const promisifyResult = <Type>(
   responseHandler: (
     arg: TResult<Type>,
     resolve: (value: Type | PromiseLike<Type>) => void,
-    reject: (reason?: ErrorDescription) => void
+    reject: (reason?: ErrorDescription) => void,
   ) => void,
   channel: string,
-  timeout = TIMEOUT
+  timeout = TIMEOUT,
 ) => {
   return new Promise<Type>((resolve, reject) => {
     let timer: NodeJS.Timeout;
@@ -91,18 +91,18 @@ const buildResponseHandler = <
     | string[]
     | IAudioDevice[]
     | IDeviceProfileSettings
-    | IAutoEqUpdateStatus
+    | IAutoEqUpdateStatus,
 >(
   resultEvaluator: (
     result: Type,
     resolve: (value: Type | PromiseLike<Type>) => void,
-    reject: (reason?: ErrorDescription) => void
-  ) => void
+    reject: (reason?: ErrorDescription) => void,
+  ) => void,
 ) => {
   return (
     arg: TResult<Type>,
     resolve: (value: Type | PromiseLike<Type>) => void,
-    reject: (reason?: ErrorDescription) => void
+    reject: (reason?: ErrorDescription) => void,
   ) => {
     if ('errorCode' in arg) {
       reject(toError(getErrorDescription(arg.errorCode)));
@@ -124,14 +124,14 @@ const simpleResponseHandler = <
     | string[]
     | IAudioDevice[]
     | IDeviceProfileSettings
-    | IAutoEqUpdateStatus
+    | IAutoEqUpdateStatus,
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);
   });
 
 const setterResponseHandler = buildResponseHandler<void>((_result, resolve) =>
-  resolve()
+  resolve(),
 );
 
 /**
@@ -186,7 +186,7 @@ export const deletePreset = (presetName: string): Promise<void> => {
  */
 export const renamePreset = (
   oldName: string,
-  newName: string
+  newName: string,
 ): Promise<void> => {
   const channel = ChannelEnum.RENAME_PRESET;
   window.electron.ipcRenderer.sendMessage(channel, [oldName, newName]);
@@ -215,9 +215,7 @@ export const setDefaultAudioDevice = (deviceId: string): Promise<void> => {
   return promisifyResult(setterResponseHandler, channel);
 };
 
-export const activateAudioDeviceProfile = (
-  deviceId: string
-): Promise<void> => {
+export const activateAudioDeviceProfile = (deviceId: string): Promise<void> => {
   const channel = ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE;
   window.electron.ipcRenderer.sendMessage(channel, [deviceId]);
   return promisifyResult(setterResponseHandler, channel);
@@ -228,12 +226,12 @@ export const getDeviceProfileSettings = (): Promise<IDeviceProfileSettings> => {
   window.electron.ipcRenderer.sendMessage(channel, []);
   return promisifyResult(
     simpleResponseHandler<IDeviceProfileSettings>(),
-    channel
+    channel,
   );
 };
 
 export const assignDeviceProfile = (
-  assignment: IDeviceProfileAssignment
+  assignment: IDeviceProfileAssignment,
 ): Promise<void> => {
   const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
   window.electron.ipcRenderer.sendMessage(channel, [assignment]);
@@ -262,7 +260,7 @@ export const getAutoEqDeviceList = (): Promise<string[]> => {
  * @returns { Promise<string[]> } exception if failed.
  */
 export const getAutoEqResponseList = (
-  deviceName: string
+  deviceName: string,
 ): Promise<string[]> => {
   const channel = ChannelEnum.GET_AUTO_EQ_RESPONSE_LIST;
   window.electron.ipcRenderer.sendMessage(channel, [deviceName]);
@@ -277,7 +275,7 @@ export const getAutoEqResponseList = (
  */
 export const loadAutoEqPreset = (
   deviceName: string,
-  responseName: string
+  responseName: string,
 ): Promise<void> => {
   const channel = ChannelEnum.LOAD_AUTO_EQ_PRESET;
   window.electron.ipcRenderer.sendMessage(channel, [deviceName, responseName]);
@@ -287,10 +285,7 @@ export const loadAutoEqPreset = (
 export const checkAutoEqUpdate = (): Promise<IAutoEqUpdateStatus> => {
   const channel = ChannelEnum.CHECK_AUTO_EQ_UPDATE;
   window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(
-    simpleResponseHandler<IAutoEqUpdateStatus>(),
-    channel
-  );
+  return promisifyResult(simpleResponseHandler<IAutoEqUpdateStatus>(), channel);
 };
 
 export const updateAutoEqDatabase = (): Promise<IAutoEqUpdateStatus> => {
@@ -299,7 +294,7 @@ export const updateAutoEqDatabase = (): Promise<IAutoEqUpdateStatus> => {
   return promisifyResult(
     simpleResponseHandler<IAutoEqUpdateStatus>(),
     channel,
-    5 * 60 * 1000
+    5 * 60 * 1000,
   );
 };
 
@@ -389,7 +384,7 @@ export const disableGraphView = (): Promise<void> => {
 /**
  * Get the current main preamplification gain value
  * @deprecated - Removing with the context refactor
- * @returns { Promise<number> } gain - current system gain value in the range [-30, 30]
+ * @returns { Promise<number> } gain - current system gain value in the range [-20, 20]
  */
 export const getMainPreAmp = (): Promise<number> => {
   const channel = ChannelEnum.GET_PREAMP;
@@ -399,13 +394,13 @@ export const getMainPreAmp = (): Promise<number> => {
 
 /**
  * Adjusts the main preamplification gain value
- * @param {number} gain - new gain value in [-30, 30]
+ * @param {number} gain - new gain value in [-20, 20]
  */
 export const setMainPreAmp = (gain: number) => {
   const channel = ChannelEnum.SET_PREAMP;
   if (gain > MAX_GAIN || gain < MIN_GAIN) {
     throw new Error(
-      `Invalid gain value - outside of range [${MIN_GAIN}, ${MAX_GAIN}]`
+      `Invalid gain value - outside of range [${MIN_GAIN}, ${MAX_GAIN}]`,
     );
   }
   window.electron.ipcRenderer.sendMessage(channel, [gain]);
@@ -416,7 +411,7 @@ export const setMainPreAmp = (gain: number) => {
  * Get the a slider's gain value
  * @deprecated - Removing with the context refactor
  * @param {string} filterId - id of the slider being adjusted
- * @returns { Promise<number> } gain - current system gain value in the range [-30, 30]
+ * @returns { Promise<number> } gain - current system gain value in the range [-20, 20]
  */
 export const getGain = (filterId: string): Promise<number> => {
   const channel = ChannelEnum.GET_FILTER_GAIN;
@@ -427,13 +422,13 @@ export const getGain = (filterId: string): Promise<number> => {
 /**
  * Adjusts a slider's gain value
  * @param {string} filterId - id of the slider being adjusted
- * @param {number} gain - new gain value in [-30, 30]
+ * @param {number} gain - new gain value in [-20, 20]
  */
 export const setGain = (filterId: string, gain: number) => {
   const channel = ChannelEnum.SET_FILTER_GAIN;
   if (gain > MAX_GAIN || gain < MIN_GAIN) {
     throw new Error(
-      `Invalid gain value - outside of range [${MIN_GAIN}, ${MAX_GAIN}]`
+      `Invalid gain value - outside of range [${MIN_GAIN}, ${MAX_GAIN}]`,
     );
   }
   window.electron.ipcRenderer.sendMessage(channel, [filterId, gain]);
@@ -461,7 +456,7 @@ export const setFrequency = (filterId: string, frequency: number) => {
   const channel = ChannelEnum.SET_FILTER_FREQUENCY;
   if (frequency < MIN_FREQUENCY || frequency > MAX_FREQUENCY) {
     throw new Error(
-      `Invalid gain value - outside of range (${MIN_FREQUENCY}, ${MAX_FREQUENCY}]`
+      `Invalid gain value - outside of range (${MIN_FREQUENCY}, ${MAX_FREQUENCY}]`,
     );
   }
   window.electron.ipcRenderer.sendMessage(channel, [filterId, frequency]);
@@ -489,7 +484,7 @@ export const setQuality = (filterId: string, quality: number) => {
   const channel = ChannelEnum.SET_FILTER_QUALITY;
   if (quality < MIN_QUALITY || quality > MAX_QUALITY) {
     throw new Error(
-      `Invalid quality value - outside of range [${MIN_QUALITY}, ${MAX_QUALITY}]`
+      `Invalid quality value - outside of range [${MIN_QUALITY}, ${MAX_QUALITY}]`,
     );
   }
   window.electron.ipcRenderer.sendMessage(channel, [filterId, quality]);
@@ -507,7 +502,7 @@ export const getType = (filterId: string): Promise<FilterTypeEnum> => {
   window.electron.ipcRenderer.sendMessage(channel, [filterId]);
   return promisifyResult<FilterTypeEnum>(
     simpleResponseHandler<FilterTypeEnum>(),
-    channel + filterId
+    channel + filterId,
   );
 };
 
@@ -575,7 +570,7 @@ export const setFixedBand = (size: FixedBandSizeEnum): Promise<IFiltersMap> => {
   window.electron.ipcRenderer.sendMessage(channel, [size]);
   return promisifyResult<IFiltersMap>(
     simpleResponseHandler<IFiltersMap>(),
-    channel
+    channel,
   );
 };
 

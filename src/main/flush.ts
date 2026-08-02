@@ -19,7 +19,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import {
+  clampGain,
+  FilterTypeEnum,
   getDefaultState,
+  IFiltersMap,
   IPresetV1,
   IPresetV2,
   IState,
@@ -50,16 +53,23 @@ export const stateToString = (
 
   // Using individual filter bands
   output = output.concat(
-    Object.values(state.filters).map(
-      ({ frequency, gain, type, quality }, index) => {
-        return `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz Gain ${gain} dB Q ${quality}`;
-      },
-    ),
+    Object.values(state.filters)
+      // A zero-gain PK/shelf is neutral. Do not leave hundreds of inert EQ
+      // commands in APO after the user presses Reset gains.
+      .filter(
+        ({ gain, type }) =>
+          ![FilterTypeEnum.PK, FilterTypeEnum.LSC, FilterTypeEnum.HSC].includes(
+            type,
+          ) || clampGain(gain) !== 0,
+      )
+      .map(({ frequency, gain, type, quality }, index) => {
+        return `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz Gain ${clampGain(gain)} dB Q ${quality}`;
+      }),
   );
 
   // Equalizer APO applies rules in order: convolution, EQ bands, then gain.
   // This line MUST be "Preamp" without a capitalized P for APO to work.
-  output.push(`Preamp: ${state.preAmp} dB`);
+  output.push(`Preamp: ${clampGain(state.preAmp)} dB`);
 
   return output.join('\n\r');
 };
@@ -85,6 +95,14 @@ export const addFileToPath = (pathPrefix: string, fileName: string) => {
   return path.join(pathPrefix, fileName);
 };
 
+const normalizeFilters = (filters: IFiltersMap): IFiltersMap =>
+  Object.fromEntries(
+    Object.entries(filters).map(([id, filter]) => [
+      id,
+      { ...filter, gain: clampGain(filter.gain) },
+    ]),
+  );
+
 export const fetchSettings = (settingsDir: string) => {
   const settingsPath = path.join(settingsDir, AQUA_LOCAL_CONFIG_FILENAME);
   try {
@@ -96,7 +114,12 @@ export const fetchSettings = (settingsDir: string) => {
       throw new Error('Invalid state file loaded. Using default state.');
     }
     // Manually set case sensitivity as false until it is confirmed in app that it can be enabled
-    return { ...input, isCaseSensitiveFs: false } as IState;
+    return {
+      ...input,
+      preAmp: clampGain(input.preAmp),
+      filters: normalizeFilters(input.filters),
+      isCaseSensitiveFs: false,
+    } as IState;
   } catch (ex) {
     if ((ex as NodeJS.ErrnoException).code !== 'ENOENT') {
       console.error('Unable to load saved FluidEQ state; using defaults.', ex);
@@ -127,10 +150,16 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
     const json = JSON.parse(content);
     if (validatePresetV1(json)) {
       const oldFormat = json as IPresetV1;
-      const newFormat: IPresetV2 = { preAmp: oldFormat.preAmp, filters: {} };
+      const newFormat: IPresetV2 = {
+        preAmp: clampGain(oldFormat.preAmp),
+        filters: {},
+      };
       oldFormat.filters.forEach((filter) => {
         // Its okay to shallow copy the filter because we won't give oldFormat to anyone else.
-        newFormat.filters[filter.id] = filter;
+        newFormat.filters[filter.id] = {
+          ...filter,
+          gain: clampGain(filter.gain),
+        };
       });
       try {
         // Try to update our file.
@@ -143,7 +172,12 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
     if (!validatePresetV2(json)) {
       throw new Error('Invalid preset file');
     }
-    return json as IPresetV2;
+    const preset = json as IPresetV2;
+    return {
+      ...preset,
+      preAmp: clampGain(preset.preAmp),
+      filters: normalizeFilters(preset.filters),
+    };
   } catch (ex) {
     console.log('Failed to get presets!!');
     console.log(ex);

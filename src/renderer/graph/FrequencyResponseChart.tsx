@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { IFiltersMap, IFilter } from 'common/constants';
+import { IFiltersMap, IFilter, MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import {
   useCallback,
@@ -152,7 +152,9 @@ const FrequencyResponseChart = () => {
           ],
       // Rounding to two decimals
       autoPreAmpValue:
-        Math.round(clamp(-1 * (highestPoint.y - preAmp), -30, 30) * 100) / 100,
+        Math.round(
+          clamp(-1 * (highestPoint.y - preAmp), MIN_GAIN, MAX_GAIN) * 100,
+        ) / 100,
     };
   }, [convolution, filters, preAmp]);
 

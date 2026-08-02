@@ -78,38 +78,22 @@ describe('flush', () => {
       expect(returnedString).toMatch(/Device: all\n\rChannel: all\n\r/);
       expect(returnedString).toMatch(/Preamp: 0 dB$/);
 
-      // Check for that filters for each frequency exists
-      // Note: the order of filters in the string is determined by the generated filter id and not the frequency value
-      expect(returnedString).toMatch(
-        /Filter \d+: ON PK Fc 32 Hz Gain 0 dB Q 1/,
-      );
-      expect(returnedString).toMatch(
-        /Filter \d+: ON PK Fc 64 Hz Gain 0 dB Q 1/,
-      );
-      expect(returnedString).toMatch(
-        /Filter \d+: ON PK Fc 125 Hz Gain 0 dB Q 1/,
-      );
-      expect(returnedString).toMatch(
-        /Filter \d+: ON PK Fc 250 Hz Gain 0 dB Q 1/,
-      );
-      expect(returnedString).toMatch(
-        /Filter \d+: ON PK Fc 500 Hz Gain 0 dB Q 1/,
-      );
-      expect(returnedString).toMatch(
-        /Filter \d+: ON PK Fc 1000 Hz Gain 0 dB Q 1/,
-      );
-      expect(returnedString).toMatch(
-        /Filter \d+: ON PK Fc 2000 Hz Gain 0 dB Q 1/,
-      );
-      expect(returnedString).toMatch(
-        /Filter \d+: ON PK Fc 4000 Hz Gain 0 dB Q 1/,
-      );
-      expect(returnedString).toMatch(
-        /Filter \d+: ON PK Fc 8000 Hz Gain 0 dB Q 1/,
-      );
-      expect(returnedString).toMatch(
-        /Filter \d+: ON PK Fc 16000 Hz Gain 0 dB Q 1/,
-      );
+      // A flat/default state should not emit inert EQ commands to APO.
+      expect(returnedString).not.toContain('Filter ');
+    });
+
+    it('clamps legacy gain values to the safe +/-20 dB range', () => {
+      const state = getDefaultState();
+      const firstFilter = Object.values(state.filters)[0];
+      firstFilter.gain = 30;
+      state.preAmp = -30;
+
+      const returnedString = stateToString(state);
+
+      expect(returnedString).toContain('Gain 20 dB');
+      expect(returnedString).toContain('Preamp: -20 dB');
+      expect(returnedString).not.toContain('Gain 30 dB');
+      expect(returnedString).not.toContain('Preamp: -30 dB');
     });
   });
 

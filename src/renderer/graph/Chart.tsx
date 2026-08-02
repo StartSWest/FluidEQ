@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useMemo } from 'react';
+import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { ColorEnum } from '../styles/color';
 import Axis from './Axis';
 import GridLine from './GridLine';
@@ -38,11 +39,11 @@ const Chart = ({ data = [], dimensions }: IChartProps) => {
   const { width, height, margins } = dimensions;
   const svgWidth = useMemo(
     () => Math.max(width - margins.left - margins.right, 0),
-    [width, margins]
+    [width, margins],
   );
   const svgHeight = useMemo(
     () => Math.max(height - margins.top - margins.bottom, 0),
-    [height, margins]
+    [height, margins],
   );
 
   const padding = useMemo(() => {
@@ -58,17 +59,17 @@ const Chart = ({ data = [], dimensions }: IChartProps) => {
     () =>
       Math.max(
         width - margins.left - margins.right - padding.left - padding.right,
-        0
+        0,
       ),
-    [width, margins, padding]
+    [width, margins, padding],
   );
   const chartHeight = useMemo(
     () =>
       Math.max(
         height - margins.top - margins.bottom - padding.top - padding.bottom,
-        0
+        0,
       ),
-    [height, margins, padding]
+    [height, margins, padding],
   );
 
   const { xTickFormat, yTickFormat, xScaleFreq, yScaleGain } = useController({
@@ -106,7 +107,7 @@ const Chart = ({ data = [], dimensions }: IChartProps) => {
       <GridLine
         type="horizontal"
         scale={yScaleGain}
-        tickValues={[-30, -20, -10, 10, 20, 30]}
+        tickValues={[MIN_GAIN, -10, 10, MAX_GAIN]}
         size={svgWidth - padding.left}
         transform={`translate(${padding.left}, 0)`}
       />
@@ -128,7 +129,7 @@ const Chart = ({ data = [], dimensions }: IChartProps) => {
         type="left"
         scale={yScaleGain}
         transform={`translate(${padding.left}, 0)`}
-        tickValues={[-30, -20, -10, 0, 10, 20, 30]}
+        tickValues={[MIN_GAIN, -10, 0, 10, MAX_GAIN]}
         tickFormat={yTickFormat}
       />
       <Axis

@@ -21,6 +21,7 @@ import path from 'path';
 import { app } from 'electron';
 import {
   FilterTypeEnum,
+  clampGain,
   getDefaultFilterWithId,
   IFilter,
   IPresetV2,
@@ -39,7 +40,7 @@ const getAutoEqDir = () => {
   const downloadedDir = path.join(app.getPath('userData'), 'autoeq');
   const downloadedManifest = path.join(
     app.getPath('userData'),
-    'autoeq-version.json'
+    'autoeq-version.json',
   );
   return fs.existsSync(downloadedManifest) && fs.existsSync(downloadedDir)
     ? downloadedDir
@@ -56,7 +57,7 @@ export const getAutoEqDeviceList = (autoeqDir: string = getAutoEqDir()) => {
 
 export const getAutoEqResponseList = (
   device: string,
-  autoeqDir: string = getAutoEqDir()
+  autoeqDir: string = getAutoEqDir(),
 ) => {
   return fs
     .readdirSync(path.join(autoeqDir, device), { withFileTypes: true })
@@ -68,7 +69,7 @@ export const getAutoEqResponseList = (
 export const getAutoEqPreset = (
   device: string,
   response: string,
-  autoeqDir: string = getAutoEqDir()
+  autoeqDir: string = getAutoEqDir(),
 ) => {
   let preAmpParsed = 0;
   const filters: IFiltersMap = {};
@@ -85,7 +86,7 @@ export const getAutoEqPreset = (
     if (preampMatch) {
       if (preampMatch.length !== 2) {
         throw new Error(
-          `Preamp regex match error for AutoEQ file: ${filePath}`
+          `Preamp regex match error for AutoEQ file: ${filePath}`,
         );
       }
 
@@ -93,7 +94,7 @@ export const getAutoEqPreset = (
         preAmpParsed = parseFloat(preampMatch[1]);
       } catch (err) {
         throw new Error(
-          `Preamp float parse error for AutoEQ file: ${filePath}`
+          `Preamp float parse error for AutoEQ file: ${filePath}`,
         );
       }
       return;
@@ -103,7 +104,7 @@ export const getAutoEqPreset = (
     if (filterMatch) {
       if (filterMatch.length !== 5) {
         throw new Error(
-          `Filter regex match error on line ${i} for AutoEQ file: ${filePath}`
+          `Filter regex match error on line ${i} for AutoEQ file: ${filePath}`,
         );
       }
 
@@ -122,16 +123,16 @@ export const getAutoEqPreset = (
           break;
         default:
           throw new Error(
-            `Unsupported filter type on line ${i} for AutoEQ file: ${filePath}`
+            `Unsupported filter type on line ${i} for AutoEQ file: ${filePath}`,
           );
       }
       try {
         filter.frequency = Math.min(parseInt(filterMatch[2], 10), 20000);
-        filter.gain = parseFloat(filterMatch[3]);
+        filter.gain = clampGain(parseFloat(filterMatch[3]));
         filter.quality = parseFloat(filterMatch[4]);
       } catch (err) {
         throw new Error(
-          `Filter parameter parse error on line ${i} for AutoEQ file: ${filePath}`
+          `Filter parameter parse error on line ${i} for AutoEQ file: ${filePath}`,
         );
       }
       filters[filter.id] = filter;
@@ -140,7 +141,7 @@ export const getAutoEqPreset = (
   });
 
   const preset: IPresetV2 = {
-    preAmp: preAmpParsed,
+    preAmp: clampGain(preAmpParsed),
     filters,
   };
 
