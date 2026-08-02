@@ -22,6 +22,9 @@ import { disableAutoPreAmp, enableAutoPreAmp } from '../utils/equalizerApi';
 import { useAquaContext } from '../utils/AquaContext';
 import Switch from '../widgets/Switch';
 
+// The public UI calls this Auto normalize. The existing component and API
+// names remain for compatibility with saved state and automation selectors.
+
 interface IAutoPreAmpEnablerSwitchProps {
   id: string;
 }

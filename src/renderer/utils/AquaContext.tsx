@@ -195,10 +195,9 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
     try {
       const state = await getEqualizerState();
       setIsEnabled(state.isEnabled);
-      // Automatic headroom protection is always enabled. Keep the state field
-      // for compatibility with older config files, but do not let a legacy
-      // false value disable the live auto-balance behavior.
-      setAutoPreAmpOn(true);
+      // Keep the persisted preference so Auto normalize can be disabled for
+      // users who want to set the APO preamp manually.
+      setAutoPreAmpOn(state.isAutoPreAmpOn);
       setGraphViewOn(state.isGraphViewOn);
       setPreAmp(state.preAmp);
       dispatchFilter({ type: FilterActionEnum.INIT, filters: state.filters });

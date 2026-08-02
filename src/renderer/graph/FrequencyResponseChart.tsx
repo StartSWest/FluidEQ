@@ -84,6 +84,7 @@ const FrequencyResponseChart = () => {
     isGraphViewOn,
     isLoading,
     globalError,
+    isAutoPreAmpOn,
     convolution,
     preAmp,
     setGlobalError,
@@ -251,6 +252,11 @@ const FrequencyResponseChart = () => {
       },
     );
 
+    const calculatedAutoPreAmpValue =
+      Math.round(
+        clamp(-1 * (highestPoint.y - preAmp), MIN_GAIN, MAX_GAIN) * 100,
+      ) / 100;
+
     return {
       chartData: convolution
         ? [
@@ -284,24 +290,30 @@ const FrequencyResponseChart = () => {
               },
             } as IChartCurveData,
           ],
-      // Rounding to two decimals
-      autoPreAmpValue:
-        Math.round(
-          clamp(-1 * (highestPoint.y - preAmp), MIN_GAIN, MAX_GAIN) * 100,
-        ) / 100,
+      // Rounding to two decimals. When disabled, expose the current manual
+      // preamp so the graph and APO remain in sync without auto-adjusting it.
+      autoPreAmpValue: isAutoPreAmpOn ? calculatedAutoPreAmpValue : preAmp,
     };
-  }, [convolution, filters, preAmp]);
+  }, [convolution, filters, isAutoPreAmpOn, preAmp]);
 
   useEffect(() => {
-    // Don't automatically adjust preamp if state hasn't been fetched yet
-    if (!isLoading && !globalError) {
+    // Auto normalize writes Equalizer APO's Preamp headroom value. When it is
+    // disabled, keep the current manual preamp untouched.
+    if (isAutoPreAmpOn && !isLoading && !globalError) {
       setMainPreAmp(autoPreAmpValue)
         .then(() => setPreAmp(autoPreAmpValue))
         .catch((error: ErrorDescription) => {
           setGlobalError(error);
         });
     }
-  }, [autoPreAmpValue, globalError, isLoading, setGlobalError, setPreAmp]);
+  }, [
+    autoPreAmpValue,
+    globalError,
+    isAutoPreAmpOn,
+    isLoading,
+    setGlobalError,
+    setPreAmp,
+  ]);
 
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(0);

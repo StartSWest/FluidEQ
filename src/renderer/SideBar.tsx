@@ -21,6 +21,7 @@ import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { useCallback, useMemo } from 'react';
 import { setMainPreAmp } from './utils/equalizerApi';
 import EqualizerEnablerSwitch from './components/EqualizerEnablerSwitch';
+import AutoPreAmpEnablerSwitch from './components/AutoPreAmpEnablerSwitch';
 import Slider from './components/Slider';
 import './styles/SideBar.scss';
 import { useAquaContext } from './utils/AquaContext';
@@ -78,6 +79,11 @@ const SideBar = () => {
           <div className="col center">
             <h4>Response graph</h4>
             <GraphViewSwitch id="graphViewEnabler" />
+          </div>
+          <div className="col center auto-normalize-control">
+            <span className="control-kicker">APO HEADROOM</span>
+            <h4>Auto normalize</h4>
+            <AutoPreAmpEnablerSwitch id="autoPreAmpEnabler" />
           </div>
         </>
       )}

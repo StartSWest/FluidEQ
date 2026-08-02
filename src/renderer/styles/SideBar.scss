@@ -37,6 +37,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin-bottom: 1em;
   }
 
+  .auto-normalize-control {
+    gap: 2px;
+
+    .control-kicker {
+      margin-bottom: 2px;
+    }
+
+    h4 {
+      margin: 3px 0 8px;
+    }
+  }
+
   h4 {
     margin: 0.55em 0 0.9em;
     font-size: 0.76rem;
@@ -67,6 +79,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > div {
     width: 100%;
+  }
+
+  .auto-normalize-control {
+    .switch {
+      margin-top: 1px;
+    }
   }
 }
 
