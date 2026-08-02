@@ -245,13 +245,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .eq-flat-editor {
   display: grid;
   min-width: 0;
-  padding: 8px 10px;
+  padding: 10px 12px;
   grid-column: 1 / -1;
   grid-template-columns:
-    minmax(100px, 1fr) repeat(4, minmax(82px, auto))
-    auto;
-  align-items: end;
-  gap: 10px;
+    minmax(96px, 1.35fr) 78px 78px minmax(98px, 1.2fr) 64px
+    minmax(98px, 1fr);
+  align-items: start;
+  gap: 8px;
   border: 1px solid rgba($secondary-default, 0.14);
   border-radius: 13px;
   background: linear-gradient(
@@ -267,18 +267,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   flex-direction: column;
   gap: 4px;
+  align-self: start;
 
   > span {
+    min-height: 12px;
     color: rgba($primary-lighter, 0.68);
     font-size: 0.55rem;
     font-weight: 700;
     letter-spacing: 0.08em;
+    line-height: 12px;
     text-transform: uppercase;
   }
 }
 
 .eq-flat-editor__delete {
+  align-self: center;
   min-height: 34px;
+  width: 100%;
   padding-inline: 12px;
   border: 1px solid rgba(#ff7185, 0.28);
   border-radius: 10px;
@@ -304,6 +309,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .eq-flat-editor__identity strong {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
   color: $secondary-light;
   font-size: 0.76rem;
   font-variant-numeric: tabular-nums;
@@ -320,6 +328,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .dropdown [role='menu'] {
     width: 100%;
+  }
+
+  .number-input .input-wrapper {
+    width: 100%;
+  }
+}
+
+.eq-flat-editor .knob {
+  width: 52px;
+  height: 52px;
+  flex-basis: 52px;
+  align-self: center;
+}
+
+.eq-flat-editor__control:has(.knob) {
+  align-items: stretch;
+
+  .knob {
+    margin-top: 1px;
   }
 }
 
