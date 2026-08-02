@@ -26,7 +26,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, desktopCapturer, ipcMain, shell } from 'electron';
 import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
@@ -863,6 +863,34 @@ const createMainWindow = async () => {
       height: 28,
     },
   });
+
+  mainWindow.webContents.session.setDisplayMediaRequestHandler(
+    (request, callback) => {
+      if (
+        !mainWindow ||
+        request.frame !== mainWindow.webContents.mainFrame ||
+        !request.audioRequested ||
+        !request.userGesture
+      ) {
+        callback({});
+        return;
+      }
+
+      desktopCapturer
+        .getSources({
+          types: ['screen'],
+          thumbnailSize: { width: 0, height: 0 },
+        })
+        .then(([screen]) => {
+          if (!screen) {
+            callback({});
+            return;
+          }
+          callback({ video: screen, audio: 'loopback' });
+        })
+        .catch(() => callback({}));
+    }
+  );
 
   setWindowDimension(state.isGraphViewOn);
 

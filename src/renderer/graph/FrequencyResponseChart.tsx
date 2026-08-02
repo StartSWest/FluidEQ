@@ -37,7 +37,8 @@ import {
   IChartPointData,
 } from './ChartController';
 import { getFilterLineData, getCombinedLineData } from './utils';
-import { GrayScaleEnum } from '../styles/color';
+import { ColorEnum, GrayScaleEnum } from '../styles/color';
+import useLiveOutputSpectrum from './useLiveOutputSpectrum';
 
 const isFilterEqual = (f1: IFilter, f2: IFilter) => {
   if (!f1 || !f2) {
@@ -58,6 +59,7 @@ interface IGraphData {
 }
 
 const FrequencyResponseChart = () => {
+  const liveOutput = useLiveOutputSpectrum();
   const {
     filters,
     isAutoPreAmpOn,
@@ -211,16 +213,50 @@ const FrequencyResponseChart = () => {
     },
   };
 
+  const displayData = useMemo(
+    () =>
+      liveOutput.points.length > 0
+        ? [
+            ...chartData,
+            {
+              id: 'Live Output',
+              name: 'Live processed output',
+              line: {
+                color: ColorEnum.COMPLEMENTARY,
+                strokeWidth: 2,
+                points: liveOutput.points,
+              },
+            } as IChartCurveData,
+          ]
+        : chartData,
+    [chartData, liveOutput.points]
+  );
+
   return (
     <>
       {isGraphViewOn && (
         <div className="graph-wrapper" ref={ref}>
+          <div className="live-output-controls">
+            <span className="graph-legend graph-legend--eq">EQ response</span>
+            <span className="graph-legend graph-legend--live">
+              Live output (dBFS)
+            </span>
+            <button
+              type="button"
+              onClick={liveOutput.isActive ? liveOutput.stop : liveOutput.start}
+            >
+              {liveOutput.isActive ? 'Stop live output' : 'Start live output'}
+            </button>
+            {liveOutput.error && (
+              <span className="live-output-error">{liveOutput.error}</span>
+            )}
+          </div>
           {isLoading ? (
             <div className="center full row">
               <Spinner />
             </div>
           ) : (
-            <Chart data={chartData} dimensions={dimensions} />
+            <Chart data={displayData} dimensions={dimensions} />
           )}
         </div>
       )}

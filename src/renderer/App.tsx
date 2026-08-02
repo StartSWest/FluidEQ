@@ -17,6 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { ErrorCode } from 'common/errors';
 import './styles/App.scss';
 import MainContent from './MainContent';
 import { AquaProvider, useAquaContext } from './utils/AquaContext';
@@ -34,15 +36,37 @@ import {
   savePreset,
 } from './utils/equalizerApi';
 
+const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
+
 const AppContent = () => {
   const { isLoading, globalError, performHealthCheck } = useAquaContext();
+  const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
+    useState(false);
+
+  useEffect(() => {
+    if (globalError?.code === ErrorCode.EQUALIZER_APO_NOT_INSTALLED) {
+      localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');
+      return;
+    }
+
+    if (
+      !isLoading &&
+      !globalError &&
+      localStorage.getItem(APO_RESTART_RECOMMENDED_KEY) === 'true'
+    ) {
+      setShowAudioRestartRecommendation(true);
+    }
+  }, [globalError, isLoading]);
 
   const handleConfigureEqualizerApo = async () => {
     const error =
       await window.electron.ipcRenderer.openEqualizerApoConfigurator();
     if (error) {
       window.alert(error);
+      return;
     }
+    localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');
+    setShowAudioRestartRecommendation(true);
   };
 
   const handleRestartWindowsAudio = async () => {
@@ -60,8 +84,15 @@ const AppContent = () => {
         'Windows Audio restarted. Reopen any application that is still silent.'
     );
     if (!error) {
+      localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
+      setShowAudioRestartRecommendation(false);
       performHealthCheck();
     }
+  };
+
+  const dismissAudioRestartRecommendation = () => {
+    localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
+    setShowAudioRestartRecommendation(false);
   };
 
   return (
@@ -109,6 +140,25 @@ const AppContent = () => {
           </div>
         </div>
       </header>
+      {showAudioRestartRecommendation && (
+        <aside className="audio-restart-notice" role="status">
+          <span>
+            Equalizer APO was installed or reconfigured. If audio is missing,
+            reload Windows Audio instead of rebooting the PC.
+          </span>
+          <div className="audio-restart-notice__actions">
+            <button type="button" onClick={handleRestartWindowsAudio}>
+              Restart audio now
+            </button>
+            <button
+              type="button"
+              onClick={dismissAudioRestartRecommendation}
+            >
+              Dismiss
+            </button>
+          </div>
+        </aside>
+      )}
       <SideBar />
       <div className="middle-content">
         <AutoEQ />

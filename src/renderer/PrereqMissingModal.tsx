@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { useEffect, useState } from 'react';
 import Button from './widgets/Button';
 import './styles/Modal.scss';
 
@@ -35,55 +36,56 @@ export default function PrereqMissingModal({
   actionMsg,
   onRetry,
 }: IPrereqMissingModalProps) {
-  const handleClose = async () => {
-    window.electron.ipcRenderer.closeApp();
-  };
+  const [isDismissed, setIsDismissed] = useState(false);
+
+  useEffect(() => setIsDismissed(false), [actionMsg, errorMsg]);
 
   const handleInstall = () => {
     window.open(EQUALIZER_APO_OFFICIAL_DOWNLOAD, '_blank', 'noopener');
   };
 
+  if (isDismissed) {
+    return null;
+  }
+
   return (
-    <div className="modal col">
-      <div className="modal-content">
-        <h1 className="header">Prerequisite Missing</h1>
-        <div className="body">
-          <p>
-            {errorMsg} {actionMsg}
-          </p>
-          <p className="dependency-credit">
-            Equalizer APO is a separate GPLv2 project by Jonas Thedering. The
-            installer is downloaded unchanged from its official SourceForge
-            project.
-          </p>
-        </div>
-        <div className="footer row">
-          <Button
-            ariaLabel="Exit"
-            isDisabled={isLoading}
-            className="default"
-            handleChange={handleClose}
-          >
-            Exit
-          </Button>
-          <Button
-            ariaLabel="Download official Equalizer APO installer"
-            isDisabled={isLoading}
-            className="default"
-            handleChange={handleInstall}
-          >
-            Install Equalizer APO
-          </Button>
-          <Button
-            ariaLabel="Retry after installation"
-            isDisabled={isLoading}
-            className="default"
-            handleChange={onRetry}
-          >
-            I installed it — Retry
-          </Button>
-        </div>
+    <aside className="prereq-notice" role="alert">
+      <div className="prereq-notice__copy">
+        <h2>Equalizer APO needs attention</h2>
+        <p>
+          {errorMsg} {actionMsg}
+        </p>
+        <p className="dependency-credit">
+          Separate GPLv2 project by Jonas Thedering. The installer comes
+          unchanged from the official SourceForge project.
+        </p>
       </div>
-    </div>
+      <div className="prereq-notice__actions">
+        <Button
+          ariaLabel="Download official Equalizer APO installer"
+          isDisabled={isLoading}
+          className="default"
+          handleChange={handleInstall}
+        >
+          Install APO
+        </Button>
+        <Button
+          ariaLabel="Retry after installation"
+          isDisabled={isLoading}
+          className="default"
+          handleChange={onRetry}
+        >
+          Retry
+        </Button>
+        <Button
+          ariaLabel="Dismiss Equalizer APO warning"
+          isDisabled={false}
+          className="default"
+          handleChange={() => setIsDismissed(true)}
+        >
+          Dismiss
+        </Button>
+      </div>
+    </aside>
   );
 }
