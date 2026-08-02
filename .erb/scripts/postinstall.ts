@@ -1,12 +1,18 @@
 import { execFileSync } from 'child_process';
 
-const pnpmCommand = process.env.npm_execpath || 'pnpm';
+const pnpmScript = process.env.npm_execpath;
+const pnpmCommand =
+  pnpmScript && /\.[cm]?js$/i.test(pnpmScript) ? process.execPath : 'pnpm';
 
 const runPnpm = (args: string[]) => {
-  execFileSync(pnpmCommand, args, {
-    stdio: 'inherit',
-    shell: process.platform === 'win32' && !process.env.npm_execpath,
-  });
+  execFileSync(
+    pnpmCommand,
+    pnpmCommand === process.execPath ? [pnpmScript!, ...args] : args,
+    {
+      stdio: 'inherit',
+      shell: process.platform === 'win32' && pnpmCommand === 'pnpm',
+    }
+  );
 };
 
 runPnpm([
