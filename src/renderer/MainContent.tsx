@@ -39,11 +39,13 @@ import Button from './widgets/Button';
 import {
   addEqualizerSlider,
   clearGains,
+  disableAutoPreAmp,
   removeEqualizerSlider,
   setFrequency,
   setFixedBand,
   setGain,
   setQuality,
+  setMainPreAmp,
   setType,
 } from './utils/equalizerApi';
 import Dropdown from './widgets/Dropdown';
@@ -58,6 +60,8 @@ const MainContent = () => {
     globalError,
     dispatchFilter,
     setGlobalError,
+    setAutoPreAmpOn,
+    setPreAmp,
     selectedFilterId,
     setSelectedFilterId,
   } = useAquaContext();
@@ -121,7 +125,13 @@ const MainContent = () => {
 
   const clearFilterGains = async () => {
     try {
+      // Resetting all gains also resets the master preamp. Disable automatic
+      // protection first so it does not immediately calculate a new value.
+      setAutoPreAmpOn(false);
+      await disableAutoPreAmp();
       await clearGains();
+      await setMainPreAmp(0);
+      setPreAmp(0);
       dispatchFilter({
         type: FilterActionEnum.CLEAR_GAINS,
       });
