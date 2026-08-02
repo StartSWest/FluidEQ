@@ -35,7 +35,6 @@ import { exec, execFile } from 'child_process';
 import {
   checkConfigFile,
   fetchSettings,
-  flush,
   save,
   updateConfig,
   savePreset,
@@ -88,6 +87,7 @@ import {
   assignDeviceProfile,
   discoverAudioDevices,
   flushDeviceProfiles,
+  getStateForAudioDevice,
   loadDeviceProfileSettings,
   removeAssignmentsForPreset,
   removeDeviceProfile,
@@ -226,11 +226,7 @@ const handleUpdateHelper = async <T>(
   try {
     // Flush changes to EqualizerAPO with a retry in case several requests to write are occuring at the same time
     await retryHelper(5, () => {
-      if (Object.keys(deviceProfileSettings.assignments).length > 0) {
-        flushDeviceProfiles(deviceProfileSettings, presetPath, configPath);
-      } else {
-        flush(state, configPath);
-      }
+      flushDeviceProfiles(deviceProfileSettings, presetPath, configPath);
     });
   } catch (e) {
     handleError(event, channel, ErrorCode.FAILURE);
@@ -398,6 +394,17 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
     console.error('Failed to enumerate Windows audio endpoints', e);
     handleError(event, channel, ErrorCode.FAILURE);
   }
+});
+
+ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
+  const channel = ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE;
+  const nextState = getStateForAudioDevice(
+    deviceProfileSettings,
+    arg[0] as string,
+    presetPath
+  );
+  Object.assign(state, nextState);
+  await handleUpdate(event, channel);
 });
 
 ipcMain.on(ChannelEnum.GET_DEVICE_PROFILE_SETTINGS, async (event) => {

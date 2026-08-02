@@ -7,13 +7,21 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { ChangeEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  ChangeEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { IAudioDevice, IDeviceProfileSettings } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import Button from './widgets/Button';
 import { useAquaContext } from './utils/AquaContext';
 import {
   assignDeviceProfile,
+  activateAudioDeviceProfile,
   getAudioDevices,
   getDeviceProfileSettings,
   getPresetListFromFiles,
@@ -27,7 +35,7 @@ const EMPTY_SETTINGS: IDeviceProfileSettings = {
 };
 
 const DeviceProfiles = () => {
-  const { globalError, setGlobalError } = useAquaContext();
+  const { globalError, performHealthCheck, setGlobalError } = useAquaContext();
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [presets, setPresets] = useState<string[]>([]);
   const [settings, setSettings] =
@@ -35,6 +43,7 @@ const DeviceProfiles = () => {
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
   const [selectedPreset, setSelectedPreset] = useState('');
   const [isBusy, setIsBusy] = useState(false);
+  const activeDeviceIdRef = useRef('');
 
   const refresh = useCallback(async () => {
     try {
@@ -46,6 +55,16 @@ const DeviceProfiles = () => {
       setDevices(nextDevices);
       setPresets(nextPresets);
       setSettings(nextSettings);
+      const activeDevice = nextDevices.find((device) => device.isDefault);
+      if (
+        activeDevice &&
+        activeDevice.id !== activeDeviceIdRef.current
+      ) {
+        activeDeviceIdRef.current = activeDevice.id;
+        setSelectedDeviceId(activeDevice.id);
+        await activateAudioDeviceProfile(activeDevice.id);
+        performHealthCheck();
+      }
       setSelectedDeviceId((current) => {
         if (nextDevices.some((device) => device.id === current)) return current;
         return (
@@ -57,7 +76,7 @@ const DeviceProfiles = () => {
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
-  }, [setGlobalError]);
+  }, [performHealthCheck, setGlobalError]);
 
   useEffect(() => {
     refresh();
@@ -95,6 +114,10 @@ const DeviceProfiles = () => {
         deviceGuid: selectedDevice.guid,
         presetName: selectedPreset,
       });
+      if (selectedDevice.isDefault) {
+        await activateAudioDeviceProfile(selectedDevice.id);
+        performHealthCheck();
+      }
       await refresh();
     } catch (e) {
       setGlobalError(e as ErrorDescription);
@@ -108,6 +131,10 @@ const DeviceProfiles = () => {
     setIsBusy(true);
     try {
       await removeDeviceProfile(selectedDeviceId);
+      if (selectedDevice?.isDefault) {
+        await activateAudioDeviceProfile(selectedDeviceId);
+        performHealthCheck();
+      }
       setSelectedPreset('');
       await refresh();
     } catch (e) {

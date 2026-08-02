@@ -205,6 +205,14 @@ export const getAudioDevices = (): Promise<IAudioDevice[]> => {
   return promisifyResult(simpleResponseHandler<IAudioDevice[]>(), channel);
 };
 
+export const activateAudioDeviceProfile = (
+  deviceId: string
+): Promise<void> => {
+  const channel = ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE;
+  window.electron.ipcRenderer.sendMessage(channel, [deviceId]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
 export const getDeviceProfileSettings = (): Promise<IDeviceProfileSettings> => {
   const channel = ChannelEnum.GET_DEVICE_PROFILE_SETTINGS;
   window.electron.ipcRenderer.sendMessage(channel, []);

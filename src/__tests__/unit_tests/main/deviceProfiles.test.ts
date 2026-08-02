@@ -4,8 +4,12 @@ import path from 'path';
 import {
   deviceProfilesToString,
   getDefaultDeviceProfileSettings,
+  getStateForAudioDevice,
 } from '../../../main/deviceProfiles';
-import { FilterTypeEnum } from '../../../common/constants';
+import {
+  FilterTypeEnum,
+  getDefaultState,
+} from '../../../common/constants';
 
 describe('device profile configuration', () => {
   let presetsDir: string;
@@ -46,10 +50,48 @@ describe('device profile configuration', () => {
 
     const output = deviceProfilesToString(settings, presetsDir);
 
+    expect(output.indexOf('Device: all')).toBeLessThan(
+      output.indexOf('Device: {1234-ABCD}')
+    );
+    expect(output).toContain('Preamp: 0 dB');
     expect(output).toContain('# USB Headphones -> Studio');
     expect(output).toContain('Device: {1234-ABCD}');
     expect(output).toContain('Preamp: -4dB');
     expect(output).toContain('Fc 80 Hz Gain 3 dB Q 0.8');
+  });
+
+  it('loads the attached preset for the active endpoint', () => {
+    const settings = getDefaultDeviceProfileSettings();
+    settings.assignments.endpoint = {
+      deviceId: 'endpoint',
+      deviceName: 'USB Headphones',
+      deviceGuid: '{1234-ABCD}',
+      presetName: 'Studio',
+    };
+
+    const state = getStateForAudioDevice(settings, 'endpoint', presetsDir);
+
+    expect(state.preAmp).toBe(-4);
+    expect(state.filters.bass.gain).toBe(3);
+  });
+
+  it('uses a clean default state for an endpoint without a profile', () => {
+    const settings = getDefaultDeviceProfileSettings();
+    const state = getStateForAudioDevice(settings, 'unassigned', presetsDir);
+    const defaults = getDefaultState();
+
+    expect(state).toMatchObject({
+      isEnabled: defaults.isEnabled,
+      isAutoPreAmpOn: defaults.isAutoPreAmpOn,
+      isGraphViewOn: defaults.isGraphViewOn,
+      preAmp: 0,
+    });
+    expect(Object.values(state.filters).map(({ frequency }) => frequency)).toEqual(
+      Object.values(defaults.filters).map(({ frequency }) => frequency)
+    );
+    expect(Object.values(state.filters).every(({ gain }) => gain === 0)).toBe(
+      true
+    );
   });
 
   it('ignores assignments whose preset was removed', () => {
