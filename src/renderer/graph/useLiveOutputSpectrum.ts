@@ -47,6 +47,56 @@ const createWaveformPoints = (timeDomainData: Uint8Array) => {
   });
 };
 
+const captureSystemOutput = async (): Promise<MediaStream> => {
+  if (!navigator.mediaDevices) {
+    throw new Error('Media capture is not available in this environment.');
+  }
+
+  let legacyCaptureError: unknown;
+  if (navigator.mediaDevices.getUserMedia) {
+    try {
+      // Electron exposes the desktop loopback through Chromium's legacy
+      // desktop source constraints. Unlike getDisplayMedia, this path does
+      // not require a transient user gesture, so it can start with the app.
+      return await navigator.mediaDevices.getUserMedia({
+        audio: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+          },
+        },
+        video: {
+          mandatory: {
+            chromeMediaSource: 'desktop',
+          },
+        },
+      } as MediaStreamConstraints);
+    } catch (captureError) {
+      legacyCaptureError = captureError;
+    }
+  }
+
+  if (!navigator.mediaDevices.getDisplayMedia) {
+    throw (
+      legacyCaptureError ||
+      new Error(
+        'Desktop loopback capture is not available in this environment.',
+      )
+    );
+  }
+
+  try {
+    return await navigator.mediaDevices.getDisplayMedia({
+      audio: true,
+      // Electron requires a real video constraint for display capture. The
+      // main process supplies a valid source; we disable that track after the
+      // stream is created and analyse only its loopback audio.
+      video: true,
+    });
+  } catch (displayCaptureError) {
+    throw displayCaptureError || legacyCaptureError;
+  }
+};
+
 const useLiveOutputSpectrum = () => {
   const [isActive, setIsActive] = useState(false);
   const [error, setError] = useState('');
@@ -86,14 +136,7 @@ const useLiveOutputSpectrum = () => {
     let stream: MediaStream | undefined;
     let audioContext: AudioContext | undefined;
     try {
-      stream = await navigator.mediaDevices.getDisplayMedia({
-        audio: true,
-        // Electron requires a real video constraint for display capture. The
-        // main process supplies a valid screen source; keep that track alive
-        // while analysing its loopback audio so Chromium does not tear down
-        // the capture session.
-        video: true,
-      });
+      stream = await captureSystemOutput();
       stream.getVideoTracks().forEach((track) => {
         track.enabled = false;
       });
@@ -186,7 +229,12 @@ const useLiveOutputSpectrum = () => {
 
   useEffect(() => {
     autoStartRef.current = true;
-    scheduleStart();
+    // JSDOM and non-Electron preview environments do not expose media
+    // capture. Avoid scheduling a failing retry loop there; Electron's
+    // renderer always has mediaDevices when the live analyser is available.
+    if (navigator.mediaDevices) {
+      scheduleStart();
+    }
 
     return () => {
       autoStartRef.current = false;
