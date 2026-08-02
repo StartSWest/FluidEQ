@@ -154,8 +154,13 @@ const FrequencyResponseChart = () => {
         MIN_FREQUENCY,
         Math.min(MAX_FREQUENCY, Math.round(point.x)),
       );
+      // Graph points include the root preamp offset so they move together
+      // when the master gain changes. Convert the dragged screen value back
+      // to the band's own gain before writing it to APO.
       const gain =
-        Math.round(Math.max(MIN_GAIN, Math.min(MAX_GAIN, point.y)) * 100) / 100;
+        Math.round(
+          Math.max(MIN_GAIN, Math.min(MAX_GAIN, point.y - preAmp)) * 100,
+        ) / 100;
       dispatchFilter({
         type: FilterActionEnum.FREQUENCY,
         id: filterId,
@@ -168,7 +173,7 @@ const FrequencyResponseChart = () => {
       });
       queuePointEdit(filterId, { frequency, gain });
     },
-    [dispatchFilter, queuePointEdit],
+    [dispatchFilter, preAmp, queuePointEdit],
   );
 
   const handlePointQualityWheel = useCallback(
@@ -379,7 +384,10 @@ const FrequencyResponseChart = () => {
       Object.values(filters).map((filter) => ({
         id: filter.id,
         name: `${filter.type} band`,
-        data: { x: filter.frequency, y: filter.gain },
+        // Keep the editable points in the same root-gain coordinate space as
+        // the response curve. Changing preamp therefore shifts every dot
+        // vertically without changing any band's stored gain.
+        data: { x: filter.frequency, y: filter.gain + preAmp },
         selected: selectedFilterId === filter.id,
         onSelect: () => setSelectedFilterId(filter.id),
         onChange: (point: IChartPointData) => handlePointMove(filter.id, point),
@@ -394,6 +402,7 @@ const FrequencyResponseChart = () => {
       flushPointEdit,
       handlePointMove,
       handlePointQualityWheel,
+      preAmp,
       selectedFilterId,
       setSelectedFilterId,
     ],
