@@ -28,6 +28,12 @@ import {
 } from './flush';
 import { writeConvolutionWav } from './convolution';
 
+export interface IActiveStateOverride {
+  deviceId?: string;
+  devicePattern: string;
+  state: IState;
+}
+
 const execFileAsync = promisify(execFile);
 const SETTINGS_FILENAME = 'device-profiles.json';
 
@@ -141,6 +147,7 @@ export const deviceProfilesToString = (
   settings: IDeviceProfileSettings,
   presetsDir: string,
   configDirPath?: string,
+  activeOverride?: IActiveStateOverride,
 ) => {
   const blocks = Object.values(settings.assignments)
     .map((assignment) => {
@@ -172,6 +179,18 @@ export const deviceProfilesToString = (
       'Preamp: 0 dB',
     ].join('\r\n'),
     ...blocks,
+    ...(activeOverride
+      ? [
+          [
+            '# Active FluidEQ session override.',
+            stateToString(
+              activeOverride.state,
+              undefined,
+              activeOverride.devicePattern,
+            ),
+          ].join('\r\n'),
+        ]
+      : []),
   ].join('\r\n\r\n');
 };
 
@@ -289,10 +308,11 @@ export const flushDeviceProfiles = (
   settings: IDeviceProfileSettings,
   presetsDir: string,
   configDirPath: string,
+  activeOverride?: IActiveStateOverride,
 ) => {
   fs.writeFileSync(
     addFileToPath(configDirPath, FLUIDEQ_CONFIG_FILENAME),
-    deviceProfilesToString(settings, presetsDir, configDirPath),
+    deviceProfilesToString(settings, presetsDir, configDirPath, activeOverride),
     'utf8',
   );
 };

@@ -92,6 +92,7 @@ import {
   discoverAudioDevices,
   flushDeviceProfiles,
   getStateForAudioDevice,
+  IActiveStateOverride,
   loadDeviceProfileSettings,
   removeAssignmentsForPreset,
   removeDeviceProfile,
@@ -141,6 +142,8 @@ const state: IState = fetchSettings(userDataDir);
 const deviceProfileSettings = loadDeviceProfileSettings(userDataDir);
 let configPath = '';
 let activeAudioDeviceId = '';
+let activeAudioDevice: IAudioDevice | undefined;
+let hasActiveSessionOverride = false;
 
 try {
   // create presets dir if it doesn't exist
@@ -237,8 +240,8 @@ const handleUpdateHelper = async <T>(
     if (!checkConfigFile(configPath)) {
       updateConfig(configPath);
     }
+    const assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
     if (syncActiveProfile) {
-      const assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
       if (assignment) {
         savePreset(
           assignment.presetName,
@@ -249,11 +252,31 @@ const handleUpdateHelper = async <T>(
           },
           presetPath,
         );
+      } else if (activeAudioDeviceId) {
+        // An unassigned output still needs the user's explicit edits applied
+        // immediately. Keep this override scoped to the current endpoint; it
+        // is cleared as soon as Windows switches to another output.
+        hasActiveSessionOverride = true;
       }
     }
+    if (assignment) {
+      // An attached profile is the source of truth once it exists.
+      hasActiveSessionOverride = false;
+    }
+    const activeDevicePattern =
+      activeAudioDevice?.guid || activeAudioDevice?.name || activeAudioDeviceId;
+    const activeOverride: IActiveStateOverride | undefined =
+      hasActiveSessionOverride && !assignment && activeDevicePattern
+        ? { devicePattern: activeDevicePattern, state }
+        : undefined;
     // Flush changes to EqualizerAPO with a retry in case several requests to write are occuring at the same time
     await retryHelper(5, () => {
-      flushDeviceProfiles(deviceProfileSettings, presetPath, configPath);
+      flushDeviceProfiles(
+        deviceProfileSettings,
+        presetPath,
+        configPath,
+        activeOverride,
+      );
     });
   } catch (e) {
     handleError(event, channel, ErrorCode.FAILURE);
@@ -421,6 +444,10 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
     const activeDevice = devices.find((device) => device.isDefault);
     if (activeDevice && activeDevice.id !== activeAudioDeviceId) {
       activeAudioDeviceId = activeDevice.id;
+      activeAudioDevice = activeDevice;
+      // A device switch always starts from that device's attached profile or
+      // a clean neutral state. Never carry a previous output's transient EQ.
+      hasActiveSessionOverride = false;
       Object.assign(
         state,
         getStateForAudioDevice(
@@ -479,6 +506,7 @@ ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
     presetPath,
   );
   activeAudioDeviceId = arg[0] as string;
+  hasActiveSessionOverride = false;
   Object.assign(state, nextState);
   await handleUpdate(event, channel);
 });

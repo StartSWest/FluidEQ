@@ -153,6 +153,22 @@ describe('device profile configuration', () => {
     );
   });
 
+  it('writes an explicit session override for an unassigned endpoint', () => {
+    const settings = getDefaultDeviceProfileSettings();
+    const state = getDefaultState();
+    const firstFilter = Object.values(state.filters)[0];
+    firstFilter.gain = 6;
+
+    const output = deviceProfilesToString(settings, presetsDir, undefined, {
+      devicePattern: '{ACTIVE-ENDPOINT}',
+      state,
+    });
+
+    expect(output).toContain('# Active FluidEQ session override.');
+    expect(output).toContain('Device: {ACTIVE-ENDPOINT}');
+    expect(output).toContain('Gain 6 dB');
+  });
+
   it('ignores assignments whose preset was removed', () => {
     const settings = getDefaultDeviceProfileSettings();
     settings.assignments.endpoint = {
