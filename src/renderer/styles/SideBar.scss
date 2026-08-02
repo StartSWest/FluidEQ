@@ -81,6 +81,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 100%;
   }
 
+  .slider {
+    align-items: center;
+
+    .number-input {
+      align-items: center;
+    }
+  }
+
   .auto-normalize-control {
     .switch {
       margin-top: 1px;
@@ -103,11 +111,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     > div:nth-child(2) {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
+      gap: 2px;
+
+      > h4,
+      > div:not(.slider) {
+        text-align: center;
+      }
 
       .slider {
         gap: 3px;
+        width: 100%;
 
         .range input[type='range'] {
           width: 82px !important;
