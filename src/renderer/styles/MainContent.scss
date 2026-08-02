@@ -316,6 +316,47 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+.eq-flat-editor__input-row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr) 30px;
+  align-items: stretch;
+  gap: 6px;
+
+  .number-input {
+    min-width: 0;
+  }
+}
+
+.eq-flat-editor__reset-gain {
+  width: 30px;
+  min-width: 30px;
+  min-height: 34px;
+  padding: 0;
+  border: 1px solid rgba($secondary-default, 0.28);
+  border-radius: 9px;
+  color: $secondary-light;
+  background: rgba($secondary-default, 0.08);
+  font-size: 1rem;
+  line-height: 1;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    border-color: rgba($secondary-light, 0.7);
+    background: rgba($secondary-default, 0.18);
+  }
+
+  &:focus-visible {
+    outline: 2px solid rgba($secondary-light, 0.48);
+    outline-offset: 2px;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.35;
+  }
+}
+
 .main-content--compact .eq-scale {
   height: 90px;
 }

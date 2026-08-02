@@ -130,6 +130,22 @@ const MainContent = () => {
     }
   };
 
+  const resetSelectedGain = async () => {
+    if (!selectedFilter || selectedFilter.gain === 0) {
+      return;
+    }
+    try {
+      await setGain(selectedFilter.id, 0);
+      dispatchFilter({
+        type: FilterActionEnum.GAIN,
+        id: selectedFilter.id,
+        newValue: 0,
+      });
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+
   const handleFixedBand = (size: FixedBandSizeEnum) => async () => {
     try {
       const newFilters = await setFixedBand(size);
@@ -190,12 +206,12 @@ const MainContent = () => {
         </div>
         <div className="eq-toolbar">
           <Button
-            ariaLabel="Clear Gains"
+            ariaLabel="Reset all gains"
             isDisabled={false}
             className="small subtle"
             handleChange={clearFilterGains}
           >
-            Reset gains
+            Reset all gains
           </Button>
           <Button
             ariaLabel="Add EQ filter"
@@ -302,25 +318,37 @@ const MainContent = () => {
             </div>
             <div className="eq-flat-editor__control">
               <span>Gain</span>
-              <NumberInput
-                name="selected-band-gain"
-                value={selectedFilter.gain}
-                min={MIN_GAIN}
-                max={MAX_GAIN}
-                isDisabled={false}
-                floatPrecision={2}
-                showArrows
-                handleSubmit={(newValue) =>
-                  updateSelectedFilter(
-                    () => setGain(selectedFilter.id, newValue),
-                    {
-                      type: FilterActionEnum.GAIN,
-                      id: selectedFilter.id,
-                      newValue,
-                    },
-                  )
-                }
-              />
+              <div className="eq-flat-editor__input-row">
+                <NumberInput
+                  name="selected-band-gain"
+                  value={selectedFilter.gain}
+                  min={MIN_GAIN}
+                  max={MAX_GAIN}
+                  isDisabled={false}
+                  floatPrecision={2}
+                  showArrows
+                  handleSubmit={(newValue) =>
+                    updateSelectedFilter(
+                      () => setGain(selectedFilter.id, newValue),
+                      {
+                        type: FilterActionEnum.GAIN,
+                        id: selectedFilter.id,
+                        newValue,
+                      },
+                    )
+                  }
+                />
+                <button
+                  type="button"
+                  className="eq-flat-editor__reset-gain"
+                  aria-label="Reset selected gain to 0 dB"
+                  title="Reset selected gain to 0 dB"
+                  disabled={!!globalError || selectedFilter.gain === 0}
+                  onClick={resetSelectedGain}
+                >
+                  ↺
+                </button>
+              </div>
             </div>
             <div className="eq-flat-editor__control">
               <span>Quality (Q)</span>

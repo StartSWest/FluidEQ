@@ -21,10 +21,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 
 .number-input {
+  display: inline-flex;
+  min-width: 0;
+  width: 100%;
+  flex-direction: column;
   gap: $spacing-s;
 
   .input-wrapper {
     position: relative; // necessary so that the absolutely positioned asterisks will scroll with the input
+    box-sizing: border-box;
+    display: flex;
+    min-width: 0;
     border: $spacing-xxs solid $secondary-default;
     border-radius: 4px;
     justify-content: start;
@@ -47,6 +54,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   input[type='text'] {
+    box-sizing: border-box;
+    flex: 1 1 auto;
+    min-width: max($input-height, var(--input-width));
     background: $primary-dark;
     border: none;
     outline: none;
@@ -73,6 +83,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .arrows {
+    flex: 0 0 auto;
     display: flex;
     visibility: hidden;
     flex-direction: column;
