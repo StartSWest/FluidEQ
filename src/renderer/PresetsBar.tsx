@@ -118,7 +118,9 @@ const PresetsBar = ({
       }
     };
 
-    fetchPresetNames();
+    window.addEventListener('fluideq-presets-changed', fetchPresetNames);
+    return () =>
+      window.removeEventListener('fluideq-presets-changed', fetchPresetNames);
   }, [fetchPresets, setGlobalError]);
 
   // Creating a new preset
@@ -342,14 +344,6 @@ const PresetsBar = ({
         isDisabled={!!globalError}
         emptyOptionsPlaceholder="No profiles yet. Create your first sound."
       />
-      <Button
-        ariaLabel="Load selected preset"
-        className="small"
-        isDisabled={!!globalError || !isExistingPresetSelected}
-        handleChange={handleLoadPreset}
-      >
-        Load selected profile
-      </Button>
     </div>
   );
 };

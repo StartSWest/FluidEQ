@@ -40,6 +40,10 @@ export const clampQuality = (quality: number) =>
 // editor responsive while allowing large imported and hand-built profiles.
 export const MAX_NUM_FILTERS = 128;
 export const MIN_NUM_FILTERS = 1;
+// Endpoint-scoped profiles are created automatically when a user edits an
+// output without choosing a named profile. They stay out of the named profile
+// picker but keep the tuning persistent across restarts.
+export const AUTOMATIC_PRESET_PREFIX = '.fluideq-auto-';
 
 // Need to use LPQ and HPQ to allow users to adjust quality for low/high pass filters
 // Need to use LSC and HSC to allow users to adjust quality for low/high shelf filters

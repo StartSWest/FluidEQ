@@ -20,6 +20,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { IAutoEqUpdateStatus, IEqSource } from 'common/constants';
 import { useAquaContext } from './utils/AquaContext';
+import { formatPresetName } from './utils/utils';
 import Button from './widgets/Button';
 import Dropdown from './widgets/Dropdown';
 import { IOptionEntry } from './widgets/List';
@@ -53,6 +54,7 @@ const EQ_SOURCES: IEqSource[] = [
 ];
 
 const AutoEQ = () => {
+  const CLEAR_SELECTION_EVENT = 'fluideq-clear-autoeq-selection';
   const NO_DEVICE_SELECTION = 'Pick a device first! 🎧';
   const NO_RESPONSES = 'No supported responses 😞';
   const NO_RESPONSE_SELECTION = 'Pick a response! 🔊';
@@ -66,6 +68,18 @@ const AutoEQ = () => {
   const [updateStatus, setUpdateStatus] = useState<IAutoEqUpdateStatus>();
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+
+  useEffect(() => {
+    const clearSelection = () => {
+      setCurrentDevice('');
+      setCurrentResponse('');
+      setResponses([]);
+    };
+
+    window.addEventListener(CLEAR_SELECTION_EVENT, clearSelection);
+    return () =>
+      window.removeEventListener(CLEAR_SELECTION_EVENT, clearSelection);
+  }, []);
 
   const currentSource =
     EQ_SOURCES.find((source) => source.id === sourceId) || EQ_SOURCES[0];
@@ -144,12 +158,16 @@ const AutoEQ = () => {
 
   const applyAutoEQ = async () => {
     try {
+      const profileName = formatPresetName(
+        `${currentDevice} - ${currentResponse}`,
+      );
       if (sourceId === 'autoeq') {
-        await loadAutoEqPreset(currentDevice, currentResponse);
+        await loadAutoEqPreset(currentDevice, currentResponse, profileName);
       } else {
-        await loadSquiglinkPreset(currentDevice, currentResponse);
+        await loadSquiglinkPreset(currentDevice, currentResponse, profileName);
       }
       await refreshState();
+      window.dispatchEvent(new Event('fluideq-presets-changed'));
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }

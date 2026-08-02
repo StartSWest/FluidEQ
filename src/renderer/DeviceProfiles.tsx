@@ -8,19 +8,18 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { IAudioDevice, IDeviceProfileSettings } from 'common/constants';
+import {
+  AUTOMATIC_PRESET_PREFIX,
+  IAudioDevice,
+  IDeviceProfileSettings,
+} from 'common/constants';
 import { ErrorDescription } from 'common/errors';
-import Button from './widgets/Button';
 import Dropdown from './widgets/Dropdown';
 import { IOptionEntry } from './widgets/List';
 import { useAquaContext } from './utils/AquaContext';
 import {
-  assignDeviceProfile,
-  activateAudioDeviceProfile,
   getAudioDevices,
   getDeviceProfileSettings,
-  getPresetListFromFiles,
-  removeDeviceProfile,
   setDefaultAudioDevice,
 } from './utils/equalizerApi';
 import './styles/DeviceProfiles.scss';
@@ -33,23 +32,19 @@ const EMPTY_SETTINGS: IDeviceProfileSettings = {
 const DeviceProfiles = () => {
   const { globalError, performHealthCheck, setGlobalError } = useAquaContext();
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
-  const [presets, setPresets] = useState<string[]>([]);
   const [settings, setSettings] =
     useState<IDeviceProfileSettings>(EMPTY_SETTINGS);
   const [selectedDeviceId, setSelectedDeviceId] = useState('');
-  const [selectedPreset, setSelectedPreset] = useState('');
   const [isBusy, setIsBusy] = useState(false);
   const activeDeviceIdRef = useRef('');
 
   const refresh = useCallback(async () => {
     try {
-      const [nextDevices, nextPresets, nextSettings] = await Promise.all([
+      const [nextDevices, nextSettings] = await Promise.all([
         getAudioDevices(),
-        getPresetListFromFiles(),
         getDeviceProfileSettings(),
       ]);
       setDevices(nextDevices);
-      setPresets(nextPresets);
       setSettings(nextSettings);
       const activeDevice = nextDevices.find((device) => device.isDefault);
       if (activeDevice && activeDevice.id !== activeDeviceIdRef.current) {
@@ -85,10 +80,11 @@ const DeviceProfiles = () => {
   const assignedPreset = selectedDeviceId
     ? settings.assignments[selectedDeviceId]?.presetName || ''
     : '';
-
-  useEffect(() => {
-    setSelectedPreset(assignedPreset);
-  }, [assignedPreset, selectedDeviceId]);
+  const isAutomaticProfile = assignedPreset.startsWith(AUTOMATIC_PRESET_PREFIX);
+  let mappingLabel = 'Neutral output';
+  if (assignedPreset) {
+    mappingLabel = isAutomaticProfile ? 'Live tuning attached' : assignedPreset;
+  }
 
   const handleDeviceChange = async (deviceId: string) => {
     setIsBusy(true);
@@ -101,10 +97,6 @@ const DeviceProfiles = () => {
     } finally {
       setIsBusy(false);
     }
-  };
-
-  const handlePresetChange = (presetName: string) => {
-    setSelectedPreset(presetName);
   };
 
   const deviceOptions: IOptionEntry[] = useMemo(
@@ -123,60 +115,6 @@ const DeviceProfiles = () => {
       })),
     [devices],
   );
-
-  const presetOptions: IOptionEntry[] = useMemo(
-    () =>
-      presets.map((preset) => ({
-        value: preset,
-        label: preset,
-        display: <div>{preset}</div>,
-      })),
-    [presets],
-  );
-
-  const handleAssign = async () => {
-    if (!selectedDevice || !selectedPreset) {
-      return;
-    }
-    setIsBusy(true);
-    try {
-      await assignDeviceProfile({
-        deviceId: selectedDevice.id,
-        deviceName: selectedDevice.name,
-        deviceGuid: selectedDevice.guid,
-        presetName: selectedPreset,
-      });
-      if (selectedDevice.isDefault) {
-        await activateAudioDeviceProfile(selectedDevice.id);
-        performHealthCheck();
-      }
-      await refresh();
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
-    } finally {
-      setIsBusy(false);
-    }
-  };
-
-  const handleRemove = async () => {
-    if (!selectedDeviceId) {
-      return;
-    }
-    setIsBusy(true);
-    try {
-      await removeDeviceProfile(selectedDeviceId);
-      if (selectedDevice?.isDefault) {
-        await activateAudioDeviceProfile(selectedDeviceId);
-        performHealthCheck();
-      }
-      setSelectedPreset('');
-      await refresh();
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
-    } finally {
-      setIsBusy(false);
-    }
-  };
 
   return (
     <section className="device-profiles">
@@ -200,33 +138,13 @@ const DeviceProfiles = () => {
         emptyOptionsPlaceholder="No active outputs found"
       />
 
-      <span className="device-profiles__label">Profile for this output</span>
-      <Dropdown
-        name="Profile for this output"
-        options={presetOptions}
-        value={selectedPreset}
-        handleChange={handlePresetChange}
-        isDisabled={!!globalError || isBusy || presets.length === 0}
-        noSelectionPlaceholder="Choose a named profile..."
-        emptyOptionsPlaceholder="Create a named profile first"
-      />
-
-      <div className="device-profiles__actions">
-        <Button
-          ariaLabel="Assign preset to selected audio device"
-          className="small"
-          isDisabled={
-            !!globalError || isBusy || !selectedDevice || !selectedPreset
-          }
-          handleChange={handleAssign}
-        >
-          {assignedPreset ? 'Update mapping' : 'Attach profile'}
-        </Button>
-        {assignedPreset && (
-          <button className="link-button" type="button" onClick={handleRemove}>
-            Remove
-          </button>
-        )}
+      <div className="device-profiles__mapping">
+        <span className="device-profiles__label">Automatic mapping</span>
+        <strong>{mappingLabel}</strong>
+        <span>
+          Edit any EQ control to save and attach it automatically to this
+          output.
+        </span>
       </div>
       <p className="device-profiles__hint">
         FluidEQ maps the stable endpoint ID, so this sound follows the device

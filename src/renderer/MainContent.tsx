@@ -44,7 +44,6 @@ import {
   setFixedBand,
   setGain,
   setQuality,
-  setMainPreAmp,
   setType,
 } from './utils/equalizerApi';
 import Dropdown from './widgets/Dropdown';
@@ -126,11 +125,11 @@ const MainContent = () => {
   const clearFilterGains = async () => {
     try {
       await clearGains();
-      await setMainPreAmp(0);
       setPreAmp(0);
       dispatchFilter({
         type: FilterActionEnum.CLEAR_GAINS,
       });
+      window.dispatchEvent(new Event('fluideq-clear-autoeq-selection'));
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
@@ -212,20 +211,20 @@ const MainContent = () => {
         </div>
         <div className="eq-toolbar">
           <Button
-            ariaLabel="Reset all gains"
+            ariaLabel="Clear EQ"
             isDisabled={false}
             className="small subtle"
             handleChange={clearFilterGains}
           >
-            Reset all gains
+            Clear EQ
           </Button>
           <Button
-            ariaLabel="Add EQ filter"
+            ariaLabel="Add EQ band"
             isDisabled={frequencySortedFilters.length >= MAX_NUM_FILTERS}
             className="small subtle"
             handleChange={addFilter}
           >
-            + Filter
+            Add band
           </Button>
           <div className="quick-layouts">
             <span>Quick layouts</span>

@@ -32,6 +32,7 @@ import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
 import { exec, execFile } from 'child_process';
+import { createHash } from 'crypto';
 import {
   checkConfigFile,
   fetchSettings,
@@ -74,6 +75,7 @@ import {
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
   IAutoEqUpdateStatus,
+  AUTOMATIC_PRESET_PREFIX,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
 import {
@@ -149,6 +151,32 @@ let configPath = '';
 let activeAudioDeviceId = '';
 let activeAudioDevice: IAudioDevice | undefined;
 let hasActiveSessionOverride = false;
+
+const getAutomaticPresetName = (deviceId: string) =>
+  `${AUTOMATIC_PRESET_PREFIX}${createHash('sha1')
+    .update(deviceId)
+    .digest('hex')
+    .slice(0, 12)}`;
+
+const isAutomaticPresetName = (presetName: string) =>
+  presetName.startsWith(AUTOMATIC_PRESET_PREFIX);
+
+const attachPresetToActiveDevice = (presetName: string) => {
+  if (!activeAudioDeviceId) {
+    return false;
+  }
+
+  const device = activeAudioDevice;
+  assignDeviceProfile(deviceProfileSettings, {
+    deviceId: activeAudioDeviceId,
+    deviceName: device?.name || activeAudioDeviceId,
+    deviceGuid: device?.guid || activeAudioDeviceId,
+    presetName,
+  });
+  saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+  hasActiveSessionOverride = false;
+  return true;
+};
 
 try {
   // create presets dir if it doesn't exist
@@ -245,8 +273,23 @@ const handleUpdateHelper = async <T>(
     if (!checkConfigFile(configPath)) {
       updateConfig(configPath);
     }
-    const assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
+    let assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
     if (syncActiveProfile) {
+      if (!assignment && activeAudioDeviceId) {
+        const automaticPresetName = getAutomaticPresetName(activeAudioDeviceId);
+        savePreset(
+          automaticPresetName,
+          {
+            preAmp: state.preAmp,
+            filters: state.filters,
+            convolution: state.convolution,
+            isFlat: state.isFlat,
+          },
+          presetPath,
+        );
+        attachPresetToActiveDevice(automaticPresetName);
+        assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
+      }
       if (assignment) {
         savePreset(
           assignment.presetName,
@@ -338,6 +381,7 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     state.filters = presetSettings.filters;
     state.convolution = presetSettings.convolution;
     state.isFlat = presetSettings.isFlat;
+    attachPresetToActiveDevice(presetName);
     await handleUpdate(event, channel, true);
   } catch (ex) {
     console.log('Failed to read preset: ', presetName);
@@ -367,7 +411,8 @@ ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
       },
       presetPath,
     );
-    await handleUpdate(event, channel);
+    attachPresetToActiveDevice(presetName);
+    await handleUpdate(event, channel, true);
   } catch (e) {
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
   }
@@ -435,7 +480,9 @@ ipcMain.on(ChannelEnum.GET_PRESET_FILE_LIST, async (event) => {
   console.log(`Getting Preset List`);
 
   try {
-    const fileNames: string[] = fs.readdirSync(presetPath);
+    const fileNames: string[] = fs
+      .readdirSync(presetPath)
+      .filter((fileName) => !isAutomaticPresetName(fileName));
     console.log(`Fetched ${fileNames.length} files`);
     const reply: TSuccess<string[]> = { result: fileNames };
     event.reply(channel, reply);
@@ -589,7 +636,11 @@ ipcMain.on(ChannelEnum.GET_AUTO_EQ_RESPONSE_LIST, async (event, arg) => {
 
 ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
   const channel = ChannelEnum.LOAD_AUTO_EQ_PRESET;
-  const [deviceName, responseName] = arg;
+  const [deviceName, responseName, profileName] = arg as [
+    string,
+    string,
+    string | undefined,
+  ];
 
   try {
     const presetSettings: IPresetV2 = getAutoEqPreset(deviceName, responseName);
@@ -599,6 +650,19 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     // editable EQ bands, not impulse responses for APO's Convolution command.
     state.convolution = undefined;
     state.isFlat = false;
+    if (profileName && !isRestrictedPresetName(profileName)) {
+      savePreset(
+        profileName,
+        {
+          preAmp: state.preAmp,
+          filters: state.filters,
+          convolution: state.convolution,
+          isFlat: state.isFlat,
+        },
+        presetPath,
+      );
+      attachPresetToActiveDevice(profileName);
+    }
     await handleUpdate(event, channel, true);
   } catch (ex) {
     console.log(
@@ -633,13 +697,30 @@ ipcMain.on(ChannelEnum.GET_SQUIGLINK_RESPONSE_LIST, async (event, arg) => {
 
 ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
   const channel = ChannelEnum.LOAD_SQUIGLINK_PRESET;
-  const [deviceName, responseName] = arg as [string, string];
+  const [deviceName, responseName, profileName] = arg as [
+    string,
+    string,
+    string | undefined,
+  ];
   try {
     const presetSettings = await getSquiglinkPreset(deviceName, responseName);
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;
     state.convolution = undefined;
     state.isFlat = false;
+    if (profileName && !isRestrictedPresetName(profileName)) {
+      savePreset(
+        profileName,
+        {
+          preAmp: state.preAmp,
+          filters: state.filters,
+          convolution: state.convolution,
+          isFlat: state.isFlat,
+        },
+        presetPath,
+      );
+      attachPresetToActiveDevice(profileName);
+    }
     await handleUpdate(event, channel, true);
   } catch (error) {
     console.error(
@@ -920,12 +1001,28 @@ ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
 ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
   const channel = ChannelEnum.CLEAR_GAINS;
 
+  const assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
+  if (assignment && isAutomaticPresetName(assignment.presetName)) {
+    try {
+      deletePreset(assignment.presetName, presetPath);
+    } catch {
+      // The generated profile may already have been removed; the mapping is
+      // still cleared below.
+    }
+  }
+  if (activeAudioDeviceId) {
+    removeDeviceProfile(deviceProfileSettings, activeAudioDeviceId);
+    saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+  }
+  hasActiveSessionOverride = false;
+
   Object.keys(state.filters).forEach((key) => {
     state.filters[key].gain = 0;
   });
+  state.preAmp = 0;
   state.isFlat = true;
 
-  await handleUpdate(event, channel, true);
+  await handleUpdate(event, channel);
 });
 
 ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {

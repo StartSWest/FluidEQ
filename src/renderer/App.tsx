@@ -45,6 +45,7 @@ const AppContent = () => {
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
+  const [showAudioToolsMenu, setShowAudioToolsMenu] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -75,6 +76,31 @@ const AppContent = () => {
       unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!showAudioToolsMenu) {
+      return undefined;
+    }
+
+    const closeMenu = (event: Event) => {
+      const target = event.target as HTMLElement;
+      if (!target.closest('.workspace-header__tools')) {
+        setShowAudioToolsMenu(false);
+      }
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setShowAudioToolsMenu(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', closeMenu);
+    document.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.removeEventListener('pointerdown', closeMenu);
+      document.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [showAudioToolsMenu]);
 
   useEffect(() => {
     if (globalError?.code === ErrorCode.EQUALIZER_APO_NOT_INSTALLED) {
@@ -176,73 +202,102 @@ const AppContent = () => {
           </div>
         </div>
         <WaveformVisualizer />
-        <div className="workspace-header__actions">
-          {!isLoading && !globalError && (
-            <>
-              <button
-                type="button"
-                className="workspace-header__configure"
-                onClick={handleRestartWindowsAudio}
-              >
-                Restart audio
-              </button>
-              <button
-                type="button"
-                className="workspace-header__configure"
-                onClick={handleConfigureEqualizerApo}
-              >
-                Reconfigure APO
-              </button>
-            </>
-          )}
-          <div className="workspace-header__status">
-            <span className={`status-dot${globalError ? ' error' : ''}`} />
-            {connectionStatus}
+        <div className="window-titlebar__right">
+          <div className="workspace-header__tools">
+            <button
+              type="button"
+              className="workspace-header__tools-trigger"
+              aria-label="Audio and Equalizer APO actions"
+              aria-expanded={showAudioToolsMenu}
+              title="Audio actions"
+              onClick={() => setShowAudioToolsMenu((current) => !current)}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M4 12h3l2-6 4 12 2-6h5" />
+              </svg>
+              <span className={`status-dot${globalError ? ' error' : ''}`} />
+            </button>
+            {showAudioToolsMenu && (
+              <div className="workspace-header__menu" role="menu">
+                <div className="workspace-header__menu-status">
+                  <span
+                    className={`status-dot${globalError ? ' error' : ''}`}
+                  />
+                  <span>{connectionStatus}</span>
+                </div>
+                {!isLoading && !globalError && (
+                  <>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setShowAudioToolsMenu(false);
+                        handleRestartWindowsAudio();
+                      }}
+                    >
+                      Restart Windows audio
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setShowAudioToolsMenu(false);
+                        handleConfigureEqualizerApo();
+                      }}
+                    >
+                      Reconfigure Equalizer APO
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
           </div>
-        </div>
-        <div
-          className="window-titlebar__controls"
-          onDoubleClick={(event) => event.stopPropagation()}
-        >
-          <button
-            type="button"
-            className="window-control"
-            aria-label="Minimize FluidEQ"
-            title="Minimize"
-            onClick={handleMinimizeWindow}
+          <div
+            className="window-titlebar__controls"
+            onDoubleClick={(event) => event.stopPropagation()}
           >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M2 6h8" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="window-control"
-            aria-label={
-              isWindowMaximized ? 'Restore FluidEQ' : 'Maximize FluidEQ'
-            }
-            title={isWindowMaximized ? 'Restore' : 'Maximize'}
-            onClick={() => handleToggleMaximizeWindow().catch(() => undefined)}
-          >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              {isWindowMaximized ? (
-                <path d="M4 3h6v6M2 5v5h6V4" />
-              ) : (
-                <path d="M2 2h8v8H2z" />
-              )}
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="window-control window-control--close"
-            aria-label="Close FluidEQ"
-            title="Close"
-            onClick={handleCloseWindow}
-          >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 3l6 6M9 3l-6 6" />
-            </svg>
-          </button>
+            <button
+              type="button"
+              className="window-control"
+              aria-label="Minimize FluidEQ"
+              title="Minimize"
+              onClick={handleMinimizeWindow}
+            >
+              <svg viewBox="0 0 12 12" aria-hidden="true">
+                <path d="M2 6h8" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="window-control"
+              aria-label={
+                isWindowMaximized ? 'Restore FluidEQ' : 'Maximize FluidEQ'
+              }
+              title={isWindowMaximized ? 'Restore' : 'Maximize'}
+              onClick={() =>
+                handleToggleMaximizeWindow().catch(() => undefined)
+              }
+            >
+              <svg viewBox="0 0 12 12" aria-hidden="true">
+                {isWindowMaximized ? (
+                  <path d="M4 3h6v6M2 5v5h6V4" />
+                ) : (
+                  <path d="M2 2h8v8H2z" />
+                )}
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="window-control window-control--close"
+              aria-label="Close FluidEQ"
+              title="Close"
+              onClick={handleCloseWindow}
+            >
+              <svg viewBox="0 0 12 12" aria-hidden="true">
+                <path d="M3 3l6 6M9 3l-6 6" />
+              </svg>
+            </button>
+          </div>
         </div>
       </header>
       {showAudioRestartRecommendation && (
