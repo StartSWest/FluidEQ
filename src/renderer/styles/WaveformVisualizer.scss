@@ -5,7 +5,7 @@
   display: grid;
   width: min(31vw, 420px);
   min-width: 230px;
-  height: 52px;
+  height: 58px;
   padding: 5px 10px 3px;
   border: 1px solid rgba($secondary-default, 0.22);
   border-radius: 17px;
@@ -19,7 +19,7 @@
   box-shadow:
     inset 0 1px 0 rgba($white, 0.05),
     0 0 22px rgba($secondary-default, 0.04);
-  overflow: hidden;
+  overflow: visible;
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease;
@@ -116,11 +116,17 @@
 .waveform-visualizer__error {
   position: absolute;
   right: 8px;
-  bottom: 2px;
-  max-width: 72%;
+  top: calc(100% + 4px);
+  z-index: 4;
+  max-width: min(360px, calc(100vw - 48px));
+  padding: 3px 7px;
+  border: 1px solid rgba($red, 0.34);
+  border-radius: 7px;
+  background: rgba($primary-dark, 0.96);
   overflow: hidden;
   color: $red;
   font-size: 0.48rem;
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

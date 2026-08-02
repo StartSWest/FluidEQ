@@ -26,7 +26,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-import { app, BrowserWindow, desktopCapturer, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
@@ -1029,31 +1029,11 @@ const createMainWindow = async () => {
         return;
       }
 
-      /*
-       * Electron's display-media handler is callback-based by design. Keep
-       * the callback in the Promise continuation while explicitly silencing
-       * the generic Promise callback lint rule for this API boundary.
-       */
-      /* eslint-disable promise/no-callback-in-promise */
-      desktopCapturer
-        .getSources({
-          types: ['screen'],
-          // Chromium needs a real desktop source to create the display-media
-          // session, even though FluidEQ analyses the loopback audio track.
-          // Use a normal thumbnail size instead of a 1x1 synthetic source;
-          // some Windows capture paths reject the latter as an invalid video
-          // source before audio is delivered.
-          thumbnailSize: { width: 320, height: 240 },
-        })
-        .then(([screen]) => {
-          if (!screen) {
-            callback({});
-            return;
-          }
-          callback({ video: screen, audio: 'loopback' });
-        })
-        .catch(() => callback({}));
-      /* eslint-enable promise/no-callback-in-promise */
+      // The analyser only needs loopback audio. Passing the requesting frame
+      // as the required video source avoids Windows Graphics Capture trying to
+      // open a physical monitor (which can fail with E_ACCESSDENIED under
+      // RDP, protected desktops, or certain GPU drivers).
+      callback({ video: request.frame, audio: 'loopback' });
     },
   );
 

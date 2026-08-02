@@ -182,8 +182,8 @@ body {
 
 .audio-restart-notice {
   position: fixed;
-  z-index: 2;
-  top: 72px;
+  z-index: 60;
+  top: calc($title-bar-height + 72px);
   left: 50%;
   display: flex;
   align-items: center;

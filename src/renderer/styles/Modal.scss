@@ -17,12 +17,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'constant' as *;
 @use 'spacing' as *;
 
 .prereq-notice {
   position: fixed;
-  z-index: 3;
-  top: 72px;
+  z-index: 60;
+  // Keep the notice below the sticky title/header stack so its heading and
+  // buttons are never hidden behind the waveform or workspace header.
+  top: calc($title-bar-height + 72px);
   left: 50%;
   display: flex;
   align-items: center;
