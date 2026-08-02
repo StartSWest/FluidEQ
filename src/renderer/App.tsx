@@ -45,6 +45,25 @@ const AppContent = () => {
     }
   };
 
+  const handleRestartWindowsAudio = async () => {
+    if (
+      !window.confirm(
+        'Audio will stop for a few seconds and Windows will request administrator permission. Continue?'
+      )
+    ) {
+      return;
+    }
+
+    const error = await window.electron.ipcRenderer.restartWindowsAudio();
+    window.alert(
+      error ||
+        'Windows Audio restarted. Reopen any application that is still silent.'
+    );
+    if (!error) {
+      performHealthCheck();
+    }
+  };
+
   return (
     <>
       <header className="workspace-header">
@@ -63,13 +82,22 @@ const AppContent = () => {
         </div>
         <div className="workspace-header__actions">
           {!isLoading && !globalError && (
-            <button
-              type="button"
-              className="workspace-header__configure"
-              onClick={handleConfigureEqualizerApo}
-            >
-              Reconfigure APO
-            </button>
+            <>
+              <button
+                type="button"
+                className="workspace-header__configure"
+                onClick={handleRestartWindowsAudio}
+              >
+                Restart audio
+              </button>
+              <button
+                type="button"
+                className="workspace-header__configure"
+                onClick={handleConfigureEqualizerApo}
+              >
+                Reconfigure APO
+              </button>
+            </>
           )}
           <div className="workspace-header__status">
             <span className={`status-dot${globalError ? ' error' : ''}`} />

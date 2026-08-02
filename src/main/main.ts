@@ -31,7 +31,7 @@ import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
-import { exec } from 'child_process';
+import { exec, execFile } from 'child_process';
 import {
   checkConfigFile,
   fetchSettings,
@@ -763,6 +763,39 @@ ipcMain.handle('open-equalizer-apo-configurator', async () => {
   } catch {
     return 'Equalizer APO is not installed or its installation could not be located.';
   }
+});
+
+ipcMain.handle('restart-windows-audio', async () => {
+  if (process.platform !== 'win32') {
+    return 'Restarting Windows Audio is only available on Windows.';
+  }
+
+  const restartCommand = Buffer.from(
+    'Restart-Service -Name Audiosrv -Force',
+    'utf16le'
+  ).toString('base64');
+  const elevateCommand = [
+    "$process = Start-Process -FilePath 'powershell.exe'",
+    '-Verb RunAs -WindowStyle Hidden',
+    `-ArgumentList '-NoProfile','-EncodedCommand','${restartCommand}'`,
+    '-Wait -PassThru;',
+    'exit $process.ExitCode',
+  ].join(' ');
+
+  return new Promise<string>((resolve) => {
+    execFile(
+      'powershell.exe',
+      ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', elevateCommand],
+      { windowsHide: true },
+      (error) => {
+        resolve(
+          error
+            ? 'Windows Audio could not be restarted. Approve the administrator prompt and try again.'
+            : ''
+        );
+      }
+    );
+  });
 });
 
 if (process.env.NODE_ENV === 'production') {

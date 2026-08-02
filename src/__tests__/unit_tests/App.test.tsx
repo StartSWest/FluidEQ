@@ -36,6 +36,7 @@ describe('App', () => {
           ) => {},
           closeApp: () => {},
           openEqualizerApoConfigurator: async () => '',
+          restartWindowsAudio: async () => '',
         },
       }),
     });

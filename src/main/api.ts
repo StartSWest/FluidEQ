@@ -50,6 +50,9 @@ const closeApp = () => {
 const openEqualizerApoConfigurator = () =>
   ipcRenderer.invoke('open-equalizer-apo-configurator') as Promise<string>;
 
+const restartWindowsAudio = () =>
+  ipcRenderer.invoke('restart-windows-audio') as Promise<string>;
+
 export default {
   ipcRenderer: {
     sendMessage,
@@ -58,5 +61,6 @@ export default {
     removeListener,
     closeApp,
     openEqualizerApoConfigurator,
+    restartWindowsAudio,
   },
 };
