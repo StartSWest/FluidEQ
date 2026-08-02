@@ -60,6 +60,29 @@ describe('device profile configuration', () => {
     expect(output).toContain('Fc 80 Hz Gain 3 dB Q 0.8');
   });
 
+  it('removes all APO rules while the FluidEQ engine is disabled', () => {
+    const settings = getDefaultDeviceProfileSettings();
+    settings.assignments.endpoint = {
+      deviceId: 'endpoint',
+      deviceName: 'USB Headphones',
+      deviceGuid: '{1234-ABCD}',
+      presetName: 'Studio',
+    };
+
+    const output = deviceProfilesToString(
+      settings,
+      presetsDir,
+      undefined,
+      undefined,
+      false,
+    );
+
+    expect(output).toContain('# FluidEQ engine disabled');
+    expect(output).not.toContain('Device: all');
+    expect(output).not.toContain('Device: {1234-ABCD}');
+    expect(output).not.toContain('Preamp:');
+  });
+
   it('writes the convolution before EQ and preamp', () => {
     const configDir = fs.mkdtempSync(
       path.join(os.tmpdir(), 'fluideq-convolution-'),

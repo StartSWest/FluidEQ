@@ -277,6 +277,7 @@ const handleUpdateHelper = async <T>(
         presetPath,
         configPath,
         activeOverride,
+        state.isEnabled,
       );
     });
   } catch (e) {
@@ -472,7 +473,13 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
           updateConfig(configPath);
         }
         await retryHelper(5, () => {
-          flushDeviceProfiles(deviceProfileSettings, presetPath, configPath);
+          flushDeviceProfiles(
+            deviceProfileSettings,
+            presetPath,
+            configPath,
+            undefined,
+            state.isEnabled,
+          );
         });
       } catch (error) {
         console.error(
