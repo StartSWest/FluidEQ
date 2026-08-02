@@ -26,6 +26,7 @@ import {
   getDeviceProfileSettings,
   getPresetListFromFiles,
   removeDeviceProfile,
+  setDefaultAudioDevice,
 } from './utils/equalizerApi';
 import './styles/DeviceProfiles.scss';
 
@@ -95,8 +96,18 @@ const DeviceProfiles = () => {
     setSelectedPreset(assignedPreset);
   }, [assignedPreset, selectedDeviceId]);
 
-  const handleDeviceChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedDeviceId(event.target.value);
+  const handleDeviceChange = async (event: ChangeEvent<HTMLSelectElement>) => {
+    const deviceId = event.target.value;
+    setIsBusy(true);
+    try {
+      await setDefaultAudioDevice(deviceId);
+      activeDeviceIdRef.current = '';
+      await refresh();
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    } finally {
+      setIsBusy(false);
+    }
   };
 
   const handlePresetChange = (event: ChangeEvent<HTMLSelectElement>) => {

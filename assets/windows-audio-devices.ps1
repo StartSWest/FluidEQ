@@ -1,3 +1,5 @@
+param([string]$SetDefaultDeviceId = '')
+
 $source = @'
 using System;
 using System.Collections.Generic;
@@ -7,6 +9,29 @@ public static class AquaAudioDevices
 {
     [ComImport, Guid("BCDE0395-E52F-467C-8E3D-C4579291692E")]
     private class MMDeviceEnumeratorComObject { }
+
+    [ComImport, Guid("870AF99C-171D-4F9E-AF0D-E63DF40C2BC9")]
+    private class PolicyConfigClient { }
+
+    [ComImport, Guid("F8679F50-850A-41CF-9C72-430F290290C8"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    private interface IPolicyConfig
+    {
+        [PreserveSig] int GetMixFormat();
+        [PreserveSig] int GetDeviceFormat();
+        [PreserveSig] int ResetDeviceFormat();
+        [PreserveSig] int SetDeviceFormat();
+        [PreserveSig] int GetProcessingPeriod();
+        [PreserveSig] int SetProcessingPeriod();
+        [PreserveSig] int GetShareMode();
+        [PreserveSig] int SetShareMode();
+        [PreserveSig] int GetPropertyValue();
+        [PreserveSig] int SetPropertyValue();
+        [PreserveSig]
+        int SetDefaultEndpoint(
+            [MarshalAs(UnmanagedType.LPWStr)] string deviceId,
+            int role);
+        [PreserveSig] int SetEndpointVisibility();
+    }
 
     [ComImport, Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IMMDeviceEnumerator
@@ -131,8 +156,23 @@ public static class AquaAudioDevices
         }
         return result;
     }
+
+    public static void SetDefaultRenderDevice(string deviceId)
+    {
+        var policyConfig = (IPolicyConfig)new PolicyConfigClient();
+        // Keep the normal output picker, multimedia applications and
+        // communications applications on the same endpoint.
+        for (var role = 0; role <= 2; role++)
+            Marshal.ThrowExceptionForHR(
+                policyConfig.SetDefaultEndpoint(deviceId, role)
+            );
+    }
 }
 '@
 
 Add-Type -TypeDefinition $source -Language CSharp
+if ($SetDefaultDeviceId) {
+    [AquaAudioDevices]::SetDefaultRenderDevice($SetDefaultDeviceId)
+    exit 0
+}
 [AquaAudioDevices]::GetRenderDevices() | ConvertTo-Json -Compress

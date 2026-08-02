@@ -29,6 +29,19 @@ import {
 const execFileAsync = promisify(execFile);
 const SETTINGS_FILENAME = 'device-profiles.json';
 
+const getAudioDeviceScriptPath = () => {
+  const scriptPath = path.join(
+    process.resourcesPath,
+    'assets',
+    'windows-audio-devices.ps1'
+  );
+  const developmentScriptPath = path.join(
+    __dirname,
+    '../../assets/windows-audio-devices.ps1'
+  );
+  return fs.existsSync(scriptPath) ? scriptPath : developmentScriptPath;
+};
+
 export const getDefaultDeviceProfileSettings = (): IDeviceProfileSettings => ({
   version: 1,
   assignments: {},
@@ -205,18 +218,6 @@ export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
     ];
   }
 
-  const scriptPath = path.join(
-    process.resourcesPath,
-    'assets',
-    'windows-audio-devices.ps1'
-  );
-  const developmentScriptPath = path.join(
-    __dirname,
-    '../../assets/windows-audio-devices.ps1'
-  );
-  const resolvedScriptPath = fs.existsSync(scriptPath)
-    ? scriptPath
-    : developmentScriptPath;
   const { stdout } = await execFileAsync(
     'powershell.exe',
     [
@@ -226,13 +227,38 @@ export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
       '-ExecutionPolicy',
       'Bypass',
       '-File',
-      resolvedScriptPath,
+      getAudioDeviceScriptPath(),
     ],
     { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 }
   );
   const parsed = JSON.parse(stdout.trim() || '[]');
   return filterVisibleAudioDevices(
     (Array.isArray(parsed) ? parsed : [parsed]) as IAudioDevice[]
+  );
+};
+
+export const setDefaultAudioDevice = async (deviceId: string) => {
+  if (process.platform !== 'win32') return;
+
+  const devices = await discoverAudioDevices();
+  if (!devices.some((device) => device.id === deviceId)) {
+    throw new Error('The selected audio output is no longer available.');
+  }
+
+  await execFileAsync(
+    'powershell.exe',
+    [
+      '-NoLogo',
+      '-NoProfile',
+      '-NonInteractive',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-File',
+      getAudioDeviceScriptPath(),
+      '-SetDefaultDeviceId',
+      deviceId,
+    ],
+    { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 }
   );
 };
 

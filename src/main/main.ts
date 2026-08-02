@@ -93,6 +93,7 @@ import {
   removeDeviceProfile,
   renameAssignedPreset,
   saveDeviceProfileSettings,
+  setDefaultAudioDevice,
 } from './deviceProfiles';
 
 export default class AppUpdater {
@@ -406,6 +407,18 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
     event.reply(channel, reply);
   } catch (e) {
     console.error('Failed to enumerate Windows audio endpoints', e);
+    handleError(event, channel, ErrorCode.FAILURE);
+  }
+});
+
+ipcMain.on(ChannelEnum.SET_DEFAULT_AUDIO_DEVICE, async (event, arg) => {
+  const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
+  try {
+    await setDefaultAudioDevice(arg[0] as string);
+    const reply: TSuccess<void> = { result: undefined };
+    event.reply(channel, reply);
+  } catch (e) {
+    console.error('Failed to change the Windows audio output', e);
     handleError(event, channel, ErrorCode.FAILURE);
   }
 });
