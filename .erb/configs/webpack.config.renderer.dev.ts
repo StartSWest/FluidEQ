@@ -44,6 +44,13 @@ const configuration: webpack.Configuration = {
 
   mode: 'development',
 
+  // Coalesce a burst of editor saves into one completed compilation. The
+  // renderer then receives a single HMR update instead of several reloads.
+  watchOptions: {
+    aggregateTimeout: 250,
+    ignored: /node_modules/,
+  },
+
   target: ['web', 'electron-renderer'],
 
   entry: [
@@ -155,6 +162,9 @@ const configuration: webpack.Configuration = {
     port,
     compress: true,
     hot: true,
+    // React Fast Refresh/HMR updates the existing window in place. A full
+    // live-reload would throw away the UI state on every source save.
+    liveReload: false,
     client: {
       overlay: false,
     },
