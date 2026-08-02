@@ -551,11 +551,10 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
   try {
     const presetSettings: IPresetV2 = getAutoEqPreset(deviceName, responseName);
     state.preAmp = presetSettings.preAmp;
-    state.filters = getDefaultFilters();
-    state.convolution = {
-      name: `${deviceName} / ${responseName}`,
-      filters: presetSettings.filters,
-    };
+    state.filters = presetSettings.filters;
+    // AutoEQ's bundled response files are ParametricEQ text files. They are
+    // editable EQ bands, not impulse responses for APO's Convolution command.
+    state.convolution = undefined;
     await handleUpdate(event, channel, true);
   } catch (ex) {
     console.log(
