@@ -30,7 +30,11 @@ import {
   validateState,
 } from '../common/validator';
 
-export const stateToString = (state: IState, devicePattern = 'all') => {
+export const stateToString = (
+  state: IState,
+  convolutionFileName?: string,
+  devicePattern = 'all',
+) => {
   if (!state.isEnabled) {
     return '';
   }
@@ -39,17 +43,23 @@ export const stateToString = (state: IState, devicePattern = 'all') => {
 
   output.push(`Device: ${devicePattern}`);
   output.push('Channel: all');
-  // This line MUST be "Preamp" without a capitalized P for Equalizer APO to work
-  output.push(`Preamp: ${state.preAmp}dB`);
+
+  if (state.convolution && convolutionFileName) {
+    output.push(`Convolution: ${convolutionFileName}`);
+  }
 
   // Using individual filter bands
   output = output.concat(
     Object.values(state.filters).map(
       ({ frequency, gain, type, quality }, index) => {
-        return `Filter${index}: ON ${type} Fc ${frequency} Hz Gain ${gain} dB Q ${quality}`;
-      }
-    )
+        return `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz Gain ${gain} dB Q ${quality}`;
+      },
+    ),
   );
+
+  // Equalizer APO applies rules in order: convolution, EQ bands, then gain.
+  // This line MUST be "Preamp" without a capitalized P for APO to work.
+  output.push(`Preamp: ${state.preAmp} dB`);
 
   return output.join('\n\r');
 };
@@ -62,9 +72,12 @@ export const serializePreset = (preset: IPresetV2) => {
   return JSON.stringify(preset);
 };
 
-const CONFIG_CONTENT = 'Include: aqua.txt';
+const CONFIG_CONTENT = 'Include: fluideq.txt';
+const LEGACY_CONFIG_CONTENT = /^\s*Include:\s*aqua\.txt\s*$/i;
 const AQUA_LOCAL_CONFIG_FILENAME = 'state.txt';
-export const AQUA_CONFIG_FILENAME = 'aqua.txt';
+export const FLUIDEQ_CONFIG_FILENAME = 'fluideq.txt';
+// Kept as an API alias for older tests and integrations; the generated file is FluidEQ-owned.
+export const AQUA_CONFIG_FILENAME = FLUIDEQ_CONFIG_FILENAME;
 const CONFIG_FILENAME = 'config.txt';
 export const PRESETS_DIR = 'presets';
 
@@ -121,7 +134,6 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
       });
       try {
         // Try to update our file.
-        // eslint-disable-next-line @typescript-eslint/no-use-before-define
         savePreset(presetName, newFormat, presetsDir);
       } catch {
         // Ignore failed updates.
@@ -141,12 +153,12 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
 
 export const savePreset = (
   presetName: string,
-  preset_info: IPresetV2,
-  presetsDir: string
+  presetInfo: IPresetV2,
+  presetsDir: string,
 ) => {
   try {
     const presetPath = path.join(presetsDir, presetName);
-    fs.writeFileSync(presetPath, serializePreset(preset_info), {
+    fs.writeFileSync(presetPath, serializePreset(presetInfo), {
       encoding: 'utf8',
     });
   } catch (ex) {
@@ -180,7 +192,7 @@ export const doesPresetExist = (presetName: string, presetsDir: string) => {
 export const renamePreset = (
   oldName: string,
   newName: string,
-  presetsDir: string
+  presetsDir: string,
 ) => {
   const oldPath = addFileToPath(presetsDir, oldName);
   const newPath = addFileToPath(presetsDir, newName);
@@ -193,7 +205,7 @@ export const renamePreset = (
 };
 
 export const flush = (state: IState, configDirPath: string) => {
-  const configPath = addFileToPath(configDirPath, AQUA_CONFIG_FILENAME);
+  const configPath = addFileToPath(configDirPath, FLUIDEQ_CONFIG_FILENAME);
   try {
     fs.writeFileSync(configPath, stateToString(state), {
       encoding: 'utf8',
@@ -209,7 +221,9 @@ export const checkConfigFile = (configDirPath: string) => {
     const content = fs.readFileSync(configPath, {
       encoding: 'utf8',
     });
-    return content.search(CONFIG_CONTENT) !== -1;
+    return content
+      .split(/\r?\n/)
+      .some((line) => line.trim() === CONFIG_CONTENT);
   } catch (ex) {
     throw new Error(`Unable to locate config file at ${configPath}`);
   }
@@ -218,7 +232,20 @@ export const checkConfigFile = (configDirPath: string) => {
 export const updateConfig = (configDirPath: string) => {
   const configPath = addFileToPath(configDirPath, CONFIG_FILENAME);
   try {
-    fs.appendFileSync(configPath, `\n${CONFIG_CONTENT}`, {
+    const existing = fs.existsSync(configPath)
+      ? fs.readFileSync(configPath, 'utf8')
+      : '';
+    const normalized = existing
+      .split(/\r?\n/)
+      .filter(
+        (line) =>
+          !LEGACY_CONFIG_CONTENT.test(line) &&
+          !/^\s*Include:\s*fluideq\.txt\s*$/i.test(line),
+      )
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trimEnd();
+    fs.writeFileSync(configPath, `${normalized}\n${CONFIG_CONTENT}\n`, {
       encoding: 'utf8',
     });
   } catch (ex) {

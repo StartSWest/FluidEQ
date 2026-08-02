@@ -172,13 +172,13 @@ const AutoEQ = () => {
         </div>
         <Button
           className="small"
-          ariaLabel="Apply Auto EQ"
+          ariaLabel="Use selected response as headset convolution"
           isDisabled={
             !!globalError || currentDevice === '' || currentResponse === ''
           }
           handleChange={applyAutoEQ}
         >
-          Apply curve
+          Use as convolution
         </Button>
       </div>
       <div className="autoeq-update">

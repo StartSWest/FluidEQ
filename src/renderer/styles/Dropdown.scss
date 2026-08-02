@@ -94,6 +94,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+.dropdown--up {
+  .list-wrapper {
+    top: auto;
+    bottom: calc(100% + 5px);
+    margin-block-start: 0;
+    transform-origin: bottom center;
+  }
+}
+
 .dropdown {
   min-width: 0;
 

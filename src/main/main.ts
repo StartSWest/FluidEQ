@@ -221,6 +221,7 @@ const handleUpdateHelper = async <T>(
   event: Electron.IpcMainEvent,
   channel: ChannelEnum | string,
   response: T,
+  syncActiveProfile = false,
 ) => {
   // Check whether EqualizerAPO is installed every time a change is made
   const isInstalled = await isEqualizerAPOInstalled();
@@ -230,6 +231,26 @@ const handleUpdateHelper = async <T>(
   }
 
   try {
+    if (!configPath) {
+      configPath = await getConfigPath();
+    }
+    if (!checkConfigFile(configPath)) {
+      updateConfig(configPath);
+    }
+    if (syncActiveProfile) {
+      const assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
+      if (assignment) {
+        savePreset(
+          assignment.presetName,
+          {
+            preAmp: state.preAmp,
+            filters: state.filters,
+            convolution: state.convolution,
+          },
+          presetPath,
+        );
+      }
+    }
     // Flush changes to EqualizerAPO with a retry in case several requests to write are occuring at the same time
     await retryHelper(5, () => {
       flushDeviceProfiles(deviceProfileSettings, presetPath, configPath);
@@ -250,8 +271,9 @@ const handleUpdateHelper = async <T>(
 const handleUpdate = async (
   event: Electron.IpcMainEvent,
   channel: ChannelEnum | string,
+  syncActiveProfile = false,
 ) => {
-  return handleUpdateHelper<void>(event, channel, undefined);
+  return handleUpdateHelper<void>(event, channel, undefined, syncActiveProfile);
 };
 
 const doesFilterIdExist = (
@@ -284,7 +306,8 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     const presetSettings: IPresetV2 = fetchPreset(presetName, presetPath);
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;
-    await handleUpdate(event, channel);
+    state.convolution = presetSettings.convolution;
+    await handleUpdate(event, channel, true);
   } catch (ex) {
     console.log('Failed to read preset: ', presetName);
     console.log(ex);
@@ -308,6 +331,7 @@ ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
       {
         preAmp: state.preAmp,
         filters: state.filters,
+        convolution: state.convolution,
       },
       presetPath,
     );
@@ -406,6 +430,26 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
         ),
       );
       save(state, userDataDir);
+
+      // A Windows output change must immediately replace the APO rules. This
+      // prevents the previous device's profile from remaining active until a
+      // later EQ edit is made in FluidEQ.
+      try {
+        if (!configPath) {
+          configPath = await getConfigPath();
+        }
+        if (!checkConfigFile(configPath)) {
+          updateConfig(configPath);
+        }
+        await retryHelper(5, () => {
+          flushDeviceProfiles(deviceProfileSettings, presetPath, configPath);
+        });
+      } catch (error) {
+        console.error(
+          'Failed to flush the profile for the active output',
+          error,
+        );
+      }
     }
     const reply: TSuccess<IAudioDevice[]> = { result: devices };
     event.reply(channel, reply);
@@ -507,8 +551,12 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
   try {
     const presetSettings: IPresetV2 = getAutoEqPreset(deviceName, responseName);
     state.preAmp = presetSettings.preAmp;
-    state.filters = presetSettings.filters;
-    await handleUpdate(event, channel);
+    state.filters = getDefaultFilters();
+    state.convolution = {
+      name: `${deviceName} / ${responseName}`,
+      filters: presetSettings.filters,
+    };
+    await handleUpdate(event, channel, true);
   } catch (ex) {
     console.log(
       `Failed to load autoeq preset from ${deviceName} to ${responseName}`,
@@ -593,7 +641,7 @@ ipcMain.on(ChannelEnum.SET_PREAMP, async (event, arg) => {
   }
 
   state.preAmp = gain;
-  await handleUpdate(event, channel);
+  await handleUpdate(event, channel, true);
 });
 
 ipcMain.on(ChannelEnum.GET_FILTER_GAIN, async (event, arg) => {
@@ -627,7 +675,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_GAIN, async (event, arg) => {
   }
 
   state.filters[filterId].gain = gain;
-  await handleUpdate(event, channel + filterId);
+  await handleUpdate(event, channel + filterId, true);
 });
 
 ipcMain.on(ChannelEnum.GET_FILTER_FREQUENCY, async (event, arg) => {
@@ -661,7 +709,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_FREQUENCY, async (event, arg) => {
   }
 
   state.filters[filterId].frequency = frequency;
-  await handleUpdate(event, channel + filterId);
+  await handleUpdate(event, channel + filterId, true);
 });
 
 ipcMain.on(ChannelEnum.GET_FILTER_QUALITY, async (event, arg) => {
@@ -695,7 +743,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_QUALITY, async (event, arg) => {
   }
 
   state.filters[filterId].quality = quality;
-  await handleUpdate(event, channel + filterId);
+  await handleUpdate(event, channel + filterId, true);
 });
 
 ipcMain.on(ChannelEnum.GET_FILTER_TYPE, async (event, arg) => {
@@ -729,7 +777,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_TYPE, async (event, arg) => {
   }
 
   state.filters[filterId].type = filterType as FilterTypeEnum;
-  await handleUpdate(event, channel + filterId);
+  await handleUpdate(event, channel + filterId, true);
 });
 
 ipcMain.on(ChannelEnum.GET_FILTER_COUNT, async (event) => {
@@ -746,7 +794,7 @@ ipcMain.on(ChannelEnum.ADD_FILTER, async (event, arg) => {
   // Cannot exceed the maximum number of filters
   // Frequency must be in valid range
   if (
-    Object.keys(state.filters).length === MAX_NUM_FILTERS ||
+    Object.keys(state.filters).length >= MAX_NUM_FILTERS ||
     frequency < MIN_FREQUENCY ||
     frequency > MAX_FREQUENCY
   ) {
@@ -756,7 +804,7 @@ ipcMain.on(ChannelEnum.ADD_FILTER, async (event, arg) => {
 
   const newFilter: IFilter = { ...getDefaultFilterWithId(), frequency };
   state.filters[newFilter.id] = newFilter;
-  await handleUpdateHelper(event, channel, newFilter.id);
+  await handleUpdateHelper(event, channel, newFilter.id, true);
 });
 
 ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
@@ -764,7 +812,7 @@ ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
   const filterId: string = arg[0];
 
   // Cannot fall below the minimum number of filters
-  if (Object.keys(state.filters).length === MIN_NUM_FILTERS) {
+  if (Object.keys(state.filters).length <= MIN_NUM_FILTERS) {
     handleError(event, channel, ErrorCode.INVALID_PARAMETER);
     return;
   }
@@ -776,7 +824,7 @@ ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
 
   // delete does not throw exception even if the filterId does not exist
   delete state.filters[filterId];
-  await handleUpdate(event, channel);
+  await handleUpdate(event, channel, true);
 });
 
 ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
@@ -786,7 +834,7 @@ ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
     state.filters[key].gain = 0;
   });
 
-  await handleUpdate(event, channel);
+  await handleUpdate(event, channel, true);
 });
 
 ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
@@ -798,7 +846,7 @@ ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
 
   state.filters = getDefaultFilters(size);
 
-  await handleUpdateHelper<IFiltersMap>(event, channel, state.filters);
+  await handleUpdateHelper<IFiltersMap>(event, channel, state.filters, true);
 });
 
 ipcMain.on(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {

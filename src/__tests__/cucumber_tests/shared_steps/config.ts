@@ -60,10 +60,12 @@ export const readAquaConfig = (configPath: string) => {
       state.device = line.substring('Device: '.length);
     } else if (line.indexOf('Channel: ') !== -1) {
       state.channel = line.substring('Channel: '.length);
+    } else if (line.indexOf('Convolution: ') !== -1) {
+      // Convolution is an optional first-stage correction before the EQ.
     } else if (line.indexOf('Preamp: ') !== -1) {
       // These MUST use "Preamp" without a capitalized P for Equalizer APO to work
       state.preamp = parseFloat(
-        line.substring('Preamp: '.length, line.length - 2)
+        line.substring('Preamp: '.length, line.length - 2),
       );
       if (Number.isNaN(state.preamp)) {
         throw new Error(`Invalid preAmp line "${line}"`);
@@ -75,7 +77,7 @@ export const readAquaConfig = (configPath: string) => {
       }
       const filterIndex = parseInt(
         line.substring('Filter'.length, colonIndex),
-        10
+        10,
       );
       if (Number.isNaN(filterIndex)) {
         throw new Error(`Invalid filter index in line "${line}"`);
@@ -140,7 +142,7 @@ export const thenConfigFile = (then: DefineStepFunction) => {
             filters: expect.any(Object),
           };
       expect(config).toMatchObject(matchObject);
-    }
+    },
   );
 };
 
@@ -151,13 +153,13 @@ export const thenBandCount = (then: DefineStepFunction) => {
       const configPath = await getConfigPath();
       const config = readAquaConfig(configPath);
       expect(Object.keys(config.filters).length).toBe(parseInt(count, 10));
-    }
+    },
   );
 };
 
 export const thenFrequencyGain = (
   then: DefineStepFunction,
-  webdriver: { driver: Driver | undefined }
+  webdriver: { driver: Driver | undefined },
 ) => {
   then(
     /^Aqua config file should show gain of (-?\d+)dB for frequency (\d+)Hz$/,
@@ -176,13 +178,13 @@ export const thenFrequencyGain = (
         }
       }
       throw new Error(`${frequency} Hz gain band not found.`);
-    }
+    },
   );
 };
 
 export const thenFrequencyQuality = (
   then: DefineStepFunction,
-  webdriver: { driver: Driver | undefined }
+  webdriver: { driver: Driver | undefined },
 ) => {
   then(
     /^Aqua config file should show a quality of (\d+.?\d+) for the band with frequency (\d+)Hz$/,
@@ -201,13 +203,13 @@ export const thenFrequencyQuality = (
         }
       }
       throw new Error(`${frequency} Hz gain band not found.`);
-    }
+    },
   );
 };
 
 export const thenFrequencyFilterType = (
   then: DefineStepFunction,
-  webdriver: { driver: Driver | undefined }
+  webdriver: { driver: Driver | undefined },
 ) => {
   then(
     /^Aqua config file should show the (\w+) filter type for the band with frequency (\d+)Hz$/,
@@ -226,7 +228,7 @@ export const thenFrequencyFilterType = (
         }
       }
       throw new Error(`${frequency} Hz gain band not found.`);
-    }
+    },
   );
 };
 
@@ -237,7 +239,7 @@ export const thenBandFrequency = (then: DefineStepFunction) => {
       const configPath = await getConfigPath();
       const config = readAquaConfig(configPath);
       expect(config.filters[bandIndex - 1].freq).toBe(parseInt(frequency, 10));
-    }
+    },
   );
 };
 
@@ -248,6 +250,6 @@ export const thenPreAmpGain = (then: DefineStepFunction) => {
       const configPath = await getConfigPath();
       const config = readAquaConfig(configPath);
       expect(config.preamp).toBe(parseFloat(gain));
-    }
+    },
   );
 };

@@ -250,6 +250,7 @@ const MainContent = () => {
                 value={selectedFilter.type}
                 options={FILTER_OPTIONS}
                 isDisabled={!!globalError}
+                placement="up"
                 handleChange={(newValue) =>
                   updateSelectedFilter(
                     () => setType(selectedFilter.id, newValue),

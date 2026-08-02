@@ -26,13 +26,13 @@ import { promisified as regedit, setExternalVBSLocation } from 'regedit';
 if (app) {
   const vbsDirectory = path.join(
     path.dirname(app.getPath('exe')),
-    './resources/vbs'
+    './resources/vbs',
   );
   setExternalVBSLocation(vbsDirectory);
 } else {
   const vbsDirectory = path.join(
     __dirname,
-    '../../../node_modules/regedit/vbs'
+    '../../../node_modules/regedit/vbs',
   );
   setExternalVBSLocation(vbsDirectory);
 }
@@ -63,11 +63,13 @@ export const getConfigPath = async () => {
   if (process.platform !== 'win32') {
     const demoConfigPath = path.join(
       app.getPath('userData'),
-      'demo-equalizerapo'
+      'demo-equalizerapo',
     );
     fs.mkdirSync(demoConfigPath, { recursive: true });
     const configFile = path.join(demoConfigPath, 'config.txt');
-    if (!fs.existsSync(configFile)) fs.writeFileSync(configFile, '', 'utf8');
+    if (!fs.existsSync(configFile)) {
+      fs.writeFileSync(configFile, '', 'utf8');
+    }
     return demoConfigPath;
   }
   const isInstalled = await isEqualizerAPOInstalled();
@@ -75,27 +77,31 @@ export const getConfigPath = async () => {
     throw new Error('Equalizer APO not installed');
   }
 
-  // Peace checks for Equalizer APO using this registry key first, and then
-  // tries the second one if this one fails. From my local testing, this
-  // first key tends to always fail but I think it's best to keep both
-  // checks regardless, in case someone else installed Equalizer APO at
-  // a different location.
-  try {
-    const registryKey64 = 'HKLM64\\SOFTWARE\\EqualizerAPO';
-    const listResult = await regedit.list([registryKey64]);
-    const configPath = listResult[registryKey64].values.ConfigPath.value;
-    return configPath as string;
-  } catch (e) {
-    console.log('Did not find file using 64 key');
+  // regedit accepts the normal HKLM hive on both 32-bit and 64-bit Windows;
+  // HKLM64 is not a valid hive name and only produces a noisy warning.
+  const registryKeys = [
+    'HKLM\\SOFTWARE\\EqualizerAPO',
+    'HKLM\\SOFTWARE\\Wow6432Node\\EqualizerAPO',
+  ];
+  const configPaths = await Promise.all(
+    registryKeys.map(async (registryKey) => {
+      try {
+        const listResult = await regedit.list([registryKey]);
+        const configPath = listResult[registryKey]?.values?.ConfigPath?.value;
+        return typeof configPath === 'string' && configPath.length > 0
+          ? configPath
+          : undefined;
+      } catch (e) {
+        return undefined;
+      }
+    }),
+  );
+  const configPath = configPaths.find((candidate): candidate is string =>
+    Boolean(candidate),
+  );
+  if (configPath) {
+    return configPath;
   }
 
-  try {
-    const registryKey = 'HKLM\\SOFTWARE\\EqualizerAPO';
-    const listResult = await regedit.list([registryKey]);
-    const configPath = listResult[registryKey].values.ConfigPath.value;
-    return configPath as string;
-  } catch (e) {
-    console.log(e);
-    throw new Error('Config path not found');
-  }
+  throw new Error('Config path not found');
 };

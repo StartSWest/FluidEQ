@@ -10,6 +10,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import { execFile } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { createHash } from 'crypto';
 import { promisify } from 'util';
 import {
   IAudioDevice,
@@ -21,10 +22,11 @@ import {
 } from '../common/constants';
 import {
   addFileToPath,
-  AQUA_CONFIG_FILENAME,
+  FLUIDEQ_CONFIG_FILENAME,
   fetchPreset,
   stateToString,
 } from './flush';
+import { writeConvolutionWav } from './convolution';
 
 const execFileAsync = promisify(execFile);
 const SETTINGS_FILENAME = 'device-profiles.json';
@@ -33,11 +35,11 @@ const getAudioDeviceScriptPath = () => {
   const scriptPath = path.join(
     process.resourcesPath,
     'assets',
-    'windows-audio-devices.ps1'
+    'windows-audio-devices.ps1',
   );
   const developmentScriptPath = path.join(
     __dirname,
-    '../../assets/windows-audio-devices.ps1'
+    '../../assets/windows-audio-devices.ps1',
   );
   return fs.existsSync(scriptPath) ? scriptPath : developmentScriptPath;
 };
@@ -48,7 +50,7 @@ export const getDefaultDeviceProfileSettings = (): IDeviceProfileSettings => ({
 });
 
 export const loadDeviceProfileSettings = (
-  userDataDir: string
+  userDataDir: string,
 ): IDeviceProfileSettings => {
   const settingsPath = path.join(userDataDir, SETTINGS_FILENAME);
   try {
@@ -64,25 +66,25 @@ export const loadDeviceProfileSettings = (
 
 export const saveDeviceProfileSettings = (
   settings: IDeviceProfileSettings,
-  userDataDir: string
+  userDataDir: string,
 ) => {
   fs.writeFileSync(
     path.join(userDataDir, SETTINGS_FILENAME),
     JSON.stringify(settings, null, 2),
-    'utf8'
+    'utf8',
   );
 };
 
 export const assignDeviceProfile = (
   settings: IDeviceProfileSettings,
-  assignment: IDeviceProfileAssignment
+  assignment: IDeviceProfileAssignment,
 ) => {
   settings.assignments[assignment.deviceId] = assignment;
 };
 
 export const removeDeviceProfile = (
   settings: IDeviceProfileSettings,
-  deviceId: string
+  deviceId: string,
 ) => {
   delete settings.assignments[deviceId];
 };
@@ -90,26 +92,30 @@ export const removeDeviceProfile = (
 export const renameAssignedPreset = (
   settings: IDeviceProfileSettings,
   oldName: string,
-  newName: string
+  newName: string,
 ) => {
   Object.values(settings.assignments).forEach((assignment) => {
-    if (assignment.presetName === oldName) assignment.presetName = newName;
+    if (assignment.presetName === oldName) {
+      assignment.presetName = newName;
+    }
   });
 };
 
 export const removeAssignmentsForPreset = (
   settings: IDeviceProfileSettings,
-  presetName: string
+  presetName: string,
 ) => {
   Object.entries(settings.assignments).forEach(([deviceId, assignment]) => {
-    if (assignment.presetName === presetName)
+    if (assignment.presetName === presetName) {
       delete settings.assignments[deviceId];
+    }
   });
 };
 
 const presetForDeviceToString = (
   assignment: IDeviceProfileAssignment,
-  preset: IPresetV2
+  preset: IPresetV2,
+  convolutionFileName?: string,
 ) => {
   const devicePattern = assignment.deviceGuid || assignment.deviceName;
   const presetState = {
@@ -122,21 +128,35 @@ const presetForDeviceToString = (
 
   return [
     `# ${assignment.deviceName} -> ${assignment.presetName}`,
-    stateToString(presetState, devicePattern),
+    stateToString(presetState, convolutionFileName, devicePattern),
   ].join('\r\n');
+};
+
+const getConvolutionFileName = (deviceId: string) => {
+  const digest = createHash('sha1').update(deviceId).digest('hex').slice(0, 12);
+  return `fluideq-convolution-${digest}.wav`;
 };
 
 export const deviceProfilesToString = (
   settings: IDeviceProfileSettings,
-  presetsDir: string
+  presetsDir: string,
+  configDirPath?: string,
 ) => {
   const blocks = Object.values(settings.assignments)
     .map((assignment) => {
       try {
-        return presetForDeviceToString(
-          assignment,
-          fetchPreset(assignment.presetName, presetsDir)
-        );
+        const preset = fetchPreset(assignment.presetName, presetsDir);
+        const convolutionFileName =
+          configDirPath && preset.convolution
+            ? getConvolutionFileName(assignment.deviceId)
+            : undefined;
+        if (configDirPath && preset.convolution && convolutionFileName) {
+          writeConvolutionWav(
+            addFileToPath(configDirPath, convolutionFileName),
+            preset.convolution.filters,
+          );
+        }
+        return presetForDeviceToString(assignment, preset, convolutionFileName);
       } catch {
         return '';
       }
@@ -158,11 +178,13 @@ export const deviceProfilesToString = (
 export const getStateForAudioDevice = (
   settings: IDeviceProfileSettings,
   deviceId: string,
-  presetsDir: string
+  presetsDir: string,
 ): IState => {
   const defaultState = getDefaultState();
   const assignment = settings.assignments[deviceId];
-  if (!assignment) return defaultState;
+  if (!assignment) {
+    return defaultState;
+  }
 
   try {
     return {
@@ -175,7 +197,7 @@ export const getStateForAudioDevice = (
 };
 
 export const filterVisibleAudioDevices = (
-  devices: IAudioDevice[]
+  devices: IAudioDevice[],
 ): IAudioDevice[] => {
   const visibleByName = new Map<string, IAudioDevice>();
 
@@ -228,16 +250,18 @@ export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
       '-File',
       getAudioDeviceScriptPath(),
     ],
-    { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 }
+    { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
   );
   const parsed = JSON.parse(stdout.trim() || '[]');
   return filterVisibleAudioDevices(
-    (Array.isArray(parsed) ? parsed : [parsed]) as IAudioDevice[]
+    (Array.isArray(parsed) ? parsed : [parsed]) as IAudioDevice[],
   );
 };
 
 export const setDefaultAudioDevice = async (deviceId: string) => {
-  if (process.platform !== 'win32') return;
+  if (process.platform !== 'win32') {
+    return;
+  }
 
   const devices = await discoverAudioDevices();
   if (!devices.some((device) => device.id === deviceId)) {
@@ -257,18 +281,18 @@ export const setDefaultAudioDevice = async (deviceId: string) => {
       '-SetDefaultDeviceId',
       deviceId,
     ],
-    { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 }
+    { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
   );
 };
 
 export const flushDeviceProfiles = (
   settings: IDeviceProfileSettings,
   presetsDir: string,
-  configDirPath: string
+  configDirPath: string,
 ) => {
   fs.writeFileSync(
-    addFileToPath(configDirPath, AQUA_CONFIG_FILENAME),
-    deviceProfilesToString(settings, presetsDir),
-    'utf8'
+    addFileToPath(configDirPath, FLUIDEQ_CONFIG_FILENAME),
+    deviceProfilesToString(settings, presetsDir, configDirPath),
+    'utf8',
   );
 };

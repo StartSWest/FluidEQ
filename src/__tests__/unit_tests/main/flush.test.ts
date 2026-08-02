@@ -76,29 +76,39 @@ describe('flush', () => {
     it('should convert output to correct format', () => {
       const returnedString = stateToString(defaultState);
       expect(returnedString).toMatch(/Device: all\n\rChannel: all\n\r/);
-      expect(returnedString).toMatch(/Preamp: 0dB\n\r/);
+      expect(returnedString).toMatch(/Preamp: 0 dB$/);
 
       // Check for that filters for each frequency exists
       // Note: the order of filters in the string is determined by the generated filter id and not the frequency value
-      expect(returnedString).toMatch(/Filter\d: ON PK Fc 32 Hz Gain 0 dB Q 1/);
-      expect(returnedString).toMatch(/Filter\d: ON PK Fc 64 Hz Gain 0 dB Q 1/);
-      expect(returnedString).toMatch(/Filter\d: ON PK Fc 125 Hz Gain 0 dB Q 1/);
-      expect(returnedString).toMatch(/Filter\d: ON PK Fc 250 Hz Gain 0 dB Q 1/);
-      expect(returnedString).toMatch(/Filter\d: ON PK Fc 500 Hz Gain 0 dB Q 1/);
       expect(returnedString).toMatch(
-        /Filter\d: ON PK Fc 1000 Hz Gain 0 dB Q 1/
+        /Filter \d+: ON PK Fc 32 Hz Gain 0 dB Q 1/,
       );
       expect(returnedString).toMatch(
-        /Filter\d: ON PK Fc 2000 Hz Gain 0 dB Q 1/
+        /Filter \d+: ON PK Fc 64 Hz Gain 0 dB Q 1/,
       );
       expect(returnedString).toMatch(
-        /Filter\d: ON PK Fc 4000 Hz Gain 0 dB Q 1/
+        /Filter \d+: ON PK Fc 125 Hz Gain 0 dB Q 1/,
       );
       expect(returnedString).toMatch(
-        /Filter\d: ON PK Fc 8000 Hz Gain 0 dB Q 1/
+        /Filter \d+: ON PK Fc 250 Hz Gain 0 dB Q 1/,
       );
       expect(returnedString).toMatch(
-        /Filter\d: ON PK Fc 16000 Hz Gain 0 dB Q 1/
+        /Filter \d+: ON PK Fc 500 Hz Gain 0 dB Q 1/,
+      );
+      expect(returnedString).toMatch(
+        /Filter \d+: ON PK Fc 1000 Hz Gain 0 dB Q 1/,
+      );
+      expect(returnedString).toMatch(
+        /Filter \d+: ON PK Fc 2000 Hz Gain 0 dB Q 1/,
+      );
+      expect(returnedString).toMatch(
+        /Filter \d+: ON PK Fc 4000 Hz Gain 0 dB Q 1/,
+      );
+      expect(returnedString).toMatch(
+        /Filter \d+: ON PK Fc 8000 Hz Gain 0 dB Q 1/,
+      );
+      expect(returnedString).toMatch(
+        /Filter \d+: ON PK Fc 16000 Hz Gain 0 dB Q 1/,
       );
     });
   });
@@ -116,7 +126,7 @@ describe('flush', () => {
       expect(
         fs
           .readFileSync(addFileToPath(TEST_DATA_WRITE_DIR, 'state.txt'))
-          .toString()
+          .toString(),
       ).toBe(serializeState(mockSettings));
     });
   });
@@ -125,7 +135,7 @@ describe('flush', () => {
     beforeAll(() => {
       fs.copyFileSync(
         addFileToPath(TEST_DATA_READ_DIR, 'presetV1'),
-        addFileToPath(TEST_DATA_WRITE_DIR, 'presetV1')
+        addFileToPath(TEST_DATA_WRITE_DIR, 'presetV1'),
       );
     });
     it('should read succesfully a preset of the IPresetV2 format', () => {
@@ -235,7 +245,7 @@ describe('flush', () => {
           serializePreset(preset),
           {
             encoding: 'utf8',
-          }
+          },
         );
       }
     });
@@ -244,7 +254,7 @@ describe('flush', () => {
       renamePreset(oldPresetName, newPresetName, TEST_DATA_WRITE_DIR);
       expect(doesPresetExist(oldPresetName, TEST_DATA_WRITE_DIR)).toBe(false);
       expect(fetchPreset(newPresetName, TEST_DATA_WRITE_DIR)).toStrictEqual(
-        preset
+        preset,
       );
       renamePreset(newPresetName, oldPresetName, TEST_DATA_WRITE_DIR);
     });

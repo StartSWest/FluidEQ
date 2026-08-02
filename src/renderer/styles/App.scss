@@ -304,6 +304,11 @@ body {
     background: rgba($primary-dark, 0.75);
     font: inherit;
     cursor: pointer;
+
+    &:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
   }
 }
 
@@ -325,9 +330,18 @@ body {
   background: $complementary;
 }
 
+.graph-legend--processed::before {
+  background: $complementary;
+}
+
 .live-output-error {
   max-width: 240px;
   color: $red;
+}
+
+.live-output-controls__balance {
+  border-color: rgba($secondary-default, 0.55) !important;
+  color: $secondary-light !important;
 }
 
 .eyebrow,

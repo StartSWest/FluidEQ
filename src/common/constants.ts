@@ -100,6 +100,7 @@ export interface IState {
   isCaseSensitiveFs: boolean;
   preAmp: number;
   filters: IFiltersMap;
+  convolution?: IConvolutionProfile;
 }
 
 export interface IPresetV1 {
@@ -109,6 +110,13 @@ export interface IPresetV1 {
 
 export interface IPresetV2 {
   preAmp: number;
+  filters: IFiltersMap;
+  /** Optional headset correction rendered as an APO convolution before EQ. */
+  convolution?: IConvolutionProfile;
+}
+
+export interface IConvolutionProfile {
+  name: string;
   filters: IFiltersMap;
 }
 

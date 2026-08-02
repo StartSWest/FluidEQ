@@ -185,6 +185,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 /* Adaptive equalizer: every preset fits without horizontal scrolling. */
 .main-content {
+  container-name: eq-panel;
+  container-type: size;
   grid-template-columns: 38px minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) auto;
   gap: 6px;
@@ -193,9 +195,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .eq-scale {
   display: grid;
-  height: 100%;
-  padding: 96px 0;
+  width: 100%;
+  height: 72px;
+  padding: 0;
   grid-template-rows: auto 1fr auto;
+  align-self: center;
   align-items: center;
   justify-items: end;
   color: rgba($primary-lighter, 0.62);
@@ -215,7 +219,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 100%;
   padding: 0;
   grid-template-columns: repeat(var(--band-count), minmax(0, 1fr));
-  align-items: stretch;
+  align-items: center;
   overflow: hidden;
   background: linear-gradient(
     to bottom,
@@ -313,11 +317,69 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .main-content--compact .eq-scale {
-  padding-block: 68px;
+  height: 90px;
 }
 
 .main-content--dense .eq-scale {
-  padding-block: 46px;
+  height: 96px;
+}
+
+@container eq-panel (min-height: 420px) {
+  .main-content--full .eq-scale {
+    height: 220px;
+  }
+
+  .main-content--compact .eq-scale {
+    height: 190px;
+  }
+
+  .main-content--dense .eq-scale {
+    height: 150px;
+  }
+
+  .bandWrapper--full .range input[type='range'] {
+    width: 220px !important;
+    margin-block: 110px !important;
+  }
+
+  .bandWrapper--compact .range input[type='range'] {
+    width: 190px !important;
+    margin-block: 95px !important;
+  }
+
+  .bandWrapper--dense .range input[type='range'] {
+    width: 150px !important;
+    margin-block: 75px !important;
+  }
+}
+
+@container eq-panel (min-height: 520px) {
+  .main-content--full .eq-scale {
+    height: 240px;
+  }
+
+  .main-content--compact .eq-scale {
+    height: 210px;
+  }
+
+  .main-content--dense .eq-scale {
+    height: 160px;
+  }
+
+  .bandWrapper--full .range input[type='range'] {
+    width: 240px !important;
+    margin-block: 120px !important;
+  }
+
+  .bandWrapper--compact .range input[type='range'] {
+    width: 210px !important;
+    margin-block: 105px !important;
+  }
+
+  .bandWrapper--dense .range input[type='range'] {
+    width: 160px !important;
+    margin-block: 80px !important;
+  }
 }
 
 @media (max-width: 760px) {

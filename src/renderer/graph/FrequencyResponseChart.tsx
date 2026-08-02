@@ -31,11 +31,7 @@ import { useAquaContext } from 'renderer/utils/AquaContext';
 import { setMainPreAmp } from 'renderer/utils/equalizerApi';
 import { clamp, useThrottleAndExecuteLatest } from 'renderer/utils/utils';
 import Chart, { ChartDimensions } from './Chart';
-import {
-  IChartCurveData,
-  IChartLineDataPointsById,
-  IChartPointData,
-} from './ChartController';
+import { IChartCurveData, IChartLineDataPointsById } from './ChartController';
 import { getFilterLineData, getCombinedLineData } from './utils';
 import { ColorEnum, GrayScaleEnum } from '../styles/color';
 import useLiveOutputSpectrum from './useLiveOutputSpectrum';
@@ -66,26 +62,20 @@ const FrequencyResponseChart = () => {
     isGraphViewOn,
     isLoading,
     globalError,
+    convolution,
     preAmp,
     setGlobalError,
     setPreAmp,
   } = useAquaContext();
   const prevFilters = useRef<IFiltersMap>({});
   const prevFilterLines = useRef<IChartLineDataPointsById>({});
+  const [isBalancing, setIsBalancing] = useState(false);
 
   const { chartData, autoPreAmpValue }: IGraphData = useMemo(() => {
-    const controlPointByCurveId: { [id: string]: IChartPointData } = {};
-
     const updatedFilterLines: IChartLineDataPointsById = {};
 
     // Update filter lines that have changed
     Object.values(filters).forEach((filter) => {
-      // Store control point info
-      controlPointByCurveId[filter.id] = {
-        x: filter.frequency,
-        y: filter.gain,
-      };
-
       // New filters have no previous data
       if (!(filter.id in prevFilters.current)) {
         updatedFilterLines[filter.id] = getFilterLineData(filter);
@@ -105,8 +95,18 @@ const FrequencyResponseChart = () => {
     prevFilterLines.current = updatedFilterLines;
     prevFilters.current = filters;
 
-    // Compute combined line data
-    const totalCurveData = getCombinedLineData(preAmp, updatedFilterLines);
+    const convolutionFilterLines: IChartLineDataPointsById = {};
+    Object.values(convolution?.filters || {}).forEach((filter) => {
+      convolutionFilterLines[filter.id] = getFilterLineData(filter);
+    });
+
+    // APO applies the headset convolution first, then the editable EQ bands,
+    // and finally preamp. Mirror that exact order in the response graph.
+    const totalCurveData = getCombinedLineData(preAmp, {
+      ...convolutionFilterLines,
+      ...updatedFilterLines,
+    });
+    const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
 
     // Compute preAmp line data
     // const preAmpLine = getPreAmpLine(preAmp);
@@ -114,57 +114,56 @@ const FrequencyResponseChart = () => {
     const highestPoint = totalCurveData.reduce(
       (previousValue, currentValue) => {
         return previousValue.y < currentValue.y ? currentValue : previousValue;
-      }
+      },
     );
 
     return {
-      chartData: [
-        // Do not show preamp line for now
-        // {
-        //   id: 'PreAmp',
-        //   name: 'PreAmp',
-        //   line: {
-        //     color: ColorEnum.ANALOGOUS2,
-        //     strokeWidth: 2,
-        //     points: preAmpLine,
-        //   },
-        // } as IChartCurveData,
-        {
-          id: 'Total Response',
-          name: 'Total Response',
-          line: {
-            color: GrayScaleEnum.WHITE,
-            strokeWidth: 3,
-            points: totalCurveData,
-          },
-        } as IChartCurveData,
-        // Do not show individual curves for now
-        // ...Object.keys(updatedFilterLines).map((id, index) => {
-        //   return {
-        //     id,
-        //     name: `Filter ${id}`,
-        //     line: {
-        //       color: getColor(index),
-        //       strokeWidth: 2,
-        //       points: updatedFilterLines[id],
-        //     },
-        //     controlPoint: controlPointByCurveId[id],
-        //   } as IChartCurveData;
-        // }),
-      ],
+      chartData: convolution
+        ? [
+            {
+              id: 'Headphone Convolution',
+              name: `Convolution · ${convolution.name}`,
+              line: {
+                color: GrayScaleEnum.WHITE,
+                strokeWidth: 2,
+                points: convolutionCurveData,
+              },
+            } as IChartCurveData,
+            {
+              id: 'Total Response',
+              name: 'Convolution + EQ + preamp',
+              line: {
+                color: ColorEnum.COMPLEMENTARY,
+                strokeWidth: 3,
+                points: totalCurveData,
+              },
+            } as IChartCurveData,
+          ]
+        : [
+            {
+              id: 'Total Response',
+              name: 'EQ + preamp',
+              line: {
+                color: GrayScaleEnum.WHITE,
+                strokeWidth: 3,
+                points: totalCurveData,
+              },
+            } as IChartCurveData,
+          ],
       // Rounding to two decimals
       autoPreAmpValue:
         Math.round(clamp(-1 * (highestPoint.y - preAmp), -30, 30) * 100) / 100,
     };
-  }, [filters, preAmp]);
+  }, [convolution, filters, preAmp]);
 
   useEffect(() => {
     // Don't automatically adjust preamp if state hasn't been fetched yet
     if (!isLoading && !globalError && isAutoPreAmpOn) {
-      setMainPreAmp(autoPreAmpValue).catch((error: ErrorDescription) => {
-        setGlobalError(error);
-      });
-      setPreAmp(autoPreAmpValue);
+      setMainPreAmp(autoPreAmpValue)
+        .then(() => setPreAmp(autoPreAmpValue))
+        .catch((error: ErrorDescription) => {
+          setGlobalError(error);
+        });
     }
   }, [
     autoPreAmpValue,
@@ -174,6 +173,18 @@ const FrequencyResponseChart = () => {
     setGlobalError,
     setPreAmp,
   ]);
+
+  const handleAutoBalance = useCallback(async () => {
+    setIsBalancing(true);
+    try {
+      await setMainPreAmp(autoPreAmpValue);
+      setPreAmp(autoPreAmpValue);
+    } catch (error) {
+      setGlobalError(error as ErrorDescription);
+    } finally {
+      setIsBalancing(false);
+    }
+  }, [autoPreAmpValue, setGlobalError, setPreAmp]);
 
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(0);
@@ -229,39 +240,57 @@ const FrequencyResponseChart = () => {
             } as IChartCurveData,
           ]
         : chartData,
-    [chartData, liveOutput.points]
+    [chartData, liveOutput.points],
   );
 
-  return (
-    <>
-      {isGraphViewOn && (
-        <div className="graph-wrapper" ref={ref}>
-          <div className="live-output-controls">
-            <span className="graph-legend graph-legend--eq">EQ response</span>
-            <span className="graph-legend graph-legend--live">
-              Live output (dBFS)
-            </span>
-            <button
-              type="button"
-              onClick={liveOutput.isActive ? liveOutput.stop : liveOutput.start}
-            >
-              {liveOutput.isActive ? 'Stop live output' : 'Start live output'}
-            </button>
-            {liveOutput.error && (
-              <span className="live-output-error">{liveOutput.error}</span>
-            )}
-          </div>
-          {isLoading ? (
-            <div className="center full row">
-              <Spinner />
-            </div>
-          ) : (
-            <Chart data={displayData} dimensions={dimensions} />
-          )}
+  return isGraphViewOn ? (
+    <div className="graph-wrapper" ref={ref}>
+      <div className="live-output-controls">
+        {convolution && (
+          <span className="graph-legend graph-legend--convolution">
+            Headset convolution
+          </span>
+        )}
+        <span
+          className={`graph-legend graph-legend--eq${
+            convolution ? ' graph-legend--processed' : ''
+          }`}
+        >
+          {convolution ? 'Convolution + EQ' : 'EQ response'}
+        </span>
+        <span className="graph-legend graph-legend--live">
+          Live output (dBFS)
+        </span>
+        <button
+          type="button"
+          onClick={liveOutput.isActive ? liveOutput.stop : liveOutput.start}
+        >
+          {liveOutput.isActive ? 'Stop live output' : 'Start live output'}
+        </button>
+        <button
+          type="button"
+          className="live-output-controls__balance"
+          onClick={handleAutoBalance}
+          disabled={isLoading || !!globalError || isBalancing}
+          title="Set preamp so the highest EQ response reaches 0 dB"
+        >
+          {isBalancing
+            ? 'Balancing...'
+            : `Auto-balance ${autoPreAmpValue > 0 ? '+' : ''}${autoPreAmpValue.toFixed(2)} dB`}
+        </button>
+        {liveOutput.error && (
+          <span className="live-output-error">{liveOutput.error}</span>
+        )}
+      </div>
+      {isLoading ? (
+        <div className="center full row">
+          <Spinner />
         </div>
+      ) : (
+        <Chart data={displayData} dimensions={dimensions} />
       )}
-    </>
-  );
+    </div>
+  ) : null;
 };
 
 export default FrequencyResponseChart;

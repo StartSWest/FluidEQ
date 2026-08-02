@@ -46,6 +46,7 @@ interface IDropdownProps {
   emptyOptionsPlaceholder?: ReactNode;
   isFilterable?: boolean;
   filterPlaceholder?: string;
+  placement?: 'up' | 'down';
   handleChange: (newValue: string) => void;
 }
 
@@ -77,6 +78,7 @@ const Dropdown = ({
   handleChange,
   isFilterable = false,
   filterPlaceholder = 'Search...',
+  placement = 'down',
 }: IDropdownProps) => {
   const nullElement = createElement('div');
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -138,7 +140,7 @@ const Dropdown = ({
   };
 
   return (
-    <div ref={dropdownRef} className="dropdown">
+    <div ref={dropdownRef} className={`dropdown dropdown--${placement}`}>
       <div
         role="menu"
         aria-label={name}

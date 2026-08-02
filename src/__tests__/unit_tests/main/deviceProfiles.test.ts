@@ -7,17 +7,14 @@ import {
   filterVisibleAudioDevices,
   getStateForAudioDevice,
 } from '../../../main/deviceProfiles';
-import {
-  FilterTypeEnum,
-  getDefaultState,
-} from '../../../common/constants';
+import { FilterTypeEnum, getDefaultState } from '../../../common/constants';
 
 describe('device profile configuration', () => {
   let presetsDir: string;
 
   beforeEach(() => {
     presetsDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'aqua-device-profiles-')
+      path.join(os.tmpdir(), 'aqua-device-profiles-'),
     );
     fs.writeFileSync(
       path.join(presetsDir, 'Studio'),
@@ -32,7 +29,7 @@ describe('device profile configuration', () => {
             type: FilterTypeEnum.PK,
           },
         },
-      })
+      }),
     );
   });
 
@@ -52,13 +49,68 @@ describe('device profile configuration', () => {
     const output = deviceProfilesToString(settings, presetsDir);
 
     expect(output.indexOf('Device: all')).toBeLessThan(
-      output.indexOf('Device: {1234-ABCD}')
+      output.indexOf('Device: {1234-ABCD}'),
     );
     expect(output).toContain('Preamp: 0 dB');
     expect(output).toContain('# USB Headphones -> Studio');
     expect(output).toContain('Device: {1234-ABCD}');
-    expect(output).toContain('Preamp: -4dB');
+    expect(output).toContain('Preamp: -4 dB');
     expect(output).toContain('Fc 80 Hz Gain 3 dB Q 0.8');
+  });
+
+  it('writes the convolution before EQ and preamp', () => {
+    const configDir = fs.mkdtempSync(
+      path.join(os.tmpdir(), 'fluideq-convolution-'),
+    );
+    fs.writeFileSync(
+      path.join(presetsDir, 'Headset'),
+      JSON.stringify({
+        preAmp: -2,
+        filters: {
+          eq: {
+            id: 'eq',
+            frequency: 2000,
+            gain: 2,
+            quality: 1,
+            type: FilterTypeEnum.PK,
+          },
+        },
+        convolution: {
+          name: 'Measured response',
+          filters: {
+            correction: {
+              id: 'correction',
+              frequency: 1000,
+              gain: 3,
+              quality: 1,
+              type: FilterTypeEnum.PK,
+            },
+          },
+        },
+      }),
+    );
+    const settings = getDefaultDeviceProfileSettings();
+    settings.assignments.endpoint = {
+      deviceId: 'endpoint',
+      deviceName: 'USB Headphones',
+      deviceGuid: '{1234-ABCD}',
+      presetName: 'Headset',
+    };
+
+    const output = deviceProfilesToString(settings, presetsDir, configDir);
+    expect(output.indexOf('Convolution: fluideq-convolution-')).toBeGreaterThan(
+      -1,
+    );
+    expect(output.indexOf('Convolution:')).toBeLessThan(
+      output.indexOf('Filter 1:'),
+    );
+    expect(output.indexOf('Filter 1:')).toBeLessThan(
+      output.indexOf('Preamp: -2 dB'),
+    );
+    expect(
+      fs.readdirSync(configDir).some((file) => file.endsWith('.wav')),
+    ).toBe(true);
+    fs.rmSync(configDir, { recursive: true, force: true });
   });
 
   it('loads the attached preset for the active endpoint', () => {
@@ -90,14 +142,14 @@ describe('device profile configuration', () => {
     expect(
       Object.values(state.filters)
         .map(({ frequency }) => frequency)
-        .sort((left, right) => left - right)
+        .sort((left, right) => left - right),
     ).toEqual(
       Object.values(defaults.filters)
         .map(({ frequency }) => frequency)
-        .sort((left, right) => left - right)
+        .sort((left, right) => left - right),
     );
     expect(Object.values(state.filters).every(({ gain }) => gain === 0)).toBe(
-      true
+      true,
     );
   });
 
@@ -111,7 +163,7 @@ describe('device profile configuration', () => {
     };
 
     expect(deviceProfilesToString(settings, presetsDir)).not.toContain(
-      'Device: {1234-ABCD}'
+      'Device: {1234-ABCD}',
     );
   });
 
