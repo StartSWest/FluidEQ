@@ -193,7 +193,6 @@ export const filterVisibleAudioDevices = (
     });
 
   return [...visibleByName.values()].sort((left, right) => {
-    if (left.isDefault !== right.isDefault) return left.isDefault ? -1 : 1;
     return left.name.localeCompare(right.name);
   });
 };

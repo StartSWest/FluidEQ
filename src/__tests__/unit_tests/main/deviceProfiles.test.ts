@@ -154,6 +154,6 @@ describe('device profile configuration', () => {
       },
     ]);
 
-    expect(devices.map(({ id }) => id)).toEqual(['default', 'headphones']);
+    expect(devices.map(({ id }) => id)).toEqual(['headphones', 'default']);
   });
 });
