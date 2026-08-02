@@ -75,11 +75,15 @@ const useLiveOutputSpectrum = () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         audio: true,
-        // Electron requires a video constraint for display capture. The main
-        // process supplies a 1x1 screen source; FluidEQ stops that track below.
-        video: { width: 1, height: 1 },
+        // Electron requires a real video constraint for display capture. The
+        // main process supplies a valid screen source; keep that track alive
+        // while analysing its loopback audio so Chromium does not tear down
+        // the capture session.
+        video: true,
       });
-      stream.getVideoTracks().forEach((track) => track.stop());
+      stream.getVideoTracks().forEach((track) => {
+        track.enabled = false;
+      });
 
       const [audioTrack] = stream.getAudioTracks();
       if (!audioTrack) {
@@ -88,6 +92,7 @@ const useLiveOutputSpectrum = () => {
       }
 
       const audioContext = new AudioContext();
+      await audioContext.resume();
       const analyser = audioContext.createAnalyser();
       analyser.fftSize = FFT_SIZE;
       analyser.minDecibels = -100;

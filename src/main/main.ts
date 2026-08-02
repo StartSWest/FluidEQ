@@ -1023,8 +1023,7 @@ const createMainWindow = async () => {
       if (
         !mainWindow ||
         request.frame !== mainWindow.webContents.mainFrame ||
-        !request.audioRequested ||
-        !request.userGesture
+        !request.audioRequested
       ) {
         callback({});
         return;
@@ -1039,9 +1038,12 @@ const createMainWindow = async () => {
       desktopCapturer
         .getSources({
           types: ['screen'],
-          // Chromium still needs a valid video source even though FluidEQ
-          // immediately stops the video track and only analyses loopback audio.
-          thumbnailSize: { width: 1, height: 1 },
+          // Chromium needs a real desktop source to create the display-media
+          // session, even though FluidEQ analyses the loopback audio track.
+          // Use a normal thumbnail size instead of a 1x1 synthetic source;
+          // some Windows capture paths reject the latter as an invalid video
+          // source before audio is delivered.
+          thumbnailSize: { width: 320, height: 240 },
         })
         .then(([screen]) => {
           if (!screen) {
