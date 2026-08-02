@@ -167,18 +167,25 @@ const configuration: webpack.Configuration = {
     },
     setupMiddlewares(middlewares) {
       console.log('Starting preload.js builder...');
-      const preloadProcess = spawn('pnpm', ['start:preload'], {
-        shell: true,
-        stdio: 'inherit',
-      })
+      const spawnPnpm = (args: string[]) => {
+        if (process.platform === 'win32') {
+          // pnpm is a Windows command shim. Launch it through cmd.exe
+          // explicitly so Node does not need shell:true (DEP0190).
+          return spawn(
+            process.env.ComSpec || 'cmd.exe',
+            ['/d', '/s', '/c', `pnpm ${args.join(' ')}`],
+            { stdio: 'inherit' },
+          );
+        }
+        return spawn('pnpm', args, { stdio: 'inherit' });
+      };
+
+      const preloadProcess = spawnPnpm(['start:preload'])
         .on('close', (code: number) => process.exit(code!))
         .on('error', (spawnError) => console.error(spawnError));
 
       console.log('Starting Main Process...');
-      spawn('pnpm', ['start:main'], {
-        shell: true,
-        stdio: 'inherit',
-      })
+      spawnPnpm(['start:main'])
         .on('close', (code: number) => {
           preloadProcess.kill();
           process.exit(code!);

@@ -19,8 +19,50 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /* eslint import/prefer-default-export: off, import/no-mutable-exports: off */
 import { URL } from 'url';
 import path from 'path';
+import http from 'http';
 
 export let resolveHtmlPath: (htmlFileName: string) => string;
+
+/**
+ * The renderer and Electron main process are started in parallel during
+ * development. Wait for webpack-dev-server to accept connections before
+ * asking BrowserWindow to load the page, avoiding a noisy connection-refused
+ * error during normal startup.
+ */
+export const waitForRenderer = async (
+  rendererUrl: string,
+  timeoutMs = 30000,
+): Promise<void> => {
+  if (!rendererUrl.startsWith('http')) {
+    return;
+  }
+
+  const startedAt = Date.now();
+  while (Date.now() - startedAt < timeoutMs) {
+    const isReady = await new Promise<boolean>((resolve) => {
+      const request = http.get(rendererUrl, { timeout: 750 }, (response) => {
+        response.resume();
+        resolve((response.statusCode || 500) < 500);
+      });
+
+      request.once('error', () => resolve(false));
+      request.once('timeout', () => {
+        request.destroy();
+        resolve(false);
+      });
+    });
+
+    if (isReady) {
+      return;
+    }
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 100);
+    });
+  }
+
+  throw new Error(`Renderer did not become available at ${rendererUrl}`);
+};
 
 if (process.env.NODE_ENV === 'development') {
   const port = process.env.PORT || 1212;

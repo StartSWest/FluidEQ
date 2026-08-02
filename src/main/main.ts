@@ -45,7 +45,7 @@ import {
   deletePreset,
 } from './flush';
 import MenuBuilder from './menu';
-import { resolveHtmlPath } from './util';
+import { resolveHtmlPath, waitForRenderer } from './util';
 import { getConfigPath, isEqualizerAPOInstalled } from './registry';
 import ChannelEnum from '../common/channels';
 import {
@@ -983,7 +983,9 @@ const installExtensions = async () => {
 };
 
 const createMainWindow = async () => {
-  if (isDebug) {
+  // React DevTools are optional. Keeping them opt-in avoids invoking the
+  // installer's legacy session APIs on every development launch.
+  if (isDebug && process.env.INSTALL_EXTENSIONS === 'true') {
     await installExtensions();
   }
 
@@ -1028,6 +1030,12 @@ const createMainWindow = async () => {
         return;
       }
 
+      /*
+       * Electron's display-media handler is callback-based by design. Keep
+       * the callback in the Promise continuation while explicitly silencing
+       * the generic Promise callback lint rule for this API boundary.
+       */
+      /* eslint-disable promise/no-callback-in-promise */
       desktopCapturer
         .getSources({
           types: ['screen'],
@@ -1043,12 +1051,15 @@ const createMainWindow = async () => {
           callback({ video: screen, audio: 'loopback' });
         })
         .catch(() => callback({}));
+      /* eslint-enable promise/no-callback-in-promise */
     },
   );
 
   setWindowDimension(state.isGraphViewOn);
 
-  mainWindow.loadURL(resolveHtmlPath('index.html'));
+  const rendererUrl = resolveHtmlPath('index.html');
+  await waitForRenderer(rendererUrl);
+  await mainWindow.loadURL(rendererUrl);
 
   mainWindow.on('ready-to-show', () => {
     if (!mainWindow) {
