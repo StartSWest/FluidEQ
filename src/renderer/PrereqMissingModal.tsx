@@ -19,6 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import Button from './widgets/Button';
 import './styles/Modal.scss';
 
+const EQUALIZER_APO_OFFICIAL_DOWNLOAD =
+  'https://sourceforge.net/projects/equalizerapo/files/latest/download';
+
 interface IPrereqMissingModalProps {
   isLoading: boolean;
   errorMsg: string;
@@ -36,6 +39,10 @@ export default function PrereqMissingModal({
     window.electron.ipcRenderer.closeApp();
   };
 
+  const handleInstall = () => {
+    window.open(EQUALIZER_APO_OFFICIAL_DOWNLOAD, '_blank', 'noopener');
+  };
+
   return (
     <div className="modal col">
       <div className="modal-content">
@@ -43,6 +50,11 @@ export default function PrereqMissingModal({
         <div className="body">
           <p>
             {errorMsg} {actionMsg}
+          </p>
+          <p className="dependency-credit">
+            Equalizer APO is a separate GPLv2 project by Jonas Thedering. The
+            installer is downloaded unchanged from its official SourceForge
+            project.
           </p>
         </div>
         <div className="footer row">
@@ -55,12 +67,20 @@ export default function PrereqMissingModal({
             Exit
           </Button>
           <Button
-            ariaLabel="Retry"
+            ariaLabel="Download official Equalizer APO installer"
+            isDisabled={isLoading}
+            className="default"
+            handleChange={handleInstall}
+          >
+            Install Equalizer APO
+          </Button>
+          <Button
+            ariaLabel="Retry after installation"
             isDisabled={isLoading}
             className="default"
             handleChange={onRetry}
           >
-            Close & Retry
+            I installed it — Retry
           </Button>
         </div>
       </div>

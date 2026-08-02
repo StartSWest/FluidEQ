@@ -97,10 +97,7 @@ const PresetsBar = ({
 
   const [presetName, setPresetName] = useState<string>('');
   const [newPresetNameError, setNewPresetNameError] = useState<string>('');
-  const [presetNames, dispatchPresetNames] = useReducer<IPresetReducer>(
-    presetReducer,
-    []
-  );
+  const [presetNames, dispatchPresetNames] = useReducer(presetReducer, []);
 
   const isExistingPresetSelected = useMemo(
     () => presetNames.some((n) => n === presetName),

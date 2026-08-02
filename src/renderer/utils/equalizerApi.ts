@@ -50,6 +50,9 @@ export interface TError {
 
 type TResult<Type> = TSuccess<Type> | TError;
 
+const toError = (description: ErrorDescription): Error & ErrorDescription =>
+  Object.assign(new Error(description.shortError), description);
+
 const promisifyResult = <Type>(
   responseHandler: (
     arg: TResult<Type>,
@@ -69,7 +72,7 @@ const promisifyResult = <Type>(
     window.electron.ipcRenderer.once(channel, handler);
 
     timer = setTimeout(() => {
-      reject(getErrorDescription(ErrorCode.TIMEOUT));
+      reject(toError(getErrorDescription(ErrorCode.TIMEOUT)));
       window.electron.ipcRenderer.removeListener(channel, handler);
     }, TIMEOUT);
   });
@@ -99,7 +102,7 @@ const buildResponseHandler = <
     reject: (reason?: ErrorDescription) => void
   ) => {
     if ('errorCode' in arg) {
-      reject(getErrorDescription(arg.errorCode));
+      reject(toError(getErrorDescription(arg.errorCode)));
       return;
     }
     const { result } = arg as TSuccess<Type>;

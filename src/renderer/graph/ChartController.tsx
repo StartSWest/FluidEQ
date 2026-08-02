@@ -108,7 +108,7 @@ const useController = ({
     `${d3.format('~s')(domainValue)} Hz`;
 
   const yTickFormat = (domainValue: d3.NumberValue) =>
-    `${domainValue > 0 ? '+' : ''}${d3.format('.2')(domainValue)} dB`;
+    `${Number(domainValue) > 0 ? '+' : ''}${d3.format('.2')(domainValue)} dB`;
 
   return {
     xTickFormat,

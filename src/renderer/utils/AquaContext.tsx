@@ -171,7 +171,7 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
     DEFAULT_STATE.isCaseSensitiveFs
   );
   const [preAmp, setPreAmp] = useState<number>(DEFAULT_STATE.preAmp);
-  const [filters, dispatchFilter] = useReducer<IFilterReducer>(
+  const [filters, dispatchFilter] = useReducer(
     filterReducer,
     DEFAULT_STATE.filters
   );

@@ -51,6 +51,7 @@ describe('PresetListItem', () => {
   });
 
   it('should be empty', async () => {
+    fetchPresets.mockResolvedValue([]);
     setup(
       <AquaProviderWrapper value={defaultAquaContext}>
         <PresetsBar
@@ -63,7 +64,9 @@ describe('PresetListItem', () => {
       </AquaProviderWrapper>
     );
 
-    expect(screen.getByText('No presets found.')).toBeInTheDocument();
+    expect(
+      await screen.findByText('No profiles yet. Create your first sound.')
+    ).toBeInTheDocument();
     expect(screen.queryByText(samplePresetNames[0])).not.toBeInTheDocument();
     expect(fetchPresets).toHaveBeenCalledTimes(1);
   });

@@ -23,13 +23,15 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  ReactElement,
+  ReactNode,
 } from 'react';
 import '../styles/List.scss';
 
 export interface IOptionEntry {
   value: string;
   label: string;
-  display: JSX.Element | string;
+  display: ReactNode;
 }
 
 interface IListProps {
@@ -41,8 +43,8 @@ interface IListProps {
   className?: string;
   itemClassName?: string;
   focusOnRender?: boolean;
-  startingItem?: JSX.Element;
-  emptyOptionsPlaceholder?: JSX.Element | string;
+  startingItem?: ReactElement;
+  emptyOptionsPlaceholder?: ReactNode;
 }
 
 const List = ({

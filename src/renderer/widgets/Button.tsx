@@ -16,10 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { ReactNode } from 'react';
 import '../styles/Button.scss';
 
 interface IButtonProps {
-  children: JSX.Element | string;
+  children: ReactNode;
   ariaLabel: string;
   isDisabled: boolean;
   className?: string;

@@ -18,6 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Button state styles used across components
 
+@use 'color' as *;
+@use 'spacing' as *;
+
 %button-state {
   background: $secondary-default;
   color: $black;

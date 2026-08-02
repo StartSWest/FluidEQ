@@ -1,18 +1,13 @@
 import { execFileSync } from 'child_process';
 
+const pnpmCommand = process.env.npm_execpath || 'pnpm';
+
 const runPnpm = (args: string[]) => {
-  execFileSync('pnpm', args, {
+  execFileSync(pnpmCommand, args, {
     stdio: 'inherit',
-    shell: process.platform === 'win32',
+    shell: process.platform === 'win32' && !process.env.npm_execpath,
   });
 };
-
-if (process.platform === 'win32') {
-  execFileSync('pnpm', ['exec', 'electron-builder', 'install-app-deps'], {
-    stdio: 'inherit',
-    shell: true,
-  });
-}
 
 runPnpm([
   'exec',

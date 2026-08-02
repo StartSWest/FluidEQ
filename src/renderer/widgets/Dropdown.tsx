@@ -23,6 +23,7 @@ import {
   useRef,
   useState,
   createElement,
+  ReactNode,
 } from 'react';
 import ArrowIcon from '../icons/ArrowIcon';
 import '../styles/Dropdown.scss';
@@ -33,7 +34,7 @@ import TextInput from './TextInput';
 interface IOptionEntry {
   value: string;
   label: string;
-  display: JSX.Element | string;
+  display: ReactNode;
 }
 
 interface IDropdownProps {
@@ -41,8 +42,8 @@ interface IDropdownProps {
   options: IOptionEntry[];
   value: string;
   isDisabled: boolean;
-  noSelectionPlaceholder?: JSX.Element | string;
-  emptyOptionsPlaceholder?: JSX.Element | string;
+  noSelectionPlaceholder?: ReactNode;
+  emptyOptionsPlaceholder?: ReactNode;
   isFilterable?: boolean;
   handleChange: (newValue: string) => void;
 }

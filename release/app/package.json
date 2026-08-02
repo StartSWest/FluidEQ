@@ -13,6 +13,6 @@
     "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
   },
   "dependencies": {
-    "win32-api": "^9.6.0"
+    "win32-api": "^26.1.2"
   }
 }

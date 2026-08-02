@@ -46,7 +46,7 @@ export const formatPresetName = (s: string) => {
 
 // https://overreacted.io/making-setinterval-declarative-with-react-hooks/
 export const useInterval = (callback: () => void, delay?: number) => {
-  const savedCallback = useRef<() => void>();
+  const savedCallback = useRef<(() => void) | undefined>(undefined);
 
   useEffect(() => {
     savedCallback.current = callback;
@@ -93,8 +93,10 @@ export const useThrottleAndExecuteLatest = <T extends (...args: any[]) => any>(
   delay: number
 ) => {
   const throttleFunction = useThrottle(fn, delay);
-  const lastCalledValues = useRef<unknown[]>();
-  const timeoutId = useRef<NodeJS.Timer>();
+  const lastCalledValues = useRef<unknown[] | undefined>(undefined);
+  const timeoutId = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined
+  );
 
   return useCallback(
     async (...args: Parameters<T>) => {
@@ -121,7 +123,7 @@ export const useThrottleAndExecuteLatest = <T extends (...args: any[]) => any>(
 
 // https://github.com/teetotum/react-attached-properties/blob/master/examples/useClickOutside.js
 export const useClickOutside = <T extends HTMLElement = HTMLElement>(
-  ref: RefObject<T>,
+  ref: RefObject<T | null>,
   callback: () => void
 ) => {
   const handleClick = useMemo(() => {
@@ -142,7 +144,7 @@ export const useClickOutside = <T extends HTMLElement = HTMLElement>(
 };
 
 export const useMouseDownOutside = <T extends HTMLElement = HTMLElement>(
-  ref: RefObject<T>,
+  ref: RefObject<T | null>,
   callback: () => void
 ) => {
   const handleMouseDown = useMemo(() => {
@@ -164,7 +166,7 @@ export const useMouseDownOutside = <T extends HTMLElement = HTMLElement>(
 };
 
 export const useFocusOutside = <T extends HTMLElement = HTMLElement>(
-  ref: RefObject<T>,
+  ref: RefObject<T | null>,
   callback: () => void
 ) => {
   const handleFocus = useMemo(() => {
@@ -185,7 +187,7 @@ export const useFocusOutside = <T extends HTMLElement = HTMLElement>(
 };
 
 export const useFocusOut = <T extends HTMLElement = HTMLElement>(
-  ref: RefObject<T>,
+  ref: RefObject<T | null>,
   callback: () => void
 ) => {
   const handleFocus = useMemo(() => {
@@ -210,7 +212,7 @@ export const useFocusOut = <T extends HTMLElement = HTMLElement>(
 
 // https://reactjs.org/docs/hooks-faq.html#how-to-get-the-previous-props-or-state
 export const usePrevious = <T>(value: T): T | undefined => {
-  const prevChildrenRef = useRef<T | undefined>();
+  const prevChildrenRef = useRef<T | undefined>(undefined);
 
   useEffect(() => {
     prevChildrenRef.current = value;

@@ -54,8 +54,12 @@ const AppContent = () => {
           </div>
         </div>
         <div className="workspace-header__status">
-          <span className="status-dot" />
-          Equalizer APO connected
+          <span className={`status-dot${globalError ? ' error' : ''}`} />
+          {isLoading
+            ? 'Checking Equalizer APO'
+            : globalError
+              ? 'Equalizer APO unavailable'
+              : 'Equalizer APO connected'}
         </div>
       </header>
       <SideBar />

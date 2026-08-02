@@ -2,5 +2,18 @@ packages:
   - .
   - release/app
 
+allowBuilds:
+  '@parcel/watcher': true
+  core-js: true
+  core-js-pure: true
+  electron: true
+  electron-chromedriver: true
+  ffi-napi: true
+  lzma-native: true
+  protobufjs: true
+  ref-napi: true
+
 overrides:
-  '@types/d3-dispatch': 3.0.6
+  '@types/d3-dispatch': 3.0.7
+  eslint: 8.57.1
+  typescript: 6.0.3

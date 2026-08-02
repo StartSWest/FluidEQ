@@ -18,12 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import '@testing-library/jest-dom';
 import { render } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
-import {
-  Config,
-  UserEvent,
-} from '@testing-library/user-event/dist/types/setup';
-import { typeOptions } from '@testing-library/user-event/dist/types/utility';
+import userEvent, { type UserEvent } from '@testing-library/user-event';
 
 export const setup = (
   jsx: React.ReactElement<
@@ -41,7 +36,7 @@ export const clearAndType = async (
   user: UserEvent,
   element: Element,
   text: string,
-  options?: (Partial<Config> & typeOptions) | undefined
+  options?: Parameters<UserEvent['type']>[2]
 ) => {
   await user.clear(element);
   return user.type(element, text, options);

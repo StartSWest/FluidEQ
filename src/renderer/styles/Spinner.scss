@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-@import 'color';
+@use 'color' as *;
 $spinner-height: 40px;
 $spinner-dot-height: 6px;
 

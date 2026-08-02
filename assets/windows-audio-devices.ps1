@@ -11,36 +11,52 @@ public static class AquaAudioDevices
     [ComImport, Guid("A95664D2-9614-4F35-A746-DE8DB63617E6"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IMMDeviceEnumerator
     {
+        [PreserveSig]
         int EnumAudioEndpoints(int dataFlow, uint stateMask, out IMMDeviceCollection devices);
+        [PreserveSig]
         int GetDefaultAudioEndpoint(int dataFlow, int role, out IMMDevice endpoint);
+        [PreserveSig]
         int GetDevice([MarshalAs(UnmanagedType.LPWStr)] string id, out IMMDevice device);
+        [PreserveSig]
         int RegisterEndpointNotificationCallback(IntPtr client);
+        [PreserveSig]
         int UnregisterEndpointNotificationCallback(IntPtr client);
     }
 
-    [ComImport, Guid("0BD7A1BE-7A1A-44DB-8397-C0A7B0F7D024"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
+    [ComImport, Guid("0BD7A1BE-7A1A-44DB-8397-CC5392387B5E"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IMMDeviceCollection
     {
+        [PreserveSig]
         int GetCount(out uint count);
+        [PreserveSig]
         int Item(uint index, out IMMDevice device);
     }
 
     [ComImport, Guid("D666063F-1587-4E43-81F1-B948E807363F"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IMMDevice
     {
+        [PreserveSig]
         int Activate(ref Guid iid, uint context, IntPtr activationParams, out IntPtr instance);
+        [PreserveSig]
         int OpenPropertyStore(uint access, out IPropertyStore properties);
+        [PreserveSig]
         int GetId([MarshalAs(UnmanagedType.LPWStr)] out string id);
+        [PreserveSig]
         int GetState(out uint state);
     }
 
     [ComImport, Guid("886D8EEB-8CF2-4446-8D02-CDBA1DBDCF99"), InterfaceType(ComInterfaceType.InterfaceIsIUnknown)]
     private interface IPropertyStore
     {
+        [PreserveSig]
         int GetCount(out uint count);
+        [PreserveSig]
         int GetAt(uint index, out PROPERTYKEY key);
+        [PreserveSig]
         int GetValue(ref PROPERTYKEY key, out PROPVARIANT value);
+        [PreserveSig]
         int SetValue(ref PROPERTYKEY key, ref PROPVARIANT value);
+        [PreserveSig]
         int Commit();
     }
 

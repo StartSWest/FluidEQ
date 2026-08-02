@@ -1,5 +1,5 @@
-@import 'color';
-@import 'spacing';
+@use 'color' as *;
+@use 'spacing' as *;
 
 .device-profiles {
   display: grid;

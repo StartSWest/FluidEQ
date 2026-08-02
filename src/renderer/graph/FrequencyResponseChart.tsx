@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { IFiltersMap, IFilter } from 'common/constants';
+import { ErrorDescription } from 'common/errors';
 import {
   useCallback,
   useEffect,
@@ -62,7 +63,9 @@ const FrequencyResponseChart = () => {
     isAutoPreAmpOn,
     isGraphViewOn,
     isLoading,
+    globalError,
     preAmp,
+    setGlobalError,
     setPreAmp,
   } = useAquaContext();
   const prevFilters = useRef<IFiltersMap>({});
@@ -155,11 +158,20 @@ const FrequencyResponseChart = () => {
 
   useEffect(() => {
     // Don't automatically adjust preamp if state hasn't been fetched yet
-    if (!isLoading && isAutoPreAmpOn) {
-      setMainPreAmp(autoPreAmpValue);
+    if (!isLoading && !globalError && isAutoPreAmpOn) {
+      setMainPreAmp(autoPreAmpValue).catch((error: ErrorDescription) => {
+        setGlobalError(error);
+      });
       setPreAmp(autoPreAmpValue);
     }
-  }, [autoPreAmpValue, isAutoPreAmpOn, isLoading, setPreAmp]);
+  }, [
+    autoPreAmpValue,
+    globalError,
+    isAutoPreAmpOn,
+    isLoading,
+    setGlobalError,
+    setPreAmp,
+  ]);
 
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(0);

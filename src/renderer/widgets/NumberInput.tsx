@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  ChangeEvent,
+  InputEvent,
   WheelEvent,
   CSSProperties,
   KeyboardEvent,
@@ -95,8 +95,8 @@ const NumberInput = ({
     [floatPrecision]
   );
 
-  const onInput = (e: ChangeEvent<HTMLInputElement>) => {
-    const { value: input } = e.target;
+  const onInput = (e: InputEvent<HTMLInputElement>) => {
+    const { value: input } = e.currentTarget;
 
     // Allow user to clear input and type an initial negative sign or period or nothing.
     // In the case of integers, no subsequent characters are allowed after a 0

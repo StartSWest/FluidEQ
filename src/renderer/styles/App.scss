@@ -16,9 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-@import 'color';
-@import 'constant';
-@import 'spacing';
+@use 'color' as *;
+@use 'constant' as *;
+@use 'spacing' as *;
 
 body {
   position: relative;
@@ -143,6 +143,11 @@ body {
   border-radius: 50%;
   background: $secondary-default;
   box-shadow: 0 0 10px rgba($secondary-default, 0.8);
+
+  &.error {
+    background: #ef6a6a;
+    box-shadow: 0 0 10px rgba(#ef6a6a, 0.8);
+  }
 }
 
 .right-content {

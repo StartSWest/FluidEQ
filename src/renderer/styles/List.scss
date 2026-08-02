@@ -16,8 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-@import 'color';
-@import 'spacing';
+@use 'color' as *;
+@use 'spacing' as *;
 
 .list-wrapper {
   // Apply custom styles for the list wrapper

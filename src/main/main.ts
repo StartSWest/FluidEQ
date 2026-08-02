@@ -764,7 +764,7 @@ if (isDebug && process.getuid?.() === 0) {
 }
 
 if (isDebug) {
-  require('electron-debug')();
+  require('electron-debug').default();
 }
 
 const installExtensions = async () => {

@@ -16,9 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-@import 'color';
-@import 'spacing';
-@import 'button-state';
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'button-state' as *;
 
 .modal {
   position: fixed;
@@ -34,7 +34,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .footer {
     justify-content: flex-end;
     align-items: center;
+    flex-wrap: wrap;
+    gap: $spacing-s;
   }
+}
+
+.dependency-credit {
+  color: $primary-light;
+  font-size: 0.85rem;
+  line-height: 1.4;
 }
 
 .modal-content {

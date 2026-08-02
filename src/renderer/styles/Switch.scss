@@ -16,8 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-@import 'color';
-@import 'spacing';
+@use 'color' as *;
+@use 'spacing' as *;
 
 $switch-button-height: 20px;
 $switch-padding: 8px;
@@ -44,8 +44,8 @@ $switch-padding: 8px;
   .switch-button {
     content: '';
     position: absolute;
-    top: $switch-padding / 2;
-    left: $switch-padding / 2;
+    top: calc($switch-padding / 2);
+    left: calc($switch-padding / 2);
     width: $switch-button-height;
     height: $switch-button-height;
     background: $secondary-default;
