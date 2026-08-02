@@ -25,11 +25,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build production bundles
+        run: pnpm build
+
       - name: Run unit tests
         run: pnpm test:unit --runInBand
 
       - name: Validate bundled AutoEq profiles
         run: pnpm test:autoeq
-
-      - name: Build production bundles
-        run: pnpm build
