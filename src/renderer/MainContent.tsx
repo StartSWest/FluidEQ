@@ -39,7 +39,6 @@ import Button from './widgets/Button';
 import {
   addEqualizerSlider,
   clearGains,
-  disableAutoPreAmp,
   removeEqualizerSlider,
   setFrequency,
   setFixedBand,
@@ -60,7 +59,6 @@ const MainContent = () => {
     globalError,
     dispatchFilter,
     setGlobalError,
-    setAutoPreAmpOn,
     setPreAmp,
     selectedFilterId,
     setSelectedFilterId,
@@ -125,10 +123,6 @@ const MainContent = () => {
 
   const clearFilterGains = async () => {
     try {
-      // Resetting all gains also resets the master preamp. Disable automatic
-      // protection first so it does not immediately calculate a new value.
-      setAutoPreAmpOn(false);
-      await disableAutoPreAmp();
       await clearGains();
       await setMainPreAmp(0);
       setPreAmp(0);

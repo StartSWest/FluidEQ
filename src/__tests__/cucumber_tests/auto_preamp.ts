@@ -28,11 +28,7 @@ import {
   startChromeDriver,
   stopChromeDriver,
 } from '__tests__/utils/webdriver';
-import {
-  givenAquaIsRunning,
-  givenAutoPreAmpState,
-  givenEnabledState,
-} from './shared_steps/aqua';
+import { givenAquaIsRunning, givenEnabledState } from './shared_steps/aqua';
 import {
   givenBandCount,
   whenSetBandFrequency,
@@ -49,7 +45,7 @@ import { givenChartViewEnabledState } from './shared_steps/aquaGraph';
 const chromeDriver = startChromeDriver();
 
 const feature = loadFeature(
-  './src/__tests__/cucumber_tests/features/auto_preamp.feature'
+  './src/__tests__/cucumber_tests/features/auto_preamp.feature',
 );
 const webdriver: { driver: Driver } = { driver: undefined };
 
@@ -61,8 +57,6 @@ defineFeature(feature, (test) => {
     givenEnabledState(given, webdriver);
     givenChartViewEnabledState(given, webdriver);
     givenBandCount(given, webdriver);
-    givenAutoPreAmpState(given, webdriver);
-
     whenSetBandFrequency(when, webdriver);
     whenSetBandFrequency(when, webdriver);
     whenSetFrequencyQuality(when, webdriver);

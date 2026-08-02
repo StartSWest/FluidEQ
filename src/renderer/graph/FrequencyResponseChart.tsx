@@ -81,7 +81,6 @@ const FrequencyResponseChart = () => {
   const liveOutput = useLiveAudio();
   const {
     filters,
-    isAutoPreAmpOn,
     isGraphViewOn,
     isLoading,
     globalError,
@@ -99,7 +98,6 @@ const FrequencyResponseChart = () => {
   const pointEditTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>(
     {},
   );
-  const [isBalancing, setIsBalancing] = useState(false);
 
   const flushPointEdit = useCallback(
     async (filterId: string) => {
@@ -294,33 +292,14 @@ const FrequencyResponseChart = () => {
 
   useEffect(() => {
     // Don't automatically adjust preamp if state hasn't been fetched yet
-    if (!isLoading && !globalError && isAutoPreAmpOn) {
+    if (!isLoading && !globalError) {
       setMainPreAmp(autoPreAmpValue)
         .then(() => setPreAmp(autoPreAmpValue))
         .catch((error: ErrorDescription) => {
           setGlobalError(error);
         });
     }
-  }, [
-    autoPreAmpValue,
-    globalError,
-    isAutoPreAmpOn,
-    isLoading,
-    setGlobalError,
-    setPreAmp,
-  ]);
-
-  const handleAutoBalance = useCallback(async () => {
-    setIsBalancing(true);
-    try {
-      await setMainPreAmp(autoPreAmpValue);
-      setPreAmp(autoPreAmpValue);
-    } catch (error) {
-      setGlobalError(error as ErrorDescription);
-    } finally {
-      setIsBalancing(false);
-    }
-  }, [autoPreAmpValue, setGlobalError, setPreAmp]);
+  }, [autoPreAmpValue, globalError, isLoading, setGlobalError, setPreAmp]);
 
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(0);
@@ -427,23 +406,6 @@ const FrequencyResponseChart = () => {
           Live output (dBFS)
         </span>
         <span className="graph-edit-hint">Drag points · Ctrl+scroll: Q</span>
-        <button
-          type="button"
-          onClick={liveOutput.isActive ? liveOutput.stop : liveOutput.start}
-        >
-          {liveOutput.isActive ? 'Stop live output' : 'Start live output'}
-        </button>
-        <button
-          type="button"
-          className="live-output-controls__balance"
-          onClick={handleAutoBalance}
-          disabled={isLoading || !!globalError || isBalancing}
-          title="Set preamp so the highest EQ response reaches 0 dB"
-        >
-          {isBalancing
-            ? 'Balancing...'
-            : `Auto-balance ${autoPreAmpValue > 0 ? '+' : ''}${autoPreAmpValue.toFixed(2)} dB`}
-        </button>
         {liveOutput.error && (
           <span className="live-output-error">{liveOutput.error}</span>
         )}

@@ -6,7 +6,7 @@ const WAVEFORM_WIDTH = 420;
 const WAVEFORM_HEIGHT = 58;
 
 const WaveformVisualizer = () => {
-  const { error, isActive, start, stop, waveform } = useLiveAudio();
+  const { error, isActive, waveform } = useLiveAudio();
   const waveformPath = useMemo(() => {
     const samples = waveform.length > 0 ? waveform : Array(96).fill(0.04);
     const center = WAVEFORM_HEIGHT / 2;
@@ -26,14 +26,6 @@ const WaveformVisualizer = () => {
     return `M ${points.join(' L ')} L ${lowerPoints.join(' L ')} Z`;
   }, [waveform]);
 
-  const handleToggle = () => {
-    if (isActive) {
-      stop();
-    } else {
-      start().catch(() => undefined);
-    }
-  };
-
   return (
     <div className={`waveform-visualizer${isActive ? ' is-active' : ''}`}>
       <div className="waveform-visualizer__meta">
@@ -41,9 +33,6 @@ const WaveformVisualizer = () => {
           <span className="waveform-visualizer__signal-dot" />
           {isActive ? 'LIVE OUTPUT' : 'AUDIO SIGNAL'}
         </span>
-        <button type="button" onClick={handleToggle}>
-          {isActive ? 'Stop' : 'Listen'}
-        </button>
       </div>
       <svg
         className="waveform-visualizer__canvas"

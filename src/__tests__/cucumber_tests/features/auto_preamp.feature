@@ -8,7 +8,6 @@ Feature: Auto Pre-amp
       And Aqua equalizer state is enabled
       And ChartView is disabled
       And there are 2 frequency bands
-      And auto pre-amp is on
     When I set the frequency of band 1 to 1000Hz
     When I set the frequency of band 2 to 2000Hz
     When I set the quality to 1.0 for the band with frequency 1000Hz

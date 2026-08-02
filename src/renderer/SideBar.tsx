@@ -19,37 +19,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ErrorDescription } from 'common/errors';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { useCallback, useMemo } from 'react';
-import { disableAutoPreAmp, setMainPreAmp } from './utils/equalizerApi';
+import { setMainPreAmp } from './utils/equalizerApi';
 import EqualizerEnablerSwitch from './components/EqualizerEnablerSwitch';
 import Slider from './components/Slider';
 import './styles/SideBar.scss';
 import { useAquaContext } from './utils/AquaContext';
-import AutoPreAmpEnablerSwitch from './components/AutoPreAmpEnablerSwitch';
 import GraphViewSwitch from './components/GraphViewSwitch';
 import Spinner from './icons/Spinner';
 
 const SideBar = () => {
-  const {
-    isGraphViewOn,
-    isLoading,
-    preAmp,
-    setGlobalError,
-    setPreAmp,
-    setAutoPreAmpOn,
-  } = useAquaContext();
+  const { isGraphViewOn, isLoading, preAmp, setGlobalError, setPreAmp } =
+    useAquaContext();
 
   const setGain = useCallback(
     async (newValue: number) => {
       try {
-        setAutoPreAmpOn(false);
-        await disableAutoPreAmp();
         await setMainPreAmp(newValue);
         setPreAmp(newValue);
       } catch (e) {
         setGlobalError(e as ErrorDescription);
       }
     },
-    [setAutoPreAmpOn, setGlobalError, setPreAmp],
+    [setGlobalError, setPreAmp],
   );
 
   const sliderHeight = useMemo(
@@ -83,10 +74,6 @@ const SideBar = () => {
               setValue={setGain}
               label={`${MIN_GAIN} dB`}
             />
-          </div>
-          <div className="col center">
-            <h4>Protect from clipping</h4>
-            <AutoPreAmpEnablerSwitch id="autoPreAmpEnabler" />
           </div>
           <div className="col center">
             <h4>Response graph</h4>

@@ -55,6 +55,12 @@ const useLiveOutputSpectrum = () => {
   const streamRef = useRef<MediaStream | undefined>(undefined);
   const audioContextRef = useRef<AudioContext | undefined>(undefined);
   const animationFrameRef = useRef<number | undefined>(undefined);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  const isStartingRef = useRef(false);
+  const autoStartRef = useRef(true);
+  const scheduleStartRef = useRef<() => void>(() => undefined);
 
   const stop = useCallback(() => {
     if (animationFrameRef.current !== undefined) {
@@ -70,10 +76,17 @@ const useLiveOutputSpectrum = () => {
     setWaveform([]);
   }, []);
 
-  const start = useCallback(async () => {
+  const start = useCallback(async (): Promise<boolean> => {
+    if (!autoStartRef.current || streamRef.current || isStartingRef.current) {
+      return Boolean(streamRef.current);
+    }
+
+    isStartingRef.current = true;
     setError('');
+    let stream: MediaStream | undefined;
+    let audioContext: AudioContext | undefined;
     try {
-      const stream = await navigator.mediaDevices.getDisplayMedia({
+      stream = await navigator.mediaDevices.getDisplayMedia({
         audio: true,
         // Electron requires a real video constraint for display capture. The
         // main process supplies a valid screen source; keep that track alive
@@ -87,21 +100,21 @@ const useLiveOutputSpectrum = () => {
 
       const [audioTrack] = stream.getAudioTracks();
       if (!audioTrack) {
-        stream.getTracks().forEach((track) => track.stop());
         throw new Error('Windows did not provide a system-audio stream.');
       }
 
-      const audioContext = new AudioContext();
-      await audioContext.resume();
-      const analyser = audioContext.createAnalyser();
+      audioContext = new AudioContext();
+      const activeAudioContext = audioContext;
+      await activeAudioContext.resume();
+      const analyser = activeAudioContext.createAnalyser();
       analyser.fftSize = FFT_SIZE;
       analyser.minDecibels = -100;
       analyser.maxDecibels = 0;
       analyser.smoothingTimeConstant = 0.62;
-      audioContext.createMediaStreamSource(stream).connect(analyser);
+      activeAudioContext.createMediaStreamSource(stream).connect(analyser);
 
       streamRef.current = stream;
-      audioContextRef.current = audioContext;
+      audioContextRef.current = activeAudioContext;
       setIsActive(true);
 
       const frequencyData = new Float32Array(analyser.frequencyBinCount);
@@ -112,7 +125,7 @@ const useLiveOutputSpectrum = () => {
           analyser.getFloatFrequencyData(frequencyData);
           analyser.getByteTimeDomainData(timeDomainData);
           setPoints(
-            createFrequencyPoints(frequencyData, audioContext.sampleRate),
+            createFrequencyPoints(frequencyData, activeAudioContext.sampleRate),
           );
           setWaveform(createWaveformPoints(timeDomainData));
           lastUpdate = timestamp;
@@ -120,20 +133,72 @@ const useLiveOutputSpectrum = () => {
         animationFrameRef.current = requestAnimationFrame(update);
       };
       animationFrameRef.current = requestAnimationFrame(update);
-      audioTrack.addEventListener('ended', stop, { once: true });
+      audioTrack.addEventListener(
+        'ended',
+        () => {
+          stop();
+          // Let the current capture promise finish before retrying. This
+          // avoids the in-flight guard suppressing the restart.
+          setTimeout(() => scheduleStartRef.current(), 0);
+        },
+        { once: true },
+      );
+      return true;
     } catch (captureError) {
+      stream?.getTracks().forEach((track) => track.stop());
+      audioContext?.close().catch(() => undefined);
       stop();
       setError(
         captureError instanceof Error
           ? captureError.message
           : 'Unable to capture the processed system output.',
       );
+      return false;
+    } finally {
+      isStartingRef.current = false;
     }
   }, [stop]);
 
-  useEffect(() => stop, [stop]);
+  const scheduleStart = useCallback(() => {
+    if (
+      !autoStartRef.current ||
+      streamRef.current ||
+      isStartingRef.current ||
+      retryTimerRef.current !== undefined
+    ) {
+      return;
+    }
 
-  return { error, isActive, points, waveform, start, stop };
+    start().then((didStart) => {
+      if (!didStart && autoStartRef.current) {
+        retryTimerRef.current = setTimeout(() => {
+          retryTimerRef.current = undefined;
+          scheduleStartRef.current();
+        }, 2500);
+      }
+      return didStart;
+    });
+  }, [start]);
+
+  useEffect(() => {
+    scheduleStartRef.current = scheduleStart;
+  }, [scheduleStart]);
+
+  useEffect(() => {
+    autoStartRef.current = true;
+    scheduleStart();
+
+    return () => {
+      autoStartRef.current = false;
+      if (retryTimerRef.current !== undefined) {
+        clearTimeout(retryTimerRef.current);
+        retryTimerRef.current = undefined;
+      }
+      stop();
+    };
+  }, [scheduleStart, stop]);
+
+  return { error, isActive, points, waveform };
 };
 
 export default useLiveOutputSpectrum;

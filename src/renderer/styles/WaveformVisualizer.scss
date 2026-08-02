@@ -47,25 +47,6 @@
   font-weight: 800;
   letter-spacing: 0.14em;
   pointer-events: none;
-
-  button {
-    padding: 2px 7px;
-    color: $secondary-light;
-    border: 1px solid rgba($secondary-light, 0.3);
-    border-radius: 999px;
-    background: rgba($primary-dark, 0.62);
-    font-size: 0.5rem;
-    letter-spacing: 0.06em;
-    pointer-events: auto;
-    cursor: pointer;
-
-    &:hover,
-    &:focus-visible {
-      border-color: $secondary-light;
-      background: rgba($secondary-default, 0.14);
-      outline: none;
-    }
-  }
 }
 
 .waveform-visualizer__signal {
