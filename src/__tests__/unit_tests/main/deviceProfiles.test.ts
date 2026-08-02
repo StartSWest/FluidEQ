@@ -51,7 +51,9 @@ describe('device profile configuration', () => {
     expect(output.indexOf('Device: all')).toBeLessThan(
       output.indexOf('Device: {1234-ABCD}'),
     );
-    expect(output).toContain('Preamp: 0 dB');
+    expect(output).not.toContain(
+      '# Neutral fallback for every output without an attached profile.\r\nDevice: all\r\nChannel: all\r\nPreamp:',
+    );
     expect(output).toContain('# USB Headphones -> Studio');
     expect(output).toContain('Device: {1234-ABCD}');
     expect(output).toContain('Preamp: -4 dB');

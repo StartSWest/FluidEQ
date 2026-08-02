@@ -176,7 +176,6 @@ export const deviceProfilesToString = (
       '# Neutral fallback for every output without an attached profile.',
       'Device: all',
       'Channel: all',
-      'Preamp: 0 dB',
     ].join('\r\n'),
     ...blocks,
     ...(activeOverride
