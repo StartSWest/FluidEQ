@@ -951,15 +951,30 @@ html {
 
   .window-titlebar {
     gap: 10px;
-    grid-template-columns: minmax(0, 1fr) auto;
-    padding-inline: 10px;
+    grid-template-columns: minmax(120px, auto) minmax(100px, 1fr) auto;
+    padding-inline: 8px;
 
     .waveform-visualizer {
-      display: none;
+      display: grid;
+      min-width: 100px;
+      height: 44px;
+      padding-inline: 7px;
     }
 
     .window-titlebar__right {
       grid-column: auto;
+      gap: 3px;
+    }
+
+    .workspace-header__tools-trigger {
+      width: 36px;
+      height: 34px;
+      padding-inline: 6px;
+    }
+
+    .window-control {
+      width: 27px;
+      height: 34px;
     }
   }
 

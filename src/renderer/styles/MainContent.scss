@@ -433,7 +433,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @media (max-width: 760px) {
   .main-content {
     grid-template-columns: 30px minmax(0, 1fr);
+    grid-template-rows: minmax(320px, 1fr) auto;
+    min-height: 430px;
     padding-inline: 6px;
+  }
+
+  .main-content .bands {
+    min-height: 300px;
+  }
+
+  .main-content--full .bandWrapper .range input[type='range'] {
+    width: 112px !important;
+    margin-block: 56px !important;
+  }
+
+  .main-content--compact .bandWrapper .range input[type='range'] {
+    width: 100px !important;
+    margin-block: 50px !important;
+  }
+
+  .main-content--dense .bandWrapper .range input[type='range'] {
+    width: 88px !important;
+    margin-block: 44px !important;
   }
 
   .eq-scale {

@@ -72,16 +72,39 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @media (max-width: 720px) {
   .side-bar {
-    min-height: 120px;
+    min-height: 174px;
     flex-direction: row;
-    gap: 18px;
+    align-items: center;
+    gap: 10px;
 
     > div {
       width: auto;
+      min-width: 0;
+      flex: 1 1 0;
     }
 
     > div:nth-child(2) {
-      display: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
+      .slider {
+        gap: 3px;
+
+        .range input[type='range'] {
+          width: 82px !important;
+          margin-block: 41px !important;
+        }
+
+        .number-input {
+          width: 72px;
+        }
+      }
+    }
+
+    h4 {
+      margin-block: 5px;
+      font-size: 0.64rem;
     }
   }
 }
