@@ -57,7 +57,7 @@ const AutoEQ = () => {
   const NO_RESPONSES = 'No supported responses 😞';
   const NO_RESPONSE_SELECTION = 'Pick a response! 🔊';
 
-  const { globalError, setGlobalError, performHealthCheck } = useAquaContext();
+  const { globalError, setGlobalError, refreshState } = useAquaContext();
   const [devices, setDevices] = useState<string[]>([]);
   const [responses, setResponses] = useState<string[]>([]);
   const [currentDevice, setCurrentDevice] = useState<string>('');
@@ -134,8 +134,9 @@ const AutoEQ = () => {
           : await getSquiglinkResponseList(newValue);
       setResponses(nextResponses);
       setCurrentDevice(newValue);
-      // Reset currentResponse to blank whenever it changes.
-      setCurrentResponse('');
+      // Pick the first available measurement so every model starts with a
+      // usable tone instead of leaving the target selector blank.
+      setCurrentResponse(nextResponses[0] ?? '');
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
@@ -148,7 +149,7 @@ const AutoEQ = () => {
       } else {
         await loadSquiglinkPreset(currentDevice, currentResponse);
       }
-      performHealthCheck();
+      await refreshState();
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }

@@ -65,6 +65,7 @@ export interface IAquaContext extends IState {
   isLoading: boolean;
   globalError: ErrorDescription | undefined;
   performHealthCheck: () => void;
+  refreshState: () => Promise<void>;
   setGlobalError: (newValue?: ErrorDescription) => void;
   setIsEnabled: (newValue: boolean) => void;
   setAutoPreAmpOn: (newValue: boolean) => void;
@@ -190,8 +191,7 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
     root?.setAttribute('class', newValue ? '' : 'minimized');
   };
 
-  const performHealthCheck = useCallback(async () => {
-    setIsLoading(true);
+  const refreshState = useCallback(async () => {
     try {
       const state = await getEqualizerState();
       setIsEnabled(state.isEnabled);
@@ -207,8 +207,13 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
-    setIsLoading(false);
   }, []);
+
+  const performHealthCheck = useCallback(async () => {
+    setIsLoading(true);
+    await refreshState();
+    setIsLoading(false);
+  }, [refreshState]);
 
   useEffect(() => {
     performHealthCheck();
@@ -226,6 +231,7 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
         preAmp,
         filters,
         performHealthCheck,
+        refreshState,
         setGlobalError,
         setIsEnabled,
         setAutoPreAmpOn,
