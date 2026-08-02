@@ -5,6 +5,7 @@ const FFT_SIZE = 4096;
 const MIN_FREQUENCY = 20;
 const MAX_FREQUENCY = 20000;
 const POINT_COUNT = 320;
+const WAVEFORM_POINT_COUNT = 96;
 const UPDATE_INTERVAL_MS = 45;
 const MIN_DISPLAY_DB = -40;
 
@@ -33,10 +34,24 @@ const createFrequencyPoints = (
   });
 };
 
+const createWaveformPoints = (timeDomainData: Uint8Array) => {
+  const bucketSize = timeDomainData.length / WAVEFORM_POINT_COUNT;
+  return Array.from({ length: WAVEFORM_POINT_COUNT }, (_value, index) => {
+    const start = Math.floor(index * bucketSize);
+    const end = Math.max(start + 1, Math.floor((index + 1) * bucketSize));
+    let peak = 0;
+    for (let sampleIndex = start; sampleIndex < end; sampleIndex += 1) {
+      peak = Math.max(peak, Math.abs(timeDomainData[sampleIndex] - 128) / 128);
+    }
+    return peak;
+  });
+};
+
 const useLiveOutputSpectrum = () => {
   const [isActive, setIsActive] = useState(false);
   const [error, setError] = useState('');
   const [points, setPoints] = useState<IChartPointData[]>([]);
+  const [waveform, setWaveform] = useState<number[]>([]);
   const streamRef = useRef<MediaStream | undefined>(undefined);
   const audioContextRef = useRef<AudioContext | undefined>(undefined);
   const animationFrameRef = useRef<number | undefined>(undefined);
@@ -52,6 +67,7 @@ const useLiveOutputSpectrum = () => {
     audioContextRef.current = undefined;
     setIsActive(false);
     setPoints([]);
+    setWaveform([]);
   }, []);
 
   const start = useCallback(async () => {
@@ -59,7 +75,9 @@ const useLiveOutputSpectrum = () => {
     try {
       const stream = await navigator.mediaDevices.getDisplayMedia({
         audio: true,
-        video: true,
+        // Electron requires a video constraint for display capture. The main
+        // process supplies a 1x1 screen source; FluidEQ stops that track below.
+        video: { width: 1, height: 1 },
       });
       stream.getVideoTracks().forEach((track) => track.stop());
 
@@ -82,13 +100,16 @@ const useLiveOutputSpectrum = () => {
       setIsActive(true);
 
       const frequencyData = new Float32Array(analyser.frequencyBinCount);
+      const timeDomainData = new Uint8Array(analyser.fftSize);
       let lastUpdate = 0;
       const update = (timestamp: number) => {
         if (timestamp - lastUpdate >= UPDATE_INTERVAL_MS) {
           analyser.getFloatFrequencyData(frequencyData);
+          analyser.getByteTimeDomainData(timeDomainData);
           setPoints(
             createFrequencyPoints(frequencyData, audioContext.sampleRate),
           );
+          setWaveform(createWaveformPoints(timeDomainData));
           lastUpdate = timestamp;
         }
         animationFrameRef.current = requestAnimationFrame(update);
@@ -107,7 +128,7 @@ const useLiveOutputSpectrum = () => {
 
   useEffect(() => stop, [stop]);
 
-  return { error, isActive, points, start, stop };
+  return { error, isActive, points, waveform, start, stop };
 };
 
 export default useLiveOutputSpectrum;

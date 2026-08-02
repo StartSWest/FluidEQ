@@ -991,7 +991,9 @@ const createMainWindow = async () => {
       desktopCapturer
         .getSources({
           types: ['screen'],
-          thumbnailSize: { width: 0, height: 0 },
+          // Chromium still needs a valid video source even though FluidEQ
+          // immediately stops the video track and only analyses loopback audio.
+          thumbnailSize: { width: 1, height: 1 },
         })
         .then(([screen]) => {
           if (!screen) {

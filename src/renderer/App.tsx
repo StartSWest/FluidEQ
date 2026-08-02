@@ -28,6 +28,8 @@ import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import PresetsBar from './PresetsBar';
 import AutoEQ from './AutoEQ';
 import DeviceProfiles from './DeviceProfiles';
+import WaveformVisualizer from './WaveformVisualizer';
+import { LiveAudioProvider } from './audio/LiveAudioContext';
 import {
   deletePreset,
   getPresetListFromFiles,
@@ -72,7 +74,7 @@ const AppContent = () => {
   const handleRestartWindowsAudio = async () => {
     if (
       !window.confirm(
-        'Audio will stop for a few seconds and Windows will request administrator permission. Continue?'
+        'Audio will stop for a few seconds and Windows will request administrator permission. Continue?',
       )
     ) {
       return;
@@ -81,7 +83,7 @@ const AppContent = () => {
     const error = await window.electron.ipcRenderer.restartWindowsAudio();
     window.alert(
       error ||
-        'Windows Audio restarted. Reopen any application that is still silent.'
+        'Windows Audio restarted. Reopen any application that is still silent.',
     );
     if (!error) {
       localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
@@ -94,6 +96,13 @@ const AppContent = () => {
     localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
     setShowAudioRestartRecommendation(false);
   };
+
+  let connectionStatus = 'Equalizer APO connected';
+  if (isLoading) {
+    connectionStatus = 'Checking Equalizer APO';
+  } else if (globalError) {
+    connectionStatus = 'Equalizer APO unavailable';
+  }
 
   return (
     <>
@@ -111,6 +120,7 @@ const AppContent = () => {
             </div>
           </div>
         </div>
+        <WaveformVisualizer />
         <div className="workspace-header__actions">
           {!isLoading && !globalError && (
             <>
@@ -132,11 +142,7 @@ const AppContent = () => {
           )}
           <div className="workspace-header__status">
             <span className={`status-dot${globalError ? ' error' : ''}`} />
-            {isLoading
-              ? 'Checking Equalizer APO'
-              : globalError
-                ? 'Equalizer APO unavailable'
-                : 'Equalizer APO connected'}
+            {connectionStatus}
           </div>
         </div>
       </header>
@@ -150,10 +156,7 @@ const AppContent = () => {
             <button type="button" onClick={handleRestartWindowsAudio}>
               Restart audio now
             </button>
-            <button
-              type="button"
-              onClick={dismissAudioRestartRecommendation}
-            >
+            <button type="button" onClick={dismissAudioRestartRecommendation}>
               Dismiss
             </button>
           </div>
@@ -190,11 +193,13 @@ const AppContent = () => {
 export default function App() {
   return (
     <AquaProvider>
-      <Router>
-        <Routes>
-          <Route path="/" element={<AppContent />} />
-        </Routes>
-      </Router>
+      <LiveAudioProvider>
+        <Router>
+          <Routes>
+            <Route path="/" element={<AppContent />} />
+          </Routes>
+        </Router>
+      </LiveAudioProvider>
     </AquaProvider>
   );
 }

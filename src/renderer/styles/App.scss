@@ -459,7 +459,19 @@ body {
 }
 
 .workspace-header {
+  position: sticky;
+  z-index: 30;
+  top: $title-bar-height;
   padding: 0 8px;
+  border: 1px solid rgba($secondary-default, 0.16);
+  border-radius: 18px;
+  background:
+    linear-gradient(180deg, rgba(#111c2b, 0.92), rgba(#0b131f, 0.84)),
+    rgba($primary-dark, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.045),
+    0 14px 36px rgba($black, 0.18);
+  backdrop-filter: blur(18px) saturate(1.2);
 }
 
 .brand-mark {
@@ -505,6 +517,14 @@ body {
   gap: 10px;
 }
 
+.title-bar {
+  position: sticky;
+  z-index: 40;
+  top: 0;
+  flex-shrink: 0;
+  box-shadow: 0 1px 0 rgba($secondary-default, 0.08);
+}
+
 .graph-wrapper {
   min-height: 250px;
   border-color: rgba($primary-lighter, 0.15);
@@ -536,18 +556,32 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba($primary-lighter, 0.08);
+  border: 1px solid rgba($secondary-default, 0.05);
+  border-radius: 999px;
+  background: rgba(#02050a, 0.55);
 }
 
 ::-webkit-scrollbar-thumb {
+  min-height: 38px;
   border: 2px solid transparent;
-  background: rgba($primary-lighter, 0.4);
+  border-radius: 999px;
+  background: linear-gradient(
+    180deg,
+    rgba($secondary-light, 0.62),
+    rgba($analogous-1, 0.52)
+  );
   background-clip: padding-box;
+  box-shadow: 0 0 12px rgba($secondary-default, 0.16);
 
   &:hover {
-    background: rgba($secondary-default, 0.55);
+    background: linear-gradient(180deg, $secondary-light, $secondary-default);
     background-clip: padding-box;
   }
+}
+
+html {
+  scrollbar-color: rgba($secondary-default, 0.62) rgba(#02050a, 0.55);
+  scrollbar-width: thin;
 }
 
 @media (max-width: 1180px) {

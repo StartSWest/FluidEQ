@@ -1,0 +1,133 @@
+@use 'color' as *;
+
+.waveform-visualizer {
+  position: relative;
+  display: grid;
+  width: min(31vw, 420px);
+  min-width: 230px;
+  height: 52px;
+  padding: 5px 10px 3px;
+  border: 1px solid rgba($secondary-default, 0.22);
+  border-radius: 17px;
+  background:
+    radial-gradient(
+      circle at 50% 120%,
+      rgba($secondary-default, 0.14),
+      transparent 65%
+    ),
+    rgba(#0a121e, 0.72);
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.05),
+    0 0 22px rgba($secondary-default, 0.04);
+  overflow: hidden;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease;
+
+  &.is-active {
+    border-color: rgba($secondary-light, 0.54);
+    box-shadow:
+      inset 0 1px 0 rgba($white, 0.08),
+      0 0 26px rgba($secondary-default, 0.16),
+      0 0 60px rgba($analogous-2, 0.08);
+  }
+}
+
+.waveform-visualizer__meta {
+  position: absolute;
+  z-index: 2;
+  top: 5px;
+  right: 8px;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: rgba($primary-lighter, 0.82);
+  font-size: 0.48rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  pointer-events: none;
+
+  button {
+    padding: 2px 7px;
+    color: $secondary-light;
+    border: 1px solid rgba($secondary-light, 0.3);
+    border-radius: 999px;
+    background: rgba($primary-dark, 0.62);
+    font-size: 0.5rem;
+    letter-spacing: 0.06em;
+    pointer-events: auto;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      border-color: $secondary-light;
+      background: rgba($secondary-default, 0.14);
+      outline: none;
+    }
+  }
+}
+
+.waveform-visualizer__signal {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.waveform-visualizer__signal-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: rgba($primary-lighter, 0.48);
+}
+
+.is-active .waveform-visualizer__signal-dot {
+  background: $secondary-light;
+  box-shadow: 0 0 9px rgba($secondary-light, 0.9);
+}
+
+.waveform-visualizer__canvas {
+  width: 100%;
+  height: 100%;
+  margin-top: 4px;
+  overflow: visible;
+}
+
+.waveform-visualizer__baseline {
+  fill: none;
+  stroke: rgba($primary-lighter, 0.13);
+  stroke-width: 1;
+  stroke-dasharray: 2 5;
+}
+
+.waveform-visualizer__fill {
+  fill: url('#waveform-fill');
+  stroke: none;
+}
+
+.waveform-visualizer__line {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px rgba($secondary-light, 0.85));
+}
+
+.waveform-visualizer__error {
+  position: absolute;
+  right: 8px;
+  bottom: 2px;
+  max-width: 72%;
+  overflow: hidden;
+  color: $red;
+  font-size: 0.48rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 940px) {
+  .waveform-visualizer {
+    width: min(27vw, 300px);
+    min-width: 180px;
+  }
+}

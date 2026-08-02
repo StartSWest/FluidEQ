@@ -34,7 +34,7 @@ import Chart, { ChartDimensions } from './Chart';
 import { IChartCurveData, IChartLineDataPointsById } from './ChartController';
 import { getFilterLineData, getCombinedLineData } from './utils';
 import { ColorEnum, GrayScaleEnum } from '../styles/color';
-import useLiveOutputSpectrum from './useLiveOutputSpectrum';
+import { useLiveAudio } from '../audio/LiveAudioContext';
 
 const isFilterEqual = (f1: IFilter, f2: IFilter) => {
   if (!f1 || !f2) {
@@ -55,7 +55,7 @@ interface IGraphData {
 }
 
 const FrequencyResponseChart = () => {
-  const liveOutput = useLiveOutputSpectrum();
+  const liveOutput = useLiveAudio();
   const {
     filters,
     isAutoPreAmpOn,
