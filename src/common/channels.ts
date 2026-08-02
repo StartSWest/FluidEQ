@@ -45,6 +45,8 @@ enum ChannelEnum {
   GET_AUTO_EQ_DEVICE_LIST = 'getAutoEqDeviceList',
   GET_AUTO_EQ_RESPONSE_LIST = 'getAutoEqResponseList',
   LOAD_AUTO_EQ_PRESET = 'loadAutoEqPreset',
+  CHECK_AUTO_EQ_UPDATE = 'checkAutoEqUpdate',
+  UPDATE_AUTO_EQ_DATABASE = 'updateAutoEqDatabase',
   CLEAR_GAINS = 'clearGains',
   SET_FIXED_BAND = 'setFixedBand',
   GET_AUDIO_DEVICES = 'getAudioDevices',

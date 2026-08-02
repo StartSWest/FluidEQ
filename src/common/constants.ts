@@ -130,6 +130,20 @@ export interface IDeviceProfileSettings {
   assignments: Record<string, IDeviceProfileAssignment>;
 }
 
+export interface IAutoEqDatabaseManifest {
+  version: 1;
+  sourceCommit: string;
+  modelCount: number;
+  profileCount: number;
+  generatedAt: string;
+}
+
+export interface IAutoEqUpdateStatus {
+  current: IAutoEqDatabaseManifest;
+  latest?: IAutoEqDatabaseManifest;
+  updateAvailable: boolean;
+}
+
 /** ----- Default Values ----- */
 
 export enum FixedBandSizeEnum {

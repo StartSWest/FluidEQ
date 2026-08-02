@@ -60,3 +60,14 @@ $auto-eq-dropdown-width: 220px;
     }
   }
 }
+
+.autoeq-update {
+  display: flex;
+  min-height: 34px;
+  margin: $spacing-xs $spacing-m 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-s;
+  color: rgba($primary-lighter, 0.72);
+  font-size: 12px;
+}

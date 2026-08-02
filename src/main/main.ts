@@ -71,6 +71,7 @@ import {
   IAudioDevice,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
+  IAutoEqUpdateStatus,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
 import {
@@ -83,6 +84,7 @@ import {
   getAutoEqPreset,
   getAutoEqResponseList,
 } from './autoeq';
+import { checkAutoEqUpdate, updateAutoEqDatabase } from './autoeqUpdater';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -511,6 +513,32 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     );
     console.log(ex);
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+  }
+});
+
+ipcMain.on(ChannelEnum.CHECK_AUTO_EQ_UPDATE, async (event) => {
+  const channel = ChannelEnum.CHECK_AUTO_EQ_UPDATE;
+  try {
+    const reply: TSuccess<IAutoEqUpdateStatus> = {
+      result: await checkAutoEqUpdate(),
+    };
+    event.reply(channel, reply);
+  } catch (error) {
+    console.warn('Unable to check for an AutoEq database update', error);
+    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
+  }
+});
+
+ipcMain.on(ChannelEnum.UPDATE_AUTO_EQ_DATABASE, async (event) => {
+  const channel = ChannelEnum.UPDATE_AUTO_EQ_DATABASE;
+  try {
+    const reply: TSuccess<IAutoEqUpdateStatus> = {
+      result: await updateAutoEqDatabase(),
+    };
+    event.reply(channel, reply);
+  } catch (error) {
+    console.error('Unable to update the AutoEq database', error);
+    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
   }
 });
 

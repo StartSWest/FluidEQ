@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useEffect, useMemo, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
+import { IAutoEqUpdateStatus } from 'common/constants';
 import { useAquaContext } from './utils/AquaContext';
 import Button from './widgets/Button';
 import Dropdown from './widgets/Dropdown';
@@ -27,6 +28,8 @@ import {
   getAutoEqDeviceList,
   getAutoEqResponseList,
   loadAutoEqPreset,
+  checkAutoEqUpdate,
+  updateAutoEqDatabase,
 } from './utils/equalizerApi';
 
 const AutoEQ = () => {
@@ -39,6 +42,9 @@ const AutoEQ = () => {
   const [responses, setResponses] = useState<string[]>([]);
   const [currentDevice, setCurrentDevice] = useState<string>('');
   const [currentResponse, setCurrentResponse] = useState<string>('');
+  const [updateStatus, setUpdateStatus] = useState<IAutoEqUpdateStatus>();
+  const [isCheckingUpdate, setIsCheckingUpdate] = useState(true);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   // Fetch supported devices from storage
   useEffect(() => {
@@ -51,7 +57,37 @@ const AutoEQ = () => {
     };
 
     fetchDeviceNames();
+    checkAutoEqUpdate()
+      .then(setUpdateStatus)
+      .catch(() => undefined)
+      .finally(() => setIsCheckingUpdate(false));
   }, [setGlobalError]);
+
+  const refreshUpdateStatus = async () => {
+    setIsCheckingUpdate(true);
+    try {
+      setUpdateStatus(await checkAutoEqUpdate());
+    } catch {
+      setUpdateStatus(undefined);
+    } finally {
+      setIsCheckingUpdate(false);
+    }
+  };
+
+  const updateDatabase = async () => {
+    setIsUpdating(true);
+    try {
+      setUpdateStatus(await updateAutoEqDatabase());
+      setDevices(await getAutoEqDeviceList());
+      setCurrentDevice('');
+      setCurrentResponse('');
+      setResponses([]);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
 
   // When user changes the current selected device, fetch the supported responses
   const handleDeviceChange = async (newValue: string) => {
@@ -138,6 +174,35 @@ const AutoEQ = () => {
         >
           Apply curve
         </Button>
+      </div>
+      <div className="autoeq-update">
+        <span>
+          {isCheckingUpdate && 'Checking official database...'}
+          {!isCheckingUpdate && updateStatus?.updateAvailable &&
+            `Update available (${updateStatus.latest?.modelCount.toLocaleString()} models)`}
+          {!isCheckingUpdate && updateStatus && !updateStatus.updateAvailable &&
+            `Official database up to date - ${updateStatus.current.modelCount.toLocaleString()} models`}
+          {!isCheckingUpdate && !updateStatus && 'Update check unavailable'}
+        </span>
+        {updateStatus?.updateAvailable ? (
+          <Button
+            className="small"
+            ariaLabel="Update AutoEq database"
+            isDisabled={isUpdating}
+            handleChange={updateDatabase}
+          >
+            {isUpdating ? 'Updating...' : 'Update database'}
+          </Button>
+        ) : (
+          <Button
+            className="small"
+            ariaLabel="Check AutoEq database updates"
+            isDisabled={isCheckingUpdate || isUpdating}
+            handleChange={refreshUpdateStatus}
+          >
+            Check again
+          </Button>
+        )}
       </div>
     </>
   );

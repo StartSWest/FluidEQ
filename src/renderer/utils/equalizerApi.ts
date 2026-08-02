@@ -30,6 +30,7 @@ import {
   IAudioDevice,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
+  IAutoEqUpdateStatus,
   MAX_FREQUENCY,
   MAX_GAIN,
   MAX_QUALITY,
@@ -59,7 +60,8 @@ const promisifyResult = <Type>(
     resolve: (value: Type | PromiseLike<Type>) => void,
     reject: (reason?: ErrorDescription) => void
   ) => void,
-  channel: string
+  channel: string,
+  timeout = TIMEOUT
 ) => {
   return new Promise<Type>((resolve, reject) => {
     let timer: NodeJS.Timeout;
@@ -74,7 +76,7 @@ const promisifyResult = <Type>(
     timer = setTimeout(() => {
       reject(toError(getErrorDescription(ErrorCode.TIMEOUT)));
       window.electron.ipcRenderer.removeListener(channel, handler);
-    }, TIMEOUT);
+    }, timeout);
   });
 };
 
@@ -89,6 +91,7 @@ const buildResponseHandler = <
     | string[]
     | IAudioDevice[]
     | IDeviceProfileSettings
+    | IAutoEqUpdateStatus
 >(
   resultEvaluator: (
     result: Type,
@@ -121,6 +124,7 @@ const simpleResponseHandler = <
     | string[]
     | IAudioDevice[]
     | IDeviceProfileSettings
+    | IAutoEqUpdateStatus
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);
@@ -278,6 +282,25 @@ export const loadAutoEqPreset = (
   const channel = ChannelEnum.LOAD_AUTO_EQ_PRESET;
   window.electron.ipcRenderer.sendMessage(channel, [deviceName, responseName]);
   return promisifyResult(setterResponseHandler, channel);
+};
+
+export const checkAutoEqUpdate = (): Promise<IAutoEqUpdateStatus> => {
+  const channel = ChannelEnum.CHECK_AUTO_EQ_UPDATE;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(
+    simpleResponseHandler<IAutoEqUpdateStatus>(),
+    channel
+  );
+};
+
+export const updateAutoEqDatabase = (): Promise<IAutoEqUpdateStatus> => {
+  const channel = ChannelEnum.UPDATE_AUTO_EQ_DATABASE;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(
+    simpleResponseHandler<IAutoEqUpdateStatus>(),
+    channel,
+    5 * 60 * 1000
+  );
 };
 
 /**

@@ -17,6 +17,8 @@ adds a modern workflow on top of [Equalizer APO](https://sourceforge.net/project
   with frequency, gain, and Q controls.
 - **AutoEQ built in** — start from community headphone measurements and target
   curves, then make the sound your own.
+- **Current AutoEQ database** - checks the official source in the background
+  and installs compact, validated database updates only when you choose.
 - **Safer gain management** — Auto Pre-amp can keep the maximum boost at or
   below 0 dB to reduce clipping.
 - **Real-time response graph** — see the combined curve from 10 Hz to 20 kHz.

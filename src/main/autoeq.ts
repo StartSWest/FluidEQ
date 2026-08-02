@@ -30,13 +30,23 @@ import {
   IFiltersMap,
 } from '../common/constants';
 
-let AUTOEQ_DIR = './resources/autoeq';
-if (!!app && !app.isPackaged) {
-  // dev mode means there is no resources folder and we must access our repo's autoeq folder.
-  AUTOEQ_DIR = path.join(__dirname, '../../autoeq');
-}
+const getBundledAutoEqDir = () =>
+  app.isPackaged
+    ? path.join(process.resourcesPath, 'autoeq')
+    : path.join(__dirname, '../../autoeq');
 
-export const getAutoEqDeviceList = (autoeqDir: string = AUTOEQ_DIR) => {
+const getAutoEqDir = () => {
+  const downloadedDir = path.join(app.getPath('userData'), 'autoeq');
+  const downloadedManifest = path.join(
+    app.getPath('userData'),
+    'autoeq-version.json'
+  );
+  return fs.existsSync(downloadedManifest) && fs.existsSync(downloadedDir)
+    ? downloadedDir
+    : getBundledAutoEqDir();
+};
+
+export const getAutoEqDeviceList = (autoeqDir: string = getAutoEqDir()) => {
   return fs
     .readdirSync(autoeqDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
@@ -46,7 +56,7 @@ export const getAutoEqDeviceList = (autoeqDir: string = AUTOEQ_DIR) => {
 
 export const getAutoEqResponseList = (
   device: string,
-  autoeqDir: string = AUTOEQ_DIR
+  autoeqDir: string = getAutoEqDir()
 ) => {
   return fs
     .readdirSync(path.join(autoeqDir, device), { withFileTypes: true })
@@ -58,7 +68,7 @@ export const getAutoEqResponseList = (
 export const getAutoEqPreset = (
   device: string,
   response: string,
-  autoeqDir: string = AUTOEQ_DIR
+  autoeqDir: string = getAutoEqDir()
 ) => {
   let preAmpParsed = 0;
   const filters: IFiltersMap = {};
