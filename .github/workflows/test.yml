@@ -26,7 +26,7 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Run unit tests
-        run: pnpm test:unit -- --runInBand
+        run: pnpm test:unit --runInBand
 
       - name: Validate bundled AutoEq profiles
         run: pnpm test:autoeq
