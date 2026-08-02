@@ -417,7 +417,8 @@ body {
 
   &:hover,
   &:focus-visible,
-  &--selected {
+  &--selected,
+  &--hovered {
     .graph-edit-point__halo {
       fill: rgba($secondary-default, 0.24);
       stroke: $secondary-light;

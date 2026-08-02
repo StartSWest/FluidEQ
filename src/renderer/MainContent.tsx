@@ -62,6 +62,8 @@ const MainContent = () => {
     setPreAmp,
     selectedFilterId,
     setSelectedFilterId,
+    hoveredFilterId,
+    setHoveredFilterId,
   } = useAquaContext();
 
   const frequencySortedFilters = useMemo(
@@ -263,6 +265,10 @@ const MainContent = () => {
               flatLayout
               isSelected={selectedFilter?.id === filter.id}
               onSelect={() => setSelectedFilterId(filter.id)}
+              isHovered={hoveredFilterId === filter.id}
+              onHover={(isHovered) =>
+                setHoveredFilterId(isHovered ? filter.id : '')
+              }
               isMinSliderCount={
                 frequencySortedFilters.length <= MIN_NUM_FILTERS
               }

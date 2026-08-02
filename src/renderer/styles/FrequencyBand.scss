@@ -109,6 +109,17 @@ $filter-dropdown-width: 52px;
     box-shadow: inset 0 0 0 1px rgba($secondary-light, 0.18);
   }
 
+  &.is-hovered {
+    background: linear-gradient(
+      180deg,
+      rgba($secondary-light, 0.16),
+      rgba($secondary-default, 0.045)
+    );
+    box-shadow:
+      inset 0 0 0 1px rgba($secondary-light, 0.42),
+      0 0 22px rgba($secondary-default, 0.14);
+  }
+
   .band {
     width: 100%;
     height: auto;

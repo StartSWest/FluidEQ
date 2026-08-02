@@ -39,6 +39,8 @@ const defaultAquaContext: IAquaContext = {
   setPreAmp: (_newValue: number) => {},
   selectedFilterId: '',
   setSelectedFilterId: (_newValue: string) => {},
+  hoveredFilterId: '',
+  setHoveredFilterId: (_newValue: string) => {},
   dispatchFilter: (_action: FilterAction) => {},
 };
 

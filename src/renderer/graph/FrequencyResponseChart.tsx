@@ -91,6 +91,8 @@ const FrequencyResponseChart = () => {
     dispatchFilter,
     selectedFilterId,
     setSelectedFilterId,
+    hoveredFilterId,
+    setHoveredFilterId,
   } = useAquaContext();
   const prevFilters = useRef<IFiltersMap>({});
   const prevFilterLines = useRef<IChartLineDataPointsById>({});
@@ -368,7 +370,10 @@ const FrequencyResponseChart = () => {
         // vertically without changing any band's stored gain.
         data: { x: filter.frequency, y: filter.gain + preAmp },
         selected: selectedFilterId === filter.id,
+        hovered: hoveredFilterId === filter.id,
         onSelect: () => setSelectedFilterId(filter.id),
+        onHover: (isHovered: boolean) =>
+          setHoveredFilterId(isHovered ? filter.id : ''),
         onChange: (point: IChartPointData) => handlePointMove(filter.id, point),
         onCommit: () => {
           flushPointEdit(filter.id);
@@ -381,9 +386,11 @@ const FrequencyResponseChart = () => {
       flushPointEdit,
       handlePointMove,
       handlePointQualityWheel,
+      hoveredFilterId,
       preAmp,
       selectedFilterId,
       setSelectedFilterId,
+      setHoveredFilterId,
     ],
   );
 

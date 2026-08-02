@@ -73,6 +73,9 @@ export interface IAquaContext extends IState {
   /** Filter currently selected in the EQ editor and response graph. */
   selectedFilterId: string;
   setSelectedFilterId: (newValue: string) => void;
+  /** Filter currently hovered in either the EQ editor or response graph. */
+  hoveredFilterId: string;
+  setHoveredFilterId: (newValue: string) => void;
   dispatchFilter: FilterDispatch;
 }
 
@@ -173,6 +176,7 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
   );
   const [preAmp, setPreAmp] = useState<number>(DEFAULT_STATE.preAmp);
   const [selectedFilterId, setSelectedFilterId] = useState<string>('');
+  const [hoveredFilterId, setHoveredFilterId] = useState<string>('');
   const [filters, dispatchFilter] = useReducer(
     filterReducer,
     DEFAULT_STATE.filters,
@@ -229,6 +233,8 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
         setPreAmp,
         selectedFilterId,
         setSelectedFilterId,
+        hoveredFilterId,
+        setHoveredFilterId,
         dispatchFilter,
       }}
     >

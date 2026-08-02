@@ -59,10 +59,12 @@ export interface IEditableChartPoint {
   name: string;
   data: IChartPointData;
   selected: boolean;
+  hovered: boolean;
   onSelect: () => void;
   onChange: (data: IChartPointData) => void;
   onCommit: () => void;
   onQualityWheel: (direction: number) => void;
+  onHover: (isHovered: boolean) => void;
 }
 
 interface IChartControllerProps {

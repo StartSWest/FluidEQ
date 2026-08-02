@@ -59,7 +59,9 @@ interface IFrequencyBandProps {
   density?: 'full' | 'compact' | 'dense';
   flatLayout?: boolean;
   isSelected?: boolean;
+  isHovered?: boolean;
   onSelect?: () => void;
+  onHover?: (isHovered: boolean) => void;
 }
 
 const FrequencyBand = forwardRef(
@@ -70,7 +72,9 @@ const FrequencyBand = forwardRef(
       density = 'full',
       flatLayout = false,
       isSelected = false,
+      isHovered = false,
       onSelect,
+      onHover,
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
@@ -248,8 +252,10 @@ const FrequencyBand = forwardRef(
       <div
         ref={ref}
         id={filter.id}
-        className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}`}
+        className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}`}
         title={`${frequencyValue} Hz / ${filter.gain.toFixed(2)} dB / Q ${qualityValue.toFixed(2)}`}
+        onMouseEnter={() => onHover?.(true)}
+        onMouseLeave={() => onHover?.(false)}
       >
         {!flatLayout && (
           <IconButton

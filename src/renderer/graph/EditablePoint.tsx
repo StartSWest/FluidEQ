@@ -32,7 +32,7 @@ const EditablePoint = ({
   yScale,
 }: IEditablePointProps) => {
   const dragging = useRef(false);
-  const { data, selected } = point;
+  const { data, selected, hovered } = point;
   const scaledX = useMemo(() => Number(xScale(data.x)) || 0, [data.x, xScale]);
   const scaledY = useMemo(() => Number(yScale(data.y)) || 0, [data.y, yScale]);
 
@@ -110,7 +110,7 @@ const EditablePoint = ({
 
   return (
     <g
-      className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}`}
+      className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}`}
       transform={`translate(${scaledX}, ${scaledY})`}
       role="slider"
       aria-label={`${point.name}. Drag to change frequency and gain. Ctrl-scroll to change Q.`}
@@ -119,14 +119,22 @@ const EditablePoint = ({
       onPointerMove={handlePointerMove}
       onPointerUp={handlePointerUp}
       onPointerCancel={handlePointerUp}
+      onPointerEnter={() => point.onHover(true)}
+      onPointerLeave={() => point.onHover(false)}
       onWheel={handleWheel}
       style={{
         touchAction: 'none',
         cursor: dragging.current ? 'grabbing' : 'grab',
       }}
     >
-      <circle className="graph-edit-point__halo" r={selected ? 12 : 9} />
-      <circle className="graph-edit-point__dot" r={selected ? 6.5 : 5} />
+      <circle
+        className="graph-edit-point__halo"
+        r={selected || hovered ? 12 : 9}
+      />
+      <circle
+        className="graph-edit-point__dot"
+        r={selected || hovered ? 6.5 : 5}
+      />
       <title>
         {point.name}: {data.x} Hz · {data.y.toFixed(2)} dB
         {selected ? ' · Ctrl+scroll changes Q' : ' · Click to select'}
