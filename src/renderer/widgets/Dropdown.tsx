@@ -45,8 +45,27 @@ interface IDropdownProps {
   noSelectionPlaceholder?: ReactNode;
   emptyOptionsPlaceholder?: ReactNode;
   isFilterable?: boolean;
+  filterPlaceholder?: string;
   handleChange: (newValue: string) => void;
 }
+
+const normalizeSearchText = (value: string) =>
+  value
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
+export const matchesDropdownSearch = (option: IOptionEntry, query: string) => {
+  const terms = normalizeSearchText(query).split(/\s+/).filter(Boolean);
+  if (terms.length === 0) {
+    return true;
+  }
+
+  const searchableText = normalizeSearchText(`${option.label} ${option.value}`);
+  return terms.every((term) => searchableText.includes(term));
+};
 
 const Dropdown = ({
   name,
@@ -57,6 +76,7 @@ const Dropdown = ({
   emptyOptionsPlaceholder,
   handleChange,
   isFilterable = false,
+  filterPlaceholder = 'Search...',
 }: IDropdownProps) => {
   const nullElement = createElement('div');
   const [isOpen, setIsOpen] = useState<boolean>(false);
@@ -66,10 +86,8 @@ const Dropdown = ({
 
   const filteredOptions = useMemo(
     () =>
-      options.filter((o) =>
-        o.value.toLowerCase().startsWith(searchString.toLowerCase())
-      ),
-    [options, searchString]
+      options.filter((option) => matchesDropdownSearch(option, searchString)),
+    [options, searchString],
   );
 
   useEffect(() => {
@@ -91,7 +109,7 @@ const Dropdown = ({
   const selectedEntry = useMemo(
     // Default to the first option if the value isn't valid
     () => options.find((e) => e.value === value)?.display,
-    [options, value]
+    [options, value],
   );
 
   const toggleIsOpen = () => {
@@ -142,6 +160,7 @@ const Dropdown = ({
           options={filteredOptions}
           isDisabled={isDisabled}
           handleChange={onChange}
+          emptyOptionsPlaceholder={emptyOptionsPlaceholder}
           focusOnRender={!isFilterable}
           startingItem={
             isFilterable ? (
@@ -150,6 +169,7 @@ const Dropdown = ({
                 ariaLabel="Filter audio devices"
                 isDisabled={isDisabled}
                 errorMessage=""
+                placeholder={filterPlaceholder}
                 handleChange={(newValue) => setSearchString(newValue)}
               />
             ) : undefined

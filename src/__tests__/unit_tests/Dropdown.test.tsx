@@ -40,7 +40,7 @@ describe('Dropdown', () => {
         options={FILTER_OPTIONS}
         isDisabled={false}
         handleChange={handleChange}
-      />
+      />,
     );
 
     const value = screen.getByTitle(FilterTypeToLabelMap[filterType]);
@@ -65,7 +65,7 @@ describe('Dropdown', () => {
         options={FILTER_OPTIONS}
         isDisabled={false}
         handleChange={handleChange}
-      />
+      />,
     );
 
     const dropdown = screen.getByLabelText(name);
@@ -86,7 +86,7 @@ describe('Dropdown', () => {
         options={FILTER_OPTIONS}
         isDisabled={false}
         handleChange={handleChange}
-      />
+      />,
     );
 
     const dropdown = screen.getByLabelText(name);
@@ -110,7 +110,7 @@ describe('Dropdown', () => {
           handleChange={handleChange}
         />
         <button type="button">Below</button>
-      </div>
+      </div>,
     );
     // Open the dropdown menu
     const dropdown = screen.getByLabelText(name);
@@ -128,7 +128,7 @@ describe('Dropdown', () => {
       .join('');
     await user.keyboard(tabInstructions);
     const lastItem = screen.getByLabelText(
-      FILTER_OPTIONS[FILTER_OPTIONS.length - 1].label
+      FILTER_OPTIONS[FILTER_OPTIONS.length - 1].label,
     );
     expect(lastItem).toHaveFocus();
   });
@@ -145,7 +145,7 @@ describe('Dropdown', () => {
           handleChange={handleChange}
         />
         <button type="button">Below</button>
-      </div>
+      </div>,
     );
     // Open the dropdown menu
     const dropdown = screen.getByLabelText(name);
@@ -177,7 +177,7 @@ describe('Dropdown', () => {
         options={FILTER_OPTIONS}
         isDisabled
         handleChange={handleChange}
-      />
+      />,
     );
 
     const value = screen.getByTitle(FilterTypeToLabelMap[filterType]);
@@ -185,7 +185,7 @@ describe('Dropdown', () => {
     const dropdown = screen.getByLabelText(name);
     await user.click(dropdown);
     expect(
-      screen.queryByLabelText(FilterTypeToLabelMap[filterType])
+      screen.queryByLabelText(FilterTypeToLabelMap[filterType]),
     ).not.toBeInTheDocument();
   });
 
@@ -201,7 +201,7 @@ describe('Dropdown', () => {
           handleChange={handleChange}
         />
         <div>Outside</div>
-      </div>
+      </div>,
     );
 
     const dropdown = screen.getByLabelText(name);
@@ -225,7 +225,7 @@ describe('Dropdown', () => {
           handleChange={handleChange}
         />
         <button type="button">Outside</button>
-      </div>
+      </div>,
     );
 
     const dropdown = screen.getByLabelText(name);
@@ -252,7 +252,7 @@ describe('Dropdown', () => {
           noSelectionPlaceholder="NO SELECTION"
         />
         <button type="button">Outside</button>
-      </div>
+      </div>,
     );
 
     const dropdown = screen.getByLabelText(name);
@@ -272,10 +272,69 @@ describe('Dropdown', () => {
           emptyOptionsPlaceholder="NO OPTIONS"
         />
         <button type="button">Outside</button>
-      </div>
+      </div>,
     );
 
     const dropdown = screen.getByLabelText(name);
     expect(dropdown.textContent).toBe('NO OPTIONS');
+  });
+
+  it('should find options by any word, regardless of order or case', async () => {
+    const options = [
+      {
+        value: 'Razer Kraken V3 Pro',
+        label: 'Razer Kraken V3 Pro',
+        display: <div>Razer Kraken V3 Pro</div>,
+      },
+      {
+        value: 'Razer BlackShark V2 Pro',
+        label: 'Razer BlackShark V2 Pro',
+        display: <div>Razer BlackShark V2 Pro</div>,
+      },
+    ];
+    const { user } = setup(
+      <Dropdown
+        name={name}
+        value=""
+        options={options}
+        isDisabled={false}
+        isFilterable
+        handleChange={handleChange}
+      />,
+    );
+
+    await user.click(screen.getByLabelText(name));
+    const search = screen.getByLabelText('Filter audio devices');
+    await user.type(search, 'pro KRAKEN');
+
+    expect(screen.getByLabelText('Razer Kraken V3 Pro')).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText('Razer BlackShark V2 Pro'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('should find partial model names without the brand prefix', async () => {
+    const options = [
+      {
+        value: 'Razer Kraken Ultimate',
+        label: 'Razer Kraken Ultimate',
+        display: <div>Razer Kraken Ultimate</div>,
+      },
+    ];
+    const { user } = setup(
+      <Dropdown
+        name={name}
+        value=""
+        options={options}
+        isDisabled={false}
+        isFilterable
+        handleChange={handleChange}
+      />,
+    );
+
+    await user.click(screen.getByLabelText(name));
+    await user.type(screen.getByLabelText('Filter audio devices'), 'krak');
+
+    expect(screen.getByLabelText('Razer Kraken Ultimate')).toBeInTheDocument();
   });
 });

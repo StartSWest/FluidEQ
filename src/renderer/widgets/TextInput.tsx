@@ -37,6 +37,7 @@ interface ITextInputProps {
   handleSubmit?: (newValue: string) => void;
   handleEscape?: () => void;
   formatInput?: (value: string) => string;
+  placeholder?: string;
 }
 
 const TextInput = forwardRef(
@@ -50,8 +51,9 @@ const TextInput = forwardRef(
       handleSubmit,
       handleEscape,
       formatInput = (s) => s,
+      placeholder,
     }: ITextInputProps,
-    ref: ForwardedRef<HTMLInputElement>
+    ref: ForwardedRef<HTMLInputElement>,
   ) => {
     const [storedValue, setStoredValue] = useState<string>(value);
 
@@ -77,7 +79,7 @@ const TextInput = forwardRef(
           handleChange(newValue);
         }
       },
-      [handleChange, handleEscape, value]
+      [handleChange, handleEscape, value],
     );
 
     const submitValue = useCallback(
@@ -98,7 +100,7 @@ const TextInput = forwardRef(
           handleSubmit(newValue);
         }
       },
-      [handleChange, handleSubmit, handleEscape, value]
+      [handleChange, handleSubmit, handleEscape, value],
     );
 
     // Helper for detecting use of the ENTER key
@@ -113,7 +115,7 @@ const TextInput = forwardRef(
           submitValue(storedValue);
         }
       },
-      [handleEscape, isDisabled, submitValue, storedValue]
+      [handleEscape, isDisabled, submitValue, storedValue],
     );
 
     const onChange = useCallback(
@@ -125,7 +127,7 @@ const TextInput = forwardRef(
         // Update value whenever the input changes
         updateValue(formattedValue);
       },
-      [formatInput, updateValue]
+      [formatInput, updateValue],
     );
 
     const onClick = useCallback((e: MouseEvent) => {
@@ -143,6 +145,7 @@ const TextInput = forwardRef(
           ref={ref}
           type="text"
           value={storedValue}
+          placeholder={placeholder}
           name={ariaLabel}
           aria-label={ariaLabel}
           aria-invalid={!!errorMessage}
@@ -156,7 +159,7 @@ const TextInput = forwardRef(
         {errorMessage && <div className="errorText">{errorMessage}</div>}
       </div>
     );
-  }
+  },
 );
 
 export default TextInput;

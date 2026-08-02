@@ -119,7 +119,7 @@ const AutoEQ = () => {
           display: <div>{s}</div>,
         };
       }),
-    [devices]
+    [devices],
   );
 
   const responseOptions: IOptionEntry[] = useMemo(
@@ -131,7 +131,7 @@ const AutoEQ = () => {
           display: <div>{s}</div>,
         };
       }),
-    [responses]
+    [responses],
   );
 
   return (
@@ -152,6 +152,8 @@ const AutoEQ = () => {
           handleChange={handleDeviceChange}
           isDisabled={!!globalError}
           noSelectionPlaceholder={NO_DEVICE_SELECTION}
+          emptyOptionsPlaceholder="No measured model matches your search."
+          filterPlaceholder="Search by brand or model..."
           isFilterable
         />
         Measurement / target
@@ -178,9 +180,12 @@ const AutoEQ = () => {
       <div className="autoeq-update">
         <span>
           {isCheckingUpdate && 'Checking official database...'}
-          {!isCheckingUpdate && updateStatus?.updateAvailable &&
+          {!isCheckingUpdate &&
+            updateStatus?.updateAvailable &&
             `Update available (${updateStatus.latest?.modelCount.toLocaleString()} models)`}
-          {!isCheckingUpdate && updateStatus && !updateStatus.updateAvailable &&
+          {!isCheckingUpdate &&
+            updateStatus &&
+            !updateStatus.updateAvailable &&
             `Official database up to date - ${updateStatus.current.modelCount.toLocaleString()} models`}
           {!isCheckingUpdate && !updateStatus && 'Update check unavailable'}
         </span>
