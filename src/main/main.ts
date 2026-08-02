@@ -82,6 +82,12 @@ import {
   isFixedBandSizeEnumValue,
   isRestrictedPresetName,
 } from '../common/utils';
+import {
+  adaptLayoutSnapshot,
+  getFixedBandSizeForCount,
+  ILayoutSnapshot,
+  snapshotFilters,
+} from '../common/layouts';
 import { TSuccess, TError } from '../renderer/utils/equalizerApi';
 import {
   getAutoEqDeviceList,
@@ -151,6 +157,93 @@ let configPath = '';
 let activeAudioDeviceId = '';
 let activeAudioDevice: IAudioDevice | undefined;
 let hasActiveSessionOverride = false;
+
+const LAYOUT_SETTINGS_FILENAME = 'layout-frequencies.json';
+interface ILayoutSettingsFile {
+  version: 1;
+  devices: Record<string, Record<string, ILayoutSnapshot>>;
+}
+
+const layoutSettingsPath = path.join(userDataDir, LAYOUT_SETTINGS_FILENAME);
+
+const loadLayoutSettings = (): ILayoutSettingsFile => {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(layoutSettingsPath, 'utf8')) as
+      Partial<ILayoutSettingsFile> | undefined;
+    if (parsed?.version !== 1 || !parsed.devices) {
+      throw new Error('Invalid layout settings');
+    }
+    return {
+      version: 1,
+      devices:
+        typeof parsed.devices === 'object'
+          ? (parsed.devices as ILayoutSettingsFile['devices'])
+          : {},
+    };
+  } catch {
+    return { version: 1, devices: {} };
+  }
+};
+
+const layoutSettings = loadLayoutSettings();
+
+const saveLayoutSettings = () => {
+  try {
+    fs.writeFileSync(
+      layoutSettingsPath,
+      JSON.stringify(layoutSettings, null, 2),
+      'utf8',
+    );
+  } catch (error) {
+    console.warn('Unable to save per-layout frequencies', error);
+  }
+};
+
+const getLayoutDeviceKey = () => activeAudioDeviceId || 'global';
+
+const getCurrentLayoutSize = () =>
+  getFixedBandSizeForCount(Object.keys(state.filters).length);
+
+const captureCurrentLayout = () => {
+  const size = getCurrentLayoutSize();
+  if (!size) {
+    return;
+  }
+  const deviceKey = getLayoutDeviceKey();
+  if (!layoutSettings.devices[deviceKey]) {
+    layoutSettings.devices[deviceKey] = {};
+  }
+  layoutSettings.devices[deviceKey][String(size)] = snapshotFilters(
+    state.filters,
+  );
+  saveLayoutSettings();
+};
+
+const clearCurrentLayoutSettings = () => {
+  delete layoutSettings.devices[getLayoutDeviceKey()];
+  saveLayoutSettings();
+};
+
+const getStoredLayout = (
+  size: FixedBandSizeEnum,
+): ILayoutSnapshot | undefined => {
+  const snapshot = layoutSettings.devices[getLayoutDeviceKey()]?.[String(size)];
+  if (!Array.isArray(snapshot) || snapshot.length !== size) {
+    return undefined;
+  }
+  if (
+    !snapshot.every(
+      (band) =>
+        Number.isFinite(band.frequency) &&
+        Number.isFinite(band.gain) &&
+        Number.isFinite(band.quality) &&
+        Object.values(FilterTypeEnum).includes(band.type),
+    )
+  ) {
+    return undefined;
+  }
+  return snapshot;
+};
 
 const getAutomaticPresetName = (deviceId: string) =>
   `${AUTOMATIC_PRESET_PREFIX}${createHash('sha1')
@@ -333,6 +426,11 @@ const handleUpdateHelper = async <T>(
     return;
   }
 
+  // Keep a device-scoped snapshot for every fixed layout. This runs after
+  // every successful edit, so moving a frequency slider is preserved when the
+  // user temporarily switches to another band count.
+  captureCurrentLayout();
+
   // Return a success message of undefined
   const reply: TSuccess<T> = { result: response };
   event.reply(channel, reply);
@@ -377,6 +475,7 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
 
   try {
     const presetSettings: IPresetV2 = fetchPreset(presetName, presetPath);
+    clearCurrentLayoutSettings();
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;
     state.convolution = presetSettings.convolution;
@@ -513,6 +612,7 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
         ),
       );
       save(state, userDataDir);
+      captureCurrentLayout();
 
       // A Windows output change must immediately replace the APO rules. This
       // prevents the previous device's profile from remaining active until a
@@ -568,6 +668,7 @@ ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
     presetPath,
   );
   activeAudioDeviceId = arg[0] as string;
+  clearCurrentLayoutSettings();
   hasActiveSessionOverride = false;
   Object.assign(state, nextState);
   await handleUpdate(event, channel);
@@ -644,6 +745,7 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
 
   try {
     const presetSettings: IPresetV2 = getAutoEqPreset(deviceName, responseName);
+    clearCurrentLayoutSettings();
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;
     // AutoEQ's bundled response files are ParametricEQ text files. They are
@@ -704,6 +806,7 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
   ];
   try {
     const presetSettings = await getSquiglinkPreset(deviceName, responseName);
+    clearCurrentLayoutSettings();
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;
     state.convolution = undefined;
@@ -1030,9 +1133,31 @@ ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
   const size: FixedBandSizeEnum = arg[0];
   if (!isFixedBandSizeEnumValue(size)) {
     handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
   }
 
-  state.filters = getDefaultFilters(size);
+  // Capture the high-resolution layout before replacing it. The snapshot is
+  // device-scoped and survives app restarts, so returning to a previous band
+  // count restores its original frequencies and tuning.
+  captureCurrentLayout();
+  const sourceSnapshot = snapshotFilters(state.filters);
+  const storedSnapshot = getStoredLayout(size);
+  const targetSnapshot =
+    storedSnapshot || adaptLayoutSnapshot(sourceSnapshot, size);
+  const nextFilters = getDefaultFilters(size);
+  Object.values(nextFilters)
+    .sort((left, right) => left.frequency - right.frequency)
+    .forEach((filter, index) => {
+      const savedBand = targetSnapshot[index];
+      if (!savedBand) {
+        return;
+      }
+      filter.frequency = savedBand.frequency;
+      filter.gain = savedBand.gain;
+      filter.quality = savedBand.quality;
+      filter.type = savedBand.type;
+    });
+  state.filters = nextFilters;
   state.isFlat = false;
 
   await handleUpdateHelper<IFiltersMap>(event, channel, state.filters, true);
