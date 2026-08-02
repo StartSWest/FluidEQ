@@ -249,6 +249,7 @@ const handleUpdateHelper = async <T>(
             preAmp: state.preAmp,
             filters: state.filters,
             convolution: state.convolution,
+            isFlat: state.isFlat,
           },
           presetPath,
         );
@@ -330,6 +331,7 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;
     state.convolution = presetSettings.convolution;
+    state.isFlat = presetSettings.isFlat;
     await handleUpdate(event, channel, true);
   } catch (ex) {
     console.log('Failed to read preset: ', presetName);
@@ -355,6 +357,7 @@ ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
         preAmp: state.preAmp,
         filters: state.filters,
         convolution: state.convolution,
+        isFlat: state.isFlat,
       },
       presetPath,
     );
@@ -583,6 +586,7 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     // AutoEQ's bundled response files are ParametricEQ text files. They are
     // editable EQ bands, not impulse responses for APO's Convolution command.
     state.convolution = undefined;
+    state.isFlat = false;
     await handleUpdate(event, channel, true);
   } catch (ex) {
     console.log(
@@ -702,6 +706,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_GAIN, async (event, arg) => {
   }
 
   state.filters[filterId].gain = gain;
+  state.isFlat = false;
   await handleUpdate(event, channel + filterId, true);
 });
 
@@ -736,6 +741,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_FREQUENCY, async (event, arg) => {
   }
 
   state.filters[filterId].frequency = frequency;
+  state.isFlat = false;
   await handleUpdate(event, channel + filterId, true);
 });
 
@@ -770,6 +776,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_QUALITY, async (event, arg) => {
   }
 
   state.filters[filterId].quality = quality;
+  state.isFlat = false;
   await handleUpdate(event, channel + filterId, true);
 });
 
@@ -804,6 +811,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_TYPE, async (event, arg) => {
   }
 
   state.filters[filterId].type = filterType as FilterTypeEnum;
+  state.isFlat = false;
   await handleUpdate(event, channel + filterId, true);
 });
 
@@ -831,6 +839,7 @@ ipcMain.on(ChannelEnum.ADD_FILTER, async (event, arg) => {
 
   const newFilter: IFilter = { ...getDefaultFilterWithId(), frequency };
   state.filters[newFilter.id] = newFilter;
+  state.isFlat = false;
   await handleUpdateHelper(event, channel, newFilter.id, true);
 });
 
@@ -851,6 +860,7 @@ ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
 
   // delete does not throw exception even if the filterId does not exist
   delete state.filters[filterId];
+  state.isFlat = false;
   await handleUpdate(event, channel, true);
 });
 
@@ -860,6 +870,7 @@ ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
   Object.keys(state.filters).forEach((key) => {
     state.filters[key].gain = 0;
   });
+  state.isFlat = true;
 
   await handleUpdate(event, channel, true);
 });
@@ -872,6 +883,7 @@ ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
   }
 
   state.filters = getDefaultFilters(size);
+  state.isFlat = false;
 
   await handleUpdateHelper<IFiltersMap>(event, channel, state.filters, true);
 });

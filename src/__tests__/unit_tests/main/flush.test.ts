@@ -95,6 +95,15 @@ describe('flush', () => {
       expect(returnedString).not.toContain('Gain 30 dB');
       expect(returnedString).not.toContain('Preamp: -30 dB');
     });
+
+    it('omits every filter while the state is explicitly flat', () => {
+      const state = getDefaultState();
+      const firstFilter = Object.values(state.filters)[0];
+      firstFilter.type = FilterTypeEnum.NO;
+      state.isFlat = true;
+
+      expect(stateToString(state)).not.toContain('Filter ');
+    });
   });
 
   describe('fetchSettings', () => {

@@ -51,21 +51,24 @@ export const stateToString = (
     output.push(`Convolution: ${convolutionFileName}`);
   }
 
-  // Using individual filter bands
-  output = output.concat(
-    Object.values(state.filters)
-      // A zero-gain PK/shelf is neutral. Do not leave hundreds of inert EQ
-      // commands in APO after the user presses Reset gains.
-      .filter(
-        ({ gain, type }) =>
-          ![FilterTypeEnum.PK, FilterTypeEnum.LSC, FilterTypeEnum.HSC].includes(
-            type,
-          ) || clampGain(gain) !== 0,
-      )
-      .map(({ frequency, gain, type, quality }, index) => {
-        return `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz Gain ${clampGain(gain)} dB Q ${quality}`;
-      }),
-  );
+  if (!state.isFlat) {
+    // A zero-gain PK/shelf is neutral. Do not leave inert EQ commands in APO
+    // after the user presses Reset gains.
+    output = output.concat(
+      Object.values(state.filters)
+        .filter(
+          ({ gain, type }) =>
+            ![
+              FilterTypeEnum.PK,
+              FilterTypeEnum.LSC,
+              FilterTypeEnum.HSC,
+            ].includes(type) || clampGain(gain) !== 0,
+        )
+        .map(({ frequency, gain, type, quality }, index) => {
+          return `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz Gain ${clampGain(gain)} dB Q ${quality}`;
+        }),
+    );
+  }
 
   // Equalizer APO applies rules in order: convolution, EQ bands, then gain.
   // This line MUST be "Preamp" without a capitalized P for APO to work.

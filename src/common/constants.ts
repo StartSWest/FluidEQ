@@ -101,6 +101,8 @@ export interface IState {
   isAutoPreAmpOn: boolean;
   isGraphViewOn: boolean;
   isCaseSensitiveFs: boolean;
+  /** True after Reset gains until the user edits an EQ band again. */
+  isFlat?: boolean;
   preAmp: number;
   filters: IFiltersMap;
   convolution?: IConvolutionProfile;
@@ -114,6 +116,7 @@ export interface IPresetV1 {
 export interface IPresetV2 {
   preAmp: number;
   filters: IFiltersMap;
+  isFlat?: boolean;
   /** Optional headset correction rendered as an APO convolution before EQ. */
   convolution?: IConvolutionProfile;
 }
