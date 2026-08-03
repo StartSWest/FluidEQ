@@ -16,14 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  MouseEvent,
-  useCallback,
-  useEffect,
-  useMemo,
-  useReducer,
-  useState,
-} from 'react';
+import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import './styles/PresetsBar.scss';
 import { ErrorDescription } from 'common/errors';
 import { isRestrictedPresetName } from 'common/utils';
@@ -152,10 +145,10 @@ const PresetsBar = ({
   ]);
 
   // Loading audio settings from an existing preset
-  const handleLoadPreset = async () => {
-    if (isExistingPresetSelected) {
+  const handleLoadPreset = async (presetToLoad = presetName) => {
+    if (presetToLoad && presetNames.includes(presetToLoad)) {
       try {
-        await loadPreset(presetName);
+        await loadPreset(presetToLoad);
         performHealthCheck();
       } catch (e) {
         setGlobalError(e as ErrorDescription);
@@ -236,13 +229,10 @@ const PresetsBar = ({
   };
 
   // Changing the selected preset in the UI
-  const handleChangeSelectedPreset = (newValue: string, e?: MouseEvent) => {
+  const handleChangeSelectedPreset = (newValue: string) => {
     setPresetName(newValue);
-
-    // Load preset when it is double clicked
-    if (e?.detail === 2) {
-      handleLoadPreset();
-    }
+    // Selecting a named profile also attaches it to the active output.
+    handleLoadPreset(newValue);
   };
 
   // Deleting a preset

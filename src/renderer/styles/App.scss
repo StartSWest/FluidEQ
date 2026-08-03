@@ -700,7 +700,7 @@ body {
   min-width: 0;
   min-height: 0;
   grid-template-rows: max-content minmax(0, 1fr);
-  gap: 10px;
+  gap: 0;
 }
 
 // Keep the utility columns visible while the central convolution catalogue is
@@ -724,7 +724,7 @@ body {
     // Give the editor enough room for its toolbar, bands and selected-band
     // editor before allocating the remaining space to the graph.  The old
     // 36vh graph row left a large dead strip below the EQ on short windows.
-    grid-template-rows: minmax(500px, 1fr) minmax(230px, 32vh);
+    grid-template-rows: minmax(500px, 1fr) minmax(220px, 24vh);
   }
 
   body #root:not(.minimized) > .side-bar,
@@ -802,17 +802,40 @@ body {
 }
 
 .workspace-tab-panel--eq {
-  display: grid;
-  // AutoEQ and MainContent render fragments, so this panel has five direct
-  // children: title, controls, update status, EQ heading, and editor. Keeping
-  // those rows explicit prevents the editor from becoming an implicit row
-  // that can overflow beneath the response graph.
-  grid-template-rows: max-content max-content max-content max-content minmax(
-      260px,
-      1fr
-    );
-  gap: 10px;
+  // Keep the EQ workspace in normal document flow. A multi-row grid here can
+  // allocate an invisible track for the fragments returned by AutoEQ and
+  // leave a large gap above the band editor at compact heights.
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   overflow: hidden;
+
+  > .auto-eq-title,
+  > .auto-eq,
+  > .autoeq-update,
+  > .main-content-title {
+    flex: 0 0 auto;
+  }
+
+  > .autoeq-update {
+    min-height: 22px;
+    margin-top: 0;
+    margin-bottom: 2px;
+  }
+
+  > .autoeq-update:empty {
+    display: none;
+  }
+
+  > .main-content-title {
+    margin-top: 0;
+  }
+
+  > .main-content {
+    flex: 1 1 260px;
+    min-height: 260px;
+    height: auto;
+  }
 }
 
 // A dropdown is the one intentional exception: it needs to float above the
@@ -1101,14 +1124,14 @@ html {
   body #root:not(.minimized) {
     // Compact windows still reserve a real row for the editor and graph; the
     // smaller minimums keep the two rows adjacent without overlap.
-    grid-template-rows: minmax(480px, 1fr) minmax(180px, 28vh);
+    grid-template-rows: minmax(480px, 1fr) minmax(170px, 24vh);
   }
 
   .workspace-tab-panel--eq {
-    grid-template-rows: max-content max-content max-content max-content minmax(
-        220px,
-        1fr
-      );
+    > .main-content {
+      flex-basis: 220px;
+      min-height: 220px;
+    }
   }
 }
 
