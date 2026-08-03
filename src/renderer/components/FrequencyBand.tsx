@@ -260,10 +260,8 @@ const FrequencyBand = forwardRef(
     }, [density, isGraphViewOn]);
 
     return (
-      // Need to specify the id here for the sorting to work
       <div
         ref={ref}
-        id={filter.id}
         className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}`}
         data-filter-id={filter.id}
         title={`${frequencyValue} Hz / ${filter.gain.toFixed(2)} dB / Q ${qualityValue.toFixed(2)}`}

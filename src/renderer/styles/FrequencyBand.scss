@@ -23,9 +23,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 $filter-dropdown-width: 52px;
 
 .bandWrapper {
-  // For sorting frequency bands
-  position: absolute;
-  transition-duration: $sort-animate-duration;
+  // Anchors the absolutely positioned remove button
+  position: relative;
 
   &:hover {
     .removeFilter {
@@ -97,7 +96,6 @@ $filter-dropdown-width: 52px;
   min-width: 0;
   height: auto;
   padding: 4px 2px;
-  transform: none !important;
   border-radius: 10px;
 
   &.is-selected {
@@ -271,7 +269,6 @@ button.band-frequency-caption {
   border: 1px solid transparent;
   border-radius: 14px;
   transition:
-    transform $sort-animate-duration,
     border-color 160ms ease,
     background 160ms ease;
 
