@@ -111,8 +111,10 @@
   }
 
   .dropdown .list-wrapper {
-    width: max(100%, min(360px, calc(100vw - 48px)));
-    max-width: calc(100vw - 48px);
+    // Keep the output picker inside this card. A global desktop width made
+    // long device menus spill over the EQ panel at narrow window sizes.
+    width: 100%;
+    max-width: 100%;
     max-height: min(360px, calc(100vh - 120px));
   }
 
@@ -185,7 +187,8 @@
   > span:last-child {
     overflow: hidden;
     text-overflow: ellipsis;
-    white-space: nowrap;
+    white-space: normal;
+    overflow-wrap: anywhere;
   }
 }
 
