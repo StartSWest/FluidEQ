@@ -797,9 +797,9 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     clearCurrentLayoutSettings();
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;
-    // AutoEQ's bundled response files are ParametricEQ text files. They are
-    // editable EQ bands, not impulse responses for APO's Convolution command.
-    state.convolution = undefined;
+    // AutoEQ's bundled response files are ParametricEQ text files. They only
+    // replace the editable EQ chain; an already loaded convolution is an
+    // independent APO stage and must remain active.
     state.isFlat = false;
     if (profileName && !isRestrictedPresetName(profileName)) {
       savePreset(
@@ -879,7 +879,8 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
     clearCurrentLayoutSettings();
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;
-    state.convolution = undefined;
+    // Squiglink responses are editable EQ bands. Keep any separately selected
+    // convolution profile in place while replacing only the EQ chain.
     state.isFlat = false;
     if (profileName && !isRestrictedPresetName(profileName)) {
       savePreset(
@@ -1213,28 +1214,16 @@ ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
 ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
   const channel = ChannelEnum.CLEAR_GAINS;
 
-  const assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
-  if (assignment && isAutomaticPresetName(assignment.presetName)) {
-    try {
-      deletePreset(assignment.presetName, presetPath);
-    } catch {
-      // The generated profile may already have been removed; the mapping is
-      // still cleared below.
-    }
-  }
-  if (activeAudioDeviceId) {
-    removeDeviceProfile(deviceProfileSettings, activeAudioDeviceId);
-    saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
-  }
-  hasActiveSessionOverride = false;
-
   Object.keys(state.filters).forEach((key) => {
     state.filters[key].gain = 0;
   });
   state.preAmp = 0;
   state.isFlat = true;
 
-  await handleUpdate(event, channel);
+  // EQ reset is independent from convolution. Persist the resulting state
+  // (including any active convolution) to the device profile so APO keeps the
+  // impulse response enabled after the EQ bands are cleared.
+  await handleUpdate(event, channel, true);
 });
 
 ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {

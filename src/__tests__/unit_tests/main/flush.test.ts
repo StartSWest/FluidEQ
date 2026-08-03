@@ -104,6 +104,25 @@ describe('flush', () => {
 
       expect(stateToString(state)).not.toContain('Filter ');
     });
+
+    it('keeps convolution active when the EQ chain is flat', () => {
+      const state = getDefaultState();
+      state.isFlat = true;
+      state.convolution = {
+        name: 'Reference headphones',
+        filters: {},
+      };
+
+      const returnedString = stateToString(
+        state,
+        'fluideq-convolution-test.wav',
+      );
+
+      expect(returnedString).toContain(
+        'Convolution: fluideq-convolution-test.wav',
+      );
+      expect(returnedString).not.toContain('Filter ');
+    });
   });
 
   describe('fetchSettings', () => {

@@ -154,7 +154,9 @@ const AutoEQ = () => {
         fetchDeviceNames();
       },
     );
-    return unsubscribe;
+    return () => {
+      unsubscribe();
+    };
   }, [fetchDeviceNames, sourceId]);
 
   const updateDatabase = async () => {
