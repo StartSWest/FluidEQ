@@ -323,8 +323,8 @@ const AutoEQ = () => {
           Apply headset EQ
         </Button>
       </div>
-      <div className="autoeq-update">
-        {sourceId === 'autoeq' ? (
+      {sourceId === 'autoeq' && (
+        <div className="autoeq-update">
           <span>
             {isCheckingUpdate && 'Checking official database...'}
             {!isCheckingUpdate &&
@@ -336,29 +336,18 @@ const AutoEQ = () => {
               `Official database up to date - ${updateStatus.current.modelCount.toLocaleString()} models`}
             {!isCheckingUpdate && !updateStatus && 'Update check unavailable'}
           </span>
-        ) : (
-          <span>
-            Live public measurements from{' '}
-            <a
-              href={currentSource.attributionUrl}
-              target="_blank"
-              rel="noreferrer"
+          {updateStatus?.updateAvailable && (
+            <Button
+              className="small"
+              ariaLabel="Update AutoEq database"
+              isDisabled={isUpdating}
+              handleChange={updateDatabase}
             >
-              GadgetryTech on Squiglink
-            </a>
-          </span>
-        )}
-        {sourceId === 'autoeq' && updateStatus?.updateAvailable && (
-          <Button
-            className="small"
-            ariaLabel="Update AutoEq database"
-            isDisabled={isUpdating}
-            handleChange={updateDatabase}
-          >
-            {isUpdating ? 'Updating...' : 'Update database'}
-          </Button>
-        )}
-      </div>
+              {isUpdating ? 'Updating...' : 'Update database'}
+            </Button>
+          )}
+        </div>
+      )}
     </>
   );
 };
