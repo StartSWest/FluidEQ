@@ -19,27 +19,40 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Colors
 
 // Primary
-$primary-dark: #070b12;
-$primary-default: #111824;
-$primary-light: #253247;
-$primary-lighter: #91a0b6;
+$primary-dark: #070512;
+$primary-default: #121027;
+$primary-light: #29204a;
+$primary-lighter: #d8d2ff;
 
 // Secondary
-$secondary-darker: linear-gradient(135deg, #0e8d90, #11b8ad);
-$secondary-dark: #0e8d90;
-$secondary-default: #23d5c3;
-$secondary-light: #79f5e7;
+$secondary-darker: linear-gradient(
+  135deg,
+  #00e5ff,
+  #00ffc8 38%,
+  #ff4fd8 72%,
+  #8b5cff
+);
+$secondary-dark: #00a9d6;
+$secondary-default: #00e5cf;
+$secondary-light: #9cfff4;
 
 // Complementary
-$complementary: #ff9b70;
+$complementary: #ff3cac;
 
 // Triadic
-$triadic-1: #7c8cff;
-$triadic-2: #d778ff;
+$triadic-1: #8b5cff;
+$triadic-2: #ff4fd8;
 
 // Analogous
-$analogous-1: #5e7bff;
-$analogous-2: #23d5c3;
+$analogous-1: #ff4f9a;
+$analogous-2: #54ff8a;
+
+// Rainbow glow accents
+$neon-cyan: #00e5ff;
+$neon-lime: #b6ff4a;
+$neon-yellow: #ffe66d;
+$neon-pink: #ff3cac;
+$neon-purple: #8b5cff;
 
 // Shade
 $black: #000000;

@@ -18,31 +18,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Primary
 export enum PrimaryColorEnum {
-  DARK = '#1c313a',
-  DEFAULT = '#455a64',
-  LIGHT = '#718792',
-  LIGHTER = '#a0b7c2',
+  DARK = '#090516',
+  DEFAULT = '#17122b',
+  LIGHT = '#2b2350',
+  LIGHTER = '#d8d2ff',
 }
 
 // Secondary
 export enum SecondaryColorEnum {
-  DARKER = 'linear-gradient(0deg, rgba(0, 0, 0, 0.2), rgba(0, 0, 0, 0.2)), #0093c4',
-  DARK = '#0093c4',
-  DEFAULT = '#4fc3f7',
-  LIGHT = '#8bf6ff',
+  DARKER = 'linear-gradient(135deg, #00e5ff, #00ffc8 38%, #ff4fd8 72%, #8b5cff)',
+  DARK = '#00a9d6',
+  DEFAULT = '#00e5cf',
+  LIGHT = '#9cfff4',
 }
 
 export enum ColorEnum {
   // Complementary
-  COMPLEMENTARY = '#f7844f',
+  COMPLEMENTARY = '#ff3cac',
 
   // Triadic
-  TRIADIC1 = '#844ff7',
-  TRIADIC2 = '#f74fc2',
+  TRIADIC1 = '#8b5cff',
+  TRIADIC2 = '#ff4fd8',
 
   // Analogous
-  ANALOGOUS1 = '#4f6ef7',
-  ANALOGOUS2 = '#4ff7d8',
+  ANALOGOUS1 = '#ff4f9a',
+  ANALOGOUS2 = '#54ff8a',
 }
 
 export enum GrayScaleEnum {
@@ -56,7 +56,4 @@ export const getColor = (index: number) => {
 };
 
 export type Color =
-  | PrimaryColorEnum
-  | SecondaryColorEnum
-  | ColorEnum
-  | GrayScaleEnum;
+  PrimaryColorEnum | SecondaryColorEnum | ColorEnum | GrayScaleEnum;

@@ -61,7 +61,13 @@ $button-height: 100px;
   margin: 0;
   border: 1px solid rgba($secondary-light, 0.38);
   border-radius: 11px;
-  background: linear-gradient(135deg, $secondary-light, $secondary-default 70%);
+  background: linear-gradient(
+    120deg,
+    $secondary-light 0%,
+    $secondary-default 32%,
+    $triadic-2 70%,
+    $triadic-1 100%
+  );
   box-shadow:
     0 8px 22px rgba($secondary-default, 0.12),
     inset 0 1px 0 rgba($white, 0.36);
@@ -76,6 +82,7 @@ $button-height: 100px;
     filter: brightness(1.06);
     box-shadow:
       0 11px 28px rgba($secondary-default, 0.2),
+      0 0 24px rgba($triadic-2, 0.16),
       inset 0 1px 0 rgba($white, 0.42);
   }
 

@@ -24,12 +24,20 @@ body {
   position: relative;
   color: white;
   background:
+    radial-gradient(circle at 8% -10%, rgba($neon-pink, 0.2), transparent 30%),
     radial-gradient(
-      circle at 16% 0%,
-      rgba($secondary-default, 0.08),
-      transparent 30%
+      circle at 42% -18%,
+      rgba($neon-cyan, 0.16),
+      transparent 32%
     ),
+    radial-gradient(
+      circle at 92% 12%,
+      rgba($neon-purple, 0.2),
+      transparent 34%
+    ),
+    radial-gradient(circle at 48% 115%, rgba($neon-lime, 0.1), transparent 32%),
     $primary-dark;
+  isolation: isolate;
   font-family:
     Inter,
     ui-sans-serif,
@@ -44,6 +52,26 @@ body {
   justify-content: center;
   align-items: center;
   margin: 0px;
+
+  &::before {
+    position: fixed;
+    z-index: -1;
+    inset: 8% 18% 10%;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 140deg,
+      rgba($neon-cyan, 0.08),
+      rgba($neon-lime, 0.06),
+      rgba($neon-yellow, 0.06),
+      rgba($neon-pink, 0.09),
+      rgba($neon-purple, 0.08),
+      rgba($neon-cyan, 0.08)
+    );
+    filter: blur(90px);
+    opacity: 0.9;
+    pointer-events: none;
+    content: '';
+  }
 
   #root {
     // Spacing and height
