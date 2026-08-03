@@ -133,6 +133,11 @@ export interface IPresetV2 {
 export interface IConvolutionProfile {
   name: string;
   filters: IFiltersMap;
+  /** Relative WAV filename stored in the Equalizer APO config directory. */
+  fileName?: string;
+  /** Original public source URL, retained for attribution and re-downloads. */
+  sourceUrl?: string;
+  sourceId?: string;
 }
 
 export interface IAudioDevice {

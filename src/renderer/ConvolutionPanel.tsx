@@ -1,0 +1,247 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+*/
+
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  CONVOLUTION_SOURCES,
+  IConvolutionCatalogEntry,
+  IConvolutionSource,
+} from 'common/convolution';
+import { ErrorDescription } from 'common/errors';
+import { useAquaContext } from './utils/AquaContext';
+import {
+  clearConvolution,
+  downloadConvolution,
+  getConvolutionCatalog,
+} from './utils/equalizerApi';
+import './styles/Convolution.scss';
+
+const ConvolutionPanel = () => {
+  const { convolution, refreshState, setGlobalError } = useAquaContext();
+  const [query, setQuery] = useState('');
+  const [entries, setEntries] = useState<IConvolutionCatalogEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [downloadingId, setDownloadingId] = useState<string>();
+  const [selectedSourceId, setSelectedSourceId] =
+    useState<IConvolutionSource['id']>('autoeq');
+
+  const selectedSource = useMemo(
+    () =>
+      CONVOLUTION_SOURCES.find((source) => source.id === selectedSourceId) ||
+      CONVOLUTION_SOURCES[0],
+    [selectedSourceId],
+  );
+
+  const loadCatalog = useCallback(
+    async (search: string) => {
+      setIsLoading(true);
+      try {
+        setEntries(await getConvolutionCatalog(search));
+        setGlobalError(undefined);
+      } catch (error) {
+        setGlobalError(error as ErrorDescription);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [setGlobalError],
+  );
+
+  useEffect(() => {
+    if (selectedSourceId !== 'autoeq') {
+      return undefined;
+    }
+    const timer = window.setTimeout(() => {
+      loadCatalog(query).catch(() => undefined);
+    }, 220);
+    return () => window.clearTimeout(timer);
+  }, [loadCatalog, query, selectedSourceId]);
+
+  const handleApply = async (entry: IConvolutionCatalogEntry) => {
+    setDownloadingId(entry.id);
+    try {
+      await downloadConvolution(entry.id);
+      await refreshState();
+    } catch (error) {
+      setGlobalError(error as ErrorDescription);
+    } finally {
+      setDownloadingId(undefined);
+    }
+  };
+
+  const handleClear = async () => {
+    try {
+      await clearConvolution();
+      await refreshState();
+    } catch (error) {
+      setGlobalError(error as ErrorDescription);
+    }
+  };
+
+  return (
+    <section className="convolution-panel" aria-labelledby="convolution-title">
+      <div className="convolution-panel__intro">
+        <div>
+          <p className="eyebrow">APO impulse responses</p>
+          <h2 id="convolution-title">Convolution library</h2>
+          <p>
+            Download a verified, minimum-phase headphone impulse and apply it
+            before your parametric EQ. The shared response graph below keeps
+            both curves visible.
+          </p>
+        </div>
+        {convolution && (
+          <button
+            type="button"
+            className="convolution-button convolution-button--quiet"
+            onClick={handleClear}
+          >
+            Clear convolution
+          </button>
+        )}
+      </div>
+
+      <div
+        className="convolution-sources"
+        role="list"
+        aria-label="Convolution sources"
+      >
+        {CONVOLUTION_SOURCES.map((source) => (
+          <button
+            type="button"
+            key={source.id}
+            className={`convolution-source${
+              source.id === selectedSourceId ? ' is-selected' : ''
+            }`}
+            onClick={() => setSelectedSourceId(source.id)}
+          >
+            <span className="convolution-source__name">{source.name}</span>
+            <span className="convolution-source__description">
+              {source.description}
+            </span>
+            <span className="convolution-source__meta">
+              {source.downloadable
+                ? 'Search & download'
+                : 'Official browse source'}
+            </span>
+          </button>
+        ))}
+      </div>
+
+      {selectedSource.downloadable ? (
+        <>
+          <div className="convolution-search">
+            <span id="convolution-model-search-label">
+              Search headphone models
+            </span>
+            <input
+              id="convolution-model-search"
+              type="search"
+              aria-labelledby="convolution-model-search-label"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Try “Kraken”, “HD 650”, or a measurement provider"
+              autoComplete="off"
+            />
+          </div>
+          <div className="convolution-notice">
+            AutoEq provides the downloadable catalogue. Files are imported as 48
+            kHz WAV because Equalizer APO requires the impulse response to match
+            the active output sample rate.
+          </div>
+          <div className="convolution-results" aria-live="polite">
+            {isLoading && (
+              <div className="convolution-empty">
+                Loading official catalogue…
+              </div>
+            )}
+            {!isLoading && entries.length === 0 && (
+              <div className="convolution-empty">
+                No matching impulse responses. Try a shorter model name.
+              </div>
+            )}
+            {!isLoading &&
+              entries.map((entry) => {
+                const isApplied = convolution?.sourceUrl === entry.sourceUrl;
+                const isDownloading = downloadingId === entry.id;
+                let actionLabel = 'Download & apply';
+                if (isDownloading) {
+                  actionLabel = 'Downloading…';
+                } else if (isApplied) {
+                  actionLabel = 'Applied';
+                }
+                return (
+                  <article className="convolution-result" key={entry.id}>
+                    <div className="convolution-result__details">
+                      <strong>{entry.name}</strong>
+                      <span>
+                        {entry.provider} · {entry.phase} phase ·{' '}
+                        {entry.sampleRate / 1000} kHz WAV
+                      </span>
+                    </div>
+                    <a
+                      className="convolution-result__link"
+                      href={entry.sourceUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Source
+                    </a>
+                    <button
+                      type="button"
+                      className={`convolution-button${isApplied ? ' is-applied' : ''}`}
+                      disabled={isDownloading || isApplied}
+                      onClick={() => handleApply(entry)}
+                    >
+                      {actionLabel}
+                    </button>
+                  </article>
+                );
+              })}
+          </div>
+        </>
+      ) : (
+        <div className="convolution-external-source">
+          <div>
+            <strong>{selectedSource.name}</strong>
+            <p>
+              This official database is available for browsing and manual
+              import. It does not expose a stable public catalogue API that
+              FluidEQ can safely mirror and download automatically.
+            </p>
+          </div>
+          <a
+            className="convolution-button"
+            href={selectedSource.website}
+            target="_blank"
+            rel="noreferrer"
+          >
+            Open official library
+          </a>
+        </div>
+      )}
+
+      <div className="convolution-active" aria-live="polite">
+        <span className={`status-dot${convolution ? '' : ' is-muted'}`} />
+        {convolution ? (
+          <span>
+            Active convolution: <strong>{convolution.name}</strong>
+          </span>
+        ) : (
+          <span>
+            No convolution loaded. The EQ tab remains fully independent.
+          </span>
+        )}
+      </div>
+    </section>
+  );
+};
+
+export default ConvolutionPanel;

@@ -30,6 +30,7 @@ import {
   getDefaultFilterWithId,
   getDefaultState,
   IFiltersMap,
+  IConvolutionProfile,
   IState,
 } from '../../common/constants';
 import { ErrorDescription } from '../../common/errors';
@@ -71,6 +72,9 @@ export interface IAquaContext extends IState {
   setAutoPreAmpOn: (newValue: boolean) => void;
   setGraphViewOn: (newValue: boolean) => void;
   setPreAmp: (newValue: number) => void;
+  /** Optional APO convolution profile applied before the editable EQ. */
+  convolution?: IConvolutionProfile;
+  setConvolution: (newValue?: IConvolutionProfile) => void;
   /** Filter currently selected in the EQ editor and response graph. */
   selectedFilterId: string;
   setSelectedFilterId: (newValue: string) => void;
@@ -176,6 +180,9 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
     DEFAULT_STATE.isCaseSensitiveFs,
   );
   const [preAmp, setPreAmp] = useState<number>(DEFAULT_STATE.preAmp);
+  const [convolution, setConvolution] = useState<
+    IConvolutionProfile | undefined
+  >(DEFAULT_STATE.convolution);
   const [selectedFilterId, setSelectedFilterId] = useState<string>('');
   const [hoveredFilterId, setHoveredFilterId] = useState<string>('');
   const [filters, dispatchFilter] = useReducer(
@@ -200,6 +207,7 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
       setAutoPreAmpOn(state.isAutoPreAmpOn);
       setGraphViewOn(state.isGraphViewOn);
       setPreAmp(state.preAmp);
+      setConvolution(state.convolution);
       dispatchFilter({ type: FilterActionEnum.INIT, filters: state.filters });
       setGlobalError(undefined);
       setIsCaseSensitiveFs(state.isCaseSensitiveFs);
@@ -236,6 +244,8 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
         setAutoPreAmpOn,
         setGraphViewOn,
         setPreAmp,
+        convolution,
+        setConvolution,
         selectedFilterId,
         setSelectedFilterId,
         hoveredFilterId,

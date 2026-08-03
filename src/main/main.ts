@@ -106,6 +106,10 @@ import {
   syncSquiglinkDatabase,
 } from './squiglink';
 import {
+  downloadConvolution,
+  getConvolutionCatalog,
+} from './convolutionCatalog';
+import {
   assignDeviceProfile,
   discoverAudioDevices,
   flushDeviceProfiles,
@@ -449,7 +453,11 @@ const handleUpdateHelper = async <T>(
       activeAudioDevice?.guid || activeAudioDevice?.name || activeAudioDeviceId;
     const activeOverride: IActiveStateOverride | undefined =
       hasActiveSessionOverride && !assignment && activeDevicePattern
-        ? { devicePattern: activeDevicePattern, state }
+        ? {
+            deviceId: activeAudioDeviceId,
+            devicePattern: activeDevicePattern,
+            state,
+          }
         : undefined;
     // Flush changes to EqualizerAPO with a retry in case several requests to write are occuring at the same time
     await retryHelper(5, () => {
@@ -872,6 +880,45 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
     );
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
   }
+});
+
+ipcMain.on(ChannelEnum.GET_CONVOLUTION_CATALOG, async (event, arg) => {
+  const channel = ChannelEnum.GET_CONVOLUTION_CATALOG;
+  try {
+    const query = typeof arg?.[0] === 'string' ? arg[0] : '';
+    const reply: TSuccess<Awaited<ReturnType<typeof getConvolutionCatalog>>> = {
+      result: await getConvolutionCatalog(query),
+    };
+    event.reply(channel, reply);
+  } catch (error) {
+    console.error('Failed to get convolution catalogue', error);
+    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
+  }
+});
+
+ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
+  const channel = ChannelEnum.DOWNLOAD_CONVOLUTION;
+  const entryId = arg?.[0];
+  if (typeof entryId !== 'string' || !entryId) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+  try {
+    if (!configPath) {
+      configPath = await getConfigPath();
+    }
+    state.convolution = await downloadConvolution(entryId, configPath);
+    await handleUpdate(event, channel, true);
+  } catch (error) {
+    console.error('Failed to download convolution profile', error);
+    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
+  }
+});
+
+ipcMain.on(ChannelEnum.CLEAR_CONVOLUTION, async (event) => {
+  const channel = ChannelEnum.CLEAR_CONVOLUTION;
+  state.convolution = undefined;
+  await handleUpdate(event, channel, true);
 });
 
 ipcMain.on(ChannelEnum.CHECK_AUTO_EQ_UPDATE, async (event) => {

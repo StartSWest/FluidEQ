@@ -29,6 +29,7 @@ import PresetsBar from './PresetsBar';
 import AutoEQ from './AutoEQ';
 import DeviceProfiles from './DeviceProfiles';
 import WaveformVisualizer from './WaveformVisualizer';
+import ConvolutionPanel from './ConvolutionPanel';
 import { LiveAudioProvider } from './audio/LiveAudioContext';
 import {
   deletePreset,
@@ -46,6 +47,9 @@ const AppContent = () => {
     useState(false);
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
   const [showAudioToolsMenu, setShowAudioToolsMenu] = useState(false);
+  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<
+    'eq' | 'convolution'
+  >('eq');
 
   useEffect(() => {
     let mounted = true;
@@ -318,8 +322,44 @@ const AppContent = () => {
       )}
       <SideBar />
       <div className="middle-content">
-        <AutoEQ />
-        <MainContent />
+        <div
+          className="workspace-tabs"
+          role="tablist"
+          aria-label="Sound workspace"
+        >
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeWorkspaceTab === 'eq'}
+            className={`workspace-tab${
+              activeWorkspaceTab === 'eq' ? ' is-active' : ''
+            }`}
+            onClick={() => setActiveWorkspaceTab('eq')}
+          >
+            EQ & headset mode
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={activeWorkspaceTab === 'convolution'}
+            className={`workspace-tab${
+              activeWorkspaceTab === 'convolution' ? ' is-active' : ''
+            }`}
+            onClick={() => setActiveWorkspaceTab('convolution')}
+          >
+            Convolution
+          </button>
+        </div>
+        {activeWorkspaceTab === 'eq' ? (
+          <div className="workspace-tab-panel workspace-tab-panel--eq">
+            <AutoEQ />
+            <MainContent />
+          </div>
+        ) : (
+          <div className="workspace-tab-panel workspace-tab-panel--convolution">
+            <ConvolutionPanel />
+          </div>
+        )}
       </div>
       <div className="right-content">
         <DeviceProfiles />

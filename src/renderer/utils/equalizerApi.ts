@@ -37,7 +37,9 @@ import {
   MIN_FREQUENCY,
   MIN_GAIN,
   MIN_QUALITY,
+  IConvolutionProfile,
 } from 'common/constants';
+import { IConvolutionCatalogEntry } from 'common/convolution';
 
 const TIMEOUT = 10000;
 
@@ -91,7 +93,9 @@ const buildResponseHandler = <
     | string[]
     | IAudioDevice[]
     | IDeviceProfileSettings
-    | IAutoEqUpdateStatus,
+    | IAutoEqUpdateStatus
+    | IConvolutionCatalogEntry[]
+    | IConvolutionProfile,
 >(
   resultEvaluator: (
     result: Type,
@@ -124,7 +128,9 @@ const simpleResponseHandler = <
     | string[]
     | IAudioDevice[]
     | IDeviceProfileSettings
-    | IAutoEqUpdateStatus,
+    | IAutoEqUpdateStatus
+    | IConvolutionCatalogEntry[]
+    | IConvolutionProfile,
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);
@@ -312,6 +318,30 @@ export const loadSquiglinkPreset = (
     responseName,
     profileName,
   ]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
+export const getConvolutionCatalog = (
+  query = '',
+): Promise<IConvolutionCatalogEntry[]> => {
+  const channel = ChannelEnum.GET_CONVOLUTION_CATALOG;
+  window.electron.ipcRenderer.sendMessage(channel, [query]);
+  return promisifyResult(
+    simpleResponseHandler<IConvolutionCatalogEntry[]>(),
+    channel,
+    60 * 1000,
+  );
+};
+
+export const downloadConvolution = (entryId: string): Promise<void> => {
+  const channel = ChannelEnum.DOWNLOAD_CONVOLUTION;
+  window.electron.ipcRenderer.sendMessage(channel, [entryId]);
+  return promisifyResult(setterResponseHandler, channel, 5 * 60 * 1000);
+};
+
+export const clearConvolution = (): Promise<void> => {
+  const channel = ChannelEnum.CLEAR_CONVOLUTION;
+  window.electron.ipcRenderer.sendMessage(channel, []);
   return promisifyResult(setterResponseHandler, channel);
 };
 
