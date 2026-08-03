@@ -687,7 +687,10 @@ body {
   #root {
     width: 100%;
     min-height: 0;
-    height: calc(100vh - $title-bar-height);
+    // The titlebar is fixed and already accounted for by padding-top. Do not
+    // subtract it from the root height as well, or an identical empty strip
+    // appears at the bottom of the window.
+    height: 100vh;
     overflow: hidden;
     padding: calc($title-bar-height + 16px) 18px 18px;
     grid-template-columns: 154px minmax(560px, 1fr) minmax(280px, 326px);
