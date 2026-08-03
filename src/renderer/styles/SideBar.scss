@@ -142,3 +142,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 }
+
+// Keep the sidebar aligned with the main workspace row. The response graph is
+// a separate full-width row below it, so the gradient remains visible without
+// the utility card stretching over the graph.
+@media (min-width: 981px) {
+  .side-bar.side-bar {
+    display: flex;
+    min-height: 0;
+    height: 100%;
+    overflow: hidden;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 18px 12px 20px;
+    background:
+      linear-gradient(180deg, rgba($secondary-default, 0.08), transparent 26%),
+      linear-gradient(180deg, rgba($primary-light, 0.45), rgba(#0e1520, 0.94));
+  }
+
+  .side-bar.side-bar > div {
+    flex: 0 0 auto;
+  }
+}

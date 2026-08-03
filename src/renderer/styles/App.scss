@@ -716,13 +716,37 @@ body {
 // The response graph spans the complete lower workspace. Utility panes stay
 // above that row so their full-height cards remain visible at either side.
 @media (min-width: 981px) {
+  body #root:not(.minimized) {
+    // Keep the graph in its own lower row while both utility cards span the
+    // complete workspace height. The graph remains full-width behind them.
+    grid-template-rows: minmax(500px, 1fr) minmax(280px, 40vh);
+  }
+
   body #root:not(.minimized) > .side-bar,
   body #root:not(.minimized) > .right-content {
-    grid-row: 1 / 3;
+    // Both utility cards terminate at the same bottom edge as the EQ row.
+    // The graph owns the next row and is never covered by either card.
+    grid-row: 1;
+    align-self: start;
+    height: 100%;
+    max-height: none;
+    min-height: 0;
     z-index: 3;
   }
 
+  // Grid owns the vertical alignment here. Sticky positioning on the grid
+  // items made the left card start lower than the tabs in convolution view.
+  body #root > .side-bar,
+  body #root > .right-content {
+    position: relative;
+    top: auto;
+  }
+
   body #root:not(.minimized) > .graph-wrapper {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
+    min-width: 0;
     z-index: 1;
   }
 }

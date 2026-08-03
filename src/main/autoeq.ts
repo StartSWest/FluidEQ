@@ -60,11 +60,27 @@ export const getAutoEqResponseList = (
   device: string,
   autoeqDir: string = getAutoEqDir(),
 ) => {
-  return fs
+  const files = fs
     .readdirSync(path.join(autoeqDir, device), { withFileTypes: true })
     .filter((entry) => entry.isFile())
     .map((entry) => entry.name)
     .sort((left, right) => left.localeCompare(right));
+
+  // FluidEQ edits APO parametric filters (Fc/Gain/Q), not GraphicEQ points or
+  // fixed-band gain tables. Official AutoEQ archives contain all three
+  // variants, while FluidEQ's curated archive strips the suffix and already
+  // contains only ParametricEQ profiles.
+  const parametricFiles = files.filter((fileName) =>
+    /parametriceq(?:\.txt)?$/i.test(fileName),
+  );
+  if (parametricFiles.length > 0) {
+    return parametricFiles;
+  }
+
+  const hasNonParametricProfiles = files.some((fileName) =>
+    /(?:graphiceq|fixedbandeq)/i.test(fileName),
+  );
+  return hasNonParametricProfiles ? [] : files;
 };
 
 export const getAutoEqPreset = (
@@ -76,6 +92,11 @@ export const getAutoEqPreset = (
   const filters: IFiltersMap = {};
 
   const filePath = path.join(autoeqDir, device, response);
+  if (/(?:graphiceq|fixedbandeq)/i.test(response)) {
+    throw new Error(
+      'FluidEQ requires the AutoEQ ParametricEQ profile, not GraphicEQ or FixedBandEQ.',
+    );
+  }
   const file = fs.readFileSync(filePath, 'utf8');
 
   file.split(/\r?\n/).forEach((line, i) => {
@@ -145,6 +166,12 @@ export const getAutoEqPreset = (
     preAmp: clampGain(preAmpParsed),
     filters,
   };
+
+  if (Object.keys(filters).length === 0) {
+    throw new Error(
+      `AutoEQ response is not a supported ParametricEQ profile: ${filePath}`,
+    );
+  }
 
   return preset;
 };
