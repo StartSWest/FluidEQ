@@ -60,9 +60,14 @@ interface IFrequencyBandProps {
   flatLayout?: boolean;
   isSelected?: boolean;
   isHovered?: boolean;
-  onSelect?: () => void;
+  onSelect?: (event: {
+    ctrlKey: boolean;
+    metaKey: boolean;
+    shiftKey: boolean;
+  }) => void;
   onHover?: (isHovered: boolean) => void;
   colorProgress?: number;
+  onGainChange?: (filterId: string, newValue: number) => Promise<void>;
 }
 
 const FrequencyBand = forwardRef(
@@ -77,6 +82,7 @@ const FrequencyBand = forwardRef(
       onSelect,
       onHover,
       colorProgress = 0,
+      onGainChange,
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
@@ -117,6 +123,10 @@ const FrequencyBand = forwardRef(
       2nd setGain finishes and we dispatch again. Another jitter occurs.
       Note that the final UI state is correct, but the ui changes are strange.
     */
+        if (onGainChange) {
+          await onGainChange(filter.id, newValue);
+          return;
+        }
         dispatchFilter({
           type: FilterActionEnum.GAIN,
           id: filter.id,
@@ -124,7 +134,7 @@ const FrequencyBand = forwardRef(
         });
         await setGain(filter.id, newValue);
       },
-      [dispatchFilter, filter.id],
+      [dispatchFilter, filter.id, onGainChange],
     );
 
     const throttleSetGain = useThrottleAndExecuteLatest(
@@ -255,10 +265,14 @@ const FrequencyBand = forwardRef(
         ref={ref}
         id={filter.id}
         className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}`}
+        data-filter-id={filter.id}
         title={`${frequencyValue} Hz / ${filter.gain.toFixed(2)} dB / Q ${qualityValue.toFixed(2)}`}
         // Select before the browser starts a slider drag so any interaction
         // with this band's controls updates the selected-band editor.
-        onPointerDown={onSelect}
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          onSelect?.(event);
+        }}
         onMouseEnter={() => onHover?.(true)}
         onMouseLeave={() => onHover?.(false)}
       >

@@ -78,6 +78,10 @@ export interface IAquaContext extends IState {
   /** Filter currently selected in the EQ editor and response graph. */
   selectedFilterId: string;
   setSelectedFilterId: (newValue: string) => void;
+  /** All filters selected for group editing. The first id is the primary band. */
+  selectedFilterIds: string[];
+  setSelectedFilterIds: (newValue: string[]) => void;
+  toggleFilterSelection: (id: string, additive?: boolean) => void;
   /** Filter currently hovered in either the EQ editor or response graph. */
   hoveredFilterId: string;
   setHoveredFilterId: (newValue: string) => void;
@@ -183,7 +187,8 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
   const [convolution, setConvolution] = useState<
     IConvolutionProfile | undefined
   >(DEFAULT_STATE.convolution);
-  const [selectedFilterId, setSelectedFilterId] = useState<string>('');
+  const [selectedFilterId, setSelectedFilterIdState] = useState<string>('');
+  const [selectedFilterIds, setSelectedFilterIdsState] = useState<string[]>([]);
   const [hoveredFilterId, setHoveredFilterId] = useState<string>('');
   const [filters, dispatchFilter] = useReducer(
     filterReducer,
@@ -191,6 +196,35 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
   );
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
+
+  const setSelectedFilterIds = useCallback((newValue: string[]) => {
+    const uniqueIds = [...new Set(newValue.filter(Boolean))];
+    setSelectedFilterIdsState(uniqueIds);
+    setSelectedFilterIdState(uniqueIds[0] ?? '');
+  }, []);
+
+  const setSelectedFilterId = useCallback(
+    (newValue: string) => {
+      setSelectedFilterIds(newValue ? [newValue] : []);
+    },
+    [setSelectedFilterIds],
+  );
+
+  const toggleFilterSelection = useCallback(
+    (id: string, additive = false) => {
+      if (!additive) {
+        setSelectedFilterIds(
+          selectedFilterIds.includes(id) ? selectedFilterIds : [id],
+        );
+        return;
+      }
+      const nextIds = selectedFilterIds.includes(id)
+        ? selectedFilterIds.filter((selectedId) => selectedId !== id)
+        : [...selectedFilterIds, id];
+      setSelectedFilterIds(nextIds);
+    },
+    [selectedFilterIds, setSelectedFilterIds],
+  );
 
   const setGraphViewOn = (newValue: boolean) => {
     setIsGraphViewOn(newValue);
@@ -248,6 +282,9 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
         setConvolution,
         selectedFilterId,
         setSelectedFilterId,
+        selectedFilterIds,
+        setSelectedFilterIds,
+        toggleFilterSelection,
         hoveredFilterId,
         setHoveredFilterId,
         dispatchFilter,

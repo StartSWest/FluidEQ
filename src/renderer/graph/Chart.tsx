@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useMemo, useRef } from 'react';
+import { PointerEvent, useMemo, useRef, useState } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { ColorEnum } from '../styles/color';
 import Axis from './Axis';
@@ -39,9 +39,15 @@ interface IChartProps {
   data: IChartCurveData[];
   dimensions: ChartDimensions;
   editablePoints?: IEditableChartPoint[];
+  onMarqueeSelect?: (ids: string[], additive: boolean) => void;
 }
 
-const Chart = ({ data = [], dimensions, editablePoints = [] }: IChartProps) => {
+const Chart = ({
+  data = [],
+  dimensions,
+  editablePoints = [],
+  onMarqueeSelect,
+}: IChartProps) => {
   const { width, height, margins } = dimensions;
   const svgWidth = useMemo(
     () => Math.max(width - margins.left - margins.right, 0),
@@ -85,12 +91,101 @@ const Chart = ({ data = [], dimensions, editablePoints = [] }: IChartProps) => {
     padding,
   });
   const svgRef = useRef<SVGSVGElement>(null);
+  const selectionRef = useRef<
+    | { startX: number; startY: number; currentX: number; currentY: number }
+    | undefined
+  >(undefined);
+  const [selectionBox, setSelectionBox] =
+    useState<typeof selectionRef.current>(undefined);
+
+  const getSvgPoint = (event: PointerEvent<SVGSVGElement>) => {
+    const svg = svgRef.current;
+    if (!svg) {
+      return undefined;
+    }
+    const bounds = svg.getBoundingClientRect();
+    return {
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top,
+    };
+  };
+
+  const handleSelectionStart = (event: PointerEvent<SVGSVGElement>) => {
+    const target = event.target as Element;
+    if (target.closest?.('.graph-edit-point')) {
+      return;
+    }
+    const point = getSvgPoint(event);
+    if (!point) {
+      return;
+    }
+    const next = {
+      startX: point.x,
+      startY: point.y,
+      currentX: point.x,
+      currentY: point.y,
+    };
+    selectionRef.current = next;
+    setSelectionBox(next);
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleSelectionMove = (event: PointerEvent<SVGSVGElement>) => {
+    if (!selectionRef.current) {
+      return;
+    }
+    const point = getSvgPoint(event);
+    if (!point) {
+      return;
+    }
+    const next = {
+      ...selectionRef.current,
+      currentX: point.x,
+      currentY: point.y,
+    };
+    selectionRef.current = next;
+    setSelectionBox(next);
+  };
+
+  const finishSelection = (event: PointerEvent<SVGSVGElement>) => {
+    const selection = selectionRef.current;
+    if (!selection) {
+      return;
+    }
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    const left = Math.min(selection.startX, selection.currentX);
+    const right = Math.max(selection.startX, selection.currentX);
+    const top = Math.min(selection.startY, selection.currentY);
+    const bottom = Math.max(selection.startY, selection.currentY);
+    const isClick = right - left < 6 && bottom - top < 6;
+    const selectedIds = isClick
+      ? []
+      : editablePoints
+          .filter((point) => {
+            const x = Number(xScaleFreq(point.data.x));
+            const y = Number(yScaleGain(point.data.y));
+            return x >= left && x <= right && y >= top && y <= bottom;
+          })
+          .map((point) => point.id);
+    onMarqueeSelect?.(
+      selectedIds,
+      event.ctrlKey || event.metaKey || event.shiftKey,
+    );
+    selectionRef.current = undefined;
+    setSelectionBox(undefined);
+  };
 
   return (
     <svg
       ref={svgRef}
       width={svgWidth}
       height={svgHeight}
+      onPointerDown={handleSelectionStart}
+      onPointerMove={handleSelectionMove}
+      onPointerUp={finishSelection}
+      onPointerCancel={finishSelection}
       style={{
         margin: `${margins.top}px ${margins.right}px ${margins.bottom}px ${margins.left}px`,
       }}
@@ -127,6 +222,16 @@ const Chart = ({ data = [], dimensions, editablePoints = [] }: IChartProps) => {
         color={ColorEnum.COMPLEMENTARY}
         transform={`translate(${padding.left}, 0)`}
       />
+      {selectionBox && (
+        <rect
+          className="chart-selection-box"
+          x={Math.min(selectionBox.startX, selectionBox.currentX)}
+          y={Math.min(selectionBox.startY, selectionBox.currentY)}
+          width={Math.abs(selectionBox.currentX - selectionBox.startX)}
+          height={Math.abs(selectionBox.currentY - selectionBox.startY)}
+          pointerEvents="none"
+        />
+      )}
       {data.map((e: IChartCurveData) => (
         <Curve key={e.id} data={e} xScale={xScaleFreq} yScale={yScaleGain} />
       ))}

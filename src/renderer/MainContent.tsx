@@ -16,7 +16,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, useEffect, useMemo } from 'react';
+import {
+  CSSProperties,
+  PointerEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   FilterTypeEnum,
   FixedBandSizeEnum,
@@ -28,13 +36,15 @@ import {
   MIN_FREQUENCY,
   MIN_GAIN,
   MIN_QUALITY,
+  NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import FrequencyBand from './components/FrequencyBand';
 import { FilterActionEnum, useAquaContext } from './utils/AquaContext';
 import './styles/MainContent.scss';
+import './styles/MultiSelect.scss';
 import Spinner from './icons/Spinner';
-import { sortHelper } from './utils/utils';
+import { clamp, sortHelper } from './utils/utils';
 import Button from './widgets/Button';
 import {
   addEqualizerSlider,
@@ -61,6 +71,9 @@ const MainContent = () => {
     setPreAmp,
     selectedFilterId,
     setSelectedFilterId,
+    selectedFilterIds,
+    setSelectedFilterIds,
+    toggleFilterSelection,
     hoveredFilterId,
     setHoveredFilterId,
   } = useAquaContext();
@@ -94,16 +107,170 @@ const MainContent = () => {
     }
   }, [filters, frequencySortedFilters, selectedFilterId, setSelectedFilterId]);
 
-  const updateSelectedFilter = async (
-    action: () => Promise<void>,
-    dispatchAction: Parameters<typeof dispatchFilter>[0],
-  ) => {
-    try {
-      await action();
-      dispatchFilter(dispatchAction);
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
+  const bandsRef = useRef<HTMLDivElement>(null);
+  const [selectionBox, setSelectionBox] = useState<
+    | { startX: number; startY: number; currentX: number; currentY: number }
+    | undefined
+  >();
+
+  const updateSelectedGroup = useCallback(
+    async (field: 'frequency' | 'gain' | 'quality', newValue: number) => {
+      if (!selectedFilter) {
+        return;
+      }
+      const ids = selectedFilterIds.includes(selectedFilter.id)
+        ? selectedFilterIds
+        : [selectedFilter.id];
+      const delta = newValue - selectedFilter[field];
+      const bounds = {
+        frequency: [MIN_FREQUENCY, MAX_FREQUENCY],
+        gain: [MIN_GAIN, MAX_GAIN],
+        quality: [MIN_QUALITY, MAX_QUALITY],
+      }[field];
+      let actionType = FilterActionEnum.QUALITY;
+      if (field === 'frequency') {
+        actionType = FilterActionEnum.FREQUENCY;
+      } else if (field === 'gain') {
+        actionType = FilterActionEnum.GAIN;
+      }
+      try {
+        await Promise.all(
+          ids.map(async (id) => {
+            const filter = filters[id];
+            if (
+              !filter ||
+              (field === 'gain' && NO_GAIN_FILTER_TYPES.includes(filter.type))
+            ) {
+              return;
+            }
+            const nextValue = clamp(
+              filter[field] + delta,
+              bounds[0],
+              bounds[1],
+            );
+            if (field === 'frequency') {
+              await setFrequency(id, nextValue);
+            } else if (field === 'gain') {
+              await setGain(id, nextValue);
+            } else {
+              await setQuality(id, nextValue);
+            }
+            dispatchFilter({
+              type: actionType,
+              id,
+              newValue: nextValue,
+            });
+          }),
+        );
+      } catch (e) {
+        setGlobalError(e as ErrorDescription);
+      }
+    },
+    [
+      dispatchFilter,
+      filters,
+      selectedFilter,
+      selectedFilterIds,
+      setGlobalError,
+    ],
+  );
+
+  const handleBandGainChange = useCallback(
+    (filterId: string, newValue: number) => {
+      const source = filters[filterId];
+      if (!source) {
+        return Promise.resolve();
+      }
+      const primaryValue = selectedFilter?.gain ?? source.gain;
+      return updateSelectedGroup(
+        'gain',
+        primaryValue + (newValue - source.gain),
+      );
+    },
+    [filters, selectedFilter?.gain, updateSelectedGroup],
+  );
+
+  const getSelectionPoint = (event: PointerEvent<HTMLDivElement>) => {
+    const bounds = bandsRef.current?.getBoundingClientRect();
+    if (!bounds) {
+      return undefined;
     }
+    return {
+      x: event.clientX - bounds.left,
+      y: event.clientY - bounds.top,
+    };
+  };
+
+  const handleBandsPointerDown = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.target !== event.currentTarget) {
+      return;
+    }
+    const point = getSelectionPoint(event);
+    if (!point) {
+      return;
+    }
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setSelectionBox({
+      startX: point.x,
+      startY: point.y,
+      currentX: point.x,
+      currentY: point.y,
+    });
+  };
+
+  const handleBandsPointerMove = (event: PointerEvent<HTMLDivElement>) => {
+    if (!selectionBox) {
+      return;
+    }
+    const point = getSelectionPoint(event);
+    if (!point) {
+      return;
+    }
+    setSelectionBox((current) =>
+      current ? { ...current, currentX: point.x, currentY: point.y } : current,
+    );
+  };
+
+  const finishBandSelection = (event: PointerEvent<HTMLDivElement>) => {
+    if (!selectionBox) {
+      return;
+    }
+    const bounds = bandsRef.current?.getBoundingClientRect();
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    const left = Math.min(selectionBox.startX, selectionBox.currentX);
+    const right = Math.max(selectionBox.startX, selectionBox.currentX);
+    const top = Math.min(selectionBox.startY, selectionBox.currentY);
+    const bottom = Math.max(selectionBox.startY, selectionBox.currentY);
+    const isClick = right - left < 6 && bottom - top < 6;
+    const selectedIds = isClick
+      ? []
+      : Array.from(
+          bandsRef.current?.querySelectorAll<HTMLElement>('[data-filter-id]') ||
+            [],
+        )
+          .filter((element) => {
+            if (!bounds) {
+              return false;
+            }
+            const elementBounds = element.getBoundingClientRect();
+            return (
+              elementBounds.right >= bounds.left + left &&
+              elementBounds.left <= bounds.left + right &&
+              elementBounds.bottom >= bounds.top + top &&
+              elementBounds.top <= bounds.top + bottom
+            );
+          })
+          .map((element) => element.dataset.filterId)
+          .filter((id): id is string => !!id);
+    const additive = event.ctrlKey || event.metaKey || event.shiftKey;
+    setSelectedFilterIds(
+      additive
+        ? [...new Set([...selectedFilterIds, ...selectedIds])]
+        : selectedIds,
+    );
+    setSelectionBox(undefined);
   };
 
   const deleteSelectedFilter = async () => {
@@ -251,11 +418,27 @@ const MainContent = () => {
           <span>-20</span>
         </div>
         <div
+          ref={bandsRef}
           className={`bands bands--${density} bands--${bandLayout}`}
+          onPointerDown={handleBandsPointerDown}
+          onPointerMove={handleBandsPointerMove}
+          onPointerUp={finishBandSelection}
+          onPointerCancel={finishBandSelection}
           style={
             { '--band-count': frequencySortedFilters.length } as CSSProperties
           }
         >
+          {selectionBox && (
+            <div
+              className="bands__selection-box"
+              style={{
+                left: Math.min(selectionBox.startX, selectionBox.currentX),
+                top: Math.min(selectionBox.startY, selectionBox.currentY),
+                width: Math.abs(selectionBox.currentX - selectionBox.startX),
+                height: Math.abs(selectionBox.currentY - selectionBox.startY),
+              }}
+            />
+          )}
           {frequencySortedFilters.map((filter, index) => (
             <FrequencyBand
               key={filter.id}
@@ -267,8 +450,13 @@ const MainContent = () => {
               }
               density={density}
               flatLayout
-              isSelected={selectedFilter?.id === filter.id}
-              onSelect={() => setSelectedFilterId(filter.id)}
+              isSelected={selectedFilterIds.includes(filter.id)}
+              onSelect={(event) =>
+                toggleFilterSelection(
+                  filter.id,
+                  event.ctrlKey || event.metaKey || event.shiftKey,
+                )
+              }
               isHovered={hoveredFilterId === filter.id}
               onHover={(isHovered) =>
                 setHoveredFilterId(isHovered ? filter.id : '')
@@ -276,6 +464,7 @@ const MainContent = () => {
               isMinSliderCount={
                 frequencySortedFilters.length <= MIN_NUM_FILTERS
               }
+              onGainChange={handleBandGainChange}
             />
           ))}
         </div>
@@ -297,16 +486,18 @@ const MainContent = () => {
                 options={FILTER_OPTIONS}
                 isDisabled={!!globalError}
                 placement="up"
-                handleChange={(newValue) =>
-                  updateSelectedFilter(
-                    () => setType(selectedFilter.id, newValue),
-                    {
+                handleChange={async (newValue) => {
+                  try {
+                    await setType(selectedFilter.id, newValue);
+                    dispatchFilter({
                       type: FilterActionEnum.TYPE,
                       id: selectedFilter.id,
                       newValue: newValue as FilterTypeEnum,
-                    },
-                  )
-                }
+                    });
+                  } catch (e) {
+                    setGlobalError(e as ErrorDescription);
+                  }
+                }}
               />
             </div>
             <div className="eq-flat-editor__control">
@@ -319,14 +510,7 @@ const MainContent = () => {
                 isDisabled={false}
                 showArrows
                 handleSubmit={(newValue) =>
-                  updateSelectedFilter(
-                    () => setFrequency(selectedFilter.id, newValue),
-                    {
-                      type: FilterActionEnum.FREQUENCY,
-                      id: selectedFilter.id,
-                      newValue,
-                    },
-                  )
+                  updateSelectedGroup('frequency', newValue)
                 }
               />
             </div>
@@ -342,14 +526,7 @@ const MainContent = () => {
                   floatPrecision={2}
                   showArrows
                   handleSubmit={(newValue) =>
-                    updateSelectedFilter(
-                      () => setGain(selectedFilter.id, newValue),
-                      {
-                        type: FilterActionEnum.GAIN,
-                        id: selectedFilter.id,
-                        newValue,
-                      },
-                    )
+                    updateSelectedGroup('gain', newValue)
                   }
                 />
                 <button
@@ -374,14 +551,7 @@ const MainContent = () => {
                 isDisabled={false}
                 step={0.01}
                 handleChange={(newValue) =>
-                  updateSelectedFilter(
-                    () => setQuality(selectedFilter.id, newValue),
-                    {
-                      type: FilterActionEnum.QUALITY,
-                      id: selectedFilter.id,
-                      newValue,
-                    },
-                  )
+                  updateSelectedGroup('quality', newValue)
                 }
               />
             </div>

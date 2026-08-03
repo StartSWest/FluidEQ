@@ -55,6 +55,7 @@ import { getFilterLineData, getCombinedLineData } from './utils';
 import { ColorEnum, GrayScaleEnum } from '../styles/color';
 import { useLiveAudio } from '../audio/LiveAudioContext';
 import { getBandColor } from '../utils/bandColors';
+import '../styles/MultiSelect.scss';
 
 const isFilterEqual = (f1: IFilter, f2: IFilter) => {
   if (!f1 || !f2) {
@@ -91,8 +92,8 @@ const FrequencyResponseChart = () => {
     setGlobalError,
     setPreAmp,
     dispatchFilter,
-    selectedFilterId,
-    setSelectedFilterId,
+    selectedFilterIds,
+    setSelectedFilterIds,
     hoveredFilterId,
     setHoveredFilterId,
   } = useAquaContext();
@@ -101,6 +102,40 @@ const FrequencyResponseChart = () => {
   const pendingPointEdits = useRef<Record<string, PendingPointEdit>>({});
   const pointEditTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>(
     {},
+  );
+  const pointDragState = useRef<
+    | {
+        sourceId: string;
+        ids: string[];
+        origins: Record<string, Pick<IFilter, 'frequency' | 'gain'>>;
+      }
+    | undefined
+  >(undefined);
+
+  const handlePointSelect = useCallback(
+    (filterId: string, additive: boolean) => {
+      let ids = [filterId];
+      if (additive || selectedFilterIds.includes(filterId)) {
+        ids = selectedFilterIds.includes(filterId)
+          ? selectedFilterIds
+          : [...selectedFilterIds, filterId];
+      }
+      pointDragState.current = {
+        sourceId: filterId,
+        ids,
+        origins: Object.fromEntries(
+          ids
+            .map((id) => filters[id])
+            .filter(Boolean)
+            .map((filter) => [
+              filter.id,
+              { frequency: filter.frequency, gain: filter.gain },
+            ]),
+        ),
+      };
+      setSelectedFilterIds(ids);
+    },
+    [filters, selectedFilterIds, setSelectedFilterIds],
   );
 
   const flushPointEdit = useCallback(
@@ -152,30 +187,57 @@ const FrequencyResponseChart = () => {
 
   const handlePointMove = useCallback(
     (filterId: string, point: IChartPointData) => {
-      const frequency = Math.max(
-        MIN_FREQUENCY,
-        Math.min(MAX_FREQUENCY, Math.round(point.x)),
-      );
       // Graph points include the root preamp offset so they move together
       // when the master gain changes. Convert the dragged screen value back
       // to the band's own gain before writing it to APO.
-      const gain =
+      const sourceFilter = filters[filterId];
+      if (!sourceFilter) {
+        return;
+      }
+      const sourceFrequency = Math.max(
+        MIN_FREQUENCY,
+        Math.min(MAX_FREQUENCY, Math.round(point.x)),
+      );
+      const sourceGain =
         Math.round(
           Math.max(MIN_GAIN, Math.min(MAX_GAIN, point.y - preAmp)) * 100,
         ) / 100;
-      dispatchFilter({
-        type: FilterActionEnum.FREQUENCY,
-        id: filterId,
-        newValue: frequency,
+      const drag = pointDragState.current;
+      const ids = drag?.sourceId === filterId ? drag.ids : [filterId];
+      const sourceOrigin = drag?.origins[filterId] || sourceFilter;
+      const frequencyDelta = sourceFrequency - sourceOrigin.frequency;
+      const gainDelta = sourceGain - sourceOrigin.gain;
+      ids.forEach((id) => {
+        const filter = filters[id];
+        const origin = drag?.origins[id] || filter;
+        if (!filter || !origin) {
+          return;
+        }
+        const frequency = Math.round(
+          Math.max(
+            MIN_FREQUENCY,
+            Math.min(MAX_FREQUENCY, origin.frequency + frequencyDelta),
+          ),
+        );
+        const gain =
+          Math.round(
+            Math.max(MIN_GAIN, Math.min(MAX_GAIN, origin.gain + gainDelta)) *
+              100,
+          ) / 100;
+        dispatchFilter({
+          type: FilterActionEnum.FREQUENCY,
+          id,
+          newValue: frequency,
+        });
+        dispatchFilter({
+          type: FilterActionEnum.GAIN,
+          id,
+          newValue: gain,
+        });
+        queuePointEdit(id, { frequency, gain });
       });
-      dispatchFilter({
-        type: FilterActionEnum.GAIN,
-        id: filterId,
-        newValue: gain,
-      });
-      queuePointEdit(filterId, { frequency, gain });
     },
-    [dispatchFilter, preAmp, queuePointEdit],
+    [dispatchFilter, filters, preAmp, queuePointEdit],
   );
 
   const handlePointQualityWheel = useCallback(
@@ -190,21 +252,30 @@ const FrequencyResponseChart = () => {
       } else if (filter.quality < 10) {
         step = 0.1;
       }
-      const quality =
-        Math.round(
-          Math.max(
-            MIN_QUALITY,
-            Math.min(MAX_QUALITY, filter.quality + direction * step),
-          ) * 100,
-        ) / 100;
-      dispatchFilter({
-        type: FilterActionEnum.QUALITY,
-        id: filterId,
-        newValue: quality,
+      const ids = selectedFilterIds.includes(filterId)
+        ? selectedFilterIds
+        : [filterId];
+      ids.forEach((id) => {
+        const selectedFilter = filters[id];
+        if (!selectedFilter) {
+          return;
+        }
+        const quality =
+          Math.round(
+            Math.max(
+              MIN_QUALITY,
+              Math.min(MAX_QUALITY, selectedFilter.quality + direction * step),
+            ) * 100,
+          ) / 100;
+        dispatchFilter({
+          type: FilterActionEnum.QUALITY,
+          id,
+          newValue: quality,
+        });
+        queuePointEdit(id, { quality });
       });
-      queuePointEdit(filterId, { quality });
     },
-    [dispatchFilter, filters, queuePointEdit],
+    [dispatchFilter, filters, queuePointEdit, selectedFilterIds],
   );
 
   const { chartData, autoPreAmpValue }: IGraphData = useMemo(() => {
@@ -401,14 +472,19 @@ const FrequencyResponseChart = () => {
         // the response curve. Changing preamp therefore shifts every dot
         // vertically without changing any band's stored gain.
         data: { x: filter.frequency, y: filter.gain + preAmp },
-        selected: selectedFilterId === filter.id,
+        selected: selectedFilterIds.includes(filter.id),
         hovered: hoveredFilterId === filter.id,
-        onSelect: () => setSelectedFilterId(filter.id),
+        onSelect: (additive: boolean) => handlePointSelect(filter.id, additive),
         onHover: (isHovered: boolean) =>
           setHoveredFilterId(isHovered ? filter.id : ''),
         onChange: (point: IChartPointData) => handlePointMove(filter.id, point),
         onCommit: () => {
-          flushPointEdit(filter.id);
+          const drag = pointDragState.current;
+          const ids = drag?.sourceId === filter.id ? drag.ids : [filter.id];
+          ids.forEach((id) => flushPointEdit(id));
+          if (drag?.sourceId === filter.id) {
+            pointDragState.current = undefined;
+          }
         },
         onQualityWheel: (direction: number) =>
           handlePointQualityWheel(filter.id, direction),
@@ -419,10 +495,10 @@ const FrequencyResponseChart = () => {
     flushPointEdit,
     handlePointMove,
     handlePointQualityWheel,
+    handlePointSelect,
     hoveredFilterId,
     preAmp,
-    selectedFilterId,
-    setSelectedFilterId,
+    selectedFilterIds,
     setHoveredFilterId,
   ]);
 
@@ -438,7 +514,9 @@ const FrequencyResponseChart = () => {
         <span className="graph-legend graph-legend--live">
           Live output (dBFS)
         </span>
-        <span className="graph-edit-hint">Drag points · Ctrl+scroll: Q</span>
+        <span className="graph-edit-hint">
+          Drag points · Ctrl/Shift select · Ctrl+scroll: Q
+        </span>
         {liveOutput.error && (
           <span className="live-output-error">{liveOutput.error}</span>
         )}
@@ -452,6 +530,11 @@ const FrequencyResponseChart = () => {
           data={displayData}
           dimensions={dimensions}
           editablePoints={editablePoints}
+          onMarqueeSelect={(ids, additive) =>
+            setSelectedFilterIds(
+              additive ? [...new Set([...selectedFilterIds, ...ids])] : ids,
+            )
+          }
         />
       )}
     </div>

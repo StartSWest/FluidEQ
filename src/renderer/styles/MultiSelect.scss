@@ -1,0 +1,18 @@
+@use 'color' as *;
+
+.bands__selection-box {
+  position: absolute;
+  z-index: 20;
+  border: 1px solid rgba($secondary-light, 0.9);
+  border-radius: 6px;
+  background: rgba($secondary-default, 0.12);
+  box-shadow: 0 0 18px rgba($secondary-default, 0.18);
+  pointer-events: none;
+}
+
+.chart-selection-box {
+  fill: rgba($secondary-default, 0.12);
+  stroke: rgba($secondary-light, 0.9);
+  stroke-dasharray: 5 4;
+  stroke-width: 1;
+}

@@ -81,7 +81,7 @@ const EditablePoint = ({
     event.stopPropagation();
     dragging.current = true;
     event.currentTarget.setPointerCapture(event.pointerId);
-    point.onSelect();
+    point.onSelect(event.ctrlKey || event.metaKey || event.shiftKey);
   };
 
   const handlePointerMove = (event: PointerEvent<SVGCircleElement>) => {
