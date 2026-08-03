@@ -31,6 +31,7 @@ interface ISliderProps {
   sliderHeight?: string;
   label?: string;
   showNumberInput?: boolean;
+  colorIndex?: number;
   setValue: (newValue: number) => Promise<void>;
 }
 
@@ -43,6 +44,7 @@ const Slider = ({
   label,
   showNumberInput = true,
   isDisabled = false,
+  colorIndex = 0,
   setValue,
 }: ISliderProps) => {
   const { globalError } = useAquaContext();
@@ -78,6 +80,7 @@ const Slider = ({
         handleChange={handleInput}
         handleMouseUp={handleInput}
         isDisabled={isDisabled || !!globalError}
+        colorIndex={colorIndex}
         incrementPrecision={0}
         displayPrecision={2}
       />

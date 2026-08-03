@@ -29,7 +29,7 @@ $button-height: 100px;
   padding: 8px 13px;
   color: #03110f;
   border-radius: 7px;
-  background: linear-gradient(135deg, $secondary-light, $secondary-default);
+  background: $secondary-default;
   margin: $spacing-xs;
 
   display: flex;
@@ -61,13 +61,7 @@ $button-height: 100px;
   margin: 0;
   border: 1px solid rgba($secondary-light, 0.38);
   border-radius: 11px;
-  background: linear-gradient(
-    120deg,
-    $secondary-light 0%,
-    $secondary-default 32%,
-    $triadic-2 70%,
-    $triadic-1 100%
-  );
+  background: $secondary-default;
   box-shadow:
     0 8px 22px rgba($secondary-default, 0.12),
     inset 0 1px 0 rgba($white, 0.36);
@@ -80,9 +74,10 @@ $button-height: 100px;
   &:hover:not([aria-disabled='true']) {
     transform: translateY(-1px);
     filter: brightness(1.06);
+    background: $secondary-light;
     box-shadow:
       0 11px 28px rgba($secondary-default, 0.2),
-      0 0 24px rgba($triadic-2, 0.16),
+      0 0 24px rgba($secondary-default, 0.18),
       inset 0 1px 0 rgba($white, 0.42);
   }
 

@@ -62,6 +62,7 @@ interface IFrequencyBandProps {
   isHovered?: boolean;
   onSelect?: () => void;
   onHover?: (isHovered: boolean) => void;
+  colorIndex?: number;
 }
 
 const FrequencyBand = forwardRef(
@@ -75,6 +76,7 @@ const FrequencyBand = forwardRef(
       isHovered = false,
       onSelect,
       onHover,
+      colorIndex = 0,
     }: IFrequencyBandProps,
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
@@ -310,6 +312,7 @@ const FrequencyBand = forwardRef(
               sliderHeight={sliderHeight}
               setValue={handleGainSubmit}
               isDisabled={isGainDisabled}
+              colorIndex={colorIndex}
               showNumberInput={!flatLayout && density === 'full'}
             />
           </div>

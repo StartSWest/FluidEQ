@@ -32,7 +32,41 @@ interface IRangeInputProps {
   height: string;
   handleChange: (newValue: number) => Promise<void>;
   handleMouseUp: (newValue: number) => Promise<void>;
+  colorIndex?: number;
 }
+
+const RANGE_COLORS = [
+  {
+    color: '#00e5ff',
+    muted: 'rgba(0, 229, 255, 0.48)',
+    track: 'rgba(0, 229, 255, 0.14)',
+  },
+  {
+    color: '#b6ff4a',
+    muted: 'rgba(182, 255, 74, 0.48)',
+    track: 'rgba(182, 255, 74, 0.14)',
+  },
+  {
+    color: '#ffe66d',
+    muted: 'rgba(255, 230, 109, 0.48)',
+    track: 'rgba(255, 230, 109, 0.14)',
+  },
+  {
+    color: '#ff3cac',
+    muted: 'rgba(255, 60, 172, 0.48)',
+    track: 'rgba(255, 60, 172, 0.14)',
+  },
+  {
+    color: '#8b5cff',
+    muted: 'rgba(139, 92, 255, 0.48)',
+    track: 'rgba(139, 92, 255, 0.14)',
+  },
+  {
+    color: '#54ff8a',
+    muted: 'rgba(84, 255, 138, 0.48)',
+    track: 'rgba(84, 255, 138, 0.14)',
+  },
+];
 
 const RangeInput = ({
   name,
@@ -45,6 +79,7 @@ const RangeInput = ({
   height,
   handleChange,
   handleMouseUp,
+  colorIndex = 0,
 }: IRangeInputProps) => {
   // Store a copy of the last value so it isn't lost to the throttle
   const lastValue = useRef<number | undefined>(undefined);
@@ -58,8 +93,9 @@ const RangeInput = ({
 
   const increment = useMemo(
     () => 1 / 10 ** incrementPrecision,
-    [incrementPrecision]
+    [incrementPrecision],
   );
+  const rangeColor = RANGE_COLORS[colorIndex % RANGE_COLORS.length];
 
   const onRangeInput = (e: ChangeEvent<HTMLInputElement>) => {
     const newValue: number =
@@ -98,7 +134,16 @@ const RangeInput = ({
   };
 
   return (
-    <div className="col center range">
+    <div
+      className="col center range"
+      style={
+        {
+          '--slider-color': rangeColor.color,
+          '--slider-color-muted': rangeColor.muted,
+          '--slider-track': rangeColor.track,
+        } as CSSProperties
+      }
+    >
       <ArrowButton
         name={name}
         type="up"

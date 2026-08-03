@@ -256,10 +256,11 @@ const MainContent = () => {
             { '--band-count': frequencySortedFilters.length } as CSSProperties
           }
         >
-          {frequencySortedFilters.map((filter) => (
+          {frequencySortedFilters.map((filter, index) => (
             <FrequencyBand
               key={filter.id}
               filter={filter}
+              colorIndex={index}
               density={density}
               flatLayout
               isSelected={selectedFilter?.id === filter.id}

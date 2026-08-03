@@ -59,6 +59,13 @@ const WaveformVisualizer = () => {
             <stop offset="0.5" stopColor="#4ff7d8" stopOpacity="0.42" />
             <stop offset="1" stopColor="#4f6ef7" stopOpacity="0.18" />
           </linearGradient>
+          <linearGradient id="waveform-line" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0" stopColor="#00e5ff" />
+            <stop offset="0.28" stopColor="#54ff8a" />
+            <stop offset="0.52" stopColor="#ffe66d" />
+            <stop offset="0.76" stopColor="#ff3cac" />
+            <stop offset="1" stopColor="#8b5cff" />
+          </linearGradient>
         </defs>
         <path className="waveform-visualizer__baseline" d="M 0 29 L 420 29" />
         <path className="waveform-visualizer__fill" d={waveformPath} />

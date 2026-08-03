@@ -26,7 +26,7 @@ export enum PrimaryColorEnum {
 
 // Secondary
 export enum SecondaryColorEnum {
-  DARKER = 'linear-gradient(135deg, #00e5ff, #00ffc8 38%, #ff4fd8 72%, #8b5cff)',
+  DARKER = '#007f95',
   DARK = '#00a9d6',
   DEFAULT = '#00e5cf',
   LIGHT = '#9cfff4',

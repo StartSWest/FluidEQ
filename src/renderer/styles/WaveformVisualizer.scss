@@ -9,13 +9,7 @@
   padding: 5px 10px 3px;
   border: 1px solid rgba($primary-lighter, 0.1);
   border-radius: 17px;
-  background:
-    radial-gradient(
-      circle at 50% 120%,
-      rgba($secondary-default, 0.14),
-      transparent 65%
-    ),
-    rgba(#0a121e, 0.72);
+  background: rgba(#0a121e, 0.82);
   box-shadow:
     inset 0 1px 0 rgba($white, 0.05),
     0 0 22px rgba($secondary-default, 0.04);
@@ -113,10 +107,11 @@
 
 .waveform-visualizer__line {
   fill: none;
-  stroke: $secondary-light;
-  stroke-width: 1.4;
+  stroke: url('#waveform-line');
+  stroke-width: 1.8;
   stroke-linejoin: round;
-  filter: drop-shadow(0 0 3px rgba($secondary-light, 0.85));
+  filter: drop-shadow(0 0 3px rgba($neon-cyan, 0.9))
+    drop-shadow(0 0 7px rgba($neon-pink, 0.42));
 }
 
 .waveform-visualizer__error {

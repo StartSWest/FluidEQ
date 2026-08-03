@@ -58,11 +58,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 8px 11px;
     border: 1px solid rgba($primary-lighter, 0.22);
     border-radius: 11px;
-    background: linear-gradient(
-      180deg,
-      rgba($primary-light, 0.22),
-      rgba($primary-dark, 0.9)
-    );
+    background: rgba($primary-dark, 0.9);
     box-shadow: inset 0 1px 0 rgba($white, 0.03);
     transition:
       border-color 150ms ease,

@@ -55,18 +55,20 @@ $range-thumb-height: 18px;
       height: $range-track-height;
       width: 100%;
       border-radius: 4px;
-      background: linear-gradient($secondary-dark, $secondary-dark) 0 /
-        var(--sx) 100% no-repeat $secondary-light;
+      background: linear-gradient(
+          90deg,
+          var(--slider-color-muted),
+          var(--slider-color)
+        )
+        0 / var(--sx) 100% no-repeat var(--slider-track);
 
       &:disabled {
-        background: linear-gradient($primary-light, $primary-light) 0 /
-          var(--sx) 100% no-repeat primary-lighter;
+        background: $primary-light;
       }
     }
 
     &:disabled::-webkit-slider-runnable-track {
-      background: linear-gradient($primary-light, $primary-light) 0 / var(--sx)
-        100% no-repeat $primary-lighter;
+      background: $primary-light;
       cursor: default;
     }
 
@@ -85,6 +87,11 @@ $range-thumb-height: 18px;
   label {
     width: 100%;
   }
+
+  .arrow-up path,
+  .arrow-down path {
+    fill: var(--slider-color);
+  }
 }
 
 .range {
@@ -97,10 +104,10 @@ $range-thumb-height: 18px;
       border-radius: 999px;
       background: linear-gradient(
           90deg,
-          rgba($secondary-dark, 0.82),
-          rgba($secondary-light, 0.78)
+          var(--slider-color-muted),
+          var(--slider-color)
         )
-        0 / var(--sx) 100% no-repeat rgba($primary-lighter, 0.12);
+        0 / var(--sx) 100% no-repeat var(--slider-track);
       box-shadow:
         inset 0 1px 2px rgba($black, 0.38),
         0 0 9px rgba($secondary-default, 0.035);
@@ -111,13 +118,9 @@ $range-thumb-height: 18px;
       height: 16px;
       margin-top: -6px;
       border: 1px solid rgba($white, 0.34);
-      background: linear-gradient(
-        145deg,
-        rgba($secondary-light, 0.9),
-        rgba($secondary-default, 0.78)
-      );
+      background: var(--slider-color);
       box-shadow:
-        0 0 0 3px rgba($secondary-default, 0.05),
+        0 0 0 3px var(--slider-color-muted),
         0 3px 10px rgba($black, 0.34);
     }
   }

@@ -117,14 +117,10 @@ $filter-dropdown-width: 52px;
       0 0 20px rgba($analogous-1, 0.16);
 
     .range input[type='range']::-webkit-slider-thumb {
-      background: linear-gradient(
-        145deg,
-        rgba($triadic-1, 0.98),
-        rgba($analogous-1, 0.92)
-      );
+      background: var(--slider-color);
       box-shadow:
-        0 0 0 3px rgba($analogous-1, 0.12),
-        0 0 12px rgba($analogous-1, 0.52);
+        0 0 0 3px var(--slider-color-muted),
+        0 0 12px var(--slider-color-muted);
     }
   }
 
