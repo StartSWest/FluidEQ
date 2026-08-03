@@ -4,3 +4,20 @@
   background: #00e5cf;
   box-shadow: 0 0 7px rgba(0, 229, 207, 0.72);
 }
+
+// Equalizer APO being off means the curves are only a preview. Keep the
+// controls visible for context, but make both workspaces unmistakably idle.
+.workspace-tab-panel--eq.is-engine-disabled,
+.graph-wrapper.is-engine-disabled {
+  opacity: 0.46;
+  filter: saturate(0.35);
+  cursor: not-allowed;
+}
+
+.workspace-tab-panel--eq.is-engine-disabled > .auto-eq,
+.workspace-tab-panel--eq.is-engine-disabled > .main-content-title,
+.workspace-tab-panel--eq.is-engine-disabled > .main-content,
+.graph-wrapper.is-engine-disabled > svg,
+.graph-wrapper.is-engine-disabled > .live-output-controls {
+  pointer-events: none;
+}

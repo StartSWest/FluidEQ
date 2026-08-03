@@ -43,7 +43,8 @@ import {
 const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
 
 const AppContent = () => {
-  const { isLoading, globalError, performHealthCheck } = useAquaContext();
+  const { isLoading, globalError, isEnabled, performHealthCheck } =
+    useAquaContext();
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
@@ -369,7 +370,12 @@ const AppContent = () => {
           </button>
         </div>
         {activeWorkspaceTab === 'eq' ? (
-          <div className="workspace-tab-panel workspace-tab-panel--eq">
+          <div
+            className={`workspace-tab-panel workspace-tab-panel--eq${
+              !isEnabled ? ' is-engine-disabled' : ''
+            }`}
+            aria-disabled={!isEnabled}
+          >
             <AutoEQ />
             <MainContent />
           </div>

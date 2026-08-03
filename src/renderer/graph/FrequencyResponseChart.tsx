@@ -91,6 +91,7 @@ const FrequencyResponseChart = () => {
   const {
     filters,
     isGraphViewOn,
+    isEnabled,
     isLoading,
     globalError,
     isAutoPreAmpOn,
@@ -565,7 +566,11 @@ const FrequencyResponseChart = () => {
   ]);
 
   return isGraphViewOn ? (
-    <div className="graph-wrapper" ref={ref}>
+    <div
+      className={`graph-wrapper${!isEnabled ? ' is-engine-disabled' : ''}`}
+      ref={ref}
+      aria-disabled={!isEnabled}
+    >
       <div className="live-output-controls">
         {convolution && (
           <span className="graph-legend graph-legend--convolution">
