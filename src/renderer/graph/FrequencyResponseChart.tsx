@@ -51,7 +51,11 @@ import {
   IChartPointData,
   IEditableChartPoint,
 } from './ChartController';
-import { getFilterLineData, getCombinedLineData } from './utils';
+import {
+  getFilterLineData,
+  getCombinedLineData,
+  getLineGainAtFrequency,
+} from './utils';
 import { ColorEnum, GrayScaleEnum } from '../styles/color';
 import { useLiveAudio } from '../audio/LiveAudioContext';
 import { getBandColor } from '../utils/bandColors';
@@ -107,7 +111,10 @@ const FrequencyResponseChart = () => {
     | {
         sourceId: string;
         ids: string[];
-        origins: Record<string, Pick<IFilter, 'frequency' | 'gain'>>;
+        origins: Record<
+          string,
+          Pick<IFilter, 'frequency' | 'gain'> & { curveGain: number }
+        >;
       }
     | undefined
   >(undefined);
@@ -122,6 +129,10 @@ const FrequencyResponseChart = () => {
       } else if (selectedFilterIds.includes(filterId)) {
         ids = selectedFilterIds;
       }
+      const currentEqCurve = getCombinedLineData(
+        preAmp,
+        prevFilterLines.current,
+      );
       pointDragState.current = {
         sourceId: filterId,
         ids,
@@ -131,13 +142,20 @@ const FrequencyResponseChart = () => {
             .filter(Boolean)
             .map((filter) => [
               filter.id,
-              { frequency: filter.frequency, gain: filter.gain },
+              {
+                frequency: filter.frequency,
+                gain: filter.gain,
+                curveGain:
+                  currentEqCurve.length > 0
+                    ? getLineGainAtFrequency(currentEqCurve, filter.frequency)
+                    : filter.gain + preAmp,
+              },
             ]),
         ),
       };
       setSelectedFilterIds(ids);
     },
-    [filters, selectedFilterIds, setSelectedFilterIds],
+    [filters, preAmp, selectedFilterIds, setSelectedFilterIds],
   );
 
   const flushPointEdit = useCallback(
@@ -189,9 +207,9 @@ const FrequencyResponseChart = () => {
 
   const handlePointMove = useCallback(
     (filterId: string, point: IChartPointData) => {
-      // Graph points include the root preamp offset so they move together
-      // when the master gain changes. Convert the dragged screen value back
-      // to the band's own gain before writing it to APO.
+      // Dots are placed on the complete EQ response at their frequency. Move
+      // the filter by the delta between the pointer and that curve value so
+      // dragging still edits the band's own gain, not the rendered response.
       const sourceFilter = filters[filterId];
       if (!sourceFilter) {
         return;
@@ -200,18 +218,32 @@ const FrequencyResponseChart = () => {
         MIN_FREQUENCY,
         Math.min(MAX_FREQUENCY, Math.round(point.x)),
       );
-      const sourceGain =
-        Math.round(
-          Math.max(MIN_GAIN, Math.min(MAX_GAIN, point.y - preAmp)) * 100,
-        ) / 100;
+      const targetCurveGain =
+        Math.round(Math.max(MIN_GAIN, Math.min(MAX_GAIN, point.y)) * 100) / 100;
       const drag = pointDragState.current;
       const ids = drag?.sourceId === filterId ? drag.ids : [filterId];
-      const sourceOrigin = drag?.origins[filterId] || sourceFilter;
+      const sourceOrigin = drag?.origins[filterId] || {
+        frequency: sourceFilter.frequency,
+        gain: sourceFilter.gain,
+        curveGain: getLineGainAtFrequency(
+          getCombinedLineData(preAmp, prevFilterLines.current),
+          sourceFilter.frequency,
+        ),
+      };
       const frequencyDelta = sourceFrequency - sourceOrigin.frequency;
-      const gainDelta = sourceGain - sourceOrigin.gain;
+      const gainDelta = targetCurveGain - sourceOrigin.curveGain;
       ids.forEach((id) => {
         const filter = filters[id];
-        const origin = drag?.origins[id] || filter;
+        const origin =
+          drag?.origins[id] ||
+          (filter && {
+            frequency: filter.frequency,
+            gain: filter.gain,
+            curveGain: getLineGainAtFrequency(
+              getCombinedLineData(preAmp, prevFilterLines.current),
+              filter.frequency,
+            ),
+          });
         if (!filter || !origin) {
           return;
         }
@@ -462,18 +494,22 @@ const FrequencyResponseChart = () => {
         return [filter.id, getBandColor(progress)] as const;
       }),
     );
+    const eqCurve = chartData.find((curve) => curve.id === 'EQ Response')?.line
+      .points;
 
     return Object.values(filters).map((filter) => {
       const bandColor = colorsById.get(filter.id) || getBandColor(0);
+      const curveGain = eqCurve
+        ? getLineGainAtFrequency(eqCurve, filter.frequency)
+        : filter.gain + preAmp;
       return {
         id: filter.id,
         name: `${filter.type} band`,
         color: bandColor.color,
         mutedColor: bandColor.muted,
-        // Keep the editable points in the same root-gain coordinate space as
-        // the response curve. Changing preamp therefore shifts every dot
-        // vertically without changing any band's stored gain.
-        data: { x: filter.frequency, y: filter.gain + preAmp },
+        // Place each dot on the rendered EQ response at its frequency. This
+        // keeps dots aligned after converting between 6/10/15/31-band layouts.
+        data: { x: filter.frequency, y: curveGain },
         selected: selectedFilterIds.includes(filter.id),
         hovered: hoveredFilterId === filter.id,
         onSelect: (additive: boolean) => handlePointSelect(filter.id, additive),
@@ -494,6 +530,7 @@ const FrequencyResponseChart = () => {
     });
   }, [
     filters,
+    chartData,
     flushPointEdit,
     handlePointMove,
     handlePointQualityWheel,

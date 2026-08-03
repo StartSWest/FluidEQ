@@ -32,7 +32,7 @@ const logStart = Math.log10(GRAPH_START);
 const logEnd = Math.log10(GRAPH_END);
 const step = (logEnd - logStart) / NUM_STEPS;
 const SAMPLE_FREQUENCIES = range(logStart, logEnd + step, step).map(
-  (p) => 10 ** p
+  (p) => 10 ** p,
 );
 
 interface ITransferFuncCoeffs {
@@ -211,7 +211,7 @@ export const getFilterLineData = (filter: IFilter): IChartPointData[] => {
 // Get total curve info from filter and point data
 export const getCombinedLineData = (
   preAmp: number,
-  filterLines: IChartLineDataPointsById
+  filterLines: IChartLineDataPointsById,
 ) => {
   const data: IChartPointData[] = SAMPLE_FREQUENCIES.map((f) => {
     return { x: f, y: 0 };
@@ -227,4 +227,41 @@ export const getCombinedLineData = (
   }
 
   return data;
+};
+
+// Return the response curve value at an arbitrary frequency. Curves are
+// sampled logarithmically, so interpolate in log-frequency space to keep
+// points accurate between samples (especially after expanding a layout).
+export const getLineGainAtFrequency = (
+  points: IChartPointData[],
+  frequency: number,
+) => {
+  if (points.length === 0) {
+    return 0;
+  }
+  if (frequency <= points[0].x) {
+    return points[0].y;
+  }
+  const last = points[points.length - 1];
+  if (frequency >= last.x) {
+    return last.y;
+  }
+
+  let low = 0;
+  let high = points.length - 1;
+  while (high - low > 1) {
+    const middle = Math.floor((low + high) / 2);
+    if (points[middle].x <= frequency) {
+      low = middle;
+    } else {
+      high = middle;
+    }
+  }
+
+  const lower = points[low];
+  const upper = points[high];
+  const ratio =
+    (Math.log(frequency) - Math.log(lower.x)) /
+    (Math.log(upper.x) - Math.log(lower.x));
+  return lower.y + (upper.y - lower.y) * ratio;
 };
