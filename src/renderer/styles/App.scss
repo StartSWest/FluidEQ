@@ -91,11 +91,19 @@ body {
     gap: $spacing-s;
 
     &.minimized {
-      // Forcibly allow equalizer content to grow when graph view is off
+      // The graph is not mounted when the view is off. Keep a single row so
+      // its empty grid area cannot create an implicit row and stretch the
+      // sidebar to the convolution catalogue's content height.
+      grid-template-areas: 'side-bar middle-content presets-bar';
       grid-template-rows: minmax(0px, 1fr);
-      row-gap: 0px;
+      row-gap: $spacing-s;
     }
   }
+}
+
+#root.minimized .side-bar {
+  justify-content: flex-start;
+  gap: 24px;
 }
 
 .middle-content {
@@ -1006,6 +1014,14 @@ html {
     }
   }
 
+  body #root.minimized {
+    grid-template-areas:
+      'side-bar middle-content'
+      'presets-bar presets-bar';
+    grid-template-rows: minmax(0, 1fr) auto;
+    row-gap: 12px;
+  }
+
   .right-content {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: none;
@@ -1025,6 +1041,15 @@ html {
       grid-template-columns: minmax(0, 1fr);
       grid-template-rows: auto auto auto 300px;
     }
+  }
+
+  body #root.minimized {
+    grid-template-areas:
+      'side-bar'
+      'middle-content'
+      'presets-bar';
+    grid-template-rows: max-content minmax(0, 1fr) max-content;
+    row-gap: 12px;
   }
 
   .workspace-header__actions,

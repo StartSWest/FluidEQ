@@ -46,7 +46,8 @@ const SideBar = () => {
 
   const sliderHeight = useMemo(
     // Manually determine slider height
-    () => (isGraphViewOn ? '102px' : 'calc(100vh - 524px)'),
+    () =>
+      isGraphViewOn ? '102px' : 'clamp(102px, calc(100vh - 524px), 240px)',
     [isGraphViewOn],
   );
 
