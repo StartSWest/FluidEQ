@@ -701,6 +701,17 @@ body {
   gap: 10px;
 }
 
+// Keep the utility columns visible while the central convolution catalogue is
+// scrolled. The title bar occupies the fixed strip above the workspace.
+.side-bar,
+.right-content {
+  position: sticky;
+  top: calc($title-bar-height + 16px);
+  align-self: start;
+  max-height: calc(100vh - $title-bar-height - 34px);
+  overflow: auto;
+}
+
 .workspace-tabs {
   display: flex;
   align-items: center;

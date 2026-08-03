@@ -339,31 +339,33 @@ const AutoEQ = () => {
           Apply headset EQ
         </Button>
       </div>
-      {sourceId === 'autoeq' && (
-        <div className="autoeq-update">
-          <span>
-            {isCheckingUpdate && 'Checking official database...'}
-            {!isCheckingUpdate &&
-              updateStatus?.updateAvailable &&
-              `Update available (${updateStatus.latest?.modelCount.toLocaleString()} models)`}
-            {!isCheckingUpdate &&
-              updateStatus &&
-              !updateStatus.updateAvailable &&
-              `Official database up to date - ${updateStatus.current.modelCount.toLocaleString()} models`}
-            {!isCheckingUpdate && !updateStatus && 'Update check unavailable'}
-          </span>
-          {updateStatus?.updateAvailable && (
-            <Button
-              className="small"
-              ariaLabel="Update AutoEq database"
-              isDisabled={isUpdating}
-              handleChange={updateDatabase}
-            >
-              {isUpdating ? 'Updating...' : 'Update database'}
-            </Button>
-          )}
-        </div>
-      )}
+      <div className="autoeq-update">
+        {sourceId === 'autoeq' && (
+          <>
+            <span>
+              {isCheckingUpdate && 'Checking official database...'}
+              {!isCheckingUpdate &&
+                updateStatus?.updateAvailable &&
+                `Update available (${updateStatus.latest?.modelCount.toLocaleString()} models)`}
+              {!isCheckingUpdate &&
+                updateStatus &&
+                !updateStatus.updateAvailable &&
+                `Official database up to date - ${updateStatus.current.modelCount.toLocaleString()} models`}
+              {!isCheckingUpdate && !updateStatus && 'Update check unavailable'}
+            </span>
+            {updateStatus?.updateAvailable && (
+              <Button
+                className="small"
+                ariaLabel="Update AutoEq database"
+                isDisabled={isUpdating}
+                handleChange={updateDatabase}
+              >
+                {isUpdating ? 'Updating...' : 'Update database'}
+              </Button>
+            )}
+          </>
+        )}
+      </div>
     </>
   );
 };
