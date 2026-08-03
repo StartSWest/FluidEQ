@@ -115,10 +115,12 @@ const FrequencyResponseChart = () => {
   const handlePointSelect = useCallback(
     (filterId: string, additive: boolean) => {
       let ids = [filterId];
-      if (additive || selectedFilterIds.includes(filterId)) {
+      if (additive) {
         ids = selectedFilterIds.includes(filterId)
-          ? selectedFilterIds
+          ? selectedFilterIds.filter((id) => id !== filterId)
           : [...selectedFilterIds, filterId];
+      } else if (selectedFilterIds.includes(filterId)) {
+        ids = selectedFilterIds;
       }
       pointDragState.current = {
         sourceId: filterId,
