@@ -20,6 +20,7 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState, type MouseEvent } from 'react';
 import { ErrorCode } from 'common/errors';
 import './styles/App.scss';
+import './styles/ResponsiveEQ.scss';
 import MainContent from './MainContent';
 import { AquaProvider, useAquaContext } from './utils/AquaContext';
 import PrereqMissingModal from './PrereqMissingModal';
