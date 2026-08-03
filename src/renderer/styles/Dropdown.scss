@@ -259,8 +259,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .list-wrapper .list li {
     min-height: 40px;
+    margin: 3px 0;
+    padding: 9px 11px;
     align-items: center;
     line-height: 1.25;
+    border: 1px solid transparent;
+    box-sizing: border-box;
 
     &:hover,
     &:focus-visible,
@@ -270,6 +274,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         rgba($secondary-default, 0.22),
         rgba($analogous-1, 0.11)
       );
+    }
+
+    &:hover,
+    &:focus-visible {
+      border-color: rgba($secondary-light, 0.22);
+    }
+
+    &.selected {
+      border-color: rgba($secondary-light, 0.28);
     }
   }
 }

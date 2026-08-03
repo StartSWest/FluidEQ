@@ -79,7 +79,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     li {
       min-height: 34px;
+      margin: 3px 0;
       padding: 8px 10px;
+      border: 1px solid transparent;
       border-radius: 8px;
       color: rgba($white, 0.88);
       transition:
@@ -101,6 +103,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
           rgba($secondary-default, 0.24),
           rgba($analogous-1, 0.12)
         );
+        border-color: rgba($secondary-light, 0.22);
       }
     }
   }
