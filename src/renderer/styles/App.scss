@@ -724,7 +724,7 @@ body {
     // Give the editor enough room for its toolbar, bands and selected-band
     // editor before allocating the remaining space to the graph.  The old
     // 36vh graph row left a large dead strip below the EQ on short windows.
-    grid-template-rows: minmax(340px, 1fr) minmax(230px, 32vh);
+    grid-template-rows: minmax(500px, 1fr) minmax(230px, 32vh);
   }
 
   body #root:not(.minimized) > .side-bar,
@@ -803,11 +803,21 @@ body {
 
 .workspace-tab-panel--eq {
   display: grid;
-  // AutoEQ, the EQ heading/toolbar, and the band editor are the three direct
-  // children in this panel.  Keeping an extra empty grid row here made the
-  // EQ stop at its intrinsic height and left a blank area above the graph.
-  grid-template-rows: max-content max-content minmax(260px, 1fr);
+  // AutoEQ and MainContent render fragments, so this panel has five direct
+  // children: title, controls, update status, EQ heading, and editor. Keeping
+  // those rows explicit prevents the editor from becoming an implicit row
+  // that can overflow beneath the response graph.
+  grid-template-rows: max-content max-content max-content max-content minmax(
+      260px,
+      1fr
+    );
   gap: 10px;
+  overflow: hidden;
+}
+
+// A dropdown is the one intentional exception: it needs to float above the
+// compact editor instead of being clipped by the panel edge.
+.workspace-tab-panel--eq:has(.dropdown--open) {
   overflow: visible;
 }
 
@@ -1084,6 +1094,21 @@ html {
   .right-content {
     grid-template-columns: 1fr 1fr;
     grid-template-rows: none;
+  }
+}
+
+@media (min-width: 981px) and (max-height: 840px) {
+  body #root:not(.minimized) {
+    // Compact windows still reserve a real row for the editor and graph; the
+    // smaller minimums keep the two rows adjacent without overlap.
+    grid-template-rows: minmax(480px, 1fr) minmax(180px, 28vh);
+  }
+
+  .workspace-tab-panel--eq {
+    grid-template-rows: max-content max-content max-content max-content minmax(
+        220px,
+        1fr
+      );
   }
 }
 
