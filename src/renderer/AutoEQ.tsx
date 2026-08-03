@@ -65,7 +65,7 @@ const AutoEQ = () => {
   const [responses, setResponses] = useState<string[]>([]);
   const [currentDevice, setCurrentDevice] = useState<string>('');
   const [currentResponse, setCurrentResponse] = useState<string>('');
-  const [sourceId, setSourceId] = useState<IEqSource['id']>('autoeq');
+  const [sourceId, setSourceId] = useState<IEqSource['id'] | ''>('');
   const [squigSources, setSquigSources] = useState<IEqSource[]>(
     EQ_SOURCES.slice(1),
   );
@@ -89,8 +89,7 @@ const AutoEQ = () => {
     () => [EQ_SOURCES[0], ...squigSources],
     [squigSources],
   );
-  const currentSource =
-    allSources.find((source) => source.id === sourceId) || allSources[0];
+  const currentSource = allSources.find((source) => source.id === sourceId);
 
   useEffect(() => {
     getSquiglinkSourceList()
@@ -112,6 +111,14 @@ const AutoEQ = () => {
   }, [setGlobalError]);
 
   const fetchDeviceNames = useCallback(async () => {
+    if (!sourceId) {
+      setDevices([]);
+      setCurrentDevice('');
+      setCurrentResponse('');
+      setResponses([]);
+      return;
+    }
+
     try {
       const list =
         sourceId === 'autoeq'
@@ -267,9 +274,17 @@ const AutoEQ = () => {
           <span className="eyebrow">START FROM A REFERENCE</span>
           <h4>AutoEQ library</h4>
         </div>
-        <a href={currentSource.attributionUrl} target="_blank" rel="noreferrer">
-          {currentSource.name}
-        </a>
+        {currentSource ? (
+          <a
+            href={currentSource.attributionUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {currentSource.name}
+          </a>
+        ) : (
+          <span>Select a source</span>
+        )}
       </div>
       <div className="auto-eq">
         <div className="autoeq-field autoeq-field--source">
@@ -278,6 +293,7 @@ const AutoEQ = () => {
             name="Measurement source"
             options={sourceOptions}
             value={sourceId}
+            noSelectionPlaceholder="Select a source..."
             handleChange={(newValue) =>
               setSourceId(newValue as IEqSource['id'])
             }
@@ -293,7 +309,7 @@ const AutoEQ = () => {
             options={deviceOptions}
             value={currentDevice}
             handleChange={handleDeviceChange}
-            isDisabled={!!globalError}
+            isDisabled={!!globalError || !sourceId}
             noSelectionPlaceholder={NO_DEVICE_SELECTION}
             emptyOptionsPlaceholder="No measured model matches your search."
             filterPlaceholder="Search by brand or model..."

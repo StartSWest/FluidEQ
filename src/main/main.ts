@@ -1293,9 +1293,13 @@ ipcMain.handle('open-equalizer-apo-configurator', async () => {
 ipcMain.handle('open-equalizer-apo-settings', async () => {
   try {
     const equalizerApoRoot = path.dirname(await getConfigPath());
-    const settingsPath = path.join(equalizerApoRoot, 'Configurator.exe');
+    // Equalizer APO 1.4.x renamed the old Configurator executable to Editor.
+    // Keep the legacy name as a fallback for older installations.
+    const settingsPath = ['Editor.exe', 'Configurator.exe']
+      .map((fileName) => path.join(equalizerApoRoot, fileName))
+      .find((candidate) => fs.existsSync(candidate));
 
-    if (!fs.existsSync(settingsPath)) {
+    if (!settingsPath) {
       return 'Equalizer APO settings were not found.';
     }
 
