@@ -22,6 +22,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 $auto-eq-dropdown-width: 220px;
 
+.workspace-tab-panel--eq {
+  container-name: autoeq-workspace;
+  container-type: inline-size;
+}
+
 .auto-eq-title {
   margin: 0 $spacing-s;
 }
@@ -276,5 +281,58 @@ $auto-eq-dropdown-width: 220px;
       grid-column: 1;
       width: 100%;
     }
+  }
+}
+
+@container autoeq-workspace (max-width: 820px) {
+  .auto-eq {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+
+    > .button {
+      grid-column: 2;
+      justify-self: end;
+    }
+  }
+}
+
+@container autoeq-workspace (max-width: 540px) {
+  .auto-eq {
+    grid-template-columns: minmax(0, 1fr);
+
+    > .button {
+      grid-column: 1;
+      width: 100%;
+    }
+  }
+}
+
+// Keep every control in the AutoEQ row aligned, including sources whose
+// selected value previously rendered only one line.
+.auto-eq .dropdown > [role='menu'],
+.auto-eq > .button {
+  min-height: 48px;
+  height: 48px;
+}
+
+.auto-eq > .button {
+  align-self: end;
+}
+
+.autoeq-field--source .dropdown > [role='menu'] .eq-source-option {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+
+  strong,
+  small {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  small {
+    color: rgba($primary-lighter, 0.58);
+    font-size: 0.62rem;
   }
 }

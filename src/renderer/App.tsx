@@ -323,87 +323,91 @@ const AppContent = () => {
           </div>
         </div>
       </header>
-      {showAudioRestartRecommendation && (
-        <aside className="audio-restart-notice" role="status">
-          <span>
-            Equalizer APO was installed or reconfigured. If audio is missing,
-            reload Windows Audio instead of rebooting the PC.
-          </span>
-          <div className="audio-restart-notice__actions">
-            <button type="button" onClick={handleRestartWindowsAudio}>
-              Restart audio now
-            </button>
-            <button type="button" onClick={dismissAudioRestartRecommendation}>
-              Dismiss
-            </button>
-          </div>
-        </aside>
-      )}
-      <SideBar />
-      <div className="middle-content">
-        <div
-          className="workspace-tabs"
-          role="tablist"
-          aria-label="Sound workspace"
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeWorkspaceTab === 'eq'}
-            className={`workspace-tab${
-              activeWorkspaceTab === 'eq' ? ' is-active' : ''
-            }`}
-            onClick={() => setActiveWorkspaceTab('eq')}
-          >
-            EQ & headset mode
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={activeWorkspaceTab === 'convolution'}
-            className={`workspace-tab${
-              activeWorkspaceTab === 'convolution' ? ' is-active' : ''
-            }`}
-            onClick={() => setActiveWorkspaceTab('convolution')}
-          >
-            Convolution
-          </button>
-        </div>
-        {activeWorkspaceTab === 'eq' ? (
-          <div
-            className={`workspace-tab-panel workspace-tab-panel--eq${
-              !isEnabled ? ' is-engine-disabled' : ''
-            }`}
-            aria-disabled={!isEnabled}
-          >
-            <AutoEQ />
-            <MainContent />
-          </div>
-        ) : (
-          <div className="workspace-tab-panel workspace-tab-panel--convolution">
-            <ConvolutionPanel />
-          </div>
+      <main className="app-workspace">
+        {showAudioRestartRecommendation && (
+          <aside className="audio-restart-notice" role="status">
+            <span>
+              Equalizer APO was installed or reconfigured. If audio is missing,
+              reload Windows Audio instead of rebooting the PC.
+            </span>
+            <div className="audio-restart-notice__actions">
+              <button type="button" onClick={handleRestartWindowsAudio}>
+                Restart audio now
+              </button>
+              <button type="button" onClick={dismissAudioRestartRecommendation}>
+                Dismiss
+              </button>
+            </div>
+          </aside>
         )}
-      </div>
-      <div className="right-content">
-        <DeviceProfiles />
-        <PresetsBar
-          fetchPresets={getPresetListFromFiles}
-          loadPreset={loadPreset}
-          savePreset={savePreset}
-          renamePreset={renamePreset}
-          deletePreset={deletePreset}
-        />
-      </div>
-      <FrequencyResponseChart />
-      {globalError && (
-        <PrereqMissingModal
-          isLoading={isLoading}
-          onRetry={performHealthCheck}
-          errorMsg={globalError.shortError}
-          actionMsg={globalError.action}
-        />
-      )}
+        <SideBar />
+        <div className="center-workspace">
+          <div className="middle-content">
+            <div
+              className="workspace-tabs"
+              role="tablist"
+              aria-label="Sound workspace"
+            >
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeWorkspaceTab === 'eq'}
+              className={`workspace-tab${
+                activeWorkspaceTab === 'eq' ? ' is-active' : ''
+              }`}
+              onClick={() => setActiveWorkspaceTab('eq')}
+            >
+              EQ & headset mode
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={activeWorkspaceTab === 'convolution'}
+              className={`workspace-tab${
+                activeWorkspaceTab === 'convolution' ? ' is-active' : ''
+              }`}
+              onClick={() => setActiveWorkspaceTab('convolution')}
+            >
+              Convolution
+            </button>
+            </div>
+            {activeWorkspaceTab === 'eq' ? (
+              <div
+                className={`workspace-tab-panel workspace-tab-panel--eq${
+                  !isEnabled ? ' is-engine-disabled' : ''
+                }`}
+                aria-disabled={!isEnabled}
+              >
+                <AutoEQ />
+                <MainContent />
+              </div>
+            ) : (
+              <div className="workspace-tab-panel workspace-tab-panel--convolution">
+                <ConvolutionPanel />
+              </div>
+            )}
+          </div>
+          <FrequencyResponseChart />
+        </div>
+        <div className="right-content">
+          <DeviceProfiles />
+          <PresetsBar
+            fetchPresets={getPresetListFromFiles}
+            loadPreset={loadPreset}
+            savePreset={savePreset}
+            renamePreset={renamePreset}
+            deletePreset={deletePreset}
+          />
+        </div>
+        {globalError && (
+          <PrereqMissingModal
+            isLoading={isLoading}
+            onRetry={performHealthCheck}
+            errorMsg={globalError.shortError}
+            actionMsg={globalError.action}
+          />
+          )}
+      </main>
     </>
   );
 };

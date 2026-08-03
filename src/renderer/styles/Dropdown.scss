@@ -97,11 +97,104 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Keep every dropdown surface in the same glass family as the rest of the UI.
+.dropdown > button,
+.dropdown [role='combobox'],
+.dropdown__control,
+.dropdown__selected,
+.dropdown__value {
+  color: #eefcfb !important;
+  background-color: #193342 !important;
+  background-image: linear-gradient(
+    135deg,
+    rgba(38, 83, 91, 0.92),
+    rgba(35, 39, 65, 0.96)
+  ) !important;
+  border-color: rgba(128, 221, 211, 0.3) !important;
+}
+
+.dropdown [role='listbox'],
+.dropdown__options,
+.dropdown__menu,
+.dropdown__list {
+  background: linear-gradient(
+    155deg,
+    rgba(24, 54, 65, 0.99),
+    rgba(28, 29, 51, 0.99)
+  ) !important;
+  border-color: rgba(128, 221, 211, 0.3) !important;
+}
+
+.dropdown [role='option'],
+.dropdown__option,
+.dropdown__item {
+  color: #edfafa !important;
+  background: linear-gradient(
+    135deg,
+    rgba(43, 78, 86, 0.76),
+    rgba(45, 43, 67, 0.82)
+  ) !important;
+}
+
+.dropdown [role='option']:hover,
+.dropdown [role='option'][aria-selected='true'],
+.dropdown__option:hover,
+.dropdown__option--selected,
+.dropdown__item:hover,
+.dropdown__item--selected {
+  background: linear-gradient(
+    135deg,
+    rgba(46, 112, 112, 0.92),
+    rgba(48, 61, 88, 0.96)
+  ) !important;
+  border-color: rgba(132, 255, 234, 0.44) !important;
+}
+
+// The closed Dropdown trigger is .row (not a native select/combobox). Use a
+// deliberately specific rule so older component-state styles cannot restore
+// the nearly black surface.
+.dropdown.dropdown > .row.row[role='menu'] {
+  color: #eefcfb !important;
+  background: linear-gradient(
+    135deg,
+    rgba(42, 88, 97, 0.96),
+    rgba(42, 47, 72, 0.98)
+  ) !important;
+  border-color: rgba(133, 226, 215, 0.34) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(215, 255, 249, 0.06),
+    0 6px 18px rgba(2, 10, 20, 0.12) !important;
+}
+
+.dropdown.dropdown > .row.row[role='menu'] > *:not(.arrow) {
+  background: transparent !important;
+}
+
+.dropdown.dropdown > .row.row[role='menu'][aria-disabled='true'] {
+  color: rgba(224, 239, 240, 0.58) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(35, 67, 77, 0.78),
+    rgba(36, 40, 62, 0.86)
+  ) !important;
+}
+
 .dropdown--open {
+  position: relative;
   z-index: 1000;
 
   .list-wrapper {
     z-index: 1001;
+  }
+}
+
+// Menus must win every local stacking context created by cards, tabs and EQ
+// controls. Ancestor contexts are elevated separately in App.scss.
+.dropdown.dropdown--open {
+  z-index: 100000 !important;
+
+  > .list-wrapper {
+    z-index: 100001 !important;
   }
 }
 
@@ -278,4 +371,40 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   top: 0;
   bottom: auto;
   margin-block-start: 0;
+}
+
+// Layered menu items match the cyan/navy glass surfaces used by output cards.
+// Keep every state gradient-based instead of falling back to a flat fill.
+.dropdown .list-wrapper .list li:not(.list-group-heading) {
+  border: 1px solid rgba($primary-lighter, 0.08);
+  background: linear-gradient(
+    112deg,
+    rgba(#132b38, 0.94),
+    rgba(#20243a, 0.96)
+  ) !important;
+  box-shadow: inset 0 1px 0 rgba($white, 0.025);
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba($secondary-light, 0.3);
+    background: linear-gradient(
+      112deg,
+      rgba($secondary-default, 0.2),
+      rgba(#29314a, 0.98)
+    ) !important;
+  }
+
+  &[aria-selected='true'],
+  &.selected,
+  &.active {
+    border-color: rgba($secondary-light, 0.42);
+    background: linear-gradient(
+      112deg,
+      rgba($secondary-default, 0.28),
+      rgba(#2c3048, 0.98)
+    ) !important;
+    box-shadow:
+      inset 0 1px 0 rgba($white, 0.045),
+      0 0 18px rgba($secondary-default, 0.1);
+  }
 }

@@ -91,9 +91,10 @@ $button-height: 100px;
 
   &[aria-disabled='true'] {
     border-color: rgba($primary-lighter, 0.08);
-    background: rgba($primary-light, 0.55);
+    background: rgba($primary-dark, 0.85);
+    color: rgba($primary-lighter, 0.75);
     box-shadow: none;
-    opacity: 0.48;
+    opacity: 1;
   }
 
   &.small {

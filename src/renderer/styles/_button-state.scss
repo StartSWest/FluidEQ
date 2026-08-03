@@ -42,12 +42,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:disabled {
     background: $primary-light;
+    color: rgba($primary-lighter, 0.75);
     cursor: default;
   }
 
   &[aria-disabled='true'] {
     pointer-events: none;
-    background: $primary-light;
+    background: $primary-dark;
+    color: rgba($primary-lighter, 0.75);
     cursor: default;
   }
 }

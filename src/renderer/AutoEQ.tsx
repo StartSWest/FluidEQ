@@ -126,15 +126,22 @@ const AutoEQ = () => {
   useEffect(() => {
     getSquiglinkSourceList()
       .then((sources: ISquigSource[]) => {
-        setSquigSources(
-          sources.map((source) => ({
+        const discoveredSources = sources.map((source) => ({
             id: source.id,
             name: `${source.name} · ${source.type}`,
             description: `Public ${source.type} measurements from ${source.name}.`,
             attributionUrl: source.website,
             online: true,
-          })),
-        );
+          }));
+        const gadgetryTechFallback = EQ_SOURCES[1];
+        setSquigSources([
+          gadgetryTechFallback,
+          ...discoveredSources.filter(
+            (source) =>
+              source.id !== gadgetryTechFallback.id &&
+              source.attributionUrl !== gadgetryTechFallback.attributionUrl,
+          ),
+        ]);
         return undefined;
       })
       // Keep the cached GadgetryTech source usable when the optional global
@@ -294,12 +301,12 @@ const AutoEQ = () => {
           display: (
             <div className="eq-device-option">
               <strong>{device.name}</strong>
-              {sourceId === ALL_SOURCE_ID && <small>{device.sourceName}</small>}
+              <small>{device.sourceName}</small>
             </div>
           ),
         };
       }),
-    [devices, sourceId],
+    [devices],
   );
 
   const sourceOptions: IOptionEntry[] = useMemo(
@@ -398,6 +405,7 @@ const AutoEQ = () => {
             emptyOptionsPlaceholder="No measured model matches your search."
             filterPlaceholder="Search by brand or model..."
             isFilterable
+            showOptionsBeforeSearch={false}
           />
         </div>
         <div className="autoeq-field">

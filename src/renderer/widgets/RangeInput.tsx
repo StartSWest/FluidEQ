@@ -33,6 +33,7 @@ interface IRangeInputProps {
   height: string;
   handleChange: (newValue: number) => Promise<void>;
   handleMouseUp: (newValue: number) => Promise<void>;
+  handleDragStart?: () => void;
   colorProgress?: number;
 }
 
@@ -47,6 +48,7 @@ const RangeInput = ({
   height,
   handleChange,
   handleMouseUp,
+  handleDragStart,
   colorProgress = 0,
 }: IRangeInputProps) => {
   // Store a copy of the last value so it isn't lost to the throttle
@@ -131,6 +133,9 @@ const RangeInput = ({
         aria-label={name}
         onChange={onRangeInput}
         onMouseUp={onMouseUp}
+        onPointerDown={handleDragStart}
+        onPointerUp={onMouseUp}
+        onPointerCancel={onMouseUp}
         onWheel={onWheel}
         disabled={isDisabled}
         style={

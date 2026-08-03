@@ -12,7 +12,6 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   CONVOLUTION_SOURCES,
   IConvolutionCatalogEntry,
-  IConvolutionSource,
 } from 'common/convolution';
 import { ErrorDescription } from 'common/errors';
 import { useAquaContext } from './utils/AquaContext';
@@ -29,15 +28,7 @@ const ConvolutionPanel = () => {
   const [entries, setEntries] = useState<IConvolutionCatalogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<string>();
-  const [selectedSourceId, setSelectedSourceId] =
-    useState<IConvolutionSource['id']>('autoeq');
-
-  const selectedSource = useMemo(
-    () =>
-      CONVOLUTION_SOURCES.find((source) => source.id === selectedSourceId) ||
-      CONVOLUTION_SOURCES[0],
-    [selectedSourceId],
-  );
+  const selectedSource = useMemo(() => CONVOLUTION_SOURCES[0], []);
 
   const loadCatalog = useCallback(
     async (search: string) => {
@@ -55,14 +46,11 @@ const ConvolutionPanel = () => {
   );
 
   useEffect(() => {
-    if (selectedSourceId !== 'autoeq') {
-      return undefined;
-    }
     const timer = window.setTimeout(() => {
       loadCatalog(query).catch(() => undefined);
     }, 220);
     return () => window.clearTimeout(timer);
-  }, [loadCatalog, query, selectedSourceId]);
+  }, [loadCatalog, query]);
 
   const handleApply = async (entry: IConvolutionCatalogEntry) => {
     setDownloadingId(entry.id);
@@ -96,6 +84,14 @@ const ConvolutionPanel = () => {
             before your parametric EQ. The shared response graph below keeps
             both curves visible.
           </p>
+          <a
+            className="convolution-source-link"
+            href={selectedSource.website}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {selectedSource.name}
+          </a>
         </div>
         {convolution && (
           <button
@@ -106,33 +102,6 @@ const ConvolutionPanel = () => {
             Clear convolution
           </button>
         )}
-      </div>
-
-      <div
-        className="convolution-sources"
-        role="list"
-        aria-label="Convolution sources"
-      >
-        {CONVOLUTION_SOURCES.map((source) => (
-          <button
-            type="button"
-            key={source.id}
-            className={`convolution-source${
-              source.id === selectedSourceId ? ' is-selected' : ''
-            }`}
-            onClick={() => setSelectedSourceId(source.id)}
-          >
-            <span className="convolution-source__name">{source.name}</span>
-            <span className="convolution-source__description">
-              {source.description}
-            </span>
-            <span className="convolution-source__meta">
-              {source.downloadable
-                ? 'Search & download'
-                : 'Official browse source'}
-            </span>
-          </button>
-        ))}
       </div>
 
       {selectedSource.downloadable ? (
@@ -207,26 +176,7 @@ const ConvolutionPanel = () => {
               })}
           </div>
         </>
-      ) : (
-        <div className="convolution-external-source">
-          <div>
-            <strong>{selectedSource.name}</strong>
-            <p>
-              This official database is available for browsing and manual
-              import. It does not expose a stable public catalogue API that
-              FluidEQ can safely mirror and download automatically.
-            </p>
-          </div>
-          <a
-            className="convolution-button"
-            href={selectedSource.website}
-            target="_blank"
-            rel="noreferrer"
-          >
-            Open official library
-          </a>
-        </div>
-      )}
+      ) : null}
 
       <div className="convolution-active" aria-live="polite">
         <span className={`status-dot${convolution ? '' : ' is-muted'}`} />

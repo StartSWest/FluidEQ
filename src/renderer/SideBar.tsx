@@ -59,12 +59,12 @@ const SideBar = () => {
         </div>
       ) : (
         <>
-          <div className="col center">
+          <div className="col center side-bar__control-card side-bar__engine">
             <span className="control-kicker">ENGINE</span>
             <h4>System EQ</h4>
             <EqualizerEnablerSwitch id="equalizerEnabler" />
           </div>
-          <div>
+          <div className="side-bar__preamp">
             <h4>Preamp</h4>
             <div>{MAX_GAIN > 0 ? `+${MAX_GAIN}` : MAX_GAIN} dB</div>
             <Slider
@@ -77,12 +77,13 @@ const SideBar = () => {
               label={`${MIN_GAIN} dB`}
             />
           </div>
-          <div className="col center auto-normalize-control">
+          <div className="col center auto-normalize-control side-bar__control-card side-bar__headroom">
             <span className="control-kicker">APO HEADROOM</span>
             <h4>Auto normalize</h4>
             <AutoPreAmpEnablerSwitch id="autoPreAmpEnabler" />
           </div>
-          <div className="col center">
+          <div className="col center side-bar__control-card side-bar__response">
+            <span className="control-kicker">VISUALIZER</span>
             <h4>Response graph</h4>
             <GraphViewSwitch id="graphViewEnabler" />
           </div>

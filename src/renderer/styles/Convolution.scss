@@ -5,9 +5,9 @@
   height: 100%;
   min-height: 0;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
   overflow: hidden;
-  padding: 18px;
+  padding: 12px;
   border: 1px solid rgba($primary-lighter, 0.14);
   border-radius: 16px;
   background:
@@ -27,74 +27,40 @@
   flex-shrink: 0;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
+  gap: 10px;
 
   h2 {
-    margin: 2px 0 4px;
+    margin: 1px 0 2px;
     font-size: 1.22rem;
   }
 
   p:not(.eyebrow) {
-    max-width: 720px;
+    max-width: 620px;
     margin: 0;
     color: rgba($primary-lighter, 0.7);
-    font-size: 0.78rem;
-    line-height: 1.5;
-  }
-}
-
-.convolution-sources {
-  display: grid;
-  flex-shrink: 0;
-  grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
-  gap: 8px;
-}
-
-.convolution-source {
-  display: flex;
-  min-width: 0;
-  min-height: 92px;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 5px;
-  padding: 11px 12px;
-  color: $white;
-  border: 1px solid rgba($primary-lighter, 0.13);
-  border-radius: 12px;
-  background: rgba($primary-dark, 0.45);
-  text-align: left;
-  cursor: pointer;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease,
-    transform 160ms ease;
-
-  &:hover,
-  &.is-selected {
-    border-color: rgba($secondary-light, 0.62);
-    background: rgba($secondary-default, 0.12);
-    transform: translateY(-1px);
-  }
-
-  &__name {
-    color: $secondary-light;
-    font-size: 0.76rem;
-    font-weight: 800;
-  }
-
-  &__description {
-    color: rgba($primary-lighter, 0.68);
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     line-height: 1.35;
   }
+}
 
-  &__meta {
-    margin-top: auto;
-    color: rgba($secondary-light, 0.8);
-    font-size: 0.62rem;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
+.convolution-source-link {
+  display: flex;
+  margin: 6px 0 0;
+  color: $secondary-light;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-decoration: none;
+  letter-spacing: 0.03em;
+  transition: opacity 150ms ease;
+
+  &:hover {
+    opacity: 0.82;
+    text-decoration: underline;
+  }
+
+  &:focus-visible {
+    outline: 1px solid rgba($secondary-light, 0.65);
+    outline-offset: 2px;
   }
 }
 
@@ -112,7 +78,7 @@
   input {
     width: 100%;
     box-sizing: border-box;
-    padding: 11px 13px;
+    padding: 9px 11px;
     color: $white;
     border: 1px solid rgba($secondary-light, 0.35);
     border-radius: 10px;
@@ -132,7 +98,7 @@
 
 .convolution-notice {
   flex-shrink: 0;
-  padding: 9px 11px;
+  padding: 7px 10px;
   color: rgba($primary-lighter, 0.66);
   border: 1px solid rgba($primary-lighter, 0.1);
   border-radius: 9px;
@@ -144,11 +110,12 @@
 .convolution-results {
   display: flex;
   flex: 1 1 auto;
-  min-height: 0;
   flex-direction: column;
   gap: 7px;
+  min-height: 0;
   overflow: auto;
-  padding-right: 3px;
+  padding-right: 0;
+  scrollbar-gutter: stable;
 }
 
 .convolution-result {
@@ -254,7 +221,6 @@
   flex-shrink: 0;
   align-items: center;
   gap: 8px;
-  margin-top: auto;
   padding-top: 4px;
   color: rgba($primary-lighter, 0.62);
   font-size: 0.7rem;
@@ -277,6 +243,27 @@
   }
 }
 
+// Once the workspace collapses to one column, keep the catalogue from making
+// the whole document arbitrarily tall. Only the result list scrolls; the
+// search, source link and active-convolution status remain visible.
+@media (max-width: 980px) {
+  .workspace-tab-panel--convolution > .convolution-panel {
+    display: grid;
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    padding: 14px 8px 14px 12px;
+    gap: 10px;
+  }
+
+  .convolution-results {
+    grid-row: span 1;
+    flex: 0 1 auto;
+    max-height: clamp(280px, 46vh, 520px);
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+}
+
 @media (max-width: 900px) {
   .convolution-sources {
     grid-template-columns: minmax(0, 1fr);
@@ -296,6 +283,10 @@
 }
 
 @media (max-width: 620px) {
+  .convolution-results {
+    max-height: clamp(240px, 42vh, 380px);
+  }
+
   .convolution-panel__intro,
   .convolution-external-source {
     align-items: stretch;

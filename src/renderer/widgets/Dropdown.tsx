@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   KeyboardEvent,
   useCallback,
+  useDeferredValue,
   useEffect,
   useMemo,
   useRef,
@@ -46,6 +47,7 @@ interface IDropdownProps {
   noSelectionPlaceholder?: ReactNode;
   emptyOptionsPlaceholder?: ReactNode;
   isFilterable?: boolean;
+  showOptionsBeforeSearch?: boolean;
   filterPlaceholder?: string;
   placement?: 'up' | 'down' | 'left' | 'right';
   handleChange: (newValue: string) => void;
@@ -60,6 +62,8 @@ const normalizeSearchText = (value: string) =>
     .toLocaleLowerCase()
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
+
+const MAX_RENDERED_FILTER_RESULTS = 120;
 
 export const matchesDropdownSearch = (option: IOptionEntry, query: string) => {
   const terms = normalizeSearchText(query).split(/\s+/).filter(Boolean);
@@ -80,6 +84,7 @@ const Dropdown = ({
   emptyOptionsPlaceholder,
   handleChange,
   isFilterable = false,
+  showOptionsBeforeSearch = true,
   filterPlaceholder = 'Search...',
   placement = 'down',
 }: IDropdownProps) => {
@@ -93,11 +98,47 @@ const Dropdown = ({
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [searchString, setSearchString] = useState<string>('');
+  const deferredSearchString = useDeferredValue(searchString);
+
+  const indexedOptions = useMemo(
+    () =>
+      options.map((option) => ({
+        option,
+        searchableText: normalizeSearchText(
+          `${option.label} ${option.value}`,
+        ),
+      })),
+    [options],
+  );
 
   const filteredOptions = useMemo(
-    () =>
-      options.filter((option) => matchesDropdownSearch(option, searchString)),
-    [options, searchString],
+    () => {
+      if (
+        !showOptionsBeforeSearch &&
+        deferredSearchString.trim().length === 0
+      ) {
+        return [];
+      }
+
+      const terms = normalizeSearchText(deferredSearchString)
+        .split(/\s+/)
+        .filter(Boolean);
+      const matches = indexedOptions
+        .filter(({ searchableText }) =>
+          terms.every((term) => searchableText.includes(term)),
+        )
+        .map(({ option }) => option);
+
+      return isFilterable
+        ? matches.slice(0, MAX_RENDERED_FILTER_RESULTS)
+        : matches;
+    },
+    [
+      deferredSearchString,
+      indexedOptions,
+      isFilterable,
+      showOptionsBeforeSearch,
+    ],
   );
 
   const updateMenuPlacement = useCallback(() => {
@@ -291,7 +332,11 @@ const Dropdown = ({
           options={filteredOptions}
           isDisabled={isDisabled}
           handleChange={onChange}
-          emptyOptionsPlaceholder={emptyOptionsPlaceholder}
+          emptyOptionsPlaceholder={
+            !showOptionsBeforeSearch && searchString.trim().length === 0
+              ? 'Type to search all models.'
+              : emptyOptionsPlaceholder
+          }
           focusOnRender={!isFilterable}
           startingItem={
             isFilterable ? (

@@ -20,7 +20,7 @@ import {
 } from '../common/constants';
 
 const SQUIG_SITES_URL = 'https://squig.link/squigsites.json';
-const DEFAULT_SOURCE_ID = 'squiglink-gadgetrytech-headphones';
+const DEFAULT_SOURCE_ID = 'squiglink-gadgetrytech-headphones-headsets';
 const FALLBACK_SOURCE: ISquigSource = {
   id: DEFAULT_SOURCE_ID,
   username: 'gadgetrytech',
@@ -106,16 +106,36 @@ const writeCache = (filePath: string, content: string) => {
 };
 
 const fetchText = async (url: string) => {
-  const response = await fetch(url, {
-    headers: {
-      Accept: 'text/plain, application/json',
-      'User-Agent': 'FluidEQ-Squiglink-Client',
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`Squiglink returned HTTP ${response.status}`);
+  const retryDelays = [0, 250, 750];
+  let lastStatus = 0;
+
+  for (const delay of retryDelays) {
+    if (delay) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
+    const response = await fetch(url, {
+      cache: 'no-store',
+      headers: {
+        Accept: 'text/plain, application/json',
+        'User-Agent': 'FluidEQ-Squiglink-Client',
+      },
+    });
+    if (response.ok) {
+      return response.text();
+    }
+
+    lastStatus = response.status;
+    if (
+      response.status !== 404 &&
+      response.status !== 429 &&
+      response.status < 500
+    ) {
+      break;
+    }
   }
-  return response.text();
+
+  throw new Error(`Squiglink returned HTTP ${lastStatus} for ${url}`);
 };
 
 const getSiteRoot = (site: ISquigSiteManifest) => {

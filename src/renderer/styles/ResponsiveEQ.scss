@@ -1,37 +1,36 @@
 // Compact-height rules for the EQ editor.  The editor is intentionally sized
 // from its contents here instead of inheriting the shell's fixed-height grid
-// row.  That keeps the selected-band controls in the document flow; when the
-// viewport is shorter than the compact editor, the EQ tab scrolls as one unit.
+// row. That keeps the selected-band controls in document flow and lets the EQ
+// push the graph instead of creating a nested scrolling surface.
 @media (max-height: 840px) {
   body #root .workspace-tab-panel--eq {
     min-height: 0;
-    overflow-x: hidden;
-    overflow-y: auto;
-    scrollbar-gutter: stable;
+    overflow: visible;
+    scrollbar-gutter: auto;
   }
 
   body #root .workspace-tab-panel--eq > .main-content {
-    flex: 0 0 auto;
-    grid-template-rows: minmax(150px, auto) auto !important;
+    flex: 1 1 auto;
+    grid-template-rows: auto auto !important;
     height: auto !important;
     min-height: 0 !important;
     overflow: visible !important;
   }
 
   body #root .workspace-tab-panel--eq > .main-content .bands {
-    height: 170px !important;
+    height: auto !important;
     min-height: 0 !important;
-    overflow-x: hidden;
+    overflow-x: visible;
     overflow-y: visible;
   }
 }
 
 @media (max-height: 620px) {
   body #root .workspace-tab-panel--eq > .main-content {
-    grid-template-rows: minmax(140px, auto) auto !important;
+    grid-template-rows: auto auto !important;
   }
 
   body #root .workspace-tab-panel--eq > .main-content .bands {
-    height: 155px !important;
+    height: auto !important;
   }
 }

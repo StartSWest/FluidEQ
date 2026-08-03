@@ -52,11 +52,21 @@ const getAutoEqDir = () => {
     : getBundledAutoEqDir();
 };
 
+const EXCLUDED_AUTOEQ_DEVICES = new Set([
+  'kraken v4',
+  'kraken v4 pro',
+  'razer kraken v4',
+  'razer kraken v4 pro',
+]);
+
 export const getAutoEqDeviceList = (autoeqDir: string = getAutoEqDir()) => {
   return fs
     .readdirSync(autoeqDir, { withFileTypes: true })
     .filter((entry) => entry.isDirectory())
     .map((entry) => entry.name)
+    .filter(
+      (device) => !EXCLUDED_AUTOEQ_DEVICES.has(device.trim().toLowerCase()),
+    )
     .sort((left, right) => left.localeCompare(right));
 };
 

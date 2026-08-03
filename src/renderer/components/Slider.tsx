@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import NumberInput from '../widgets/NumberInput';
 import RangeInput from '../widgets/RangeInput';
 import { useAquaContext } from '../utils/AquaContext';
@@ -51,10 +51,14 @@ const Slider = ({
 
   // Local copy of slider value used so that the number input increases smoothly while throttling EQ APO writes
   const [sliderValue, setSliderValue] = useState<number>(value);
+  const isDragging = useRef(false);
 
   useEffect(() => {
-    // TODO: investigate whether this is the best way to synchronize values
-    setSliderValue(value);
+    // Backend/throttled updates can arrive out of order while dragging. The
+    // local value owns the thumb until pointer-up so it never jumps backward.
+    if (!isDragging.current) {
+      setSliderValue(value);
+    }
   }, [value]);
 
   const handleChangeValue = useCallback(
@@ -66,7 +70,17 @@ const Slider = ({
 
   const handleInput = async (newValue: number) => {
     setSliderValue(newValue);
-    handleChangeValue(newValue);
+    void handleChangeValue(newValue);
+  };
+
+  const handleDragStart = () => {
+    isDragging.current = true;
+  };
+
+  const handleDragEnd = async (newValue: number) => {
+    setSliderValue(newValue);
+    isDragging.current = false;
+    await handleChangeValue(newValue);
   };
 
   return (
@@ -78,7 +92,8 @@ const Slider = ({
         max={max}
         height={sliderHeight}
         handleChange={handleInput}
-        handleMouseUp={handleInput}
+        handleMouseUp={handleDragEnd}
+        handleDragStart={handleDragStart}
         isDisabled={isDisabled || !!globalError}
         colorProgress={colorProgress}
         incrementPrecision={0}

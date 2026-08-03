@@ -108,50 +108,188 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@media (max-width: 720px) {
-  .side-bar {
-    min-height: 174px;
-    flex-direction: row;
+@media (max-width: 980px) {
+  .side-bar.side-bar {
+    display: grid;
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    grid-template-columns: minmax(118px, 0.72fr) minmax(250px, 2fr) minmax(150px, 0.9fr);
+    grid-template-rows: repeat(2, minmax(48px, auto));
+    grid-template-areas:
+      'engine preamp headroom'
+      'engine preamp response';
+    align-items: stretch;
+    align-content: start;
+    align-self: start;
+    gap: 8px;
+    padding: 10px;
+  }
+
+  .side-bar__engine,
+  .side-bar__headroom,
+  .side-bar__response {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    min-height: 0;
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    align-self: stretch;
     align-items: center;
-    gap: 10px;
+    justify-self: stretch;
+    gap: 2px 8px;
+    padding: 7px 10px;
+    border: 1px solid rgba($primary-lighter, 0.12);
+    border-radius: 12px;
+    background: rgba($primary-dark, 0.42);
 
-    > div {
-      width: auto;
-      min-width: 0;
-      flex: 1 1 0;
-    }
-
-    > div:nth-child(2) {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 2px;
-
-      > h4,
-      > div:not(.slider) {
-        text-align: center;
-      }
-
-      .slider {
-        gap: 3px;
-        width: 100%;
-
-        .range input[type='range'] {
-          width: 82px !important;
-          margin-block: 41px !important;
-        }
-
-        .number-input {
-          width: 72px;
-        }
-      }
+    .control-kicker {
+      grid-column: 1;
+      grid-row: 1;
     }
 
     h4 {
-      margin-block: 5px;
-      font-size: 0.64rem;
+      grid-column: 1;
+      grid-row: 2;
     }
+
+    .switch {
+      grid-column: 2;
+      grid-row: 1 / span 2;
+      margin: 0;
+    }
+  }
+
+  .side-bar__engine {
+    grid-area: engine;
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto;
+    justify-items: center;
+    align-content: center;
+
+    .control-kicker,
+    h4,
+    .switch {
+      grid-column: 1;
+      grid-row: auto;
+    }
+  }
+
+  .side-bar__headroom {
+    grid-area: headroom;
+  }
+
+  .side-bar__response {
+    grid-area: response;
+  }
+
+  .side-bar__engine h4,
+  .side-bar__headroom h4,
+  .side-bar__response h4 {
+    margin: 0;
+    font-size: 0.66rem;
+  }
+
+  .side-bar__headroom .control-kicker {
+    margin-bottom: 1px;
+  }
+
+  .side-bar__preamp {
+    display: grid;
+    width: 100%;
+    min-width: 0;
+    grid-area: preamp;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: center;
+    justify-items: center;
+    gap: 6px;
+    padding: 8px 12px;
+    border: 1px solid rgba($primary-lighter, 0.12);
+    border-radius: 12px;
+    background: rgba($primary-dark, 0.42);
+  }
+
+  .side-bar__preamp > h4 {
+    display: block;
+    margin: 0;
+    color: rgba($white, 0.84);
+    font-size: 0.66rem;
+  }
+
+  .side-bar__preamp > div:not(.slider) {
+    display: none;
+  }
+
+  .side-bar__preamp .slider {
+    display: grid;
+    width: 100%;
+    margin: 0 auto;
+    grid-template-columns: minmax(0, 1fr) 72px;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .side-bar__preamp .range {
+    display: flex;
+    width: 100%;
+    min-width: 0;
+    flex-direction: row;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .side-bar__preamp .range::before,
+  .side-bar__preamp .range::after {
+    color: rgba($primary-lighter, 0.82);
+    font-size: 0.58rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  .side-bar__preamp .range::before {
+    content: '+20 dB';
+  }
+
+  .side-bar__preamp .range::after {
+    content: '-20 dB';
+  }
+
+  .side-bar__preamp .range input[type='range'] {
+    width: auto !important;
+    min-width: 0;
+    flex: 1 1 auto;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .side-bar__preamp .range .arrow-up,
+  .side-bar__preamp .range .arrow-down {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 14px;
+    transform: rotate(90deg);
+  }
+
+  .side-bar__preamp .slider > div:not(.range):not(.number-input) {
+    display: none;
+  }
+
+  .side-bar__preamp .number-input {
+    width: 72px;
+    min-width: 0;
+  }
+}
+
+
+@media (max-width: 540px) {
+  .side-bar.side-bar {
+    grid-template-columns: minmax(116px, 0.8fr) minmax(0, 1.2fr);
+    grid-template-rows: repeat(2, minmax(48px, auto)) auto;
+    grid-template-areas:
+      'engine headroom'
+      'engine response'
+      'preamp preamp';
   }
 }
 
@@ -162,9 +300,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .side-bar.side-bar {
     display: flex;
     min-height: 0;
-    height: 100%;
-    overflow: hidden;
-    justify-content: space-between;
+    height: auto;
+    max-height: none;
+    overflow: visible;
+    justify-content: flex-start;
     gap: 14px;
     padding: 18px 12px 20px;
     background:

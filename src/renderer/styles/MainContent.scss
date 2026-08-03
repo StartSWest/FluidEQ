@@ -53,7 +53,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: inset 0 1px 0 rgba($white, 0.02);
 
   .band-label {
-    height: 100%;
+    height: auto;
     display: grid;
 
     grid-template-rows:
@@ -73,11 +73,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     position: relative;
     justify-content: flex-start;
     padding: 0 $spacing-xxs; // add some horizontal padding so the outline isn't cut off at either end
-    height: 100%;
+    height: auto;
+    min-height: 0;
     width: 100%;
 
-    // Allow horizontal scrolling only when the selected layout needs it.
-    overflow-x: auto;
+    // Keep the EQ panel lockstep without introducing internal scrollbars.
+    overflow-x: hidden;
     overflow-y: hidden;
   }
 }
@@ -133,7 +134,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: 112px minmax(0, 1fr);
   gap: 4px;
   padding: 10px 12px 8px 8px;
-  overflow: hidden;
+  overflow: visible;
   border-color: rgba($primary-lighter, 0.1);
   border-radius: 18px;
   background:
@@ -175,7 +176,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 980px) {
   .main-content-title {
     align-items: stretch;
     flex-direction: column;
@@ -194,15 +195,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /* Adaptive equalizer: every preset fits without horizontal scrolling. */
 .main-content {
   container-name: eq-panel;
-  container-type: size;
+  container-type: inline-size;
   grid-template-columns: 38px minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 6px;
-  // The editor is the final row of this panel; keep it flush with the lower
-  // edge instead of leaving a dead strip underneath the controls.
-  padding: 6px 10px 0;
-  min-height: 260px;
-  height: 100%;
+  grid-template-rows: auto auto;
+  gap: 10px;
+  padding: 10px 10px 10px;
+  min-height: 0;
+  height: auto;
 }
 
 .eq-scale {
@@ -228,7 +227,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   min-width: 0;
   width: 100%;
-  height: 100%;
+  height: auto;
+  min-height: 0;
   padding: 0;
   grid-template-columns: repeat(var(--band-count), minmax(0, 1fr));
   align-items: center;
@@ -263,16 +263,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .eq-flat-editor {
+  position: relative;
+  z-index: 2;
   display: grid;
   min-width: 0;
-  padding: 10px 12px;
+  padding: 10px 12px 10px;
   grid-column: 1 / -1;
+  margin-top: 6px;
   grid-template-columns:
     minmax(96px, 1.35fr) 78px 78px minmax(98px, 1.2fr) 64px
     minmax(98px, 1fr);
   align-items: stretch;
   gap: 8px;
-  margin-bottom: -1px;
+  margin-bottom: $spacing-xs;
   border: 1px solid rgba($secondary-default, 0.14);
   border-radius: 13px;
   background: linear-gradient(
@@ -293,7 +296,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > span {
     min-height: 14px;
-    color: rgba($primary-lighter, 0.68);
+    color: rgba($white, 0.8);
     font-size: 0.55rem;
     font-weight: 700;
     letter-spacing: 0.08em;
@@ -484,16 +487,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 980px) {
   .main-content {
+    // Size containment prevents the selected-band row from contributing to
+    // the panel's intrinsic height. On mobile that makes the following
+    // profile card start on top of the editor. Keep only inline containment so
+    // the full editor participates in normal vertical flow.
+    container-type: inline-size;
     grid-template-columns: 30px minmax(0, 1fr);
-    grid-template-rows: minmax(320px, 1fr) auto;
-    min-height: 430px;
+    grid-template-rows: auto auto;
+    min-height: 0;
     padding-inline: 6px;
-  }
-
-  .main-content .bands {
-    min-height: 300px;
   }
 
   .main-content--full .bandWrapper .range input[type='range'] {
@@ -516,10 +520,53 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .eq-flat-editor {
+    width: 100%;
+    grid-column: 1 / -1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+    padding: 12px;
+    margin-bottom: $spacing-xs;
   }
 
   .eq-flat-editor__identity {
+    grid-column: 1 / -1;
+    grid-template-columns: max-content minmax(0, 1fr);
+    grid-template-rows: auto;
+    align-items: center;
+    gap: 10px;
+
+    strong {
+      min-width: 0;
+      justify-content: flex-end;
+    }
+  }
+
+  .eq-flat-editor__control {
+    min-width: 0;
+  }
+
+  .eq-flat-editor__delete {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 540px) {
+  .eq-flat-editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .eq-flat-editor__identity {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 4px;
+
+    strong {
+      justify-content: flex-start;
+    }
+  }
+
+  .eq-flat-editor__control,
+  .eq-flat-editor__delete {
     grid-column: 1 / -1;
   }
 }
@@ -545,4 +592,62 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: 88px !important;
     margin-block: 44px !important;
   }
+}
+
+// Both EQ rows size from their contents. The selected-band editor must remain
+// part of normal flow so the EQ card grows before the graph begins.
+.main-content--full,
+.main-content--compact,
+.main-content--dense {
+  grid-template-rows: auto auto;
+}
+
+.main-content .eq-scale,
+.main-content .bands {
+  height: auto;
+}
+
+.main-content .bands {
+  overflow: visible !important;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.main-content--full .bandWrapper .range input[type='range'] {
+  width: 132px !important;
+  margin-block: 66px !important;
+}
+
+.main-content--compact .bandWrapper .range input[type='range'] {
+  width: 116px !important;
+  margin-block: 58px !important;
+}
+
+.main-content--dense .bandWrapper .range input[type='range'] {
+  width: 102px !important;
+  margin-block: 51px !important;
+}
+
+// Keep the intrinsic EQ rows explicit: scale and sliders share the first row,
+// while the selected-band editor owns the complete second row.
+.main-content > .eq-scale {
+  grid-row: 1;
+  grid-column: 1;
+}
+
+.main-content > .bands {
+  grid-row: 1;
+  grid-column: 2;
+}
+
+.main-content > .eq-flat-editor {
+  grid-row: 2;
+  grid-column: 1 / -1;
+  align-self: start;
+  position: relative;
+  inset: auto;
+  transform: none;
 }
