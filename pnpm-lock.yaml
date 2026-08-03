@@ -264,11 +264,7 @@ importers:
         specifier: ^6.0.1
         version: 6.0.1
 
-  release/app:
-    dependencies:
-      win32-api:
-        specifier: ^26.1.2
-        version: 26.1.2
+  release/app: {}
 
 packages:
 
@@ -1670,10 +1666,6 @@ packages:
     resolution: {integrity: sha512-nAB74NfSNKknqQ1RrYj6uz8FcXEomu/MATJZxh/x+BArzN2U3JbOYC0APYzUIGhVY3m5hRxA8VPNdPBoG8txlA==}
     cpu: [x64]
     os: [win32]
-
-  '@waiting/shared-types@23.24.0':
-    resolution: {integrity: sha512-E7U3ulMbHiT05Jd8RlepovGeixCQMAdJMkGE83s/JMtCOx0n02Ss7OURLVgV+j06SeHZ52wCBoHfriqlW6Pa3w==}
-    engines: {node: '>=18.12.0'}
 
   '@wdio/config@9.30.0':
     resolution: {integrity: sha512-pH/Y1F4QVIsx33xyli8+9HCr4HRuOeUk8j/lqNBuuUzbvduYRCLmNkZqxRsLnRth8wrlPdzA8Hq+PPLwJWrceA==}
@@ -4511,9 +4503,6 @@ packages:
     resolution: {integrity: sha512-eTIzlVOSUR+JxdDFepEYcBMtZ9Qqdef+rnzWdRZuMbOywu5tO2w2N7rqjoANZ5k9vywhL6Br1VRjUIgTQx4E8w==}
     engines: {node: '>=6'}
 
-  koffi@2.16.3:
-    resolution: {integrity: sha512-E9y1AsgYGlaxMhcZzHr8y96QF2U5XzA12GGVAfbWqIubTwPNMXQarfBzePNXHe0xtIEtNd6ifAv3GAKYGUeBAQ==}
-
   language-subtag-registry@0.3.23:
     resolution: {integrity: sha512-0K65Lea881pHotoGEa5gDlMxt3pctLi2RplBb7Ezh4rRdLEOtgi7n4EwK9lamnUCkKBqaeKRVebTq6BAxSkpXQ==}
 
@@ -6776,14 +6765,6 @@ packages:
   wildcard@2.0.1:
     resolution: {integrity: sha512-CC1bOL87PIWSBhDcTrdeLo6eGT7mCFtrg0uIJtqJUFyK+eJnzl8A1niH56uu7KMa5XFrtiV+AQuHO3n7DsHnLQ==}
 
-  win32-api@26.1.2:
-    resolution: {integrity: sha512-6pFihEkolpU8PIPk3pbBa/Wn2S9esHAbRrlvRObKRARMdXb2dpe50J5FRApOhK8HCbyI4/uS6qtxZ/hKpr+8Kw==}
-    engines: {node: '>=20.11.0'}
-
-  win32-def@26.1.2:
-    resolution: {integrity: sha512-vk65D1jZt6t0cTpP8fdUPbHobneOKPyYpk8ADIjUTq4aDkfNiHtbIAPqz/bqYABFZqRU7NCREqf5v7EOz3lstg==}
-    engines: {node: '>=18.11.0'}
-
   word-wrap@1.2.5:
     resolution: {integrity: sha512-BN22B5eaMMI9UMtjrGd5g5eCYPpCPDUy0FJXbYsaT5zYxjFOckS53SQDE3pWkVoWpHXVb3BrYcEN4Twa55B5cA==}
     engines: {node: '>=0.10.0'}
@@ -8714,8 +8695,6 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.12.2':
     optional: true
-
-  '@waiting/shared-types@23.24.0': {}
 
   '@wdio/config@9.30.0':
     dependencies:
@@ -12363,8 +12342,6 @@ snapshots:
 
   kleur@3.0.3: {}
 
-  koffi@2.16.3: {}
-
   language-subtag-registry@0.3.23: {}
 
   language-tags@1.0.5:
@@ -14820,15 +14797,6 @@ snapshots:
       isexe: 4.0.0
 
   wildcard@2.0.1: {}
-
-  win32-api@26.1.2:
-    dependencies:
-      win32-def: 26.1.2
-
-  win32-def@26.1.2:
-    dependencies:
-      '@waiting/shared-types': 23.24.0
-      koffi: 2.16.3
 
   word-wrap@1.2.5: {}
 

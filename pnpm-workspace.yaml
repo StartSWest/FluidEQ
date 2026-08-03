@@ -10,12 +10,9 @@ allowBuilds:
   electron: true
   electron-chromedriver: true
   electron-winstaller: true
-  ffi-napi: true
   geckodriver: true
-  koffi: true
   lzma-native: true
   protobufjs: true
-  ref-napi: true
   unrs-resolver: true
 
 overrides:

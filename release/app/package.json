@@ -12,7 +12,5 @@
     "postinstall": "pnpm electron-rebuild && pnpm link-modules",
     "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
   },
-  "dependencies": {
-    "win32-api": "^26.1.2"
-  }
+  "dependencies": {}
 }
