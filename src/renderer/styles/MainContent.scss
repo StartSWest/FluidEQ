@@ -272,6 +272,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     minmax(98px, 1fr);
   align-items: stretch;
   gap: 8px;
+  margin-bottom: -1px;
   border: 1px solid rgba($secondary-default, 0.14);
   border-radius: 13px;
   background: linear-gradient(
@@ -520,5 +521,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .eq-flat-editor__identity {
     grid-column: 1 / -1;
+  }
+}
+
+// Keep the vertical slider tracks usable on short windows while allowing the
+// EQ panel itself to scroll when the selected band editor needs more room.
+@media (max-height: 840px) {
+  .main-content .bands {
+    min-height: 0;
+  }
+
+  .main-content--full .bandWrapper .range input[type='range'] {
+    width: 112px !important;
+    margin-block: 56px !important;
+  }
+
+  .main-content--compact .bandWrapper .range input[type='range'] {
+    width: 100px !important;
+    margin-block: 50px !important;
+  }
+
+  .main-content--dense .bandWrapper .range input[type='range'] {
+    width: 88px !important;
+    margin-block: 44px !important;
   }
 }

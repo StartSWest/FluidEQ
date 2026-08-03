@@ -54,6 +54,22 @@ const EQ_SOURCES: IEqSource[] = [
   },
 ];
 
+const ALL_SOURCE_ID = 'all';
+const ALL_SOURCE: IEqSource = {
+  id: ALL_SOURCE_ID,
+  name: 'All databases',
+  description: 'Search AutoEQ official and every synced Squiglink database.',
+  attributionUrl: 'https://github.com/jaakkopasanen/AutoEq',
+  online: true,
+};
+
+interface IDeviceEntry {
+  value: string;
+  name: string;
+  sourceId: IEqSource['id'];
+  sourceName: string;
+}
+
 const getResponseFormatLabel = (response: string) => {
   if (/graphiceq/i.test(response)) {
     return 'Graphic EQ · native APO GraphicEQ';
@@ -74,11 +90,11 @@ const AutoEQ = () => {
   const NO_RESPONSE_SELECTION = 'Pick a response! 🔊';
 
   const { globalError, setGlobalError, refreshState } = useAquaContext();
-  const [devices, setDevices] = useState<string[]>([]);
+  const [devices, setDevices] = useState<IDeviceEntry[]>([]);
   const [responses, setResponses] = useState<string[]>([]);
   const [currentDevice, setCurrentDevice] = useState<string>('');
   const [currentResponse, setCurrentResponse] = useState<string>('');
-  const [sourceId, setSourceId] = useState<IEqSource['id'] | ''>('');
+  const [sourceId, setSourceId] = useState<IEqSource['id'] | ''>(ALL_SOURCE_ID);
   const [squigSources, setSquigSources] = useState<IEqSource[]>(
     EQ_SOURCES.slice(1),
   );
@@ -102,7 +118,10 @@ const AutoEQ = () => {
     () => [EQ_SOURCES[0], ...squigSources],
     [squigSources],
   );
-  const currentSource = allSources.find((source) => source.id === sourceId);
+  const currentSource =
+    sourceId === ALL_SOURCE_ID
+      ? ALL_SOURCE
+      : allSources.find((source) => source.id === sourceId);
 
   useEffect(() => {
     getSquiglinkSourceList()
@@ -133,18 +152,43 @@ const AutoEQ = () => {
     }
 
     try {
-      const list =
-        sourceId === 'autoeq'
-          ? await getAutoEqDeviceList()
-          : await getSquiglinkDeviceList(sourceId);
-      setDevices(list);
+      const sourcesToLoad =
+        sourceId === ALL_SOURCE_ID
+          ? allSources
+          : allSources.filter((source) => source.id === sourceId);
+      const results = await Promise.allSettled(
+        sourcesToLoad.map(async (source) => ({
+          source,
+          names:
+            source.id === 'autoeq'
+              ? await getAutoEqDeviceList()
+              : await getSquiglinkDeviceList(source.id),
+        })),
+      );
+      const entries: IDeviceEntry[] = results.flatMap((result) => {
+        if (result.status !== 'fulfilled') {
+          return [];
+        }
+        return result.value.names.map((name) => ({
+          value: `${result.value.source.id}::${name}`,
+          name,
+          sourceId: result.value.source.id,
+          sourceName: result.value.source.name,
+        }));
+      });
+      entries.sort((left, right) =>
+        `${left.name} ${left.sourceName}`.localeCompare(
+          `${right.name} ${right.sourceName}`,
+        ),
+      );
+      setDevices(entries);
       setCurrentDevice('');
       setCurrentResponse('');
       setResponses([]);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
-  }, [setGlobalError, sourceId]);
+  }, [allSources, setGlobalError, sourceId]);
 
   // Fetch supported devices from the selected source.
   useEffect(() => {
@@ -183,7 +227,7 @@ const AutoEQ = () => {
     setIsUpdating(true);
     try {
       setUpdateStatus(await updateAutoEqDatabase());
-      setDevices(await getAutoEqDeviceList());
+      await fetchDeviceNames();
       setCurrentDevice('');
       setCurrentResponse('');
       setResponses([]);
@@ -197,10 +241,14 @@ const AutoEQ = () => {
   // When user changes the current selected device, fetch the supported responses
   const handleDeviceChange = async (newValue: string) => {
     try {
+      const selected = devices.find((device) => device.value === newValue);
+      if (!selected) {
+        return;
+      }
       const nextResponses =
-        sourceId === 'autoeq'
-          ? await getAutoEqResponseList(newValue)
-          : await getSquiglinkResponseList(sourceId, newValue);
+        selected.sourceId === 'autoeq'
+          ? await getAutoEqResponseList(selected.name)
+          : await getSquiglinkResponseList(selected.sourceId, selected.name);
       setResponses(nextResponses);
       setCurrentDevice(newValue);
       // Pick the first available measurement so every model starts with a
@@ -213,15 +261,19 @@ const AutoEQ = () => {
 
   const applyAutoEQ = async () => {
     try {
+      const selected = devices.find((device) => device.value === currentDevice);
+      if (!selected) {
+        return;
+      }
       const profileName = formatPresetName(
-        `${currentDevice} - ${currentResponse}`,
+        `${selected.name} - ${currentResponse}`,
       );
-      if (sourceId === 'autoeq') {
-        await loadAutoEqPreset(currentDevice, currentResponse, profileName);
+      if (selected.sourceId === 'autoeq') {
+        await loadAutoEqPreset(selected.name, currentResponse, profileName);
       } else {
         await loadSquiglinkPreset(
-          sourceId,
-          currentDevice,
+          selected.sourceId,
+          selected.name,
           currentResponse,
           profileName,
         );
@@ -235,36 +287,48 @@ const AutoEQ = () => {
 
   const deviceOptions: IOptionEntry[] = useMemo(
     () =>
-      devices.map((s) => {
+      devices.map((device) => {
         return {
-          value: s,
-          label: s,
-          display: <div>{s}</div>,
+          value: device.value,
+          label: `${device.name} · ${device.sourceName}`,
+          display: (
+            <div className="eq-device-option">
+              <strong>{device.name}</strong>
+              {sourceId === ALL_SOURCE_ID && <small>{device.sourceName}</small>}
+            </div>
+          ),
         };
       }),
-    [devices],
+    [devices, sourceId],
   );
 
   const sourceOptions: IOptionEntry[] = useMemo(
     () =>
-      allSources.map((source) => ({
-        value: source.id,
-        label: source.name,
-        group:
-          source.id === EQ_SOURCES[0].id
-            ? 'AutoEQ official'
-            : 'Squiglink public databases',
-        display: (
-          <div
-            className={`eq-source-option${
-              source.id === EQ_SOURCES[0].id ? '' : ' eq-source-option--child'
-            }`}
-          >
-            <strong>{source.name}</strong>
-            <small>{source.description}</small>
-          </div>
-        ),
-      })),
+      [ALL_SOURCE, ...allSources].map((source) => {
+        let group = 'Squiglink public databases';
+        if (source.id === ALL_SOURCE_ID) {
+          group = 'All databases';
+        } else if (source.id === EQ_SOURCES[0].id) {
+          group = 'AutoEQ official';
+        }
+        const isPrimarySource =
+          source.id === ALL_SOURCE_ID || source.id === EQ_SOURCES[0].id;
+        return {
+          value: source.id,
+          label: source.name,
+          group,
+          display: (
+            <div
+              className={`eq-source-option${
+                isPrimarySource ? '' : ' eq-source-option--child'
+              }`}
+            >
+              <strong>{source.name}</strong>
+              <small>{source.description}</small>
+            </div>
+          ),
+        };
+      }),
     [allSources],
   );
 

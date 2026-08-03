@@ -1131,14 +1131,105 @@ html {
   }
 
   .workspace-tab-panel--eq {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+
     > .main-content {
       flex-basis: 220px;
       min-height: 220px;
     }
   }
 
+  .workspace-tab-panel--convolution {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
   body #root:not(.minimized) > .graph-wrapper {
     min-height: 170px;
+  }
+}
+
+// Short windows need a compact, scrollable workspace. The graph is useful
+// during tuning, but it should never push the editor and profile controls out
+// of view when vertical space is scarce.
+@media (max-height: 700px) {
+  body #root:not(.minimized) > .graph-wrapper {
+    display: none;
+  }
+
+  body #root:not(.minimized) {
+    grid-template-rows: minmax(0, 1fr);
+    row-gap: 0;
+  }
+
+  body #root.minimized {
+    grid-template-rows: minmax(0, 1fr);
+    row-gap: 0;
+  }
+
+  .side-bar > div:last-child {
+    display: none;
+  }
+
+  .middle-content {
+    min-height: 0;
+  }
+
+  .side-bar,
+  .right-content {
+    min-height: 0;
+    max-height: 100%;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
+  .workspace-tab-panel--eq,
+  .workspace-tab-panel--convolution {
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
+  .workspace-tab-panel--eq > .main-content {
+    flex: 0 0 auto;
+    min-height: 220px;
+    height: auto;
+  }
+
+  .main-content {
+    min-height: 220px;
+  }
+
+  .side-bar .slider .range input[type='range'] {
+    width: 72px !important;
+    margin-block: 36px !important;
+  }
+}
+
+@media (min-width: 981px) and (max-height: 700px) {
+  body #root:not(.minimized) {
+    grid-template-areas: 'side-bar middle-content presets-bar';
+    grid-template-columns: 154px minmax(0, 1fr) minmax(280px, 326px);
+  }
+}
+
+@media (min-width: 721px) and (max-width: 980px) and (max-height: 700px) {
+  body #root:not(.minimized) {
+    grid-template-areas:
+      'side-bar middle-content'
+      'presets-bar presets-bar';
+    grid-template-rows: minmax(0, 1fr) minmax(170px, auto);
+  }
+}
+
+@media (max-width: 720px) and (max-height: 700px) {
+  body #root:not(.minimized) {
+    grid-template-areas:
+      'side-bar'
+      'middle-content'
+      'presets-bar';
+    grid-template-rows: auto minmax(0, 1fr) minmax(150px, auto);
   }
 }
 
@@ -1205,5 +1296,26 @@ html {
   .right-content {
     display: grid;
     grid-template-columns: 1fr;
+  }
+}
+
+// Re-apply the short-window stack after the narrow-width rules above. This
+// keeps the graph row removed even when the app is running in its one-column
+// responsive layout.
+@media (max-width: 720px) and (max-height: 700px) {
+  body #root:not(.minimized) {
+    grid-template-areas:
+      'side-bar'
+      'middle-content'
+      'presets-bar';
+    grid-template-rows: auto minmax(0, 1fr) minmax(150px, auto);
+  }
+
+  body #root.minimized {
+    grid-template-areas:
+      'side-bar'
+      'middle-content'
+      'presets-bar';
+    grid-template-rows: auto minmax(0, 1fr) minmax(150px, auto);
   }
 }

@@ -226,6 +226,29 @@ $auto-eq-dropdown-width: 220px;
   }
 }
 
+.eq-device-option {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+
+  strong,
+  small {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    color: rgba($white, 0.92);
+    font-size: 0.72rem;
+  }
+
+  small {
+    color: rgba($primary-lighter, 0.58);
+    font-size: 0.62rem;
+  }
+}
+
 .autoeq-update {
   min-height: 30px;
   margin: 4px 8px 0;
