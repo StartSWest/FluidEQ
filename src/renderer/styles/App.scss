@@ -84,7 +84,7 @@ body {
     display: grid;
     grid-template-areas:
       'side-bar middle-content presets-bar'
-      'side-bar graph-wrapper presets-bar';
+      'graph-wrapper graph-wrapper graph-wrapper';
     grid-template-columns: $sidebar-width 1fr $preset-bar-width;
     // Keep fixed height for equalizer when graph view is on
     grid-template-rows: $equalizer-height 1fr;
@@ -713,6 +713,20 @@ body {
   overflow: auto;
 }
 
+// The response graph spans the complete lower workspace. Utility panes stay
+// above that row so their full-height cards remain visible at either side.
+@media (min-width: 981px) {
+  body #root:not(.minimized) > .side-bar,
+  body #root:not(.minimized) > .right-content {
+    grid-row: 1 / 3;
+    z-index: 3;
+  }
+
+  body #root:not(.minimized) > .graph-wrapper {
+    z-index: 1;
+  }
+}
+
 .workspace-tabs {
   display: flex;
   align-items: center;
@@ -1019,8 +1033,8 @@ html {
     #root {
       grid-template-areas:
         'side-bar middle-content'
-        'side-bar graph-wrapper'
-        'presets-bar presets-bar';
+        'presets-bar presets-bar'
+        'graph-wrapper graph-wrapper';
       grid-template-columns: 142px minmax(0, 1fr);
       grid-template-rows: minmax(520px, auto) auto 320px;
     }
