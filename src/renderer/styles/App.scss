@@ -423,6 +423,7 @@ body {
   min-height: 0;
   grid-template-rows: max-content minmax(0, 1fr);
   gap: $spacing-s;
+  overflow: visible;
 }
 
 .title-bar {
@@ -720,7 +721,10 @@ body {
   body #root:not(.minimized) {
     // Fit the workspace to the viewport. Long catalogues scroll inside their
     // result list; the application shell itself never gains a page scrollbar.
-    grid-template-rows: minmax(0, 1fr) minmax(0, 36vh);
+    // Give the editor enough room for its toolbar, bands and selected-band
+    // editor before allocating the remaining space to the graph.  The old
+    // 36vh graph row left a large dead strip below the EQ on short windows.
+    grid-template-rows: minmax(340px, 1fr) minmax(230px, 32vh);
   }
 
   body #root:not(.minimized) > .side-bar,
@@ -732,6 +736,7 @@ body {
     height: 100%;
     max-height: none;
     min-height: 0;
+    overflow: visible;
     z-index: 3;
   }
 
@@ -798,9 +803,12 @@ body {
 
 .workspace-tab-panel--eq {
   display: grid;
-  grid-template-rows: repeat(4, max-content) minmax(0, 1fr);
+  // AutoEQ, the EQ heading/toolbar, and the band editor are the three direct
+  // children in this panel.  Keeping an extra empty grid row here made the
+  // EQ stop at its intrinsic height and left a blank area above the graph.
+  grid-template-rows: max-content max-content minmax(260px, 1fr);
   gap: 10px;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .workspace-tab-panel--convolution {

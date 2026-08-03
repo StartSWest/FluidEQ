@@ -198,6 +198,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-rows: minmax(0, 1fr) auto;
   gap: 6px;
   padding: 12px 10px;
+  min-height: 260px;
+  height: 100%;
 }
 
 .eq-scale {

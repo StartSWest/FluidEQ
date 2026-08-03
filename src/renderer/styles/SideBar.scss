@@ -85,7 +85,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
 
     .number-input {
+      width: 78px;
+      min-width: 78px;
       align-items: center;
+
+      .input-wrapper {
+        width: 100%;
+        min-width: 0;
+      }
+
+      input[type='text'] {
+        min-width: 0;
+        width: 100%;
+      }
     }
   }
 
