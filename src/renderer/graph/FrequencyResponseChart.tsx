@@ -54,6 +54,7 @@ import {
 import { getFilterLineData, getCombinedLineData } from './utils';
 import { ColorEnum, GrayScaleEnum } from '../styles/color';
 import { useLiveAudio } from '../audio/LiveAudioContext';
+import { getBandColor } from '../utils/bandColors';
 
 const isFilterEqual = (f1: IFilter, f2: IFilter) => {
   if (!f1 || !f2) {
@@ -374,11 +375,28 @@ const FrequencyResponseChart = () => {
     [chartData, liveOutput.points],
   );
 
-  const editablePoints: IEditableChartPoint[] = useMemo(
-    () =>
-      Object.values(filters).map((filter) => ({
+  const editablePoints: IEditableChartPoint[] = useMemo(() => {
+    // Sliders are ordered by frequency, so use the exact same ordering when
+    // assigning the spectrum palette to graph points. The point and its
+    // corresponding slider therefore always share one color.
+    const sortedFilters = Object.values(filters).sort(
+      (a, b) => a.frequency - b.frequency,
+    );
+    const colorsById = new Map(
+      sortedFilters.map((filter, index) => {
+        const progress =
+          sortedFilters.length > 1 ? index / (sortedFilters.length - 1) : 0;
+        return [filter.id, getBandColor(progress)] as const;
+      }),
+    );
+
+    return Object.values(filters).map((filter) => {
+      const bandColor = colorsById.get(filter.id) || getBandColor(0);
+      return {
         id: filter.id,
         name: `${filter.type} band`,
+        color: bandColor.color,
+        mutedColor: bandColor.muted,
         // Keep the editable points in the same root-gain coordinate space as
         // the response curve. Changing preamp therefore shifts every dot
         // vertically without changing any band's stored gain.
@@ -394,19 +412,19 @@ const FrequencyResponseChart = () => {
         },
         onQualityWheel: (direction: number) =>
           handlePointQualityWheel(filter.id, direction),
-      })),
-    [
-      filters,
-      flushPointEdit,
-      handlePointMove,
-      handlePointQualityWheel,
-      hoveredFilterId,
-      preAmp,
-      selectedFilterId,
-      setSelectedFilterId,
-      setHoveredFilterId,
-    ],
-  );
+      };
+    });
+  }, [
+    filters,
+    flushPointEdit,
+    handlePointMove,
+    handlePointQualityWheel,
+    hoveredFilterId,
+    preAmp,
+    selectedFilterId,
+    setSelectedFilterId,
+    setHoveredFilterId,
+  ]);
 
   return isGraphViewOn ? (
     <div className="graph-wrapper" ref={ref}>

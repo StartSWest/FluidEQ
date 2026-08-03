@@ -9,7 +9,13 @@ the Free Software Foundation, either version 3 of the License, or
 */
 
 import * as d3 from 'd3';
-import { PointerEvent, useCallback, useMemo, useRef } from 'react';
+import {
+  PointerEvent,
+  type CSSProperties,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import {
   GRAPH_END,
@@ -122,10 +128,14 @@ const EditablePoint = ({
       onPointerEnter={() => point.onHover(true)}
       onPointerLeave={() => point.onHover(false)}
       onWheel={handleWheel}
-      style={{
-        touchAction: 'none',
-        cursor: dragging.current ? 'grabbing' : 'grab',
-      }}
+      style={
+        {
+          touchAction: 'none',
+          cursor: dragging.current ? 'grabbing' : 'grab',
+          '--point-color': point.color,
+          '--point-muted-color': point.mutedColor,
+        } as CSSProperties
+      }
     >
       <circle
         className="graph-edit-point__halo"

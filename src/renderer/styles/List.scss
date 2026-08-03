@@ -105,6 +105,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         );
         border-color: rgba($secondary-light, 0.22);
       }
+
+      &.list-group-heading {
+        min-height: 24px;
+        margin: 7px 4px 2px;
+        padding: 5px 8px;
+        border: 0;
+        border-top: 1px solid rgba($primary-lighter, 0.08);
+        border-radius: 0;
+        color: rgba($secondary-light, 0.72);
+        background: transparent;
+        cursor: default;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        pointer-events: none;
+        text-transform: uppercase;
+
+        &:first-child {
+          margin-top: 1px;
+          border-top: 0;
+        }
+
+        &:hover,
+        &:focus,
+        &:focus-visible,
+        &:focus-within {
+          border-color: transparent;
+          color: rgba($secondary-light, 0.72);
+          background: transparent;
+        }
+      }
     }
   }
 }

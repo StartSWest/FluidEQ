@@ -228,8 +228,16 @@ const AutoEQ = () => {
       allSources.map((source) => ({
         value: source.id,
         label: source.name,
+        group:
+          source.id === EQ_SOURCES[0].id
+            ? 'AutoEQ official'
+            : 'Squiglink public databases',
         display: (
-          <div className="eq-source-option">
+          <div
+            className={`eq-source-option${
+              source.id === EQ_SOURCES[0].id ? '' : ' eq-source-option--child'
+            }`}
+          >
             <strong>{source.name}</strong>
             <small>{source.description}</small>
           </div>

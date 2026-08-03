@@ -540,8 +540,8 @@ body {
   outline: none;
 
   &__halo {
-    fill: rgba($secondary-default, 0.12);
-    stroke: rgba($secondary-light, 0.3);
+    fill: var(--point-muted-color);
+    stroke: var(--point-color);
     stroke-width: 1;
     transition:
       r 120ms ease,
@@ -550,10 +550,10 @@ body {
   }
 
   &__dot {
-    fill: $secondary-light;
+    fill: var(--point-color);
     stroke: rgba($white, 0.9);
     stroke-width: 1.5;
-    filter: drop-shadow(0 0 5px rgba($secondary-default, 0.8));
+    filter: drop-shadow(0 0 5px var(--point-muted-color));
     transition:
       r 120ms ease,
       fill 120ms ease;
@@ -564,13 +564,13 @@ body {
   &--selected,
   &--hovered {
     .graph-edit-point__halo {
-      fill: rgba($secondary-default, 0.24);
-      stroke: $secondary-light;
+      fill: var(--point-muted-color);
+      stroke: var(--point-color);
     }
 
     .graph-edit-point__dot {
-      fill: $white;
-      filter: drop-shadow(0 0 9px rgba($secondary-light, 0.95));
+      fill: var(--point-color);
+      filter: drop-shadow(0 0 9px var(--point-color));
     }
   }
 }

@@ -20,6 +20,7 @@ import { ChangeEvent, WheelEvent, CSSProperties, useMemo, useRef } from 'react';
 import ArrowButton from './ArrowButton';
 import '../styles/RangeInput.scss';
 import { clamp } from '../utils/utils';
+import { getBandColor } from '../utils/bandColors';
 
 interface IRangeInputProps {
   name: string;
@@ -34,44 +35,6 @@ interface IRangeInputProps {
   handleMouseUp: (newValue: number) => Promise<void>;
   colorProgress?: number;
 }
-
-interface IRangeColor {
-  color: string;
-  muted: string;
-  track: string;
-}
-
-type Rgb = readonly [number, number, number];
-
-// Bass, mids and treble all sample this same waveform-inspired spectrum. The
-// number of bands only changes the sampling density, never the palette.
-const RANGE_COLOR_STOPS: ReadonlyArray<{ position: number; color: Rgb }> = [
-  { position: 0, color: [0, 229, 255] },
-  { position: 0.28, color: [84, 255, 138] },
-  { position: 0.52, color: [255, 230, 109] },
-  { position: 0.76, color: [255, 60, 172] },
-  { position: 1, color: [139, 92, 255] },
-];
-
-const getRangeColor = (progress: number): IRangeColor => {
-  const normalized = Math.max(0, Math.min(1, progress));
-  const rightStop =
-    RANGE_COLOR_STOPS.find((stop) => stop.position >= normalized) ||
-    RANGE_COLOR_STOPS[RANGE_COLOR_STOPS.length - 1];
-  const rightIndex = RANGE_COLOR_STOPS.indexOf(rightStop);
-  const leftStop = RANGE_COLOR_STOPS[Math.max(0, rightIndex - 1)];
-  const span = rightStop.position - leftStop.position || 1;
-  const amount = (normalized - leftStop.position) / span;
-  const rgb = leftStop.color.map((channel, index) =>
-    Math.round(channel + (rightStop.color[index] - channel) * amount),
-  );
-  const color = `rgb(${rgb.join(', ')})`;
-  return {
-    color,
-    muted: `rgba(${rgb.join(', ')}, 0.38)`,
-    track: `rgba(${rgb.join(', ')}, 0.1)`,
-  };
-};
 
 const RangeInput = ({
   name,
@@ -101,7 +64,7 @@ const RangeInput = ({
     [incrementPrecision],
   );
   const rangeColor = useMemo(
-    () => getRangeColor(colorProgress),
+    () => getBandColor(colorProgress),
     [colorProgress],
   );
 

@@ -57,6 +57,8 @@ export interface IChartCurveData {
 export interface IEditableChartPoint {
   id: string;
   name: string;
+  color: string;
+  mutedColor: string;
   data: IChartPointData;
   selected: boolean;
   hovered: boolean;

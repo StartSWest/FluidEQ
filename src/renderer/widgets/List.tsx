@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   createRef,
+  Fragment,
   KeyboardEvent,
   MouseEvent,
   useCallback,
@@ -33,6 +34,8 @@ export interface IOptionEntry {
   value: string;
   label: string;
   display: ReactNode;
+  /** Optional non-interactive section heading displayed above this option. */
+  group?: string;
 }
 
 interface IListProps {
@@ -126,23 +129,32 @@ const List = ({
       )}
       <ul className={`list ${className || ''}`} aria-label={`${name}-items`}>
         {options.map((entry: IOptionEntry, index: number) => {
+          const showGroup =
+            Boolean(entry.group) &&
+            (index === 0 || entry.group !== options[index - 1].group);
           return (
-            <li
-              role="menuitem"
-              ref={inputRefs[index]}
-              className={`row ${itemClassName || ''} ${
-                entry.value === value ? 'selected' : ''
-              }`}
-              key={entry.value}
-              value={entry.value}
-              aria-label={entry.label}
-              onClick={onClick(entry.value)}
-              onKeyDown={handleItemKeyPress(entry, index)}
-              onMouseEnter={onMouseEnter(index)}
-              tabIndex={0}
-            >
-              {entry.display}
-            </li>
+            <Fragment key={entry.value}>
+              {showGroup && (
+                <li role="presentation" className="list-group-heading">
+                  {entry.group}
+                </li>
+              )}
+              <li
+                role="menuitem"
+                ref={inputRefs[index]}
+                className={`row ${itemClassName || ''} ${
+                  entry.value === value ? 'selected' : ''
+                }`}
+                value={entry.value}
+                aria-label={entry.label}
+                onClick={onClick(entry.value)}
+                onKeyDown={handleItemKeyPress(entry, index)}
+                onMouseEnter={onMouseEnter(index)}
+                tabIndex={0}
+              >
+                {entry.display}
+              </li>
+            </Fragment>
           );
         })}
         {options.length === 0 && (

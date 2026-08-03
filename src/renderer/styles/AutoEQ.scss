@@ -146,6 +146,10 @@ $auto-eq-dropdown-width: 220px;
     width: 100%;
     min-width: 0;
 
+    &--child {
+      padding-left: 8px;
+    }
+
     strong,
     small {
       display: block;
