@@ -134,7 +134,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 10px 12px 8px 8px;
   overflow: hidden;
   border-color: rgba($primary-lighter, 0.1);
-  border-radius: 18px;
+  border-radius: 0;
   background:
     radial-gradient(
       circle at 50% 0%,
@@ -158,36 +158,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .bands {
-    isolation: isolate;
     padding-inline: 8px;
     scroll-behavior: smooth;
     scrollbar-gutter: auto;
-
-    // One continuous neon spectrum behind the complete EQ row. The sliders
-    // sample this aura by position, so changing the number of bands never
-    // creates separate rainbow gradients per control.
-    &::before {
-      position: absolute;
-      z-index: 0;
-      inset: 10px 3% 10px;
-      border-radius: 999px;
-      background: linear-gradient(
-        90deg,
-        #00e5ff 0%,
-        #54ff8a 28%,
-        #ffe66d 52%,
-        #ff3cac 76%,
-        #8b5cff 100%
-      );
-      filter: blur(22px);
-      opacity: 0.14;
-      pointer-events: none;
-      content: '';
-    }
-
-    .bandWrapper {
-      z-index: 1;
-    }
   }
 }
 

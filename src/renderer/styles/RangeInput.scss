@@ -96,23 +96,25 @@ $range-thumb-height: 18px;
   input[type='range'] {
     &::-webkit-slider-runnable-track {
       height: 6px;
-      border: 1px solid rgba($secondary-light, 0.1);
+      border: 1px solid var(--slider-color-muted);
       border-radius: 999px;
       background: var(--slider-color) 0 / var(--sx) 100% no-repeat
         var(--slider-track);
       box-shadow:
         inset 0 1px 2px rgba($black, 0.38),
-        0 0 10px var(--slider-color-muted);
+        0 0 7px var(--slider-color-muted),
+        0 0 16px var(--slider-track);
     }
 
     &::-webkit-slider-thumb {
       width: 16px;
       height: 16px;
       margin-top: -6px;
-      border: 1px solid rgba($white, 0.34);
+      border: 1px solid var(--slider-color);
       background: var(--slider-color);
       box-shadow:
         0 0 0 3px var(--slider-color-muted),
+        0 0 10px var(--slider-color-muted),
         0 3px 10px rgba($black, 0.34);
     }
   }

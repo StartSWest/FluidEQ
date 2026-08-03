@@ -235,18 +235,20 @@ const FrequencyResponseChart = () => {
       convolutionFilterLines[filter.id] = getFilterLineData(filter);
     });
 
-    // APO applies the headset convolution first, then the editable EQ bands,
-    // and finally preamp. Mirror that exact order in the response graph.
-    const totalCurveData = getCombinedLineData(preAmp, {
+    // Keep the complete chain for auto-headroom calculation only. The graph
+    // renders convolution and editable EQ as separate curves so the white EQ
+    // line never includes the convolution response.
+    const processedCurveData = getCombinedLineData(preAmp, {
       ...convolutionFilterLines,
       ...updatedFilterLines,
     });
     const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
+    const eqCurveData = getCombinedLineData(preAmp, updatedFilterLines);
 
     // Compute preAmp line data
     // const preAmpLine = getPreAmpLine(preAmp);
 
-    const highestPoint = totalCurveData.reduce(
+    const highestPoint = processedCurveData.reduce(
       (previousValue, currentValue) => {
         return previousValue.y < currentValue.y ? currentValue : previousValue;
       },
@@ -264,29 +266,29 @@ const FrequencyResponseChart = () => {
               id: 'Headphone Convolution',
               name: `Convolution · ${convolution.name}`,
               line: {
-                color: GrayScaleEnum.WHITE,
+                color: ColorEnum.COMPLEMENTARY,
                 strokeWidth: 2,
                 points: convolutionCurveData,
               },
             } as IChartCurveData,
             {
-              id: 'Total Response',
-              name: 'Convolution + EQ + preamp',
+              id: 'EQ Response',
+              name: 'EQ + preamp',
               line: {
-                color: ColorEnum.COMPLEMENTARY,
+                color: GrayScaleEnum.WHITE,
                 strokeWidth: 3,
-                points: totalCurveData,
+                points: eqCurveData,
               },
             } as IChartCurveData,
           ]
         : [
             {
-              id: 'Total Response',
+              id: 'EQ Response',
               name: 'EQ + preamp',
               line: {
                 color: GrayScaleEnum.WHITE,
                 strokeWidth: 3,
-                points: totalCurveData,
+                points: eqCurveData,
               },
             } as IChartCurveData,
           ],
@@ -362,7 +364,7 @@ const FrequencyResponseChart = () => {
               id: 'Live Output',
               name: 'Live processed output',
               line: {
-                color: ColorEnum.COMPLEMENTARY,
+                color: ColorEnum.ANALOGOUS2,
                 strokeWidth: 2,
                 points: liveOutput.points,
               },
@@ -414,13 +416,7 @@ const FrequencyResponseChart = () => {
             Headset convolution
           </span>
         )}
-        <span
-          className={`graph-legend graph-legend--eq${
-            convolution ? ' graph-legend--processed' : ''
-          }`}
-        >
-          {convolution ? 'Convolution + EQ' : 'EQ response'}
-        </span>
+        <span className="graph-legend graph-legend--eq">EQ response</span>
         <span className="graph-legend graph-legend--live">
           Live output (dBFS)
         </span>
