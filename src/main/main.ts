@@ -50,6 +50,7 @@ import { resolveHtmlPath, waitForRenderer } from './util';
 import { getConfigPath, isEqualizerAPOInstalled } from './registry';
 import ChannelEnum from '../common/channels';
 import {
+  AutoEqFormat,
   FilterTypeEnum,
   IState,
   IPresetV2,
@@ -83,7 +84,6 @@ import {
   isRestrictedPresetName,
 } from '../common/utils';
 import {
-  adaptLayoutSnapshot,
   adaptLayoutToFixedFrequencies,
   getFixedBandSizeForCount,
   ILayoutSnapshot,
@@ -300,6 +300,20 @@ const getAutomaticPresetName = (deviceId: string) =>
 const isAutomaticPresetName = (presetName: string) =>
   presetName.startsWith(AUTOMATIC_PRESET_PREFIX);
 
+const getCurrentPreset = (): IPresetV2 => ({
+  preAmp: state.preAmp,
+  filters: state.filters,
+  eqFormat: state.eqFormat,
+  graphicEq: state.graphicEq,
+  convolution: state.convolution,
+  isFlat: state.isFlat,
+});
+
+const switchToParametricEditing = () => {
+  state.eqFormat = AutoEqFormat.PARAMETRIC;
+  state.graphicEq = undefined;
+};
+
 const attachPresetToActiveDevice = (presetName: string) => {
   if (!activeAudioDeviceId) {
     return false;
@@ -416,30 +430,12 @@ const handleUpdateHelper = async <T>(
     if (syncActiveProfile) {
       if (!assignment && activeAudioDeviceId) {
         const automaticPresetName = getAutomaticPresetName(activeAudioDeviceId);
-        savePreset(
-          automaticPresetName,
-          {
-            preAmp: state.preAmp,
-            filters: state.filters,
-            convolution: state.convolution,
-            isFlat: state.isFlat,
-          },
-          presetPath,
-        );
+        savePreset(automaticPresetName, getCurrentPreset(), presetPath);
         attachPresetToActiveDevice(automaticPresetName);
         assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
       }
       if (assignment) {
-        savePreset(
-          assignment.presetName,
-          {
-            preAmp: state.preAmp,
-            filters: state.filters,
-            convolution: state.convolution,
-            isFlat: state.isFlat,
-          },
-          presetPath,
-        );
+        savePreset(assignment.presetName, getCurrentPreset(), presetPath);
       } else if (activeAudioDeviceId) {
         // An unassigned output still needs the user's explicit edits applied
         // immediately. Keep this override scoped to the current endpoint; it
@@ -528,6 +524,8 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     clearCurrentLayoutSettings();
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;
+    state.eqFormat = presetSettings.eqFormat;
+    state.graphicEq = presetSettings.graphicEq;
     state.convolution = presetSettings.convolution;
     state.isFlat = presetSettings.isFlat;
     attachPresetToActiveDevice(presetName);
@@ -550,16 +548,7 @@ ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
       return;
     }
 
-    savePreset(
-      presetName,
-      {
-        preAmp: state.preAmp,
-        filters: state.filters,
-        convolution: state.convolution,
-        isFlat: state.isFlat,
-      },
-      presetPath,
-    );
+    savePreset(presetName, getCurrentPreset(), presetPath);
     attachPresetToActiveDevice(presetName);
     await handleUpdate(event, channel, true);
   } catch (e) {
@@ -798,21 +787,14 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     clearCurrentLayoutSettings();
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;
-    // AutoEQ's bundled response files are ParametricEQ text files. They only
-    // replace the editable EQ chain; an already loaded convolution is an
-    // independent APO stage and must remain active.
+    state.eqFormat = presetSettings.eqFormat;
+    state.graphicEq = presetSettings.graphicEq;
+    // AutoEQ may be ParametricEQ, FixedBandEQ, or GraphicEQ. Replace only the
+    // EQ stage; an already loaded convolution remains an independent APO
+    // stage.
     state.isFlat = false;
     if (profileName && !isRestrictedPresetName(profileName)) {
-      savePreset(
-        profileName,
-        {
-          preAmp: state.preAmp,
-          filters: state.filters,
-          convolution: state.convolution,
-          isFlat: state.isFlat,
-        },
-        presetPath,
-      );
+      savePreset(profileName, getCurrentPreset(), presetPath);
       attachPresetToActiveDevice(profileName);
     }
     await handleUpdate(event, channel, true);
@@ -880,20 +862,13 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
     clearCurrentLayoutSettings();
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;
+    state.eqFormat = AutoEqFormat.PARAMETRIC;
+    state.graphicEq = undefined;
     // Squiglink responses are editable EQ bands. Keep any separately selected
     // convolution profile in place while replacing only the EQ chain.
     state.isFlat = false;
     if (profileName && !isRestrictedPresetName(profileName)) {
-      savePreset(
-        profileName,
-        {
-          preAmp: state.preAmp,
-          filters: state.filters,
-          convolution: state.convolution,
-          isFlat: state.isFlat,
-        },
-        presetPath,
-      );
+      savePreset(profileName, getCurrentPreset(), presetPath);
       attachPresetToActiveDevice(profileName);
     }
     await handleUpdate(event, channel, true);
@@ -1053,6 +1028,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_GAIN, async (event, arg) => {
     return;
   }
 
+  switchToParametricEditing();
   state.filters[filterId].gain = gain;
   state.isFlat = false;
   await handleUpdate(event, channel + filterId, true);
@@ -1088,6 +1064,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_FREQUENCY, async (event, arg) => {
     return;
   }
 
+  switchToParametricEditing();
   state.filters[filterId].frequency = frequency;
   state.isFlat = false;
   await handleUpdate(event, channel + filterId, true);
@@ -1123,6 +1100,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_QUALITY, async (event, arg) => {
     return;
   }
 
+  switchToParametricEditing();
   state.filters[filterId].quality = quality;
   state.isFlat = false;
   await handleUpdate(event, channel + filterId, true);
@@ -1158,6 +1136,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_TYPE, async (event, arg) => {
     return;
   }
 
+  switchToParametricEditing();
   state.filters[filterId].type = filterType as FilterTypeEnum;
   state.isFlat = false;
   await handleUpdate(event, channel + filterId, true);
@@ -1185,6 +1164,7 @@ ipcMain.on(ChannelEnum.ADD_FILTER, async (event, arg) => {
     return;
   }
 
+  switchToParametricEditing();
   const newFilter: IFilter = { ...getDefaultFilterWithId(), frequency };
   state.filters[newFilter.id] = newFilter;
   state.isFlat = false;
@@ -1206,6 +1186,7 @@ ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
     return;
   }
 
+  switchToParametricEditing();
   // delete does not throw exception even if the filterId does not exist
   delete state.filters[filterId];
   state.isFlat = false;
@@ -1218,6 +1199,7 @@ ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
   Object.keys(state.filters).forEach((key) => {
     state.filters[key].gain = 0;
   });
+  switchToParametricEditing();
   state.preAmp = 0;
   state.isFlat = true;
 
@@ -1240,6 +1222,7 @@ ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
   // count restores its original frequencies and tuning.
   captureCurrentLayout();
   const sourceSnapshot = snapshotFilters(state.filters);
+  switchToParametricEditing();
   const storedSnapshot = getStoredLayout(size);
   const targetSnapshot =
     storedSnapshot || adaptLayoutToFixedFrequencies(sourceSnapshot, size);

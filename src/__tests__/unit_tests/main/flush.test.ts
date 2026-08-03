@@ -33,6 +33,7 @@ import {
 } from 'main/flush';
 import fs from 'fs';
 import {
+  AutoEqFormat,
   FilterTypeEnum,
   getDefaultState,
   IPresetV2,
@@ -121,6 +122,20 @@ describe('flush', () => {
       expect(returnedString).toContain(
         'Convolution: fluideq-convolution-test.wav',
       );
+      expect(returnedString).not.toContain('Filter ');
+    });
+
+    it('writes GraphicEQ profiles using APO native syntax', () => {
+      const state = getDefaultState();
+      state.eqFormat = AutoEqFormat.GRAPHIC;
+      state.graphicEq = [
+        { frequency: 25, gain: 0 },
+        { frequency: 160, gain: 6.2 },
+      ];
+
+      const returnedString = stateToString(state);
+
+      expect(returnedString).toContain('GraphicEQ: 25 0; 160 6.2');
       expect(returnedString).not.toContain('Filter ');
     });
   });

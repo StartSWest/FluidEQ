@@ -41,6 +41,18 @@ const IStateSchema = {
       enum: ['HSC', 'LSC', 'PK'],
       type: 'string',
     },
+    AutoEqFormat: {
+      enum: ['parametric', 'fixed-band', 'graphic'],
+      type: 'string',
+    },
+    GraphicEqPoint: {
+      properties: {
+        frequency: { type: 'number' },
+        gain: { type: 'number' },
+      },
+      required: ['frequency', 'gain'],
+      type: 'object',
+    },
     IFiltersMap: {
       additionalProperties: {
         $ref: '#/definitions/IFilter',
@@ -88,6 +100,13 @@ const IStateSchema = {
     preAmp: {
       type: 'number',
     },
+    eqFormat: {
+      $ref: '#/definitions/AutoEqFormat',
+    },
+    graphicEq: {
+      items: { $ref: '#/definitions/GraphicEqPoint' },
+      type: 'array',
+    },
   },
   required: [
     'filters',
@@ -106,6 +125,18 @@ export const IPresetSchemaV1 = {
     FilterTypeEnum: {
       enum: ['HSC', 'LSC', 'PK'],
       type: 'string',
+    },
+    AutoEqFormat: {
+      enum: ['parametric', 'fixed-band', 'graphic'],
+      type: 'string',
+    },
+    GraphicEqPoint: {
+      properties: {
+        frequency: { type: 'number' },
+        gain: { type: 'number' },
+      },
+      required: ['frequency', 'gain'],
+      type: 'object',
     },
     IFilter: {
       defaultProperties: [],
@@ -140,6 +171,13 @@ export const IPresetSchemaV1 = {
     preAmp: {
       type: 'number',
     },
+    eqFormat: {
+      $ref: '#/definitions/AutoEqFormat',
+    },
+    graphicEq: {
+      items: { $ref: '#/definitions/GraphicEqPoint' },
+      type: 'array',
+    },
   },
   required: ['filters', 'preAmp'],
   type: 'object',
@@ -152,6 +190,18 @@ const IPresetSchemaV2 = {
     FilterTypeEnum: {
       enum: ['HSC', 'LSC', 'PK'],
       type: 'string',
+    },
+    AutoEqFormat: {
+      enum: ['parametric', 'fixed-band', 'graphic'],
+      type: 'string',
+    },
+    GraphicEqPoint: {
+      properties: {
+        frequency: { type: 'number' },
+        gain: { type: 'number' },
+      },
+      required: ['frequency', 'gain'],
+      type: 'object',
     },
     Filters: {
       additionalProperties: {
@@ -190,6 +240,13 @@ const IPresetSchemaV2 = {
     },
     preAmp: {
       type: 'number',
+    },
+    eqFormat: {
+      $ref: '#/definitions/AutoEqFormat',
+    },
+    graphicEq: {
+      items: { $ref: '#/definitions/GraphicEqPoint' },
+      type: 'array',
     },
   },
   required: ['filters', 'preAmp'],

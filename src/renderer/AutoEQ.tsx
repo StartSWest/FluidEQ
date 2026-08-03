@@ -54,6 +54,19 @@ const EQ_SOURCES: IEqSource[] = [
   },
 ];
 
+const getResponseFormatLabel = (response: string) => {
+  if (/graphiceq/i.test(response)) {
+    return 'Graphic EQ · native APO GraphicEQ';
+  }
+  if (/fixedbandeq/i.test(response)) {
+    return 'Fixed Band EQ · APO parametric filters';
+  }
+  return 'Parametric EQ · APO Filter/Fc/Gain/Q';
+};
+
+const getResponseDisplayName = (response: string) =>
+  response.replace(/\s+-\s+(?:Parametric|FixedBand|Graphic)EQ(?:\.txt)?$/i, '');
+
 const AutoEQ = () => {
   const CLEAR_SELECTION_EVENT = 'fluideq-clear-autoeq-selection';
   const NO_DEVICE_SELECTION = 'Pick a device first! 🎧';
@@ -258,10 +271,17 @@ const AutoEQ = () => {
   const responseOptions: IOptionEntry[] = useMemo(
     () =>
       responses.map((s) => {
+        const format = getResponseFormatLabel(s);
+        const cleanName = getResponseDisplayName(s);
         return {
           value: s,
-          label: s,
-          display: <div>{s}</div>,
+          label: `${cleanName} · ${format}`,
+          display: (
+            <div className="autoeq-response-option">
+              <strong>{cleanName}</strong>
+              <small>{format}</small>
+            </div>
+          ),
         };
       }),
     [responses],

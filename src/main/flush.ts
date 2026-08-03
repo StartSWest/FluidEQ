@@ -19,11 +19,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import {
+  AutoEqFormat,
   clampGain,
   clampQuality,
   FilterTypeEnum,
   getDefaultState,
   IFiltersMap,
+  IGraphicEqPoint,
   IPresetV1,
   IPresetV2,
   IState,
@@ -53,22 +55,35 @@ export const stateToString = (
   }
 
   if (!state.isFlat) {
-    // A zero-gain PK/shelf is neutral. Do not leave inert EQ commands in APO
-    // after the user presses Reset gains.
-    output = output.concat(
-      Object.values(state.filters)
+    if (state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length) {
+      const points = state.graphicEq
         .filter(
-          ({ gain, type }) =>
-            ![
-              FilterTypeEnum.PK,
-              FilterTypeEnum.LSC,
-              FilterTypeEnum.HSC,
-            ].includes(type) || clampGain(gain) !== 0,
+          ({ frequency, gain }) =>
+            Number.isFinite(frequency) && Number.isFinite(gain),
         )
-        .map(({ frequency, gain, type, quality }, index) => {
-          return `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
-        }),
-    );
+        .map(({ frequency, gain }) => `${frequency} ${clampGain(gain)}`)
+        .join('; ');
+      if (points) {
+        output.push(`GraphicEQ: ${points}`);
+      }
+    } else {
+      // A zero-gain PK/shelf is neutral. Do not leave inert EQ commands in APO
+      // after the user presses Reset gains.
+      output = output.concat(
+        Object.values(state.filters)
+          .filter(
+            ({ gain, type }) =>
+              ![
+                FilterTypeEnum.PK,
+                FilterTypeEnum.LSC,
+                FilterTypeEnum.HSC,
+              ].includes(type) || clampGain(gain) !== 0,
+          )
+          .map(({ frequency, gain, type, quality }, index) => {
+            return `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
+          }),
+      );
+    }
   }
 
   // Equalizer APO applies rules in order: convolution, EQ bands, then gain.
@@ -111,6 +126,14 @@ const normalizeFilters = (filters: IFiltersMap): IFiltersMap =>
     ]),
   );
 
+const normalizeGraphicEq = (points: IGraphicEqPoint[] | undefined) =>
+  Array.isArray(points)
+    ? points.filter(
+        ({ frequency, gain }) =>
+          Number.isFinite(frequency) && Number.isFinite(gain),
+      )
+    : undefined;
+
 export const fetchSettings = (settingsDir: string) => {
   const settingsPath = path.join(settingsDir, AQUA_LOCAL_CONFIG_FILENAME);
   try {
@@ -126,6 +149,9 @@ export const fetchSettings = (settingsDir: string) => {
       ...input,
       preAmp: clampGain(input.preAmp),
       filters: normalizeFilters(input.filters),
+      ...(Array.isArray(input.graphicEq)
+        ? { graphicEq: normalizeGraphicEq(input.graphicEq) }
+        : {}),
       isCaseSensitiveFs: false,
     } as IState;
   } catch (ex) {
@@ -182,10 +208,12 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
       throw new Error('Invalid preset file');
     }
     const preset = json as IPresetV2;
+    const graphicEq = normalizeGraphicEq(preset.graphicEq);
     return {
       ...preset,
       preAmp: clampGain(preset.preAmp),
       filters: normalizeFilters(preset.filters),
+      ...(graphicEq ? { graphicEq } : {}),
     };
   } catch (ex) {
     console.log('Failed to get presets!!');

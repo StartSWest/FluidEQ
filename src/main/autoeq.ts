@@ -20,6 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 import {
+  AutoEqFormat,
   FilterTypeEnum,
   clampGain,
   clampQuality,
@@ -27,9 +28,12 @@ import {
   IFilter,
   IPresetV2,
   MAX_NUM_FILTERS,
+  MAX_FREQUENCY,
+  MIN_FREQUENCY,
   PREAMP_REGEX,
   FILTER_REGEX,
   IFiltersMap,
+  IGraphicEqPoint,
 } from '../common/constants';
 
 const getBundledAutoEqDir = () =>
@@ -60,28 +64,25 @@ export const getAutoEqResponseList = (
   device: string,
   autoeqDir: string = getAutoEqDir(),
 ) => {
-  const files = fs
+  return fs
     .readdirSync(path.join(autoeqDir, device), { withFileTypes: true })
     .filter((entry) => entry.isFile())
     .map((entry) => entry.name)
     .sort((left, right) => left.localeCompare(right));
-
-  // FluidEQ edits APO parametric filters (Fc/Gain/Q), not GraphicEQ points or
-  // fixed-band gain tables. Official AutoEQ archives contain all three
-  // variants, while FluidEQ's curated archive strips the suffix and already
-  // contains only ParametricEQ profiles.
-  const parametricFiles = files.filter((fileName) =>
-    /parametriceq(?:\.txt)?$/i.test(fileName),
-  );
-  if (parametricFiles.length > 0) {
-    return parametricFiles;
-  }
-
-  const hasNonParametricProfiles = files.some((fileName) =>
-    /(?:graphiceq|fixedbandeq)/i.test(fileName),
-  );
-  return hasNonParametricProfiles ? [] : files;
 };
+
+const getAutoEqFormat = (response: string): AutoEqFormat => {
+  if (/graphiceq/i.test(response)) {
+    return AutoEqFormat.GRAPHIC;
+  }
+  if (/fixedbandeq/i.test(response)) {
+    return AutoEqFormat.FIXED_BAND;
+  }
+  return AutoEqFormat.PARAMETRIC;
+};
+
+const GRAPHIC_EQ_LINE = /^GraphicEQ:\s*(.+)$/i;
+const GRAPHIC_EQ_POINT = /^([0-9]+(?:\.[0-9]+)?)\s+(-?[0-9]+(?:\.[0-9]+)?)$/;
 
 export const getAutoEqPreset = (
   device: string,
@@ -90,13 +91,10 @@ export const getAutoEqPreset = (
 ) => {
   let preAmpParsed = 0;
   const filters: IFiltersMap = {};
+  const graphicEq: IGraphicEqPoint[] = [];
+  const eqFormat = getAutoEqFormat(response);
 
   const filePath = path.join(autoeqDir, device, response);
-  if (/(?:graphiceq|fixedbandeq)/i.test(response)) {
-    throw new Error(
-      'FluidEQ requires the AutoEQ ParametricEQ profile, not GraphicEQ or FixedBandEQ.',
-    );
-  }
   const file = fs.readFileSync(filePath, 'utf8');
 
   file.split(/\r?\n/).forEach((line, i) => {
@@ -104,7 +102,8 @@ export const getAutoEqPreset = (
       // Ensure filters doesn't exceed filter count cap
       return;
     }
-    const preampMatch = line.match(PREAMP_REGEX);
+    const trimmedLine = line.trim();
+    const preampMatch = trimmedLine.match(PREAMP_REGEX);
     if (preampMatch) {
       if (preampMatch.length !== 2) {
         throw new Error(
@@ -122,7 +121,31 @@ export const getAutoEqPreset = (
       return;
     }
 
-    const filterMatch = line.match(FILTER_REGEX);
+    const graphicMatch = trimmedLine.match(GRAPHIC_EQ_LINE);
+    if (graphicMatch) {
+      graphicMatch[1].split(';').forEach((point) => {
+        const pointMatch = point.trim().match(GRAPHIC_EQ_POINT);
+        if (!pointMatch) {
+          return;
+        }
+        const frequency = Number(pointMatch[1]);
+        const gain = Number(pointMatch[2]);
+        if (
+          Number.isFinite(frequency) &&
+          Number.isFinite(gain) &&
+          frequency >= MIN_FREQUENCY &&
+          frequency <= MAX_FREQUENCY
+        ) {
+          graphicEq.push({
+            frequency,
+            gain: clampGain(gain),
+          });
+        }
+      });
+      return;
+    }
+
+    const filterMatch = trimmedLine.match(FILTER_REGEX);
     if (filterMatch) {
       if (filterMatch.length !== 5) {
         throw new Error(
@@ -162,15 +185,32 @@ export const getAutoEqPreset = (
     // Ignore any lines which we do not recognize
   });
 
+  // GraphicEQ is rendered by APO as one native GraphicEQ command. The editor
+  // still receives a bounded PK projection so the response graph and band
+  // controls remain useful without changing the original points.
+  if (eqFormat === AutoEqFormat.GRAPHIC) {
+    graphicEq.slice(0, MAX_NUM_FILTERS).forEach((point) => {
+      const filter = getDefaultFilterWithId();
+      filter.type = FilterTypeEnum.PK;
+      filter.frequency = point.frequency;
+      filter.gain = point.gain;
+      filter.quality = clampQuality(1.41);
+      filters[filter.id] = filter;
+    });
+  }
+
   const preset: IPresetV2 = {
     preAmp: clampGain(preAmpParsed),
     filters,
+    eqFormat,
+    ...(eqFormat === AutoEqFormat.GRAPHIC ? { graphicEq } : {}),
   };
 
-  if (Object.keys(filters).length === 0) {
-    throw new Error(
-      `AutoEQ response is not a supported ParametricEQ profile: ${filePath}`,
-    );
+  if (
+    Object.keys(filters).length === 0 &&
+    !(eqFormat === AutoEqFormat.GRAPHIC && graphicEq.length > 0)
+  ) {
+    throw new Error(`AutoEQ response is not a supported profile: ${filePath}`);
   }
 
   return preset;

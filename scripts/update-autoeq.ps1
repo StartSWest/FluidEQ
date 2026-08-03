@@ -37,7 +37,10 @@ try {
     }
     New-Item -ItemType Directory -Path $stagingPath | Out-Null
 
-    $profiles = @(Get-ChildItem -LiteralPath $resultsPath -Recurse -File -Filter '* ParametricEQ.txt')
+    $profiles = @(
+        Get-ChildItem -LiteralPath $resultsPath -Recurse -File |
+            Where-Object { $_.Name -match ' (ParametricEQ|FixedBandEQ|GraphicEQ)\.txt$' }
+    )
     if ($profiles.Count -lt 1000) {
         throw "Only $($profiles.Count) profiles were found; refusing to replace the bundled library."
     }
@@ -61,7 +64,8 @@ try {
         }
         $model = $windowsModelNames[$model]
         $modelPath = Join-Path $stagingPath $model
-        $responsePath = Join-Path $modelPath "$source ($measurementRig)"
+        $format = [Regex]::Match($profile.Name, ' (ParametricEQ|FixedBandEQ|GraphicEQ)\.txt$').Groups[1].Value
+        $responsePath = Join-Path $modelPath "$source ($measurementRig) - $format.txt"
 
         if (!(Test-Path -LiteralPath $modelPath)) {
             New-Item -ItemType Directory -Path $modelPath | Out-Null

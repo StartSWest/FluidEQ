@@ -64,6 +64,18 @@ export enum FilterTypeEnum {
   // HSCQ = 'HSCQ', // High Shelf Q?? ["HSCQ",True,True]
 }
 
+/** AutoEQ's three official text formats and their Equalizer APO targets. */
+export enum AutoEqFormat {
+  PARAMETRIC = 'parametric',
+  FIXED_BAND = 'fixed-band',
+  GRAPHIC = 'graphic',
+}
+
+export interface IGraphicEqPoint {
+  frequency: number;
+  gain: number;
+}
+
 export const FilterTypeToLabelMap: Record<FilterTypeEnum, string> = {
   [FilterTypeEnum.PK]: 'Peak Filter',
   [FilterTypeEnum.NO]: 'Notch Filter',
@@ -114,6 +126,10 @@ export interface IState {
   isFlat?: boolean;
   preAmp: number;
   filters: IFiltersMap;
+  /** Format used when the currently loaded AutoEQ profile was imported. */
+  eqFormat?: AutoEqFormat;
+  /** Full GraphicEQ points; kept separately from editable filter projections. */
+  graphicEq?: IGraphicEqPoint[];
   convolution?: IConvolutionProfile;
 }
 
@@ -125,6 +141,8 @@ export interface IPresetV1 {
 export interface IPresetV2 {
   preAmp: number;
   filters: IFiltersMap;
+  eqFormat?: AutoEqFormat;
+  graphicEq?: IGraphicEqPoint[];
   isFlat?: boolean;
   /** Optional headset correction rendered as an APO convolution before EQ. */
   convolution?: IConvolutionProfile;
