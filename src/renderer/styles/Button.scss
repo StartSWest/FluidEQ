@@ -74,6 +74,9 @@ $button-height: 100px;
   &:hover:not([aria-disabled='true']) {
     transform: translateY(-1px);
     filter: brightness(1.06);
+    // The hover surface is the light cyan accent; keep the label dark enough
+    // to remain readable instead of inheriting the shared white hover color.
+    color: #03201d;
     background: $secondary-light;
     box-shadow:
       0 11px 28px rgba($secondary-default, 0.2),
@@ -83,6 +86,7 @@ $button-height: 100px;
 
   &:active:not([aria-disabled='true']) {
     transform: translateY(0);
+    color: #03201d;
   }
 
   &[aria-disabled='true'] {
