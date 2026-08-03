@@ -1184,6 +1184,12 @@ html {
     scrollbar-gutter: stable;
   }
 
+  body #root:not(.minimized) > .side-bar,
+  body #root:not(.minimized) > .right-content {
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
   .workspace-tab-panel--eq,
   .workspace-tab-panel--convolution {
     min-height: 0;
