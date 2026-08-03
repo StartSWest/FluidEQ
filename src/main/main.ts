@@ -411,6 +411,7 @@ const handleUpdateHelper = async <T>(
   channel: ChannelEnum | string,
   response: T,
   syncActiveProfile = false,
+  useActiveSessionOverride = false,
 ) => {
   // Check whether EqualizerAPO is installed every time a change is made
   const isInstalled = await isEqualizerAPOInstalled();
@@ -443,14 +444,22 @@ const handleUpdateHelper = async <T>(
         hasActiveSessionOverride = true;
       }
     }
+    if (useActiveSessionOverride && activeAudioDeviceId) {
+      // Keep edits live in APO without overwriting the selected profile file.
+      // SAVE_PRESET is the explicit persistence action.
+      hasActiveSessionOverride = true;
+    }
     if (assignment) {
-      // An attached profile is the source of truth once it exists.
-      hasActiveSessionOverride = false;
+      // A loaded/saved profile clears the temporary override. A subsequent
+      // edit recreates it and remains live-only until the user saves.
+      if (syncActiveProfile) {
+        hasActiveSessionOverride = false;
+      }
     }
     const activeDevicePattern =
       activeAudioDevice?.guid || activeAudioDevice?.name || activeAudioDeviceId;
     const activeOverride: IActiveStateOverride | undefined =
-      hasActiveSessionOverride && !assignment && activeDevicePattern
+      hasActiveSessionOverride && activeDevicePattern
         ? {
             deviceId: activeAudioDeviceId,
             devicePattern: activeDevicePattern,
@@ -489,8 +498,15 @@ const handleUpdate = async (
   event: Electron.IpcMainEvent,
   channel: ChannelEnum | string,
   syncActiveProfile = false,
+  useActiveSessionOverride = false,
 ) => {
-  return handleUpdateHelper<void>(event, channel, undefined, syncActiveProfile);
+  return handleUpdateHelper<void>(
+    event,
+    channel,
+    undefined,
+    syncActiveProfile,
+    useActiveSessionOverride,
+  );
 };
 
 const doesFilterIdExist = (
@@ -776,11 +792,7 @@ ipcMain.on(ChannelEnum.GET_AUTO_EQ_RESPONSE_LIST, async (event, arg) => {
 
 ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
   const channel = ChannelEnum.LOAD_AUTO_EQ_PRESET;
-  const [deviceName, responseName, profileName] = arg as [
-    string,
-    string,
-    string | undefined,
-  ];
+  const [deviceName, responseName] = arg as [string, string, string?];
 
   try {
     const presetSettings: IPresetV2 = getAutoEqPreset(deviceName, responseName);
@@ -793,11 +805,7 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     // EQ stage; an already loaded convolution remains an independent APO
     // stage.
     state.isFlat = false;
-    if (profileName && !isRestrictedPresetName(profileName)) {
-      savePreset(profileName, getCurrentPreset(), presetPath);
-      attachPresetToActiveDevice(profileName);
-    }
-    await handleUpdate(event, channel, true);
+    await handleUpdate(event, channel, false, true);
   } catch (ex) {
     console.log(
       `Failed to load autoeq preset from ${deviceName} to ${responseName}`,
@@ -854,7 +862,6 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
   const sourceId = isLegacyRequest ? undefined : (arg[0] as string);
   const deviceName = (isLegacyRequest ? arg[0] : arg[1]) as string;
   const responseName = (isLegacyRequest ? arg[1] : arg[2]) as string;
-  const profileName = (isLegacyRequest ? arg[2] : arg[3]) as string | undefined;
   try {
     const presetSettings = sourceId
       ? await getSquiglinkPreset(sourceId, deviceName, responseName)
@@ -867,11 +874,7 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
     // Squiglink responses are editable EQ bands. Keep any separately selected
     // convolution profile in place while replacing only the EQ chain.
     state.isFlat = false;
-    if (profileName && !isRestrictedPresetName(profileName)) {
-      savePreset(profileName, getCurrentPreset(), presetPath);
-      attachPresetToActiveDevice(profileName);
-    }
-    await handleUpdate(event, channel, true);
+    await handleUpdate(event, channel, false, true);
   } catch (error) {
     console.error(
       `Failed to load Squiglink preset from ${deviceName} / ${responseName}`,
@@ -907,7 +910,7 @@ ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
       configPath = await getConfigPath();
     }
     state.convolution = await downloadConvolution(entryId, configPath);
-    await handleUpdate(event, channel, true);
+    await handleUpdate(event, channel, false, true);
   } catch (error) {
     console.error('Failed to download convolution profile', error);
     handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
@@ -917,7 +920,7 @@ ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
 ipcMain.on(ChannelEnum.CLEAR_CONVOLUTION, async (event) => {
   const channel = ChannelEnum.CLEAR_CONVOLUTION;
   state.convolution = undefined;
-  await handleUpdate(event, channel, true);
+  await handleUpdate(event, channel, false, true);
 });
 
 ipcMain.on(ChannelEnum.CHECK_AUTO_EQ_UPDATE, async (event) => {
@@ -995,7 +998,7 @@ ipcMain.on(ChannelEnum.SET_PREAMP, async (event, arg) => {
   }
 
   state.preAmp = gain;
-  await handleUpdate(event, channel, true);
+  await handleUpdate(event, channel, false, true);
 });
 
 ipcMain.on(ChannelEnum.GET_FILTER_GAIN, async (event, arg) => {
@@ -1031,7 +1034,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_GAIN, async (event, arg) => {
   switchToParametricEditing();
   state.filters[filterId].gain = gain;
   state.isFlat = false;
-  await handleUpdate(event, channel + filterId, true);
+  await handleUpdate(event, channel + filterId, false, true);
 });
 
 ipcMain.on(ChannelEnum.GET_FILTER_FREQUENCY, async (event, arg) => {
@@ -1067,7 +1070,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_FREQUENCY, async (event, arg) => {
   switchToParametricEditing();
   state.filters[filterId].frequency = frequency;
   state.isFlat = false;
-  await handleUpdate(event, channel + filterId, true);
+  await handleUpdate(event, channel + filterId, false, true);
 });
 
 ipcMain.on(ChannelEnum.GET_FILTER_QUALITY, async (event, arg) => {
@@ -1103,7 +1106,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_QUALITY, async (event, arg) => {
   switchToParametricEditing();
   state.filters[filterId].quality = quality;
   state.isFlat = false;
-  await handleUpdate(event, channel + filterId, true);
+  await handleUpdate(event, channel + filterId, false, true);
 });
 
 ipcMain.on(ChannelEnum.GET_FILTER_TYPE, async (event, arg) => {
@@ -1139,7 +1142,7 @@ ipcMain.on(ChannelEnum.SET_FILTER_TYPE, async (event, arg) => {
   switchToParametricEditing();
   state.filters[filterId].type = filterType as FilterTypeEnum;
   state.isFlat = false;
-  await handleUpdate(event, channel + filterId, true);
+  await handleUpdate(event, channel + filterId, false, true);
 });
 
 ipcMain.on(ChannelEnum.GET_FILTER_COUNT, async (event) => {
@@ -1168,7 +1171,7 @@ ipcMain.on(ChannelEnum.ADD_FILTER, async (event, arg) => {
   const newFilter: IFilter = { ...getDefaultFilterWithId(), frequency };
   state.filters[newFilter.id] = newFilter;
   state.isFlat = false;
-  await handleUpdateHelper(event, channel, newFilter.id, true);
+  await handleUpdateHelper(event, channel, newFilter.id, false, true);
 });
 
 ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
@@ -1190,7 +1193,7 @@ ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
   // delete does not throw exception even if the filterId does not exist
   delete state.filters[filterId];
   state.isFlat = false;
-  await handleUpdate(event, channel, true);
+  await handleUpdate(event, channel, false, true);
 });
 
 ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
@@ -1206,7 +1209,7 @@ ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
   // EQ reset is independent from convolution. Persist the resulting state
   // (including any active convolution) to the device profile so APO keeps the
   // impulse response enabled after the EQ bands are cleared.
-  await handleUpdate(event, channel, true);
+  await handleUpdate(event, channel, false, true);
 });
 
 ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
@@ -1242,7 +1245,13 @@ ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
   state.filters = nextFilters;
   state.isFlat = false;
 
-  await handleUpdateHelper<IFiltersMap>(event, channel, state.filters, true);
+  await handleUpdateHelper<IFiltersMap>(
+    event,
+    channel,
+    state.filters,
+    false,
+    true,
+  );
 });
 
 ipcMain.on(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {

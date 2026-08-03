@@ -1124,7 +1124,7 @@ html {
   body #root:not(.minimized) {
     // Compact windows still reserve a real row for the editor and graph; the
     // smaller minimums keep the two rows adjacent without overlap.
-    grid-template-rows: minmax(480px, 1fr) minmax(170px, 24vh);
+    grid-template-rows: minmax(430px, 1fr) minmax(170px, 1fr);
   }
 
   .workspace-tab-panel--eq {
@@ -1132,6 +1132,10 @@ html {
       flex-basis: 220px;
       min-height: 220px;
     }
+  }
+
+  body #root:not(.minimized) > .graph-wrapper {
+    min-height: 170px;
   }
 }
 
