@@ -77,14 +77,14 @@ const SideBar = () => {
               label={`${MIN_GAIN} dB`}
             />
           </div>
-          <div className="col center">
-            <h4>Response graph</h4>
-            <GraphViewSwitch id="graphViewEnabler" />
-          </div>
           <div className="col center auto-normalize-control">
             <span className="control-kicker">APO HEADROOM</span>
             <h4>Auto normalize</h4>
             <AutoPreAmpEnablerSwitch id="autoPreAmpEnabler" />
+          </div>
+          <div className="col center">
+            <h4>Response graph</h4>
+            <GraphViewSwitch id="graphViewEnabler" />
           </div>
         </>
       )}
