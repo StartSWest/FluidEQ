@@ -8,7 +8,7 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   CONVOLUTION_SOURCES,
   IConvolutionCatalogEntry,
@@ -30,13 +30,22 @@ const ConvolutionPanel = () => {
   const [downloadingId, setDownloadingId] = useState<string>();
   const selectedSource = useMemo(() => CONVOLUTION_SOURCES[0], []);
 
+  // A successful catalogue load must only clear an error this panel raised.
+  // Clearing unconditionally also dismissed unrelated failures such as
+  // "Equalizer APO is not installed", hiding the prerequisite modal.
+  const ownsGlobalError = useRef(false);
+
   const loadCatalog = useCallback(
     async (search: string) => {
       setIsLoading(true);
       try {
         setEntries(await getConvolutionCatalog(search));
-        setGlobalError(undefined);
+        if (ownsGlobalError.current) {
+          ownsGlobalError.current = false;
+          setGlobalError(undefined);
+        }
       } catch (error) {
+        ownsGlobalError.current = true;
         setGlobalError(error as ErrorDescription);
       } finally {
         setIsLoading(false);

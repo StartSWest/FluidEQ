@@ -18,141 +18,103 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'spacing' as *;
+@use 'theme' as *;
 
-$switch-button-height: 20px;
-$switch-padding: 8px;
+$switch-width: 50px;
+$switch-height: 28px;
+$switch-thumb: 18px;
+$switch-inset: 4px;
 
+// Structure taken from https://upmostly.com/tutorials/build-a-react-switch-toggle-component
 .switch {
+  display: inline-flex;
   width: min-content;
   height: min-content;
 }
 
-// Default unchecked switch label styles
 .switch-label {
+  position: relative;
   display: flex;
+  width: $switch-width;
+  height: $switch-height;
   align-items: center;
   justify-content: space-between;
+  border: 1px solid rgba($primary-lighter, 0.16);
+  border-radius: $radius-pill;
+  background: rgba($primary-light, 0.7);
+  box-shadow: inset 0 2px 5px rgba($black, 0.25);
   cursor: pointer;
-  width: calc($switch-button-height * 2 + $switch-padding);
-  height: calc($switch-button-height + $switch-padding);
-  border-radius: calc($switch-button-height + $switch-padding);
-  background: $secondary-dark;
-  position: relative;
-  transition: background-color 0.2s;
+  transition:
+    background 200ms ease,
+    border-color 200ms ease,
+    box-shadow 200ms ease;
 
-  // Default unchecked switch button styles
   .switch-button {
-    content: '';
     position: absolute;
-    top: calc($switch-padding / 2);
-    left: calc($switch-padding / 2);
-    width: $switch-button-height;
-    height: $switch-button-height;
-    background: $secondary-default;
-    border-radius: $switch-button-height;
-    transition: 0.2s;
+    top: $switch-inset;
+    left: $switch-inset;
+    width: $switch-thumb;
+    height: $switch-thumb;
+    border-radius: 50%;
+    background: rgba($primary-lighter, 0.9);
+    box-shadow: 0 3px 9px rgba($black, 0.38);
+    transition:
+      left 200ms ease,
+      background 200ms ease,
+      box-shadow 200ms ease;
   }
 }
 
 .switch-checkbox {
-  height: 0;
-  width: 0;
-  opacity: 0;
   position: absolute;
+  width: 0;
+  height: 0;
+  opacity: 0;
 
-  // Apply same style regardless of checked state when focused
-  &:focus-visible + .switch-label,
-  &:focus-visible + .switch-label .switch-button {
-    outline: $spacing-xxs solid $white;
+  // Same focus treatment regardless of checked state.
+  &:focus-visible + .switch-label {
+    border-color: $secondary-light;
+    @include focus-ring;
   }
 
-  &:not(:checked) {
-    // Unchecked and enabled input
-    &:not(:disabled) + .switch-label {
-      &:hover .switch-button {
-        box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.36);
-        cursor: pointer;
-      }
+  &:checked + .switch-label {
+    border-color: rgba($secondary-light, 0.44);
+    background: linear-gradient(90deg, $secondary-dark, $secondary-default);
+    box-shadow:
+      inset 0 1px 3px rgba($black, 0.25),
+      0 0 18px rgba($secondary-default, 0.13);
 
-      &:active .switch-button {
-        box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.36);
-        background: $secondary-light;
-      }
-    }
-
-    // Unchecked and disabled input
-    &:disabled + .switch-label {
-      background: $primary-light;
-      cursor: default;
-
-      .switch-button {
-        background: $primary-lighter;
-      }
+    .switch-button {
+      left: calc(100% - $switch-thumb - $switch-inset);
+      background: #d9fffa;
     }
   }
 
-  &:checked {
-    // Default checked input styles
-    + .switch-label {
+  &:not(:disabled) + .switch-label {
+    &:hover .switch-button {
+      box-shadow: 0 0 4px 1px rgba($black, 0.36);
+    }
+
+    &:active .switch-button {
       background: $secondary-light;
-
-      .switch-button {
-        left: calc(100% - $switch-padding / 2);
-        transform: translateX(-100%);
-      }
-    }
-
-    // Checked and enabled input
-    &:not(:disabled) + .switch-label {
-      &:hover .switch-button {
-        box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.36);
-        cursor: pointer;
-      }
-
-      &:active .switch-button {
-        box-shadow: 0px 0px 4px 1px rgba(0, 0, 0, 0.36);
-        background: $secondary-darker;
-      }
-    }
-
-    // Checked and disabled input
-    &:disabled + .switch-label {
-      background: $primary-lighter;
-      cursor: default;
-
-      .switch-button {
-        background: $primary-light;
-      }
+      box-shadow: 0 0 4px 1px rgba($black, 0.36);
     }
   }
-}
 
-.switch-label {
-  width: 50px;
-  height: 28px;
-  border: 1px solid rgba($primary-lighter, 0.16);
-  background: rgba($primary-light, 0.7);
-  box-shadow: inset 0 2px 5px rgba($black, 0.25);
-
-  .switch-button {
-    top: 4px;
-    left: 4px;
-    width: 18px;
-    height: 18px;
-    background: rgba($primary-lighter, 0.9);
-    box-shadow: 0 3px 9px rgba($black, 0.38);
+  &:checked:not(:disabled) + .switch-label:active .switch-button {
+    background: $secondary-darker;
   }
-}
 
-.switch-checkbox:checked + .switch-label {
-  border-color: rgba($secondary-light, 0.44);
-  background: linear-gradient(90deg, $secondary-dark, $secondary-default);
-  box-shadow:
-    inset 0 1px 3px rgba($black, 0.25),
-    0 0 18px rgba($secondary-default, 0.13);
+  &:disabled + .switch-label {
+    border-color: rgba($primary-lighter, 0.1);
+    background: rgba($primary-light, 0.4);
+    box-shadow: inset 0 2px 5px rgba($black, 0.2);
+    cursor: default;
+    opacity: 0.6;
 
-  .switch-button {
-    left: calc(100% - 4px);
-    background: #d9fffa;
+    .switch-button {
+      background: rgba($primary-lighter, 0.6);
+      box-shadow: none;
+    }
   }
 }

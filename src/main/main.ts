@@ -427,27 +427,33 @@ const handleUpdateHelper = async <T>(
     if (!checkConfigFile(configPath)) {
       updateConfig(configPath);
     }
+    const shouldPersistProfile = syncActiveProfile || useActiveSessionOverride;
+    let autoProfileWasCreated = false;
     let assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
-    if (syncActiveProfile) {
-      if (!assignment && activeAudioDeviceId) {
-        const automaticPresetName = getAutomaticPresetName(activeAudioDeviceId);
-        savePreset(automaticPresetName, getCurrentPreset(), presetPath);
-        attachPresetToActiveDevice(automaticPresetName);
-        assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
-      }
-      if (assignment) {
+    if (shouldPersistProfile && !assignment && activeAudioDeviceId) {
+      const automaticPresetName = getAutomaticPresetName(activeAudioDeviceId);
+      attachPresetToActiveDevice(automaticPresetName);
+      assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
+      autoProfileWasCreated = Boolean(assignment);
+    }
+    if (shouldPersistProfile && assignment) {
+      const persistCurrentProfile =
+        syncActiveProfile ||
+        autoProfileWasCreated ||
+        isAutomaticPresetName(assignment.presetName);
+      if (persistCurrentProfile) {
         savePreset(assignment.presetName, getCurrentPreset(), presetPath);
-      } else if (activeAudioDeviceId) {
-        // An unassigned output still needs the user's explicit edits applied
-        // immediately. Keep this override scoped to the current endpoint; it
-        // is cleared as soon as Windows switches to another output.
+        hasActiveSessionOverride = false;
+        // Keep non-auto saved profiles as live edits until explicitly saved.
+      } else if (useActiveSessionOverride && activeAudioDeviceId) {
         hasActiveSessionOverride = true;
       }
-    }
-    if (useActiveSessionOverride && activeAudioDeviceId) {
-      // Keep edits live in APO without overwriting the selected profile file.
-      // SAVE_PRESET is the explicit persistence action.
+    } else if (shouldPersistProfile && !assignment && activeAudioDeviceId) {
+      // An output without a profile still needs edits applied immediately.
+      // Keep this override scoped to the current endpoint until it gets
+      // assigned by explicit profile load or manual save.
       hasActiveSessionOverride = true;
+      assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
     }
     if (assignment) {
       // A loaded/saved profile clears the temporary override. A subsequent
@@ -1199,17 +1205,28 @@ ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
 ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
   const channel = ChannelEnum.CLEAR_GAINS;
 
-  Object.keys(state.filters).forEach((key) => {
-    state.filters[key].gain = 0;
-  });
+  // Clearing restores the default editable EQ rather than only zeroing gains:
+  //  - band type goes back to Peak, because band pass, notch and the pass
+  //    filters still shape the signal at 0 dB;
+  //  - the layout goes back to the standard ten bands;
+  //  - the stored per-size layout snapshots are dropped, so pressing a band
+  //    count afterwards cannot resurrect the tuning that was just cleared.
   switchToParametricEditing();
+  clearCurrentLayoutSettings();
+  state.filters = getDefaultFilters();
   state.preAmp = 0;
   state.isFlat = true;
 
   // EQ reset is independent from convolution. Persist the resulting state
   // (including any active convolution) to the device profile so APO keeps the
   // impulse response enabled after the EQ bands are cleared.
-  await handleUpdate(event, channel, false, true);
+  await handleUpdateHelper<IFiltersMap>(
+    event,
+    channel,
+    state.filters,
+    false,
+    true,
+  );
 });
 
 ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {

@@ -19,115 +19,100 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'constant' as *;
 @use 'spacing' as *;
+@use 'theme' as *;
 
 .number-input {
   display: inline-flex;
-  min-width: 0;
   width: 100%;
+  min-width: 0;
   flex-direction: column;
-  gap: $spacing-s;
+  gap: 5px;
 
+  // The wrapper carries the field surface so the arrows and the "unsaved"
+  // asterisk sit inside one border.
   .input-wrapper {
-    position: relative; // necessary so that the absolutely positioned asterisks will scroll with the input
-    box-sizing: border-box;
+    @include field-surface;
+    position: relative;
     display: flex;
+    width: 100%;
     min-width: 0;
-    border: $spacing-xxs solid $secondary-default;
-    border-radius: 4px;
-    justify-content: start;
-    background: $primary-dark;
-    width: min-content;
+    min-height: $control-height-sm;
+    align-items: center;
+    justify-content: flex-start;
+    overflow: hidden;
 
-    &:focus:not(:focus-within) {
-      // TODO: can't figure out how to differentiate between only focus and focus-visible for text inputs
-      outline: 1px solid $secondary-default;
+    &:hover:not([aria-disabled='true']) {
+      border-color: $border-field-hover;
     }
 
-    // add outline whenever the input or arrow buttons are focused
     &:focus-within {
-      outline: $spacing-xxs solid $white;
+      border-color: $border-field-focus;
+      @include focus-ring;
     }
 
     &[aria-disabled='true'] {
-      border: $spacing-xxs solid $primary-lighter;
+      @include field-disabled;
     }
   }
 
+  // The wrapper is the visible control. The field, the stepper arrows and the
+  // change marker are all transparent parts of it, so there is no seam
+  // between the text area and the arrows.
   input[type='text'] {
-    box-sizing: border-box;
     flex: 1 1 auto;
-    min-width: max($input-height, var(--input-width));
-    background: $primary-dark;
-    border: none;
-    outline: none;
-    color: $white;
-    padding: $spacing-xs;
-    height: $input-height;
+    // `--input-width` tracks the rendered text so auto-growing inputs stay
+    // snug, but the field must still be free to shrink inside narrow bands.
     width: max($input-height, var(--input-width));
+    min-width: 0;
+    height: 30px;
+    padding: 5px 7px;
+    color: $white;
+    border: 0;
+    border-radius: inherit;
+    background: none;
+    box-shadow: none;
+    outline: none;
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
 
     &:disabled {
-      color: $primary-lighter;
+      color: rgba($primary-lighter, 0.55);
+      border: 0;
+      background: none;
+      box-shadow: none;
     }
   }
 
-  .asterisk {
-    position: absolute;
-    margin-left: calc($spacing-s + var(--input-width));
-    margin-top: -$spacing-m;
-  }
-
-  &:hover {
-    .arrows {
-      visibility: visible;
-    }
-  }
-
+  // Arrows only appear on hover/focus so dense band columns stay quiet.
+  // `visibility` keeps their column reserved, so revealing them never nudges
+  // the number sideways.
   .arrows {
-    flex: 0 0 auto;
     display: flex;
-    visibility: hidden;
+    flex: 0 0 auto;
     flex-direction: column;
     gap: $spacing-xxs;
-    padding: $spacing-xxs;
+    padding: 3px 5px 3px 1px;
+    background: none;
+    visibility: hidden;
 
     svg {
       width: 12px;
       height: auto;
     }
   }
-}
 
-.number-input {
-  gap: 5px;
-
-  .input-wrapper {
-    min-height: 34px;
-    border: 1px solid rgba($primary-lighter, 0.2);
-    border-radius: 9px;
-    background: rgba($primary-dark, 0.9);
-    box-shadow: inset 0 1px 0 rgba($white, 0.025);
-
-    &:hover:not([aria-disabled='true']) {
-      border-color: rgba($secondary-light, 0.42);
-    }
-
-    &:focus-within {
-      border-color: $secondary-light;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba($secondary-default, 0.13);
-    }
+  &:hover .arrows,
+  .input-wrapper:focus-within .arrows {
+    visibility: visible;
   }
 
-  input[type='text'] {
-    height: 30px;
-    padding: 5px 7px;
-    border-radius: 9px;
-    background: transparent;
-    font-size: 0.72rem;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .arrows {
-    padding: 3px 5px 3px 1px;
+  // Marks an edited-but-unsaved value. It is a flow item so it can never sit
+  // on top of the arrow buttons.
+  .asterisk {
+    flex: 0 0 auto;
+    padding-inline: 2px;
+    color: $secondary-light;
+    line-height: 1;
+    pointer-events: none;
   }
 }

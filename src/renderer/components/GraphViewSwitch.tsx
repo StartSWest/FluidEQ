@@ -18,12 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ErrorDescription } from 'common/errors';
 import { useCallback } from 'react';
-import {
-  decreaseWindowSize,
-  disableGraphView,
-  enableGraphView,
-  increaseWindowSize,
-} from '../utils/equalizerApi';
+import { disableGraphView, enableGraphView } from '../utils/equalizerApi';
 import { useAquaContext } from '../utils/AquaContext';
 import Switch from '../widgets/Switch';
 
@@ -35,21 +30,16 @@ export default function GraphViewSwitch({ id }: IGraphViewSwitchProps) {
   const { globalError, isGraphViewOn, setGlobalError, setGraphViewOn } =
     useAquaContext();
 
+  // Toggling the graph never resizes the OS window. The workspace keeps the
+  // size the user chose and the EQ panel simply reclaims the freed height.
   const handleToggle = useCallback(async () => {
     try {
       if (isGraphViewOn) {
         await disableGraphView();
-
-        // Reduce window size before allowing parametric components to fill space
-        await decreaseWindowSize();
-        setGraphViewOn(!isGraphViewOn);
       } else {
         await enableGraphView();
-
-        // Set parametric components to a fixed height before increasing window size
-        setGraphViewOn(!isGraphViewOn);
-        await increaseWindowSize();
       }
+      setGraphViewOn(!isGraphViewOn);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }

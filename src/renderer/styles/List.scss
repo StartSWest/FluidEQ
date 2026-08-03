@@ -18,55 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'spacing' as *;
+@use 'theme' as *;
 
 .list-wrapper {
-  // Apply custom styles for the list wrapper
-  background: $primary-dark;
-  color: $white;
-  border: 1px solid rgba($primary-lighter, 0.18);
-  border-radius: 8px;
-  text-align: start;
-
-  .list {
-    // Remove default styles of the ul element
-    list-style-type: none;
-    padding-inline-start: 0px;
-    margin-block-start: 0px;
-    margin-block-end: 0px;
-
-    // Apply custom styles
-    height: 100%;
-    overflow-y: auto;
-
-    li {
-      cursor: pointer;
-      padding: $spacing-xs;
-      align-content: center;
-      font-size: small;
-
-      &.selected {
-        background: rgba($secondary-default, 0.16);
-      }
-
-      &:focus,
-      &:focus-visible,
-      &:focus-within {
-        background: $secondary-dark;
-        outline: none;
-      }
-    }
-  }
-}
-
-.list-wrapper {
+  @include menu-surface;
   overflow: hidden;
-  border: 1px solid rgba($secondary-light, 0.22);
-  border-radius: 13px;
-  background: rgba(#080d15, 0.97);
-  box-shadow:
-    0 18px 50px rgba($black, 0.55),
-    inset 0 1px 0 rgba($white, 0.04);
-  backdrop-filter: blur(18px);
+  color: $text-primary;
+  text-align: start;
 
   .starting-item {
     padding: 8px;
@@ -75,65 +33,77 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   .list {
+    height: 100%;
+    margin-block: 0;
     padding: 5px;
+    overflow-y: auto;
+    list-style-type: none;
 
+    // Layout comes from the `row` class React puts on every item (or from the
+    // consumer's item class), so only the surface is set here.
+    //
+    // At rest an item paints nothing: it reads directly on the menu surface.
+    // Hover is a light transient wash and only the current selection carries a
+    // filled background.
     li {
       min-height: 34px;
-      margin: 3px 0;
+      margin: 2px 0;
       padding: 8px 10px;
+      align-items: center;
+      color: rgba($white, 0.9);
       border: 1px solid transparent;
-      border-radius: 8px;
-      color: rgba($white, 0.88);
-      transition:
-        color 120ms ease,
-        background 120ms ease;
-
-      &.selected {
-        color: $secondary-light;
-        background: rgba($secondary-default, 0.12);
-      }
+      border-radius: $radius-xs;
+      background: transparent;
+      font-size: 0.72rem;
+      line-height: 1.25;
+      cursor: pointer;
+      transition: $transition-control;
 
       &:hover,
       &:focus,
       &:focus-visible,
       &:focus-within {
         color: $white;
-        background: linear-gradient(
-          90deg,
-          rgba($secondary-default, 0.24),
-          rgba($analogous-1, 0.12)
-        );
-        border-color: rgba($secondary-light, 0.22);
+        border-color: rgba($secondary-light, 0.18);
+        background: rgba($secondary-default, 0.09);
+        outline: none;
       }
 
-      &.list-group-heading {
-        min-height: 24px;
-        margin: 7px 4px 2px;
-        padding: 5px 8px;
-        border: 0;
-        border-top: 1px solid rgba($primary-lighter, 0.08);
-        border-radius: 0;
-        color: rgba($secondary-light, 0.72);
-        background: transparent;
-        cursor: default;
-        font-size: 0.58rem;
-        font-weight: 800;
-        letter-spacing: 0.12em;
-        pointer-events: none;
-        text-transform: uppercase;
-
-        &:first-child {
-          margin-top: 1px;
-          border-top: 0;
-        }
+      &.selected {
+        color: $secondary-light;
+        border-color: rgba($secondary-light, 0.42);
+        background: rgba($secondary-default, 0.2);
+        box-shadow: inset 0 1px 0 rgba($white, 0.045);
 
         &:hover,
         &:focus,
         &:focus-visible,
         &:focus-within {
-          border-color: transparent;
-          color: rgba($secondary-light, 0.72);
-          background: transparent;
+          background: rgba($secondary-default, 0.26);
+        }
+      }
+
+      // Non-interactive section label between groups of options.
+      &.list-group-heading {
+        display: block;
+        min-height: 24px;
+        margin: 7px 4px 2px;
+        padding: 5px 8px;
+        color: rgba($secondary-light, 0.72);
+        border: 0;
+        border-top: 1px solid rgba($primary-lighter, 0.08);
+        border-radius: 0;
+        background: transparent;
+        font-size: 0.58rem;
+        font-weight: 800;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        cursor: default;
+        pointer-events: none;
+
+        &:first-child {
+          margin-top: 1px;
+          border-top: 0;
         }
       }
     }

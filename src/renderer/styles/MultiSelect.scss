@@ -1,15 +1,7 @@
 @use 'color' as *;
 
-.bands__selection-box {
-  position: absolute;
-  z-index: 20;
-  border: 1px solid rgba($secondary-light, 0.9);
-  border-radius: 6px;
-  background: rgba($secondary-default, 0.12);
-  box-shadow: 0 0 18px rgba($secondary-default, 0.18);
-  pointer-events: none;
-}
-
+// Marquee selection drawn over the response graph. The equivalent overlay for
+// the slider grid lives in MainContent.scss next to the `.bands` rules.
 .chart-selection-box {
   fill: rgba($secondary-default, 0.12);
   stroke: rgba($secondary-light, 0.9);

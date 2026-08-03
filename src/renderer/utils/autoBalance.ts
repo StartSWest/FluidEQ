@@ -1,0 +1,1038 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+import { IFilter, MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { clamp } from './utils';
+
+/**
+ * Auto balance: measure what is actually reaching the speakers, then flatten
+ * the peaks and dips while leaving the music's own spectral tilt alone.
+ *
+ * Everything in this file is pure — plain numbers and typed arrays, no Web
+ * Audio, no wall clock. The hook owns the audio plumbing and feeds frames in;
+ * every decision about whether we have heard enough is made here, so it can be
+ * driven by synthetic frames in a test.
+ */
+
+/* -------------------------------------------------------------------------
+ * Correctable range
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Frequencies outside this band are left alone. Below it the capture is
+ * dominated by the room and by content that simply is not there; above it the
+ * measurement is mostly dither and codec noise. Correcting either produces
+ * confident-looking nonsense.
+ */
+export const BALANCE_MIN_FREQUENCY = 35;
+export const BALANCE_MAX_FREQUENCY = 15000;
+
+/**
+ * Nine roughly-octave regions spanning exactly the correctable band, so
+ * coverage and the range we are willing to correct agree by construction.
+ * Coverage is tracked per region rather than per point because "have we heard
+ * the treble yet" is a question about a region, and because a label per region
+ * is what lets the UI say *why* it is still listening.
+ */
+export const BALANCE_REGION_EDGES = [
+  35, 70, 140, 280, 560, 1120, 2240, 4480, 8960, 15000,
+];
+
+export const BALANCE_REGION_LABELS = [
+  'deep bass',
+  'bass',
+  'low mids',
+  'mids',
+  'upper mids',
+  'presence',
+  'treble',
+  'high treble',
+  'air',
+];
+
+/* -------------------------------------------------------------------------
+ * Frame acceptance
+ * ---------------------------------------------------------------------- */
+
+/** Nominal spacing between analyser frames, used to bound a stalled tick. */
+export const BALANCE_FRAME_INTERVAL_MS = 45;
+
+/**
+ * Frame peak below which a frame contributes nothing, and the peak at which it
+ * counts fully. Fade-outs, reverb tails and room tone have spectra nothing like
+ * the program, and admitting them is the direct cause of "six seconds of a
+ * quiet intro produced a confident, wrong correction". The 25 dB ramp keeps the
+ * weighting continuous so material hovering near the gate does not make the
+ * estimate jump between two populations.
+ */
+export const FRAME_MIN_PEAK_DBFS = -60;
+export const FRAME_FULL_PEAK_DBFS = -35;
+
+/**
+ * A region sitting this low is on the analyser's own -100 dB clamp. Averaging
+ * clamped values manufactures a flat noise shelf that reads as a real treble
+ * deficit, so those regions are skipped rather than measured.
+ */
+export const ABS_FLOOR_DBFS = -85;
+
+/**
+ * A region more than this far below the frame peak carries no information.
+ * Music's own tilt already spans ~25 dB across the band, so a tighter gate
+ * would falsely reject the air of acoustic material. The ramp avoids a hard
+ * threshold, which would make a marginal region accumulate in bursts and
+ * contaminate its own variance estimate with the gating.
+ */
+export const REGION_FLOOR_DB = 45;
+export const REGION_FLOOR_RAMP_DB = 10;
+
+/**
+ * Power averaging is outlier-sensitive by design; this bounds what a single
+ * leaked full-scale bin can do to a point.
+ */
+export const LEVEL_CLAMP_LO = -80;
+export const LEVEL_CLAMP_HI = 30;
+
+/* -------------------------------------------------------------------------
+ * Coverage and stopping
+ * ---------------------------------------------------------------------- */
+
+/** Weighted fully-excited frames a region needs for full evidence (~2 s). */
+export const REGION_TARGET_WEIGHT = 44;
+
+/**
+ * Standard error at which a region is precise enough. The correction is scaled
+ * by `strength`, so 1.5 dB of level error is ~1 dB of gain error — about the
+ * just-noticeable difference for a broad band. Tightening it multiplies
+ * listening time for an inaudible gain.
+ */
+export const REGION_SE_TARGET_DB = 1.5;
+
+/**
+ * Effective-sample-size factor. Analyser frames are not independent: the
+ * analyser smooths with a 0.62 time constant and we hop 45 ms into an ~85 ms
+ * window, giving a lag-1 correlation around 0.75. Deliberately pessimistic —
+ * underestimating the correlation is what makes a capture stop early on data
+ * that only looks settled.
+ */
+export const EFFECTIVE_FRAME_RATIO = 0.15;
+
+/** Confidence at which a region counts as heard. */
+export const REGION_COVERED_CONFIDENCE = 0.9;
+
+/** Floor no convergence test can bypass, and the hard ceiling. Both measure
+ * *listened* time, so silence never counts against the user. */
+export const MIN_LISTEN_MS = 4000;
+export const MAX_LISTEN_MS = 25000;
+
+/** One convergence checkpoint per second of listened time. */
+export const CONVERGENCE_CHECK_MS = 1000;
+
+/**
+ * Maximum drift of the smoothed, tilt-removed residual between checkpoints.
+ * 0.4 dB moves a band by about 0.26 dB after `strength` — below audibility. If
+ * another second of listening cannot move a band further than that, more
+ * listening is pointless.
+ */
+export const CONVERGENCE_TOLERANCE_DB = 0.4;
+export const CONVERGENCE_HOLDS = 3;
+
+/**
+ * How long BOTH the weakest region and the mean must fail to improve before we
+ * accept the source is genuinely band-limited. Requiring both matters: during a
+ * quiet intro the weakest region sits still while everything else fills in, and
+ * a single-signal rule would reproduce exactly the fixed-timer bug.
+ */
+export const STALL_GRACE_MS = 8000;
+export const STALL_IMPROVEMENT = 0.02;
+
+/* -------------------------------------------------------------------------
+ * Correction limits
+ * ---------------------------------------------------------------------- */
+
+/** Below this confidence a band holds its current gain instead of guessing. */
+export const MIN_BAND_CONFIDENCE = 0.4;
+
+/**
+ * The tilt fit needs leverage. Below a four-octave trusted span straddling the
+ * midrange, a sloped program and a broad resonance are not separable — the fit
+ * absorbs the resonance and every band inherits a fabricated slope.
+ */
+export const MIN_TRUSTED_OCTAVES = 4;
+export const TRUSTED_LOW_ANCHOR_HZ = 560;
+export const TRUSTED_HIGH_ANCHOR_HZ = 1120;
+
+/* -------------------------------------------------------------------------
+ * Types
+ * ---------------------------------------------------------------------- */
+
+/** One averaged point of the measured output spectrum. */
+export interface ISpectrumSample {
+  frequency: number;
+  /** Level in dB, relative to the loudest part of the same measurement. */
+  level: number;
+  /**
+   * 0..1 trust in `level`. Absent means fully trusted, which is what
+   * hand-built spectra construct.
+   */
+  confidence?: number;
+}
+
+export interface IAutoBalanceOptions {
+  /** Fraction of the measured deviation that is corrected. */
+  strength?: number;
+  /** Boosting a dip costs headroom, so it is limited harder than a cut. */
+  maxBoost?: number;
+  maxCut?: number;
+  /** Width of the smoothing window used to reject FFT noise. */
+  smoothingOctaves?: number;
+  /** Bands below this confidence hold their current gain instead of guessing. */
+  minConfidence?: number;
+  /**
+   * The capture measures the already-corrected output, so the result is a
+   * residual. Adding it to the current gain makes repeated runs converge
+   * instead of undoing each other.
+   */
+  relativeToCurrentGain?: boolean;
+}
+
+const DEFAULTS: Required<IAutoBalanceOptions> = {
+  strength: 0.65,
+  maxBoost: 6,
+  maxCut: 9,
+  smoothingOctaves: 0.5,
+  minConfidence: MIN_BAND_CONFIDENCE,
+  relativeToCurrentGain: true,
+};
+
+const clamp01 = (value: number) => clamp(value, 0, 1);
+
+const weightOf = (sample: ISpectrumSample) => sample.confidence ?? 1;
+
+/* -------------------------------------------------------------------------
+ * Spectrum maths
+ * ---------------------------------------------------------------------- */
+
+/**
+ * Confidence-weighted least-squares fit of
+ * `level = slope * log10(frequency) + intercept`.
+ *
+ * This line is the program material's own spectral tilt. Music is not flat —
+ * its long-term average falls with frequency — so flattening the measurement
+ * outright would strip the life out of it. Correcting only the *deviation*
+ * from the fitted tilt removes resonances, boom and honk while leaving the
+ * natural balance of the recording intact.
+ */
+export const fitSpectralTilt = (samples: ISpectrumSample[]) => {
+  const usable = samples.filter(
+    ({ frequency, level }) =>
+      frequency > 0 && Number.isFinite(level) && Number.isFinite(frequency),
+  );
+  if (usable.length < 2) {
+    return { slope: 0, intercept: 0 };
+  }
+
+  let sumW = 0;
+  let sumX = 0;
+  let sumY = 0;
+  let sumXY = 0;
+  let sumXX = 0;
+  usable.forEach((sample) => {
+    const w = weightOf(sample);
+    const x = Math.log10(sample.frequency);
+    sumW += w;
+    sumX += w * x;
+    sumY += w * sample.level;
+    sumXY += w * x * sample.level;
+    sumXX += w * x * x;
+  });
+
+  if (sumW <= 0) {
+    return { slope: 0, intercept: 0 };
+  }
+  const denominator = sumW * sumXX - sumX * sumX;
+  if (Math.abs(denominator) < 1e-9) {
+    return { slope: 0, intercept: sumY / sumW };
+  }
+  const slope = (sumW * sumXY - sumX * sumY) / denominator;
+  return { slope, intercept: (sumY - slope * sumX) / sumW };
+};
+
+/** Confidence-weighted fractional-octave smoothing in the log domain. */
+export const smoothSpectrum = (
+  samples: ISpectrumSample[],
+  octaves: number,
+): ISpectrumSample[] => {
+  const halfWidth = Math.log10(2 ** (octaves / 2));
+  return samples.map((sample, index) => {
+    const centre = Math.log10(sample.frequency);
+    let total = 0;
+    let count = 0;
+    for (let offset = index; offset >= 0; offset -= 1) {
+      if (
+        Math.abs(Math.log10(samples[offset].frequency) - centre) > halfWidth
+      ) {
+        break;
+      }
+      const w = weightOf(samples[offset]);
+      total += w * samples[offset].level;
+      count += w;
+    }
+    for (let offset = index + 1; offset < samples.length; offset += 1) {
+      if (
+        Math.abs(Math.log10(samples[offset].frequency) - centre) > halfWidth
+      ) {
+        break;
+      }
+      const w = weightOf(samples[offset]);
+      total += w * samples[offset].level;
+      count += w;
+    }
+    return {
+      frequency: sample.frequency,
+      level: count > 0 ? total / count : sample.level,
+      confidence: sample.confidence,
+    };
+  });
+};
+
+/** Linear interpolation of a spectrum field at an arbitrary frequency. */
+export const sampleSpectrumAt = (
+  samples: ISpectrumSample[],
+  frequency: number,
+  field: 'level' | 'confidence' = 'level',
+): number => {
+  const read = (sample: ISpectrumSample) =>
+    field === 'confidence' ? weightOf(sample) : sample.level;
+
+  if (samples.length === 0) {
+    return 0;
+  }
+  if (frequency <= samples[0].frequency) {
+    return read(samples[0]);
+  }
+  const last = samples[samples.length - 1];
+  if (frequency >= last.frequency) {
+    return read(last);
+  }
+
+  const upperIndex = samples.findIndex(
+    (sample) => sample.frequency >= frequency,
+  );
+  const upper = samples[upperIndex];
+  const lower = samples[upperIndex - 1] ?? upper;
+  const span = Math.log10(upper.frequency) - Math.log10(lower.frequency);
+  if (span <= 0) {
+    return read(upper);
+  }
+  const position = (Math.log10(frequency) - Math.log10(lower.frequency)) / span;
+  return read(lower) + (read(upper) - read(lower)) * position;
+};
+
+/**
+ * Turn a measured spectrum into a gain for each band.
+ *
+ * The result is the inverse of the smoothed deviation from the program's own
+ * tilt, scaled back by `strength` so the correction is a nudge rather than a
+ * hard flattening, and centred so it changes tone rather than loudness. Bands
+ * whose region was never heard well enough are left exactly where they are.
+ */
+export const buildBalancedGains = (
+  spectrum: ISpectrumSample[],
+  filters: IFilter[],
+  options: IAutoBalanceOptions = {},
+): Record<string, number> => {
+  const {
+    strength,
+    maxBoost,
+    maxCut,
+    smoothingOctaves,
+    minConfidence,
+    relativeToCurrentGain,
+  } = { ...DEFAULTS, ...options };
+
+  const usable = spectrum
+    .filter(
+      ({ frequency, level }) =>
+        Number.isFinite(level) &&
+        frequency >= BALANCE_MIN_FREQUENCY &&
+        frequency <= BALANCE_MAX_FREQUENCY,
+    )
+    .sort((left, right) => left.frequency - right.frequency);
+
+  if (usable.length < 8 || filters.length === 0) {
+    return {};
+  }
+
+  // The span gate only engages for real measurements. A hand-built spectrum
+  // carries no confidence and is taken at face value.
+  const hasConfidence = spectrum.some(
+    (sample) => typeof sample.confidence === 'number',
+  );
+  if (hasConfidence) {
+    const trusted = usable.filter(
+      (sample) => weightOf(sample) >= minConfidence,
+    );
+    if (trusted.length === 0) {
+      return {};
+    }
+    const low = trusted[0].frequency;
+    const high = trusted[trusted.length - 1].frequency;
+    if (
+      Math.log2(high / low) < MIN_TRUSTED_OCTAVES ||
+      low > TRUSTED_LOW_ANCHOR_HZ ||
+      high < TRUSTED_HIGH_ANCHOR_HZ
+    ) {
+      return {};
+    }
+  }
+
+  const { slope, intercept } = fitSpectralTilt(usable);
+  const deviation = smoothSpectrum(
+    usable.map((sample) => ({
+      frequency: sample.frequency,
+      level: sample.level - (slope * Math.log10(sample.frequency) + intercept),
+      confidence: sample.confidence,
+    })),
+    smoothingOctaves,
+  );
+
+  const raw = filters.map((filter) => {
+    const inBand =
+      filter.frequency >= BALANCE_MIN_FREQUENCY &&
+      filter.frequency <= BALANCE_MAX_FREQUENCY;
+    // The per-band floor is applied here, not only by filtering the input: it
+    // is what stops sampleSpectrumAt clamping an unmeasured band to the
+    // nearest measured one at the edge of coverage.
+    const measured = inBand
+      ? clamp01(sampleSpectrumAt(deviation, filter.frequency, 'confidence'))
+      : 0;
+    const confidence = measured >= minConfidence ? measured : 0;
+    return {
+      id: filter.id,
+      gain: filter.gain,
+      confidence,
+      correction: inBand
+        ? -sampleSpectrumAt(deviation, filter.frequency) * strength
+        : 0,
+    };
+  });
+
+  // Centre by confidence, so a band we are not correcting cannot drag the
+  // whole curve up or down.
+  const sumC = raw.reduce((total, entry) => total + entry.confidence, 0);
+  const mean =
+    sumC > 0
+      ? raw.reduce(
+          (total, entry) => total + entry.correction * entry.confidence,
+          0,
+        ) / sumC
+      : 0;
+
+  return Object.fromEntries(
+    raw.map((entry) => {
+      // Clamp the correction, then clamp the total: an existing +8 dB band the
+      // user set by hand must not be silently pulled down to the boost limit.
+      const base = relativeToCurrentGain ? entry.gain : 0;
+      const gain =
+        base +
+        clamp((entry.correction - mean) * entry.confidence, -maxCut, maxBoost);
+      return [entry.id, Math.round(clamp(gain, MIN_GAIN, MAX_GAIN) * 10) / 10];
+    }),
+  );
+};
+
+/* -------------------------------------------------------------------------
+ * FFT cells
+ * ---------------------------------------------------------------------- */
+
+/** Inclusive FFT bin range backing one point of the analysis axis. */
+export interface IAxisCell {
+  firstBin: number;
+  lastBin: number;
+}
+
+/**
+ * Map each axis point to every FFT bin inside its cell.
+ *
+ * Reading a single nearest bin per point — which is fine for a display trace —
+ * looks at barely a tenth of the spectrum: at 48 kHz with a 4096-point FFT the
+ * 1536 bins between 2 kHz and 20 kHz are represented by ~107 single-bin
+ * samples, so ~93% of the treble energy is never seen and what is left is a
+ * noisy lottery. Averaging the whole cell is what makes the treble reading
+ * stable enough to drive an EQ.
+ */
+export const createAxisCells = (
+  axis: readonly number[],
+  sampleRate: number,
+  fftSize: number,
+): IAxisCell[] => {
+  const binWidth = sampleRate / fftSize;
+  const maxBin = Math.max(1, fftSize / 2 - 1);
+
+  return axis.map((frequency, index) => {
+    // Cell edges are the geometric midpoints to the neighbouring points, so
+    // cells tile the axis without gaps or overlap.
+    const lower =
+      index === 0 ? frequency : Math.sqrt(axis[index - 1] * frequency);
+    const upper =
+      index === axis.length - 1
+        ? frequency
+        : Math.sqrt(frequency * axis[index + 1]);
+
+    // Bin 0 is DC and carries no musical information.
+    const firstBin = clamp(Math.round(lower / binWidth), 1, maxBin);
+    const lastBin = clamp(Math.round(upper / binWidth), firstBin, maxBin);
+    return { firstBin, lastBin };
+  });
+};
+
+/**
+ * Power mean of each cell, in absolute dBFS. Writes into `out` to avoid
+ * allocating a new array on every analyser frame.
+ */
+export const readAbsoluteLevels = (
+  frequencyData: Float32Array,
+  cells: IAxisCell[],
+  out: Float64Array,
+): Float64Array => {
+  cells.forEach((cell, index) => {
+    let power = 0;
+    let count = 0;
+    const last = Math.min(cell.lastBin, frequencyData.length - 1);
+    for (let bin = cell.firstBin; bin <= last; bin += 1) {
+      const level = frequencyData[bin];
+      if (Number.isFinite(level)) {
+        power += 10 ** (level / 10);
+        count += 1;
+      }
+    }
+    out[index] = count > 0 ? 10 * Math.log10(power / count) : -Infinity;
+  });
+  return out;
+};
+
+/* -------------------------------------------------------------------------
+ * Capture accumulator
+ * ---------------------------------------------------------------------- */
+
+export interface IBalanceRegion {
+  label: string;
+  lowFrequency: number;
+  highFrequency: number;
+  /** Inclusive axis-index range. */
+  firstIndex: number;
+  lastIndex: number;
+  /** Geometric centre, used for the confidence curve and convergence probe. */
+  centreFrequency: number;
+}
+
+/** One analyser frame, in absolute dBFS. */
+export interface IBalanceFrame {
+  levels: Float64Array;
+  /** Loudest finite bin of the frame, in dBFS. */
+  peakDb: number;
+  /** Monotonic clock in ms, supplied by the caller. */
+  timestampMs: number;
+}
+
+/** Weighted Welford state for one region's level. */
+export interface IBalanceRegionState {
+  weight: number;
+  mean: number;
+  m2: number;
+}
+
+export interface IBalanceCaptureState {
+  axis: number[];
+  regions: IBalanceRegion[];
+  /** Sum of weight * linear power per axis point, relative to the frame's own
+   * mean level. */
+  power: Float64Array;
+  weight: Float64Array;
+  regionStates: IBalanceRegionState[];
+  frames: number;
+  acceptedFrames: number;
+  listenedMs: number;
+  lastTimestampMs: number;
+  checkpoint:
+    { probe: Float64Array; holds: number; atListenedMs: number } | undefined;
+  bestWeakest: number;
+  bestWeakestAtMs: number;
+  bestMean: number;
+  bestMeanAtMs: number;
+}
+
+export interface IBalanceRegionReport {
+  label: string;
+  lowFrequency: number;
+  highFrequency: number;
+  weight: number;
+  standardErrorDb: number;
+  confidence: number;
+  isCovered: boolean;
+}
+
+export type BalanceCaptureStatus = 'listening' | 'ready' | 'partial';
+
+export interface IBalanceReport {
+  samples: ISpectrumSample[];
+  regions: IBalanceRegionReport[];
+  /** Confidence of the WEAKEST region — "all frequencies heard" is a minimum,
+   * not an average, and showing the minimum explains why it is still going. */
+  coverage: number;
+  /** Mean region confidence. Used only for stall detection. */
+  meanCoverage: number;
+  weakest: IBalanceRegionReport | undefined;
+  listenedMs: number;
+  frames: number;
+  isConverged: boolean;
+  isStalled: boolean;
+  status: BalanceCaptureStatus;
+}
+
+export interface IBalanceResult {
+  samples: ISpectrumSample[];
+  status: 'ready' | 'partial';
+  lowFrequency: number;
+  highFrequency: number;
+}
+
+export interface IBalanceProgress {
+  /** 0..100, monotone; never reaches 100 until the capture is done. */
+  percent: number;
+  weakestLabel: string;
+  isSettling: boolean;
+  isSilent: boolean;
+  isPaused: boolean;
+  listenedMs: number;
+}
+
+/** Regions clipped to the axis. Regions holding no axis point are dropped. */
+export const createBalanceRegions = (
+  axis: readonly number[],
+): IBalanceRegion[] => {
+  const regions: IBalanceRegion[] = [];
+
+  for (let index = 0; index < BALANCE_REGION_EDGES.length - 1; index += 1) {
+    const lowFrequency = BALANCE_REGION_EDGES[index];
+    const highFrequency = BALANCE_REGION_EDGES[index + 1];
+    let firstIndex = -1;
+    let lastIndex = -1;
+
+    axis.forEach((frequency, axisIndex) => {
+      const isLast = index === BALANCE_REGION_EDGES.length - 2;
+      const inRegion =
+        frequency >= lowFrequency &&
+        (isLast ? frequency <= highFrequency : frequency < highFrequency);
+      if (!inRegion) {
+        return;
+      }
+      if (firstIndex === -1) {
+        firstIndex = axisIndex;
+      }
+      lastIndex = axisIndex;
+    });
+
+    if (firstIndex !== -1) {
+      regions.push({
+        label: BALANCE_REGION_LABELS[index],
+        lowFrequency,
+        highFrequency,
+        firstIndex,
+        lastIndex,
+        centreFrequency: Math.sqrt(lowFrequency * highFrequency),
+      });
+    }
+  }
+
+  return regions;
+};
+
+export const createBalanceCaptureState = (
+  axis: readonly number[],
+): IBalanceCaptureState => {
+  const regions = createBalanceRegions(axis);
+  return {
+    axis: [...axis],
+    regions,
+    power: new Float64Array(axis.length),
+    weight: new Float64Array(axis.length),
+    regionStates: regions.map(() => ({ weight: 0, mean: 0, m2: 0 })),
+    frames: 0,
+    acceptedFrames: 0,
+    listenedMs: 0,
+    lastTimestampMs: 0,
+    checkpoint: undefined,
+    bestWeakest: 0,
+    bestWeakestAtMs: 0,
+    bestMean: 0,
+    bestMeanAtMs: 0,
+  };
+};
+
+/** Power mean of `levels` over an inclusive index range, in dB. */
+const regionLevelDb = (
+  levels: Float64Array,
+  firstIndex: number,
+  lastIndex: number,
+): number => {
+  let power = 0;
+  let count = 0;
+  for (let index = firstIndex; index <= lastIndex; index += 1) {
+    const level = levels[index];
+    if (Number.isFinite(level)) {
+      power += 10 ** (level / 10);
+      count += 1;
+    }
+  }
+  return count > 0 ? 10 * Math.log10(power / count) : Number.NaN;
+};
+
+/**
+ * Fold one frame into the state. Mutates and returns `state` so a test can
+ * drive it with `Array.reduce` over synthetic frames.
+ *
+ * Energy is accumulated in the power domain, not in dB. An arithmetic mean of
+ * dB values is the logarithm of the *geometric* mean, which under-reads
+ * variable content — exactly the material this feature exists for.
+ */
+export const accumulateBalanceFrame = (
+  state: IBalanceCaptureState,
+  frame: IBalanceFrame,
+): IBalanceCaptureState => {
+  const w = clamp01(
+    (frame.peakDb - FRAME_MIN_PEAK_DBFS) /
+      (FRAME_FULL_PEAK_DBFS - FRAME_MIN_PEAK_DBFS),
+  );
+
+  state.frames += 1;
+  const rawDelta = frame.timestampMs - state.lastTimestampMs;
+  // A starved renderer must not be able to claim minutes of listening from one
+  // late tick.
+  const dt =
+    state.frames === 1 ? 0 : clamp(rawDelta, 0, BALANCE_FRAME_INTERVAL_MS * 3);
+  state.lastTimestampMs = frame.timestampMs;
+
+  if (w <= 0) {
+    // Silence buys no listened time.
+    return state;
+  }
+
+  // The frame's own mean-power level is the reference. It is the
+  // minimum-variance choice, and the tilt fit plus centring absorb the
+  // constant, so using it changes nothing downstream except the noise.
+  let refPower = 0;
+  let refCount = 0;
+  for (let index = 0; index < frame.levels.length; index += 1) {
+    const level = frame.levels[index];
+    if (Number.isFinite(level)) {
+      refPower += 10 ** (level / 10);
+      refCount += 1;
+    }
+  }
+  if (refCount === 0) {
+    return state;
+  }
+  const refDb = 10 * Math.log10(refPower / refCount);
+  if (!Number.isFinite(refDb)) {
+    return state;
+  }
+
+  state.listenedMs += dt;
+  state.acceptedFrames += 1;
+
+  state.regions.forEach((region, regionIndex) => {
+    const absDb = regionLevelDb(
+      frame.levels,
+      region.firstIndex,
+      region.lastIndex,
+    );
+    if (!Number.isFinite(absDb) || absDb < ABS_FLOOR_DBFS) {
+      return;
+    }
+
+    const e = clamp01(
+      (absDb - (frame.peakDb - REGION_FLOOR_DB)) / REGION_FLOOR_RAMP_DB,
+    );
+    if (e <= 0) {
+      return;
+    }
+    const ww = w * e;
+
+    // Weighted Welford, so the standard error is available without keeping
+    // every frame.
+    const x = clamp(absDb - refDb, LEVEL_CLAMP_LO, LEVEL_CLAMP_HI);
+    const s = state.regionStates[regionIndex];
+    s.weight += ww;
+    const delta = x - s.mean;
+    s.mean += (ww / s.weight) * delta;
+    s.m2 += ww * delta * (x - s.mean);
+
+    for (let index = region.firstIndex; index <= region.lastIndex; index += 1) {
+      const level = frame.levels[index];
+      if (Number.isFinite(level)) {
+        const rel = clamp(level - refDb, LEVEL_CLAMP_LO, LEVEL_CLAMP_HI);
+        state.power[index] += ww * 10 ** (rel / 10);
+        state.weight[index] += ww;
+      }
+    }
+  });
+
+  return state;
+};
+
+/** True when enough listened time has passed to re-evaluate. */
+export const isBalanceCheckDue = (state: IBalanceCaptureState): boolean =>
+  state.checkpoint === undefined
+    ? state.listenedMs > 0
+    : state.listenedMs - state.checkpoint.atListenedMs >= CONVERGENCE_CHECK_MS;
+
+/**
+ * Score the capture so far: per-region confidence, the averaged spectrum, and
+ * whether we can stop. Mutates the convergence bookkeeping on `state`.
+ */
+export const evaluateBalanceCapture = (
+  state: IBalanceCaptureState,
+): IBalanceReport => {
+  const regions: IBalanceRegionReport[] = state.regions.map((region, index) => {
+    const s = state.regionStates[index];
+    const variance = s.weight > 0 ? s.m2 / s.weight : 0;
+    const standardErrorDb = Math.sqrt(
+      variance / Math.max(s.weight * EFFECTIVE_FRAME_RATIO, 1),
+    );
+    const evidence = clamp01(s.weight / REGION_TARGET_WEIGHT);
+    // Two observations cannot support a variance estimate, so a region with
+    // less than that is untrusted regardless of how it looks.
+    const precision =
+      s.weight >= 2
+        ? clamp01(REGION_SE_TARGET_DB / Math.max(standardErrorDb, 1e-6))
+        : 0;
+    const confidence = Math.min(evidence, precision);
+    return {
+      label: region.label,
+      lowFrequency: region.lowFrequency,
+      highFrequency: region.highFrequency,
+      weight: s.weight,
+      standardErrorDb,
+      confidence,
+      isCovered: confidence >= REGION_COVERED_CONFIDENCE,
+    };
+  });
+
+  const confidenceCurve: ISpectrumSample[] = state.regions.map(
+    (region, index) => ({
+      frequency: region.centreFrequency,
+      level: regions[index].confidence,
+    }),
+  );
+
+  const samples: ISpectrumSample[] = state.axis.map((frequency, index) => {
+    const weight = state.weight[index];
+    return {
+      frequency,
+      // A point with no weight still has to stay in the array with a finite
+      // level: dropping it would let sampleSpectrumAt clamp a never-heard band
+      // to the nearest measured one.
+      level: weight > 0 ? 10 * Math.log10(state.power[index] / weight) : 0,
+      confidence:
+        weight > 0 ? clamp01(sampleSpectrumAt(confidenceCurve, frequency)) : 0,
+    };
+  });
+
+  const coverage =
+    regions.length > 0
+      ? regions.reduce(
+          (lowest, region) => Math.min(lowest, region.confidence),
+          1,
+        )
+      : 0;
+  const meanCoverage =
+    regions.length > 0
+      ? regions.reduce((total, region) => total + region.confidence, 0) /
+        regions.length
+      : 0;
+  const weakest = regions.reduce<IBalanceRegionReport | undefined>(
+    (lowest, region) =>
+      lowest === undefined || region.confidence < lowest.confidence
+        ? region
+        : lowest,
+    undefined,
+  );
+
+  // Convergence is judged on the quantity that actually becomes the gains. A
+  // section change shifts the whole tilt, which the fit removes entirely, so
+  // testing the raw spectrum would refuse to ever settle on real music.
+  const usable = samples.filter(
+    (sample) =>
+      sample.frequency >= BALANCE_MIN_FREQUENCY &&
+      sample.frequency <= BALANCE_MAX_FREQUENCY,
+  );
+  const { slope, intercept } = fitSpectralTilt(usable);
+  const deviation = smoothSpectrum(
+    usable.map((sample) => ({
+      frequency: sample.frequency,
+      level: sample.level - (slope * Math.log10(sample.frequency) + intercept),
+      confidence: sample.confidence,
+    })),
+    DEFAULTS.smoothingOctaves,
+  );
+  const probe = new Float64Array(state.regions.length);
+  state.regions.forEach((region, index) => {
+    probe[index] = sampleSpectrumAt(deviation, region.centreFrequency);
+  });
+
+  let holds = 0;
+  if (state.checkpoint) {
+    const covered = regions
+      .map((region, index) => ({ region, index }))
+      .filter((entry) => entry.region.isCovered);
+    const drift =
+      covered.length > 0
+        ? covered.reduce(
+            (highest, entry) =>
+              Math.max(
+                highest,
+                Math.abs(
+                  probe[entry.index] -
+                    (state.checkpoint as { probe: Float64Array }).probe[
+                      entry.index
+                    ],
+                ),
+              ),
+            0,
+          )
+        : Infinity;
+    holds = drift <= CONVERGENCE_TOLERANCE_DB ? state.checkpoint.holds + 1 : 0;
+  }
+  state.checkpoint = { probe, holds, atListenedMs: state.listenedMs };
+  const isConverged = holds >= CONVERGENCE_HOLDS;
+
+  if (coverage > state.bestWeakest + STALL_IMPROVEMENT) {
+    state.bestWeakest = coverage;
+    state.bestWeakestAtMs = state.listenedMs;
+  }
+  if (meanCoverage > state.bestMean + STALL_IMPROVEMENT) {
+    state.bestMean = meanCoverage;
+    state.bestMeanAtMs = state.listenedMs;
+  }
+  const isStalled =
+    state.listenedMs >= MIN_LISTEN_MS &&
+    coverage < REGION_COVERED_CONFIDENCE &&
+    state.listenedMs - state.bestWeakestAtMs >= STALL_GRACE_MS &&
+    state.listenedMs - state.bestMeanAtMs >= STALL_GRACE_MS;
+
+  // Order matters. The goal is tested before the ceiling so a capture that
+  // reaches full coverage on its very last allowed frame is reported as the
+  // good measurement it is, rather than being downgraded by the backstop.
+  const meetsGoal = isConverged && coverage >= REGION_COVERED_CONFIDENCE;
+  let status: BalanceCaptureStatus;
+  if (state.listenedMs < MIN_LISTEN_MS) {
+    status = 'listening';
+  } else if (meetsGoal) {
+    status = 'ready';
+  } else if (state.listenedMs >= MAX_LISTEN_MS) {
+    status = 'partial';
+  } else if (isConverged && isStalled) {
+    // Only a settled measurement may be declared band-limited; otherwise a
+    // quiet passage would masquerade as a missing frequency range.
+    status = 'partial';
+  } else {
+    status = 'listening';
+  }
+
+  return {
+    samples,
+    regions,
+    coverage,
+    meanCoverage,
+    weakest,
+    listenedMs: state.listenedMs,
+    frames: state.frames,
+    isConverged,
+    isStalled,
+    status,
+  };
+};
+
+export const shouldFinishBalanceCapture = (report: IBalanceReport): boolean =>
+  report.status !== 'listening';
+
+export const buildBalanceResult = (report: IBalanceReport): IBalanceResult => {
+  const covered = report.regions.filter((region) => region.isCovered);
+  return {
+    samples: report.samples,
+    status: report.status === 'ready' ? 'ready' : 'partial',
+    lowFrequency: covered[0]?.lowFrequency ?? 0,
+    highFrequency: covered[covered.length - 1]?.highFrequency ?? 0,
+  };
+};
+
+export const buildBalanceProgress = (
+  report: IBalanceReport,
+  previousPercent: number,
+  flags: { isSilent: boolean; isPaused: boolean },
+): IBalanceProgress => {
+  const isSettling =
+    report.coverage >= REGION_COVERED_CONFIDENCE && !report.isConverged;
+  return {
+    // Monotone: coverage can dip when a new region starts contributing, and a
+    // progress number that goes backwards reads as a malfunction.
+    percent:
+      report.status !== 'listening'
+        ? 100
+        : Math.min(
+            99,
+            Math.max(previousPercent, Math.round(report.coverage * 100)),
+          ),
+    weakestLabel: isSettling ? '' : (report.weakest?.label ?? ''),
+    isSettling,
+    isSilent: flags.isSilent,
+    isPaused: flags.isPaused,
+    listenedMs: report.listenedMs,
+  };
+};
+
+export const formatBalanceFrequency = (frequency: number): string =>
+  frequency >= 1000
+    ? `${Math.round(frequency / 100) / 10} kHz`
+    : `${Math.round(frequency)} Hz`;
+
+export const describeBalanceProgress = (progress: IBalanceProgress): string => {
+  if (progress.isPaused) {
+    return 'Paused - resume to finish';
+  }
+  if (progress.isSilent) {
+    return 'Paused - no sound playing';
+  }
+  if (progress.isSettling) {
+    return `Listening ${progress.percent}% - settling`;
+  }
+  if (!progress.weakestLabel) {
+    return `Listening ${progress.percent}%`;
+  }
+  return `Listening ${progress.percent}% - needs ${progress.weakestLabel}`;
+};
+
+export const describeBalanceResult = (result: IBalanceResult): string => {
+  if (result.status === 'ready') {
+    return 'Balanced - full range';
+  }
+  return `Balanced - ${formatBalanceFrequency(
+    result.lowFrequency,
+  )} to ${formatBalanceFrequency(result.highFrequency)} only`;
+};

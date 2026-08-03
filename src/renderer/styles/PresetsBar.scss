@@ -19,146 +19,70 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'constant' as *;
 @use 'color' as *;
 @use 'spacing' as *;
-
-.presets-bar {
-  // Spacing of the contents
-  display: grid;
-  grid-template-rows: repeat(3, min-content) minmax(0px, 1fr) min-content;
-  padding: $spacing-m;
-  gap: $spacing-s;
-  justify-items: stretch;
-
-  // Styling of the background wrapper
-  border: 1px solid rgba($primary-lighter, 0.14);
-  border-radius: 14px;
-  background: rgba($primary-default, 0.88);
-  box-shadow: 0 18px 45px rgba($black, 0.2);
-
-  h4 {
-    margin: 0.35em 0 0.4em 0;
-    justify-self: center;
-  }
-
-  .button {
-    // Ensure button width matches the list width
-    margin: $spacing-xs 0;
-  }
-
-  .preset-name {
-    padding-top: $spacing-xs;
-  }
-
-  .preset-list-item {
-    min-height: $spacing-l;
-    padding: $spacing-xs $spacing-s;
-    justify-content: space-between;
-    align-items: center;
-
-    // Ensure icons don't get pushed out of the way
-    display: grid;
-    grid-template-columns: 1fr max-content;
-    column-gap: $spacing-s;
-
-    .preset-name {
-      overflow-x: hidden;
-      white-space: nowrap;
-      text-overflow: ellipsis;
-      min-width: 0;
-    }
-
-    .icons {
-      display: none;
-      gap: $spacing-s;
-
-      .iconButton {
-        outline: none;
-
-        &:hover svg path {
-          fill: $primary-lighter;
-        }
-
-        &:active svg path {
-          fill: $primary-light;
-        }
-
-        &:focus-visible:not([aria-disabled='true']) {
-          path {
-            fill: $primary-lighter;
-          }
-        }
-      }
-    }
-
-    &:focus,
-    &:focus-visible,
-    &:focus-within,
-    &:hover {
-      .icons {
-        display: flex;
-      }
-    }
-  }
-}
-
-.presets-bar__heading {
-  h4 {
-    margin: 2px 0 0;
-    justify-self: start;
-  }
-
-  p {
-    margin: $spacing-xs 0 0;
-    color: $primary-lighter;
-    font-size: 0.68rem;
-    line-height: 1.4;
-  }
-}
+@use 'theme' as *;
 
 .presets-bar {
   position: relative;
   z-index: 10;
+  display: grid;
+  min-width: 0;
   min-height: 0;
-  grid-template-rows: min-content min-content min-content minmax(0, 1fr);
   padding: 13px;
   gap: 6px;
-  border-color: rgba($primary-lighter, 0.14);
-  border-radius: 18px;
+  // Heading, compose row, save button, then the list takes the rest and is the
+  // only surface that scrolls.
+  grid-template-rows: repeat(3, min-content) minmax(0, 1fr);
+  justify-items: stretch;
+  overflow: hidden;
+  border: 1px solid rgba($primary-lighter, 0.14);
+  border-radius: $radius-xl;
   background:
-    linear-gradient(150deg, rgba($analogous-1, 0.045), transparent 44%),
-    rgba(#101722, 0.93);
+    linear-gradient(150deg, rgba($secondary-dark, 0.06), transparent 44%),
+    rgba(#0d1620, 0.93);
   box-shadow:
     inset 0 1px 0 rgba($white, 0.035),
     0 20px 48px rgba($black, 0.18);
-  overflow: hidden;
 
-  .preset-list-item {
-    min-width: 0;
-    width: 100%;
-    overflow: hidden;
+  h4 {
+    margin: 2px 0 0;
   }
 
+  // The saved-profile list is a well inside this card, not a floating menu:
+  // drop the menu's elevation and glass so it sits in the same colour family
+  // as the panel around it.
   > .list-wrapper {
-    // The parent owns the height; the list itself is the only scrollable
-    // surface when there are more profiles than fit in the card.
+    @include inset-surface;
+    width: 100%;
+    min-width: 0;
     min-height: 0;
     max-height: 100%;
-    width: 100%;
+    border-radius: $radius-l;
     overflow: hidden;
-    min-width: 0;
-    border-color: rgba($primary-lighter, 0.12);
-    background: rgba($primary-dark, 0.66);
-    box-shadow: inset 0 1px 4px rgba($black, 0.3);
+    backdrop-filter: none;
 
     .list {
       min-height: 0;
       max-height: 100%;
       overflow-y: auto;
+      @include slim-scrollbar(7px);
     }
+  }
+}
+
+.presets-bar__heading {
+  min-width: 0;
+
+  p {
+    margin: $spacing-xs 0 0;
+    color: $text-muted;
+    font-size: 0.68rem;
+    line-height: 1.4;
   }
 }
 
 .profile-compose {
   display: grid;
+  min-width: 0;
   gap: 6px;
 
   .preset-name {
@@ -169,6 +93,56 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.presets-bar__heading p {
-  color: rgba($primary-lighter, 0.72);
+// Saved profile row. The specificity clears List.scss's generic `li` styling
+// so the icons keep their own column instead of being pushed off the row.
+.presets-bar .list-wrapper .list li.preset-list-item {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  min-height: $spacing-l;
+  padding: $spacing-xs $spacing-s;
+  grid-template-columns: minmax(0, 1fr) max-content;
+  align-items: center;
+  column-gap: $spacing-s;
+  overflow: hidden;
+
+  .preset-name {
+    @include truncate;
+  }
+
+  // Revealed on hover/focus so the row stays calm at rest. `visibility`
+  // rather than `display` keeps the column reserved, so the profile name does
+  // not reflow (and get re-truncated) the moment the pointer arrives.
+  .icons {
+    display: flex;
+    gap: $spacing-s;
+    visibility: hidden;
+
+    .iconButton {
+      outline: none;
+      cursor: pointer;
+
+      &:hover svg path,
+      &:focus-visible:not([aria-disabled='true']) path {
+        fill: $primary-lighter;
+      }
+
+      &:active svg path {
+        fill: $primary-light;
+      }
+
+      &[aria-disabled='true'] {
+        cursor: default;
+        opacity: 0.4;
+        pointer-events: none;
+      }
+    }
+  }
+
+  &:hover .icons,
+  &:focus .icons,
+  &:focus-visible .icons,
+  &:focus-within .icons {
+    visibility: visible;
+  }
 }

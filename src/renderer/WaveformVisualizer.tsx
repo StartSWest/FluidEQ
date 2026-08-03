@@ -6,17 +6,21 @@ export const WAVEFORM_WIDTH = 420;
 export const WAVEFORM_HEIGHT = 58;
 
 export const createWaveformPath = (samples: number[]) => {
-  const visibleSamples = samples.length > 0 ? samples : Array(96).fill(0.04);
+  // A single sample would make the x step divide by zero and emit a NaN path,
+  // which silently blanks the whole visualiser.
+  const visibleSamples =
+    samples.length > 1 ? samples : Array(96).fill(samples[0] ?? 0.04);
   const center = WAVEFORM_HEIGHT / 2;
   const amplitude = 23;
+  const step = WAVEFORM_WIDTH / (visibleSamples.length - 1);
   const points = visibleSamples.map((sample, index) => {
-    const x = (index / (visibleSamples.length - 1)) * WAVEFORM_WIDTH;
+    const x = index * step;
     const y = center - sample * amplitude;
     return `${x.toFixed(1)},${y.toFixed(1)}`;
   });
   const lowerPoints = visibleSamples
     .map((sample, index) => {
-      const x = (index / (visibleSamples.length - 1)) * WAVEFORM_WIDTH;
+      const x = index * step;
       const y = center + sample * amplitude;
       return `${x.toFixed(1)},${y.toFixed(1)}`;
     })

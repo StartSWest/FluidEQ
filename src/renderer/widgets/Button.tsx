@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ReactNode } from 'react';
+import { KeyboardEvent, ReactNode } from 'react';
 import '../styles/Button.scss';
 
 interface IButtonProps {
@@ -34,12 +34,31 @@ const Button = ({
   className = '',
   handleChange,
 }: IButtonProps) => {
+  // `aria-disabled` only removes pointer events through CSS, so the handler
+  // still has to refuse activation itself.
+  const activate = () => {
+    if (isDisabled) {
+      return;
+    }
+    handleChange();
+  };
+
+  // The element is focusable, so it must respond to the keys a real button
+  // responds to.
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.code === 'Enter' || e.code === 'Space') {
+      e.preventDefault();
+      activate();
+    }
+  };
+
   return (
     <div
       role="button"
       aria-label={ariaLabel}
       className={`button ${className}`}
-      onMouseUp={handleChange}
+      onClick={activate}
+      onKeyDown={onKeyDown}
       tabIndex={isDisabled ? -1 : 0}
       aria-disabled={isDisabled}
     >

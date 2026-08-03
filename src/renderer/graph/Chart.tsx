@@ -62,27 +62,28 @@ const Chart = ({
   const padding = useMemo(() => {
     return {
       left: 50,
-      top: 0,
+      // Axis labels are centred on their tick, so the topmost one (+20 dB)
+      // needs half a line of headroom or the SVG viewport cuts it in half.
+      top: 10,
       right: 0,
       bottom: 30,
     };
   }, []);
 
-  const chartWidth = useMemo(
-    () =>
-      Math.max(
-        width - margins.left - margins.right - padding.left - padding.right,
-        0,
-      ),
-    [width, margins, padding],
+  // Width of the plotting area itself, i.e. everything to the right of the
+  // y-axis label gutter. Grid lines are drawn from that gutter, so they must
+  // be measured from it too.
+  const plotWidth = useMemo(
+    () => Math.max(svgWidth - padding.left - padding.right, 0),
+    [svgWidth, padding],
   );
-  const chartHeight = useMemo(
-    () =>
-      Math.max(
-        height - margins.top - margins.bottom - padding.top - padding.bottom,
-        0,
-      ),
-    [height, margins, padding],
+
+  // Curves are clipped to the plot area so they never run under the y-axis
+  // labels or over the frequency labels. The top is left open: a stroked line
+  // sitting exactly on +20 dB would otherwise be shaved in half.
+  const plotHeight = useMemo(
+    () => Math.max(svgHeight - padding.bottom, 0),
+    [svgHeight, padding],
   );
 
   const { xTickFormat, yTickFormat, xScaleFreq, yScaleGain } = useController({
@@ -91,6 +92,13 @@ const Chart = ({
     height: svgHeight,
     padding,
   });
+
+  const yAxisTickValues = useMemo(() => {
+    return [MIN_GAIN, -10, 0, 10, MAX_GAIN];
+  }, []);
+  const yGridTickValues = useMemo(() => {
+    return [MIN_GAIN, -10, 10, MAX_GAIN];
+  }, []);
   const eqGradientStops: IChartGradientStop[] =
     data.find((curve) => curve.id === 'EQ Response')?.line.gradientStops || [];
   const svgRef = useRef<SVGSVGElement>(null);
@@ -247,15 +255,15 @@ const Chart = ({
       <GridLine
         type="horizontal"
         scale={yScaleGain}
-        tickValues={[MIN_GAIN, -10, 10, MAX_GAIN]}
-        size={svgWidth - padding.left}
+        tickValues={yGridTickValues}
+        size={plotWidth}
         transform={`translate(${padding.left}, 0)`}
       />
       <GridLine
         type="horizontal"
         scale={yScaleGain}
         tickValues={[0]}
-        size={width - margins.left - margins.right}
+        size={plotWidth}
         color={ColorEnum.COMPLEMENTARY}
         transform={`translate(${padding.left}, 0)`}
       />
@@ -282,13 +290,13 @@ const Chart = ({
         />
       ))}
       <clipPath id="chart-clip-path">
-        <rect x={padding.left} width={chartWidth} height={chartHeight} />
+        <rect x={padding.left} y={0} width={plotWidth} height={plotHeight} />
       </clipPath>
       <Axis
         type="left"
         scale={yScaleGain}
         transform={`translate(${padding.left}, 0)`}
-        tickValues={[MIN_GAIN, -10, 0, 10, MAX_GAIN]}
+        tickValues={yAxisTickValues}
         tickFormat={yTickFormat}
       />
       <Axis

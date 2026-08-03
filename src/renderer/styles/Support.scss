@@ -1,0 +1,210 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.support-backdrop {
+  position: fixed;
+  z-index: 1400;
+  inset: 0;
+  display: grid;
+  padding: $spacing-m;
+  place-items: center;
+  background: rgba(#03070d, 0.62);
+  backdrop-filter: blur(3px);
+}
+
+.support-dialog {
+  @include menu-surface;
+  display: grid;
+  width: min(460px, 100%);
+  max-height: calc(100vh - #{$spacing-m} * 2);
+  padding: 18px;
+  gap: 14px;
+  overflow-y: auto;
+  @include slim-scrollbar(8px);
+
+  h2 {
+    margin: 3px 0 0;
+    font-size: 1.14rem;
+  }
+}
+
+.support-dialog__header {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.support-dialog__close {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: rgba($white, 0.72);
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.4;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.35);
+    background: rgba($secondary-default, 0.12);
+    outline: none;
+  }
+}
+
+.support-dialog__pitch {
+  margin: 0;
+  color: rgba($primary-lighter, 0.86);
+  font-size: 0.76rem;
+  line-height: 1.5;
+}
+
+.support-dialog__methods {
+  display: grid;
+  gap: 10px;
+}
+
+.support-method {
+  @include inset-surface;
+  display: grid;
+  min-width: 0;
+  padding: 12px;
+  gap: 4px;
+  color: inherit;
+  text-decoration: none;
+
+  &__label {
+    color: $white;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
+
+  &__hint {
+    color: rgba($primary-lighter, 0.66);
+    font-size: 0.68rem;
+    line-height: 1.4;
+  }
+
+  // The address must stay readable and selectable; a donor sending to the
+  // wrong string cannot get their money back, so it never truncates.
+  &__address {
+    margin-top: 6px;
+    padding: 9px 10px;
+    color: $secondary-light;
+    border: 1px solid rgba($secondary-light, 0.2);
+    border-radius: $radius-xs;
+    background: rgba(#050b12, 0.7);
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-size: 0.72rem;
+    line-height: 1.45;
+    overflow-wrap: anywhere;
+    user-select: all;
+  }
+
+  &__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+  }
+
+  &__action {
+    @include ghost-button;
+    min-height: $control-height-sm;
+    padding: 6px 12px;
+    border-radius: $radius-xs;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-decoration: none;
+  }
+}
+
+// The hosted-checkout route is the primary action, so it carries the accent.
+.support-method--primary {
+  border-color: rgba($secondary-light, 0.34);
+  background: linear-gradient(
+    145deg,
+    rgba($secondary-default, 0.16),
+    rgba(#12243a, 0.9)
+  );
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba($secondary-light, 0.62);
+    background: linear-gradient(
+      145deg,
+      rgba($secondary-default, 0.26),
+      rgba(#16304a, 0.94)
+    );
+    outline: none;
+  }
+
+  .support-method__label {
+    color: $secondary-light;
+  }
+}
+
+.support-dialog__footer {
+  margin: 0;
+  color: rgba($primary-lighter, 0.6);
+  font-size: 0.68rem;
+  line-height: 1.45;
+
+  a {
+    color: $secondary-light;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+  }
+}
+
+@media (max-height: 620px) {
+  .support-dialog {
+    padding: 14px;
+    gap: 10px;
+  }
+
+  .support-dialog__pitch {
+    font-size: 0.72rem;
+  }
+}

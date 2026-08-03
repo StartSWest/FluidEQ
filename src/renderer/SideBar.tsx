@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ErrorDescription } from 'common/errors';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { setMainPreAmp } from './utils/equalizerApi';
 import EqualizerEnablerSwitch from './components/EqualizerEnablerSwitch';
 import AutoPreAmpEnablerSwitch from './components/AutoPreAmpEnablerSwitch';
@@ -28,9 +28,12 @@ import { useAquaContext } from './utils/AquaContext';
 import GraphViewSwitch from './components/GraphViewSwitch';
 import Spinner from './icons/Spinner';
 
-const SideBar = () => {
-  const { isGraphViewOn, isLoading, preAmp, setGlobalError, setPreAmp } =
-    useAquaContext();
+interface SideBarProps {
+  showGraphToggle: boolean;
+}
+
+const SideBar = ({ showGraphToggle }: SideBarProps) => {
+  const { isLoading, preAmp, setGlobalError, setPreAmp } = useAquaContext();
 
   const setGain = useCallback(
     async (newValue: number) => {
@@ -44,12 +47,10 @@ const SideBar = () => {
     [setGlobalError, setPreAmp],
   );
 
-  const sliderHeight = useMemo(
-    // Manually determine slider height
-    () =>
-      isGraphViewOn ? '102px' : 'clamp(102px, calc(100vh - 524px), 240px)',
-    [isGraphViewOn],
-  );
+  // Only the fallback. SideBar.scss owns the track length so the preamp card
+  // keeps one shape: deriving it from the active workspace tab made the whole
+  // sidebar resize whenever the user switched between EQ and Convolution.
+  const sliderHeight = '102px';
 
   return (
     <div className="col side-bar center">
@@ -82,11 +83,13 @@ const SideBar = () => {
             <h4>Auto normalize</h4>
             <AutoPreAmpEnablerSwitch id="autoPreAmpEnabler" />
           </div>
-          <div className="col center side-bar__control-card side-bar__response">
-            <span className="control-kicker">VISUALIZER</span>
-            <h4>Response graph</h4>
-            <GraphViewSwitch id="graphViewEnabler" />
-          </div>
+          {showGraphToggle ? (
+            <div className="col center side-bar__control-card side-bar__response">
+              <span className="control-kicker">VISUALIZER</span>
+              <h4>Response graph</h4>
+              <GraphViewSwitch id="graphViewEnabler" />
+            </div>
+          ) : null}
         </>
       )}
     </div>

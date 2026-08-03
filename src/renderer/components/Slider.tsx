@@ -70,6 +70,9 @@ const Slider = ({
 
   const handleInput = async (newValue: number) => {
     setSliderValue(newValue);
+    // Deliberately not awaited: the thumb keeps tracking the pointer while the
+    // value propagates.
+    // eslint-disable-next-line no-void
     void handleChangeValue(newValue);
   };
 
@@ -80,7 +83,11 @@ const Slider = ({
   const handleDragEnd = async (newValue: number) => {
     setSliderValue(newValue);
     isDragging.current = false;
-    await handleChangeValue(newValue);
+    // A press that did not move the thumb still ends the drag, but there is
+    // nothing new to write.
+    if (newValue !== value) {
+      await handleChangeValue(newValue);
+    }
   };
 
   return (

@@ -19,160 +19,155 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'constant' as *;
 @use 'color' as *;
 @use 'spacing' as *;
+@use 'theme' as *;
 
+// Every card is fixed-size and top-aligned, so the column keeps exactly the
+// same shape whatever the workspace next to it is showing.
 .side-bar {
-  grid-area: side-bar;
-  padding: $spacing-s $spacing-l;
+  @include panel-surface($secondary-default, 9%);
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 22px;
+  padding: 18px 12px 20px;
+  text-align: center;
 
-  border: 1px solid rgba($primary-lighter, 0.14);
-  border-radius: 14px;
-  background: linear-gradient(
-    180deg,
-    rgba($primary-light, 0.48),
-    rgba($primary-default, 0.86)
-  );
-  box-shadow: 0 18px 45px rgba($black, 0.22);
-
-  .switch[for='graphViewEnabler'] {
-    margin-bottom: 1em;
+  > div {
+    width: 100%;
+    flex: 0 0 auto;
   }
-
-  .auto-normalize-control {
-    gap: 2px;
-
-    .control-kicker {
-      margin-bottom: 2px;
-    }
-
-    h4 {
-      margin: 3px 0 8px;
-    }
-  }
-
-  h4 {
-    margin: 0.55em 0 0.9em;
-    font-size: 0.76rem;
-    font-weight: 600;
-  }
-}
-
-.side-bar {
-  position: relative;
-  z-index: 10;
-  min-height: 0;
-  justify-content: space-around;
-  padding: 14px 12px;
-  border-color: rgba($primary-lighter, 0.14);
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba($secondary-default, 0.055), transparent 24%),
-    linear-gradient(180deg, rgba($primary-light, 0.45), rgba(#0e1520, 0.94));
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.035),
-    0 20px 48px rgba($black, 0.2);
 
   h4 {
     margin: 6px 0 9px;
     color: rgba($white, 0.84);
     font-size: 0.7rem;
-  }
-
-  > div {
-    width: 100%;
+    font-weight: 600;
   }
 
   .slider {
     align-items: center;
-
-    .number-input {
-      width: 78px;
-      min-width: 78px;
-      align-items: center;
-
-      .input-wrapper {
-        width: 100%;
-        min-width: 0;
-      }
-
-      input[type='text'] {
-        min-width: 0;
-        width: 100%;
-      }
-    }
+    gap: $spacing-s;
   }
 
-  .auto-normalize-control {
-    .switch {
-      margin-top: 1px;
-    }
+  // The preamp readout is fixed width so the column does not jump between
+  // "-9.5" and "-10.23".
+  .number-input {
+    width: 78px;
+    align-self: center;
   }
 }
 
-@media (max-width: 980px) {
-  .side-bar.side-bar {
+.side-bar__control-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  h4 {
+    margin: 3px 0 8px;
+  }
+}
+
+.side-bar__preamp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+
+  // The preamp track length is a layout decision, not a per-tab one. It only
+  // grows when the response graph is hidden and the column has room to spare.
+  .range {
+    --range-length: 102px;
+  }
+
+  // The "+20 dB" ceiling caption above the track.
+  > div:not(.slider) {
+    color: rgba($primary-lighter, 0.82);
+    font-size: 0.58rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  // The "-20 dB" floor caption rendered by Slider under the track.
+  .slider > div:not(.range):not(.number-input) {
+    color: rgba($primary-lighter, 0.82);
+    font-size: 0.58rem;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+#root.minimized .side-bar__preamp .range {
+  --range-length: clamp(102px, calc(100vh - 540px), 220px);
+}
+
+// *** Compact shell **********************************************************
+//
+// Below the two-column breakpoint the sidebar is a horizontal strip of control
+// chips above the workspace, and the preamp slider lies flat.
+
+@media (max-width: $bp-two-column) {
+  .side-bar {
     display: grid;
-    height: auto;
-    min-height: 0;
-    max-height: none;
-    grid-template-columns: minmax(118px, 0.72fr) minmax(250px, 2fr) minmax(150px, 0.9fr);
+    align-items: stretch;
+    align-content: start;
+    gap: 8px;
+    padding: 10px;
+    grid-template-columns:
+      minmax(118px, 0.72fr) minmax(240px, 2fr)
+      minmax(150px, 0.9fr);
     grid-template-rows: repeat(2, minmax(48px, auto));
     grid-template-areas:
       'engine preamp headroom'
       'engine preamp response';
-    align-items: stretch;
-    align-content: start;
-    align-self: start;
-    gap: 8px;
-    padding: 10px;
+
+    h4 {
+      margin: 0;
+      font-size: 0.66rem;
+    }
   }
 
-  .side-bar__engine,
-  .side-bar__headroom,
-  .side-bar__response {
+  .side-bar__control-card,
+  .side-bar__preamp {
+    @include inset-surface;
     display: grid;
     width: 100%;
     min-width: 0;
     min-height: 0;
-    grid-template-columns: minmax(0, 1fr) auto;
-    grid-template-rows: auto auto;
-    align-self: stretch;
     align-items: center;
-    justify-self: stretch;
     gap: 2px 8px;
     padding: 7px 10px;
-    border: 1px solid rgba($primary-lighter, 0.12);
-    border-radius: 12px;
-    background: rgba($primary-dark, 0.42);
+  }
+
+  .side-bar__control-card {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
 
     .control-kicker {
-      grid-column: 1;
-      grid-row: 1;
+      grid-area: 1 / 1;
     }
 
     h4 {
-      grid-column: 1;
-      grid-row: 2;
+      grid-area: 2 / 1;
     }
 
     .switch {
-      grid-column: 2;
-      grid-row: 1 / span 2;
-      margin: 0;
+      grid-area: 1 / 2 / span 2;
+      align-self: center;
     }
   }
 
+  // The engine card is the tall one on the left, so it stays stacked.
   .side-bar__engine {
     grid-area: engine;
     grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto auto;
-    justify-items: center;
     align-content: center;
+    justify-items: center;
 
     .control-kicker,
     h4,
     .switch {
-      grid-column: 1;
-      grid-row: auto;
+      grid-area: auto / 1;
     }
   }
 
@@ -184,134 +179,91 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     grid-area: response;
   }
 
-  .side-bar__engine h4,
-  .side-bar__headroom h4,
-  .side-bar__response h4 {
-    margin: 0;
-    font-size: 0.66rem;
-  }
-
-  .side-bar__headroom .control-kicker {
-    margin-bottom: 1px;
-  }
-
   .side-bar__preamp {
-    display: grid;
-    width: 100%;
-    min-width: 0;
     grid-area: preamp;
     grid-template-columns: minmax(0, 1fr);
     align-content: center;
     justify-items: center;
     gap: 6px;
     padding: 8px 12px;
-    border: 1px solid rgba($primary-lighter, 0.12);
-    border-radius: 12px;
-    background: rgba($primary-dark, 0.42);
-  }
 
-  .side-bar__preamp > h4 {
-    display: block;
-    margin: 0;
-    color: rgba($white, 0.84);
-    font-size: 0.66rem;
-  }
+    > h4 {
+      color: rgba($white, 0.84);
+    }
 
-  .side-bar__preamp > div:not(.slider) {
-    display: none;
-  }
+    // The stacked ceiling caption is replaced by the inline ones below.
+    > div:not(.slider) {
+      display: none;
+    }
 
-  .side-bar__preamp .slider {
-    display: grid;
-    width: 100%;
-    margin: 0 auto;
-    grid-template-columns: minmax(0, 1fr) 72px;
-    align-items: center;
-    gap: 8px;
-  }
+    .slider {
+      display: grid;
+      width: 100%;
+      grid-template-columns: minmax(0, 1fr) 72px;
+      align-items: center;
+      gap: 8px;
+    }
 
-  .side-bar__preamp .range {
-    display: flex;
-    width: 100%;
-    min-width: 0;
-    flex-direction: row;
-    align-items: center;
-    gap: 6px;
-  }
+    .slider > div:not(.range):not(.number-input) {
+      display: none;
+    }
 
-  .side-bar__preamp .range::before,
-  .side-bar__preamp .range::after {
-    color: rgba($primary-lighter, 0.82);
-    font-size: 0.58rem;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
+    .range {
+      display: flex;
+      width: 100%;
+      min-width: 0;
+      flex-direction: row;
+      align-items: center;
+      gap: 6px;
 
-  .side-bar__preamp .range::before {
-    content: '+20 dB';
-  }
+      // Inline range captions replace the stacked ones.
+      &::before,
+      &::after {
+        color: rgba($primary-lighter, 0.82);
+        font-size: 0.58rem;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+      }
 
-  .side-bar__preamp .range::after {
-    content: '-20 dB';
-  }
+      &::before {
+        content: '+20 dB';
+      }
 
-  .side-bar__preamp .range input[type='range'] {
-    width: auto !important;
-    min-width: 0;
-    flex: 1 1 auto;
-    margin: 0 !important;
-    transform: none !important;
-  }
+      &::after {
+        content: '-20 dB';
+      }
+    }
 
-  .side-bar__preamp .range .arrow-up,
-  .side-bar__preamp .range .arrow-down {
-    width: 14px;
-    height: 14px;
-    flex: 0 0 14px;
-    transform: rotate(90deg);
-  }
+    // Lay the rotated track flat and let it fill the row.
+    .range input[type='range'] {
+      width: auto;
+      min-width: 0;
+      flex: 1 1 auto;
+      margin-block: 0;
+      transform: none;
+    }
 
-  .side-bar__preamp .slider > div:not(.range):not(.number-input) {
-    display: none;
-  }
+    .range .arrow-up,
+    .range .arrow-down {
+      width: 14px;
+      height: 14px;
+      flex: 0 0 14px;
+      transform: rotate(90deg);
+    }
 
-  .side-bar__preamp .number-input {
-    width: 72px;
-    min-width: 0;
+    .number-input {
+      width: 72px;
+    }
   }
 }
 
-
-@media (max-width: 540px) {
-  .side-bar.side-bar {
+@media (max-width: 640px) {
+  .side-bar {
     grid-template-columns: minmax(116px, 0.8fr) minmax(0, 1.2fr);
     grid-template-rows: repeat(2, minmax(48px, auto)) auto;
     grid-template-areas:
       'engine headroom'
       'engine response'
       'preamp preamp';
-  }
-}
-
-// Keep the sidebar aligned with the main workspace row. The response graph is
-// a separate full-width row below it, so the gradient remains visible without
-// the utility card stretching over the graph.
-@media (min-width: 981px) {
-  .side-bar.side-bar {
-    display: flex;
-    min-height: 0;
-    height: auto;
-    max-height: none;
-    overflow: visible;
-    justify-content: flex-start;
-    gap: 14px;
-    padding: 18px 12px 20px;
-    background:
-      linear-gradient(180deg, rgba($secondary-default, 0.08), transparent 26%),
-      linear-gradient(180deg, rgba($primary-light, 0.45), rgba(#0e1520, 0.94));
-  }
-
-  .side-bar.side-bar > div {
-    flex: 0 0 auto;
   }
 }

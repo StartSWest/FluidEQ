@@ -16,29 +16,73 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+// Application shell.
+//
+// This file owns exactly three things: the document/base layer, the titlebar,
+// and the workspace grid. Component appearance lives in the component's own
+// stylesheet, which is loaded after this file and therefore wins ties without
+// needing `!important`.
+//
+// Workspace DOM (see App.tsx):
+//   main.app-workspace
+//     .side-bar
+//     .center-workspace  >  .middle-content ( .workspace-tabs + panel )
+//                        >  .graph-wrapper
+//     .right-content
+
+@use 'sass:color' as sass-color;
 @use 'color' as *;
 @use 'constant' as *;
 @use 'spacing' as *;
+@use 'theme' as *;
 
-body {
+// *** Document ***************************************************************
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
   width: 100%;
   height: 100%;
-  position: relative;
-  color: white;
+  color-scheme: dark;
+  scrollbar-color: rgba($primary-light, 0.92) rgba(#02050a, 0.86);
+  scrollbar-width: thin;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: #edf8ff;
+  // Cyan-forward ambience. The warm accents stay as faint highlights only, so
+  // the shell reads teal rather than violet.
   background:
-    radial-gradient(circle at 8% -10%, rgba($neon-pink, 0.2), transparent 30%),
+    radial-gradient(circle at 8% -10%, rgba($neon-cyan, 0.2), transparent 32%),
     radial-gradient(
-      circle at 42% -18%,
-      rgba($neon-cyan, 0.16),
-      transparent 32%
-    ),
-    radial-gradient(
-      circle at 92% 12%,
-      rgba($neon-purple, 0.2),
+      circle at 46% -18%,
+      rgba($secondary-default, 0.15),
       transparent 34%
     ),
-    radial-gradient(circle at 48% 115%, rgba($neon-lime, 0.1), transparent 32%),
-    $primary-dark;
+    radial-gradient(
+      circle at 92% 10%,
+      rgba($secondary-dark, 0.18),
+      transparent 36%
+    ),
+    radial-gradient(
+      circle at 48% 115%,
+      rgba($neon-lime, 0.07),
+      transparent 32%
+    ),
+    linear-gradient(145deg, #04090f 0%, #061019 48%, #04090f 100%);
   isolation: isolate;
   font-family:
     Inter,
@@ -48,14 +92,9 @@ body {
     'Segoe UI',
     sans-serif;
   font-size: 1em;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
-  margin: 0px;
 
+  // Soft bloom behind the whole shell. Purely decorative, and weighted to the
+  // cyan/teal end of the spectrum palette.
   &::before {
     position: fixed;
     z-index: -1;
@@ -63,268 +102,235 @@ body {
     border-radius: 50%;
     background: conic-gradient(
       from 140deg,
-      rgba($neon-cyan, 0.08),
-      rgba($neon-lime, 0.06),
-      rgba($neon-yellow, 0.06),
-      rgba($neon-pink, 0.09),
-      rgba($neon-purple, 0.08),
-      rgba($neon-cyan, 0.08)
+      rgba($neon-cyan, 0.1),
+      rgba($secondary-default, 0.09),
+      rgba($neon-lime, 0.05),
+      rgba($secondary-dark, 0.08),
+      rgba($neon-pink, 0.035),
+      rgba($neon-cyan, 0.1)
     );
     filter: blur(90px);
     opacity: 0.9;
     pointer-events: none;
     content: '';
   }
-
-  #root {
-    width: 100%;
-    height: 100vh;
-    min-height: 100vh;
-    max-height: 100vh;
-    box-sizing: border-box;
-    padding: $title-bar-height 0 0;
-    overflow: hidden;
-
-    &.minimized {
-      // The graph is not mounted when the view is off. Keep a single row so
-      // its empty grid area cannot create an implicit row and stretch the
-      // sidebar to the convolution catalogue's content height.
-      > .app-workspace {
-        grid-template-areas: 'side-bar middle-content presets-bar';
-        grid-template-rows: auto;
-        row-gap: $spacing-s;
-      }
-    }
-  }
-
-.app-workspace {
-    // Spacing and height
-    width: 100%;
-    flex: none;
-    min-height: 0;
-    height: calc(100vh - $title-bar-height);
-    max-height: calc(100vh - $title-bar-height);
-    padding: 18px 0 18px 18px;
-    box-sizing: border-box;
-    overflow-x: hidden;
-    overflow-y: auto;
-  scrollbar-gutter: stable;
-
-    // Add grid for layout
-    display: grid;
-    grid-template-areas:
-      'side-bar center-workspace presets-bar';
-    grid-template-columns: 154px minmax(560px, 1fr) minmax(280px, 326px);
-    grid-template-rows: auto;
-    gap: 12px;
-
-  }
 }
 
-// The EQ participates in the workspace document flow. Keep scrolling on the
-// workspace itself instead of creating a second scrollbar inside the editor.
-body #root .workspace-tab-panel--eq,
-body #root .workspace-tab-panel--eq > .main-content {
-  overflow: visible !important;
-  scrollbar-gutter: auto;
+button,
+input,
+select,
+textarea {
+  font: inherit;
 }
 
-// Connected browser-style workspace tabs. The active tab shares the panel
-// surface and masks the strip border so it reads as one continuous card.
-.middle-content {
-  gap: 0;
+button {
+  line-height: 1.15;
 }
 
-.workspace-tabs {
-  position: relative;
-  z-index: 4;
-  min-height: 42px;
-  padding: 6px 10px 0;
-  align-items: flex-end;
-  gap: 2px;
-  overflow: visible;
-  border: 0;
-  border-bottom: 1px solid rgba($primary-lighter, 0.14);
-  border-radius: 16px 16px 0 0;
-  background:
-    linear-gradient(180deg, rgba($white, 0.025), transparent 70%),
-    rgba(#080d15, 0.9);
-  box-shadow: inset 0 1px 0 rgba($white, 0.025);
-}
+// *** Global control base ****************************************************
+//
+// Native controls and the shared widget wrappers all start from one surface.
+// Component stylesheets refine sizing on top of this; they never need to
+// restate the colours.
+//
+// The exclusions live in `:where()` so this whole rule stays at single-element
+// specificity. Otherwise a composite control such as NumberInput — where the
+// wrapper owns the surface and the inner <input> must stay transparent —
+// could not turn it off without an `!important`.
 
-.workspace-tab {
-  position: relative;
-  z-index: 1;
-  min-height: 36px;
-  margin-bottom: -1px;
-  padding: 8px 18px 9px;
-  border: 1px solid transparent;
-  border-bottom-color: transparent;
-  border-radius: 12px 12px 0 0;
-  color: rgba($primary-lighter, 0.58);
-  background: transparent;
-  box-shadow: none;
-  font-size: 0.72rem;
-  letter-spacing: 0.01em;
+input:where(:not([type='range'], [type='checkbox'], [type='radio'])),
+textarea,
+select {
+  @include field-interactive;
+  padding: 8px $field-padding-inline;
 
-  &::before {
-    position: absolute;
-    top: -1px;
-    left: 14px;
-    right: 14px;
-    height: 2px;
-    border-radius: 999px;
-    content: '';
-    opacity: 0;
-    background: $secondary-light;
-    box-shadow: 0 0 12px rgba($secondary-light, 0.5);
-  }
-
-  &:hover:not(.is-active) {
-    color: rgba($primary-lighter, 0.86);
-    border-color: rgba($primary-lighter, 0.08);
-    border-bottom-color: transparent;
-    background: rgba($primary-lighter, 0.045);
-  }
-
-  &.is-active {
-    z-index: 2;
-    color: $secondary-light;
-    border-color: rgba($primary-lighter, 0.16);
-    border-bottom-color: #101724;
-    background:
-      linear-gradient(180deg, rgba($secondary-default, 0.09), transparent 55%),
-      #101724;
-    box-shadow:
-      inset 0 1px 0 rgba($white, 0.04),
-      0 -8px 22px rgba($black, 0.16);
-
-    &::before {
-      opacity: 1;
-    }
-  }
-}
-
-.workspace-tabs + .workspace-tab-panel {
-  margin-top: 0;
-  border-top-color: transparent;
-  border-radius: 0 0 18px 18px;
-}
-
-// A high z-index on the menu is not enough when one of its ancestors creates
-// a lower stacking context. Raise the complete active chain and disable local
-// clipping while any dropdown is open.
-.middle-content:has(.dropdown--open),
-.workspace-tab-panel:has(.dropdown--open),
-.auto-eq:has(.dropdown--open),
-.main-content:has(.dropdown--open),
-.main-content .bands:has(.dropdown--open),
-.eq-flat-editor:has(.dropdown--open),
-.bandWrapper:has(.dropdown--open),
-.right-content:has(.dropdown--open),
-.side-bar:has(.dropdown--open) {
-  position: relative;
-  z-index: 9000 !important;
-  overflow: visible !important;
-}
-
-// Brighter shared field surface. Keep range and toggle controls untouched.
-input:not([type='range']):not([type='checkbox']):not([type='radio']),
-.input-wrapper,
-.number-input .input-wrapper,
-.dropdown > [role='menu'] {
-  color: rgba($white, 0.94);
-  border-color: rgba($secondary-light, 0.2);
-  background:
-    linear-gradient(180deg, rgba($white, 0.035), transparent 68%),
-    rgba(#163041, 0.94);
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.045),
-    0 5px 14px rgba($black, 0.12);
-}
-
-input:not([type='range']):not([type='checkbox']):not([type='radio']) {
   &::placeholder {
-    color: rgba($primary-lighter, 0.56);
+    color: $text-faint;
   }
 
-  &:focus {
-    border-color: rgba($secondary-light, 0.52);
-    outline: none;
+  &:disabled {
+    @include field-disabled;
   }
 }
 
-.input-wrapper:focus-within,
-.number-input .input-wrapper:focus-within,
-.dropdown > [role='menu']:focus-visible,
-.dropdown.dropdown--open > [role='menu'] {
-  border-color: rgba($secondary-light, 0.52);
-  background:
-    linear-gradient(180deg, rgba($secondary-light, 0.08), transparent 72%),
-    rgba(#19394a, 0.97);
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.06),
-    0 0 0 2px rgba($secondary-default, 0.12),
-    0 7px 18px rgba($black, 0.16);
+select option {
+  color: $text-primary;
+  background: #213b49;
 }
 
-input:disabled,
-.dropdown > [role='menu'][aria-disabled='true'] {
-  color: rgba($primary-lighter, 0.58);
-  border-color: rgba($primary-lighter, 0.1);
-  background: rgba(#132633, 0.72);
-  box-shadow: none;
+::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
 }
 
-#root.minimized .app-workspace .side-bar {
-  justify-content: flex-start;
-  gap: 12px;
+::-webkit-scrollbar-track {
+  border: 1px solid rgba($secondary-default, 0.05);
+  border-radius: $radius-pill;
+  background: rgba(#02050a, 0.86);
 }
 
-.middle-content {
+::-webkit-scrollbar-thumb {
+  min-height: 38px;
+  border: 2px solid transparent;
+  border-radius: $radius-pill;
+  background: linear-gradient(
+    180deg,
+    rgba($primary-light, 0.92),
+    rgba($primary-default, 0.96)
+  );
+  background-clip: padding-box;
+  box-shadow: 0 0 8px rgba($secondary-default, 0.1);
+
+  &:hover {
+    background: linear-gradient(
+      180deg,
+      rgba($secondary-default, 0.9),
+      rgba($primary-light, 0.96)
+    );
+    background-clip: padding-box;
+  }
+}
+
+::-webkit-scrollbar-corner {
+  background: rgba(#02050a, 0.86);
+}
+
+// *** Layout helpers *********************************************************
+
+.row {
+  display: flex;
+  flex-direction: row;
+}
+
+.col {
   display: flex;
   flex-direction: column;
-  gap: $spacing-s;
-  min-height: 0;
 }
 
-.center-workspace {
-  grid-area: center-workspace;
+.full {
+  width: 100%;
+  height: 100%;
+}
+
+.center {
+  align-content: center;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.eyebrow,
+.control-kicker {
+  color: $secondary-light;
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.16em;
+  text-shadow: 0 0 16px rgba($secondary-default, 0.35);
+}
+
+.section-heading {
   display: flex;
   min-width: 0;
-  width: 100%;
-  min-height: max-content;
-  flex-direction: column;
-  align-self: start;
-  gap: 12px;
-}
-
-.workspace-header {
-  display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 $spacing-s;
+  gap: 12px;
+
+  h4 {
+    margin: 2px 0 0;
+  }
+
+  > a,
+  > span {
+    @include truncate;
+    flex: 0 1 auto;
+    color: $text-muted;
+    font-size: 0.68rem;
+  }
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: $secondary-default;
+  box-shadow: 0 0 10px rgba($secondary-default, 0.8);
+
+  &.error {
+    background: #ef6a6a;
+    box-shadow: 0 0 10px rgba(#ef6a6a, 0.8);
+  }
+}
+
+// *** Titlebar ***************************************************************
+
+.window-titlebar {
+  position: fixed;
+  z-index: 100;
+  top: 0;
+  right: 0;
+  left: 0;
+  display: grid;
+  // Equal outer tracks keep the waveform optically centred in the window
+  // regardless of how wide the brand block or the control cluster get.
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 420px) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  height: $title-bar-height;
+  padding: 7px 12px 7px 18px;
+  border-bottom: 1px solid rgba($primary-lighter, 0.1);
+  background:
+    linear-gradient(180deg, rgba(#101d2a, 0.97), rgba(#071019, 0.95)),
+    rgba($primary-dark, 0.96);
+  box-shadow:
+    inset 0 -1px 0 rgba($white, 0.035),
+    0 12px 32px rgba($black, 0.28);
+  backdrop-filter: blur(20px) saturate(1.25);
+  -webkit-app-region: drag;
+  -webkit-user-select: none;
+  user-select: none;
+
+  > * {
+    min-width: 0;
+  }
+
+  .waveform-visualizer {
+    justify-self: center;
+    width: 100%;
+    max-width: 420px;
+    height: 48px;
+    -webkit-app-region: no-drag;
+  }
 }
 
 .workspace-header__identity {
   display: flex;
+  min-width: 0;
   align-items: center;
   gap: $spacing-s;
+
+  > div {
+    min-width: 0;
+  }
 }
 
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 auto;
   border: 1px solid rgba($secondary-default, 0.35);
-  border-radius: 12px;
+  border-radius: 15px;
   background: linear-gradient(
     145deg,
-    rgba($secondary-default, 0.16),
-    rgba($analogous-1, 0.08)
+    rgba($secondary-default, 0.2),
+    rgba($analogous-1, 0.11)
   );
-  box-shadow: 0 8px 30px rgba($secondary-default, 0.08);
+  box-shadow:
+    0 0 0 1px rgba($secondary-light, 0.06),
+    0 14px 38px rgba($secondary-default, 0.12);
 
   svg {
     width: 30px;
@@ -340,78 +346,39 @@ input:disabled,
 }
 
 .workspace-header__name {
-  font-size: 1.12rem;
+  @include truncate;
+  font-size: 1.2rem;
   font-weight: 750;
   letter-spacing: -0.02em;
 }
 
 .workspace-header__tagline {
+  @include truncate;
   margin-top: 2px;
   color: $primary-lighter;
-  font-size: 0.7rem;
-}
-
-.workspace-header__status {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 7px 11px;
-  color: $primary-lighter;
-  border: 1px solid rgba($primary-lighter, 0.15);
-  border-radius: 999px;
-  background: rgba($primary-default, 0.6);
-  font-size: 0.68rem;
-}
-
-.workspace-header__actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.workspace-header__configure {
-  padding: 7px 11px;
-  color: $secondary-light;
-  border: 1px solid rgba($secondary-light, 0.3);
-  border-radius: 999px;
-  background: transparent;
-  font: inherit;
-  font-size: 0.68rem;
-  cursor: pointer;
-
-  &:hover,
-  &:focus-visible {
-    border-color: $secondary-light;
-    background: rgba($secondary-light, 0.08);
-    outline: none;
-  }
-}
-
-.window-titlebar {
-  -webkit-app-region: drag;
-  -webkit-user-select: none;
-  user-select: none;
-}
-
-.window-titlebar__controls {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  flex-shrink: 0;
-  -webkit-app-region: no-drag;
+  font-size: 0.72rem;
 }
 
 .window-titlebar__right {
   display: flex;
+  min-width: 0;
   align-items: center;
   justify-self: end;
   gap: 10px;
-  min-width: 0;
+  -webkit-app-region: no-drag;
+}
+
+.window-titlebar__controls {
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  gap: 3px;
   -webkit-app-region: no-drag;
 }
 
 .workspace-header__tools {
   position: relative;
+  flex: 0 0 auto;
   -webkit-app-region: no-drag;
 }
 
@@ -423,12 +390,7 @@ input:disabled,
   width: 52px;
   height: 36px;
   padding: 0 10px;
-  color: $secondary-light;
-  border: 1px solid rgba($secondary-light, 0.32);
-  border-radius: 999px;
-  background: rgba($primary-dark, 0.42);
-  cursor: pointer;
-  -webkit-app-region: no-drag;
+  @include ghost-button;
 
   svg {
     width: 18px;
@@ -445,18 +407,16 @@ input:disabled,
     height: 6px;
   }
 
-  &:hover,
-  &:focus-visible,
   &[aria-expanded='true'] {
     color: $white;
-    border-color: rgba($secondary-light, 0.72);
+    border-color: rgba($secondary-light, 0.7);
     background: rgba($secondary-default, 0.14);
     box-shadow: 0 0 18px rgba($secondary-default, 0.2);
-    outline: none;
   }
 }
 
 .workspace-header__menu {
+  @include menu-surface;
   position: absolute;
   z-index: 120;
   top: calc(100% + 10px);
@@ -465,16 +425,6 @@ input:disabled,
   gap: 6px;
   width: 250px;
   padding: 10px;
-  border: 1px solid rgba($secondary-light, 0.3);
-  border-radius: 15px;
-  background:
-    linear-gradient(145deg, rgba(#152b3a, 0.96), rgba(#080f18, 0.95)),
-    rgba($primary-dark, 0.96);
-  box-shadow:
-    0 18px 44px rgba($black, 0.46),
-    0 0 30px rgba($secondary-default, 0.12),
-    inset 0 1px 0 rgba($white, 0.08);
-  backdrop-filter: blur(22px) saturate(1.35);
   -webkit-app-region: no-drag;
 
   button {
@@ -482,12 +432,12 @@ input:disabled,
     padding: 9px 10px;
     color: rgba($white, 0.88);
     border: 1px solid transparent;
-    border-radius: 9px;
+    border-radius: $radius-xs;
     background: rgba($white, 0.035);
-    font: inherit;
     font-size: 0.7rem;
     text-align: left;
     cursor: pointer;
+    transition: $transition-control;
 
     &:hover,
     &:focus-visible {
@@ -496,6 +446,26 @@ input:disabled,
       background: rgba($secondary-default, 0.16);
       outline: none;
     }
+  }
+}
+
+// Separated from the audio actions above it: it is an aside, not a tool.
+// Scoped under the menu so it outranks the generic `menu button` rule without
+// reaching for !important.
+.workspace-header__menu .workspace-header__menu-support {
+  margin-top: 4px;
+  padding-top: 11px;
+  color: $secondary-light;
+  border-top-color: rgba($primary-lighter, 0.14);
+  border-radius: 0 0 $radius-xs $radius-xs;
+  background: transparent;
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.35);
+    border-radius: $radius-xs;
+    background: rgba($secondary-default, 0.16);
   }
 }
 
@@ -517,9 +487,10 @@ input:disabled,
   padding: 0;
   color: rgba($white, 0.78);
   border: 1px solid transparent;
-  border-radius: 9px;
+  border-radius: $radius-xs;
   background: transparent;
   cursor: pointer;
+  transition: $transition-control;
   -webkit-app-region: no-drag;
 
   svg {
@@ -548,383 +519,303 @@ input:disabled,
   }
 }
 
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: $secondary-default;
-  box-shadow: 0 0 10px rgba($secondary-default, 0.8);
+// *** Workspace shell ********************************************************
 
-  &.error {
-    background: #ef6a6a;
-    box-shadow: 0 0 10px rgba(#ef6a6a, 0.8);
-  }
+#root {
+  width: 100%;
+  height: 100vh;
+  padding-top: $title-bar-height;
+  overflow: hidden;
 }
 
-.audio-restart-notice {
-  position: fixed;
-  z-index: 60;
-  top: calc($title-bar-height + 72px);
-  left: 50%;
-  display: flex;
-  align-items: center;
-  gap: $spacing-m;
-  max-width: min(760px, calc(100vw - 40px));
-  padding: $spacing-s $spacing-m;
-  color: $white;
-  border: 1px solid rgba($secondary-light, 0.45);
-  border-radius: 10px;
-  background: rgba($primary-default, 0.97);
-  box-shadow: 0 12px 32px rgba(black, 0.35);
-  font-size: 0.75rem;
-  transform: translateX(-50%);
+.app-workspace {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  padding: 16px 16px 18px;
+  gap: 12px;
+  // The workspace is the only vertical scroll surface. Everything else sizes
+  // itself from its content so a panel can never clip its own controls.
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+
+  grid-template-areas: 'side-bar center-workspace right-content';
+  grid-template-columns: 164px minmax(0, 1fr) minmax(280px, 330px);
+  // Exactly one viewport-tall row. Panels that manage their own scrolling
+  // (the convolution catalogue, the profile list) stay inside it; the EQ
+  // editor declares `min-height: min-content` and overflows it instead, which
+  // is what makes this container — and only then — grow a scrollbar.
+  grid-template-rows: minmax(0, 1fr);
+  align-content: start;
 }
 
-.audio-restart-notice__actions {
+.side-bar {
+  grid-area: side-bar;
+}
+
+.center-workspace {
+  grid-area: center-workspace;
   display: flex;
-  flex-shrink: 0;
-  gap: $spacing-xs;
-
-  button {
-    padding: 6px 9px;
-    color: $secondary-light;
-    border: 1px solid rgba($secondary-light, 0.35);
-    border-radius: 7px;
-    background: transparent;
-    font: inherit;
-    cursor: pointer;
-
-    &:hover,
-    &:focus-visible {
-      border-color: $secondary-light;
-      background: rgba($secondary-light, 0.08);
-      outline: none;
-    }
-  }
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .right-content {
-  grid-area: presets-bar;
-  display: grid;
-  min-height: 0;
-  padding: 12px;
-  grid-template-rows: max-content minmax(0, 1fr);
-  gap: $spacing-s;
-  overflow: hidden;
-  border: 1px solid rgba($primary-lighter, 0.14);
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba($secondary-default, 0.055), transparent 24%),
-    linear-gradient(180deg, rgba($primary-light, 0.45), rgba(#0e1520, 0.94));
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.035),
-    0 20px 48px rgba($black, 0.2);
+  grid-area: right-content;
 }
 
-.title-bar {
+.side-bar,
+.center-workspace,
+.right-content {
+  align-self: stretch;
+  min-width: 0;
+}
+
+// The workspace and the response graph split the column evenly.
+.middle-content {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background-color: #05080d;
-  height: $title-bar-height;
-  width: 100%;
-  -webkit-app-region: drag; /* Allow user to drag the window using this titlebar */
-  -webkit-user-select: none; /* Prevent user from selecting things */
-  user-select: none;
-
-  span {
-    height: 100%;
-    display: flex;
-    align-items: center;
-  }
-}
-
-.title-bar__brand {
-  gap: 7px;
-  margin-left: $spacing-m;
-  font-size: 0.72rem;
-  font-weight: 700;
-
-  svg {
-    width: 22px;
-    height: 16px;
-  }
-
-  path {
-    fill: none;
-    stroke: $secondary-default;
-    stroke-width: 2.5;
-    stroke-linecap: round;
-  }
-}
-
-.title-bar__descriptor {
-  margin-right: $spacing-m;
-  color: #5c6a7c;
-  font-size: 0.56rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-
-.graph-wrapper {
-  grid-area: graph-wrapper;
-  position: relative;
+  min-width: 0;
+  // The convolution catalogue scrolls inside its own list, so this column is
+  // free to shrink to the viewport there.
   min-height: 0;
-  min-height: 160px;
-  max-height: 280px;
-  height: 100%;
-  border-radius: $spacing-m;
-  border: 1px solid rgba($primary-lighter, 0.16);
-  background: rgba($primary-default, 0.72);
-
-  // Prevent graph from overflowing out of the wrapper's available space
-  overflow: hidden;
+  flex: 1 1 50%;
+  flex-direction: column;
 }
 
-// Keep the chart painted inside its own grid card after the EQ row expands.
-body #root .app-workspace > .graph-wrapper {
-  isolation: isolate;
-  contain: paint;
-  overflow: hidden !important;
+// The EQ editor is the exception: it is never compressed below what it needs.
+// Whatever it does not use goes to the graph, and if it needs more than its
+// half the graph gives ground first.
+.middle-content:has(> .workspace-tab-panel--eq) {
+  min-height: min-content;
 }
 
-body #root .center-workspace > .graph-wrapper {
-  flex: 0 0 auto;
-  width: 100%;
-  height: clamp(160px, 28vh, 280px);
-  isolation: isolate;
-  contain: paint;
-  overflow: hidden !important;
-}
+// *** Workspace tabs *********************************************************
+//
+// The tab strip and the panel below it are one continuous surface: every tab
+// is painted from the panel's own top colour (`panel-top()`), and the active
+// one masks the dividing line so it merges into the card.
 
-// Connected workspace tabs: the active tab is the upper edge of its panel,
-// not a button sitting on a separate dark toolbar.
-body #root .middle-content > .workspace-tabs {
+$tab-border: rgba($secondary-light, 0.2);
+
+.workspace-tabs {
   position: relative;
   z-index: 2;
   display: flex;
   align-items: flex-end;
-  gap: 4px;
+  gap: 3px;
+  // Overlaps the panel's top border so the two lines become one.
   margin: 0 16px -1px;
   padding: 0 4px;
-  background: transparent !important;
-  border: 0 !important;
-  border-bottom: 1px solid rgba(112, 219, 207, 0.22) !important;
-  border-radius: 0 !important;
-  box-shadow: none !important;
+  border-bottom: 1px solid $tab-border;
 }
 
-body #root .middle-content > .workspace-tabs button {
+.workspace-tab {
   position: relative;
-  min-height: 38px;
+  min-height: 36px;
   padding: 9px 16px 10px;
-  color: rgba(218, 215, 242, 0.62);
-  background: transparent !important;
-  border: 1px solid transparent !important;
-  border-bottom: 0 !important;
-  border-radius: 12px 12px 0 0 !important;
-  box-shadow: none !important;
+  color: rgba($primary-lighter, 0.66);
+  // Inactive tabs are the same hue as the panel, just sunk into the
+  // background, so the whole strip reads as one piece of furniture.
+  border: 1px solid rgba($secondary-light, 0.1);
+  border-bottom: 0;
+  border-radius: $radius-m $radius-m 0 0;
+  background: sass-color.mix(panel-top(), $surface-base, 42%);
+  font-size: 0.72rem;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(.is-active) {
+    color: rgba($primary-lighter, 0.92);
+    border-color: rgba($secondary-light, 0.18);
+    background: sass-color.mix(panel-top(), $surface-base, 68%);
+  }
+
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.5);
+    outline: none;
+  }
+
+  &.is-active {
+    z-index: 3;
+    color: $secondary-light;
+    border-color: $tab-border;
+    // Exactly the panel's top colour: the tab is the top of the card.
+    background: panel-top();
+
+    // Masks the strip border and the panel's own top border underneath, so
+    // there is no seam between the tab and its panel.
+    &::after {
+      position: absolute;
+      right: 0;
+      bottom: -2px;
+      left: 0;
+      height: 3px;
+      background: panel-top();
+      content: '';
+    }
+  }
 }
 
-body #root .middle-content > .workspace-tabs button[aria-selected='true'],
-body #root .middle-content > .workspace-tabs button.active,
-body #root .middle-content > .workspace-tabs .workspace-tab--active {
-  z-index: 3;
-  color: #a9fff4;
-  background: linear-gradient(
-    145deg,
-    rgba(20, 58, 67, 0.98),
-    rgba(27, 32, 55, 0.98)
-  ) !important;
-  border-color: rgba(112, 219, 207, 0.42) !important;
-  border-bottom: 0 !important;
-}
-
-body #root .middle-content > .workspace-tabs button[aria-selected='true']::after,
-body #root .middle-content > .workspace-tabs button.active::after,
-body #root .middle-content > .workspace-tabs .workspace-tab--active::after {
-  content: '';
-  position: absolute;
-  right: 0;
-  bottom: -2px;
-  left: 0;
-  height: 3px;
-  background: #1a2238;
-}
-
-body #root .middle-content > .workspace-tab-panel {
+.workspace-tab-panel {
   position: relative;
   z-index: 1;
-  margin-top: 0 !important;
-  border-top-color: rgba(112, 219, 207, 0.22) !important;
+  min-width: 0;
+  flex: 1 1 auto;
 }
 
-body #root .middle-content > .workspace-tabs {
-  margin-bottom: -1px !important;
+.workspace-tab-panel--eq,
+.workspace-tab-panel--convolution {
+  @include panel-surface;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  border-top-color: $tab-border;
 }
 
-// Shared light glass surface for native and custom form controls.
-body #root select,
-body #root input:not([type='range']):not([type='checkbox']):not([type='radio']),
-body #root [role='combobox'] {
-  color: #eefcfb;
-  background-color: #193342 !important;
-  background-image: linear-gradient(
-    135deg,
-    rgba(38, 83, 91, 0.9),
-    rgba(35, 39, 65, 0.94)
-  ) !important;
-  border-color: rgba(128, 221, 211, 0.28) !important;
+.workspace-tab-panel--eq {
+  // Grows into the available height, but never below what the editor needs:
+  // if the window is too short the workspace scrolls instead of clipping.
+  min-height: min-content;
+  gap: 10px;
+
+  > .auto-eq-title,
+  > .auto-eq,
+  > .autoeq-update,
+  > .main-content-title {
+    flex: 0 0 auto;
+  }
+
+  // The equalizer grid absorbs whatever height is left, which is how the panel
+  // fills the space freed when the response graph is hidden.
+  > .main-content {
+    flex: 1 1 auto;
+  }
+
+  > .autoeq-update:empty {
+    display: none;
+  }
 }
 
-body #root select option {
-  color: #eefcfb;
-  background: #213b49;
+// The catalogue manages its own internal scrolling, so this panel may shrink.
+.workspace-tab-panel--convolution {
+  min-height: 0;
+  overflow: hidden;
+
+  > .convolution-panel {
+    min-height: 0;
+    flex: 1 1 auto;
+  }
 }
 
-// Unified form-control surface. Dropdown uses role="menu" for its closed
-// trigger, while number inputs wrap the actual field in .input-wrapper.
-body #root .dropdown [role='menu'],
-body #root .dropdown .selected,
-body #root .number-input .input-wrapper,
-body #root .input-wrapper,
-body #root textarea {
-  color: #eefcfb !important;
-  background-color: #1d3a48 !important;
-  background-image: linear-gradient(
-    135deg,
-    rgba(39, 82, 92, 0.94),
-    rgba(38, 43, 68, 0.96)
-  ) !important;
-  border-color: rgba(133, 226, 215, 0.3) !important;
-  box-shadow: inset 0 1px 0 rgba(204, 255, 248, 0.05) !important;
+// Sections that fill a workspace card sit directly on it instead of painting
+// a second card on top: one surface, not a stack of nested boxes.
+.workspace-tab-panel--eq > .auto-eq,
+.workspace-tab-panel--eq > .main-content,
+.workspace-tab-panel--convolution > .convolution-panel,
+.right-content > .device-profiles,
+.right-content > .presets-bar {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
-body #root .dropdown [role='menu'][aria-disabled='true'],
-body #root input:disabled,
-body #root textarea:disabled {
-  color: rgba(224, 239, 240, 0.58) !important;
-  background-color: #1b3040 !important;
-  background-image: linear-gradient(
-    135deg,
-    rgba(35, 65, 76, 0.72),
-    rgba(34, 37, 59, 0.8)
-  ) !important;
-}
-
-body #root .dropdown .list-wrapper,
-body #root .dropdown .list {
-  background-color: #0d1522 !important;
-  background-image: linear-gradient(
-    145deg,
-    rgba(14, 28, 41, 0.995),
-    rgba(20, 20, 37, 0.995)
-  ) !important;
-  border-color: rgba(118, 205, 198, 0.2) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(210, 255, 249, 0.035),
-    0 18px 42px rgba(0, 4, 12, 0.48) !important;
-}
-
-body #root .dropdown .list > .row[role='menuitem'],
-body #root .dropdown [role='option'] {
-  color: #eefcfb !important;
-  background-color: transparent !important;
-  background-image: none !important;
-}
-
-body #root .dropdown .list > .row[role='menuitem']:not(.selected) {
-  background: transparent !important;
-  border-color: transparent !important;
-  box-shadow: none !important;
-}
-
-body #root .dropdown .list > .row[role='menuitem']:not(.selected):hover,
-body #root .dropdown .list > .row[role='menuitem']:not(.selected):focus-visible {
-  background: rgba(89, 155, 157, 0.09) !important;
-  border-color: rgba(126, 217, 207, 0.12) !important;
-}
-
-body #root .dropdown .list > .row[role='menuitem']:hover,
-body #root .dropdown [role='option']:hover,
-body #root .dropdown [role='option'][aria-selected='true'],
-body #root .dropdown .list > .row[role='menuitem'].selected {
-  background-image: linear-gradient(
-    135deg,
-    rgba(38, 88, 91, 0.72),
-    rgba(37, 47, 69, 0.78)
-  ) !important;
-}
-
-body #root .dropdown .list > .list-group-heading {
-  background: rgba(73, 119, 124, 0.1) !important;
-}
-
-body #root .middle-content {
-  row-gap: 0 !important;
-}
-
-// The center column owns its intrinsic height. Do not let the first workspace
-// row shrink a flex panel and paint its overflow beneath the graph row.
-body #root .app-workspace {
-  grid-template-rows: auto !important;
-  align-content: start;
-}
-
-body #root .app-workspace > .middle-content {
-  align-self: start;
-  height: auto;
-  min-height: max-content;
+// A dropdown must escape its panel instead of being clipped by the card edge.
+// Raise the whole ancestor chain rather than relying on a single z-index.
+.center-workspace:has(.dropdown--open),
+.middle-content:has(.dropdown--open),
+.workspace-tab-panel:has(.dropdown--open),
+.auto-eq:has(.dropdown--open),
+.main-content:has(.dropdown--open),
+.main-content .bands:has(.dropdown--open),
+.eq-flat-editor:has(.dropdown--open),
+.bandWrapper:has(.dropdown--open),
+.right-content:has(.dropdown--open),
+.side-bar:has(.dropdown--open) {
+  position: relative;
+  z-index: 900;
   overflow: visible;
 }
 
-body #root .middle-content > .workspace-tab-panel--eq,
-body #root .middle-content > .workspace-tab-panel--eq > .main-content {
-  flex: 0 0 auto !important;
-  height: auto !important;
-  min-height: max-content !important;
-  overflow: visible !important;
+// *** Right column ***********************************************************
+
+.right-content {
+  @include panel-surface($secondary-dark, 7%);
+  display: grid;
+  min-height: 0;
+  padding: 12px;
+  gap: 10px;
+  grid-template-rows: max-content minmax(0, 1fr);
+  overflow: hidden;
 }
 
-body #root .middle-content > .workspace-tab-panel--eq > .main-content {
-  grid-template-rows: auto auto !important;
+// *** Response graph *********************************************************
+
+.graph-wrapper {
+  position: relative;
+  width: 100%;
+  // Claims the other half of the column, and gives ground first when the EQ
+  // editor needs more room than its share.
+  min-height: 160px;
+  flex: 1 1 50%;
+  border: 1px solid rgba($primary-lighter, 0.1);
+  border-radius: $radius-xl;
+  background:
+    linear-gradient(180deg, rgba($white, 0.018), transparent 30%),
+    rgba(#0d1420, 0.88);
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.035),
+    0 20px 50px rgba($black, 0.18);
+  // Keep the chart painted inside its own card.
+  isolation: isolate;
+  overflow: hidden;
 }
 
+// Legend strip floating over the top of the chart. It has no surface of its
+// own: it reads directly on the graph card.
 .live-output-controls {
   position: absolute;
   z-index: 1;
-  top: $spacing-s;
-  right: $spacing-s;
+  top: 8px;
+  right: 10px;
+  left: 10px;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: $spacing-s;
   font-size: 0.65rem;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
 
   button {
-    padding: 5px 8px;
-    color: $secondary-light;
-    border: 1px solid rgba($secondary-light, 0.35);
-    border-radius: 7px;
-    background: rgba($primary-dark, 0.75);
-    font: inherit;
-    cursor: pointer;
-
-    &:disabled {
-      cursor: not-allowed;
-      opacity: 0.45;
-    }
+    @include ghost-button;
+    min-height: 28px;
+    padding: 5px 9px;
+    border-radius: $radius-xs;
   }
 }
 
 .graph-legend {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 5px;
   color: $primary-lighter;
+  white-space: nowrap;
 
   &::before {
     width: 13px;
     height: 2px;
+    flex: 0 0 auto;
     background: white;
     content: '';
   }
@@ -939,10 +830,17 @@ body #root .middle-content > .workspace-tab-panel--eq > .main-content {
 }
 
 .graph-edit-hint {
+  @include truncate;
+  flex: 0 1 auto;
   color: rgba($primary-lighter, 0.68);
   font-size: 0.6rem;
   letter-spacing: 0.02em;
-  white-space: nowrap;
+}
+
+.live-output-error {
+  @include truncate;
+  max-width: 240px;
+  color: $red;
 }
 
 .graph-edit-point {
@@ -972,497 +870,64 @@ body #root .middle-content > .workspace-tab-panel--eq > .main-content {
   &:focus-visible,
   &--selected,
   &--hovered {
-    .graph-edit-point__halo {
-      fill: var(--point-muted-color);
-      stroke: var(--point-color);
-    }
-
     .graph-edit-point__dot {
-      fill: var(--point-color);
       filter: drop-shadow(0 0 9px var(--point-color));
     }
   }
 }
 
-.live-output-error {
-  max-width: 240px;
-  color: $red;
-}
+// *** Floating notices *******************************************************
 
-.eyebrow,
-.control-kicker {
-  color: $secondary-light;
-  font-size: 0.6rem;
-  font-weight: 750;
-  letter-spacing: 0.14em;
-}
-
-.section-heading {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  min-width: 0;
-
-  h4 {
-    margin: 2px 0 0;
-  }
-
-  > span {
-    color: $primary-lighter;
-    font-size: 0.68rem;
-  }
-}
-
-.row {
-  display: flex;
-  flex-direction: row;
-}
-
-.col {
-  display: flex;
-  flex-direction: column;
-}
-
-.full {
-  height: 100%;
-  width: 100%;
-}
-
-.center {
-  align-content: center;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-}
-
-/** Scrollbar styles */
-::-webkit-scrollbar {
-  height: 8px;
-  width: 8px;
-}
-
-// Scrollbar track
-::-webkit-scrollbar-track {
-  border-radius: 8px;
-  background: $primary-lighter;
-}
-
-// Scrollbar handle
-::-webkit-scrollbar-thumb {
-  border-radius: 8px;
-  background: $primary-light;
-
-  &:hover {
-    background: $primary-default;
-  }
-}
-
-/* FluidEQ workspace */
-* {
-  box-sizing: border-box;
-}
-
-button,
-input {
-  font: inherit;
-}
-
-button {
-  box-sizing: border-box;
-  line-height: 1.15;
-}
-
-body {
-  min-width: 720px;
-  min-height: 0;
-  justify-content: flex-start;
-  overflow-x: hidden;
-  overflow-y: hidden;
-  color: #edf8ff;
-  background:
-    radial-gradient(
-      circle at 12% -8%,
-      rgba($secondary-default, 0.14),
-      transparent 32%
-    ),
-    radial-gradient(
-      circle at 90% 10%,
-      rgba($analogous-1, 0.1),
-      transparent 28%
-    ),
-    linear-gradient(145deg, #05080e 0%, #090e17 48%, #060a11 100%);
-
-  #root {
-    // Keep layout sizing in the root section above.
-  }
-}
-
-.middle-content {
-  min-width: 0;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-s;
-  flex: 1 1 auto;
-}
-
-// Keep the utility columns visible while the EQ panel is edited. Side panels
-// stay full-height while the response graph is centered below the EQ.
-.side-bar,
-.right-content {
-  position: relative;
-  top: auto;
-  align-self: stretch;
-  justify-self: stretch;
-  height: 100%;
-  max-height: 100%;
-  min-height: 0;
-  overflow: hidden;
-}
-
-// The response graph is in the center bottom strip. Side panels span both rows
-// so they remain full-height.
-@media (min-width: 981px) {
-  #root:not(.minimized) .app-workspace {
-    // Fit the workspace to the viewport. Long catalogues scroll inside their
-    // result list; the application shell itself never gains a page scrollbar.
-    // Give the editor enough room for its toolbar, bands and selected-band
-    // editor before allocating the remaining space to the graph.  The old
-    // 36vh graph row left a large dead strip below the EQ on short windows.
-    grid-template-rows: minmax(max-content, 1fr) minmax(160px, 280px);
-  }
-
-  #root:not(.minimized) .app-workspace > .side-bar,
-  #root:not(.minimized) .app-workspace > .right-content {
-    align-self: stretch;
-    height: 100%;
-    max-height: 100%;
-    min-height: 0;
-    overflow: hidden;
-    z-index: 3;
-  }
-
-  #root:not(.minimized) .app-workspace > .middle-content {
-    align-self: stretch;
-    min-height: 0;
-    height: auto;
-    //min-height: 560px;
-  }
-
-  #root:not(.minimized) .app-workspace > .graph-wrapper {
-    grid-row: 2;
-    grid-column: 2;
-    width: 100%;
-    min-width: 0;
-    z-index: 1;
-  }
-}
-
-.workspace-tabs {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 34px;
-  padding: 3px;
-  border: 1px solid rgba($primary-lighter, 0.1);
-  border-radius: 11px;
-  background: rgba($primary-dark, 0.46);
-}
-
-.workspace-tab {
-  min-height: 29px;
-  padding: 6px 13px;
-  color: rgba($primary-lighter, 0.64);
-  border: 1px solid transparent;
-  border-radius: 8px;
-  background: transparent;
-  font-size: 0.72rem;
-  font-weight: 800;
-  cursor: pointer;
-  transition:
-    color 150ms ease,
-    background 150ms ease,
-    border-color 150ms ease;
-
-  &:hover,
-  &.is-active {
-    color: $white;
-    border-color: rgba($secondary-light, 0.35);
-    background: rgba($secondary-default, 0.16);
-  }
-
-  &.is-active {
-    color: $secondary-light;
-    box-shadow: inset 0 0 16px rgba($secondary-default, 0.08);
-  }
-}
-
-.workspace-tab-panel {
-  min-width: 0;
-  min-height: 0;
-  flex: 1 1 auto;
-  min-height: 0;
-}
-
-.workspace-tab-panel--eq {
-  // Keep the EQ workspace in normal document flow. A multi-row grid here can
-  // allocate an invisible track for the fragments returned by AutoEQ and
-  // leave enough gap between the AutoEQ controls and the band editor.
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  min-height: 0;
-  overflow: visible;
-  padding: 12px;
-  border: 1px solid rgba($primary-lighter, 0.14);
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba($secondary-default, 0.055), transparent 24%),
-    linear-gradient(180deg, rgba($primary-light, 0.45), rgba(#0e1520, 0.94));
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.035),
-    0 20px 48px rgba($black, 0.2);
-
-  > .auto-eq-title,
-  > .auto-eq,
-  > .autoeq-update,
-  > .main-content-title {
-    flex: 0 0 auto;
-  }
-
-  > .autoeq-update {
-    min-height: 22px;
-    margin-top: 0;
-    margin-bottom: 2px;
-  }
-
-  > .autoeq-update:empty {
-    display: none;
-  }
-
-  > .main-content-title {
-    margin-top: 0;
-  }
-
-  > .main-content {
-    position: relative;
-    z-index: 2;
-    flex: 0 0 auto;
-    min-height: 0;
-    height: auto;
-    overflow: visible;
-  }
-}
-
-// A dropdown is the one intentional exception: it needs to float above the
-// compact editor instead of being clipped by the panel edge.
-.workspace-tab-panel--eq:has(.dropdown--open) {
-  overflow: visible;
-}
-
-.workspace-tab-panel--eq > .auto-eq,
-.workspace-tab-panel--eq > .main-content,
-.workspace-tab-panel--eq > .main-content-title,
-.right-content > .device-profiles,
-.right-content > .presets-bar,
-.workspace-tab-panel--convolution > .convolution-panel {
-  background: transparent;
-  box-shadow: none;
-}
-
-.workspace-tab-panel--eq > .auto-eq,
-.workspace-tab-panel--eq > .main-content,
-.right-content > .device-profiles,
-.right-content > .presets-bar,
-.workspace-tab-panel--convolution > .convolution-panel {
-  border: 0;
-}
-
-.workspace-tab-panel--convolution {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  max-height: 100%;
-  overflow: hidden;
-
-  > .convolution-panel {
-    min-height: 0;
-    display: flex;
-    flex: 1 1 auto;
-    height: 100%;
-    overflow: hidden;
-  }
-}
-
-.workspace-header {
-  min-width: 0;
-}
-
-.window-titlebar {
+.audio-restart-notice {
   position: fixed;
-  z-index: 100;
-  top: 0;
-  right: 0;
-  left: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 420px) minmax(0, 1fr);
+  // Above every workspace panel, including the chain raised for open menus.
+  z-index: 1200;
+  top: calc($title-bar-height + 16px);
+  left: 50%;
+  display: flex;
   align-items: center;
-  gap: 16px;
-  width: 100%;
-  height: $title-bar-height;
-  padding: 7px 12px 7px 18px;
-  border: 0;
-  border-bottom: 1px solid rgba($primary-lighter, 0.1);
-  border-radius: 0;
-  background:
-    linear-gradient(180deg, rgba(#101d2a, 0.97), rgba(#071019, 0.95)),
-    rgba($primary-dark, 0.96);
-  box-shadow:
-    inset 0 -1px 0 rgba($white, 0.035),
-    0 12px 32px rgba($black, 0.28);
-  backdrop-filter: blur(20px) saturate(1.25);
+  gap: $spacing-m;
+  max-width: min(760px, calc(100vw - 40px));
+  padding: $spacing-s $spacing-m;
+  color: $white;
+  border: 1px solid rgba($secondary-light, 0.45);
+  border-radius: $radius-m;
+  background: rgba($primary-default, 0.97);
+  box-shadow: 0 12px 32px rgba($black, 0.35);
+  font-size: 0.75rem;
+  transform: translateX(-50%);
+}
 
-  > * {
-    min-width: 0;
-  }
+.audio-restart-notice__actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: $spacing-xs;
 
-  .workspace-header__identity {
-    min-width: 0;
-  }
-
-  .workspace-header__actions {
-    -webkit-app-region: no-drag;
-  }
-
-  .window-titlebar__right {
-    justify-self: end;
-  }
-
-  .waveform-visualizer {
-    justify-self: center;
-    width: 100%;
-    height: 48px;
-    max-width: 420px;
+  button {
+    @include ghost-button;
+    padding: 6px 9px;
+    border-radius: $radius-xs;
+    background: transparent;
   }
 }
 
-.brand-mark {
-  width: 44px;
-  height: 44px;
-  border-radius: 15px;
-  background: linear-gradient(
-    145deg,
-    rgba($secondary-default, 0.2),
-    rgba($analogous-1, 0.11)
-  );
-  box-shadow:
-    0 0 0 1px rgba($secondary-light, 0.06),
-    0 14px 38px rgba($secondary-default, 0.12);
-}
+// *** Responsive shell *******************************************************
 
-.workspace-header__name {
-  font-size: 1.22rem;
-}
-
-.workspace-header__tagline {
-  font-size: 0.72rem;
-}
-
-.workspace-header__configure,
-.workspace-header__status,
-.live-output-controls button {
-  min-height: 34px;
-  padding: 8px 13px;
-  border-radius: 999px;
-  backdrop-filter: blur(14px);
-  transition:
-    border-color 160ms ease,
-    background 160ms ease,
-    transform 160ms ease;
-}
-
-.workspace-header__configure:hover {
-  transform: translateY(-1px);
-}
-
-.right-content {
-  gap: 10px;
-}
-
-.graph-wrapper {
-  border-color: rgba($primary-lighter, 0.1);
-  border-radius: 18px;
-  background:
-    linear-gradient(180deg, rgba($white, 0.018), transparent 30%),
-    rgba(#0d1420, 0.88);
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.035),
-    0 20px 50px rgba($black, 0.18);
-}
-
-.live-output-controls {
-  top: 10px;
-  right: 12px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-  padding: 4px;
-  border-radius: 12px;
-  background: rgba($primary-dark, 0.48);
-  backdrop-filter: blur(12px);
-}
-
-.eyebrow,
-.control-kicker {
-  font-size: 0.58rem;
-  letter-spacing: 0.17em;
-  text-shadow: 0 0 16px rgba($secondary-default, 0.35);
-}
-
-::-webkit-scrollbar-track {
-  border: 1px solid rgba($secondary-default, 0.05);
-  border-radius: 999px;
-  background: rgba(#02050a, 0.86);
-}
-
-::-webkit-scrollbar-thumb {
-  min-height: 38px;
-  border: 2px solid transparent;
-  border-radius: 999px;
-  background: linear-gradient(
-    180deg,
-    rgba($primary-light, 0.92),
-    rgba($primary-default, 0.96)
-  );
-  background-clip: padding-box;
-  box-shadow: 0 0 8px rgba($secondary-default, 0.1);
-
-  &:hover {
-    background: linear-gradient(
-      180deg,
-      rgba($secondary-default, 0.9),
-      rgba($primary-light, 0.96)
-    );
-    background-clip: padding-box;
+// Two columns: the profile column moves below the workspace and splits in two.
+@media (max-width: $bp-three-column) {
+  .app-workspace {
+    padding: 12px 12px 14px;
+    grid-template-areas:
+      'side-bar center-workspace'
+      'right-content right-content';
+    grid-template-columns: 150px minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) max-content;
   }
-}
 
-::-webkit-scrollbar-corner {
-  background: rgba(#02050a, 0.86);
-}
-
-html {
-  width: 100%;
-  height: 100%;
-  color-scheme: dark;
-  scrollbar-color: rgba($primary-light, 0.92) rgba(#02050a, 0.86);
-  scrollbar-width: thin;
-}
-
-@media (max-width: 1180px) {
-  body #root .app-workspace {
-    grid-template-columns: 142px minmax(500px, 1fr) 280px;
-    padding: 12px 0 12px 12px;
+  .right-content {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: max-content;
+    align-items: start;
   }
 
   .workspace-header__tagline {
@@ -1470,39 +935,40 @@ html {
   }
 }
 
+// One column: the sidebar becomes a horizontal strip of control chips
+// (see SideBar.scss) and every section owns a full-width row.
+@media (max-width: $bp-two-column) {
+  .app-workspace {
+    grid-template-areas:
+      'side-bar'
+      'center-workspace'
+      'right-content';
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: repeat(3, max-content);
+  }
+
+  .right-content {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  // Stacked shell: rows are content-sized, so the graph takes a fixed slice
+  // rather than half of an undefined height.
+  .graph-wrapper {
+    height: clamp(200px, 32vh, 320px);
+    flex: 0 0 auto;
+  }
+}
+
 @media (max-width: 1080px) {
   .window-titlebar {
-    grid-template-columns: minmax(150px, auto) minmax(140px, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(140px, 2fr) minmax(0, 1fr);
     gap: 8px;
     padding-inline: 12px;
-
-    .waveform-visualizer {
-      max-width: 240px;
-    }
   }
 
   .window-titlebar__right {
     gap: 6px;
-    max-width: 100%;
-  }
-
-  .workspace-header__actions {
-    flex-wrap: nowrap;
-    gap: 4px;
-    min-width: 0;
-  }
-
-  .workspace-header__configure {
-    padding: 6px 8px;
-    font-size: 0.6rem;
-  }
-
-  .workspace-header__status {
-    max-width: 110px;
-    overflow: hidden;
-    padding: 6px 8px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .window-control {
@@ -1516,261 +982,46 @@ html {
   }
 }
 
-@media (max-width: 860px) {
-  .window-titlebar {
-    grid-template-columns: minmax(140px, auto) minmax(100px, 1fr) auto;
-
-    .waveform-visualizer {
-      max-width: 180px;
-    }
-  }
-
-  .workspace-header__configure {
-    display: none;
-  }
-
-  .workspace-header__status {
-    width: 22px;
-    min-width: 22px;
-    padding: 0;
-    justify-content: center;
-    border-color: transparent;
-    background: transparent;
-    font-size: 0;
-  }
-}
-
-@media (max-width: 980px) {
-  body {
-    min-width: 620px;
-
-    .app-workspace {
-      grid-template-areas:
-        'side-bar middle-content'
-        'presets-bar presets-bar'
-        'graph-wrapper graph-wrapper';
-      grid-template-columns: 142px minmax(0, 1fr);
-      grid-template-rows: minmax(0, 1.2fr) minmax(0, 0.8fr) minmax(0, 0.75fr);
-    }
-  }
-
-  body #root.minimized .app-workspace {
-    grid-template-areas:
-      'side-bar middle-content'
-      'presets-bar presets-bar';
-    grid-template-rows: minmax(0, 1fr) minmax(0, 0.85fr);
-    row-gap: 12px;
+@media (max-width: 760px) {
+  .app-workspace {
+    padding: 10px 10px 12px;
   }
 
   .right-content {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: none;
-  }
-}
-
-@media (max-height: 900px) {
-  #root:not(.minimized) .app-workspace {
-    grid-template-rows: minmax(max-content, 1fr) minmax(140px, 220px);
-  }
-
-  .graph-wrapper {
-    max-height: 220px;
-  }
-}
-
-@media (max-width: 720px) {
-  body {
-    min-width: 420px;
-
-    .app-workspace {
-      grid-template-areas:
-        'side-bar'
-        'middle-content'
-        'presets-bar'
-        'graph-wrapper';
-      grid-template-columns: minmax(0, 1fr);
-      grid-template-rows:
-        minmax(0, 1fr) minmax(0, 1.15fr) minmax(0, 0.8fr)
-        minmax(0, 0.75fr);
-    }
-  }
-
-  body #root.minimized .app-workspace {
-    grid-template-areas:
-      'side-bar'
-      'middle-content'
-      'presets-bar';
-    grid-template-rows: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 0.8fr);
-    row-gap: 12px;
-  }
-
-  .workspace-header__actions,
-  .right-content {
-    flex-wrap: wrap;
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .window-titlebar {
-    gap: 10px;
-    grid-template-columns: minmax(120px, auto) minmax(100px, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) minmax(90px, 2fr) minmax(0, 1fr);
+    gap: 8px;
     padding-inline: 8px;
+  }
 
-    .waveform-visualizer {
-      display: grid;
-      min-width: 100px;
-      height: 44px;
-      padding-inline: 7px;
-    }
+  .brand-mark {
+    width: 36px;
+    height: 36px;
+    border-radius: $radius-m;
 
-    .window-titlebar__right {
-      grid-column: auto;
-      gap: 3px;
-    }
-
-    .workspace-header__tools-trigger {
-      width: 36px;
-      height: 34px;
-      padding-inline: 6px;
-    }
-
-    .window-control {
-      width: 27px;
-      height: 34px;
+    svg {
+      width: 24px;
+      height: 24px;
     }
   }
 
-  .right-content {
-    display: grid;
-    grid-template-columns: 1fr;
-  }
-}
-
-// Keep the EQ editor and the response graph in separate, non-overlapping
-// rows.  The previous `minmax(0, 1fr)` row allowed the EQ to collapse when
-// the window became short; because the panel clips its contents, that looked
-// like the graph was covering the bottom of the EQ and no page scrollbar was
-// created.  A real minimum lets the workspace grow and makes its own
-// scrollbar appear below the fixed title bar only when the viewport cannot
-// contain both rows.
-@media (min-width: 981px) {
-  #root:not(.minimized) > .app-workspace {
-    align-content: start;
-    // Keep enough room for the complete EQ editor, then give the response
-    // chart a meaningful share of the remaining fullscreen height.
-    grid-template-rows: minmax(560px, 0.85fr) minmax(220px, 1fr);
+  .workspace-header__name {
+    font-size: 1rem;
   }
 
-  #root:not(.minimized) > .app-workspace > .graph-wrapper {
-    // The grid row owns the available lower area; do not cap the panel and
-    // leave an empty strip beneath the chart on fullscreen windows.
-    height: 100%;
-    max-height: none;
-  }
-}
-
-// Responsive workspace: below the desktop three-column layout, the previous
-// max-width rule could keep the old 500px + 280px columns alive.  That left a
-// phantom third column, clipped the EQ and pushed the utility cards into a
-// narrow strip.  Explicitly collapse to two columns and let the workspace
-// itself grow vertically so its scrollbar remains below the title bar.
-@media (max-width: 980px) {
-  body #root .app-workspace {
-    width: 100%;
-    min-width: 0;
-    height: calc(100vh - $title-bar-height);
-    max-height: calc(100vh - $title-bar-height);
-    overflow-x: hidden;
-    overflow-y: auto;
-    align-content: start;
-    grid-template-areas:
-      'side-bar middle-content'
-      'presets-bar presets-bar'
-      'graph-wrapper graph-wrapper';
-    grid-template-columns: 142px minmax(0, 1fr);
-    grid-template-rows: minmax(560px, max-content) auto minmax(220px, auto);
-    gap: 12px;
+  .window-titlebar__controls {
+    gap: 1px;
   }
 
-  body #root .app-workspace > .side-bar,
-  body #root .app-workspace > .right-content {
-    height: auto;
-    max-height: none;
-    min-height: 0;
-    overflow: visible;
-    align-self: stretch;
-  }
-
-  body #root .app-workspace > .middle-content {
-    flex: 0 0 auto;
-    min-width: 0;
-    min-height: max-content;
-    height: auto;
-    align-self: stretch;
-  }
-
-  body #root .workspace-tab-panel--eq {
-    flex: 0 0 auto;
-    min-height: max-content;
-    height: auto;
-    overflow: visible;
-  }
-
-  body #root .workspace-tab-panel--eq > .main-content {
-    flex: 0 0 auto;
-    min-height: max-content;
-    height: auto;
-    overflow: visible;
-  }
-
-  body #root .app-workspace > .right-content {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: none;
-  }
-
-  body #root .app-workspace > .graph-wrapper {
-    grid-column: 1 / -1;
-    width: 100%;
-    min-height: 220px;
-    height: 100%;
-    max-height: none;
-  }
-}
-
-@media (max-width: 720px) {
-  body #root .app-workspace {
-    grid-template-areas:
-      'side-bar'
-      'middle-content'
-      'presets-bar'
-      'graph-wrapper';
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows:
-      minmax(230px, auto)
-      minmax(920px, auto)
-      auto
-      minmax(220px, auto);
-  }
-
-  body #root .app-workspace > .side-bar {
-    min-height: 230px;
-  }
-
-  body #root .app-workspace > .middle-content {
-    min-height: 920px;
-  }
-
-  body #root .app-workspace > .right-content {
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    height: max-content;
-    align-content: start;
-  }
-
-  body #root .app-workspace > .graph-wrapper {
-    min-height: 220px;
+  .window-control {
+    width: 28px;
   }
 
   .workspace-tabs {
-    width: 100%;
+    margin-inline: 8px;
     overflow-x: auto;
     scrollbar-width: none;
 
@@ -1781,158 +1032,14 @@ html {
 
   .workspace-tab {
     flex: 0 0 auto;
-    white-space: nowrap;
-  }
-
-  .main-content-title {
-    gap: 8px;
-    margin: 4px 0;
-    padding-inline: 4px;
-  }
-
-  .eq-toolbar {
-    display: grid;
-    width: 100%;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-
-  .eq-toolbar > .button {
-    width: 100%;
-  }
-
-  .quick-layouts {
-    display: grid;
-    width: 100%;
-    grid-column: 1 / -1;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-  }
-
-  .quick-layouts > span {
-    grid-column: 1 / -1;
-    margin: 0;
-  }
-
-  .quick-layouts > .button {
-    width: 100%;
-  }
-
-  .auto-eq {
-    gap: 8px;
-    padding: 10px;
-  }
-
-  .main-content {
-    grid-template-columns: 28px minmax(0, 1fr);
-    padding-inline: 5px;
+    padding-inline: 12px;
   }
 }
 
-@media (max-width: 540px) {
-  body #root .app-workspace {
-    grid-template-rows:
-      minmax(230px, auto)
-      minmax(1080px, auto)
-      auto
-      minmax(220px, auto);
-  }
-
-  body #root .app-workspace > .middle-content {
-    min-height: 1080px;
-  }
-
-  .eq-flat-editor {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .eq-flat-editor__identity,
-  .eq-flat-editor__delete {
-    grid-column: 1 / -1;
-  }
-}
-
-// Mobile is a document flow, not a shrunken desktop grid.  Every primary
-// section gets its own full-width row and the workspace below the titlebar is
-// the only vertical scroll surface.  This prevents the EQ, profiles and graph
-// from ever occupying the same grid track at narrow widths.
-@media (max-width: 980px) {
-  body #root .app-workspace {
-    display: flex;
-    flex-direction: column;
-    align-items: stretch;
-    grid-template-areas:
-      'side-bar'
-      'middle-content'
-      'presets-bar'
-      'graph-wrapper';
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto auto minmax(240px, 360px);
-    align-content: start;
-    overflow-x: hidden;
-    overflow-y: auto;
-  }
-
-  body #root .app-workspace > .side-bar,
-  body #root .app-workspace > .middle-content,
-  body #root .app-workspace > .right-content,
-  body #root .app-workspace > .graph-wrapper {
-    flex: 0 0 auto;
-    grid-column: auto;
-    min-width: 0;
-    min-height: 0;
-    height: auto;
-    max-height: none;
-    overflow: visible;
-  }
-
-  body #root .app-workspace > .middle-content {
-    display: block;
-  }
-
-  .middle-content > .workspace-tabs {
-    margin-bottom: 8px;
-  }
-
-  .workspace-tab-panel,
-  .workspace-tab-panel--eq,
-  .workspace-tab-panel--convolution,
-  .workspace-tab-panel--convolution > .convolution-panel {
-    display: block;
-    min-height: 0;
-    height: auto;
-    max-height: none;
-    overflow: visible;
-  }
-
-  .workspace-tab-panel--eq > .main-content {
-    display: grid;
-    min-height: 430px;
-    height: auto;
-    overflow: visible;
-  }
-
-  body #root .app-workspace > .right-content {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    align-content: start;
-    gap: 12px;
-  }
-
-  body #root .app-workspace > .graph-wrapper {
-    min-height: 240px;
-    height: clamp(240px, 42vh, 360px);
-    overflow: hidden;
-  }
-}
-
-@media (max-width: 720px) {
-  body #root .app-workspace {
-    grid-template-rows: auto auto auto minmax(240px, 320px);
-  }
-
-  body #root .app-workspace > .side-bar {
-    min-height: 0;
+// Short windows: cap the graph so the even split cannot starve the editor
+// before its `min-content` floor kicks in.
+@media (max-height: 860px) {
+  .graph-wrapper {
+    max-height: 240px;
   }
 }

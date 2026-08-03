@@ -127,12 +127,12 @@ const AutoEQ = () => {
     getSquiglinkSourceList()
       .then((sources: ISquigSource[]) => {
         const discoveredSources = sources.map((source) => ({
-            id: source.id,
-            name: `${source.name} · ${source.type}`,
-            description: `Public ${source.type} measurements from ${source.name}.`,
-            attributionUrl: source.website,
-            online: true,
-          }));
+          id: source.id,
+          name: `${source.name} · ${source.type}`,
+          description: `Public ${source.type} measurements from ${source.name}.`,
+          attributionUrl: source.website,
+          online: true,
+        }));
         const gadgetryTechFallback = EQ_SOURCES[1];
         setSquigSources([
           gadgetryTechFallback,
@@ -365,7 +365,7 @@ const AutoEQ = () => {
           <span className="eyebrow">START FROM A REFERENCE</span>
           <h4>AutoEQ library</h4>
         </div>
-        {currentSource ? (
+        {currentSource && currentSource.id !== ALL_SOURCE_ID ? (
           <a
             href={currentSource.attributionUrl}
             target="_blank"
@@ -374,12 +374,12 @@ const AutoEQ = () => {
             {currentSource.name}
           </a>
         ) : (
-          <span>Select a source</span>
+          <span>{currentSource?.name || 'Select a source'}</span>
         )}
       </div>
       <div className="auto-eq">
         <div className="autoeq-field autoeq-field--source">
-          <span>Measurement source</span>
+          <span className="autoeq-field__title">Measurement source</span>
           <Dropdown
             name="Measurement source"
             options={sourceOptions}
@@ -394,7 +394,7 @@ const AutoEQ = () => {
           />
         </div>
         <div className="autoeq-field autoeq-field--model">
-          <span>Headphone model</span>
+          <span className="autoeq-field__title">Headphone model</span>
           <Dropdown
             name="Audio Device"
             options={deviceOptions}
@@ -405,11 +405,10 @@ const AutoEQ = () => {
             emptyOptionsPlaceholder="No measured model matches your search."
             filterPlaceholder="Search by brand or model..."
             isFilterable
-            showOptionsBeforeSearch={false}
           />
         </div>
-        <div className="autoeq-field">
-          <span>Measurement / target</span>
+        <div className="autoeq-field autoeq-field--target">
+          <span className="autoeq-field__title">Measurement / target</span>
           <Dropdown
             name="Target Frequency Response"
             options={responseOptions}

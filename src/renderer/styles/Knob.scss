@@ -1,4 +1,5 @@
 @use 'color' as *;
+@use 'theme' as *;
 
 .knob {
   position: relative;
@@ -64,9 +65,16 @@
     &:active {
       cursor: grabbing;
     }
+  }
 
-    &:focus-visible + .knob__focus-ring {
-      opacity: 1;
+  // The dial is an SVG behind a transparent range input, so the focus ring has
+  // to be drawn on the wrapper.
+  &:has(.knob__input:focus-visible) {
+    border-radius: 50%;
+    @include focus-ring;
+
+    .knob__value {
+      stroke: $secondary-light;
     }
   }
 

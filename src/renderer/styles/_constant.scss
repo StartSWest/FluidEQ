@@ -20,6 +20,12 @@ $preset-bar-width: 340px;
 $sidebar-width: 164px;
 $title-bar-height: 62px;
 
+// Widths at which the workspace shell changes shape. The Electron window
+// cannot go below WINDOW_MIN_WIDTH (720px), so the three-column layout only
+// has to survive down to the two-column switch.
+$bp-three-column: 1180px;
+$bp-two-column: 940px;
+
 $band-width: 64px;
 
 $equalizer-height: 574px;

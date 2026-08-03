@@ -62,7 +62,7 @@ const NumberInput = ({
 }: INumberInputProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [internalValue, setInternalValue] = useState<string>(
-    value.toFixed(floatPrecision)
+    value.toFixed(floatPrecision),
   );
   const [hasChanges, setHasChanges] = useState<boolean>(false);
 
@@ -92,7 +92,7 @@ const NumberInput = ({
 
   const precisionFactor: number = useMemo(
     () => 10 ** floatPrecision,
-    [floatPrecision]
+    [floatPrecision],
   );
 
   const onInput = (e: InputEvent<HTMLInputElement>) => {
@@ -269,7 +269,7 @@ const NumberInput = ({
     }
 
     updateValue(
-      onWheelValueChange ? onWheelValueChange(e) : onWheelDefaultValueChange(e)
+      onWheelValueChange ? onWheelValueChange(e) : onWheelDefaultValueChange(e),
     );
   };
 
@@ -305,6 +305,11 @@ const NumberInput = ({
           disabled={isDisabled}
           style={{ textAlign: showArrows ? 'left' : 'center' }}
         />
+        {hasChanges && (
+          <span className="asterisk" aria-hidden="true">
+            *
+          </span>
+        )}
         {showArrows && (
           <div className="arrows">
             <ArrowButton
@@ -320,14 +325,6 @@ const NumberInput = ({
               isDisabled={isDisabled}
             />
           </div>
-        )}
-        {hasChanges && (
-          <span
-            className="asterisk"
-            style={{ paddingLeft: showArrows ? '12px' : '' }}
-          >
-            *
-          </span>
         )}
       </div>
       {showLabel && name}

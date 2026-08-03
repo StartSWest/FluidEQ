@@ -137,9 +137,12 @@ const filterReducer: IFilterReducer = (
       return filtersCloned;
     }
     case FilterActionEnum.CLEAR_GAINS: {
+      // Mirrors the main process: band pass, notch and the pass filters still
+      // shape the signal at 0 dB, so clearing also restores the band type.
       const filtersCloned = cloneFilters(filters);
       Object.values(filtersCloned).forEach((f) => {
         f.gain = 0;
+        f.type = FilterTypeEnum.PK;
       });
       return filtersCloned;
     }

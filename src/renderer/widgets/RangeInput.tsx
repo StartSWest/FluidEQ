@@ -53,13 +53,14 @@ const RangeInput = ({
 }: IRangeInputProps) => {
   // Store a copy of the last value so it isn't lost to the throttle
   const lastValue = useRef<number | undefined>(undefined);
+  const isGestureActive = useRef(false);
   const factor = useMemo(() => 10 ** displayPrecision, [displayPrecision]);
 
-  // Simplify the value so that the css variables have a smaller range of values to work with
-  // which seems to slightly improve the jitter caused by jat-82. Ideally, we should
-  // be just using the value itself (i.e. there is no reason to round)
-  // TODO: fix the root cause of this error.
-  const rangeValue = useMemo(() => Math.round(value), [value]);
+  // Quantise the value so the css variables driving the track fill have a
+  // small range to work with, which avoids the repaint jitter from jat-82.
+  // One decimal keeps the thumb visually on the real value; rounding to whole
+  // units made the thumb disagree with the gain shown beneath it.
+  const rangeValue = useMemo(() => Math.round(value * 10) / 10, [value]);
 
   const increment = useMemo(
     () => 1 / 10 ** incrementPrecision,
@@ -84,12 +85,35 @@ const RangeInput = ({
     handleChange(newValue);
   };
 
-  const onMouseUp = () => {
-    // Apply the last value if it there is one associated to this input
-    if (lastValue.current !== undefined) {
-      handleMouseUp(lastValue.current);
-      lastValue.current = undefined;
+  const beginGesture = () => {
+    isGestureActive.current = true;
+    handleDragStart?.();
+  };
+
+  // Always report the end of a drag, even when the pointer went down and up
+  // without moving. The caller uses this to release its drag lock, so
+  // swallowing the event left the slider permanently out of sync with the
+  // backend value. The ref also collapses the pointerup/mouseup pair that the
+  // browser fires for a single mouse gesture into one callback.
+  const endGesture = () => {
+    if (!isGestureActive.current) {
+      return;
     }
+    isGestureActive.current = false;
+    const finalValue = lastValue.current;
+    lastValue.current = undefined;
+    handleMouseUp(finalValue === undefined ? value : finalValue);
+  };
+
+  // Keyboard and wheel changes never produce a pointer gesture, so flush the
+  // pending value once the interaction settles.
+  const commitPendingValue = () => {
+    if (isGestureActive.current || lastValue.current === undefined) {
+      return;
+    }
+    const finalValue = lastValue.current;
+    lastValue.current = undefined;
+    handleMouseUp(finalValue);
   };
 
   const onWheel = (e: WheelEvent) => {
@@ -114,6 +138,10 @@ const RangeInput = ({
           '--slider-color': rangeColor.color,
           '--slider-color-muted': rangeColor.muted,
           '--slider-track': rangeColor.track,
+          // Published as a *preference*: RangeInput.scss derives the real
+          // --range-length from it, which lets layout stylesheets override the
+          // track length per density or breakpoint without !important.
+          '--range-length-prop': height,
         } as CSSProperties
       }
     >
@@ -132,10 +160,12 @@ const RangeInput = ({
         name={name}
         aria-label={name}
         onChange={onRangeInput}
-        onMouseUp={onMouseUp}
-        onPointerDown={handleDragStart}
-        onPointerUp={onMouseUp}
-        onPointerCancel={onMouseUp}
+        onMouseUp={endGesture}
+        onPointerDown={beginGesture}
+        onPointerUp={endGesture}
+        onPointerCancel={endGesture}
+        onKeyUp={commitPendingValue}
+        onBlur={commitPendingValue}
         onWheel={onWheel}
         disabled={isDisabled}
         style={
@@ -144,8 +174,6 @@ const RangeInput = ({
             '--min': min,
             '--max': max,
             '--val': rangeValue,
-            width: `${height}`,
-            margin: `calc(${height} / 2) 0px`,
           } as CSSProperties
         }
       />

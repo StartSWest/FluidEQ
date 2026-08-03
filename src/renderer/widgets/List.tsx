@@ -21,6 +21,7 @@ import {
   Fragment,
   KeyboardEvent,
   MouseEvent,
+  UIEvent,
   useCallback,
   useEffect,
   useMemo,
@@ -50,6 +51,8 @@ interface IListProps {
   startingItem?: ReactElement;
   emptyOptionsPlaceholder?: ReactNode;
   style?: CSSProperties;
+  /** Fires as the list scrolls; used to append the next page of results. */
+  onScroll?: (event: UIEvent<HTMLUListElement>) => void;
 }
 
 const List = ({
@@ -64,6 +67,7 @@ const List = ({
   startingItem,
   emptyOptionsPlaceholder = 'No options found.',
   style,
+  onScroll,
 }: IListProps) => {
   const inputRefs = useMemo(
     () =>
@@ -127,7 +131,11 @@ const List = ({
           {startingItem}
         </div>
       )}
-      <ul className={`list ${className || ''}`} aria-label={`${name}-items`}>
+      <ul
+        className={`list ${className || ''}`}
+        aria-label={`${name}-items`}
+        onScroll={onScroll}
+      >
         {options.map((entry: IOptionEntry, index: number) => {
           const showGroup =
             Boolean(entry.group) &&

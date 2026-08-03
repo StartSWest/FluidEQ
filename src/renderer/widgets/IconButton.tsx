@@ -40,10 +40,19 @@ const IconButton = ({
   className,
   handleClick,
 }: IIconButtonProps) => {
+  // `aria-disabled` is advisory: without this guard a disabled icon still
+  // fired its action on click.
+  const activate = (e?: MouseEvent) => {
+    if (isDisabled) {
+      return;
+    }
+    handleClick(e);
+  };
+
   // Helper for detecting use of the ENTER key
   const onKeyUp = (e: KeyboardEvent) => {
     if (e.code === 'Enter') {
-      handleClick();
+      activate();
     }
   };
 
@@ -64,9 +73,9 @@ const IconButton = ({
     <div
       role="button"
       aria-label={icon}
-      className={`iconButton center ${className}`}
+      className={`iconButton center ${className || ''}`}
       onKeyUp={onKeyUp}
-      onClick={handleClick}
+      onClick={activate}
       tabIndex={isDisabled ? -1 : 0}
       aria-disabled={isDisabled}
     >

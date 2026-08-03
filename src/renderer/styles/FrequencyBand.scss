@@ -19,97 +19,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'constant' as *;
 @use 'spacing' as *;
+@use 'theme' as *;
 
-$filter-dropdown-width: 52px;
+$filter-dropdown-width: 56px;
 
 .bandWrapper {
-  // Anchors the absolutely positioned remove button
   position: relative;
-
-  &:hover {
-    .removeFilter {
-      opacity: 1;
-    }
-  }
-
-  .band {
-    // width: $band-width;
-    gap: $spacing-s;
-    .number-input,
-    .dropdown {
-      align-self: center;
-
-      [role='menu'] {
-        width: $filter-dropdown-width;
-      }
-
-      .list {
-        // Hide scroll bar for the filter type dropdown
-        overflow-y: hidden;
-
-        // Assign fixed width to dropdown menu
-        width: $filter-dropdown-width + $spacing-s;
-      }
-    }
-
-    &::before,
-    &::after {
-      // Insert space above and below band so scrollbar has padding
-      content: ' ';
-    }
-  }
-
-  .removeFilter {
-    position: absolute;
-    cursor: pointer;
-    margin-left: calc($band-width - 5px);
-    opacity: 0;
-    z-index: 1;
-
-    &:focus-visible:not([aria-disabled='true']),
-    &:hover:not([aria-disabled='true']) {
-      & + .band {
-        filter: blur(1px);
-      }
-
-      path {
-        fill: $primary-lighter;
-      }
-    }
-
-    &:focus-visible:not([aria-disabled='true']) {
-      opacity: 1;
-      outline: none;
-    }
-
-    &[aria-disabled='true'] {
-      cursor: default;
-      opacity: 0;
-    }
-  }
-}
-
-.bands .bandWrapper {
-  position: relative;
-  top: auto;
-  width: auto;
+  display: flex;
   min-width: 0;
-  height: auto;
+  flex-direction: column;
+  align-items: center;
   padding: 4px 2px;
-  border-radius: 10px;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
 
-  &.is-selected {
-    background: rgba($secondary-default, 0.1);
-    box-shadow:
-      inset 0 0 0 1px rgba($secondary-light, 0.3),
-      0 0 16px rgba($secondary-default, 0.12);
-
-    .range input[type='range']::-webkit-slider-thumb {
-      background: var(--slider-color);
-      box-shadow:
-        0 0 0 3px var(--slider-color-muted),
-        0 0 12px var(--slider-color-muted);
-    }
+  &:hover,
+  &:focus-within {
+    border-color: rgba($secondary-light, 0.12);
+    background: rgba($secondary-default, 0.055);
   }
 
   &.is-hovered {
@@ -119,28 +50,41 @@ $filter-dropdown-width: 52px;
       0 0 18px rgba($secondary-default, 0.1);
   }
 
+  &.is-selected {
+    background: rgba($secondary-default, 0.1);
+    box-shadow:
+      inset 0 0 0 1px rgba($secondary-light, 0.3),
+      0 0 16px rgba($secondary-default, 0.12);
+  }
+
   .band {
+    display: flex;
     width: 100%;
-    height: auto;
+    min-width: 0;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-
-    &::before,
-    &::after {
-      display: none;
-    }
+    gap: 4px;
   }
 
   .dropdown,
   .number-input,
-  .slider {
+  .slider,
+  .range {
     width: 100%;
     min-width: 0;
     align-items: center;
   }
 
-  .dropdown [role='menu'] {
-    width: min(56px, calc(100% - 4px));
+  .dropdown > [role='menu'] {
+    width: min($filter-dropdown-width, calc(100% - 4px));
+    min-height: 34px;
+    padding: 6px 8px;
+  }
+
+  .dropdown .list-wrapper {
+    width: max(66px, 100%);
+    min-width: 66px;
   }
 
   .number-input .input-wrapper {
@@ -152,19 +96,38 @@ $filter-dropdown-width: 52px;
     max-width: 100%;
   }
 
-  .range {
-    width: 100%;
-  }
-
+  // Delete affordance for the non-flat band layout.
   .removeFilter {
-    top: -5px;
+    position: absolute;
+    top: -7px;
     right: 50%;
     z-index: 5;
-    width: 18px;
-    height: 18px;
+    display: grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border: 1px solid rgba($red, 0.24);
+    border-radius: $radius-pill;
+    background: rgba($primary-dark, 0.92);
+    box-shadow: 0 6px 18px rgba($black, 0.35);
+    opacity: 0;
     transform: translateX(50%);
+    cursor: pointer;
+
+    &[aria-disabled='true'] {
+      cursor: default;
+      opacity: 0;
+      pointer-events: none;
+    }
+  }
+
+  &:hover .removeFilter:not([aria-disabled='true']),
+  .removeFilter:focus-visible:not([aria-disabled='true']) {
+    opacity: 1;
   }
 }
+
+// *** Captions ***************************************************************
 
 .band-frequency-caption,
 .band-gain-caption {
@@ -196,7 +159,13 @@ button.band-frequency-caption {
 
 .band-gain-caption {
   color: rgba($secondary-light, 0.86);
-  font-size: 0.55rem;
+  font-size: 0.58rem;
+}
+
+// *** Densities **************************************************************
+
+.bands--full .bandWrapper {
+  padding-top: 12px;
 }
 
 .bandWrapper--compact {
@@ -204,22 +173,10 @@ button.band-frequency-caption {
     gap: 3px;
   }
 
-  .dropdown [role='menu'] {
+  .dropdown > [role='menu'] {
     min-height: 28px;
     padding: 4px 5px;
-
-    svg {
-      width: 27px;
-    }
   }
-
-  .band-gain-caption {
-    font-size: 0.61rem;
-  }
-}
-
-.bands--full .bandWrapper {
-  padding-top: 12px;
 }
 
 .bandWrapper--dense {
@@ -241,73 +198,14 @@ button.band-frequency-caption {
     width: 15px;
     height: 15px;
   }
-
-  &:hover,
-  &:focus-within {
-    background: linear-gradient(
-      180deg,
-      rgba($secondary-default, 0.075),
-      rgba($secondary-default, 0.02)
-    );
-  }
 }
 
 @media (max-width: 760px) {
-  .bands .bandWrapper {
+  .bandWrapper {
     padding-inline: 1px;
   }
 
   .band-frequency-caption {
     font-size: 0.52rem;
-  }
-}
-
-.bandWrapper {
-  top: 6px;
-  width: 68px;
-  padding-top: 4px;
-  border: 1px solid transparent;
-  border-radius: 14px;
-  transition:
-    border-color 160ms ease,
-    background 160ms ease;
-
-  &:hover,
-  &:focus-within {
-    border-color: rgba($secondary-light, 0.12);
-    background: rgba($secondary-default, 0.055);
-  }
-
-  .band {
-    gap: 4px;
-
-    > .slider {
-      gap: 4px;
-    }
-  }
-
-  .removeFilter {
-    top: -7px;
-    right: -4px;
-    display: grid;
-    width: 22px;
-    height: 22px;
-    margin: 0;
-    place-items: center;
-    border: 1px solid rgba($red, 0.24);
-    border-radius: 999px;
-    background: rgba($primary-dark, 0.92);
-    box-shadow: 0 6px 18px rgba($black, 0.35);
-  }
-
-  .dropdown [role='menu'] {
-    width: 56px;
-    min-height: 34px;
-    padding: 6px 8px;
-    border-radius: 9px;
-  }
-
-  .dropdown .list {
-    width: 66px;
   }
 }

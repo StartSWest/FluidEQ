@@ -1,88 +1,27 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023> <AQUA Dev Team>
+Copyright (C) <2026> <AQUA device-profile contributors>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
 @use 'color' as *;
 @use 'spacing' as *;
-
-.device-profiles {
-  display: grid;
-  gap: $spacing-xs;
-  padding: $spacing-m;
-  border: 1px solid rgba($secondary-default, 0.24);
-  border-radius: 14px;
-  background: linear-gradient(
-    145deg,
-    rgba($secondary-default, 0.1),
-    $primary-default 64%
-  );
-  box-shadow:
-    0 18px 45px rgba($black, 0.22),
-    inset 0 1px 0 rgba($white, 0.03);
-
-  h4 {
-    margin: 2px 0 0;
-  }
-
-  label {
-    color: $primary-lighter;
-    font-size: 0.75rem;
-  }
-
-  select {
-    min-width: 0;
-    width: 100%;
-    height: 32px;
-    padding: 0 $spacing-xs;
-    color: $white;
-    border: 1px solid rgba($primary-lighter, 0.2);
-    border-radius: $spacing-xs;
-    background: rgba($primary-dark, 0.82);
-  }
-}
-
-.device-profiles__heading,
-.device-profiles__actions {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: $spacing-xs;
-}
-
-.eyebrow {
-  color: $secondary-light;
-  font-size: 0.62rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-}
-
-.default-badge {
-  padding: 3px 7px;
-  color: $primary-dark;
-  background: $analogous-2;
-  border-radius: 999px;
-  font-size: 0.62rem;
-  font-weight: 700;
-}
-
-.link-button {
-  color: $secondary-light;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
-.device-profiles__hint {
-  margin: 2px 0 0;
-  color: $primary-lighter;
-  font-size: 0.68rem;
-  line-height: 1.35;
-}
+@use 'theme' as *;
 
 .device-profiles {
   position: relative;
   z-index: 20;
-  gap: 5px;
+  display: grid;
+  min-width: 0;
   padding: 13px;
+  gap: 5px;
+  align-content: start;
   overflow: visible;
-  border-color: rgba($primary-lighter, 0.15);
-  border-radius: 18px;
+  border: 1px solid rgba($primary-lighter, 0.15);
+  border-radius: $radius-xl;
   background:
     radial-gradient(
       circle at 100% 0%,
@@ -98,6 +37,7 @@
     inset 0 1px 0 rgba($white, 0.04),
     0 20px 48px rgba($black, 0.2);
 
+  // Cyan spine marking this as the "live" card.
   &::before {
     position: absolute;
     inset: 10px auto 10px 0;
@@ -110,9 +50,12 @@
     content: '';
   }
 
+  h4 {
+    margin: 2px 0 0;
+  }
+
+  // Long device names must not push the picker wider than this card.
   .dropdown .list-wrapper {
-    // Keep the output picker inside this card. A global desktop width made
-    // long device menus spill over the EQ panel at narrow window sizes.
     width: 100%;
     max-width: 100%;
     max-height: min(360px, calc(100vh - 120px));
@@ -120,6 +63,23 @@
 
   .dropdown .list {
     max-height: min(310px, calc(100vh - 180px));
+  }
+}
+
+.device-profiles__heading {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-xs;
+
+  > div {
+    min-width: 0;
+  }
+
+  .eyebrow {
+    @include truncate;
+    display: block;
   }
 }
 
@@ -131,53 +91,67 @@
 }
 
 .device-profiles__mapping {
+  @include inset-surface;
   display: grid;
-  gap: 3px;
+  min-width: 0;
   margin-top: 5px;
   padding: 9px 10px;
-  border: 1px solid rgba($secondary-light, 0.16);
-  border-radius: 11px;
-  background: rgba($primary-dark, 0.42);
+  gap: 3px;
+  border-color: rgba($secondary-light, 0.16);
 
   .device-profiles__label {
     margin: 0;
   }
 
   strong {
-    overflow: hidden;
+    @include truncate;
     color: $secondary-light;
     font-size: 0.76rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   > span:last-child {
-    color: rgba($primary-lighter, 0.72);
+    color: $text-muted;
     font-size: 0.64rem;
     line-height: 1.35;
   }
 }
 
-.device-profiles__heading {
-  min-width: 0;
-  align-items: center;
+.device-profiles__hint {
+  margin: 2px 0 0;
+  color: $primary-lighter;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
 
-  > div {
-    min-width: 0;
-  }
+.default-badge {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  color: $primary-dark;
+  border-radius: $radius-pill;
+  background: $analogous-2;
+  box-shadow: 0 0 16px rgba($secondary-default, 0.18);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
 
-  .eyebrow {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+.link-button {
+  padding: 7px 9px;
+  color: $secondary-light;
+  border: 0;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
 
-  .default-badge {
-    flex: 0 0 auto;
+  &:hover,
+  &:focus-visible {
+    background: rgba($secondary-default, 0.08);
+    outline: none;
   }
 }
 
+// Option row inside the output picker. Device names are long and arbitrary,
+// so they wrap in the open menu but are clipped to one line in the closed
+// trigger (which is a fixed-height field).
 .device-option {
   display: flex;
   min-width: 0;
@@ -185,11 +159,14 @@
   gap: 8px;
 
   > span:last-child {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: normal;
+    min-width: 0;
     overflow-wrap: anywhere;
   }
+}
+
+.dropdown > [role='menu'] .device-option > span:last-child {
+  @include truncate;
+  overflow-wrap: normal;
 }
 
 .device-dot {
@@ -203,21 +180,5 @@
     border-color: $secondary-light;
     background: $secondary-default;
     box-shadow: 0 0 10px rgba($secondary-default, 0.8);
-  }
-}
-
-.default-badge {
-  padding: 4px 8px;
-  box-shadow: 0 0 16px rgba($secondary-default, 0.18);
-}
-
-.link-button {
-  padding: 7px 9px;
-  border-radius: 8px;
-
-  &:hover,
-  &:focus-visible {
-    background: rgba($secondary-default, 0.08);
-    outline: none;
   }
 }

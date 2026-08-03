@@ -636,13 +636,16 @@ export const removeEqualizerSlider = (filterId: string): Promise<void> => {
 };
 
 /**
- * Clear gains for all filters
- * @returns { Promise<void> } exception if failed
+ * Reset the EQ to the default neutral ten-band layout
+ * @returns { Promise<IFiltersMap> } the restored filters, exception if failed
  */
-export const clearGains = (): Promise<void> => {
+export const clearGains = (): Promise<IFiltersMap> => {
   const channel = ChannelEnum.CLEAR_GAINS;
   window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(setterResponseHandler, channel);
+  return promisifyResult<IFiltersMap>(
+    simpleResponseHandler<IFiltersMap>(),
+    channel,
+  );
 };
 
 /**

@@ -19,5 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'spacing' as *;
 
 .slider {
-  gap: $spacing-s;
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-xs;
 }

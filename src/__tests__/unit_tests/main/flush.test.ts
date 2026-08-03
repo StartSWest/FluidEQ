@@ -83,6 +83,65 @@ describe('flush', () => {
       expect(returnedString).not.toContain('Filter ');
     });
 
+    // Equalizer APO's ParametricEQ grammar only accepts a Gain token for the
+    // peaking and shelf forms. A stray Gain on a band pass, notch or pass
+    // filter makes APO reject the whole line.
+    it('emits the Gain token only for filter types that take one', () => {
+      const withGain = [
+        FilterTypeEnum.PK,
+        FilterTypeEnum.LSC,
+        FilterTypeEnum.HSC,
+      ];
+      const withoutGain = [
+        FilterTypeEnum.BP,
+        FilterTypeEnum.NO,
+        FilterTypeEnum.LPQ,
+        FilterTypeEnum.HPQ,
+      ];
+
+      withGain.forEach((type) => {
+        const state = getDefaultState();
+        const filter = Object.values(state.filters)[0];
+        filter.type = type;
+        filter.gain = 4;
+        filter.frequency = 1000;
+        filter.quality = 1.5;
+        state.filters = { [filter.id]: filter };
+
+        expect(stateToString(state)).toContain(
+          `Filter 1: ON ${type} Fc 1000 Hz Gain 4 dB Q 1.5`,
+        );
+      });
+
+      withoutGain.forEach((type) => {
+        const state = getDefaultState();
+        const filter = Object.values(state.filters)[0];
+        filter.type = type;
+        filter.gain = 4;
+        filter.frequency = 1000;
+        filter.quality = 1.5;
+        state.filters = { [filter.id]: filter };
+
+        const returnedString = stateToString(state);
+        expect(returnedString).toContain(
+          `Filter 1: ON ${type} Fc 1000 Hz Q 1.5`,
+        );
+        expect(returnedString).not.toContain(`ON ${type} Fc 1000 Hz Gain`);
+      });
+    });
+
+    // A gainless filter still shapes the signal at 0 dB, so unlike a flat
+    // peak or shelf it must survive into the config.
+    it('keeps zero-gain band pass and notch filters', () => {
+      const state = getDefaultState();
+      const filter = Object.values(state.filters)[0];
+      filter.type = FilterTypeEnum.BP;
+      filter.gain = 0;
+      state.filters = { [filter.id]: filter };
+
+      expect(stateToString(state)).toContain('ON BP');
+    });
+
     it('clamps legacy gain values to the safe +/-20 dB range', () => {
       const state = getDefaultState();
       const firstFilter = Object.values(state.filters)[0];

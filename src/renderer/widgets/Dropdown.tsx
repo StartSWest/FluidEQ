@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   KeyboardEvent,
+  UIEvent,
   useCallback,
   useDeferredValue,
   useEffect,
@@ -47,7 +48,6 @@ interface IDropdownProps {
   noSelectionPlaceholder?: ReactNode;
   emptyOptionsPlaceholder?: ReactNode;
   isFilterable?: boolean;
-  showOptionsBeforeSearch?: boolean;
   filterPlaceholder?: string;
   placement?: 'up' | 'down' | 'left' | 'right';
   handleChange: (newValue: string) => void;
@@ -63,7 +63,13 @@ const normalizeSearchText = (value: string) =>
     .replace(/[^a-z0-9]+/g, ' ')
     .trim();
 
-const MAX_RENDERED_FILTER_RESULTS = 120;
+// Catalogues run to tens of thousands of entries. Matching is done over the
+// whole set (against a pre-normalised index, so it stays cheap), but only a
+// page of results is mounted at a time and the next page is appended as the
+// user scrolls.
+const PAGE_SIZE = 100;
+/** Distance from the bottom of the list at which the next page is appended. */
+const LOAD_MORE_THRESHOLD_PX = 240;
 
 export const matchesDropdownSearch = (option: IOptionEntry, query: string) => {
   const terms = normalizeSearchText(query).split(/\s+/).filter(Boolean);
@@ -84,7 +90,6 @@ const Dropdown = ({
   emptyOptionsPlaceholder,
   handleChange,
   isFilterable = false,
-  showOptionsBeforeSearch = true,
   filterPlaceholder = 'Search...',
   placement = 'down',
 }: IDropdownProps) => {
@@ -99,46 +104,56 @@ const Dropdown = ({
 
   const [searchString, setSearchString] = useState<string>('');
   const deferredSearchString = useDeferredValue(searchString);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const indexedOptions = useMemo(
     () =>
       options.map((option) => ({
         option,
-        searchableText: normalizeSearchText(
-          `${option.label} ${option.value}`,
-        ),
+        searchableText: normalizeSearchText(`${option.label} ${option.value}`),
       })),
     [options],
   );
 
+  // Every match, over the complete option set.
+  const matchedOptions = useMemo(() => {
+    const terms = normalizeSearchText(deferredSearchString)
+      .split(/\s+/)
+      .filter(Boolean);
+    if (terms.length === 0) {
+      return options;
+    }
+    return indexedOptions
+      .filter(({ searchableText }) =>
+        terms.every((term) => searchableText.includes(term)),
+      )
+      .map(({ option }) => option);
+  }, [deferredSearchString, indexedOptions, options]);
+
+  // Start from the top of the results whenever the query or the source list
+  // changes, so a new search never inherits a previous scroll depth.
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [matchedOptions]);
+
   const filteredOptions = useMemo(
-    () => {
-      if (
-        !showOptionsBeforeSearch &&
-        deferredSearchString.trim().length === 0
-      ) {
-        return [];
+    () => matchedOptions.slice(0, visibleCount),
+    [matchedOptions, visibleCount],
+  );
+
+  const hasMoreOptions = matchedOptions.length > filteredOptions.length;
+
+  const handleListScroll = useCallback(
+    (event: UIEvent<HTMLUListElement>) => {
+      if (!hasMoreOptions) {
+        return;
       }
-
-      const terms = normalizeSearchText(deferredSearchString)
-        .split(/\s+/)
-        .filter(Boolean);
-      const matches = indexedOptions
-        .filter(({ searchableText }) =>
-          terms.every((term) => searchableText.includes(term)),
-        )
-        .map(({ option }) => option);
-
-      return isFilterable
-        ? matches.slice(0, MAX_RENDERED_FILTER_RESULTS)
-        : matches;
+      const { scrollTop, scrollHeight, clientHeight } = event.currentTarget;
+      if (scrollHeight - scrollTop - clientHeight <= LOAD_MORE_THRESHOLD_PX) {
+        setVisibleCount((current) => current + PAGE_SIZE);
+      }
     },
-    [
-      deferredSearchString,
-      indexedOptions,
-      isFilterable,
-      showOptionsBeforeSearch,
-    ],
+    [hasMoreOptions],
   );
 
   const updateMenuPlacement = useCallback(() => {
@@ -332,12 +347,9 @@ const Dropdown = ({
           options={filteredOptions}
           isDisabled={isDisabled}
           handleChange={onChange}
-          emptyOptionsPlaceholder={
-            !showOptionsBeforeSearch && searchString.trim().length === 0
-              ? 'Type to search all models.'
-              : emptyOptionsPlaceholder
-          }
+          emptyOptionsPlaceholder={emptyOptionsPlaceholder}
           focusOnRender={!isFilterable}
+          onScroll={handleListScroll}
           startingItem={
             isFilterable ? (
               <TextInput

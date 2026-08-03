@@ -89,6 +89,57 @@ const phoneBookCachePath = (source: ISquigSource) =>
     `${source.id.replace(/[^a-z0-9._-]+/gi, '_')}.json`,
   );
 
+const getWebsiteBase = (website: string) => {
+  try {
+    const parsed = new URL(website);
+    const parts = parsed.pathname
+      .replace(/\/+$/, '')
+      .split('/')
+      .filter(Boolean);
+    parts.pop();
+    const nextPath = parts.length ? `/${parts.join('/')}/` : '/';
+    parsed.pathname = nextPath;
+    return parsed.toString().replace(/\/$/, '');
+  } catch {
+    return '';
+  }
+};
+
+const buildPhoneBookUrls = (source: ISquigSource) => {
+  const withData = source.dataUrl.replace(/\/+$/, '');
+  const urls = [withData];
+  if (withData.endsWith('/data')) {
+    urls.push(withData.replace(/\/data$/i, ''));
+  }
+
+  const websiteBase = getWebsiteBase(source.website);
+  if (websiteBase) {
+    urls.push(`${websiteBase}/data`);
+  }
+
+  return [...new Set(urls)].map(
+    (url) => `${url.replace(/\/+$/, '')}/phone_book.json`,
+  );
+};
+
+const parsePhoneBook = (raw: string, source: ISquigSource): ISquigModel[] => {
+  const brands = JSON.parse(raw) as ISquigBrand[];
+  if (!Array.isArray(brands)) {
+    throw new Error(`Invalid phone-book payload for ${source.id}`);
+  }
+  return brands.flatMap((brand) =>
+    (brand.phones || [])
+      .filter((phone) => phone && phone.name && phone.file)
+      .map((phone) => ({
+        key: `${brand.name} ${phone.name}`,
+        brand: brand.name,
+        name: phone.name,
+        phone,
+        sourceId: source.id,
+      })),
+  );
+};
+
 const readCache = (filePath: string, allowStale = false) => {
   if (!fs.existsSync(filePath)) {
     return undefined;
@@ -109,9 +160,13 @@ const fetchText = async (url: string) => {
   const retryDelays = [0, 250, 750];
   let lastStatus = 0;
 
+  // Sequential by design: each attempt waits for the previous one to fail.
+  // eslint-disable-next-line no-restricted-syntax
   for (const delay of retryDelays) {
     if (delay) {
-      await new Promise((resolve) => setTimeout(resolve, delay));
+      await new Promise((resolve) => {
+        setTimeout(resolve, delay);
+      });
     }
 
     const response = await fetch(url, {
@@ -220,11 +275,23 @@ const getSource = async (sourceId = DEFAULT_SOURCE_ID) => {
 
 const loadPhoneBook = async (source: ISquigSource): Promise<ISquigModel[]> => {
   const cachePath = phoneBookCachePath(source);
-  const phoneBookUrl = `${source.dataUrl}/phone_book.json`;
+  let lastError: unknown;
   let raw: string;
+
   try {
-    raw = await fetchText(phoneBookUrl);
-    writeCache(cachePath, raw);
+    // Sequential by design: fall through to the next URL only once this one
+    // has failed.
+    // eslint-disable-next-line no-restricted-syntax
+    for (const phoneBookUrl of buildPhoneBookUrls(source)) {
+      try {
+        raw = await fetchText(phoneBookUrl);
+        writeCache(cachePath, raw);
+        return parsePhoneBook(raw, source);
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    throw lastError || new Error(`Unable to load phone book for ${source.id}`);
   } catch (error) {
     raw = readCache(cachePath, true) || '';
     if (!raw) {
@@ -232,18 +299,7 @@ const loadPhoneBook = async (source: ISquigSource): Promise<ISquigModel[]> => {
     }
   }
 
-  const brands = JSON.parse(raw) as ISquigBrand[];
-  return brands.flatMap((brand) =>
-    (brand.phones || [])
-      .filter((phone) => phone && phone.name && phone.file)
-      .map((phone) => ({
-        key: `${brand.name} ${phone.name}`,
-        brand: brand.name,
-        name: phone.name,
-        phone,
-        sourceId: source.id,
-      })),
-  );
+  return parsePhoneBook(raw, source);
 };
 
 const getPhoneBook = async (sourceId = DEFAULT_SOURCE_ID) => {

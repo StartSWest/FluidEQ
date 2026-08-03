@@ -30,5 +30,11 @@ npm-debug.log.*
 *.sass.d.ts
 *.scss.d.ts
 
+# Local build-time configuration. `.env.example` documents the variables and
+# is the only one that gets committed.
+.env
+.env.*
+!.env.example
+
 # App files
 presets/**

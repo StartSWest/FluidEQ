@@ -19,22 +19,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'constant' as *;
 @use 'spacing' as *;
+@use 'theme' as *;
 
 .prereq-notice {
   position: fixed;
-  z-index: 60;
-  // Keep the notice below the sticky title/header stack so its heading and
-  // buttons are never hidden behind the waveform or workspace header.
-  top: calc($title-bar-height + 72px);
+  // Above every workspace panel, including the chain raised for open menus.
+  z-index: 1200;
+  top: calc($title-bar-height + 16px);
   left: 50%;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: $spacing-l;
   width: min(820px, calc(100vw - 48px));
+  max-height: calc(100vh - $title-bar-height - 32px);
   padding: $spacing-m;
+  overflow-y: auto;
   border: 1px solid rgba($red, 0.5);
-  border-radius: 12px;
+  border-radius: $radius-m;
   background: rgba($primary-default, 0.98);
   box-shadow: 0 14px 36px rgba($black, 0.4);
   transform: translateX(-50%);
@@ -47,12 +50,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .prereq-notice__copy {
   display: grid;
+  min-width: 0;
   gap: $spacing-xs;
 }
 
 .prereq-notice__actions {
   display: flex;
   flex-shrink: 0;
+  flex-wrap: wrap;
   gap: $spacing-s;
 }
 

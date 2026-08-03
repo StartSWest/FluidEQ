@@ -14,6 +14,7 @@ import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import checkNodeEnv from '../scripts/check-node-env';
 import deleteSourceMaps from '../scripts/delete-source-maps';
+import PUBLIC_ENV_DEFAULTS from './public-env';
 
 checkNodeEnv('production');
 deleteSourceMaps();
@@ -102,6 +103,7 @@ const configuration: webpack.Configuration = {
     new webpack.EnvironmentPlugin({
       NODE_ENV: 'production',
       DEBUG_PROD: false,
+      ...PUBLIC_ENV_DEFAULTS,
     }),
 
     new MiniCssExtractPlugin({

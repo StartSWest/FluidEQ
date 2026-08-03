@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'spacing' as *;
-@use 'button-state' as *;
 
 %arrow {
   display: flex;
@@ -28,17 +27,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     cursor: pointer;
 
     path {
-      fill: $secondary-dark;
+      fill: $secondary-light;
     }
   }
 
-  &:active {
-    path {
-      fill: $secondary-dark;
-      filter: brightness(
-        0.8
-      ); // alternative for achieving the $secondary-darker color
-    }
+  &:active path {
+    fill: $secondary-dark;
   }
 
   &[aria-disabled='true'] {
@@ -48,11 +42,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       fill: $primary-light;
     }
 
-    &:active {
-      path {
-        // ensure that the brightness doesn't change when pressed
-        filter: brightness(1);
-      }
+    &:hover path,
+    &:active path {
+      fill: $primary-light;
     }
   }
 
@@ -60,7 +52,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     outline: none;
 
     path {
-      stroke: white;
+      stroke: $white;
       stroke-width: $spacing-xxs;
     }
   }

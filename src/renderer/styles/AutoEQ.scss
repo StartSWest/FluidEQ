@@ -19,209 +19,102 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'constant' as *;
 @use 'spacing' as *;
+@use 'theme' as *;
 
-$auto-eq-dropdown-width: 220px;
-
+// The AutoEQ row reflows against the width of the EQ card, not the viewport:
+// the card can be narrow on a wide screen (three-column shell) and wide on a
+// narrow one (stacked shell).
 .workspace-tab-panel--eq {
   container-name: autoeq-workspace;
   container-type: inline-size;
 }
 
 .auto-eq-title {
-  margin: 0 $spacing-s;
-}
-
-.auto-eq {
-  display: grid;
-  grid-template-columns:
-    max-content minmax(0, 1fr) max-content minmax(0, 1fr)
-    max-content;
-  height: min-content;
-
-  padding: $spacing-s $spacing-m;
-  border: 1px solid rgba($primary-lighter, 0.14);
-  border-radius: 12px;
-  background: rgba($primary-default, 0.82);
-
-  align-items: center;
-  gap: $spacing-s;
-
-  .dropdown {
-    [role='menu'] {
-      width: calc(100% - $spacing-m);
-    }
-
-    // Add padding around the text input for filtering the drop down
-    .starting-item {
-      padding: $spacing-xs;
-    }
-
-    .list-wrapper {
-      // For some reason the spacing is 4px off from the .dropdown class, this adjustment is necessary for the menu and the dropdown to have the same width
-      width: calc(100% - $spacing-s);
-    }
-
-    .list {
-      // Assign fixed width to dropdown menu
-      max-height: 150px;
-    }
-  }
-}
-
-.autoeq-update {
-  display: flex;
-  min-height: 34px;
-  margin: $spacing-xs $spacing-m 0;
-  align-items: center;
-  justify-content: flex-end;
-  gap: $spacing-s;
-  color: rgba($primary-lighter, 0.72);
-  font-size: 12px;
-}
-
-.auto-eq-title {
   margin: 0 8px 2px;
 }
 
+// Every column is the same two-row stack — label, control — and the control
+// row is a fixed height, so the three pickers and the apply button line up
+// however many lines their selected entry renders inside the trigger.
 .auto-eq {
   position: relative;
   z-index: 30;
-  grid-template-columns:
-    minmax(190px, 0.8fr)
-    minmax(240px, 1.2fr)
-    minmax(210px, 1fr)
-    max-content;
+  display: grid;
+  padding: 12px 4px;
   gap: 12px;
-  padding: 12px;
-  border-color: transparent;
-  border-radius: 18px;
-  background:
-    linear-gradient(120deg, rgba($secondary-default, 0.04), transparent 34%),
-    rgba(#0e1521, 0.9);
-  box-shadow: none;
+  grid-template-columns:
+    minmax(180px, 1fr) minmax(210px, 1.3fr) minmax(190px, 1.1fr)
+    max-content;
+  grid-template-rows: auto;
+  align-items: end;
 
   > .button {
+    min-width: 104px;
+    height: $control-height-lg;
     align-self: end;
-    min-width: 94px;
-  }
-
-  .dropdown [role='menu'],
-  .dropdown .list-wrapper {
-    width: 100%;
-  }
-
-  .dropdown [role='menu'] > div:first-child {
-    min-width: 0;
-    max-width: calc(100% - 22px);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .dropdown [role='menu'] .eq-source-option {
-    min-width: 0;
-    overflow: hidden;
-
-    strong {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    small {
-      display: none;
-    }
-  }
-
-  .dropdown .list .eq-source-option {
-    width: 100%;
-    min-width: 0;
-
-    &--child {
-      padding-left: 8px;
-    }
-
-    strong,
-    small {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    small {
-      margin-top: 2px;
-      color: rgba($primary-lighter, 0.58);
-      font-size: 0.68rem;
-      white-space: normal;
-    }
-  }
-
-  .dropdown .list-wrapper {
-    max-height: 260px;
-  }
-
-  .dropdown .list {
-    max-height: min(320px, calc(100vh - 170px));
-  }
-
-  .dropdown--filterable .list-wrapper {
-    width: max(100%, min(560px, 36vw));
-    max-width: calc(100vw - 48px);
-  }
-
-  .dropdown:not(.dropdown--filterable) .list-wrapper {
-    width: max(100%, min(340px, 28vw));
-    max-width: calc(100vw - 48px);
-  }
-
-  .autoeq-field--source .dropdown .list-wrapper {
-    width: max(100%, min(380px, 30vw));
-  }
-
-  .autoeq-field--source .dropdown .list strong,
-  .autoeq-field--source .dropdown .list small {
-    display: block;
-  }
-
-  .autoeq-field--source .dropdown .list small {
-    margin-top: 2px;
-    color: rgba($primary-lighter, 0.58);
-    font-size: 0.68rem;
   }
 }
 
 .autoeq-field {
   display: grid;
   min-width: 0;
-  align-content: center;
+  grid-template-rows: 18px $control-height-lg;
+  align-content: end;
   gap: 6px;
 
-  > span {
-    color: rgba($primary-lighter, 0.78);
+  &__title {
+    @include truncate;
+    color: rgba($white, 0.86);
     font-size: 0.68rem;
     font-weight: 650;
     letter-spacing: 0.02em;
+    line-height: 18px;
   }
 }
 
-.autoeq-field--model {
-  min-width: 0;
+// One height for all three pickers, whatever their selected entry contains.
+.auto-eq .dropdown,
+.auto-eq .dropdown > [role='menu'] {
+  height: $control-height-lg;
 }
 
+// *** Option rendering *******************************************************
+
+// Inside the closed trigger every option collapses to clipped lines; the
+// trigger's own fixed height is what keeps the three pickers aligned.
+.auto-eq .dropdown > [role='menu'] {
+  align-items: center;
+
+  .eq-source-option,
+  .eq-device-option,
+  .autoeq-response-option {
+    display: grid;
+    min-width: 0;
+    gap: 1px;
+  }
+
+  strong,
+  small {
+    @include truncate;
+    display: block;
+  }
+
+  small {
+    color: rgba($primary-lighter, 0.58);
+    font-size: 0.6rem;
+  }
+}
+
+.eq-source-option,
+.eq-device-option,
 .autoeq-response-option {
   display: grid;
   min-width: 0;
   gap: 2px;
 
-  strong,
-  small {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
   strong {
-    color: rgba($white, 0.9);
+    @include truncate;
+    color: rgba($white, 0.92);
     font-size: 0.72rem;
   }
 
@@ -231,40 +124,45 @@ $auto-eq-dropdown-width: 220px;
   }
 }
 
-.eq-device-option {
-  display: grid;
-  min-width: 0;
-  gap: 2px;
-
-  strong,
-  small {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  strong {
-    color: rgba($white, 0.92);
-    font-size: 0.72rem;
-  }
-
-  small {
-    color: rgba($primary-lighter, 0.58);
-    font-size: 0.62rem;
-  }
+// Source descriptions are the one place a second line is worth wrapping.
+.auto-eq .list .eq-source-option small {
+  overflow: visible;
+  white-space: normal;
 }
 
+.eq-source-option--child {
+  padding-left: 8px;
+}
+
+// The measurement and model catalogues are long, so their menus are allowed to
+// outgrow the trigger. Dropdown.tsx clamps them to the viewport.
+.auto-eq .dropdown--filterable .list-wrapper {
+  width: max(100%, min(520px, 34vw));
+}
+
+.auto-eq .dropdown:not(.dropdown--filterable) .list-wrapper {
+  width: max(100%, min(340px, 28vw));
+}
+
+// *** Database update strip **************************************************
+
 .autoeq-update {
+  display: flex;
   min-height: 30px;
   margin: 4px 8px 0;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-s;
+  color: $text-muted;
   font-size: 0.67rem;
 }
 
-@media (max-width: 1180px) {
+// *** Responsive *************************************************************
+
+@container autoeq-workspace (max-width: 900px) {
   .auto-eq {
-    grid-template-columns:
-      minmax(180px, 0.8fr)
-      minmax(220px, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 
     > .button {
       grid-column: 2;
@@ -273,7 +171,7 @@ $auto-eq-dropdown-width: 220px;
   }
 }
 
-@media (max-width: 760px) {
+@container autoeq-workspace (max-width: 520px) {
   .auto-eq {
     grid-template-columns: minmax(0, 1fr);
 
@@ -281,58 +179,5 @@ $auto-eq-dropdown-width: 220px;
       grid-column: 1;
       width: 100%;
     }
-  }
-}
-
-@container autoeq-workspace (max-width: 820px) {
-  .auto-eq {
-    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-
-    > .button {
-      grid-column: 2;
-      justify-self: end;
-    }
-  }
-}
-
-@container autoeq-workspace (max-width: 540px) {
-  .auto-eq {
-    grid-template-columns: minmax(0, 1fr);
-
-    > .button {
-      grid-column: 1;
-      width: 100%;
-    }
-  }
-}
-
-// Keep every control in the AutoEQ row aligned, including sources whose
-// selected value previously rendered only one line.
-.auto-eq .dropdown > [role='menu'],
-.auto-eq > .button {
-  min-height: 48px;
-  height: 48px;
-}
-
-.auto-eq > .button {
-  align-self: end;
-}
-
-.autoeq-field--source .dropdown > [role='menu'] .eq-source-option {
-  display: grid;
-  min-width: 0;
-  gap: 2px;
-
-  strong,
-  small {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  small {
-    color: rgba($primary-lighter, 0.58);
-    font-size: 0.62rem;
   }
 }

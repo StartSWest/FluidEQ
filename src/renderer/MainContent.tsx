@@ -60,6 +60,12 @@ import Dropdown from './widgets/Dropdown';
 import NumberInput from './widgets/NumberInput';
 import Knob from './widgets/Knob';
 import { FILTER_OPTIONS } from './icons/FilterTypeIcon';
+import { useLiveAudio } from './audio/LiveAudioContext';
+import {
+  buildBalancedGains,
+  describeBalanceProgress,
+  describeBalanceResult,
+} from './utils/autoBalance';
 
 const MainContent = () => {
   const {
@@ -77,6 +83,14 @@ const MainContent = () => {
     hoveredFilterId,
     setHoveredFilterId,
   } = useAquaContext();
+  const { captureBalanceProfile, isActive: isLiveOutputActive } =
+    useLiveAudio();
+  const [balanceStatus, setBalanceStatus] = useState('');
+  const [isBalancing, setIsBalancing] = useState(false);
+  const balanceAbortRef = useRef<AbortController | undefined>(undefined);
+  // Bumped whenever a run is superseded, so a late resolution from an
+  // abandoned measurement cannot write gains or overwrite the status.
+  const balanceRunRef = useRef(0);
   const frequencySortedFilters = useMemo(
     () => Object.values(filters).sort(sortHelper),
     [filters],
@@ -97,6 +111,9 @@ const MainContent = () => {
     () => filters[selectedFilterId] ?? frequencySortedFilters[0] ?? undefined,
     [filters, frequencySortedFilters, selectedFilterId],
   );
+  const isSelectedGainDisabled = selectedFilter
+    ? NO_GAIN_FILTER_TYPES.includes(selectedFilter.type)
+    : true;
 
   useEffect(() => {
     if (
@@ -106,6 +123,16 @@ const MainContent = () => {
       setSelectedFilterId(frequencySortedFilters[0].id);
     }
   }, [filters, frequencySortedFilters, selectedFilterId, setSelectedFilterId]);
+
+  // Leaving the EQ tab unmounts this component; a measurement must not keep
+  // running against a component that is gone.
+  useEffect(
+    () => () => {
+      balanceRunRef.current += 1;
+      balanceAbortRef.current?.abort();
+    },
+    [],
+  );
 
   const bandsRef = useRef<HTMLDivElement>(null);
   const [selectionBox, setSelectionBox] = useState<
@@ -289,16 +316,128 @@ const MainContent = () => {
     }
   };
 
+  // Clearing restores the default ten-band layout with every band neutral, so
+  // the main process owns the new filter set and hands it back.
   const clearFilterGains = async () => {
     try {
-      await clearGains();
+      const newFilters = await clearGains();
       setPreAmp(0);
+      setSelectedFilterIds([]);
       dispatchFilter({
-        type: FilterActionEnum.CLEAR_GAINS,
+        type: FilterActionEnum.INIT,
+        filters: newFilters,
       });
       window.dispatchEvent(new Event('fluideq-clear-autoeq-selection'));
     } catch (e) {
       setGlobalError(e as ErrorDescription);
+    }
+  };
+
+  /**
+   * Listen to what is actually coming out of the speakers, then flatten the
+   * peaks and dips it finds while leaving the music's own spectral tilt alone.
+   *
+   * There is no fixed duration. The measurement runs until every frequency
+   * region has been heard well enough to correct — or reports which range it
+   * managed to measure, and leaves the rest alone.
+   */
+  const autoBalance = async () => {
+    if (isBalancing) {
+      // The button is a Cancel while a measurement is running.
+      balanceAbortRef.current?.abort();
+      return;
+    }
+
+    balanceRunRef.current += 1;
+    const runId = balanceRunRef.current;
+    const isCurrentRun = () => balanceRunRef.current === runId;
+    const controller = new AbortController();
+    balanceAbortRef.current = controller;
+    // The band set at the moment of measuring. If the user changes layout
+    // mid-capture, the measurement no longer describes these bands.
+    const measuredIds = frequencySortedFilters
+      .map((filter) => filter.id)
+      .join();
+
+    setIsBalancing(true);
+    setBalanceStatus('Listening 0%');
+
+    try {
+      const result = await captureBalanceProfile({
+        signal: controller.signal,
+        onProgress: (progress) => {
+          if (isCurrentRun()) {
+            setBalanceStatus(describeBalanceProgress(progress));
+          }
+        },
+      });
+
+      if (!isCurrentRun()) {
+        return;
+      }
+
+      const currentFilters = Object.values(filters).sort(sortHelper);
+      if (currentFilters.map((filter) => filter.id).join() !== measuredIds) {
+        setBalanceStatus('Bands changed - cancelled');
+        return;
+      }
+
+      const gains = buildBalancedGains(result.samples, currentFilters);
+      const entries = Object.entries(gains);
+      if (entries.length === 0) {
+        setBalanceStatus('Not enough range to measure');
+        return;
+      }
+
+      setBalanceStatus('Applying...');
+      const pending = entries.filter(
+        ([id, gain]) => filters[id] && filters[id].gain !== gain,
+      );
+      if (pending.length === 0) {
+        setBalanceStatus('Already balanced');
+        return;
+      }
+
+      const applied = await Promise.all(
+        pending.map(async ([id, gain]) => {
+          try {
+            await setGain(id, gain);
+            dispatchFilter({ type: FilterActionEnum.GAIN, id, newValue: gain });
+            return true;
+          } catch {
+            return false;
+          }
+        }),
+      );
+
+      if (!isCurrentRun()) {
+        return;
+      }
+      const succeeded = applied.filter(Boolean).length;
+      if (succeeded < pending.length) {
+        setBalanceStatus(`Applied ${succeeded} of ${pending.length} bands`);
+      } else {
+        setBalanceStatus(describeBalanceResult(result));
+      }
+    } catch (e) {
+      if (!isCurrentRun()) {
+        return;
+      }
+      // A failed measurement is a normal outcome (nothing playing, cancelled,
+      // capture unavailable); report it in place rather than as a global
+      // failure that would blank the whole workspace.
+      if (e instanceof DOMException && e.name === 'AbortError') {
+        setBalanceStatus('Cancelled - nothing changed');
+      } else {
+        setBalanceStatus(
+          e instanceof Error ? e.message : 'Could not measure the output.',
+        );
+      }
+    } finally {
+      if (isCurrentRun()) {
+        setIsBalancing(false);
+        balanceAbortRef.current = undefined;
+      }
     }
   };
 
@@ -335,31 +474,83 @@ const MainContent = () => {
       return;
     }
 
-    const boundaries = [
-      { frequency: 20 },
-      ...frequencySortedFilters,
-      { frequency: 20000 },
-    ];
-    let widestGapIndex = 0;
-    let widestRatio = 0;
-    for (let index = 0; index < boundaries.length - 1; index += 1) {
-      const ratio =
-        boundaries[index + 1].frequency / boundaries[index].frequency;
-      if (ratio > widestRatio) {
-        widestRatio = ratio;
-        widestGapIndex = index;
+    const explicitSelectedFilter = selectedFilterIds
+      .map((id) => filters[id])
+      .find(Boolean);
+
+    if (!explicitSelectedFilter) {
+      const occupiedFrequencies = new Set(
+        frequencySortedFilters.map((filter) => filter.frequency),
+      );
+      let frequency = 1000;
+      while (occupiedFrequencies.has(frequency) && frequency <= MAX_FREQUENCY) {
+        frequency += 1;
       }
+      if (frequency > MAX_FREQUENCY) {
+        frequency = 999;
+        while (
+          occupiedFrequencies.has(frequency) &&
+          frequency >= MIN_FREQUENCY
+        ) {
+          frequency -= 1;
+        }
+        if (frequency < MIN_FREQUENCY) {
+          return;
+        }
+      }
+      try {
+        const id = await addEqualizerSlider(frequency);
+        dispatchFilter({
+          type: FilterActionEnum.ADD,
+          id,
+          frequency,
+        });
+      } catch (e) {
+        setGlobalError(e as ErrorDescription);
+      }
+      return;
     }
-    const frequency = Math.round(
-      Math.sqrt(
-        boundaries[widestGapIndex].frequency *
-          boundaries[widestGapIndex + 1].frequency,
-      ),
+
+    const selectedFilterIndex = frequencySortedFilters.findIndex(
+      (filter) => filter.id === explicitSelectedFilter.id,
+    );
+    if (selectedFilterIndex === -1) {
+      return;
+    }
+
+    const shouldAddToRight = explicitSelectedFilter.frequency >= 1000;
+    const leftBoundary =
+      frequencySortedFilters[
+        shouldAddToRight ? selectedFilterIndex : selectedFilterIndex - 1
+      ]?.frequency ?? MIN_FREQUENCY;
+    const rightBoundary =
+      frequencySortedFilters[
+        shouldAddToRight ? selectedFilterIndex + 1 : selectedFilterIndex
+      ]?.frequency ?? MAX_FREQUENCY;
+
+    if (leftBoundary + 1 >= rightBoundary) {
+      return;
+    }
+
+    const frequency = clamp(
+      Math.round(Math.sqrt(leftBoundary * rightBoundary)),
+      MIN_FREQUENCY,
+      MAX_FREQUENCY,
+    );
+
+    const boundedFrequency = clamp(
+      frequency,
+      leftBoundary + 1,
+      rightBoundary - 1,
     );
 
     try {
-      const id = await addEqualizerSlider(frequency);
-      dispatchFilter({ type: FilterActionEnum.ADD, id, frequency });
+      const id = await addEqualizerSlider(boundedFrequency);
+      dispatchFilter({
+        type: FilterActionEnum.ADD,
+        id,
+        frequency: boundedFrequency,
+      });
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
@@ -377,6 +568,23 @@ const MainContent = () => {
           <h4>Parametric EQ</h4>
         </div>
         <div className="eq-toolbar">
+          <Button
+            ariaLabel={
+              isBalancing
+                ? 'Cancel auto balance'
+                : 'Auto balance from live output'
+            }
+            isDisabled={!isBalancing && !isLiveOutputActive}
+            className="small"
+            handleChange={autoBalance}
+          >
+            {isBalancing ? 'Cancel' : 'Auto balance'}
+          </Button>
+          {balanceStatus && (
+            <span className="eq-toolbar__status" role="status">
+              {balanceStatus}
+            </span>
+          )}
           <Button
             ariaLabel="Clear EQ"
             isDisabled={false}
@@ -517,12 +725,14 @@ const MainContent = () => {
             <div className="eq-flat-editor__control">
               <span>Gain</span>
               <div className="eq-flat-editor__input-row">
+                {/* Band pass, notch and the pass filters have no gain in
+                    Equalizer APO, so the field is inert for those types. */}
                 <NumberInput
                   name="selected-band-gain"
                   value={selectedFilter.gain}
                   min={MIN_GAIN}
                   max={MAX_GAIN}
-                  isDisabled={false}
+                  isDisabled={isSelectedGainDisabled}
                   floatPrecision={2}
                   showArrows
                   handleSubmit={(newValue) =>
@@ -533,8 +743,16 @@ const MainContent = () => {
                   type="button"
                   className="eq-flat-editor__reset-gain"
                   aria-label="Reset selected gain to 0 dB"
-                  title="Reset selected gain to 0 dB"
-                  disabled={!!globalError || selectedFilter.gain === 0}
+                  title={
+                    isSelectedGainDisabled
+                      ? 'This filter type has no gain'
+                      : 'Reset selected gain to 0 dB'
+                  }
+                  disabled={
+                    !!globalError ||
+                    isSelectedGainDisabled ||
+                    selectedFilter.gain === 0
+                  }
                   onClick={resetSelectedGain}
                 >
                   ↺

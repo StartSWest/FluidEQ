@@ -20,15 +20,18 @@ import fs from 'fs';
 import path from 'path';
 import {
   AutoEqFormat,
+  FilterTypeEnum,
   clampGain,
   clampQuality,
-  FilterTypeEnum,
+  IFilter,
   getDefaultState,
+  IConvolutionProfile,
   IFiltersMap,
   IGraphicEqPoint,
   IPresetV1,
   IPresetV2,
   IState,
+  NO_GAIN_FILTER_TYPES,
 } from '../common/constants';
 import {
   validatePresetV1,
@@ -80,7 +83,14 @@ export const stateToString = (
               ].includes(type) || clampGain(gain) !== 0,
           )
           .map(({ frequency, gain, type, quality }, index) => {
-            return `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
+            const head = `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz`;
+            // Band pass, notch, low pass and high pass have no Gain parameter
+            // in Equalizer APO's ParametricEQ grammar — the token only belongs
+            // to the peaking and shelf forms. Emitting it for the others makes
+            // APO reject the line, so the band silently did nothing.
+            return NO_GAIN_FILTER_TYPES.includes(type)
+              ? `${head} Q ${clampQuality(quality)}`
+              : `${head} Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
           }),
       );
     }
@@ -114,17 +124,77 @@ export const addFileToPath = (pathPrefix: string, fileName: string) => {
   return path.join(pathPrefix, fileName);
 };
 
-const normalizeFilters = (filters: IFiltersMap): IFiltersMap =>
-  Object.fromEntries(
-    Object.entries(filters).map(([id, filter]) => [
-      id,
-      {
-        ...filter,
-        gain: clampGain(filter.gain),
-        quality: clampQuality(filter.quality),
-      },
-    ]),
-  );
+const isObject = (value: unknown): value is Record<string, unknown> =>
+  value !== null && typeof value === 'object' && !Array.isArray(value);
+
+const toFiniteNumber = (value: unknown): number | undefined =>
+  typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+
+const normalizeFilter = (
+  filter: unknown,
+  fallbackId: string,
+): IFilter | undefined => {
+  if (!isObject(filter)) {
+    return undefined;
+  }
+  const rawId = filter.id;
+  const id = typeof rawId === 'string' && rawId.trim() ? rawId : fallbackId;
+  const frequency = toFiniteNumber(filter.frequency);
+  const gain = toFiniteNumber(filter.gain);
+  const quality = toFiniteNumber(filter.quality);
+  const { type } = filter;
+  if (
+    typeof id !== 'string' ||
+    id.trim() === '' ||
+    typeof frequency !== 'number' ||
+    typeof gain !== 'number' ||
+    typeof quality !== 'number' ||
+    !Object.values(FilterTypeEnum).includes(type as FilterTypeEnum)
+  ) {
+    return undefined;
+  }
+  return {
+    id,
+    frequency,
+    gain: clampGain(gain),
+    quality: clampQuality(quality),
+    type: type as FilterTypeEnum,
+  };
+};
+
+const normalizeFilters = (filters: IFiltersMap | unknown): IFiltersMap =>
+  isObject(filters)
+    ? Object.fromEntries(
+        Object.entries(filters)
+          .map(([id, filter]) => {
+            const normalized = normalizeFilter(filter, id);
+            return normalized ? [normalized.id, normalized] : undefined;
+          })
+          .filter((entry): entry is [string, IFilter] => Boolean(entry)),
+      )
+    : {};
+
+// The persisted convolution profile comes from disk, so validate its required
+// fields instead of asserting the shape. A malformed entry is dropped rather
+// than handed to the APO writer as a half-built profile.
+const normalizeConvolution = (
+  value: unknown,
+): IConvolutionProfile | undefined => {
+  if (!isObject(value) || typeof value.name !== 'string' || !value.name) {
+    return undefined;
+  }
+  const filters = normalizeFilters(value.filters);
+  const optionalString = (input: unknown) =>
+    typeof input === 'string' && input ? input : undefined;
+
+  return {
+    name: value.name,
+    filters,
+    fileName: optionalString(value.fileName),
+    sourceUrl: optionalString(value.sourceUrl),
+    sourceId: optionalString(value.sourceId),
+  };
+};
 
 const normalizeGraphicEq = (points: IGraphicEqPoint[] | undefined) =>
   Array.isArray(points)
@@ -136,12 +206,70 @@ const normalizeGraphicEq = (points: IGraphicEqPoint[] | undefined) =>
 
 export const fetchSettings = (settingsDir: string) => {
   const settingsPath = path.join(settingsDir, AQUA_LOCAL_CONFIG_FILENAME);
+  const fallbackState = getDefaultState();
+
+  const isValidEqFormat = (input: unknown): input is AutoEqFormat =>
+    input === AutoEqFormat.PARAMETRIC ||
+    input === AutoEqFormat.FIXED_BAND ||
+    input === AutoEqFormat.GRAPHIC;
+
+  const normalizeState = (input: unknown): IState | undefined => {
+    if (!isObject(input)) {
+      return undefined;
+    }
+    const filters = normalizeFilters(input.filters);
+    if (!Object.keys(filters).length) {
+      return undefined;
+    }
+
+    const convolution = normalizeConvolution(input.convolution);
+
+    return {
+      ...fallbackState,
+      isEnabled:
+        typeof input.isEnabled === 'boolean'
+          ? input.isEnabled
+          : fallbackState.isEnabled,
+      isAutoPreAmpOn:
+        typeof input.isAutoPreAmpOn === 'boolean'
+          ? input.isAutoPreAmpOn
+          : fallbackState.isAutoPreAmpOn,
+      isGraphViewOn:
+        typeof input.isGraphViewOn === 'boolean'
+          ? input.isGraphViewOn
+          : fallbackState.isGraphViewOn,
+      isCaseSensitiveFs: false,
+      preAmp: (() => {
+        const preAmp = toFiniteNumber(input.preAmp);
+        return preAmp === undefined ? fallbackState.preAmp : clampGain(preAmp);
+      })(),
+      filters,
+      ...(isValidEqFormat(input.eqFormat) ? { eqFormat: input.eqFormat } : {}),
+      ...(Array.isArray(input.graphicEq)
+        ? { graphicEq: normalizeGraphicEq(input.graphicEq) }
+        : {}),
+      ...(typeof input.isFlat === 'boolean' ? { isFlat: input.isFlat } : {}),
+      ...(convolution ? { convolution } : {}),
+    } as IState;
+  };
+
   try {
     const content = fs.readFileSync(settingsPath, {
       encoding: 'utf8',
     });
     const input = JSON.parse(content);
     if (!validateState(input)) {
+      const recovered = normalizeState(input);
+      if (recovered && validateState(recovered)) {
+        try {
+          fs.writeFileSync(settingsPath, serializeState(recovered), {
+            encoding: 'utf8',
+          });
+        } catch {
+          // Ignore write failure and continue with recovered state in memory.
+        }
+        return recovered;
+      }
       throw new Error('Invalid state file loaded. Using default state.');
     }
     // Manually set case sensitivity as false until it is confirmed in app that it can be enabled

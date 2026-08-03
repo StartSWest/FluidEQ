@@ -1,0 +1,246 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// Single source of truth for the neon glass look.
+//
+// Every field, menu, panel and toggle in the app is built from the mixins
+// below so a surface never has to be re-specified (and re-overridden) per
+// component. This partial emits no CSS on its own; App.scss owns the one
+// global base layer that applies these surfaces to native controls.
+
+@use 'sass:color' as sass-color;
+@use 'color' as *;
+
+// *** Geometry ***************************************************************
+
+// Interactive controls share three heights so rows line up without per-panel
+// pixel nudging.
+$control-height: 38px;
+$control-height-sm: 32px;
+$control-height-lg: 46px;
+
+$radius-xs: 8px;
+$radius-s: 10px;
+$radius-m: 12px;
+$radius-l: 14px;
+$radius-xl: 18px;
+$radius-pill: 999px;
+
+$field-padding-inline: 11px;
+
+// *** Surfaces ***************************************************************
+
+// Deep navy the whole shell sits on.
+$surface-base: #0b1119;
+// Card background used by the sidebar, EQ panel, graph and profile columns.
+$surface-panel: #0e1520;
+
+// Opaque endpoints of the shared card gradient. They are deliberately opaque
+// rather than alpha-over-the-page so that a workspace tab sitting above a
+// panel can reuse the exact same colour and the two read as one surface.
+// Both lean teal rather than violet, matching the shell ambience.
+$panel-top-base: #142131;
+$panel-bottom: #0a121b;
+// Recessed background for fields, menus and inner wells.
+$surface-field: #16303f;
+$surface-field-end: #1b2138;
+$surface-menu: #0d1723;
+
+$border-subtle: rgba($primary-lighter, 0.12);
+$border-panel: rgba($primary-lighter, 0.14);
+$border-field: rgba($secondary-light, 0.26);
+$border-field-hover: rgba($secondary-light, 0.5);
+$border-field-focus: $secondary-light;
+
+$text-primary: #eefcfb;
+$text-muted: rgba($primary-lighter, 0.72);
+$text-faint: rgba($primary-lighter, 0.56);
+
+$transition-control:
+  border-color 150ms ease,
+  background 150ms ease,
+  box-shadow 150ms ease,
+  color 150ms ease;
+
+// *** Mixins *****************************************************************
+
+// Cyan focus ring shared by every focusable surface. Using one ring keeps
+// keyboard navigation legible without each component inventing its own.
+@mixin focus-ring($color: $secondary-default) {
+  outline: none;
+  box-shadow:
+    0 0 0 3px rgba($color, 0.22),
+    inset 0 1px 0 rgba($white, 0.06);
+}
+
+// The standard editable surface: text inputs, number inputs, dropdown
+// triggers, native selects and search boxes.
+//
+// The gradient runs top-to-bottom, never diagonally: a diagonal ramp shades
+// the left and right of a control differently, which made composite controls
+// (a number input and its stepper arrows) look like two glued-together parts.
+@mixin field-surface {
+  color: $text-primary;
+  border: 1px solid $border-field;
+  border-radius: $radius-s;
+  background:
+    linear-gradient(
+      180deg,
+      rgba($surface-field, 0.96),
+      rgba($surface-field-end, 0.97)
+    ),
+    $surface-panel;
+  box-shadow: inset 0 1px 0 rgba($white, 0.05);
+  transition: $transition-control;
+}
+
+@mixin field-interactive {
+  @include field-surface;
+
+  &:hover:not(:disabled):not([aria-disabled='true']) {
+    border-color: $border-field-hover;
+  }
+
+  &:focus-visible,
+  &:focus-within {
+    border-color: $border-field-focus;
+    @include focus-ring;
+  }
+}
+
+@mixin field-disabled {
+  color: rgba($primary-lighter, 0.5);
+  border-color: rgba($primary-lighter, 0.1);
+  background:
+    linear-gradient(180deg, rgba(#16262f, 0.8), rgba(#191c2c, 0.86)),
+    $surface-panel;
+  box-shadow: none;
+  cursor: default;
+}
+
+// Floating menu surface: dropdown lists, the titlebar tool menu, popovers.
+@mixin menu-surface {
+  border: 1px solid rgba($secondary-light, 0.22);
+  border-radius: $radius-l;
+  background: linear-gradient(
+    155deg,
+    rgba(#0f1c29, 0.985),
+    rgba(#131427, 0.985)
+  );
+  box-shadow:
+    0 18px 44px rgba($black, 0.5),
+    0 0 28px rgba($secondary-default, 0.08),
+    inset 0 1px 0 rgba($white, 0.06);
+  backdrop-filter: blur(18px) saturate(1.25);
+}
+
+// The exact colour at the top edge of a panel. Anything that has to butt up
+// against a panel and look continuous with it (workspace tabs) uses this
+// instead of eyeballing a similar value.
+@function panel-top($accent: $secondary-default, $amount: 6%) {
+  @return sass-color.mix($accent, $panel-top-base, $amount);
+}
+
+// Top-level card. `$accent` tints the top edge so the sidebar, EQ, graph and
+// profile cards read as one family with slightly different personalities.
+@mixin panel-surface($accent: $secondary-default, $amount: 6%) {
+  border: 1px solid $border-panel;
+  border-radius: $radius-xl;
+  background: linear-gradient(
+    180deg,
+    panel-top($accent, $amount) 0%,
+    $panel-bottom 62%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.035),
+    0 20px 48px rgba($black, 0.2);
+}
+
+// Recessed well used inside cards (mapping summary, sidebar control chips,
+// the profile list). Derived from the panel's own bottom colour so a well
+// reads as a dip in the card rather than a black hole punched through it.
+@mixin inset-surface {
+  border: 1px solid rgba($secondary-light, 0.13);
+  border-radius: $radius-m;
+  background: rgba(#0a141f, 0.62);
+  box-shadow: inset 0 1px 3px rgba($black, 0.28);
+}
+
+// Quiet, outline-only button (titlebar actions, graph overlay controls).
+@mixin ghost-button {
+  color: $secondary-light;
+  border: 1px solid rgba($secondary-light, 0.3);
+  border-radius: $radius-pill;
+  background: rgba($primary-dark, 0.42);
+  font: inherit;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.7);
+    background: rgba($secondary-default, 0.14);
+    outline: none;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+}
+
+// Thin cyan scrollbar for any inner scrolling surface.
+@mixin slim-scrollbar($size: 8px) {
+  scrollbar-color: rgba($secondary-default, 0.6) rgba(#071019, 0.5);
+  scrollbar-width: thin;
+
+  &::-webkit-scrollbar {
+    width: $size;
+    height: $size;
+  }
+
+  &::-webkit-scrollbar-track {
+    border-radius: $radius-pill;
+    background: rgba(#071019, 0.5);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    min-height: 28px;
+    border: 1px solid rgba($primary-lighter, 0.08);
+    border-radius: $radius-pill;
+    background: rgba($secondary-default, 0.6);
+
+    &:hover {
+      background: rgba($secondary-light, 0.85);
+    }
+  }
+
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+}
+
+// One-line ellipsis. Used often enough that repeating the three properties
+// across files was a reliable source of drift.
+@mixin truncate {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

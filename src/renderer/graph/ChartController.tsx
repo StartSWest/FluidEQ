@@ -109,23 +109,33 @@ const useController = ({
     [padding.left, padding.right, width],
   );
 
+  const scaledData = useMemo(() => {
+    const withoutLiveOutput = data.filter(({ id }) => id !== 'Live Output');
+    return withoutLiveOutput.length > 0 ? withoutLiveOutput : data;
+  }, [data]);
+
   const yMin = useMemo(
-    () => d3.min(data, ({ line }) => d3.min(line.points, ({ y }) => y)) || 0,
-    [data],
+    () =>
+      d3.min(scaledData, ({ line }) => d3.min(line.points, ({ y }) => y)) || 0,
+    [scaledData],
   );
 
   const yMax = useMemo(
-    () => d3.max(data, ({ line }) => d3.max(line.points, ({ y }) => y)) || 0,
-    [data],
+    () =>
+      d3.max(scaledData, ({ line }) => d3.max(line.points, ({ y }) => y)) || 0,
+    [scaledData],
   );
 
   const yScaleGain = useMemo(
     () =>
       d3
         .scaleLinear()
-        .domain([MIN_GAIN, MAX_GAIN])
+        .domain([
+          Math.min(MIN_GAIN, yMin === undefined ? MIN_GAIN : yMin),
+          Math.max(MAX_GAIN, yMax === undefined ? MAX_GAIN : yMax),
+        ])
         .range([height - padding.bottom, padding.top]),
-    [height, padding.bottom, padding.top],
+    [height, padding.bottom, padding.top, yMin, yMax],
   );
 
   const xTickFormat = (domainValue: d3.NumberValue) =>

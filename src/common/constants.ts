@@ -219,8 +219,18 @@ export enum FixedBandSizeEnum {
   THIRTY_ONE = 31,
 }
 
+/**
+ * Band centres for each quick layout.
+ *
+ * Ten, fifteen and thirty-one are the ISO octave, 2/3-octave and 1/3-octave
+ * series used by hardware graphic EQs. Six is the musical shorthand set —
+ * roughly 1.5 octaves apart, one band per range a listener actually reaches
+ * for: weight, warmth, body, presence, attack and air. (It previously ran
+ * 100 Hz to 3.2 kHz, which left both the sub-bass and the whole top octave
+ * unreachable.)
+ */
 export const FIXED_BAND_FREQUENCIES: Record<FixedBandSizeEnum, number[]> = {
-  [FixedBandSizeEnum.SIX]: [100, 200, 400, 800, 1600, 3200],
+  [FixedBandSizeEnum.SIX]: [60, 170, 500, 1500, 4000, 12000],
   [FixedBandSizeEnum.TEN]: [
     32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000,
   ],

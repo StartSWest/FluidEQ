@@ -19,9 +19,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState, type MouseEvent } from 'react';
 import { ErrorCode } from 'common/errors';
+import { isSupportAvailable } from 'common/support';
 import './styles/App.scss';
-import './styles/ResponsiveEQ.scss';
 import MainContent from './MainContent';
+import SupportDialog from './SupportDialog';
 import { AquaProvider, useAquaContext } from './utils/AquaContext';
 import PrereqMissingModal from './PrereqMissingModal';
 import SideBar from './SideBar';
@@ -49,9 +50,13 @@ const AppContent = () => {
     useState(false);
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
   const [showAudioToolsMenu, setShowAudioToolsMenu] = useState(false);
+  const [showSupportDialog, setShowSupportDialog] = useState(false);
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<
     'eq' | 'convolution'
   >('eq');
+  // Hidden entirely unless this build has a real contribution destination
+  // configured, so a misconfigured build shows no donate entry at all.
+  const canShowSupport = isSupportAvailable();
 
   useEffect(() => {
     let mounted = true;
@@ -220,7 +225,7 @@ const AppContent = () => {
             <button
               type="button"
               className="workspace-header__tools-trigger"
-              aria-label="Audio and Equalizer APO actions"
+              aria-label="FluidEQ actions"
               aria-expanded={showAudioToolsMenu}
               title="Audio actions"
               onClick={() => setShowAudioToolsMenu((current) => !current)}
@@ -271,6 +276,19 @@ const AppContent = () => {
                       Equalizer APO settings
                     </button>
                   </>
+                )}
+                {canShowSupport && (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="workspace-header__menu-support"
+                    onClick={() => {
+                      setShowAudioToolsMenu(false);
+                      setShowSupportDialog(true);
+                    }}
+                  >
+                    Support the work
+                  </button>
                 )}
               </div>
             )}
@@ -340,7 +358,7 @@ const AppContent = () => {
             </div>
           </aside>
         )}
-        <SideBar />
+        <SideBar showGraphToggle={activeWorkspaceTab === 'eq'} />
         <div className="center-workspace">
           <div className="middle-content">
             <div
@@ -348,28 +366,28 @@ const AppContent = () => {
               role="tablist"
               aria-label="Sound workspace"
             >
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeWorkspaceTab === 'eq'}
-              className={`workspace-tab${
-                activeWorkspaceTab === 'eq' ? ' is-active' : ''
-              }`}
-              onClick={() => setActiveWorkspaceTab('eq')}
-            >
-              EQ & headset mode
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={activeWorkspaceTab === 'convolution'}
-              className={`workspace-tab${
-                activeWorkspaceTab === 'convolution' ? ' is-active' : ''
-              }`}
-              onClick={() => setActiveWorkspaceTab('convolution')}
-            >
-              Convolution
-            </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeWorkspaceTab === 'eq'}
+                className={`workspace-tab${
+                  activeWorkspaceTab === 'eq' ? ' is-active' : ''
+                }`}
+                onClick={() => setActiveWorkspaceTab('eq')}
+              >
+                EQ &amp; headset mode
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeWorkspaceTab === 'convolution'}
+                className={`workspace-tab${
+                  activeWorkspaceTab === 'convolution' ? ' is-active' : ''
+                }`}
+                onClick={() => setActiveWorkspaceTab('convolution')}
+              >
+                Convolution
+              </button>
             </div>
             {activeWorkspaceTab === 'eq' ? (
               <div
@@ -387,7 +405,7 @@ const AppContent = () => {
               </div>
             )}
           </div>
-          <FrequencyResponseChart />
+          {activeWorkspaceTab === 'eq' ? <FrequencyResponseChart /> : null}
         </div>
         <div className="right-content">
           <DeviceProfiles />
@@ -406,7 +424,10 @@ const AppContent = () => {
             errorMsg={globalError.shortError}
             actionMsg={globalError.action}
           />
-          )}
+        )}
+        {showSupportDialog && (
+          <SupportDialog onClose={() => setShowSupportDialog(false)} />
+        )}
       </main>
     </>
   );

@@ -87,8 +87,7 @@ const FrequencyBand = forwardRef(
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
     const INTERVAL = 100;
-    const { isGraphViewOn, globalError, setGlobalError, dispatchFilter } =
-      useAquaContext();
+    const { globalError, setGlobalError, dispatchFilter } = useAquaContext();
     const [isLoading, setIsLoading] = useState(false);
     const isRemoveDisabled = useMemo(
       () => isMinSliderCount || isLoading,
@@ -249,15 +248,9 @@ const FrequencyBand = forwardRef(
         : offset * -1; // scroll down
     };
 
-    const sliderHeight = useMemo(() => {
-      if (!isGraphViewOn) {
-        return 'clamp(140px, calc(100vh - 465px), 240px)';
-      }
-      if (density === 'dense') {
-        return '96px';
-      }
-      return density === 'compact' ? '90px' : '72px';
-    }, [density, isGraphViewOn]);
+    // Only the fallback: MainContent.scss sets --range-length per density and
+    // per window size, which is what actually drives the track length.
+    const sliderHeight = '132px';
 
     return (
       <div

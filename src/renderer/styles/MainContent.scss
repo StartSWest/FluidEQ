@@ -19,76 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'constant' as *;
 @use 'spacing' as *;
+@use 'theme' as *;
 
-// band width and height from constants file
-.main-content-title {
-  display: grid;
-  grid-template-columns: repeat(2, max-content) 1fr repeat(5, max-content);
-  align-items: center;
-
-  h4,
-  h5,
-  h6 {
-    margin: 0 $spacing-s;
-  }
-
-  > div:first-child h4 {
-    margin-top: 2px;
-  }
-}
-
-.main-content {
-  display: grid;
-  grid-template-columns: 128px 1fr;
-  grid-template-rows: 1fr;
-  gap: $spacing-s;
-
-  // Add additional space to the right to balance the spacing better
-  padding: $spacing-s $spacing-l $spacing-s $spacing-s;
-  justify-items: center;
-
-  border: 1px solid rgba($primary-lighter, 0.16);
-  border-radius: 14px;
-  background: rgba($primary-default, 0.62);
-  box-shadow: inset 0 1px 0 rgba($white, 0.02);
-
-  .band-label {
-    height: auto;
-    display: grid;
-
-    grid-template-rows:
-      8px // top padding
-      30px // filter type
-      36px // frequency
-      24px // top arrow
-      min-content 1fr min-content 1fr min-content
-      24px // bottom arrow
-      36px // gain
-      36px // quality
-      16px; // bottom padding
-    gap: 8px;
-  }
-
-  .bands {
-    position: relative;
-    justify-content: flex-start;
-    padding: 0 $spacing-xxs; // add some horizontal padding so the outline isn't cut off at either end
-    height: auto;
-    min-height: 0;
-    width: 100%;
-
-    // Keep the EQ panel lockstep without introducing internal scrollbars.
-    overflow-x: hidden;
-    overflow-y: hidden;
-  }
-}
-
-// Let an open menu escape the compact EQ panel instead of being clipped by
-// its dense band grid. The rule is inactive during normal editing.
-.main-content:has(.dropdown--open),
-.main-content .bands:has(.dropdown--open) {
-  overflow: visible;
-}
+// *** Panel heading and toolbar **********************************************
 
 .main-content-title {
   display: flex;
@@ -107,132 +40,83 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .eq-toolbar,
 .quick-layouts {
   display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: flex-end;
   gap: 7px;
 }
 
-.eq-toolbar {
-  min-width: 0;
-  justify-content: flex-end;
+.quick-layouts > span {
+  margin-right: 3px;
+  color: $text-muted;
+  font-size: 0.67rem;
+  font-weight: 650;
 }
 
-.quick-layouts {
-  flex-wrap: wrap;
-  justify-content: flex-end;
-
-  > span {
-    margin-right: 3px;
-    color: rgba($primary-lighter, 0.72);
-    font-size: 0.67rem;
-    font-weight: 650;
-  }
+// Result of the last auto-balance measurement, shown next to its button.
+.eq-toolbar__status {
+  max-width: 220px;
+  color: rgba($secondary-light, 0.82);
+  font-size: 0.64rem;
+  line-height: 1.3;
 }
 
+// *** Equalizer grid *********************************************************
+
+// The grid sits directly on the workspace panel; it does not paint a card of
+// its own. The slider row takes whatever height is left over, so hiding the
+// response graph gives that space to the sliders instead of leaving a gap.
 .main-content {
-  min-width: 0;
-  min-height: 0;
-  grid-template-columns: 112px minmax(0, 1fr);
-  gap: 4px;
-  padding: 10px 12px 8px 8px;
-  overflow: visible;
-  border-color: rgba($primary-lighter, 0.1);
-  border-radius: 18px;
-  background:
-    radial-gradient(
-      circle at 50% 0%,
-      rgba($analogous-1, 0.055),
-      transparent 36%
-    ),
-    linear-gradient(180deg, rgba($white, 0.018), transparent),
-    rgba(#0d1420, 0.9);
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.035),
-    0 20px 48px rgba($black, 0.18);
-
-  .band-label {
-    color: rgba($primary-lighter, 0.68);
-    font-size: 0.68rem;
-
-    .row-label {
-      color: rgba($white, 0.8);
-      font-weight: 650;
-    }
-  }
-
-  .bands {
-    padding-inline: 8px;
-    scroll-behavior: smooth;
-    scrollbar-gutter: auto;
-  }
-}
-
-@media (max-width: 1180px) {
-  .main-content-title {
-    align-items: flex-start;
-  }
-
-  .eq-toolbar {
-    flex-wrap: wrap;
-  }
-}
-
-@media (max-width: 980px) {
-  .main-content-title {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .eq-toolbar,
-  .quick-layouts {
-    justify-content: flex-start;
-  }
-
-  .main-content {
-    grid-template-columns: 92px minmax(0, 1fr);
-  }
-}
-
-/* Adaptive equalizer: every preset fits without horizontal scrolling. */
-.main-content {
-  container-name: eq-panel;
-  container-type: inline-size;
-  grid-template-columns: 38px minmax(0, 1fr);
-  grid-template-rows: auto auto;
-  gap: 10px;
-  padding: 10px 10px 10px;
-  min-height: 0;
-  height: auto;
-}
-
-.eq-scale {
   display: grid;
+  min-width: 0;
+  padding: 10px 10px 0;
+  gap: 10px;
+  grid-template-columns: 38px minmax(0, 1fr);
+  grid-template-rows: minmax(min-content, 1fr) auto;
+
+  > .eq-scale {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  > .bands {
+    grid-row: 1;
+    grid-column: 2;
+  }
+
+  > .eq-flat-editor {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+}
+
+// dB ruler beside the sliders. It stretches with the band row so the labels
+// stay aligned at every density instead of relying on hard-coded heights.
+.eq-scale {
+  display: flex;
   width: 100%;
-  height: 72px;
-  padding: 0;
-  grid-template-rows: auto 1fr auto;
-  align-self: center;
-  align-items: center;
-  justify-items: end;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  align-self: stretch;
+  // Matches the frequency caption above and the gain caption below a band so
+  // "0 dB" lines up with the middle of the slider tracks.
+  padding: 22px 0 20px;
   color: rgba($primary-lighter, 0.62);
   font-size: 0.56rem;
   font-variant-numeric: tabular-nums;
-
-  span:nth-child(2) {
-    align-self: center;
-  }
 }
 
-.main-content .bands {
+.bands {
   position: relative;
   display: grid;
-  min-width: 0;
   width: 100%;
-  height: auto;
-  min-height: 0;
+  min-width: 0;
   padding: 0;
   grid-template-columns: repeat(var(--band-count), minmax(0, 1fr));
   align-items: center;
-  overflow: hidden;
+  // The 0 dB guide behind the sliders.
   background: linear-gradient(
     to bottom,
     transparent calc(50% - 0.5px),
@@ -242,42 +126,80 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   );
 }
 
-.main-content .bands--full {
-  grid-template-columns: repeat(var(--band-count), minmax(74px, 92px));
-  justify-content: center;
-}
-
-// Small layouts read better as a centered group. Once there are more than
-// ten bands, use all available width so the controls remain comfortably
-// interactive instead of creating a narrow island in the middle.
-.main-content .bands--centered {
+// Small layouts read better as a centred group; past ten bands use the full
+// width so the controls stay comfortably wide.
+.bands--centered {
   width: min(100%, calc(var(--band-count) * 84px));
   justify-self: center;
-  grid-template-columns: repeat(var(--band-count), minmax(0, 1fr));
 }
 
-.main-content .bands--wide {
+.bands--wide {
   width: 100%;
   justify-self: stretch;
-  grid-template-columns: repeat(var(--band-count), minmax(0, 1fr));
 }
 
+// Track length per density. RangeInput publishes the caller's preference as
+// --range-length-prop; these rules set --range-length itself so the layout
+// keeps the final say without fighting inline styles.
+.main-content--full .bandWrapper .range {
+  --range-length: 132px;
+}
+
+.main-content--compact .bandWrapper .range {
+  --range-length: 116px;
+}
+
+.main-content--dense .bandWrapper .range {
+  --range-length: 102px;
+}
+
+// With the response graph hidden (AquaContext marks the root `minimized`) the
+// EQ owns the whole workspace column, so the tracks grow to use it rather than
+// leaving the panel half empty.
+#root.minimized {
+  .main-content--full .bandWrapper .range {
+    --range-length: clamp(132px, calc(100vh - 470px), 300px);
+  }
+
+  .main-content--compact .bandWrapper .range {
+    --range-length: clamp(116px, calc(100vh - 486px), 280px);
+  }
+
+  .main-content--dense .bandWrapper .range {
+    --range-length: clamp(102px, calc(100vh - 500px), 260px);
+  }
+}
+
+.bands__selection-box {
+  position: absolute;
+  z-index: 20;
+  border: 1px solid rgba($secondary-light, 0.9);
+  border-radius: 6px;
+  background: rgba($secondary-default, 0.12);
+  box-shadow: 0 0 18px rgba($secondary-default, 0.18);
+  pointer-events: none;
+}
+
+// *** Selected band editor ***************************************************
+
+// A centred island sized to its controls, not a full-width bar: at desktop
+// widths stretching it edge to edge left the fields absurdly wide.
 .eq-flat-editor {
   position: relative;
   z-index: 2;
   display: grid;
-  min-width: 0;
-  padding: 10px 12px 10px;
-  grid-column: 1 / -1;
-  margin-top: 6px;
+  width: fit-content;
+  max-width: 100%;
+  margin: 6px 0 $spacing-xs;
+  padding: 10px 12px;
   grid-template-columns:
-    minmax(96px, 1.35fr) 78px 78px minmax(98px, 1.2fr) 64px
-    minmax(98px, 1fr);
+    minmax(104px, max-content) 108px 96px 138px 64px
+    minmax(104px, max-content);
   align-items: stretch;
+  justify-self: center;
   gap: 8px;
-  margin-bottom: $spacing-xs;
   border: 1px solid rgba($secondary-default, 0.14);
-  border-radius: 13px;
+  border-radius: $radius-l;
   background: linear-gradient(
     90deg,
     rgba($secondary-default, 0.075),
@@ -285,16 +207,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   );
 }
 
+// Label row then control row, identical in every column, so every field lands
+// on the same two horizontal lines.
 .eq-flat-editor__identity,
 .eq-flat-editor__control {
   display: grid;
   min-width: 0;
-  grid-template-rows: 14px 38px;
-  gap: 4px;
-  align-self: stretch;
+  grid-template-rows: 14px $control-height;
   align-items: center;
+  gap: 4px;
 
   > span {
+    @include truncate;
     min-height: 14px;
     color: rgba($white, 0.8);
     font-size: 0.55rem;
@@ -305,39 +229,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.eq-flat-editor__delete {
-  align-self: end;
-  min-height: 38px;
-  height: 38px;
-  width: 100%;
-  padding-inline: 12px;
-  border: 1px solid rgba(#ff7185, 0.28);
-  border-radius: 10px;
-  color: #ffadba;
-  background: rgba(#ff7185, 0.045);
-  cursor: pointer;
-  white-space: nowrap;
-
-  &:hover:not(:disabled) {
-    border-color: rgba(#ff7185, 0.5);
-    background: rgba(#ff7185, 0.09);
-  }
-
-  &:focus-visible {
-    outline: 2px solid rgba(#ff7185, 0.4);
-    outline-offset: 2px;
-  }
-
-  &:disabled {
-    opacity: 0.35;
-    cursor: default;
-  }
-}
-
 .eq-flat-editor__identity strong {
-  min-height: 38px;
-  height: 38px;
   display: flex;
+  height: $control-height;
   align-items: center;
   color: $secondary-light;
   font-size: 0.76rem;
@@ -345,43 +239,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .eq-flat-editor__control {
-  margin: 0;
-
   .dropdown,
   .number-input,
-  .input-wrapper {
+  .input-wrapper,
+  .dropdown > [role='menu'] {
     width: 100%;
   }
+}
 
-  .dropdown [role='menu'] {
-    width: 100%;
-  }
-
+// Every editable control in the row is exactly one control height, so the
+// dropdown, the two number fields and the buttons share top and bottom edges.
+.eq-flat-editor {
+  .dropdown > [role='menu'],
   .number-input .input-wrapper {
-    width: 100%;
+    height: $control-height;
+    min-height: $control-height;
   }
-}
 
-.eq-flat-editor .knob {
-  width: 48px;
-  height: 48px;
-  flex-basis: 48px;
-  align-self: center;
-  margin-top: -5px;
-}
-
-.eq-flat-editor__control:has(.knob) {
-  align-items: center;
-
-  .knob {
-    margin-top: -5px;
+  .number-input input[type='text'] {
+    height: 100%;
   }
 }
 
 .eq-flat-editor__input-row {
   display: grid;
   min-width: 0;
-  height: 38px;
+  height: $control-height;
   grid-template-columns: minmax(0, 1fr) 30px;
   align-items: stretch;
   gap: 6px;
@@ -393,17 +276,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .eq-flat-editor__reset-gain {
   width: 30px;
-  min-width: 30px;
-  min-height: 38px;
-  height: 38px;
+  height: $control-height;
   padding: 0;
-  border: 1px solid rgba($secondary-default, 0.28);
-  border-radius: 9px;
   color: $secondary-light;
+  border: 1px solid rgba($secondary-default, 0.28);
+  border-radius: $radius-s;
   background: rgba($secondary-default, 0.08);
   font-size: 1rem;
   line-height: 1;
   cursor: pointer;
+  transition: $transition-control;
 
   &:hover:not(:disabled) {
     border-color: rgba($secondary-light, 0.7);
@@ -411,8 +293,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &:focus-visible {
-    outline: 2px solid rgba($secondary-light, 0.48);
-    outline-offset: 2px;
+    border-color: $secondary-light;
+    @include focus-ring;
   }
 
   &:disabled {
@@ -421,118 +303,98 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.main-content--compact .eq-scale {
-  height: 90px;
+// The dial is a circle rather than a field, so it is optically centred on the
+// control row instead of being squashed into its exact height.
+.eq-flat-editor .knob {
+  width: 46px;
+  height: 46px;
+  flex-basis: 46px;
+  margin-block: -4px;
+  align-self: center;
+  justify-self: center;
 }
 
-.main-content--dense .eq-scale {
-  height: 96px;
-}
+.eq-flat-editor__delete {
+  width: 100%;
+  height: $control-height;
+  align-self: end;
+  padding-inline: 12px;
+  color: #ffadba;
+  border: 1px solid rgba(#ff7185, 0.28);
+  border-radius: $radius-s;
+  background: rgba(#ff7185, 0.045);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
 
-@container eq-panel (min-height: 420px) {
-  .main-content--full .eq-scale {
-    height: 220px;
+  &:hover:not(:disabled) {
+    border-color: rgba(#ff7185, 0.5);
+    background: rgba(#ff7185, 0.09);
   }
 
-  .main-content--compact .eq-scale {
-    height: 190px;
+  &:focus-visible {
+    border-color: rgba(#ff7185, 0.8);
+    @include focus-ring(#ff7185);
   }
 
-  .main-content--dense .eq-scale {
-    height: 150px;
-  }
-
-  .bandWrapper--full .range input[type='range'] {
-    width: 220px !important;
-    margin-block: 110px !important;
-  }
-
-  .bandWrapper--compact .range input[type='range'] {
-    width: 190px !important;
-    margin-block: 95px !important;
-  }
-
-  .bandWrapper--dense .range input[type='range'] {
-    width: 150px !important;
-    margin-block: 75px !important;
-  }
-}
-
-@container eq-panel (min-height: 520px) {
-  .main-content--full .eq-scale {
-    height: 240px;
-  }
-
-  .main-content--compact .eq-scale {
-    height: 210px;
-  }
-
-  .main-content--dense .eq-scale {
-    height: 160px;
-  }
-
-  .bandWrapper--full .range input[type='range'] {
-    width: 240px !important;
-    margin-block: 120px !important;
-  }
-
-  .bandWrapper--compact .range input[type='range'] {
-    width: 210px !important;
-    margin-block: 105px !important;
-  }
-
-  .bandWrapper--dense .range input[type='range'] {
-    width: 160px !important;
-    margin-block: 80px !important;
+  &:disabled {
+    cursor: default;
+    opacity: 0.35;
   }
 }
 
-@media (max-width: 980px) {
+// *** Responsive *************************************************************
+
+@media (max-width: 1180px) {
+  .main-content-title {
+    align-items: flex-start;
+  }
+}
+
+// Two rows of controls read better than six squeezed columns once the EQ card
+// is narrow. The identity and delete rows span the full width.
+@media (max-width: 940px) {
+  .main-content-title {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .eq-toolbar,
+  .quick-layouts {
+    justify-content: flex-start;
+  }
+
   .main-content {
-    // Size containment prevents the selected-band row from contributing to
-    // the panel's intrinsic height. On mobile that makes the following
-    // profile card start on top of the editor. Keep only inline containment so
-    // the full editor participates in normal vertical flow.
-    container-type: inline-size;
     grid-template-columns: 30px minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    min-height: 0;
     padding-inline: 6px;
-  }
-
-  .main-content--full .bandWrapper .range input[type='range'] {
-    width: 112px !important;
-    margin-block: 56px !important;
-  }
-
-  .main-content--compact .bandWrapper .range input[type='range'] {
-    width: 100px !important;
-    margin-block: 50px !important;
-  }
-
-  .main-content--dense .bandWrapper .range input[type='range'] {
-    width: 88px !important;
-    margin-block: 44px !important;
   }
 
   .eq-scale {
     font-size: 0.5rem;
   }
 
+  .main-content--full .bandWrapper .range {
+    --range-length: 112px;
+  }
+
+  .main-content--compact .bandWrapper .range {
+    --range-length: 100px;
+  }
+
+  .main-content--dense .bandWrapper .range {
+    --range-length: 88px;
+  }
+
   .eq-flat-editor {
-    width: 100%;
-    grid-column: 1 / -1;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 10px;
     padding: 12px;
-    margin-bottom: $spacing-xs;
   }
 
   .eq-flat-editor__identity {
     grid-column: 1 / -1;
     grid-template-columns: max-content minmax(0, 1fr);
     grid-template-rows: auto;
-    align-items: center;
     gap: 10px;
 
     strong {
@@ -541,17 +403,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .eq-flat-editor__control {
-    min-width: 0;
-  }
-
   .eq-flat-editor__delete {
     grid-column: 1 / -1;
-    width: 100%;
   }
 }
 
-@media (max-width: 540px) {
+@media (max-width: 640px) {
+  .eq-flat-editor {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 460px) {
   .eq-flat-editor {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -564,90 +427,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       justify-content: flex-start;
     }
   }
+}
 
-  .eq-flat-editor__control,
-  .eq-flat-editor__delete {
-    grid-column: 1 / -1;
+// Short windows shrink the slider tracks before anything else, so the panel
+// never has to clip the selected-band editor.
+@media (max-height: 860px) {
+  .main-content--full .bandWrapper .range {
+    --range-length: 112px;
+  }
+
+  .main-content--compact .bandWrapper .range {
+    --range-length: 100px;
+  }
+
+  .main-content--dense .bandWrapper .range {
+    --range-length: 88px;
   }
 }
 
-// Keep the vertical slider tracks usable on short windows while allowing the
-// EQ panel itself to scroll when the selected band editor needs more room.
-@media (max-height: 840px) {
-  .main-content .bands {
-    min-height: 0;
+@media (max-height: 700px) {
+  .main-content--full .bandWrapper .range,
+  .main-content--compact .bandWrapper .range,
+  .main-content--dense .bandWrapper .range {
+    --range-length: 84px;
   }
 
-  .main-content--full .bandWrapper .range input[type='range'] {
-    width: 112px !important;
-    margin-block: 56px !important;
+  .eq-scale {
+    padding-block: 18px 16px;
   }
-
-  .main-content--compact .bandWrapper .range input[type='range'] {
-    width: 100px !important;
-    margin-block: 50px !important;
-  }
-
-  .main-content--dense .bandWrapper .range input[type='range'] {
-    width: 88px !important;
-    margin-block: 44px !important;
-  }
-}
-
-// Both EQ rows size from their contents. The selected-band editor must remain
-// part of normal flow so the EQ card grows before the graph begins.
-.main-content--full,
-.main-content--compact,
-.main-content--dense {
-  grid-template-rows: auto auto;
-}
-
-.main-content .eq-scale,
-.main-content .bands {
-  height: auto;
-}
-
-.main-content .bands {
-  overflow: visible !important;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-}
-
-.main-content--full .bandWrapper .range input[type='range'] {
-  width: 132px !important;
-  margin-block: 66px !important;
-}
-
-.main-content--compact .bandWrapper .range input[type='range'] {
-  width: 116px !important;
-  margin-block: 58px !important;
-}
-
-.main-content--dense .bandWrapper .range input[type='range'] {
-  width: 102px !important;
-  margin-block: 51px !important;
-}
-
-// Keep the intrinsic EQ rows explicit: scale and sliders share the first row,
-// while the selected-band editor owns the complete second row.
-.main-content > .eq-scale {
-  grid-row: 1;
-  grid-column: 1;
-}
-
-.main-content > .bands {
-  grid-row: 1;
-  grid-column: 2;
-}
-
-.main-content > .eq-flat-editor {
-  grid-row: 2;
-  grid-column: 1 / -1;
-  align-self: start;
-  position: relative;
-  inset: auto;
-  transform: none;
 }

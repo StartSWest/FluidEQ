@@ -18,96 +18,98 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'spacing' as *;
-@use 'button-state' as *;
-
-$button-width: 24px;
-$button-height: 100px;
+@use 'theme' as *;
 
 .button {
-  box-sizing: border-box;
-  min-width: max-content;
-  padding: 8px 13px;
-  color: #03110f;
-  border-radius: 7px;
-  background: $secondary-default;
-  margin: $spacing-xs;
-
   display: flex;
-  flex-direction: column;
+  min-width: max-content;
+  min-height: $control-height;
   align-items: center;
   justify-content: center;
-  line-height: 1.15;
-  white-space: nowrap;
-
-  @extend %button-state;
-
-  &.small {
-    padding: $spacing-xs $spacing-s;
-    height: fit-content;
-    font-size: small;
-  }
-
-  &.default {
-    padding: $spacing-s $spacing-m;
-  }
-
-  path {
-    fill: $primary-dark;
-  }
-}
-
-.button {
-  min-height: 36px;
-  margin: 0;
+  padding: 8px 13px;
+  color: #03110f;
   border: 1px solid rgba($secondary-light, 0.38);
-  border-radius: 11px;
+  border-radius: $radius-s;
   background: $secondary-default;
   box-shadow:
     0 8px 22px rgba($secondary-default, 0.12),
     inset 0 1px 0 rgba($white, 0.36);
   font-weight: 700;
+  line-height: 1.15;
+  white-space: nowrap;
+  cursor: pointer;
   transition:
     transform 150ms ease,
     filter 150ms ease,
-    box-shadow 150ms ease;
+    box-shadow 150ms ease,
+    background 150ms ease,
+    color 150ms ease;
+
+  path {
+    fill: $primary-dark;
+  }
 
   &:hover:not([aria-disabled='true']) {
-    transform: translateY(-1px);
-    filter: brightness(1.06);
     // The hover surface is the light cyan accent; keep the label dark enough
-    // to remain readable instead of inheriting the shared white hover color.
+    // to stay readable.
     color: #03201d;
     background: $secondary-light;
     box-shadow:
       0 11px 28px rgba($secondary-default, 0.2),
       0 0 24px rgba($secondary-default, 0.18),
       inset 0 1px 0 rgba($white, 0.42);
+    transform: translateY(-1px);
+    filter: brightness(1.06);
   }
 
   &:active:not([aria-disabled='true']) {
-    transform: translateY(0);
     color: #03201d;
+    background: $secondary-dark;
+    transform: translateY(0);
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+    outline: 2px solid rgba($white, 0.8);
+    outline-offset: 2px;
   }
 
   &[aria-disabled='true'] {
+    color: rgba($primary-lighter, 0.6);
     border-color: rgba($primary-lighter, 0.08);
     background: rgba($primary-dark, 0.85);
-    color: rgba($primary-lighter, 0.75);
     box-shadow: none;
-    opacity: 1;
+    cursor: default;
+    pointer-events: none;
   }
 
   &.small {
-    min-height: 32px;
+    min-height: $control-height-sm;
     padding: 6px 10px;
-    border-radius: 9px;
+    border-radius: $radius-xs;
     font-size: 0.72rem;
   }
 
+  &.default {
+    padding: $spacing-s $spacing-m;
+  }
+
+  // Secondary action: reads as an outline against the panel.
   &.subtle {
     color: $secondary-light;
     border-color: rgba($secondary-light, 0.24);
     background: rgba($secondary-default, 0.07);
     box-shadow: none;
+
+    &:hover:not([aria-disabled='true']) {
+      color: $white;
+      border-color: rgba($secondary-light, 0.55);
+      background: rgba($secondary-default, 0.16);
+      box-shadow: 0 0 18px rgba($secondary-default, 0.12);
+    }
+
+    &:active:not([aria-disabled='true']) {
+      background: rgba($secondary-default, 0.24);
+    }
   }
 }

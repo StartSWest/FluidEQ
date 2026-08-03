@@ -27,7 +27,6 @@ import { clearAndType, setup } from '__tests__/utils/userEventUtils';
 describe('PresetListItem', () => {
   const samplePresetNames = ['Apple', 'Banana', 'Oranges'];
   const presetNameInputLabel = 'Preset Name';
-  const loadPresetButtonLabel = 'Load selected preset';
   const savePresetButtonLabel = 'Save settings to preset';
   const editIconLabel = 'Edit Icon';
   const editModeLabel = 'Edit Preset Name';
@@ -61,11 +60,11 @@ describe('PresetListItem', () => {
           renamePreset={renamePreset}
           deletePreset={deletePreset}
         />
-      </AquaProviderWrapper>
+      </AquaProviderWrapper>,
     );
 
     expect(
-      await screen.findByText('No profiles yet. Create your first sound.')
+      await screen.findByText('No profiles yet. Create your first sound.'),
     ).toBeInTheDocument();
     expect(screen.queryByText(samplePresetNames[0])).not.toBeInTheDocument();
     expect(fetchPresets).toHaveBeenCalledTimes(1);
@@ -83,7 +82,7 @@ describe('PresetListItem', () => {
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
-        </AquaProviderWrapper>
+        </AquaProviderWrapper>,
       );
     });
 
@@ -93,27 +92,27 @@ describe('PresetListItem', () => {
     expect(fetchPresets).toHaveBeenCalledTimes(1);
   });
 
+  // Selecting a profile in the list is what attaches it to the active output;
+  // there is no separate "load" button.
   it('should support loading a preset', async () => {
     fetchPresets.mockReturnValue(samplePresetNames);
-    const { user } = setup(
-      <AquaProviderWrapper value={defaultAquaContext}>
-        <PresetsBar
-          fetchPresets={fetchPresets}
-          loadPreset={loadPreset}
-          savePreset={savePreset}
-          renamePreset={renamePreset}
-          deletePreset={deletePreset}
-        />
-      </AquaProviderWrapper>
+    const { user } = await act(async () =>
+      setup(
+        <AquaProviderWrapper value={defaultAquaContext}>
+          <PresetsBar
+            fetchPresets={fetchPresets}
+            loadPreset={loadPreset}
+            savePreset={savePreset}
+            renamePreset={renamePreset}
+            deletePreset={deletePreset}
+          />
+        </AquaProviderWrapper>,
+      ),
     );
 
-    const presetNameInput = screen.getByLabelText(presetNameInputLabel);
-    const loadButton = screen.getByLabelText(loadPresetButtonLabel);
-    expect(loadButton).toHaveAttribute('aria-disabled', 'true');
-    await clearAndType(user, presetNameInput, samplePresetNames[0]);
-    expect(loadButton).toHaveAttribute('aria-disabled', 'false');
-    await user.click(loadButton);
+    await user.click(screen.getByLabelText(samplePresetNames[0]));
     expect(loadPreset).toHaveBeenCalledTimes(1);
+    expect(loadPreset).toHaveBeenCalledWith(samplePresetNames[0]);
   });
 
   it('should support saving a new preset', async () => {
@@ -127,7 +126,7 @@ describe('PresetListItem', () => {
           renamePreset={renamePreset}
           deletePreset={deletePreset}
         />
-      </AquaProviderWrapper>
+      </AquaProviderWrapper>,
     );
 
     const presetNameInput = screen.getByLabelText(presetNameInputLabel);
@@ -150,7 +149,7 @@ describe('PresetListItem', () => {
           renamePreset={renamePreset}
           deletePreset={deletePreset}
         />
-      </AquaProviderWrapper>
+      </AquaProviderWrapper>,
     );
 
     const presetNameInput = screen.getByLabelText(presetNameInputLabel);
@@ -173,7 +172,7 @@ describe('PresetListItem', () => {
           renamePreset={renamePreset}
           deletePreset={deletePreset}
         />
-      </AquaProviderWrapper>
+      </AquaProviderWrapper>,
     );
 
     const presetNameInput = screen.getByLabelText(presetNameInputLabel);
@@ -197,7 +196,7 @@ describe('PresetListItem', () => {
     await clearAndType(
       user,
       presetNameInput,
-      samplePresetNames[0].toLocaleLowerCase()
+      samplePresetNames[0].toLocaleLowerCase(),
     );
     expect(saveButton).toHaveAttribute('aria-disabled', 'false');
     await user.type(presetNameInput, '{Enter}');
@@ -215,7 +214,7 @@ describe('PresetListItem', () => {
           renamePreset={renamePreset}
           deletePreset={deletePreset}
         />
-      </AquaProviderWrapper>
+      </AquaProviderWrapper>,
     );
 
     const presetNameInput = screen.getByLabelText(presetNameInputLabel);
@@ -231,7 +230,7 @@ describe('PresetListItem', () => {
     await clearAndType(
       user,
       presetNameInput,
-      samplePresetNames[0].toLocaleLowerCase()
+      samplePresetNames[0].toLocaleLowerCase(),
     );
     expect(saveButton).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByText(PresetErrorEnum.DUPLICATE)).toBeInTheDocument();
@@ -251,7 +250,7 @@ describe('PresetListItem', () => {
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
-        </AquaProviderWrapper>
+        </AquaProviderWrapper>,
       );
     });
 
@@ -298,7 +297,7 @@ describe('PresetListItem', () => {
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
-        </AquaProviderWrapper>
+        </AquaProviderWrapper>,
       );
     });
 
@@ -331,24 +330,28 @@ describe('PresetListItem', () => {
 
   it('should disallow loading non-existant presets', async () => {
     fetchPresets.mockReturnValue(samplePresetNames);
-    const { user } = setup(
-      <AquaProviderWrapper value={defaultAquaContext}>
-        <PresetsBar
-          fetchPresets={fetchPresets}
-          loadPreset={loadPreset}
-          savePreset={savePreset}
-          renamePreset={renamePreset}
-          deletePreset={deletePreset}
-        />
-      </AquaProviderWrapper>
+    const { user } = await act(async () =>
+      setup(
+        <AquaProviderWrapper value={defaultAquaContext}>
+          <PresetsBar
+            fetchPresets={fetchPresets}
+            loadPreset={loadPreset}
+            savePreset={savePreset}
+            renamePreset={renamePreset}
+            deletePreset={deletePreset}
+          />
+        </AquaProviderWrapper>,
+      ),
     );
-    // type in non existent presetname
+
+    // Typing a name that is not in the list names a *new* profile; it must
+    // never load anything, and it stays offerable as a save target.
     const textbox = screen.getByLabelText(presetNameInputLabel);
-    expect(textbox).toBeInTheDocument();
-    await user.type(textbox, 'john cena');
-    expect(screen.getByLabelText(loadPresetButtonLabel)).toHaveAttribute(
+    await clearAndType(user, textbox, 'john cena');
+    expect(loadPreset).not.toHaveBeenCalled();
+    expect(screen.getByLabelText(savePresetButtonLabel)).toHaveAttribute(
       'aria-disabled',
-      'true'
+      'false',
     );
   });
 });
