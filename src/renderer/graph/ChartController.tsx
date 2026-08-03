@@ -39,6 +39,11 @@ export interface IChartPointData {
   y: number;
 }
 
+export interface IChartGradientStop {
+  offset: number;
+  color: string;
+}
+
 export interface IChartLineDataPointsById {
   [id: string]: IChartPointData[];
 }
@@ -50,6 +55,9 @@ export interface IChartCurveData {
     color: Color;
     strokeWidth: number;
     points: IChartPointData[];
+    gradientStops?: IChartGradientStop[];
+    gradientId?: string;
+    glow?: boolean;
   };
   controlPoint?: IChartPointData;
 }

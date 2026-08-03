@@ -38,6 +38,8 @@ interface ILineProps {
   color: string;
   strokeWidth: number;
   data: IChartPointData[];
+  gradientId?: string;
+  glow?: boolean;
   animation?: AnimationOptionsEnum;
   transform?: string;
 }
@@ -49,6 +51,8 @@ const Line = ({
   color = 'white',
   strokeWidth = 3,
   data = [],
+  gradientId,
+  glow = false,
   animation = AnimationOptionsEnum.NONE,
   transform,
 }: ILineProps) => {
@@ -61,7 +65,7 @@ const Line = ({
         .line<IChartPointData>()
         .x(({ x }) => xScale(x) || 0)
         .y(({ y }) => yScale(y) || 0),
-    [xScale, yScale]
+    [xScale, yScale],
   );
 
   const d = useMemo(() => line(data), [data, line]);
@@ -140,15 +144,35 @@ const Line = ({
   }, [d, isFirstRender]);
 
   return (
-    <path
-      name={name}
-      ref={ref}
-      stroke={color}
-      strokeWidth={strokeWidth}
-      fill="none"
-      opacity={0}
-      transform={transform}
-    />
+    <>
+      {glow && gradientId && (
+        <path
+          name={`${name} glow`}
+          d={d || undefined}
+          stroke={`url(#${gradientId})`}
+          strokeWidth={strokeWidth + 7}
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+          opacity={0.42}
+          filter="url(#chart-eq-neon-glow)"
+          clipPath="url(#chart-clip-path)"
+          pointerEvents="none"
+          transform="translate(0 3)"
+        />
+      )}
+      <path
+        name={name}
+        ref={ref}
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+        opacity={0}
+        transform={transform}
+      />
+    </>
   );
 };
 

@@ -1,0 +1,6 @@
+// The editable EQ curve uses the same cyan anchor as the waveform and slider
+// palette. Keep its legend in sync with the rendered line.
+.graph-legend--eq::before {
+  background: #00e5cf;
+  box-shadow: 0 0 7px rgba(0, 229, 207, 0.72);
+}

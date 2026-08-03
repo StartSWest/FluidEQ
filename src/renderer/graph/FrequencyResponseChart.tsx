@@ -46,6 +46,8 @@ import {
 import { clamp, useThrottleAndExecuteLatest } from 'renderer/utils/utils';
 import Chart, { ChartDimensions } from './Chart';
 import {
+  GRAPH_END,
+  GRAPH_START,
   IChartCurveData,
   IChartLineDataPointsById,
   IChartPointData,
@@ -56,10 +58,11 @@ import {
   getCombinedLineData,
   getLineGainAtFrequency,
 } from './utils';
-import { ColorEnum, GrayScaleEnum } from '../styles/color';
+import { ColorEnum, SecondaryColorEnum } from '../styles/color';
 import { useLiveAudio } from '../audio/LiveAudioContext';
 import { getBandColor } from '../utils/bandColors';
 import '../styles/MultiSelect.scss';
+import '../styles/GraphTheme.scss';
 
 const isFilterEqual = (f1: IFilter, f2: IFilter) => {
   if (!f1 || !f2) {
@@ -350,6 +353,20 @@ const FrequencyResponseChart = () => {
     });
     const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
     const eqCurveData = getCombinedLineData(preAmp, updatedFilterLines);
+    const sortedFilters = Object.values(filters).sort(
+      (a, b) => a.frequency - b.frequency,
+    );
+    const logSpan = Math.log(GRAPH_END / GRAPH_START);
+    const eqGradientStops = [
+      { offset: 0, color: getBandColor(0).color },
+      ...sortedFilters.map((filter, index) => ({
+        offset: Math.log(filter.frequency / GRAPH_START) / logSpan,
+        color: getBandColor(
+          sortedFilters.length > 1 ? index / (sortedFilters.length - 1) : 0,
+        ).color,
+      })),
+      { offset: 1, color: getBandColor(1).color },
+    ];
 
     // Compute preAmp line data
     // const preAmpLine = getPreAmpLine(preAmp);
@@ -381,9 +398,12 @@ const FrequencyResponseChart = () => {
               id: 'EQ Response',
               name: 'EQ + preamp',
               line: {
-                color: GrayScaleEnum.WHITE,
+                color: SecondaryColorEnum.DEFAULT,
                 strokeWidth: 3,
                 points: eqCurveData,
+                gradientId: 'chart-eq-spectrum-gradient',
+                gradientStops: eqGradientStops,
+                glow: true,
               },
             } as IChartCurveData,
           ]
@@ -392,9 +412,12 @@ const FrequencyResponseChart = () => {
               id: 'EQ Response',
               name: 'EQ + preamp',
               line: {
-                color: GrayScaleEnum.WHITE,
+                color: SecondaryColorEnum.DEFAULT,
                 strokeWidth: 3,
                 points: eqCurveData,
+                gradientId: 'chart-eq-spectrum-gradient',
+                gradientStops: eqGradientStops,
+                glow: true,
               },
             } as IChartCurveData,
           ],

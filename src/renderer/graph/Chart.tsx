@@ -23,6 +23,7 @@ import Axis from './Axis';
 import GridLine from './GridLine';
 import useController, {
   IChartCurveData,
+  IChartGradientStop,
   IEditableChartPoint,
   IMarginLike,
 } from './ChartController';
@@ -90,6 +91,8 @@ const Chart = ({
     height: svgHeight,
     padding,
   });
+  const eqGradientStops: IChartGradientStop[] =
+    data.find((curve) => curve.id === 'EQ Response')?.line.gradientStops || [];
   const svgRef = useRef<SVGSVGElement>(null);
   const selectionRef = useRef<
     | { startX: number; startY: number; currentX: number; currentY: number }
@@ -190,6 +193,40 @@ const Chart = ({
         margin: `${margins.top}px ${margins.right}px ${margins.bottom}px ${margins.left}px`,
       }}
     >
+      <defs>
+        <linearGradient
+          id="chart-eq-spectrum-gradient"
+          gradientUnits="userSpaceOnUse"
+          x1={padding.left}
+          x2={svgWidth - padding.right}
+          y1={0}
+          y2={0}
+        >
+          {(eqGradientStops.length > 0
+            ? eqGradientStops
+            : [
+                { offset: 0, color: '#00e5cf' },
+                { offset: 1, color: '#8b5cff' },
+              ]
+          ).map((stop) => (
+            <stop
+              key={`${stop.offset}-${stop.color}`}
+              offset={`${Math.max(0, Math.min(1, stop.offset)) * 100}%`}
+              stopColor={stop.color}
+            />
+          ))}
+        </linearGradient>
+        <filter
+          id="chart-eq-neon-glow"
+          x="-30%"
+          y="-120%"
+          width="160%"
+          height="340%"
+          colorInterpolationFilters="sRGB"
+        >
+          <feGaussianBlur stdDeviation="5" />
+        </filter>
+      </defs>
       <GridLine
         type="vertical"
         scale={xScaleFreq}
