@@ -1290,6 +1290,21 @@ ipcMain.handle('open-equalizer-apo-configurator', async () => {
   }
 });
 
+ipcMain.handle('open-equalizer-apo-settings', async () => {
+  try {
+    const equalizerApoRoot = path.dirname(await getConfigPath());
+    const settingsPath = path.join(equalizerApoRoot, 'Configurator.exe');
+
+    if (!fs.existsSync(settingsPath)) {
+      return 'Equalizer APO settings were not found.';
+    }
+
+    return shell.openPath(settingsPath);
+  } catch {
+    return 'Equalizer APO is not installed or its installation could not be located.';
+  }
+});
+
 ipcMain.handle('restart-windows-audio', async () => {
   if (process.platform !== 'win32') {
     return 'Restarting Windows Audio is only available on Windows.';

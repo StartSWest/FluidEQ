@@ -132,6 +132,13 @@ const AppContent = () => {
     setShowAudioRestartRecommendation(true);
   };
 
+  const handleOpenEqualizerApoSettings = async () => {
+    const error = await window.electron.ipcRenderer.openEqualizerApoSettings();
+    if (error) {
+      window.alert(error);
+    }
+  };
+
   const handleRestartWindowsAudio = async () => {
     if (
       !window.confirm(
@@ -250,6 +257,16 @@ const AppContent = () => {
                       }}
                     >
                       Reconfigure Equalizer APO
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setShowAudioToolsMenu(false);
+                        handleOpenEqualizerApoSettings();
+                      }}
+                    >
+                      Equalizer APO settings
                     </button>
                   </>
                 )}
