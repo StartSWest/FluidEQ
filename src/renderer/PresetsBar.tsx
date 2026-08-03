@@ -101,6 +101,18 @@ const PresetsBar = ({
     Record<string, IDeviceProfileAssignment>
   >({});
 
+  const fetchPresetNames = useCallback(async () => {
+    try {
+      const result = await fetchPresets();
+      dispatchPresetNames({
+        type: PresetActionEnum.INIT,
+        presetNames: result,
+      });
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  }, [fetchPresets, setGlobalError]);
+
   const refreshOutputProfiles = useCallback(async () => {
     try {
       const [devices, settings] = await Promise.all([
@@ -118,20 +130,27 @@ const PresetsBar = ({
     refreshOutputProfiles();
     const handleOutputChanged = () => {
       refreshOutputProfiles();
+      // The initial IPC request can race the main-process startup. Retry the
+      // preset catalogue after the active endpoint has been discovered.
+      fetchPresetNames();
     };
     window.addEventListener('fluideq-output-changed', handleOutputChanged);
     return () =>
       window.removeEventListener('fluideq-output-changed', handleOutputChanged);
-  }, [refreshOutputProfiles]);
+  }, [fetchPresetNames, refreshOutputProfiles]);
 
+  const assignedPresetForOutput = activeDeviceId
+    ? deviceAssignments[activeDeviceId]?.presetName || ''
+    : '';
   const visiblePresetNames = useMemo(() => {
-    const assignedPreset = activeDeviceId
-      ? deviceAssignments[activeDeviceId]?.presetName
-      : '';
-    return assignedPreset
-      ? presetNames.filter((name) => name === assignedPreset)
-      : [];
-  }, [activeDeviceId, deviceAssignments, presetNames]);
+    if (!assignedPresetForOutput) {
+      return [];
+    }
+    // The device assignment is authoritative while the file-list IPC call is
+    // catching up during startup. This prevents the profile card from being
+    // empty until the user creates another profile.
+    return [assignedPresetForOutput];
+  }, [assignedPresetForOutput]);
 
   useEffect(() => {
     setPresetName((current) =>
@@ -140,29 +159,19 @@ const PresetsBar = ({
   }, [visiblePresetNames]);
 
   const isExistingPresetSelected = useMemo(
-    () => presetNames.some((n) => n === presetName),
-    [presetName, presetNames],
+    () =>
+      presetNames.some((n) => n === presetName) ||
+      assignedPresetForOutput === presetName,
+    [assignedPresetForOutput, presetName, presetNames],
   );
 
   // Fetch default presets and custom presets from storage
   useEffect(() => {
-    const fetchPresetNames = async () => {
-      try {
-        const result = await fetchPresets();
-        dispatchPresetNames({
-          type: PresetActionEnum.INIT,
-          presetNames: result,
-        });
-      } catch (e) {
-        setGlobalError(e as ErrorDescription);
-      }
-    };
-
     fetchPresetNames();
     window.addEventListener('fluideq-presets-changed', fetchPresetNames);
     return () =>
       window.removeEventListener('fluideq-presets-changed', fetchPresetNames);
-  }, [fetchPresets, setGlobalError]);
+  }, [fetchPresetNames]);
 
   // Creating a new preset
   const handleCreateOrSavePreset = useCallback(async () => {
@@ -199,7 +208,7 @@ const PresetsBar = ({
 
   // Loading audio settings from an existing preset
   const handleLoadPreset = async (presetToLoad = presetName) => {
-    if (presetToLoad && presetNames.includes(presetToLoad)) {
+    if (presetToLoad && visiblePresetNames.includes(presetToLoad)) {
       try {
         await loadPreset(presetToLoad);
         await refreshOutputProfiles();
