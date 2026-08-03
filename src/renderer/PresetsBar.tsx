@@ -144,13 +144,16 @@ const PresetsBar = ({
     : '';
   const visiblePresetNames = useMemo(() => {
     if (!assignedPresetForOutput) {
-      return [];
+      // During startup the audio-device IPC response can arrive after the
+      // preset catalogue. Keep the catalogue visible until the endpoint is
+      // known, then switch to the output-scoped list.
+      return activeDeviceId ? [] : presetNames;
     }
     // The device assignment is authoritative while the file-list IPC call is
     // catching up during startup. This prevents the profile card from being
     // empty until the user creates another profile.
     return [assignedPresetForOutput];
-  }, [assignedPresetForOutput]);
+  }, [activeDeviceId, assignedPresetForOutput, presetNames]);
 
   useEffect(() => {
     setPresetName((current) =>
@@ -400,7 +403,7 @@ const PresetsBar = ({
         emptyOptionsPlaceholder={
           activeDeviceId
             ? 'No profile attached to this output.'
-            : 'No active output selected.'
+            : 'No profiles yet. Create your first sound.'
         }
       />
     </div>
