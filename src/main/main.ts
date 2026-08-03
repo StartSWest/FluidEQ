@@ -103,6 +103,7 @@ import {
   getSquiglinkDeviceList,
   getSquiglinkPreset,
   getSquiglinkResponseList,
+  getSquiglinkSourceList,
   syncSquiglinkDatabase,
 } from './squiglink';
 import {
@@ -823,10 +824,24 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
   }
 });
 
-ipcMain.on(ChannelEnum.GET_SQUIGLINK_DEVICE_LIST, async (event) => {
+ipcMain.on(ChannelEnum.GET_SQUIGLINK_SOURCE_LIST, async (event) => {
+  const channel = ChannelEnum.GET_SQUIGLINK_SOURCE_LIST;
+  try {
+    const sources = await getSquiglinkSourceList();
+    event.reply(channel, { result: sources } as TSuccess<
+      Awaited<ReturnType<typeof getSquiglinkSourceList>>
+    >);
+  } catch (error) {
+    console.error('Failed to get Squiglink source list', error);
+    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
+  }
+});
+
+ipcMain.on(ChannelEnum.GET_SQUIGLINK_DEVICE_LIST, async (event, arg) => {
   const channel = ChannelEnum.GET_SQUIGLINK_DEVICE_LIST;
   try {
-    const devices = await getSquiglinkDeviceList();
+    const sourceId = typeof arg?.[0] === 'string' ? arg[0] : undefined;
+    const devices = await getSquiglinkDeviceList(sourceId);
     event.reply(channel, { result: devices } as TSuccess<string[]>);
   } catch (error) {
     console.error('Failed to get Squiglink device list', error);
@@ -837,7 +852,12 @@ ipcMain.on(ChannelEnum.GET_SQUIGLINK_DEVICE_LIST, async (event) => {
 ipcMain.on(ChannelEnum.GET_SQUIGLINK_RESPONSE_LIST, async (event, arg) => {
   const channel = ChannelEnum.GET_SQUIGLINK_RESPONSE_LIST;
   try {
-    const responses = await getSquiglinkResponseList(arg[0] as string);
+    const sourceId = typeof arg?.[0] === 'string' ? arg[0] : undefined;
+    const deviceName = arg?.[1] as string;
+    const responses = await getSquiglinkResponseList(
+      sourceId || deviceName,
+      sourceId ? deviceName : undefined,
+    );
     event.reply(channel, { result: responses } as TSuccess<string[]>);
   } catch (error) {
     console.error('Failed to get Squiglink response list', error);
@@ -847,13 +867,15 @@ ipcMain.on(ChannelEnum.GET_SQUIGLINK_RESPONSE_LIST, async (event, arg) => {
 
 ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
   const channel = ChannelEnum.LOAD_SQUIGLINK_PRESET;
-  const [deviceName, responseName, profileName] = arg as [
-    string,
-    string,
-    string | undefined,
-  ];
+  const isLegacyRequest = arg.length === 3;
+  const sourceId = isLegacyRequest ? undefined : (arg[0] as string);
+  const deviceName = (isLegacyRequest ? arg[0] : arg[1]) as string;
+  const responseName = (isLegacyRequest ? arg[1] : arg[2]) as string;
+  const profileName = (isLegacyRequest ? arg[2] : arg[3]) as string | undefined;
   try {
-    const presetSettings = await getSquiglinkPreset(deviceName, responseName);
+    const presetSettings = sourceId
+      ? await getSquiglinkPreset(sourceId, deviceName, responseName)
+      : await getSquiglinkPreset(deviceName, responseName);
     clearCurrentLayoutSettings();
     state.preAmp = presetSettings.preAmp;
     state.filters = presetSettings.filters;

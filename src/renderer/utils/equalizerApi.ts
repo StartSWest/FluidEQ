@@ -38,6 +38,7 @@ import {
   MIN_GAIN,
   MIN_QUALITY,
   IConvolutionProfile,
+  ISquigSource,
 } from 'common/constants';
 import { IConvolutionCatalogEntry } from 'common/convolution';
 
@@ -95,7 +96,8 @@ const buildResponseHandler = <
     | IDeviceProfileSettings
     | IAutoEqUpdateStatus
     | IConvolutionCatalogEntry[]
-    | IConvolutionProfile,
+    | IConvolutionProfile
+    | ISquigSource[],
 >(
   resultEvaluator: (
     result: Type,
@@ -130,7 +132,8 @@ const simpleResponseHandler = <
     | IDeviceProfileSettings
     | IAutoEqUpdateStatus
     | IConvolutionCatalogEntry[]
-    | IConvolutionProfile,
+    | IConvolutionProfile
+    | ISquigSource[],
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);
@@ -293,30 +296,49 @@ export const loadAutoEqPreset = (
   return promisifyResult(setterResponseHandler, channel);
 };
 
-export const getSquiglinkDeviceList = (): Promise<string[]> => {
-  const channel = ChannelEnum.GET_SQUIGLINK_DEVICE_LIST;
+const DEFAULT_SQUIG_SOURCE = 'squiglink-gadgetrytech-headphones-headsets';
+
+export const getSquiglinkSourceList = (): Promise<ISquigSource[]> => {
+  const channel = ChannelEnum.GET_SQUIGLINK_SOURCE_LIST;
   window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(simpleResponseHandler<ISquigSource[]>(), channel);
+};
+
+export const getSquiglinkDeviceList = (
+  sourceId = DEFAULT_SQUIG_SOURCE,
+): Promise<string[]> => {
+  const channel = ChannelEnum.GET_SQUIGLINK_DEVICE_LIST;
+  window.electron.ipcRenderer.sendMessage(channel, [sourceId]);
   return promisifyResult(simpleResponseHandler<string[]>(), channel);
 };
 
 export const getSquiglinkResponseList = (
-  deviceName: string,
+  sourceIdOrDevice: string,
+  deviceMaybe?: string,
 ): Promise<string[]> => {
   const channel = ChannelEnum.GET_SQUIGLINK_RESPONSE_LIST;
-  window.electron.ipcRenderer.sendMessage(channel, [deviceName]);
+  const sourceId = deviceMaybe ? sourceIdOrDevice : DEFAULT_SQUIG_SOURCE;
+  const deviceName = deviceMaybe || sourceIdOrDevice;
+  window.electron.ipcRenderer.sendMessage(channel, [sourceId, deviceName]);
   return promisifyResult(simpleResponseHandler<string[]>(), channel);
 };
 
 export const loadSquiglinkPreset = (
-  deviceName: string,
-  responseName: string,
+  sourceIdOrDevice: string,
+  deviceOrResponse: string,
+  responseOrProfile?: string,
   profileName?: string,
 ): Promise<void> => {
   const channel = ChannelEnum.LOAD_SQUIGLINK_PRESET;
+  const sourceId = profileName ? sourceIdOrDevice : DEFAULT_SQUIG_SOURCE;
+  const deviceName = profileName ? deviceOrResponse : sourceIdOrDevice;
+  const responseName = profileName ? responseOrProfile : deviceOrResponse;
+  const profile = profileName || responseOrProfile;
   window.electron.ipcRenderer.sendMessage(channel, [
+    sourceId,
     deviceName,
     responseName,
-    profileName,
+    profile,
   ]);
   return promisifyResult(setterResponseHandler, channel);
 };

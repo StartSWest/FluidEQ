@@ -48,6 +48,7 @@ enum ChannelEnum {
   GET_SQUIGLINK_DEVICE_LIST = 'getSquiglinkDeviceList',
   GET_SQUIGLINK_RESPONSE_LIST = 'getSquiglinkResponseList',
   LOAD_SQUIGLINK_PRESET = 'loadSquiglinkPreset',
+  GET_SQUIGLINK_SOURCE_LIST = 'getSquiglinkSourceList',
   GET_CONVOLUTION_CATALOG = 'getConvolutionCatalog',
   DOWNLOAD_CONVOLUTION = 'downloadConvolution',
   CLEAR_CONVOLUTION = 'clearConvolution',

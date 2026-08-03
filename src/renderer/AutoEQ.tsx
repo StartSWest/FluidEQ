@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
-import { IAutoEqUpdateStatus, IEqSource } from 'common/constants';
+import { IAutoEqUpdateStatus, IEqSource, ISquigSource } from 'common/constants';
 import { useAquaContext } from './utils/AquaContext';
 import { formatPresetName } from './utils/utils';
 import Button from './widgets/Button';
@@ -32,6 +32,7 @@ import {
   getSquiglinkDeviceList,
   getSquiglinkResponseList,
   loadSquiglinkPreset,
+  getSquiglinkSourceList,
   checkAutoEqUpdate,
   updateAutoEqDatabase,
 } from './utils/equalizerApi';
@@ -45,7 +46,7 @@ const EQ_SOURCES: IEqSource[] = [
     online: false,
   },
   {
-    id: 'squiglink-gadgetrytech',
+    id: 'squiglink-gadgetrytech-headphones-headsets',
     name: 'Squiglink / GadgetryTech',
     description: 'Public headphone measurements, fitted locally into PEQ.',
     attributionUrl: 'https://gadgetrytech.squig.link/headsets/',
@@ -65,6 +66,9 @@ const AutoEQ = () => {
   const [currentDevice, setCurrentDevice] = useState<string>('');
   const [currentResponse, setCurrentResponse] = useState<string>('');
   const [sourceId, setSourceId] = useState<IEqSource['id']>('autoeq');
+  const [squigSources, setSquigSources] = useState<IEqSource[]>(
+    EQ_SOURCES.slice(1),
+  );
   const [updateStatus, setUpdateStatus] = useState<IAutoEqUpdateStatus>();
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -81,15 +85,38 @@ const AutoEQ = () => {
       window.removeEventListener(CLEAR_SELECTION_EVENT, clearSelection);
   }, []);
 
+  const allSources = useMemo(
+    () => [EQ_SOURCES[0], ...squigSources],
+    [squigSources],
+  );
   const currentSource =
-    EQ_SOURCES.find((source) => source.id === sourceId) || EQ_SOURCES[0];
+    allSources.find((source) => source.id === sourceId) || allSources[0];
+
+  useEffect(() => {
+    getSquiglinkSourceList()
+      .then((sources: ISquigSource[]) => {
+        setSquigSources(
+          sources.map((source) => ({
+            id: source.id,
+            name: `${source.name} · ${source.type}`,
+            description: `Public ${source.type} measurements from ${source.name}.`,
+            attributionUrl: source.website,
+            online: true,
+          })),
+        );
+        return undefined;
+      })
+      // Keep the cached GadgetryTech source usable when the optional global
+      // manifest is temporarily offline.
+      .catch(() => undefined);
+  }, [setGlobalError]);
 
   const fetchDeviceNames = useCallback(async () => {
     try {
       const list =
         sourceId === 'autoeq'
           ? await getAutoEqDeviceList()
-          : await getSquiglinkDeviceList();
+          : await getSquiglinkDeviceList(sourceId);
       setDevices(list);
       setCurrentDevice('');
       setCurrentResponse('');
@@ -151,7 +178,7 @@ const AutoEQ = () => {
       const nextResponses =
         sourceId === 'autoeq'
           ? await getAutoEqResponseList(newValue)
-          : await getSquiglinkResponseList(newValue);
+          : await getSquiglinkResponseList(sourceId, newValue);
       setResponses(nextResponses);
       setCurrentDevice(newValue);
       // Pick the first available measurement so every model starts with a
@@ -170,7 +197,12 @@ const AutoEQ = () => {
       if (sourceId === 'autoeq') {
         await loadAutoEqPreset(currentDevice, currentResponse, profileName);
       } else {
-        await loadSquiglinkPreset(currentDevice, currentResponse, profileName);
+        await loadSquiglinkPreset(
+          sourceId,
+          currentDevice,
+          currentResponse,
+          profileName,
+        );
       }
       await refreshState();
       window.dispatchEvent(new Event('fluideq-presets-changed'));
@@ -193,7 +225,7 @@ const AutoEQ = () => {
 
   const sourceOptions: IOptionEntry[] = useMemo(
     () =>
-      EQ_SOURCES.map((source) => ({
+      allSources.map((source) => ({
         value: source.id,
         label: source.name,
         display: (
@@ -203,7 +235,7 @@ const AutoEQ = () => {
           </div>
         ),
       })),
-    [],
+    [allSources],
   );
 
   const responseOptions: IOptionEntry[] = useMemo(
@@ -241,6 +273,7 @@ const AutoEQ = () => {
             }
             isDisabled={!!globalError}
             filterPlaceholder="Search sources..."
+            isFilterable
           />
         </div>
         <div className="autoeq-field autoeq-field--model">

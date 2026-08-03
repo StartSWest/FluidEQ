@@ -175,11 +175,21 @@ export interface IAutoEqUpdateStatus {
 }
 
 export interface IEqSource {
-  id: 'autoeq' | 'squiglink-gadgetrytech';
+  /** Stable source id. Squiglink ids are supplied by its official manifest. */
+  id: string;
   name: string;
   description: string;
   attributionUrl: string;
   online: boolean;
+}
+
+export interface ISquigSource {
+  id: string;
+  username: string;
+  name: string;
+  type: string;
+  website: string;
+  dataUrl: string;
 }
 
 /** ----- Default Values ----- */

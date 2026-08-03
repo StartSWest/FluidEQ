@@ -1,9 +1,8 @@
 /*
  * Squiglink measurements are fetched on demand instead of being bundled.
- * The public GadgetryTech database exposes a phone_book.json index and REW
- * text measurements. FluidEQ uses those measurements to fit a small PEQ
- * correction locally, while keeping the original attribution link visible in
- * the renderer.
+ * Squiglink publishes an official manifest containing every public database;
+ * FluidEQ resolves each database to the same phone_book.json/REW data format
+ * and fits a small PEQ correction locally.
  */
 
 import fs from 'fs';
@@ -15,12 +14,21 @@ import {
   FilterTypeEnum,
   getDefaultFilterWithId,
   IFiltersMap,
+  ISquigSource,
   IPresetV2,
   MAX_NUM_FILTERS,
 } from '../common/constants';
 
-const SQUIG_BASE_URL = 'https://gadgetrytech.squig.link/headsets/data';
-const PHONE_BOOK_URL = `${SQUIG_BASE_URL}/phone_book.json`;
+const SQUIG_SITES_URL = 'https://squig.link/squigsites.json';
+const DEFAULT_SOURCE_ID = 'squiglink-gadgetrytech-headphones';
+const FALLBACK_SOURCE: ISquigSource = {
+  id: DEFAULT_SOURCE_ID,
+  username: 'gadgetrytech',
+  name: 'Gadgetry Tech',
+  type: 'Headphones',
+  website: 'https://gadgetrytech.squig.link/headsets/',
+  dataUrl: 'https://gadgetrytech.squig.link/headsets/data',
+};
 const CACHE_MAX_AGE_MS = 24 * 60 * 60 * 1000;
 const MAX_IMPORTED_FILTERS = Math.min(20, MAX_NUM_FILTERS);
 const MIN_EQ_FREQUENCY = 20;
@@ -37,11 +45,25 @@ interface ISquigBrand {
   phones: ISquigPhone[];
 }
 
+interface ISquigDatabaseManifest {
+  type: string;
+  folder: string;
+}
+
+interface ISquigSiteManifest {
+  username: string;
+  name: string;
+  urlType: 'root' | 'subdomain' | 'labFolder' | 'altDomain' | string;
+  altDomain?: string;
+  dbs: ISquigDatabaseManifest[];
+}
+
 interface ISquigModel {
   key: string;
   brand: string;
   name: string;
   phone: ISquigPhone;
+  sourceId: string;
 }
 
 interface IResponseOption {
@@ -54,11 +76,18 @@ interface IPoint {
   value: number;
 }
 
-let phoneBookPromise: Promise<ISquigModel[]> | undefined;
+let sourceListPromise: Promise<ISquigSource[]> | undefined;
+const phoneBookPromises = new Map<string, Promise<ISquigModel[]>>();
 
 const cacheDir = () => path.join(app.getPath('userData'), 'squiglink');
-const phoneBookCachePath = () =>
-  path.join(cacheDir(), 'gadgetrytech-phone-book.json');
+const sourceListCachePath = () => path.join(cacheDir(), 'squigsites.json');
+
+const phoneBookCachePath = (source: ISquigSource) =>
+  path.join(
+    cacheDir(),
+    'phone-books',
+    `${source.id.replace(/[^a-z0-9._-]+/gi, '_')}.json`,
+  );
 
 const readCache = (filePath: string, allowStale = false) => {
   if (!fs.existsSync(filePath)) {
@@ -89,11 +118,92 @@ const fetchText = async (url: string) => {
   return response.text();
 };
 
-const loadPhoneBook = async (): Promise<ISquigModel[]> => {
-  const cachePath = phoneBookCachePath();
+const getSiteRoot = (site: ISquigSiteManifest) => {
+  if (site.urlType === 'root') {
+    return 'https://squig.link';
+  }
+  if (site.urlType === 'altDomain' && site.altDomain) {
+    return site.altDomain.replace(/\/$/, '');
+  }
+  if (site.urlType === 'labFolder') {
+    return `https://squig.link/lab/${encodeURIComponent(site.username)}`;
+  }
+  return `https://${site.username}.squig.link`;
+};
+
+const getSourceId = (
+  site: ISquigSiteManifest,
+  database: ISquigDatabaseManifest,
+) =>
+  `squiglink-${site.username}-${database.type.toLowerCase()}-${database.folder.replace(
+    /[^a-z0-9]+/gi,
+    '-',
+  )}`.replace(/-+$/, '');
+
+const parseSourceManifest = (raw: string): ISquigSource[] => {
+  const sites = JSON.parse(raw) as ISquigSiteManifest[];
+  return sites.flatMap((site) =>
+    (site.dbs || [])
+      .filter((database) => database && database.type && database.folder)
+      .map((database) => {
+        const root = getSiteRoot(site);
+        const normalizedWebsite =
+          database.folder === '/'
+            ? `${root}/`
+            : `${root}/${database.folder.replace(/^\/+/, '')}`;
+        const dataUrl = `${normalizedWebsite.replace(/\/$/, '')}/data`;
+        return {
+          id: getSourceId(site, database),
+          username: site.username,
+          name: site.name,
+          type: database.type,
+          website: normalizedWebsite,
+          dataUrl,
+        };
+      }),
+  );
+};
+
+const loadSourceManifest = async (): Promise<ISquigSource[]> => {
+  const cachePath = sourceListCachePath();
   let raw: string;
   try {
-    raw = await fetchText(PHONE_BOOK_URL);
+    raw = await fetchText(SQUIG_SITES_URL);
+    writeCache(cachePath, raw);
+  } catch (error) {
+    raw = readCache(cachePath, true) || '';
+    if (!raw) {
+      throw error;
+    }
+  }
+
+  return parseSourceManifest(raw);
+};
+
+const getSource = async (sourceId = DEFAULT_SOURCE_ID) => {
+  let sources: ISquigSource[];
+  try {
+    sources = await getSquiglinkSourceList();
+  } catch {
+    sources = [FALLBACK_SOURCE];
+  }
+  const source =
+    sources.find((entry) => entry.id === sourceId) ||
+    sources.find(
+      (entry) =>
+        entry.username === 'gadgetrytech' && entry.type === 'Headphones',
+    ) ||
+    sources[0] ||
+    FALLBACK_SOURCE;
+  return source;
+};
+
+const loadPhoneBook = async (source: ISquigSource): Promise<ISquigModel[]> => {
+  const cachePath = phoneBookCachePath(source);
+  const phoneBookUrl = `${source.dataUrl}/phone_book.json`;
+  let raw: string;
+  try {
+    raw = await fetchText(phoneBookUrl);
     writeCache(cachePath, raw);
   } catch (error) {
     raw = readCache(cachePath, true) || '';
@@ -111,22 +221,29 @@ const loadPhoneBook = async (): Promise<ISquigModel[]> => {
         brand: brand.name,
         name: phone.name,
         phone,
+        sourceId: source.id,
       })),
   );
 };
 
-const getPhoneBook = async () => {
-  if (!phoneBookPromise) {
-    phoneBookPromise = loadPhoneBook().catch((error) => {
-      phoneBookPromise = undefined;
-      throw error;
-    });
+const getPhoneBook = async (sourceId = DEFAULT_SOURCE_ID) => {
+  const source = await getSource(sourceId);
+  const current = phoneBookPromises.get(source.id);
+  if (current) {
+    return current;
   }
-  return phoneBookPromise;
+  const promise = loadPhoneBook(source).catch((error) => {
+    phoneBookPromises.delete(source.id);
+    throw error;
+  });
+  phoneBookPromises.set(source.id, promise);
+  return promise;
 };
 
-const findModel = async (device: string) => {
-  const model = (await getPhoneBook()).find((entry) => entry.key === device);
+const findModel = async (sourceId: string, device: string) => {
+  const model = (await getPhoneBook(sourceId)).find(
+    (entry) => entry.key === device,
+  );
   if (!model) {
     throw new Error(`Squiglink model not found: ${device}`);
   }
@@ -173,20 +290,24 @@ const normalizeFileName = (file: string) => {
     : `${withoutExtension} L.txt`;
 };
 
-const cacheFilePath = (file: string) =>
+const cacheFilePath = (source: ISquigSource, file: string) =>
   path.join(
     cacheDir(),
     'measurements',
+    source.id.replace(/[^a-z0-9._-]+/gi, '_'),
     `${file.replace(/[^a-z0-9._-]+/gi, '_')}`,
   );
 
-const loadMeasurement = async (file: string): Promise<IPoint[]> => {
+const loadMeasurement = async (
+  source: ISquigSource,
+  file: string,
+): Promise<IPoint[]> => {
   const normalized = normalizeFileName(file);
-  const target = cacheFilePath(normalized);
+  const target = cacheFilePath(source, normalized);
   let raw: string;
   try {
     raw = await fetchText(
-      `${SQUIG_BASE_URL}/${encodeURIComponent(normalized)}`,
+      `${source.dataUrl}/${encodeURIComponent(normalized)}`,
     );
     writeCache(target, raw);
   } catch (error) {
@@ -370,8 +491,18 @@ const resolveResponse = (model: ISquigModel, response: string) => {
   );
 };
 
-export const getSquiglinkDeviceList = async () =>
-  (await getPhoneBook())
+export const getSquiglinkSourceList = async (): Promise<ISquigSource[]> => {
+  if (!sourceListPromise) {
+    sourceListPromise = loadSourceManifest().catch((error) => {
+      sourceListPromise = undefined;
+      throw error;
+    });
+  }
+  return sourceListPromise;
+};
+
+export const getSquiglinkDeviceList = async (sourceId = DEFAULT_SOURCE_ID) =>
+  (await getPhoneBook(sourceId))
     .map((model) => model.key)
     .sort((left, right) => left.localeCompare(right));
 
@@ -383,20 +514,33 @@ export const getSquiglinkDeviceList = async () =>
 export const syncSquiglinkDatabase = async (): Promise<{
   modelCount: number;
 }> => {
-  phoneBookPromise = undefined;
-  const models = await loadPhoneBook();
-  phoneBookPromise = Promise.resolve(models);
-  return { modelCount: models.length };
+  sourceListPromise = undefined;
+  phoneBookPromises.clear();
+  const sources = await getSquiglinkSourceList();
+  return { modelCount: sources.length };
 };
 
-export const getSquiglinkResponseList = async (device: string) =>
-  getResponseOptions(await findModel(device)).map((option) => option.label);
+export const getSquiglinkResponseList = async (
+  sourceIdOrDevice: string,
+  deviceMaybe?: string,
+) => {
+  const sourceId = deviceMaybe ? sourceIdOrDevice : DEFAULT_SOURCE_ID;
+  const device = deviceMaybe || sourceIdOrDevice;
+  return getResponseOptions(await findModel(sourceId, device)).map(
+    (option) => option.label,
+  );
+};
 
 export const getSquiglinkPreset = async (
-  device: string,
-  response: string,
+  sourceIdOrDevice: string,
+  deviceOrResponse: string,
+  responseMaybe?: string,
 ): Promise<IPresetV2> => {
-  const model = await findModel(device);
+  const sourceId = responseMaybe ? sourceIdOrDevice : DEFAULT_SOURCE_ID;
+  const device = responseMaybe ? deviceOrResponse : sourceIdOrDevice;
+  const response = responseMaybe || deviceOrResponse;
+  const source = await getSource(sourceId);
+  const model = await findModel(sourceId, device);
   const selected = resolveResponse(model, response);
   if (!selected) {
     throw new Error(`Squiglink response not found: ${device} / ${response}`);
@@ -409,10 +553,10 @@ export const getSquiglinkPreset = async (
   if (baseline && baseline.file === selected.file) {
     return { preAmp: 0, filters: {}, isFlat: true };
   }
-  const selectedPoints = await loadMeasurement(selected.file);
+  const selectedPoints = await loadMeasurement(source, selected.file);
   const baselinePoints =
     baseline && baseline.file !== selected.file
-      ? await loadMeasurement(baseline.file)
+      ? await loadMeasurement(source, baseline.file)
       : undefined;
   const points = baselinePoints || selectedPoints;
   const frequencies = points
