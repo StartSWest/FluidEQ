@@ -101,20 +101,10 @@ $filter-dropdown-width: 52px;
   border-radius: 10px;
 
   &.is-selected {
-    background:
-      radial-gradient(
-        circle at 50% 48%,
-        rgba($analogous-1, 0.2),
-        transparent 62%
-      ),
-      linear-gradient(
-        180deg,
-        rgba($secondary-default, 0.12),
-        rgba($secondary-default, 0.025)
-      );
+    background: rgba($secondary-default, 0.1);
     box-shadow:
-      inset 0 0 0 1px rgba($analogous-1, 0.42),
-      0 0 20px rgba($analogous-1, 0.16);
+      inset 0 0 0 1px rgba($secondary-light, 0.3),
+      0 0 16px rgba($secondary-default, 0.12);
 
     .range input[type='range']::-webkit-slider-thumb {
       background: var(--slider-color);
@@ -125,14 +115,10 @@ $filter-dropdown-width: 52px;
   }
 
   &.is-hovered {
-    background: linear-gradient(
-      180deg,
-      rgba($secondary-light, 0.16),
-      rgba($secondary-default, 0.045)
-    );
+    background: rgba($secondary-default, 0.07);
     box-shadow:
-      inset 0 0 0 1px rgba($secondary-light, 0.42),
-      0 0 22px rgba($secondary-default, 0.14);
+      inset 0 0 0 1px rgba($secondary-light, 0.22),
+      0 0 18px rgba($secondary-default, 0.1);
   }
 
   .band {
@@ -292,11 +278,7 @@ button.band-frequency-caption {
   &:hover,
   &:focus-within {
     border-color: rgba($secondary-light, 0.12);
-    background: linear-gradient(
-      180deg,
-      rgba($secondary-default, 0.055),
-      rgba($primary-light, 0.08)
-    );
+    background: rgba($secondary-default, 0.055);
   }
 
   .band {

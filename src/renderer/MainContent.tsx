@@ -260,7 +260,11 @@ const MainContent = () => {
             <FrequencyBand
               key={filter.id}
               filter={filter}
-              colorIndex={index}
+              colorProgress={
+                frequencySortedFilters.length > 1
+                  ? index / (frequencySortedFilters.length - 1)
+                  : 0
+              }
               density={density}
               flatLayout
               isSelected={selectedFilter?.id === filter.id}
