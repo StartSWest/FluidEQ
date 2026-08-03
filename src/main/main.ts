@@ -84,6 +84,7 @@ import {
 } from '../common/utils';
 import {
   adaptLayoutSnapshot,
+  adaptLayoutToFixedFrequencies,
   getFixedBandSizeForCount,
   ILayoutSnapshot,
   snapshotFilters,
@@ -1241,7 +1242,7 @@ ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
   const sourceSnapshot = snapshotFilters(state.filters);
   const storedSnapshot = getStoredLayout(size);
   const targetSnapshot =
-    storedSnapshot || adaptLayoutSnapshot(sourceSnapshot, size);
+    storedSnapshot || adaptLayoutToFixedFrequencies(sourceSnapshot, size);
   const nextFilters = getDefaultFilters(size);
   Object.values(nextFilters)
     .sort((left, right) => left.frequency - right.frequency)

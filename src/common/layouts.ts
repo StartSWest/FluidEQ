@@ -112,3 +112,21 @@ export const adaptLayoutSnapshot = (
 
   return sortBands(expanded).slice(0, targetCount);
 };
+
+/**
+ * Adapt a layout's tuning values onto the canonical frequency positions for
+ * the target quick layout. This keeps the user's gains/Q/type when moving
+ * between band counts while ensuring each layout starts with its predefined
+ * frequencies. Once the target layout is edited, its exact snapshot is saved
+ * and restored on the next visit.
+ */
+export const adaptLayoutToFixedFrequencies = (
+  sourceSnapshot: ILayoutSnapshot,
+  targetSize: FixedBandSizeEnum,
+): ILayoutSnapshot => {
+  const adapted = adaptLayoutSnapshot(sourceSnapshot, targetSize);
+  return FIXED_BAND_FREQUENCIES[targetSize].map((frequency, index) => ({
+    ...(adapted[index] || neutralBand(frequency)),
+    frequency,
+  }));
+};

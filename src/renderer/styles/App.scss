@@ -84,7 +84,7 @@ body {
     display: grid;
     grid-template-areas:
       'side-bar middle-content presets-bar'
-      'graph-wrapper graph-wrapper graph-wrapper';
+      'side-bar graph-wrapper presets-bar';
     grid-template-columns: $sidebar-width 1fr $preset-bar-width;
     // Keep fixed height for equalizer when graph view is on
     grid-template-rows: $equalizer-height 1fr;
@@ -707,7 +707,8 @@ body {
 .right-content {
   position: sticky;
   top: calc($title-bar-height + 16px);
-  align-self: start;
+  align-self: stretch;
+  height: 100%;
   max-height: calc(100vh - $title-bar-height - 34px);
   overflow: auto;
 }
@@ -1018,8 +1019,8 @@ html {
     #root {
       grid-template-areas:
         'side-bar middle-content'
-        'presets-bar presets-bar'
-        'graph-wrapper graph-wrapper';
+        'side-bar graph-wrapper'
+        'presets-bar presets-bar';
       grid-template-columns: 142px minmax(0, 1fr);
       grid-template-rows: minmax(520px, auto) auto 320px;
     }

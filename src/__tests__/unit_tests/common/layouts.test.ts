@@ -1,8 +1,13 @@
 import {
   adaptLayoutSnapshot,
+  adaptLayoutToFixedFrequencies,
   getFixedBandSizeForCount,
 } from '../../../common/layouts';
-import { FilterTypeEnum, FixedBandSizeEnum } from '../../../common/constants';
+import {
+  FIXED_BAND_FREQUENCIES,
+  FilterTypeEnum,
+  FixedBandSizeEnum,
+} from '../../../common/constants';
 
 const band = (frequency: number, gain = 0) => ({
   frequency,
@@ -40,5 +45,18 @@ describe('layout frequency preservation', () => {
     source.forEach((savedBand) => {
       expect(result).toContainEqual(savedBand);
     });
+  });
+
+  it("maps adapted tuning values onto each layout's predefined frequencies", () => {
+    const source = FIXED_BAND_FREQUENCIES[FixedBandSizeEnum.TEN].map(
+      (frequency, index) => band(frequency, index + 1),
+    );
+
+    const result = adaptLayoutToFixedFrequencies(source, FixedBandSizeEnum.SIX);
+
+    expect(result.map(({ frequency }) => frequency)).toEqual(
+      FIXED_BAND_FREQUENCIES[FixedBandSizeEnum.SIX],
+    );
+    expect(result.map(({ gain }) => gain)).toEqual([1, 3, 5, 6, 8, 10]);
   });
 });
