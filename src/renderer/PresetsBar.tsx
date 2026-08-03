@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import './styles/PresetsBar.scss';
 import { ErrorDescription } from 'common/errors';
+import { IDeviceProfileAssignment } from 'common/constants';
 import { isRestrictedPresetName } from 'common/utils';
 import { useAquaContext } from './utils/AquaContext';
 import TextInput from './widgets/TextInput';
@@ -26,6 +27,10 @@ import Button from './widgets/Button';
 import List, { IOptionEntry } from './widgets/List';
 import PresetListItem from './components/PresetListItem';
 import { formatPresetName } from './utils/utils';
+import {
+  getAudioDevices,
+  getDeviceProfileSettings,
+} from './utils/equalizerApi';
 
 export enum PresetErrorEnum {
   EMPTY = 'Preset name cannot be empty.',
@@ -91,6 +96,48 @@ const PresetsBar = ({
   const [presetName, setPresetName] = useState<string>('');
   const [newPresetNameError, setNewPresetNameError] = useState<string>('');
   const [presetNames, dispatchPresetNames] = useReducer(presetReducer, []);
+  const [activeDeviceId, setActiveDeviceId] = useState('');
+  const [deviceAssignments, setDeviceAssignments] = useState<
+    Record<string, IDeviceProfileAssignment>
+  >({});
+
+  const refreshOutputProfiles = useCallback(async () => {
+    try {
+      const [devices, settings] = await Promise.all([
+        getAudioDevices(),
+        getDeviceProfileSettings(),
+      ]);
+      setActiveDeviceId(devices.find((device) => device.isDefault)?.id || '');
+      setDeviceAssignments(settings.assignments);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  }, [setGlobalError]);
+
+  useEffect(() => {
+    refreshOutputProfiles();
+    const handleOutputChanged = () => {
+      refreshOutputProfiles();
+    };
+    window.addEventListener('fluideq-output-changed', handleOutputChanged);
+    return () =>
+      window.removeEventListener('fluideq-output-changed', handleOutputChanged);
+  }, [refreshOutputProfiles]);
+
+  const visiblePresetNames = useMemo(() => {
+    const assignedPreset = activeDeviceId
+      ? deviceAssignments[activeDeviceId]?.presetName
+      : '';
+    return assignedPreset
+      ? presetNames.filter((name) => name === assignedPreset)
+      : [];
+  }, [activeDeviceId, deviceAssignments, presetNames]);
+
+  useEffect(() => {
+    setPresetName((current) =>
+      visiblePresetNames.includes(current) ? current : '',
+    );
+  }, [visiblePresetNames]);
 
   const isExistingPresetSelected = useMemo(
     () => presetNames.some((n) => n === presetName),
@@ -111,6 +158,7 @@ const PresetsBar = ({
       }
     };
 
+    fetchPresetNames();
     window.addEventListener('fluideq-presets-changed', fetchPresetNames);
     return () =>
       window.removeEventListener('fluideq-presets-changed', fetchPresetNames);
@@ -133,6 +181,10 @@ const PresetsBar = ({
           presetName,
         });
       }
+      await refreshOutputProfiles();
+      // Keep the newly saved profile selected while the output-scoped list
+      // catches up with the assignment written by the main process.
+      setPresetName(presetName);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
@@ -140,6 +192,7 @@ const PresetsBar = ({
     isExistingPresetSelected,
     newPresetNameError,
     presetName,
+    refreshOutputProfiles,
     savePreset,
     setGlobalError,
   ]);
@@ -149,6 +202,7 @@ const PresetsBar = ({
     if (presetToLoad && presetNames.includes(presetToLoad)) {
       try {
         await loadPreset(presetToLoad);
+        await refreshOutputProfiles();
         performHealthCheck();
       } catch (e) {
         setGlobalError(e as ErrorDescription);
@@ -244,6 +298,7 @@ const PresetsBar = ({
           type: PresetActionEnum.DELETE,
           presetName: deletedValue,
         });
+        await refreshOutputProfiles();
 
         // Deselect preset name info since the preset no longer exists
         setPresetName('');
@@ -251,7 +306,7 @@ const PresetsBar = ({
         // continue to run, the worst case is that the file still exists and that's all.
       }
     },
-    [deletePreset],
+    [deletePreset, refreshOutputProfiles],
   );
 
   // Renaming an existing preset
@@ -259,6 +314,7 @@ const PresetsBar = ({
     (oldName: string) => async (newName: string) => {
       try {
         await renamePreset(oldName, newName);
+        await refreshOutputProfiles();
         dispatchPresetNames({
           type: PresetActionEnum.RENAME,
           oldName,
@@ -271,11 +327,11 @@ const PresetsBar = ({
         setGlobalError(e as ErrorDescription);
       }
     },
-    [renamePreset, setGlobalError],
+    [refreshOutputProfiles, renamePreset, setGlobalError],
   );
 
   const options: IOptionEntry[] = useMemo(() => {
-    return presetNames.map((n) => {
+    return visiblePresetNames.map((n) => {
       return {
         value: n,
         label: n,
@@ -295,7 +351,7 @@ const PresetsBar = ({
     globalError,
     handleDeletePreset,
     handleRenameExistingPresetName,
-    presetNames,
+    visiblePresetNames,
   ]);
 
   return (
@@ -332,7 +388,11 @@ const PresetsBar = ({
         value={presetName}
         handleChange={handleChangeSelectedPreset}
         isDisabled={!!globalError}
-        emptyOptionsPlaceholder="No profiles yet. Create your first sound."
+        emptyOptionsPlaceholder={
+          activeDeviceId
+            ? 'No profile attached to this output.'
+            : 'No active output selected.'
+        }
       />
     </div>
   );

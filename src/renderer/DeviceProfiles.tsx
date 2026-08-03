@@ -50,6 +50,11 @@ const DeviceProfiles = () => {
       if (activeDevice && activeDevice.id !== activeDeviceIdRef.current) {
         activeDeviceIdRef.current = activeDevice.id;
         setSelectedDeviceId(activeDevice.id);
+        window.dispatchEvent(
+          new CustomEvent('fluideq-output-changed', {
+            detail: { deviceId: activeDevice.id },
+          }),
+        );
         performHealthCheck();
       }
       setSelectedDeviceId((current) => {
