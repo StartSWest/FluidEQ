@@ -252,6 +252,10 @@ const es: Partial<Dictionary> = {
 
   'support.game.shareSave': 'Guardar tarjeta',
 
+  'support.game.shareCopyCard': 'Copiar tarjeta',
+
+  'support.game.shareCardCopied': 'Copiada — pégala ahí',
+
   'support.game.shareCopy': 'Copiar texto',
 
   'support.game.shareCopied': 'Copiado',

@@ -74,32 +74,55 @@ it under the terms of the GNU General Public License version 3 or later.
   text-wrap: balance;
 }
 
+// Laid out to match the card, so what is on screen and what gets posted are
+// the same picture rather than two designs for one number. The score is the
+// headline in both, the multiplier sits under it in both, and the record and
+// the share sit off to the side.
 .rhythm-game__scores {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
+  display: grid;
+  align-items: center;
+  justify-items: center;
+  gap: 2px 12px;
+  grid-template-areas:
+    'score  aside'
+    'streak aside';
+  grid-template-columns: 1fr auto;
 }
 
+// Big, because it is the thing being celebrated. It was 1.3rem — smaller than
+// the heading above it and the same size as any other number in the app, for
+// the one figure the whole panel exists to produce.
 .rhythm-game__score {
-  color: $secondary-light;
-  font-size: 1.3rem;
-  font-weight: 750;
+  color: $white;
+  font-size: 3.2rem;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
+  grid-area: score;
   line-height: 1;
 }
 
-// Sits between the score and the record, because it is the thing that turns
-// one into the other.
+// Directly under the score, which is where the card puts it. It is the thing
+// that turns one number into the other, so the two belong together rather than
+// at opposite ends of a row.
 .rhythm-game__streak {
-  margin-right: auto;
-  padding: 2px 7px;
+  padding: 1px 10px;
   color: $neon-lime;
   border-radius: $radius-pill;
   background: rgba($neon-lime, 0.12);
-  font-size: 0.62rem;
-  font-weight: 750;
+  font-size: 1rem;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
+  grid-area: streak;
+}
+
+// Everything that is not the run itself, stacked to one side so the score
+// keeps the middle to itself.
+.rhythm-game__aside {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  grid-area: aside;
 }
 
 .rhythm-game__best {

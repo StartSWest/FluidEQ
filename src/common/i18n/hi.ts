@@ -256,6 +256,10 @@ const hi: Partial<Dictionary> = {
 
   'support.game.shareSave': 'कार्ड सहेजें',
 
+  'support.game.shareCopyCard': 'कार्ड कॉपी करें',
+
+  'support.game.shareCardCopied': 'कॉपी हुआ — चिपका दें',
+
   'support.game.shareCopy': 'टेक्स्ट कॉपी करें',
 
   'support.game.shareCopied': 'कॉपी हो गया',

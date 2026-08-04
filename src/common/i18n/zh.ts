@@ -239,6 +239,10 @@ const zh: Partial<Dictionary> = {
 
   'support.game.shareSave': '保存卡片',
 
+  'support.game.shareCopyCard': '复制卡片',
+
+  'support.game.shareCardCopied': '已复制 — 直接粘贴',
+
   'support.game.shareCopy': '复制文字',
 
   'support.game.shareCopied': '已复制',

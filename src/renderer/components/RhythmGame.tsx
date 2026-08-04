@@ -389,30 +389,35 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
               .replace(/\.?0+$/, '')}
           </span>
         )}
-        {isEuphoric && (
-          <span className="euphoria-pill">{t('support.game.euphoria')}</span>
-        )}
-        <span className="rhythm-game__best">
-          {t('support.game.best')} {highScore}
-        </span>
-        {/* Nothing to share until there is a record. Offering it at zero is an
-            empty button and an invitation to post a score of nothing.
+        {/* Off to the side, so the run keeps the middle to itself — the same
+            division the card makes between what happened just now and
+            everything else. */}
+        <div className="rhythm-game__aside">
+          {isEuphoric && (
+            <span className="euphoria-pill">{t('support.game.euphoria')}</span>
+          )}
+          <span className="rhythm-game__best">
+            {t('support.game.best')} {highScore}
+          </span>
+          {/* Nothing to share until there is a record. Offering it at zero is
+              an empty button and an invitation to post a score of nothing.
 
-            At the ceiling it stops being a quiet outline and turns into the
-            spectrum, because that is the moment worth showing anyone — the
-            share is being offered while the thing it captures is on screen,
-            rather than being a footnote next to a number. */}
-        {shareScore > 0 && !isSharing && (
-          <button
-            type="button"
-            className={`rhythm-game__share${isEuphoric ? ' is-euphoric' : ''}`}
-            onClick={() => setIsSharing(true)}
-          >
-            {isEuphoric
-              ? t('support.game.shareEuphoria')
-              : t('support.game.share')}
-          </button>
-        )}
+              At the ceiling it stops being a quiet outline and turns into the
+              spectrum, because that is the moment worth showing anyone — the
+              share is being offered while the thing it captures is on screen,
+              rather than being a footnote next to a number. */}
+          {shareScore > 0 && !isSharing && (
+            <button
+              type="button"
+              className={`rhythm-game__share${isEuphoric ? ' is-euphoric' : ''}`}
+              onClick={() => setIsSharing(true)}
+            >
+              {isEuphoric
+                ? t('support.game.shareEuphoria')
+                : t('support.game.share')}
+            </button>
+          )}
+        </div>
       </div>
 
       {isSharing ? (

@@ -58,6 +58,107 @@ const FONT_STACK =
   '"Segoe UI", system-ui, -apple-system, Helvetica, sans-serif';
 
 /**
+ * The creature, drawn from the same coordinates her SVG uses.
+ *
+ * Her markup is a 40×40 viewBox of plain circles, arcs and one polygon, so
+ * these are the same numbers transcribed rather than a second design — she
+ * cannot end up looking like a different animal on the card than she does in
+ * the app.
+ *
+ * Rasterising the live element was the alternative and it is a trap: her
+ * appearance leans on the stylesheet for the glow, the hop and the eye waves,
+ * and getting CSS into a canvas means an SVG foreignObject round-trip that
+ * renders differently depending on what the app happened to be doing when the
+ * button was pressed.
+ */
+const drawPet = (
+  context: CanvasRenderingContext2D,
+  centreX: number,
+  centreY: number,
+  size: number,
+  euphoric: boolean,
+) => {
+  const scale = size / 40;
+  context.save();
+  context.translate(centreX - size / 2, centreY - size / 2);
+  context.scale(scale, scale);
+
+  const body = context.createLinearGradient(0, 11, 0, 37);
+  body.addColorStop(0, '#7ef7e6');
+  body.addColorStop(1, '#17a5c4');
+
+  // The ears are a little EQ curve — she is made of the thing the app does,
+  // and at this size that reads.
+  context.strokeStyle = body;
+  context.lineWidth = 3;
+  context.lineCap = 'round';
+  context.lineJoin = 'round';
+  context.beginPath();
+  context.moveTo(11, 12);
+  context.lineTo(14, 6);
+  context.lineTo(17, 12);
+  context.moveTo(23, 12);
+  context.lineTo(26, 8);
+  context.lineTo(29, 12);
+  context.stroke();
+
+  context.fillStyle = body;
+  context.beginPath();
+  context.arc(20, 24, 12.5, 0, Math.PI * 2);
+  context.fill();
+
+  context.fillStyle = '#06131d';
+  [15.4, 24.6].forEach((x) => {
+    context.beginPath();
+    context.arc(x, 22, 3.4, 0, Math.PI * 2);
+    context.fill();
+  });
+
+  context.fillStyle = '#ffffff';
+  [16.4, 25.6].forEach((x) => {
+    context.beginPath();
+    context.arc(x, 21, 1.15, 0, Math.PI * 2);
+    context.fill();
+  });
+
+  // Wider at the ceiling. The face is the app's own reaction to the run, and a
+  // card celebrating euphoria under a polite half-smile undersells it.
+  context.strokeStyle = '#06131d';
+  context.lineWidth = 1.8;
+  context.beginPath();
+  context.moveTo(16.6, 28.4);
+  context.quadraticCurveTo(20, euphoric ? 32.6 : 31.4, 23.4, 28.4);
+  context.stroke();
+
+  // The supporter's star. Always drawn here: only a supporter can open the
+  // game, so anyone with a card to share has earned it.
+  context.fillStyle = '#ffe66d';
+  context.beginPath();
+  [
+    [31.5, 8.2],
+    [32.7, 11],
+    [35.6, 11.3],
+    [33.4, 13.2],
+    [34.1, 16],
+    [31.5, 14.5],
+    [28.9, 16],
+    [29.6, 13.2],
+    [27.4, 11.3],
+    [30.3, 11],
+  ].forEach(([x, y], index) => {
+    if (index === 0) {
+      context.moveTo(x, y);
+    } else {
+      context.lineTo(x, y);
+    }
+  });
+  context.closePath();
+  context.fill();
+
+  context.restore();
+};
+
+/**
  * The bar of sliders along the bottom.
  *
  * The single most recognisable thing about the app, and the thing euphoria
@@ -156,16 +257,21 @@ const drawCard = (
     context.restore();
   }
 
-  drawBands(context, euphoric, CARD_HEIGHT - 104);
+  drawBands(context, euphoric, 540);
 
-  // A waveform, because that is what the app draws and what the game is
-  // played against. Deterministic — a fixed sum of sines rather than random
-  // noise, so two people who scored the same get the same card.
-  context.save();
-  context.globalAlpha = euphoric ? 0.85 : 0.45;
-  context.strokeStyle = euphoric ? sweep : '#2ec5c0';
-  context.lineWidth = euphoric ? 4 : 3;
-  context.beginPath();
+  // The game's own waveform, not a line graph of one.
+  //
+  // Mirrored about a centre and closed into a filled shape, which is how both
+  // the trace in the game and the meter in the titlebar draw. A single stroked
+  // curve was a different picture of the same idea, and the card is supposed to
+  // look like what was on screen.
+  //
+  // Deterministic - a fixed sum of sines rather than noise - so two people who
+  // scored the same get the same card.
+  const waveCentre = 442;
+  const amplitude = euphoric ? 40 : 30;
+  const upper = [];
+  const lower = [];
   for (let x = 0; x <= CARD_WIDTH; x += 4) {
     const phase = x / CARD_WIDTH;
     const envelope = Math.sin(phase * Math.PI);
@@ -173,16 +279,38 @@ const drawCard = (
       Math.sin(phase * 26) * 0.55 +
       Math.sin(phase * 61 + 1.1) * 0.28 +
       Math.sin(phase * 113 + 2.3) * 0.17;
-    const y = 462 + wave * envelope * (euphoric ? 46 : 34);
-    if (x === 0) {
+    const offset = wave * envelope * amplitude;
+    upper.push([x, waveCentre - offset]);
+    lower.push([x, waveCentre + offset]);
+  }
+  context.save();
+  context.beginPath();
+  upper.forEach(([x, y], index) => {
+    if (index === 0) {
       context.moveTo(x, y);
     } else {
       context.lineTo(x, y);
     }
-  }
+  });
+  lower.reverse().forEach(([x, y]) => context.lineTo(x, y));
+  context.closePath();
+  context.fillStyle = euphoric ? sweep : '#2ec5c0';
+  context.globalAlpha = euphoric ? 0.42 : 0.26;
+  context.fill();
+  context.globalAlpha = euphoric ? 0.95 : 0.6;
+  context.strokeStyle = euphoric ? sweep : '#2ec5c0';
+  context.lineWidth = 3;
+  context.lineJoin = 'round';
   context.stroke();
   context.restore();
 
+  // She goes on the left with the numbers to her right, rather than everything
+  // stacked down one column. 1200x630 is a wide letterbox and a single centred
+  // stack leaves two big empty margins - and she is the most recognisable
+  // thing the app has, so she earns half the frame.
+  drawPet(context, 250, 236, 290, euphoric);
+
+  const column = 782;
   context.textAlign = 'center';
 
   // The pill, drawn the way the app draws it, because it is the badge the
@@ -191,44 +319,39 @@ const drawCard = (
     const label = 'EUPHORIA MODE';
     context.font = `800 30px ${FONT_STACK}`;
     const pillWidth = context.measureText(label).width + 56;
-    const pillX = (CARD_WIDTH - pillWidth) / 2;
     context.save();
     context.fillStyle = sweep;
     context.beginPath();
-    context.roundRect(pillX, 92, pillWidth, 54, 27);
+    context.roundRect(column - pillWidth / 2, 96, pillWidth, 54, 27);
     context.fill();
     context.fillStyle = '#06131d';
-    context.fillText(label, CARD_WIDTH / 2, 129);
+    context.fillText(label, column, 133);
     context.restore();
   } else {
     context.fillStyle = 'rgba(226, 240, 247, 0.55)';
     context.font = `600 26px ${FONT_STACK}`;
-    context.fillText('FLUIDEQ · BEAT GAME', CARD_WIDTH / 2, 129);
+    context.fillText('FLUIDEQ · BEAT GAME', column, 133);
   }
 
   context.fillStyle = '#ffffff';
-  context.font = `800 172px ${FONT_STACK}`;
-  context.fillText(String(Math.max(0, Math.floor(score))), CARD_WIDTH / 2, 306);
+  context.font = `800 152px ${FONT_STACK}`;
+  context.fillText(String(Math.max(0, Math.floor(score))), column, 284);
 
   context.fillStyle = euphoric ? '#ffe66d' : '#54ff8a';
-  context.font = `750 56px ${FONT_STACK}`;
-  context.fillText(
-    `×${Math.max(1, Math.floor(multiplier))}`,
-    CARD_WIDTH / 2,
-    374,
-  );
+  context.font = `750 54px ${FONT_STACK}`;
+  context.fillText(`×${Math.max(1, Math.floor(multiplier))}`, column, 346);
 
   // Where to get it. The point of the post is that somebody who has never
   // heard of FluidEQ sees the picture and can act on it, and a card that shows
   // off a mode without saying what the app is called or where it lives is an
   // advert for nothing. Drawn on the image rather than left to the link
   // preview, because the image is what gets reposted and screenshotted.
-  context.fillStyle = 'rgba(226, 240, 247, 0.82)';
+  context.fillStyle = 'rgba(226, 240, 247, 0.85)';
   context.font = `600 30px ${FONT_STACK}`;
   context.fillText(
     'FluidEQ — free system-wide EQ for Windows',
     CARD_WIDTH / 2,
-    552,
+    584,
   );
 
   context.fillStyle = 'rgba(226, 240, 247, 0.5)';
@@ -236,7 +359,7 @@ const drawCard = (
   context.fillText(
     downloadUrl.replace(/^https?:\/\//, ''),
     CARD_WIDTH / 2,
-    590,
+    614,
   );
 };
 
@@ -247,7 +370,9 @@ const ShareScoreCard = ({
 }: IShareScoreCardProps) => {
   const { t } = useTranslation();
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const [copied, setCopied] = useState(false);
+  // Which button was pressed, not merely that one was. Two things can be
+  // copied now and a shared boolean confirmed the wrong one.
+  const [copied, setCopied] = useState<'card' | 'text' | ''>('');
   const copiedTimer = useRef<number | undefined>(undefined);
 
   const text = buildShareText(score, multiplier);
@@ -284,24 +409,53 @@ const ShareScoreCard = ({
     link.click();
   }, [multiplier, score]);
 
+  const confirm = useCallback((which: 'card' | 'text') => {
+    setCopied(which);
+    window.clearTimeout(copiedTimer.current);
+    copiedTimer.current = window.setTimeout(() => setCopied(''), COPIED_MS);
+  }, []);
+
+  /**
+   * The image itself, on the clipboard.
+   *
+   * As close to automatic as any of the three allows. None of them will accept
+   * an image through a share URL — they read the link and render their own
+   * preview of it, and nothing in the query string can change that — so an
+   * "attach automatically" button is not a thing that can be built. What can
+   * be removed is every step between here and the composer: with the PNG on
+   * the clipboard it goes in with one paste, no file dialog, no hunting
+   * through a downloads folder for something saved thirty seconds ago.
+   */
+  const copyCard = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+    canvas.toBlob((blob) => {
+      if (!blob) {
+        return;
+      }
+      navigator.clipboard
+        .write([new ClipboardItem({ 'image/png': blob })])
+        .then(() => confirm('card'))
+        .catch(() => {
+          // Refused clipboards are not a dead end: the card is on screen and
+          // Save is right there, so this falls back to the manual path rather
+          // than reporting a failure nobody can act on.
+        });
+    }, 'image/png');
+  }, [confirm]);
+
   const copy = useCallback(() => {
     navigator.clipboard
       .writeText(`${text} ${url}`)
-      .then(() => {
-        setCopied(true);
-        window.clearTimeout(copiedTimer.current);
-        copiedTimer.current = window.setTimeout(
-          () => setCopied(false),
-          COPIED_MS,
-        );
-        return undefined;
-      })
+      .then(() => confirm('text'))
       .catch(() => {
         // Nothing to recover: the text is on screen and selectable, so a
         // clipboard the browser refused is an inconvenience rather than a
         // dead end.
       });
-  }, [text, url]);
+  }, [confirm, text, url]);
 
   return (
     <div className="share-score">
@@ -335,15 +489,24 @@ const ShareScoreCard = ({
         <button
           type="button"
           className="share-score__save"
-          onClick={save}
-          // Deliberately first and visually loudest. The image is the part
-          // that cannot be automated, so it is the step most worth pointing
-          // at before the network buttons take them away from the app.
+          onClick={copyCard}
+          // First and loudest, because it is the shortest path there is. The
+          // networks cannot be handed an image by a link, so the best that can
+          // exist is the card already on the clipboard when the composer
+          // opens — one paste instead of a save, a file dialog and a hunt
+          // through a downloads folder.
         >
+          {copied === 'card'
+            ? t('support.game.shareCardCopied')
+            : t('support.game.shareCopyCard')}
+        </button>
+        <button type="button" className="share-score__copy" onClick={save}>
           {t('support.game.shareSave')}
         </button>
         <button type="button" className="share-score__copy" onClick={copy}>
-          {copied ? t('support.game.shareCopied') : t('support.game.shareCopy')}
+          {copied === 'text'
+            ? t('support.game.shareCopied')
+            : t('support.game.shareCopy')}
         </button>
       </div>
 

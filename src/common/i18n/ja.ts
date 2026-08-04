@@ -251,6 +251,10 @@ const ja: Partial<Dictionary> = {
 
   'support.game.shareSave': 'カードを保存',
 
+  'support.game.shareCopyCard': 'カードをコピー',
+
+  'support.game.shareCardCopied': 'コピーしました — 貼り付けてください',
+
   'support.game.shareCopy': 'テキストをコピー',
 
   'support.game.shareCopied': 'コピーしました',

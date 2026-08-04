@@ -250,6 +250,10 @@ const ru: Partial<Dictionary> = {
 
   'support.game.shareSave': 'Сохранить карточку',
 
+  'support.game.shareCopyCard': 'Копировать карточку',
+
+  'support.game.shareCardCopied': 'Скопировано — вставьте',
+
   'support.game.shareCopy': 'Копировать текст',
 
   'support.game.shareCopied': 'Скопировано',

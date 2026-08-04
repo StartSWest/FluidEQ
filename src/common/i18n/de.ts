@@ -252,6 +252,10 @@ const de: Partial<Dictionary> = {
 
   'support.game.shareSave': 'Karte speichern',
 
+  'support.game.shareCopyCard': 'Karte kopieren',
+
+  'support.game.shareCardCopied': 'Kopiert — einfach einfügen',
+
   'support.game.shareCopy': 'Text kopieren',
 
   'support.game.shareCopied': 'Kopiert',

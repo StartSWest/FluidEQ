@@ -272,6 +272,8 @@ const en = {
   'support.game.shareNote':
     'Save the card, then attach it to your post — none of these networks can pull an image out of a link.',
   'support.game.shareSave': 'Save card',
+  'support.game.shareCopyCard': 'Copy card',
+  'support.game.shareCardCopied': 'Copied — paste it in',
   'support.game.shareCopy': 'Copy text',
   'support.game.shareCopied': 'Copied',
   'support.game.shareLinkOnly':

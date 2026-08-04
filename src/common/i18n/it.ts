@@ -251,6 +251,10 @@ const it: Partial<Dictionary> = {
 
   'support.game.shareSave': 'Salva scheda',
 
+  'support.game.shareCopyCard': 'Copia scheda',
+
+  'support.game.shareCardCopied': 'Copiata — incollala',
+
   'support.game.shareCopy': 'Copia testo',
 
   'support.game.shareCopied': 'Copiato',
