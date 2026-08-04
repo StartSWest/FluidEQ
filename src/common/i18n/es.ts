@@ -241,6 +241,8 @@ const es: Partial<Dictionary> = {
 
   'support.game.best': 'Récord',
 
+  'support.game.euphoria': 'Modo euforia',
+
   'support.game.perfect': 'Perfecto',
 
   'support.game.great': 'Muy bien',

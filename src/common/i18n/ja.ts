@@ -240,6 +240,8 @@ const ja: Partial<Dictionary> = {
 
   'support.game.best': '最高記録',
 
+  'support.game.euphoria': 'ユーフォリアモード',
+
   'support.game.perfect': 'パーフェクト',
 
   'support.game.great': 'グレート',

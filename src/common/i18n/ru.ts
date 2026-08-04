@@ -239,6 +239,8 @@ const ru: Partial<Dictionary> = {
 
   'support.game.best': 'Рекорд',
 
+  'support.game.euphoria': 'Режим эйфории',
+
   'support.game.perfect': 'Идеально',
 
   'support.game.great': 'Отлично',

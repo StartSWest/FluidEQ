@@ -245,6 +245,8 @@ const hi: Partial<Dictionary> = {
 
   'support.game.best': 'सर्वश्रेष्ठ',
 
+  'support.game.euphoria': 'यूफोरिया मोड',
+
   'support.game.perfect': 'बिलकुल सही',
 
   'support.game.great': 'शानदार',

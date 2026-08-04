@@ -133,19 +133,22 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   );
   // The newest peak the automatic run has already played.
   const lastAutoRef = useRef(-Infinity);
+  // Reused every frame. See the fill below.
+  const binsRef = useRef<number[]>([]);
 
   const isListening = isActive && !isPaused;
 
   /**
-   * One scoring path, used by a tap and by the automatic run alike.
+   * One path for a hit, whether a person made it or the automatic run did.
    *
-   * The streak is computed once, here, from the ref rather than from React
-   * state — state is a render behind, and the face and the glow have to be
-   * right on the tap that earned them. It used to be applied twice, once inside
-   * the setRun updater and once after it, which double-counted under React's
-   * strict double-invocation.
+   * `record` is what separates them. Both show the same thing — the verdict,
+   * the flare, the creature's face — but only a real tap moves the score.
+   *
+   * The run is read from the store rather than from the rendered value, because
+   * state is a render behind and the face has to be right on the tap that
+   * earned it.
    */
-  const scoreHit = useCallback((hit: IRhythmHit): IRhythmTapResult => {
+  const scoreHit = useCallback((hit: IRhythmHit, record = true) => {
     setLastHit(hit);
     setHitSeq((seq) => seq + 1);
     // The verdict is feedback on a tap, so it goes away when the tap is over.
@@ -158,6 +161,15 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
       verdictResetRef.current = undefined;
       setLastHit(undefined);
     }, VERDICT_HOLD_MS);
+
+    // The automatic run is theatre, not play. It shows the perfect and it keeps
+    // the mode alive, but it must not add a single point: a score that climbs
+    // while nobody is touching anything is not a score, and the high score is
+    // meant to say something about the person who set it. Everything below this
+    // line only happens for a tap someone actually made.
+    if (!record) {
+      return { verdict: hit.verdict, joy: getStreakJoy(getRhythmRun().streak) };
+    }
 
     // Read from the store rather than from the rendered value, which is a
     // render behind — the face and the glow have to be right on the tap
@@ -181,7 +193,18 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     // The low half of the spectrum. Percussion energy that matters for keeping
     // time — kick, snare, toms — lives down there, and leaving the top out
     // keeps a bright synth pad from reading as a hit.
-    const bins = points.slice(0, Math.floor(points.length / 2)).map((p) => p.y);
+    // Filled into a buffer that is allocated once and reused, rather than a
+    // slice and a map every frame. At ~22 frames a second that was two arrays
+    // of a hundred and sixty numbers per frame, thrown away immediately, for
+    // the whole time the dialog is open.
+    const half = Math.floor(points.length / 2);
+    if (binsRef.current.length !== half) {
+      binsRef.current = new Array<number>(half);
+    }
+    const bins = binsRef.current;
+    for (let index = 0; index < half; index += 1) {
+      bins[index] = points[index].y;
+    }
     const next = pushPercussionFrame(stateRef.current, bins, now, {
       windowMs: WINDOW_MS,
     });
@@ -234,7 +257,8 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
         const arrivesAt = sample.timeMs + LEAD_MS;
         if (arrivesAt <= now && arrivesAt > lastAutoRef.current) {
           lastAutoRef.current = arrivesAt;
-          scoreHit(gradeRhythmOffset(0));
+          // Shown, not scored.
+          scoreHit(gradeRhythmOffset(0), false);
         }
       });
     }
@@ -300,6 +324,9 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
               .toFixed(2)
               .replace(/\.?0+$/, '')}
           </span>
+        )}
+        {getStreakJoy(run.streak) >= EUPHORIA_AT && (
+          <span className="euphoria-pill">{t('support.game.euphoria')}</span>
         )}
         <span className="rhythm-game__best">
           {t('support.game.best')} {highScore}

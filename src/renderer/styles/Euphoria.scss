@@ -25,61 +25,116 @@ it under the terms of the GNU General Public License version 3 or later.
   // the whole effect dropping out between beats.
   --euphoria-strength: calc(0.55 + var(--euphoria-level, 0) * 0.45);
 
-  // The shell itself, breathing colour behind everything.
-  &::after {
-    position: fixed;
-    z-index: 2000;
-    inset: 0;
-    animation: euphoria-hue 6s linear infinite;
-    background:
-      radial-gradient(circle at 12% 8%, rgba(#00e5ff, 0.16), transparent 46%),
-      radial-gradient(circle at 88% 14%, rgba(#ff3cac, 0.14), transparent 44%),
-      radial-gradient(circle at 50% 96%, rgba(#8b5cff, 0.14), transparent 48%);
-    opacity: var(--euphoria-strength);
-    // Decoration over the entire window: it must never eat a click.
-    pointer-events: none;
-    content: '';
-  }
+  // No background wash. A full-window colour film was the first attempt and it
+  // was the wrong instrument entirely: it tinted the panels, the readouts and
+  // the graph alike, so everything got quietly harder to read and the app
+  // looked broken rather than delighted. The celebration lives on edges and on
+  // the things that were already moving — nothing that sits behind text.
+  //
+  // The hue everything below reads, swept once on the root so every element
+  // inherits the same travelling colour rather than each running its own copy
+  // and slowly falling out of step.
+  animation: euphoria-sweep 3.6s linear infinite;
 
-  // The EQ, the graph and the titlebar each pick up an edge in the sweep. Rims
-  // rather than washes — a coloured film over the controls would make the
-  // numbers harder to read, and this is still an equaliser.
-  .main-content,
-  .graph-wrapper,
-  .window-titlebar {
-    animation: euphoria-rim 6s linear infinite;
-  }
+  // Not the buttons, and not the panel rims either. Both were tried and both
+  // are gone for the same reason: sweeping a colour through `border-color` and
+  // `box-shadow` on every control in the window forces a style recalculation
+  // and a repaint across the whole document on every frame, and the interface
+  // went visibly heavy while it celebrated. A celebration that makes the app
+  // feel slow is not a celebration.
+  //
+  // What is left is deliberately narrow: the bands, and the two meters. Those
+  // were already animating every frame, so the sweep rides along with work the
+  // compositor was doing anyway and costs nothing extra.
 
   .waveform-visualizer,
   .rhythm-game__trace {
     animation: euphoria-glow 6s linear infinite;
   }
 
+  // The target line joins in: thicker, and riding the same hue as everything
+  // else. Nothing here needs undoing on a miss — the class is on the document
+  // root and a broken streak removes it, so the line goes back to its ordinary
+  // width and colour in the same moment the rest of the window does.
+  .rhythm-game__target {
+    width: 5px;
+    background: hsl(var(--euphoria-hue) 95% 65%);
+    box-shadow: 0 0 10px hsl(var(--euphoria-hue) 95% 60% / 70%);
+    translate: -2.5px 0;
+  }
+
+  // Taller only. The width stays put deliberately: the titlebar centres the
+  // meter between the brand block and the window controls, and growing it
+  // sideways pushes against both and shunts the whole bar around.
+  //
+  // 64px is exactly the room there is — 78 tall less 7 of padding top and
+  // bottom. Filling it means the meter grows as far as it can without pushing
+  // the bar taller, which would shift the entire workspace down, since `#root`
+  // is padded by the titlebar height.
+  //
+  // The SVG scales with the box, so the waves grow with it and end up nearly
+  // touching the edges.
+  .waveform-visualizer {
+    height: 64px;
+    transition: height 700ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
   // The bands take the strongest treatment, because they are the part of the
   // window that already moves with the music.
   //
-  // The hue is animated as a registered property — a plain custom property
-  // interpolates as a string and would jump between keyframes rather than
-  // sweeping — and every colour the slider draws with is derived from it, so
-  // the track, its rim and its glow stay one colour as it travels.
+  // Every colour a slider draws with derives from the one hue, so the track,
+  // its border and its halo travel together instead of drifting apart.
   //
-  // Staggered so the spectrum runs ACROSS the row rather than every band
-  // flashing in unison. Six phases via nth-child, because the band count is
-  // whatever the user picked and no fixed set of selectors can enumerate it;
-  // six is enough to read as a wave and repeats invisibly.
+  // Each band runs its OWN copy of the sweep, staggered, so the spectrum runs
+  // along the row rather than every band flashing in unison. Six phases via
+  // nth-child, because the band count is whatever the user picked and no fixed
+  // set of selectors can enumerate it; six reads as a wave and repeats
+  // invisibly.
+  // One animation, not one per band.
+  //
+  // Each band used to run its own copy of the sweep with a staggered delay,
+  // which is up to thirty-one animated custom properties and thirty-one
+  // subtrees recalculating style every frame. The root already animates the
+  // hue, so a band only needs a fixed OFFSET added to it — the colour still
+  // runs along the row, and the browser is driving a single property.
   .bandWrapper {
-    animation: euphoria-sweep 3.6s linear infinite;
+    --band-hue: calc(var(--euphoria-hue) + var(--band-offset, 0deg));
 
-    --slider-color: hsl(var(--euphoria-hue) 95% 62%);
-    --slider-color-muted: hsl(var(--euphoria-hue) 95% 62% / 55%);
-    --slider-track: hsl(var(--euphoria-hue) 90% 46% / 35%);
+    --slider-color: hsl(var(--band-hue) 95% 62%);
+    --slider-color-muted: hsl(var(--band-hue) 95% 62% / 62%);
+    --slider-track: hsl(var(--band-hue) 90% 46% / 35%);
 
     @for $phase from 1 through 6 {
       &:nth-child(6n + #{$phase}) {
-        animation-delay: #{($phase - 1) * -0.6}s;
+        --band-offset: #{($phase - 1) * 60}deg;
       }
     }
   }
+}
+
+// The badge that names the mode. One class, used by the support panel and by
+// the titlebar meter, so the mode is announced the same way wherever it shows
+// up rather than as two things that happen to look similar.
+.euphoria-pill {
+  padding: 2px 9px;
+  color: #06131d;
+  border-radius: $radius-pill;
+  background: hsl(var(--euphoria-hue, 160deg) 95% 62%);
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+// Centred over the top of the meter, clear of the readouts at either end.
+.waveform-visualizer__euphoria {
+  position: absolute;
+  z-index: 1;
+  top: 2px;
+  left: 50%;
+  translate: -50% 0;
+  pointer-events: none;
 }
 
 // Registered so it can actually animate. Without the type the browser treats it
@@ -100,65 +155,34 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// One hue rotation, shared. Separate keyframes rather than one, because each
-// target needs a different property — animating `filter` on the whole shell
-// would force a full-window repaint every frame.
-@keyframes euphoria-hue {
-  from {
-    filter: hue-rotate(0deg);
-  }
-
-  to {
-    filter: hue-rotate(360deg);
-  }
-}
-
-@keyframes euphoria-rim {
-  0% {
-    box-shadow: 0 0 calc(var(--euphoria-strength) * 26px) rgba(#00e5ff, 0.5);
-  }
-
-  25% {
-    box-shadow: 0 0 calc(var(--euphoria-strength) * 26px) rgba(#54ff8a, 0.5);
-  }
-
-  50% {
-    box-shadow: 0 0 calc(var(--euphoria-strength) * 26px) rgba(#ffe66d, 0.5);
-  }
-
-  75% {
-    box-shadow: 0 0 calc(var(--euphoria-strength) * 26px) rgba(#ff3cac, 0.5);
-  }
-
-  100% {
-    box-shadow: 0 0 calc(var(--euphoria-strength) * 26px) rgba(#00e5ff, 0.5);
-  }
-}
-
+// A rim of colour, not a halo. The first pass blurred ten pixels of light out
+// of the meter and the shape underneath went soft — which is the one thing a
+// waveform cannot afford, since reading it is the entire point. Enough to tint
+// the edge and no more.
 @keyframes euphoria-glow {
   0% {
-    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 10px) #00e5ff)
-      saturate(1.4);
+    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 4px) #00e5ff)
+      saturate(1.15);
   }
 
   25% {
-    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 10px) #54ff8a)
-      saturate(1.4);
+    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 4px) #54ff8a)
+      saturate(1.15);
   }
 
   50% {
-    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 10px) #ffe66d)
-      saturate(1.4);
+    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 4px) #ffe66d)
+      saturate(1.15);
   }
 
   75% {
-    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 10px) #ff3cac)
-      saturate(1.4);
+    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 4px) #ff3cac)
+      saturate(1.15);
   }
 
   100% {
-    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 10px) #00e5ff)
-      saturate(1.4);
+    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 4px) #00e5ff)
+      saturate(1.15);
   }
 }
 
@@ -167,18 +191,11 @@ it under the terms of the GNU General Public License version 3 or later.
 // reached it — the celebration is not taken away, only the flashing.
 @media (prefers-reduced-motion: reduce) {
   .is-euphoric {
-    &::after,
-    .main-content,
-    .graph-wrapper,
-    .window-titlebar,
+    &,
     .bandWrapper,
     .waveform-visualizer,
     .rhythm-game__trace {
       animation: none;
-    }
-
-    &::after {
-      opacity: 0.4;
     }
   }
 }

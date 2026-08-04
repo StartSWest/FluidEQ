@@ -266,6 +266,7 @@ const en = {
   'support.game.noAudio': 'Play something and the beat shows up here',
   'support.game.listening': 'Listening for the beat…',
   'support.game.best': 'Best',
+  'support.game.euphoria': 'Euphoria mode',
   'support.game.perfect': 'Perfect',
   'support.game.great': 'Great',
   'support.game.good': 'Good',

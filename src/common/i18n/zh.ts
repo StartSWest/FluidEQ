@@ -228,6 +228,8 @@ const zh: Partial<Dictionary> = {
 
   'support.game.best': '最高分',
 
+  'support.game.euphoria': '狂喜模式',
+
   'support.game.perfect': '完美',
 
   'support.game.great': '很棒',
