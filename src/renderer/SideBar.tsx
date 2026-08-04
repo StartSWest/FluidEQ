@@ -24,7 +24,7 @@ import EqualizerEnablerSwitch from './components/EqualizerEnablerSwitch';
 import AutoPreAmpEnablerSwitch from './components/AutoPreAmpEnablerSwitch';
 import Slider from './components/Slider';
 import './styles/SideBar.scss';
-import { useAquaContext } from './utils/AquaContext';
+import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import GraphViewSwitch from './components/GraphViewSwitch';
 import Spinner from './icons/Spinner';
@@ -35,7 +35,7 @@ interface SideBarProps {
 
 const SideBar = ({ showGraphToggle }: SideBarProps) => {
   const { isAutoPreAmpOn, isLoading, preAmp, setGlobalError, setPreAmp } =
-    useAquaContext();
+    useFluidEqContext();
   const { t } = useTranslation();
 
   const setGain = useCallback(

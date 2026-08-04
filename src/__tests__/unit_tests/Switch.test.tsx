@@ -36,7 +36,7 @@ describe('Switch', () => {
         isOn={false}
         isDisabled={false}
         handleToggle={handleToggle}
-      />
+      />,
     );
     const input = screen.getByRole('checkbox');
     expect(input).not.toBeChecked();
@@ -44,7 +44,7 @@ describe('Switch', () => {
 
   it('should render the off state', () => {
     setup(
-      <Switch id={id} isOn isDisabled={false} handleToggle={handleToggle} />
+      <Switch id={id} isOn isDisabled={false} handleToggle={handleToggle} />,
     );
     const input = screen.getByRole('checkbox');
     expect(input).toBeChecked();
@@ -52,7 +52,7 @@ describe('Switch', () => {
 
   it('should be able to trigger the toggle handler', async () => {
     const { user } = setup(
-      <Switch id={id} isOn isDisabled={false} handleToggle={handleToggle} />
+      <Switch id={id} isOn isDisabled={false} handleToggle={handleToggle} />,
     );
     await user.click(screen.getByRole('checkbox'));
     expect(handleToggle).toHaveBeenCalledTimes(1);
@@ -62,7 +62,7 @@ describe('Switch', () => {
 
   it('should not trigger the toggle handler when disabled', async () => {
     const { user } = setup(
-      <Switch id={id} isOn isDisabled handleToggle={handleToggle} />
+      <Switch id={id} isOn isDisabled handleToggle={handleToggle} />,
     );
     await user.click(screen.getByRole('checkbox'));
     expect(handleToggle).toHaveBeenCalledTimes(0);

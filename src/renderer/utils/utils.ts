@@ -67,7 +67,7 @@ export const useInterval = (callback: () => void, delay?: number) => {
 
 export const useThrottle = <T extends (...args: any[]) => unknown>(
   fn: T,
-  delay: number
+  delay: number,
 ) => {
   const lastCalled = useRef<number>(0);
   const throttledFunction = useCallback(
@@ -80,7 +80,7 @@ export const useThrottle = <T extends (...args: any[]) => unknown>(
       fn(...args);
       return true;
     },
-    [delay, fn]
+    [delay, fn],
   );
   return throttledFunction;
 };
@@ -90,12 +90,12 @@ export const useThrottle = <T extends (...args: any[]) => unknown>(
 // a node interval will execute the latest call.
 export const useThrottleAndExecuteLatest = <T extends (...args: any[]) => any>(
   fn: T,
-  delay: number
+  delay: number,
 ) => {
   const throttleFunction = useThrottle(fn, delay);
   const lastCalledValues = useRef<unknown[] | undefined>(undefined);
   const timeoutId = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined
+    undefined,
   );
 
   return useCallback(
@@ -117,14 +117,14 @@ export const useThrottleAndExecuteLatest = <T extends (...args: any[]) => any>(
         lastCalledValues.current = args;
       }
     },
-    [delay, fn, throttleFunction]
+    [delay, fn, throttleFunction],
   );
 };
 
 // https://github.com/teetotum/react-attached-properties/blob/master/examples/useClickOutside.js
 export const useClickOutside = <T extends HTMLElement = HTMLElement>(
   ref: RefObject<T | null>,
-  callback: () => void
+  callback: () => void,
 ) => {
   const handleClick = useMemo(() => {
     return (e: globalThis.MouseEvent) => {
@@ -145,7 +145,7 @@ export const useClickOutside = <T extends HTMLElement = HTMLElement>(
 
 export const useMouseDownOutside = <T extends HTMLElement = HTMLElement>(
   ref: RefObject<T | null>,
-  callback: () => void
+  callback: () => void,
 ) => {
   const handleMouseDown = useMemo(() => {
     return (e: globalThis.MouseEvent) => {
@@ -167,7 +167,7 @@ export const useMouseDownOutside = <T extends HTMLElement = HTMLElement>(
 
 export const useFocusOutside = <T extends HTMLElement = HTMLElement>(
   ref: RefObject<T | null>,
-  callback: () => void
+  callback: () => void,
 ) => {
   const handleFocus = useMemo(() => {
     return (e: globalThis.FocusEvent) => {
@@ -188,7 +188,7 @@ export const useFocusOutside = <T extends HTMLElement = HTMLElement>(
 
 export const useFocusOut = <T extends HTMLElement = HTMLElement>(
   ref: RefObject<T | null>,
-  callback: () => void
+  callback: () => void,
 ) => {
   const handleFocus = useMemo(() => {
     return (e: globalThis.FocusEvent) => {

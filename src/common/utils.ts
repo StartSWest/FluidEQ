@@ -32,7 +32,7 @@ export const roundToPrecision = (value: number, precision: number) => {
 
 export const computeAvgFreq = (
   leftFilter: IFilter | null,
-  rightFilter: IFilter | null
+  rightFilter: IFilter | null,
 ) => {
   const lo = leftFilter ? leftFilter.frequency : MIN_FREQUENCY;
   const hi = rightFilter ? rightFilter.frequency : MAX_FREQUENCY;

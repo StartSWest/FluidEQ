@@ -40,7 +40,7 @@ describe('NumberInput', () => {
         value={testValue}
         isDisabled={false}
         showLabel
-      />
+      />,
     );
     expect(screen.getByText(id)).toBeInTheDocument();
     expect(screen.getByLabelText(id)).toHaveValue(`${testValue}`);
@@ -57,7 +57,7 @@ describe('NumberInput', () => {
         value={testValue}
         isDisabled={false}
         floatPrecision={0}
-      />
+      />,
     );
     const input = screen.getByLabelText(id);
     expect(input).toHaveValue(`${testValue}`);
@@ -83,7 +83,7 @@ describe('NumberInput', () => {
         value={testValue}
         isDisabled={false}
         floatPrecision={1}
-      />
+      />,
     );
     const input = screen.getByLabelText(id);
     expect(input).toHaveValue(testValue.toFixed(1));
@@ -95,7 +95,7 @@ describe('NumberInput', () => {
       input.blur();
     });
     expect(input).not.toHaveFocus();
-    expect(handleSubmit).toBeCalledWith(-1);
+    expect(handleSubmit).toHaveBeenCalledWith(-1);
   });
 
   it('should discard invalid changes when input is blurred', async () => {
@@ -109,7 +109,7 @@ describe('NumberInput', () => {
         value={testValue}
         isDisabled={false}
         floatPrecision={1}
-      />
+      />,
     );
     const input = screen.getByLabelText(id);
     expect(input).toHaveValue(testValue.toFixed(1));
@@ -135,7 +135,7 @@ describe('NumberInput', () => {
         handleSubmit={handleSubmit}
         value={testValue}
         isDisabled={false}
-      />
+      />,
     );
     const input = screen.getByLabelText(id);
     expect(input).toHaveValue(`${testValue}`);
@@ -154,7 +154,7 @@ describe('NumberInput', () => {
         handleSubmit={handleSubmit}
         value={testValue}
         isDisabled={false}
-      />
+      />,
     );
     const input = screen.getByLabelText(id);
     expect(input).toHaveValue(`${testValue}`);
@@ -173,7 +173,7 @@ describe('NumberInput', () => {
         handleSubmit={handleSubmit}
         value={testValue}
         isDisabled={false}
-      />
+      />,
     );
     const input = screen.getByLabelText(id);
     expect(input).toHaveValue(`${testValue}`);
@@ -181,7 +181,7 @@ describe('NumberInput', () => {
     await user.click(input);
     await user.keyboard('{Enter}');
     expect(input).not.toHaveFocus();
-    expect(handleSubmit).toBeCalledWith(-5);
+    expect(handleSubmit).toHaveBeenCalledWith(-5);
   });
 
   it('should clamp submitted values above the maximum to be within the threshold', async () => {
@@ -195,14 +195,14 @@ describe('NumberInput', () => {
         value={testValue}
         isDisabled={false}
         floatPrecision={1}
-      />
+      />,
     );
     const input = screen.getByLabelText(id);
     expect(input).toHaveValue(testValue.toFixed(1));
 
     await user.click(input);
     await user.keyboard('{Enter}');
-    expect(handleSubmit).toBeCalledWith(4.3);
+    expect(handleSubmit).toHaveBeenCalledWith(4.3);
   });
 
   it('should be able to enter a float with the leading 0 between -1 and 1', async () => {
@@ -216,18 +216,18 @@ describe('NumberInput', () => {
         value={testValue}
         isDisabled={false}
         floatPrecision={2}
-      />
+      />,
     );
     const input = screen.getByLabelText(id);
     expect(input).toHaveValue(testValue.toFixed(2));
 
     await clearAndType(user, input, '-0.12');
     await user.keyboard('{Enter}');
-    expect(handleSubmit).toBeCalledWith(-0.12);
+    expect(handleSubmit).toHaveBeenCalledWith(-0.12);
 
     await clearAndType(user, input, '0.6');
     await user.keyboard('{Enter}');
-    expect(handleSubmit).toBeCalledWith(0.6);
+    expect(handleSubmit).toHaveBeenCalledWith(0.6);
   });
 
   it('should be disabled', () => {
@@ -240,7 +240,7 @@ describe('NumberInput', () => {
         handleSubmit={handleSubmit}
         value={testValue}
         isDisabled
-      />
+      />,
     );
     const input = screen.getByLabelText(id);
     expect(input).toHaveValue(`${testValue}`);
@@ -261,14 +261,14 @@ describe('NumberInput', () => {
         value={testValue}
         isDisabled={false}
         floatPrecision={1}
-      />
+      />,
     );
     const input = screen.getByLabelText(id);
     expect(input).toHaveValue(testValue.toFixed(1));
 
     await clearAndType(user, input, '-2.6e10');
     await user.keyboard('{Enter}');
-    expect(handleSubmit).toBeCalledWith(-2.6);
+    expect(handleSubmit).toHaveBeenCalledWith(-2.6);
 
     await clearAndType(user, input, '--1.1');
     expect(input).toHaveValue('-1.1');
@@ -286,18 +286,18 @@ describe('NumberInput', () => {
           value={testValue}
           isDisabled={false}
           floatPrecision={3}
-        />
+        />,
       );
       const input = screen.getByLabelText(id);
       expect(input).toHaveValue(testValue.toFixed(3));
 
       await clearAndType(user, input, '1.6912');
       await user.keyboard('{Enter}');
-      expect(handleSubmit).toBeCalledWith(1.691);
+      expect(handleSubmit).toHaveBeenCalledWith(1.691);
 
       await clearAndType(user, input, '-2.60000');
       await user.keyboard('{Enter}');
-      expect(handleSubmit).toBeCalledWith(-2.6);
+      expect(handleSubmit).toHaveBeenCalledWith(-2.6);
       expect(input).toHaveValue('-2.600');
     });
 
@@ -313,14 +313,14 @@ describe('NumberInput', () => {
           isDisabled={false}
           floatPrecision={2}
           shouldRoundToHalf
-        />
+        />,
       );
       const input = screen.getByLabelText(id);
       expect(input).toHaveValue(testValue.toFixed(2));
 
       await clearAndType(user, input, '-1.1621');
       await user.keyboard('{Enter}');
-      expect(handleSubmit).toBeCalledWith(-1.15);
+      expect(handleSubmit).toHaveBeenCalledWith(-1.15);
     });
 
     it('should prevent typing more digits than the max digits', async () => {
@@ -334,7 +334,7 @@ describe('NumberInput', () => {
           value={testValue}
           isDisabled={false}
           floatPrecision={2}
-        />
+        />,
       );
       const input = screen.getByLabelText(id);
       expect(input).toHaveValue(testValue.toFixed(2));
@@ -359,18 +359,18 @@ describe('NumberInput', () => {
           value={testValue}
           isDisabled={false}
           floatPrecision={2}
-        />
+        />,
       );
       const input = screen.getByLabelText(id);
       expect(input).toHaveValue(testValue.toFixed(2));
 
       await clearAndType(user, input, '01234');
       await user.keyboard('{Enter}');
-      expect(handleSubmit).toBeCalledWith(0);
+      expect(handleSubmit).toHaveBeenCalledWith(0);
 
       await user.type(input, '.134');
       await user.keyboard('{Enter}');
-      expect(handleSubmit).toBeCalledWith(0.13);
+      expect(handleSubmit).toHaveBeenCalledWith(0.13);
     });
 
     it('should be able to alter first digit in front of integer with trailing zeros', async () => {
@@ -384,22 +384,22 @@ describe('NumberInput', () => {
           value={testValue}
           isDisabled={false}
           floatPrecision={0}
-        />
+        />,
       );
       const input = screen.getByLabelText(id);
       expect(input).toHaveValue(`${testValue}`);
 
       input.focus();
       await user.keyboard(
-        '{ArrowLeft}{ArrowLeft}{ArrowLeft}{Backspace}2{Enter}'
+        '{ArrowLeft}{ArrowLeft}{ArrowLeft}{Backspace}2{Enter}',
       );
-      expect(handleSubmit).toBeCalledWith(2000);
+      expect(handleSubmit).toHaveBeenCalledWith(2000);
 
       await clearAndType(user, input, '-1000');
       await user.keyboard(
-        '{ArrowLeft}{ArrowLeft}{ArrowLeft}{Backspace}2{Enter}'
+        '{ArrowLeft}{ArrowLeft}{ArrowLeft}{Backspace}2{Enter}',
       );
-      expect(handleSubmit).toBeCalledWith(-2000);
+      expect(handleSubmit).toHaveBeenCalledWith(-2000);
     });
 
     it('should not be able to enter a zero with float notation for integer inputs', async () => {
@@ -413,7 +413,7 @@ describe('NumberInput', () => {
           value={testValue}
           isDisabled={false}
           floatPrecision={0}
-        />
+        />,
       );
       const input = screen.getByLabelText(id);
       expect(input).toHaveValue(`${testValue}`);
@@ -440,22 +440,22 @@ describe('NumberInput', () => {
           value={testValue}
           isDisabled={false}
           floatPrecision={1}
-        />
+        />,
       );
       const input = screen.getByLabelText(id);
       expect(input).toHaveValue(testValue.toFixed(1));
 
       await clearAndType(user, input, '10.0');
       await user.keyboard(
-        '{ArrowLeft}{ArrowLeft}{ArrowLeft}{Backspace}2{Enter}'
+        '{ArrowLeft}{ArrowLeft}{ArrowLeft}{Backspace}2{Enter}',
       );
-      expect(handleSubmit).toBeCalledWith(20);
+      expect(handleSubmit).toHaveBeenCalledWith(20);
 
       await clearAndType(user, input, '-10.0');
       await user.keyboard(
-        '{ArrowLeft}{ArrowLeft}{ArrowLeft}{Backspace}2{Enter}'
+        '{ArrowLeft}{ArrowLeft}{ArrowLeft}{Backspace}2{Enter}',
       );
-      expect(handleSubmit).toBeCalledWith(-20);
+      expect(handleSubmit).toHaveBeenCalledWith(-20);
     });
 
     it('should not be able to enter a zero with invalid float notation for float inputs', async () => {
@@ -469,7 +469,7 @@ describe('NumberInput', () => {
           value={testValue}
           isDisabled={false}
           floatPrecision={1}
-        />
+        />,
       );
       const input = screen.getByLabelText(id);
       expect(input).toHaveValue(testValue.toFixed(1));
@@ -496,18 +496,18 @@ describe('NumberInput', () => {
           value={testValue}
           isDisabled={false}
           floatPrecision={2}
-        />
+        />,
       );
       const input = screen.getByLabelText(id);
       expect(input).toHaveValue(testValue.toFixed(2));
 
       await clearAndType(user, input, '-.12');
       await user.keyboard('{Enter}');
-      expect(handleSubmit).toBeCalledWith(-0.12);
+      expect(handleSubmit).toHaveBeenCalledWith(-0.12);
 
       await clearAndType(user, input, '.56');
       await user.keyboard('{Enter}');
-      expect(handleSubmit).toBeCalledWith(0.56);
+      expect(handleSubmit).toHaveBeenCalledWith(0.56);
     });
   });
 
@@ -522,7 +522,7 @@ describe('NumberInput', () => {
           handleSubmit={handleSubmit}
           value={testValue}
           isDisabled={false}
-        />
+        />,
       );
       const input = screen.getByLabelText(id);
       expect(input).toHaveValue(`${testValue}`);
@@ -530,11 +530,11 @@ describe('NumberInput', () => {
       await clearAndType(user, input, '-1');
       expect(input).toHaveValue('1');
       await user.keyboard('{Enter}');
-      expect(handleSubmit).toBeCalledWith(1);
+      expect(handleSubmit).toHaveBeenCalledWith(1);
 
       input.focus();
       await user.keyboard('{ArrowLeft}-{Enter}');
-      expect(handleSubmit).toBeCalledWith(1);
+      expect(handleSubmit).toHaveBeenCalledWith(1);
     });
 
     it('should not be able to enter a negative sign for floats when min is non-negative', async () => {
@@ -548,7 +548,7 @@ describe('NumberInput', () => {
           value={testValue}
           isDisabled={false}
           floatPrecision={2}
-        />
+        />,
       );
       const input = screen.getByLabelText(id);
       expect(input).toHaveValue(testValue.toFixed(2));
@@ -556,13 +556,13 @@ describe('NumberInput', () => {
       await clearAndType(user, input, '-1.12');
       expect(input).toHaveValue('1.12');
       await user.keyboard('{Enter}');
-      expect(handleSubmit).toBeCalledWith(1.12);
+      expect(handleSubmit).toHaveBeenCalledWith(1.12);
 
       input.focus();
       await user.keyboard(
-        '{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}-{Enter}'
+        '{ArrowLeft}{ArrowLeft}{ArrowLeft}{ArrowLeft}-{Enter}',
       );
-      expect(handleSubmit).toBeCalledWith(1.12);
+      expect(handleSubmit).toHaveBeenCalledWith(1.12);
     });
   });
 
@@ -585,12 +585,12 @@ describe('NumberInput', () => {
           isDisabled={false}
           floatPrecision={0}
           showArrows
-        />
+        />,
       );
       const upArrow = screen.getByLabelText(`Increase ${id}`);
       expect(upArrow).toBeInTheDocument();
       await user.click(upArrow);
-      expect(handleSubmit).toBeCalledWith(2);
+      expect(handleSubmit).toHaveBeenCalledWith(2);
     });
 
     it('should be able to decrease the value using the up arrow', async () => {
@@ -605,12 +605,12 @@ describe('NumberInput', () => {
           isDisabled={false}
           floatPrecision={0}
           showArrows
-        />
+        />,
       );
       const downArrow = screen.getByLabelText(`Decrease ${id}`);
       expect(downArrow).toBeInTheDocument();
       await user.click(downArrow);
-      expect(handleSubmit).toBeCalledWith(0);
+      expect(handleSubmit).toHaveBeenCalledWith(0);
     });
 
     it('should increase value when scrolling up', async () => {
@@ -625,11 +625,11 @@ describe('NumberInput', () => {
           isDisabled={false}
           floatPrecision={0}
           showArrows
-        />
+        />,
       );
       const input = screen.getByLabelText(`${id}`);
       fireEvent.wheel(input, { deltaY: -100 });
-      expect(handleSubmit).toBeCalledWith(11);
+      expect(handleSubmit).toHaveBeenCalledWith(11);
     });
 
     it('should increase value when scrolling down', async () => {
@@ -644,11 +644,11 @@ describe('NumberInput', () => {
           isDisabled={false}
           floatPrecision={0}
           showArrows
-        />
+        />,
       );
       const input = screen.getByLabelText(`${id}`);
       fireEvent.wheel(input, { deltaY: 100 });
-      expect(handleSubmit).toBeCalledWith(-9);
+      expect(handleSubmit).toHaveBeenCalledWith(-9);
     });
 
     it('should support custom onwheel value change', async () => {
@@ -664,11 +664,11 @@ describe('NumberInput', () => {
           floatPrecision={0}
           onWheelValueChange={() => 2}
           showArrows
-        />
+        />,
       );
       const input = screen.getByLabelText(`${id}`);
       fireEvent.wheel(input, { deltaY: 100 });
-      expect(handleSubmit).toBeCalledWith(3);
+      expect(handleSubmit).toHaveBeenCalledWith(3);
     });
   });
 });

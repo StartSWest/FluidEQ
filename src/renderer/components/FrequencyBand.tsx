@@ -49,7 +49,7 @@ import {
   setType,
 } from '../utils/equalizerApi';
 import NumberInput from '../widgets/NumberInput';
-import { FilterActionEnum, useAquaContext } from '../utils/AquaContext';
+import { FilterActionEnum, useFluidEqContext } from '../utils/FluidEqContext';
 import Slider from './Slider';
 import '../styles/FrequencyBand.scss';
 
@@ -88,7 +88,7 @@ const FrequencyBand = forwardRef(
   ) => {
     const INTERVAL = 100;
     const { isBlockingError, setGlobalError, dispatchFilter } =
-      useAquaContext();
+      useFluidEqContext();
     const [isLoading, setIsLoading] = useState(false);
     const isRemoveDisabled = useMemo(
       () => isMinSliderCount || isLoading,

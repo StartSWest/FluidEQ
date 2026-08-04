@@ -20,8 +20,8 @@ import '@testing-library/jest-dom';
 import { act, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import PresetsBar, { PresetErrorEnum } from 'renderer/PresetsBar';
-import { AquaProviderWrapper } from 'renderer/utils/AquaContext';
-import defaultAquaContext from '__tests__/utils/mockAquaProvider';
+import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
+import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import { clearAndType, setup } from '__tests__/utils/userEventUtils';
 
 describe('PresetListItem', () => {
@@ -31,7 +31,7 @@ describe('PresetListItem', () => {
   const editIconLabel = 'Edit Icon';
   const editModeLabel = 'Edit Preset Name';
   const caseSensitiveContext = {
-    ...defaultAquaContext,
+    ...defaultFluidEqContext,
     isCaseSensitiveFs: true,
   };
 
@@ -52,7 +52,7 @@ describe('PresetListItem', () => {
   it('should be empty', async () => {
     fetchPresets.mockResolvedValue([]);
     setup(
-      <AquaProviderWrapper value={defaultAquaContext}>
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
         <PresetsBar
           fetchPresets={fetchPresets}
           loadPreset={loadPreset}
@@ -60,7 +60,7 @@ describe('PresetListItem', () => {
           renamePreset={renamePreset}
           deletePreset={deletePreset}
         />
-      </AquaProviderWrapper>,
+      </FluidEqProviderWrapper>,
     );
 
     expect(
@@ -74,7 +74,7 @@ describe('PresetListItem', () => {
     fetchPresets.mockReturnValue(samplePresetNames);
     await act(async () => {
       setup(
-        <AquaProviderWrapper value={defaultAquaContext}>
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
           <PresetsBar
             fetchPresets={fetchPresets}
             loadPreset={loadPreset}
@@ -82,7 +82,7 @@ describe('PresetListItem', () => {
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
-        </AquaProviderWrapper>,
+        </FluidEqProviderWrapper>,
       );
     });
 
@@ -98,7 +98,7 @@ describe('PresetListItem', () => {
     fetchPresets.mockReturnValue(samplePresetNames);
     const { user } = await act(async () =>
       setup(
-        <AquaProviderWrapper value={defaultAquaContext}>
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
           <PresetsBar
             fetchPresets={fetchPresets}
             loadPreset={loadPreset}
@@ -106,7 +106,7 @@ describe('PresetListItem', () => {
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
-        </AquaProviderWrapper>,
+        </FluidEqProviderWrapper>,
       ),
     );
 
@@ -118,7 +118,7 @@ describe('PresetListItem', () => {
   it('should support saving a new preset', async () => {
     fetchPresets.mockReturnValue(samplePresetNames);
     const { user } = setup(
-      <AquaProviderWrapper value={defaultAquaContext}>
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
         <PresetsBar
           fetchPresets={fetchPresets}
           loadPreset={loadPreset}
@@ -126,7 +126,7 @@ describe('PresetListItem', () => {
           renamePreset={renamePreset}
           deletePreset={deletePreset}
         />
-      </AquaProviderWrapper>,
+      </FluidEqProviderWrapper>,
     );
 
     const presetNameInput = screen.getByLabelText(presetNameInputLabel);
@@ -141,7 +141,7 @@ describe('PresetListItem', () => {
   it('should support saving an existing preset', async () => {
     fetchPresets.mockReturnValue(samplePresetNames);
     const { user } = setup(
-      <AquaProviderWrapper value={defaultAquaContext}>
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
         <PresetsBar
           fetchPresets={fetchPresets}
           loadPreset={loadPreset}
@@ -149,7 +149,7 @@ describe('PresetListItem', () => {
           renamePreset={renamePreset}
           deletePreset={deletePreset}
         />
-      </AquaProviderWrapper>,
+      </FluidEqProviderWrapper>,
     );
 
     const presetNameInput = screen.getByLabelText(presetNameInputLabel);
@@ -164,7 +164,7 @@ describe('PresetListItem', () => {
   it('should disallow invalid new preset names for case sensitive systems', async () => {
     fetchPresets.mockReturnValue(samplePresetNames);
     const { user } = setup(
-      <AquaProviderWrapper value={caseSensitiveContext}>
+      <FluidEqProviderWrapper value={caseSensitiveContext}>
         <PresetsBar
           fetchPresets={fetchPresets}
           loadPreset={loadPreset}
@@ -172,7 +172,7 @@ describe('PresetListItem', () => {
           renamePreset={renamePreset}
           deletePreset={deletePreset}
         />
-      </AquaProviderWrapper>,
+      </FluidEqProviderWrapper>,
     );
 
     const presetNameInput = screen.getByLabelText(presetNameInputLabel);
@@ -206,7 +206,7 @@ describe('PresetListItem', () => {
   it('should disallow invalid new preset names for case insensitive systems', async () => {
     fetchPresets.mockReturnValue(samplePresetNames);
     const { user } = setup(
-      <AquaProviderWrapper value={defaultAquaContext}>
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
         <PresetsBar
           fetchPresets={fetchPresets}
           loadPreset={loadPreset}
@@ -214,7 +214,7 @@ describe('PresetListItem', () => {
           renamePreset={renamePreset}
           deletePreset={deletePreset}
         />
-      </AquaProviderWrapper>,
+      </FluidEqProviderWrapper>,
     );
 
     const presetNameInput = screen.getByLabelText(presetNameInputLabel);
@@ -242,7 +242,7 @@ describe('PresetListItem', () => {
 
     await act(async () => {
       setup(
-        <AquaProviderWrapper value={caseSensitiveContext}>
+        <FluidEqProviderWrapper value={caseSensitiveContext}>
           <PresetsBar
             fetchPresets={fetchPresets}
             loadPreset={loadPreset}
@@ -250,7 +250,7 @@ describe('PresetListItem', () => {
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
-        </AquaProviderWrapper>,
+        </FluidEqProviderWrapper>,
       );
     });
 
@@ -289,7 +289,7 @@ describe('PresetListItem', () => {
 
     await act(async () => {
       setup(
-        <AquaProviderWrapper value={defaultAquaContext}>
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
           <PresetsBar
             fetchPresets={fetchPresets}
             loadPreset={loadPreset}
@@ -297,7 +297,7 @@ describe('PresetListItem', () => {
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
-        </AquaProviderWrapper>,
+        </FluidEqProviderWrapper>,
       );
     });
 
@@ -332,7 +332,7 @@ describe('PresetListItem', () => {
     fetchPresets.mockReturnValue(samplePresetNames);
     const { user } = await act(async () =>
       setup(
-        <AquaProviderWrapper value={defaultAquaContext}>
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
           <PresetsBar
             fetchPresets={fetchPresets}
             loadPreset={loadPreset}
@@ -340,7 +340,7 @@ describe('PresetListItem', () => {
             renamePreset={renamePreset}
             deletePreset={deletePreset}
           />
-        </AquaProviderWrapper>,
+        </FluidEqProviderWrapper>,
       ),
     );
 

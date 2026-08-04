@@ -14,7 +14,7 @@ import {
   IConvolutionCatalogEntry,
 } from 'common/convolution';
 import { ErrorDescription } from 'common/errors';
-import { useAquaContext } from './utils/AquaContext';
+import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import {
   clearConvolution,
@@ -27,7 +27,7 @@ import './styles/Convolution.scss';
 
 const ConvolutionPanel = () => {
   const { convolution, isEnabled, refreshState, setGlobalError } =
-    useAquaContext();
+    useFluidEqContext();
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [entries, setEntries] = useState<IConvolutionCatalogEntry[]>([]);

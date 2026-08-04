@@ -28,19 +28,22 @@ import {
   startChromeDriver,
   stopChromeDriver,
 } from '__tests__/utils/webdriver';
-import { givenAquaIsRunning, givenEnabledState } from './shared_steps/aqua';
+import {
+  givenFluidEqIsRunning,
+  givenEnabledState,
+} from './shared_steps/fluideq';
 import {
   givenBandCount,
   whenSetBandFrequency,
   whenSetFrequencyGainWithText,
   whenSetFrequencyQuality,
-} from './shared_steps/aquaSlider';
+} from './shared_steps/fluidEqSlider';
 import {
-  givenCanWriteToAquaConfig,
+  givenCanWriteToFluidEqConfig,
   givenEqualizerApoIsInstalled,
 } from './shared_steps/equalizerApo';
 import { thenPreAmpGain } from './shared_steps/config';
-import { givenChartViewEnabledState } from './shared_steps/aquaGraph';
+import { givenChartViewEnabledState } from './shared_steps/fluidEqGraph';
 
 const chromeDriver = startChromeDriver();
 
@@ -52,8 +55,8 @@ const webdriver: { driver: Driver } = { driver: undefined };
 defineFeature(feature, (test) => {
   test('Apply auto pre-amp', async ({ given, when, then }) => {
     givenEqualizerApoIsInstalled(given);
-    givenCanWriteToAquaConfig(given);
-    givenAquaIsRunning(given, webdriver, chromeDriver);
+    givenCanWriteToFluidEqConfig(given);
+    givenFluidEqIsRunning(given, webdriver, chromeDriver);
     givenEnabledState(given, webdriver);
     givenChartViewEnabledState(given, webdriver);
     givenBandCount(given, webdriver);

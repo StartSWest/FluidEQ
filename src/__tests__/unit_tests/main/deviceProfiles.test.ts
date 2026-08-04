@@ -14,7 +14,7 @@ describe('device profile configuration', () => {
 
   beforeEach(() => {
     presetsDir = fs.mkdtempSync(
-      path.join(os.tmpdir(), 'aqua-device-profiles-'),
+      path.join(os.tmpdir(), 'fluideq-device-profiles-'),
     );
     fs.writeFileSync(
       path.join(presetsDir, 'Studio'),

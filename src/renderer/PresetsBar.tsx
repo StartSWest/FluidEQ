@@ -24,7 +24,7 @@ import {
   IDeviceProfileAssignment,
 } from 'common/constants';
 import { isRestrictedPresetName } from 'common/utils';
-import { useAquaContext } from './utils/AquaContext';
+import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import TextInput from './widgets/TextInput';
 import Button from './widgets/Button';
@@ -103,7 +103,7 @@ const PresetsBar = ({
     isCaseSensitiveFs,
     performHealthCheck,
     setGlobalError,
-  } = useAquaContext();
+  } = useFluidEqContext();
   const { t } = useTranslation();
 
   const [presetName, setPresetName] = useState<string>('');

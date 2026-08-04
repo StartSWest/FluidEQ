@@ -18,11 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { getDefaultState } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
-import { FilterAction, IAquaContext } from 'renderer/utils/AquaContext';
+import { FilterAction, IFluidEqContext } from 'renderer/utils/FluidEqContext';
 
 const DEFAULT_STATE = getDefaultState();
 
-const defaultAquaContext: IAquaContext = {
+const defaultFluidEqContext: IFluidEqContext = {
   isLoading: false,
   globalError: undefined,
   isBlockingError: false,
@@ -54,4 +54,4 @@ const defaultAquaContext: IAquaContext = {
   dispatchFilter: (_action: FilterAction) => {},
 };
 
-export default defaultAquaContext;
+export default defaultFluidEqContext;

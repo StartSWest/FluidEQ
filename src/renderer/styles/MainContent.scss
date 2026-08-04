@@ -236,7 +236,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   --range-length: 102px;
 }
 
-// With the response graph hidden (AquaContext marks the root `minimized`) the
+// With the response graph hidden (FluidEqContext marks the root `minimized`) the
 // EQ owns the whole workspace column, so the tracks grow to use it rather than
 // leaving the panel half empty.
 #root.minimized {

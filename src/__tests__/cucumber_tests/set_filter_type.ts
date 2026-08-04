@@ -28,22 +28,25 @@ import {
   startChromeDriver,
   stopChromeDriver,
 } from '__tests__/utils/webdriver';
-import { givenAquaIsRunning, givenEnabledState } from './shared_steps/aqua';
+import {
+  givenFluidEqIsRunning,
+  givenEnabledState,
+} from './shared_steps/fluideq';
 import {
   givenBandFrequency,
   givenFrequencyFilterType,
   whenSetFrequencyFilterType,
-} from './shared_steps/aquaSlider';
+} from './shared_steps/fluidEqSlider';
 import { thenFrequencyFilterType } from './shared_steps/config';
 import {
-  givenCanWriteToAquaConfig,
+  givenCanWriteToFluidEqConfig,
   givenEqualizerApoIsInstalled,
 } from './shared_steps/equalizerApo';
 
 const chromeDriver = startChromeDriver();
 
 const feature = loadFeature(
-  './src/__tests__/cucumber_tests/features/set_filter_type.feature'
+  './src/__tests__/cucumber_tests/features/set_filter_type.feature',
 );
 const webdriver: { driver: Driver } = { driver: undefined };
 
@@ -54,8 +57,8 @@ defineFeature(feature, (test) => {
     then,
   }) => {
     givenEqualizerApoIsInstalled(given);
-    givenCanWriteToAquaConfig(given);
-    givenAquaIsRunning(given, webdriver, chromeDriver);
+    givenCanWriteToFluidEqConfig(given);
+    givenFluidEqIsRunning(given, webdriver, chromeDriver);
     givenBandFrequency(given, webdriver);
     givenFrequencyFilterType(given, webdriver);
     givenEnabledState(given, webdriver);

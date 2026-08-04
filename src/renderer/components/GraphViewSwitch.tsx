@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ErrorDescription } from 'common/errors';
 import { useCallback } from 'react';
 import { disableGraphView, enableGraphView } from '../utils/equalizerApi';
-import { useAquaContext } from '../utils/AquaContext';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import Switch from '../widgets/Switch';
 
 interface IGraphViewSwitchProps {
@@ -28,7 +28,7 @@ interface IGraphViewSwitchProps {
 
 export default function GraphViewSwitch({ id }: IGraphViewSwitchProps) {
   const { isBlockingError, isGraphViewOn, setGlobalError, setGraphViewOn } =
-    useAquaContext();
+    useFluidEqContext();
 
   // Toggling the graph never resizes the OS window. The workspace keeps the
   // size the user chose and the EQ panel simply reclaims the freed height.

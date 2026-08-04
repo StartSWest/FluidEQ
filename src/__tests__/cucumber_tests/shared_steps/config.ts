@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 
-import { AQUA_CONFIG_FILENAME } from 'main/flush';
+import { FLUIDEQ_CONFIG_FILENAME } from 'main/flush';
 import { DefineStepFunction } from 'jest-cucumber';
 import { Driver } from '__tests__/utils/webdriver';
 import { getConfigPath } from 'main/registry';
@@ -32,21 +32,21 @@ interface FilterSettings {
   quality: number;
 }
 
-interface AquaConfig {
+interface FluidEqConfig {
   device: string | null;
   channel: string | null;
   preamp: number;
   filters: Record<number, FilterSettings>;
 }
 
-export const readAquaConfig = (configPath: string) => {
-  const filePath = path.join(configPath, AQUA_CONFIG_FILENAME);
+export const readFluidEqConfig = (configPath: string) => {
+  const filePath = path.join(configPath, FLUIDEQ_CONFIG_FILENAME);
   console.log(filePath);
   const content = fs.readFileSync(filePath, {
     encoding: 'utf8',
   });
   const lines = content.split('\n\r');
-  const state: AquaConfig = {
+  const state: FluidEqConfig = {
     device: null,
     channel: null,
     preamp: NaN,
@@ -123,11 +123,11 @@ export const readAquaConfig = (configPath: string) => {
 
 export const thenConfigFile = (then: DefineStepFunction) => {
   then(
-    /^Aqua config file should be (empty|non-empty)$/,
+    /^FluidEQ config file should be (empty|non-empty)$/,
     async (state: string) => {
       const isEmpty = state === 'empty';
       const configPath = await getConfigPath();
-      const config = readAquaConfig(configPath);
+      const config = readFluidEqConfig(configPath);
       const matchObject = isEmpty
         ? {
             device: null,
@@ -148,10 +148,10 @@ export const thenConfigFile = (then: DefineStepFunction) => {
 
 export const thenBandCount = (then: DefineStepFunction) => {
   then(
-    /^Aqua config file should show (\d+) frequency bands$/,
+    /^FluidEQ config file should show (\d+) frequency bands$/,
     async (count: string) => {
       const configPath = await getConfigPath();
-      const config = readAquaConfig(configPath);
+      const config = readFluidEqConfig(configPath);
       expect(Object.keys(config.filters).length).toBe(parseInt(count, 10));
     },
   );
@@ -162,7 +162,7 @@ export const thenFrequencyGain = (
   webdriver: { driver: Driver | undefined },
 ) => {
   then(
-    /^Aqua config file should show gain of (-?\d+)dB for frequency (\d+)Hz$/,
+    /^FluidEQ config file should show gain of (-?\d+)dB for frequency (\d+)Hz$/,
     async (gain: string, frequency: string) => {
       const sliderElems = await webdriver.driver
         .$('.main-content')
@@ -172,7 +172,7 @@ export const thenFrequencyGain = (
         const name = await element.getAttribute('name');
         if (name === `${frequency}-gain-range`) {
           const configPath = await getConfigPath();
-          const config = readAquaConfig(configPath);
+          const config = readFluidEqConfig(configPath);
           expect(config.filters[i].gain).toBe(parseInt(gain, 10));
           return;
         }
@@ -187,7 +187,7 @@ export const thenFrequencyQuality = (
   webdriver: { driver: Driver | undefined },
 ) => {
   then(
-    /^Aqua config file should show a quality of (\d+.?\d+) for the band with frequency (\d+)Hz$/,
+    /^FluidEQ config file should show a quality of (\d+.?\d+) for the band with frequency (\d+)Hz$/,
     async (quality: string, frequency: string) => {
       const sliderElems = await webdriver.driver
         .$('.main-content')
@@ -197,7 +197,7 @@ export const thenFrequencyQuality = (
         const name = await element.getAttribute('name');
         if (name === `${frequency}-gain-range`) {
           const configPath = await getConfigPath();
-          const config = readAquaConfig(configPath);
+          const config = readFluidEqConfig(configPath);
           expect(config.filters[i].quality).toBe(parseFloat(quality));
           return;
         }
@@ -212,7 +212,7 @@ export const thenFrequencyFilterType = (
   webdriver: { driver: Driver | undefined },
 ) => {
   then(
-    /^Aqua config file should show the (\w+) filter type for the band with frequency (\d+)Hz$/,
+    /^FluidEQ config file should show the (\w+) filter type for the band with frequency (\d+)Hz$/,
     async (filterType: string, frequency: string) => {
       const sliderElems = await webdriver.driver
         .$('.main-content')
@@ -222,7 +222,7 @@ export const thenFrequencyFilterType = (
         const name = await element.getAttribute('name');
         if (name === `${frequency}-gain-range`) {
           const configPath = await getConfigPath();
-          const config = readAquaConfig(configPath);
+          const config = readFluidEqConfig(configPath);
           expect(config.filters[i].type).toBe(filterType);
           return;
         }
@@ -234,10 +234,10 @@ export const thenFrequencyFilterType = (
 
 export const thenBandFrequency = (then: DefineStepFunction) => {
   then(
-    /^Aqua config file should show a frequency of (\d+)Hz for band (\d+)$/,
+    /^FluidEQ config file should show a frequency of (\d+)Hz for band (\d+)$/,
     async (frequency: string, bandIndex: number) => {
       const configPath = await getConfigPath();
-      const config = readAquaConfig(configPath);
+      const config = readFluidEqConfig(configPath);
       expect(config.filters[bandIndex - 1].freq).toBe(parseInt(frequency, 10));
     },
   );
@@ -245,10 +245,10 @@ export const thenBandFrequency = (then: DefineStepFunction) => {
 
 export const thenPreAmpGain = (then: DefineStepFunction) => {
   then(
-    /^Aqua config should show a preamp gain of (-?\d+(\.\d+)?)dB$/,
+    /^FluidEQ config should show a preamp gain of (-?\d+(\.\d+)?)dB$/,
     async (gain: string) => {
       const configPath = await getConfigPath();
-      const config = readAquaConfig(configPath);
+      const config = readFluidEqConfig(configPath);
       expect(config.preamp).toBe(parseFloat(gain));
     },
   );

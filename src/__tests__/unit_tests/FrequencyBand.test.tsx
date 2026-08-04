@@ -24,8 +24,8 @@ import {
   getDefaultFilterWithId,
 } from 'common/constants';
 import FrequencyBand from 'renderer/components/FrequencyBand';
-import { AquaProviderWrapper } from 'renderer/utils/AquaContext';
-import defaultAquaContext from '__tests__/utils/mockAquaProvider';
+import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
+import defaultFluidEqContext from '__tests__/utils/mockFluidEqProvider';
 import { setup } from '../utils/userEventUtils';
 
 describe('FrequencyBand', () => {
@@ -42,9 +42,9 @@ describe('FrequencyBand', () => {
 
   it('should render with name', () => {
     setup(
-      <AquaProviderWrapper value={defaultAquaContext}>
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
         <FrequencyBand filter={filter} isMinSliderCount={false} />
-      </AquaProviderWrapper>,
+      </FluidEqProviderWrapper>,
     );
     expect(screen.getByLabelText(filterTypeDropdownLabel)).toBeInTheDocument();
     expect(screen.getByLabelText(trashIconLabel)).not.toHaveAttribute(
@@ -55,7 +55,7 @@ describe('FrequencyBand', () => {
 
   it('should enable gain when filter type is affected by gain', () => {
     setup(
-      <AquaProviderWrapper value={defaultAquaContext}>
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
         {Object.values(FilterTypeEnum)
           .filter(
             (filterType) =>
@@ -72,7 +72,7 @@ describe('FrequencyBand', () => {
               />
             );
           })}
-      </AquaProviderWrapper>,
+      </FluidEqProviderWrapper>,
     );
     const gainNumberInputs = screen.getAllByLabelText(filterGainNumberLabel);
     gainNumberInputs.forEach((input) => expect(input).not.toBeDisabled());
@@ -82,7 +82,7 @@ describe('FrequencyBand', () => {
 
   it('should disable gain when filter type is not affected by gain', () => {
     setup(
-      <AquaProviderWrapper value={defaultAquaContext}>
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
         {NO_GAIN_FILTER_TYPES.map((filterType) => (
           <FrequencyBand
             key={filterType}
@@ -90,7 +90,7 @@ describe('FrequencyBand', () => {
             isMinSliderCount={false}
           />
         ))}
-      </AquaProviderWrapper>,
+      </FluidEqProviderWrapper>,
     );
     const gainNumberInputs = screen.getAllByLabelText(filterGainNumberLabel);
     gainNumberInputs.forEach((input) => expect(input).toBeDisabled());
@@ -100,9 +100,9 @@ describe('FrequencyBand', () => {
 
   it('should prevent deleting when min slider count is met', () => {
     setup(
-      <AquaProviderWrapper value={defaultAquaContext}>
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
         <FrequencyBand filter={filter} isMinSliderCount />
-      </AquaProviderWrapper>,
+      </FluidEqProviderWrapper>,
     );
     expect(screen.getByLabelText(trashIconLabel)).toHaveAttribute(
       'aria-disabled',
@@ -112,14 +112,14 @@ describe('FrequencyBand', () => {
 
   it('keeps the gain slider usable in dense layouts without wide inputs', () => {
     const { container } = setup(
-      <AquaProviderWrapper value={defaultAquaContext}>
+      <FluidEqProviderWrapper value={defaultFluidEqContext}>
         <FrequencyBand
           filter={filter}
           isMinSliderCount={false}
           density="dense"
           flatLayout
         />
-      </AquaProviderWrapper>,
+      </FluidEqProviderWrapper>,
     );
 
     expect(container.querySelector('.bandWrapper--dense')).toBeInTheDocument();

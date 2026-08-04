@@ -45,7 +45,7 @@ describe('TextInput', () => {
         handleEscape={handleEscape}
         isDisabled={false}
         errorMessage=""
-      />
+      />,
     );
 
     const editInput = screen.getByLabelText(name);
@@ -69,7 +69,7 @@ describe('TextInput', () => {
         handleEscape={handleEscape}
         isDisabled={false}
         errorMessage=""
-      />
+      />,
     );
 
     const editInput = screen.getByLabelText(name);
@@ -95,7 +95,7 @@ describe('TextInput', () => {
         handleEscape={handleEscape}
         isDisabled={false}
         errorMessage=""
-      />
+      />,
     );
 
     const editInput = screen.getByLabelText(name);
@@ -122,7 +122,7 @@ describe('TextInput', () => {
         handleEscape={handleEscape}
         isDisabled={false}
         errorMessage={errorMsg}
-      />
+      />,
     );
 
     const editInput = screen.getByLabelText(name);
@@ -140,15 +140,15 @@ describe('TextInput', () => {
         handleEscape={handleEscape}
         isDisabled
         errorMessage=""
-      />
+      />,
     );
 
     expect(screen.getByLabelText(name)).toHaveAttribute(
       'aria-disabled',
-      'true'
+      'true',
     );
     const editInput = screen.getByLabelText(name);
     await user.type(editInput, '{Enter}');
-    expect(handleSubmit).toBeCalledTimes(0);
+    expect(handleSubmit).toHaveBeenCalledTimes(0);
   });
 });

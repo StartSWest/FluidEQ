@@ -28,29 +28,32 @@ import {
   startChromeDriver,
   stopChromeDriver,
 } from '__tests__/utils/webdriver';
-import { givenAquaIsRunning, givenEnabledState } from './shared_steps/aqua';
+import {
+  givenFluidEqIsRunning,
+  givenEnabledState,
+} from './shared_steps/fluideq';
 import {
   givenBandFrequency,
   whenSetFrequencyGain,
-} from './shared_steps/aquaSlider';
+} from './shared_steps/fluidEqSlider';
 import { thenFrequencyGain } from './shared_steps/config';
 import {
-  givenCanWriteToAquaConfig,
+  givenCanWriteToFluidEqConfig,
   givenEqualizerApoIsInstalled,
 } from './shared_steps/equalizerApo';
 
 const chromeDriver = startChromeDriver();
 
 const feature = loadFeature(
-  './src/__tests__/cucumber_tests/features/set_band_gain.feature'
+  './src/__tests__/cucumber_tests/features/set_band_gain.feature',
 );
 const webdriver: { driver: Driver } = { driver: undefined };
 
 defineFeature(feature, (test) => {
   test('Move slider to bottom', async ({ given, when, then }) => {
     givenEqualizerApoIsInstalled(given);
-    givenCanWriteToAquaConfig(given);
-    givenAquaIsRunning(given, webdriver, chromeDriver);
+    givenCanWriteToFluidEqConfig(given);
+    givenFluidEqIsRunning(given, webdriver, chromeDriver);
     givenBandFrequency(given, webdriver);
     givenEnabledState(given, webdriver);
 

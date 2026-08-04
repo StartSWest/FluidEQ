@@ -25,7 +25,7 @@ import {
 } from 'common/driver';
 import { NO_GAIN_FILTER_TYPES } from 'common/constants';
 import DriverCurve from './DriverCurve';
-import { useAquaContext } from '../utils/AquaContext';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { setDriver as setDriverApi } from '../utils/equalizerApi';
 import Dropdown from '../widgets/Dropdown';
@@ -50,7 +50,7 @@ const WRITE_DEBOUNCE_MS = 140;
  */
 const DriverPicker = () => {
   const { isBlockingError, isEnabled, driver, setDriver, setGlobalError } =
-    useAquaContext();
+    useFluidEqContext();
   const { t } = useTranslation();
 
   const activeId = driver?.profileId ?? '';

@@ -29,27 +29,27 @@ import {
   stopChromeDriver,
 } from '__tests__/utils/webdriver';
 import {
-  givenAquaIsRunning,
+  givenFluidEqIsRunning,
   givenEnabledState,
   whenSetEnabledState,
-} from './shared_steps/aqua';
+} from './shared_steps/fluideq';
 import { thenConfigFile } from './shared_steps/config';
 import {
-  givenCanWriteToAquaConfig,
+  givenCanWriteToFluidEqConfig,
   givenEqualizerApoIsInstalled,
 } from './shared_steps/equalizerApo';
 
 const chromeDriver = startChromeDriver();
 
 const feature = loadFeature(
-  './src/__tests__/cucumber_tests/features/set_enable.feature'
+  './src/__tests__/cucumber_tests/features/set_enable.feature',
 );
 const webdriver: { driver: Driver } = { driver: undefined };
 defineFeature(feature, (test) => {
   test('Enable the equalizer', async ({ given, when, then }) => {
     givenEqualizerApoIsInstalled(given);
-    givenCanWriteToAquaConfig(given);
-    givenAquaIsRunning(given, webdriver, chromeDriver);
+    givenCanWriteToFluidEqConfig(given);
+    givenFluidEqIsRunning(given, webdriver, chromeDriver);
     givenEnabledState(given, webdriver);
 
     whenSetEnabledState(when, webdriver);
@@ -58,8 +58,8 @@ defineFeature(feature, (test) => {
 
   test('Disable the equalizer', async ({ given, when, then }) => {
     givenEqualizerApoIsInstalled(given);
-    givenCanWriteToAquaConfig(given);
-    givenAquaIsRunning(given, webdriver, chromeDriver);
+    givenCanWriteToFluidEqConfig(given);
+    givenFluidEqIsRunning(given, webdriver, chromeDriver);
     givenEnabledState(given, webdriver);
 
     whenSetEnabledState(when, webdriver);

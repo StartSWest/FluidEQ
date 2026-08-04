@@ -30,8 +30,8 @@ export const givenEqualizerApoIsInstalled = (given: DefineStepFunction) => {
   });
 };
 
-export const givenCanWriteToAquaConfig = (given: DefineStepFunction) => {
-  given('Aqua can write to Aqua config', async () => {
+export const givenCanWriteToFluidEqConfig = (given: DefineStepFunction) => {
+  given('FluidEQ can write to its config', async () => {
     const emptyState: IState = {
       isEnabled: false,
       isAutoPreAmpOn: false,

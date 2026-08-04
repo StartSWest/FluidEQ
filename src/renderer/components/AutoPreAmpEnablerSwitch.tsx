@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ErrorDescription } from 'common/errors';
 import { useCallback } from 'react';
 import { disableAutoPreAmp, enableAutoPreAmp } from '../utils/equalizerApi';
-import { useAquaContext } from '../utils/AquaContext';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import Switch from '../widgets/Switch';
 
 // The public UI calls this Auto normalize. The existing component and API
@@ -33,7 +33,7 @@ export default function AutoPreAmpEnablerSwitch({
   id,
 }: IAutoPreAmpEnablerSwitchProps) {
   const { isBlockingError, isAutoPreAmpOn, setGlobalError, setAutoPreAmpOn } =
-    useAquaContext();
+    useFluidEqContext();
 
   const handleToggle = useCallback(async () => {
     try {

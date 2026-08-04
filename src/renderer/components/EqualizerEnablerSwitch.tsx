@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ErrorDescription } from 'common/errors';
 import { useCallback } from 'react';
 import { disableEqualizer, enableEqualizer } from '../utils/equalizerApi';
-import { useAquaContext } from '../utils/AquaContext';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import Switch from '../widgets/Switch';
 
 interface IEqualizerEnablerSwitchProps {
@@ -30,7 +30,7 @@ export default function EqualizerEnablerSwitch({
   id,
 }: IEqualizerEnablerSwitchProps) {
   const { isBlockingError, isEnabled, setGlobalError, setIsEnabled } =
-    useAquaContext();
+    useFluidEqContext();
 
   const handleToggleEqualizer = useCallback(async () => {
     try {

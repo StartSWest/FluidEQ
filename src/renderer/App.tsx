@@ -24,7 +24,7 @@ import './styles/App.scss';
 import MainContent from './MainContent';
 import SupportDialog from './SupportDialog';
 import SupportPet from './SupportPet';
-import { AquaProvider, useAquaContext } from './utils/AquaContext';
+import { FluidEqProvider, useFluidEqContext } from './utils/FluidEqContext';
 import PrereqMissingModal from './PrereqMissingModal';
 import SideBar from './SideBar';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
@@ -67,7 +67,7 @@ const AppContent = () => {
     performHealthCheck,
     refreshState,
     setGlobalError,
-  } = useAquaContext();
+  } = useFluidEqContext();
   const { t } = useTranslation();
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
@@ -612,7 +612,7 @@ export default function App() {
     // Outermost: every other provider can surface a message, and all of them
     // are below this one so they can be translated.
     <I18nProvider>
-      <AquaProvider>
+      <FluidEqProvider>
         <LiveAudioProvider>
           <Router>
             <Routes>
@@ -620,7 +620,7 @@ export default function App() {
             </Routes>
           </Router>
         </LiveAudioProvider>
-      </AquaProvider>
+      </FluidEqProvider>
     </I18nProvider>
   );
 }

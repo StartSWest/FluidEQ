@@ -40,11 +40,11 @@ headphones.forEach((headphone) => {
     const preampMatch = eqLines[0].match(PREAMP_REGEX);
     if (preampMatch === null || preampMatch.length !== 2) {
       throw new Error(
-        `Preamp regex match error for AutoEQ file: ${eqFilePath}`
+        `Preamp regex match error for AutoEQ file: ${eqFilePath}`,
       );
     } else if (Number.isNaN(parseFloat(preampMatch[1]))) {
       throw new Error(
-        `Preamp float parse error for AutoEQ file: ${eqFilePath}`
+        `Preamp float parse error for AutoEQ file: ${eqFilePath}`,
       );
     }
 
@@ -52,7 +52,7 @@ headphones.forEach((headphone) => {
       const filterMatch = eqLines[i].match(FILTER_REGEX);
       if (filterMatch === null || filterMatch.length !== 5) {
         throw new Error(
-          `Filter regex match error on line ${i} for AutoEQ file: ${eqFilePath}`
+          `Filter regex match error on line ${i} for AutoEQ file: ${eqFilePath}`,
         );
       }
 
@@ -65,7 +65,7 @@ headphones.forEach((headphone) => {
           break;
         default:
           throw new Error(
-            `Unsupported filter type on line ${i} for AutoEQ file: ${eqFilePath}`
+            `Unsupported filter type on line ${i} for AutoEQ file: ${eqFilePath}`,
           );
       }
       try {
@@ -75,7 +75,7 @@ headphones.forEach((headphone) => {
         // console.log(`Filter ${i}: ON ${filterType} Fc ${frequency} Hz Gain ${gain.toFixed(1)} dB Q ${quality.toFixed(2)}`);
       } catch (err) {
         throw new Error(
-          `Filter parameter parse error on line ${i} for AutoEQ file: ${eqFilePath}`
+          `Filter parameter parse error on line ${i} for AutoEQ file: ${eqFilePath}`,
         );
       }
     }

@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ErrorDescription } from 'common/errors';
 import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
-import { useAquaContext } from '../utils/AquaContext';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import {
   clearConvolution,
@@ -56,7 +56,7 @@ const ActiveLayers = () => {
     setVoicing,
     setDriver,
     setGlobalError,
-  } = useAquaContext();
+  } = useFluidEqContext();
   const { t } = useTranslation();
 
   const voicingProfile = getVoicingProfile(voicing?.profileId ?? '');

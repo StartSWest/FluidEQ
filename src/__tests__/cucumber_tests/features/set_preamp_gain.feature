@@ -3,17 +3,17 @@ Feature: Set preamplification gain
 
   Scenario: Set preamp gain using the slider
     Given EqualizerAPO is installed
-      And Aqua can write to Aqua config
-      And Aqua is running
-      And Aqua equalizer state is enabled
+      And FluidEQ can write to its config
+      And FluidEQ is running
+      And FluidEQ equalizer state is enabled
     When I set gain of the preamp slider to the bottom
-    Then Aqua config should show a preamp gain of -20dB
+    Then FluidEQ config should show a preamp gain of -20dB
   
   Scenario: Set preamp gain using the arrows
     Given EqualizerAPO is installed
-      And Aqua can write to Aqua config
-      And Aqua is running
+      And FluidEQ can write to its config
+      And FluidEQ is running
       And the preamp gain is 0dB
-      And Aqua equalizer state is enabled
+      And FluidEQ equalizer state is enabled
     When I click on the up arrow for the preamp gain 3 times
-    Then Aqua config should show a preamp gain of 3dB
+    Then FluidEQ config should show a preamp gain of 3dB

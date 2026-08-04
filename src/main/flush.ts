@@ -271,11 +271,12 @@ export const serializePreset = (preset: IPresetV2) => {
 };
 
 const CONFIG_CONTENT = 'Include: fluideq.txt';
+// A value on disk, not a name in code: this is what upstream AQUA wrote into
+// Equalizer APO's config.txt, and it has to keep matching so an install being
+// upgraded from that project is recognised rather than duplicated.
 const LEGACY_CONFIG_CONTENT = /^\s*Include:\s*aqua\.txt\s*$/i;
-const AQUA_LOCAL_CONFIG_FILENAME = 'state.txt';
+const LOCAL_STATE_FILENAME = 'state.txt';
 export const FLUIDEQ_CONFIG_FILENAME = 'fluideq.txt';
-// Kept as an API alias for older tests and integrations; the generated file is FluidEQ-owned.
-export const AQUA_CONFIG_FILENAME = FLUIDEQ_CONFIG_FILENAME;
 const CONFIG_FILENAME = 'config.txt';
 export const PRESETS_DIR = 'presets';
 
@@ -364,7 +365,7 @@ const normalizeGraphicEq = (points: IGraphicEqPoint[] | undefined) =>
     : undefined;
 
 export const fetchSettings = (settingsDir: string) => {
-  const settingsPath = path.join(settingsDir, AQUA_LOCAL_CONFIG_FILENAME);
+  const settingsPath = path.join(settingsDir, LOCAL_STATE_FILENAME);
   const fallbackState = getDefaultState();
 
   const isValidEqFormat = (input: unknown): input is AutoEqFormat =>
@@ -451,7 +452,7 @@ export const fetchSettings = (settingsDir: string) => {
 };
 
 export const save = (state: IState, settingsDir: string) => {
-  const settingsPath = path.join(settingsDir, AQUA_LOCAL_CONFIG_FILENAME);
+  const settingsPath = path.join(settingsDir, LOCAL_STATE_FILENAME);
   try {
     fs.writeFileSync(settingsPath, serializeState(state), {
       encoding: 'utf8',

@@ -25,7 +25,7 @@ import {
 } from 'common/voicing';
 import { NO_GAIN_FILTER_TYPES } from 'common/constants';
 import VoicingIcon from './icons/VoicingIcon';
-import { useAquaContext } from './utils/AquaContext';
+import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { setVoicing as setVoicingApi } from './utils/equalizerApi';
 import './styles/Voicing.scss';
@@ -35,7 +35,7 @@ const WRITE_DEBOUNCE_MS = 140;
 
 const VoicingPanel = () => {
   const { isBlockingError, isEnabled, setGlobalError, voicing, setVoicing } =
-    useAquaContext();
+    useFluidEqContext();
   const { t } = useTranslation();
 
   const activeId = voicing?.profileId ?? '';

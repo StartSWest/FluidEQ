@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useCallback, useEffect, useRef, useState } from 'react';
 import NumberInput from '../widgets/NumberInput';
 import RangeInput from '../widgets/RangeInput';
-import { useAquaContext } from '../utils/AquaContext';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import '../styles/Slider.scss';
 
 interface ISliderProps {
@@ -47,7 +47,7 @@ const Slider = ({
   colorProgress = 0,
   setValue,
 }: ISliderProps) => {
-  const { isBlockingError } = useAquaContext();
+  const { isBlockingError } = useFluidEqContext();
 
   // Local copy of slider value used so that the number input increases smoothly while throttling EQ APO writes
   const [sliderValue, setSliderValue] = useState<number>(value);

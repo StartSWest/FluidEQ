@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { IAutoEqUpdateStatus, IEqSource } from 'common/constants';
-import { useAquaContext } from './utils/AquaContext';
+import { useFluidEqContext } from './utils/FluidEqContext';
 import MenuIcon from './icons/MenuIcon';
 import { useTranslation } from './utils/I18nContext';
 import SidebarSection from './components/SidebarSection';
@@ -99,7 +99,7 @@ const getResponseDisplayName = (response: string) =>
 const AutoEQ = () => {
   const CLEAR_SELECTION_EVENT = 'fluideq-clear-autoeq-selection';
   const { headset, isBlockingError, setGlobalError, refreshState } =
-    useAquaContext();
+    useFluidEqContext();
   const { t } = useTranslation();
   const NO_DEVICE_SELECTION = t('autoeq.pickDevice');
   const NO_RESPONSES = t('autoeq.noResponses');

@@ -28,35 +28,35 @@ import {
   startChromeDriver,
   stopChromeDriver,
 } from '__tests__/utils/webdriver';
-import { givenAquaIsRunning } from './shared_steps/aqua';
+import { givenFluidEqIsRunning } from './shared_steps/fluideq';
 import {
   givenBandCount,
   whenSetBandFrequency,
   whenSetFrequencyFilterType,
   whenSetFrequencyGain,
   whenSetFrequencyQuality,
-} from './shared_steps/aquaSlider';
+} from './shared_steps/fluidEqSlider';
 import {
   givenChartViewEnabledState,
   thenGraph,
-} from './shared_steps/aquaGraph';
+} from './shared_steps/fluidEqGraph';
 import {
-  givenCanWriteToAquaConfig,
+  givenCanWriteToFluidEqConfig,
   givenEqualizerApoIsInstalled,
 } from './shared_steps/equalizerApo';
 
 const chromeDriver = startChromeDriver();
 
 const feature = loadFeature(
-  './src/__tests__/cucumber_tests/features/show_filter_graph.feature'
+  './src/__tests__/cucumber_tests/features/show_filter_graph.feature',
 );
 const webdriver: { driver: Driver } = { driver: undefined };
 
 defineFeature(feature, (test) => {
   test('Apply a single peak filter', async ({ given, when, then }) => {
     givenEqualizerApoIsInstalled(given);
-    givenCanWriteToAquaConfig(given);
-    givenAquaIsRunning(given, webdriver, chromeDriver);
+    givenCanWriteToFluidEqConfig(given);
+    givenFluidEqIsRunning(given, webdriver, chromeDriver);
     givenBandCount(given, webdriver);
     givenChartViewEnabledState(given, webdriver);
 

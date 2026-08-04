@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useEffect, useRef, useState } from 'react';
 import { VOICING_PROFILES, getVoicingProfile } from 'common/voicing';
 import VoicingIcon from '../icons/VoicingIcon';
-import { useAquaContext } from '../utils/AquaContext';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import { setVoicing as setVoicingApi } from '../utils/equalizerApi';
 import '../styles/VoicingQuickPick.scss';
@@ -33,7 +33,8 @@ import '../styles/VoicingQuickPick.scss';
  * room for six cards — the menu carries the names.
  */
 const VoicingQuickPick = () => {
-  const { isBlockingError, isEnabled, voicing, setVoicing } = useAquaContext();
+  const { isBlockingError, isEnabled, voicing, setVoicing } =
+    useFluidEqContext();
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);

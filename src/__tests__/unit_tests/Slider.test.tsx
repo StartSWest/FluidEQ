@@ -19,8 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import { act, fireEvent, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { AquaProviderWrapper } from 'renderer/utils/AquaContext';
-import defaultAquaContext from '../utils/mockAquaProvider';
+import { FluidEqProviderWrapper } from 'renderer/utils/FluidEqContext';
+import defaultFluidEqContext from '../utils/mockFluidEqProvider';
 import { clearAndType, setup } from '../utils/userEventUtils';
 import Slider from '../../renderer/components/Slider';
 
@@ -36,7 +36,7 @@ describe('Slider', () => {
     const testValue = 1;
     await act(async () => {
       setup(
-        <AquaProviderWrapper value={defaultAquaContext}>
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
           <Slider
             name={name}
             min={-5}
@@ -44,14 +44,14 @@ describe('Slider', () => {
             value={testValue}
             setValue={setValue}
           />
-        </AquaProviderWrapper>
+        </FluidEqProviderWrapper>,
       );
     });
     const rangeInput = screen.getByLabelText(`${name}-range`);
     await waitFor(() => expect(rangeInput).not.toBeDisabled());
     expect(rangeInput).toHaveValue(`${testValue}`);
     expect(screen.getByLabelText(`${name}-number`)).toHaveValue(
-      testValue.toFixed(2)
+      testValue.toFixed(2),
     );
   });
 
@@ -60,7 +60,7 @@ describe('Slider', () => {
     const testValue = 1;
     await act(async () => {
       setup(
-        <AquaProviderWrapper value={defaultAquaContext}>
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
           <Slider
             name={name}
             min={-5}
@@ -68,7 +68,7 @@ describe('Slider', () => {
             value={testValue}
             setValue={setValue}
           />
-        </AquaProviderWrapper>
+        </FluidEqProviderWrapper>,
       );
     });
     const rangeInput = screen.getByLabelText(`${name}-range`);
@@ -89,7 +89,7 @@ describe('Slider', () => {
     const testValue = 1;
     await act(async () => {
       setup(
-        <AquaProviderWrapper value={defaultAquaContext}>
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
           <Slider
             name={name}
             min={-5}
@@ -97,7 +97,7 @@ describe('Slider', () => {
             value={testValue}
             setValue={setValue}
           />
-        </AquaProviderWrapper>
+        </FluidEqProviderWrapper>,
       );
     });
     const rangeInput = screen.getByLabelText(`${name}-range`);
@@ -115,7 +115,7 @@ describe('Slider', () => {
     const user = userEvent.setup();
     await act(async () => {
       setup(
-        <AquaProviderWrapper value={defaultAquaContext}>
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
           <Slider
             name={name}
             min={-5}
@@ -123,7 +123,7 @@ describe('Slider', () => {
             value={testValue}
             setValue={setValue}
           />
-        </AquaProviderWrapper>
+        </FluidEqProviderWrapper>,
       );
     });
 
@@ -141,7 +141,7 @@ describe('Slider', () => {
     const testValue = 1;
     await act(async () => {
       setup(
-        <AquaProviderWrapper value={defaultAquaContext}>
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
           <Slider
             name={name}
             min={-5}
@@ -149,7 +149,7 @@ describe('Slider', () => {
             value={testValue}
             setValue={setValue}
           />
-        </AquaProviderWrapper>
+        </FluidEqProviderWrapper>,
       );
     });
     const numberInput = screen.getByLabelText(`${name}-number`);

@@ -3,9 +3,9 @@ Feature: Set gain of a frequency band
 
   Scenario: Move slider to bottom
     Given EqualizerAPO is installed
-      And Aqua can write to Aqua config
-      And Aqua is running
+      And FluidEQ can write to its config
+      And FluidEQ is running
       And the frequency of band 1 is 1000Hz
-      And Aqua equalizer state is enabled
+      And FluidEQ equalizer state is enabled
     When I set gain of slider of frequency 1000Hz to bottom
-    Then Aqua config file should show gain of -20dB for frequency 1000Hz
+    Then FluidEQ config file should show gain of -20dB for frequency 1000Hz

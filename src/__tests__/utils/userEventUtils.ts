@@ -24,7 +24,7 @@ export const setup = (
   jsx: React.ReactElement<
     unknown,
     string | React.JSXElementConstructor<unknown>
-  >
+  >,
 ) => {
   return {
     user: userEvent.setup(),
@@ -36,7 +36,7 @@ export const clearAndType = async (
   user: UserEvent,
   element: Element,
   text: string,
-  options?: Parameters<UserEvent['type']>[2]
+  options?: Parameters<UserEvent['type']>[2],
 ) => {
   await user.clear(element);
   return user.type(element, text, options);

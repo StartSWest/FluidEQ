@@ -41,7 +41,7 @@ import {
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import FrequencyBand from './components/FrequencyBand';
-import { FilterActionEnum, useAquaContext } from './utils/AquaContext';
+import { FilterActionEnum, useFluidEqContext } from './utils/FluidEqContext';
 import './styles/MainContent.scss';
 import './styles/MultiSelect.scss';
 import Spinner from './icons/Spinner';
@@ -89,7 +89,7 @@ const MainContent = () => {
     hoveredFilterId,
     setHoveredFilterId,
     voicing,
-  } = useAquaContext();
+  } = useFluidEqContext();
   const { t } = useTranslation();
   const { captureBalanceProfile, isActive: isLiveOutputActive } =
     useLiveAudio();

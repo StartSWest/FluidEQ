@@ -36,7 +36,10 @@ import {
   useState,
 } from 'react';
 import Spinner from 'renderer/icons/Spinner';
-import { FilterActionEnum, useAquaContext } from 'renderer/utils/AquaContext';
+import {
+  FilterActionEnum,
+  useFluidEqContext,
+} from 'renderer/utils/FluidEqContext';
 import {
   setFrequency,
   setGain,
@@ -108,7 +111,7 @@ const FrequencyResponseChart = () => {
     setHoveredFilterId,
     voicing,
     driver,
-  } = useAquaContext();
+  } = useFluidEqContext();
   const prevFilters = useRef<IFiltersMap>({});
   const prevFilterLines = useRef<IChartLineDataPointsById>({});
   const pendingPointEdits = useRef<Record<string, PendingPointEdit>>({});

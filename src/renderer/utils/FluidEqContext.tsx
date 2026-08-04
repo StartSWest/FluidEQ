@@ -68,7 +68,7 @@ export type FilterAction =
 
 type FilterDispatch = (action: FilterAction) => void;
 
-export interface IAquaContext extends IState {
+export interface IFluidEqContext extends IState {
   isLoading: boolean;
   globalError: ErrorDescription | undefined;
   /** True only for failures that make the app genuinely unusable. */
@@ -103,7 +103,7 @@ export interface IAquaContext extends IState {
   dispatchFilter: FilterDispatch;
 }
 
-const AquaContext = createContext<IAquaContext | undefined>(undefined);
+const FluidEqContext = createContext<IFluidEqContext | undefined>(undefined);
 
 type IFilterReducer = (
   filters: IFiltersMap,
@@ -168,23 +168,25 @@ const filterReducer: IFilterReducer = (
   }
 };
 
-export interface IAquaProviderWrapperProps {
-  value: IAquaContext;
+export interface IFluidEqProviderWrapperProps {
+  value: IFluidEqContext;
   children: ReactNode;
 }
 
-interface IAquaProviderProps {
+interface IFluidEqProviderProps {
   children: ReactNode;
 }
 
-export const AquaProviderWrapper = ({
+export const FluidEqProviderWrapper = ({
   value,
   children,
-}: IAquaProviderWrapperProps) => {
-  return <AquaContext.Provider value={value}>{children}</AquaContext.Provider>;
+}: IFluidEqProviderWrapperProps) => {
+  return (
+    <FluidEqContext.Provider value={value}>{children}</FluidEqContext.Provider>
+  );
 };
 
-export const AquaProvider = ({ children }: IAquaProviderProps) => {
+export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [globalError, setGlobalError] = useState<
     ErrorDescription | undefined
   >();
@@ -311,7 +313,7 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
   }, [refreshState]);
 
   return (
-    <AquaProviderWrapper
+    <FluidEqProviderWrapper
       value={{
         isLoading,
         globalError,
@@ -347,14 +349,14 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
       }}
     >
       {children}
-    </AquaProviderWrapper>
+    </FluidEqProviderWrapper>
   );
 };
 
-export const useAquaContext = () => {
-  const context = useContext(AquaContext);
+export const useFluidEqContext = () => {
+  const context = useContext(FluidEqContext);
   if (context === undefined) {
-    throw new Error('useAquaContext must be used within an AquaProvider');
+    throw new Error('useFluidEqContext must be used within an FluidEqProvider');
   }
   return context;
 };

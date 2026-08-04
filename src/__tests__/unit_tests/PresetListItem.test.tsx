@@ -44,7 +44,7 @@ describe('PresetListItem', () => {
         handleDelete={handleDelete}
         isDisabled={false}
         validate={validate}
-      />
+      />,
     );
 
     expect(screen.getByText(testValue)).toBeInTheDocument();
@@ -61,7 +61,7 @@ describe('PresetListItem', () => {
         handleDelete={handleDelete}
         isDisabled={false}
         validate={validate}
-      />
+      />,
     );
     const editIcon = screen.getByLabelText(editIconLabel);
     await user.click(editIcon);
@@ -83,7 +83,7 @@ describe('PresetListItem', () => {
         handleDelete={handleDelete}
         isDisabled={false}
         validate={validate}
-      />
+      />,
     );
     const deleteIcon = screen.getByLabelText(deleteIconLabel);
     await user.click(deleteIcon);
@@ -101,7 +101,7 @@ describe('PresetListItem', () => {
         handleDelete={handleDelete}
         isDisabled={false}
         validate={validate}
-      />
+      />,
     );
     const editIcon = screen.getByLabelText(editIconLabel);
     await user.click(editIcon);
@@ -128,7 +128,7 @@ describe('PresetListItem', () => {
         handleDelete={handleDelete}
         isDisabled={false}
         validate={validate}
-      />
+      />,
     );
     const editIcon = screen.getByLabelText(editIconLabel);
     await user.click(editIcon);
@@ -157,7 +157,7 @@ describe('PresetListItem', () => {
         handleDelete={handleDelete}
         isDisabled={false}
         validate={validate}
-      />
+      />,
     );
     const editIcon = screen.getByLabelText(editIconLabel);
     await user.click(editIcon);
@@ -184,7 +184,7 @@ describe('PresetListItem', () => {
         handleDelete={handleDelete}
         isDisabled
         validate={validate}
-      />
+      />,
     );
     const editIcon = screen.getByLabelText(editIconLabel);
     expect(editIcon).toHaveAttribute('aria-disabled', 'true');

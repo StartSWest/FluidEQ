@@ -17,7 +17,7 @@ import { ErrorDescription } from 'common/errors';
 import Dropdown from './widgets/Dropdown';
 import SidebarSection from './components/SidebarSection';
 import { IOptionEntry } from './widgets/List';
-import { useAquaContext } from './utils/AquaContext';
+import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import {
   getAudioDevices,
@@ -33,7 +33,7 @@ const EMPTY_SETTINGS: IDeviceProfileSettings = {
 
 const DeviceProfiles = () => {
   const { isBlockingError, performHealthCheck, setGlobalError } =
-    useAquaContext();
+    useFluidEqContext();
   const { t } = useTranslation();
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [settings, setSettings] =
