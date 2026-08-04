@@ -7,9 +7,17 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 .rhythm-game {
+  // Arrives rather than appears. This mounts the instant the badge is earned,
+  // straight out of the star that was standing in its place, so it is the
+  // second half of that one animation and not a decoration on a panel that had
+  // already changed. It also runs for anyone opening the panel later, which is
+  // right: the game is the thing this dialog gained, and it can keep making an
+  // entrance.
+  @include animate(rise-in, $motion-base, $ease-spring);
   display: grid;
   gap: 6px;
   // Tucked up against the header, so the trace sits under the creature rather
@@ -18,22 +26,52 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 // Says what this is. Without it the trace is a decoration nobody presses.
+//
+// It was set at 0.68rem, which is smaller than anything else in the dialog and
+// smaller than the note apologising for the dialog. The one line that tells
+// someone there is a game here cannot be the hardest line to read.
+//
+// Centred because the creature above it is, so the instruction, the target
+// line and the thing being aimed all share an axis instead of the text
+// starting at the left edge while everything it describes sits in the middle.
+// `text-wrap: balance` is what stops the last word dropping to a line of its
+// own — with two sentences at this width that happened constantly, and a
+// stranded "×10." is most of what "not formatted properly" looks like.
+// Yellow, and the only yellow in the panel. Grey text under a grey heading
+// beside a grey note is where an instruction goes to die — this one has to be
+// found before anything else in here makes sense, so it is the one line
+// allowed to shout.
 .rhythm-game__howto {
-  margin: 0;
-  color: rgba($primary-lighter, 0.6);
-  font-size: 0.68rem;
-  line-height: 1.45;
+  max-width: 46ch;
+  margin: 0 auto;
+  color: $neon-yellow;
+  font-size: 0.92rem;
+  font-weight: 600;
+  line-height: 1.55;
+  text-align: center;
+  text-shadow: 0 0 14px rgba($neon-yellow, 0.28);
+  text-wrap: balance;
 }
 
 // The ask. Softer than the instruction above it and set apart from the game, so
 // it reads as a thank you with a door left open rather than a second pitch in a
 // dialog that has already made one.
+//
+// Set apart by a rule and real space rather than by being tiny. Shrinking it
+// was doing the job that whitespace should do, and it left the sentence
+// physically hard to read to make it feel quiet — which is the wrong trade for
+// the one line in here that is actually asking for something.
 .rhythm-game__thanks {
-  margin: 2px 0 0;
-  color: rgba($primary-lighter, 0.42);
-  font-size: 0.64rem;
+  max-width: 46ch;
+  margin: 14px auto 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba($secondary-default, 0.14);
+  color: rgba($primary-lighter, 0.64);
+  font-size: 0.84rem;
   font-style: italic;
-  line-height: 1.45;
+  line-height: 1.55;
+  text-align: center;
+  text-wrap: balance;
 }
 
 .rhythm-game__scores {

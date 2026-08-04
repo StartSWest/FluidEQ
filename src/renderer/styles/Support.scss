@@ -71,58 +71,48 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // No rule underneath, and barely any gap. The trace belongs to the creature
 // directly above it — it is what the creature is jumping — and a divider
 // between them made the game read as a separate panel that happened to be next.
+// The creature sits in the middle, always.
+//
+// With the game, this is the fix for a target line that kept ending up
+// somewhere she was not. The line sits at 50% of the trace, which is where it
+// has to be — the trace shows the same span of time either side of it, so a
+// peak is visible for as long coming in as it is going out, and moving the
+// line makes one direction harder than the other for no reason. She was the
+// part in the wrong place: parked at the left edge beside the title, with the
+// line she is meant to be jumping half a dialog away. The trace and the header
+// share the dialog's content box, so centring her in it puts her over the line
+// exactly, with nothing to measure and nothing to keep in sync on resize.
+//
+// Without the game there is no line, and she is centred for the plainer
+// reason: she is the first thing in a dialog that is asking for something, and
+// a creature tucked into a corner beside a heading reads as an icon. Centred
+// with the title under her she reads as somebody looking at you. It also means
+// the panel does not rearrange itself the moment the badge is earned — the
+// layout is identical before and after, so the transition has only content to
+// change and never jumps.
+//
+// The close button leaves the flow, so it can hold its corner without pulling
+// her off centre.
 .support-dialog__header {
+  position: relative;
   display: flex;
   min-width: 0;
   align-items: flex-start;
-  justify-content: space-between;
+  justify-content: center;
   gap: 12px;
-  padding-bottom: 2px;
+  padding-bottom: 0;
 }
 
 .support-dialog__identity {
   display: flex;
   min-width: 0;
+  flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 6px;
+  text-align: center;
 
   > div {
     min-width: 0;
-  }
-}
-
-// With the game showing, the creature moves to the middle.
-//
-// This is the fix for a line that kept ending up somewhere she was not. The
-// target sits at 50% of the trace, which is where it has to be — the trace
-// shows the same span of time either side of it, so a peak is visible for as
-// long coming in as it is going out, and moving the line moves that balance.
-// The creature is the part that was in the wrong place: parked at the left
-// edge beside the title, with the line she is supposed to be jumping half a
-// dialog away.
-//
-// The trace and the header share the dialog's content box, so centring her in
-// it puts her over the line exactly, with no measuring and nothing to keep in
-// sync if the dialog is resized. The close button leaves the flow so it can
-// stay in its corner without pulling her off centre.
-.support-dialog--game {
-  .support-dialog__header {
-    position: relative;
-    justify-content: center;
-    padding-bottom: 0;
-  }
-
-  .support-dialog__identity {
-    flex-direction: column;
-    align-items: center;
-    gap: 6px;
-    text-align: center;
-  }
-
-  .support-dialog__close {
-    position: absolute;
-    top: 0;
-    right: 0;
   }
 }
 
@@ -136,10 +126,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .support-dialog__close {
+  // Out of the flow, so centring the creature is not fighting a button on one
+  // side of her and nothing on the other.
+  position: absolute;
+  top: 0;
+  right: 0;
   display: grid;
   width: 36px;
   height: 36px;
-  flex: 0 0 auto;
   place-items: center;
   padding: 0;
   color: rgba($white, 0.72);
@@ -169,9 +163,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .support-dialog__pitch {
   margin: 0;
-  color: rgba($primary-lighter, 0.86);
-  font-size: 0.9rem;
-  line-height: 1.6;
+  color: rgba($primary-lighter, 0.92);
+  font-size: 1rem;
+  line-height: 1.7;
 }
 
 // Quieter than the pitch and set apart from it: this is the maker speaking,
@@ -179,12 +173,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // paragraph of the same argument.
 .support-dialog__craft {
   margin: 0;
-  padding-left: 12px;
-  color: rgba($primary-lighter, 0.74);
+  padding-left: 16px;
+  color: rgba($primary-lighter, 0.8);
   border-left: 2px solid rgba($secondary-light, 0.42);
-  font-size: 0.8rem;
+  font-size: 0.9rem;
   font-style: italic;
-  line-height: 1.6;
+  line-height: 1.65;
 }
 
 .support-dialog__methods {
@@ -220,9 +214,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   &__hint {
-    color: rgba($primary-lighter, 0.7);
-    font-size: 0.82rem;
-    line-height: 1.4;
+    color: rgba($primary-lighter, 0.76);
+    font-size: 0.88rem;
+    line-height: 1.5;
   }
 
   // The address must stay readable and selectable; a donor sending to the
@@ -476,5 +470,117 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:hover {
     color: #ff8b98;
     border-color: rgba(#ff8b98, 0.5);
+  }
+}
+
+// Earning the badge.
+//
+// Fires once per install and is the only thing standing between asking and
+// having, so it is allowed to be theatrical. Everything animated here is
+// `translate`, `rotate`, `scale` and `opacity` — all composited — because the
+// one time this runs is the one time dropped frames would be noticed.
+.support-earn {
+  position: absolute;
+  z-index: 10;
+  top: 50%;
+  left: 50%;
+  pointer-events: none;
+}
+
+// The one in the middle: a star that arrives, swells and hands over. Its exit
+// is what the new panel appears out of.
+.support-earn__core {
+  position: absolute;
+  color: $neon-yellow;
+  font-size: 3.4rem;
+  line-height: 1;
+  animation: support-earn-core 1500ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  text-shadow:
+    0 0 18px rgba($neon-yellow, 0.9),
+    0 0 46px rgba($neon-yellow, 0.55);
+  translate: -50% -50%;
+}
+
+// The ring. Each one travels along its own angle, which is set per element —
+// so the spacing is exact rather than a dozen hand-written rules that drift
+// apart the moment the count changes.
+.support-earn__star {
+  position: absolute;
+  color: $neon-yellow;
+  font-size: 1.5rem;
+  line-height: 1;
+  opacity: 0;
+  animation: support-earn-star 1150ms cubic-bezier(0.16, 0.9, 0.3, 1) forwards;
+  animation-delay: var(--star-delay, 0ms);
+  rotate: var(--star-angle, 0deg);
+  text-shadow: 0 0 12px rgba($neon-yellow, 0.8);
+  translate: -50% -50%;
+}
+
+@keyframes support-earn-core {
+  0% {
+    opacity: 0;
+    scale: 0.2;
+  }
+
+  22% {
+    opacity: 1;
+    scale: 1.25;
+  }
+
+  55% {
+    opacity: 1;
+    scale: 1;
+  }
+
+  100% {
+    opacity: 0;
+    scale: 2.6;
+  }
+}
+
+// Rotated by the element, so a single translate along Y is a different
+// direction for every star and the ring needs no per-star maths beyond an
+// angle.
+@keyframes support-earn-star {
+  0% {
+    opacity: 0;
+    translate: -50% -50%;
+    scale: 0.4;
+  }
+
+  30% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    translate: -50% -260px;
+    scale: 1;
+  }
+}
+
+// Someone who asked for less motion still gets the badge, and still gets told
+// it happened — the star appears, holds and goes. What is removed is the ring
+// flying outwards, which is the part that is motion for its own sake.
+@media (prefers-reduced-motion: reduce) {
+  .support-earn__star {
+    display: none;
+  }
+
+  .support-earn__core {
+    animation: support-earn-core-still 1500ms ease-out forwards;
+  }
+
+  @keyframes support-earn-core-still {
+    0%,
+    100% {
+      opacity: 0;
+    }
+
+    20%,
+    70% {
+      opacity: 1;
+    }
   }
 }

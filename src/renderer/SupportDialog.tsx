@@ -16,7 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from 'react';
 import {
   SUPPORT_CONFIG,
   SupportMethodId,
@@ -66,6 +72,26 @@ const COPY_FEEDBACK_MS = 2000;
 /** How long the creature keeps the face the last tap earned it. */
 const PET_MOOD_MS = 700;
 
+/**
+ * How long the badge celebration runs before the panel becomes the new one.
+ *
+ * Long enough to register as a moment and short enough not to be a wait. The
+ * badge is earned exactly once per install and everything the creature can do
+ * is behind it, so arriving with no ceremony — the panel simply having
+ * different contents on the next frame — read as a glitch rather than as
+ * something being unlocked.
+ */
+const BADGE_CELEBRATION_MS = 1500;
+
+/**
+ * Stars in the burst.
+ *
+ * Laid out on a fixed ring rather than at random: two people earning the badge
+ * should see the same thing, and a random spread reliably produces one run
+ * with three stars stacked on top of each other.
+ */
+const BADGE_STARS = 12;
+
 export default function SupportDialog({
   hasContributed,
   onContributed,
@@ -104,6 +130,29 @@ export default function SupportDialog({
   const moodResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  // The one-off arrival. Held here rather than derived from the badge, because
+  // it has to run BEFORE the badge exists — the celebration is the thing that
+  // hands it over.
+  const [isEarning, setIsEarning] = useState(false);
+  const earnRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+
+  /**
+   * Earn the badge, with a moment made of it.
+   *
+   * The flag is flipped at the END of the animation rather than the start, so
+   * the stars play over the panel that asked for the contribution and the new
+   * one arrives as the thing they were leading up to. Flipping first put the
+   * game on screen underneath the celebration, which read as the panel having
+   * already changed and the stars being decoration over it.
+   */
+  const earnBadge = useCallback(() => {
+    setIsEarning(true);
+    earnRef.current = setTimeout(() => {
+      earnRef.current = undefined;
+      setIsEarning(false);
+      onContributed();
+    }, BADGE_CELEBRATION_MS);
+  }, [onContributed]);
   const bouncePet = useCallback(() => {
     setPetTaps((count) => count + 1);
     const result = gameRef.current?.registerTap();
@@ -129,7 +178,18 @@ export default function SupportDialog({
       if (moodResetRef.current !== undefined) {
         clearTimeout(moodResetRef.current);
       }
+      // Closing the panel mid-celebration must not lose the badge. The timer
+      // is what hands it over, so if it is still pending when this unmounts
+      // the contribution is credited immediately rather than dropped.
+      if (earnRef.current !== undefined) {
+        clearTimeout(earnRef.current);
+        onContributed();
+      }
     },
+    // Intentionally empty: this is unmount cleanup, and re-running it whenever
+    // the parent hands down a new callback identity would credit the badge on
+    // every re-render.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   );
   const petHopClass =
@@ -418,7 +478,8 @@ export default function SupportDialog({
           <button
             type="button"
             className="support-dialog__contributed"
-            onClick={onContributed}
+            disabled={isEarning}
+            onClick={earnBadge}
           >
             {t('support.contributed')}
           </button>
@@ -447,6 +508,36 @@ export default function SupportDialog({
           .
         </p>
       </div>
+
+      {/* The moment itself, and a sibling of the panel rather than a child of
+          it. The panel scrolls and clips its own overflow, so a burst inside
+          would be cut off at its edges and would drift if the list had been
+          scrolled. Out here it covers the whole modal, centred on it, and it
+          is removed the instant it is over — a permanent invisible overlay
+          across a dialog full of buttons is a hit-testing problem waiting to
+          happen. */}
+      {isEarning && (
+        <div className="support-earn" aria-hidden="true">
+          <span className="support-earn__core">★</span>
+          {Array.from({ length: BADGE_STARS }, (_value, index) => (
+            <span
+              key={index}
+              className="support-earn__star"
+              // The ring is computed here rather than written out as a dozen
+              // nth-child rules: one angle per star, evenly spaced, and the
+              // count changes by editing one number.
+              style={
+                {
+                  '--star-angle': `${(index * 360) / BADGE_STARS}deg`,
+                  '--star-delay': `${index * 18}ms`,
+                } as CSSProperties
+              }
+            >
+              ★
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
