@@ -19,7 +19,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useCallback, useEffect, useMemo, useReducer, useState } from 'react';
 import './styles/PresetsBar.scss';
 import { ErrorDescription } from 'common/errors';
-import { IDeviceProfileAssignment } from 'common/constants';
+import {
+  AUTOMATIC_PRESET_PREFIX,
+  IDeviceProfileAssignment,
+} from 'common/constants';
 import { isRestrictedPresetName } from 'common/utils';
 import { useAquaContext } from './utils/AquaContext';
 import TextInput from './widgets/TextInput';
@@ -175,6 +178,13 @@ const PresetsBar = ({
       // where the unscoped catalogue is still the most useful thing to show —
       // otherwise the profile list would be permanently empty.
       return activeDeviceId ? [] : presetNames;
+    }
+    // Automatic profiles are FluidEQ's own bookkeeping — a hashed filename the
+    // user never chose and cannot meaningfully rename or delete. Listing one as
+    // if it were a saved profile is just leaking an implementation detail into
+    // the UI, so the list stays empty until they name something themselves.
+    if (assignedPresetForOutput.startsWith(AUTOMATIC_PRESET_PREFIX)) {
+      return [];
     }
     // The device assignment is authoritative while the file-list IPC call is
     // catching up during startup. This prevents the profile card from being
@@ -434,6 +444,7 @@ const PresetsBar = ({
       summary={
         <List
           name="preset"
+          className="profile-list"
           options={options}
           itemClassName="preset-list-item"
           value={presetName}

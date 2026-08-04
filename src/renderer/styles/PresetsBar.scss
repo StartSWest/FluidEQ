@@ -44,27 +44,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   h4 {
     margin: 2px 0 0;
   }
-
-  // The saved-profile list is a well inside this card, not a floating menu:
-  // drop the menu's elevation and glass so it sits in the same colour family
-  // as the panel around it.
-  > .list-wrapper {
-    @include inset-surface;
-    width: 100%;
-    min-width: 0;
-    min-height: 0;
-    max-height: 100%;
-    border-radius: $radius-l;
-    overflow: hidden;
-    backdrop-filter: none;
-
-    .list {
-      min-height: 0;
-      max-height: 100%;
-      overflow-y: auto;
-      @include slim-scrollbar(7px);
-    }
-  }
 }
 
 .presets-bar__heading {
@@ -107,7 +86,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // Saved profile row. The specificity clears List.scss's generic `li` styling
 // so the icons keep their own column instead of being pushed off the row.
-.presets-bar .list-wrapper .list li.preset-list-item {
+
+// The saved-profile list. It lives in the sidebar section's summary now, so it
+// survives collapsing — and so these rules can no longer hang off .presets-bar.
+//
+// A well inside the card, not a floating menu: no elevation, no glass, and a
+// bounded height so a long list scrolls rather than stretching the section down
+// the whole column.
+.profile-list.list-wrapper {
+  @include inset-surface;
+  width: 100%;
+  min-width: 0;
+  min-height: 0;
+  max-height: min(38vh, 300px);
+  border-radius: $radius-l;
+  overflow: hidden;
+  backdrop-filter: none;
+
+  .list {
+    min-height: 0;
+    max-height: min(38vh, 300px);
+    overflow-y: auto;
+    @include slim-scrollbar(7px);
+  }
+}
+
+.profile-list.list-wrapper .list li.preset-list-item {
   display: grid;
   width: 100%;
   min-width: 0;

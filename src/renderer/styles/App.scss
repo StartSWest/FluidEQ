@@ -843,11 +843,12 @@ $tab-border: rgba($secondary-light, 0.2);
   min-height: 0;
   padding: 12px;
   gap: 10px;
-  // Output profile and driver picker are both content-sized; the named-profile
-  // list takes everything left and scrolls inside itself. One row per child —
-  // a missing track sends the last child to an implicit auto row, which is
-  // what was starving the profile list of height.
-  grid-template-rows: max-content max-content minmax(0, 1fr);
+  // Every section is content-sized and the column starts at the top. Giving
+  // the last one 1fr stretched it over all the leftover height, so a collapsed
+  // profiles section became a tall empty box with its header floating in the
+  // middle. The profile list bounds and scrolls itself instead.
+  grid-template-rows: repeat(3, max-content);
+  align-content: start;
   overflow: hidden;
 }
 
