@@ -496,6 +496,46 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The delete button is the one cell whose width is set by a translated string,
+// so it is the one that decides whether the row fits. "Delete band" is short;
+// "Eliminar banda" and "Bandbreite löschen" are not, and because the column is
+// `max-content` and the label is `nowrap`, a long translation grew the row
+// straight past the card edge rather than wrapping or truncating.
+//
+// So it drops its label and becomes a square icon button. Measured against the
+// panel rather than the viewport: with both sidebars open the panel is some
+// 600px narrower than the window, and that is exactly the case where the row
+// ran out of room on a display wide enough that no viewport breakpoint fired.
+//
+// Deliberately ahead of the stacked layout below, so that when the window is
+// genuinely narrow the row reflows to three columns and the button gets its
+// full label back — an icon is the compromise for a squeezed row, not an
+// upgrade.
+@container eq-panel (max-width: 800px) {
+  .eq-flat-editor {
+    grid-template-columns:
+      minmax(96px, max-content) 104px 92px 128px 60px
+      #{$control-height};
+  }
+
+  .eq-flat-editor__delete {
+    display: grid;
+    width: $control-height;
+    padding-inline: 0;
+    place-items: center;
+    // Collapses the label to nothing without removing it: the accessible name
+    // comes from the text as well as the aria-label, and hiding it with
+    // `display: none` would take that with it.
+    font-size: 0;
+
+    &::before {
+      content: '✕';
+      font-size: 0.95rem;
+      line-height: 1;
+    }
+  }
+}
+
 // Two rows of controls read better than six squeezed columns once the EQ card
 // is narrow. The identity and delete rows span the full width.
 @media (max-width: 940px) {
