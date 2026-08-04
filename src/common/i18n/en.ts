@@ -259,6 +259,10 @@ const en = {
   'support.eyebrow': 'ENTIRELY OPTIONAL',
   'support.petHint': 'Press space to make it jump',
   'support.game.hint': 'Tap on the beat when the spike reaches the line',
+  'support.game.howTo':
+    'Tap the pet or press space on every beat. Keep it up and something happens at ×10.',
+  'support.game.thanks':
+    'If any of this made you smile, ideas and support are what keep it coming.',
   'support.game.noAudio': 'Play something and the beat shows up here',
   'support.game.listening': 'Listening for the beat…',
   'support.game.best': 'Best',

@@ -228,6 +228,12 @@ const ja: Partial<Dictionary> = {
 
   'support.game.hint': 'ピークが線に達したらリズムに合わせて押します',
 
+  'support.game.howTo':
+    'ビートに合わせてペットをタップするかスペースキーを押してください。続けると ×10 で何かが起こります。',
+
+  'support.game.thanks':
+    '少しでも楽しんでいただけたなら、アイデアや支援がこの先を作ります。',
+
   'support.game.noAudio': '何か再生するとビートがここに出ます',
 
   'support.game.listening': 'ビートを探しています…',

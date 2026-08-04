@@ -25,7 +25,6 @@ import {
 } from 'common/support';
 import supportQrImage from '../../assets/support-qr.png';
 import QrCode from './components/QrCode';
-import EuphoriaGlow from './components/EuphoriaGlow';
 import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
 import { SupportPetHero } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
@@ -81,12 +80,11 @@ export default function SupportDialog({
   // The tap's result comes back out of the game, because the creature that
   // reacts to it lives up here rather than in the panel.
   //
-  // Two different lifetimes, deliberately. The mood is a reaction to one tap
-  // and is dropped after a moment — left up it stops being a reaction and
-  // becomes the pet's face. The joy is the streak, so it persists for as long
-  // as the streak does and only falls when the run does.
+  // The mood is a reaction to one tap and is dropped after a moment — left up
+  // it stops being a reaction and becomes the pet's face. The streak itself is
+  // not held here at all: it lives in the run store and is put on the document
+  // root by the shell, so it outlives this dialog being closed.
   const [mood, setMood] = useState<'perfect' | 'miss' | ''>('');
-  const [joy, setJoy] = useState(0);
   const moodResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
@@ -99,7 +97,6 @@ export default function SupportDialog({
     if (!result) {
       return;
     }
-    setJoy(result.joy);
     if (result.verdict !== 'perfect' && result.verdict !== 'miss') {
       setMood('');
       return;
@@ -270,7 +267,6 @@ export default function SupportDialog({
             close button, and the heartbeat needs the full width for the spike
             to have somewhere to travel. Supporters only, like everything else
             the creature does. */}
-        {hasContributed && <EuphoriaGlow joy={joy} />}
         {hasContributed && <RhythmGame ref={gameRef} />}
 
         <p className="support-dialog__pitch">{t('support.pitch')}</p>

@@ -50,12 +50,53 @@ it under the terms of the GNU General Public License version 3 or later.
     animation: euphoria-rim 6s linear infinite;
   }
 
-  // The bands are the part that already moves with the music, so they take the
-  // strongest treatment.
-  .bandWrapper .range,
   .waveform-visualizer,
   .rhythm-game__trace {
     animation: euphoria-glow 6s linear infinite;
+  }
+
+  // The bands take the strongest treatment, because they are the part of the
+  // window that already moves with the music.
+  //
+  // The hue is animated as a registered property — a plain custom property
+  // interpolates as a string and would jump between keyframes rather than
+  // sweeping — and every colour the slider draws with is derived from it, so
+  // the track, its rim and its glow stay one colour as it travels.
+  //
+  // Staggered so the spectrum runs ACROSS the row rather than every band
+  // flashing in unison. Six phases via nth-child, because the band count is
+  // whatever the user picked and no fixed set of selectors can enumerate it;
+  // six is enough to read as a wave and repeats invisibly.
+  .bandWrapper {
+    animation: euphoria-sweep 3.6s linear infinite;
+
+    --slider-color: hsl(var(--euphoria-hue) 95% 62%);
+    --slider-color-muted: hsl(var(--euphoria-hue) 95% 62% / 55%);
+    --slider-track: hsl(var(--euphoria-hue) 90% 46% / 35%);
+
+    @for $phase from 1 through 6 {
+      &:nth-child(6n + #{$phase}) {
+        animation-delay: #{($phase - 1) * -0.6}s;
+      }
+    }
+  }
+}
+
+// Registered so it can actually animate. Without the type the browser treats it
+// as an unparsed string and the sweep becomes six abrupt steps.
+@property --euphoria-hue {
+  syntax: '<angle>';
+  inherits: true;
+  initial-value: 0deg;
+}
+
+@keyframes euphoria-sweep {
+  from {
+    --euphoria-hue: 0deg;
+  }
+
+  to {
+    --euphoria-hue: 360deg;
   }
 }
 
@@ -130,7 +171,7 @@ it under the terms of the GNU General Public License version 3 or later.
     .main-content,
     .graph-wrapper,
     .window-titlebar,
-    .bandWrapper .range,
+    .bandWrapper,
     .waveform-visualizer,
     .rhythm-game__trace {
       animation: none;

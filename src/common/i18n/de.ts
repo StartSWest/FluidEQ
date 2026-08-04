@@ -229,6 +229,12 @@ const de: Partial<Dictionary> = {
 
   'support.game.hint': 'Im Takt drücken, wenn die Spitze die Linie erreicht',
 
+  'support.game.howTo':
+    'Tippe das Wesen an oder drücke bei jedem Beat die Leertaste. Bleib dran — bei ×10 passiert etwas.',
+
+  'support.game.thanks':
+    'Wenn dich davon etwas zum Lächeln gebracht hat: Ideen und Unterstützung halten das hier am Leben.',
+
   'support.game.noAudio': 'Spiel etwas ab, dann erscheint der Takt hier',
 
   'support.game.listening': 'Takt wird gesucht…',

@@ -229,6 +229,12 @@ const es: Partial<Dictionary> = {
 
   'support.game.hint': 'Pulsa al ritmo cuando el pico llegue a la línea',
 
+  'support.game.howTo':
+    'Toca la mascota o pulsa espacio en cada golpe. Sigue así y algo pasa al llegar a ×10.',
+
+  'support.game.thanks':
+    'Si algo de esto te ha sacado una sonrisa, tus ideas y tu apoyo son lo que lo mantiene vivo.',
+
   'support.game.noAudio': 'Pon algo de música y el ritmo aparecerá aquí',
 
   'support.game.listening': 'Buscando el ritmo…',

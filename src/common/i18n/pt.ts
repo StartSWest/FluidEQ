@@ -228,6 +228,12 @@ const pt: Partial<Dictionary> = {
 
   'support.game.hint': 'Toque no ritmo quando o pico chegar à linha',
 
+  'support.game.howTo':
+    'Toque no bichinho ou pressione espaço a cada batida. Continue e algo acontece no ×10.',
+
+  'support.game.thanks':
+    'Se algo aqui te fez sorrir, ideias e apoio são o que mantêm isto vivo.',
+
   'support.game.noAudio': 'Toque algo e o ritmo aparece aqui',
 
   'support.game.listening': 'Procurando o ritmo…',

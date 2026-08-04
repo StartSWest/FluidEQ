@@ -233,6 +233,12 @@ const hi: Partial<Dictionary> = {
 
   'support.game.hint': 'शिखर रेखा तक पहुँचे तब ताल पर दबाएँ',
 
+  'support.game.howTo':
+    'हर बीट पर पेट को टैप करें या स्पेस दबाएँ। लगे रहिए — ×10 पर कुछ होता है।',
+
+  'support.game.thanks':
+    'अगर इसमें से कुछ भी आपको अच्छा लगा, तो आपके विचार और सहयोग ही इसे आगे बढ़ाते हैं।',
+
   'support.game.noAudio': 'कुछ चलाइए, ताल यहाँ दिखेगी',
 
   'support.game.listening': 'ताल खोजी जा रही है…',

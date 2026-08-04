@@ -17,7 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useEffect, useRef } from 'react';
+import { getStreakJoy } from 'common/rhythmGame';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
+import { useRhythmRun } from '../utils/rhythmRun';
 import '../styles/Euphoria.scss';
 
 /** At x10 the whole application celebrates. Below it, nothing happens. */
@@ -27,17 +29,19 @@ const EUPHORIA_AT = 1;
  * Puts the streak on the document root, where the rest of the interface can
  * see it.
  *
- * The support dialog is a modal, but the streak is meant to reach the EQ, the
- * graph and the titlebar behind it — so the value cannot live on the dialog. It
- * goes on `documentElement` as a custom property and everything inherits it,
- * which also means the titlebar creature lights up from the same number as the
- * one in the dialog rather than from a second copy.
+ * Mounted by the shell rather than by the support dialog, and reading the run
+ * from the store rather than from a prop. The dialog is a modal that can be
+ * closed and reopened, and a run at the ceiling has to keep glowing while it
+ * is shut — a player who closes the panel has not stopped playing, they have
+ * put the panel away.
  *
- * Renders nothing. It exists to own two variables and a class, and it cleans
- * both up when the dialog closes, because a game that has ended must not leave
- * the application glowing.
+ * Renders nothing. It owns two custom properties and a class, so that the EQ,
+ * the graph, the titlebar and the creature all light up from one number rather
+ * than from copies that could drift.
  */
-const EuphoriaGlow = ({ joy }: { joy: number }) => {
+const EuphoriaGlow = () => {
+  const run = useRhythmRun();
+  const joy = getStreakJoy(run.streak);
   const { waveform } = useLiveAudioFrame();
   const levelRef = useRef(0);
 

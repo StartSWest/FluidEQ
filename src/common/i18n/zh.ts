@@ -216,6 +216,12 @@ const zh: Partial<Dictionary> = {
 
   'support.game.hint': '波峰到达线上时跟着节拍按下',
 
+  'support.game.howTo':
+    '跟着节拍点击宠物或按空格键。坚持下去，到 ×10 会有惊喜。',
+
+  'support.game.thanks':
+    '如果这让你会心一笑，你的想法和支持就是它继续下去的动力。',
+
   'support.game.noAudio': '播放音乐后节拍会显示在这里',
 
   'support.game.listening': '正在寻找节拍…',

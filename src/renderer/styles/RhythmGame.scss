@@ -17,6 +17,25 @@ it under the terms of the GNU General Public License version 3 or later.
   margin-top: 2px;
 }
 
+// Says what this is. Without it the trace is a decoration nobody presses.
+.rhythm-game__howto {
+  margin: 0;
+  color: rgba($primary-lighter, 0.6);
+  font-size: 0.68rem;
+  line-height: 1.45;
+}
+
+// The ask. Softer than the instruction above it and set apart from the game, so
+// it reads as a thank you with a door left open rather than a second pitch in a
+// dialog that has already made one.
+.rhythm-game__thanks {
+  margin: 2px 0 0;
+  color: rgba($primary-lighter, 0.42);
+  font-size: 0.64rem;
+  font-style: italic;
+  line-height: 1.45;
+}
+
 .rhythm-game__scores {
   display: flex;
   align-items: baseline;

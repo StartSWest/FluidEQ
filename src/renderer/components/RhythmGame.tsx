@@ -32,7 +32,6 @@ import {
 } from 'common/percussion';
 import {
   IRhythmHit,
-  IRhythmScore,
   applyRhythmScore,
   getHitMarkerPosition,
   getStreakJoy,
@@ -44,6 +43,7 @@ import {
   useLiveAudioFrame,
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
+import { getRhythmRun, setRhythmRun, useRhythmRun } from '../utils/rhythmRun';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/RhythmGame.scss';
 
@@ -111,333 +111,321 @@ const readHighScore = () => {
  * clock — `performance.now()` — so what is drawn and what is scored cannot
  * drift apart, which in a game about timing is the only thing that matters.
  */
-interface IRhythmGameProps {
-  /** Fired whenever the streak changes, so the shell can light up with it. */
-  onJoyChange?: (joy: number) => void;
-}
+const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
+  const { t } = useTranslation();
+  const { points } = useLiveAudioFrame();
+  const { isActive, isPaused } = useLiveAudioControl();
 
-/**
- * Jump the pet over the percussion of whatever is playing.
- *
- * The trace is the real signal, reduced to its transients, scrolling right to
- * left into a line under the creature. Everything is measured against one
- * clock —  — so what is drawn and what is scored cannot
- * drift apart, which in a game about timing is the only thing that matters.
- */
-const RhythmGame = forwardRef<IRhythmGameHandle, IRhythmGameProps>(
-  ({ onJoyChange }, ref) => {
-    const { t } = useTranslation();
-    const { points } = useLiveAudioFrame();
-    const { isActive, isPaused } = useLiveAudioControl();
+  const stateRef = useRef<IPercussionState>(createPercussionState());
+  // Held outside the component, so closing the dialog does not end the run.
+  const run = useRhythmRun();
+  const [highScore, setHighScore] = useState(readHighScore);
+  const [lastHit, setLastHit] = useState<IRhythmHit>();
+  const [hitSeq, setHitSeq] = useState(0);
+  // Redrawn from the state each frame. Kept in React state rather than mutated
+  // in place so the SVG actually updates.
+  const [path, setPath] = useState('');
+  const [hasPeaks, setHasPeaks] = useState(false);
+  // Where each detected hit currently sits, as a percentage across the trace.
+  const [peakMarks, setPeakMarks] = useState<number[]>([]);
+  const verdictResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  // The newest peak the automatic run has already played.
+  const lastAutoRef = useRef(-Infinity);
 
-    const stateRef = useRef<IPercussionState>(createPercussionState());
-    const [run, setRun] = useState<IRhythmScore>({ score: 0, streak: 0 });
-    // The streak as the tap handler sees it. React state is a render behind, and
-    // the face has to be right on the tap that earned it.
-    const runRef = useRef<IRhythmScore>({ score: 0, streak: 0 });
-    const [highScore, setHighScore] = useState(readHighScore);
-    const [lastHit, setLastHit] = useState<IRhythmHit>();
-    const [hitSeq, setHitSeq] = useState(0);
-    // Redrawn from the state each frame. Kept in React state rather than mutated
-    // in place so the SVG actually updates.
-    const [path, setPath] = useState('');
-    const [hasPeaks, setHasPeaks] = useState(false);
-    // Where each detected hit currently sits, as a percentage across the trace.
-    const [peakMarks, setPeakMarks] = useState<number[]>([]);
-    const verdictResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
-      undefined,
-    );
-    // The newest peak the automatic run has already played.
-    const lastAutoRef = useRef(-Infinity);
+  const isListening = isActive && !isPaused;
 
-    const isListening = isActive && !isPaused;
+  /**
+   * One scoring path, used by a tap and by the automatic run alike.
+   *
+   * The streak is computed once, here, from the ref rather than from React
+   * state — state is a render behind, and the face and the glow have to be
+   * right on the tap that earned them. It used to be applied twice, once inside
+   * the setRun updater and once after it, which double-counted under React's
+   * strict double-invocation.
+   */
+  const scoreHit = useCallback((hit: IRhythmHit): IRhythmTapResult => {
+    setLastHit(hit);
+    setHitSeq((seq) => seq + 1);
+    // The verdict is feedback on a tap, so it goes away when the tap is over.
+    // Left up it becomes a label, and the panel sits there claiming "GOOD"
+    // about something the player did ten seconds ago.
+    if (verdictResetRef.current !== undefined) {
+      clearTimeout(verdictResetRef.current);
+    }
+    verdictResetRef.current = setTimeout(() => {
+      verdictResetRef.current = undefined;
+      setLastHit(undefined);
+    }, VERDICT_HOLD_MS);
 
-    /**
-     * One scoring path, used by a tap and by the automatic run alike.
-     *
-     * The streak is computed once, here, from the ref rather than from React
-     * state — state is a render behind, and the face and the glow have to be
-     * right on the tap that earned them. It used to be applied twice, once inside
-     * the setRun updater and once after it, which double-counted under React's
-     * strict double-invocation.
-     */
-    const scoreHit = useCallback(
-      (hit: IRhythmHit): IRhythmTapResult => {
-        setLastHit(hit);
-        setHitSeq((seq) => seq + 1);
-        // The verdict is feedback on a tap, so it goes away when the tap is over.
-        // Left up it becomes a label, and the panel sits there claiming "GOOD"
-        // about something the player did ten seconds ago.
-        if (verdictResetRef.current !== undefined) {
-          clearTimeout(verdictResetRef.current);
-        }
-        verdictResetRef.current = setTimeout(() => {
-          verdictResetRef.current = undefined;
-          setLastHit(undefined);
-        }, VERDICT_HOLD_MS);
+    // Read from the store rather than from the rendered value, which is a
+    // render behind — the face and the glow have to be right on the tap
+    // that earned them.
+    const next = applyRhythmScore(getRhythmRun(), hit);
+    setRhythmRun(next);
+    if (next.score > readHighScore()) {
+      window.localStorage.setItem(HIGH_SCORE_KEY, String(next.score));
+      setHighScore(next.score);
+    }
 
-        const next = applyRhythmScore(runRef.current, hit);
-        runRef.current = next;
-        setRun(next);
-        if (next.score > readHighScore()) {
-          window.localStorage.setItem(HIGH_SCORE_KEY, String(next.score));
-          setHighScore(next.score);
-        }
+    return { verdict: hit.verdict, joy: getStreakJoy(next.streak) };
+  }, []);
 
-        const joy = getStreakJoy(next.streak);
-        onJoyChange?.(joy);
-        return { verdict: hit.verdict, joy };
-      },
-      [onJoyChange],
-    );
+  // One frame of spectrum in, one redraw out.
+  useEffect(() => {
+    if (!isListening || points.length === 0) {
+      return;
+    }
+    const now = performance.now();
+    // The low half of the spectrum. Percussion energy that matters for keeping
+    // time — kick, snare, toms — lives down there, and leaving the top out
+    // keeps a bright synth pad from reading as a hit.
+    const bins = points.slice(0, Math.floor(points.length / 2)).map((p) => p.y);
+    const next = pushPercussionFrame(stateRef.current, bins, now, {
+      windowMs: WINDOW_MS,
+    });
+    stateRef.current = next;
 
-    // One frame of spectrum in, one redraw out.
-    useEffect(() => {
-      if (!isListening || points.length === 0) {
-        return;
+    // Time maps to x directly: the newest sample is at the right edge, the
+    // target line sits LEAD_MS back from it, and everything older trails off to
+    // the left. One mapping for drawing and for scoring.
+    //
+    // Drawn mirrored about the middle and closed into a shape, so it reads as a
+    // waveform rather than as a graph of a number. Out along the top, back
+    // along the bottom.
+    const upper: string[] = [];
+    const lower: string[] = [];
+    const marks: number[] = [];
+    next.history.forEach((sample) => {
+      const age = now - sample.timeMs;
+      const x = 100 - (age / WINDOW_MS) * 100;
+      const offset = sample.level * AMPLITUDE;
+      upper.push(`${x.toFixed(2)},${(CENTRE - offset).toFixed(2)}`);
+      lower.push(`${x.toFixed(2)},${(CENTRE + offset).toFixed(2)}`);
+      // Every detected hit gets its own mark, travelling with the wave. Tapping
+      // as one crosses the centre line is the whole game, and without them the
+      // player is guessing which bump was the one that counted.
+      if (sample.isPeak) {
+        marks.push(x);
       }
-      const now = performance.now();
-      // The low half of the spectrum. Percussion energy that matters for keeping
-      // time — kick, snare, toms — lives down there, and leaving the top out
-      // keeps a bright synth pad from reading as a hit.
-      const bins = points
-        .slice(0, Math.floor(points.length / 2))
-        .map((p) => p.y);
-      const next = pushPercussionFrame(stateRef.current, bins, now, {
-        windowMs: WINDOW_MS,
-      });
-      stateRef.current = next;
+    });
+    setPath(
+      upper.length > 1
+        ? `M ${upper.join(' L ')} L ${lower.reverse().join(' L ')} Z`
+        : '',
+    );
+    setPeakMarks(marks);
+    setHasPeaks(marks.length > 0);
 
-      // Time maps to x directly: the newest sample is at the right edge, the
-      // target line sits LEAD_MS back from it, and everything older trails off to
-      // the left. One mapping for drawing and for scoring.
-      //
-      // Drawn mirrored about the middle and closed into a shape, so it reads as a
-      // waveform rather than as a graph of a number. Out along the top, back
-      // along the bottom.
-      const upper: string[] = [];
-      const lower: string[] = [];
-      const marks: number[] = [];
+    // At the ceiling the run plays itself. Every peak that reaches the line
+    // scores as a perfect and flares, and it keeps doing so until the player
+    // taps badly — a miss drops the streak, which drops the joy, which takes
+    // the whole interface back down with it. That is the only way out.
+    //
+    // Each peak fires once. Its arrival is a fixed time, so remembering the
+    // last one handled is enough to stop a peak still on screen from scoring
+    // on every frame it remains visible.
+    if (getStreakJoy(getRhythmRun().streak) >= EUPHORIA_AT) {
       next.history.forEach((sample) => {
-        const age = now - sample.timeMs;
-        const x = 100 - (age / WINDOW_MS) * 100;
-        const offset = sample.level * AMPLITUDE;
-        upper.push(`${x.toFixed(2)},${(CENTRE - offset).toFixed(2)}`);
-        lower.push(`${x.toFixed(2)},${(CENTRE + offset).toFixed(2)}`);
-        // Every detected hit gets its own mark, travelling with the wave. Tapping
-        // as one crosses the centre line is the whole game, and without them the
-        // player is guessing which bump was the one that counted.
-        if (sample.isPeak) {
-          marks.push(x);
+        if (!sample.isPeak) {
+          return;
+        }
+        const arrivesAt = sample.timeMs + LEAD_MS;
+        if (arrivesAt <= now && arrivesAt > lastAutoRef.current) {
+          lastAutoRef.current = arrivesAt;
+          scoreHit(gradeRhythmOffset(0));
         }
       });
-      setPath(
-        upper.length > 1
-          ? `M ${upper.join(' L ')} L ${lower.reverse().join(' L ')} Z`
-          : '',
-      );
-      setPeakMarks(marks);
-      setHasPeaks(marks.length > 0);
+    }
+  }, [isListening, points, scoreHit]);
 
-      // At the ceiling the run plays itself. Every peak that reaches the line
-      // scores as a perfect and flares, and it keeps doing so until the player
-      // taps badly — a miss drops the streak, which drops the joy, which takes
-      // the whole interface back down with it. That is the only way out.
-      //
-      // Each peak fires once. Its arrival is a fixed time, so remembering the
-      // last one handled is enough to stop a peak still on screen from scoring
-      // on every frame it remains visible.
-      if (getStreakJoy(runRef.current.streak) >= EUPHORIA_AT) {
-        next.history.forEach((sample) => {
-          if (!sample.isPeak) {
-            return;
-          }
-          const arrivesAt = sample.timeMs + LEAD_MS;
-          if (arrivesAt <= now && arrivesAt > lastAutoRef.current) {
-            lastAutoRef.current = arrivesAt;
-            scoreHit(gradeRhythmOffset(0));
-          }
-        });
+  // Nothing playing means nothing to jump. Clearing the trace rather than
+  // leaving the last frame frozen is the honest thing — a still line that still
+  // accepts taps would be a game pretending to run.
+  useEffect(() => {
+    if (isListening) {
+      return;
+    }
+    stateRef.current = createPercussionState();
+    setPath('');
+    setPeakMarks([]);
+    setHasPeaks(false);
+  }, [isListening]);
+
+  const registerTap = useCallback((): IRhythmTapResult | undefined => {
+    const now = performance.now();
+    // The tap is graded against a real detected hit. Its arrival at the line is
+    // LEAD_MS after it was heard, which is exactly the delay the drawing uses,
+    // so the peak under the line is the peak being scored.
+    const peakMs = getNearestPeakMs(stateRef.current, now - LEAD_MS);
+    if (peakMs === undefined) {
+      // Silence, or nothing detected yet. Tapping into it costs nothing and
+      // earns nothing — there was no beat to be early or late for.
+      return undefined;
+    }
+    return scoreHit(gradeRhythmOffset(now - LEAD_MS - peakMs));
+  }, [scoreHit]);
+
+  useImperativeHandle(ref, () => ({ registerTap }), [registerTap]);
+
+  useEffect(
+    () => () => {
+      if (verdictResetRef.current !== undefined) {
+        clearTimeout(verdictResetRef.current);
       }
-    }, [isListening, points, scoreHit]);
+    },
+    [],
+  );
 
-    // Nothing playing means nothing to jump. Clearing the trace rather than
-    // leaving the last frame frozen is the honest thing — a still line that still
-    // accepts taps would be a game pretending to run.
-    useEffect(() => {
-      if (isListening) {
-        return;
-      }
-      stateRef.current = createPercussionState();
-      setPath('');
-      setPeakMarks([]);
-      setHasPeaks(false);
-    }, [isListening]);
+  const markerPosition = lastHit
+    ? getHitMarkerPosition(lastHit.offsetMs)
+    : undefined;
 
-    const registerTap = useCallback((): IRhythmTapResult | undefined => {
-      const now = performance.now();
-      // The tap is graded against a real detected hit. Its arrival at the line is
-      // LEAD_MS after it was heard, which is exactly the delay the drawing uses,
-      // so the peak under the line is the peak being scored.
-      const peakMs = getNearestPeakMs(stateRef.current, now - LEAD_MS);
-      if (peakMs === undefined) {
-        // Silence, or nothing detected yet. Tapping into it costs nothing and
-        // earns nothing — there was no beat to be early or late for.
-        return undefined;
-      }
-      return scoreHit(gradeRhythmOffset(now - LEAD_MS - peakMs));
-    }, [scoreHit]);
-
-    useImperativeHandle(ref, () => ({ registerTap }), [registerTap]);
-
-    useEffect(
-      () => () => {
-        if (verdictResetRef.current !== undefined) {
-          clearTimeout(verdictResetRef.current);
-        }
-      },
-      [],
-    );
-
-    const markerPosition = lastHit
-      ? getHitMarkerPosition(lastHit.offsetMs)
-      : undefined;
-
-    return (
-      <div className="rhythm-game">
-        <div className="rhythm-game__scores">
-          <span className="rhythm-game__score">{run.score}</span>
-          {/* A streak nobody can see is a hidden rule, and a player who cannot
+  return (
+    <div className="rhythm-game">
+      {/* How to play, and what it is worth playing for. Kept above the trace
+          because someone who has not worked out that this is a game will never
+          look below it — and deliberately vague about the reward, since
+          spoiling it costs the only surprise the app has. */}
+      <p className="rhythm-game__howto">{t('support.game.howTo')}</p>
+      <div className="rhythm-game__scores">
+        <span className="rhythm-game__score">{run.score}</span>
+        {/* A streak nobody can see is a hidden rule, and a player who cannot
             tell what a run is worth has no reason to protect it. */}
-          {run.streak > 1 && (
-            <span className="rhythm-game__streak">
-              ×
-              {getStreakMultiplier(run.streak)
-                .toFixed(2)
-                .replace(/\.?0+$/, '')}
-            </span>
-          )}
-          <span className="rhythm-game__best">
-            {t('support.game.best')} {highScore}
+        {run.streak > 1 && (
+          <span className="rhythm-game__streak">
+            ×
+            {getStreakMultiplier(run.streak)
+              .toFixed(2)
+              .replace(/\.?0+$/, '')}
           </span>
-        </div>
+        )}
+        <span className="rhythm-game__best">
+          {t('support.game.best')} {highScore}
+        </span>
+      </div>
 
-        <div className="rhythm-game__trace">
-          <svg
-            viewBox={`0 0 100 ${VIEW_HEIGHT}`}
-            preserveAspectRatio="none"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <defs>
-              {/* The same spectrum the titlebar meter runs, so the two waveforms
+      <div className="rhythm-game__trace">
+        <svg
+          viewBox={`0 0 100 ${VIEW_HEIGHT}`}
+          preserveAspectRatio="none"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <defs>
+            {/* The same spectrum the titlebar meter runs, so the two waveforms
                 in this app are recognisably the same thing. Cyan through to
                 violet, left to right. */}
-              <linearGradient id="rhythm-line" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0" stopColor="#00e5ff" />
-                <stop offset="0.28" stopColor="#54ff8a" />
-                <stop offset="0.52" stopColor="#ffe66d" />
-                <stop offset="0.76" stopColor="#ff3cac" />
-                <stop offset="1" stopColor="#8b5cff" />
-              </linearGradient>
-              <linearGradient id="rhythm-fill" x1="0" x2="1" y1="0" y2="0">
-                <stop offset="0" stopColor="#00e5ff" stopOpacity="0.3" />
-                <stop offset="0.28" stopColor="#54ff8a" stopOpacity="0.4" />
-                <stop offset="0.52" stopColor="#ffe66d" stopOpacity="0.45" />
-                <stop offset="0.76" stopColor="#ff3cac" stopOpacity="0.4" />
-                <stop offset="1" stopColor="#8b5cff" stopOpacity="0.3" />
-              </linearGradient>
-            </defs>
-            {path && <path d={path} />}
-            {/* Inside the SVG, so the marks share the wave's coordinate space and
+            <linearGradient id="rhythm-line" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stopColor="#00e5ff" />
+              <stop offset="0.28" stopColor="#54ff8a" />
+              <stop offset="0.52" stopColor="#ffe66d" />
+              <stop offset="0.76" stopColor="#ff3cac" />
+              <stop offset="1" stopColor="#8b5cff" />
+            </linearGradient>
+            <linearGradient id="rhythm-fill" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stopColor="#00e5ff" stopOpacity="0.3" />
+              <stop offset="0.28" stopColor="#54ff8a" stopOpacity="0.4" />
+              <stop offset="0.52" stopColor="#ffe66d" stopOpacity="0.45" />
+              <stop offset="0.76" stopColor="#ff3cac" stopOpacity="0.4" />
+              <stop offset="1" stopColor="#8b5cff" stopOpacity="0.3" />
+            </linearGradient>
+          </defs>
+          {path && <path d={path} />}
+          {/* Inside the SVG, so the marks share the wave's coordinate space and
               cannot drift from the hits they belong to at any dialog width. */}
-            {peakMarks.map((x) => (
-              <line
-                key={x}
-                className="rhythm-game__peak"
-                x1={x}
-                x2={x}
-                y1={0}
-                y2={VIEW_HEIGHT}
-                // Distance from the centre, so a mark brightens as it arrives.
-                // The one you are about to hit should be the loudest thing on
-                // screen.
-                opacity={Math.max(
-                  0.18,
-                  1 - Math.abs(x - TARGET_PERCENT) / TARGET_PERCENT,
-                )}
-              />
-            ))}
-          </svg>
+          {peakMarks.map((x) => (
+            <line
+              key={x}
+              className="rhythm-game__peak"
+              x1={x}
+              x2={x}
+              y1={0}
+              y2={VIEW_HEIGHT}
+              // Distance from the centre, so a mark brightens as it arrives.
+              // The one you are about to hit should be the loudest thing on
+              // screen.
+              opacity={Math.max(
+                0.18,
+                1 - Math.abs(x - TARGET_PERCENT) / TARGET_PERCENT,
+              )}
+            />
+          ))}
+        </svg>
 
-          {/* Directly under the pet, which is what the creature is jumping.
+        {/* Directly under the pet, which is what the creature is jumping.
             Keyed on the tap so two perfects in a row both flash — re-applying
             the same class to an element that already has it does nothing. */}
+        <span
+          key={lastHit?.verdict === 'perfect' ? hitSeq : 'target'}
+          className={`rhythm-game__target${
+            lastHit?.verdict === 'perfect' ? ' is-perfect' : ''
+          }`}
+          style={{ left: `${TARGET_PERCENT}%` }}
+        />
+
+        {markerPosition !== undefined && lastHit && (
           <span
-            key={lastHit?.verdict === 'perfect' ? hitSeq : 'target'}
-            className={`rhythm-game__target${
-              lastHit?.verdict === 'perfect' ? ' is-perfect' : ''
-            }`}
-            style={{ left: `${TARGET_PERCENT}%` }}
+            key={hitSeq}
+            className={`rhythm-game__hit rhythm-game__hit--${lastHit.verdict}`}
+            style={{
+              left: `${TARGET_PERCENT + (markerPosition - 0.5) * 30}%`,
+            }}
           />
+        )}
+      </div>
 
-          {markerPosition !== undefined && lastHit && (
-            <span
-              key={hitSeq}
-              className={`rhythm-game__hit rhythm-game__hit--${lastHit.verdict}`}
-              style={{
-                left: `${TARGET_PERCENT + (markerPosition - 0.5) * 30}%`,
-              }}
-            />
-          )}
-        </div>
-
-        <p className="rhythm-game__verdict" aria-live="polite">
-          {/* Both children are keyed on the tap so each one restarts its flash,
+      <p className="rhythm-game__verdict" aria-live="polite">
+        {/* Both children are keyed on the tap so each one restarts its flash,
             and the keys have to be DISTINCT from each other. Two siblings
             sharing a key is undefined behaviour in React: rather than replacing
             the previous verdict it left it mounted and appended the next, so a
             run of taps built a row of every verdict earned so far. */}
-          <span
-            key={`verdict-${hitSeq}`}
-            className={`rhythm-game__verdict-text rhythm-game__verdict-text--${
-              lastHit && hasPeaks ? lastHit.verdict : 'idle'
-            }`}
-          >
-            {/* Tell the truth about why nothing is happening. A dead trace with a
+        <span
+          key={`verdict-${hitSeq}`}
+          className={`rhythm-game__verdict-text rhythm-game__verdict-text--${
+            lastHit && hasPeaks ? lastHit.verdict : 'idle'
+          }`}
+        >
+          {/* Tell the truth about why nothing is happening. A dead trace with a
               live score reads as broken; "put something on" does not. */}
-            {(() => {
-              if (!isListening) {
-                return t('support.game.noAudio');
-              }
-              if (!hasPeaks) {
-                return t('support.game.listening');
-              }
-              return lastHit
-                ? t(`support.game.${lastHit.verdict}`)
-                : t('support.game.hint');
-            })()}
-          </span>
-          {/* Beside the verdict, where the eye already is on a hit — the score row
+          {(() => {
+            if (!isListening) {
+              return t('support.game.noAudio');
+            }
+            if (!hasPeaks) {
+              return t('support.game.listening');
+            }
+            return lastHit
+              ? t(`support.game.${lastHit.verdict}`)
+              : t('support.game.hint');
+          })()}
+        </span>
+        {/* Beside the verdict, where the eye already is on a hit — the score row
             is the wrong place to learn what a tap was worth. Only shown once
             there is something to show, and keyed on the tap so consecutive
             perfects each flare rather than only the first. */}
-          {lastHit && hasPeaks && run.streak > 0 && (
-            <span
-              key={`multiplier-${hitSeq}`}
-              className="rhythm-game__verdict-multiplier"
-            >
-              ×
-              {getStreakMultiplier(run.streak)
-                .toFixed(2)
-                .replace(/\.?0+$/, '')}
-            </span>
-          )}
-        </p>
-      </div>
-    );
-  },
-);
+        {lastHit && hasPeaks && run.streak > 0 && (
+          <span
+            key={`multiplier-${hitSeq}`}
+            className="rhythm-game__verdict-multiplier"
+          >
+            ×
+            {getStreakMultiplier(run.streak)
+              .toFixed(2)
+              .replace(/\.?0+$/, '')}
+          </span>
+        )}
+      </p>
+
+      {/* The ask, and it stays quiet. This is only ever read by someone who has
+          already given — the game is behind the badge — so it is a thank you
+          with a door left open, not a pitch. */}
+      <p className="rhythm-game__thanks">{t('support.game.thanks')}</p>
+    </div>
+  );
+});
 
 RhythmGame.displayName = 'RhythmGame';
 

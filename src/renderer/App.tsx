@@ -41,6 +41,7 @@ import UpdateNotice from './components/UpdateNotice';
 import WhatsNewDialog from './components/WhatsNewDialog';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
 import { LiveAudioProvider } from './audio/LiveAudioContext';
+import EuphoriaGlow from './components/EuphoriaGlow';
 import {
   deletePreset,
   getPresetListFromFiles,
@@ -657,6 +658,11 @@ export default function App() {
     <I18nProvider>
       <FluidEqProvider>
         <LiveAudioProvider>
+          {/* Mounted here rather than inside the support dialog, because the
+              run outlives that dialog being closed and the celebration is
+              meant to reach the whole window. It renders nothing; it puts the
+              streak on the document root where every stylesheet can see it. */}
+          <EuphoriaGlow />
           <Router>
             <Routes>
               <Route path="/" element={<AppContent />} />

@@ -229,6 +229,12 @@ const fr: Partial<Dictionary> = {
 
   'support.game.hint': 'Appuyez en rythme quand le pic atteint la ligne',
 
+  'support.game.howTo':
+    'Touchez la créature ou appuyez sur espace à chaque temps. Continuez et quelque chose arrive à ×10.',
+
+  'support.game.thanks':
+    'Si tout cela vous a fait sourire, vos idées et votre soutien sont ce qui fait avancer le projet.',
+
   'support.game.noAudio': 'Lancez un morceau et le rythme apparaîtra ici',
 
   'support.game.listening': 'Recherche du rythme…',
