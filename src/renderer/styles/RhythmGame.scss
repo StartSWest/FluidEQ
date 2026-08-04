@@ -89,11 +89,15 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   // Filled, because it is mirrored about the middle and closed — a waveform,
-  // the same shape and the same spectrum the titlebar meter draws, rather than
-  // a second style for the same idea in one app.
+  // the same shape the titlebar meter draws rather than a second style for the
+  // same idea in one app.
+  //
+  // The app's cyan while the run is ordinary. The spectrum is held back for the
+  // ceiling: if the trace is already a rainbow there is nothing left for
+  // reaching x10 to change, and the surprise is the entire reward.
   path {
-    fill: url('#rhythm-fill');
-    stroke: url('#rhythm-line');
+    fill: rgba($secondary-default, 0.42);
+    stroke: $secondary-light;
     stroke-width: 1.4;
     stroke-linejoin: round;
     // Non-scaling, because `preserveAspectRatio: none` stretches the viewBox

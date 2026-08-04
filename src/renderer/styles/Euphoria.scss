@@ -52,6 +52,14 @@ it under the terms of the GNU General Public License version 3 or later.
     animation: euphoria-glow 6s linear infinite;
   }
 
+  // The game's trace turns rainbow, and only here. Ordinarily it is the app's
+  // cyan; the spectrum is what reaching the ceiling buys, so it cannot already
+  // be on before you get there.
+  .rhythm-game__trace path {
+    fill: url('#rhythm-fill');
+    stroke: url('#rhythm-line');
+  }
+
   // Pulsing with the music, and doing it the cheap way.
   //
   // `--euphoria-level` is written straight to the document root about twenty
