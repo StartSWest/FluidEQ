@@ -26,6 +26,7 @@ import TextInput from './widgets/TextInput';
 import Button from './widgets/Button';
 import List, { IOptionEntry } from './widgets/List';
 import PresetListItem from './components/PresetListItem';
+import SidebarSection from './components/SidebarSection';
 import ProfileActionIcon from './icons/ProfileActionIcon';
 import { formatPresetName } from './utils/utils';
 import {
@@ -427,77 +428,84 @@ const PresetsBar = ({
   ]);
 
   return (
-    <div className="presets-bar">
-      <p className="presets-bar__lede">
-        Save unlimited tunings and attach any one to an output.
-      </p>
-      <div className="profile-compose">
-        <div className="preset-name">Profile name</div>
-        <TextInput
+    <SidebarSection
+      eyebrow="YOUR SOUND"
+      title="Named profiles"
+      summary={
+        <List
+          name="preset"
+          options={options}
+          itemClassName="preset-list-item"
           value={presetName}
-          ariaLabel="Preset Name"
+          handleChange={handleChangeSelectedPreset}
           isDisabled={isBlockingError}
-          errorMessage={newPresetNameError}
-          handleChange={handleChangeNewPresetName}
-          handleSubmit={handleCreateOrSavePreset}
-          formatInput={formatPresetName}
+          emptyOptionsPlaceholder={(() => {
+            if (!hasResolvedOutput) {
+              return 'Detecting your output…';
+            }
+            return activeDeviceId
+              ? 'No profile attached to this output.'
+              : 'No profiles yet. Create your first sound.';
+          })()}
         />
-      </div>
-      <div className="profile-actions">
-        {/* Starting a new profile is its own action. Without it the only way
+      }
+    >
+      <div className="presets-bar">
+        <p className="presets-bar__lede">
+          Save unlimited tunings and attach any one to an output.
+        </p>
+        <div className="profile-compose">
+          <div className="preset-name">Profile name</div>
+          <TextInput
+            value={presetName}
+            ariaLabel="Preset Name"
+            isDisabled={isBlockingError}
+            errorMessage={newPresetNameError}
+            handleChange={handleChangeNewPresetName}
+            handleSubmit={handleCreateOrSavePreset}
+            formatInput={formatPresetName}
+          />
+        </div>
+        <div className="profile-actions">
+          {/* Starting a new profile is its own action. Without it the only way
             to create one was to clear the name box by hand, and it was never
             obvious whether Save would make a new profile or overwrite the
             attached one — which is a bad thing to be unsure about. */}
-        <Button
-          ariaLabel="Start a new profile from the current EQ"
-          className="small subtle profile-actions__new"
-          isDisabled={isBlockingError}
-          handleChange={handleStartNewProfile}
-        >
-          <ProfileActionIcon action="new" />
-          New profile
-        </Button>
-        <Button
-          // Stable: the control's identity does not change, only what it will
-          // do to the name currently in the box. Assistive tech should not see
-          // this button rename itself as the user types.
-          ariaLabel="Save settings to preset"
-          className="small profile-actions__save"
-          isDisabled={isBlockingError || !presetName || !!newPresetNameError}
-          handleChange={handleCreateOrSavePreset}
-        >
-          <ProfileActionIcon action="save" />
-          {isExistingPresetSelected ? 'Update' : 'Save as new'}
-        </Button>
-        {/* Every edit auto-saves into the attached profile, so this is the way
+          <Button
+            ariaLabel="Start a new profile from the current EQ"
+            className="small subtle profile-actions__new"
+            isDisabled={isBlockingError}
+            handleChange={handleStartNewProfile}
+          >
+            <ProfileActionIcon action="new" />
+            New profile
+          </Button>
+          <Button
+            // Stable: the control's identity does not change, only what it will
+            // do to the name currently in the box. Assistive tech should not see
+            // this button rename itself as the user types.
+            ariaLabel="Save settings to preset"
+            className="small profile-actions__save"
+            isDisabled={isBlockingError || !presetName || !!newPresetNameError}
+            handleChange={handleCreateOrSavePreset}
+          >
+            <ProfileActionIcon action="save" />
+            {isExistingPresetSelected ? 'Update' : 'Save as new'}
+          </Button>
+          {/* Every edit auto-saves into the attached profile, so this is the way
             back to the version the user deliberately kept. */}
-        <Button
-          ariaLabel="Restore the last manually saved version of this profile"
-          className="small subtle profile-actions__restore"
-          isDisabled={isBlockingError || isRestoring || !canRestoreBaseline}
-          handleChange={handleRestoreBaseline}
-        >
-          <ProfileActionIcon action="restore" />
-          {isRestoring ? 'Restoring…' : 'Restore'}
-        </Button>
+          <Button
+            ariaLabel="Restore the last manually saved version of this profile"
+            className="small subtle profile-actions__restore"
+            isDisabled={isBlockingError || isRestoring || !canRestoreBaseline}
+            handleChange={handleRestoreBaseline}
+          >
+            <ProfileActionIcon action="restore" />
+            {isRestoring ? 'Restoring…' : 'Restore'}
+          </Button>
+        </div>
       </div>
-      <List
-        name="preset"
-        options={options}
-        itemClassName="preset-list-item"
-        value={presetName}
-        handleChange={handleChangeSelectedPreset}
-        isDisabled={isBlockingError}
-        emptyOptionsPlaceholder={(() => {
-          if (!hasResolvedOutput) {
-            return 'Detecting your output…';
-          }
-          return activeDeviceId
-            ? 'No profile attached to this output.'
-            : 'No profiles yet. Create your first sound.';
-        })()}
-      />
-    </div>
+    </SidebarSection>
   );
 };
 

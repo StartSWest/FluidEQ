@@ -29,9 +29,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   padding: 0;
   gap: 6px;
-  // Heading, compose row, save button, then the list takes the rest and is the
-  // only surface that scrolls.
-  grid-template-rows: repeat(3, min-content) minmax(0, 1fr);
+  // Lede, compose row, buttons. The list moved into the section summary so it
+  // survives collapsing, and it owns its own scrolling there.
+  grid-template-rows: repeat(3, min-content);
   justify-items: stretch;
   overflow: hidden;
   background:
