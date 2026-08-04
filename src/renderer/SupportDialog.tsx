@@ -30,9 +30,24 @@ import { SupportPetHero } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 import './styles/Support.scss';
 
+/**
+ * Development builds only, and webpack removes the branch entirely from a
+ * release: `process.env.NODE_ENV` is substituted with a literal at build time,
+ * so `'production' !== 'production'` folds to `false` and the button below is
+ * dead code the minifier drops. It cannot reach a user by accident.
+ */
+const IS_DEV = process.env.NODE_ENV !== 'production';
+
 interface ISupportDialogProps {
   hasContributed: boolean;
   onContributed: () => void;
+  /**
+   * Put the badge back to unearned. Everything the creature does — the game,
+   * the tap, euphoria mode — is behind that one flag, and it is a one-way door
+   * by design, so there is otherwise no way to see the unearned state again
+   * without clearing local storage by hand.
+   */
+  onResetContribution: () => void;
   onClose: () => void;
   /** Open the release notes on top of this dialog. */
   onShowReleaseNotes: () => void;
@@ -54,6 +69,7 @@ const PET_MOOD_MS = 700;
 export default function SupportDialog({
   hasContributed,
   onContributed,
+  onResetContribution,
   onClose,
   onShowReleaseNotes,
   isCovered = false,
@@ -378,7 +394,23 @@ export default function SupportDialog({
             us. It only ever adds something, which is why an unverifiable
             claim is harmless here. */}
         {hasContributed ? (
-          <p className="support-dialog__thanks">{t('support.thanks')}</p>
+          <p className="support-dialog__thanks">
+            {t('support.thanks')}
+            {/* Untranslated on purpose. Every other string here is in ten
+                locales and a test enforces that; a debug affordance that
+                never ships would mean ten translations of something no user
+                will read. */}
+            {IS_DEV && (
+              <button
+                type="button"
+                className="support-dialog__dev-reset"
+                title="Development build only — clears the contributed flag"
+                onClick={onResetContribution}
+              >
+                dev: remove badge
+              </button>
+            )}
+          </p>
         ) : (
           <button
             type="button"

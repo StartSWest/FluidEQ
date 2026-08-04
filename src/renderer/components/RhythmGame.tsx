@@ -42,12 +42,14 @@ import {
   useLiveAudioFrame,
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
-import { getRhythmRun, setRhythmRun, useRhythmRun } from '../utils/rhythmRun';
+import {
+  RHYTHM_HIGH_SCORE_KEY,
+  getRhythmRun,
+  setRhythmRun,
+  useRhythmRun,
+} from '../utils/rhythmRun';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/RhythmGame.scss';
-
-/** Where the high score lives. It is meant to survive everything. */
-const HIGH_SCORE_KEY = 'fluideq-rhythm-high-score';
 
 /**
  * How long a hit takes to travel from the right edge into the target line.
@@ -98,7 +100,7 @@ export interface IRhythmGameHandle {
 }
 
 const readHighScore = () => {
-  const stored = Number(window.localStorage.getItem(HIGH_SCORE_KEY));
+  const stored = Number(window.localStorage.getItem(RHYTHM_HIGH_SCORE_KEY));
   return Number.isFinite(stored) && stored > 0 ? Math.floor(stored) : 0;
 };
 
@@ -177,7 +179,7 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     const next = applyRhythmScore(getRhythmRun(), hit);
     setRhythmRun(next);
     if (next.score > readHighScore()) {
-      window.localStorage.setItem(HIGH_SCORE_KEY, String(next.score));
+      window.localStorage.setItem(RHYTHM_HIGH_SCORE_KEY, String(next.score));
       setHighScore(next.score);
     }
 

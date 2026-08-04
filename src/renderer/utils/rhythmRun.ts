@@ -33,6 +33,15 @@ import { IRhythmScore } from 'common/rhythmGame';
  */
 let run: IRhythmScore = { score: 0, streak: 0 };
 
+/**
+ * Where the high score lives. It is meant to survive everything.
+ *
+ * Kept here rather than in the game component because the reset below has to
+ * clear it too, and that reset is triggered from the shell — which is nowhere
+ * near the game. One module owns everything a run consists of.
+ */
+export const RHYTHM_HIGH_SCORE_KEY = 'fluideq-rhythm-high-score';
+
 const listeners = new Set<() => void>();
 
 export const getRhythmRun = () => run;
@@ -40,6 +49,25 @@ export const getRhythmRun = () => run;
 export const setRhythmRun = (next: IRhythmScore) => {
   run = next;
   listeners.forEach((listener) => listener());
+};
+
+/**
+ * Back to a fresh install, as far as the game is concerned.
+ *
+ * Everything downstream follows from the run, so this is all it takes: the
+ * shell subscribes to it, so zeroing the streak drops the joy to nothing, which
+ * removes `.is-euphoric` from the document and takes euphoria mode off the
+ * bands, the graph trace and the titlebar meter in the same frame. Nothing here
+ * needs to know that any of that exists.
+ *
+ * The high score goes with it. It is meant to outlive a run, but this is not
+ * the end of a run — it is the badge being taken away, and leaving a record
+ * behind from a game the user can no longer open is a state no real install
+ * would ever be in.
+ */
+export const resetRhythmRun = () => {
+  window.localStorage.removeItem(RHYTHM_HIGH_SCORE_KEY);
+  setRhythmRun({ score: 0, streak: 0 });
 };
 
 const subscribe = (listener: () => void) => {

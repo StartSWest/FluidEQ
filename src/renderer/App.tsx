@@ -20,6 +20,7 @@ import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState, type MouseEvent } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { SUPPORT_CONTRIBUTED_KEY, isSupportAvailable } from 'common/support';
+import { resetRhythmRun } from './utils/rhythmRun';
 import './styles/App.scss';
 import MainContent from './MainContent';
 import SupportDialog from './SupportDialog';
@@ -646,6 +647,16 @@ const AppContent = () => {
             onContributed={() => {
               localStorage.setItem(SUPPORT_CONTRIBUTED_KEY, 'true');
               setHasContributed(true);
+            }}
+            // Development only — the button that calls this is compiled out of
+            // a release build. Both halves have to go: the badge is what gates
+            // the game, and a run left standing would keep the whole window in
+            // euphoria mode for a creature that no longer has anything to
+            // celebrate.
+            onResetContribution={() => {
+              localStorage.removeItem(SUPPORT_CONTRIBUTED_KEY);
+              setHasContributed(false);
+              resetRhythmRun();
             }}
             onClose={() => setShowSupportDialog(false)}
           />

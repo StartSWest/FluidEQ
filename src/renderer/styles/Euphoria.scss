@@ -76,8 +76,13 @@ it under the terms of the GNU General Public License version 3 or later.
   // and how often, not the property itself. Opacity stays composited and is
   // promoted with `will-change`, scoped to this class so nothing carries a
   // spare layer around when the mode is off.
+  // The trace is the one thing here still driven by the level, so it is the one
+  // thing promoted — `filter`, not `opacity`, because the drop-shadow below is
+  // what actually moves. Its own layer keeps that repaint off the rest of the
+  // graph. Scoped to this class, so nothing carries a spare layer around when
+  // the mode is off.
   path[name^='Live processed output'] {
-    will-change: opacity;
+    will-change: filter;
   }
 
   // The band points on the graph are left alone. They mark where a filter sits

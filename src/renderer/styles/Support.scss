@@ -421,3 +421,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: 0.72rem;
   }
 }
+
+// Development builds only — this rule has no element to match in a release,
+// where the button it styles is compiled out. Deliberately plain: it is a
+// debug affordance sitting inside the one dialog in the app that is asking
+// for something, and it must never read as part of that ask.
+.support-dialog__dev-reset {
+  margin-left: 10px;
+  padding: 1px 7px;
+  color: rgba($primary-lighter, 0.5);
+  border: 1px dashed rgba($primary-lighter, 0.28);
+  border-radius: $radius-s;
+  background: none;
+  font-size: 0.66rem;
+  font-family: inherit;
+  cursor: pointer;
+  vertical-align: middle;
+
+  &:hover {
+    color: #ff8b98;
+    border-color: rgba(#ff8b98, 0.5);
+  }
+}
