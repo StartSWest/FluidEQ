@@ -141,6 +141,9 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   // in place so the SVG actually updates.
   const [path, setPath] = useState('');
   const [hasPeaks, setHasPeaks] = useState(false);
+  // Whether anything is coming through at all, as opposed to whether a beat
+  // has been found in it.
+  const [hasSignal, setHasSignal] = useState(false);
   // Where each detected hit currently sits, as a percentage across the trace.
   const [peakMarks, setPeakMarks] = useState<number[]>([]);
   const verdictResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -282,6 +285,11 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     );
     setPeakMarks(hasSignal ? marks : []);
     setHasPeaks(hasSignal && marks.length > 0);
+    // Kept apart from `hasPeaks`, because the two mean different things and
+    // they are different messages. No signal is "put something on"; a signal
+    // with no beats yet is "give me a moment". Collapsing them told anyone
+    // sitting in silence that the app was still working on it.
+    setHasSignal(hasSignal);
 
     // At the ceiling the run plays itself. Every peak that reaches the line
     // scores as a perfect and flares, and it keeps doing so until the player
@@ -317,6 +325,7 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     setPath('');
     setPeakMarks([]);
     setHasPeaks(false);
+    setHasSignal(false);
   }, [isListening]);
 
   const registerTap = useCallback((): IRhythmTapResult | undefined => {
@@ -494,7 +503,10 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
           {/* Tell the truth about why nothing is happening. A dead trace with a
               live score reads as broken; "put something on" does not. */}
           {(() => {
-            if (!isListening) {
+            // Silence gets the same invitation as a stopped analyser,
+            // because to the player they are the same situation: there is
+            // nothing to jump and the fix is to put something on.
+            if (!isListening || !hasSignal) {
               return t('support.game.noAudio');
             }
             if (!hasPeaks) {
