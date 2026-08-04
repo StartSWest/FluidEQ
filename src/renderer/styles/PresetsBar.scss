@@ -80,6 +80,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Save and its undo sit together. Equal tracks so neither reads as the
+// dangerous one — restoring is just as normal an action as saving.
+.profile-actions {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
 .profile-compose {
   display: grid;
   min-width: 0;

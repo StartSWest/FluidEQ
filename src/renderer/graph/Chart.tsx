@@ -21,6 +21,7 @@ import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { ColorEnum } from '../styles/color';
 import Axis from './Axis';
 import GridLine from './GridLine';
+import { IBalanceProgressRegion } from '../utils/autoBalance';
 import useController, {
   IChartCurveData,
   IChartGradientStop,
@@ -40,6 +41,8 @@ interface IChartProps {
   data: IChartCurveData[];
   dimensions: ChartDimensions;
   editablePoints?: IEditableChartPoint[];
+  /** Per-region Smart EQ coverage, drawn while a measurement is running. */
+  coverage?: IBalanceProgressRegion[];
   onMarqueeSelect?: (ids: string[], additive: boolean) => void;
 }
 
@@ -47,6 +50,7 @@ const Chart = ({
   data = [],
   dimensions,
   editablePoints = [],
+  coverage,
   onMarqueeSelect,
 }: IChartProps) => {
   const { width, height, margins } = dimensions;
@@ -267,6 +271,49 @@ const Chart = ({
         color={ColorEnum.COMPLEMENTARY}
         transform={`translate(${padding.left}, 0)`}
       />
+      {/* Smart EQ coverage. Each frequency region lights up as it is actually
+          heard, so the wait is legible: you can see which part of the spectrum
+          the measurement is still missing rather than watching a percentage. */}
+      {coverage && coverage.length > 0 && (
+        <g className="chart-coverage" pointerEvents="none">
+          {coverage.map((region) => {
+            const left = Number(xScaleFreq(region.lowFrequency));
+            const right = Number(xScaleFreq(region.highFrequency));
+            const width = Math.max(0, right - left - 2);
+            const height = Math.max(0, plotHeight - padding.top);
+            return (
+              <g key={region.label}>
+                <rect
+                  className="chart-coverage__column"
+                  x={left + 1}
+                  y={padding.top}
+                  width={width}
+                  height={height}
+                  opacity={0.06 + region.confidence * 0.14}
+                />
+                <rect
+                  className="chart-coverage__track"
+                  x={left + 1}
+                  y={plotHeight - 6}
+                  width={width}
+                  height={4}
+                  rx={2}
+                />
+                <rect
+                  className={`chart-coverage__fill${
+                    region.isCovered ? ' is-covered' : ''
+                  }`}
+                  x={left + 1}
+                  y={plotHeight - 6}
+                  width={width * Math.min(1, region.confidence)}
+                  height={4}
+                  rx={2}
+                />
+              </g>
+            );
+          })}
+        </g>
+      )}
       {selectionBox && (
         <rect
           className="chart-selection-box"

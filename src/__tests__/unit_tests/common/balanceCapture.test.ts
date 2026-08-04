@@ -16,7 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { FilterTypeEnum, IFilter } from 'common/constants';
+import {
+  FIXED_BAND_FREQUENCIES,
+  FilterTypeEnum,
+  FixedBandSizeEnum,
+  IFilter,
+} from 'common/constants';
 import {
   BALANCE_FRAME_INTERVAL_MS,
   IBalanceFrame,
@@ -33,6 +38,7 @@ import {
   describeBalanceProgress,
   describeBalanceResult,
   evaluateBalanceCapture,
+  filterShapeAt,
   formatBalanceFrequency,
   isBalanceCheckDue,
   readAbsoluteLevels,
@@ -409,6 +415,173 @@ describe('balance capture', () => {
     });
   });
 
+  // Smart EQ: steer the output toward a chosen voicing instead of merely
+  // flattening it back onto its own tilt.
+  describe('Suite H - target curve', () => {
+    it('drives the output toward the target, not toward flat', () => {
+      const { report } = runCapture(fullRange, seconds(30));
+
+      // A bass shelf: +5 dB below ~100 Hz, tapering off above it.
+      const target = report.samples.map((sample) => ({
+        frequency: sample.frequency,
+        level: 5 / (1 + (sample.frequency / 100) ** 2),
+      }));
+
+      const neutral = buildBalancedGains(report.samples, TEN_BAND);
+      const voiced = buildBalancedGains(report.samples, TEN_BAND, {
+        targetCurve: target,
+      });
+
+      // Without a target this source is already correct, so nothing moves.
+      expect(Math.abs(neutral.b64)).toBeLessThan(1.2);
+      // With the target the low bands are pushed up relative to the rest.
+      expect(voiced.b64).toBeGreaterThan(neutral.b64 + 1.5);
+      expect(voiced.b64).toBeGreaterThan(voiced.b4000);
+    });
+
+    it('is unchanged by an empty target curve', () => {
+      const { report } = runCapture(withResonance, seconds(30));
+      expect(
+        buildBalancedGains(report.samples, TEN_BAND, { targetCurve: [] }),
+      ).toEqual(buildBalancedGains(report.samples, TEN_BAND));
+    });
+
+    it('still refuses to correct regions it never heard', () => {
+      const { report } = runCapture(podcast, seconds(45));
+      const target = report.samples.map((sample) => ({
+        frequency: sample.frequency,
+        level: 6,
+      }));
+      const filters = [band(1000, 0), band(10000, 2.5), band(16000, -1)];
+      const gains = buildBalancedGains(report.samples, filters, {
+        targetCurve: target,
+      });
+
+      // A target must not become a licence to move a band that was not measured.
+      expect(gains.b10000).toBe(2.5);
+      expect(gains.b16000).toBe(-1);
+    });
+  });
+
+  // Bands overlap. Solving them jointly is what stops a dense layout applying
+  // the same correction three or four times over.
+  describe('Suite I - band density', () => {
+    const layoutOf = (size: FixedBandSizeEnum) =>
+      FIXED_BAND_FREQUENCIES[size].map((frequency) => band(frequency));
+
+    /** Combined dB response of a solved layout at one frequency. */
+    const summedResponseAt = (
+      filters: IFilter[],
+      gains: Record<string, number>,
+      frequency: number,
+    ) =>
+      filters.reduce(
+        (total, filter) =>
+          total + (gains[filter.id] ?? 0) * filterShapeAt(filter, frequency),
+        0,
+      );
+
+    it('applies the same total correction whatever the band count', () => {
+      const { report } = runCapture(withResonance, seconds(30));
+
+      // Every layout with a usable centre near the resonance should land on
+      // the same total cut. Adding bands must buy resolution, not more gain —
+      // stacking overlapping bells is exactly the bug this guards.
+      const totals = [
+        FixedBandSizeEnum.TEN,
+        FixedBandSizeEnum.FIFTEEN,
+        FixedBandSizeEnum.THIRTY_ONE,
+      ].map((size) => {
+        const filters = layoutOf(size);
+        return summedResponseAt(
+          filters,
+          buildBalancedGains(report.samples, filters),
+          1000,
+        );
+      });
+
+      totals.forEach((total) => expect(total).toBeLessThan(-2));
+      const smallest = Math.min(...totals.map(Math.abs));
+      const largest = Math.max(...totals.map(Math.abs));
+      expect(largest / smallest).toBeLessThan(1.2);
+    });
+
+    it('under-corrects on a six-band layout, which has no centre to work with', () => {
+      // Not a defect: the nearest six-band centres are 500 Hz and 1.5 kHz, so
+      // a narrow 1 kHz resonance is simply not reachable. Documented so a
+      // future change that "fixes" it by over-driving the neighbours fails.
+      const { report } = runCapture(withResonance, seconds(30));
+      const sparse = layoutOf(FixedBandSizeEnum.SIX);
+      const dense = layoutOf(FixedBandSizeEnum.TEN);
+
+      const sparseTotal = summedResponseAt(
+        sparse,
+        buildBalancedGains(report.samples, sparse),
+        1000,
+      );
+      const denseTotal = summedResponseAt(
+        dense,
+        buildBalancedGains(report.samples, dense),
+        1000,
+      );
+
+      expect(sparseTotal).toBeLessThan(0);
+      expect(Math.abs(sparseTotal)).toBeLessThan(Math.abs(denseTotal));
+    });
+
+    it('spreads the correction across neighbours instead of spiking one band', () => {
+      const { report } = runCapture(withResonance, seconds(30));
+      const ten = layoutOf(FixedBandSizeEnum.TEN);
+      const dense = layoutOf(FixedBandSizeEnum.THIRTY_ONE);
+
+      const tenGains = buildBalancedGains(report.samples, ten);
+      const denseGains = buildBalancedGains(report.samples, dense);
+
+      const peak = (gains: Record<string, number>) =>
+        Math.max(...Object.values(gains).map(Math.abs));
+
+      // Each of the 31 bands carries less than any single one of the 10 does,
+      // because they are sharing the same total correction.
+      expect(peak(denseGains)).toBeLessThan(peak(tenGains));
+    });
+
+    it('keeps a dense layout smooth - no alternating boost/cut comb', () => {
+      const { report } = runCapture(withResonance, seconds(30));
+      const filters = layoutOf(FixedBandSizeEnum.THIRTY_ONE);
+      const gains = buildBalancedGains(report.samples, filters);
+
+      // Walk the bands in frequency order and count sign flips. An
+      // unregularised solve produces a +/- comb; a sane one changes direction
+      // only a handful of times across the whole spectrum.
+      const ordered = filters
+        .map((filter) => gains[filter.id] ?? 0)
+        .filter((gain) => Math.abs(gain) > 0.15);
+      let flips = 0;
+      for (let index = 1; index < ordered.length; index += 1) {
+        if (Math.sign(ordered[index]) !== Math.sign(ordered[index - 1])) {
+          flips += 1;
+        }
+      }
+      expect(flips).toBeLessThanOrEqual(4);
+    });
+
+    it('never exceeds the per-band limits at any density', () => {
+      const { report } = runCapture(withResonance, seconds(30));
+      [
+        FixedBandSizeEnum.SIX,
+        FixedBandSizeEnum.TEN,
+        FixedBandSizeEnum.FIFTEEN,
+        FixedBandSizeEnum.THIRTY_ONE,
+      ].forEach((size) => {
+        const gains = buildBalancedGains(report.samples, layoutOf(size));
+        Object.values(gains).forEach((gain) => {
+          expect(gain).toBeLessThanOrEqual(6);
+          expect(gain).toBeGreaterThanOrEqual(-9);
+        });
+      });
+    });
+  });
+
   describe('Suite G - reporting', () => {
     it('describes a full-range result', () => {
       const { report } = runCapture(fullRange, seconds(30));
@@ -430,6 +603,31 @@ describe('balance capture', () => {
       expect(formatBalanceFrequency(1120)).toBe('1.1 kHz');
       expect(formatBalanceFrequency(8960)).toBe('9 kHz');
       expect(formatBalanceFrequency(15000)).toBe('15 kHz');
+    });
+
+    // The graph draws these, so an empty list means an invisible measurement.
+    it('carries per-region coverage for the graph overlay', () => {
+      const { report } = runCapture(podcast, seconds(6));
+      const progress = buildBalanceProgress(report, 0, {
+        isSilent: false,
+        isPaused: false,
+      });
+
+      const last = progress.regions[progress.regions.length - 1];
+      expect(progress.regions).toHaveLength(9);
+      expect(progress.regions[0].lowFrequency).toBe(35);
+      expect(last.label).toBe('air');
+      // Ordered low to high so the overlay can map them straight onto the axis.
+      progress.regions.slice(1).forEach((region, index) => {
+        expect(region.lowFrequency).toBeGreaterThan(
+          progress.regions[index].lowFrequency,
+        );
+      });
+      // The band-limited top is visibly empty; the midrange is not.
+      expect(last.confidence).toBe(0);
+      expect(
+        progress.regions.find((region) => region.label === 'mids')?.confidence,
+      ).toBeGreaterThan(0);
     });
 
     it('keeps progress monotone and names what is missing', () => {
@@ -473,6 +671,7 @@ describe('balance capture', () => {
           status: 'listening',
           weakest: { label: 'air' },
           listenedMs: 5000,
+          regions: [],
         } as unknown as IBalanceReport,
         90,
         { isSilent: false, isPaused: false },

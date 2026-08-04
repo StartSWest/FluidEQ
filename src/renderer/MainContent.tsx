@@ -27,6 +27,7 @@ import {
 } from 'react';
 import {
   FilterTypeEnum,
+  FilterTypeToLabelMap,
   FixedBandSizeEnum,
   MAX_NUM_FILTERS,
   MAX_FREQUENCY,
@@ -66,6 +67,8 @@ import {
   describeBalanceProgress,
   describeBalanceResult,
 } from './utils/autoBalance';
+import { buildVoicingTargetCurve } from './utils/voicingCurve';
+import VoicingQuickPick from './components/VoicingQuickPick';
 
 const MainContent = () => {
   const {
@@ -82,11 +85,13 @@ const MainContent = () => {
     toggleFilterSelection,
     hoveredFilterId,
     setHoveredFilterId,
+    voicing,
   } = useAquaContext();
   const { captureBalanceProfile, isActive: isLiveOutputActive } =
     useLiveAudio();
   const [balanceStatus, setBalanceStatus] = useState('');
   const [isBalancing, setIsBalancing] = useState(false);
+  const [measureFromFlat, setMeasureFromFlat] = useState(false);
   const balanceAbortRef = useRef<AbortController | undefined>(undefined);
   // Bumped whenever a run is superseded, so a late resolution from an
   // abandoned measurement cannot write gains or overwrite the status.
@@ -360,9 +365,34 @@ const MainContent = () => {
       .join();
 
     setIsBalancing(true);
-    setBalanceStatus('Listening 0%');
 
     try {
+      // Measuring the post-EQ output is normally the right thing — the loop
+      // converges and self-corrects any error in the filter model. It has one
+      // blind spot: a band already cut hard leaves its region with almost no
+      // energy, so the measurement marks it untrustworthy and never touches
+      // it. The bad EQ hides the very problem it is causing. Flattening first
+      // is the escape hatch for exactly that.
+      if (measureFromFlat) {
+        setBalanceStatus('Flattening...');
+        await Promise.all(
+          frequencySortedFilters
+            .filter((filter) => filter.gain !== 0)
+            .map(async (filter) => {
+              await setGain(filter.id, 0);
+              dispatchFilter({
+                type: FilterActionEnum.GAIN,
+                id: filter.id,
+                newValue: 0,
+              });
+            }),
+        );
+        if (!isCurrentRun()) {
+          return;
+        }
+      }
+
+      setBalanceStatus('Listening 0%');
       const result = await captureBalanceProfile({
         signal: controller.signal,
         onProgress: (progress) => {
@@ -382,7 +412,12 @@ const MainContent = () => {
         return;
       }
 
-      const gains = buildBalancedGains(result.samples, currentFilters);
+      // Steer toward the active voicing rather than merely flattening: the
+      // capture already contains the voicing layer, so without this Smart EQ
+      // would fight it back out again.
+      const gains = buildBalancedGains(result.samples, currentFilters, {
+        targetCurve: buildVoicingTargetCurve(voicing),
+      });
       const entries = Object.entries(gains);
       if (entries.length === 0) {
         setBalanceStatus('Not enough range to measure');
@@ -568,18 +603,33 @@ const MainContent = () => {
           <h4>Parametric EQ</h4>
         </div>
         <div className="eq-toolbar">
+          <VoicingQuickPick />
           <Button
             ariaLabel={
               isBalancing
-                ? 'Cancel auto balance'
-                : 'Auto balance from live output'
+                ? 'Cancel Smart EQ measurement'
+                : 'Smart EQ from live output'
             }
             isDisabled={!isBalancing && !isLiveOutputActive}
             className="small"
             handleChange={autoBalance}
           >
-            {isBalancing ? 'Cancel' : 'Auto balance'}
+            {isBalancing ? 'Cancel' : 'Smart EQ'}
           </Button>
+          {/* Off by default: the closed loop is the better answer almost
+              always, and this throws away the user's tuning. */}
+          <label className="eq-toolbar__option" htmlFor="smart-eq-from-flat">
+            <input
+              id="smart-eq-from-flat"
+              type="checkbox"
+              checked={measureFromFlat}
+              disabled={isBalancing}
+              onChange={(event) => setMeasureFromFlat(event.target.checked)}
+            />
+            <span title="Zero every band before listening. Use this when an existing cut is hiding the region it affects - the measurement cannot see through its own correction.">
+              From flat
+            </span>
+          </label>
           {balanceStatus && (
             <span className="eq-toolbar__status" role="status">
               {balanceStatus}
@@ -723,41 +773,45 @@ const MainContent = () => {
               />
             </div>
             <div className="eq-flat-editor__control">
-              <span>Gain</span>
-              <div className="eq-flat-editor__input-row">
-                {/* Band pass, notch and the pass filters have no gain in
-                    Equalizer APO, so the field is inert for those types. */}
-                <NumberInput
-                  name="selected-band-gain"
-                  value={selectedFilter.gain}
-                  min={MIN_GAIN}
-                  max={MAX_GAIN}
-                  isDisabled={isSelectedGainDisabled}
-                  floatPrecision={2}
-                  showArrows
-                  handleSubmit={(newValue) =>
-                    updateSelectedGroup('gain', newValue)
-                  }
-                />
-                <button
-                  type="button"
-                  className="eq-flat-editor__reset-gain"
-                  aria-label="Reset selected gain to 0 dB"
-                  title={
-                    isSelectedGainDisabled
-                      ? 'This filter type has no gain'
-                      : 'Reset selected gain to 0 dB'
-                  }
-                  disabled={
-                    !!globalError ||
-                    isSelectedGainDisabled ||
-                    selectedFilter.gain === 0
-                  }
-                  onClick={resetSelectedGain}
+              <span>{isSelectedGainDisabled ? 'Gain · n/a' : 'Gain'}</span>
+              {/* Band pass, notch, low pass and high pass have no gain
+                  parameter in Equalizer APO at all — they shape by frequency
+                  and Q alone. Showing the band's stale gain in a greyed-out
+                  box read as "this value is set but ignored", so the field is
+                  replaced by an explicit note instead. */}
+              {isSelectedGainDisabled ? (
+                <div
+                  className="eq-flat-editor__gain-na"
+                  title={`A ${FilterTypeToLabelMap[selectedFilter.type]} has no gain in Equalizer APO. Use Frequency and Q to shape it, or switch to a Peak or Shelf filter to set a level.`}
                 >
-                  ↺
-                </button>
-              </div>
+                  Set by Q
+                </div>
+              ) : (
+                <div className="eq-flat-editor__input-row">
+                  <NumberInput
+                    name="selected-band-gain"
+                    value={selectedFilter.gain}
+                    min={MIN_GAIN}
+                    max={MAX_GAIN}
+                    isDisabled={false}
+                    floatPrecision={2}
+                    showArrows
+                    handleSubmit={(newValue) =>
+                      updateSelectedGroup('gain', newValue)
+                    }
+                  />
+                  <button
+                    type="button"
+                    className="eq-flat-editor__reset-gain"
+                    aria-label="Reset selected gain to 0 dB"
+                    title="Reset selected gain to 0 dB"
+                    disabled={!!globalError || selectedFilter.gain === 0}
+                    onClick={resetSelectedGain}
+                  >
+                    ↺
+                  </button>
+                </div>
+              )}
             </div>
             <div className="eq-flat-editor__control">
               <span>Quality (Q)</span>

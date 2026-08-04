@@ -142,6 +142,75 @@ describe('flush', () => {
       expect(stateToString(state)).toContain('ON BP');
     });
 
+    // The voicing is a separate layer. APO numbers filters globally, so a
+    // duplicate or skipped index silently breaks the config it appends to.
+    describe('voicing layer', () => {
+      it('writes nothing when no voicing is selected', () => {
+        const state = getDefaultState();
+        state.voicing = { profileId: '', intensity: 1 };
+        expect(stateToString(state)).not.toContain('Filter ');
+      });
+
+      it('numbers straight on from the EQ bands', () => {
+        const state = getDefaultState();
+        const bands = Object.values(state.filters).slice(0, 2);
+        bands.forEach((band, index) => {
+          band.gain = index + 1;
+        });
+        state.filters = Object.fromEntries(
+          bands.map((band) => [band.id, band]),
+        );
+        state.voicing = { profileId: 'music', intensity: 1 };
+
+        const lines = stateToString(state)
+          .split('\n\r')
+          .filter((line) => line.startsWith('Filter '));
+        const indices = lines.map((line) =>
+          Number(line.match(/^Filter (\d+):/)?.[1]),
+        );
+
+        expect(indices).toEqual(
+          Array.from({ length: indices.length }, (_value, i) => i + 1),
+        );
+        expect(new Set(indices).size).toBe(indices.length);
+        expect(lines.length).toBeGreaterThan(bands.length);
+      });
+
+      // Clearing resets the bands the user tuned, not the target they chose.
+      it('survives a flat EQ', () => {
+        const state = getDefaultState();
+        state.isFlat = true;
+        state.voicing = { profileId: 'speech', intensity: 1 };
+
+        const output = stateToString(state);
+        expect(output).toContain('Filter 1: ON HPQ Fc 85 Hz Q');
+        // The gainless high-pass still carries no Gain token.
+        expect(output).not.toContain('ON HPQ Fc 85 Hz Gain');
+      });
+
+      it('scales gains by intensity and drops the ones that reach zero', () => {
+        const state = getDefaultState();
+        state.isFlat = true;
+
+        state.voicing = { profileId: 'music', intensity: 1 };
+        expect(stateToString(state)).toContain('Gain 3.5 dB');
+
+        state.voicing = { profileId: 'music', intensity: 0.5 };
+        expect(stateToString(state)).toContain('Gain 1.8 dB');
+
+        // At zero the layer disappears rather than writing inert commands.
+        state.voicing = { profileId: 'music', intensity: 0 };
+        expect(stateToString(state)).not.toContain('Filter ');
+      });
+
+      it('ignores an unknown profile', () => {
+        const state = getDefaultState();
+        state.isFlat = true;
+        state.voicing = { profileId: 'not-a-profile', intensity: 1 };
+        expect(stateToString(state)).not.toContain('Filter ');
+      });
+    });
+
     it('clamps legacy gain values to the safe +/-20 dB range', () => {
       const state = getDefaultState();
       const firstFilter = Object.values(state.filters)[0];

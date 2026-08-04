@@ -160,7 +160,27 @@ export const deviceProfilesToString = (
     ].join('\r\n');
   }
 
+  // Equalizer APO accumulates: every block whose `Device:` line matches the
+  // output contributes its commands, and a later block does NOT reset an
+  // earlier one. So if the device the user is listening on also has a preset
+  // assigned, emitting both blocks stacks the preset's filters underneath the
+  // live session instead of replacing them — pressing Clear EQ would leave the
+  // preset fully audible. The session override wins, so its device drops out
+  // of the assignment list entirely.
+  const isOverriddenDevice = (assignment: IDeviceProfileAssignment) => {
+    if (!activeOverride) {
+      return false;
+    }
+    const pattern = assignment.deviceGuid || assignment.deviceName;
+    return (
+      (!!activeOverride.deviceId &&
+        activeOverride.deviceId === assignment.deviceId) ||
+      activeOverride.devicePattern === pattern
+    );
+  };
+
   const blocks = Object.values(settings.assignments)
+    .filter((assignment) => !isOverriddenDevice(assignment))
     .map((assignment) => {
       try {
         const preset = fetchPreset(assignment.presetName, presetsDir);

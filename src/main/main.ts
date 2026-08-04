@@ -44,11 +44,18 @@ import {
   doesPresetExist,
   PRESETS_DIR,
   deletePreset,
+  PRESET_BASELINES_DIR,
+  savePresetBaseline,
+  fetchPresetBaseline,
+  hasPresetBaseline,
+  deletePresetBaseline,
+  renamePresetBaseline,
 } from './flush';
 import MenuBuilder from './menu';
 import { resolveHtmlPath, waitForRenderer } from './util';
 import { getConfigPath, isEqualizerAPOInstalled } from './registry';
 import ChannelEnum from '../common/channels';
+import { getVoicingProfile } from '../common/voicing';
 import {
   AutoEqFormat,
   FilterTypeEnum,
@@ -197,6 +204,7 @@ const setWindowDimension = (isExpanded: boolean) => {
 // Load initial state from local state file
 const userDataDir = app.getPath('userData');
 const presetPath = path.join(userDataDir, PRESETS_DIR);
+const baselinePath = path.join(userDataDir, PRESET_BASELINES_DIR);
 const state: IState = fetchSettings(userDataDir);
 const deviceProfileSettings = loadDeviceProfileSettings(userDataDir);
 let configPath = '';
@@ -428,26 +436,19 @@ const handleUpdateHelper = async <T>(
       updateConfig(configPath);
     }
     const shouldPersistProfile = syncActiveProfile || useActiveSessionOverride;
-    let autoProfileWasCreated = false;
     let assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
     if (shouldPersistProfile && !assignment && activeAudioDeviceId) {
       const automaticPresetName = getAutomaticPresetName(activeAudioDeviceId);
       attachPresetToActiveDevice(automaticPresetName);
       assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
-      autoProfileWasCreated = Boolean(assignment);
     }
     if (shouldPersistProfile && assignment) {
-      const persistCurrentProfile =
-        syncActiveProfile ||
-        autoProfileWasCreated ||
-        isAutomaticPresetName(assignment.presetName);
-      if (persistCurrentProfile) {
-        savePreset(assignment.presetName, getCurrentPreset(), presetPath);
-        hasActiveSessionOverride = false;
-        // Keep non-auto saved profiles as live edits until explicitly saved.
-      } else if (useActiveSessionOverride && activeAudioDeviceId) {
-        hasActiveSessionOverride = true;
-      }
+      // Every edit lands in the attached profile, named or automatic. The
+      // user's manually saved copy is kept separately (see savePresetBaseline
+      // in the SAVE_PRESET handler), so auto-saving here can always be undone
+      // and never costs them the version they chose to keep.
+      savePreset(assignment.presetName, getCurrentPreset(), presetPath);
+      hasActiveSessionOverride = false;
     } else if (shouldPersistProfile && !assignment && activeAudioDeviceId) {
       // An output without a profile still needs edits applied immediately.
       // Keep this override scoped to the current endpoint until it gets
@@ -559,6 +560,64 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
   }
 });
 
+/**
+ * Put back the copy the user last saved by hand.
+ *
+ * Edits auto-save straight into the attached profile, which is convenient
+ * right up until you want the version from before you started experimenting.
+ * That is what the baseline is: an explicit save is the only thing that writes
+ * it, so it always represents a state the user deliberately chose to keep.
+ */
+ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
+  const channel = ChannelEnum.RESTORE_PRESET_BASELINE;
+  const presetName = arg[0] as string;
+  try {
+    const baseline = fetchPresetBaseline(presetName, baselinePath);
+    if (!baseline) {
+      handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+      return;
+    }
+    clearCurrentLayoutSettings();
+    state.preAmp = baseline.preAmp;
+    state.filters = baseline.filters;
+    state.eqFormat = baseline.eqFormat;
+    state.graphicEq = baseline.graphicEq;
+    state.convolution = baseline.convolution;
+    state.isFlat = baseline.isFlat;
+    // Restoring writes the profile back to the baseline, but deliberately does
+    // NOT rewrite the baseline itself — restoring twice in a row is a no-op
+    // rather than a way to lose the copy.
+    savePreset(presetName, getCurrentPreset(), presetPath);
+    attachPresetToActiveDevice(presetName);
+    await handleUpdate(event, channel, true);
+  } catch (e) {
+    console.log('Failed to restore the saved copy of: ', presetName);
+    handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+  }
+});
+
+/** Which profiles have a manually saved copy to go back to. */
+ipcMain.on(ChannelEnum.GET_PRESET_BASELINE_NAMES, async (event) => {
+  const channel = ChannelEnum.GET_PRESET_BASELINE_NAMES;
+  try {
+    const names = Object.values(deviceProfileSettings.assignments)
+      .map((assignment) => assignment.presetName)
+      .concat(
+        fs.existsSync(presetPath)
+          ? fs.readdirSync(presetPath).filter((n) => !isAutomaticPresetName(n))
+          : [],
+      )
+      .filter(
+        (name, index, all) =>
+          all.indexOf(name) === index && hasPresetBaseline(name, baselinePath),
+      );
+    const reply: TSuccess<string[]> = { result: names };
+    event.reply(channel, reply);
+  } catch (e) {
+    handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+  }
+});
+
 ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
   const channel = ChannelEnum.SAVE_PRESET;
   const presetName = arg[0];
@@ -570,7 +629,11 @@ ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
       return;
     }
 
-    savePreset(presetName, getCurrentPreset(), presetPath);
+    const preset = getCurrentPreset();
+    savePreset(presetName, preset, presetPath);
+    // This is the copy the user chose to keep. Later edits auto-save over the
+    // profile itself, so this is the only thing left to restore from.
+    savePresetBaseline(presetName, preset, baselinePath);
     attachPresetToActiveDevice(presetName);
     await handleUpdate(event, channel, true);
   } catch (e) {
@@ -585,6 +648,7 @@ ipcMain.on(ChannelEnum.DELETE_PRESET, async (event, arg) => {
   console.log(`Deleting preset: ${presetName} at location ${pathToDelete}`);
   try {
     deletePreset(presetName, presetPath);
+    deletePresetBaseline(presetName, baselinePath);
     removeAssignmentsForPreset(deviceProfileSettings, presetName);
     saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
     await handleUpdate(event, channel);
@@ -627,6 +691,7 @@ ipcMain.on(ChannelEnum.RENAME_PRESET, async (event, arg) => {
     }
 
     renamePreset(oldName, newName, presetPath);
+    renamePresetBaseline(oldName, newName, baselinePath);
     renameAssignedPreset(deviceProfileSettings, oldName, newName);
     saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
     await handleUpdate(event, channel);
@@ -1269,6 +1334,29 @@ ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
     false,
     true,
   );
+});
+
+ipcMain.on(ChannelEnum.SET_VOICING, async (event, arg) => {
+  const channel = ChannelEnum.SET_VOICING;
+  const profileId: string = arg[0];
+  const intensity: number = arg[1];
+
+  if (
+    typeof profileId !== 'string' ||
+    (profileId !== '' && !getVoicingProfile(profileId)) ||
+    !Number.isFinite(intensity)
+  ) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+
+  // The voicing is a layer of its own, so this never touches state.filters.
+  state.voicing = {
+    profileId,
+    intensity: Math.min(1, Math.max(0, intensity)),
+  };
+
+  await handleUpdate(event, channel, false, true);
 });
 
 ipcMain.on(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {

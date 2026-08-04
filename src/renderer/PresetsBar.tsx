@@ -30,6 +30,8 @@ import { formatPresetName } from './utils/utils';
 import {
   getAudioDevices,
   getDeviceProfileSettings,
+  getPresetBaselineNames,
+  restorePresetBaseline,
 } from './utils/equalizerApi';
 
 export enum PresetErrorEnum {
@@ -97,9 +99,16 @@ const PresetsBar = ({
   const [newPresetNameError, setNewPresetNameError] = useState<string>('');
   const [presetNames, dispatchPresetNames] = useReducer(presetReducer, []);
   const [activeDeviceId, setActiveDeviceId] = useState('');
+  // Until the endpoint query has come back at least once we do not know which
+  // profiles belong here, and showing the wrong ones for a frame is worse than
+  // showing none.
+  const [hasResolvedOutput, setHasResolvedOutput] = useState(false);
   const [deviceAssignments, setDeviceAssignments] = useState<
     Record<string, IDeviceProfileAssignment>
   >({});
+  // Profiles that have a hand-saved copy sitting behind the auto-saved one.
+  const [baselineNames, setBaselineNames] = useState<string[]>([]);
+  const [isRestoring, setIsRestoring] = useState(false);
 
   const fetchPresetNames = useCallback(async () => {
     try {
@@ -115,14 +124,20 @@ const PresetsBar = ({
 
   const refreshOutputProfiles = useCallback(async () => {
     try {
-      const [devices, settings] = await Promise.all([
+      const [devices, settings, baselines] = await Promise.all([
         getAudioDevices(),
         getDeviceProfileSettings(),
+        getPresetBaselineNames(),
       ]);
       setActiveDeviceId(devices.find((device) => device.isDefault)?.id || '');
       setDeviceAssignments(settings.assignments);
+      setBaselineNames(baselines);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
+    } finally {
+      // Even a failed lookup counts as resolved: the list must not sit on a
+      // spinner forever because the endpoint query broke.
+      setHasResolvedOutput(true);
     }
   }, [setGlobalError]);
 
@@ -143,17 +158,23 @@ const PresetsBar = ({
     ? deviceAssignments[activeDeviceId]?.presetName || ''
     : '';
   const visiblePresetNames = useMemo(() => {
+    // Nothing is scoped to an output we have not identified yet. Showing the
+    // whole catalogue here made the list flash every profile in the app for a
+    // frame before collapsing to the one that belongs to this device.
+    if (!hasResolvedOutput) {
+      return [];
+    }
     if (!assignedPresetForOutput) {
-      // During startup the audio-device IPC response can arrive after the
-      // preset catalogue. Keep the catalogue visible until the endpoint is
-      // known, then switch to the output-scoped list.
+      // No endpoint at all (enumeration unavailable or refused) is the one case
+      // where the unscoped catalogue is still the most useful thing to show —
+      // otherwise the profile list would be permanently empty.
       return activeDeviceId ? [] : presetNames;
     }
     // The device assignment is authoritative while the file-list IPC call is
     // catching up during startup. This prevents the profile card from being
     // empty until the user creates another profile.
     return [assignedPresetForOutput];
-  }, [activeDeviceId, assignedPresetForOutput, presetNames]);
+  }, [activeDeviceId, assignedPresetForOutput, hasResolvedOutput, presetNames]);
 
   useEffect(() => {
     setPresetName((current) =>
@@ -295,6 +316,28 @@ const PresetsBar = ({
   };
 
   // Changing the selected preset in the UI
+  // Restore targets the profile attached to this output, falling back to the
+  // one typed in the name box when nothing is attached yet.
+  const restoreTarget = assignedPresetForOutput || presetName;
+  const canRestoreBaseline =
+    !!restoreTarget && baselineNames.includes(restoreTarget);
+
+  const handleRestoreBaseline = async () => {
+    if (!canRestoreBaseline) {
+      return;
+    }
+    setIsRestoring(true);
+    try {
+      await restorePresetBaseline(restoreTarget);
+      await refreshOutputProfiles();
+      performHealthCheck();
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    } finally {
+      setIsRestoring(false);
+    }
+  };
+
   const handleChangeSelectedPreset = (newValue: string) => {
     setPresetName(newValue);
     // Selecting a named profile also attaches it to the active output.
@@ -385,14 +428,26 @@ const PresetsBar = ({
           formatInput={formatPresetName}
         />
       </div>
-      <Button
-        ariaLabel="Save settings to preset"
-        className="small"
-        isDisabled={!!globalError || !presetName || !!newPresetNameError}
-        handleChange={handleCreateOrSavePreset}
-      >
-        Save current EQ
-      </Button>
+      <div className="profile-actions">
+        <Button
+          ariaLabel="Save settings to preset"
+          className="small"
+          isDisabled={!!globalError || !presetName || !!newPresetNameError}
+          handleChange={handleCreateOrSavePreset}
+        >
+          Save current EQ
+        </Button>
+        {/* Every edit auto-saves into the attached profile, so this is the way
+            back to the version the user deliberately kept. */}
+        <Button
+          ariaLabel="Restore the last manually saved version of this profile"
+          className="small subtle"
+          isDisabled={!!globalError || isRestoring || !canRestoreBaseline}
+          handleChange={handleRestoreBaseline}
+        >
+          {isRestoring ? 'Restoring…' : 'Restore saved'}
+        </Button>
+      </div>
       <List
         name="preset"
         options={options}
@@ -400,11 +455,14 @@ const PresetsBar = ({
         value={presetName}
         handleChange={handleChangeSelectedPreset}
         isDisabled={!!globalError}
-        emptyOptionsPlaceholder={
-          activeDeviceId
+        emptyOptionsPlaceholder={(() => {
+          if (!hasResolvedOutput) {
+            return 'Detecting your output…';
+          }
+          return activeDeviceId
             ? 'No profile attached to this output.'
-            : 'No profiles yet. Create your first sound.'
-        }
+            : 'No profiles yet. Create your first sound.';
+        })()}
       />
     </div>
   );

@@ -40,6 +40,7 @@ const defaultAquaContext: IAquaContext = {
   setGraphViewOn: (_newValue: boolean) => {},
   setPreAmp: (_newValue: number) => {},
   setConvolution: () => {},
+  setVoicing: () => {},
   selectedFilterId: '',
   setSelectedFilterId: (_newValue: string) => {},
   selectedFilterIds: [],

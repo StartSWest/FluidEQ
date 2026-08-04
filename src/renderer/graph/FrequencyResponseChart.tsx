@@ -61,6 +61,7 @@ import {
 import { ColorEnum, SecondaryColorEnum } from '../styles/color';
 import { useLiveAudio } from '../audio/LiveAudioContext';
 import { getBandColor } from '../utils/bandColors';
+import { getVoicingFilters } from '../../common/voicing';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
 
@@ -104,6 +105,7 @@ const FrequencyResponseChart = () => {
     setSelectedFilterIds,
     hoveredFilterId,
     setHoveredFilterId,
+    voicing,
   } = useAquaContext();
   const prevFilters = useRef<IFiltersMap>({});
   const prevFilterLines = useRef<IChartLineDataPointsById>({});
@@ -340,6 +342,23 @@ const FrequencyResponseChart = () => {
     prevFilterLines.current = updatedFilterLines;
     prevFilters.current = filters;
 
+    // The voicing is a real APO layer, so it gets a real curve rather than a
+    // note in the UI. Its filters run through the same biquad code as the
+    // bands, which is what makes "EQ + voicing" an honest sum rather than an
+    // approximation of one.
+    const voicingFilterLines: IChartLineDataPointsById = {};
+    getVoicingFilters(voicing).forEach((filter, index) => {
+      const id = `voicing-${index}`;
+      voicingFilterLines[id] = getFilterLineData({
+        id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      });
+    });
+    const hasVoicing = Object.keys(voicingFilterLines).length > 0;
+
     const convolutionFilterLines: IChartLineDataPointsById = {};
     Object.values(convolution?.filters || {}).forEach((filter) => {
       convolutionFilterLines[filter.id] = getFilterLineData(filter);
@@ -348,12 +367,25 @@ const FrequencyResponseChart = () => {
     // Keep the complete chain for auto-headroom calculation only. The graph
     // renders convolution and editable EQ as separate curves so the white EQ
     // line never includes the convolution response.
+    // Auto-headroom has to see every layer, voicing included, or its reserve
+    // is short by exactly the voicing's boost.
     const processedCurveData = getCombinedLineData(preAmp, {
       ...convolutionFilterLines,
       ...updatedFilterLines,
+      ...voicingFilterLines,
     });
     const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
     const eqCurveData = getCombinedLineData(preAmp, updatedFilterLines);
+    const voicingCurveData = hasVoicing
+      ? getCombinedLineData(0, voicingFilterLines)
+      : [];
+    // What actually reaches the ears once both layers are applied.
+    const totalCurveData = hasVoicing
+      ? getCombinedLineData(preAmp, {
+          ...updatedFilterLines,
+          ...voicingFilterLines,
+        })
+      : [];
     const sortedFilters = Object.values(filters).sort(
       (a, b) => a.frequency - b.frequency,
     );
@@ -384,49 +416,62 @@ const FrequencyResponseChart = () => {
       ) / 100;
 
     return {
-      chartData: convolution
-        ? [
-            {
-              id: 'Headphone Convolution',
-              name: `Convolution · ${convolution.name}`,
-              line: {
-                color: ColorEnum.COMPLEMENTARY,
-                strokeWidth: 2,
-                points: convolutionCurveData,
-              },
-            } as IChartCurveData,
-            {
-              id: 'EQ Response',
-              name: 'EQ + preamp',
-              line: {
-                color: SecondaryColorEnum.DEFAULT,
-                strokeWidth: 3,
-                points: eqCurveData,
-                gradientId: 'chart-eq-spectrum-gradient',
-                gradientStops: eqGradientStops,
-                glow: true,
-              },
-            } as IChartCurveData,
-          ]
-        : [
-            {
-              id: 'EQ Response',
-              name: 'EQ + preamp',
-              line: {
-                color: SecondaryColorEnum.DEFAULT,
-                strokeWidth: 3,
-                points: eqCurveData,
-                gradientId: 'chart-eq-spectrum-gradient',
-                gradientStops: eqGradientStops,
-                glow: true,
-              },
-            } as IChartCurveData,
-          ],
+      chartData: [
+        ...(convolution
+          ? [
+              {
+                id: 'Headphone Convolution',
+                name: `Convolution · ${convolution.name}`,
+                line: {
+                  color: ColorEnum.COMPLEMENTARY,
+                  strokeWidth: 2,
+                  points: convolutionCurveData,
+                },
+              } as IChartCurveData,
+            ]
+          : []),
+        // The voicing layer on its own, so its shape is readable next to the
+        // bands rather than hidden inside their sum.
+        ...(hasVoicing
+          ? [
+              {
+                id: 'Voicing',
+                name: 'Voicing layer',
+                line: {
+                  color: ColorEnum.TRIADIC1,
+                  strokeWidth: 2,
+                  points: voicingCurveData,
+                },
+              } as IChartCurveData,
+              {
+                id: 'Total Response',
+                name: 'EQ + voicing',
+                line: {
+                  color: ColorEnum.ANALOGOUS1,
+                  strokeWidth: 2,
+                  points: totalCurveData,
+                },
+              } as IChartCurveData,
+            ]
+          : []),
+        {
+          id: 'EQ Response',
+          name: 'EQ + preamp',
+          line: {
+            color: SecondaryColorEnum.DEFAULT,
+            strokeWidth: 3,
+            points: eqCurveData,
+            gradientId: 'chart-eq-spectrum-gradient',
+            gradientStops: eqGradientStops,
+            glow: true,
+          },
+        } as IChartCurveData,
+      ],
       // Rounding to two decimals. When disabled, expose the current manual
       // preamp so the graph and APO remain in sync without auto-adjusting it.
       autoPreAmpValue: isAutoPreAmpOn ? calculatedAutoPreAmpValue : preAmp,
     };
-  }, [convolution, filters, isAutoPreAmpOn, preAmp]);
+  }, [convolution, filters, isAutoPreAmpOn, preAmp, voicing]);
 
   useEffect(() => {
     // Auto normalize writes Equalizer APO's Preamp headroom value. When it is
@@ -578,9 +623,22 @@ const FrequencyResponseChart = () => {
           </span>
         )}
         <span className="graph-legend graph-legend--eq">EQ response</span>
+        {voicing?.profileId ? (
+          <>
+            <span className="graph-legend graph-legend--voicing">Voicing</span>
+            <span className="graph-legend graph-legend--total">
+              EQ + voicing
+            </span>
+          </>
+        ) : null}
         <span className="graph-legend graph-legend--live">
-          Live output (dBFS)
+          Live output (0 dB = track peak)
         </span>
+        {liveOutput.isClipping && (
+          <span className="graph-clip-warning" role="status">
+            CLIPPING - reduce preamp
+          </span>
+        )}
         <span className="graph-edit-hint">
           Drag points · Ctrl/Shift select · Ctrl+scroll: Q
         </span>
@@ -597,6 +655,7 @@ const FrequencyResponseChart = () => {
           data={displayData}
           dimensions={dimensions}
           editablePoints={editablePoints}
+          coverage={liveOutput.balanceProgress?.regions}
           onMarqueeSelect={(ids, additive) =>
             setSelectedFilterIds(
               additive ? [...new Set([...selectedFilterIds, ...ids])] : ids,

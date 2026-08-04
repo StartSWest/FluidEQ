@@ -25,22 +25,54 @@ const POINT_COUNT = 320;
 const WAVEFORM_POINT_COUNT = 96;
 const UPDATE_INTERVAL_MS = BALANCE_FRAME_INTERVAL_MS;
 
-// The analyser reports dBFS (roughly -100..0) but the response graph's y axis
-// is EQ gain (-20..+20 dB). Plotting dBFS straight onto it pushed the trace
-// far below the plot at any sane listening level, so the curve only appeared
-// when the output was pinned near full scale.
+// The live trace shows real decibels referenced to THE TRACK, not to the
+// volume knob. Windows loopback carries whatever volume is set, so an absolute
+// dBFS scale would make the curve collapse the moment the user turns the
+// system down — which says nothing about the music.
 //
-// Instead the spectrum is drawn relative to its own loudest bin: the peak sits
-// near the top of the plot and everything below it keeps its true relative
-// level. The shape stays readable at any volume, and the curve still rises and
-// falls with EQ changes because only the reference moves, not the shape.
-/** Chart position, in dB, given to the loudest bin of the current frame. */
-const LIVE_PEAK_DISPLAY_DB = MAX_GAIN - 4;
+// Instead a slow peak-follower tracks the programme's own level and becomes
+// the 0 dB line at the top of the plot. Every dB below that is a real dB below
+// the track's own peak, so the shape and the height both mean something at any
+// volume. Actual distortion is detected separately, from railed samples, so
+// clipping still shows even though the reference moves.
+const LIVE_FULL_SCALE_DB = MAX_GAIN;
+/**
+ * Reference release, in dB per frame (~22 fps). Rises instantly to a new peak
+ * so a louder passage cannot overshoot the top, then falls about 1 dB per
+ * second — slow enough to ride out a quiet bar, fast enough to follow a track
+ * change within a few seconds.
+ */
+const TRACK_REFERENCE_RELEASE_DB = 0.045;
 /** Below this the output is silence; there is no meaningful shape to show. */
 const LIVE_SILENCE_DB = -95;
-/** Smoothing for the reference level so the trace does not jump frame to
- * frame. Higher keeps more of the previous reference. */
-const LIVE_REFERENCE_SMOOTHING = 0.86;
+
+/**
+ * Digital full scale, in the 0..255 byte domain the analyser reports.
+ * A run of samples pinned to either rail is the signature of a signal that has
+ * been clipped somewhere upstream — usually too much EQ boost or preamp.
+ */
+const CLIP_RAIL_LOW = 1;
+const CLIP_RAIL_HIGH = 254;
+/** Consecutive railed samples before it counts. One is just a loud peak. */
+const CLIP_RUN_LENGTH = 3;
+/** How long a clip indication stays up after the last railed frame. */
+const CLIP_HOLD_MS = 1200;
+
+const detectClipping = (timeDomainData: Uint8Array): boolean => {
+  let run = 0;
+  for (let index = 0; index < timeDomainData.length; index += 1) {
+    const sample = timeDomainData[index];
+    if (sample <= CLIP_RAIL_LOW || sample >= CLIP_RAIL_HIGH) {
+      run += 1;
+      if (run >= CLIP_RUN_LENGTH) {
+        return true;
+      }
+    } else {
+      run = 0;
+    }
+  }
+  return false;
+};
 
 /** Wall-clock silence after which the capture status says so. */
 const SILENCE_HINT_MS = 3000;
@@ -67,16 +99,18 @@ const createFrequencyAxis = (sampleRate: number): number[] => {
 const createFrequencyPoints = (
   axis: number[],
   levels: Float64Array,
-  referenceDb: number,
+  trackReferenceDb: number,
 ): IChartPointData[] =>
   axis.map((frequency, index) => {
     const level = levels[index];
-    const relative = Number.isFinite(level)
-      ? level - referenceDb + LIVE_PEAK_DISPLAY_DB
+    // The track's own peak lands on the top gridline; everything below it is
+    // a real dB below that peak.
+    const plotted = Number.isFinite(level)
+      ? level - trackReferenceDb + LIVE_FULL_SCALE_DB
       : MIN_GAIN;
     return {
       x: frequency,
-      y: Math.min(MAX_GAIN, Math.max(MIN_GAIN, relative)),
+      y: Math.min(MAX_GAIN, Math.max(MIN_GAIN, plotted)),
     };
   });
 
@@ -183,6 +217,12 @@ const useLiveOutputSpectrum = () => {
   const [error, setError] = useState('');
   const [points, setPoints] = useState<IChartPointData[]>([]);
   const [waveform, setWaveform] = useState<number[]>([]);
+  const [isClipping, setIsClipping] = useState(false);
+  const [balanceProgress, setBalanceProgress] = useState<
+    IBalanceProgress | undefined
+  >(undefined);
+  const isClippingRef = useRef(false);
+  const clipUntilRef = useRef(0);
   const streamRef = useRef<MediaStream | undefined>(undefined);
   const audioContextRef = useRef<AudioContext | undefined>(undefined);
   const pumpRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
@@ -214,6 +254,7 @@ const useLiveOutputSpectrum = () => {
     }
     session.settled = true;
     clearTimeout(session.watchdog);
+    setBalanceProgress(undefined);
     session.detachAbort();
     sessionRef.current = undefined;
     if (outcome instanceof Error) {
@@ -242,6 +283,9 @@ const useLiveOutputSpectrum = () => {
     setIsActive(false);
     isPausedRef.current = false;
     setIsPaused(false);
+    clipUntilRef.current = 0;
+    isClippingRef.current = false;
+    setIsClipping(false);
     pointsRef.current = [];
     setPoints([]);
     setWaveform([]);
@@ -279,14 +323,17 @@ const useLiveOutputSpectrum = () => {
         if (silent !== session.wasSilent || paused !== session.wasPaused) {
           session.wasSilent = silent;
           session.wasPaused = paused;
-          session.onProgress?.({
+          const flip = {
             percent: session.lastPercent,
             weakestLabel: '',
             isSettling: false,
             isSilent: silent,
             isPaused: paused,
             listenedMs: session.state.listenedMs,
-          });
+            regions: [],
+          };
+          setBalanceProgress(flip);
+          session.onProgress?.(flip);
         }
         return;
       }
@@ -299,6 +346,7 @@ const useLiveOutputSpectrum = () => {
       session.lastPercent = progress.percent;
       session.wasSilent = silent;
       session.wasPaused = paused;
+      setBalanceProgress(progress);
       session.onProgress?.(progress);
 
       if (shouldFinishBalanceCapture(report)) {
@@ -352,7 +400,7 @@ const useLiveOutputSpectrum = () => {
       );
       const levelBuffer = new Float64Array(axis.length);
       const axisKey = String(Math.round(activeAudioContext.sampleRate));
-      let referenceDb: number | undefined;
+      let trackReferenceDb: number | undefined;
 
       const pump = () => {
         const session = sessionRef.current;
@@ -372,25 +420,36 @@ const useLiveOutputSpectrum = () => {
         const peak = getPeakLevel(frequencyData);
 
         if (peak === undefined) {
-          referenceDb = undefined;
           if (pointsRef.current.length > 0) {
             pointsRef.current = [];
             setPoints(pointsRef.current);
           }
         } else {
-          referenceDb =
-            referenceDb === undefined
+          // Instant attack, slow release: follows the track, ignores the
+          // volume knob, and never lets a transient push the curve off-scale.
+          trackReferenceDb =
+            trackReferenceDb === undefined
               ? peak
-              : referenceDb * LIVE_REFERENCE_SMOOTHING +
-                peak * (1 - LIVE_REFERENCE_SMOOTHING);
+              : Math.max(peak, trackReferenceDb - TRACK_REFERENCE_RELEASE_DB);
           pointsRef.current = createFrequencyPoints(
             axis,
             levelBuffer,
-            referenceDb,
+            trackReferenceDb,
           );
           setPoints(pointsRef.current);
         }
         setWaveform(createWaveformPoints(timeDomainData));
+
+        // Held briefly so a single clipped frame is actually seen: at 45 ms a
+        // flash would be gone before the eye registers it.
+        if (detectClipping(timeDomainData)) {
+          clipUntilRef.current = performance.now() + CLIP_HOLD_MS;
+        }
+        const clipping = performance.now() < clipUntilRef.current;
+        if (clipping !== isClippingRef.current) {
+          isClippingRef.current = clipping;
+          setIsClipping(clipping);
+        }
 
         if (!session) {
           return;
@@ -552,6 +611,8 @@ const useLiveOutputSpectrum = () => {
     captureBalanceProfile,
     error,
     isActive,
+    balanceProgress,
+    isClipping,
     isPaused,
     points,
     togglePaused,

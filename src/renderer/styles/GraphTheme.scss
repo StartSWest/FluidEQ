@@ -1,3 +1,33 @@
+// Smart EQ coverage, drawn only while a measurement is running. Each frequency
+// region brightens as it is actually heard, and a bar underneath fills with its
+// confidence — so "still listening" has a visible reason.
+.chart-coverage__column {
+  fill: #00e5cf;
+  transition: opacity 400ms ease;
+}
+
+.chart-coverage__track {
+  fill: rgba(216, 210, 255, 0.12);
+}
+
+.chart-coverage__fill {
+  fill: rgba(0, 229, 207, 0.55);
+  transition:
+    width 400ms ease,
+    fill 400ms ease;
+
+  &.is-covered {
+    fill: #54ff8a;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-coverage__column,
+  .chart-coverage__fill {
+    transition: none;
+  }
+}
+
 // The editable EQ curve uses the same cyan anchor as the waveform and slider
 // palette. Keep its legend in sync with the rendered line.
 .graph-legend--eq::before {
@@ -8,6 +38,7 @@
 // Equalizer APO being off means the curves are only a preview. Keep the
 // controls visible for context, but make both workspaces unmistakably idle.
 .workspace-tab-panel--eq.is-engine-disabled,
+.workspace-tab-panel--convolution.is-engine-disabled,
 .graph-wrapper.is-engine-disabled {
   opacity: 0.46;
   filter: saturate(0.35);
@@ -17,6 +48,10 @@
 .workspace-tab-panel--eq.is-engine-disabled > .auto-eq,
 .workspace-tab-panel--eq.is-engine-disabled > .main-content-title,
 .workspace-tab-panel--eq.is-engine-disabled > .main-content,
+// Voicing and convolution each own their whole panel, so the whole panel is
+// what goes inert.
+.workspace-tab-panel--convolution.is-engine-disabled > .voicing-panel,
+.workspace-tab-panel--convolution.is-engine-disabled > .convolution-panel,
 .graph-wrapper.is-engine-disabled > svg,
 .graph-wrapper.is-engine-disabled > .live-output-controls {
   pointer-events: none;

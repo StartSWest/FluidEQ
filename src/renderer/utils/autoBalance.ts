@@ -16,7 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { IFilter, MAX_GAIN, MIN_GAIN } from 'common/constants';
+import {
+  FilterTypeEnum,
+  IFilter,
+  MAX_GAIN,
+  MIN_GAIN,
+  NO_GAIN_FILTER_TYPES,
+} from 'common/constants';
 import { clamp } from './utils';
 
 /**
@@ -172,6 +178,14 @@ export const MIN_BAND_CONFIDENCE = 0.4;
  * midrange, a sloped program and a broad resonance are not separable — the fit
  * absorbs the resonance and every band inherits a fabricated slope.
  */
+/**
+ * Ridge weight for the joint gain solve, as a fraction of the mean diagonal.
+ * Overlapping bands make the system near-singular; without this the exact
+ * least-squares answer is a large alternating comb of boosts and cuts that
+ * fits the curve on paper, sounds terrible, and wastes headroom.
+ */
+export const SOLVE_RIDGE = 0.08;
+
 export const MIN_TRUSTED_OCTAVES = 4;
 export const TRUSTED_LOW_ANCHOR_HZ = 560;
 export const TRUSTED_HIGH_ANCHOR_HZ = 1120;
@@ -208,6 +222,16 @@ export interface IAutoBalanceOptions {
    * instead of undoing each other.
    */
   relativeToCurrentGain?: boolean;
+  /**
+   * Desired shape, in dB, *relative to the program's own spectral tilt*.
+   *
+   * Without it the measurement is corrected toward its own fitted tilt, which
+   * only removes resonances — a flatter version of what you already had. With
+   * it the correction drives the output toward `tilt + target`, so a voicing
+   * curve becomes something the EQ actively steers towards rather than a
+   * static layer stacked on top.
+   */
+  targetCurve?: ISpectrumSample[];
 }
 
 const DEFAULTS: Required<IAutoBalanceOptions> = {
@@ -217,6 +241,7 @@ const DEFAULTS: Required<IAutoBalanceOptions> = {
   smoothingOctaves: 0.5,
   minConfidence: MIN_BAND_CONFIDENCE,
   relativeToCurrentGain: true,
+  targetCurve: [],
 };
 
 const clamp01 = (value: number) => clamp(value, 0, 1);
@@ -226,6 +251,89 @@ const weightOf = (sample: ISpectrumSample) => sample.confidence ?? 1;
 /* -------------------------------------------------------------------------
  * Spectrum maths
  * ---------------------------------------------------------------------- */
+
+/**
+ * Normalised dB shape of one filter at unit gain.
+ *
+ * Setting every band to the deviation measured at its own centre is only
+ * correct when the bands do not overlap — and they always do. A Q of 1 is
+ * roughly 1.4 octaves wide, so a 31-band layout on 1/3-octave centres stacks
+ * three or four bells over every point and the summed correction lands two to
+ * three times too strong. Knowing each filter's shape is what lets the gains
+ * be solved together instead of guessed one at a time.
+ *
+ * This is the small-signal shape, which is what makes the problem linear and
+ * therefore solvable.
+ */
+export const filterShapeAt = (
+  filter: Pick<IFilter, 'type' | 'frequency' | 'quality'>,
+  frequency: number,
+): number => {
+  if (
+    NO_GAIN_FILTER_TYPES.includes(filter.type) ||
+    filter.frequency <= 0 ||
+    frequency <= 0
+  ) {
+    // These types carry no gain, so there is nothing to solve for.
+    return 0;
+  }
+
+  const ratio = frequency / filter.frequency;
+  if (filter.type === FilterTypeEnum.LSC) {
+    return 1 / (1 + ratio ** 2);
+  }
+  if (filter.type === FilterTypeEnum.HSC) {
+    return 1 / (1 + (1 / ratio) ** 2);
+  }
+  const detune = Math.max(0.05, filter.quality) * (ratio - 1 / ratio);
+  return 1 / (1 + detune ** 2);
+};
+
+/**
+ * Solve `A x = b` by Gaussian elimination with partial pivoting. The system is
+ * at most MAX_NUM_FILTERS square, so a direct O(n^3) solve costs far less than
+ * the FFT that produced the data.
+ */
+const solveLinearSystem = (
+  matrix: number[][],
+  vector: number[],
+): number[] | undefined => {
+  const n = vector.length;
+  const a = matrix.map((row, index) => [...row, vector[index]]);
+
+  for (let col = 0; col < n; col += 1) {
+    let pivot = col;
+    for (let row = col + 1; row < n; row += 1) {
+      if (Math.abs(a[row][col]) > Math.abs(a[pivot][col])) {
+        pivot = row;
+      }
+    }
+    if (Math.abs(a[pivot][col]) < 1e-9) {
+      // Singular even after regularisation; refuse rather than emit NaNs.
+      return undefined;
+    }
+    [a[col], a[pivot]] = [a[pivot], a[col]];
+
+    for (let row = col + 1; row < n; row += 1) {
+      const factor = a[row][col] / a[col][col];
+      if (factor !== 0) {
+        for (let k = col; k <= n; k += 1) {
+          a[row][k] -= factor * a[col][k];
+        }
+      }
+    }
+  }
+
+  const x = new Array<number>(n).fill(0);
+  for (let row = n - 1; row >= 0; row -= 1) {
+    let sum = a[row][n];
+    for (let col = row + 1; col < n; col += 1) {
+      sum -= a[row][col] * x[col];
+    }
+    x[row] = sum / a[row][row];
+  }
+  return x.every((value) => Number.isFinite(value)) ? x : undefined;
+};
 
 /**
  * Confidence-weighted least-squares fit of
@@ -363,6 +471,7 @@ export const buildBalancedGains = (
     smoothingOctaves,
     minConfidence,
     relativeToCurrentGain,
+    targetCurve,
   } = { ...DEFAULTS, ...options };
 
   const usable = spectrum
@@ -402,10 +511,17 @@ export const buildBalancedGains = (
   }
 
   const { slope, intercept } = fitSpectralTilt(usable);
+  // The reference the output is steered toward: the program's own tilt, plus
+  // the chosen voicing on top of it. With no voicing the target is flat and
+  // this collapses to "remove the resonances, keep the tilt".
+  const hasTarget = targetCurve.length > 0;
   const deviation = smoothSpectrum(
     usable.map((sample) => ({
       frequency: sample.frequency,
-      level: sample.level - (slope * Math.log10(sample.frequency) + intercept),
+      level:
+        sample.level -
+        (slope * Math.log10(sample.frequency) + intercept) -
+        (hasTarget ? sampleSpectrumAt(targetCurve, sample.frequency) : 0),
       confidence: sample.confidence,
     })),
     smoothingOctaves,
@@ -426,22 +542,84 @@ export const buildBalancedGains = (
       id: filter.id,
       gain: filter.gain,
       confidence,
-      correction: inBand
-        ? -sampleSpectrumAt(deviation, filter.frequency) * strength
-        : 0,
+      // Solvable only if the band is trusted AND its type actually has a gain.
+      isSolvable: confidence > 0 && !NO_GAIN_FILTER_TYPES.includes(filter.type),
+      filter,
+      correction: 0,
     };
   });
 
-  // Centre by confidence, so a band we are not correcting cannot drag the
-  // whole curve up or down.
-  const sumC = raw.reduce((total, entry) => total + entry.confidence, 0);
-  const mean =
-    sumC > 0
-      ? raw.reduce(
-          (total, entry) => total + entry.correction * entry.confidence,
-          0,
-        ) / sumC
+  // Desired correction at every measured frequency, centred so the answer is a
+  // change of tone rather than of level.
+  const targets = deviation.map((sample) => ({
+    frequency: sample.frequency,
+    weight: clamp01(sample.confidence ?? 1),
+    want: -sample.level * strength,
+  }));
+  const totalWeight = targets.reduce((total, point) => total + point.weight, 0);
+  const wantMean =
+    totalWeight > 0
+      ? targets.reduce((total, point) => total + point.want * point.weight, 0) /
+        totalWeight
       : 0;
+
+  // Solve every band's gain at once against the whole measured curve, so
+  // overlapping bells share the correction instead of each applying it in
+  // full. This is what keeps a 31-band layout smooth rather than tripling the
+  // intended boost.
+  const solvable = raw.filter((entry) => entry.isSolvable);
+  if (solvable.length > 0 && totalWeight > 0) {
+    const n = solvable.length;
+    const shapes = solvable.map((entry) =>
+      targets.map((point) => filterShapeAt(entry.filter, point.frequency)),
+    );
+
+    const normal: number[][] = Array.from({ length: n }, () =>
+      new Array<number>(n).fill(0),
+    );
+    const rhs = new Array<number>(n).fill(0);
+    for (let i = 0; i < n; i += 1) {
+      for (let j = i; j < n; j += 1) {
+        let sum = 0;
+        for (let k = 0; k < targets.length; k += 1) {
+          sum += targets[k].weight * shapes[i][k] * shapes[j][k];
+        }
+        normal[i][j] = sum;
+        normal[j][i] = sum;
+      }
+      let sum = 0;
+      for (let k = 0; k < targets.length; k += 1) {
+        sum += targets[k].weight * shapes[i][k] * (targets[k].want - wantMean);
+      }
+      rhs[i] = sum;
+    }
+
+    // Ridge term. Heavily overlapping bands make the system near-singular, and
+    // the unregularised answer is a huge alternating +/- comb that sums to the
+    // right curve but sounds awful and eats headroom. This biases towards the
+    // smallest set of gains that fits.
+    const meanDiagonal =
+      normal.reduce((total, row, index) => total + row[index], 0) / n;
+    const ridge = Math.max(meanDiagonal * SOLVE_RIDGE, 1e-6);
+    for (let i = 0; i < n; i += 1) {
+      normal[i][i] += ridge;
+    }
+
+    const solved = solveLinearSystem(normal, rhs);
+    if (solved) {
+      solved.forEach((gain, index) => {
+        solvable[index].correction = gain;
+      });
+    } else {
+      // Fall back to the per-band reading rather than applying nothing.
+      solvable.forEach((entry) => {
+        entry.correction =
+          -sampleSpectrumAt(deviation, entry.filter.frequency) * strength;
+      });
+    }
+  }
+
+  const mean = 0;
 
   return Object.fromEntries(
     raw.map((entry) => {
@@ -612,6 +790,15 @@ export interface IBalanceResult {
   highFrequency: number;
 }
 
+/** Per-region coverage, for drawing the measurement onto the response graph. */
+export interface IBalanceProgressRegion {
+  label: string;
+  lowFrequency: number;
+  highFrequency: number;
+  confidence: number;
+  isCovered: boolean;
+}
+
 export interface IBalanceProgress {
   /** 0..100, monotone; never reaches 100 until the capture is done. */
   percent: number;
@@ -620,6 +807,8 @@ export interface IBalanceProgress {
   isSilent: boolean;
   isPaused: boolean;
   listenedMs: number;
+  /** Ordered low to high, so the graph can draw them along its x axis. */
+  regions: IBalanceProgressRegion[];
 }
 
 /** Regions clipped to the axis. Regions holding no axis point are dropped. */
@@ -1004,6 +1193,13 @@ export const buildBalanceProgress = (
     isSilent: flags.isSilent,
     isPaused: flags.isPaused,
     listenedMs: report.listenedMs,
+    regions: report.regions.map((region) => ({
+      label: region.label,
+      lowFrequency: region.lowFrequency,
+      highFrequency: region.highFrequency,
+      confidence: region.confidence,
+      isCovered: region.isCovered,
+    })),
   };
 };
 

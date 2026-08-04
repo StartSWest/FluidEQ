@@ -316,14 +316,35 @@ const getPhoneBook = async (sourceId = DEFAULT_SOURCE_ID) => {
   return promise;
 };
 
+/** Fold away the punctuation and spacing that drifts between DB revisions. */
+const normalizeModelKey = (value: string) =>
+  value
+    .toLocaleLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')
+    .trim();
+
 const findModel = async (sourceId: string, device: string) => {
-  const model = (await getPhoneBook(sourceId)).find(
-    (entry) => entry.key === device,
-  );
-  if (!model) {
-    throw new Error(`Squiglink model not found: ${device}`);
+  const phoneBook = await getPhoneBook(sourceId);
+  const exact = phoneBook.find((entry) => entry.key === device);
+  if (exact) {
+    return exact;
   }
-  return model;
+
+  // The device list and this lookup are separate reads of a cache that the
+  // startup sync can refresh underneath them, so a model can be listed under
+  // one spelling and looked up under another. Retry on a normalised key before
+  // giving up, rather than failing on a hyphen.
+  const wanted = normalizeModelKey(device);
+  const loose = phoneBook.find(
+    (entry) => normalizeModelKey(entry.key) === wanted,
+  );
+  if (loose) {
+    return loose;
+  }
+
+  throw new Error(
+    `No measurements are listed for "${device}" in this database. It may have been renamed or removed since the list was loaded.`,
+  );
 };
 
 const asFiles = (phone: ISquigPhone) =>
@@ -421,8 +442,14 @@ const interpolate = (points: IPoint[], frequency: number) => {
     const left = points[index - 1];
     const right = points[index];
     if (frequency <= right.frequency) {
-      const ratio =
-        (frequency - left.frequency) / (right.frequency - left.frequency);
+      const span = right.frequency - left.frequency;
+      // Some providers publish duplicate frequency rows. Dividing across a
+      // zero-width span gives 0/0 = NaN, and that NaN survives every clamp
+      // downstream and ends up in the APO config as `Fc NaN Hz`.
+      if (span <= 0) {
+        return left.value;
+      }
+      const ratio = (frequency - left.frequency) / span;
       return left.value + (right.value - left.value) * ratio;
     }
   }
@@ -533,9 +560,7 @@ const fitCorrection = (
     .forEach((filter) => {
       const next = getDefaultFilterWithId();
       next.type = FilterTypeEnum.PK;
-      next.frequency = Math.round(
-        Math.min(20000, Math.max(1, filter.frequency)),
-      );
+      next.frequency = clampFrequency(filter.frequency);
       next.gain = clampGain(filter.gain);
       next.quality = clampQuality(filter.quality);
       filters[next.id] = next;

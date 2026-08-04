@@ -1,0 +1,177 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+import { useState } from 'react';
+import { ErrorDescription } from 'common/errors';
+import {
+  VOICING_PROFILES,
+  getVoicingFilters,
+  getVoicingPeakBoost,
+} from 'common/voicing';
+import { NO_GAIN_FILTER_TYPES } from 'common/constants';
+import VoicingIcon from './icons/VoicingIcon';
+import { useAquaContext } from './utils/AquaContext';
+import { setVoicing as setVoicingApi } from './utils/equalizerApi';
+import './styles/Voicing.scss';
+
+const VoicingPanel = () => {
+  const { globalError, isEnabled, setGlobalError, voicing, setVoicing } =
+    useAquaContext();
+  const [isBusy, setIsBusy] = useState(false);
+
+  const activeId = voicing?.profileId ?? '';
+  const intensity = voicing?.intensity ?? 1;
+
+  const apply = async (profileId: string, nextIntensity: number) => {
+    // Optimistic: the slider has to track the pointer, and the write is a
+    // local file, not a network call.
+    setVoicing({ profileId, intensity: nextIntensity });
+    setIsBusy(true);
+    try {
+      await setVoicingApi(profileId, nextIntensity);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    } finally {
+      setIsBusy(false);
+    }
+  };
+
+  const activeProfile = VOICING_PROFILES.find(
+    (profile) => profile.id === activeId,
+  );
+  const activeFilters = getVoicingFilters(voicing);
+  const peakBoost = getVoicingPeakBoost(voicing);
+
+  return (
+    <section className="voicing-panel" aria-labelledby="voicing-title">
+      <div className="voicing-panel__intro">
+        <p className="eyebrow">TARGET CURVES</p>
+        <h2 id="voicing-title">Voicing</h2>
+        <p>
+          A tuned target for what you are actually doing. Each one is written as
+          its own layer after your EQ bands, so your own tuning is never touched
+          and switching back to None restores it exactly.
+        </p>
+      </div>
+
+      <div className="voicing-grid" role="radiogroup" aria-label="Voicing">
+        <button
+          type="button"
+          role="radio"
+          aria-checked={activeId === ''}
+          className={`voicing-card${activeId === '' ? ' is-active' : ''}`}
+          disabled={!!globalError || !isEnabled || isBusy}
+          onClick={() => apply('', intensity)}
+        >
+          <span className="voicing-card__icon">
+            <VoicingIcon profileId="none" />
+          </span>
+          <strong>None</strong>
+          <small>Your EQ bands only, nothing layered on top</small>
+        </button>
+
+        {VOICING_PROFILES.map((profile) => (
+          <button
+            key={profile.id}
+            type="button"
+            role="radio"
+            aria-checked={activeId === profile.id}
+            className={`voicing-card${
+              activeId === profile.id ? ' is-active' : ''
+            }`}
+            disabled={!!globalError || !isEnabled || isBusy}
+            onClick={() => apply(profile.id, intensity)}
+          >
+            <span className="voicing-card__icon">
+              <VoicingIcon profileId={profile.id} />
+            </span>
+            <strong>{profile.name}</strong>
+            <small>{profile.tagline}</small>
+          </button>
+        ))}
+      </div>
+
+      {activeProfile && (
+        <>
+          <div className="voicing-strength">
+            <label htmlFor="voicing-intensity">
+              Strength
+              <output>{Math.round(intensity * 100)}%</output>
+            </label>
+            {/* The filled part of the track is painted from this variable —
+                a range input gives no way to style the two halves apart. */}
+            <input
+              id="voicing-intensity"
+              type="range"
+              min={0}
+              max={100}
+              step={5}
+              value={Math.round(intensity * 100)}
+              disabled={!!globalError || !isEnabled}
+              style={
+                {
+                  '--fill': `${Math.round(intensity * 100)}%`,
+                } as React.CSSProperties
+              }
+              onChange={(event) =>
+                apply(activeProfile.id, Number(event.target.value) / 100)
+              }
+            />
+            <div className="voicing-strength__scale" aria-hidden="true">
+              <span>Off</span>
+              <span>50%</span>
+              <span>Full</span>
+            </div>
+          </div>
+
+          {/* Showing the actual filters keeps this from being a mystery box:
+              every one of them is a real APO command you could have typed. */}
+          <ul className="voicing-detail">
+            {activeFilters.map((filter) => (
+              <li key={`${filter.type}-${filter.frequency}`}>
+                <code>
+                  {filter.frequency >= 1000
+                    ? `${Number((filter.frequency / 1000).toFixed(1))} kHz`
+                    : `${filter.frequency} Hz`}
+                  {NO_GAIN_FILTER_TYPES.includes(filter.type)
+                    ? ` ${filter.type}`
+                    : ` ${filter.gain > 0 ? '+' : ''}${filter.gain} dB`}
+                </code>
+                <span>{filter.reason}</span>
+              </li>
+            ))}
+            {activeFilters.length === 0 && (
+              <li>
+                <span>At 0% strength this voicing does nothing.</span>
+              </li>
+            )}
+          </ul>
+
+          {peakBoost > 0 && (
+            <p className="voicing-headroom">
+              Adds up to +{peakBoost} dB. Auto normalize reserves the headroom;
+              leave it on unless you are setting the preamp by hand.
+            </p>
+          )}
+        </>
+      )}
+    </section>
+  );
+};
+
+export default VoicingPanel;

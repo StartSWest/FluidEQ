@@ -56,6 +56,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 12px;
 }
 
+.support-dialog__identity {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 14px;
+
+  > div {
+    min-width: 0;
+  }
+}
+
 .support-dialog__close {
   display: grid;
   width: 30px;
@@ -110,9 +121,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   text-decoration: none;
 
   &__label {
+    display: flex;
+    align-items: baseline;
+    gap: 7px;
     color: $white;
     font-size: 0.82rem;
     font-weight: 700;
+
+    // Ticker, so a donor can match the chain at a glance.
+    em {
+      color: rgba($secondary-light, 0.7);
+      font-size: 0.62rem;
+      font-style: normal;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+    }
   }
 
   &__hint {
@@ -144,6 +167,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     margin-top: 8px;
   }
 
+  // Name and blurb travel together so a code beside them cannot pull the two
+  // apart onto separate grid rows.
+  &__text {
+    display: grid;
+    min-width: 0;
+    gap: 4px;
+  }
+
   &__action {
     @include ghost-button;
     min-height: $control-height-sm;
@@ -152,6 +183,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-size: 0.7rem;
     font-weight: 700;
     text-decoration: none;
+  }
+}
+
+// Text on the left, scannable code on the right. The address and the buttons
+// stay full width underneath it — a truncated address is a lost donation.
+.support-method--qr {
+  align-items: center;
+  column-gap: 12px;
+  grid-template-columns: minmax(0, 1fr) auto;
+
+  .support-method__address,
+  .support-method__actions {
+    grid-column: 1 / -1;
+  }
+
+  .qr-code {
+    padding: 4px;
+    border-radius: $radius-xs;
+    background: $white;
   }
 }
 
@@ -179,6 +229,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .support-method__label {
     color: $secondary-light;
   }
+}
+
+// Quiet on purpose: it is a self-declaration, not a call to action.
+.support-dialog__contributed {
+  @include ghost-button;
+  padding: 9px 12px;
+  border-radius: $radius-xs;
+  border-style: dashed;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.support-dialog__thanks {
+  margin: 0;
+  padding: 9px 12px;
+  color: $neon-yellow;
+  border: 1px solid rgba($neon-yellow, 0.3);
+  border-radius: $radius-xs;
+  background: rgba($neon-yellow, 0.07);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
 }
 
 .support-dialog__footer {

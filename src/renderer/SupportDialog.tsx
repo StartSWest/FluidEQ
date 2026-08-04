@@ -19,27 +19,35 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useEffect, useRef, useState } from 'react';
 import {
   SUPPORT_CONFIG,
-  getBitcoinUri,
+  SupportMethodId,
+  getSupportCryptos,
   getSupportMethods,
 } from 'common/support';
+import supportQrImage from '../../assets/support-qr.png';
+import QrCode from './components/QrCode';
+import { SupportPetHero } from './SupportPet';
 import './styles/Support.scss';
 
 interface ISupportDialogProps {
+  hasContributed: boolean;
+  onContributed: () => void;
   onClose: () => void;
 }
 
 const COPY_FEEDBACK_MS = 2000;
 
-export default function SupportDialog({ onClose }: ISupportDialogProps) {
+export default function SupportDialog({
+  hasContributed,
+  onContributed,
+  onClose,
+}: ISupportDialogProps) {
   const methods = getSupportMethods();
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const copyResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
-  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>(
-    'idle',
-  );
+  const [copiedId, setCopiedId] = useState<SupportMethodId | ''>('');
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -83,34 +91,24 @@ export default function SupportDialog({ onClose }: ISupportDialogProps) {
     [],
   );
 
-  const handleCopyAddress = async () => {
+  const handleCopyAddress = async (id: SupportMethodId, address: string) => {
     if (copyResetRef.current !== undefined) {
       clearTimeout(copyResetRef.current);
     }
     try {
-      await navigator.clipboard.writeText(SUPPORT_CONFIG.bitcoinAddress.trim());
-      setCopyState('copied');
+      await navigator.clipboard.writeText(address);
+      setCopiedId(id);
     } catch {
       // Clipboard permission can be refused; the address stays selectable so
       // the donor is never stuck.
-      setCopyState('failed');
+      setCopiedId('');
     }
-    copyResetRef.current = setTimeout(
-      () => setCopyState('idle'),
-      COPY_FEEDBACK_MS,
-    );
+    copyResetRef.current = setTimeout(() => setCopiedId(''), COPY_FEEDBACK_MS);
   };
 
   const hasStripe = methods.some((method) => method.id === 'stripe');
-  const hasBitcoin = methods.some((method) => method.id === 'bitcoin');
-  const bitcoinUri = getBitcoinUri();
-
-  let copyLabel = 'Copy address';
-  if (copyState === 'copied') {
-    copyLabel = 'Copied';
-  } else if (copyState === 'failed') {
-    copyLabel = 'Copy failed';
-  }
+  const hasCoffee = methods.some((method) => method.id === 'coffee');
+  const cryptos = getSupportCryptos();
 
   return (
     <div
@@ -130,9 +128,12 @@ export default function SupportDialog({ onClose }: ISupportDialogProps) {
         aria-labelledby="support-dialog-title"
       >
         <div className="support-dialog__header">
-          <div>
-            <span className="eyebrow">ENTIRELY OPTIONAL</span>
-            <h2 id="support-dialog-title">Support the work</h2>
+          <div className="support-dialog__identity">
+            <SupportPetHero hasContributed={hasContributed} />
+            <div>
+              <span className="eyebrow">ENTIRELY OPTIONAL</span>
+              <h2 id="support-dialog-title">Support the work</h2>
+            </div>
           </div>
           <button
             ref={closeRef}
@@ -170,27 +171,72 @@ export default function SupportDialog({ onClose }: ISupportDialogProps) {
             </a>
           )}
 
-          {hasBitcoin && (
-            <div className="support-method">
-              <span className="support-method__label">Bitcoin</span>
-              <span className="support-method__hint">
-                Send any amount on-chain. Verify the address before sending.
-              </span>
-              <code className="support-method__address">
-                {SUPPORT_CONFIG.bitcoinAddress.trim()}
-              </code>
+          {hasCoffee && (
+            <a
+              className="support-method support-method--primary support-method--qr"
+              href={SUPPORT_CONFIG.coffeeUrl}
+              target="_blank"
+              rel="noreferrer noopener"
+            >
+              <div className="support-method__text">
+                <span className="support-method__label">Buy me a coffee</span>
+                <span className="support-method__hint">
+                  A one-off tip, no account needed. Click to open it in your
+                  browser, or scan the code with your phone.
+                </span>
+              </div>
+              {/* The artwork ships with the app rather than being generated,
+                  so the branded code from Buy Me a Coffee is what people scan.
+                  It is therefore pinned to whatever page it was made for — if
+                  FLUIDEQ_COFFEE_URL ever changes, replace this file too. */}
+              <img
+                className="qr-code"
+                src={supportQrImage}
+                alt="QR code for the Buy me a coffee page"
+                width={116}
+                height={116}
+              />
+            </a>
+          )}
+
+          {cryptos.map(({ asset, address, uri }) => (
+            <div
+              className={`support-method${uri ? ' support-method--qr' : ''}`}
+              key={asset.id}
+            >
+              <div className="support-method__text">
+                <span className="support-method__label">
+                  {asset.name}
+                  <em>{asset.symbol}</em>
+                </span>
+                {/* The network is called out because several of these share an
+                    address format, and sending on the wrong one loses the
+                    funds with no way to recover them. */}
+                <span className="support-method__hint">
+                  {asset.network}. Verify the address before sending.
+                </span>
+              </div>
+              {/* Scanning the URI beats retyping 40-odd characters, and the
+                  code is generated from the same string shown below it. */}
+              {uri && (
+                <QrCode
+                  value={uri}
+                  label={`QR code for the ${asset.name} address`}
+                />
+              )}
+              <code className="support-method__address">{address}</code>
               <div className="support-method__actions">
                 <button
                   type="button"
                   className="support-method__action"
-                  onClick={handleCopyAddress}
+                  onClick={() => handleCopyAddress(asset.id, address)}
                 >
-                  {copyLabel}
+                  {copiedId === asset.id ? 'Copied' : 'Copy address'}
                 </button>
-                {bitcoinUri && (
+                {uri && (
                   <a
                     className="support-method__action"
-                    href={bitcoinUri}
+                    href={uri}
                     target="_blank"
                     rel="noreferrer noopener"
                   >
@@ -199,8 +245,26 @@ export default function SupportDialog({ onClose }: ISupportDialogProps) {
                 )}
               </div>
             </div>
-          )}
+          ))}
         </div>
+
+        {/* Self-declared, and honest about it: the app cannot see a Payment
+            Link checkout or an on-chain transfer, so this is the user telling
+            us. It only ever adds something, which is why an unverifiable
+            claim is harmless here. */}
+        {hasContributed ? (
+          <p className="support-dialog__thanks">
+            Thank you — your pet has its star, and it dances now.
+          </p>
+        ) : (
+          <button
+            type="button"
+            className="support-dialog__contributed"
+            onClick={onContributed}
+          >
+            I contributed — unlock the star and the dance
+          </button>
+        )}
 
         <p className="support-dialog__footer">
           Prefer to contribute time instead? Issues and pull requests are just

@@ -1,4 +1,6 @@
 import loadDotenv from '../scripts/load-dotenv';
+// eslint-disable-next-line import/no-relative-packages
+import { version } from '../../release/app/package.json';
 
 loadDotenv();
 
@@ -15,9 +17,21 @@ loadDotenv();
  * hides its contribution UI entirely rather than showing a broken one.
  */
 const PUBLIC_ENV_DEFAULTS = {
+  // Taken from release/app/package.json — the same file electron-builder reads
+  // for the installer version, so what the UI shows can never disagree with
+  // what was actually shipped.
+  FLUIDEQ_VERSION: version,
   FLUIDEQ_STRIPE_URL: '',
+  FLUIDEQ_COFFEE_URL: '',
   FLUIDEQ_BITCOIN_ADDRESS: '',
-  FLUIDEQ_BITCOIN_LABEL: '',
+  FLUIDEQ_ETHEREUM_ADDRESS: '',
+  FLUIDEQ_LITECOIN_ADDRESS: '',
+  FLUIDEQ_DOGECOIN_ADDRESS: '',
+  FLUIDEQ_MONERO_ADDRESS: '',
+  FLUIDEQ_SOLANA_ADDRESS: '',
+  FLUIDEQ_CARDANO_ADDRESS: '',
+  FLUIDEQ_TRON_ADDRESS: '',
+  FLUIDEQ_CRYPTO_LABEL: '',
   FLUIDEQ_REPOSITORY_URL: '',
 };
 

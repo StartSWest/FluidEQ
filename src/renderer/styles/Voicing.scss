@@ -1,0 +1,297 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+.voicing-panel {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  @include slim-scrollbar(8px);
+}
+
+.voicing-panel__intro {
+  flex: 0 0 auto;
+
+  h2 {
+    margin: 1px 0 4px;
+    font-size: 1.22rem;
+  }
+
+  p:not(.eyebrow) {
+    max-width: 640px;
+    margin: 0;
+    color: $text-muted;
+    font-size: 0.72rem;
+    line-height: 1.4;
+  }
+}
+
+.voicing-grid {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+}
+
+// Full cards, not chips: this is the page where you choose a voicing, so the
+// glyph gets its own tile and the description gets room to be read.
+.voicing-card {
+  @include inset-surface;
+  position: relative;
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  padding: 15px 16px 16px;
+  gap: 4px;
+  grid-template-rows: auto auto auto;
+  color: inherit;
+  overflow: hidden;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  strong {
+    color: rgba($white, 0.94);
+    font-size: 0.92rem;
+    letter-spacing: 0.01em;
+  }
+
+  small {
+    color: rgba($primary-lighter, 0.66);
+    font-size: 0.7rem;
+    line-height: 1.45;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: rgba($secondary-light, 0.4);
+    background: rgba($secondary-default, 0.08);
+    transform: translateY(-1px);
+
+    .voicing-card__icon {
+      border-color: rgba($secondary-light, 0.4);
+      color: $secondary-light;
+    }
+  }
+
+  &:focus-visible {
+    border-color: $secondary-light;
+    @include focus-ring;
+  }
+
+  &.is-active {
+    border-color: rgba($secondary-light, 0.6);
+    background: linear-gradient(
+      145deg,
+      rgba($secondary-default, 0.2),
+      rgba(#12243a, 0.9)
+    );
+    box-shadow: 0 0 24px rgba($secondary-default, 0.14);
+
+    strong {
+      color: $secondary-light;
+    }
+
+    .voicing-card__icon {
+      color: $secondary-light;
+      border-color: rgba($secondary-light, 0.55);
+      background: rgba($secondary-default, 0.2);
+      box-shadow: 0 0 18px rgba($secondary-default, 0.28);
+    }
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+}
+
+// The glyph gets a tile of its own so the card has an anchor rather than a
+// floating stroke drawing.
+.voicing-card__icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 8px;
+  place-items: center;
+  color: rgba($secondary-light, 0.72);
+  border: 1px solid rgba($primary-lighter, 0.14);
+  border-radius: $radius-s;
+  background: rgba(#050b12, 0.55);
+  transition: $transition-control;
+
+  .voicing-icon {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+.voicing-strength {
+  @include inset-surface;
+  display: grid;
+  flex: 0 0 auto;
+  padding: 13px 16px 16px;
+  gap: 10px;
+
+  label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    color: rgba($primary-lighter, 0.82);
+    font-size: 0.74rem;
+    font-weight: 700;
+  }
+
+  output {
+    color: $secondary-light;
+    font-size: 0.98rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+  }
+
+  // A plain horizontal slider: this is not one of the vertical band rails, so
+  // it deliberately does not inherit their rotated geometry. The track is hand
+  // painted because `accent-color` cannot give the filled half a gradient.
+  input[type='range'] {
+    --fill: 100%;
+    width: 100%;
+    height: 22px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    cursor: pointer;
+    appearance: none;
+
+    &::-webkit-slider-runnable-track {
+      height: 8px;
+      border-radius: $radius-pill;
+      background:
+        linear-gradient(
+            90deg,
+            rgba($secondary-default, 0.95),
+            rgba($analogous-1, 0.95)
+          )
+          0 / var(--fill) 100% no-repeat,
+        rgba($primary-lighter, 0.16);
+      box-shadow: inset 0 1px 2px rgba(#000, 0.45);
+    }
+
+    &::-webkit-slider-thumb {
+      width: 18px;
+      height: 18px;
+      margin-top: -5px;
+      border: 2px solid rgba(#061019, 0.85);
+      border-radius: 50%;
+      background: $secondary-light;
+      box-shadow:
+        0 0 0 1px rgba($secondary-light, 0.5),
+        0 0 14px rgba($secondary-default, 0.65);
+      cursor: grab;
+      appearance: none;
+      transition: $transition-control;
+    }
+
+    &:hover::-webkit-slider-thumb {
+      box-shadow:
+        0 0 0 1px rgba($secondary-light, 0.75),
+        0 0 20px rgba($secondary-default, 0.85);
+    }
+
+    &:active::-webkit-slider-thumb {
+      cursor: grabbing;
+      scale: 1.08;
+    }
+
+    &:focus-visible {
+      outline: none;
+
+      &::-webkit-slider-thumb {
+        box-shadow:
+          0 0 0 2px $secondary-light,
+          0 0 20px rgba($secondary-default, 0.85);
+      }
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.5;
+    }
+  }
+}
+
+// Scale marks under the slider, so 50% is findable without dragging blind.
+.voicing-strength__scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -4px;
+  color: rgba($primary-lighter, 0.42);
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+}
+
+// Every filter the voicing actually writes, in plain sight.
+.voicing-detail {
+  display: grid;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
+  list-style: none;
+
+  li {
+    display: grid;
+    align-items: baseline;
+    gap: 2px 10px;
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  code {
+    color: $secondary-light;
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-size: 0.68rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  span {
+    color: rgba($primary-lighter, 0.6);
+    font-size: 0.66rem;
+    line-height: 1.35;
+  }
+}
+
+.voicing-headroom {
+  margin: 0;
+  padding: 8px 10px;
+  color: rgba($primary-lighter, 0.72);
+  border: 1px solid rgba($primary-lighter, 0.12);
+  border-radius: $radius-xs;
+  background: rgba($primary-default, 0.4);
+  font-size: 0.68rem;
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .voicing-detail li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

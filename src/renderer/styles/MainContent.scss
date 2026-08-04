@@ -24,13 +24,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // *** Panel heading and toolbar **********************************************
 
 .main-content-title {
-  display: flex;
+  display: grid;
   min-width: 0;
   align-items: center;
-  justify-content: space-between;
+  // Equal outer tracks put the toolbar on the panel's centre line, so it lines
+  // up with the band rails below however wide the heading grows. The middle
+  // track is minmax(0, auto) rather than auto: a plain auto track sizes to the
+  // toolbar's full max-content width, which crushes the heading track to zero
+  // and leaves "Parametric EQ" overflowing underneath the buttons.
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr);
   gap: 14px;
   margin: 6px 0 5px;
   padding: 0 8px;
+
+  > div:first-child {
+    min-width: 0;
+    justify-self: start;
+  }
 
   h4 {
     margin: 2px 0 0;
@@ -43,8 +53,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: center;
   gap: 7px;
+}
+
+.main-content-title > .eq-toolbar {
+  grid-column: 2;
 }
 
 .quick-layouts > span {
@@ -52,6 +66,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-muted;
   font-size: 0.67rem;
   font-weight: 650;
+}
+
+// Compact inline toggle sitting beside a toolbar button.
+.eq-toolbar__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: $text-muted;
+  font-size: 0.66rem;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+
+  input {
+    width: 13px;
+    height: 13px;
+    margin: 0;
+    accent-color: $secondary-default;
+    cursor: pointer;
+  }
+
+  &:hover {
+    color: rgba($white, 0.9);
+  }
+
+  span {
+    cursor: help;
+  }
 }
 
 // Result of the last auto-balance measurement, shown next to its button.
@@ -261,6 +303,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Stands in for the gain field on filter types that have no gain parameter.
+// Deliberately not a disabled input: a greyed-out box with a number in it
+// reads as "this value applies but is being ignored".
+.eq-flat-editor__gain-na {
+  display: flex;
+  height: $control-height;
+  align-items: center;
+  justify-content: center;
+  color: rgba($primary-lighter, 0.6);
+  border: 1px dashed rgba($primary-lighter, 0.22);
+  border-radius: $radius-s;
+  font-size: 0.68rem;
+  font-style: italic;
+  cursor: help;
+}
+
 .eq-flat-editor__input-row {
   display: grid;
   min-width: 0;
@@ -345,23 +403,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** Responsive *************************************************************
 
-@media (max-width: 1180px) {
+// The toolbar needs roughly 850px on one line. Below that it gets its own row
+// under the heading and stays centred, rather than squeezing the heading out.
+// Measured against the panel, not the window: with both sidebars open the panel
+// is ~600px narrower than the viewport, which is why the old viewport-based
+// breakpoint never fired when it needed to.
+@container eq-panel (max-width: 1040px) {
   .main-content-title {
-    align-items: flex-start;
+    align-items: stretch;
+    grid-template-columns: minmax(0, 1fr);
+    row-gap: 8px;
+  }
+
+  .main-content-title > .eq-toolbar {
+    grid-column: 1;
   }
 }
 
 // Two rows of controls read better than six squeezed columns once the EQ card
 // is narrow. The identity and delete rows span the full width.
 @media (max-width: 940px) {
+  // Stacked: heading on its own row, toolbar centred on the next.
   .main-content-title {
     align-items: stretch;
-    flex-direction: column;
+    grid-template-columns: minmax(0, 1fr);
   }
 
-  .eq-toolbar,
-  .quick-layouts {
-    justify-content: flex-start;
+  .main-content-title > .eq-toolbar {
+    grid-column: 1;
   }
 
   .main-content {

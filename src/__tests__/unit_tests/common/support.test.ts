@@ -17,9 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  CRYPTO_ASSETS,
   ISupportConfig,
   buildSupportConfig,
   getBitcoinUri,
+  getSupportCryptos,
   getSupportMethods,
   isSupportAvailable,
   looksLikeBitcoinAddress,
@@ -29,6 +31,25 @@ const config = (overrides: Partial<ISupportConfig> = {}): ISupportConfig => ({
   ...buildSupportConfig({}),
   ...overrides,
 });
+
+/** Documentation addresses only; they exercise the shape checks. */
+const ADDRESSES: Record<string, string> = {
+  bitcoinAddress: 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq',
+  ethereumAddress: '0x742d35Cc6634C0532925a3b844Bc454e4438f44e',
+  litecoinAddress: 'LhK2kQwiaAvhjWY799cZvMyYwnQAcxkarr',
+  dogecoinAddress: 'DH5yaieqoZN36fDVciNyRueRGvGLR3mr7L',
+  moneroAddress:
+    '48jewbtxe4jU3MnzJFjTs3gVFWh2nRTsRJq4dPU9zjZKvAHU8N4b1a1Xm1PNMWvcYUCjTqCsWPTs1YRSjLZWpJDp4CGaCPP',
+  solanaAddress: '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM',
+  cardanoAddress:
+    'addr1qx2fxv2umyhttkxyxp8x0dlpdt3k6cwng5pxj3jhsydzer3n0d3vllmyqwsx5wktcd8cc3sq835lu7drv2xwl2wywfgse35a3x',
+  tronAddress: 'TR7NHqjeKQxGTCi8q8ZY4pL8otSzgjLj6t',
+};
+
+const withCrypto = (keys: string[]) =>
+  config({
+    crypto: Object.fromEntries(keys.map((key) => [key, ADDRESSES[key]])),
+  });
 
 // Documentation addresses, not destinations: these exist only to exercise the
 // shape check.
@@ -43,7 +64,7 @@ describe('support', () => {
     it('yields no contribution destination when the environment is empty', () => {
       const empty = buildSupportConfig({});
       expect(empty.stripeUrl).toBe('');
-      expect(empty.bitcoinAddress).toBe('');
+      expect(empty.crypto.bitcoinAddress).toBe('');
       expect(isSupportAvailable(empty)).toBe(false);
       expect(getSupportMethods(empty)).toEqual([]);
       expect(getBitcoinUri(empty)).toBe('');
@@ -62,20 +83,20 @@ describe('support', () => {
       const built = buildSupportConfig({
         FLUIDEQ_STRIPE_URL: '  https://buy.stripe.com/test_abc123  ',
         FLUIDEQ_BITCOIN_ADDRESS: `  ${BECH32} `,
-        FLUIDEQ_BITCOIN_LABEL: ' Coffee fund ',
+        FLUIDEQ_CRYPTO_LABEL: ' Coffee fund ',
         FLUIDEQ_REPOSITORY_URL: ' https://example.invalid/repo ',
       });
 
       expect(built.stripeUrl).toBe('https://buy.stripe.com/test_abc123');
-      expect(built.bitcoinAddress).toBe(BECH32);
-      expect(built.bitcoinLabel).toBe('Coffee fund');
+      expect(built.crypto.bitcoinAddress).toBe(BECH32);
+      expect(built.cryptoLabel).toBe('Coffee fund');
       expect(built.repositoryUrl).toBe('https://example.invalid/repo');
       expect(isSupportAvailable(built)).toBe(true);
     });
 
     it('falls back to sensible defaults for the non-payment fields', () => {
       const built = buildSupportConfig({});
-      expect(built.bitcoinLabel).toBe('FluidEQ development');
+      expect(built.cryptoLabel).toBe('FluidEQ development');
       expect(built.repositoryUrl).toBe('https://github.com/StartSWest/FluidEQ');
     });
   });
@@ -120,25 +141,67 @@ describe('support', () => {
       expect(methods[0].id).toBe('stripe');
     });
 
-    it('offers bitcoin only for an address-shaped value', () => {
+    it('offers the coffee page only for a real https destination', () => {
       expect(
-        getSupportMethods(config({ bitcoinAddress: 'coming soon' })),
+        getSupportMethods(config({ coffeeUrl: 'http://buymeacoffee.com/x' })),
       ).toEqual([]);
-
-      const methods = getSupportMethods(config({ bitcoinAddress: BECH32 }));
-      expect(methods).toHaveLength(1);
-      expect(methods[0].id).toBe('bitcoin');
+      const methods = getSupportMethods(
+        config({ coffeeUrl: 'https://buymeacoffee.com/someone' }),
+      );
+      expect(methods.map((method) => method.id)).toEqual(['coffee']);
     });
 
-    it('offers both when both are configured', () => {
-      const methods = getSupportMethods(
-        config({
-          stripeUrl: 'https://buy.stripe.com/test_abc123',
-          bitcoinAddress: BECH32,
-        }),
+    // Each chain is independent: filling one in must never imply another.
+    it('offers exactly the chains that are configured', () => {
+      Object.keys(ADDRESSES).forEach((key) => {
+        const methods = getSupportMethods(withCrypto([key]));
+        expect(methods).toHaveLength(1);
+        const asset = CRYPTO_ASSETS.find((entry) => entry.configKey === key);
+        expect(methods[0].id).toBe(asset?.id);
+      });
+    });
+
+    it('accepts every documented address form', () => {
+      const cryptos = getSupportCryptos(withCrypto(Object.keys(ADDRESSES)));
+      expect(cryptos).toHaveLength(CRYPTO_ASSETS.length);
+      // Shown low-friction first, in the declared order.
+      expect(cryptos.map((entry) => entry.asset.id)).toEqual(
+        CRYPTO_ASSETS.map((asset) => asset.id),
       );
-      expect(methods.map((method) => method.id)).toEqual(['stripe', 'bitcoin']);
-      expect(isSupportAvailable(config())).toBe(false);
+    });
+
+    it('rejects placeholders on every chain', () => {
+      ['', '   ', 'your-address-here', 'TODO', 'https://example.com'].forEach(
+        (junk) => {
+          const crypto = Object.fromEntries(
+            CRYPTO_ASSETS.map((asset) => [asset.configKey, junk]),
+          );
+          expect(getSupportCryptos(config({ crypto }))).toEqual([]);
+        },
+      );
+    });
+
+    it('does not accept an address belonging to another chain', () => {
+      // Everything except the EVM chains, which genuinely share a format.
+      const strict = CRYPTO_ASSETS.filter((asset) => asset.id !== 'ethereum');
+      strict.forEach((asset) => {
+        const wrong = Object.entries(ADDRESSES).find(
+          ([key]) => key !== asset.configKey,
+        );
+        if (!wrong) {
+          return;
+        }
+        const accepted = getSupportCryptos(
+          config({ crypto: { [asset.configKey]: wrong[1] } }),
+        );
+        expect(accepted.map((entry) => entry.asset.id)).not.toContain(asset.id);
+      });
+    });
+
+    it('names the network for each chain, since formats are shared', () => {
+      getSupportMethods(withCrypto(['ethereumAddress', 'tronAddress'])).forEach(
+        (method) => expect(method.description).toMatch(/mainnet/),
+      );
     });
   });
 
@@ -146,19 +209,31 @@ describe('support', () => {
     it('builds a BIP-21 uri with an encoded label and no amount', () => {
       expect(
         getBitcoinUri(
-          config({ bitcoinAddress: BECH32, bitcoinLabel: 'FluidEQ dev' }),
+          config({
+            crypto: { bitcoinAddress: BECH32 },
+            cryptoLabel: 'FluidEQ dev',
+          }),
         ),
       ).toBe(`bitcoin:${BECH32}?label=FluidEQ%20dev`);
     });
 
     it('omits the label when there is none', () => {
       expect(
-        getBitcoinUri(config({ bitcoinAddress: P2PKH, bitcoinLabel: '  ' })),
+        getBitcoinUri(
+          config({ crypto: { bitcoinAddress: P2PKH }, cryptoLabel: '' }),
+        ),
       ).toBe(`bitcoin:${P2PKH}`);
     });
 
     it('returns nothing for an unusable address', () => {
-      expect(getBitcoinUri(config({ bitcoinAddress: 'nope' }))).toBe('');
+      expect(
+        getBitcoinUri(config({ crypto: { bitcoinAddress: 'nope' } })),
+      ).toBe('');
+    });
+
+    it('has no uri for a chain without a standard scheme', () => {
+      const solana = getSupportCryptos(withCrypto(['solanaAddress']))[0];
+      expect(solana.uri).toBe('');
     });
   });
 });

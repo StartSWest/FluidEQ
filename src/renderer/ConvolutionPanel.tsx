@@ -23,7 +23,8 @@ import {
 import './styles/Convolution.scss';
 
 const ConvolutionPanel = () => {
-  const { convolution, refreshState, setGlobalError } = useAquaContext();
+  const { convolution, isEnabled, refreshState, setGlobalError } =
+    useAquaContext();
   const [query, setQuery] = useState('');
   const [entries, setEntries] = useState<IConvolutionCatalogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -106,6 +107,7 @@ const ConvolutionPanel = () => {
           <button
             type="button"
             className="convolution-button convolution-button--quiet"
+            disabled={!isEnabled}
             onClick={handleClear}
           >
             Clear convolution
@@ -175,7 +177,7 @@ const ConvolutionPanel = () => {
                     <button
                       type="button"
                       className={`convolution-button${isApplied ? ' is-applied' : ''}`}
-                      disabled={isDownloading || isApplied}
+                      disabled={!isEnabled || isDownloading || isApplied}
                       onClick={() => handleApply(entry)}
                     >
                       {actionLabel}

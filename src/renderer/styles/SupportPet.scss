@@ -1,0 +1,284 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+.support-pet {
+  --pet-level: 0;
+
+  position: relative;
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: $radius-m;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+  -webkit-app-region: no-drag;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba($secondary-light, 0.32);
+    background: rgba($secondary-default, 0.1);
+    outline: none;
+  }
+
+  // Press: the body squashes onto its base. Because it scales from the bottom,
+  // its crown drops by 1.5px of travel plus 8% of its own height — so the ears
+  // have to come down by the sum or they float away from the head.
+  &:active .support-pet__body {
+    transform: translateY(1.5px) scaleY(0.92);
+  }
+
+  &:active .support-pet__ears {
+    transform: translateY(3.4px) scaleY(0.94);
+  }
+
+  // The star rides the head down too. It uses `translate` rather than
+  // `transform` because the twinkle owns `transform` — the two individual
+  // properties compose instead of one clobbering the other.
+  &:active .support-pet__star {
+    translate: 0 3.4px;
+  }
+}
+
+.support-pet__art {
+  width: 36px;
+  height: 36px;
+  overflow: visible;
+  transform-origin: 50% 88%;
+}
+
+// Motion is split across the individual `scale` / `translate` / `rotate`
+// properties rather than one `transform`, so the layers compose: the creature
+// can squash to the beat, bob, and sway from the hips all at once without any
+// one animation clobbering the others.
+
+// Breathing when idle.
+.support-pet__body {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: pet-breathe 3.4s ease-in-out infinite;
+  transition: scale 90ms ease-out;
+}
+
+.support-pet.is-listening .support-pet__body {
+  // Squash and stretch with the music. Bounded so it never leaves its box.
+  scale: calc(1 - var(--pet-level) * 0.07) calc(1 + var(--pet-level) * 0.16);
+  animation: none;
+}
+
+.support-pet__ears {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  scale: 1 calc(1 + var(--pet-level) * 0.45);
+  transition:
+    scale 90ms ease-out,
+    transform 90ms ease-out;
+}
+
+// A blink is a fast vertical squash, which is cheap and reads instantly even
+// at this size.
+.support-pet__eyes {
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  animation: pet-blink 5.2s ease-in-out infinite;
+}
+
+.support-pet:hover .support-pet__eyes {
+  animation-duration: 1.9s;
+}
+
+.support-pet__mouth {
+  transition: d 150ms ease;
+}
+
+// Hidden until someone contributes; then it stays, permanently.
+.support-pet__star {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 50% 50%;
+  transform: scale(0.4);
+  transition:
+    opacity 240ms ease,
+    transform 240ms cubic-bezier(0.2, 1.6, 0.4, 1),
+    translate 90ms ease-out;
+}
+
+.support-pet.is-celebrating {
+  .support-pet__star {
+    opacity: 1;
+    transform: scale(1);
+    animation: pet-twinkle 2.6s ease-in-out infinite;
+  }
+
+  .support-pet__art {
+    filter: drop-shadow(0 0 6px rgba($neon-yellow, 0.45));
+  }
+}
+
+// The rare treat: a proper little dance, layered on top of the audio squash.
+//
+// Three cycles at a 2:1 ratio so they lock together like beats rather than
+// drifting: a slow weight shift from side to side, a bob at double time, and
+// the ears trailing a little behind the body the way real secondary motion
+// does. Everything is eased in and out, and the amplitudes are small — this
+// lives in a titlebar, so it should read as swaying to the music, not
+// vibrating.
+.support-pet.is-dancing .support-pet__art {
+  animation: pet-sway 1360ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.support-pet.is-dancing .support-pet__body {
+  animation: pet-bob 680ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+// The ears ride the bob in lockstep with the body — vertical travel is what
+// keeps them attached to the head — while the tilt trails 110ms behind it.
+// Secondary motion in the rotation reads as life; secondary motion in the
+// attachment just reads as broken.
+.support-pet.is-dancing .support-pet__ears {
+  animation:
+    pet-ear-sway 1360ms cubic-bezier(0.45, 0, 0.55, 1) 110ms infinite,
+    pet-bob 680ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+// Same reason as the press: the star is pinned to the head, so it bobs with
+// it. Twinkle keeps `transform`, bob takes `translate`.
+.support-pet.is-celebrating.is-dancing .support-pet__star {
+  animation:
+    pet-twinkle 2.6s ease-in-out infinite,
+    pet-bob 680ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+// Hero size inside the support dialog.
+.support-pet--hero {
+  width: 96px;
+  height: 96px;
+  border: 0;
+  cursor: default;
+
+  .support-pet__art {
+    width: 92px;
+    height: 92px;
+  }
+
+  &:hover,
+  &:focus-visible {
+    border-color: transparent;
+    background: transparent;
+  }
+}
+
+// Weight shifts across and the body leans into it, with a pause at each side
+// rather than a hard turnaround — that hold is what makes it read as soft.
+@keyframes pet-sway {
+  0%,
+  100% {
+    translate: -2px 0;
+    rotate: -5deg;
+  }
+
+  50% {
+    translate: 2px 0;
+    rotate: 5deg;
+  }
+}
+
+@keyframes pet-bob {
+  0%,
+  100% {
+    translate: 0 0.6px;
+  }
+
+  50% {
+    translate: 0 -1.4px;
+  }
+}
+
+@keyframes pet-ear-sway {
+  0%,
+  100% {
+    rotate: 7deg;
+  }
+
+  50% {
+    rotate: -7deg;
+  }
+}
+
+@keyframes pet-breathe {
+  0%,
+  100% {
+    scale: 1 1;
+  }
+
+  50% {
+    scale: 0.985 1.045;
+  }
+}
+
+@keyframes pet-blink {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+
+  95% {
+    transform: scaleY(0.08);
+  }
+}
+
+@keyframes pet-twinkle {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+
+  50% {
+    opacity: 0.75;
+    transform: scale(1.14) rotate(12deg);
+  }
+}
+
+// A creature bobbing in the titlebar is exactly the kind of thing that has to
+// stop when the user asks for less motion.
+@media (prefers-reduced-motion: reduce) {
+  .support-pet__art,
+  .support-pet__body,
+  .support-pet__eyes,
+  .support-pet__ears,
+  .support-pet.is-dancing .support-pet__art,
+  .support-pet.is-dancing .support-pet__body,
+  .support-pet.is-dancing .support-pet__ears,
+  .support-pet.is-celebrating .support-pet__star {
+    animation: none;
+    scale: none;
+    rotate: none;
+    translate: none;
+    transform: none;
+    transition: none;
+  }
+}

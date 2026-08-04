@@ -19,10 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState, type MouseEvent } from 'react';
 import { ErrorCode } from 'common/errors';
-import { isSupportAvailable } from 'common/support';
+import { SUPPORT_CONTRIBUTED_KEY, isSupportAvailable } from 'common/support';
 import './styles/App.scss';
 import MainContent from './MainContent';
 import SupportDialog from './SupportDialog';
+import SupportPet from './SupportPet';
 import { AquaProvider, useAquaContext } from './utils/AquaContext';
 import PrereqMissingModal from './PrereqMissingModal';
 import SideBar from './SideBar';
@@ -32,6 +33,7 @@ import AutoEQ from './AutoEQ';
 import DeviceProfiles from './DeviceProfiles';
 import WaveformVisualizer from './WaveformVisualizer';
 import ConvolutionPanel from './ConvolutionPanel';
+import VoicingPanel from './VoicingPanel';
 import { LiveAudioProvider } from './audio/LiveAudioContext';
 import {
   deletePreset,
@@ -43,6 +45,13 @@ import {
 
 const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
 
+/**
+ * Shipped build version, substituted by webpack at compile time. Empty in any
+ * context that does not go through the bundler (a bare unit-test import), so
+ * the badge is rendered conditionally rather than showing "vundefined".
+ */
+const APP_VERSION = process.env.FLUIDEQ_VERSION || '';
+
 const AppContent = () => {
   const { isLoading, globalError, isEnabled, performHealthCheck } =
     useAquaContext();
@@ -52,11 +61,14 @@ const AppContent = () => {
   const [showAudioToolsMenu, setShowAudioToolsMenu] = useState(false);
   const [showSupportDialog, setShowSupportDialog] = useState(false);
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<
-    'eq' | 'convolution'
+    'eq' | 'voicing' | 'convolution'
   >('eq');
   // Hidden entirely unless this build has a real contribution destination
   // configured, so a misconfigured build shows no donate entry at all.
   const canShowSupport = isSupportAvailable();
+  const [hasContributed, setHasContributed] = useState(
+    () => localStorage.getItem(SUPPORT_CONTRIBUTED_KEY) === 'true',
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -213,7 +225,17 @@ const AppContent = () => {
             </svg>
           </div>
           <div>
-            <div className="workspace-header__name">FluidEQ</div>
+            <div className="workspace-header__name">
+              FluidEQ
+              {/* Inlined at build time from the same package.json
+                  electron-builder versions the installer with, so a bug report
+                  quoting this is quoting the real build. */}
+              {APP_VERSION && (
+                <span className="workspace-header__version">
+                  v{APP_VERSION}
+                </span>
+              )}
+            </div>
             <div className="workspace-header__tagline">
               Your sound. Every device. Automatically.
             </div>
@@ -221,6 +243,12 @@ const AppContent = () => {
         </div>
         <WaveformVisualizer />
         <div className="window-titlebar__right">
+          {canShowSupport && (
+            <SupportPet
+              hasContributed={hasContributed}
+              onOpen={() => setShowSupportDialog(true)}
+            />
+          )}
           <div className="workspace-header__tools">
             <button
               type="button"
@@ -380,6 +408,17 @@ const AppContent = () => {
               <button
                 type="button"
                 role="tab"
+                aria-selected={activeWorkspaceTab === 'voicing'}
+                className={`workspace-tab${
+                  activeWorkspaceTab === 'voicing' ? ' is-active' : ''
+                }`}
+                onClick={() => setActiveWorkspaceTab('voicing')}
+              >
+                Voicing
+              </button>
+              <button
+                type="button"
+                role="tab"
                 aria-selected={activeWorkspaceTab === 'convolution'}
                 className={`workspace-tab${
                   activeWorkspaceTab === 'convolution' ? ' is-active' : ''
@@ -400,8 +439,20 @@ const AppContent = () => {
                 <MainContent />
               </div>
             ) : (
-              <div className="workspace-tab-panel workspace-tab-panel--convolution">
-                <ConvolutionPanel />
+              // Voicing and convolution are both written into the same APO
+              // config as the EQ, so with the engine off they are just as inert
+              // and read the same way.
+              <div
+                className={`workspace-tab-panel workspace-tab-panel--convolution${
+                  !isEnabled ? ' is-engine-disabled' : ''
+                }`}
+                aria-disabled={!isEnabled}
+              >
+                {activeWorkspaceTab === 'voicing' ? (
+                  <VoicingPanel />
+                ) : (
+                  <ConvolutionPanel />
+                )}
               </div>
             )}
           </div>
@@ -426,7 +477,14 @@ const AppContent = () => {
           />
         )}
         {showSupportDialog && (
-          <SupportDialog onClose={() => setShowSupportDialog(false)} />
+          <SupportDialog
+            hasContributed={hasContributed}
+            onContributed={() => {
+              localStorage.setItem(SUPPORT_CONTRIBUTED_KEY, 'true');
+              setHasContributed(true);
+            }}
+            onClose={() => setShowSupportDialog(false)}
+          />
         )}
       </main>
     </>

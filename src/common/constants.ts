@@ -23,8 +23,17 @@ import { uid } from 'uid';
 export const MAX_GAIN = 20;
 export const MIN_GAIN = -20;
 
+/**
+ * Math.min/Math.max propagate NaN, so a clamp built from them alone is not a
+ * guard at all: one bad number from an imported measurement travels through it
+ * untouched and reaches Equalizer APO as `Gain NaN dB`, which is not something
+ * APO can build a biquad from. Non-finite input collapses to a neutral value
+ * instead.
+ */
+const DEFAULT_QUALITY = 1;
+
 export const clampGain = (gain: number) =>
-  Math.min(MAX_GAIN, Math.max(MIN_GAIN, gain));
+  Number.isFinite(gain) ? Math.min(MAX_GAIN, Math.max(MIN_GAIN, gain)) : 0;
 
 export const MAX_FREQUENCY = 20000;
 export const MIN_FREQUENCY = 1;
@@ -34,7 +43,15 @@ export const MIN_QUALITY = 0.01;
 export const MAX_QUALITY = 33.3333;
 
 export const clampQuality = (quality: number) =>
-  Math.min(MAX_QUALITY, Math.max(MIN_QUALITY, quality));
+  Number.isFinite(quality)
+    ? Math.min(MAX_QUALITY, Math.max(MIN_QUALITY, quality))
+    : DEFAULT_QUALITY;
+
+/** Centre frequency, bounded and always finite. */
+export const clampFrequency = (frequency: number) =>
+  Number.isFinite(frequency)
+    ? Math.round(Math.min(MAX_FREQUENCY, Math.max(MIN_FREQUENCY, frequency)))
+    : MIN_FREQUENCY;
 
 // Equalizer APO does not impose AQUA's old 20-band UI limit. 128 keeps the
 // editor responsive while allowing large imported and hand-built profiles.
@@ -131,6 +148,21 @@ export interface IState {
   /** Full GraphicEQ points; kept separately from editable filter projections. */
   graphicEq?: IGraphicEqPoint[];
   convolution?: IConvolutionProfile;
+  /** Curated target curve applied as its own APO layer after the EQ bands. */
+  voicing?: IVoicingSettings;
+}
+
+/**
+ * Which voicing is active and how strongly.
+ *
+ * Lives here rather than in voicing.ts because it is part of the persisted
+ * state shape, and voicing.ts already depends on this module.
+ */
+export interface IVoicingSettings {
+  /** Empty means no voicing layer at all. */
+  profileId: string;
+  /** 0..1 scale applied to every gain in the profile. */
+  intensity: number;
 }
 
 export interface IPresetV1 {

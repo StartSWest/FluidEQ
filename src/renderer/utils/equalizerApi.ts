@@ -212,6 +212,28 @@ export const getPresetListFromFiles = (): Promise<string[]> => {
   return promisifyResult(simpleResponseHandler<string[]>(), channel);
 };
 
+/**
+ * Put a profile back to the state it was in when the user last pressed Save.
+ * Everything since then auto-saved over the profile, so this is the undo.
+ * @param {string} presetName - profile to roll back
+ * @returns { Promise<void> } exception if there is no saved copy.
+ */
+export const restorePresetBaseline = (presetName: string): Promise<void> => {
+  const channel = ChannelEnum.RESTORE_PRESET_BASELINE;
+  window.electron.ipcRenderer.sendMessage(channel, [presetName]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
+/**
+ * Which profiles have a manually saved copy behind them.
+ * @returns { Promise<string[]> } exception if failed.
+ */
+export const getPresetBaselineNames = (): Promise<string[]> => {
+  const channel = ChannelEnum.GET_PRESET_BASELINE_NAMES;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(simpleResponseHandler<string[]>(), channel);
+};
+
 export const getAudioDevices = (): Promise<IAudioDevice[]> => {
   const channel = ChannelEnum.GET_AUDIO_DEVICES;
   window.electron.ipcRenderer.sendMessage(channel, []);
@@ -646,6 +668,21 @@ export const clearGains = (): Promise<IFiltersMap> => {
     simpleResponseHandler<IFiltersMap>(),
     channel,
   );
+};
+
+/**
+ * Apply a curated voicing as its own APO layer, leaving the EQ bands alone
+ * @param { string } profileId - empty string removes the layer
+ * @param { number } intensity - 0..1 scale on the profile's gains
+ * @returns { Promise<void> } exception if failed
+ */
+export const setVoicing = (
+  profileId: string,
+  intensity: number,
+): Promise<void> => {
+  const channel = ChannelEnum.SET_VOICING;
+  window.electron.ipcRenderer.sendMessage(channel, [profileId, intensity]);
+  return promisifyResult(setterResponseHandler, channel);
 };
 
 /**

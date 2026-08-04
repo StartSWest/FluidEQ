@@ -33,6 +33,7 @@ import {
   IConvolutionProfile,
   IState,
 } from '../../common/constants';
+import { DEFAULT_VOICING, IVoicingSettings } from '../../common/voicing';
 import { ErrorDescription } from '../../common/errors';
 import { cloneFilters } from '../../common/utils';
 import { getEqualizerState } from './equalizerApi';
@@ -75,6 +76,9 @@ export interface IAquaContext extends IState {
   /** Optional APO convolution profile applied before the editable EQ. */
   convolution?: IConvolutionProfile;
   setConvolution: (newValue?: IConvolutionProfile) => void;
+  /** Curated target curve written as its own APO layer after the EQ bands. */
+  voicing?: IVoicingSettings;
+  setVoicing: (newValue: IVoicingSettings) => void;
   /** Filter currently selected in the EQ editor and response graph. */
   selectedFilterId: string;
   setSelectedFilterId: (newValue: string) => void;
@@ -187,6 +191,9 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
     DEFAULT_STATE.isCaseSensitiveFs,
   );
   const [preAmp, setPreAmp] = useState<number>(DEFAULT_STATE.preAmp);
+  const [voicing, setVoicing] = useState<IVoicingSettings>(
+    DEFAULT_STATE.voicing ?? DEFAULT_VOICING,
+  );
   const [convolution, setConvolution] = useState<
     IConvolutionProfile | undefined
   >(DEFAULT_STATE.convolution);
@@ -245,6 +252,7 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
       setGraphViewOn(state.isGraphViewOn);
       setPreAmp(state.preAmp);
       setConvolution(state.convolution);
+      setVoicing(state.voicing ?? DEFAULT_VOICING);
       dispatchFilter({ type: FilterActionEnum.INIT, filters: state.filters });
       setGlobalError(undefined);
       setIsCaseSensitiveFs(state.isCaseSensitiveFs);
@@ -283,6 +291,8 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
         setPreAmp,
         convolution,
         setConvolution,
+        voicing,
+        setVoicing,
         selectedFilterId,
         setSelectedFilterId,
         selectedFilterIds,

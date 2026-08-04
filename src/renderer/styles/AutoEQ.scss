@@ -23,11 +23,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // The AutoEQ row reflows against the width of the EQ card, not the viewport:
 // the card can be narrow on a wide screen (three-column shell) and wide on a
-// narrow one (stacked shell).
-.workspace-tab-panel--eq {
-  container-name: autoeq-workspace;
-  container-type: inline-size;
-}
+// narrow one (stacked shell). The container itself is declared once on
+// .workspace-tab-panel in App.scss — declaring it twice for the same box meant
+// whichever stylesheet lost the cascade silently had no container at all.
 
 .auto-eq-title {
   margin: 0 8px 2px;

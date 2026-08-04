@@ -21,6 +21,7 @@ import path from 'path';
 import {
   AutoEqFormat,
   FilterTypeEnum,
+  clampFrequency,
   clampGain,
   clampQuality,
   IFilter,
@@ -33,11 +34,32 @@ import {
   IState,
   NO_GAIN_FILTER_TYPES,
 } from '../common/constants';
+import { getVoicingFilters } from '../common/voicing';
 import {
   validatePresetV1,
   validatePresetV2,
   validateState,
 } from '../common/validator';
+
+/**
+ * Whether a band can be written as a filter Equalizer APO can actually build.
+ *
+ * A NaN or Infinity anywhere in a band survives every numeric clamp and lands
+ * in the config as text APO cannot parse into biquad coefficients. Dropping
+ * the band costs one filter; writing it can take out the whole chain.
+ */
+const isRenderableFilter = ({
+  frequency,
+  gain,
+  quality,
+}: {
+  frequency: number;
+  gain: number;
+  quality: number;
+}) =>
+  Number.isFinite(frequency) &&
+  Number.isFinite(gain) &&
+  Number.isFinite(quality);
 
 export const stateToString = (
   state: IState,
@@ -57,6 +79,10 @@ export const stateToString = (
     output.push(`Convolution: ${convolutionFileName}`);
   }
 
+  // APO numbers filters globally, so the EQ bands and the voicing layer share
+  // one counter.
+  let filterIndex = 0;
+
   if (!state.isFlat) {
     if (state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length) {
       const points = state.graphicEq
@@ -74,6 +100,11 @@ export const stateToString = (
       // after the user presses Reset gains.
       output = output.concat(
         Object.values(state.filters)
+          // Last line of defence before Equalizer APO. A band whose numbers are
+          // not finite — a malformed import, a corrupt preset — cannot be
+          // rendered as a filter APO can build, so it is dropped rather than
+          // written out as `Fc NaN Hz` and left for APO to choke on.
+          .filter(isRenderableFilter)
           .filter(
             ({ gain, type }) =>
               ![
@@ -82,8 +113,11 @@ export const stateToString = (
                 FilterTypeEnum.HSC,
               ].includes(type) || clampGain(gain) !== 0,
           )
-          .map(({ frequency, gain, type, quality }, index) => {
-            const head = `Filter ${index + 1}: ON ${type} Fc ${frequency} Hz`;
+          .map(({ frequency, gain, type, quality }) => {
+            filterIndex += 1;
+            const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
+              frequency,
+            )} Hz`;
             // Band pass, notch, low pass and high pass have no Gain parameter
             // in Equalizer APO's ParametricEQ grammar — the token only belongs
             // to the peaking and shelf forms. Emitting it for the others makes
@@ -95,6 +129,25 @@ export const stateToString = (
       );
     }
   }
+
+  // The voicing is its own layer, written after the user's bands and numbered
+  // straight on from them (APO requires unique, ordered filter indices). It is
+  // deliberately outside the isFlat check: clearing the EQ resets the bands the
+  // user tuned, not the target curve they chose, and switching the voicing off
+  // restores their tuning untouched.
+  output = output.concat(
+    getVoicingFilters(state.voicing)
+      .filter(isRenderableFilter)
+      .map(({ frequency, gain, type, quality }) => {
+        filterIndex += 1;
+        const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
+          frequency,
+        )} Hz`;
+        return NO_GAIN_FILTER_TYPES.includes(type)
+          ? `${head} Q ${clampQuality(quality)}`
+          : `${head} Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
+      }),
+  );
 
   // Equalizer APO applies rules in order: convolution, EQ bands, then gain.
   // This line MUST be "Preamp" without a capitalized P for APO to work.
@@ -365,6 +418,120 @@ export const savePreset = (
     throw ex;
   }
   console.log(`Wrote preset for: ${presetName}`);
+};
+
+/**
+ * Directory holding the last *manually* saved copy of each profile.
+ *
+ * It sits outside the presets directory on purpose: every edit auto-saves over
+ * the live profile, so without a second copy there is nothing to go back to.
+ * Keeping it out of `presets/` also means these never show up in the profile
+ * catalogue, which lists that directory verbatim.
+ */
+export const PRESET_BASELINES_DIR = 'preset-baselines';
+
+/**
+ * Profile names come from user input and are used as filenames. A name that
+ * escapes its directory is refused rather than sanitised, so a rejected write
+ * can never land somewhere unexpected.
+ */
+const safeBaselineName = (presetName: string) =>
+  presetName &&
+  presetName === path.basename(presetName) &&
+  !presetName.includes('..')
+    ? presetName
+    : undefined;
+
+export const savePresetBaseline = (
+  presetName: string,
+  presetInfo: IPresetV2,
+  baselineDir: string,
+) => {
+  const safeName = safeBaselineName(presetName);
+  if (!safeName) {
+    return;
+  }
+  try {
+    fs.mkdirSync(baselineDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(baselineDir, safeName),
+      serializePreset(presetInfo),
+      { encoding: 'utf8' },
+    );
+  } catch (ex) {
+    // A missing baseline costs the user an undo, not their tuning. Never let
+    // it fail the save that triggered it.
+    console.log(`Failed to write the baseline for ${presetName}`);
+  }
+};
+
+/** The last manually saved copy, or undefined when there is nothing to go back to. */
+export const fetchPresetBaseline = (
+  presetName: string,
+  baselineDir: string,
+): IPresetV2 | undefined => {
+  const safeName = safeBaselineName(presetName);
+  if (!safeName) {
+    return undefined;
+  }
+  try {
+    const json = JSON.parse(
+      fs.readFileSync(path.join(baselineDir, safeName), { encoding: 'utf8' }),
+    );
+    if (!validatePresetV2(json)) {
+      return undefined;
+    }
+    const preset = json as IPresetV2;
+    const graphicEq = normalizeGraphicEq(preset.graphicEq);
+    return {
+      ...preset,
+      preAmp: clampGain(preset.preAmp),
+      filters: normalizeFilters(preset.filters),
+      ...(graphicEq ? { graphicEq } : {}),
+    };
+  } catch {
+    return undefined;
+  }
+};
+
+export const hasPresetBaseline = (presetName: string, baselineDir: string) => {
+  const safeName = safeBaselineName(presetName);
+  return safeName ? fs.existsSync(path.join(baselineDir, safeName)) : false;
+};
+
+export const deletePresetBaseline = (
+  presetName: string,
+  baselineDir: string,
+) => {
+  const safeName = safeBaselineName(presetName);
+  if (!safeName) {
+    return;
+  }
+  try {
+    fs.unlinkSync(path.join(baselineDir, safeName));
+  } catch {
+    // Nothing to remove is the normal case for a profile never saved by hand.
+  }
+};
+
+export const renamePresetBaseline = (
+  oldName: string,
+  newName: string,
+  baselineDir: string,
+) => {
+  const safeOld = safeBaselineName(oldName);
+  const safeNew = safeBaselineName(newName);
+  if (!safeOld || !safeNew) {
+    return;
+  }
+  try {
+    fs.renameSync(
+      path.join(baselineDir, safeOld),
+      path.join(baselineDir, safeNew),
+    );
+  } catch {
+    // The profile may never have been saved by hand; that is not an error.
+  }
 };
 
 export const deletePreset = (presetName: string, presetsDir: string) => {

@@ -23,14 +23,136 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * a purchase: nothing in the app is gated behind it and the app never asks
  * twice on its own.
  *
- * The destinations come from build-time environment variables (see
+ * Every destination comes from a build-time environment variable (see
  * .env.example), never from a committed literal. Two reasons: a payment
- * destination is per-maintainer rather than per-project, and a wrong Bitcoin
+ * destination is per-maintainer rather than per-project, and a wrong crypto
  * address sends money to a stranger with no way to recover it — so a fork that
  * forgets to set its own must get NO donate button rather than inherit
- * somebody else's. Everything below defaults to empty and the UI stays hidden
- * until a destination validates.
+ * somebody else's. Everything defaults to empty and each method stays hidden
+ * until its destination validates.
  */
+
+/**
+ * Where the "already contributed" flag lives.
+ *
+ * A hosted checkout opens in the browser and a crypto transfer happens on a
+ * chain, so the app genuinely cannot tell whether anyone paid. The flag is
+ * therefore self-declared and unlocks a reward only — nothing is ever taken
+ * away, so there is no incentive to lie and no cost when someone does.
+ */
+export const SUPPORT_CONTRIBUTED_KEY = 'fluideq.hasContributed';
+
+export type SupportMethodId =
+  | 'stripe'
+  | 'coffee'
+  | 'bitcoin'
+  | 'ethereum'
+  | 'litecoin'
+  | 'dogecoin'
+  | 'monero'
+  | 'solana'
+  | 'cardano'
+  | 'tron';
+
+/** A chain whose address is validated only by shape, never by checksum. */
+export interface ICryptoAsset {
+  id: SupportMethodId;
+  /** Ticker shown to the donor. */
+  symbol: string;
+  name: string;
+  /** Extra guidance where sending to the wrong network loses the funds. */
+  network: string;
+  /** Shape check. Deliberately not full validation — that belongs in a wallet. */
+  pattern: RegExp;
+  /** BIP-21 style URI scheme, when the chain has a widely supported one. */
+  uriScheme?: string;
+  /** Key in ISupportConfig.crypto. */
+  configKey: string;
+}
+
+/**
+ * The chains offered, in the order they are shown.
+ *
+ * Patterns are conservative shape checks: they reject placeholders, pasted
+ * URLs and obviously truncated strings, and nothing more. Checksum validation
+ * (base58, bech32, EIP-55, CRC) is a wallet's job — the meaningful protection
+ * here is that an unset value shows no option at all.
+ */
+export const CRYPTO_ASSETS: ICryptoAsset[] = [
+  {
+    id: 'bitcoin',
+    symbol: 'BTC',
+    name: 'Bitcoin',
+    network: 'Bitcoin mainnet',
+    // bech32/bech32m (bc1...) and legacy base58 (1... / 3...).
+    pattern: /^(bc1[02-9ac-hj-np-z]{7,71}|[13][1-9A-HJ-NP-Za-km-z]{25,34})$/,
+    uriScheme: 'bitcoin',
+    configKey: 'bitcoinAddress',
+  },
+  {
+    id: 'ethereum',
+    symbol: 'ETH',
+    name: 'Ethereum',
+    // The same address format is used by every EVM chain, so the network
+    // matters more here than anywhere else on this list.
+    network: 'Ethereum mainnet (ERC-20)',
+    pattern: /^0x[0-9a-fA-F]{40}$/,
+    uriScheme: 'ethereum',
+    configKey: 'ethereumAddress',
+  },
+  {
+    id: 'litecoin',
+    symbol: 'LTC',
+    name: 'Litecoin',
+    network: 'Litecoin mainnet',
+    pattern: /^(ltc1[02-9ac-hj-np-z]{7,71}|[LM3][1-9A-HJ-NP-Za-km-z]{25,34})$/,
+    uriScheme: 'litecoin',
+    configKey: 'litecoinAddress',
+  },
+  {
+    id: 'dogecoin',
+    symbol: 'DOGE',
+    name: 'Dogecoin',
+    network: 'Dogecoin mainnet',
+    pattern: /^D[1-9A-HJ-NP-Za-km-z]{25,34}$/,
+    uriScheme: 'dogecoin',
+    configKey: 'dogecoinAddress',
+  },
+  {
+    id: 'monero',
+    symbol: 'XMR',
+    name: 'Monero',
+    network: 'Monero mainnet',
+    pattern: /^[48][0-9AB][1-9A-HJ-NP-Za-km-z]{93}$/,
+    uriScheme: 'monero',
+    configKey: 'moneroAddress',
+  },
+  {
+    id: 'solana',
+    symbol: 'SOL',
+    name: 'Solana',
+    network: 'Solana mainnet',
+    pattern: /^[1-9A-HJ-NP-Za-km-z]{32,44}$/,
+    configKey: 'solanaAddress',
+  },
+  {
+    id: 'cardano',
+    symbol: 'ADA',
+    name: 'Cardano',
+    network: 'Cardano mainnet (Shelley)',
+    pattern: /^addr1[02-9ac-hj-np-z]{20,110}$/,
+    configKey: 'cardanoAddress',
+  },
+  {
+    id: 'tron',
+    symbol: 'TRX',
+    name: 'Tron',
+    network: 'Tron mainnet (TRC-20)',
+    pattern: /^T[1-9A-HJ-NP-Za-km-z]{33}$/,
+    configKey: 'tronAddress',
+  },
+];
+
 export interface ISupportConfig {
   /**
    * A Stripe Payment Link (https://buy.stripe.com/...) or Stripe-hosted
@@ -38,33 +160,52 @@ export interface ISupportConfig {
    * which is why they are the right fit here: the app only ever opens a URL.
    */
   stripeUrl: string;
-  /** On-chain Bitcoin address that receives contributions. */
-  bitcoinAddress: string;
-  /** Shown next to the address so a donor can confirm where it goes. */
-  bitcoinLabel: string;
+  /** A Buy Me a Coffee page (https://buymeacoffee.com/...) or Ko-fi. */
+  coffeeUrl: string;
+  /** Address per chain, keyed by ICryptoAsset.configKey. */
+  crypto: Record<string, string>;
+  /** Shown next to an address so a donor can confirm where it goes. */
+  cryptoLabel: string;
   /** Where the code lives, for people who would rather contribute time. */
   repositoryUrl: string;
 }
 
-/** The build-time variables this module reads. */
 export interface ISupportEnv {
   FLUIDEQ_STRIPE_URL?: string;
+  FLUIDEQ_COFFEE_URL?: string;
   FLUIDEQ_BITCOIN_ADDRESS?: string;
-  FLUIDEQ_BITCOIN_LABEL?: string;
+  FLUIDEQ_ETHEREUM_ADDRESS?: string;
+  FLUIDEQ_LITECOIN_ADDRESS?: string;
+  FLUIDEQ_DOGECOIN_ADDRESS?: string;
+  FLUIDEQ_MONERO_ADDRESS?: string;
+  FLUIDEQ_SOLANA_ADDRESS?: string;
+  FLUIDEQ_CARDANO_ADDRESS?: string;
+  FLUIDEQ_TRON_ADDRESS?: string;
+  FLUIDEQ_CRYPTO_LABEL?: string;
   FLUIDEQ_REPOSITORY_URL?: string;
 }
 
-const DEFAULT_BITCOIN_LABEL = 'FluidEQ development';
+const DEFAULT_CRYPTO_LABEL = 'FluidEQ development';
 const DEFAULT_REPOSITORY_URL = 'https://github.com/StartSWest/FluidEQ';
+
+const clean = (value: string | undefined) => (value || '').trim();
 
 /** Pure so the gating can be tested without touching the real environment. */
 export const buildSupportConfig = (env: ISupportEnv): ISupportConfig => ({
-  stripeUrl: (env.FLUIDEQ_STRIPE_URL || '').trim(),
-  bitcoinAddress: (env.FLUIDEQ_BITCOIN_ADDRESS || '').trim(),
-  bitcoinLabel:
-    (env.FLUIDEQ_BITCOIN_LABEL || '').trim() || DEFAULT_BITCOIN_LABEL,
-  repositoryUrl:
-    (env.FLUIDEQ_REPOSITORY_URL || '').trim() || DEFAULT_REPOSITORY_URL,
+  stripeUrl: clean(env.FLUIDEQ_STRIPE_URL),
+  coffeeUrl: clean(env.FLUIDEQ_COFFEE_URL),
+  crypto: {
+    bitcoinAddress: clean(env.FLUIDEQ_BITCOIN_ADDRESS),
+    ethereumAddress: clean(env.FLUIDEQ_ETHEREUM_ADDRESS),
+    litecoinAddress: clean(env.FLUIDEQ_LITECOIN_ADDRESS),
+    dogecoinAddress: clean(env.FLUIDEQ_DOGECOIN_ADDRESS),
+    moneroAddress: clean(env.FLUIDEQ_MONERO_ADDRESS),
+    solanaAddress: clean(env.FLUIDEQ_SOLANA_ADDRESS),
+    cardanoAddress: clean(env.FLUIDEQ_CARDANO_ADDRESS),
+    tronAddress: clean(env.FLUIDEQ_TRON_ADDRESS),
+  },
+  cryptoLabel: clean(env.FLUIDEQ_CRYPTO_LABEL) || DEFAULT_CRYPTO_LABEL,
+  repositoryUrl: clean(env.FLUIDEQ_REPOSITORY_URL) || DEFAULT_REPOSITORY_URL,
 });
 
 // Each variable is read as its own static member expression because that is
@@ -73,35 +214,71 @@ export const buildSupportConfig = (env: ISupportEnv): ISupportConfig => ({
 // which has no real process object, would come up empty.
 export const SUPPORT_CONFIG: ISupportConfig = buildSupportConfig({
   FLUIDEQ_STRIPE_URL: process.env.FLUIDEQ_STRIPE_URL,
+  FLUIDEQ_COFFEE_URL: process.env.FLUIDEQ_COFFEE_URL,
   FLUIDEQ_BITCOIN_ADDRESS: process.env.FLUIDEQ_BITCOIN_ADDRESS,
-  FLUIDEQ_BITCOIN_LABEL: process.env.FLUIDEQ_BITCOIN_LABEL,
+  FLUIDEQ_ETHEREUM_ADDRESS: process.env.FLUIDEQ_ETHEREUM_ADDRESS,
+  FLUIDEQ_LITECOIN_ADDRESS: process.env.FLUIDEQ_LITECOIN_ADDRESS,
+  FLUIDEQ_DOGECOIN_ADDRESS: process.env.FLUIDEQ_DOGECOIN_ADDRESS,
+  FLUIDEQ_MONERO_ADDRESS: process.env.FLUIDEQ_MONERO_ADDRESS,
+  FLUIDEQ_SOLANA_ADDRESS: process.env.FLUIDEQ_SOLANA_ADDRESS,
+  FLUIDEQ_CARDANO_ADDRESS: process.env.FLUIDEQ_CARDANO_ADDRESS,
+  FLUIDEQ_TRON_ADDRESS: process.env.FLUIDEQ_TRON_ADDRESS,
+  FLUIDEQ_CRYPTO_LABEL: process.env.FLUIDEQ_CRYPTO_LABEL,
   FLUIDEQ_REPOSITORY_URL: process.env.FLUIDEQ_REPOSITORY_URL,
 });
 
-export type SupportMethodId = 'stripe' | 'bitcoin';
+/**
+ * Shape check for one chain's address.
+ *
+ * Catches an unfilled placeholder, a pasted URL or a truncated string, and
+ * nothing more. Real validation means checksumming base58, bech32 and EIP-55,
+ * which belongs in a wallet, not in an equaliser.
+ */
+export const looksLikeCryptoAddress = (
+  asset: ICryptoAsset,
+  address: string,
+): boolean => asset.pattern.test(address.trim());
+
+/** Kept for the Bitcoin-only call sites that predate the multi-chain list. */
+export const looksLikeBitcoinAddress = (address: string): boolean =>
+  looksLikeCryptoAddress(CRYPTO_ASSETS[0], address);
+
+const isConfiguredUrl = (value: string, prefix: string): boolean => {
+  const trimmed = value.trim();
+  return trimmed.startsWith(prefix) && trimmed.length > prefix.length;
+};
+
+/** One configured crypto destination, ready to render. */
+export interface ISupportCrypto {
+  asset: ICryptoAsset;
+  address: string;
+  /** Payment URI, or empty when the chain has no widely supported scheme. */
+  uri: string;
+}
+
+export const getSupportCryptos = (
+  config: ISupportConfig = SUPPORT_CONFIG,
+): ISupportCrypto[] =>
+  CRYPTO_ASSETS.flatMap((asset) => {
+    const address = (config.crypto?.[asset.configKey] || '').trim();
+    if (!looksLikeCryptoAddress(asset, address)) {
+      return [];
+    }
+    const label = config.cryptoLabel.trim();
+    // No amount is ever preset — that is the donor's call.
+    const uri = asset.uriScheme
+      ? `${asset.uriScheme}:${address}${
+          label ? `?label=${encodeURIComponent(label)}` : ''
+        }`
+      : '';
+    return [{ asset, address, uri }];
+  });
 
 export interface ISupportMethod {
   id: SupportMethodId;
   label: string;
   description: string;
 }
-
-/**
- * Basic sanity check on a Bitcoin address.
- *
- * This is deliberately a shape check, not validation: it catches an unfilled
- * placeholder or a pasted URL, and nothing more. Real validation means
- * checksumming base58 and bech32, which belongs in a wallet, not in an EQ.
- */
-export const looksLikeBitcoinAddress = (address: string): boolean =>
-  /^(bc1[02-9ac-hj-np-z]{7,71}|[13][1-9A-HJ-NP-Za-km-z]{25,34})$/.test(
-    address.trim(),
-  );
-
-const isConfiguredUrl = (value: string, prefix: string): boolean => {
-  const trimmed = value.trim();
-  return trimmed.startsWith(prefix) && trimmed.length > prefix.length;
-};
 
 /** The contribution methods this build actually has a destination for. */
 export const getSupportMethods = (
@@ -117,13 +294,21 @@ export const getSupportMethods = (
     });
   }
 
-  if (looksLikeBitcoinAddress(config.bitcoinAddress)) {
+  if (isConfiguredUrl(config.coffeeUrl, 'https://')) {
     methods.push({
-      id: 'bitcoin',
-      label: 'Bitcoin',
-      description: 'Send on-chain to the address below.',
+      id: 'coffee',
+      label: 'Buy me a coffee',
+      description: 'One-off tip, no account needed. Opens in your browser.',
     });
   }
+
+  getSupportCryptos(config).forEach(({ asset }) => {
+    methods.push({
+      id: asset.id,
+      label: asset.name,
+      description: `Send on-chain — ${asset.network}.`,
+    });
+  });
 
   return methods;
 };
@@ -132,19 +317,9 @@ export const isSupportAvailable = (
   config: ISupportConfig = SUPPORT_CONFIG,
 ): boolean => getSupportMethods(config).length > 0;
 
-/**
- * BIP-21 payment URI, so a desktop wallet can open pre-filled instead of the
- * donor hand-copying an address. No amount is set — that is the donor's call.
- */
+/** BIP-21 payment URI for Bitcoin specifically. */
 export const getBitcoinUri = (
   config: ISupportConfig = SUPPORT_CONFIG,
-): string => {
-  const address = config.bitcoinAddress.trim();
-  if (!looksLikeBitcoinAddress(address)) {
-    return '';
-  }
-  const label = config.bitcoinLabel.trim();
-  return label
-    ? `bitcoin:${address}?label=${encodeURIComponent(label)}`
-    : `bitcoin:${address}`;
-};
+): string =>
+  getSupportCryptos(config).find((entry) => entry.asset.id === 'bitcoin')
+    ?.uri ?? '';
