@@ -82,7 +82,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transition: scale 90ms ease-out;
 }
 
-.support-pet.is-listening .support-pet__body {
+// Everything that moves to the music is behind the contribution badge, squash
+// included. It used to run for everyone, on the theory that a pet reacting to
+// your music is a nicer default — but from the outside there is no telling a
+// bounce from a dance, so it just looked like the reward was leaking. Without
+// the badge the creature still breathes and blinks; it just does not hear the
+// music.
+.support-pet.is-celebrating.is-listening .support-pet__body {
   // Squash and stretch with the music. Bounded so it never leaves its box.
   scale: calc(1 - var(--pet-level) * 0.07) calc(1 + var(--pet-level) * 0.16);
   animation: none;
@@ -91,10 +97,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .support-pet__ears {
   transform-box: fill-box;
   transform-origin: 50% 100%;
-  scale: 1 calc(1 + var(--pet-level) * 0.45);
   transition:
     scale 90ms ease-out,
     transform 90ms ease-out;
+}
+
+.support-pet.is-celebrating .support-pet__ears {
+  scale: 1 calc(1 + var(--pet-level) * 0.45);
 }
 
 // A blink is a fast vertical squash, which is cheap and reads instantly even
@@ -137,35 +146,52 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The rare treat: a proper little dance, layered on top of the audio squash.
+// Swaying to the music is the contribution reward, and it runs the whole time
+// something is playing, layered on top of the audio squash everyone gets.
 //
-// Three cycles at a 2:1 ratio so they lock together like beats rather than
-// drifting: a slow weight shift from side to side, a bob at double time, and
-// the ears trailing a little behind the body the way real secondary motion
-// does. Everything is eased in and out, and the amplitudes are small — this
-// lives in a titlebar, so it should read as swaying to the music, not
-// vibrating.
-.support-pet.is-dancing .support-pet__art {
-  // Slower than the old 1360ms: a comfortable head-nodding tempo is nearer 70
-  // bpm than 90, and the holds need room to be felt.
+// It used to be locked behind the occasional dance — a seven-second event that
+// fires roughly once every three minutes and only above a level threshold —
+// which meant the reward for contributing was something almost nobody ever
+// saw, and the two bug reports about it were really one bug.
+//
+// The cycles run at a 2:1 ratio so they lock together like beats rather than
+// drifting: a weight shift from side to side, a bob at double time, and the
+// ears trailing a little behind the body the way real secondary motion does.
+// Amplitudes stay small — this lives in a titlebar, so it should read as
+// swaying to the music, not vibrating. The pivot sits low, so the lean hinges
+// where a neck would rather than spinning the whole creature about its centre.
+.support-pet.is-celebrating.is-listening .support-pet__art {
+  // A comfortable head-nodding tempo is nearer 70 bpm than 90, and the holds
+  // need room to be felt.
   animation: pet-sway 1800ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
-  // The pivot sits low, so the lean hinges where a neck would rather than
-  // spinning the whole creature about its centre.
   transform-origin: 50% 88%;
 }
 
-.support-pet.is-dancing .support-pet__body {
-  animation: pet-bob 900ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+.support-pet.is-celebrating.is-listening .support-pet__ears {
+  animation: pet-ear-sway 1800ms cubic-bezier(0.4, 0, 0.2, 1) 140ms infinite;
+}
+
+// The dance is still the rare one, and now it has to be visibly more than the
+// sway or there is no point to it: same shape, half again as fast, with the
+// bob on top. It matches the sway's specificity and wins on source order —
+// dancing implies both other states, so naming them costs nothing.
+.support-pet.is-celebrating.is-dancing .support-pet__art {
+  animation: pet-sway 1150ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: 50% 88%;
+}
+
+.support-pet.is-celebrating.is-dancing .support-pet__body {
+  animation: pet-bob 575ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
 // The ears ride the bob in lockstep with the body — vertical travel is what
-// keeps them attached to the head — while the tilt trails 110ms behind it.
+// keeps them attached to the head — while the tilt trails 90ms behind it.
 // Secondary motion in the rotation reads as life; secondary motion in the
 // attachment just reads as broken.
-.support-pet.is-dancing .support-pet__ears {
+.support-pet.is-celebrating.is-dancing .support-pet__ears {
   animation:
-    pet-ear-sway 1800ms cubic-bezier(0.4, 0, 0.2, 1) 140ms infinite,
-    pet-bob 900ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    pet-ear-sway 1150ms cubic-bezier(0.4, 0, 0.2, 1) 90ms infinite,
+    pet-bob 575ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
 // Same reason as the press: the star is pinned to the head, so it bobs with
@@ -173,7 +199,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .support-pet.is-celebrating.is-dancing .support-pet__star {
   animation:
     pet-twinkle 2.6s ease-in-out infinite,
-    pet-bob 900ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    pet-bob 575ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
 // Hero size inside the support dialog.
@@ -306,9 +332,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .support-pet__body,
   .support-pet__eyes,
   .support-pet__ears,
-  .support-pet.is-dancing .support-pet__art,
-  .support-pet.is-dancing .support-pet__body,
-  .support-pet.is-dancing .support-pet__ears,
+  .support-pet.is-celebrating.is-dancing .support-pet__art,
+  .support-pet.is-celebrating.is-dancing .support-pet__body,
+  .support-pet.is-celebrating.is-dancing .support-pet__ears,
+  .support-pet.is-celebrating.is-listening .support-pet__art,
+  .support-pet.is-celebrating.is-listening .support-pet__ears,
   .support-pet.is-celebrating .support-pet__star {
     animation: none;
     scale: none;
