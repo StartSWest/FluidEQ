@@ -101,17 +101,28 @@ const resolvePreAmp = (
         )
       : 0;
 
-  // The convolution's own response, which is described by its filter set.
-  const convolutionPeak =
-    hasConvolution && state.convolution
-      ? getChainPeakGain(Object.values(state.convolution.filters || {}))
-      : 0;
+  // A downloaded impulse response is already normalised by whoever published
+  // it — the filter set stored alongside it is only a sketch for the graph, so
+  // treating it as real gain reserves headroom nothing is using and makes the
+  // output quieter than it needs to be. Only an impulse FluidEQ generated
+  // itself, which has no file of its own, is worth counting.
+  const convolutionFilters =
+    hasConvolution && state.convolution && !state.convolution.fileName
+      ? Object.values(state.convolution.filters || {})
+      : [];
 
-  const filterPeak = getChainPeakGain(writtenFilters);
+  // One combined peak over everything, not a sum of separate peaks. Boosts at
+  // different frequencies never coincide, and adding their peaks would throw
+  // away volume for headroom that is never needed — the same reasoning the
+  // band chain already uses.
+  const filterPeak = getChainPeakGain([
+    ...writtenFilters,
+    ...convolutionFilters,
+  ]);
 
   // Cuts need no headroom, so a chain that only cuts reserves nothing. The
-  // stages are in series, so their boosts genuinely add.
-  return -Math.max(0, filterPeak + graphicPeak + convolutionPeak);
+  // graphic curve is a separate APO stage, so its boost does stack on top.
+  return -Math.max(0, filterPeak + graphicPeak);
 };
 
 export const stateToString = (
@@ -684,7 +695,17 @@ export const repairUnusedPreamps = (presetsDir: string): string[] => {
         const preset = JSON.parse(fs.readFileSync(presetPath, 'utf8'));
         // Only the unambiguous case: nothing is being boosted, yet the profile
         // still carries gain.
-        if (preset?.isFlat !== true || !preset.preAmp) {
+        //
+        // isAutoPreAmpOn === false is exactly the flag that says "this number
+        // is the user's", so a profile carrying it is off limits however odd
+        // the value looks. A cleared EQ can still boost, too — the voicing and
+        // driver layers are written outside the isFlat check — so a manual
+        // preamp on a flat profile is not necessarily leftover at all.
+        if (
+          preset?.isFlat !== true ||
+          !preset.preAmp ||
+          preset.isAutoPreAmpOn === false
+        ) {
           return;
         }
         fs.writeFileSync(

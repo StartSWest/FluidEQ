@@ -23,8 +23,6 @@ interface ISidebarSectionProps {
   /** Small caps line above the title. */
   eyebrow: string;
   title: string;
-  /** Optional status pill on the right of the header. */
-  badge?: ReactNode;
   children: ReactNode;
 }
 
@@ -32,18 +30,17 @@ interface ISidebarSectionProps {
  * One section of the output sidebar.
  *
  * The three sections — the output, what you listen on, and your saved sound —
- * were each built by hand and drifted: different headings, different padding,
- * one with no title at all. This gives them a single shape and lets any of
- * them fold away, because on a short window all three at once do not fit and
- * the one you are not using should be the one that gives up its room.
+ * were each built separately and had drifted: different heading markup,
+ * different padding, one with no title at all. This gives them a single shape
+ * and lets any of them fold away, because on a short window all three at once
+ * do not fit and the one you are not using should give up its room.
  *
- * Open by default. Collapsing is for reclaiming space, not a setting to
- * discover, so nothing is hidden until the user chooses to hide it.
+ * Open by default. Collapsing reclaims space; it is not a setting to discover,
+ * so nothing is hidden until the user chooses to hide it.
  */
 export default function SidebarSection({
   eyebrow,
   title,
-  badge,
   children,
 }: ISidebarSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
@@ -62,7 +59,6 @@ export default function SidebarSection({
           <span className="eyebrow">{eyebrow}</span>
           <span className="sidebar-section__title">{title}</span>
         </span>
-        {badge}
         <svg
           className="sidebar-section__chevron"
           viewBox="0 0 24 24"
@@ -70,19 +66,19 @@ export default function SidebarSection({
           focusable="false"
         >
           <path
-            d="M6 9l6 6 6-6"
+            d="M7 10l5 5 5-5"
             fill="none"
             stroke="currentColor"
-            strokeWidth="2"
+            strokeWidth="1.8"
             strokeLinecap="round"
             strokeLinejoin="round"
           />
         </svg>
       </button>
 
-      {/* The 0fr to 1fr grid row is the one height transition that does not
-          need a measured pixel value, so the content can be any size and the
-          animation still runs. */}
+      {/* A 0fr to 1fr grid row is the one height transition that needs no
+          measured pixel value, so a section can hold anything — including a
+          list that grows — and still open smoothly. */}
       <div className="sidebar-section__reveal" id={contentId}>
         <div className="sidebar-section__body">{children}</div>
       </div>

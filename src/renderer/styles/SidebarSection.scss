@@ -7,27 +7,27 @@
   border: 1px solid rgba($primary-lighter, 0.1);
   border-radius: $radius-l;
   background: rgba(#0a141f, 0.42);
-  overflow: hidden;
 }
 
-// The whole header is the toggle. A separate chevron button would put a 20px
-// target next to a 260px inert one, which is the wrong way round.
+// The whole header toggles. A separate chevron button would put a 16px target
+// beside a 260px inert one, which is the wrong way round.
 .sidebar-section__header {
   display: grid;
   min-width: 0;
   align-items: center;
   gap: 10px;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  padding: 11px 13px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  padding: 12px 13px;
   color: inherit;
   border: 0;
   background: transparent;
   text-align: left;
   cursor: pointer;
+  border-radius: $radius-l;
   transition: $transition-control;
 
-  &:hover {
-    background: rgba($secondary-default, 0.06);
+  &:hover .sidebar-section__chevron {
+    color: rgba($secondary-light, 0.85);
   }
 
   &:focus-visible {
@@ -50,12 +50,15 @@
   letter-spacing: -0.01em;
 }
 
+// Quiet: it marks a section that can fold, it is not an action to advertise.
 .sidebar-section__chevron {
-  width: 15px;
-  height: 15px;
-  color: rgba($primary-lighter, 0.6);
+  width: 14px;
+  height: 14px;
+  color: rgba($primary-lighter, 0.42);
   rotate: -90deg;
-  transition: rotate 220ms cubic-bezier(0.32, 0.72, 0, 1);
+  transition:
+    rotate 240ms cubic-bezier(0.32, 0.72, 0, 1),
+    color 160ms ease;
 }
 
 .sidebar-section.is-open .sidebar-section__chevron {
@@ -63,12 +66,11 @@
 }
 
 // Animating grid-template-rows between 0fr and 1fr is the only height
-// transition that works without measuring the content first, so a section can
-// hold anything and still open smoothly.
+// transition that works without measuring the content first.
 .sidebar-section__reveal {
   display: grid;
   grid-template-rows: 0fr;
-  transition: grid-template-rows 240ms cubic-bezier(0.32, 0.72, 0, 1);
+  transition: grid-template-rows 260ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
 .sidebar-section.is-open .sidebar-section__reveal {
@@ -76,20 +78,19 @@
 }
 
 .sidebar-section__body {
+  display: grid;
+  min-width: 0;
   min-height: 0;
+  gap: 8px;
   // The child of a 0fr row still paints unless it is told not to.
   overflow: hidden;
+  padding: 0 13px;
 }
 
 .sidebar-section.is-open .sidebar-section__body {
-  // Only once open, or the panel clips its own dropdown menus.
+  // Only once open, or the section clips its own dropdown menus.
+  padding-bottom: 13px;
   overflow: visible;
-}
-
-// One inner padding for every section, so the three read as a set instead of
-// three separately-built cards.
-.sidebar-section__body > * {
-  padding: 0 13px 13px;
 }
 
 @media (prefers-reduced-motion: reduce) {

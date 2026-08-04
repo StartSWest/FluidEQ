@@ -23,7 +23,7 @@
     "type": "git",
     "url": "git+https://github.com/StartSWest/FluidEQ.git"
   },
-  "license": "GPLv3",
+  "license": "GPL-3.0-or-later",
   "author": {
     "name": "FluidEQ contributors"
   },
@@ -252,7 +252,9 @@
       ]
     },
     "nsis": {
-      "runAfterFinish": false
+      "runAfterFinish": false,
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "license": "assets/licenses/LICENSE.txt"
     },
     "linux": {
       "target": [

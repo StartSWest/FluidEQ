@@ -17,7 +17,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 // Heavily modified from the validator generated from @rkesters/typescript-json-validator
+import { FilterTypeEnum } from './constants';
+
 const Ajv = require('ajv');
+
+/**
+ * Every filter type the app can actually produce, taken from the enum itself.
+ *
+ * These schemas used to hard-code ['HSC', 'LSC', 'PK'] while the band dropdown
+ * offered seven types and the IPC handler accepted all seven. Choosing Notch,
+ * Low Pass, High Pass or Band Pass therefore wrote a state file that failed its
+ * own validation on the next launch — and the recovery path preserves the type,
+ * so it failed too. The result was a silent reset to ten default bands, which
+ * auto-save then wrote over the user's named profile. Deriving the list means
+ * adding a type can never reintroduce that.
+ */
+const FILTER_TYPE_VALUES = Object.values(FilterTypeEnum);
 
 export const ajv = new Ajv({
   allErrors: true,
@@ -38,7 +53,7 @@ const IStateSchema = {
   defaultProperties: [],
   definitions: {
     FilterTypeEnum: {
-      enum: ['HSC', 'LSC', 'PK'],
+      enum: FILTER_TYPE_VALUES,
       type: 'string',
     },
     AutoEqFormat: {
@@ -123,7 +138,7 @@ export const IPresetSchemaV1 = {
   defaultProperties: [],
   definitions: {
     FilterTypeEnum: {
-      enum: ['HSC', 'LSC', 'PK'],
+      enum: FILTER_TYPE_VALUES,
       type: 'string',
     },
     AutoEqFormat: {
@@ -188,7 +203,7 @@ const IPresetSchemaV2 = {
   defaultProperties: [],
   definitions: {
     FilterTypeEnum: {
-      enum: ['HSC', 'LSC', 'PK'],
+      enum: FILTER_TYPE_VALUES,
       type: 'string',
     },
     AutoEqFormat: {
