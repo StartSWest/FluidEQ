@@ -219,11 +219,47 @@ export interface IRhythmScore {
 }
 
 /**
+ * What an imprecise hit costs, as a share of the running total.
+ *
+ * A SHARE, not a fixed amount, and this is the entire mechanism that makes the
+ * score mean accuracy rather than endurance.
+ *
+ * The obvious designs all fail the same way. If great and good add points, time
+ * beats precision outright — tap roughly for an hour and you pass anyone
+ * flawless. If they simply add nothing, the flawless player is still only ahead
+ * per-tap: the sloppy player's perfect taps keep landing, so their total still
+ * climbs without limit and they pass anyone who stops playing. Even a fixed
+ * penalty loses, because it is eventually small next to a large total.
+ *
+ * A proportional penalty changes the shape of the outcome rather than its
+ * speed. Losing a share means the amount lost grows with the score, so any
+ * steady rate of imprecision reaches a point where what a mistake takes equals
+ * what the taps between mistakes put back — and the total stops there, however
+ * long the session runs. A player who never errs has no such point and grows
+ * without bound.
+ *
+ * So the ceiling is set by accuracy and nothing else. Someone erring every
+ * other tap plateaus in the hundreds; someone erring once in a hundred
+ * plateaus in the hundreds of thousands; someone who never errs has no
+ * plateau. Playing longer moves nobody past their own accuracy.
+ *
+ * Great costs half what good does, because the difference between "slightly
+ * off" and "nearly missed" is the thing the player is learning and flattening
+ * it teaches nothing.
+ */
+const GREAT_SCORE_FRACTION = 0.12;
+const GOOD_SCORE_FRACTION = 0.25;
+
+/**
  * The running score after a tap.
  *
- * Hits are multiplied by the streak, misses take a share of the total. Floored
- * at zero: a negative score reads as a punishment rather than a game, and there
- * is nowhere to come back from.
+ * ONLY A PERFECT ADDS ANYTHING. Everything else takes a share of the total
+ * away, which is what makes the number describe how accurately somebody played
+ * rather than how long they sat there — see the fractions above for why a
+ * share and not an amount.
+ *
+ * Everything floors at zero: a negative score reads as a punishment rather
+ * than a game, and there is nowhere to come back from.
  */
 export const applyRhythmScore = (
   state: IRhythmScore,
@@ -235,14 +271,33 @@ export const applyRhythmScore = (
     return { score: Math.max(0, Math.round(state.score - lost)), streak: 0 };
   }
 
-  const gained = Math.round(hit.points * getStreakMultiplier(state.streak));
-  // Only a perfect grows the multiplier. Great and good still score, and still
-  // keep what has been built, but the ceiling is meant to be reached by playing
-  // accurately rather than by playing at all — a streak that any hit advances
-  // is just a count of taps.
+  // The streak is left alone. Only the total moves.
+  //
+  // Taking the multiplier as well was tried and it put the ceiling out of
+  // reach: thirty-six consecutive perfects is already a long climb, and
+  // knocking it back several steps on every near-miss meant most players never
+  // saw euphoria mode at all. The score penalty is what enforces precision;
+  // the multiplier is what makes the climb feel possible, and punishing the
+  // same mistake twice only removed the reason to keep going.
+  //
+  // It costs nothing to give away, because the two do different jobs. A high
+  // multiplier makes the taps between mistakes worth more, which raises where
+  // this player's total settles — it does not remove the settling. Someone
+  // erring one tap in ten still has a ceiling; a higher multiplier just means
+  // a higher one, which is right, because they are playing well.
+  if (hit.verdict !== 'perfect') {
+    const fraction =
+      hit.verdict === 'great' ? GREAT_SCORE_FRACTION : GOOD_SCORE_FRACTION;
+    return {
+      score: Math.max(0, Math.round(state.score * (1 - fraction))),
+      streak: state.streak,
+    };
+  }
+
   return {
-    score: state.score + gained,
-    streak: hit.verdict === 'perfect' ? state.streak + 1 : state.streak,
+    score:
+      state.score + Math.round(hit.points * getStreakMultiplier(state.streak)),
+    streak: state.streak + 1,
   };
 };
 

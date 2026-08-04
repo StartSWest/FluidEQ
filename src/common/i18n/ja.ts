@@ -238,8 +238,6 @@ const ja: Partial<Dictionary> = {
 
   'support.game.listening': 'ビートを探しています…',
 
-  'support.game.best': '最高記録',
-
   'support.game.share': '共有',
 
   'support.game.shareEuphoria': 'ユーフォリアを共有',

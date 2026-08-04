@@ -237,8 +237,6 @@ const ru: Partial<Dictionary> = {
 
   'support.game.listening': 'Ищем ритм…',
 
-  'support.game.best': 'Рекорд',
-
   'support.game.share': 'Поделиться',
 
   'support.game.shareEuphoria': 'Поделиться эйфорией',

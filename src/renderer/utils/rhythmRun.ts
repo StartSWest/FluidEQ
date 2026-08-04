@@ -34,24 +34,23 @@ import { IRhythmScore } from 'common/rhythmGame';
 let run: IRhythmScore = { score: 0, streak: 0 };
 
 /**
- * Where the high score lives. It is meant to survive everything.
+ * Keys the game used to persist a record under.
  *
- * Kept here rather than in the game component because the reset below has to
- * clear it too, and that reset is triggered from the shell — which is nowhere
- * near the game. One module owns everything a run consists of.
- */
-export const RHYTHM_HIGH_SCORE_KEY = 'fluideq-rhythm-high-score';
-
-/**
- * The multiplier that was running when the high score was set.
+ * There is no record any more. It was removed once only perfect taps scored:
+ * with that rule the live number already says how well this run is going, and
+ * a stored best beside it was a second number describing a run that is over,
+ * competing for attention with the one being played. The card shares what is
+ * on screen now rather than reaching back for something better from last week.
  *
- * Stored beside the score rather than derived, because it cannot be recovered
- * afterwards — the streak that produced it is long gone. It exists so the
- * share card can say what the record actually was: a number on its own does
- * not distinguish a patient run from thirty-six perfect taps in a row, and the
- * multiplier is the part worth bragging about.
+ * Listed so the reset below can still clear them from installs that wrote
+ * them. Dropping the keys without dropping the data would leave two orphans in
+ * local storage forever, and "the development reset does not actually reset"
+ * is a bad thing to discover later.
  */
-export const RHYTHM_BEST_MULTIPLIER_KEY = 'fluideq-rhythm-best-multiplier';
+const RETIRED_KEYS = [
+  'fluideq-rhythm-high-score',
+  'fluideq-rhythm-best-multiplier',
+];
 
 const listeners = new Set<() => void>();
 
@@ -77,8 +76,7 @@ export const setRhythmRun = (next: IRhythmScore) => {
  * would ever be in.
  */
 export const resetRhythmRun = () => {
-  window.localStorage.removeItem(RHYTHM_HIGH_SCORE_KEY);
-  window.localStorage.removeItem(RHYTHM_BEST_MULTIPLIER_KEY);
+  RETIRED_KEYS.forEach((key) => window.localStorage.removeItem(key));
   setRhythmRun({ score: 0, streak: 0 });
 };
 

@@ -265,7 +265,6 @@ const en = {
     'If any of this made you smile, ideas and support are what keep it coming.',
   'support.game.noAudio': 'Play something and the beat shows up here',
   'support.game.listening': 'Listening for the beat…',
-  'support.game.best': 'Best',
   'support.game.share': 'Share',
   'support.game.shareEuphoria': 'Share euphoria',
   'support.game.shareTitle': 'Share your score',

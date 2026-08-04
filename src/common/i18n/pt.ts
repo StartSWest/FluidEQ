@@ -238,8 +238,6 @@ const pt: Partial<Dictionary> = {
 
   'support.game.listening': 'Procurando o ritmo…',
 
-  'support.game.best': 'Recorde',
-
   'support.game.share': 'Partilhar',
 
   'support.game.shareEuphoria': 'Partilhar a euforia',

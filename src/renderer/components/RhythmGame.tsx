@@ -42,13 +42,7 @@ import {
   useLiveAudioFrame,
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
-import {
-  RHYTHM_BEST_MULTIPLIER_KEY,
-  RHYTHM_HIGH_SCORE_KEY,
-  getRhythmRun,
-  setRhythmRun,
-  useRhythmRun,
-} from '../utils/rhythmRun';
+import { getRhythmRun, setRhythmRun, useRhythmRun } from '../utils/rhythmRun';
 import { useTranslation } from '../utils/I18nContext';
 import ShareScoreCard from './ShareScoreCard';
 import '../styles/RhythmGame.scss';
@@ -101,18 +95,6 @@ export interface IRhythmGameHandle {
   registerTap: () => IRhythmTapResult | undefined;
 }
 
-const readBestMultiplier = () => {
-  const stored = Number(
-    window.localStorage.getItem(RHYTHM_BEST_MULTIPLIER_KEY),
-  );
-  return Number.isFinite(stored) && stored >= 1 ? stored : 1;
-};
-
-const readHighScore = () => {
-  const stored = Number(window.localStorage.getItem(RHYTHM_HIGH_SCORE_KEY));
-  return Number.isFinite(stored) && stored > 0 ? Math.floor(stored) : 0;
-};
-
 /**
  * Jump the pet over the percussion of whatever is playing.
  *
@@ -129,8 +111,6 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   const stateRef = useRef<IPercussionState>(createPercussionState());
   // Held outside the component, so closing the dialog does not end the run.
   const run = useRhythmRun();
-  const [highScore, setHighScore] = useState(readHighScore);
-  const [bestMultiplier, setBestMultiplier] = useState(readBestMultiplier);
   // Replaces the whole panel, not just the trace. The card is about a run the
   // player has stepped away from to look at a picture of it, so leaving the
   // instruction, the score and a live waveform around it both crowds the card
@@ -196,16 +176,6 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     // that earned them.
     const next = applyRhythmScore(getRhythmRun(), hit);
     setRhythmRun(next);
-    if (next.score > readHighScore()) {
-      window.localStorage.setItem(RHYTHM_HIGH_SCORE_KEY, String(next.score));
-      setHighScore(next.score);
-      // Captured with the score rather than tracked separately: this is the
-      // multiplier that produced the record, and once the streak breaks there
-      // is no way back to it.
-      const peak = getStreakMultiplier(next.streak);
-      window.localStorage.setItem(RHYTHM_BEST_MULTIPLIER_KEY, String(peak));
-      setBestMultiplier(peak);
-    }
 
     return { verdict: hit.verdict, joy: getStreakJoy(next.streak) };
   }, []);
@@ -352,20 +322,20 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
 
   const isEuphoric = getStreakJoy(run.streak) >= EUPHORIA_AT;
   /**
-   * What the card is about.
+   * What the card is about: this run, always.
    *
-   * The live run while it is at the ceiling, and the stored record otherwise.
+   * It used to fall back to a stored record, which produced the wrong picture
+   * in the one case that matters — someone at ×10 right now, whole window
+   * running the spectrum, pressing share and getting a card about a quieter
+   * run from last Tuesday. The offer is made because of what is happening, so
+   * it has to be about what is happening.
    *
-   * Sharing the high score during euphoria would be the wrong picture: someone
-   * at ×10 right now, watching the whole window run the spectrum, pressing
-   * share and getting a card about a quieter run from last Tuesday. The offer
-   * is made because of what is happening, so it has to be about what is
-   * happening — even when an older run scored more.
+   * With only perfect taps scoring, the live number is also the honest one:
+   * it cannot be inflated by playing for longer, so there is nothing a record
+   * would add beyond a second figure describing a run nobody is watching.
    */
-  const shareScore = isEuphoric ? run.score : highScore;
-  const shareMultiplier = isEuphoric
-    ? getStreakMultiplier(run.streak)
-    : bestMultiplier;
+  const shareScore = run.score;
+  const shareMultiplier = getStreakMultiplier(run.streak);
 
   useEffect(
     () => () => {

@@ -226,8 +226,6 @@ const zh: Partial<Dictionary> = {
 
   'support.game.listening': '正在寻找节拍…',
 
-  'support.game.best': '最高分',
-
   'support.game.share': '分享',
 
   'support.game.shareEuphoria': '分享狂喜时刻',

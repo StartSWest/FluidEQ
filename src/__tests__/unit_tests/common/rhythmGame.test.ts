@@ -166,13 +166,100 @@ describe('applyRhythmScore', () => {
     expect(taps).toBeLessThanOrEqual(12);
   });
 
-  it('grows the streak only on a perfect', () => {
-    // Great and good still score and still keep what has been built, but the
-    // ceiling is reached by playing accurately rather than by playing at all.
-    const start = { score: 0, streak: 4 };
-    expect(applyRhythmScore(start, gradeRhythmTap(0)).streak).toBe(5);
-    expect(applyRhythmScore(start, gradeRhythmTap(70)).streak).toBe(4);
-    expect(applyRhythmScore(start, gradeRhythmTap(150)).streak).toBe(4);
+  it('grows the streak only on a perfect, and never takes it back', () => {
+    // Precision is enforced by the score, not by the multiplier. Taking the
+    // streak as well put the ceiling out of reach - thirty-six consecutive
+    // perfects is already a long climb, and knocking it back on every
+    // near-miss meant most players never saw euphoria mode at all.
+    const start = { score: 0, streak: 8 };
+    expect(applyRhythmScore(start, gradeRhythmTap(0)).streak).toBe(9);
+    expect(applyRhythmScore(start, gradeRhythmTap(70)).streak).toBe(8);
+    expect(applyRhythmScore(start, gradeRhythmTap(150)).streak).toBe(8);
+  });
+
+  it('still reaches the ceiling for a player who slips now and then', () => {
+    // The reason the streak is left alone, asserted. Two near-misses on the
+    // way up must not stop anyone getting there.
+    let state = { score: 0, streak: 0 };
+    for (let tap = 0; tap < 40; tap += 1) {
+      state = applyRhythmScore(
+        state,
+        tap === 10 || tap === 25 ? gradeRhythmTap(150) : perfect(),
+      );
+    }
+    expect(getStreakMultiplier(state.streak)).toBe(10);
+  });
+
+  it('never lets an imprecise hit add to the total', () => {
+    // The moment great or good pays anything, patience starts beating
+    // accuracy: enough sloppy taps out-scores any flawless run.
+    const start = { score: 1000, streak: 10 };
+    expect(applyRhythmScore(start, gradeRhythmTap(70)).score).toBeLessThan(
+      1000,
+    );
+    expect(applyRhythmScore(start, gradeRhythmTap(150)).score).toBeLessThan(
+      1000,
+    );
+  });
+
+  it('costs a share of the total, so the penalty scales with the run', () => {
+    // A fixed cost is eventually nothing next to a large score, which is how a
+    // patient player creeps past a precise one.
+    const small = applyRhythmScore(
+      { score: 100, streak: 0 },
+      gradeRhythmTap(150),
+    );
+    const large = applyRhythmScore(
+      { score: 100000, streak: 0 },
+      gradeRhythmTap(150),
+    );
+    expect(100 - small.score).toBeLessThan(100000 - large.score);
+  });
+
+  it('caps an imprecise player however long they play', () => {
+    // The property the whole design exists for, simulated rather than asserted.
+    //
+    // Nine perfects then one good, forever. What the good takes grows with the
+    // total, so it eventually equals what the nine put back and the score
+    // stops climbing - no matter how many more taps follow.
+    const play = (rounds: number) => {
+      let state = { score: 0, streak: 0 };
+      for (let round = 0; round < rounds; round += 1) {
+        for (let tap = 0; tap < 9; tap += 1) {
+          state = applyRhythmScore(state, perfect());
+        }
+        state = applyRhythmScore(state, gradeRhythmTap(150));
+      }
+      return state.score;
+    };
+    const early = play(200);
+    const later = play(2000);
+    // Ten times the taps buys under a percent more score: this player has
+    // found their ceiling and more time cannot move it.
+    expect(later).toBeLessThan(early * 1.01);
+  });
+
+  it('lets a flawless player pass any imprecise one, given the taps', () => {
+    // The other half of the guarantee: no ceiling at all when nothing is
+    // dropped, so precision always wins in the end.
+    let sloppy = { score: 0, streak: 0 };
+    for (let round = 0; round < 2000; round += 1) {
+      for (let tap = 0; tap < 9; tap += 1) {
+        sloppy = applyRhythmScore(sloppy, perfect());
+      }
+      sloppy = applyRhythmScore(sloppy, gradeRhythmTap(150));
+    }
+
+    let flawless = { score: 0, streak: 0 };
+    let taps = 0;
+    while (flawless.score <= sloppy.score) {
+      flawless = applyRhythmScore(flawless, perfect());
+      taps += 1;
+      if (taps > 100000) {
+        throw new Error('a flawless run should always overtake in the end');
+      }
+    }
+    expect(flawless.score).toBeGreaterThan(sloppy.score);
   });
 
   it('resets the streak on a miss, so a disaster costs the multiplier too', () => {

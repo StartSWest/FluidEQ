@@ -238,8 +238,6 @@ const it: Partial<Dictionary> = {
 
   'support.game.listening': 'Cerco il ritmo…',
 
-  'support.game.best': 'Record',
-
   'support.game.share': 'Condividi',
 
   'support.game.shareEuphoria': "Condividi l'euforia",

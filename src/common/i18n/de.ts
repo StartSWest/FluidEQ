@@ -239,8 +239,6 @@ const de: Partial<Dictionary> = {
 
   'support.game.listening': 'Takt wird gesucht…',
 
-  'support.game.best': 'Rekord',
-
   'support.game.share': 'Teilen',
 
   'support.game.shareEuphoria': 'Euphorie teilen',

@@ -243,8 +243,6 @@ const hi: Partial<Dictionary> = {
 
   'support.game.listening': 'ताल खोजी जा रही है…',
 
-  'support.game.best': 'सर्वश्रेष्ठ',
-
   'support.game.share': 'साझा करें',
 
   'support.game.shareEuphoria': 'यूफोरिया साझा करें',
