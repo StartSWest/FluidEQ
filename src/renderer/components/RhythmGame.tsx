@@ -377,47 +377,32 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
           look below it — and deliberately vague about the reward, since
           spoiling it costs the only surprise the app has. */}
       <p className="rhythm-game__howto">{t('support.game.howTo')}</p>
+      {/* The record used to sit here and no longer appears anywhere. It is
+          still kept, because the card falls back to it when the current run is
+          not the one worth showing, but as a line of type it was a third
+          number competing with the two that describe what is happening right
+          now — and the score already says whether this run is going well. */}
       <div className="rhythm-game__scores">
-        <span className="rhythm-game__score">{run.score}</span>
-        {/* A streak nobody can see is a hidden rule, and a player who cannot
-            tell what a run is worth has no reason to protect it. */}
-        {run.streak > 1 && (
-          <span className="rhythm-game__streak">
-            ×
-            {getStreakMultiplier(run.streak)
-              .toFixed(2)
-              .replace(/\.?0+$/, '')}
-          </span>
-        )}
-        {/* Off to the side, so the run keeps the middle to itself — the same
-            division the card makes between what happened just now and
-            everything else. */}
-        <div className="rhythm-game__aside">
-          {isEuphoric && (
-            <span className="euphoria-pill">{t('support.game.euphoria')}</span>
-          )}
-          <span className="rhythm-game__best">
-            {t('support.game.best')} {highScore}
-          </span>
-          {/* Nothing to share until there is a record. Offering it at zero is
-              an empty button and an invitation to post a score of nothing.
+        <span className="rhythm-game__score">
+          {run.score}
+          {/* A streak nobody can see is a hidden rule, and a player who cannot
+              tell what a run is worth has no reason to protect it.
 
-              At the ceiling it stops being a quiet outline and turns into the
-              spectrum, because that is the moment worth showing anyone — the
-              share is being offered while the thing it captures is on screen,
-              rather than being a footnote next to a number. */}
-          {shareScore > 0 && !isSharing && (
-            <button
-              type="button"
-              className={`rhythm-game__share${isEuphoric ? ' is-euphoric' : ''}`}
-              onClick={() => setIsSharing(true)}
-            >
-              {isEuphoric
-                ? t('support.game.shareEuphoria')
-                : t('support.game.share')}
-            </button>
+              Inside the score and hung off its right edge rather than beside
+              it in a row. A row would centre the PAIR, so the score itself
+              would sit left of centre and would shift again every time the
+              multiplier gained a digit — while the creature above it and the
+              target line below it both stay on the true middle. This way the
+              number holds the centre line and the pill hangs off it. */}
+          {run.streak > 1 && (
+            <span className="rhythm-game__streak">
+              ×
+              {getStreakMultiplier(run.streak)
+                .toFixed(2)
+                .replace(/\.?0+$/, '')}
+            </span>
           )}
-        </div>
+        </span>
       </div>
 
       {isSharing ? (
@@ -490,6 +475,16 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
             </span>
           )}
 
+          {/* Corner of the trace, because the trace is what euphoria mode
+              actually changes — it is the thing that turns rainbow, and the
+              badge naming it belongs on the thing it describes rather than up
+              in a row of numbers that look the same either way. */}
+          {isEuphoric && (
+            <span className="euphoria-pill rhythm-game__mode">
+              {t('support.game.euphoria')}
+            </span>
+          )}
+
           {/* Directly under the pet, which is what the creature is jumping.
             Keyed on the tap so two perfects in a row both flash — re-applying
             the same class to an element that already has it does nothing. */}
@@ -549,6 +544,35 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
           </span>
         )}
       </p>
+
+      {/* Under the verdict, because that is the line that says you just did
+          something worth showing anyone. Nothing to share until there is a
+          record — offering it at zero is an empty button and an invitation to
+          post a score of nothing.
+
+          At the ceiling it stops being a quiet outline and turns into the
+          spectrum: the offer is made while the thing it captures is still on
+          screen, rather than as a footnote beside a number. */}
+      {shareScore > 0 && !isSharing && (
+        <button
+          type="button"
+          className={`rhythm-game__share${isEuphoric ? ' is-euphoric' : ''}`}
+          onClick={() => setIsSharing(true)}
+        >
+          {/* The standard share glyph — a node linked to two others. Drawn
+              rather than imported because it is the only place in the app that
+              needs one, and it is nine lines. */}
+          <svg viewBox="0 0 16 16" aria-hidden="true" focusable="false">
+            <circle cx="12.5" cy="3" r="2.1" />
+            <circle cx="12.5" cy="13" r="2.1" />
+            <circle cx="3.5" cy="8" r="2.1" />
+            <path d="M5.4 7 L10.6 4.1 M5.4 9 L10.6 11.9" />
+          </svg>
+          {isEuphoric
+            ? t('support.game.shareEuphoria')
+            : t('support.game.share')}
+        </button>
+      )}
 
       {/* The ask, and it stays quiet. This is only ever read by someone who has
           already given — the game is behind the badge — so it is a thank you

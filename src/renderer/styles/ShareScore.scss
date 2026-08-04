@@ -142,18 +142,43 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The button that opens all this, living in the game's score row.
+// The button that opens all this.
+//
+// Under the verdict, which is the line that just said you did something worth
+// showing anyone — rather than tucked in the score row, where it was competing
+// with the number for the same corner. Centred on its own line and sized like
+// a real control, because it is one.
 .rhythm-game__share {
-  padding: 2px 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-self: center;
+  gap: 7px;
+  padding: 5px 14px;
   color: $secondary-light;
   border: 1px solid rgba($secondary-default, 0.35);
   border-radius: $radius-pill;
   background: transparent;
-  font-size: 0.66rem;
+  font-size: 0.74rem;
   font-weight: 700;
   letter-spacing: 0.04em;
   cursor: pointer;
   transition: $transition-control;
+
+  // Two nodes linked to a third. Stroked for the links and filled for the
+  // nodes, so it stays legible at 13px where a single-weight outline goes to
+  // mush.
+  svg {
+    width: 13px;
+    height: 13px;
+    fill: currentColor;
+    stroke: currentColor;
+    stroke-width: 1.3;
+    stroke-linecap: round;
+
+    path {
+      fill: none;
+    }
+  }
 
   &:hover {
     color: $white;

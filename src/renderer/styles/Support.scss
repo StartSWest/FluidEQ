@@ -103,6 +103,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding-bottom: 0;
 }
 
+// Nothing above the game is selectable.
+//
+// The game is played by hammering space and clicking the creature, and both of
+// those are text-selection gestures to a browser: a run of taps left the
+// eyebrow and the heading sitting in a blue selection block, which looks like
+// the panel has broken rather than like a game being played. The addresses and
+// the pitch below are deliberately NOT included — those are there to be
+// selected and copied by hand, and a copy button is not a substitute for being
+// able to check what you are about to paste.
+.support-dialog__header,
+.rhythm-game__scores,
+.rhythm-game__howto,
+.rhythm-game__verdict,
+.rhythm-game__trace {
+  user-select: none;
+}
+
 .support-dialog__identity {
   display: flex;
   min-width: 0;
