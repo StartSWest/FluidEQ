@@ -1,6 +1,6 @@
 {
   "name": "fluideq",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "type": "commonjs",
   "description": "Open-source system-wide parametric EQ with automatic per-device profiles",
   "keywords": [
@@ -266,7 +266,7 @@
       "icon": "assets/icon.ico"
     },
     "nsis": {
-      "runAfterFinish": false,
+      "runAfterFinish": true,
       "artifactName": "${productName}-Setup-${version}.${ext}",
       "license": "assets/licenses/LICENSE.txt",
       "multiLanguageInstaller": true,

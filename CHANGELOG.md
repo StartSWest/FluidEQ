@@ -6,6 +6,26 @@ opens it again any time.
 
 ---
 
+## 0.6.1
+
+### Fixed
+
+- **The graph could not draw.** 0.6.0 shipped a build that dropped d3's
+  transition module, so every animated part of the response chart threw
+  `e.transition is not a function` and the window came up broken. The build had
+  been told d3 was free of side effects, which is true of almost all of it and
+  false of exactly the piece that matters: transitions install themselves onto
+  d3's selections when the module is evaluated, and nothing refers to them by
+  name, so the bundler quite reasonably concluded they were unused and removed
+  them. 0.6.0 has been withdrawn.
+
+### Changed
+
+- **The installer opens FluidEQ when it finishes.** Updates already did; a
+  fresh install left you looking at a closed wizard.
+
+---
+
 ## 0.6.0
 
 ### New

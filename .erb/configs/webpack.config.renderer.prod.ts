@@ -46,26 +46,23 @@ const configuration: webpack.Configuration = {
 
   module: {
     rules: [
-      // d3 ships as ESM but declares no `sideEffects` field, so webpack has to
-      // assume every one of its thirty submodules might do something on
-      // evaluation and keeps them all. The graph imports the namespace and
-      // touches nine symbols — a selection, two axes, an easing, a formatter
-      // and min/max — while d3-geo, d3-force, d3-contour, d3-delaunay,
-      // d3-hierarchy, d3-chord and the rest come along and are parsed at
-      // startup for nothing.
+      // d3 is NOT marked side-effect free, and the missing rule here is the
+      // point.
       //
-      // They are pure function exports, which is what this asserts. Marking
-      // them side-effect free lets webpack drop the unreferenced submodules
-      // outright, so they cost neither installer bytes nor the memory and
-      // startup time of being parsed. Done here rather than by rewriting the
-      // imports to `d3-selection` and friends because those are transitive
-      // packages: under pnpm's isolated layout they are not resolvable from
-      // the project root, so that route means adding six dependencies to
-      // achieve what one rule already does.
-      {
-        test: /[\\/]node_modules[\\/]d3(-[a-z]+)?[\\/]/,
-        sideEffects: false,
-      },
+      // It was marked so once, on the reasoning that its submodules are pure
+      // function exports. That is true of most of them and false of the one
+      // that matters: `d3-transition` does its work by attaching `transition`
+      // and `interrupt` to `selection.prototype` when it is evaluated, and
+      // nothing imports either by name. Told the package had no side effects,
+      // webpack correctly concluded nothing referenced it and dropped it — and
+      // every `.transition()` in the graph became "e.transition is not a
+      // function" the moment a chart tried to draw. It shipped.
+      //
+      // The rule is not worth repairing. Measured on its own it saved 567
+      // bytes; the 44% the renderer actually lost came from emitting ESM in
+      // ts-loader so webpack could see the import graph at all, which is
+      // untouched and does its work without anyone having to assert anything
+      // about a library's internals.
       {
         test: /\.s?(a|c)ss$/,
         use: [
