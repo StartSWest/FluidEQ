@@ -62,6 +62,7 @@ import { ColorEnum, SecondaryColorEnum } from '../styles/color';
 import { useLiveAudio } from '../audio/LiveAudioContext';
 import { getBandColor } from '../utils/bandColors';
 import { getVoicingFilters } from '../../common/voicing';
+import { getDriverFilters } from '../../common/driver';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
 
@@ -106,6 +107,7 @@ const FrequencyResponseChart = () => {
     hoveredFilterId,
     setHoveredFilterId,
     voicing,
+    driver,
   } = useAquaContext();
   const prevFilters = useRef<IFiltersMap>({});
   const prevFilterLines = useRef<IChartLineDataPointsById>({});
@@ -359,6 +361,22 @@ const FrequencyResponseChart = () => {
     });
     const hasVoicing = Object.keys(voicingFilterLines).length > 0;
 
+    // Driver compensation is a third APO layer, so it gets the same treatment:
+    // its own curve, from the same biquad code, rather than an invisible
+    // correction the user has to take on trust.
+    const driverFilterLines: IChartLineDataPointsById = {};
+    getDriverFilters(driver).forEach((filter, index) => {
+      const id = `driver-${index}`;
+      driverFilterLines[id] = getFilterLineData({
+        id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      });
+    });
+    const hasDriver = Object.keys(driverFilterLines).length > 0;
+
     const convolutionFilterLines: IChartLineDataPointsById = {};
     Object.values(convolution?.filters || {}).forEach((filter) => {
       convolutionFilterLines[filter.id] = getFilterLineData(filter);
@@ -373,19 +391,35 @@ const FrequencyResponseChart = () => {
       ...convolutionFilterLines,
       ...updatedFilterLines,
       ...voicingFilterLines,
+      ...driverFilterLines,
     });
     const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
     const eqCurveData = getCombinedLineData(preAmp, updatedFilterLines);
     const voicingCurveData = hasVoicing
       ? getCombinedLineData(0, voicingFilterLines)
       : [];
-    // What actually reaches the ears once both layers are applied.
-    const totalCurveData = hasVoicing
+    const driverCurveData = hasDriver
+      ? getCombinedLineData(0, driverFilterLines)
+      : [];
+    // What actually reaches the ears once every layer is applied. Worth its own
+    // curve because the layers are written separately but heard together, and
+    // two gentle corrections in the same region are not obviously gentle once
+    // they add up.
+    const hasExtraLayers = hasVoicing || hasDriver;
+    const totalCurveData = hasExtraLayers
       ? getCombinedLineData(preAmp, {
           ...updatedFilterLines,
           ...voicingFilterLines,
+          ...driverFilterLines,
         })
       : [];
+    const totalCurveName = [
+      'EQ',
+      hasVoicing ? 'voicing' : '',
+      hasDriver ? 'driver' : '',
+    ]
+      .filter(Boolean)
+      .join(' + ');
     const sortedFilters = Object.values(filters).sort(
       (a, b) => a.frequency - b.frequency,
     );
@@ -443,11 +477,31 @@ const FrequencyResponseChart = () => {
                   points: voicingCurveData,
                 },
               } as IChartCurveData,
+            ]
+          : []),
+        // Driver compensation gets the same treatment as the voicing: its own
+        // curve, so a correction applied on your behalf is visible rather than
+        // taken on trust.
+        ...(hasDriver
+          ? [
+              {
+                id: 'Driver',
+                name: 'Driver compensation',
+                line: {
+                  color: ColorEnum.DRIVER,
+                  strokeWidth: 2,
+                  points: driverCurveData,
+                },
+              } as IChartCurveData,
+            ]
+          : []),
+        ...(hasExtraLayers
+          ? [
               {
                 id: 'Total Response',
-                name: 'EQ + voicing',
+                name: totalCurveName,
                 line: {
-                  color: ColorEnum.ANALOGOUS1,
+                  color: ColorEnum.TOTAL,
                   strokeWidth: 2,
                   points: totalCurveData,
                 },
@@ -471,7 +525,7 @@ const FrequencyResponseChart = () => {
       // preamp so the graph and APO remain in sync without auto-adjusting it.
       autoPreAmpValue: isAutoPreAmpOn ? calculatedAutoPreAmpValue : preAmp,
     };
-  }, [convolution, filters, isAutoPreAmpOn, preAmp, voicing]);
+  }, [convolution, driver, filters, isAutoPreAmpOn, preAmp, voicing]);
 
   useEffect(() => {
     // Auto normalize writes Equalizer APO's Preamp headroom value. When it is
@@ -624,12 +678,21 @@ const FrequencyResponseChart = () => {
         )}
         <span className="graph-legend graph-legend--eq">EQ response</span>
         {voicing?.profileId ? (
-          <>
-            <span className="graph-legend graph-legend--voicing">Voicing</span>
-            <span className="graph-legend graph-legend--total">
-              EQ + voicing
-            </span>
-          </>
+          <span className="graph-legend graph-legend--voicing">Voicing</span>
+        ) : null}
+        {driver?.profileId ? (
+          <span className="graph-legend graph-legend--driver">Driver</span>
+        ) : null}
+        {voicing?.profileId || driver?.profileId ? (
+          <span className="graph-legend graph-legend--total">
+            {[
+              'EQ',
+              voicing?.profileId ? 'voicing' : '',
+              driver?.profileId ? 'driver' : '',
+            ]
+              .filter(Boolean)
+              .join(' + ')}
+          </span>
         ) : null}
         <span className="graph-legend graph-legend--live">
           Live output (0 dB = track peak)

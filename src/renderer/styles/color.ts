@@ -43,6 +43,15 @@ export enum ColorEnum {
   // Analogous
   ANALOGOUS1 = '#ff4f9a',
   ANALOGOUS2 = '#54ff8a',
+
+  // The graph had three pinks within a few degrees of hue of each other —
+  // convolution #ff3cac, the total #ff4f9a and triadic2 #ff4fd8 — which made
+  // the curves genuinely hard to tell apart. These two are deliberately far
+  // from everything else on the wheel.
+  /** Driver compensation layer. */
+  DRIVER = '#ffb648',
+  /** The sum of every layer, kept neutral so it reads as a result. */
+  TOTAL = '#dbe7ff',
 }
 
 export enum GrayScaleEnum {

@@ -930,8 +930,15 @@ $tab-border: rgba($secondary-light, 0.2);
   background: $triadic-1;
 }
 
+// Amber and near-white, chosen to sit well away from the three pinks the graph
+// already had. Must match ColorEnum.DRIVER and ColorEnum.TOTAL exactly, or the
+// legend swatch names a colour that is not on the chart.
+.graph-legend--driver::before {
+  background: #ffb648;
+}
+
 .graph-legend--total::before {
-  background: $analogous-1;
+  background: #dbe7ff;
 }
 
 .graph-edit-hint {

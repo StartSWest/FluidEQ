@@ -309,6 +309,26 @@ const getAutomaticPresetName = (deviceId: string) =>
 const isAutomaticPresetName = (presetName: string) =>
   presetName.startsWith(AUTOMATIC_PRESET_PREFIX);
 
+/**
+ * Adopt a device's EQ state without touching app-wide preferences.
+ *
+ * isEnabled, Auto normalize, the graph toggle and the filesystem-case flag are
+ * settings for FluidEQ, not for a pair of headphones. They live in the same
+ * IState as the EQ, so assigning a device's state wholesale used to turn the
+ * engine back on for anyone who had switched it off, simply because Windows
+ * changed the default output.
+ */
+const applyDeviceState = (next: IState) => {
+  const {
+    isEnabled,
+    isAutoPreAmpOn,
+    isGraphViewOn,
+    isCaseSensitiveFs,
+    ...deviceState
+  } = next;
+  Object.assign(state, deviceState);
+};
+
 const getCurrentPreset = (): IPresetV2 => ({
   preAmp: state.preAmp,
   filters: state.filters,
@@ -316,6 +336,11 @@ const getCurrentPreset = (): IPresetV2 => ({
   graphicEq: state.graphicEq,
   convolution: state.convolution,
   isFlat: state.isFlat,
+  // Without these two the device-profile block is rendered from a preset that
+  // has no idea they exist, and both layers vanish from the config the moment
+  // a profile is attached.
+  voicing: state.voicing,
+  driver: state.driver,
 });
 
 const switchToParametricEditing = () => {
@@ -552,6 +577,8 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     state.graphicEq = presetSettings.graphicEq;
     state.convolution = presetSettings.convolution;
     state.isFlat = presetSettings.isFlat;
+    state.voicing = presetSettings.voicing;
+    state.driver = presetSettings.driver;
     attachPresetToActiveDevice(presetName);
     await handleUpdate(event, channel, true);
   } catch (ex) {
@@ -585,6 +612,8 @@ ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
     state.graphicEq = baseline.graphicEq;
     state.convolution = baseline.convolution;
     state.isFlat = baseline.isFlat;
+    state.voicing = baseline.voicing;
+    state.driver = baseline.driver;
     // Restoring writes the profile back to the baseline, but deliberately does
     // NOT rewrite the baseline itself — restoring twice in a row is a no-op
     // rather than a way to lose the copy.
@@ -730,8 +759,7 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
       // A device switch always starts from that device's attached profile or
       // a clean neutral state. Never carry a previous output's transient EQ.
       hasActiveSessionOverride = false;
-      Object.assign(
-        state,
+      applyDeviceState(
         getStateForAudioDevice(
           deviceProfileSettings,
           activeDevice.id,
@@ -797,7 +825,7 @@ ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
   activeAudioDeviceId = arg[0] as string;
   clearCurrentLayoutSettings();
   hasActiveSessionOverride = false;
-  Object.assign(state, nextState);
+  applyDeviceState(nextState);
   await handleUpdate(event, channel);
 });
 

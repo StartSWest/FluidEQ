@@ -193,6 +193,17 @@ export interface IPresetV2 {
   isFlat?: boolean;
   /** Optional headset correction rendered as an APO convolution before EQ. */
   convolution?: IConvolutionProfile;
+  /**
+   * The voicing and driver layers belong to the profile, not to the session.
+   *
+   * Device profile blocks are rendered from the preset file alone, so anything
+   * missing here simply never reaches Equalizer APO — which is exactly what
+   * used to happen to both of these once a device had a profile attached.
+   * Storing them per profile also matches how they are used: different
+   * headphones want different driver compensation.
+   */
+  voicing?: IVoicingSettings;
+  driver?: IDriverSettings;
 }
 
 export interface IConvolutionProfile {
