@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useState } from 'react';
+import { useEffect, useRef } from 'react';
 import { ErrorDescription } from 'common/errors';
 import {
   VOICING_PROFILES,
@@ -29,26 +29,50 @@ import { useAquaContext } from './utils/AquaContext';
 import { setVoicing as setVoicingApi } from './utils/equalizerApi';
 import './styles/Voicing.scss';
 
+/** Coalesces a strength drag into a single config write. */
+const WRITE_DEBOUNCE_MS = 140;
+
 const VoicingPanel = () => {
   const { isBlockingError, isEnabled, setGlobalError, voicing, setVoicing } =
     useAquaContext();
-  const [isBusy, setIsBusy] = useState(false);
 
   const activeId = voicing?.profileId ?? '';
   const intensity = voicing?.intensity ?? 1;
 
-  const apply = async (profileId: string, nextIntensity: number) => {
-    // Optimistic: the slider has to track the pointer, and the write is a
-    // local file, not a network call.
+  const writeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  useEffect(
+    () => () => {
+      if (writeTimer.current !== undefined) {
+        clearTimeout(writeTimer.current);
+      }
+    },
+    [],
+  );
+
+  /**
+   * Apply a change, coalescing the writes behind it.
+   *
+   * The UI updates immediately — the slider has to track the pointer. The write
+   * is deferred because dragging the strength across its range fired one IPC
+   * call per step, each rewriting the APO config and making Equalizer APO
+   * reload, and each toggling the busy flag that greyed out the cards. The
+   * trailing write wins, so the file still matches the control.
+   */
+  const apply = (profileId: string, nextIntensity: number) => {
     setVoicing({ profileId, intensity: nextIntensity });
-    setIsBusy(true);
-    try {
-      await setVoicingApi(profileId, nextIntensity);
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
-    } finally {
-      setIsBusy(false);
+
+    if (writeTimer.current !== undefined) {
+      clearTimeout(writeTimer.current);
     }
+    writeTimer.current = setTimeout(() => {
+      writeTimer.current = undefined;
+      setVoicingApi(profileId, nextIntensity).catch((e) =>
+        setGlobalError(e as ErrorDescription),
+      );
+    }, WRITE_DEBOUNCE_MS);
   };
 
   const activeProfile = VOICING_PROFILES.find(
@@ -75,7 +99,7 @@ const VoicingPanel = () => {
           role="radio"
           aria-checked={activeId === ''}
           className={`voicing-card${activeId === '' ? ' is-active' : ''}`}
-          disabled={isBlockingError || !isEnabled || isBusy}
+          disabled={isBlockingError || !isEnabled}
           onClick={() => apply('', intensity)}
         >
           <span className="voicing-card__icon">
@@ -94,7 +118,7 @@ const VoicingPanel = () => {
             className={`voicing-card${
               activeId === profile.id ? ' is-active' : ''
             }`}
-            disabled={isBlockingError || !isEnabled || isBusy}
+            disabled={isBlockingError || !isEnabled}
             onClick={() => apply(profile.id, intensity)}
           >
             <span className="voicing-card__icon">

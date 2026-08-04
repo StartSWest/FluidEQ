@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { ErrorDescription } from 'common/errors';
 import {
   DRIVER_CATEGORY_LABELS,
@@ -32,6 +32,14 @@ import { IOptionEntry } from '../widgets/List';
 import '../styles/DriverPicker.scss';
 
 /**
+ * How long to wait after the last change before writing.
+ *
+ * Long enough to coalesce a slider drag into one write, short enough that
+ * letting go and listening feels immediate.
+ */
+const WRITE_DEBOUNCE_MS = 140;
+
+/**
  * Driver compensation, chosen from a single combo on the EQ page.
  *
  * Deliberately one control rather than a card grid: unlike voicing, this is
@@ -41,7 +49,6 @@ import '../styles/DriverPicker.scss';
 const DriverPicker = () => {
   const { isBlockingError, isEnabled, driver, setDriver, setGlobalError } =
     useAquaContext();
-  const [isBusy, setIsBusy] = useState(false);
 
   const activeId = driver?.profileId ?? '';
   const intensity = driver?.intensity ?? 0.6;
@@ -100,17 +107,39 @@ const DriverPicker = () => {
     return entries;
   }, []);
 
-  const apply = async (profileId: string, nextIntensity: number) => {
-    // Optimistic: the slider tracks the pointer and the write is a local file.
+  const writeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  useEffect(
+    () => () => {
+      if (writeTimer.current !== undefined) {
+        clearTimeout(writeTimer.current);
+      }
+    },
+    [],
+  );
+
+  /**
+   * Apply a change, coalescing the writes behind it.
+   *
+   * The UI updates immediately — the slider has to track the pointer. The IPC
+   * write does not: dragging from 0 to 100 in 5% steps fired twenty of them,
+   * each one rewriting the APO config and making Equalizer APO reload it. The
+   * trailing write wins, so the file still ends up matching the control.
+   */
+  const apply = (profileId: string, nextIntensity: number) => {
     setDriver({ profileId, intensity: nextIntensity });
-    setIsBusy(true);
-    try {
-      await setDriverApi(profileId, nextIntensity);
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
-    } finally {
-      setIsBusy(false);
+
+    if (writeTimer.current !== undefined) {
+      clearTimeout(writeTimer.current);
     }
+    writeTimer.current = setTimeout(() => {
+      writeTimer.current = undefined;
+      setDriverApi(profileId, nextIntensity).catch((e) =>
+        setGlobalError(e as ErrorDescription),
+      );
+    }, WRITE_DEBOUNCE_MS);
   };
 
   return (
@@ -119,11 +148,15 @@ const DriverPicker = () => {
         <span className="eyebrow" id="driver-picker-title">
           WHAT YOU LISTEN ON
         </span>
+        {/* Deliberately not disabled on isBusy. Every step of a strength drag
+            starts and finishes a write, so gating the combo on that made it
+            flash between enabled and disabled the whole time the slider moved.
+            A local file write is not worth locking the control for. */}
         <Dropdown
           name="Driver type"
           options={options}
           value={activeId}
-          isDisabled={isBlockingError || !isEnabled || isBusy}
+          isDisabled={isBlockingError || !isEnabled}
           handleChange={(value) => apply(value, intensity)}
         />
       </div>
