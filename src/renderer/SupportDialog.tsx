@@ -33,8 +33,16 @@ interface ISupportDialogProps {
   hasContributed: boolean;
   onContributed: () => void;
   onClose: () => void;
-  /** Swap this dialog for the release notes. */
+  /** Open the release notes on top of this dialog. */
   onShowReleaseNotes: () => void;
+  /**
+   * True while another dialog is stacked over this one.
+   *
+   * Both dialogs listen for Escape on the document and both trap Tab, so the
+   * covered one has to stand down or a single keypress closes them both and
+   * focus is fought over between two modals.
+   */
+  isCovered?: boolean;
 }
 
 const COPY_FEEDBACK_MS = 2000;
@@ -44,6 +52,7 @@ export default function SupportDialog({
   onContributed,
   onClose,
   onShowReleaseNotes,
+  isCovered = false,
 }: ISupportDialogProps) {
   const { t } = useTranslation();
   const methods = getSupportMethods();
@@ -55,6 +64,9 @@ export default function SupportDialog({
   const [copiedId, setCopiedId] = useState<SupportMethodId | ''>('');
 
   useEffect(() => {
+    if (isCovered) {
+      return undefined;
+    }
     closeRef.current?.focus();
 
     const onKeyDown = (event: KeyboardEvent) => {
@@ -85,7 +97,7 @@ export default function SupportDialog({
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [onClose]);
+  }, [isCovered, onClose]);
 
   useEffect(
     () => () => {

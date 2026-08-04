@@ -12,10 +12,13 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
+// Above the support dialog, which sits at 1400. The notes can be opened from
+// inside it and close back onto it, so they have to stack rather than share a
+// level and depend on DOM order.
 .whats-new-backdrop {
   @include animate(fade-in, $motion-fast);
   position: fixed;
-  z-index: 1400;
+  z-index: 1450;
   inset: 0;
   display: grid;
   padding: $spacing-m;

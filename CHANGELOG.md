@@ -9,6 +9,10 @@ opens it again any time.
 ## Unreleased
 
 - The installer asks which language to use, preselecting your Windows one.
+- The release notes open on top of the support dialog rather than replacing
+  it, and closing them puts you back where you were.
+- The pet's dance reads as a head keeping time — it leans, holds there for a
+  beat and comes back, rather than swinging evenly from side to side.
 
 ---
 

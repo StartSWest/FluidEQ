@@ -146,11 +146,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // lives in a titlebar, so it should read as swaying to the music, not
 // vibrating.
 .support-pet.is-dancing .support-pet__art {
-  animation: pet-sway 1360ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  // Slower than the old 1360ms: a comfortable head-nodding tempo is nearer 70
+  // bpm than 90, and the holds need room to be felt.
+  animation: pet-sway 1800ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  // The pivot sits low, so the lean hinges where a neck would rather than
+  // spinning the whole creature about its centre.
+  transform-origin: 50% 88%;
 }
 
 .support-pet.is-dancing .support-pet__body {
-  animation: pet-bob 680ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  animation: pet-bob 900ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
 // The ears ride the bob in lockstep with the body — vertical travel is what
@@ -159,8 +164,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // attachment just reads as broken.
 .support-pet.is-dancing .support-pet__ears {
   animation:
-    pet-ear-sway 1360ms cubic-bezier(0.45, 0, 0.55, 1) 110ms infinite,
-    pet-bob 680ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    pet-ear-sway 1800ms cubic-bezier(0.4, 0, 0.2, 1) 140ms infinite,
+    pet-bob 900ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
 // Same reason as the press: the star is pinned to the head, so it bobs with
@@ -168,7 +173,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .support-pet.is-celebrating.is-dancing .support-pet__star {
   animation:
     pet-twinkle 2.6s ease-in-out infinite,
-    pet-bob 680ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    pet-bob 900ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
 // Hero size inside the support dialog.
@@ -190,18 +195,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Weight shifts across and the body leans into it, with a pause at each side
-// rather than a hard turnaround — that hold is what makes it read as soft.
+// A head keeping time, not a metronome.
+//
+// Someone listening to music does not swing evenly from side to side: they
+// lean, hold there for a beat, and come back. So the extremes are held for a
+// fifth of the cycle each (30-45% and 80-95%) and the travel between them is
+// eased. Without the hold it reads as a wobble; with it, it reads as weight
+// being put on one side and taken off again.
+//
+// The lean is bigger than the slide because that is how a neck works — the
+// head tips much further than it moves.
 @keyframes pet-sway {
-  0%,
-  100% {
-    translate: -2px 0;
-    rotate: -5deg;
+  0% {
+    translate: -3px 0;
+    rotate: -9deg;
   }
 
-  50% {
-    translate: 2px 0;
-    rotate: 5deg;
+  30%,
+  45% {
+    translate: 3px 0;
+    rotate: 9deg;
+  }
+
+  80%,
+  95% {
+    translate: -3px 0;
+    rotate: -9deg;
+  }
+
+  100% {
+    translate: -3px 0;
+    rotate: -9deg;
   }
 }
 
@@ -216,14 +240,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The same held shape as the body, so the ears settle when the head settles
+// instead of drifting on through the pause. They lag by 140ms and swing
+// against the lean, which is what secondary motion actually does.
 @keyframes pet-ear-sway {
-  0%,
-  100% {
-    rotate: 7deg;
+  0% {
+    rotate: 8deg;
   }
 
-  50% {
-    rotate: -7deg;
+  30%,
+  45% {
+    rotate: -8deg;
+  }
+
+  80%,
+  95% {
+    rotate: 8deg;
+  }
+
+  100% {
+    rotate: 8deg;
   }
 }
 

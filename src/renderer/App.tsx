@@ -631,12 +631,12 @@ const AppContent = () => {
         )}
         {showSupportDialog && (
           <SupportDialog
-            onShowReleaseNotes={() => {
-              // One at a time: two stacked modals is a worse answer than
-              // swapping, and the notes are what they asked for.
-              setShowSupportDialog(false);
-              setShowWhatsNew(true);
-            }}
+            // Opens on top rather than replacing this one. Reading the
+            // notes is a detour from deciding whether to contribute, not a
+            // departure from it — closing them should put you back where you
+            // were, not leave you staring at the workspace.
+            onShowReleaseNotes={() => setShowWhatsNew(true)}
+            isCovered={showWhatsNew}
             hasContributed={hasContributed}
             onContributed={() => {
               localStorage.setItem(SUPPORT_CONTRIBUTED_KEY, 'true');
