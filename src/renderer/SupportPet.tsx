@@ -39,6 +39,67 @@ const usePetLevel = (waveform: number[]) =>
   }, [waveform]);
 
 /**
+ * Above the noise floor. Digital silence reads as 0 and a single least
+ * significant bit of dither as 0.0125, so this sits clear of both while still
+ * catching a quiet passage.
+ */
+const HEARING_LEVEL = 0.03;
+/**
+ * Instant attack, slow release. Music has gaps — between tracks, between beats,
+ * in a rest — and a bare threshold would strobe the class on and off through
+ * every one of them, restarting the sway from its first keyframe each time.
+ */
+const HEARING_RELEASE_MS = 1200;
+
+/**
+ * Whether something is actually playing.
+ *
+ * `isActive` from the analyser means the capture stream is running, not that
+ * there is any sound in it: it goes true when the stream opens and false only
+ * on teardown. The squash rides `--pet-level` so it settles by itself in
+ * silence, but the sway is a keyframe animation and does not — left on
+ * `isActive` the pet leans back and forth in a silent room.
+ */
+const useIsHearing = (level: number, isCapturing: boolean) => {
+  const [isHearing, setIsHearing] = useState(false);
+  const releaseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    if (!isCapturing) {
+      setIsHearing(false);
+      return;
+    }
+    if (level >= HEARING_LEVEL) {
+      if (releaseTimer.current !== undefined) {
+        clearTimeout(releaseTimer.current);
+        releaseTimer.current = undefined;
+      }
+      // Same value bails out of the re-render, so this is free on the frames
+      // where nothing changed — which is most of them.
+      setIsHearing(true);
+    } else if (isHearing && releaseTimer.current === undefined) {
+      releaseTimer.current = setTimeout(() => {
+        releaseTimer.current = undefined;
+        setIsHearing(false);
+      }, HEARING_RELEASE_MS);
+    }
+  }, [isCapturing, isHearing, level]);
+
+  useEffect(
+    () => () => {
+      if (releaseTimer.current !== undefined) {
+        clearTimeout(releaseTimer.current);
+      }
+    },
+    [],
+  );
+
+  return isHearing;
+};
+
+/**
  * What the creature is actually reacting to.
  *
  * Pausing the waveform stops the analyser mid-frame, so `isActive` and the last
@@ -51,7 +112,9 @@ const usePetLevel = (waveform: number[]) =>
 const usePetAudio = () => {
   const { waveform, isActive, isPaused } = useLiveAudio();
   const level = usePetLevel(waveform);
-  return { isListening: isActive && !isPaused, level: isPaused ? 0 : level };
+  const effectiveLevel = isPaused ? 0 : level;
+  const isListening = useIsHearing(effectiveLevel, isActive && !isPaused);
+  return { isListening, level: effectiveLevel };
 };
 
 /** Loud enough that it is clearly music rather than a notification blip. */
