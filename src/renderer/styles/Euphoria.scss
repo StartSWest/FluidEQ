@@ -60,20 +60,24 @@ it under the terms of the GNU General Public License version 3 or later.
     stroke: url('#rhythm-line');
   }
 
-  // Pulsing with the music, and doing it the cheap way.
+  // Pulsing with the music, and the throttle is what makes it affordable.
   //
-  // `--euphoria-level` is written straight to the document root about twenty
-  // times a second, so reading it in CSS costs no React render at all. What it
-  // is read INTO is what matters: a box-shadow or a filter that changes every
-  // frame repaints the element every frame, and there are up to thirty-one
-  // bands plus a point per band on the graph.
+  // `--euphoria-level` is written straight to the document root — no React
+  // render at all — but it is QUANTISED to twelve steps before it gets there,
+  // and only written when the step actually changes. Every element reading it
+  // has its style recalculated on each write, so a continuous value costs
+  // twenty-two invalidations a second across thirty-one bands, a point per
+  // band and two meters, for differences nobody can see. Stepped, it is a
+  // handful a second.
   //
-  // So the only thing the level touches is `opacity`, on elements whose glow is
-  // otherwise static. Opacity is composited, not painted — the layer is drawn
-  // once and the GPU fades it. `will-change` is what promotes them, and it is
-  // scoped to this class so nothing carries a layer around outside the mode.
+  // That budget is what allows a box-shadow and a filter here at all. Both
+  // repaint their element, which is exactly why the same declaration across
+  // every button in the window had to go — the difference is how many elements
+  // and how often, not the property itself. Opacity stays composited and is
+  // promoted with `will-change`, scoped to this class so nothing carries a
+  // spare layer around when the mode is off.
   .graph-edit-point__dot,
-  .graph-live-curve,
+  path[name^='Live processed output'],
   .bandWrapper .range input[type='range'] {
     will-change: opacity;
   }
@@ -83,14 +87,36 @@ it under the terms of the GNU General Public License version 3 or later.
     opacity: calc(0.72 + var(--euphoria-level, 0) * 0.28);
   }
 
-  .graph-live-curve {
-    opacity: calc(0.6 + var(--euphoria-level, 0) * 0.4);
+  // Each band on its OWN frequency, not the room average. `--band-level` is set
+  // per slider from the spectrum around the frequency that slider controls, so
+  // the low end moves on the kick and the top end moves on the hats. Thirty-one
+  // sliders pulsing in unison says nothing about the music, which is the one
+  // thing an equaliser exists to show.
+  .bandWrapper .range input[type='range'] {
+    opacity: calc(0.55 + var(--band-level, 0) * 0.45);
   }
 
-  // The slider tracks breathe with the level. Their colour already sweeps from
-  // the band hue below; this is only the brightness moving with the music.
-  .bandWrapper .range input[type='range'] {
-    opacity: calc(0.78 + var(--euphoria-level, 0) * 0.22);
+  // The glow itself, on the track, sized by that band's own energy.
+  //
+  // `box-shadow` is a paint rather than a composite, which is exactly why it is
+  // gated behind the stepped value: each band is only rewritten when its own
+  // level crosses a step, so this repaints a few sliders a few times a second
+  // rather than all of them on every frame. The same declaration across every
+  // button in the window is what made the interface feel heavy earlier — the
+  // difference is how many elements and how often, not the property itself.
+  .bandWrapper .range input[type='range']::-webkit-slider-runnable-track {
+    box-shadow:
+      inset 0 1px 2px rgba($black, 0.38),
+      0 0 calc(6px + var(--band-level, 0) * 14px) var(--slider-color-muted),
+      0 0 calc(12px + var(--band-level, 0) * 24px) var(--slider-track);
+  }
+
+  // The live output trace in the graph, lifted the same way and on the same
+  // quantised value.
+  path[name^='Live processed output'] {
+    filter: drop-shadow(
+      0 0 calc(3px + var(--euphoria-level, 0) * 7px) $secondary-light
+    );
   }
 
   // The target line joins in: thicker, and riding the same hue as everything

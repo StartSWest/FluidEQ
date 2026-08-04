@@ -19,11 +19,75 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useEffect, useRef, useState } from 'react';
 import { getStreakJoy } from 'common/rhythmGame';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useRhythmRun } from '../utils/rhythmRun';
 import '../styles/Euphoria.scss';
 
 /** At x10 the whole application celebrates. Below it, nothing happens. */
 const EUPHORIA_AT = 1;
+
+/**
+ * How many values the level is allowed to take.
+ *
+ * Quantising it is the whole performance trick. Every element reading
+ * `--euphoria-level` has its style recalculated when that property changes, and
+ * a continuous value changes on literally every frame — up to thirty-one bands,
+ * the graph points and the meters, invalidated twenty-two times a second for
+ * differences of a thousandth that nobody can see.
+ *
+ * Rounded to twelve steps it only changes when the music moves enough to be
+ * visible, which in practice is a few times a second rather than twenty-two.
+ * The motion is very slightly stepped, and that reads as a meter responding
+ * rather than as something smoothed — it is not a compromise so much as the
+ * more honest look.
+ */
+const LEVEL_STEPS = 12;
+
+/**
+ * Give every band its own level, taken from its own frequency.
+ *
+ * A single number for the whole window made thirty-one sliders pulse in
+ * lockstep, which says nothing about the music — the point of an equaliser is
+ * that the bass and the top end are doing different things. Each band reads the
+ * spectrum around the frequency it controls instead, so the low sliders move on
+ * the kick and the high ones move on the hats.
+ *
+ * The same quantising applies per band, and it matters more here: each write is
+ * a style invalidation on that band's subtree, and with thirty-one of them a
+ * continuous value would be thirty-one invalidations every frame. Stepped, only
+ * the bands whose own energy actually moved get written.
+ */
+const publishBandLevels = (
+  points: readonly { x: number; y: number }[],
+  bands: readonly HTMLElement[],
+  published: number[],
+) => {
+  if (points.length === 0 || bands.length === 0) {
+    return;
+  }
+  // The spectrum runs low to high and so does the slider row, so a band's share
+  // of the row is its share of the spectrum. Exact frequencies would be better;
+  // this needs no reach into the EQ state and is right to within a slider.
+  const perBand = points.length / bands.length;
+  for (let index = 0; index < bands.length; index += 1) {
+    const from = Math.floor(index * perBand);
+    const to = Math.max(from + 1, Math.floor((index + 1) * perBand));
+    let peak = -Infinity;
+    for (let point = from; point < to; point += 1) {
+      if (points[point].y > peak) {
+        peak = points[point].y;
+      }
+    }
+    // The curve is plotted in dB against the track's own peak, so the top of
+    // the scale is 0 and useful signal lives in the twenty below it.
+    const level = Math.max(0, Math.min(1, (peak + 20) / 20));
+    const stepped = Math.round(level * LEVEL_STEPS) / LEVEL_STEPS;
+    if (stepped !== published[index]) {
+      published[index] = stepped;
+      bands[index].style.setProperty('--band-level', String(stepped));
+    }
+  }
+};
 
 /**
  * The audio half, and it only exists while the mode is running.
@@ -37,8 +101,32 @@ const EUPHORIA_AT = 1;
  * exactly as long as something is using it.
  */
 const EuphoriaLevel = () => {
-  const { waveform } = useLiveAudioFrame();
+  const { points, waveform } = useLiveAudioFrame();
+  // The row is rebuilt when the band count changes and at no other time, so
+  // that is what the re-query below keys on. Keying it on the frame would
+  // re-query every frame and undo the saving entirely.
+  const bandCount = Object.keys(useFluidEqContext().filters).length;
   const levelRef = useRef(0);
+  const publishedRef = useRef(-1);
+  const bandsRef = useRef<HTMLElement[]>([]);
+  const bandLevelsRef = useRef<number[]>([]);
+
+  // Re-read when the band count changes, which is the only time the row is
+  // rebuilt. Querying every frame would undo the saving this is here for.
+  useEffect(() => {
+    const bands = Array.from(
+      document.querySelectorAll<HTMLElement>('.bandWrapper'),
+    );
+    bandsRef.current = bands;
+    bandLevelsRef.current = new Array<number>(bands.length).fill(-1);
+    return () => {
+      bands.forEach((band) => band.style.removeProperty('--band-level'));
+    };
+  }, [bandCount]);
+
+  useEffect(() => {
+    publishBandLevels(points, bandsRef.current, bandLevelsRef.current);
+  }, [points]);
 
   useEffect(() => {
     let peak = 0;
@@ -48,18 +136,27 @@ const EuphoriaLevel = () => {
       }
     }
     const level = Math.min(1, peak * 1.6);
-    // Slow release, so the shell swells with the music instead of flickering
-    // between every transient.
+    // Instant attack, slow release, so the shell swells with the music instead
+    // of flickering between every transient.
     levelRef.current =
       level > levelRef.current
         ? level
         : levelRef.current + (level - levelRef.current) * 0.2;
-    // Written straight to the property rather than held in state: this runs
-    // about twenty times a second, and re-rendering anything at that rate to
-    // animate a glow would cost more than the glow is worth.
+
+    const stepped = Math.round(levelRef.current * LEVEL_STEPS) / LEVEL_STEPS;
+    if (stepped === publishedRef.current) {
+      // Nothing visible changed. Writing it anyway would invalidate the style
+      // of every element reading it, for no difference on screen — which is
+      // the entire cost this is here to avoid.
+      return;
+    }
+    publishedRef.current = stepped;
+    // Written straight to the property rather than held in state: re-rendering
+    // anything at this rate to animate a glow would cost more than the glow is
+    // worth.
     document.documentElement.style.setProperty(
       '--euphoria-level',
-      levelRef.current.toFixed(3),
+      String(stepped),
     );
   }, [waveform]);
 
