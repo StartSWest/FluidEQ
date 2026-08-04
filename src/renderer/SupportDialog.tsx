@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   SUPPORT_CONFIG,
   SupportMethodId,
@@ -25,6 +25,7 @@ import {
 } from 'common/support';
 import supportQrImage from '../../assets/support-qr.png';
 import QrCode from './components/QrCode';
+import EuphoriaGlow from './components/EuphoriaGlow';
 import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
 import { SupportPetHero } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
@@ -212,9 +213,6 @@ export default function SupportDialog({
       <div
         ref={dialogRef}
         className="support-dialog"
-        // The streak reaches the whole panel, not just the creature: at a high
-        // multiplier the modal itself should feel like it is running hot.
-        style={{ '--pet-joy': joy } as CSSProperties}
         role="dialog"
         aria-modal="true"
         aria-labelledby="support-dialog-title"
@@ -272,6 +270,7 @@ export default function SupportDialog({
             close button, and the heartbeat needs the full width for the spike
             to have somewhere to travel. Supporters only, like everything else
             the creature does. */}
+        {hasContributed && <EuphoriaGlow joy={joy} />}
         {hasContributed && <RhythmGame ref={gameRef} />}
 
         <p className="support-dialog__pitch">{t('support.pitch')}</p>

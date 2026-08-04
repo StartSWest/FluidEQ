@@ -21,6 +21,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 $pet-hop-duration: 520ms;
 
+// The hop grows with the streak. At rest the scale is 1 and the numbers in the
+// keyframes below are exactly what they read as; at x10 the creature clears
+// more than twice the height. Custom properties resolve when the animation
+// runs, so each new hop picks up the current streak without the keyframes
+// needing to be rewritten.
+:root {
+  --pet-hop-scale: calc(1 + var(--pet-joy, 0) * 1.3);
+}
+
 // One hop, as a mixin so the two alternating copies below cannot drift apart.
 //
 // The animation itself is declared `linear` and every segment brings its own
@@ -39,7 +48,7 @@ $pet-hop-duration: 520ms;
   // Anticipation. Brief and shallow — a deep crouch reads as effort, and this
   // creature is meant to be delighted, not straining.
   14% {
-    translate: 0 3px;
+    translate: 0 calc(3px * var(--pet-hop-scale, 1));
     scale: 1.05 0.91;
     // Launch: everything happens at once and then decelerates into the apex.
     animation-timing-function: cubic-bezier(0.12, 0.7, 0.3, 1);
@@ -47,7 +56,7 @@ $pet-hop-duration: 520ms;
 
   // Off the ground and stretched along the direction of travel.
   30% {
-    translate: 0 -11px;
+    translate: 0 calc(-11px * var(--pet-hop-scale, 1));
     scale: 0.95 1.07;
     animation-timing-function: cubic-bezier(0.25, 0.6, 0.5, 1);
   }
@@ -55,7 +64,7 @@ $pet-hop-duration: 520ms;
   // The apex, where it hangs. Back to its resting shape: nothing is
   // accelerating it, so there is nothing to stretch it.
   48% {
-    translate: 0 -16px;
+    translate: 0 calc(-16px * var(--pet-hop-scale, 1));
     scale: 1 1;
     // Falling accelerates. This is the segment that sells the weight.
     animation-timing-function: cubic-bezier(0.6, 0, 0.85, 0.45);
@@ -63,7 +72,7 @@ $pet-hop-duration: 520ms;
 
   // Coming down fast, stretched again.
   70% {
-    translate: 0 -7px;
+    translate: 0 calc(-7px * var(--pet-hop-scale, 1));
     scale: 0.96 1.06;
     animation-timing-function: cubic-bezier(0.7, 0, 0.9, 0.6);
   }
@@ -78,7 +87,7 @@ $pet-hop-duration: 520ms;
   // A small overshoot on the recovery, so it settles rather than stopping
   // dead.
   90% {
-    translate: 0 -2px;
+    translate: 0 calc(-2px * var(--pet-hop-scale, 1));
     scale: 0.98 1.03;
     animation-timing-function: ease-out;
   }
@@ -243,6 +252,24 @@ $pet-hop-duration: 520ms;
   height: 36px;
   overflow: visible;
   transform-origin: 50% 88%;
+  // Badge glow and streak glow in one declaration, because `filter` does not
+  // stack across rules — the more specific one simply wins, and a supporter
+  // mid-run would have shown whichever rule that happened to be. The empty
+  // fallback in `var(--x, )` is deliberate: with no badge the term vanishes
+  // entirely rather than resolving to something the parser rejects.
+  //
+  // `--pet-joy` is set globally, so this reaches the titlebar creature as well
+  // as the one in the dialog. At rest it is zero and none of this draws.
+  filter: var(--pet-badge-glow,)
+    drop-shadow(
+      0 0 calc(var(--pet-joy, 0) * 14px)
+        rgba($secondary-light, calc(var(--pet-joy, 0) * 0.9))
+    )
+    drop-shadow(
+      0 0 calc(var(--pet-joy, 0) * 30px)
+        rgba($secondary-default, calc(var(--pet-joy, 0) * 0.55))
+    );
+  transition: filter 260ms ease-out;
 }
 
 // Motion is split across the individual `scale` / `translate` / `rotate`
@@ -378,27 +405,9 @@ $pet-hop-duration: 520ms;
     animation: pet-twinkle 2.6s ease-in-out infinite;
   }
 
-  // The badge glow. On a run it is joined by the streak's own — see below.
-  .support-pet__art {
-    filter: drop-shadow(0 0 6px rgba($neon-yellow, 0.45));
-  }
-}
-
-// The creature shines brighter the longer the streak holds.
-//
-// Layered on the tap wrapper rather than folded into the rule above, so the
-// badge glow and the run glow are separate things that add up — a supporter
-// mid-run should look like both, not like whichever rule won.
-.support-pet-tap .support-pet__art {
-  filter: drop-shadow(
-      0 0 calc(var(--pet-joy, 0) * 14px)
-        rgba($secondary-light, calc(var(--pet-joy, 0) * 0.9))
-    )
-    drop-shadow(
-      0 0 calc(var(--pet-joy, 0) * 30px)
-        rgba($secondary-default, calc(var(--pet-joy, 0) * 0.55))
-    );
-  transition: filter 260ms ease-out;
+  // Read by the single filter declaration on .support-pet__art, so the badge
+  // glow composes with the streak glow instead of one replacing the other.
+  --pet-badge-glow: drop-shadow(0 0 6px rgba(#{$neon-yellow}, 0.45));
 }
 
 // Swaying to the music is the contribution reward, and it runs the whole time

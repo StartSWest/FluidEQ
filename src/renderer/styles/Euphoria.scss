@@ -1,0 +1,143 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// Maximum multiplier. The whole application goes with it.
+//
+// This only ever runs at x10, which takes thirty-six consecutive perfect taps
+// — so it is rare by construction and does not need to be tasteful. It is the
+// reward for the hardest thing the app asks of anyone.
+//
+// Two variables drive it, both set on the document root: `--pet-joy`, which is
+// the streak, and `--euphoria-level`, which is the live audio. The hue sweep is
+// a plain CSS animation on the compositor; only the intensity follows the
+// music, so a loud passage swells and a quiet one settles without anything
+// being recalculated per frame in JavaScript.
+.is-euphoric {
+  // Held at the top of the range so a quiet passage still glows, rather than
+  // the whole effect dropping out between beats.
+  --euphoria-strength: calc(0.55 + var(--euphoria-level, 0) * 0.45);
+
+  // The shell itself, breathing colour behind everything.
+  &::after {
+    position: fixed;
+    z-index: 2000;
+    inset: 0;
+    animation: euphoria-hue 6s linear infinite;
+    background:
+      radial-gradient(circle at 12% 8%, rgba(#00e5ff, 0.16), transparent 46%),
+      radial-gradient(circle at 88% 14%, rgba(#ff3cac, 0.14), transparent 44%),
+      radial-gradient(circle at 50% 96%, rgba(#8b5cff, 0.14), transparent 48%);
+    opacity: var(--euphoria-strength);
+    // Decoration over the entire window: it must never eat a click.
+    pointer-events: none;
+    content: '';
+  }
+
+  // The EQ, the graph and the titlebar each pick up an edge in the sweep. Rims
+  // rather than washes — a coloured film over the controls would make the
+  // numbers harder to read, and this is still an equaliser.
+  .main-content,
+  .graph-wrapper,
+  .window-titlebar {
+    animation: euphoria-rim 6s linear infinite;
+  }
+
+  // The bands are the part that already moves with the music, so they take the
+  // strongest treatment.
+  .bandWrapper .range,
+  .waveform-visualizer,
+  .rhythm-game__trace {
+    animation: euphoria-glow 6s linear infinite;
+  }
+}
+
+// One hue rotation, shared. Separate keyframes rather than one, because each
+// target needs a different property — animating `filter` on the whole shell
+// would force a full-window repaint every frame.
+@keyframes euphoria-hue {
+  from {
+    filter: hue-rotate(0deg);
+  }
+
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+
+@keyframes euphoria-rim {
+  0% {
+    box-shadow: 0 0 calc(var(--euphoria-strength) * 26px) rgba(#00e5ff, 0.5);
+  }
+
+  25% {
+    box-shadow: 0 0 calc(var(--euphoria-strength) * 26px) rgba(#54ff8a, 0.5);
+  }
+
+  50% {
+    box-shadow: 0 0 calc(var(--euphoria-strength) * 26px) rgba(#ffe66d, 0.5);
+  }
+
+  75% {
+    box-shadow: 0 0 calc(var(--euphoria-strength) * 26px) rgba(#ff3cac, 0.5);
+  }
+
+  100% {
+    box-shadow: 0 0 calc(var(--euphoria-strength) * 26px) rgba(#00e5ff, 0.5);
+  }
+}
+
+@keyframes euphoria-glow {
+  0% {
+    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 10px) #00e5ff)
+      saturate(1.4);
+  }
+
+  25% {
+    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 10px) #54ff8a)
+      saturate(1.4);
+  }
+
+  50% {
+    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 10px) #ffe66d)
+      saturate(1.4);
+  }
+
+  75% {
+    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 10px) #ff3cac)
+      saturate(1.4);
+  }
+
+  100% {
+    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 10px) #00e5ff)
+      saturate(1.4);
+  }
+}
+
+// Someone who asked for less motion does not want the entire window strobing
+// through the spectrum. The colour stays, held still, so they can see they
+// reached it — the celebration is not taken away, only the flashing.
+@media (prefers-reduced-motion: reduce) {
+  .is-euphoric {
+    &::after,
+    .main-content,
+    .graph-wrapper,
+    .window-titlebar,
+    .bandWrapper .range,
+    .waveform-visualizer,
+    .rhythm-game__trace {
+      animation: none;
+    }
+
+    &::after {
+      opacity: 0.4;
+    }
+  }
+}
