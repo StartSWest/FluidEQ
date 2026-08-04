@@ -18,10 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'constant' as *;
+@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
 .prereq-notice {
+  @include animate(rise-in, $motion-slow);
   position: fixed;
   // Above every workspace panel, including the chain raised for open menus.
   z-index: 1200;

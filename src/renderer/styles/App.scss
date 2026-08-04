@@ -33,6 +33,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'sass:color' as sass-color;
 @use 'color' as *;
 @use 'constant' as *;
+@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -358,6 +359,7 @@ select option {
 // A recoverable failure says so and gets out of the way. It floats over the
 // workspace rather than displacing it, so nothing the user was doing moves.
 .workspace-notice {
+  @include animate(slide-in-right, $motion-base);
   position: fixed;
   z-index: 1300;
   right: 18px;
@@ -524,8 +526,12 @@ select option {
   }
 }
 
+// Unfolds from under the button that opened it, so it reads as belonging to
+// that button rather than as a panel that appeared over the titlebar.
 .workspace-header__menu {
   @include menu-surface;
+  @include animate(fold-down, $motion-fast);
+  transform-origin: top right;
   position: absolute;
   z-index: 120;
   top: calc(100% + 10px);
@@ -684,6 +690,21 @@ select option {
   grid-area: side-bar;
 }
 
+// The three columns arrive left to right on first paint. Mount-only — none of
+// these unmount during normal use — so it runs once at startup and never
+// interrupts anything the user is doing.
+.side-bar {
+  @include animate(rise-in, $motion-slow, $ease-out, 40ms);
+}
+
+.center-workspace {
+  @include animate(rise-in, $motion-slow, $ease-out, 90ms);
+}
+
+.right-content {
+  @include animate(rise-in, $motion-slow, $ease-out, 140ms);
+}
+
 .center-workspace {
   grid-area: center-workspace;
   display: flex;
@@ -793,6 +814,11 @@ $tab-border: rgba($secondary-light, 0.2);
 }
 
 .workspace-tab-panel {
+  // Replayed on every tab change: App.tsx keys the panel by the active tab, so
+  // React remounts it and the animation runs again. Without the key, switching
+  // between two tabs that share this element would swap the contents with no
+  // transition at all.
+  @include animate(rise-in, $motion-base);
   position: relative;
   z-index: 1;
   min-width: 0;
@@ -1078,6 +1104,7 @@ $tab-border: rgba($secondary-light, 0.2);
 // *** Floating notices *******************************************************
 
 .audio-restart-notice {
+  @include animate(rise-in, $motion-slow);
   position: fixed;
   // Above every workspace panel, including the chain raised for open menus.
   z-index: 1200;

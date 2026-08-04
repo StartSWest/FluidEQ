@@ -1,0 +1,123 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+// One motion vocabulary for the whole app.
+//
+// Every animation here is short, has a single easing curve, and moves a small
+// distance. Anything appearing near where it was summoned from grows out of
+// that point rather than fading in from nowhere, which is what makes a menu
+// feel attached to its button instead of teleported onto the page.
+//
+// Every mixin is written so that turning motion off leaves the element in its
+// final state — never invisible, never displaced.
+
+// Decelerating: fast at the start, settled at the end. The same curve the
+// collapsible sections already use, so nothing on screen moves to a different
+// rhythm than anything else.
+$ease-out: cubic-bezier(0.32, 0.72, 0, 1);
+$ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+
+$motion-fast: 160ms;
+$motion-base: 220ms;
+$motion-slow: 300ms;
+
+// Unfolds downward from its own top edge. For anything anchored under the
+// control that opened it: the actions menu, a dropdown list.
+@keyframes fold-down {
+  from {
+    opacity: 0;
+    scale: 1 0.94;
+    translate: 0 -6px;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1 1;
+    translate: 0 0;
+  }
+}
+
+// Unfolds upward, for a menu that had to open above its trigger.
+@keyframes fold-up {
+  from {
+    opacity: 0;
+    scale: 1 0.94;
+    translate: 0 6px;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1 1;
+    translate: 0 0;
+  }
+}
+
+// Just the fade, for a backdrop that must not move.
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// The plain arrival: a small rise and a fade. For content that replaces other
+// content in place, such as a workspace tab panel.
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    translate: 0 8px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+// Slides in from the right edge, for the corner notices.
+@keyframes slide-in-right {
+  from {
+    opacity: 0;
+    translate: 16px 0;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+// A small overshoot on the way in. Only for things that appear one at a time
+// in response to a click — a chip, a badge — never for a list.
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    scale: 0.88;
+  }
+
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+
+@mixin animate(
+  $name,
+  $duration: $motion-base,
+  $easing: $ease-out,
+  $delay: 0ms
+) {
+  animation: $name $duration $easing $delay both;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}

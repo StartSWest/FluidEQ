@@ -499,6 +499,11 @@ const AppContent = () => {
             </div>
             {activeWorkspaceTab === 'eq' ? (
               <div
+                // Remounts on every tab change so the panel entrance animation
+                // replays. Voicing and convolution share this element, so
+                // without a key switching between them changed the contents
+                // with no transition at all.
+                key={activeWorkspaceTab}
                 className={`workspace-tab-panel workspace-tab-panel--eq${
                   !isEnabled ? ' is-engine-disabled' : ''
                 }`}
@@ -512,6 +517,7 @@ const AppContent = () => {
               // config as the EQ, so with the engine off they are just as inert
               // and read the same way.
               <div
+                key={activeWorkspaceTab}
                 className={`workspace-tab-panel workspace-tab-panel--convolution${
                   !isEnabled ? ' is-engine-disabled' : ''
                 }`}

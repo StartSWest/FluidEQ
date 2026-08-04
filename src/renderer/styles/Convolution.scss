@@ -1,4 +1,5 @@
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 .convolution-panel {
@@ -220,6 +221,7 @@
 // The applied convolution, stated where you look first. Cyan-edged so it reads
 // as live rather than as another catalogue row.
 .convolution-applied {
+  @include animate(rise-in, $motion-base);
   display: grid;
   min-width: 0;
   align-items: center;

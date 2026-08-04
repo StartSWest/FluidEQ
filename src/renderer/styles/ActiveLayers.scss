@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 // A quiet row, not a banner: it reports something that is already true rather
@@ -28,7 +29,10 @@ it under the terms of the GNU General Public License version 3 or later.
   text-transform: uppercase;
 }
 
+// Appears in response to a click on another tab, one at a time, so a small
+// overshoot is right here in a way it would not be for a list.
 .active-layer {
+  @include animate(pop-in, $motion-base, $ease-spring);
   display: flex;
   min-width: 0;
   max-width: 100%;

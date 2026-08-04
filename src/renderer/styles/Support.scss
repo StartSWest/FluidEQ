@@ -18,10 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'color' as *;
 @use 'constant' as *;
+@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
+// The backdrop fades and the card rises out of it, so the dialog reads as
+// arriving rather than as the screen being replaced.
 .support-backdrop {
+  @include animate(fade-in, $motion-fast);
   position: fixed;
   z-index: 1400;
   inset: 0;
@@ -33,6 +37,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .support-dialog {
+  @include animate(pop-in, $motion-base, $ease-spring);
   @include menu-surface;
   display: grid;
   width: min(600px, 100%);
