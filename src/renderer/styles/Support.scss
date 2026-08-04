@@ -46,6 +46,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 18px;
   overflow-y: auto;
   @include slim-scrollbar(8px);
+  // The whole panel lifts with the streak. `--pet-joy` is set on this element
+  // by the dialog and runs 0 to 1 across the multiplier, so at rest this is
+  // simply the surface it always was and every term below falls out to zero.
+  //
+  // The border brightens alongside it: a glow with no edge to sit against reads
+  // as a blur rather than as the thing itself lighting up.
+  border-color: rgba($secondary-light, calc(0.22 + var(--pet-joy, 0) * 0.55));
+  box-shadow:
+    0 0 calc(var(--pet-joy, 0) * 40px)
+      rgba($secondary-default, calc(var(--pet-joy, 0) * 0.45)),
+    0 0 calc(var(--pet-joy, 0) * 90px)
+      rgba($secondary-light, calc(var(--pet-joy, 0) * 0.22));
+  transition:
+    border-color 300ms ease-out,
+    box-shadow 300ms ease-out;
 
   h2 {
     margin: 5px 0 0;

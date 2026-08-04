@@ -212,6 +212,9 @@ export default function SupportDialog({
       <div
         ref={dialogRef}
         className="support-dialog"
+        // The streak reaches the whole panel, not just the creature: at a high
+        // multiplier the modal itself should feel like it is running hot.
+        style={{ '--pet-joy': joy } as CSSProperties}
         role="dialog"
         aria-modal="true"
         aria-labelledby="support-dialog-title"
@@ -226,10 +229,6 @@ export default function SupportDialog({
               <button
                 type="button"
                 className={`support-pet-tap${petHopClass}${mood ? ` is-${mood}` : ''}`}
-                // The streak, as a number the face reads. Set here rather than
-                // inside the pet so the creature stays a drawing and the game
-                // stays the only thing that knows the rules.
-                style={{ '--pet-joy': joy } as CSSProperties}
                 aria-label={t('support.petHint')}
                 // Pointer *down*, not click. A click fires on release, so the
                 // bounce would lag the press by however long the button was

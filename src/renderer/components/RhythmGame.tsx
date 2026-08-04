@@ -348,8 +348,13 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
       </div>
 
       <p className="rhythm-game__verdict" aria-live="polite">
+        {/* Both children are keyed on the tap so each one restarts its flash,
+            and the keys have to be DISTINCT from each other. Two siblings
+            sharing a key is undefined behaviour in React: rather than replacing
+            the previous verdict it left it mounted and appended the next, so a
+            run of taps built a row of every verdict earned so far. */}
         <span
-          key={hitSeq}
+          key={`verdict-${hitSeq}`}
           className={`rhythm-game__verdict-text rhythm-game__verdict-text--${
             lastHit && hasPeaks ? lastHit.verdict : 'idle'
           }`}
@@ -373,7 +378,10 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
             there is something to show, and keyed on the tap so consecutive
             perfects each flare rather than only the first. */}
         {lastHit && hasPeaks && run.streak > 0 && (
-          <span key={hitSeq} className="rhythm-game__verdict-multiplier">
+          <span
+            key={`multiplier-${hitSeq}`}
+            className="rhythm-game__verdict-multiplier"
+          >
             ×
             {getStreakMultiplier(run.streak)
               .toFixed(2)
