@@ -176,6 +176,28 @@ it under the terms of the GNU General Public License version 3 or later.
       drop-shadow(0 0 9px rgba($neon-lime, 0.55));
   }
 
+  // What to do about an empty box, said in the empty box.
+  //
+  // Yellow, matching the instruction above the game, because both are the app
+  // asking for something rather than reporting on it — and a grey line inside
+  // a dark empty rectangle is indistinguishable from the rectangle being
+  // broken. Centred over the whole frame and above the wave layer, though
+  // there is by definition no wave under it when this shows.
+  .rhythm-game__empty {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    right: 12px;
+    left: 12px;
+    color: $neon-yellow;
+    font-size: 0.82rem;
+    font-weight: 600;
+    text-align: center;
+    text-shadow: 0 0 12px rgba($neon-yellow, 0.35);
+    translate: 0 -50%;
+    pointer-events: none;
+  }
+
   // The zero line the waveform is mirrored about. Faint — it is a reference,
   // not a feature, and it must not compete with the target line. On the clip
   // rather than the frame, because it belongs to the wave.

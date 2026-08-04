@@ -475,6 +475,16 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
             </svg>
           </div>
 
+          {/* In the empty box, not under it. The box is the thing that looks
+              broken when nothing is playing, so the explanation belongs in the
+              hole it leaves rather than on a line below that the eye has
+              already skipped past on its way to the silence. */}
+          {!hasSignal && (
+            <span className="rhythm-game__empty">
+              {t('support.game.noAudio')}
+            </span>
+          )}
+
           {/* Directly under the pet, which is what the creature is jumping.
             Keyed on the tap so two perfects in a row both flash — re-applying
             the same class to an element that already has it does nothing. */}
@@ -503,11 +513,12 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
           {/* Tell the truth about why nothing is happening. A dead trace with a
               live score reads as broken; "put something on" does not. */}
           {(() => {
-            // Silence gets the same invitation as a stopped analyser,
-            // because to the player they are the same situation: there is
-            // nothing to jump and the fix is to put something on.
+            // Silence says nothing here, because it is already saying it in
+            // the empty box above. Printing it twice, once inside the hole and
+            // once under it, reads as two separate complaints about the same
+            // quiet room.
             if (!isListening || !hasSignal) {
-              return t('support.game.noAudio');
+              return '';
             }
             if (!hasPeaks) {
               return t('support.game.listening');
