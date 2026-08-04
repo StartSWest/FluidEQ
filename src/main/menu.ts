@@ -29,6 +29,11 @@ interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   submenu?: DarwinMenuItemConstructorOptions[] | Menu;
 }
 
+// Chromium's own zoom steps: each level is a factor of 1.2, so the sizes the
+// user lands on are the ones every browser uses rather than an arbitrary ramp.
+const ZOOM_MIN_LEVEL = -3;
+const ZOOM_MAX_LEVEL = 4;
+
 export default class MenuBuilder {
   mainWindow: BrowserWindow;
 
@@ -37,6 +42,11 @@ export default class MenuBuilder {
   }
 
   buildMenu(): void {
+    // Before the production early return below, because zoom has to work in a
+    // packaged build and that path removes the menu entirely — an accelerator
+    // hung off a menu item would only ever fire in development.
+    this.installZoomShortcuts();
+
     if (
       process.env.NODE_ENV === 'development' ||
       process.env.DEBUG_PROD === 'true'
@@ -54,6 +64,66 @@ export default class MenuBuilder {
 
     const menu = Menu.buildFromTemplate(template);
     Menu.setApplicationMenu(menu);
+  }
+
+  /**
+   * Ctrl and plus, minus or zero, scaling the whole interface.
+   *
+   * Chromium's own zoom rather than a CSS transform, so it scales layout the
+   * way a browser does — text reflows and the graph is redrawn at the new size
+   * instead of being blown up and going soft.
+   *
+   * Read off `before-input-event` rather than a menu accelerator because a
+   * packaged FluidEQ has no menu to hang one off. Deliberately keyboard only:
+   * the response graph and every slider already read the wheel, and a control
+   * that resizes the window out from under a drag when a modifier slips is
+   * worse than not having it.
+   */
+  installZoomShortcuts(): void {
+    const { webContents } = this.mainWindow;
+
+    webContents.on('before-input-event', (event, input) => {
+      // `control` is set by AltGr on some layouts, which is how a European
+      // keyboard types the characters these shortcuts use.
+      if (input.type !== 'keyDown' || !input.control || input.alt) {
+        return;
+      }
+
+      const current = webContents.getZoomLevel();
+      let next: number | undefined;
+
+      // The plus key is unshifted `=` on most layouts and `+` on the numpad or
+      // with shift, so all three mean zoom in. Matching on `code` as well
+      // covers layouts where the character is somewhere else entirely.
+      if (
+        input.key === '+' ||
+        input.key === '=' ||
+        input.code === 'NumpadAdd'
+      ) {
+        next = Math.min(ZOOM_MAX_LEVEL, current + 1);
+      } else if (
+        input.key === '-' ||
+        input.key === '_' ||
+        input.code === 'NumpadSubtract'
+      ) {
+        next = Math.max(ZOOM_MIN_LEVEL, current - 1);
+      } else if (input.key === '0' || input.code === 'Numpad0') {
+        next = 0;
+      }
+
+      if (next === undefined) {
+        return;
+      }
+
+      // Swallowed either way. Letting it through means the keystroke also
+      // reaches whatever is focused, and at the limits it would type a bare
+      // `+` into a preset name the user was only trying to zoom past.
+      event.preventDefault();
+
+      if (next !== current) {
+        webContents.setZoomLevel(next);
+      }
+    });
   }
 
   setupDevelopmentEnvironment(): void {
