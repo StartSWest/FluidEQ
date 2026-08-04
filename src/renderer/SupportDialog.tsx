@@ -204,7 +204,20 @@ export default function SupportDialog({
                 type="button"
                 className={`support-pet-tap${isPetTapped ? ' is-tapped' : ''}`}
                 aria-label={t('support.petHint')}
-                onClick={bouncePet}
+                // Pointer *down*, not click. A click fires on release, so the
+                // bounce would lag the press by however long the button was
+                // held — useless for tapping in time, and it is meant to feel
+                // identical to hitting space.
+                onPointerDown={bouncePet}
+                // The pointer path never reaches a keyboard user, and space is
+                // handled globally for the whole dialog, so Enter is the only
+                // gap left.
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter') {
+                    event.preventDefault();
+                    bouncePet();
+                  }
+                }}
               >
                 <SupportPetHero hasContributed={hasContributed} />
               </button>

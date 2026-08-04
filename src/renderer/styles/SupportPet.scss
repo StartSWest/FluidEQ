@@ -94,6 +94,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.is-tapped {
     @include pet-pressed;
   }
+
+  // The held press is switched off in here. Everywhere else the pet stays
+  // squashed for as long as the button is down, which is right for a control
+  // being pressed — but this one is a tap, and a tap that lasts as long as you
+  // happen to hold the mouse is no use for keeping time. `is-tapped` above
+  // gives it a fixed duration instead, identical to what the space bar does.
+  .support-pet:active {
+    .support-pet__body,
+    .support-pet__ears {
+      transform: none;
+    }
+
+    .support-pet__star {
+      translate: none;
+    }
+  }
 }
 
 .support-pet__art {
