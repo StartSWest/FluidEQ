@@ -287,7 +287,8 @@
           "**/*"
         ]
       },
-      "./autoeq/**"
+      "./autoeq/**",
+      "./CHANGELOG.md"
     ],
     "publish": {
       "provider": "github",

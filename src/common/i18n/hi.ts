@@ -28,6 +28,12 @@ const hi: Partial<Dictionary> = {
   'app.menu.reconfigure': 'Equalizer APO फिर से सेट करें',
   'app.menu.apoSettings': 'Equalizer APO सेटिंग',
   'app.menu.support': 'प्रोजेक्ट का साथ दें',
+  'whatsNew.eyebrow': 'रिलीज़ नोट्स',
+  'whatsNew.title': 'FluidEQ में नया क्या है',
+  'whatsNew.loading': 'रिलीज़ नोट्स लोड हो रहे हैं…',
+  'whatsNew.missing':
+    'इस बिल्ड में रिलीज़ नोट्स नहीं मिले। ये GitHub पर भी हैं।',
+  'app.menu.whatsNew': 'नया क्या है',
   'app.menu.language': 'भाषा',
   'app.window.minimize': 'छोटा करें',
   'app.window.maximize': 'बड़ा करें',
@@ -50,6 +56,13 @@ const hi: Partial<Dictionary> = {
   'notice.importComplete': 'आयात पूरा हुआ',
   'notice.restartConfirm':
     'कुछ सेकंड के लिए आवाज़ रुकेगी और Windows एडमिन अनुमति माँगेगा। जारी रखें?',
+  'update.title': 'FluidEQ अपडेट',
+  'update.available': 'संस्करण {version} उपलब्ध है। अभी डाउनलोड हो रहा है।',
+  'update.downloading': 'अपडेट डाउनलोड हो रहा है… {percent}%',
+  'update.ready':
+    'संस्करण {version} तैयार है। पूरा करने के लिए FluidEQ फिर से चालू करें।',
+  'update.restart': 'अभी फिर चालू करें',
+  'update.restarting': 'फिर चालू हो रहा है…',
   'notice.restartDone':
     'Windows ऑडियो फिर से चालू हो गया। जो ऐप अब भी चुप हैं उन्हें दोबारा खोलें।',
 

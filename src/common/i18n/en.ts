@@ -47,6 +47,12 @@ const en = {
   'app.menu.reconfigure': 'Reconfigure Equalizer APO',
   'app.menu.apoSettings': 'Equalizer APO settings',
   'app.menu.support': 'Support the work',
+  'whatsNew.eyebrow': 'RELEASE NOTES',
+  'whatsNew.title': "What's new in FluidEQ",
+  'whatsNew.loading': 'Loading the release notes…',
+  'whatsNew.missing':
+    'The release notes could not be found in this build. They are also on GitHub.',
+  'app.menu.whatsNew': "What's new",
   'app.menu.language': 'Language',
   'app.window.minimize': 'Minimize',
   'app.window.maximize': 'Maximize',
@@ -71,6 +77,12 @@ const en = {
   'notice.importComplete': 'Import complete',
   'notice.restartConfirm':
     'Audio will stop for a few seconds and Windows will request administrator permission. Continue?',
+  'update.title': 'FluidEQ update',
+  'update.available': 'Version {version} is available. Downloading it now.',
+  'update.downloading': 'Downloading the update… {percent}%',
+  'update.ready': 'Version {version} is ready. Restart FluidEQ to finish.',
+  'update.restart': 'Restart now',
+  'update.restarting': 'Restarting…',
   'notice.restartDone':
     'Windows Audio restarted. Reopen any application that is still silent.',
 

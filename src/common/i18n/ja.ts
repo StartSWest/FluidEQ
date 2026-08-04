@@ -22,6 +22,12 @@ const ja: Partial<Dictionary> = {
   'app.menu.reconfigure': 'Equalizer APO を再設定',
   'app.menu.apoSettings': 'Equalizer APO の設定',
   'app.menu.support': 'プロジェクトを支援する',
+  'whatsNew.eyebrow': 'リリースノート',
+  'whatsNew.title': 'FluidEQ の新機能',
+  'whatsNew.loading': 'リリースノートを読み込んでいます…',
+  'whatsNew.missing':
+    'このビルドにリリースノートが見つかりませんでした。GitHub にもあります。',
+  'app.menu.whatsNew': '新機能',
   'app.menu.language': '言語',
   'app.window.minimize': '最小化',
   'app.window.maximize': '最大化',
@@ -44,6 +50,14 @@ const ja: Partial<Dictionary> = {
   'notice.importComplete': '読み込みが完了しました',
   'notice.restartConfirm':
     '音が数秒とまり、Windows が管理者権限を求めます。続けますか？',
+  'update.title': 'FluidEQ の更新',
+  'update.available':
+    'バージョン {version} が利用できます。ダウンロード中です。',
+  'update.downloading': '更新をダウンロード中… {percent}%',
+  'update.ready':
+    'バージョン {version} の準備ができました。FluidEQ を再起動すると適用されます。',
+  'update.restart': '今すぐ再起動',
+  'update.restarting': '再起動中…',
   'notice.restartDone':
     'Windows オーディオを再起動しました。まだ無音のアプリは開き直してください。',
 

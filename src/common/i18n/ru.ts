@@ -22,6 +22,12 @@ const ru: Partial<Dictionary> = {
   'app.menu.reconfigure': 'Перенастроить Equalizer APO',
   'app.menu.apoSettings': 'Настройки Equalizer APO',
   'app.menu.support': 'Поддержать проект',
+  'whatsNew.eyebrow': 'ЗАМЕТКИ О ВЫПУСКЕ',
+  'whatsNew.title': 'Что нового в FluidEQ',
+  'whatsNew.loading': 'Загрузка заметок о выпуске…',
+  'whatsNew.missing':
+    'Заметки о выпуске не найдены в этой сборке. Они также есть на GitHub.',
+  'app.menu.whatsNew': 'Что нового',
   'app.menu.language': 'Язык',
   'app.window.minimize': 'Свернуть',
   'app.window.maximize': 'Развернуть',
@@ -44,6 +50,13 @@ const ru: Partial<Dictionary> = {
   'notice.importComplete': 'Импорт завершён',
   'notice.restartConfirm':
     'Звук пропадёт на несколько секунд, и Windows запросит права администратора. Продолжить?',
+  'update.title': 'Обновление FluidEQ',
+  'update.available': 'Доступна версия {version}. Загружается.',
+  'update.downloading': 'Загрузка обновления… {percent}%',
+  'update.ready':
+    'Версия {version} готова. Перезапустите FluidEQ, чтобы завершить.',
+  'update.restart': 'Перезапустить сейчас',
+  'update.restarting': 'Перезапуск…',
   'notice.restartDone':
     'Служба звука Windows перезапущена. Откройте заново приложения, которые ещё молчат.',
 

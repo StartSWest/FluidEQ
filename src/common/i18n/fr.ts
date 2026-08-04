@@ -22,6 +22,12 @@ const fr: Partial<Dictionary> = {
   'app.menu.reconfigure': 'Reconfigurer Equalizer APO',
   'app.menu.apoSettings': 'Réglages d’Equalizer APO',
   'app.menu.support': 'Soutenir le projet',
+  'whatsNew.eyebrow': 'NOTES DE VERSION',
+  'whatsNew.title': 'Nouveautés de FluidEQ',
+  'whatsNew.loading': 'Chargement des notes de version…',
+  'whatsNew.missing':
+    'Les notes de version sont introuvables dans cette build. Elles sont aussi sur GitHub.',
+  'app.menu.whatsNew': 'Nouveautés',
   'app.menu.language': 'Langue',
   'app.window.minimize': 'Réduire',
   'app.window.maximize': 'Agrandir',
@@ -44,6 +50,14 @@ const fr: Partial<Dictionary> = {
   'notice.importComplete': 'Importation terminée',
   'notice.restartConfirm':
     'Le son va s’interrompre quelques secondes et Windows demandera une autorisation d’administrateur. Continuer ?',
+  'update.title': 'Mise à jour de FluidEQ',
+  'update.available':
+    'La version {version} est disponible. Téléchargement en cours.',
+  'update.downloading': 'Téléchargement de la mise à jour… {percent} %',
+  'update.ready':
+    'La version {version} est prête. Redémarrez FluidEQ pour terminer.',
+  'update.restart': 'Redémarrer maintenant',
+  'update.restarting': 'Redémarrage…',
   'notice.restartDone':
     'L’audio de Windows a redémarré. Rouvrez les applications encore muettes.',
 

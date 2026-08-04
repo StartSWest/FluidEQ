@@ -71,6 +71,22 @@ export const AUTOMATIC_PRESET_PREFIX = '.fluideq-auto-';
  */
 export const OUTPUT_STATE_CHANGED_EVENT = 'output-state-changed';
 
+/** Main tells the renderer where a FluidEQ update has got to. */
+export const APP_UPDATE_EVENT = 'app-update';
+
+/**
+ * How far along the update is.
+ *
+ * Deliberately has no "checking" or "up to date" phase. Those are the normal
+ * case, they happen on every launch, and reporting them would put a message on
+ * screen every time the app opened to say that nothing had happened.
+ */
+export interface IAppUpdateStatus {
+  phase: 'available' | 'downloading' | 'ready';
+  version?: string;
+  percent?: number;
+}
+
 // Need to use LPQ and HPQ to allow users to adjust quality for low/high pass filters
 // Need to use LSC and HSC to allow users to adjust quality for low/high shelf filters
 export enum FilterTypeEnum {

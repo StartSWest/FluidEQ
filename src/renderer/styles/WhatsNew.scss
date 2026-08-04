@@ -1,0 +1,146 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.whats-new-backdrop {
+  @include animate(fade-in, $motion-fast);
+  position: fixed;
+  z-index: 1400;
+  inset: 0;
+  display: grid;
+  padding: $spacing-m;
+  place-items: center;
+  background: rgba(#03070d, 0.62);
+  backdrop-filter: blur(3px);
+}
+
+.whats-new {
+  @include animate(pop-in, $motion-base, $ease-spring);
+  display: grid;
+  width: min(680px, 100%);
+  max-height: min(760px, calc(100vh - 48px));
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 1px solid rgba($secondary-light, 0.28);
+  border-radius: $radius-l;
+  background: linear-gradient(150deg, rgba(#101d2a, 0.99), rgba(#08121b, 0.99));
+  box-shadow: 0 30px 80px rgba($black, 0.5);
+}
+
+.whats-new__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-m;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba($primary-lighter, 0.12);
+
+  h2 {
+    margin: 3px 0 0;
+    color: rgba($white, 0.95);
+    font-size: 1.1rem;
+  }
+}
+
+.whats-new__close {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: rgba($white, 0.72);
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.4);
+    background: rgba($secondary-default, 0.16);
+    outline: none;
+  }
+}
+
+// The notes themselves. A long document, so it scrolls inside the dialog and
+// the header stays put — scrolling past the title to find the close button is
+// a small thing that feels broken.
+.whats-new__body {
+  min-height: 0;
+  padding: 4px 20px 20px;
+  overflow-y: auto;
+  color: rgba($primary-lighter, 0.84);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  @include slim-scrollbar(8px);
+
+  // Version numbers, and the thing you scan for.
+  h3 {
+    margin: 22px 0 2px;
+    padding-bottom: 6px;
+    color: $secondary-light;
+    border-bottom: 1px solid rgba($secondary-light, 0.2);
+    font-size: 0.95rem;
+
+    &:first-child {
+      margin-top: 8px;
+    }
+  }
+
+  // New / Changed / Fixed.
+  h4 {
+    margin: 16px 0 4px;
+    color: rgba($white, 0.9);
+    font-size: 0.7rem;
+    font-weight: 750;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  p {
+    margin: 8px 0;
+  }
+
+  ul {
+    margin: 6px 0;
+    padding-left: 18px;
+  }
+
+  li {
+    margin: 5px 0;
+  }
+
+  strong {
+    color: rgba($white, 0.92);
+  }
+
+  code {
+    padding: 1px 5px;
+    color: $secondary-light;
+    border-radius: $radius-xs;
+    background: rgba($secondary-default, 0.1);
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-size: 0.72rem;
+  }
+}

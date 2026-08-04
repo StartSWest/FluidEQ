@@ -32,6 +32,7 @@ import {
   desktopCapturer,
   dialog,
   ipcMain,
+  screen,
   shell,
 } from 'electron';
 import log from 'electron-log';
@@ -96,6 +97,8 @@ import {
   IDeviceProfileSettings,
   IAutoEqUpdateStatus,
   AUTOMATIC_PRESET_PREFIX,
+  APP_UPDATE_EVENT,
+  IAppUpdateStatus,
   OUTPUT_STATE_CHANGED_EVENT,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
@@ -152,15 +155,160 @@ import {
   setDefaultAudioDevice,
 } from './deviceProfiles';
 
-export default class AppUpdater {
-  constructor() {
-    log.transports.file.level = 'info';
-    autoUpdater.logger = log;
-    autoUpdater.checkForUpdatesAndNotify();
-  }
-}
+/**
+ * Check GitHub for a newer FluidEQ and tell the user about it in the app.
+ *
+ * electron-updater fetches one small file — `latest.yml`, generated next to the
+ * installer — and compares its version with the running one. Everything else
+ * here is about saying so.
+ *
+ * The stock behaviour is `checkForUpdatesAndNotify()`, which downloads in
+ * silence and then raises an OS toast. That is the wrong shape for this app:
+ * the toast is easy to miss, it says nothing about what changed, and it appears
+ * with no explanation of why the app was using the network. So the events are
+ * forwarded to the renderer, which owns the message.
+ *
+ * Being offline is not an error worth showing. A laptop that opens FluidEQ on a
+ * train has nothing to fix, and a red banner saying an update check failed
+ * would be pure noise — it is logged and dropped.
+ */
+const setUpAutoUpdates = () => {
+  log.transports.file.level = 'info';
+  autoUpdater.logger = log;
+
+  const send = (payload: IAppUpdateStatus) => {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return;
+    }
+    mainWindow.webContents.send(APP_UPDATE_EVENT, payload);
+  };
+
+  autoUpdater.on('update-available', (info) => {
+    send({ phase: 'available', version: info.version });
+  });
+
+  autoUpdater.on('download-progress', (progress) => {
+    send({ phase: 'downloading', percent: Math.round(progress.percent) });
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    send({ phase: 'ready', version: info.version });
+  });
+
+  autoUpdater.on('error', (error) => {
+    // Almost always "no network" or "GitHub is having a moment". Neither is
+    // something the user can act on, and neither should interrupt them.
+    log.info('Update check failed', error);
+  });
+
+  autoUpdater.checkForUpdates().catch((error) => {
+    log.info('Update check could not start', error);
+  });
+
+  // Once an hour, so a machine left running for a week still finds out. Cheap:
+  // it is a few hundred bytes of YAML unless something has actually changed.
+  setInterval(
+    () => {
+      autoUpdater.checkForUpdates().catch(() => undefined);
+    },
+    60 * 60 * 1000,
+  );
+};
 
 let mainWindow: BrowserWindow | null = null;
+
+const WINDOW_STATE_FILENAME = 'window-state.json';
+
+interface IWindowState {
+  width?: number;
+  height?: number;
+  x?: number;
+  y?: number;
+  isMaximized?: boolean;
+}
+
+/**
+ * Where and how big the window was last time.
+ *
+ * Restoring the position as well as the size matters more than it sounds:
+ * FluidEQ is a frameless window that people park somewhere deliberate — beside
+ * a player, on a second screen — and opening centred every launch undoes that
+ * decision for them daily.
+ */
+const loadWindowState = (): IWindowState => {
+  try {
+    const parsed = JSON.parse(
+      fs.readFileSync(path.join(userDataDir, WINDOW_STATE_FILENAME), 'utf8'),
+    ) as IWindowState;
+
+    const isSize = (value: unknown): value is number =>
+      typeof value === 'number' && Number.isFinite(value) && value > 0;
+    const isCoordinate = (value: unknown): value is number =>
+      typeof value === 'number' && Number.isFinite(value);
+
+    const state: IWindowState = {
+      isMaximized: parsed.isMaximized === true,
+    };
+    if (isSize(parsed.width) && isSize(parsed.height)) {
+      state.width = Math.max(parsed.width, WINDOW_MIN_WIDTH);
+      state.height = Math.max(parsed.height, WINDOW_MIN_HEIGHT);
+    }
+
+    // A saved position is only usable if a display still covers it. Unplugging
+    // a second monitor would otherwise reopen FluidEQ at coordinates nobody can
+    // reach, and the only fix would be deleting a file they do not know exists.
+    if (isCoordinate(parsed.x) && isCoordinate(parsed.y)) {
+      const onScreen = screen.getAllDisplays().some(({ bounds }) => {
+        return (
+          parsed.x! >= bounds.x - 32 &&
+          parsed.y! >= bounds.y - 32 &&
+          parsed.x! < bounds.x + bounds.width &&
+          parsed.y! < bounds.y + bounds.height
+        );
+      });
+      if (onScreen) {
+        state.x = parsed.x;
+        state.y = parsed.y;
+      }
+    }
+
+    return state;
+  } catch {
+    // No file yet, or one we cannot read. Either way: open at the default.
+    return {};
+  }
+};
+
+/**
+ * Remember the window geometry.
+ *
+ * Maximized and full-screen windows report the size of the screen, not the size
+ * the user chose, so the normal bounds are saved instead — that is what should
+ * come back when they un-maximize.
+ */
+const saveWindowState = () => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  try {
+    const bounds = mainWindow.getNormalBounds();
+    const state: IWindowState = {
+      width: bounds.width,
+      height: bounds.height,
+      x: bounds.x,
+      y: bounds.y,
+      isMaximized: mainWindow.isMaximized(),
+    };
+    fs.writeFileSync(
+      path.join(userDataDir, WINDOW_STATE_FILENAME),
+      JSON.stringify(state, null, 2),
+      'utf8',
+    );
+  } catch (error) {
+    // Losing the window position is not worth an error on screen.
+    console.warn('Unable to save the window position', error);
+  }
+};
 
 const DATABASES_SYNCED_EVENT = 'databases-synced';
 
@@ -1711,6 +1859,43 @@ ipcMain.on('quit-app', () => {
   app.quit();
 });
 
+/**
+ * The release notes, read from the file that ships with the app.
+ *
+ * A file rather than a string baked into the bundle, so writing an entry is
+ * editing CHANGELOG.md and nothing else — no constant to update, no chance of
+ * the two drifting apart. It is also the same file people read on GitHub.
+ */
+ipcMain.handle('get-changelog', () => {
+  const candidates = [
+    path.join(process.resourcesPath, 'CHANGELOG.md'),
+    path.join(__dirname, '../../CHANGELOG.md'),
+    path.join(app.getAppPath(), 'CHANGELOG.md'),
+  ];
+  const found = candidates.find((candidate) => fs.existsSync(candidate));
+  if (!found) {
+    return '';
+  }
+  try {
+    return fs.readFileSync(found, 'utf8');
+  } catch {
+    return '';
+  }
+});
+
+/**
+ * Close FluidEQ and run the downloaded installer.
+ *
+ * Only ever reached from the "restart to update" button, which the renderer
+ * only shows once electron-updater has reported the download finished — so by
+ * the time this runs there is definitely something to install.
+ */
+ipcMain.handle('install-update', () => {
+  // `false` for isSilent: the NSIS installer shows its progress, which is the
+  // honest thing when the app the user was using has just vanished.
+  autoUpdater.quitAndInstall(false, true);
+});
+
 ipcMain.handle('open-equalizer-apo-configurator', async () => {
   try {
     const equalizerApoRoot = path.dirname(await getConfigPath());
@@ -1859,12 +2044,18 @@ const createMainWindow = async () => {
     return path.join(RESOURCES_PATH, ...paths);
   };
 
+  const restored = loadWindowState();
+
   mainWindow = new BrowserWindow({
     show: false,
-    width: WINDOW_WIDTH,
+    width: restored.width ?? WINDOW_WIDTH,
     minWidth: WINDOW_MIN_WIDTH,
-    height: WINDOW_HEIGHT,
+    height: restored.height ?? WINDOW_HEIGHT,
     minHeight: WINDOW_MIN_HEIGHT,
+    // Only set when they were saved and are still on a screen that exists.
+    ...(restored.x !== undefined && restored.y !== undefined
+      ? { x: restored.x, y: restored.y }
+      : {}),
     // .ico carries every size Windows asks for — taskbar, alt-tab and the
     // window corner each want a different one, and scaling a single png for
     // all three is what makes it look soft.
@@ -1925,7 +2116,13 @@ const createMainWindow = async () => {
     },
   );
 
-  setWindowDimension(state.isGraphViewOn);
+  // Only when there is nothing remembered. The saved size is a decision the
+  // user made; forcing the graph-view height over the top of it would undo that
+  // on every launch, which is exactly what restoring the window is meant to
+  // stop. Toggling the graph in-session still resizes.
+  if (restored.width === undefined) {
+    setWindowDimension(state.isGraphViewOn);
+  }
 
   let hasRevealedMainWindow = false;
   const revealMainWindow = () => {
@@ -1937,6 +2134,11 @@ const createMainWindow = async () => {
     if (process.env.START_MINIMIZED) {
       mainWindow.minimize();
     } else {
+      // Maximize before showing, so the window does not appear at its restored
+      // size and then visibly snap outward.
+      if (restored.isMaximized) {
+        mainWindow.maximize();
+      }
       mainWindow.show();
     }
 
@@ -1952,6 +2154,29 @@ const createMainWindow = async () => {
   mainWindow.on('unmaximize', sendWindowState);
   mainWindow.on('enter-full-screen', sendWindowState);
   mainWindow.on('leave-full-screen', sendWindowState);
+  // Debounced: dragging a window fires 'resize' continuously, and writing a
+  // file on every frame of that would be absurd. 400ms after the user stops.
+  let saveTimer: NodeJS.Timeout | undefined;
+  const scheduleSave = () => {
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+    }
+    saveTimer = setTimeout(saveWindowState, 400);
+  };
+  mainWindow.on('resize', scheduleSave);
+  mainWindow.on('move', scheduleSave);
+  mainWindow.on('maximize', scheduleSave);
+  mainWindow.on('unmaximize', scheduleSave);
+
+  mainWindow.on('close', () => {
+    // Synchronously, before the window goes: a pending debounce would never
+    // fire, so closing right after a resize would lose that resize.
+    if (saveTimer) {
+      clearTimeout(saveTimer);
+    }
+    saveWindowState();
+  });
+
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
@@ -1991,9 +2216,7 @@ const createMainWindow = async () => {
     return { action: 'deny' };
   });
 
-  // Remove this if your app does not use auto updates
-  // eslint-disable-next-line
-  new AppUpdater();
+  setUpAutoUpdates();
 };
 
 /**

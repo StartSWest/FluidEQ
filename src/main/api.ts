@@ -64,6 +64,14 @@ const toggleMaximizeWindow = () =>
 
 const closeWindow = () => ipcRenderer.invoke('window-close') as Promise<void>;
 
+/** The release notes that shipped with this build. */
+const getChangelog = () =>
+  ipcRenderer.invoke('get-changelog') as Promise<string>;
+
+/** Quit and run the update that has already been downloaded. */
+const installUpdate = () =>
+  ipcRenderer.invoke('install-update') as Promise<void>;
+
 const isWindowMaximized = () =>
   ipcRenderer.invoke('window-is-maximized') as Promise<boolean>;
 
@@ -80,6 +88,8 @@ export default {
     minimizeWindow,
     toggleMaximizeWindow,
     closeWindow,
+    getChangelog,
+    installUpdate,
     isWindowMaximized,
   },
 };

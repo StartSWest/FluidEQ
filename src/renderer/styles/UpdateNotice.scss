@@ -1,0 +1,118 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'motion' as *;
+@use 'theme' as *;
+
+// Bottom left, opposite the failure notices. Two things arriving at once
+// should not land on top of each other, and an update is the calmer of the two.
+.update-notice {
+  @include animate(slide-in-right, $motion-base);
+  position: fixed;
+  z-index: 1250;
+  bottom: 18px;
+  left: 18px;
+  display: flex;
+  max-width: min(440px, calc(100vw - 36px));
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba($secondary-light, 0.4);
+  border-radius: $radius-m;
+  background: linear-gradient(145deg, rgba(#0d2029, 0.97), rgba(#0a161d, 0.97));
+  box-shadow: 0 16px 40px rgba($black, 0.45);
+
+  > div {
+    display: grid;
+    min-width: 0;
+    gap: 3px;
+  }
+
+  strong {
+    color: $secondary-light;
+    font-size: 0.76rem;
+  }
+
+  span {
+    color: rgba($primary-lighter, 0.78);
+    font-size: 0.7rem;
+    line-height: 1.4;
+  }
+}
+
+.update-notice__icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  color: $secondary-light;
+}
+
+// The one action, and it is loud on purpose: it is the whole reason the notice
+// is on screen, and it costs the user their session.
+.update-notice__install {
+  flex: 0 0 auto;
+  min-height: $control-height-sm;
+  padding: 7px 12px;
+  color: #03110f;
+  border: 1px solid rgba($secondary-light, 0.42);
+  border-radius: $radius-xs;
+  background: $secondary-default;
+  font-size: 0.7rem;
+  font-weight: 800;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover:not(:disabled) {
+    background: $secondary-light;
+  }
+
+  &:focus-visible {
+    @include focus-ring($white);
+    outline: none;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.62;
+  }
+}
+
+.update-notice__dismiss {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: rgba($white, 0.7);
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.4);
+    background: rgba($secondary-default, 0.16);
+    outline: none;
+  }
+}

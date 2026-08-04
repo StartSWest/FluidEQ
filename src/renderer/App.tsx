@@ -37,6 +37,8 @@ import ConvolutionPanel from './ConvolutionPanel';
 import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
 import LanguagePicker from './components/LanguagePicker';
+import UpdateNotice from './components/UpdateNotice';
+import WhatsNewDialog from './components/WhatsNewDialog';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
 import { LiveAudioProvider } from './audio/LiveAudioContext';
 import {
@@ -50,6 +52,8 @@ import {
 } from './utils/equalizerApi';
 
 const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
+/** The version whose notes have already been shown. */
+const WHATS_NEW_SEEN_KEY = 'fluideq.whatsNewSeen';
 
 /**
  * Shipped build version, substituted by webpack at compile time. Empty in any
@@ -78,6 +82,13 @@ const AppContent = () => {
   // in the corner, dismissable — rather than as a modal alert, because there
   // is nothing to decide and the result is already audible.
   const [importNotice, setImportNotice] = useState('');
+  // Shown once per version, automatically. Someone who just updated wants to
+  // know what changed; someone opening the app for the fifth time today does
+  // not, so the version they last saw is remembered.
+  const [showWhatsNew, setShowWhatsNew] = useState(
+    () =>
+      !!APP_VERSION && localStorage.getItem(WHATS_NEW_SEEN_KEY) !== APP_VERSION,
+  );
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<
     'eq' | 'voicing' | 'convolution'
   >('eq');
@@ -365,6 +376,17 @@ const AppContent = () => {
                       <MenuIcon name="settings" />
                       {t('app.menu.apoSettings')}
                     </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setShowAudioToolsMenu(false);
+                        setShowWhatsNew(true);
+                      }}
+                    >
+                      <MenuIcon name="info" />
+                      {t('app.menu.whatsNew')}
+                    </button>
                   </>
                 )}
                 {canShowSupport && (
@@ -591,6 +613,21 @@ const AppContent = () => {
               </svg>
             </button>
           </div>
+        )}
+        {/* Bottom left, opposite the failure notices, so two things arriving
+            at once do not land on top of each other. */}
+        <UpdateNotice />
+        {showWhatsNew && (
+          <WhatsNewDialog
+            onClose={() => {
+              // Written on close rather than on open: a dialog dismissed by a
+              // crash should still be shown again.
+              if (APP_VERSION) {
+                localStorage.setItem(WHATS_NEW_SEEN_KEY, APP_VERSION);
+              }
+              setShowWhatsNew(false);
+            }}
+          />
         )}
         {showSupportDialog && (
           <SupportDialog
