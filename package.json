@@ -118,7 +118,7 @@
       "\\.(ts|tsx|js|jsx)$": "ts-jest"
     },
     "testMatch": [
-      "**/__tests__/*_tests/**/*.ts?(x)"
+      "**/__tests__/unit_tests/**/*.ts?(x)"
     ],
     "transformIgnorePatterns": [
       "/node_modules/(?!(uuid)/)",

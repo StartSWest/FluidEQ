@@ -22,7 +22,28 @@
     "allowSyntheticDefaultImports": true,
     "resolveJsonModule": true,
     "allowJs": true,
+    // Dependency typings are not ours to fix and two of them currently
+    // conflict: @types/node and urlpattern-polyfill both declare URLPattern,
+    // and react-router/dom does not resolve under "node" resolution. That was
+    // 44 errors on every run, none of them in code anyone here can change.
+    "skipLibCheck": true,
     "outDir": "release/app/dist"
   },
-  "exclude": ["test", "release/build", "release/app/dist", ".erb/dll"]
+  // The cucumber suite drives a packaged FluidEQ through WebdriverIO against a
+  // real Equalizer APO install, so it cannot run here and has not compiled
+  // since before this fork — 45 errors from webdriverio typings that moved on
+  // (RemoteOptions is no longer exported, `$` changed shape).
+  //
+  // Excluded so `tsc --noEmit` means something. It was reporting 89 errors,
+  // every one of them noise, which is exactly how a real error goes unnoticed.
+  // The suite still type-checks when it is actually run, through ts-jest under
+  // `pnpm test:cucumber`, which is where someone fixing it would be looking.
+  "exclude": [
+    "test",
+    "release/build",
+    "release/app/dist",
+    ".erb/dll",
+    "src/__tests__/cucumber_tests",
+    "src/__tests__/utils/webdriver.ts"
+  ]
 }

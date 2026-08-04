@@ -17,15 +17,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import '@testing-library/jest-dom';
-import { render } from '@testing-library/react';
+import { render, type RenderResult } from '@testing-library/react';
 import userEvent, { type UserEvent } from '@testing-library/user-event';
 
+// Annotated rather than inferred. `RenderResult` reaches into pretty-format
+// for `PrettyFormatOptions`, which the compiler cannot name from here while
+// emitting declarations, so inferring this type fails outright — naming it
+// spares the compiler the trip.
 export const setup = (
   jsx: React.ReactElement<
     unknown,
     string | React.JSXElementConstructor<unknown>
   >,
-) => {
+): RenderResult & { user: UserEvent } => {
   return {
     user: userEvent.setup(),
     ...render(jsx),

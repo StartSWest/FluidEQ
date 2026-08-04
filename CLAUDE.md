@@ -19,8 +19,24 @@ whole thing without asking for the steps back. In order:
    the README currently describes wrongly, or does not describe at all. It
    should never be stale after a release.
 
-4. **Verify before building.** Type-check, unit tests, lint. Do not package a
-   tree that does not pass.
+4. **Verify before building.** All three must be clean. Do not package a tree
+   that does not pass.
+
+   ```bash
+   pnpm exec tsc --noEmit; pnpm test; pnpm run lint
+   ```
+
+   All three genuinely pass, so a single error is a real one. They did not
+   always: `tsc` used to report 89 errors — dependency typings that conflict
+   with each other, plus the cucumber suite — and `pnpm test` counted that
+   suite as 14 failures. Nobody can pick a real failure out of that, so both
+   are now scoped to what they can actually speak for. If you find yourself
+   explaining away a failure here, fix it or scope it; do not learn to ignore
+   it.
+
+   The cucumber suite drives a packaged FluidEQ through WebdriverIO against a
+   real Equalizer APO install. It cannot run here, and it has not compiled
+   since before the fork. `pnpm test:cucumber` still reaches it.
 
 5. **Commit, tag, push.**
 
