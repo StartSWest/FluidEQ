@@ -397,6 +397,13 @@ export const downloadConvolution = (entryId: string): Promise<void> => {
   return promisifyResult(setterResponseHandler, channel, 5 * 60 * 1000);
 };
 
+/** Forget the reference model without touching the bands it produced. */
+export const clearHeadset = (): Promise<void> => {
+  const channel = ChannelEnum.CLEAR_HEADSET;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
 export const clearConvolution = (): Promise<void> => {
   const channel = ChannelEnum.CLEAR_CONVOLUTION;
   window.electron.ipcRenderer.sendMessage(channel, []);

@@ -66,14 +66,38 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .main-content-title > .eq-toolbar {
   row-gap: 8px;
   column-gap: 10px;
+
+  // Icon and label are one control. Every button in this row is a verb, and a
+  // glyph makes it findable without reading four words in a row.
+  .button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+}
+
+.eq-toolbar__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
 }
 
 // Its own cluster, closed up and separated from what precedes it: four
 // buttons that do the same kind of thing.
 .quick-layouts {
   gap: 6px;
-  padding-left: 6px;
+  padding-left: 10px;
   border-left: 1px solid rgba($primary-lighter, 0.12);
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .eq-toolbar__icon {
+    color: rgba($secondary-light, 0.7);
+  }
 }
 
 .quick-layouts > span {

@@ -293,6 +293,7 @@ export const getStateForAudioDevice = (
     isFlat: preset?.isFlat,
     voicing: preset?.voicing,
     driver: preset?.driver,
+    headset: preset?.headset,
     // Absent means automatic, which is what every profile written before the
     // flag existed was. Not `?? defaultState` — the default is the same value,
     // but saying so here keeps the rule in one place.

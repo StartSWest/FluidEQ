@@ -105,6 +105,8 @@ const de: Partial<Dictionary> = {
   'autoeq.eyebrow': 'MIT EINER REFERENZ BEGINNEN',
   'autoeq.title': 'AutoEQ-Bibliothek',
   'autoeq.selectSource': 'Quelle wählen',
+  'autoeq.applied': 'Angewendet: {name}',
+  'autoeq.notApplied': 'Keine Referenz angewendet',
   'autoeq.source': 'Messquelle',
   'autoeq.model': 'Kopfhörermodell',
   'autoeq.target': 'Messung / Zielkurve',
@@ -145,7 +147,10 @@ const de: Partial<Dictionary> = {
   'eq.layers.convolution': 'Faltung',
   'eq.layers.voicing': 'Klangcharakter',
   'eq.layers.driver': 'Treiber',
+  'eq.layers.headset': 'Hörer',
   'eq.layers.remove': 'Ebene {layer} entfernen',
+  'eq.layers.forget':
+    'Das Referenzmodell vergessen — die Bänder bleiben, wie sie sind',
   'eq.fromFlat': 'Von neutral',
   'eq.fromFlat.hint':
     'Setzt vor dem Hören alle Bänder auf null. Nützlich, wenn eine bestehende Absenkung genau den Bereich verdeckt, den sie betrifft — die Messung sieht nicht durch ihre eigene Korrektur hindurch.',

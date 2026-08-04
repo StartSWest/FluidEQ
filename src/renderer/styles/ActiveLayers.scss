@@ -12,16 +12,23 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // A quiet row, not a banner: it reports something that is already true rather
 // than asking for anything. It only exists at all when a layer is live.
+// A responsive grid, not a wrapping flex line. Wrapping put chips of wildly
+// different widths on ragged rows — one long convolution name and the last
+// chip fell onto a line of its own with a gap beside it. Equal tracks that
+// reflow at any width give a tidy block at every panel size, and auto-fill
+// (not auto-fit) keeps the chips compact on a wide panel instead of stretching
+// four of them across the whole card.
 .active-layers {
-  display: flex;
+  display: grid;
   min-width: 0;
-  flex-wrap: wrap;
+  gap: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
   align-items: center;
-  gap: 7px;
 }
 
+// Its own row above the chips, so it never competes with them for a track.
 .active-layers__lede {
-  flex: 0 0 auto;
+  grid-column: 1 / -1;
   color: rgba($primary-lighter, 0.6);
   font-size: 0.6rem;
   font-weight: 750;
@@ -33,12 +40,15 @@ it under the terms of the GNU General Public License version 3 or later.
 // overshoot is right here in a way it would not be for a list.
 .active-layer {
   @include animate(pop-in, $motion-base, $ease-spring);
-  display: flex;
+  // Icon, label, name, remove. The name track is the only flexible one, so a
+  // long convolution title shortens instead of pushing the button off the end.
+  display: grid;
   min-width: 0;
   max-width: 100%;
   align-items: center;
   gap: 6px;
-  padding: 4px 5px 4px 8px;
+  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  padding: 4px 5px 4px 9px;
   border: 1px solid rgba($secondary-light, 0.24);
   border-radius: $radius-pill;
   background: rgba($secondary-default, 0.1);

@@ -42,6 +42,19 @@ const PATHS: Record<string, string> = {
   support: 'M12 20s-7-4.4-7-9a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 4.6-7 9-7 9z',
   // Two overlapping waves: something else is shaping the sound.
   convolution: 'M3 14c3 0 3-6 6-6s3 6 6 6 3-6 6-6',
+  // Headphones: a band over two cups. Reads at 13px where a detailed pair
+  // would not.
+  model:
+    'M5 14v-2a7 7 0 0 1 14 0v2M5 13h1.6a1 1 0 0 1 1 1v3.5a1 1 0 0 1-1 1H5.6A1.6 1.6 0 0 1 4 16.9v-2.3a1.6 1.6 0 0 1 1-1.6zM19 13h-1.6a1 1 0 0 0-1 1v3.5a1 1 0 0 0 1 1h1a1.6 1.6 0 0 0 1.6-1.6v-2.3a1.6 1.6 0 0 0-1-1.6z',
+  // Sparkle: the one control here that decides something for you.
+  smart:
+    'M12 4l1.6 4.4L18 10l-4.4 1.6L12 16l-1.6-4.4L6 10l4.4-1.6L12 4zM18.5 15.5l.7 1.8 1.8.7-1.8.7-.7 1.8-.7-1.8-1.8-.7 1.8-.7.7-1.8z',
+  // Anticlockwise arrow: put the bands back where they started.
+  reset: 'M5 11a7 7 0 1 1 2 5M5 6v5h5',
+  // Plus in a circle.
+  plus: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8.5v7M8.5 12h7',
+  // Four rails of different heights: a band layout in miniature.
+  layout: 'M6 6v12M10 9v9M14 5v13M18 8v10',
   // Circled i.
   info: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v5M12 8h0',
   // A globe: meridians and one parallel. Enough at 16px to read as 'world'.

@@ -104,6 +104,8 @@ const ru: Partial<Dictionary> = {
   'autoeq.eyebrow': 'НАЧНИТЕ С ЭТАЛОНА',
   'autoeq.title': 'Библиотека AutoEQ',
   'autoeq.selectSource': 'Выберите источник',
+  'autoeq.applied': 'Применено: {name}',
+  'autoeq.notApplied': 'Эталон не применён',
   'autoeq.source': 'Источник измерений',
   'autoeq.model': 'Модель наушников',
   'autoeq.target': 'Измерение / целевая кривая',
@@ -144,7 +146,9 @@ const ru: Partial<Dictionary> = {
   'eq.layers.convolution': 'Свёртка',
   'eq.layers.voicing': 'Характер',
   'eq.layers.driver': 'Излучатель',
+  'eq.layers.headset': 'Наушники',
   'eq.layers.remove': 'Убрать слой «{layer}»',
+  'eq.layers.forget': 'Забыть эталонную модель — полосы останутся как есть',
   'eq.fromFlat': 'С нуля',
   'eq.fromFlat.hint':
     'Обнуляет все полосы перед прослушиванием. Пригодится, когда уже сделанный срез скрывает именно ту область, на которую влияет: измерение не видит сквозь собственную коррекцию.',

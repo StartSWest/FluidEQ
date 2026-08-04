@@ -100,6 +100,8 @@ const zh: Partial<Dictionary> = {
   'autoeq.eyebrow': '从一条参考曲线开始',
   'autoeq.title': 'AutoEQ 库',
   'autoeq.selectSource': '选择来源',
+  'autoeq.applied': '已应用：{name}',
+  'autoeq.notApplied': '未应用任何参考',
   'autoeq.source': '测量来源',
   'autoeq.model': '耳机型号',
   'autoeq.target': '测量 / 目标曲线',
@@ -139,7 +141,9 @@ const zh: Partial<Dictionary> = {
   'eq.layers.convolution': '卷积',
   'eq.layers.voicing': '声音风格',
   'eq.layers.driver': '单元',
+  'eq.layers.headset': '耳机',
   'eq.layers.remove': '移除{layer}层',
+  'eq.layers.forget': '忘掉参考型号 — 频段保持不变',
   'eq.fromFlat': '从零开始',
   'eq.fromFlat.hint':
     '开始试听前把所有频段清零。当已有的衰减正好挡住了它自己作用的那一段时用得上——测量看不穿自己的修正。',

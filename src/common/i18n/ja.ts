@@ -103,6 +103,8 @@ const ja: Partial<Dictionary> = {
   'autoeq.eyebrow': 'リファレンスから始める',
   'autoeq.title': 'AutoEQ ライブラリ',
   'autoeq.selectSource': 'ソースを選択',
+  'autoeq.applied': '適用中：{name}',
+  'autoeq.notApplied': 'リファレンス未適用',
   'autoeq.source': '測定ソース',
   'autoeq.model': 'ヘッドホンの機種',
   'autoeq.target': '測定 / ターゲット',
@@ -143,7 +145,9 @@ const ja: Partial<Dictionary> = {
   'eq.layers.convolution': 'コンボリューション',
   'eq.layers.voicing': '音の傾向',
   'eq.layers.driver': 'ドライバー',
+  'eq.layers.headset': 'ヘッドホン',
   'eq.layers.remove': '{layer} のレイヤーを外す',
+  'eq.layers.forget': 'リファレンス機種を忘れます — バンドはそのままです',
   'eq.fromFlat': 'フラットから',
   'eq.fromFlat.hint':
     '試聴の前に全バンドをゼロに戻します。既存のカットが、まさにそのカットが効いている帯域を隠してしまっているときに使ってください — 測定は自分の補正の向こう側を見られません。',

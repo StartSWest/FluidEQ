@@ -135,6 +135,8 @@ const en = {
   'autoeq.eyebrow': 'START FROM A REFERENCE',
   'autoeq.title': 'AutoEQ library',
   'autoeq.selectSource': 'Select a source',
+  'autoeq.applied': 'Applied: {name}',
+  'autoeq.notApplied': 'No reference applied',
   'autoeq.source': 'Measurement source',
   'autoeq.model': 'Headphone model',
   'autoeq.target': 'Measurement / target',
@@ -176,7 +178,9 @@ const en = {
   'eq.layers.convolution': 'Convolution',
   'eq.layers.voicing': 'Voicing',
   'eq.layers.driver': 'Driver',
+  'eq.layers.headset': 'Headset',
   'eq.layers.remove': 'Remove the {layer} layer',
+  'eq.layers.forget': 'Forget the reference model — the bands stay as they are',
   'eq.fromFlat': 'From flat',
   'eq.fromFlat.hint':
     'Zero every band before listening. Use this when an existing cut is hiding the region it affects — the measurement cannot see through its own correction.',

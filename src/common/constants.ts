@@ -161,6 +161,15 @@ export interface IState {
   voicing?: IVoicingSettings;
   /** Transducer-family correction, its own APO layer after the voicing. */
   driver?: IDriverSettings;
+  /**
+   * The measured headphone the bands were generated from.
+   *
+   * Not a layer — applying a reference writes into the bands themselves — but
+   * knowing which model a curve came from is the difference between a set of
+   * numbers and a tuning you can reason about, and it is not recoverable from
+   * the bands afterwards. Purely descriptive: nothing reads it back.
+   */
+  headset?: string;
 }
 
 /**
@@ -222,6 +231,8 @@ export interface IPresetV2 {
    * automatic, which is what every profile written before this existed was.
    */
   isAutoPreAmpOn?: boolean;
+  /** Which measured headphone this profile's bands came from, if any. */
+  headset?: string;
 }
 
 export interface IConvolutionProfile {

@@ -110,6 +110,8 @@ const hi: Partial<Dictionary> = {
   'autoeq.eyebrow': 'किसी संदर्भ से शुरू करें',
   'autoeq.title': 'AutoEQ लाइब्रेरी',
   'autoeq.selectSource': 'स्रोत चुनें',
+  'autoeq.applied': 'लागू: {name}',
+  'autoeq.notApplied': 'कोई संदर्भ लागू नहीं',
   'autoeq.source': 'माप का स्रोत',
   'autoeq.model': 'हेडफ़ोन मॉडल',
   'autoeq.target': 'माप / लक्ष्य',
@@ -150,7 +152,9 @@ const hi: Partial<Dictionary> = {
   'eq.layers.convolution': 'कन्वॉल्यूशन',
   'eq.layers.voicing': 'ध्वनि रंग',
   'eq.layers.driver': 'ड्राइवर',
+  'eq.layers.headset': 'हेडफ़ोन',
   'eq.layers.remove': '{layer} परत हटाएँ',
+  'eq.layers.forget': 'संदर्भ मॉडल भूल जाएँ — बैंड जैसे हैं वैसे ही रहेंगे',
   'eq.fromFlat': 'शून्य से',
   'eq.fromFlat.hint':
     'सुनने से पहले सभी बैंड शून्य कर देता है। जब पहले से किया गया कट ठीक उसी हिस्से को ढक रहा हो जिस पर वह असर डालता है, तब यह काम आता है — माप अपनी ही सुधार के पार नहीं देख सकता।',

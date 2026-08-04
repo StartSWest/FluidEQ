@@ -249,26 +249,49 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // Every filter the voicing actually writes, in plain sight.
+// Every filter this voicing writes, as rows rather than as loose text. Each
+// one is a real APO command, and the point of showing them is that you can
+// check the claim — which needs the numbers in a column you can scan down, not
+// run together with the prose.
 .voicing-detail {
   display: grid;
   min-height: 0;
   margin: 0;
   padding: 0;
-  gap: 5px;
+  gap: 3px;
   list-style: none;
 
   li {
     display: grid;
-    align-items: baseline;
-    gap: 2px 10px;
+    align-items: center;
+    gap: 2px 12px;
     grid-template-columns: max-content minmax(0, 1fr);
+    padding: 5px 9px;
+    border-radius: $radius-xs;
+    transition: background 140ms ease;
+
+    &:nth-child(odd) {
+      background: rgba($primary-lighter, 0.03);
+    }
+
+    &:hover {
+      background: rgba($secondary-default, 0.08);
+    }
   }
 
+  // Fixed width so the reasons beside them line up into a second column
+  // instead of stepping in and out with each frequency's digit count.
   code {
+    min-width: 108px;
+    padding: 2px 7px;
     color: $secondary-light;
+    border: 1px solid rgba($secondary-light, 0.18);
+    border-radius: $radius-xs;
+    background: rgba($secondary-default, 0.08);
     font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-    font-size: 0.68rem;
+    font-size: 0.66rem;
     font-variant-numeric: tabular-nums;
+    text-align: center;
     white-space: nowrap;
   }
 
@@ -279,15 +302,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// A caution, so it looks like one: an amber spine rather than another neutral
+// card in a column of neutral cards.
 .voicing-headroom {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
   margin: 0;
-  padding: 8px 10px;
-  color: rgba($primary-lighter, 0.72);
-  border: 1px solid rgba($primary-lighter, 0.12);
+  padding: 9px 11px;
+  color: rgba($primary-lighter, 0.8);
+  border: 1px solid rgba(#ffb648, 0.22);
+  border-left: 2px solid rgba(#ffb648, 0.7);
   border-radius: $radius-xs;
-  background: rgba($primary-default, 0.4);
+  background: rgba(#ffb648, 0.06);
   font-size: 0.68rem;
-  line-height: 1.4;
+  line-height: 1.45;
+
+  &::before {
+    color: rgba(#ffb648, 0.9);
+    content: 'A0';
+    font-size: 0.8rem;
+    line-height: 1.2;
+  }
 }
 
 @media (max-width: 640px) {

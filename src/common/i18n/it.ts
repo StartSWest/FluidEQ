@@ -104,6 +104,8 @@ const it: Partial<Dictionary> = {
   'autoeq.eyebrow': 'PARTI DA UN RIFERIMENTO',
   'autoeq.title': 'Libreria AutoEQ',
   'autoeq.selectSource': 'Scegli una fonte',
+  'autoeq.applied': 'Applicato: {name}',
+  'autoeq.notApplied': 'Nessun riferimento applicato',
   'autoeq.source': 'Fonte della misura',
   'autoeq.model': 'Modello di cuffie',
   'autoeq.target': 'Misura / curva obiettivo',
@@ -144,7 +146,10 @@ const it: Partial<Dictionary> = {
   'eq.layers.convolution': 'Convoluzione',
   'eq.layers.voicing': 'Carattere',
   'eq.layers.driver': 'Driver',
+  'eq.layers.headset': 'Cuffie',
   'eq.layers.remove': 'Rimuovi il livello {layer}',
+  'eq.layers.forget':
+    'Dimentica il modello di riferimento: le bande restano come sono',
   'eq.fromFlat': 'Da piatto',
   'eq.fromFlat.hint':
     'Azzera tutte le bande prima di ascoltare. Serve quando un taglio già presente sta nascondendo proprio la zona su cui agisce: la misura non vede attraverso la propria correzione.',

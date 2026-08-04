@@ -135,10 +135,13 @@
   }
 }
 
-// Sits between the header and the fold, so it survives collapsing.
+// Sits between the header and the fold, so it survives collapsing. It needs
+// its own gap under the header in both states: butted straight up against it
+// the summary read as part of the header rather than as what the header is
+// about.
 .sidebar-section__summary {
   min-width: 0;
-  padding: 0 13px;
+  padding: 10px 13px 0;
 }
 
 // Without a body to follow it, the summary needs the bottom padding itself.
@@ -148,4 +151,18 @@
 
 .sidebar-section.is-open .sidebar-section__summary {
   padding-bottom: 8px;
+}
+
+// A section with no summary still needs the header separated from what it
+// opens onto — otherwise the first field sits flush against the header's
+// bottom edge and the two read as one control.
+.sidebar-section.is-open .sidebar-section__body {
+  padding-top: 10px;
+}
+
+.sidebar-section.is-open
+  .sidebar-section__summary
+  + .sidebar-section__reveal
+  .sidebar-section__body {
+  padding-top: 0;
 }

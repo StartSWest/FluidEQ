@@ -16,10 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { IAutoEqUpdateStatus, IEqSource } from 'common/constants';
 import { useAquaContext } from './utils/AquaContext';
+import MenuIcon from './icons/MenuIcon';
 import { useTranslation } from './utils/I18nContext';
 import SidebarSection from './components/SidebarSection';
 import { formatPresetName } from './utils/utils';
@@ -97,7 +98,8 @@ const getResponseDisplayName = (response: string) =>
 
 const AutoEQ = () => {
   const CLEAR_SELECTION_EVENT = 'fluideq-clear-autoeq-selection';
-  const { isBlockingError, setGlobalError, refreshState } = useAquaContext();
+  const { headset, isBlockingError, setGlobalError, refreshState } =
+    useAquaContext();
   const { t } = useTranslation();
   const NO_DEVICE_SELECTION = t('autoeq.pickDevice');
   const NO_RESPONSES = t('autoeq.noResponses');
@@ -126,6 +128,13 @@ const AutoEQ = () => {
     return () =>
       window.removeEventListener(CLEAR_SELECTION_EVENT, clearSelection);
   }, []);
+
+  // Read inside fetchDeviceNames without making it a dependency: the device
+  // list depends on the source, not on what happens to be applied.
+  const appliedRef = useRef(headset);
+  useEffect(() => {
+    appliedRef.current = headset;
+  }, [headset]);
 
   const allSource = useAllSource(t);
   const allSources = useMemo(
@@ -177,7 +186,14 @@ const AutoEQ = () => {
         ),
       );
       setDevices(entries);
-      setCurrentDevice('');
+      // Put the applied model back in the picker if this source has it. The
+      // selection is local state and the applied reference is not, so without
+      // this the combos reset to "pick a device" every time the panel remounts
+      // or the output changes, while the bands stayed exactly where they were.
+      const applied = entries.find(
+        (entry) => entry.name === appliedRef.current,
+      );
+      setCurrentDevice(applied ? applied.value : '');
       setCurrentResponse('');
       setResponses([]);
     } catch (e) {
@@ -253,6 +269,13 @@ const AutoEQ = () => {
       setGlobalError(e as ErrorDescription);
     }
   };
+
+  // The model in the picker is already the one driving the bands. Compared by
+  // name because that is what the applied reference records — the picker’s
+  // value is source-qualified and would never match it.
+  const isApplied =
+    !!headset &&
+    devices.find((device) => device.value === currentDevice)?.name === headset;
 
   const applyAutoEQ = async () => {
     try {
@@ -354,6 +377,19 @@ const AutoEQ = () => {
       className="autoeq-section"
       eyebrow={t('autoeq.eyebrow')}
       title={t('autoeq.title')}
+      // What is currently applied, kept outside the fold. Folded, this is the
+      // whole point of the section — you want to know which reference your
+      // bands came from without opening anything.
+      summary={
+        <div className="autoeq-applied">
+          <MenuIcon name="model" />
+          <span>
+            {headset
+              ? t('autoeq.applied', { name: headset })
+              : t('autoeq.notApplied')}
+          </span>
+        </div>
+      }
     >
       {/* Inside the fold, not in the summary. Whose measurements these are
           matters while you are choosing one and not at all once the section is
@@ -413,15 +449,22 @@ const AutoEQ = () => {
             noSelectionPlaceholder={NO_RESPONSE_SELECTION}
           />
         </div>
+        {/* Says so once it has been. Applying is the one action here with no
+            visible effect inside this panel — the result lands in the bands
+            below — so without this it was impossible to tell whether the click
+            had registered. */}
         <Button
-          className="small"
+          className={isApplied ? 'small is-applied' : 'small'}
           ariaLabel={t('autoeq.applyAria')}
           isDisabled={
-            isBlockingError || currentDevice === '' || currentResponse === ''
+            isBlockingError ||
+            isApplied ||
+            currentDevice === '' ||
+            currentResponse === ''
           }
           handleChange={applyAutoEQ}
         >
-          {t('autoeq.apply')}
+          {isApplied ? t('convolution.isApplied') : t('autoeq.apply')}
         </Button>
       </div>
       <div className="autoeq-update">

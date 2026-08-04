@@ -104,6 +104,8 @@ const pt: Partial<Dictionary> = {
   'autoeq.eyebrow': 'COMECE POR UMA REFERÊNCIA',
   'autoeq.title': 'Biblioteca AutoEQ',
   'autoeq.selectSource': 'Escolha uma origem',
+  'autoeq.applied': 'Aplicado: {name}',
+  'autoeq.notApplied': 'Nenhuma referência aplicada',
   'autoeq.source': 'Origem da medição',
   'autoeq.model': 'Modelo de fone',
   'autoeq.target': 'Medição / alvo',
@@ -144,7 +146,10 @@ const pt: Partial<Dictionary> = {
   'eq.layers.convolution': 'Convolução',
   'eq.layers.voicing': 'Caráter',
   'eq.layers.driver': 'Driver',
+  'eq.layers.headset': 'Fone',
   'eq.layers.remove': 'Remover a camada de {layer}',
+  'eq.layers.forget':
+    'Esquecer o modelo de referência — as bandas continuam como estão',
   'eq.fromFlat': 'Do plano',
   'eq.fromFlat.hint':
     'Zera todas as bandas antes de ouvir. Use quando um corte existente estiver escondendo justamente a região que ele afeta — a medição não enxerga através da própria correção.',

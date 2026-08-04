@@ -70,6 +70,7 @@ import {
 import { buildVoicingTargetCurve } from './utils/voicingCurve';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
+import MenuIcon from './icons/MenuIcon';
 import { useTranslation } from './utils/I18nContext';
 
 const MainContent = () => {
@@ -615,6 +616,7 @@ const MainContent = () => {
             className="small"
             handleChange={autoBalance}
           >
+            <MenuIcon name="smart" className="eq-toolbar__icon" />
             {isBalancing ? t('eq.smart.cancel') : t('eq.smart')}
           </Button>
           {/* Off by default: the closed loop is the better answer almost
@@ -640,6 +642,7 @@ const MainContent = () => {
             className="small subtle"
             handleChange={clearFilterGains}
           >
+            <MenuIcon name="reset" className="eq-toolbar__icon" />
             {t('eq.clear')}
           </Button>
           <Button
@@ -648,10 +651,14 @@ const MainContent = () => {
             className="small subtle"
             handleChange={addFilter}
           >
+            <MenuIcon name="plus" className="eq-toolbar__icon" />
             {t('eq.addBand')}
           </Button>
           <div className="quick-layouts">
-            <span>{t('eq.quickLayouts')}</span>
+            <span>
+              <MenuIcon name="layout" className="eq-toolbar__icon" />
+              {t('eq.quickLayouts')}
+            </span>
             {Object.values(FixedBandSizeEnum)
               .filter((s) => !Number.isNaN(Number(s)))
               .map((size) => (
@@ -659,7 +666,11 @@ const MainContent = () => {
                   key={`${size}-band`}
                   ariaLabel={t('eq.bandCount', { count: size })}
                   isDisabled={false}
-                  className="small"
+                  className={
+                    frequencySortedFilters.length === Number(size)
+                      ? 'small'
+                      : 'small subtle'
+                  }
                   handleChange={handleFixedBand(size as FixedBandSizeEnum)}
                 >
                   {t('eq.bandCount', { count: size })}

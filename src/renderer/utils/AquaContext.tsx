@@ -83,6 +83,8 @@ export interface IAquaContext extends IState {
   /** Optional APO convolution profile applied before the editable EQ. */
   convolution?: IConvolutionProfile;
   setConvolution: (newValue?: IConvolutionProfile) => void;
+  /** Which measured headphone the current bands came from, if any. */
+  headset?: string;
   /** Curated target curve written as its own APO layer after the EQ bands. */
   voicing?: IVoicingSettings;
   driver?: IDriverSettings;
@@ -209,6 +211,9 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
   const [convolution, setConvolution] = useState<
     IConvolutionProfile | undefined
   >(DEFAULT_STATE.convolution);
+  const [headset, setHeadset] = useState<string | undefined>(
+    DEFAULT_STATE.headset,
+  );
   const [selectedFilterId, setSelectedFilterIdState] = useState<string>('');
   const [selectedFilterIds, setSelectedFilterIdsState] = useState<string[]>([]);
   const [hoveredFilterId, setHoveredFilterId] = useState<string>('');
@@ -266,6 +271,7 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
       setConvolution(state.convolution);
       setVoicing(state.voicing ?? DEFAULT_VOICING);
       setDriver(state.driver ?? DEFAULT_DRIVER);
+      setHeadset(state.headset);
       dispatchFilter({ type: FilterActionEnum.INIT, filters: state.filters });
       setGlobalError(undefined);
       setIsCaseSensitiveFs(state.isCaseSensitiveFs);
@@ -325,6 +331,7 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
         setPreAmp,
         convolution,
         setConvolution,
+        headset,
         voicing,
         driver,
         setDriver,

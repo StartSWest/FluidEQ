@@ -54,7 +54,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: none;
   }
 
-  // Whose measurements these are, kept visible when the section is folded.
+  // What is applied right now. Sits outside the fold, so it is the one thing
+  // a collapsed section still tells you.
+  .autoeq-applied {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    color: rgba($white, 0.88);
+    font-size: 0.72rem;
+
+    .menu-icon {
+      width: 15px;
+      height: 15px;
+      flex: 0 0 auto;
+      color: $secondary-light;
+    }
+
+    > span {
+      @include truncate;
+    }
+  }
+
+  // Whose measurements these are; inside the fold.
   .autoeq-attribution {
     @include truncate;
     color: $text-muted;
@@ -213,4 +235,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       width: 100%;
     }
   }
+}
+
+// Applying has no visible effect inside this panel — the result lands in the
+// bands below — so the button reports its own outcome. Muted rather than
+// greyed: it is finished, not unavailable.
+.auto-eq .button.is-applied {
+  color: $secondary-light;
+  border-color: rgba($secondary-light, 0.4);
+  background: rgba($secondary-default, 0.14);
+  box-shadow: none;
+  cursor: default;
+  opacity: 1;
 }

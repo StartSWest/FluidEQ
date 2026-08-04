@@ -23,6 +23,7 @@ import { useAquaContext } from '../utils/AquaContext';
 import { useTranslation } from '../utils/I18nContext';
 import {
   clearConvolution,
+  clearHeadset,
   setDriver as setDriverApi,
   setVoicing as setVoicingApi,
 } from '../utils/equalizerApi';
@@ -47,6 +48,7 @@ const ActiveLayers = () => {
     convolution,
     voicing,
     driver,
+    headset,
     isEnabled,
     isBlockingError,
     refreshState,
@@ -67,7 +69,27 @@ const ActiveLayers = () => {
     label: string;
     name: string;
     onClear: () => Promise<void>;
+    /** Overrides the generic "remove this layer" wording. */
+    clearHint?: string;
   }[] = [];
+
+  // First, because it is what the bands themselves came from rather than
+  // something stacked after them. Its remove button forgets the attribution
+  // and leaves the bands alone — by the time you want it gone you have usually
+  // tuned on top of it, and it is the label that has stopped being true.
+  if (headset) {
+    layers.push({
+      key: 'headset',
+      icon: 'model',
+      label: t('eq.layers.headset'),
+      name: headset,
+      clearHint: t('eq.layers.forget'),
+      onClear: async () => {
+        await clearHeadset();
+        await refreshState();
+      },
+    });
+  }
 
   if (convolution) {
     layers.push({
@@ -139,8 +161,12 @@ const ActiveLayers = () => {
           </span>
           <button
             type="button"
-            aria-label={t('eq.layers.remove', { layer: layer.label })}
-            title={t('eq.layers.remove', { layer: layer.label })}
+            aria-label={
+              layer.clearHint ?? t('eq.layers.remove', { layer: layer.label })
+            }
+            title={
+              layer.clearHint ?? t('eq.layers.remove', { layer: layer.label })
+            }
             disabled={isBlockingError || !isEnabled}
             onClick={() =>
               layer

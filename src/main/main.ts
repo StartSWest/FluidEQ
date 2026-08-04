@@ -385,6 +385,7 @@ const getCurrentPreset = (): IPresetV2 => ({
   voicing: state.voicing,
   driver: state.driver,
   isAutoPreAmpOn: state.isAutoPreAmpOn,
+  headset: state.headset,
 });
 
 const switchToParametricEditing = () => {
@@ -626,6 +627,7 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     state.isFlat = presetSettings.isFlat;
     state.voicing = presetSettings.voicing;
     state.driver = presetSettings.driver;
+    state.headset = presetSettings.headset;
     attachPresetToActiveDevice(presetName);
     await handleUpdate(event, channel, true);
   } catch (ex) {
@@ -661,6 +663,7 @@ ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
     state.isFlat = baseline.isFlat;
     state.voicing = baseline.voicing;
     state.driver = baseline.driver;
+    state.headset = baseline.headset;
     // Restoring writes the profile back to the baseline, but deliberately does
     // NOT rewrite the baseline itself — restoring twice in a row is a no-op
     // rather than a way to lose the copy.
@@ -953,6 +956,9 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     state.filters = presetSettings.filters;
     state.eqFormat = presetSettings.eqFormat;
     state.graphicEq = presetSettings.graphicEq;
+    // Which model these bands came from. Not recoverable from the bands, and
+    // the difference between a curve you can reason about and a set of numbers.
+    state.headset = deviceName;
     // AutoEQ may be ParametricEQ, FixedBandEQ, or GraphicEQ. Replace only the
     // EQ stage; an already loaded convolution remains an independent APO
     // stage.
@@ -1023,6 +1029,7 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
     state.filters = presetSettings.filters;
     state.eqFormat = AutoEqFormat.PARAMETRIC;
     state.graphicEq = undefined;
+    state.headset = deviceName;
     // Squiglink responses are editable EQ bands. Keep any separately selected
     // convolution profile in place while replacing only the EQ chain.
     state.isFlat = false;
@@ -1067,6 +1074,19 @@ ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
     console.error('Failed to download convolution profile', error);
     handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
   }
+});
+
+/**
+ * Forget which model the bands came from, without touching the bands.
+ *
+ * Deliberately not the same as Clear EQ. The reference is an attribution, not
+ * a layer: by the time someone wants it gone they have usually tuned on top of
+ * it and the label is what has stopped being true, not the sound.
+ */
+ipcMain.on(ChannelEnum.CLEAR_HEADSET, async (event) => {
+  const channel = ChannelEnum.CLEAR_HEADSET;
+  state.headset = undefined;
+  await handleUpdate(event, channel, false, true);
 });
 
 ipcMain.on(ChannelEnum.CLEAR_CONVOLUTION, async (event) => {
@@ -1116,6 +1136,8 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
     state.filters = imported.filters;
     state.eqFormat = imported.eqFormat;
     state.graphicEq = imported.graphicEq;
+    // These bands came from a file, not from a measured model.
+    state.headset = undefined;
     // An imported EQ is a tuning, so the flat flag has to come off or the
     // bands would be parsed, stored, and then not written.
     state.isFlat = false;
@@ -1460,6 +1482,8 @@ ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
   state.filters = getDefaultFilters();
   state.preAmp = 0;
   state.isFlat = true;
+  // The bands it described are gone, so the attribution would be a lie.
+  state.headset = undefined;
 
   // EQ reset is independent from convolution. Persist the resulting state
   // (including any active convolution) to the device profile so APO keeps the

@@ -104,6 +104,8 @@ const fr: Partial<Dictionary> = {
   'autoeq.eyebrow': 'PARTIR D’UNE RÉFÉRENCE',
   'autoeq.title': 'Bibliothèque AutoEQ',
   'autoeq.selectSource': 'Choisissez une source',
+  'autoeq.applied': 'Appliqué : {name}',
+  'autoeq.notApplied': 'Aucune référence appliquée',
   'autoeq.source': 'Source de mesure',
   'autoeq.model': 'Modèle de casque',
   'autoeq.target': 'Mesure / cible',
@@ -144,7 +146,10 @@ const fr: Partial<Dictionary> = {
   'eq.layers.convolution': 'Convolution',
   'eq.layers.voicing': 'Caractère',
   'eq.layers.driver': 'Transducteur',
+  'eq.layers.headset': 'Casque',
   'eq.layers.remove': 'Retirer la couche {layer}',
+  'eq.layers.forget':
+    'Oublier le modèle de référence — les bandes restent telles quelles',
   'eq.fromFlat': 'Depuis plat',
   'eq.fromFlat.hint':
     'Remet toutes les bandes à zéro avant d’écouter. À utiliser quand une atténuation existante masque justement la zone qu’elle touche : la mesure ne voit pas à travers sa propre correction.',
