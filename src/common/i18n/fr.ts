@@ -162,8 +162,8 @@ const fr: Partial<Dictionary> = {
   'eq.layers.driver': 'Transducteur',
   'eq.layers.headset': 'Casque',
   'eq.layers.remove': 'Retirer la couche {layer}',
-  'eq.layers.forget':
-    'Oublier le modèle de référence — les bandes restent telles quelles',
+  'eq.layers.clearReference':
+    'Effacer le modèle de référence et les bandes qu’il a produites',
   'eq.fromFlat': 'Depuis plat',
   'eq.fromFlat.hint':
     'Remet toutes les bandes à zéro avant d’écouter. À utiliser quand une atténuation existante masque justement la zone qu’elle touche : la mesure ne voit pas à travers sa propre correction.',

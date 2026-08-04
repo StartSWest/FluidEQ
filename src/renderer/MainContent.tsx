@@ -50,7 +50,7 @@ import Button from './widgets/Button';
 import {
   addEqualizerSlider,
   clearGains,
-  clearHeadset,
+  forgetHeadset,
   removeEqualizerSlider,
   setFrequency,
   setFixedBand,
@@ -419,7 +419,11 @@ const MainContent = () => {
           // attribution is no longer true. Smart EQ is about to write its own
           // curve over the top; keeping the model name would credit it for a
           // measurement that is nothing to do with it.
-          await clearHeadset();
+          //
+          // Forget rather than clear: clearing the reference resets the layout
+          // and mints new band ids, which would pull the bands out from under
+          // the measurement about to be written into them.
+          await forgetHeadset();
           if (!isCurrentRun()) {
             return;
           }

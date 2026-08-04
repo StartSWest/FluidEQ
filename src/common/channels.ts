@@ -65,6 +65,10 @@ enum ChannelEnum {
   SET_VOICING = 'setVoicing',
   SET_DRIVER = 'setDriver',
   CLEAR_HEADSET = 'clearHeadset',
+  // Clearing a reference clears the bands it wrote. Forgetting it keeps them,
+  // for the caller that has already replaced them and only needs the model name
+  // to stop claiming credit.
+  FORGET_HEADSET = 'forgetHeadset',
   GET_AUDIO_DEVICES = 'getAudioDevices',
   SET_DEFAULT_AUDIO_DEVICE = 'setDefaultAudioDevice',
   ACTIVATE_AUDIO_DEVICE_PROFILE = 'activateAudioDeviceProfile',

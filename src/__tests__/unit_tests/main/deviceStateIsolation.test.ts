@@ -64,6 +64,9 @@ describe('per-device state isolation', () => {
         voicing: { profileId: 'music', intensity: 1 },
         driver: { profileId: 'balanced-armature-iem', intensity: 1 },
         convolution: { name: 'Some HRTF', filters: {} },
+        headset: 'HD 600',
+        headsetTarget: 'Harman 2018',
+        headsetSource: 'squiglink-gadgetrytech-headphones-headsets',
       }),
     );
     // A bare profile: none of the optional layers.
@@ -146,12 +149,19 @@ describe('per-device state isolation', () => {
     const bare = getStateForAudioDevice(settings, 'bare', presetsDir);
 
     // Present as own keys, holding undefined — absence is what caused the leak.
-    ['voicing', 'driver', 'convolution', 'graphicEq', 'eqFormat'].forEach(
-      (key) => {
-        expect(Object.prototype.hasOwnProperty.call(bare, key)).toBe(true);
-        expect(bare[key as keyof typeof bare]).toBeUndefined();
-      },
-    );
+    [
+      'voicing',
+      'driver',
+      'convolution',
+      'graphicEq',
+      'eqFormat',
+      'headset',
+      'headsetTarget',
+      'headsetSource',
+    ].forEach((key) => {
+      expect(Object.prototype.hasOwnProperty.call(bare, key)).toBe(true);
+      expect(bare[key as keyof typeof bare]).toBeUndefined();
+    });
   });
 
   it('clears the previous device layers when the next one has none', () => {
@@ -194,6 +204,30 @@ describe('per-device state isolation', () => {
     expect(live.voicing?.profileId).toBe('music');
     expect(live.driver?.profileId).toBe('balanced-armature-iem');
     expect(live.convolution?.name).toBe('Some HRTF');
+  });
+
+  it('carries the applied reference, source included, across an output switch', () => {
+    // The AutoEQ panel puts its three pickers back from these, so the source
+    // has to make the trip with the model and the measurement. Restoring by
+    // model name alone lands on whichever database sorts first, which is how a
+    // Squiglink selection came back showing the AutoEq copy of the same model.
+    const live = getDefaultState();
+
+    switchTo(live, 'full');
+    expect(live.headset).toBe('HD 600');
+    expect(live.headsetTarget).toBe('Harman 2018');
+    expect(live.headsetSource).toBe(
+      'squiglink-gadgetrytech-headphones-headsets',
+    );
+
+    switchTo(live, 'bare');
+    expect(live.headset).toBeUndefined();
+    expect(live.headsetSource).toBeUndefined();
+
+    switchTo(live, 'full');
+    expect(live.headsetSource).toBe(
+      'squiglink-gadgetrytech-headphones-headsets',
+    );
   });
 
   it('makes the auto preamp preference part of the profile', () => {

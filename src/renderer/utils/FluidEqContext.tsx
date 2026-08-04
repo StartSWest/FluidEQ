@@ -87,6 +87,14 @@ export interface IFluidEqContext extends IState {
   headset?: string;
   /** Which measurement of it. */
   headsetTarget?: string;
+  /**
+   * Which database it came from: 'autoeq', or a Squiglink source id.
+   *
+   * Undefined for profiles written before the source was recorded, so the
+   * AutoEQ panel has to read "unknown" as a real answer and fall back to
+   * matching the model by name rather than treating it as a mismatch.
+   */
+  headsetSource?: string;
   /** Curated target curve written as its own APO layer after the EQ bands. */
   voicing?: IVoicingSettings;
   driver?: IDriverSettings;
@@ -221,6 +229,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [headsetTarget, setHeadsetTarget] = useState<string | undefined>(
     DEFAULT_STATE.headsetTarget,
   );
+  const [headsetSource, setHeadsetSource] = useState<string | undefined>(
+    DEFAULT_STATE.headsetSource,
+  );
   const [selectedFilterId, setSelectedFilterIdState] = useState<string>('');
   const [selectedFilterIds, setSelectedFilterIdsState] = useState<string[]>([]);
   const [hoveredFilterId, setHoveredFilterId] = useState<string>('');
@@ -280,6 +291,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       setDriver(state.driver ?? DEFAULT_DRIVER);
       setHeadset(state.headset);
       setHeadsetTarget(state.headsetTarget);
+      setHeadsetSource(state.headsetSource);
       dispatchFilter({ type: FilterActionEnum.INIT, filters: state.filters });
       setGlobalError(undefined);
       setIsCaseSensitiveFs(state.isCaseSensitiveFs);
@@ -341,6 +353,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setConvolution,
         headset,
         headsetTarget,
+        headsetSource,
         voicing,
         driver,
         setDriver,

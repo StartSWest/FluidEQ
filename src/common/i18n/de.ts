@@ -162,8 +162,8 @@ const de: Partial<Dictionary> = {
   'eq.layers.driver': 'Treiber',
   'eq.layers.headset': 'Hörer',
   'eq.layers.remove': 'Ebene {layer} entfernen',
-  'eq.layers.forget':
-    'Das Referenzmodell vergessen — die Bänder bleiben, wie sie sind',
+  'eq.layers.clearReference':
+    'Referenzmodell und die daraus erzeugten Bänder löschen',
   'eq.fromFlat': 'Von neutral',
   'eq.fromFlat.hint':
     'Setzt vor dem Hören alle Bänder auf null. Nützlich, wenn eine bestehende Absenkung genau den Bereich verdeckt, den sie betrifft — die Messung sieht nicht durch ihre eigene Korrektur hindurch.',

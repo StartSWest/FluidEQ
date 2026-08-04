@@ -75,9 +75,10 @@ const ActiveLayers = () => {
   }[] = [];
 
   // First, because it is what the bands themselves came from rather than
-  // something stacked after them. Its remove button forgets the attribution
-  // and leaves the bands alone — by the time you want it gone you have usually
-  // tuned on top of it, and it is the label that has stopped being true.
+  // something stacked after them. Its remove button takes the bands with it:
+  // the reference is not a label attached to a tuning, it is the tuning, and
+  // removing only the label left a curve behind that the EQ page then claimed
+  // nothing was responsible for.
   if (headset) {
     layers.push({
       key: 'headset',
@@ -86,7 +87,7 @@ const ActiveLayers = () => {
       // Model and measurement, because a model on its own is ambiguous — most
       // have several measurements and they do not sound alike.
       name: headsetTarget ? `${headset} · ${headsetTarget}` : headset,
-      clearHint: t('eq.layers.forget'),
+      clearHint: t('eq.layers.clearReference'),
       onClear: async () => {
         await clearHeadset();
         await refreshState();

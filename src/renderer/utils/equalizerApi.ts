@@ -404,9 +404,28 @@ export const downloadConvolution = (entryId: string): Promise<void> => {
   return promisifyResult(setterResponseHandler, channel, 5 * 60 * 1000);
 };
 
-/** Forget the reference model without touching the bands it produced. */
-export const clearHeadset = (): Promise<void> => {
+/**
+ * Clear the reference model and the bands it wrote.
+ *
+ * Hands back the new filter map for the same reason clearGains does: the reset
+ * mints fresh band ids, so every id the caller is still holding has just
+ * stopped existing.
+ */
+export const clearHeadset = (): Promise<IFiltersMap> => {
   const channel = ChannelEnum.CLEAR_HEADSET;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(simpleResponseHandler<IFiltersMap>(), channel);
+};
+
+/**
+ * Drop the attribution and leave the bands exactly where they are.
+ *
+ * Not the user-facing clear. This is for a caller that has already rewritten
+ * the bands itself and only needs the model name to stop taking credit for
+ * them.
+ */
+export const forgetHeadset = (): Promise<void> => {
+  const channel = ChannelEnum.FORGET_HEADSET;
   window.electron.ipcRenderer.sendMessage(channel, []);
   return promisifyResult(setterResponseHandler, channel);
 };

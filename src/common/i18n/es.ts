@@ -162,8 +162,8 @@ const es: Partial<Dictionary> = {
   'eq.layers.driver': 'Transductor',
   'eq.layers.headset': 'Auriculares',
   'eq.layers.remove': 'Quitar la capa de {layer}',
-  'eq.layers.forget':
-    'Olvidar el modelo de referencia: las bandas se quedan como están',
+  'eq.layers.clearReference':
+    'Borrar el modelo de referencia y las bandas que generó',
   'eq.fromFlat': 'Desde plano',
   'eq.fromFlat.hint':
     'Pone todas las bandas a cero antes de escuchar. Úsalo cuando un corte existente esté tapando justo la zona que afecta: la medición no puede ver a través de su propia corrección.',

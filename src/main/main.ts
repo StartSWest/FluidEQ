@@ -101,6 +101,7 @@ import {
   IAppUpdateStatus,
   RENDERER_READY_EVENT,
   OUTPUT_STATE_CHANGED_EVENT,
+  AUTOEQ_SOURCE_ID,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
 import {
@@ -554,6 +555,7 @@ const getCurrentPreset = (): IPresetV2 => ({
   isAutoPreAmpOn: state.isAutoPreAmpOn,
   headset: state.headset,
   headsetTarget: state.headsetTarget,
+  headsetSource: state.headsetSource,
 });
 
 const switchToParametricEditing = () => {
@@ -601,6 +603,32 @@ const reservePresetNameForActiveDevice = (requestedName: string) => {
 };
 
 /**
+ * Back to the default editable EQ: ten neutral Peak bands and no preamp.
+ *
+ * The default layout rather than only zeroed gains, because band pass, notch
+ * and the pass filters still shape the signal at 0 dB, and because the stored
+ * per-size layout snapshots have to go with them — otherwise pressing a band
+ * count afterwards resurrects the tuning that was just cleared. The flat flag
+ * is what actually takes the bands out of the config; without it they would be
+ * stored and then never written.
+ *
+ * The attribution goes too: it described bands that no longer exist. Nothing
+ * here touches the voicing, the driver correction or the convolution — those
+ * are separate layers, chosen separately, and clearing the EQ is not a reason
+ * to throw them away. See resetStateToDefaults for the reset that does.
+ */
+const resetEqToDefaults = () => {
+  switchToParametricEditing();
+  clearCurrentLayoutSettings();
+  state.filters = getDefaultFilters();
+  state.preAmp = 0;
+  state.isFlat = true;
+  state.headset = undefined;
+  state.headsetTarget = undefined;
+  state.headsetSource = undefined;
+};
+
+/**
  * Put the sound back to neutral: no bands, no layers, no attribution.
  *
  * Everything audible, and everything describing it. Leaving the voicing or the
@@ -608,16 +636,10 @@ const reservePresetNameForActiveDevice = (requestedName: string) => {
  * while two layers were still shaping the output.
  */
 const resetStateToDefaults = () => {
-  switchToParametricEditing();
-  clearCurrentLayoutSettings();
-  state.filters = getDefaultFilters();
-  state.preAmp = 0;
-  state.isFlat = true;
+  resetEqToDefaults();
   state.convolution = undefined;
   state.voicing = undefined;
   state.driver = undefined;
-  state.headset = undefined;
-  state.headsetTarget = undefined;
 };
 
 /**
@@ -955,6 +977,7 @@ const adoptExistingApoConfig = () => {
     // The attribution described bands that are no longer these bands.
     state.headset = undefined;
     state.headsetTarget = undefined;
+    state.headsetSource = undefined;
 
     if (adopted.convolutionFileName) {
       // The WAV is still next to the config and still what APO is applying, so
@@ -1009,6 +1032,7 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     state.driver = presetSettings.driver;
     state.headset = presetSettings.headset;
     state.headsetTarget = presetSettings.headsetTarget;
+    state.headsetSource = presetSettings.headsetSource;
     attachPresetToActiveDevice(presetName);
     await handleUpdate(event, channel, true);
   } catch (ex) {
@@ -1046,6 +1070,7 @@ ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
     state.driver = baseline.driver;
     state.headset = baseline.headset;
     state.headsetTarget = baseline.headsetTarget;
+    state.headsetSource = baseline.headsetSource;
     // Restoring writes the profile back to the baseline, but deliberately does
     // NOT rewrite the baseline itself — restoring twice in a row is a no-op
     // rather than a way to lose the copy.
@@ -1367,10 +1392,14 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     state.filters = presetSettings.filters;
     state.eqFormat = presetSettings.eqFormat;
     state.graphicEq = presetSettings.graphicEq;
-    // Which model these bands came from. Not recoverable from the bands, and
-    // the difference between a curve you can reason about and a set of numbers.
+    // Which model these bands came from, and out of which database. Not
+    // recoverable from the bands, and the difference between a curve you can
+    // reason about and a set of numbers. The source is recorded because the
+    // same model name exists in several databases with unrelated measurements
+    // behind it, so the name alone cannot lead back to this measurement.
     state.headset = deviceName;
     state.headsetTarget = responseName;
+    state.headsetSource = AUTOEQ_SOURCE_ID;
     // AutoEQ may be ParametricEQ, FixedBandEQ, or GraphicEQ. Replace only the
     // EQ stage; an already loaded convolution remains an independent APO
     // stage.
@@ -1443,6 +1472,10 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
     state.graphicEq = undefined;
     state.headset = deviceName;
     state.headsetTarget = responseName;
+    // Left undefined on the legacy three-argument request, which does not say
+    // which database it meant. The panel falls back to matching on the model
+    // name, which is what it did before the source was recorded at all.
+    state.headsetSource = sourceId;
     // Squiglink responses are editable EQ bands. Keep any separately selected
     // convolution profile in place while replacing only the EQ chain.
     state.isFlat = false;
@@ -1490,16 +1523,48 @@ ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
 });
 
 /**
- * Forget which model the bands came from, without touching the bands.
+ * Drop the reference, and with it the bands it produced.
  *
- * Deliberately not the same as Clear EQ. The reference is an attribution, not
- * a layer: by the time someone wants it gone they have usually tuned on top of
- * it and the label is what has stopped being true, not the sound.
+ * Applying a reference writes the measurement straight into the bands, so the
+ * model is not a label sitting beside them — it is where every one of those
+ * numbers came from. Keeping them after disclaiming their origin leaves a curve
+ * nobody, the app included, can account for: not the user's tuning, not any
+ * model's, just leftovers. A flat EQ is somewhere to start from; that is not.
+ *
+ * Deliberately the same reset as Clear EQ, down to leaving the voicing, the
+ * driver correction and the convolution alone — those were chosen separately
+ * and the reference never spoke for them. Callers that have already replaced
+ * the bands themselves want FORGET_HEADSET instead.
  */
 ipcMain.on(ChannelEnum.CLEAR_HEADSET, async (event) => {
   const channel = ChannelEnum.CLEAR_HEADSET;
+  resetEqToDefaults();
+  // Replies with the new bands, the same as Clear EQ, so a caller that is not
+  // about to re-read the whole state can adopt them: getDefaultFilters mints
+  // fresh ids, and every id the renderer still holds has just stopped existing.
+  await handleUpdateHelper<IFiltersMap>(
+    event,
+    channel,
+    state.filters,
+    false,
+    true,
+  );
+});
+
+/**
+ * Drop only the attribution, leaving the bands exactly as they are.
+ *
+ * Not the user-facing clear — that is CLEAR_HEADSET, which takes the bands with
+ * it. This is for a caller that has already rewritten the bands itself and only
+ * needs the model name to stop taking credit for them: Smart EQ flattening
+ * before it measures. Resetting the layout there would pull it out from under
+ * the measurement that is about to be written into it.
+ */
+ipcMain.on(ChannelEnum.FORGET_HEADSET, async (event) => {
+  const channel = ChannelEnum.FORGET_HEADSET;
   state.headset = undefined;
   state.headsetTarget = undefined;
+  state.headsetSource = undefined;
   await handleUpdate(event, channel, false, true);
 });
 
@@ -1553,6 +1618,7 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
     // These bands came from a file, not from a measured model.
     state.headset = undefined;
     state.headsetTarget = undefined;
+    state.headsetSource = undefined;
     // An imported EQ is a tuning, so the flat flag has to come off or the
     // bands would be parsed, stored, and then not written.
     state.isFlat = false;
@@ -1886,20 +1952,7 @@ ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
 ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
   const channel = ChannelEnum.CLEAR_GAINS;
 
-  // Clearing restores the default editable EQ rather than only zeroing gains:
-  //  - band type goes back to Peak, because band pass, notch and the pass
-  //    filters still shape the signal at 0 dB;
-  //  - the layout goes back to the standard ten bands;
-  //  - the stored per-size layout snapshots are dropped, so pressing a band
-  //    count afterwards cannot resurrect the tuning that was just cleared.
-  switchToParametricEditing();
-  clearCurrentLayoutSettings();
-  state.filters = getDefaultFilters();
-  state.preAmp = 0;
-  state.isFlat = true;
-  // The bands it described are gone, so the attribution would be a lie.
-  state.headset = undefined;
-  state.headsetTarget = undefined;
+  resetEqToDefaults();
 
   // EQ reset is independent from convolution. Persist the resulting state
   // (including any active convolution) to the device profile so APO keeps the

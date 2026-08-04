@@ -161,8 +161,8 @@ const it: Partial<Dictionary> = {
   'eq.layers.driver': 'Driver',
   'eq.layers.headset': 'Cuffie',
   'eq.layers.remove': 'Rimuovi il livello {layer}',
-  'eq.layers.forget':
-    'Dimentica il modello di riferimento: le bande restano come sono',
+  'eq.layers.clearReference':
+    'Cancella il modello di riferimento e le bande che ha prodotto',
   'eq.fromFlat': 'Da piatto',
   'eq.fromFlat.hint':
     'Azzera tutte le bande prima di ascoltare. Serve quando un taglio già presente sta nascondendo proprio la zona su cui agisce: la misura non vede attraverso la propria correzione.',

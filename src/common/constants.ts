@@ -239,7 +239,8 @@ export interface IState {
    * Not a layer — applying a reference writes into the bands themselves — but
    * knowing which model a curve came from is the difference between a set of
    * numbers and a tuning you can reason about, and it is not recoverable from
-   * the bands afterwards. Purely descriptive: nothing reads it back.
+   * the bands afterwards. The AutoEQ panel reads all three of these back to put
+   * its pickers where the user left them after a remount or a restart.
    */
   headset?: string;
   /**
@@ -251,6 +252,17 @@ export interface IState {
    * claim a target was already applied when a different one was.
    */
   headsetTarget?: string;
+  /**
+   * Which database the model was looked up in — see AUTOEQ_SOURCE_ID.
+   *
+   * Model names collide across databases, and the same model measured on two
+   * rigs has entirely different measurement names, so the model name alone
+   * cannot say which list to go looking in. Without this, restoring a selection
+   * picks whichever database happens to sort first and then cannot find the
+   * measurement in it. Optional: profiles written before it existed carry the
+   * model name and nothing else, and must still restore by name alone.
+   */
+  headsetSource?: string;
 }
 
 /**
@@ -316,6 +328,8 @@ export interface IPresetV2 {
   headset?: string;
   /** Which measurement of it — models usually have more than one. */
   headsetTarget?: string;
+  /** Which database it came from; absent in profiles predating the field. */
+  headsetSource?: string;
 }
 
 export interface IConvolutionProfile {
@@ -361,6 +375,16 @@ export interface IAutoEqUpdateStatus {
   latest?: IAutoEqDatabaseManifest;
   updateAvailable: boolean;
 }
+
+/**
+ * The bundled AutoEq database, as a source id.
+ *
+ * Squiglink sources name themselves in their manifest; the local database has
+ * no manifest to name it, so the id is written here once and shared. Both
+ * processes persist it into headsetSource and compare against it, and a typo
+ * in either would silently stop a restored selection matching.
+ */
+export const AUTOEQ_SOURCE_ID = 'autoeq';
 
 export interface IEqSource {
   /** Stable source id. Squiglink ids are supplied by its official manifest. */

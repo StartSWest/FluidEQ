@@ -192,7 +192,8 @@ const en = {
   'eq.layers.driver': 'Driver',
   'eq.layers.headset': 'Headset',
   'eq.layers.remove': 'Remove the {layer} layer',
-  'eq.layers.forget': 'Forget the reference model — the bands stay as they are',
+  'eq.layers.clearReference':
+    'Clear the reference model and the bands it wrote',
   'eq.fromFlat': 'From flat',
   'eq.fromFlat.hint':
     'Zero every band before listening. Use this when an existing cut is hiding the region it affects — the measurement cannot see through its own correction.',

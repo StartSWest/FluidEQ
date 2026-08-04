@@ -154,7 +154,7 @@ const zh: Partial<Dictionary> = {
   'eq.layers.driver': '单元',
   'eq.layers.headset': '耳机',
   'eq.layers.remove': '移除{layer}层',
-  'eq.layers.forget': '忘掉参考型号 — 频段保持不变',
+  'eq.layers.clearReference': '清除参考型号及其生成的频段',
   'eq.fromFlat': '从零开始',
   'eq.fromFlat.hint':
     '开始试听前把所有频段清零。当已有的衰减正好挡住了它自己作用的那一段时用得上——测量看不穿自己的修正。',

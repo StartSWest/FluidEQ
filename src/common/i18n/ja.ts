@@ -161,7 +161,8 @@ const ja: Partial<Dictionary> = {
   'eq.layers.driver': 'ドライバー',
   'eq.layers.headset': 'ヘッドホン',
   'eq.layers.remove': '{layer} のレイヤーを外す',
-  'eq.layers.forget': 'リファレンス機種を忘れます — バンドはそのままです',
+  'eq.layers.clearReference':
+    'リファレンス機種と、それが作ったバンドを消します',
   'eq.fromFlat': 'フラットから',
   'eq.fromFlat.hint':
     '試聴の前に全バンドをゼロに戻します。既存のカットが、まさにそのカットが効いている帯域を隠してしまっているときに使ってください — 測定は自分の補正の向こう側を見られません。',
