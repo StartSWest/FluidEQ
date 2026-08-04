@@ -15,6 +15,7 @@ import {
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import Dropdown from './widgets/Dropdown';
+import SidebarSection from './components/SidebarSection';
 import { IOptionEntry } from './widgets/List';
 import { useAquaContext } from './utils/AquaContext';
 import {
@@ -123,25 +124,33 @@ const DeviceProfiles = () => {
   );
 
   return (
-    <section className="device-profiles">
-      {/* The badge moved down here with the section header rework. It still
-          earns its place: the picker lists every endpoint, so which one Windows
-          is actually playing through is not otherwise obvious. */}
-      <span className="device-profiles__label device-profiles__label--row">
-        Output device
-        {selectedDevice?.isDefault && (
-          <span className="default-badge">ACTIVE</span>
-        )}
-      </span>
-      <Dropdown
-        name="Output device"
-        options={deviceOptions}
-        value={selectedDeviceId}
-        handleChange={handleDeviceChange}
-        isDisabled={isBlockingError || isBusy || devices.length === 0}
-        emptyOptionsPlaceholder="No active outputs found"
-      />
-
+    // The picker is the summary, so folding this section hides the mapping
+    // detail but leaves the output you are choosing between on screen.
+    <SidebarSection
+      eyebrow="FOLLOWS YOUR OUTPUT"
+      title="Automatic profile"
+      summary={
+        <div className="device-profiles__picker">
+          {/* The badge earns its place: the picker lists every endpoint, so
+              which one Windows is actually playing through is not otherwise
+              obvious. */}
+          <span className="device-profiles__label device-profiles__label--row">
+            Output device
+            {selectedDevice?.isDefault && (
+              <span className="default-badge">ACTIVE</span>
+            )}
+          </span>
+          <Dropdown
+            name="Output device"
+            options={deviceOptions}
+            value={selectedDeviceId}
+            handleChange={handleDeviceChange}
+            isDisabled={isBlockingError || isBusy || devices.length === 0}
+            emptyOptionsPlaceholder="No active outputs found"
+          />
+        </div>
+      }
+    >
       <div className="device-profiles__mapping">
         <span className="device-profiles__label">Automatic mapping</span>
         <strong>{mappingLabel}</strong>
@@ -154,7 +163,7 @@ const DeviceProfiles = () => {
         FluidEQ maps the stable endpoint ID, so this sound follows the device
         whenever Windows selects it.
       </p>
-    </section>
+    </SidebarSection>
   );
 };
 

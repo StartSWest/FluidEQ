@@ -23,6 +23,14 @@ interface ISidebarSectionProps {
   /** Small caps line above the title. */
   eyebrow: string;
   title: string;
+  /**
+   * The one control that stays put when the section is folded.
+   *
+   * Collapsing is for hiding detail, not for hiding the thing you came to
+   * change — a folded section whose picker had vanished with it would just
+   * have to be unfolded again to be useful.
+   */
+  summary?: ReactNode;
   children: ReactNode;
 }
 
@@ -41,6 +49,7 @@ interface ISidebarSectionProps {
 export default function SidebarSection({
   eyebrow,
   title,
+  summary,
   children,
 }: ISidebarSectionProps) {
   const [isOpen, setIsOpen] = useState(true);
@@ -75,6 +84,8 @@ export default function SidebarSection({
           />
         </svg>
       </button>
+
+      {summary && <div className="sidebar-section__summary">{summary}</div>}
 
       {/* A 0fr to 1fr grid row is the one height transition that needs no
           measured pixel value, so a section can hold anything — including a

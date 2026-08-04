@@ -99,3 +99,18 @@
     transition: none;
   }
 }
+
+// Sits between the header and the fold, so it survives collapsing.
+.sidebar-section__summary {
+  min-width: 0;
+  padding: 0 13px;
+}
+
+// Without a body to follow it, the summary needs the bottom padding itself.
+.sidebar-section:not(.is-open) .sidebar-section__summary {
+  padding-bottom: 13px;
+}
+
+.sidebar-section.is-open .sidebar-section__summary {
+  padding-bottom: 8px;
+}

@@ -28,6 +28,7 @@ import DriverCurve from './DriverCurve';
 import { useAquaContext } from '../utils/AquaContext';
 import { setDriver as setDriverApi } from '../utils/equalizerApi';
 import Dropdown from '../widgets/Dropdown';
+import SidebarSection from './SidebarSection';
 import { IOptionEntry } from '../widgets/List';
 import '../styles/DriverPicker.scss';
 
@@ -143,12 +144,16 @@ const DriverPicker = () => {
   };
 
   return (
-    <section className="driver-picker">
-      <div className="driver-picker__head">
-        {/* Deliberately not disabled on isBusy. Every step of a strength drag
-            starts and finishes a write, so gating the combo on that made it
-            flash between enabled and disabled the whole time the slider moved.
-            A local file write is not worth locking the control for. */}
+    // The section lives here rather than in App because the combo has to stay
+    // visible when the section is folded, and the combo's state lives here.
+    <SidebarSection
+      eyebrow="WHAT YOU LISTEN ON"
+      title="Driver type"
+      summary={
+        // Deliberately not disabled on isBusy. Every step of a strength drag
+        // starts and finishes a write, so gating the combo on that made it
+        // flash between enabled and disabled the whole time the slider moved.
+        // A local file write is not worth locking the control for.
         <Dropdown
           name="Driver type"
           options={options}
@@ -156,8 +161,8 @@ const DriverPicker = () => {
           isDisabled={isBlockingError || !isEnabled}
           handleChange={(value) => apply(value, intensity)}
         />
-      </div>
-
+      }
+    >
       {activeProfile && (
         <div className="driver-picker__detail">
           {/* The shape first: it says more in one glance than the list below. */}
@@ -223,7 +228,7 @@ const DriverPicker = () => {
           <p className="driver-picker__note">{activeProfile.note}</p>
         </div>
       )}
-    </section>
+    </SidebarSection>
   );
 };
 

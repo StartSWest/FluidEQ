@@ -469,17 +469,10 @@ const AppContent = () => {
           {activeWorkspaceTab === 'eq' ? <FrequencyResponseChart /> : null}
         </div>
         <div className="right-content">
-          <SidebarSection
-            eyebrow="FOLLOWS YOUR OUTPUT"
-            title="Automatic profile"
-          >
-            <DeviceProfiles />
-          </SidebarSection>
+          <DeviceProfiles />
           {/* Sits with the output device because it answers the same question:
               what is this sound coming out of. */}
-          <SidebarSection eyebrow="WHAT YOU LISTEN ON" title="Driver type">
-            <DriverPicker />
-          </SidebarSection>
+          <DriverPicker />
           <SidebarSection eyebrow="YOUR SOUND" title="Named profiles">
             <PresetsBar
               fetchPresets={getPresetListFromFiles}
