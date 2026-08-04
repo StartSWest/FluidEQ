@@ -131,9 +131,10 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   const run = useRhythmRun();
   const [highScore, setHighScore] = useState(readHighScore);
   const [bestMultiplier, setBestMultiplier] = useState(readBestMultiplier);
-  // Shown in place of the trace, not on top of it. The card is about a run
-  // that is over; leaving a live game scrolling behind it invites someone to
-  // tap at a waveform they can no longer see.
+  // Replaces the whole panel, not just the trace. The card is about a run the
+  // player has stepped away from to look at a picture of it, so leaving the
+  // instruction, the score and a live waveform around it both crowds the card
+  // and invites tapping at a game no longer in front of them.
   const [isSharing, setIsSharing] = useState(false);
   const [lastHit, setLastHit] = useState<IRhythmHit>();
   const [hitSeq, setHitSeq] = useState(0);
@@ -211,7 +212,12 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
 
   // One frame of spectrum in, one redraw out.
   useEffect(() => {
-    if (!isListening || points.length === 0) {
+    // Nothing to do while the card is up: none of this is on screen, and it is
+    // the most expensive thing the dialog does — two arrays and a path string
+    // rebuilt around twenty-two times a second. Guarded here rather than only
+    // in the render, so it genuinely stops rather than drawing into a hidden
+    // element.
+    if (!isListening || isSharing || points.length === 0) {
       return;
     }
     const now = performance.now();
@@ -312,7 +318,7 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
         }
       });
     }
-  }, [isListening, points, scoreHit]);
+  }, [isListening, isSharing, points, scoreHit]);
 
   // Nothing playing means nothing to jump. Clearing the trace rather than
   // leaving the last frame frozen is the honest thing — a still line that still
@@ -370,6 +376,31 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     [],
   );
 
+  // The card takes the whole panel.
+  //
+  // Everything else unmounts rather than being scrolled past: the instruction,
+  // the score, the trace and the verdict are all about a run that the player
+  // has stepped away from to look at a picture of it, and leaving them on
+  // screen both crowds the card and invites tapping at a game that is no
+  // longer in front of them.
+  //
+  // Unmounting is also what stops the work. The trace redraws on every audio
+  // frame — around twenty-two times a second, building two arrays and a path
+  // string each time — and none of that is visible while the card is up. The
+  // effect that does it is keyed on `isSharing` below, so it does not merely
+  // hide, it stops.
+  if (isSharing) {
+    return (
+      <div className="rhythm-game rhythm-game--sharing">
+        <ShareScoreCard
+          score={shareScore}
+          multiplier={shareMultiplier}
+          onClose={() => setIsSharing(false)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="rhythm-game">
       {/* How to play, and what it is worth playing for. Kept above the trace
@@ -405,98 +436,90 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
         </span>
       </div>
 
-      {isSharing ? (
-        <ShareScoreCard
-          score={shareScore}
-          multiplier={shareMultiplier}
-          onClose={() => setIsSharing(false)}
-        />
-      ) : (
-        <div className="rhythm-game__trace">
-          {/* The clip holds only the scrolling wave. The target line and the hit
+      <div className="rhythm-game__trace">
+        {/* The clip holds only the scrolling wave. The target line and the hit
             marker are siblings of it, not children — inside, their glow was
             sliced flat against the top and bottom edges. */}
-          <div className="rhythm-game__clip">
-            <svg
-              viewBox={`0 0 100 ${VIEW_HEIGHT}`}
-              preserveAspectRatio="none"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <defs>
-                {/* The same spectrum the titlebar meter runs, so the two waveforms
+        <div className="rhythm-game__clip">
+          <svg
+            viewBox={`0 0 100 ${VIEW_HEIGHT}`}
+            preserveAspectRatio="none"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <defs>
+              {/* The same spectrum the titlebar meter runs, so the two waveforms
                 in this app are recognisably the same thing. Cyan through to
                 violet, left to right. */}
-                <linearGradient id="rhythm-line" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0" stopColor="#00e5ff" />
-                  <stop offset="0.28" stopColor="#54ff8a" />
-                  <stop offset="0.52" stopColor="#ffe66d" />
-                  <stop offset="0.76" stopColor="#ff3cac" />
-                  <stop offset="1" stopColor="#8b5cff" />
-                </linearGradient>
-                <linearGradient id="rhythm-fill" x1="0" x2="1" y1="0" y2="0">
-                  <stop offset="0" stopColor="#00e5ff" stopOpacity="0.3" />
-                  <stop offset="0.28" stopColor="#54ff8a" stopOpacity="0.4" />
-                  <stop offset="0.52" stopColor="#ffe66d" stopOpacity="0.45" />
-                  <stop offset="0.76" stopColor="#ff3cac" stopOpacity="0.4" />
-                  <stop offset="1" stopColor="#8b5cff" stopOpacity="0.3" />
-                </linearGradient>
-              </defs>
-              {path && <path d={path} />}
-              {/* Inside the SVG, so the marks share the wave's coordinate space and
+              <linearGradient id="rhythm-line" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stopColor="#00e5ff" />
+                <stop offset="0.28" stopColor="#54ff8a" />
+                <stop offset="0.52" stopColor="#ffe66d" />
+                <stop offset="0.76" stopColor="#ff3cac" />
+                <stop offset="1" stopColor="#8b5cff" />
+              </linearGradient>
+              <linearGradient id="rhythm-fill" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stopColor="#00e5ff" stopOpacity="0.3" />
+                <stop offset="0.28" stopColor="#54ff8a" stopOpacity="0.4" />
+                <stop offset="0.52" stopColor="#ffe66d" stopOpacity="0.45" />
+                <stop offset="0.76" stopColor="#ff3cac" stopOpacity="0.4" />
+                <stop offset="1" stopColor="#8b5cff" stopOpacity="0.3" />
+              </linearGradient>
+            </defs>
+            {path && <path d={path} />}
+            {/* Inside the SVG, so the marks share the wave's coordinate space and
               cannot drift from the hits they belong to at any dialog width. */}
-              {peakMarks.map((x) => (
-                <line
-                  key={x}
-                  className="rhythm-game__peak"
-                  x1={x}
-                  x2={x}
-                  y1={0}
-                  y2={VIEW_HEIGHT}
-                  // Distance from the centre, so a mark brightens as it arrives.
-                  // The one you are about to hit should be the loudest thing on
-                  // screen.
-                  opacity={Math.max(
-                    0.18,
-                    1 - Math.abs(x - TARGET_PERCENT) / TARGET_PERCENT,
-                  )}
-                />
-              ))}
-            </svg>
-          </div>
+            {peakMarks.map((x) => (
+              <line
+                key={x}
+                className="rhythm-game__peak"
+                x1={x}
+                x2={x}
+                y1={0}
+                y2={VIEW_HEIGHT}
+                // Distance from the centre, so a mark brightens as it arrives.
+                // The one you are about to hit should be the loudest thing on
+                // screen.
+                opacity={Math.max(
+                  0.18,
+                  1 - Math.abs(x - TARGET_PERCENT) / TARGET_PERCENT,
+                )}
+              />
+            ))}
+          </svg>
+        </div>
 
-          {/* In the empty box, not under it. The box is the thing that looks
+        {/* In the empty box, not under it. The box is the thing that looks
               broken when nothing is playing, so the explanation belongs in the
               hole it leaves rather than on a line below that the eye has
               already skipped past on its way to the silence. */}
-          {!hasSignal && (
-            <span className="rhythm-game__empty">
-              {t('support.game.noAudio')}
-            </span>
-          )}
+        {!hasSignal && (
+          <span className="rhythm-game__empty">
+            {t('support.game.noAudio')}
+          </span>
+        )}
 
-          {/* Corner of the trace, because the trace is what euphoria mode
+        {/* Corner of the trace, because the trace is what euphoria mode
               actually changes — it is the thing that turns rainbow, and the
               badge naming it belongs on the thing it describes rather than up
               in a row of numbers that look the same either way. */}
-          {isEuphoric && (
-            <span className="euphoria-pill rhythm-game__mode">
-              {t('support.game.euphoria')}
-            </span>
-          )}
+        {isEuphoric && (
+          <span className="euphoria-pill rhythm-game__mode">
+            {t('support.game.euphoria')}
+          </span>
+        )}
 
-          {/* Directly under the pet, which is what the creature is jumping.
+        {/* Directly under the pet, which is what the creature is jumping.
             Keyed on the tap so two perfects in a row both flash — re-applying
             the same class to an element that already has it does nothing. */}
-          <span
-            key={lastHit?.verdict === 'perfect' ? hitSeq : 'target'}
-            className={`rhythm-game__target${
-              lastHit?.verdict === 'perfect' ? ' is-perfect' : ''
-            }`}
-            style={{ left: `${TARGET_PERCENT}%` }}
-          />
-        </div>
-      )}
+        <span
+          key={lastHit?.verdict === 'perfect' ? hitSeq : 'target'}
+          className={`rhythm-game__target${
+            lastHit?.verdict === 'perfect' ? ' is-perfect' : ''
+          }`}
+          style={{ left: `${TARGET_PERCENT}%` }}
+        />
+      </div>
 
       <p className="rhythm-game__verdict" aria-live="polite">
         {/* Both children are keyed on the tap so each one restarts its flash,
