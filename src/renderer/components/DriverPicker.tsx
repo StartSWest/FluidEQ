@@ -26,6 +26,7 @@ import {
 import { NO_GAIN_FILTER_TYPES } from 'common/constants';
 import DriverCurve from './DriverCurve';
 import { useAquaContext } from '../utils/AquaContext';
+import { useTranslation } from '../utils/I18nContext';
 import { setDriver as setDriverApi } from '../utils/equalizerApi';
 import Dropdown from '../widgets/Dropdown';
 import SidebarSection from './SidebarSection';
@@ -50,6 +51,7 @@ const WRITE_DEBOUNCE_MS = 140;
 const DriverPicker = () => {
   const { isBlockingError, isEnabled, driver, setDriver, setGlobalError } =
     useAquaContext();
+  const { t } = useTranslation();
 
   const activeId = driver?.profileId ?? '';
   const intensity = driver?.intensity ?? 0.6;
@@ -78,11 +80,11 @@ const DriverPicker = () => {
     const entries: IOptionEntry[] = [
       {
         value: '',
-        label: 'No compensation',
+        label: t('driver.none'),
         display: (
           <div className="driver-option">
-            <span>No compensation</span>
-            <small>Your bands and voicing only</small>
+            <span>{t('driver.none')}</span>
+            <small>{t('driver.none.hint')}</small>
           </div>
         ),
       },
@@ -106,7 +108,7 @@ const DriverPicker = () => {
       });
     });
     return entries;
-  }, []);
+  }, [t]);
 
   const writeTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
@@ -147,15 +149,15 @@ const DriverPicker = () => {
     // The section lives here rather than in App because the combo has to stay
     // visible when the section is folded, and the combo's state lives here.
     <SidebarSection
-      eyebrow="WHAT YOU LISTEN ON"
-      title="Driver type"
+      eyebrow={t('driver.eyebrow')}
+      title={t('driver.title')}
       summary={
         // Deliberately not disabled on isBusy. Every step of a strength drag
         // starts and finishes a write, so gating the combo on that made it
         // flash between enabled and disabled the whole time the slider moved.
         // A local file write is not worth locking the control for.
         <Dropdown
-          name="Driver type"
+          name={t('driver.title')}
           options={options}
           value={activeId}
           isDisabled={isBlockingError || !isEnabled}
@@ -175,12 +177,12 @@ const DriverPicker = () => {
             </div>
             {/* Naming the scale keeps the zoom from overstating the effect. */}
             <span className="driver-picker__range" aria-hidden="true">
-              ±1.5 dB
+              {t('driver.range')}
             </span>
           </div>
 
           <label htmlFor="driver-intensity">
-            Strength
+            {t('driver.strength')}
             <output>{Math.round(intensity * 100)}%</output>
           </label>
           <input

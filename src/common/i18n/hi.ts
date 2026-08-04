@@ -1,0 +1,202 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+import { Dictionary } from './en';
+
+/**
+ * Hindi.
+ *
+ * Audio terms of art (EQ, WAV, dB, Equalizer APO) stay in Latin script: they
+ * are what the labels on the hardware and in every other tool say, and a
+ * transliteration would be less recognisable, not more.
+ */
+const hi: Partial<Dictionary> = {
+  'app.tagline': 'आपकी आवाज़। हर डिवाइस पर। अपने आप।',
+  'app.actions': 'FluidEQ क्रियाएँ',
+  'app.actions.title': 'ऑडियो क्रियाएँ',
+  'app.status.ready': 'Equalizer APO से जुड़ा हुआ',
+  'app.status.checking': 'Equalizer APO जाँचा जा रहा है…',
+  'app.status.error': 'Equalizer APO जवाब नहीं दे रहा',
+  'app.menu.importEq': 'EQ सेटिंग आयात करें…',
+  'app.menu.importConvolution': 'इंपल्स रिस्पॉन्स आयात करें…',
+  'app.menu.restartAudio': 'Windows ऑडियो फिर से चालू करें',
+  'app.menu.reconfigure': 'Equalizer APO फिर से सेट करें',
+  'app.menu.apoSettings': 'Equalizer APO सेटिंग',
+  'app.menu.support': 'प्रोजेक्ट का साथ दें',
+  'app.menu.language': 'भाषा',
+  'app.window.minimize': 'छोटा करें',
+  'app.window.maximize': 'बड़ा करें',
+  'app.window.restore': 'पहले जैसा करें',
+  'app.window.close': 'बंद करें',
+  'app.window.minimizeApp': 'FluidEQ छोटा करें',
+  'app.window.maximizeApp': 'FluidEQ बड़ा करें',
+  'app.window.restoreApp': 'FluidEQ पहले जैसा करें',
+  'app.window.closeApp': 'FluidEQ बंद करें',
+  'app.dismiss': 'हटाएँ',
+
+  'tabs.aria': 'साउंड वर्कस्पेस',
+  'tabs.eq': 'EQ और ड्राइवर प्रकार',
+  'tabs.voicing': 'ध्वनि रंग',
+  'tabs.convolution': 'कन्वॉल्यूशन',
+
+  'notice.apoReconfigured':
+    'Equalizer APO इंस्टॉल या फिर से सेट हुआ है। अगर आवाज़ न आए तो पूरा PC नहीं, सिर्फ़ Windows ऑडियो फिर से चालू करें।',
+  'notice.restartNow': 'ऑडियो अभी फिर चालू करें',
+  'notice.importComplete': 'आयात पूरा हुआ',
+  'notice.restartConfirm':
+    'कुछ सेकंड के लिए आवाज़ रुकेगी और Windows एडमिन अनुमति माँगेगा। जारी रखें?',
+  'notice.restartDone':
+    'Windows ऑडियो फिर से चालू हो गया। जो ऐप अब भी चुप हैं उन्हें दोबारा खोलें।',
+
+  'sidebar.engine': 'इंजन',
+  'sidebar.systemEq': 'सिस्टम EQ',
+  'sidebar.preamp': 'प्रीएम्प',
+  'sidebar.preampAria': 'प्रीएम्प गेन (dB)',
+  'sidebar.preampAuto':
+    'यह अपने आप तय होता है। खुद बदलने के लिए “अपने आप सामान्य करें” बंद करें।',
+  'sidebar.headroom': 'APO हेडरूम',
+  'sidebar.autoPreamp': 'अपने आप सामान्य करें',
+  'sidebar.visualizer': 'विज़ुअलाइज़र',
+  'sidebar.graphView': 'रिस्पॉन्स ग्राफ़',
+
+  'output.eyebrow': 'आपके आउटपुट के साथ चलता है',
+  'output.title': 'स्वचालित प्रोफ़ाइल',
+  'output.device': 'आउटपुट डिवाइस',
+  'output.active': 'चालू',
+  'output.none': 'कोई चालू आउटपुट नहीं मिला',
+  'output.mapping': 'स्वचालित जोड़',
+  'output.mapping.neutral': 'बिना बदलाव वाला आउटपुट',
+  'output.mapping.live': 'चालू ट्यूनिंग जुड़ी है',
+  'output.mapping.hint':
+    'कोई भी EQ कंट्रोल बदलें — वह सेव होकर इसी आउटपुट से अपने आप जुड़ जाएगा।',
+  'output.hint':
+    'FluidEQ डिवाइस की स्थायी ID याद रखता है, इसलिए Windows जब भी उसे चुनेगा यह आवाज़ उसके साथ रहेगी।',
+
+  'driver.eyebrow': 'आप किस पर सुनते हैं',
+  'driver.title': 'ड्राइवर प्रकार',
+  'driver.none': 'कोई सुधार नहीं',
+  'driver.none.hint': 'सिर्फ़ आपके बैंड और ध्वनि रंग',
+  'driver.strength': 'मात्रा',
+  'driver.range': '±1.5 dB',
+
+  'profiles.eyebrow': 'आपकी आवाज़',
+  'profiles.title': 'सहेजी गई प्रोफ़ाइलें',
+  'profiles.name': 'प्रोफ़ाइल का नाम',
+  'profiles.nameAria': 'प्रोफ़ाइल का नाम',
+  'profiles.new': 'नई प्रोफ़ाइल',
+  'profiles.newAria': 'मौजूदा EQ से नई प्रोफ़ाइल बनाएँ',
+  'profiles.untitled': 'बिना नाम की प्रोफ़ाइल',
+  'profiles.save': 'नई के रूप में सहेजें',
+  'profiles.update': 'अपडेट करें',
+  'profiles.saveAria': 'सेटिंग प्रोफ़ाइल में सहेजें',
+  'profiles.restore': 'वापस लाएँ',
+  'profiles.restoring': 'वापस लाया जा रहा है…',
+  'profiles.restoreAria':
+    'इस प्रोफ़ाइल का आख़िरी बार हाथ से सहेजा गया रूप वापस लाएँ',
+  'profiles.attached': 'चालू',
+  'profiles.attachedTitle': 'इसी आउटपुट पर बज रहा है',
+  'profiles.detecting': 'आपका आउटपुट पहचाना जा रहा है…',
+  'profiles.empty': 'अभी कोई प्रोफ़ाइल नहीं है। अपनी पहली आवाज़ बनाइए।',
+  'profiles.error.empty': 'प्रोफ़ाइल का नाम खाली नहीं हो सकता।',
+  'profiles.error.restricted': 'यह नाम मान्य नहीं है, दूसरा चुनें।',
+  'profiles.error.duplicate': 'यह नाम पहले से है, दूसरा चुनें।',
+  'profiles.edit': 'प्रोफ़ाइल का नाम बदलें',
+
+  'autoeq.eyebrow': 'किसी संदर्भ से शुरू करें',
+  'autoeq.title': 'AutoEQ लाइब्रेरी',
+  'autoeq.selectSource': 'स्रोत चुनें',
+  'autoeq.source': 'माप का स्रोत',
+  'autoeq.model': 'हेडफ़ोन मॉडल',
+  'autoeq.target': 'माप / लक्ष्य',
+  'autoeq.apply': 'इस मॉडल का EQ लगाएँ',
+  'autoeq.applyAria': 'चुने हुए मॉडल का EQ लगाएँ',
+  'autoeq.checking': 'आधिकारिक डेटाबेस जाँचा जा रहा है…',
+  'autoeq.updateAvailable': 'अपडेट उपलब्ध है ({count} मॉडल)',
+  'autoeq.upToDate': 'डेटाबेस अद्यतन है — {count} मॉडल',
+  'autoeq.updateUnknown': 'अपडेट जाँच नहीं हो सकी',
+  'autoeq.update': 'डेटाबेस अपडेट करें',
+  'autoeq.updating': 'अपडेट हो रहा है…',
+  'autoeq.updateAria': 'AutoEq डेटाबेस अपडेट करें',
+
+  'eq.eyebrow': 'बारीक़ी से सेट करें',
+  'eq.title': 'पैरामीट्रिक EQ',
+  'eq.smart': 'स्मार्ट EQ',
+  'eq.smart.cancel': 'रद्द करें',
+  'eq.smart.aria': 'चल रहे आउटपुट से स्मार्ट EQ बनाएँ',
+  'eq.smart.cancelAria': 'स्मार्ट EQ माप रद्द करें',
+  'eq.smart.fromFlat': 'शून्य से',
+  'eq.layers': 'यह भी लागू है',
+  'eq.layers.aria': 'इस आउटपुट पर और क्या असर डाल रहा है',
+  'eq.layers.convolution': 'कन्वॉल्यूशन',
+  'eq.layers.voicing': 'ध्वनि रंग',
+  'eq.layers.driver': 'ड्राइवर',
+  'eq.layers.remove': '{layer} परत हटाएँ',
+
+  'convolution.eyebrow': 'APO इंपल्स रिस्पॉन्स',
+  'convolution.title': 'कन्वॉल्यूशन लाइब्रेरी',
+  'convolution.intro':
+    'अपने हेडफ़ोन के लिए जाँचा हुआ मिनिमम-फ़ेज़ इंपल्स डाउनलोड करें और उसे पैरामीट्रिक EQ से पहले लगाएँ। नीचे का ग्राफ़ दोनों कर्व दिखाता है।',
+  'convolution.import': 'WAV आयात करें…',
+  'convolution.importing': 'आयात हो रहा है…',
+  'convolution.applied': 'इस आउटपुट पर लागू',
+  'convolution.clear': 'हटाएँ',
+  'convolution.search': 'हेडफ़ोन मॉडल खोजें',
+  'convolution.searchPlaceholder':
+    '“Kraken”, “HD 650” या किसी मापने वाले का नाम आज़माएँ',
+  'convolution.notice':
+    'डाउनलोड करने योग्य सूची AutoEq देता है। फ़ाइलें 48 kHz WAV के रूप में आती हैं, क्योंकि Equalizer APO चाहता है कि इंपल्स रिस्पॉन्स चालू आउटपुट की सैंपल दर से मेल खाए।',
+  'convolution.loading': 'आधिकारिक सूची आ रही है…',
+  'convolution.empty':
+    'कोई मेल खाता इंपल्स रिस्पॉन्स नहीं। छोटा मॉडल नाम आज़माएँ।',
+  'convolution.source': 'स्रोत',
+  'convolution.apply': 'डाउनलोड करके लगाएँ',
+  'convolution.downloading': 'डाउनलोड हो रहा है…',
+  'convolution.isApplied': 'लागू है',
+  'convolution.none':
+    'कोई कन्वॉल्यूशन लोड नहीं है। EQ टैब पूरी तरह अलग काम करता है।',
+
+  'voicing.eyebrow': 'लक्ष्य कर्व',
+  'voicing.title': 'ध्वनि रंग',
+  'voicing.intro':
+    'आप अभी जो कर रहे हैं उसके हिसाब से तय किया गया लक्ष्य। हर एक आपके बैंड के बाद अपनी अलग परत के रूप में लिखा जाता है, इसलिए आपकी अपनी ट्यूनिंग को कभी छुआ नहीं जाता और “कोई नहीं” पर लौटते ही वह हूबहू वापस आ जाती है।',
+  'voicing.none': 'कोई नहीं',
+  'voicing.none.hint': 'सिर्फ़ आपके EQ बैंड, ऊपर कुछ नहीं',
+  'voicing.strength': 'मात्रा',
+  'voicing.off': 'बंद',
+  'voicing.full': 'पूरा',
+  'voicing.inert': '0% मात्रा पर यह ध्वनि रंग कुछ नहीं करता।',
+  'voicing.headroom':
+    '+{peak} dB तक बढ़ाता है। “अपने आप सामान्य करें” यह जगह छोड़कर रखता है; जब तक आप प्रीएम्प खुद तय न कर रहे हों, इसे चालू रहने दें।',
+
+  'support.eyebrow': 'पूरी तरह वैकल्पिक',
+  'support.title': 'इस काम का साथ दें',
+  'support.close': 'बंद करें',
+  'support.pitch':
+    'FluidEQ मुफ़्त और ओपन सोर्स है, और आगे भी रहेगा — यहाँ कुछ भी पैसे की दीवार के पीछे नहीं है और कुछ भी ट्रैक नहीं होता। अगर इसने आपके सेटअप में जगह बना ली है, तो आपका योगदान इसे बनाए रखने का समय और इसी वर्कशॉप से निकलने वाले अगले विचारों को सहारा देता है।',
+  'support.craft':
+    'यह एक ही व्यक्ति का काम है, बहुत सारे प्यार और हद से ज़्यादा बारीक़ी के साथ बनाया गया। हर पैनल हाथ से बनाया और बार-बार सोचा-समझा गया है: ग्राफ़ एक नज़र में कैसा पढ़ा जाता है, मेन्यू कैसे खुलता है, नॉब धीरे घुमाने पर क्या करता है, बटन पर कौन से शब्द जाएँ। यहाँ कुछ भी बना-बनाया कंपोनेंट नहीं है जिस पर बस रंग चढ़ा दिया गया हो।',
+  'support.card': 'कार्ड या वॉलेट',
+  'support.card.hint':
+    'Stripe पर सुरक्षित भुगतान। आपके ब्राउज़र में खुलेगा — ऐप आपके कार्ड की जानकारी कभी नहीं देखता।',
+  'support.coffee': 'मुझे एक कॉफ़ी पिलाइए',
+  'support.coffee.hint':
+    'एक बार की मदद, खाता बनाने की ज़रूरत नहीं। ब्राउज़र में खोलने के लिए क्लिक करें, या फ़ोन से कोड स्कैन करें।',
+  'support.verify': 'भेजने से पहले पता जाँच लें।',
+  'support.copy': 'पता कॉपी करें',
+  'support.copied': 'कॉपी हो गया',
+  'support.openWallet': 'वॉलेट में खोलें',
+  'support.contributed': 'मैंने योगदान दिया — सितारा और नाच खोलें',
+  'support.thanks': 'धन्यवाद — आपके साथी को सितारा मिल गया, और अब वह नाचता है।',
+  'support.footerBefore':
+    'समय देकर मदद करना चाहेंगे? Issue और pull request भी उतने ही स्वागत योग्य हैं:',
+
+  'language.title': 'भाषा',
+  'language.aria': 'इंटरफ़ेस की भाषा',
+};
+
+export default hi;

@@ -25,6 +25,7 @@ import {
 } from 'common/constants';
 import { isRestrictedPresetName } from 'common/utils';
 import { useAquaContext } from './utils/AquaContext';
+import { useTranslation } from './utils/I18nContext';
 import TextInput from './widgets/TextInput';
 import Button from './widgets/Button';
 import List, { IOptionEntry } from './widgets/List';
@@ -38,9 +39,6 @@ import {
   getPresetBaselineNames,
   restorePresetBaseline,
 } from './utils/equalizerApi';
-
-/** Name given to a profile created by the New profile button. */
-const UNTITLED_PROFILE_PREFIX = 'Untitled profile';
 
 export enum PresetErrorEnum {
   EMPTY = 'Preset name cannot be empty.',
@@ -106,6 +104,7 @@ const PresetsBar = ({
     performHealthCheck,
     setGlobalError,
   } = useAquaContext();
+  const { t } = useTranslation();
 
   const [presetName, setPresetName] = useState<string>('');
   const [newPresetNameError, setNewPresetNameError] = useState<string>('');
@@ -238,11 +237,14 @@ const PresetsBar = ({
     // "Untitled profile 1" again for a name that already exists elsewhere and
     // silently overwrite it.
     const taken = new Set(presetNames);
+    // Named in the user's own language, so the profiles they end up with read
+    // like something the app made for them rather than a leaked English default.
+    const prefix = t('profiles.untitled');
     let index = 1;
-    while (taken.has(`${UNTITLED_PROFILE_PREFIX} ${index}`)) {
+    while (taken.has(`${prefix} ${index}`)) {
       index += 1;
     }
-    const name = `${UNTITLED_PROFILE_PREFIX} ${index}`;
+    const name = `${prefix} ${index}`;
 
     setNewPresetNameError('');
     try {
@@ -263,6 +265,7 @@ const PresetsBar = ({
     refreshOutputProfiles,
     performHealthCheck,
     setGlobalError,
+    t,
   ]);
 
   // Creating a new preset
@@ -481,8 +484,8 @@ const PresetsBar = ({
 
   return (
     <SidebarSection
-      eyebrow="YOUR SOUND"
-      title="Named profiles"
+      eyebrow={t('profiles.eyebrow')}
+      title={t('profiles.title')}
       summary={
         <List
           name="preset"
@@ -493,19 +496,17 @@ const PresetsBar = ({
           handleChange={handleChangeSelectedPreset}
           isDisabled={isBlockingError}
           emptyOptionsPlaceholder={
-            hasResolvedOutput
-              ? 'No profiles yet. Create your first sound.'
-              : 'Detecting your output…'
+            hasResolvedOutput ? t('profiles.empty') : t('profiles.detecting')
           }
         />
       }
     >
       <div className="presets-bar">
         <div className="profile-compose">
-          <div className="preset-name">Profile name</div>
+          <div className="preset-name">{t('profiles.name')}</div>
           <TextInput
             value={presetName}
-            ariaLabel="Preset Name"
+            ariaLabel={t('profiles.nameAria')}
             isDisabled={isBlockingError}
             errorMessage={newPresetNameError}
             handleChange={handleChangeNewPresetName}
@@ -519,36 +520,38 @@ const PresetsBar = ({
             obvious whether Save would make a new profile or overwrite the
             attached one — which is a bad thing to be unsure about. */}
           <Button
-            ariaLabel="Start a new profile from the current EQ"
+            ariaLabel={t('profiles.newAria')}
             className="small subtle profile-actions__new"
             isDisabled={isBlockingError}
             handleChange={handleStartNewProfile}
           >
             <ProfileActionIcon action="new" />
-            New profile
+            {t('profiles.new')}
           </Button>
           <Button
             // Stable: the control's identity does not change, only what it will
             // do to the name currently in the box. Assistive tech should not see
             // this button rename itself as the user types.
-            ariaLabel="Save settings to preset"
+            ariaLabel={t('profiles.saveAria')}
             className="small profile-actions__save"
             isDisabled={isBlockingError || !presetName || !!newPresetNameError}
             handleChange={handleCreateOrSavePreset}
           >
             <ProfileActionIcon action="save" />
-            {isExistingPresetSelected ? 'Update' : 'Save as new'}
+            {isExistingPresetSelected
+              ? t('profiles.update')
+              : t('profiles.save')}
           </Button>
           {/* Every edit auto-saves into the attached profile, so this is the way
             back to the version the user deliberately kept. */}
           <Button
-            ariaLabel="Restore the last manually saved version of this profile"
+            ariaLabel={t('profiles.restoreAria')}
             className="small subtle profile-actions__restore"
             isDisabled={isBlockingError || isRestoring || !canRestoreBaseline}
             handleChange={handleRestoreBaseline}
           >
             <ProfileActionIcon action="restore" />
-            {isRestoring ? 'Restoring…' : 'Restore'}
+            {isRestoring ? t('profiles.restoring') : t('profiles.restore')}
           </Button>
         </div>
       </div>

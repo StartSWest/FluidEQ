@@ -849,21 +849,16 @@ $tab-border: rgba($secondary-light, 0.2);
   min-height: min-content;
   gap: 10px;
 
-  > .auto-eq-title,
-  > .auto-eq,
-  > .autoeq-update,
+  > .autoeq-section,
   > .main-content-title {
     flex: 0 0 auto;
   }
 
-  // The equalizer grid absorbs whatever height is left, which is how the panel
-  // fills the space freed when the response graph is hidden.
+  // Content-sized. It used to absorb every spare pixel in the panel, which
+  // with a page that scrolls now just centred the sliders in a tall empty box
+  // and left a lake of nothing between them and the toolbar.
   > .main-content {
-    flex: 1 1 auto;
-  }
-
-  > .autoeq-update:empty {
-    display: none;
+    flex: 0 0 auto;
   }
 }
 
@@ -884,7 +879,6 @@ $tab-border: rgba($secondary-light, 0.2);
 
 // Sections that fill a workspace card sit directly on it instead of painting
 // a second card on top: one surface, not a stack of nested boxes.
-.workspace-tab-panel--eq > .auto-eq,
 .workspace-tab-panel--eq > .main-content,
 .workspace-tab-panel--convolution > .convolution-panel,
 .right-content > .device-profiles,

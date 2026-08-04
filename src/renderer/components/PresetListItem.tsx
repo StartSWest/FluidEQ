@@ -20,6 +20,7 @@ import { MouseEvent, useRef, useState } from 'react';
 import { formatPresetName, useMouseDownOutside } from 'renderer/utils/utils';
 import IconButton, { IconName } from 'renderer/widgets/IconButton';
 import TextInput from 'renderer/widgets/TextInput';
+import { useTranslation } from 'renderer/utils/I18nContext';
 
 interface IPresetListItemProps {
   value: string;
@@ -39,6 +40,7 @@ const PresetListItem = ({
   isDisabled,
   validate,
 }: IPresetListItemProps) => {
+  const { t } = useTranslation();
   const editValueRef = useRef<HTMLInputElement>(null);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
@@ -77,7 +79,7 @@ const PresetListItem = ({
       <TextInput
         ref={editValueRef}
         value={value}
-        ariaLabel="Edit Preset Name"
+        ariaLabel={t('profiles.edit')}
         isDisabled={false}
         errorMessage={errorMessage}
         handleSubmit={handleInputChange}
@@ -94,8 +96,8 @@ const PresetListItem = ({
       <div className="preset-name">
         <span>{value}</span>
         {isAttached && (
-          <span className="preset-attached" title="Playing on this output">
-            ON
+          <span className="preset-attached" title={t('profiles.attachedTitle')}>
+            {t('profiles.attached')}
           </span>
         )}
       </div>

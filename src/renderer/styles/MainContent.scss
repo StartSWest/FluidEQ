@@ -33,17 +33,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // toolbar's full max-content width, which crushes the heading track to zero
   // and leaves "Parametric EQ" overflowing underneath the buttons.
   grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr);
-  gap: 14px;
-  margin: 6px 0 5px;
+  // Heading and toolbar share the first row; the applied-layer chips get the
+  // full width of a second one. They used to sit inside the heading cell,
+  // which stole the toolbar's width and pushed it onto its own wrapped line.
+  grid-template-areas:
+    'heading toolbar spacer'
+    'layers layers layers';
+  gap: 6px 14px;
+  margin: 2px 0 0;
   padding: 0 8px;
 
   > div:first-child {
     min-width: 0;
+    grid-area: heading;
     justify-self: start;
   }
 
   h4 {
     margin: 2px 0 0;
+  }
+
+  > .active-layers {
+    grid-area: layers;
+    margin-top: 2px;
   }
 }
 
@@ -58,7 +70,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .main-content-title > .eq-toolbar {
-  grid-column: 2;
+  grid-area: toolbar;
 }
 
 .quick-layouts > span {
@@ -112,7 +124,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .main-content {
   display: grid;
   min-width: 0;
-  padding: 10px 10px 0;
+  padding: 2px 10px 0;
   gap: 10px;
   grid-template-columns: 38px minmax(0, 1fr);
   grid-template-rows: minmax(min-content, 1fr) auto;

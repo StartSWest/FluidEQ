@@ -25,6 +25,7 @@ import AutoPreAmpEnablerSwitch from './components/AutoPreAmpEnablerSwitch';
 import Slider from './components/Slider';
 import './styles/SideBar.scss';
 import { useAquaContext } from './utils/AquaContext';
+import { useTranslation } from './utils/I18nContext';
 import GraphViewSwitch from './components/GraphViewSwitch';
 import Spinner from './icons/Spinner';
 
@@ -35,6 +36,7 @@ interface SideBarProps {
 const SideBar = ({ showGraphToggle }: SideBarProps) => {
   const { isAutoPreAmpOn, isLoading, preAmp, setGlobalError, setPreAmp } =
     useAquaContext();
+  const { t } = useTranslation();
 
   const setGain = useCallback(
     async (newValue: number) => {
@@ -62,15 +64,15 @@ const SideBar = ({ showGraphToggle }: SideBarProps) => {
       ) : (
         <>
           <div className="col center side-bar__control-card side-bar__engine">
-            <span className="control-kicker">ENGINE</span>
-            <h4>System EQ</h4>
+            <span className="control-kicker">{t('sidebar.engine')}</span>
+            <h4>{t('sidebar.systemEq')}</h4>
             <EqualizerEnablerSwitch id="equalizerEnabler" />
           </div>
           <div className="side-bar__preamp">
-            <h4>Preamp</h4>
+            <h4>{t('sidebar.preamp')}</h4>
             <div>{MAX_GAIN > 0 ? `+${MAX_GAIN}` : MAX_GAIN} dB</div>
             <Slider
-              name="Pre-Amplification Gain (dB)"
+              name={t('sidebar.preampAria')}
               min={MIN_GAIN}
               max={MAX_GAIN}
               value={preAmp}
@@ -80,20 +82,18 @@ const SideBar = ({ showGraphToggle }: SideBarProps) => {
               isDisabled={isAutoPreAmpOn}
             />
             {isAutoPreAmpOn && (
-              <p className="side-bar__preamp-note">
-                Set for you. Turn off Auto normalize to adjust it.
-              </p>
+              <p className="side-bar__preamp-note">{t('sidebar.preampAuto')}</p>
             )}
           </div>
           <div className="col center auto-normalize-control side-bar__control-card side-bar__headroom">
-            <span className="control-kicker">APO HEADROOM</span>
-            <h4>Auto normalize</h4>
+            <span className="control-kicker">{t('sidebar.headroom')}</span>
+            <h4>{t('sidebar.autoPreamp')}</h4>
             <AutoPreAmpEnablerSwitch id="autoPreAmpEnabler" />
           </div>
           {showGraphToggle ? (
             <div className="col center side-bar__control-card side-bar__response">
-              <span className="control-kicker">VISUALIZER</span>
-              <h4>Response graph</h4>
+              <span className="control-kicker">{t('sidebar.visualizer')}</span>
+              <h4>{t('sidebar.graphView')}</h4>
               <GraphViewSwitch id="graphViewEnabler" />
             </div>
           ) : null}

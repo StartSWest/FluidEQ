@@ -44,6 +44,9 @@ const PATHS: Record<string, string> = {
   convolution: 'M3 14c3 0 3-6 6-6s3 6 6 6 3-6 6-6',
   // Circled i.
   info: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v5M12 8h0',
+  // A globe: meridians and one parallel. Enough at 16px to read as 'world'.
+  language:
+    'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM4 12h16M12 4c2.2 2.2 3.3 5 3.3 8s-1.1 5.8-3.3 8c-2.2-2.2-3.3-5-3.3-8s1.1-5.8 3.3-8z',
   // X in a circle: take it off.
   clear: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM9.5 9.5l5 5M14.5 9.5l-5 5',
 };

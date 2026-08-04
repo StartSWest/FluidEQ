@@ -18,6 +18,7 @@ import Dropdown from './widgets/Dropdown';
 import SidebarSection from './components/SidebarSection';
 import { IOptionEntry } from './widgets/List';
 import { useAquaContext } from './utils/AquaContext';
+import { useTranslation } from './utils/I18nContext';
 import {
   getAudioDevices,
   getDeviceProfileSettings,
@@ -33,6 +34,7 @@ const EMPTY_SETTINGS: IDeviceProfileSettings = {
 const DeviceProfiles = () => {
   const { isBlockingError, performHealthCheck, setGlobalError } =
     useAquaContext();
+  const { t } = useTranslation();
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [settings, setSettings] =
     useState<IDeviceProfileSettings>(EMPTY_SETTINGS);
@@ -88,9 +90,11 @@ const DeviceProfiles = () => {
     ? settings.assignments[selectedDeviceId]?.presetName || ''
     : '';
   const isAutomaticProfile = assignedPreset.startsWith(AUTOMATIC_PRESET_PREFIX);
-  let mappingLabel = 'Neutral output';
+  let mappingLabel = t('output.mapping.neutral');
   if (assignedPreset) {
-    mappingLabel = isAutomaticProfile ? 'Live tuning attached' : assignedPreset;
+    mappingLabel = isAutomaticProfile
+      ? t('output.mapping.live')
+      : assignedPreset;
   }
 
   const handleDeviceChange = async (deviceId: string) => {
@@ -127,42 +131,36 @@ const DeviceProfiles = () => {
     // The picker is the summary, so folding this section hides the mapping
     // detail but leaves the output you are choosing between on screen.
     <SidebarSection
-      eyebrow="FOLLOWS YOUR OUTPUT"
-      title="Automatic profile"
+      eyebrow={t('output.eyebrow')}
+      title={t('output.title')}
       summary={
         <div className="device-profiles__picker">
           {/* The badge earns its place: the picker lists every endpoint, so
               which one Windows is actually playing through is not otherwise
               obvious. */}
           <span className="device-profiles__label device-profiles__label--row">
-            Output device
+            {t('output.device')}
             {selectedDevice?.isDefault && (
-              <span className="default-badge">ACTIVE</span>
+              <span className="default-badge">{t('output.active')}</span>
             )}
           </span>
           <Dropdown
-            name="Output device"
+            name={t('output.device')}
             options={deviceOptions}
             value={selectedDeviceId}
             handleChange={handleDeviceChange}
             isDisabled={isBlockingError || isBusy || devices.length === 0}
-            emptyOptionsPlaceholder="No active outputs found"
+            emptyOptionsPlaceholder={t('output.none')}
           />
         </div>
       }
     >
       <div className="device-profiles__mapping">
-        <span className="device-profiles__label">Automatic mapping</span>
+        <span className="device-profiles__label">{t('output.mapping')}</span>
         <strong>{mappingLabel}</strong>
-        <span>
-          Edit any EQ control to save and attach it automatically to this
-          output.
-        </span>
+        <span>{t('output.mapping.hint')}</span>
       </div>
-      <p className="device-profiles__hint">
-        FluidEQ maps the stable endpoint ID, so this sound follows the device
-        whenever Windows selects it.
-      </p>
+      <p className="device-profiles__hint">{t('output.hint')}</p>
     </SidebarSection>
   );
 };

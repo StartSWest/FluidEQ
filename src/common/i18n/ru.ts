@@ -1,0 +1,197 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+import { Dictionary } from './en';
+
+/** Russian. */
+const ru: Partial<Dictionary> = {
+  'app.tagline': 'Ваш звук. На каждом устройстве. Автоматически.',
+  'app.actions': 'Действия FluidEQ',
+  'app.actions.title': 'Действия со звуком',
+  'app.status.ready': 'Подключено к Equalizer APO',
+  'app.status.checking': 'Проверка Equalizer APO…',
+  'app.status.error': 'Equalizer APO не отвечает',
+  'app.menu.importEq': 'Импорт настроек эквалайзера…',
+  'app.menu.importConvolution': 'Импорт импульсной характеристики…',
+  'app.menu.restartAudio': 'Перезапустить звук Windows',
+  'app.menu.reconfigure': 'Перенастроить Equalizer APO',
+  'app.menu.apoSettings': 'Настройки Equalizer APO',
+  'app.menu.support': 'Поддержать проект',
+  'app.menu.language': 'Язык',
+  'app.window.minimize': 'Свернуть',
+  'app.window.maximize': 'Развернуть',
+  'app.window.restore': 'Восстановить',
+  'app.window.close': 'Закрыть',
+  'app.window.minimizeApp': 'Свернуть FluidEQ',
+  'app.window.maximizeApp': 'Развернуть FluidEQ',
+  'app.window.restoreApp': 'Восстановить FluidEQ',
+  'app.window.closeApp': 'Закрыть FluidEQ',
+  'app.dismiss': 'Скрыть',
+
+  'tabs.aria': 'Рабочая область звука',
+  'tabs.eq': 'Эквалайзер и тип наушников',
+  'tabs.voicing': 'Характер',
+  'tabs.convolution': 'Свёртка',
+
+  'notice.apoReconfigured':
+    'Equalizer APO был установлен или перенастроен. Если звук пропал, перезапустите службу звука Windows, а не весь компьютер.',
+  'notice.restartNow': 'Перезапустить звук сейчас',
+  'notice.importComplete': 'Импорт завершён',
+  'notice.restartConfirm':
+    'Звук пропадёт на несколько секунд, и Windows запросит права администратора. Продолжить?',
+  'notice.restartDone':
+    'Служба звука Windows перезапущена. Откройте заново приложения, которые ещё молчат.',
+
+  'sidebar.engine': 'ОБРАБОТКА',
+  'sidebar.systemEq': 'Системный эквалайзер',
+  'sidebar.preamp': 'Предусиление',
+  'sidebar.preampAria': 'Предусиление (дБ)',
+  'sidebar.preampAuto':
+    'Подбирается автоматически. Отключите авто-нормализацию, чтобы задать вручную.',
+  'sidebar.headroom': 'ЗАПАС APO',
+  'sidebar.autoPreamp': 'Авто-нормализация',
+  'sidebar.visualizer': 'ВИЗУАЛИЗАЦИЯ',
+  'sidebar.graphView': 'График АЧХ',
+
+  'output.eyebrow': 'СЛЕДУЕТ ЗА ВЫХОДОМ',
+  'output.title': 'Автоматический профиль',
+  'output.device': 'Устройство вывода',
+  'output.active': 'АКТИВНО',
+  'output.none': 'Активные выходы не найдены',
+  'output.mapping': 'Автоматическая привязка',
+  'output.mapping.neutral': 'Нейтральный выход',
+  'output.mapping.live': 'Привязана текущая настройка',
+  'output.mapping.hint':
+    'Измените любой регулятор эквалайзера — настройка сохранится и привяжется к этому выходу автоматически.',
+  'output.hint':
+    'FluidEQ запоминает постоянный идентификатор устройства, поэтому звук следует за ним всякий раз, когда Windows его выбирает.',
+
+  'driver.eyebrow': 'ЧЕМ ВЫ СЛУШАЕТЕ',
+  'driver.title': 'Тип излучателя',
+  'driver.none': 'Без коррекции',
+  'driver.none.hint': 'Только ваши полосы и характер',
+  'driver.strength': 'Сила',
+  'driver.range': '±1,5 дБ',
+
+  'profiles.eyebrow': 'ВАШ ЗВУК',
+  'profiles.title': 'Сохранённые профили',
+  'profiles.name': 'Имя профиля',
+  'profiles.nameAria': 'Имя профиля',
+  'profiles.new': 'Новый профиль',
+  'profiles.newAria': 'Создать новый профиль из текущего эквалайзера',
+  'profiles.untitled': 'Профиль без имени',
+  'profiles.save': 'Сохранить как новый',
+  'profiles.update': 'Обновить',
+  'profiles.saveAria': 'Сохранить настройки в профиль',
+  'profiles.restore': 'Восстановить',
+  'profiles.restoring': 'Восстановление…',
+  'profiles.restoreAria':
+    'Восстановить последнюю версию профиля, сохранённую вручную',
+  'profiles.attached': 'ВКЛ',
+  'profiles.attachedTitle': 'Звучит на этом выходе',
+  'profiles.detecting': 'Определяем ваш выход…',
+  'profiles.empty': 'Профилей пока нет. Создайте свой первый звук.',
+  'profiles.error.empty': 'Имя профиля не может быть пустым.',
+  'profiles.error.restricted': 'Недопустимое имя, выберите другое.',
+  'profiles.error.duplicate': 'Такое имя уже есть, выберите другое.',
+  'profiles.edit': 'Изменить имя профиля',
+
+  'autoeq.eyebrow': 'НАЧНИТЕ С ЭТАЛОНА',
+  'autoeq.title': 'Библиотека AutoEQ',
+  'autoeq.selectSource': 'Выберите источник',
+  'autoeq.source': 'Источник измерений',
+  'autoeq.model': 'Модель наушников',
+  'autoeq.target': 'Измерение / целевая кривая',
+  'autoeq.apply': 'Применить EQ модели',
+  'autoeq.applyAria': 'Применить эквалайзер выбранной модели',
+  'autoeq.checking': 'Проверка официальной базы…',
+  'autoeq.updateAvailable': 'Доступно обновление ({count} моделей)',
+  'autoeq.upToDate': 'База актуальна — {count} моделей',
+  'autoeq.updateUnknown': 'Не удалось проверить обновление',
+  'autoeq.update': 'Обновить базу',
+  'autoeq.updating': 'Обновление…',
+  'autoeq.updateAria': 'Обновить базу AutoEq',
+
+  'eq.eyebrow': 'ТОЧНАЯ НАСТРОЙКА',
+  'eq.title': 'Параметрический эквалайзер',
+  'eq.smart': 'Умный EQ',
+  'eq.smart.cancel': 'Отмена',
+  'eq.smart.aria': 'Умный эквалайзер по текущему сигналу',
+  'eq.smart.cancelAria': 'Отменить измерение умного эквалайзера',
+  'eq.smart.fromFlat': 'С нуля',
+  'eq.layers': 'Также применено',
+  'eq.layers.aria': 'Что ещё влияет на этот выход',
+  'eq.layers.convolution': 'Свёртка',
+  'eq.layers.voicing': 'Характер',
+  'eq.layers.driver': 'Излучатель',
+  'eq.layers.remove': 'Убрать слой «{layer}»',
+
+  'convolution.eyebrow': 'ИМПУЛЬСНЫЕ ХАРАКТЕРИСТИКИ APO',
+  'convolution.title': 'Библиотека свёртки',
+  'convolution.intro':
+    'Скачайте проверенную минимально-фазовую импульсную характеристику для ваших наушников и примените её до параметрического эквалайзера. График ниже показывает обе кривые.',
+  'convolution.import': 'Импортировать WAV…',
+  'convolution.importing': 'Импорт…',
+  'convolution.applied': 'Применено к этому выходу',
+  'convolution.clear': 'Убрать',
+  'convolution.search': 'Поиск моделей наушников',
+  'convolution.searchPlaceholder':
+    'Попробуйте «Kraken», «HD 650» или название лаборатории',
+  'convolution.notice':
+    'Загружаемый каталог предоставляет AutoEq. Файлы импортируются как WAV 48 кГц, потому что Equalizer APO требует, чтобы частота дискретизации импульса совпадала с активным выходом.',
+  'convolution.loading': 'Загрузка официального каталога…',
+  'convolution.empty':
+    'Подходящих импульсов нет. Попробуйте более короткое название модели.',
+  'convolution.source': 'Источник',
+  'convolution.apply': 'Скачать и применить',
+  'convolution.downloading': 'Загрузка…',
+  'convolution.isApplied': 'Применено',
+  'convolution.none':
+    'Свёртка не загружена. Вкладка эквалайзера работает полностью независимо.',
+
+  'voicing.eyebrow': 'ЦЕЛЕВЫЕ КРИВЫЕ',
+  'voicing.title': 'Характер',
+  'voicing.intro':
+    'Подобранная цель под то, чем вы сейчас заняты. Каждая пишется отдельным слоем после ваших полос, поэтому ваша настройка не трогается, а возврат к «Нет» восстанавливает её в точности.',
+  'voicing.none': 'Нет',
+  'voicing.none.hint': 'Только ваши полосы, ничего сверху',
+  'voicing.strength': 'Сила',
+  'voicing.off': 'Выкл',
+  'voicing.full': 'Максимум',
+  'voicing.inert': 'При силе 0% этот характер ничего не делает.',
+  'voicing.headroom':
+    'Добавляет до +{peak} дБ. Авто-нормализация резервирует запас; оставьте её включённой, если не задаёте предусиление вручную.',
+
+  'support.eyebrow': 'СОВЕРШЕННО ДОБРОВОЛЬНО',
+  'support.title': 'Поддержать работу',
+  'support.close': 'Закрыть',
+  'support.pitch':
+    'FluidEQ бесплатен и с открытым исходным кодом — и таким останется: здесь ничего не спрятано за платной стеной и ничего не отслеживается. Если он заслужил место в вашей системе, поддержка оплачивает время на его сопровождение и следующие идеи из той же мастерской.',
+  'support.craft':
+    'Это работа одного человека, сделанная с большой любовью и неразумным вниманием к деталям. Каждая панель нарисована вручную и обдумана: как кривая читается с одного взгляда, как раскрывается меню, что делает ручка, если крутить её медленно, какие слова стоят на кнопке. Здесь нет ни одного готового компонента, на который просто натянули тему.',
+  'support.card': 'Карта или кошелёк',
+  'support.card.hint':
+    'Безопасная оплата через Stripe. Откроется в браузере — приложение никогда не видит данные карты.',
+  'support.coffee': 'Купить мне кофе',
+  'support.coffee.hint':
+    'Разовая благодарность, аккаунт не нужен. Нажмите, чтобы открыть в браузере, или отсканируйте код телефоном.',
+  'support.verify': 'Проверьте адрес перед отправкой.',
+  'support.copy': 'Скопировать адрес',
+  'support.copied': 'Скопировано',
+  'support.openWallet': 'Открыть в кошельке',
+  'support.contributed': 'Я поддержал — открыть звезду и танец',
+  'support.thanks':
+    'Спасибо — у питомца появилась звезда, и теперь он танцует.',
+  'support.footerBefore':
+    'Хотите помочь временем? Issue и pull request так же желанны на',
+
+  'language.title': 'Язык',
+  'language.aria': 'Язык интерфейса',
+};
+
+export default ru;

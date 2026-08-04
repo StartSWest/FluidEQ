@@ -11,20 +11,37 @@
 
 // The whole header toggles. A separate chevron button would put a 16px target
 // beside a 260px inert one, which is the wrong way round.
+//
+// It carries a surface of its own rather than sitting flat on the card: a bare
+// title with a chevron off to one side does not read as a control, and people
+// were not finding out these regions fold at all.
 .sidebar-section__header {
   display: grid;
   min-width: 0;
   align-items: center;
   gap: 10px;
   grid-template-columns: minmax(0, 1fr) auto;
-  padding: 12px 13px;
+  padding: 11px 13px;
   color: inherit;
-  border: 0;
-  background: transparent;
+  border: 1px solid rgba($primary-lighter, 0.08);
+  background: linear-gradient(
+    180deg,
+    rgba($primary-lighter, 0.07),
+    rgba($primary-lighter, 0.028)
+  );
   text-align: left;
   cursor: pointer;
   border-radius: $radius-l;
   transition: $transition-control;
+
+  &:hover {
+    border-color: rgba($secondary-light, 0.26);
+    background: linear-gradient(
+      180deg,
+      rgba($secondary-default, 0.12),
+      rgba($secondary-default, 0.05)
+    );
+  }
 
   &:hover .sidebar-section__chevron {
     color: rgba($secondary-light, 0.85);
@@ -63,6 +80,24 @@
 
 .sidebar-section.is-open .sidebar-section__chevron {
   rotate: 0deg;
+}
+
+// Open, the header is the top of one continuous region rather than a separate
+// pill floating above it: square off the bottom corners and drop the line
+// between the two so they read as one piece.
+.sidebar-section.is-open .sidebar-section__header {
+  border-bottom-color: transparent;
+  border-radius: $radius-l $radius-l 0 0;
+}
+
+// What the header opens onto, tinted just enough to be visibly inside it.
+.sidebar-section.is-open .sidebar-section__summary,
+.sidebar-section.is-open .sidebar-section__reveal {
+  background: rgba($primary-lighter, 0.022);
+}
+
+.sidebar-section.is-open .sidebar-section__reveal {
+  border-radius: 0 0 $radius-l $radius-l;
 }
 
 // Animating grid-template-rows between 0fr and 1fr is the only height

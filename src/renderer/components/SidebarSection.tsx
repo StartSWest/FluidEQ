@@ -31,6 +31,13 @@ interface ISidebarSectionProps {
    * have to be unfolded again to be useful.
    */
   summary?: ReactNode;
+  /** Extra class on the section, for callers outside the sidebar. */
+  className?: string;
+  /**
+   * Whether it starts open. Open unless a caller says otherwise: collapsing
+   * reclaims space, it is not a setting to go looking for.
+   */
+  defaultOpen?: boolean;
   children: ReactNode;
 }
 
@@ -50,13 +57,19 @@ export default function SidebarSection({
   eyebrow,
   title,
   summary,
+  className,
+  defaultOpen = true,
   children,
 }: ISidebarSectionProps) {
-  const [isOpen, setIsOpen] = useState(true);
+  const [isOpen, setIsOpen] = useState(defaultOpen);
   const contentId = useId();
 
   return (
-    <section className={`sidebar-section${isOpen ? ' is-open' : ''}`}>
+    <section
+      className={`sidebar-section${isOpen ? ' is-open' : ''}${
+        className ? ` ${className}` : ''
+      }`}
+    >
       <button
         type="button"
         className="sidebar-section__header"

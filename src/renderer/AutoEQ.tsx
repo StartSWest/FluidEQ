@@ -20,6 +20,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { IAutoEqUpdateStatus, IEqSource } from 'common/constants';
 import { useAquaContext } from './utils/AquaContext';
+import { useTranslation } from './utils/I18nContext';
+import SidebarSection from './components/SidebarSection';
 import { formatPresetName } from './utils/utils';
 import Button from './widgets/Button';
 import Dropdown from './widgets/Dropdown';
@@ -89,6 +91,7 @@ const AutoEQ = () => {
   const NO_RESPONSE_SELECTION = 'Pick a response! 🔊';
 
   const { isBlockingError, setGlobalError, refreshState } = useAquaContext();
+  const { t } = useTranslation();
   const [devices, setDevices] = useState<IDeviceEntry[]>([]);
   const [responses, setResponses] = useState<string[]>([]);
   const [currentDevice, setCurrentDevice] = useState<string>('');
@@ -333,27 +336,32 @@ const AutoEQ = () => {
   );
 
   return (
-    <>
-      <div className="section-heading auto-eq-title">
-        <div>
-          <span className="eyebrow">START FROM A REFERENCE</span>
-          <h4>AutoEQ library</h4>
+    // Collapsible for the same reason the sidebar sections are: this is a
+    // starting point, not something you keep coming back to, and folded away
+    // it hands three rows of height to the bands underneath it.
+    <SidebarSection
+      className="autoeq-section"
+      eyebrow={t('autoeq.eyebrow')}
+      title={t('autoeq.title')}
+      summary={
+        <div className="autoeq-attribution">
+          {currentSource && currentSource.id !== ALL_SOURCE_ID ? (
+            <a
+              href={currentSource.attributionUrl}
+              target="_blank"
+              rel="noreferrer"
+            >
+              {currentSource.name}
+            </a>
+          ) : (
+            <span>{currentSource?.name || t('autoeq.selectSource')}</span>
+          )}
         </div>
-        {currentSource && currentSource.id !== ALL_SOURCE_ID ? (
-          <a
-            href={currentSource.attributionUrl}
-            target="_blank"
-            rel="noreferrer"
-          >
-            {currentSource.name}
-          </a>
-        ) : (
-          <span>{currentSource?.name || 'Select a source'}</span>
-        )}
-      </div>
+      }
+    >
       <div className="auto-eq">
         <div className="autoeq-field autoeq-field--source">
-          <span className="autoeq-field__title">Measurement source</span>
+          <span className="autoeq-field__title">{t('autoeq.source')}</span>
           <Dropdown
             name="Measurement source"
             options={sourceOptions}
@@ -368,7 +376,7 @@ const AutoEQ = () => {
           />
         </div>
         <div className="autoeq-field autoeq-field--model">
-          <span className="autoeq-field__title">Headphone model</span>
+          <span className="autoeq-field__title">{t('autoeq.model')}</span>
           <Dropdown
             name="Audio Device"
             options={deviceOptions}
@@ -382,7 +390,7 @@ const AutoEQ = () => {
           />
         </div>
         <div className="autoeq-field autoeq-field--target">
-          <span className="autoeq-field__title">Measurement / target</span>
+          <span className="autoeq-field__title">{t('autoeq.target')}</span>
           <Dropdown
             name="Target Frequency Response"
             options={responseOptions}
@@ -395,43 +403,47 @@ const AutoEQ = () => {
         </div>
         <Button
           className="small"
-          ariaLabel="Apply selected headset EQ"
+          ariaLabel={t('autoeq.applyAria')}
           isDisabled={
             isBlockingError || currentDevice === '' || currentResponse === ''
           }
           handleChange={applyAutoEQ}
         >
-          Apply headset EQ
+          {t('autoeq.apply')}
         </Button>
       </div>
       <div className="autoeq-update">
         {sourceId === 'autoeq' && (
           <>
             <span>
-              {isCheckingUpdate && 'Checking official database...'}
+              {isCheckingUpdate && t('autoeq.checking')}
               {!isCheckingUpdate &&
                 updateStatus?.updateAvailable &&
-                `Update available (${updateStatus.latest?.modelCount.toLocaleString()} models)`}
+                t('autoeq.updateAvailable', {
+                  count: updateStatus.latest?.modelCount.toLocaleString() ?? '',
+                })}
               {!isCheckingUpdate &&
                 updateStatus &&
                 !updateStatus.updateAvailable &&
-                `Official database up to date - ${updateStatus.current.modelCount.toLocaleString()} models`}
-              {!isCheckingUpdate && !updateStatus && 'Update check unavailable'}
+                t('autoeq.upToDate', {
+                  count: updateStatus.current.modelCount.toLocaleString(),
+                })}
+              {!isCheckingUpdate && !updateStatus && t('autoeq.updateUnknown')}
             </span>
             {updateStatus?.updateAvailable && (
               <Button
                 className="small"
-                ariaLabel="Update AutoEq database"
+                ariaLabel={t('autoeq.updateAria')}
                 isDisabled={isUpdating}
                 handleChange={updateDatabase}
               >
-                {isUpdating ? 'Updating...' : 'Update database'}
+                {isUpdating ? t('autoeq.updating') : t('autoeq.update')}
               </Button>
             )}
           </>
         )}
       </div>
-    </>
+    </SidebarSection>
   );
 };
 

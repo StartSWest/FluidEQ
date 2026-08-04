@@ -111,6 +111,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   line-height: 1.6;
 }
 
+// Quieter than the pitch and set apart from it: this is the maker speaking,
+// not the ask. The cyan spine marks it as an aside rather than another
+// paragraph of the same argument.
+.support-dialog__craft {
+  margin: 0;
+  padding-left: 12px;
+  color: rgba($primary-lighter, 0.74);
+  border-left: 2px solid rgba($secondary-light, 0.42);
+  font-size: 0.8rem;
+  font-style: italic;
+  line-height: 1.6;
+}
+
 .support-dialog__methods {
   display: grid;
   gap: 14px;

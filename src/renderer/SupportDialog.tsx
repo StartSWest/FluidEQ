@@ -26,6 +26,7 @@ import {
 import supportQrImage from '../../assets/support-qr.png';
 import QrCode from './components/QrCode';
 import { SupportPetHero } from './SupportPet';
+import { useTranslation } from './utils/I18nContext';
 import './styles/Support.scss';
 
 interface ISupportDialogProps {
@@ -41,6 +42,7 @@ export default function SupportDialog({
   onContributed,
   onClose,
 }: ISupportDialogProps) {
+  const { t } = useTranslation();
   const methods = getSupportMethods();
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -131,15 +133,15 @@ export default function SupportDialog({
           <div className="support-dialog__identity">
             <SupportPetHero hasContributed={hasContributed} />
             <div>
-              <span className="eyebrow">ENTIRELY OPTIONAL</span>
-              <h2 id="support-dialog-title">Support the work</h2>
+              <span className="eyebrow">{t('support.eyebrow')}</span>
+              <h2 id="support-dialog-title">{t('support.title')}</h2>
             </div>
           </div>
           <button
             ref={closeRef}
             type="button"
             className="support-dialog__close"
-            aria-label="Close"
+            aria-label={t('support.close')}
             onClick={onClose}
           >
             <svg viewBox="0 0 12 12" aria-hidden="true">
@@ -148,12 +150,13 @@ export default function SupportDialog({
           </button>
         </div>
 
-        <p className="support-dialog__pitch">
-          FluidEQ is free and open source, and it stays that way — nothing here
-          is behind a paywall and nothing is ever tracked. If it earned a place
-          in your setup, a contribution funds the time that keeps it maintained
-          and the next ideas that come out of the same workshop.
-        </p>
+        <p className="support-dialog__pitch">{t('support.pitch')}</p>
+
+        {/* Said plainly rather than implied. Someone deciding whether to
+            contribute is entitled to know what they would be funding, and the
+            answer here is one person's attention rather than a company's
+            roadmap. */}
+        <p className="support-dialog__craft">{t('support.craft')}</p>
 
         <div className="support-dialog__methods">
           {hasStripe && (
@@ -163,10 +166,9 @@ export default function SupportDialog({
               target="_blank"
               rel="noreferrer noopener"
             >
-              <span className="support-method__label">Card or wallet</span>
+              <span className="support-method__label">{t('support.card')}</span>
               <span className="support-method__hint">
-                Secure checkout hosted by Stripe. Opens in your browser — the
-                app never sees your card details.
+                {t('support.card.hint')}
               </span>
             </a>
           )}
@@ -179,10 +181,11 @@ export default function SupportDialog({
               rel="noreferrer noopener"
             >
               <div className="support-method__text">
-                <span className="support-method__label">Buy me a coffee</span>
+                <span className="support-method__label">
+                  {t('support.coffee')}
+                </span>
                 <span className="support-method__hint">
-                  A one-off tip, no account needed. Click to open it in your
-                  browser, or scan the code with your phone.
+                  {t('support.coffee.hint')}
                 </span>
               </div>
               {/* The artwork ships with the app rather than being generated,
@@ -213,7 +216,7 @@ export default function SupportDialog({
                     address format, and sending on the wrong one loses the
                     funds with no way to recover them. */}
                 <span className="support-method__hint">
-                  {asset.network}. Verify the address before sending.
+                  {asset.network}. {t('support.verify')}
                 </span>
               </div>
               {/* Scanning the URI beats retyping 40-odd characters, and the
@@ -232,7 +235,9 @@ export default function SupportDialog({
                   className="support-method__action"
                   onClick={() => handleCopyAddress(asset.id, address)}
                 >
-                  {copiedId === asset.id ? 'Copied' : 'Copy address'}
+                  {copiedId === asset.id
+                    ? t('support.copied')
+                    : t('support.copy')}
                 </button>
                 {uri && (
                   <a
@@ -241,7 +246,7 @@ export default function SupportDialog({
                     target="_blank"
                     rel="noreferrer noopener"
                   >
-                    Open in wallet
+                    {t('support.openWallet')}
                   </a>
                 )}
               </div>
@@ -254,22 +259,19 @@ export default function SupportDialog({
             us. It only ever adds something, which is why an unverifiable
             claim is harmless here. */}
         {hasContributed ? (
-          <p className="support-dialog__thanks">
-            Thank you — your pet has its star, and it dances now.
-          </p>
+          <p className="support-dialog__thanks">{t('support.thanks')}</p>
         ) : (
           <button
             type="button"
             className="support-dialog__contributed"
             onClick={onContributed}
           >
-            I contributed — unlock the star and the dance
+            {t('support.contributed')}
           </button>
         )}
 
         <p className="support-dialog__footer">
-          Prefer to contribute time instead? Issues and pull requests are just
-          as welcome on{' '}
+          {t('support.footerBefore')}{' '}
           <a
             href={SUPPORT_CONFIG.repositoryUrl}
             target="_blank"

@@ -15,6 +15,7 @@ import {
 } from 'common/convolution';
 import { ErrorDescription } from 'common/errors';
 import { useAquaContext } from './utils/AquaContext';
+import { useTranslation } from './utils/I18nContext';
 import {
   clearConvolution,
   downloadConvolution,
@@ -27,6 +28,7 @@ import './styles/Convolution.scss';
 const ConvolutionPanel = () => {
   const { convolution, isEnabled, refreshState, setGlobalError } =
     useAquaContext();
+  const { t } = useTranslation();
   const [query, setQuery] = useState('');
   const [entries, setEntries] = useState<IConvolutionCatalogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -105,13 +107,9 @@ const ConvolutionPanel = () => {
     <section className="convolution-panel" aria-labelledby="convolution-title">
       <div className="convolution-panel__intro">
         <div>
-          <p className="eyebrow">APO impulse responses</p>
-          <h2 id="convolution-title">Convolution library</h2>
-          <p>
-            Download a verified, minimum-phase headphone impulse and apply it
-            before your parametric EQ. The shared response graph below keeps
-            both curves visible.
-          </p>
+          <p className="eyebrow">{t('convolution.eyebrow')}</p>
+          <h2 id="convolution-title">{t('convolution.title')}</h2>
+          <p>{t('convolution.intro')}</p>
           <a
             className="convolution-source-link"
             href={selectedSource.website}
@@ -130,7 +128,7 @@ const ConvolutionPanel = () => {
           onClick={handleImport}
         >
           <MenuIcon name="import" className="convolution-button__icon" />
-          {isImporting ? 'Importing…' : 'Import a WAV…'}
+          {isImporting ? t('convolution.importing') : t('convolution.import')}
         </button>
       </div>
 
@@ -143,7 +141,7 @@ const ConvolutionPanel = () => {
           <MenuIcon name="convolution" className="convolution-applied__icon" />
           <div>
             <span className="convolution-applied__label">
-              Applied to this output
+              {t('convolution.applied')}
             </span>
             <strong title={convolution.name}>{convolution.name}</strong>
           </div>
@@ -154,7 +152,7 @@ const ConvolutionPanel = () => {
             onClick={handleClear}
           >
             <MenuIcon name="clear" className="convolution-button__icon" />
-            Clear
+            {t('convolution.clear')}
           </button>
         </div>
       )}
@@ -163,7 +161,7 @@ const ConvolutionPanel = () => {
         <>
           <div className="convolution-search">
             <span id="convolution-model-search-label">
-              Search headphone models
+              {t('convolution.search')}
             </span>
             <input
               id="convolution-model-search"
@@ -171,35 +169,29 @@ const ConvolutionPanel = () => {
               aria-labelledby="convolution-model-search-label"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Try “Kraken”, “HD 650”, or a measurement provider"
+              placeholder={t('convolution.searchPlaceholder')}
               autoComplete="off"
             />
           </div>
-          <div className="convolution-notice">
-            AutoEq provides the downloadable catalogue. Files are imported as 48
-            kHz WAV because Equalizer APO requires the impulse response to match
-            the active output sample rate.
-          </div>
+          <div className="convolution-notice">{t('convolution.notice')}</div>
           <div className="convolution-results" aria-live="polite">
             {isLoading && (
               <div className="convolution-empty">
-                Loading official catalogue…
+                {t('convolution.loading')}
               </div>
             )}
             {!isLoading && entries.length === 0 && (
-              <div className="convolution-empty">
-                No matching impulse responses. Try a shorter model name.
-              </div>
+              <div className="convolution-empty">{t('convolution.empty')}</div>
             )}
             {!isLoading &&
               entries.map((entry) => {
                 const isApplied = convolution?.sourceUrl === entry.sourceUrl;
                 const isDownloading = downloadingId === entry.id;
-                let actionLabel = 'Download & apply';
+                let actionLabel = t('convolution.apply');
                 if (isDownloading) {
-                  actionLabel = 'Downloading…';
+                  actionLabel = t('convolution.downloading');
                 } else if (isApplied) {
-                  actionLabel = 'Applied';
+                  actionLabel = t('convolution.isApplied');
                 }
                 return (
                   <article className="convolution-result" key={entry.id}>
@@ -216,7 +208,7 @@ const ConvolutionPanel = () => {
                       target="_blank"
                       rel="noreferrer"
                     >
-                      Source
+                      {t('convolution.source')}
                     </a>
                     <button
                       type="button"
@@ -238,9 +230,7 @@ const ConvolutionPanel = () => {
       {!convolution && (
         <div className="convolution-active" aria-live="polite">
           <span className="status-dot is-muted" />
-          <span>
-            No convolution loaded. The EQ tab remains fully independent.
-          </span>
+          <span>{t('convolution.none')}</span>
         </div>
       )}
     </section>

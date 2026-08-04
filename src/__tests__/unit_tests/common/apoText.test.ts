@@ -19,7 +19,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { parseEqText } from '../../../common/apoText';
 import { AutoEqFormat, FilterTypeEnum } from '../../../common/constants';
 
-const bands = (text: string) => Object.values(parseEqText(text).filters);
+/**
+ * Bands in frequency order.
+ *
+ * Deliberately not the map's own iteration order: filter ids come from uid(),
+ * which occasionally produces an all-digit string, and JavaScript hoists
+ * integer-like keys to the front of an object. Asserting on insertion order
+ * therefore fails a few runs in a hundred for reasons that have nothing to do
+ * with the parser.
+ */
+const bands = (text: string) =>
+  Object.values(parseEqText(text).filters).sort(
+    (left, right) => left.frequency - right.frequency,
+  );
 
 describe('parseEqText', () => {
   it('reads the shapes AutoEQ writes', () => {
@@ -34,7 +46,9 @@ describe('parseEqText', () => {
 
     expect(result.preAmp).toBe(-6.8);
     expect(result.eqFormat).toBe(AutoEqFormat.PARAMETRIC);
-    const values = Object.values(result.filters);
+    const values = Object.values(result.filters).sort(
+      (left, right) => left.frequency - right.frequency,
+    );
     expect(values.map((f) => f.type)).toEqual([
       FilterTypeEnum.LSC,
       FilterTypeEnum.PK,

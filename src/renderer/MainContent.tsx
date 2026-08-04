@@ -70,6 +70,7 @@ import {
 import { buildVoicingTargetCurve } from './utils/voicingCurve';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
+import { useTranslation } from './utils/I18nContext';
 
 const MainContent = () => {
   const {
@@ -88,6 +89,7 @@ const MainContent = () => {
     setHoveredFilterId,
     voicing,
   } = useAquaContext();
+  const { t } = useTranslation();
   const { captureBalanceProfile, isActive: isLiveOutputActive } =
     useLiveAudio();
   const [balanceStatus, setBalanceStatus] = useState('');
@@ -600,25 +602,20 @@ const MainContent = () => {
     <>
       <div className="main-content-title">
         <div>
-          <span className="eyebrow">FINE TUNE</span>
-          <h4>Parametric EQ</h4>
-          {/* The bands below are not the whole chain. Anything else that is
-              live gets named here so the graph stops looking wrong. */}
-          <ActiveLayers />
+          <span className="eyebrow">{t('eq.eyebrow')}</span>
+          <h4>{t('eq.title')}</h4>
         </div>
         <div className="eq-toolbar">
           <VoicingQuickPick />
           <Button
             ariaLabel={
-              isBalancing
-                ? 'Cancel Smart EQ measurement'
-                : 'Smart EQ from live output'
+              isBalancing ? t('eq.smart.cancelAria') : t('eq.smart.aria')
             }
             isDisabled={!isBalancing && !isLiveOutputActive}
             className="small"
             handleChange={autoBalance}
           >
-            {isBalancing ? 'Cancel' : 'Smart EQ'}
+            {isBalancing ? t('eq.smart.cancel') : t('eq.smart')}
           </Button>
           {/* Off by default: the closed loop is the better answer almost
               always, and this throws away the user's tuning. */}
@@ -672,6 +669,10 @@ const MainContent = () => {
               ))}
           </div>
         </div>
+        {/* Its own full-width row under the title and the toolbar. The bands
+            below are not the whole chain, and anything else that is live is
+            named here so the graph stops looking wrong. */}
+        <ActiveLayers />
       </div>
       <div className={`main-content main-content--${density}`}>
         <div className="eq-scale" aria-hidden="true">

@@ -1,0 +1,35 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// Sits in the actions menu, laid out on the same glyph-then-content grid as
+// the buttons above it so the globe lines up with the other icons.
+.language-picker {
+  display: grid;
+  align-items: center;
+  gap: 9px;
+  grid-template-columns: 16px minmax(0, 1fr);
+  margin-top: 4px;
+  padding-top: 10px;
+  border-top: 1px solid rgba($primary-lighter, 0.14);
+
+  .menu-icon {
+    width: 16px;
+    height: 16px;
+    color: rgba($secondary-light, 0.72);
+  }
+
+  select {
+    width: 100%;
+    min-width: 0;
+    padding: 7px 8px;
+    font-size: 0.7rem;
+  }
+}

@@ -36,6 +36,8 @@ import WaveformVisualizer from './WaveformVisualizer';
 import ConvolutionPanel from './ConvolutionPanel';
 import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
+import LanguagePicker from './components/LanguagePicker';
+import { I18nProvider, useTranslation } from './utils/I18nContext';
 import { LiveAudioProvider } from './audio/LiveAudioContext';
 import {
   deletePreset,
@@ -66,6 +68,7 @@ const AppContent = () => {
     refreshState,
     setGlobalError,
   } = useAquaContext();
+  const { t } = useTranslation();
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
@@ -198,19 +201,12 @@ const AppContent = () => {
   const handleImportConvolution = () => runImport(importConvolutionFile);
 
   const handleRestartWindowsAudio = async () => {
-    if (
-      !window.confirm(
-        'Audio will stop for a few seconds and Windows will request administrator permission. Continue?',
-      )
-    ) {
+    if (!window.confirm(t('notice.restartConfirm'))) {
       return;
     }
 
     const error = await window.electron.ipcRenderer.restartWindowsAudio();
-    window.alert(
-      error ||
-        'Windows Audio restarted. Reopen any application that is still silent.',
-    );
+    window.alert(error || t('notice.restartDone'));
     if (!error) {
       localStorage.removeItem(APO_RESTART_RECOMMENDED_KEY);
       setShowAudioRestartRecommendation(false);
@@ -244,11 +240,11 @@ const AppContent = () => {
     handleToggleMaximizeWindow().catch(() => undefined);
   };
 
-  let connectionStatus = 'Equalizer APO connected';
+  let connectionStatus = t('app.status.ready');
   if (isLoading) {
-    connectionStatus = 'Checking Equalizer APO';
+    connectionStatus = t('app.status.checking');
   } else if (isBlockingError) {
-    connectionStatus = 'Equalizer APO unavailable';
+    connectionStatus = t('app.status.error');
   }
 
   return (
@@ -275,9 +271,7 @@ const AppContent = () => {
                 </span>
               )}
             </div>
-            <div className="workspace-header__tagline">
-              Your sound. Every device. Automatically.
-            </div>
+            <div className="workspace-header__tagline">{t('app.tagline')}</div>
           </div>
         </div>
         <WaveformVisualizer />
@@ -292,9 +286,9 @@ const AppContent = () => {
             <button
               type="button"
               className="workspace-header__tools-trigger"
-              aria-label="FluidEQ actions"
+              aria-label={t('app.actions')}
               aria-expanded={showAudioToolsMenu}
-              title="Audio actions"
+              title={t('app.actions.title')}
               onClick={() => setShowAudioToolsMenu((current) => !current)}
             >
               <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -325,7 +319,7 @@ const AppContent = () => {
                       }}
                     >
                       <MenuIcon name="import" />
-                      Import EQ settings…
+                      {t('app.menu.importEq')}
                     </button>
                     <button
                       type="button"
@@ -336,7 +330,7 @@ const AppContent = () => {
                       }}
                     >
                       <MenuIcon name="waveform" />
-                      Import impulse response…
+                      {t('app.menu.importConvolution')}
                     </button>
                     <button
                       type="button"
@@ -347,7 +341,7 @@ const AppContent = () => {
                       }}
                     >
                       <MenuIcon name="restart" />
-                      Restart Windows audio
+                      {t('app.menu.restartAudio')}
                     </button>
                     <button
                       type="button"
@@ -358,7 +352,7 @@ const AppContent = () => {
                       }}
                     >
                       <MenuIcon name="configure" />
-                      Reconfigure Equalizer APO
+                      {t('app.menu.reconfigure')}
                     </button>
                     <button
                       type="button"
@@ -369,7 +363,7 @@ const AppContent = () => {
                       }}
                     >
                       <MenuIcon name="settings" />
-                      Equalizer APO settings
+                      {t('app.menu.apoSettings')}
                     </button>
                   </>
                 )}
@@ -384,9 +378,12 @@ const AppContent = () => {
                     }}
                   >
                     <MenuIcon name="support" />
-                    Support the work
+                    {t('app.menu.support')}
                   </button>
                 )}
+                {/* Last, and always available: someone who cannot read the
+                    rest of this menu needs to be able to reach it. */}
+                <LanguagePicker />
               </div>
             )}
           </div>
@@ -397,8 +394,8 @@ const AppContent = () => {
             <button
               type="button"
               className="window-control"
-              aria-label="Minimize FluidEQ"
-              title="Minimize"
+              aria-label={t('app.window.minimizeApp')}
+              title={t('app.window.minimize')}
               onClick={handleMinimizeWindow}
             >
               <svg viewBox="0 0 12 12" aria-hidden="true">
@@ -409,9 +406,15 @@ const AppContent = () => {
               type="button"
               className="window-control"
               aria-label={
-                isWindowMaximized ? 'Restore FluidEQ' : 'Maximize FluidEQ'
+                isWindowMaximized
+                  ? t('app.window.restoreApp')
+                  : t('app.window.maximizeApp')
               }
-              title={isWindowMaximized ? 'Restore' : 'Maximize'}
+              title={
+                isWindowMaximized
+                  ? t('app.window.restore')
+                  : t('app.window.maximize')
+              }
               onClick={() =>
                 handleToggleMaximizeWindow().catch(() => undefined)
               }
@@ -427,8 +430,8 @@ const AppContent = () => {
             <button
               type="button"
               className="window-control window-control--close"
-              aria-label="Close FluidEQ"
-              title="Close"
+              aria-label={t('app.window.closeApp')}
+              title={t('app.window.close')}
               onClick={handleCloseWindow}
             >
               <svg viewBox="0 0 12 12" aria-hidden="true">
@@ -441,16 +444,13 @@ const AppContent = () => {
       <main className="app-workspace">
         {showAudioRestartRecommendation && (
           <aside className="audio-restart-notice" role="status">
-            <span>
-              Equalizer APO was installed or reconfigured. If audio is missing,
-              reload Windows Audio instead of rebooting the PC.
-            </span>
+            <span>{t('notice.apoReconfigured')}</span>
             <div className="audio-restart-notice__actions">
               <button type="button" onClick={handleRestartWindowsAudio}>
-                Restart audio now
+                {t('notice.restartNow')}
               </button>
               <button type="button" onClick={dismissAudioRestartRecommendation}>
-                Dismiss
+                {t('app.dismiss')}
               </button>
             </div>
           </aside>
@@ -461,7 +461,7 @@ const AppContent = () => {
             <div
               className="workspace-tabs"
               role="tablist"
-              aria-label="Sound workspace"
+              aria-label={t('tabs.aria')}
             >
               <button
                 type="button"
@@ -472,7 +472,7 @@ const AppContent = () => {
                 }`}
                 onClick={() => setActiveWorkspaceTab('eq')}
               >
-                EQ &amp; headset mode
+                {t('tabs.eq')}
               </button>
               <button
                 type="button"
@@ -483,7 +483,7 @@ const AppContent = () => {
                 }`}
                 onClick={() => setActiveWorkspaceTab('voicing')}
               >
-                Voicing
+                {t('tabs.voicing')}
               </button>
               <button
                 type="button"
@@ -494,7 +494,7 @@ const AppContent = () => {
                 }`}
                 onClick={() => setActiveWorkspaceTab('convolution')}
               >
-                Convolution
+                {t('tabs.convolution')}
               </button>
             </div>
             {activeWorkspaceTab === 'eq' ? (
@@ -565,7 +565,7 @@ const AppContent = () => {
             </div>
             <button
               type="button"
-              aria-label="Dismiss"
+              aria-label={t('app.dismiss')}
               onClick={() => setGlobalError(undefined)}
             >
               <svg viewBox="0 0 12 12" aria-hidden="true">
@@ -578,12 +578,12 @@ const AppContent = () => {
           <div className="workspace-notice workspace-notice--ok" role="status">
             <MenuIcon name="import" className="workspace-notice__icon" />
             <div>
-              <strong>Import complete</strong>
+              <strong>{t('notice.importComplete')}</strong>
               <span>{importNotice}</span>
             </div>
             <button
               type="button"
-              aria-label="Dismiss"
+              aria-label={t('app.dismiss')}
               onClick={() => setImportNotice('')}
             >
               <svg viewBox="0 0 12 12" aria-hidden="true">
@@ -609,14 +609,18 @@ const AppContent = () => {
 
 export default function App() {
   return (
-    <AquaProvider>
-      <LiveAudioProvider>
-        <Router>
-          <Routes>
-            <Route path="/" element={<AppContent />} />
-          </Routes>
-        </Router>
-      </LiveAudioProvider>
-    </AquaProvider>
+    // Outermost: every other provider can surface a message, and all of them
+    // are below this one so they can be translated.
+    <I18nProvider>
+      <AquaProvider>
+        <LiveAudioProvider>
+          <Router>
+            <Routes>
+              <Route path="/" element={<AppContent />} />
+            </Routes>
+          </Router>
+        </LiveAudioProvider>
+      </AquaProvider>
+    </I18nProvider>
   );
 }

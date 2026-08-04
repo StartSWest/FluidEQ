@@ -26,6 +26,7 @@ import {
 import { NO_GAIN_FILTER_TYPES } from 'common/constants';
 import VoicingIcon from './icons/VoicingIcon';
 import { useAquaContext } from './utils/AquaContext';
+import { useTranslation } from './utils/I18nContext';
 import { setVoicing as setVoicingApi } from './utils/equalizerApi';
 import './styles/Voicing.scss';
 
@@ -35,6 +36,7 @@ const WRITE_DEBOUNCE_MS = 140;
 const VoicingPanel = () => {
   const { isBlockingError, isEnabled, setGlobalError, voicing, setVoicing } =
     useAquaContext();
+  const { t } = useTranslation();
 
   const activeId = voicing?.profileId ?? '';
   const intensity = voicing?.intensity ?? 1;
@@ -84,16 +86,16 @@ const VoicingPanel = () => {
   return (
     <section className="voicing-panel" aria-labelledby="voicing-title">
       <div className="voicing-panel__intro">
-        <p className="eyebrow">TARGET CURVES</p>
-        <h2 id="voicing-title">Voicing</h2>
-        <p>
-          A tuned target for what you are actually doing. Each one is written as
-          its own layer after your EQ bands, so your own tuning is never touched
-          and switching back to None restores it exactly.
-        </p>
+        <p className="eyebrow">{t('voicing.eyebrow')}</p>
+        <h2 id="voicing-title">{t('voicing.title')}</h2>
+        <p>{t('voicing.intro')}</p>
       </div>
 
-      <div className="voicing-grid" role="radiogroup" aria-label="Voicing">
+      <div
+        className="voicing-grid"
+        role="radiogroup"
+        aria-label={t('voicing.title')}
+      >
         <button
           type="button"
           role="radio"
@@ -105,8 +107,8 @@ const VoicingPanel = () => {
           <span className="voicing-card__icon">
             <VoicingIcon profileId="none" />
           </span>
-          <strong>None</strong>
-          <small>Your EQ bands only, nothing layered on top</small>
+          <strong>{t('voicing.none')}</strong>
+          <small>{t('voicing.none.hint')}</small>
         </button>
 
         {VOICING_PROFILES.map((profile) => (
@@ -134,7 +136,7 @@ const VoicingPanel = () => {
         <>
           <div className="voicing-strength">
             <label htmlFor="voicing-intensity">
-              Strength
+              {t('voicing.strength')}
               <output>{Math.round(intensity * 100)}%</output>
             </label>
             {/* The filled part of the track is painted from this variable —
@@ -157,9 +159,9 @@ const VoicingPanel = () => {
               }
             />
             <div className="voicing-strength__scale" aria-hidden="true">
-              <span>Off</span>
+              <span>{t('voicing.off')}</span>
               <span>50%</span>
-              <span>Full</span>
+              <span>{t('voicing.full')}</span>
             </div>
           </div>
 
@@ -181,15 +183,14 @@ const VoicingPanel = () => {
             ))}
             {activeFilters.length === 0 && (
               <li>
-                <span>At 0% strength this voicing does nothing.</span>
+                <span>{t('voicing.inert')}</span>
               </li>
             )}
           </ul>
 
           {peakBoost > 0 && (
             <p className="voicing-headroom">
-              Adds up to +{peakBoost} dB. Auto normalize reserves the headroom;
-              leave it on unless you are setting the preamp by hand.
+              {t('voicing.headroom', { peak: peakBoost })}
             </p>
           )}
         </>

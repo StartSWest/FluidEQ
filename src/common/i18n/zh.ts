@@ -1,0 +1,189 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+import { Dictionary } from './en';
+
+/** Simplified Chinese. Traditional readers fall back to this — see index.ts. */
+const zh: Partial<Dictionary> = {
+  'app.tagline': '你的声音，每台设备，自动生效。',
+  'app.actions': 'FluidEQ 操作',
+  'app.actions.title': '音频操作',
+  'app.status.ready': '已连接到 Equalizer APO',
+  'app.status.checking': '正在检查 Equalizer APO…',
+  'app.status.error': 'Equalizer APO 无响应',
+  'app.menu.importEq': '导入均衡设置…',
+  'app.menu.importConvolution': '导入脉冲响应…',
+  'app.menu.restartAudio': '重启 Windows 音频',
+  'app.menu.reconfigure': '重新配置 Equalizer APO',
+  'app.menu.apoSettings': 'Equalizer APO 设置',
+  'app.menu.support': '支持本项目',
+  'app.menu.language': '语言',
+  'app.window.minimize': '最小化',
+  'app.window.maximize': '最大化',
+  'app.window.restore': '还原',
+  'app.window.close': '关闭',
+  'app.window.minimizeApp': '最小化 FluidEQ',
+  'app.window.maximizeApp': '最大化 FluidEQ',
+  'app.window.restoreApp': '还原 FluidEQ',
+  'app.window.closeApp': '关闭 FluidEQ',
+  'app.dismiss': '知道了',
+
+  'tabs.aria': '声音工作区',
+  'tabs.eq': '均衡与耳机类型',
+  'tabs.voicing': '声音风格',
+  'tabs.convolution': '卷积',
+
+  'notice.apoReconfigured':
+    'Equalizer APO 已安装或重新配置。如果没有声音，请重启 Windows 音频服务，而不是重启电脑。',
+  'notice.restartNow': '立即重启音频',
+  'notice.importComplete': '导入完成',
+  'notice.restartConfirm':
+    '声音会中断几秒，Windows 会请求管理员权限。要继续吗？',
+  'notice.restartDone': 'Windows 音频已重启。请重新打开仍然没有声音的程序。',
+
+  'sidebar.engine': '处理引擎',
+  'sidebar.systemEq': '系统均衡',
+  'sidebar.preamp': '前级增益',
+  'sidebar.preampAria': '前级增益（dB）',
+  'sidebar.preampAuto': '已自动设置。关闭自动归一化后才能手动调整。',
+  'sidebar.headroom': 'APO 余量',
+  'sidebar.autoPreamp': '自动归一化',
+  'sidebar.visualizer': '可视化',
+  'sidebar.graphView': '频响曲线',
+
+  'output.eyebrow': '跟随你的输出',
+  'output.title': '自动配置',
+  'output.device': '输出设备',
+  'output.active': '使用中',
+  'output.none': '未找到活动的输出设备',
+  'output.mapping': '自动绑定',
+  'output.mapping.neutral': '无处理输出',
+  'output.mapping.live': '已绑定当前调音',
+  'output.mapping.hint': '调整任意均衡控件即可自动保存并绑定到这个输出。',
+  'output.hint':
+    'FluidEQ 记录设备的固定标识，因此只要 Windows 选中该设备，这套声音就会跟着走。',
+
+  'driver.eyebrow': '你用什么在听',
+  'driver.title': '单元类型',
+  'driver.none': '不做补偿',
+  'driver.none.hint': '仅使用你的频段和声音风格',
+  'driver.strength': '强度',
+  'driver.range': '±1.5 dB',
+
+  'profiles.eyebrow': '你的声音',
+  'profiles.title': '已命名的配置',
+  'profiles.name': '配置名称',
+  'profiles.nameAria': '配置名称',
+  'profiles.new': '新建配置',
+  'profiles.newAria': '用当前均衡新建一个配置',
+  'profiles.untitled': '未命名配置',
+  'profiles.save': '另存为新配置',
+  'profiles.update': '更新',
+  'profiles.saveAria': '把设置保存到配置',
+  'profiles.restore': '还原',
+  'profiles.restoring': '正在还原…',
+  'profiles.restoreAria': '还原这个配置最后一次手动保存的版本',
+  'profiles.attached': '在用',
+  'profiles.attachedTitle': '正在这个输出上播放',
+  'profiles.detecting': '正在检测你的输出…',
+  'profiles.empty': '还没有配置，先做一套自己的声音吧。',
+  'profiles.error.empty': '配置名称不能为空。',
+  'profiles.error.restricted': '名称无效，请换一个。',
+  'profiles.error.duplicate': '名称重复，请换一个。',
+  'profiles.edit': '修改配置名称',
+
+  'autoeq.eyebrow': '从一条参考曲线开始',
+  'autoeq.title': 'AutoEQ 库',
+  'autoeq.selectSource': '选择来源',
+  'autoeq.source': '测量来源',
+  'autoeq.model': '耳机型号',
+  'autoeq.target': '测量 / 目标曲线',
+  'autoeq.apply': '应用该型号的均衡',
+  'autoeq.applyAria': '应用所选型号的均衡',
+  'autoeq.checking': '正在检查官方数据库…',
+  'autoeq.updateAvailable': '有可用更新（{count} 个型号）',
+  'autoeq.upToDate': '官方数据库已是最新 — {count} 个型号',
+  'autoeq.updateUnknown': '无法检查更新',
+  'autoeq.update': '更新数据库',
+  'autoeq.updating': '正在更新…',
+  'autoeq.updateAria': '更新 AutoEq 数据库',
+
+  'eq.eyebrow': '精细调整',
+  'eq.title': '参数均衡',
+  'eq.smart': '智能均衡',
+  'eq.smart.cancel': '取消',
+  'eq.smart.aria': '根据实时输出生成智能均衡',
+  'eq.smart.cancelAria': '取消智能均衡测量',
+  'eq.smart.fromFlat': '从零开始',
+  'eq.layers': '同时生效',
+  'eq.layers.aria': '还有什么在影响这个输出',
+  'eq.layers.convolution': '卷积',
+  'eq.layers.voicing': '声音风格',
+  'eq.layers.driver': '单元',
+  'eq.layers.remove': '移除{layer}层',
+
+  'convolution.eyebrow': 'APO 脉冲响应',
+  'convolution.title': '卷积库',
+  'convolution.intro':
+    '下载经过验证的最小相位耳机脉冲响应，在参数均衡之前应用。下方的频响图会同时显示两条曲线。',
+  'convolution.import': '导入 WAV…',
+  'convolution.importing': '正在导入…',
+  'convolution.applied': '已应用到这个输出',
+  'convolution.clear': '移除',
+  'convolution.search': '搜索耳机型号',
+  'convolution.searchPlaceholder': '试试“Kraken”“HD 650”或某个测量机构',
+  'convolution.notice':
+    '可下载的目录由 AutoEq 提供。文件按 48 kHz WAV 导入，因为 Equalizer APO 要求脉冲响应与当前输出的采样率一致。',
+  'convolution.loading': '正在加载官方目录…',
+  'convolution.empty': '没有匹配的脉冲响应，试试更短的型号名。',
+  'convolution.source': '来源',
+  'convolution.apply': '下载并应用',
+  'convolution.downloading': '正在下载…',
+  'convolution.isApplied': '已应用',
+  'convolution.none': '未加载卷积。均衡标签页完全独立工作。',
+
+  'voicing.eyebrow': '目标曲线',
+  'voicing.title': '声音风格',
+  'voicing.intro':
+    '针对你眼下在做的事调好的目标曲线。每一条都作为独立的一层写在你的频段之后，所以你自己的调音不会被动到，切回“无”就能原样恢复。',
+  'voicing.none': '无',
+  'voicing.none.hint': '只用你自己的频段，不叠加任何东西',
+  'voicing.strength': '强度',
+  'voicing.off': '关闭',
+  'voicing.full': '最强',
+  'voicing.inert': '强度为 0% 时这个风格不起作用。',
+  'voicing.headroom':
+    '最多会增加 +{peak} dB。自动归一化会预留余量；除非你要手动设置前级增益，否则请保持开启。',
+
+  'support.eyebrow': '完全自愿',
+  'support.title': '支持这份工作',
+  'support.close': '关闭',
+  'support.pitch':
+    'FluidEQ 是免费且开源的，以后也一样：这里没有任何付费墙，也从不做任何追踪。如果它在你的设备里挣到了一席之地，一份支持就是在为维护它的时间、以及同一间工作室里接下来的想法买单。',
+  'support.craft':
+    '这是一个人的作品，投入了大量心血，以及近乎不讲道理的细节打磨。每一块面板都是手工画出来、反复推敲过的：频响曲线一眼看过去是什么感觉、菜单怎么展开、旋钮慢慢拖动时该有什么反应、按钮上该写哪几个字。这里没有一处是套了主题的现成组件。',
+  'support.card': '银行卡或钱包',
+  'support.card.hint':
+    '由 Stripe 托管的安全结账。会在浏览器中打开——应用永远看不到你的卡片信息。',
+  'support.coffee': '请我喝杯咖啡',
+  'support.coffee.hint':
+    '一次性的小费，不需要注册账号。点击可在浏览器中打开，也可以用手机扫码。',
+  'support.verify': '发送前请核对地址。',
+  'support.copy': '复制地址',
+  'support.copied': '已复制',
+  'support.openWallet': '在钱包中打开',
+  'support.contributed': '我支持过了 — 解锁星星和舞蹈',
+  'support.thanks': '谢谢 — 你的小伙伴有了它的星星，现在会跳舞了。',
+  'support.footerBefore':
+    '更想用时间来贡献？在这里提 issue 和 pull request 同样受欢迎：',
+
+  'language.title': '语言',
+  'language.aria': '界面语言',
+};
+
+export default zh;

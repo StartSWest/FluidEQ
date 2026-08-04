@@ -20,6 +20,7 @@ import { ErrorDescription } from 'common/errors';
 import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { useAquaContext } from '../utils/AquaContext';
+import { useTranslation } from '../utils/I18nContext';
 import {
   clearConvolution,
   setDriver as setDriverApi,
@@ -54,6 +55,7 @@ const ActiveLayers = () => {
     setDriver,
     setGlobalError,
   } = useAquaContext();
+  const { t } = useTranslation();
 
   const voicingProfile = getVoicingProfile(voicing?.profileId ?? '');
   const driverProfile = getDriverProfile(driver?.profileId ?? '');
@@ -71,7 +73,7 @@ const ActiveLayers = () => {
     layers.push({
       key: 'convolution',
       icon: 'convolution',
-      label: 'Convolution',
+      label: t('eq.layers.convolution'),
       name: convolution.name,
       onClear: async () => {
         // Optimistic: the chip has to go the moment it is clicked, or a slow
@@ -87,7 +89,7 @@ const ActiveLayers = () => {
     layers.push({
       key: 'voicing',
       isVoicing: true,
-      label: 'Voicing',
+      label: t('eq.layers.voicing'),
       name: `${voicingProfile.name} · ${Math.round((voicing?.intensity ?? 0) * 100)}%`,
       onClear: async () => {
         setVoicing({ profileId: '', intensity: voicing?.intensity ?? 1 });
@@ -101,7 +103,7 @@ const ActiveLayers = () => {
     layers.push({
       key: 'driver',
       icon: 'waveform',
-      label: 'Driver',
+      label: t('eq.layers.driver'),
       name: `${driverProfile.name} · ${Math.round((driver?.intensity ?? 0) * 100)}%`,
       onClear: async () => {
         setDriver({ profileId: '', intensity: driver?.intensity ?? 0.6 });
@@ -116,8 +118,8 @@ const ActiveLayers = () => {
   }
 
   return (
-    <div className="active-layers" aria-label="Also shaping this output">
-      <span className="active-layers__lede">Also applied</span>
+    <div className="active-layers" aria-label={t('eq.layers.aria')}>
+      <span className="active-layers__lede">{t('eq.layers')}</span>
       {layers.map((layer) => (
         <span className="active-layer" key={layer.key}>
           {layer.isVoicing ? (
@@ -137,8 +139,8 @@ const ActiveLayers = () => {
           </span>
           <button
             type="button"
-            aria-label={`Remove the ${layer.label.toLowerCase()} layer`}
-            title={`Remove the ${layer.label.toLowerCase()} layer`}
+            aria-label={t('eq.layers.remove', { layer: layer.label })}
+            title={t('eq.layers.remove', { layer: layer.label })}
             disabled={isBlockingError || !isEnabled}
             onClick={() =>
               layer

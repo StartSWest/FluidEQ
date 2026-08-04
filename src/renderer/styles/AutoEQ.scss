@@ -27,8 +27,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // .workspace-tab-panel in App.scss — declaring it twice for the same box meant
 // whichever stylesheet lost the cascade silently had no container at all.
 
-.auto-eq-title {
-  margin: 0 8px 2px;
+// The AutoEQ block is a collapsible now. It keeps a faint surface of its own
+// so the whole thing reads as one foldable region rather than as a title with
+// some fields loose underneath it.
+.autoeq-section {
+  border-color: rgba($primary-lighter, 0.09);
+  background: rgba(#0a141f, 0.34);
+
+  .sidebar-section__header,
+  .sidebar-section__summary,
+  .sidebar-section__body {
+    padding-inline: 4px;
+  }
+
+  // Whose measurements these are, kept visible when the section is folded.
+  .autoeq-attribution {
+    @include truncate;
+    color: $text-muted;
+    font-size: 0.68rem;
+
+    a {
+      color: $secondary-light;
+    }
+  }
 }
 
 // Every column is the same two-row stack — label, control — and the control
@@ -38,7 +59,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: relative;
   z-index: 30;
   display: grid;
-  padding: 12px 4px;
+  padding: 4px 0 2px;
   gap: 12px;
   grid-template-columns:
     minmax(180px, 1fr) minmax(210px, 1.3fr) minmax(190px, 1.1fr)
