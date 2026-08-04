@@ -26,6 +26,7 @@ import TextInput from './widgets/TextInput';
 import Button from './widgets/Button';
 import List, { IOptionEntry } from './widgets/List';
 import PresetListItem from './components/PresetListItem';
+import ProfileActionIcon from './icons/ProfileActionIcon';
 import { formatPresetName } from './utils/utils';
 import {
   getAudioDevices,
@@ -455,6 +456,7 @@ const PresetsBar = ({
           isDisabled={isBlockingError}
           handleChange={handleStartNewProfile}
         >
+          <ProfileActionIcon action="new" />
           New profile
         </Button>
         <Button
@@ -466,7 +468,8 @@ const PresetsBar = ({
           isDisabled={isBlockingError || !presetName || !!newPresetNameError}
           handleChange={handleCreateOrSavePreset}
         >
-          {isExistingPresetSelected ? 'Update profile' : 'Save as new'}
+          <ProfileActionIcon action="save" />
+          {isExistingPresetSelected ? 'Update' : 'Save as new'}
         </Button>
         {/* Every edit auto-saves into the attached profile, so this is the way
             back to the version the user deliberately kept. */}
@@ -476,7 +479,8 @@ const PresetsBar = ({
           isDisabled={isBlockingError || isRestoring || !canRestoreBaseline}
           handleChange={handleRestoreBaseline}
         >
-          {isRestoring ? 'Restoring…' : 'Restore saved'}
+          <ProfileActionIcon action="restore" />
+          {isRestoring ? 'Restoring…' : 'Restore'}
         </Button>
       </div>
       <List

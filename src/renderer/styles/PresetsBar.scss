@@ -86,7 +86,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   min-width: 0;
   gap: 6px;
-  // Three now: new, save, restore.
+  // Three now: new, save, restore. Each carries a glyph beside its label.
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
@@ -155,4 +155,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:focus-within .icons {
     visibility: visible;
   }
+}
+
+// Icon and label read as one control, and the label is allowed to shorten
+// before the glyph does — three buttons across a 300px sidebar is tight.
+.profile-actions .button {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding-inline: 8px;
+}
+
+.profile-action-icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
 }

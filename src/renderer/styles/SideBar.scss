@@ -267,3 +267,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       'preamp preamp';
   }
 }
+
+// Auto normalize owns the preamp, so the slider is a readout rather than a
+// dead control. It keeps the accent — dimmed, not greyed — because the value
+// it shows is live and meaningful; the default disabled grey read as broken.
+.side-bar__preamp .range input[type='range']:disabled {
+  opacity: 1;
+
+  &::-webkit-slider-runnable-track {
+    border-color: rgba($secondary-light, 0.22);
+    background: rgba($secondary-default, 0.14);
+  }
+
+  &::-webkit-slider-thumb {
+    border-color: rgba($secondary-light, 0.5);
+    background: rgba($secondary-light, 0.72);
+    box-shadow: 0 0 8px rgba($secondary-default, 0.35);
+  }
+}
+
+// Says why it cannot be dragged, right where the hand goes.
+.side-bar__preamp-note {
+  margin: 2px 0 0;
+  color: rgba($primary-lighter, 0.5);
+  font-size: 0.56rem;
+  line-height: 1.35;
+  text-align: center;
+}
