@@ -40,6 +40,12 @@ import {
   NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
+import {
+  buildSmartEqSettings,
+  describeSmartEqLayer,
+  getSmartEqBands,
+  hasSmartEqLayer,
+} from 'common/smartEq';
 import FrequencyBand from './components/FrequencyBand';
 import { FilterActionEnum, useFluidEqContext } from './utils/FluidEqContext';
 import './styles/MainContent.scss';
@@ -50,25 +56,26 @@ import Button from './widgets/Button';
 import {
   addEqualizerSlider,
   clearGains,
-  forgetHeadset,
   removeEqualizerSlider,
   setFrequency,
   setFixedBand,
   setGain,
   setQuality,
+  setSmartEq as setSmartEqApi,
   setType,
 } from './utils/equalizerApi';
 import Dropdown from './widgets/Dropdown';
 import NumberInput from './widgets/NumberInput';
 import Knob from './widgets/Knob';
 import { FILTER_OPTIONS } from './icons/FilterTypeIcon';
-import { useLiveAudio } from './audio/LiveAudioContext';
+import { useLiveAudioControl } from './audio/LiveAudioContext';
 import {
   buildBalancedGains,
   describeBalanceProgress,
   describeBalanceResult,
 } from './utils/autoBalance';
-import { buildVoicingTargetCurve } from './utils/voicingCurve';
+import { buildLayerTargetCurve } from './utils/layerTargetCurve';
+import { planBandReveal, revealBands } from './utils/bandReveal';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
 import MenuIcon from './icons/MenuIcon';
@@ -77,9 +84,9 @@ import { useTranslation } from './utils/I18nContext';
 /**
  * How many times a measurement will restart itself.
  *
- * Changing the layout mid-capture restarts rather than cancels. Bounded so
- * that someone clicking through the layouts while it listens eventually gets
- * an answer instead of an endless loop.
+ * Changing the sound mid-capture restarts rather than cancels. Bounded so that
+ * someone fiddling with sliders while it listens eventually gets an answer
+ * instead of an endless loop.
  */
 const MAX_BALANCE_ATTEMPTS = 3;
 
@@ -98,11 +105,16 @@ const MainContent = () => {
     toggleFilterSelection,
     hoveredFilterId,
     setHoveredFilterId,
+    convolution,
     voicing,
+    driver,
+    smartEq,
+    setSmartEq,
+    getBandSetGeneration,
   } = useFluidEqContext();
   const { t } = useTranslation();
   const { captureBalanceProfile, isActive: isLiveOutputActive } =
-    useLiveAudio();
+    useLiveAudioControl();
   const [balanceStatus, setBalanceStatus] = useState('');
   const [isBalancing, setIsBalancing] = useState(false);
   const [measureFromFlat, setMeasureFromFlat] = useState(false);
@@ -153,13 +165,53 @@ const MainContent = () => {
     [],
   );
 
-  // The bands as they are right now, not as they were when this render's
-  // closures were made. A measurement runs for tens of seconds, and `filters`
-  // captured in that closure is frozen at the moment it started — so the guard
-  // that was meant to notice the layout changing mid-capture was comparing the
-  // measured set against itself and never fired.
+  // The chain as it is right now, not as it was when this render's closures
+  // were made. A measurement runs for tens of seconds, and everything captured
+  // in that closure is frozen at the moment it started — which is how the guard
+  // meant to notice the layout changing mid-capture ended up comparing the
+  // measured set against itself and never firing, and how the voicing used to
+  // be read for the target curve long after the user had switched it.
   const filtersRef = useRef(filters);
   filtersRef.current = filters;
+  const voicingRef = useRef(voicing);
+  voicingRef.current = voicing;
+  const driverRef = useRef(driver);
+  driverRef.current = driver;
+  const convolutionRef = useRef(convolution);
+  convolutionRef.current = convolution;
+  const smartEqRef = useRef(smartEq);
+  smartEqRef.current = smartEq;
+
+  /**
+   * Everything audible, as one comparable string.
+   *
+   * The accumulator averages frames from whatever chain was live, so any change
+   * to that chain part-way through contaminates the result — not only the band
+   * count the old guard watched, but a gain nudge, a voicing switch, a driver
+   * change or a convolution appearing. All of it is read from refs, because the
+   * question is what is live now, not what was live when the run started.
+   *
+   * The Smart EQ layer is not in here, but it is guarded — separately, against
+   * what the run itself believes it wrote, rather than against a snapshot of
+   * the ref. ActiveLayers' clear button and every refreshState write it too, so
+   * it cannot be assumed to move only when the run moves it; and a snapshot
+   * would report the run's own optimistic clear as an outside change, because
+   * React owes us nothing about when the next render lands.
+   */
+  const describeLiveChain = () =>
+    JSON.stringify([
+      Object.values(filtersRef.current)
+        .sort(sortHelper)
+        .map(
+          (filter) =>
+            `${filter.type}@${filter.frequency}/${filter.gain}/${filter.quality}`,
+        ),
+      voicingRef.current?.profileId ?? '',
+      voicingRef.current?.intensity ?? 0,
+      driverRef.current?.profileId ?? '',
+      driverRef.current?.intensity ?? 0,
+      convolutionRef.current?.fileName ?? convolutionRef.current?.name ?? '',
+    ]);
 
   const bandsRef = useRef<HTMLDivElement>(null);
   const [selectionBox, setSelectionBox] = useState<
@@ -364,6 +416,13 @@ const MainContent = () => {
    * Listen to what is actually coming out of the speakers, then flatten the
    * peaks and dips it finds while leaving the music's own spectral tilt alone.
    *
+   * The answer lands in the Smart EQ layer, never in the bands on screen. What
+   * the measurement finds is the residual of the whole chain — the bands, the
+   * voicing, the driver compensation and the last Smart EQ correction, all
+   * heard together — so it belongs to none of them individually and writing it
+   * into the bands meant a measurement quietly rewrote a tuning someone had
+   * built by hand.
+   *
    * There is no fixed duration. The measurement runs until every frequency
    * region has been heard well enough to correct — or reports which range it
    * managed to measure, and leaves the rest alone.
@@ -384,50 +443,52 @@ const MainContent = () => {
     setIsBalancing(true);
 
     try {
-      let bands = frequencySortedFilters;
       let attempt = 0;
 
-      // Runs once normally. It goes round again only when the band layout
+      // Runs once normally. It goes round again only when the audible chain
       // changed while it was listening.
       // eslint-disable-next-line no-constant-condition
       while (true) {
         attempt += 1;
-        // Measuring the post-EQ output is normally the right thing — the loop
+
+        // The layer this attempt is measuring against, read fresh every time
+        // round. Within an attempt it is tracked locally rather than off the
+        // ref, because clearing it below is optimistic and React owes us
+        // nothing about when the next render lands — but carrying it *across*
+        // attempts was how one profile's accumulated correction ended up
+        // written into whichever profile the user had switched to, since the
+        // commonest reason to go round again is that they loaded another one.
+        let layer = smartEqRef.current;
+
+        // Measuring the corrected output is normally the right thing — the loop
         // converges and self-corrects any error in the filter model. It has one
-        // blind spot: a band already cut hard leaves its region with almost no
-        // energy, so the measurement marks it untrustworthy and never touches
-        // it. The bad EQ hides the very problem it is causing. Flattening first
-        // is the escape hatch for exactly that.
-        if (measureFromFlat) {
-          // Deliberately does not change the layout. Smart EQ corrects the
-          // bands you have; picking a different number of them is your
-          // decision, not something a measurement gets to make on your behalf.
-          setBalanceStatus('Flattening...');
-          await Promise.all(
-            bands
-              .filter((filter) => filter.gain !== 0)
-              .map(async (filter) => {
-                await setGain(filter.id, 0);
-                dispatchFilter({
-                  type: FilterActionEnum.GAIN,
-                  id: filter.id,
-                  newValue: 0,
-                });
-              }),
-          );
-          // The reference described the bands that were just zeroed, so the
-          // attribution is no longer true. Smart EQ is about to write its own
-          // curve over the top; keeping the model name would credit it for a
-          // measurement that is nothing to do with it.
-          //
-          // Forget rather than clear: clearing the reference resets the layout
-          // and mints new band ids, which would pull the bands out from under
-          // the measurement about to be written into them.
-          await forgetHeadset();
+        // blind spot: a region already cut hard has almost no energy left in it,
+        // so the measurement marks it untrustworthy and never touches it again.
+        // The correction hides the very problem it is causing. Discarding it
+        // first is the escape hatch for exactly that.
+        if (measureFromFlat && hasSmartEqLayer(layer)) {
+          // Only this layer. The bands, the reference they came from, the
+          // voicing and the driver compensation are all somebody's deliberate
+          // choice, and a measurement has no business throwing any of them away
+          // to make its own job easier. (It used to zero the bands and drop the
+          // headphone attribution, which is exactly that.)
+          setBalanceStatus('Clearing the last correction...');
+          layer = undefined;
+          setSmartEq(undefined);
+          await setSmartEqApi(undefined);
           if (!isCurrentRun()) {
             return;
           }
         }
+
+        // The layer's own bands, so the solve accumulates onto what it wrote
+        // last time instead of onto whatever the user's editor happens to hold.
+        const bands = getSmartEqBands(layer);
+        const chainBeforeCapture = describeLiveChain();
+        // What this run believes the layer to be. Comparing the live layer
+        // against this after the capture is what tells somebody else's write —
+        // the chip's clear button, a profile load — from the run's own.
+        const layerBeforeCapture = describeSmartEqLayer(layer);
 
         setBalanceStatus('Listening 0%');
         const result = await captureBalanceProfile({
@@ -443,79 +504,106 @@ const MainContent = () => {
           return;
         }
 
-        // Changing the layout mid-capture invalidates the measurement: it
-        // describes bands that no longer exist. Rather than throwing away the
-        // half-minute the user just spent listening, measure again against what
-        // they now have — switching to 31 bands part-way through is a perfectly
-        // reasonable thing to do, and being told off for it is not.
-        const measuredIds = bands.map((filter) => filter.id).join();
-        const liveBands = Object.values(filtersRef.current).sort(sortHelper);
-        if (liveBands.map((filter) => filter.id).join() !== measuredIds) {
+        // Changing anything audible mid-capture invalidates the average: the
+        // frames it is built from describe two different chains. Rather than
+        // throwing away the half-minute the user just spent listening, measure
+        // again against what they now have — reaching for a slider part-way
+        // through is a perfectly reasonable thing to do, and being told off for
+        // it is not.
+        //
+        // The layer counts as part of that chain. Clearing it from the chip
+        // while a run listens used to be silently undone, because the run went
+        // on to write `the gains it started from + this residual` back over the
+        // top of the clear.
+        if (
+          describeLiveChain() !== chainBeforeCapture ||
+          describeSmartEqLayer(smartEqRef.current) !== layerBeforeCapture
+        ) {
           if (attempt >= MAX_BALANCE_ATTEMPTS) {
-            setBalanceStatus('Bands kept changing - stopped');
+            setBalanceStatus('The sound kept changing - stopped');
             return;
           }
-          setBalanceStatus('Bands changed - measuring again');
-          bands = liveBands;
+          setBalanceStatus('Sound changed - measuring again');
           // eslint-disable-next-line no-continue
           continue;
         }
 
-        // Steer toward the active voicing rather than merely flattening: the
-        // capture already contains the voicing layer, so without this Smart EQ
-        // would fight it back out again.
+        // Steer toward the layers below rather than merely flattening. The
+        // capture contains the user's own bands, the voicing and the driver
+        // compensation, so without this Smart EQ reads all three as error and
+        // quietly cancels them out.
         const gains = buildBalancedGains(result.samples, bands, {
-          targetCurve: buildVoicingTargetCurve(voicing),
+          targetCurve: buildLayerTargetCurve(
+            filtersRef.current,
+            voicingRef.current,
+            driverRef.current,
+          ),
         });
-        const entries = Object.entries(gains);
-        if (entries.length === 0) {
+        if (Object.keys(gains).length === 0) {
           setBalanceStatus('Not enough range to measure');
           return;
         }
 
-        setBalanceStatus('Applying...');
-        const pending = entries.filter(
-          ([id, gain]) => filters[id] && filters[id].gain !== gain,
-        );
-        if (pending.length === 0) {
+        const measured = buildSmartEqSettings(bands, gains, {
+          status: result.status,
+          lowFrequency: result.lowFrequency,
+          highFrequency: result.highFrequency,
+        });
+
+        // Compared on what will be written, not on object identity: a run that
+        // moves every band by less than the rounding step has genuinely found
+        // nothing left to correct.
+        if (describeSmartEqLayer(measured) === describeSmartEqLayer(layer)) {
           setBalanceStatus('Already balanced');
           return;
         }
 
-        // Applied in frequency order, one at a time, so the correction is
-        // visibly drawn across the editor. Firing them all at once was faster by
-        // a few hundred milliseconds and looked like nothing happening followed
-        // by every slider teleporting.
-        const byFrequency = pending.slice().sort(([left], [right]) => {
-          return (
-            (filters[left]?.frequency ?? 0) - (filters[right]?.frequency ?? 0)
-          );
-        });
-        let succeeded = 0;
-        for (let index = 0; index < byFrequency.length; index += 1) {
-          if (!isCurrentRun()) {
-            return;
-          }
-          const [id, gain] = byFrequency[index];
-          try {
-            // eslint-disable-next-line no-await-in-loop
-            await setGain(id, gain);
-            dispatchFilter({ type: FilterActionEnum.GAIN, id, newValue: gain });
-            succeeded += 1;
-          } catch {
-            // One band failing is not a reason to abandon the rest.
-          }
-          setBalanceStatus(`Applying ${index + 1}/${byFrequency.length}`);
-        }
+        setBalanceStatus('Applying...');
 
-        if (!isCurrentRun()) {
+        // The same reveal the AutoEQ panel uses, pointed at the layer instead
+        // of at the bands: its curve climbs onto the graph a band at a time
+        // rather than appearing whole. The write below is still one message —
+        // what is heard changes once, at the start — and the animation that
+        // follows is only how the result is drawn.
+        //
+        // Revealed from the layer's previous gains rather than from silence,
+        // because a run after the first is a correction to a correction, and
+        // what is worth watching is where it moved.
+        const generation = getBandSetGeneration();
+        const isCurrent = () =>
+          isCurrentRun() && getBandSetGeneration() === generation;
+        const plan = measured
+          ? planBandReveal(measured.filters, { from: layer?.filters })
+          : undefined;
+
+        setSmartEq(
+          plan && measured ? { ...measured, filters: plan.initial } : measured,
+        );
+        await setSmartEqApi(measured);
+
+        if (!isCurrent()) {
           return;
         }
-        if (succeeded < pending.length) {
-          setBalanceStatus(`Applied ${succeeded} of ${pending.length} bands`);
-        } else {
-          setBalanceStatus(describeBalanceResult(result));
+
+        if (plan && measured) {
+          const revealed = { ...plan.initial };
+          await revealBands(
+            plan.steps,
+            (arriving) => {
+              arriving.forEach(({ id, gain }) => {
+                revealed[id] = { ...revealed[id], gain };
+              });
+              setSmartEq({ ...measured, filters: { ...revealed } });
+            },
+            { isCurrent },
+          );
+          if (!isCurrent()) {
+            return;
+          }
+          setSmartEq(measured);
         }
+
+        setBalanceStatus(describeBalanceResult(result));
         break;
       }
     } catch (e) {
@@ -680,7 +768,7 @@ const MainContent = () => {
             {isBalancing ? t('eq.smart.cancel') : t('eq.smart')}
           </Button>
           {/* Off by default: the closed loop is the better answer almost
-              always, and this throws away the user's tuning. */}
+              always, and this throws away the correction it already found. */}
           <label className="eq-toolbar__option" htmlFor="smart-eq-from-flat">
             <input
               id="smart-eq-from-flat"

@@ -23,6 +23,7 @@ import {
   useContext,
   useEffect,
   useReducer,
+  useRef,
   useState,
 } from 'react';
 import {
@@ -36,12 +37,14 @@ import {
 } from '../../common/constants';
 import { DEFAULT_VOICING, IVoicingSettings } from '../../common/voicing';
 import { DEFAULT_DRIVER, IDriverSettings } from '../../common/driver';
+import { ISmartEqSettings } from '../../common/smartEq';
 import {
   ErrorDescription,
   isBlockingError as isBlockingErrorCode,
 } from '../../common/errors';
 import { cloneFilters } from '../../common/utils';
 import { getEqualizerState } from './equalizerApi';
+import { IBandRevealBand, planBandReveal, revealBands } from './bandReveal';
 
 export enum FilterActionEnum {
   INIT,
@@ -53,6 +56,7 @@ export enum FilterActionEnum {
   REMOVE,
   CLEAR_GAINS,
   FIXED_BAND,
+  GAINS,
 }
 
 type NumericalFilterAction =
@@ -64,9 +68,38 @@ export type FilterAction =
   | { type: FilterActionEnum.TYPE; id: string; newValue: FilterTypeEnum }
   | { type: FilterActionEnum.ADD; id: string; frequency: number }
   | { type: FilterActionEnum.REMOVE; id: string }
+  /**
+   * Several gains at once, as one commit.
+   *
+   * A band reveal lands a handful of bands per frame and, when it is cut
+   * short, the whole remainder in a single go. Dispatching those one at a time
+   * would clone the map once per band and hand the response graph a different
+   * tuning each time — and the graph's auto-headroom writes Equalizer APO's
+   * preamp for every tuning it is shown.
+   */
+  | { type: FilterActionEnum.GAINS; bands: IBandRevealBand[] }
   | { type: FilterActionEnum.CLEAR_GAINS };
 
 type FilterDispatch = (action: FilterAction) => void;
+
+export interface IRefreshStateOptions {
+  /**
+   * Bring the new bands in one at a time, low frequency first, rather than
+   * having every slider in the editor jump at once.
+   *
+   * Purely how it is drawn: the main process has already written the whole
+   * tuning to Equalizer APO by the time this is read, and nothing here sends
+   * anything back to it. The promise resolves when the last band has landed,
+   * so a caller that shows a busy state can hold it for the animation.
+   *
+   * It resolves with the editor agreeing with the main process either way. An
+   * animation cut short still leaves every band on the value Equalizer APO is
+   * playing — see the reveal below — because a half-drawn tuning that stayed
+   * half-drawn would be a flat editor over a tuned config, and the user's next
+   * edit would write the flat one back.
+   */
+  revealBands?: boolean;
+}
 
 export interface IFluidEqContext extends IState {
   isLoading: boolean;
@@ -74,7 +107,18 @@ export interface IFluidEqContext extends IState {
   /** True only for failures that make the app genuinely unusable. */
   isBlockingError: boolean;
   performHealthCheck: () => void;
-  refreshState: () => Promise<void>;
+  refreshState: (options?: IRefreshStateOptions) => Promise<void>;
+  /**
+   * A number that changes whenever the set of bands does.
+   *
+   * Applying a reference, clearing the EQ, switching output and changing the
+   * band count all throw away every band on screen and mint new ids; deleting
+   * or adding one changes the set more modestly. Anything that runs across such
+   * a boundary — an animation walking the bands, a measurement about to write a
+   * correction — is describing a tuning nobody is looking at any more, and must
+   * compare this against what it read at the start before it writes.
+   */
+  getBandSetGeneration: () => number;
   setGlobalError: (newValue?: ErrorDescription) => void;
   setIsEnabled: (newValue: boolean) => void;
   setAutoPreAmpOn: (newValue: boolean) => void;
@@ -98,8 +142,16 @@ export interface IFluidEqContext extends IState {
   /** Curated target curve written as its own APO layer after the EQ bands. */
   voicing?: IVoicingSettings;
   driver?: IDriverSettings;
+  /**
+   * What Smart EQ measured, as its own layer.
+   *
+   * Undefined means nothing measured, or a correction of 0 dB everywhere —
+   * which amounts to the same thing and is stored as the same thing.
+   */
+  smartEq?: ISmartEqSettings;
   setDriver: (newValue: IDriverSettings) => void;
   setVoicing: (newValue: IVoicingSettings) => void;
+  setSmartEq: (newValue?: ISmartEqSettings) => void;
   /** Filter currently selected in the EQ editor and response graph. */
   selectedFilterId: string;
   setSelectedFilterId: (newValue: string) => void;
@@ -135,6 +187,24 @@ const filterReducer: IFilterReducer = (
     case FilterActionEnum.GAIN: {
       const filtersCloned = cloneFilters(filters);
       filtersCloned[action.id].gain = action.newValue;
+      return filtersCloned;
+    }
+    case FilterActionEnum.GAINS: {
+      // Bands that are no longer here are dropped rather than resurrected:
+      // this lands after an await and the set may have lost one meanwhile.
+      // Bands already sitting on their value are dropped too, so a batch that
+      // asks for nothing returns the map it was given and nothing downstream
+      // re-renders over it.
+      const landing = action.bands.filter(
+        (band) => filters[band.id] && filters[band.id].gain !== band.gain,
+      );
+      if (landing.length === 0) {
+        return filters;
+      }
+      const filtersCloned = cloneFilters(filters);
+      landing.forEach((band) => {
+        filtersCloned[band.id].gain = band.gain;
+      });
       return filtersCloned;
     }
     case FilterActionEnum.QUALITY: {
@@ -220,6 +290,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [driver, setDriver] = useState<IDriverSettings>(
     DEFAULT_STATE.driver ?? DEFAULT_DRIVER,
   );
+  const [smartEq, setSmartEq] = useState<ISmartEqSettings | undefined>(
+    DEFAULT_STATE.smartEq,
+  );
   const [convolution, setConvolution] = useState<
     IConvolutionProfile | undefined
   >(DEFAULT_STATE.convolution);
@@ -235,10 +308,54 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [selectedFilterId, setSelectedFilterIdState] = useState<string>('');
   const [selectedFilterIds, setSelectedFilterIdsState] = useState<string[]>([]);
   const [hoveredFilterId, setHoveredFilterId] = useState<string>('');
-  const [filters, dispatchFilter] = useReducer(
+  const [filters, applyFilterAction] = useReducer(
     filterReducer,
     DEFAULT_STATE.filters,
   );
+
+  // Bumped by the three actions that change which bands exist, as opposed to
+  // moving a value on a band that is still there. Wrapping the reducer's own
+  // dispatch is what makes the count unmissable: every caller in the app
+  // already goes through the context to reach the bands.
+  const bandSetGenerationRef = useRef(0);
+  const getBandSetGeneration = useCallback(
+    () => bandSetGenerationRef.current,
+    [],
+  );
+
+  // INIT alone, where the count above also takes in adding and deleting a
+  // band. A reveal has to tell those two apart: replaced means some newer
+  // tuning owns the editor and the rest of this one must never be asserted
+  // over it, while added or deleted means this tuning is still the one on
+  // screen and the bands the animation never reached are still at 0 dB.
+  const bandSetReplacementRef = useRef(0);
+
+  // Set only while a reveal is drawing. Anything that reaches the context
+  // through dispatchFilter while it is — the reveal's own frames go straight
+  // to the reducer — is a band the user moved, and they moved it with the main
+  // process listening. Painting the reference over it would leave the editor
+  // showing a gain Equalizer APO is not playing.
+  const revealEditedIdsRef = useRef<Set<string> | undefined>(undefined);
+
+  const dispatchFilter = useCallback((action: FilterAction) => {
+    if (
+      action.type === FilterActionEnum.INIT ||
+      action.type === FilterActionEnum.ADD ||
+      action.type === FilterActionEnum.REMOVE
+    ) {
+      bandSetGenerationRef.current += 1;
+    }
+    if (action.type === FilterActionEnum.INIT) {
+      bandSetReplacementRef.current += 1;
+    }
+    // Only the gain: a band whose frequency or Q was nudged mid-reveal still
+    // wants the reference's gain, and skipping it would strand that one band
+    // at 0 dB — the very thing this is here to prevent.
+    if (action.type === FilterActionEnum.GAIN) {
+      revealEditedIdsRef.current?.add(action.id);
+    }
+    applyFilterAction(action);
+  }, []);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
@@ -277,28 +394,95 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     root?.setAttribute('class', newValue ? '' : 'minimized');
   };
 
-  const refreshState = useCallback(async () => {
-    try {
-      const state = await getEqualizerState();
-      setIsEnabled(state.isEnabled);
-      // Keep the persisted preference so Auto normalize can be disabled for
-      // users who want to set the APO preamp manually.
-      setAutoPreAmpOn(state.isAutoPreAmpOn);
-      setGraphViewOn(state.isGraphViewOn);
-      setPreAmp(state.preAmp);
-      setConvolution(state.convolution);
-      setVoicing(state.voicing ?? DEFAULT_VOICING);
-      setDriver(state.driver ?? DEFAULT_DRIVER);
-      setHeadset(state.headset);
-      setHeadsetTarget(state.headsetTarget);
-      setHeadsetSource(state.headsetSource);
-      dispatchFilter({ type: FilterActionEnum.INIT, filters: state.filters });
-      setGlobalError(undefined);
-      setIsCaseSensitiveFs(state.isCaseSensitiveFs);
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
-    }
-  }, []);
+  const refreshState = useCallback(
+    async (options?: IRefreshStateOptions) => {
+      try {
+        const state = await getEqualizerState();
+        setIsEnabled(state.isEnabled);
+        // Keep the persisted preference so Auto normalize can be disabled for
+        // users who want to set the APO preamp manually.
+        setAutoPreAmpOn(state.isAutoPreAmpOn);
+        setGraphViewOn(state.isGraphViewOn);
+        setPreAmp(state.preAmp);
+        setConvolution(state.convolution);
+        setVoicing(state.voicing ?? DEFAULT_VOICING);
+        setDriver(state.driver ?? DEFAULT_DRIVER);
+        setSmartEq(state.smartEq);
+        setHeadset(state.headset);
+        setHeadsetTarget(state.headsetTarget);
+        setHeadsetSource(state.headsetSource);
+
+        // The band set lands whole either way — same ids, same frequencies,
+        // same types — so the layout is right from the first frame and only
+        // the gains climb in. Anything else would look like bands appearing
+        // out of nowhere rather than like the EQ being tuned.
+        const plan = options?.revealBands
+          ? planBandReveal(state.filters)
+          : undefined;
+        dispatchFilter({
+          type: FilterActionEnum.INIT,
+          filters: plan?.initial ?? state.filters,
+        });
+        setGlobalError(undefined);
+        setIsCaseSensitiveFs(state.isCaseSensitiveFs);
+
+        if (!plan) {
+          return;
+        }
+
+        // Both claimed after our own INIT, so the reveal is not cancelled by
+        // the very replacement it is there to animate.
+        const generation = bandSetGenerationRef.current;
+        const replacement = bandSetReplacementRef.current;
+        const editedDuringReveal = new Set<string>();
+        revealEditedIdsRef.current = editedDuringReveal;
+
+        // Straight to the reducer rather than through dispatchFilter: what the
+        // reveal draws is not an edit, and recording it as one would make the
+        // animation skip every band it had already shown. One action per frame
+        // rather than one per band, so the graph — and the auto-headroom write
+        // it drives — sees a frame, not a band.
+        const land = (bands: IBandRevealBand[]) => {
+          const remaining = bands.filter(
+            (band) => !editedDuringReveal.has(band.id),
+          );
+          if (remaining.length > 0) {
+            applyFilterAction({
+              type: FilterActionEnum.GAINS,
+              bands: remaining,
+            });
+          }
+        };
+
+        try {
+          const finished = await revealBands(plan.steps, land, {
+            isCurrent: () => bandSetGenerationRef.current === generation,
+          });
+          if (finished || bandSetReplacementRef.current !== replacement) {
+            // Either it ran to the end, or a whole new band set took the
+            // editor — a second reference applied, Clear EQ, an output switch,
+            // all of which arrive as an INIT. What is on screen is right and
+            // the rest of this tuning is history.
+            return;
+          }
+          // Otherwise a band was added or deleted, which stops the animation
+          // without replacing anything: every band it had not reached is still
+          // holding the 0 dB it starts from while Equalizer APO and the saved
+          // profile carry the whole reference. Land the remainder at once — a
+          // flat editor over a tuned config is a lie the user cannot see, and
+          // their next slider drag would write it back.
+          land(plan.steps.flat());
+        } finally {
+          if (revealEditedIdsRef.current === editedDuringReveal) {
+            revealEditedIdsRef.current = undefined;
+          }
+        }
+      } catch (e) {
+        setGlobalError(e as ErrorDescription);
+      }
+    },
+    [dispatchFilter],
+  );
 
   const performHealthCheck = useCallback(async () => {
     setIsLoading(true);
@@ -356,8 +540,10 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         headsetSource,
         voicing,
         driver,
+        smartEq,
         setDriver,
         setVoicing,
+        setSmartEq,
         selectedFilterId,
         setSelectedFilterId,
         selectedFilterIds,
@@ -366,6 +552,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         hoveredFilterId,
         setHoveredFilterId,
         dispatchFilter,
+        getBandSetGeneration,
       }}
     >
       {children}

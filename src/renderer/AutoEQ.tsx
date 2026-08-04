@@ -106,6 +106,21 @@ interface IDeviceEntry {
   sourceName: string;
 }
 
+/**
+ * A device row, built on demand rather than up front.
+ *
+ * The combined catalogue runs to roughly six thousand devices and the dropdown
+ * mounts a hundred of them at a time, so an element tree per entry cost several
+ * times more memory than the device list it was built from — all of it held for
+ * as long as the panel is open.
+ */
+const deviceOptionDisplay = (device: IDeviceEntry) => () => (
+  <div className="eq-device-option">
+    <strong>{device.name}</strong>
+    <small>{device.sourceName}</small>
+  </div>
+);
+
 const getResponseFormatLabel = (response: string) => {
   if (/graphiceq/i.test(response)) {
     return 'Graphic EQ · native APO GraphicEQ';
@@ -152,6 +167,21 @@ const AutoEQ = () => {
   const [updateStatus, setUpdateStatus] = useState<IAutoEqUpdateStatus>();
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  // Held from the click until the last band has been drawn, because applying
+  // is the one action here whose result lands somewhere else on the page.
+  const [isApplying, setIsApplying] = useState(false);
+  const applyRunRef = useRef(0);
+
+  // Switching workspace tab unmounts this panel while an apply may still be
+  // animating. The reveal itself stops on its own — it is guarded by the band
+  // set, not by this component — but the run counter has to move so the run's
+  // finally does not write state into a panel that is gone.
+  useEffect(
+    () => () => {
+      applyRunRef.current += 1;
+    },
+    [],
+  );
 
   useEffect(() => {
     const clearSelection = () => {
@@ -455,6 +485,12 @@ const AutoEQ = () => {
     currentResponse === headsetTarget;
 
   const applyAutoEQ = async () => {
+    // Only the newest apply owns the button. Applying is deliberately not
+    // blocked while one is in flight — see the button below — and without this
+    // the first run's finally would clear the label a second run had just set.
+    applyRunRef.current += 1;
+    const runId = applyRunRef.current;
+    setIsApplying(true);
     try {
       const selected = selectedDevice;
       if (!selected) {
@@ -473,12 +509,30 @@ const AutoEQ = () => {
           profileName,
         );
       }
-      await refreshState();
+      // Sent before the reveal rather than after it: the profile is on disk
+      // the moment the call above resolves, and the presets bar has no reason
+      // to wait out an animation it is not part of.
       window.dispatchEvent(new Event('fluideq-presets-changed'));
+      // One config write has already happened; this only draws its result. The
+      // bands walk in from the bottom of the spectrum instead of the whole
+      // tuning appearing in a single commit, and the promise runs until the
+      // last one lands so the button can say so meanwhile.
+      await refreshState({ revealBands: true });
     } catch (e) {
       setGlobalError(e as ErrorDescription);
+    } finally {
+      if (applyRunRef.current === runId) {
+        setIsApplying(false);
+      }
     }
   };
+
+  let applyLabel = t('autoeq.apply');
+  if (isApplying) {
+    applyLabel = t('autoeq.applying');
+  } else if (isApplied) {
+    applyLabel = t('convolution.isApplied');
+  }
 
   const deviceOptions: IOptionEntry[] = useMemo(
     () =>
@@ -486,12 +540,7 @@ const AutoEQ = () => {
         return {
           value: device.value,
           label: `${device.name} · ${device.sourceName}`,
-          display: (
-            <div className="eq-device-option">
-              <strong>{device.name}</strong>
-              <small>{device.sourceName}</small>
-            </div>
-          ),
+          display: deviceOptionDisplay(device),
         };
       }),
     [devices],
@@ -585,7 +634,10 @@ const AutoEQ = () => {
                 // The summary sits inside the section header's click target.
                 event.stopPropagation();
                 clearHeadset()
-                  .then(refreshState)
+                  // Called through a lambda: clearHeadset resolves with the
+                  // new filters, and handing those straight to refreshState
+                  // would be passing a band map where its options go.
+                  .then(() => refreshState())
                   .catch((error) => setGlobalError(error as ErrorDescription));
               }}
             >
@@ -660,15 +712,18 @@ const AutoEQ = () => {
         <Button
           className={isApplied ? 'small is-applied' : 'small'}
           ariaLabel={t('autoeq.applyAria')}
-          // Not disabled when applied. Re-applying is a real thing to want —
-          // after tweaking bands and deciding the reference was better — and a
-          // button that refuses is a worse answer than one that just does it.
+          // Not disabled when applied, and not while applying either.
+          // Re-applying is a real thing to want — after tweaking bands and
+          // deciding the reference was better — and a button that refuses is a
+          // worse answer than one that just does it. Changing your mind
+          // half-way through the reveal is the same thing: the new tuning
+          // replaces the band set, which is what stops the old animation.
           isDisabled={
             isBlockingError || currentDevice === '' || currentResponse === ''
           }
           handleChange={applyAutoEQ}
         >
-          {isApplied ? t('convolution.isApplied') : t('autoeq.apply')}
+          {applyLabel}
         </Button>
       </div>
       <div className="autoeq-update">

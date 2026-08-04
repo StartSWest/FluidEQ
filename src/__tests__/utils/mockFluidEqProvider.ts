@@ -44,6 +44,8 @@ const defaultFluidEqContext: IFluidEqContext = {
   setPreAmp: (_newValue: number) => {},
   setConvolution: () => {},
   setVoicing: () => {},
+  smartEq: undefined,
+  setSmartEq: () => {},
   selectedFilterId: '',
   setSelectedFilterId: (_newValue: string) => {},
   selectedFilterIds: [],
@@ -52,6 +54,7 @@ const defaultFluidEqContext: IFluidEqContext = {
   hoveredFilterId: '',
   setHoveredFilterId: (_newValue: string) => {},
   dispatchFilter: (_action: FilterAction) => {},
+  getBandSetGeneration: () => 0,
 };
 
 export default defaultFluidEqContext;
