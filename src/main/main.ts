@@ -665,7 +665,7 @@ ipcMain.on(ChannelEnum.GET_PRESET_BASELINE_NAMES, async (event) => {
 ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
   const channel = ChannelEnum.SAVE_PRESET;
   const presetName = arg[0];
-  console.log(`Saving preset: ${presetName}`);
+
   try {
     // Validate that the preset name is not restricted
     if (isRestrictedPresetName(presetName)) {
@@ -746,7 +746,6 @@ ipcMain.on(ChannelEnum.RENAME_PRESET, async (event, arg) => {
 
 ipcMain.on(ChannelEnum.GET_PRESET_FILE_LIST, async (event) => {
   const channel = ChannelEnum.GET_PRESET_FILE_LIST;
-  console.log(`Getting Preset List`);
 
   try {
     const fileNames: string[] = fs

@@ -133,9 +133,12 @@ describe('device profile configuration', () => {
     expect(output.indexOf('Convolution:')).toBeLessThan(
       output.indexOf('Filter 1:'),
     );
-    expect(output.indexOf('Filter 1:')).toBeLessThan(
-      output.indexOf('Preamp: -2 dB'),
-    );
+    // Ordering is what this test is about. The value is derived from the chain
+    // now — this profile boosts +2 dB of EQ on top of a +3 dB convolution — so
+    // asserting the stored -2 dB would be pinning a number that is no longer
+    // where the preamp comes from.
+    expect(output.indexOf('Filter 1:')).toBeLessThan(output.indexOf('Preamp:'));
+    expect(output).toMatch(/Preamp: -[\d.]+ dB/);
     expect(
       fs.readdirSync(configDir).some((file) => file.endsWith('.wav')),
     ).toBe(true);

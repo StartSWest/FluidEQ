@@ -33,7 +33,8 @@ interface SideBarProps {
 }
 
 const SideBar = ({ showGraphToggle }: SideBarProps) => {
-  const { isLoading, preAmp, setGlobalError, setPreAmp } = useAquaContext();
+  const { isAutoPreAmpOn, isLoading, preAmp, setGlobalError, setPreAmp } =
+    useAquaContext();
 
   const setGain = useCallback(
     async (newValue: number) => {
@@ -76,7 +77,13 @@ const SideBar = ({ showGraphToggle }: SideBarProps) => {
               sliderHeight={sliderHeight}
               setValue={setGain}
               label={`${MIN_GAIN} dB`}
+              isDisabled={isAutoPreAmpOn}
             />
+            {isAutoPreAmpOn && (
+              <p className="side-bar__preamp-note">
+                Set for you. Turn off Auto normalize to adjust it.
+              </p>
+            )}
           </div>
           <div className="col center auto-normalize-control side-bar__control-card side-bar__headroom">
             <span className="control-kicker">APO HEADROOM</span>

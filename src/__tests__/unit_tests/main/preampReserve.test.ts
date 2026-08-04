@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { stateToString } from '../../../main/flush';
 import { getChainPeakGain } from '../../../common/response';
 import {
+  AutoEqFormat,
   FilterTypeEnum,
   IState,
   getDefaultState,
@@ -141,5 +142,50 @@ describe('preamp headroom', () => {
         { type: FilterTypeEnum.PK, frequency: NaN, gain: NaN, quality: NaN },
       ]),
     ).toBe(0);
+  });
+  it('reserves headroom for a GraphicEQ curve, which writes no Filter lines', () => {
+    // GraphicEQ is a single line, not a filter list, so nothing lands in the
+    // written-filter set. Deriving only from that set handed APO a +9 dB curve
+    // with no attenuation at all.
+    const state = getDefaultState();
+    state.isFlat = false;
+    state.isAutoPreAmpOn = true;
+    state.eqFormat = AutoEqFormat.GRAPHIC;
+    state.graphicEq = [
+      { frequency: 20, gain: 0 },
+      { frequency: 100, gain: 9 },
+      { frequency: 1000, gain: 0 },
+    ];
+
+    expect(preampValue(state)).toBe(-9);
+  });
+
+  it('reserves headroom for a convolution, which is one line too', () => {
+    const state = getDefaultState();
+    state.isFlat = true;
+    state.isAutoPreAmpOn = true;
+    state.convolution = {
+      name: 'HRTF',
+      filters: {
+        x: {
+          id: 'x',
+          frequency: 120,
+          gain: 5,
+          quality: 1,
+          type: FilterTypeEnum.PK,
+        },
+      },
+    };
+
+    // Needs the convolution filename, since the Convolution line is only
+    // written when there is a file to point at.
+    const line = stateToString(state, 'hrtf.wav')
+      .replace(/\r/g, '')
+      .split('\n')
+      .filter((entry) => entry.startsWith('Preamp:'))[0];
+    const preamp = Number(/-?[\d.]+/.exec(line)?.[0]);
+
+    expect(preamp).toBeLessThan(0);
+    expect(preamp).toBeCloseTo(-5, 0);
   });
 });

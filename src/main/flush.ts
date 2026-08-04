@@ -79,12 +79,39 @@ const resolvePreAmp = (
   writtenFilters: Array<
     Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>
   >,
+  hasConvolution: boolean,
 ) => {
   if (!state.isAutoPreAmpOn) {
     return state.preAmp;
   }
-  // Cuts need no headroom, so a chain that only cuts reserves nothing.
-  return -getChainPeakGain(writtenFilters);
+
+  // Everything that boosts has to be counted, not just the parametric bands.
+  //
+  // A GraphicEQ profile writes no Filter lines at all, and a convolution is a
+  // single Convolution line rather than a filter list — so a chain built from
+  // either contributes nothing to `writtenFilters` and would reserve no
+  // headroom whatsoever. A +9 dB graphic curve would then be handed to APO
+  // with Preamp: 0 dB and clip.
+  const graphicPeak =
+    state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length
+      ? state.graphicEq.reduce(
+          (highest, { gain }) =>
+            Number.isFinite(gain) ? Math.max(highest, gain) : highest,
+          0,
+        )
+      : 0;
+
+  // The convolution's own response, which is described by its filter set.
+  const convolutionPeak =
+    hasConvolution && state.convolution
+      ? getChainPeakGain(Object.values(state.convolution.filters || {}))
+      : 0;
+
+  const filterPeak = getChainPeakGain(writtenFilters);
+
+  // Cuts need no headroom, so a chain that only cuts reserves nothing. The
+  // stages are in series, so their boosts genuinely add.
+  return -Math.max(0, filterPeak + graphicPeak + convolutionPeak);
 };
 
 export const stateToString = (
@@ -211,7 +238,15 @@ export const stateToString = (
   //
   // Only when Auto normalize is on. With it off the preamp is the user's own
   // setting and nothing may touch it.
-  output.push(`Preamp: ${clampGain(resolvePreAmp(state, writtenFilters))} dB`);
+  output.push(
+    `Preamp: ${clampGain(
+      resolvePreAmp(
+        state,
+        writtenFilters,
+        Boolean(state.convolution && convolutionFileName),
+      ),
+    )} dB`,
+  );
 
   return output.join('\n\r');
 };
@@ -463,6 +498,27 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
   }
 };
 
+/**
+ * Throttled preset-write logging.
+ *
+ * Auto-save writes the attached profile on every edit, so logging each one
+ * turned a single slider drag into hundreds of identical lines — noise that
+ * buries anything useful and costs main-process time in the middle of an
+ * interaction. One line per profile per second is enough to see it working.
+ */
+const lastPresetLogAt = new Map<string, number>();
+const PRESET_LOG_INTERVAL_MS = 1000;
+
+const logPresetWrite = (presetName: string) => {
+  const now = Date.now();
+  const previous = lastPresetLogAt.get(presetName) ?? 0;
+  if (now - previous < PRESET_LOG_INTERVAL_MS) {
+    return;
+  }
+  lastPresetLogAt.set(presetName, now);
+  console.log(`Wrote preset for: ${presetName}`);
+};
+
 export const savePreset = (
   presetName: string,
   presetInfo: IPresetV2,
@@ -477,7 +533,7 @@ export const savePreset = (
     console.log('Failed to save to preset %d', presetName);
     throw ex;
   }
-  console.log(`Wrote preset for: ${presetName}`);
+  logPresetWrite(presetName);
 };
 
 /**
