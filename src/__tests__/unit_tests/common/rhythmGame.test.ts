@@ -19,8 +19,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   BEAT_MS,
   HIT_WINDOW_MS,
+  EUPHORIA_STREAK,
   applyRhythmScore,
   getBeatOffset,
+  getFlawlessScore,
   getHitMarkerPosition,
   getMissFraction,
   getStreakJoy,
@@ -329,5 +331,40 @@ describe('gradeRhythmOffset', () => {
   it('keeps the sign so the marker can show early or late', () => {
     expect(gradeRhythmOffset(-120).offsetMs).toBe(-120);
     expect(gradeRhythmOffset(120).offsetMs).toBe(120);
+  });
+});
+
+describe('getFlawlessScore', () => {
+  const perfect = () => gradeRhythmTap(0);
+
+  it('matches what the game actually pays for that many perfects', () => {
+    // Derived from the scoring function rather than approximated, so it cannot
+    // report a total the game would never produce — which is exactly what the
+    // development shortcut would otherwise put on a share card.
+    [1, 5, EUPHORIA_STREAK, 100].forEach((taps) => {
+      let state = { score: 0, streak: 0 };
+      for (let tap = 0; tap < taps; tap += 1) {
+        state = applyRhythmScore(state, perfect());
+      }
+      expect(getFlawlessScore(taps)).toBe(state.score);
+    });
+  });
+
+  it('is the most anyone can have in that many taps', () => {
+    // Nothing but a perfect adds, and every alternative costs, so no sequence
+    // of the same length can beat it.
+    const taps = 20;
+    let mixed = { score: 0, streak: 0 };
+    for (let tap = 0; tap < taps; tap += 1) {
+      mixed = applyRhythmScore(
+        mixed,
+        tap % 4 === 3 ? gradeRhythmTap(70) : perfect(),
+      );
+    }
+    expect(mixed.score).toBeLessThan(getFlawlessScore(taps));
+  });
+
+  it('is worth nothing for no taps', () => {
+    expect(getFlawlessScore(0)).toBe(0);
   });
 });

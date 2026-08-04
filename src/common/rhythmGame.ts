@@ -128,6 +128,24 @@ export const EUPHORIA_STREAK = Math.ceil(
 );
 
 /**
+ * What a run of `taps` consecutive perfect hits is worth, from nothing.
+ *
+ * The best any player can possibly have done in that many taps, since a
+ * perfect is the only thing that adds and the multiplier only climbs on one.
+ *
+ * Summed rather than approximated, because the multiplier changes under it on
+ * every tap — and derived from the same scoring function the game runs, so it
+ * cannot report a total the game would never produce.
+ */
+export const getFlawlessScore = (taps: number): number => {
+  let total = 0;
+  for (let streak = 0; streak < taps; streak += 1) {
+    total += Math.round(PERFECT_POINTS * getStreakMultiplier(streak));
+  }
+  return total;
+};
+
+/**
  * The streak as a plain 0-to-1 fraction of the way to the ceiling.
  *
  * The creature's face is driven from this rather than from the multiplier

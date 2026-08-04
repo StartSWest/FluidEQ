@@ -185,7 +185,13 @@ interface ISupportPetProps {
 export const EYE_WAVE_PERIOD = 3.2;
 /** Enough cycles to cover the pupil plus a full period of scroll either side. */
 const EYE_WAVE_CYCLES = 8;
-const EYE_WAVE_AMPLITUDE = 1.1;
+/**
+ * Exported so the share card can draw the same wave rather than a lookalike.
+ * The card paints her on a canvas, which cannot use the path below, so the
+ * numbers are the only thing the two can share — and if they drift, the
+ * creature in the picture stops being the creature on screen.
+ */
+export const EYE_WAVE_AMPLITUDE = 1.1;
 
 /**
  * A small horizontal waveform to run behind a pupil.

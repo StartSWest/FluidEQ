@@ -29,11 +29,11 @@ import {
   getSupportCryptos,
   getSupportMethods,
 } from 'common/support';
-import { EUPHORIA_STREAK } from 'common/rhythmGame';
+import { EUPHORIA_STREAK, getFlawlessScore } from 'common/rhythmGame';
 import supportQrImage from '../../assets/support-qr.png';
 import QrCode from './components/QrCode';
 import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
-import { getRhythmRun, setRhythmRun } from './utils/rhythmRun';
+import { setRhythmRun } from './utils/rhythmRun';
 import { SupportPetHero } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 import './styles/Support.scss';
@@ -478,10 +478,13 @@ export default function SupportDialog({
                   title="Development build only — jumps the streak straight to the ceiling"
                   onClick={() =>
                     setRhythmRun({
-                      // Left alone. The score is what the run earned and
-                      // inventing one would put a number on the share card
-                      // that nobody played for.
-                      score: getRhythmRun().score,
+                      // The score a flawless climb to the ceiling actually
+                      // produces, not the score that happened to be sitting
+                      // there. The point of the shortcut is to see what a real
+                      // euphoria run looks like, and the share card puts the
+                      // number in 152px type — a leftover 40 under a x10 badge
+                      // is not the picture anyone is checking.
+                      score: getFlawlessScore(EUPHORIA_STREAK),
                       streak: EUPHORIA_STREAK,
                     })
                   }

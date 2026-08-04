@@ -26,6 +26,7 @@ import {
   isEuphoricRun,
 } from 'common/shareScore';
 import { SUPPORT_CONFIG } from 'common/support';
+import { EYE_WAVE_AMPLITUDE, EYE_WAVE_PERIOD } from '../SupportPet';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/ShareScore.scss';
 
@@ -113,6 +114,55 @@ const drawPet = (
     context.arc(x, 22, 3.4, 0, Math.PI * 2);
     context.fill();
   });
+
+  // Sound reflected in the eye, at the ceiling only.
+  //
+  // The live creature runs a little waveform across each pupil, invisible at
+  // rest and brightening with the streak — at x10 it is one of the clearest
+  // signs the mode is on, and a card celebrating euphoria with dead black eyes
+  // was missing the part people actually notice.
+  //
+  // Clipped to the pupil so it reads as something seen IN the eye rather than
+  // drawn over it, and built from the same period and amplitude the SVG uses
+  // so the two cannot drift into being different creatures. Frozen mid-scroll:
+  // the live one animates, and a still image gets the frame it would have been
+  // caught at.
+  if (euphoric) {
+    [15.4, 24.6].forEach((eyeX) => {
+      context.save();
+      context.beginPath();
+      context.arc(eyeX, 22, 3.4, 0, Math.PI * 2);
+      context.clip();
+
+      const quarter = EYE_WAVE_PERIOD / 4;
+      const start = eyeX - EYE_WAVE_PERIOD * 1.5;
+      context.beginPath();
+      context.moveTo(start, 22);
+      for (let cycle = 0; cycle < 3; cycle += 1) {
+        const x = start + cycle * EYE_WAVE_PERIOD;
+        context.quadraticCurveTo(
+          x + quarter,
+          22 - EYE_WAVE_AMPLITUDE,
+          x + quarter * 2,
+          22,
+        );
+        context.quadraticCurveTo(
+          x + quarter * 3,
+          22 + EYE_WAVE_AMPLITUDE,
+          x + quarter * 4,
+          22,
+        );
+      }
+      // The width and opacity the live one reaches at full joy, which is the
+      // only state this ever draws in.
+      context.strokeStyle = '#9cfff4';
+      context.lineWidth = 0.9;
+      context.lineCap = 'round';
+      context.globalAlpha = 0.95;
+      context.stroke();
+      context.restore();
+    });
+  }
 
   context.fillStyle = '#ffffff';
   [16.4, 25.6].forEach((x) => {
