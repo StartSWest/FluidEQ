@@ -95,6 +95,28 @@ out of order, and it has to be stated rather than assumed.
 Keep the outstanding list visible at the end of a reply, oldest first, so the
 running order is never in question.
 
+## Workflows and subagents
+
+**Default to doing the work yourself.** A styling fix, a component, a bug with a
+known cause, a stylesheet — all of that is faster and better done directly, and
+it stays that way even when it spans a few files.
+
+Fanning out to a crowd of agents does not scale the way it looks like it should.
+Each one has to rediscover context you already have, they take far longer than
+the work warrants, and the more of them there are the more time goes on
+coordinating rather than building. A run that takes half an hour to change what
+you could have changed in five minutes is a loss even when the output is fine.
+
+If a workflow is genuinely warranted — the work is large, spans subsystems, and
+has a testable core that is easy to get confidently wrong, like filter maths or
+scoring balance — keep it **small**: a couple of agents doing the work, one
+verifying. Do not add a reviewer per dimension and a skeptic per finding. Read
+the diff yourself instead; it is quicker and you will trust it more.
+
+And never run one for something the user is waiting on and watching. If it
+starts dragging, stop it and finish by hand — the tree survives being
+interrupted, which is worth checking with a type-check straight after.
+
 ## Conventions
 
 - **The GPL headers are not editable.** Every source file carries

@@ -1,0 +1,231 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+.rhythm-game {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.rhythm-game__scores {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.rhythm-game__score {
+  color: $secondary-light;
+  font-size: 1.05rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+
+// Sits between the score and the record, because it is the thing that turns
+// one into the other.
+.rhythm-game__streak {
+  margin-right: auto;
+  padding: 2px 7px;
+  color: $neon-lime;
+  border-radius: $radius-pill;
+  background: rgba($neon-lime, 0.12);
+  font-size: 0.62rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.rhythm-game__best {
+  color: rgba($primary-lighter, 0.55);
+  font-size: 0.62rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.rhythm-game__trace {
+  position: relative;
+  height: 44px;
+  // The trace runs the full width and is clipped at the edges, so beats scroll
+  // in and out rather than appearing and vanishing mid-air.
+  overflow: hidden;
+  border: 1px solid rgba($secondary-default, 0.16);
+  border-radius: $radius-s;
+  background: linear-gradient(180deg, rgba(#0a1420, 0.9), rgba(#060d16, 0.94));
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+
+  path {
+    fill: none;
+    // The heartbeat red of the reference, against a UI that is otherwise teal.
+    stroke: #ff5a6e;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    // Non-scaling, because `preserveAspectRatio: none` stretches the viewBox
+    // to whatever width the dialog is and would take the stroke with it.
+    vector-effect: non-scaling-stroke;
+    filter: drop-shadow(0 0 4px rgba(#ff5a6e, 0.5));
+  }
+}
+
+// Exactly one cycle per beat. Linear, because a heartbeat does not accelerate
+// across the screen — and because the score is read from this animation's own
+// clock, so any easing here would bend the timing the player is judged on.
+.rhythm-game__scroll {
+  animation-name: rhythm-scroll;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@keyframes rhythm-scroll {
+  from {
+    translate: 0 0;
+  }
+
+  to {
+    translate: -120px 0;
+  }
+}
+
+// Where the spike has to be when you tap.
+.rhythm-game__target {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 50%;
+  width: 2px;
+  border-radius: $radius-pill;
+  background: rgba($secondary-light, 0.75);
+  box-shadow: 0 0 10px rgba($secondary-default, 0.6);
+  translate: -1px 0;
+  pointer-events: none;
+}
+
+// Where the last tap actually landed, left of the line for early and right for
+// late. It fades on its own so a run of taps does not litter the trace.
+.rhythm-game__hit {
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  width: 2px;
+  border-radius: $radius-pill;
+  animation: rhythm-hit 520ms ease-out forwards;
+  pointer-events: none;
+  translate: -1px 0;
+
+  &--perfect {
+    background: $neon-lime;
+    box-shadow: 0 0 12px rgba($neon-lime, 0.9);
+  }
+
+  &--great {
+    background: $secondary-light;
+    box-shadow: 0 0 10px rgba($secondary-light, 0.8);
+  }
+
+  &--good {
+    background: rgba($primary-lighter, 0.85);
+  }
+
+  &--miss {
+    background: #ff5a6e;
+    box-shadow: 0 0 10px rgba(#ff5a6e, 0.7);
+  }
+}
+
+@keyframes rhythm-hit {
+  from {
+    opacity: 1;
+    scale: 1 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 1 0.4;
+  }
+}
+
+.rhythm-game__verdict {
+  min-height: 14px;
+  margin: 0;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.rhythm-game__verdict-text {
+  display: inline-block;
+  animation: rhythm-verdict 460ms ease-out;
+
+  &--perfect {
+    color: $neon-lime;
+  }
+
+  &--great {
+    color: $secondary-light;
+  }
+
+  &--good {
+    color: rgba($primary-lighter, 0.8);
+  }
+
+  &--miss {
+    color: #ff8b98;
+  }
+
+  // The standing hint, before anyone has tapped. Quiet, and it does not animate
+  // — it is instruction, not feedback.
+  &--idle {
+    color: rgba($primary-lighter, 0.45);
+    animation: none;
+    font-weight: 400;
+    letter-spacing: 0.06em;
+    text-transform: none;
+  }
+}
+
+@keyframes rhythm-verdict {
+  from {
+    scale: 1.25;
+    opacity: 0.4;
+  }
+
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}
+
+// The flourishes stop; the trace does not.
+//
+// The scroll is not decoration — it is the clock the tap is scored against, and
+// stopping it leaves a dead line that silently refuses to score. A player who
+// asked for less motion would be handed a broken game rather than a calmer one.
+// It is a thin line moving steadily at a constant rate, which is the low-risk
+// end of what this setting is for, so it keeps running and everything that
+// flashes around it does not.
+@media (prefers-reduced-motion: reduce) {
+  .rhythm-game__hit,
+  .rhythm-game__verdict-text {
+    animation: none;
+  }
+
+  .rhythm-game__hit {
+    opacity: 0.9;
+  }
+}
