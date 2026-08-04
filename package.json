@@ -1,6 +1,6 @@
 {
   "name": "fluideq",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "type": "commonjs",
   "description": "Open-source system-wide parametric EQ with automatic per-device profiles",
   "keywords": [

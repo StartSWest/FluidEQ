@@ -6,13 +6,29 @@ opens it again any time.
 
 ---
 
-## Unreleased
+## 0.5.1
 
-- The installer asks which language to use, preselecting your Windows one.
-- The release notes open on top of the support dialog rather than replacing
-  it, and closing them puts you back where you were.
-- The pet's dance reads as a head keeping time — it leans, holds there for a
-  beat and comes back, rather than swinging evenly from side to side.
+### New
+
+- **The installer asks which language to use**, preselecting your Windows one.
+  Nine of the app's ten, because NSIS has no Hindi translation — FluidEQ still
+  speaks it, the setup wizard does not, which is better than a half-English
+  wizard pretending otherwise.
+
+### Changed
+
+- **The release notes open on top of the support dialog** instead of replacing
+  it. Reading them is a detour from deciding whether to contribute, not a
+  departure from it, so closing them puts you back where you were.
+- **The pet sways like someone listening.** It leans, holds there for a beat
+  and comes back, rather than swinging evenly from side to side — and the lean
+  hinges low, where a neck would be, instead of spinning the whole creature
+  about its middle. Still only for anyone with the contribution badge.
+
+### Fixed
+
+- Escape closed both dialogs at once when the release notes were open over the
+  support dialog.
 
 ---
 
