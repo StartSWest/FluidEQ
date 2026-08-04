@@ -52,6 +52,39 @@ it under the terms of the GNU General Public License version 3 or later.
     animation: euphoria-glow 6s linear infinite;
   }
 
+  // Pulsing with the music, and doing it the cheap way.
+  //
+  // `--euphoria-level` is written straight to the document root about twenty
+  // times a second, so reading it in CSS costs no React render at all. What it
+  // is read INTO is what matters: a box-shadow or a filter that changes every
+  // frame repaints the element every frame, and there are up to thirty-one
+  // bands plus a point per band on the graph.
+  //
+  // So the only thing the level touches is `opacity`, on elements whose glow is
+  // otherwise static. Opacity is composited, not painted — the layer is drawn
+  // once and the GPU fades it. `will-change` is what promotes them, and it is
+  // scoped to this class so nothing carries a layer around outside the mode.
+  .graph-edit-point__dot,
+  .graph-live-curve,
+  .bandWrapper .range input[type='range'] {
+    will-change: opacity;
+  }
+
+  // A floor, so a quiet passage dims rather than disappears.
+  .graph-edit-point__dot {
+    opacity: calc(0.72 + var(--euphoria-level, 0) * 0.28);
+  }
+
+  .graph-live-curve {
+    opacity: calc(0.6 + var(--euphoria-level, 0) * 0.4);
+  }
+
+  // The slider tracks breathe with the level. Their colour already sweeps from
+  // the band hue below; this is only the brightness moving with the music.
+  .bandWrapper .range input[type='range'] {
+    opacity: calc(0.78 + var(--euphoria-level, 0) * 0.22);
+  }
+
   // The target line joins in: thicker, and riding the same hue as everything
   // else. Nothing here needs undoing on a miss — the class is on the document
   // root and a broken streak removes it, so the line goes back to its ordinary

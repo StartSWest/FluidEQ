@@ -164,3 +164,40 @@ describe('getNearestPeakMs', () => {
     expect(getNearestPeakMs(state, 40 * FRAME_MS - 30)).toBe(40 * FRAME_MS);
   });
 });
+
+describe('frame buffer aliasing', () => {
+  it('finds nothing when the caller reuses one array for every frame', () => {
+    // Not a wish — a regression guard. The detector keeps the array it is given
+    // as `previous` and diffs the next frame against it, so a caller that
+    // reuses ONE buffer hands it the very array it is about to overwrite. Every
+    // frame then gets compared with itself, the flux is zero forever, and the
+    // game sits there saying it cannot find the beat while the music plays.
+    //
+    // This asserts the failure exists so nobody "optimises" the caller back
+    // into it: the fix is two buffers, alternating.
+    const shared = new Array(BINS).fill(-20);
+    let state = createPercussionState();
+    for (let frame = 0; frame < 40; frame += 1) {
+      const source = frame === 20 ? transient() : sustained();
+      for (let bin = 0; bin < BINS; bin += 1) {
+        shared[bin] = source[bin];
+      }
+      state = pushPercussionFrame(state, shared, frame * FRAME_MS, OPTIONS);
+    }
+    expect(peaksIn(state)).toHaveLength(0);
+  });
+
+  it('finds the transient when the caller alternates two buffers', () => {
+    const buffers = [new Array(BINS).fill(-20), new Array(BINS).fill(-20)];
+    let state = createPercussionState();
+    for (let frame = 0; frame < 40; frame += 1) {
+      const source = frame === 20 ? transient() : sustained();
+      const target = buffers[frame % 2];
+      for (let bin = 0; bin < BINS; bin += 1) {
+        target[bin] = source[bin];
+      }
+      state = pushPercussionFrame(state, target, frame * FRAME_MS, OPTIONS);
+    }
+    expect(peaksIn(state)).toHaveLength(1);
+  });
+});

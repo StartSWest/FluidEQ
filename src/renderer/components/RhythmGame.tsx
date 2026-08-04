@@ -133,8 +133,9 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   );
   // The newest peak the automatic run has already played.
   const lastAutoRef = useRef(-Infinity);
-  // Reused every frame. See the fill below.
-  const binsRef = useRef<number[]>([]);
+  // Two, alternating. See the fill below for why one is not enough.
+  const binsRef = useRef<[number[], number[]]>([[], []]);
+  const bufferSlotRef = useRef(0);
 
   const isListening = isActive && !isPaused;
 
@@ -193,15 +194,26 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     // The low half of the spectrum. Percussion energy that matters for keeping
     // time — kick, snare, toms — lives down there, and leaving the top out
     // keeps a bright synth pad from reading as a hit.
-    // Filled into a buffer that is allocated once and reused, rather than a
-    // slice and a map every frame. At ~22 frames a second that was two arrays
-    // of a hundred and sixty numbers per frame, thrown away immediately, for
-    // the whole time the dialog is open.
+    // Filled into buffers allocated once and reused, rather than a slice and a
+    // map every frame — at ~22 frames a second that was two arrays of a
+    // hundred and sixty numbers per frame, thrown away immediately, for as long
+    // as the dialog stayed open.
+    //
+    // TWO buffers, alternating, and that is not an optimisation — it is the
+    // whole thing working. The detector keeps the frame it was given as
+    // `previous` and diffs the next one against it. With a single reused array
+    // it is handed the very array it is about to overwrite, so every frame gets
+    // compared against itself, the flux is zero forever and no beat is ever
+    // found. Writing into the buffer the detector is not holding is what makes
+    // reuse safe at all.
     const half = Math.floor(points.length / 2);
-    if (binsRef.current.length !== half) {
-      binsRef.current = new Array<number>(half);
+    const buffers = binsRef.current;
+    if (buffers[0].length !== half) {
+      buffers[0] = new Array<number>(half);
+      buffers[1] = new Array<number>(half);
     }
-    const bins = binsRef.current;
+    bufferSlotRef.current = bufferSlotRef.current === 0 ? 1 : 0;
+    const bins = buffers[bufferSlotRef.current];
     for (let index = 0; index < half; index += 1) {
       bins[index] = points[index].y;
     }
