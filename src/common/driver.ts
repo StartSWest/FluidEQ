@@ -160,16 +160,22 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
         90,
         1,
         0.6,
-        'A small lift for the low end a sealed dynamic gives up when the earpad seal is less than perfect — seal loss only ever removes bass, so the direction of this one is safe',
+        'Puts back the low end a sealed dynamic gives up when the earpad seal is less than perfect — seal loss only ever removes bass, never adds it',
+      ),
+      pk(
+        3000,
+        -0.8,
+        1.4,
+        'Eases the forwardness that the earcup cavity adds through the upper mids, where it reads as shout on loud material',
       ),
       highShelf(
         7000,
         -1,
         0.5,
-        'A broad, gentle trim across the region where a dynamic diaphragm stops moving as one piece, wide enough not to depend on exactly where that happens',
+        'A broad trim across the region where a dynamic diaphragm stops moving as one piece, wide enough not to depend on exactly where that happens',
       ),
     ],
-    note: 'The bass lift is the confident half: seal loss only ever takes bass away, never adds it. The treble shelf is deliberately broad and small, because diaphragm breakup is set by dome geometry and tension rather than driver size — two 40 mm drivers can break up an octave apart. A wide shelf covers that spread instead of betting on one frequency.',
+    note: 'The bass lift is the confident part: seal loss only takes bass away. The two above it are broad on purpose — diaphragm breakup is set by dome geometry and tension rather than driver size, so two 40 mm drivers can break up an octave apart, and a wide shelf covers that spread instead of betting on one frequency.',
   },
   {
     id: 'planar-headphone',
@@ -177,14 +183,26 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     tagline: 'Flat diaphragm driven across its whole surface',
     category: 'headphone',
     filters: [
+      lowShelf(
+        45,
+        0.8,
+        0.6,
+        'Restores a little sub-bass, which an open back lets escape rather than the driver failing to produce it',
+      ),
+      pk(
+        1500,
+        0.8,
+        1.2,
+        'Fills the slight lower-treble dip that gives some planars their reputation for sounding polite through vocals',
+      ),
       highShelf(
         8000,
         -1,
         0.5,
-        'A gentle top-octave trim for the extra treble energy a large planar diaphragm carries further out than a dynamic does',
+        'Takes the edge off the extra top-octave energy a large planar diaphragm carries further out than a dynamic does',
       ),
     ],
-    note: 'Broad and small on purpose. Where a planar diaphragm interferes with itself scales with its size — nearer 9-11 kHz on a large one, 6-7 kHz on a smaller one — so no single frequency is right for every planar. This shelf sits between the two and stays gentle enough to be a taste adjustment rather than a correction. Lower the strength if your set already sounds right up top.',
+    note: 'Broad and small on purpose. Where a planar diaphragm interferes with itself scales with its size — nearer 9-11 kHz on a large one, 6-7 kHz on a smaller one — so no single frequency suits every planar. These sit between the two and stay gentle enough to be taste rather than correction.',
   },
   {
     id: 'dynamic-iem',
@@ -192,14 +210,26 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     tagline: 'One moving-coil driver, the most common in-ear design',
     category: 'iem',
     filters: [
+      lowShelf(
+        40,
+        0.8,
+        0.6,
+        'Recovers the deepest bass that the pressure-relief vent every dynamic in-ear needs lets slip away',
+      ),
+      pk(
+        200,
+        -0.8,
+        1,
+        'Trims the mid-bass bloom a sealed dynamic builds up, which is what muddies male voices',
+      ),
       pk(
         7000,
         -1,
         1,
-        'A wide, shallow dip through the region a sealed in-ear fit makes peaky, kept broad because exactly where it lands depends on your ears and your tips',
+        'A wide, shallow dip through the region a sealed in-ear fit makes peaky, kept broad because where it lands depends on your ears and tips',
       ),
     ],
-    note: 'Broad and shallow because the peak here is your ear canal, not the driver, and it moves by most of an octave between people, tips and insertion depth. Change tips first if it sounds wrong. If your model is in the AutoEQ or Squiglink databases, use that — for this type especially, a measurement beats a family guess by a wide margin.',
+    note: 'The treble dip is broad because that peak is your ear canal, not the driver, and it moves by most of an octave between people, tips and insertion depth. Change tips first if it sounds wrong. If your model is in the AutoEQ or Squiglink databases, use that — for this type especially, a measurement beats a family guess by a wide margin.',
   },
   {
     id: 'balanced-armature-iem',
@@ -211,7 +241,7 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
         100,
         1.5,
         0.6,
-        'Balanced armatures roll off low bass without a dynamic woofer to carry it; this puts a little back',
+        'Armatures roll off low bass with no dynamic woofer to carry it, so this puts some of the weight back',
       ),
       pk(
         3000,
@@ -219,8 +249,14 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
         2,
         'Damps the armature passband resonance that gives multi-BA sets their characteristic hardness',
       ),
+      pk(
+        8000,
+        -1,
+        2,
+        'Softens the second armature peak higher up, which is the part that reads as splashy on cymbals',
+      ),
     ],
-    note: 'Adding sub-bass electrically has limits — a driver that cannot move that much air will distort before it gets loud. Keep the strength moderate.',
+    note: 'Adding sub-bass electrically has limits — a driver that cannot move that much air will distort before it gets loud. If the low end starts sounding loose rather than fuller, lower the strength.',
   },
   {
     id: 'hybrid-iem',
@@ -228,14 +264,26 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     tagline: 'Dynamic woofer with balanced armature mids and treble',
     category: 'iem',
     filters: [
+      pk(
+        250,
+        -0.8,
+        1,
+        'Cleans up the bass bleed where the dynamic woofer runs past its handover point into the lower mids',
+      ),
+      pk(
+        2000,
+        -0.8,
+        1.2,
+        'Smooths the crossover region, which is where hybrids most often sound like two separate drivers',
+      ),
       highShelf(
         7100,
         -1.5,
         0.7,
-        'Every hybrid puts an armature on treble duty, and an armature is a lightly damped resonant system run near its resonance, so the top two octaves sit higher and sharper than a dynamic would put them',
+        'Every hybrid puts an armature on treble duty, and an armature run near its resonance sits higher and sharper than a dynamic would',
       ),
     ],
-    note: 'A broad shelf rather than a targeted notch, because the mechanism only tells us the armature resonance is somewhere in the top two octaves — not exactly where on your set. This is the one topology in this list with a correction that points the same way across the whole class.',
+    note: 'Crossover points differ between models, so the middle filter aims at the region hybrids most commonly use rather than at yours specifically. The treble shelf is the one part of this that points the same way across the whole class.',
   },
 
   // Diaphragm materials.
@@ -244,9 +292,8 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
   // a material genuinely sets is its stiffness-to-mass ratio and how well it
   // damps itself, which together decide where the diaphragm's first breakup
   // mode lands and how sharp it is when it arrives. That is a real mechanism
-  // and it is the only thing these three filters act on — everything else a
-  // material is credited with is downstream of the enclosure and the tuning,
-  // not the material.
+  // and it is the only thing these filters act on — everything else a material
+  // gets credited with is downstream of the enclosure and the tuning.
   {
     id: 'titanium-diaphragm',
     name: 'Titanium coated',
@@ -254,10 +301,16 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     category: 'material',
     filters: [
       pk(
+        6000,
+        -0.8,
+        2,
+        'Softens the leading edge that a stiff diaphragm gives to transients before its breakup proper',
+      ),
+      pk(
         9500,
         -1.5,
         3,
-        'A titanium coating stiffens the diaphragm, which moves its first breakup mode up and narrows it; this damps where it typically lands',
+        'A titanium coating stiffens the diaphragm, moving its first breakup mode up and narrowing it; this damps where it typically lands',
       ),
     ],
     note: 'Coating thickness and diaphragm geometry move this region by kilohertz between models, so treat it as a starting point. A measured profile for your model is far more reliable.',
@@ -268,11 +321,17 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     tagline: 'Very high stiffness for its weight',
     category: 'material',
     filters: [
+      pk(
+        5000,
+        -0.8,
+        1.6,
+        'Pulls back the presence lift that graphene sets are commonly voiced with to show off their detail',
+      ),
       highShelf(
         8000,
         -1,
         0.7,
-        'Graphene diaphragms push breakup above the audible band, and are commonly voiced with extra treble to show it off; this trims that back',
+        'Graphene pushes breakup above the audible band, so what is left up here is tuning rather than artefact; this trims it',
       ),
     ],
     note: 'This trims a tuning tendency rather than a physical artefact, so it is the most taste-dependent entry here. Turn it down or off if your set already sounds balanced.',
@@ -287,7 +346,13 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
         7000,
         1,
         0.7,
-        'Bio-cellulose damps itself well, which smears breakup into a broad softness instead of a peak; this restores a little top-end bite',
+        'Bio-cellulose damps itself well, smearing breakup into a broad softness instead of a peak; this restores some top-end bite',
+      ),
+      pk(
+        12000,
+        0.8,
+        1.4,
+        'Adds a little air at the very top, which heavy self-damping is the first thing to take away',
       ),
     ],
     note: 'Damping is the one property this material genuinely has more of, so this lifts rather than cuts. Small by design — it is a family tendency, not a measurement of your unit.',
@@ -295,12 +360,10 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
 
   // Driver size.
   //
-  // The strongest mechanism in this whole list, and the simplest: diaphragm
-  // area sets how much air the driver moves, and diaphragm diameter sets where
-  // it stops moving as one piece. A bigger diaphragm shifts bass authority up
-  // and breakup down; a smaller one does the reverse. Both follow from the
-  // geometry directly, which is why these entries can be a little more
-  // confident than the material ones.
+  // The strongest mechanism in this list and the simplest: diaphragm area sets
+  // how much air the driver moves, and diameter sets where it stops moving as
+  // one piece. Bigger shifts bass authority up and breakup down; smaller does
+  // the reverse. Both follow from the geometry directly.
   {
     id: 'size-large-50mm',
     name: '50 mm and larger',
@@ -313,8 +376,14 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
         2.5,
         'A large diaphragm stops moving as one piece lower down, so its breakup lands inside the presence region rather than above it',
       ),
+      pk(
+        8000,
+        -0.8,
+        2,
+        'Damps the second mode that follows the first one down the scale when the diaphragm is this big',
+      ),
     ],
-    note: 'Large drivers usually need less bass help and more control higher up, which is what this does. Pair it with your topology choice rather than instead of it.',
+    note: 'Large drivers usually need less help in the bass and more control higher up, which is what this does. Pair it with your topology choice rather than using it instead.',
   },
   {
     id: 'size-standard-40mm',
@@ -327,6 +396,12 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
         -1,
         2.5,
         'Gently damps the breakup region a 40 mm diaphragm typically settles into',
+      ),
+      highShelf(
+        9000,
+        -0.8,
+        0.7,
+        'Eases the top octave, which sits just above where a diaphragm this size starts misbehaving',
       ),
     ],
     note: 'This is the size most headphones use, so it is also the size manufacturers have tuned around the most. Keep the strength low.',
@@ -343,6 +418,12 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
         0.6,
         'A small diaphragm moves less air, so the low end is the first thing it gives up; this puts some back',
       ),
+      pk(
+        3000,
+        -0.8,
+        1.6,
+        'Balances the upper mids, which dominate when there is little bass underneath them to hold them down',
+      ),
     ],
     note: 'There is a hard limit to how much bass a small driver can produce before it distorts. If it starts sounding loose, lower the strength rather than raising it.',
   },
@@ -352,6 +433,12 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
     tagline: 'Typical single dynamic in-ear diaphragm',
     category: 'size',
     filters: [
+      lowShelf(
+        50,
+        0.8,
+        0.6,
+        'Recovers a little of the deepest bass a diaphragm this small struggles to pressurise the canal with',
+      ),
       pk(
         8000,
         -1,
@@ -359,7 +446,7 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
         'A 10 mm in-ear diaphragm breaks up high in the treble, where it adds a thin edge rather than body',
       ),
     ],
-    note: 'A sealed in-ear already gets plenty of bass from the canal, so this only addresses the top end.',
+    note: 'A sealed in-ear already gets plenty of mid-bass from the canal, so the lift here is deliberately confined to the very bottom.',
   },
 ];
 

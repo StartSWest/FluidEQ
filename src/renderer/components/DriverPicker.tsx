@@ -25,6 +25,7 @@ import {
   getDriverProfile,
 } from 'common/driver';
 import { NO_GAIN_FILTER_TYPES } from 'common/constants';
+import DriverCurve from './DriverCurve';
 import { useAquaContext } from '../utils/AquaContext';
 import { setDriver as setDriverApi } from '../utils/equalizerApi';
 import Dropdown from '../widgets/Dropdown';
@@ -112,6 +113,20 @@ const DriverPicker = () => {
 
       {activeProfile && (
         <div className="driver-picker__detail">
+          {/* The shape first: it says more in one glance than the list below. */}
+          <div className="driver-picker__preview">
+            <DriverCurve filters={activeFilters} />
+            <div className="driver-picker__scale" aria-hidden="true">
+              <span>20 Hz</span>
+              <span>1 kHz</span>
+              <span>20 kHz</span>
+            </div>
+            {/* Naming the scale keeps the zoom from overstating the effect. */}
+            <span className="driver-picker__range" aria-hidden="true">
+              ±1.5 dB
+            </span>
+          </div>
+
           <label htmlFor="driver-intensity">
             Strength
             <output>{Math.round(intensity * 100)}%</output>
@@ -139,20 +154,28 @@ const DriverPicker = () => {
           <ul className="driver-picker__filters">
             {activeFilters.map((filter) => (
               <li key={`${filter.type}-${filter.frequency}`}>
-                <code>
+                <span className="driver-filter__freq">
                   {filter.frequency >= 1000
                     ? `${Number((filter.frequency / 1000).toFixed(1))} kHz`
                     : `${filter.frequency} Hz`}
+                </span>
+                <span
+                  className={`driver-filter__gain${
+                    filter.gain < 0 ? ' is-cut' : ''
+                  }`}
+                >
                   {NO_GAIN_FILTER_TYPES.includes(filter.type)
-                    ? ` ${filter.type}`
-                    : ` ${filter.gain > 0 ? '+' : ''}${filter.gain} dB`}
-                </code>
-                <span>{filter.reason}</span>
+                    ? filter.type
+                    : `${filter.gain > 0 ? '+' : ''}${filter.gain} dB`}
+                </span>
+                <span className="driver-filter__reason">{filter.reason}</span>
               </li>
             ))}
             {activeFilters.length === 0 && (
               <li>
-                <span>At 0% strength this does nothing.</span>
+                <span className="driver-filter__reason">
+                  At 0% strength this does nothing.
+                </span>
               </li>
             )}
           </ul>

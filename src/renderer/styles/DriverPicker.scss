@@ -37,6 +37,7 @@
 .driver-picker__detail {
   @include inset-surface;
   display: grid;
+  min-width: 0;
   padding: 12px 14px 14px;
   gap: 9px;
 
@@ -108,33 +109,131 @@
   }
 }
 
+// The curve, framed like a small instrument rather than dropped on the panel.
+.driver-picker__preview {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  padding: 8px 10px 6px;
+  border: 1px solid rgba($primary-lighter, 0.12);
+  border-radius: $radius-xs;
+  background:
+    radial-gradient(
+      140% 120% at 50% 0%,
+      rgba($secondary-default, 0.08),
+      transparent 70%
+    ),
+    rgba(#050b12, 0.55);
+}
+
+.driver-curve {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  height: 74px;
+  overflow: visible;
+}
+
+.driver-curve__grid {
+  fill: none;
+  stroke: rgba($primary-lighter, 0.09);
+  stroke-width: 1;
+}
+
+.driver-curve__zero {
+  fill: none;
+  stroke: rgba($primary-lighter, 0.2);
+  stroke-dasharray: 2 4;
+  stroke-width: 1;
+}
+
+.driver-curve__line {
+  fill: none;
+  stroke: url('#driver-curve-stroke');
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  filter: drop-shadow(0 0 4px rgba($secondary-default, 0.55));
+}
+
+.driver-picker__scale {
+  display: flex;
+  justify-content: space-between;
+  color: rgba($primary-lighter, 0.4);
+  font-size: 0.56rem;
+  font-variant-numeric: tabular-nums;
+}
+
+// The vertical scale, stated so the zoomed view cannot mislead.
+.driver-picker__range {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  color: rgba($primary-lighter, 0.34);
+  font-size: 0.54rem;
+  font-variant-numeric: tabular-nums;
+}
+
+// Frequency, then the amount, then why — the two things you compare between
+// rows get their own aligned columns instead of being buried in prose.
 .driver-picker__filters {
   display: grid;
+  min-width: 0;
   margin: 0;
   padding: 0;
-  gap: 4px;
+  gap: 7px;
   list-style: none;
 
   li {
     display: grid;
+    min-width: 0;
     align-items: baseline;
-    gap: 2px 10px;
-    grid-template-columns: max-content minmax(0, 1fr);
+    gap: 1px 8px;
+    // The second track takes the rest of the row rather than sizing to the
+    // pill. `grid-column: 1 / -1` on the reason below only ever spans the
+    // explicit tracks, so with a max-content track it had nothing to wrap
+    // into and ran straight off the edge of the sidebar.
+    grid-template-columns: 4.2em minmax(0, 1fr);
   }
+}
 
-  code {
-    color: $secondary-light;
-    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-    font-size: 0.66rem;
-    font-variant-numeric: tabular-nums;
-    white-space: nowrap;
-  }
+.driver-filter__freq {
+  color: rgba($white, 0.86);
+  font-size: 0.66rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  text-align: right;
+}
 
-  span {
-    color: rgba($primary-lighter, 0.6);
-    font-size: 0.64rem;
-    line-height: 1.35;
+.driver-filter__gain {
+  // A max-content track still stretches its item; the pill has to be told to
+  // stay its own size or it runs the width of the panel.
+  justify-self: start;
+  padding: 1px 6px;
+  color: $secondary-light;
+  border: 1px solid rgba($secondary-light, 0.3);
+  border-radius: $radius-pill;
+  background: rgba($secondary-default, 0.12);
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  white-space: nowrap;
+
+  // Cuts and boosts should be distinguishable without reading the sign.
+  &.is-cut {
+    color: $analogous-1;
+    border-color: rgba($analogous-1, 0.32);
+    background: rgba($analogous-1, 0.12);
   }
+}
+
+.driver-filter__reason {
+  grid-column: 1 / -1;
+  color: rgba($primary-lighter, 0.58);
+  font-size: 0.63rem;
+  line-height: 1.4;
 }
 
 // The limits of the correction, stated where the user is deciding whether to
@@ -147,8 +246,8 @@
   line-height: 1.4;
 }
 
-@media (max-width: 640px) {
-  .driver-picker__filters li {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
+// No viewport media query here on purpose. This panel lives in a sidebar that
+// is ~300px wide whatever the window does, so a rule keyed on viewport width
+// only ever fires at the wrong times: it was collapsing the frequency and its
+// gain onto separate rows in a narrow window even though the panel itself had
+// not changed size at all. The two-column header fits 300px comfortably.
