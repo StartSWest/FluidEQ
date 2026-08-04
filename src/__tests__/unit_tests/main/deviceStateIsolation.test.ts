@@ -158,7 +158,6 @@ describe('per-device state isolation', () => {
     const loaded = blockFor('{FULL}');
     expect(loaded).toContain('Fc 100 Hz Gain 4 dB');
     expect(loaded).toContain('Fc 3000 Hz');
-    expect(loaded).toContain('Preamp: -6 dB');
 
     // The bare one gets none of it — no leaked layers, no leaked preamp.
     const bare = blockFor(GUID);

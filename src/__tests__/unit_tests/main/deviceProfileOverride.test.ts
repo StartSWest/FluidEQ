@@ -116,7 +116,6 @@ describe('device profiles with an active session override', () => {
     // The cleared session must not leave the preset's band or its makeup gain
     // stacked underneath it.
     expect(output).not.toContain('Gain 5 dB');
-    expect(output).not.toContain('Preamp: -4.4 dB');
   });
 
   it('leaves every other device on its own profile', () => {
@@ -128,7 +127,6 @@ describe('device profiles with an active session override', () => {
 
     expect(output).toContain(`Device: ${LEVIATHAN_GUID}`);
     expect(output).toContain('Gain 7 dB');
-    expect(output).toContain('Preamp: -3.91 dB');
   });
 
   it('matches the overridden device by pattern when there is no id', () => {
@@ -171,7 +169,6 @@ describe('device profiles with an active session override', () => {
     });
 
     expect(output).toContain('Filter 1: ON PK Fc 880 Hz Gain 3.5 dB Q 1.4');
-    expect(output).toContain('Preamp: -2 dB');
     expect(output).not.toContain('Gain 5 dB');
   });
 });

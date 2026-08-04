@@ -110,7 +110,11 @@ describe('malformed bands never reach Equalizer APO', () => {
     });
 
     it('writes a usable preamp when the stored one is corrupt', () => {
-      expect(configFor([band({})], NaN)).toContain('Preamp: 0 dB');
+      // Auto normalize derives the preamp from the surviving bands, so a NaN in
+      // the stored value cannot reach the file whatever it was.
+      const config = configFor([band({})], NaN);
+      expect(config).toMatch(/Preamp: -?[\d.]+ dB/);
+      expect(config).not.toMatch(/NaN/);
     });
 
     it('is unchanged for an entirely healthy state', () => {

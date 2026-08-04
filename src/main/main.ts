@@ -50,6 +50,7 @@ import {
   hasPresetBaseline,
   deletePresetBaseline,
   renamePresetBaseline,
+  repairUnusedPreamps,
 } from './flush';
 import MenuBuilder from './menu';
 import { resolveHtmlPath, waitForRenderer } from './util';
@@ -240,6 +241,18 @@ const loadLayoutSettings = (): ILayoutSettingsFile => {
   }
 };
 
+// One-time repair on startup. Automatic profiles that carry makeup gain but no
+// EQ to make up for are leftovers from when switching outputs copied the
+// previous device's state across; the effect is an output several dB down for
+// no reason, which is not something a user would ever notice as a setting.
+const repairedProfiles = repairUnusedPreamps(presetPath);
+if (repairedProfiles.length > 0) {
+  console.log(
+    `Cleared unused preamp on ${repairedProfiles.length} automatic profile(s):`,
+    repairedProfiles.join(', '),
+  );
+}
+
 const layoutSettings = loadLayoutSettings();
 
 const saveLayoutSettings = () => {
@@ -341,6 +354,7 @@ const getCurrentPreset = (): IPresetV2 => ({
   // a profile is attached.
   voicing: state.voicing,
   driver: state.driver,
+  isAutoPreAmpOn: state.isAutoPreAmpOn,
 });
 
 const switchToParametricEditing = () => {

@@ -204,6 +204,15 @@ export interface IPresetV2 {
    */
   voicing?: IVoicingSettings;
   driver?: IDriverSettings;
+  /**
+   * Whether this profile wants its preamp derived from its own chain.
+   *
+   * Recorded per profile because the alternative is guessing: a preamp the user
+   * typed themselves looks identical to a cached automatic one, and recomputing
+   * over the top of a deliberate setting throws it away silently. Absent means
+   * automatic, which is what every profile written before this existed was.
+   */
+  isAutoPreAmpOn?: boolean;
 }
 
 export interface IConvolutionProfile {

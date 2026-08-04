@@ -129,10 +129,13 @@ const presetForDeviceToString = (
   const devicePattern = assignment.deviceGuid || assignment.deviceName;
   const presetState = {
     isEnabled: true,
-    isAutoPreAmpOn: true,
     isGraphViewOn: false,
     isCaseSensitiveFs: false,
     ...preset,
+    // After the spread, not before: a preset that carries the key explicitly
+    // undefined would otherwise overwrite the default with nothing. Absent
+    // means automatic, which every profile written before the flag existed was.
+    isAutoPreAmpOn: preset.isAutoPreAmpOn ?? true,
   };
 
   return [

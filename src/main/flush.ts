@@ -33,9 +33,11 @@ import {
   IPresetV2,
   IState,
   NO_GAIN_FILTER_TYPES,
+  AUTOMATIC_PRESET_PREFIX,
 } from '../common/constants';
 import { getVoicingFilters } from '../common/voicing';
 import { getDriverFilters } from '../common/driver';
+import { getChainPeakGain } from '../common/response';
 import {
   validatePresetV1,
   validatePresetV2,
@@ -62,6 +64,29 @@ const isRenderableFilter = ({
   Number.isFinite(gain) &&
   Number.isFinite(quality);
 
+/**
+ * The single preamp value for a chain, in dB.
+ *
+ * Auto normalize reserves exactly the headroom the written filters need and
+ * no more. Deriving it from the filters themselves — rather than trusting a
+ * number computed elsewhere and saved — is what makes it self-correcting: the
+ * response graph only recalculates while it is mounted, so a voicing or driver
+ * change made on another tab used to leave the preamp describing a chain that
+ * was no longer there.
+ */
+const resolvePreAmp = (
+  state: IState,
+  writtenFilters: Array<
+    Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>
+  >,
+) => {
+  if (!state.isAutoPreAmpOn) {
+    return state.preAmp;
+  }
+  // Cuts need no headroom, so a chain that only cuts reserves nothing.
+  return -getChainPeakGain(writtenFilters);
+};
+
 export const stateToString = (
   state: IState,
   convolutionFileName?: string,
@@ -83,6 +108,11 @@ export const stateToString = (
   // APO numbers filters globally, so the EQ bands and the voicing layer share
   // one counter.
   let filterIndex = 0;
+  // Everything actually emitted, so the preamp below can be sized from the real
+  // chain rather than from whatever the UI last happened to compute.
+  const writtenFilters: Array<
+    Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>
+  > = [];
 
   if (!state.isFlat) {
     if (state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length) {
@@ -116,6 +146,7 @@ export const stateToString = (
           )
           .map(({ frequency, gain, type, quality }) => {
             filterIndex += 1;
+            writtenFilters.push({ type, frequency, gain, quality });
             const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
               frequency,
             )} Hz`;
@@ -141,6 +172,7 @@ export const stateToString = (
       .filter(isRenderableFilter)
       .map(({ frequency, gain, type, quality }) => {
         filterIndex += 1;
+        writtenFilters.push({ type, frequency, gain, quality });
         const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
           frequency,
         )} Hz`;
@@ -158,6 +190,7 @@ export const stateToString = (
       .filter(isRenderableFilter)
       .map(({ frequency, gain, type, quality }) => {
         filterIndex += 1;
+        writtenFilters.push({ type, frequency, gain, quality });
         const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
           frequency,
         )} Hz`;
@@ -169,7 +202,16 @@ export const stateToString = (
 
   // Equalizer APO applies rules in order: convolution, EQ bands, then gain.
   // This line MUST be "Preamp" without a capitalized P for APO to work.
-  output.push(`Preamp: ${clampGain(state.preAmp)} dB`);
+  //
+  // One preamp for the whole chain, and its value is derived here rather than
+  // stored. Every layer above shares it, so it has to cancel the peak of all of
+  // them combined — and because it is recomputed from what was just written,
+  // removing a layer gives its headroom straight back instead of leaving the
+  // output quietly attenuated for a boost that no longer exists.
+  //
+  // Only when Auto normalize is on. With it off the preamp is the user's own
+  // setting and nothing may touch it.
+  output.push(`Preamp: ${clampGain(resolvePreAmp(state, writtenFilters))} dB`);
 
   return output.join('\n\r');
 };
@@ -550,6 +592,57 @@ export const renamePresetBaseline = (
   } catch {
     // The profile may never have been saved by hand; that is not an error.
   }
+};
+
+/**
+ * Undo makeup gain that a device never asked for.
+ *
+ * Preamp exists to reserve headroom for boosts. A profile whose EQ is cleared
+ * has no boosts, so a non-zero preamp on it is not a setting — it is a leftover
+ * from when switching outputs carried the previous device's state across and
+ * auto-save then wrote it down. The audible result is an output that is quietly
+ * several dB down for no reason.
+ *
+ * Deliberately limited to automatic profiles. Those are created and maintained
+ * by FluidEQ, so correcting them cannot throw away a decision anybody made; a
+ * profile the user named and saved is left exactly as they left it, even if it
+ * looks odd.
+ *
+ * Returns the names it repaired, so startup can say what it did.
+ */
+export const repairUnusedPreamps = (presetsDir: string): string[] => {
+  const repaired: string[] = [];
+
+  let fileNames: string[];
+  try {
+    fileNames = fs.readdirSync(presetsDir);
+  } catch {
+    return repaired;
+  }
+
+  fileNames
+    .filter((fileName) => fileName.startsWith(AUTOMATIC_PRESET_PREFIX))
+    .forEach((fileName) => {
+      const presetPath = path.join(presetsDir, fileName);
+      try {
+        const preset = JSON.parse(fs.readFileSync(presetPath, 'utf8'));
+        // Only the unambiguous case: nothing is being boosted, yet the profile
+        // still carries gain.
+        if (preset?.isFlat !== true || !preset.preAmp) {
+          return;
+        }
+        fs.writeFileSync(
+          presetPath,
+          JSON.stringify({ ...preset, preAmp: 0 }),
+          'utf8',
+        );
+        repaired.push(fileName);
+      } catch {
+        // A profile we cannot read is one we must not rewrite.
+      }
+    });
+
+  return repaired;
 };
 
 export const deletePreset = (presetName: string, presetsDir: string) => {

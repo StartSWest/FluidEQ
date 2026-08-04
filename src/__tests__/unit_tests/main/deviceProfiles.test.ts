@@ -56,7 +56,11 @@ describe('device profile configuration', () => {
     );
     expect(output).toContain('# USB Headphones -> Studio');
     expect(output).toContain('Device: {1234-ABCD}');
-    expect(output).toContain('Preamp: -4 dB');
+    // The preamp is derived from the chain, not read back from the preset.
+    // This profile stored -4 dB, but its only band is a +3 dB peak, so the
+    // headroom actually needed is 3 dB — the extra decibel the preset carried
+    // was attenuation nobody could hear a reason for.
+    expect(output).toContain('Preamp: -3 dB');
     expect(output).toContain('Fc 80 Hz Gain 3 dB Q 0.8');
   });
 
