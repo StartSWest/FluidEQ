@@ -55,7 +55,10 @@ opens it again any time.
 - **Smart EQ shows its work**, applying the correction one band at a time in
   frequency order rather than making every slider jump at once.
 - **Clear the applied reference** from the AutoEQ panel, the same way you clear
-  a convolution. Only the attribution goes; the bands stay.
+  a convolution. The bands go with it — a reference is not a label sitting
+  beside your tuning, it is where that tuning came from, and dropping only the
+  name left a curve on screen that nothing on screen accounted for. Your
+  voicing, driver profile and Smart EQ are separate layers and are untouched.
 
 ### Changed
 

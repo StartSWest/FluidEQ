@@ -79,6 +79,7 @@ import { planBandReveal, revealBands } from './utils/bandReveal';
 import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
 import MenuIcon from './icons/MenuIcon';
+import TrashIcon from './icons/TrashIcon';
 import { useTranslation } from './utils/I18nContext';
 
 /**
@@ -991,14 +992,29 @@ const MainContent = () => {
                 }
               />
             </div>
+            {/* The title is what the icon-only form needs: once the row is
+                squeezed and the label collapses, a bare glyph is the only
+                thing left, and hovering has to be able to say what it does.
+                It carries the full sentence rather than the button text, so
+                it is worth having even when the label is showing. */}
             <button
               type="button"
               aria-label={t('eq.deleteAria')}
+              title={t('eq.deleteAria')}
               className="eq-flat-editor__delete"
               disabled={frequencySortedFilters.length <= MIN_NUM_FILTERS}
               onClick={deleteSelectedFilter}
             >
-              {t('eq.delete')}
+              {/* Rendered always, shown only when the row runs out of room.
+                  `currentColor` so it dims with the button when there is only
+                  one band left and deleting is not allowed. */}
+              <TrashIcon
+                className="eq-flat-editor__delete-icon"
+                fill="currentColor"
+              />
+              <span className="eq-flat-editor__delete-label">
+                {t('eq.delete')}
+              </span>
             </button>
           </div>
         )}

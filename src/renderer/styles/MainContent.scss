@@ -448,6 +448,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-self: center;
 }
 
+// Hidden while the row has room for words. The icon is rendered regardless
+// rather than swapped in by a JavaScript breakpoint, because the row is sized
+// by a container query — only CSS knows whether the panel is narrow, and only
+// then, so this cannot be decided in React without measuring.
+.eq-flat-editor__delete-icon {
+  display: none;
+}
+
 .eq-flat-editor__delete {
   width: 100%;
   height: $control-height;
@@ -523,16 +531,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     width: $control-height;
     padding-inline: 0;
     place-items: center;
-    // Collapses the label to nothing without removing it: the accessible name
-    // comes from the text as well as the aria-label, and hiding it with
-    // `display: none` would take that with it.
-    font-size: 0;
+  }
 
-    &::before {
-      content: '✕';
-      font-size: 0.95rem;
-      line-height: 1;
-    }
+  // Swapped, not restyled. A multiplication sign standing in for a bin was
+  // always a placeholder: it reads as "close" or "cancel" rather than
+  // "delete", which is the wrong promise for a control that removes a band.
+  // The real icon is the same one every other delete in the app uses, so the
+  // squeezed row does not invent its own vocabulary.
+  .eq-flat-editor__delete-label {
+    display: none;
+  }
+
+  .eq-flat-editor__delete-icon {
+    display: block;
   }
 }
 
@@ -590,6 +601,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .eq-flat-editor__delete {
     grid-column: 1 / -1;
+    // Back to a full-width button on its own row, so the icon-only form has
+    // nothing left to solve. It exists for a row that ran out of horizontal
+    // room; this row has the whole card. Written out because the container
+    // query above still matches at this width — a narrow window means a narrow
+    // panel — and without this the button would keep the compromise long after
+    // the reason for it had gone.
+    display: block;
+    width: 100%;
+
+    .eq-flat-editor__delete-label {
+      display: inline;
+    }
+
+    .eq-flat-editor__delete-icon {
+      display: none;
+    }
   }
 }
 
