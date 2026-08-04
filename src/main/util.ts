@@ -31,7 +31,10 @@ export let resolveHtmlPath: (htmlFileName: string) => string;
  */
 export const waitForRenderer = async (
   rendererUrl: string,
-  timeoutMs = 30000,
+  // A cold webpack-dev-server bundle of this app takes well over half a minute
+  // on a slower machine, and the old 30s ceiling turned that into a hard
+  // failure rather than a wait.
+  timeoutMs = 120000,
 ): Promise<void> => {
   if (!rendererUrl.startsWith('http')) {
     return;

@@ -1685,7 +1685,17 @@ const createMainWindow = async () => {
 
   const rendererUrl = resolveHtmlPath('index.html');
   mainWindow.webContents.on('did-finish-load', sendWindowState);
-  await waitForRenderer(rendererUrl);
+  // Polling for the dev server is an optimisation, not a gate. Giving up used
+  // to throw out of createMainWindow with nothing to catch it, so a slow bundle
+  // produced an unhandled rejection and no window at all — while
+  // webpack-dev-middleware was perfectly willing to hold the request until the
+  // bundle finished. Load either way and let that happen.
+  await waitForRenderer(rendererUrl).catch((error) => {
+    console.warn(
+      'Renderer was not ready in time; loading anyway and letting the dev server finish.',
+      error,
+    );
+  });
   await mainWindow.loadURL(rendererUrl);
 
   // If ready-to-show was skipped by a fast dev-server response, reveal the
@@ -1741,12 +1751,16 @@ app
       // which is also why notifications and pinning misbehave in development.
       app.setAppUserModelId('com.gigabytz.fluideq');
     }
-    createMainWindow();
+    createMainWindow().catch((error) => {
+      console.error('Failed to create the FluidEQ window', error);
+    });
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) {
-        createMainWindow();
+        createMainWindow().catch((error) => {
+          console.error('Failed to create the FluidEQ window', error);
+        });
       }
     });
   })
