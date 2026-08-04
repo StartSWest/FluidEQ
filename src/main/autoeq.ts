@@ -23,6 +23,7 @@ import {
   AutoEqFormat,
   FilterTypeEnum,
   clampGain,
+  clampReferenceGain,
   clampQuality,
   getDefaultFilterWithId,
   IFilter,
@@ -148,7 +149,8 @@ export const getAutoEqPreset = (
         ) {
           graphicEq.push({
             frequency,
-            gain: clampGain(gain),
+            // A published measurement, not something the user asked for.
+            gain: clampReferenceGain(gain, frequency),
           });
         }
       });
@@ -183,7 +185,10 @@ export const getAutoEqPreset = (
       }
       try {
         filter.frequency = Math.min(parseInt(filterMatch[2], 10), 20000);
-        filter.gain = clampGain(parseFloat(filterMatch[3]));
+        filter.gain = clampReferenceGain(
+          parseFloat(filterMatch[3]),
+          filter.frequency,
+        );
         filter.quality = clampQuality(parseFloat(filterMatch[4]));
       } catch (err) {
         throw new Error(

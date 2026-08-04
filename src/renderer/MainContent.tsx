@@ -74,6 +74,15 @@ import ActiveLayers from './components/ActiveLayers';
 import MenuIcon from './icons/MenuIcon';
 import { useTranslation } from './utils/I18nContext';
 
+/**
+ * Below this, Smart EQ cannot describe what it measured.
+ *
+ * A ten-band layout has one control per octave; a measured response has
+ * features far narrower than that, and fitting one to the other produces a
+ * curve that is confidently wrong.
+ */
+const SMART_EQ_MIN_BANDS = 15;
+
 const MainContent = () => {
   const {
     filters,
@@ -363,15 +372,11 @@ const MainContent = () => {
     const isCurrentRun = () => balanceRunRef.current === runId;
     const controller = new AbortController();
     balanceAbortRef.current = controller;
-    // The band set at the moment of measuring. If the user changes layout
-    // mid-capture, the measurement no longer describes these bands.
-    const measuredIds = frequencySortedFilters
-      .map((filter) => filter.id)
-      .join();
 
     setIsBalancing(true);
 
     try {
+      let bands = frequencySortedFilters;
       // Measuring the post-EQ output is normally the right thing — the loop
       // converges and self-corrects any error in the filter model. It has one
       // blind spot: a band already cut hard leaves its region with almost no
@@ -379,9 +384,24 @@ const MainContent = () => {
       // it. The bad EQ hides the very problem it is causing. Flattening first
       // is the escape hatch for exactly that.
       if (measureFromFlat) {
+        // Ten bands cannot express a measured response, and measuring from
+        // flat already means "throw away what I had" — so this is the one
+        // moment it is safe to hand Smart EQ the resolution it needs. A
+        // custom layout the user built by hand is left alone; only the
+        // coarse fixed layouts are expanded.
+        if (bands.length < SMART_EQ_MIN_BANDS) {
+          setBalanceStatus('Adding bands...');
+          const expanded = await setFixedBand(FixedBandSizeEnum.THIRTY_ONE);
+          dispatchFilter({ type: FilterActionEnum.INIT, filters: expanded });
+          bands = Object.values(expanded).sort(sortHelper);
+          if (!isCurrentRun()) {
+            return;
+          }
+        }
+
         setBalanceStatus('Flattening...');
         await Promise.all(
-          frequencySortedFilters
+          bands
             .filter((filter) => filter.gain !== 0)
             .map(async (filter) => {
               await setGain(filter.id, 0);
@@ -416,6 +436,9 @@ const MainContent = () => {
         return;
       }
 
+      // The band set at the moment of measuring. If the user changes layout
+      // mid-capture, the measurement no longer describes these bands.
+      const measuredIds = bands.map((filter) => filter.id).join();
       const currentFilters = Object.values(filters).sort(sortHelper);
       if (currentFilters.map((filter) => filter.id).join() !== measuredIds) {
         setBalanceStatus('Bands changed - cancelled');
@@ -425,7 +448,7 @@ const MainContent = () => {
       // Steer toward the active voicing rather than merely flattening: the
       // capture already contains the voicing layer, so without this Smart EQ
       // would fight it back out again.
-      const gains = buildBalancedGains(result.samples, currentFilters, {
+      const gains = buildBalancedGains(result.samples, bands, {
         targetCurve: buildVoicingTargetCurve(voicing),
       });
       const entries = Object.entries(gains);
@@ -443,22 +466,35 @@ const MainContent = () => {
         return;
       }
 
-      const applied = await Promise.all(
-        pending.map(async ([id, gain]) => {
-          try {
-            await setGain(id, gain);
-            dispatchFilter({ type: FilterActionEnum.GAIN, id, newValue: gain });
-            return true;
-          } catch {
-            return false;
-          }
-        }),
-      );
+      // Applied in frequency order, one at a time, so the correction is
+      // visibly drawn across the editor. Firing them all at once was faster by
+      // a few hundred milliseconds and looked like nothing happening followed
+      // by every slider teleporting.
+      const byFrequency = pending.slice().sort(([left], [right]) => {
+        return (
+          (filters[left]?.frequency ?? 0) - (filters[right]?.frequency ?? 0)
+        );
+      });
+      let succeeded = 0;
+      for (let index = 0; index < byFrequency.length; index += 1) {
+        if (!isCurrentRun()) {
+          return;
+        }
+        const [id, gain] = byFrequency[index];
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          await setGain(id, gain);
+          dispatchFilter({ type: FilterActionEnum.GAIN, id, newValue: gain });
+          succeeded += 1;
+        } catch {
+          // One band failing is not a reason to abandon the rest.
+        }
+        setBalanceStatus(`Applying ${index + 1}/${byFrequency.length}`);
+      }
 
       if (!isCurrentRun()) {
         return;
       }
-      const succeeded = applied.filter(Boolean).length;
       if (succeeded < pending.length) {
         setBalanceStatus(`Applied ${succeeded} of ${pending.length} bands`);
       } else {

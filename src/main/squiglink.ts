@@ -11,6 +11,7 @@ import { app } from 'electron';
 import {
   clampFrequency,
   clampGain,
+  clampReferenceGain,
   clampQuality,
   FilterTypeEnum,
   getDefaultFilterWithId,
@@ -571,7 +572,8 @@ const fitCorrection = (
       const next = getDefaultFilterWithId();
       next.type = FilterTypeEnum.PK;
       next.frequency = clampFrequency(filter.frequency);
-      next.gain = clampGain(filter.gain);
+      // Fitted from a public measurement, so the same ceiling applies.
+      next.gain = clampReferenceGain(filter.gain, next.frequency);
       next.quality = clampQuality(filter.quality);
       filters[next.id] = next;
     });

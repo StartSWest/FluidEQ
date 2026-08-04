@@ -53,6 +53,54 @@ export const clampFrequency = (frequency: number) =>
     ? Math.round(Math.min(MAX_FREQUENCY, Math.max(MIN_FREQUENCY, frequency)))
     : MIN_FREQUENCY;
 
+/**
+ * The most a measured reference is allowed to ask for.
+ *
+ * ±20 dB is the limit of what the editor can express and what APO will build.
+ * It is far more than a headphone correction should ever need, and published
+ * measurements regularly exceed it at the edges of the audible band — where a
+ * rig is measuring its own coupling error rather than the headphone. Applying
+ * those verbatim produced graphs with +16 dB spikes at 30 Hz that nobody
+ * asked for and that mostly just eat headroom.
+ */
+export const MAX_REFERENCE_GAIN = 12;
+
+/**
+ * Below and above these, a measurement is mostly measuring the rig.
+ *
+ * Set wide on purpose. The first attempt used 40 Hz and clamped a 6.3 dB
+ * correction at 31 Hz — which a test caught, and rightly: bass shelves of that
+ * size are ordinary and entirely believable. The untrustworthy region is the
+ * bottom octave, where few rigs are calibrated, and the top, where coupling
+ * resonances and ear geometry dominate.
+ */
+const REFERENCE_TRUSTED_LOW = 25;
+const REFERENCE_TRUSTED_HIGH = 14000;
+/** What is allowed out there, where the numbers are least believable. */
+const MAX_REFERENCE_GAIN_AT_EDGES = 8;
+
+/**
+ * Bound a gain that came from a measurement rather than from the user.
+ *
+ * Deliberately not applied to bands the user moves themselves: if someone
+ * wants +18 dB at 30 Hz that is their business, and the editor should not
+ * argue. This is only for curves FluidEQ generates or imports on their behalf,
+ * where the number is a claim about a measurement and an implausible claim
+ * should not become an implausible sound.
+ */
+export const clampReferenceGain = (gain: number, frequency: number) => {
+  if (!Number.isFinite(gain)) {
+    return 0;
+  }
+  const limit =
+    Number.isFinite(frequency) &&
+    frequency >= REFERENCE_TRUSTED_LOW &&
+    frequency <= REFERENCE_TRUSTED_HIGH
+      ? MAX_REFERENCE_GAIN
+      : MAX_REFERENCE_GAIN_AT_EDGES;
+  return Math.min(limit, Math.max(-limit, gain));
+};
+
 // Equalizer APO does not impose AQUA's old 20-band UI limit. 128 keeps the
 // editor responsive while allowing large imported and hand-built profiles.
 export const MAX_NUM_FILTERS = 128;

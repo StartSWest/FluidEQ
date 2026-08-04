@@ -36,6 +36,7 @@ import {
   getSquiglinkResponseList,
   loadSquiglinkPreset,
   checkAutoEqUpdate,
+  clearHeadset,
   updateAutoEqDatabase,
 } from './utils/equalizerApi';
 
@@ -406,6 +407,28 @@ const AutoEQ = () => {
                 })
               : t('autoeq.notApplied')}
           </span>
+          {/* Same shape as the convolution panel's clear: what is applied,
+              then the way to be rid of it. Only the attribution goes — the
+              bands stay, because by the time you want the label gone you have
+              usually tuned on top of it. */}
+          {headset && (
+            <button
+              type="button"
+              className="autoeq-applied__clear"
+              title={t('eq.layers.forget')}
+              aria-label={t('eq.layers.forget')}
+              disabled={isBlockingError}
+              onClick={(event) => {
+                // The summary sits inside the section header's click target.
+                event.stopPropagation();
+                clearHeadset()
+                  .then(refreshState)
+                  .catch((error) => setGlobalError(error as ErrorDescription));
+              }}
+            >
+              <MenuIcon name="clear" />
+            </button>
+          )}
         </div>
       }
     >

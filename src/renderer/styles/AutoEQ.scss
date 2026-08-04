@@ -73,6 +73,42 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     > span {
       @include truncate;
+      flex: 0 1 auto;
+    }
+  }
+
+  // Sits with what it clears. Quiet until hovered: removing the attribution is
+  // a small, reversible thing and should not look like a warning.
+  .autoeq-applied__clear {
+    display: grid;
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+    place-items: center;
+    padding: 0;
+    color: rgba($primary-lighter, 0.62);
+    border: 1px solid transparent;
+    border-radius: $radius-xs;
+    background: transparent;
+    cursor: pointer;
+    transition: $transition-control;
+
+    .menu-icon {
+      width: 13px;
+      height: 13px;
+    }
+
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      color: $white;
+      border-color: rgba($red, 0.42);
+      background: rgba($red, 0.2);
+      outline: none;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.4;
     }
   }
 

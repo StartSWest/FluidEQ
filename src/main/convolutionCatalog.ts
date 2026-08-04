@@ -3,7 +3,7 @@ import path from 'path';
 import { createHash } from 'crypto';
 import { app } from 'electron';
 import {
-  clampGain,
+  clampReferenceGain,
   clampQuality,
   FilterTypeEnum,
   FILTER_REGEX,
@@ -234,7 +234,7 @@ const fetchGraphFilters = async (downloadUrl: string): Promise<IFiltersMap> => {
         filter.type = FilterTypeEnum.HSC;
       }
       filter.frequency = Number(match[2]);
-      filter.gain = clampGain(Number(match[3]));
+      filter.gain = clampReferenceGain(Number(match[3]), filter.frequency);
       filter.quality = clampQuality(Number(match[4]));
       filters[filter.id] = filter;
     });
