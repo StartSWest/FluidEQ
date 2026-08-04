@@ -117,6 +117,7 @@ const zh: Partial<Dictionary> = {
   'autoeq.model': '耳机型号',
   'autoeq.target': '测量 / 目标曲线',
   'autoeq.apply': '应用该型号的均衡',
+  'autoeq.applying': '正在应用…',
   'autoeq.applyAria': '应用所选型号的均衡',
   'autoeq.checking': '正在检查官方数据库…',
   'autoeq.updateAvailable': '有可用更新（{count} 个型号）',
@@ -153,11 +154,15 @@ const zh: Partial<Dictionary> = {
   'eq.layers.voicing': '声音风格',
   'eq.layers.driver': '单元',
   'eq.layers.headset': '耳机',
+  'eq.layers.smart': '智能均衡',
+  'eq.layers.smart.fullRange': '已测量 · 全频段',
+  'eq.layers.smart.range': '已测量 · {low} 至 {high}',
   'eq.layers.remove': '移除{layer}层',
   'eq.layers.clearReference': '清除参考型号及其生成的频段',
+  'eq.layers.clearSmart': '移除测得的修正。你的频段和参考型号都会保留。',
   'eq.fromFlat': '从零开始',
   'eq.fromFlat.hint':
-    '开始试听前把所有频段清零。当已有的衰减正好挡住了它自己作用的那一段时用得上——测量看不穿自己的修正。',
+    '开始试听前丢弃上一次智能均衡的修正。当已有的衰减正好挡住了它自己作用的那一段时用得上——测量看不穿自己的修正。你的频段始终不会被改动。',
   'eq.clear': '清空均衡',
   'eq.addBand': '添加频段',
   'eq.addBandAria': '添加一个均衡频段',
@@ -208,6 +213,22 @@ const zh: Partial<Dictionary> = {
   'support.eyebrow': '完全自愿',
 
   'support.petHint': '按空格键让它跳一下',
+
+  'support.game.hint': '波峰到达线上时跟着节拍按下',
+
+  'support.game.noAudio': '播放音乐后节拍会显示在这里',
+
+  'support.game.listening': '正在寻找节拍…',
+
+  'support.game.best': '最高分',
+
+  'support.game.perfect': '完美',
+
+  'support.game.great': '很棒',
+
+  'support.game.good': '不错',
+
+  'support.game.miss': '未命中',
   'support.title': '支持这份工作',
   'support.close': '关闭',
   'support.pitch':

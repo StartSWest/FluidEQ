@@ -123,6 +123,7 @@ const ja: Partial<Dictionary> = {
   'autoeq.model': 'ヘッドホンの機種',
   'autoeq.target': '測定 / ターゲット',
   'autoeq.apply': 'この機種の EQ を適用',
+  'autoeq.applying': '適用中…',
   'autoeq.applyAria': '選んだ機種の EQ を適用',
   'autoeq.checking': '公式データベースを確認しています…',
   'autoeq.updateAvailable': '更新があります（{count} 機種）',
@@ -160,12 +161,17 @@ const ja: Partial<Dictionary> = {
   'eq.layers.voicing': '音の傾向',
   'eq.layers.driver': 'ドライバー',
   'eq.layers.headset': 'ヘッドホン',
+  'eq.layers.smart': 'スマート EQ',
+  'eq.layers.smart.fullRange': '測定済み · 全帯域',
+  'eq.layers.smart.range': '測定済み · {low}〜{high}',
   'eq.layers.remove': '{layer} のレイヤーを外す',
   'eq.layers.clearReference':
     'リファレンス機種と、それが作ったバンドを消します',
+  'eq.layers.clearSmart':
+    '測定した補正を外します。バンドとリファレンス機種はそのまま残ります。',
   'eq.fromFlat': 'フラットから',
   'eq.fromFlat.hint':
-    '試聴の前に全バンドをゼロに戻します。既存のカットが、まさにそのカットが効いている帯域を隠してしまっているときに使ってください — 測定は自分の補正の向こう側を見られません。',
+    '試聴の前に前回のスマート EQ 補正を破棄します。既存のカットが、まさにそのカットが効いている帯域を隠してしまっているときに使ってください — 測定は自分の補正の向こう側を見られません。バンドには一切触れません。',
   'eq.clear': 'EQ をクリア',
   'eq.addBand': 'バンドを追加',
   'eq.addBandAria': 'EQ バンドを追加',
@@ -219,6 +225,22 @@ const ja: Partial<Dictionary> = {
   'support.eyebrow': '完全に任意です',
 
   'support.petHint': 'スペースキーで跳ねさせられます',
+
+  'support.game.hint': 'ピークが線に達したらリズムに合わせて押します',
+
+  'support.game.noAudio': '何か再生するとビートがここに出ます',
+
+  'support.game.listening': 'ビートを探しています…',
+
+  'support.game.best': '最高記録',
+
+  'support.game.perfect': 'パーフェクト',
+
+  'support.game.great': 'グレート',
+
+  'support.game.good': 'グッド',
+
+  'support.game.miss': 'ミス',
   'support.title': 'この仕事を支える',
   'support.close': '閉じる',
   'support.pitch':

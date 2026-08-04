@@ -24,6 +24,7 @@ import {
   getHitMarkerPosition,
   getMissFraction,
   getStreakMultiplier,
+  gradeRhythmOffset,
   gradeRhythmTap,
 } from 'common/rhythmGame';
 
@@ -197,5 +198,28 @@ describe('getHitMarkerPosition', () => {
   it('keeps a wild tap on the bar instead of off the end', () => {
     expect(getHitMarkerPosition(-99999)).toBeGreaterThanOrEqual(0);
     expect(getHitMarkerPosition(99999)).toBeLessThanOrEqual(1);
+  });
+});
+
+describe('gradeRhythmOffset', () => {
+  it('grades a raw distance without any beat wrapping', () => {
+    // The game grades against real audio peaks, which arrive at whatever
+    // spacing the music has — there is no period to fold into.
+    expect(gradeRhythmOffset(0).verdict).toBe('perfect');
+    expect(gradeRhythmOffset(70).verdict).toBe('great');
+    expect(gradeRhythmOffset(-150).verdict).toBe('good');
+    expect(gradeRhythmOffset(400).verdict).toBe('miss');
+  });
+
+  it('does not wrap a large offset back into a hit', () => {
+    // A tap two seconds from the nearest hit is a miss, not "on the beat after
+    // next". Folding it through a beat length would have called it perfect.
+    expect(gradeRhythmOffset(2000).verdict).toBe('miss');
+    expect(Number.isFinite(gradeRhythmOffset(2000).offsetMs)).toBe(true);
+  });
+
+  it('keeps the sign so the marker can show early or late', () => {
+    expect(gradeRhythmOffset(-120).offsetMs).toBe(-120);
+    expect(gradeRhythmOffset(120).offsetMs).toBe(120);
   });
 });

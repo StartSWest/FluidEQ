@@ -124,6 +124,7 @@ const fr: Partial<Dictionary> = {
   'autoeq.model': 'Modèle de casque',
   'autoeq.target': 'Mesure / cible',
   'autoeq.apply': 'Appliquer l’égalisation du modèle',
+  'autoeq.applying': 'Application…',
   'autoeq.applyAria': 'Appliquer l’égalisation du modèle sélectionné',
   'autoeq.checking': 'Vérification de la base officielle…',
   'autoeq.updateAvailable': 'Mise à jour disponible ({count} modèles)',
@@ -161,12 +162,17 @@ const fr: Partial<Dictionary> = {
   'eq.layers.voicing': 'Caractère',
   'eq.layers.driver': 'Transducteur',
   'eq.layers.headset': 'Casque',
+  'eq.layers.smart': 'Égalisation auto',
+  'eq.layers.smart.fullRange': 'Mesuré · toute la bande',
+  'eq.layers.smart.range': 'Mesuré · de {low} à {high}',
   'eq.layers.remove': 'Retirer la couche {layer}',
   'eq.layers.clearReference':
     'Effacer le modèle de référence et les bandes qu’il a produites',
+  'eq.layers.clearSmart':
+    'Retirer la correction mesurée. Vos bandes et la référence restent en place.',
   'eq.fromFlat': 'Depuis plat',
   'eq.fromFlat.hint':
-    'Remet toutes les bandes à zéro avant d’écouter. À utiliser quand une atténuation existante masque justement la zone qu’elle touche : la mesure ne voit pas à travers sa propre correction.',
+    'Écarte la correction automatique précédente avant d’écouter. À utiliser quand une atténuation existante masque justement la zone qu’elle touche : la mesure ne voit pas à travers sa propre correction. Vos bandes ne sont jamais touchées.',
   'eq.clear': 'Vider l’égaliseur',
   'eq.addBand': 'Ajouter une bande',
   'eq.addBandAria': 'Ajouter une bande d’égalisation',
@@ -220,6 +226,22 @@ const fr: Partial<Dictionary> = {
   'support.eyebrow': 'ENTIÈREMENT FACULTATIF',
 
   'support.petHint': 'Appuyez sur espace pour le faire sauter',
+
+  'support.game.hint': 'Appuyez en rythme quand le pic atteint la ligne',
+
+  'support.game.noAudio': 'Lancez un morceau et le rythme apparaîtra ici',
+
+  'support.game.listening': 'Recherche du rythme…',
+
+  'support.game.best': 'Record',
+
+  'support.game.perfect': 'Parfait',
+
+  'support.game.great': 'Excellent',
+
+  'support.game.good': 'Bien',
+
+  'support.game.miss': 'Raté',
   'support.title': 'Soutenir le projet',
   'support.close': 'Fermer',
   'support.pitch':

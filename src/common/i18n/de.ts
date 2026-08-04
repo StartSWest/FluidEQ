@@ -124,6 +124,7 @@ const de: Partial<Dictionary> = {
   'autoeq.model': 'Kopfhörermodell',
   'autoeq.target': 'Messung / Zielkurve',
   'autoeq.apply': 'Modell-EQ anwenden',
+  'autoeq.applying': 'Wird angewendet…',
   'autoeq.applyAria': 'EQ des gewählten Modells anwenden',
   'autoeq.checking': 'Offizielle Datenbank wird geprüft…',
   'autoeq.updateAvailable': 'Aktualisierung verfügbar ({count} Modelle)',
@@ -161,12 +162,17 @@ const de: Partial<Dictionary> = {
   'eq.layers.voicing': 'Klangcharakter',
   'eq.layers.driver': 'Treiber',
   'eq.layers.headset': 'Hörer',
+  'eq.layers.smart': 'Smart-EQ',
+  'eq.layers.smart.fullRange': 'Gemessen · voller Bereich',
+  'eq.layers.smart.range': 'Gemessen · {low} bis {high}',
   'eq.layers.remove': 'Ebene {layer} entfernen',
   'eq.layers.clearReference':
     'Referenzmodell und die daraus erzeugten Bänder löschen',
+  'eq.layers.clearSmart':
+    'Gemessene Korrektur entfernen. Deine Bänder und die Referenz bleiben.',
   'eq.fromFlat': 'Von neutral',
   'eq.fromFlat.hint':
-    'Setzt vor dem Hören alle Bänder auf null. Nützlich, wenn eine bestehende Absenkung genau den Bereich verdeckt, den sie betrifft — die Messung sieht nicht durch ihre eigene Korrektur hindurch.',
+    'Verwirft vor dem Hören die vorherige Smart-EQ-Korrektur. Nützlich, wenn eine bestehende Absenkung genau den Bereich verdeckt, den sie betrifft — die Messung sieht nicht durch ihre eigene Korrektur hindurch. Deine Bänder bleiben unangetastet.',
   'eq.clear': 'EQ zurücksetzen',
   'eq.addBand': 'Band hinzufügen',
   'eq.addBandAria': 'EQ-Band hinzufügen',
@@ -220,6 +226,22 @@ const de: Partial<Dictionary> = {
   'support.eyebrow': 'VÖLLIG FREIWILLIG',
 
   'support.petHint': 'Drücke die Leertaste, damit es hüpft',
+
+  'support.game.hint': 'Im Takt drücken, wenn die Spitze die Linie erreicht',
+
+  'support.game.noAudio': 'Spiel etwas ab, dann erscheint der Takt hier',
+
+  'support.game.listening': 'Takt wird gesucht…',
+
+  'support.game.best': 'Rekord',
+
+  'support.game.perfect': 'Perfekt',
+
+  'support.game.great': 'Super',
+
+  'support.game.good': 'Gut',
+
+  'support.game.miss': 'Daneben',
   'support.title': 'Die Arbeit unterstützen',
   'support.close': 'Schließen',
   'support.pitch':

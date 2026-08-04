@@ -153,6 +153,7 @@ const en = {
   'autoeq.model': 'Headphone model',
   'autoeq.target': 'Measurement / target',
   'autoeq.apply': 'Apply headset EQ',
+  'autoeq.applying': 'Applying…',
   'autoeq.applyAria': 'Apply selected headset EQ',
   'autoeq.checking': 'Checking official database…',
   'autoeq.updateAvailable': 'Update available ({count} models)',
@@ -191,12 +192,17 @@ const en = {
   'eq.layers.voicing': 'Voicing',
   'eq.layers.driver': 'Driver',
   'eq.layers.headset': 'Headset',
+  'eq.layers.smart': 'Smart EQ',
+  'eq.layers.smart.fullRange': 'Measured · full range',
+  'eq.layers.smart.range': 'Measured · {low} to {high}',
   'eq.layers.remove': 'Remove the {layer} layer',
   'eq.layers.clearReference':
     'Clear the reference model and the bands it wrote',
+  'eq.layers.clearSmart':
+    'Remove the measured correction. Your bands and the reference stay.',
   'eq.fromFlat': 'From flat',
   'eq.fromFlat.hint':
-    'Zero every band before listening. Use this when an existing cut is hiding the region it affects — the measurement cannot see through its own correction.',
+    'Discard the previous Smart EQ correction before listening. Use this when an existing cut is hiding the region it affects — the measurement cannot see through its own correction. Your bands are never touched.',
   'eq.clear': 'Clear EQ',
   'eq.addBand': 'Add band',
   'eq.addBandAria': 'Add EQ band',
@@ -252,6 +258,14 @@ const en = {
   // *** Support *************************************************************
   'support.eyebrow': 'ENTIRELY OPTIONAL',
   'support.petHint': 'Press space to make it jump',
+  'support.game.hint': 'Tap on the beat when the spike reaches the line',
+  'support.game.noAudio': 'Play something and the beat shows up here',
+  'support.game.listening': 'Listening for the beat…',
+  'support.game.best': 'Best',
+  'support.game.perfect': 'Perfect',
+  'support.game.great': 'Great',
+  'support.game.good': 'Good',
+  'support.game.miss': 'Missed',
   'support.title': 'Support the work',
   'support.close': 'Close',
   'support.pitch':

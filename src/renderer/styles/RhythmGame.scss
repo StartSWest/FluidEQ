@@ -69,43 +69,26 @@ it under the terms of the GNU General Public License version 3 or later.
 
   path {
     fill: none;
-    // The heartbeat red of the reference, against a UI that is otherwise teal.
-    stroke: #ff5a6e;
+    // The app's own accent, not the medical red this started as. The shape
+    // carries the idea; the colour should say FluidEQ.
+    stroke: $secondary-light;
     stroke-width: 1.6;
     stroke-linecap: round;
     stroke-linejoin: round;
     // Non-scaling, because `preserveAspectRatio: none` stretches the viewBox
     // to whatever width the dialog is and would take the stroke with it.
     vector-effect: non-scaling-stroke;
-    filter: drop-shadow(0 0 4px rgba(#ff5a6e, 0.5));
+    filter: drop-shadow(0 0 5px rgba($secondary-default, 0.55));
   }
 }
 
-// Exactly one cycle per beat. Linear, because a heartbeat does not accelerate
-// across the screen — and because the score is read from this animation's own
-// clock, so any easing here would bend the timing the player is judged on.
-.rhythm-game__scroll {
-  animation-name: rhythm-scroll;
-  animation-timing-function: linear;
-  animation-iteration-count: infinite;
-}
-
-@keyframes rhythm-scroll {
-  from {
-    translate: 0 0;
-  }
-
-  to {
-    translate: -120px 0;
-  }
-}
-
-// Where the spike has to be when you tap.
+// Where the spike has to be when you tap. Its `left` is set inline from the
+// same time-to-x mapping the trace itself is drawn with, so the line and the
+// data cannot disagree about where "now, minus the lead" falls.
 .rhythm-game__target {
   position: absolute;
   top: 4px;
   bottom: 4px;
-  left: 50%;
   width: 2px;
   border-radius: $radius-pill;
   background: rgba($secondary-light, 0.75);
@@ -213,12 +196,10 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The flourishes stop; the trace does not.
 //
-// The scroll is not decoration — it is the clock the tap is scored against, and
-// stopping it leaves a dead line that silently refuses to score. A player who
-// asked for less motion would be handed a broken game rather than a calmer one.
-// It is a thin line moving steadily at a constant rate, which is the low-risk
-// end of what this setting is for, so it keeps running and everything that
-// flashes around it does not.
+// There is no animation to stop here any more — the trace is redrawn from real
+// audio, so its motion IS the data. Freezing it would leave a dead line that
+// still accepted taps, handing anyone who asked for less motion a broken game
+// rather than a calmer one. What can go is the flashing around it.
 @media (prefers-reduced-motion: reduce) {
   .rhythm-game__hit,
   .rhythm-game__verdict-text {

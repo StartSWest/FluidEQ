@@ -123,6 +123,7 @@ const it: Partial<Dictionary> = {
   'autoeq.model': 'Modello di cuffie',
   'autoeq.target': 'Misura / curva obiettivo',
   'autoeq.apply': 'Applica l’EQ del modello',
+  'autoeq.applying': 'Applicazione…',
   'autoeq.applyAria': 'Applica l’EQ del modello selezionato',
   'autoeq.checking': 'Controllo del database ufficiale…',
   'autoeq.updateAvailable': 'Aggiornamento disponibile ({count} modelli)',
@@ -160,12 +161,17 @@ const it: Partial<Dictionary> = {
   'eq.layers.voicing': 'Carattere',
   'eq.layers.driver': 'Driver',
   'eq.layers.headset': 'Cuffie',
+  'eq.layers.smart': 'EQ intelligente',
+  'eq.layers.smart.fullRange': 'Misurato · tutta la banda',
+  'eq.layers.smart.range': 'Misurato · da {low} a {high}',
   'eq.layers.remove': 'Rimuovi il livello {layer}',
   'eq.layers.clearReference':
     'Cancella il modello di riferimento e le bande che ha prodotto',
+  'eq.layers.clearSmart':
+    'Rimuove la correzione misurata. Le tue bande e il riferimento restano.',
   'eq.fromFlat': 'Da piatto',
   'eq.fromFlat.hint':
-    'Azzera tutte le bande prima di ascoltare. Serve quando un taglio già presente sta nascondendo proprio la zona su cui agisce: la misura non vede attraverso la propria correzione.',
+    'Scarta la precedente correzione dell’EQ intelligente prima di ascoltare. Serve quando un taglio già presente sta nascondendo proprio la zona su cui agisce: la misura non vede attraverso la propria correzione. Le tue bande non vengono mai toccate.',
   'eq.clear': 'Azzera l’EQ',
   'eq.addBand': 'Aggiungi banda',
   'eq.addBandAria': 'Aggiungi una banda di EQ',
@@ -219,6 +225,22 @@ const it: Partial<Dictionary> = {
   'support.eyebrow': 'DEL TUTTO FACOLTATIVO',
 
   'support.petHint': 'Premi spazio per farlo saltare',
+
+  'support.game.hint': 'Premi a tempo quando il picco raggiunge la linea',
+
+  'support.game.noAudio': 'Metti della musica e il ritmo comparirà qui',
+
+  'support.game.listening': 'Cerco il ritmo…',
+
+  'support.game.best': 'Record',
+
+  'support.game.perfect': 'Perfetto',
+
+  'support.game.great': 'Ottimo',
+
+  'support.game.good': 'Bene',
+
+  'support.game.miss': 'Mancato',
   'support.title': 'Sostieni il lavoro',
   'support.close': 'Chiudi',
   'support.pitch':

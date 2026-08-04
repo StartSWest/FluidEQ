@@ -19,69 +19,57 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
-  useMemo,
   useRef,
   useState,
 } from 'react';
 import {
-  BEAT_MS,
+  IPercussionState,
+  createPercussionState,
+  getNearestPeakMs,
+  pushPercussionFrame,
+} from 'common/percussion';
+import {
   IRhythmHit,
   IRhythmScore,
   applyRhythmScore,
   getHitMarkerPosition,
   getStreakMultiplier,
-  gradeRhythmTap,
+  gradeRhythmOffset,
 } from 'common/rhythmGame';
+import {
+  useLiveAudioFrame,
+  useLiveAudioControl,
+} from '../audio/LiveAudioContext';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/RhythmGame.scss';
 
 /** Where the high score lives. It is meant to survive everything. */
 const HIGH_SCORE_KEY = 'fluideq-rhythm-high-score';
 
-/** One heartbeat, in the trace's own units. */
-const CYCLE_WIDTH = 120;
-/** How much of the trace is on screen: two beats, so the next one is visible
- * coming. A single beat gives no warning and the game becomes reflex. */
-const VIEW_WIDTH = CYCLE_WIDTH * 2;
-const VIEW_HEIGHT = 44;
-/** Resting line, low enough that the spike has somewhere to go. */
-const BASELINE = 30;
-/** Cycles drawn. Two fill the window, and the rest cover the scroll. */
-const CYCLE_COUNT = 5;
-
 /**
- * One ECG cycle, starting ON the spike.
+ * How long a hit takes to travel from the right edge into the target line.
  *
- * Starting at the peak rather than at the baseline is what lets the tap
- * scoring be read straight off the animation: at animation time zero a spike
- * sits exactly on the target line, so a phase of zero means dead on the beat
- * and `gradeRhythmTap` needs no offset applied to it.
+ * A live peak cannot be drawn before it is heard — the trace only ever knows
+ * the past — so the picture is held back by this much to give the player
+ * something to see coming. The cost is that the tap lands a moment after the
+ * sound, which is the trade being made deliberately.
  */
-const buildCyclePath = (originX: number) => {
-  const x = (offset: number) => originX + offset;
-  return [
-    // The spike itself, arriving from the S dip of the previous cycle.
-    `L ${x(0)} 4`,
-    `L ${x(5)} ${BASELINE + 7}`,
-    // Back to rest, then the T wave — the small rounded bump after a beat.
-    `L ${x(12)} ${BASELINE}`,
-    `L ${x(26)} ${BASELINE}`,
-    `Q ${x(34)} ${BASELINE - 9} ${x(42)} ${BASELINE}`,
-    // The long quiet stretch before the next beat, with the small P bump near
-    // its end so the spike is announced rather than arriving from nothing.
-    `L ${x(92)} ${BASELINE}`,
-    `Q ${x(99)} ${BASELINE - 5} ${x(106)} ${BASELINE}`,
-    `L ${x(113)} ${BASELINE}`,
-    // The Q dip, the little drop that makes the spike read as a spike.
-    `L ${x(117)} ${BASELINE + 4}`,
-  ].join(' ');
-};
+const LEAD_MS = 380;
+/** How much already-passed audio stays on screen to the left of the line. */
+const TRAIL_MS = 900;
+const WINDOW_MS = LEAD_MS + TRAIL_MS;
+
+const VIEW_HEIGHT = 44;
+const BASELINE = VIEW_HEIGHT - 5;
+/** Tallest a spike is allowed to draw. */
+const PEAK_HEIGHT = VIEW_HEIGHT - 12;
 
 export interface IRhythmGameHandle {
   /**
-   * Called from the tap handler itself rather than from an effect, so the time
-   * that is scored is the time the key actually went down.
+   * Called from the tap handler itself rather than an effect, so what gets
+   * scored is the moment the key actually went down.
    */
   registerTap: () => void;
 }
@@ -92,56 +80,89 @@ const readHighScore = () => {
 };
 
 /**
- * Tap the pet in time with its own heartbeat.
+ * Jump the pet over the percussion of whatever is playing.
  *
- * The trace scrolls at a fixed tempo and the score is read from the animation's
- * own clock rather than from a timer running alongside it. Anything else drifts
- * apart from what the player can see, and in a game about timing the picture
- * has to be the truth.
+ * The trace is the real signal, reduced to its transients, scrolling right to
+ * left into a line under the creature. Everything is measured against one
+ * clock — `performance.now()` — so what is drawn and what is scored cannot
+ * drift apart, which in a game about timing is the only thing that matters.
  */
 const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   const { t } = useTranslation();
-  const traceRef = useRef<SVGGElement>(null);
-  // Score and streak move together — a miss zeroes both — so they are one
-  // piece of state rather than two that have to be kept in step.
+  const { points } = useLiveAudioFrame();
+  const { isActive, isPaused } = useLiveAudioControl();
+
+  const stateRef = useRef<IPercussionState>(createPercussionState());
   const [run, setRun] = useState<IRhythmScore>({ score: 0, streak: 0 });
   const [highScore, setHighScore] = useState(readHighScore);
   const [lastHit, setLastHit] = useState<IRhythmHit>();
-  // Bumped per tap so the verdict flash can restart even on two identical
-  // verdicts in a row.
   const [hitSeq, setHitSeq] = useState(0);
+  // Redrawn from the state each frame. Kept in React state rather than mutated
+  // in place so the SVG actually updates.
+  const [path, setPath] = useState('');
+  const [hasPeaks, setHasPeaks] = useState(false);
 
-  const path = useMemo(() => {
-    const cycles = Array.from({ length: CYCLE_COUNT }, (_value, index) =>
-      buildCyclePath(index * CYCLE_WIDTH),
-    );
-    // Starts a cycle to the left of the window so the trace is already running
-    // when it scrolls in, rather than beginning at an edge.
-    return `M ${-CYCLE_WIDTH} ${BASELINE} L ${-3} ${BASELINE} ${cycles.join(' ')}`;
-  }, []);
+  const isListening = isActive && !isPaused;
+
+  // One frame of spectrum in, one redraw out.
+  useEffect(() => {
+    if (!isListening || points.length === 0) {
+      return;
+    }
+    const now = performance.now();
+    // The low half of the spectrum. Percussion energy that matters for keeping
+    // time — kick, snare, toms — lives down there, and leaving the top out
+    // keeps a bright synth pad from reading as a hit.
+    const bins = points.slice(0, Math.floor(points.length / 2)).map((p) => p.y);
+    const next = pushPercussionFrame(stateRef.current, bins, now, {
+      windowMs: WINDOW_MS,
+    });
+    stateRef.current = next;
+
+    // Time maps to x directly: the newest sample is at the right edge, the
+    // target line sits LEAD_MS back from it, and everything older trails off to
+    // the left. One mapping for drawing and for scoring.
+    const segments = next.history.map((sample) => {
+      const age = now - sample.timeMs;
+      const x = 100 - (age / WINDOW_MS) * 100;
+      const y = BASELINE - sample.level * PEAK_HEIGHT;
+      return `${x.toFixed(2)},${y.toFixed(2)}`;
+    });
+    setPath(segments.length > 1 ? `M ${segments.join(' L ')}` : '');
+    setHasPeaks(next.history.some((sample) => sample.isPeak));
+  }, [isListening, points]);
+
+  // Nothing playing means nothing to jump. Clearing the trace rather than
+  // leaving the last frame frozen is the honest thing — a still line that still
+  // accepts taps would be a game pretending to run.
+  useEffect(() => {
+    if (isListening) {
+      return;
+    }
+    stateRef.current = createPercussionState();
+    setPath('');
+    setHasPeaks(false);
+  }, [isListening]);
 
   const registerTap = useCallback(() => {
-    const element = traceRef.current;
-    if (!element) {
-      return;
-    }
-    // The animation's own clock, not performance.now(). It is the position the
-    // player is actually looking at, and it stays right through a dropped frame
-    // or a paused tab, neither of which a parallel timer survives.
-    const animation = element.getAnimations()[0];
-    const currentTime = animation?.currentTime;
-    if (typeof currentTime !== 'number') {
+    const now = performance.now();
+    // The tap is graded against a real detected hit. Its arrival at the line is
+    // LEAD_MS after it was heard, which is exactly the delay the drawing uses,
+    // so the peak under the line is the peak being scored.
+    const peakMs = getNearestPeakMs(stateRef.current, now - LEAD_MS);
+    if (peakMs === undefined) {
+      // Silence, or nothing detected yet. Tapping into it costs nothing and
+      // earns nothing — there was no beat to be early or late for.
       return;
     }
 
-    const hit = gradeRhythmTap(currentTime);
+    const hit = gradeRhythmOffset(now - LEAD_MS - peakMs);
     setLastHit(hit);
     setHitSeq((seq) => seq + 1);
     setRun((previous) => {
       const next = applyRhythmScore(previous, hit);
-      // Read back from storage rather than from the `highScore` state, so this
-      // stays correct without the callback depending on it — and so a second
-      // window cannot quietly overwrite a better score set by the first.
+      // Read back from storage rather than from state, so this stays correct
+      // without the callback depending on the current high score.
       if (next.score > readHighScore()) {
         window.localStorage.setItem(HIGH_SCORE_KEY, String(next.score));
         setHighScore(next.score);
@@ -155,15 +176,14 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   const markerPosition = lastHit
     ? getHitMarkerPosition(lastHit.offsetMs)
     : undefined;
+  const targetPercent = (TRAIL_MS / WINDOW_MS) * 100;
 
   return (
     <div className="rhythm-game">
       <div className="rhythm-game__scores">
         <span className="rhythm-game__score">{run.score}</span>
-        {/* The multiplier has to be visible or the streak is a hidden rule.
-            A player who cannot see what a run is worth has no reason to
-            protect it, and protecting it is the entire game. No translation
-            needed — it is a number and a cross. */}
+        {/* A streak nobody can see is a hidden rule, and a player who cannot
+            tell what a run is worth has no reason to protect it. */}
         {run.streak > 1 && (
           <span className="rhythm-game__streak">
             ×
@@ -179,47 +199,52 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
 
       <div className="rhythm-game__trace">
         <svg
-          viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
+          viewBox={`0 0 100 ${VIEW_HEIGHT}`}
           preserveAspectRatio="none"
           aria-hidden="true"
           focusable="false"
         >
-          {/* Scrolls by exactly one cycle per beat, so the spike lands on the
-              target line once a beat, forever, with no seam. */}
-          <g
-            ref={traceRef}
-            className="rhythm-game__scroll"
-            style={{ animationDuration: `${BEAT_MS}ms` }}
-          >
-            <path d={path} />
-          </g>
+          {path && <path d={path} />}
         </svg>
 
-        {/* Where the spike has to be when you tap. */}
-        <span className="rhythm-game__target" />
+        {/* Directly under the pet, which is what the creature is jumping. */}
+        <span
+          className="rhythm-game__target"
+          style={{ left: `${targetPercent}%` }}
+        />
 
         {markerPosition !== undefined && lastHit && (
           <span
             key={hitSeq}
             className={`rhythm-game__hit rhythm-game__hit--${lastHit.verdict}`}
-            style={{ left: `${markerPosition * 100}%` }}
+            style={{
+              left: `${targetPercent + (markerPosition - 0.5) * 30}%`,
+            }}
           />
         )}
       </div>
 
       <p className="rhythm-game__verdict" aria-live="polite">
-        {lastHit ? (
-          <span
-            key={hitSeq}
-            className={`rhythm-game__verdict-text rhythm-game__verdict-text--${lastHit.verdict}`}
-          >
-            {t(`support.game.${lastHit.verdict}`)}
-          </span>
-        ) : (
-          <span className="rhythm-game__verdict-text rhythm-game__verdict-text--idle">
-            {t('support.game.hint')}
-          </span>
-        )}
+        <span
+          key={hitSeq}
+          className={`rhythm-game__verdict-text rhythm-game__verdict-text--${
+            lastHit && hasPeaks ? lastHit.verdict : 'idle'
+          }`}
+        >
+          {/* Tell the truth about why nothing is happening. A dead trace with a
+              live score reads as broken; "put something on" does not. */}
+          {(() => {
+            if (!isListening) {
+              return t('support.game.noAudio');
+            }
+            if (!hasPeaks) {
+              return t('support.game.listening');
+            }
+            return lastHit
+              ? t(`support.game.${lastHit.verdict}`)
+              : t('support.game.hint');
+          })()}
+        </span>
       </p>
     </div>
   );

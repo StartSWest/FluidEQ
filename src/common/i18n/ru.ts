@@ -123,6 +123,7 @@ const ru: Partial<Dictionary> = {
   'autoeq.model': 'Модель наушников',
   'autoeq.target': 'Измерение / целевая кривая',
   'autoeq.apply': 'Применить EQ модели',
+  'autoeq.applying': 'Применение…',
   'autoeq.applyAria': 'Применить эквалайзер выбранной модели',
   'autoeq.checking': 'Проверка официальной базы…',
   'autoeq.updateAvailable': 'Доступно обновление ({count} моделей)',
@@ -160,11 +161,16 @@ const ru: Partial<Dictionary> = {
   'eq.layers.voicing': 'Характер',
   'eq.layers.driver': 'Излучатель',
   'eq.layers.headset': 'Наушники',
+  'eq.layers.smart': 'Умный EQ',
+  'eq.layers.smart.fullRange': 'Измерено · весь диапазон',
+  'eq.layers.smart.range': 'Измерено · от {low} до {high}',
   'eq.layers.remove': 'Убрать слой «{layer}»',
   'eq.layers.clearReference': 'Убрать эталонную модель и созданные ею полосы',
+  'eq.layers.clearSmart':
+    'Убрать измеренную коррекцию. Ваши полосы и эталон останутся на месте.',
   'eq.fromFlat': 'С нуля',
   'eq.fromFlat.hint':
-    'Обнуляет все полосы перед прослушиванием. Пригодится, когда уже сделанный срез скрывает именно ту область, на которую влияет: измерение не видит сквозь собственную коррекцию.',
+    'Отбрасывает прежнюю коррекцию умного EQ перед прослушиванием. Пригодится, когда уже сделанный срез скрывает именно ту область, на которую влияет: измерение не видит сквозь собственную коррекцию. Ваши полосы при этом не трогаются.',
   'eq.clear': 'Сбросить EQ',
   'eq.addBand': 'Добавить полосу',
   'eq.addBandAria': 'Добавить полосу эквалайзера',
@@ -218,6 +224,22 @@ const ru: Partial<Dictionary> = {
   'support.eyebrow': 'СОВЕРШЕННО ДОБРОВОЛЬНО',
 
   'support.petHint': 'Нажмите пробел, чтобы он подпрыгнул',
+
+  'support.game.hint': 'Нажимайте в такт, когда пик доходит до линии',
+
+  'support.game.noAudio': 'Включите музыку, и ритм появится здесь',
+
+  'support.game.listening': 'Ищем ритм…',
+
+  'support.game.best': 'Рекорд',
+
+  'support.game.perfect': 'Идеально',
+
+  'support.game.great': 'Отлично',
+
+  'support.game.good': 'Хорошо',
+
+  'support.game.miss': 'Мимо',
   'support.title': 'Поддержать работу',
   'support.close': 'Закрыть',
   'support.pitch':

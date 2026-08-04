@@ -124,6 +124,7 @@ const es: Partial<Dictionary> = {
   'autoeq.model': 'Modelo de auriculares',
   'autoeq.target': 'Medición / objetivo',
   'autoeq.apply': 'Aplicar EQ del modelo',
+  'autoeq.applying': 'Aplicando…',
   'autoeq.applyAria': 'Aplicar el EQ del modelo seleccionado',
   'autoeq.checking': 'Comprobando la base de datos oficial…',
   'autoeq.updateAvailable': 'Actualización disponible ({count} modelos)',
@@ -161,12 +162,17 @@ const es: Partial<Dictionary> = {
   'eq.layers.voicing': 'Carácter',
   'eq.layers.driver': 'Transductor',
   'eq.layers.headset': 'Auriculares',
+  'eq.layers.smart': 'EQ inteligente',
+  'eq.layers.smart.fullRange': 'Medido · todo el rango',
+  'eq.layers.smart.range': 'Medido · de {low} a {high}',
   'eq.layers.remove': 'Quitar la capa de {layer}',
   'eq.layers.clearReference':
     'Borrar el modelo de referencia y las bandas que generó',
+  'eq.layers.clearSmart':
+    'Quitar la corrección medida. Tus bandas y la referencia se mantienen.',
   'eq.fromFlat': 'Desde plano',
   'eq.fromFlat.hint':
-    'Pone todas las bandas a cero antes de escuchar. Úsalo cuando un corte existente esté tapando justo la zona que afecta: la medición no puede ver a través de su propia corrección.',
+    'Descarta la corrección anterior del EQ inteligente antes de escuchar. Úsalo cuando un corte existente esté tapando justo la zona que afecta: la medición no puede ver a través de su propia corrección. Tus bandas nunca se tocan.',
   'eq.clear': 'Vaciar EQ',
   'eq.addBand': 'Añadir banda',
   'eq.addBandAria': 'Añadir una banda de EQ',
@@ -220,6 +226,22 @@ const es: Partial<Dictionary> = {
   'support.eyebrow': 'TOTALMENTE OPCIONAL',
 
   'support.petHint': 'Pulsa espacio para hacerlo saltar',
+
+  'support.game.hint': 'Pulsa al ritmo cuando el pico llegue a la línea',
+
+  'support.game.noAudio': 'Pon algo de música y el ritmo aparecerá aquí',
+
+  'support.game.listening': 'Buscando el ritmo…',
+
+  'support.game.best': 'Récord',
+
+  'support.game.perfect': 'Perfecto',
+
+  'support.game.great': 'Muy bien',
+
+  'support.game.good': 'Bien',
+
+  'support.game.miss': 'Fallaste',
   'support.title': 'Apoya el proyecto',
   'support.close': 'Cerrar',
   'support.pitch':

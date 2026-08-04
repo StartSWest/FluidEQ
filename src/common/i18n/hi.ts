@@ -129,6 +129,7 @@ const hi: Partial<Dictionary> = {
   'autoeq.model': 'हेडफ़ोन मॉडल',
   'autoeq.target': 'माप / लक्ष्य',
   'autoeq.apply': 'इस मॉडल का EQ लगाएँ',
+  'autoeq.applying': 'लागू किया जा रहा है…',
   'autoeq.applyAria': 'चुने हुए मॉडल का EQ लगाएँ',
   'autoeq.checking': 'आधिकारिक डेटाबेस जाँचा जा रहा है…',
   'autoeq.updateAvailable': 'अपडेट उपलब्ध है ({count} मॉडल)',
@@ -166,11 +167,16 @@ const hi: Partial<Dictionary> = {
   'eq.layers.voicing': 'ध्वनि रंग',
   'eq.layers.driver': 'ड्राइवर',
   'eq.layers.headset': 'हेडफ़ोन',
+  'eq.layers.smart': 'स्मार्ट EQ',
+  'eq.layers.smart.fullRange': 'मापा गया · पूरी रेंज',
+  'eq.layers.smart.range': 'मापा गया · {low} से {high} तक',
   'eq.layers.remove': '{layer} परत हटाएँ',
   'eq.layers.clearReference': 'संदर्भ मॉडल और उससे बने बैंड हटाएँ',
+  'eq.layers.clearSmart':
+    'मापा गया सुधार हटाएँ। आपके बैंड और संदर्भ मॉडल वैसे ही रहेंगे।',
   'eq.fromFlat': 'शून्य से',
   'eq.fromFlat.hint':
-    'सुनने से पहले सभी बैंड शून्य कर देता है। जब पहले से किया गया कट ठीक उसी हिस्से को ढक रहा हो जिस पर वह असर डालता है, तब यह काम आता है — माप अपनी ही सुधार के पार नहीं देख सकता।',
+    'सुनने से पहले पिछला स्मार्ट EQ सुधार हटा देता है। जब पहले से किया गया कट ठीक उसी हिस्से को ढक रहा हो जिस पर वह असर डालता है, तब यह काम आता है — माप अपनी ही सुधार के पार नहीं देख सकता। आपके बैंड कभी नहीं छुए जाते।',
   'eq.clear': 'EQ ख़ाली करें',
   'eq.addBand': 'बैंड जोड़ें',
   'eq.addBandAria': 'EQ बैंड जोड़ें',
@@ -224,6 +230,22 @@ const hi: Partial<Dictionary> = {
   'support.eyebrow': 'पूरी तरह वैकल्पिक',
 
   'support.petHint': 'इसे उछालने के लिए स्पेस दबाएँ',
+
+  'support.game.hint': 'शिखर रेखा तक पहुँचे तब ताल पर दबाएँ',
+
+  'support.game.noAudio': 'कुछ चलाइए, ताल यहाँ दिखेगी',
+
+  'support.game.listening': 'ताल खोजी जा रही है…',
+
+  'support.game.best': 'सर्वश्रेष्ठ',
+
+  'support.game.perfect': 'बिलकुल सही',
+
+  'support.game.great': 'शानदार',
+
+  'support.game.good': 'अच्छा',
+
+  'support.game.miss': 'चूक गए',
   'support.title': 'इस काम का साथ दें',
   'support.close': 'बंद करें',
   'support.pitch':

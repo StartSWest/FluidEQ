@@ -123,6 +123,33 @@ export const getBeatOffset = (phaseMs: number, beatMs = BEAT_MS) => {
   return wrapped > beatMs / 2 ? wrapped - beatMs : wrapped;
 };
 
+/**
+ * Grade a tap by how far it was from a real hit, in milliseconds.
+ *
+ * This is the one the game uses. Peaks come from the audio at whatever spacing
+ * the music has, so there is no beat to wrap around — the distance is already
+ * signed and already final. `gradeRhythmTap` below is the same grading with a
+ * periodic beat folded in first.
+ */
+export const gradeRhythmOffset = (offsetMs: number): IRhythmHit => {
+  const error = Math.abs(offsetMs);
+
+  if (error <= PERFECT_MS) {
+    return { offsetMs, verdict: 'perfect', points: PERFECT_POINTS };
+  }
+  if (error <= GREAT_MS) {
+    return { offsetMs, verdict: 'great', points: GREAT_POINTS };
+  }
+  if (error <= HIT_WINDOW_MS) {
+    return { offsetMs, verdict: 'good', points: GOOD_POINTS };
+  }
+
+  // `points` on a miss is not a score change — it is how bad the miss was, and
+  // what it costs depends on what the player has. applyRhythmScore does that
+  // arithmetic; this only says how far out they were.
+  return { offsetMs, verdict: 'miss', points: 0 };
+};
+
 export const gradeRhythmTap = (
   phaseMs: number,
   beatMs = BEAT_MS,
