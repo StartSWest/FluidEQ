@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import { app } from 'electron';
 import {
+  clampFrequency,
   clampGain,
   clampQuality,
   FilterTypeEnum,
@@ -557,6 +558,15 @@ const fitCorrection = (
 
   fitted
     .sort((left, right) => left.frequency - right.frequency)
+    // One unusable band must not cost the user the whole profile. A published
+    // measurement can be missing points or carry values that fit to nothing;
+    // that band is skipped and the rest of the correction is still applied.
+    .filter(
+      (filter) =>
+        Number.isFinite(filter.frequency) &&
+        Number.isFinite(filter.gain) &&
+        Number.isFinite(filter.quality),
+    )
     .forEach((filter) => {
       const next = getDefaultFilterWithId();
       next.type = FilterTypeEnum.PK;

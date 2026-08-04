@@ -17,7 +17,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useEffect, useRef, useState } from 'react';
-import { ErrorDescription } from 'common/errors';
 import { VOICING_PROFILES, getVoicingProfile } from 'common/voicing';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useAquaContext } from '../utils/AquaContext';

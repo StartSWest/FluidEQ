@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
-import { IAutoEqUpdateStatus, IEqSource, ISquigSource } from 'common/constants';
+import { IAutoEqUpdateStatus, IEqSource } from 'common/constants';
 import { useAquaContext } from './utils/AquaContext';
 import { formatPresetName } from './utils/utils';
 import Button from './widgets/Button';
@@ -32,7 +32,6 @@ import {
   getSquiglinkDeviceList,
   getSquiglinkResponseList,
   loadSquiglinkPreset,
-  getSquiglinkSourceList,
   checkAutoEqUpdate,
   updateAutoEqDatabase,
 } from './utils/equalizerApi';
@@ -58,7 +57,7 @@ const ALL_SOURCE_ID = 'all';
 const ALL_SOURCE: IEqSource = {
   id: ALL_SOURCE_ID,
   name: 'All databases',
-  description: 'Search AutoEQ official and every synced Squiglink database.',
+  description: 'Search AutoEq official and GadgetryTech together.',
   attributionUrl: 'https://github.com/jaakkopasanen/AutoEq',
   online: true,
 };
@@ -95,9 +94,10 @@ const AutoEQ = () => {
   const [currentDevice, setCurrentDevice] = useState<string>('');
   const [currentResponse, setCurrentResponse] = useState<string>('');
   const [sourceId, setSourceId] = useState<IEqSource['id'] | ''>(ALL_SOURCE_ID);
-  const [squigSources, setSquigSources] = useState<IEqSource[]>(
-    EQ_SOURCES.slice(1),
-  );
+  // Two curated databases rather than every Squiglink site there is. The full
+  // manifest ran to dozens of sources of wildly varying quality and coverage,
+  // which made picking one a chore and made "All databases" slow and noisy.
+  const squigSources = useMemo(() => EQ_SOURCES.slice(1), []);
   const [updateStatus, setUpdateStatus] = useState<IAutoEqUpdateStatus>();
   const [isCheckingUpdate, setIsCheckingUpdate] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -122,32 +122,6 @@ const AutoEQ = () => {
     sourceId === ALL_SOURCE_ID
       ? ALL_SOURCE
       : allSources.find((source) => source.id === sourceId);
-
-  useEffect(() => {
-    getSquiglinkSourceList()
-      .then((sources: ISquigSource[]) => {
-        const discoveredSources = sources.map((source) => ({
-          id: source.id,
-          name: `${source.name} · ${source.type}`,
-          description: `Public ${source.type} measurements from ${source.name}.`,
-          attributionUrl: source.website,
-          online: true,
-        }));
-        const gadgetryTechFallback = EQ_SOURCES[1];
-        setSquigSources([
-          gadgetryTechFallback,
-          ...discoveredSources.filter(
-            (source) =>
-              source.id !== gadgetryTechFallback.id &&
-              source.attributionUrl !== gadgetryTechFallback.attributionUrl,
-          ),
-        ]);
-        return undefined;
-      })
-      // Keep the cached GadgetryTech source usable when the optional global
-      // manifest is temporarily offline.
-      .catch(() => undefined);
-  }, [setGlobalError]);
 
   const fetchDeviceNames = useCallback(async () => {
     if (!sourceId) {

@@ -2,6 +2,8 @@
 @use 'theme' as *;
 
 .knob {
+  cursor: ns-resize;
+  touch-action: none;
   position: relative;
   width: 62px;
   height: 62px;
@@ -53,18 +55,17 @@
     letter-spacing: 0.08em;
   }
 
+  // Kept for focus and the arrow keys only. A range input maps its own width
+  // to the whole range, which on a 64px dial made Q unplaceable — the pointer
+  // is handled on the wrapper instead, over a much longer virtual travel.
   &__input {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     margin: 0;
-    cursor: grab;
     opacity: 0;
-
-    &:active {
-      cursor: grabbing;
-    }
+    pointer-events: none;
   }
 
   // The dial is an SVG behind a transparent range input, so the focus ring has
@@ -88,10 +89,7 @@
 
   &--disabled {
     opacity: 0.45;
+    cursor: default;
     filter: none;
-
-    .knob__input {
-      cursor: default;
-    }
   }
 }
