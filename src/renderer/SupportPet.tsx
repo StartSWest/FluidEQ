@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type MutableRefObject,
+  type RefObject,
+} from 'react';
 import {
   useLiveAudioControl,
   useLiveAudioFrame,
@@ -27,19 +34,28 @@ import './styles/SupportPet.scss';
  * One scalar is all the animation needs, so the whole waveform is reduced
  * rather than rendered.
  */
-const usePetLevel = (waveform: number[]) =>
-  useMemo(() => {
-    if (waveform.length === 0) {
-      return 0;
+const getPetLevel = (waveform: number[]) => {
+  if (waveform.length === 0) {
+    return 0;
+  }
+  let peak = 0;
+  for (let index = 0; index < waveform.length; index += 1) {
+    if (waveform[index] > peak) {
+      peak = waveform[index];
     }
-    let peak = 0;
-    for (let index = 0; index < waveform.length; index += 1) {
-      if (waveform[index] > peak) {
-        peak = waveform[index];
-      }
-    }
-    return Math.min(1, peak * 1.6);
-  }, [waveform]);
+  }
+  return Math.min(1, peak * 1.6);
+};
+
+/**
+ * How many values `--pet-level` is allowed to take.
+ *
+ * Every write invalidates the style of the creature's whole subtree, and a
+ * continuous value changes on literally every frame for differences nobody can
+ * see. Twelve steps means a handful of writes a second instead of twenty-two,
+ * and the squash is not visibly steppier for it.
+ */
+const LEVEL_STEPS = 12;
 
 /**
  * Above the noise floor. Digital silence reads as 0 and a single least
@@ -63,62 +79,127 @@ const HEARING_RELEASE_MS = 1200;
  * silence, but the sway is a keyframe animation and does not — left on
  * `isActive` the pet leans back and forth in a silent room.
  */
-const useIsHearing = (level: number, isCapturing: boolean) => {
-  const [isHearing, setIsHearing] = useState(false);
-  const releaseTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+/**
+ * Whether something is actually playing.
+ *
+ * `isActive` from the analyser means the capture stream is running, not that
+ * there is any sound in it: it goes true when the stream opens and false only
+ * on teardown. The squash rides `--pet-level` so it settles by itself in
+ * silence, but the sway is a keyframe animation and does not — left on
+ * `isActive` the pet leans back and forth in a silent room.
+ *
+ * Instant attack, slow release. Music has gaps — between tracks, between beats,
+ * in a rest — and a bare threshold would strobe the class on and off through
+ * every one of them, restarting the sway from its first keyframe each time.
+ */
+const useHearingGate = (
+  isCapturing: boolean,
+  onChange: (isHearing: boolean) => void,
+) => {
+  const releaseRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
+  );
+  const isHearingRef = useRef(false);
+
+  const clearRelease = () => {
+    if (releaseRef.current !== undefined) {
+      clearTimeout(releaseRef.current);
+      releaseRef.current = undefined;
+    }
+  };
+
+  const setHearing = useCallback(
+    (next: boolean) => {
+      if (isHearingRef.current === next) {
+        return;
+      }
+      isHearingRef.current = next;
+      onChange(next);
+    },
+    [onChange],
+  );
+
+  const feed = useCallback(
+    (level: number) => {
+      if (!isCapturing) {
+        clearRelease();
+        setHearing(false);
+        return;
+      }
+      if (level >= HEARING_LEVEL) {
+        clearRelease();
+        setHearing(true);
+      } else if (isHearingRef.current && releaseRef.current === undefined) {
+        releaseRef.current = setTimeout(() => {
+          releaseRef.current = undefined;
+          setHearing(false);
+        }, HEARING_RELEASE_MS);
+      }
+    },
+    [isCapturing, setHearing],
   );
 
   useEffect(() => {
     if (!isCapturing) {
-      setIsHearing(false);
-      return;
+      clearRelease();
+      setHearing(false);
     }
-    if (level >= HEARING_LEVEL) {
-      if (releaseTimer.current !== undefined) {
-        clearTimeout(releaseTimer.current);
-        releaseTimer.current = undefined;
-      }
-      // Same value bails out of the re-render, so this is free on the frames
-      // where nothing changed — which is most of them.
-      setIsHearing(true);
-    } else if (isHearing && releaseTimer.current === undefined) {
-      releaseTimer.current = setTimeout(() => {
-        releaseTimer.current = undefined;
-        setIsHearing(false);
-      }, HEARING_RELEASE_MS);
-    }
-  }, [isCapturing, isHearing, level]);
+  }, [isCapturing, setHearing]);
 
-  useEffect(
-    () => () => {
-      if (releaseTimer.current !== undefined) {
-        clearTimeout(releaseTimer.current);
-      }
-    },
-    [],
-  );
+  useEffect(() => () => clearRelease(), []);
 
-  return isHearing;
+  return feed;
 };
 
 /**
- * What the creature is actually reacting to.
+ * The only thing in the creature that watches the audio, and it renders
+ * nothing.
  *
- * Pausing the waveform stops the analyser mid-frame, so `isActive` and the last
- * `waveform` sit frozen at whatever happened to be playing. Left alone the pet
- * would carry on swaying to a reading that stopped being true, which reads as
- * broken rather than lively. Paused means not listening — and the level drops
- * to zero rather than holding, so the ears settle instead of staying stretched
- * on a stale frame.
+ * That separation is the entire point. Subscribing to the frame from the pet
+ * itself re-rendered her — and the whole of her SVG — around twenty-two times a
+ * second for the life of the app, purely to set one custom property. She lives
+ * in the titlebar, so it never stopped: not when the window was idle, not when
+ * nothing was playing, not ever.
+ *
+ * Here the level is written straight to her element as a style, quantised so
+ * most frames write nothing at all, and the only thing that escapes into React
+ * is whether she can hear anything — which flips a few times a minute rather
+ * than twenty-two times a second.
  */
-const usePetAudio = () => {
+const PetLevelPump = ({
+  target,
+  isCapturing,
+  isPaused,
+  levelRef,
+  onHearingChange,
+}: {
+  target: RefObject<HTMLElement | null>;
+  isCapturing: boolean;
+  isPaused: boolean;
+  levelRef: MutableRefObject<number>;
+  onHearingChange: (isHearing: boolean) => void;
+}) => {
   const { waveform } = useLiveAudioFrame();
-  const { isActive, isPaused } = useLiveAudioControl();
-  const level = usePetLevel(waveform);
-  const effectiveLevel = isPaused ? 0 : level;
-  const isListening = useIsHearing(effectiveLevel, isActive && !isPaused);
-  return { isListening, level: effectiveLevel };
+  const publishedRef = useRef(-1);
+  const feed = useHearingGate(isCapturing && !isPaused, onHearingChange);
+
+  useEffect(() => {
+    // Pausing freezes the analyser mid-frame, so the last waveform sits there
+    // reading as music. Paused is zero, or the ears stay stretched on a frame
+    // that stopped being true.
+    const level = isPaused ? 0 : getPetLevel(waveform);
+    levelRef.current = level;
+    feed(level);
+
+    const stepped = Math.round(level * LEVEL_STEPS) / LEVEL_STEPS;
+    if (stepped === publishedRef.current || !target.current) {
+      return;
+    }
+    publishedRef.current = stepped;
+    target.current.style.setProperty('--pet-level', String(stepped));
+  }, [feed, isPaused, levelRef, target, waveform]);
+
+  return null;
 };
 
 /** Loud enough that it is clearly music rather than a notification blip. */
@@ -138,15 +219,17 @@ const DANCE_CHANCE = 0.3;
  *
  * A user who never contributes still has a pet that breathes and blinks; it
  * just does not hear the music.
+ *
+ * The level arrives by ref rather than as a prop, because this reads it once a
+ * minute and taking it through render would put the pet back on the frame
+ * clock — which is the one thing the pump above exists to prevent.
  */
 const useOccasionalDance = (
   isUnlocked: boolean,
   isActive: boolean,
-  level: number,
+  levelRef: MutableRefObject<number>,
 ) => {
   const [isDancing, setIsDancing] = useState(false);
-  const levelRef = useRef(level);
-  levelRef.current = level;
 
   useEffect(() => {
     if (!isUnlocked || !isActive) {
@@ -171,9 +254,37 @@ const useOccasionalDance = (
       }
       setIsDancing(false);
     };
-  }, [isActive, isUnlocked]);
+  }, [isActive, isUnlocked, levelRef]);
 
   return isDancing;
+};
+
+/**
+ * Everything the two pets share: the pump, the hearing gate and the dance.
+ *
+ * Returns the pump as an element for the caller to render, because it has to
+ * sit inside the component that owns the element it writes to.
+ */
+const usePetAudio = (
+  target: RefObject<HTMLElement | null>,
+  hasContributed: boolean,
+) => {
+  const { isActive, isPaused } = useLiveAudioControl();
+  const levelRef = useRef(0);
+  const [isListening, setIsListening] = useState(false);
+  const isDancing = useOccasionalDance(hasContributed, isListening, levelRef);
+
+  const pump = (
+    <PetLevelPump
+      target={target}
+      isCapturing={isActive}
+      isPaused={isPaused}
+      levelRef={levelRef}
+      onHearingChange={setIsListening}
+    />
+  );
+
+  return { pump, isListening, isDancing };
 };
 
 interface ISupportPetProps {
@@ -319,19 +430,20 @@ export function SupportPetHero({
 }: {
   hasContributed: boolean;
 }) {
-  const { isListening, level } = usePetAudio();
-  const isDancing = useOccasionalDance(hasContributed, isListening, level);
+  const ref = useRef<HTMLDivElement>(null);
+  const { pump, isListening, isDancing } = usePetAudio(ref, hasContributed);
 
   return (
     <div
+      ref={ref}
       className={`support-pet support-pet--hero${
         isListening ? ' is-listening' : ''
       }${isDancing ? ' is-dancing' : ''}${
         hasContributed ? ' is-celebrating' : ''
       }`}
-      style={{ '--pet-level': level } as CSSProperties}
       aria-hidden="true"
     >
+      {pump}
       <PetArt />
     </div>
   );
@@ -351,8 +463,8 @@ export default function SupportPet({
   hasContributed,
   onOpen,
 }: ISupportPetProps) {
-  const { isListening, level } = usePetAudio();
-  const isDancing = useOccasionalDance(hasContributed, isListening, level);
+  const ref = useRef<HTMLButtonElement>(null);
+  const { pump, isListening, isDancing } = usePetAudio(ref, hasContributed);
 
   const title = hasContributed
     ? 'Thank you for supporting FluidEQ'
@@ -360,15 +472,16 @@ export default function SupportPet({
 
   return (
     <button
+      ref={ref}
       type="button"
       className={`support-pet${isListening ? ' is-listening' : ''}${
         isDancing ? ' is-dancing' : ''
       }${hasContributed ? ' is-celebrating' : ''}`}
-      style={{ '--pet-level': level } as CSSProperties}
       aria-label={title}
       title={title}
       onClick={onOpen}
     >
+      {pump}
       <PetArt />
     </button>
   );

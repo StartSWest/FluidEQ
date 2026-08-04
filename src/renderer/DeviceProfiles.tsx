@@ -76,10 +76,48 @@ const DeviceProfiles = () => {
     }
   }, [performHealthCheck, setGlobalError]);
 
+  // Polled, because Windows does not tell us when someone plugs in headphones,
+  // and paused whenever the window is hidden.
+  //
+  // Each tick is an IPC round-trip that enumerates every audio endpoint on the
+  // machine, and this panel is mounted for the whole life of the app — so
+  // unpaused it is twenty of those a minute, forever, including while the
+  // window is minimised behind everything else. A device list nobody can see
+  // does not need refreshing, and nothing is missed by stopping: the refresh
+  // on the way back up runs before the window is painted, so what you see when
+  // you look is current.
   useEffect(() => {
-    refresh();
-    const timer = window.setInterval(refresh, 3000);
-    return () => window.clearInterval(timer);
+    let timer: number | undefined;
+
+    const stop = () => {
+      if (timer !== undefined) {
+        window.clearInterval(timer);
+        timer = undefined;
+      }
+    };
+
+    const start = () => {
+      if (timer !== undefined) {
+        return;
+      }
+      refresh();
+      timer = window.setInterval(refresh, 3000);
+    };
+
+    const onVisibilityChange = () => {
+      if (document.hidden) {
+        stop();
+      } else {
+        start();
+      }
+    };
+
+    onVisibilityChange();
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    return () => {
+      stop();
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+    };
   }, [refresh]);
 
   const selectedDevice = useMemo(
