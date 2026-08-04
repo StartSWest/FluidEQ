@@ -38,6 +38,3 @@ npm-debug.log.*
 
 # App files
 presets/**
-
-# The renamed development binary, produced by .erb/scripts/name-dev-electron.ts
-node_modules/electron/dist/FluidEQ.exe
