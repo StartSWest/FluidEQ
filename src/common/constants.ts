@@ -150,6 +150,8 @@ export interface IState {
   convolution?: IConvolutionProfile;
   /** Curated target curve applied as its own APO layer after the EQ bands. */
   voicing?: IVoicingSettings;
+  /** Transducer-family correction, its own APO layer after the voicing. */
+  driver?: IDriverSettings;
 }
 
 /**
@@ -160,6 +162,19 @@ export interface IState {
  */
 export interface IVoicingSettings {
   /** Empty means no voicing layer at all. */
+  profileId: string;
+  /** 0..1 scale applied to every gain in the profile. */
+  intensity: number;
+}
+
+/**
+ * Which driver compensation is active and how strongly.
+ *
+ * Same shape and same reasoning as IVoicingSettings: it is part of the
+ * persisted state, and driver.ts already depends on this module.
+ */
+export interface IDriverSettings {
+  /** Empty means no driver layer at all. */
   profileId: string;
   /** 0..1 scale applied to every gain in the profile. */
   intensity: number;

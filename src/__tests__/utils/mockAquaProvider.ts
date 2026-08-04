@@ -26,6 +26,8 @@ const defaultAquaContext: IAquaContext = {
   isLoading: false,
   globalError: undefined,
   isBlockingError: false,
+  driver: undefined,
+  setDriver: () => {},
   refreshState: async () => {},
   isEnabled: DEFAULT_STATE.isEnabled,
   isAutoPreAmpOn: DEFAULT_STATE.isAutoPreAmpOn,

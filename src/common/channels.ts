@@ -59,6 +59,7 @@ enum ChannelEnum {
   CLEAR_GAINS = 'clearGains',
   SET_FIXED_BAND = 'setFixedBand',
   SET_VOICING = 'setVoicing',
+  SET_DRIVER = 'setDriver',
   GET_AUDIO_DEVICES = 'getAudioDevices',
   SET_DEFAULT_AUDIO_DEVICE = 'setDefaultAudioDevice',
   ACTIVATE_AUDIO_DEVICE_PROFILE = 'activateAudioDeviceProfile',

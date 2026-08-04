@@ -31,6 +31,7 @@ import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import PresetsBar from './PresetsBar';
 import AutoEQ from './AutoEQ';
 import DeviceProfiles from './DeviceProfiles';
+import DriverPicker from './components/DriverPicker';
 import WaveformVisualizer from './WaveformVisualizer';
 import ConvolutionPanel from './ConvolutionPanel';
 import VoicingPanel from './VoicingPanel';
@@ -468,6 +469,9 @@ const AppContent = () => {
         </div>
         <div className="right-content">
           <DeviceProfiles />
+          {/* Sits with the output device because it answers the same question:
+              what is this sound coming out of. */}
+          <DriverPicker />
           <PresetsBar
             fetchPresets={getPresetListFromFiles}
             loadPreset={loadPreset}

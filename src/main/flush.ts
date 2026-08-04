@@ -35,6 +35,7 @@ import {
   NO_GAIN_FILTER_TYPES,
 } from '../common/constants';
 import { getVoicingFilters } from '../common/voicing';
+import { getDriverFilters } from '../common/driver';
 import {
   validatePresetV1,
   validatePresetV2,
@@ -137,6 +138,23 @@ export const stateToString = (
   // restores their tuning untouched.
   output = output.concat(
     getVoicingFilters(state.voicing)
+      .filter(isRenderableFilter)
+      .map(({ frequency, gain, type, quality }) => {
+        filterIndex += 1;
+        const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
+          frequency,
+        )} Hz`;
+        return NO_GAIN_FILTER_TYPES.includes(type)
+          ? `${head} Q ${clampQuality(quality)}`
+          : `${head} Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
+      }),
+  );
+
+  // Driver compensation is its own layer after the voicing, numbered straight
+  // on from it. Same reasoning as the voicing layer: it corrects what the user
+  // is listening ON, not what they tuned, so clearing the EQ leaves it alone.
+  output = output.concat(
+    getDriverFilters(state.driver)
       .filter(isRenderableFilter)
       .map(({ frequency, gain, type, quality }) => {
         filterIndex += 1;

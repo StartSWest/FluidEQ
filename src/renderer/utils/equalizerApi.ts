@@ -686,6 +686,21 @@ export const setVoicing = (
 };
 
 /**
+ * Select the driver-family correction layer.
+ * @param {string} profileId - profile to apply, or '' for none
+ * @param {number} intensity - 0..1 scale over the profile's gains
+ * @returns { Promise<void> } exception if the profile is unknown.
+ */
+export const setDriver = (
+  profileId: string,
+  intensity: number,
+): Promise<void> => {
+  const channel = ChannelEnum.SET_DRIVER;
+  window.electron.ipcRenderer.sendMessage(channel, [profileId, intensity]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
+/**
  * Sets filters to be the corresponding fixed band configuration
  * @param { FixedBandSizeEnum } size - Number of bands in the fixed configuration
  * @returns { Promise<void> } exception if failed

@@ -93,7 +93,6 @@ const PresetsBar = ({
   deletePreset,
 }: IPresetsBarProps) => {
   const {
-    globalError,
     isBlockingError,
     isCaseSensitiveFs,
     performHealthCheck,

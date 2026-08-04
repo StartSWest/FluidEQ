@@ -34,6 +34,7 @@ import {
   IState,
 } from '../../common/constants';
 import { DEFAULT_VOICING, IVoicingSettings } from '../../common/voicing';
+import { DEFAULT_DRIVER, IDriverSettings } from '../../common/driver';
 import {
   ErrorDescription,
   isBlockingError as isBlockingErrorCode,
@@ -83,6 +84,8 @@ export interface IAquaContext extends IState {
   setConvolution: (newValue?: IConvolutionProfile) => void;
   /** Curated target curve written as its own APO layer after the EQ bands. */
   voicing?: IVoicingSettings;
+  driver?: IDriverSettings;
+  setDriver: (newValue: IDriverSettings) => void;
   setVoicing: (newValue: IVoicingSettings) => void;
   /** Filter currently selected in the EQ editor and response graph. */
   selectedFilterId: string;
@@ -199,6 +202,9 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
   const [voicing, setVoicing] = useState<IVoicingSettings>(
     DEFAULT_STATE.voicing ?? DEFAULT_VOICING,
   );
+  const [driver, setDriver] = useState<IDriverSettings>(
+    DEFAULT_STATE.driver ?? DEFAULT_DRIVER,
+  );
   const [convolution, setConvolution] = useState<
     IConvolutionProfile | undefined
   >(DEFAULT_STATE.convolution);
@@ -258,6 +264,7 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
       setPreAmp(state.preAmp);
       setConvolution(state.convolution);
       setVoicing(state.voicing ?? DEFAULT_VOICING);
+      setDriver(state.driver ?? DEFAULT_DRIVER);
       dispatchFilter({ type: FilterActionEnum.INIT, filters: state.filters });
       setGlobalError(undefined);
       setIsCaseSensitiveFs(state.isCaseSensitiveFs);
@@ -298,6 +305,8 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
         convolution,
         setConvolution,
         voicing,
+        driver,
+        setDriver,
         setVoicing,
         selectedFilterId,
         setSelectedFilterId,

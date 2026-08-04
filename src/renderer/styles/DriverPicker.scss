@@ -1,0 +1,154 @@
+@use 'color' as *;
+@use 'theme' as *;
+
+.driver-picker {
+  display: grid;
+  min-width: 0;
+  gap: 10px;
+}
+
+.driver-picker__head {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+// Two lines per row: the name you are looking for, and enough context to know
+// it is the right one without opening a manual.
+.driver-option {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+
+  span {
+    @include truncate;
+    color: rgba($white, 0.92);
+    font-size: 0.76rem;
+    font-weight: 650;
+  }
+
+  small {
+    @include truncate;
+    color: rgba($primary-lighter, 0.6);
+    font-size: 0.64rem;
+  }
+}
+
+.driver-picker__detail {
+  @include inset-surface;
+  display: grid;
+  padding: 12px 14px 14px;
+  gap: 9px;
+
+  label {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    color: rgba($primary-lighter, 0.82);
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  output {
+    color: $secondary-light;
+    font-size: 0.88rem;
+    font-variant-numeric: tabular-nums;
+    font-weight: 800;
+  }
+
+  // Same hand-painted track as the voicing slider, so the two controls that do
+  // the same job feel like the same control.
+  input[type='range'] {
+    --fill: 60%;
+    width: 100%;
+    height: 20px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    cursor: pointer;
+    appearance: none;
+
+    &::-webkit-slider-runnable-track {
+      height: 7px;
+      border-radius: $radius-pill;
+      background:
+        linear-gradient(
+            90deg,
+            rgba($secondary-default, 0.95),
+            rgba($analogous-1, 0.95)
+          )
+          0 / var(--fill) 100% no-repeat,
+        rgba($primary-lighter, 0.16);
+      box-shadow: inset 0 1px 2px rgba(#000, 0.45);
+    }
+
+    &::-webkit-slider-thumb {
+      width: 16px;
+      height: 16px;
+      margin-top: -4.5px;
+      border: 2px solid rgba(#061019, 0.85);
+      border-radius: 50%;
+      background: $secondary-light;
+      box-shadow:
+        0 0 0 1px rgba($secondary-light, 0.5),
+        0 0 12px rgba($secondary-default, 0.6);
+      cursor: grab;
+      appearance: none;
+    }
+
+    &:active::-webkit-slider-thumb {
+      cursor: grabbing;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.5;
+    }
+  }
+}
+
+.driver-picker__filters {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 4px;
+  list-style: none;
+
+  li {
+    display: grid;
+    align-items: baseline;
+    gap: 2px 10px;
+    grid-template-columns: max-content minmax(0, 1fr);
+  }
+
+  code {
+    color: $secondary-light;
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-size: 0.66rem;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+
+  span {
+    color: rgba($primary-lighter, 0.6);
+    font-size: 0.64rem;
+    line-height: 1.35;
+  }
+}
+
+// The limits of the correction, stated where the user is deciding whether to
+// trust it rather than buried in a tooltip.
+.driver-picker__note {
+  margin: 0;
+  color: rgba($primary-lighter, 0.56);
+  font-size: 0.64rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .driver-picker__filters li {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}

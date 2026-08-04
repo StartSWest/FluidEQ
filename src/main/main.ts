@@ -56,6 +56,7 @@ import { resolveHtmlPath, waitForRenderer } from './util';
 import { getConfigPath, isEqualizerAPOInstalled } from './registry';
 import ChannelEnum from '../common/channels';
 import { getVoicingProfile } from '../common/voicing';
+import { getDriverProfile } from '../common/driver';
 import {
   AutoEqFormat,
   FilterTypeEnum,
@@ -1352,6 +1353,30 @@ ipcMain.on(ChannelEnum.SET_VOICING, async (event, arg) => {
 
   // The voicing is a layer of its own, so this never touches state.filters.
   state.voicing = {
+    profileId,
+    intensity: Math.min(1, Math.max(0, intensity)),
+  };
+
+  await handleUpdate(event, channel, false, true);
+});
+
+ipcMain.on(ChannelEnum.SET_DRIVER, async (event, arg) => {
+  const channel = ChannelEnum.SET_DRIVER;
+  const profileId: string = arg[0];
+  const intensity: number = arg[1];
+
+  if (
+    typeof profileId !== 'string' ||
+    (profileId !== '' && !getDriverProfile(profileId)) ||
+    !Number.isFinite(intensity)
+  ) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+
+  // Its own layer, like the voicing: never touches state.filters, so the
+  // user's bands survive switching driver types and switching back.
+  state.driver = {
     profileId,
     intensity: Math.min(1, Math.max(0, intensity)),
   };
