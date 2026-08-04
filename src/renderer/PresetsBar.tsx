@@ -201,6 +201,18 @@ const PresetsBar = ({
       window.removeEventListener('fluideq-presets-changed', fetchPresetNames);
   }, [fetchPresetNames]);
 
+  /**
+   * Clear the name so the next save creates rather than overwrites.
+   *
+   * Deliberately does not touch the EQ: "new profile" here means a new place to
+   * put the sound you have, which is what you almost always want after tuning
+   * something you like. Wiping the bands as well would throw that away.
+   */
+  const handleStartNewProfile = useCallback(async () => {
+    setPresetName('');
+    setNewPresetNameError('');
+  }, []);
+
   // Creating a new preset
   const handleCreateOrSavePreset = useCallback(async () => {
     // Do not create or save a preset if there is no name or if there is an error present
@@ -433,13 +445,28 @@ const PresetsBar = ({
         />
       </div>
       <div className="profile-actions">
+        {/* Starting a new profile is its own action. Without it the only way
+            to create one was to clear the name box by hand, and it was never
+            obvious whether Save would make a new profile or overwrite the
+            attached one — which is a bad thing to be unsure about. */}
         <Button
+          ariaLabel="Start a new profile from the current EQ"
+          className="small subtle"
+          isDisabled={isBlockingError}
+          handleChange={handleStartNewProfile}
+        >
+          New profile
+        </Button>
+        <Button
+          // Stable: the control's identity does not change, only what it will
+          // do to the name currently in the box. Assistive tech should not see
+          // this button rename itself as the user types.
           ariaLabel="Save settings to preset"
           className="small"
           isDisabled={isBlockingError || !presetName || !!newPresetNameError}
           handleChange={handleCreateOrSavePreset}
         >
-          Save current EQ
+          {isExistingPresetSelected ? 'Update profile' : 'Save as new'}
         </Button>
         {/* Every edit auto-saves into the attached profile, so this is the way
             back to the version the user deliberately kept. */}

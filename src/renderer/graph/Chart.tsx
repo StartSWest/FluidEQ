@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { PointerEvent, useMemo, useRef, useState } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
-import { ColorEnum } from '../styles/color';
 import Axis from './Axis';
 import GridLine from './GridLine';
 import { IBalanceProgressRegion } from '../utils/autoBalance';
@@ -268,7 +267,11 @@ const Chart = ({
         scale={yScaleGain}
         tickValues={[0]}
         size={plotWidth}
-        color={ColorEnum.COMPLEMENTARY}
+        // Unity gain is a reference, not a measurement, so it reads as a
+        // brighter grid line rather than as another coloured curve. It was
+        // pink, which put a fourth near-identical magenta on a chart that
+        // already had three.
+        color="rgba(255, 255, 255, 0.78)"
         transform={`translate(${padding.left}, 0)`}
       />
       {/* Smart EQ coverage. Each frequency region lights up as it is actually

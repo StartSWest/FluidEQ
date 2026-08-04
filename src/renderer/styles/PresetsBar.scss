@@ -86,7 +86,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   min-width: 0;
   gap: 6px;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  // Three now: new, save, restore.
+  grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .profile-compose {
