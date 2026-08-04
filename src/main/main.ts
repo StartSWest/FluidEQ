@@ -41,8 +41,11 @@ import fs from 'fs';
 import { exec, execFile } from 'child_process';
 import { createHash } from 'crypto';
 import {
+  addFileToPath,
   checkConfigFile,
+  stateToString,
   fetchSettings,
+  FLUIDEQ_CONFIG_FILENAME,
   save,
   updateConfig,
   savePreset,
@@ -129,6 +132,12 @@ import {
   getConvolutionCatalog,
 } from './convolutionCatalog';
 import { importConvolutionFile, importEqFile } from './importSettings';
+import {
+  adoptBlock,
+  findBlockForDevice,
+  hasChainDrifted,
+  splitConfigBlocks,
+} from '../common/apoSync';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -603,10 +612,114 @@ const doesFilterIdExist = (
   return true;
 };
 
+/**
+ * Believe the Equalizer APO config over our own copy of the state.
+ *
+ * Runs once, before the first flush of the session. The file on disk is what
+ * the user is actually hearing; state.txt is only what FluidEQ last believed,
+ * and the two part company whenever anything else touches the config — a hand
+ * edit, another tool, an APO reinstall, a restore from backup. When they
+ * disagree the file wins.
+ *
+ * Only the audible part is adopted. The voicing and driver layers reach APO as
+ * ordinary `Filter N:` lines with nothing marking them as layers, so reading
+ * them back would turn them into hand-placed bands: the pickers would read
+ * "none" while the sound was unchanged, and the next edit would write both
+ * layers in again on top of their own flattened copies. Their identity stays
+ * where it can be represented, which is the profile.
+ */
+let hasAdoptedExistingConfig = false;
+
+const adoptExistingApoConfig = () => {
+  if (hasAdoptedExistingConfig || !configPath) {
+    return;
+  }
+  hasAdoptedExistingConfig = true;
+
+  try {
+    const filePath = addFileToPath(configPath, FLUIDEQ_CONFIG_FILENAME);
+    if (!fs.existsSync(filePath)) {
+      return;
+    }
+    const blocks = splitConfigBlocks(fs.readFileSync(filePath, 'utf8'));
+    if (blocks.length === 0) {
+      return;
+    }
+
+    // Before any endpoint has been discovered the only block that can be about
+    // this session is the global one, which is the right answer for a machine
+    // with a single output and a harmless one otherwise: the device switch
+    // that follows replaces the state wholesale anyway.
+    const devicePattern =
+      activeAudioDevice?.guid || activeAudioDevice?.name || '';
+    const block = findBlockForDevice(blocks, devicePattern);
+    if (!block) {
+      return;
+    }
+
+    const adopted = adoptBlock(block);
+    if (!adopted) {
+      return;
+    }
+
+    // Compared against what the writer would actually produce, not against the
+    // state fields: the preamp is derived from the whole chain, inert bands are
+    // dropped, and the voicing and driver layers are appended. Comparing the
+    // raw state would report drift on FluidEQ's own output every launch.
+    const expected = stateToString(
+      state,
+      state.convolution?.fileName,
+      block.devicePattern,
+    );
+    if (!hasChainDrifted(expected, adopted)) {
+      // The file says what we would have written. Nothing happened while we
+      // were away.
+      return;
+    }
+
+    console.log(
+      `Adopting the Equalizer APO config for ${block.devicePattern}: it no longer matches the stored state.`,
+    );
+    state.preAmp = adopted.preAmp;
+    state.filters = adopted.filters;
+    state.eqFormat = adopted.eqFormat;
+    state.graphicEq = adopted.graphicEq;
+    // Bands exist, so the chain is not flat whatever the stored flag said.
+    state.isFlat = Object.keys(adopted.filters).length === 0;
+    // The attribution described bands that are no longer these bands.
+    state.headset = undefined;
+
+    if (adopted.convolutionFileName) {
+      // The WAV is still next to the config and still what APO is applying, so
+      // keep it applied. Its catalogue name is not recoverable from the config,
+      // so it is described by the only thing the file actually states.
+      state.convolution = {
+        name:
+          state.convolution?.fileName === adopted.convolutionFileName
+            ? state.convolution.name
+            : adopted.convolutionFileName,
+        filters: state.convolution?.filters ?? {},
+        fileName: adopted.convolutionFileName,
+        sourceId: state.convolution?.sourceId,
+        sourceUrl: state.convolution?.sourceUrl,
+      };
+    } else {
+      state.convolution = undefined;
+    }
+
+    save(state, userDataDir);
+  } catch (error) {
+    // A config we cannot read is not a reason to refuse to start. FluidEQ will
+    // simply write its own over the top, which is the old behaviour.
+    console.warn('Unable to read the existing Equalizer APO config', error);
+  }
+};
+
 ipcMain.on(ChannelEnum.HEALTH_CHECK, async (event) => {
   const channel = ChannelEnum.HEALTH_CHECK;
   const res = await updateConfigPath(event, channel);
   if (res) {
+    adoptExistingApoConfig();
     await handleUpdate(event, channel);
   }
 });
