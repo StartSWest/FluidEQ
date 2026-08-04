@@ -39,25 +39,22 @@ const EUPHORIA_AT = 1;
  * the graph, the titlebar and the creature all light up from one number rather
  * than from copies that could drift.
  */
-const EuphoriaGlow = () => {
-  const run = useRhythmRun();
-  const joy = getStreakJoy(run.streak);
+/**
+ * The audio half, and it only exists while the mode is running.
+ *
+ * Split out for one reason: subscribing to the live frame re-renders the
+ * subscriber about twenty times a second, forever. Kept in the component below
+ * — which is mounted for the whole life of the app — that would have been a
+ * constant twenty-two renders a second of the application shell whether anyone
+ * was playing or not, and this app should cost nothing when nothing is
+ * happening. Mounting it only at the ceiling means the subscription exists
+ * exactly as long as something is using it.
+ */
+const EuphoriaLevel = () => {
   const { waveform } = useLiveAudioFrame();
   const levelRef = useRef(0);
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.style.setProperty('--pet-joy', String(joy));
-    root.classList.toggle('is-euphoric', joy >= EUPHORIA_AT);
-  }, [joy]);
-
-  // The audio, written straight to the property rather than held in state.
-  // This runs about twenty times a second, and re-rendering the application
-  // that often to animate a glow would cost more than the glow is worth.
-  useEffect(() => {
-    if (joy < EUPHORIA_AT) {
-      return;
-    }
     let peak = 0;
     for (let index = 0; index < waveform.length; index += 1) {
       if (waveform[index] > peak) {
@@ -71,23 +68,47 @@ const EuphoriaGlow = () => {
       level > levelRef.current
         ? level
         : levelRef.current + (level - levelRef.current) * 0.2;
+    // Written straight to the property rather than held in state: this runs
+    // about twenty times a second, and re-rendering anything at that rate to
+    // animate a glow would cost more than the glow is worth.
     document.documentElement.style.setProperty(
       '--euphoria-level',
       levelRef.current.toFixed(3),
     );
-  }, [joy, waveform]);
+  }, [waveform]);
+
+  useEffect(
+    () => () => {
+      document.documentElement.style.removeProperty('--euphoria-level');
+    },
+    [],
+  );
+
+  return null;
+};
+
+const EuphoriaGlow = () => {
+  // Only the run. This re-renders when the streak changes and at no other time,
+  // which for most of the app's life is never.
+  const joy = getStreakJoy(useRhythmRun().streak);
+  const isEuphoric = joy >= EUPHORIA_AT;
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.style.setProperty('--pet-joy', String(joy));
+    root.classList.toggle('is-euphoric', joy >= EUPHORIA_AT);
+  }, [joy]);
 
   useEffect(
     () => () => {
       const root = document.documentElement;
       root.classList.remove('is-euphoric');
       root.style.removeProperty('--pet-joy');
-      root.style.removeProperty('--euphoria-level');
     },
     [],
   );
 
-  return null;
+  return isEuphoric ? <EuphoriaLevel /> : null;
 };
 
 export default EuphoriaGlow;
