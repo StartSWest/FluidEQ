@@ -2,72 +2,134 @@
 
 > Your sound. Every device. Automatically.
 
-FluidEQ is a free, open-source system-wide parametric equalizer for Windows. It
-adds a modern workflow on top of [Equalizer APO](https://sourceforge.net/projects/equalizerapo/): create as many named EQ profiles as you need, attach a profile to an audio output, and let FluidEQ keep the right sound with the right device.
+FluidEQ is a free, open-source system-wide parametric equalizer for Windows.
+It puts a modern workflow on top of
+[Equalizer APO](https://sourceforge.net/projects/equalizerapo/): tune once per
+output, and the right sound follows the right device without you touching
+anything again.
 
 ![FluidEQ interface preview](docs/fluid-eq-preview.svg)
 
-## Why FluidEQ
+## What it does
 
-- **Unlimited named profiles** — keep separate tunings for music, movies,
-  gaming, night listening, speakers, headphones, and more.
-- **Automatic device profiles** — assign an EQ to a stable Windows audio
-  endpoint ID. Selecting that output applies its profile automatically.
-- **Up to 128 parametric filters** — low shelf, peak, and high shelf filters
-  with frequency, gain, and Q controls.
-- **AutoEQ built in** — start from community headphone measurements and target
-  curves, then make the sound your own.
-- **Current AutoEQ database** - checks the official source in the background
-  and installs compact, validated database updates only when you choose.
-- **Safer gain management** — Auto Pre-amp can keep the maximum boost at or
-  below 0 dB to reduce clipping.
-- **Real-time response graph** — see the combined curve from 10 Hz to 20 kHz.
-- **Local and account-free** — profiles stay on your computer. No cloud account
-  or proprietary audio driver is required.
+**Follows your output.** Every setting below belongs to the device you tuned it
+on. Plug in your headphones and their tuning comes back; switch to speakers and
+theirs does. FluidEQ maps the stable Windows endpoint ID, not the display name,
+so it survives renames and re-plugs.
+
+**Four layers, one chain.** Each is written as its own stage in the Equalizer
+APO config, in this order:
+
+| Layer         | What it is                                                                                                                                                                                |
+| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Convolution   | A measured impulse response applied before anything else — from the AutoEq catalogue or a WAV of your own.                                                                                |
+| Parametric EQ | Up to 128 bands. Peak, low/high shelf, low/high pass, band pass and notch, each with frequency, gain and Q.                                                                               |
+| Voicing       | Five curated target curves — music, movies, games, speech, late night — with a strength slider.                                                                                           |
+| Driver type   | Twelve compensation profiles for what you are actually listening on: dynamic, planar, balanced armature, electrostatic, bone conduction, the common diaphragm materials, and driver size. |
+
+Everything active is named on the EQ page, so a bump in the graph is never a
+mystery — you can see what put it there and remove it in one click.
+
+**Start from a measurement.** 6,028 headphone models and 8,850 responses ship
+offline from the official AutoEq results. The GadgetryTech Squiglink database is
+available online as a second source. Once applied, FluidEQ remembers which model
+your bands came from and says so.
+
+**Smart EQ.** Measures what is actually coming out of your output and flattens
+what it hears, rather than assuming a target.
+
+**One preamp, computed.** Every layer contributes to a single `Preamp:` line
+derived from the real combined response, so adding a voicing or a convolution
+cannot clip you — and removing one gives the headroom back.
+
+**Import what you already have.** An Equalizer APO ParametricEQ or GraphicEQ
+file, a FluidEQ profile, or any WAV impulse response.
+
+**Ten languages.** English, 简体中文, हिन्दी, Español, Français, Português,
+Русский, 日本語, Deutsch, Italiano. FluidEQ picks yours from Windows on first
+run.
+
+**Local and account-free.** No cloud, no telemetry, no proprietary driver, no
+virtual audio device.
 
 ## How device switching works
 
-FluidEQ discovers Windows render endpoints and stores the stable endpoint GUID,
-not only the display name. It generates one Equalizer APO `Device:` block per
-assignment, so the right profile is already available when Windows changes the
-active output.
+FluidEQ writes one `Device:` block per assigned output into its own config file,
+which Equalizer APO includes. Because APO accumulates every block whose device
+matches, the block for the output you are listening on is the one that applies.
 
 ```text
-Device: {HEADPHONE-ENDPOINT-GUID}
-Include: FluidEQ/profiles/Sony XM5 - Music.txt
+# Neutral fallback for every output without an attached profile.
+Device: all
+Channel: all
 
-Device: {SPEAKER-ENDPOINT-GUID}
-Include: FluidEQ/profiles/Desktop Speakers.txt
+# Headphones -> Sony XM5 · Music
+Device: {HEADPHONE-ENDPOINT-GUID}
+Channel: all
+Preamp: -6.4 dB
+Convolution: fluideq-ir-8f2a1c9b4d70.wav
+Filter 1: ON LSC Fc 105 Hz Gain 5.4 dB Q 0.7
+Filter 2: ON PK Fc 2200 Hz Gain -3.1 dB Q 1.41
 ```
 
-No virtual output device or custom kernel driver is needed.
+No virtual output device and no kernel driver.
 
 ## Getting started
 
-FluidEQ currently targets Windows because Equalizer APO is the audio engine.
+FluidEQ is Windows-only, because Equalizer APO is the audio engine.
 
 1. Install [Equalizer APO](https://sourceforge.net/projects/equalizerapo/).
-2. Open Equalizer APO's Configurator and enable every output you want FluidEQ
-   to manage. Restart Windows if prompted.
-3. Download the latest FluidEQ installer from
-   [Releases](https://github.com/StartSWest/FluidEQ/releases) when builds become
-   available.
-4. Create and save a named preset.
-5. In **Automatic EQ → Device profile**, choose an output and assign the preset.
+2. Run its Configurator and tick every output you want FluidEQ to manage.
+   Reboot if it asks.
+3. Download the installer from
+   [Releases](https://github.com/StartSWest/FluidEQ/releases) and run it.
+4. Pick your output at the top right, then tune.
 
-> FluidEQ is under active early development. Until the first signed release is
-> published, use the development instructions below.
+That is the whole setup. Nothing needs saving — every edit attaches itself to
+the current output automatically. Naming a profile is only needed if you want
+several tunings for the same device.
+
+> The installer is not code-signed yet, so SmartScreen will warn on first run.
+> Choose **More info → Run anyway**, or build it yourself from source below.
+
+## Supporting the work
+
+FluidEQ is free and stays free. Nothing is behind a paywall, nothing is tracked,
+and there is no paid tier waiting in the wings.
+
+**This is one person's work, built with a lot of love and an unreasonable amount
+of attention to detail.** Every panel was drawn by hand and argued over: how the
+response curve reads at a glance, the way a menu unfolds, what a knob does when
+you drag it slowly, which words go on a button, whether a chip should truncate
+its label or its value. Nothing here is a stock component with a theme painted
+on top. The parts you are not supposed to notice are the parts that took the
+longest.
+
+If it earned a place in your setup, a contribution funds the time that keeps it
+maintained and the next ideas out of the same workshop.
+
+<a href="https://buymeacoffee.com/startswest"><img src="assets/support-qr.png" alt="QR code for the FluidEQ Buy Me a Coffee page" width="200" align="left" hspace="20"></a>
+
+**[buymeacoffee.com/startswest](https://buymeacoffee.com/startswest)**
+
+A one-off tip, no account needed. Click the link, or scan the code with your
+phone.
+
+Prefer to contribute time? Issues and pull requests are just as welcome — see
+[CONTRIBUTING.md](CONTRIBUTING.md).
+
+<br clear="left">
 
 ## Development
 
 ### Requirements
 
 - Windows 10 or 11
-- [Node.js](https://nodejs.org/) and pnpm 11
+- [Node.js](https://nodejs.org/) 20+ and pnpm
 - Visual Studio 2022 with **Desktop development with C++**
-- Equalizer APO for real system-audio integration
+- Equalizer APO, for real system-audio integration
 
-### Run the app
+### Run it
 
 ```powershell
 git clone https://github.com/StartSWest/FluidEQ.git
@@ -76,78 +138,65 @@ pnpm install
 pnpm dev
 ```
 
-`pnpm dev` starts the renderer, preload process, and Electron application. On
-non-Windows systems, FluidEQ exposes demonstration audio endpoints so the UI and
-device-assignment workflow can be developed without touching system audio.
+On non-Windows systems FluidEQ exposes two demonstration endpoints, so the UI
+and the device-assignment flow can be worked on without touching system audio.
 
-### Useful commands
+### Commands
 
 ```powershell
-pnpm build
 pnpm test:unit
 pnpm lint
+pnpm build
 pnpm package
 ```
 
-## Current status
+`pnpm package` produces the NSIS installer in `release/build`.
 
-The device-profile foundation is working. The next priorities are a signed
-Windows installer, profile search and organization, import/export, tray access,
-hotkeys, layered EQ, and per-application profiles. See the
-[issue tracker](https://github.com/StartSWest/FluidEQ/issues) to follow or help
-shape the roadmap.
+### Build-time configuration
 
-## Project history and attribution
+Copy `.env.example` to `.env` to set the contribution links. Every value in it
+is inlined into the renderer bundle and is therefore public by construction —
+the file says so at the top, at length, because that is exactly the kind of
+thing people get wrong once.
 
-FluidEQ is a community-maintained derivative of
-[AQUA](https://github.com/h39s/AQUA), originally created by the AQUA Dev Team.
-The original project provided the Electron/React equalizer interface, Equalizer
-APO integration, AutoEQ support, filter controls, preset management, and graph
-visualization. FluidEQ preserves the original Git history, copyright notices,
-and GPL licensing while continuing the project with a new product identity and
-device-aware profile system.
+## Attribution
 
-AutoEQ data and target results are credited to
+FluidEQ is a derivative of [AQUA](https://github.com/h39s/AQUA), created by the
+AQUA Dev Team, which provided the original Electron/React equalizer interface,
+Equalizer APO integration, AutoEQ support, filter controls, preset management
+and graph visualization. FluidEQ keeps the original Git history, the copyright
+notices in every source file, and the GPL licensing, and continues the project
+under a new identity with a device-aware profile system. It is not presented as
+an official continuation and is not endorsed by the AQUA maintainers.
+
+AutoEq data and targets are credited to
 [Jaakko Pasanen](https://github.com/jaakkopasanen/AutoEq) and
-[Ian Walton](https://github.com/iwalton3/AutoEq). Equalizer APO is a separate
-GPL-licensed project by Jonas Thedering.
+[Ian Walton](https://github.com/iwalton3/AutoEq). The bundled library is the
+official AutoEq results snapshot at commit
+`7ae0f56d53074872b028649617a22bbb4232feb7`; maintainers can refresh it with
+`pnpm autoeq:update` and validate every generated filter with
+`pnpm test:autoeq`.
 
-The bundled offline AutoEq library currently contains 6,028 headphone models
-and 8,850 parametric responses from the official AutoEq results snapshot at
-commit `7ae0f56d53074872b028649617a22bbb4232feb7`. Response names retain both the
-measurement source and rig so similarly named measurements are not mixed.
-Maintainers can refresh the snapshot with `pnpm autoeq:update` and validate
-every generated filter with `pnpm test:autoeq`.
+The optional **GadgetryTech / Squiglink** source stays separate from the offline
+library. FluidEQ reads their public `phone_book.json` and REW measurements on
+demand and fits the selected response into PEQ filters locally. Nothing from it
+is bundled or republished by the installer; it is cached in the user data
+directory only, and the attribution link stays visible in the app.
 
-The optional **Squiglink / GadgetryTech** source is kept separate from the
-offline library. When selected in the app, FluidEQ reads the public
-`phone_book.json` and REW text measurements from
-[GadgetryTech's Squiglink headphone database](https://gadgetrytech.squig.link/headsets/)
-and fits the selected response locally into PEQ filters. The measurements are
-not bundled or republished by the installer; FluidEQ caches them only in the
-user data directory for offline continuity and keeps the source attribution
-link visible in the UI.
+Equalizer APO is a separate GPL-licensed project by Jonas Thedering.
 
-FluidEQ is not affiliated with or endorsed by Dolby Laboratories. Dolby, Dolby
-Access, and Dolby Atmos are trademarks of their respective owner.
+FluidEQ is not affiliated with or endorsed by Dolby Laboratories.
 
-See [NOTICE.md](NOTICE.md) for the complete derivative-work notice.
-
-## Contributing
-
-Bug reports, feature ideas, documentation improvements, tests, and code are
-welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull
-request.
+See [NOTICE.md](NOTICE.md) for the full derivative-work notice.
 
 ## License
 
-FluidEQ is free software licensed under the
-[GNU General Public License v3.0 or later](LICENSE), matching the license of the
-upstream AQUA project.
+FluidEQ is free software under the
+[GNU General Public License v3.0 or later](LICENSE), matching upstream AQUA.
 
 Copyright © 2023 AQUA Dev Team<br>
 FluidEQ modifications copyright © 2026 FluidEQ contributors
 
-You may use, study, modify, and redistribute this software under the GPL, but a
-distributed modified version must also provide its corresponding source code
+You may use, study, modify and redistribute this software under the GPL. A
+distributed modified version must also make its corresponding source available
 under the same license. This summary is not a substitute for the license text.
