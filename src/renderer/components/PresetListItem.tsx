@@ -23,6 +23,8 @@ import TextInput from 'renderer/widgets/TextInput';
 
 interface IPresetListItemProps {
   value: string;
+  /** True when this is the profile the live output is playing through. */
+  isAttached?: boolean;
   handleRename: (newValue: string) => void;
   handleDelete: () => void;
   isDisabled: boolean;
@@ -31,6 +33,7 @@ interface IPresetListItemProps {
 
 const PresetListItem = ({
   value,
+  isAttached = false,
   handleRename,
   handleDelete,
   isDisabled,
@@ -69,36 +72,45 @@ const PresetListItem = ({
   // Close edit mode if the user clicks outside of the input
   useMouseDownOutside<HTMLInputElement>(editValueRef, handleEscape);
 
+  if (isEditMode) {
+    return (
+      <TextInput
+        ref={editValueRef}
+        value={value}
+        ariaLabel="Edit Preset Name"
+        isDisabled={false}
+        errorMessage={errorMessage}
+        handleSubmit={handleInputChange}
+        handleEscape={handleEscape}
+        formatInput={formatPresetName}
+      />
+    );
+  }
+
   return (
     <>
-      {isEditMode ? (
-        <TextInput
-          ref={editValueRef}
-          value={value}
-          ariaLabel="Edit Preset Name"
-          isDisabled={false}
-          errorMessage={errorMessage}
-          handleSubmit={handleInputChange}
-          handleEscape={handleEscape}
-          formatInput={formatPresetName}
+      {/* Which profile is live is not otherwise visible now that the list
+          shows the whole catalogue rather than only the attached one. */}
+      <div className="preset-name">
+        <span>{value}</span>
+        {isAttached && (
+          <span className="preset-attached" title="Playing on this output">
+            ON
+          </span>
+        )}
+      </div>
+      <div className="row icons">
+        <IconButton
+          icon={IconName.EDIT}
+          handleClick={handleEditClicked}
+          isDisabled={isDisabled}
         />
-      ) : (
-        <>
-          <div className="preset-name">{value}</div>
-          <div className="row icons">
-            <IconButton
-              icon={IconName.EDIT}
-              handleClick={handleEditClicked}
-              isDisabled={isDisabled}
-            />
-            <IconButton
-              icon={IconName.DELETE}
-              handleClick={handleDeleteClicked}
-              isDisabled={isDisabled}
-            />
-          </div>
-        </>
-      )}
+        <IconButton
+          icon={IconName.DELETE}
+          handleClick={handleDeleteClicked}
+          isDisabled={isDisabled}
+        />
+      </div>
     </>
   );
 };

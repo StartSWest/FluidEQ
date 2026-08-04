@@ -605,32 +605,33 @@ select option {
 
 // *** Workspace shell ********************************************************
 
+// The document is the scroll surface, and the only one. Everything below sizes
+// itself from its content: nothing has to fit the window, so a long profile
+// list is a longer page rather than a squeezed panel.
 #root {
   width: 100%;
   height: 100vh;
   padding-top: $title-bar-height;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .app-workspace {
   display: grid;
   width: 100%;
-  height: 100%;
+  // Fills a short page so the shell never floats above empty background, but
+  // is free to grow past the window — #root takes the scroll.
+  min-height: 100%;
   padding: 16px 16px 18px;
   gap: 12px;
-  // The workspace is the only vertical scroll surface. Everything else sizes
-  // itself from its content so a panel can never clip its own controls.
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
+  overflow: visible;
 
   grid-template-areas: 'side-bar center-workspace right-content';
   grid-template-columns: 164px minmax(0, 1fr) minmax(280px, 330px);
-  // Exactly one viewport-tall row. Panels that manage their own scrolling
-  // (the convolution catalogue, the profile list) stay inside it; the EQ
-  // editor declares `min-height: min-content` and overflows it instead, which
-  // is what makes this container — and only then — grow a scrollbar.
-  grid-template-rows: minmax(0, 1fr);
+  // Content-sized. The tallest column sets the row and the page scrolls to it;
+  // no panel is compressed on behalf of another.
+  grid-template-rows: minmax(min-content, 1fr);
   align-content: start;
 }
 
@@ -658,20 +659,20 @@ select option {
   min-width: 0;
 }
 
-// The workspace and the response graph split the column evenly.
+// Takes whatever it needs. The graph below it has a height of its own now, so
+// there is no half-and-half split to negotiate: if the editor is tall, the
+// page is tall.
 .middle-content {
   display: flex;
   min-width: 0;
   // The convolution catalogue scrolls inside its own list, so this column is
   // free to shrink to the viewport there.
   min-height: 0;
-  flex: 1 1 50%;
+  flex: 1 1 auto;
   flex-direction: column;
 }
 
 // The EQ editor is the exception: it is never compressed below what it needs.
-// Whatever it does not use goes to the graph, and if it needs more than its
-// half the graph gives ground first.
 .middle-content:has(> .workspace-tab-panel--eq) {
   min-height: min-content;
 }
@@ -795,8 +796,12 @@ $tab-border: rgba($secondary-light, 0.2);
   }
 }
 
-// The catalogue manages its own internal scrolling, so this panel may shrink.
+// Both panels this hosts — voicing and convolution — scroll inside themselves,
+// which needs a height to scroll within. Their parent sizes to content now, so
+// that height has to be stated here or the catalogue would render at full
+// length and drag the page down with it.
 .workspace-tab-panel--convolution {
+  height: max(460px, calc(100vh - #{$title-bar-height} - 130px));
   min-height: 0;
   overflow: hidden;
 
@@ -846,10 +851,12 @@ $tab-border: rgba($secondary-light, 0.2);
   // Every section is content-sized and the column starts at the top. Giving
   // the last one 1fr stretched it over all the leftover height, so a collapsed
   // profiles section became a tall empty box with its header floating in the
-  // middle. The profile list bounds and scrolls itself instead.
+  // middle.
   grid-template-rows: repeat(3, max-content);
   align-content: start;
-  overflow: hidden;
+  // Not clipped: the column is allowed to be taller than the window now, and
+  // its dropdown menus are allowed to escape the card.
+  overflow: visible;
 }
 
 // *** Response graph *********************************************************
@@ -857,10 +864,11 @@ $tab-border: rgba($secondary-light, 0.2);
 .graph-wrapper {
   position: relative;
   width: 100%;
-  // Claims the other half of the column, and gives ground first when the EQ
-  // editor needs more room than its share.
-  min-height: 160px;
-  flex: 1 1 50%;
+  // A height of its own rather than a share of whatever the editor left over.
+  // Splitting the column meant a short window shrank the chart to a sliver;
+  // now it keeps a readable size and the page scrolls instead.
+  height: clamp(300px, 38vh, 520px);
+  flex: 0 0 auto;
   border: 1px solid rgba($primary-lighter, 0.1);
   border-radius: $radius-xl;
   background:
@@ -1095,14 +1103,13 @@ $tab-border: rgba($secondary-light, 0.2);
 
   .right-content {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    overflow: visible;
   }
 
-  // Stacked shell: rows are content-sized, so the graph takes a fixed slice
-  // rather than half of an undefined height.
+  // A narrow window is usually a short one too, and this is where the chart
+  // was least readable. It gets more room than before, not less — the page
+  // scrolls to cover it.
   .graph-wrapper {
-    height: clamp(200px, 32vh, 320px);
-    flex: 0 0 auto;
+    height: clamp(280px, 42vh, 460px);
   }
 }
 
@@ -1182,10 +1189,6 @@ $tab-border: rgba($secondary-light, 0.2);
   }
 }
 
-// Short windows: cap the graph so the even split cannot starve the editor
-// before its `min-content` floor kicks in.
-@media (max-height: 860px) {
-  .graph-wrapper {
-    max-height: 240px;
-  }
-}
+// Short windows used to cap the graph at 240px so the even split could not
+// starve the EQ editor. There is no split any more and no fixed page height to
+// ration, so the cap only made the chart harder to read. Deliberately absent.

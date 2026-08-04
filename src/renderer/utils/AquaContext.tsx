@@ -32,6 +32,7 @@ import {
   IFiltersMap,
   IConvolutionProfile,
   IState,
+  OUTPUT_STATE_CHANGED_EVENT,
 } from '../../common/constants';
 import { DEFAULT_VOICING, IVoicingSettings } from '../../common/voicing';
 import { DEFAULT_DRIVER, IDriverSettings } from '../../common/driver';
@@ -282,6 +283,26 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
   useEffect(() => {
     performHealthCheck();
   }, [performHealthCheck]);
+
+  // The main process owns the switch: it notices Windows changing endpoint,
+  // loads that output's profile and then says so. Everything on screen — bands,
+  // preamp, voicing, driver correction, convolution — is a property of the
+  // output it was tuned on, so all of it is re-read here rather than each panel
+  // being left to work out that it is now showing the wrong device.
+  useEffect(() => {
+    const unsubscribe = window.electron.ipcRenderer.on(
+      OUTPUT_STATE_CHANGED_EVENT,
+      () => {
+        refreshState();
+        // The profile card and the output picker key off this to re-read which
+        // profile is attached where.
+        window.dispatchEvent(new CustomEvent('fluideq-output-changed'));
+      },
+    );
+    return () => {
+      unsubscribe();
+    };
+  }, [refreshState]);
 
   return (
     <AquaProviderWrapper

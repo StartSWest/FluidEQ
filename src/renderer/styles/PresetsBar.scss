@@ -29,9 +29,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   padding: 0;
   gap: 6px;
-  // Lede, compose row, buttons. The list moved into the section summary so it
-  // survives collapsing, and it owns its own scrolling there.
-  grid-template-rows: repeat(3, min-content);
+  // Compose row and buttons. The list moved into the section summary so it
+  // survives collapsing, and it owns its own scrolling there — which also put
+  // the old lede paragraph underneath the list it was introducing, so it went.
+  grid-template-rows: repeat(2, min-content);
   justify-items: stretch;
   overflow: hidden;
   background:
@@ -98,14 +99,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 100%;
   min-width: 0;
   min-height: 0;
-  max-height: min(38vh, 300px);
+  // Generous now that the page scrolls: the point of naming profiles is
+  // switching between them, which needs enough of them on screen to pick
+  // from. The cap only exists so a long catalogue does not push the buttons
+  // below it out of reach.
+  max-height: min(52vh, 420px);
   border-radius: $radius-l;
   overflow: hidden;
   backdrop-filter: none;
 
   .list {
     min-height: 0;
-    max-height: min(38vh, 300px);
+    max-height: min(52vh, 420px);
     overflow-y: auto;
     @include slim-scrollbar(7px);
   }
@@ -122,8 +127,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   column-gap: $spacing-s;
   overflow: hidden;
 
+  // Name and badge share the flexible column, and only the name shortens.
   .preset-name {
-    @include truncate;
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 6px;
+
+    > span:first-child {
+      @include truncate;
+    }
+  }
+
+  .preset-attached {
+    flex: 0 0 auto;
+    padding: 2px 6px;
+    color: $primary-dark;
+    border-radius: $radius-pill;
+    background: $analogous-2;
+    font-size: 0.54rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
   }
 
   // Revealed on hover/focus so the row stays calm at rest. `visibility`
@@ -190,13 +214,4 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .profile-actions__restore {
   grid-area: restore;
-}
-
-// The old heading block styled this; it lost its sizing when the title moved
-// into the shared section header.
-.presets-bar__lede {
-  margin: 0;
-  color: rgba($primary-lighter, 0.68);
-  font-size: 0.7rem;
-  line-height: 1.45;
 }

@@ -62,6 +62,15 @@ export const MIN_NUM_FILTERS = 1;
 // picker but keep the tuning persistent across restarts.
 export const AUTOMATIC_PRESET_PREFIX = '.fluideq-auto-';
 
+/**
+ * Main tells the renderer that the live state now belongs to another output.
+ *
+ * Sent whenever the active endpoint changes and its profile has been loaded.
+ * Bands, preamp, voicing, driver correction and convolution are all properties
+ * of the output they were tuned on, so the renderer re-reads all of them.
+ */
+export const OUTPUT_STATE_CHANGED_EVENT = 'output-state-changed';
+
 // Need to use LPQ and HPQ to allow users to adjust quality for low/high pass filters
 // Need to use LSC and HSC to allow users to adjust quality for low/high shelf filters
 export enum FilterTypeEnum {

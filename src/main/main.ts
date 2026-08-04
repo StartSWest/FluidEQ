@@ -86,6 +86,7 @@ import {
   IDeviceProfileSettings,
   IAutoEqUpdateStatus,
   AUTOMATIC_PRESET_PREFIX,
+  OUTPUT_STATE_CHANGED_EVENT,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
 import {
@@ -145,6 +146,24 @@ export default class AppUpdater {
 let mainWindow: BrowserWindow | null = null;
 
 const DATABASES_SYNCED_EVENT = 'databases-synced';
+
+/**
+ * Tell the renderer the state now belongs to a different profile.
+ *
+ * Pushed rather than polled. The renderer holds its own copy of the EQ, the
+ * voicing, the driver correction and the convolution, and every one of those
+ * belongs to the output it was tuned on — so when Windows (or the user) moves
+ * to another endpoint, the panels have to be told to re-read, not left showing
+ * the previous device's settings until something else happens to refresh them.
+ */
+const notifyOutputStateChanged = () => {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    return;
+  }
+  mainWindow.webContents.send(OUTPUT_STATE_CHANGED_EVENT, {
+    deviceId: activeAudioDeviceId,
+  });
+};
 
 const syncDatabasesOnStartup = async () => {
   const [autoeqResult, squiglinkResult] = await Promise.allSettled([
@@ -331,14 +350,17 @@ const isAutomaticPresetName = (presetName: string) =>
  * engine back on for anyone who had switched it off, simply because Windows
  * changed the default output.
  */
+/**
+ * Swap the live state over to what a different output is tuned to.
+ *
+ * Everything a profile can carry moves — bands, preamp, voicing, driver
+ * correction, convolution — because all of it was chosen for the headphones or
+ * speakers on that endpoint and means nothing on another one. Only the three
+ * app-wide preferences below stay put: whether the engine is on, whether the
+ * graph is showing, and what the filesystem is like.
+ */
 const applyDeviceState = (next: IState) => {
-  const {
-    isEnabled,
-    isAutoPreAmpOn,
-    isGraphViewOn,
-    isCaseSensitiveFs,
-    ...deviceState
-  } = next;
+  const { isEnabled, isGraphViewOn, isCaseSensitiveFs, ...deviceState } = next;
   Object.assign(state, deviceState);
 };
 
@@ -807,6 +829,11 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
           error,
         );
       }
+
+      // Last, and outside the try: the config write can fail without making the
+      // swap any less real, and the panels must never be left describing the
+      // output the user just moved away from.
+      notifyOutputStateChanged();
     }
     const reply: TSuccess<IAudioDevice[]> = { result: devices };
     event.reply(channel, reply);
@@ -840,6 +867,7 @@ ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
   hasActiveSessionOverride = false;
   applyDeviceState(nextState);
   await handleUpdate(event, channel);
+  notifyOutputStateChanged();
 });
 
 ipcMain.on(ChannelEnum.GET_DEVICE_PROFILE_SETTINGS, async (event) => {

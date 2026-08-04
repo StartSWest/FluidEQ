@@ -82,6 +82,23 @@ describe('per-device state isolation', () => {
         },
       }),
     );
+    // Hand-set preamp: the one profile that has opted out of auto normalize.
+    fs.writeFileSync(
+      path.join(presetsDir, 'manual'),
+      JSON.stringify({
+        preAmp: -3,
+        isAutoPreAmpOn: false,
+        filters: {
+          c: {
+            id: 'c',
+            frequency: 2000,
+            gain: 2,
+            quality: 1,
+            type: FilterTypeEnum.PK,
+          },
+        },
+      }),
+    );
   });
 
   afterEach(() => {
@@ -103,7 +120,26 @@ describe('per-device state isolation', () => {
         deviceGuid: GUID,
         presetName: 'bare',
       },
+      manual: {
+        deviceId: 'manual',
+        deviceName: 'Manual',
+        deviceGuid: '{MANUAL}',
+        presetName: 'manual',
+      },
     },
+  };
+
+  /**
+   * What main does on an output switch, minus the electron.
+   *
+   * applyDeviceState keeps exactly three things: whether the engine is on,
+   * whether the graph is showing, and what the filesystem is like. Everything
+   * else was chosen for a particular pair of headphones and travels with them.
+   */
+  const switchTo = (live: ReturnType<typeof getDefaultState>, id: string) => {
+    const { isEnabled, isGraphViewOn, isCaseSensitiveFs, ...deviceState } =
+      getStateForAudioDevice(settings, id, presetsDir);
+    Object.assign(live, deviceState);
   };
 
   it('states every optional field so an assign can clear it', () => {
@@ -133,6 +169,46 @@ describe('per-device state isolation', () => {
     expect(live.driver).toBeUndefined();
     expect(live.convolution).toBeUndefined();
     expect(live.preAmp).toBe(0);
+  });
+
+  it('carries every tuned layer across an output switch', () => {
+    // The whole point of the feature: what you set up on one pair of
+    // headphones comes back when you plug them in again, and does not follow
+    // you to the speakers in the meantime.
+    const live = getDefaultState();
+
+    switchTo(live, 'full');
+    expect(live.voicing?.profileId).toBe('music');
+    expect(live.driver?.profileId).toBe('balanced-armature-iem');
+    expect(live.convolution?.name).toBe('Some HRTF');
+    expect(live.filters.a.gain).toBe(4);
+
+    switchTo(live, 'bare');
+    expect(live.voicing).toBeUndefined();
+    expect(live.driver).toBeUndefined();
+    expect(live.convolution).toBeUndefined();
+    expect(live.filters.a).toBeUndefined();
+
+    // And back again, unchanged.
+    switchTo(live, 'full');
+    expect(live.voicing?.profileId).toBe('music');
+    expect(live.driver?.profileId).toBe('balanced-armature-iem');
+    expect(live.convolution?.name).toBe('Some HRTF');
+  });
+
+  it('makes the auto preamp preference part of the profile', () => {
+    // Otherwise a hand-set preamp on one output silently turns normalisation
+    // off for every other one, and the next auto-save writes that in.
+    const live = getDefaultState();
+
+    switchTo(live, 'manual');
+    expect(live.isAutoPreAmpOn).toBe(false);
+    expect(live.preAmp).toBe(-3);
+
+    // A profile predating the flag means automatic, not "whatever the last
+    // device was set to".
+    switchTo(live, 'bare');
+    expect(live.isAutoPreAmpOn).toBe(true);
   });
 
   it('falls back cleanly for a device with no profile at all', () => {

@@ -39,6 +39,9 @@ import {
   restorePresetBaseline,
 } from './utils/equalizerApi';
 
+/** Name given to a profile created by the New profile button. */
+const UNTITLED_PROFILE_PREFIX = 'Untitled profile';
+
 export enum PresetErrorEnum {
   EMPTY = 'Preset name cannot be empty.',
   RESTRICTED = 'Invalid preset name, please use another.',
@@ -167,36 +170,45 @@ const PresetsBar = ({
     ? deviceAssignments[activeDeviceId]?.presetName || ''
     : '';
   const visiblePresetNames = useMemo(() => {
-    // Nothing is scoped to an output we have not identified yet. Showing the
-    // whole catalogue here made the list flash every profile in the app for a
-    // frame before collapsing to the one that belongs to this device.
+    // Nothing is shown until we know which output is live. Rendering during
+    // that first frame made the list flash its contents and then rearrange,
+    // which is worse than a moment of "Detecting your output…".
     if (!hasResolvedOutput) {
       return [];
     }
-    if (!assignedPresetForOutput) {
-      // No endpoint at all (enumeration unavailable or refused) is the one case
-      // where the unscoped catalogue is still the most useful thing to show —
-      // otherwise the profile list would be permanently empty.
-      return activeDeviceId ? [] : presetNames;
-    }
     // Automatic profiles are FluidEQ's own bookkeeping — a hashed filename the
     // user never chose and cannot meaningfully rename or delete. Listing one as
-    // if it were a saved profile is just leaking an implementation detail into
-    // the UI, so the list stays empty until they name something themselves.
-    if (assignedPresetForOutput.startsWith(AUTOMATIC_PRESET_PREFIX)) {
-      return [];
-    }
-    // The device assignment is authoritative while the file-list IPC call is
-    // catching up during startup. This prevents the profile card from being
-    // empty until the user creates another profile.
-    return [assignedPresetForOutput];
-  }, [activeDeviceId, assignedPresetForOutput, hasResolvedOutput, presetNames]);
-
-  useEffect(() => {
-    setPresetName((current) =>
-      visiblePresetNames.includes(current) ? current : '',
+    // if it were a saved profile just leaks an implementation detail.
+    const named = presetNames.filter(
+      (name) => !name.startsWith(AUTOMATIC_PRESET_PREFIX),
     );
-  }, [visiblePresetNames]);
+    // Every named profile, not only the attached one. Scoping the list to the
+    // current output made it a one-row readout of something the card already
+    // states, and left no way to switch to another profile or even see that
+    // the one you just created exists.
+    if (
+      assignedPresetForOutput &&
+      !assignedPresetForOutput.startsWith(AUTOMATIC_PRESET_PREFIX) &&
+      !named.includes(assignedPresetForOutput)
+    ) {
+      // The device assignment is authoritative while the file-list IPC call is
+      // still catching up during startup.
+      return [...named, assignedPresetForOutput].sort();
+    }
+    return named;
+  }, [assignedPresetForOutput, hasResolvedOutput, presetNames]);
+
+  // Follow the output: switching device shows the profile that device plays
+  // through. Keyed on the assignment alone, so a background refresh can never
+  // overwrite a name the user is in the middle of typing.
+  useEffect(() => {
+    if (
+      assignedPresetForOutput &&
+      !assignedPresetForOutput.startsWith(AUTOMATIC_PRESET_PREFIX)
+    ) {
+      setPresetName(assignedPresetForOutput);
+    }
+  }, [assignedPresetForOutput]);
 
   const isExistingPresetSelected = useMemo(
     () =>
@@ -221,9 +233,37 @@ const PresetsBar = ({
    * something you like. Wiping the bands as well would throw that away.
    */
   const handleStartNewProfile = useCallback(async () => {
-    setPresetName('');
+    // Numbered against the whole catalogue, not the visible list. The list is
+    // scoped to this output, so counting only what is on screen would hand out
+    // "Untitled profile 1" again for a name that already exists elsewhere and
+    // silently overwrite it.
+    const taken = new Set(presetNames);
+    let index = 1;
+    while (taken.has(`${UNTITLED_PROFILE_PREFIX} ${index}`)) {
+      index += 1;
+    }
+    const name = `${UNTITLED_PROFILE_PREFIX} ${index}`;
+
     setNewPresetNameError('');
-  }, []);
+    try {
+      // Created for real, not just typed into the box. A button called "New
+      // profile" that only clears a text field leaves you unsure whether you
+      // have one until you press something else.
+      await savePreset(name);
+      dispatchPresetNames({ type: PresetActionEnum.CREATE, presetName: name });
+      await refreshOutputProfiles();
+      setPresetName(name);
+      performHealthCheck();
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  }, [
+    presetNames,
+    savePreset,
+    refreshOutputProfiles,
+    performHealthCheck,
+    setGlobalError,
+  ]);
 
   // Creating a new preset
   const handleCreateOrSavePreset = useCallback(async () => {
@@ -421,6 +461,7 @@ const PresetsBar = ({
         display: (
           <PresetListItem
             value={n}
+            isAttached={n === assignedPresetForOutput}
             handleRename={handleRenameExistingPresetName(n)}
             handleDelete={handleDeletePreset(n)}
             isDisabled={isBlockingError}
@@ -430,6 +471,7 @@ const PresetsBar = ({
       };
     });
   }, [
+    assignedPresetForOutput,
     validatePresetRename,
     isBlockingError,
     handleDeletePreset,
@@ -450,21 +492,15 @@ const PresetsBar = ({
           value={presetName}
           handleChange={handleChangeSelectedPreset}
           isDisabled={isBlockingError}
-          emptyOptionsPlaceholder={(() => {
-            if (!hasResolvedOutput) {
-              return 'Detecting your output…';
-            }
-            return activeDeviceId
-              ? 'No profile attached to this output.'
-              : 'No profiles yet. Create your first sound.';
-          })()}
+          emptyOptionsPlaceholder={
+            hasResolvedOutput
+              ? 'No profiles yet. Create your first sound.'
+              : 'Detecting your output…'
+          }
         />
       }
     >
       <div className="presets-bar">
-        <p className="presets-bar__lede">
-          Save unlimited tunings and attach any one to an output.
-        </p>
         <div className="profile-compose">
           <div className="preset-name">Profile name</div>
           <TextInput
