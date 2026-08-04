@@ -51,22 +51,32 @@ export const getSpectralFlux = (
 };
 
 /**
- * How hard the trace is allowed to be driven by its own noise floor.
- *
- * Without this, a running maximum decaying toward zero in a quiet room ends up
- * normalising room tone to full scale, and the player is handed a frantic trace
- * of nothing at all.
+ * Below this there is nothing playing worth measuring, and dividing by it would
+ * turn room tone into a full-scale trace.
  */
-const SILENCE_FLOOR = 1e-4;
+const SILENCE_FLOOR = 0.5;
 
-/** How fast the reference level forgets a loud passage. */
-const PEAK_DECAY = 0.995;
+/**
+ * How many recent frames the running average covers.
+ *
+ * Roughly a second and a half at this frame rate. Long enough to average over a
+ * bar or so, short enough to follow a track getting louder.
+ */
+const MEAN_WINDOW = 32;
 
 export interface IPercussionState {
   /** Bins from the previous frame, for the next difference. */
   previous: readonly number[];
-  /** Running reference the raw flux is scaled against. */
-  reference: number;
+  /**
+   * Recent raw flux values, for the running average.
+   *
+   * The average is the whole basis of the detector. Music changes constantly,
+   * so flux is never near zero even between hits — normalising against a
+   * running maximum, which is what this did first, cannot tell a hit from the
+   * floor it sits on. A hit is flux standing well ABOVE its own recent
+   * average, and that is what gets measured.
+   */
+  recentFlux: readonly number[];
   /** Smoothed level, which is what gets drawn. */
   level: number;
   /** Newest last. Bounded — this runs for as long as the dialog is open. */
@@ -84,21 +94,30 @@ export interface IPercussionSample {
 
 export const createPercussionState = (): IPercussionState => ({
   previous: [],
-  reference: 0,
+  recentFlux: [],
   level: 0,
   history: [],
   lastPeakMs: -Infinity,
 });
 
 /**
- * A hit has to clear this share of the running reference to count.
+ * How far above its own recent average the flux must stand to be a hit.
  *
- * Set high on purpose. A low threshold finds every hi-hat, every string
+ * Set high on purpose. Just above average finds every hi-hat, every string
  * squeak and every consonant, and a trace with nine spikes a second is not
  * something anyone can play — it is noise with a score attached. What is wanted
  * is the pulse you would tap your foot to, so only the loud transients qualify.
  */
-const PEAK_THRESHOLD = 0.55;
+const PEAK_RATIO = 1.7;
+
+/**
+ * How far above average counts as full height on the drawn line.
+ *
+ * Lower than the peak ratio, so ordinary playing still moves the trace and the
+ * player can see the music breathing between the hits they are aiming at. A
+ * line that only moves on a scoring hit gives no sense of the song at all.
+ */
+const DRAW_RATIO = 1.2;
 
 /**
  * The shortest gap between two hits that can both count.
@@ -142,14 +161,19 @@ export const pushPercussionFrame = (
     ? getSpectralFlux(bins, state.previous)
     : 0;
 
-  // Instant attack, slow release. The reference has to jump to a new loud
-  // passage immediately or the first few hits of a chorus all clip to 1, and it
-  // has to come down slowly or a single crash swallows the next ten seconds.
-  const reference = Math.max(flux, state.reference * PEAK_DECAY);
-  const raw = reference > SILENCE_FLOOR ? Math.min(1, flux / reference) : 0;
+  const recentFlux = [...state.recentFlux, flux].slice(-MEAN_WINDOW);
+  const mean =
+    recentFlux.reduce((total, value) => total + value, 0) / recentFlux.length;
 
-  // Smoothed for the eye, raw for the decision. Peak picking has to run on the
-  // unsmoothed value or the envelope's own tail re-triggers as the next hit,
+  // How far this frame stands above the recent average, as a ratio. 1 is
+  // ordinary, well over 1 is something happening. The average is what makes
+  // this work at any volume: turn the music up and both flux and mean rise
+  // together, so the ratio — and every threshold below — is unchanged.
+  const ratio = mean > SILENCE_FLOOR ? flux / mean : 0;
+  const raw = Math.max(0, Math.min(1, (ratio - 1) / (DRAW_RATIO - 1 + 1e-9)));
+
+  // Smoothed for the eye, unsmoothed for the decision. Peak picking has to run
+  // on the raw ratio or the envelope's own tail re-triggers as the next hit,
   // and every beat would arrive as a pair.
   const level =
     raw > state.level
@@ -157,7 +181,7 @@ export const pushPercussionFrame = (
       : state.level + (raw - state.level) * ENVELOPE_RELEASE;
 
   const sincePeak = timeMs - state.lastPeakMs;
-  const isPeak = raw >= PEAK_THRESHOLD && sincePeak >= REFRACTORY_MS;
+  const isPeak = ratio >= PEAK_RATIO && sincePeak >= REFRACTORY_MS;
 
   const history = [...state.history, { timeMs, level, isPeak }].filter(
     (sample) => timeMs - sample.timeMs <= options.windowMs,
@@ -165,7 +189,7 @@ export const pushPercussionFrame = (
 
   return {
     previous: bins,
-    reference,
+    recentFlux,
     level,
     history,
     lastPeakMs: isPeak ? timeMs : state.lastPeakMs,
