@@ -182,3 +182,11 @@ it under the terms of the GNU General Public License version 3 or later.
     box-shadow: 0 0 10px rgba($secondary-default, 0.8);
   }
 }
+
+// Label and status on one line, so the badge sits with what it describes.
+.device-profiles__label--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}

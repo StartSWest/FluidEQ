@@ -24,13 +24,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * these three actions are easy to confuse and a picture alone would not say
  * which one overwrites your tuning.
  */
+/**
+ * Deliberately simple shapes.
+ *
+ * These render at 14px next to a label. The first attempt used a page-with-a-
+ * plus and a floppy disk, and at that size their internal detail collapsed
+ * into grey mush — a glyph you cannot resolve is worse than no glyph, because
+ * it still takes the space. Each of these is a handful of strokes that survive
+ * being drawn a quarter of an inch wide.
+ */
 const PATHS: Record<string, string> = {
-  // Page with a plus: somewhere new to put this sound.
-  new: 'M13 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-9M13 3l6 7M13 3v6a1 1 0 0 0 1 1h5M9 15h6M12 12v6',
-  // Floppy: save to the profile.
-  save: 'M5 3h11l3 3v13a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zM8 3v6h7V3M8 21v-6h8v6',
+  // Plus in a circle.
+  new: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8.5v7M8.5 12h7',
+  // Arrow into a tray: commit this downward, into storage.
+  save: 'M12 4v9m0 0 3.5-3.5M12 13 8.5 9.5M5 15v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3',
   // Anticlockwise arrow: back to the copy you kept.
-  restore: 'M4 10a8 8 0 1 1 1.5 6M4 5v5h5',
+  restore: 'M5 11a7 7 0 1 1 2 5M5 6v5h5',
 };
 
 interface IProfileActionIconProps {

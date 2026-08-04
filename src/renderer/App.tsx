@@ -32,6 +32,7 @@ import PresetsBar from './PresetsBar';
 import AutoEQ from './AutoEQ';
 import DeviceProfiles from './DeviceProfiles';
 import DriverPicker from './components/DriverPicker';
+import SidebarSection from './components/SidebarSection';
 import WaveformVisualizer from './WaveformVisualizer';
 import ConvolutionPanel from './ConvolutionPanel';
 import VoicingPanel from './VoicingPanel';
@@ -468,17 +469,26 @@ const AppContent = () => {
           {activeWorkspaceTab === 'eq' ? <FrequencyResponseChart /> : null}
         </div>
         <div className="right-content">
-          <DeviceProfiles />
+          <SidebarSection
+            eyebrow="FOLLOWS YOUR OUTPUT"
+            title="Automatic profile"
+          >
+            <DeviceProfiles />
+          </SidebarSection>
           {/* Sits with the output device because it answers the same question:
               what is this sound coming out of. */}
-          <DriverPicker />
-          <PresetsBar
-            fetchPresets={getPresetListFromFiles}
-            loadPreset={loadPreset}
-            savePreset={savePreset}
-            renamePreset={renamePreset}
-            deletePreset={deletePreset}
-          />
+          <SidebarSection eyebrow="WHAT YOU LISTEN ON" title="Driver type">
+            <DriverPicker />
+          </SidebarSection>
+          <SidebarSection eyebrow="YOUR SOUND" title="Named profiles">
+            <PresetsBar
+              fetchPresets={getPresetListFromFiles}
+              loadPreset={loadPreset}
+              savePreset={savePreset}
+              renamePreset={renamePreset}
+              deletePreset={deletePreset}
+            />
+          </SidebarSection>
         </div>
         {/* Only a genuinely fatal condition takes the screen. Anything else is
             reported without touching the editor: a preset that failed to save

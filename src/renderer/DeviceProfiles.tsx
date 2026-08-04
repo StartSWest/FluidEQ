@@ -124,17 +124,15 @@ const DeviceProfiles = () => {
 
   return (
     <section className="device-profiles">
-      <div className="device-profiles__heading">
-        <div>
-          <span className="eyebrow">FOLLOWS YOUR OUTPUT</span>
-          <h4>Automatic profile</h4>
-        </div>
+      {/* The badge moved down here with the section header rework. It still
+          earns its place: the picker lists every endpoint, so which one Windows
+          is actually playing through is not otherwise obvious. */}
+      <span className="device-profiles__label device-profiles__label--row">
+        Output device
         {selectedDevice?.isDefault && (
           <span className="default-badge">ACTIVE</span>
         )}
-      </div>
-
-      <span className="device-profiles__label">Output device</span>
+      </span>
       <Dropdown
         name="Output device"
         options={deviceOptions}

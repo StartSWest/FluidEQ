@@ -27,15 +27,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   min-width: 0;
   min-height: 0;
-  padding: 13px;
+  padding: 0;
   gap: 6px;
   // Heading, compose row, save button, then the list takes the rest and is the
   // only surface that scrolls.
   grid-template-rows: repeat(3, min-content) minmax(0, 1fr);
   justify-items: stretch;
   overflow: hidden;
-  border: 1px solid rgba($primary-lighter, 0.14);
-  border-radius: $radius-xl;
   background:
     linear-gradient(150deg, rgba($secondary-dark, 0.06), transparent 44%),
     rgba(#0d1620, 0.93);
@@ -86,8 +84,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   min-width: 0;
   gap: 6px;
-  // Three now: new, save, restore. Each carries a glyph beside its label.
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  // Save is the one you reach for, so it gets a full row. Three across a
+  // 300px sidebar left every label truncated and none of them readable.
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    'save save'
+    'new restore';
 }
 
 .profile-compose {
@@ -172,4 +174,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 14px;
   height: 14px;
   flex: 0 0 auto;
+}
+
+.profile-actions__save {
+  grid-area: save;
+}
+
+.profile-actions__new {
+  grid-area: new;
+}
+
+.profile-actions__restore {
+  grid-area: restore;
+}
+
+// The old heading block styled this; it lost its sizing when the title moved
+// into the shared section header.
+.presets-bar__lede {
+  margin: 0;
+  color: rgba($primary-lighter, 0.68);
+  font-size: 0.7rem;
+  line-height: 1.45;
 }

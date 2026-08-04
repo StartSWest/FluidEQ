@@ -428,11 +428,9 @@ const PresetsBar = ({
 
   return (
     <div className="presets-bar">
-      <div className="presets-bar__heading">
-        <span className="eyebrow">YOUR SOUND</span>
-        <h4>Named profiles</h4>
-        <p>Save unlimited tunings and attach any one to an output.</p>
-      </div>
+      <p className="presets-bar__lede">
+        Save unlimited tunings and attach any one to an output.
+      </p>
       <div className="profile-compose">
         <div className="preset-name">Profile name</div>
         <TextInput
@@ -452,7 +450,7 @@ const PresetsBar = ({
             attached one — which is a bad thing to be unsure about. */}
         <Button
           ariaLabel="Start a new profile from the current EQ"
-          className="small subtle"
+          className="small subtle profile-actions__new"
           isDisabled={isBlockingError}
           handleChange={handleStartNewProfile}
         >
@@ -464,7 +462,7 @@ const PresetsBar = ({
           // do to the name currently in the box. Assistive tech should not see
           // this button rename itself as the user types.
           ariaLabel="Save settings to preset"
-          className="small"
+          className="small profile-actions__save"
           isDisabled={isBlockingError || !presetName || !!newPresetNameError}
           handleChange={handleCreateOrSavePreset}
         >
@@ -475,7 +473,7 @@ const PresetsBar = ({
             back to the version the user deliberately kept. */}
         <Button
           ariaLabel="Restore the last manually saved version of this profile"
-          className="small subtle"
+          className="small subtle profile-actions__restore"
           isDisabled={isBlockingError || isRestoring || !canRestoreBaseline}
           handleChange={handleRestoreBaseline}
         >

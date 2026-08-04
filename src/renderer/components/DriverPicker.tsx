@@ -143,11 +143,8 @@ const DriverPicker = () => {
   };
 
   return (
-    <section className="driver-picker" aria-labelledby="driver-picker-title">
+    <section className="driver-picker">
       <div className="driver-picker__head">
-        <span className="eyebrow" id="driver-picker-title">
-          WHAT YOU LISTEN ON
-        </span>
         {/* Deliberately not disabled on isBusy. Every step of a strength drag
             starts and finishes a write, so gating the combo on that made it
             flash between enabled and disabled the whole time the slider moved.
