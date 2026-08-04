@@ -29,9 +29,11 @@ import {
   getSupportCryptos,
   getSupportMethods,
 } from 'common/support';
+import { EUPHORIA_STREAK } from 'common/rhythmGame';
 import supportQrImage from '../../assets/support-qr.png';
 import QrCode from './components/QrCode';
 import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
+import { getRhythmRun, setRhythmRun } from './utils/rhythmRun';
 import { SupportPetHero } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 import './styles/Support.scss';
@@ -464,14 +466,37 @@ export default function SupportDialog({
                 never ships would mean ten translations of something no user
                 will read. */}
             {IS_DEV && (
-              <button
-                type="button"
-                className="support-dialog__dev-reset"
-                title="Development build only — clears the contributed flag"
-                onClick={onResetContribution}
-              >
-                dev: remove badge
-              </button>
+              <>
+                {/* Thirty-six consecutive perfect taps is the right price for
+                    euphoria mode and the wrong price for looking at it. Every
+                    change to the rainbow — the bands, the graph trace, the
+                    titlebar meter, the share card — otherwise costs a flawless
+                    run against real music before it can be seen at all. */}
+                <button
+                  type="button"
+                  className="support-dialog__dev-reset"
+                  title="Development build only — jumps the streak straight to the ceiling"
+                  onClick={() =>
+                    setRhythmRun({
+                      // Left alone. The score is what the run earned and
+                      // inventing one would put a number on the share card
+                      // that nobody played for.
+                      score: getRhythmRun().score,
+                      streak: EUPHORIA_STREAK,
+                    })
+                  }
+                >
+                  dev: euphoria
+                </button>
+                <button
+                  type="button"
+                  className="support-dialog__dev-reset"
+                  title="Development build only — clears the contributed flag"
+                  onClick={onResetContribution}
+                >
+                  dev: remove badge
+                </button>
+              </>
             )}
           </p>
         ) : (

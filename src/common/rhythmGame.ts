@@ -115,6 +115,19 @@ export const getStreakMultiplier = (streak: number) =>
   Math.min(MAX_STREAK_MULTIPLIER, 1 + Math.max(0, streak) * STREAK_STEP);
 
 /**
+ * The shortest streak that reaches the ceiling.
+ *
+ * Derived from the two constants above rather than written as 36, so retuning
+ * the step or the ceiling cannot leave a stale number behind. Exported because
+ * the development shortcut needs somewhere honest to jump to — hardcoding the
+ * streak there would mean a shortcut that silently stops reaching euphoria the
+ * first time either constant moves.
+ */
+export const EUPHORIA_STREAK = Math.ceil(
+  (MAX_STREAK_MULTIPLIER - 1) / STREAK_STEP,
+);
+
+/**
  * The streak as a plain 0-to-1 fraction of the way to the ceiling.
  *
  * The creature's face is driven from this rather than from the multiplier

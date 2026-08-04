@@ -266,13 +266,22 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
         marks.push(x);
       }
     });
+    // Silence draws nothing at all.
+    //
+    // The detector floors a silent frame to exactly zero, so without this the
+    // trace collapses to a flat bar across the middle — a shape, drawn and
+    // filled and outlined, saying there is a signal here and it is perfectly
+    // even. An empty box says the true thing, and it is what puts the panel
+    // back to "listening for the beat" rather than leaving a dead line under a
+    // game that is still accepting taps.
+    const hasSignal = next.history.some((sample) => sample.level > 0);
     setPath(
-      upper.length > 1
+      hasSignal && upper.length > 1
         ? `M ${upper.join(' L ')} L ${lower.reverse().join(' L ')} Z`
         : '',
     );
-    setPeakMarks(marks);
-    setHasPeaks(marks.length > 0);
+    setPeakMarks(hasSignal ? marks : []);
+    setHasPeaks(hasSignal && marks.length > 0);
 
     // At the ceiling the run plays itself. Every peak that reaches the line
     // scores as a perfect and flares, and it keeps doing so until the player
