@@ -8,7 +8,12 @@ It puts a modern workflow on top of
 output, and the right sound follows the right device without you touching
 anything again.
 
-![FluidEQ interface preview](docs/fluid-eq-preview.svg)
+<!-- Drop a real screenshot at docs/screenshot.png and delete the <picture>
+     wrapper, leaving the img. The mockup below is the fallback until then. -->
+<picture>
+  <source srcset="docs/screenshot.png" type="image/png">
+  <img src="docs/fluid-eq-preview.svg" alt="The FluidEQ interface: the EQ page with the band editor, the response graph, and the output column">
+</picture>
 
 ## What it does
 
@@ -47,10 +52,44 @@ file, a FluidEQ profile, or any WAV impulse response.
 
 **Ten languages.** English, 简体中文, हिन्दी, Español, Français, Português,
 Русский, 日本語, Deutsch, Italiano. FluidEQ picks yours from Windows on first
-run.
+run; the actions menu changes it. Right-to-left languages are deliberately
+absent — the layout has never been mirrored, and a broken Arabic is worse than
+none.
+
+**Updates itself.** FluidEQ checks GitHub for a new version, downloads it in
+the background and offers to restart. Being offline is not an error and says
+nothing. After updating, a **What's new** dialog shows what changed; it is in
+the actions menu any time.
+
+**Reopens where you left it.** Size, position and maximized state are
+remembered. The position is only reused if a display still covers it, so
+unplugging a second monitor cannot strand the window somewhere you cannot
+reach it.
 
 **Local and account-free.** No cloud, no telemetry, no proprietary driver, no
 virtual audio device.
+
+## The config is the source of truth
+
+FluidEQ used to keep its own copy of the state and write the Equalizer APO
+config from it. That is backwards whenever anything else touches that config — a
+hand edit, another tool, an APO reinstall, a restore from backup — because the
+file is what you are hearing and the app's copy is only what it last believed.
+On startup the file wins.
+
+For everything it can express, at least, and that limit is the whole design.
+Voicing and driver corrections reach APO as ordinary `Filter N:` lines with
+nothing marking them as layers, so reading them back as truth would turn both
+into hand-placed bands — the pickers would read "none" while the sound was
+unchanged, and the next edit would write the layers in again on top of their own
+flattened copies. So:
+
+| Owned by the APO config                                           | Owned by the profile                                                             |
+| ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| Bands, preamp, GraphicEQ points, which impulse response is loaded | Which voicing, which driver profile, which headphone reference, the profile name |
+
+Nothing in the second column is audible on its own. Everything in the first
+column is.
 
 ## How device switching works
 
@@ -89,8 +128,29 @@ That is the whole setup. Nothing needs saving — every edit attaches itself to
 the current output automatically. Naming a profile is only needed if you want
 several tunings for the same device.
 
-> The installer is not code-signed yet, so SmartScreen will warn on first run.
-> Choose **More info → Run anyway**, or build it yourself from source below.
+> The installer is not code-signed yet, so SmartScreen will warn on first run —
+> and on each update, until there is a certificate. Choose
+> **More info → Run anyway**, or build it yourself from source below.
+
+## Known limitations
+
+- **No code signing.** SmartScreen warns on install and on every update.
+- **Windows only.** Equalizer APO is the audio engine and there is no
+  equivalent to target elsewhere. On other platforms FluidEQ starts with two
+  demonstration endpoints so the UI can be developed, and touches nothing.
+- **Traditional Chinese readers get Simplified.** Locale matching uses the
+  primary subtag, so `zh-TW` resolves to `zh`.
+- **No right-to-left languages.** See above — the layout has not been mirrored.
+
+## Where things live
+
+| Path            | What is in it                                                                                                                   |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| `src/common/`   | Pure logic, no Electron: filter maths, the APO text reader and writer, voicing and driver profiles, translations, validation.   |
+| `src/main/`     | Electron main. `flush.ts` writes the APO config, `apoSync.ts` reads it back, `main.ts` owns the IPC surface and the live state. |
+| `src/renderer/` | React. `FluidEqContext` holds the live EQ, `I18nContext` holds the language.                                                    |
+| `CHANGELOG.md`  | The release notes, rendered inside the app.                                                                                     |
+| `CLAUDE.md`     | The release procedure and the constraints that are not obvious from the code.                                                   |
 
 ## Supporting the work
 
@@ -150,7 +210,17 @@ pnpm build
 pnpm package
 ```
 
-`pnpm package` produces the NSIS installer in `release/build`.
+`pnpm package` produces two files in `release/build`: the NSIS installer and
+`latest.yml`. **Both** must be attached to a GitHub release — `latest.yml` is
+the manifest the updater fetches to compare versions, and a release without it
+looks fine on GitHub while no user ever sees the update.
+
+```powershell
+gh release create vX.Y.Z --title "FluidEQ X.Y.Z" --notes-file notes.md "release/build/FluidEQ-Setup-X.Y.Z.exe" "release/build/latest.yml"
+```
+
+The version lives in both `package.json` and `release/app/package.json` and the
+two must agree, or the artifact is named after the wrong one.
 
 ### Build-time configuration
 
