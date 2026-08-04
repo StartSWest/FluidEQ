@@ -631,6 +631,12 @@ const AppContent = () => {
         )}
         {showSupportDialog && (
           <SupportDialog
+            onShowReleaseNotes={() => {
+              // One at a time: two stacked modals is a worse answer than
+              // swapping, and the notes are what they asked for.
+              setShowSupportDialog(false);
+              setShowWhatsNew(true);
+            }}
             hasContributed={hasContributed}
             onContributed={() => {
               localStorage.setItem(SUPPORT_CONTRIBUTED_KEY, 'true');

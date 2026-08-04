@@ -6,6 +6,71 @@ opens it again any time.
 
 ---
 
+## 0.5.0
+
+### New
+
+- **FluidEQ updates itself.** It checks GitHub for a new version, downloads it
+  in the background and offers to restart, with the progress shown in the app
+  rather than as an easy-to-miss system toast. Being offline is not an error
+  and says nothing.
+- **What's new.** This file, rendered inside the app — shown once after an
+  update, and in the actions menu whenever you want it.
+- **The window reopens where you left it**, at the size you left it, maximized
+  if it was. The position is only reused if a display still covers it, so
+  unplugging a second monitor cannot strand it somewhere unreachable.
+- **No white flash on launch.** The window waits until the interface has
+  actually painted instead of appearing blank and filling in.
+- **Measurements are capped at what is believable.** Published corrections
+  routinely ask for +16 dB at the edges of the audible band, where the rig is
+  measuring its own coupling error rather than the headphone. References are
+  now limited to 12 dB, and 8 dB below 25 Hz or above 14 kHz. Bands you move
+  yourself are untouched — that is your business.
+- **Smart EQ shows its work**, applying the correction one band at a time in
+  frequency order rather than making every slider jump at once.
+- **Clear the applied reference** from the AutoEQ panel, the same way you clear
+  a convolution. Only the attribution goes; the bands stay.
+
+### Changed
+
+- **No more profile name box.** Renaming happens on the profile row itself,
+  where the name is, with accept and cancel buttons on the field. Two places to
+  type the same thing meant keeping them in sync, and it made Save ambiguous —
+  you could never tell whether it would create a profile or overwrite one. New
+  profile is the only way to create one now, so Save says plainly that it
+  updates.
+- **Smart EQ leaves your band layout alone.** An earlier build expanded a
+  coarse layout to 31 bands before measuring. Ten bands genuinely cannot
+  describe a measured response, but how many you use is your decision.
+- The applied reference records the measurement, not just the model. Most
+  models have several and they do not sound alike.
+
+### Fixed
+
+- **The config adoption added in 0.4.0 could empty the band editor.** A block
+  with a preamp and no filters is what FluidEQ writes for a flat EQ, not "the
+  user cleared their bands", and reading it as truth left the EQ page with no
+  sliders at all. Adoption now also refuses when a voicing or driver layer is
+  live, since those reach APO as ordinary filter lines and would otherwise be
+  pulled into the editor as bands and then applied twice.
+- **One output's profile could overwrite another's.** Two outputs could point
+  at the same profile file, so saving on the speakers silently overwrote the
+  headphones — easy to hit, because "Untitled profile 1" is exactly the name
+  two outputs both end up with. Saving now takes a free name or one this output
+  already owns.
+- **Every output keeps a profile.** Deleting the one an output was playing
+  through left it with nothing to save to; that case now resets the sound to
+  neutral and creates a fresh empty profile.
+- **Renaming a profile to a longer version of its own name aborted halfway.**
+  Renaming "Standard" to "Standard 2" cancelled the moment the text passed
+  through "Standard".
+- **Changing the band count during Smart EQ did nothing useful.** The check
+  meant to notice it could never fire, so the measurement applied gains to
+  bands that no longer existed. It now measures again against the new layout.
+- Dropdowns in the AutoEQ panel were clipped by the equalizer below them.
+
+---
+
 ## 0.4.0
 
 ### New

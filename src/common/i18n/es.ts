@@ -236,6 +236,7 @@ const es: Partial<Dictionary> = {
   'support.openWallet': 'Abrir en el monedero',
   'support.contributed': 'He colaborado: desbloquea la estrella y el baile',
   'support.thanks': 'Gracias: tu mascota ya tiene su estrella, y ahora baila.',
+  'support.releaseNotes': 'Mira las novedades de esta versión',
   'support.footerBefore':
     '¿Prefieres aportar tiempo? Las incidencias y los pull requests son igual de bienvenidos en',
 

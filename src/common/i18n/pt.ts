@@ -235,6 +235,7 @@ const pt: Partial<Dictionary> = {
   'support.openWallet': 'Abrir na carteira',
   'support.contributed': 'Eu contribuí — libere a estrela e a dança',
   'support.thanks': 'Obrigado — seu bichinho ganhou a estrela e agora dança.',
+  'support.releaseNotes': 'Veja as novidades desta versão',
   'support.footerBefore':
     'Prefere contribuir com tempo? Issues e pull requests são igualmente bem-vindos no',
 

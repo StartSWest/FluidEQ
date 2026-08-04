@@ -237,6 +237,7 @@ const de: Partial<Dictionary> = {
   'support.contributed': 'Ich habe beigetragen — Stern und Tanz freischalten',
   'support.thanks':
     'Danke — Ihr Begleiter hat seinen Stern, und jetzt tanzt er.',
+  'support.releaseNotes': 'Sehen, was in dieser Version neu ist',
   'support.footerBefore':
     'Lieber Zeit beitragen? Issues und Pull Requests sind genauso willkommen auf',
 

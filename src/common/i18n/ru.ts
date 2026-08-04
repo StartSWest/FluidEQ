@@ -235,6 +235,7 @@ const ru: Partial<Dictionary> = {
   'support.contributed': 'Я поддержал — открыть звезду и танец',
   'support.thanks':
     'Спасибо — у питомца появилась звезда, и теперь он танцует.',
+  'support.releaseNotes': 'Что нового в этой версии',
   'support.footerBefore':
     'Хотите помочь временем? Issue и pull request так же желанны на',
 

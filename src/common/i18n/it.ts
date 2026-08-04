@@ -236,6 +236,7 @@ const it: Partial<Dictionary> = {
   'support.contributed': 'Ho contribuito — sblocca la stella e il ballo',
   'support.thanks':
     'Grazie — il tuo animaletto ha la sua stella, e adesso balla.',
+  'support.releaseNotes': 'Guarda le novità di questa versione',
   'support.footerBefore':
     'Preferisci contribuire con il tempo? Issue e pull request sono altrettanto benvenute su',
 

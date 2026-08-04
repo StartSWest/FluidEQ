@@ -234,6 +234,7 @@ const ja: Partial<Dictionary> = {
   'support.openWallet': 'ウォレットで開く',
   'support.contributed': '支援しました — 星とダンスを解除',
   'support.thanks': 'ありがとうございます — 相棒に星がつき、踊りはじめました。',
+  'support.releaseNotes': 'このバージョンの新機能を見る',
   'support.footerBefore':
     '時間で貢献したいですか？ Issue や Pull Request も同じように歓迎です：',
 

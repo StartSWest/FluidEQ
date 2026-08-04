@@ -224,6 +224,7 @@ const zh: Partial<Dictionary> = {
   'support.openWallet': '在钱包中打开',
   'support.contributed': '我支持过了 — 解锁星星和舞蹈',
   'support.thanks': '谢谢 — 你的小伙伴有了它的星星，现在会跳舞了。',
+  'support.releaseNotes': '看看这个版本有什么新变化',
   'support.footerBefore':
     '更想用时间来贡献？在这里提 issue 和 pull request 同样受欢迎：',
 

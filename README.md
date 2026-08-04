@@ -125,8 +125,9 @@ FluidEQ is Windows-only, because Equalizer APO is the audio engine.
 4. Pick your output at the top right, then tune.
 
 That is the whole setup. Nothing needs saving — every edit attaches itself to
-the current output automatically. Naming a profile is only needed if you want
-several tunings for the same device.
+the current output automatically. Every output keeps at least one profile, and
+you only need more if you want several tunings for the same device. Rename one
+with the pencil on its row.
 
 > The installer is not code-signed yet, so SmartScreen will warn on first run —
 > and on each update, until there is a certificate. Choose

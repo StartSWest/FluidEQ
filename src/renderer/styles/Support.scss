@@ -346,6 +346,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// A link in button's clothing: it opens something rather than doing anything,
+// so it is styled like the footer link below it rather than like the
+// contribute actions above.
+.support-dialog__notes {
+  padding: 0;
+  color: $secondary-light;
+  border: 0;
+  background: transparent;
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    outline: none;
+    text-decoration: underline;
+  }
+}
+
 .support-dialog__footer {
   margin: 0;
   padding-top: 16px;

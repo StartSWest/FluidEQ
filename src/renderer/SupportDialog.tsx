@@ -33,6 +33,8 @@ interface ISupportDialogProps {
   hasContributed: boolean;
   onContributed: () => void;
   onClose: () => void;
+  /** Swap this dialog for the release notes. */
+  onShowReleaseNotes: () => void;
 }
 
 const COPY_FEEDBACK_MS = 2000;
@@ -41,6 +43,7 @@ export default function SupportDialog({
   hasContributed,
   onContributed,
   onClose,
+  onShowReleaseNotes,
 }: ISupportDialogProps) {
   const { t } = useTranslation();
   const methods = getSupportMethods();
@@ -269,6 +272,17 @@ export default function SupportDialog({
             {t('support.contributed')}
           </button>
         )}
+
+        {/* What the last version changed, one click away. Someone weighing
+            up a contribution is entitled to see what the money has been
+            producing. */}
+        <button
+          type="button"
+          className="support-dialog__notes"
+          onClick={onShowReleaseNotes}
+        >
+          {t('support.releaseNotes')}
+        </button>
 
         <p className="support-dialog__footer">
           {t('support.footerBefore')}{' '}

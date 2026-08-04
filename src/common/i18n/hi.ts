@@ -240,6 +240,7 @@ const hi: Partial<Dictionary> = {
   'support.openWallet': 'वॉलेट में खोलें',
   'support.contributed': 'मैंने योगदान दिया — सितारा और नाच खोलें',
   'support.thanks': 'धन्यवाद — आपके साथी को सितारा मिल गया, और अब वह नाचता है।',
+  'support.releaseNotes': 'इस संस्करण में क्या नया है, देखें',
   'support.footerBefore':
     'समय देकर मदद करना चाहेंगे? Issue और pull request भी उतने ही स्वागत योग्य हैं:',
 

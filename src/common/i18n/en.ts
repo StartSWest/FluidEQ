@@ -268,6 +268,7 @@ const en = {
   'support.openWallet': 'Open in wallet',
   'support.contributed': 'I contributed — unlock the star and the dance',
   'support.thanks': 'Thank you — your pet has its star, and it dances now.',
+  'support.releaseNotes': "See what's new in this version",
   'support.footerBefore':
     'Prefer to contribute time instead? Issues and pull requests are just as welcome on',
 
