@@ -27,6 +27,18 @@ const WAVEFORM_AMPLITUDE_MAX = WAVEFORM_HEIGHT / 2 - 2;
  * floor into a full-height trace of nothing.
  */
 const NORMALISE_FLOOR = 0.02;
+
+/**
+ * How far each sample moves toward the new frame, per frame.
+ *
+ * A meter has to stay honest, so at rest this is high enough that a transient
+ * still arrives on the frame it happened. Euphoria trades that away — nobody
+ * is reading the numbers at the ceiling, they are watching the shape move, and
+ * a slower ease is what turns twenty-two discrete frames into one continuous
+ * motion.
+ */
+const WAVEFORM_SMOOTHING = 0.45;
+const EUPHORIA_SMOOTHING = 0.2;
 /** Vertical rules behind the trace, so the pane reads as a meter. */
 const GRID_DIVISIONS = 12;
 /** dB below which there is nothing worth showing a number for. */
@@ -121,15 +133,38 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
     ? 'Resume live output waveform'
     : 'Pause live output waveform';
   const euphoriaClick = isEuphoric ? onOpenSupport : undefined;
-  const waveformPath = useMemo(
-    () =>
-      createWaveformPath(
-        waveform,
-        isEuphoric ? WAVEFORM_AMPLITUDE_MAX : WAVEFORM_AMPLITUDE,
-        isEuphoric,
-      ),
-    [isEuphoric, waveform],
-  );
+  // Every sample eased toward the new frame instead of jumping to it.
+  //
+  // The analyser publishes about twenty-two times a second, which is fast
+  // enough to be live and slow enough that each frame lands as a visible
+  // snap — the trace flickers rather than flows. One multiply-add per sample
+  // fixes it, which is nothing next to building the path string that follows.
+  //
+  // Euphoria eases harder. The meter is a meter first, so at rest it stays
+  // responsive enough to read; at the ceiling nobody is reading it, they are
+  // watching it, and glide is the whole point.
+  //
+  // Smoothed HERE rather than in the analyser, because the game's beat
+  // detection runs off the same frames and needs the transients left sharp —
+  // smoothing at the source would round off the very edges it looks for.
+  const smoothedRef = useRef<number[]>([]);
+  const waveformPath = useMemo(() => {
+    const smoothed = smoothedRef.current;
+    if (smoothed.length !== waveform.length) {
+      // First frame, or the analyser changed size. Nothing to ease from.
+      smoothedRef.current = waveform.slice();
+    } else {
+      const ease = isEuphoric ? EUPHORIA_SMOOTHING : WAVEFORM_SMOOTHING;
+      for (let index = 0; index < waveform.length; index += 1) {
+        smoothed[index] += (waveform[index] - smoothed[index]) * ease;
+      }
+    }
+    return createWaveformPath(
+      smoothedRef.current,
+      isEuphoric ? WAVEFORM_AMPLITUDE_MAX : WAVEFORM_AMPLITUDE,
+      isEuphoric,
+    );
+  }, [isEuphoric, waveform]);
 
   // Held peak, so the number is readable instead of a blur of digits.
   const [heldPeak, setHeldPeak] = useState<number | undefined>(undefined);

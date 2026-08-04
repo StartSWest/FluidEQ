@@ -95,6 +95,15 @@ type PendingPointEdit = Partial<
   Pick<IFilter, 'frequency' | 'gain' | 'quality'>
 >;
 
+/**
+ * How far the live curve moves toward each new frame.
+ *
+ * Lower than the titlebar meter's, because the graph is a shape people read
+ * rather than a level people glance at — a slow glide there looks considered,
+ * where on a meter it would look laggy.
+ */
+const LIVE_CURVE_SMOOTHING = 0.28;
+
 const FrequencyResponseChart = () => {
   const liveOutput = useLiveAudioFrame();
   const { error: liveOutputError } = useLiveAudioControl();
@@ -632,9 +641,36 @@ const FrequencyResponseChart = () => {
     },
   };
 
+  // The live curve, eased toward each new frame rather than snapping to it.
+  //
+  // The analyser publishes about twenty-two times a second, and at that rate
+  // every frame lands as a visible step — the trace jitters instead of
+  // flowing. Easing each point costs one multiply-add per bin, against a curve
+  // d3 is about to re-path anyway.
+  //
+  // Done here rather than in the analyser because the game's beat detection
+  // reads the same frames and needs its transients sharp; rounding them off at
+  // the source would blunt the edges it exists to find.
+  const smoothedPointsRef = useRef<{ x: number; y: number }[]>([]);
+  const smoothedPoints = useMemo(() => {
+    const source = liveOutput.points;
+    const smoothed = smoothedPointsRef.current;
+    if (smoothed.length !== source.length) {
+      smoothedPointsRef.current = source.map((point) => ({ ...point }));
+    } else {
+      for (let index = 0; index < source.length; index += 1) {
+        smoothed[index].y +=
+          (source[index].y - smoothed[index].y) * LIVE_CURVE_SMOOTHING;
+      }
+    }
+    // A new array each frame, because d3 and the memo below both compare by
+    // identity — mutating in place would leave the curve frozen on screen.
+    return smoothedPointsRef.current.slice();
+  }, [liveOutput.points]);
+
   const displayData = useMemo(
     () =>
-      liveOutput.points.length > 0
+      smoothedPoints.length > 0
         ? [
             ...chartData,
             {
@@ -644,12 +680,12 @@ const FrequencyResponseChart = () => {
               line: {
                 color: ColorEnum.ANALOGOUS2,
                 strokeWidth: 2,
-                points: liveOutput.points,
+                points: smoothedPoints,
               },
             } as IChartCurveData,
           ]
         : chartData,
-    [chartData, liveOutput.points],
+    [chartData, smoothedPoints],
   );
 
   const editablePoints: IEditableChartPoint[] = useMemo(() => {
