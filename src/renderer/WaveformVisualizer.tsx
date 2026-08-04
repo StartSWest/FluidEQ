@@ -80,7 +80,12 @@ export const createWaveformPath = (
     lower.push(`${x},${(center + offset).toFixed(1)}`);
   }
   const line = `M ${upper.join(' L ')}`;
-  return { line, fill: `${line} L ${lower.reverse().join(' L ')} Z` };
+  // The lower edge as its own line, built before the reverse below consumes the
+  // array. The stroke used to trace only the top, so the mirrored half was a
+  // bare fill with no edge on it — which is exactly where the eye looks when
+  // the trace is symmetrical.
+  const mirror = `M ${lower.join(' L ')}`;
+  return { line, mirror, fill: `${line} L ${lower.reverse().join(' L ')} Z` };
 };
 
 /** Loudest sample in the frame, as dBFS. Undefined when there is silence. */
@@ -96,7 +101,15 @@ export const peakDbOf = (samples: number[]) => {
   return db > SILENCE_DB ? db : undefined;
 };
 
-const WaveformVisualizer = () => {
+interface IWaveformVisualizerProps {
+  /**
+   * Opening the support panel. Only used in euphoria mode, where a click on
+   * the meter is the shortest path back to the thing being celebrated.
+   */
+  onOpenSupport?: () => void;
+}
+
+const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
   const { t } = useTranslation();
   // Subscribed rather than read from the DOM class the shell sets, so this
   // re-renders when the run changes instead of being told by a stylesheet.
@@ -104,6 +117,10 @@ const WaveformVisualizer = () => {
   const { isClipping, waveform } = useLiveAudioFrame();
   const { error, isActive, isPaused, togglePaused } = useLiveAudioControl();
 
+  const pauseLabel = isPaused
+    ? 'Resume live output waveform'
+    : 'Pause live output waveform';
+  const euphoriaClick = isEuphoric ? onOpenSupport : undefined;
   const waveformPath = useMemo(
     () =>
       createWaveformPath(
@@ -154,12 +171,14 @@ const WaveformVisualizer = () => {
       className={`waveform-visualizer${isActive ? ' is-active' : ''}${
         isPaused ? ' is-paused' : ''
       }${isClipping ? ' is-clipping' : ''}`}
-      aria-label={
-        isPaused ? 'Resume live output waveform' : 'Pause live output waveform'
-      }
-      aria-pressed={isPaused}
-      title={isPaused ? 'Resume live output' : 'Pause live output'}
-      onClick={togglePaused}
+      // In euphoria the meter stops being a pause button and becomes the way
+      // back to the panel. Pausing the analyser mid-celebration is the one
+      // thing nobody wants, and the mode is the moment the app has the most
+      // goodwill to spend on an invitation.
+      aria-label={euphoriaClick ? t('support.title') : pauseLabel}
+      aria-pressed={euphoriaClick ? undefined : isPaused}
+      title={euphoriaClick ? t('support.title') : pauseLabel}
+      onClick={euphoriaClick ?? togglePaused}
     >
       <div className="waveform-visualizer__meta">
         <span className="waveform-visualizer__signal">
@@ -220,6 +239,13 @@ const WaveformVisualizer = () => {
         <path
           className="waveform-visualizer__line"
           d={waveformPath.line}
+          vectorEffect="non-scaling-stroke"
+        />
+        {/* The mirrored edge, stroked the same way, so the shape is outlined
+            rather than being a lit top over a bare bottom. */}
+        <path
+          className="waveform-visualizer__line waveform-visualizer__line--mirror"
+          d={waveformPath.mirror}
           vectorEffect="non-scaling-stroke"
         />
       </svg>
