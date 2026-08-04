@@ -20,11 +20,14 @@ import { KeyboardEvent, MouseEvent, useMemo } from 'react';
 import DeleteIcon from 'renderer/icons/DeleteIcon';
 import EditIcon from 'renderer/icons/EditIcon';
 import TrashIcon from 'renderer/icons/TrashIcon';
+import ConfirmIcon from 'renderer/icons/ConfirmIcon';
 
 export enum IconName {
   EDIT = 'Edit Icon',
   DELETE = 'Delete Icon',
   TRASH = 'Trash Icon',
+  ACCEPT = 'Accept Icon',
+  CANCEL = 'Cancel Icon',
 }
 
 interface IIconButtonProps {
@@ -64,6 +67,10 @@ const IconButton = ({
         return <DeleteIcon />;
       case IconName.TRASH:
         return <TrashIcon />;
+      case IconName.ACCEPT:
+        return <ConfirmIcon variant="accept" />;
+      case IconName.CANCEL:
+        return <ConfirmIcon variant="cancel" />;
       default:
         return null;
     }

@@ -26,7 +26,7 @@ import { clearAndType, setup } from '__tests__/utils/userEventUtils';
 
 describe('PresetListItem', () => {
   const samplePresetNames = ['Apple', 'Banana', 'Oranges'];
-  const presetNameInputLabel = 'Preset Name';
+  const newPresetButtonLabel = 'Start a new profile from the current EQ';
   const savePresetButtonLabel = 'Save settings to preset';
   const editIconLabel = 'Edit Icon';
   const editModeLabel = 'Edit Preset Name';
@@ -115,125 +115,55 @@ describe('PresetListItem', () => {
     expect(loadPreset).toHaveBeenCalledWith(samplePresetNames[0]);
   });
 
-  it('should support saving a new preset', async () => {
+  it('updates the profile that is selected', async () => {
     fetchPresets.mockReturnValue(samplePresetNames);
-    const { user } = setup(
-      <FluidEqProviderWrapper value={defaultFluidEqContext}>
-        <PresetsBar
-          fetchPresets={fetchPresets}
-          loadPreset={loadPreset}
-          savePreset={savePreset}
-          renamePreset={renamePreset}
-          deletePreset={deletePreset}
-        />
-      </FluidEqProviderWrapper>,
+    const { user } = await act(async () =>
+      setup(
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
+          <PresetsBar
+            fetchPresets={fetchPresets}
+            loadPreset={loadPreset}
+            savePreset={savePreset}
+            renamePreset={renamePreset}
+            deletePreset={deletePreset}
+          />
+        </FluidEqProviderWrapper>,
+      ),
     );
 
-    const presetNameInput = screen.getByLabelText(presetNameInputLabel);
+    // Nothing selected yet, so there is nothing to update.
     const saveButton = screen.getByLabelText(savePresetButtonLabel);
     expect(saveButton).toHaveAttribute('aria-disabled', 'true');
-    await clearAndType(user, presetNameInput, 'Pineapple');
+
+    await user.click(screen.getByLabelText(samplePresetNames[1]));
     expect(saveButton).toHaveAttribute('aria-disabled', 'false');
+
     await user.click(saveButton);
     expect(savePreset).toHaveBeenCalledTimes(1);
+    expect(savePreset).toHaveBeenCalledWith(samplePresetNames[1]);
   });
 
-  it('should support saving an existing preset', async () => {
+  it('creates a numbered profile rather than asking for a name', async () => {
+    // "New profile" is the only way to make one now, so it has to produce a
+    // usable name by itself instead of clearing a box for the user to fill.
     fetchPresets.mockReturnValue(samplePresetNames);
-    const { user } = setup(
-      <FluidEqProviderWrapper value={defaultFluidEqContext}>
-        <PresetsBar
-          fetchPresets={fetchPresets}
-          loadPreset={loadPreset}
-          savePreset={savePreset}
-          renamePreset={renamePreset}
-          deletePreset={deletePreset}
-        />
-      </FluidEqProviderWrapper>,
+    const { user } = await act(async () =>
+      setup(
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
+          <PresetsBar
+            fetchPresets={fetchPresets}
+            loadPreset={loadPreset}
+            savePreset={savePreset}
+            renamePreset={renamePreset}
+            deletePreset={deletePreset}
+          />
+        </FluidEqProviderWrapper>,
+      ),
     );
 
-    const presetNameInput = screen.getByLabelText(presetNameInputLabel);
-    const saveButton = screen.getByLabelText(savePresetButtonLabel);
-    expect(saveButton).toHaveAttribute('aria-disabled', 'true');
-    await clearAndType(user, presetNameInput, samplePresetNames[0]);
-    expect(saveButton).toHaveAttribute('aria-disabled', 'false');
-    await user.click(saveButton);
+    await user.click(screen.getByLabelText(newPresetButtonLabel));
     expect(savePreset).toHaveBeenCalledTimes(1);
-  });
-
-  it('should disallow invalid new preset names for case sensitive systems', async () => {
-    fetchPresets.mockReturnValue(samplePresetNames);
-    const { user } = setup(
-      <FluidEqProviderWrapper value={caseSensitiveContext}>
-        <PresetsBar
-          fetchPresets={fetchPresets}
-          loadPreset={loadPreset}
-          savePreset={savePreset}
-          renamePreset={renamePreset}
-          deletePreset={deletePreset}
-        />
-      </FluidEqProviderWrapper>,
-    );
-
-    const presetNameInput = screen.getByLabelText(presetNameInputLabel);
-    const saveButton = screen.getByLabelText(savePresetButtonLabel);
-    expect(saveButton).toHaveAttribute('aria-disabled', 'true');
-
-    // Submitting with no name should not save
-    await user.type(presetNameInput, '{Enter}');
-    expect(savePreset).toHaveBeenCalledTimes(0);
-
-    // Restricted preset name
-    await clearAndType(user, presetNameInput, 'CON');
-    expect(saveButton).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByText(PresetErrorEnum.RESTRICTED)).toBeInTheDocument();
-
-    // Submitting with an error present should not save
-    await user.type(presetNameInput, '{Enter}');
-    expect(savePreset).toHaveBeenCalledTimes(0);
-
-    // Allow preset name that isn't an exact match
-    await clearAndType(
-      user,
-      presetNameInput,
-      samplePresetNames[0].toLocaleLowerCase(),
-    );
-    expect(saveButton).toHaveAttribute('aria-disabled', 'false');
-    await user.type(presetNameInput, '{Enter}');
-    expect(savePreset).toHaveBeenCalledTimes(1);
-  });
-
-  it('should disallow invalid new preset names for case insensitive systems', async () => {
-    fetchPresets.mockReturnValue(samplePresetNames);
-    const { user } = setup(
-      <FluidEqProviderWrapper value={defaultFluidEqContext}>
-        <PresetsBar
-          fetchPresets={fetchPresets}
-          loadPreset={loadPreset}
-          savePreset={savePreset}
-          renamePreset={renamePreset}
-          deletePreset={deletePreset}
-        />
-      </FluidEqProviderWrapper>,
-    );
-
-    const presetNameInput = screen.getByLabelText(presetNameInputLabel);
-    const saveButton = screen.getByLabelText(savePresetButtonLabel);
-    expect(saveButton).toHaveAttribute('aria-disabled', 'true');
-
-    // Restricted preset name
-    await clearAndType(user, presetNameInput, 'CON');
-    expect(saveButton).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByText(PresetErrorEnum.RESTRICTED)).toBeInTheDocument();
-
-    // Duplicate preset name that isn't an exact match
-    await clearAndType(
-      user,
-      presetNameInput,
-      samplePresetNames[0].toLocaleLowerCase(),
-    );
-    expect(saveButton).toHaveAttribute('aria-disabled', 'true');
-    expect(screen.getByText(PresetErrorEnum.DUPLICATE)).toBeInTheDocument();
+    expect(savePreset).toHaveBeenCalledWith('Untitled profile 1');
   });
 
   it('should disallow invalid renamed presets for case sensitive systems', async () => {
@@ -326,32 +256,5 @@ describe('PresetListItem', () => {
     await clearAndType(user, editInput, 'aPpLe');
     await user.keyboard('{Enter}');
     expect(screen.getByText('aPpLe')).toBeInTheDocument();
-  });
-
-  it('should disallow loading non-existant presets', async () => {
-    fetchPresets.mockReturnValue(samplePresetNames);
-    const { user } = await act(async () =>
-      setup(
-        <FluidEqProviderWrapper value={defaultFluidEqContext}>
-          <PresetsBar
-            fetchPresets={fetchPresets}
-            loadPreset={loadPreset}
-            savePreset={savePreset}
-            renamePreset={renamePreset}
-            deletePreset={deletePreset}
-          />
-        </FluidEqProviderWrapper>,
-      ),
-    );
-
-    // Typing a name that is not in the list names a *new* profile; it must
-    // never load anything, and it stays offerable as a save target.
-    const textbox = screen.getByLabelText(presetNameInputLabel);
-    await clearAndType(user, textbox, 'john cena');
-    expect(loadPreset).not.toHaveBeenCalled();
-    expect(screen.getByLabelText(savePresetButtonLabel)).toHaveAttribute(
-      'aria-disabled',
-      'false',
-    );
   });
 });

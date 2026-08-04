@@ -42,9 +42,12 @@ const PresetListItem = ({
 }: IPresetListItemProps) => {
   const { t } = useTranslation();
   const editValueRef = useRef<HTMLInputElement>(null);
+  // The whole row, not just the field: clicking the accept button is a click
+  // outside the input, and with the field alone as the anchor that dismissed
+  // the rename before the button's own handler ever ran.
+  const editRowRef = useRef<HTMLDivElement>(null);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
-
   const handleEditClicked = () => {
     setIsEditMode(true);
   };
@@ -71,21 +74,45 @@ const PresetListItem = ({
     }
   };
 
-  // Close edit mode if the user clicks outside of the input
-  useMouseDownOutside<HTMLInputElement>(editValueRef, handleEscape);
+  // Close edit mode if the user clicks outside the rename row.
+  useMouseDownOutside<HTMLDivElement>(editRowRef, handleEscape);
 
   if (isEditMode) {
     return (
-      <TextInput
-        ref={editValueRef}
-        value={value}
-        ariaLabel={t('profiles.edit')}
-        isDisabled={false}
-        errorMessage={errorMessage}
-        handleSubmit={handleInputChange}
-        handleEscape={handleEscape}
-        formatInput={formatPresetName}
-      />
+      <div className="preset-rename" ref={editRowRef}>
+        <TextInput
+          ref={editValueRef}
+          value={value}
+          ariaLabel={t('profiles.edit')}
+          isDisabled={false}
+          errorMessage={errorMessage}
+          handleSubmit={handleInputChange}
+          handleEscape={handleEscape}
+          formatInput={formatPresetName}
+        />
+        {/* Enter and Escape already do this. The buttons are for everyone who
+            does not know that — which, for a field that appears in place with
+            no other affordance, is most people the first time. */}
+        <div className="row icons">
+          <IconButton
+            icon={IconName.ACCEPT}
+            // Read straight off the field rather than mirroring it into
+            // state. TextInput calls handleEscape whenever the typed value
+            // equals the original, so subscribing to changes made renaming
+            // "Standard" to "Standard 2" abort the moment it passed through
+            // "Standard" on the way.
+            handleClick={() =>
+              handleInputChange(editValueRef.current?.value ?? value)
+            }
+            isDisabled={isDisabled}
+          />
+          <IconButton
+            icon={IconName.CANCEL}
+            handleClick={handleEscape}
+            isDisabled={false}
+          />
+        </div>
+      </div>
     );
   }
 

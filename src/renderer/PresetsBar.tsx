@@ -26,13 +26,11 @@ import {
 import { isRestrictedPresetName } from 'common/utils';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
-import TextInput from './widgets/TextInput';
 import Button from './widgets/Button';
 import List, { IOptionEntry } from './widgets/List';
 import PresetListItem from './components/PresetListItem';
 import SidebarSection from './components/SidebarSection';
 import ProfileActionIcon from './icons/ProfileActionIcon';
-import { formatPresetName } from './utils/utils';
 import {
   getAudioDevices,
   getDeviceProfileSettings,
@@ -108,7 +106,6 @@ const PresetsBar = ({
   const { t } = useTranslation();
 
   const [presetName, setPresetName] = useState<string>('');
-  const [newPresetNameError, setNewPresetNameError] = useState<string>('');
   const [presetNames, dispatchPresetNames] = useReducer(presetReducer, []);
   const [activeDeviceId, setActiveDeviceId] = useState('');
   // Until the endpoint query has come back at least once we do not know which
@@ -247,7 +244,6 @@ const PresetsBar = ({
     }
     const name = `${prefix} ${index}`;
 
-    setNewPresetNameError('');
     try {
       // Created for real, not just typed into the box. A button called "New
       // profile" that only clears a text field leaves you unsure whether you
@@ -274,7 +270,7 @@ const PresetsBar = ({
   // Creating a new preset
   const handleCreateOrSavePreset = useCallback(async () => {
     // Do not create or save a preset if there is no name or if there is an error present
-    if (!presetName || newPresetNameError) {
+    if (!presetName) {
       return;
     }
 
@@ -298,7 +294,6 @@ const PresetsBar = ({
     }
   }, [
     isExistingPresetSelected,
-    newPresetNameError,
     presetName,
     refreshOutputProfiles,
     savePreset,
@@ -326,28 +321,6 @@ const PresetsBar = ({
 
     return '';
   }, []);
-
-  const validatePresetNew = useCallback(
-    (newName: string) => {
-      /**
-       * For a not case sensitive file system (apple is equal to ApPlE), we want to prevent users from creating a new preset
-       * that has the same characters that differ only in case. However, we want to allow users to specify an exact duplicate
-       * (where the characters and the case both match) so they can overwrite their existing presets.
-       */
-      if (
-        !isCaseSensitiveFs &&
-        presetNames.some(
-          (existingName) =>
-            newName.toLocaleLowerCase() === existingName.toLocaleLowerCase() &&
-            existingName !== newName,
-        )
-      ) {
-        return PresetErrorEnum.DUPLICATE;
-      }
-      return validatePresetName(newName);
-    },
-    [isCaseSensitiveFs, presetNames, validatePresetName],
-  );
 
   // Validating a preset rename
   const validatePresetRename = useCallback(
@@ -382,17 +355,8 @@ const PresetsBar = ({
     [isCaseSensitiveFs, presetNames, validatePresetName],
   );
 
-  const handleChangeNewPresetName = (newValue: string) => {
-    setPresetName(newValue);
-
-    // Validate new preset name and update error message accordingly
-    const msg = validatePresetNew(newValue);
-    setNewPresetNameError(msg);
-  };
-
-  // Changing the selected preset in the UI
   // Restore targets the profile attached to this output, falling back to the
-  // one typed in the name box when nothing is attached yet.
+  // selected one when nothing is attached yet.
   const restoreTarget = assignedPresetForOutput || presetName;
   const canRestoreBaseline =
     !!restoreTarget && baselineNames.includes(restoreTarget);
@@ -506,18 +470,10 @@ const PresetsBar = ({
       }
     >
       <div className="presets-bar">
-        <div className="profile-compose">
-          <div className="preset-name">{t('profiles.name')}</div>
-          <TextInput
-            value={presetName}
-            ariaLabel={t('profiles.nameAria')}
-            isDisabled={isBlockingError}
-            errorMessage={newPresetNameError}
-            handleChange={handleChangeNewPresetName}
-            handleSubmit={handleCreateOrSavePreset}
-            formatInput={formatPresetName}
-          />
-        </div>
+        {/* No name box. Naming happens where the name is: the edit control on
+            the profile row itself. A second place to type it was one more
+            thing to keep in sync with the list, and it made Save ambiguous —
+            you could never tell whether it would create or overwrite. */}
         <div className="profile-actions">
           {/* Starting a new profile is its own action. Without it the only way
             to create one was to clear the name box by hand, and it was never
@@ -532,19 +488,16 @@ const PresetsBar = ({
             <ProfileActionIcon action="new" />
             {t('profiles.new')}
           </Button>
+          {/* Always an update now, never a create — New profile is the only way
+              to make one, so this can say exactly what it does. */}
           <Button
-            // Stable: the control's identity does not change, only what it will
-            // do to the name currently in the box. Assistive tech should not see
-            // this button rename itself as the user types.
             ariaLabel={t('profiles.saveAria')}
             className="small profile-actions__save"
-            isDisabled={isBlockingError || !presetName || !!newPresetNameError}
+            isDisabled={isBlockingError || !presetName}
             handleChange={handleCreateOrSavePreset}
           >
             <ProfileActionIcon action="save" />
-            {isExistingPresetSelected
-              ? t('profiles.update')
-              : t('profiles.save')}
+            {t('profiles.update')}
           </Button>
           {/* Every edit auto-saves into the attached profile, so this is the way
             back to the version the user deliberately kept. */}

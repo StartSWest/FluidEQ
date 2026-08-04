@@ -72,16 +72,57 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     'new restore';
 }
 
-.profile-compose {
+// The rename row: field, then accept and cancel. The buttons keep their own
+// column so a long name shortens the field rather than pushing them off.
+.preset-rename {
   display: grid;
+  width: 100%;
   min-width: 0;
-  gap: 6px;
+  align-items: center;
+  gap: $spacing-xs;
+  grid-template-columns: minmax(0, 1fr) max-content;
 
-  .preset-name {
-    padding: 0;
-    color: rgba($primary-lighter, 0.74);
-    font-size: 0.67rem;
-    font-weight: 650;
+  .icons {
+    display: flex;
+    gap: $spacing-xs;
+
+    .iconButton {
+      display: grid;
+      width: 20px;
+      height: 20px;
+      place-items: center;
+      border-radius: $radius-xs;
+      cursor: pointer;
+      transition: $transition-control;
+
+      svg {
+        width: 12px;
+        height: 12px;
+      }
+    }
+
+    // Accept is the affirmative one and reads cyan; cancel stays neutral until
+    // hovered, so the pair does not look like two equal choices.
+    .iconButton:first-child {
+      color: $secondary-light;
+
+      &:hover,
+      &:focus-visible {
+        background: rgba($secondary-default, 0.2);
+        outline: none;
+      }
+    }
+
+    .iconButton:last-child {
+      color: rgba($primary-lighter, 0.7);
+
+      &:hover,
+      &:focus-visible {
+        color: $white;
+        background: rgba($red, 0.24);
+        outline: none;
+      }
+    }
   }
 }
 
