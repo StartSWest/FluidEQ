@@ -23,39 +23,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** Panel heading and toolbar **********************************************
 
+// Three stacked full-width rows: the heading, the toolbar, the applied-layer
+// chips.
+//
+// The toolbar used to share a row with the heading, held in a centre track.
+// There are eleven controls in it and no width at which they all fit beside a
+// title, so the track overflowed and the buttons were drawn straight over
+// "Parametric EQ". A row of its own cannot overlap anything, and the toolbar
+// still centres itself on the panel — which is what the shared track was for.
 .main-content-title {
   display: grid;
   min-width: 0;
-  align-items: center;
-  // Equal outer tracks put the toolbar on the panel's centre line, so it lines
-  // up with the band rails below however wide the heading grows. The middle
-  // track is minmax(0, auto) rather than auto: a plain auto track sizes to the
-  // toolbar's full max-content width, which crushes the heading track to zero
-  // and leaves "Parametric EQ" overflowing underneath the buttons.
-  grid-template-columns: minmax(0, 1fr) minmax(0, auto) minmax(0, 1fr);
-  // Heading and toolbar share the first row; the applied-layer chips get the
-  // full width of a second one. They used to sit inside the heading cell,
-  // which stole the toolbar's width and pushed it onto its own wrapped line.
-  grid-template-areas:
-    'heading toolbar spacer'
-    'layers layers layers';
-  gap: 6px 14px;
+  grid-template-columns: minmax(0, 1fr);
+  // Three rows that say different kinds of thing — what this panel is, what
+  // you can do to it, what else is affecting it — so they need enough air
+  // between them to read as three rows rather than one dense block.
+  gap: 13px;
   margin: 2px 0 0;
   padding: 0 8px;
 
   > div:first-child {
     min-width: 0;
-    grid-area: heading;
-    justify-self: start;
   }
 
   h4 {
     margin: 2px 0 0;
-  }
-
-  > .active-layers {
-    grid-area: layers;
-    margin-top: 2px;
   }
 }
 
@@ -69,8 +61,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 7px;
 }
 
+// A little more air between the buttons than inside the quick-layout cluster,
+// so the row reads as groups of related controls rather than eleven equals.
 .main-content-title > .eq-toolbar {
-  grid-area: toolbar;
+  row-gap: 8px;
+  column-gap: 10px;
+}
+
+// Its own cluster, closed up and separated from what precedes it: four
+// buttons that do the same kind of thing.
+.quick-layouts {
+  gap: 6px;
+  padding-left: 6px;
+  border-left: 1px solid rgba($primary-lighter, 0.12);
 }
 
 .quick-layouts > span {
@@ -124,7 +127,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .main-content {
   display: grid;
   min-width: 0;
-  padding: 2px 10px 0;
+  // Enough of a break above the sliders that the applied-layer chips do not
+  // look like a caption for the first band.
+  padding: 12px 10px 0;
   gap: 10px;
   grid-template-columns: 38px minmax(0, 1fr);
   grid-template-rows: minmax(min-content, 1fr) auto;

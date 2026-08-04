@@ -27,17 +27,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // .workspace-tab-panel in App.scss — declaring it twice for the same box meant
 // whichever stylesheet lost the cascade silently had no container at all.
 
-// The AutoEQ block is a collapsible now. It keeps a faint surface of its own
-// so the whole thing reads as one foldable region rather than as a title with
-// some fields loose underneath it.
+// The AutoEQ block is a collapsible now, and deliberately the same one as the
+// three in the output column: the surface, the border and the fold behaviour
+// all come from .sidebar-section unchanged, so a foldable region looks the
+// same wherever it appears. Only the inner padding differs, because this one
+// spans the full width of the EQ card.
 .autoeq-section {
-  border-color: rgba($primary-lighter, 0.09);
-  background: rgba(#0a141f, 0.34);
-
+  // Same inset as the sidebar collapsibles, so the fields inside line up
+  // with the header above them instead of running to the card edge.
   .sidebar-section__header,
   .sidebar-section__summary,
   .sidebar-section__body {
-    padding-inline: 4px;
+    padding-inline: 13px;
+  }
+
+  // The field row already carries its own bottom padding; the section's made
+  // a second gap under it that read as the collapsible being half empty.
+  &.is-open .sidebar-section__body {
+    padding-bottom: 6px;
+  }
+
+  // The update-status row only has anything in it for the official AutoEq
+  // source. Left in the flow while empty it held open a band of dead space at
+  // the bottom of the fold, which is what made the section look unfinished.
+  .autoeq-update:empty {
+    display: none;
   }
 
   // Whose measurements these are, kept visible when the section is folded.

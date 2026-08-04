@@ -20,6 +20,7 @@ import { useEffect, useRef, useState } from 'react';
 import { VOICING_PROFILES, getVoicingProfile } from 'common/voicing';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useAquaContext } from '../utils/AquaContext';
+import { useTranslation } from '../utils/I18nContext';
 import { setVoicing as setVoicingApi } from '../utils/equalizerApi';
 import '../styles/VoicingQuickPick.scss';
 
@@ -33,6 +34,7 @@ import '../styles/VoicingQuickPick.scss';
  */
 const VoicingQuickPick = () => {
   const { isBlockingError, isEnabled, voicing, setVoicing } = useAquaContext();
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -85,18 +87,22 @@ const VoicingQuickPick = () => {
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label={
-          activeProfile ? `Voicing: ${activeProfile.name}` : 'Voicing: none'
+          activeProfile
+            ? t('voicing.quickAria', { name: activeProfile.name })
+            : t('voicing.quickNone')
         }
         title={
           activeProfile
             ? `${activeProfile.name} — ${activeProfile.tagline}`
-            : 'No voicing applied'
+            : t('voicing.quickTitle')
         }
         disabled={isBlockingError || !isEnabled}
         onClick={() => setIsOpen((current) => !current)}
       >
         <VoicingIcon profileId={activeProfile?.id} />
-        <span>{activeProfile ? activeProfile.name : 'Voicing'}</span>
+        <span>
+          {activeProfile ? activeProfile.name : t('voicing.quickLabel')}
+        </span>
       </button>
 
       {isOpen && (
@@ -110,8 +116,8 @@ const VoicingQuickPick = () => {
           >
             <VoicingIcon profileId="none" />
             <span>
-              <strong>None</strong>
-              <small>Your EQ bands only</small>
+              <strong>{t('voicing.none')}</strong>
+              <small>{t('voicing.quickNoneHint')}</small>
             </span>
           </button>
 

@@ -627,9 +627,7 @@ const MainContent = () => {
               disabled={isBalancing}
               onChange={(event) => setMeasureFromFlat(event.target.checked)}
             />
-            <span title="Zero every band before listening. Use this when an existing cut is hiding the region it affects - the measurement cannot see through its own correction.">
-              From flat
-            </span>
+            <span title={t('eq.fromFlat.hint')}>{t('eq.fromFlat')}</span>
           </label>
           {balanceStatus && (
             <span className="eq-toolbar__status" role="status">
@@ -637,34 +635,34 @@ const MainContent = () => {
             </span>
           )}
           <Button
-            ariaLabel="Clear EQ"
+            ariaLabel={t('eq.clear')}
             isDisabled={false}
             className="small subtle"
             handleChange={clearFilterGains}
           >
-            Clear EQ
+            {t('eq.clear')}
           </Button>
           <Button
-            ariaLabel="Add EQ band"
+            ariaLabel={t('eq.addBandAria')}
             isDisabled={frequencySortedFilters.length >= MAX_NUM_FILTERS}
             className="small subtle"
             handleChange={addFilter}
           >
-            Add band
+            {t('eq.addBand')}
           </Button>
           <div className="quick-layouts">
-            <span>Quick layouts</span>
+            <span>{t('eq.quickLayouts')}</span>
             {Object.values(FixedBandSizeEnum)
               .filter((s) => !Number.isNaN(Number(s)))
               .map((size) => (
                 <Button
                   key={`${size}-band`}
-                  ariaLabel={`${size} Band`}
+                  ariaLabel={t('eq.bandCount', { count: size })}
                   isDisabled={false}
                   className="small"
                   handleChange={handleFixedBand(size as FixedBandSizeEnum)}
                 >
-                  {`${size} Band`}
+                  {t('eq.bandCount', { count: size })}
                 </Button>
               ))}
           </div>
@@ -734,7 +732,7 @@ const MainContent = () => {
         {selectedFilter && (
           <div className="eq-flat-editor">
             <div className="eq-flat-editor__identity">
-              <span>Selected band</span>
+              <span>{t('eq.selected')}</span>
               <strong>
                 {selectedFilter.frequency >= 1000
                   ? `${Number((selectedFilter.frequency / 1000).toFixed(1))} kHz`
@@ -742,7 +740,7 @@ const MainContent = () => {
               </strong>
             </div>
             <div className="eq-flat-editor__control">
-              <span>Filter</span>
+              <span>{t('eq.filter')}</span>
               <Dropdown
                 name="selected-band-filter-type"
                 value={selectedFilter.type}
@@ -764,7 +762,7 @@ const MainContent = () => {
               />
             </div>
             <div className="eq-flat-editor__control">
-              <span>Frequency</span>
+              <span>{t('eq.frequency')}</span>
               <NumberInput
                 name="selected-band-frequency"
                 value={selectedFilter.frequency}
@@ -778,7 +776,9 @@ const MainContent = () => {
               />
             </div>
             <div className="eq-flat-editor__control">
-              <span>{isSelectedGainDisabled ? 'Gain · n/a' : 'Gain'}</span>
+              <span>
+                {isSelectedGainDisabled ? t('eq.gainDisabled') : t('eq.gain')}
+              </span>
               {/* Band pass, notch, low pass and high pass have no gain
                   parameter in Equalizer APO at all — they shape by frequency
                   and Q alone. Showing the band's stale gain in a greyed-out
@@ -819,7 +819,7 @@ const MainContent = () => {
               )}
             </div>
             <div className="eq-flat-editor__control">
-              <span>Quality (Q)</span>
+              <span>{t('eq.quality')}</span>
               <Knob
                 name="selected-band-quality"
                 value={selectedFilter.quality}
@@ -834,12 +834,12 @@ const MainContent = () => {
             </div>
             <button
               type="button"
-              aria-label="Delete selected EQ band"
+              aria-label={t('eq.deleteAria')}
               className="eq-flat-editor__delete"
               disabled={frequencySortedFilters.length <= MIN_NUM_FILTERS}
               onClick={deleteSelectedFilter}
             >
-              Delete band
+              {t('eq.delete')}
             </button>
           </div>
         )}

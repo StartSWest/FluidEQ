@@ -56,13 +56,24 @@ const EQ_SOURCES: IEqSource[] = [
 ];
 
 const ALL_SOURCE_ID = 'all';
-const ALL_SOURCE: IEqSource = {
+
+/**
+ * The synthetic "everything at once" source.
+ *
+ * Built inside the component rather than at module scope: its name and
+ * description are the only two strings in this list that FluidEQ writes itself
+ * rather than taking from a provider, so they are the only two that can — and
+ * therefore must — be translated.
+ */
+const useAllSource = (
+  t: (key: 'autoeq.allDatabases' | 'autoeq.allDatabases.hint') => string,
+): IEqSource => ({
   id: ALL_SOURCE_ID,
-  name: 'All databases',
-  description: 'Search AutoEq official and GadgetryTech together.',
+  name: t('autoeq.allDatabases'),
+  description: t('autoeq.allDatabases.hint'),
   attributionUrl: 'https://github.com/jaakkopasanen/AutoEq',
   online: true,
-};
+});
 
 interface IDeviceEntry {
   value: string;
@@ -86,12 +97,11 @@ const getResponseDisplayName = (response: string) =>
 
 const AutoEQ = () => {
   const CLEAR_SELECTION_EVENT = 'fluideq-clear-autoeq-selection';
-  const NO_DEVICE_SELECTION = 'Pick a device first! 🎧';
-  const NO_RESPONSES = 'No supported responses 😞';
-  const NO_RESPONSE_SELECTION = 'Pick a response! 🔊';
-
   const { isBlockingError, setGlobalError, refreshState } = useAquaContext();
   const { t } = useTranslation();
+  const NO_DEVICE_SELECTION = t('autoeq.pickDevice');
+  const NO_RESPONSES = t('autoeq.noResponses');
+  const NO_RESPONSE_SELECTION = t('autoeq.pickResponse');
   const [devices, setDevices] = useState<IDeviceEntry[]>([]);
   const [responses, setResponses] = useState<string[]>([]);
   const [currentDevice, setCurrentDevice] = useState<string>('');
@@ -117,13 +127,14 @@ const AutoEQ = () => {
       window.removeEventListener(CLEAR_SELECTION_EVENT, clearSelection);
   }, []);
 
+  const allSource = useAllSource(t);
   const allSources = useMemo(
     () => [EQ_SOURCES[0], ...squigSources],
     [squigSources],
   );
   const currentSource =
     sourceId === ALL_SOURCE_ID
-      ? ALL_SOURCE
+      ? allSource
       : allSources.find((source) => source.id === sourceId);
 
   const fetchDeviceNames = useCallback(async () => {
@@ -288,10 +299,10 @@ const AutoEQ = () => {
 
   const sourceOptions: IOptionEntry[] = useMemo(
     () =>
-      [ALL_SOURCE, ...allSources].map((source) => {
+      [allSource, ...allSources].map((source) => {
         let group = 'Squiglink public databases';
         if (source.id === ALL_SOURCE_ID) {
-          group = 'All databases';
+          group = t('autoeq.allDatabases');
         } else if (source.id === EQ_SOURCES[0].id) {
           group = 'AutoEQ official';
         }
@@ -313,7 +324,7 @@ const AutoEQ = () => {
           ),
         };
       }),
-    [allSources],
+    [allSource, allSources, t],
   );
 
   const responseOptions: IOptionEntry[] = useMemo(
@@ -343,22 +354,23 @@ const AutoEQ = () => {
       className="autoeq-section"
       eyebrow={t('autoeq.eyebrow')}
       title={t('autoeq.title')}
-      summary={
-        <div className="autoeq-attribution">
-          {currentSource && currentSource.id !== ALL_SOURCE_ID ? (
-            <a
-              href={currentSource.attributionUrl}
-              target="_blank"
-              rel="noreferrer"
-            >
-              {currentSource.name}
-            </a>
-          ) : (
-            <span>{currentSource?.name || t('autoeq.selectSource')}</span>
-          )}
-        </div>
-      }
     >
+      {/* Inside the fold, not in the summary. Whose measurements these are
+          matters while you are choosing one and not at all once the section is
+          closed, where it was just a stray line of text under the header. */}
+      <div className="autoeq-attribution">
+        {currentSource && currentSource.id !== ALL_SOURCE_ID ? (
+          <a
+            href={currentSource.attributionUrl}
+            target="_blank"
+            rel="noreferrer"
+          >
+            {currentSource.name}
+          </a>
+        ) : (
+          <span>{currentSource?.name || t('autoeq.selectSource')}</span>
+        )}
+      </div>
       <div className="auto-eq">
         <div className="autoeq-field autoeq-field--source">
           <span className="autoeq-field__title">{t('autoeq.source')}</span>
@@ -366,12 +378,12 @@ const AutoEQ = () => {
             name="Measurement source"
             options={sourceOptions}
             value={sourceId}
-            noSelectionPlaceholder="Select a source..."
+            noSelectionPlaceholder={t('autoeq.selectSourcePlaceholder')}
             handleChange={(newValue) =>
               setSourceId(newValue as IEqSource['id'])
             }
             isDisabled={isBlockingError}
-            filterPlaceholder="Search sources..."
+            filterPlaceholder={t('autoeq.searchSources')}
             isFilterable
           />
         </div>
@@ -384,8 +396,8 @@ const AutoEQ = () => {
             handleChange={handleDeviceChange}
             isDisabled={isBlockingError || !sourceId}
             noSelectionPlaceholder={NO_DEVICE_SELECTION}
-            emptyOptionsPlaceholder="No measured model matches your search."
-            filterPlaceholder="Search by brand or model..."
+            emptyOptionsPlaceholder={t('autoeq.noModel')}
+            filterPlaceholder={t('autoeq.searchModels')}
             isFilterable
           />
         </div>
