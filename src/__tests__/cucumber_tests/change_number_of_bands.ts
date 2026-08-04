@@ -24,7 +24,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { loadFeature, defineFeature } from 'jest-cucumber';
 import {
-  Driver,
+  IDriverSession,
+  requireDriver,
   startChromeDriver,
   stopChromeDriver,
 } from '__tests__/utils/webdriver';
@@ -47,7 +48,7 @@ const chromeDriver = startChromeDriver();
 const feature = loadFeature(
   './src/__tests__/cucumber_tests/features/change_number_of_bands.feature',
 );
-const webdriver: { driver: Driver } = { driver: undefined };
+const webdriver: IDriverSession = { driver: undefined };
 
 defineFeature(feature, (test) => {
   test('Add a frequency band', async ({ given, when, then }) => {
@@ -74,8 +75,8 @@ defineFeature(feature, (test) => {
 });
 
 afterAll(() => {
-  if (webdriver.driver) {
-    webdriver.driver.deleteSession();
+  if (requireDriver(webdriver)) {
+    requireDriver(webdriver).deleteSession();
   }
   stopChromeDriver(chromeDriver);
 });

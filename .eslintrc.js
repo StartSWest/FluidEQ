@@ -26,7 +26,11 @@ module.exports = {
   parserOptions: {
     ecmaVersion: 2020,
     sourceType: 'module',
-    project: './tsconfig.json',
+    // Both, because the end-to-end suite is deliberately outside the app's
+    // tsconfig — it drives a real browser and pulls in webdriver types the app
+    // has no business seeing. Listing only the app's config means eslint
+    // cannot parse those files at all and refuses the commit.
+    project: ['./tsconfig.json', './tsconfig.e2e.json'],
     tsconfigRootDir: __dirname,
     createDefaultProgram: true,
   },

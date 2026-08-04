@@ -192,16 +192,48 @@ describe('applyRhythmScore', () => {
     expect(getStreakMultiplier(state.streak)).toBe(10);
   });
 
-  it('never lets an imprecise hit add to the total', () => {
-    // The moment great or good pays anything, patience starts beating
-    // accuracy: enough sloppy taps out-scores any flawless run.
+  it('pays an imprecise hit, then takes a share back', () => {
+    // Scoring nothing at all read as broken: you tap on the beat, the app says
+    // GOOD, and the number drops. It pays first, so the tap feels like a hit.
+    //
+    // Whether that nets positive depends on the total, which is the whole
+    // design — see the ceiling tests below. Here it only has to be true that
+    // the share was taken.
     const start = { score: 1000, streak: 10 };
-    expect(applyRhythmScore(start, gradeRhythmTap(70)).score).toBeLessThan(
-      1000,
-    );
-    expect(applyRhythmScore(start, gradeRhythmTap(150)).score).toBeLessThan(
-      1000,
-    );
+    const good = applyRhythmScore(start, gradeRhythmTap(150));
+    const great = applyRhythmScore(start, gradeRhythmTap(70));
+    const perfect = applyRhythmScore(start, gradeRhythmTap(0));
+    expect(good.score).toBeLessThan(great.score);
+    expect(great.score).toBeLessThan(perfect.score);
+  });
+
+  it('goes up, not down, when an imprecise hit lands on nothing', () => {
+    // The crossover that makes the ceiling also makes the early game feel like
+    // a game. From zero there is no share worth taking, so the points win.
+    expect(
+      applyRhythmScore({ score: 0, streak: 0 }, gradeRhythmTap(150)).score,
+    ).toBeGreaterThan(0);
+    expect(
+      applyRhythmScore({ score: 0, streak: 0 }, gradeRhythmTap(70)).score,
+    ).toBeGreaterThan(0);
+  });
+
+  it('caps a player who only ever hits good', () => {
+    // Paying for imprecise hits must not reopen the door patience walked
+    // through: the share still grows with the total, so this still stops.
+    let state = { score: 0, streak: 0 };
+    for (let tap = 0; tap < 5000; tap += 1) {
+      state = applyRhythmScore(state, gradeRhythmTap(150));
+    }
+    expect(state.score).toBeLessThan(getFlawlessScore(10));
+  });
+
+  it('caps a player who only ever hits great', () => {
+    let state = { score: 0, streak: 0 };
+    for (let tap = 0; tap < 5000; tap += 1) {
+      state = applyRhythmScore(state, gradeRhythmTap(70));
+    }
+    expect(state.score).toBeLessThan(getFlawlessScore(20));
   });
 
   it('costs a share of the total, so the penalty scales with the run', () => {

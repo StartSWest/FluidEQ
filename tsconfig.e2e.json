@@ -1,0 +1,23 @@
+{
+  // The end-to-end suite, type-checked separately from the app.
+  //
+  // It is excluded from the main tsconfig because it drives a real browser and
+  // pulls in webdriver types the app has no business seeing — but excluded is
+  // not the same as unchecked, and it was sitting invisible: nothing compiled
+  // it, so nothing noticed when it stopped compiling.
+  //
+  // `pnpm typecheck:e2e` is what keeps it honest.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "include": [
+    "src/__tests__/cucumber_tests/**/*.ts",
+    "src/__tests__/utils/**/*.ts",
+    // The steps import renderer helpers, which reach for `window.electron`.
+    // Without this the compiler sees sixty errors about a global it has simply
+    // not been told about, drowning the handful that are real.
+    "src/renderer/preload.d.ts"
+  ],
+  "exclude": []
+}

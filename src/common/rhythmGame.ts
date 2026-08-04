@@ -271,10 +271,10 @@ const GOOD_SCORE_FRACTION = 0.25;
 /**
  * The running score after a tap.
  *
- * ONLY A PERFECT ADDS ANYTHING. Everything else takes a share of the total
- * away, which is what makes the number describe how accurately somebody played
- * rather than how long they sat there — see the fractions above for why a
- * share and not an amount.
+ * A perfect adds and climbs. Anything else adds a little and then gives back a
+ * SHARE of the total, which is what makes the number describe how accurately
+ * somebody played rather than how long they sat there — see the fractions
+ * above for why a share and not an amount.
  *
  * Everything floors at zero: a negative score reads as a punishment rather
  * than a game, and there is nowhere to come back from.
@@ -306,8 +306,22 @@ export const applyRhythmScore = (
   if (hit.verdict !== 'perfect') {
     const fraction =
       hit.verdict === 'great' ? GREAT_SCORE_FRACTION : GOOD_SCORE_FRACTION;
+    // Paid first, then taxed. The order is what makes an imprecise hit feel
+    // like a hit rather than a punishment: early on, when the total is small,
+    // the points beat the share and the number goes up. Later, when the total
+    // is large, the share beats the points and it goes down.
+    //
+    // That crossover IS the ceiling, and it costs the guarantee nothing. The
+    // payment is bounded — one hit's worth — while the cost grows with the
+    // score, so there is still a point where they cancel and the total stops.
+    // A player who never errs still has no such point.
+    //
+    // Scoring nothing at all was the alternative and it read as broken: you
+    // tap on the beat, the app says GOOD, and the number drops. Being told
+    // "good" while being punished teaches the wrong thing.
+    const gained = Math.round(hit.points * getStreakMultiplier(state.streak));
     return {
-      score: Math.max(0, Math.round(state.score * (1 - fraction))),
+      score: Math.max(0, Math.round((state.score + gained) * (1 - fraction))),
       streak: state.streak,
     };
   }

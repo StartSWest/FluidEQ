@@ -16,12 +16,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { remote, RemoteOptions } from 'webdriverio';
+import { remote } from 'webdriverio';
 import path from 'path';
 
 import { ChildProcessWithoutNullStreams, spawn } from 'child_process';
 
-const options: RemoteOptions = {
+// webdriverio 9 dropped `RemoteOptions`. The replacement lives in
+// `@wdio/types`, which is a transitive package and not resolvable from the
+// project root under pnpm — so the type is taken from `remote` itself rather
+// than adding a dependency purely to name it.
+const options: Parameters<typeof remote>[0] = {
   hostname: 'localhost', // Use localhost as chrome driver server
   port: 9515, // "9515" is the port opened by chrome driver.
   capabilities: {
@@ -64,3 +68,33 @@ export default async function getWebDriver(
 }
 
 export type Driver = Awaited<ReturnType<typeof getWebDriver>>;
+
+/**
+ * The browser, once a scenario has started one.
+ *
+ * Optional because it genuinely is: every scenario begins with no window open
+ * and the first Given launches it. The suite used to declare this as a plain
+ * `Driver` and assign `undefined` to it, which is a lie the compiler cannot
+ * check anything through — and it is why every step below it silently lost its
+ * types.
+ */
+export interface IDriverSession {
+  driver?: Driver;
+}
+
+/**
+ * The live browser, or a failure that says what went wrong.
+ *
+ * A step reaching for the driver before one exists means the scenario is
+ * missing its "FluidEQ is running" Given. Without this the first symptom is a
+ * `TypeError` on `undefined` deep inside a selector chain, which says nothing
+ * about the real mistake.
+ */
+export const requireDriver = (session: IDriverSession): Driver => {
+  if (!session.driver) {
+    throw new Error(
+      'No FluidEQ window is running. A scenario must start with the step that launches it.',
+    );
+  }
+  return session.driver;
+};

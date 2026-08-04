@@ -50,7 +50,9 @@
     "test:unit": "jest --testMatch \"**/__tests__/unit_tests/**/*.ts?(x)\"",
     "test:cucumber": "jest --testMatch \"**/__tests__/cucumber_tests/*.ts?(x)\" --runInBand",
     "test:autoeq": "cross-env TS_NODE_TRANSPILE_ONLY=true ts-node src/__tests__/utils/autoeqRegexTest.ts",
-    "autoeq:update": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/update-autoeq.ps1"
+    "autoeq:update": "powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/update-autoeq.ps1",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck:e2e": "tsc --noEmit -p tsconfig.e2e.json"
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx}": [

@@ -21,7 +21,7 @@ import path from 'path';
 
 import { FLUIDEQ_CONFIG_FILENAME } from 'main/flush';
 import { DefineStepFunction } from 'jest-cucumber';
-import { Driver } from '__tests__/utils/webdriver';
+import { IDriverSession, requireDriver } from '__tests__/utils/webdriver';
 import { getConfigPath } from 'main/registry';
 
 interface FilterSettings {
@@ -159,14 +159,18 @@ export const thenBandCount = (then: DefineStepFunction) => {
 
 export const thenFrequencyGain = (
   then: DefineStepFunction,
-  webdriver: { driver: Driver | undefined },
+  webdriver: IDriverSession,
 ) => {
   then(
     /^FluidEQ config file should show gain of (-?\d+)dB for frequency (\d+)Hz$/,
     async (gain: string, frequency: string) => {
-      const sliderElems = await webdriver.driver
-        .$('.main-content')
-        .$$('.range');
+      // `getElements()`, not a bare await. In webdriverio 9 `$$` returns a
+      // chainable with no `then`, so awaiting it hands back the chainable
+      // itself and `.length` is a Promise — which made `i < length` compare a
+      // number to a promise, evaluate false, and skip the loop entirely. Every
+      // one of these steps was passing without checking anything.
+      const main = await requireDriver(webdriver).$('.main-content');
+      const sliderElems = await main.$$('.range').getElements();
       for (let i = 0; i < sliderElems.length; i += 1) {
         const element = await sliderElems[i].$('input');
         const name = await element.getAttribute('name');
@@ -184,14 +188,18 @@ export const thenFrequencyGain = (
 
 export const thenFrequencyQuality = (
   then: DefineStepFunction,
-  webdriver: { driver: Driver | undefined },
+  webdriver: IDriverSession,
 ) => {
   then(
     /^FluidEQ config file should show a quality of (\d+.?\d+) for the band with frequency (\d+)Hz$/,
     async (quality: string, frequency: string) => {
-      const sliderElems = await webdriver.driver
-        .$('.main-content')
-        .$$('.range');
+      // `getElements()`, not a bare await. In webdriverio 9 `$$` returns a
+      // chainable with no `then`, so awaiting it hands back the chainable
+      // itself and `.length` is a Promise — which made `i < length` compare a
+      // number to a promise, evaluate false, and skip the loop entirely. Every
+      // one of these steps was passing without checking anything.
+      const main = await requireDriver(webdriver).$('.main-content');
+      const sliderElems = await main.$$('.range').getElements();
       for (let i = 0; i < sliderElems.length; i += 1) {
         const element = await sliderElems[i].$('input');
         const name = await element.getAttribute('name');
@@ -209,14 +217,18 @@ export const thenFrequencyQuality = (
 
 export const thenFrequencyFilterType = (
   then: DefineStepFunction,
-  webdriver: { driver: Driver | undefined },
+  webdriver: IDriverSession,
 ) => {
   then(
     /^FluidEQ config file should show the (\w+) filter type for the band with frequency (\d+)Hz$/,
     async (filterType: string, frequency: string) => {
-      const sliderElems = await webdriver.driver
-        .$('.main-content')
-        .$$('.range');
+      // `getElements()`, not a bare await. In webdriverio 9 `$$` returns a
+      // chainable with no `then`, so awaiting it hands back the chainable
+      // itself and `.length` is a Promise — which made `i < length` compare a
+      // number to a promise, evaluate false, and skip the loop entirely. Every
+      // one of these steps was passing without checking anything.
+      const main = await requireDriver(webdriver).$('.main-content');
+      const sliderElems = await main.$$('.range').getElements();
       for (let i = 0; i < sliderElems.length; i += 1) {
         const element = await sliderElems[i].$('input');
         const name = await element.getAttribute('name');
