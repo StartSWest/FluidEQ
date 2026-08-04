@@ -85,14 +85,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-l;
   background: none;
   cursor: pointer;
+  // Feet, not centre. A creature that squashes about its middle sinks into the
+  // floor on the way down and lifts off it on the way up.
+  transform-origin: 50% 100%;
 
   &:focus-visible {
     @include focus-ring;
     outline: none;
   }
 
-  &.is-tapped {
-    @include pet-pressed;
+  // Crouch, launch, land. The crouch is what sells it — a creature that only
+  // goes up has been lifted, not jumped, so it gathers itself first and lands
+  // with a squash before settling.
+  //
+  // Two identical animations, alternated tap by tap. Re-applying the same
+  // animation-name to an element that already has it does nothing at all, so a
+  // second tap during the first hop would be swallowed; swapping the name is
+  // what restarts it, without remounting the pet and resetting its breathing.
+  &.is-hopping-a {
+    animation: pet-hop 460ms cubic-bezier(0.28, 0.84, 0.42, 1);
+  }
+
+  &.is-hopping-b {
+    animation: pet-hop-alt 460ms cubic-bezier(0.28, 0.84, 0.42, 1);
   }
 
   // The held press is switched off in here. Everywhere else the pet stays
@@ -380,6 +395,81 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The tap hop, at hero size.
+//
+// Amplitudes are far larger than the titlebar press, which moved 1.5px because
+// the whole creature is 36px there. At 132px the same numbers are invisible,
+// and the point of this one is that it is unmistakable.
+@keyframes pet-hop {
+  0% {
+    translate: 0 0;
+    scale: 1 1;
+  }
+
+  // Gather. Wide and low, the wind-up that makes the launch read as effort
+  // rather than as the creature being lifted by something.
+  16% {
+    translate: 0 7px;
+    scale: 1.09 0.85;
+  }
+
+  // Off the ground, stretched along the direction of travel.
+  42% {
+    translate: 0 -22px;
+    scale: 0.93 1.11;
+  }
+
+  // Landing takes the impact as a squash.
+  68% {
+    translate: 0 0;
+    scale: 1.07 0.9;
+  }
+
+  84% {
+    translate: 0 -3px;
+    scale: 0.99 1.02;
+  }
+
+  100% {
+    translate: 0 0;
+    scale: 1 1;
+  }
+}
+
+// Byte-for-byte the same as pet-hop. It exists only so consecutive taps have a
+// different animation-name to switch to — see .support-pet-tap above.
+@keyframes pet-hop-alt {
+  0% {
+    translate: 0 0;
+    scale: 1 1;
+  }
+
+  16% {
+    translate: 0 7px;
+    scale: 1.09 0.85;
+  }
+
+  42% {
+    translate: 0 -22px;
+    scale: 0.93 1.11;
+  }
+
+  68% {
+    translate: 0 0;
+    scale: 1.07 0.9;
+  }
+
+  84% {
+    translate: 0 -3px;
+    scale: 0.99 1.02;
+  }
+
+  100% {
+    translate: 0 0;
+    scale: 1 1;
+  }
+}
+
 // A creature bobbing in the titlebar is exactly the kind of thing that has to
 // stop when the user asks for less motion.
 @media (prefers-reduced-motion: reduce) {
@@ -392,7 +482,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .support-pet.is-celebrating.is-dancing .support-pet__ears,
   .support-pet.is-celebrating.is-listening .support-pet__art,
   .support-pet.is-celebrating.is-listening .support-pet__ears,
-  .support-pet.is-celebrating .support-pet__star {
+  .support-pet.is-celebrating .support-pet__star,
+  .support-pet-tap.is-hopping-a,
+  .support-pet-tap.is-hopping-b {
     animation: none;
     scale: none;
     rotate: none;
