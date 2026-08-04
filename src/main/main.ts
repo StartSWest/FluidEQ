@@ -2305,6 +2305,17 @@ const createMainWindow = async () => {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
         : path.join(__dirname, '../../.erb/dll/preload.js'),
+      // Chromium fetches a hunspell dictionary the first time a spellchecked
+      // field is focused and then keeps it resident. The only text anyone
+      // types here is a preset name, so it buys nothing and costs a download
+      // and a couple of megabytes for the life of the process.
+      spellcheck: false,
+      // The default, stated rather than assumed because it is load-bearing:
+      // minimised or fully occluded, Chromium drops timers and animation
+      // frames to roughly one a second. The meter, the creature and the whole
+      // of euphoria mode are driven by animation frames, so leaving this on is
+      // what stops a window nobody is looking at from animating at full rate.
+      backgroundThrottling: true,
     },
   });
 

@@ -46,6 +46,26 @@ const configuration: webpack.Configuration = {
 
   module: {
     rules: [
+      // d3 ships as ESM but declares no `sideEffects` field, so webpack has to
+      // assume every one of its thirty submodules might do something on
+      // evaluation and keeps them all. The graph imports the namespace and
+      // touches nine symbols — a selection, two axes, an easing, a formatter
+      // and min/max — while d3-geo, d3-force, d3-contour, d3-delaunay,
+      // d3-hierarchy, d3-chord and the rest come along and are parsed at
+      // startup for nothing.
+      //
+      // They are pure function exports, which is what this asserts. Marking
+      // them side-effect free lets webpack drop the unreferenced submodules
+      // outright, so they cost neither installer bytes nor the memory and
+      // startup time of being parsed. Done here rather than by rewriting the
+      // imports to `d3-selection` and friends because those are transitive
+      // packages: under pnpm's isolated layout they are not resolvable from
+      // the project root, so that route means adding six dependencies to
+      // achieve what one rule already does.
+      {
+        test: /[\\/]node_modules[\\/]d3(-[a-z]+)?[\\/]/,
+        sideEffects: false,
+      },
       {
         test: /\.s?(a|c)ss$/,
         use: [

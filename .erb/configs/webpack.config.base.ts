@@ -21,6 +21,21 @@ const configuration: webpack.Configuration = {
           options: {
             // Remove this line to enable type checking in webpack builds
             transpileOnly: true,
+            compilerOptions: {
+              // Overridden here rather than in tsconfig.json, which has to
+              // stay CommonJS because ts-node loads these very config files
+              // with it.
+              //
+              // With `module: commonjs`, ts-loader turns every import in the
+              // app into a `require()` call before webpack ever sees it, and
+              // webpack cannot tree-shake a `require`. The whole renderer was
+              // being bundled with nothing eliminated — d3 was only the most
+              // visible case, dragging in geo, force, contour, delaunay,
+              // hierarchy and the rest of the thirty submodules to use nine
+              // symbols. Emitting ESM here leaves the import graph intact for
+              // webpack to analyse.
+              module: 'esnext',
+            },
           },
         },
       },
