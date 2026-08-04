@@ -35,12 +35,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   min-width: 0;
   grid-template-columns: minmax(0, 1fr);
-  // Three rows that say different kinds of thing — what this panel is, what
-  // you can do to it, what else is affecting it — so they need enough air
-  // between them to read as three rows rather than one dense block.
-  gap: 13px;
-  margin: 2px 0 0;
-  padding: 0 8px;
+  gap: 11px;
+  margin: 2px 0 6px;
+  // A surface of its own. The three rows say different kinds of thing — what
+  // this panel is, what you can do to it, what else is affecting it — and with
+  // nothing holding them they read as three unrelated strips floating above
+  // the bands. One quiet card, and a line where it ends, makes them a header.
+  padding: 12px 14px 13px;
+  border: 1px solid rgba($primary-lighter, 0.07);
+  border-radius: $radius-l;
+  background: linear-gradient(
+    180deg,
+    rgba($primary-lighter, 0.045),
+    rgba($primary-lighter, 0.012)
+  );
 
   > div:first-child {
     min-width: 0;

@@ -600,6 +600,49 @@ const reservePresetNameForActiveDevice = (requestedName: string) => {
   return `${requestedName} ${index}`;
 };
 
+/**
+ * Put the sound back to neutral: no bands, no layers, no attribution.
+ *
+ * Everything audible, and everything describing it. Leaving the voicing or the
+ * driver correction behind after a reset would mean the EQ page said "flat"
+ * while two layers were still shaping the output.
+ */
+const resetStateToDefaults = () => {
+  switchToParametricEditing();
+  clearCurrentLayoutSettings();
+  state.filters = getDefaultFilters();
+  state.preAmp = 0;
+  state.isFlat = true;
+  state.convolution = undefined;
+  state.voicing = undefined;
+  state.driver = undefined;
+  state.headset = undefined;
+  state.headsetTarget = undefined;
+};
+
+/**
+ * Give the active output an empty named profile.
+ *
+ * Every output keeps at least one, so there is always somewhere for an edit to
+ * land and always something in the list to select. The number comes from the
+ * whole catalogue rather than from this output's share of it, because two
+ * outputs cannot own the same name — see reservePresetNameForActiveDevice.
+ */
+const UNTITLED_PROFILE_PREFIX = 'Untitled profile';
+
+const createEmptyProfileForActiveDevice = () => {
+  if (!activeAudioDeviceId) {
+    return;
+  }
+  let index = 1;
+  while (doesPresetExist(`${UNTITLED_PROFILE_PREFIX} ${index}`, presetPath)) {
+    index += 1;
+  }
+  const name = `${UNTITLED_PROFILE_PREFIX} ${index}`;
+  savePreset(name, getCurrentPreset(), presetPath);
+  attachPresetToActiveDevice(name);
+};
+
 const attachPresetToActiveDevice = (presetName: string) => {
   if (!activeAudioDeviceId) {
     return false;
@@ -1071,10 +1114,23 @@ ipcMain.on(ChannelEnum.DELETE_PRESET, async (event, arg) => {
   const pathToDelete = path.join(presetPath, presetName);
   console.log(`Deleting preset: ${presetName} at location ${pathToDelete}`);
   try {
+    const wasAttachedHere =
+      deviceProfileSettings.assignments[activeAudioDeviceId]?.presetName ===
+      presetName;
+
     deletePreset(presetName, presetPath);
     deletePresetBaseline(presetName, baselinePath);
     removeAssignmentsForPreset(deviceProfileSettings, presetName);
     saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+
+    // Deleting what this output was playing through leaves it with nothing.
+    // Reset to neutral and hand it a fresh empty profile rather than leaving
+    // the user on a nameless tuning they cannot save to or get back from.
+    if (wasAttachedHere) {
+      resetStateToDefaults();
+      createEmptyProfileForActiveDevice();
+    }
+
     await handleUpdate(event, channel);
   } catch (e) {
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
@@ -1159,6 +1215,14 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
           presetPath,
         ),
       );
+      // Every output keeps at least one named profile, so there is always
+      // somewhere for an edit to land and always something in the list to
+      // select. Only for outputs the user actually lands on — creating one
+      // eagerly for every endpoint Windows reports would fill the list with
+      // profiles for devices nobody has used.
+      if (!deviceProfileSettings.assignments[activeDevice.id]) {
+        createEmptyProfileForActiveDevice();
+      }
       save(state, userDataDir);
       captureCurrentLayout();
 
@@ -1224,6 +1288,9 @@ ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
   clearCurrentLayoutSettings();
   hasActiveSessionOverride = false;
   applyDeviceState(nextState);
+  if (!deviceProfileSettings.assignments[activeAudioDeviceId]) {
+    createEmptyProfileForActiveDevice();
+  }
   await handleUpdate(event, channel);
   notifyOutputStateChanged();
 });
