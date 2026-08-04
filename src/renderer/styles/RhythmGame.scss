@@ -67,18 +67,40 @@ it under the terms of the GNU General Public License version 3 or later.
     height: 100%;
   }
 
+  // Filled, because it is mirrored about the middle and closed — a waveform,
+  // the same shape the titlebar meter draws, rather than a line graph of a
+  // number. The app's own accent, not the medical red this started as.
   path {
-    fill: none;
-    // The app's own accent, not the medical red this started as. The shape
-    // carries the idea; the colour should say FluidEQ.
+    fill: rgba($secondary-default, 0.5);
     stroke: $secondary-light;
-    stroke-width: 1.6;
-    stroke-linecap: round;
+    stroke-width: 1;
     stroke-linejoin: round;
     // Non-scaling, because `preserveAspectRatio: none` stretches the viewBox
     // to whatever width the dialog is and would take the stroke with it.
     vector-effect: non-scaling-stroke;
-    filter: drop-shadow(0 0 5px rgba($secondary-default, 0.55));
+    filter: drop-shadow(0 0 5px rgba($secondary-default, 0.45));
+  }
+
+  // One per detected hit, riding along with the wave. These are what the player
+  // is actually lining up against the target, so they are drawn on top of the
+  // waveform rather than behind it.
+  .rhythm-game__peak {
+    stroke: $neon-lime;
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+    vector-effect: non-scaling-stroke;
+  }
+
+  // The zero line the waveform is mirrored about. Faint — it is a reference,
+  // not a feature, and it must not compete with the target line.
+  &::before {
+    position: absolute;
+    top: 50%;
+    right: 0;
+    left: 0;
+    height: 1px;
+    background: rgba($primary-lighter, 0.1);
+    content: '';
   }
 }
 

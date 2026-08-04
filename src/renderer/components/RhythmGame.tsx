@@ -56,15 +56,21 @@ const HIGH_SCORE_KEY = 'fluideq-rhythm-high-score';
  * something to see coming. The cost is that the tap lands a moment after the
  * sound, which is the trade being made deliberately.
  */
-const LEAD_MS = 380;
-/** How much already-passed audio stays on screen to the left of the line. */
-const TRAIL_MS = 900;
-const WINDOW_MS = LEAD_MS + TRAIL_MS;
+const LEAD_MS = 420;
+/**
+ * The window is exactly twice the lead, which is what puts the target line dead
+ * centre and keeps it there. Derived rather than chosen: with a separate trail
+ * length the line drifts off centre the moment either constant is touched.
+ */
+const WINDOW_MS = LEAD_MS * 2;
+/** Always the middle, by construction. */
+const TARGET_PERCENT = 50;
 
 const VIEW_HEIGHT = 44;
-const BASELINE = VIEW_HEIGHT - 5;
-/** Tallest a spike is allowed to draw. */
-const PEAK_HEIGHT = VIEW_HEIGHT - 12;
+/** Mirrored about the middle, the way the titlebar meter draws. */
+const CENTRE = VIEW_HEIGHT / 2;
+/** Half-height of a full-scale hit, leaving a margin at both edges. */
+const AMPLITUDE = CENTRE - 4;
 
 export interface IRhythmGameHandle {
   /**
@@ -101,6 +107,8 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   // in place so the SVG actually updates.
   const [path, setPath] = useState('');
   const [hasPeaks, setHasPeaks] = useState(false);
+  // Where each detected hit currently sits, as a percentage across the trace.
+  const [peakMarks, setPeakMarks] = useState<number[]>([]);
 
   const isListening = isActive && !isPaused;
 
@@ -122,14 +130,33 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     // Time maps to x directly: the newest sample is at the right edge, the
     // target line sits LEAD_MS back from it, and everything older trails off to
     // the left. One mapping for drawing and for scoring.
-    const segments = next.history.map((sample) => {
+    //
+    // Drawn mirrored about the middle and closed into a shape, so it reads as a
+    // waveform rather than as a graph of a number. Out along the top, back
+    // along the bottom.
+    const upper: string[] = [];
+    const lower: string[] = [];
+    const marks: number[] = [];
+    next.history.forEach((sample) => {
       const age = now - sample.timeMs;
       const x = 100 - (age / WINDOW_MS) * 100;
-      const y = BASELINE - sample.level * PEAK_HEIGHT;
-      return `${x.toFixed(2)},${y.toFixed(2)}`;
+      const offset = sample.level * AMPLITUDE;
+      upper.push(`${x.toFixed(2)},${(CENTRE - offset).toFixed(2)}`);
+      lower.push(`${x.toFixed(2)},${(CENTRE + offset).toFixed(2)}`);
+      // Every detected hit gets its own mark, travelling with the wave. Tapping
+      // as one crosses the centre line is the whole game, and without them the
+      // player is guessing which bump was the one that counted.
+      if (sample.isPeak) {
+        marks.push(x);
+      }
     });
-    setPath(segments.length > 1 ? `M ${segments.join(' L ')}` : '');
-    setHasPeaks(next.history.some((sample) => sample.isPeak));
+    setPath(
+      upper.length > 1
+        ? `M ${upper.join(' L ')} L ${lower.reverse().join(' L ')} Z`
+        : '',
+    );
+    setPeakMarks(marks);
+    setHasPeaks(marks.length > 0);
   }, [isListening, points]);
 
   // Nothing playing means nothing to jump. Clearing the trace rather than
@@ -141,6 +168,7 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     }
     stateRef.current = createPercussionState();
     setPath('');
+    setPeakMarks([]);
     setHasPeaks(false);
   }, [isListening]);
 
@@ -176,7 +204,6 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   const markerPosition = lastHit
     ? getHitMarkerPosition(lastHit.offsetMs)
     : undefined;
-  const targetPercent = (TRAIL_MS / WINDOW_MS) * 100;
 
   return (
     <div className="rhythm-game">
@@ -205,12 +232,31 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
           focusable="false"
         >
           {path && <path d={path} />}
+          {/* Inside the SVG, so the marks share the wave's coordinate space and
+              cannot drift from the hits they belong to at any dialog width. */}
+          {peakMarks.map((x) => (
+            <line
+              key={x}
+              className="rhythm-game__peak"
+              x1={x}
+              x2={x}
+              y1={0}
+              y2={VIEW_HEIGHT}
+              // Distance from the centre, so a mark brightens as it arrives.
+              // The one you are about to hit should be the loudest thing on
+              // screen.
+              opacity={Math.max(
+                0.18,
+                1 - Math.abs(x - TARGET_PERCENT) / TARGET_PERCENT,
+              )}
+            />
+          ))}
         </svg>
 
         {/* Directly under the pet, which is what the creature is jumping. */}
         <span
           className="rhythm-game__target"
-          style={{ left: `${targetPercent}%` }}
+          style={{ left: `${TARGET_PERCENT}%` }}
         />
 
         {markerPosition !== undefined && lastHit && (
@@ -218,7 +264,7 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
             key={hitSeq}
             className={`rhythm-game__hit rhythm-game__hit--${lastHit.verdict}`}
             style={{
-              left: `${targetPercent + (markerPosition - 0.5) * 30}%`,
+              left: `${TARGET_PERCENT + (markerPosition - 0.5) * 30}%`,
             }}
           />
         )}
