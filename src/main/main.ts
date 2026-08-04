@@ -1550,7 +1550,10 @@ const createMainWindow = async () => {
     minWidth: WINDOW_MIN_WIDTH,
     height: WINDOW_HEIGHT,
     minHeight: WINDOW_MIN_HEIGHT,
-    icon: getAssetPath('icon.png'),
+    // .ico carries every size Windows asks for — taskbar, alt-tab and the
+    // window corner each want a different one, and scaling a single png for
+    // all three is what makes it look soft.
+    icon: getAssetPath(process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     resizable: true,
     frame: false,
     webPreferences: {
@@ -1683,6 +1686,19 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
+    // Identity, set here rather than at module scope on purpose.
+    //
+    // app.setName feeds app.getPath('userData'), and that path is read at
+    // import time to find the presets. Renaming before that point would move
+    // the data directory out from under an existing install; by the time the
+    // app is ready the path is already resolved, so this only affects how
+    // Windows labels the process and groups the taskbar button.
+    app.setName('FluidEQ');
+    if (process.platform === 'win32') {
+      // Without this the taskbar attributes the window to Electron itself,
+      // which is also why notifications and pinning misbehave in development.
+      app.setAppUserModelId('com.gigabytz.fluideq');
+    }
     createMainWindow();
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
