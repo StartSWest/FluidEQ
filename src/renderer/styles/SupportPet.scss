@@ -19,6 +19,76 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'theme' as *;
 
+$pet-hop-duration: 520ms;
+
+// One hop, as a mixin so the two alternating copies below cannot drift apart.
+//
+// The animation itself is declared `linear` and every segment brings its own
+// easing, because a hop is not one motion — it is a crouch, a launch, a fall
+// and a landing, and each obeys something different. A single curve across the
+// whole thing was what made the earlier attempts read as a bounce rather than a
+// jump: the creature rose and fell at the same rate, which nothing under
+// gravity does.
+@mixin pet-hop-keyframes {
+  0% {
+    translate: 0 0;
+    scale: 1 1;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.6, 1);
+  }
+
+  // Anticipation. Brief and shallow — a deep crouch reads as effort, and this
+  // creature is meant to be delighted, not straining.
+  14% {
+    translate: 0 3px;
+    scale: 1.05 0.91;
+    // Launch: everything happens at once and then decelerates into the apex.
+    animation-timing-function: cubic-bezier(0.12, 0.7, 0.3, 1);
+  }
+
+  // Off the ground and stretched along the direction of travel.
+  30% {
+    translate: 0 -11px;
+    scale: 0.95 1.07;
+    animation-timing-function: cubic-bezier(0.25, 0.6, 0.5, 1);
+  }
+
+  // The apex, where it hangs. Back to its resting shape: nothing is
+  // accelerating it, so there is nothing to stretch it.
+  48% {
+    translate: 0 -16px;
+    scale: 1 1;
+    // Falling accelerates. This is the segment that sells the weight.
+    animation-timing-function: cubic-bezier(0.6, 0, 0.85, 0.45);
+  }
+
+  // Coming down fast, stretched again.
+  70% {
+    translate: 0 -7px;
+    scale: 0.96 1.06;
+    animation-timing-function: cubic-bezier(0.7, 0, 0.9, 0.6);
+  }
+
+  // Impact, taken as a squash.
+  80% {
+    translate: 0 0;
+    scale: 1.09 0.89;
+    animation-timing-function: cubic-bezier(0.3, 0, 0.2, 1);
+  }
+
+  // A small overshoot on the recovery, so it settles rather than stopping
+  // dead.
+  90% {
+    translate: 0 -2px;
+    scale: 0.98 1.03;
+    animation-timing-function: ease-out;
+  }
+
+  100% {
+    translate: 0 0;
+    scale: 1 1;
+  }
+}
+
 // The press: the body squashes onto its base. Because it scales from the
 // bottom, its crown drops by 1.5px of travel plus 8% of its own height — so
 // the ears have to come down by the sum or they float away from the head.
@@ -85,14 +155,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-radius: $radius-l;
   background: none;
   cursor: pointer;
+  // Feet, not centre. A creature that squashes about its middle sinks into the
+  // floor on the way down and lifts off it on the way up.
+  transform-origin: 50% 100%;
 
   &:focus-visible {
     @include focus-ring;
     outline: none;
   }
 
-  &.is-tapped {
-    @include pet-pressed;
+  // Two identical animations, alternated tap by tap. Re-applying an
+  // animation-name an element already carries does nothing at all, so a second
+  // tap during the first hop would be swallowed; swapping the name restarts it
+  // without remounting the pet and resetting its breathing.
+  &.is-hopping-a {
+    animation: pet-hop $pet-hop-duration linear;
+  }
+
+  &.is-hopping-b {
+    animation: pet-hop-alt $pet-hop-duration linear;
   }
 
   // The held press is switched off in here. Everywhere else the pet stays
@@ -100,7 +181,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // being pressed — but this one is a tap, and a tap that lasts as long as you
   // happen to hold the mouse is no use for keeping time. `is-tapped` above
   // gives it a fixed duration instead, identical to what the space bar does.
-  .support-pet:active {
+  //
+  // `:not(.is-tapped)` is load-bearing, not decoration. Without it this rule
+  // carries four classes against the tap rule's three and wins the whole time
+  // the mouse is down — so a click cancelled the very squash it had just asked
+  // for, while space, which has no `:active`, worked. That was the entire
+  // difference between the two.
+  //
+  // Excluding the hopping state rather than reaching for more specificity
+  // means the two can never be in conflict at all: mid-hop they do not both
+  // match, and afterwards the hold is suppressed again, so holding the mouse
+  // still releases on time.
+  &:not(.is-hopping-a):not(.is-hopping-b) .support-pet:active {
     .support-pet__body,
     .support-pet__ears {
       transform: none;
@@ -380,6 +472,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+@keyframes pet-hop {
+  @include pet-hop-keyframes;
+}
+
+// Identical to pet-hop. It exists only so consecutive taps have a different
+// animation-name to switch to — see .support-pet-tap above.
+@keyframes pet-hop-alt {
+  @include pet-hop-keyframes;
+}
+
 // A creature bobbing in the titlebar is exactly the kind of thing that has to
 // stop when the user asks for less motion.
 @media (prefers-reduced-motion: reduce) {
@@ -392,7 +494,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .support-pet.is-celebrating.is-dancing .support-pet__ears,
   .support-pet.is-celebrating.is-listening .support-pet__art,
   .support-pet.is-celebrating.is-listening .support-pet__ears,
-  .support-pet.is-celebrating .support-pet__star {
+  .support-pet.is-celebrating .support-pet__star,
+  .support-pet-tap.is-hopping-a,
+  .support-pet-tap.is-hopping-b {
     animation: none;
     scale: none;
     rotate: none;
