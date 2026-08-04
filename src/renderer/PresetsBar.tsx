@@ -92,8 +92,13 @@ const PresetsBar = ({
   renamePreset,
   deletePreset,
 }: IPresetsBarProps) => {
-  const { globalError, isCaseSensitiveFs, performHealthCheck, setGlobalError } =
-    useAquaContext();
+  const {
+    globalError,
+    isBlockingError,
+    isCaseSensitiveFs,
+    performHealthCheck,
+    setGlobalError,
+  } = useAquaContext();
 
   const [presetName, setPresetName] = useState<string>('');
   const [newPresetNameError, setNewPresetNameError] = useState<string>('');
@@ -395,7 +400,7 @@ const PresetsBar = ({
             value={n}
             handleRename={handleRenameExistingPresetName(n)}
             handleDelete={handleDeletePreset(n)}
-            isDisabled={!!globalError}
+            isDisabled={isBlockingError}
             validate={validatePresetRename(n)}
           />
         ),
@@ -403,7 +408,7 @@ const PresetsBar = ({
     });
   }, [
     validatePresetRename,
-    globalError,
+    isBlockingError,
     handleDeletePreset,
     handleRenameExistingPresetName,
     visiblePresetNames,
@@ -421,7 +426,7 @@ const PresetsBar = ({
         <TextInput
           value={presetName}
           ariaLabel="Preset Name"
-          isDisabled={!!globalError}
+          isDisabled={isBlockingError}
           errorMessage={newPresetNameError}
           handleChange={handleChangeNewPresetName}
           handleSubmit={handleCreateOrSavePreset}
@@ -432,7 +437,7 @@ const PresetsBar = ({
         <Button
           ariaLabel="Save settings to preset"
           className="small"
-          isDisabled={!!globalError || !presetName || !!newPresetNameError}
+          isDisabled={isBlockingError || !presetName || !!newPresetNameError}
           handleChange={handleCreateOrSavePreset}
         >
           Save current EQ
@@ -442,7 +447,7 @@ const PresetsBar = ({
         <Button
           ariaLabel="Restore the last manually saved version of this profile"
           className="small subtle"
-          isDisabled={!!globalError || isRestoring || !canRestoreBaseline}
+          isDisabled={isBlockingError || isRestoring || !canRestoreBaseline}
           handleChange={handleRestoreBaseline}
         >
           {isRestoring ? 'Restoring…' : 'Restore saved'}
@@ -454,7 +459,7 @@ const PresetsBar = ({
         itemClassName="preset-list-item"
         value={presetName}
         handleChange={handleChangeSelectedPreset}
-        isDisabled={!!globalError}
+        isDisabled={isBlockingError}
         emptyOptionsPlaceholder={(() => {
           if (!hasResolvedOutput) {
             return 'Detecting your output…';

@@ -74,7 +74,7 @@ const MainContent = () => {
   const {
     filters,
     isLoading,
-    globalError,
+    isBlockingError,
     dispatchFilter,
     setGlobalError,
     setPreAmp,
@@ -742,7 +742,7 @@ const MainContent = () => {
                 name="selected-band-filter-type"
                 value={selectedFilter.type}
                 options={FILTER_OPTIONS}
-                isDisabled={!!globalError}
+                isDisabled={isBlockingError}
                 placement="up"
                 handleChange={async (newValue) => {
                   try {
@@ -805,7 +805,7 @@ const MainContent = () => {
                     className="eq-flat-editor__reset-gain"
                     aria-label="Reset selected gain to 0 dB"
                     title="Reset selected gain to 0 dB"
-                    disabled={!!globalError || selectedFilter.gain === 0}
+                    disabled={isBlockingError || selectedFilter.gain === 0}
                     onClick={resetSelectedGain}
                   >
                     ↺

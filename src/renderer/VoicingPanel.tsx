@@ -30,7 +30,7 @@ import { setVoicing as setVoicingApi } from './utils/equalizerApi';
 import './styles/Voicing.scss';
 
 const VoicingPanel = () => {
-  const { globalError, isEnabled, setGlobalError, voicing, setVoicing } =
+  const { isBlockingError, isEnabled, setGlobalError, voicing, setVoicing } =
     useAquaContext();
   const [isBusy, setIsBusy] = useState(false);
 
@@ -75,7 +75,7 @@ const VoicingPanel = () => {
           role="radio"
           aria-checked={activeId === ''}
           className={`voicing-card${activeId === '' ? ' is-active' : ''}`}
-          disabled={!!globalError || !isEnabled || isBusy}
+          disabled={isBlockingError || !isEnabled || isBusy}
           onClick={() => apply('', intensity)}
         >
           <span className="voicing-card__icon">
@@ -94,7 +94,7 @@ const VoicingPanel = () => {
             className={`voicing-card${
               activeId === profile.id ? ' is-active' : ''
             }`}
-            disabled={!!globalError || !isEnabled || isBusy}
+            disabled={isBlockingError || !isEnabled || isBusy}
             onClick={() => apply(profile.id, intensity)}
           >
             <span className="voicing-card__icon">
@@ -122,7 +122,7 @@ const VoicingPanel = () => {
               max={100}
               step={5}
               value={Math.round(intensity * 100)}
-              disabled={!!globalError || !isEnabled}
+              disabled={isBlockingError || !isEnabled}
               style={
                 {
                   '--fill': `${Math.round(intensity * 100)}%`,

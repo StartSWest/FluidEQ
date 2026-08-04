@@ -32,7 +32,7 @@ import '../styles/VoicingQuickPick.scss';
  * room for six cards — the menu carries the names.
  */
 const VoicingQuickPick = () => {
-  const { globalError, isEnabled, voicing, setVoicing } = useAquaContext();
+  const { isBlockingError, isEnabled, voicing, setVoicing } = useAquaContext();
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -92,7 +92,7 @@ const VoicingQuickPick = () => {
             ? `${activeProfile.name} — ${activeProfile.tagline}`
             : 'No voicing applied'
         }
-        disabled={!!globalError || !isEnabled}
+        disabled={isBlockingError || !isEnabled}
         onClick={() => setIsOpen((current) => !current)}
       >
         <VoicingIcon profileId={activeProfile?.id} />

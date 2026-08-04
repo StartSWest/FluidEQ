@@ -25,6 +25,7 @@ const DEFAULT_STATE = getDefaultState();
 const defaultAquaContext: IAquaContext = {
   isLoading: false,
   globalError: undefined,
+  isBlockingError: false,
   refreshState: async () => {},
   isEnabled: DEFAULT_STATE.isEnabled,
   isAutoPreAmpOn: DEFAULT_STATE.isAutoPreAmpOn,

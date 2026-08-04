@@ -87,7 +87,8 @@ const FrequencyBand = forwardRef(
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
     const INTERVAL = 100;
-    const { globalError, setGlobalError, dispatchFilter } = useAquaContext();
+    const { isBlockingError, setGlobalError, dispatchFilter } =
+      useAquaContext();
     const [isLoading, setIsLoading] = useState(false);
     const isRemoveDisabled = useMemo(
       () => isMinSliderCount || isLoading,
@@ -281,7 +282,7 @@ const FrequencyBand = forwardRef(
               name={`${frequencyValue}-filter-type`}
               value={filter.type}
               options={FILTER_OPTIONS}
-              isDisabled={!!globalError}
+              isDisabled={isBlockingError}
               handleChange={handleFilterTypeSubmit}
             />
           )}
@@ -291,7 +292,7 @@ const FrequencyBand = forwardRef(
               min={MIN_FREQUENCY}
               max={MAX_FREQUENCY}
               name={`${frequencyValue}-frequency`}
-              isDisabled={!!globalError}
+              isDisabled={isBlockingError}
               showArrows
               handleSubmit={handleFrequencySubmit}
               onWheelValueChange={onWheelFrequency}
@@ -333,7 +334,7 @@ const FrequencyBand = forwardRef(
               min={MIN_QUALITY}
               max={MAX_QUALITY}
               name={`${frequencyValue}-quality`}
-              isDisabled={!!globalError}
+              isDisabled={isBlockingError}
               floatPrecision={2}
               showArrows
               handleSubmit={handleQualitySubmit}

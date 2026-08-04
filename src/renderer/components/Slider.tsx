@@ -47,7 +47,7 @@ const Slider = ({
   colorProgress = 0,
   setValue,
 }: ISliderProps) => {
-  const { globalError } = useAquaContext();
+  const { isBlockingError } = useAquaContext();
 
   // Local copy of slider value used so that the number input increases smoothly while throttling EQ APO writes
   const [sliderValue, setSliderValue] = useState<number>(value);
@@ -101,7 +101,7 @@ const Slider = ({
         handleChange={handleInput}
         handleMouseUp={handleDragEnd}
         handleDragStart={handleDragStart}
-        isDisabled={isDisabled || !!globalError}
+        isDisabled={isDisabled || isBlockingError}
         colorProgress={colorProgress}
         incrementPrecision={0}
         displayPrecision={2}
@@ -114,7 +114,7 @@ const Slider = ({
           min={min}
           max={max}
           handleSubmit={handleInput}
-          isDisabled={isDisabled || !!globalError}
+          isDisabled={isDisabled || isBlockingError}
           floatPrecision={2}
           showArrows
         />

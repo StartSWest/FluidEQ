@@ -33,6 +33,24 @@ export type ErrorDescription = {
   code: ErrorCode;
 };
 
+/**
+ * Failures that genuinely stop FluidEQ from doing anything at all, and so earn
+ * the right to take over the screen.
+ *
+ * Everything else — a preset that would not save, a rejected name, a database
+ * read that failed — is a message, not a wall. Those used to raise the same
+ * blocking modal, which meant one failed write made the entire equalizer
+ * disappear behind a "prerequisite missing" screen while the user's audio was
+ * still being processed perfectly well by Equalizer APO.
+ */
+export const BLOCKING_ERROR_CODES: ReadonlySet<ErrorCode> = new Set([
+  ErrorCode.EQUALIZER_APO_NOT_INSTALLED,
+  ErrorCode.CONFIG_NOT_FOUND,
+]);
+
+export const isBlockingError = (error?: ErrorDescription) =>
+  !!error && BLOCKING_ERROR_CODES.has(error.code);
+
 export const errors: Record<ErrorCode, ErrorDescription> = {
   [ErrorCode.EQUALIZER_APO_NOT_INSTALLED]: {
     shortError: 'Equalizer APO is not installed.',

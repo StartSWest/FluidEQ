@@ -27,7 +27,7 @@ interface IGraphViewSwitchProps {
 }
 
 export default function GraphViewSwitch({ id }: IGraphViewSwitchProps) {
-  const { globalError, isGraphViewOn, setGlobalError, setGraphViewOn } =
+  const { isBlockingError, isGraphViewOn, setGlobalError, setGraphViewOn } =
     useAquaContext();
 
   // Toggling the graph never resizes the OS window. The workspace keeps the
@@ -50,7 +50,7 @@ export default function GraphViewSwitch({ id }: IGraphViewSwitchProps) {
       id={id}
       isOn={isGraphViewOn}
       handleToggle={handleToggle}
-      isDisabled={!!globalError}
+      isDisabled={isBlockingError}
     />
   );
 }

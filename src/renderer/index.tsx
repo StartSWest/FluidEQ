@@ -18,8 +18,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { createRoot } from 'react-dom/client';
 import App from './App';
+import ErrorBoundary from './ErrorBoundary';
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const container = document.getElementById('root')!;
+const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
-root.render(<App />);
+// Outermost on purpose. React tears down the whole tree when a render throws,
+// so without something above App a single bad frame leaves an empty window
+// with nothing on screen to explain it.
+root.render(
+  <ErrorBoundary>
+    <App />
+  </ErrorBoundary>,
+);

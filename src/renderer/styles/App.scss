@@ -355,6 +355,73 @@ select option {
   letter-spacing: -0.02em;
 }
 
+// A recoverable failure says so and gets out of the way. It floats over the
+// workspace rather than displacing it, so nothing the user was doing moves.
+.workspace-notice {
+  position: fixed;
+  z-index: 1300;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  max-width: min(420px, calc(100vw - 36px));
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba($red, 0.42);
+  border-radius: $radius-m;
+  background: linear-gradient(145deg, rgba(#2a1420, 0.97), rgba(#160c14, 0.97));
+  box-shadow: 0 16px 40px rgba($black, 0.45);
+
+  > div {
+    display: grid;
+    min-width: 0;
+    gap: 3px;
+  }
+
+  strong {
+    color: rgba($white, 0.94);
+    font-size: 0.76rem;
+  }
+
+  span {
+    color: rgba($primary-lighter, 0.74);
+    font-size: 0.7rem;
+    line-height: 1.4;
+  }
+
+  button {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+    place-items: center;
+    padding: 0;
+    color: rgba($white, 0.7);
+    border: 1px solid transparent;
+    border-radius: $radius-xs;
+    background: transparent;
+    cursor: pointer;
+    transition: $transition-control;
+
+    svg {
+      width: 11px;
+      height: 11px;
+      fill: none;
+      stroke: currentColor;
+      stroke-linecap: round;
+      stroke-width: 1.5;
+    }
+
+    &:hover,
+    &:focus-visible {
+      color: $white;
+      border-color: rgba($red, 0.4);
+      background: rgba($red, 0.16);
+      outline: none;
+    }
+  }
+}
+
 // Quiet by design: useful in a bug report, not something to read every day.
 .workspace-header__version {
   flex: 0 0 auto;

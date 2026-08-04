@@ -34,7 +34,10 @@ import {
   IState,
 } from '../../common/constants';
 import { DEFAULT_VOICING, IVoicingSettings } from '../../common/voicing';
-import { ErrorDescription } from '../../common/errors';
+import {
+  ErrorDescription,
+  isBlockingError as isBlockingErrorCode,
+} from '../../common/errors';
 import { cloneFilters } from '../../common/utils';
 import { getEqualizerState } from './equalizerApi';
 
@@ -66,6 +69,8 @@ type FilterDispatch = (action: FilterAction) => void;
 export interface IAquaContext extends IState {
   isLoading: boolean;
   globalError: ErrorDescription | undefined;
+  /** True only for failures that make the app genuinely unusable. */
+  isBlockingError: boolean;
   performHealthCheck: () => void;
   refreshState: () => Promise<void>;
   setGlobalError: (newValue?: ErrorDescription) => void;
@@ -276,6 +281,7 @@ export const AquaProvider = ({ children }: IAquaProviderProps) => {
       value={{
         isLoading,
         globalError,
+        isBlockingError: isBlockingErrorCode(globalError),
         isEnabled,
         isAutoPreAmpOn,
         isGraphViewOn,

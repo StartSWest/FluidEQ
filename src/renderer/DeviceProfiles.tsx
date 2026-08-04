@@ -30,7 +30,8 @@ const EMPTY_SETTINGS: IDeviceProfileSettings = {
 };
 
 const DeviceProfiles = () => {
-  const { globalError, performHealthCheck, setGlobalError } = useAquaContext();
+  const { isBlockingError, performHealthCheck, setGlobalError } =
+    useAquaContext();
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [settings, setSettings] =
     useState<IDeviceProfileSettings>(EMPTY_SETTINGS);
@@ -139,7 +140,7 @@ const DeviceProfiles = () => {
         options={deviceOptions}
         value={selectedDeviceId}
         handleChange={handleDeviceChange}
-        isDisabled={!!globalError || isBusy || devices.length === 0}
+        isDisabled={isBlockingError || isBusy || devices.length === 0}
         emptyOptionsPlaceholder="No active outputs found"
       />
 

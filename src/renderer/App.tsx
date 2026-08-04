@@ -53,8 +53,14 @@ const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
 const APP_VERSION = process.env.FLUIDEQ_VERSION || '';
 
 const AppContent = () => {
-  const { isLoading, globalError, isEnabled, performHealthCheck } =
-    useAquaContext();
+  const {
+    isLoading,
+    globalError,
+    isBlockingError,
+    isEnabled,
+    performHealthCheck,
+    setGlobalError,
+  } = useAquaContext();
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
@@ -208,7 +214,7 @@ const AppContent = () => {
   let connectionStatus = 'Equalizer APO connected';
   if (isLoading) {
     connectionStatus = 'Checking Equalizer APO';
-  } else if (globalError) {
+  } else if (isBlockingError) {
     connectionStatus = 'Equalizer APO unavailable';
   }
 
@@ -261,17 +267,19 @@ const AppContent = () => {
               <svg viewBox="0 0 24 24" aria-hidden="true">
                 <path d="M4 12h3l2-6 4 12 2-6h5" />
               </svg>
-              <span className={`status-dot${globalError ? ' error' : ''}`} />
+              <span
+                className={`status-dot${isBlockingError ? ' error' : ''}`}
+              />
             </button>
             {showAudioToolsMenu && (
               <div className="workspace-header__menu" role="menu">
                 <div className="workspace-header__menu-status">
                   <span
-                    className={`status-dot${globalError ? ' error' : ''}`}
+                    className={`status-dot${isBlockingError ? ' error' : ''}`}
                   />
                   <span>{connectionStatus}</span>
                 </div>
-                {!isLoading && !globalError && (
+                {!isLoading && !isBlockingError && (
                   <>
                     <button
                       type="button"
@@ -468,13 +476,33 @@ const AppContent = () => {
             deletePreset={deletePreset}
           />
         </div>
-        {globalError && (
+        {/* Only a genuinely fatal condition takes the screen. Anything else is
+            reported without touching the editor: a preset that failed to save
+            is no reason to hide an equalizer that is still working. */}
+        {globalError && isBlockingError && (
           <PrereqMissingModal
             isLoading={isLoading}
             onRetry={performHealthCheck}
             errorMsg={globalError.shortError}
             actionMsg={globalError.action}
           />
+        )}
+        {globalError && !isBlockingError && (
+          <div className="workspace-notice" role="alert">
+            <div>
+              <strong>{globalError.shortError}</strong>
+              <span>{globalError.action}</span>
+            </div>
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={() => setGlobalError(undefined)}
+            >
+              <svg viewBox="0 0 12 12" aria-hidden="true">
+                <path d="M3 3l6 6M9 3l-6 6" />
+              </svg>
+            </button>
+          </div>
         )}
         {showSupportDialog && (
           <SupportDialog

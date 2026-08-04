@@ -88,7 +88,7 @@ const AutoEQ = () => {
   const NO_RESPONSES = 'No supported responses 😞';
   const NO_RESPONSE_SELECTION = 'Pick a response! 🔊';
 
-  const { globalError, setGlobalError, refreshState } = useAquaContext();
+  const { isBlockingError, setGlobalError, refreshState } = useAquaContext();
   const [devices, setDevices] = useState<IDeviceEntry[]>([]);
   const [responses, setResponses] = useState<string[]>([]);
   const [currentDevice, setCurrentDevice] = useState<string>('');
@@ -362,7 +362,7 @@ const AutoEQ = () => {
             handleChange={(newValue) =>
               setSourceId(newValue as IEqSource['id'])
             }
-            isDisabled={!!globalError}
+            isDisabled={isBlockingError}
             filterPlaceholder="Search sources..."
             isFilterable
           />
@@ -374,7 +374,7 @@ const AutoEQ = () => {
             options={deviceOptions}
             value={currentDevice}
             handleChange={handleDeviceChange}
-            isDisabled={!!globalError || !sourceId}
+            isDisabled={isBlockingError || !sourceId}
             noSelectionPlaceholder={NO_DEVICE_SELECTION}
             emptyOptionsPlaceholder="No measured model matches your search."
             filterPlaceholder="Search by brand or model..."
@@ -388,7 +388,7 @@ const AutoEQ = () => {
             options={responseOptions}
             value={currentResponse}
             handleChange={(newValue) => setCurrentResponse(newValue)}
-            isDisabled={!!globalError || responses.length === 0}
+            isDisabled={isBlockingError || responses.length === 0}
             emptyOptionsPlaceholder={NO_RESPONSES}
             noSelectionPlaceholder={NO_RESPONSE_SELECTION}
           />
@@ -397,7 +397,7 @@ const AutoEQ = () => {
           className="small"
           ariaLabel="Apply selected headset EQ"
           isDisabled={
-            !!globalError || currentDevice === '' || currentResponse === ''
+            isBlockingError || currentDevice === '' || currentResponse === ''
           }
           handleChange={applyAutoEQ}
         >

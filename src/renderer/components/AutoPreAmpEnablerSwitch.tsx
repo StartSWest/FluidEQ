@@ -32,7 +32,7 @@ interface IAutoPreAmpEnablerSwitchProps {
 export default function AutoPreAmpEnablerSwitch({
   id,
 }: IAutoPreAmpEnablerSwitchProps) {
-  const { globalError, isAutoPreAmpOn, setGlobalError, setAutoPreAmpOn } =
+  const { isBlockingError, isAutoPreAmpOn, setGlobalError, setAutoPreAmpOn } =
     useAquaContext();
 
   const handleToggle = useCallback(async () => {
@@ -53,7 +53,7 @@ export default function AutoPreAmpEnablerSwitch({
       id={id}
       isOn={isAutoPreAmpOn}
       handleToggle={handleToggle}
-      isDisabled={!!globalError}
+      isDisabled={isBlockingError}
     />
   );
 }

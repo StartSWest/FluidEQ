@@ -29,7 +29,7 @@ interface IEqualizerEnablerSwitchProps {
 export default function EqualizerEnablerSwitch({
   id,
 }: IEqualizerEnablerSwitchProps) {
-  const { globalError, isEnabled, setGlobalError, setIsEnabled } =
+  const { isBlockingError, isEnabled, setGlobalError, setIsEnabled } =
     useAquaContext();
 
   const handleToggleEqualizer = useCallback(async () => {
@@ -50,7 +50,7 @@ export default function EqualizerEnablerSwitch({
       id={id}
       isOn={isEnabled}
       handleToggle={handleToggleEqualizer}
-      isDisabled={!!globalError}
+      isDisabled={isBlockingError}
     />
   );
 }

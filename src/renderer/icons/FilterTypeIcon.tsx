@@ -140,7 +140,7 @@ const FilterTypeIcon = ({ type }: { type: FilterTypeEnum }) => {
         </svg>
       );
     default:
-      return <></>;
+      return null;
   }
 };
 
@@ -151,7 +151,7 @@ export const FILTER_OPTIONS = Object.values(FilterTypeEnum).map(
       label: FilterTypeToLabelMap[filterType],
       display: <FilterTypeIcon type={filterType} />,
     };
-  }
+  },
 );
 
 export default FilterTypeIcon;
