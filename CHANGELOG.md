@@ -6,6 +6,12 @@ opens it again any time.
 
 ---
 
+## Unreleased
+
+- The installer asks which language to use, preselecting your Windows one.
+
+---
+
 ## 0.5.0
 
 ### New

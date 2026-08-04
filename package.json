@@ -265,7 +265,20 @@
     "nsis": {
       "runAfterFinish": false,
       "artifactName": "${productName}-Setup-${version}.${ext}",
-      "license": "assets/licenses/LICENSE.txt"
+      "license": "assets/licenses/LICENSE.txt",
+      "multiLanguageInstaller": true,
+      "displayLanguageSelector": true,
+      "installerLanguages": [
+        "en_US",
+        "zh_CN",
+        "es_ES",
+        "fr_FR",
+        "pt_BR",
+        "ru_RU",
+        "ja_JP",
+        "de_DE",
+        "it_IT"
+      ]
     },
     "linux": {
       "target": [

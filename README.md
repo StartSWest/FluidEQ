@@ -8,12 +8,7 @@ It puts a modern workflow on top of
 output, and the right sound follows the right device without you touching
 anything again.
 
-<!-- Drop a real screenshot at docs/screenshot.png and delete the <picture>
-     wrapper, leaving the img. The mockup below is the fallback until then. -->
-<picture>
-  <source srcset="docs/screenshot.png" type="image/png">
-  <img src="docs/fluid-eq-preview.svg" alt="The FluidEQ interface: the EQ page with the band editor, the response graph, and the output column">
-</picture>
+![The FluidEQ interface: the EQ page with the band editor, the response graph and the output column](docs/screenshot.png)
 
 ## What it does
 
@@ -51,10 +46,12 @@ cannot clip you — and removing one gives the headroom back.
 file, a FluidEQ profile, or any WAV impulse response.
 
 **Ten languages.** English, 简体中文, हिन्दी, Español, Français, Português,
-Русский, 日本語, Deutsch, Italiano. FluidEQ picks yours from Windows on first
-run; the actions menu changes it. Right-to-left languages are deliberately
-absent — the layout has never been mirrored, and a broken Arabic is worse than
-none.
+Русский, 日本語, Deutsch, Italiano — the most-spoken left-to-right scripts.
+The installer offers a language too, preselecting your Windows one, and the app
+does the same on first run. Change it any time from the actions menu. Every
+label, hint, error and tooltip is translated, and a test fails the build if a
+locale falls behind English. Right-to-left languages are deliberately absent:
+the layout has never been mirrored, and a broken Arabic is worse than none.
 
 **Updates itself.** FluidEQ checks GitHub for a new version, downloads it in
 the background and offers to restart. Being offline is not an error and says
