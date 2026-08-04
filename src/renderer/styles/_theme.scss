@@ -147,6 +147,26 @@ $transition-control:
     0 0 28px rgba($secondary-default, 0.08),
     inset 0 1px 0 rgba($white, 0.06);
   backdrop-filter: blur(18px) saturate(1.25);
+
+  // Euphoria mode reaches anything built on this surface, so a menu opened at
+  // the ceiling belongs to the same moment as the window behind it rather than
+  // arriving as a grey rectangle over a celebration.
+  //
+  // Emitted from the mixin rather than listed selector by selector in
+  // Euphoria.scss, so every surface gets it by construction and a new dropdown
+  // cannot be added that quietly misses out.
+  //
+  // This is the same treatment that was removed from every control in the
+  // window for being too slow, and the difference is how many elements read a
+  // hue that animates every frame. Every button and panel is hundreds; an open
+  // menu is one, and only while it is open.
+  .is-euphoric & {
+    border-color: hsl(var(--euphoria-hue, 160deg) 90% 62% / 45%);
+    box-shadow:
+      0 18px 44px rgba($black, 0.5),
+      0 0 30px hsl(var(--euphoria-hue, 160deg) 95% 60% / 20%),
+      inset 0 1px 0 rgba($white, 0.06);
+  }
 }
 
 // The exact colour at the top edge of a panel. Anything that has to butt up

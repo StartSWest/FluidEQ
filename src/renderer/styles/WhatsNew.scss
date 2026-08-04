@@ -37,6 +37,29 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-l;
   background: linear-gradient(150deg, rgba(#101d2a, 0.99), rgba(#08121b, 0.99));
   box-shadow: 0 30px 80px rgba($black, 0.5);
+
+  // This panel has its own surface rather than the shared `menu-surface`, so
+  // euphoria has to be spelled out here — it does not inherit the treatment
+  // the mixin now emits.
+  //
+  // Which is worth doing: what is new in FluidEQ is exactly the thing somebody
+  // at the ceiling has just been enjoying, and a release-notes panel arriving
+  // as a plain grey rectangle over a celebrating window reads as a different
+  // application.
+  .is-euphoric & {
+    border-color: hsl(var(--euphoria-hue, 160deg) 90% 62% / 55%);
+    box-shadow:
+      0 30px 80px rgba($black, 0.5),
+      0 0 36px hsl(var(--euphoria-hue, 160deg) 95% 60% / 22%);
+  }
+}
+
+// The eyebrow becomes the badge, because it is already the small
+// all-caps line the euphoria pill is shaped like — so the panel gains the
+// mode's marker without gaining an element.
+.is-euphoric .whats-new__header .eyebrow {
+  color: hsl(var(--euphoria-hue, 160deg) 95% 68%);
+  text-shadow: 0 0 12px hsl(var(--euphoria-hue, 160deg) 95% 60% / 45%);
 }
 
 .whats-new__header {

@@ -51,9 +51,14 @@ const getTFCoefficients = (filter: IFilter) => {
     quality: userQuality,
   } = filter;
 
-  // TODO: add additional shelf filter cases when/if we add them in
-  // Handle these filter types differently:
-  // 'peak', 'low-shelf-fixed', 'high-shelf-fixed', 'low-shelf-q', 'high-shelf-q', 'low-shelf-db', 'high-shelf-db'
+  // The types that take a gain. Everything else is a pure filter shape and
+  // ignores it.
+  //
+  // Adding a filter type means three edits, not one: uncomment it in
+  // FilterTypeEnum, add its Q handling below, and add its coefficients further
+  // down. Miss the last two and the graph silently draws the wrong curve for a
+  // filter Equalizer APO is genuinely applying, which is worse than not
+  // offering the type at all.
   const specialFilters = new Set([
     FilterTypeEnum.PK,
     FilterTypeEnum.HSC,
@@ -78,10 +83,8 @@ const getTFCoefficients = (filter: IFilter) => {
 
   const shelfFilters = new Set([FilterTypeEnum.HSC, FilterTypeEnum.LSC]);
   if (shelfFilters.has(filterType)) {
-    // TODO: add additional shelf filter cases when/if we add them in
-    // if (filterType in {'low-shelf-fixed', 'high-shelf-fixed'}){
-    //     quality = 0.9
-    // } else
+    // A fixed-slope shelf would pin its Q here rather than reading the knob.
+    // None are enabled; see FilterTypeEnum for the full list held back.
     if (
       filterType === FilterTypeEnum.LSC ||
       filterType === FilterTypeEnum.HSC
@@ -151,14 +154,11 @@ const getTFCoefficients = (filter: IFilter) => {
       a0 = 1 + alpha;
       a1 = -2 * cosine;
       a2 = 1 - alpha;
-      // TODO: Add this filter back in when/if we decide to add all pass filter
-      // } else if ( filterType === FilterTypeEnum.AP){
-      //     b0 = 1-alpha
-      //     b1 = -2*cosine
-      //     b2 = 1+alpha
-      //     a0 = 1+alpha
-      //     a1 = -2*cosine
-      //     a2 = 1-alpha
+      // All-pass would go here. It is commented out in FilterTypeEnum too, so
+      // the two agree: the app cannot produce one, and nothing here pretends
+      // it can. Its coefficients are b0 = 1 - alpha, b1 = -2cos, b2 = 1 +
+      // alpha over a0 = 1 + alpha, a1 = -2cos, a2 = 1 - alpha, if it is ever
+      // wanted.
     }
   }
 

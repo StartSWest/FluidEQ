@@ -719,6 +719,22 @@ if (process.platform === 'win32') {
   );
 }
 
+/** Base wait between attempts, plus up to the same again as jitter. */
+const RETRY_DELAY_MS = 500;
+
+/**
+ * Retry something that fails because someone else is holding the file.
+ *
+ * Flat, not exponential, and that is deliberate rather than unfinished. The
+ * only thing this guards is two config writes landing at once — a lock held
+ * for a few milliseconds, not a service asking to be backed off. Doubling the
+ * wait each time would turn a two-second worst case into eight, and every one
+ * of those seconds is a user watching their EQ fail to apply.
+ *
+ * The jitter is the part that matters. Two writers that collide once are on
+ * the same cadence by definition, so a fixed delay marches them into the next
+ * collision together; spreading the wait is what breaks the lockstep.
+ */
 const retryHelper = async (attempts: number, f: () => unknown) => {
   for (let i = 0; i < attempts; i += 1) {
     try {
@@ -728,9 +744,8 @@ const retryHelper = async (attempts: number, f: () => unknown) => {
       if (i === attempts - 1) {
         throw new Error(`Failed to perform action after ${attempts} retries`);
       }
-      // TODO: maybe add a backoff here?
       await new Promise((resolve) => {
-        setTimeout(resolve, 500);
+        setTimeout(resolve, RETRY_DELAY_MS + Math.random() * RETRY_DELAY_MS);
       });
     }
   }
