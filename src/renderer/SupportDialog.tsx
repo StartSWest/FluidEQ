@@ -25,6 +25,7 @@ import {
 } from 'common/support';
 import supportQrImage from '../../assets/support-qr.png';
 import QrCode from './components/QrCode';
+import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
 import { SupportPetHero } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 import './styles/Support.scss';
@@ -47,6 +48,9 @@ interface ISupportDialogProps {
 
 const COPY_FEEDBACK_MS = 2000;
 
+/** How long the creature keeps the face the last tap earned it. */
+const PET_MOOD_MS = 700;
+
 export default function SupportDialog({
   hasContributed,
   onContributed,
@@ -68,7 +72,43 @@ export default function SupportDialog({
   // starts a fresh one instead of being swallowed. Nothing to clean up either —
   // the animation ends by itself.
   const [petTaps, setPetTaps] = useState(0);
-  const bouncePet = useCallback(() => setPetTaps((count) => count + 1), []);
+  const gameRef = useRef<IRhythmGameHandle>(null);
+  // One tap does both. Scoring goes through a ref rather than an effect on the
+  // counter, so the moment that is graded is the moment the key went down —
+  // an effect would score a render later, which in a game about timing is a
+  // handicap the player did not earn.
+  // The verdict comes back out of the game because the creature that reacts to
+  // it lives up here, not in there. Held briefly, then dropped: an expression
+  // left up stops being a reaction and becomes the pet's face.
+  const [mood, setMood] = useState<'perfect' | 'miss' | ''>('');
+  const moodResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  const bouncePet = useCallback(() => {
+    setPetTaps((count) => count + 1);
+    const verdict = gameRef.current?.registerTap();
+    if (moodResetRef.current !== undefined) {
+      clearTimeout(moodResetRef.current);
+    }
+    if (verdict !== 'perfect' && verdict !== 'miss') {
+      setMood('');
+      return;
+    }
+    setMood(verdict);
+    moodResetRef.current = setTimeout(() => {
+      moodResetRef.current = undefined;
+      setMood('');
+    }, PET_MOOD_MS);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (moodResetRef.current !== undefined) {
+        clearTimeout(moodResetRef.current);
+      }
+    },
+    [],
+  );
   const petHopClass =
     // eslint-disable-next-line no-nested-ternary
     petTaps === 0 ? '' : petTaps % 2 === 1 ? ' is-hopping-a' : ' is-hopping-b';
@@ -176,7 +216,7 @@ export default function SupportDialog({
             {hasContributed ? (
               <button
                 type="button"
-                className={`support-pet-tap${petHopClass}`}
+                className={`support-pet-tap${petHopClass}${mood ? ` is-${mood}` : ''}`}
                 aria-label={t('support.petHint')}
                 // Pointer *down*, not click. A click fires on release, so the
                 // bounce would lag the press by however long the button was
@@ -201,11 +241,6 @@ export default function SupportDialog({
             <div>
               <span className="eyebrow">{t('support.eyebrow')}</span>
               <h2 id="support-dialog-title">{t('support.title')}</h2>
-              {hasContributed && (
-                <p className="support-dialog__pet-hint">
-                  {t('support.petHint')}
-                </p>
-              )}
             </div>
           </div>
           <button
@@ -220,6 +255,12 @@ export default function SupportDialog({
             </svg>
           </button>
         </div>
+
+        {/* Below the header rather than inside it: the header is a row with the
+            close button, and the heartbeat needs the full width for the spike
+            to have somewhere to travel. Supporters only, like everything else
+            the creature does. */}
+        {hasContributed && <RhythmGame ref={gameRef} />}
 
         <p className="support-dialog__pitch">{t('support.pitch')}</p>
 

@@ -36,6 +36,7 @@ import {
   applyRhythmScore,
   getHitMarkerPosition,
   getStreakMultiplier,
+  RhythmVerdict,
   gradeRhythmOffset,
 } from 'common/rhythmGame';
 import {
@@ -66,6 +67,9 @@ const WINDOW_MS = LEAD_MS * 2;
 /** Always the middle, by construction. */
 const TARGET_PERCENT = 50;
 
+/** How long a verdict stays up after the tap that earned it. */
+const VERDICT_HOLD_MS = 900;
+
 const VIEW_HEIGHT = 44;
 /** Mirrored about the middle, the way the titlebar meter draws. */
 const CENTRE = VIEW_HEIGHT / 2;
@@ -76,8 +80,12 @@ export interface IRhythmGameHandle {
   /**
    * Called from the tap handler itself rather than an effect, so what gets
    * scored is the moment the key actually went down.
+   *
+   * Reports the verdict back, because the creature that reacts to it lives up
+   * in the dialog header rather than in here. Undefined when there was nothing
+   * to hit.
    */
-  registerTap: () => void;
+  registerTap: () => RhythmVerdict | undefined;
 }
 
 const readHighScore = () => {
@@ -109,6 +117,9 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   const [hasPeaks, setHasPeaks] = useState(false);
   // Where each detected hit currently sits, as a percentage across the trace.
   const [peakMarks, setPeakMarks] = useState<number[]>([]);
+  const verdictResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
 
   const isListening = isActive && !isPaused;
 
@@ -172,7 +183,7 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     setHasPeaks(false);
   }, [isListening]);
 
-  const registerTap = useCallback(() => {
+  const registerTap = useCallback((): RhythmVerdict | undefined => {
     const now = performance.now();
     // The tap is graded against a real detected hit. Its arrival at the line is
     // LEAD_MS after it was heard, which is exactly the delay the drawing uses,
@@ -181,12 +192,22 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     if (peakMs === undefined) {
       // Silence, or nothing detected yet. Tapping into it costs nothing and
       // earns nothing — there was no beat to be early or late for.
-      return;
+      return undefined;
     }
 
     const hit = gradeRhythmOffset(now - LEAD_MS - peakMs);
     setLastHit(hit);
     setHitSeq((seq) => seq + 1);
+    // The verdict is feedback on a tap, so it goes away when the tap is over.
+    // Left up it becomes a label, and the panel sits there claiming "GOOD"
+    // about something the player did ten seconds ago.
+    if (verdictResetRef.current !== undefined) {
+      clearTimeout(verdictResetRef.current);
+    }
+    verdictResetRef.current = setTimeout(() => {
+      verdictResetRef.current = undefined;
+      setLastHit(undefined);
+    }, VERDICT_HOLD_MS);
     setRun((previous) => {
       const next = applyRhythmScore(previous, hit);
       // Read back from storage rather than from state, so this stays correct
@@ -197,9 +218,19 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
       }
       return next;
     });
+    return hit.verdict;
   }, []);
 
   useImperativeHandle(ref, () => ({ registerTap }), [registerTap]);
+
+  useEffect(
+    () => () => {
+      if (verdictResetRef.current !== undefined) {
+        clearTimeout(verdictResetRef.current);
+      }
+    },
+    [],
+  );
 
   const markerPosition = lastHit
     ? getHitMarkerPosition(lastHit.offsetMs)
@@ -231,6 +262,25 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
           aria-hidden="true"
           focusable="false"
         >
+          <defs>
+            {/* The same spectrum the titlebar meter runs, so the two waveforms
+                in this app are recognisably the same thing. Cyan through to
+                violet, left to right. */}
+            <linearGradient id="rhythm-line" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stopColor="#00e5ff" />
+              <stop offset="0.28" stopColor="#54ff8a" />
+              <stop offset="0.52" stopColor="#ffe66d" />
+              <stop offset="0.76" stopColor="#ff3cac" />
+              <stop offset="1" stopColor="#8b5cff" />
+            </linearGradient>
+            <linearGradient id="rhythm-fill" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stopColor="#00e5ff" stopOpacity="0.3" />
+              <stop offset="0.28" stopColor="#54ff8a" stopOpacity="0.4" />
+              <stop offset="0.52" stopColor="#ffe66d" stopOpacity="0.45" />
+              <stop offset="0.76" stopColor="#ff3cac" stopOpacity="0.4" />
+              <stop offset="1" stopColor="#8b5cff" stopOpacity="0.3" />
+            </linearGradient>
+          </defs>
           {path && <path d={path} />}
           {/* Inside the SVG, so the marks share the wave's coordinate space and
               cannot drift from the hits they belong to at any dialog width. */}
@@ -253,9 +303,14 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
           ))}
         </svg>
 
-        {/* Directly under the pet, which is what the creature is jumping. */}
+        {/* Directly under the pet, which is what the creature is jumping.
+            Keyed on the tap so two perfects in a row both flash — re-applying
+            the same class to an element that already has it does nothing. */}
         <span
-          className="rhythm-game__target"
+          key={lastHit?.verdict === 'perfect' ? hitSeq : 'target'}
+          className={`rhythm-game__target${
+            lastHit?.verdict === 'perfect' ? ' is-perfect' : ''
+          }`}
           style={{ left: `${TARGET_PERCENT}%` }}
         />
 

@@ -176,6 +176,40 @@ $pet-hop-duration: 520ms;
     animation: pet-hop-alt $pet-hop-duration linear;
   }
 
+  // How the creature takes the last tap.
+  //
+  // The mouth is a single quadratic and the base rule already transitions `d`,
+  // so an expression is one path swap — no second drawing to keep in step with
+  // the first, and it eases between them for free.
+  &.is-perfect {
+    .support-pet__mouth {
+      // Wider and deeper: a grin rather than the resting smile.
+      d: path('M15.6 27.6 Q20 33.8 24.4 27.6');
+    }
+
+    // Eyes squeeze up into it, the way a real smile takes the whole face.
+    .support-pet__eyes {
+      animation: none;
+      scale: 1 0.55;
+    }
+
+    .support-pet__art {
+      animation: pet-delight 620ms ease-out;
+    }
+  }
+
+  &.is-miss {
+    .support-pet__mouth {
+      // The same mouth turned through the middle, so it reads as this creature
+      // disappointed rather than as a different face.
+      d: path('M16.6 30.8 Q20 27.4 23.4 30.8');
+    }
+
+    .support-pet__art {
+      animation: pet-dismay 520ms ease-out;
+    }
+  }
+
   // The held press is switched off in here. Everywhere else the pet stays
   // squashed for as long as the button is down, which is right for a control
   // being pressed — but this one is a tap, and a tap that lasts as long as you
@@ -469,6 +503,40 @@ $pet-hop-duration: 520ms;
   50% {
     opacity: 0.75;
     transform: scale(1.14) rotate(12deg);
+  }
+}
+
+// A perfect hit. Bright, brief, and on the whole creature rather than a badge
+// pinned to it — the pet is what the player is looking at when they land one.
+@keyframes pet-delight {
+  0% {
+    filter: drop-shadow(0 0 14px rgba($neon-lime, 0.95))
+      drop-shadow(0 0 30px rgba($neon-lime, 0.6));
+    scale: 1.1;
+  }
+
+  60% {
+    filter: drop-shadow(0 0 8px rgba($neon-lime, 0.5));
+    scale: 1.02;
+  }
+
+  100% {
+    filter: none;
+    scale: 1;
+  }
+}
+
+// A miss. A flinch rather than a flash: the same idea inverted, so the two
+// never get confused for each other at a glance.
+@keyframes pet-dismay {
+  0% {
+    filter: drop-shadow(0 0 10px rgba(#ff5a6e, 0.7));
+    scale: 0.94;
+  }
+
+  100% {
+    filter: none;
+    scale: 1;
   }
 }
 

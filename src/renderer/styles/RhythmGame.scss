@@ -68,17 +68,17 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   // Filled, because it is mirrored about the middle and closed — a waveform,
-  // the same shape the titlebar meter draws, rather than a line graph of a
-  // number. The app's own accent, not the medical red this started as.
+  // the same shape and the same spectrum the titlebar meter draws, rather than
+  // a second style for the same idea in one app.
   path {
-    fill: rgba($secondary-default, 0.5);
-    stroke: $secondary-light;
-    stroke-width: 1;
+    fill: url('#rhythm-fill');
+    stroke: url('#rhythm-line');
+    stroke-width: 1.4;
     stroke-linejoin: round;
     // Non-scaling, because `preserveAspectRatio: none` stretches the viewBox
     // to whatever width the dialog is and would take the stroke with it.
     vector-effect: non-scaling-stroke;
-    filter: drop-shadow(0 0 5px rgba($secondary-default, 0.45));
+    filter: drop-shadow(0 0 6px rgba($secondary-default, 0.5));
   }
 
   // One per detected hit, riding along with the wave. These are what the player
@@ -86,9 +86,14 @@ it under the terms of the GNU General Public License version 3 or later.
   // waveform rather than behind it.
   .rhythm-game__peak {
     stroke: $neon-lime;
-    stroke-width: 1.5;
-    stroke-dasharray: 3 3;
+    stroke-width: 4;
+    stroke-linecap: round;
     vector-effect: non-scaling-stroke;
+    // Two shadows rather than one: a tight bright core and a wide soft halo.
+    // A single large blur just goes muddy, and these have to read at a glance
+    // against a waveform of the same colour family.
+    filter: drop-shadow(0 0 3px rgba($neon-lime, 0.95))
+      drop-shadow(0 0 9px rgba($neon-lime, 0.55));
   }
 
   // The zero line the waveform is mirrored about. Faint — it is a reference,
@@ -111,12 +116,35 @@ it under the terms of the GNU General Public License version 3 or later.
   position: absolute;
   top: 4px;
   bottom: 4px;
-  width: 2px;
+  width: 3px;
   border-radius: $radius-pill;
-  background: rgba($secondary-light, 0.75);
+  background: rgba($secondary-light, 0.8);
   box-shadow: 0 0 10px rgba($secondary-default, 0.6);
-  translate: -1px 0;
+  translate: -1.5px 0;
   pointer-events: none;
+
+  // Landing one dead on lights the line up. It is the only moment in the game
+  // worth celebrating, so it is the only thing that does this.
+  &.is-perfect {
+    animation: rhythm-target-flash 480ms ease-out;
+  }
+}
+
+@keyframes rhythm-target-flash {
+  0% {
+    background: $neon-lime;
+    box-shadow:
+      0 0 6px rgba($neon-lime, 1),
+      0 0 22px rgba($neon-lime, 0.85),
+      0 0 44px rgba($neon-lime, 0.5);
+    scale: 1 1.06;
+  }
+
+  100% {
+    background: rgba($secondary-light, 0.8);
+    box-shadow: 0 0 10px rgba($secondary-default, 0.6);
+    scale: 1 1;
+  }
 }
 
 // Where the last tap actually landed, left of the line for early and right for
