@@ -843,7 +843,11 @@ $tab-border: rgba($secondary-light, 0.2);
   min-height: 0;
   padding: 12px;
   gap: 10px;
-  grid-template-rows: max-content minmax(0, 1fr);
+  // Output profile and driver picker are both content-sized; the named-profile
+  // list takes everything left and scrolls inside itself. One row per child —
+  // a missing track sends the last child to an implicit auto row, which is
+  // what was starving the profile list of height.
+  grid-template-rows: max-content max-content minmax(0, 1fr);
   overflow: hidden;
 }
 

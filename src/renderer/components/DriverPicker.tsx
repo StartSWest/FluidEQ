@@ -21,7 +21,6 @@ import { ErrorDescription } from 'common/errors';
 import {
   DRIVER_CATEGORY_LABELS,
   DRIVER_PROFILES,
-  getDriverFilters,
   getDriverProfile,
 } from 'common/driver';
 import { NO_GAIN_FILTER_TYPES } from 'common/constants';
@@ -47,7 +46,25 @@ const DriverPicker = () => {
   const activeId = driver?.profileId ?? '';
   const intensity = driver?.intensity ?? 0.6;
   const activeProfile = getDriverProfile(activeId);
-  const activeFilters = getDriverFilters(driver);
+
+  /**
+   * What the panel shows, which is not the same as what gets written.
+   *
+   * getDriverFilters drops anything whose scaled gain rounds to zero, because
+   * an inert command has no business in the APO config. That is right for the
+   * engine and wrong for the UI: at 0% strength the whole list vanished and
+   * took the curve with it, so the bands a profile contains became invisible
+   * exactly when you were deciding whether to turn it up. These keep their
+   * shape at every strength and simply read 0 dB.
+   */
+  const displayFilters = useMemo(
+    () =>
+      (activeProfile?.filters ?? []).map((filter) => ({
+        ...filter,
+        gain: Math.round(filter.gain * intensity * 10) / 10,
+      })),
+    [activeProfile, intensity],
+  );
 
   const options: IOptionEntry[] = useMemo(() => {
     const entries: IOptionEntry[] = [
@@ -115,7 +132,7 @@ const DriverPicker = () => {
         <div className="driver-picker__detail">
           {/* The shape first: it says more in one glance than the list below. */}
           <div className="driver-picker__preview">
-            <DriverCurve filters={activeFilters} />
+            <DriverCurve filters={displayFilters} />
             <div className="driver-picker__scale" aria-hidden="true">
               <span>20 Hz</span>
               <span>1 kHz</span>
@@ -152,7 +169,7 @@ const DriverPicker = () => {
           {/* Every filter in plain sight, same as the voicing panel: this is a
               real APO command you could have typed yourself. */}
           <ul className="driver-picker__filters">
-            {activeFilters.map((filter) => (
+            {displayFilters.map((filter) => (
               <li key={`${filter.type}-${filter.frequency}`}>
                 <span className="driver-filter__freq">
                   {filter.frequency >= 1000
@@ -171,13 +188,6 @@ const DriverPicker = () => {
                 <span className="driver-filter__reason">{filter.reason}</span>
               </li>
             ))}
-            {activeFilters.length === 0 && (
-              <li>
-                <span className="driver-filter__reason">
-                  At 0% strength this does nothing.
-                </span>
-              </li>
-            )}
           </ul>
 
           <p className="driver-picker__note">{activeProfile.note}</p>

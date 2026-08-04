@@ -23,7 +23,7 @@ import { getCombinedLineData, getFilterLineData } from '../graph/utils';
 import { IChartLineDataPointsById } from '../graph/ChartController';
 
 const WIDTH = 280;
-const HEIGHT = 74;
+const HEIGHT = 58;
 /**
  * Half-scale of the preview in dB.
  *

@@ -4,13 +4,13 @@
 .driver-picker {
   display: grid;
   min-width: 0;
-  gap: 10px;
+  gap: 6px;
 }
 
 .driver-picker__head {
   display: grid;
   min-width: 0;
-  gap: 5px;
+  gap: 4px;
 }
 
 // Two lines per row: the name you are looking for, and enough context to know
@@ -35,11 +35,10 @@
 }
 
 .driver-picker__detail {
-  @include inset-surface;
   display: grid;
   min-width: 0;
-  padding: 12px 14px 14px;
-  gap: 9px;
+  padding: 2px 2px 0;
+  gap: 7px;
 
   label {
     display: flex;
@@ -62,7 +61,7 @@
   input[type='range'] {
     --fill: 60%;
     width: 100%;
-    height: 20px;
+    height: 18px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -115,7 +114,7 @@
   display: grid;
   min-width: 0;
   gap: 3px;
-  padding: 8px 10px 6px;
+  padding: 6px 8px 4px;
   border: 1px solid rgba($primary-lighter, 0.12);
   border-radius: $radius-xs;
   background:
@@ -132,7 +131,7 @@
   width: 100%;
   min-width: 0;
   max-width: 100%;
-  height: 74px;
+  height: 58px;
   overflow: visible;
 }
 
@@ -183,7 +182,7 @@
   min-width: 0;
   margin: 0;
   padding: 0;
-  gap: 7px;
+  gap: 5px;
   list-style: none;
 
   li {
@@ -199,12 +198,16 @@
   }
 }
 
+// Left aligned, not right. Right-aligning the number inside its track pushed
+// it away from the reason line underneath, so the row read as two things that
+// happened to be near each other. Now the frequency, the pill and the reason
+// all hang off the same left margin, and the fixed track still lines the pills
+// up with each other down the list.
 .driver-filter__freq {
   color: rgba($white, 0.86);
   font-size: 0.66rem;
   font-variant-numeric: tabular-nums;
   font-weight: 700;
-  text-align: right;
 }
 
 .driver-filter__gain {
@@ -239,7 +242,7 @@
 // The limits of the correction, stated where the user is deciding whether to
 // trust it rather than buried in a tooltip.
 .driver-picker__note {
-  margin: 0;
+  margin: 1px 0 0;
   color: rgba($primary-lighter, 0.56);
   font-size: 0.64rem;
   font-style: italic;
