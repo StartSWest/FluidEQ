@@ -6,6 +6,74 @@ opens it again any time.
 
 ---
 
+## 0.6.0
+
+### New
+
+- **Smart EQ is its own layer.** It used to rewrite your bands, so applying it
+  overwrote the tuning you had done by hand and clearing it took your work with
+  it. It now sits on top of everything else with its own chip, and survives
+  clearing an AutoEQ reference. It also no longer inverts your own bands: the
+  target it corrects towards includes them, where before it measured as if they
+  were not there.
+- **An applied reference arrives band by band**, in frequency order, instead of
+  every slider jumping at once. You can see what it did rather than just what
+  it left behind.
+- **Zoom the whole interface** with `Ctrl` and `+`, `-` or `0`. Keyboard only,
+  deliberately — the mouse wheel belongs to the sliders.
+- **There is a game hidden in the support panel**, for anyone with the
+  contribution badge. Tap the creature or press space on the beat of whatever
+  you are playing. It reads the real percussion out of your own audio, so it is
+  your music you are playing along to.
+- **Euphoria mode.** Thirty-six consecutive perfect taps and the entire
+  application goes rainbow with the music: the bands, the response curve, the
+  meter, the menus and the release notes. One mistake and it all goes back to
+  being an equaliser.
+- **Share your run.** A card is drawn with the creature, your score and the
+  mode's own look, ready to post — copy it straight to the clipboard and paste
+  it into whatever you are writing.
+
+### Changed
+
+- **The language picker is one of the app's own dropdowns**, not the operating
+  system's, and it opens downwards at a sensible size.
+- **The titlebar sits almost flush with the page**, so the window reads as one
+  surface rather than a bar stuck on top of one.
+- **The delete-band button becomes an icon** when the row runs out of room, and
+  gets its label back when there is space for it. It is a bin now, not a cross:
+  a cross reads as "close", which is the wrong promise.
+- **The score measures accuracy, not endurance.** Only a perfect adds; anything
+  else pays a little and gives back a share of the total. Playing longer cannot
+  move anyone past their own precision.
+
+### Fixed
+
+- **Clearing an applied reference clears its bands.** The notes previously
+  claimed the bands stayed, which was wrong in both directions — a reference is
+  where your tuning came from, not a label beside it.
+- **The pet stops reacting to a paused waveform**, and stops swaying in a
+  silent room. The analyser freezes mid-frame when paused, and it was dancing
+  to a reading that had stopped being true.
+- A flaky test that depended on JavaScript object key order.
+
+### Faster
+
+- **The renderer is 44% smaller.** Nothing was being tree-shaken at all — the
+  TypeScript build emitted `require()` calls before webpack ever saw the import
+  graph, so every unused corner of every library shipped. d3 alone was dragging
+  in geo, force, contour and delaunay to draw an axis.
+- **The creature stopped re-rendering twenty-two times a second.** It sits in
+  the titlebar, so that never stopped: not when the window was idle, not when
+  nothing was playing.
+- **The device list stops polling while the window is hidden.** Each tick
+  enumerates every audio endpoint on the machine.
+- The spellchecker is gone. It was downloading a dictionary to check the
+  spelling of preset names.
+- The live waveforms are smoothed rather than redrawn in steps, so both flow
+  instead of flickering.
+
+---
+
 ## 0.5.1
 
 ### New
