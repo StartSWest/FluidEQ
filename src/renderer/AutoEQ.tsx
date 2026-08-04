@@ -98,8 +98,13 @@ const getResponseDisplayName = (response: string) =>
 
 const AutoEQ = () => {
   const CLEAR_SELECTION_EVENT = 'fluideq-clear-autoeq-selection';
-  const { headset, isBlockingError, setGlobalError, refreshState } =
-    useFluidEqContext();
+  const {
+    headset,
+    headsetTarget,
+    isBlockingError,
+    setGlobalError,
+    refreshState,
+  } = useFluidEqContext();
   const { t } = useTranslation();
   const NO_DEVICE_SELECTION = t('autoeq.pickDevice');
   const NO_RESPONSES = t('autoeq.noResponses');
@@ -132,9 +137,11 @@ const AutoEQ = () => {
   // Read inside fetchDeviceNames without making it a dependency: the device
   // list depends on the source, not on what happens to be applied.
   const appliedRef = useRef(headset);
+  const appliedTargetRef = useRef(headsetTarget);
   useEffect(() => {
     appliedRef.current = headset;
-  }, [headset]);
+    appliedTargetRef.current = headsetTarget;
+  }, [headset, headsetTarget]);
 
   const allSource = useAllSource(t);
   const allSources = useMemo(
@@ -270,12 +277,19 @@ const AutoEQ = () => {
     }
   };
 
-  // The model in the picker is already the one driving the bands. Compared by
-  // name because that is what the applied reference records — the picker’s
-  // value is source-qualified and would never match it.
+  // The exact thing driving the bands: model AND measurement. Most models have
+  // several measurements — different rigs, different target curves — and they
+  // do not sound alike, so matching on the model alone called two quite
+  // different tunings the same thing and claimed one was applied when the other
+  // was.
+  //
+  // Compared by name because that is what the applied reference records; the
+  // picker's value is source-qualified and would never match it.
   const isApplied =
     !!headset &&
-    devices.find((device) => device.value === currentDevice)?.name === headset;
+    devices.find((device) => device.value === currentDevice)?.name ===
+      headset &&
+    currentResponse === headsetTarget;
 
   const applyAutoEQ = async () => {
     try {
@@ -385,7 +399,11 @@ const AutoEQ = () => {
           <MenuIcon name="model" />
           <span>
             {headset
-              ? t('autoeq.applied', { name: headset })
+              ? t('autoeq.applied', {
+                  name: headsetTarget
+                    ? `${headset} · ${getResponseDisplayName(headsetTarget)}`
+                    : headset,
+                })
               : t('autoeq.notApplied')}
           </span>
         </div>
@@ -456,11 +474,11 @@ const AutoEQ = () => {
         <Button
           className={isApplied ? 'small is-applied' : 'small'}
           ariaLabel={t('autoeq.applyAria')}
+          // Not disabled when applied. Re-applying is a real thing to want —
+          // after tweaking bands and deciding the reference was better — and a
+          // button that refuses is a worse answer than one that just does it.
           isDisabled={
-            isBlockingError ||
-            isApplied ||
-            currentDevice === '' ||
-            currentResponse === ''
+            isBlockingError || currentDevice === '' || currentResponse === ''
           }
           handleChange={applyAutoEQ}
         >

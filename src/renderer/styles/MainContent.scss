@@ -236,6 +236,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   --range-length: 102px;
 }
 
+// Folding the AutoEQ section hands back about 150px, and the point of folding
+// it is to give that room to the bands — leaving it empty would make the
+// control pointless. The floor is the normal length, so this can only ever add
+// height, and the viewport term keeps a short window from overflowing.
+.workspace-tab-panel--eq:has(.autoeq-section:not(.is-open)) {
+  .main-content--full .bandWrapper .range {
+    --range-length: clamp(132px, calc(100vh - 430px), 282px);
+  }
+
+  .main-content--compact .bandWrapper .range {
+    --range-length: clamp(116px, calc(100vh - 446px), 256px);
+  }
+
+  .main-content--dense .bandWrapper .range {
+    --range-length: clamp(102px, calc(100vh - 460px), 232px);
+  }
+}
+
 // With the response graph hidden (FluidEqContext marks the root `minimized`) the
 // EQ owns the whole workspace column, so the tracks grow to use it rather than
 // leaving the panel half empty.
@@ -250,6 +268,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .main-content--dense .bandWrapper .range {
     --range-length: clamp(102px, calc(100vh - 500px), 260px);
+  }
+
+  // Both at once — no graph and no reference picker — is the most room the EQ
+  // can ever have, so the ceilings come off rather than the two rules fighting
+  // over which cap applies.
+  .workspace-tab-panel--eq:has(.autoeq-section:not(.is-open)) {
+    .main-content--full .bandWrapper .range {
+      --range-length: clamp(132px, calc(100vh - 330px), 420px);
+    }
+
+    .main-content--compact .bandWrapper .range {
+      --range-length: clamp(116px, calc(100vh - 346px), 380px);
+    }
+
+    .main-content--dense .bandWrapper .range {
+      --range-length: clamp(102px, calc(100vh - 360px), 340px);
+    }
   }
 }
 

@@ -71,6 +71,14 @@ export const AUTOMATIC_PRESET_PREFIX = '.fluideq-auto-';
  */
 export const OUTPUT_STATE_CHANGED_EVENT = 'output-state-changed';
 
+/**
+ * The renderer telling main it has painted a real frame.
+ *
+ * Electron's own 'ready-to-show' is not that: for a React app it fires on an
+ * empty root div, so the window appeared blank and filled in a moment later.
+ */
+export const RENDERER_READY_EVENT = 'renderer-painted';
+
 /** Main tells the renderer where a FluidEQ update has got to. */
 export const APP_UPDATE_EVENT = 'app-update';
 
@@ -186,6 +194,15 @@ export interface IState {
    * the bands afterwards. Purely descriptive: nothing reads it back.
    */
   headset?: string;
+  /**
+   * Which measurement of that headphone.
+   *
+   * Separate from the model because most models have several — different rigs,
+   * different target curves — and they do not sound alike. The model name alone
+   * would call two quite different tunings the same thing, and Apply would
+   * claim a target was already applied when a different one was.
+   */
+  headsetTarget?: string;
 }
 
 /**
@@ -249,6 +266,8 @@ export interface IPresetV2 {
   isAutoPreAmpOn?: boolean;
   /** Which measured headphone this profile's bands came from, if any. */
   headset?: string;
+  /** Which measurement of it — models usually have more than one. */
+  headsetTarget?: string;
 }
 
 export interface IConvolutionProfile {

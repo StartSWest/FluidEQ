@@ -42,8 +42,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   width: min(600px, 100%);
   max-height: calc(100vh - #{$spacing-m} * 2);
-  padding: 26px 28px 24px;
-  gap: 20px;
+  padding: 24px 26px 22px;
+  gap: 18px;
   overflow-y: auto;
   @include slim-scrollbar(8px);
 
@@ -59,6 +59,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba($primary-lighter, 0.1);
 }
 
 .support-dialog__identity {
@@ -208,7 +210,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // stay full width underneath it — a truncated address is a lost donation.
 .support-method--qr {
   align-items: center;
-  column-gap: 12px;
+  column-gap: 16px;
   grid-template-columns: minmax(0, 1fr) auto;
 
   .support-method__address,
@@ -216,22 +218,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     grid-column: 1 / -1;
   }
 
+  // Smaller, softened and framed rather than a bare white square. A QR has to
+  // stay high-contrast to scan, so the white cannot go — but at the old size
+  // it was the brightest object in a dark dialog and pulled the eye away from
+  // the link, which is what most people will actually use.
   .qr-code {
-    padding: 6px;
-    border-radius: $radius-xs;
+    display: block;
+    width: 128px;
+    height: 128px;
+    padding: 9px;
+    border: 1px solid rgba($secondary-light, 0.28);
+    border-radius: $radius-s;
     background: $white;
+    box-shadow: 0 6px 18px rgba($black, 0.32);
+    transition: $transition-control;
+  }
+
+  &:hover .qr-code,
+  &:focus-visible .qr-code {
+    border-color: rgba($secondary-light, 0.55);
   }
 }
 
-// The hosted-checkout route is the primary action, so it carries the accent.
+// A link, so it has to look like something you can press. The chevron and the
+// lift on hover are the whole difference between this reading as a card and
+// reading as a button — the card had neither and people were scanning the QR
+// because it was the only part that looked interactive.
 .support-method--primary {
+  position: relative;
   border-color: rgba($secondary-light, 0.34);
   background: linear-gradient(
     145deg,
     rgba($secondary-default, 0.16),
     rgba(#12243a, 0.9)
   );
-  transition: $transition-control;
+  cursor: pointer;
+  transition:
+    $transition-control,
+    translate 160ms $ease-out;
 
   &:hover,
   &:focus-visible {
@@ -241,11 +265,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       rgba($secondary-default, 0.26),
       rgba(#16304a, 0.94)
     );
+    translate: 0 -2px;
     outline: none;
   }
 
+  &:active {
+    translate: 0 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: $transition-control;
+
+    &:hover,
+    &:focus-visible,
+    &:active {
+      translate: 0;
+    }
+  }
+
   .support-method__label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
     color: $secondary-light;
+
+    // A chevron that leans in on hover. Cheap, and it says 'this opens
+    // somewhere' without a word of explanation.
+    &::after {
+      color: rgba($secondary-light, 0.55);
+      content: '→';
+      font-size: 0.95rem;
+      transition: translate 160ms $ease-out;
+    }
+  }
+
+  &:hover .support-method__label::after,
+  &:focus-visible .support-method__label::after {
+    color: $secondary-light;
+    translate: 3px 0;
   }
 }
 
@@ -259,21 +316,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: 700;
 }
 
+// A status, not a control. Centred inside a full-width bordered box it read
+// as a disabled button, which is a strange note to end on after someone has
+// just contributed. A star and a left-aligned line say 'this happened'.
 .support-dialog__thanks {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin: 0;
-  padding: 9px 12px;
+  padding: 11px 14px;
   color: $neon-yellow;
-  border: 1px solid rgba($neon-yellow, 0.3);
-  border-radius: $radius-xs;
-  background: rgba($neon-yellow, 0.07);
+  border: 1px solid rgba($neon-yellow, 0.26);
+  border-left: 2px solid rgba($neon-yellow, 0.75);
+  border-radius: $radius-s;
+  background: linear-gradient(
+    145deg,
+    rgba($neon-yellow, 0.1),
+    rgba($neon-yellow, 0.03)
+  );
   font-size: 0.86rem;
   font-weight: 700;
-  text-align: center;
+  line-height: 1.45;
+
+  &::before {
+    flex: 0 0 auto;
+    content: '★';
+    font-size: 1.05rem;
+    line-height: 1;
+  }
 }
 
 .support-dialog__footer {
   margin: 0;
+  padding-top: 16px;
   color: rgba($primary-lighter, 0.6);
+  border-top: 1px solid rgba($primary-lighter, 0.1);
   font-size: 0.8rem;
   line-height: 1.45;
 

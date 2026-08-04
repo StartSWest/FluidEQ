@@ -85,6 +85,8 @@ export interface IFluidEqContext extends IState {
   setConvolution: (newValue?: IConvolutionProfile) => void;
   /** Which measured headphone the current bands came from, if any. */
   headset?: string;
+  /** Which measurement of it. */
+  headsetTarget?: string;
   /** Curated target curve written as its own APO layer after the EQ bands. */
   voicing?: IVoicingSettings;
   driver?: IDriverSettings;
@@ -216,6 +218,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [headset, setHeadset] = useState<string | undefined>(
     DEFAULT_STATE.headset,
   );
+  const [headsetTarget, setHeadsetTarget] = useState<string | undefined>(
+    DEFAULT_STATE.headsetTarget,
+  );
   const [selectedFilterId, setSelectedFilterIdState] = useState<string>('');
   const [selectedFilterIds, setSelectedFilterIdsState] = useState<string[]>([]);
   const [hoveredFilterId, setHoveredFilterId] = useState<string>('');
@@ -274,6 +279,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       setVoicing(state.voicing ?? DEFAULT_VOICING);
       setDriver(state.driver ?? DEFAULT_DRIVER);
       setHeadset(state.headset);
+      setHeadsetTarget(state.headsetTarget);
       dispatchFilter({ type: FilterActionEnum.INIT, filters: state.filters });
       setGlobalError(undefined);
       setIsCaseSensitiveFs(state.isCaseSensitiveFs);
@@ -334,6 +340,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         convolution,
         setConvolution,
         headset,
+        headsetTarget,
         voicing,
         driver,
         setDriver,

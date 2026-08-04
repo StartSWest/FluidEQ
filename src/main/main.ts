@@ -99,6 +99,7 @@ import {
   AUTOMATIC_PRESET_PREFIX,
   APP_UPDATE_EVENT,
   IAppUpdateStatus,
+  RENDERER_READY_EVENT,
   OUTPUT_STATE_CHANGED_EVENT,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
@@ -218,6 +219,15 @@ const setUpAutoUpdates = () => {
 let mainWindow: BrowserWindow | null = null;
 
 const WINDOW_STATE_FILENAME = 'window-state.json';
+
+/**
+ * How long to wait for that signal before showing anyway.
+ *
+ * Long enough for a normal first paint, short enough that a renderer which
+ * never reports still produces a window rather than an app that appears not to
+ * have started.
+ */
+const RENDERER_PAINT_GRACE_MS = 1500;
 
 interface IWindowState {
   width?: number;
@@ -543,6 +553,7 @@ const getCurrentPreset = (): IPresetV2 => ({
   driver: state.driver,
   isAutoPreAmpOn: state.isAutoPreAmpOn,
   headset: state.headset,
+  headsetTarget: state.headsetTarget,
 });
 
 const switchToParametricEditing = () => {
@@ -810,6 +821,31 @@ const adoptExistingApoConfig = () => {
       return;
     }
 
+    // Two things make a block unsafe to adopt, and both were found the hard way
+    // by this wiping a live EQ off the screen.
+    //
+    // 1. A block with a preamp but no filters is not "the user cleared their
+    //    bands". It is what FluidEQ writes for a flat EQ, or for one whose only
+    //    audible content is a voicing or a convolution. Adopting it emptied the
+    //    band editor completely — no sliders at all, which is not a state the
+    //    editor is even supposed to be able to reach.
+    //
+    // 2. Voicing and driver filters are written into the same numbered
+    //    `Filter N:` sequence as the user's own bands, with nothing
+    //    distinguishing them. If either layer is active, there is no way to
+    //    tell which lines came from where, and adopting would pull the layers
+    //    into the band editor as ordinary bands — where the next flush would
+    //    then write the layers on top of them again.
+    const hasBands =
+      Object.keys(adopted.filters).length > 0 ||
+      (adopted.graphicEq?.length ?? 0) > 0;
+    const hasIndistinguishableLayers =
+      !!state.voicing?.profileId || !!state.driver?.profileId;
+
+    if (!hasBands || hasIndistinguishableLayers) {
+      return;
+    }
+
     // Compared against what the writer would actually produce, not against the
     // state fields: the preamp is derived from the whole chain, inert bands are
     // dropped, and the voicing and driver layers are appended. Comparing the
@@ -836,6 +872,7 @@ const adoptExistingApoConfig = () => {
     state.isFlat = Object.keys(adopted.filters).length === 0;
     // The attribution described bands that are no longer these bands.
     state.headset = undefined;
+    state.headsetTarget = undefined;
 
     if (adopted.convolutionFileName) {
       // The WAV is still next to the config and still what APO is applying, so
@@ -889,6 +926,7 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     state.voicing = presetSettings.voicing;
     state.driver = presetSettings.driver;
     state.headset = presetSettings.headset;
+    state.headsetTarget = presetSettings.headsetTarget;
     attachPresetToActiveDevice(presetName);
     await handleUpdate(event, channel, true);
   } catch (ex) {
@@ -925,6 +963,7 @@ ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
     state.voicing = baseline.voicing;
     state.driver = baseline.driver;
     state.headset = baseline.headset;
+    state.headsetTarget = baseline.headsetTarget;
     // Restoring writes the profile back to the baseline, but deliberately does
     // NOT rewrite the baseline itself — restoring twice in a row is a no-op
     // rather than a way to lose the copy.
@@ -1220,6 +1259,7 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     // Which model these bands came from. Not recoverable from the bands, and
     // the difference between a curve you can reason about and a set of numbers.
     state.headset = deviceName;
+    state.headsetTarget = responseName;
     // AutoEQ may be ParametricEQ, FixedBandEQ, or GraphicEQ. Replace only the
     // EQ stage; an already loaded convolution remains an independent APO
     // stage.
@@ -1291,6 +1331,7 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
     state.eqFormat = AutoEqFormat.PARAMETRIC;
     state.graphicEq = undefined;
     state.headset = deviceName;
+    state.headsetTarget = responseName;
     // Squiglink responses are editable EQ bands. Keep any separately selected
     // convolution profile in place while replacing only the EQ chain.
     state.isFlat = false;
@@ -1347,6 +1388,7 @@ ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
 ipcMain.on(ChannelEnum.CLEAR_HEADSET, async (event) => {
   const channel = ChannelEnum.CLEAR_HEADSET;
   state.headset = undefined;
+  state.headsetTarget = undefined;
   await handleUpdate(event, channel, false, true);
 });
 
@@ -1399,6 +1441,7 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
     state.graphicEq = imported.graphicEq;
     // These bands came from a file, not from a measured model.
     state.headset = undefined;
+    state.headsetTarget = undefined;
     // An imported EQ is a tuning, so the flat flag has to come off or the
     // bands would be parsed, stored, and then not written.
     state.isFlat = false;
@@ -1745,6 +1788,7 @@ ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
   state.isFlat = true;
   // The bands it described are gone, so the attribution would be a lie.
   state.headset = undefined;
+  state.headsetTarget = undefined;
 
   // EQ reset is independent from convolution. Persist the resulting state
   // (including any active convolution) to the device profile so APO keeps the
@@ -2062,6 +2106,11 @@ const createMainWindow = async () => {
     icon: getAssetPath(process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
     resizable: true,
     frame: false,
+    // Chromium paints white until the first frame of the page arrives. On a
+    // frameless dark window that is a full-size white flash, and it happens
+    // before any CSS has loaded, so no stylesheet can prevent it. Matching the
+    // shell's own background means the gap is invisible.
+    backgroundColor: '#04090f',
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
@@ -2148,8 +2197,16 @@ const createMainWindow = async () => {
     }
   };
 
-  // Register this before loadURL: ready-to-show can fire during the load.
-  mainWindow.on('ready-to-show', revealMainWindow);
+  // `ready-to-show` fires when Chromium has a first frame, which for a React
+  // app is an empty <div id="root"> — the window would appear, sit blank, and
+  // then fill in. The renderer says when it has actually painted something
+  // (see RENDERER_READY_EVENT); this is only the fallback for a renderer that
+  // never gets that far, so a crashed bundle still shows a window with an
+  // error in it rather than nothing at all.
+  mainWindow.once('ready-to-show', () => {
+    setTimeout(revealMainWindow, RENDERER_PAINT_GRACE_MS);
+  });
+  ipcMain.once(RENDERER_READY_EVENT, revealMainWindow);
   mainWindow.on('maximize', sendWindowState);
   mainWindow.on('unmaximize', sendWindowState);
   mainWindow.on('enter-full-screen', sendWindowState);

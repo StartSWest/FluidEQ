@@ -530,7 +530,8 @@ select option {
 // that button rather than as a panel that appeared over the titlebar.
 .workspace-header__menu {
   @include menu-surface;
-  @include animate(fold-down, $motion-fast);
+  @include fold(down);
+  // Hinged at the corner it hangs from, not the centre.
   transform-origin: top right;
   position: absolute;
   z-index: 120;

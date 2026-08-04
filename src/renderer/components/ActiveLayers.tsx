@@ -49,6 +49,7 @@ const ActiveLayers = () => {
     voicing,
     driver,
     headset,
+    headsetTarget,
     isEnabled,
     isBlockingError,
     refreshState,
@@ -82,7 +83,9 @@ const ActiveLayers = () => {
       key: 'headset',
       icon: 'model',
       label: t('eq.layers.headset'),
-      name: headset,
+      // Model and measurement, because a model on its own is ambiguous — most
+      // have several measurements and they do not sound alike.
+      name: headsetTarget ? `${headset} · ${headsetTarget}` : headset,
       clearHint: t('eq.layers.forget'),
       onClear: async () => {
         await clearHeadset();

@@ -26,34 +26,49 @@ $motion-fast: 160ms;
 $motion-base: 220ms;
 $motion-slow: 300ms;
 
-// Unfolds downward from its own top edge. For anything anchored under the
-// control that opened it: the actions menu, a dropdown list.
+/**
+ * Unrolls downward from its own top edge, like a sheet of paper being let go.
+ *
+ * A rotation about the X axis rather than a vertical scale. A scale squashes
+ * the text along with the box, which reads as a stretch; a rotation swings the
+ * whole sheet down about its hinge, so the type stays the right shape and only
+ * the perspective changes. The overshoot at 70% is the paper settling.
+ *
+ * Both properties here are compositor-only — the browser never re-lays-out a
+ * frame of this.
+ */
 @keyframes fold-down {
   from {
     opacity: 0;
-    scale: 1 0.94;
-    translate: 0 -6px;
+    transform: perspective(900px) rotateX(-16deg);
+  }
+
+  70% {
+    opacity: 1;
+    transform: perspective(900px) rotateX(2.5deg);
   }
 
   to {
     opacity: 1;
-    scale: 1 1;
-    translate: 0 0;
+    transform: perspective(900px) rotateX(0deg);
   }
 }
 
-// Unfolds upward, for a menu that had to open above its trigger.
+/** The same sheet, hinged at the bottom, for a menu that opens upward. */
 @keyframes fold-up {
   from {
     opacity: 0;
-    scale: 1 0.94;
-    translate: 0 6px;
+    transform: perspective(900px) rotateX(16deg);
+  }
+
+  70% {
+    opacity: 1;
+    transform: perspective(900px) rotateX(-2.5deg);
   }
 
   to {
     opacity: 1;
-    scale: 1 1;
-    translate: 0 0;
+    transform: perspective(900px) rotateX(0deg);
   }
 }
 
@@ -116,8 +131,35 @@ $motion-slow: 300ms;
   $delay: 0ms
 ) {
   animation: $name $duration $easing $delay both;
+  // Everything here animates opacity and transform only, so the compositor can
+  // run it without asking the main thread for a single frame. Stated so that a
+  // future keyframe cannot quietly start animating a layout property and drop
+  // the whole app to software painting.
+  will-change: opacity, transform;
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+    will-change: auto;
   }
+}
+
+/**
+ * A paper-fold entrance, hinged on the edge it grows out of.
+ *
+ * Sets the origin as well as the animation, because the two are one decision:
+ * a downward fold hinged at the bottom looks like the sheet is being pulled up
+ * through the trigger rather than unrolled from it.
+ */
+@mixin fold($direction: down, $duration: $motion-fast) {
+  @if $direction == up {
+    @include animate(fold-up, $duration);
+    transform-origin: bottom center;
+  } @else {
+    @include animate(fold-down, $duration);
+    transform-origin: top center;
+  }
+  // Without this the rotated sheet renders with no depth and the fold reads as
+  // a squash.
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
 }

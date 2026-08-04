@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { createRoot } from 'react-dom/client';
+import { RENDERER_READY_EVENT } from 'common/constants';
 import App from './App';
 import ErrorBoundary from './ErrorBoundary';
 
@@ -30,3 +31,20 @@ root.render(
     <App />
   </ErrorBoundary>,
 );
+
+/**
+ * Tell main the window is worth showing.
+ *
+ * Electron's `ready-to-show` fires as soon as Chromium has a first frame, which
+ * for a React app is an empty root div — so the window appeared blank and then
+ * filled in. This waits for the frame after React's first commit, which is the
+ * first one with an interface in it.
+ *
+ * Two nested rAFs rather than one: the first runs before the browser paints the
+ * commit, the second after it.
+ */
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    window.electron.ipcRenderer.sendMessage(RENDERER_READY_EVENT, []);
+  });
+});

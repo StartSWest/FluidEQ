@@ -40,6 +40,13 @@ $range-thumb-height: 16px;
     height: $range-track-height;
     margin-block: calc(var(--range-length) / 2);
     margin-inline: 0;
+    // The track grows when the reference picker is folded away, and jumping to
+    // the new length made the whole band grid snap. This is width and margin,
+    // so it is a layout animation and not free — but it runs once per fold, on
+    // a click, and the alternative is a visible jolt across twenty sliders.
+    transition:
+      width 260ms cubic-bezier(0.32, 0.72, 0, 1),
+      margin-block 260ms cubic-bezier(0.32, 0.72, 0, 1);
     background: transparent;
     transform: rotate(-90deg);
     appearance: none;
@@ -116,5 +123,13 @@ $range-thumb-height: 16px;
   .arrow-up path,
   .arrow-down path {
     fill: var(--slider-color);
+  }
+}
+
+// Dragging a slider must never be smoothed, and someone who has asked for
+// less motion should not get a 260ms crawl every time the layout changes.
+@media (prefers-reduced-motion: reduce) {
+  .range input[type='range'] {
+    transition: none;
   }
 }
