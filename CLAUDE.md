@@ -64,6 +64,21 @@ tells you nothing. Check the file exists with `ls -la` and move on.
 Any other long-running or high-volume command: say what it will cost and let
 the user decide first.
 
+## Working the queue
+
+Requests often arrive faster than they can be finished, several of them landing
+mid-turn. **Do them in the order they were asked.** Finish the one in hand
+before starting the next; do not reorder by what looks quick, and do not batch
+several later requests together and leave an earlier one sitting.
+
+If something genuinely cannot start yet — it needs a file that work already
+underway is rewriting — say so explicitly, name what is blocking it, and go back
+to it the moment that clears. That is the only acceptable reason to take things
+out of order, and it has to be stated rather than assumed.
+
+Keep the outstanding list visible at the end of a reply, oldest first, so the
+running order is never in question.
+
 ## Conventions
 
 - **The GPL headers are not editable.** Every source file carries
