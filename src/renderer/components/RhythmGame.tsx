@@ -35,6 +35,7 @@ import {
   IRhythmScore,
   applyRhythmScore,
   getHitMarkerPosition,
+  getStreakJoy,
   getStreakMultiplier,
   RhythmVerdict,
   gradeRhythmOffset,
@@ -76,6 +77,12 @@ const CENTRE = VIEW_HEIGHT / 2;
 /** Half-height of a full-scale hit, leaving a margin at both edges. */
 const AMPLITUDE = CENTRE - 4;
 
+export interface IRhythmTapResult {
+  verdict: RhythmVerdict;
+  /** 0 to 1 across the whole multiplier range, for the creature's face. */
+  joy: number;
+}
+
 export interface IRhythmGameHandle {
   /**
    * Called from the tap handler itself rather than an effect, so what gets
@@ -85,7 +92,7 @@ export interface IRhythmGameHandle {
    * in the dialog header rather than in here. Undefined when there was nothing
    * to hit.
    */
-  registerTap: () => RhythmVerdict | undefined;
+  registerTap: () => IRhythmTapResult | undefined;
 }
 
 const readHighScore = () => {
@@ -108,6 +115,9 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
 
   const stateRef = useRef<IPercussionState>(createPercussionState());
   const [run, setRun] = useState<IRhythmScore>({ score: 0, streak: 0 });
+  // The streak as the tap handler sees it. React state is a render behind, and
+  // the face has to be right on the tap that earned it.
+  const runRef = useRef<IRhythmScore>({ score: 0, streak: 0 });
   const [highScore, setHighScore] = useState(readHighScore);
   const [lastHit, setLastHit] = useState<IRhythmHit>();
   const [hitSeq, setHitSeq] = useState(0);
@@ -183,7 +193,7 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     setHasPeaks(false);
   }, [isListening]);
 
-  const registerTap = useCallback((): RhythmVerdict | undefined => {
+  const registerTap = useCallback((): IRhythmTapResult | undefined => {
     const now = performance.now();
     // The tap is graded against a real detected hit. Its arrival at the line is
     // LEAD_MS after it was heard, which is exactly the delay the drawing uses,
@@ -216,9 +226,16 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
         window.localStorage.setItem(HIGH_SCORE_KEY, String(next.score));
         setHighScore(next.score);
       }
+      runRef.current = next;
       return next;
     });
-    return hit.verdict;
+    // Read from the hit rather than from , which is a render behind.
+    const streak = hit.verdict === 'miss' ? 0 : runRef.current.streak + 1;
+    runRef.current =
+      hit.verdict === 'miss'
+        ? { score: runRef.current.score, streak: 0 }
+        : { score: runRef.current.score, streak };
+    return { verdict: hit.verdict, joy: getStreakJoy(streak) };
   }, []);
 
   useImperativeHandle(ref, () => ({ registerTap }), [registerTap]);

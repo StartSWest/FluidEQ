@@ -103,12 +103,26 @@ const FLAT_MISS_PENALTY = 15;
  * high score nobody can beat is not a high score. A streak lets accuracy
  * compound, so a good run recovers from a disaster quickly — and it caps, so
  * one lucky stretch cannot put the record out of reach forever.
+ *
+ * Thirty-six consecutive hits to reach the ceiling. That is a long way, and it
+ * is meant to be: the multiplier is also what the creature's face is reading,
+ * so the climb has to be worth watching.
  */
 const STREAK_STEP = 0.25;
-const MAX_STREAK_MULTIPLIER = 4;
+const MAX_STREAK_MULTIPLIER = 10;
 
 export const getStreakMultiplier = (streak: number) =>
   Math.min(MAX_STREAK_MULTIPLIER, 1 + Math.max(0, streak) * STREAK_STEP);
+
+/**
+ * The streak as a plain 0-to-1 fraction of the way to the ceiling.
+ *
+ * The creature's face is driven from this rather than from the multiplier
+ * itself, so the expression cannot drift out of step with the number on screen
+ * when either is retuned — there is one source for both.
+ */
+export const getStreakJoy = (streak: number) =>
+  (getStreakMultiplier(streak) - 1) / (MAX_STREAK_MULTIPLIER - 1);
 
 /**
  * Where a tap fell relative to the nearest beat.

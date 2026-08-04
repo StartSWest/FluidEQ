@@ -17,7 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { CSSProperties, useEffect, useMemo, useRef, useState } from 'react';
-import { useLiveAudio } from './audio/LiveAudioContext';
+import {
+  useLiveAudioControl,
+  useLiveAudioFrame,
+} from './audio/LiveAudioContext';
 import './styles/SupportPet.scss';
 
 /**
@@ -110,7 +113,8 @@ const useIsHearing = (level: number, isCapturing: boolean) => {
  * on a stale frame.
  */
 const usePetAudio = () => {
-  const { waveform, isActive, isPaused } = useLiveAudio();
+  const { waveform } = useLiveAudioFrame();
+  const { isActive, isPaused } = useLiveAudioControl();
   const level = usePetLevel(waveform);
   const effectiveLevel = isPaused ? 0 : level;
   const isListening = useIsHearing(effectiveLevel, isActive && !isPaused);
@@ -227,6 +231,19 @@ export function PetArt() {
         <g className="support-pet__eyes">
           <circle cx="15.4" cy="22" r="3.4" fill="#06131d" />
           <circle cx="24.6" cy="22" r="3.4" fill="#06131d" />
+
+          {/* Sound reflected in the eye: concentric rings, clipped to the
+              pupil so they read as something seen IN it rather than drawn over
+              it. Invisible at rest and brightening with the streak — see
+              `--pet-joy`. Always in the markup rather than mounted on demand,
+              so nothing has to re-render mid-run to make them appear. */}
+          <g className="support-pet__eye-waves">
+            <circle cx="15.4" cy="22" r="1.5" />
+            <circle cx="15.4" cy="22" r="2.5" />
+            <circle cx="24.6" cy="22" r="1.5" />
+            <circle cx="24.6" cy="22" r="2.5" />
+          </g>
+
           <circle cx="16.4" cy="21" r="1.15" fill="#ffffff" />
           <circle cx="25.6" cy="21" r="1.15" fill="#ffffff" />
         </g>

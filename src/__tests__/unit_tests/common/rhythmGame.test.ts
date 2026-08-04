@@ -23,6 +23,7 @@ import {
   getBeatOffset,
   getHitMarkerPosition,
   getMissFraction,
+  getStreakJoy,
   getStreakMultiplier,
   gradeRhythmOffset,
   gradeRhythmTap,
@@ -119,7 +120,18 @@ describe('applyRhythmScore', () => {
   });
 
   it('caps the multiplier so one lucky run cannot put the record away', () => {
-    expect(getStreakMultiplier(9999)).toBe(getStreakMultiplier(12));
+    // Thirty-six consecutive hits to reach x10, and nothing beyond it.
+    expect(getStreakMultiplier(36)).toBe(10);
+    expect(getStreakMultiplier(9999)).toBe(getStreakMultiplier(36));
+  });
+
+  it('reads joy as the fraction of the way to the ceiling', () => {
+    // The face is driven from this, so it has to span the whole range and stop
+    // at the ends — a smile that saturates early has nothing left to say.
+    expect(getStreakJoy(0)).toBe(0);
+    expect(getStreakJoy(36)).toBe(1);
+    expect(getStreakJoy(9999)).toBe(1);
+    expect(getStreakJoy(18)).toBeCloseTo(0.5);
   });
 
   // The balance the game lives or dies on, asserted rather than eyeballed.

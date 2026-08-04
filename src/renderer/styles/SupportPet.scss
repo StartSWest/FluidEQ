@@ -289,18 +289,66 @@ $pet-hop-duration: 520ms;
 
 // A blink is a fast vertical squash, which is cheap and reads instantly even
 // at this size.
+// Sound ringing in the eye, brighter the longer the streak runs.
+//
+// Scaled off `--pet-joy` on both opacity and stroke width, because either alone
+// is too subtle at this size — the whole creature is 132px in the dialog and
+// these live inside a 3.4px pupil. They ripple outward continuously so the eye
+// looks alive rather than merely marked.
+.support-pet__eye-waves {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-width: calc(0.3px + var(--pet-joy, 0) * 0.5px);
+  opacity: calc(var(--pet-joy, 0) * 0.9);
+  animation: pet-eye-ripple 1.6s ease-out infinite;
+  transition:
+    opacity 260ms ease-out,
+    stroke-width 260ms ease-out;
+}
+
+@keyframes pet-eye-ripple {
+  0% {
+    scale: 0.55;
+  }
+
+  100% {
+    scale: 1.15;
+  }
+}
+
 .support-pet__eyes {
   transform-box: fill-box;
   transform-origin: 50% 50%;
   animation: pet-blink 5.2s ease-in-out infinite;
+  // Narrowing with the smile, the way a real one takes the whole face. Only a
+  // little: squeeze them much further and the creature reads as asleep rather
+  // than delighted.
+  scale: 1 calc(1 - var(--pet-joy, 0) * 0.3);
+  transition: scale 220ms ease-out;
 }
 
 .support-pet:hover .support-pet__eyes {
   animation-duration: 1.9s;
 }
 
+// The smile deepens with the streak.
+//
+// Scaled rather than swapped between drawn paths, because the streak is a
+// continuous number and a face that jumps between four fixed expressions reads
+// as a state machine rather than as a creature enjoying itself. Anchored at the
+// top of the mouth, so stretching it downward deepens the curve into a grin
+// instead of sliding the whole thing down the face.
+//
+// `--pet-joy` runs 0 to 1 across the whole multiplier range and is set from the
+// same helper that produces the number on screen, so the face and the figure
+// cannot disagree.
 .support-pet__mouth {
-  transition: d 150ms ease;
+  transform-box: fill-box;
+  transform-origin: 50% 0;
+  scale: calc(1 + var(--pet-joy, 0) * 0.25) calc(1 + var(--pet-joy, 0) * 1.7);
+  transition:
+    d 150ms ease,
+    scale 220ms ease-out;
 }
 
 // Hidden until someone contributes; then it stays, permanently.
@@ -322,9 +370,27 @@ $pet-hop-duration: 520ms;
     animation: pet-twinkle 2.6s ease-in-out infinite;
   }
 
+  // The badge glow. On a run it is joined by the streak's own — see below.
   .support-pet__art {
     filter: drop-shadow(0 0 6px rgba($neon-yellow, 0.45));
   }
+}
+
+// The creature shines brighter the longer the streak holds.
+//
+// Layered on the tap wrapper rather than folded into the rule above, so the
+// badge glow and the run glow are separate things that add up — a supporter
+// mid-run should look like both, not like whichever rule won.
+.support-pet-tap .support-pet__art {
+  filter: drop-shadow(
+      0 0 calc(var(--pet-joy, 0) * 14px)
+        rgba($secondary-light, calc(var(--pet-joy, 0) * 0.9))
+    )
+    drop-shadow(
+      0 0 calc(var(--pet-joy, 0) * 30px)
+        rgba($secondary-default, calc(var(--pet-joy, 0) * 0.55))
+    );
+  transition: filter 260ms ease-out;
 }
 
 // Swaying to the music is the contribution reward, and it runs the whole time

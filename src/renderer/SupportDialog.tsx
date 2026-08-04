@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { CSSProperties, useCallback, useEffect, useRef, useState } from 'react';
 import {
   SUPPORT_CONFIG,
   SupportMethodId,
@@ -77,24 +77,33 @@ export default function SupportDialog({
   // counter, so the moment that is graded is the moment the key went down —
   // an effect would score a render later, which in a game about timing is a
   // handicap the player did not earn.
-  // The verdict comes back out of the game because the creature that reacts to
-  // it lives up here, not in there. Held briefly, then dropped: an expression
-  // left up stops being a reaction and becomes the pet's face.
+  // The tap's result comes back out of the game, because the creature that
+  // reacts to it lives up here rather than in the panel.
+  //
+  // Two different lifetimes, deliberately. The mood is a reaction to one tap
+  // and is dropped after a moment — left up it stops being a reaction and
+  // becomes the pet's face. The joy is the streak, so it persists for as long
+  // as the streak does and only falls when the run does.
   const [mood, setMood] = useState<'perfect' | 'miss' | ''>('');
+  const [joy, setJoy] = useState(0);
   const moodResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
   const bouncePet = useCallback(() => {
     setPetTaps((count) => count + 1);
-    const verdict = gameRef.current?.registerTap();
+    const result = gameRef.current?.registerTap();
     if (moodResetRef.current !== undefined) {
       clearTimeout(moodResetRef.current);
     }
-    if (verdict !== 'perfect' && verdict !== 'miss') {
+    if (!result) {
+      return;
+    }
+    setJoy(result.joy);
+    if (result.verdict !== 'perfect' && result.verdict !== 'miss') {
       setMood('');
       return;
     }
-    setMood(verdict);
+    setMood(result.verdict);
     moodResetRef.current = setTimeout(() => {
       moodResetRef.current = undefined;
       setMood('');
@@ -217,6 +226,10 @@ export default function SupportDialog({
               <button
                 type="button"
                 className={`support-pet-tap${petHopClass}${mood ? ` is-${mood}` : ''}`}
+                // The streak, as a number the face reads. Set here rather than
+                // inside the pet so the creature stays a drawing and the game
+                // stays the only thing that knows the rules.
+                style={{ '--pet-joy': joy } as CSSProperties}
                 aria-label={t('support.petHint')}
                 // Pointer *down*, not click. A click fires on release, so the
                 // bounce would lag the press by however long the button was
