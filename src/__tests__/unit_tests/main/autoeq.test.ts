@@ -46,13 +46,26 @@ describe('autoeq', () => {
         preAmp: -6.7,
       });
       expect(preset.filters).toBeDefined();
-      const key = Object.keys(preset.filters)[0];
-      expect(preset.filters[key]).toMatchObject({
-        id: key,
+      // Looked up by frequency, never by position.
+      //
+      // Band ids come from uid(8). 2.31% of those are all digits, and 2.08% are
+      // canonical array indices — the difference is a leading zero, which keeps
+      // a key insertion-ordered. V8 enumerates the index-like keys first, so one
+      // numeric id anywhere in the map silently moves a different band to the
+      // front of Object.keys. With ten bands that is a 19% chance per run, which
+      // is what "passes locally, fails in CI" looks like from the inside.
+      expect(
+        Object.values(preset.filters).find((band) => band.frequency === 200),
+      ).toMatchObject({
         frequency: 200,
         gain: 8.8,
         quality: 0.7,
         type: FilterTypeEnum.LSC,
+      });
+      // What the old assertion was really checking with `id: key`, now stated
+      // for every band rather than whichever one came out first.
+      Object.entries(preset.filters).forEach(([id, band]) => {
+        expect(band.id).toBe(id);
       });
     });
 
@@ -77,7 +90,13 @@ describe('autoeq', () => {
       );
 
       expect(preset.eqFormat).toBe('fixed-band');
-      expect(preset.filters[Object.keys(preset.filters)[0]]).toMatchObject({
+      // By frequency, not by key order — see the note in the ParametricEQ test
+      // above. This is the assertion that actually flaked: roughly one run in
+      // five it read 125 Hz / -0.6 dB, because one of the ten generated ids had
+      // come out numeric and jumped the queue.
+      expect(
+        Object.values(preset.filters).find((band) => band.frequency === 31),
+      ).toMatchObject({
         frequency: 31,
         gain: 6.3,
         quality: 1.41,
