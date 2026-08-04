@@ -74,6 +74,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Quiet, because it is an aside about a toy sitting under the heading of a
+// dialog that is asking for money. It only ever appears for someone who has
+// already given, so it can afford to be small.
+.support-dialog__pet-hint {
+  margin: 5px 0 0;
+  color: rgba($primary-lighter, 0.55);
+  font-size: 0.66rem;
+}
+
 .support-dialog__close {
   display: grid;
   width: 36px;

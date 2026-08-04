@@ -218,6 +218,8 @@ const es: Partial<Dictionary> = {
     'Añade hasta +{peak} dB. Normalizar automáticamente reserva el margen; déjalo activado salvo que ajustes la preamplificación a mano.',
 
   'support.eyebrow': 'TOTALMENTE OPCIONAL',
+
+  'support.petHint': 'Pulsa espacio para hacerlo saltar',
   'support.title': 'Apoya el proyecto',
   'support.close': 'Cerrar',
   'support.pitch':

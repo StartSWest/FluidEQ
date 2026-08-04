@@ -218,6 +218,8 @@ const de: Partial<Dictionary> = {
     'Fügt bis zu +{peak} dB hinzu. Die automatische Normalisierung hält den Spielraum frei; lassen Sie sie an, außer Sie setzen die Vorverstärkung selbst.',
 
   'support.eyebrow': 'VÖLLIG FREIWILLIG',
+
+  'support.petHint': 'Drücke die Leertaste, damit es hüpft',
   'support.title': 'Die Arbeit unterstützen',
   'support.close': 'Schließen',
   'support.pitch':

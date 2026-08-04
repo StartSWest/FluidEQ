@@ -222,6 +222,8 @@ const hi: Partial<Dictionary> = {
     '+{peak} dB तक बढ़ाता है। “अपने आप सामान्य करें” यह जगह छोड़कर रखता है; जब तक आप प्रीएम्प खुद तय न कर रहे हों, इसे चालू रहने दें।',
 
   'support.eyebrow': 'पूरी तरह वैकल्पिक',
+
+  'support.petHint': 'इसे उछालने के लिए स्पेस दबाएँ',
   'support.title': 'इस काम का साथ दें',
   'support.close': 'बंद करें',
   'support.pitch':

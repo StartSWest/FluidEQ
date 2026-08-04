@@ -251,6 +251,7 @@ const en = {
 
   // *** Support *************************************************************
   'support.eyebrow': 'ENTIRELY OPTIONAL',
+  'support.petHint': 'Press space to make it jump',
   'support.title': 'Support the work',
   'support.close': 'Close',
   'support.pitch':

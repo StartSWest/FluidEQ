@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   SUPPORT_CONFIG,
   SupportMethodId,
@@ -47,6 +47,15 @@ interface ISupportDialogProps {
 
 const COPY_FEEDBACK_MS = 2000;
 
+/**
+ * How long the pet stays squashed per press.
+ *
+ * Short enough that a run of taps reads as a rhythm rather than one long
+ * slouch, and long enough that a single tap is actually seen — the CSS
+ * transition on the way back out is the other half of the bounce.
+ */
+const PET_BOUNCE_MS = 110;
+
 export default function SupportDialog({
   hasContributed,
   onContributed,
@@ -62,6 +71,33 @@ export default function SupportDialog({
     undefined,
   );
   const [copiedId, setCopiedId] = useState<SupportMethodId | ''>('');
+  const [isPetTapped, setIsPetTapped] = useState(false);
+  const petBounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  // Restarted rather than queued, so holding the key down or mashing it keeps
+  // the creature moving instead of latching it squashed until the last timer
+  // from a burst finally runs out.
+  const bouncePet = useCallback(() => {
+    if (petBounceRef.current !== undefined) {
+      clearTimeout(petBounceRef.current);
+    }
+    setIsPetTapped(true);
+    petBounceRef.current = setTimeout(() => {
+      petBounceRef.current = undefined;
+      setIsPetTapped(false);
+    }, PET_BOUNCE_MS);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (petBounceRef.current !== undefined) {
+        clearTimeout(petBounceRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (isCovered) {
@@ -72,6 +108,19 @@ export default function SupportDialog({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
+        return;
+      }
+      // Space bounces the pet, for supporters only.
+      //
+      // It has to be swallowed. The close button takes focus when the dialog
+      // opens, so an un-prevented space would activate it and the dialog would
+      // shut on the first press — and every later press would land on whatever
+      // else had focus. Enter still activates buttons, which is the standard
+      // fallback, and someone without the badge never reaches this branch, so
+      // nobody pays for a toy they do not have.
+      if (event.key === ' ' && hasContributed) {
+        event.preventDefault();
+        bouncePet();
         return;
       }
       // A modal must not leak focus to the workspace behind it.
@@ -97,7 +146,7 @@ export default function SupportDialog({
 
     document.addEventListener('keydown', onKeyDown);
     return () => document.removeEventListener('keydown', onKeyDown);
-  }, [isCovered, onClose]);
+  }, [bouncePet, hasContributed, isCovered, onClose]);
 
   useEffect(
     () => () => {
@@ -146,10 +195,30 @@ export default function SupportDialog({
       >
         <div className="support-dialog__header">
           <div className="support-dialog__identity">
-            <SupportPetHero hasContributed={hasContributed} />
+            {/* A button only for supporters: without the badge there is
+                nothing to press, and a control that does nothing is worse
+                than no control. Clicking does what space does, since space
+                is standing in for the click. */}
+            {hasContributed ? (
+              <button
+                type="button"
+                className={`support-pet-tap${isPetTapped ? ' is-tapped' : ''}`}
+                aria-label={t('support.petHint')}
+                onClick={bouncePet}
+              >
+                <SupportPetHero hasContributed={hasContributed} />
+              </button>
+            ) : (
+              <SupportPetHero hasContributed={hasContributed} />
+            )}
             <div>
               <span className="eyebrow">{t('support.eyebrow')}</span>
               <h2 id="support-dialog-title">{t('support.title')}</h2>
+              {hasContributed && (
+                <p className="support-dialog__pet-hint">
+                  {t('support.petHint')}
+                </p>
+              )}
             </div>
           </div>
           <button

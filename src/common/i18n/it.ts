@@ -217,6 +217,8 @@ const it: Partial<Dictionary> = {
     'Aggiunge fino a +{peak} dB. Normalizza automaticamente riserva il margine; lascialo attivo a meno che tu non regoli la preamplificazione a mano.',
 
   'support.eyebrow': 'DEL TUTTO FACOLTATIVO',
+
+  'support.petHint': 'Premi spazio per farlo saltare',
   'support.title': 'Sostieni il lavoro',
   'support.close': 'Chiudi',
   'support.pitch':

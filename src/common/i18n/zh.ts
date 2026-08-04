@@ -206,6 +206,8 @@ const zh: Partial<Dictionary> = {
     '最多会增加 +{peak} dB。自动归一化会预留余量；除非你要手动设置前级增益，否则请保持开启。',
 
   'support.eyebrow': '完全自愿',
+
+  'support.petHint': '按空格键让它跳一下',
   'support.title': '支持这份工作',
   'support.close': '关闭',
   'support.pitch':

@@ -217,6 +217,8 @@ const ja: Partial<Dictionary> = {
     '最大 +{peak} dB 増えます。自動ノーマライズが余裕を確保するので、プリアンプを手動で決めるのでなければオンのままにしてください。',
 
   'support.eyebrow': '完全に任意です',
+
+  'support.petHint': 'スペースキーで跳ねさせられます',
   'support.title': 'この仕事を支える',
   'support.close': '閉じる',
   'support.pitch':

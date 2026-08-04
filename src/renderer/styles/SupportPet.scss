@@ -19,6 +19,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'theme' as *;
 
+// The press: the body squashes onto its base. Because it scales from the
+// bottom, its crown drops by 1.5px of travel plus 8% of its own height — so
+// the ears have to come down by the sum or they float away from the head.
+//
+// A mixin because two things trigger it now: an actual pointer press, and the
+// space bar in the support dialog.
+@mixin pet-pressed {
+  .support-pet__body {
+    transform: translateY(1.5px) scaleY(0.92);
+  }
+
+  .support-pet__ears {
+    transform: translateY(3.4px) scaleY(0.94);
+  }
+
+  // The star rides the head down too. It uses `translate` rather than
+  // `transform` because the twinkle owns `transform` — the two individual
+  // properties compose instead of one clobbering the other.
+  .support-pet__star {
+    translate: 0 3.4px;
+  }
+}
+
 .support-pet {
   --pet-level: 0;
 
@@ -43,22 +66,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     outline: none;
   }
 
-  // Press: the body squashes onto its base. Because it scales from the bottom,
-  // its crown drops by 1.5px of travel plus 8% of its own height — so the ears
-  // have to come down by the sum or they float away from the head.
-  &:active .support-pet__body {
-    transform: translateY(1.5px) scaleY(0.92);
+  &:active {
+    @include pet-pressed;
+  }
+}
+
+// Space bar in the support dialog, which squashes the hero pet the same way a
+// click does. The wrapper carries the class because the pet renders its own,
+// and one mixin drives both so a press cannot come to mean two different
+// shapes depending on how it was triggered.
+//
+// A bare button so it adds a hit target and a focus ring and nothing else —
+// the creature inside is the entire visual.
+.support-pet-tap {
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-l;
+  background: none;
+  cursor: pointer;
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
   }
 
-  &:active .support-pet__ears {
-    transform: translateY(3.4px) scaleY(0.94);
-  }
-
-  // The star rides the head down too. It uses `translate` rather than
-  // `transform` because the twinkle owns `transform` — the two individual
-  // properties compose instead of one clobbering the other.
-  &:active .support-pet__star {
-    translate: 0 3.4px;
+  &.is-tapped {
+    @include pet-pressed;
   }
 }
 
@@ -79,7 +113,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transform-box: fill-box;
   transform-origin: 50% 100%;
   animation: pet-breathe 3.4s ease-in-out infinite;
-  transition: scale 90ms ease-out;
+  // `transform` is in here for the space-bar press. A pointer press releases on
+  // its own, but a keystroke is instantaneous, so without a transition to
+  // spring back from the squash would never be seen at all.
+  transition:
+    scale 90ms ease-out,
+    transform 90ms ease-out;
 }
 
 // Everything that moves to the music is behind the contribution badge, squash

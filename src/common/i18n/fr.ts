@@ -218,6 +218,8 @@ const fr: Partial<Dictionary> = {
     'Ajoute jusqu’à +{peak} dB. La normalisation auto réserve la marge ; laissez-la active sauf si vous réglez le préampli à la main.',
 
   'support.eyebrow': 'ENTIÈREMENT FACULTATIF',
+
+  'support.petHint': 'Appuyez sur espace pour le faire sauter',
   'support.title': 'Soutenir le projet',
   'support.close': 'Fermer',
   'support.pitch':
