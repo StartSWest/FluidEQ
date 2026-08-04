@@ -42,6 +42,17 @@ let run: IRhythmScore = { score: 0, streak: 0 };
  */
 export const RHYTHM_HIGH_SCORE_KEY = 'fluideq-rhythm-high-score';
 
+/**
+ * The multiplier that was running when the high score was set.
+ *
+ * Stored beside the score rather than derived, because it cannot be recovered
+ * afterwards — the streak that produced it is long gone. It exists so the
+ * share card can say what the record actually was: a number on its own does
+ * not distinguish a patient run from thirty-six perfect taps in a row, and the
+ * multiplier is the part worth bragging about.
+ */
+export const RHYTHM_BEST_MULTIPLIER_KEY = 'fluideq-rhythm-best-multiplier';
+
 const listeners = new Set<() => void>();
 
 export const getRhythmRun = () => run;
@@ -67,6 +78,7 @@ export const setRhythmRun = (next: IRhythmScore) => {
  */
 export const resetRhythmRun = () => {
   window.localStorage.removeItem(RHYTHM_HIGH_SCORE_KEY);
+  window.localStorage.removeItem(RHYTHM_BEST_MULTIPLIER_KEY);
   setRhythmRun({ score: 0, streak: 0 });
 };
 

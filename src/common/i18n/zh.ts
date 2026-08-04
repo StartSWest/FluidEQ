@@ -228,6 +228,21 @@ const zh: Partial<Dictionary> = {
 
   'support.game.best': '最高分',
 
+  'support.game.share': '分享',
+
+  'support.game.shareTitle': '分享你的分数',
+
+  'support.game.shareNote':
+    '先保存卡片，再附加到你的帖子里：这些平台都无法从链接中取出图片。',
+
+  'support.game.shareSave': '保存卡片',
+
+  'support.game.shareCopy': '复制文字',
+
+  'support.game.shareCopied': '已复制',
+
+  'support.game.shareLinkOnly': '只会分享链接，文字请自行粘贴',
+
   'support.game.euphoria': '狂喜模式',
 
   'support.game.perfect': '完美',

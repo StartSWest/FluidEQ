@@ -1,0 +1,163 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// Sits inside the support dialog rather than opening a second one. A modal on
+// top of a modal to show a picture is more ceremony than the thing deserves,
+// and it would put the score behind the very card it is about.
+.share-score {
+  display: grid;
+  gap: 12px;
+  padding: 16px;
+  border: 1px solid rgba($secondary-default, 0.22);
+  border-radius: $radius-m;
+  background: rgba(#060d16, 0.72);
+}
+
+.share-score__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+
+  h3 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+  }
+}
+
+.share-score__close {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  padding: 0;
+  color: rgba($white, 0.68);
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+  }
+
+  &:hover {
+    color: $white;
+    border-color: rgba($white, 0.2);
+  }
+}
+
+// The aspect ratio is fixed here as well as on the canvas element, so the
+// preview cannot letterbox while the saved file stays correct — the whole
+// point of showing it is that it is what gets posted.
+.share-score__canvas {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1200 / 630;
+  border: 1px solid rgba($secondary-default, 0.18);
+  border-radius: $radius-s;
+}
+
+// Says the part that cannot be automated. Not an aside: someone who misses it
+// posts a bare link and wonders where their card went.
+.share-score__note {
+  margin: 0;
+  color: rgba($primary-lighter, 0.72);
+  font-size: 0.8rem;
+  line-height: 1.5;
+}
+
+.share-score__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.share-score__save,
+.share-score__copy,
+.share-score__network {
+  height: $control-height;
+  padding-inline: 14px;
+  border-radius: $radius-s;
+  font-size: 0.82rem;
+  font-weight: 650;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: $transition-control;
+}
+
+// The loud one, because saving the image is the step the networks cannot do.
+.share-score__save {
+  flex: 1 1 auto;
+  color: #06131d;
+  border: none;
+  background: $secondary-light;
+
+  &:hover {
+    background: $white;
+  }
+}
+
+.share-score__copy {
+  color: rgba($primary-lighter, 0.9);
+  border: 1px solid rgba($secondary-default, 0.3);
+  background: transparent;
+
+  &:hover {
+    border-color: rgba($secondary-default, 0.55);
+    background: rgba($secondary-default, 0.08);
+  }
+}
+
+.share-score__networks {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.share-score__network {
+  padding-inline: 8px;
+  color: rgba($primary-lighter, 0.85);
+  border: 1px solid rgba($primary-lighter, 0.16);
+  background: rgba($primary-lighter, 0.04);
+
+  &:hover {
+    color: $white;
+    border-color: rgba($secondary-default, 0.5);
+    background: rgba($secondary-default, 0.1);
+  }
+}
+
+// The button that opens all this, living in the game's score row.
+.rhythm-game__share {
+  padding: 2px 9px;
+  color: $secondary-light;
+  border: 1px solid rgba($secondary-default, 0.35);
+  border-radius: $radius-pill;
+  background: transparent;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    color: $white;
+    border-color: rgba($secondary-default, 0.7);
+    background: rgba($secondary-default, 0.12);
+  }
+}

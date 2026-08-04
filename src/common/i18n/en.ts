@@ -266,6 +266,15 @@ const en = {
   'support.game.noAudio': 'Play something and the beat shows up here',
   'support.game.listening': 'Listening for the beat…',
   'support.game.best': 'Best',
+  'support.game.share': 'Share',
+  'support.game.shareTitle': 'Share your score',
+  'support.game.shareNote':
+    'Save the card, then attach it to your post — none of these networks can pull an image out of a link.',
+  'support.game.shareSave': 'Save card',
+  'support.game.shareCopy': 'Copy text',
+  'support.game.shareCopied': 'Copied',
+  'support.game.shareLinkOnly':
+    'Shares the link only — paste the text yourself',
   'support.game.euphoria': 'Euphoria mode',
   'support.game.perfect': 'Perfect',
   'support.game.great': 'Great',

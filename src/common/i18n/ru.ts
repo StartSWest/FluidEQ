@@ -239,6 +239,22 @@ const ru: Partial<Dictionary> = {
 
   'support.game.best': 'Рекорд',
 
+  'support.game.share': 'Поделиться',
+
+  'support.game.shareTitle': 'Поделитесь результатом',
+
+  'support.game.shareNote':
+    'Сохраните карточку и прикрепите её к записи: ни одна из этих сетей не может взять изображение из ссылки.',
+
+  'support.game.shareSave': 'Сохранить карточку',
+
+  'support.game.shareCopy': 'Копировать текст',
+
+  'support.game.shareCopied': 'Скопировано',
+
+  'support.game.shareLinkOnly':
+    'Передаётся только ссылка — текст вставьте сами',
+
   'support.game.euphoria': 'Режим эйфории',
 
   'support.game.perfect': 'Идеально',

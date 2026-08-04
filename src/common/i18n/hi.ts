@@ -245,6 +245,22 @@ const hi: Partial<Dictionary> = {
 
   'support.game.best': 'सर्वश्रेष्ठ',
 
+  'support.game.share': 'साझा करें',
+
+  'support.game.shareTitle': 'अपना स्कोर साझा करें',
+
+  'support.game.shareNote':
+    'कार्ड सहेजें और उसे अपनी पोस्ट में जोड़ें — इनमें से कोई भी नेटवर्क लिंक से तस्वीर नहीं निकाल सकता।',
+
+  'support.game.shareSave': 'कार्ड सहेजें',
+
+  'support.game.shareCopy': 'टेक्स्ट कॉपी करें',
+
+  'support.game.shareCopied': 'कॉपी हो गया',
+
+  'support.game.shareLinkOnly':
+    'केवल लिंक साझा होता है — टेक्स्ट स्वयं चिपकाएँ',
+
   'support.game.euphoria': 'यूफोरिया मोड',
 
   'support.game.perfect': 'बिलकुल सही',

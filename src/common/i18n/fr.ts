@@ -241,6 +241,22 @@ const fr: Partial<Dictionary> = {
 
   'support.game.best': 'Record',
 
+  'support.game.share': 'Partager',
+
+  'support.game.shareTitle': 'Partagez votre score',
+
+  'support.game.shareNote':
+    "Enregistrez la carte puis joignez-la à votre publication : aucun de ces réseaux ne peut extraire une image d'un lien.",
+
+  'support.game.shareSave': 'Enregistrer la carte',
+
+  'support.game.shareCopy': 'Copier le texte',
+
+  'support.game.shareCopied': 'Copié',
+
+  'support.game.shareLinkOnly':
+    'Partage seulement le lien : collez le texte vous-même',
+
   'support.game.euphoria': 'Mode euphorie',
 
   'support.game.perfect': 'Parfait',

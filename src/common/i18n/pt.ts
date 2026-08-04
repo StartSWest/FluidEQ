@@ -240,6 +240,22 @@ const pt: Partial<Dictionary> = {
 
   'support.game.best': 'Recorde',
 
+  'support.game.share': 'Partilhar',
+
+  'support.game.shareTitle': 'Partilhe a sua pontuação',
+
+  'support.game.shareNote':
+    'Guarde o cartão e anexe-o à publicação: nenhuma destas redes consegue tirar uma imagem de um link.',
+
+  'support.game.shareSave': 'Guardar cartão',
+
+  'support.game.shareCopy': 'Copiar texto',
+
+  'support.game.shareCopied': 'Copiado',
+
+  'support.game.shareLinkOnly':
+    'Partilha apenas o link: cole o texto você mesmo',
+
   'support.game.euphoria': 'Modo euforia',
 
   'support.game.perfect': 'Perfeito',

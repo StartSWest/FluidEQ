@@ -240,6 +240,22 @@ const it: Partial<Dictionary> = {
 
   'support.game.best': 'Record',
 
+  'support.game.share': 'Condividi',
+
+  'support.game.shareTitle': 'Condividi il tuo punteggio',
+
+  'support.game.shareNote':
+    "Salva la scheda e allegala al post: nessuna di queste reti può ricavare un'immagine da un link.",
+
+  'support.game.shareSave': 'Salva scheda',
+
+  'support.game.shareCopy': 'Copia testo',
+
+  'support.game.shareCopied': 'Copiato',
+
+  'support.game.shareLinkOnly':
+    'Condivide solo il link: incolla il testo tu stesso',
+
   'support.game.euphoria': 'Modalità euforia',
 
   'support.game.perfect': 'Perfetto',

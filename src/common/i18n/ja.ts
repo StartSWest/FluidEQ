@@ -240,6 +240,22 @@ const ja: Partial<Dictionary> = {
 
   'support.game.best': '最高記録',
 
+  'support.game.share': '共有',
+
+  'support.game.shareTitle': 'スコアを共有',
+
+  'support.game.shareNote':
+    'カードを保存して投稿に添付してください。これらのサービスはリンクから画像を取り込めません。',
+
+  'support.game.shareSave': 'カードを保存',
+
+  'support.game.shareCopy': 'テキストをコピー',
+
+  'support.game.shareCopied': 'コピーしました',
+
+  'support.game.shareLinkOnly':
+    '共有されるのはリンクのみです。テキストはご自身で貼り付けてください',
+
   'support.game.euphoria': 'ユーフォリアモード',
 
   'support.game.perfect': 'パーフェクト',
