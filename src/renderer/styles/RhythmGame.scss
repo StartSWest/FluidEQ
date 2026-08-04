@@ -45,7 +45,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .rhythm-game__score {
   color: $secondary-light;
-  font-size: 1.05rem;
+  font-size: 1.3rem;
   font-weight: 750;
   font-variant-numeric: tabular-nums;
   line-height: 1;
@@ -66,7 +66,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .rhythm-game__best {
   color: rgba($primary-lighter, 0.55);
-  font-size: 0.62rem;
+  font-size: 0.68rem;
   font-variant-numeric: tabular-nums;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -81,7 +81,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // to stay inside, so it is neither cut off nor leaking out.
 .rhythm-game__trace {
   position: relative;
-  height: 44px;
+  height: 56px;
   overflow: hidden;
 
   // The scrolling wave, and only the wave, is clipped — so beats scroll in and

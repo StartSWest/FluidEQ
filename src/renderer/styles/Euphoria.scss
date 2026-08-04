@@ -76,25 +76,18 @@ it under the terms of the GNU General Public License version 3 or later.
   // and how often, not the property itself. Opacity stays composited and is
   // promoted with `will-change`, scoped to this class so nothing carries a
   // spare layer around when the mode is off.
-  .graph-edit-point__dot,
-  path[name^='Live processed output'],
-  .bandWrapper .range input[type='range'] {
+  path[name^='Live processed output'] {
     will-change: opacity;
   }
 
-  // A floor, so a quiet passage dims rather than disappears.
-  .graph-edit-point__dot {
-    opacity: calc(0.72 + var(--euphoria-level, 0) * 0.28);
-  }
-
-  // Each band on its OWN frequency, not the room average. `--band-level` is set
-  // per slider from the spectrum around the frequency that slider controls, so
-  // the low end moves on the kick and the top end moves on the hats. Thirty-one
-  // sliders pulsing in unison says nothing about the music, which is the one
-  // thing an equaliser exists to show.
-  .bandWrapper .range input[type='range'] {
-    opacity: calc(0.55 + var(--band-level, 0) * 0.45);
-  }
+  // The band points on the graph are left alone. They mark where a filter sits
+  // and they are dragged; fading them with the music makes a control harder to
+  // see and to hit, and the graph already has the trace doing the moving.
+  //
+  // The sliders stay fully opaque too. Dimming them read as the EQ being
+  // disabled rather than as it dancing — the pulse belongs in the glow below,
+  // which adds light instead of taking it away. Both removals also delete a
+  // per-frame style invalidation, which is the second reason they are right.
 
   // The glow itself, on the track, sized by that band's own energy.
   //

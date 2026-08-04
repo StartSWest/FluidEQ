@@ -40,9 +40,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(pop-in, $motion-base, $ease-spring);
   @include menu-surface;
   display: grid;
-  width: min(600px, 100%);
+  width: min(760px, 100%);
   max-height: calc(100vh - #{$spacing-m} * 2);
-  padding: 24px 26px 22px;
+  padding: 28px 32px 26px;
   gap: 18px;
   overflow-y: auto;
   @include slim-scrollbar(8px);
@@ -161,8 +161,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include inset-surface;
   display: grid;
   min-width: 0;
-  padding: 18px;
-  gap: 6px;
+  padding: 22px;
+  gap: 8px;
   color: inherit;
   text-decoration: none;
 
@@ -171,7 +171,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: baseline;
     gap: 7px;
     color: $white;
-    font-size: 1.02rem;
+    font-size: 1.12rem;
     font-weight: 700;
 
     // Ticker, so a donor can match the chain at a glance.
@@ -236,7 +236,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // stay full width underneath it — a truncated address is a lost donation.
 .support-method--qr {
   align-items: center;
-  column-gap: 16px;
+  column-gap: 24px;
   grid-template-columns: minmax(0, 1fr) auto;
 
   .support-method__address,
@@ -250,9 +250,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // the link, which is what most people will actually use.
   .qr-code {
     display: block;
-    width: 128px;
-    height: 128px;
-    padding: 9px;
+    width: 140px;
+    height: 140px;
+    padding: 10px;
     border: 1px solid rgba($secondary-light, 0.28);
     border-radius: $radius-s;
     background: $white;
