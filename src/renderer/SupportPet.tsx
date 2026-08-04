@@ -181,6 +181,32 @@ interface ISupportPetProps {
   onOpen: () => void;
 }
 
+/** One cycle of the waveform in the eye, in SVG user units. */
+export const EYE_WAVE_PERIOD = 3.2;
+/** Enough cycles to cover the pupil plus a full period of scroll either side. */
+const EYE_WAVE_CYCLES = 8;
+const EYE_WAVE_AMPLITUDE = 1.1;
+
+/**
+ * A small horizontal waveform to run behind a pupil.
+ *
+ * Built rather than hand-written so the period is exact: the scroll animation
+ * translates by precisely one period and loops, and the join is only invisible
+ * if every cycle is identical. A hand-drawn path drifts and the wave visibly
+ * jumps once a second.
+ */
+export const buildEyeWave = (centreX: number, centreY: number) => {
+  const start = centreX - (EYE_WAVE_CYCLES * EYE_WAVE_PERIOD) / 2;
+  const quarter = EYE_WAVE_PERIOD / 4;
+  let path = `M ${start} ${centreY}`;
+  for (let cycle = 0; cycle < EYE_WAVE_CYCLES; cycle += 1) {
+    const x = start + cycle * EYE_WAVE_PERIOD;
+    path += ` Q ${x + quarter} ${centreY - EYE_WAVE_AMPLITUDE} ${x + quarter * 2} ${centreY}`;
+    path += ` Q ${x + quarter * 3} ${centreY + EYE_WAVE_AMPLITUDE} ${x + quarter * 4} ${centreY}`;
+  }
+  return path;
+};
+
 /**
  * The creature itself. Shared by the titlebar button and the dialog's hero, so
  * the two can never drift apart.
@@ -198,6 +224,14 @@ export function PetArt() {
           <stop offset="0" stopColor="#7ef7e6" />
           <stop offset="1" stopColor="#17a5c4" />
         </linearGradient>
+        {/* The pupils, as clips. The waveform inside each eye runs well past
+            the iris so it can scroll without its ends ever coming into view. */}
+        <clipPath id="pet-eye-left">
+          <circle cx="15.4" cy="22" r="3.4" />
+        </clipPath>
+        <clipPath id="pet-eye-right">
+          <circle cx="24.6" cy="22" r="3.4" />
+        </clipPath>
       </defs>
 
       {/* Ears double as a little EQ curve - the creature is made of the thing
@@ -232,16 +266,19 @@ export function PetArt() {
           <circle cx="15.4" cy="22" r="3.4" fill="#06131d" />
           <circle cx="24.6" cy="22" r="3.4" fill="#06131d" />
 
-          {/* Sound reflected in the eye: concentric rings, clipped to the
-              pupil so they read as something seen IN it rather than drawn over
-              it. Invisible at rest and brightening with the streak — see
-              `--pet-joy`. Always in the markup rather than mounted on demand,
-              so nothing has to re-render mid-run to make them appear. */}
+          {/* Sound reflected in the eye: a little waveform scrolling across
+              each pupil, clipped to it so it reads as something seen IN the eye
+              rather than drawn over it. Invisible at rest and brightening with
+              the streak — see `--pet-joy`. Always in the markup rather than
+              mounted on demand, so nothing re-renders mid-run to make it
+              appear. */}
           <g className="support-pet__eye-waves">
-            <circle cx="15.4" cy="22" r="1.5" />
-            <circle cx="15.4" cy="22" r="2.5" />
-            <circle cx="24.6" cy="22" r="1.5" />
-            <circle cx="24.6" cy="22" r="2.5" />
+            <g clipPath="url(#pet-eye-left)">
+              <path d={buildEyeWave(15.4, 22)} />
+            </g>
+            <g clipPath="url(#pet-eye-right)">
+              <path d={buildEyeWave(24.6, 22)} />
+            </g>
           </g>
 
           <circle cx="16.4" cy="21" r="1.15" fill="#ffffff" />

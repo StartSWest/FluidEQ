@@ -289,30 +289,38 @@ $pet-hop-duration: 520ms;
 
 // A blink is a fast vertical squash, which is cheap and reads instantly even
 // at this size.
-// Sound ringing in the eye, brighter the longer the streak runs.
+// Sound running across the eye, brighter the longer the streak holds.
+//
+// A waveform scrolling sideways, not rings spreading outward — concentric
+// circles read as something rising up through the eye, which is not what sound
+// on a screen looks like anywhere else in this app.
 //
 // Scaled off `--pet-joy` on both opacity and stroke width, because either alone
-// is too subtle at this size — the whole creature is 132px in the dialog and
-// these live inside a 3.4px pupil. They ripple outward continuously so the eye
-// looks alive rather than merely marked.
+// is lost at this size: the creature is 132px in the dialog and this lives
+// inside a 3.4px pupil.
 .support-pet__eye-waves {
   fill: none;
   stroke: $secondary-light;
-  stroke-width: calc(0.3px + var(--pet-joy, 0) * 0.5px);
-  opacity: calc(var(--pet-joy, 0) * 0.9);
-  animation: pet-eye-ripple 1.6s ease-out infinite;
+  stroke-width: calc(0.35px + var(--pet-joy, 0) * 0.55px);
+  stroke-linecap: round;
+  opacity: calc(var(--pet-joy, 0) * 0.95);
   transition:
     opacity 260ms ease-out,
     stroke-width 260ms ease-out;
+
+  path {
+    // Exactly one period per iteration, so the loop point is invisible.
+    animation: pet-eye-scroll 900ms linear infinite;
+  }
 }
 
-@keyframes pet-eye-ripple {
-  0% {
-    scale: 0.55;
+@keyframes pet-eye-scroll {
+  from {
+    translate: 0 0;
   }
 
-  100% {
-    scale: 1.15;
+  to {
+    translate: -3.2px 0;
   }
 }
 
