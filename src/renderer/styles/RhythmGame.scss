@@ -12,7 +12,9 @@ it under the terms of the GNU General Public License version 3 or later.
 .rhythm-game {
   display: grid;
   gap: 6px;
-  margin-top: 10px;
+  // Tucked up against the header, so the trace sits under the creature rather
+  // than floating below it as its own section.
+  margin-top: 2px;
 }
 
 .rhythm-game__scores {
@@ -192,13 +194,47 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .rhythm-game__verdict {
-  min-height: 14px;
+  display: flex;
+  min-height: 16px;
+  align-items: baseline;
+  justify-content: center;
+  gap: 8px;
   margin: 0;
   font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-align: center;
   text-transform: uppercase;
+}
+
+// The multiplier, beside the verdict rather than only in the score row. It
+// flares on every hit, because this is the number the player is protecting and
+// it should feel like it is being paid out.
+.rhythm-game__verdict-multiplier {
+  color: $neon-lime;
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  animation: rhythm-multiplier-flare 520ms ease-out;
+  text-shadow:
+    0 0 8px rgba($neon-lime, 0.9),
+    0 0 20px rgba($neon-lime, 0.5);
+}
+
+@keyframes rhythm-multiplier-flare {
+  0% {
+    scale: 1.5;
+    text-shadow:
+      0 0 14px rgba($neon-lime, 1),
+      0 0 34px rgba($neon-lime, 0.8);
+  }
+
+  100% {
+    scale: 1;
+    text-shadow:
+      0 0 8px rgba($neon-lime, 0.9),
+      0 0 20px rgba($neon-lime, 0.5);
+  }
 }
 
 .rhythm-game__verdict-text {

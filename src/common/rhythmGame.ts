@@ -223,7 +223,14 @@ export const applyRhythmScore = (
   }
 
   const gained = Math.round(hit.points * getStreakMultiplier(state.streak));
-  return { score: state.score + gained, streak: state.streak + 1 };
+  // Only a perfect grows the multiplier. Great and good still score, and still
+  // keep what has been built, but the ceiling is meant to be reached by playing
+  // accurately rather than by playing at all — a streak that any hit advances
+  // is just a count of taps.
+  return {
+    score: state.score + gained,
+    streak: hit.verdict === 'perfect' ? state.streak + 1 : state.streak,
+  };
 };
 
 /**

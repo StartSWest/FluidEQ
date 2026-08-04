@@ -230,11 +230,16 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
       return next;
     });
     // Read from the hit rather than from , which is a render behind.
-    const streak = hit.verdict === 'miss' ? 0 : runRef.current.streak + 1;
-    runRef.current =
+    const streak =
+      // Matches applyRhythmScore: only a perfect advances it, a miss clears it,
+      // anything else holds.
+      // eslint-disable-next-line no-nested-ternary
       hit.verdict === 'miss'
-        ? { score: runRef.current.score, streak: 0 }
-        : { score: runRef.current.score, streak };
+        ? 0
+        : hit.verdict === 'perfect'
+          ? runRef.current.streak + 1
+          : runRef.current.streak;
+    runRef.current = { score: runRef.current.score, streak };
     return { verdict: hit.verdict, joy: getStreakJoy(streak) };
   }, []);
 
@@ -363,6 +368,18 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
               : t('support.game.hint');
           })()}
         </span>
+        {/* Beside the verdict, where the eye already is on a hit — the score row
+            is the wrong place to learn what a tap was worth. Only shown once
+            there is something to show, and keyed on the tap so consecutive
+            perfects each flare rather than only the first. */}
+        {lastHit && hasPeaks && run.streak > 0 && (
+          <span key={hitSeq} className="rhythm-game__verdict-multiplier">
+            ×
+            {getStreakMultiplier(run.streak)
+              .toFixed(2)
+              .replace(/\.?0+$/, '')}
+          </span>
+        )}
       </p>
     </div>
   );

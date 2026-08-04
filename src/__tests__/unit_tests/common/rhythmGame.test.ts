@@ -166,6 +166,15 @@ describe('applyRhythmScore', () => {
     expect(taps).toBeLessThanOrEqual(12);
   });
 
+  it('grows the streak only on a perfect', () => {
+    // Great and good still score and still keep what has been built, but the
+    // ceiling is reached by playing accurately rather than by playing at all.
+    const start = { score: 0, streak: 4 };
+    expect(applyRhythmScore(start, gradeRhythmTap(0)).streak).toBe(5);
+    expect(applyRhythmScore(start, gradeRhythmTap(70)).streak).toBe(4);
+    expect(applyRhythmScore(start, gradeRhythmTap(150)).streak).toBe(4);
+  });
+
   it('resets the streak on a miss, so a disaster costs the multiplier too', () => {
     let state = { score: 400, streak: 6 };
     state = applyRhythmScore(state, worstMiss());

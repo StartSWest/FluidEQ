@@ -53,14 +53,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// No rule underneath, and barely any gap. The trace belongs to the creature
+// directly above it — it is what the creature is jumping — and a divider
+// between them made the game read as a separate panel that happened to be next.
 .support-dialog__header {
   display: flex;
   min-width: 0;
   align-items: flex-start;
   justify-content: space-between;
   gap: 12px;
-  padding-bottom: 18px;
-  border-bottom: 1px solid rgba($primary-lighter, 0.1);
+  padding-bottom: 2px;
 }
 
 .support-dialog__identity {
