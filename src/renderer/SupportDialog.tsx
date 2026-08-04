@@ -225,7 +225,10 @@ export default function SupportDialog({
     >
       <div
         ref={dialogRef}
-        className="support-dialog"
+        // The game changes the header's job. Without it the creature is a mark
+        // beside a title; with it she is the thing being aimed, and she has to
+        // sit over the line she is jumping.
+        className={`support-dialog${hasContributed ? ' support-dialog--game' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="support-dialog-title"

@@ -91,6 +91,41 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// With the game showing, the creature moves to the middle.
+//
+// This is the fix for a line that kept ending up somewhere she was not. The
+// target sits at 50% of the trace, which is where it has to be — the trace
+// shows the same span of time either side of it, so a peak is visible for as
+// long coming in as it is going out, and moving the line moves that balance.
+// The creature is the part that was in the wrong place: parked at the left
+// edge beside the title, with the line she is supposed to be jumping half a
+// dialog away.
+//
+// The trace and the header share the dialog's content box, so centring her in
+// it puts her over the line exactly, with no measuring and nothing to keep in
+// sync if the dialog is resized. The close button leaves the flow so it can
+// stay in its corner without pulling her off centre.
+.support-dialog--game {
+  .support-dialog__header {
+    position: relative;
+    justify-content: center;
+    padding-bottom: 0;
+  }
+
+  .support-dialog__identity {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    text-align: center;
+  }
+
+  .support-dialog__close {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+}
+
 // Quiet, because it is an aside about a toy sitting under the heading of a
 // dialog that is asking for money. It only ever appears for someone who has
 // already given, so it can afford to be small.
