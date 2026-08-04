@@ -246,6 +246,9 @@ const pt: Partial<Dictionary> = {
 
   'support.game.shareTitle': 'Partilhe a sua pontuação',
 
+  'support.game.shareUnlock':
+    'Chegue a ×10 e este cartão passa a modo euforia, com todo o espetro.',
+
   'support.game.shareNote':
     'Guarde o cartão e anexe-o à publicação: nenhuma destas redes consegue tirar uma imagem de um link.',
 

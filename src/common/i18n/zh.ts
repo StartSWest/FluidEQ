@@ -234,6 +234,9 @@ const zh: Partial<Dictionary> = {
 
   'support.game.shareTitle': '分享你的分数',
 
+  'support.game.shareUnlock':
+    '达到 ×10，这张卡片就会变成狂喜模式，整条光谱都在上面。',
+
   'support.game.shareNote':
     '先保存卡片，再附加到你的帖子里：这些平台都无法从链接中取出图片。',
 

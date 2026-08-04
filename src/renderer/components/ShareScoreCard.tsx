@@ -483,6 +483,16 @@ const ShareScoreCard = ({
           announcing it again would read the same run out twice. */}
       <canvas ref={canvasRef} className="share-score__canvas" aria-hidden />
 
+      {/* Says why this card is the plain one, for anyone who has only ever
+          seen it plain. The euphoric version is a different picture entirely —
+          spectrum rim, the pill, the bands lit hue by hue — and without this
+          there is nothing to suggest the card has another form, let alone what
+          it costs. Only ever shown below the ceiling: at the ceiling they are
+          looking at it. */}
+      {!isEuphoricRun(multiplier) && (
+        <p className="share-score__unlock">{t('support.game.shareUnlock')}</p>
+      )}
+
       <p className="share-score__note">{t('support.game.shareNote')}</p>
 
       <div className="share-score__actions">

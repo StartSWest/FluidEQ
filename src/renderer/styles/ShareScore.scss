@@ -73,6 +73,25 @@ it under the terms of the GNU General Public License version 3 or later.
   border-radius: $radius-s;
 }
 
+// The nudge, and the only lime thing in the panel.
+//
+// It is the one line here that is about the game rather than about posting, so
+// it gets the colour the multiplier uses — anyone who has played reads lime as
+// "the streak", which is exactly what it is asking for.
+.share-score__unlock {
+  margin: 0;
+  padding: 8px 12px;
+  color: $neon-lime;
+  border: 1px solid rgba($neon-lime, 0.22);
+  border-radius: $radius-s;
+  background: rgba($neon-lime, 0.07);
+  font-size: 0.8rem;
+  font-weight: 600;
+  line-height: 1.5;
+  text-align: center;
+  text-wrap: balance;
+}
+
 // Says the part that cannot be automated. Not an aside: someone who misses it
 // posts a bare link and wonders where their card went.
 .share-score__note {

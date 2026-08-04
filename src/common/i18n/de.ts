@@ -247,6 +247,9 @@ const de: Partial<Dictionary> = {
 
   'support.game.shareTitle': 'Teile dein Ergebnis',
 
+  'support.game.shareUnlock':
+    'Erreiche ×10 und diese Karte wird zum Euphorie-Modus – mit dem ganzen Farbspektrum.',
+
   'support.game.shareNote':
     'Speichere die Karte und hänge sie an deinen Beitrag an – keines dieser Netzwerke kann ein Bild aus einem Link ziehen.',
 

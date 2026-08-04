@@ -246,6 +246,9 @@ const ja: Partial<Dictionary> = {
 
   'support.game.shareTitle': 'スコアを共有',
 
+  'support.game.shareUnlock':
+    '×10 に到達すると、このカードはユーフォリアモードになります。スペクトラムもすべて。',
+
   'support.game.shareNote':
     'カードを保存して投稿に添付してください。これらのサービスはリンクから画像を取り込めません。',
 

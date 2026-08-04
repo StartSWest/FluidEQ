@@ -269,6 +269,8 @@ const en = {
   'support.game.share': 'Share',
   'support.game.shareEuphoria': 'Share euphoria',
   'support.game.shareTitle': 'Share your score',
+  'support.game.shareUnlock':
+    'Reach ×10 and this card turns into euphoria mode — spectrum and all.',
   'support.game.shareNote':
     'Save the card, then attach it to your post — none of these networks can pull an image out of a link.',
   'support.game.shareSave': 'Save card',
