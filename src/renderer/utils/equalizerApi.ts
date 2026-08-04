@@ -50,6 +50,15 @@ export interface TSuccess<Type> {
 
 export interface TError {
   errorCode: ErrorCode;
+  /**
+   * A specific message replacing the code's generic one.
+   *
+   * Most failures are internal and the canned description is the honest
+   * answer. Some are entirely about the user's own file — the wrong sample
+   * rate, a truncated WAV — and for those "Internal Error" is both wrong and
+   * useless, so the thrower gets to say what actually happened.
+   */
+  detail?: string;
 }
 
 type TResult<Type> = TSuccess<Type> | TError;
@@ -111,7 +120,12 @@ const buildResponseHandler = <
     reject: (reason?: ErrorDescription) => void,
   ) => {
     if ('errorCode' in arg) {
-      reject(toError(getErrorDescription(arg.errorCode)));
+      const description = getErrorDescription(arg.errorCode);
+      reject(
+        toError(
+          arg.detail ? { ...description, shortError: arg.detail } : description,
+        ),
+      );
       return;
     }
     const { result } = arg as TSuccess<Type>;
@@ -387,6 +401,42 @@ export const clearConvolution = (): Promise<void> => {
   const channel = ChannelEnum.CLEAR_CONVOLUTION;
   window.electron.ipcRenderer.sendMessage(channel, []);
   return promisifyResult(setterResponseHandler, channel);
+};
+
+/**
+ * How long an import may sit waiting.
+ *
+ * The whole call is spent with a native file picker open, and browsing to a
+ * folder is not something to put a stopwatch on. The default ten seconds would
+ * reliably "time out" while the user was still choosing.
+ */
+const FILE_PICKER_TIMEOUT = 10 * 60 * 1000;
+
+/**
+ * Import an EQ from a file the user picks.
+ *
+ * Resolves with a short description of what was applied, or an empty string if
+ * they cancelled — the caller shows the former and ignores the latter.
+ */
+export const importEqFile = (): Promise<string> => {
+  const channel = ChannelEnum.IMPORT_EQ_FILE;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(
+    simpleResponseHandler<string>(),
+    channel,
+    FILE_PICKER_TIMEOUT,
+  );
+};
+
+/** Import a WAV impulse response the user picks. Same contract as above. */
+export const importConvolutionFile = (): Promise<string> => {
+  const channel = ChannelEnum.IMPORT_CONVOLUTION_FILE;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(
+    simpleResponseHandler<string>(),
+    channel,
+    FILE_PICKER_TIMEOUT,
+  );
 };
 
 export const checkAutoEqUpdate = (): Promise<IAutoEqUpdateStatus> => {

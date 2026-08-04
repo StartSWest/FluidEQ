@@ -69,6 +69,7 @@ import {
 } from './utils/autoBalance';
 import { buildVoicingTargetCurve } from './utils/voicingCurve';
 import VoicingQuickPick from './components/VoicingQuickPick';
+import ActiveLayers from './components/ActiveLayers';
 
 const MainContent = () => {
   const {
@@ -601,6 +602,9 @@ const MainContent = () => {
         <div>
           <span className="eyebrow">FINE TUNE</span>
           <h4>Parametric EQ</h4>
+          {/* The bands below are not the whole chain. Anything else that is
+              live gets named here so the graph stops looking wrong. */}
+          <ActiveLayers />
         </div>
         <div className="eq-toolbar">
           <VoicingQuickPick />

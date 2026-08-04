@@ -422,6 +422,31 @@ select option {
   }
 }
 
+// Same shape as the failure notice, opposite meaning. Reusing the layout keeps
+// "something happened" in one place on screen rather than two.
+.workspace-notice--ok {
+  border-color: rgba($secondary-light, 0.42);
+  background: linear-gradient(145deg, rgba(#0d2029, 0.97), rgba(#0a161d, 0.97));
+
+  strong {
+    color: $secondary-light;
+  }
+
+  button:hover,
+  button:focus-visible {
+    border-color: rgba($secondary-light, 0.45);
+    background: rgba($secondary-default, 0.18);
+  }
+}
+
+.workspace-notice__icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: $secondary-light;
+}
+
 // Quiet by design: useful in a bug report, not something to read every day.
 .workspace-header__version {
   flex: 0 0 auto;
@@ -512,7 +537,13 @@ select option {
   -webkit-app-region: no-drag;
 
   button {
+    // Glyph column then label, so the labels line up with each other however
+    // wide the icons draw.
+    display: grid;
     width: 100%;
+    align-items: center;
+    gap: 9px;
+    grid-template-columns: 16px minmax(0, 1fr);
     padding: 9px 10px;
     color: rgba($white, 0.88);
     border: 1px solid transparent;
@@ -529,6 +560,20 @@ select option {
       border-color: rgba($secondary-light, 0.35);
       background: rgba($secondary-default, 0.16);
       outline: none;
+    }
+
+    // Quieter than the label at rest, full strength on hover: the glyph is
+    // there to be recognised in passing, not read.
+    .menu-icon {
+      width: 16px;
+      height: 16px;
+      color: rgba($secondary-light, 0.72);
+      transition: color 160ms ease;
+    }
+
+    &:hover .menu-icon,
+    &:focus-visible .menu-icon {
+      color: $secondary-light;
     }
   }
 }

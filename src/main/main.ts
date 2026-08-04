@@ -26,7 +26,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * When running `npm run build` or `npm run build:main`, this file is compiled to
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
-import { app, BrowserWindow, desktopCapturer, ipcMain, shell } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  desktopCapturer,
+  dialog,
+  ipcMain,
+  shell,
+} from 'electron';
 import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
@@ -121,6 +128,7 @@ import {
   downloadConvolution,
   getConvolutionCatalog,
 } from './convolutionCatalog';
+import { importConvolutionFile, importEqFile } from './importSettings';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -452,8 +460,11 @@ const handleError = (
   event: Electron.IpcMainEvent,
   channel: ChannelEnum | string,
   errorCode: ErrorCode,
+  // Only for failures the user can act on — a file at the wrong sample rate,
+  // a name that is already taken. Internal faults keep the canned wording.
+  detail?: string,
 ) => {
-  const reply: TError = { errorCode };
+  const reply: TError = { errorCode, ...(detail ? { detail } : {}) };
   console.log(channel);
   event.reply(channel, reply);
 };
@@ -1062,6 +1073,104 @@ ipcMain.on(ChannelEnum.CLEAR_CONVOLUTION, async (event) => {
   const channel = ChannelEnum.CLEAR_CONVOLUTION;
   state.convolution = undefined;
   await handleUpdate(event, channel, false, true);
+});
+
+/**
+ * Pick a file the user already has and apply it.
+ *
+ * The dialog lives here rather than in the renderer because the renderer never
+ * gets to see a filesystem path — it asks for an import and is told what was
+ * applied. Cancelling is a normal outcome, not an error: it replies with an
+ * empty description and nothing changes.
+ */
+const showImportDialog = async (
+  title: string,
+  filters: Electron.FileFilter[],
+) => {
+  const result = mainWindow
+    ? await dialog.showOpenDialog(mainWindow, {
+        title,
+        filters,
+        properties: ['openFile'],
+      })
+    : await dialog.showOpenDialog({ title, filters, properties: ['openFile'] });
+  return result.canceled ? undefined : result.filePaths[0];
+};
+
+ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
+  const channel = ChannelEnum.IMPORT_EQ_FILE;
+  try {
+    const sourcePath = await showImportDialog('Import EQ settings', [
+      { name: 'EQ settings', extensions: ['txt', 'json'] },
+      { name: 'All files', extensions: ['*'] },
+    ]);
+    if (!sourcePath) {
+      const reply: TSuccess<string> = { result: '' };
+      event.reply(channel, reply);
+      return;
+    }
+
+    const imported = importEqFile(sourcePath);
+    clearCurrentLayoutSettings();
+    state.preAmp = imported.preAmp;
+    state.filters = imported.filters;
+    state.eqFormat = imported.eqFormat;
+    state.graphicEq = imported.graphicEq;
+    // An imported EQ is a tuning, so the flat flag has to come off or the
+    // bands would be parsed, stored, and then not written.
+    state.isFlat = false;
+    await handleUpdateHelper<string>(
+      event,
+      channel,
+      imported.unsupported > 0
+        ? `Imported ${Object.keys(imported.filters).length} bands from the ${imported.sourceLabel}. ${imported.unsupported} band(s) used a filter type FluidEQ cannot edit and were skipped.`
+        : `Imported ${Object.keys(imported.filters).length} bands from the ${imported.sourceLabel}.`,
+      false,
+      true,
+    );
+  } catch (error) {
+    console.error('Failed to import EQ settings', error);
+    handleError(
+      event,
+      channel,
+      ErrorCode.IMPORT_ERROR,
+      error instanceof Error ? error.message : undefined,
+    );
+  }
+});
+
+ipcMain.on(ChannelEnum.IMPORT_CONVOLUTION_FILE, async (event) => {
+  const channel = ChannelEnum.IMPORT_CONVOLUTION_FILE;
+  try {
+    const sourcePath = await showImportDialog('Import an impulse response', [
+      { name: 'WAV impulse response', extensions: ['wav'] },
+    ]);
+    if (!sourcePath) {
+      const reply: TSuccess<string> = { result: '' };
+      event.reply(channel, reply);
+      return;
+    }
+
+    if (!configPath) {
+      configPath = await getConfigPath();
+    }
+    state.convolution = importConvolutionFile(sourcePath, configPath);
+    await handleUpdateHelper<string>(
+      event,
+      channel,
+      `Applied ${state.convolution.name}.`,
+      false,
+      true,
+    );
+  } catch (error) {
+    console.error('Failed to import a convolution file', error);
+    handleError(
+      event,
+      channel,
+      ErrorCode.IMPORT_ERROR,
+      error instanceof Error ? error.message : undefined,
+    );
+  }
 });
 
 ipcMain.on(ChannelEnum.CHECK_AUTO_EQ_UPDATE, async (event) => {

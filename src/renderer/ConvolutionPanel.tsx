@@ -19,7 +19,9 @@ import {
   clearConvolution,
   downloadConvolution,
   getConvolutionCatalog,
+  importConvolutionFile,
 } from './utils/equalizerApi';
+import MenuIcon from './icons/MenuIcon';
 import './styles/Convolution.scss';
 
 const ConvolutionPanel = () => {
@@ -29,6 +31,7 @@ const ConvolutionPanel = () => {
   const [entries, setEntries] = useState<IConvolutionCatalogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<string>();
+  const [isImporting, setIsImporting] = useState(false);
   const selectedSource = useMemo(() => CONVOLUTION_SOURCES[0], []);
 
   // A successful catalogue load must only clear an error this panel raised.
@@ -83,6 +86,21 @@ const ConvolutionPanel = () => {
     }
   };
 
+  const handleImport = async () => {
+    setIsImporting(true);
+    try {
+      // An empty summary means the picker was cancelled, which is not an event
+      // worth reacting to.
+      if (await importConvolutionFile()) {
+        await refreshState();
+      }
+    } catch (error) {
+      setGlobalError(error as ErrorDescription);
+    } finally {
+      setIsImporting(false);
+    }
+  };
+
   return (
     <section className="convolution-panel" aria-labelledby="convolution-title">
       <div className="convolution-panel__intro">
@@ -103,17 +121,43 @@ const ConvolutionPanel = () => {
             {selectedSource.name}
           </a>
         </div>
-        {convolution && (
+        {/* Bringing your own impulse response is a first-class way to use this
+            panel, not a fallback for when the catalogue search fails. */}
+        <button
+          type="button"
+          className="convolution-button convolution-button--quiet"
+          disabled={!isEnabled || isImporting}
+          onClick={handleImport}
+        >
+          <MenuIcon name="import" className="convolution-button__icon" />
+          {isImporting ? 'Importing…' : 'Import a WAV…'}
+        </button>
+      </div>
+
+      {/* What is applied, stated before the catalogue rather than after it.
+          A bare "Clear convolution" button used to be the only sign anything
+          was loaded, which told you there was something to clear without ever
+          saying what. */}
+      {convolution && (
+        <div className="convolution-applied" aria-live="polite">
+          <MenuIcon name="convolution" className="convolution-applied__icon" />
+          <div>
+            <span className="convolution-applied__label">
+              Applied to this output
+            </span>
+            <strong title={convolution.name}>{convolution.name}</strong>
+          </div>
           <button
             type="button"
             className="convolution-button convolution-button--quiet"
             disabled={!isEnabled}
             onClick={handleClear}
           >
-            Clear convolution
+            <MenuIcon name="clear" className="convolution-button__icon" />
+            Clear
           </button>
-        )}
-      </div>
+        </div>
+      )}
 
       {selectedSource.downloadable ? (
         <>
@@ -189,18 +233,16 @@ const ConvolutionPanel = () => {
         </>
       ) : null}
 
-      <div className="convolution-active" aria-live="polite">
-        <span className={`status-dot${convolution ? '' : ' is-muted'}`} />
-        {convolution ? (
-          <span>
-            Active convolution: <strong>{convolution.name}</strong>
-          </span>
-        ) : (
+      {/* Only the empty state. What is applied is stated at the top now, and
+          saying it twice made the panel look like it had two of them. */}
+      {!convolution && (
+        <div className="convolution-active" aria-live="polite">
+          <span className="status-dot is-muted" />
           <span>
             No convolution loaded. The EQ tab remains fully independent.
           </span>
-        )}
-      </div>
+        </div>
+      )}
     </section>
   );
 };

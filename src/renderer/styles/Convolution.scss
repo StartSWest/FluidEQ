@@ -2,15 +2,22 @@
 @use 'theme' as *;
 
 .convolution-panel {
-  display: grid;
+  // Flex, not a fixed grid template: the applied banner and the empty-state
+  // row each come and go, and a template that named its rows in order put the
+  // scrolling one in the wrong place whenever the count changed.
+  display: flex;
   height: 100%;
   min-height: 0;
+  flex-direction: column;
   padding: 12px;
   gap: 10px;
-  // Intro, search, notice, results, status. Only the result list scrolls, so
-  // the search box and the active-convolution row are always reachable.
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
   overflow: hidden;
+
+  // Only the result list scrolls, so the search box, the applied banner and
+  // the status row are always reachable.
+  > *:not(.convolution-results) {
+    flex: 0 0 auto;
+  }
   border: 1px solid rgba($primary-lighter, 0.14);
   border-radius: $radius-l;
   background:
@@ -104,6 +111,8 @@
 .convolution-results {
   display: flex;
   min-height: 0;
+  // The one child that takes the leftover height and scrolls inside it.
+  flex: 1 1 auto;
   flex-direction: column;
   gap: 7px;
   overflow-x: hidden;
@@ -192,6 +201,65 @@
       background: rgba($secondary-default, 0.18);
     }
   }
+}
+
+// Icon and label read as one control.
+.convolution-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.convolution-button__icon {
+  width: 14px;
+  height: 14px;
+  flex: 0 0 auto;
+}
+
+// The applied convolution, stated where you look first. Cyan-edged so it reads
+// as live rather than as another catalogue row.
+.convolution-applied {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  gap: 11px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 10px 12px;
+  border: 1px solid rgba($secondary-light, 0.34);
+  border-radius: $radius-s;
+  background: linear-gradient(
+    145deg,
+    rgba($secondary-default, 0.14),
+    rgba($secondary-default, 0.05)
+  );
+
+  > div {
+    display: grid;
+    min-width: 0;
+    gap: 1px;
+  }
+
+  strong {
+    @include truncate;
+    color: rgba($white, 0.94);
+    font-size: 0.78rem;
+  }
+}
+
+.convolution-applied__icon {
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  color: $secondary-light;
+}
+
+.convolution-applied__label {
+  color: rgba($secondary-light, 0.82);
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .convolution-empty {

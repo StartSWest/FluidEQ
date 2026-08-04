@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState, type MouseEvent } from 'react';
-import { ErrorCode } from 'common/errors';
+import { ErrorCode, ErrorDescription } from 'common/errors';
 import { SUPPORT_CONTRIBUTED_KEY, isSupportAvailable } from 'common/support';
 import './styles/App.scss';
 import MainContent from './MainContent';
@@ -35,10 +35,13 @@ import DriverPicker from './components/DriverPicker';
 import WaveformVisualizer from './WaveformVisualizer';
 import ConvolutionPanel from './ConvolutionPanel';
 import VoicingPanel from './VoicingPanel';
+import MenuIcon from './icons/MenuIcon';
 import { LiveAudioProvider } from './audio/LiveAudioContext';
 import {
   deletePreset,
   getPresetListFromFiles,
+  importConvolutionFile,
+  importEqFile,
   loadPreset,
   renamePreset,
   savePreset,
@@ -60,6 +63,7 @@ const AppContent = () => {
     isBlockingError,
     isEnabled,
     performHealthCheck,
+    refreshState,
     setGlobalError,
   } = useAquaContext();
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
@@ -67,6 +71,10 @@ const AppContent = () => {
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
   const [showAudioToolsMenu, setShowAudioToolsMenu] = useState(false);
   const [showSupportDialog, setShowSupportDialog] = useState(false);
+  // What the last import did. Reported the same way as a recoverable failure —
+  // in the corner, dismissable — rather than as a modal alert, because there
+  // is nothing to decide and the result is already audible.
+  const [importNotice, setImportNotice] = useState('');
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<
     'eq' | 'voicing' | 'convolution'
   >('eq');
@@ -164,6 +172,30 @@ const AppContent = () => {
       window.alert(error);
     }
   };
+
+  /**
+   * Import an EQ or an impulse response the user already has.
+   *
+   * The file picker lives in the main process, so this is one call that either
+   * comes back with a description of what was applied, an empty string because
+   * the dialog was cancelled, or an error naming what was wrong with the file.
+   * Nothing is applied halfway: the state only changes if the parse succeeded.
+   */
+  const runImport = async (importer: () => Promise<string>) => {
+    try {
+      const summary = await importer();
+      if (!summary) {
+        return;
+      }
+      setImportNotice(summary);
+      await refreshState();
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+
+  const handleImportEq = () => runImport(importEqFile);
+  const handleImportConvolution = () => runImport(importConvolutionFile);
 
   const handleRestartWindowsAudio = async () => {
     if (
@@ -282,6 +314,30 @@ const AppContent = () => {
                 </div>
                 {!isLoading && !isBlockingError && (
                   <>
+                    {/* Bringing your own files in belongs at the top: it is
+                        the only thing here that changes what you hear. */}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setShowAudioToolsMenu(false);
+                        handleImportEq();
+                      }}
+                    >
+                      <MenuIcon name="import" />
+                      Import EQ settings…
+                    </button>
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setShowAudioToolsMenu(false);
+                        handleImportConvolution();
+                      }}
+                    >
+                      <MenuIcon name="waveform" />
+                      Import impulse response…
+                    </button>
                     <button
                       type="button"
                       role="menuitem"
@@ -290,6 +346,7 @@ const AppContent = () => {
                         handleRestartWindowsAudio();
                       }}
                     >
+                      <MenuIcon name="restart" />
                       Restart Windows audio
                     </button>
                     <button
@@ -300,6 +357,7 @@ const AppContent = () => {
                         handleConfigureEqualizerApo();
                       }}
                     >
+                      <MenuIcon name="configure" />
                       Reconfigure Equalizer APO
                     </button>
                     <button
@@ -310,6 +368,7 @@ const AppContent = () => {
                         handleOpenEqualizerApoSettings();
                       }}
                     >
+                      <MenuIcon name="settings" />
                       Equalizer APO settings
                     </button>
                   </>
@@ -324,6 +383,7 @@ const AppContent = () => {
                       setShowSupportDialog(true);
                     }}
                   >
+                    <MenuIcon name="support" />
                     Support the work
                   </button>
                 )}
@@ -501,6 +561,24 @@ const AppContent = () => {
               type="button"
               aria-label="Dismiss"
               onClick={() => setGlobalError(undefined)}
+            >
+              <svg viewBox="0 0 12 12" aria-hidden="true">
+                <path d="M3 3l6 6M9 3l-6 6" />
+              </svg>
+            </button>
+          </div>
+        )}
+        {importNotice && (
+          <div className="workspace-notice workspace-notice--ok" role="status">
+            <MenuIcon name="import" className="workspace-notice__icon" />
+            <div>
+              <strong>Import complete</strong>
+              <span>{importNotice}</span>
+            </div>
+            <button
+              type="button"
+              aria-label="Dismiss"
+              onClick={() => setImportNotice('')}
             >
               <svg viewBox="0 0 12 12" aria-hidden="true">
                 <path d="M3 3l6 6M9 3l-6 6" />

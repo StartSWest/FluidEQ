@@ -25,6 +25,7 @@ export enum ErrorCode {
   PRESET_FILE_ERROR,
   INVALID_PRESET_NAME,
   AUTO_EQ_READ_ERROR,
+  IMPORT_ERROR,
 }
 
 export type ErrorDescription = {
@@ -96,6 +97,15 @@ export const errors: Record<ErrorCode, ErrorDescription> = {
     shortError: 'Internal Error: Failed to get supported AutoEQ devices.',
     action: 'Please reach out to the developers to resolve the issue.',
     code: ErrorCode.AUTO_EQ_READ_ERROR,
+  },
+  // The fallback only. An import failure is almost always about the file the
+  // user chose, so the thrower sends a `detail` saying which part of it was
+  // the problem and this generic text is replaced.
+  [ErrorCode.IMPORT_ERROR]: {
+    shortError: 'That file could not be imported.',
+    action:
+      'Please check that the file is an Equalizer APO EQ text file, a FluidEQ profile, or a WAV impulse response.',
+    code: ErrorCode.IMPORT_ERROR,
   },
 };
 
