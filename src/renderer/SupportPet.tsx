@@ -38,6 +38,22 @@ const usePetLevel = (waveform: number[]) =>
     return Math.min(1, peak * 1.6);
   }, [waveform]);
 
+/**
+ * What the creature is actually reacting to.
+ *
+ * Pausing the waveform stops the analyser mid-frame, so `isActive` and the last
+ * `waveform` sit frozen at whatever happened to be playing. Left alone the pet
+ * would carry on swaying to a reading that stopped being true, which reads as
+ * broken rather than lively. Paused means not listening — and the level drops
+ * to zero rather than holding, so the ears settle instead of staying stretched
+ * on a stale frame.
+ */
+const usePetAudio = () => {
+  const { waveform, isActive, isPaused } = useLiveAudio();
+  const level = usePetLevel(waveform);
+  return { isListening: isActive && !isPaused, level: isPaused ? 0 : level };
+};
+
 /** Loud enough that it is clearly music rather than a notification blip. */
 const DANCE_LEVEL = 0.32;
 const DANCE_DURATION_MS = 7000;
@@ -53,9 +69,8 @@ const DANCE_CHANCE = 0.3;
  * non-stop in a titlebar the user stares at for hours stops being charming
  * within a minute. The delight is in catching it.
  *
- * Note this only ever *adds* behaviour. A user who never contributes still has
- * a pet that breathes, blinks and moves with the music; it is simply not
- * throwing a party.
+ * A user who never contributes still has a pet that breathes and blinks; it
+ * just does not hear the music.
  */
 const useOccasionalDance = (
   isUnlocked: boolean,
@@ -181,14 +196,13 @@ export function SupportPetHero({
 }: {
   hasContributed: boolean;
 }) {
-  const { waveform, isActive } = useLiveAudio();
-  const level = usePetLevel(waveform);
-  const isDancing = useOccasionalDance(hasContributed, isActive, level);
+  const { isListening, level } = usePetAudio();
+  const isDancing = useOccasionalDance(hasContributed, isListening, level);
 
   return (
     <div
       className={`support-pet support-pet--hero${
-        isActive ? ' is-listening' : ''
+        isListening ? ' is-listening' : ''
       }${isDancing ? ' is-dancing' : ''}${
         hasContributed ? ' is-celebrating' : ''
       }`}
@@ -203,20 +217,19 @@ export function SupportPetHero({
 /**
  * The app's mascot, and the way in to the support dialog.
  *
- * It bobs along to whatever is playing and blinks and breathes when nothing
- * is. Contributing unlocks a star and the occasional dance.
+ * It breathes and blinks on its own. Contributing unlocks the star and every
+ * response to the music: the squash, the sway, and the occasional dance.
  *
  * It is never sad and it never nags. Everything tied to contributing is
- * additive, so someone who ignores it forever still has a happy creature
- * moving to their music — they just do not get the party.
+ * additive — someone who ignores it forever still has a happy creature in
+ * their titlebar, it simply does not hear what they are listening to.
  */
 export default function SupportPet({
   hasContributed,
   onOpen,
 }: ISupportPetProps) {
-  const { waveform, isActive } = useLiveAudio();
-  const level = usePetLevel(waveform);
-  const isDancing = useOccasionalDance(hasContributed, isActive, level);
+  const { isListening, level } = usePetAudio();
+  const isDancing = useOccasionalDance(hasContributed, isListening, level);
 
   const title = hasContributed
     ? 'Thank you for supporting FluidEQ'
@@ -225,7 +238,7 @@ export default function SupportPet({
   return (
     <button
       type="button"
-      className={`support-pet${isActive ? ' is-listening' : ''}${
+      className={`support-pet${isListening ? ' is-listening' : ''}${
         isDancing ? ' is-dancing' : ''
       }${hasContributed ? ' is-celebrating' : ''}`}
       style={{ '--pet-level': level } as CSSProperties}
