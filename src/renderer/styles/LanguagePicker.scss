@@ -11,12 +11,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // Sits in the actions menu, laid out on the same glyph-then-content grid as
 // the buttons above it so the globe lines up with the other icons.
-//
-// `position: relative` so the arrow below can be placed against the select's
-// right edge. It cannot be a child of the select — a native `<select>` renders
-// no descendants — so it is drawn on this wrapper instead.
 .language-picker {
-  position: relative;
   display: grid;
   align-items: center;
   gap: 9px;
@@ -32,86 +27,73 @@ it under the terms of the GNU General Public License version 3 or later.
     transition: color 160ms ease;
   }
 
-  // Sized and coloured off the menu buttons directly above rather than off the
-  // generic field: in this context the select is one more row of the menu, and
-  // matching the fields elsewhere in the app made it read as a stray input
-  // that had wandered in.
-  select {
-    width: 100%;
-    min-width: 0;
-    // Room on the right for the arrow, which is drawn over this padding.
-    padding: 9px 30px 9px 10px;
+  // The trigger is sized and coloured off the menu buttons directly above it
+  // rather than off the generic field surface the Dropdown ships with. In this
+  // context it is one more row of the menu; the taller, lighter field used
+  // elsewhere in the app read as a stray input that had wandered in.
+  .dropdown > [role='menu'] {
+    // 36px, matching a menu button exactly: those are a grid around a 16px
+    // glyph, so they clear their text by a pixel and a row of text alone does
+    // not.
+    min-height: 36px;
+    padding: 9px 10px;
     color: rgba($white, 0.88);
-    border: 1px solid transparent;
+    // $radius-xs like the buttons, not the $radius-s a field would take.
+    border-color: transparent;
     border-radius: $radius-xs;
     background: rgba($white, 0.035);
     box-shadow: none;
     font-size: 0.7rem;
-    text-overflow: ellipsis;
-    cursor: pointer;
-    transition: $transition-control;
-    // Without this the platform draws its own arrow on top of ours, and on
-    // Windows it ignores the background entirely and renders a white box.
-    appearance: none;
 
-    &:hover,
+    &:hover:not([aria-disabled='true']),
     &:focus-visible {
       color: $white;
       border-color: rgba($secondary-light, 0.35);
       background: rgba($secondary-default, 0.16);
-      outline: none;
     }
 
-    &:focus-visible {
-      @include focus-ring;
-    }
-
-    // The list itself is still the platform's, which is the whole point of
-    // using a native select here — the OS picks a font that can actually draw
-    // Devanagari, CJK and Cyrillic. Only its colours are ours.
-    option {
-      color: $text-primary;
-      background: $surface-field;
-    }
-
-    // The row under the cursor stays the platform's highlight — Chromium owns
-    // that one and will not give it up. The current language is ours.
-    option:checked {
-      background: rgba($secondary-default, 0.28);
+    .arrow {
+      color: rgba($secondary-light, 0.72);
     }
   }
 
-  // Matches the filled triangle the app's own Dropdown draws, rather than the
-  // stroked chevron a select usually gets, so the two controls read as the
-  // same family. `pointer-events: none` keeps clicks going to the select
-  // underneath — the arrow is decoration, not a button.
-  &::after {
-    position: absolute;
-    // Centred on the select, not on this wrapper. The separator above costs
-    // 10px of padding-top that the select does not sit in, so the two centres
-    // differ by half of it.
-    top: 50%;
-    right: 12px;
-    width: 9px;
-    height: 6px;
-    margin-top: 5px;
-    background: rgba($secondary-light, 0.72);
-    clip-path: polygon(50% 100%, 0 0, 100% 0);
-    content: '';
-    pointer-events: none;
-    translate: 0 -50%;
-    transition: background-color 160ms ease;
-  }
-
-  // The glyph and the arrow brighten together with the field, the same way the
-  // menu buttons brighten their own icon.
+  // The glyph and the arrow brighten together, the same way the menu buttons
+  // brighten their own icon.
   &:hover .menu-icon,
-  &:focus-within .menu-icon {
+  &:focus-within .menu-icon,
+  &:hover .dropdown > [role='menu'] .arrow,
+  &:focus-within .dropdown > [role='menu'] .arrow {
     color: $secondary-light;
   }
 
-  &:hover::after,
-  &:focus-within::after {
-    background: $secondary-light;
+  // The list is sized for the menu, not for the catalogues the Dropdown was
+  // built for. Those hold tens of thousands of entries and earn their roomy
+  // rows; this holds ten short words, and at the default size it came out
+  // taller than the menu it drops out of and needed a scrollbar to show a list
+  // that fits on any screen.
+  //
+  // Rows match the menu buttons above: same height, same type, same radius.
+  .list-wrapper {
+    min-width: 100%;
+    border-radius: $radius-xs;
+
+    // Nested under `.list` rather than reaching for the `li` directly, so this
+    // outranks List.scss instead of merely tying with it. A tie would leave
+    // the winner up to the order webpack happens to emit the two stylesheets
+    // in, which is decided by an import somewhere else entirely.
+    .list {
+      padding: 4px;
+      // Ten short entries always fit, so no scrollbar appears in practice.
+      // The cap is only here so an eleventh language cannot push the list off
+      // the bottom of the window.
+      max-height: min(420px, 60vh);
+
+      li {
+        min-height: 30px;
+        margin: 1px 0;
+        padding: 6px 10px;
+        font-size: 0.7rem;
+      }
+    }
   }
 }
