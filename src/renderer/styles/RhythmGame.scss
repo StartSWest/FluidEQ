@@ -72,15 +72,32 @@ it under the terms of the GNU General Public License version 3 or later.
   text-transform: uppercase;
 }
 
+// The frame. Nothing escapes it — a glow spilling onto the text above and
+// below drew more attention than the trace itself.
+//
+// The inner clip still exists and still holds only the wave, which is what
+// fixed the original problem: the target line was being sliced flat against
+// the clip's edge. It is inset from that edge now and its glow is small enough
+// to stay inside, so it is neither cut off nor leaking out.
 .rhythm-game__trace {
   position: relative;
   height: 44px;
-  // The trace runs the full width and is clipped at the edges, so beats scroll
-  // in and out rather than appearing and vanishing mid-air.
   overflow: hidden;
-  border: 1px solid rgba($secondary-default, 0.16);
-  border-radius: $radius-s;
-  background: linear-gradient(180deg, rgba(#0a1420, 0.9), rgba(#060d16, 0.94));
+
+  // The scrolling wave, and only the wave, is clipped — so beats scroll in and
+  // out rather than appearing and vanishing mid-air.
+  .rhythm-game__clip {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+    border: 1px solid rgba($secondary-default, 0.16);
+    border-radius: $radius-s;
+    background: linear-gradient(
+      180deg,
+      rgba(#0a1420, 0.9),
+      rgba(#060d16, 0.94)
+    );
+  }
 
   svg {
     display: block;
@@ -122,9 +139,11 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 
   // The zero line the waveform is mirrored about. Faint — it is a reference,
-  // not a feature, and it must not compete with the target line.
-  &::before {
+  // not a feature, and it must not compete with the target line. On the clip
+  // rather than the frame, because it belongs to the wave.
+  .rhythm-game__clip::before {
     position: absolute;
+    z-index: 0;
     top: 50%;
     right: 0;
     left: 0;
@@ -169,50 +188,6 @@ it under the terms of the GNU General Public License version 3 or later.
     background: rgba($secondary-light, 0.8);
     box-shadow: 0 0 10px rgba($secondary-default, 0.6);
     scale: 1 1;
-  }
-}
-
-// Where the last tap actually landed, left of the line for early and right for
-// late. It fades on its own so a run of taps does not litter the trace.
-.rhythm-game__hit {
-  position: absolute;
-  top: 2px;
-  bottom: 2px;
-  width: 2px;
-  border-radius: $radius-pill;
-  animation: rhythm-hit 520ms ease-out forwards;
-  pointer-events: none;
-  translate: -1px 0;
-
-  &--perfect {
-    background: $neon-lime;
-    box-shadow: 0 0 12px rgba($neon-lime, 0.9);
-  }
-
-  &--great {
-    background: $secondary-light;
-    box-shadow: 0 0 10px rgba($secondary-light, 0.8);
-  }
-
-  &--good {
-    background: rgba($primary-lighter, 0.85);
-  }
-
-  &--miss {
-    background: #ff5a6e;
-    box-shadow: 0 0 10px rgba(#ff5a6e, 0.7);
-  }
-}
-
-@keyframes rhythm-hit {
-  from {
-    opacity: 1;
-    scale: 1 1;
-  }
-
-  to {
-    opacity: 0;
-    scale: 1 0.4;
   }
 }
 
@@ -310,12 +285,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // still accepted taps, handing anyone who asked for less motion a broken game
 // rather than a calmer one. What can go is the flashing around it.
 @media (prefers-reduced-motion: reduce) {
-  .rhythm-game__hit,
   .rhythm-game__verdict-text {
     animation: none;
-  }
-
-  .rhythm-game__hit {
-    opacity: 0.9;
   }
 }

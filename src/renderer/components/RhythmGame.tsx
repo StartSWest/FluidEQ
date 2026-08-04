@@ -33,7 +33,6 @@ import {
 import {
   IRhythmHit,
   applyRhythmScore,
-  getHitMarkerPosition,
   getStreakJoy,
   getStreakMultiplier,
   RhythmVerdict,
@@ -314,10 +313,6 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     [],
   );
 
-  const markerPosition = lastHit
-    ? getHitMarkerPosition(lastHit.offsetMs)
-    : undefined;
-
   return (
     <div className="rhythm-game">
       {/* How to play, and what it is worth playing for. Kept above the trace
@@ -346,52 +341,57 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
       </div>
 
       <div className="rhythm-game__trace">
-        <svg
-          viewBox={`0 0 100 ${VIEW_HEIGHT}`}
-          preserveAspectRatio="none"
-          aria-hidden="true"
-          focusable="false"
-        >
-          <defs>
-            {/* The same spectrum the titlebar meter runs, so the two waveforms
+        {/* The clip holds only the scrolling wave. The target line and the hit
+            marker are siblings of it, not children — inside, their glow was
+            sliced flat against the top and bottom edges. */}
+        <div className="rhythm-game__clip">
+          <svg
+            viewBox={`0 0 100 ${VIEW_HEIGHT}`}
+            preserveAspectRatio="none"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <defs>
+              {/* The same spectrum the titlebar meter runs, so the two waveforms
                 in this app are recognisably the same thing. Cyan through to
                 violet, left to right. */}
-            <linearGradient id="rhythm-line" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0" stopColor="#00e5ff" />
-              <stop offset="0.28" stopColor="#54ff8a" />
-              <stop offset="0.52" stopColor="#ffe66d" />
-              <stop offset="0.76" stopColor="#ff3cac" />
-              <stop offset="1" stopColor="#8b5cff" />
-            </linearGradient>
-            <linearGradient id="rhythm-fill" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0" stopColor="#00e5ff" stopOpacity="0.3" />
-              <stop offset="0.28" stopColor="#54ff8a" stopOpacity="0.4" />
-              <stop offset="0.52" stopColor="#ffe66d" stopOpacity="0.45" />
-              <stop offset="0.76" stopColor="#ff3cac" stopOpacity="0.4" />
-              <stop offset="1" stopColor="#8b5cff" stopOpacity="0.3" />
-            </linearGradient>
-          </defs>
-          {path && <path d={path} />}
-          {/* Inside the SVG, so the marks share the wave's coordinate space and
+              <linearGradient id="rhythm-line" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stopColor="#00e5ff" />
+                <stop offset="0.28" stopColor="#54ff8a" />
+                <stop offset="0.52" stopColor="#ffe66d" />
+                <stop offset="0.76" stopColor="#ff3cac" />
+                <stop offset="1" stopColor="#8b5cff" />
+              </linearGradient>
+              <linearGradient id="rhythm-fill" x1="0" x2="1" y1="0" y2="0">
+                <stop offset="0" stopColor="#00e5ff" stopOpacity="0.3" />
+                <stop offset="0.28" stopColor="#54ff8a" stopOpacity="0.4" />
+                <stop offset="0.52" stopColor="#ffe66d" stopOpacity="0.45" />
+                <stop offset="0.76" stopColor="#ff3cac" stopOpacity="0.4" />
+                <stop offset="1" stopColor="#8b5cff" stopOpacity="0.3" />
+              </linearGradient>
+            </defs>
+            {path && <path d={path} />}
+            {/* Inside the SVG, so the marks share the wave's coordinate space and
               cannot drift from the hits they belong to at any dialog width. */}
-          {peakMarks.map((x) => (
-            <line
-              key={x}
-              className="rhythm-game__peak"
-              x1={x}
-              x2={x}
-              y1={0}
-              y2={VIEW_HEIGHT}
-              // Distance from the centre, so a mark brightens as it arrives.
-              // The one you are about to hit should be the loudest thing on
-              // screen.
-              opacity={Math.max(
-                0.18,
-                1 - Math.abs(x - TARGET_PERCENT) / TARGET_PERCENT,
-              )}
-            />
-          ))}
-        </svg>
+            {peakMarks.map((x) => (
+              <line
+                key={x}
+                className="rhythm-game__peak"
+                x1={x}
+                x2={x}
+                y1={0}
+                y2={VIEW_HEIGHT}
+                // Distance from the centre, so a mark brightens as it arrives.
+                // The one you are about to hit should be the loudest thing on
+                // screen.
+                opacity={Math.max(
+                  0.18,
+                  1 - Math.abs(x - TARGET_PERCENT) / TARGET_PERCENT,
+                )}
+              />
+            ))}
+          </svg>
+        </div>
 
         {/* Directly under the pet, which is what the creature is jumping.
             Keyed on the tap so two perfects in a row both flash — re-applying
@@ -403,16 +403,6 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
           }`}
           style={{ left: `${TARGET_PERCENT}%` }}
         />
-
-        {markerPosition !== undefined && lastHit && (
-          <span
-            key={hitSeq}
-            className={`rhythm-game__hit rhythm-game__hit--${lastHit.verdict}`}
-            style={{
-              left: `${TARGET_PERCENT + (markerPosition - 0.5) * 30}%`,
-            }}
-          />
-        )}
       </div>
 
       <p className="rhythm-game__verdict" aria-live="polite">

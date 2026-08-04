@@ -98,10 +98,10 @@ it under the terms of the GNU General Public License version 3 or later.
   // root and a broken streak removes it, so the line goes back to its ordinary
   // width and colour in the same moment the rest of the window does.
   .rhythm-game__target {
-    width: 5px;
+    width: 4px;
     background: hsl(var(--euphoria-hue) 95% 65%);
-    box-shadow: 0 0 10px hsl(var(--euphoria-hue) 95% 60% / 70%);
-    translate: -2.5px 0;
+    box-shadow: 0 0 6px hsl(var(--euphoria-hue) 95% 60% / 65%);
+    translate: -2px 0;
   }
 
   // Taller only. The width stays put deliberately: the titlebar centres the
@@ -126,18 +126,12 @@ it under the terms of the GNU General Public License version 3 or later.
   // Every colour a slider draws with derives from the one hue, so the track,
   // its border and its halo travel together instead of drifting apart.
   //
-  // Each band runs its OWN copy of the sweep, staggered, so the spectrum runs
-  // along the row rather than every band flashing in unison. Six phases via
-  // nth-child, because the band count is whatever the user picked and no fixed
-  // set of selectors can enumerate it; six reads as a wave and repeats
-  // invisibly.
-  // One animation, not one per band.
-  //
-  // Each band used to run its own copy of the sweep with a staggered delay,
-  // which is up to thirty-one animated custom properties and thirty-one
-  // subtrees recalculating style every frame. The root already animates the
-  // hue, so a band only needs a fixed OFFSET added to it — the colour still
-  // runs along the row, and the browser is driving a single property.
+  // One animation, not one per band. Each used to run its own copy of the
+  // sweep with a staggered delay, which is up to thirty-one animated custom
+  // properties and thirty-one subtrees recalculating style every frame. The
+  // root already animates the hue, so a band only needs a fixed OFFSET added
+  // to it — the colour still runs along the row in six phases, and the browser
+  // drives one property instead of thirty-one.
   .bandWrapper {
     --band-hue: calc(var(--euphoria-hue) + var(--band-offset, 0deg));
 
@@ -150,6 +144,57 @@ it under the terms of the GNU General Public License version 3 or later.
         --band-offset: #{($phase - 1) * 60}deg;
       }
     }
+  }
+}
+
+// The moment it lands.
+//
+// Fired once, by a key change on the element, and it removes itself when the
+// animation ends — a celebration that lingers is wallpaper. Everything here is
+// transform and opacity so the whole thing is composited: a burst that drops
+// frames on the one occasion it fires would be worse than no burst.
+.euphoria-burst {
+  position: fixed;
+  z-index: 3000;
+  top: 50%;
+  left: 50%;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  pointer-events: none;
+  translate: -50% -50%;
+
+  // Two rings leaving at slightly different rates, because a single expanding
+  // circle reads as a loading spinner and a pair reads as an impact.
+  &::before,
+  &::after {
+    position: absolute;
+    inset: 0;
+    border: 2px solid;
+    border-radius: 50%;
+    animation: euphoria-ring 900ms cubic-bezier(0.16, 0.9, 0.3, 1) forwards;
+    content: '';
+  }
+
+  &::before {
+    border-color: $neon-lime;
+  }
+
+  &::after {
+    border-color: #ff3cac;
+    animation-delay: 90ms;
+  }
+}
+
+@keyframes euphoria-ring {
+  from {
+    opacity: 0.9;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 90;
   }
 }
 

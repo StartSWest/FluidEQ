@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { getStreakJoy } from 'common/rhythmGame';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import { useRhythmRun } from '../utils/rhythmRun';
@@ -25,20 +25,6 @@ import '../styles/Euphoria.scss';
 /** At x10 the whole application celebrates. Below it, nothing happens. */
 const EUPHORIA_AT = 1;
 
-/**
- * Puts the streak on the document root, where the rest of the interface can
- * see it.
- *
- * Mounted by the shell rather than by the support dialog, and reading the run
- * from the store rather than from a prop. The dialog is a modal that can be
- * closed and reopened, and a run at the ceiling has to keep glowing while it
- * is shut — a player who closes the panel has not stopped playing, they have
- * put the panel away.
- *
- * Renders nothing. It owns two custom properties and a class, so that the EQ,
- * the graph, the titlebar and the creature all light up from one number rather
- * than from copies that could drift.
- */
 /**
  * The audio half, and it only exists while the mode is running.
  *
@@ -92,6 +78,19 @@ const EuphoriaGlow = () => {
   // which for most of the app's life is never.
   const joy = getStreakJoy(useRhythmRun().streak);
   const isEuphoric = joy >= EUPHORIA_AT;
+  // Counted rather than a boolean, so a second arrival fires a second burst.
+  // Re-applying a class an element already has does nothing at all.
+  const [burst, setBurst] = useState(0);
+  const wasEuphoricRef = useRef(false);
+
+  // On the way IN only. Thirty-six perfect taps deserve a bang; the way out is
+  // a mistake, and nobody wants confetti for that.
+  useEffect(() => {
+    if (isEuphoric && !wasEuphoricRef.current) {
+      setBurst((count) => count + 1);
+    }
+    wasEuphoricRef.current = isEuphoric;
+  }, [isEuphoric]);
 
   useEffect(() => {
     const root = document.documentElement;
@@ -108,7 +107,21 @@ const EuphoriaGlow = () => {
     [],
   );
 
-  return isEuphoric ? <EuphoriaLevel /> : null;
+  return (
+    <>
+      {isEuphoric && <EuphoriaLevel />}
+      {/* Keyed on the count so each arrival mounts a fresh element and restarts
+          the animation. It removes itself when the animation finishes rather
+          than lingering as a permanent invisible overlay. */}
+      {burst > 0 && (
+        <span
+          key={burst}
+          className="euphoria-burst"
+          onAnimationEnd={() => setBurst(0)}
+        />
+      )}
+    </>
+  );
 };
 
 export default EuphoriaGlow;
