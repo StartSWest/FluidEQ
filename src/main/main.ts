@@ -561,6 +561,45 @@ const switchToParametricEditing = () => {
   state.graphicEq = undefined;
 };
 
+/**
+ * A profile name this output is allowed to write to.
+ *
+ * Profiles are files named after the profile, and an assignment points an
+ * output at one of them. Nothing stopped two outputs pointing at the same file,
+ * so saving on the speakers silently overwrote the headphones' tuning if the
+ * two happened to share a name — which is easy, because "Untitled profile 1" is
+ * exactly the sort of name two outputs both end up with.
+ *
+ * The rule: you may write to a name that is free, or one this output already
+ * owns. A name owned by a different output gets a number, the same way a file
+ * manager does it, and the caller attaches to that instead.
+ *
+ * Deliberately not a hidden per-device filename. The name is what the user
+ * sees in the list and types into the box, and a profile whose real identity
+ * was invisible would make renaming and deleting inexplicable.
+ */
+const reservePresetNameForActiveDevice = (requestedName: string) => {
+  const ownedByAnotherOutput = (candidate: string) =>
+    Object.values(deviceProfileSettings.assignments).some(
+      (assignment) =>
+        assignment.presetName === candidate &&
+        assignment.deviceId !== activeAudioDeviceId,
+    );
+
+  if (!ownedByAnotherOutput(requestedName)) {
+    return requestedName;
+  }
+
+  let index = 2;
+  while (
+    ownedByAnotherOutput(`${requestedName} ${index}`) ||
+    doesPresetExist(`${requestedName} ${index}`, presetPath)
+  ) {
+    index += 1;
+  }
+  return `${requestedName} ${index}`;
+};
+
 const attachPresetToActiveDevice = (presetName: string) => {
   if (!activeAudioDeviceId) {
     return false;
@@ -1009,13 +1048,18 @@ ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
       return;
     }
 
+    // Never over the top of a profile another output is using. Saving on the
+    // speakers must not overwrite what the headphones are playing, however
+    // similar the two names are.
+    const targetName = reservePresetNameForActiveDevice(presetName);
+
     const preset = getCurrentPreset();
-    savePreset(presetName, preset, presetPath);
+    savePreset(targetName, preset, presetPath);
     // This is the copy the user chose to keep. Later edits auto-save over the
     // profile itself, so this is the only thing left to restore from.
-    savePresetBaseline(presetName, preset, baselinePath);
-    attachPresetToActiveDevice(presetName);
-    await handleUpdate(event, channel, true);
+    savePresetBaseline(targetName, preset, baselinePath);
+    attachPresetToActiveDevice(targetName);
+    await handleUpdateHelper<string>(event, channel, targetName, true);
   } catch (e) {
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
   }

@@ -184,10 +184,17 @@ export const loadPreset = (presetName: string): Promise<void> => {
  * @param {string} presetName - name to save preset under
  * @returns { Promise<void> } if save was successful
  */
-export const savePreset = (presetName: string): Promise<void> => {
+/**
+ * Save the current settings as a profile.
+ *
+ * Resolves with the name actually used. It differs from the one asked for when
+ * that name belongs to a different output — saving on the speakers must not
+ * overwrite what the headphones are playing.
+ */
+export const savePreset = (presetName: string): Promise<string> => {
   const channel = ChannelEnum.SAVE_PRESET;
   window.electron.ipcRenderer.sendMessage(channel, [presetName]);
-  return promisifyResult(setterResponseHandler, channel);
+  return promisifyResult(simpleResponseHandler<string>(), channel);
 };
 
 /**

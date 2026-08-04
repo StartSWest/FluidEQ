@@ -86,7 +86,8 @@ const presetReducer: IPresetReducer = (
 interface IPresetsBarProps {
   fetchPresets: () => Promise<string[]>;
   loadPreset: (presetName: string) => Promise<void>;
-  savePreset: (presetName: string) => Promise<void>;
+  /** Resolves with the name actually used, which may differ from the one asked for. */
+  savePreset: (presetName: string) => Promise<string>;
   renamePreset: (oldName: string, newName: string) => Promise<void>;
   deletePreset: (presetName: string) => Promise<void>;
 }
@@ -251,10 +252,12 @@ const PresetsBar = ({
       // Created for real, not just typed into the box. A button called "New
       // profile" that only clears a text field leaves you unsure whether you
       // have one until you press something else.
-      await savePreset(name);
-      dispatchPresetNames({ type: PresetActionEnum.CREATE, presetName: name });
+      // Main has the last word on the name: it will not write over a profile
+      // another output owns, so what comes back may be numbered differently.
+      const saved = (await savePreset(name)) || name;
+      dispatchPresetNames({ type: PresetActionEnum.CREATE, presetName: saved });
       await refreshOutputProfiles();
-      setPresetName(name);
+      setPresetName(saved);
       performHealthCheck();
     } catch (e) {
       setGlobalError(e as ErrorDescription);
@@ -276,19 +279,20 @@ const PresetsBar = ({
     }
 
     try {
-      await savePreset(presetName);
+      const saved = (await savePreset(presetName)) || presetName;
 
-      // If we are creating a new preset and not just updating an existing one, update the list of preset names
-      if (!isExistingPresetSelected) {
+      // A name main had to change is a new profile even if the one typed
+      // already existed — it belonged to a different output.
+      if (!isExistingPresetSelected || saved !== presetName) {
         dispatchPresetNames({
           type: PresetActionEnum.CREATE,
-          presetName,
+          presetName: saved,
         });
       }
       await refreshOutputProfiles();
-      // Keep the newly saved profile selected while the output-scoped list
-      // catches up with the assignment written by the main process.
-      setPresetName(presetName);
+      // Keep the newly saved profile selected while the list catches up with
+      // the assignment written by the main process.
+      setPresetName(saved);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }

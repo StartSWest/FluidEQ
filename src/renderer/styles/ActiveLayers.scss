@@ -18,17 +18,22 @@ it under the terms of the GNU General Public License version 3 or later.
 // reflow at any width give a tidy block at every panel size, and auto-fill
 // (not auto-fit) keeps the chips compact on a wide panel instead of stretching
 // four of them across the whole card.
+// Centred, like the toolbar it sits under: the three rows of the EQ header
+// read as one block only if they share an axis.
 .active-layers {
-  display: grid;
+  display: flex;
   min-width: 0;
-  gap: 6px;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  flex-wrap: wrap;
   align-items: center;
+  justify-content: center;
+  gap: 6px;
 }
 
-// Its own row above the chips, so it never competes with them for a track.
+// Sits inline with the first chip rather than on a line of its own: with the
+// row centred, a label above it looked like a heading for the whole panel.
 .active-layers__lede {
-  grid-column: 1 / -1;
+  flex: 0 0 auto;
+  margin-right: 2px;
   color: rgba($primary-lighter, 0.6);
   font-size: 0.6rem;
   font-weight: 750;
@@ -40,6 +45,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // overshoot is right here in a way it would not be for a list.
 .active-layer {
   @include animate(pop-in, $motion-base, $ease-spring);
+  // Wide enough to read, short enough that four fit on a line.
+  max-width: 320px;
   // Icon, label, name, remove. The name track is the only flexible one, so a
   // long convolution title shortens instead of pushing the button off the end.
   display: grid;

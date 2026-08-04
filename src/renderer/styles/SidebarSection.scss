@@ -107,12 +107,14 @@
 // own: every frame re-lays-out the section's children. It stays because the
 // alternative is measuring content in JavaScript on every toggle, which is
 // worse, and because it runs on a deliberate click rather than continuously.
-// The containment is what keeps the cost local — without it the relayout walks
-// out into the whole column.
+// No `contain` here, deliberately. It looks like free performance for a
+// layout animation, and it is not: `paint` clips descendants, which cut the
+// top off every dropdown opened inside a section, and `layout` creates a
+// stacking context the menu then cannot escape either. The relayout this would
+// have bounded runs on a click, not continuously.
 .sidebar-section__reveal {
   display: grid;
   grid-template-rows: 0fr;
-  contain: layout paint;
   transition: grid-template-rows 260ms cubic-bezier(0.32, 0.72, 0, 1);
 }
 
