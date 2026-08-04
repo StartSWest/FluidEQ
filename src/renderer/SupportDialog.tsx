@@ -47,6 +47,15 @@ interface ISupportDialogProps {
 
 const COPY_FEEDBACK_MS = 2000;
 
+/**
+ * How long the pet stays squashed per press.
+ *
+ * Short enough that a run of taps reads as a rhythm rather than one long
+ * slouch, and long enough that a single tap is actually seen — the CSS
+ * transition on the way back out is the other half of the bounce.
+ */
+const PET_BOUNCE_MS = 110;
+
 export default function SupportDialog({
   hasContributed,
   onContributed,
@@ -62,16 +71,33 @@ export default function SupportDialog({
     undefined,
   );
   const [copiedId, setCopiedId] = useState<SupportMethodId | ''>('');
-  // Counted rather than held, because the hop is a CSS animation and the only
-  // way to restart one already running is to change its name. Odd and even
-  // taps alternate between two identical keyframe sets, so a second tap
-  // mid-hop starts a fresh one instead of being swallowed. No timer to own,
-  // and nothing to clean up — the animation ends by itself.
-  const [petTaps, setPetTaps] = useState(0);
-  const bouncePet = useCallback(() => setPetTaps((count) => count + 1), []);
-  const petHopClass =
-    // eslint-disable-next-line no-nested-ternary
-    petTaps === 0 ? '' : petTaps % 2 === 1 ? ' is-hopping-a' : ' is-hopping-b';
+  const [isPetTapped, setIsPetTapped] = useState(false);
+  const petBounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  // Restarted rather than queued, so holding the key down or mashing it keeps
+  // the creature moving instead of latching it squashed until the last timer
+  // from a burst finally runs out.
+  const bouncePet = useCallback(() => {
+    if (petBounceRef.current !== undefined) {
+      clearTimeout(petBounceRef.current);
+    }
+    setIsPetTapped(true);
+    petBounceRef.current = setTimeout(() => {
+      petBounceRef.current = undefined;
+      setIsPetTapped(false);
+    }, PET_BOUNCE_MS);
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (petBounceRef.current !== undefined) {
+        clearTimeout(petBounceRef.current);
+      }
+    },
+    [],
+  );
 
   useEffect(() => {
     if (isCovered) {
@@ -176,7 +202,7 @@ export default function SupportDialog({
             {hasContributed ? (
               <button
                 type="button"
-                className={`support-pet-tap${petHopClass}`}
+                className={`support-pet-tap${isPetTapped ? ' is-tapped' : ''}`}
                 aria-label={t('support.petHint')}
                 // Pointer *down*, not click. A click fires on release, so the
                 // bounce would lag the press by however long the button was
