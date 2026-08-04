@@ -130,18 +130,26 @@ const Line = ({
 
   // Handle animation for subsequent renders
   useEffect(() => {
-    if (ref.current && !isFirstRender) {
-      d3.select(ref.current)
-        // Make sure initial animation is overwritten
-        .attr('stroke-dasharray', null)
-        .attr('stroke-offset', null)
-        .attr('opacity', 1)
-        .transition()
-        // Add new animation
-        .duration(GRAPH_ANIMATE_DURATION)
-        .attr('d', d);
+    if (!ref.current || isFirstRender) {
+      return;
     }
-  }, [d, isFirstRender]);
+    const path = d3
+      .select(ref.current)
+      // Make sure initial animation is overwritten
+      .attr('stroke-dasharray', null)
+      .attr('stroke-offset', null)
+      .attr('opacity', 1);
+
+    if (animation === AnimationOptionsEnum.NONE) {
+      // A trace that is replaced faster than the ease lasts. Transitioning it
+      // would interpolate every coordinate in the path on every tick and still
+      // never reach the value, so the new shape goes straight on.
+      path.attr('d', d);
+      return;
+    }
+
+    path.transition().duration(GRAPH_ANIMATE_DURATION).attr('d', d);
+  }, [animation, d, isFirstRender]);
 
   return (
     <>

@@ -51,6 +51,14 @@ export interface IChartLineDataPointsById {
 export interface IChartCurveData {
   id: string;
   name: string;
+  /**
+   * A curve whose points are replaced continuously rather than edited, so it
+   * is drawn straight to the DOM instead of transitioned. A 100 ms ease onto
+   * data that is replaced every 45 ms never arrives, and d3 pays for it by
+   * building an interpolator for every number in the path string and rebuilding
+   * that string on every animation tick.
+   */
+  isContinuous?: boolean;
   line: {
     color: Color;
     strokeWidth: number;
@@ -78,28 +86,25 @@ export interface IEditableChartPoint {
 }
 
 interface IChartControllerProps {
-  data: IChartCurveData[];
+  /**
+   * The curves that set the y-scale. Deliberately not the curves that get
+   * drawn: the live output trace moves ~22 times a second and must not make
+   * the graph rescale under the user, and feeding it in here meant d3 walked
+   * every point of every band curve at that rate to recompute an extent that
+   * had not changed.
+   */
+  scaleData: IChartCurveData[];
   width: number;
   height: number;
   padding: IMarginLike;
 }
 
 const useController = ({
-  data,
+  scaleData,
   width,
   height,
   padding,
 }: IChartControllerProps) => {
-  const xMin = useMemo(
-    () => d3.min(data, ({ line }) => d3.min(line.points, ({ x }) => x)) || 0,
-    [data],
-  );
-
-  const xMax = useMemo(
-    () => d3.max(data, ({ line }) => d3.max(line.points, ({ x }) => x)) || 0,
-    [data],
-  );
-
   const xScaleFreq = useMemo(
     () =>
       d3
@@ -109,21 +114,16 @@ const useController = ({
     [padding.left, padding.right, width],
   );
 
-  const scaledData = useMemo(() => {
-    const withoutLiveOutput = data.filter(({ id }) => id !== 'Live Output');
-    return withoutLiveOutput.length > 0 ? withoutLiveOutput : data;
-  }, [data]);
-
   const yMin = useMemo(
     () =>
-      d3.min(scaledData, ({ line }) => d3.min(line.points, ({ y }) => y)) || 0,
-    [scaledData],
+      d3.min(scaleData, ({ line }) => d3.min(line.points, ({ y }) => y)) || 0,
+    [scaleData],
   );
 
   const yMax = useMemo(
     () =>
-      d3.max(scaledData, ({ line }) => d3.max(line.points, ({ y }) => y)) || 0,
-    [scaledData],
+      d3.max(scaleData, ({ line }) => d3.max(line.points, ({ y }) => y)) || 0,
+    [scaleData],
   );
 
   const yScaleGain = useMemo(
@@ -149,10 +149,6 @@ const useController = ({
     yTickFormat,
     xScaleFreq,
     yScaleGain,
-    xMin,
-    xMax,
-    yMin,
-    yMax,
   };
 };
 

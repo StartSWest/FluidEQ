@@ -34,10 +34,22 @@ import '../styles/List.scss';
 export interface IOptionEntry {
   value: string;
   label: string;
-  display: ReactNode;
+  /**
+   * The row's content. May be a thunk, which is what catalogues in the
+   * thousands should pass: the list only ever mounts a page of rows, so
+   * building an element tree for every entry up front costs far more than the
+   * data it is built from.
+   */
+  display: ReactNode | (() => ReactNode);
   /** Optional non-interactive section heading displayed above this option. */
   group?: string;
 }
+
+/** Resolves an entry's content, whether it was given as a node or a thunk. */
+export const renderOptionDisplay = (entry: {
+  display: ReactNode | (() => ReactNode);
+}): ReactNode =>
+  typeof entry.display === 'function' ? entry.display() : entry.display;
 
 interface IListProps {
   name: string;
@@ -160,7 +172,7 @@ const List = ({
                 onMouseEnter={onMouseEnter(index)}
                 tabIndex={0}
               >
-                {entry.display}
+                {renderOptionDisplay(entry)}
               </li>
             </Fragment>
           );

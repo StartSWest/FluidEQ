@@ -12,6 +12,7 @@ import * as d3 from 'd3';
 import {
   PointerEvent,
   type CSSProperties,
+  memo,
   useCallback,
   useMemo,
   useRef,
@@ -153,4 +154,7 @@ const EditablePoint = ({
   );
 };
 
-export default EditablePoint;
+// One of these per band, all reconciled whenever the chart re-renders — which
+// the live trace makes happen ~22 times a second. Their props only change when
+// a band, the selection or the hover does, so memoising skips the lot.
+export default memo(EditablePoint);

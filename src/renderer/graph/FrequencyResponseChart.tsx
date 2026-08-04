@@ -62,10 +62,14 @@ import {
   getLineGainAtFrequency,
 } from './utils';
 import { ColorEnum, SecondaryColorEnum } from '../styles/color';
-import { useLiveAudio } from '../audio/LiveAudioContext';
+import {
+  useLiveAudioControl,
+  useLiveAudioFrame,
+} from '../audio/LiveAudioContext';
 import { getBandColor } from '../utils/bandColors';
 import { getVoicingFilters } from '../../common/voicing';
 import { getDriverFilters } from '../../common/driver';
+import { getSmartEqFilters, hasSmartEqLayer } from '../../common/smartEq';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
 
@@ -92,7 +96,8 @@ type PendingPointEdit = Partial<
 >;
 
 const FrequencyResponseChart = () => {
-  const liveOutput = useLiveAudio();
+  const liveOutput = useLiveAudioFrame();
+  const { error: liveOutputError } = useLiveAudioControl();
   const {
     filters,
     isGraphViewOn,
@@ -111,6 +116,7 @@ const FrequencyResponseChart = () => {
     setHoveredFilterId,
     voicing,
     driver,
+    smartEq,
   } = useFluidEqContext();
   const prevFilters = useRef<IFiltersMap>({});
   const prevFilterLines = useRef<IChartLineDataPointsById>({});
@@ -380,6 +386,22 @@ const FrequencyResponseChart = () => {
     });
     const hasDriver = Object.keys(driverFilterLines).length > 0;
 
+    // What the measurement decided, drawn like any other layer. This one has
+    // the strongest claim to a curve of its own: nobody chose its shape, so the
+    // graph is the only place it can be inspected at all.
+    const smartFilterLines: IChartLineDataPointsById = {};
+    getSmartEqFilters(smartEq).forEach((filter, index) => {
+      const id = `smart-eq-${index}`;
+      smartFilterLines[id] = getFilterLineData({
+        id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      });
+    });
+    const hasSmartEq = Object.keys(smartFilterLines).length > 0;
+
     const convolutionFilterLines: IChartLineDataPointsById = {};
     Object.values(convolution?.filters || {}).forEach((filter) => {
       convolutionFilterLines[filter.id] = getFilterLineData(filter);
@@ -395,6 +417,7 @@ const FrequencyResponseChart = () => {
       ...updatedFilterLines,
       ...voicingFilterLines,
       ...driverFilterLines,
+      ...smartFilterLines,
     });
     const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
     const eqCurveData = getCombinedLineData(preAmp, updatedFilterLines);
@@ -404,22 +427,27 @@ const FrequencyResponseChart = () => {
     const driverCurveData = hasDriver
       ? getCombinedLineData(0, driverFilterLines)
       : [];
+    const smartCurveData = hasSmartEq
+      ? getCombinedLineData(0, smartFilterLines)
+      : [];
     // What actually reaches the ears once every layer is applied. Worth its own
     // curve because the layers are written separately but heard together, and
     // two gentle corrections in the same region are not obviously gentle once
     // they add up.
-    const hasExtraLayers = hasVoicing || hasDriver;
+    const hasExtraLayers = hasVoicing || hasDriver || hasSmartEq;
     const totalCurveData = hasExtraLayers
       ? getCombinedLineData(preAmp, {
           ...updatedFilterLines,
           ...voicingFilterLines,
           ...driverFilterLines,
+          ...smartFilterLines,
         })
       : [];
     const totalCurveName = [
       'EQ',
       hasVoicing ? 'voicing' : '',
       hasDriver ? 'driver' : '',
+      hasSmartEq ? 'Smart EQ' : '',
     ]
       .filter(Boolean)
       .join(' + ');
@@ -498,6 +526,23 @@ const FrequencyResponseChart = () => {
               } as IChartCurveData,
             ]
           : []),
+        // Nobody chose this curve's shape, so it is the one layer that cannot
+        // be inspected anywhere else. Drawn separately from the total for the
+        // same reason as the other two: a correction you can see is a
+        // correction you can argue with.
+        ...(hasSmartEq
+          ? [
+              {
+                id: 'Smart EQ',
+                name: 'Smart EQ correction',
+                line: {
+                  color: ColorEnum.SMART,
+                  strokeWidth: 2,
+                  points: smartCurveData,
+                },
+              } as IChartCurveData,
+            ]
+          : []),
         ...(hasExtraLayers
           ? [
               {
@@ -528,7 +573,7 @@ const FrequencyResponseChart = () => {
       // preamp so the graph and APO remain in sync without auto-adjusting it.
       autoPreAmpValue: isAutoPreAmpOn ? calculatedAutoPreAmpValue : preAmp,
     };
-  }, [convolution, driver, filters, isAutoPreAmpOn, preAmp, voicing]);
+  }, [convolution, driver, filters, isAutoPreAmpOn, preAmp, smartEq, voicing]);
 
   useEffect(() => {
     // Auto normalize writes Equalizer APO's Preamp headroom value. When it is
@@ -595,6 +640,7 @@ const FrequencyResponseChart = () => {
             {
               id: 'Live Output',
               name: 'Live processed output',
+              isContinuous: true,
               line: {
                 color: ColorEnum.ANALOGOUS2,
                 strokeWidth: 2,
@@ -686,12 +732,16 @@ const FrequencyResponseChart = () => {
         {driver?.profileId ? (
           <span className="graph-legend graph-legend--driver">Driver</span>
         ) : null}
-        {voicing?.profileId || driver?.profileId ? (
+        {hasSmartEqLayer(smartEq) ? (
+          <span className="graph-legend graph-legend--smart">Smart EQ</span>
+        ) : null}
+        {voicing?.profileId || driver?.profileId || hasSmartEqLayer(smartEq) ? (
           <span className="graph-legend graph-legend--total">
             {[
               'EQ',
               voicing?.profileId ? 'voicing' : '',
               driver?.profileId ? 'driver' : '',
+              hasSmartEqLayer(smartEq) ? 'Smart EQ' : '',
             ]
               .filter(Boolean)
               .join(' + ')}
@@ -708,8 +758,8 @@ const FrequencyResponseChart = () => {
         <span className="graph-edit-hint">
           Drag points · Ctrl/Shift select · Ctrl+scroll: Q
         </span>
-        {liveOutput.error && (
-          <span className="live-output-error">{liveOutput.error}</span>
+        {liveOutputError && (
+          <span className="live-output-error">{liveOutputError}</span>
         )}
       </div>
       {isLoading ? (
@@ -719,6 +769,10 @@ const FrequencyResponseChart = () => {
       ) : (
         <Chart
           data={displayData}
+          // The band curves, without the live trace appended below. Their
+          // identity survives a live frame, which is what keeps the y-extent
+          // memos from rescanning every point 22 times a second.
+          scaleData={chartData}
           dimensions={dimensions}
           editablePoints={editablePoints}
           coverage={liveOutput.balanceProgress?.regions}

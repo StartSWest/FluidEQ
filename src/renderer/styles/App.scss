@@ -1012,11 +1012,16 @@ $tab-border: rgba($secondary-light, 0.2);
   background: $triadic-1;
 }
 
-// Amber and near-white, chosen to sit well away from the three pinks the graph
-// already had. Must match ColorEnum.DRIVER and ColorEnum.TOTAL exactly, or the
-// legend swatch names a colour that is not on the chart.
+// Amber, azure and near-white, chosen to sit well away from the three pinks the
+// graph already had. Must match ColorEnum.DRIVER, ColorEnum.SMART and
+// ColorEnum.TOTAL exactly, or a legend swatch names a colour that is not on the
+// chart.
 .graph-legend--driver::before {
   background: #ffb648;
+}
+
+.graph-legend--smart::before {
+  background: #3d9bff;
 }
 
 .graph-legend--total::before {

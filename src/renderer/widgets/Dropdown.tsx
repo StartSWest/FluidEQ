@@ -31,13 +31,13 @@ import {
 import ArrowIcon from '../icons/ArrowIcon';
 import '../styles/Dropdown.scss';
 import { useClickOutside, useFocusOutside } from '../utils/utils';
-import List from './List';
+import List, { renderOptionDisplay } from './List';
 import TextInput from './TextInput';
 
 interface IOptionEntry {
   value: string;
   label: string;
-  display: ReactNode;
+  display: ReactNode | (() => ReactNode);
 }
 
 interface IDropdownProps {
@@ -282,11 +282,11 @@ const Dropdown = ({
     setIsOpen(false);
   });
 
-  const selectedEntry = useMemo(
+  const selectedEntry = useMemo(() => {
     // Default to the first option if the value isn't valid
-    () => options.find((e) => e.value === value)?.display,
-    [options, value],
-  );
+    const match = options.find((e) => e.value === value);
+    return match ? renderOptionDisplay(match) : undefined;
+  }, [options, value]);
 
   const toggleIsOpen = () => {
     setIsOpen((current) => {

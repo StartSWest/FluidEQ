@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import * as d3 from 'd3';
+import { memo } from 'react';
 import { SecondaryColorEnum } from 'renderer/styles/color';
 import { IChartCurveData } from './ChartController';
 import Line, { AnimationOptionsEnum as LineAnimationOptionsEnum } from './Line';
@@ -31,7 +32,7 @@ interface ICurveProps {
 }
 
 const Curve = ({ xScale, yScale, data }: ICurveProps) => {
-  const { name, line, controlPoint } = data;
+  const { name, line, controlPoint, isContinuous } = data;
 
   return (
     <>
@@ -44,7 +45,11 @@ const Curve = ({ xScale, yScale, data }: ICurveProps) => {
         strokeWidth={line.strokeWidth}
         gradientId={line.gradientId}
         glow={line.glow}
-        animation={LineAnimationOptionsEnum.LEFT}
+        animation={
+          isContinuous
+            ? LineAnimationOptionsEnum.NONE
+            : LineAnimationOptionsEnum.LEFT
+        }
       />
       {controlPoint && (
         <Point
@@ -61,4 +66,8 @@ const Curve = ({ xScale, yScale, data }: ICurveProps) => {
   );
 };
 
-export default Curve;
+// Every curve is reconciled whenever the chart re-renders, which the live
+// trace makes happen ~22 times a second. The band curves keep their object
+// identity across those frames, so memoising skips their whole subtree and
+// only the curve that actually changed is walked.
+export default memo(Curve);

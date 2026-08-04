@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import {
   BALANCE_FRAME_INTERVAL_MS,
@@ -96,23 +96,56 @@ const createFrequencyAxis = (sampleRate: number): number[] => {
   );
 };
 
-const createFrequencyPoints = (
+/**
+ * Buffers for a frame of curve or waveform, allocated once per capture and
+ * filled in place.
+ *
+ * The pump publishes 320 points and 96 waveform samples ~22 times a second.
+ * Building them fresh meant roughly 7,100 short-lived point objects a second
+ * for a curve where only the numbers changed. They come in pairs because React
+ * still needs a changed array identity to re-render: the pump alternates, so
+ * the array React is holding is never the one being overwritten.
+ */
+interface IFrameBuffers {
+  points: [IChartPointData[], IChartPointData[]];
+  waveform: [number[], number[]];
+}
+
+const createFrameBuffers = (): IFrameBuffers => {
+  const makePoints = () =>
+    Array.from({ length: POINT_COUNT }, () => ({ x: 0, y: 0 }));
+  return {
+    points: [makePoints(), makePoints()],
+    waveform: [
+      new Array(WAVEFORM_POINT_COUNT).fill(0),
+      new Array(WAVEFORM_POINT_COUNT).fill(0),
+    ],
+  };
+};
+
+/** Shared empties, so silence and teardown never mint a fresh array. */
+const NO_POINTS: IChartPointData[] = [];
+const NO_WAVEFORM: number[] = [];
+
+const writeFrequencyPoints = (
+  target: IChartPointData[],
   axis: number[],
   levels: Float64Array,
   trackReferenceDb: number,
-): IChartPointData[] =>
-  axis.map((frequency, index) => {
+): IChartPointData[] => {
+  for (let index = 0; index < target.length; index += 1) {
     const level = levels[index];
     // The track's own peak lands on the top gridline; everything below it is
     // a real dB below that peak.
     const plotted = Number.isFinite(level)
       ? level - trackReferenceDb + LIVE_FULL_SCALE_DB
       : MIN_GAIN;
-    return {
-      x: frequency,
-      y: Math.min(MAX_GAIN, Math.max(MIN_GAIN, plotted)),
-    };
-  });
+    const point = target[index];
+    point.x = axis[index];
+    point.y = Math.min(MAX_GAIN, Math.max(MIN_GAIN, plotted));
+  }
+  return target;
+};
 
 /** Loudest finite bin in the frame, or undefined when the output is silent. */
 const getPeakLevel = (frequencyData: Float32Array): number | undefined => {
@@ -126,17 +159,21 @@ const getPeakLevel = (frequencyData: Float32Array): number | undefined => {
   return peak > LIVE_SILENCE_DB ? peak : undefined;
 };
 
-const createWaveformPoints = (timeDomainData: Uint8Array) => {
+const writeWaveformPoints = (
+  target: number[],
+  timeDomainData: Uint8Array,
+): number[] => {
   const bucketSize = timeDomainData.length / WAVEFORM_POINT_COUNT;
-  return Array.from({ length: WAVEFORM_POINT_COUNT }, (_value, index) => {
+  for (let index = 0; index < WAVEFORM_POINT_COUNT; index += 1) {
     const start = Math.floor(index * bucketSize);
     const end = Math.max(start + 1, Math.floor((index + 1) * bucketSize));
     let peak = 0;
     for (let sampleIndex = start; sampleIndex < end; sampleIndex += 1) {
       peak = Math.max(peak, Math.abs(timeDomainData[sampleIndex] - 128) / 128);
     }
-    return peak;
-  });
+    target[index] = peak;
+  }
+  return target;
 };
 
 const captureSystemOutput = async (): Promise<MediaStream> => {
@@ -236,7 +273,10 @@ const useLiveOutputSpectrum = () => {
   const sessionRef = useRef<IBalanceSession | undefined>(undefined);
   // Mirrors `points` so the silence branch can avoid publishing a fresh empty
   // array 22 times a second for the whole of a long capture.
-  const pointsRef = useRef<IChartPointData[]>([]);
+  const pointsRef = useRef<IChartPointData[]>(NO_POINTS);
+  const isHiddenRef = useRef(
+    typeof document !== 'undefined' && document.hidden,
+  );
 
   const togglePaused = useCallback(() => {
     // Derived from the ref rather than the state updater: React may invoke an
@@ -286,9 +326,9 @@ const useLiveOutputSpectrum = () => {
     clipUntilRef.current = 0;
     isClippingRef.current = false;
     setIsClipping(false);
-    pointsRef.current = [];
-    setPoints([]);
-    setWaveform([]);
+    pointsRef.current = NO_POINTS;
+    setPoints(NO_POINTS);
+    setWaveform(NO_WAVEFORM);
   }, [abortBalance]);
 
   /**
@@ -399,11 +439,21 @@ const useLiveOutputSpectrum = () => {
         FFT_SIZE,
       );
       const levelBuffer = new Float64Array(axis.length);
+      const buffers = createFrameBuffers();
+      let bufferSlot = 0;
       const axisKey = String(Math.round(activeAudioContext.sampleRate));
       let trackReferenceDb: number | undefined;
 
       const pump = () => {
         const session = sessionRef.current;
+        // Nothing to draw on and nothing to measure: the entire frame is
+        // waste, down to the FFT the analyser only computes when it is read.
+        // A running measurement is deliberately exempt — surviving a minimised
+        // window is why this is an interval rather than requestAnimationFrame.
+        const isHidden = isHiddenRef.current;
+        if (isHidden && !session) {
+          return;
+        }
 
         if (isPausedRef.current) {
           // Keep the silence/pause clock running so a paused capture still
@@ -419,36 +469,54 @@ const useLiveOutputSpectrum = () => {
         readAbsoluteLevels(frequencyData, cells, levelBuffer);
         const peak = getPeakLevel(frequencyData);
 
-        if (peak === undefined) {
-          if (pointsRef.current.length > 0) {
-            pointsRef.current = [];
-            setPoints(pointsRef.current);
-          }
-        } else {
+        let reference: number | undefined;
+        if (peak !== undefined) {
           // Instant attack, slow release: follows the track, ignores the
           // volume knob, and never lets a transient push the curve off-scale.
+          // Kept running while hidden so the curve is already referenced
+          // correctly the moment the window comes back.
           trackReferenceDb =
             trackReferenceDb === undefined
               ? peak
               : Math.max(peak, trackReferenceDb - TRACK_REFERENCE_RELEASE_DB);
-          pointsRef.current = createFrequencyPoints(
-            axis,
-            levelBuffer,
-            trackReferenceDb,
-          );
-          setPoints(pointsRef.current);
+          reference = trackReferenceDb;
         }
-        setWaveform(createWaveformPoints(timeDomainData));
 
-        // Held briefly so a single clipped frame is actually seen: at 45 ms a
-        // flash would be gone before the eye registers it.
-        if (detectClipping(timeDomainData)) {
-          clipUntilRef.current = performance.now() + CLIP_HOLD_MS;
-        }
-        const clipping = performance.now() < clipUntilRef.current;
-        if (clipping !== isClippingRef.current) {
-          isClippingRef.current = clipping;
-          setIsClipping(clipping);
+        // Everything from here to the measurement is presentation. Behind a
+        // hidden window it would publish frames nobody can see and re-render
+        // every consumer to draw them.
+        if (!isHidden) {
+          // Alternate buffers: React needs a changed identity to re-render, so
+          // the frame it is holding must not be the one being overwritten.
+          bufferSlot = bufferSlot === 0 ? 1 : 0;
+          if (reference === undefined) {
+            if (pointsRef.current.length > 0) {
+              pointsRef.current = NO_POINTS;
+              setPoints(pointsRef.current);
+            }
+          } else {
+            pointsRef.current = writeFrequencyPoints(
+              buffers.points[bufferSlot],
+              axis,
+              levelBuffer,
+              reference,
+            );
+            setPoints(pointsRef.current);
+          }
+          setWaveform(
+            writeWaveformPoints(buffers.waveform[bufferSlot], timeDomainData),
+          );
+
+          // Held briefly so a single clipped frame is actually seen: at 45 ms a
+          // flash would be gone before the eye registers it.
+          if (detectClipping(timeDomainData)) {
+            clipUntilRef.current = performance.now() + CLIP_HOLD_MS;
+          }
+          const clipping = performance.now() < clipUntilRef.current;
+          if (clipping !== isClippingRef.current) {
+            isClippingRef.current = clipping;
+            setIsClipping(clipping);
+          }
         }
 
         if (!session) {
@@ -588,6 +656,18 @@ const useLiveOutputSpectrum = () => {
   }, [scheduleStart]);
 
   useEffect(() => {
+    // Minimising or fully occluding the window hides the document. The pump
+    // reads this rather than reacting to it: nothing needs to happen at the
+    // moment of the flip, and the next tick is at most 45 ms away.
+    const trackVisibility = () => {
+      isHiddenRef.current = document.hidden;
+    };
+    document.addEventListener('visibilitychange', trackVisibility);
+    return () =>
+      document.removeEventListener('visibilitychange', trackVisibility);
+  }, []);
+
+  useEffect(() => {
     autoStartRef.current = true;
     // JSDOM and non-Electron preview environments do not expose media
     // capture. Avoid scheduling a failing retry loop there; Electron's
@@ -607,17 +687,21 @@ const useLiveOutputSpectrum = () => {
     };
   }, [abortBalance, scheduleStart, stop]);
 
-  return {
-    captureBalanceProfile,
-    error,
-    isActive,
-    balanceProgress,
-    isClipping,
-    isPaused,
-    points,
-    togglePaused,
-    waveform,
-  };
+  // Split by publication rate, not by topic. `frame` is replaced ~22 times a
+  // second; `control` only when the capture starts, stops, pauses or fails.
+  // Handed out as one object they were indistinguishable to React, so a
+  // consumer reading nothing but `isActive` still re-rendered at frame rate.
+  const frame = useMemo(
+    () => ({ balanceProgress, isClipping, points, waveform }),
+    [balanceProgress, isClipping, points, waveform],
+  );
+
+  const control = useMemo(
+    () => ({ captureBalanceProfile, error, isActive, isPaused, togglePaused }),
+    [captureBalanceProfile, error, isActive, isPaused, togglePaused],
+  );
+
+  return { control, frame };
 };
 
 export default useLiveOutputSpectrum;

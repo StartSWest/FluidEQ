@@ -38,6 +38,13 @@ export interface ChartDimensions {
 
 interface IChartProps {
   data: IChartCurveData[];
+  /**
+   * The subset of `data` that is allowed to set the y-scale. The live output
+   * trace is excluded: it is a reading, not part of the EQ, and letting it
+   * rescale the axes would make the bands appear to move whenever the music
+   * got louder.
+   */
+  scaleData: IChartCurveData[];
   dimensions: ChartDimensions;
   editablePoints?: IEditableChartPoint[];
   /** Per-region Smart EQ coverage, drawn while a measurement is running. */
@@ -47,6 +54,7 @@ interface IChartProps {
 
 const Chart = ({
   data = [],
+  scaleData = [],
   dimensions,
   editablePoints = [],
   coverage,
@@ -90,7 +98,7 @@ const Chart = ({
   );
 
   const { xTickFormat, yTickFormat, xScaleFreq, yScaleGain } = useController({
-    data,
+    scaleData,
     width: svgWidth,
     height: svgHeight,
     padding,
