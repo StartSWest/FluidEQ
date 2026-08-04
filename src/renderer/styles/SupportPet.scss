@@ -113,8 +113,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // The held press is switched off in here. Everywhere else the pet stays
   // squashed for as long as the button is down, which is right for a control
   // being pressed — but this one is a tap, and a tap that lasts as long as you
-  // happen to hold the mouse is no use for keeping time. `is-tapped` above
-  // gives it a fixed duration instead, identical to what the space bar does.
+  // happen to hold the mouse is no use for keeping time. The hop above runs for
+  // a fixed duration instead, so a click does exactly what the space bar does.
   .support-pet:active {
     .support-pet__body,
     .support-pet__ears {
@@ -409,25 +409,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Gather. Wide and low, the wind-up that makes the launch read as effort
   // rather than as the creature being lifted by something.
   16% {
-    translate: 0 7px;
-    scale: 1.09 0.85;
+    translate: 0 3.5px;
+    scale: 1.045 0.925;
   }
 
   // Off the ground, stretched along the direction of travel.
   42% {
-    translate: 0 -22px;
-    scale: 0.93 1.11;
+    translate: 0 -11px;
+    scale: 0.965 1.055;
   }
 
   // Landing takes the impact as a squash.
   68% {
     translate: 0 0;
-    scale: 1.07 0.9;
+    scale: 1.035 0.95;
   }
 
   84% {
-    translate: 0 -3px;
-    scale: 0.99 1.02;
+    translate: 0 -1.5px;
+    scale: 0.995 1.01;
   }
 
   100% {
@@ -445,23 +445,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   16% {
-    translate: 0 7px;
-    scale: 1.09 0.85;
+    translate: 0 3.5px;
+    scale: 1.045 0.925;
   }
 
   42% {
-    translate: 0 -22px;
-    scale: 0.93 1.11;
+    translate: 0 -11px;
+    scale: 0.965 1.055;
   }
 
   68% {
     translate: 0 0;
-    scale: 1.07 0.9;
+    scale: 1.035 0.95;
   }
 
   84% {
-    translate: 0 -3px;
-    scale: 0.99 1.02;
+    translate: 0 -1.5px;
+    scale: 0.995 1.01;
   }
 
   100% {
