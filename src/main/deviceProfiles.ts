@@ -259,9 +259,9 @@ export const deviceProfilesToString = (
  * Spreading a preset over the defaults is not enough, because callers apply the
  * result with Object.assign: a key the preset does not have is simply absent
  * from the object, so the assign leaves the PREVIOUS device's value in place.
- * That is how one device's convolution, voicing, driver correction or preamp
- * followed the user onto every other output — and, once edits started
- * auto-saving, got written into those devices' profiles for good.
+ * That is how one device's convolution, voicing, driver correction, Smart EQ
+ * correction or preamp followed the user onto every other output — and, once
+ * edits started auto-saving, got written into those devices' profiles for good.
  *
  * Every optional field is therefore listed explicitly, undefined included, so
  * assigning this over the live state clears what the new device does not have.
@@ -293,6 +293,7 @@ export const getStateForAudioDevice = (
     isFlat: preset?.isFlat,
     voicing: preset?.voicing,
     driver: preset?.driver,
+    smartEq: preset?.smartEq,
     headset: preset?.headset,
     headsetTarget: preset?.headsetTarget,
     headsetSource: preset?.headsetSource,

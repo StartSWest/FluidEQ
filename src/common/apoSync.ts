@@ -27,19 +27,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * So: on startup the config wins for everything it can express.
  *
  * It cannot express everything, and pretending otherwise would lose more than
- * it gained. A voicing and a driver correction are written as ordinary
- * `Filter N:` lines, indistinguishable from bands the user placed by hand.
- * Reading the config back as the sole truth would turn both layers into
- * ordinary EQ bands: the pickers would read "none" while the sound was
- * unchanged, and the next edit would write the layers in *again*, on top of
- * their own flattened copies. So the split is:
+ * it gained. A voicing, a driver correction and a measured Smart EQ curve are
+ * all written as ordinary `Filter N:` lines, indistinguishable from bands the
+ * user placed by hand. Reading the config back as the sole truth would turn
+ * every one of them into ordinary EQ bands: the pickers would read "none" while
+ * the sound was unchanged, and the next edit would write the layers in *again*,
+ * on top of their own flattened copies. So the split is:
  *
  *   the config      -> bands, preamp, GraphicEQ points, which impulse response
- *   the local files -> which voicing, which driver profile, which headphone
- *                      reference, what the profile is called
+ *   the local files -> which voicing, which driver profile, what Smart EQ
+ *                      measured, which headphone reference, what the profile is
+ *                      called
  *
- * Nothing in the second list is audible on its own. Everything in the first
- * list is.
+ * Nothing in the second list is audible on its own — each is a *description* of
+ * a layer, from which the audible lines are regenerated. Everything in the
+ * first list is audible in itself.
  */
 
 import { parseEqText } from './apoText';
@@ -225,10 +227,10 @@ const describeAdopted = (adopted: IAdoptedChain) =>
  * Deliberately compares two blocks of config text rather than a block against
  * the live state. The writer does not emit the state verbatim: the preamp is
  * derived from the whole chain when auto-normalise is on, zero-gain peaks are
- * dropped as inert, the voicing and driver layers are appended, and everything
- * is clamped on the way out. Comparing against `state.preAmp` therefore
- * reported drift on the app's own output — which would have meant FluidEQ
- * adopting its own config on every single launch.
+ * dropped as inert, the voicing, driver and Smart EQ layers are appended, and
+ * everything is clamped on the way out. Comparing against `state.preAmp`
+ * therefore reported drift on the app's own output — which would have meant
+ * FluidEQ adopting its own config on every single launch.
  *
  * Running both sides through the same reader makes the comparison immune to
  * all of that: whatever stateToString does, it does to both.

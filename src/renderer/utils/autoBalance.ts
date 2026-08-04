@@ -23,6 +23,7 @@ import {
   MIN_GAIN,
   NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
+import { SMART_EQ_MAX_FREQUENCY, SMART_EQ_MIN_FREQUENCY } from 'common/smartEq';
 import { clamp } from './utils';
 
 /**
@@ -44,9 +45,14 @@ import { clamp } from './utils';
  * dominated by the room and by content that simply is not there; above it the
  * measurement is mostly dither and codec noise. Correcting either produces
  * confident-looking nonsense.
+ *
+ * Owned by the Smart EQ layer rather than declared here, because the layer's
+ * band centres are cropped to exactly this range: two copies of the number
+ * would drift apart and leave the layer with bands the measurement refuses to
+ * trust.
  */
-export const BALANCE_MIN_FREQUENCY = 35;
-export const BALANCE_MAX_FREQUENCY = 15000;
+export const BALANCE_MIN_FREQUENCY = SMART_EQ_MIN_FREQUENCY;
+export const BALANCE_MAX_FREQUENCY = SMART_EQ_MAX_FREQUENCY;
 
 /**
  * Nine roughly-octave regions spanning exactly the correctable band, so
@@ -223,13 +229,18 @@ export interface IAutoBalanceOptions {
    */
   relativeToCurrentGain?: boolean;
   /**
-   * Desired shape, in dB, *relative to the program's own spectral tilt*.
+   * What everything deliberate below this correction already does, in dB.
    *
-   * Without it the measurement is corrected toward its own fitted tilt, which
-   * only removes resonances — a flatter version of what you already had. With
-   * it the correction drives the output toward `tilt + target`, so a voicing
-   * curve becomes something the EQ actively steers towards rather than a
-   * static layer stacked on top.
+   * Not a wish: those layers are already written into the config and already
+   * inside the capture. Naming them here is what stops the measurement reading
+   * them as error and cancelling them out, and it is what turns the answer into
+   * the residual it claims to be — the correction ends up steering toward
+   * `the program's tilt + target` rather than toward flat.
+   *
+   * Followed by its shape, not by its slope. A straight line in log-frequency
+   * is exactly what the tilt fit removes from the measurement, so a target is
+   * followed only as far as it departs from one — see the fit below for why
+   * anything else cannot converge.
    */
   targetCurve?: ISpectrumSample[];
 }
@@ -510,18 +521,32 @@ export const buildBalancedGains = (
     }
   }
 
-  const { slope, intercept } = fitSpectralTilt(usable);
-  // The reference the output is steered toward: the program's own tilt, plus
-  // the chosen voicing on top of it. With no voicing the target is flat and
-  // this collapses to "remove the resonances, keep the tilt".
+  // The deliberate layers come off BEFORE the tilt is fitted, not after.
+  //
+  // The fitted line is meant to be the program material's own slope, and it is
+  // the one thing here that is deliberately never corrected. A measurement
+  // still carrying a bass shelf reads part of that shelf as slope, so fitting
+  // first and subtracting the target afterwards leaves the target's own tilt
+  // standing as a deviation — a constant drive that no gain can ever satisfy,
+  // because a layer shaped like a straight line contributes nothing to the
+  // residual it is supposed to cancel. Each run then adds another slice of it
+  // and the correction walks off in a straight line until it hits the clamps.
+  // Taking the layers out first makes the fit an estimate of the program alone,
+  // which is what it always claimed to be.
   const hasTarget = targetCurve.length > 0;
+  const steered = usable.map((sample) => ({
+    frequency: sample.frequency,
+    level:
+      sample.level -
+      (hasTarget ? sampleSpectrumAt(targetCurve, sample.frequency) : 0),
+    confidence: sample.confidence,
+  }));
+
+  const { slope, intercept } = fitSpectralTilt(steered);
   const deviation = smoothSpectrum(
-    usable.map((sample) => ({
+    steered.map((sample) => ({
       frequency: sample.frequency,
-      level:
-        sample.level -
-        (slope * Math.log10(sample.frequency) + intercept) -
-        (hasTarget ? sampleSpectrumAt(targetCurve, sample.frequency) : 0),
+      level: sample.level - (slope * Math.log10(sample.frequency) + intercept),
       confidence: sample.confidence,
     })),
     smoothingOctaves,
@@ -623,8 +648,15 @@ export const buildBalancedGains = (
 
   return Object.fromEntries(
     raw.map((entry) => {
-      // Clamp the correction, then clamp the total: an existing +8 dB band the
-      // user set by hand must not be silently pulled down to the boost limit.
+      // Clamp the correction, then clamp the total. The correction limit is
+      // what stops one run swinging a band further than a measurement can
+      // justify; the total limit is what Equalizer APO will build.
+      //
+      // Both now bound the Smart EQ layer alone rather than the user's band
+      // plus a correction, because the bands handed in are the layer's own.
+      // A band and the layer above it can therefore add up to more than ±20 dB
+      // between them, which is safe: the preamp is sized from the peak of the
+      // whole written chain, layers included, so the headroom follows.
       const base = relativeToCurrentGain ? entry.gain : 0;
       const gain =
         base +

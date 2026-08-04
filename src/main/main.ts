@@ -69,6 +69,7 @@ import { getConfigPath, isEqualizerAPOInstalled } from './registry';
 import ChannelEnum from '../common/channels';
 import { getVoicingProfile } from '../common/voicing';
 import { getDriverProfile } from '../common/driver';
+import { hasSmartEqLayer, sanitizeSmartEqSettings } from '../common/smartEq';
 import {
   AutoEqFormat,
   FilterTypeEnum,
@@ -547,11 +548,12 @@ const getCurrentPreset = (): IPresetV2 => ({
   graphicEq: state.graphicEq,
   convolution: state.convolution,
   isFlat: state.isFlat,
-  // Without these two the device-profile block is rendered from a preset that
-  // has no idea they exist, and both layers vanish from the config the moment
-  // a profile is attached.
+  // Without these three the device-profile block is rendered from a preset that
+  // has no idea they exist, and every one of the layers vanishes from the
+  // config the moment a profile is attached.
   voicing: state.voicing,
   driver: state.driver,
+  smartEq: state.smartEq,
   isAutoPreAmpOn: state.isAutoPreAmpOn,
   headset: state.headset,
   headsetTarget: state.headsetTarget,
@@ -613,9 +615,12 @@ const reservePresetNameForActiveDevice = (requestedName: string) => {
  * stored and then never written.
  *
  * The attribution goes too: it described bands that no longer exist. Nothing
- * here touches the voicing, the driver correction or the convolution — those
- * are separate layers, chosen separately, and clearing the EQ is not a reason
- * to throw them away. See resetStateToDefaults for the reset that does.
+ * here touches the voicing, the driver correction, the Smart EQ correction or
+ * the convolution — those are separate layers, arrived at separately, and
+ * clearing the EQ is not a reason to throw them away. Smart EQ in particular is
+ * measured rather than chosen, so clearing the reference cannot invalidate it:
+ * it describes what came out of the speakers, not what went into the bands. See
+ * resetStateToDefaults for the reset that does clear everything.
  */
 const resetEqToDefaults = () => {
   switchToParametricEditing();
@@ -631,15 +636,17 @@ const resetEqToDefaults = () => {
 /**
  * Put the sound back to neutral: no bands, no layers, no attribution.
  *
- * Everything audible, and everything describing it. Leaving the voicing or the
- * driver correction behind after a reset would mean the EQ page said "flat"
- * while two layers were still shaping the output.
+ * Everything audible, and everything describing it. Leaving the voicing, the
+ * driver correction or the measured Smart EQ curve behind after a reset would
+ * mean the EQ page said "flat" while three layers were still shaping the
+ * output.
  */
 const resetStateToDefaults = () => {
   resetEqToDefaults();
   state.convolution = undefined;
   state.voicing = undefined;
   state.driver = undefined;
+  state.smartEq = undefined;
 };
 
 /**
@@ -884,12 +891,12 @@ const doesFilterIdExist = (
  * edit, another tool, an APO reinstall, a restore from backup. When they
  * disagree the file wins.
  *
- * Only the audible part is adopted. The voicing and driver layers reach APO as
- * ordinary `Filter N:` lines with nothing marking them as layers, so reading
- * them back would turn them into hand-placed bands: the pickers would read
- * "none" while the sound was unchanged, and the next edit would write both
- * layers in again on top of their own flattened copies. Their identity stays
- * where it can be represented, which is the profile.
+ * Only the audible part is adopted. The voicing, driver and Smart EQ layers
+ * reach APO as ordinary `Filter N:` lines with nothing marking them as layers,
+ * so reading them back would turn them into hand-placed bands: the pickers
+ * would read "none" while the sound was unchanged, and the next edit would
+ * write all three in again on top of their own flattened copies. Their identity
+ * stays where it can be represented, which is the profile.
  */
 let hasAdoptedExistingConfig = false;
 
@@ -934,17 +941,21 @@ const adoptExistingApoConfig = () => {
     //    band editor completely — no sliders at all, which is not a state the
     //    editor is even supposed to be able to reach.
     //
-    // 2. Voicing and driver filters are written into the same numbered
-    //    `Filter N:` sequence as the user's own bands, with nothing
-    //    distinguishing them. If either layer is active, there is no way to
+    // 2. The voicing, driver and Smart EQ layers are written into the same
+    //    numbered `Filter N:` sequence as the user's own bands, with nothing
+    //    distinguishing them. If any of them is active, there is no way to
     //    tell which lines came from where, and adopting would pull the layers
     //    into the band editor as ordinary bands — where the next flush would
-    //    then write the layers on top of them again.
+    //    then write the layers on top of them again. Smart EQ is the worst
+    //    case: it is roughly two dozen bands, so adopting past it would double
+    //    a whole measured correction rather than one small curve.
     const hasBands =
       Object.keys(adopted.filters).length > 0 ||
       (adopted.graphicEq?.length ?? 0) > 0;
     const hasIndistinguishableLayers =
-      !!state.voicing?.profileId || !!state.driver?.profileId;
+      !!state.voicing?.profileId ||
+      !!state.driver?.profileId ||
+      hasSmartEqLayer(state.smartEq);
 
     if (!hasBands || hasIndistinguishableLayers) {
       return;
@@ -1030,6 +1041,7 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     state.isFlat = presetSettings.isFlat;
     state.voicing = presetSettings.voicing;
     state.driver = presetSettings.driver;
+    state.smartEq = presetSettings.smartEq;
     state.headset = presetSettings.headset;
     state.headsetTarget = presetSettings.headsetTarget;
     state.headsetSource = presetSettings.headsetSource;
@@ -1068,6 +1080,7 @@ ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
     state.isFlat = baseline.isFlat;
     state.voicing = baseline.voicing;
     state.driver = baseline.driver;
+    state.smartEq = baseline.smartEq;
     state.headset = baseline.headset;
     state.headsetTarget = baseline.headsetTarget;
     state.headsetSource = baseline.headsetSource;
@@ -1532,9 +1545,8 @@ ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
  * model's, just leftovers. A flat EQ is somewhere to start from; that is not.
  *
  * Deliberately the same reset as Clear EQ, down to leaving the voicing, the
- * driver correction and the convolution alone — those were chosen separately
- * and the reference never spoke for them. Callers that have already replaced
- * the bands themselves want FORGET_HEADSET instead.
+ * driver correction, the measured Smart EQ curve and the convolution alone —
+ * those were arrived at separately and the reference never spoke for them.
  */
 ipcMain.on(ChannelEnum.CLEAR_HEADSET, async (event) => {
   const channel = ChannelEnum.CLEAR_HEADSET;
@@ -1549,23 +1561,6 @@ ipcMain.on(ChannelEnum.CLEAR_HEADSET, async (event) => {
     false,
     true,
   );
-});
-
-/**
- * Drop only the attribution, leaving the bands exactly as they are.
- *
- * Not the user-facing clear — that is CLEAR_HEADSET, which takes the bands with
- * it. This is for a caller that has already rewritten the bands itself and only
- * needs the model name to stop taking credit for them: Smart EQ flattening
- * before it measures. Resetting the layout there would pull it out from under
- * the measurement that is about to be written into it.
- */
-ipcMain.on(ChannelEnum.FORGET_HEADSET, async (event) => {
-  const channel = ChannelEnum.FORGET_HEADSET;
-  state.headset = undefined;
-  state.headsetTarget = undefined;
-  state.headsetSource = undefined;
-  await handleUpdate(event, channel, false, true);
 });
 
 ipcMain.on(ChannelEnum.CLEAR_CONVOLUTION, async (event) => {
@@ -2055,6 +2050,37 @@ ipcMain.on(ChannelEnum.SET_DRIVER, async (event, arg) => {
   await handleUpdate(event, channel, false, true);
 });
 
+/**
+ * Store what Smart EQ measured, as a layer of its own.
+ *
+ * Same contract as the voicing and the driver: this never touches
+ * state.filters. Smart EQ used to write its answer straight into the user's
+ * bands, which meant a measurement silently overwrote a tuning somebody had
+ * built by hand and there was no way to undo one without losing the other. As a
+ * layer the two are independent in both directions — clearing the reference
+ * leaves the correction standing, and clearing the correction leaves the bands
+ * and the reference alone.
+ *
+ * An empty or unusable payload removes the layer, which is how the "Also
+ * applied" chip clears it.
+ */
+ipcMain.on(ChannelEnum.SET_SMART_EQ, async (event, arg) => {
+  const channel = ChannelEnum.SET_SMART_EQ;
+  const settings = arg?.[0];
+
+  if (
+    settings !== undefined &&
+    settings !== null &&
+    typeof settings !== 'object'
+  ) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+
+  state.smartEq = sanitizeSmartEqSettings(settings);
+  await handleUpdate(event, channel, false, true);
+});
+
 ipcMain.on(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
   const channel = ChannelEnum.SET_WINDOW_SIZE;
   setWindowDimension(arg[0]);
@@ -2457,11 +2483,17 @@ app
   .then(() => {
     // Identity, set here rather than at module scope on purpose.
     //
-    // app.setName feeds app.getPath('userData'), and that path is read at
-    // import time to find the presets. Renaming before that point would move
-    // the data directory out from under an existing install; by the time the
-    // app is ready the path is already resolved, so this only affects how
-    // Windows labels the process and groups the taskbar button.
+    // app.setName feeds app.getPath('userData'), which is read at import time
+    // (userDataDir, above) to find the presets. Renaming before that point
+    // would move the data directory out from under an existing install. By the
+    // time the app is ready the path is already resolved, so this reaches only
+    // app.getName() and the strings Electron derives from it — default dialog
+    // titles and the About panel.
+    //
+    // None of the Windows-visible identity comes from here: Task Manager reads
+    // the exe's FileDescription resource, which electron-builder stamps from
+    // build.productName at package time, and the taskbar groups by the AUMID
+    // set on the next line.
     app.setName('FluidEQ');
     if (process.platform === 'win32') {
       // Without this the taskbar attributes the window to Electron itself,

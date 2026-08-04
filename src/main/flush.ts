@@ -37,6 +37,7 @@ import {
 } from '../common/constants';
 import { getVoicingFilters } from '../common/voicing';
 import { getDriverFilters } from '../common/driver';
+import { getSmartEqFilters, sanitizeSmartEqSettings } from '../common/smartEq';
 import { getChainPeakGain } from '../common/response';
 import {
   validatePresetV1,
@@ -143,8 +144,8 @@ export const stateToString = (
     output.push(`Convolution: ${convolutionFileName}`);
   }
 
-  // APO numbers filters globally, so the EQ bands and the voicing layer share
-  // one counter.
+  // APO numbers filters globally, so the EQ bands and every layer written after
+  // them — voicing, driver compensation, Smart EQ — share one counter.
   let filterIndex = 0;
   // Everything actually emitted, so the preamp below can be sized from the real
   // chain rather than from whatever the UI last happened to compute.
@@ -225,6 +226,27 @@ export const stateToString = (
   // is listening ON, not what they tuned, so clearing the EQ leaves it alone.
   output = output.concat(
     getDriverFilters(state.driver)
+      .filter(isRenderableFilter)
+      .map(({ frequency, gain, type, quality }) => {
+        filterIndex += 1;
+        writtenFilters.push({ type, frequency, gain, quality });
+        const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
+          frequency,
+        )} Hz`;
+        return NO_GAIN_FILTER_TYPES.includes(type)
+          ? `${head} Q ${clampQuality(quality)}`
+          : `${head} Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
+      }),
+  );
+
+  // Smart EQ last of all, because it is a correction of everything above it:
+  // the capture that produced it heard the bands, the voicing and the driver
+  // together, so its residual only means anything stacked on top of them.
+  // Anything appended after it would be un-measured. Outside the isFlat check
+  // for the same reason as the other two layers — clearing the bands the user
+  // tuned does not un-measure what came out of the speakers.
+  output = output.concat(
+    getSmartEqFilters(state.smartEq)
       .filter(isRenderableFilter)
       .map(({ frequency, gain, type, quality }) => {
         filterIndex += 1;
@@ -356,6 +378,25 @@ const normalizeConvolution = (
   };
 };
 
+/**
+ * A voicing or driver selection off disk.
+ *
+ * Both are `{profileId, intensity}` and both are validated the same way: an
+ * unknown profile id is harmless because the layer lookup returns nothing for
+ * it, but an intensity that is not a number would be scaled into every gain.
+ */
+const normalizeLayerSelection = (value: unknown) => {
+  if (!isObject(value) || typeof value.profileId !== 'string') {
+    return undefined;
+  }
+  const intensity = toFiniteNumber(value.intensity);
+  return {
+    profileId: value.profileId,
+    intensity:
+      intensity === undefined ? 1 : Math.min(1, Math.max(0, intensity)),
+  };
+};
+
 const normalizeGraphicEq = (points: IGraphicEqPoint[] | undefined) =>
   Array.isArray(points)
     ? points.filter(
@@ -383,6 +424,14 @@ export const fetchSettings = (settingsDir: string) => {
     }
 
     const convolution = normalizeConvolution(input.convolution);
+    // The recovery path rebuilds the state field by field, so a layer it does
+    // not mention is silently thrown away — which is what used to happen to the
+    // voicing and the driver every time a state file failed validation. Losing
+    // a measured Smart EQ correction the same way would be worse: unlike the
+    // other two it cannot be picked again from a list, only re-measured.
+    const voicing = normalizeLayerSelection(input.voicing);
+    const driver = normalizeLayerSelection(input.driver);
+    const smartEq = sanitizeSmartEqSettings(input.smartEq);
 
     return {
       ...fallbackState,
@@ -410,6 +459,9 @@ export const fetchSettings = (settingsDir: string) => {
         : {}),
       ...(typeof input.isFlat === 'boolean' ? { isFlat: input.isFlat } : {}),
       ...(convolution ? { convolution } : {}),
+      ...(voicing ? { voicing } : {}),
+      ...(driver ? { driver } : {}),
+      ...(smartEq ? { smartEq } : {}),
     } as IState;
   };
 
@@ -699,9 +751,10 @@ export const repairUnusedPreamps = (presetsDir: string): string[] => {
         //
         // isAutoPreAmpOn === false is exactly the flag that says "this number
         // is the user's", so a profile carrying it is off limits however odd
-        // the value looks. A cleared EQ can still boost, too — the voicing and
-        // driver layers are written outside the isFlat check — so a manual
-        // preamp on a flat profile is not necessarily leftover at all.
+        // the value looks. A cleared EQ can still boost, too — the voicing,
+        // driver and Smart EQ layers are all written outside the isFlat check —
+        // so a manual preamp on a flat profile is not necessarily leftover at
+        // all.
         if (
           preset?.isFlat !== true ||
           !preset.preAmp ||

@@ -64,11 +64,13 @@ enum ChannelEnum {
   SET_FIXED_BAND = 'setFixedBand',
   SET_VOICING = 'setVoicing',
   SET_DRIVER = 'setDriver',
+  // The measured correction, stored as its own layer. An empty payload removes
+  // it; nothing here ever touches the user's bands.
+  SET_SMART_EQ = 'setSmartEq',
+  // Clearing a reference clears the bands it wrote, because applying one wrote
+  // them. The layers stacked after them are untouched: none of them came from
+  // the reference and none of them stop being true without it.
   CLEAR_HEADSET = 'clearHeadset',
-  // Clearing a reference clears the bands it wrote. Forgetting it keeps them,
-  // for the caller that has already replaced them and only needs the model name
-  // to stop claiming credit.
-  FORGET_HEADSET = 'forgetHeadset',
   GET_AUDIO_DEVICES = 'getAudioDevices',
   SET_DEFAULT_AUDIO_DEVICE = 'setDefaultAudioDevice',
   ACTIVATE_AUDIO_DEVICE_PROFILE = 'activateAudioDeviceProfile',

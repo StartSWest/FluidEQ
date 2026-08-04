@@ -233,6 +233,8 @@ export interface IState {
   voicing?: IVoicingSettings;
   /** Transducer-family correction, its own APO layer after the voicing. */
   driver?: IDriverSettings;
+  /** Measured correction, the last APO layer — see src/common/smartEq.ts. */
+  smartEq?: ISmartEqSettings;
   /**
    * The measured headphone the bands were generated from.
    *
@@ -291,6 +293,24 @@ export interface IDriverSettings {
   intensity: number;
 }
 
+/**
+ * What Smart EQ measured, as a layer.
+ *
+ * Here for the same reason as the two above: it is part of the persisted state
+ * shape, and smartEq.ts already depends on this module. Unlike the voicing and
+ * the driver it is not a named profile — nobody picked it, it was measured — so
+ * what has to be stored is the correction itself.
+ */
+export interface ISmartEqSettings {
+  /** The correction, keyed by band id. Nothing audible means no layer at all. */
+  filters: IFiltersMap;
+  /** Whether the capture heard the whole correctable band or only part of it. */
+  status?: 'ready' | 'partial';
+  /** The range the capture actually covered, so the UI can say what it did. */
+  lowFrequency?: number;
+  highFrequency?: number;
+}
+
 export interface IPresetV1 {
   preAmp: number;
   filters: IFilter[];
@@ -305,16 +325,18 @@ export interface IPresetV2 {
   /** Optional headset correction rendered as an APO convolution before EQ. */
   convolution?: IConvolutionProfile;
   /**
-   * The voicing and driver layers belong to the profile, not to the session.
+   * The layers belong to the profile, not to the session.
    *
    * Device profile blocks are rendered from the preset file alone, so anything
    * missing here simply never reaches Equalizer APO — which is exactly what
-   * used to happen to both of these once a device had a profile attached.
-   * Storing them per profile also matches how they are used: different
-   * headphones want different driver compensation.
+   * used to happen to the voicing and the driver once a device had a profile
+   * attached. Storing them per profile also matches how they are used:
+   * different headphones want different driver compensation, and a Smart EQ
+   * correction measured on one output says nothing about another.
    */
   voicing?: IVoicingSettings;
   driver?: IDriverSettings;
+  smartEq?: ISmartEqSettings;
   /**
    * Whether this profile wants its preamp derived from its own chain.
    *

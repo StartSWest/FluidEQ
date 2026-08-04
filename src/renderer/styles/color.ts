@@ -46,10 +46,16 @@ export enum ColorEnum {
 
   // The graph had three pinks within a few degrees of hue of each other —
   // convolution #ff3cac, the total #ff4f9a and triadic2 #ff4fd8 — which made
-  // the curves genuinely hard to tell apart. These two are deliberately far
-  // from everything else on the wheel.
+  // the curves genuinely hard to tell apart. These are deliberately far from
+  // everything else on the wheel.
   /** Driver compensation layer. */
   DRIVER = '#ffb648',
+  /**
+   * The measured Smart EQ layer. Azure: the last free slot between the violet
+   * voicing at 258 degrees and the cyan EQ line at 175, and far enough from the
+   * near-white total to read as a curve of its own rather than part of it.
+   */
+  SMART = '#3d9bff',
   /** The sum of every layer, kept neutral so it reads as a result. */
   TOTAL = '#dbe7ff',
 }

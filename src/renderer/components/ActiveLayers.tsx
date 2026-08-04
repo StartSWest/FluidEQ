@@ -19,14 +19,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ErrorDescription } from 'common/errors';
 import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
+import { hasSmartEqLayer } from 'common/smartEq';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import {
   clearConvolution,
   clearHeadset,
   setDriver as setDriverApi,
+  setSmartEq as setSmartEqApi,
   setVoicing as setVoicingApi,
 } from '../utils/equalizerApi';
+import { formatBalanceFrequency } from '../utils/autoBalance';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
 import '../styles/ActiveLayers.scss';
@@ -35,10 +38,10 @@ import '../styles/ActiveLayers.scss';
  * What is shaping the sound besides the bands on screen.
  *
  * The EQ page shows an editor full of bands and nothing else, which is a lie
- * whenever a convolution, a voicing or a driver correction is also live — all
- * three are written into the same Equalizer APO chain and all three are
- * audible, but none of them appear in the editor. People chased phantom bumps
- * in the graph because the thing causing them was on another tab.
+ * whenever a convolution, a voicing, a driver correction or a measured Smart EQ
+ * curve is also live — every one of them is written into the same Equalizer APO
+ * chain and every one is audible, but none appear in the editor. People chased
+ * phantom bumps in the graph because the thing causing them was on another tab.
  *
  * Each chip removes its own layer, because the tab that owns it is the one
  * place you would otherwise have to go to turn it off.
@@ -48,6 +51,7 @@ const ActiveLayers = () => {
     convolution,
     voicing,
     driver,
+    smartEq,
     headset,
     headsetTarget,
     isEnabled,
@@ -56,6 +60,7 @@ const ActiveLayers = () => {
     setConvolution,
     setVoicing,
     setDriver,
+    setSmartEq,
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
@@ -134,6 +139,36 @@ const ActiveLayers = () => {
       onClear: async () => {
         setDriver({ profileId: '', intensity: driver?.intensity ?? 0.6 });
         await setDriverApi('', driver?.intensity ?? 0.6);
+        await refreshState();
+      },
+    });
+  }
+
+  // Last, because it is written last: it corrects the residual of everything
+  // above it. Clearing it takes nothing else with it — not the bands, not the
+  // reference they came from, not the other two layers — which is the whole
+  // point of it being a layer at all.
+  if (hasSmartEqLayer(smartEq)) {
+    layers.push({
+      key: 'smart',
+      icon: 'smart',
+      label: t('eq.layers.smart'),
+      // A partial measurement corrected the range it managed to hear and left
+      // the rest alone, so saying which range is the difference between a
+      // result and a mystery.
+      name:
+        smartEq?.status === 'partial' &&
+        smartEq.lowFrequency &&
+        smartEq.highFrequency
+          ? t('eq.layers.smart.range', {
+              low: formatBalanceFrequency(smartEq.lowFrequency),
+              high: formatBalanceFrequency(smartEq.highFrequency),
+            })
+          : t('eq.layers.smart.fullRange'),
+      clearHint: t('eq.layers.clearSmart'),
+      onClear: async () => {
+        setSmartEq(undefined);
+        await setSmartEqApi(undefined);
         await refreshState();
       },
     });

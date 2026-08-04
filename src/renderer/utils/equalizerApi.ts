@@ -38,6 +38,7 @@ import {
   MIN_GAIN,
   MIN_QUALITY,
   IConvolutionProfile,
+  ISmartEqSettings,
   ISquigSource,
 } from 'common/constants';
 import { IConvolutionCatalogEntry } from 'common/convolution';
@@ -417,19 +418,6 @@ export const clearHeadset = (): Promise<IFiltersMap> => {
   return promisifyResult(simpleResponseHandler<IFiltersMap>(), channel);
 };
 
-/**
- * Drop the attribution and leave the bands exactly where they are.
- *
- * Not the user-facing clear. This is for a caller that has already rewritten
- * the bands itself and only needs the model name to stop taking credit for
- * them.
- */
-export const forgetHeadset = (): Promise<void> => {
-  const channel = ChannelEnum.FORGET_HEADSET;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(setterResponseHandler, channel);
-};
-
 export const clearConvolution = (): Promise<void> => {
   const channel = ChannelEnum.CLEAR_CONVOLUTION;
   window.electron.ipcRenderer.sendMessage(channel, []);
@@ -780,6 +768,20 @@ export const setDriver = (
 ): Promise<void> => {
   const channel = ChannelEnum.SET_DRIVER;
   window.electron.ipcRenderer.sendMessage(channel, [profileId, intensity]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
+/**
+ * Store what Smart EQ measured, as its own layer.
+ *
+ * Deliberately not routed through setGain: this correction is not made of the
+ * user's bands and must never overwrite them.
+ * @param { ISmartEqSettings } settings - the measured layer, or undefined to remove it
+ * @returns { Promise<void> } exception if the payload is not a layer
+ */
+export const setSmartEq = (settings?: ISmartEqSettings): Promise<void> => {
+  const channel = ChannelEnum.SET_SMART_EQ;
+  window.electron.ipcRenderer.sendMessage(channel, [settings]);
   return promisifyResult(setterResponseHandler, channel);
 };
 

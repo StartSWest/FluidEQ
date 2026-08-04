@@ -435,8 +435,36 @@ describe('balance capture', () => {
       // Without a target this source is already correct, so nothing moves.
       expect(Math.abs(neutral.b64)).toBeLessThan(1.2);
       // With the target the low bands are pushed up relative to the rest.
-      expect(voiced.b64).toBeGreaterThan(neutral.b64 + 1.5);
+      //
+      // By the target's *shape*, not by its slope. A straight line in
+      // log-frequency is exactly what the tilt fit removes from the
+      // measurement, so a target is followed only in as far as it departs from
+      // one — which is the only self-consistent reading, since the layer the
+      // target describes is already playing and already in the capture. Asking
+      // for its slope on top of that is asking for a deviation no gain can ever
+      // satisfy, and the loop answers by walking off in a straight line.
+      expect(voiced.b64).toBeGreaterThan(neutral.b64 + 0.7);
       expect(voiced.b64).toBeGreaterThan(voiced.b4000);
+    });
+
+    it('is not driven by a target that is a pure slope', () => {
+      // The same statement from the other side, and the reason the loop stays
+      // put: a target that is nothing but a tilt asks for nothing, because the
+      // tilt is the one thing Smart EQ never corrects.
+      const { report } = runCapture(fullRange, seconds(30));
+      const slope = report.samples.map((sample) => ({
+        frequency: sample.frequency,
+        level: -6 * Math.log10(sample.frequency) + 12,
+      }));
+
+      const neutral = buildBalancedGains(report.samples, TEN_BAND);
+      const tilted = buildBalancedGains(report.samples, TEN_BAND, {
+        targetCurve: slope,
+      });
+
+      Object.entries(tilted).forEach(([id, gain]) => {
+        expect(gain).toBeCloseTo(neutral[id], 1);
+      });
     });
 
     it('is unchanged by an empty target curve', () => {

@@ -63,6 +63,17 @@ describe('per-device state isolation', () => {
         },
         voicing: { profileId: 'music', intensity: 1 },
         driver: { profileId: 'balanced-armature-iem', intensity: 1 },
+        smartEq: {
+          filters: {
+            'smart-1000': {
+              id: 'smart-1000',
+              frequency: 1000,
+              gain: 3,
+              quality: 1.4,
+              type: FilterTypeEnum.PK,
+            },
+          },
+        },
         convolution: { name: 'Some HRTF', filters: {} },
         headset: 'HD 600',
         headsetTarget: 'Harman 2018',
@@ -152,6 +163,7 @@ describe('per-device state isolation', () => {
     [
       'voicing',
       'driver',
+      'smartEq',
       'convolution',
       'graphicEq',
       'eqFormat',
@@ -177,6 +189,7 @@ describe('per-device state isolation', () => {
 
     expect(live.voicing).toBeUndefined();
     expect(live.driver).toBeUndefined();
+    expect(live.smartEq).toBeUndefined();
     expect(live.convolution).toBeUndefined();
     expect(live.preAmp).toBe(0);
   });
