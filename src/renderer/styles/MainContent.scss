@@ -35,20 +35,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   min-width: 0;
   grid-template-columns: minmax(0, 1fr);
+  // No surface of its own. A card here was tried and it made the header look
+  // like a separate panel sitting on the EQ rather than the top of it; the
+  // rows hold together well enough on spacing alone.
   gap: 11px;
-  margin: 2px 0 6px;
-  // A surface of its own. The three rows say different kinds of thing — what
-  // this panel is, what you can do to it, what else is affecting it — and with
-  // nothing holding them they read as three unrelated strips floating above
-  // the bands. One quiet card, and a line where it ends, makes them a header.
-  padding: 12px 14px 13px;
-  border: 1px solid rgba($primary-lighter, 0.07);
-  border-radius: $radius-l;
-  background: linear-gradient(
-    180deg,
-    rgba($primary-lighter, 0.045),
-    rgba($primary-lighter, 0.012)
-  );
+  margin: 2px 0 0;
+  padding: 0 8px;
 
   > div:first-child {
     min-width: 0;
