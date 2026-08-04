@@ -227,15 +227,63 @@ is inlined into the renderer bundle and is therefore public by construction —
 the file says so at the top, at length, because that is exactly the kind of
 thing people get wrong once.
 
+## What FluidEQ adds over AQUA
+
+FluidEQ started as a fork of [AQUA](https://github.com/h39s/AQUA) and owes it
+the foundation: an Electron/React equalizer, Equalizer APO integration, AutoEQ
+support, filter controls, preset management and a response graph. Everything
+below is new work, and it is most of what you interact with.
+
+**Sound**
+
+- **Automatic per-output profiles.** Tune once and the tuning attaches itself to
+  the Windows endpoint you were listening on, by stable GUID rather than by
+  display name. Switch outputs and the right sound follows, with no save step.
+  This is the idea the whole app is built around.
+- **Driver-type compensation.** Twelve profiles for what you are actually
+  listening on — dynamic, planar magnetic, balanced armature, electrostatic,
+  bone conduction, the common diaphragm materials, and driver size — each its
+  own APO layer with a strength control and its own curve on the graph.
+- **Voicing.** Five curated target curves, written after your bands so your own
+  tuning is never overwritten and switching back restores it exactly.
+- **Convolution.** Verified minimum-phase impulse responses from the AutoEq
+  catalogue, or any WAV of your own, applied ahead of the parametric stage.
+- **Smart EQ.** Measures what is actually coming out of your output and
+  flattens what it hears, rather than assuming a target curve.
+- **One computed preamp.** Every layer contributes to a single `Preamp:` line
+  derived from the real combined response, so stacking a voicing on a
+  convolution cannot clip you and removing one gives the headroom back.
+- **The APO config as source of truth.** FluidEQ reads what is on disk on
+  startup instead of trusting its own copy, so a hand edit or another tool
+  wins rather than being silently overwritten.
+- **Every APO filter type**, not just peak and shelf: low/high pass, band pass
+  and notch, with the pass forms written without the `Gain` token APO rejects.
+  Up to 128 bands.
+- **Import** of Equalizer APO ParametricEQ and GraphicEQ files, FluidEQ
+  profiles, and WAV impulse responses.
+- **A second measurement source**, GadgetryTech via Squiglink, fitted into PEQ
+  locally rather than bundled.
+
+**Interface**
+
+- A rebuilt UI: a shared design-token layer, a scrolling workspace that stops
+  panels fighting over the window, a response graph with draggable points and a
+  live output curve, and a motion vocabulary that respects
+  `prefers-reduced-motion`.
+- **Ten languages**, with a test that fails the build when one falls behind.
+- **In-app updates** and a What's new dialog rendered from the changelog.
+- Window position and size remembered, and no white flash on launch.
+- A small animated companion in the titlebar, because the app should be
+  pleasant to leave open.
+
+FluidEQ keeps AQUA's Git history, the copyright notices in every source file
+and the GPL licensing. It is not presented as an official continuation and is
+not endorsed by the AQUA maintainers.
+
 ## Attribution
 
-FluidEQ is a derivative of [AQUA](https://github.com/h39s/AQUA), created by the
-AQUA Dev Team, which provided the original Electron/React equalizer interface,
-Equalizer APO integration, AutoEQ support, filter controls, preset management
-and graph visualization. FluidEQ keeps the original Git history, the copyright
-notices in every source file, and the GPL licensing, and continues the project
-under a new identity with a device-aware profile system. It is not presented as
-an official continuation and is not endorsed by the AQUA maintainers.
+FluidEQ is a derivative work of [AQUA](https://github.com/h39s/AQUA),
+copyright © 2023 AQUA Dev Team, used under the GPL.
 
 AutoEq data and targets are credited to
 [Jaakko Pasanen](https://github.com/jaakkopasanen/AutoEq) and
