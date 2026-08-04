@@ -230,6 +230,8 @@ const zh: Partial<Dictionary> = {
 
   'support.game.share': '分享',
 
+  'support.game.shareEuphoria': '分享狂喜时刻',
+
   'support.game.shareTitle': '分享你的分数',
 
   'support.game.shareNote':

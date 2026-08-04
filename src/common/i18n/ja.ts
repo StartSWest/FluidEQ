@@ -242,6 +242,8 @@ const ja: Partial<Dictionary> = {
 
   'support.game.share': '共有',
 
+  'support.game.shareEuphoria': 'ユーフォリアを共有',
+
   'support.game.shareTitle': 'スコアを共有',
 
   'support.game.shareNote':

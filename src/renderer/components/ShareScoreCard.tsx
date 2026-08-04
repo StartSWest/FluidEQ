@@ -23,6 +23,7 @@ import {
   carriesShareText,
   getShareFileName,
   getShareUrl,
+  isEuphoricRun,
 } from 'common/shareScore';
 import { SUPPORT_CONFIG } from 'common/support';
 import { useTranslation } from '../utils/I18nContext';
@@ -50,6 +51,57 @@ interface IShareScoreCardProps {
   onClose: () => void;
 }
 
+/** The spectrum euphoria mode sweeps, in the order the app runs it. */
+const SPECTRUM = ['#00e5ff', '#54ff8a', '#ffe66d', '#ff3cac', '#8b5cff'];
+
+const FONT_STACK =
+  '"Segoe UI", system-ui, -apple-system, Helvetica, sans-serif';
+
+/**
+ * The bar of sliders along the bottom.
+ *
+ * The single most recognisable thing about the app, and the thing euphoria
+ * mode does the most to: each band lit in its own colour, its own height. It
+ * is what makes the card read as a screenshot of something rather than as a
+ * scoreboard, which is the whole reason anyone would look twice at the post.
+ *
+ * Deterministic, like the waveform: a fixed shape rather than random heights,
+ * so the card is the same picture every time it is generated.
+ */
+const drawBands = (
+  context: CanvasRenderingContext2D,
+  euphoric: boolean,
+  baseline: number,
+) => {
+  const count = 31;
+  const gap = 7;
+  const margin = 90;
+  const span = CARD_WIDTH - margin * 2;
+  const width = (span - gap * (count - 1)) / count;
+  for (let index = 0; index < count; index += 1) {
+    const phase = index / (count - 1);
+    // Two humps and a tilt: enough shape to look like music was playing rather
+    // than like a test pattern.
+    const height =
+      22 +
+      Math.abs(Math.sin(phase * 5.6)) * 52 +
+      Math.abs(Math.sin(phase * 2.1 + 0.7)) * 34;
+    const x = margin + index * (width + gap);
+    if (euphoric) {
+      // Each band on its own hue, walking the spectrum across the row —
+      // exactly what the live UI does at the ceiling.
+      const stop = phase * (SPECTRUM.length - 1);
+      context.fillStyle = SPECTRUM[Math.round(stop)];
+      context.globalAlpha = 0.92;
+    } else {
+      context.fillStyle = '#2ec5c0';
+      context.globalAlpha = 0.5;
+    }
+    context.fillRect(x, baseline - height, width, height);
+  }
+  context.globalAlpha = 1;
+};
+
 /**
  * Paint the card.
  *
@@ -57,17 +109,25 @@ interface IShareScoreCardProps {
  * into a PNG means either a third-party rasteriser or an SVG foreignObject
  * round-trip, and both inherit whatever the app's stylesheet happens to be
  * doing that day. A card that is drawn on purpose looks the same in every
- * build, and it is about sixty lines.
+ * build.
+ *
+ * At the ceiling it stops being a scoreboard and becomes a picture of euphoria
+ * mode: spectrum rim, the pill, and the band row lit hue by hue the way the
+ * live UI lights it. That is the point of the post — somebody scrolling past
+ * has never seen this app, and a number on a dark rectangle tells them nothing
+ * about what they are looking at.
  */
 const drawCard = (
   canvas: HTMLCanvasElement,
   score: number,
   multiplier: number,
+  downloadUrl: string,
 ) => {
   const context = canvas.getContext('2d');
   if (!context) {
     return;
   }
+  const euphoric = isEuphoricRun(multiplier);
   canvas.width = CARD_WIDTH * CARD_SCALE;
   canvas.height = CARD_HEIGHT * CARD_SCALE;
   context.scale(CARD_SCALE, CARD_SCALE);
@@ -80,23 +140,31 @@ const drawCard = (
   context.fillStyle = backdrop;
   context.fillRect(0, 0, CARD_WIDTH, CARD_HEIGHT);
 
-  // The spectrum, but as a band across the middle rather than over everything:
-  // euphoria mode is the thing being shown off, and a full-bleed rainbow would
-  // leave the number sitting on top of the brightest part of the card.
   const sweep = context.createLinearGradient(0, 0, CARD_WIDTH, 0);
-  ['#00e5ff', '#54ff8a', '#ffe66d', '#ff3cac', '#8b5cff'].forEach(
-    (color, index, all) => {
-      sweep.addColorStop(index / (all.length - 1), color);
-    },
-  );
+  SPECTRUM.forEach((color, index) => {
+    sweep.addColorStop(index / (SPECTRUM.length - 1), color);
+  });
+
+  // The rim, at the ceiling only. A spectrum edge around the whole card is
+  // what euphoria mode looks like from across the room, and it is the part
+  // that survives being shown as a thumbnail in a feed.
+  if (euphoric) {
+    context.save();
+    context.strokeStyle = sweep;
+    context.lineWidth = 10;
+    context.strokeRect(5, 5, CARD_WIDTH - 10, CARD_HEIGHT - 10);
+    context.restore();
+  }
+
+  drawBands(context, euphoric, CARD_HEIGHT - 104);
 
   // A waveform, because that is what the app draws and what the game is
   // played against. Deterministic — a fixed sum of sines rather than random
   // noise, so two people who scored the same get the same card.
   context.save();
-  context.globalAlpha = 0.5;
-  context.strokeStyle = sweep;
-  context.lineWidth = 3;
+  context.globalAlpha = euphoric ? 0.85 : 0.45;
+  context.strokeStyle = euphoric ? sweep : '#2ec5c0';
+  context.lineWidth = euphoric ? 4 : 3;
   context.beginPath();
   for (let x = 0; x <= CARD_WIDTH; x += 4) {
     const phase = x / CARD_WIDTH;
@@ -105,7 +173,7 @@ const drawCard = (
       Math.sin(phase * 26) * 0.55 +
       Math.sin(phase * 61 + 1.1) * 0.28 +
       Math.sin(phase * 113 + 2.3) * 0.17;
-    const y = CARD_HEIGHT * 0.72 + wave * envelope * 90;
+    const y = 462 + wave * envelope * (euphoric ? 46 : 34);
     if (x === 0) {
       context.moveTo(x, y);
     } else {
@@ -117,32 +185,58 @@ const drawCard = (
 
   context.textAlign = 'center';
 
-  context.fillStyle = 'rgba(226, 240, 247, 0.55)';
-  context.font =
-    '600 26px "Segoe UI", system-ui, -apple-system, Helvetica, sans-serif';
-  context.fillText('FLUIDEQ · EUPHORIA MODE', CARD_WIDTH / 2, 132);
+  // The pill, drawn the way the app draws it, because it is the badge the
+  // whole post is about.
+  if (euphoric) {
+    const label = 'EUPHORIA MODE';
+    context.font = `800 30px ${FONT_STACK}`;
+    const pillWidth = context.measureText(label).width + 56;
+    const pillX = (CARD_WIDTH - pillWidth) / 2;
+    context.save();
+    context.fillStyle = sweep;
+    context.beginPath();
+    context.roundRect(pillX, 92, pillWidth, 54, 27);
+    context.fill();
+    context.fillStyle = '#06131d';
+    context.fillText(label, CARD_WIDTH / 2, 129);
+    context.restore();
+  } else {
+    context.fillStyle = 'rgba(226, 240, 247, 0.55)';
+    context.font = `600 26px ${FONT_STACK}`;
+    context.fillText('FLUIDEQ · BEAT GAME', CARD_WIDTH / 2, 129);
+  }
 
   context.fillStyle = '#ffffff';
-  context.font =
-    '800 190px "Segoe UI", system-ui, -apple-system, Helvetica, sans-serif';
-  context.fillText(String(Math.max(0, Math.floor(score))), CARD_WIDTH / 2, 320);
+  context.font = `800 172px ${FONT_STACK}`;
+  context.fillText(String(Math.max(0, Math.floor(score))), CARD_WIDTH / 2, 306);
 
-  context.fillStyle = '#54ff8a';
-  context.font =
-    '750 54px "Segoe UI", system-ui, -apple-system, Helvetica, sans-serif';
+  context.fillStyle = euphoric ? '#ffe66d' : '#54ff8a';
+  context.font = `750 56px ${FONT_STACK}`;
   context.fillText(
     `×${Math.max(1, Math.floor(multiplier))}`,
     CARD_WIDTH / 2,
-    392,
+    374,
   );
 
-  context.fillStyle = 'rgba(226, 240, 247, 0.7)';
-  context.font =
-    '400 28px "Segoe UI", system-ui, -apple-system, Helvetica, sans-serif';
+  // Where to get it. The point of the post is that somebody who has never
+  // heard of FluidEQ sees the picture and can act on it, and a card that shows
+  // off a mode without saying what the app is called or where it lives is an
+  // advert for nothing. Drawn on the image rather than left to the link
+  // preview, because the image is what gets reposted and screenshotted.
+  context.fillStyle = 'rgba(226, 240, 247, 0.82)';
+  context.font = `600 30px ${FONT_STACK}`;
   context.fillText(
-    'Free, open-source system-wide EQ for Windows',
+    'FluidEQ — free system-wide EQ for Windows',
     CARD_WIDTH / 2,
-    CARD_HEIGHT - 62,
+    552,
+  );
+
+  context.fillStyle = 'rgba(226, 240, 247, 0.5)';
+  context.font = `400 24px ${FONT_STACK}`;
+  context.fillText(
+    downloadUrl.replace(/^https?:\/\//, ''),
+    CARD_WIDTH / 2,
+    590,
   );
 };
 
@@ -157,13 +251,16 @@ const ShareScoreCard = ({
   const copiedTimer = useRef<number | undefined>(undefined);
 
   const text = buildShareText(score, multiplier);
-  const url = SUPPORT_CONFIG.repositoryUrl;
+  // The releases page, not the source tree. A share post is read by people
+  // who have never seen FluidEQ, and sending them somewhere they have to work
+  // out how to build it wastes the only click they were going to give.
+  const url = SUPPORT_CONFIG.downloadUrl;
 
   useEffect(() => {
     if (canvasRef.current) {
-      drawCard(canvasRef.current, score, multiplier);
+      drawCard(canvasRef.current, score, multiplier, url);
     }
-  }, [multiplier, score]);
+  }, [multiplier, score, url]);
 
   useEffect(
     () => () => {
@@ -183,9 +280,9 @@ const ShareScoreCard = ({
     // answer than picking a directory for them.
     const link = document.createElement('a');
     link.href = canvas.toDataURL('image/png');
-    link.download = getShareFileName(score);
+    link.download = getShareFileName(score, multiplier);
     link.click();
-  }, [score]);
+  }, [multiplier, score]);
 
   const copy = useCallback(() => {
     navigator.clipboard

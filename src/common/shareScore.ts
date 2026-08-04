@@ -45,9 +45,26 @@ export const SHARE_NETWORKS: IShareNetwork[] = [
   { id: 'facebook', label: 'Facebook' },
 ];
 
+/**
+ * The multiplier at which the run is at the ceiling.
+ *
+ * Named rather than written as a bare 10 in three places, because the card,
+ * the text and the button that offers the share all have to agree about what
+ * counts as euphoria — and if they ever disagree, someone posts a card saying
+ * one thing under a sentence saying another.
+ */
+export const EUPHORIA_MULTIPLIER = 10;
+
+/** Whether this run earned the full treatment. */
+export const isEuphoricRun = (multiplier: number): boolean =>
+  multiplier >= EUPHORIA_MULTIPLIER;
+
 /** Filename for the saved card. */
-export const getShareFileName = (score: number): string =>
-  `fluideq-euphoria-${Math.max(0, Math.floor(score))}.png`;
+export const getShareFileName = (score: number, multiplier = 1): string =>
+  `fluideq-${isEuphoricRun(multiplier) ? 'euphoria' : 'score'}-${Math.max(
+    0,
+    Math.floor(score),
+  )}.png`;
 
 /**
  * What gets posted.
@@ -59,11 +76,13 @@ export const getShareFileName = (score: number): string =>
 export const buildShareText = (score: number, multiplier: number): string => {
   const points = Math.max(0, Math.floor(score));
   const peak = Math.max(1, Math.floor(multiplier));
-  const run =
-    peak >= 10
-      ? `${points} points at ×10 — euphoria mode`
-      : `${points} points at ×${peak}`;
-  return `I scored ${run} on the beat game hidden inside FluidEQ, a free open-source equaliser for Windows.`;
+  if (peak >= EUPHORIA_MULTIPLIER) {
+    // Reaching the ceiling is the whole story, so it leads. Thirty-six
+    // consecutive perfect taps is the thing worth telling people about; the
+    // number is the evidence, not the headline.
+    return `I hit EUPHORIA MODE — ×10, ${points} points — on the beat game hidden inside FluidEQ, a free open-source equaliser for Windows. The entire interface goes rainbow with the music.`;
+  }
+  return `I scored ${points} points at ×${peak} on the beat game hidden inside FluidEQ, a free open-source equaliser for Windows.`;
 };
 
 /**

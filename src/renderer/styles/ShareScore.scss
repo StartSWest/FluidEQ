@@ -160,4 +160,23 @@ it under the terms of the GNU General Public License version 3 or later.
     border-color: rgba($secondary-default, 0.7);
     background: rgba($secondary-default, 0.12);
   }
+
+  // At the ceiling it stops being an outline and becomes the spectrum, because
+  // this is the one moment worth showing anyone — the offer is made while the
+  // thing it captures is still on screen. Riding `--euphoria-hue`, which the
+  // shell is already animating on the document root, so this costs one more
+  // element reading a value that was being swept anyway rather than an
+  // animation of its own.
+  &.is-euphoric {
+    color: #06131d;
+    border-color: transparent;
+    background: hsl(var(--euphoria-hue, 160deg) 95% 62%);
+    font-weight: 800;
+    box-shadow: 0 0 14px hsl(var(--euphoria-hue, 160deg) 95% 62% / 55%);
+
+    &:hover {
+      color: #06131d;
+      background: hsl(var(--euphoria-hue, 160deg) 95% 72%);
+    }
+  }
 }

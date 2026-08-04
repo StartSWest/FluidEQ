@@ -267,6 +267,7 @@ const en = {
   'support.game.listening': 'Listening for the beat…',
   'support.game.best': 'Best',
   'support.game.share': 'Share',
+  'support.game.shareEuphoria': 'Share euphoria',
   'support.game.shareTitle': 'Share your score',
   'support.game.shareNote':
     'Save the card, then attach it to your post — none of these networks can pull an image out of a link.',

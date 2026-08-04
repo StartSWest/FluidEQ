@@ -17,23 +17,31 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  EUPHORIA_MULTIPLIER,
   SHARE_NETWORKS,
   buildShareText,
   carriesShareText,
   getShareFileName,
   getShareUrl,
+  isEuphoricRun,
 } from 'common/shareScore';
+import { buildSupportConfig } from 'common/support';
 
 const REPO = 'https://github.com/StartSWest/FluidEQ';
 
 describe('buildShareText', () => {
-  it('names euphoria mode once it has been reached', () => {
-    expect(buildShareText(4200, 10)).toContain('×10 — euphoria mode');
+  it('leads with euphoria once it has been reached', () => {
+    const text = buildShareText(4200, 10);
+    expect(text).toContain('EUPHORIA MODE');
+    expect(text).toContain('4200');
+    // The ceiling is the story and the number is the evidence, so it has to
+    // come first — a post that opens with a score reads as a leaderboard.
+    expect(text.indexOf('EUPHORIA')).toBeLessThan(text.indexOf('4200'));
   });
 
   it('does not claim euphoria below the ceiling', () => {
     expect(buildShareText(900, 4)).toContain('×4');
-    expect(buildShareText(900, 4)).not.toContain('euphoria');
+    expect(buildShareText(900, 4).toLowerCase()).not.toContain('euphoria');
   });
 
   it('fits X with the link attached', () => {
@@ -97,13 +105,63 @@ describe('carriesShareText', () => {
 
 describe('getShareFileName', () => {
   it('names the file after the score', () => {
-    expect(getShareFileName(1234)).toBe('fluideq-euphoria-1234.png');
+    expect(getShareFileName(1234, 10)).toBe('fluideq-euphoria-1234.png');
+  });
+
+  it('does not call an ordinary run euphoria', () => {
+    // The filename is the first thing anyone sees when they go to attach it,
+    // and a card that says ×3 saved as "euphoria" is a small lie.
+    expect(getShareFileName(1234, 3)).toBe('fluideq-score-1234.png');
   });
 
   it('cannot produce a name with a dot or a minus in the number', () => {
     // Both are legal in a filename but neither is legal in a score, and a
     // ".png" that is actually "-1.5.png" looks like a broken download.
-    expect(getShareFileName(-3)).toBe('fluideq-euphoria-0.png');
-    expect(getShareFileName(12.9)).toBe('fluideq-euphoria-12.png');
+    expect(getShareFileName(-3)).toBe('fluideq-score-0.png');
+    expect(getShareFileName(12.9)).toBe('fluideq-score-12.png');
+  });
+});
+
+describe('isEuphoricRun', () => {
+  it('agrees with the game about where the ceiling is', () => {
+    // The card, the sentence and the button that offers the share all read
+    // this. If they ever disagree someone posts a rainbow card under a
+    // sentence that does not mention euphoria.
+    expect(EUPHORIA_MULTIPLIER).toBe(10);
+    expect(isEuphoricRun(9.99)).toBe(false);
+    expect(isEuphoricRun(10)).toBe(true);
+  });
+});
+
+describe('the download destination', () => {
+  it('sends strangers to releases, not to the source tree', () => {
+    // A share post is read by people who have never seen FluidEQ. Handing them
+    // a repository asks them to work out how to build it, which is the whole
+    // click wasted.
+    const config = buildSupportConfig({
+      FLUIDEQ_REPOSITORY_URL: 'https://github.com/example/FluidEQ',
+    });
+    expect(config.downloadUrl).toBe(
+      'https://github.com/example/FluidEQ/releases/latest',
+    );
+  });
+
+  it('does not double the slash when the repository url has one', () => {
+    const config = buildSupportConfig({
+      FLUIDEQ_REPOSITORY_URL: 'https://example.com/fluideq/',
+    });
+    expect(config.downloadUrl).toBe(
+      'https://example.com/fluideq/releases/latest',
+    );
+  });
+
+  it('lets a build point somewhere else entirely', () => {
+    // A project with its own download page should not be forced through a
+    // GitHub releases URL it does not use.
+    const config = buildSupportConfig({
+      FLUIDEQ_REPOSITORY_URL: 'https://github.com/example/FluidEQ',
+      FLUIDEQ_DOWNLOAD_URL: 'https://fluideq.app/download',
+    });
+    expect(config.downloadUrl).toBe('https://fluideq.app/download');
   });
 });

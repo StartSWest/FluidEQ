@@ -241,6 +241,8 @@ const ru: Partial<Dictionary> = {
 
   'support.game.share': 'Поделиться',
 
+  'support.game.shareEuphoria': 'Поделиться эйфорией',
+
   'support.game.shareTitle': 'Поделитесь результатом',
 
   'support.game.shareNote':

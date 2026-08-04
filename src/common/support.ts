@@ -168,6 +168,17 @@ export interface ISupportConfig {
   cryptoLabel: string;
   /** Where the code lives, for people who would rather contribute time. */
   repositoryUrl: string;
+  /**
+   * Where a stranger goes to get the app.
+   *
+   * Separate from the repository because they are two different invitations.
+   * A share post is read by people who have never seen FluidEQ, and sending
+   * them to a source tree asks them to work out how to build it; the releases
+   * page hands them an installer. Defaults to the repository's own releases
+   * page, so a fork that sets only `FLUIDEQ_REPOSITORY_URL` still gets a
+   * working download link rather than none.
+   */
+  downloadUrl: string;
 }
 
 export interface ISupportEnv {
@@ -183,6 +194,7 @@ export interface ISupportEnv {
   FLUIDEQ_TRON_ADDRESS?: string;
   FLUIDEQ_CRYPTO_LABEL?: string;
   FLUIDEQ_REPOSITORY_URL?: string;
+  FLUIDEQ_DOWNLOAD_URL?: string;
 }
 
 const DEFAULT_CRYPTO_LABEL = 'FluidEQ development';
@@ -191,22 +203,32 @@ const DEFAULT_REPOSITORY_URL = 'https://github.com/StartSWest/FluidEQ';
 const clean = (value: string | undefined) => (value || '').trim();
 
 /** Pure so the gating can be tested without touching the real environment. */
-export const buildSupportConfig = (env: ISupportEnv): ISupportConfig => ({
-  stripeUrl: clean(env.FLUIDEQ_STRIPE_URL),
-  coffeeUrl: clean(env.FLUIDEQ_COFFEE_URL),
-  crypto: {
-    bitcoinAddress: clean(env.FLUIDEQ_BITCOIN_ADDRESS),
-    ethereumAddress: clean(env.FLUIDEQ_ETHEREUM_ADDRESS),
-    litecoinAddress: clean(env.FLUIDEQ_LITECOIN_ADDRESS),
-    dogecoinAddress: clean(env.FLUIDEQ_DOGECOIN_ADDRESS),
-    moneroAddress: clean(env.FLUIDEQ_MONERO_ADDRESS),
-    solanaAddress: clean(env.FLUIDEQ_SOLANA_ADDRESS),
-    cardanoAddress: clean(env.FLUIDEQ_CARDANO_ADDRESS),
-    tronAddress: clean(env.FLUIDEQ_TRON_ADDRESS),
-  },
-  cryptoLabel: clean(env.FLUIDEQ_CRYPTO_LABEL) || DEFAULT_CRYPTO_LABEL,
-  repositoryUrl: clean(env.FLUIDEQ_REPOSITORY_URL) || DEFAULT_REPOSITORY_URL,
-});
+export const buildSupportConfig = (env: ISupportEnv): ISupportConfig => {
+  const repositoryUrl =
+    clean(env.FLUIDEQ_REPOSITORY_URL) || DEFAULT_REPOSITORY_URL;
+  return {
+    stripeUrl: clean(env.FLUIDEQ_STRIPE_URL),
+    coffeeUrl: clean(env.FLUIDEQ_COFFEE_URL),
+    crypto: {
+      bitcoinAddress: clean(env.FLUIDEQ_BITCOIN_ADDRESS),
+      ethereumAddress: clean(env.FLUIDEQ_ETHEREUM_ADDRESS),
+      litecoinAddress: clean(env.FLUIDEQ_LITECOIN_ADDRESS),
+      dogecoinAddress: clean(env.FLUIDEQ_DOGECOIN_ADDRESS),
+      moneroAddress: clean(env.FLUIDEQ_MONERO_ADDRESS),
+      solanaAddress: clean(env.FLUIDEQ_SOLANA_ADDRESS),
+      cardanoAddress: clean(env.FLUIDEQ_CARDANO_ADDRESS),
+      tronAddress: clean(env.FLUIDEQ_TRON_ADDRESS),
+    },
+    cryptoLabel: clean(env.FLUIDEQ_CRYPTO_LABEL) || DEFAULT_CRYPTO_LABEL,
+    repositoryUrl,
+    // Trailing slash stripped before appending, or a repository URL written
+    // with one produces a double slash that GitHub happens to tolerate and
+    // most other hosts do not.
+    downloadUrl:
+      clean(env.FLUIDEQ_DOWNLOAD_URL) ||
+      `${repositoryUrl.replace(/\/+$/, '')}/releases/latest`,
+  };
+};
 
 // Each variable is read as its own static member expression because that is
 // what webpack's EnvironmentPlugin can substitute at build time. Passing
@@ -225,6 +247,7 @@ export const SUPPORT_CONFIG: ISupportConfig = buildSupportConfig({
   FLUIDEQ_TRON_ADDRESS: process.env.FLUIDEQ_TRON_ADDRESS,
   FLUIDEQ_CRYPTO_LABEL: process.env.FLUIDEQ_CRYPTO_LABEL,
   FLUIDEQ_REPOSITORY_URL: process.env.FLUIDEQ_REPOSITORY_URL,
+  FLUIDEQ_DOWNLOAD_URL: process.env.FLUIDEQ_DOWNLOAD_URL,
 });
 
 /**

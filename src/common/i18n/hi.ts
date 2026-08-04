@@ -247,6 +247,8 @@ const hi: Partial<Dictionary> = {
 
   'support.game.share': 'साझा करें',
 
+  'support.game.shareEuphoria': 'यूफोरिया साझा करें',
+
   'support.game.shareTitle': 'अपना स्कोर साझा करें',
 
   'support.game.shareNote':

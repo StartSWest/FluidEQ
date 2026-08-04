@@ -243,6 +243,8 @@ const de: Partial<Dictionary> = {
 
   'support.game.share': 'Teilen',
 
+  'support.game.shareEuphoria': 'Euphorie teilen',
+
   'support.game.shareTitle': 'Teile dein Ergebnis',
 
   'support.game.shareNote':

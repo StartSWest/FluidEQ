@@ -326,6 +326,23 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
 
   useImperativeHandle(ref, () => ({ registerTap }), [registerTap]);
 
+  const isEuphoric = getStreakJoy(run.streak) >= EUPHORIA_AT;
+  /**
+   * What the card is about.
+   *
+   * The live run while it is at the ceiling, and the stored record otherwise.
+   *
+   * Sharing the high score during euphoria would be the wrong picture: someone
+   * at ×10 right now, watching the whole window run the spectrum, pressing
+   * share and getting a card about a quieter run from last Tuesday. The offer
+   * is made because of what is happening, so it has to be about what is
+   * happening — even when an older run scored more.
+   */
+  const shareScore = isEuphoric ? run.score : highScore;
+  const shareMultiplier = isEuphoric
+    ? getStreakMultiplier(run.streak)
+    : bestMultiplier;
+
   useEffect(
     () => () => {
       if (verdictResetRef.current !== undefined) {
@@ -354,29 +371,36 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
               .replace(/\.?0+$/, '')}
           </span>
         )}
-        {getStreakJoy(run.streak) >= EUPHORIA_AT && (
+        {isEuphoric && (
           <span className="euphoria-pill">{t('support.game.euphoria')}</span>
         )}
         <span className="rhythm-game__best">
           {t('support.game.best')} {highScore}
         </span>
         {/* Nothing to share until there is a record. Offering it at zero is an
-            empty button and an invitation to post a score of nothing. */}
-        {highScore > 0 && !isSharing && (
+            empty button and an invitation to post a score of nothing.
+
+            At the ceiling it stops being a quiet outline and turns into the
+            spectrum, because that is the moment worth showing anyone — the
+            share is being offered while the thing it captures is on screen,
+            rather than being a footnote next to a number. */}
+        {shareScore > 0 && !isSharing && (
           <button
             type="button"
-            className="rhythm-game__share"
+            className={`rhythm-game__share${isEuphoric ? ' is-euphoric' : ''}`}
             onClick={() => setIsSharing(true)}
           >
-            {t('support.game.share')}
+            {isEuphoric
+              ? t('support.game.shareEuphoria')
+              : t('support.game.share')}
           </button>
         )}
       </div>
 
       {isSharing ? (
         <ShareScoreCard
-          score={highScore}
-          multiplier={bestMultiplier}
+          score={shareScore}
+          multiplier={shareMultiplier}
           onClose={() => setIsSharing(false)}
         />
       ) : (
