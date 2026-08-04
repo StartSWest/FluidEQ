@@ -280,13 +280,17 @@ select option {
   width: 100%;
   height: $title-bar-height;
   padding: 7px 12px 7px 18px;
-  border-bottom: 1px solid rgba($primary-lighter, 0.1);
-  background:
-    linear-gradient(180deg, rgba(#101d2a, 0.97), rgba(#071019, 0.95)),
-    rgba($primary-dark, 0.96);
-  box-shadow:
-    inset 0 -1px 0 rgba($white, 0.035),
-    0 12px 32px rgba($black, 0.28);
+  // Sits almost flush with the page rather than as a bar laid over it. The
+  // old surface topped out at #101d2a against a page nearer #061019, which is
+  // a big enough step to read as a separate strip of chrome.
+  //
+  // What is left is a hairline and a shallow shadow, which the bar still needs:
+  // it is fixed and the workspace scrolls underneath, so with nothing at all
+  // the content would appear to slide out of the title text. The blur below is
+  // what keeps that content legible at this opacity, so it has to stay.
+  border-bottom: 1px solid rgba($primary-lighter, 0.05);
+  background: linear-gradient(180deg, rgba(#070f18, 0.82), rgba(#040a11, 0.86));
+  box-shadow: 0 6px 16px rgba($black, 0.1);
   backdrop-filter: blur(20px) saturate(1.25);
   -webkit-app-region: drag;
   -webkit-user-select: none;
