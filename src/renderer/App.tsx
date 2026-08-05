@@ -288,11 +288,7 @@ const AppContent = () => {
             <div className="workspace-header__tagline">{t('app.tagline')}</div>
           </div>
         </div>
-        <WaveformVisualizer
-          onOpenSupport={
-            canShowSupport ? () => setShowSupportDialog(true) : undefined
-          }
-        />
+        <WaveformVisualizer />
         <div className="window-titlebar__right">
           {canShowSupport && (
             <SupportPet

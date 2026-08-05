@@ -2,6 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getStreakJoy } from 'common/rhythmGame';
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import {
+  WaveformStyle,
+  createWaveformShape,
+  nextWaveformStyle,
+} from 'common/waveformStyles';
+import {
   useLiveAudioControl,
   useLiveAudioFrame,
 } from './audio/LiveAudioContext';
@@ -35,6 +40,29 @@ const WAVEFORM_AMPLITUDE_MAX = WAVEFORM_HEIGHT / 2 - 2;
  */
 const NORMALISE_FLOOR = 0.02;
 
+/** Where the chosen meter style is remembered. */
+const WAVEFORM_STYLE_KEY = 'fluideq-waveform-style';
+
+/**
+ * Scale a frame by its own peak, so the shape fills the pane whatever the
+ * volume is set to. Guarded by a floor, or a silent frame divides by almost
+ * nothing and the noise floor arrives at full height.
+ */
+const normalise = (samples: number[]): number[] => {
+  let peak = 0;
+  for (let index = 0; index < samples.length; index += 1) {
+    const magnitude = Math.abs(samples[index]);
+    if (magnitude > peak) {
+      peak = magnitude;
+    }
+  }
+  if (peak <= NORMALISE_FLOOR) {
+    return samples;
+  }
+  const gain = 1 / peak;
+  return samples.map((sample) => sample * gain);
+};
+
 /**
  * How long the distance to the newest measurement takes to halve.
  *
@@ -63,57 +91,6 @@ const SILENCE_DB = -70;
  */
 const PEAK_RELEASE_DB = 1.1;
 
-/**
- * The stroked trace and the closed fill for one frame.
- *
- * Both are returned together because they share the upper edge: the fill is
- * the line plus the mirrored return leg. Deriving one from the other with a
- * regex, as this used to, meant a second full copy of the path string on every
- * frame for no new information.
- */
-export const createWaveformPath = (
-  samples: number[],
-  amplitude = WAVEFORM_AMPLITUDE,
-  normalise = false,
-) => {
-  // A single sample would make the x step divide by zero and emit a NaN path,
-  // which silently blanks the whole visualiser.
-  const visibleSamples =
-    samples.length > 1 ? samples : Array(96).fill(samples[0] ?? 0.04);
-  const center = WAVEFORM_HEIGHT / 2;
-  const step = WAVEFORM_WIDTH / (visibleSamples.length - 1);
-  // Euphoria ignores the volume knob: the frame is scaled by its own peak so
-  // the trace fills the pane whether the music is loud or barely on. Guarded by
-  // a floor, or a silent frame divides by almost nothing and the noise floor
-  // arrives at full height.
-  let gain = 1;
-  if (normalise) {
-    let peak = 0;
-    for (let index = 0; index < visibleSamples.length; index += 1) {
-      const magnitude = Math.abs(visibleSamples[index]);
-      if (magnitude > peak) {
-        peak = magnitude;
-      }
-    }
-    gain = peak > NORMALISE_FLOOR ? 1 / peak : 0;
-  }
-  const upper: string[] = [];
-  const lower: string[] = [];
-  for (let index = 0; index < visibleSamples.length; index += 1) {
-    const x = (index * step).toFixed(1);
-    const offset = visibleSamples[index] * gain * amplitude;
-    upper.push(`${x},${(center - offset).toFixed(1)}`);
-    lower.push(`${x},${(center + offset).toFixed(1)}`);
-  }
-  const line = `M ${upper.join(' L ')}`;
-  // The lower edge as its own line, built before the reverse below consumes the
-  // array. The stroke used to trace only the top, so the mirrored half was a
-  // bare fill with no edge on it — which is exactly where the eye looks when
-  // the trace is symmetrical.
-  const mirror = `M ${lower.join(' L ')}`;
-  return { line, mirror, fill: `${line} L ${lower.reverse().join(' L ')} Z` };
-};
-
 /** Loudest sample in the frame, as dBFS. Undefined when there is silence. */
 export const peakDbOf = (samples: number[]) => {
   const peak = samples.reduce(
@@ -127,15 +104,7 @@ export const peakDbOf = (samples: number[]) => {
   return db > SILENCE_DB ? db : undefined;
 };
 
-interface IWaveformVisualizerProps {
-  /**
-   * Opening the support panel. Only used in euphoria mode, where a click on
-   * the meter is the shortest path back to the thing being celebrated.
-   */
-  onOpenSupport?: () => void;
-}
-
-const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
+const WaveformVisualizer = () => {
   const { t } = useTranslation();
   // Subscribed rather than read from the DOM class the shell sets, so this
   // re-renders when the run changes instead of being told by a stylesheet.
@@ -145,12 +114,13 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
   const isForced = useIsEuphoriaForced();
   const isEuphoric = getStreakJoy(useRhythmRun().streak) >= 1 || isForced;
   const { isClipping, waveform } = useLiveAudioFrame();
-  const { error, isActive, isPaused, togglePaused } = useLiveAudioControl();
+  // `togglePaused` is deliberately not taken. Clicking cycles the meter style
+  // now, so pausing has no trigger here — the analyser is still pausable
+  // through the control context, it simply is not this button any more, and
+  // the support panel it used to open in euphoria is still one click away on
+  // the creature beside it.
+  const { error, isActive, isPaused } = useLiveAudioControl();
 
-  const pauseLabel = isPaused
-    ? 'Resume live output waveform'
-    : 'Pause live output waveform';
-  const euphoriaClick = isEuphoric ? onOpenSupport : undefined;
   // Every sample eased toward the new frame instead of jumping to it.
   //
   // The analyser publishes about twenty-two times a second, which is fast
@@ -167,6 +137,31 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
   // smoothing at the source would round off the very edges it looks for.
   // The newest measurement, and the shape currently drawn chasing it.
   const targetRef = useRef<number[]>([]);
+  // Remembered across launches: which one somebody likes is a preference, and
+  // being handed back a different meter every morning is not charming.
+  const [style, setStyle] = useState<WaveformStyle>(() => {
+    try {
+      return (window.localStorage.getItem(WAVEFORM_STYLE_KEY) ||
+        'line') as WaveformStyle;
+    } catch {
+      return 'line';
+    }
+  });
+  const styleRef = useRef(style);
+  styleRef.current = style;
+
+  const cycleStyle = useCallback(() => {
+    setStyle((current) => {
+      const next = nextWaveformStyle(current);
+      try {
+        window.localStorage.setItem(WAVEFORM_STYLE_KEY, next);
+      } catch {
+        // Not worth failing a click over.
+      }
+      return next;
+    });
+  }, []);
+
   const smoothedRef = useRef<number[]>([]);
   const glowRef = useRef<SVGPathElement>(null);
   const lineRef = useRef<SVGPathElement>(null);
@@ -195,15 +190,24 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
       targetRef.current,
       getEaseFactor(deltaMs, WAVEFORM_HALF_LIFE_MS),
     );
-    const path = createWaveformPath(
-      smoothed,
+    // Normalising is the euphoria behaviour — the trace fills the pane
+    // regardless of the volume knob — and is applied here so every style gets
+    // it rather than each reimplementing it.
+    const scaled = normaliseRef.current ? normalise(smoothed) : smoothed;
+    const shape = createWaveformShape(
+      scaled,
+      styleRef.current,
+      WAVEFORM_WIDTH,
+      WAVEFORM_HEIGHT,
       amplitudeRef.current,
-      normaliseRef.current,
     );
-    glowRef.current?.setAttribute('d', path.line);
-    lineRef.current?.setAttribute('d', path.line);
-    mirrorRef.current?.setAttribute('d', path.mirror);
-    fillRef.current?.setAttribute('d', path.fill);
+    // The same three elements serve all ten styles; a style that does not use
+    // one gives it an empty path, which draws nothing. Nothing is created when
+    // a style is chosen, so nothing has to be destroyed when it is left.
+    glowRef.current?.setAttribute('d', shape.line || shape.fill);
+    lineRef.current?.setAttribute('d', shape.line);
+    mirrorRef.current?.setAttribute('d', shape.mirror);
+    fillRef.current?.setAttribute('d', shape.fill);
     return moving;
   }, []);
 
@@ -269,17 +273,16 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
     <div className="waveform-visualizer-shell">
       <button
         type="button"
-        className={`waveform-visualizer${isActive ? ' is-active' : ''}${
+        className={`waveform-visualizer waveform-visualizer--${style}${isActive ? ' is-active' : ''}${
           isPaused ? ' is-paused' : ''
         }${isClipping ? ' is-clipping' : ''}`}
-        // In euphoria the meter stops being a pause button and becomes the way
-        // back to the panel. Pausing the analyser mid-celebration is the one
-        // thing nobody wants, and the mode is the moment the app has the most
-        // goodwill to spend on an invitation.
-        aria-label={euphoriaClick ? t('support.title') : pauseLabel}
-        aria-pressed={euphoriaClick ? undefined : isPaused}
-        title={euphoriaClick ? t('support.title') : pauseLabel}
-        onClick={euphoriaClick ?? togglePaused}
+        // Says what pressing it does. It used to pause the analyser and, in
+        // euphoria, open the support panel; clicking now walks the meter
+        // through its styles, and a control whose accessible name describes
+        // something it no longer does is worse than one with no name at all.
+        aria-label={t('waveform.style')}
+        title={t('waveform.style')}
+        onClick={cycleStyle}
       >
         <div className="waveform-visualizer__meta">
           <span className="waveform-visualizer__signal">

@@ -300,6 +300,7 @@ const fr: Partial<Dictionary> = {
 
   'language.title': 'Langue',
   'language.aria': 'Langue de l’interface',
+  'waveform.style': "Changer le style de l'indicateur",
 };
 
 export default fr;

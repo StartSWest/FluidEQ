@@ -310,6 +310,7 @@ const en = {
   // *** Language ************************************************************
   'language.title': 'Language',
   'language.aria': 'Interface language',
+  'waveform.style': 'Change the meter style',
 } as const;
 
 export type TranslationKey = keyof typeof en;

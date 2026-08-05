@@ -205,3 +205,52 @@
     display: none;
   }
 }
+
+// *** Meter styles **********************************************************
+//
+// Ten ways to draw the same measurements, cycled by clicking the meter.
+//
+// Every one is built from the SAME three paths — the geometry changes, the
+// element count never does. A bar chart made of ninety-six rectangles would be
+// ninety-six elements to create on entering a style and destroy on leaving it,
+// and cycling would churn the DOM each time; as subpaths there is nothing to
+// create and so nothing to clean up.
+//
+// What is left here is only what CSS has to say: which of the three paths a
+// style paints with, and how.
+
+// Solid rather than gradient-filled: bars, dots, spikes and blocks are made of
+// separate pieces, and a gradient across the whole figure washes the quiet
+// ones out entirely.
+.waveform-visualizer--bars,
+.waveform-visualizer--mirror-bars,
+.waveform-visualizer--dots,
+.waveform-visualizer--blocks {
+  .waveform-visualizer__fill {
+    fill: url('#waveform-line');
+    opacity: 0.85;
+  }
+}
+
+.waveform-visualizer--spikes .waveform-visualizer__fill {
+  fill: url('#waveform-line');
+  opacity: 0.62;
+}
+
+// The body without an edge, so it reads as a shape rather than a trace.
+.waveform-visualizer--ribbon .waveform-visualizer__fill {
+  fill: url('#waveform-line');
+  opacity: 0.5;
+}
+
+// A comb of verticals, drawn by the line path rather than filled.
+.waveform-visualizer--lattice .waveform-visualizer__line {
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+// One edge, thicker, because it is carrying the whole picture alone.
+.waveform-visualizer--outline .waveform-visualizer__line {
+  stroke-width: 2.4;
+}

@@ -285,6 +285,7 @@ const zh: Partial<Dictionary> = {
 
   'language.title': '语言',
   'language.aria': '界面语言',
+  'waveform.style': '更换指示器样式',
 };
 
 export default zh;

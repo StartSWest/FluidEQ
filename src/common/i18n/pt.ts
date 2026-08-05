@@ -298,6 +298,7 @@ const pt: Partial<Dictionary> = {
 
   'language.title': 'Idioma',
   'language.aria': 'Idioma da interface',
+  'waveform.style': 'Mudar o estilo do medidor',
 };
 
 export default pt;

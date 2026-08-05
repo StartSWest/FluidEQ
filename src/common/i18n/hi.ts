@@ -303,6 +303,7 @@ const hi: Partial<Dictionary> = {
 
   'language.title': 'भाषा',
   'language.aria': 'इंटरफ़ेस की भाषा',
+  'waveform.style': 'मीटर की शैली बदलें',
 };
 
 export default hi;

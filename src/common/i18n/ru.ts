@@ -298,6 +298,7 @@ const ru: Partial<Dictionary> = {
 
   'language.title': 'Язык',
   'language.aria': 'Язык интерфейса',
+  'waveform.style': 'Сменить стиль индикатора',
 };
 
 export default ru;

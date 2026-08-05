@@ -298,6 +298,7 @@ const ja: Partial<Dictionary> = {
 
   'language.title': '言語',
   'language.aria': '表示言語',
+  'waveform.style': 'メーターのスタイルを変更',
 };
 
 export default ja;

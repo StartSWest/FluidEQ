@@ -300,6 +300,7 @@ const de: Partial<Dictionary> = {
 
   'language.title': 'Sprache',
   'language.aria': 'Sprache der Oberfläche',
+  'waveform.style': 'Stil der Anzeige wechseln',
 };
 
 export default de;
