@@ -126,6 +126,25 @@ const fr: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ retient l’identifiant stable du périphérique : ce son le suit chaque fois que Windows le sélectionne.',
 
+  'extraOutput.eyebrow': 'JOUE À DEUX ENDROITS',
+  'extraOutput.title': 'Deuxième sortie',
+  'extraOutput.target': 'Dupliquer vers',
+  'extraOutput.off': 'Désactivé',
+  'extraOutput.none': 'Aucune autre sortie trouvée',
+  'extraOutput.active': 'DUPLICATION',
+  'extraOutput.latency':
+    'Le son dupliqué arrive avec environ un cinquième de seconde de retard. Parfait pour de la musique dans une autre pièce, inutilisable pour la vidéo ou les jeux, et un écho si vous entendez les deux à la fois.',
+  'extraOutput.virtual':
+    'Un pilote de routage est installé. Dirigez vos applications vers lui et les deux sorties restent synchronisées, puis donnez à chacune son propre profil ci-dessus.',
+  'extraOutput.ambiguous':
+    'Deux sorties portent ce nom, FluidEQ ne peut donc pas savoir laquelle vous visez. Renommez-en une dans les paramètres de son de Windows.',
+  'extraOutput.unmatched':
+    'Windows liste cette sortie mais FluidEQ ne peut pas l’atteindre, la duplication vers elle est donc impossible.',
+  'extraOutput.labelsHidden':
+    'FluidEQ ne peut pas encore lire le nom des sorties et ne peut donc pas les associer. Autorisez l’accès au microphone pour FluidEQ puis rouvrez ce panneau.',
+  'extraOutput.hint':
+    'La duplication joue ce que vous entendez déjà sur un second appareil. Elle ne fonctionne que tant que FluidEQ est ouvert.',
+
   'driver.eyebrow': 'CE AVEC QUOI VOUS ÉCOUTEZ',
   'driver.title': 'Type de transducteur',
   'driver.none': 'Sans compensation',

@@ -125,6 +125,25 @@ const de: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ merkt sich die feste Geräte-ID, dieser Klang folgt dem Gerät also immer, wenn Windows es auswählt.',
 
+  'extraOutput.eyebrow': 'SPIELT AN ZWEI ORTEN',
+  'extraOutput.title': 'Zweite Ausgabe',
+  'extraOutput.target': 'Spiegeln auf',
+  'extraOutput.off': 'Aus',
+  'extraOutput.none': 'Keine weiteren Ausgänge gefunden',
+  'extraOutput.active': 'SPIEGELT',
+  'extraOutput.latency':
+    'Der gespiegelte Ton kommt etwa eine Fünftelsekunde später an. Für Musik in einem anderen Raum in Ordnung, für Video oder Spiele unbrauchbar, und ein Echo, wenn Sie beides gleichzeitig hören.',
+  'extraOutput.virtual':
+    'Ein Routing-Treiber ist installiert. Richten Sie Ihre Anwendungen darauf aus, dann bleiben beide Ausgänge synchron, und geben Sie jedem oben sein eigenes Profil.',
+  'extraOutput.ambiguous':
+    'Zwei Ausgänge tragen denselben Namen, deshalb kann FluidEQ sie nicht unterscheiden. Benennen Sie einen in den Windows-Soundeinstellungen um.',
+  'extraOutput.unmatched':
+    'Windows führt diesen Ausgang auf, FluidEQ erreicht ihn aber nicht, deshalb ist Spiegeln darauf nicht möglich.',
+  'extraOutput.labelsHidden':
+    'FluidEQ kann die Namen der Ausgänge noch nicht lesen und sie deshalb nicht zuordnen. Erlauben Sie FluidEQ den Mikrofonzugriff und öffnen Sie diesen Bereich erneut.',
+  'extraOutput.hint':
+    'Beim Spiegeln wird das, was Sie bereits hören, zusätzlich auf einem zweiten Gerät ausgegeben. Es läuft nur, solange FluidEQ geöffnet ist.',
+
   'driver.eyebrow': 'WOMIT SIE HÖREN',
   'driver.title': 'Treibertyp',
   'driver.none': 'Keine Korrektur',

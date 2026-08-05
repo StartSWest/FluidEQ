@@ -126,6 +126,25 @@ const pt: Partial<Dictionary> = {
   'output.hint':
     'O FluidEQ usa o identificador estável do dispositivo, então este som o acompanha sempre que o Windows o seleciona.',
 
+  'extraOutput.eyebrow': 'TOCA EM DOIS LUGARES',
+  'extraOutput.title': 'Segunda saída',
+  'extraOutput.target': 'Espelhar em',
+  'extraOutput.off': 'Desligado',
+  'extraOutput.none': 'Nenhuma outra saída encontrada',
+  'extraOutput.active': 'ESPELHANDO',
+  'extraOutput.latency':
+    'O som espelhado chega cerca de um quinto de segundo depois. Serve para música em outro cômodo, é inútil para vídeo ou jogos, e vira eco se você ouvir as duas ao mesmo tempo.',
+  'extraOutput.virtual':
+    'Há um driver de roteamento instalado. Aponte seus aplicativos para ele e as duas saídas ficam em sincronia; depois dê a cada uma o seu próprio perfil acima.',
+  'extraOutput.ambiguous':
+    'Duas saídas têm este mesmo nome, então o FluidEQ não consegue saber qual você quer. Renomeie uma nas configurações de som do Windows.',
+  'extraOutput.unmatched':
+    'O Windows lista esta saída, mas o FluidEQ não consegue alcançá-la, então não dá para espelhar nela.',
+  'extraOutput.labelsHidden':
+    'O FluidEQ ainda não consegue ler os nomes das saídas e por isso não consegue combiná-las. Permita o acesso ao microfone para o FluidEQ e abra este painel de novo.',
+  'extraOutput.hint':
+    'O espelhamento toca o que você já ouve em um segundo dispositivo. Funciona apenas enquanto o FluidEQ está aberto.',
+
   'driver.eyebrow': 'NO QUE VOCÊ OUVE',
   'driver.title': 'Tipo de driver',
   'driver.none': 'Sem compensação',

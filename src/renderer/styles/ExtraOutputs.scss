@@ -1,0 +1,51 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023> <AQUA Dev Team>
+Copyright (C) <2026> <FluidEQ multiple-output contributors>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// Label and picker travel together as the section's summary, so folding the
+// section keeps the control you came to change on screen.
+.extra-outputs__picker {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+// Why the chosen output cannot be used, and what to do about it. Warmer than
+// the hint because it is the difference between the feature working and not.
+.extra-outputs__obstacle {
+  margin: 4px 0 0;
+  color: $red;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+// The honest cost of the mirror. Deliberately not styled as an error: it is
+// working exactly as intended, and for music in another room it is fine.
+.extra-outputs__latency {
+  margin: 4px 0 0;
+  color: $neon-yellow;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.extra-outputs__virtual {
+  margin: 4px 0 0;
+  color: $secondary-light;
+  font-size: 0.68rem;
+  line-height: 1.35;
+}
+
+.extra-outputs__hint {
+  margin: 2px 0 0;
+  color: $text-muted;
+  font-size: 0.66rem;
+  line-height: 1.35;
+}

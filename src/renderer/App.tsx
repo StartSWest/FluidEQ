@@ -71,6 +71,7 @@ import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import PresetsBar from './PresetsBar';
 import AutoEQPanel from './AutoEQPanel';
 import DeviceProfiles from './DeviceProfiles';
+import ExtraOutputs from './ExtraOutputs';
 import DriverPicker from './components/DriverPicker';
 import WaveformVisualizer from './WaveformVisualizer';
 import ConvolutionPanel from './ConvolutionPanel';
@@ -1235,6 +1236,10 @@ const AppContent = () => {
         </div>
         <div className="right-content">
           <DeviceProfiles />
+          {/* Directly under the output picker: it is the same question asked
+              twice over — that one chooses where the sound goes, this one
+              adds a second somewhere. */}
+          <ExtraOutputs />
           {/* Sits with the output device because it answers the same question:
               what is this sound coming out of. */}
           <DriverPicker />

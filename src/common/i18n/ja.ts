@@ -123,6 +123,25 @@ const ja: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ はデバイスの固定 ID を記録するため、Windows がその機器を選ぶたびにこの音が付いてきます。',
 
+  'extraOutput.eyebrow': '2 か所で鳴らす',
+  'extraOutput.title': '2 つめの出力',
+  'extraOutput.target': 'ミラー先',
+  'extraOutput.off': 'オフ',
+  'extraOutput.none': 'ほかの出力が見つかりません',
+  'extraOutput.active': 'ミラー中',
+  'extraOutput.latency':
+    'ミラーした音は約 5 分の 1 秒遅れて届きます。別の部屋で音楽を鳴らすには十分ですが、動画やゲームには使えません。両方が同時に聞こえる場所ではエコーになります。',
+  'extraOutput.virtual':
+    'ルーティング用ドライバーが入っています。アプリの出力先をそちらに向ければ両方の出力がずれません。その上で、上の設定で各出力に個別のプロファイルを割り当ててください。',
+  'extraOutput.ambiguous':
+    '同じ名前の出力が 2 つあるため、FluidEQ はどちらを指しているか判断できません。Windows のサウンド設定で片方の名前を変更してください。',
+  'extraOutput.unmatched':
+    'Windows はこの出力を表示していますが、FluidEQ からは届かないためミラーできません。',
+  'extraOutput.labelsHidden':
+    'FluidEQ はまだ出力の名前を読み取れないため、照合できません。FluidEQ にマイクへのアクセスを許可して、このパネルを開き直してください。',
+  'extraOutput.hint':
+    'ミラーは、いま聞こえている音をもう 1 台の機器からも鳴らします。FluidEQ を開いている間だけ動作します。',
+
   'driver.eyebrow': '何で聴いているか',
   'driver.title': 'ドライバー種別',
   'driver.none': '補正なし',

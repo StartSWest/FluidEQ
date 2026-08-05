@@ -116,6 +116,25 @@ const zh: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ 记录设备的固定标识，因此只要 Windows 选中该设备，这套声音就会跟着走。',
 
+  'extraOutput.eyebrow': '同时在两处播放',
+  'extraOutput.title': '第二路输出',
+  'extraOutput.target': '镜像到',
+  'extraOutput.off': '关闭',
+  'extraOutput.none': '未找到其他输出',
+  'extraOutput.active': '镜像中',
+  'extraOutput.latency':
+    '镜像的声音大约会晚五分之一秒。在另一个房间放音乐没问题，用于视频或游戏则不可用；若两边同时听得见，会有回声。',
+  'extraOutput.virtual':
+    '系统里已装有路由驱动。把应用的输出指向它，两路输出就能保持同步；然后在上面给每一路各自的配置。',
+  'extraOutput.ambiguous':
+    '有两个输出同名，FluidEQ 无法判断你指的是哪一个。请在 Windows 声音设置中重命名其中一个。',
+  'extraOutput.unmatched':
+    'Windows 列出了这个输出，但 FluidEQ 无法访问它，因此不能镜像到它。',
+  'extraOutput.labelsHidden':
+    'FluidEQ 还读不到输出的名称，因此无法匹配。请允许 FluidEQ 使用麦克风，然后重新打开此面板。',
+  'extraOutput.hint':
+    '镜像会把你已经听到的声音同时送到第二台设备。只有 FluidEQ 打开时才有效。',
+
   'driver.eyebrow': '你用什么在听',
   'driver.title': '单元类型',
   'driver.none': '不做补偿',

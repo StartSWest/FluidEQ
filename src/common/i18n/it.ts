@@ -125,6 +125,25 @@ const it: Partial<Dictionary> = {
   'output.hint':
     'FluidEQ usa l’identificativo stabile del dispositivo, così questo suono lo segue ogni volta che Windows lo seleziona.',
 
+  'extraOutput.eyebrow': 'SUONA IN DUE POSTI',
+  'extraOutput.title': 'Seconda uscita',
+  'extraOutput.target': 'Duplica su',
+  'extraOutput.off': 'Disattivato',
+  'extraOutput.none': 'Nessun’altra uscita trovata',
+  'extraOutput.active': 'IN DUPLICAZIONE',
+  'extraOutput.latency':
+    'Il suono duplicato arriva con circa un quinto di secondo di ritardo. Va bene per la musica in un’altra stanza, inutilizzabile per video o giochi, ed è un’eco se le senti entrambe insieme.',
+  'extraOutput.virtual':
+    'È installato un driver di routing. Punta le tue applicazioni su di esso e le due uscite restano sincronizzate, poi assegna a ciascuna il suo profilo qui sopra.',
+  'extraOutput.ambiguous':
+    'Due uscite hanno lo stesso nome, quindi FluidEQ non può capire quale intendi. Rinominane una nelle impostazioni audio di Windows.',
+  'extraOutput.unmatched':
+    'Windows elenca questa uscita ma FluidEQ non riesce a raggiungerla, quindi non è possibile duplicare su di essa.',
+  'extraOutput.labelsHidden':
+    'FluidEQ non riesce ancora a leggere i nomi delle uscite, quindi non può abbinarle. Consenti a FluidEQ l’accesso al microfono e riapri questo pannello.',
+  'extraOutput.hint':
+    'La duplicazione riproduce ciò che già senti su un secondo dispositivo. Funziona solo mentre FluidEQ è aperto.',
+
   'driver.eyebrow': 'CON COSA ASCOLTI',
   'driver.title': 'Tipo di driver',
   'driver.none': 'Nessuna compensazione',

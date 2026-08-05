@@ -170,6 +170,26 @@ const en = {
   'output.hint':
     'FluidEQ maps the stable endpoint ID, so this sound follows the device whenever Windows selects it.',
 
+  // *** Extra outputs section ***********************************************
+  'extraOutput.eyebrow': 'PLAYS IN TWO PLACES',
+  'extraOutput.title': 'Second output',
+  'extraOutput.target': 'Mirror to',
+  'extraOutput.off': 'Off',
+  'extraOutput.none': 'No other outputs found',
+  'extraOutput.active': 'MIRRORING',
+  'extraOutput.latency':
+    'Mirrored sound arrives about a fifth of a second late. Fine for music in another room, unusable for video or games, and an echo if you can hear both at once.',
+  'extraOutput.virtual':
+    'A routing driver is installed. Point your applications at it and both outputs stay in sync, then give each one its own profile above.',
+  'extraOutput.ambiguous':
+    'Two outputs share this name, so FluidEQ cannot tell which one you mean. Rename one in Windows sound settings.',
+  'extraOutput.unmatched':
+    'Windows lists this output but FluidEQ cannot reach it, so it cannot be mirrored to.',
+  'extraOutput.labelsHidden':
+    'FluidEQ cannot read the output names yet, so it cannot match them. Allow microphone access for FluidEQ and reopen this panel.',
+  'extraOutput.hint':
+    'Mirroring plays what you already hear out of a second device. It runs only while FluidEQ is open.',
+
   // *** Driver section ******************************************************
   'driver.eyebrow': 'WHAT YOU LISTEN ON',
   'driver.title': 'Driver type',
