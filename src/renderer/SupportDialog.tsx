@@ -29,7 +29,9 @@ import {
   getSupportCryptos,
   getSupportMethods,
 } from 'common/support';
-import { winEuphoria } from './utils/euphoriaMode';
+import { getStreakJoy } from 'common/rhythmGame';
+import { useIsEuphoric, winEuphoria } from './utils/euphoriaMode';
+import { useRhythmRun } from './utils/rhythmRun';
 import supportQrImage from '../../assets/support-qr.png';
 import QrCode from './components/QrCode';
 import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
@@ -103,6 +105,10 @@ export default function SupportDialog({
 }: ISupportDialogProps) {
   const { t } = useTranslation();
   const methods = getSupportMethods();
+  // Read here as well as in the game, because the banner belongs to the panel
+  // rather than to the trace — the same one line the titlebar meter uses, so
+  // the two cannot disagree about whether the mode is on.
+  const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
   const dialogRef = useRef<HTMLDivElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const copyResetRef = useRef<ReturnType<typeof setTimeout> | undefined>(
@@ -288,185 +294,214 @@ export default function SupportDialog({
         ref={dialogRef}
         // The game changes the header's job. Without it the creature is a mark
         // beside a title; with it she is the thing being aimed, and she has to
-        // sit over the line she is jumping.
+        // sit over the line she is jumping. It also earns the panel a second
+        // column wherever there is width for one — see Support.scss.
         className={`support-dialog${hasContributed ? ' support-dialog--game' : ''}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="support-dialog-title"
       >
-        <div className="support-dialog__header">
-          <div className="support-dialog__identity">
-            {/* A button only for supporters: without the badge there is
+        {/* Outside the scrolling area, and first in the panel.
+            It used to live in the header, and the header scrolls — so on any
+            window short enough to need a scrollbar the way out of the dialog
+            slid off the top edge the moment anyone scrolled down to read the
+            rest of it, leaving Escape and the backdrop as the only exits. */}
+        <button
+          ref={closeRef}
+          type="button"
+          className="support-dialog__close"
+          aria-label={t('support.close')}
+          onClick={onClose}
+        >
+          <svg viewBox="0 0 12 12" aria-hidden="true">
+            <path d="M3 3l6 6M9 3l-6 6" />
+          </svg>
+        </button>
+
+        {/* Everything that scrolls, which is everything except the way out. */}
+        <div className="support-dialog__scroll">
+          {/* Euphoria, announced across the whole panel.
+              A row of its own above both columns rather than a tag in the
+              corner of the trace: the mode is not something the waveform is
+              doing, it is what the entire window is doing, and the badge for it
+              should be the first thing read rather than the thing sitting on
+              top of the picture it describes. */}
+          {isEuphoric && (
+            <span className="euphoria-pill support-dialog__mode">
+              {t('support.game.euphoria')}
+            </span>
+          )}
+          {/* The creature, her title, and the thing she is jumping. Grouped
+              because the two travel together into the left column when the
+              panel splits, and the trace has to stay directly under her. */}
+          <div className="support-dialog__stage">
+            <div className="support-dialog__header">
+              <div className="support-dialog__identity">
+                {/* A button only for supporters: without the badge there is
                 nothing to press, and a control that does nothing is worse
                 than no control. Clicking does what space does, since space
                 is standing in for the click. */}
-            {hasContributed ? (
-              <button
-                type="button"
-                className={`support-pet-tap${petHopClass}${mood ? ` is-${mood}` : ''}`}
-                aria-label={t('support.petHint')}
-                // Pointer *down*, not click. A click fires on release, so the
-                // bounce would lag the press by however long the button was
-                // held — useless for tapping in time, and it is meant to feel
-                // identical to hitting space.
-                onPointerDown={bouncePet}
-                // The pointer path never reaches a keyboard user, and space is
-                // handled globally for the whole dialog, so Enter is the only
-                // gap left.
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    bouncePet();
-                  }
-                }}
-              >
-                <SupportPetHero hasContributed={hasContributed} />
-              </button>
-            ) : (
-              <SupportPetHero hasContributed={hasContributed} />
-            )}
-            <div>
-              <span className="eyebrow">{t('support.eyebrow')}</span>
-              <h2 id="support-dialog-title">{t('support.title')}</h2>
-            </div>
-          </div>
-          <button
-            ref={closeRef}
-            type="button"
-            className="support-dialog__close"
-            aria-label={t('support.close')}
-            onClick={onClose}
-          >
-            <svg viewBox="0 0 12 12" aria-hidden="true">
-              <path d="M3 3l6 6M9 3l-6 6" />
-            </svg>
-          </button>
-        </div>
-
-        {/* Below the header rather than inside it: the header is a row with the
-            close button, and the heartbeat needs the full width for the spike
-            to have somewhere to travel. Supporters only, like everything else
-            the creature does. */}
-        {hasContributed && <RhythmGame ref={gameRef} />}
-
-        <p className="support-dialog__pitch">{t('support.pitch')}</p>
-
-        {/* Said plainly rather than implied. Someone deciding whether to
-            contribute is entitled to know what they would be funding, and the
-            answer here is one person's attention rather than a company's
-            roadmap. */}
-        <p className="support-dialog__craft">{t('support.craft')}</p>
-
-        <div className="support-dialog__methods">
-          {hasStripe && (
-            <a
-              className="support-method support-method--primary"
-              href={SUPPORT_CONFIG.stripeUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              <span className="support-method__label">{t('support.card')}</span>
-              <span className="support-method__hint">
-                {t('support.card.hint')}
-              </span>
-            </a>
-          )}
-
-          {hasCoffee && (
-            <a
-              className="support-method support-method--primary support-method--qr"
-              href={SUPPORT_CONFIG.coffeeUrl}
-              target="_blank"
-              rel="noreferrer noopener"
-            >
-              <div className="support-method__text">
-                <span className="support-method__label">
-                  {t('support.coffee')}
-                </span>
-                <span className="support-method__hint">
-                  {t('support.coffee.hint')}
-                </span>
+                {hasContributed ? (
+                  <button
+                    type="button"
+                    className={`support-pet-tap${petHopClass}${mood ? ` is-${mood}` : ''}`}
+                    aria-label={t('support.petHint')}
+                    // Pointer *down*, not click. A click fires on release, so the
+                    // bounce would lag the press by however long the button was
+                    // held — useless for tapping in time, and it is meant to feel
+                    // identical to hitting space.
+                    onPointerDown={bouncePet}
+                    // The pointer path never reaches a keyboard user, and space is
+                    // handled globally for the whole dialog, so Enter is the only
+                    // gap left.
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        bouncePet();
+                      }
+                    }}
+                  >
+                    <SupportPetHero hasContributed={hasContributed} />
+                  </button>
+                ) : (
+                  <SupportPetHero hasContributed={hasContributed} />
+                )}
+                <div>
+                  <span className="eyebrow">{t('support.eyebrow')}</span>
+                  <h2 id="support-dialog-title">{t('support.title')}</h2>
+                </div>
               </div>
-              {/* The artwork ships with the app rather than being generated,
+            </div>
+
+            {/* Below the header rather than inside it: the heartbeat needs the
+                full width of the column for the spike to have somewhere to
+                travel. Supporters only, like everything else the creature
+                does. */}
+            {hasContributed && <RhythmGame ref={gameRef} />}
+          </div>
+
+          {/* The ask, and the second column when there is one. */}
+          <div className="support-dialog__ask">
+            <p className="support-dialog__pitch">{t('support.pitch')}</p>
+
+            {/* Said plainly rather than implied. Someone deciding whether to
+                contribute is entitled to know what they would be funding, and
+                the answer here is one person's attention rather than a
+                company's roadmap. */}
+            <p className="support-dialog__craft">{t('support.craft')}</p>
+
+            <div className="support-dialog__methods">
+              {hasStripe && (
+                <a
+                  className="support-method support-method--primary"
+                  href={SUPPORT_CONFIG.stripeUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  <span className="support-method__label">
+                    {t('support.card')}
+                  </span>
+                  <span className="support-method__hint">
+                    {t('support.card.hint')}
+                  </span>
+                </a>
+              )}
+
+              {hasCoffee && (
+                <a
+                  className="support-method support-method--primary support-method--qr"
+                  href={SUPPORT_CONFIG.coffeeUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  <div className="support-method__text">
+                    <span className="support-method__label">
+                      {t('support.coffee')}
+                    </span>
+                    <span className="support-method__hint">
+                      {t('support.coffee.hint')}
+                    </span>
+                  </div>
+                  {/* The artwork ships with the app rather than being generated,
                   so the branded code from Buy Me a Coffee is what people scan.
                   It is therefore pinned to whatever page it was made for — if
                   FLUIDEQ_COFFEE_URL ever changes, replace this file too. */}
-              <img
-                className="qr-code"
-                src={supportQrImage}
-                alt="QR code for the Buy me a coffee page"
-                width={168}
-                height={168}
-              />
-            </a>
-          )}
+                  <img
+                    className="qr-code"
+                    src={supportQrImage}
+                    alt="QR code for the Buy me a coffee page"
+                    width={168}
+                    height={168}
+                  />
+                </a>
+              )}
 
-          {cryptos.map(({ asset, address, uri }) => (
-            <div
-              className={`support-method${uri ? ' support-method--qr' : ''}`}
-              key={asset.id}
-            >
-              <div className="support-method__text">
-                <span className="support-method__label">
-                  {asset.name}
-                  <em>{asset.symbol}</em>
-                </span>
-                {/* The network is called out because several of these share an
+              {cryptos.map(({ asset, address, uri }) => (
+                <div
+                  className={`support-method${uri ? ' support-method--qr' : ''}`}
+                  key={asset.id}
+                >
+                  <div className="support-method__text">
+                    <span className="support-method__label">
+                      {asset.name}
+                      <em>{asset.symbol}</em>
+                    </span>
+                    {/* The network is called out because several of these share an
                     address format, and sending on the wrong one loses the
                     funds with no way to recover them. */}
-                <span className="support-method__hint">
-                  {asset.network}. {t('support.verify')}
-                </span>
-              </div>
-              {/* Scanning the URI beats retyping 40-odd characters, and the
+                    <span className="support-method__hint">
+                      {asset.network}. {t('support.verify')}
+                    </span>
+                  </div>
+                  {/* Scanning the URI beats retyping 40-odd characters, and the
                   code is generated from the same string shown below it. */}
-              {uri && (
-                <QrCode
-                  value={uri}
-                  label={`QR code for the ${asset.name} address`}
-                  size={168}
-                />
-              )}
-              <code className="support-method__address">{address}</code>
-              <div className="support-method__actions">
-                <button
-                  type="button"
-                  className="support-method__action"
-                  onClick={() => handleCopyAddress(asset.id, address)}
-                >
-                  {copiedId === asset.id
-                    ? t('support.copied')
-                    : t('support.copy')}
-                </button>
-                {uri && (
-                  <a
-                    className="support-method__action"
-                    href={uri}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                  >
-                    {t('support.openWallet')}
-                  </a>
-                )}
-              </div>
+                  {uri && (
+                    <QrCode
+                      value={uri}
+                      label={`QR code for the ${asset.name} address`}
+                      size={168}
+                    />
+                  )}
+                  <code className="support-method__address">{address}</code>
+                  <div className="support-method__actions">
+                    <button
+                      type="button"
+                      className="support-method__action"
+                      onClick={() => handleCopyAddress(asset.id, address)}
+                    >
+                      {copiedId === asset.id
+                        ? t('support.copied')
+                        : t('support.copy')}
+                    </button>
+                    {uri && (
+                      <a
+                        className="support-method__action"
+                        href={uri}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                      >
+                        {t('support.openWallet')}
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Self-declared, and honest about it: the app cannot see a Payment
+            {/* Self-declared, and honest about it: the app cannot see a Payment
             Link checkout or an on-chain transfer, so this is the user telling
             us. It only ever adds something, which is why an unverifiable
             claim is harmless here. */}
-        {hasContributed ? (
-          <p className="support-dialog__thanks">
-            {t('support.thanks')}
-            {/* Untranslated on purpose. Every other string here is in ten
+            {hasContributed ? (
+              <p className="support-dialog__thanks">
+                {t('support.thanks')}
+                {/* Untranslated on purpose. Every other string here is in ten
                 locales and a test enforces that; a debug affordance that
                 never ships would mean ten translations of something no user
                 will read. */}
-            {IS_DEV && (
-              <>
-                {/* Thirty-six consecutive perfect taps is the right price for
+                {IS_DEV && (
+                  <>
+                    {/* Thirty-six consecutive perfect taps is the right price for
                     euphoria mode and the wrong price for LOOKING at it. Every
                     change to the rainbow — the bands, the graph trace, the
                     titlebar meter, the share card — otherwise costs a flawless
@@ -477,58 +512,67 @@ export default function SupportDialog({
                     run, which meant the shortcut invented points nobody played
                     for — and left the share card showing a number that had
                     never been earned. The score belongs to the player. */}
-                <button
-                  type="button"
-                  className="support-dialog__dev-reset"
-                  title="Development build only — switches euphoria mode on without playing for it"
-                  onClick={winEuphoria}
-                >
-                  dev: euphoria
-                </button>
-                <button
-                  type="button"
-                  className="support-dialog__dev-reset"
-                  title="Development build only — clears the contributed flag"
-                  onClick={onResetContribution}
-                >
-                  dev: remove badge
-                </button>
-              </>
+                    <button
+                      type="button"
+                      className="support-dialog__dev-reset"
+                      title="Development build only — switches euphoria mode on without playing for it"
+                      onClick={winEuphoria}
+                    >
+                      dev: euphoria
+                    </button>
+                    <button
+                      type="button"
+                      className="support-dialog__dev-reset"
+                      title="Development build only — clears the contributed flag"
+                      onClick={onResetContribution}
+                    >
+                      dev: remove badge
+                    </button>
+                  </>
+                )}
+              </p>
+            ) : (
+              <button
+                type="button"
+                className="support-dialog__contributed"
+                disabled={isEarning}
+                onClick={earnBadge}
+              >
+                {t('support.contributed')}
+              </button>
             )}
-          </p>
-        ) : (
-          <button
-            type="button"
-            className="support-dialog__contributed"
-            disabled={isEarning}
-            onClick={earnBadge}
-          >
-            {t('support.contributed')}
-          </button>
-        )}
 
-        {/* What the last version changed, one click away. Someone weighing
-            up a contribution is entitled to see what the money has been
-            producing. */}
-        <button
-          type="button"
-          className="support-dialog__notes"
-          onClick={onShowReleaseNotes}
-        >
-          {t('support.releaseNotes')}
-        </button>
+            {/* The two quiet lines at the bottom share a row.
+                Stacked, they were two separate bands and a rule for what
+                amounts to one sentence of housekeeping, in a panel with no
+                vertical space to spare. They wrap back into a stack whenever
+                the column is too narrow to hold both. */}
+            <div className="support-dialog__links">
+              {/* What the last version changed, one click away. Someone
+                  weighing up a contribution is entitled to see what the money
+                  has been producing. */}
+              <button
+                type="button"
+                className="support-dialog__notes"
+                onClick={onShowReleaseNotes}
+              >
+                {t('support.releaseNotes')}
+              </button>
 
-        <p className="support-dialog__footer">
-          {t('support.footerBefore')}{' '}
-          <a
-            href={SUPPORT_CONFIG.repositoryUrl}
-            target="_blank"
-            rel="noreferrer noopener"
-          >
-            GitHub
-          </a>
-          .
-        </p>
+              <p className="support-dialog__footer">
+                {t('support.footerBefore')}{' '}
+                <a
+                  href={SUPPORT_CONFIG.repositoryUrl}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                >
+                  GitHub
+                </a>
+                .
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* The moment itself, and a sibling of the panel rather than a child of

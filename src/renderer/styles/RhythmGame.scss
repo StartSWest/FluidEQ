@@ -134,19 +134,6 @@ it under the terms of the GNU General Public License version 3 or later.
   white-space: nowrap;
 }
 
-// The badge, in the corner of the thing it names.
-//
-// Above the wave and above the target line, and inset far enough that its own
-// glow does not touch the frame — the trace clips its overflow, so anything
-// pressed against the edge gets sliced flat.
-.rhythm-game__mode {
-  position: absolute;
-  z-index: 3;
-  top: 6px;
-  right: 8px;
-  pointer-events: none;
-}
-
 // The frame. Nothing escapes it — a glow spilling onto the text above and
 // below drew more attention than the trace itself.
 //

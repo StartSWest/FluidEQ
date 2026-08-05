@@ -473,6 +473,46 @@ $pet-hop-duration: 520ms;
   border: 0;
   cursor: default;
 
+  // The light behind her. Kept small on purpose.
+  //
+  // Two earlier attempts were both wrong in the same direction. An ellipse
+  // under her feet read as a puddle she was standing in, and this creature does
+  // not stand anywhere — she hops. A wide aura then lit half the panel, which
+  // is the failure mode of every glow: at that size it stops being light coming
+  // off her and becomes a fog she happens to be inside.
+  //
+  // So it is barely wider than she is, and most of what is seen is the falloff.
+  // It grows a little with `--pet-joy`, because the run is what it is reacting
+  // to, but the range is deliberately narrow.
+  //
+  // A background rather than another `drop-shadow` on the art: a filter tracks
+  // the drawn shape — every ear, and every gap between them — and what is
+  // wanted is one round bloom, not a creature-shaped outline of one.
+  //
+  // `z-index: -1` puts it behind her. The element has no background of its own
+  // to hide behind, so it lands on the panel's surface where it belongs.
+  &::before {
+    position: absolute;
+    z-index: -1;
+    top: 50%;
+    left: 50%;
+    width: calc(126px + var(--pet-joy, 0) * 22px);
+    height: calc(126px + var(--pet-joy, 0) * 22px);
+    border-radius: 50%;
+    background: radial-gradient(
+      circle at 50% 50%,
+      rgba($secondary-light, calc(0.16 + var(--pet-joy, 0) * 0.22)),
+      transparent 66%
+    );
+    content: '';
+    translate: -50% -50%;
+    pointer-events: none;
+    transition:
+      width 260ms ease-out,
+      height 260ms ease-out,
+      background 260ms ease-out;
+  }
+
   .support-pet__art {
     width: 126px;
     height: 126px;
@@ -482,6 +522,37 @@ $pet-hop-duration: 520ms;
   &:focus-visible {
     border-color: transparent;
     background: transparent;
+  }
+}
+
+// At the ceiling the bloom turns rainbow, and turns.
+//
+// The same five stops the trace, the bands and the share card run, wrapped back
+// to the first so the ring closes with no seam. Blurred rather than drawn as a
+// sharp conic: unblurred it is a colour wheel — a graphic sitting behind her —
+// and blurred it is light coming off her, which is the whole difference.
+//
+// The spin is slow and the opacity is low, because this is behind the one thing
+// in the panel people are meant to look at. `rotate` is composited, so a ring
+// turning forever costs nothing to keep on screen.
+.is-euphoric .support-pet--hero::before {
+  background: conic-gradient(
+    from 0deg,
+    #00e5ff,
+    #54ff8a,
+    #ffe66d,
+    #ff3cac,
+    #8b5cff,
+    #00e5ff
+  );
+  opacity: 0.5;
+  animation: pet-aura-spin 8s linear infinite;
+  filter: blur(13px);
+}
+
+@keyframes pet-aura-spin {
+  to {
+    rotate: 360deg;
   }
 }
 
@@ -654,5 +725,12 @@ $pet-hop-duration: 520ms;
     translate: none;
     transform: none;
     transition: none;
+  }
+
+  // The rainbow stays, only its turning stops. Someone who asked for less
+  // motion did not ask for a duller creature. Kept out of the list above
+  // because that one also clears `translate`, and this bloom is centred by it.
+  .is-euphoric .support-pet--hero::before {
+    animation: none;
   }
 }

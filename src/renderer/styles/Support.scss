@@ -36,16 +36,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   backdrop-filter: blur(3px);
 }
 
+// A frame with a scrolling body inside it, rather than one box that scrolls.
+//
+// The frame holds the surface, the border and the way out; everything that can
+// run off the bottom of a short window lives in `__scroll` within it. That
+// split is the whole reason the close button stays reachable — it used to sit
+// in the header, and the header scrolls, so the X was the first thing to leave
+// the screen on precisely the windows that needed it.
 .support-dialog {
   @include animate(pop-in, $motion-base, $ease-spring);
   @include menu-surface;
+  // One rhythm for the panel and for each of its columns, so the ladder at the
+  // bottom of this file tightens all three by editing one number.
+  --support-gap: 18px;
+
+  position: relative;
   display: grid;
   width: min(760px, 100%);
   max-height: calc(100vh - #{$spacing-m} * 2);
-  padding: 28px 32px 26px;
-  gap: 18px;
-  overflow-y: auto;
-  @include slim-scrollbar(8px);
+  // The body's square corners must not show through the frame's rounded ones.
+  overflow: hidden;
   // The whole panel lifts with the streak. `--pet-joy` is set on this element
   // by the dialog and runs 0 to 1 across the multiplier, so at rest this is
   // simply the surface it always was and every term below falls out to zero.
@@ -68,6 +78,56 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Everything that scrolls, which is everything except the way out.
+.support-dialog__scroll {
+  display: grid;
+  // Grid rows size to their content, so without this the body simply pushes
+  // the frame past its own max-height and nothing ever scrolls at all.
+  min-height: 0;
+  padding: 28px 32px 26px;
+  gap: var(--support-gap);
+  overflow-y: auto;
+  @include slim-scrollbar(8px);
+}
+
+// Euphoria, said once across the top of the panel.
+//
+// A row of its own spanning both columns, rather than something floated over a
+// corner. Nothing to collide with, nothing to leave a permanent gap for — the
+// row simply does not exist until the mode is on, which is almost always.
+//
+// The sweeping colour comes free: `.is-euphoric .euphoria-pill` is already
+// animating the hue for every pill in the app, and this is one of them. What is
+// added here is size and a shadow to sit on. At the corner tag's 0.55rem this
+// read as a warning label rather than as a celebration, and it is announcing
+// the one thing in this app anybody has to play for.
+//
+// The compound selector is load-bearing: `.euphoria-pill` sets the same
+// padding and font-size, and which of two single-class rules wins depends on
+// which stylesheet the bundler happens to emit first.
+.euphoria-pill.support-dialog__mode {
+  @include animate(pop-in, $motion-base, $ease-spring);
+  justify-self: center;
+  grid-column: 1 / -1;
+  padding: 5px 18px;
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  box-shadow:
+    0 4px 18px rgba($black, 0.45),
+    0 0 22px rgba($secondary-light, 0.28);
+}
+
+// One column or two, decided at the bottom of this file.
+//
+// `display: contents` is what lets both layouts share one set of rules: the
+// wrappers disappear and their children sit directly in the body's own grid,
+// exactly as they did before there were any wrappers to group them. The
+// two-column rule turns them back into real boxes.
+.support-dialog__stage,
+.support-dialog__ask {
+  display: contents;
+}
+
 // No rule underneath, and barely any gap. The trace belongs to the creature
 // directly above it — it is what the creature is jumping — and a divider
 // between them made the game read as a separate panel that happened to be next.
@@ -80,8 +140,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // line makes one direction harder than the other for no reason. She was the
 // part in the wrong place: parked at the left edge beside the title, with the
 // line she is meant to be jumping half a dialog away. The trace and the header
-// share the dialog's content box, so centring her in it puts her over the line
-// exactly, with nothing to measure and nothing to keep in sync on resize.
+// share a content box — the panel's in one column, the stage column's in two —
+// so centring her in it puts her over the line exactly, with nothing to measure
+// and nothing to keep in sync on resize.
 //
 // Without the game there is no line, and she is centred for the plainer
 // reason: she is the first thing in a dialog that is asking for something, and
@@ -91,10 +152,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // layout is identical before and after, so the transition has only content to
 // change and never jumps.
 //
-// The close button leaves the flow, so it can hold its corner without pulling
-// her off centre.
+// The close button is not in here at all any more — it belongs to the frame —
+// so there is nothing on either side of her to pull her off centre.
 .support-dialog__header {
-  position: relative;
   display: flex;
   min-width: 0;
   align-items: flex-start;
@@ -143,11 +203,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .support-dialog__close {
-  // Out of the flow, so centring the creature is not fighting a button on one
-  // side of her and nothing on the other.
+  // On the frame rather than in the body, so it holds the corner however far
+  // the panel has been scrolled. Clear of the scrollbar's track as well: the
+  // two would otherwise be stacked on the same eight pixels on exactly the
+  // windows where both are in use.
   position: absolute;
-  top: 0;
-  right: 0;
+  z-index: 4;
+  top: 12px;
+  right: 12px;
   display: grid;
   width: 36px;
   height: 36px;
@@ -422,6 +485,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // so it is styled like the footer link below it rather than like the
 // contribute actions above.
 .support-dialog__notes {
+  flex: 0 0 auto;
   padding: 0;
   color: $secondary-light;
   border: 0;
@@ -438,11 +502,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.support-dialog__footer {
-  margin: 0;
-  padding-top: 16px;
-  color: rgba($primary-lighter, 0.6);
+// The last two lines of the panel, on one row.
+//
+// Stacked, they were two separate bands and a dividing rule for what amounts
+// to a single sentence of housekeeping — around fifty pixels, in a panel that
+// has none to spare. The rule moved up here because it is closing the whole
+// dialog now, not just introducing the footer.
+//
+// `flex-wrap` keeps it honest at any width: too narrow to hold both and they
+// drop back to two lines, which is all they ever were.
+.support-dialog__links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 20px;
+  padding-top: 14px;
   border-top: 1px solid rgba($primary-lighter, 0.1);
+}
+
+.support-dialog__footer {
+  // Takes whatever is left beside the notes link, and claims a full line of
+  // its own the moment that leaves it less than a readable measure.
+  flex: 1 1 260px;
+  margin: 0;
+  color: rgba($primary-lighter, 0.6);
   font-size: 0.8rem;
   line-height: 1.45;
 
@@ -473,8 +556,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // First: tighten the rhythm. Nothing is removed, it just sits closer.
 @media (max-height: 860px) {
   .support-dialog {
+    --support-gap: 12px;
+  }
+
+  .support-dialog__scroll {
     padding: 18px 22px 18px;
-    gap: 12px;
   }
 
   .support-dialog__craft {
@@ -493,8 +579,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // lines deep.
 @media (max-height: 720px) {
   .support-dialog {
+    --support-gap: 9px;
+  }
+
+  .support-dialog__scroll {
     padding: 14px 18px;
-    gap: 9px;
   }
 
   .support-dialog__craft {
@@ -519,8 +608,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // since it is decoration sitting above the only thing being asked for.
 @media (max-height: 620px) {
   .support-dialog {
+    --support-gap: 7px;
+  }
+
+  .support-dialog__scroll {
     padding: 12px 14px;
-    gap: 7px;
   }
 
   .support-dialog__pitch {
@@ -538,6 +630,53 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .support-dialog__footer,
   .support-dialog__notes {
     font-size: 0.68rem;
+  }
+}
+
+// Two columns, wherever there is width for them.
+//
+// Everything above this line can only take things away, and the panel had run
+// out of things it could afford to lose: a creature, a game, a pitch, an aside,
+// a payment card and a footer stacked one under the next come to well over a
+// thousand pixels, in a window that is nearly always wider than it is tall. So
+// the last resort is not to cut further but to put the same content somewhere
+// else. It comes down by about a third, and nothing is dropped to do it.
+//
+// The seam was already there: the toy on the left — creature, score, trace,
+// and the line she is jumping — and the ask on the right. Placed after the
+// ladder deliberately, so a short window still tightens and still sheds the
+// aside, and this only decides where what is left goes.
+//
+// Supporters only, and not for want of trying otherwise: without the game the
+// left column is a creature and a heading standing against a full column of
+// text, which looks like a layout that has lost something. That panel is also
+// some three hundred pixels shorter, so it is the one that does not need this.
+@media (min-width: 900px) {
+  .support-dialog--game {
+    width: min(1000px, 100%);
+  }
+
+  .support-dialog--game .support-dialog__scroll {
+    align-items: start;
+    // The ask gets the wider side. It carries every paragraph in the panel,
+    // while the stage is fixed furniture that gains nothing from more room.
+    grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+    column-gap: 30px;
+    // Room for the close button. In one column it hangs over a centred heading
+    // and touches nothing; here the right-hand column's first line runs
+    // straight underneath it. This is exactly the button's width plus its
+    // inset, so the text stops where the button starts.
+    padding-right: 52px;
+  }
+
+  // Real boxes again rather than `display: contents`, each carrying the
+  // panel's own vertical rhythm so the two columns cannot drift apart.
+  .support-dialog--game .support-dialog__stage,
+  .support-dialog--game .support-dialog__ask {
+    display: grid;
+    min-width: 0;
+    align-content: start;
+    gap: var(--support-gap);
   }
 }
 
