@@ -10,12 +10,38 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'color' as *;
 @use 'theme' as *;
 
-// Label and picker travel together as the section's summary, so folding the
-// section keeps the control you came to change on screen.
-.extra-outputs__picker {
+// One row per output you could add. A list rather than a picker, because
+// these are not alternatives: any number of them can be on at once, which is
+// the whole feature.
+.extra-outputs__list {
   display: grid;
   min-width: 0;
-  gap: 5px;
+  margin: 4px 0 0;
+  padding: 0;
+  gap: 6px;
+  list-style: none;
+}
+
+.extra-outputs__row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+}
+
+.extra-outputs__name {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-size: 0.72rem;
+}
+
+// The resting state of the summary, when nothing is being mirrored. Quiet on
+// purpose: it is the normal case, not a problem.
+.extra-outputs__idle {
+  flex: 0 0 auto;
+  color: $text-muted;
+  font-size: 0.62rem;
+  font-weight: 700;
 }
 
 // Which input of a routing driver this is. Voicemeeter's three differ by a

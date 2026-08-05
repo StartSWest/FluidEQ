@@ -11,14 +11,10 @@ import { useMemo } from 'react';
 import { DeviceMatchEnum } from 'common/audioDeviceBridge';
 import { identifyVirtualDevice } from 'common/virtualAudioDevices';
 import SidebarSection from './components/SidebarSection';
-import Dropdown from './widgets/Dropdown';
-import { IOptionEntry } from './widgets/List';
-import useOutputMirror from './audio/useOutputMirror';
+import Switch from './widgets/Switch';
+import useOutputMirror, { IMirrorTarget } from './audio/useOutputMirror';
 import { useTranslation } from './utils/I18nContext';
 import './styles/ExtraOutputs.scss';
-
-/** The dropdown's "not mirroring" entry. Never a device guid. */
-const OFF_VALUE = '';
 
 const ExtraOutputs = () => {
   const { t } = useTranslation();
@@ -26,98 +22,98 @@ const ExtraOutputs = () => {
     error,
     isMirroring,
     isVirtualRoutingAvailable,
-    selected,
-    selectTarget,
+    selectedTargets,
     targets,
+    toggleTarget,
   } = useOutputMirror();
 
-  // Everything the picker could offer: the captured endpoint and anything
+  // Everything the list could offer: the captured endpoint and anything
   // inactive are not merely unusable, they are not choices at all.
   const eligible = useMemo(
     () => targets.filter((target) => target.isEligible),
     [targets],
   );
 
-  const options: IOptionEntry[] = useMemo(
-    () => [
-      {
-        value: OFF_VALUE,
-        label: t('extraOutput.off'),
-        display: <span>{t('extraOutput.off')}</span>,
-      },
-      // Every eligible endpoint is listed, including the ones that cannot
-      // currently be used. Hiding those would leave a user looking for a
-      // speaker that is plainly plugged in with nothing to read and no idea
-      // why it is missing; picking it explains itself below instead.
-      ...eligible.map((target) => {
-        // Voicemeeter presents three inputs whose names differ by one word.
-        // A user being told to point an application at one of them needs to
-        // know which, and the driver's own naming does not make that obvious.
-        const virtual = identifyVirtualDevice(target.device);
-        return {
-          value: target.device.guid,
-          label: target.device.name,
-          display: (
-            <div className="device-option">
-              <span
-                className={target.isUsable ? 'device-dot active' : 'device-dot'}
-              />
-              <span>{target.device.name}</span>
-              {virtual && (
-                <span className="extra-outputs__tag">{virtual.inputLabel}</span>
-              )}
-            </div>
-          ),
-        };
-      }),
-    ],
-    [eligible, t],
-  );
-
-  // Why the chosen output cannot be used. Each of these needs a different
-  // thing done about it, which is the entire reason the bridge reports them
+  // Why a chosen output cannot be used. Each of these needs a different thing
+  // done about it, which is the entire reason the bridge reports them
   // separately rather than as one failure.
-  let obstacle = '';
-  if (selected && !selected.isUsable) {
-    if (selected.match.status === DeviceMatchEnum.AMBIGUOUS) {
-      obstacle = t('extraOutput.ambiguous');
-    } else if (selected.match.status === DeviceMatchEnum.LABELS_HIDDEN) {
-      obstacle = t('extraOutput.labelsHidden');
-    } else {
-      obstacle = t('extraOutput.unmatched');
+  const describeObstacle = (target: IMirrorTarget): string => {
+    if (target.match.status === DeviceMatchEnum.AMBIGUOUS) {
+      return t('extraOutput.ambiguous');
     }
-  }
+    if (target.match.status === DeviceMatchEnum.LABELS_HIDDEN) {
+      return t('extraOutput.labelsHidden');
+    }
+    return t('extraOutput.unmatched');
+  };
+
+  const blocked = selectedTargets.filter((target) => !target.isUsable);
 
   return (
     <SidebarSection
       eyebrow={t('extraOutput.eyebrow')}
       title={t('extraOutput.title')}
       summary={
-        <div className="extra-outputs__picker">
-          <span className="device-profiles__label device-profiles__label--row">
-            {t('extraOutput.target')}
-            {isMirroring && (
-              <span className="default-badge">{t('extraOutput.active')}</span>
-            )}
-          </span>
-          <Dropdown
-            name={t('extraOutput.target')}
-            options={options}
-            value={selected?.device.guid ?? OFF_VALUE}
-            handleChange={(value) =>
-              selectTarget(value === OFF_VALUE ? undefined : value)
-            }
-            isDisabled={eligible.length === 0}
-            emptyOptionsPlaceholder={t('extraOutput.none')}
-          />
-        </div>
+        <span className="device-profiles__label device-profiles__label--row">
+          {t('extraOutput.target')}
+          {isMirroring ? (
+            <span className="default-badge">{t('extraOutput.active')}</span>
+          ) : (
+            <span className="extra-outputs__idle">{t('extraOutput.off')}</span>
+          )}
+        </span>
       }
     >
-      {obstacle && <p className="extra-outputs__obstacle">{obstacle}</p>}
+      {eligible.length === 0 ? (
+        <p className="extra-outputs__hint">{t('extraOutput.none')}</p>
+      ) : (
+        <ul className="extra-outputs__list">
+          {/* Every eligible endpoint is listed, including ones that cannot
+              currently run. Hiding those would leave someone looking for a
+              speaker that is plainly plugged in with nothing to read and no
+              idea why it is missing; switching it on explains itself below. */}
+          {eligible.map((target) => {
+            // Voicemeeter presents three inputs whose names differ by one
+            // word, and someone pointing an application at one of them needs
+            // to know which.
+            const virtual = identifyVirtualDevice(target.device);
+            return (
+              <li className="extra-outputs__row" key={target.device.guid}>
+                <Switch
+                  id={`mirror-${target.device.guid}`}
+                  isOn={target.isSelected}
+                  isDisabled={false}
+                  handleToggle={() => toggleTarget(target.device.guid)}
+                />
+                <span
+                  className={
+                    target.isRunning ? 'device-dot active' : 'device-dot'
+                  }
+                />
+                <span className="extra-outputs__name">
+                  {target.device.name}
+                </span>
+                {virtual && (
+                  <span className="extra-outputs__tag">
+                    {virtual.inputLabel}
+                  </span>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      )}
+
+      {blocked.map((target) => (
+        <p className="extra-outputs__obstacle" key={target.device.guid}>
+          <strong>{target.device.name}</strong> {describeObstacle(target)}
+        </p>
+      ))}
       {error && <p className="extra-outputs__obstacle">{error}</p>}
-      {/* Shown only while the mirror is what is actually running. With a
-          routing driver in use there is no added delay, and warning about one
-          anyway would teach the user to ignore the warning. */}
+
+      {/* Shown only while a mirror is what is actually running. With a routing
+          driver in use there is no added delay, and warning about one anyway
+          is how a user learns to stop reading warnings. */}
       {isMirroring && (
         <p className="extra-outputs__latency">{t('extraOutput.latency')}</p>
       )}
