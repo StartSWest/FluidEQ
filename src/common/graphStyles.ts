@@ -173,6 +173,60 @@ export const GRAPH_LOOKS: IGraphLook[] = GRAPH_STYLES.flatMap((style) =>
 export const getGraphLook = (id: string): IGraphLook =>
   GRAPH_LOOKS.find((look) => look.id === id) ?? GRAPH_LOOKS[0];
 
+/**
+ * How each form moves.
+ *
+ * A form is not only a shape — the same spectrum reads completely differently
+ * depending on how quickly the drawing chases it, and matching the motion to
+ * the figure is most of what makes one look interesting rather than merely
+ * different.
+ *
+ * Bars and blocks snap and hang, the way a level meter does, so a kick lands
+ * as a step rather than a swell. A ridge or a mirrored body is a landscape and
+ * moves like one, slowly, because a hill that twitches is noise. Dots and
+ * caps float — quick to rise so they mark the peak, slow to fall so the mark
+ * stays long enough to read. Needles and combs are nearly instantaneous, which
+ * is the whole point of a form that thin.
+ *
+ * In milliseconds to halve the remaining distance.
+ */
+export interface IGraphBallistics {
+  attackMs: number;
+  releaseMs: number;
+}
+
+const DEFAULT_BALLISTICS: IGraphBallistics = { attackMs: 8, releaseMs: 28 };
+
+const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
+  // Snap up, hang, drop away — a meter's manners.
+  bars: { attackMs: 4, releaseMs: 45 },
+  pillars: { attackMs: 4, releaseMs: 45 },
+  blocks: { attackMs: 3, releaseMs: 60 },
+  // Peak marks: they exist to be caught, so they fall slowly enough to see.
+  caps: { attackMs: 2, releaseMs: 110 },
+  dots: { attackMs: 5, releaseMs: 70 },
+  scatter: { attackMs: 5, releaseMs: 70 },
+  dashes: { attackMs: 4, releaseMs: 85 },
+  // Thin forms can afford to be instant; there is no mass to them.
+  needles: { attackMs: 2, releaseMs: 14 },
+  comb: { attackMs: 2, releaseMs: 16 },
+  ribs: { attackMs: 3, releaseMs: 30 },
+  stems: { attackMs: 4, releaseMs: 40 },
+  spikes: { attackMs: 3, releaseMs: 22 },
+  crown: { attackMs: 4, releaseMs: 36 },
+  // Landscapes. A hill that twitches is noise, so these are the slow ones.
+  ridge: { attackMs: 22, releaseMs: 90 },
+  mirror: { attackMs: 20, releaseMs: 80 },
+  terrace: { attackMs: 16, releaseMs: 70 },
+  area: { attackMs: 12, releaseMs: 48 },
+  // The staircase steps by nature; easing it hard would blur the treads.
+  steps: { attackMs: 6, releaseMs: 26 },
+  weave: { attackMs: 6, releaseMs: 30 },
+};
+
+export const getGraphBallistics = (style: GraphStyle): IGraphBallistics =>
+  BALLISTICS[style] ?? DEFAULT_BALLISTICS;
+
 /** A point already in pixels. */
 export type Projected = readonly [number, number];
 

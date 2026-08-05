@@ -1,3 +1,5 @@
+@use 'color' as *;
+
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency
 // region brightens as it is actually heard, and a bar underneath fills with its
 // confidence — so "still listening" has a visible reason.
@@ -59,23 +61,124 @@
 
 // The live-output legend carries the style picker.
 //
-// Clicking the plot drags bands, so the picker needed a place of its own — and
-// the label that already names the live output is the honest one, because it
-// says what the choice changes.
+// Clicking the plot cycles through the looks, which is for flicking past them
+// while listening; this is for reaching a particular one out of forty, so it
+// has to be readable rather than merely present.
 .graph-legend--picker {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 
-  // Small, because it sits in a row of legends rather than in a form. The
-  // dropdown brings its own surface; only the trigger needs shrinking.
+  // Set apart from the legends beside it.
+  //
+  // Everything else in this row is a label; this one is the only thing you can
+  // click. Sharing the row's gap with them made it read as a fourth caption,
+  // so it gets extra air and a hairline to its left — enough to say "this part
+  // is different" without becoming a toolbar.
+  margin-inline-start: 6px;
+  padding-inline-start: 14px;
+  border-inline-start: 1px solid rgba($secondary-light, 0.22);
+
+  // Wide enough for the name to be read, not guessed.
+  //
+  // The trigger is the only place the current look is written down, and the
+  // longest of the forty ("Mirrored ridge · Rainbow") is a good deal longer
+  // than the shortest. Sized to the long one so the label never ellipsises and
+  // the legends to its right never shuffle sideways when the look changes.
   .dropdown {
-    min-width: 132px;
+    min-width: 172px;
   }
 
-  .dropdown button {
-    height: 22px;
-    padding-inline: 8px;
-    font-size: 0.62rem;
+  // Not a field.
+  //
+  // The row it sits in is a caption — a run of legends naming what each colour
+  // on the plot is — and dropping a bordered, filled control into it made one
+  // legend look like a form that had wandered in. So the trigger loses the
+  // field surface entirely and becomes what it reads as: the current look's
+  // name, in the legend's own voice, with an arrow to say it can be changed.
+  // The affordance survives; the box does not.
+  .dropdown > [role='menu'] {
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: rgba($primary-lighter, 0.82);
+    font-size: inherit;
+    font-weight: 600;
+    gap: 3px;
+    justify-content: flex-start;
+    overflow: visible;
+
+    &:hover:not([aria-disabled='true']) {
+      border: 0;
+      color: $white;
+    }
+
+    // Underlined always, not only on hover.
+    //
+    // Losing the box lost the last visual cue that this is a control, and a
+    // cue that only appears once you are already pointing at it is no cue at
+    // all. So the underline is standing: dim enough to belong in a caption
+    // row, present enough to be seen without looking for it. Hover just brings
+    // it up to full.
+    //
+    // The shared trigger also clips its label to keep the arrow in view; here
+    // there is room for the whole name, so it is shown whole and the arrow
+    // sits just after it rather than pinned to a far edge.
+    > div:first-child {
+      flex: 0 0 auto;
+      overflow: visible;
+      text-decoration: underline;
+      text-decoration-color: rgba($secondary-light, 0.5);
+      text-decoration-thickness: 1px;
+      text-overflow: clip;
+      text-underline-offset: 4px;
+    }
+
+    &:hover:not([aria-disabled='true']) > div:first-child {
+      text-decoration-color: $secondary-light;
+    }
+
+    svg.arrow {
+      width: 9px;
+      margin-left: 3px;
+      opacity: 0.6;
+    }
+  }
+
+  .dropdown--open > [role='menu'] {
+    color: $white;
+
+    svg.arrow {
+      opacity: 1;
+      transform: rotate(180deg);
+    }
+  }
+
+  // The menu is not tied to the width of a two-word label.
+  //
+  // Names like "Mirrored ridge · Rainbow" do not fit in the space the trigger
+  // happens to occupy, and a list that ellipsises every row is a list you have
+  // to guess at. It takes the width it needs, clamped to the window on a
+  // narrow one; Dropdown.tsx measures the result and slides it back inside the
+  // viewport, so widening it here cannot push it off the right edge.
+  .dropdown .list-wrapper {
+    // Fixed rather than `max-content`: Dropdown.tsx writes an inline max-width
+    // when it repositions, which would override a max-width set here and let a
+    // content-sized menu grow to whatever the longest label happened to be.
+    width: 268px;
+    min-width: 268px;
+  }
+
+  // Forty entries, so the list gets room to be scrolled rather than squinted
+  // at through a slot.
+  .dropdown ul {
+    max-height: 320px;
+  }
+
+  .dropdown li {
+    font-size: 0.72rem;
   }
 }

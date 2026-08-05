@@ -117,7 +117,12 @@ it under the terms of the GNU General Public License version 3 or later.
   // anyway; a drop-shadow is a second pass over everything the line touches,
   // repeated every time it moves — which for this path is twenty-two times a
   // second, forever.
-  path[name^='Live processed output'] {
+  // Not the rainbow one. A look chosen as 'rainbow' already runs the spectrum
+  // across the frequency axis, which is a different and more informative thing
+  // than one travelling hue — overwriting it with the sweep threw away the
+  // meaning and left the setting looking broken. Euphoria recolours the trace
+  // only when the trace has no colour scheme of its own.
+  path[name^='Live processed output']:not(.is-rainbow) {
     animation: euphoria-sweep 3.6s linear infinite;
     stroke: hsl(var(--euphoria-hue) 95% 66%);
   }

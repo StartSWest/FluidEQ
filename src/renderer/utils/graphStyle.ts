@@ -43,6 +43,24 @@ try {
 
 export const getGraphLookId = () => look.id;
 
+/**
+ * The next look along, for the click on the plot.
+ *
+ * The picker is for reaching a particular one out of forty; this is for
+ * flicking through them while listening, without moving the pointer off the
+ * graph.
+ */
+export const cycleGraphLook = () => {
+  const index = GRAPH_LOOKS.indexOf(look);
+  look = GRAPH_LOOKS[(index + 1) % GRAPH_LOOKS.length];
+  try {
+    window.localStorage.setItem(STORAGE_KEY, look.id);
+  } catch {
+    // Not worth failing a click over.
+  }
+  listeners.forEach((listener) => listener());
+};
+
 export const setGraphLook = (id: string) => {
   const next = getGraphLook(id);
   if (next === look) {

@@ -24,6 +24,7 @@ import { getEaseFactor } from 'common/smoothing';
 import {
   Projected,
   createGraphShape,
+  getGraphBallistics,
   isFilledGraphStyle,
 } from 'common/graphStyles';
 import { useGraphLook } from 'renderer/utils/graphStyle';
@@ -38,24 +39,6 @@ export enum AnimationOptionsEnum {
   FADE_IN = 'fadeIn',
   NONE = 'none',
 }
-
-/**
- * Meter ballistics: quick to rise, slow to fall.
- *
- * The first attempt eased both directions at 70ms, which is longer than the
- * 45ms between measurements — so the curve never reached one target before the
- * next arrived and spent its whole life chasing. Smooth, and permanently
- * behind the music.
- *
- * Sound does not behave symmetrically and neither should a display of it. A
- * kick arrives all at once and decays over a beat, so the rise is nearly
- * immediate — most of the way inside a single frame — while the fall is
- * unhurried enough to leave the shape of the note behind it. That difference
- * is the entire reason a spectrum looks like it is being driven by music
- * rather than averaging it.
- */
-const LIVE_CURVE_ATTACK_MS = 8;
-const LIVE_CURVE_RELEASE_MS = 28;
 
 interface ILineProps {
   name: string;
@@ -246,8 +229,11 @@ const Line = ({
   const drawFrame = useCallback(
     (deltaMs: number) => {
       const eased = easedRef.current;
-      const rise = getEaseFactor(deltaMs, LIVE_CURVE_ATTACK_MS);
-      const fall = getEaseFactor(deltaMs, LIVE_CURVE_RELEASE_MS);
+      // Each form moves in its own way — see the ballistics table for why a
+      // bar snaps and a ridge does not.
+      const ballistics = getGraphBallistics(lookRef.current.style);
+      const rise = getEaseFactor(deltaMs, ballistics.attackMs);
+      const fall = getEaseFactor(deltaMs, ballistics.releaseMs);
       let moving = false;
       for (let index = 0; index < eased.length; index += 1) {
         const distance = data[index].y - eased[index].y;
@@ -334,6 +320,7 @@ const Line = ({
       <path
         name={name}
         ref={ref}
+        className={look.palette === 'rainbow' ? 'is-rainbow' : undefined}
         stroke={isPainted ? 'none' : paint}
         strokeWidth={strokeWidth}
         strokeLinecap="round"

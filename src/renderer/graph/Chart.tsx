@@ -27,6 +27,7 @@ import useController, {
   IEditableChartPoint,
   IMarginLike,
 } from './ChartController';
+import { cycleGraphLook } from '../utils/graphStyle';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 
@@ -182,6 +183,17 @@ const Chart = ({
     const top = Math.min(selection.startY, selection.currentY);
     const bottom = Math.max(selection.startY, selection.currentY);
     const isClick = right - left < 6 && bottom - top < 6;
+    if (isClick) {
+      // A click on empty plot walks the live output to its next look.
+      //
+      // It rides the same gesture that clears the selection, which is the
+      // trade being made knowingly: clicking bare graph both deselects and
+      // changes the drawing. The picker on the legend is there for reaching a
+      // particular look; this is for flicking through them while listening,
+      // without taking the pointer off the graph. A drag still selects, and a
+      // click on a band still grabs the band.
+      cycleGraphLook();
+    }
     const selectedIds = isClick
       ? []
       : editablePoints
