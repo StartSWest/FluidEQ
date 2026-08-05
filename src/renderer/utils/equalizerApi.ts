@@ -84,11 +84,19 @@ const promisifyResult = <Type>(
       clearTimeout(timer);
     };
 
-    window.electron.ipcRenderer.once(channel, handler);
+    // The unsubscribe the bridge hands back, and it has to be this one.
+    //
+    // Cleanup used to go through a `removeListener` that took the handler and
+    // rebuilt the wrapper around it — a different function every call, so it
+    // matched nothing and removed nothing. Every request that timed out left
+    // its listener registered for the life of the window, still first in the
+    // queue, ready to swallow the reply to a later request on the same
+    // channel and answer it with the wrong result.
+    const unsubscribe = window.electron.ipcRenderer.once(channel, handler);
 
     timer = setTimeout(() => {
+      unsubscribe();
       reject(toError(getErrorDescription(ErrorCode.TIMEOUT)));
-      window.electron.ipcRenderer.removeListener(channel, handler);
     }, timeout);
   });
 };

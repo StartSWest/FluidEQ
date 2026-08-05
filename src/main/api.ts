@@ -32,16 +32,35 @@ const on = (channel: Channels, func: (...args: unknown[]) => void) => {
   return () => ipcRenderer.removeListener(channel, subscription);
 };
 
+/**
+ * Listen for one message, and hand back the way to stop listening.
+ *
+ * The unsubscribe matters even though the listener removes itself on delivery,
+ * because the message might never come. A request that times out has to take
+ * its listener with it or the listener stays registered forever — and worse,
+ * it is still first in line, so it will swallow the response to somebody
+ * else's request later and every reply after that answers the wrong question.
+ *
+ * It closes over `subscription` for the same reason `on` does: only the exact
+ * function that was registered can be removed, and the wrapper is not the
+ * function the caller passed in.
+ */
 const once = (channel: Channels, func: (...args: unknown[]) => void) => {
-  ipcRenderer.once(channel, (_event, ...args) => func(...args));
+  const subscription = (_event: IpcRendererEvent, ...args: unknown[]) =>
+    func(...args);
+  ipcRenderer.once(channel, subscription);
+
+  return () => ipcRenderer.removeListener(channel, subscription);
 };
 
-const removeListener = (
-  channel: Channels,
-  func: (...args: unknown[]) => void,
-) => {
-  ipcRenderer.removeListener(channel, (_event, ...args) => func(...args));
-};
+// There is no `removeListener` here on purpose.
+//
+// There was, and it could not work: it built a brand new arrow function and
+// asked Electron to remove that, which never matches anything registered, so
+// it silently removed nothing at all. Every caller that believed it had
+// cleaned up had not. Removal belongs to whoever subscribed, through the
+// function `on` and `once` return, because that is the only place the real
+// subscription reference exists.
 
 const closeApp = () => {
   ipcRenderer.send('quit-app', []);
@@ -80,7 +99,6 @@ export default {
     sendMessage,
     on,
     once,
-    removeListener,
     closeApp,
     openEqualizerApoConfigurator,
     openEqualizerApoSettings,

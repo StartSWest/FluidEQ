@@ -25,6 +25,11 @@ opens it again any time.
   caches grew for as long as the mode was on. The glow is a plain shadow on the
   frame now, sitting outside the part that moves, and the graph trace is
   coloured rather than filtered. It looks the same and costs nothing per frame.
+- **A request that timed out leaked its listener, forever.** The bridge that
+  cleans up after an internal request rebuilt the wrong function and so removed
+  nothing at all, silently. Beyond the memory, the abandoned listener stayed
+  first in the queue and would answer somebody else's later request with the
+  wrong result.
 - **The graph could not draw.** 0.6.0 shipped a build that dropped d3's
   transition module, so every animated part of the response chart threw
   `e.transition is not a function` and the window came up broken. The build had
