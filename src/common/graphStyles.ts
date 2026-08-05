@@ -1205,28 +1205,45 @@ export const createGraphShape = (
 };
 
 /**
- * Forms whose tip is a flat top, so the mark on it should be one too.
+ * What, if anything, a form does when a band peaks.
  *
- * A square dot balanced on a bar looks like a fault; a bright bead on the end
- * of a stem looks like the stem is lit. Same idea either way — the difference
- * is only what the end of the figure happens to be shaped like.
+ * Not one effect applied to everything. Most forms get nothing at all: a
+ * contour map, a slope field or a bridge truss is already saying something
+ * specific, and stapling the same bright dot onto all forty would flatten
+ * exactly the variety the forms exist to provide. Only the ones whose shape
+ * has an obvious place for it get one, and what they get differs:
+ *
+ * - `cap`   a bright bar sitting on a flat-topped column, the way a peak-hold
+ *          indicator sits on a level meter.
+ * - `bead`  a lit dot on the end of something thin. This is the one that was
+ *          asked for — a stem with a glowing tip.
+ * - `crest` one mark, on the single loudest point of a smooth curve. A curve
+ *          has no columns to cap, and a dozen dots on it is a rash; one is a
+ *          reading.
+ * - `drip`  a bead, but at the hanging end, for the form that grows downward.
+ * - `beat`  the R spike of the pulse trace, which is a different point on the
+ *          figure entirely from where the level is.
  */
-const CAPPED_TIPS = new Set<GraphStyle>([
-  'bars',
-  'pillars',
-  'blocks',
-  'matrix',
-  'skyline',
-  'terrace',
-  'crown',
-  'sawtooth',
-  'caps',
-  'dashes',
-  'steps',
-  'ribs',
-  'area',
-  'islands',
-]);
+type GraphAccent = 'none' | 'cap' | 'bead' | 'crest' | 'drip' | 'beat';
+
+const ACCENTS: Partial<Record<GraphStyle, GraphAccent>> = {
+  bars: 'cap',
+  pillars: 'cap',
+  blocks: 'cap',
+  matrix: 'cap',
+  skyline: 'cap',
+  stems: 'bead',
+  needles: 'bead',
+  comb: 'bead',
+  spikes: 'bead',
+  crown: 'bead',
+  line: 'crest',
+  bezier: 'crest',
+  ridge: 'crest',
+  mirror: 'crest',
+  stalactites: 'drip',
+  ecg: 'beat',
+};
 
 /**
  * How loud a peak has to be, against the loudest thing on screen, to be lit.
@@ -1244,10 +1261,10 @@ const ACCENT_THRESHOLD = 0.62;
  * meaning "here is the peak" — it becomes a second copy of the drawing, drawn
  * brighter, which is just the drawing with the contrast turned up.
  */
-const MAX_ACCENTS = 14;
+const MAX_ACCENTS = 10;
 
 /**
- * The peaks, as a path of their own.
+ * The lit peaks, as a path of their own — for the forms that have them.
  *
  * Drawn separately from the figure so the tips can be lit while the body stays
  * calm: the caller strokes this twice, once thick and faint and once thin and
@@ -1256,16 +1273,16 @@ const MAX_ACCENTS = 14;
  * every frame re-rasterises its whole region every frame, and this pane learned
  * that lesson expensively.
  *
- * A tip qualifies when it is a local maximum AND within striking distance of
- * the loudest thing currently on screen, so the marks move with the music
- * rather than sitting wherever the spectrum happens to be lumpy.
+ * Returns an empty path for most forms, which is the intended answer and not a
+ * failure to draw one.
  */
 export const createGraphAccent = (
   points: readonly Projected[],
   style: GraphStyle,
   baseline: number,
 ): string => {
-  if (points.length < 3) {
+  const accent = ACCENTS[style] ?? 'none';
+  if (accent === 'none' || points.length < 3) {
     return '';
   }
   const figure = toColumns(points, getColumnCount(style));
@@ -1276,24 +1293,51 @@ export const createGraphAccent = (
   const step = Math.max(1, span / (figure.length - 1));
 
   let tallest = 0;
+  let loudest = 0;
   for (let index = 0; index < figure.length; index += 1) {
     const height = baseline - figure[index][1];
     if (height > tallest) {
       tallest = height;
+      loudest = index;
     }
   }
   if (tallest <= 1) {
     return '';
   }
-  const floor = tallest * ACCENT_THRESHOLD;
 
-  const capped = CAPPED_TIPS.has(style);
   const width = Math.max(3, step * 0.62);
   const size = Math.max(2.4, step * 0.36);
-  // Where the drawing actually puts its tip. Most forms peak at the point
-  // itself; the two that do not are the ones whose whole idea is that they do
-  // not, so they are worth the special case rather than being left unlit.
+  const bead = Math.max(2.6, step * 0.5);
+  // The pulse trace deflects from its own resting line rather than from the
+  // floor, so its brightest moment is nowhere near where the level is.
   const restingLine = baseline - 30;
+
+  const mark = (x: number, y: number): string => {
+    switch (accent) {
+      case 'cap':
+        return rect(x - width / 2, y - 1.5, width, 3);
+      case 'drip':
+        return rect(x - bead / 2, baseline - y - bead / 2, bead, bead);
+      case 'beat': {
+        const tip = restingLine - Math.max(2, (baseline - y) * 0.72);
+        return rect(x - size / 2, tip - size / 2, size, size);
+      }
+      case 'crest':
+        return rect(x - bead / 2, y - bead / 2, bead, bead);
+      case 'bead':
+      default:
+        return rect(x - bead / 2, y - bead / 2, bead, bead);
+    }
+  };
+
+  // One mark, on the loudest point there is. A smooth curve has no columns to
+  // cap, and scattering marks along it reads as damage rather than as emphasis.
+  if (accent === 'crest') {
+    const [x, y] = figure[loudest];
+    return mark(x, y);
+  }
+
+  const floor = tallest * ACCENT_THRESHOLD;
   let path = '';
   let count = 0;
   let lastX = -Infinity;
@@ -1313,15 +1357,7 @@ export const createGraphAccent = (
     if (isLocalPeak && x - lastX >= step * 1.5) {
       lastX = x;
       count += 1;
-      let tip = y;
-      if (style === 'stalactites') {
-        tip = baseline - y;
-      } else if (style === 'ecg') {
-        tip = restingLine - Math.max(2, (baseline - y) * 0.72);
-      }
-      path += capped
-        ? rect(x - width / 2, tip - 1.5, width, 3)
-        : rect(x - size / 2, tip - size / 2, size, size);
+      path += mark(x, y);
     }
   }
   return path;
