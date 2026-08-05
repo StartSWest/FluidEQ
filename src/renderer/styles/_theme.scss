@@ -161,6 +161,10 @@ $transition-control:
   // hue that animates every frame. Every button and panel is hundreds; an open
   // menu is one, and only while it is open.
   .is-euphoric & {
+    // Its own sweep: the hue does not inherit, deliberately — see the
+    // @property declaration in Euphoria.scss for why. One open menu animating
+    // itself is nothing; the whole document inheriting it was gigabytes.
+    animation: euphoria-sweep 3.6s linear infinite;
     border-color: hsl(var(--euphoria-hue, 160deg) 90% 62% / 45%);
     box-shadow:
       0 18px 44px rgba($black, 0.5),

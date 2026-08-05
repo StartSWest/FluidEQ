@@ -47,6 +47,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // as a plain grey rectangle over a celebrating window reads as a different
   // application.
   .is-euphoric & {
+    animation: euphoria-sweep 3.6s linear infinite;
     border-color: hsl(var(--euphoria-hue, 160deg) 90% 62% / 55%);
     box-shadow:
       0 30px 80px rgba($black, 0.5),
@@ -58,6 +59,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // all-caps line the euphoria pill is shaped like — so the panel gains the
 // mode's marker without gaining an element.
 .is-euphoric .whats-new__header .eyebrow {
+  animation: euphoria-sweep 3.6s linear infinite;
   color: hsl(var(--euphoria-hue, 160deg) 95% 68%);
   text-shadow: 0 0 12px hsl(var(--euphoria-hue, 160deg) 95% 60% / 45%);
 }

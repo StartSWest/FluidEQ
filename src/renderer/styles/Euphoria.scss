@@ -21,51 +21,44 @@ it under the terms of the GNU General Public License version 3 or later.
 // music, so a loud passage swells and a quiet one settles without anything
 // being recalculated per frame in JavaScript.
 .is-euphoric {
-  // Held at the top of the range so a quiet passage still glows, rather than
-  // the whole effect dropping out between beats.
-  --euphoria-strength: calc(0.55 + var(--euphoria-level, 0) * 0.45);
-
   // No background wash. A full-window colour film was the first attempt and it
   // was the wrong instrument entirely: it tinted the panels, the readouts and
   // the graph alike, so everything got quietly harder to read and the app
   // looked broken rather than delighted. The celebration lives on edges and on
   // the things that were already moving — nothing that sits behind text.
   //
-  // The hue everything below reads, swept once on the root so every element
-  // inherits the same travelling colour rather than each running its own copy
-  // and slowly falling out of step.
-  animation: euphoria-sweep 3.6s linear infinite;
+  // The root itself no longer animates anything.
+  //
+  // Sweeping the hue here and letting it inherit was the whole problem: the
+  // property is read all over the interface, so every element in the document
+  // had to be recomputed on every frame of it. The sweep now runs on the few
+  // elements that actually travel through the spectrum, each of which is a
+  // small subtree. They share one duration and one keyframe set, so they stay
+  // in step without being driven from a common ancestor.
 
-  // Not the buttons, and not the panel rims either. Both were tried and both
-  // are gone for the same reason: sweeping a colour through `border-color` and
-  // `box-shadow` on every control in the window forces a style recalculation
-  // and a repaint across the whole document on every frame, and the interface
-  // went visibly heavy while it celebrated. A celebration that makes the app
-  // feel slow is not a celebration.
+  // Two rules the mode is built around, both learned expensively.
   //
-  // What is left is deliberately narrow: the bands, and the two meters. Those
-  // were already animating every frame, so the sweep rides along with work the
-  // compositor was doing anyway and costs nothing extra.
-
-  // NO ANIMATED FILTERS. This is the rule the mode is built around now, and it
-  // was learned expensively.
+  // NO ANIMATED FILTERS. These two elements once carried `filter:
+  // drop-shadow()` as an infinite keyframe animation, and both redraw their
+  // SVG twenty-two times a second from live audio. An animated filter
+  // re-rasterizes the entire filtered subtree on every frame; with content
+  // that is itself changing every frame, and `will-change` promoting it to its
+  // own layer, the raster caches grew without limit. The glow is a
+  // `box-shadow` on the frame instead — it sits on the container rather than
+  // the moving picture, so the shape inside can change as often as it likes
+  // without invalidating it.
   //
-  // These two elements had `filter: drop-shadow()` running as an infinite
-  // keyframe animation, and both of them redraw their SVG twenty-two times a
-  // second from live audio. An animated filter re-rasterizes the entire
-  // filtered subtree on every frame of the animation; combined with content
-  // that is itself changing every frame, and a `will-change` promoting it to
-  // its own layer, the raster and filter caches grew without limit. Memory
-  // went past seven gigabytes and kept going.
-  //
-  // The glow is a `box-shadow` on the frame instead. It sits on the container
-  // rather than the moving picture, so the shape inside can change as often as
-  // it likes without invalidating it, and its colour rides the hue the root is
-  // already sweeping — one property, animated once, read here.
+  // AND NOTHING SWEEPS FROM AN ANCESTOR. Each element that travels through the
+  // spectrum animates its own hue; see the @property declaration below.
   .waveform-visualizer,
   .rhythm-game__trace {
+    animation: euphoria-sweep 3.6s linear infinite;
     border-color: hsl(var(--euphoria-hue) 90% 62% / 55%);
     box-shadow: 0 0 18px hsl(var(--euphoria-hue) 95% 60% / 30%);
+  }
+
+  .euphoria-pill {
+    animation: euphoria-sweep 3.6s linear infinite;
   }
 
   // The game's trace turns rainbow, and only here. Ordinarily it is the app's
@@ -117,6 +110,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // repeated every time it moves — which for this path is twenty-two times a
   // second, forever.
   path[name^='Live processed output'] {
+    animation: euphoria-sweep 3.6s linear infinite;
     stroke: hsl(var(--euphoria-hue) 95% 66%);
   }
 
@@ -125,6 +119,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // root and a broken streak removes it, so the line goes back to its ordinary
   // width and colour in the same moment the rest of the window does.
   .rhythm-game__target {
+    animation: euphoria-sweep 3.6s linear infinite;
     width: 4px;
     background: hsl(var(--euphoria-hue) 95% 65%);
     box-shadow: 0 0 6px hsl(var(--euphoria-hue) 95% 60% / 65%);
@@ -150,25 +145,27 @@ it under the terms of the GNU General Public License version 3 or later.
   // The bands take the strongest treatment, because they are the part of the
   // window that already moves with the music.
   //
-  // Every colour a slider draws with derives from the one hue, so the track,
-  // its border and its halo travel together instead of drifting apart.
+  // Every colour a slider draws with derives from its one hue, so the track,
+  // its border and its halo stay together instead of drifting apart.
+  // Each band holds a fixed hue. Thirty-one of them, and none animating.
   //
-  // One animation, not one per band. Each used to run its own copy of the
-  // sweep with a staggered delay, which is up to thirty-one animated custom
-  // properties and thirty-one subtrees recalculating style every frame. The
-  // root already animates the hue, so a band only needs a fixed OFFSET added
-  // to it — the colour still runs along the row in six phases, and the browser
-  // drives one property instead of thirty-one.
+  // The colour used to be the swept hue plus a per-band offset, so the
+  // spectrum travelled along the row. That meant thirty-one subtrees
+  // recomputed on every frame, which is most of the cost the mode ever had,
+  // for motion that is barely legible on a slider four pixels wide.
+  //
+  // Fixed, the rainbow across the row is exactly as it was — that is the part
+  // anyone actually sees — and the movement stays where movement reads: in the
+  // brightness, which follows each band's own frequency through
+  // `--band-level`, written a few times a second rather than sixty.
   .bandWrapper {
-    --band-hue: calc(var(--euphoria-hue) + var(--band-offset, 0deg));
-
     --slider-color: hsl(var(--band-hue) 95% 62%);
     --slider-color-muted: hsl(var(--band-hue) 95% 62% / 62%);
     --slider-track: hsl(var(--band-hue) 90% 46% / 35%);
 
     @for $phase from 1 through 6 {
       &:nth-child(6n + #{$phase}) {
-        --band-offset: #{($phase - 1) * 60}deg;
+        --band-hue: #{($phase - 1) * 60}deg;
       }
     }
   }
@@ -281,9 +278,25 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // Registered so it can actually animate. Without the type the browser treats it
 // as an unparsed string and the sweep becomes six abrupt steps.
+// NOT INHERITED, and this single word is the difference between an animation
+// and a memory leak.
+//
+// It was `inherits: true`, animated on the document root. A registered custom
+// property that inherits has to be resolved for every element that could read
+// it — which, from the root, is every element in the document. Animated, that
+// is the computed style of the entire tree rebuilt sixty times a second, for
+// as long as the mode is on. The interface went sluggish, the graph stuttered,
+// and memory climbed into the gigabytes because the garbage was produced
+// faster than it could be collected. Switching the mode off did not free it
+// quickly either; collection simply got to catch up at last.
+//
+// Not inheriting means the value exists only on elements that animate it
+// themselves, and each of those is one element with a handful of descendants
+// rather than the whole page. The sweep is applied below to the few things
+// that genuinely travel through the spectrum.
 @property --euphoria-hue {
   syntax: '<angle>';
-  inherits: true;
+  inherits: false;
   initial-value: 0deg;
 }
 

@@ -212,6 +212,7 @@ it under the terms of the GNU General Public License version 3 or later.
   // element reading a value that was being swept anyway rather than an
   // animation of its own.
   &.is-euphoric {
+    animation: euphoria-sweep 3.6s linear infinite;
     color: #06131d;
     border-color: transparent;
     background: hsl(var(--euphoria-hue, 160deg) 95% 62%);
