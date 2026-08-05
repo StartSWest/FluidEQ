@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'react';
-import { GraphStyle, nextGraphStyle } from 'common/graphStyles';
+import { GRAPH_LOOKS, IGraphLook, getGraphLook } from 'common/graphStyles';
 
 /**
  * How the live spectrum is drawn, held outside React.
@@ -34,33 +34,46 @@ const STORAGE_KEY = 'fluideq-graph-style';
 
 const listeners = new Set<() => void>();
 
-let style: GraphStyle = 'line';
+let look: IGraphLook = GRAPH_LOOKS[0];
 try {
-  style = (window.localStorage.getItem(STORAGE_KEY) as GraphStyle) || 'line';
+  look = getGraphLook(window.localStorage.getItem(STORAGE_KEY) || '');
 } catch {
   // Storage can be unavailable; the default is a perfectly good curve.
 }
 
-export const getGraphStyle = () => style;
+export const getGraphLookId = () => look.id;
 
-export const cycleGraphStyle = () => {
-  style = nextGraphStyle(style);
+export const setGraphLook = (id: string) => {
+  const next = getGraphLook(id);
+  if (next === look) {
+    return;
+  }
+  look = next;
   try {
-    window.localStorage.setItem(STORAGE_KEY, style);
+    window.localStorage.setItem(STORAGE_KEY, look.id);
   } catch {
-    // Not worth failing a click over.
+    // Not worth failing a choice over.
   }
   listeners.forEach((listener) => listener());
 };
 
-export const useGraphStyle = () =>
+const subscribe = (listener: () => void) => {
+  listeners.add(listener);
+  return () => {
+    listeners.delete(listener);
+  };
+};
+
+/**
+ * The whole look, as one stable object.
+ *
+ * Returned as the object rather than as `{ style, palette }` built per call,
+ * because `useSyncExternalStore` compares snapshots by identity and a fresh
+ * object every time is an infinite render.
+ */
+export const useGraphLook = () =>
   useSyncExternalStore(
-    (listener) => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-    () => style,
-    () => 'line' as GraphStyle,
+    subscribe,
+    () => look,
+    () => GRAPH_LOOKS[0],
   );

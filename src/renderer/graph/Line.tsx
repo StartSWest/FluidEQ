@@ -26,7 +26,7 @@ import {
   createGraphShape,
   isFilledGraphStyle,
 } from 'common/graphStyles';
-import { useGraphStyle } from 'renderer/utils/graphStyle';
+import { useGraphLook } from 'renderer/utils/graphStyle';
 import {
   GRAPH_ANIMATE_DURATION,
   IChartPointData,
@@ -231,9 +231,9 @@ const Line = ({
   // that moved. Two buffers, reused, so a frame allocates nothing.
   // Only the live trace has a style; every other curve is the user's own
   // tuning and has one right way to be drawn.
-  const graphStyle = useGraphStyle();
-  const graphStyleRef = useRef(graphStyle);
-  graphStyleRef.current = graphStyle;
+  const look = useGraphLook();
+  const lookRef = useRef(look);
+  lookRef.current = look;
 
   const easedRef = useRef<IChartPointData[]>([]);
   // Reused, so a frame projects into the same array rather than minting one.
@@ -262,7 +262,7 @@ const Line = ({
           eased[index].y = data[index].y;
         }
       }
-      const chosen = graphStyleRef.current;
+      const chosen = lookRef.current.style;
       if (chosen === 'line') {
         ref.current?.setAttribute('d', line(eased) ?? '');
         return moving;
@@ -292,7 +292,11 @@ const Line = ({
 
   // Only the live trace can be painted; every other curve is a line and the
   // style setting has nothing to say about it.
-  const isPainted = Boolean(smooth) && isFilledGraphStyle(graphStyle);
+  const isPainted = Boolean(smooth) && isFilledGraphStyle(look.style);
+  // The spectrum gradient already exists for the EQ response; the rainbow
+  // palette simply points at it instead of the trace's single colour.
+  const paint =
+    look.palette === 'rainbow' ? 'url(#chart-eq-spectrum-gradient)' : color;
 
   useEffect(() => {
     if (!smooth) {
@@ -330,11 +334,11 @@ const Line = ({
       <path
         name={name}
         ref={ref}
-        stroke={isPainted ? 'none' : color}
+        stroke={isPainted ? 'none' : paint}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
-        fill={isPainted ? color : 'none'}
+        fill={isPainted ? paint : 'none'}
         fillOpacity={isPainted ? 0.55 : undefined}
         opacity={0}
         transform={transform}

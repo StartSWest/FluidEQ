@@ -66,8 +66,10 @@ import {
   useLiveAudioControl,
   useLiveAudioFrame,
 } from '../audio/LiveAudioContext';
+import { GRAPH_LOOKS } from '../../common/graphStyles';
 import { getBandColor } from '../utils/bandColors';
-import { cycleGraphStyle } from '../utils/graphStyle';
+import { setGraphLook, useGraphLook } from '../utils/graphStyle';
+import Dropdown from '../widgets/Dropdown';
 import { getVoicingFilters } from '../../common/voicing';
 import { getDriverFilters } from '../../common/driver';
 import { getSmartEqFilters, hasSmartEqLayer } from '../../common/smartEq';
@@ -106,8 +108,22 @@ type PendingPointEdit = Partial<
  */
 const SUPPORTING_CURVE_OPACITY = 0.5;
 
+/**
+ * The forty looks, as dropdown entries.
+ *
+ * Built once at module scope: the list never changes, and rebuilding it per
+ * render would hand the dropdown a new array forty times a second while the
+ * live curve is updating.
+ */
+const graphLookOptions = GRAPH_LOOKS.map((look) => ({
+  value: look.id,
+  label: look.label,
+  display: look.label,
+}));
+
 const FrequencyResponseChart = () => {
   const liveOutput = useLiveAudioFrame();
+  const liveLook = useGraphLook();
   const { error: liveOutputError } = useLiveAudioControl();
   const {
     filters,
@@ -780,18 +796,24 @@ const FrequencyResponseChart = () => {
           </span>
         ) : null}
         {/* The legend is the control.
-        
-            Clicking the graph itself drags bands, so the cycle needed its own
-            target — and the label that already names the live output is a
-            better one than a new button somewhere: it says what it changes. */}
-        <button
-          type="button"
-          className="graph-legend graph-legend--live graph-legend--button"
-          onClick={cycleGraphStyle}
-          title="Change how the live output is drawn"
-        >
-          Live output (0 dB = track peak)
-        </button>
+            
+            Clicking the plot itself drags bands, so the picker needed its own
+            place — and the label that already names the live output is the
+            honest one, because it says what the choice changes. Forty looks is
+            more than a cycle can reasonably walk, hence a searchable list. */}
+        <span className="graph-legend graph-legend--live graph-legend--picker">
+          Live output
+          <Dropdown
+            name="live-output-style"
+            options={graphLookOptions}
+            value={liveLook.id}
+            isDisabled={false}
+            isFilterable
+            filterPlaceholder="Search styles"
+            placement="down"
+            handleChange={setGraphLook}
+          />
+        </span>
         {liveOutput.isClipping && (
           <span className="graph-clip-warning" role="status">
             CLIPPING - reduce preamp

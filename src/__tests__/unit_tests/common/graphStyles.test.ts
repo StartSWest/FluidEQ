@@ -17,7 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  GRAPH_LOOKS,
+  GRAPH_PALETTES,
   GRAPH_STYLES,
+  getGraphLook,
   GraphStyle,
   Projected,
   createGraphShape,
@@ -37,9 +40,31 @@ const shapeOf = (style: GraphStyle) =>
   createGraphShape(points, style, BASELINE);
 
 describe('the graph style cycle', () => {
-  it('offers ten distinct styles', () => {
-    expect(GRAPH_STYLES).toHaveLength(10);
-    expect(new Set(GRAPH_STYLES).size).toBe(10);
+  it('offers twenty distinct forms', () => {
+    expect(GRAPH_STYLES).toHaveLength(20);
+    expect(new Set(GRAPH_STYLES).size).toBe(20);
+  });
+
+  it('pairs every form with every palette, and no id repeats', () => {
+    // Generated rather than listed, so a new form brings its whole row — the
+    // failure this guards is a look that exists in the geometry but cannot be
+    // chosen because nobody added it to the menu.
+    expect(GRAPH_LOOKS).toHaveLength(
+      GRAPH_STYLES.length * GRAPH_PALETTES.length,
+    );
+    expect(new Set(GRAPH_LOOKS.map((look) => look.id)).size).toBe(
+      GRAPH_LOOKS.length,
+    );
+  });
+
+  it('names every look, so the search has something to match', () => {
+    GRAPH_LOOKS.forEach((look) => {
+      expect(look.label.trim().length).toBeGreaterThan(0);
+    });
+  });
+
+  it('falls back to the first look for an id it does not know', () => {
+    expect(getGraphLook('nonsense')).toBe(GRAPH_LOOKS[0]);
   });
 
   it('comes back round', () => {

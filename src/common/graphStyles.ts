@@ -39,7 +39,17 @@ export type GraphStyle =
   | 'blocks'
   | 'spikes'
   | 'mirror'
-  | 'ridge';
+  | 'ridge'
+  | 'stems'
+  | 'needles'
+  | 'terrace'
+  | 'dashes'
+  | 'scatter'
+  | 'caps'
+  | 'ribs'
+  | 'pillars'
+  | 'crown'
+  | 'weave';
 
 /** In cycle order. */
 export const GRAPH_STYLES: GraphStyle[] = [
@@ -53,7 +63,47 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'spikes',
   'mirror',
   'ridge',
+  'stems',
+  'needles',
+  'terrace',
+  'dashes',
+  'scatter',
+  'caps',
+  'ribs',
+  'pillars',
+  'crown',
+  'weave',
 ];
+
+/**
+ * Human names for the picker.
+ *
+ * Written out rather than generated from the key, because "mirror" and
+ * "terrace" mean nothing on their own — the list is chosen by eye and the
+ * label is what somebody searches.
+ */
+export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
+  line: 'Line',
+  area: 'Area',
+  bars: 'Bars',
+  comb: 'Comb',
+  dots: 'Dots',
+  steps: 'Staircase',
+  blocks: 'LED blocks',
+  spikes: 'Spikes',
+  mirror: 'Mirrored body',
+  ridge: 'Ridge',
+  stems: 'Stems',
+  needles: 'Needles',
+  terrace: 'Terrace',
+  dashes: 'Dashes',
+  scatter: 'Scatter',
+  caps: 'Floating caps',
+  ribs: 'Ribs',
+  pillars: 'Pillars',
+  crown: 'Crown',
+  weave: 'Weave',
+};
 
 export const nextGraphStyle = (style: GraphStyle): GraphStyle => {
   const index = GRAPH_STYLES.indexOf(style);
@@ -61,8 +111,67 @@ export const nextGraphStyle = (style: GraphStyle): GraphStyle => {
 };
 
 /** Whether a style is painted rather than stroked, so the caller can say so. */
+const STROKED_STYLES = new Set<GraphStyle>([
+  'line',
+  'comb',
+  'steps',
+  'needles',
+  'dashes',
+  'ribs',
+  'weave',
+]);
+
 export const isFilledGraphStyle = (style: GraphStyle): boolean =>
-  style !== 'line' && style !== 'comb' && style !== 'steps';
+  !STROKED_STYLES.has(style);
+
+/**
+ * How a form is coloured, which is the second half of what makes a look.
+ *
+ * Kept separate from the shape rather than written into it, because the two
+ * are genuinely independent — every form reads differently in the signal
+ * colour and in the spectrum, and pairing them as forty flat entries would
+ * mean forty pieces of geometry where twenty and a flag will do.
+ *
+ * `signal` is the trace's own colour, one hue for the whole figure. `rainbow`
+ * runs the spectrum across the frequency axis, so a bar's colour says where in
+ * the range it sits.
+ */
+export type GraphPalette = 'signal' | 'rainbow';
+
+export const GRAPH_PALETTES: GraphPalette[] = ['signal', 'rainbow'];
+
+export const GRAPH_PALETTE_LABELS: Record<GraphPalette, string> = {
+  signal: '',
+  rainbow: 'rainbow',
+};
+
+/** One selectable look: a form and how it is coloured. */
+export interface IGraphLook {
+  id: string;
+  style: GraphStyle;
+  palette: GraphPalette;
+  label: string;
+}
+
+/**
+ * Every combination, in a stable order.
+ *
+ * Generated rather than listed, so adding a form adds its whole row and no
+ * entry can be forgotten or duplicated.
+ */
+export const GRAPH_LOOKS: IGraphLook[] = GRAPH_STYLES.flatMap((style) =>
+  GRAPH_PALETTES.map((palette) => ({
+    id: palette === 'signal' ? style : `${style}-${palette}`,
+    style,
+    palette,
+    label: [GRAPH_STYLE_LABELS[style], GRAPH_PALETTE_LABELS[palette]]
+      .filter(Boolean)
+      .join(' · '),
+  })),
+);
+
+export const getGraphLook = (id: string): IGraphLook =>
+  GRAPH_LOOKS.find((look) => look.id === id) ?? GRAPH_LOOKS[0];
 
 /** A point already in pixels. */
 export type Projected = readonly [number, number];
@@ -85,6 +194,23 @@ const rect = (x: number, y: number, width: number, height: number) =>
  * and a fifth of the string to build.
  */
 const COLUMN_COUNT = 64;
+
+/** The forms drawn one piece per column rather than as a continuous figure. */
+const DISCRETE_STYLES = new Set<GraphStyle>([
+  'bars',
+  'comb',
+  'dots',
+  'blocks',
+  'spikes',
+  'stems',
+  'needles',
+  'dashes',
+  'scatter',
+  'caps',
+  'ribs',
+  'pillars',
+  'crown',
+]);
 
 /**
  * Reduce to one column per bucket, keeping the PEAK rather than the average.
@@ -135,12 +261,7 @@ export const createGraphShape = (
   // Bars, dots, spikes and blocks are drawn per column; a line, an area or a
   // staircase is a single polyline and keeps the full resolution, which costs
   // nothing extra and reads better.
-  const isDiscrete =
-    style === 'bars' ||
-    style === 'dots' ||
-    style === 'spikes' ||
-    style === 'blocks' ||
-    style === 'comb';
+  const isDiscrete = DISCRETE_STYLES.has(style);
   const figure = isDiscrete ? toColumns(points) : points;
   // Average spacing rather than per-pair, because the x axis is logarithmic:
   // a bar sized by the gap to its own neighbour would be hair-thin at 20Hz and
@@ -254,6 +375,133 @@ export const createGraphShape = (
         .reverse()
         .map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`)
         .join(' L ')} Z`;
+    }
+
+    // A dot on the peak with a thread down to the floor.
+    case 'stems': {
+      const size = Math.max(1.8, step * 0.42);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path += rect(x - 0.6, y, 1.2, Math.max(0, baseline - y));
+        path += rect(x - size / 2, y - size / 2, size, size);
+      }
+      return path;
+    }
+
+    // Hair-thin verticals: the same information as bars, with air between.
+    case 'needles': {
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path += `M ${x.toFixed(1)},${baseline.toFixed(1)} L ${x.toFixed(
+          1,
+        )},${y.toFixed(1)} `;
+      }
+      return path.trim();
+    }
+
+    // The staircase, filled — levels rather than a slope.
+    case 'terrace': {
+      let path = `M ${figure[0][0].toFixed(1)},${baseline.toFixed(1)}`;
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path += ` V ${y.toFixed(1)} H ${(x + step).toFixed(1)}`;
+      }
+      return `${path} V ${baseline.toFixed(1)} Z`;
+    }
+
+    // Just the tops, floating where the level is.
+    case 'dashes': {
+      const width = Math.max(2, step * 0.7);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path += `M ${(x - width / 2).toFixed(1)},${y.toFixed(1)} h ${width.toFixed(
+          1,
+        )} `;
+      }
+      return path.trim();
+    }
+
+    // Two marks per column: the level, and half way down to it.
+    case 'scatter': {
+      const size = Math.max(1.4, step * 0.34);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const half = y + (baseline - y) * 0.5;
+        path += rect(x - size / 2, y - size / 2, size, size);
+        path += rect(x - size / 2, half - size / 2, size, size);
+      }
+      return path;
+    }
+
+    // A cap hovering above an empty column, the way a peak-hold reads.
+    case 'caps': {
+      const width = Math.max(2, step * 0.66);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path += rect(x - width / 2, y, width, 3);
+      }
+      return path;
+    }
+
+    // Horizontal rungs stacked up each column.
+    case 'ribs': {
+      const width = Math.max(2, step * 0.66);
+      const gap = 9;
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        for (let at = baseline; at > y; at -= gap) {
+          path += `M ${(x - width / 2).toFixed(1)},${at.toFixed(
+            1,
+          )} h ${width.toFixed(1)} `;
+        }
+      }
+      return path.trim();
+    }
+
+    // Wide columns with no gap, so the spectrum reads as a solid skyline.
+    case 'pillars': {
+      const width = Math.max(1, step * 0.96);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path += rect(x - width / 2, y, width, Math.max(0, baseline - y));
+      }
+      return path;
+    }
+
+    // Tapered towers: wide at the floor, narrow at the peak.
+    case 'crown': {
+      const width = Math.max(2, step * 0.8);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path += `M ${(x - width / 2).toFixed(1)},${baseline.toFixed(
+          1,
+        )} L ${(x - width / 6).toFixed(1)},${y.toFixed(1)} L ${(
+          x +
+          width / 6
+        ).toFixed(1)},${y.toFixed(1)} L ${(x + width / 2).toFixed(
+          1,
+        )},${baseline.toFixed(1)} Z`;
+      }
+      return path;
+    }
+
+    // A zigzag threading the peaks, alternating above and below each one.
+    case 'weave': {
+      let path = `M ${figure[0][0].toFixed(1)},${figure[0][1].toFixed(1)}`;
+      for (let index = 1; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const swing = index % 2 === 0 ? -6 : 6;
+        path += ` L ${x.toFixed(1)},${(y + swing).toFixed(1)}`;
+      }
+      return path;
     }
 
     default:
