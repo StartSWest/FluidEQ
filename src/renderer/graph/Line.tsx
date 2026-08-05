@@ -295,10 +295,10 @@ const Line = ({
   // Only the live trace can be painted; every other curve is a line and the
   // style setting has nothing to say about it.
   const isPainted = Boolean(smooth) && isFilledGraphStyle(look.style);
-  // The spectrum gradient already exists for the EQ response; the rainbow
-  // palette simply points at it instead of the trace's single colour.
-  const paint =
-    look.palette === 'rainbow' ? 'url(#chart-eq-spectrum-gradient)' : color;
+  // The rainbow palette paints from the full-spectrum gradient in the chart's
+  // defs — deliberately not the EQ one, which only carries a stop per band and
+  // so covers whatever slice of the axis the user's bands happen to occupy.
+  const paint = look.palette === 'rainbow' ? 'url(#chart-live-rainbow)' : color;
 
   useEffect(() => {
     if (!smooth) {

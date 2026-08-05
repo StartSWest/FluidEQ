@@ -33,15 +33,12 @@ export type GraphStyle =
   | 'line'
   | 'area'
   | 'bars'
-  | 'comb'
   | 'dots'
   | 'steps'
   | 'blocks'
   | 'spikes'
-  | 'mirror'
   | 'ridge'
   | 'stems'
-  | 'needles'
   | 'terrace'
   | 'dashes'
   | 'scatter'
@@ -60,37 +57,27 @@ export type GraphStyle =
   | 'truss'
   | 'zipper'
   | 'slope'
-  | 'islands'
   | 'stalactites'
   | 'bubbles'
   | 'diamonds'
-  | 'chevrons'
   | 'sawtooth'
   | 'ecg'
-  | 'arcs'
-  | 'rain'
   | 'echo'
   | 'racer'
-  | 'platformer'
   | 'invaders'
-  | 'starfield'
-  | 'pipes'
-  | 'brickout';
+  | 'starfield';
 
 /** In cycle order. */
 export const GRAPH_STYLES: GraphStyle[] = [
   'line',
   'area',
   'bars',
-  'comb',
   'dots',
   'steps',
   'blocks',
   'spikes',
-  'mirror',
   'ridge',
   'stems',
-  'needles',
   'terrace',
   'dashes',
   'scatter',
@@ -109,44 +96,34 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'truss',
   'zipper',
   'slope',
-  'islands',
   'stalactites',
   'bubbles',
   'diamonds',
-  'chevrons',
   'sawtooth',
   'ecg',
-  'arcs',
-  'rain',
   'echo',
   'racer',
-  'platformer',
   'invaders',
   'starfield',
-  'pipes',
-  'brickout',
 ];
 
 /**
  * Human names for the picker.
  *
- * Written out rather than generated from the key, because "mirror" and
- * "terrace" mean nothing on their own — the list is chosen by eye and the
+ * Written out rather than generated from the key, because "terrace" and
+ * "crown" mean nothing on their own — the list is chosen by eye and the
  * label is what somebody searches.
  */
 export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   line: 'Line',
   area: 'Area',
   bars: 'Bars',
-  comb: 'Comb',
   dots: 'Dots',
   steps: 'Staircase',
   blocks: 'LED blocks',
   spikes: 'Spikes',
-  mirror: 'Mirrored body',
   ridge: 'Ridge',
   stems: 'Stems',
-  needles: 'Needles',
   terrace: 'Terrace',
   dashes: 'Dashes',
   scatter: 'Scatter',
@@ -165,22 +142,15 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   truss: 'Truss',
   zipper: 'Zipper',
   slope: 'Slope field',
-  islands: 'Islands',
   stalactites: 'Stalactites',
   bubbles: 'Bubbles',
   diamonds: 'Diamonds',
-  chevrons: 'Chevrons',
   sawtooth: 'Sawtooth',
   ecg: 'Pulse',
-  arcs: 'Arcs',
-  rain: 'Rainfall',
   echo: 'Echo',
   racer: 'Road trip',
-  platformer: 'Platform hop',
   invaders: 'Invaders',
   starfield: 'Warp speed',
-  pipes: 'Pipes',
-  brickout: 'Brick wall',
 };
 
 export const nextGraphStyle = (style: GraphStyle): GraphStyle => {
@@ -191,9 +161,7 @@ export const nextGraphStyle = (style: GraphStyle): GraphStyle => {
 /** Whether a style is painted rather than stroked, so the caller can say so. */
 const STROKED_STYLES = new Set<GraphStyle>([
   'line',
-  'comb',
   'steps',
-  'needles',
   'dashes',
   'ribs',
   'weave',
@@ -204,10 +172,7 @@ const STROKED_STYLES = new Set<GraphStyle>([
   'truss',
   'zipper',
   'slope',
-  'chevrons',
   'ecg',
-  'arcs',
-  'rain',
   'echo',
   'starfield',
 ]);
@@ -273,11 +238,11 @@ export const getGraphLook = (id: string): IGraphLook =>
  * different.
  *
  * Bars and blocks snap and hang, the way a level meter does, so a kick lands
- * as a step rather than a swell. A ridge or a mirrored body is a landscape and
- * moves like one, slowly, because a hill that twitches is noise. Dots and
- * caps float — quick to rise so they mark the peak, slow to fall so the mark
- * stays long enough to read. Needles and combs are nearly instantaneous, which
- * is the whole point of a form that thin.
+ * as a step rather than a swell. A ridge is a landscape and moves like one,
+ * slowly, because a hill that twitches is noise. Dots and caps float — quick
+ * to rise so they mark the peak, slow to fall so the mark stays long enough to
+ * read. The thin forms are nearly instantaneous, which is the
+ * whole point of a form that thin.
  *
  * In milliseconds to halve the remaining distance.
  */
@@ -299,26 +264,22 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   scatter: { attackMs: 5, releaseMs: 70 },
   dashes: { attackMs: 4, releaseMs: 85 },
   // Thin forms can afford to be instant; there is no mass to them.
-  needles: { attackMs: 2, releaseMs: 14 },
-  comb: { attackMs: 2, releaseMs: 16 },
   ribs: { attackMs: 3, releaseMs: 30 },
   stems: { attackMs: 4, releaseMs: 40 },
   spikes: { attackMs: 3, releaseMs: 22 },
   crown: { attackMs: 4, releaseMs: 36 },
   // Landscapes. A hill that twitches is noise, so these are the slow ones.
   ridge: { attackMs: 22, releaseMs: 90 },
-  mirror: { attackMs: 20, releaseMs: 80 },
   terrace: { attackMs: 16, releaseMs: 70 },
   area: { attackMs: 12, releaseMs: 48 },
   // The staircase steps by nature; easing it hard would blur the treads.
   steps: { attackMs: 6, releaseMs: 26 },
   weave: { attackMs: 6, releaseMs: 30 },
 
-  // More landscapes. Contours and islands are drawn from where the level
-  // crosses a threshold, so a jittery curve makes rings pop in and out of
-  // existence — these are the slowest things here on purpose.
+  // More landscapes. A contour is drawn from where the level crosses a
+  // threshold, so a jittery curve makes rings pop in and out of existence —
+  // it is the slowest thing here on purpose.
   contour: { attackMs: 26, releaseMs: 95 },
-  islands: { attackMs: 28, releaseMs: 100 },
   hatch: { attackMs: 18, releaseMs: 70 },
   bezier: { attackMs: 16, releaseMs: 55 },
   ribbon: { attackMs: 11, releaseMs: 46 },
@@ -329,16 +290,13 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   skyline: { attackMs: 5, releaseMs: 72 },
   truss: { attackMs: 7, releaseMs: 32 },
   matrix: { attackMs: 3, releaseMs: 66 },
-  chevrons: { attackMs: 3, releaseMs: 56 },
   sawtooth: { attackMs: 4, releaseMs: 40 },
-  arcs: { attackMs: 5, releaseMs: 52 },
 
   // Things that hang, fall or float have gravity in them: quick to appear,
   // reluctant to leave.
   stalactites: { attackMs: 9, releaseMs: 120 },
   bubbles: { attackMs: 3, releaseMs: 92 },
   diamonds: { attackMs: 4, releaseMs: 78 },
-  rain: { attackMs: 4, releaseMs: 105 },
 
   // The pulse is a heartbeat. One that arrives late is not a heartbeat, so it
   // is the fastest of the lot in both directions.
@@ -354,11 +312,8 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // rather than twitch, the warp streaks are as immediate as the pulse, and
   // the bricks behave like the level meter they secretly are.
   racer: { attackMs: 6, releaseMs: 42 },
-  platformer: { attackMs: 2, releaseMs: 58 },
   invaders: { attackMs: 6, releaseMs: 85 },
   starfield: { attackMs: 3, releaseMs: 26 },
-  pipes: { attackMs: 5, releaseMs: 68 },
-  brickout: { attackMs: 3, releaseMs: 72 },
 };
 
 export const getGraphBallistics = (style: GraphStyle): IGraphBallistics =>
@@ -414,23 +369,17 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   skyline: 26,
   truss: 22,
   ecg: 26,
-  chevrons: 24,
-  arcs: 34,
   matrix: 40,
   bubbles: 40,
   zipper: 40,
   sawtooth: 40,
   feather: 44,
   slope: 44,
-  rain: 48,
   diamonds: 48,
   stalactites: 52,
   // The arcade forms are drawn as sprites, and a sprite squeezed into a
   // six-pixel column is a smudge. Fewer, bigger.
   invaders: 20,
-  platformer: 22,
-  pipes: 24,
-  brickout: 26,
   starfield: 40,
 };
 
@@ -440,12 +389,10 @@ const getColumnCount = (style: GraphStyle) =>
 /** The forms drawn one piece per column rather than as a continuous figure. */
 const DISCRETE_STYLES = new Set<GraphStyle>([
   'bars',
-  'comb',
   'dots',
   'blocks',
   'spikes',
   'stems',
-  'needles',
   'dashes',
   'scatter',
   'caps',
@@ -461,16 +408,10 @@ const DISCRETE_STYLES = new Set<GraphStyle>([
   'stalactites',
   'bubbles',
   'diamonds',
-  'chevrons',
   'sawtooth',
   'ecg',
-  'arcs',
-  'rain',
-  'platformer',
   'invaders',
   'starfield',
-  'pipes',
-  'brickout',
 ]);
 
 /**
@@ -479,6 +420,16 @@ const DISCRETE_STYLES = new Set<GraphStyle>([
  * A spectrum is read for where the energy is, and averaging a narrow spike
  * with its quiet neighbours is how a real peak turns into a bump that is not
  * there. The loudest point in the bucket is the honest summary.
+ *
+ * The peak's LEVEL, though — never its position. A bucket covers a band of
+ * frequencies, and which sample inside it happens to be loudest changes from
+ * frame to frame, so returning that sample's own x made every bar shuffle
+ * sideways as the music moved. Nothing about the drawing is supposed to move
+ * horizontally: a bar sits over a fixed band of the spectrum and says how loud
+ * that band is by its height, and that is the only thing that should change.
+ *
+ * So the column stands at the centre of its bucket, which is a constant, and
+ * carries the peak's height.
  */
 const toColumns = (
   points: readonly Projected[],
@@ -493,13 +444,13 @@ const toColumns = (
     const from = Math.floor(index * perColumn);
     const to = Math.max(from + 1, Math.floor((index + 1) * perColumn));
     // Smallest y is the tallest bar: the axis grows downward in pixels.
-    let peak = points[from];
+    let [, peak] = points[from];
     for (let at = from + 1; at < to; at += 1) {
-      if (points[at][1] < peak[1]) {
-        peak = points[at];
+      if (points[at][1] < peak) {
+        [, peak] = points[at];
       }
     }
-    columns.push(peak);
+    columns.push([points[Math.floor((from + to - 1) / 2)][0], peak]);
   }
   return columns;
 };
@@ -554,17 +505,6 @@ export const createGraphShape = (
         path += rect(x - width / 2, y, width, Math.max(0, baseline - y));
       }
       return path;
-    }
-
-    case 'comb': {
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        path += `M ${x.toFixed(1)},${baseline.toFixed(1)} L ${x.toFixed(
-          1,
-        )},${y.toFixed(1)} `;
-      }
-      return path.trim();
     }
 
     case 'dots': {
@@ -624,23 +564,6 @@ export const createGraphShape = (
       return path;
     }
 
-    // Reflected about its own middle, so the spectrum reads as a solid body
-    // rather than as a horizon over empty space.
-    case 'mirror': {
-      const centre =
-        points.reduce((total, [, y]) => total + y, 0) / points.length;
-      const upper = points.map(
-        ([x, y]) => [x, centre - (centre - y) * 0.5] as Projected,
-      );
-      const lower = points.map(
-        ([x, y]) => [x, centre + (centre - y) * 0.5] as Projected,
-      );
-      return `${polyline(upper)} L ${[...lower]
-        .reverse()
-        .map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`)
-        .join(' L ')} Z`;
-    }
-
     // A dot on the peak with a thread down to the floor.
     case 'stems': {
       const size = Math.max(1.8, step * 0.42);
@@ -651,18 +574,6 @@ export const createGraphShape = (
         path += rect(x - size / 2, y - size / 2, size, size);
       }
       return path;
-    }
-
-    // Hair-thin verticals: the same information as bars, with air between.
-    case 'needles': {
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        path += `M ${x.toFixed(1)},${baseline.toFixed(1)} L ${x.toFixed(
-          1,
-        )},${y.toFixed(1)} `;
-      }
-      return path.trim();
     }
 
     // The staircase, filled — levels rather than a slope.
@@ -1015,46 +926,6 @@ export const createGraphShape = (
       return path.trim();
     }
 
-    // Only what is above sea level.
-    //
-    // The waterline is the frame's own average, so the quiet two-thirds of the
-    // spectrum simply are not drawn and the loud regions become separate
-    // shapes with edges. Turning a continuous reading into a countable number
-    // of objects is a genuinely different way to look at it: you stop reading
-    // heights and start reading how many, and how wide.
-    case 'islands': {
-      const waterline =
-        points.reduce((total, [, y]) => total + y, 0) / points.length;
-      let path = '';
-      let run: Projected[] = [];
-      const land = () => {
-        if (run.length >= 2) {
-          path += `${polyline(run)} L ${run[run.length - 1][0].toFixed(
-            1,
-          )},${waterline.toFixed(1)} L ${run[0][0].toFixed(
-            1,
-          )},${waterline.toFixed(1)} Z `;
-        }
-        run = [];
-      };
-      for (let index = 0; index < points.length; index += 1) {
-        if (points[index][1] <= waterline) {
-          run.push(points[index]);
-        } else {
-          land();
-        }
-      }
-      land();
-      return (
-        path.trim() ||
-        `${polyline(points)} L ${points[points.length - 1][0].toFixed(
-          1,
-        )},${baseline.toFixed(1)} L ${points[0][0].toFixed(
-          1,
-        )},${baseline.toFixed(1)} Z`
-      );
-    }
-
     // Hung from the ceiling rather than stood on the floor. The same numbers,
     // read upside down — loud is long, and the shape grows towards you from
     // the top of the plot instead of away from the bottom.
@@ -1115,27 +986,6 @@ export const createGraphShape = (
       return path;
     }
 
-    // Stacked arrowheads climbing each column, all pointing up. Reads as
-    // motion even when the frame is frozen, which is the trick of it.
-    case 'chevrons': {
-      const width = Math.max(3, step * 0.72);
-      const gap = 14;
-      const rise = 5;
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        for (let at = baseline - rise; at > y; at -= gap) {
-          path += `M ${(x - width / 2).toFixed(1)},${at.toFixed(
-            1,
-          )} L ${x.toFixed(1)},${(at - rise).toFixed(1)} L ${(
-            x +
-            width / 2
-          ).toFixed(1)},${at.toFixed(1)} `;
-        }
-      }
-      return path.trim();
-    }
-
     // The waveform the oscillator makes: a slow ramp up to the level and a
     // vertical drop back. Every tooth leans the same way, so the whole figure
     // has a direction to it that a symmetrical bar chart does not.
@@ -1173,41 +1023,6 @@ export const createGraphShape = (
         ).toFixed(1)} L ${(x + width * 2).toFixed(1)},${rest.toFixed(1)}`;
       }
       return path;
-    }
-
-    // A row of arches standing on the floor, each one as tall as its band. The
-    // curvature carries the level as well as the height does, and the gaps
-    // between them keep the grid readable.
-    case 'arcs': {
-      const half = Math.max(2, step * 0.46);
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        const height = Math.max(1, baseline - y);
-        path += `M ${(x - half).toFixed(1)},${baseline.toFixed(
-          1,
-        )} A ${half.toFixed(1)},${height.toFixed(1)} 0 0,1 ${(x + half).toFixed(
-          1,
-        )},${baseline.toFixed(1)} `;
-      }
-      return path.trim();
-    }
-
-    // Falling streaks: short dashes down each column, as far up as the level
-    // reaches, staggered so neighbouring columns never line up into rows. Loud
-    // bands rain harder.
-    case 'rain': {
-      const gap = 14;
-      const dash = 5;
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        const stagger = (index % 3) * 5;
-        for (let at = baseline - stagger; at > y; at -= gap) {
-          path += `M ${x.toFixed(1)},${at.toFixed(1)} v -${dash} `;
-        }
-      }
-      return path.trim();
     }
 
     // The trace, and three afterimages of it — each arriving a little to the
@@ -1263,34 +1078,6 @@ export const createGraphShape = (
       return path;
     }
 
-    // Ground blocks with a runner that jumps on the beat.
-    //
-    // The height of the hop is the level of the band it is standing on, so a
-    // kick throws it into the air and it settles back as the note dies. All of
-    // the timing comes from the ballistics table rather than from a clock: the
-    // eased spectrum is already rising fast and falling slowly, which is what
-    // a jump is.
-    case 'platformer': {
-      const width = Math.max(4, step * 0.9);
-      let path = '';
-      let loudest = 0;
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        if (y < figure[loudest][1]) {
-          loudest = index;
-        }
-        path += rect(x - width / 2, y, width, Math.max(0, baseline - y));
-        // A groove under the lip of each block, so it reads as a platform to
-        // stand on rather than as another bar chart.
-        path += hole(x - width / 2 + 2, y + 4, Math.max(1, width - 4), 1.6);
-      }
-      const [runnerX, ground] = figure[loudest];
-      const hop = 8 + Math.min(34, Math.max(0, baseline - ground) * 0.12);
-      path += rect(runnerX - 4, ground - hop - 11, 8, 7);
-      path += rect(runnerX - 5, ground - hop - 4, 10, 9);
-      return path;
-    }
-
     // A rank of little sprites hanging at their own levels, eyes cut out of
     // them. Loud bands sit high and quiet ones drift down the screen.
     case 'invaders': {
@@ -1332,48 +1119,6 @@ export const createGraphShape = (
         }
       }
       return path.trim();
-    }
-
-    // Green pipes: a narrow body under a wider lip, with a highlight cut into
-    // it. Squat and friendly where the bars are severe.
-    case 'pipes': {
-      const body = Math.max(3, step * 0.6);
-      const lip = Math.max(5, step * 0.84);
-      const lipHeight = 7;
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        path += rect(
-          x - body / 2,
-          y + lipHeight,
-          body,
-          Math.max(0, baseline - y - lipHeight),
-        );
-        path += rect(x - lip / 2, y, lip, lipHeight);
-        path += hole(x - lip / 2 + 2, y + 2, Math.max(1, lip - 4), 1.5);
-      }
-      return path;
-    }
-
-    // A wall of bricks with a paddle under it, and the paddle chases the
-    // loudest band across the bottom of the plot the way it would chase a
-    // ball. The wall is the spectrum; the paddle is where the action is.
-    case 'brickout': {
-      const width = Math.max(4, step * 0.86);
-      const row = 11;
-      let path = '';
-      let loudest = 0;
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        if (y < figure[loudest][1]) {
-          loudest = index;
-        }
-        for (let at = baseline - row; at > y; at -= row) {
-          path += rect(x - width / 2, at, width, row - 3);
-        }
-      }
-      path += rect(figure[loudest][0] - 15, baseline - 3, 30, 3);
-      return path;
     }
 
     // A zigzag threading the peaks, alternating above and below each one.

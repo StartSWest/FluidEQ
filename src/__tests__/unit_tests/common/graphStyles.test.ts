@@ -43,9 +43,9 @@ const shapeOf = (style: GraphStyle) =>
   createGraphShape(points, style, BASELINE);
 
 describe('the graph style cycle', () => {
-  it('offers forty-six distinct forms', () => {
-    expect(GRAPH_STYLES).toHaveLength(46);
-    expect(new Set(GRAPH_STYLES).size).toBe(46);
+  it('offers thirty-six distinct forms', () => {
+    expect(GRAPH_STYLES).toHaveLength(36);
+    expect(new Set(GRAPH_STYLES).size).toBe(36);
   });
 
   it('gives every form a name of its own', () => {
@@ -151,9 +151,27 @@ describe('createGraphShape', () => {
     expect(new Set(widths).size).toBe(1);
   });
 
+  it('never lets a column move sideways', () => {
+    // A bucket covers a fixed band of frequencies. Which sample inside it is
+    // loudest changes constantly, so taking that sample's own x made every bar
+    // shuffle left and right as the music moved — height is the only thing a
+    // column is supposed to say.
+    const columnXs = (spectrum: Projected[]) =>
+      [...createGraphShape(spectrum, 'bars', BASELINE).matchAll(/M ([d.-]+),/g)]
+        .map((match) => match[1])
+        .join(' ');
+
+    // The same frequencies at two different moments: a rising spectrum, then
+    // one where the peak within every bucket has moved to the other end of it.
+    const rising = points;
+    const shifted = points.map(
+      ([x], index) => [x, index % 3 === 0 ? 70 : 240] as Projected,
+    );
+    expect(columnXs(rising)).toBe(columnXs(shifted));
+  });
+
   it('says which styles are painted rather than stroked', () => {
     expect(isFilledGraphStyle('line')).toBe(false);
-    expect(isFilledGraphStyle('comb')).toBe(false);
     expect(isFilledGraphStyle('steps')).toBe(false);
     expect(isFilledGraphStyle('area')).toBe(true);
     expect(isFilledGraphStyle('bars')).toBe(true);
@@ -180,14 +198,6 @@ describe('createGraphShape', () => {
     // curve, which is the one thing this form is not.
     expect(shapeOf('contour')).toMatch(/H/);
     expect(shapeOf('contour')).not.toMatch(/ L /);
-  });
-
-  it('keeps the islands above the waterline they are cut at', () => {
-    // The land is whatever is louder than the frame's own average, so no part
-    // of the figure may reach the floor of the plot.
-    const path = shapeOf('islands');
-    expect(path).toMatch(/Z/);
-    expect(path).not.toContain(BASELINE.toFixed(1));
   });
 
   it('sizes the bubbles by level rather than drawing them all alike', () => {
@@ -308,7 +318,7 @@ describe('graph ballistics', () => {
       getGraphBallistics('contour').attackMs,
     );
     expect(getGraphBallistics('slope').releaseMs).toBeLessThan(
-      getGraphBallistics('islands').releaseMs,
+      getGraphBallistics('contour').releaseMs,
     );
   });
 });

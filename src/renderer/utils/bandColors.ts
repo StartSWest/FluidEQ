@@ -17,6 +17,21 @@ const BAND_COLOR_STOPS: ReadonlyArray<{ position: number; color: Rgb }> = [
   { position: 1, color: [139, 92, 255] },
 ];
 
+/**
+ * The palette as gradient stops, for anything painted across the whole axis.
+ *
+ * Exported from here rather than written out again beside the `<defs>` that
+ * needs it: two copies of five colours is two copies that will disagree the
+ * first time one of them is adjusted.
+ */
+export const BAND_SPECTRUM_STOPS: ReadonlyArray<{
+  offset: number;
+  color: string;
+}> = BAND_COLOR_STOPS.map((stop) => ({
+  offset: stop.position,
+  color: `rgb(${stop.color.join(', ')})`,
+}));
+
 export const getBandColor = (progress: number): IBandColor => {
   const normalized = Math.max(0, Math.min(1, progress));
   const rightStop =

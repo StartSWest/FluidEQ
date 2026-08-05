@@ -28,6 +28,7 @@ import useController, {
   IMarginLike,
 } from './ChartController';
 import { cycleGraphLook } from '../utils/graphStyle';
+import { BAND_SPECTRUM_STOPS } from '../utils/bandColors';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 
@@ -249,6 +250,31 @@ const Chart = ({
             <stop
               key={`${stop.offset}-${stop.color}`}
               offset={`${Math.max(0, Math.min(1, stop.offset)) * 100}%`}
+              stopColor={stop.color}
+            />
+          ))}
+        </linearGradient>
+        {/* The rainbow palette's own gradient.
+
+            Separate from the EQ one above, which is built from the stops of
+            whatever bands happen to exist — with four bands that is four
+            colours over part of the axis, which is why "rainbow" was coming
+            out as a two-tone wash. This is the app's full spectrum, the same
+            five colours the band rails use, laid across the whole plot so a
+            column's colour says which part of the range it sits in
+            regardless of how the EQ is set up. */}
+        <linearGradient
+          id="chart-live-rainbow"
+          gradientUnits="userSpaceOnUse"
+          x1={padding.left}
+          x2={svgWidth - padding.right}
+          y1={0}
+          y2={0}
+        >
+          {BAND_SPECTRUM_STOPS.map((stop) => (
+            <stop
+              key={stop.offset}
+              offset={`${stop.offset * 100}%`}
               stopColor={stop.color}
             />
           ))}
