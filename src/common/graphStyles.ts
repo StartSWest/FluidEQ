@@ -69,7 +69,13 @@ export type GraphStyle =
   | 'ecg'
   | 'arcs'
   | 'rain'
-  | 'echo';
+  | 'echo'
+  | 'racer'
+  | 'platformer'
+  | 'invaders'
+  | 'starfield'
+  | 'pipes'
+  | 'brickout';
 
 /** In cycle order. */
 export const GRAPH_STYLES: GraphStyle[] = [
@@ -113,6 +119,12 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'arcs',
   'rain',
   'echo',
+  'racer',
+  'platformer',
+  'invaders',
+  'starfield',
+  'pipes',
+  'brickout',
 ];
 
 /**
@@ -163,6 +175,12 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   arcs: 'Arcs',
   rain: 'Rainfall',
   echo: 'Echo',
+  racer: 'Road trip',
+  platformer: 'Platform hop',
+  invaders: 'Invaders',
+  starfield: 'Warp speed',
+  pipes: 'Pipes',
+  brickout: 'Brick wall',
 };
 
 export const nextGraphStyle = (style: GraphStyle): GraphStyle => {
@@ -191,6 +209,7 @@ const STROKED_STYLES = new Set<GraphStyle>([
   'arcs',
   'rain',
   'echo',
+  'starfield',
 ]);
 
 export const isFilledGraphStyle = (style: GraphStyle): boolean =>
@@ -329,6 +348,17 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   slope: { attackMs: 3, releaseMs: 18 },
   feather: { attackMs: 4, releaseMs: 34 },
   zipper: { attackMs: 4, releaseMs: 26 },
+
+  // The arcade. These are toys, and toys have physics: the runner pops off the
+  // ground on a kick and comes down under its own weight, the aliens hover
+  // rather than twitch, the warp streaks are as immediate as the pulse, and
+  // the bricks behave like the level meter they secretly are.
+  racer: { attackMs: 6, releaseMs: 42 },
+  platformer: { attackMs: 2, releaseMs: 58 },
+  invaders: { attackMs: 6, releaseMs: 85 },
+  starfield: { attackMs: 3, releaseMs: 26 },
+  pipes: { attackMs: 5, releaseMs: 68 },
+  brickout: { attackMs: 3, releaseMs: 72 },
 };
 
 export const getGraphBallistics = (style: GraphStyle): IGraphBallistics =>
@@ -395,6 +425,13 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   rain: 48,
   diamonds: 48,
   stalactites: 52,
+  // The arcade forms are drawn as sprites, and a sprite squeezed into a
+  // six-pixel column is a smudge. Fewer, bigger.
+  invaders: 20,
+  platformer: 22,
+  pipes: 24,
+  brickout: 26,
+  starfield: 40,
 };
 
 const getColumnCount = (style: GraphStyle) =>
@@ -429,6 +466,11 @@ const DISCRETE_STYLES = new Set<GraphStyle>([
   'ecg',
   'arcs',
   'rain',
+  'platformer',
+  'invaders',
+  'starfield',
+  'pipes',
+  'brickout',
 ]);
 
 /**
@@ -1188,6 +1230,152 @@ export const createGraphShape = (
       return path;
     }
 
+    // A car on a road, and the road is the spectrum.
+    //
+    // The trace becomes tarmac with a dashed centre line punched through it,
+    // and a little car rides the loudest band — so the camera pans across the
+    // frequency axis on its own as the music moves, without anything here
+    // knowing what a frame before this one looked like.
+    case 'racer': {
+      const half = 3.5;
+      const upper = points.map(([x, y]) => [x, y - half] as Projected);
+      const lower = points.map(([x, y]) => [x, y + half] as Projected);
+      let path = `${polyline(upper)} L ${[...lower]
+        .reverse()
+        .map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`)
+        .join(' L ')} Z`;
+      for (let index = 6; index < points.length; index += 12) {
+        const [x, y] = points[index];
+        path += hole(x - 3, y - 0.7, 6, 1.4);
+      }
+      let loudest = 0;
+      for (let index = 1; index < points.length; index += 1) {
+        if (points[index][1] < points[loudest][1]) {
+          loudest = index;
+        }
+      }
+      const [carX, carY] = points[loudest];
+      const road = carY - half;
+      path += rect(carX - 9, road - 9, 18, 6);
+      path += rect(carX - 4, road - 13, 9, 4);
+      path += rect(carX - 7.5, road - 4, 5, 4);
+      path += rect(carX + 3, road - 4, 5, 4);
+      return path;
+    }
+
+    // Ground blocks with a runner that jumps on the beat.
+    //
+    // The height of the hop is the level of the band it is standing on, so a
+    // kick throws it into the air and it settles back as the note dies. All of
+    // the timing comes from the ballistics table rather than from a clock: the
+    // eased spectrum is already rising fast and falling slowly, which is what
+    // a jump is.
+    case 'platformer': {
+      const width = Math.max(4, step * 0.9);
+      let path = '';
+      let loudest = 0;
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        if (y < figure[loudest][1]) {
+          loudest = index;
+        }
+        path += rect(x - width / 2, y, width, Math.max(0, baseline - y));
+        // A groove under the lip of each block, so it reads as a platform to
+        // stand on rather than as another bar chart.
+        path += hole(x - width / 2 + 2, y + 4, Math.max(1, width - 4), 1.6);
+      }
+      const [runnerX, ground] = figure[loudest];
+      const hop = 8 + Math.min(34, Math.max(0, baseline - ground) * 0.12);
+      path += rect(runnerX - 4, ground - hop - 11, 8, 7);
+      path += rect(runnerX - 5, ground - hop - 4, 10, 9);
+      return path;
+    }
+
+    // A rank of little sprites hanging at their own levels, eyes cut out of
+    // them. Loud bands sit high and quiet ones drift down the screen.
+    case 'invaders': {
+      const unit = Math.max(1.2, step * 0.13);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path += rect(x - unit * 2.5, y - unit, unit * 5, unit * 2.5);
+        path += rect(x - unit * 3.5, y - unit * 0.5, unit, unit * 2);
+        path += rect(x + unit * 2.5, y - unit * 0.5, unit, unit * 2);
+        path += rect(x - unit * 2, y - unit * 2.5, unit, unit * 1.5);
+        path += rect(x + unit, y - unit * 2.5, unit, unit * 1.5);
+        path += rect(x - unit * 2.5, y + unit * 1.5, unit, unit);
+        path += rect(x + unit * 1.5, y + unit * 1.5, unit, unit);
+        path += hole(x - unit * 1.5, y - unit * 0.5, unit, unit);
+        path += hole(x + unit * 0.5, y - unit * 0.5, unit, unit);
+      }
+      return path;
+    }
+
+    // Stars streaking past, three depths of them.
+    //
+    // The offsets come from the column index rather than from a random number,
+    // which matters: a fresh `Math.random` every frame makes the field boil
+    // instead of fly. Same seed, same star, moving only because its level did.
+    case 'starfield': {
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const level = Math.max(0, baseline - y);
+        for (let depth = 0; depth < 3; depth += 1) {
+          const seed = ((index * 73 + depth * 131) % 97) / 97;
+          const streakX = x + (seed - 0.5) * step;
+          const streakY = y + seed * level * 0.85;
+          const length = 2 + level * 0.035 * (depth + 1);
+          path += `M ${streakX.toFixed(1)},${streakY.toFixed(
+            1,
+          )} v ${length.toFixed(1)} `;
+        }
+      }
+      return path.trim();
+    }
+
+    // Green pipes: a narrow body under a wider lip, with a highlight cut into
+    // it. Squat and friendly where the bars are severe.
+    case 'pipes': {
+      const body = Math.max(3, step * 0.6);
+      const lip = Math.max(5, step * 0.84);
+      const lipHeight = 7;
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path += rect(
+          x - body / 2,
+          y + lipHeight,
+          body,
+          Math.max(0, baseline - y - lipHeight),
+        );
+        path += rect(x - lip / 2, y, lip, lipHeight);
+        path += hole(x - lip / 2 + 2, y + 2, Math.max(1, lip - 4), 1.5);
+      }
+      return path;
+    }
+
+    // A wall of bricks with a paddle under it, and the paddle chases the
+    // loudest band across the bottom of the plot the way it would chase a
+    // ball. The wall is the spectrum; the paddle is where the action is.
+    case 'brickout': {
+      const width = Math.max(4, step * 0.86);
+      const row = 11;
+      let path = '';
+      let loudest = 0;
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        if (y < figure[loudest][1]) {
+          loudest = index;
+        }
+        for (let at = baseline - row; at > y; at -= row) {
+          path += rect(x - width / 2, at, width, row - 3);
+        }
+      }
+      path += rect(figure[loudest][0] - 15, baseline - 3, 30, 3);
+      return path;
+    }
+
     // A zigzag threading the peaks, alternating above and below each one.
     case 'weave': {
       let path = `M ${figure[0][0].toFixed(1)},${figure[0][1].toFixed(1)}`;
@@ -1207,42 +1395,21 @@ export const createGraphShape = (
 /**
  * What, if anything, a form does when a band peaks.
  *
- * Not one effect applied to everything. Most forms get nothing at all: a
- * contour map, a slope field or a bridge truss is already saying something
- * specific, and stapling the same bright dot onto all forty would flatten
- * exactly the variety the forms exist to provide. Only the ones whose shape
- * has an obvious place for it get one, and what they get differs:
+ * One form. Not forty.
  *
- * - `cap`   a bright bar sitting on a flat-topped column, the way a peak-hold
- *          indicator sits on a level meter.
- * - `bead`  a lit dot on the end of something thin. This is the one that was
- *          asked for — a stem with a glowing tip.
- * - `crest` one mark, on the single loudest point of a smooth curve. A curve
- *          has no columns to cap, and a dozen dots on it is a rash; one is a
- *          reading.
- * - `drip`  a bead, but at the hanging end, for the form that grows downward.
- * - `beat`  the R spike of the pulse trace, which is a different point on the
- *          figure entirely from where the level is.
+ * The reason there are forty drawings is that they behave differently, so an
+ * effect applied to all of them is not an effect — it is the drawing with the
+ * contrast turned up, and it flattens the exact variety the forms exist to
+ * provide. A lit tip belongs on a stem, which is a thin line with an end. It
+ * says nothing on a contour map, a slope field or a bridge truss, and on a
+ * smooth curve it reads as damage.
+ *
+ * The table is a table rather than a check for one string so that a second
+ * form can be given one deliberately, one at a time, by somebody who has
+ * looked at it and decided it earns one.
  */
-type GraphAccent = 'none' | 'cap' | 'bead' | 'crest' | 'drip' | 'beat';
-
-const ACCENTS: Partial<Record<GraphStyle, GraphAccent>> = {
-  bars: 'cap',
-  pillars: 'cap',
-  blocks: 'cap',
-  matrix: 'cap',
-  skyline: 'cap',
+const ACCENTS: Partial<Record<GraphStyle, 'bead'>> = {
   stems: 'bead',
-  needles: 'bead',
-  comb: 'bead',
-  spikes: 'bead',
-  crown: 'bead',
-  line: 'crest',
-  bezier: 'crest',
-  ridge: 'crest',
-  mirror: 'crest',
-  stalactites: 'drip',
-  ecg: 'beat',
 };
 
 /**
@@ -1258,13 +1425,12 @@ const ACCENT_THRESHOLD = 0.62;
  * A ceiling on how many tips can be lit at once.
  *
  * Without it, a wall of pink noise lights every column and the accent stops
- * meaning "here is the peak" — it becomes a second copy of the drawing, drawn
- * brighter, which is just the drawing with the contrast turned up.
+ * meaning "here is the peak".
  */
 const MAX_ACCENTS = 10;
 
 /**
- * The lit peaks, as a path of their own — for the forms that have them.
+ * The lit tips, as a path of their own — for the one form that has them.
  *
  * Drawn separately from the figure so the tips can be lit while the body stays
  * calm: the caller strokes this twice, once thick and faint and once thin and
@@ -1273,16 +1439,15 @@ const MAX_ACCENTS = 10;
  * every frame re-rasterises its whole region every frame, and this pane learned
  * that lesson expensively.
  *
- * Returns an empty path for most forms, which is the intended answer and not a
- * failure to draw one.
+ * Returns an empty path for every other form, which is the intended answer and
+ * not a failure to draw one.
  */
 export const createGraphAccent = (
   points: readonly Projected[],
   style: GraphStyle,
   baseline: number,
 ): string => {
-  const accent = ACCENTS[style] ?? 'none';
-  if (accent === 'none' || points.length < 3) {
+  if (!ACCENTS[style] || points.length < 3) {
     return '';
   }
   const figure = toColumns(points, getColumnCount(style));
@@ -1293,50 +1458,17 @@ export const createGraphAccent = (
   const step = Math.max(1, span / (figure.length - 1));
 
   let tallest = 0;
-  let loudest = 0;
   for (let index = 0; index < figure.length; index += 1) {
     const height = baseline - figure[index][1];
     if (height > tallest) {
       tallest = height;
-      loudest = index;
     }
   }
   if (tallest <= 1) {
     return '';
   }
 
-  const width = Math.max(3, step * 0.62);
-  const size = Math.max(2.4, step * 0.36);
   const bead = Math.max(2.6, step * 0.5);
-  // The pulse trace deflects from its own resting line rather than from the
-  // floor, so its brightest moment is nowhere near where the level is.
-  const restingLine = baseline - 30;
-
-  const mark = (x: number, y: number): string => {
-    switch (accent) {
-      case 'cap':
-        return rect(x - width / 2, y - 1.5, width, 3);
-      case 'drip':
-        return rect(x - bead / 2, baseline - y - bead / 2, bead, bead);
-      case 'beat': {
-        const tip = restingLine - Math.max(2, (baseline - y) * 0.72);
-        return rect(x - size / 2, tip - size / 2, size, size);
-      }
-      case 'crest':
-        return rect(x - bead / 2, y - bead / 2, bead, bead);
-      case 'bead':
-      default:
-        return rect(x - bead / 2, y - bead / 2, bead, bead);
-    }
-  };
-
-  // One mark, on the loudest point there is. A smooth curve has no columns to
-  // cap, and scattering marks along it reads as damage rather than as emphasis.
-  if (accent === 'crest') {
-    const [x, y] = figure[loudest];
-    return mark(x, y);
-  }
-
   const floor = tallest * ACCENT_THRESHOLD;
   let path = '';
   let count = 0;
@@ -1349,7 +1481,7 @@ export const createGraphAccent = (
     const [x, y] = figure[index];
     // Three things make a tip worth lighting: it is loud enough against the
     // rest of the frame, nothing beside it is louder — which keeps a broad
-    // peak to one mark rather than a smear across its shoulders — and it is
+    // peak to one bead rather than a smear across its shoulders — and it is
     // far enough from the last one to be a separate peak at all.
     const isLoud = baseline - y >= floor;
     const isLocalPeak =
@@ -1357,7 +1489,7 @@ export const createGraphAccent = (
     if (isLocalPeak && x - lastX >= step * 1.5) {
       lastX = x;
       count += 1;
-      path += mark(x, y);
+      path += rect(x - bead / 2, y - bead / 2, bead, bead);
     }
   }
   return path;

@@ -184,13 +184,69 @@
     min-width: 268px;
   }
 
-  // Forty entries, so the list gets room to be scrolled rather than squinted
-  // at through a slot.
+  // Enough entries that the list gets room to be scrolled rather than
+  // squinted at through a slot.
   .dropdown ul {
     max-height: 320px;
   }
 
   .dropdown li {
     font-size: 0.72rem;
+  }
+}
+
+// Hide everything but the live trace.
+//
+// A real button rather than more plain text: unlike the picker beside it this
+// one has a state, and a state needs somewhere to show — so it takes a border
+// when it is off and fills in when it is on, and the label says what pressing
+// it will do rather than what is currently true.
+.graph-solo {
+  height: 19px;
+  padding-inline: 8px;
+  border: 1px solid rgba($secondary-light, 0.3);
+  border-radius: 9px;
+  background: none;
+  color: rgba($primary-lighter, 0.75);
+  font-size: 0.62rem;
+  font-weight: 650;
+  letter-spacing: 0.03em;
+  white-space: nowrap;
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba($secondary-light, 0.65);
+    color: $white;
+  }
+
+  &.is-on {
+    border-color: $secondary-light;
+    background: rgba($secondary-light, 0.16);
+    color: $white;
+  }
+}
+
+// The graph with the workspace to itself.
+//
+// Not an overlay. The EQ bands above it simply stop taking room, and the graph
+// — already the flexible child of this column — grows into what they were
+// using. Nothing is covered, nothing is fixed to the viewport, and coming back
+// is the same layout it was before rather than a restoration of one.
+//
+// `display: none` rather than a zero height: a hidden panel that still lays
+// out is still measuring sliders, and the whole point of the mode is to be
+// left with one drawing.
+.center-workspace.is-graph-full {
+  > .middle-content {
+    display: none;
+  }
+
+  // The graph normally takes a fixed slice of the column so a short window
+  // cannot squeeze it to a sliver. With nothing above it there is nothing to
+  // negotiate with, so it drops the clamp and takes the lot.
+  > .graph-wrapper {
+    height: auto;
+    flex: 1 1 auto;
+    min-height: 300px;
   }
 }

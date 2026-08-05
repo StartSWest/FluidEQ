@@ -184,7 +184,9 @@ const Chart = ({
     const bottom = Math.max(selection.startY, selection.currentY);
     const isClick = right - left < 6 && bottom - top < 6;
     if (isClick) {
-      // A click on empty plot walks the live output to its next look.
+      // A click on empty plot walks the live output to its next look, and
+      // backwards with a modifier held — with this many to walk through,
+      // overshooting by one would otherwise mean going the whole way round.
       //
       // It rides the same gesture that clears the selection, which is the
       // trade being made knowingly: clicking bare graph both deselects and
@@ -192,7 +194,11 @@ const Chart = ({
       // particular look; this is for flicking through them while listening,
       // without taking the pointer off the graph. A drag still selects, and a
       // click on a band still grabs the band.
-      cycleGraphLook();
+      //
+      // A modified click is already the additive-select gesture, but an
+      // additive select of nothing leaves the selection exactly as it was, so
+      // the two do not fight.
+      cycleGraphLook(event.ctrlKey || event.metaKey || event.shiftKey ? -1 : 1);
     }
     const selectedIds = isClick
       ? []

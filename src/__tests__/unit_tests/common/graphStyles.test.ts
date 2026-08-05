@@ -43,9 +43,9 @@ const shapeOf = (style: GraphStyle) =>
   createGraphShape(points, style, BASELINE);
 
 describe('the graph style cycle', () => {
-  it('offers forty distinct forms', () => {
-    expect(GRAPH_STYLES).toHaveLength(40);
-    expect(new Set(GRAPH_STYLES).size).toBe(40);
+  it('offers forty-six distinct forms', () => {
+    expect(GRAPH_STYLES).toHaveLength(46);
+    expect(new Set(GRAPH_STYLES).size).toBe(46);
   });
 
   it('gives every form a name of its own', () => {
@@ -212,7 +212,7 @@ describe('the lit peaks', () => {
 
   it('marks the peaks and not the slopes between them', () => {
     const marks = [
-      ...createGraphAccent(humps, 'bars', BASELINE).matchAll(/M /g),
+      ...createGraphAccent(humps, 'stems', BASELINE).matchAll(/M /g),
     ];
     expect(marks.length).toBeGreaterThan(0);
     expect(marks.length).toBeLessThan(6);
@@ -220,10 +220,10 @@ describe('the lit peaks', () => {
 
   it('ignores a hump that is not loud enough to be a peak', () => {
     // The third one is a third the height of the first. Lighting everything
-    // that happens to be a local maximum would put a mark on every ripple in
+    // that happens to be a local maximum would put a bead on every ripple in
     // the noise floor, which says nothing about where the music is.
-    const path = createGraphAccent(humps, 'bars', BASELINE);
-    const xs = [...path.matchAll(/M ([\d.-]+),/g)].map((match) =>
+    const path = createGraphAccent(humps, 'stems', BASELINE);
+    const xs = [...path.matchAll(/M ([d.-]+),/g)].map((match) =>
       Number(match[1]),
     );
     expect(xs.every((x) => x < 400)).toBe(true);
@@ -234,7 +234,7 @@ describe('the lit peaks', () => {
       { length: 60 },
       (_value, index) => [index * 8, BASELINE] as Projected,
     );
-    expect(createGraphAccent(silence, 'bars', BASELINE)).toBe('');
+    expect(createGraphAccent(silence, 'stems', BASELINE)).toBe('');
   });
 
   it('caps how many can be lit at once', () => {
@@ -246,56 +246,20 @@ describe('the lit peaks', () => {
         [index * 2, BASELINE - 200 - (index % 2) * 20] as Projected,
     );
     const marks = [
-      ...createGraphAccent(noisy, 'bars', BASELINE).matchAll(/M /g),
+      ...createGraphAccent(noisy, 'stems', BASELINE).matchAll(/M /g),
     ];
     expect(marks.length).toBeLessThanOrEqual(10);
   });
 
-  it('leaves most forms alone', () => {
-    // The point of forty drawings is that they do not all behave the same way.
+  it('is the stems and nothing else', () => {
+    // The point of many drawings is that they do not all behave the same way.
     // A lit tip suits a stem and says nothing on a contour map, a slope field
-    // or a bridge truss — so the great majority get no accent at all, and this
-    // is the test that stops a well-meaning refactor from giving everything
-    // one again.
+    // or a bridge truss — so exactly one form has one, and this is the test
+    // that stops a well-meaning refactor from handing it to everybody again.
     const lit = GRAPH_STYLES.filter(
       (style) => createGraphAccent(humps, style, BASELINE) !== '',
     );
-    expect(lit.length).toBeLessThan(GRAPH_STYLES.length / 2);
-    expect(lit).not.toContain('contour');
-    expect(lit).not.toContain('slope');
-    expect(lit).not.toContain('truss');
-    expect(lit).not.toContain('hatch');
-    expect(lit).not.toContain('islands');
-  });
-
-  it('gives a stem a bead and a bar a cap, which are not the same mark', () => {
-    // The forms that do get something do not all get the same something: a
-    // square balanced on a bar looks like a fault, and a wide cap floating on
-    // a hairline stem looks like a different drawing entirely.
-    const stem = createGraphAccent(humps, 'stems', BASELINE);
-    const bar = createGraphAccent(humps, 'bars', BASELINE);
-    expect(stem).not.toBe('');
-    expect(bar).not.toBe('');
-    expect(stem).not.toBe(bar);
-  });
-
-  it('puts exactly one mark on a smooth curve', () => {
-    // A dozen dots along a line reads as damage. One, on the loudest point, is
-    // a reading.
-    const marks = [
-      ...createGraphAccent(humps, 'line', BASELINE).matchAll(/M /g),
-    ];
-    expect(marks).toHaveLength(1);
-  });
-
-  it('follows the stalactites down to where their tips actually are', () => {
-    // The form hangs from the ceiling, so its tip is nowhere near the point a
-    // standing form would mark. A mark left at the point would float in the
-    // middle of the plot attached to nothing.
-    const hanging = createGraphAccent(humps, 'stalactites', BASELINE);
-    const standing = createGraphAccent(humps, 'stems', BASELINE);
-    expect(hanging).not.toBe('');
-    expect(hanging).not.toBe(standing);
+    expect(lit).toEqual(['stems']);
   });
 
   it('emits no NaN for any form', () => {

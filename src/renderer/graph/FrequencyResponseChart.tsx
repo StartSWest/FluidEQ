@@ -68,7 +68,16 @@ import {
 } from '../audio/LiveAudioContext';
 import { GRAPH_LOOKS } from '../../common/graphStyles';
 import { getBandColor } from '../utils/bandColors';
-import { setGraphLook, useGraphLook } from '../utils/graphStyle';
+import {
+  cycleGraphLook,
+  setGraphFullScreen,
+  setGraphLook,
+  toggleGraphFullScreen,
+  toggleLiveOutputSolo,
+  useGraphFullScreen,
+  useGraphLook,
+  useLiveOutputSolo,
+} from '../utils/graphStyle';
 import Dropdown from '../widgets/Dropdown';
 import { getVoicingFilters } from '../../common/voicing';
 import { getDriverFilters } from '../../common/driver';
@@ -127,6 +136,8 @@ const graphLookOptions = GRAPH_LOOKS.map((look) => ({
 const FrequencyResponseChart = () => {
   const liveOutput = useLiveAudioFrame();
   const liveLook = useGraphLook();
+  const isSolo = useLiveOutputSolo();
+  const isFullScreen = useGraphFullScreen();
   const { error: liveOutputError } = useLiveAudioControl();
   const {
     filters,
@@ -652,9 +663,51 @@ const FrequencyResponseChart = () => {
   }, [throttle]);
 
   useLayoutEffect(() => {
-    // Compute dimensions on initial render and when graph view is toggled
+    // Compute dimensions on initial render, when graph view is toggled, and
+    // when the pane grows to fill the window — the box changes without the
+    // window ever firing a resize, so nothing else would tell it.
     updateDimensions();
-  }, [isGraphViewOn, updateDimensions]);
+  }, [isFullScreen, isGraphViewOn, updateDimensions]);
+
+  // Space walks the looks; Ctrl or Shift with it walks back. Escape leaves
+  // full screen.
+  //
+  // Bound to the window rather than to the graph, because the graph is an SVG
+  // nobody has clicked and a key handler that only works after you have found
+  // the right thing to focus is a key handler nobody discovers. The guards are
+  // the price of that reach: a control that already does something with Space
+  // — a button, a checkbox, an open menu — keeps it, and so does anything you
+  // can type into. Missing one of those turns Space into "corrupt the field
+  // you were editing".
+  useEffect(() => {
+    if (!isGraphViewOn) {
+      return undefined;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setGraphFullScreen(false);
+        return;
+      }
+      if (event.code !== 'Space' || event.altKey || event.repeat) {
+        return;
+      }
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.isContentEditable ||
+        target?.closest(
+          'input, textarea, select, button, [role="menu"], [role="menuitem"], [contenteditable]',
+        )
+      ) {
+        return;
+      }
+      // Space scrolls by default, and the graph is the whole point of the pane
+      // being looked at.
+      event.preventDefault();
+      cycleGraphLook(event.ctrlKey || event.metaKey || event.shiftKey ? -1 : 1);
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isGraphViewOn]);
 
   const dimensions: ChartDimensions = {
     width,
@@ -686,7 +739,11 @@ const FrequencyResponseChart = () => {
     () =>
       liveOutput.points.length > 0
         ? [
-            ...chartData,
+            // Soloing drops the EQ layers rather than hiding them with an
+            // opacity: a curve at zero alpha is still a path being rebuilt
+            // whenever a band moves, and the point of this mode is to be left
+            // with the one drawing and nothing else.
+            ...(isSolo ? [] : chartData),
             {
               id: 'Live Output',
               name: 'Live processed output',
@@ -700,7 +757,7 @@ const FrequencyResponseChart = () => {
             } as IChartCurveData,
           ]
         : chartData,
-    [chartData, liveOutput.points],
+    [chartData, isSolo, liveOutput.points],
   );
 
   const editablePoints: IEditableChartPoint[] = useMemo(() => {
@@ -771,22 +828,27 @@ const FrequencyResponseChart = () => {
       aria-disabled={!isEnabled}
     >
       <div className="live-output-controls">
-        {convolution && (
+        {!isSolo && convolution && (
           <span className="graph-legend graph-legend--convolution">
             Headset convolution
           </span>
         )}
-        <span className="graph-legend graph-legend--eq">EQ response</span>
-        {voicing?.profileId ? (
+        {!isSolo && (
+          <span className="graph-legend graph-legend--eq">EQ response</span>
+        )}
+        {!isSolo && voicing?.profileId ? (
           <span className="graph-legend graph-legend--voicing">Voicing</span>
         ) : null}
-        {driver?.profileId ? (
+        {!isSolo && driver?.profileId ? (
           <span className="graph-legend graph-legend--driver">Driver</span>
         ) : null}
-        {hasSmartEqLayer(smartEq) ? (
+        {!isSolo && hasSmartEqLayer(smartEq) ? (
           <span className="graph-legend graph-legend--smart">Smart EQ</span>
         ) : null}
-        {voicing?.profileId || driver?.profileId || hasSmartEqLayer(smartEq) ? (
+        {!isSolo &&
+        (voicing?.profileId ||
+          driver?.profileId ||
+          hasSmartEqLayer(smartEq)) ? (
           <span className="graph-legend graph-legend--total">
             {[
               'EQ',
@@ -819,6 +881,36 @@ const FrequencyResponseChart = () => {
             placement="down"
             handleChange={setGraphLook}
           />
+          {/* Everything else off, so the drawing has the grid to itself.
+              Sits inside the live-output legend because that is the only
+              thing it leaves behind. */}
+          <button
+            type="button"
+            className={`graph-solo${isSolo ? ' is-on' : ''}`}
+            onClick={toggleLiveOutputSolo}
+            aria-pressed={isSolo}
+            title={
+              isSolo
+                ? 'Show the EQ curves again'
+                : 'Hide the EQ curves and watch only the live output'
+            }
+          >
+            {isSolo ? 'Show EQ' : 'Wave only'}
+          </button>
+          {/* Fill the window with it. Escape, or this again, gets back. */}
+          <button
+            type="button"
+            className={`graph-solo${isFullScreen ? ' is-on' : ''}`}
+            onClick={toggleGraphFullScreen}
+            aria-pressed={isFullScreen}
+            title={
+              isFullScreen
+                ? 'Bring the EQ bands back (Esc)'
+                : 'Hide the EQ bands and give the graph the whole workspace'
+            }
+          >
+            {isFullScreen ? 'Exit full screen' : 'Full screen'}
+          </button>
         </span>
         {liveOutput.isClipping && (
           <span className="graph-clip-warning" role="status">
@@ -844,7 +936,7 @@ const FrequencyResponseChart = () => {
           // memos from rescanning every point 22 times a second.
           scaleData={chartData}
           dimensions={dimensions}
-          editablePoints={editablePoints}
+          editablePoints={isSolo ? [] : editablePoints}
           coverage={liveOutput.balanceProgress?.regions}
           onMarqueeSelect={(ids, additive) =>
             setSelectedFilterIds(

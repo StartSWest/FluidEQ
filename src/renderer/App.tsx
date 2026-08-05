@@ -29,6 +29,7 @@ import SupportPet from './SupportPet';
 import { FluidEqProvider, useFluidEqContext } from './utils/FluidEqContext';
 import PrereqMissingModal from './PrereqMissingModal';
 import SideBar from './SideBar';
+import { useGraphFullScreen } from './utils/graphStyle';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import PresetsBar from './PresetsBar';
 import AutoEQ from './AutoEQ';
@@ -92,6 +93,9 @@ const AppContent = () => {
     () =>
       !!APP_VERSION && localStorage.getItem(WHATS_NEW_SEEN_KEY) !== APP_VERSION,
   );
+  // Set from inside the graph pane; read here because the element that has
+  // to get out of the way is the EQ panel, which is the graph's sibling.
+  const isGraphFullScreen = useGraphFullScreen();
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<
     'eq' | 'voicing' | 'convolution'
   >('eq');
@@ -481,7 +485,13 @@ const AppContent = () => {
           </aside>
         )}
         <SideBar showGraphToggle={activeWorkspaceTab === 'eq'} />
-        <div className="center-workspace">
+        <div
+          className={`center-workspace${
+            isGraphFullScreen && activeWorkspaceTab === 'eq'
+              ? ' is-graph-full'
+              : ''
+          }`}
+        >
           <div className="middle-content">
             <div
               className="workspace-tabs"
