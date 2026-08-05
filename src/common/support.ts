@@ -27,9 +27,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * .env.example), never from a committed literal. Two reasons: a payment
  * destination is per-maintainer rather than per-project, and a wrong crypto
  * address sends money to a stranger with no way to recover it — so a fork that
- * forgets to set its own must get NO donate button rather than inherit
+ * forgets to set its own must offer NO route for money rather than inherit
  * somebody else's. Everything defaults to empty and each method stays hidden
  * until its destination validates.
+ *
+ * The panel itself is not gated on any of that. It is where the release notes,
+ * the repository link and the game live as well, and those need no destination
+ * — an unconfigured build hiding the whole thing meant a checkout without a
+ * .env had no creature in the titlebar and no way in from the menu at all.
  */
 
 /**
@@ -335,10 +340,6 @@ export const getSupportMethods = (
 
   return methods;
 };
-
-export const isSupportAvailable = (
-  config: ISupportConfig = SUPPORT_CONFIG,
-): boolean => getSupportMethods(config).length > 0;
 
 /** BIP-21 payment URI for Bitcoin specifically. */
 export const getBitcoinUri = (

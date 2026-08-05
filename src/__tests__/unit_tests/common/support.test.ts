@@ -23,7 +23,6 @@ import {
   getBitcoinUri,
   getSupportCryptos,
   getSupportMethods,
-  isSupportAvailable,
   looksLikeBitcoinAddress,
 } from 'common/support';
 
@@ -59,13 +58,13 @@ const P2SH = '3J98t1WpEZ73CNmQviecrnyiWrnqRhWNLy';
 
 describe('support', () => {
   describe('buildSupportConfig', () => {
-    // The whole point of the gate: a build whose environment sets nothing must
-    // not offer a donate route, because there is nowhere safe for money to go.
+    // The panel is always reachable, but each METHOD inside it still has to
+    // earn its place: a build whose environment sets nothing offers no route
+    // for money, because there is nowhere safe for it to go.
     it('yields no contribution destination when the environment is empty', () => {
       const empty = buildSupportConfig({});
       expect(empty.stripeUrl).toBe('');
       expect(empty.crypto.bitcoinAddress).toBe('');
-      expect(isSupportAvailable(empty)).toBe(false);
       expect(getSupportMethods(empty)).toEqual([]);
       expect(getBitcoinUri(empty)).toBe('');
     });
@@ -91,7 +90,7 @@ describe('support', () => {
       expect(built.crypto.bitcoinAddress).toBe(BECH32);
       expect(built.cryptoLabel).toBe('Coffee fund');
       expect(built.repositoryUrl).toBe('https://example.invalid/repo');
-      expect(isSupportAvailable(built)).toBe(true);
+      expect(getSupportMethods(built)).not.toEqual([]);
     });
 
     it('falls back to sensible defaults for the non-payment fields', () => {

@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
 import { useEffect, useState, type MouseEvent } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
-import { SUPPORT_CONTRIBUTED_KEY, isSupportAvailable } from 'common/support';
+import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import { resetRhythmRun } from './utils/rhythmRun';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
@@ -123,9 +123,6 @@ const AppContent = () => {
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<
     'eq' | 'voicing' | 'convolution'
   >('eq');
-  // Hidden entirely unless this build has a real contribution destination
-  // configured, so a misconfigured build shows no donate entry at all.
-  const canShowSupport = isSupportAvailable();
   const [hasContributed, setHasContributed] = useState(
     () => localStorage.getItem(SUPPORT_CONTRIBUTED_KEY) === 'true',
   );
@@ -356,12 +353,10 @@ const AppContent = () => {
         </div>
         <WaveformVisualizer />
         <div className="window-titlebar__right">
-          {canShowSupport && (
-            <SupportPet
-              hasContributed={hasContributed}
-              onOpen={() => setShowSupportDialog(true)}
-            />
-          )}
+          <SupportPet
+            hasContributed={hasContributed}
+            onOpen={() => setShowSupportDialog(true)}
+          />
           <div className="workspace-header__tools">
             <button
               type="button"
@@ -555,20 +550,18 @@ const AppContent = () => {
                     </div>
                   </>
                 )}
-                {canShowSupport && (
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="workspace-header__menu-support"
-                    onClick={() => {
-                      setShowAudioToolsMenu(false);
-                      setShowSupportDialog(true);
-                    }}
-                  >
-                    <MenuIcon name="support" />
-                    {t('app.menu.support')}
-                  </button>
-                )}
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="workspace-header__menu-support"
+                  onClick={() => {
+                    setShowAudioToolsMenu(false);
+                    setShowSupportDialog(true);
+                  }}
+                >
+                  <MenuIcon name="support" />
+                  {t('app.menu.support')}
+                </button>
                 {/* Last, and always available: someone who cannot read the
                     rest of this menu needs to be able to reach it. */}
                 <LanguagePicker />
