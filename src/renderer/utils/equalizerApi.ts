@@ -796,6 +796,22 @@ export const clearGains = (): Promise<IFiltersMap> => {
  * @param { number } intensity - 0..1 scale on the profile's gains
  * @returns { Promise<void> } exception if failed
  */
+/**
+ * Turn the loudness contour on or off, and how strongly.
+ *
+ * A layer rather than a change to the bands, so switching it off gives the
+ * tuning underneath it back untouched.
+ * @returns { Promise<void> } exception if failed
+ */
+export const setLoudness = (
+  isOn: boolean,
+  intensity: number,
+): Promise<void> => {
+  const channel = ChannelEnum.SET_LOUDNESS;
+  window.electron.ipcRenderer.sendMessage(channel, [isOn, intensity]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
 export const setVoicing = (
   profileId: string,
   intensity: number,

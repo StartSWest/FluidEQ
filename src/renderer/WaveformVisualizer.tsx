@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { ErrorDescription } from 'common/errors';
 import { getStreakJoy } from 'common/rhythmGame';
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import {
@@ -10,6 +11,8 @@ import {
   useLiveAudioControl,
   useLiveAudioFrame,
 } from './audio/LiveAudioContext';
+import { useFluidEqContext } from './utils/FluidEqContext';
+import { setLoudness as setLoudnessApi } from './utils/equalizerApi';
 import { useRhythmRun } from './utils/rhythmRun';
 import { useSmoothFrames } from './utils/useSmoothFrames';
 import {
@@ -113,6 +116,21 @@ const WaveformVisualizer = () => {
   const hasReached = useIsEuphoriaAchieved();
   const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
   const { isClipping, waveform } = useLiveAudioFrame();
+  // The loudness contour. Beside euphoria because both are one-press changes
+  // to how the whole thing feels — but this one changes what you HEAR, which
+  // is why it says so rather than being a coloured pill.
+  const { loudness, isEngineUsable, refreshState, setGlobalError } =
+    useFluidEqContext();
+  const isLoud = Boolean(loudness?.isOn);
+  const toggleLoudness = useCallback(async () => {
+    const next = { isOn: !isLoud, intensity: loudness?.intensity ?? 0.5 };
+    try {
+      await setLoudnessApi(next.isOn, next.intensity);
+      await refreshState();
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  }, [isLoud, loudness?.intensity, refreshState, setGlobalError]);
   // `togglePaused` is deliberately not taken. Clicking cycles the meter style
   // now, so pausing has no trigger here — the analyser is still pausable
   // through the control context, it simply is not this button any more, and
@@ -395,6 +413,33 @@ const WaveformVisualizer = () => {
           {t('support.game.euphoria')}
         </button>
       )}
+
+      {/* Loudness, under euphoria.
+
+          Not a compressor and it does not claim to be one: Equalizer APO has
+          no dynamics processing of any kind, so nothing here can lift a quiet
+          passage without lifting a loud one by exactly as much. What it does
+          is the Fletcher-Munson trick every amplifier had a button for — the
+          ear loses bass and treble faster than midrange as level drops, so
+          restoring both ends reads as fuller and louder while the peak barely
+          moves.
+
+          Disabled with the rest of the engine, because it writes a real layer
+          into the config and there is nothing to write to. */}
+      <button
+        type="button"
+        className={`loudness-pill${isLoud ? ' is-on' : ''}`}
+        aria-pressed={isLoud}
+        disabled={!isEngineUsable}
+        title={
+          isLoud
+            ? 'Loudness on — fuller at low volume. Click to turn off.'
+            : 'Loudness: lift the bass and treble the ear loses at low volume.'
+        }
+        onClick={toggleLoudness}
+      >
+        LOUDNESS
+      </button>
     </div>
   );
 };

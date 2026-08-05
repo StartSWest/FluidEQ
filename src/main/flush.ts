@@ -36,6 +36,7 @@ import {
   AUTOMATIC_PRESET_PREFIX,
 } from '../common/constants';
 import { getVoicingFilters } from '../common/voicing';
+import { getLoudnessFilters } from '../common/loudness';
 import { getDriverFilters } from '../common/driver';
 import { getSmartEqFilters, sanitizeSmartEqSettings } from '../common/smartEq';
 import { getChainPeakGain } from '../common/response';
@@ -236,6 +237,27 @@ export const stateToString = (
         return NO_GAIN_FILTER_TYPES.includes(type)
           ? `${head} Q ${clampQuality(quality)}`
           : `${head} Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
+      }),
+  );
+
+  // Loudness after the corrections and before the measurement. It is a
+  // preference about how loud this should feel, not a fix for anything, so it
+  // sits on top of the bands, the voicing and the driver compensation — and
+  // below Smart EQ, which measured all of them and has to stay last.
+  //
+  // Written into the same chain the preamp is computed from, which is what
+  // makes it safe: turning it on cannot clip, because the preamp comes down to
+  // meet it. The cost is headroom, taken automatically and visibly, rather
+  // than a peak nobody checked.
+  output = output.concat(
+    getLoudnessFilters(state.loudness)
+      .filter(isRenderableFilter)
+      .map(({ frequency, gain, type, quality }) => {
+        filterIndex += 1;
+        writtenFilters.push({ type, frequency, gain, quality });
+        return `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
+          frequency,
+        )} Hz Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
       }),
   );
 

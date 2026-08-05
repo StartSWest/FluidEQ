@@ -231,6 +231,8 @@ export interface IState {
   convolution?: IConvolutionProfile;
   /** Curated target curve applied as its own APO layer after the EQ bands. */
   voicing?: IVoicingSettings;
+  /** The loudness contour. Its own layer, like the voicing. */
+  loudness?: ILoudnessSettings;
   /** Transducer-family correction, its own APO layer after the voicing. */
   driver?: IDriverSettings;
   /** Measured correction, the last APO layer — see src/common/smartEq.ts. */
@@ -294,6 +296,18 @@ export interface IDriverSettings {
 }
 
 /**
+ * The loudness contour, on or off and how strongly.
+ *
+ * Here rather than in loudness.ts for the same reason as the two above: it is
+ * part of the persisted state, and loudness.ts already depends on this module.
+ */
+export interface ILoudnessSettings {
+  isOn: boolean;
+  /** 0..1 scale applied to every gain in the curve. */
+  intensity: number;
+}
+
+/**
  * What Smart EQ measured, as a layer.
  *
  * Here for the same reason as the two above: it is part of the persisted state
@@ -335,6 +349,8 @@ export interface IPresetV2 {
    * correction measured on one output says nothing about another.
    */
   voicing?: IVoicingSettings;
+  /** The loudness contour. Its own layer, like the voicing. */
+  loudness?: ILoudnessSettings;
   driver?: IDriverSettings;
   smartEq?: ISmartEqSettings;
   /**

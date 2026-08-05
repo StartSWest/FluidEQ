@@ -2069,6 +2069,26 @@ ipcMain.on(ChannelEnum.SET_VOICING, async (event, arg) => {
   await handleUpdate(event, channel, false, true);
 });
 
+ipcMain.on(ChannelEnum.SET_LOUDNESS, async (event, arg) => {
+  const channel = ChannelEnum.SET_LOUDNESS;
+  const isOn: boolean = arg[0];
+  const intensity: number = arg[1];
+
+  if (typeof isOn !== 'boolean' || !Number.isFinite(intensity)) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+
+  // A layer of its own, like the voicing, so this never touches state.filters —
+  // switching it off restores the tuning underneath it exactly.
+  state.loudness = {
+    isOn,
+    intensity: Math.min(1, Math.max(0, intensity)),
+  };
+
+  await handleUpdate(event, channel, false, true);
+});
+
 ipcMain.on(ChannelEnum.SET_DRIVER, async (event, arg) => {
   const channel = ChannelEnum.SET_DRIVER;
   const profileId: string = arg[0];
