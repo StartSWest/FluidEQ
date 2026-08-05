@@ -40,11 +40,19 @@ const NORMALISE_FLOOR = 0.02;
  *
  * A duration rather than a per-frame fraction, so the motion takes the same
  * wall-clock time whether the display runs at thirty, sixty or a hundred and
- * forty-four. Comfortably under the 45ms between measurements, so the shape
- * has arrived before the next one lands and the meter stays honest instead of
- * trailing the audio.
+ * forty-four.
+ *
+ * Well under the 45ms between measurements — at 55ms it was longer than the
+ * gap, so the trace never arrived before the next target replaced it and
+ * lagged the audio permanently. Eighteen covers about four fifths of the
+ * distance within one measurement: enough frames in between to read as motion
+ * rather than steps, without the shape trailing what is playing.
+ *
+ * Symmetric, unlike the spectrum curve. This draws a waveform oscillating
+ * about zero rather than a level, so easing the two directions differently
+ * would not add punch, it would bend the wave out of shape.
  */
-const WAVEFORM_HALF_LIFE_MS = 55;
+const WAVEFORM_HALF_LIFE_MS = 18;
 /** Vertical rules behind the trace, so the pane reads as a meter. */
 const GRID_DIVISIONS = 12;
 /** dB below which there is nothing worth showing a number for. */

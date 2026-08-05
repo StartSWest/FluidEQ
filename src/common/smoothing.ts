@@ -99,13 +99,18 @@ export const shouldDrawFrame = (
 export const easeTowards = (
   current: number[],
   target: readonly number[],
-  factor: number,
+  riseFactor: number,
+  fallFactor: number = riseFactor,
 ): boolean => {
   let moving = false;
   for (let index = 0; index < current.length; index += 1) {
     const distance = target[index] - current[index];
     if (distance > SETTLED_EPSILON || distance < -SETTLED_EPSILON) {
-      current[index] += distance * factor;
+      // Rising and falling at different rates is what makes a meter read as
+      // driven by the music rather than as a smoothed average of it. Sound
+      // arrives suddenly and dies away gradually; a display that treats both
+      // the same turns every kick into a bump.
+      current[index] += distance * (distance > 0 ? riseFactor : fallFactor);
       moving = true;
     } else {
       // Snapped rather than left a hair short, so a settled frame is exactly

@@ -95,15 +95,6 @@ type PendingPointEdit = Partial<
   Pick<IFilter, 'frequency' | 'gain' | 'quality'>
 >;
 
-/**
- * How far the live curve moves toward each new frame.
- *
- * Lower than the titlebar meter's, because the graph is a shape people read
- * rather than a level people glance at — a slow glide there looks considered,
- * where on a meter it would look laggy.
- */
-const LIVE_CURVE_SMOOTHING = 0.28;
-
 const FrequencyResponseChart = () => {
   const liveOutput = useLiveAudioFrame();
   const { error: liveOutputError } = useLiveAudioControl();
@@ -651,43 +642,14 @@ const FrequencyResponseChart = () => {
   // Done here rather than in the analyser because the game's beat detection
   // reads the same frames and needs its transients sharp; rounding them off at
   // the source would blunt the edges it exists to find.
-  // Two buffers, alternating — not a fresh array every frame.
-  //
-  // The consumers compare by identity, so the array handed out has to be a
-  // different object from the one before it or the curve freezes on screen.
-  // That does NOT require a new allocation: two buffers swapped each frame
-  // satisfy identity while allocating nothing, which is exactly what the audio
-  // pump upstream already does with its own frames.
-  //
-  // The first attempt sliced a fresh array every frame — five hundred-odd
-  // object references, twenty-two times a second, forever, for a curve that
-  // only ever needs to differ from its predecessor.
-  const smoothedRef = useRef<{ x: number; y: number }[][]>([[], []]);
-  const smoothedSlotRef = useRef(0);
-  const smoothedPoints = useMemo(() => {
-    const source = liveOutput.points;
-    const buffers = smoothedRef.current;
-    if (buffers[0].length !== source.length) {
-      buffers[0] = source.map((point) => ({ ...point }));
-      buffers[1] = source.map((point) => ({ ...point }));
-    }
-    smoothedSlotRef.current = smoothedSlotRef.current === 0 ? 1 : 0;
-    const target = buffers[smoothedSlotRef.current];
-    const previous = buffers[smoothedSlotRef.current === 0 ? 1 : 0];
-    for (let index = 0; index < source.length; index += 1) {
-      target[index].x = source[index].x;
-      // Eased from the frame before, which lives in the other buffer — reading
-      // the target would ease a value against itself and never move.
-      target[index].y =
-        previous[index].y +
-        (source[index].y - previous[index].y) * LIVE_CURVE_SMOOTHING;
-    }
-    return target;
-  }, [liveOutput.points]);
+  // No smoothing here. The live curve is eased inside `Line`, on animation
+  // frames, and doing it in both places stacked two lags on top of each other
+  // — the points arrived already softened, then got softened again, and the
+  // curve swelled after the music instead of with it.
 
   const displayData = useMemo(
     () =>
-      smoothedPoints.length > 0
+      liveOutput.points.length > 0
         ? [
             ...chartData,
             {
@@ -697,12 +659,12 @@ const FrequencyResponseChart = () => {
               line: {
                 color: ColorEnum.ANALOGOUS2,
                 strokeWidth: 2,
-                points: smoothedPoints,
+                points: liveOutput.points,
               },
             } as IChartCurveData,
           ]
         : chartData,
-    [chartData, smoothedPoints],
+    [chartData, liveOutput.points],
   );
 
   const editablePoints: IEditableChartPoint[] = useMemo(() => {

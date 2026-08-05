@@ -98,9 +98,17 @@ it under the terms of the GNU General Public License version 3 or later.
     box-shadow:
       inset 0 1px 2px rgba($black, 0.38),
       0 0 10px
-        hsl(var(--band-hue) 95% 62% / calc(0.25 + var(--band-level, 0) * 0.5)),
-      0 0 20px
-        hsl(var(--band-hue) 90% 52% / calc(0.1 + var(--band-level, 0) * 0.3));
+        color-mix(
+          in srgb,
+          var(--slider-color) calc(30% + var(--band-level, 0) * 45%),
+          transparent
+        ),
+      0 0 22px
+        color-mix(
+          in srgb,
+          var(--slider-color) calc(12% + var(--band-level, 0) * 33%),
+          transparent
+        );
   }
 
   // The live output trace, coloured rather than filtered.
@@ -142,33 +150,17 @@ it under the terms of the GNU General Public License version 3 or later.
     transition: height 700ms cubic-bezier(0.32, 0.72, 0, 1);
   }
 
-  // The bands take the strongest treatment, because they are the part of the
-  // window that already moves with the music.
+  // The band colours are NOT touched here, and that is the fix.
   //
-  // Every colour a slider draws with derives from its one hue, so the track,
-  // its border and its halo stay together instead of drifting apart.
-  // Each band holds a fixed hue. Thirty-one of them, and none animating.
+  // Every slider already publishes its own `--slider-color` from the spectrum
+  // palette, chosen by where its frequency sits in the range — that is what
+  // makes the row read left to right as low to high. Euphoria used to
+  // overwrite those with a hue picked by an nth-child cycle, so a slider drawn
+  // orange glowed magenta and the row's own logic was replaced by a repeating
+  // pattern of six.
   //
-  // The colour used to be the swept hue plus a per-band offset, so the
-  // spectrum travelled along the row. That meant thirty-one subtrees
-  // recomputed on every frame, which is most of the cost the mode ever had,
-  // for motion that is barely legible on a slider four pixels wide.
-  //
-  // Fixed, the rainbow across the row is exactly as it was — that is the part
-  // anyone actually sees — and the movement stays where movement reads: in the
-  // brightness, which follows each band's own frequency through
-  // `--band-level`, written a few times a second rather than sixty.
-  .bandWrapper {
-    --slider-color: hsl(var(--band-hue) 95% 62%);
-    --slider-color-muted: hsl(var(--band-hue) 95% 62% / 62%);
-    --slider-track: hsl(var(--band-hue) 90% 46% / 35%);
-
-    @for $phase from 1 through 6 {
-      &:nth-child(6n + #{$phase}) {
-        --band-hue: #{($phase - 1) * 60}deg;
-      }
-    }
-  }
+  // Nothing is reassigned now. The glow below is mixed from the band's real
+  // colour, so it matches by construction rather than by two lists agreeing.
 }
 
 // The moment it lands.

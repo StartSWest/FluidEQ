@@ -108,3 +108,44 @@ describe('the frame budget', () => {
     expect(shouldDrawFrame(0, EUPHORIA_FRAME_MS)).toBe(true);
   });
 });
+
+describe('meter ballistics', () => {
+  it('rises faster than it falls when told to', () => {
+    // What makes a spectrum look driven by music rather than averaging it: a
+    // kick arrives at once and decays over a beat, so the two directions are
+    // not the same motion.
+    const rising = [0];
+    easeTowards(rising, [1], 0.8, 0.1);
+    const falling = [1];
+    easeTowards(falling, [0], 0.8, 0.1);
+
+    expect(rising[0]).toBeCloseTo(0.8);
+    // Fell only a tenth, where it rose four fifths.
+    expect(falling[0]).toBeCloseTo(0.9);
+  });
+
+  it('stays symmetric when only one factor is given', () => {
+    // The waveform meter draws a shape oscillating about zero rather than a
+    // level, so easing its two directions differently would bend the wave
+    // rather than add punch.
+    const rising = [0];
+    easeTowards(rising, [1], 0.5);
+    const falling = [1];
+    easeTowards(falling, [0], 0.5);
+    expect(rising[0]).toBeCloseTo(0.5);
+    expect(falling[0]).toBeCloseTo(0.5);
+  });
+
+  it('arrives within one measurement at the attack rate', () => {
+    // The bug being fixed: a half-life longer than the 45ms between
+    // measurements means the shape never reaches one target before the next
+    // replaces it, so it trails the music forever however smooth it looks.
+    const value = [0];
+    let elapsed = 0;
+    while (elapsed < 45) {
+      easeTowards(value, [1], getEaseFactor(16, 10));
+      elapsed += 16;
+    }
+    expect(value[0]).toBeGreaterThan(0.9);
+  });
+});

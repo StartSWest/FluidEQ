@@ -34,13 +34,22 @@ export enum AnimationOptionsEnum {
 }
 
 /**
- * How long the distance to the newest measurement takes to halve.
+ * Meter ballistics: quick to rise, slow to fall.
  *
- * Slower than the titlebar meter, because the graph is a shape people read
- * rather than a level they glance at — a considered glide suits it where on a
- * meter the same easing would look like lag.
+ * The first attempt eased both directions at 70ms, which is longer than the
+ * 45ms between measurements — so the curve never reached one target before the
+ * next arrived and spent its whole life chasing. Smooth, and permanently
+ * behind the music.
+ *
+ * Sound does not behave symmetrically and neither should a display of it. A
+ * kick arrives all at once and decays over a beat, so the rise is nearly
+ * immediate — most of the way inside a single frame — while the fall is
+ * unhurried enough to leave the shape of the note behind it. That difference
+ * is the entire reason a spectrum looks like it is being driven by music
+ * rather than averaging it.
  */
-const LIVE_CURVE_HALF_LIFE_MS = 70;
+const LIVE_CURVE_ATTACK_MS = 8;
+const LIVE_CURVE_RELEASE_MS = 28;
 
 interface ILineProps {
   name: string;
@@ -192,12 +201,13 @@ const Line = ({
   const drawFrame = useCallback(
     (deltaMs: number) => {
       const eased = easedRef.current;
-      const factor = getEaseFactor(deltaMs, LIVE_CURVE_HALF_LIFE_MS);
+      const rise = getEaseFactor(deltaMs, LIVE_CURVE_ATTACK_MS);
+      const fall = getEaseFactor(deltaMs, LIVE_CURVE_RELEASE_MS);
       let moving = false;
       for (let index = 0; index < eased.length; index += 1) {
         const distance = data[index].y - eased[index].y;
         if (distance > 0.001 || distance < -0.001) {
-          eased[index].y += distance * factor;
+          eased[index].y += distance * (distance > 0 ? rise : fall);
           moving = true;
         } else {
           eased[index].y = data[index].y;

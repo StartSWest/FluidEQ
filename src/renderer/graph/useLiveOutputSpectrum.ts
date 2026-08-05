@@ -18,7 +18,21 @@ import {
 } from '../utils/autoBalance';
 import { IChartPointData } from './ChartController';
 
-const FFT_SIZE = 4096;
+/**
+ * The analyser window, and the one source of lag nothing downstream can undo.
+ *
+ * An FFT describes a whole window of audio at once, so the result is only ever
+ * as current as the middle of it: 4096 samples is 85ms of sound at 48kHz, and
+ * a kick inside it is reported some 43ms after it actually hit. Easing,
+ * interpolation and frame rate all sit after that and can only ever make the
+ * delay smoother, never shorter.
+ *
+ * Halved, so the delay halves with it. The cost is resolution — 23Hz per bin
+ * rather than 12 — which the log-spaced display bins down anyway everywhere
+ * except the very bottom of the range, and which is a fair trade for a curve
+ * that moves when the music does.
+ */
+const FFT_SIZE = 2048;
 const MIN_FREQUENCY = 20;
 const MAX_FREQUENCY = 20000;
 const POINT_COUNT = 320;
@@ -436,7 +450,20 @@ const useLiveOutputSpectrum = () => {
       analyser.fftSize = FFT_SIZE;
       analyser.minDecibels = -100;
       analyser.maxDecibels = 0;
-      analyser.smoothingTimeConstant = 0.62;
+      // The analyser's own averaging, and the last place lag was hiding.
+      //
+      // This blends each FFT with the one before it, so at 0.62 a transient
+      // reached only 38% of its real height on the frame it happened, 62% on
+      // the next and 76% on the third — around 135ms to mostly arrive. That is
+      // ahead of everything the display does, so no amount of attack further
+      // down could recover it: the peak had already been averaged away before
+      // anything drew it.
+      //
+      // At 0.4 the same transient is 60% there immediately and 94% by the
+      // third frame, which is what lets the curve move with a kick instead of
+      // swelling after it. Not zero, because a raw FFT bin jitters frame to
+      // frame and a curve made of pure noise is worse than a slow one.
+      analyser.smoothingTimeConstant = 0.4;
       activeAudioContext.createMediaStreamSource(stream).connect(analyser);
 
       streamRef.current = stream;
