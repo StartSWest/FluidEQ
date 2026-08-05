@@ -1,0 +1,73 @@
+# Does this still build from nothing?
+#
+# The most likely way FluidEQ dies is not a decision to stop — it is a year of
+# quiet dependency churn, an Electron major, a toolchain that moved, and then
+# somebody tries a clean checkout and cannot get it running in an afternoon. At
+# that point the project is over whether or not anyone has said so, because the
+# help that would revive it can no longer arrive.
+#
+# AQUA, which FluidEQ is forked from, stopped with a full roadmap and an open
+# invitation to join. What it did not have was anything watching the tree while
+# nobody was looking.
+#
+# So: a full cold build once a week, on a schedule rather than on a push,
+# because rot happens on the weeks when there are no pushes. A red X within
+# seven days of a break is the whole point. It costs nothing and it is the
+# difference between a project that can be picked up and one that only looks
+# like it can.
+
+name: Weekly cold build
+
+on:
+  schedule:
+    # Mondays, early. Far enough into the week that a break is noticed while
+    # there is still time to care about it.
+    - cron: '0 6 * * 1'
+  # So it can be proven to work without waiting a week for it.
+  workflow_dispatch:
+
+jobs:
+  cold-build:
+    runs-on: windows-latest
+    # A build is minutes; a hung toolchain should not burn an hour.
+    timeout-minutes: 45
+
+    steps:
+      - name: Check out FluidEQ
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          # Deliberately NOT cached. A cache is exactly what hides the failure
+          # this job exists to find: the question is whether a stranger with an
+          # empty machine can build this, and a warm cache answers a different
+          # and much easier question.
+          cache: ''
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check
+        run: pnpm typecheck
+
+      - name: Type-check the end-to-end suite
+        run: pnpm typecheck:e2e
+
+      - name: Test
+        run: pnpm test
+
+      - name: Lint
+        run: pnpm lint
+
+      # The real check. Everything above passes in a tree that cannot actually
+      # produce an installer, which is the state AQUA is most likely in now.
+      #
+      # Not published — nothing here is signed and nothing here is a release.
+      # It runs only to prove it still can.
+      - name: Build the installer
+        run: pnpm package

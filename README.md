@@ -323,6 +323,13 @@ unmodified, and the version is pinned and checksum-verified in
 [`.erb/scripts/fetch-equalizer-apo.ts`](.erb/scripts/fetch-equalizer-apo.ts).
 If you bump that version, publish the matching source archive with it.
 
+**FluidEQ is not affiliated with or endorsed by Equalizer APO or Jonas
+Thedering.** It is an independent front end that happens to write the
+configuration file APO reads. If something goes wrong in FluidEQ, please
+[open an issue here](https://github.com/StartSWest/FluidEQ/issues) rather than
+on the Equalizer APO tracker — a bug in this app is not his to answer for, and
+his time is better spent on the engine all of us depend on.
+
 FluidEQ is not affiliated with or endorsed by Dolby Laboratories.
 
 See [NOTICE.md](NOTICE.md) for the full derivative-work notice.
