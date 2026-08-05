@@ -20,15 +20,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * How much room the top pane gets, held outside React.
  *
  * The *top* pane, not the graph. The graph takes whatever is left over, and
- * that asymmetry is the whole design:
+ * that asymmetry is the whole design.
  *
- *  - On the EQ tab this is a **cap**, not a height. The editor asks for what
- *    its content needs and is only stopped from exceeding this, so folding the
- *    reference picker shortens it and the divider follows the content up on its
- *    own. Nothing has to notice the fold or recompute anything.
- *  - Everywhere else it is the height outright, because those panels have no
- *    natural height to follow — a web page fills whatever it is given, and the
- *    voicing and convolution panels scroll inside themselves.
+ * It is the height outright, on every tab. The EQ tab used to treat it as a
+ * ceiling instead — asking for its content height and merely stopping here —
+ * which let a folded reference picker pull the divider up by itself. That was
+ * one clever behaviour on one of four tabs, and the price was a handle that
+ * sometimes stayed where it was put and sometimes drifted, depending on which
+ * tab happened to be open. Every panel scrolls when its content does not fit,
+ * so none of them needs to be measured.
  *
  * Sizing the graph directly was the obvious way round and it does not work: the
  * graph then has to grow into space the editor did not want, which leaves
@@ -63,7 +63,42 @@ const CHROME_ALLOWANCE = 200;
 
 const EDITOR_STORAGE_KEY = 'fluideq.editorHeight';
 
-const EDITOR_DEFAULT_HEIGHT = 430;
+/**
+ * How the window is divided the very first time it opens: seven parts to the
+ * editor above, three to the graph below.
+ *
+ * A share rather than a number of pixels. It used to be a flat 430, which is
+ * about forty per cent of a 1080p window, a quarter of a tall one and most of a
+ * laptop's — so the split somebody met on opening the app depended entirely on
+ * the monitor they happened to have. A ratio lands the same way everywhere.
+ *
+ * Seventy is where the editing goes: bands, voicing, a video. The graph is a
+ * reading of what those are doing and thirty per cent of a window is plenty to
+ * read it in — and it is the pane with a mouse-friendly divider right above it
+ * for anyone who disagrees.
+ */
+const EDITOR_DEFAULT_SHARE = 0.7;
+
+/**
+ * That share, in pixels, for this window.
+ *
+ * Measured against the space the two panes actually divide rather than against
+ * the whole window: the titlebar and the tab strip are not part of the split,
+ * and counting them would make the editor's seventy per cent quietly larger
+ * than seventy per cent of what is on screen.
+ */
+const defaultEditorHeight = () => {
+  const viewport = typeof window === 'undefined' ? 0 : window.innerHeight || 0;
+  if (viewport <= 0) {
+    // No window to measure — a test environment, or a render before layout.
+    // The old fixed height is a reasonable stand-in and is never seen by a
+    // user, since the first real read happens with a window present.
+    return 430;
+  }
+  return clampToWindow(
+    Math.round((viewport - CHROME_ALLOWANCE) * EDITOR_DEFAULT_SHARE),
+  );
+};
 
 /**
  * The tallest a lone pane may be: the window, less what the pane below it needs
@@ -120,7 +155,7 @@ const write = (key: string, value: number) => {
   }
 };
 
-let editorHeight = readStored(EDITOR_STORAGE_KEY, EDITOR_DEFAULT_HEIGHT);
+let editorHeight = readStored(EDITOR_STORAGE_KEY, defaultEditorHeight());
 
 const editorListeners = new Set<() => void>();
 
@@ -156,7 +191,9 @@ export const useEditorHeight = () =>
   useSyncExternalStore(
     subscribeEditor,
     () => editorHeight,
-    () => EDITOR_DEFAULT_HEIGHT,
+    // Server snapshot for useSyncExternalStore. Never rendered to a user,
+    // so it does not need the window it has no access to.
+    () => 430,
   );
 
 /**

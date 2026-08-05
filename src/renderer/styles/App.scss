@@ -817,23 +817,20 @@ select option {
   overflow: visible;
 }
 
-// The EQ tab is the one with a content height worth following, so there the
-// divider's value is a ceiling rather than a height.
+// The EQ tab used to be special here, and is not any more.
 //
-// This is what makes folding the reference picker work without anything having
-// to be told it happened: the editor asks for the height its content needs, the
-// fold makes that less, the card shrinks, and the divider sitting directly
-// under it comes up with it. The graph takes the difference, because it is the
-// one that grows into whatever is left over.
+// It treated the divider's value as a ceiling rather than a height, so the
+// editor asked for whatever its content needed and only stopped at that
+// number. That bought one clever thing — folding the reference picker made the
+// content shorter, so the card shrank and the divider followed it up without
+// anything having to be told the fold had happened.
 //
-// The drag still works both ways whenever there is content below the fold,
-// which on this tab is the ordinary case — the ceiling is what decides how much
-// of the band list is on screen before it starts scrolling.
-.center-workspace:has(.workspace-tab-panel--eq) > .middle-content {
-  height: auto;
-  max-height: var(--editor-height, none);
-  flex: 0 1 auto;
-}
+// It cost something worse. A divider that sometimes sits where you put it and
+// sometimes drifts to meet the content is not a divider you can aim, and it
+// behaved this way on exactly one of the four tabs, so the same handle did two
+// different things depending on which tab was open. Predictable everywhere
+// beats clever in one place: the value is the height, on every tab, and the
+// panel scrolls when its content does not fit.
 
 // *** Workspace tabs *********************************************************
 //
@@ -951,6 +948,14 @@ $tab-border: rgba($secondary-light, 0.2);
 }
 
 .workspace-tab-panel--eq {
+  // Fills the pane it is given rather than asking for a height of its own.
+  //
+  // With the divider setting a real height above it, a panel sized by its
+  // content would either fall short of the divider — leaving a gap above the
+  // graph — or overflow past it. Taking the pane is what makes the handle mean
+  // what it says.
+  flex: 1 1 auto;
+
   // Zero, not `min-content`.
   //
   // `min-content` was right when the page scrolled: the editor asked for the
@@ -978,16 +983,23 @@ $tab-border: rgba($secondary-light, 0.2);
   }
 }
 
-// Both panels this hosts — voicing and convolution — scroll inside themselves,
-// which needs a height to scroll within. It gets one from the column now: the
-// shell is the size of the window, so filling its share of that share is a
-// definite height and the stated one it used to carry is gone.
+// Scrolls at the panel, exactly as the EQ tab does.
+//
+// It used to be `overflow: hidden` here with the scrolling pushed down onto
+// the panel inside, which put the scrollbar within this box's own 12px of
+// padding — a bar floating in from the edge with a gap all around it, while
+// the EQ tab's sits flush against the panel edge. Two tabs, two different
+// scrollbars, for no reason anybody could see from the outside.
+//
+// Inheriting `.workspace-tab-panel`'s scroll and its stable gutter puts both
+// tabs on one behaviour, and the gutter is what stops the content shifting
+// sideways as the bar appears.
 .workspace-tab-panel--convolution {
   min-height: 0;
   flex: 1 1 auto;
-  overflow: hidden;
 
-  > .convolution-panel {
+  > .convolution-panel,
+  > .voicing-panel {
     min-height: 0;
     flex: 1 1 auto;
   }

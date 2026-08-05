@@ -19,13 +19,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'theme' as *;
 
+// Does not scroll itself: the workspace panel around it does, the same way
+// the EQ tab's does. Scrolling here as well put the bar inside that panel's
+// padding, floating clear of the edge, and left two nested scrollers where one
+// will do.
 .voicing-panel {
   display: flex;
   min-height: 0;
   flex-direction: column;
   gap: 12px;
-  overflow-y: auto;
-  @include slim-scrollbar;
 }
 
 .voicing-panel__intro {
