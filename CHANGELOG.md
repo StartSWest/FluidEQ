@@ -6,6 +6,38 @@ opens it again any time.
 
 ---
 
+## 0.8.1
+
+### Fixed
+
+- **The installer offered to install Equalizer APO and then did nothing.** You
+  said yes, no setup window appeared, and FluidEQ opened over the top of it
+  without an audio engine. Equalizer APO's installer requires administrator
+  permission, and the call FluidEQ used to start it cannot ask for it — it
+  failed instantly, and the message saying so went into a pane that one-click
+  installers do not show. It now asks properly, so Windows raises the
+  permission prompt and APO's setup opens. If permission is declined, FluidEQ
+  says so plainly instead of carrying on in silence.
+- **FluidEQ could not tell whether Equalizer APO was already installed.**
+  Installers run as 32-bit programs and Windows quietly redirects their
+  registry reads away from where 64-bit software records itself, so the check
+  always came back empty. Setup would therefore have re-run APO's installer
+  over a perfectly good installation, and uninstalling FluidEQ could never
+  offer to remove APO, because it could not find it either.
+- **Uninstalling could not remove Equalizer APO** even when you asked it to,
+  for the same permission reason as the install.
+
+### Changed
+
+- **Setup writes a log.** Every decision it makes about Equalizer APO — found
+  or not found, offered, declined, started, failed — goes to
+  `%APPDATA%FluidEQlogsinstall.log`, next to the app's own logs. None of
+  this was visible before, which is why the problem above survived a release.
+- **A build missing its copy of Equalizer APO now says so** during setup,
+  rather than skipping the step without explanation.
+
+---
+
 ## 0.8.0
 
 ### New
