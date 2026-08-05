@@ -44,13 +44,17 @@ import LanguagePicker from './components/LanguagePicker';
 import UpdateNotice from './components/UpdateNotice';
 import WhatsNewDialog from './components/WhatsNewDialog';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
-import { LiveAudioProvider } from './audio/LiveAudioContext';
+import {
+  LiveAudioProvider,
+  useLiveAudioControl,
+} from './audio/LiveAudioContext';
 import EuphoriaGlow from './components/EuphoriaGlow';
 import {
   deletePreset,
   getPresetListFromFiles,
   importConvolutionFile,
   importEqFile,
+  installEqualizerApo,
   loadPreset,
   renamePreset,
   savePreset,
@@ -105,6 +109,17 @@ const AppContent = () => {
   // Set from inside the graph pane; read here because the element that has
   // to get out of the way is the EQ panel, which is the graph's sibling.
   const isGraphFullScreen = useGraphFullScreen();
+  // The live capture's own failure, read once and reported once.
+  //
+  // It used to be printed inline in two places at the same time — a bare
+  // sentence in the graph legend AND another in the waveform meter — so the
+  // same fault appeared twice, in the two panes it had just emptied, in a
+  // typeface meant for labels. It is a fault, so it now reads like the other
+  // faults do.
+  const { error: captureError, retry: retryCapture } = useLiveAudioControl();
+  const [isCaptureNoticeHidden, setIsCaptureNoticeHidden] = useState(false);
+  // A new failure is worth showing again even if the last one was dismissed.
+  useEffect(() => setIsCaptureNoticeHidden(false), [captureError]);
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<
     'eq' | 'voicing' | 'convolution'
   >('eq');
@@ -194,6 +209,22 @@ const AppContent = () => {
     }
     localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');
     setShowAudioRestartRecommendation(true);
+  };
+
+  /**
+   * Run Equalizer APO's installer again, over the top of itself.
+   *
+   * Its setup is a repair as much as an install: it re-registers the APO and
+   * reopens the Device Selector, which is what fixes an endpoint Windows has
+   * detached it from. The bundled copy is still in the install directory, so
+   * nothing is downloaded.
+   */
+  const handleReinstallApo = async () => {
+    try {
+      await installEqualizerApo();
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
   };
 
   const handleOpenEqualizerApoSettings = async () => {
@@ -356,88 +387,150 @@ const AppContent = () => {
                 )}
                 {!isLoading && !isBlockingError && (
                   <>
-                    {/* Bringing your own files in belongs at the top: it is
-                        the only thing here that changes what you hear. */}
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setShowAudioToolsMenu(false);
-                        handleImportEq();
-                      }}
-                    >
-                      <MenuIcon name="import" />
-                      {t('app.menu.importEq')}
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setShowAudioToolsMenu(false);
-                        handleImportConvolution();
-                      }}
-                    >
-                      <MenuIcon name="waveform" />
-                      {t('app.menu.importConvolution')}
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setShowAudioToolsMenu(false);
-                        handleRestartWindowsAudio();
-                      }}
-                    >
-                      <MenuIcon name="restart" />
-                      {t('app.menu.restartAudio')}
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setShowAudioToolsMenu(false);
-                        handleConfigureEqualizerApo();
-                      }}
-                    >
-                      <MenuIcon name="configure" />
-                      {t('app.menu.reconfigure')}
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setShowAudioToolsMenu(false);
-                        handleOpenEqualizerApoSettings();
-                      }}
-                    >
-                      <MenuIcon name="settings" />
-                      {t('app.menu.apoSettings')}
-                    </button>
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setShowAudioToolsMenu(false);
-                        setShowWhatsNew(true);
-                      }}
-                    >
-                      <MenuIcon name="info" />
-                      {t('app.menu.whatsNew')}
-                    </button>
-                    {/* Untranslated, like the rest of this menu's newest
-                        entries, until the ten locales catch up — an English
-                        label somebody can find beats a missing one. */}
-                    <button
-                      type="button"
-                      role="menuitem"
-                      onClick={() => {
-                        setShowAudioToolsMenu(false);
-                        setShowBugReport(true);
-                      }}
-                    >
-                      <MenuIcon name="info" />
-                      Report a problem
-                    </button>
+                    {/* Two columns, split by what each thing belongs to.
+                       
+                        The menu had grown to nine unlabelled rows in one
+                        stack — everything from importing a WAV to reinstalling
+                        the audio engine, in the order each had been added. Two
+                        of them said "Equalizer APO" and two more were about it
+                        without saying so, which is the state where people stop
+                        reading a menu and start hunting through it.
+                       
+                        Split by owner rather than by frequency, because that
+                        is the distinction that actually predicts where
+                        somebody will look: is this about FluidEQ, or about the
+                        engine underneath it? Within each column a rule
+                        separates doing something from fixing something. */}
+                    <div className="workspace-header__menu-columns">
+                      <div className="workspace-header__menu-column">
+                        <p className="workspace-header__menu-heading">
+                          FluidEQ
+                        </p>
+                        {/* Bringing your own files in belongs at the top: it
+                            is the only thing here that changes what you
+                            hear. */}
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setShowAudioToolsMenu(false);
+                            handleImportEq();
+                          }}
+                        >
+                          <MenuIcon name="import" />
+                          {t('app.menu.importEq')}
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setShowAudioToolsMenu(false);
+                            handleImportConvolution();
+                          }}
+                        >
+                          <MenuIcon name="waveform" />
+                          {t('app.menu.importConvolution')}
+                        </button>
+
+                        <hr className="workspace-header__menu-rule" />
+
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setShowAudioToolsMenu(false);
+                            setShowWhatsNew(true);
+                          }}
+                        >
+                          <MenuIcon name="info" />
+                          {t('app.menu.whatsNew')}
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setShowAudioToolsMenu(false);
+                            setShowBugReport(true);
+                          }}
+                        >
+                          <MenuIcon name="info" />
+                          Report a problem
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setShowAudioToolsMenu(false);
+                            window.open(
+                              'https://github.com/StartSWest/FluidEQ/releases/latest',
+                              '_blank',
+                              'noopener',
+                            );
+                          }}
+                        >
+                          <MenuIcon name="restart" />
+                          Reinstall FluidEQ…
+                        </button>
+                      </div>
+
+                      <div className="workspace-header__menu-column">
+                        <p className="workspace-header__menu-heading">
+                          Equalizer APO
+                        </p>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setShowAudioToolsMenu(false);
+                            handleConfigureEqualizerApo();
+                          }}
+                        >
+                          <MenuIcon name="configure" />
+                          {t('app.menu.reconfigure')}
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setShowAudioToolsMenu(false);
+                            handleOpenEqualizerApoSettings();
+                          }}
+                        >
+                          <MenuIcon name="settings" />
+                          {t('app.menu.apoSettings')}
+                        </button>
+
+                        <hr className="workspace-header__menu-rule" />
+
+                        {/* Repairing, rather than configuring. APO can be
+                            installed and still not working — a Windows update
+                            can detach it from an endpoint. Reconfigure covers
+                            a device that was never ticked; this covers one it
+                            has lost. */}
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setShowAudioToolsMenu(false);
+                            handleRestartWindowsAudio();
+                          }}
+                        >
+                          <MenuIcon name="restart" />
+                          {t('app.menu.restartAudio')}
+                        </button>
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setShowAudioToolsMenu(false);
+                            handleReinstallApo();
+                          }}
+                        >
+                          <MenuIcon name="settings" />
+                          Reinstall Equalizer APO…
+                        </button>
+                      </div>
+                    </div>
                   </>
                 )}
                 {canShowSupport && (
@@ -523,6 +616,35 @@ const AppContent = () => {
                 {t('notice.restartNow')}
               </button>
               <button type="button" onClick={dismissAudioRestartRecommendation}>
+                {t('app.dismiss')}
+              </button>
+            </div>
+          </aside>
+        )}
+        {/* Same shape as the restart notice above: what happened, and the
+            one thing worth trying. Windows refuses the loopback capture for
+            transient reasons — a device changing mid-start, a prompt
+            dismissed — and a second attempt very often works, so there is
+            something better to offer than an apology. */}
+        {captureError && !isCaptureNoticeHidden && (
+          <aside className="audio-restart-notice" role="status">
+            <span>
+              The live meter and the output curve could not start. Everything
+              else works normally.
+            </span>
+            <div className="audio-restart-notice__actions">
+              <button
+                type="button"
+                onClick={() => {
+                  retryCapture();
+                }}
+              >
+                Try again
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsCaptureNoticeHidden(true)}
+              >
                 {t('app.dismiss')}
               </button>
             </div>

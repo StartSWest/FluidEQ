@@ -174,24 +174,6 @@
   filter: drop-shadow(0 0 4px rgba($red, 0.95));
 }
 
-.waveform-visualizer__error {
-  position: absolute;
-  right: 8px;
-  top: calc(100% + 4px);
-  z-index: 4;
-  max-width: min(360px, calc(100vw - 48px));
-  padding: 3px 7px;
-  border: 1px solid rgba($red, 0.34);
-  border-radius: 7px;
-  background: rgba($primary-dark, 0.96);
-  overflow: hidden;
-  color: $red;
-  font-size: 0.48rem;
-  line-height: 1.25;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 @media (max-width: 940px) {
   .waveform-visualizer {
     width: min(27vw, 300px);

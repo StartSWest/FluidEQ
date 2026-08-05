@@ -543,7 +543,8 @@ select option {
   right: 0;
   display: grid;
   gap: 6px;
-  width: 250px;
+  // Two columns of items now, so it is wider than a single stack needed.
+  width: 440px;
   padding: 10px;
   -webkit-app-region: no-drag;
 
@@ -1070,12 +1071,6 @@ $tab-border: rgba($secondary-light, 0.2);
   letter-spacing: 0.02em;
 }
 
-.live-output-error {
-  @include truncate;
-  max-width: 240px;
-  color: $red;
-}
-
 // Only appears when the output is actually railing, so it is allowed to be
 // loud about it.
 .graph-clip-warning {
@@ -1305,3 +1300,62 @@ $tab-border: rgba($secondary-light, 0.2);
 // Short windows used to cap the graph at 240px so the even split could not
 // starve the EQ editor. There is no split any more and no fixed page height to
 // ration, so the cap only made the chart harder to read. Deliberately absent.
+
+// The actions menu, in two columns.
+//
+// It had grown to nine unlabelled rows in one stack — importing a WAV sat four
+// places above reinstalling the audio engine, in the order each had happened to
+// be added. Two rows said "Equalizer APO" and two more were about it without
+// saying so, which is the point where people stop reading a menu and start
+// hunting through it.
+//
+// Split by what each thing BELONGS to rather than by how often it is used,
+// because that is the distinction that predicts where somebody looks: is this
+// about FluidEQ, or about the engine underneath it?
+.workspace-header__menu-columns {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.workspace-header__menu-column {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: 4px;
+}
+
+// Quiet. It names the column rather than competing with the items in it — a
+// heading as loud as its contents just adds two more things to read.
+.workspace-header__menu-heading {
+  margin: 0 0 2px;
+  padding-inline: 6px;
+  color: rgba($primary-lighter, 0.5);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+// Doing something, above; fixing something, below.
+.workspace-header__menu-rule {
+  width: 100%;
+  height: 0;
+  margin: 5px 0;
+  border: 0;
+  border-top: 1px solid rgba($primary-lighter, 0.1);
+}
+
+// Narrow windows cannot hold two columns beside the titlebar controls, so it
+// falls back to the stack it used to be — with the headings still doing their
+// job, which is most of what was gained.
+@media (max-width: 720px) {
+  .workspace-header__menu {
+    width: 250px;
+  }
+
+  .workspace-header__menu-columns {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}

@@ -62,10 +62,7 @@ import {
   getLineGainAtFrequency,
 } from './utils';
 import { ColorEnum, SecondaryColorEnum } from '../styles/color';
-import {
-  useLiveAudioControl,
-  useLiveAudioFrame,
-} from '../audio/LiveAudioContext';
+import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import { GRAPH_LOOKS } from '../../common/graphStyles';
 import { getBandColor } from '../utils/bandColors';
 import {
@@ -138,7 +135,6 @@ const FrequencyResponseChart = () => {
   const liveLook = useGraphLook();
   const isSolo = useLiveOutputSolo();
   const isFullScreen = useGraphFullScreen();
-  const { error: liveOutputError } = useLiveAudioControl();
   const {
     filters,
     isGraphViewOn,
@@ -920,9 +916,6 @@ const FrequencyResponseChart = () => {
         <span className="graph-edit-hint">
           Drag points · Ctrl/Shift select · Ctrl+scroll: Q
         </span>
-        {liveOutputError && (
-          <span className="live-output-error">{liveOutputError}</span>
-        )}
       </div>
       {isLoading ? (
         <div className="center full row">

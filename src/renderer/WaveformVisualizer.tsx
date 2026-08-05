@@ -136,7 +136,7 @@ const WaveformVisualizer = () => {
   // through the control context, it simply is not this button any more, and
   // the support panel it used to open in euphoria is still one click away on
   // the creature beside it.
-  const { error, isActive, isPaused } = useLiveAudioControl();
+  const { isActive, isPaused } = useLiveAudioControl();
 
   // Every sample eased toward the new frame instead of jumping to it.
   //
@@ -390,7 +390,6 @@ const WaveformVisualizer = () => {
         {/* The same pill the support panel shows, so the mode is named in one
           recognisable way wherever it appears. This is the copy visible with
           the dialog closed. */}
-        {error && <span className="waveform-visualizer__error">{error}</span>}
       </button>
       {/* The switch, and only for someone who has already reached the ceiling
         the hard way. Before that it does not exist — the first x10 has to be

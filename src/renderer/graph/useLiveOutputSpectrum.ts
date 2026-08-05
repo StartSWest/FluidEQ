@@ -737,8 +737,19 @@ const useLiveOutputSpectrum = () => {
   );
 
   const control = useMemo(
-    () => ({ captureBalanceProfile, error, isActive, isPaused, togglePaused }),
-    [captureBalanceProfile, error, isActive, isPaused, togglePaused],
+    () => ({
+      captureBalanceProfile,
+      error,
+      isActive,
+      isPaused,
+      togglePaused,
+      // So the notice about a failed capture can offer to try again rather
+      // than only saying it went wrong. Windows refuses the loopback grab for
+      // transient reasons — a device changing mid-start, a permission prompt
+      // dismissed — and a second attempt very often works.
+      retry: start,
+    }),
+    [captureBalanceProfile, error, isActive, isPaused, start, togglePaused],
   );
 
   return { control, frame };
