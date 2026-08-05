@@ -17,7 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  MAX_MAILTO_BODY,
   MAX_URL_BODY,
+  buildMailtoUrl,
   buildBugReport,
   buildIssueUrl,
   redact,
@@ -158,5 +160,30 @@ describe('the issue link', () => {
 
   it('points at this project', () => {
     expect(buildIssueUrl('x').url).toContain('StartSWest/FluidEQ/issues/new');
+  });
+});
+
+describe('the email link', () => {
+  it('is addressed to the maintainer with a useful subject', () => {
+    const { url } = buildMailtoUrl('a report', '0.8.2');
+    expect(url.startsWith('mailto:ivancarmenates@gmail.com')).toBe(true);
+    expect(url).toContain(encodeURIComponent('FluidEQ bug report (0.8.2)'));
+  });
+
+  it('carries a short report whole', () => {
+    const { url, isTruncated } = buildMailtoUrl('short');
+    expect(isTruncated).toBe(false);
+    expect(url).toContain('body=short');
+  });
+
+  it('says where the rest went rather than silently cutting it', () => {
+    // Windows hands the whole mailto to the registered handler as a command
+    // line and truncates past roughly two thousand characters with no error at
+    // all. A message that just stops mid-log looks like the whole report.
+    const { url, isTruncated } = buildMailtoUrl(
+      'x'.repeat(MAX_MAILTO_BODY + 1),
+    );
+    expect(isTruncated).toBe(true);
+    expect(decodeURIComponent(url)).toContain('on your clipboard');
   });
 });

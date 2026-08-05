@@ -188,3 +188,47 @@ export const buildIssueUrl = (
     needsPaste: false,
   };
 };
+
+/** Where a private report goes. */
+export const REPORT_EMAIL = 'ivancarmenates@gmail.com';
+
+/**
+ * A `mailto:` body has to be far shorter than a URL query string.
+ *
+ * Windows hands the whole thing to the registered handler as a command line,
+ * and the practical ceiling across Outlook, Thunderbird and the various webmail
+ * shims is somewhere near two thousand characters — with no error when it is
+ * exceeded, just a silently truncated message. So the body carries the
+ * description and the setup table, and the logs are left to the clipboard.
+ */
+export const MAX_MAILTO_BODY = 1500;
+
+/**
+ * The private route: the user's own mail client, pre-addressed.
+ *
+ * `mailto:` cannot attach a file and cannot be relied on to exist — plenty of
+ * Windows machines have no desktop mail client at all, and there the link does
+ * nothing. So this is never the only option offered, and the caller always puts
+ * the full report on the clipboard first: whatever the mail client does with
+ * the body, the complete text is one paste away.
+ *
+ * A relay service would avoid all of this, but it would mean credentials, and
+ * credentials in a public repository are credentials somebody else is using by
+ * the end of the week.
+ */
+export const buildMailtoUrl = (
+  report: string,
+  version = '',
+): { url: string; isTruncated: boolean } => {
+  const subject = `FluidEQ bug report${version ? ` (${version})` : ''}`;
+  const isTruncated = report.length > MAX_MAILTO_BODY;
+  const body = isTruncated
+    ? `${report.slice(0, MAX_MAILTO_BODY)}\n\n[...] The full report is on your clipboard — paste it here.`
+    : report;
+  return {
+    url: `mailto:${REPORT_EMAIL}?subject=${encodeURIComponent(
+      subject,
+    )}&body=${encodeURIComponent(body)}`,
+    isTruncated,
+  };
+};

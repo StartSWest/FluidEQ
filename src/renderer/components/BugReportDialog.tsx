@@ -21,6 +21,7 @@ import {
   IGatheredFacts,
   buildBugReport,
   buildIssueUrl,
+  buildMailtoUrl,
 } from 'common/bugReport';
 import { gatherBugReport } from '../utils/equalizerApi';
 import '../styles/BugReport.scss';
@@ -98,6 +99,30 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
     await navigator.clipboard.writeText(report);
     say('Report copied.');
   }, [report, say]);
+
+  /**
+   * The private route, for anyone who would rather not post in public.
+   *
+   * The full report goes on the clipboard FIRST, every time. A mail client
+   * cannot be attached to, truncates a long body without saying so, and on the
+   * many Windows machines with no desktop mail client the link does nothing at
+   * all — so the clipboard is the part that always works, and the mail window
+   * is the convenience on top of it.
+   */
+  const sendEmail = useCallback(async () => {
+    await navigator.clipboard.writeText(report);
+    const { url, isTruncated } = buildMailtoUrl(report, facts?.appVersion);
+    say(
+      isTruncated
+        ? 'Report copied — paste it into the email, which only carries the start.'
+        : 'Report copied, and an email opened. No mail app? Just paste it.',
+    );
+    // `_blank`, never `_self`. Main installs a window-open handler that passes
+    // the URL to the operating system and denies the navigation; `_self` does
+    // not reach that handler at all — it navigates this window, and the app
+    // would disappear behind a mailto the renderer cannot load.
+    window.open(url, '_blank', 'noopener');
+  }, [facts?.appVersion, report, say]);
 
   const openIssue = useCallback(async () => {
     const { url, needsPaste } = buildIssueUrl(report);
@@ -180,7 +205,8 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
 
         <p className="bug-report__privacy">
           Account names, paths and email addresses are removed automatically.
-          Nothing is sent until you press one of these.
+          Nothing is sent until you press one of these. The email goes only to
+          the developer; the issue is public.
         </p>
 
         <div className="bug-report__actions">
@@ -190,6 +216,9 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
             onClick={openIssue}
           >
             Open a GitHub issue
+          </button>
+          <button type="button" onClick={sendEmail}>
+            Email it privately
           </button>
           <button type="button" onClick={copy}>
             Copy
