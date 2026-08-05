@@ -1,5 +1,14 @@
-import { createMirrorEqChain } from '../../../renderer/audio/mirrorEq';
-import { FilterTypeEnum, IFilter } from '../../../common/constants';
+import {
+  createMirrorEqChain,
+  getMirrorFilters,
+} from '../../../renderer/audio/mirrorEq';
+import {
+  AutoEqFormat,
+  FilterTypeEnum,
+  getDefaultState,
+  IFilter,
+  IState,
+} from '../../../common/constants';
 import {
   getTFCoefficients,
   RESPONSE_SAMPLE_FREQUENCY,
@@ -121,6 +130,91 @@ describe('the mirror’s own equaliser', () => {
     // The gain plus both filters.
     expect(disconnects).toHaveLength(3);
     disconnects.forEach((disconnect) => expect(disconnect).toHaveBeenCalled());
+  });
+});
+
+describe('which layers a mirror reproduces', () => {
+  const baseState = (): IState => ({
+    ...getDefaultState(),
+    preAmp: 0,
+    filters: { band: makeFilter({ id: 'band' }) },
+  });
+
+  it('carries the user’s own bands', () => {
+    expect(getMirrorFilters(baseState())).toHaveLength(1);
+  });
+
+  it('carries the voicing layer', () => {
+    const withVoicing = getMirrorFilters({
+      ...baseState(),
+      voicing: { profileId: 'music', intensity: 1 },
+    });
+
+    expect(withVoicing.length).toBeGreaterThan(1);
+  });
+
+  it('carries the driver compensation layer', () => {
+    const withDriver = getMirrorFilters({
+      ...baseState(),
+      driver: { profileId: 'dynamic-headphone', intensity: 1 },
+    });
+
+    expect(withDriver.length).toBeGreaterThan(1);
+  });
+
+  it('carries the Smart EQ layer', () => {
+    const withSmartEq = getMirrorFilters({
+      ...baseState(),
+      smartEq: {
+        filters: { correction: makeFilter({ id: 'correction', gain: 3 }) },
+      },
+    });
+
+    expect(withSmartEq).toHaveLength(2);
+  });
+
+  it('keeps APO’s order: bands, voicing, driver, Smart EQ', () => {
+    // Cascaded biquads multiply, so order does not change the response. It is
+    // held identical anyway, so the two paths can be compared line by line the
+    // day they disagree.
+    const chain = getMirrorFilters({
+      ...baseState(),
+      voicing: { profileId: 'music', intensity: 1 },
+      driver: { profileId: 'dynamic-headphone', intensity: 1 },
+      smartEq: {
+        filters: { correction: makeFilter({ id: 'correction', gain: 3 }) },
+      },
+    });
+
+    const bands = getMirrorFilters(baseState()).length;
+    const throughVoicing = getMirrorFilters({
+      ...baseState(),
+      voicing: { profileId: 'music', intensity: 1 },
+    }).length;
+
+    expect(chain.slice(0, bands)).toEqual(getMirrorFilters(baseState()));
+    expect(chain).toHaveLength(
+      throughVoicing +
+        (getMirrorFilters({
+          ...baseState(),
+          driver: { profileId: 'dynamic-headphone', intensity: 1 },
+        }).length -
+          bands) +
+        1,
+    );
+  });
+
+  it('applies nothing at all to a GraphicEQ profile', () => {
+    // A GraphicEQ profile is an arbitrary curve, not a filter list. Applying
+    // whatever editable projection happens to be in `filters` would put a
+    // fragment of the curve on the speaker, which is worse than none of it.
+    expect(
+      getMirrorFilters({
+        ...baseState(),
+        eqFormat: AutoEqFormat.GRAPHIC,
+        graphicEq: [{ frequency: 100, gain: 3 }],
+      }),
+    ).toEqual([]);
   });
 });
 

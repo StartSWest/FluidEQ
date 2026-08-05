@@ -67,7 +67,11 @@ export interface ITransferFuncCoeffs {
 
 /** RBJ audio-EQ-cookbook coefficients for one filter. */
 export const getTFCoefficients = (
-  filter: IFilter,
+  // Only the four fields the maths reads, matching `getChainPeakGain` below.
+  // The voicing, driver and Smart EQ layers produce filters of exactly this
+  // shape without an id, and they are as entitled to the shared derivation as
+  // a user band is.
+  filter: Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>,
   sampleFrequency: number = RESPONSE_SAMPLE_FREQUENCY,
 ): ITransferFuncCoeffs => {
   const {

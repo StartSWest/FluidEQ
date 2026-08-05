@@ -7,8 +7,17 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { IFilter } from 'common/constants';
+import { AutoEqFormat, IFilter, IState } from 'common/constants';
+import { getDriverFilters } from 'common/driver';
 import { getTFCoefficients } from 'common/response';
+import { getSmartEqFilters } from 'common/smartEq';
+import { getVoicingFilters } from 'common/voicing';
+
+/** Everything the maths needs; the layers produce this without an id. */
+export type TMirrorFilter = Pick<
+  IFilter,
+  'type' | 'frequency' | 'gain' | 'quality'
+>;
 
 /**
  * The mirror's own equaliser: a second engine, in Web Audio, beside APO.
@@ -57,9 +66,42 @@ const isUsable = (values: number[]): boolean =>
  * 48 kHz, and coefficients made at twice the rate they run at put every band
  * an octave low — which would be audible, wrong, and very hard to attribute.
  */
+/**
+ * Every filter a device's profile contributes, in the order APO writes them.
+ *
+ * The user's bands first, then voicing, then driver compensation, then Smart
+ * EQ — the same sequence as `stateToString`. Cascaded biquads multiply, so the
+ * order does not change the magnitude response, but keeping it identical means
+ * the two paths can be compared line by line when they ever disagree.
+ *
+ * Two things are deliberately absent, and a profile using either is mirrored
+ * without it:
+ *
+ * - **GraphicEQ.** A `GraphicEQ:` profile writes no filters at all; it is an
+ *   arbitrary curve, and reproducing one faithfully needs an FIR rather than a
+ *   handful of biquads.
+ * - **Convolution.** `ConvolverNode` could carry it, but the impulse response
+ *   lives in a WAV written for APO, and fetching and decoding it per mirror is
+ *   its own piece of work rather than a line here.
+ */
+export const getMirrorFilters = (state: IState): TMirrorFilter[] => {
+  // A GraphicEQ profile keeps its curve in `graphicEq` and leaves `filters`
+  // as whatever editable projection existed; using those would apply a
+  // fragment of a curve, which is worse than applying none of it.
+  if (state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length) {
+    return [];
+  }
+  return [
+    ...Object.values(state.filters ?? {}),
+    ...getVoicingFilters(state.voicing),
+    ...getDriverFilters(state.driver),
+    ...getSmartEqFilters(state.smartEq),
+  ];
+};
+
 export const createMirrorEqChain = (
   context: BaseAudioContext,
-  filters: IFilter[],
+  filters: TMirrorFilter[],
   preAmp: number,
 ): IMirrorEqChain => {
   const nodes: AudioNode[] = [];
