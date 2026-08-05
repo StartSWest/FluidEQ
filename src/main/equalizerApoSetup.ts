@@ -37,6 +37,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import { app, shell } from 'electron';
+import { APO_BUNDLE_MISSING } from '../common/constants';
 
 /** Where the bundled installer lands, next to the app's other resources. */
 export const getEqualizerApoSetupPath = (): string =>
@@ -83,9 +84,7 @@ export const hasBundledEqualizerApo = (): boolean => {
 export const runEqualizerApoSetup = async (): Promise<void> => {
   const setup = getEqualizerApoSetupPath();
   if (!fs.existsSync(setup)) {
-    throw new Error(
-      'The bundled Equalizer APO installer is missing from this build.',
-    );
+    throw new Error(APO_BUNDLE_MISSING);
   }
   // Resolves to '' on success, or to a message describing why not. Declining
   // the elevation prompt lands here too, which is correct: from FluidEQ's side

@@ -301,6 +301,17 @@ export interface IDriverSettings {
  * Here rather than in loudness.ts for the same reason as the two above: it is
  * part of the persisted state, and loudness.ts already depends on this module.
  */
+/**
+ * The build has no copy of Equalizer APO's installer in it.
+ *
+ * The one failure where sending somebody to SourceForge is the right answer,
+ * and it is a broken build rather than anything they did. Every other failure —
+ * declining the permission prompt above all — means the installer is right
+ * there and they should simply try again. Matching on the message text would
+ * work until the day somebody rewords it.
+ */
+export const APO_BUNDLE_MISSING = 'apo-bundle-missing';
+
 export interface ILoudnessSettings {
   isOn: boolean;
   /** 0..1 scale applied to every gain in the curve. */

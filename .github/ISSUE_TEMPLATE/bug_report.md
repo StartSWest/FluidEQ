@@ -1,32 +1,48 @@
 ---
 name: Bug report
-about: Create a report to help us fix bugs and improve the app
+about: Something in FluidEQ is not working
 title: ''
 labels: bug
-assignees: h39s, xenown, selinali2010, flyingpandaboy
-
 ---
 
-**Desktop (please complete the following information):**
- - Windows OS Edition: [e.g. Windows 11 Education]
- - Windows OS Version: [e.g. 22H2]
- - Windows OS Build: [e.g. 22621.1265]
+<!--
+Arrived here from "Report a problem" inside FluidEQ? Everything below is
+already filled in. Read it over and press submit.
 
-**Describe the bug (What's going wrong)**
-A clear and concise description of what the bug is.
+Writing this by hand? The app will do it for you. The actions menu — the
+waveform icon in the titlebar — has "Report a problem", which collects the
+version, the Windows build, whether Equalizer APO is installed and the tail of
+both logs, with account names, file paths and email addresses stripped out. It
+takes one click, it is safe to post, and the result is far easier to act on
+than anything typed from memory.
+-->
 
-**Screenshots**
-If applicable, add screenshots to help explain your problem.
+### What happened
 
-**Expected behavior**
-A clear and concise description of what you expected to happen.
+<!-- What were you doing, and what happened instead? -->
 
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Click on '....'
-3. Scroll down to '....'
-4. See error
+### Setup
 
-**Additional context**
-Add any other context about the problem here.
+|               |                                                            |
+| ------------- | ---------------------------------------------------------- |
+| FluidEQ       | <!-- e.g. 0.9.0, shown beside the name in the titlebar --> |
+| Windows       | <!-- 10 or 11 -->                                          |
+| Equalizer APO | <!-- installed / not installed / not sure -->              |
+
+### Logs
+
+<!--
+Optional, and usually decisive. Both files live in:
+
+    %APPDATA%\FluidEQ\logs
+
+  main.log     what the app did
+  install.log  what setup did about Equalizer APO
+
+Neither records your account name or file paths. Paste the last few dozen
+lines between the fences below.
+-->
+
+```
+
+```

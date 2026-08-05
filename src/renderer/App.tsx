@@ -220,8 +220,30 @@ const AppContent = () => {
    * nothing is downloaded.
    */
   const handleReinstallApo = async () => {
+    // Asked first, and the label's ellipsis is a promise that it will be.
+    //
+    // This raises a Windows permission prompt, reinstalls the component that
+    // processes all of the machine's audio, and needs a restart afterwards.
+    // None of that should happen because somebody was reading the menu with a
+    // mouse in their hand.
+    const confirmed = window.confirm(
+      'Reinstall Equalizer APO?\n\n' +
+        'Its setup will open so you can re-select which audio devices to ' +
+        'equalise. Windows will ask for administrator permission, and your ' +
+        'computer will need to restart afterwards.\n\n' +
+        'Your FluidEQ settings and profiles are not affected.',
+    );
+    if (!confirmed) {
+      return;
+    }
     try {
       await installEqualizerApo();
+      // Same as reconfiguring, and more certainly so: a reinstalled APO is not
+      // in the audio chain until the endpoints are rebuilt. Reconfigure has
+      // always said this; a reinstall staying silent about it would leave
+      // somebody deciding the repair had not worked.
+      localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');
+      setShowAudioRestartRecommendation(true);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }

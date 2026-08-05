@@ -17,14 +17,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useEffect, useState } from 'react';
+import { APO_BUNDLE_MISSING } from 'common/constants';
 import Button from './widgets/Button';
 import { installEqualizerApo } from './utils/equalizerApi';
 import './styles/Modal.scss';
 
 /**
- * Only reached if the bundled installer is missing from the build, which is
- * a broken build rather than a normal state. Kept so the dialog still has
- * something to offer instead of a dead button.
+ * Reached only when this build genuinely has no copy of the installer in it —
+ * see the handler below, which is careful to tell that apart from somebody
+ * declining the permission prompt. Sending a user to a website to download
+ * something already sitting in their install directory is the exact trip the
+ * bundling removed.
  */
 const EQUALIZER_APO_OFFICIAL_DOWNLOAD =
   'https://sourceforge.net/projects/equalizerapo/files/latest/download';
@@ -56,12 +59,28 @@ export default function PrereqMissingModal({
     try {
       await installEqualizerApo();
     } catch (e) {
-      // A build without the bundled file is the only way here. Say so, and
-      // leave the official project as the way out rather than a dead end.
-      setStartError(
-        'The bundled installer could not be started. Get Equalizer APO from the official project instead.',
+      // Only one failure justifies sending somebody to a website: this build
+      // genuinely has no copy of the installer in it, which is a broken build
+      // rather than anything they did.
+      //
+      // Every other failure — declining the permission prompt, above all —
+      // means the installer is sitting right there and the answer is to press
+      // the button again. Opening SourceForge for that would be telling them
+      // to go and download something they already have, which is exactly the
+      // trip this feature exists to remove.
+      const isMissing = String((e as Error)?.message ?? '').includes(
+        APO_BUNDLE_MISSING,
       );
-      window.open(EQUALIZER_APO_OFFICIAL_DOWNLOAD, '_blank', 'noopener');
+      if (isMissing) {
+        setStartError(
+          'This build is missing its copy of Equalizer APO. Opening the official project instead.',
+        );
+        window.open(EQUALIZER_APO_OFFICIAL_DOWNLOAD, '_blank', 'noopener');
+      } else {
+        setStartError(
+          'Equalizer APO did not start — administrator permission is needed. Try again and approve the Windows prompt.',
+        );
+      }
     } finally {
       setIsStarting(false);
     }
