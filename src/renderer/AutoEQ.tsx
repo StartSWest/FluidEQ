@@ -649,7 +649,10 @@ const AutoEQ = () => {
     >
       {/* Inside the fold, not in the summary. Whose measurements these are
           matters while you are choosing one and not at all once the section is
-          closed, where it was just a stray line of text under the header. */}
+          closed, where it was just a stray line of text under the header.
+          Positioned into the header's right-hand corner from the stylesheet —
+          it is first in the DOM so it reads in order, and takes no row of its
+          own on screen. */}
       <div className="autoeq-attribution">
         {currentSource && currentSource.id !== ALL_SOURCE_ID ? (
           <a

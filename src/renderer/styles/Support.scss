@@ -87,7 +87,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 28px 32px 26px;
   gap: var(--support-gap);
   overflow-y: auto;
-  @include slim-scrollbar(8px);
+  @include slim-scrollbar;
 }
 
 // Euphoria, said once across the top of the panel.

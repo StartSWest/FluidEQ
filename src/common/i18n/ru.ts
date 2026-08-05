@@ -45,6 +45,7 @@ const ru: Partial<Dictionary> = {
   'tabs.convolution': 'Свёртка',
   'tabs.video': 'Видео',
 
+  'graph.resize': 'Потяните, чтобы изменить размер графика',
   'video.sites': 'Видеосайты',
   'video.back': 'Назад',
   'video.forward': 'Вперёд',

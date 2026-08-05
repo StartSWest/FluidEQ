@@ -112,15 +112,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  // Whose measurements these are; inside the fold.
+  // Whose measurements these are.
+  //
+  // Lifted out of the flow and into the section's top-right corner. As a row of
+  // its own it cost a full line of the workspace's height to say four words,
+  // and this pane is the one competing with the graph for room — the corner is
+  // dead space that was already there.
+  //
+  // Still inside the fold, so it goes away with the rest of the section: it
+  // matters while you are choosing a measurement and not at all once the
+  // section is closed. `right` clears the collapse chevron, which owns the
+  // corner above it.
   .autoeq-attribution {
     @include truncate;
+    position: absolute;
+    z-index: 1;
+    top: -26px;
+    right: 46px;
+    max-width: 40%;
     color: $text-muted;
     font-size: 0.68rem;
+    text-align: right;
 
     a {
       color: $secondary-light;
     }
+  }
+
+  // The corner the attribution is positioned against.
+  .sidebar-section__body {
+    position: relative;
   }
 }
 

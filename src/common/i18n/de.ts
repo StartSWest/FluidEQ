@@ -45,6 +45,7 @@ const de: Partial<Dictionary> = {
   'tabs.convolution': 'Faltung',
   'tabs.video': 'Video',
 
+  'graph.resize': 'Ziehen, um die Größe des Diagramms zu ändern',
   'video.sites': 'Video-Seiten',
   'video.back': 'Zurück',
   'video.forward': 'Vorwärts',

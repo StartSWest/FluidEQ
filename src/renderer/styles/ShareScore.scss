@@ -50,7 +50,7 @@ it under the terms of the GNU General Public License version 3 or later.
   max-height: calc(100vh - #{$spacing-m} * 2);
   padding: 20px;
   overflow-y: auto;
-  @include slim-scrollbar(8px);
+  @include slim-scrollbar;
   border-color: rgba($secondary-default, 0.34);
 }
 

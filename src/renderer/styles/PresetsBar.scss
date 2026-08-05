@@ -153,7 +153,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 0;
     max-height: min(52vh, 420px);
     overflow-y: auto;
-    @include slim-scrollbar(7px);
+    @include slim-scrollbar;
   }
 }
 

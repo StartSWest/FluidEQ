@@ -229,19 +229,30 @@ $transition-control:
   }
 }
 
-// Thin cyan scrollbar for any inner scrolling surface.
-@mixin slim-scrollbar($size: 8px) {
-  scrollbar-color: rgba($secondary-default, 0.6) rgba(#071019, 0.5);
+// The scrollbar. There is one, and this is it.
+//
+// No size argument any more: it was called with 7px in two places and 8px in
+// eight, which is a difference nobody chose and everybody can see when two
+// panels scroll side by side.
+//
+// Nothing paints a track. A scrollbar with a background of its own is a stripe
+// laid over whatever it is scrolling, and this app puts them on half a dozen
+// different surfaces — the only thing that reads correctly on all of them is
+// the bar itself and nothing behind it.
+//
+// Identical to the document-level rules in App.scss, which cover every
+// scrolling surface that does not reach for this. Change one, change both.
+@mixin slim-scrollbar {
+  scrollbar-color: rgba($secondary-default, 0.6) transparent;
   scrollbar-width: thin;
 
   &::-webkit-scrollbar {
-    width: $size;
-    height: $size;
+    width: 8px;
+    height: 8px;
   }
 
   &::-webkit-scrollbar-track {
-    border-radius: $radius-pill;
-    background: rgba(#071019, 0.5);
+    background: transparent;
   }
 
   &::-webkit-scrollbar-thumb {

@@ -32,7 +32,7 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 22px 24px;
   gap: 14px;
   overflow-y: auto;
-  @include slim-scrollbar(8px);
+  @include slim-scrollbar;
 }
 
 .bug-report__head {

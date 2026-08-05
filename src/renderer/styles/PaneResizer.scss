@@ -1,0 +1,75 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+
+// The divider between a pane and the one under it.
+//
+// Exactly the height of the gap the workspace already puts between two cards,
+// so it sits *in* that gap rather than adding to it — see the negative margins
+// in App.scss, which cancel the two gaps this element would otherwise
+// introduce. Mostly empty: the grip is a short bar, but the whole strip is the
+// target, because a three-pixel line is a thing you hunt for.
+.pane-resizer {
+  display: flex;
+  height: 12px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  cursor: ns-resize;
+  // Without this a drag on a touchscreen scrolls the page instead.
+  touch-action: none;
+
+  span {
+    width: 44px;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba($primary-lighter, 0.18);
+    transition:
+      background 140ms ease,
+      width 140ms ease;
+  }
+
+  &:hover span {
+    width: 60px;
+    background: rgba($secondary-light, 0.6);
+  }
+
+  // Reachable by keyboard, and visibly so — this is the only affordance
+  // somebody arrowing through the workspace gets that the divider can move.
+  &:focus-visible {
+    outline: none;
+
+    span {
+      width: 60px;
+      background: $secondary-light;
+      box-shadow: 0 0 0 3px rgba($secondary-light, 0.25);
+    }
+  }
+
+  &.is-dragging span {
+    width: 60px;
+    background: $secondary-light;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pane-resizer span {
+    transition: none;
+  }
+}

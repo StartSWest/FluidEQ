@@ -45,6 +45,7 @@ const it: Partial<Dictionary> = {
   'tabs.convolution': 'Convoluzione',
   'tabs.video': 'Video',
 
+  'graph.resize': 'Trascina per ridimensionare il grafico',
   'video.sites': 'Siti video',
   'video.back': 'Indietro',
   'video.forward': 'Avanti',

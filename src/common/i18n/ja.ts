@@ -45,6 +45,7 @@ const ja: Partial<Dictionary> = {
   'tabs.convolution': 'コンボリューション',
   'tabs.video': '動画',
 
+  'graph.resize': 'ドラッグしてグラフの大きさを変更',
   'video.sites': '動画サイト',
   'video.back': '戻る',
   'video.forward': '進む',

@@ -49,7 +49,11 @@ html {
   width: 100%;
   height: 100%;
   color-scheme: dark;
-  scrollbar-color: rgba($primary-light, 0.92) rgba(#02050a, 0.86);
+  // Cyan and trackless, identical to the `slim-scrollbar` mixin a dozen inner
+  // panels reach for. The default here used to be the violet primary on a dark
+  // track, which made every scrollbar the app did not explicitly style the odd
+  // one out. There is no reason for two answers to the same question.
+  scrollbar-color: rgba($secondary-default, 0.6) transparent;
   scrollbar-width: thin;
 }
 
@@ -160,40 +164,30 @@ select option {
 }
 
 ::-webkit-scrollbar {
-  width: 9px;
-  height: 9px;
+  width: 8px;
+  height: 8px;
 }
 
+// Nothing behind the bar. These sit on the workspace, on cards and on panels
+// of three different colours, and a track of its own would be a stripe painted
+// across all of them.
 ::-webkit-scrollbar-track {
-  border: 1px solid rgba($secondary-default, 0.05);
-  border-radius: $radius-pill;
-  background: rgba(#02050a, 0.86);
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  min-height: 38px;
-  border: 2px solid transparent;
+  min-height: 28px;
+  border: 1px solid rgba($primary-lighter, 0.08);
   border-radius: $radius-pill;
-  background: linear-gradient(
-    180deg,
-    rgba($primary-light, 0.92),
-    rgba($primary-default, 0.96)
-  );
-  background-clip: padding-box;
-  box-shadow: 0 0 8px rgba($secondary-default, 0.1);
+  background: rgba($secondary-default, 0.6);
 
   &:hover {
-    background: linear-gradient(
-      180deg,
-      rgba($secondary-default, 0.9),
-      rgba($primary-light, 0.96)
-    );
-    background-clip: padding-box;
+    background: rgba($secondary-light, 0.85);
   }
 }
 
 ::-webkit-scrollbar-corner {
-  background: rgba(#02050a, 0.86);
+  background: transparent;
 }
 
 // *** Layout helpers *********************************************************
@@ -696,34 +690,47 @@ select option {
 
 // *** Workspace shell ********************************************************
 
-// The document is the scroll surface, and the only one. Everything below sizes
-// itself from its content: nothing has to fit the window, so a long profile
-// list is a longer page rather than a squeezed panel.
+// The window is the frame, and nothing moves it.
+//
+// This used to be one scrolling document, with every column as long as its
+// content. That is what put the graph at the bottom of the *page* rather than
+// the bottom of the *view*: add enough profiles and the right-hand column grew,
+// the page grew with it, and the graph went below the fold.
+//
+// Sticky is not a fix for that — a sticky box is held inside its own grid area,
+// so it lets go the moment that area's bottom arrives and rides the tallest
+// column down. The only arrangement where the graph genuinely never moves is
+// this one: the shell is exactly the size of the window, and the scrolling
+// happens *inside* whichever column has too much in it.
+//
+// Below `$bp-two-column` the columns stack, where a viewport-sized shell would
+// crush three panels into one screen. There the document goes back to being the
+// scroll surface — see the media query at the end of this file.
 #root {
   width: 100%;
   height: 100vh;
   padding-top: $title-bar-height;
-  overflow-x: hidden;
-  overflow-y: auto;
-  scrollbar-gutter: stable;
+  overflow: hidden;
 }
 
 .app-workspace {
   display: grid;
   width: 100%;
-  // Fills a short page so the shell never floats above empty background, but
-  // is free to grow past the window — #root takes the scroll.
-  min-height: 100%;
+  // Exactly the window, less the titlebar. Not `min-height`: this must not be
+  // free to grow, or the column that grew would push the graph out of view
+  // again.
+  height: 100%;
   padding: 16px 16px 18px;
   gap: 12px;
-  overflow: visible;
+  overflow: hidden;
 
   grid-template-areas: 'side-bar center-workspace right-content';
   grid-template-columns: 164px minmax(0, 1fr) minmax(280px, 330px);
-  // Content-sized. The tallest column sets the row and the page scrolls to it;
-  // no panel is compressed on behalf of another.
-  grid-template-rows: minmax(min-content, 1fr);
-  align-content: start;
+  // One row, the height of the shell. `minmax(0, 1fr)` rather than
+  // `minmax(min-content, 1fr)`: min-content would let a long column force the
+  // row taller than the window, which is the whole thing being prevented.
+  grid-template-rows: minmax(0, 1fr);
+  align-content: stretch;
 }
 
 .side-bar {
@@ -752,10 +759,36 @@ select option {
   min-height: 0;
   flex-direction: column;
   gap: 12px;
+  // Never scrolls, and never grows. Its height is the row's height, which is
+  // the window's — so the split inside it is sharing the viewport, and the
+  // graph at its bottom is at the bottom of the view.
+  overflow: hidden;
+}
+
+// The divider takes up no more room than the space that was already between
+// the editor and the graph.
+//
+// The column lays its children out with `gap: 12px`, so simply putting an
+// element between two of them costs 12 above it, its own height, and 12 below —
+// the seam under the editor ended up three times deeper than the gap between
+// any other pair of cards. These cancel the two gaps it introduced, leaving a
+// 12px seam with the grip sitting in the middle of it.
+.center-workspace > .pane-resizer {
+  margin-block: -12px;
 }
 
 .right-content {
   grid-area: right-content;
+}
+
+// The two columns that are allowed to be longer than the window. They take the
+// scrolling that the document used to do — which is the trade that keeps the
+// centre column still while a profile list grows without limit.
+.side-bar,
+.right-content {
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .side-bar,
@@ -765,22 +798,41 @@ select option {
   min-width: 0;
 }
 
-// Takes whatever it needs. The graph below it has a height of its own now, so
-// there is no half-and-half split to negotiate: if the editor is tall, the
-// page is tall.
+// The top half of the split. `--editor-height` is what the divider sets.
+//
+// Height, not a ceiling, for three of the four tabs: the player has no natural
+// height at all — a web page is whatever you give it — and the voicing and
+// convolution panels scroll inside themselves, so none of them has a content
+// height worth following. The EQ tab overrides this below.
 .middle-content {
   display: flex;
+  height: var(--editor-height, auto);
   min-width: 0;
-  // The convolution catalogue scrolls inside its own list, so this column is
-  // free to shrink to the viewport there.
   min-height: 0;
-  flex: 1 1 auto;
+  flex: 0 0 auto;
   flex-direction: column;
+  // Not the scroll container. The tab strip belongs to this element and must
+  // stay put while the panel under it scrolls, so the overflow lives on the
+  // panel instead — one element lower.
+  overflow: visible;
 }
 
-// The EQ editor is the exception: it is never compressed below what it needs.
-.middle-content:has(> .workspace-tab-panel--eq) {
-  min-height: min-content;
+// The EQ tab is the one with a content height worth following, so there the
+// divider's value is a ceiling rather than a height.
+//
+// This is what makes folding the reference picker work without anything having
+// to be told it happened: the editor asks for the height its content needs, the
+// fold makes that less, the card shrinks, and the divider sitting directly
+// under it comes up with it. The graph takes the difference, because it is the
+// one that grows into whatever is left over.
+//
+// The drag still works both ways whenever there is content below the fold,
+// which on this tab is the ordinary case — the ceiling is what decides how much
+// of the band list is on screen before it starts scrolling.
+.center-workspace:has(.workspace-tab-panel--eq) > .middle-content {
+  height: auto;
+  max-height: var(--editor-height, none);
+  flex: 0 1 auto;
 }
 
 // *** Workspace tabs *********************************************************
@@ -795,6 +847,9 @@ $tab-border: rgba($secondary-light, 0.2);
   position: relative;
   z-index: 2;
   display: flex;
+  // Never squeezed. The scrolling happens in the panel below this strip, so it
+  // keeps its full height however little room the column has left.
+  flex: 0 0 auto;
   align-items: flex-end;
   gap: 3px;
   // Overlaps the panel's top border so the two lines become one.
@@ -862,7 +917,19 @@ $tab-border: rgba($secondary-light, 0.2);
   position: relative;
   z-index: 1;
   min-width: 0;
-  flex: 1 1 auto;
+  // The scroll surface for the workspace's upper half — everything below it,
+  // the divider and the graph, holds still.
+  //
+  // `0 1 auto` and a zero floor together are what let it give ground. As a flex
+  // item its default floor is its own content, which is a refusal to shrink:
+  // the panel stayed full height, and the divider and the graph were pushed
+  // past the bottom of a column that clips. That is the divider disappearing
+  // underneath the editor rather than being missing.
+  min-height: 0;
+  flex: 0 1 auto;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
   // The panel is what its contents actually have to fit inside — the window is
   // not, because the two sidebars take several hundred pixels of it. Anything
   // in here that needs to reflow measures this box, not the viewport.
@@ -884,9 +951,18 @@ $tab-border: rgba($secondary-light, 0.2);
 }
 
 .workspace-tab-panel--eq {
-  // Grows into the available height, but never below what the editor needs:
-  // if the window is too short the workspace scrolls instead of clipping.
-  min-height: min-content;
+  // Zero, not `min-content`.
+  //
+  // `min-content` was right when the page scrolled: the editor asked for the
+  // height it needed and the document grew to cover it. With the column pinned
+  // to the window it is the opposite — the panel refusing to go below its
+  // content height is what pushed the divider and the graph off the bottom of a
+  // column that clips, so the way to reach the rest of the bands vanished along
+  // with them. It scrolls inside itself now, so it does not need the room.
+  //
+  // Restored to `min-content` under `$bp-two-column`, where the page scrolls
+  // again — see the media query at the end of this file.
+  min-height: 0;
   gap: 10px;
 
   > .autoeq-section,
@@ -903,12 +979,12 @@ $tab-border: rgba($secondary-light, 0.2);
 }
 
 // Both panels this hosts — voicing and convolution — scroll inside themselves,
-// which needs a height to scroll within. Their parent sizes to content now, so
-// that height has to be stated here or the catalogue would render at full
-// length and drag the page down with it.
+// which needs a height to scroll within. It gets one from the column now: the
+// shell is the size of the window, so filling its share of that share is a
+// definite height and the stated one it used to carry is gone.
 .workspace-tab-panel--convolution {
-  height: max(460px, calc(100vh - #{$title-bar-height} - 130px));
   min-height: 0;
+  flex: 1 1 auto;
   overflow: hidden;
 
   > .convolution-panel {
@@ -962,9 +1038,6 @@ $tab-border: rgba($secondary-light, 0.2);
   // middle.
   grid-template-rows: repeat(3, max-content);
   align-content: start;
-  // Not clipped: the column is allowed to be taller than the window now, and
-  // its dropdown menus are allowed to escape the card.
-  overflow: visible;
 }
 
 // *** Response graph *********************************************************
@@ -972,11 +1045,17 @@ $tab-border: rgba($secondary-light, 0.2);
 .graph-wrapper {
   position: relative;
   width: 100%;
-  // A height of its own rather than a share of whatever the editor left over.
-  // Splitting the column meant a short window shrank the chart to a sliver;
-  // now it keeps a readable size and the page scrolls instead.
-  height: clamp(300px, 38vh, 520px);
-  flex: 0 0 auto;
+  // Whatever the pane above is not using — no height of its own at all.
+  //
+  // The divider sizes the editor, so this end of the split simply absorbs the
+  // difference. That is what lets folding the reference picker widen the graph
+  // without anything being told to, and it keeps the drag live in both
+  // directions: there is always something on the other side of the handle able
+  // to give height back.
+  flex: 1 1 auto;
+  // The floor is kept here as well as in the store: whatever a stylesheet
+  // elsewhere does to this box, it does not get to collapse it to nothing.
+  min-height: 150px;
   border: 1px solid rgba($primary-lighter, 0.1);
   border-radius: $radius-xl;
   background:
@@ -1213,11 +1292,46 @@ $tab-border: rgba($secondary-light, 0.2);
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  // A narrow window is usually a short one too, and this is where the chart
-  // was least readable. It gets more room than before, not less — the page
-  // scrolls to cover it.
-  .graph-wrapper {
-    height: clamp(280px, 42vh, 460px);
+  // Stacked, the viewport-sized shell stops making sense: three panels one
+  // above another cannot each have a useful share of one screen, and docking
+  // the graph would leave the editor a sliver. The document goes back to being
+  // the scroll surface, every column back to its own content height, and the
+  // graph back to being a fixed slice of a page that scrolls.
+  #root {
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+
+  .app-workspace {
+    height: auto;
+    min-height: 100%;
+    grid-template-rows: repeat(3, max-content);
+    overflow: visible;
+  }
+
+  .side-bar,
+  .center-workspace,
+  .right-content {
+    min-height: 0;
+    overflow: visible;
+  }
+
+  // Back to growing the page rather than scrolling inside a fixed column —
+  // and with the overflow gone, dropdowns escape their cards again.
+  .middle-content,
+  .workspace-tab-panel {
+    overflow: visible;
+  }
+
+  .workspace-tab-panel {
+    flex: 1 1 auto;
+  }
+
+  // The page carries the height here, so the editor goes back to asking for
+  // what it needs rather than scrolling inside a share of the window.
+  .workspace-tab-panel--eq {
+    min-height: min-content;
   }
 }
 

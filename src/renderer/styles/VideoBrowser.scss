@@ -28,7 +28,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .video-browser {
   display: flex;
+  // Fills whatever the graph below is not using. The player has no height of
+  // its own any more: the split shares the viewport, so moving the divider
+  // resizes the graph and this takes the rest.
   min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
   flex-direction: column;
   gap: $spacing-s;
 
@@ -55,10 +60,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The chrome has no place over a fullscreen video, and the divider has nothing
-// left to divide.
-.video-browser.is-fullscreen .video-browser__bar,
-.video-browser.is-fullscreen .video-browser__resize {
+// The chrome has no place over a fullscreen video.
+.video-browser.is-fullscreen .video-browser__bar {
   display: none;
 }
 
@@ -191,6 +194,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .video-browser__stage {
   position: relative;
   width: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
   border: 1px solid rgba($primary-lighter, 0.1);
   border-radius: $radius-xl;
   // Black rather than the shell colour: this is where a picture goes, and any
@@ -215,7 +220,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // concerned, and the guest swallows every pointer event that reaches it — the
 // pointer capture on the handle cannot see them. Taking the page out of
 // hit-testing for the length of the drag is what makes the divider work at all.
-.video-browser.is-resizing .video-browser__view {
+//
+// Keyed off the column rather than the player, because the divider belongs to
+// the column now: one handle, above the graph, on whichever tab is showing it.
+.center-workspace.is-resizing .video-browser__view {
   pointer-events: none;
 }
 
@@ -290,37 +298,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// *** The divider ************************************************************
-
-.video-browser__resize {
-  display: flex;
-  height: 11px;
-  align-items: center;
-  justify-content: center;
-  cursor: ns-resize;
-  touch-action: none;
-
-  span {
-    width: 44px;
-    height: 3px;
-    border-radius: 999px;
-    background: rgba($primary-lighter, 0.18);
-    transition: background 140ms ease;
-  }
-
-  &:hover span {
-    background: rgba($secondary-light, 0.6);
-  }
-}
-
-.video-browser.is-resizing .video-browser__resize span {
-  background: $secondary-light;
-}
-
 @media (prefers-reduced-motion: reduce) {
   .video-browser__nav-button,
-  .video-browser__site,
-  .video-browser__resize span {
+  .video-browser__site {
     transition: none;
   }
 }

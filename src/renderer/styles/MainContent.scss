@@ -224,35 +224,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Track length per density. RangeInput publishes the caller's preference as
 // --range-length-prop; these rules set --range-length itself so the layout
 // keeps the final say without fighting inline styles.
+//
+// Tied to the window rather than fixed, and with a floor well below what used
+// to be the shortest they could get. The editor is content-sized now, so its
+// height is the sum of these — every pixel a track gives up is a pixel the
+// graph gains, which makes the tracks the right thing to give first when the
+// window is short. A stubby track is still perfectly draggable, and the numeric
+// field beside it is what precision goes through anyway.
 .main-content--full .bandWrapper .range {
-  --range-length: 132px;
+  --range-length: clamp(72px, calc(100vh - 620px), 132px);
 }
 
 .main-content--compact .bandWrapper .range {
-  --range-length: 116px;
+  --range-length: clamp(64px, calc(100vh - 636px), 116px);
 }
 
 .main-content--dense .bandWrapper .range {
-  --range-length: 102px;
+  --range-length: clamp(56px, calc(100vh - 650px), 102px);
 }
 
-// Folding the AutoEQ section hands back about 150px, and the point of folding
-// it is to give that room to the bands — leaving it empty would make the
-// control pointless. The floor is the normal length, so this can only ever add
-// height, and the viewport term keeps a short window from overflowing.
-.workspace-tab-panel--eq:has(.autoeq-section:not(.is-open)) {
-  .main-content--full .bandWrapper .range {
-    --range-length: clamp(132px, calc(100vh - 430px), 282px);
-  }
-
-  .main-content--compact .bandWrapper .range {
-    --range-length: clamp(116px, calc(100vh - 446px), 256px);
-  }
-
-  .main-content--dense .bandWrapper .range {
-    --range-length: clamp(102px, calc(100vh - 460px), 232px);
-  }
-}
+// Folding the AutoEQ section used to stretch the sliders into the room it gave
+// back. It no longer does anything to them at all.
+//
+// The room now goes to the graph, which is the pane that gets better the more
+// of it there is — a taller slider track is a slightly finer drag, whereas a
+// taller graph is more of the curve you are actually reading. It also means the
+// bands stay exactly where they are when the section folds: the control used to
+// move every slider on screen, so folding it to get a clearer look at the
+// response also rearranged the thing you were about to touch.
 
 // With the response graph hidden (FluidEqContext marks the root `minimized`) the
 // EQ owns the whole workspace column, so the tracks grow to use it rather than
@@ -641,29 +640,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Short windows shrink the slider tracks before anything else, so the panel
-// never has to clip the selected-band editor.
-@media (max-height: 860px) {
-  .main-content--full .bandWrapper .range {
-    --range-length: 112px;
-  }
-
-  .main-content--compact .bandWrapper .range {
-    --range-length: 100px;
-  }
-
-  .main-content--dense .bandWrapper .range {
-    --range-length: 88px;
-  }
-}
-
+// The stepped overrides that used to shorten the tracks on a short window are
+// gone: the clamps above already scale with the viewport, continuously rather
+// than in two jumps, and a fixed length here would override them and undo it.
 @media (max-height: 700px) {
-  .main-content--full .bandWrapper .range,
-  .main-content--compact .bandWrapper .range,
-  .main-content--dense .bandWrapper .range {
-    --range-length: 84px;
-  }
-
   .eq-scale {
     padding-block: 18px 16px;
   }

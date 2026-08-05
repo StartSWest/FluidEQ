@@ -71,6 +71,9 @@ const en = {
   'tabs.convolution': 'Convolution',
   'tabs.video': 'Video',
 
+  // *** Response graph ******************************************************
+  'graph.resize': 'Drag to resize the graph',
+
   // *** Built-in player *****************************************************
   'video.sites': 'Video sites',
   'video.back': 'Back',

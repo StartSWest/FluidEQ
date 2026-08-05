@@ -120,7 +120,7 @@
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
-  @include slim-scrollbar(8px);
+  @include slim-scrollbar;
 }
 
 .convolution-result {

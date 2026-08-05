@@ -44,6 +44,7 @@ const zh: Partial<Dictionary> = {
   'tabs.convolution': '卷积',
   'tabs.video': '视频',
 
+  'graph.resize': '拖动可调整频响图大小',
   'video.sites': '视频网站',
   'video.back': '后退',
   'video.forward': '前进',

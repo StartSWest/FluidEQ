@@ -51,6 +51,7 @@ const hi: Partial<Dictionary> = {
   'tabs.convolution': 'कन्वॉल्यूशन',
   'tabs.video': 'वीडियो',
 
+  'graph.resize': 'ग्राफ़ का आकार बदलने के लिए खींचें',
   'video.sites': 'वीडियो साइटें',
   'video.back': 'पीछे',
   'video.forward': 'आगे',

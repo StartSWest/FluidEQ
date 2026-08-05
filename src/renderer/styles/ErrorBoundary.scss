@@ -19,7 +19,7 @@
   padding: 24px 26px;
   gap: 12px;
   overflow-y: auto;
-  @include slim-scrollbar(8px);
+  @include slim-scrollbar;
 
   h1 {
     margin: 2px 0 0;
@@ -51,7 +51,7 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
   user-select: text;
-  @include slim-scrollbar(8px);
+  @include slim-scrollbar;
 }
 
 .crash-screen__actions {

@@ -17,7 +17,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import { useEffect, useState, type MouseEvent } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type MouseEvent,
+} from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import { resetRhythmRun } from './utils/rhythmRun';
@@ -36,6 +43,14 @@ import {
   useGraphFullScreen,
 } from './utils/graphStyle';
 import VideoBrowser from './video/VideoBrowser';
+import PaneResizer from './components/PaneResizer';
+import {
+  clampToWindow,
+  commitPaneSizes,
+  getEditorHeight,
+  setEditorHeight,
+  useEditorHeight,
+} from './utils/paneSizes';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import PresetsBar from './PresetsBar';
 import AutoEQ from './AutoEQ';
@@ -82,6 +97,7 @@ const AppContent = () => {
     globalError,
     isBlockingError,
     isEngineUsable,
+    isGraphViewOn,
     performHealthCheck,
     refreshState,
     setGlobalError,
@@ -114,6 +130,7 @@ const AppContent = () => {
   // Set from inside the graph pane; read here because the element that has
   // to get out of the way is the EQ panel, which is the graph's sibling.
   const isGraphFullScreen = useGraphFullScreen();
+  const editorHeight = useEditorHeight();
   // The live capture's own failure, read once and reported once.
   //
   // It used to be printed inline in two places at the same time — a bare
@@ -135,7 +152,47 @@ const AppContent = () => {
   // at all, so it does not exist.
   const [hasOpenedVideo, setHasOpenedVideo] = useState(false);
   const isVideoTab = activeWorkspaceTab === 'video';
-  const showsGraph = activeWorkspaceTab === 'eq' || isVideoTab;
+  // Every tab, not just the EQ. The response is what the app is for, and there
+  // is no tab where hiding it helps: voicing and convolution both change the
+  // curve, so watching it move is how you tell what they did. The switch in the
+  // sidebar is still the way to turn it off, and it now applies everywhere.
+  const showsGraph = isGraphViewOn;
+
+  // The editor's height when the drag began, so every move is measured from one
+  // fixed point rather than accumulated.
+  const graphDragStart = useRef(0);
+  // Read by the player, which has to stop swallowing pointer events for the
+  // length of a drag — see VideoBrowser.scss.
+  const [isResizingPanes, setIsResizingPanes] = useState(false);
+
+  const handleGraphResizeStart = useCallback(() => {
+    graphDragStart.current = getEditorHeight();
+    setIsResizingPanes(true);
+  }, []);
+
+  /**
+   * Move the divider.
+   *
+   * What is set is the pane *above* it — the graph below simply takes what is
+   * left. Dragging down gives the editor more and the graph less, which is the
+   * direction the handle is being carried, and both ends of the drag stay live
+   * because the pane being sized is the one whose content can actually vary.
+   */
+  const handleGraphResizeDrag = useCallback((deltaY: number) => {
+    setEditorHeight(clampToWindow(graphDragStart.current + deltaY));
+  }, []);
+
+  const handleGraphResizeEnd = useCallback(() => {
+    setIsResizingPanes(false);
+    commitPaneSizes();
+  }, []);
+
+  // How much of the workspace the editor currently has, as a percentage. Only
+  // for the divider's `aria-valuenow` — a pixel height means nothing read out
+  // loud without also knowing how tall the window is.
+  const graphHeightPercent = Math.round(
+    (editorHeight / Math.max(1, window.innerHeight)) * 100,
+  );
   const [hasContributed, setHasContributed] = useState(
     () => localStorage.getItem(SUPPORT_CONTRIBUTED_KEY) === 'true',
   );
@@ -695,13 +752,31 @@ const AppContent = () => {
             </div>
           </aside>
         )}
-        <SideBar showGraphToggle={showsGraph} />
+        {/* Always. The graph is on every tab now, so the switch that turns it
+            off belongs on every tab too — and it has to stay visible once it
+            has been used, or there would be no way to bring the graph back. */}
+        <SideBar showGraphToggle />
         <div
           className={`center-workspace${
-            isGraphFullScreen && showsGraph ? ' is-graph-full' : ''
-          }`}
+            isGraphFullScreen && isGraphViewOn ? ' is-graph-full' : ''
+          }${isResizingPanes ? ' is-resizing' : ''}`}
         >
-          <div className="middle-content">
+          <div
+            className="middle-content"
+            // What the divider actually sets. The stylesheet decides whether
+            // this reads as a height or only as a ceiling: on the EQ tab it is
+            // a ceiling, so the card hugs its content and the divider follows
+            // it up when the reference picker folds, with nothing having to
+            // notice the fold. Everywhere else it is the height, because a web
+            // page and a scrolling catalogue have no content height to follow.
+            style={
+              showsGraph && !isGraphFullScreen
+                ? ({
+                    '--editor-height': `${editorHeight}px`,
+                  } as CSSProperties)
+                : undefined
+            }
+          >
             <div
               className="workspace-tabs"
               role="tablist"
@@ -796,6 +871,18 @@ const AppContent = () => {
                 video plays whether or not Equalizer APO is behind it. */}
             {hasOpenedVideo && <VideoBrowser isHidden={!isVideoTab} />}
           </div>
+          {/* One divider, both tabs, always in the same place: the seam between
+              whatever is above and the graph. In full screen there is nothing
+              above the graph, so there is nothing to divide. */}
+          {showsGraph && !isGraphFullScreen && (
+            <PaneResizer
+              ariaLabel={t('graph.resize')}
+              valuePercent={graphHeightPercent}
+              onStart={handleGraphResizeStart}
+              onDrag={handleGraphResizeDrag}
+              onEnd={handleGraphResizeEnd}
+            />
+          )}
           {showsGraph ? <FrequencyResponseChart /> : null}
         </div>
         <div className="right-content">

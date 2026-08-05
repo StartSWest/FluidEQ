@@ -100,7 +100,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     overscroll-behavior: contain;
     background: transparent;
     border-radius: inherit;
-    @include slim-scrollbar(7px);
+    @include slim-scrollbar;
   }
 
   // Dropdown.tsx measures the viewport and writes max-width/max-height inline

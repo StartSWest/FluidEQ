@@ -658,10 +658,31 @@ const FrequencyResponseChart = () => {
     return () => window.removeEventListener('resize', throttle);
   }, [throttle]);
 
+  /**
+   * Watch the box itself, not the things thought to change it.
+   *
+   * The graph takes the height the editor above it does not want, so its box
+   * moves whenever that content does — folding the reference picker, switching
+   * to a tab whose panel is a different size, a dropdown opening. None of those
+   * resize the window and none of them change the height in the store, so every
+   * trigger this had missed them, and the plot stayed the size it was while its
+   * card grew underneath it.
+   */
+  useEffect(() => {
+    const element = ref.current;
+    if (!element || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new ResizeObserver(throttle);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [throttle]);
+
   useLayoutEffect(() => {
-    // Compute dimensions on initial render, when graph view is toggled, and
-    // when the pane grows to fill the window — the box changes without the
-    // window ever firing a resize, so nothing else would tell it.
+    // Compute dimensions on initial render, when graph view is toggled, when
+    // the pane grows to fill the window, and on every step of a drag on the
+    // divider above — the box changes without the window ever firing a resize,
+    // so nothing else would tell it.
     updateDimensions();
   }, [isFullScreen, isGraphViewOn, updateDimensions]);
 

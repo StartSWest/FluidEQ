@@ -16,15 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import {
-  FC,
-  PointerEvent as ReactPointerEvent,
-  Ref,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { FC, Ref, useCallback, useEffect, useRef, useState } from 'react';
 import ChannelEnum from 'common/channels';
 import {
   VIDEO_AD_BLOCK_DEFAULT,
@@ -80,26 +72,6 @@ const Webview = 'webview' as unknown as FC<IWebviewProps>;
 
 const HOME_SITE: IVideoSite = VIDEO_SITES[0];
 
-/** Where the divider between player and graph was left. */
-const HEIGHT_STORAGE_KEY = 'fluideq.videoPaneHeight';
-const DEFAULT_HEIGHT = 420;
-const MIN_HEIGHT = 220;
-const MAX_HEIGHT = 1000;
-
-const clampHeight = (value: number) =>
-  Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, Math.round(value)));
-
-const readStoredHeight = () => {
-  try {
-    const stored = Number(localStorage.getItem(HEIGHT_STORAGE_KEY));
-    return Number.isFinite(stored) && stored > 0
-      ? clampHeight(stored)
-      : DEFAULT_HEIGHT;
-  } catch {
-    return DEFAULT_HEIGHT;
-  }
-};
-
 const readStoredAdBlock = () => {
   try {
     const stored = localStorage.getItem(VIDEO_AD_BLOCK_STORAGE_KEY);
@@ -139,10 +111,6 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   // this pane and stop. Taking the pane over the window is what makes it mean
   // what it looks like it means.
   const [isPageFullScreen, setIsPageFullScreen] = useState(false);
-
-  const [paneHeight, setPaneHeight] = useState(readStoredHeight);
-  const [isResizing, setIsResizing] = useState(false);
-  const resizeRef = useRef({ startY: 0, startHeight: 0 });
 
   const activeSite = findSiteForUrl(currentUrl);
 
@@ -256,33 +224,6 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     [activeSite, goTo],
   );
 
-  const handleResizeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
-    event.currentTarget.setPointerCapture(event.pointerId);
-    resizeRef.current = { startY: event.clientY, startHeight: paneHeight };
-    setIsResizing(true);
-  };
-
-  const handleResizeMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!isResizing) {
-      return;
-    }
-    const { startY, startHeight } = resizeRef.current;
-    setPaneHeight(clampHeight(startHeight + (event.clientY - startY)));
-  };
-
-  const handleResizeEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!isResizing) {
-      return;
-    }
-    event.currentTarget.releasePointerCapture(event.pointerId);
-    setIsResizing(false);
-    try {
-      localStorage.setItem(HEIGHT_STORAGE_KEY, String(paneHeight));
-    } catch {
-      // Not worth failing a drag over.
-    }
-  };
-
   const blockedHost = (() => {
     try {
       return new URL(blockedUrl).hostname;
@@ -294,8 +235,8 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   return (
     <div
       className={`video-browser${isHidden ? ' is-hidden' : ''}${
-        isResizing ? ' is-resizing' : ''
-      }${isPageFullScreen ? ' is-fullscreen' : ''}`}
+        isPageFullScreen ? ' is-fullscreen' : ''
+      }`}
     >
       <div className="video-browser__bar">
         <div className="video-browser__nav">
@@ -397,14 +338,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         </div>
       </div>
 
-      <div
-        className="video-browser__stage"
-        // Dropped entirely in fullscreen rather than overridden in the
-        // stylesheet: an inline height would need `!important` to beat, and the
-        // rule that beat it would then also apply to the drag handle's own
-        // updates. Nothing to fight if the value is simply not set.
-        style={isPageFullScreen ? undefined : { height: paneHeight }}
-      >
+      <div className="video-browser__stage">
         <Webview
           ref={webviewRef}
           className="video-browser__view"
@@ -444,19 +378,6 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
             </button>
           </div>
         )}
-      </div>
-
-      <div
-        className="video-browser__resize"
-        role="separator"
-        aria-label={t('video.resize')}
-        aria-orientation="horizontal"
-        onPointerDown={handleResizeStart}
-        onPointerMove={handleResizeMove}
-        onPointerUp={handleResizeEnd}
-        onPointerCancel={handleResizeEnd}
-      >
-        <span />
       </div>
     </div>
   );
