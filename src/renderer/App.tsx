@@ -93,6 +93,11 @@ const AppContent = () => {
   // Opened from the actions menu. Nothing is gathered until it is on screen,
   // so an app nobody is reporting a problem with never reads its own logs.
   const [showBugReport, setShowBugReport] = useState(false);
+  // Bumping this remounts the prerequisite notice, which is how a dismissed
+  // one comes back. Without it the notice was a one-shot: close it once and
+  // the only route to "Install Equalizer APO" was gone until the error
+  // changed, which for a missing engine it never does.
+  const [prereqNonce, setPrereqNonce] = useState(0);
   const [showWhatsNew, setShowWhatsNew] = useState(
     () =>
       !!APP_VERSION && localStorage.getItem(WHATS_NEW_SEEN_KEY) !== APP_VERSION,
@@ -322,12 +327,33 @@ const AppContent = () => {
             </button>
             {showAudioToolsMenu && (
               <div className="workspace-header__menu" role="menu">
-                <div className="workspace-header__menu-status">
-                  <span
-                    className={`status-dot${isBlockingError ? ' error' : ''}`}
-                  />
-                  <span>{connectionStatus}</span>
-                </div>
+                {/* A status line that says something is wrong and offers no
+                    way to act on it is a dead end. When it is reporting a real
+                    fault it becomes the way back to the notice that carries
+                    the Install and Retry buttons — which is otherwise
+                    unreachable once dismissed. */}
+                {isBlockingError ? (
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="workspace-header__menu-status is-actionable"
+                    onClick={() => {
+                      setShowAudioToolsMenu(false);
+                      setPrereqNonce((n) => n + 1);
+                    }}
+                  >
+                    <span className="status-dot error" />
+                    <span>{connectionStatus}</span>
+                    <span className="workspace-header__menu-status-hint">
+                      Fix this
+                    </span>
+                  </button>
+                ) : (
+                  <div className="workspace-header__menu-status">
+                    <span className="status-dot" />
+                    <span>{connectionStatus}</span>
+                  </div>
+                )}
                 {!isLoading && !isBlockingError && (
                   <>
                     {/* Bringing your own files in belongs at the top: it is
@@ -612,6 +638,7 @@ const AppContent = () => {
         )}
         {globalError && isBlockingError && (
           <PrereqMissingModal
+            key={prereqNonce}
             isLoading={isLoading}
             onRetry={performHealthCheck}
             errorMsg={globalError.shortError}

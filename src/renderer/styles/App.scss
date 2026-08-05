@@ -611,12 +611,46 @@ select option {
 
 .workspace-header__menu-status {
   display: flex;
+  width: 100%;
   align-items: center;
   gap: 8px;
   padding: 3px 4px 8px;
   color: rgba($primary-lighter, 0.82);
+  border: 0;
   border-bottom: 1px solid rgba($primary-lighter, 0.12);
+  background: none;
+  font-family: inherit;
   font-size: 0.66rem;
+  text-align: left;
+}
+
+// Reporting a fault and offering nothing to do about it is a dead end, so when
+// it is a real one the line becomes a control. Marked as one: a row that
+// happens to be clickable and does not look it gets clicked by nobody.
+.workspace-header__menu-status.is-actionable {
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+
+    .workspace-header__menu-status-hint {
+      border-color: rgba($red, 0.75);
+      background: rgba($red, 0.18);
+    }
+  }
+}
+
+.workspace-header__menu-status-hint {
+  margin-left: auto;
+  padding: 1px 7px;
+  color: $red;
+  border: 1px solid rgba($red, 0.45);
+  border-radius: $radius-pill;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .window-control {
