@@ -13,6 +13,7 @@ import { identifyVirtualDevice } from 'common/virtualAudioDevices';
 import SidebarSection from './components/SidebarSection';
 import Switch from './widgets/Switch';
 import useOutputMirror, { IMirrorTarget } from './audio/useOutputMirror';
+import { activateAudioDeviceProfile } from './utils/equalizerApi';
 import { useTranslation } from './utils/I18nContext';
 import './styles/ExtraOutputs.scss';
 
@@ -98,6 +99,20 @@ const ExtraOutputs = () => {
                     {virtual.inputLabel}
                   </span>
                 )}
+                {/* Points every EQ control at this output's own profile,
+                    without making it the Windows default. A device with no
+                    profile yet gets an empty one, so it starts flat rather
+                    than inheriting the output you are listening on. */}
+                <button
+                  className="link-button extra-outputs__tune"
+                  disabled={target.isBeingTuned}
+                  onClick={() => activateAudioDeviceProfile(target.device.id)}
+                  type="button"
+                >
+                  {target.isBeingTuned
+                    ? t('extraOutput.tuning')
+                    : t('extraOutput.setUp')}
+                </button>
               </li>
             );
           })}

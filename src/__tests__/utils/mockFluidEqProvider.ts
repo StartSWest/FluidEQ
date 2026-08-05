@@ -23,6 +23,9 @@ import { FilterAction, IFluidEqContext } from 'renderer/utils/FluidEqContext';
 const DEFAULT_STATE = getDefaultState();
 
 const defaultFluidEqContext: IFluidEqContext = {
+  // No output activated yet, which is what main reports before it has found
+  // one. A test that cares about per-device tuning sets it explicitly.
+  activeDeviceId: '',
   isLoading: false,
   globalError: undefined,
   isBlockingError: false,

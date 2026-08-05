@@ -84,7 +84,15 @@ const isUsable = (values: number[]): boolean =>
  *   lives in a WAV written for APO, and fetching and decoding it per mirror is
  *   its own piece of work rather than a line here.
  */
-export const getMirrorFilters = (state: IState): TMirrorFilter[] => {
+export const getMirrorFilters = (
+  // Only the layers, so a caller holding these fields loose — the live editing
+  // context hands them out individually — can ask without rebuilding a whole
+  // IState around them.
+  state: Pick<
+    IState,
+    'eqFormat' | 'graphicEq' | 'filters' | 'voicing' | 'driver' | 'smartEq'
+  >,
+): TMirrorFilter[] => {
   // A GraphicEQ profile keeps its curve in `graphicEq` and leaves `filters`
   // as whatever editable projection existed; using those would apply a
   // fragment of a curve, which is worse than applying none of it.

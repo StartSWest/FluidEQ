@@ -117,6 +117,15 @@ export interface IRefreshStateOptions {
 }
 
 export interface IFluidEqContext extends IState {
+  /**
+   * The endpoint everything on screen is currently tuning.
+   *
+   * Usually the Windows default, but not always: a profile can be activated
+   * for an output you are not listening on, which is how a mirrored device
+   * gets set up without having to be made the default first. Anything that
+   * needs to know whose EQ the live state describes reads this.
+   */
+  activeDeviceId: string;
   isLoading: boolean;
   globalError: ErrorDescription | undefined;
   /** True only for failures that make the app genuinely unusable. */
@@ -478,6 +487,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   }, []);
 
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [activeDeviceId, setActiveDeviceId] = useState('');
 
   const setSelectedFilterIds = useCallback((newValue: string[]) => {
     const uniqueIds = [...new Set(newValue.filter(Boolean))];
@@ -625,7 +635,15 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   useEffect(() => {
     const unsubscribe = window.electron.ipcRenderer.on(
       OUTPUT_STATE_CHANGED_EVENT,
-      () => {
+      (payload) => {
+        // Main names the endpoint whose profile it just loaded. It was being
+        // dropped, which left the renderer knowing the state had changed but
+        // not whose it now was.
+        const deviceId = (payload as { deviceId?: string } | undefined)
+          ?.deviceId;
+        if (typeof deviceId === 'string') {
+          setActiveDeviceId(deviceId);
+        }
         refreshState();
         // The profile card and the output picker key off this to re-read which
         // profile is attached where.
@@ -640,6 +658,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   return (
     <FluidEqProviderWrapper
       value={{
+        activeDeviceId,
         isLoading,
         globalError,
         isBlockingError: isBlockingErrorCode(globalError),
