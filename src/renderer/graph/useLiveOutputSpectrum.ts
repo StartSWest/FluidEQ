@@ -431,6 +431,19 @@ interface IBalanceSession {
   reject: (reason: Error) => void;
 }
 
+/**
+ * The live capture, handed out so other features can tap it.
+ *
+ * `source` is already connected to the analyser; connecting it somewhere else
+ * as well is what a mirror does. Anything branching off it must end at its own
+ * `MediaStreamAudioDestinationNode` and never at `context.destination`, which
+ * is the endpoint this capture is a loopback of.
+ */
+export interface ICaptureGraph {
+  context: AudioContext;
+  source: MediaStreamAudioSourceNode;
+}
+
 const useLiveOutputSpectrum = () => {
   /**
    * The language, on a ref.
@@ -446,6 +459,7 @@ const useLiveOutputSpectrum = () => {
   const tRef = useRef(t);
   tRef.current = t;
   const [isActive, setIsActive] = useState(false);
+  const [capture, setCapture] = useState<ICaptureGraph | undefined>(undefined);
   const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState('');
   const [points, setPoints] = useState<IChartPointData[]>([]);
@@ -572,6 +586,9 @@ const useLiveOutputSpectrum = () => {
     streamRef.current = undefined;
     audioContextRef.current?.close().catch(() => undefined);
     audioContextRef.current = undefined;
+    // Withdrawn before the context closes, so a mirror cannot be left holding
+    // nodes from a context that is going away underneath it.
+    setCapture(undefined);
     setIsActive(false);
     isPausedRef.current = false;
     setIsPaused(false);
@@ -846,6 +863,14 @@ const useLiveOutputSpectrum = () => {
       streamRef.current = stream;
       audioContextRef.current = activeAudioContext;
       setIsActive(true);
+      // Published so a mirror can branch off this same capture. Windows only
+      // hands out loopback through `getDisplayMedia`, so a second consumer
+      // opening its own would mean a second unwanted video track — which is
+      // the leak documented above, twice over.
+      setCapture({
+        context: activeAudioContext,
+        source: sourceNodeRef.current,
+      });
 
       const frequencyData = new Float32Array(analyser.frequencyBinCount);
       const timeDomainData = new Uint8Array(analyser.fftSize);
@@ -1336,6 +1361,7 @@ const useLiveOutputSpectrum = () => {
 
   const control = useMemo(
     () => ({
+      capture,
       captureBalanceProfile,
       error,
       isActive,
@@ -1355,7 +1381,15 @@ const useLiveOutputSpectrum = () => {
         return start();
       },
     }),
-    [captureBalanceProfile, error, isActive, isPaused, start, togglePaused],
+    [
+      capture,
+      captureBalanceProfile,
+      error,
+      isActive,
+      isPaused,
+      start,
+      togglePaused,
+    ],
   );
 
   return { control, frame };
