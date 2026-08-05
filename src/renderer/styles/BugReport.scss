@@ -1,0 +1,171 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.bug-report-backdrop {
+  @include animate(fade-in, $motion-fast);
+  position: fixed;
+  z-index: 1600;
+  inset: 0;
+  display: grid;
+  padding: $spacing-m;
+  place-items: center;
+  background: rgba(#03070d, 0.68);
+  backdrop-filter: blur(3px);
+}
+
+.bug-report {
+  @include animate(pop-in, $motion-base, $ease-spring);
+  @include menu-surface;
+  display: grid;
+  width: min(720px, 100%);
+  max-height: calc(100vh - #{$spacing-m} * 2);
+  padding: 22px 24px;
+  gap: 14px;
+  overflow-y: auto;
+  @include slim-scrollbar(8px);
+}
+
+.bug-report__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  h2 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  button {
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    padding: 0;
+    color: rgba($white, 0.68);
+    border: 1px solid transparent;
+    border-radius: $radius-xs;
+    background: transparent;
+    cursor: pointer;
+
+    svg {
+      width: 12px;
+      height: 12px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.6;
+      stroke-linecap: round;
+    }
+
+    &:hover {
+      color: $white;
+      border-color: rgba($white, 0.2);
+    }
+  }
+}
+
+.bug-report__field {
+  display: grid;
+  gap: 6px;
+
+  > span {
+    color: rgba($primary-lighter, 0.78);
+    font-size: 0.74rem;
+    line-height: 1.45;
+  }
+
+  textarea {
+    @include field-surface;
+    width: 100%;
+    padding: 10px 12px;
+    color: $white;
+    font-family: inherit;
+    font-size: 0.78rem;
+    line-height: 1.5;
+    resize: vertical;
+
+    &:focus-visible {
+      border-color: $border-field-focus;
+      @include focus-ring;
+    }
+  }
+}
+
+// The report itself reads as evidence rather than as prose, so it is set in
+// the same face a log is written in.
+.bug-report__body {
+  font-family: Consolas, 'Courier New', monospace !important;
+  font-size: 0.72rem !important;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+.bug-report__warn {
+  margin: 0;
+  padding: 8px 12px;
+  color: $neon-yellow;
+  border: 1px solid rgba($neon-yellow, 0.25);
+  border-radius: $radius-s;
+  background: rgba($neon-yellow, 0.07);
+  font-size: 0.74rem;
+}
+
+// Stated plainly and near the buttons, because it is the thing somebody wants
+// to know at the moment they are deciding whether to press one.
+.bug-report__privacy {
+  margin: 0;
+  color: rgba($primary-lighter, 0.6);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.bug-report__actions {
+  display: flex;
+  gap: 8px;
+
+  button {
+    height: $control-height;
+    padding-inline: 16px;
+    color: rgba($primary-lighter, 0.9);
+    border: 1px solid rgba($secondary-default, 0.3);
+    border-radius: $radius-s;
+    background: transparent;
+    font-size: 0.8rem;
+    font-weight: 650;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover {
+      border-color: rgba($secondary-default, 0.6);
+      background: rgba($secondary-default, 0.1);
+    }
+  }
+}
+
+.bug-report__primary {
+  flex: 1 1 auto;
+  color: #06131d !important;
+  border: none !important;
+  background: $secondary-light !important;
+
+  &:hover {
+    background: $white !important;
+  }
+}
+
+.bug-report__notice {
+  margin: 0;
+  color: $secondary-light;
+  font-size: 0.74rem;
+}

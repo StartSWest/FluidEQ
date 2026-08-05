@@ -28,6 +28,7 @@ import SupportDialog from './SupportDialog';
 import SupportPet from './SupportPet';
 import { FluidEqProvider, useFluidEqContext } from './utils/FluidEqContext';
 import PrereqMissingModal from './PrereqMissingModal';
+import BugReportDialog from './components/BugReportDialog';
 import SideBar from './SideBar';
 import { useGraphFullScreen } from './utils/graphStyle';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
@@ -89,6 +90,9 @@ const AppContent = () => {
   // Shown once per version, automatically. Someone who just updated wants to
   // know what changed; someone opening the app for the fifth time today does
   // not, so the version they last saw is remembered.
+  // Opened from the actions menu. Nothing is gathered until it is on screen,
+  // so an app nobody is reporting a problem with never reads its own logs.
+  const [showBugReport, setShowBugReport] = useState(false);
   const [showWhatsNew, setShowWhatsNew] = useState(
     () =>
       !!APP_VERSION && localStorage.getItem(WHATS_NEW_SEEN_KEY) !== APP_VERSION,
@@ -394,6 +398,20 @@ const AppContent = () => {
                       <MenuIcon name="info" />
                       {t('app.menu.whatsNew')}
                     </button>
+                    {/* Untranslated, like the rest of this menu's newest
+                        entries, until the ten locales catch up — an English
+                        label somebody can find beats a missing one. */}
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => {
+                        setShowAudioToolsMenu(false);
+                        setShowBugReport(true);
+                      }}
+                    >
+                      <MenuIcon name="info" />
+                      Report a problem
+                    </button>
                   </>
                 )}
                 {canShowSupport && (
@@ -589,6 +607,9 @@ const AppContent = () => {
         {/* Only a genuinely fatal condition takes the screen. Anything else is
             reported without touching the editor: a preset that failed to save
             is no reason to hide an equalizer that is still working. */}
+        {showBugReport && (
+          <BugReportDialog onClose={() => setShowBugReport(false)} />
+        )}
         {globalError && isBlockingError && (
           <PrereqMissingModal
             isLoading={isLoading}

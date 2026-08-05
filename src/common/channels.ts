@@ -80,6 +80,9 @@ enum ChannelEnum {
   // Runs the Equalizer APO installer that ships inside ours. Nobody is sent to
   // a website to find one.
   INSTALL_EQUALIZER_APO = 'installEqualizerApo',
+  // Everything a bug report needs, already redacted. Gathered in main because
+  // the logs and the registry are not reachable from the renderer.
+  GATHER_BUG_REPORT = 'gatherBugReport',
 }
 
 export default ChannelEnum;

@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import ChannelEnum from 'common/channels';
+import { IGatheredFacts } from 'common/bugReport';
 import {
   ErrorCode,
   ErrorDescription,
@@ -115,7 +116,8 @@ const buildResponseHandler = <
     | IAutoEqUpdateStatus
     | IConvolutionCatalogEntry[]
     | IConvolutionProfile
-    | ISquigSource[],
+    | ISquigSource[]
+    | IGatheredFacts,
 >(
   resultEvaluator: (
     result: Type,
@@ -156,7 +158,8 @@ const simpleResponseHandler = <
     | IAutoEqUpdateStatus
     | IConvolutionCatalogEntry[]
     | IConvolutionProfile
-    | ISquigSource[],
+    | ISquigSource[]
+    | IGatheredFacts,
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);
@@ -195,6 +198,24 @@ export const installEqualizerApo = (): Promise<void> => {
   const channel = ChannelEnum.INSTALL_EQUALIZER_APO;
   window.electron.ipcRenderer.sendMessage(channel, []);
   return promisifyResult(setterResponseHandler, channel);
+};
+
+/**
+ * Everything a bug report needs, already redacted.
+ *
+ * Gathered in the main process because the logs and the registry are not
+ * reachable from a renderer — and redacted there too, so the account name never
+ * crosses the bridge in the first place rather than being cleaned up after it
+ * arrives.
+ * @returns { Promise<IGatheredFacts> } the facts, or an exception
+ */
+export const gatherBugReport = (): Promise<IGatheredFacts> => {
+  const channel = ChannelEnum.GATHER_BUG_REPORT;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult<IGatheredFacts>(
+    buildResponseHandler<IGatheredFacts>((result, resolve) => resolve(result)),
+    channel,
+  );
 };
 
 /**
