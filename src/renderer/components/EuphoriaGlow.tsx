@@ -22,8 +22,10 @@ import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useRhythmRun } from '../utils/rhythmRun';
 import {
-  markEuphoriaReached,
-  useIsEuphoriaForced,
+  isEuphoriaAchieved,
+  toggleEuphoriaEnabled,
+  useIsEuphoric,
+  winEuphoria,
 } from '../utils/euphoriaMode';
 import '../styles/Euphoria.scss';
 
@@ -178,23 +180,63 @@ const EuphoriaGlow = () => {
   // Only the run. This re-renders when the streak changes and at no other time,
   // which for most of the app's life is never.
   const earnedJoy = getStreakJoy(useRhythmRun().streak);
-  // And the switch, for anyone who has already reached the ceiling once.
-  const isForced = useIsEuphoriaForced();
   const isEarned = earnedJoy >= EUPHORIA_AT;
-  const isEuphoric = isEarned || isForced;
+  // Won once, the switch is the only thing that decides. See useIsEuphoric.
+  const isEuphoric = useIsEuphoric(isEarned);
   // Forced euphoria shows the whole look, including the creature's face — the
   // point of the switch is to have the mode, not a muted version of it. What it
   // must never do is touch the score, and it does not: this drives appearance
   // only, and the streak that produces the multiplier is untouched.
   const joy = isEuphoric ? 1 : earnedJoy;
 
-  // The moment it is genuinely earned, remembered forever. Only a real run
-  // unlocks it — forcing it cannot, or the first click would bootstrap itself.
+  // Winning is an event, not a condition.
+  //
+  // This fires on the transition into the ceiling and unlocks the mode
+  // permanently while switching it on now. Reading it as a condition is what
+  // made the switch impossible to turn off, because the streak that satisfies
+  // it never goes away on its own.
   useEffect(() => {
     if (isEarned) {
-      markEuphoriaReached();
+      winEuphoria();
     }
   }, [isEarned]);
+
+  // Ctrl+E, once it has been won.
+  //
+  // The pill on the titlebar is small and easy to miss, and the mode is the
+  // sort of thing somebody flicks on and off while listening rather than
+  // deliberately visits a control for. Deliberately silent before the mode is
+  // won: the shortcut existing at all would give away that there is something
+  // to find, and the surprise is most of what the mode is worth.
+  //
+  // Bound to the window so it works wherever the focus happens to be, which is
+  // why it steps aside for anything that can be typed into — Ctrl+E is a real
+  // shortcut inside a text field on some keyboard layouts, and hijacking it
+  // there to recolour the app would be indefensible.
+  useEffect(() => {
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.code !== 'KeyE' || !event.ctrlKey || event.altKey) {
+        return;
+      }
+      const target = event.target as HTMLElement | null;
+      if (
+        target?.isContentEditable ||
+        target?.closest('input, textarea, select, [contenteditable]')
+      ) {
+        return;
+      }
+      // Guarded in the store as well, which is what actually enforces it; this
+      // is here so the keypress falls through to the browser untouched rather
+      // than being swallowed by a shortcut that would do nothing.
+      if (!isEuphoriaAchieved()) {
+        return;
+      }
+      event.preventDefault();
+      toggleEuphoriaEnabled();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, []);
   // Counted rather than a boolean, so a second arrival fires a second burst.
   // Re-applying a class an element already has does nothing at all.
   const [burst, setBurst] = useState(0);

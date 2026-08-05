@@ -16,18 +16,39 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+/**
+ * Euphoria mode: two flags, and they are not the same question.
+ *
+ *   ACHIEVED — has this install ever won the game? Persisted, one-way.
+ *   ENABLED  — is the look switched on right now? Not persisted.
+ *
+ * They were previously muddled together, and the muddle was a real bug: the
+ * mode combined "the current streak is at the ceiling" with "the switch is on"
+ * using OR. A streak does not reset when somebody stops playing, so after a
+ * genuine run the first half stayed true forever and the switch could not turn
+ * anything off. Whoever had just seen the mode for the first time was stuck in
+ * it.
+ *
+ * Winning is therefore an EVENT, not a state to be read continuously. It flips
+ * ACHIEVED on permanently and ENABLED on once. After that, ENABLED is the only
+ * thing that decides what is painted, and the player owns it.
+ *
+ * Neither flag has anything to do with the development build. `IS_DEV` gates a
+ * shortcut button that jumps the streak; it is a way of *playing* the game
+ * quickly, not a third mode. In a production build that button does not exist
+ * and these two flags behave identically.
+ */
+
 import { useSyncExternalStore } from 'react';
 
 /**
- * Whether this install has ever reached the ceiling.
- *
- * Persisted, and deliberately one-way: thirty-six consecutive perfect taps is
- * the price of admission, and it is paid once. Afterwards the mode is a switch
- * on the meter rather than something to be re-earned every session — nobody
+ * ACHIEVED. Persisted, and deliberately one-way: thirty-six consecutive
+ * perfect taps is the price of admission and it is paid once. Afterwards the
+ * mode is a switch rather than something to re-earn every session — nobody
  * wants to grind back to a colour scheme they have already proved they can
  * reach.
  */
-const REACHED_KEY = 'fluideq-euphoria-reached';
+const ACHIEVED_KEY = 'fluideq-euphoria-reached';
 
 const listeners = new Set<() => void>();
 
@@ -40,94 +61,119 @@ const subscribe = (listener: () => void) => {
   };
 };
 
-let reached = false;
+let achieved = false;
 try {
-  reached = window.localStorage.getItem(REACHED_KEY) === 'true';
+  achieved = window.localStorage.getItem(ACHIEVED_KEY) === 'true';
 } catch {
   // Storage can be unavailable. The mode is then simply locked for the
   // session, which is the safe direction to fail in.
 }
 
-export const hasReachedEuphoria = () => reached;
-
-/** Called the first time a run genuinely earns the ceiling. */
-export const markEuphoriaReached = () => {
-  if (reached) {
-    return;
-  }
-  reached = true;
-  try {
-    window.localStorage.setItem(REACHED_KEY, 'true');
-  } catch {
-    // Unlocked for this session even if it cannot be remembered.
-  }
-  emit();
-};
-
 /**
- * The manual switch, once unlocked.
- *
- * Held in the module rather than storage on purpose. Reaching the ceiling is an
- * achievement and outlives the app; leaving the rainbow switched on is a mood,
- * and an equaliser that reopens in full spectrum every morning because of one
- * click last week is a worse default than starting quiet.
+ * ENABLED. Held in the module rather than storage on purpose: winning is an
+ * achievement and outlives the app, but leaving the rainbow switched on is a
+ * mood — and an equaliser that reopens in full spectrum every morning because
+ * of one click last week is a worse default than starting quiet.
  *
  * COSMETIC ONLY. This turns the look on and nothing else: no multiplier, no
- * points, no streak. The score exists to measure how accurately somebody
- * played, and a switch that granted x10 would make it measure whether they
- * found the switch. Playing with it on works exactly as playing with it off —
- * the run still climbs on real perfect taps, and a score can still be beaten.
+ * points, no streak. The score measures how accurately somebody played, and a
+ * switch that granted x10 would make it measure whether they found the switch.
  */
-let forced = false;
+let enabled = false;
 
-export const isEuphoriaForced = () => forced;
+export const isEuphoriaAchieved = () => achieved;
+export const isEuphoriaEnabled = () => enabled;
 
-export const setEuphoriaForced = (next: boolean) => {
-  if (forced === next || (next && !reached)) {
-    // Never forceable before it has been earned. Guarded here rather than only
-    // in the UI, so there is one place that decides.
+export const setEuphoriaEnabled = (next: boolean) => {
+  if (enabled === next || (next && !achieved)) {
+    // Never switchable before it has been won. Guarded here rather than only
+    // in the UI, so one place decides.
     return;
   }
-  forced = next;
+  enabled = next;
   emit();
 };
 
-export const toggleEuphoriaForced = () => setEuphoriaForced(!forced);
+export const toggleEuphoriaEnabled = () => setEuphoriaEnabled(!enabled);
+
+/**
+ * A run just hit the ceiling.
+ *
+ * Unlocks the mode forever and switches it on now, so the moment of winning
+ * shows the thing that was won. Called on the transition, never on the
+ * condition — see the note at the top of this file for why that distinction is
+ * the whole design.
+ */
+export const winEuphoria = () => {
+  const wasAchieved = achieved;
+  achieved = true;
+  enabled = true;
+  if (!wasAchieved) {
+    try {
+      window.localStorage.setItem(ACHIEVED_KEY, 'true');
+    } catch {
+      // Unlocked for this session even if it cannot be remembered.
+    }
+  }
+  emit();
+};
 
 // Two hooks returning two booleans, rather than one returning both.
 //
 // `useSyncExternalStore` compares snapshots by identity, so a getter that
-// builds `{ reached, forced }` returns a new object every call and re-renders
+// builds `{ achieved, enabled }` returns a new object every call and re-renders
 // forever. Primitives are stable by definition, and most callers only care
 // about one of them anyway.
 
-/** Whether the ceiling has ever been reached on this install. */
-export const useHasReachedEuphoria = () =>
+/** Whether this install has ever won the game. */
+export const useIsEuphoriaAchieved = () =>
   useSyncExternalStore(
     subscribe,
-    () => reached,
+    () => achieved,
     () => false,
   );
 
-/** Whether the switch is currently on. */
-export const useIsEuphoriaForced = () =>
+/** Whether the look is switched on right now. */
+export const useIsEuphoriaEnabled = () =>
   useSyncExternalStore(
     subscribe,
-    () => forced,
+    () => enabled,
     () => false,
   );
 
 /**
+ * Is the app in euphoria? The one answer, for every part of the app.
+ *
+ * `isEarned` is whether the CURRENT run is at the ceiling, which only matters
+ * before the mode has ever been won — that first arrival is the surprise the
+ * whole thing is built around, and it has to light up on its own.
+ *
+ * Afterwards the switch decides and nothing else does. This is the fix for the
+ * mode being impossible to turn off: the old rule was `isEarned || enabled`,
+ * and since a streak does not reset when somebody stops playing, `isEarned`
+ * stayed true forever and the OR held the rainbow on no matter what the switch
+ * said.
+ *
+ * A hook rather than a plain function because both flags live in a store, and
+ * a component reading them directly would never re-render when they changed.
+ */
+export const useIsEuphoric = (isEarned: boolean): boolean => {
+  const isAchieved = useIsEuphoriaAchieved();
+  const isEnabled = useIsEuphoriaEnabled();
+  return isAchieved ? isEnabled : isEarned;
+};
+
+/**
  * Reset, for the development affordance that gives the badge back.
  *
- * The unlock has to go with it or "remove badge" leaves the app still offering
+ * The unlock has to go with it, or "remove badge" leaves the app still offering
  * a mode the fresh state has not earned.
  */
 export const resetEuphoriaMode = () => {
-  reached = false;
-  forced = false;
+  achieved = false;
+  enabled = false;
   try {
-    window.localStorage.removeItem(REACHED_KEY);
+    window.localStorage.removeItem(ACHIEVED_KEY);
   } catch {
     // Nothing to undo if it was never written.
   }

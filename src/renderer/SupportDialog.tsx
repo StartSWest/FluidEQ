@@ -29,11 +29,10 @@ import {
   getSupportCryptos,
   getSupportMethods,
 } from 'common/support';
-import { EUPHORIA_STREAK, getFlawlessScore } from 'common/rhythmGame';
+import { winEuphoria } from './utils/euphoriaMode';
 import supportQrImage from '../../assets/support-qr.png';
 import QrCode from './components/QrCode';
 import RhythmGame, { IRhythmGameHandle } from './components/RhythmGame';
-import { setRhythmRun } from './utils/rhythmRun';
 import { SupportPetHero } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 import './styles/Support.scss';
@@ -468,26 +467,21 @@ export default function SupportDialog({
             {IS_DEV && (
               <>
                 {/* Thirty-six consecutive perfect taps is the right price for
-                    euphoria mode and the wrong price for looking at it. Every
+                    euphoria mode and the wrong price for LOOKING at it. Every
                     change to the rainbow — the bands, the graph trace, the
                     titlebar meter, the share card — otherwise costs a flawless
-                    run against real music before it can be seen at all. */}
+                    run against real music before it can be seen at all.
+
+                    It flips the two flags and touches nothing else. It used to
+                    write a streak of 36 and a matching score straight into the
+                    run, which meant the shortcut invented points nobody played
+                    for — and left the share card showing a number that had
+                    never been earned. The score belongs to the player. */}
                 <button
                   type="button"
                   className="support-dialog__dev-reset"
-                  title="Development build only — jumps the streak straight to the ceiling"
-                  onClick={() =>
-                    setRhythmRun({
-                      // The score a flawless climb to the ceiling actually
-                      // produces, not the score that happened to be sitting
-                      // there. The point of the shortcut is to see what a real
-                      // euphoria run looks like, and the share card puts the
-                      // number in 152px type — a leftover 40 under a x10 badge
-                      // is not the picture anyone is checking.
-                      score: getFlawlessScore(EUPHORIA_STREAK),
-                      streak: EUPHORIA_STREAK,
-                    })
-                  }
+                  title="Development build only — switches euphoria mode on without playing for it"
+                  onClick={winEuphoria}
                 >
                   dev: euphoria
                 </button>

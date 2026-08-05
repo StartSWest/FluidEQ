@@ -43,7 +43,7 @@ import {
   useLiveAudioControl,
 } from '../audio/LiveAudioContext';
 import { getRhythmRun, setRhythmRun, useRhythmRun } from '../utils/rhythmRun';
-import { useIsEuphoriaForced } from '../utils/euphoriaMode';
+import { useIsEuphoric } from '../utils/euphoriaMode';
 import { useTranslation } from '../utils/I18nContext';
 import ShareScoreCard from './ShareScoreCard';
 import '../styles/RhythmGame.scss';
@@ -329,8 +329,7 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
   // Called unconditionally: behind a `||` it would be skipped whenever the
   // streak already qualified, and a hook that runs on some renders and not
   // others is exactly the thing React cannot survive.
-  const isForced = useIsEuphoriaForced();
-  const isEuphoric = getStreakJoy(run.streak) >= EUPHORIA_AT || isForced;
+  const isEuphoric = useIsEuphoric(getStreakJoy(run.streak) >= EUPHORIA_AT);
   /**
    * What the card is about: this run, always.
    *

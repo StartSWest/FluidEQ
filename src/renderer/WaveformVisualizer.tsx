@@ -13,9 +13,9 @@ import {
 import { useRhythmRun } from './utils/rhythmRun';
 import { useSmoothFrames } from './utils/useSmoothFrames';
 import {
-  toggleEuphoriaForced,
-  useHasReachedEuphoria,
-  useIsEuphoriaForced,
+  toggleEuphoriaEnabled,
+  useIsEuphoriaAchieved,
+  useIsEuphoric,
 } from './utils/euphoriaMode';
 import { useTranslation } from './utils/I18nContext';
 import './styles/WaveformVisualizer.scss';
@@ -110,9 +110,8 @@ const WaveformVisualizer = () => {
   // re-renders when the run changes instead of being told by a stylesheet.
   // Both halves of the mode: earned right now, or switched on by someone who
   // earned it before. The look is the same either way.
-  const hasReached = useHasReachedEuphoria();
-  const isForced = useIsEuphoriaForced();
-  const isEuphoric = getStreakJoy(useRhythmRun().streak) >= 1 || isForced;
+  const hasReached = useIsEuphoriaAchieved();
+  const isEuphoric = useIsEuphoric(getStreakJoy(useRhythmRun().streak) >= 1);
   const { isClipping, waveform } = useLiveAudioFrame();
   // `togglePaused` is deliberately not taken. Clicking cycles the meter style
   // now, so pausing has no trigger here — the analyser is still pausable
@@ -391,7 +390,7 @@ const WaveformVisualizer = () => {
           }`}
           aria-pressed={isEuphoric}
           title={t('support.game.euphoriaToggle')}
-          onClick={toggleEuphoriaForced}
+          onClick={toggleEuphoriaEnabled}
         >
           {t('support.game.euphoria')}
         </button>
