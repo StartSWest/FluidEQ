@@ -47,9 +47,25 @@ it under the terms of the GNU General Public License version 3 or later.
   // were already animating every frame, so the sweep rides along with work the
   // compositor was doing anyway and costs nothing extra.
 
+  // NO ANIMATED FILTERS. This is the rule the mode is built around now, and it
+  // was learned expensively.
+  //
+  // These two elements had `filter: drop-shadow()` running as an infinite
+  // keyframe animation, and both of them redraw their SVG twenty-two times a
+  // second from live audio. An animated filter re-rasterizes the entire
+  // filtered subtree on every frame of the animation; combined with content
+  // that is itself changing every frame, and a `will-change` promoting it to
+  // its own layer, the raster and filter caches grew without limit. Memory
+  // went past seven gigabytes and kept going.
+  //
+  // The glow is a `box-shadow` on the frame instead. It sits on the container
+  // rather than the moving picture, so the shape inside can change as often as
+  // it likes without invalidating it, and its colour rides the hue the root is
+  // already sweeping — one property, animated once, read here.
   .waveform-visualizer,
   .rhythm-game__trace {
-    animation: euphoria-glow 6s linear infinite;
+    border-color: hsl(var(--euphoria-hue) 90% 62% / 55%);
+    box-shadow: 0 0 18px hsl(var(--euphoria-hue) 95% 60% / 30%);
   }
 
   // The game's trace turns rainbow, and only here. Ordinarily it is the app's
@@ -62,59 +78,46 @@ it under the terms of the GNU General Public License version 3 or later.
 
   // Pulsing with the music, and the throttle is what makes it affordable.
   //
-  // `--euphoria-level` is written straight to the document root — no React
-  // render at all — but it is QUANTISED to twelve steps before it gets there,
-  // and only written when the step actually changes. Every element reading it
-  // has its style recalculated on each write, so a continuous value costs
-  // twenty-two invalidations a second across thirty-one bands, a point per
-  // band and two meters, for differences nobody can see. Stepped, it is a
-  // handful a second.
+  // `--euphoria-level` and each band's `--band-level` are written straight to
+  // the elements — no React render at all — but they are QUANTISED to twelve
+  // steps first, and only written when a step actually changes. Every element
+  // reading one has its style recalculated on each write, so a continuous value
+  // would cost twenty-two invalidations a second across thirty-one bands for
+  // differences nobody can see. Stepped, it is a handful a second.
   //
-  // That budget is what allows a box-shadow and a filter here at all. Both
-  // repaint their element, which is exactly why the same declaration across
-  // every button in the window had to go — the difference is how many elements
-  // and how often, not the property itself. Opacity stays composited and is
-  // promoted with `will-change`, scoped to this class so nothing carries a
-  // spare layer around when the mode is off.
-  // The trace is the one thing here still driven by the level, so it is the one
-  // thing promoted — `filter`, not `opacity`, because the drop-shadow below is
-  // what actually moves. Its own layer keeps that repaint off the rest of the
-  // graph. Scoped to this class, so nothing carries a spare layer around when
-  // the mode is off.
-  path[name^='Live processed output'] {
-    will-change: filter;
-  }
-
   // The band points on the graph are left alone. They mark where a filter sits
   // and they are dragged; fading them with the music makes a control harder to
   // see and to hit, and the graph already has the trace doing the moving.
   //
   // The sliders stay fully opaque too. Dimming them read as the EQ being
-  // disabled rather than as it dancing — the pulse belongs in the glow below,
-  // which adds light instead of taking it away. Both removals also delete a
-  // per-frame style invalidation, which is the second reason they are right.
+  // disabled rather than as it dancing — the pulse belongs in the glow, which
+  // adds light instead of taking it away.
 
-  // The glow itself, on the track, sized by that band's own energy.
+  // Fixed blur radii, varying only in colour.
   //
-  // `box-shadow` is a paint rather than a composite, which is exactly why it is
-  // gated behind the stepped value: each band is only rewritten when its own
-  // level crosses a step, so this repaints a few sliders a few times a second
-  // rather than all of them on every frame. The same declaration across every
-  // button in the window is what made the interface feel heavy earlier — the
-  // difference is how many elements and how often, not the property itself.
+  // A shadow's geometry is what makes it expensive: change the blur and the
+  // whole thing is rasterized again, thirty-one times over, every time a band
+  // moves. Change only the colour and the shape is already in hand.
+  //
+  // The pulse survives — `--band-level` drives the alpha instead of the size,
+  // and a band going bright to dim reads the same either way.
   .bandWrapper .range input[type='range']::-webkit-slider-runnable-track {
     box-shadow:
       inset 0 1px 2px rgba($black, 0.38),
-      0 0 calc(6px + var(--band-level, 0) * 14px) var(--slider-color-muted),
-      0 0 calc(12px + var(--band-level, 0) * 24px) var(--slider-track);
+      0 0 10px
+        hsl(var(--band-hue) 95% 62% / calc(0.25 + var(--band-level, 0) * 0.5)),
+      0 0 20px
+        hsl(var(--band-hue) 90% 52% / calc(0.1 + var(--band-level, 0) * 0.3));
   }
 
-  // The live output trace in the graph, lifted the same way and on the same
-  // quantised value.
+  // The live output trace, coloured rather than filtered.
+  //
+  // A stroke is chosen while painting a line that was going to be painted
+  // anyway; a drop-shadow is a second pass over everything the line touches,
+  // repeated every time it moves — which for this path is twenty-two times a
+  // second, forever.
   path[name^='Live processed output'] {
-    filter: drop-shadow(
-      0 0 calc(3px + var(--euphoria-level, 0) * 7px) $secondary-light
-    );
+    stroke: hsl(var(--euphoria-hue) 95% 66%);
   }
 
   // The target line joins in: thicker, and riding the same hue as everything
@@ -294,46 +297,13 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// A rim of colour, not a halo. The first pass blurred ten pixels of light out
-// of the meter and the shape underneath went soft — which is the one thing a
-// waveform cannot afford, since reading it is the entire point. Enough to tint
-// the edge and no more.
-@keyframes euphoria-glow {
-  0% {
-    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 4px) #00e5ff)
-      saturate(1.15);
-  }
-
-  25% {
-    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 4px) #54ff8a)
-      saturate(1.15);
-  }
-
-  50% {
-    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 4px) #ffe66d)
-      saturate(1.15);
-  }
-
-  75% {
-    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 4px) #ff3cac)
-      saturate(1.15);
-  }
-
-  100% {
-    filter: drop-shadow(0 0 calc(var(--euphoria-strength) * 4px) #00e5ff)
-      saturate(1.15);
-  }
-}
-
 // Someone who asked for less motion does not want the entire window strobing
 // through the spectrum. The colour stays, held still, so they can see they
 // reached it — the celebration is not taken away, only the flashing.
 @media (prefers-reduced-motion: reduce) {
   .is-euphoric {
     &,
-    .bandWrapper,
-    .waveform-visualizer,
-    .rhythm-game__trace {
+    .bandWrapper {
       animation: none;
     }
   }

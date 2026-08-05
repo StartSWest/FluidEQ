@@ -18,6 +18,13 @@ opens it again any time.
   while leaving the capture behind it running, so full-resolution frames were
   produced continuously and nothing ever read them. The video is now released
   outright the moment the audio arrives.
+- **Euphoria mode ate memory without limit.** Two of the things it lit up —
+  the titlebar meter and the game trace — carried an animated drop-shadow, and
+  both redraw their picture twenty-two times a second from live audio. An
+  animated filter has to re-render everything beneath it on every frame, so the
+  caches grew for as long as the mode was on. The glow is a plain shadow on the
+  frame now, sitting outside the part that moves, and the graph trace is
+  coloured rather than filtered. It looks the same and costs nothing per frame.
 - **The graph could not draw.** 0.6.0 shipped a build that dropped d3's
   transition module, so every animated part of the response chart threw
   `e.transition is not a function` and the window came up broken. The build had
