@@ -67,7 +67,18 @@
 .graph-legend--picker {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 10px;
+
+  // "Live output" is the caption; the look's name is the value.
+  //
+  // Butted together at the row's own gap they read as one long legend, and
+  // nobody realises the second half is a control. So the caption steps back —
+  // lighter and dimmer, like the labels it belongs with — and the value comes
+  // forward in white, underlined, with real air between the two.
+  .graph-legend__label {
+    color: rgba($primary-lighter, 0.72);
+    font-weight: 400;
+  }
 
   // Set apart from the legends beside it.
   //
@@ -121,23 +132,24 @@
     // Losing the box lost the last visual cue that this is a control, and a
     // cue that only appears once you are already pointing at it is no cue at
     // all. So the underline is standing: dim enough to belong in a caption
-    // row, present enough to be seen without looking for it. Hover just brings
-    // it up to full.
+    // row, present enough to be seen without looking for it. Hover brings it
+    // up to full.
     //
-    // The shared trigger also clips its label to keep the arrow in view; here
-    // there is room for the whole name, so it is shown whole and the arrow
-    // sits just after it rather than pinned to a far edge.
-    > div:first-child {
+    // Only in the closed trigger — the same name is what fills every row of
+    // the open list, and forty underlined rows is a mess.
+    .graph-look-name {
       flex: 0 0 auto;
       overflow: visible;
+      color: $white;
       text-decoration: underline;
-      text-decoration-color: rgba($secondary-light, 0.5);
+      text-decoration-color: rgba($secondary-light, 0.7);
       text-decoration-thickness: 1px;
       text-overflow: clip;
       text-underline-offset: 4px;
+      white-space: nowrap;
     }
 
-    &:hover:not([aria-disabled='true']) > div:first-child {
+    &:hover:not([aria-disabled='true']) .graph-look-name {
       text-decoration-color: $secondary-light;
     }
 

@@ -115,10 +115,13 @@ const SUPPORTING_CURVE_OPACITY = 0.5;
  * render would hand the dropdown a new array forty times a second while the
  * live curve is updating.
  */
+// The name is wrapped rather than handed over as a bare string, because the
+// dropdown renders `display` straight into the trigger — a loose text node with
+// nothing to hang a rule on. Styling the closed control needs an element.
 const graphLookOptions = GRAPH_LOOKS.map((look) => ({
   value: look.id,
   label: look.label,
-  display: look.label,
+  display: <span className="graph-look-name">{look.label}</span>,
 }));
 
 const FrequencyResponseChart = () => {
@@ -802,7 +805,10 @@ const FrequencyResponseChart = () => {
             honest one, because it says what the choice changes. Forty looks is
             more than a cycle can reasonably walk, hence a searchable list. */}
         <span className="graph-legend graph-legend--live graph-legend--picker">
-          Live output
+          {/* Named separately from the value so the two can look like what
+              they are: a caption, and the thing it captions. Run together they
+              read as one long legend nobody realises is clickable. */}
+          <span className="graph-legend__label">Live output</span>
           <Dropdown
             name="live-output-style"
             options={graphLookOptions}
