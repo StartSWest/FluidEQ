@@ -40,8 +40,6 @@ import { isEqualizerAPOInstalled } from './registry';
 /** Both logs sit together, which is why the installer writes where it does. */
 const getLogDirectory = () => path.join(app.getPath('userData'), 'logs');
 
-export const getLogDirectoryPath = getLogDirectory;
-
 const readIfPresent = (file: string): string => {
   try {
     return fs.readFileSync(file, 'utf8');

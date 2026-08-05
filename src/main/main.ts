@@ -67,7 +67,7 @@ import MenuBuilder from './menu';
 import { resolveHtmlPath, waitForRenderer } from './util';
 import { getConfigPath, isEqualizerAPOInstalled } from './registry';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
-import { gatherBugReportFacts, getLogDirectoryPath } from './bugReportFacts';
+import { gatherBugReportFacts } from './bugReportFacts';
 import ChannelEnum from '../common/channels';
 import { getVoicingProfile } from '../common/voicing';
 import { getDriverProfile } from '../common/driver';
