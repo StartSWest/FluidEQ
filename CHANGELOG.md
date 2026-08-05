@@ -6,6 +6,59 @@ opens it again any time.
 
 ---
 
+## 0.9.0
+
+### New
+
+- **Loudness.** A switch under the euphoria pill that lifts the bass and treble
+  the ear stops hearing at low volume, so quiet listening sounds full instead of
+  thin. It is the loudness button every amplifier used to have, and it cannot
+  clip you — the preamp is recalculated to make room for it, the same way it
+  already does for a voicing or a convolution. Not a compressor: Equalizer APO
+  has no dynamics processing at all, so nothing here can lift a quiet passage
+  without lifting a loud one by the same amount, and a control claiming
+  otherwise would be lying to you.
+- **Report a problem**, in the actions menu. It gathers what is needed, shows
+  you the whole thing, and sends nothing until you press a button — as a public
+  GitHub issue or privately by email, whichever you prefer.
+- **Nothing personal goes in a report.** Your Windows account name is stripped
+  from every path it appears in, and from anywhere else it turns up: a preset
+  named after you, a device called "your name's headphones". Email addresses
+  and machine names go too. It is all visible and editable before you send it,
+  because no automatic rule can know what a preset name means to you.
+
+### Fixed
+
+- **"Equalizer APO is not responding" can be clicked.** It reopens the notice
+  with the Install and Retry buttons — which, once dismissed, previously could
+  not be reached again at all, because it only reappears when the error text
+  changes and for a missing audio engine it never does.
+
+---
+
+## 0.9.0
+
+### New
+
+- **Loudness.** One press, under the euphoria pill, and quiet listening stops
+  sounding thin. The ear loses bass and treble far faster than it loses the
+  midrange as the volume comes down — which is why music at low level sounds
+  hollow rather than merely quiet — so this puts back what your hearing stops
+  picking up. It reads as fuller and louder while the peak level barely moves.
+  It cannot clip you: the preamp comes down to meet it automatically, the same
+  way it does for every other layer. Switching it off leaves your tuning
+  exactly as it was.
+- **Report a problem**, in the actions menu. It gathers the logs, strips
+  anything that identifies you, shows you the whole thing, and lets you post it
+  as a GitHub issue or email it privately. Nothing is sent until you press one
+  of those, and you can read and edit every word first. Account names, file
+  paths, email addresses and network share names are removed automatically.
+- **The status line does something now.** When it says Equalizer APO is not
+  responding, clicking it brings back the panel with the Install and Retry
+  buttons — which previously could be dismissed and never seen again.
+
+---
+
 ## 0.8.2
 
 ### Fixed
