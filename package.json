@@ -25,12 +25,12 @@
   },
   "license": "GPL-3.0-or-later",
   "author": {
-    "name": "Ivan Carmenates",
+    "name": "Ivan Carmenates Garcia",
     "url": "https://github.com/StartSWest"
   },
   "contributors": [
     "AQUA Dev Team",
-    "Ivan Carmenates"
+    "Ivan Carmenates Garcia"
   ],
   "main": "./src/main/main.ts",
   "scripts": {

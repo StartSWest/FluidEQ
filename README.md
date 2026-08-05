@@ -156,7 +156,7 @@ with the pencil on its row.
 FluidEQ is free and stays free. Nothing is behind a paywall, nothing is tracked,
 and there is no paid tier waiting in the wings.
 
-**This is one person's work — mine, Ivan Carmenates — built with a lot of love
+**This is one person's work — mine, Ivan Carmenates Garcia — built with a lot of love
 and an unreasonable amount of attention to detail.** Every panel was drawn by
 hand and argued over: how the response curve reads at a glance, the way a menu
 unfolds, what a knob does when you drag it slowly, which words go on a button,
@@ -341,7 +341,7 @@ FluidEQ is free software under the
 [GNU General Public License v3.0 or later](LICENSE), matching upstream AQUA.
 
 Copyright © 2023 AQUA Dev Team<br>
-FluidEQ modifications copyright © 2026 Ivan Carmenates
+FluidEQ modifications copyright © 2026 Ivan Carmenates Garcia
 
 You may use, study, modify and redistribute this software under the GPL. A
 distributed modified version must also make its corresponding source available

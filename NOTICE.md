@@ -7,7 +7,7 @@ interface originally developed by the AQUA Dev Team.
 - Upstream copyright: Copyright © 2023 AQUA Dev Team
 - License: GNU General Public License, version 3 or later
 - FluidEQ repository: https://github.com/StartSWest/FluidEQ
-- FluidEQ modifications: Copyright © 2026 Ivan Carmenates
+- FluidEQ modifications: Copyright © 2026 Ivan Carmenates Garcia
 
 GPL-3.0 section 5(a) requires a modified work to carry prominent notice that it
 has been modified. It has been, substantially. Original to FluidEQ and not
