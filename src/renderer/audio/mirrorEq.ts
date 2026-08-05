@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { AutoEqFormat, IFilter, IState } from 'common/constants';
 import { getDriverFilters } from 'common/driver';
+import { getLoudnessFilters } from 'common/loudness';
 import { getTFCoefficients } from 'common/response';
 import { getSmartEqFilters } from 'common/smartEq';
 import { getVoicingFilters } from 'common/voicing';
@@ -69,8 +70,10 @@ const isUsable = (values: number[]): boolean =>
 /**
  * Every filter a device's profile contributes, in the order APO writes them.
  *
- * The user's bands first, then voicing, then driver compensation, then Smart
- * EQ — the same sequence as `stateToString`. Cascaded biquads multiply, so the
+ * The user's bands first, then voicing, then driver compensation, then the
+ * loudness contour, then Smart EQ — the same sequence as `stateToString`.
+ * Anything added there is a layer a mirrored speaker will silently lose until
+ * it is added here too. Cascaded biquads multiply, so the
  * order does not change the magnitude response, but keeping it identical means
  * the two paths can be compared line by line when they ever disagree.
  *
@@ -90,7 +93,13 @@ export const getMirrorFilters = (
   // IState around them.
   state: Pick<
     IState,
-    'eqFormat' | 'graphicEq' | 'filters' | 'voicing' | 'driver' | 'smartEq'
+    | 'eqFormat'
+    | 'graphicEq'
+    | 'filters'
+    | 'voicing'
+    | 'driver'
+    | 'loudness'
+    | 'smartEq'
   >,
 ): TMirrorFilter[] => {
   // A GraphicEQ profile keeps its curve in `graphicEq` and leaves `filters`
@@ -103,6 +112,7 @@ export const getMirrorFilters = (
     ...Object.values(state.filters ?? {}),
     ...getVoicingFilters(state.voicing),
     ...getDriverFilters(state.driver),
+    ...getLoudnessFilters(state.loudness),
     ...getSmartEqFilters(state.smartEq),
   ];
 };

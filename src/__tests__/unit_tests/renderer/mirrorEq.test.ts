@@ -162,6 +162,18 @@ describe('which layers a mirror reproduces', () => {
     expect(withDriver.length).toBeGreaterThan(1);
   });
 
+  it('carries the loudness contour', () => {
+    // Added to APO by 0.9.0 while this branch was in flight. A layer that
+    // exists in `stateToString` and not here is one a mirrored speaker
+    // silently loses, and nothing fails when that happens.
+    const withLoudness = getMirrorFilters({
+      ...baseState(),
+      loudness: { isOn: true, intensity: 0.5 },
+    });
+
+    expect(withLoudness.length).toBeGreaterThan(1);
+  });
+
   it('carries the Smart EQ layer', () => {
     const withSmartEq = getMirrorFilters({
       ...baseState(),
