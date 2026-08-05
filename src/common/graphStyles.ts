@@ -17,7 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /**
- * Ten ways to draw the live spectrum across the response graph.
+ * The ways to draw the live spectrum across the response graph.
+ *
+ * Counted nowhere in this comment on purpose — the list has grown three times
+ * and the prose said "ten" throughout.
  *
  * Same rule as the titlebar meter's styles: every one is a single path, so
  * choosing a style changes the picture without adding or removing a single
@@ -65,7 +68,17 @@ export type GraphStyle =
   | 'echo'
   | 'racer'
   | 'invaders'
-  | 'starfield';
+  | 'starfield'
+  | 'candles'
+  | 'arches'
+  | 'flames'
+  | 'barcode'
+  | 'rain'
+  | 'honeycomb'
+  | 'fence'
+  | 'braid'
+  | 'stitch'
+  | 'canyon';
 
 /** In cycle order. */
 export const GRAPH_STYLES: GraphStyle[] = [
@@ -105,6 +118,19 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'racer',
   'invaders',
   'starfield',
+  // Appended rather than slotted in beside their relatives. The order is the
+  // cycle order, and anybody who has learned that their favourite is four
+  // clicks past Bars would have it moved out from under them.
+  'candles',
+  'arches',
+  'flames',
+  'barcode',
+  'rain',
+  'honeycomb',
+  'fence',
+  'braid',
+  'stitch',
+  'canyon',
 ];
 
 /**
@@ -151,6 +177,16 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   racer: 'Road trip',
   invaders: 'Invaders',
   starfield: 'Warp speed',
+  candles: 'Candles',
+  arches: 'Arches',
+  flames: 'Flames',
+  barcode: 'Barcode',
+  rain: 'Rainfall',
+  honeycomb: 'Honeycomb',
+  fence: 'Fence',
+  braid: 'Braid',
+  stitch: 'Cross-stitch',
+  canyon: 'Canyon',
 };
 
 export const nextGraphStyle = (style: GraphStyle): GraphStyle => {
@@ -175,6 +211,9 @@ const STROKED_STYLES = new Set<GraphStyle>([
   'ecg',
   'echo',
   'starfield',
+  'rain',
+  'braid',
+  'stitch',
 ]);
 
 export const isFilledGraphStyle = (style: GraphStyle): boolean =>
@@ -314,6 +353,42 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   racer: { attackMs: 6, releaseMs: 42 },
   invaders: { attackMs: 6, releaseMs: 85 },
   starfield: { attackMs: 3, releaseMs: 26 },
+
+  // Meters with a body to them. A candle and a barcode stripe are both read by
+  // their size rather than their outline, so they keep the level meter's
+  // manners: snap to the peak, hang, drop away.
+  candles: { attackMs: 4, releaseMs: 50 },
+  barcode: { attackMs: 4, releaseMs: 44 },
+
+  // Rounded forms swell rather than snap. An arch that jumped would stop
+  // reading as an arch and start reading as a bar with a curved lid.
+  arches: { attackMs: 7, releaseMs: 52 },
+
+  // Fire is the quickest thing here after the pulse, and has to be: a flame
+  // that eases into position is a balloon.
+  flames: { attackMs: 3, releaseMs: 30 },
+
+  // Weather. Rain falls at its own speed no matter what the music does, so the
+  // release is long — the drops thin out gradually rather than stopping dead.
+  rain: { attackMs: 4, releaseMs: 96 },
+
+  // Things built out of stacked pieces, which is the same argument the dot
+  // matrix and the LED blocks make: the eye is counting cells, and a cell that
+  // flickers on the boundary is a miscount.
+  honeycomb: { attackMs: 4, releaseMs: 68 },
+  fence: { attackMs: 5, releaseMs: 58 },
+
+  // A braid is a rope and a rope has mass. Slow enough that the strands stay
+  // strands instead of blurring into a band.
+  braid: { attackMs: 10, releaseMs: 44 },
+
+  // Needlework does not hurry, and the marks are small enough that a fast
+  // release would make them twinkle rather than settle.
+  stitch: { attackMs: 5, releaseMs: 72 },
+
+  // The negative space of a landscape, so it moves like one — the slowest of
+  // the new forms, for the same reason the ridge and the contour are slow.
+  canyon: { attackMs: 15, releaseMs: 82 },
 };
 
 export const getGraphBallistics = (style: GraphStyle): IGraphBallistics =>
@@ -381,10 +456,37 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   // six-pixel column is a smudge. Fewer, bigger.
   invaders: 20,
   starfield: 40,
+
+  // Anything with an inside needs room to show it. A hexagon under about ten
+  // pixels across is a blob, an arch is a bump, and a flame with no width to
+  // taper over is a spike.
+  honeycomb: 30,
+  arches: 40,
+  flames: 34,
+  candles: 40,
+
+  // A barcode is the opposite argument: the whole read is many thin stripes of
+  // varying width, and at sixty-four it stops looking like one.
+  barcode: 56,
+
+  fence: 46,
+  rain: 44,
+  stitch: 38,
 };
 
 const getColumnCount = (style: GraphStyle) =>
   COLUMN_OVERRIDES[style] ?? COLUMN_COUNT;
+
+/**
+ * The density a form was drawn for, for anything that wants to offer it back.
+ *
+ * The table above is the author's answer to "how many pieces should this form
+ * be made of", arrived at by looking at it. A custom look starts from that
+ * answer rather than from a number somebody had to guess, so exposing it is
+ * what makes tuning a form feel like adjusting it rather than rebuilding it.
+ */
+export const getGraphColumnCount = (style: GraphStyle): number =>
+  getColumnCount(style);
 
 /** The forms drawn one piece per column rather than as a continuous figure. */
 const DISCRETE_STYLES = new Set<GraphStyle>([
@@ -412,7 +514,54 @@ const DISCRETE_STYLES = new Set<GraphStyle>([
   'ecg',
   'invaders',
   'starfield',
+  'candles',
+  'arches',
+  'flames',
+  'barcode',
+  'rain',
+  'honeycomb',
+  'fence',
+  'stitch',
 ]);
+
+/**
+ * Whether a form is made of separate pieces, one per band.
+ *
+ * The distinction matters to anything offering the density as a setting: a
+ * line, an area or a contour keeps all three hundred and twenty points and has
+ * no columns to count, so a density slider on one of those would be a control
+ * that visibly does nothing.
+ */
+export const isDiscreteGraphStyle = (style: GraphStyle): boolean =>
+  DISCRETE_STYLES.has(style);
+
+/**
+ * How few and how many pieces a form may be broken into.
+ *
+ * The floor is where columns stop reading as a spectrum and start reading as a
+ * bar chart of nothing in particular; the ceiling is where they touch and the
+ * figure turns back into the filled area that `toColumns` exists to avoid.
+ * Both are wider than any built-in form uses, because the point of the setting
+ * is to go somewhere the built-ins do not.
+ */
+export const MIN_GRAPH_COLUMNS = 8;
+export const MAX_GRAPH_COLUMNS = 160;
+
+/**
+ * A column count that `toColumns` can safely be handed.
+ *
+ * Applied at the drawing end as well as when a look is saved, because this is
+ * the one tuning value that can turn a bad number into a broken loop rather
+ * than an ugly picture: a count of zero divides by zero and a fractional one
+ * walks off the end of the buffer.
+ */
+export const clampGraphColumns = (columns: number): number =>
+  Number.isFinite(columns)
+    ? Math.min(
+        MAX_GRAPH_COLUMNS,
+        Math.max(MIN_GRAPH_COLUMNS, Math.round(columns)),
+      )
+    : COLUMN_COUNT;
 
 /**
  * Reduce to one column per bucket, keeping the PEAK rather than the average.
@@ -464,11 +613,16 @@ const polyline = (points: readonly Projected[]) =>
  * `baseline` is the pixel row the bars and fills sit on — the bottom of the
  * plot, not zero decibels, because a spectrum hangs from its own level rather
  * than straddling a midpoint the way a waveform does.
+ *
+ * `columns` overrides how many pieces a discrete form is broken into, for a
+ * look the user has tuned. Left out, the form is drawn at the density it was
+ * designed at, which is what every built-in look wants.
  */
 export const createGraphShape = (
   points: readonly Projected[],
   style: GraphStyle,
   baseline: number,
+  columns?: number,
 ): string => {
   if (points.length < 2) {
     return '';
@@ -477,7 +631,14 @@ export const createGraphShape = (
   // staircase is a single polyline and keeps the full resolution, which costs
   // nothing extra and reads better.
   const isDiscrete = DISCRETE_STYLES.has(style);
-  const figure = isDiscrete ? toColumns(points, getColumnCount(style)) : points;
+  const figure = isDiscrete
+    ? toColumns(
+        points,
+        columns === undefined
+          ? getColumnCount(style)
+          : clampGraphColumns(columns),
+      )
+    : points;
   // Average spacing rather than per-pair, because the x axis is logarithmic:
   // a bar sized by the gap to its own neighbour would be hair-thin at 20Hz and
   // a slab at 20kHz.
@@ -1121,6 +1282,239 @@ export const createGraphShape = (
       return path.trim();
     }
 
+    // A trading chart. A fat body standing on the level with a thin wick
+    // through it, so each band reports a range rather than a single number —
+    // the body is where the energy is and the wick is how far it reaches.
+    //
+    // Unlike a bar, nothing here touches the floor: the figure floats at the
+    // level, which makes a quiet band a small mark in the right place instead
+    // of a stub that has to be measured against the bottom of the plot.
+    case 'candles': {
+      const width = Math.max(2, step * 0.52);
+      const wick = Math.max(1, step * 0.14);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const level = Math.max(0, baseline - y);
+        const body = Math.max(2.5, level * 0.26);
+        const reach = body * 0.55;
+        path += rect(x - wick / 2, y - reach, wick, body + reach * 2);
+        path += rect(x - width / 2, y, width, body);
+      }
+      return path;
+    }
+
+    // A colonnade. Each band is a parabolic arch standing on the floor and
+    // rising to its own level.
+    //
+    // Drawn as a quadratic rather than an elliptical arc deliberately. An `A`
+    // command's sweep flag decides which way the curve bulges, and in a y-down
+    // coordinate system that is exactly the kind of thing that is right in one
+    // renderer and upside down in the next. A control point placed at twice the
+    // peak's distance puts the apex on the level by arithmetic, with nothing to
+    // get backwards.
+    case 'arches': {
+      const half = Math.max(1.5, step * 0.46);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        // A quadratic sits halfway between its control point and the chord, so
+        // the control goes twice as far out as the apex needs to be.
+        const control = 2 * y - baseline;
+        path += `M ${(x - half).toFixed(1)},${baseline.toFixed(1)} Q ${x.toFixed(
+          1,
+        )},${control.toFixed(1)} ${(x + half).toFixed(1)},${baseline.toFixed(
+          1,
+        )} Z`;
+      }
+      return path;
+    }
+
+    // Tongues of fire: a wide base on the floor drawn up to a tip at the level,
+    // with the sides curving in the way a flame's do.
+    //
+    // The lean comes from the column index, not from a random number — the same
+    // rule the starfield follows. A flame that picked a new direction every
+    // frame would not flicker, it would strobe.
+    case 'flames': {
+      const half = Math.max(1.5, step * 0.42);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const lean = (((index * 37) % 13) / 13 - 0.5) * half;
+        const waist = (y + baseline) / 2;
+        path += `M ${(x - half).toFixed(1)},${baseline.toFixed(1)} Q ${(
+          x -
+          half * 0.85
+        ).toFixed(1)},${waist.toFixed(1)} ${(x + lean).toFixed(1)},${y.toFixed(
+          1,
+        )} Q ${(x + half * 0.85).toFixed(1)},${waist.toFixed(1)} ${(
+          x + half
+        ).toFixed(1)},${baseline.toFixed(1)} Z`;
+      }
+      return path;
+    }
+
+    // Level as width rather than as height.
+    //
+    // Every stripe runs the full depth of the plot and says how loud its band
+    // is by how fat it is. It is the only form here that does not use the y
+    // axis at all, which is the point: the spectrum stops being a landscape
+    // with a skyline and becomes a texture, and a broad loud region reads as a
+    // dense patch rather than as a wide hill.
+    case 'barcode': {
+      const widest = Math.max(1.5, step * 0.82);
+      // The plot's own depth, which is what a level is a fraction of. Guarded
+      // because a baseline of zero would divide by it.
+      const depth = Math.max(1, baseline);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const level = Math.max(0, baseline - y);
+        const width = 0.6 + (level / depth) * widest;
+        path += rect(x - width / 2, 0, width, baseline);
+      }
+      return path;
+    }
+
+    // Weather over the spectrum. Streaks fall in the empty air above each band,
+    // more of them and longer where the signal is strong, and each one lands on
+    // a short splash sitting on the level.
+    //
+    // Above the curve rather than below it, which is what keeps this from being
+    // the starfield again: the warp streaks fill the loud region, and these
+    // fill the room left over it.
+    case 'rain': {
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const level = Math.max(0, baseline - y);
+        const drops = 1 + Math.floor(level / 34);
+        for (let drop = 0; drop < drops; drop += 1) {
+          const seed = ((index * 41 + drop * 89) % 71) / 71;
+          const dropX = x + (seed - 0.5) * step * 0.9;
+          const dropY = seed * Math.max(0, y - 8);
+          const length = 4 + level * 0.022;
+          path += `M ${dropX.toFixed(1)},${dropY.toFixed(1)} v ${length.toFixed(
+            1,
+          )} `;
+        }
+        const splash = Math.max(1.5, step * 0.22);
+        path += `M ${(x - splash).toFixed(1)},${y.toFixed(1)} h ${(
+          splash * 2
+        ).toFixed(1)} `;
+      }
+      return path.trim();
+    }
+
+    // Cells stacked up each column on a fixed grid.
+    //
+    // The same quantised reading as the dot matrix, in the shape that actually
+    // tiles: hexagons pack without leaving the gaps a grid of squares does, so
+    // a loud column reads as a solid comb rather than as a dotted line.
+    case 'honeycomb': {
+      const radius = Math.max(2, step * 0.4);
+      // A pointy-top hexagon is a full radius tall and √3/2 of one wide, and
+      // rows sit one and a half radii apart so they interlock rather than stack.
+      const across = radius * 0.866;
+      const row = radius * 1.5;
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        for (let at = baseline - radius; at > y; at -= row) {
+          path +=
+            `M ${x.toFixed(1)},${(at - radius).toFixed(1)} ` +
+            `L ${(x + across).toFixed(1)},${(at - radius / 2).toFixed(1)} ` +
+            `L ${(x + across).toFixed(1)},${(at + radius / 2).toFixed(1)} ` +
+            `L ${x.toFixed(1)},${(at + radius).toFixed(1)} ` +
+            `L ${(x - across).toFixed(1)},${(at + radius / 2).toFixed(1)} ` +
+            `L ${(x - across).toFixed(1)},${(at - radius / 2).toFixed(1)} Z`;
+        }
+      }
+      return path;
+    }
+
+    // Pickets cut to the level, with two rails running the whole width behind
+    // them.
+    //
+    // The rails are the difference between this and a row of pointed bars: they
+    // sit at fixed heights rather than following the signal, so they give the
+    // eye a ruler to read the pickets against — which band clears the top rail
+    // is a question a bar chart cannot answer at a glance.
+    case 'fence': {
+      const width = Math.max(1.5, step * 0.36);
+      const cap = width * 0.9;
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path +=
+          `M ${(x - width / 2).toFixed(1)},${baseline.toFixed(1)} ` +
+          `L ${(x - width / 2).toFixed(1)},${(y + cap).toFixed(1)} ` +
+          `L ${x.toFixed(1)},${y.toFixed(1)} ` +
+          `L ${(x + width / 2).toFixed(1)},${(y + cap).toFixed(1)} ` +
+          `L ${(x + width / 2).toFixed(1)},${baseline.toFixed(1)} Z`;
+      }
+      const left = figure[0][0];
+      const right = figure[figure.length - 1][0];
+      path += rect(left, baseline - 22, right - left, 3);
+      path += rect(left, baseline - 48, right - left, 3);
+      return path;
+    }
+
+    // Two strands wound around the curve, crossing where they meet.
+    //
+    // Both are the same trace displaced by a sine of the point index, one
+    // inverted, so they braid at a fixed pitch while the width of the plait
+    // swells with the level. Unlike the zipper, which is two rails and a set of
+    // teeth, this is a single continuous rope and reads as one object.
+    case 'braid': {
+      const over: Projected[] = [];
+      const under: Projected[] = [];
+      for (let index = 0; index < points.length; index += 1) {
+        const [x, y] = points[index];
+        const swell = 2 + Math.min(13, Math.max(0, baseline - y) * 0.065);
+        // Radians per point, which is the pitch of the plait. Tied to the index
+        // rather than to x so the twist stays even across a logarithmic axis.
+        const twist = Math.sin(index * 0.42) * swell;
+        over.push([x, y + twist]);
+        under.push([x, y - twist]);
+      }
+      return `${polyline(over)} ${polyline(under)}`;
+    }
+
+    // Needlework. A running thread along the peaks with a cross worked over
+    // every band — the spectrum as something made by hand rather than measured.
+    case 'stitch': {
+      const size = Math.max(1.6, step * 0.28);
+      let path = polyline(figure);
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path +=
+          ` M ${(x - size).toFixed(1)},${(y - size).toFixed(1)} ` +
+          `L ${(x + size).toFixed(1)},${(y + size).toFixed(1)} ` +
+          `M ${(x - size).toFixed(1)},${(y + size).toFixed(1)} ` +
+          `L ${(x + size).toFixed(1)},${(y - size).toFixed(1)}`;
+      }
+      return path;
+    }
+
+    // The room above the signal rather than the signal itself.
+    //
+    // Every other filled form here paints the energy; this one paints what is
+    // left over it, so the picture is the headroom and the shape you are
+    // reading is the underside of the ceiling. A loud mix closes the canyon up
+    // and a sparse one opens it out, which is the same information the area
+    // style carries and a completely different thing to look at.
+    case 'canyon': {
+      const first = points[0];
+      const last = points[points.length - 1];
+      const wall = [...points]
+        .reverse()
+        .map(([x, y]) => `L ${x.toFixed(1)},${y.toFixed(1)}`)
+        .join(' ');
+      return `M ${first[0].toFixed(1)},0 L ${last[0].toFixed(1)},0 ${wall} Z`;
+    }
+
     // A zigzag threading the peaks, alternating above and below each one.
     case 'weave': {
       let path = `M ${figure[0][0].toFixed(1)},${figure[0][1].toFixed(1)}`;
@@ -1158,6 +1552,17 @@ const ACCENTS: Partial<Record<GraphStyle, 'bead'>> = {
 };
 
 /**
+ * Whether a form has lit tips to offer at all.
+ *
+ * For the designer, which would otherwise show a switch that does nothing on
+ * thirty-five of the thirty-six forms. A control that is off because the form
+ * has none is a different thing from one that is off because the user turned
+ * it off, and the panel says so rather than leaving them to work it out.
+ */
+export const hasGraphAccent = (style: GraphStyle): boolean =>
+  Boolean(ACCENTS[style]);
+
+/**
  * How loud a peak has to be, against the loudest thing on screen, to be lit.
  *
  * Low enough that a busy mix lights several at once, high enough that quiet
@@ -1191,11 +1596,17 @@ export const createGraphAccent = (
   points: readonly Projected[],
   style: GraphStyle,
   baseline: number,
+  columns?: number,
 ): string => {
   if (!ACCENTS[style] || points.length < 3) {
     return '';
   }
-  const figure = toColumns(points, getColumnCount(style));
+  // The same density as the figure, or the beads land between the stems they
+  // are supposed to be sitting on.
+  const figure = toColumns(
+    points,
+    columns === undefined ? getColumnCount(style) : clampGraphColumns(columns),
+  );
   if (figure.length < 3) {
     return '';
   }

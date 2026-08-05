@@ -460,6 +460,24 @@ $graph-controls-height: 40px;
     stroke-width 420ms ease;
 }
 
+// A look the user made, marked wherever its name appears.
+//
+// The picker holds two kinds of thing that are otherwise indistinguishable —
+// the ones that ship and however many somebody has built — and only one kind
+// can be edited or deleted. A dot rather than a word or a section header
+// because the name is the part that has to stay readable, and this rule reaches
+// both the closed trigger and every row of the open list.
+.graph-look-name--custom::before {
+  content: '';
+  display: inline-block;
+  width: 4px;
+  height: 4px;
+  margin-inline-end: 6px;
+  border-radius: 50%;
+  background: $analogous-2;
+  vertical-align: middle;
+}
+
 // Hide everything but the live trace.
 //
 // A real button rather than more plain text: unlike the picker beside it this

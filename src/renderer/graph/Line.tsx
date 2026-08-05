@@ -25,8 +25,6 @@ import {
   Projected,
   createGraphAccent,
   createGraphShape,
-  getGraphBallistics,
-  isFilledGraphStyle,
 } from 'common/graphStyles';
 import { useGraphLook } from 'renderer/utils/graphStyle';
 import {
@@ -237,10 +235,12 @@ const Line = ({
     (deltaMs: number) => {
       const eased = easedRef.current;
       // Each form moves in its own way — see the ballistics table for why a
-      // bar snaps and a ridge does not.
-      const ballistics = getGraphBallistics(lookRef.current.style);
-      const rise = getEaseFactor(deltaMs, ballistics.attackMs);
-      const fall = getEaseFactor(deltaMs, ballistics.releaseMs);
+      // bar snaps and a ridge does not. On a look the user has tuned these are
+      // their numbers instead, which is the setting that changes a form's
+      // character most and the reason the panel leads with them.
+      const { tuning } = lookRef.current;
+      const rise = getEaseFactor(deltaMs, tuning.attackMs);
+      const fall = getEaseFactor(deltaMs, tuning.releaseMs);
       let moving = false;
       for (let index = 0; index < eased.length; index += 1) {
         const distance = data[index].y - eased[index].y;
@@ -276,13 +276,23 @@ const Line = ({
         // round the same numbers twice.
         chosen === 'line'
           ? (line(eased) ?? '')
-          : createGraphShape(target, chosen, baselineRef.current),
+          : createGraphShape(
+              target,
+              chosen,
+              baselineRef.current,
+              tuning.columns,
+            ),
       );
       // The lit peaks. Same frame, same numbers, written to two more paths
       // that are stroked faint-and-thick under bright-and-thin — a glow made
       // of strokes rather than of a filter, because a filter over geometry
       // that changes every frame re-rasterises its whole region every frame.
-      const accent = createGraphAccent(target, chosen, baselineRef.current);
+      //
+      // The same column count as the figure, or the beads sit between the
+      // stems they are marking rather than on them.
+      const accent = tuning.accents
+        ? createGraphAccent(target, chosen, baselineRef.current, tuning.columns)
+        : '';
       haloRef.current?.setAttribute('d', accent);
       coreRef.current?.setAttribute('d', accent);
       return moving;
@@ -294,7 +304,12 @@ const Line = ({
 
   // Only the live trace can be painted; every other curve is a line and the
   // style setting has nothing to say about it.
-  const isPainted = Boolean(smooth) && isFilledGraphStyle(look.style);
+  const isLive = Boolean(smooth);
+  const isPainted = isLive && look.tuning.filled;
+  // Likewise the width: the EQ response, the voicing layer and the rest are the
+  // user's own tuning drawn at the weight the chart chose for them, and only
+  // the audio trace has a look attached that can say otherwise.
+  const liveStrokeWidth = isLive ? look.tuning.strokeWidth : strokeWidth;
   // The rainbow palette paints from the full-spectrum gradient in the chart's
   // defs — deliberately not the EQ one, which only carries a stop per band and
   // so covers whatever slice of the axis the user's bands happen to occupy.
@@ -314,7 +329,14 @@ const Line = ({
       easedRef.current = data.map((point) => ({ ...point }));
     }
     kickFrames();
-  }, [data, kickFrames, smooth]);
+    // `look` is in here so that changing it redraws.
+    //
+    // The frame loop stops once the curve has settled, which through a pause or
+    // a silent passage is immediately — and then nothing would repaint until
+    // the audio moved again. Cycling styles that way looked like the setting
+    // had not taken, and in the designer, where every slider is judged by what
+    // the figure does, it would make the whole panel appear dead.
+  }, [data, kickFrames, look, smooth]);
 
   return (
     <>
@@ -363,11 +385,11 @@ const Line = ({
           .filter(Boolean)
           .join(' ')}
         stroke={isPainted ? 'none' : paint}
-        strokeWidth={strokeWidth}
+        strokeWidth={liveStrokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
         fill={isPainted ? paint : 'none'}
-        fillOpacity={isPainted ? 0.55 : undefined}
+        fillOpacity={isPainted ? look.tuning.fillOpacity : undefined}
         opacity={0}
         transform={transform}
       />

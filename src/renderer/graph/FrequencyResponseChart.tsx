@@ -64,12 +64,12 @@ import {
 } from './utils';
 import { ColorEnum, SecondaryColorEnum } from '../styles/color';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
-import { GRAPH_LOOKS } from '../../common/graphStyles';
 import { getBandColor } from '../utils/bandColors';
 import {
   cycleGraphLook,
   cycleWaveOrientation,
   exitGraphFullScreen,
+  getSelectableLooks,
   setGraphLook,
   setGraphView,
   toggleGraphExpanded,
@@ -83,9 +83,9 @@ import {
   useGraphStretched,
   useWaveOrientation,
   useGraphView,
-  useGraphLook,
   useFullScreenTopBar,
   useLiveOutputSolo,
+  useSelectedLookId,
 } from '../utils/graphStyle';
 import { useIsChromeIdle } from '../utils/idleChrome';
 import { useBypassedLayers } from '../utils/layerBypass';
@@ -97,6 +97,8 @@ import {
   useOverlayBlur,
   useOverlayOpacity,
 } from '../utils/graphOverlay';
+import { useCustomLooks } from '../utils/customLooks';
+import LookDesigner from '../components/LookDesigner';
 import Dropdown from '../widgets/Dropdown';
 import GraphViewMenu from './GraphViewMenu';
 import { getVoicingFilters } from '../../common/voicing';
@@ -145,30 +147,60 @@ const SUPPORTING_CURVE_OPACITY = 0.5;
  */
 const SILENCE_GRACE_MS = 2000;
 
-/**
- * The forty looks, as dropdown entries.
- *
- * Built once at module scope: the list never changes, and rebuilding it per
- * render would hand the dropdown a new array forty times a second while the
- * live curve is updating.
- */
-// The name is wrapped rather than handed over as a bare string, because the
-// dropdown renders `display` straight into the trigger — a loose text node with
-// nothing to hang a rule on. Styling the closed control needs an element.
-const graphLookOptions = GRAPH_LOOKS.map((look) => ({
-  value: look.id,
-  label: look.label,
-  display: <span className="graph-look-name">{look.label}</span>,
-}));
-
+// The look list is no longer a module constant: it now depends on the looks the
+// user has saved, so it is built inside the component from `getSelectableLooks`
+// and memoised on that list instead.
 const FrequencyResponseChart = () => {
   const liveOutput = useLiveAudioFrame();
-  const liveLook = useGraphLook();
+  // The selection, not the resolved look: while the designer is open the chart
+  // is drawing an unsaved draft whose id is in no list, and a picker handed
+  // that id would show nothing.
+  const selectedLookId = useSelectedLookId();
+  const customLooks = useCustomLooks();
+  const [isDesignerOpen, setIsDesignerOpen] = useState(false);
   const isSolo = useLiveOutputSolo();
   const graphView = useGraphView();
   const isGridHidden = useGraphGridHidden();
   const isStretched = useGraphStretched();
   const waveOrientation = useWaveOrientation();
+
+  /**
+   * The whole picker: what ships, then what the user made.
+   *
+   * The order comes from `getSelectableLooks` rather than being assembled here,
+   * because clicking the plot walks that same list. Two places building "the
+   * looks, in order" is two places to disagree, and the symptom would be the
+   * plot click skipping an entry the menu shows.
+   *
+   * Rebuilt only when their list changes — a save or a delete — rather than per
+   * render, which would hand the dropdown a new array twenty-two times a second
+   * while the live curve is updating.
+   */
+  const graphLookOptions = useMemo(
+    () =>
+      getSelectableLooks(customLooks).map((look) => ({
+        value: look.id,
+        label: look.label,
+        // The name is wrapped rather than handed over as a bare string, because
+        // the dropdown renders `display` straight into the trigger — a loose
+        // text node with nothing to hang a rule on. Styling the closed control
+        // needs an element.
+        //
+        // A look the user made is marked on the row rather than in the label,
+        // so the search still matches the name they typed instead of the word
+        // "custom".
+        display: (
+          <span
+            className={`graph-look-name${
+              look.isCustom ? ' graph-look-name--custom' : ''
+            }`}
+          >
+            {look.label}
+          </span>
+        ),
+      })),
+    [customLooks],
+  );
   const isFullScreen = useGraphFullScreen();
   const isChromeIdle = useIsChromeIdle();
   const hasTopBar = useFullScreenTopBar();
@@ -781,15 +813,25 @@ const FrequencyResponseChart = () => {
         // which is on screen the whole time, so testing for it blocked Escape
         // permanently and full screen became a mode with no way out.
         if (
-          document.querySelector(
-            '[role="dialog"], .graph-view-menu__list, .dropdown--open',
-          ) ||
+          document.querySelector('.graph-view-menu__list, .dropdown--open') ||
           // Every one of these also has its own key handling, and a text field
           // in particular treats Escape as "cancel this edit".
           (event.target as HTMLElement | null)?.closest?.(
             'input, textarea, [contenteditable]',
           )
         ) {
+          return;
+        }
+        // The look designer is a dialog of ours, so it is closed here rather
+        // than left to the guard below. That guard only declines to act, which
+        // for our own panel would mean Escape doing nothing at all — and it is
+        // the innermost thing on screen, so it is what Escape means. Closing it
+        // rather than the mode also matters because it holds an unsaved draft.
+        if (isDesignerOpen) {
+          setIsDesignerOpen(false);
+          return;
+        }
+        if (document.querySelector('[role="dialog"]')) {
           return;
         }
         exitGraphFullScreen();
@@ -849,7 +891,7 @@ const FrequencyResponseChart = () => {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isGraphViewOn]);
+  }, [isGraphViewOn, isDesignerOpen]);
 
   const dimensions: ChartDimensions = {
     width,
@@ -1075,7 +1117,9 @@ const FrequencyResponseChart = () => {
     <div
       className={`graph-wrapper${!isEngineUsable ? ' is-engine-disabled' : ''}${
         isGridHidden ? ' is-gridless' : ''
-      }${isStretched ? ' is-stretched' : ''}`}
+      }${isStretched ? ' is-stretched' : ''}${
+        isDesignerOpen ? ' is-designing' : ''
+      }`}
       aria-disabled={!isEngineUsable}
       // Read by the full-screen rules only. Handed down as variables rather
       // than as a style on the card itself, because what they actually apply to
@@ -1167,7 +1211,7 @@ const FrequencyResponseChart = () => {
               they are: a caption, and the thing it captions. Run together they
               read as one long legend nobody realises is clickable. */}
             <span className="graph-legend__label">Live output</span>
-            {/* Arrows either side of the name, so walking the forty looks never
+            {/* Arrows either side of the name, so walking the looks never
                 depends on where the keyboard is pointing.
 
                 Space and Ctrl+Space still do it, and stop the moment somebody
@@ -1187,10 +1231,13 @@ const FrequencyResponseChart = () => {
                 <path d="M10 3.5l-4 4.5 4 4.5" />
               </svg>
             </button>
+            {/* The selection, not the resolved look: while the designer is open
+                the chart draws an unsaved draft whose id is in no list, and a
+                picker handed that id would go blank. */}
             <Dropdown
               name="live-output-style"
               options={graphLookOptions}
-              value={liveLook.id}
+              value={selectedLookId}
               isDisabled={false}
               isFilterable
               filterPlaceholder="Search styles"
@@ -1207,6 +1254,33 @@ const FrequencyResponseChart = () => {
               <svg viewBox="0 0 16 16" aria-hidden>
                 <path d="M6 3.5l4 4.5-4 4.5" />
               </svg>
+            </button>
+            {/* Make one of your own.
+
+                Next to the picker because it is the same decision carried one
+                step further: the list answers "which of these", and this answers
+                "none of these, quite". The label says which of the two things it
+                will do, since opening it on a look somebody made edits that look
+                rather than starting another. */}
+            <button
+              type="button"
+              className={`graph-solo${isDesignerOpen ? ' is-on' : ''}`}
+              onClick={() => setIsDesignerOpen((open) => !open)}
+              aria-pressed={isDesignerOpen}
+              title={
+                isDesignerOpen
+                  ? 'Close the look designer (Esc)'
+                  : 'Build a look of your own from this one'
+              }
+            >
+              {(() => {
+                if (isDesignerOpen) {
+                  return 'Close';
+                }
+                return customLooks.some((look) => look.id === selectedLookId)
+                  ? 'Edit look'
+                  : 'New look';
+              })()}
             </button>
             {/* Everything else off, so the drawing has the grid to itself.
               Sits inside the live-output legend because that is the only
@@ -1291,6 +1365,13 @@ const FrequencyResponseChart = () => {
           />
         )}
       </div>
+      {/* Inside the graph card, alongside the plot rather than over in a
+          dialog of its own — what the panel is for is watching this chart
+          change while the sliders move. Unmounted when closed, so the draft it
+          holds is dropped with it. */}
+      {isDesignerOpen && (
+        <LookDesigner onClose={() => setIsDesignerOpen(false)} />
+      )}
     </div>
   ) : null;
 };

@@ -17,7 +17,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'react';
-import { GRAPH_LOOKS, IGraphLook, getGraphLook } from 'common/graphStyles';
+import { GRAPH_LOOKS, getGraphLook } from 'common/graphStyles';
+import {
+  ICustomLook,
+  IResolvedLook,
+  isCustomLookId,
+  resolveBuiltInLook,
+  resolveCustomLook,
+} from 'common/customLooks';
+import {
+  getCustomLook,
+  getCustomLooks,
+  subscribeCustomLooks,
+} from './customLooks';
 
 /**
  * How the live spectrum is drawn, held outside React.
@@ -34,14 +46,92 @@ const STORAGE_KEY = 'fluideq-graph-style';
 
 const listeners = new Set<() => void>();
 
-let look: IGraphLook = GRAPH_LOOKS[0];
+/**
+ * What the picker points at.
+ *
+ * The id rather than the look itself, because a look is no longer always one of
+ * a fixed list — a custom one can be edited or deleted while it is selected, and
+ * an id survives that where a held object would go stale.
+ */
+let selectedId = GRAPH_LOOKS[0].id;
 try {
-  look = getGraphLook(window.localStorage.getItem(STORAGE_KEY) || '');
+  selectedId = window.localStorage.getItem(STORAGE_KEY) || selectedId;
 } catch {
   // Storage can be unavailable; the default is a perfectly good curve.
 }
 
-export const getGraphLookId = () => look.id;
+/**
+ * The look being edited right now, which the chart draws instead of the
+ * selection while the designer is open.
+ *
+ * This is the whole preview mechanism. Rather than build a second chart with a
+ * second analyser to show what a tuning looks like, the real graph — which is
+ * already drawing the real audio a few inches away — is asked to draw the draft.
+ * So what the user is judging is the actual figure at actual size, and closing
+ * the panel without saving simply drops this and the selection reappears.
+ *
+ * Never persisted: an unsaved draft that outlived a restart would be a look the
+ * user cannot find in the picker and cannot get rid of.
+ */
+let draft: ICustomLook | null = null;
+
+const computeResolved = (): IResolvedLook => {
+  if (draft) {
+    return resolveCustomLook(draft);
+  }
+  const custom = getCustomLook(selectedId);
+  if (custom) {
+    return resolveCustomLook(custom);
+  }
+  // `getGraphLook` answers with the first look for anything it does not know,
+  // which is what a stale id from an older version or a deleted custom look
+  // lands on.
+  return resolveBuiltInLook(getGraphLook(selectedId));
+};
+
+/**
+ * The resolved look, built once per change rather than per read.
+ *
+ * `useSyncExternalStore` compares snapshots by identity, so resolving inside
+ * the getter would hand React a new object every time it looked and re-render
+ * the chart forever.
+ */
+let resolved: IResolvedLook = computeResolved();
+
+const refresh = () => {
+  resolved = computeResolved();
+  listeners.forEach((listener) => listener());
+};
+
+const persistSelection = () => {
+  try {
+    window.localStorage.setItem(STORAGE_KEY, selectedId);
+  } catch {
+    // Not worth failing a choice over.
+  }
+};
+
+/**
+ * Every look that can be selected, built-ins first.
+ *
+ * Rebuilt per call rather than cached because it changes whenever a look is
+ * saved or deleted, and the two things that ask for it — the picker and the
+ * click-to-cycle — are both user actions rather than frames.
+ *
+ * The user's own looks are a parameter, defaulted to the store, because the two
+ * callers reach them differently: the cycle reads the store as it stands, and
+ * React has to pass what it subscribed to. Reading the store here in both cases
+ * would leave the component's memo depending on a value it never mentions,
+ * which is a stale list waiting to happen and a lint error besides.
+ */
+export const getSelectableLooks = (
+  customLooks: readonly ICustomLook[] = getCustomLooks(),
+): IResolvedLook[] => [
+  ...GRAPH_LOOKS.map(resolveBuiltInLook),
+  ...customLooks.map(resolveCustomLook),
+];
+
+export const getGraphLookId = () => selectedId;
 
 /**
  * The next look along, for the click on the plot.
@@ -50,32 +140,61 @@ export const getGraphLookId = () => look.id;
  * flicking through them while listening, without moving the pointer off the
  * graph. Backwards with a modifier held, because with a list this long
  * overshooting by one otherwise means going all the way round again.
+ *
+ * Walks the user's own looks too, at the end of the list, so a look somebody
+ * made is reachable the same way as one that shipped.
  */
 export const cycleGraphLook = (direction: 1 | -1 = 1) => {
-  const index = GRAPH_LOOKS.indexOf(look);
-  const count = GRAPH_LOOKS.length;
-  look = GRAPH_LOOKS[(index + direction + count) % count];
-  try {
-    window.localStorage.setItem(STORAGE_KEY, look.id);
-  } catch {
-    // Not worth failing a click over.
+  // Nothing to see while a draft is up. The click on the plot and the Space
+  // key both land here, and both would move a selection the draft is currently
+  // covering — so the graph would not change, the picker behind the panel
+  // would, and closing it later would land somewhere nobody chose.
+  if (draft) {
+    return;
   }
-  listeners.forEach((listener) => listener());
+  const ids = getSelectableLooks().map((look) => look.id);
+  const index = ids.indexOf(selectedId);
+  const count = ids.length;
+  // An unknown selection cycles from the start rather than from -1, which
+  // would otherwise step backwards into the last entry.
+  selectedId = ids[(Math.max(0, index) + direction + count) % count];
+  persistSelection();
+  refresh();
 };
 
 export const setGraphLook = (id: string) => {
-  const next = getGraphLook(id);
-  if (next === look) {
+  if (id === selectedId) {
     return;
   }
-  look = next;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, look.id);
-  } catch {
-    // Not worth failing a choice over.
-  }
-  listeners.forEach((listener) => listener());
+  selectedId = id;
+  persistSelection();
+  refresh();
 };
+
+/**
+ * Show this tuning on the graph until told otherwise.
+ *
+ * Passing `null` puts the selection back, which is what closing the designer
+ * without saving does.
+ */
+export const setLookDraft = (next: ICustomLook | null) => {
+  draft = next;
+  refresh();
+};
+
+// A look can change or vanish underneath the selection while it is being
+// drawn, so the drawing has to be rebuilt when the list does. A deleted look
+// also has to give the selection somewhere to land: leaving it pointing at
+// nothing works — the resolver falls back — but it would silently re-point at
+// the first look the next time somebody cycled, from an id that no longer
+// means anything.
+subscribeCustomLooks(() => {
+  if (isCustomLookId(selectedId) && !getCustomLook(selectedId)) {
+    selectedId = GRAPH_LOOKS[0].id;
+    persistSelection();
+  }
+  refresh();
+});
 
 const subscribe = (listener: () => void) => {
   listeners.add(listener);
@@ -84,18 +203,35 @@ const subscribe = (listener: () => void) => {
   };
 };
 
+const DEFAULT_RESOLVED = resolveBuiltInLook(GRAPH_LOOKS[0]);
+
 /**
- * The whole look, as one stable object.
+ * The whole look, as one stable object: which form, which palette, and every
+ * number needed to draw it.
  *
- * Returned as the object rather than as `{ style, palette }` built per call,
- * because `useSyncExternalStore` compares snapshots by identity and a fresh
- * object every time is an infinite render.
+ * Draft-aware, so this is what the chart should draw — not necessarily what the
+ * picker is pointing at. Anything that needs the selection itself wants
+ * `useSelectedLookId`.
  */
 export const useGraphLook = () =>
   useSyncExternalStore(
     subscribe,
-    () => look,
-    () => GRAPH_LOOKS[0],
+    () => resolved,
+    () => DEFAULT_RESOLVED,
+  );
+
+/**
+ * What the picker shows.
+ *
+ * Separate from the look above because a draft deliberately shadows the
+ * selection: while the designer is open the chart draws an unsaved look whose
+ * id is in no list, and a picker fed that id would go blank.
+ */
+export const useSelectedLookId = () =>
+  useSyncExternalStore(
+    subscribe,
+    () => selectedId,
+    () => GRAPH_LOOKS[0].id,
   );
 
 /**

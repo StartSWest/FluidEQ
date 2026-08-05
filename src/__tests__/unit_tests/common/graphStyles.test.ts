@@ -21,12 +21,17 @@ import {
   GRAPH_PALETTES,
   GRAPH_STYLES,
   GRAPH_STYLE_LABELS,
+  MAX_GRAPH_COLUMNS,
+  MIN_GRAPH_COLUMNS,
+  clampGraphColumns,
   getGraphBallistics,
+  getGraphColumnCount,
   getGraphLook,
   GraphStyle,
   Projected,
   createGraphAccent,
   createGraphShape,
+  isDiscreteGraphStyle,
   isFilledGraphStyle,
   nextGraphStyle,
 } from 'common/graphStyles';
@@ -43,9 +48,9 @@ const shapeOf = (style: GraphStyle) =>
   createGraphShape(points, style, BASELINE);
 
 describe('the graph style cycle', () => {
-  it('offers thirty-six distinct forms', () => {
-    expect(GRAPH_STYLES).toHaveLength(36);
-    expect(new Set(GRAPH_STYLES).size).toBe(36);
+  it('offers forty-six distinct forms', () => {
+    expect(GRAPH_STYLES).toHaveLength(46);
+    expect(new Set(GRAPH_STYLES).size).toBe(46);
   });
 
   it('gives every form a name of its own', () => {
@@ -320,5 +325,242 @@ describe('graph ballistics', () => {
     expect(getGraphBallistics('slope').releaseMs).toBeLessThan(
       getGraphBallistics('contour').releaseMs,
     );
+  });
+});
+
+describe('a form drawn at a density it did not ship with', () => {
+  // What a custom look changes. The geometry is the same tested code; only the
+  // number of pieces it is cut into moves, so the thing worth proving is that
+  // every form survives every count rather than only the one it was drawn at.
+  const densities = [MIN_GRAPH_COLUMNS, 24, 64, 120, MAX_GRAPH_COLUMNS];
+
+  it.each(GRAPH_STYLES)('emits no NaN for %s at any density', (style) => {
+    densities.forEach((columns) => {
+      const shape = createGraphShape(points, style, BASELINE, columns);
+      expect(shape).not.toMatch(/NaN|Infinity|undefined/);
+      expect(shape.length).toBeGreaterThan(0);
+    });
+  });
+
+  it.each(GRAPH_STYLES.filter(isDiscreteGraphStyle))(
+    'actually cuts %s into the number of pieces asked for',
+    (style) => {
+      // A density slider that changes the label and not the picture is worse
+      // than no slider: it looks like the setting is being ignored, which it
+      // would be if the override stopped being threaded through.
+      const few = createGraphShape(points, style, BASELINE, 12);
+      const many = createGraphShape(points, style, BASELINE, 96);
+      expect(many.length).toBeGreaterThan(few.length);
+    },
+  );
+
+  it.each(GRAPH_STYLES.filter((style) => !isDiscreteGraphStyle(style)))(
+    'ignores the density for %s, which is one continuous figure',
+    (style) => {
+      // Nothing to cut up, so the panel greys the slider out — and the drawing
+      // code agrees rather than quietly producing a different curve.
+      expect(createGraphShape(points, style, BASELINE, 12)).toBe(
+        createGraphShape(points, style, BASELINE, 96),
+      );
+    },
+  );
+
+  it('draws the form as it ships when no density is given', () => {
+    // The built-in looks go through the same call with the argument left off,
+    // so this is what guarantees they are untouched by any of it.
+    GRAPH_STYLES.forEach((style) => {
+      expect(createGraphShape(points, style, BASELINE)).toBe(
+        createGraphShape(points, style, BASELINE, getGraphColumnCount(style)),
+      );
+    });
+  });
+
+  it('keeps the lit tips on the stems they are marking', () => {
+    // Same count as the figure or the beads land between the stems.
+    const accent = createGraphAccent(points, 'stems', BASELINE, 20);
+    expect(accent).not.toMatch(/NaN|Infinity|undefined/);
+    expect(createGraphAccent(points, 'stems', BASELINE)).toBe(
+      createGraphAccent(
+        points,
+        'stems',
+        BASELINE,
+        getGraphColumnCount('stems'),
+      ),
+    );
+  });
+});
+
+describe('clampGraphColumns', () => {
+  it('refuses the counts that would break the loop rather than the picture', () => {
+    // Zero divides by zero in toColumns and a fraction walks off the end of
+    // the buffer, so this one is guarded at the drawing end as well as on save.
+    expect(clampGraphColumns(0)).toBe(MIN_GRAPH_COLUMNS);
+    expect(clampGraphColumns(-30)).toBe(MIN_GRAPH_COLUMNS);
+    expect(clampGraphColumns(9999)).toBe(MAX_GRAPH_COLUMNS);
+    expect(clampGraphColumns(32.7)).toBe(33);
+    expect(Number.isInteger(clampGraphColumns(NaN))).toBe(true);
+    expect(Number.isInteger(clampGraphColumns(Infinity))).toBe(true);
+  });
+});
+
+/**
+ * The forms added after the first thirty-six.
+ *
+ * The generic suites above prove these emit valid geometry; they cannot prove
+ * it is the right way up. An arch that bulged downward, a canyon that filled
+ * the energy instead of the headroom and a flame hanging from the ceiling all
+ * produce perfectly well-formed paths, and the only thing that catches them is
+ * an assertion about where the ink actually lands.
+ *
+ * A flat spectrum is used throughout: with every column at the same level the
+ * expected coordinates are arithmetic rather than a range, so these say what
+ * the figure IS rather than merely that it is finite.
+ */
+describe('the later forms are the right way up', () => {
+  const LEVEL = 120;
+
+  /** Every column at the same height, so the geometry has one right answer. */
+  const flat: Projected[] = Array.from(
+    { length: 120 },
+    (_value, index) => [index * 4, LEVEL] as Projected,
+  );
+
+  /** Every `x,y` pair in a path, ignoring the relative h/v runs between them. */
+  const pairsOf = (path: string) =>
+    [...path.matchAll(/(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)/g)].map((match) => ({
+      x: Number(match[1]),
+      y: Number(match[2]),
+    }));
+
+  it('stands an arch on the floor and peaks it on the level', () => {
+    const path = createGraphShape(flat, 'arches', BASELINE);
+    // A quadratic sits halfway between its control point and its chord, so the
+    // apex is the average of the two. If the sign were ever flipped the arch
+    // would hang below the baseline and this lands at 480 instead of 120.
+    const [start, control, end] = pairsOf(path);
+    expect(start.y).toBe(BASELINE);
+    expect(end.y).toBe(BASELINE);
+    expect((control.y + BASELINE) / 2).toBeCloseTo(LEVEL, 1);
+    expect(path).toContain('Q');
+  });
+
+  it('roots a flame on the floor and tips it at the level', () => {
+    const path = createGraphShape(flat, 'flames', BASELINE);
+    const ys = pairsOf(path).map((pair) => pair.y);
+    // Nothing above the level and nothing below the floor: the tongue occupies
+    // exactly the band between them.
+    expect(Math.min(...ys)).toBeCloseTo(LEVEL, 1);
+    expect(Math.max(...ys)).toBe(BASELINE);
+  });
+
+  it('floats a candle at the level instead of standing it on the floor', () => {
+    // The whole reason it is not a bar. A quiet band should be a small mark in
+    // the right place, not a stub measured against the bottom of the plot.
+    const path = createGraphShape(flat, 'candles', BASELINE);
+    const ys = pairsOf(path).map((pair) => pair.y);
+    expect(Math.max(...ys)).toBeLessThan(BASELINE);
+  });
+
+  it('runs a barcode stripe the whole depth of the plot', () => {
+    // This form says nothing with height on purpose — the level is the width.
+    // A stripe that started at the level would make it a bar chart again.
+    const path = createGraphShape(flat, 'barcode', BASELINE);
+    expect(pairsOf(path).every((pair) => pair.y === 0)).toBe(true);
+    const heights = [...path.matchAll(/v (-?[\d.]+)/g)].map((match) =>
+      Number(match[1]),
+    );
+    expect(new Set(heights)).toEqual(new Set([BASELINE]));
+  });
+
+  it('widens a barcode stripe with the level rather than lengthening it', () => {
+    const quiet = createGraphShape(flat, 'barcode', BASELINE);
+    const loud = createGraphShape(
+      flat.map(([x]) => [x, 20] as Projected),
+      'barcode',
+      BASELINE,
+    );
+    const widthOf = (path: string) => Number(path.match(/h (-?[\d.]+)/)?.[1]);
+    expect(widthOf(loud)).toBeGreaterThan(widthOf(quiet));
+  });
+
+  it('falls rain in the air above the signal, not through it', () => {
+    // What keeps this from being the starfield: the warp streaks fill the loud
+    // region below the level, and these fill the room left over it.
+    const path = createGraphShape(flat, 'rain', BASELINE);
+    expect(pairsOf(path).every((pair) => pair.y <= LEVEL)).toBe(true);
+  });
+
+  it('rains harder when the band is louder', () => {
+    const dropsIn = (path: string) => (path.match(/v /g) ?? []).length;
+    const quiet = createGraphShape(flat, 'rain', BASELINE);
+    const loud = createGraphShape(
+      flat.map(([x]) => [x, 20] as Projected),
+      'rain',
+      BASELINE,
+    );
+    expect(dropsIn(loud)).toBeGreaterThan(dropsIn(quiet));
+  });
+
+  it('cuts the honeycomb into six-sided cells', () => {
+    // Five line segments after the opening move is a closed hexagon. Four would
+    // be a pentagon nobody would notice was wrong until they looked closely.
+    const path = createGraphShape(flat, 'honeycomb', BASELINE);
+    const [firstCell] = path.split('Z');
+    expect((firstCell.match(/L /g) ?? []).length).toBe(5);
+  });
+
+  it('runs the fence rails the whole width, level with nothing', () => {
+    // The rails are the ruler the pickets are read against, so they must sit at
+    // fixed heights rather than following the signal — that is what the pickets
+    // are for. Both are checked by height, because a rail that tracked the
+    // level would still be a rail of the right length.
+    const path = createGraphShape(flat, 'fence', BASELINE);
+    const rails = [
+      ...path.matchAll(/M ([\d.-]+),([\d.-]+) h ([\d.-]+) v 3\.0/g),
+    ];
+    expect(rails).toHaveLength(2);
+    expect(rails.map((rail) => Number(rail[2]))).toEqual([
+      BASELINE - 22,
+      BASELINE - 48,
+    ]);
+    // Spanning the columns, which stop at the last column's centre rather than
+    // at the last sample — so this is nearly the full width, not exactly it.
+    const span = flat[flat.length - 1][0] - flat[0][0];
+    rails.forEach((rail) => {
+      expect(Number(rail[3])).toBeGreaterThan(span * 0.9);
+    });
+  });
+
+  it('plaits the braid out of exactly two strands', () => {
+    // One rope, drawn as two continuous polylines that cross. A third `M` would
+    // mean a strand had been broken into pieces.
+    const path = createGraphShape(flat, 'braid', BASELINE);
+    expect((path.match(/M /g) ?? []).length).toBe(2);
+  });
+
+  it('opens the canyon above the signal, not below it', () => {
+    // The inversion that matters most here: filled the other way round this is
+    // simply the area style with extra steps.
+    const path = createGraphShape(flat, 'canyon', BASELINE);
+    const ys = pairsOf(path).map((pair) => pair.y);
+    expect(Math.min(...ys)).toBe(0);
+    expect(Math.max(...ys)).toBe(LEVEL);
+    // Never touches the floor, which is exactly what the area style does.
+    expect(ys).not.toContain(BASELINE);
+  });
+
+  it('draws the canyon and the area as complements of each other', () => {
+    // Compared by the coordinates rather than by the text: an x of 300 is not
+    // the baseline, and a substring search cannot tell the difference.
+    const ysOf = (style: GraphStyle) =>
+      pairsOf(createGraphShape(flat, style, BASELINE)).map((pair) => pair.y);
+    const canyon = ysOf('canyon');
+    const area = ysOf('area');
+    // The area closes down onto the floor; the canyon closes up to the ceiling.
+    // Between them they cover the plot and overlap only along the signal.
+    expect(area).toContain(BASELINE);
+    expect(area).not.toContain(0);
+    expect(canyon).toContain(0);
+    expect(canyon).not.toContain(BASELINE);
   });
 });

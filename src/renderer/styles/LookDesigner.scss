@@ -1,0 +1,322 @@
+@use 'color' as *;
+@use 'theme' as *;
+
+// The look designer, docked inside the graph card.
+//
+// Over the chart rather than beside it, because the chart IS the preview: the
+// point of every control here is what it does to the figure a few inches to the
+// left, and a panel that pushed the graph out of the way to make room would be
+// asking somebody to tune something they can no longer see.
+//
+// So it takes the right-hand edge — the high end of the spectrum, which is the
+// quietest part of most music and the least costly strip to cover — and leaves
+// the rest of the plot alone.
+.look-designer {
+  @include panel-surface;
+  // Whatever every other scrolling surface uses. It stopped taking a size on
+  // purpose — a panel with its own slightly narrower scrollbar is the kind of
+  // difference nobody sees and everybody feels.
+  @include slim-scrollbar;
+
+  position: absolute;
+  z-index: 3;
+  top: 8px;
+  right: 10px;
+  bottom: 8px;
+  display: flex;
+  width: 252px;
+  flex-direction: column;
+  // The legend strip above sets `pointer-events: none` on itself so clicks fall
+  // through to the plot. This is a panel, not a caption, and must catch them.
+  pointer-events: auto;
+  // Enough that the trace behind stays legible while the panel is read, opaque
+  // enough that the text on it is not sitting on moving bars.
+  background: rgba(#0e1520, 0.94);
+  // Deliberately not hidden: the form picker's menu is positioned absolutely
+  // from its trigger, and clipping it here would cut a list of thirty-six off
+  // at the panel's edge. The graph card around it is what bounds it instead,
+  // which is where the picker in the legend above is already bounded.
+  overflow: visible;
+}
+
+// The legend keeps its row.
+//
+// The panel takes the right-hand strip of the same card the legend strip runs
+// across, so without this the two are stacked on top of each other and the one
+// thing that says which look is selected disappears behind the thing editing
+// it.
+.graph-wrapper.is-designing .live-output-controls {
+  right: 272px;
+}
+
+.look-designer__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid rgba($secondary-light, 0.16);
+
+  h2 {
+    margin: 0;
+    color: $white;
+    font-size: 0.74rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+  }
+}
+
+.look-designer__close {
+  @include ghost-button;
+
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  font-size: 0.6rem;
+  line-height: 1;
+}
+
+// The form, which is the choice everything below it is a refinement of.
+.look-designer__pick {
+  padding: 11px 12px 0;
+}
+
+.look-designer__body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 11px;
+  padding: 11px 12px;
+  // A flex child will not shrink below its content without this, so on a short
+  // graph card the panel would grow past the bottom of it instead of scrolling.
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.look-designer__row {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+
+  // Dimmed rather than removed.
+  //
+  // A setting that vanishes on some forms makes the panel change height as the
+  // form changes, and leaves nowhere to say why it is not available. Greyed
+  // out with its reason underneath answers the question instead of raising it.
+  &.is-disabled {
+    opacity: 0.42;
+  }
+
+  &--switch {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+
+    // The caption owns the checkbox rather than sitting beside it, so it has to
+    // take the row's width for its own space-between to push the control to the
+    // right edge. Left to size itself it shrink-wraps the word and the switch
+    // ends up tucked against it.
+    > .look-designer__caption {
+      flex: 1 1 auto;
+      cursor: pointer;
+    }
+  }
+}
+
+.look-designer__caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  color: rgba($primary-lighter, 0.78);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+// The number, not the thumb.
+//
+// These are milliseconds and counts somebody may want to reproduce on another
+// form, and a slider position is not something you can write down.
+.look-designer__value {
+  color: $white;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.look-designer__hint {
+  color: rgba($primary-lighter, 0.55);
+  font-size: 0.58rem;
+  line-height: 1.35;
+}
+
+.look-designer__slider {
+  width: 100%;
+  height: 14px;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  background: none;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+
+  &::-webkit-slider-runnable-track {
+    height: 3px;
+    border-radius: $radius-pill;
+    background: rgba($secondary-light, 0.22);
+  }
+
+  &::-webkit-slider-thumb {
+    width: 12px;
+    height: 12px;
+    margin-top: -4.5px;
+    border: 0;
+    border-radius: 50%;
+    appearance: none;
+    -webkit-appearance: none;
+    background: $secondary-default;
+    box-shadow: 0 0 6px rgba($secondary-default, 0.55);
+  }
+
+  &:disabled::-webkit-slider-thumb {
+    background: rgba($primary-lighter, 0.4);
+    box-shadow: none;
+  }
+}
+
+// Two mutually exclusive answers, side by side.
+//
+// A dropdown for two options hides one of them behind a click; as pills both
+// are readable at a glance and the choice is one press either way.
+.look-designer__choice {
+  display: flex;
+  gap: 6px;
+}
+
+.look-designer__pill {
+  @include ghost-button;
+
+  flex: 1 1 0;
+  height: 24px;
+  padding-inline: 8px;
+  font-size: 0.62rem;
+  font-weight: 650;
+
+  &.is-on {
+    color: $white;
+    border-color: $secondary-light;
+    background: rgba($secondary-light, 0.18);
+  }
+}
+
+.look-designer__check {
+  width: 14px;
+  height: 14px;
+  margin: 0;
+  accent-color: $secondary-default;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.look-designer__name {
+  @include field-surface;
+
+  width: 100%;
+  height: 26px;
+  padding-inline: 8px;
+  color: $white;
+  font: inherit;
+  font-size: 0.66rem;
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+.look-designer__actions {
+  display: flex;
+  gap: 6px;
+  padding: 9px 12px 11px;
+  border-top: 1px solid rgba($secondary-light, 0.16);
+}
+
+.look-designer__button {
+  @include ghost-button;
+
+  flex: 1 1 0;
+  height: 26px;
+  padding-inline: 8px;
+  font-size: 0.62rem;
+  font-weight: 650;
+  white-space: nowrap;
+
+  &--primary {
+    color: $white;
+    border-color: $secondary-light;
+    background: rgba($secondary-light, 0.2);
+
+    &:hover:not(:disabled) {
+      background: rgba($secondary-light, 0.32);
+    }
+  }
+
+  &--danger {
+    color: rgba(#ff9d9d, 0.9);
+    border-color: rgba(#ff6b6b, 0.4);
+
+    &:hover:not(:disabled) {
+      color: $white;
+      border-color: rgba(#ff6b6b, 0.85);
+      background: rgba(#ff6b6b, 0.18);
+    }
+  }
+}
+
+// The form picker reuses the app's dropdown, which is sized for a card.
+.look-designer .dropdown {
+  width: 100%;
+
+  .list-wrapper {
+    width: 228px;
+    min-width: 228px;
+  }
+
+  ul {
+    max-height: 260px;
+  }
+
+  li {
+    font-size: 0.68rem;
+  }
+}
+
+.look-designer__form {
+  @include truncate;
+}
+
+// A narrow window has no room for a panel and a readable plot side by side, so
+// below this the panel takes the whole card and the graph waits. Tuning against
+// a two-inch strip of trace is not tuning.
+@media (max-width: 900px) {
+  .look-designer {
+    left: 10px;
+    width: auto;
+  }
+
+  // Nothing to make room for once the panel spans the card.
+  .graph-wrapper.is-designing .live-output-controls {
+    right: 10px;
+  }
+}
