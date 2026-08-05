@@ -47,6 +47,22 @@ const GridLine = ({
   disableAnimation,
 }: IGridLineProps) => {
   const ref = useRef<SVGGElement>(null);
+
+  // Stop any animation still in flight when this leaves the graph.
+  //
+  // A d3 transition is driven by a timer that holds the node it is animating,
+  // so a band deleted mid-animation stays alive — along with its data and its
+  // interpolators — until the transition would have finished. One is
+  // negligible; a session of adding, deleting and dragging bands is not, and
+  // nothing about it is visible while it accumulates.
+  useEffect(
+    () => () => {
+      if (ref.current) {
+        d3.select(ref.current).interrupt();
+      }
+    },
+    [],
+  );
   const isFirstRender = useIsFirstRender();
 
   useEffect(() => {
