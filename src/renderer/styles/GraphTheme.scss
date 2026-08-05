@@ -237,16 +237,22 @@
 // out is still measuring sliders, and the whole point of the mode is to be
 // left with one drawing.
 .center-workspace.is-graph-full {
+  // Centred in what the EQ bands were using, rather than stretched into all of
+  // it. A drawing pinned to every edge of its column has no frame around it
+  // and reads as a wall; two thirds with air above and below reads as
+  // something being presented.
+  justify-content: center;
+
   > .middle-content {
     display: none;
   }
 
   // The graph normally takes a fixed slice of the column so a short window
   // cannot squeeze it to a sliver. With nothing above it there is nothing to
-  // negotiate with, so it drops the clamp and takes the lot.
+  // negotiate with, so the clamp goes and it takes a share instead.
   > .graph-wrapper {
     height: auto;
-    flex: 1 1 auto;
-    min-height: 300px;
+    flex: 0 0 66%;
+    min-height: 260px;
   }
 }
