@@ -6,6 +6,37 @@ opens it again any time.
 
 ---
 
+## 0.8.2
+
+### Fixed
+
+- **Euphoria mode could not be switched off.** Once you had earned it, the
+  toggle did nothing — the mode was reading "your current streak is at the
+  ceiling" as well as the switch, and a streak does not reset when you stop
+  playing. So it stayed true forever and held the colours on no matter what you
+  pressed. Winning is now a moment rather than a state: it unlocks the mode for
+  good and switches it on there and then, and after that the switch is the only
+  thing that decides.
+- **The development shortcut invented a score.** In development builds, the
+  button that jumps to euphoria used to write a full 19,350 points and a
+  36-tap streak straight into the run — so the share card could show a number
+  nobody had played for. It now only turns the mode on. Your score is yours.
+
+### New
+
+- **Ctrl+E turns euphoria mode on and off**, once you have earned it. Before
+  that it does nothing at all: a shortcut that worked early would give away
+  that there is something to find.
+
+### Changed
+
+- **The setup log records nothing that identifies you.** It was writing the
+  install directory, which on a normal install contains your Windows account
+  name. It now records only what happened — found, offered, declined, started,
+  failed — so the file is safe to send to anyone without reading it first.
+
+---
+
 ## 0.8.1
 
 ### Fixed

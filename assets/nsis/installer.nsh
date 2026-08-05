@@ -62,8 +62,17 @@
 !macroend
 
 !macro customInstall
+  ; Nothing identifying goes in this file. Ever.
+  ;
+  ; It exists to be sent to somebody when setup misbehaves, so it must be safe
+  ; to send without reading it first. `$INSTDIR` used to be written here and it
+  ; should not have been: a per-user install puts it under C:\Users\<name>,
+  ; which is the account name and very often a real one.
+  ;
+  ; Nothing is lost. What matters for diagnosis is whether the pieces were
+  ; where they should be, not the absolute path they were at — and the layout
+  ; under the install directory is fixed and already known from the build.
   !insertmacro ApoLog "--- FluidEQ ${VERSION} install ---"
-  !insertmacro ApoLog "INSTDIR: $INSTDIR"
 
   ; Already there? Leave it entirely alone. Plenty of people arrive at FluidEQ
   ; because they already use Equalizer APO, quite possibly a newer build than
@@ -71,7 +80,7 @@
   ; installer over that would be an unasked-for downgrade.
   !insertmacro ReadApoUninstallString
   ${If} $0 != ""
-    !insertmacro ApoLog "Equalizer APO already installed: $0 - leaving alone."
+    !insertmacro ApoLog "Equalizer APO already installed - leaving it alone."
     Goto apoDone
   ${EndIf}
   !insertmacro ApoLog "Equalizer APO not found in the registry."
@@ -81,7 +90,7 @@
   ; build that skipped the fetch would leave it missing — and silently doing
   ; nothing is exactly the failure that is impossible to diagnose remotely.
   ${IfNot} ${FileExists} "$INSTDIR\resources\equalizer-apo\equalizer-apo-setup.exe"
-    !insertmacro ApoLog "MISSING: $INSTDIR\resources\equalizer-apo\equalizer-apo-setup.exe"
+    !insertmacro ApoLog "MISSING: resources\equalizer-apo\equalizer-apo-setup.exe"
     MessageBox MB_OK|MB_ICONEXCLAMATION \
       "This build of FluidEQ is missing its copy of the Equalizer APO \
 installer. FluidEQ will install, but it cannot process audio until Equalizer \
@@ -163,7 +172,7 @@ are unsure, choose No.$\r$\n$\r$\nYour equaliser settings will be removed \
 either way." \
         /SD IDNO IDNO apoKept
 
-      !insertmacro ApoLog "Running the Equalizer APO uninstaller: $0"
+      !insertmacro ApoLog "Running the Equalizer APO uninstaller."
       ; ExecShellWait for the same reason as the install side: APO's
       ; uninstaller needs administrator and this uninstaller does not have it,
       ; so CreateProcess would fail with ERROR_ELEVATION_REQUIRED and leave
