@@ -26,6 +26,9 @@ const defaultFluidEqContext: IFluidEqContext = {
   isLoading: false,
   globalError: undefined,
   isBlockingError: false,
+  // Nothing wrong and the equaliser switched on, which is what a test that has
+  // not said otherwise is describing.
+  isEngineUsable: DEFAULT_STATE.isEnabled,
   driver: undefined,
   setDriver: () => {},
   refreshState: async () => {},

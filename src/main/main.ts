@@ -66,6 +66,7 @@ import {
 import MenuBuilder from './menu';
 import { resolveHtmlPath, waitForRenderer } from './util';
 import { getConfigPath, isEqualizerAPOInstalled } from './registry';
+import { runEqualizerApoSetup } from './equalizerApoSetup';
 import ChannelEnum from '../common/channels';
 import { getVoicingProfile } from '../common/voicing';
 import { getDriverProfile } from '../common/driver';
@@ -1030,6 +1031,16 @@ const adoptExistingApoConfig = () => {
     console.warn('Unable to read the existing Equalizer APO config', error);
   }
 };
+
+ipcMain.on(ChannelEnum.INSTALL_EQUALIZER_APO, (event) => {
+  const channel = ChannelEnum.INSTALL_EQUALIZER_APO;
+  try {
+    runEqualizerApoSetup();
+    event.reply(channel, { result: undefined });
+  } catch (e) {
+    handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
+  }
+});
 
 ipcMain.on(ChannelEnum.HEALTH_CHECK, async (event) => {
   const channel = ChannelEnum.HEALTH_CHECK;

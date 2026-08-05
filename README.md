@@ -178,6 +178,14 @@ Prefer to contribute time? Issues and pull requests are just as welcome — see
 
 <br clear="left">
 
+There is also a game hidden in that panel, for anyone who has contributed. Tap
+the pet or press space on the beat of whatever you are playing — it reads the
+real percussion out of your own audio, so it is your music you are playing
+along to. Thirty-six consecutive perfect taps and the whole interface goes
+rainbow with the sound:
+
+![Euphoria mode: the support panel showing a score of 19350 at ×10, the rainbow waveform, and the response graph behind it drawn in the spectrum palette](docs/screenshot2.png)
+
 ## Development
 
 ### Requirements
@@ -299,7 +307,21 @@ demand and fits the selected response into PEQ filters locally. Nothing from it
 is bundled or republished by the installer; it is cached in the user data
 directory only, and the attribution link stays visible in the app.
 
-Equalizer APO is a separate GPL-licensed project by Jonas Thedering.
+**Equalizer APO** is a separate project by
+[Jonas Thedering](https://sourceforge.net/projects/equalizerapo/), licensed
+GPL-2.0-or-later and therefore compatible with FluidEQ's GPL-3.0. FluidEQ does
+not link any of its code — it writes the configuration file that APO reads —
+but the FluidEQ installer **bundles APO's own installer** and offers to run it,
+so that getting started never means going off to find a download.
+
+Because that means redistributing APO's binary, every FluidEQ release also
+publishes the matching **`EqualizerAPO-src-<version>.zip`** as a release asset,
+which is how the GPL's source requirement is met. It is deliberately hosted
+alongside the installer rather than linked elsewhere. APO's licence text ships
+in `resources/licenses/EqualizerAPO-LICENSE.txt`, its installer is bundled
+unmodified, and the version is pinned and checksum-verified in
+[`.erb/scripts/fetch-equalizer-apo.ts`](.erb/scripts/fetch-equalizer-apo.ts).
+If you bump that version, publish the matching source archive with it.
 
 FluidEQ is not affiliated with or endorsed by Dolby Laboratories.
 

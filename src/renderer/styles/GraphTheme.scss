@@ -37,13 +37,27 @@
   box-shadow: 0 0 7px rgba(0, 229, 207, 0.72);
 }
 
-// Equalizer APO being off means the curves are only a preview. Keep the
-// controls visible for context, but make both workspaces unmistakably idle.
+// No engine behind the sliders means the curves are only a preview — whether
+// because the equaliser is switched off or because Equalizer APO is not
+// installed at all. Keep everything visible and readable for context, but make
+// both workspaces unmistakably idle.
 .workspace-tab-panel--eq.is-engine-disabled,
-.workspace-tab-panel--convolution.is-engine-disabled,
-.graph-wrapper.is-engine-disabled {
+.workspace-tab-panel--convolution.is-engine-disabled {
   opacity: 0.46;
   filter: saturate(0.35);
+  cursor: not-allowed;
+}
+
+// The graph gets the dimming but not the desaturation.
+//
+// A `filter` on an ancestor forces the whole subtree to be re-rasterised
+// whenever anything inside it moves — and the live trace inside this one is
+// redrawn up to sixty times a second, continuously, for as long as the pane is
+// open. Without Equalizer APO installed that is not a passing state either: it
+// is where the app sits permanently until somebody installs it. Opacity alone
+// is handled by the compositor and costs nothing per frame.
+.graph-wrapper.is-engine-disabled {
+  opacity: 0.5;
   cursor: not-allowed;
 }
 

@@ -106,6 +106,20 @@ export interface IFluidEqContext extends IState {
   globalError: ErrorDescription | undefined;
   /** True only for failures that make the app genuinely unusable. */
   isBlockingError: boolean;
+  /**
+   * Whether the equaliser can actually do anything right now.
+   *
+   * Two separate reasons it cannot: the user has switched it off, or Equalizer
+   * APO is not installed and there is nothing behind the sliders at all. They
+   * are different situations and the notice says which — but the controls have
+   * to behave identically, because in both cases moving a slider changes
+   * nothing you can hear.
+   *
+   * Derived here rather than written out at each of the panels, so that a
+   * fourth place added later cannot quietly forget half of the condition and
+   * leave one pane live over an engine that is not there.
+   */
+  isEngineUsable: boolean;
   performHealthCheck: () => void;
   refreshState: (options?: IRefreshStateOptions) => Promise<void>;
   /**
@@ -520,6 +534,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         isLoading,
         globalError,
         isBlockingError: isBlockingErrorCode(globalError),
+        isEngineUsable: isEnabled && !isBlockingErrorCode(globalError),
         isEnabled,
         isAutoPreAmpOn,
         isGraphViewOn,

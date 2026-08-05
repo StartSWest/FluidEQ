@@ -178,6 +178,26 @@ export const healthCheck = (): Promise<void> => {
 };
 
 /**
+ * Run the Equalizer APO installer that ships inside FluidEQ's.
+ *
+ * Not a download link. The installer is already on disk beside the app, so
+ * this opens it directly — the alternative was a browser tab pointed at
+ * SourceForge, which is a mirror list and a file to find again at the exact
+ * moment the app is least able to explain itself.
+ *
+ * Resolves as soon as the installer has been started, not when it finishes:
+ * APO's setup asks which devices to attach to and then asks to restart, so it
+ * is minutes of somebody else's window. The health check is what notices the
+ * result afterwards.
+ * @returns { Promise<void> } exception if it could not be started
+ */
+export const installEqualizerApo = (): Promise<void> => {
+  const channel = ChannelEnum.INSTALL_EQUALIZER_APO;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
+/**
  * Load preset into backend state
  * @param {string} presetName - name of preset to load
  * @returns { Promise<void> } exception if failed

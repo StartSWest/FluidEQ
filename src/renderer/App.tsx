@@ -71,7 +71,7 @@ const AppContent = () => {
     isLoading,
     globalError,
     isBlockingError,
-    isEnabled,
+    isEngineUsable,
     performHealthCheck,
     refreshState,
     setGlobalError,
@@ -539,10 +539,15 @@ const AppContent = () => {
                 // without a key switching between them changed the contents
                 // with no transition at all.
                 key={activeWorkspaceTab}
+                // Inert when the equaliser is switched off, and equally inert
+                // when Equalizer APO is not installed — in both cases there is
+                // nothing behind these sliders and moving one changes nothing
+                // you can hear. The app is still worth looking at, which is
+                // why it is dimmed rather than replaced by an error screen.
                 className={`workspace-tab-panel workspace-tab-panel--eq${
-                  !isEnabled ? ' is-engine-disabled' : ''
+                  !isEngineUsable ? ' is-engine-disabled' : ''
                 }`}
-                aria-disabled={!isEnabled}
+                aria-disabled={!isEngineUsable}
               >
                 <AutoEQ />
                 <MainContent />
@@ -554,9 +559,9 @@ const AppContent = () => {
               <div
                 key={activeWorkspaceTab}
                 className={`workspace-tab-panel workspace-tab-panel--convolution${
-                  !isEnabled ? ' is-engine-disabled' : ''
+                  !isEngineUsable ? ' is-engine-disabled' : ''
                 }`}
-                aria-disabled={!isEnabled}
+                aria-disabled={!isEngineUsable}
               >
                 {activeWorkspaceTab === 'voicing' ? (
                   <VoicingPanel />

@@ -69,7 +69,8 @@ gh release create v<version> --title "FluidEQ <version>" \
   --notes-file <extracted notes> \
   release/build/FluidEQ-Setup-<version>.exe \
   release/build/FluidEQ-Setup-<version>.exe.blockmap \
-  release/build/latest.yml
+  release/build/latest.yml \
+  vendor/equalizer-apo/EqualizerAPO-src-<apo version>.zip
 ```
 
 Extract the notes from the changelog rather than retyping them:
@@ -78,14 +79,29 @@ Extract the notes from the changelog rather than retyping them:
 awk '/^## <version>$/{f=1;next} /^## /{f=0} f' CHANGELOG.md | sed '/^---$/d'
 ```
 
-**All three assets, every time.** The installer alone is not a release:
-`latest.yml` is what the in-app updater fetches to notice a new version exists,
-and the blockmap is what lets it download only the changed chunks instead of
-the whole hundred megabytes. Leave them out and existing users are never
-offered the update at all.
+**All four assets, every time.** The installer alone is not a release:
+
+- `latest.yml` is what the in-app updater fetches to notice a new version
+  exists, and the blockmap is what lets it download only the changed chunks
+  instead of the whole hundred megabytes. Leave them out and existing users are
+  never offered the update at all.
+- `EqualizerAPO-src-<apo version>.zip` is a **licence obligation, not a
+  courtesy.** Our installer bundles and runs Equalizer APO's installer, which
+  makes us a distributor of a GPL binary, and a distributor must convey the
+  corresponding source. GPLv3 §6(d) allows the source to sit beside the object
+  code at the same place it is offered from — this release page — so the
+  archive goes here. A link to SourceForge does not satisfy it. Fetch the one
+  matching the pinned version:
+
+  ```bash
+  pnpm fetch-apo:source
+  ```
+
+  If `.erb/scripts/fetch-equalizer-apo.ts` ever pins a new APO version, the
+  source archive published with the next release must move with it.
 
 Afterwards, confirm with `gh release view v<version> --json assets` that all
-three uploaded.
+four uploaded.
 
 ## Never read the built binaries
 

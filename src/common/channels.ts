@@ -77,6 +77,9 @@ enum ChannelEnum {
   GET_DEVICE_PROFILE_SETTINGS = 'getDeviceProfileSettings',
   ASSIGN_DEVICE_PROFILE = 'assignDeviceProfile',
   REMOVE_DEVICE_PROFILE = 'removeDeviceProfile',
+  // Runs the Equalizer APO installer that ships inside ours. Nobody is sent to
+  // a website to find one.
+  INSTALL_EQUALIZER_APO = 'installEqualizerApo',
 }
 
 export default ChannelEnum;

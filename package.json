@@ -39,7 +39,9 @@
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.cjs",
     "postinstall": "ts-node .erb/scripts/postinstall.ts",
     "lint": "cross-env NODE_ENV=development eslint . --ext .js,.jsx,.ts,.tsx",
-    "package": "ts-node ./.erb/scripts/clean.js dist && pnpm build && electron-builder build --publish never",
+    "fetch-apo": "ts-node ./.erb/scripts/fetch-equalizer-apo.ts",
+    "fetch-apo:source": "ts-node ./.erb/scripts/fetch-equalizer-apo.ts --source",
+    "package": "ts-node ./.erb/scripts/clean.js dist && pnpm fetch-apo && pnpm build && electron-builder build --publish never",
     "prepare": "husky",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
     "start": "ts-node ./.erb/scripts/check-port-in-use.js && pnpm start:renderer",
@@ -281,7 +283,8 @@
         "ja_JP",
         "de_DE",
         "it_IT"
-      ]
+      ],
+      "include": "assets/nsis/installer.nsh"
     },
     "linux": {
       "target": [
@@ -304,7 +307,15 @@
         ]
       },
       "./autoeq/**",
-      "./CHANGELOG.md"
+      "./CHANGELOG.md",
+      {
+        "from": "vendor/equalizer-apo",
+        "to": "equalizer-apo",
+        "filter": [
+          "equalizer-apo-setup.exe",
+          "version.txt"
+        ]
+      }
     ],
     "publish": {
       "provider": "github",
