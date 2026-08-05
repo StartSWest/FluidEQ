@@ -6,7 +6,87 @@ opens it again any time.
 
 ---
 
-## 0.6.1
+## 0.7.0
+
+### New
+
+- **The live spectrum can be drawn thirty-six different ways, in two palettes.**
+  Bars, a ridge, a staircase, floating peak caps, a contour map that shows how
+  wide a peak is rather than only how tall, a slope field that draws which way
+  the spectrum is turning, stalactites hung from the ceiling, a heart monitor
+  that beats once per band, a car riding the loudest frequency along a road made
+  of the trace, and a rank of little sprites hanging at their levels. Pick one
+  from the searchable list on the legend, or click the graph to walk through
+  them while you listen — `Space` does the same, and `Ctrl` with either steps
+  back.
+- **Every form moves in its own way.** A bar snaps up and hangs, the way a level
+  meter does, so a kick lands as a step. A ridge is a landscape and moves like
+  one, because a hill that twitches reads as noise. The pulse is nearly
+  instant, because a heartbeat that arrives late is not a heartbeat. Choosing a
+  drawing changes how the music feels, not just what it looks like.
+- **Wave only** hides the EQ response, the voicing and driver layers and the
+  band handles, leaving the live trace alone on the grid.
+- **Full screen** clears the bands out of the way and presents the graph in the
+  middle of the workspace. `Esc` brings them back.
+- **Ten ways to draw the titlebar meter**, cycled by clicking it.
+- **Smart EQ is its own layer.** It used to rewrite your bands, so applying it
+  overwrote the tuning you had done by hand and clearing it took your work with
+  it. It now sits on top of everything else with its own chip, and survives
+  clearing an AutoEQ reference. It also no longer inverts your own bands: the
+  target it corrects towards includes them, where before it measured as if they
+  were not there.
+- **An applied reference arrives band by band**, in frequency order, instead of
+  every slider jumping at once. You can see what it did rather than just what
+  it left behind.
+- **Zoom the whole interface** with `Ctrl` and `+`, `-` or `0`. Keyboard only,
+  deliberately — the mouse wheel belongs to the sliders.
+- **There is a game hidden in the support panel**, for anyone with the
+  contribution badge. Tap the creature or press space on the beat of whatever
+  you are playing. It reads the real percussion out of your own audio, so it is
+  your music you are playing along to.
+- **Euphoria mode.** Thirty-six consecutive perfect taps and the entire
+  application goes rainbow with the music: the bands, the response curve, the
+  meter, the menus and the release notes. One mistake and it all goes back to
+  being an equaliser.
+- **Share your run.** A card is drawn with the creature, your score and the
+  mode's own look, ready to post — copy it straight to the clipboard and paste
+  it into whatever you are writing.
+
+### Changed
+
+- **Both waveforms move at the display's rate, not the analyser's.** Sound is
+  measured about twenty-two times a second, so drawing only when a measurement
+  lands meant two frames in three showed the same picture as the one before —
+  which the eye reads as stepping. They are drawn between measurements now,
+  gliding toward each new one: at the full rate of your screen during euphoria,
+  and capped at thirty otherwise, because a meter beside an equaliser does not
+  need sixty and the frames are not free.
+- **The graph keeps time with the music instead of catching up with it.** The
+  analysis window was twice as long as it needed to be and the smoothing on top
+  of it added more, so the picture arrived about ninety milliseconds after the
+  sound. It is closer to fifty now, and it is quick to rise and slow to fall
+  rather than sluggish in both directions, which is what makes it pump rather
+  than sway.
+- **The graph reaches further across.** The axis started at 10Hz but ended at
+  25kHz, which on a logarithmic scale left three times as much empty space
+  before 20Hz as after 20kHz. Both marks now sit the same distance from their
+  edge, and the drawing gets the space back.
+- **The grid and the supporting curves have stepped back** so the response you
+  are editing is obviously the subject rather than one line among five.
+- **The installer opens FluidEQ when it finishes.** Updates already did; a
+  fresh install left you looking at a closed wizard.
+- **FluidEQ is called FluidEQ in Task Manager**, in development as well as in
+  the installed app.
+- **The language picker is one of the app's own dropdowns**, not the operating
+  system's, and it opens downwards at a sensible size.
+- **The titlebar sits almost flush with the page**, so the window reads as one
+  surface rather than a bar stuck on top of one.
+- **The delete-band button becomes an icon** when the row runs out of room, and
+  gets its label back when there is space for it. It is a bin now, not a cross:
+  a cross reads as "close", which is the wrong promise.
+- **The score measures accuracy, not endurance.** Only a perfect adds; anything
+  else pays a little and gives back a share of the total. Playing longer cannot
+  move anyone past their own precision.
 
 ### Fixed
 
@@ -33,6 +113,16 @@ opens it again any time.
   nothing at all, silently. Beyond the memory, the abandoned listener stayed
   first in the queue and would answer somebody else's later request with the
   wrong result.
+- **A band deleted mid-animation stayed in memory** until the animation it was
+  never going to finish would have ended. One is nothing; an afternoon of
+  adding, dragging and deleting bands is not, and none of it is visible while it
+  accumulates.
+- **Clearing an applied reference clears its bands.** The notes previously
+  claimed the bands stayed, which was wrong in both directions — a reference is
+  where your tuning came from, not a label beside it.
+- **The pet stops reacting to a paused waveform**, and stops swaying in a
+  silent room. The analyser freezes mid-frame when paused, and it was dancing
+  to a reading that had stopped being true.
 - **The graph could not draw.** 0.6.0 shipped a build that dropped d3's
   transition module, so every animated part of the response chart threw
   `e.transition is not a function` and the window came up broken. The build had
@@ -40,71 +130,8 @@ opens it again any time.
   false of exactly the piece that matters: transitions install themselves onto
   d3's selections when the module is evaluated, and nothing refers to them by
   name, so the bundler quite reasonably concluded they were unused and removed
-  them. 0.6.0 has been withdrawn.
-
-### Changed
-
-- **Both waveforms move at the display's rate, not the analyser's.** Sound is
-  measured about twenty-two times a second, so drawing only when a measurement
-  lands meant two frames in three showed the same picture as the one before —
-  which the eye reads as stepping. They are drawn between measurements now,
-  gliding toward each new one: at the full rate of your screen during euphoria,
-  and capped at thirty otherwise, because a meter beside an equaliser does not
-  need sixty and the frames are not free.
-- **The installer opens FluidEQ when it finishes.** Updates already did; a
-  fresh install left you looking at a closed wizard.
-
----
-
-## 0.6.0
-
-### New
-
-- **Smart EQ is its own layer.** It used to rewrite your bands, so applying it
-  overwrote the tuning you had done by hand and clearing it took your work with
-  it. It now sits on top of everything else with its own chip, and survives
-  clearing an AutoEQ reference. It also no longer inverts your own bands: the
-  target it corrects towards includes them, where before it measured as if they
-  were not there.
-- **An applied reference arrives band by band**, in frequency order, instead of
-  every slider jumping at once. You can see what it did rather than just what
-  it left behind.
-- **Zoom the whole interface** with `Ctrl` and `+`, `-` or `0`. Keyboard only,
-  deliberately — the mouse wheel belongs to the sliders.
-- **There is a game hidden in the support panel**, for anyone with the
-  contribution badge. Tap the creature or press space on the beat of whatever
-  you are playing. It reads the real percussion out of your own audio, so it is
-  your music you are playing along to.
-- **Euphoria mode.** Thirty-six consecutive perfect taps and the entire
-  application goes rainbow with the music: the bands, the response curve, the
-  meter, the menus and the release notes. One mistake and it all goes back to
-  being an equaliser.
-- **Share your run.** A card is drawn with the creature, your score and the
-  mode's own look, ready to post — copy it straight to the clipboard and paste
-  it into whatever you are writing.
-
-### Changed
-
-- **The language picker is one of the app's own dropdowns**, not the operating
-  system's, and it opens downwards at a sensible size.
-- **The titlebar sits almost flush with the page**, so the window reads as one
-  surface rather than a bar stuck on top of one.
-- **The delete-band button becomes an icon** when the row runs out of room, and
-  gets its label back when there is space for it. It is a bin now, not a cross:
-  a cross reads as "close", which is the wrong promise.
-- **The score measures accuracy, not endurance.** Only a perfect adds; anything
-  else pays a little and gives back a share of the total. Playing longer cannot
-  move anyone past their own precision.
-
-### Fixed
-
-- **Clearing an applied reference clears its bands.** The notes previously
-  claimed the bands stayed, which was wrong in both directions — a reference is
-  where your tuning came from, not a label beside it.
-- **The pet stops reacting to a paused waveform**, and stops swaying in a
-  silent room. The analyser freezes mid-frame when paused, and it was dancing
-  to a reading that had stopped being true.
-- A flaky test that depended on JavaScript object key order.
+  them. 0.6.0 and 0.6.1 were both withdrawn; everything they contained is in
+  this release.
 
 ### Faster
 
@@ -117,10 +144,12 @@ opens it again any time.
   nothing was playing.
 - **The device list stops polling while the window is hidden.** Each tick
   enumerates every audio endpoint on the machine.
+- **The spectrum is drawn as sixty-four columns rather than three hundred and
+  twenty.** At that density the bars touched, so it read as a filled area with a
+  ragged top — a worse picture, built from a path string five times longer,
+  rebuilt on every frame.
 - The spellchecker is gone. It was downloading a dictionary to check the
   spelling of preset names.
-- The live waveforms are smoothed rather than redrawn in steps, so both flow
-  instead of flickering.
 
 ---
 

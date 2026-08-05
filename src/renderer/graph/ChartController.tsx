@@ -21,7 +21,20 @@ import * as d3 from 'd3';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { Color } from 'renderer/styles/color';
 
-export const GRAPH_START = 10;
+/**
+ * The frequency range the plot covers, which is wider than the audible band at
+ * both ends so the 20Hz and 20kHz marks are not sitting on the frame.
+ *
+ * Chosen as a matched pair rather than as two round numbers. On a log axis the
+ * margin is the ratio, so 10Hz put 20Hz a full 8.9% in from the left while
+ * 25kHz put 20kHz only 2.9% from the right — three times the gap at one end,
+ * and the whole drawing pushed over. `20 / start` and `end / 20000` are now
+ * the same ratio, which lands both marks the same distance from their edge and
+ * hands the space that was wasted back to the graph.
+ *
+ * If either is ever changed, change the other: start = 20 * 20000 / end.
+ */
+export const GRAPH_START = 16;
 export const GRAPH_END = 25000;
 
 export const INIT_ANIMATE_DURATION = 750;
