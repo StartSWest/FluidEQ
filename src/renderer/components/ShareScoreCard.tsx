@@ -23,7 +23,6 @@ import {
   carriesShareText,
   getShareFileName,
   getShareUrl,
-  isEuphoricRun,
 } from 'common/shareScore';
 import { SUPPORT_CONFIG } from 'common/support';
 import { EYE_WAVE_AMPLITUDE, EYE_WAVE_PERIOD } from '../SupportPet';
@@ -49,6 +48,16 @@ interface IShareScoreCardProps {
   score: number;
   /** Highest multiplier the run reached, for the line under the number. */
   multiplier: number;
+  /**
+   * Whether to draw the euphoria card.
+   *
+   * Told rather than worked out from the multiplier, because the mode can also
+   * be switched on by somebody who reached the ceiling on an earlier run — the
+   * switch only exists once it has been earned — and a card that refused to
+   * show the look in that case would make the one thing worth sharing
+   * unshareable.
+   */
+  isEuphoric: boolean;
   onClose: () => void;
 }
 
@@ -273,12 +282,12 @@ const drawCard = (
   score: number,
   multiplier: number,
   downloadUrl: string,
+  euphoric: boolean,
 ) => {
   const context = canvas.getContext('2d');
   if (!context) {
     return;
   }
-  const euphoric = isEuphoricRun(multiplier);
   canvas.width = CARD_WIDTH * CARD_SCALE;
   canvas.height = CARD_HEIGHT * CARD_SCALE;
   context.scale(CARD_SCALE, CARD_SCALE);
@@ -416,6 +425,7 @@ const drawCard = (
 const ShareScoreCard = ({
   score,
   multiplier,
+  isEuphoric,
   onClose,
 }: IShareScoreCardProps) => {
   const { t } = useTranslation();
@@ -425,7 +435,7 @@ const ShareScoreCard = ({
   const [copied, setCopied] = useState<'card' | 'text' | ''>('');
   const copiedTimer = useRef<number | undefined>(undefined);
 
-  const text = buildShareText(score, multiplier);
+  const text = buildShareText(score, multiplier, isEuphoric);
   // The releases page, not the source tree. A share post is read by people
   // who have never seen FluidEQ, and sending them somewhere they have to work
   // out how to build it wastes the only click they were going to give.
@@ -433,9 +443,9 @@ const ShareScoreCard = ({
 
   useEffect(() => {
     if (canvasRef.current) {
-      drawCard(canvasRef.current, score, multiplier, url);
+      drawCard(canvasRef.current, score, multiplier, url, isEuphoric);
     }
-  }, [multiplier, score, url]);
+  }, [isEuphoric, multiplier, score, url]);
 
   useEffect(
     () => () => {
@@ -455,9 +465,9 @@ const ShareScoreCard = ({
     // answer than picking a directory for them.
     const link = document.createElement('a');
     link.href = canvas.toDataURL('image/png');
-    link.download = getShareFileName(score, multiplier);
+    link.download = getShareFileName(score, isEuphoric);
     link.click();
-  }, [multiplier, score]);
+  }, [isEuphoric, score]);
 
   const confirm = useCallback((which: 'card' | 'text') => {
     setCopied(which);
@@ -539,7 +549,7 @@ const ShareScoreCard = ({
           there is nothing to suggest the card has another form, let alone what
           it costs. Only ever shown below the ceiling: at the ceiling they are
           looking at it. */}
-      {!isEuphoricRun(multiplier) && (
+      {!isEuphoric && (
         <p className="share-score__unlock">{t('support.game.shareUnlock')}</p>
       )}
 

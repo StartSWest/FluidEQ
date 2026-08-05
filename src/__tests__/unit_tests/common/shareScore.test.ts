@@ -105,13 +105,14 @@ describe('carriesShareText', () => {
 
 describe('getShareFileName', () => {
   it('names the file after the score', () => {
-    expect(getShareFileName(1234, 10)).toBe('fluideq-euphoria-1234.png');
+    expect(getShareFileName(1234, true)).toBe('fluideq-euphoria-1234.png');
   });
 
   it('does not call an ordinary run euphoria', () => {
-    // The filename is the first thing anyone sees when they go to attach it,
-    // and a card that says ×3 saved as "euphoria" is a small lie.
-    expect(getShareFileName(1234, 3)).toBe('fluideq-score-1234.png');
+    // Told rather than inferred from the multiplier, because the mode can be
+    // switched on by someone who reached the ceiling on an earlier run — but
+    // an ordinary card still must not be filed as a euphoric one.
+    expect(getShareFileName(1234, false)).toBe('fluideq-score-1234.png');
   });
 
   it('cannot produce a name with a dot or a minus in the number', () => {

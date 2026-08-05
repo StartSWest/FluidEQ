@@ -56,3 +56,24 @@
 .graph-wrapper.is-engine-disabled > .live-output-controls {
   pointer-events: none;
 }
+
+// The live-output legend doubles as the control for how it is drawn.
+//
+// Clicking the plot drags bands, so the style cycle needed a target of its
+// own — and the label that already names the live output says what it changes
+// better than a new button somewhere would.
+.graph-legend--button {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: rgba(255, 255, 255, 0.95);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    outline: none;
+  }
+}

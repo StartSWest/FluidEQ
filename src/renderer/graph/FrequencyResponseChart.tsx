@@ -67,6 +67,7 @@ import {
   useLiveAudioFrame,
 } from '../audio/LiveAudioContext';
 import { getBandColor } from '../utils/bandColors';
+import { cycleGraphStyle } from '../utils/graphStyle';
 import { getVoicingFilters } from '../../common/voicing';
 import { getDriverFilters } from '../../common/driver';
 import { getSmartEqFilters, hasSmartEqLayer } from '../../common/smartEq';
@@ -778,9 +779,19 @@ const FrequencyResponseChart = () => {
               .join(' + ')}
           </span>
         ) : null}
-        <span className="graph-legend graph-legend--live">
+        {/* The legend is the control.
+        
+            Clicking the graph itself drags bands, so the cycle needed its own
+            target — and the label that already names the live output is a
+            better one than a new button somewhere: it says what it changes. */}
+        <button
+          type="button"
+          className="graph-legend graph-legend--live graph-legend--button"
+          onClick={cycleGraphStyle}
+          title="Change how the live output is drawn"
+        >
           Live output (0 dB = track peak)
-        </span>
+        </button>
         {liveOutput.isClipping && (
           <span className="graph-clip-warning" role="status">
             CLIPPING - reduce preamp

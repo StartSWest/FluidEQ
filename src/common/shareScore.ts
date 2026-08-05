@@ -60,8 +60,8 @@ export const isEuphoricRun = (multiplier: number): boolean =>
   multiplier >= EUPHORIA_MULTIPLIER;
 
 /** Filename for the saved card. */
-export const getShareFileName = (score: number, multiplier = 1): string =>
-  `fluideq-${isEuphoricRun(multiplier) ? 'euphoria' : 'score'}-${Math.max(
+export const getShareFileName = (score: number, euphoric = false): string =>
+  `fluideq-${euphoric ? 'euphoria' : 'score'}-${Math.max(
     0,
     Math.floor(score),
   )}.png`;
@@ -73,14 +73,18 @@ export const getShareFileName = (score: number, multiplier = 1): string =>
  * "×1" is worse than claiming nothing. Kept short enough to survive X's limit
  * with the URL attached, which is the tightest of the three by a wide margin.
  */
-export const buildShareText = (score: number, multiplier: number): string => {
+export const buildShareText = (
+  score: number,
+  multiplier: number,
+  euphoric = isEuphoricRun(multiplier),
+): string => {
   const points = Math.max(0, Math.floor(score));
   const peak = Math.max(1, Math.floor(multiplier));
-  if (peak >= EUPHORIA_MULTIPLIER) {
+  if (euphoric) {
     // Reaching the ceiling is the whole story, so it leads. Thirty-six
     // consecutive perfect taps is the thing worth telling people about; the
     // number is the evidence, not the headline.
-    return `I hit EUPHORIA MODE — ×10, ${points} points — on the beat game hidden inside FluidEQ, a free open-source equaliser for Windows. The entire interface goes rainbow with the music.`;
+    return `I hit EUPHORIA MODE — ×${Math.max(EUPHORIA_MULTIPLIER, peak)}, ${points} points — on the beat game hidden inside FluidEQ, a free open-source equaliser for Windows. The entire interface goes rainbow with the music.`;
   }
   return `I scored ${points} points at ×${peak} on the beat game hidden inside FluidEQ, a free open-source equaliser for Windows.`;
 };

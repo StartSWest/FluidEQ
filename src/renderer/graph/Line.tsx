@@ -22,6 +22,12 @@ import { useIsFirstRender } from 'renderer/utils/utils';
 import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
 import { getEaseFactor } from 'common/smoothing';
 import {
+  Projected,
+  createGraphShape,
+  isFilledGraphStyle,
+} from 'common/graphStyles';
+import { useGraphStyle } from 'renderer/utils/graphStyle';
+import {
   GRAPH_ANIMATE_DURATION,
   IChartPointData,
   INIT_ANIMATE_DURATION,
@@ -223,7 +229,20 @@ const Line = ({
   // The points are eased rather than the path string, because a path is text
   // and text cannot be interpolated; the shape has to be rebuilt from numbers
   // that moved. Two buffers, reused, so a frame allocates nothing.
+  // Only the live trace has a style; every other curve is the user's own
+  // tuning and has one right way to be drawn.
+  const graphStyle = useGraphStyle();
+  const graphStyleRef = useRef(graphStyle);
+  graphStyleRef.current = graphStyle;
+
   const easedRef = useRef<IChartPointData[]>([]);
+  // Reused, so a frame projects into the same array rather than minting one.
+  const projectedRef = useRef<Projected[]>([]);
+  // The pixel row the filled styles stand on — the bottom of the plot, taken
+  // from the scale itself so it follows a resize without being told.
+  const baselineRef = useRef(0);
+  const range = yScale.range?.();
+  baselineRef.current = range ? Math.max(range[0], range[1]) : 0;
   const drawFrame = useCallback(
     (deltaMs: number) => {
       const eased = easedRef.current;
@@ -243,13 +262,37 @@ const Line = ({
           eased[index].y = data[index].y;
         }
       }
-      ref.current?.setAttribute('d', line(eased) ?? '');
+      const chosen = graphStyleRef.current;
+      if (chosen === 'line') {
+        ref.current?.setAttribute('d', line(eased) ?? '');
+        return moving;
+      }
+      // Projected into pixels first: the axes are logarithmic in frequency and
+      // decibel in level, so building bars or steps in data space and scaling
+      // afterwards would put every edge in the wrong place.
+      const projected = projectedRef.current;
+      if (projected.length !== eased.length) {
+        projectedRef.current = eased.map(() => [0, 0] as unknown as Projected);
+      }
+      const target = projectedRef.current as unknown as [number, number][];
+      for (let index = 0; index < eased.length; index += 1) {
+        target[index][0] = Number(xScale(eased[index].x)) || 0;
+        target[index][1] = Number(yScale(eased[index].y)) || 0;
+      }
+      ref.current?.setAttribute(
+        'd',
+        createGraphShape(target, chosen, baselineRef.current),
+      );
       return moving;
     },
-    [data, line],
+    [data, line, xScale, yScale],
   );
 
   const kickFrames = useSmoothFrames(drawFrame, { isEnabled: Boolean(smooth) });
+
+  // Only the live trace can be painted; every other curve is a line and the
+  // style setting has nothing to say about it.
+  const isPainted = Boolean(smooth) && isFilledGraphStyle(graphStyle);
 
   useEffect(() => {
     if (!smooth) {
@@ -281,14 +324,18 @@ const Line = ({
           transform="translate(0 3)"
         />
       )}
+      {/* One element for every style. A filled style paints this same path
+          rather than stroking it — which is a fill colour, not a second
+          element, so cycling styles never creates or destroys anything. */}
       <path
         name={name}
         ref={ref}
-        stroke={color}
+        stroke={isPainted ? 'none' : color}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
-        fill="none"
+        fill={isPainted ? color : 'none'}
+        fillOpacity={isPainted ? 0.55 : undefined}
         opacity={0}
         transform={transform}
       />
