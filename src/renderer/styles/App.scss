@@ -1056,7 +1056,9 @@ $tab-border: rgba($secondary-light, 0.2);
 
 .graph-wrapper {
   position: relative;
+  display: flex;
   width: 100%;
+  flex-direction: column;
   // Whatever the pane above is not using — no height of its own at all.
   //
   // The divider sizes the editor, so this end of the split simply absorbs the
@@ -1079,6 +1081,15 @@ $tab-border: rgba($secondary-light, 0.2);
   // Keep the chart painted inside its own card.
   isolation: isolate;
   overflow: hidden;
+}
+
+// The box the plot is measured from. All of the card, ordinarily — the legend
+// strip above it floats and takes no room — so this changes nothing until full
+// screen, where the card grows and the drawing deliberately does not.
+.graph-plot {
+  position: relative;
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
 // Legend strip floating over the top of the chart. It has no surface of its

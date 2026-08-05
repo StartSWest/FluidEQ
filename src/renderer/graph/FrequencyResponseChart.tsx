@@ -841,7 +841,6 @@ const FrequencyResponseChart = () => {
   return isGraphViewOn ? (
     <div
       className={`graph-wrapper${!isEngineUsable ? ' is-engine-disabled' : ''}`}
-      ref={ref}
       aria-disabled={!isEngineUsable}
     >
       <div className="live-output-controls">
@@ -938,27 +937,36 @@ const FrequencyResponseChart = () => {
           Drag points · Ctrl/Shift select · Ctrl+scroll: Q
         </span>
       </div>
-      {isLoading ? (
-        <div className="center full row">
-          <Spinner />
-        </div>
-      ) : (
-        <Chart
-          data={displayData}
-          // The band curves, without the live trace appended below. Their
-          // identity survives a live frame, which is what keeps the y-extent
-          // memos from rescanning every point 22 times a second.
-          scaleData={chartData}
-          dimensions={dimensions}
-          editablePoints={isSolo ? [] : editablePoints}
-          coverage={liveOutput.balanceProgress?.regions}
-          onMarqueeSelect={(ids, additive) =>
-            setSelectedFilterIds(
-              additive ? [...new Set([...selectedFilterIds, ...ids])] : ids,
-            )
-          }
-        />
-      )}
+      {/* The measured box, and the card around it are now two different things.
+          They used to be one, which is fine while the plot fills the card and
+          wrong the moment it should not: in full screen the card covers the
+          whole column so the frosting sits over all of the video, while the
+          drawing keeps a sensible height in the middle of it. Measuring the
+          card there would stretch the plot to the full height of the window,
+          which is the one thing a frequency response should not do. */}
+      <div className="graph-plot" ref={ref}>
+        {isLoading ? (
+          <div className="center full row">
+            <Spinner />
+          </div>
+        ) : (
+          <Chart
+            data={displayData}
+            // The band curves, without the live trace appended below. Their
+            // identity survives a live frame, which is what keeps the y-extent
+            // memos from rescanning every point 22 times a second.
+            scaleData={chartData}
+            dimensions={dimensions}
+            editablePoints={isSolo ? [] : editablePoints}
+            coverage={liveOutput.balanceProgress?.regions}
+            onMarqueeSelect={(ids, additive) =>
+              setSelectedFilterIds(
+                additive ? [...new Set([...selectedFilterIds, ...ids])] : ids,
+              )
+            }
+          />
+        )}
+      </div>
     </div>
   ) : null;
 };
