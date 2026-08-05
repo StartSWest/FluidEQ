@@ -1032,12 +1032,17 @@ const adoptExistingApoConfig = () => {
   }
 };
 
-ipcMain.on(ChannelEnum.INSTALL_EQUALIZER_APO, (event) => {
+ipcMain.on(ChannelEnum.INSTALL_EQUALIZER_APO, async (event) => {
   const channel = ChannelEnum.INSTALL_EQUALIZER_APO;
   try {
-    runEqualizerApoSetup();
+    // Awaited. Elevation is asked for asynchronously, so a synchronous call
+    // would report success the instant the prompt appeared and could never
+    // report a refusal — which is the most likely outcome of the two.
+    await runEqualizerApoSetup();
+    log.info('Started the Equalizer APO installer');
     event.reply(channel, { result: undefined });
   } catch (e) {
+    log.error('Could not start the Equalizer APO installer', e);
     handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
   }
 });

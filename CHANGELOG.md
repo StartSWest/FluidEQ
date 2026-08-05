@@ -26,6 +26,9 @@ opens it again any time.
   offer to remove APO, because it could not find it either.
 - **Uninstalling could not remove Equalizer APO** even when you asked it to,
   for the same permission reason as the install.
+- **The Install Equalizer APO button inside the app was broken the same way.**
+  It reported success, and no installer ever opened. Both places now ask
+  Windows for permission properly.
 
 ### Changed
 
