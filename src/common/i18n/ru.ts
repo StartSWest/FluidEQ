@@ -52,7 +52,12 @@ const ru: Partial<Dictionary> = {
   'video.reload': 'Обновить',
   'video.stop': 'Остановить',
   'video.searchAria': 'Поиск по текущему сайту',
-  'video.searchPlaceholder': 'Найдите, что послушать или посмотреть',
+  'video.searchOn': 'Поиск на {site}',
+  'video.searchGo': 'Найти',
+  'video.searchClear': 'Очистить поиск',
+  'video.searchRecent': 'Недавние запросы',
+  'video.searchForget': 'Забыть «{term}»',
+  'video.searchForgetAll': 'Очистить недавние запросы',
   'video.adBlock': 'Блокировать рекламу',
   'video.adBlockHint':
     'Пропускает рекламу в видео и скрывает рекламные блоки на YouTube.',

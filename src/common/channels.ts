@@ -90,6 +90,11 @@ enum ChannelEnum {
   // A link the player refused to follow, sent to the real browser instead —
   // only ever after the user pressed the button on the notice naming it.
   OPEN_VIDEO_LINK_EXTERNALLY = 'openVideoLinkExternally',
+  // The window's own failures, written into the same log the bug reporter
+  // reads. One way only, and no reply — the caller is error handling, and
+  // error handling that can itself fail is not error handling.
+  LOG_ERROR = 'logError',
+  LOG_INFO = 'logInfo',
 }
 
 export default ChannelEnum;

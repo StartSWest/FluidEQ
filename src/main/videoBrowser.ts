@@ -185,9 +185,21 @@ const hardenPlayer = (contents: WebContents) => {
     // Stopping it and returning to somewhere known is the honest recovery:
     // leaving a half-loaded page from an unlisted host on screen would be
     // worse than either allowing it or refusing it cleanly.
-    contents.stop();
-    contents.loadURL(HOME_SITE.home).catch(() => {
-      // Nothing further to try if even the home page will not load.
+    //
+    // Deferred, for the same reason `setWindowOpenHandler` below is. This runs
+    // inside Chromium's own navigation dispatch, and tearing that navigation
+    // down and starting another one from within the notification that it began
+    // is re-entrant — it took the whole app down, not just the guest, when
+    // YouTube's sign-in link sent the player at `accounts.google.com`. By the
+    // next tick the navigation has a state to be stopped from.
+    setImmediate(() => {
+      if (contents.isDestroyed()) {
+        return;
+      }
+      contents.stop();
+      contents.loadURL(HOME_SITE.home).catch(() => {
+        // Nothing further to try if even the home page will not load.
+      });
     });
   });
 

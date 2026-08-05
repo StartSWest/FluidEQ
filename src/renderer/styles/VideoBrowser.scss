@@ -73,8 +73,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .video-browser__bar {
+  // Above the stage, so the suggestion list can hang over the page rather than
+  // being clipped by it. The stage isolates its guest into its own stacking
+  // context, which keeps the video inside its rounded corners but does nothing
+  // to stop it painting over a sibling that comes earlier in the document.
+  position: relative;
+  z-index: 5;
   display: flex;
   min-width: 0;
+  // Off the tab strip. Without it the toolbar butts straight up against the
+  // tabs, which reads as part of them rather than as the player's own chrome.
+  padding-top: $spacing-xs;
   flex-wrap: wrap;
   align-items: center;
   gap: $spacing-s;
@@ -134,13 +143,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .video-browser__sites {
   display: flex;
   min-width: 0;
-  flex: 1 1 auto;
+  // Content width. These used to grow, which put every pixel of spare room
+  // between the last pill and the search box — the pills stayed the size of
+  // their labels and the gap did all the growing, so the row read as two
+  // clusters pushed to opposite ends. The slack belongs to the search box,
+  // which can actually use it.
+  flex: 0 1 auto;
   flex-wrap: wrap;
+  align-items: center;
   gap: $spacing-xs;
 }
 
 .video-browser__site {
+  display: inline-flex;
+  align-items: center;
   padding: 4px 9px;
+  gap: 5px;
   border: 1px solid rgba($primary-lighter, 0.14);
   border-radius: 999px;
   background: rgba($white, 0.03);
@@ -165,18 +183,283 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Filled with `currentColor`, so a mark takes the same hover and active colour
+// as the label beside it rather than fighting it. Slightly behind the text at
+// rest: the icon is there to be recognised in passing, not read.
+.video-browser__site-icon {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  fill: currentcolor;
+  opacity: 0.75;
+
+  .video-browser__site:hover &,
+  .video-browser__site.is-active & {
+    opacity: 1;
+  }
+}
+
 // *** Search *****************************************************************
 
+// Takes the slack the pills no longer do, so the row reads as one continuous
+// toolbar instead of two clusters pushed to opposite ends. Capped, because a
+// search box two thirds of a wide monitor across is not more usable than one
+// the width of a search — it just leaves the caret marooned.
 .video-browser__search {
-  min-width: 150px;
-  flex: 1 1 200px;
-  max-width: 320px;
+  min-width: 180px;
+  flex: 1 1 240px;
+  max-width: 460px;
+}
+
+.video-search {
+  position: relative;
+  width: 100%;
+}
+
+.video-search__field {
+  display: flex;
+  height: 26px;
+  align-items: center;
+  padding: 0 3px 0 8px;
+  border: 1px solid rgba($primary-lighter, 0.14);
+  // Matches the site pills rather than the nav buttons: this is the other end
+  // of the same row, and 26px tall against a 999px radius is a capsule.
+  border-radius: 999px;
+  background: rgba($white, 0.03);
+  gap: 6px;
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
+
+  &:focus-within {
+    border-color: rgba($secondary-light, 0.55);
+    background: rgba($secondary-light, 0.08);
+  }
+
+  // Squared off at the bottom while the list is open, so the two read as one
+  // piece rather than as a box with something floating under it.
+  &.is-open {
+    border-bottom-right-radius: $radius-s;
+    border-bottom-left-radius: $radius-s;
+  }
+}
+
+.video-search__icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: rgba($primary-lighter, 0.55);
+  stroke-linecap: round;
+  stroke-width: 1.6;
+}
+
+// Two classes deep on purpose. App.scss gives every `input` the shared field
+// surface — its own border, background and padding — which inside this capsule
+// drew a second rounded box within the first. That rule sits at single-element
+// specificity so a single class here only wins if this file happens to be
+// loaded after it, which is not something to rely on for whether the control
+// has one border or two.
+.video-search .video-search__input {
+  min-width: 0;
+  height: 100%;
+  flex: 1 1 auto;
+  padding: 0;
+  border: none;
+  background: none;
+  box-shadow: none;
+  color: $primary-lighter;
+  font-size: 0.7rem;
+  outline: none;
+
+  &::placeholder {
+    color: rgba($primary-lighter, 0.4);
+  }
+}
+
+.video-search__clear {
+  display: flex;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: rgba($primary-lighter, 0.5);
+  cursor: pointer;
+
+  svg {
+    width: 8px;
+    height: 8px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+
+  &:hover {
+    background: rgba($white, 0.08);
+    color: $primary-lighter;
+  }
+}
+
+.video-search__go {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border: none;
+  border-radius: 999px;
+  background: rgba($secondary-light, 0.16);
+  color: $secondary-light;
+  font-size: 0.64rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    opacity 140ms ease;
+
+  &:hover:not(:disabled) {
+    background: rgba($secondary-light, 0.28);
+  }
+
+  // Dimmed rather than hidden: a button that appears as the first character is
+  // typed makes the whole box change width mid-word.
+  &:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+}
+
+// *** What has been searched before ******************************************
+
+.video-search__suggestions {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  padding: 4px;
+  border: 1px solid rgba($secondary-light, 0.28);
+  border-radius: $radius-m;
+  background: linear-gradient(160deg, rgba(#0d2029, 0.99), rgba(#0a161d, 0.99));
+  box-shadow: 0 18px 44px rgba($black, 0.5);
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.video-search__suggestions-title {
+  padding: 3px 8px 5px;
+  color: rgba($primary-lighter, 0.45);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.video-search__suggestion {
+  display: flex;
+  align-items: center;
+  border-radius: $radius-s;
+
+  // One highlight, driven by the arrow keys, with hover feeding into the same
+  // state. Two independent highlights — one following the pointer, one the
+  // keyboard — is the thing that makes a list like this feel broken.
+  &.is-highlighted {
+    background: rgba($secondary-light, 0.14);
+  }
+}
+
+.video-search__suggestion-run {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  padding: 5px 8px;
+  border: none;
+  background: none;
+  color: rgba($primary-lighter, 0.88);
+  font-size: 0.68rem;
+  gap: 7px;
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: rgba($primary-lighter, 0.4);
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.video-search__suggestion-forget {
+  display: flex;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: rgba($primary-lighter, 0.35);
+  cursor: pointer;
+
+  svg {
+    width: 8px;
+    height: 8px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+
+  &:hover {
+    background: rgba($white, 0.1);
+    color: $primary-lighter;
+  }
+}
+
+.video-search__forget-all {
+  width: 100%;
+  margin-top: 3px;
+  padding: 5px 8px;
+  border: none;
+  border-top: 1px solid rgba($primary-lighter, 0.08);
+  background: none;
+  color: rgba($primary-lighter, 0.5);
+  font-size: 0.62rem;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    color: $secondary-light;
+  }
 }
 
 // *** Ad blocker switch ******************************************************
 
 .video-browser__ad-block {
   display: flex;
+  // Pinned to the far end, so the space the capped search box does not take
+  // lands here rather than as a gap in the middle of the row.
+  margin-left: auto;
   flex: 0 0 auto;
   align-items: center;
   gap: $spacing-xs;

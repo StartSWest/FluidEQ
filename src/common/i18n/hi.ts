@@ -58,7 +58,12 @@ const hi: Partial<Dictionary> = {
   'video.reload': 'फिर से लोड करें',
   'video.stop': 'रोकें',
   'video.searchAria': 'मौजूदा साइट पर खोजें',
-  'video.searchPlaceholder': 'चलाने के लिए कुछ खोजें',
+  'video.searchOn': '{site} पर खोजें',
+  'video.searchGo': 'खोजें',
+  'video.searchClear': 'खोज साफ़ करें',
+  'video.searchRecent': 'हाल की खोजें',
+  'video.searchForget': '“{term}” हटाएँ',
+  'video.searchForgetAll': 'हाल की खोजें साफ़ करें',
   'video.adBlock': 'विज्ञापन ब्लॉक करें',
   'video.adBlockHint':
     'YouTube पर वीडियो विज्ञापन छोड़ता है और विज्ञापन की जगह छिपाता है।',

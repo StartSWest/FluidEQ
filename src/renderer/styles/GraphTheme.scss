@@ -242,31 +242,64 @@
 
 // The graph with the workspace to itself.
 //
-// Not an overlay. The EQ bands above it simply stop taking room, and the graph
-// — already the flexible child of this column — grows into what they were
-// using. Nothing is covered, nothing is fixed to the viewport, and coming back
-// is the same layout it was before rather than a restoration of one.
+// An overlay, and the pane above it is the reason. This used to hide that pane
+// and let the graph grow into the space — which is tidier as layout, and wrong
+// for what the mode is for: the thing most worth watching a spectrum against is
+// the video that is producing it, and hiding the player to make room for the
+// graph removes exactly that. So the pane below stays where it is, at the full
+// height of the column, and the graph floats over the middle of it.
 //
-// `display: none` rather than a zero height: a hidden panel that still lays
-// out is still measuring sliders, and the whole point of the mode is to be
-// left with one drawing.
+// Translucent rather than opaque, so the picture carries on behind the drawing
+// instead of being replaced by it.
 .center-workspace.is-graph-full {
-  // Centred in what the EQ bands were using, rather than stretched into all of
-  // it. A drawing pinned to every edge of its column has no frame around it
-  // and reads as a wall; two thirds with air above and below reads as
-  // something being presented.
-  justify-content: center;
+  position: relative;
 
+  // Everything the column had, now that neither the divider nor the graph is
+  // taking any of it. The pane is unaware it is in this mode at all.
   > .middle-content {
+    height: auto;
+    max-height: none;
+    flex: 1 1 auto;
+  }
+
+  // Nothing left to drag: the graph is out of the flow, so the handle would
+  // resize one pane against no other.
+  > .pane-resizer {
     display: none;
   }
 
-  // The graph normally takes a fixed slice of the column so a short window
-  // cannot squeeze it to a sliver. With nothing above it there is nothing to
-  // negotiate with, so the clamp goes and it takes a share instead.
   > .graph-wrapper {
-    height: auto;
-    flex: 0 0 66%;
+    position: absolute;
+    z-index: 40;
+    // The full width of the column, as it had before it floated — narrowing it
+    // buys nothing and costs the horizontal resolution that is the whole point
+    // of a spectrum. Two thirds of the height, centred, so there is air above
+    // and below and the video is visible past both.
+    top: 50%;
+    right: 0;
+    left: 0;
+    width: auto;
+    height: 66%;
     min-height: 260px;
+    flex: none;
+    transform: translateY(-50%);
+    // Frosted glass, not a fade. The distinction is the whole of it: the
+    // *background* is translucent and heavily blurred, so the video is present
+    // behind as colour and movement rather than as a picture competing for
+    // attention — while the curve, the grid and the labels drawn on top of it
+    // are at full strength and not dimmed by anything.
+    //
+    // Which is why the opacity is stated here rather than left to inherit: a
+    // transparency put on the element instead of on its background would take
+    // the trace down with it, and a half-visible graph over a half-visible
+    // video is two things nobody can read instead of one.
+    border-color: rgba($secondary-light, 0.34);
+    background: rgba(#08141a, 0.62);
+    // Enough blur that what shows through is light and colour rather than
+    // legible detail — a moving frame under a spectrum is a fight the spectrum
+    // loses. The saturation keeps that light from going grey.
+    backdrop-filter: blur(26px) saturate(1.3);
+    opacity: 1;
+    box-shadow: 0 30px 80px rgba($black, 0.6);
   }
 }

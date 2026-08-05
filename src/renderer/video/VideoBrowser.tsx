@@ -31,8 +31,9 @@ import {
   isAllowedVideoUrl,
 } from 'common/videoSites';
 import Switch from '../widgets/Switch';
-import TextInput from '../widgets/TextInput';
 import { useTranslation } from '../utils/I18nContext';
+import VideoSearch from './VideoSearch';
+import VideoSiteIcon from './VideoSiteIcon';
 import '../styles/VideoBrowser.scss';
 
 /**
@@ -72,6 +73,38 @@ const Webview = 'webview' as unknown as FC<IWebviewProps>;
 
 const HOME_SITE: IVideoSite = VIDEO_SITES[0];
 
+/**
+ * Where the player was when the window last closed.
+ *
+ * A restart used to land back on YouTube's home page, whatever had been
+ * playing. That is a small loss on a browser and a large one here: FluidEQ gets
+ * restarted *because* of what it does — an EQ change that needs the audio
+ * service bounced, an update, a crash — and each time it threw away the track
+ * somebody was in the middle of tuning against.
+ *
+ * The URL only. Not the position in the video, which is the site's own business
+ * and is generally remembered by the site itself for anyone signed in.
+ */
+const VIDEO_LAST_URL_KEY = 'fluideq.videoLastUrl';
+
+/**
+ * The stored page, if it is still somewhere the player may go.
+ *
+ * Checked rather than trusted. localStorage is editable, and this value is
+ * handed straight to the guest as its `src` — the one place in this component
+ * where a string from disk becomes a navigation. The main process would refuse
+ * an unlisted host anyway, but a `src` it refuses is a player that comes up
+ * blank, which is a worse answer than the home page.
+ */
+const readStoredUrl = () => {
+  try {
+    const stored = localStorage.getItem(VIDEO_LAST_URL_KEY);
+    return stored && isAllowedVideoUrl(stored) ? stored : HOME_SITE.home;
+  } catch {
+    return HOME_SITE.home;
+  }
+};
+
 const readStoredAdBlock = () => {
   try {
     const stored = localStorage.getItem(VIDEO_AD_BLOCK_STORAGE_KEY);
@@ -97,11 +130,14 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   const { t } = useTranslation();
   const webviewRef = useRef<IWebview | null>(null);
 
-  const [currentUrl, setCurrentUrl] = useState(HOME_SITE.home);
+  // Read once, into a ref as well as into state: the `src` attribute must not
+  // change after the tag has attached, or every navigation would reload the
+  // page the app started on.
+  const initialUrl = useRef(readStoredUrl());
+  const [currentUrl, setCurrentUrl] = useState(initialUrl.current);
   const [canGoBack, setCanGoBack] = useState(false);
   const [canGoForward, setCanGoForward] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [query, setQuery] = useState('');
   const [blockedUrl, setBlockedUrl] = useState('');
   const [isAdBlockOn, setIsAdBlockOn] = useState(readStoredAdBlock);
   // The page asked for fullscreen — the button on YouTube's own player.
@@ -113,6 +149,21 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   const [isPageFullScreen, setIsPageFullScreen] = useState(false);
 
   const activeSite = findSiteForUrl(currentUrl);
+
+  // Written on every navigation rather than on close. There is no reliable
+  // "about to quit" moment in a renderer — the window can go with the audio
+  // service, or with a crash — and the whole reason this exists is the restarts
+  // that are not orderly.
+  useEffect(() => {
+    if (!currentUrl || !isAllowedVideoUrl(currentUrl)) {
+      return;
+    }
+    try {
+      localStorage.setItem(VIDEO_LAST_URL_KEY, currentUrl);
+    } catch {
+      // Coming back to the home page is a small loss, not a failure.
+    }
+  }, [currentUrl]);
 
   // Pushed to the main process, which is where the blocker actually reads it
   // from. Runs on mount too, so a player attached later starts in the state the
@@ -305,20 +356,16 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
               aria-pressed={activeSite?.id === site.id}
               onClick={() => goTo(site.home)}
             >
+              <VideoSiteIcon siteId={site.id} />
               {site.name}
             </button>
           ))}
         </div>
 
         <div className="video-browser__search">
-          <TextInput
-            value={query}
-            ariaLabel={t('video.searchAria')}
-            placeholder={t('video.searchPlaceholder')}
-            isDisabled={false}
-            errorMessage=""
-            handleChange={setQuery}
-            handleSubmit={handleSearch}
+          <VideoSearch
+            handleSearch={handleSearch}
+            siteName={(activeSite ?? HOME_SITE).name}
           />
         </div>
 
@@ -342,7 +389,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         <Webview
           ref={webviewRef}
           className="video-browser__view"
-          src={HOME_SITE.home}
+          src={initialUrl.current}
           // Named here as well as forced in the main process. This is the value
           // that has to be right for the tag to attach at all; the main process
           // overwrites it anyway, so the two can never drift apart.

@@ -52,7 +52,12 @@ const de: Partial<Dictionary> = {
   'video.reload': 'Neu laden',
   'video.stop': 'Stopp',
   'video.searchAria': 'Auf der aktuellen Seite suchen',
-  'video.searchPlaceholder': 'Etwas zum Abspielen suchen',
+  'video.searchOn': 'Auf {site} suchen',
+  'video.searchGo': 'Suchen',
+  'video.searchClear': 'Suche löschen',
+  'video.searchRecent': 'Letzte Suchanfragen',
+  'video.searchForget': '„{term}“ vergessen',
+  'video.searchForgetAll': 'Letzte Suchanfragen löschen',
   'video.adBlock': 'Werbung blockieren',
   'video.adBlockHint':
     'Überspringt Videowerbung und blendet Werbeflächen auf YouTube aus.',

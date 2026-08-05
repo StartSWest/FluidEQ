@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { reportError } from './utils/logger';
 import './styles/ErrorBoundary.scss';
 
 interface IErrorBoundaryProps {
@@ -54,10 +55,14 @@ export default class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error, info: ErrorInfo) {
-    // Goes to the renderer console, which is where a developer looks first and
-    // what a user can be walked through opening.
-    // eslint-disable-next-line no-console
-    console.error('FluidEQ crashed while rendering', error, info);
+    // To the console for a developer, and to the log file for everyone else.
+    // This used to be the console alone, which meant the app's single most
+    // serious failure — the one that replaces the whole window — left no trace
+    // in the file a bug report attaches.
+    reportError(
+      `Crashed while rendering${info.componentStack ? `\n${info.componentStack.trim()}` : ''}`,
+      error,
+    );
     this.setState({ componentStack: info.componentStack ?? undefined });
   }
 

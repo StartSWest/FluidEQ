@@ -39,8 +39,10 @@ import log from 'electron-log';
 import { autoUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
+import os from 'os';
 import { exec, execFile } from 'child_process';
 import { createHash } from 'crypto';
+import { redact } from '../common/bugReport';
 import {
   addFileToPath,
   checkConfigFile,
@@ -1047,6 +1049,32 @@ ipcMain.on(ChannelEnum.GATHER_BUG_REPORT, async (event) => {
     log.error('Could not gather a bug report', e);
     handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
   }
+});
+
+/**
+ * Everything the window has to say, redacted on the way in.
+ *
+ * Redacted here rather than in the renderer so it is one rule in one place,
+ * applied to every line that reaches the file. A stack trace is nothing but
+ * paths, and in a packaged build those paths run through the user's profile
+ * directory — which carries their account name, and would end up in every bug
+ * report emailed to a stranger. `redact` is the same function the report itself
+ * uses; the log has to be clean before it is written, not when it is read,
+ * because the file is on disk either way.
+ */
+const REDACT_AS = os.userInfo().username;
+
+ipcMain.on(ChannelEnum.LOG_ERROR, (_event, args) => {
+  const [context, detail] = (args as string[]) ?? [];
+  log.error(
+    `[renderer] ${redact(String(context ?? ''), REDACT_AS)}`,
+    redact(String(detail ?? ''), REDACT_AS),
+  );
+});
+
+ipcMain.on(ChannelEnum.LOG_INFO, (_event, args) => {
+  const [message] = (args as string[]) ?? [];
+  log.info(`[renderer] ${redact(String(message ?? ''), REDACT_AS)}`);
 });
 
 ipcMain.on(ChannelEnum.INSTALL_EQUALIZER_APO, async (event) => {
@@ -2564,6 +2592,53 @@ const createMainWindow = async () => {
 
   setUpAutoUpdates();
 };
+
+/**
+ * Write down what killed it, before it dies.
+ *
+ * Nothing here changes what happens — a throw with nobody to catch it still
+ * ends the process, and it should. What changes is whether there is any record
+ * afterwards. Without these, the only trace of a crash in a packaged build is
+ * the window disappearing, and the bug report that follows says "it closed",
+ * which is not something anybody can fix.
+ *
+ * Installed at module scope rather than inside `whenReady`, because the window
+ * that never opens is exactly the failure worth catching, and by `whenReady` a
+ * good deal of the app has already run.
+ */
+const setUpCrashLogging = () => {
+  // Moved up from the updater's setup, which does not run until a window is
+  // being built. Everything logged before that point was going to the console
+  // and no further — including, by definition, every failure to get that far.
+  log.transports.file.level = 'info';
+
+  process.on('uncaughtException', (error) => {
+    log.error('Uncaught exception in the main process', error);
+  });
+
+  process.on('unhandledRejection', (reason) => {
+    log.error('Unhandled promise rejection in the main process', reason);
+  });
+
+  // The window's own process, or a video player's, dying underneath us. The
+  // reason is Chromium's — 'crashed', 'oom', 'killed' — and it is the only
+  // evidence there is for a page that took its process with it.
+  app.on('render-process-gone', (_event, contents, details) => {
+    log.error(
+      `Render process gone (${contents.getType()}): ${details.reason}`,
+      details,
+    );
+  });
+
+  app.on('child-process-gone', (_event, details) => {
+    log.error(
+      `Child process gone (${details.type}): ${details.reason}`,
+      details,
+    );
+  });
+};
+
+setUpCrashLogging();
 
 /**
  * Add event listeners...

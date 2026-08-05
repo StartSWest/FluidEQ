@@ -74,11 +74,11 @@ import {
   getPresetListFromFiles,
   importConvolutionFile,
   importEqFile,
-  installEqualizerApo,
   loadPreset,
   renamePreset,
   savePreset,
 } from './utils/equalizerApi';
+import { startEqualizerApoInstall } from './utils/apoInstall';
 
 const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
 /** The version whose notes have already been shown. */
@@ -320,17 +320,36 @@ const AppContent = () => {
     if (!confirmed) {
       return;
     }
-    try {
-      await installEqualizerApo();
-      // Same as reconfiguring, and more certainly so: a reinstalled APO is not
-      // in the audio chain until the endpoints are rebuilt. Reconfigure has
-      // always said this; a reinstall staying silent about it would leave
-      // somebody deciding the repair had not worked.
-      localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');
-      setShowAudioRestartRecommendation(true);
-    } catch (e) {
-      setGlobalError(e as ErrorDescription);
+    const outcome = await startEqualizerApoInstall();
+
+    if (outcome === 'bundle-missing') {
+      // The download page is already opening. Saying so beats the generic
+      // error banner this used to raise, which showed the literal sentinel
+      // `apo-bundle-missing` over "Please restart the application" — no
+      // download, and nothing anybody could act on.
+      window.alert(
+        'This copy of FluidEQ has no Equalizer APO installer inside it.\n\n' +
+          "Opening Equalizer APO's own download page instead. Install it from " +
+          'there and FluidEQ will find it.',
+      );
+      return;
     }
+
+    if (outcome === 'not-started') {
+      window.alert(
+        'Equalizer APO did not start.\n\n' +
+          'It needs administrator permission — try again and approve the ' +
+          'Windows prompt.',
+      );
+      return;
+    }
+
+    // Same as reconfiguring, and more certainly so: a reinstalled APO is not
+    // in the audio chain until the endpoints are rebuilt. Reconfigure has
+    // always said this; a reinstall staying silent about it would leave
+    // somebody deciding the repair had not worked.
+    localStorage.setItem(APO_RESTART_RECOMMENDED_KEY, 'true');
+    setShowAudioRestartRecommendation(true);
   };
 
   const handleOpenEqualizerApoSettings = async () => {

@@ -36,6 +36,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * a downward drag. Sizing the pane whose content actually varies keeps the
  * drag meaningful in both directions.
  *
+ * **Held as a share of the window, not as a number of pixels.** Pixels are what
+ * the divider is dragged in, but they are the wrong thing to remember: a split
+ * set on a 4K monitor is most of a laptop screen, and the app is routinely
+ * moved between the two — a docked machine, an external display unplugged, a
+ * window snapped to half the screen. Storing pixels meant every one of those
+ * changed the *proportion* on screen while pretending to preserve the setting,
+ * and the clamp that kept the panes on screen then wrote the squashed value
+ * back, so the original was gone for good. Dragging the divider once on a small
+ * window and then maximising made it lurch somewhere else again. A share
+ * survives all of it: the same split, wherever it is shown.
+ *
  * A module store rather than a prop for the same reason the graph's look is
  * one: the handle is a sibling of both panes, and threading a layout concern
  * through every component in between buys nothing.
@@ -61,16 +72,22 @@ export const PANE_MIN_HEIGHT = 150;
  */
 const CHROME_ALLOWANCE = 200;
 
-const EDITOR_STORAGE_KEY = 'fluideq.editorHeight';
+/** The share, 0..1. */
+const EDITOR_SHARE_KEY = 'fluideq.editorShare';
+
+/**
+ * What the old builds wrote: a flat pixel height.
+ *
+ * Read once and converted, so somebody who has had this app for a while keeps
+ * roughly the split they chose instead of being reset to the default. Removed
+ * as it is read — leaving it would mean converting it again on the next start
+ * and undoing whatever they have done since.
+ */
+const LEGACY_EDITOR_HEIGHT_KEY = 'fluideq.editorHeight';
 
 /**
  * How the window is divided the very first time it opens: seven parts to the
  * editor above, three to the graph below.
- *
- * A share rather than a number of pixels. It used to be a flat 430, which is
- * about forty per cent of a 1080p window, a quarter of a tall one and most of a
- * laptop's — so the split somebody met on opening the app depended entirely on
- * the monitor they happened to have. A ratio lands the same way everywhere.
  *
  * Seventy is where the editing goes: bands, voicing, a video. The graph is a
  * reading of what those are doing and thirty per cent of a window is plenty to
@@ -80,41 +97,30 @@ const EDITOR_STORAGE_KEY = 'fluideq.editorHeight';
 const EDITOR_DEFAULT_SHARE = 0.7;
 
 /**
- * That share, in pixels, for this window.
+ * The height the two panes actually divide between them.
  *
- * Measured against the space the two panes actually divide rather than against
- * the whole window: the titlebar and the tab strip are not part of the split,
- * and counting them would make the editor's seventy per cent quietly larger
- * than seventy per cent of what is on screen.
+ * The titlebar and the tab strip are not part of the split, so counting them
+ * would make the editor's seventy per cent quietly larger than seventy per cent
+ * of what is on screen.
  */
-const defaultEditorHeight = () => {
+const splittableHeight = () => {
   const viewport = typeof window === 'undefined' ? 0 : window.innerHeight || 0;
-  if (viewport <= 0) {
-    // No window to measure — a test environment, or a render before layout.
-    // The old fixed height is a reasonable stand-in and is never seen by a
-    // user, since the first real read happens with a window present.
-    return 430;
-  }
-  return clampToWindow(
-    Math.round((viewport - CHROME_ALLOWANCE) * EDITOR_DEFAULT_SHARE),
-  );
+  // No window to measure — a test environment, or a render before layout. A
+  // stand-in that is never seen by a user, since the first real read happens
+  // with a window present.
+  return viewport > 0 ? viewport - CHROME_ALLOWANCE : 614;
 };
 
 /**
- * The tallest a lone pane may be: the window, less what the pane below it needs
- * and the chrome around them.
+ * The tallest a lone pane may be: the space to divide, less what the pane below
+ * it needs.
  *
  * Derived rather than declared, so it follows the window instead of a number
  * somebody picked on a different monitor. On a very short window it collapses
  * to the minimum, which is the honest answer — there is no room to give.
  */
-const ceilingForSinglePane = () => {
-  const viewport = typeof window === 'undefined' ? 0 : window.innerHeight || 0;
-  return Math.max(
-    PANE_MIN_HEIGHT,
-    viewport - PANE_MIN_HEIGHT - CHROME_ALLOWANCE,
-  );
-};
+const ceilingForSinglePane = () =>
+  Math.max(PANE_MIN_HEIGHT, splittableHeight() - PANE_MIN_HEIGHT);
 
 /** Floor only. Used where a second pane is absorbing the difference. */
 export const clampToMinimum = (value: number) =>
@@ -124,49 +130,57 @@ export const clampToMinimum = (value: number) =>
 export const clampToWindow = (value: number) =>
   Math.min(ceilingForSinglePane(), clampToMinimum(value));
 
-/**
- * A remembered size, brought back inside what this window can actually show.
- *
- * Clamped against the window rather than only against the minimum, because a
- * size is remembered from whatever window it was set in. A pane dragged tall on
- * a large monitor — or left oversized by an earlier build that allowed it —
- * would otherwise be restored at that height on a laptop screen, putting the
- * divider below the bottom edge and taking with it the only means of dragging
- * it back. A layout nobody can undo is worse than one that does not quite
- * remember.
- */
-const readStored = (key: string, fallback: number) => {
+const clampShare = (share: number) => Math.min(0.95, Math.max(0.05, share));
+
+const readStoredShare = (): number => {
   try {
-    const stored = Number(window.localStorage.getItem(key));
-    return Number.isFinite(stored) && stored > 0
-      ? clampToWindow(stored)
-      : fallback;
+    const stored = Number(window.localStorage.getItem(EDITOR_SHARE_KEY));
+    if (Number.isFinite(stored) && stored > 0) {
+      return clampShare(stored);
+    }
+
+    const legacy = Number(
+      window.localStorage.getItem(LEGACY_EDITOR_HEIGHT_KEY),
+    );
+    if (Number.isFinite(legacy) && legacy > 0) {
+      window.localStorage.removeItem(LEGACY_EDITOR_HEIGHT_KEY);
+      return clampShare(legacy / splittableHeight());
+    }
   } catch {
-    // Storage can be unavailable; the default is a perfectly good size.
-    return fallback;
+    // Storage can be unavailable; the default is a perfectly good split.
   }
+  return EDITOR_DEFAULT_SHARE;
 };
 
-const write = (key: string, value: number) => {
-  try {
-    window.localStorage.setItem(key, String(value));
-  } catch {
-    // Not worth failing a drag over.
-  }
-};
-
-let editorHeight = readStored(EDITOR_STORAGE_KEY, defaultEditorHeight());
+let editorShare = readStoredShare();
 
 const editorListeners = new Set<() => void>();
 
-export const getEditorHeight = () => editorHeight;
+/**
+ * The share as pixels for the window as it is right now.
+ *
+ * Clamped on the way out, never on the way in. That is the whole of the fix:
+ * a window too short to honour the share shows a clamped split for as long as
+ * it is that short, and the share itself is untouched — so making the window
+ * big again restores exactly what was set rather than whatever the smallest
+ * size it ever had happened to allow.
+ */
+export const getEditorHeight = () =>
+  clampToWindow(Math.round(splittableHeight() * editorShare));
 
+/**
+ * Set from a drag, in pixels, converted straight back to a share.
+ *
+ * Compared as pixels rather than as shares because pixels are what the caller
+ * has and what the screen shows; two pointer positions a fraction of a per cent
+ * apart are the same divider position and are not worth a re-render.
+ */
 export const setEditorHeight = (next: number) => {
   const value = clampToMinimum(next);
-  if (value === editorHeight) {
+  if (value === getEditorHeight()) {
     return;
   }
-  editorHeight = value;
+  editorShare = clampShare(value / splittableHeight());
   editorListeners.forEach((listener) => listener());
 };
 
@@ -177,7 +191,11 @@ export const setEditorHeight = (next: number) => {
  * hundreds of pointer events, and localStorage is synchronous.
  */
 export const commitPaneSizes = () => {
-  write(EDITOR_STORAGE_KEY, editorHeight);
+  try {
+    window.localStorage.setItem(EDITOR_SHARE_KEY, String(editorShare));
+  } catch {
+    // Not worth failing a drag over.
+  }
 };
 
 const subscribeEditor = (listener: () => void) => {
@@ -190,21 +208,22 @@ const subscribeEditor = (listener: () => void) => {
 export const useEditorHeight = () =>
   useSyncExternalStore(
     subscribeEditor,
-    () => editorHeight,
-    // Server snapshot for useSyncExternalStore. Never rendered to a user,
-    // so it does not need the window it has no access to.
+    getEditorHeight,
+    // Server snapshot for useSyncExternalStore. Never rendered to a user, so it
+    // does not need the window it has no access to.
     () => 430,
   );
 
 /**
- * Keep the panes inside a window that has just changed size.
+ * Redraw at the new size when the window changes.
  *
- * Without this, shrinking the window leaves an editor sized for the old one
- * filling the whole column and squeezing the graph below it to nothing — and,
- * because the divider goes with it, leaves no way to put it right.
+ * Only a notification: the share is not touched, so the panes keep their
+ * proportion across a resize, a move to another monitor and a maximise. This
+ * used to write a clamped pixel height back into the store, which is how a
+ * window briefly made small permanently lost the split it had.
  */
 if (typeof window !== 'undefined') {
   window.addEventListener('resize', () => {
-    setEditorHeight(clampToWindow(editorHeight));
+    editorListeners.forEach((listener) => listener());
   });
 }

@@ -20,6 +20,13 @@ import { createRoot } from 'react-dom/client';
 import { RENDERER_READY_EVENT } from 'common/constants';
 import App from './App';
 import ErrorBoundary from './ErrorBoundary';
+import { installGlobalErrorHandlers } from './utils/logger';
+
+// Before anything renders, so a throw while building the first tree is caught
+// as well. The boundary below only sees failures inside React's own render;
+// these two cover the timers, the frame loops and the promises that make up
+// most of what actually goes wrong at runtime.
+installGlobalErrorHandlers();
 
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);

@@ -296,12 +296,6 @@ export interface IDriverSettings {
 }
 
 /**
- * The loudness contour, on or off and how strongly.
- *
- * Here rather than in loudness.ts for the same reason as the two above: it is
- * part of the persisted state, and loudness.ts already depends on this module.
- */
-/**
  * The build has no copy of Equalizer APO's installer in it.
  *
  * The one failure where sending somebody to SourceForge is the right answer,
@@ -312,6 +306,23 @@ export interface IDriverSettings {
  */
 export const APO_BUNDLE_MISSING = 'apo-bundle-missing';
 
+/**
+ * Where to send somebody when, and only when, the bundle really is absent.
+ *
+ * Here rather than beside one of the buttons because there are two of them —
+ * the prerequisite notice and the reinstall menu item — and the second one
+ * spent a release showing `apo-bundle-missing` as an error message instead,
+ * because the rule for what to do about that sentinel lived inside the first.
+ */
+export const EQUALIZER_APO_OFFICIAL_DOWNLOAD =
+  'https://sourceforge.net/projects/equalizerapo/files/latest/download';
+
+/**
+ * The loudness contour, on or off and how strongly.
+ *
+ * Here rather than in loudness.ts for the same reason as the two above: it is
+ * part of the persisted state, and loudness.ts already depends on this module.
+ */
 export interface ILoudnessSettings {
   isOn: boolean;
   /** 0..1 scale applied to every gain in the curve. */
