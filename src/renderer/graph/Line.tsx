@@ -23,6 +23,7 @@ import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
 import { getEaseFactor } from 'common/smoothing';
 import {
   Projected,
+  createGraphAccent,
   createGraphShape,
   getGraphBallistics,
   isFilledGraphStyle,
@@ -219,6 +220,12 @@ const Line = ({
   lookRef.current = look;
 
   const easedRef = useRef<IChartPointData[]>([]);
+  // The two halves of the peak glow. Always mounted for the live trace, empty
+  // when nothing is loud enough — a path with no `d` costs nothing, and never
+  // creating or destroying them keeps the promise the rest of this file makes
+  // about the element count not moving.
+  const haloRef = useRef<SVGPathElement>(null);
+  const coreRef = useRef<SVGPathElement>(null);
   // Reused, so a frame projects into the same array rather than minting one.
   const projectedRef = useRef<Projected[]>([]);
   // The pixel row the filled styles stand on — the bottom of the plot, taken
@@ -248,11 +255,6 @@ const Line = ({
           eased[index].y = data[index].y;
         }
       }
-      const chosen = lookRef.current.style;
-      if (chosen === 'line') {
-        ref.current?.setAttribute('d', line(eased) ?? '');
-        return moving;
-      }
       // Projected into pixels first: the axes are logarithmic in frequency and
       // decibel in level, so building bars or steps in data space and scaling
       // afterwards would put every edge in the wrong place.
@@ -265,10 +267,24 @@ const Line = ({
         target[index][0] = Number(xScale(eased[index].x)) || 0;
         target[index][1] = Number(yScale(eased[index].y)) || 0;
       }
+
+      const chosen = lookRef.current.style;
       ref.current?.setAttribute(
         'd',
-        createGraphShape(target, chosen, baselineRef.current),
+        // d3's own generator for the plain line: it is the one form where the
+        // scales do the work, and going through the projection would only
+        // round the same numbers twice.
+        chosen === 'line'
+          ? (line(eased) ?? '')
+          : createGraphShape(target, chosen, baselineRef.current),
       );
+      // The lit peaks. Same frame, same numbers, written to two more paths
+      // that are stroked faint-and-thick under bright-and-thin — a glow made
+      // of strokes rather than of a filter, because a filter over geometry
+      // that changes every frame re-rasterises its whole region every frame.
+      const accent = createGraphAccent(target, chosen, baselineRef.current);
+      haloRef.current?.setAttribute('d', accent);
+      coreRef.current?.setAttribute('d', accent);
       return moving;
     },
     [data, line, xScale, yScale],
@@ -330,6 +346,47 @@ const Line = ({
         opacity={0}
         transform={transform}
       />
+      {/* Lit tips.
+
+          Only the peaks, and only on the live trace — the point is that the
+          loudest few bands in the current frame catch the light while the rest
+          of the figure stays as it was. Two passes: a wide, faint one for the
+          halo and a narrow, bright one for the core. That is a bloom done with
+          stroke widths, which the compositor handles for free, rather than
+          with a blur filter, which would re-rasterise this region sixty times
+          a second for the same effect. */}
+      {smooth && (
+        <>
+          <path
+            ref={haloRef}
+            name={`${name} peaks halo`}
+            className="graph-peak-halo"
+            stroke={paint}
+            strokeWidth={7}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill={paint}
+            opacity={0.28}
+            clipPath="url(#chart-clip-path)"
+            pointerEvents="none"
+            transform={transform}
+          />
+          <path
+            ref={coreRef}
+            name={`${name} peaks`}
+            className="graph-peak-core"
+            stroke="white"
+            strokeWidth={1}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="white"
+            opacity={0.92}
+            clipPath="url(#chart-clip-path)"
+            pointerEvents="none"
+            transform={transform}
+          />
+        </>
+      )}
     </>
   );
 };

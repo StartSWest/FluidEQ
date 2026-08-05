@@ -49,7 +49,27 @@ export type GraphStyle =
   | 'ribs'
   | 'pillars'
   | 'crown'
-  | 'weave';
+  | 'weave'
+  | 'contour'
+  | 'hatch'
+  | 'matrix'
+  | 'skyline'
+  | 'bezier'
+  | 'ribbon'
+  | 'feather'
+  | 'truss'
+  | 'zipper'
+  | 'slope'
+  | 'islands'
+  | 'stalactites'
+  | 'bubbles'
+  | 'diamonds'
+  | 'chevrons'
+  | 'sawtooth'
+  | 'ecg'
+  | 'arcs'
+  | 'rain'
+  | 'echo';
 
 /** In cycle order. */
 export const GRAPH_STYLES: GraphStyle[] = [
@@ -73,6 +93,26 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'pillars',
   'crown',
   'weave',
+  'contour',
+  'hatch',
+  'matrix',
+  'skyline',
+  'bezier',
+  'ribbon',
+  'feather',
+  'truss',
+  'zipper',
+  'slope',
+  'islands',
+  'stalactites',
+  'bubbles',
+  'diamonds',
+  'chevrons',
+  'sawtooth',
+  'ecg',
+  'arcs',
+  'rain',
+  'echo',
 ];
 
 /**
@@ -103,6 +143,26 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   pillars: 'Pillars',
   crown: 'Crown',
   weave: 'Weave',
+  contour: 'Topography',
+  hatch: 'Hatching',
+  matrix: 'Dot matrix',
+  skyline: 'Skyline',
+  bezier: 'Silk',
+  ribbon: 'Ribbon',
+  feather: 'Feather',
+  truss: 'Truss',
+  zipper: 'Zipper',
+  slope: 'Slope field',
+  islands: 'Islands',
+  stalactites: 'Stalactites',
+  bubbles: 'Bubbles',
+  diamonds: 'Diamonds',
+  chevrons: 'Chevrons',
+  sawtooth: 'Sawtooth',
+  ecg: 'Pulse',
+  arcs: 'Arcs',
+  rain: 'Rainfall',
+  echo: 'Echo',
 };
 
 export const nextGraphStyle = (style: GraphStyle): GraphStyle => {
@@ -119,6 +179,18 @@ const STROKED_STYLES = new Set<GraphStyle>([
   'dashes',
   'ribs',
   'weave',
+  'contour',
+  'hatch',
+  'bezier',
+  'feather',
+  'truss',
+  'zipper',
+  'slope',
+  'chevrons',
+  'ecg',
+  'arcs',
+  'rain',
+  'echo',
 ]);
 
 export const isFilledGraphStyle = (style: GraphStyle): boolean =>
@@ -222,6 +294,41 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // The staircase steps by nature; easing it hard would blur the treads.
   steps: { attackMs: 6, releaseMs: 26 },
   weave: { attackMs: 6, releaseMs: 30 },
+
+  // More landscapes. Contours and islands are drawn from where the level
+  // crosses a threshold, so a jittery curve makes rings pop in and out of
+  // existence — these are the slowest things here on purpose.
+  contour: { attackMs: 26, releaseMs: 95 },
+  islands: { attackMs: 28, releaseMs: 100 },
+  hatch: { attackMs: 18, releaseMs: 70 },
+  bezier: { attackMs: 16, releaseMs: 55 },
+  ribbon: { attackMs: 11, releaseMs: 46 },
+  echo: { attackMs: 7, releaseMs: 140 },
+
+  // Architecture. Buildings do not sway, so these are stiff going up and slow
+  // coming down — the skyline should look built, not blown about.
+  skyline: { attackMs: 5, releaseMs: 72 },
+  truss: { attackMs: 7, releaseMs: 32 },
+  matrix: { attackMs: 3, releaseMs: 66 },
+  chevrons: { attackMs: 3, releaseMs: 56 },
+  sawtooth: { attackMs: 4, releaseMs: 40 },
+  arcs: { attackMs: 5, releaseMs: 52 },
+
+  // Things that hang, fall or float have gravity in them: quick to appear,
+  // reluctant to leave.
+  stalactites: { attackMs: 9, releaseMs: 120 },
+  bubbles: { attackMs: 3, releaseMs: 92 },
+  diamonds: { attackMs: 4, releaseMs: 78 },
+  rain: { attackMs: 4, releaseMs: 105 },
+
+  // The pulse is a heartbeat. One that arrives late is not a heartbeat, so it
+  // is the fastest of the lot in both directions.
+  ecg: { attackMs: 1, releaseMs: 12 },
+  // A slope field draws the direction the spectrum is moving in. Smooth it and
+  // it starts pointing at where the music was, which is worse than useless.
+  slope: { attackMs: 3, releaseMs: 18 },
+  feather: { attackMs: 4, releaseMs: 34 },
+  zipper: { attackMs: 4, releaseMs: 26 },
 };
 
 export const getGraphBallistics = (style: GraphStyle): IGraphBallistics =>
@@ -236,6 +343,21 @@ const rect = (x: number, y: number, width: number, height: number) =>
   )} h ${(-width).toFixed(1)} Z`;
 
 /**
+ * The same rectangle wound the other way round, which makes it a hole.
+ *
+ * Under the non-zero fill rule a subpath that runs counter to the shape it sits
+ * inside cancels it out rather than painting over it, so a window punched this
+ * way shows the chart behind the building rather than a darker patch of
+ * building. Written as a separate helper because the only difference is the
+ * order of the sides, and that is exactly the kind of detail that gets
+ * "tidied" back into `rect` by someone who has not seen what it does.
+ */
+const hole = (x: number, y: number, width: number, height: number) =>
+  `M ${x.toFixed(1)},${y.toFixed(1)} v ${height.toFixed(1)} h ${width.toFixed(
+    1,
+  )} v ${(-height).toFixed(1)} Z`;
+
+/**
  * How many columns the discrete styles get.
  *
  * The live curve carries 320 points, which is right for a curve and wrong for
@@ -248,6 +370,35 @@ const rect = (x: number, y: number, width: number, height: number) =>
  * and a fifth of the string to build.
  */
 const COLUMN_COUNT = 64;
+
+/**
+ * Forms that want a different density.
+ *
+ * Sixty-four is right for bars and far too many for buildings: a skyline of
+ * sixty-four towers is a fence. Anything that stacks pieces up its column also
+ * has to be counted twice over — a chevron every ten pixels across sixty-four
+ * columns is two thousand marks in one path string, rebuilt every frame — so
+ * the ornate forms are given fewer, larger columns and the sparse ones more.
+ */
+const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
+  skyline: 26,
+  truss: 22,
+  ecg: 26,
+  chevrons: 24,
+  arcs: 34,
+  matrix: 40,
+  bubbles: 40,
+  zipper: 40,
+  sawtooth: 40,
+  feather: 44,
+  slope: 44,
+  rain: 48,
+  diamonds: 48,
+  stalactites: 52,
+};
+
+const getColumnCount = (style: GraphStyle) =>
+  COLUMN_OVERRIDES[style] ?? COLUMN_COUNT;
 
 /** The forms drawn one piece per column rather than as a continuous figure. */
 const DISCRETE_STYLES = new Set<GraphStyle>([
@@ -264,6 +415,20 @@ const DISCRETE_STYLES = new Set<GraphStyle>([
   'ribs',
   'pillars',
   'crown',
+  'matrix',
+  'skyline',
+  'feather',
+  'truss',
+  'zipper',
+  'slope',
+  'stalactites',
+  'bubbles',
+  'diamonds',
+  'chevrons',
+  'sawtooth',
+  'ecg',
+  'arcs',
+  'rain',
 ]);
 
 /**
@@ -273,13 +438,16 @@ const DISCRETE_STYLES = new Set<GraphStyle>([
  * with its quiet neighbours is how a real peak turns into a bump that is not
  * there. The loudest point in the bucket is the honest summary.
  */
-const toColumns = (points: readonly Projected[]): Projected[] => {
-  if (points.length <= COLUMN_COUNT) {
+const toColumns = (
+  points: readonly Projected[],
+  count: number,
+): Projected[] => {
+  if (points.length <= count) {
     return points as Projected[];
   }
-  const perColumn = points.length / COLUMN_COUNT;
+  const perColumn = points.length / count;
   const columns: Projected[] = [];
-  for (let index = 0; index < COLUMN_COUNT; index += 1) {
+  for (let index = 0; index < count; index += 1) {
     const from = Math.floor(index * perColumn);
     const to = Math.max(from + 1, Math.floor((index + 1) * perColumn));
     // Smallest y is the tallest bar: the axis grows downward in pixels.
@@ -316,7 +484,7 @@ export const createGraphShape = (
   // staircase is a single polyline and keeps the full resolution, which costs
   // nothing extra and reads better.
   const isDiscrete = DISCRETE_STYLES.has(style);
-  const figure = isDiscrete ? toColumns(points) : points;
+  const figure = isDiscrete ? toColumns(points, getColumnCount(style)) : points;
   // Average spacing rather than per-pair, because the x axis is logarithmic:
   // a bar sized by the gap to its own neighbour would be hair-thin at 20Hz and
   // a slab at 20kHz.
@@ -547,6 +715,479 @@ export const createGraphShape = (
       return path;
     }
 
+    // A contour map of the spectrum.
+    //
+    // Instead of drawing where the level is, this draws the frequency ranges
+    // that are louder than each of a series of thresholds — the same trick an
+    // Ordnance Survey map uses for a hill. Loud regions end up ringed by
+    // stacked lines; quiet ones are bare. It reads nothing like a curve, and it
+    // is very good at showing how wide a peak is rather than only how tall.
+    case 'contour': {
+      const spacing = 16;
+      const ceiling = points.reduce((min, [, y]) => Math.min(min, y), Infinity);
+      const rightEdge = points[points.length - 1][0];
+      let path = '';
+      for (let level = baseline - spacing; level > ceiling; level -= spacing) {
+        let from: number | undefined;
+        for (let index = 0; index < points.length; index += 1) {
+          const [x, y] = points[index];
+          if (y <= level && from === undefined) {
+            from = x;
+          } else if (y > level && from !== undefined) {
+            path += `M ${from.toFixed(1)},${level.toFixed(1)} H ${x.toFixed(1)} `;
+            from = undefined;
+          }
+        }
+        if (from !== undefined) {
+          path += `M ${from.toFixed(1)},${level.toFixed(
+            1,
+          )} H ${rightEdge.toFixed(1)} `;
+        }
+      }
+      // Nothing clears the first threshold when the signal is at the floor.
+      // The outline is still the truth, so fall back to it rather than
+      // blanking the trace, which looks like the capture having died.
+      return path.trim() || polyline(points);
+    }
+
+    // The area under the curve, shaded rather than painted.
+    //
+    // Diagonals at 45°, clipped to the region below the trace, plus the trace
+    // itself. A solid fill says "there is energy here"; hatching says the same
+    // thing while leaving the grid and the EQ curves behind it legible, which
+    // on a chart with four other lines on it is the difference between a
+    // reading and a wall.
+    case 'hatch': {
+      const left = points[0][0];
+      const right = points[points.length - 1][0];
+      const ceiling = points.reduce((min, [, y]) => Math.min(min, y), Infinity);
+      const span = Math.max(1, right - left);
+      // Indexed by proportion rather than searched: the projection is even in
+      // pixels because the source is even in log frequency.
+      const heightAt = (x: number) => {
+        const at = Math.round(((x - left) / span) * (points.length - 1));
+        return points[Math.min(points.length - 1, Math.max(0, at))][1];
+      };
+      const spacing = 15;
+      const stepY = 4;
+      let path = polyline(points);
+      for (let offset = left - baseline; offset < right; offset += spacing) {
+        let from: number | undefined;
+        for (let y = ceiling; y <= baseline; y += stepY) {
+          const x = y + offset;
+          const inside = x >= left && x <= right && y >= heightAt(x);
+          if (inside && from === undefined) {
+            from = y;
+          } else if (!inside && from !== undefined) {
+            path += ` M ${(from + offset).toFixed(1)},${from.toFixed(
+              1,
+            )} L ${(y + offset).toFixed(1)},${y.toFixed(1)}`;
+            from = undefined;
+          }
+        }
+        if (from !== undefined) {
+          path += ` M ${(from + offset).toFixed(1)},${from.toFixed(1)} L ${(
+            baseline + offset
+          ).toFixed(1)},${baseline.toFixed(1)}`;
+        }
+      }
+      return path;
+    }
+
+    // A departure board. Small squares on a fixed grid, lit up each column as
+    // far as the level reaches — so the picture is quantised in both
+    // directions and the eye counts rows instead of measuring heights.
+    case 'matrix': {
+      const size = Math.max(1.5, step * 0.36);
+      const cell = 13;
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        for (let at = baseline - cell / 2; at > y; at -= cell) {
+          path += rect(x - size / 2, at - size / 2, size, size);
+        }
+      }
+      return path;
+    }
+
+    // Buildings, with the lights on.
+    //
+    // Wide towers with windows punched out of them — the holes wind the other
+    // way round, so the fill rule cuts them rather than painting them over.
+    // Fewer, fatter columns than the bars use: sixty-four skyscrapers is a
+    // fence, and the point is that you can tell one building from the next.
+    case 'skyline': {
+      const width = Math.max(4, step * 0.88);
+      const pane = Math.max(1.4, width * 0.16);
+      const floorHeight = 17;
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path += rect(x - width / 2, y, width, Math.max(0, baseline - y));
+        for (
+          let floor = baseline - floorHeight;
+          floor > y + floorHeight * 0.7;
+          floor -= floorHeight
+        ) {
+          for (let column = -1; column <= 1; column += 2) {
+            path += hole(
+              x + column * width * 0.22 - pane / 2,
+              floor - pane / 2,
+              pane,
+              pane,
+            );
+          }
+        }
+      }
+      return path;
+    }
+
+    // The same data with the corners taken off: a Catmull-Rom spline through
+    // every fourth point. A spectrum is spiky by nature and the line style is
+    // honest about it; this one is the opposite choice, and on slow music it
+    // reads like something poured rather than plotted.
+    case 'bezier': {
+      const knots = points.filter(
+        (_point, index) => index % 4 === 0 || index === points.length - 1,
+      );
+      if (knots.length < 2) {
+        return polyline(points);
+      }
+      let path = `M ${knots[0][0].toFixed(1)},${knots[0][1].toFixed(1)}`;
+      for (let index = 0; index < knots.length - 1; index += 1) {
+        const before = knots[Math.max(0, index - 1)];
+        const from = knots[index];
+        const to = knots[index + 1];
+        const after = knots[Math.min(knots.length - 1, index + 2)];
+        path += ` C ${(from[0] + (to[0] - before[0]) / 6).toFixed(1)},${(
+          from[1] +
+          (to[1] - before[1]) / 6
+        ).toFixed(1)} ${(to[0] - (after[0] - from[0]) / 6).toFixed(1)},${(
+          to[1] -
+          (after[1] - from[1]) / 6
+        ).toFixed(1)} ${to[0].toFixed(1)},${to[1].toFixed(1)}`;
+      }
+      return path;
+    }
+
+    // A band that swells where the signal is strong.
+    //
+    // The curve carries its own weight: thickness is the level, so a loud
+    // region is a fat stripe and a quiet one thins to a thread. Height and
+    // width say the same thing twice, which sounds redundant and is in fact
+    // why it reads so quickly.
+    case 'ribbon': {
+      const upper: Projected[] = [];
+      const lower: Projected[] = [];
+      for (let index = 0; index < points.length; index += 1) {
+        const [x, y] = points[index];
+        const half = 1.5 + Math.min(15, Math.max(0, baseline - y) * 0.075);
+        upper.push([x, y - half]);
+        lower.push([x, y + half]);
+      }
+      return `${polyline(upper)} L ${[...lower]
+        .reverse()
+        .map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`)
+        .join(' L ')} Z`;
+    }
+
+    // A quill laid along the peaks: a spine, with barbs swept back off both
+    // sides of it, longer where the signal is louder.
+    case 'feather': {
+      let path = polyline(figure);
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const length = 3 + Math.max(0, baseline - y) * 0.12;
+        const back = (x - length * 0.5).toFixed(1);
+        path += ` M ${x.toFixed(1)},${y.toFixed(1)} L ${back},${(
+          y - length
+        ).toFixed(1)} M ${x.toFixed(1)},${y.toFixed(1)} L ${back},${(
+          y + length
+        ).toFixed(1)}`;
+      }
+      return path;
+    }
+
+    // A bridge. Top chord along the peaks, bottom chord on the floor, and a
+    // cross-brace in every bay — the spectrum drawn as the thing that would
+    // have to be built to hold it up.
+    case 'truss': {
+      const rightEdge = figure[figure.length - 1][0];
+      let path = `${polyline(figure)} M ${figure[0][0].toFixed(
+        1,
+      )},${baseline.toFixed(1)} H ${rightEdge.toFixed(1)}`;
+      for (let index = 0; index < figure.length - 1; index += 1) {
+        const [x, y] = figure[index];
+        const [nextX, nextY] = figure[index + 1];
+        path += ` M ${x.toFixed(1)},${y.toFixed(1)} L ${nextX.toFixed(
+          1,
+        )},${baseline.toFixed(1)} M ${nextX.toFixed(1)},${nextY.toFixed(
+          1,
+        )} L ${x.toFixed(1)},${baseline.toFixed(1)}`;
+      }
+      return path;
+    }
+
+    // Two rails astride the curve with teeth reaching alternately across the
+    // gap between them, meeting just past the middle. Closed when the signal
+    // is steady; it visibly gapes where the spectrum jumps.
+    case 'zipper': {
+      const rail = 8;
+      const upper = figure.map(([x, y]) => [x, y - rail] as Projected);
+      const lower = figure.map(([x, y]) => [x, y + rail] as Projected);
+      let path = `${polyline(upper)} ${polyline(lower)}`;
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const fromTop = index % 2 === 0;
+        path += ` M ${x.toFixed(1)},${(y + (fromTop ? -rail : rail)).toFixed(
+          1,
+        )} L ${x.toFixed(1)},${(
+          y + (fromTop ? rail * 0.3 : -rail * 0.3)
+        ).toFixed(1)}`;
+      }
+      return path;
+    }
+
+    // Not where the level is — which way it is going.
+    //
+    // Each mark is a short tick lying along the local gradient, so the picture
+    // is made of directions rather than heights. Flat where the spectrum is
+    // even, raked steeply through a crossover, and it makes a slope you would
+    // never notice on a curve jump straight out.
+    case 'slope': {
+      const length = Math.max(6, step * 0.85);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const before = figure[Math.max(0, index - 1)];
+        const after = figure[Math.min(figure.length - 1, index + 1)];
+        const runX = after[0] - before[0] || 1;
+        const runY = after[1] - before[1];
+        const norm = Math.hypot(runX, runY) || 1;
+        const halfX = (runX / norm) * (length / 2);
+        const halfY = (runY / norm) * (length / 2);
+        const [x, y] = figure[index];
+        path += `M ${(x - halfX).toFixed(1)},${(y - halfY).toFixed(1)} L ${(
+          x + halfX
+        ).toFixed(1)},${(y + halfY).toFixed(1)} `;
+      }
+      return path.trim();
+    }
+
+    // Only what is above sea level.
+    //
+    // The waterline is the frame's own average, so the quiet two-thirds of the
+    // spectrum simply are not drawn and the loud regions become separate
+    // shapes with edges. Turning a continuous reading into a countable number
+    // of objects is a genuinely different way to look at it: you stop reading
+    // heights and start reading how many, and how wide.
+    case 'islands': {
+      const waterline =
+        points.reduce((total, [, y]) => total + y, 0) / points.length;
+      let path = '';
+      let run: Projected[] = [];
+      const land = () => {
+        if (run.length >= 2) {
+          path += `${polyline(run)} L ${run[run.length - 1][0].toFixed(
+            1,
+          )},${waterline.toFixed(1)} L ${run[0][0].toFixed(
+            1,
+          )},${waterline.toFixed(1)} Z `;
+        }
+        run = [];
+      };
+      for (let index = 0; index < points.length; index += 1) {
+        if (points[index][1] <= waterline) {
+          run.push(points[index]);
+        } else {
+          land();
+        }
+      }
+      land();
+      return (
+        path.trim() ||
+        `${polyline(points)} L ${points[points.length - 1][0].toFixed(
+          1,
+        )},${baseline.toFixed(1)} L ${points[0][0].toFixed(
+          1,
+        )},${baseline.toFixed(1)} Z`
+      );
+    }
+
+    // Hung from the ceiling rather than stood on the floor. The same numbers,
+    // read upside down — loud is long, and the shape grows towards you from
+    // the top of the plot instead of away from the bottom.
+    case 'stalactites': {
+      const width = Math.max(2, step * 0.62);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const length = Math.max(0, baseline - y);
+        path += `M ${(x - width / 2).toFixed(1)},0 L ${(x + width / 2).toFixed(
+          1,
+        )},0 L ${x.toFixed(1)},${length.toFixed(1)} Z`;
+      }
+      return path;
+    }
+
+    // A circle per column, sized by the level and floating at it. Area rather
+    // than height does the talking, which flatters the quiet end of the
+    // spectrum — a small bubble is still unmistakably there, where a two-pixel
+    // bar is not.
+    case 'bubbles': {
+      const largest = Math.max(2, step * 0.62);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const radius = Math.max(
+          0.9,
+          Math.min(largest, 1 + Math.max(0, baseline - y) * 0.06),
+        );
+        const across = (radius * 2).toFixed(1);
+        path += `M ${(x - radius).toFixed(1)},${y.toFixed(
+          1,
+        )} a ${radius.toFixed(1)},${radius.toFixed(
+          1,
+        )} 0 1,0 ${across},0 a ${radius.toFixed(1)},${radius.toFixed(
+          1,
+        )} 0 1,0 -${across},0 Z`;
+      }
+      return path;
+    }
+
+    // Gems on the peaks, cut larger where the signal is stronger.
+    case 'diamonds': {
+      const largest = Math.max(2.5, step * 0.85);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const size = Math.max(
+          1.2,
+          Math.min(largest, 1.2 + Math.max(0, baseline - y) * 0.055),
+        );
+        path += `M ${x.toFixed(1)},${(y - size).toFixed(1)} L ${(
+          x + size
+        ).toFixed(1)},${y.toFixed(1)} L ${x.toFixed(1)},${(y + size).toFixed(
+          1,
+        )} L ${(x - size).toFixed(1)},${y.toFixed(1)} Z`;
+      }
+      return path;
+    }
+
+    // Stacked arrowheads climbing each column, all pointing up. Reads as
+    // motion even when the frame is frozen, which is the trick of it.
+    case 'chevrons': {
+      const width = Math.max(3, step * 0.72);
+      const gap = 14;
+      const rise = 5;
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        for (let at = baseline - rise; at > y; at -= gap) {
+          path += `M ${(x - width / 2).toFixed(1)},${at.toFixed(
+            1,
+          )} L ${x.toFixed(1)},${(at - rise).toFixed(1)} L ${(
+            x +
+            width / 2
+          ).toFixed(1)},${at.toFixed(1)} `;
+        }
+      }
+      return path.trim();
+    }
+
+    // The waveform the oscillator makes: a slow ramp up to the level and a
+    // vertical drop back. Every tooth leans the same way, so the whole figure
+    // has a direction to it that a symmetrical bar chart does not.
+    case 'sawtooth': {
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        path += `M ${(x - step * 0.5).toFixed(1)},${baseline.toFixed(1)} L ${(
+          x +
+          step * 0.5
+        ).toFixed(1)},${y.toFixed(1)} L ${(x + step * 0.5).toFixed(
+          1,
+        )},${baseline.toFixed(1)} Z`;
+      }
+      return path;
+    }
+
+    // A heart monitor. The trace rests on its own line and deflects once per
+    // column — a small dip, a tall spike, a smaller dip, back to rest —
+    // instead of tracing the level continuously. Loud bands beat harder.
+    case 'ecg': {
+      const rest = baseline - 30;
+      const width = Math.max(1.5, step * 0.16);
+      let path = `M ${figure[0][0].toFixed(1)},${rest.toFixed(1)}`;
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const beat = Math.max(2, (baseline - y) * 0.72);
+        path += ` H ${(x - width * 2).toFixed(1)} L ${(x - width).toFixed(
+          1,
+        )},${(rest + beat * 0.16).toFixed(1)} L ${x.toFixed(1)},${(
+          rest - beat
+        ).toFixed(1)} L ${(x + width).toFixed(1)},${(
+          rest +
+          beat * 0.11
+        ).toFixed(1)} L ${(x + width * 2).toFixed(1)},${rest.toFixed(1)}`;
+      }
+      return path;
+    }
+
+    // A row of arches standing on the floor, each one as tall as its band. The
+    // curvature carries the level as well as the height does, and the gaps
+    // between them keep the grid readable.
+    case 'arcs': {
+      const half = Math.max(2, step * 0.46);
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const height = Math.max(1, baseline - y);
+        path += `M ${(x - half).toFixed(1)},${baseline.toFixed(
+          1,
+        )} A ${half.toFixed(1)},${height.toFixed(1)} 0 0,1 ${(x + half).toFixed(
+          1,
+        )},${baseline.toFixed(1)} `;
+      }
+      return path.trim();
+    }
+
+    // Falling streaks: short dashes down each column, as far up as the level
+    // reaches, staggered so neighbouring columns never line up into rows. Loud
+    // bands rain harder.
+    case 'rain': {
+      const gap = 14;
+      const dash = 5;
+      let path = '';
+      for (let index = 0; index < figure.length; index += 1) {
+        const [x, y] = figure[index];
+        const stagger = (index % 3) * 5;
+        for (let at = baseline - stagger; at > y; at -= gap) {
+          path += `M ${x.toFixed(1)},${at.toFixed(1)} v -${dash} `;
+        }
+      }
+      return path.trim();
+    }
+
+    // The trace, and three afterimages of it — each arriving a little to the
+    // right and standing a little lower, the way a delay repeat comes back
+    // late and quieter. Nothing here is remembered between frames; the echoes
+    // are the same instant redrawn smaller, which is a picture of decay rather
+    // than a recording of it.
+    case 'echo': {
+      let path = polyline(points);
+      for (let copy = 1; copy <= 3; copy += 1) {
+        const decay = 1 - copy * 0.26;
+        const late = copy * 6;
+        path += ` ${polyline(
+          points.map(
+            ([x, y]) =>
+              [x + late, baseline - (baseline - y) * decay] as Projected,
+          ),
+        )}`;
+      }
+      return path;
+    }
+
     // A zigzag threading the peaks, alternating above and below each one.
     case 'weave': {
       let path = `M ${figure[0][0].toFixed(1)},${figure[0][1].toFixed(1)}`;
@@ -561,4 +1202,127 @@ export const createGraphShape = (
     default:
       return polyline(points);
   }
+};
+
+/**
+ * Forms whose tip is a flat top, so the mark on it should be one too.
+ *
+ * A square dot balanced on a bar looks like a fault; a bright bead on the end
+ * of a stem looks like the stem is lit. Same idea either way — the difference
+ * is only what the end of the figure happens to be shaped like.
+ */
+const CAPPED_TIPS = new Set<GraphStyle>([
+  'bars',
+  'pillars',
+  'blocks',
+  'matrix',
+  'skyline',
+  'terrace',
+  'crown',
+  'sawtooth',
+  'caps',
+  'dashes',
+  'steps',
+  'ribs',
+  'area',
+  'islands',
+]);
+
+/**
+ * How loud a peak has to be, against the loudest thing on screen, to be lit.
+ *
+ * Low enough that a busy mix lights several at once, high enough that quiet
+ * passages light nothing rather than picking an arbitrary winner out of the
+ * noise floor.
+ */
+const ACCENT_THRESHOLD = 0.62;
+
+/**
+ * A ceiling on how many tips can be lit at once.
+ *
+ * Without it, a wall of pink noise lights every column and the accent stops
+ * meaning "here is the peak" — it becomes a second copy of the drawing, drawn
+ * brighter, which is just the drawing with the contrast turned up.
+ */
+const MAX_ACCENTS = 14;
+
+/**
+ * The peaks, as a path of their own.
+ *
+ * Drawn separately from the figure so the tips can be lit while the body stays
+ * calm: the caller strokes this twice, once thick and faint and once thin and
+ * bright, which reads as a glow without a filter anywhere near it. That
+ * matters more than it sounds — an SVG filter on a path whose geometry changes
+ * every frame re-rasterises its whole region every frame, and this pane learned
+ * that lesson expensively.
+ *
+ * A tip qualifies when it is a local maximum AND within striking distance of
+ * the loudest thing currently on screen, so the marks move with the music
+ * rather than sitting wherever the spectrum happens to be lumpy.
+ */
+export const createGraphAccent = (
+  points: readonly Projected[],
+  style: GraphStyle,
+  baseline: number,
+): string => {
+  if (points.length < 3) {
+    return '';
+  }
+  const figure = toColumns(points, getColumnCount(style));
+  if (figure.length < 3) {
+    return '';
+  }
+  const span = figure[figure.length - 1][0] - figure[0][0];
+  const step = Math.max(1, span / (figure.length - 1));
+
+  let tallest = 0;
+  for (let index = 0; index < figure.length; index += 1) {
+    const height = baseline - figure[index][1];
+    if (height > tallest) {
+      tallest = height;
+    }
+  }
+  if (tallest <= 1) {
+    return '';
+  }
+  const floor = tallest * ACCENT_THRESHOLD;
+
+  const capped = CAPPED_TIPS.has(style);
+  const width = Math.max(3, step * 0.62);
+  const size = Math.max(2.4, step * 0.36);
+  // Where the drawing actually puts its tip. Most forms peak at the point
+  // itself; the two that do not are the ones whose whole idea is that they do
+  // not, so they are worth the special case rather than being left unlit.
+  const restingLine = baseline - 30;
+  let path = '';
+  let count = 0;
+  let lastX = -Infinity;
+  for (
+    let index = 1;
+    index < figure.length - 1 && count < MAX_ACCENTS;
+    index += 1
+  ) {
+    const [x, y] = figure[index];
+    // Three things make a tip worth lighting: it is loud enough against the
+    // rest of the frame, nothing beside it is louder — which keeps a broad
+    // peak to one mark rather than a smear across its shoulders — and it is
+    // far enough from the last one to be a separate peak at all.
+    const isLoud = baseline - y >= floor;
+    const isLocalPeak =
+      y <= figure[index - 1][1] && y <= figure[index + 1][1] && isLoud;
+    if (isLocalPeak && x - lastX >= step * 1.5) {
+      lastX = x;
+      count += 1;
+      let tip = y;
+      if (style === 'stalactites') {
+        tip = baseline - y;
+      } else if (style === 'ecg') {
+        tip = restingLine - Math.max(2, (baseline - y) * 0.72);
+      }
+      path += capped
+        ? rect(x - width / 2, tip - 1.5, width, 3)
+        : rect(x - size / 2, tip - size / 2, size, size);
+    }
+  }
+  return path;
 };
