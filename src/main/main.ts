@@ -2312,10 +2312,17 @@ const createMainWindow = async () => {
     minWidth: WINDOW_MIN_WIDTH,
     height: restored.height ?? WINDOW_HEIGHT,
     minHeight: WINDOW_MIN_HEIGHT,
-    // Only set when they were saved and are still on a screen that exists.
+    // A saved position if there is one and a screen still covers it —
+    // otherwise the middle of the display.
+    //
+    // Omitting both leaves the placement to Chromium, which offsets each new
+    // window down and right from the last one. On a first run that put FluidEQ
+    // somewhere off-centre and slightly high for no reason anybody could see,
+    // and it is the very first impression the app makes. `center` is ignored
+    // when x and y are given, so the two cannot fight.
     ...(restored.x !== undefined && restored.y !== undefined
       ? { x: restored.x, y: restored.y }
-      : {}),
+      : { center: true }),
     // .ico carries every size Windows asks for — taskbar, alt-tab and the
     // window corner each want a different one, and scaling a single png for
     // all three is what makes it look soft.

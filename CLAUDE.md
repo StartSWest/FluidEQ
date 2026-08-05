@@ -173,6 +173,29 @@ attaches to individual audio endpoints and its Device Selector is where the
 user says which, so a silent install attaches to nothing and the equaliser
 looks broken.
 
+## Code signing
+
+`pnpm package` is unsigned and must stay that way — it has to work on a fresh
+clone, in CI, and on any day the certificate is not to hand. `pnpm
+package:signed` is the signed build, and it refuses to run rather than
+silently producing an unsigned installer when the configuration is absent.
+
+Settings live in the environment, never in `package.json`: config in the
+manifest would make every unsigned build try to sign and fail. See the header
+of `.erb/scripts/package-signed.ts` for the seven variables.
+
+Two things to be clear about:
+
+- **Signing does not remove the SmartScreen warning.** Microsoft dropped EV's
+  automatic reputation in 2024; every certificate now has to earn reputation
+  through downloads. What it buys is a publisher name instead of "Unknown
+  publisher", and reputation that accrues to the identity across releases
+  rather than resetting at every version.
+- **`FLUIDEQ_SIGN_PUBLISHER` must match the certificate subject exactly.**
+  electron-updater verifies downloaded updates against it. A typo signs
+  perfectly and then rejects every update months later, looking like a broken
+  updater rather than a wrong string.
+
 ## The weekly cold build
 
 `.github/workflows/weekly-build.yml` builds the whole thing from an empty
