@@ -66,6 +66,13 @@ export interface IChartCurveData {
     gradientStops?: IChartGradientStop[];
     gradientId?: string;
     glow?: boolean;
+    /**
+     * How present the curve is. Defaults to full.
+     *
+     * The layers beneath the response being edited are context for reading it,
+     * so they are drawn back rather than competing with it.
+     */
+    opacity?: number;
   };
   controlPoint?: IChartPointData;
 }

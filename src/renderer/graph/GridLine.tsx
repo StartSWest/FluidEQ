@@ -40,7 +40,10 @@ const GridLine = ({
   tickValues,
   size,
   transform,
-  color = 'rgba(255, 255, 255, 0.5)',
+  // Faint by default. A grid is a reference, not a subject — it exists so
+  // the eye can place a curve, and the moment it competes with one it is
+  // doing the opposite of its job.
+  color = 'rgba(255, 255, 255, 0.13)',
   disableAnimation,
 }: IGridLineProps) => {
   const ref = useRef<SVGGElement>(null);

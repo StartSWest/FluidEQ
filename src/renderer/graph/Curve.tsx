@@ -45,6 +45,7 @@ const Curve = ({ xScale, yScale, data }: ICurveProps) => {
         strokeWidth={line.strokeWidth}
         gradientId={line.gradientId}
         glow={line.glow}
+        opacity={line.opacity}
         animation={
           isContinuous
             ? LineAnimationOptionsEnum.NONE

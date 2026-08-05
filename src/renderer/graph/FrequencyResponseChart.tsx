@@ -95,6 +95,16 @@ type PendingPointEdit = Partial<
   Pick<IFilter, 'frequency' | 'gain' | 'quality'>
 >;
 
+/**
+ * How present the layers under the response are.
+ *
+ * Voicing, driver compensation, a measured correction and the live output are
+ * all context for reading the curve being edited, not the subject of the
+ * graph. At full strength five curves of similar weight read as a tangle with
+ * no obvious answer in it.
+ */
+const SUPPORTING_CURVE_OPACITY = 0.5;
+
 const FrequencyResponseChart = () => {
   const liveOutput = useLiveAudioFrame();
   const { error: liveOutputError } = useLiveAudioControl();
@@ -490,6 +500,7 @@ const FrequencyResponseChart = () => {
                 line: {
                   color: ColorEnum.COMPLEMENTARY,
                   strokeWidth: 2,
+                  opacity: SUPPORTING_CURVE_OPACITY,
                   points: convolutionCurveData,
                 },
               } as IChartCurveData,
@@ -505,6 +516,7 @@ const FrequencyResponseChart = () => {
                 line: {
                   color: ColorEnum.TRIADIC1,
                   strokeWidth: 2,
+                  opacity: SUPPORTING_CURVE_OPACITY,
                   points: voicingCurveData,
                 },
               } as IChartCurveData,
@@ -521,6 +533,7 @@ const FrequencyResponseChart = () => {
                 line: {
                   color: ColorEnum.DRIVER,
                   strokeWidth: 2,
+                  opacity: SUPPORTING_CURVE_OPACITY,
                   points: driverCurveData,
                 },
               } as IChartCurveData,
@@ -538,6 +551,7 @@ const FrequencyResponseChart = () => {
                 line: {
                   color: ColorEnum.SMART,
                   strokeWidth: 2,
+                  opacity: SUPPORTING_CURVE_OPACITY,
                   points: smartCurveData,
                 },
               } as IChartCurveData,
@@ -551,6 +565,7 @@ const FrequencyResponseChart = () => {
                 line: {
                   color: ColorEnum.TOTAL,
                   strokeWidth: 2,
+                  opacity: SUPPORTING_CURVE_OPACITY,
                   points: totalCurveData,
                 },
               } as IChartCurveData,
@@ -659,6 +674,7 @@ const FrequencyResponseChart = () => {
               line: {
                 color: ColorEnum.ANALOGOUS2,
                 strokeWidth: 2,
+                opacity: SUPPORTING_CURVE_OPACITY,
                 points: liveOutput.points,
               },
             } as IChartCurveData,

@@ -168,6 +168,7 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
   // The newest measurement, and the shape currently drawn chasing it.
   const targetRef = useRef<number[]>([]);
   const smoothedRef = useRef<number[]>([]);
+  const glowRef = useRef<SVGPathElement>(null);
   const lineRef = useRef<SVGPathElement>(null);
   const mirrorRef = useRef<SVGPathElement>(null);
   const fillRef = useRef<SVGPathElement>(null);
@@ -199,6 +200,7 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
       amplitudeRef.current,
       normaliseRef.current,
     );
+    glowRef.current?.setAttribute('d', path.line);
     lineRef.current?.setAttribute('d', path.line);
     mirrorRef.current?.setAttribute('d', path.mirror);
     fillRef.current?.setAttribute('d', path.fill);
@@ -334,11 +336,24 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
             }`}
             vectorEffect="non-scaling-stroke"
           />
-          {/* No `d` here on purpose — the animation frame owns it. Setting it
+          {/* No `d` on any of these — the animation frame owns it. Setting it
               from JSX too would have React overwrite the eased shape with the
               last measured one on every re-render, which is the stepping this
               exists to remove. */}
           <path ref={fillRef} className="waveform-visualizer__fill" />
+          {/* The glow, and only in euphoria.
+              
+              A fat translucent copy of the line sitting under it, NOT a
+              `drop-shadow`. A filter over a path whose shape is rewritten
+              every frame has to be recomputed every frame, and an animated one
+              over live audio is what put memory into the gigabytes earlier
+              today. A second stroke is one more path in a picture that was
+              already being drawn. */}
+          <path
+            ref={glowRef}
+            className="waveform-visualizer__glow"
+            vectorEffect="non-scaling-stroke"
+          />
           <path
             ref={lineRef}
             className="waveform-visualizer__line"

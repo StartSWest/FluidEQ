@@ -33,11 +33,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /**
  * Below this a value has arrived, and chasing it further is invisible work.
  *
- * Without a floor an exponential ease never technically finishes, so the
- * animation loop would run for the life of the app on differences of a
- * billionth.
+ * This is a throttle, not a rounding detail. The loop keeps running while ANY
+ * value is still moving, so with hundreds of them and live audio underneath,
+ * a threshold near zero means it never stops — sixty redraws a second forever,
+ * each rebuilding a path string, whether or not the shape visibly changed.
+ * That churn does not leak, but V8 grows the heap to absorb it, which looks
+ * indistinguishable from a leak on a memory graph.
+ *
+ * A five-hundredth of the range is comfortably under what a pixel can show on
+ * a trace a few dozen pixels tall, so the loop settles between beats and in
+ * quiet passages instead of spinning through them.
  */
-const SETTLED_EPSILON = 0.0005;
+const SETTLED_EPSILON = 0.002;
 
 /**
  * How far to move toward the target in one frame, corrected for how long that

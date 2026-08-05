@@ -313,3 +313,28 @@ it under the terms of the GNU General Public License version 3 or later.
     }
   }
 }
+
+// The meter's line, glowing.
+//
+// A wide translucent copy of the trace underneath the real one — not a
+// `drop-shadow`. A filter over a path whose shape is rewritten every frame has
+// to be recomputed on every one of them, and an animated filter over live
+// audio is precisely what sent memory into the gigabytes. A second stroke is
+// one more path in a picture already being drawn, and it costs nothing that
+// scales with time.
+//
+// Hidden outside euphoria rather than merely transparent, so it is not in the
+// paint at all the rest of the time.
+.waveform-visualizer__glow {
+  display: none;
+}
+
+.is-euphoric .waveform-visualizer__glow {
+  display: block;
+  fill: none;
+  stroke: url('#waveform-line');
+  stroke-width: 7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.3;
+}

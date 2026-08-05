@@ -279,7 +279,7 @@ const Chart = ({
         // brighter grid line rather than as another coloured curve. It was
         // pink, which put a fourth near-identical magenta on a chart that
         // already had three.
-        color="rgba(255, 255, 255, 0.78)"
+        color="rgba(255, 255, 255, 0.22)"
         transform={`translate(${padding.left}, 0)`}
       />
       {/* Smart EQ coverage. Each frequency region lights up as it is actually

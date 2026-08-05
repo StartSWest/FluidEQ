@@ -68,6 +68,15 @@ interface ILineProps {
    * when a band is dragged has nothing to interpolate between.
    */
   smooth?: boolean;
+  /**
+   * How present this curve is.
+   *
+   * The response the user is actually editing is the subject; the layers under
+   * it — voicing, driver, a measured correction, the live output — are context
+   * for reading it. Drawing them all at full strength turns the graph into a
+   * tangle where nothing is obviously the answer.
+   */
+  opacity?: number;
   transform?: string;
 }
 
@@ -82,6 +91,7 @@ const Line = ({
   glow = false,
   animation = AnimationOptionsEnum.NONE,
   smooth = false,
+  opacity = 1,
   transform,
 }: ILineProps) => {
   const ref = useRef<SVGPathElement>(null);
@@ -102,26 +112,26 @@ const Line = ({
   const animateLeft = useCallback(() => {
     const totalLength = ref.current ? ref.current.getTotalLength() : 100;
     d3.select(ref.current)
-      .attr('opacity', 1)
+      .attr('opacity', opacity)
       .attr('stroke-dasharray', `${totalLength} ${totalLength}`)
       .attr('stroke-dashoffset', totalLength)
       .transition()
       .duration(INIT_ANIMATE_DURATION)
       .ease(d3.easeLinear)
       .attr('stroke-dashoffset', 0);
-  }, []);
+  }, [opacity]);
 
   const animateFadeIn = useCallback(() => {
     d3.select(ref.current)
       .transition()
       .duration(INIT_ANIMATE_DURATION)
       .ease(d3.easeLinear)
-      .attr('opacity', 1);
-  }, []);
+      .attr('opacity', opacity);
+  }, [opacity]);
 
   const noneAnimation = useCallback(() => {
-    d3.select(ref.current).attr('opacity', 1);
-  }, []);
+    d3.select(ref.current).attr('opacity', opacity);
+  }, [opacity]);
 
   // Set initial path attribute
   const initRender = useCallback(() => {
@@ -166,7 +176,7 @@ const Line = ({
       // Make sure initial animation is overwritten
       .attr('stroke-dasharray', null)
       .attr('stroke-offset', null)
-      .attr('opacity', 1);
+      .attr('opacity', opacity);
 
     if (animation === AnimationOptionsEnum.NONE) {
       // A trace that is replaced faster than a transition lasts, so d3's
@@ -186,7 +196,7 @@ const Line = ({
     }
 
     path.transition().duration(GRAPH_ANIMATE_DURATION).attr('d', d);
-  }, [animation, d, isFirstRender, smooth]);
+  }, [animation, d, isFirstRender, opacity, smooth]);
 
   // Ease toward each new measurement, between measurements.
   //
@@ -206,7 +216,11 @@ const Line = ({
       let moving = false;
       for (let index = 0; index < eased.length; index += 1) {
         const distance = data[index].y - eased[index].y;
-        if (distance > 0.001 || distance < -0.001) {
+        // In decibels, and a twentieth of one is far below what a pixel on
+        // this graph can show. Tighter than this and the loop never settles:
+        // something among three hundred points is always drifting, so it
+        // would rebuild the path sixty times a second through silence.
+        if (distance > 0.05 || distance < -0.05) {
           eased[index].y += distance * (distance > 0 ? rise : fall);
           moving = true;
         } else {
