@@ -1,6 +1,6 @@
 {
   "name": "fluideq-app",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Open-source system-wide parametric EQ with automatic per-device profiles",
   "license": "GPLv3",
   "author": {

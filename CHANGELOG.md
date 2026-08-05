@@ -6,6 +6,40 @@ opens it again any time.
 
 ---
 
+## 0.8.0
+
+### New
+
+- **Equalizer APO comes with FluidEQ.** It is inside the installer — nothing is
+  downloaded and there is no second website to visit. Setup offers to run it,
+  and APO's own installer opens so you can choose which audio devices to
+  equalise and get its restart prompt from the tool that owns it. Already have
+  Equalizer APO? It is left completely alone, whatever version it is. This was
+  the worst moment in getting started and it is gone.
+- **Uninstalling asks whether to remove Equalizer APO too**, and defaults to
+  No. It is a system-wide audio component and other applications may be relying
+  on it, so removing it is never the quiet default. Updating never asks.
+- **The Install APO button inside the app runs the bundled copy** rather than
+  opening a download page.
+
+### Changed
+
+- **The equaliser is properly inert without Equalizer APO.** The window still
+  opens, the meter still runs and the graph still draws — the app is worth
+  looking at either way — but every control that writes to the config greys out
+  rather than looking live over an engine that is not installed.
+- **The share card opens in its own window.** It used to replace the game
+  inside the support panel, which meant a picture the size of the panel trying
+  to fit inside that panel; on a short screen the buttons that save and post it
+  ended up below the fold.
+- **The support panel fits a short screen.** It gives things up in order of how
+  little they are missed rather than shrinking everything at once — first the
+  spacing tightens, then the aside about how the app was built goes, and last
+  the QR code, since anyone on a window that short is at a desk and the link
+  beside it does the same job in one click.
+
+---
+
 ## 0.7.0
 
 ### New

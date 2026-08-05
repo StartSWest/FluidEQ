@@ -23,7 +23,6 @@
 import { createHash } from 'crypto';
 import fs from 'fs';
 import path from 'path';
-import { pipeline } from 'stream/promises';
 
 export const APO_VERSION = '1.4.2';
 
@@ -61,22 +60,34 @@ const MIRRORS = [
 
 const VENDOR_DIR = path.join(__dirname, '../../vendor/equalizer-apo');
 
-const sha256 = async (file: string) => {
-  const hash = createHash('sha256');
-  await pipeline(fs.createReadStream(file), hash);
-  return hash.digest('hex');
-};
+const sha256 = (file: string) =>
+  createHash('sha256').update(fs.readFileSync(file)).digest('hex');
 
+/**
+ * Read the whole response, then write it. Deliberately not streamed.
+ *
+ * Streaming this through `pipeline` crashes inside Node's own HTTP parser with
+ * `assert(!this.paused)`: the disk is slower than the network, backpressure
+ * pauses the stream, and if the socket ends while it is paused undici trips an
+ * internal assertion. Every byte arrives before it happens, so the file on
+ * disk looks complete and the process dies immediately afterwards — which
+ * reads like a flaky mirror rather than like a bug, and cost an afternoon to
+ * see properly.
+ *
+ * The largest thing fetched here is under forty megabytes, once, at build
+ * time. Holding it in memory is free, and it removes the entire class of
+ * problem rather than working around one shape of it.
+ */
 const download = async (url: string, to: string) => {
   const response = await fetch(url, { redirect: 'follow' });
-  if (!response.ok || !response.body) {
+  if (!response.ok) {
     throw new Error(`${response.status} ${response.statusText}`);
   }
-  await pipeline(
-    // Node's fetch returns a web stream; the file wants a node one.
-    response.body as unknown as NodeJS.ReadableStream,
-    fs.createWriteStream(to),
-  );
+  const body = Buffer.from(await response.arrayBuffer());
+  if (body.byteLength === 0) {
+    throw new Error('empty response');
+  }
+  fs.writeFileSync(to, body);
 };
 
 export const fetchEqualizerApo = async (): Promise<string> => {
@@ -84,7 +95,7 @@ export const fetchEqualizerApo = async (): Promise<string> => {
   fs.mkdirSync(VENDOR_DIR, { recursive: true });
 
   if (fs.existsSync(target)) {
-    const existing = await sha256(target);
+    const existing = sha256(target);
     if (existing === APO_INSTALLER_SHA256) {
       return target;
     }
@@ -101,7 +112,7 @@ export const fetchEqualizerApo = async (): Promise<string> => {
       // eslint-disable-next-line no-await-in-loop
       await download(url, target);
       // eslint-disable-next-line no-await-in-loop
-      const digest = await sha256(target);
+      const digest = sha256(target);
       if (digest !== APO_INSTALLER_SHA256) {
         throw new Error(
           `checksum mismatch: expected ${APO_INSTALLER_SHA256}, got ${digest}`,
