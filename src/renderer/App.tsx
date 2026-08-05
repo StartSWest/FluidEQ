@@ -21,6 +21,7 @@ import { useEffect, useState, type MouseEvent } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { SUPPORT_CONTRIBUTED_KEY, isSupportAvailable } from 'common/support';
 import { resetRhythmRun } from './utils/rhythmRun';
+import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
 import MainContent from './MainContent';
 import SupportDialog from './SupportDialog';
@@ -657,6 +658,10 @@ const AppContent = () => {
               localStorage.removeItem(SUPPORT_CONTRIBUTED_KEY);
               setHasContributed(false);
               resetRhythmRun();
+              // The unlock goes too. Leaving it would put a working euphoria
+              // switch on the titlebar of an install that has just been reset
+              // to never having earned one.
+              resetEuphoriaMode();
             }}
             onClose={() => setShowSupportDialog(false)}
           />

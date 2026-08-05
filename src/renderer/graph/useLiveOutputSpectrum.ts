@@ -407,8 +407,21 @@ const useLiveOutputSpectrum = () => {
     let audioContext: AudioContext | undefined;
     try {
       stream = await captureSystemOutput();
+      // STOPPED, not disabled — and the difference is gigabytes.
+      //
+      // Windows only hands out loopback audio through `getDisplayMedia`, so a
+      // video track arrives whether or not anything wants one. Setting
+      // `enabled = false` mutes what the track delivers and does nothing at
+      // all to the source behind it: Chromium carries on capturing the screen,
+      // frame after full-resolution frame, for as long as the app is open.
+      // Nothing reads them, and the memory climbs without limit.
+      //
+      // `stop()` releases the capture itself. The audio track is unaffected —
+      // a stream stays live while any of its tracks is live — and the audio is
+      // the only part that was ever wanted.
       stream.getVideoTracks().forEach((track) => {
-        track.enabled = false;
+        track.stop();
+        stream?.removeTrack(track);
       });
 
       const [audioTrack] = stream.getAudioTracks();

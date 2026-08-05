@@ -265,6 +265,8 @@ const ja: Partial<Dictionary> = {
 
   'support.game.euphoria': 'ユーフォリアモード',
 
+  'support.game.euphoriaToggle': 'ユーフォリアモードのオン・オフ',
+
   'support.game.perfect': 'パーフェクト',
 
   'support.game.great': 'グレート',

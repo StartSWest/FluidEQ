@@ -264,6 +264,8 @@ const ru: Partial<Dictionary> = {
 
   'support.game.euphoria': 'Режим эйфории',
 
+  'support.game.euphoriaToggle': 'Включить или выключить режим эйфории',
+
   'support.game.perfect': 'Идеально',
 
   'support.game.great': 'Отлично',

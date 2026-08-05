@@ -266,6 +266,8 @@ const fr: Partial<Dictionary> = {
 
   'support.game.euphoria': 'Mode euphorie',
 
+  'support.game.euphoriaToggle': 'Activer ou désactiver le mode euphorie',
+
   'support.game.perfect': 'Parfait',
 
   'support.game.great': 'Excellent',

@@ -651,21 +651,38 @@ const FrequencyResponseChart = () => {
   // Done here rather than in the analyser because the game's beat detection
   // reads the same frames and needs its transients sharp; rounding them off at
   // the source would blunt the edges it exists to find.
-  const smoothedPointsRef = useRef<{ x: number; y: number }[]>([]);
+  // Two buffers, alternating — not a fresh array every frame.
+  //
+  // The consumers compare by identity, so the array handed out has to be a
+  // different object from the one before it or the curve freezes on screen.
+  // That does NOT require a new allocation: two buffers swapped each frame
+  // satisfy identity while allocating nothing, which is exactly what the audio
+  // pump upstream already does with its own frames.
+  //
+  // The first attempt sliced a fresh array every frame — five hundred-odd
+  // object references, twenty-two times a second, forever, for a curve that
+  // only ever needs to differ from its predecessor.
+  const smoothedRef = useRef<{ x: number; y: number }[][]>([[], []]);
+  const smoothedSlotRef = useRef(0);
   const smoothedPoints = useMemo(() => {
     const source = liveOutput.points;
-    const smoothed = smoothedPointsRef.current;
-    if (smoothed.length !== source.length) {
-      smoothedPointsRef.current = source.map((point) => ({ ...point }));
-    } else {
-      for (let index = 0; index < source.length; index += 1) {
-        smoothed[index].y +=
-          (source[index].y - smoothed[index].y) * LIVE_CURVE_SMOOTHING;
-      }
+    const buffers = smoothedRef.current;
+    if (buffers[0].length !== source.length) {
+      buffers[0] = source.map((point) => ({ ...point }));
+      buffers[1] = source.map((point) => ({ ...point }));
     }
-    // A new array each frame, because d3 and the memo below both compare by
-    // identity — mutating in place would leave the curve frozen on screen.
-    return smoothedPointsRef.current.slice();
+    smoothedSlotRef.current = smoothedSlotRef.current === 0 ? 1 : 0;
+    const target = buffers[smoothedSlotRef.current];
+    const previous = buffers[smoothedSlotRef.current === 0 ? 1 : 0];
+    for (let index = 0; index < source.length; index += 1) {
+      target[index].x = source[index].x;
+      // Eased from the frame before, which lives in the other buffer — reading
+      // the target would ease a value against itself and never move.
+      target[index].y =
+        previous[index].y +
+        (source[index].y - previous[index].y) * LIVE_CURVE_SMOOTHING;
+    }
+    return target;
   }, [liveOutput.points]);
 
   const displayData = useMemo(

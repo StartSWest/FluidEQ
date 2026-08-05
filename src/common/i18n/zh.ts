@@ -252,6 +252,8 @@ const zh: Partial<Dictionary> = {
 
   'support.game.euphoria': '狂喜模式',
 
+  'support.game.euphoriaToggle': '开启或关闭狂喜模式',
+
   'support.game.perfect': '完美',
 
   'support.game.great': '很棒',

@@ -237,14 +237,43 @@ it under the terms of the GNU General Public License version 3 or later.
   white-space: nowrap;
 }
 
+// The meter and its pill, as one positioned box.
+//
+// The pill is a sibling rather than a child because both are buttons, and a
+// button inside a button is invalid markup that browsers fix by unnesting —
+// which quietly loses the inner click.
+.waveform-visualizer-shell {
+  position: relative;
+  display: flex;
+  min-width: 0;
+}
+
 // Centred over the top of the meter, clear of the readouts at either end.
 .waveform-visualizer__euphoria {
   position: absolute;
   z-index: 1;
   top: 2px;
   left: 50%;
+  border: none;
   translate: -50% 0;
-  pointer-events: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  // Off, but still there.
+  //
+  // Once the ceiling has been reached the switch is permanent, so the pill has
+  // to read as a control that is available rather than as something that
+  // disappeared. Drained of colour, not of presence: same shape, same place,
+  // grey until it is on.
+  &.is-dormant {
+    color: rgba($primary-lighter, 0.62);
+    background: rgba($primary-lighter, 0.1);
+
+    &:hover {
+      color: $white;
+      background: rgba($secondary-default, 0.22);
+    }
+  }
 }
 
 // Registered so it can actually animate. Without the type the browser treats it

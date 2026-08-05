@@ -280,6 +280,7 @@ const en = {
   'support.game.shareLinkOnly':
     'Shares the link only — paste the text yourself',
   'support.game.euphoria': 'Euphoria mode',
+  'support.game.euphoriaToggle': 'Turn euphoria mode on or off',
   'support.game.perfect': 'Perfect',
   'support.game.great': 'Great',
   'support.game.good': 'Good',

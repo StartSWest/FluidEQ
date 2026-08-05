@@ -270,6 +270,8 @@ const hi: Partial<Dictionary> = {
 
   'support.game.euphoria': 'यूफोरिया मोड',
 
+  'support.game.euphoriaToggle': 'यूफोरिया मोड चालू या बंद करें',
+
   'support.game.perfect': 'बिलकुल सही',
 
   'support.game.great': 'शानदार',

@@ -21,6 +21,10 @@ import { getStreakJoy } from 'common/rhythmGame';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useRhythmRun } from '../utils/rhythmRun';
+import {
+  markEuphoriaReached,
+  useIsEuphoriaForced,
+} from '../utils/euphoriaMode';
 import '../styles/Euphoria.scss';
 
 /** At x10 the whole application celebrates. Below it, nothing happens. */
@@ -173,8 +177,24 @@ const EuphoriaLevel = () => {
 const EuphoriaGlow = () => {
   // Only the run. This re-renders when the streak changes and at no other time,
   // which for most of the app's life is never.
-  const joy = getStreakJoy(useRhythmRun().streak);
-  const isEuphoric = joy >= EUPHORIA_AT;
+  const earnedJoy = getStreakJoy(useRhythmRun().streak);
+  // And the switch, for anyone who has already reached the ceiling once.
+  const isForced = useIsEuphoriaForced();
+  const isEarned = earnedJoy >= EUPHORIA_AT;
+  const isEuphoric = isEarned || isForced;
+  // Forced euphoria shows the whole look, including the creature's face — the
+  // point of the switch is to have the mode, not a muted version of it. What it
+  // must never do is touch the score, and it does not: this drives appearance
+  // only, and the streak that produces the multiplier is untouched.
+  const joy = isEuphoric ? 1 : earnedJoy;
+
+  // The moment it is genuinely earned, remembered forever. Only a real run
+  // unlocks it — forcing it cannot, or the first click would bootstrap itself.
+  useEffect(() => {
+    if (isEarned) {
+      markEuphoriaReached();
+    }
+  }, [isEarned]);
   // Counted rather than a boolean, so a second arrival fires a second burst.
   // Re-applying a class an element already has does nothing at all.
   const [burst, setBurst] = useState(0);

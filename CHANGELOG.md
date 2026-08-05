@@ -10,6 +10,14 @@ opens it again any time.
 
 ### Fixed
 
+- **FluidEQ was capturing your screen the entire time it was open**, and the
+  memory that took never came back — several gigabytes and still climbing after
+  a few minutes. Windows only offers system audio through the same call that
+  offers screen sharing, so a video track arrives whether or not anything wants
+  one. It was being switched off in a way that mutes what a track delivers
+  while leaving the capture behind it running, so full-resolution frames were
+  produced continuously and nothing ever read them. The video is now released
+  outright the moment the audio arrives.
 - **The graph could not draw.** 0.6.0 shipped a build that dropped d3's
   transition module, so every animated part of the response chart threw
   `e.transition is not a function` and the window came up broken. The build had

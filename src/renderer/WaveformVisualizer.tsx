@@ -5,6 +5,11 @@ import {
   useLiveAudioFrame,
 } from './audio/LiveAudioContext';
 import { useRhythmRun } from './utils/rhythmRun';
+import {
+  toggleEuphoriaForced,
+  useHasReachedEuphoria,
+  useIsEuphoriaForced,
+} from './utils/euphoriaMode';
 import { useTranslation } from './utils/I18nContext';
 import './styles/WaveformVisualizer.scss';
 
@@ -125,7 +130,11 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
   const { t } = useTranslation();
   // Subscribed rather than read from the DOM class the shell sets, so this
   // re-renders when the run changes instead of being told by a stylesheet.
-  const isEuphoric = getStreakJoy(useRhythmRun().streak) >= 1;
+  // Both halves of the mode: earned right now, or switched on by someone who
+  // earned it before. The look is the same either way.
+  const hasReached = useHasReachedEuphoria();
+  const isForced = useIsEuphoriaForced();
+  const isEuphoric = getStreakJoy(useRhythmRun().streak) >= 1 || isForced;
   const { isClipping, waveform } = useLiveAudioFrame();
   const { error, isActive, isPaused, togglePaused } = useLiveAudioControl();
 
@@ -201,99 +210,123 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
   );
 
   return (
-    <button
-      type="button"
-      className={`waveform-visualizer${isActive ? ' is-active' : ''}${
-        isPaused ? ' is-paused' : ''
-      }${isClipping ? ' is-clipping' : ''}`}
-      // In euphoria the meter stops being a pause button and becomes the way
-      // back to the panel. Pausing the analyser mid-celebration is the one
-      // thing nobody wants, and the mode is the moment the app has the most
-      // goodwill to spend on an invitation.
-      aria-label={euphoriaClick ? t('support.title') : pauseLabel}
-      aria-pressed={euphoriaClick ? undefined : isPaused}
-      title={euphoriaClick ? t('support.title') : pauseLabel}
-      onClick={euphoriaClick ?? togglePaused}
-    >
-      <div className="waveform-visualizer__meta">
-        <span className="waveform-visualizer__signal">
-          <span className="waveform-visualizer__signal-dot" />
-          {isActive ? 'LIVE OUTPUT' : 'AUDIO SIGNAL'}
-        </span>
-        <span className="waveform-visualizer__readout">
-          {/* Clipping outranks the number: once it is lit, the number is the
-              least interesting thing on the pane. */}
-          {isClipping && (
-            <span className="waveform-visualizer__clip">CLIP</span>
-          )}
-          <span className="waveform-visualizer__peak">
-            {heldPeak === undefined ? '—' : `${heldPeak.toFixed(1)} dB`}
-          </span>
-        </span>
-      </div>
-      <svg
-        className="waveform-visualizer__canvas"
-        viewBox={`0 0 ${WAVEFORM_WIDTH} ${WAVEFORM_HEIGHT}`}
-        // The pane is responsive, so the trace stretches to fill it. Strokes
-        // opt out of that scaling below, or they would smear horizontally.
-        preserveAspectRatio="none"
-        role="img"
-        aria-label="Live output waveform"
+    // A wrapper, so the pill can be a real button.
+    //
+    // The meter itself is a button — it pauses, or in euphoria it opens the
+    // panel — and a button inside a button is invalid markup that browsers
+    // resolve by silently unnesting, which loses the inner click. The pill
+    // therefore sits beside the meter and is positioned over it.
+    <div className="waveform-visualizer-shell">
+      <button
+        type="button"
+        className={`waveform-visualizer${isActive ? ' is-active' : ''}${
+          isPaused ? ' is-paused' : ''
+        }${isClipping ? ' is-clipping' : ''}`}
+        // In euphoria the meter stops being a pause button and becomes the way
+        // back to the panel. Pausing the analyser mid-celebration is the one
+        // thing nobody wants, and the mode is the moment the app has the most
+        // goodwill to spend on an invitation.
+        aria-label={euphoriaClick ? t('support.title') : pauseLabel}
+        aria-pressed={euphoriaClick ? undefined : isPaused}
+        title={euphoriaClick ? t('support.title') : pauseLabel}
+        onClick={euphoriaClick ?? togglePaused}
       >
-        <defs>
-          <linearGradient id="waveform-fill" x1="0" x2="1">
-            <stop offset="0" stopColor="#8bf6ff" stopOpacity="0.18" />
-            <stop offset="0.5" stopColor="#4ff7d8" stopOpacity="0.42" />
-            <stop offset="1" stopColor="#4f6ef7" stopOpacity="0.18" />
-          </linearGradient>
-          <linearGradient id="waveform-line" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stopColor="#00e5ff" />
-            <stop offset="0.28" stopColor="#54ff8a" />
-            <stop offset="0.52" stopColor="#ffe66d" />
-            <stop offset="0.76" stopColor="#ff3cac" />
-            <stop offset="1" stopColor="#8b5cff" />
-          </linearGradient>
-        </defs>
-        <g className="waveform-visualizer__grid">
-          {gridLines.map((x) => (
-            <path
-              key={x}
-              d={`M ${x} 4 L ${x} ${WAVEFORM_HEIGHT - 4}`}
-              vectorEffect="non-scaling-stroke"
-            />
-          ))}
-        </g>
-        <path
-          className="waveform-visualizer__baseline"
-          d={`M 0 ${WAVEFORM_HEIGHT / 2} L ${WAVEFORM_WIDTH} ${
-            WAVEFORM_HEIGHT / 2
-          }`}
-          vectorEffect="non-scaling-stroke"
-        />
-        <path className="waveform-visualizer__fill" d={waveformPath.fill} />
-        <path
-          className="waveform-visualizer__line"
-          d={waveformPath.line}
-          vectorEffect="non-scaling-stroke"
-        />
-        {/* The mirrored edge, stroked the same way, so the shape is outlined
+        <div className="waveform-visualizer__meta">
+          <span className="waveform-visualizer__signal">
+            <span className="waveform-visualizer__signal-dot" />
+            {isActive ? 'LIVE OUTPUT' : 'AUDIO SIGNAL'}
+          </span>
+          <span className="waveform-visualizer__readout">
+            {/* Clipping outranks the number: once it is lit, the number is the
+              least interesting thing on the pane. */}
+            {isClipping && (
+              <span className="waveform-visualizer__clip">CLIP</span>
+            )}
+            <span className="waveform-visualizer__peak">
+              {heldPeak === undefined ? '—' : `${heldPeak.toFixed(1)} dB`}
+            </span>
+          </span>
+        </div>
+        <svg
+          className="waveform-visualizer__canvas"
+          viewBox={`0 0 ${WAVEFORM_WIDTH} ${WAVEFORM_HEIGHT}`}
+          // The pane is responsive, so the trace stretches to fill it. Strokes
+          // opt out of that scaling below, or they would smear horizontally.
+          preserveAspectRatio="none"
+          role="img"
+          aria-label="Live output waveform"
+        >
+          <defs>
+            <linearGradient id="waveform-fill" x1="0" x2="1">
+              <stop offset="0" stopColor="#8bf6ff" stopOpacity="0.18" />
+              <stop offset="0.5" stopColor="#4ff7d8" stopOpacity="0.42" />
+              <stop offset="1" stopColor="#4f6ef7" stopOpacity="0.18" />
+            </linearGradient>
+            <linearGradient id="waveform-line" x1="0" x2="1" y1="0" y2="0">
+              <stop offset="0" stopColor="#00e5ff" />
+              <stop offset="0.28" stopColor="#54ff8a" />
+              <stop offset="0.52" stopColor="#ffe66d" />
+              <stop offset="0.76" stopColor="#ff3cac" />
+              <stop offset="1" stopColor="#8b5cff" />
+            </linearGradient>
+          </defs>
+          <g className="waveform-visualizer__grid">
+            {gridLines.map((x) => (
+              <path
+                key={x}
+                d={`M ${x} 4 L ${x} ${WAVEFORM_HEIGHT - 4}`}
+                vectorEffect="non-scaling-stroke"
+              />
+            ))}
+          </g>
+          <path
+            className="waveform-visualizer__baseline"
+            d={`M 0 ${WAVEFORM_HEIGHT / 2} L ${WAVEFORM_WIDTH} ${
+              WAVEFORM_HEIGHT / 2
+            }`}
+            vectorEffect="non-scaling-stroke"
+          />
+          <path className="waveform-visualizer__fill" d={waveformPath.fill} />
+          <path
+            className="waveform-visualizer__line"
+            d={waveformPath.line}
+            vectorEffect="non-scaling-stroke"
+          />
+          {/* The mirrored edge, stroked the same way, so the shape is outlined
             rather than being a lit top over a bare bottom. */}
-        <path
-          className="waveform-visualizer__line waveform-visualizer__line--mirror"
-          d={waveformPath.mirror}
-          vectorEffect="non-scaling-stroke"
-        />
-      </svg>
-      {/* The same pill the support panel shows, so the mode is named in one
+          <path
+            className="waveform-visualizer__line waveform-visualizer__line--mirror"
+            d={waveformPath.mirror}
+            vectorEffect="non-scaling-stroke"
+          />
+        </svg>
+        {/* The same pill the support panel shows, so the mode is named in one
           recognisable way wherever it appears. This is the copy visible with
           the dialog closed. */}
-      {isEuphoric && (
-        <span className="euphoria-pill waveform-visualizer__euphoria">
+        {error && <span className="waveform-visualizer__error">{error}</span>}
+      </button>
+      {/* The switch, and only for someone who has already reached the ceiling
+        the hard way. Before that it does not exist — the first x10 has to be
+        earned, or the surprise the whole thing is built around is a button on
+        the titlebar.
+
+        Afterwards it stays put, drained of colour when the mode is off, so it
+        reads as a control that is available rather than as something that
+        vanished. Cosmetic only: it turns the look on, never the multiplier. */}
+      {hasReached && (
+        <button
+          type="button"
+          className={`euphoria-pill waveform-visualizer__euphoria${
+            isEuphoric ? '' : ' is-dormant'
+          }`}
+          aria-pressed={isEuphoric}
+          title={t('support.game.euphoriaToggle')}
+          onClick={toggleEuphoriaForced}
+        >
           {t('support.game.euphoria')}
-        </span>
+        </button>
       )}
-      {error && <span className="waveform-visualizer__error">{error}</span>}
-    </button>
+    </div>
   );
 };
 
