@@ -457,14 +457,97 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Fitting into a short window.
+//
+// The dialog is a long read — a heading, a game, a pitch, an aside about how
+// it was built, a payment card with a QR in it, and a footer — and on anything
+// under about a laptop's height that ran off the bottom, leaving the part that
+// actually matters (the link, the code, the thanks) below a scrollbar nobody
+// noticed. It scrolls, so nothing is ever unreachable, but scrolling to find
+// the ask is a worse ask.
+//
+// So it gives things up in order of how little they are missed, in three
+// steps, rather than shrinking everything at once and ending up with a small
+// version of the same problem.
+
+// First: tighten the rhythm. Nothing is removed, it just sits closer.
+@media (max-height: 860px) {
+  .support-dialog {
+    padding: 18px 22px 18px;
+    gap: 12px;
+  }
+
+  .support-dialog__craft {
+    font-size: 0.74rem;
+    line-height: 1.5;
+  }
+
+  .support-method--qr .qr-code {
+    width: 112px;
+    height: 112px;
+  }
+}
+
+// Then: the aside about how the app was built goes. It is the one paragraph
+// here that persuades nobody who is not already persuaded, and it is four
+// lines deep.
+@media (max-height: 720px) {
+  .support-dialog {
+    padding: 14px 18px;
+    gap: 9px;
+  }
+
+  .support-dialog__craft {
+    display: none;
+  }
+
+  .support-dialog__pitch {
+    font-size: 0.76rem;
+    line-height: 1.5;
+  }
+
+  .support-method--qr .qr-code {
+    width: 92px;
+    height: 92px;
+    padding: 6px;
+  }
+}
+
+// Last: the QR itself. Anyone on a window this short is at a desk, and the
+// link beside it does the same job in one click — the code is for reaching for
+// a phone, which is the less likely of the two here. The pet shrinks with it,
+// since it is decoration sitting above the only thing being asked for.
 @media (max-height: 620px) {
   .support-dialog {
-    padding: 14px;
-    gap: 10px;
+    padding: 12px 14px;
+    gap: 7px;
   }
 
   .support-dialog__pitch {
     font-size: 0.72rem;
+  }
+
+  .support-method--qr {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .support-method--qr .qr-code {
+    display: none;
+  }
+
+  .support-dialog__footer,
+  .support-dialog__notes {
+    font-size: 0.68rem;
+  }
+}
+
+// Narrow as well as short: the QR moves under the text rather than squeezing
+// it into a column two words wide.
+@media (max-width: 560px) {
+  .support-method--qr {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    row-gap: 12px;
   }
 }
 

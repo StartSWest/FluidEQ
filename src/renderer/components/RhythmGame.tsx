@@ -356,22 +356,34 @@ const RhythmGame = forwardRef<IRhythmGameHandle>((_props, ref) => {
     [],
   );
 
-  // The card takes the whole panel.
+  // The card gets a window of its own, over the dialog rather than inside it.
   //
-  // Everything else unmounts rather than being scrolled past: the instruction,
-  // the score, the trace and the verdict are all about a run that the player
-  // has stepped away from to look at a picture of it, and leaving them on
-  // screen both crowds the card and invites tapping at a game that is no
-  // longer in front of them.
+  // It used to replace the game in place, which meant a picture roughly the
+  // size of the panel trying to live inside that panel — squeezed by the
+  // dialog's padding, competing with its scrollbar, and pushing everything
+  // below it out of reach on a short screen. It is a finished artefact you are
+  // about to post somewhere, so it is shown at its own size on its own
+  // backdrop.
   //
-  // Unmounting is also what stops the work. The trace redraws on every audio
-  // frame — around twenty-two times a second, building two arrays and a path
-  // string each time — and none of that is visible while the card is up. The
-  // effect that does it is keyed on `isSharing` below, so it does not merely
-  // hide, it stops.
+  // The game itself still unmounts underneath. That is not only tidiness: the
+  // trace redraws on every audio frame — around twenty-two times a second,
+  // building two arrays and a path string each time — and none of that is
+  // visible behind the card. The effect that does it is keyed on `isSharing`,
+  // so it does not merely hide, it stops.
   if (isSharing) {
     return (
-      <div className="rhythm-game rhythm-game--sharing">
+      <div
+        className="share-card-backdrop"
+        role="presentation"
+        onClick={(event) => {
+          // Clicking the surround closes it, the way every other overlay in
+          // the app behaves. Clicks that started on the card itself are not
+          // the surround, however far the pointer travelled afterwards.
+          if (event.target === event.currentTarget) {
+            setIsSharing(false);
+          }
+        }}
+      >
         <ShareScoreCard
           score={shareScore}
           multiplier={shareMultiplier}

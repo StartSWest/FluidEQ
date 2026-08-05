@@ -7,11 +7,32 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
 @use 'theme' as *;
 
-// Sits inside the support dialog rather than opening a second one. A modal on
-// top of a modal to show a picture is more ceremony than the thing deserves,
-// and it would put the score behind the very card it is about.
+// A window of its own, over the support dialog.
+//
+// The card used to be rendered in place of the game inside that dialog, which
+// meant a picture roughly the size of the panel trying to fit inside the panel
+// — squeezed by its padding, competing with its scrollbar, and on a short
+// screen pushing the buttons that save and post it below the fold. It is a
+// finished thing you are about to put somewhere public, so it gets its own
+// surface, its own backdrop and its own size.
+//
+// Above the support dialog's own 1400, because it opens from inside it.
+.share-card-backdrop {
+  @include animate(fade-in, $motion-fast);
+  position: fixed;
+  z-index: 1500;
+  inset: 0;
+  display: grid;
+  padding: $spacing-m;
+  place-items: center;
+  background: rgba(#03070d, 0.72);
+  backdrop-filter: blur(4px);
+}
+
 .share-score {
   display: grid;
   gap: 12px;
@@ -19,6 +40,18 @@ it under the terms of the GNU General Public License version 3 or later.
   border: 1px solid rgba($secondary-default, 0.22);
   border-radius: $radius-m;
   background: rgba(#060d16, 0.72);
+}
+
+// Sized as a dialog once it is one.
+.share-card-backdrop > .share-score {
+  @include animate(pop-in, $motion-base, $ease-spring);
+  @include menu-surface;
+  width: min(560px, 100%);
+  max-height: calc(100vh - #{$spacing-m} * 2);
+  padding: 20px;
+  overflow-y: auto;
+  @include slim-scrollbar(8px);
+  border-color: rgba($secondary-default, 0.34);
 }
 
 .share-score__head {
