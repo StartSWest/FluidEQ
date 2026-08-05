@@ -5,7 +5,12 @@ import webpack from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import chalk from 'chalk';
 import { merge } from 'webpack-merge';
-import { execSync, spawn } from 'child_process';
+import {
+  execFileSync,
+  execSync,
+  spawn,
+  type ChildProcess,
+} from 'child_process';
 import ReactRefreshWebpackPlugin from '@pmmmwh/react-refresh-webpack-plugin';
 import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
@@ -177,28 +182,79 @@ const configuration: webpack.Configuration = {
     historyApiFallback: {
       verbose: true,
     },
+    // Ctrl+C is handled below instead: the built-in handler asks for a second
+    // one before it lets go, and the point is to leave nothing running.
+    setupExitSignals: false,
     setupMiddlewares(middlewares) {
-      console.log('Starting preload.js builder...');
-      const spawnPnpm = (args: string[]) => {
-        if (process.platform === 'win32') {
-          // pnpm is a Windows command shim. Launch it through cmd.exe
-          // explicitly so Node does not need shell:true (DEP0190).
-          return spawn(
-            process.env.ComSpec || 'cmd.exe',
-            ['/d', '/s', '/c', `pnpm ${args.join(' ')}`],
-            { stdio: 'inherit' },
-          );
-        }
-        return spawn('pnpm', args, { stdio: 'inherit' });
+      const children: ChildProcess[] = [];
+      let shuttingDown = false;
+
+      /**
+       * Run a CLI on its own node process. Not `pnpm <script>`: pnpm and every
+       * `node_modules/.bin` entry are `.cmd` shims on Windows, and Ctrl+C
+       * inside a batch file stops cmd.exe to ask "Terminate batch job (Y/N)?".
+       */
+      const spawnNode = (
+        bin: string,
+        args: string[],
+        env: NodeJS.ProcessEnv,
+      ) => {
+        const child = spawn(process.execPath, [require.resolve(bin), ...args], {
+          stdio: 'inherit',
+          env: { ...process.env, ...env },
+        });
+        children.push(child);
+        return child;
       };
 
-      const preloadProcess = spawnPnpm(['start:preload'])
-        .on('close', (code: number) => process.exit(code!))
+      /** One Ctrl+C takes the whole dev session down, orphaning nothing. */
+      const shutdown = () => {
+        if (shuttingDown) return;
+        shuttingDown = true;
+
+        children.forEach((child) => {
+          if (!child.pid || child.exitCode !== null) return;
+          try {
+            if (process.platform === 'win32') {
+              // Electron is a grandchild of electronmon; /T reaches it.
+              execFileSync(
+                'taskkill',
+                ['/pid', String(child.pid), '/T', '/F'],
+                { stdio: 'ignore' },
+              );
+            } else {
+              child.kill('SIGKILL');
+            }
+          } catch {
+            // Already gone.
+          }
+        });
+
+        process.exit(0);
+      };
+
+      // Prepended so it beats webpack-cli's own graceful-shutdown handler.
+      (['SIGINT', 'SIGTERM', 'SIGBREAK'] as NodeJS.Signals[]).forEach(
+        (signal) => process.prependListener(signal, shutdown),
+      );
+
+      console.log('Starting preload.js builder...');
+      const preloadProcess = spawnNode(
+        'webpack-cli/bin/cli.js',
+        ['--config', path.join(__dirname, 'webpack.config.preload.dev.cjs')],
+        { NODE_ENV: 'development', TS_NODE_TRANSPILE_ONLY: 'true' },
+      )
+        .on('close', (code: number) => {
+          if (!shuttingDown) process.exit(code!);
+        })
         .on('error', (spawnError) => console.error(spawnError));
 
       console.log('Starting Main Process...');
-      spawnPnpm(['start:main'])
+      spawnNode('electronmon/bin/cli.js', ['dev-main.cjs', '--no-sandbox'], {
+        NODE_ENV: 'development',
+      })
         .on('close', (code: number) => {
+          if (shuttingDown) return;
           preloadProcess.kill();
           process.exit(code!);
         })

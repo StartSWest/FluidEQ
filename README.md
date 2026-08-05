@@ -114,12 +114,13 @@ No virtual output device and no kernel driver.
 
 FluidEQ is Windows-only, because Equalizer APO is the audio engine.
 
-1. Install [Equalizer APO](https://sourceforge.net/projects/equalizerapo/).
-2. Run its Configurator and tick every output you want FluidEQ to manage.
-   Reboot if it asks.
-3. Download the installer from
+1. Download the installer from
    [Releases](https://github.com/StartSWest/FluidEQ/releases) and run it.
-4. Pick your output at the top right, then tune.
+2. It carries Equalizer APO with it and offers to install it — nothing is
+   downloaded and there is no second website to visit. APO's own setup opens so
+   you can tick every output you want FluidEQ to manage; reboot when it asks.
+   Already have Equalizer APO? It is left completely alone.
+3. Pick your output at the top right, then tune.
 
 That is the whole setup. Nothing needs saving — every edit attaches itself to
 the current output automatically. Every output keeps at least one profile, and
@@ -155,13 +156,13 @@ with the pencil on its row.
 FluidEQ is free and stays free. Nothing is behind a paywall, nothing is tracked,
 and there is no paid tier waiting in the wings.
 
-**This is one person's work, built with a lot of love and an unreasonable amount
-of attention to detail.** Every panel was drawn by hand and argued over: how the
-response curve reads at a glance, the way a menu unfolds, what a knob does when
-you drag it slowly, which words go on a button, whether a chip should truncate
-its label or its value. Nothing here is a stock component with a theme painted
-on top. The parts you are not supposed to notice are the parts that took the
-longest.
+**This is one person's work — mine, Ivan Carmenates — built with a lot of love
+and an unreasonable amount of attention to detail.** Every panel was drawn by
+hand and argued over: how the response curve reads at a glance, the way a menu
+unfolds, what a knob does when you drag it slowly, which words go on a button,
+whether a chip should truncate its label or its value. Nothing here is a stock
+component with a theme painted on top. The parts you are not supposed to notice
+are the parts that took the longest.
 
 If it earned a place in your setup, a contribution funds the time that keeps it
 maintained and the next ideas out of the same workshop.
@@ -340,7 +341,7 @@ FluidEQ is free software under the
 [GNU General Public License v3.0 or later](LICENSE), matching upstream AQUA.
 
 Copyright © 2023 AQUA Dev Team<br>
-FluidEQ modifications copyright © 2026 FluidEQ contributors
+FluidEQ modifications copyright © 2026 Ivan Carmenates
 
 You may use, study, modify and redistribute this software under the GPL. A
 distributed modified version must also make its corresponding source available

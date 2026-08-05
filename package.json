@@ -25,15 +25,16 @@
   },
   "license": "GPL-3.0-or-later",
   "author": {
-    "name": "FluidEQ contributors"
+    "name": "Ivan Carmenates",
+    "url": "https://github.com/StartSWest"
   },
   "contributors": [
     "AQUA Dev Team",
-    "FluidEQ contributors"
+    "Ivan Carmenates"
   ],
   "main": "./src/main/main.ts",
   "scripts": {
-    "dev": "pnpm start",
+    "dev": "node ./.erb/scripts/dev.cjs",
     "build": "concurrently \"pnpm build:main\" \"pnpm build:renderer\"",
     "build:main": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.main.prod.cjs",
     "build:renderer": "cross-env NODE_ENV=production TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.renderer.prod.cjs",
@@ -44,7 +45,7 @@
     "package": "ts-node ./.erb/scripts/clean.js dist && pnpm fetch-apo && pnpm build && electron-builder build --publish never",
     "prepare": "husky",
     "rebuild": "electron-rebuild --parallel --types prod,dev,optional --module-dir release/app",
-    "start": "ts-node ./.erb/scripts/check-port-in-use.js && pnpm start:renderer",
+    "start": "node ./.erb/scripts/dev.cjs",
     "start:main": "cross-env NODE_ENV=development electronmon dev-main.cjs --no-sandbox",
     "start:preload": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack --config ./.erb/configs/webpack.config.preload.dev.cjs",
     "start:renderer": "cross-env NODE_ENV=development TS_NODE_TRANSPILE_ONLY=true webpack serve --config ./.erb/configs/webpack.config.renderer.dev.cjs",
