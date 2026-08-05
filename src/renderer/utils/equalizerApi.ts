@@ -396,6 +396,19 @@ export const getAudioDevices = (): Promise<IAudioDevice[]> => {
   return promisifyResult(simpleResponseHandler<IAudioDevice[]>(), channel);
 };
 
+/**
+ * The EQ a given endpoint should receive, from its assigned profile.
+ *
+ * Not `getEqualizerState`, which is the live session on the device being
+ * listened to. A mirror feeds something else, and handing it the primary
+ * device's correction is the exact mistake per-mirror EQ exists to avoid.
+ */
+export const getStateForAudioDevice = (deviceId: string): Promise<IState> => {
+  const channel = ChannelEnum.GET_STATE_FOR_AUDIO_DEVICE;
+  window.electron.ipcRenderer.sendMessage(channel, [deviceId]);
+  return promisifyResult(simpleResponseHandler<IState>(), channel);
+};
+
 export const setDefaultAudioDevice = (deviceId: string): Promise<void> => {
   const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
   window.electron.ipcRenderer.sendMessage(channel, [deviceId]);

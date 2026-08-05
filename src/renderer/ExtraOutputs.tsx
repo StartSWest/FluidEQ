@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useMemo } from 'react';
 import { DeviceMatchEnum } from 'common/audioDeviceBridge';
+import { identifyVirtualDevice } from 'common/virtualAudioDevices';
 import SidebarSection from './components/SidebarSection';
 import Dropdown from './widgets/Dropdown';
 import { IOptionEntry } from './widgets/List';
@@ -48,18 +49,27 @@ const ExtraOutputs = () => {
       // currently be used. Hiding those would leave a user looking for a
       // speaker that is plainly plugged in with nothing to read and no idea
       // why it is missing; picking it explains itself below instead.
-      ...eligible.map((target) => ({
-        value: target.device.guid,
-        label: target.device.name,
-        display: (
-          <div className="device-option">
-            <span
-              className={target.isUsable ? 'device-dot active' : 'device-dot'}
-            />
-            <span>{target.device.name}</span>
-          </div>
-        ),
-      })),
+      ...eligible.map((target) => {
+        // Voicemeeter presents three inputs whose names differ by one word.
+        // A user being told to point an application at one of them needs to
+        // know which, and the driver's own naming does not make that obvious.
+        const virtual = identifyVirtualDevice(target.device);
+        return {
+          value: target.device.guid,
+          label: target.device.name,
+          display: (
+            <div className="device-option">
+              <span
+                className={target.isUsable ? 'device-dot active' : 'device-dot'}
+              />
+              <span>{target.device.name}</span>
+              {virtual && (
+                <span className="extra-outputs__tag">{virtual.inputLabel}</span>
+              )}
+            </div>
+          ),
+        };
+      }),
     ],
     [eligible, t],
   );

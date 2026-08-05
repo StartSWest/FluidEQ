@@ -18,6 +18,18 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 5px;
 }
 
+// Which input of a routing driver this is. Voicemeeter's three differ by a
+// single word, so the distinction has to be visible at a glance.
+.extra-outputs__tag {
+  flex: 0 0 auto;
+  padding: 2px 6px;
+  color: $secondary-light;
+  border: 1px solid rgba($secondary-default, 0.35);
+  border-radius: $radius-pill;
+  font-size: 0.58rem;
+  font-weight: 700;
+}
+
 // Why the chosen output cannot be used, and what to do about it. Warmer than
 // the hint because it is the difference between the feature working and not.
 .extra-outputs__obstacle {

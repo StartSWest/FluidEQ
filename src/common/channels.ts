@@ -106,6 +106,10 @@ enum ChannelEnum {
   EXPORT_DEVICE_CHAIN = 'exportDeviceChain',
   IMPORT_DEVICE_CHAIN = 'importDeviceChain',
   GET_AUDIO_DEVICES = 'getAudioDevices',
+  // The EQ a given endpoint should get, which is not the live state: the
+  // mirror feeds a device the user is not listening on, and needs that
+  // device's own profile rather than the one being edited.
+  GET_STATE_FOR_AUDIO_DEVICE = 'getStateForAudioDevice',
   SET_DEFAULT_AUDIO_DEVICE = 'setDefaultAudioDevice',
   ACTIVATE_AUDIO_DEVICE_PROFILE = 'activateAudioDeviceProfile',
   GET_DEVICE_PROFILE_SETTINGS = 'getDeviceProfileSettings',

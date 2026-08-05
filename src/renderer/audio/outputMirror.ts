@@ -63,6 +63,19 @@ export interface IMirrorContext {
   createMediaStreamDestination(): MediaStreamAudioDestinationNode;
 }
 
+/**
+ * Something spliced between the capture and the sink — in practice the
+ * mirror's own equaliser, from `mirrorEq`.
+ *
+ * Structural for the same reason as everything else here: jsdom cannot build
+ * an audio node, and the splicing is worth asserting.
+ */
+export interface IMirrorInsert {
+  input: AudioNode;
+  output: { connect(destination: AudioNode): unknown };
+  dispose(): void;
+}
+
 export interface IOutputMirrorOptions {
   /** The context the capture is already living in. Not a new one. */
   context: IMirrorContext;
@@ -70,6 +83,12 @@ export interface IOutputMirrorOptions {
   source: IMirrorSource;
   /** A Chromium sink id from the name bridge. Never `default`. */
   sinkId: string;
+  /**
+   * The mirror's own EQ. Omitted means the second device hears the primary
+   * device's correction, which is wrong for it — acceptable only as a
+   * deliberate "no profile assigned" case, never as a default.
+   */
+  eq?: IMirrorInsert;
   /** Injectable purely so the tests can watch what happens to it. */
   createSink?: () => IMirrorSink;
 }
@@ -104,6 +123,7 @@ export const startOutputMirror = async ({
   context,
   source,
   sinkId,
+  eq,
   createSink = createAudioSink,
 }: IOutputMirrorOptions): Promise<IOutputMirror> => {
   if (!sinkId) {
@@ -115,20 +135,28 @@ export const startOutputMirror = async ({
 
   const destination = context.createMediaStreamDestination();
   const sink = createSink();
+  // What the shared capture node feeds. With an EQ present the capture goes
+  // into the filters and the filters into the stream; without one it goes
+  // straight through. Either way the capture node itself is only ever
+  // connected to this one thing, so detaching is a single disconnect and the
+  // analyser's own branch is never touched.
+  const head: AudioNode = eq ? eq.input : destination;
   let isConnected = false;
 
   const teardown = () => {
     sink.pause();
     sink.srcObject = null;
     if (isConnected) {
-      source.disconnect(destination);
+      source.disconnect(head);
       isConnected = false;
     }
+    eq?.dispose();
   };
 
   try {
-    source.connect(destination);
+    source.connect(head);
     isConnected = true;
+    eq?.output.connect(destination);
     sink.srcObject = destination.stream;
     await sink.setSinkId(sinkId);
     await sink.play();

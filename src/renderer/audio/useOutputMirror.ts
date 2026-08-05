@@ -25,11 +25,21 @@ import {
   isEligibleMirrorTarget,
   matchAudioDevices,
 } from 'common/audioDeviceBridge';
-import { IAudioDevice } from 'common/constants';
+import { IAudioDevice, IState } from 'common/constants';
 import { hasVirtualRouting } from 'common/virtualAudioDevices';
-import { getAudioDevices } from '../utils/equalizerApi';
+import { getAudioDevices, getStateForAudioDevice } from '../utils/equalizerApi';
 import { useLiveAudioControl } from './LiveAudioContext';
+import { createMirrorEqChain } from './mirrorEq';
 import { IOutputMirror, startOutputMirror } from './outputMirror';
+
+/**
+ * Where the chosen mirror lives between runs.
+ *
+ * The GUID, never the sink id. Chromium salts sink ids per origin and drops
+ * them with site data, so a stored one can come back meaning a different
+ * speaker; the GUID is what Windows and APO already agree on.
+ */
+const MIRROR_TARGET_KEY = 'fluideq-mirror-target-guid';
 
 /** One endpoint, and whether it can currently be mirrored to. */
 export interface IMirrorTarget {
@@ -76,8 +86,9 @@ const useOutputMirror = () => {
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [outputs, setOutputs] = useState<IMediaOutputDevice[]>([]);
   const [selectedGuid, setSelectedGuid] = useState<string | undefined>(
-    undefined,
+    () => localStorage.getItem(MIRROR_TARGET_KEY) ?? undefined,
   );
+  const [profile, setProfile] = useState<IState | undefined>(undefined);
   const [error, setError] = useState('');
   const mirrorRef = useRef<IOutputMirror | undefined>(undefined);
 
@@ -137,6 +148,36 @@ const useOutputMirror = () => {
     [selectedGuid, targets],
   );
 
+  // The mirrored device's OWN profile, which is the entire point of giving a
+  // mirror its own EQ. Keyed on the endpoint id rather than the target object,
+  // which is rebuilt every time the device list is refreshed.
+  const activeDeviceId = active?.device.id;
+  useEffect(() => {
+    if (!activeDeviceId) {
+      setProfile(undefined);
+      return undefined;
+    }
+    let isCancelled = false;
+    getStateForAudioDevice(activeDeviceId)
+      .then((state) => {
+        if (!isCancelled) {
+          setProfile(state);
+        }
+        return state;
+      })
+      .catch(() => {
+        // No profile is a real answer: the device plays flat rather than
+        // borrowing the primary device's correction, which is the one thing
+        // it must never do.
+        if (!isCancelled) {
+          setProfile(undefined);
+        }
+      });
+    return () => {
+      isCancelled = true;
+    };
+  }, [activeDeviceId]);
+
   // One effect owns the running graph, keyed on the sink actually in use and
   // the capture it hangs off. Either changing tears the old one down first —
   // two mirrors on one capture would play the same audio twice into the same
@@ -152,6 +193,18 @@ const useOutputMirror = () => {
       context: capture.context,
       source: capture.source,
       sinkId,
+      // Only the bands and the preamp. APO's later layers — voicing, driver
+      // correction, Smart EQ and convolution — are not reproduced here, so a
+      // profile using them is mirrored with its bands only. Better an honest
+      // subset than a second engine quietly inventing its own version of a
+      // layer the graph derives elsewhere.
+      eq: profile
+        ? createMirrorEqChain(
+            capture.context,
+            Object.values(profile.filters),
+            profile.preAmp,
+          )
+        : undefined,
     })
       .then((mirror) => {
         if (isCancelled) {
@@ -177,11 +230,16 @@ const useOutputMirror = () => {
       mirrorRef.current?.stop();
       mirrorRef.current = undefined;
     };
-  }, [capture, sinkId]);
+  }, [capture, profile, sinkId]);
 
   const selectTarget = useCallback((guid: string | undefined) => {
     setError('');
     setSelectedGuid(guid);
+    if (guid) {
+      localStorage.setItem(MIRROR_TARGET_KEY, guid);
+    } else {
+      localStorage.removeItem(MIRROR_TARGET_KEY);
+    }
   }, []);
 
   return {

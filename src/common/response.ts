@@ -29,7 +29,20 @@ import { clampGain, FilterTypeEnum, IFilter, IFiltersMap } from './constants';
  * preamp describing a chain that no longer existed.
  */
 
-const SAMPLE_FREQUENCY = 96000;
+/**
+ * The rate the response curve is derived at.
+ *
+ * Arbitrary but deliberate: it is comfortably above anything Windows will run
+ * an endpoint at, so every audible frequency sits well below Nyquist and the
+ * drawn curve does not warp at the top of the range.
+ *
+ * Exported because it is now a *default* rather than the only answer. A filter
+ * chain that is actually going to process audio — the mirror does — must be
+ * built at the rate that audio is running at, or every centre frequency moves
+ * by the ratio between the two. That is not a subtle error: coefficients made
+ * here and run at 48 kHz put every band an octave low.
+ */
+export const RESPONSE_SAMPLE_FREQUENCY = 96000;
 const NUM_STEPS = 1000;
 export const RESPONSE_START = 10;
 export const RESPONSE_END = 20000;
@@ -53,7 +66,10 @@ export interface ITransferFuncCoeffs {
 }
 
 /** RBJ audio-EQ-cookbook coefficients for one filter. */
-export const getTFCoefficients = (filter: IFilter): ITransferFuncCoeffs => {
+export const getTFCoefficients = (
+  filter: IFilter,
+  sampleFrequency: number = RESPONSE_SAMPLE_FREQUENCY,
+): ITransferFuncCoeffs => {
   const {
     type: filterType,
     frequency,
@@ -69,7 +85,7 @@ export const getTFCoefficients = (filter: IFilter): ITransferFuncCoeffs => {
   const gainFactor = specialFilters.has(filterType) ? 40 : 20;
   const gain = 10 ** (dbGain / gainFactor);
 
-  const omega = (2 * Math.PI * frequency) / SAMPLE_FREQUENCY;
+  const omega = (2 * Math.PI * frequency) / sampleFrequency;
   const cosine = Math.cos(omega);
 
   let b0 = 0;
@@ -157,10 +173,19 @@ export const getTFCoefficients = (filter: IFilter): ITransferFuncCoeffs => {
   return { b0, b1, b2, a1, a2 };
 };
 
-/** Magnitude of one filter at one frequency, in dB. */
-export const gainAtFrequency = (f: number, c: ITransferFuncCoeffs): number => {
+/**
+ * Magnitude of one filter at one frequency, in dB.
+ *
+ * `sampleFrequency` must be the one the coefficients were built at. Evaluating
+ * a 48 kHz chain on the 96 kHz grid reports a curve nothing will ever play.
+ */
+export const gainAtFrequency = (
+  f: number,
+  c: ITransferFuncCoeffs,
+  sampleFrequency: number = RESPONSE_SAMPLE_FREQUENCY,
+): number => {
   const { b0, b1, b2, a1, a2 } = c;
-  const phi = Math.sin((2 * Math.PI * f) / (2 * SAMPLE_FREQUENCY)) ** 2;
+  const phi = Math.sin((2 * Math.PI * f) / (2 * sampleFrequency)) ** 2;
   const numerator =
     (b0 + b1 + b2) ** 2 -
     4 * (b0 * b1 + 4 * b0 * b2 + b1 * b2) * phi +
