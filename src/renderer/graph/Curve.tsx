@@ -50,6 +50,10 @@ const Curve = ({ xScale, yScale, data }: ICurveProps) => {
             ? LineAnimationOptionsEnum.NONE
             : LineAnimationOptionsEnum.LEFT
         }
+        // The continuous curve is the live trace, the only one fed by audio
+        // rather than by the bands — so it is the only one with anything to
+        // interpolate between.
+        smooth={isContinuous}
       />
       {controlPoint && (
         <Point

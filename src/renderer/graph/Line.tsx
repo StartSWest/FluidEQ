@@ -19,6 +19,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import * as d3 from 'd3';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import { useIsFirstRender } from 'renderer/utils/utils';
+import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
+import { getEaseFactor } from 'common/smoothing';
 import {
   GRAPH_ANIMATE_DURATION,
   IChartPointData,
@@ -31,6 +33,15 @@ export enum AnimationOptionsEnum {
   NONE = 'none',
 }
 
+/**
+ * How long the distance to the newest measurement takes to halve.
+ *
+ * Slower than the titlebar meter, because the graph is a shape people read
+ * rather than a level they glance at — a considered glide suits it where on a
+ * meter the same easing would look like lag.
+ */
+const LIVE_CURVE_HALF_LIFE_MS = 70;
+
 interface ILineProps {
   name: string;
   xScale: d3.AxisScale<d3.NumberValue>;
@@ -41,6 +52,13 @@ interface ILineProps {
   gradientId?: string;
   glow?: boolean;
   animation?: AnimationOptionsEnum;
+  /**
+   * Ease this curve between measurements instead of stepping to each one.
+   *
+   * Only meaningful for a trace driven by live audio; a curve that changes
+   * when a band is dragged has nothing to interpolate between.
+   */
+  smooth?: boolean;
   transform?: string;
 }
 
@@ -54,6 +72,7 @@ const Line = ({
   gradientId,
   glow = false,
   animation = AnimationOptionsEnum.NONE,
+  smooth = false,
   transform,
 }: ILineProps) => {
   const ref = useRef<SVGPathElement>(null);
@@ -141,15 +160,68 @@ const Line = ({
       .attr('opacity', 1);
 
     if (animation === AnimationOptionsEnum.NONE) {
-      // A trace that is replaced faster than the ease lasts. Transitioning it
-      // would interpolate every coordinate in the path on every tick and still
-      // never reach the value, so the new shape goes straight on.
-      path.attr('d', d);
+      // A trace that is replaced faster than a transition lasts, so d3's
+      // easing is the wrong tool — it would interpolate every coordinate on
+      // every tick and still never arrive.
+      //
+      // When `smooth` is set, the animation frames below own this path
+      // instead: they ease it toward each new measurement at display rate,
+      // which is the only way a shape that updates twenty-two times a second
+      // reads as continuous. Writing `d` here as well would stamp the raw
+      // measurement over the eased one on every re-render, which is exactly
+      // the stepping being removed.
+      if (!smooth) {
+        path.attr('d', d);
+      }
       return;
     }
 
     path.transition().duration(GRAPH_ANIMATE_DURATION).attr('d', d);
-  }, [animation, d, isFirstRender]);
+  }, [animation, d, isFirstRender, smooth]);
+
+  // Ease toward each new measurement, between measurements.
+  //
+  // Only for the live trace, which is the one curve here fed by audio rather
+  // than by the user's own bands — everything else changes when something is
+  // dragged and has nothing to interpolate between.
+  //
+  // The points are eased rather than the path string, because a path is text
+  // and text cannot be interpolated; the shape has to be rebuilt from numbers
+  // that moved. Two buffers, reused, so a frame allocates nothing.
+  const easedRef = useRef<IChartPointData[]>([]);
+  const drawFrame = useCallback(
+    (deltaMs: number) => {
+      const eased = easedRef.current;
+      const factor = getEaseFactor(deltaMs, LIVE_CURVE_HALF_LIFE_MS);
+      let moving = false;
+      for (let index = 0; index < eased.length; index += 1) {
+        const distance = data[index].y - eased[index].y;
+        if (distance > 0.001 || distance < -0.001) {
+          eased[index].y += distance * factor;
+          moving = true;
+        } else {
+          eased[index].y = data[index].y;
+        }
+      }
+      ref.current?.setAttribute('d', line(eased) ?? '');
+      return moving;
+    },
+    [data, line],
+  );
+
+  const kickFrames = useSmoothFrames(drawFrame, { isEnabled: Boolean(smooth) });
+
+  useEffect(() => {
+    if (!smooth) {
+      return;
+    }
+    if (easedRef.current.length !== data.length) {
+      // First measurement, or the analyser changed size. The curve arrives
+      // whole rather than growing out of a flat line.
+      easedRef.current = data.map((point) => ({ ...point }));
+    }
+    kickFrames();
+  }, [data, kickFrames, smooth]);
 
   return (
     <>

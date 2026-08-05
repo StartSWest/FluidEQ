@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getStreakJoy } from 'common/rhythmGame';
+import { easeTowards, getEaseFactor } from 'common/smoothing';
 import {
   useLiveAudioControl,
   useLiveAudioFrame,
 } from './audio/LiveAudioContext';
 import { useRhythmRun } from './utils/rhythmRun';
+import { useSmoothFrames } from './utils/useSmoothFrames';
 import {
   toggleEuphoriaForced,
   useHasReachedEuphoria,
@@ -34,16 +36,15 @@ const WAVEFORM_AMPLITUDE_MAX = WAVEFORM_HEIGHT / 2 - 2;
 const NORMALISE_FLOOR = 0.02;
 
 /**
- * How far each sample moves toward the new frame, per frame.
+ * How long the distance to the newest measurement takes to halve.
  *
- * A meter has to stay honest, so at rest this is high enough that a transient
- * still arrives on the frame it happened. Euphoria trades that away — nobody
- * is reading the numbers at the ceiling, they are watching the shape move, and
- * a slower ease is what turns twenty-two discrete frames into one continuous
- * motion.
+ * A duration rather than a per-frame fraction, so the motion takes the same
+ * wall-clock time whether the display runs at thirty, sixty or a hundred and
+ * forty-four. Comfortably under the 45ms between measurements, so the shape
+ * has arrived before the next one lands and the meter stays honest instead of
+ * trailing the audio.
  */
-const WAVEFORM_SMOOTHING = 0.45;
-const EUPHORIA_SMOOTHING = 0.2;
+const WAVEFORM_HALF_LIFE_MS = 55;
 /** Vertical rules behind the trace, so the pane reads as a meter. */
 const GRID_DIVISIONS = 12;
 /** dB below which there is nothing worth showing a number for. */
@@ -156,24 +157,63 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
   // Smoothed HERE rather than in the analyser, because the game's beat
   // detection runs off the same frames and needs the transients left sharp —
   // smoothing at the source would round off the very edges it looks for.
+  // The newest measurement, and the shape currently drawn chasing it.
+  const targetRef = useRef<number[]>([]);
   const smoothedRef = useRef<number[]>([]);
-  const waveformPath = useMemo(() => {
+  const lineRef = useRef<SVGPathElement>(null);
+  const mirrorRef = useRef<SVGPathElement>(null);
+  const fillRef = useRef<SVGPathElement>(null);
+  // Read inside the animation frame rather than closed over, so changing mode
+  // does not have to rebuild the callback and restart the loop.
+  const amplitudeRef = useRef(WAVEFORM_AMPLITUDE);
+  amplitudeRef.current = isEuphoric
+    ? WAVEFORM_AMPLITUDE_MAX
+    : WAVEFORM_AMPLITUDE;
+  const normaliseRef = useRef(false);
+  normaliseRef.current = isEuphoric;
+
+  // One drawn frame, written straight to the three paths.
+  //
+  // Not through React, deliberately. Setting state at display rate would
+  // re-render this component sixty times a second to move a line, and the
+  // whole reason the path is eased at all is that redrawing is the expensive
+  // part. The elements are the same ones React created; only their `d` is
+  // taken over, which is why the JSX below does not set it.
+  const drawFrame = useCallback((deltaMs: number) => {
     const smoothed = smoothedRef.current;
-    if (smoothed.length !== waveform.length) {
-      // First frame, or the analyser changed size. Nothing to ease from.
-      smoothedRef.current = waveform.slice();
-    } else {
-      const ease = isEuphoric ? EUPHORIA_SMOOTHING : WAVEFORM_SMOOTHING;
-      for (let index = 0; index < waveform.length; index += 1) {
-        smoothed[index] += (waveform[index] - smoothed[index]) * ease;
-      }
-    }
-    return createWaveformPath(
-      smoothedRef.current,
-      isEuphoric ? WAVEFORM_AMPLITUDE_MAX : WAVEFORM_AMPLITUDE,
-      isEuphoric,
+    const moving = easeTowards(
+      smoothed,
+      targetRef.current,
+      getEaseFactor(deltaMs, WAVEFORM_HALF_LIFE_MS),
     );
-  }, [isEuphoric, waveform]);
+    const path = createWaveformPath(
+      smoothed,
+      amplitudeRef.current,
+      normaliseRef.current,
+    );
+    lineRef.current?.setAttribute('d', path.line);
+    mirrorRef.current?.setAttribute('d', path.mirror);
+    fillRef.current?.setAttribute('d', path.fill);
+    return moving;
+  }, []);
+
+  // The celebration gets the display's full rate and everything else is
+  // capped at thirty; the hook reads which from the shell, so this does not
+  // have to re-render for the rate to change.
+  const kickFrames = useSmoothFrames(drawFrame, {
+    isEnabled: isActive && !isPaused,
+  });
+
+  // A new measurement is a new target, and a reason to start moving again.
+  useEffect(() => {
+    targetRef.current = waveform;
+    if (smoothedRef.current.length !== waveform.length) {
+      // First frame, or the analyser changed size. Nothing to ease from, so
+      // the shape arrives whole rather than growing out of zero.
+      smoothedRef.current = waveform.slice();
+    }
+    kickFrames();
+  }, [kickFrames, waveform]);
 
   // Held peak, so the number is readable instead of a blur of digits.
   const [heldPeak, setHeldPeak] = useState<number | undefined>(undefined);
@@ -286,17 +326,21 @@ const WaveformVisualizer = ({ onOpenSupport }: IWaveformVisualizerProps) => {
             }`}
             vectorEffect="non-scaling-stroke"
           />
-          <path className="waveform-visualizer__fill" d={waveformPath.fill} />
+          {/* No `d` here on purpose — the animation frame owns it. Setting it
+              from JSX too would have React overwrite the eased shape with the
+              last measured one on every re-render, which is the stepping this
+              exists to remove. */}
+          <path ref={fillRef} className="waveform-visualizer__fill" />
           <path
+            ref={lineRef}
             className="waveform-visualizer__line"
-            d={waveformPath.line}
             vectorEffect="non-scaling-stroke"
           />
           {/* The mirrored edge, stroked the same way, so the shape is outlined
             rather than being a lit top over a bare bottom. */}
           <path
+            ref={mirrorRef}
             className="waveform-visualizer__line waveform-visualizer__line--mirror"
-            d={waveformPath.mirror}
             vectorEffect="non-scaling-stroke"
           />
         </svg>

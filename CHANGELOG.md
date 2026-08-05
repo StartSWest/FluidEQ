@@ -44,6 +44,13 @@ opens it again any time.
 
 ### Changed
 
+- **Both waveforms move at the display's rate, not the analyser's.** Sound is
+  measured about twenty-two times a second, so drawing only when a measurement
+  lands meant two frames in three showed the same picture as the one before —
+  which the eye reads as stepping. They are drawn between measurements now,
+  gliding toward each new one: at the full rate of your screen during euphoria,
+  and capped at thirty otherwise, because a meter beside an equaliser does not
+  need sixty and the frames are not free.
 - **The installer opens FluidEQ when it finishes.** Updates already did; a
   fresh install left you looking at a closed wizard.
 
