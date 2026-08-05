@@ -43,6 +43,21 @@ const de: Partial<Dictionary> = {
   'tabs.eq': 'EQ & Hörertyp',
   'tabs.voicing': 'Klangcharakter',
   'tabs.convolution': 'Faltung',
+  'tabs.video': 'Video',
+
+  'video.sites': 'Video-Seiten',
+  'video.back': 'Zurück',
+  'video.forward': 'Vorwärts',
+  'video.reload': 'Neu laden',
+  'video.stop': 'Stopp',
+  'video.searchAria': 'Auf der aktuellen Seite suchen',
+  'video.searchPlaceholder': 'Etwas zum Abspielen suchen',
+  'video.adBlock': 'Werbung blockieren',
+  'video.adBlockHint':
+    'Überspringt Videowerbung und blendet Werbeflächen auf YouTube aus.',
+  'video.blockedTitle': 'Dieser Link führt aus dem Player heraus',
+  'video.openInBrowser': 'Im Browser öffnen',
+  'video.resize': 'Ziehen, um die Größe des Players zu ändern',
 
   'notice.apoReconfigured':
     'Equalizer APO wurde installiert oder neu eingerichtet. Falls kein Ton kommt, starten Sie den Windows-Audiodienst neu, statt den PC neu zu starten.',

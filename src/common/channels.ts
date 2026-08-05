@@ -84,6 +84,12 @@ enum ChannelEnum {
   // Everything a bug report needs, already redacted. Gathered in main because
   // the logs and the registry are not reachable from the renderer.
   GATHER_BUG_REPORT = 'gatherBugReport',
+  // The built-in player's ad blocker. The window owns the switch and remembers
+  // it; the main process holds the live value and pushes it to each player.
+  SET_VIDEO_AD_BLOCK = 'setVideoAdBlock',
+  // A link the player refused to follow, sent to the real browser instead —
+  // only ever after the user pressed the button on the notice naming it.
+  OPEN_VIDEO_LINK_EXTERNALLY = 'openVideoLinkExternally',
 }
 
 export default ChannelEnum;

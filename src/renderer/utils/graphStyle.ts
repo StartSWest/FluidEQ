@@ -114,10 +114,24 @@ let isSolo = false;
 
 const soloListeners = new Set<() => void>();
 
-export const toggleLiveOutputSolo = () => {
-  isSolo = !isSolo;
+export const setLiveOutputSolo = (next: boolean) => {
+  if (next === isSolo) {
+    return;
+  }
+  isSolo = next;
   soloListeners.forEach((listener) => listener());
 };
+
+export const toggleLiveOutputSolo = () => setLiveOutputSolo(!isSolo);
+
+/**
+ * The current value, for a caller that means to put it back.
+ *
+ * Read outside React by the Video tab, which turns solo on while it is open —
+ * the whole point of watching something with the graph underneath is the trace,
+ * not the band handles — and restores whatever was there on the way out.
+ */
+export const getLiveOutputSolo = () => isSolo;
 
 const subscribeSolo = (listener: () => void) => {
   soloListeners.add(listener);

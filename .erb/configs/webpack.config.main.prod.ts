@@ -36,6 +36,10 @@ const configuration: webpack.Configuration = {
   entry: {
     main: path.join(webpackPaths.srcMainPath, 'main.ts'),
     preload: path.join(webpackPaths.srcMainPath, 'preload.ts'),
+    // The built-in player's preload — the ad blocker and nothing else. Kept
+    // out of `preload` on purpose: that one is the app's own bridge, and this
+    // one is loaded next to a web page.
+    'video-preload': path.join(webpackPaths.srcMainPath, 'videoPreload.ts'),
   },
 
   output: {

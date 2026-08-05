@@ -43,6 +43,21 @@ const pt: Partial<Dictionary> = {
   'tabs.eq': 'EQ e tipo de fone',
   'tabs.voicing': 'Caráter',
   'tabs.convolution': 'Convolução',
+  'tabs.video': 'Vídeo',
+
+  'video.sites': 'Sites de vídeo',
+  'video.back': 'Voltar',
+  'video.forward': 'Avançar',
+  'video.reload': 'Recarregar',
+  'video.stop': 'Parar',
+  'video.searchAria': 'Buscar no site atual',
+  'video.searchPlaceholder': 'Busque algo para tocar',
+  'video.adBlock': 'Bloquear anúncios',
+  'video.adBlockHint':
+    'Pula os anúncios em vídeo e esconde os espaços de anúncio no YouTube.',
+  'video.blockedTitle': 'Esse link leva para fora do player',
+  'video.openInBrowser': 'Abrir no navegador',
+  'video.resize': 'Arraste para redimensionar o player',
 
   'notice.apoReconfigured':
     'O Equalizer APO foi instalado ou reconfigurado. Se ficar sem som, reinicie o serviço de áudio do Windows em vez de reiniciar o computador.',

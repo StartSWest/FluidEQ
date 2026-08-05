@@ -19,11 +19,17 @@ const configuration: webpack.Configuration = {
 
   target: 'electron-preload',
 
-  entry: path.join(webpackPaths.srcMainPath, 'preload.ts'),
+  // Two preloads, and they are not interchangeable. `preload` is the app's own
+  // bridge; `video-preload` runs inside the built-in player, next to a web page
+  // we do not control, and shares none of it.
+  entry: {
+    preload: path.join(webpackPaths.srcMainPath, 'preload.ts'),
+    'video-preload': path.join(webpackPaths.srcMainPath, 'videoPreload.ts'),
+  },
 
   output: {
     path: webpackPaths.dllPath,
-    filename: 'preload.js',
+    filename: '[name].js',
   },
 
   plugins: [

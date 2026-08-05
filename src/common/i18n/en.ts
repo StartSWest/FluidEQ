@@ -69,6 +69,21 @@ const en = {
   'tabs.eq': 'EQ & headset mode',
   'tabs.voicing': 'Voicing',
   'tabs.convolution': 'Convolution',
+  'tabs.video': 'Video',
+
+  // *** Built-in player *****************************************************
+  'video.sites': 'Video sites',
+  'video.back': 'Back',
+  'video.forward': 'Forward',
+  'video.reload': 'Reload',
+  'video.stop': 'Stop',
+  'video.searchAria': 'Search the current site',
+  'video.searchPlaceholder': 'Search for something to play',
+  'video.adBlock': 'Block ads',
+  'video.adBlockHint': 'Skips video ads and hides ad slots on YouTube.',
+  'video.blockedTitle': 'That link leads outside the player',
+  'video.openInBrowser': 'Open in browser',
+  'video.resize': 'Drag to resize the player',
 
   // *** Notices *************************************************************
   'notice.apoReconfigured':

@@ -1,0 +1,326 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// *** Built-in player ********************************************************
+//
+// Sits inside `.middle-content`, above the response graph, and owns its own
+// height — the graph below keeps the size it has everywhere else, and the
+// divider between them moves this one.
+
+.video-browser {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: $spacing-s;
+
+  // Not unmounted when another tab is open, so that the audio keeps playing.
+  // `display: none` leaves the guest page attached; removing the element from
+  // the DOM would destroy it, and with it whatever was playing.
+  &.is-hidden {
+    display: none;
+  }
+
+  // The page's own fullscreen button, honoured across the whole window.
+  //
+  // A guest that goes fullscreen fills its own element, so without this the
+  // button would expand the video to the size of the pane it is already in —
+  // technically fullscreen, visibly nothing. Above every notice and the
+  // titlebar, because a video covering all but one strip of chrome looks
+  // broken rather than deliberate.
+  &.is-fullscreen {
+    position: fixed;
+    z-index: 3000;
+    inset: 0;
+    gap: 0;
+    background: #000;
+  }
+}
+
+// The chrome has no place over a fullscreen video, and the divider has nothing
+// left to divide.
+.video-browser.is-fullscreen .video-browser__bar,
+.video-browser.is-fullscreen .video-browser__resize {
+  display: none;
+}
+
+.video-browser.is-fullscreen .video-browser__stage {
+  height: 100%;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.video-browser__bar {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+// *** Back, forward, reload **************************************************
+
+.video-browser__nav {
+  display: flex;
+  flex: 0 0 auto;
+  gap: $spacing-xs;
+}
+
+.video-browser__nav-button {
+  display: flex;
+  width: 26px;
+  height: 26px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba($primary-lighter, 0.14);
+  border-radius: $radius-s;
+  background: rgba($white, 0.03);
+  color: rgba($primary-lighter, 0.85);
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
+
+  svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+  }
+
+  &:hover:not(:disabled) {
+    border-color: rgba($secondary-light, 0.5);
+    background: rgba($secondary-light, 0.12);
+    color: $secondary-light;
+  }
+
+  // Dimmed rather than hidden: a back button that vanishes at the start of
+  // history makes the row jump every time somebody navigates.
+  &:disabled {
+    opacity: 0.3;
+    cursor: default;
+  }
+}
+
+// *** Site buttons ***********************************************************
+
+.video-browser__sites {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: $spacing-xs;
+}
+
+.video-browser__site {
+  padding: 4px 9px;
+  border: 1px solid rgba($primary-lighter, 0.14);
+  border-radius: 999px;
+  background: rgba($white, 0.03);
+  color: rgba($primary-lighter, 0.8);
+  font-size: 0.68rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
+
+  &:hover {
+    border-color: rgba($secondary-light, 0.45);
+    color: $secondary-light;
+  }
+
+  &.is-active {
+    border-color: rgba($secondary-light, 0.7);
+    background: rgba($secondary-light, 0.16);
+    color: $secondary-light;
+  }
+}
+
+// *** Search *****************************************************************
+
+.video-browser__search {
+  min-width: 150px;
+  flex: 1 1 200px;
+  max-width: 320px;
+}
+
+// *** Ad blocker switch ******************************************************
+
+.video-browser__ad-block {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: $spacing-xs;
+}
+
+.video-browser__ad-block-label {
+  color: rgba($primary-lighter, 0.75);
+  font-size: 0.68rem;
+  white-space: nowrap;
+  cursor: help;
+}
+
+// *** The page itself ********************************************************
+
+.video-browser__stage {
+  position: relative;
+  width: 100%;
+  border: 1px solid rgba($primary-lighter, 0.1);
+  border-radius: $radius-xl;
+  // Black rather than the shell colour: this is where a picture goes, and any
+  // tint behind a letterboxed video is visible as a border around it.
+  background: #000;
+  box-shadow:
+    inset 0 1px 0 rgba($white, 0.035),
+    0 20px 50px rgba($black, 0.18);
+  // The guest paints as a rectangle and ignores the parent's rounded corners
+  // unless it is clipped here.
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.video-browser__view {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+// A drag over the divider is a drag over the page as far as Chromium is
+// concerned, and the guest swallows every pointer event that reaches it — the
+// pointer capture on the handle cannot see them. Taking the page out of
+// hit-testing for the length of the drag is what makes the divider work at all.
+.video-browser.is-resizing .video-browser__view {
+  pointer-events: none;
+}
+
+// *** Refused navigation *****************************************************
+
+.video-browser__blocked {
+  position: absolute;
+  z-index: 2;
+  right: 12px;
+  bottom: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+  padding: 10px 12px;
+  border: 1px solid rgba($secondary-light, 0.4);
+  border-radius: $radius-m;
+  background: linear-gradient(145deg, rgba(#0d2029, 0.97), rgba(#0a161d, 0.97));
+  box-shadow: 0 16px 40px rgba($black, 0.45);
+
+  > div {
+    display: grid;
+    min-width: 0;
+    flex: 1 1 auto;
+    gap: 3px;
+  }
+
+  strong {
+    color: $secondary-light;
+    font-size: 0.74rem;
+  }
+
+  span {
+    overflow: hidden;
+    color: rgba($primary-lighter, 0.78);
+    font-size: 0.68rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  button {
+    flex: 0 0 auto;
+    padding: 5px 10px;
+    border: 1px solid rgba($secondary-light, 0.5);
+    border-radius: $radius-s;
+    background: rgba($secondary-light, 0.14);
+    color: $secondary-light;
+    font-size: 0.68rem;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba($secondary-light, 0.24);
+    }
+  }
+}
+
+.video-browser__blocked-dismiss {
+  display: flex;
+  width: 22px;
+  height: 22px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+
+  svg {
+    width: 10px;
+    height: 10px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+}
+
+// *** The divider ************************************************************
+
+.video-browser__resize {
+  display: flex;
+  height: 11px;
+  align-items: center;
+  justify-content: center;
+  cursor: ns-resize;
+  touch-action: none;
+
+  span {
+    width: 44px;
+    height: 3px;
+    border-radius: 999px;
+    background: rgba($primary-lighter, 0.18);
+    transition: background 140ms ease;
+  }
+
+  &:hover span {
+    background: rgba($secondary-light, 0.6);
+  }
+}
+
+.video-browser.is-resizing .video-browser__resize span {
+  background: $secondary-light;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .video-browser__nav-button,
+  .video-browser__site,
+  .video-browser__resize span {
+    transition: none;
+  }
+}

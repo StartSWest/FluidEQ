@@ -42,6 +42,20 @@ const zh: Partial<Dictionary> = {
   'tabs.eq': '均衡与耳机类型',
   'tabs.voicing': '声音风格',
   'tabs.convolution': '卷积',
+  'tabs.video': '视频',
+
+  'video.sites': '视频网站',
+  'video.back': '后退',
+  'video.forward': '前进',
+  'video.reload': '刷新',
+  'video.stop': '停止',
+  'video.searchAria': '在当前网站中搜索',
+  'video.searchPlaceholder': '搜索想听或想看的内容',
+  'video.adBlock': '拦截广告',
+  'video.adBlockHint': '跳过视频广告，并隐藏 YouTube 上的广告位。',
+  'video.blockedTitle': '这个链接会离开播放器',
+  'video.openInBrowser': '在浏览器中打开',
+  'video.resize': '拖动可调整播放器大小',
 
   'notice.apoReconfigured':
     'Equalizer APO 已安装或重新配置。如果没有声音，请重启 Windows 音频服务，而不是重启电脑。',

@@ -43,6 +43,21 @@ const fr: Partial<Dictionary> = {
   'tabs.eq': 'Égaliseur et type de casque',
   'tabs.voicing': 'Caractère',
   'tabs.convolution': 'Convolution',
+  'tabs.video': 'Vidéo',
+
+  'video.sites': 'Sites vidéo',
+  'video.back': 'Précédent',
+  'video.forward': 'Suivant',
+  'video.reload': 'Actualiser',
+  'video.stop': 'Arrêter',
+  'video.searchAria': 'Rechercher sur le site actuel',
+  'video.searchPlaceholder': 'Cherchez quelque chose à lire',
+  'video.adBlock': 'Bloquer les pubs',
+  'video.adBlockHint':
+    'Passe les pubs vidéo et masque les encarts publicitaires sur YouTube.',
+  'video.blockedTitle': 'Ce lien mène hors du lecteur',
+  'video.openInBrowser': 'Ouvrir dans le navigateur',
+  'video.resize': 'Faites glisser pour redimensionner le lecteur',
 
   'notice.apoReconfigured':
     'Equalizer APO vient d’être installé ou reconfiguré. En cas de silence, relancez le service audio de Windows plutôt que de redémarrer le PC.',

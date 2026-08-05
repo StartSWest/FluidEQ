@@ -43,6 +43,21 @@ const it: Partial<Dictionary> = {
   'tabs.eq': 'EQ e tipo di cuffie',
   'tabs.voicing': 'Carattere',
   'tabs.convolution': 'Convoluzione',
+  'tabs.video': 'Video',
+
+  'video.sites': 'Siti video',
+  'video.back': 'Indietro',
+  'video.forward': 'Avanti',
+  'video.reload': 'Ricarica',
+  'video.stop': 'Interrompi',
+  'video.searchAria': 'Cerca nel sito corrente',
+  'video.searchPlaceholder': 'Cerca qualcosa da riprodurre',
+  'video.adBlock': 'Blocca gli annunci',
+  'video.adBlockHint':
+    'Salta gli annunci video e nasconde gli spazi pubblicitari su YouTube.',
+  'video.blockedTitle': 'Quel link porta fuori dal player',
+  'video.openInBrowser': 'Apri nel browser',
+  'video.resize': 'Trascina per ridimensionare il player',
 
   'notice.apoReconfigured':
     'Equalizer APO è stato installato o riconfigurato. Se manca l’audio, riavvia il servizio audio di Windows invece del PC.',

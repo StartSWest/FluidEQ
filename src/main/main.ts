@@ -141,6 +141,11 @@ import {
 } from './convolutionCatalog';
 import { importConvolutionFile, importEqFile } from './importSettings';
 import {
+  openVideoLinkExternally,
+  setUpVideoBrowser,
+  setVideoAdBlockEnabled,
+} from './videoBrowser';
+import {
   adoptBlock,
   findBlockForDevice,
   hasChainDrifted,
@@ -1774,6 +1779,14 @@ ipcMain.on(ChannelEnum.SET_GRAPH_VIEW, async (event, arg) => {
   await handleUpdate(event, ChannelEnum.SET_GRAPH_VIEW);
 });
 
+ipcMain.on(ChannelEnum.SET_VIDEO_AD_BLOCK, (_event, arg) => {
+  setVideoAdBlockEnabled(Boolean(arg[0]));
+});
+
+ipcMain.on(ChannelEnum.OPEN_VIDEO_LINK_EXTERNALLY, (_event, arg) => {
+  openVideoLinkExternally(String(arg[0] ?? ''));
+});
+
 ipcMain.on(ChannelEnum.GET_PREAMP, async (event) => {
   const reply: TSuccess<number> = { result: state.preAmp || 0 };
   event.reply(ChannelEnum.GET_PREAMP, reply);
@@ -2380,6 +2393,11 @@ const createMainWindow = async () => {
       // types here is a preset name, so it buys nothing and costs a download
       // and a couple of megabytes for the life of the process.
       spellcheck: false,
+      // What lets the Video tab exist at all. Off by default in Electron, and
+      // only half the story: the tag is enabled here, and every attachment it
+      // makes is stripped and re-specified in videoBrowser.ts, which is where
+      // the player's actual privileges are decided.
+      webviewTag: true,
       // The default, stated rather than assumed because it is load-bearing:
       // minimised or fully occluded, Chromium drops timers and animation
       // frames to roughly one a second. The meter, the creature and the whole
@@ -2581,6 +2599,9 @@ app
       // which is also why notifications and pinning misbehave in development.
       app.setAppUserModelId('com.gigabytz.fluideq');
     }
+    // Before any window exists, so the player's session and the rules its web
+    // contents run under are in place by the time one can be attached.
+    setUpVideoBrowser();
     createMainWindow().catch((error) => {
       console.error('Failed to create the FluidEQ window', error);
     });

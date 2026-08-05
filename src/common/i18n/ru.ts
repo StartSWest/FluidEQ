@@ -43,6 +43,21 @@ const ru: Partial<Dictionary> = {
   'tabs.eq': 'Эквалайзер и тип наушников',
   'tabs.voicing': 'Характер',
   'tabs.convolution': 'Свёртка',
+  'tabs.video': 'Видео',
+
+  'video.sites': 'Видеосайты',
+  'video.back': 'Назад',
+  'video.forward': 'Вперёд',
+  'video.reload': 'Обновить',
+  'video.stop': 'Остановить',
+  'video.searchAria': 'Поиск по текущему сайту',
+  'video.searchPlaceholder': 'Найдите, что послушать или посмотреть',
+  'video.adBlock': 'Блокировать рекламу',
+  'video.adBlockHint':
+    'Пропускает рекламу в видео и скрывает рекламные блоки на YouTube.',
+  'video.blockedTitle': 'Эта ссылка ведёт за пределы плеера',
+  'video.openInBrowser': 'Открыть в браузере',
+  'video.resize': 'Потяните, чтобы изменить размер плеера',
 
   'notice.apoReconfigured':
     'Equalizer APO был установлен или перенастроен. Если звук пропал, перезапустите службу звука Windows, а не весь компьютер.',

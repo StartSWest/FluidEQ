@@ -1,0 +1,465 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+import {
+  FC,
+  PointerEvent as ReactPointerEvent,
+  Ref,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
+import ChannelEnum from 'common/channels';
+import {
+  VIDEO_AD_BLOCK_DEFAULT,
+  VIDEO_AD_BLOCK_STORAGE_KEY,
+} from 'common/videoAdBlock';
+import {
+  IVideoSite,
+  VIDEO_BROWSER_PARTITION,
+  VIDEO_SITES,
+  buildSearchUrl,
+  findSiteForUrl,
+  isAllowedVideoUrl,
+} from 'common/videoSites';
+import Switch from '../widgets/Switch';
+import TextInput from '../widgets/TextInput';
+import { useTranslation } from '../utils/I18nContext';
+import '../styles/VideoBrowser.scss';
+
+/**
+ * The part of `<webview>` this pane uses.
+ *
+ * Written out rather than imported from Electron's typings because those
+ * describe the tag as it exists in a renderer with `webviewTag` on, and
+ * importing them here would pull main-process types into the window bundle for
+ * eight method signatures.
+ */
+interface IWebview extends HTMLElement {
+  canGoBack(): boolean;
+  canGoForward(): boolean;
+  goBack(): void;
+  goForward(): void;
+  reload(): void;
+  stop(): void;
+  getURL(): string;
+  loadURL(url: string): Promise<void>;
+}
+
+interface IWebviewProps {
+  ref?: Ref<IWebview>;
+  src: string;
+  partition: string;
+  className?: string;
+}
+
+/**
+ * React has no `webview` in its intrinsic elements, and React 19 moved the JSX
+ * namespace such that adding one means augmenting a module. A cast keeps that
+ * declaration here, next to the only place in the app that renders the tag,
+ * instead of loose in a global .d.ts where it would advertise the element as
+ * generally available.
+ */
+const Webview = 'webview' as unknown as FC<IWebviewProps>;
+
+const HOME_SITE: IVideoSite = VIDEO_SITES[0];
+
+/** Where the divider between player and graph was left. */
+const HEIGHT_STORAGE_KEY = 'fluideq.videoPaneHeight';
+const DEFAULT_HEIGHT = 420;
+const MIN_HEIGHT = 220;
+const MAX_HEIGHT = 1000;
+
+const clampHeight = (value: number) =>
+  Math.min(MAX_HEIGHT, Math.max(MIN_HEIGHT, Math.round(value)));
+
+const readStoredHeight = () => {
+  try {
+    const stored = Number(localStorage.getItem(HEIGHT_STORAGE_KEY));
+    return Number.isFinite(stored) && stored > 0
+      ? clampHeight(stored)
+      : DEFAULT_HEIGHT;
+  } catch {
+    return DEFAULT_HEIGHT;
+  }
+};
+
+const readStoredAdBlock = () => {
+  try {
+    const stored = localStorage.getItem(VIDEO_AD_BLOCK_STORAGE_KEY);
+    return stored === null ? VIDEO_AD_BLOCK_DEFAULT : stored === 'true';
+  } catch {
+    return VIDEO_AD_BLOCK_DEFAULT;
+  }
+};
+
+interface IVideoBrowserProps {
+  /**
+   * Kept mounted but out of sight while another tab is open.
+   *
+   * The tag destroys its guest page when it leaves the DOM, so unmounting this
+   * would stop the music every time somebody went to move a band — which is
+   * the one thing they are most likely to be doing while listening. Hidden
+   * with `display: none`, the guest is left alone and keeps playing.
+   */
+  isHidden: boolean;
+}
+
+const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
+  const { t } = useTranslation();
+  const webviewRef = useRef<IWebview | null>(null);
+
+  const [currentUrl, setCurrentUrl] = useState(HOME_SITE.home);
+  const [canGoBack, setCanGoBack] = useState(false);
+  const [canGoForward, setCanGoForward] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [query, setQuery] = useState('');
+  const [blockedUrl, setBlockedUrl] = useState('');
+  const [isAdBlockOn, setIsAdBlockOn] = useState(readStoredAdBlock);
+  // The page asked for fullscreen — the button on YouTube's own player.
+  //
+  // A guest going fullscreen fills the element it lives in, and nothing more,
+  // so on its own the fullscreen button would blow the video up to the size of
+  // this pane and stop. Taking the pane over the window is what makes it mean
+  // what it looks like it means.
+  const [isPageFullScreen, setIsPageFullScreen] = useState(false);
+
+  const [paneHeight, setPaneHeight] = useState(readStoredHeight);
+  const [isResizing, setIsResizing] = useState(false);
+  const resizeRef = useRef({ startY: 0, startHeight: 0 });
+
+  const activeSite = findSiteForUrl(currentUrl);
+
+  // Pushed to the main process, which is where the blocker actually reads it
+  // from. Runs on mount too, so a player attached later starts in the state the
+  // switch is already in rather than in the default.
+  useEffect(() => {
+    window.electron.ipcRenderer.sendMessage(ChannelEnum.SET_VIDEO_AD_BLOCK, [
+      isAdBlockOn,
+    ]);
+    try {
+      localStorage.setItem(VIDEO_AD_BLOCK_STORAGE_KEY, String(isAdBlockOn));
+    } catch {
+      // A preference that cannot be written is not worth failing a click over.
+    }
+  }, [isAdBlockOn]);
+
+  /**
+   * Read the guest's navigation state back out.
+   *
+   * Both calls throw if the guest has gone — a reload mid-teardown, or the tab
+   * closing — and neither answer matters at that point.
+   */
+  const syncNavigationState = useCallback(() => {
+    const view = webviewRef.current;
+    if (!view) {
+      return;
+    }
+    try {
+      setCanGoBack(view.canGoBack());
+      setCanGoForward(view.canGoForward());
+      setCurrentUrl(view.getURL());
+    } catch {
+      // The guest is not attached yet, or no longer is.
+    }
+  }, []);
+
+  useEffect(() => {
+    const view = webviewRef.current;
+    if (!view) {
+      return undefined;
+    }
+
+    const handleNavigated = (event: Event) => {
+      const { url } = event as Event & { url?: string };
+      if (url) {
+        setCurrentUrl(url);
+      }
+      syncNavigationState();
+    };
+
+    const handleStartLoading = () => setIsLoading(true);
+    const handleStopLoading = () => {
+      setIsLoading(false);
+      syncNavigationState();
+    };
+
+    /**
+     * Say something when a link goes nowhere.
+     *
+     * The main process is what actually refuses the navigation; this listener
+     * exists only so the refusal is visible. Without it a link to somewhere
+     * off the list would simply do nothing, which reads as a frozen app rather
+     * than as a deliberate boundary.
+     */
+    const handleWillNavigate = (event: Event) => {
+      const { url } = event as Event & { url?: string };
+      if (url && !isAllowedVideoUrl(url)) {
+        setBlockedUrl(url);
+      }
+    };
+
+    const handleEnterFullScreen = () => setIsPageFullScreen(true);
+    const handleLeaveFullScreen = () => setIsPageFullScreen(false);
+
+    view.addEventListener('did-navigate', handleNavigated);
+    view.addEventListener('did-navigate-in-page', handleNavigated);
+    view.addEventListener('did-start-loading', handleStartLoading);
+    view.addEventListener('did-stop-loading', handleStopLoading);
+    view.addEventListener('will-navigate', handleWillNavigate);
+    view.addEventListener('enter-html-full-screen', handleEnterFullScreen);
+    view.addEventListener('leave-html-full-screen', handleLeaveFullScreen);
+
+    return () => {
+      view.removeEventListener('did-navigate', handleNavigated);
+      view.removeEventListener('did-navigate-in-page', handleNavigated);
+      view.removeEventListener('did-start-loading', handleStartLoading);
+      view.removeEventListener('did-stop-loading', handleStopLoading);
+      view.removeEventListener('will-navigate', handleWillNavigate);
+      view.removeEventListener('enter-html-full-screen', handleEnterFullScreen);
+      view.removeEventListener('leave-html-full-screen', handleLeaveFullScreen);
+    };
+  }, [syncNavigationState]);
+
+  const goTo = useCallback((url: string) => {
+    setBlockedUrl('');
+    webviewRef.current?.loadURL(url).catch(() => {
+      // A navigation replaced by a newer one rejects; that is not a failure.
+    });
+  }, []);
+
+  const handleSearch = useCallback(
+    (terms: string) => {
+      if (!terms.trim()) {
+        return;
+      }
+      // Searched on whichever site is open, so the button that is lit is also
+      // the one being asked. Off any of them, YouTube answers.
+      goTo(buildSearchUrl(activeSite ?? HOME_SITE, terms));
+    },
+    [activeSite, goTo],
+  );
+
+  const handleResizeStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+    event.currentTarget.setPointerCapture(event.pointerId);
+    resizeRef.current = { startY: event.clientY, startHeight: paneHeight };
+    setIsResizing(true);
+  };
+
+  const handleResizeMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isResizing) {
+      return;
+    }
+    const { startY, startHeight } = resizeRef.current;
+    setPaneHeight(clampHeight(startHeight + (event.clientY - startY)));
+  };
+
+  const handleResizeEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!isResizing) {
+      return;
+    }
+    event.currentTarget.releasePointerCapture(event.pointerId);
+    setIsResizing(false);
+    try {
+      localStorage.setItem(HEIGHT_STORAGE_KEY, String(paneHeight));
+    } catch {
+      // Not worth failing a drag over.
+    }
+  };
+
+  const blockedHost = (() => {
+    try {
+      return new URL(blockedUrl).hostname;
+    } catch {
+      return blockedUrl;
+    }
+  })();
+
+  return (
+    <div
+      className={`video-browser${isHidden ? ' is-hidden' : ''}${
+        isResizing ? ' is-resizing' : ''
+      }${isPageFullScreen ? ' is-fullscreen' : ''}`}
+    >
+      <div className="video-browser__bar">
+        <div className="video-browser__nav">
+          <button
+            type="button"
+            className="video-browser__nav-button"
+            aria-label={t('video.back')}
+            title={t('video.back')}
+            disabled={!canGoBack}
+            onClick={() => webviewRef.current?.goBack()}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M10 3L5 8l5 5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="video-browser__nav-button"
+            aria-label={t('video.forward')}
+            title={t('video.forward')}
+            disabled={!canGoForward}
+            onClick={() => webviewRef.current?.goForward()}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M6 3l5 5-5 5" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="video-browser__nav-button"
+            aria-label={isLoading ? t('video.stop') : t('video.reload')}
+            title={isLoading ? t('video.stop') : t('video.reload')}
+            onClick={() => {
+              const view = webviewRef.current;
+              if (isLoading) {
+                view?.stop();
+              } else {
+                view?.reload();
+              }
+            }}
+          >
+            {isLoading ? (
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M4 4l8 8M12 4l-8 8" />
+              </svg>
+            ) : (
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M13 8a5 5 0 1 1-1.6-3.7M13 2v3h-3" />
+              </svg>
+            )}
+          </button>
+        </div>
+
+        <div
+          className="video-browser__sites"
+          role="group"
+          aria-label={t('video.sites')}
+        >
+          {VIDEO_SITES.map((site) => (
+            <button
+              key={site.id}
+              type="button"
+              className={`video-browser__site${
+                activeSite?.id === site.id ? ' is-active' : ''
+              }`}
+              aria-pressed={activeSite?.id === site.id}
+              onClick={() => goTo(site.home)}
+            >
+              {site.name}
+            </button>
+          ))}
+        </div>
+
+        <div className="video-browser__search">
+          <TextInput
+            value={query}
+            ariaLabel={t('video.searchAria')}
+            placeholder={t('video.searchPlaceholder')}
+            isDisabled={false}
+            errorMessage=""
+            handleChange={setQuery}
+            handleSubmit={handleSearch}
+          />
+        </div>
+
+        <div className="video-browser__ad-block">
+          <span
+            className="video-browser__ad-block-label"
+            title={t('video.adBlockHint')}
+          >
+            {t('video.adBlock')}
+          </span>
+          <Switch
+            id="videoAdBlocker"
+            isOn={isAdBlockOn}
+            isDisabled={false}
+            handleToggle={() => setIsAdBlockOn((on) => !on)}
+          />
+        </div>
+      </div>
+
+      <div
+        className="video-browser__stage"
+        // Dropped entirely in fullscreen rather than overridden in the
+        // stylesheet: an inline height would need `!important` to beat, and the
+        // rule that beat it would then also apply to the drag handle's own
+        // updates. Nothing to fight if the value is simply not set.
+        style={isPageFullScreen ? undefined : { height: paneHeight }}
+      >
+        <Webview
+          ref={webviewRef}
+          className="video-browser__view"
+          src={HOME_SITE.home}
+          // Named here as well as forced in the main process. This is the value
+          // that has to be right for the tag to attach at all; the main process
+          // overwrites it anyway, so the two can never drift apart.
+          partition={VIDEO_BROWSER_PARTITION}
+        />
+        {blockedUrl && (
+          <div className="video-browser__blocked" role="alert">
+            <div>
+              <strong>{t('video.blockedTitle')}</strong>
+              <span title={blockedUrl}>{blockedHost}</span>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                window.electron.ipcRenderer.sendMessage(
+                  ChannelEnum.OPEN_VIDEO_LINK_EXTERNALLY,
+                  [blockedUrl],
+                );
+                setBlockedUrl('');
+              }}
+            >
+              {t('video.openInBrowser')}
+            </button>
+            <button
+              type="button"
+              aria-label={t('app.dismiss')}
+              className="video-browser__blocked-dismiss"
+              onClick={() => setBlockedUrl('')}
+            >
+              <svg viewBox="0 0 12 12" aria-hidden="true">
+                <path d="M3 3l6 6M9 3l-6 6" />
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div
+        className="video-browser__resize"
+        role="separator"
+        aria-label={t('video.resize')}
+        aria-orientation="horizontal"
+        onPointerDown={handleResizeStart}
+        onPointerMove={handleResizeMove}
+        onPointerUp={handleResizeEnd}
+        onPointerCancel={handleResizeEnd}
+      >
+        <span />
+      </div>
+    </div>
+  );
+};
+
+export default VideoBrowser;

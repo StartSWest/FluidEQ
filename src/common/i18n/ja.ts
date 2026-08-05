@@ -43,6 +43,20 @@ const ja: Partial<Dictionary> = {
   'tabs.eq': 'EQ とドライバー種別',
   'tabs.voicing': '音の傾向',
   'tabs.convolution': 'コンボリューション',
+  'tabs.video': '動画',
+
+  'video.sites': '動画サイト',
+  'video.back': '戻る',
+  'video.forward': '進む',
+  'video.reload': '再読み込み',
+  'video.stop': '中止',
+  'video.searchAria': '現在のサイト内を検索',
+  'video.searchPlaceholder': '再生したいものを検索',
+  'video.adBlock': '広告をブロック',
+  'video.adBlockHint': 'YouTube の動画広告をスキップし、広告枠を隠します。',
+  'video.blockedTitle': 'このリンクはプレーヤーの外に出ます',
+  'video.openInBrowser': 'ブラウザで開く',
+  'video.resize': 'ドラッグしてプレーヤーの大きさを変更',
 
   'notice.apoReconfigured':
     'Equalizer APO がインストールまたは再設定されました。音が出ない場合は PC を再起動せず、Windows オーディオを再起動してください。',

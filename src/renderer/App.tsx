@@ -30,7 +30,12 @@ import { FluidEqProvider, useFluidEqContext } from './utils/FluidEqContext';
 import PrereqMissingModal from './PrereqMissingModal';
 import BugReportDialog from './components/BugReportDialog';
 import SideBar from './SideBar';
-import { useGraphFullScreen } from './utils/graphStyle';
+import {
+  getLiveOutputSolo,
+  setLiveOutputSolo,
+  useGraphFullScreen,
+} from './utils/graphStyle';
+import VideoBrowser from './video/VideoBrowser';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import PresetsBar from './PresetsBar';
 import AutoEQ from './AutoEQ';
@@ -121,11 +126,36 @@ const AppContent = () => {
   // A new failure is worth showing again even if the last one was dismissed.
   useEffect(() => setIsCaptureNoticeHidden(false), [captureError]);
   const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<
-    'eq' | 'voicing' | 'convolution'
+    'eq' | 'voicing' | 'convolution' | 'video'
   >('eq');
+  // The player is mounted on first visit and never unmounted, because its page
+  // is destroyed the moment the element leaves the DOM — switching to the EQ
+  // to move a band would otherwise stop whatever was playing. Until somebody
+  // opens the tab, though, there is no reason to have a browser engine running
+  // at all, so it does not exist.
+  const [hasOpenedVideo, setHasOpenedVideo] = useState(false);
+  const isVideoTab = activeWorkspaceTab === 'video';
+  const showsGraph = activeWorkspaceTab === 'eq' || isVideoTab;
   const [hasContributed, setHasContributed] = useState(
     () => localStorage.getItem(SUPPORT_CONTRIBUTED_KEY) === 'true',
   );
+
+  useEffect(() => {
+    if (!isVideoTab) {
+      return undefined;
+    }
+
+    setHasOpenedVideo(true);
+
+    // Wave-only for as long as the tab is open. Somebody watching a video with
+    // the graph underneath wants the trace moving to the music, not the EQ
+    // response, the voicing layer and eight draggable band handles over the
+    // top of it. What was there before is put back on the way out, so the
+    // setting is borrowed rather than changed.
+    const previousSolo = getLiveOutputSolo();
+    setLiveOutputSolo(true);
+    return () => setLiveOutputSolo(previousSolo);
+  }, [isVideoTab]);
 
   useEffect(() => {
     let mounted = true;
@@ -665,12 +695,10 @@ const AppContent = () => {
             </div>
           </aside>
         )}
-        <SideBar showGraphToggle={activeWorkspaceTab === 'eq'} />
+        <SideBar showGraphToggle={showsGraph} />
         <div
           className={`center-workspace${
-            isGraphFullScreen && activeWorkspaceTab === 'eq'
-              ? ' is-graph-full'
-              : ''
+            isGraphFullScreen && showsGraph ? ' is-graph-full' : ''
           }`}
         >
           <div className="middle-content">
@@ -712,8 +740,17 @@ const AppContent = () => {
               >
                 {t('tabs.convolution')}
               </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={isVideoTab}
+                className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
+                onClick={() => setActiveWorkspaceTab('video')}
+              >
+                {t('tabs.video')}
+              </button>
             </div>
-            {activeWorkspaceTab === 'eq' ? (
+            {activeWorkspaceTab === 'eq' && (
               <div
                 // Remounts on every tab change so the panel entrance animation
                 // replays. Voicing and convolution share this element, so
@@ -733,7 +770,9 @@ const AppContent = () => {
                 <AutoEQ />
                 <MainContent />
               </div>
-            ) : (
+            )}
+            {(activeWorkspaceTab === 'voicing' ||
+              activeWorkspaceTab === 'convolution') && (
               // Voicing and convolution are both written into the same APO
               // config as the EQ, so with the engine off they are just as inert
               // and read the same way.
@@ -751,8 +790,13 @@ const AppContent = () => {
                 )}
               </div>
             )}
+            {/* Outside the tab switch above, and deliberately: this one is
+                hidden rather than unmounted, so that leaving the tab does not
+                stop the music. It has no engine-disabled state either — a
+                video plays whether or not Equalizer APO is behind it. */}
+            {hasOpenedVideo && <VideoBrowser isHidden={!isVideoTab} />}
           </div>
-          {activeWorkspaceTab === 'eq' ? <FrequencyResponseChart /> : null}
+          {showsGraph ? <FrequencyResponseChart /> : null}
         </div>
         <div className="right-content">
           <DeviceProfiles />

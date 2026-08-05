@@ -49,6 +49,21 @@ const hi: Partial<Dictionary> = {
   'tabs.eq': 'EQ और ड्राइवर प्रकार',
   'tabs.voicing': 'ध्वनि रंग',
   'tabs.convolution': 'कन्वॉल्यूशन',
+  'tabs.video': 'वीडियो',
+
+  'video.sites': 'वीडियो साइटें',
+  'video.back': 'पीछे',
+  'video.forward': 'आगे',
+  'video.reload': 'फिर से लोड करें',
+  'video.stop': 'रोकें',
+  'video.searchAria': 'मौजूदा साइट पर खोजें',
+  'video.searchPlaceholder': 'चलाने के लिए कुछ खोजें',
+  'video.adBlock': 'विज्ञापन ब्लॉक करें',
+  'video.adBlockHint':
+    'YouTube पर वीडियो विज्ञापन छोड़ता है और विज्ञापन की जगह छिपाता है।',
+  'video.blockedTitle': 'यह लिंक प्लेयर से बाहर ले जाता है',
+  'video.openInBrowser': 'ब्राउज़र में खोलें',
+  'video.resize': 'प्लेयर का आकार बदलने के लिए खींचें',
 
   'notice.apoReconfigured':
     'Equalizer APO इंस्टॉल या फिर से सेट हुआ है। अगर आवाज़ न आए तो पूरा PC नहीं, सिर्फ़ Windows ऑडियो फिर से चालू करें।',
