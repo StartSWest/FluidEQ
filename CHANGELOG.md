@@ -20,6 +20,28 @@ stopped being honest.
 
 ### New
 
+- **Switch any layer off without losing it.** Press a chip in _Also applied_ and
+  that layer leaves the config — the chip stays, dimmed, and pressing it again
+  puts the same settings back. Nothing is recomputed, because nothing was lost.
+  It is how you find out whether a correction is actually an improvement:
+  the same passage, both ways, a second apart. Voicing, driver, Smart EQ and
+  loudness for now.
+- **The bands have a chip of their own**, named by the model they came from and
+  the measurement behind it, or by how many bands there are when you placed them
+  yourself. It says _(modified)_ once you have moved them, so the label never
+  claims a curve that is no longer on screen.
+- **Loudness moved in with the other layers**, off the waveform meter. It is
+  written into the Equalizer APO chain like everything else in that row, and it
+  belongs where the rest of them are. Euphoria mode now brings it with it, and
+  takes it away again.
+- **Full screen, rebuilt.** The window takes the whole display, the side panes
+  go, and the picture reaches all four corners. The controls become a small card
+  that fades out when nothing is happening and comes back when you move — click
+  the drawing to hide or show them at once. The creature stays in the corner.
+- **Keep the top bar in full screen**, from the View menu, if you would rather
+  see where you are. On by default.
+- **See through and Blur are in the View menu**, where there is room for them,
+  instead of taking half the control strip.
 - **Every site remembers where you left it.** Switching between YouTube, YouTube
   Music, SoundCloud, Bandcamp and Twitch now comes back to the track that was
   playing, a few seconds before where you stopped, and carries on. Only one
@@ -34,6 +56,21 @@ stopped being honest.
 
 ### Changed
 
+- **Less is taken from your volume.** The preamp reserves headroom against what
+  music actually contains rather than against a flat signal to 20 kHz — a boost
+  at 12 kHz can never cost its full value, because nothing arrives at full scale
+  up there. Chains that were quiet for no audible reason get several decibels
+  back, and are no closer to clipping than before.
+- **Smart EQ always measures from flat.** The switch that asked has gone: a
+  region already cut hard has almost no energy left in it, so measuring the
+  corrected output means the correction hides the very problem it is causing.
+  There was only ever one right answer.
+- **The chain reads in the order it makes sense.** Convolution, then the driver
+  correction, then your bands, then voicing, then Smart EQ last — physical,
+  intended, taste, measured. Nothing sounds different; the config is now
+  readable at two in the morning.
+- **Only the live trace gets the rainbow.** The other curves keep the colours
+  their legend names them by, which is what makes the legend worth having.
 - **Vimeo has been removed.** It renders its listings entirely on the client,
   from an API that returns nothing to a session it does not recognise — search,
   Staff Picks and the watch feed all arrive with their tabs and filters and not
@@ -55,6 +92,10 @@ stopped being honest.
   any order.
 - **YouTube Music fills the pane properly**, with no dark band down its side.
 - **Twitch fills it too**, with no band along the bottom.
+- **The editor stops moving while you tune.** The _Also applied_ row used to
+  appear out of nothing the first time a layer went live, pushing everything
+  below it down mid-drag. It now holds its line whether or not there is
+  anything in it.
 - **The player says what it refused.** A link that went nowhere used to go
   nowhere silently, which is indistinguishable from a broken page. Refusals,
   failed loads and the page's own errors are now in the log.
