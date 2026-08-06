@@ -529,7 +529,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   clip-path: inset(0 round $radius-m $radius-m $radius-xl $radius-xl);
   // Black rather than the shell colour: this is where a picture goes, and any
   // tint behind a letterboxed video is visible as a border around it.
-  background: #000;
+  // DIAGNOSTIC — temporary, was #000. Blue here means the guest is not painting
+  // at all and what shows is our own pane behind it. See PLAYER_ONLY_CSS in
+  // VideoBrowser.tsx for the other two.
+  background: #1b4f9c;
   box-shadow: none;
   // The guest paints as a rectangle and ignores the parent's rounded corners
   // unless it is clipped here.

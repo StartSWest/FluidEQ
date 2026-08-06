@@ -95,10 +95,21 @@ interface IWebview extends HTMLElement {
  * the rule reached inside and hid its own children — the video among them.
  */
 const PLAYER_ONLY_CSS = `
+  /* DIAGNOSTIC — temporary. Three different blacks are indistinguishable on
+     screen, so for one run each is a colour of its own:
+
+       red     the stripped page itself, meaning the injection ran and the
+               player box is not covering the page
+       magenta the pinned player box, meaning the chain was marked but the
+               video inside it is not painting
+       blue    our own stage behind the guest, meaning the guest is not
+               painting at all
+
+     Put back to #000 the moment we know which. */
   html[data-fluideq-solo],
   html[data-fluideq-solo] body {
     overflow: hidden !important;
-    background: #000 !important;
+    background: #c0392b !important;
   }
   html[data-fluideq-solo]
     [data-fluideq-keep]:not([data-fluideq-player])
@@ -121,7 +132,8 @@ const PLAYER_ONLY_CSS = `
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background: #000 !important;
+    /* DIAGNOSTIC — temporary, see above. Was #000. */
+    background: #b0179b !important;
   }
 
   /* Twitch, and Twitch alone.
