@@ -112,23 +112,6 @@ const PLAYER_ONLY_CSS = `
     height: 100vh !important;
     background: #000 !important;
   }
-  /* And the video inside it, which does not follow on its own.
-
-     These players size their video element themselves, in inline styles,
-     against the container they believe they have. Pinning the container to the
-     viewport does not tell them anything — so the video kept the width and the
-     offset it had been given for a layout with a nav rail beside it, and left a
-     black band down the side where it no longer reached. */
-  /* Sized, not repositioned.
-     Repositioning it was too much: YouTube lays its video out inside the player
-     itself, and forcing it to absolute at the origin fought that and left the
-     picture gone. Setting only the size is enough for the case this exists for
-     — a video still carrying the width it was given for a narrower container. */
-  html[data-fluideq-solo] [data-fluideq-player] video {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain !important;
-  }
 `;
 
 /**
@@ -146,72 +129,12 @@ const PLAYER_ONLY_CSS = `
  * more than the page it is hiding.
  */
 const ENTER_PLAYER_ONLY = `(() => {
-  // Most specific first, because several of these match on the same page and
-  // the first hit wins. YouTube Music is the reason the list is ordered rather
-  // than just long: it wraps the same '#movie_player' YouTube uses inside its
-  // own 'ytmusic-player', and marking the inner one leaves the app's chrome —
-  // nav rail, queue, now-playing bar — outside the chain and therefore hidden,
-  // which on a music app removes the half of the player people actually use.
-  const SELECTOR = [
-    'ytmusic-player',
-    '#movie_player',
-    '.html5-video-player',
-    '[data-a-target="video-player"]',
-    '.vp-player-layout',
-  ].join(', ');
-  // Search shadow roots too, because querySelector stops at the boundary and a
-  // player inside one is invisible to it.
-  //
-  // Only reached when the ordinary lookup fails, and rate limited because on a
-  // page with no player at all it would otherwise walk the whole tree every
-  // frame. A page that has one never gets here twice: the early return below
-  // sees the mark already in place.
-  let lastDeepAt = 0;
-  const deepFind = (selector) => {
-    const search = (root) => {
-      const hit = root.querySelector(selector);
-      if (hit) { return hit; }
-      const nodes = root.querySelectorAll('*');
-      for (let i = 0; i < nodes.length; i += 1) {
-        if (nodes[i].shadowRoot) {
-          const found = search(nodes[i].shadowRoot);
-          if (found) { return found; }
-        }
-      }
-      return null;
-    };
-    return search(document);
-  };
-
-  // A copy of the rules for a shadow root the chain passes through.
-  const styleShadow = (root) => {
-    if (root.querySelector('style[data-fluideq-style]')) { return; }
-    const style = document.createElement('style');
-    style.setAttribute('data-fluideq-style', '');
-    style.textContent =
-      '[data-fluideq-keep]:not([data-fluideq-player]) > *:not([data-fluideq-keep]){display:none !important}' +
-      '[data-fluideq-player]{position:fixed !important;z-index:2147483647 !important;top:0 !important;left:0 !important;width:100vw !important;height:100vh !important;background:#000 !important}' +
-      '[data-fluideq-player] video{width:100% !important;height:100% !important;object-fit:contain !important}';
-    root.appendChild(style);
-  };
-
+  const SELECTOR =
+    '#movie_player, .html5-video-player, [data-a-target="video-player"], .vp-player-layout';
   const mark = () => {
-    // The largest video on the page, rather than the first in the document.
-    // Sites litter pages with thumbnails and preview loops; the one being
-    // watched is the big one, and on a page mid-load it may not exist yet — in
-    // which case the observer will be back.
-    const biggest = Array.from(document.querySelectorAll('video')).sort(
-      (a, b) =>
-        b.clientWidth * b.clientHeight - a.clientWidth * a.clientHeight
-    )[0];
-    let player =
+    const player =
       document.querySelector(SELECTOR) ||
-      (biggest && biggest.parentElement);
-    if (!player && Date.now() - lastDeepAt > 500) {
-      lastDeepAt = Date.now();
-      const deep = deepFind(SELECTOR) || deepFind('video');
-      player = deep && (deep.matches(SELECTOR) ? deep : deep.parentElement);
-    }
+      (document.querySelector('video') || {}).parentElement;
     if (!player) { return; }
     // Already correct, and still attached. The common case by far.
     if (player.hasAttribute('data-fluideq-player') && player.isConnected) {
@@ -227,23 +150,7 @@ const ENTER_PLAYER_ONLY = `(() => {
     let node = player;
     while (node && node !== document.documentElement) {
       node.setAttribute('data-fluideq-keep', '');
-      const parent = node.parentElement;
-      if (parent) {
-        node = parent;
-      } else {
-        // No parent element means the top of a shadow root. Step out through
-        // its host and give that root its own copy of the rules on the way:
-        // a stylesheet inserted into the document does not cross the boundary,
-        // so a chain passing through one would be marked correctly and styled
-        // not at all.
-        const root = node.getRootNode();
-        if (root && root.host) {
-          styleShadow(root);
-          node = root.host;
-        } else {
-          node = null;
-        }
-      }
+      node = node.parentElement;
     }
     document.documentElement.setAttribute('data-fluideq-solo', '');
   };
@@ -274,48 +181,31 @@ const EXIT_PLAYER_ONLY = `(() => {
       node.removeAttribute('data-fluideq-keep');
       node.removeAttribute('data-fluideq-player');
     });
-  // Marks and stylesheets inside shadow roots, which the query above cannot
-  // see. Walking for them costs nothing here: leaving the mode is not a hot
-  // path, and a stylesheet left in a shadow root would still be hiding things
-  // long after the mode had gone.
-  const sweep = (root) => {
-    root
-      .querySelectorAll('[data-fluideq-keep], [data-fluideq-player], style[data-fluideq-style]')
-      .forEach((node) => {
-        if (node.tagName === 'STYLE') { node.remove(); return; }
-        node.removeAttribute('data-fluideq-keep');
-        node.removeAttribute('data-fluideq-player');
-      });
-    root.querySelectorAll('*').forEach((node) => {
-      if (node.shadowRoot) { sweep(node.shadowRoot); }
-    });
-  };
-  sweep(document);
   return 'ok';
 })()`;
 
 /**
- * Put the page back if it is holding its own fullscreen.
+ * Ask the page to put its own player into fullscreen.
  *
- * Through the site's own button where there is one: a player driven by its own
- * control ends up in the state it expects, and leaving that way puts its chrome
- * back. The element call is the fallback for anything without a button we can
- * name.
- */
-
-/**
- * Pause every media element on the page.
+ * The site's own button first, and not out of politeness: a player driven
+ * through its own control ends up in the state it expects — its chrome
+ * rescales, its keyboard shortcuts follow, and leaving fullscreen puts
+ * everything back. Calling `requestFullscreen` on the video element behind the
+ * player's back gets a full-size picture with a player that still believes it
+ * is windowed, which on YouTube means the controls stay small and mispositioned.
  *
- * Run before navigating away. A player still running holds its document open
- * against the navigation, which is why choosing another site while YouTube
- * Music was playing appeared to do nothing at all — the request was made and
- * the page simply would not let go.
+ * The element fallback is for everything without a button we can name, which is
+ * every site that redesigns its player after this was written.
  */
-const STOP_PLAYBACK = `(() => {
-  document.querySelectorAll('video, audio').forEach((media) => {
-    try { media.pause(); } catch (e) { /* already gone */ }
-  });
-  return 'ok';
+const REQUEST_PAGE_FULLSCREEN = `(() => {
+  if (document.fullscreenElement) { return 'already'; }
+  const button = document.querySelector(
+    '.ytp-fullscreen-button, [data-a-target="player-fullscreen-button"], .fullscreen-control, .vp-fullscreen'
+  );
+  if (button) { button.click(); return 'button'; }
+  const video = document.querySelector('video');
+  if (video && video.requestFullscreen) { video.requestFullscreen(); return 'video'; }
+  return 'none';
 })()`;
 
 const EXIT_PAGE_FULLSCREEN = `(() => {
@@ -434,34 +324,98 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   const activeSite = findSiteForUrl(currentUrl);
 
   /**
-   * Make sure the page is not holding its own fullscreen while we own the mode.
+   * Take the page's own player with us into full screen.
    *
-   * Asking for the site's fullscreen was how full screen used to strip the
-   * page, and it is the wrong instrument: YouTube's fullscreen is YouTube's
-   * *interface* — its own controls, its own overlays, its own idea of what the
-   * screen is for — and it lands on top of the graph, which is the one thing
-   * this mode exists to show. Both larger modes strip the page the same way
-   * now, by hiding everything off the path to the player, which leaves the
-   * player's ordinary controls and nothing else.
+   * The graph's full-screen mode gives the window to the player and the graph.
+   * Without this the *window* was fullscreen and the video inside it was still
+   * a letterboxed rectangle in the middle of a search results page — which is
+   * the one thing the mode exists to avoid.
    *
-   * What is left here is the undo. Somebody can still press the player's own
-   * fullscreen button, and a page left in that state while the mode changes
-   * around it is a video that has taken the screen from the app that was
-   * lending it.
+   * Skipped while the tab is hidden. Forcing a background player fullscreen
+   * would be a page taking over a screen nobody is looking at it on, and the
+   * guest is still loaded and playing the whole time.
    */
   useEffect(() => {
     const view = webviewRef.current;
-    if (!view || isHidden || !isGuestReady || graphView !== 'normal') {
+    if (!view || isHidden || !isGuestReady) {
       return;
     }
     try {
-      view.executeJavaScript(EXIT_PAGE_FULLSCREEN, true).catch(() => {
-        // The document went away mid-call — a navigation landing at the same
-        // moment. Nothing is left in a bad state by not answering.
-      });
+      view
+        .executeJavaScript(
+          graphView === 'fullscreen'
+            ? REQUEST_PAGE_FULLSCREEN
+            : EXIT_PAGE_FULLSCREEN,
+          // Counts as a user gesture. The click or the shortcut that opened the
+          // mode was one; Chromium has no way to know that from here, and
+          // `requestFullscreen` refuses without it.
+          true,
+        )
+        .catch(() => {
+          // The document went away mid-call — a navigation landing at the same
+          // moment. The next mode change will find the new one.
+        });
     } catch {
       // Throws rather than rejects when the guest has no web contents id yet.
+      // `dom-ready` is meant to have ruled that out, but a teardown racing this
+      // effect can still get here, and a crashed player is not worth taking the
+      // window down over.
     }
+  }, [graphView, isGuestReady, isHidden]);
+
+  /**
+   * Strip the page back to its player while the graph is over it.
+   *
+   * Keyed on the mode and re-applied whenever the guest reloads: a navigation
+   * throws inserted CSS away with the document, so without `isGuestReady` in
+   * the dependencies, playing a second video would come back with the whole
+   * page around it.
+   *
+   * The cleanup removes the sheet by the key `insertCSS` hands back rather than
+   * injecting a second one to undo the first — two stylesheets fighting is how
+   * a page ends up in a state neither of them describes.
+   */
+  useEffect(() => {
+    const view = webviewRef.current;
+    if (!view || isHidden || !isGuestReady || graphView === 'normal') {
+      return undefined;
+    }
+    let key: string | undefined;
+    let isCancelled = false;
+    try {
+      view
+        .insertCSS(PLAYER_ONLY_CSS)
+        .then((inserted) => {
+          if (isCancelled) {
+            // The mode changed while this was in flight. Take it straight back
+            // out rather than leaving a sheet nothing has the key to.
+            view.removeInsertedCSS(inserted).catch(() => undefined);
+          } else {
+            key = inserted;
+          }
+          return inserted;
+        })
+        .catch(() => undefined);
+      // The stylesheet alone does nothing until the chain is marked; the two
+      // are inserted together and removed together.
+      view.executeJavaScript(ENTER_PLAYER_ONLY).catch(() => undefined);
+    } catch {
+      // No web contents to inject into; nothing to undo either.
+    }
+    return () => {
+      isCancelled = true;
+      if (key !== undefined) {
+        view.removeInsertedCSS(key).catch(() => undefined);
+      }
+      try {
+        // The attributes go too. Left behind they are inert without the
+        // stylesheet, but they would be waiting for the next time it is
+        // inserted, describing a chain to a player that may have been replaced.
+        view.executeJavaScript(EXIT_PLAYER_ONLY).catch(() => undefined);
+      } catch {
+        // The guest is gone, which removes them rather more thoroughly.
+      }
+    };
   }, [graphView, isGuestReady, isHidden]);
 
   /**
@@ -473,18 +427,6 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
    */
   useEffect(() => {
     const view = webviewRef.current;
-    // Both larger modes, by the same route.
-    //
-    // Full screen used to ask the site for *its* fullscreen instead, which
-    // brings YouTube's own interface with it — controls, overlays, the lot —
-    // and puts all of it on top of the graph, which is the thing the mode
-    // exists to show. And running that alongside this left a blank screen: a
-    // fullscreen element lives in Chromium's top layer while these rules are
-    // still pinning and hiding around it, and the two accounts of where the
-    // player belongs do not agree.
-    //
-    // One mechanism, both modes. The difference between them is how much room
-    // the pane has, which is not this file's business.
     if (!view || isHidden || !isGuestReady || graphView === 'normal') {
       return undefined;
     }
@@ -651,32 +593,9 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
 
   const goTo = useCallback((url: string) => {
     setBlockedUrl('');
-    const view = webviewRef.current;
-    if (!view) {
-      return;
-    }
-    try {
-      // Stop whatever is playing before leaving the page.
-      //
-      // YouTube Music holds onto its player hard: clicking another site while
-      // it was playing did nothing at all, because a media element still
-      // running keeps the document alive through the navigation the tag is
-      // trying to start. Pausing first lets go of it.
-      //
-      // One player, always — the tag is reused rather than one per site — so
-      // there is never a second video in memory once this document goes.
-      view
-        .executeJavaScript(STOP_PLAYBACK)
-        .catch(() => undefined)
-        .finally(() => {
-          view.loadURL(url).catch(() => {
-            // A navigation replaced by a newer one rejects; not a failure.
-          });
-        });
-    } catch {
-      // No web contents to ask. Nothing is playing in that case either.
-      view.loadURL(url).catch(() => undefined);
-    }
+    webviewRef.current?.loadURL(url).catch(() => {
+      // A navigation replaced by a newer one rejects; that is not a failure.
+    });
   }, []);
 
   const handleSearch = useCallback(
