@@ -129,12 +129,31 @@ const PLAYER_ONLY_CSS = `
  * more than the page it is hiding.
  */
 const ENTER_PLAYER_ONLY = `(() => {
-  const SELECTOR =
-    '#movie_player, .html5-video-player, [data-a-target="video-player"], .vp-player-layout';
+  // Most specific first, because several of these match on the same page and
+  // the first hit wins. YouTube Music is the reason the list is ordered rather
+  // than just long: it wraps the same '#movie_player' YouTube uses inside its
+  // own 'ytmusic-player', and marking the inner one leaves the app's chrome —
+  // nav rail, queue, now-playing bar — outside the chain and therefore hidden,
+  // which on a music app removes the half of the player people actually use.
+  const SELECTOR = [
+    'ytmusic-player',
+    '#movie_player',
+    '.html5-video-player',
+    '[data-a-target="video-player"]',
+    '.vp-player-layout',
+  ].join(', ');
   const mark = () => {
+    // The largest video on the page, rather than the first in the document.
+    // Sites litter pages with thumbnails and preview loops; the one being
+    // watched is the big one, and on a page mid-load it may not exist yet — in
+    // which case the observer will be back.
+    const biggest = Array.from(document.querySelectorAll('video')).sort(
+      (a, b) =>
+        b.clientWidth * b.clientHeight - a.clientWidth * a.clientHeight
+    )[0];
     const player =
       document.querySelector(SELECTOR) ||
-      (document.querySelector('video') || {}).parentElement;
+      (biggest && biggest.parentElement);
     if (!player) { return; }
     // Already correct, and still attached. The common case by far.
     if (player.hasAttribute('data-fluideq-player') && player.isConnected) {
