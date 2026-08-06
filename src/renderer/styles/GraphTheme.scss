@@ -424,18 +424,23 @@
   display: none;
 }
 
-// Expanded, and only expanded: both edges of the card dissolve.
+// Expanded, and only expanded: both edges of the card dissolve into the middle.
 //
 // The card here is laid over a workspace that is still fully present — the
 // tabs, the editor, the player — so a hard rule across the top and another
-// across the bottom cuts the column into three strips. Fading both ends by the
-// same amount makes it a panel resting on what is behind rather than a lid over
-// it, and doing only the top (which is where this started, with the chrome
-// mask) left it looking lopsided.
+// across the bottom cuts the column into three strips. Clear at both edges and
+// solid through the centre makes it a panel resting on what is behind rather
+// than a lid over it.
 //
-// On the surface layer, so the fade is the *background* going away. The trace
-// and the header keep full strength: a graph that faded out at both ends would
-// be a graph with its highest and lowest decibels missing.
+// How far in it fades comes from the see-through slider, because they are the
+// same intent expressed once. A fixed fade meant a card set fully solid still
+// dissolved at both ends, which is an edge nobody asked for; at zero the
+// gradient collapses to nothing and the surface is simply solid. The blur is
+// already shared — it sits on the card and applies in both modes.
+//
+// On the surface layer, so what fades is the *background*. The trace and the
+// header keep full strength: a graph faded out at both ends would be a graph
+// with its highest and lowest decibels missing.
 //
 // The border goes with it. An outline around a field that dissolves at both
 // ends is the one thing guaranteed to look like a mistake — full screen keeps
@@ -450,8 +455,8 @@
     mask-image: linear-gradient(
       to bottom,
       transparent 0%,
-      rgb(0 0 0) 9%,
-      rgb(0 0 0) 91%,
+      rgb(0 0 0) var(--graph-overlay-fade, 0%),
+      rgb(0 0 0) calc(100% - var(--graph-overlay-fade, 0%)),
       transparent 100%
     );
   }
@@ -482,6 +487,22 @@
 // the screen — and Escape, Ctrl+F and the menu are all still there to get back.
 .window-titlebar:has(~ .app-workspace.is-app-full) {
   display: none;
+}
+
+// And the space it was holding open.
+//
+// The titlebar is `position: fixed`, so hiding it frees nothing on its own —
+// the room it occupies is 78px of padding on `#root`, put there so the
+// workspace starts below it. Take away the bar and leave the padding and full
+// screen has a black band across the top where the chrome used to be, which is
+// exactly the strip this mode exists to reclaim.
+//
+// Reached with `:has()` because the flag lives on a descendant: the mode is a
+// property of the workspace, and the element that has to react to it is its
+// parent. The alternative is threading a class onto `#root` from React, which
+// means App knowing about the shell's padding.
+#root:has(> .app-workspace.is-app-full) {
+  padding-top: 0;
 }
 
 // The graph with the workspace to itself.
@@ -595,7 +616,15 @@
       position: absolute;
       z-index: -1;
       border-radius: inherit;
-      background: $surface-panel;
+      // The card's own gradient, rebuilt on the layer that carries the
+      // transparency. A flat colour here was the one place the graph stopped
+      // looking like the panels around it, and full screen is where it is most
+      // visible.
+      background: linear-gradient(
+        180deg,
+        panel-top($secondary-dark, 5%) 0%,
+        $panel-bottom 62%
+      );
       // Set from the sliders in the graph's header. Solid by default: seeing
       // through the card is a thing to go looking for, not a thing to be given
       // and have to undo.

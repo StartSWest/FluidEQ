@@ -733,8 +733,15 @@ const FrequencyResponseChart = () => {
         // and the graph dropped out of full screen behind it. Escape means
         // "close the nearest thing", and the nearest thing is whatever is over
         // the top.
+        //
+        // Matched on the elements that only exist while something is open, not
+        // on `[role="menu"]`: the style picker puts that role on its *trigger*,
+        // which is on screen the whole time, so testing for it blocked Escape
+        // permanently and full screen became a mode with no way out.
         if (
-          document.querySelector('[role="dialog"], [role="menu"]') ||
+          document.querySelector(
+            '[role="dialog"], .graph-view-menu__list, .dropdown--open',
+          ) ||
           // Every one of these also has its own key handling, and a text field
           // in particular treats Escape as "cancel this edit".
           (event.target as HTMLElement | null)?.closest?.(
@@ -927,6 +934,15 @@ const FrequencyResponseChart = () => {
       style={
         {
           '--graph-overlay-opacity': overlayOpacity,
+          // How far in from the top and bottom edges the card's surface fades.
+          //
+          // Driven by the see-through slider rather than fixed, because the two
+          // are the same intent. A card set solid should *be* solid — a fixed
+          // fade left it dissolving at both ends no matter where the slider
+          // was, which reads as an edge nobody asked for. At full transparency
+          // the fade is at its widest, and the panel melts into the picture
+          // instead of ending at a line.
+          '--graph-overlay-fade': `${Math.round((1 - overlayOpacity) * 14)}%`,
           // The whole filter, so that no blur is the keyword `none` rather than
           // `blur(0px)` — which is still a filter, and still costs a
           // compositing layer re-composited every frame to change nothing.
