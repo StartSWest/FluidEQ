@@ -28,6 +28,7 @@ import {
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import {
+  CSSProperties,
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -75,6 +76,14 @@ import {
   useGraphLook,
   useLiveOutputSolo,
 } from '../utils/graphStyle';
+import {
+  MAX_OVERLAY_BLUR,
+  MIN_OVERLAY_OPACITY,
+  setOverlayBlur,
+  setOverlayOpacity,
+  useOverlayBlur,
+  useOverlayOpacity,
+} from '../utils/graphOverlay';
 import Dropdown from '../widgets/Dropdown';
 import { getVoicingFilters } from '../../common/voicing';
 import { getDriverFilters } from '../../common/driver';
@@ -135,6 +144,8 @@ const FrequencyResponseChart = () => {
   const liveLook = useGraphLook();
   const isSolo = useLiveOutputSolo();
   const isFullScreen = useGraphFullScreen();
+  const overlayOpacity = useOverlayOpacity();
+  const overlayBlur = useOverlayBlur();
   const {
     filters,
     isGraphViewOn,
@@ -842,6 +853,19 @@ const FrequencyResponseChart = () => {
     <div
       className={`graph-wrapper${!isEngineUsable ? ' is-engine-disabled' : ''}`}
       aria-disabled={!isEngineUsable}
+      // Read by the full-screen rules only. Handed down as variables rather
+      // than as a style on the card itself, because what they actually apply to
+      // is the surface layer behind the drawing — see GraphTheme.
+      style={
+        {
+          '--graph-overlay-opacity': overlayOpacity,
+          // The whole filter, so that no blur is the keyword `none` rather than
+          // `blur(0px)` — which is still a filter, and still costs a
+          // compositing layer re-composited every frame to change nothing.
+          '--graph-overlay-filter':
+            overlayBlur > 0 ? `blur(${overlayBlur}px)` : 'none',
+        } as CSSProperties
+      }
     >
       <div className="live-output-controls">
         {!isSolo && convolution && (
@@ -927,6 +951,51 @@ const FrequencyResponseChart = () => {
           >
             {isFullScreen ? 'Exit full screen' : 'Full screen'}
           </button>
+          {/* Only while full screen, because that is the only time the card
+              has anything behind it worth seeing. Shown here rather than in a
+              settings panel so it can be adjusted against the thing it affects
+              — this is a judgement made by looking, not by reading a number. */}
+          {isFullScreen && (
+            <span className="graph-see-through">
+              <label
+                htmlFor="graph-see-through"
+                title="How much of the page shows through the graph"
+              >
+                <span>See through</span>
+                <input
+                  id="graph-see-through"
+                  type="range"
+                  min={MIN_OVERLAY_OPACITY * 100}
+                  max={100}
+                  step={1}
+                  // Inverted, so right is more see-through. The stored value is
+                  // an opacity because that is what CSS wants; the slider is a
+                  // transparency because that is what the label says.
+                  value={Math.round((1 - overlayOpacity) * 100)}
+                  onChange={(event) =>
+                    setOverlayOpacity(1 - Number(event.target.value) / 100)
+                  }
+                />
+              </label>
+              <label
+                htmlFor="graph-see-through-blur"
+                title="Blur what shows through, so it reads as light rather than as a second picture"
+              >
+                <span>Blur</span>
+                <input
+                  id="graph-see-through-blur"
+                  type="range"
+                  min={0}
+                  max={MAX_OVERLAY_BLUR}
+                  step={1}
+                  value={overlayBlur}
+                  onChange={(event) =>
+                    setOverlayBlur(Number(event.target.value))
+                  }
+                />
+              </label>
+            </span>
+          )}
         </span>
         {liveOutput.isClipping && (
           <span className="graph-clip-warning" role="status">

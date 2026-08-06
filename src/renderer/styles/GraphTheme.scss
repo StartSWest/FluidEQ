@@ -1,4 +1,5 @@
 @use 'color' as *;
+@use 'spacing' as *;
 @use 'theme' as *;
 
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency
@@ -269,6 +270,24 @@
     display: none;
   }
 
+  // The chrome, out of sight for as long as the card is over it.
+  //
+  // Turning the card to glass is meant to reveal the player. What it actually
+  // revealed was the tab strip and the player's own toolbar, blurred just
+  // enough to look like a rendering fault, with the video a long way below
+  // them. Neither is reachable in this mode anyway — the card covers the whole
+  // column and takes every click — so hiding them costs nothing and leaves the
+  // picture as the only thing behind the glass.
+  //
+  // `visibility` rather than `display`, and that is the cheap part: the boxes
+  // keep their space, so the stage below does not grow, the guest is not
+  // resized, and nothing has to relayout or re-composite when this turns on and
+  // off. A `display: none` here would resize the video on every toggle.
+  .workspace-tabs,
+  .video-browser__bar {
+    visibility: hidden;
+  }
+
   > .graph-wrapper {
     position: absolute;
     z-index: 40;
@@ -282,25 +301,96 @@
     // Which is what centres it: one in-flow child, given a share of the height
     // rather than all of it, with the rest as air above and below.
     justify-content: center;
-    // Opaque, and no blur.
-    //
-    // Frosted glass was tried and it does not work here. `backdrop-filter`
-    // blurs what is *behind* the card, but the card covers the whole column —
-    // so what came through was not the video, it was the tab strip and the
-    // player's own toolbar, softened just enough to look like a rendering
-    // fault. There is nothing in a full-height overlay worth seeing through it.
-    //
-    // Stated as a flat colour rather than as an opacity for the usual reason: a
-    // transparency on the element takes the trace down with it, and a
-    // half-visible graph is not a design, it is an unreadable one.
-    border-color: rgba(#1d4b5c, 0.95);
-    background: #08141a;
+    // The same edge as the side panes. It is still a panel laid over the
+    // workspace, not a second window, and a card in the middle of the screen
+    // with its own idea of a border reads as something that has gone wrong.
+    border: 1px solid $border-panel;
+    border-radius: $radius-xl;
+    background: none;
     opacity: 1;
     box-shadow: 0 30px 80px rgba($black, 0.6);
-    // The card keeps the corners it has everywhere else. It is still a panel
-    // laid over the player, not a second window, and square corners against the
-    // rounded pane behind would read as a rendering fault rather than a mode.
-    border-radius: $radius-xl;
+
+    // The blur belongs on the card, not on the surface layer below.
+    //
+    // It was on the layer to begin with and did nothing at all, for a reason
+    // worth writing down: the card carries `isolation: isolate`, and isolation
+    // makes an element a *backdrop root*. A `backdrop-filter` on anything
+    // inside it can only sample what is painted within that root — which here
+    // is nothing — so the filter was applied to an empty backdrop and the
+    // slider appeared to be dead. On the card itself the backdrop is the page
+    // behind it, which is the thing being looked through to.
+    //
+    // The whole value comes from the renderer rather than just the radius, so
+    // that a blur of zero is the literal keyword `none`. `blur(0px)` is still a
+    // filter: it promotes a compositing layer and re-composites the region
+    // every frame to produce a result identical to not doing it.
+    backdrop-filter: var(--graph-overlay-filter, none);
+
+    // The surface, as a layer of its own behind the drawing.
+    //
+    // On the element itself it could not do this job: `opacity` there would
+    // take the trace, the grid and the labels down with the background, and a
+    // half-visible graph over a half-visible video is two things nobody can
+    // read instead of one. On a layer underneath, the transparency applies to
+    // the surface alone and everything drawn on it stays at full strength.
+    //
+    // `isolation: isolate` on the card is what keeps the negative z-index
+    // contained — the layer sits behind the card's own contents and no further.
+    &::before {
+      position: absolute;
+      z-index: -1;
+      border-radius: inherit;
+      background: $surface-panel;
+      // Set from the sliders in the graph's header. Solid by default: seeing
+      // through the card is a thing to go looking for, not a thing to be given
+      // and have to undo.
+      opacity: var(--graph-overlay-opacity, 1);
+      content: '';
+      inset: 0;
+    }
+  }
+
+  // The two sliders, in the header strip beside the full-screen button. Only
+  // rendered in this mode, so there is nothing to hide here — the styling is
+  // all that lives in the full-screen block.
+  .graph-see-through {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-s;
+
+    label {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      color: rgba($primary-lighter, 0.55);
+      font-size: 0.58rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    // Short on purpose. This sits in a strip that already holds a dropdown and
+    // two buttons, and a full-length slider would push them onto a second row
+    // over the top of the plot.
+    input[type='range'] {
+      width: 68px;
+      height: 3px;
+      padding: 0;
+      border: none;
+      border-radius: 999px;
+      background: rgba($primary-lighter, 0.18);
+      appearance: none;
+      cursor: pointer;
+
+      &::-webkit-slider-thumb {
+        width: 10px;
+        height: 10px;
+        border: none;
+        border-radius: 50%;
+        background: $secondary-light;
+        appearance: none;
+      }
+    }
   }
 
   // Two thirds of the card, centred in it. The card is what covers the video;

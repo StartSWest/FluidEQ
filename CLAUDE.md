@@ -35,8 +35,14 @@ performance entry should carry the actual number.
 All of these, and do not tag if any fails:
 
 ```bash
-pnpm typecheck && pnpm typecheck:e2e && pnpm test && pnpm exec prettier --check "src/**/*.{ts,tsx,scss}"
+pnpm typecheck && pnpm typecheck:e2e && pnpm typecheck:styles && pnpm test && pnpm exec prettier --check "src/**/*.{ts,tsx,scss}"
 ```
+
+`typecheck:styles` compiles every stylesheet. Sass is otherwise the one
+language here nothing checks — tsc does not see it, jest does not import it,
+and prettier will happily format a file that cannot compile. A rule using a
+variable from a module the file never imported is silently thrown away, so the
+first sign of it is something looking wrong in the window.
 
 ### 4. Commit, tag, push
 
