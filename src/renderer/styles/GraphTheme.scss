@@ -625,14 +625,11 @@ $expanded-video-bar-top: 40px;
   display: grid;
   align-items: center;
   padding-inline: 14px;
-  // The titlebar's own three-track split, for the same reason it uses it:
-  // equal outer columns are what keep the waveform optically centred in the
-  // window however wide the thing beside it is.
-  //
-  // It was `auto 1fr auto` with only two children, so the creature took the
-  // first track and the waveform took everything left of centre-right — centred
-  // in the remainder rather than in the screen, and visibly off.
-  grid-template-columns: minmax(0, 1fr) minmax(200px, 420px) minmax(0, 1fr);
+  // One track now that the creature is the only thing here. The waveform used
+  // to share this strip and needed three columns to sit optically centred; it
+  // is not shown in this mode any more — a video with a spectrum over it does
+  // not also need a meter across the top of it.
+  grid-template-columns: 1fr;
   gap: 14px;
   pointer-events: none;
 

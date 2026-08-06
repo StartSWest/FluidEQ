@@ -491,7 +491,13 @@ const AppContent = () => {
             leaves the originals mounted, so there were two creatures on one
             analyser and neither drew correctly — the hero in the support dialog
             went with them. Exactly one of each exists at any moment. */}
-        {!isAppFullScreen && <WaveformVisualizer />}
+        {/* Always mounted, even in full screen where the titlebar around it is
+            hidden. It is not wanted on screen there — a video with a spectrum
+            over it does not also need a second meter across the top — but
+            unmounting it would tear the analyser's hook down and build it again
+            on every mode change, for a component nobody can see. CSS hides the
+            bar; this stays put behind it. */}
+        <WaveformVisualizer />
         <div className="window-titlebar__right">
           {!isAppFullScreen && (
             <SupportPet
@@ -980,18 +986,17 @@ const AppContent = () => {
             in rather than imported there, so there is one definition of what
             "reinstall Equalizer APO" does — including the confirmation and the
             restart advice that follows it. */}
-        {/* The two pieces of the titlebar worth keeping over a full-screen
-            video: the creature in the left corner, and the waveform across the
-            top. The view menu is already at the top right, inside the graph.
-            Moved rather than copied — the titlebar's own are not rendered in
-            this mode, so there is exactly one of each and one audio hook. */}
+        {/* The one piece of the titlebar worth keeping over a full-screen
+            video: the creature, in the left corner. The view menu is already at
+            the top right, inside the graph. Moved rather than copied — the
+            titlebar's own is not rendered in this mode, so there is exactly one
+            of it. */}
         {isAppFullScreen && (
           <div className="fullscreen-chrome">
             <SupportPet
               hasContributed={hasContributed}
               onOpen={() => setShowSupportDialog(true)}
             />
-            <WaveformVisualizer />
           </div>
         )}
         {showTroubleshooter && (
