@@ -28,7 +28,7 @@ import useController, {
   IMarginLike,
 } from './ChartController';
 import { BAND_SPECTRUM_STOPS } from '../utils/bandColors';
-import { useGraphGridHidden } from '../utils/graphStyle';
+import { toggleGraphFullScreen, useGraphGridHidden } from '../utils/graphStyle';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 
@@ -221,6 +221,22 @@ const Chart = ({
       ref={svgRef}
       width={svgWidth}
       height={svgHeight}
+      // Double-click the plot to fill the screen, and again to come back.
+      //
+      // The gesture every video player in the world uses, on the one pane here
+      // that behaves like one. It rides alongside the marquee rather than
+      // fighting it: a double click is two clicks, each of which selects
+      // nothing, so the selection is already empty by the time this fires.
+      //
+      // On a band handle it does nothing — those have their own handlers and
+      // stop the event — so dragging a point and accidentally double-tapping it
+      // does not throw the window into full screen.
+      onDoubleClick={(event) => {
+        if ((event.target as Element).closest?.('.graph-edit-point')) {
+          return;
+        }
+        toggleGraphFullScreen();
+      }}
       onPointerDown={handleSelectionStart}
       onPointerMove={handleSelectionMove}
       onPointerUp={finishSelection}

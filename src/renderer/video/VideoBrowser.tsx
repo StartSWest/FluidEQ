@@ -119,10 +119,12 @@ const PLAYER_ONLY_CSS = `
      viewport does not tell them anything — so the video kept the width and the
      offset it had been given for a layout with a nav rail beside it, and left a
      black band down the side where it no longer reached. */
+  /* Sized, not repositioned.
+     Repositioning it was too much: YouTube lays its video out inside the player
+     itself, and forcing it to absolute at the origin fought that and left the
+     picture gone. Setting only the size is enough for the case this exists for
+     — a video still carrying the width it was given for a narrower container. */
   html[data-fluideq-solo] [data-fluideq-player] video {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
     width: 100% !important;
     height: 100% !important;
     object-fit: contain !important;
@@ -189,7 +191,7 @@ const ENTER_PLAYER_ONLY = `(() => {
     style.textContent =
       '[data-fluideq-keep]:not([data-fluideq-player]) > *:not([data-fluideq-keep]){display:none !important}' +
       '[data-fluideq-player]{position:fixed !important;z-index:2147483647 !important;top:0 !important;left:0 !important;width:100vw !important;height:100vh !important;background:#000 !important}' +
-      '[data-fluideq-player] video{position:absolute !important;top:0 !important;left:0 !important;width:100% !important;height:100% !important;object-fit:contain !important}';
+      '[data-fluideq-player] video{width:100% !important;height:100% !important;object-fit:contain !important}';
     root.appendChild(style);
   };
 
