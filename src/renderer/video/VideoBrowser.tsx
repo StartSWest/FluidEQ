@@ -69,20 +69,19 @@ interface IWebview extends HTMLElement {
 /**
  * Just the picture, with the page it came from out of the way.
  *
- * Injected into the guest while the graph is expanded or full screen. The rest
- * of a video page — the header, the sidebar, the recommendations, the comments
- * — is what you scroll through to *find* something; once it is playing and a
- * spectrum is drawn over it, all of it is furniture around a rectangle.
+ * Injected while the graph is expanded or full screen. The rest of a video page
+ * — header, sidebar, recommendations, comments — is what you scroll through to
+ * *find* something; once it is playing with a spectrum over it, all of it is
+ * furniture around a rectangle.
  *
- * The player is pinned rather than the page hidden. Hiding everything and
- * showing one subtree means naming that subtree correctly on six sites that
- * each redesign independently, and being wrong means a black screen. Lifting
- * the player to cover the viewport needs only to find it, and the fallback —
- * the `<video>` element itself — exists on every one of them by definition.
+ * Hidden by chain rather than by pinning the player. A z-index only sorts within
+ * its own stacking context and these sites nest their players in several, so a
+ * player told to be above everything still had the comments painted over it.
+ * Marking the path from the document down to the player and hiding whatever is
+ * not on it at each level has no such ceiling, and names nothing per-site.
  *
- * The site's own player is preferred over the bare element on purpose: it
- * brings its controls with it, which is what makes the video still pausable
- * once the graph stops taking clicks.
+ * The pruning stops *at* the player: it is on the chain itself, so without that
+ * the rule reached inside and hid its own children — the video among them.
  */
 const PLAYER_ONLY_CSS = `
   html[data-fluideq-solo],
@@ -90,22 +89,11 @@ const PLAYER_ONLY_CSS = `
     overflow: hidden !important;
     background: #000 !important;
   }
-  /* At every level of the chain down to the player, everything that is not on
-     the chain goes.
-
-     Stopping *at* the player is the whole of it. The player is itself on the
-     chain, so without the exclusion this rule reached inside it and hid its own
-     children — the video among them, which is a black screen with the page
-     correctly removed from in front of it. Its subtree is not something to
-     prune; it is the thing being kept. */
   html[data-fluideq-solo]
     [data-fluideq-keep]:not([data-fluideq-player])
     > *:not([data-fluideq-keep]) {
     display: none !important;
   }
-  /* And the chain itself stops imposing a layout on what is left. Sites wrap
-     players in grids and flex rows sized for a page that is no longer there.
-     The player is excluded again: it gets its own size below. */
   html[data-fluideq-solo] [data-fluideq-keep]:not([data-fluideq-player]) {
     display: block !important;
     width: auto !important;
@@ -124,41 +112,68 @@ const PLAYER_ONLY_CSS = `
     height: 100vh !important;
     background: #000 !important;
   }
-  html[data-fluideq-solo] [data-fluideq-player] video {
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain !important;
-  }
 `;
 
 /**
- * Mark the path from the document down to the player.
+ * Mark the path to the player, and keep it marked.
  *
- * Pinning the player with a z-index was the first attempt and it cannot work: a
- * z-index only sorts within its own stacking context, and every one of these
- * sites wraps its player in several — so the comments and the sidebar carried
- * on painting over a video that had been told to be on top of everything.
+ * The observer is the part that matters. Marking once works for about a second
+ * on YouTube: it is a single-page app that rebuilds its own tree constantly, and
+ * the moment it swapped the player out, the marks pointed at elements no longer
+ * in the document — so the rule hid everything and left a black screen. Re-
+ * marking whenever the tree changes is what makes this survive contact with a
+ * real site.
  *
- * Hiding by chain has no such ceiling. Nothing is named per-site: the player is
- * found once, and the rule that hides the rest is expressed in terms of the
- * path rather than in terms of any particular page's markup.
+ * Coalesced onto an animation frame, because a page like that mutates hundreds
+ * of times a second and re-walking the ancestor chain on each one would cost
+ * more than the page it is hiding.
  */
 const ENTER_PLAYER_ONLY = `(() => {
-  const player = document.querySelector(
-    '#movie_player, .html5-video-player, [data-a-target="video-player"], .vp-player-layout'
-  ) || document.querySelector('video')?.parentElement;
-  if (!player) { return 'none'; }
-  player.setAttribute('data-fluideq-player', '');
-  let node = player;
-  while (node && node !== document.documentElement) {
-    node.setAttribute('data-fluideq-keep', '');
-    node = node.parentElement;
-  }
-  document.documentElement.setAttribute('data-fluideq-solo', '');
+  const SELECTOR =
+    '#movie_player, .html5-video-player, [data-a-target="video-player"], .vp-player-layout';
+  const mark = () => {
+    const player =
+      document.querySelector(SELECTOR) ||
+      (document.querySelector('video') || {}).parentElement;
+    if (!player) { return; }
+    // Already correct, and still attached. The common case by far.
+    if (player.hasAttribute('data-fluideq-player') && player.isConnected) {
+      return;
+    }
+    document
+      .querySelectorAll('[data-fluideq-keep], [data-fluideq-player]')
+      .forEach((node) => {
+        node.removeAttribute('data-fluideq-keep');
+        node.removeAttribute('data-fluideq-player');
+      });
+    player.setAttribute('data-fluideq-player', '');
+    let node = player;
+    while (node && node !== document.documentElement) {
+      node.setAttribute('data-fluideq-keep', '');
+      node = node.parentElement;
+    }
+    document.documentElement.setAttribute('data-fluideq-solo', '');
+  };
+  mark();
+  if (window.__fluideqSolo) { window.__fluideqSolo.disconnect(); }
+  let queued = false;
+  window.__fluideqSolo = new MutationObserver(() => {
+    if (queued) { return; }
+    queued = true;
+    requestAnimationFrame(() => { queued = false; mark(); });
+  });
+  window.__fluideqSolo.observe(document.documentElement, {
+    childList: true,
+    subtree: true,
+  });
   return 'ok';
 })()`;
 
 const EXIT_PLAYER_ONLY = `(() => {
+  if (window.__fluideqSolo) {
+    window.__fluideqSolo.disconnect();
+    window.__fluideqSolo = undefined;
+  }
   document.documentElement.removeAttribute('data-fluideq-solo');
   document
     .querySelectorAll('[data-fluideq-keep], [data-fluideq-player]')
@@ -399,6 +414,54 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         view.executeJavaScript(EXIT_PLAYER_ONLY).catch(() => undefined);
       } catch {
         // The guest is gone, which removes them rather more thoroughly.
+      }
+    };
+  }, [graphView, isGuestReady, isHidden]);
+
+  /**
+   * Strip the page back to its player while the graph is over it.
+   *
+   * Re-applied when the guest reloads: a navigation throws inserted CSS away
+   * with the document, so without `isGuestReady` in the dependencies the second
+   * video would come back wearing the whole page.
+   */
+  useEffect(() => {
+    const view = webviewRef.current;
+    if (!view || isHidden || !isGuestReady || graphView === 'normal') {
+      return undefined;
+    }
+    let key: string | undefined;
+    let isCancelled = false;
+    try {
+      view
+        .insertCSS(PLAYER_ONLY_CSS)
+        .then((inserted) => {
+          if (isCancelled) {
+            // The mode changed while this was in flight. Take it straight back
+            // out rather than leaving a sheet nothing holds the key to.
+            view.removeInsertedCSS(inserted).catch(() => undefined);
+          } else {
+            key = inserted;
+          }
+          return inserted;
+        })
+        .catch(() => undefined);
+      // The stylesheet does nothing until the chain is marked; the two go in
+      // together and come out together.
+      view.executeJavaScript(ENTER_PLAYER_ONLY).catch(() => undefined);
+    } catch {
+      // No web contents to inject into, and so nothing to undo either.
+    }
+    return () => {
+      isCancelled = true;
+      if (key !== undefined) {
+        view.removeInsertedCSS(key).catch(() => undefined);
+      }
+      try {
+        view.executeJavaScript(EXIT_PLAYER_ONLY).catch(() => undefined);
+      } catch {
+        // The guest is gone, which disconnects the observer rather more
+        // thoroughly than asking it to.
       }
     };
   }, [graphView, isGuestReady, isHidden]);

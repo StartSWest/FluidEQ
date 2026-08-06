@@ -3,13 +3,15 @@
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The two opaque bars the expanded card grows over the player, and the room
-// reserved for them. Named once because three rules have to agree: the bar at
-// the top, the bar at the bottom, and the padding that keeps the drawing out
-// from under both. A number that only matched in two of the three would show up
-// as a wave clipped by a hair.
+// The opaque bar the expanded card grows over the player, and the room reserved
+// for it. Named once because two rules have to agree — the bar and the padding
+// that keeps the drawing out from under it — and a number matching in one place
+// but not the other shows up as a wave clipped by a hair.
+//
+// There was a matching bar along the bottom. It went when stripping the page
+// back to its player made the subtitles legible for the first time, because
+// they sit exactly where it was.
 $expanded-video-bar-top: 40px;
-$expanded-video-bar-bottom: 34px;
 
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency
 // region brightens as it is actually heard, and a bar underneath fills with its
@@ -642,30 +644,6 @@ $expanded-video-bar-bottom: 34px;
   pointer-events: none;
 }
 
-// And the same at the bottom, so the card is closed at both ends.
-//
-// The plot takes two thirds of the card's height and sits in the middle, so the
-// bottom strip is empty — a bar there costs no drawing and stops the card
-// looking like a solid top edge with the video simply running out underneath
-// it. Matched to the top: same colour, same reach to the card's edges, the
-// corners rounded the other way.
-.app-workspace:not(.is-app-full)
-  .center-workspace.is-graph-full:has(
-    .workspace-tab-panel--video:not(.is-hidden)
-  )
-  > .graph-wrapper::after {
-  position: absolute;
-  z-index: -1;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  height: $expanded-video-bar-bottom;
-  border-radius: 0 0 $radius-xl $radius-xl;
-  background: $surface-panel;
-  content: '';
-  pointer-events: none;
-}
-
 // The drawing lives between the two bars rather than behind them.
 //
 // They are opaque, so a wave reaching the top of the card was simply cut off by
@@ -683,7 +661,11 @@ $expanded-video-bar-bottom: 34px;
   )
   > .graph-wrapper {
   padding-top: $expanded-video-bar-top;
-  padding-bottom: $expanded-video-bar-bottom;
+  // Nothing reserved at the bottom. The bar that used to be there is gone, and
+  // what is down there instead is the subtitles — which the page-stripping made
+  // legible for the first time, and which a band of panel colour across the
+  // bottom of the card was sitting directly on top of.
+  padding-bottom: 0;
 }
 
 // The card takes clicks, as every other pane does.
@@ -828,8 +810,13 @@ $expanded-video-bar-bottom: 34px;
     box-shadow: none;
   }
 
+  // The stage is the panel now, so it carries the panel's corners.
+  //
+  // Squaring them off was right while the card around it supplied the rounding;
+  // with that card's frame gone the stage *is* the edge, and square corners sat
+  // against the workspace's rounded everything else.
   .video-browser__stage {
-    border-radius: 0;
+    border-radius: $radius-xl;
   }
 
   > .graph-wrapper {
