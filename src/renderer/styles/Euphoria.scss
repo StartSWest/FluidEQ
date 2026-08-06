@@ -15,11 +15,18 @@ it under the terms of the GNU General Public License version 3 or later.
 // — so it is rare by construction and does not need to be tasteful. It is the
 // reward for the hardest thing the app asks of anyone.
 //
-// Two variables drive it, both set on the document root: `--pet-joy`, which is
-// the streak, and `--euphoria-level`, which is the live audio. The hue sweep is
-// a plain CSS animation on the compositor; only the intensity follows the
-// music, so a loud passage swells and a quiet one settles without anything
-// being recalculated per frame in JavaScript.
+// One variable is set on the document root — `--pet-joy`, which is the streak —
+// and one per band, `--band-level`, which is that band's share of the live
+// audio. Nothing else is written to `<html>` while the mode runs, and that is a
+// rule rather than an accident: a custom property on the root is inherited by
+// every element under it, so writing one invalidates the computed style of the
+// whole document, and there is no `contain` anywhere here to stop it at a pane.
+// `--pet-joy` changes when the streak does, which is rarely; the live audio
+// goes to the bands themselves.
+//
+// The hue sweep is a plain CSS animation; only the intensity follows the music,
+// so a loud passage swells and a quiet one settles without anything being
+// recalculated per frame in JavaScript.
 .is-euphoric {
   // No background wash. A full-window colour film was the first attempt and it
   // was the wrong instrument entirely: it tinted the panels, the readouts and
@@ -71,12 +78,19 @@ it under the terms of the GNU General Public License version 3 or later.
 
   // Pulsing with the music, and the throttle is what makes it affordable.
   //
-  // `--euphoria-level` and each band's `--band-level` are written straight to
-  // the elements — no React render at all — but they are QUANTISED to twelve
-  // steps first, and only written when a step actually changes. Every element
-  // reading one has its style recalculated on each write, so a continuous value
-  // would cost twenty-two invalidations a second across thirty-one bands for
-  // differences nobody can see. Stepped, it is a handful a second.
+  // Each band's `--band-level` is written straight to that band — no React
+  // render at all — but QUANTISED to twelve steps first, and only written when
+  // a step actually changes. Every element reading one has its style
+  // recalculated on each write, so a continuous value would cost twenty-two
+  // invalidations a second across thirty-one bands for differences nobody can
+  // see. Stepped, it is a handful a second.
+  //
+  // Written to the band and not to the root, which is the point. There was a
+  // `--euphoria-level` on `<html>` alongside this doing the same job for the
+  // whole window; it was removed because nothing ever read it, and an inherited
+  // property on the root costs the entire document's computed style every time
+  // it moves. If a future effect wants the overall loudness, it should be given
+  // to the element that draws it and to nothing else.
   //
   // The band points on the graph are left alone. They mark where a filter sits
   // and they are dragged; fading them with the music makes a control harder to
@@ -154,9 +168,14 @@ it under the terms of the GNU General Public License version 3 or later.
   //
   // The SVG scales with the box, so the waves grow with it and end up nearly
   // touching the edges.
+  //
+  // The easing that carries it lives on the meter's own rule rather than in
+  // here. Declared inside this block it only existed while the class did, so
+  // the pane rose over seven hundred milliseconds and then snapped back the
+  // instant the mode went off — the way out has to be as smooth as the way in,
+  // and it is the way out this whole file is currently being read for.
   .waveform-visualizer {
     height: 64px;
-    transition: height 700ms cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   // The band colours are NOT touched here, and that is the fix.
@@ -332,14 +351,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // one more path in a picture already being drawn, and it costs nothing that
 // scales with time.
 //
-// Hidden outside euphoria rather than merely transparent, so it is not in the
-// paint at all the rest of the time.
+// Absent outside euphoria rather than merely transparent, and absent rather
+// than hidden: the meter mounts this path with the mode and unmounts it again,
+// so there is no rule here turning it on or off. `display: none` kept it out of
+// the paint and left it in the document, which is enough while the mode is on
+// and worth nothing when it is over — an element the renderer is still holding
+// a place for is precisely what "switching it off gives nothing back" is made
+// of.
 .waveform-visualizer__glow {
-  display: none;
-}
-
-.is-euphoric .waveform-visualizer__glow {
-  display: block;
   fill: none;
   stroke: url('#waveform-line');
   stroke-width: 7;

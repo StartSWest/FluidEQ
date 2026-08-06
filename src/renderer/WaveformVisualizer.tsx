@@ -47,8 +47,14 @@ const WAVEFORM_STYLE_KEY = 'fluideq-waveform-style';
  * Scale a frame by its own peak, so the shape fills the pane whatever the
  * volume is set to. Guarded by a floor, or a silent frame divides by almost
  * nothing and the noise floor arrives at full height.
+ *
+ * Written into a buffer the caller owns rather than returning a new array. This
+ * runs only in euphoria, which is exactly the mode that draws at the display's
+ * full rate rather than at thirty — so a `map` here was one array of a few
+ * hundred numbers per frame, for as long as the mode is on, which is the same
+ * per-frame garbage the rest of this pipeline goes out of its way to avoid.
  */
-const normalise = (samples: number[]): number[] => {
+const normalise = (samples: number[], into: number[]): number[] => {
   let peak = 0;
   for (let index = 0; index < samples.length; index += 1) {
     const magnitude = Math.abs(samples[index]);
@@ -60,7 +66,13 @@ const normalise = (samples: number[]): number[] => {
     return samples;
   }
   const gain = 1 / peak;
-  return samples.map((sample) => sample * gain);
+  if (into.length !== samples.length) {
+    into.length = samples.length;
+  }
+  for (let index = 0; index < samples.length; index += 1) {
+    into[index] = samples[index] * gain;
+  }
+  return into;
 };
 
 /**
@@ -162,6 +174,8 @@ const WaveformVisualizer = () => {
   }, []);
 
   const smoothedRef = useRef<number[]>([]);
+  // Where the normalised copy is built, reused between frames. See `normalise`.
+  const normalisedRef = useRef<number[]>([]);
   const glowRef = useRef<SVGPathElement>(null);
   const lineRef = useRef<SVGPathElement>(null);
   const mirrorRef = useRef<SVGPathElement>(null);
@@ -192,7 +206,9 @@ const WaveformVisualizer = () => {
     // Normalising is the euphoria behaviour — the trace fills the pane
     // regardless of the volume knob — and is applied here so every style gets
     // it rather than each reimplementing it.
-    const scaled = normaliseRef.current ? normalise(smoothed) : smoothed;
+    const scaled = normaliseRef.current
+      ? normalise(smoothed, normalisedRef.current)
+      : smoothed;
     const shape = createWaveformShape(
       scaled,
       styleRef.current,
@@ -227,6 +243,16 @@ const WaveformVisualizer = () => {
     }
     kickFrames();
   }, [kickFrames, waveform]);
+
+  // Changing mode is also a reason to draw.
+  //
+  // The loop stops once the shape has arrived, so through a quiet passage
+  // nothing is running — and the glow path mounts empty. Without this it would
+  // stay empty, and the taller pane would keep the old amplitude, until the
+  // music moved again. One frame settles both.
+  useEffect(() => {
+    kickFrames();
+  }, [isEuphoric, kickFrames]);
 
   // Held peak, so the number is readable instead of a blur of digits.
   const [heldPeak, setHeldPeak] = useState<number | undefined>(undefined);
@@ -344,18 +370,28 @@ const WaveformVisualizer = () => {
               exists to remove. */}
           <path ref={fillRef} className="waveform-visualizer__fill" />
           {/* The glow, and only in euphoria.
-              
+
               A fat translucent copy of the line sitting under it, NOT a
               `drop-shadow`. A filter over a path whose shape is rewritten
               every frame has to be recomputed every frame, and an animated one
               over live audio is what put memory into the gigabytes earlier
               today. A second stroke is one more path in a picture that was
-              already being drawn. */}
-          <path
-            ref={glowRef}
-            className="waveform-visualizer__glow"
-            vectorEffect="non-scaling-stroke"
-          />
+              already being drawn.
+
+              Mounted with the mode rather than hidden by it. It was a
+              `display: none` in the stylesheet, which is enough to stop it
+              being painted and not enough to stop the renderer holding a place
+              for it — and what this mode is accused of is not what it costs
+              while it runs, it is that none of it comes back afterwards. The
+              frame loop already writes through an optional ref, so with the
+              element gone the write is simply skipped. */}
+          {isEuphoric && (
+            <path
+              ref={glowRef}
+              className="waveform-visualizer__glow"
+              vectorEffect="non-scaling-stroke"
+            />
+          )}
           <path
             ref={lineRef}
             className="waveform-visualizer__line"
