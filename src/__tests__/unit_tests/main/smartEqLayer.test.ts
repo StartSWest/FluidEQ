@@ -128,13 +128,17 @@ describe('the Smart EQ layer in the Equalizer APO config', () => {
     const smart = indexOfLine(state, 'Fc 1000 Hz Gain 3 dB Q 1.4');
     const preamp = indexOfLine(state, 'Preamp:');
 
-    expect(band).toBeGreaterThan(-1);
+    // Physical, intended, taste, measured: the driver correction sits with the
+    // hardware at the head of the chain, then the bands, then the voicing on
+    // top of them. Order changes nothing audible — cascaded biquads add in dB
+    // whatever the sequence — it is how the config reads.
+    expect(driver).toBeGreaterThan(-1);
+    expect(band).toBeGreaterThan(driver);
     expect(voicing).toBeGreaterThan(band);
-    expect(driver).toBeGreaterThan(voicing);
     // The user asked for it "on top of any other filters", and it is a
     // correction of everything below it: anything written after it would be
     // un-measured.
-    expect(smart).toBeGreaterThan(driver);
+    expect(smart).toBeGreaterThan(voicing);
     expect(preamp).toBeGreaterThan(smart);
   });
 

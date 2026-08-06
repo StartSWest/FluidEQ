@@ -217,7 +217,7 @@ const en = {
   'eq.layers.headset': 'Headset',
   'eq.layers.disable': 'Switch {layer} off without removing it',
   'eq.layers.enable': 'Switch {layer} back on',
-  'eq.layers.loudness': 'Loudness',
+  'eq.layers.loudness': 'Euphoria loudness',
   'eq.layers.loudness.name': 'On',
   'eq.layers.clearLoudness':
     'Turn the loudness contour off. Your bands and every other layer stay.',

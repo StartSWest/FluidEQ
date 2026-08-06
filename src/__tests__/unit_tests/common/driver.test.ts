@@ -191,13 +191,18 @@ describe('driver compensation', () => {
       });
     });
 
-    it('writes the driver layer after the user bands and the voicing', () => {
+    it('writes the driver layer before the user bands, beside the convolution', () => {
       const config = configWith('balanced-armature-iem');
       const userBand = config.indexOf('Fc 100 Hz Gain 4 dB');
       const driverBand = config.indexOf('Fc 3000 Hz');
 
+      // Driver corrects the transducer, so it sits with the hardware layers at
+      // the head of the chain rather than on top of a tuning. Nothing audible
+      // depends on this — cascaded biquads add in dB whatever the order — but
+      // the config should read physical, intended, taste, measured.
       expect(userBand).toBeGreaterThan(-1);
-      expect(driverBand).toBeGreaterThan(userBand);
+      expect(driverBand).toBeGreaterThan(-1);
+      expect(driverBand).toBeLessThan(userBand);
     });
 
     it('survives every profile without emitting a malformed line', () => {

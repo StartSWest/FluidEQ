@@ -186,7 +186,7 @@ const es: Partial<Dictionary> = {
   'eq.layers.headset': 'Auriculares',
   'eq.layers.disable': 'Desactiva {layer} sin eliminarla',
   'eq.layers.enable': 'Vuelve a activar {layer}',
-  'eq.layers.loudness': 'Sonoridad',
+  'eq.layers.loudness': 'Sonoridad de euforia',
   'eq.layers.loudness.name': 'Activada',
   'eq.layers.clearLoudness':
     'Desactiva el contorno de sonoridad. Tus bandas y las demás capas se mantienen.',

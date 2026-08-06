@@ -184,7 +184,7 @@ const pt: Partial<Dictionary> = {
   'eq.layers.headset': 'Fone',
   'eq.layers.disable': 'Desliga {layer} sem a remover',
   'eq.layers.enable': 'Liga {layer} novamente',
-  'eq.layers.loudness': 'Loudness',
+  'eq.layers.loudness': 'Loudness de euforia',
   'eq.layers.loudness.name': 'Ligado',
   'eq.layers.clearLoudness':
     'Desliga o contorno de loudness. As suas bandas e as outras camadas ficam.',

@@ -186,7 +186,7 @@ const fr: Partial<Dictionary> = {
   'eq.layers.headset': 'Casque',
   'eq.layers.disable': 'Désactive {layer} sans la supprimer',
   'eq.layers.enable': 'Réactive {layer}',
-  'eq.layers.loudness': 'Loudness',
+  'eq.layers.loudness': 'Loudness d’euphorie',
   'eq.layers.loudness.name': 'Activé',
   'eq.layers.clearLoudness':
     'Désactive la correction physiologique. Vos bandes et les autres couches restent.',

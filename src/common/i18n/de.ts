@@ -185,7 +185,7 @@ const de: Partial<Dictionary> = {
   'eq.layers.headset': 'Hörer',
   'eq.layers.disable': '{layer} ausschalten, ohne sie zu entfernen',
   'eq.layers.enable': '{layer} wieder einschalten',
-  'eq.layers.loudness': 'Loudness',
+  'eq.layers.loudness': 'Euphoria-Loudness',
   'eq.layers.loudness.name': 'Ein',
   'eq.layers.clearLoudness':
     'Die gehörrichtige Lautstärke ausschalten. Bänder und alle anderen Ebenen bleiben.',

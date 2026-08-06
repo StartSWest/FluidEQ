@@ -154,6 +154,36 @@ export const stateToString = (
     Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>
   > = [];
 
+  // Driver compensation first of the filter layers, beside the convolution.
+  //
+  // It corrects the transducer itself — a property of the hardware, like the
+  // impulse response above it — so the chain reads physical, then intended,
+  // then taste, then measured: fix the speaker, aim at a target, season it,
+  // correct what is left. Below the voicing it read as if it were correcting
+  // the voicing.
+  //
+  // Nothing audible moves. Cascaded biquads are linear, so their magnitudes add
+  // in dB whatever the sequence, and the preamp is a peak over the same set
+  // either way. This is for whoever is reading the config at two in the morning
+  // wondering which layer did what.
+  //
+  // Outside the isFlat check, like the voicing: clearing the EQ resets the
+  // bands somebody tuned, not the correction for what they are listening on.
+  output = output.concat(
+    getDriverFilters(state.driver)
+      .filter(isRenderableFilter)
+      .map(({ frequency, gain, type, quality }) => {
+        filterIndex += 1;
+        writtenFilters.push({ type, frequency, gain, quality });
+        const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
+          frequency,
+        )} Hz`;
+        return NO_GAIN_FILTER_TYPES.includes(type)
+          ? `${head} Q ${clampQuality(quality)}`
+          : `${head} Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
+      }),
+  );
+
   if (!state.isFlat) {
     if (state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length) {
       const points = state.graphicEq
@@ -209,24 +239,6 @@ export const stateToString = (
   // restores their tuning untouched.
   output = output.concat(
     getVoicingFilters(state.voicing)
-      .filter(isRenderableFilter)
-      .map(({ frequency, gain, type, quality }) => {
-        filterIndex += 1;
-        writtenFilters.push({ type, frequency, gain, quality });
-        const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
-          frequency,
-        )} Hz`;
-        return NO_GAIN_FILTER_TYPES.includes(type)
-          ? `${head} Q ${clampQuality(quality)}`
-          : `${head} Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
-      }),
-  );
-
-  // Driver compensation is its own layer after the voicing, numbered straight
-  // on from it. Same reasoning as the voicing layer: it corrects what the user
-  // is listening ON, not what they tuned, so clearing the EQ leaves it alone.
-  output = output.concat(
-    getDriverFilters(state.driver)
       .filter(isRenderableFilter)
       .map(({ frequency, gain, type, quality }) => {
         filterIndex += 1;

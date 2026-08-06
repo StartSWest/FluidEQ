@@ -184,7 +184,7 @@ const it: Partial<Dictionary> = {
   'eq.layers.headset': 'Cuffie',
   'eq.layers.disable': 'Disattiva {layer} senza rimuoverlo',
   'eq.layers.enable': 'Riattiva {layer}',
-  'eq.layers.loudness': 'Loudness',
+  'eq.layers.loudness': 'Loudness euforia',
   'eq.layers.loudness.name': 'Attivo',
   'eq.layers.clearLoudness':
     'Disattiva il contorno di loudness. Le tue bande e gli altri livelli restano.',

@@ -183,7 +183,7 @@ const ja: Partial<Dictionary> = {
   'eq.layers.headset': 'ヘッドホン',
   'eq.layers.disable': '{layer} を削除せずにオフにします',
   'eq.layers.enable': '{layer} をもう一度オンにします',
-  'eq.layers.loudness': 'ラウドネス',
+  'eq.layers.loudness': 'ユーフォリア ラウドネス',
   'eq.layers.loudness.name': 'オン',
   'eq.layers.clearLoudness':
     'ラウドネス補正をオフにします。バンドとその他のレイヤーはそのままです。',

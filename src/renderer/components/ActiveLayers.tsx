@@ -150,6 +150,28 @@ const ActiveLayers = () => {
   // the reference is not a label attached to a tuning, it is the tuning, and
   // removing only the label left a curve behind that the EQ page then claimed
   // nothing was responsible for.
+  if (driverProfile && (driver?.intensity ?? 0) > 0) {
+    layers.push({
+      key: 'driver',
+      icon: 'waveform',
+      label: t('eq.layers.driver'),
+      name: `${driverProfile.name} · ${Math.round((driver?.intensity ?? 0) * 100)}%`,
+      onClear: async () => {
+        setDriver({ profileId: '', intensity: driver?.intensity ?? 0.6 });
+        await setDriverApi('', driver?.intensity ?? 0.6);
+        await refreshState();
+      },
+      onBypass: async () => {
+        bypassLayer('driver', driver);
+        await setDriverApi('', driver?.intensity ?? 0.6);
+      },
+      onRestore: async (settings) => {
+        const kept = settings as typeof driver;
+        await setDriverApi(kept?.profileId ?? '', kept?.intensity ?? 0.6);
+      },
+    });
+  }
+
   if (headset) {
     layers.push({
       key: 'headset',
@@ -184,28 +206,6 @@ const ActiveLayers = () => {
       onRestore: async (settings) => {
         const kept = settings as typeof voicing;
         await setVoicingApi(kept?.profileId ?? '', kept?.intensity ?? 1);
-      },
-    });
-  }
-
-  if (driverProfile && (driver?.intensity ?? 0) > 0) {
-    layers.push({
-      key: 'driver',
-      icon: 'waveform',
-      label: t('eq.layers.driver'),
-      name: `${driverProfile.name} · ${Math.round((driver?.intensity ?? 0) * 100)}%`,
-      onClear: async () => {
-        setDriver({ profileId: '', intensity: driver?.intensity ?? 0.6 });
-        await setDriverApi('', driver?.intensity ?? 0.6);
-        await refreshState();
-      },
-      onBypass: async () => {
-        bypassLayer('driver', driver);
-        await setDriverApi('', driver?.intensity ?? 0.6);
-      },
-      onRestore: async (settings) => {
-        const kept = settings as typeof driver;
-        await setDriverApi(kept?.profileId ?? '', kept?.intensity ?? 0.6);
       },
     });
   }

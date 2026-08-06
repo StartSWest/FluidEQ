@@ -190,7 +190,7 @@ const hi: Partial<Dictionary> = {
   'eq.layers.headset': 'हेडफ़ोन',
   'eq.layers.disable': '{layer} हटाए बिना बंद करें',
   'eq.layers.enable': '{layer} फिर से चालू करें',
-  'eq.layers.loudness': 'लाउडनेस',
+  'eq.layers.loudness': 'यूफोरिया लाउडनेस',
   'eq.layers.loudness.name': 'चालू',
   'eq.layers.clearLoudness':
     'लाउडनेस कंटूर बंद करें। आपके बैंड और बाकी सभी लेयर बनी रहेंगी।',

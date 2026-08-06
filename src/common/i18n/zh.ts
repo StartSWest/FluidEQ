@@ -176,7 +176,7 @@ const zh: Partial<Dictionary> = {
   'eq.layers.headset': '耳机',
   'eq.layers.disable': '关闭{layer}但不移除',
   'eq.layers.enable': '重新开启{layer}',
-  'eq.layers.loudness': '等响度',
+  'eq.layers.loudness': 'Euphoria 等响度',
   'eq.layers.loudness.name': '已开启',
   'eq.layers.clearLoudness': '关闭等响度补偿。您的频段和其他所有层都会保留。',
   'eq.layers.smart': '智能均衡',
