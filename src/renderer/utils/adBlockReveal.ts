@@ -34,6 +34,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { useSyncExternalStore } from 'react';
+import { isEuphoriaEnabled } from './euphoriaMode';
+import { playChime } from './chime';
 import {
   VIDEO_AD_BLOCK_REVEAL_STORAGE_KEY,
   VIDEO_AD_BLOCK_STORAGE_KEY,
@@ -75,6 +77,22 @@ export const isAdBlockRevealed = () => revealed;
  * working would be the one behaviour this whole design exists to avoid.
  */
 export const toggleAdBlockRevealed = () => {
+  // Euphoria mode has to be on before this can be turned on.
+  //
+  // A second lock in front of the first, and the point of it is who ends up
+  // with the switch. The chord alone is a thing that can be stumbled into or
+  // read about; euphoria has to be won, or at least deliberately turned on by
+  // somebody who has already won it once. Anyone holding both has gone looking
+  // twice, which is exactly the audience this is for.
+  //
+  // Only the way *on* is gated. Somebody whose euphoria has since gone off must
+  // still be able to put the switch away — a control that cannot be undone
+  // because an unrelated setting moved is a trap, and the whole design here is
+  // that hidden and off go together.
+  if (!revealed && !isEuphoriaEnabled()) {
+    return;
+  }
+
   revealed = !revealed;
   try {
     window.localStorage.setItem(
@@ -87,6 +105,15 @@ export const toggleAdBlockRevealed = () => {
   } catch {
     // Right for this run at least, and the chord still works next time.
   }
+
+  // The only confirmation there is.
+  //
+  // This switch is invisible by design: nothing lights up, no panel arrives,
+  // and on the support dialog there is not even a control to watch change. A
+  // rising pair for on and a falling pair for off is the whole of the feedback,
+  // and it is enough — it says both that the press registered and which way it
+  // went.
+  playChime(revealed ? 'up' : 'down');
   emit();
 };
 

@@ -542,44 +542,7 @@ export default function SupportDialog({
             us. It only ever adds something, which is why an unverifiable
             claim is harmless here. */}
             {hasContributed ? (
-              <p className="support-dialog__thanks">
-                {t('support.thanks')}
-                {/* Untranslated on purpose. Every other string here is in ten
-                locales and a test enforces that; a debug affordance that
-                never ships would mean ten translations of something no user
-                will read. */}
-                {IS_DEV && (
-                  <>
-                    {/* Thirty-six consecutive perfect taps is the right price for
-                    euphoria mode and the wrong price for LOOKING at it. Every
-                    change to the rainbow — the bands, the graph trace, the
-                    titlebar meter, the share card — otherwise costs a flawless
-                    run against real music before it can be seen at all.
-
-                    It flips the two flags and touches nothing else. It used to
-                    write a streak of 36 and a matching score straight into the
-                    run, which meant the shortcut invented points nobody played
-                    for — and left the share card showing a number that had
-                    never been earned. The score belongs to the player. */}
-                    <button
-                      type="button"
-                      className="support-dialog__dev-reset"
-                      title="Development build only — switches euphoria mode on without playing for it"
-                      onClick={winEuphoria}
-                    >
-                      dev: euphoria
-                    </button>
-                    <button
-                      type="button"
-                      className="support-dialog__dev-reset"
-                      title="Development build only — clears the contributed flag"
-                      onClick={onResetContribution}
-                    >
-                      dev: remove badge
-                    </button>
-                  </>
-                )}
-              </p>
+              <p className="support-dialog__thanks">{t('support.thanks')}</p>
             ) : (
               <button
                 type="button"
@@ -607,6 +570,33 @@ export default function SupportDialog({
                 will ever read. */}
             {IS_DEV && (
               <div className="support-dialog__dev-row">
+                {/* Thirty-six consecutive perfect taps is the right price for
+                    euphoria mode and the wrong price for LOOKING at it. Every
+                    change to the rainbow — the bands, the graph trace, the
+                    titlebar meter, the share card — otherwise costs a flawless
+                    run against real music before it can be seen at all.
+
+                    It flips the two flags and touches nothing else. It used to
+                    write a streak of 36 and a matching score straight into the
+                    run, which meant the shortcut invented points nobody played
+                    for — and left the share card showing a number that had
+                    never been earned. The score belongs to the player. */}
+                <button
+                  type="button"
+                  className="support-dialog__dev-reset"
+                  title="Development build only — switches euphoria mode on without playing for it"
+                  onClick={winEuphoria}
+                >
+                  dev: euphoria
+                </button>
+                <button
+                  type="button"
+                  className="support-dialog__dev-reset"
+                  title="Development build only — clears the contributed flag"
+                  onClick={onResetContribution}
+                >
+                  dev: remove badge
+                </button>
                 <button
                   type="button"
                   className="support-dialog__dev-reset"
