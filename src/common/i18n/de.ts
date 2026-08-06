@@ -62,6 +62,7 @@ const de: Partial<Dictionary> = {
   'video.adBlockHint':
     'Überspringt Videowerbung und blendet Werbeflächen auf YouTube aus.',
   'video.blockedTitle': 'Dieser Link führt aus dem Player heraus',
+  'video.blockedSignInTitle': 'Die Anmeldung passiert im Browser, nicht hier',
   'video.openInBrowser': 'Im Browser öffnen',
   'video.resize': 'Ziehen, um die Größe des Players zu ändern',
 

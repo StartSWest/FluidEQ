@@ -35,13 +35,52 @@ export const VIDEO_AD_BLOCK_REQUEST = 'fluideq-video-ad-block-request';
 export const VIDEO_AD_BLOCK_CHANGED = 'fluideq-video-ad-block-changed';
 
 /**
- * On unless told otherwise.
+ * Off until somebody turns it on.
  *
- * Somebody who opens a video inside an equalizer is there to listen to
- * something, and the first thing they meet should not be an advertisement. The
- * switch is in plain sight for anyone who would rather leave them in.
+ * Blocking an advertisement is the user's decision to make about their own
+ * machine, and it stays theirs only while the app is not making it for them.
+ * A switch that arrives on has already decided; a switch that arrives off and
+ * is turned on has not. That distinction is the whole defence of the feature,
+ * so it is worth the extra click — once.
  */
-export const VIDEO_AD_BLOCK_DEFAULT = true;
+export const VIDEO_AD_BLOCK_DEFAULT = false;
 
 /** Where the window remembers the switch between runs. */
 export const VIDEO_AD_BLOCK_STORAGE_KEY = 'fluideq.videoAdBlock';
+
+/**
+ * Where the window remembers whether the switch is on show.
+ *
+ * The control is not in the interface until somebody asks for it by pressing
+ * the chord below, and the same chord puts it away again. Two things follow
+ * from that, and both are the point:
+ *
+ *  - A fresh install has no ad blocker in it. Not one that is off — one that is
+ *    not there, is not offered, and has stripped nothing from anybody's page.
+ *  - Turning it on is an act nobody performs by accident. Whatever is said
+ *    about the feature afterwards, "the user went looking for this" is simply
+ *    true.
+ *
+ * Out of sight means off, not merely hidden. The renderer will not run the
+ * blocker for a switch that is not on screen, so putting it away is enough to
+ * stop it — and the switch's own position survives for when it comes back.
+ */
+export const VIDEO_AD_BLOCK_REVEAL_STORAGE_KEY = 'fluideq.videoAdBlockRevealed';
+
+/**
+ * The chord that puts the switch on screen: Ctrl+Shift+Alt+B.
+ *
+ * Alt is in there because nothing else in the app uses it — Euphoria's Ctrl+E
+ * and the graph's shortcuts all step aside when it is held — so this can never
+ * be half of somebody else's shortcut.
+ *
+ * Takes the fields rather than the event, so the rule can be read and tested
+ * without a DOM.
+ */
+export const isAdBlockRevealChord = (event: {
+  code: string;
+  ctrlKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+}): boolean =>
+  event.code === 'KeyB' && event.ctrlKey && event.shiftKey && event.altKey;

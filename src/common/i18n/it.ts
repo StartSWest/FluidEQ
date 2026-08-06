@@ -62,6 +62,7 @@ const it: Partial<Dictionary> = {
   'video.adBlockHint':
     'Salta gli annunci video e nasconde gli spazi pubblicitari su YouTube.',
   'video.blockedTitle': 'Quel link porta fuori dal player',
+  'video.blockedSignInTitle': "L'accesso si fa nel browser, non qui",
   'video.openInBrowser': 'Apri nel browser',
   'video.resize': 'Trascina per ridimensionare il player',
 

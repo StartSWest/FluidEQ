@@ -90,6 +90,7 @@ const en = {
   'video.adBlock': 'Block ads',
   'video.adBlockHint': 'Skips video ads and hides ad slots on YouTube.',
   'video.blockedTitle': 'That link leads outside the player',
+  'video.blockedSignInTitle': 'Sign-in happens in your browser, not here',
   'video.openInBrowser': 'Open in browser',
   'video.resize': 'Drag to resize the player',
 

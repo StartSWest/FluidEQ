@@ -221,8 +221,14 @@ const clickSkipButton = (player: Element): boolean =>
  * that changed them, and only if they still hold the value it set. Somebody who
  * hit mute themselves during an ad means it, and stamping the old value back
  * over that would be the blocker un-muting a video against them.
+ *
+ * `force` drops that second condition, and is used when the switch has been
+ * turned off. Being asked to stop is not the same as an ad ending: whatever
+ * this code did to the page has to come off it, and a video left silent or at
+ * sixteen times speed by a blocker that is no longer running is exactly the
+ * sort of thing that looks like it is still running.
  */
-const finishAdSession = () => {
+const finishAdSession = (force = false) => {
   if (!adSession) {
     return;
   }
@@ -231,11 +237,11 @@ const finishAdSession = () => {
     adSession;
 
   if (video.isConnected) {
-    if (forcedRate && video.playbackRate >= 15) {
+    if (forcedRate && (force || video.playbackRate >= 15)) {
       video.playbackRate = playbackRate;
     }
 
-    if (forcedMute && video.muted) {
+    if (forcedMute && (force || video.muted)) {
       video.muted = muted;
     }
   }
@@ -372,7 +378,11 @@ const processPage = () => {
   applySettings();
 
   if (!isEnabled) {
-    finishAdSession();
+    // Everything visual is off already — `applySettings` above cleared the two
+    // attributes the stylesheet keys on, and every rule in it is gated behind
+    // them. This is the rest: the sound and the speed, which are properties of
+    // the video element rather than of the page, and which no attribute undoes.
+    finishAdSession(true);
     return;
   }
 

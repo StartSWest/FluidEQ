@@ -33,14 +33,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
- * The player's own cookie jar.
+ * The player's own cookie jar, and it empties itself.
  *
- * `persist:` so a site stays logged in and remembers its volume between runs;
- * a separate partition so none of that shares a cookie store with the app's
- * own window, and so the locked-down permission handlers below apply to the
- * player alone.
+ * No `persist:`, which makes this an in-memory session: every cookie in it dies
+ * with the app. That is the point. Nobody's account should be the identity
+ * behind what this player does — an equalizer is not worth putting somebody's
+ * YouTube login at risk over, and a session that cannot outlive a run cannot
+ * quietly become the one a site holds against them.
+ *
+ * A separate partition as well, so none of it shares a cookie store with the
+ * app's own window and the locked-down permission handlers apply to the player
+ * alone.
+ *
+ * The cost is real and accepted: no subscriptions, no history, and each launch
+ * meets the consent banner again. Where you left off is remembered by FluidEQ
+ * itself, not by the site, so that much survives.
  */
-export const VIDEO_BROWSER_PARTITION = 'persist:fluideq-video';
+export const VIDEO_BROWSER_PARTITION = 'fluideq-video';
 
 /**
  * A popup the player refused, sent from main to the window so it can say so.
@@ -134,12 +143,20 @@ export const VIDEO_SITES: IVideoSite[] = [
  * blocked navigation in the middle of ordinary use reads as a broken app.
  * They serve media, not pages, so they widen the surface very little.
  *
+ * `consent.google.com` is here and has to be. The player's session is
+ * in-memory, so it arrives at YouTube with no consent cookie every single
+ * launch and is redirected straight to that host before it will serve a page.
+ * Off the list, the first thing anybody sees is the refusal notice and the
+ * player never loads at all — a signed-out session and a consent wall come as a
+ * pair, and allowing the first without the second leaves a dead player.
+ *
  * Notably absent: `accounts.google.com`. Google refuses to complete a sign-in
  * inside an embedded view regardless of what we allow, so listing it would buy
  * a dead-end page rather than a login. Signed-out YouTube plays fine.
  */
 const ALLOWED_HOSTS: string[] = [
   'youtube.com',
+  'consent.google.com',
   'youtu.be',
   'youtube-nocookie.com',
   'googlevideo.com',
@@ -155,6 +172,84 @@ const ALLOWED_HOSTS: string[] = [
   'ttvnw.net',
   'jtvnw.net',
 ];
+
+/**
+ * Hosts that exist to sign somebody in, and nothing else.
+ *
+ * Most of these sit under domains the list above allows, so the host check
+ * passes and only this stops them.
+ *
+ * `accounts.google.com` is the exception and is already refused for being off
+ * the list entirely. It is named here anyway so that pressing Sign in on
+ * YouTube is answered by the reason it was refused, rather than by a message
+ * about leaving the player.
+ */
+const SIGN_IN_HOSTS: string[] = [
+  'accounts.google.com',
+  'secure.soundcloud.com',
+  'id.twitch.tv',
+  'passport.twitch.tv',
+];
+
+/**
+ * Where each site keeps its sign-in, by registrable domain.
+ *
+ * Scoped per domain rather than matched as bare words anywhere, because these
+ * paths are only special on the site that owns them: `twitch.tv/login` is a
+ * login page, and a channel called `login` on some other site is not.
+ *
+ * `accounts.google.com` is absent from `ALLOWED_HOSTS` and stays absent, which
+ * is what actually stops a YouTube sign-in. `/signin` is here so the refusal
+ * happens on the link rather than one redirect later, where all the player can
+ * do is stop and go home.
+ */
+const SIGN_IN_PATHS: Record<string, string[]> = {
+  'youtube.com': ['/signin'],
+  'soundcloud.com': ['/signin'],
+  'bandcamp.com': ['/login', '/signup', '/join'],
+  'vimeo.com': ['/log_in', '/join', '/oauth'],
+  'twitch.tv': ['/login', '/signup'],
+};
+
+/**
+ * Whether this URL is a way into an account.
+ *
+ * Deliberately separate from the host list: that one is a security boundary and
+ * this one is a policy, they are refused for different reasons, and the player
+ * says something different about each.
+ *
+ * Honest about its reach. It sees navigations, so it turns away the sign-in
+ * links and pages. It does not see an in-page login dialog — Twitch's opens
+ * without navigating anywhere — so somebody determined can still sign in for
+ * the length of one run. Nothing survives the app closing either way, which is
+ * the guarantee that actually matters.
+ */
+export const isSignInUrl = (url: string): boolean => {
+  let parsed: URL;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return false;
+  }
+
+  const host = parsed.hostname.toLowerCase().replace(/\.$/, '');
+  if (SIGN_IN_HOSTS.includes(host)) {
+    return true;
+  }
+
+  // Trailing slash removed so `/login` and `/login/` are one case, and the
+  // empty string that leaves for a bare `/` matches no entry.
+  const path = parsed.pathname.toLowerCase().replace(/\/$/, '');
+
+  return Object.entries(SIGN_IN_PATHS).some(([domain, paths]) => {
+    if (host !== domain && !host.endsWith(`.${domain}`)) {
+      return false;
+    }
+    return paths.some(
+      (entry) => path === entry || path.startsWith(`${entry}/`),
+    );
+  });
+};
 
 /**
  * Whether the player may go here.
@@ -193,6 +288,16 @@ export const isAllowedVideoUrl = (url: string): boolean => {
     (allowed) => host === allowed || host.endsWith(`.${allowed}`),
   );
 };
+
+/**
+ * Whether the player may go here, for a caller that only needs the answer.
+ *
+ * Both refusals in one. Every navigation guard asks this rather than having to
+ * remember to ask two questions, which is the kind of thing that stays right
+ * for exactly as long as nobody adds a fifth place a page can move.
+ */
+export const isNavigableVideoUrl = (url: string): boolean =>
+  isAllowedVideoUrl(url) && !isSignInUrl(url);
 
 /** A site's search page for these terms, or its home page for empty ones. */
 export const buildSearchUrl = (site: IVideoSite, query: string): string => {

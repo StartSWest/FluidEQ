@@ -61,6 +61,7 @@ const ja: Partial<Dictionary> = {
   'video.adBlock': '広告をブロック',
   'video.adBlockHint': 'YouTube の動画広告をスキップし、広告枠を隠します。',
   'video.blockedTitle': 'このリンクはプレーヤーの外に出ます',
+  'video.blockedSignInTitle': 'ログインはここではなくブラウザーで行います',
   'video.openInBrowser': 'ブラウザで開く',
   'video.resize': 'ドラッグしてプレーヤーの大きさを変更',
 

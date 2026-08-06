@@ -62,6 +62,8 @@ const fr: Partial<Dictionary> = {
   'video.adBlockHint':
     'Passe les pubs vidéo et masque les encarts publicitaires sur YouTube.',
   'video.blockedTitle': 'Ce lien mène hors du lecteur',
+  'video.blockedSignInTitle':
+    'La connexion se fait dans votre navigateur, pas ici',
   'video.openInBrowser': 'Ouvrir dans le navigateur',
   'video.resize': 'Faites glisser pour redimensionner le lecteur',
 

@@ -62,6 +62,7 @@ const ru: Partial<Dictionary> = {
   'video.adBlockHint':
     'Пропускает рекламу в видео и скрывает рекламные блоки на YouTube.',
   'video.blockedTitle': 'Эта ссылка ведёт за пределы плеера',
+  'video.blockedSignInTitle': 'Вход выполняется в браузере, а не здесь',
   'video.openInBrowser': 'Открыть в браузере',
   'video.resize': 'Потяните, чтобы изменить размер плеера',
 

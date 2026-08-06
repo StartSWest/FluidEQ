@@ -30,6 +30,8 @@ import {
   getSupportMethods,
 } from 'common/support';
 import { getStreakJoy } from 'common/rhythmGame';
+import { isAdBlockRevealChord } from 'common/videoAdBlock';
+import { toggleAdBlockRevealed } from './utils/adBlockReveal';
 import { useIsEuphoric, winEuphoria } from './utils/euphoriaMode';
 import { useRhythmRun } from './utils/rhythmRun';
 import supportQrImage from '../../assets/support-qr.png';
@@ -218,6 +220,21 @@ export default function SupportDialog({
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
+        return;
+      }
+      // Ctrl+Shift+Alt+B, and only while this dialog is open.
+      //
+      // It puts the ad blocker's switch into the video tab's bar, or takes it
+      // away again, and says nothing either way — a dialog that announced it
+      // would stop the switch being something somebody went looking for, which
+      // is the entire reason it is not simply in the interface.
+      //
+      // Here because this dialog is reachable from anywhere and the player is
+      // not: it is only mounted once the video tab has been opened, so the
+      // answer lives in a root-level flag that the player reads when it does.
+      if (isAdBlockRevealChord(event)) {
+        event.preventDefault();
+        toggleAdBlockRevealed();
         return;
       }
       // Space bounces the pet, for supporters only.

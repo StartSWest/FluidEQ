@@ -60,6 +60,7 @@ const zh: Partial<Dictionary> = {
   'video.adBlock': '拦截广告',
   'video.adBlockHint': '跳过视频广告，并隐藏 YouTube 上的广告位。',
   'video.blockedTitle': '这个链接会离开播放器',
+  'video.blockedSignInTitle': '登录请在浏览器中完成，而不是这里',
   'video.openInBrowser': '在浏览器中打开',
   'video.resize': '拖动可调整播放器大小',
 

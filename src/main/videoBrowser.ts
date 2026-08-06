@@ -37,9 +37,9 @@ import log from 'electron-log';
 import path from 'path';
 import {
   VIDEO_BROWSER_PARTITION,
-  VIDEO_SITES,
-  isAllowedVideoUrl,
   VIDEO_LINK_BLOCKED,
+  VIDEO_SITES,
+  isNavigableVideoUrl,
 } from '../common/videoSites';
 import {
   VIDEO_AD_BLOCK_CHANGED,
@@ -163,7 +163,7 @@ const hardenPlayer = (contents: WebContents) => {
   });
 
   const blockDisallowed = (details: Electron.Event<{ url: string }>) => {
-    if (!isAllowedVideoUrl(details.url)) {
+    if (!isNavigableVideoUrl(details.url)) {
       details.preventDefault();
       // Named in the log, every time.
       //
@@ -223,7 +223,7 @@ const hardenPlayer = (contents: WebContents) => {
     if (
       !details.isMainFrame ||
       details.isSameDocument ||
-      isAllowedVideoUrl(details.url)
+      isNavigableVideoUrl(details.url)
     ) {
       return;
     }
@@ -258,7 +258,7 @@ const hardenPlayer = (contents: WebContents) => {
     // Deferred: this runs inside Chromium's own window-open handling, and
     // navigating the contents that is being asked about, from inside the
     // answer, is a re-entrant call.
-    if (isAllowedVideoUrl(url)) {
+    if (isNavigableVideoUrl(url)) {
       setImmediate(() => {
         if (!contents.isDestroyed()) {
           contents.loadURL(url).catch(() => {
@@ -315,7 +315,7 @@ const hardenAttachment = (
   // not on the list is still refused, and every navigation after this point has
   // to pass the same check anyway.
   const src = params.src ?? '';
-  if (src && src !== 'about:blank' && !isAllowedVideoUrl(src)) {
+  if (src && src !== 'about:blank' && !isNavigableVideoUrl(src)) {
     event.preventDefault();
     return;
   }

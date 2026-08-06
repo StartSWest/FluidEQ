@@ -26,13 +26,15 @@ import {
   IVideoSite,
   VIDEO_BROWSER_PARTITION,
   VIDEO_SITES,
+  VIDEO_LINK_BLOCKED,
   buildSearchUrl,
   findSiteForUrl,
-  isAllowedVideoUrl,
-  VIDEO_LINK_BLOCKED,
+  isNavigableVideoUrl,
+  isSignInUrl,
 } from 'common/videoSites';
 import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
+import { useIsAdBlockRevealed } from '../utils/adBlockReveal';
 import { useGraphView } from '../utils/graphStyle';
 import VideoSearch from './VideoSearch';
 import VideoSiteIcon from './VideoSiteIcon';
@@ -268,7 +270,7 @@ const VIDEO_LAST_URL_KEY = 'fluideq.videoLastUrl';
 const readStoredUrl = () => {
   try {
     const stored = localStorage.getItem(VIDEO_LAST_URL_KEY);
-    return stored && isAllowedVideoUrl(stored) ? stored : HOME_SITE.home;
+    return stored && isNavigableVideoUrl(stored) ? stored : HOME_SITE.home;
   } catch {
     return HOME_SITE.home;
   }
@@ -313,6 +315,10 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   // call into it before `dom-ready`.
   const [isGuestReady, setIsGuestReady] = useState(false);
   const [isAdBlockOn, setIsAdBlockOn] = useState(readStoredAdBlock);
+  // Whether the switch is in the interface at all. Owned by a root-level flag
+  // rather than by this component, because the chord that moves it is pressed
+  // on the support dialog and this player may not be mounted at the time.
+  const isAdBlockRevealed = useIsAdBlockRevealed();
   // The page asked for fullscreen — the button on YouTube's own player.
   //
   // A guest going fullscreen fills the element it lives in and nothing more, so
@@ -432,7 +438,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   // service, or with a crash — and the whole reason this exists is the restarts
   // that are not orderly.
   useEffect(() => {
-    if (!currentUrl || !isAllowedVideoUrl(currentUrl)) {
+    if (!currentUrl || !isNavigableVideoUrl(currentUrl)) {
       return;
     }
     try {
@@ -468,19 +474,35 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     };
   }, []);
 
+  // What the blocker actually runs on. A switch nobody has found cannot be on,
+  // whatever a stored value left by another build might say — the interface
+  // showing nothing and the player stripping ads is the one combination that
+  // must not be reachable.
+  const isAdBlockActive = isAdBlockRevealed && isAdBlockOn;
+
   // Pushed to the main process, which is where the blocker actually reads it
   // from. Runs on mount too, so a player attached later starts in the state the
   // switch is already in rather than in the default.
   useEffect(() => {
     window.electron.ipcRenderer.sendMessage(ChannelEnum.SET_VIDEO_AD_BLOCK, [
-      isAdBlockOn,
+      isAdBlockActive,
     ]);
     try {
       localStorage.setItem(VIDEO_AD_BLOCK_STORAGE_KEY, String(isAdBlockOn));
     } catch {
       // A preference that cannot be written is not worth failing a click over.
     }
-  }, [isAdBlockOn]);
+  }, [isAdBlockActive, isAdBlockOn]);
+
+  // The switch going out of sight switches it off with it, so that what comes
+  // back later is a control that is off rather than one still holding a setting
+  // nobody can see. The flag persists the same decision for a player that was
+  // not mounted to hear it; this is the half that applies to one that was.
+  useEffect(() => {
+    if (!isAdBlockRevealed) {
+      setIsAdBlockOn(false);
+    }
+  }, [isAdBlockRevealed]);
 
   /**
    * Read the guest's navigation state back out.
@@ -532,7 +554,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
      */
     const handleWillNavigate = (event: Event) => {
       const { url } = event as Event & { url?: string };
-      if (url && !isAllowedVideoUrl(url)) {
+      if (url && !isNavigableVideoUrl(url)) {
         setBlockedUrl(url);
       }
     };
@@ -627,6 +649,12 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       return blockedUrl;
     }
   })();
+
+  // A sign-in was refused on purpose and is not the same thing as a link off
+  // the list, so it does not get told it is leaving the player — it is not.
+  // Derived rather than remembered alongside the URL: two pieces of state
+  // saying one thing is two pieces of state that can disagree.
+  const isBlockedSignIn = Boolean(blockedUrl) && isSignInUrl(blockedUrl);
 
   return (
     <div
@@ -725,20 +753,22 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
           />
         </div>
 
-        <div className="video-browser__ad-block">
-          <span
-            className="video-browser__ad-block-label"
-            title={t('video.adBlockHint')}
-          >
-            {t('video.adBlock')}
-          </span>
-          <Switch
-            id="videoAdBlocker"
-            isOn={isAdBlockOn}
-            isDisabled={false}
-            handleToggle={() => setIsAdBlockOn((on) => !on)}
-          />
-        </div>
+        {isAdBlockRevealed && (
+          <div className="video-browser__ad-block">
+            <span
+              className="video-browser__ad-block-label"
+              title={t('video.adBlockHint')}
+            >
+              {t('video.adBlock')}
+            </span>
+            <Switch
+              id="videoAdBlocker"
+              isOn={isAdBlockOn}
+              isDisabled={false}
+              handleToggle={() => setIsAdBlockOn((on) => !on)}
+            />
+          </div>
+        )}
       </div>
 
       <div className="video-browser__stage">
@@ -754,7 +784,13 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         {blockedUrl && (
           <div className="video-browser__blocked" role="alert">
             <div>
-              <strong>{t('video.blockedTitle')}</strong>
+              <strong>
+                {t(
+                  isBlockedSignIn
+                    ? 'video.blockedSignInTitle'
+                    : 'video.blockedTitle',
+                )}
+              </strong>
               <span title={blockedUrl}>{blockedHost}</span>
             </div>
             <button

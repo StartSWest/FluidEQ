@@ -68,6 +68,7 @@ const hi: Partial<Dictionary> = {
   'video.adBlockHint':
     'YouTube पर वीडियो विज्ञापन छोड़ता है और विज्ञापन की जगह छिपाता है।',
   'video.blockedTitle': 'यह लिंक प्लेयर से बाहर ले जाता है',
+  'video.blockedSignInTitle': 'साइन इन आपके ब्राउज़र में होता है, यहाँ नहीं',
   'video.openInBrowser': 'ब्राउज़र में खोलें',
   'video.resize': 'प्लेयर का आकार बदलने के लिए खींचें',
 

@@ -21,6 +21,8 @@ import {
   buildSearchUrl,
   findSiteForUrl,
   isAllowedVideoUrl,
+  isNavigableVideoUrl,
+  isSignInUrl,
 } from '../../../common/videoSites';
 
 describe('video site allowlist', () => {
@@ -51,6 +53,24 @@ describe('video site allowlist', () => {
     expect(isAllowedVideoUrl('https://youtube.com.evil.example/')).toBe(false);
     expect(isAllowedVideoUrl('https://myyoutu.be/')).toBe(false);
     expect(isAllowedVideoUrl('https://twitch.tv.attacker.net/')).toBe(false);
+  });
+
+  /**
+   * The player has an in-memory session, so it meets the consent wall on every
+   * single launch. Refusing the host it redirects to is refusing YouTube
+   * itself: nothing loads, and the first thing anybody sees is the notice.
+   */
+  it('allows the consent wall a cookie-less session always hits', () => {
+    expect(isNavigableVideoUrl('https://consent.google.com/m?continue=x')).toBe(
+      true,
+    );
+    expect(isNavigableVideoUrl('https://consent.youtube.com/m')).toBe(true);
+    // Still only that one host under google.com, and sign-in stays refused.
+    expect(isAllowedVideoUrl('https://mail.google.com/')).toBe(false);
+    expect(isAllowedVideoUrl('https://google.com/')).toBe(false);
+    expect(
+      isNavigableVideoUrl('https://accounts.google.com/ServiceLogin'),
+    ).toBe(false);
   });
 
   it('refuses every scheme but https', () => {
@@ -88,6 +108,79 @@ describe('video site allowlist', () => {
       );
       expect(
         `${site.name} search: ${isAllowedVideoUrl(buildSearchUrl(site, 'a'))}`,
+      ).toBe(`${site.name} search: true`);
+    });
+  });
+});
+
+describe('sign-in refusal', () => {
+  it('turns away each site at its own front door', () => {
+    expect(isSignInUrl('https://www.youtube.com/signin')).toBe(true);
+    expect(isSignInUrl('https://music.youtube.com/signin?next=%2F')).toBe(true);
+    expect(isSignInUrl('https://accounts.google.com/ServiceLogin')).toBe(true);
+    expect(isSignInUrl('https://soundcloud.com/signin')).toBe(true);
+    expect(isSignInUrl('https://secure.soundcloud.com/sign-in')).toBe(true);
+    expect(isSignInUrl('https://bandcamp.com/login')).toBe(true);
+    expect(isSignInUrl('https://vimeo.com/log_in')).toBe(true);
+    expect(isSignInUrl('https://www.twitch.tv/login')).toBe(true);
+    expect(isSignInUrl('https://id.twitch.tv/oauth2/authorize')).toBe(true);
+  });
+
+  it('reads a path the way a site does', () => {
+    // A trailing slash is the same page, and a segment below it is still the
+    // sign-in flow.
+    expect(isSignInUrl('https://www.twitch.tv/login/')).toBe(true);
+    expect(isSignInUrl('https://vimeo.com/oauth/authorize')).toBe(true);
+    expect(isSignInUrl('https://WWW.YouTube.COM/SignIn')).toBe(true);
+  });
+
+  /**
+   * The reason these are scoped per domain rather than matched as bare words.
+   *
+   * `login` is a login page on Twitch and an ordinary channel name anywhere it
+   * is not, and a video called `/join` is a video. Refusing those would be a
+   * player that mysteriously will not open some perfectly normal pages.
+   */
+  it('leaves the same word alone on a site that does not own it', () => {
+    expect(isSignInUrl('https://www.youtube.com/watch?v=login')).toBe(false);
+    expect(isSignInUrl('https://someartist.bandcamp.com/album/login')).toBe(
+      false,
+    );
+    expect(isSignInUrl('https://soundcloud.com/join')).toBe(false);
+    expect(isSignInUrl('https://www.twitch.tv/join')).toBe(false);
+  });
+
+  it('says nothing about ordinary pages', () => {
+    expect(isSignInUrl('https://www.youtube.com/')).toBe(false);
+    expect(isSignInUrl('https://bandcamp.com/')).toBe(false);
+    expect(isSignInUrl('not a url')).toBe(false);
+  });
+
+  /**
+   * The predicate every navigation guard actually calls. Both refusals reach
+   * it, and it is the one that has to be right — the other two are the reasons.
+   */
+  it('folds both refusals into the one answer', () => {
+    expect(isNavigableVideoUrl('https://www.youtube.com/watch?v=abc')).toBe(
+      true,
+    );
+    // Allowed host, refused anyway.
+    expect(isNavigableVideoUrl('https://www.twitch.tv/login')).toBe(false);
+    // Refused twice over, which is still refused.
+    expect(
+      isNavigableVideoUrl('https://accounts.google.com/ServiceLogin'),
+    ).toBe(false);
+  });
+
+  it('still allows every site it puts a button on', () => {
+    VIDEO_SITES.forEach((site) => {
+      expect(`${site.name} home: ${isNavigableVideoUrl(site.home)}`).toBe(
+        `${site.name} home: true`,
+      );
+      expect(
+        `${site.name} search: ${isNavigableVideoUrl(
+          buildSearchUrl(site, 'a'),
+        )}`,
       ).toBe(`${site.name} search: true`);
     });
   });
