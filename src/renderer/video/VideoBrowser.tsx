@@ -142,6 +142,41 @@ const ENTER_PLAYER_ONLY = `(() => {
     '[data-a-target="video-player"]',
     '.vp-player-layout',
   ].join(', ');
+  // Search shadow roots too, because querySelector stops at the boundary and a
+  // player inside one is invisible to it.
+  //
+  // Only reached when the ordinary lookup fails, and rate limited because on a
+  // page with no player at all it would otherwise walk the whole tree every
+  // frame. A page that has one never gets here twice: the early return below
+  // sees the mark already in place.
+  let lastDeepAt = 0;
+  const deepFind = (selector) => {
+    const search = (root) => {
+      const hit = root.querySelector(selector);
+      if (hit) { return hit; }
+      const nodes = root.querySelectorAll('*');
+      for (let i = 0; i < nodes.length; i += 1) {
+        if (nodes[i].shadowRoot) {
+          const found = search(nodes[i].shadowRoot);
+          if (found) { return found; }
+        }
+      }
+      return null;
+    };
+    return search(document);
+  };
+
+  // A copy of the rules for a shadow root the chain passes through.
+  const styleShadow = (root) => {
+    if (root.querySelector('style[data-fluideq-style]')) { return; }
+    const style = document.createElement('style');
+    style.setAttribute('data-fluideq-style', '');
+    style.textContent =
+      '[data-fluideq-keep]:not([data-fluideq-player]) > *:not([data-fluideq-keep]){display:none !important}' +
+      '[data-fluideq-player]{position:fixed !important;z-index:2147483647 !important;top:0 !important;left:0 !important;width:100vw !important;height:100vh !important;background:#000 !important}';
+    root.appendChild(style);
+  };
+
   const mark = () => {
     // The largest video on the page, rather than the first in the document.
     // Sites litter pages with thumbnails and preview loops; the one being
@@ -151,9 +186,14 @@ const ENTER_PLAYER_ONLY = `(() => {
       (a, b) =>
         b.clientWidth * b.clientHeight - a.clientWidth * a.clientHeight
     )[0];
-    const player =
+    let player =
       document.querySelector(SELECTOR) ||
       (biggest && biggest.parentElement);
+    if (!player && Date.now() - lastDeepAt > 500) {
+      lastDeepAt = Date.now();
+      const deep = deepFind(SELECTOR) || deepFind('video');
+      player = deep && (deep.matches(SELECTOR) ? deep : deep.parentElement);
+    }
     if (!player) { return; }
     // Already correct, and still attached. The common case by far.
     if (player.hasAttribute('data-fluideq-player') && player.isConnected) {
@@ -169,7 +209,23 @@ const ENTER_PLAYER_ONLY = `(() => {
     let node = player;
     while (node && node !== document.documentElement) {
       node.setAttribute('data-fluideq-keep', '');
-      node = node.parentElement;
+      const parent = node.parentElement;
+      if (parent) {
+        node = parent;
+      } else {
+        // No parent element means the top of a shadow root. Step out through
+        // its host and give that root its own copy of the rules on the way:
+        // a stylesheet inserted into the document does not cross the boundary,
+        // so a chain passing through one would be marked correctly and styled
+        // not at all.
+        const root = node.getRootNode();
+        if (root && root.host) {
+          styleShadow(root);
+          node = root.host;
+        } else {
+          node = null;
+        }
+      }
     }
     document.documentElement.setAttribute('data-fluideq-solo', '');
   };
@@ -200,6 +256,23 @@ const EXIT_PLAYER_ONLY = `(() => {
       node.removeAttribute('data-fluideq-keep');
       node.removeAttribute('data-fluideq-player');
     });
+  // Marks and stylesheets inside shadow roots, which the query above cannot
+  // see. Walking for them costs nothing here: leaving the mode is not a hot
+  // path, and a stylesheet left in a shadow root would still be hiding things
+  // long after the mode had gone.
+  const sweep = (root) => {
+    root
+      .querySelectorAll('[data-fluideq-keep], [data-fluideq-player], style[data-fluideq-style]')
+      .forEach((node) => {
+        if (node.tagName === 'STYLE') { node.remove(); return; }
+        node.removeAttribute('data-fluideq-keep');
+        node.removeAttribute('data-fluideq-player');
+      });
+    root.querySelectorAll('*').forEach((node) => {
+      if (node.shadowRoot) { sweep(node.shadowRoot); }
+    });
+  };
+  sweep(document);
   return 'ok';
 })()`;
 
