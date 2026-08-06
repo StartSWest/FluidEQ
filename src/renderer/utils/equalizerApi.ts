@@ -61,6 +61,17 @@ export interface TError {
    * useless, so the thrower gets to say what actually happened.
    */
   detail?: string;
+  /**
+   * What to do about it, replacing the code's generic advice.
+   *
+   * Needed for the same reason `detail` is, and it was the missing half.
+   * Overriding only the description left "Internal Error" replaced by a real
+   * sentence and "Please reach out to the developers to resolve the issue"
+   * still sitting underneath it — so hitting the band limit, which is a rule
+   * working exactly as intended, still ended by telling somebody to file a
+   * report about it.
+   */
+  action?: string;
 }
 
 type TResult<Type> = TSuccess<Type> | TError;
@@ -133,9 +144,11 @@ const buildResponseHandler = <
     if ('errorCode' in arg) {
       const description = getErrorDescription(arg.errorCode);
       reject(
-        toError(
-          arg.detail ? { ...description, shortError: arg.detail } : description,
-        ),
+        toError({
+          ...description,
+          ...(arg.detail ? { shortError: arg.detail } : {}),
+          ...(arg.action ? { action: arg.action } : {}),
+        }),
       );
       return;
     }

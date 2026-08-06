@@ -767,8 +767,16 @@ const handleError = (
   // Only for failures the user can act on — a file at the wrong sample rate,
   // a name that is already taken. Internal faults keep the canned wording.
   detail?: string,
+  // And what to do about it. Pass this whenever `detail` describes a rule
+  // rather than a fault, or the canned "reach out to the developers" is left
+  // underneath a message that needs no developer at all.
+  action?: string,
 ) => {
-  const reply: TError = { errorCode, ...(detail ? { detail } : {}) };
+  const reply: TError = {
+    errorCode,
+    ...(detail ? { detail } : {}),
+    ...(action ? { action } : {}),
+  };
   console.log(channel);
   event.reply(channel, reply);
 };
@@ -1825,7 +1833,13 @@ ipcMain.on(ChannelEnum.SET_PREAMP, async (event, arg) => {
   const gain = parseFloat(arg[0]) || 0;
 
   if (gain < MIN_GAIN || gain > MAX_GAIN) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    handleError(
+      event,
+      channel,
+      ErrorCode.INVALID_PARAMETER,
+      `The preamp goes from ${MIN_GAIN} dB to ${MAX_GAIN} dB.`,
+      'The preamp was left where it was.',
+    );
     return;
   }
 
@@ -1988,14 +2002,28 @@ ipcMain.on(ChannelEnum.ADD_FILTER, async (event, arg) => {
   const channel = ChannelEnum.ADD_FILTER;
   const frequency: number = arg[0];
 
-  // Cannot exceed the maximum number of filters
-  // Frequency must be in valid range
-  if (
-    Object.keys(state.filters).length >= MAX_NUM_FILTERS ||
-    frequency < MIN_FREQUENCY ||
-    frequency > MAX_FREQUENCY
-  ) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+  // Two different refusals, and they were reported as the same "Internal
+  // Error: Invalid parameter — please reach out to the developers". Neither is
+  // an internal error and neither needs a developer: one is a documented limit
+  // and the other is a number outside the audible range.
+  if (Object.keys(state.filters).length >= MAX_NUM_FILTERS) {
+    handleError(
+      event,
+      channel,
+      ErrorCode.INVALID_PARAMETER,
+      `You already have the most bands FluidEQ can apply (${MAX_NUM_FILTERS}).`,
+      'Remove a band before adding another, or adjust one you already have.',
+    );
+    return;
+  }
+  if (frequency < MIN_FREQUENCY || frequency > MAX_FREQUENCY) {
+    handleError(
+      event,
+      channel,
+      ErrorCode.INVALID_PARAMETER,
+      `A band has to sit between ${MIN_FREQUENCY} Hz and ${MAX_FREQUENCY} Hz.`,
+      'Nothing was added. Pick a frequency inside that range.',
+    );
     return;
   }
 
@@ -2012,7 +2040,15 @@ ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
 
   // Cannot fall below the minimum number of filters
   if (Object.keys(state.filters).length <= MIN_NUM_FILTERS) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    handleError(
+      event,
+      channel,
+      ErrorCode.INVALID_PARAMETER,
+      MIN_NUM_FILTERS === 1
+        ? 'An equalizer needs at least one band.'
+        : `An equalizer needs at least ${MIN_NUM_FILTERS} bands.`,
+      'Set its gain to 0 dB instead — that leaves the sound untouched.',
+    );
     return;
   }
 

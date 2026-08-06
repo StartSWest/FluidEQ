@@ -98,6 +98,27 @@ export default function AudioTroubleshooter({
       action: { label: 'Open Device Selector', run: onReconfigure },
     },
     {
+      title: 'Try the other installation mode',
+      when:
+        'A device is ticked in the Device Selector and still has no effect, ' +
+        'or ticking it makes that device stop playing altogether. Equalizer ' +
+        'APO can attach itself to Windows audio in two different ways, and ' +
+        'some hardware only works with one of them.',
+      cost: 'A restart. Reversible — switch back the same way.',
+      action: { label: 'Open Device Selector', run: onReconfigure },
+      detail: (
+        <p>
+          In the Device Selector, open <strong>Troubleshooting options</strong>.
+          The default is to install as an <strong>APO</strong>, which is the one
+          that works on most machines. <strong>Install as SFX/EFX</strong> is
+          the alternative, and it is what to reach for on devices whose drivers
+          bring their own effects — a lot of laptop and gaming audio. If a
+          device stopped working after you ticked it, try the other mode before
+          concluding it cannot be equalised.
+        </p>
+      ),
+    },
+    {
       title: 'Reinstall Equalizer APO',
       when:
         'The first two changed nothing, or Windows updated and the ' +

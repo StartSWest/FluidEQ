@@ -80,6 +80,11 @@ opens it again any time.
   YouTube's home page.
 - **The live trace is at full strength in _Wave only_.** It was drawn at half
   strength to sit under the EQ curves — which are exactly what that mode hides.
+- **Ordinary limits stop calling themselves internal errors.** Adding a band
+  when you already have the maximum, or removing the last one, answered with
+  "Internal Error: Invalid parameter — please reach out to the developers".
+  Nothing had gone wrong and no developer was needed. They now say what the
+  limit is and what to do instead.
 
 ---
 
