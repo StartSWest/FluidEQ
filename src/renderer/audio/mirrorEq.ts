@@ -70,10 +70,18 @@ const isUsable = (values: number[]): boolean =>
 /**
  * Every filter a device's profile contributes, in the order APO writes them.
  *
- * The user's bands first, then voicing, then driver compensation, then the
- * loudness contour, then Smart EQ — the same sequence as `stateToString`.
- * Anything added there is a layer a mirrored speaker will silently lose until
- * it is added here too. Cascaded biquads multiply, so the
+ * Driver compensation first, then the user's bands, then voicing, then the
+ * loudness contour, then Smart EQ — the same sequence as `stateToString`:
+ * physical, intended, taste, measured. Anything added there is a layer a
+ * mirrored speaker will silently lose until it is added here too.
+ *
+ * A layer switched off rather than removed needs nothing here: voicing and
+ * driver go quiet through `profileId`/`intensity` and loudness through its
+ * own `isOn`, and all three getters already answer with an empty list. That
+ * is worth not duplicating — a second copy of "is this layer on" is exactly
+ * how the two engines would drift apart.
+ *
+ * Cascaded biquads multiply, so the
  * order does not change the magnitude response, but keeping it identical means
  * the two paths can be compared line by line when they ever disagree.
  *
@@ -109,9 +117,9 @@ export const getMirrorFilters = (
     return [];
   }
   return [
+    ...getDriverFilters(state.driver),
     ...Object.values(state.filters ?? {}),
     ...getVoicingFilters(state.voicing),
-    ...getDriverFilters(state.driver),
     ...getLoudnessFilters(state.loudness),
     ...getSmartEqFilters(state.smartEq),
   ];
