@@ -282,28 +282,19 @@
     // Which is what centres it: one in-flow child, given a share of the height
     // rather than all of it, with the rest as air above and below.
     justify-content: center;
-    // Frosted glass, not a fade. The distinction is the whole of it: the
-    // *background* is translucent and heavily blurred, so the video is present
-    // behind as colour and movement rather than as a picture competing for
-    // attention — while the curve, the grid and the labels drawn on top of it
-    // are at full strength and not dimmed by anything.
+    // Opaque, and no blur.
     //
-    // Which is why the opacity is stated here rather than left to inherit: a
-    // transparency put on the element instead of on its background would take
-    // the trace down with it, and a half-visible graph over a half-visible
-    // video is two things nobody can read instead of one.
+    // Frosted glass was tried and it does not work here. `backdrop-filter`
+    // blurs what is *behind* the card, but the card covers the whole column —
+    // so what came through was not the video, it was the tab strip and the
+    // player's own toolbar, softened just enough to look like a rendering
+    // fault. There is nothing in a full-height overlay worth seeing through it.
     //
-    // The border is nearly solid, and that is not decoration. `backdrop-filter`
-    // is clipped to the border box but the border itself is painted over the
-    // backdrop, so a translucent edge shows the video through it *unblurred* —
-    // a sharp ring of moving picture around a frosted panel, which reads as the
-    // blur having failed. An opaque edge is what closes it.
+    // Stated as a flat colour rather than as an opacity for the usual reason: a
+    // transparency on the element takes the trace down with it, and a
+    // half-visible graph is not a design, it is an unreadable one.
     border-color: rgba(#1d4b5c, 0.95);
-    background: rgba(#08141a, 0.72);
-    // Enough blur that what shows through is light and colour rather than
-    // legible detail — a moving frame under a spectrum is a fight the spectrum
-    // loses. The saturation keeps that light from going grey.
-    backdrop-filter: blur(26px) saturate(1.3);
+    background: #08141a;
     opacity: 1;
     box-shadow: 0 30px 80px rgba($black, 0.6);
     // The card keeps the corners it has everywhere else. It is still a panel
