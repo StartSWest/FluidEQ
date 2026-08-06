@@ -32,6 +32,7 @@ import {
 } from 'common/videoSites';
 import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
+import { useGraphView } from '../utils/graphStyle';
 import VideoSearch from './VideoSearch';
 import VideoSiteIcon from './VideoSiteIcon';
 import '../styles/VideoBrowser.scss';
@@ -53,7 +54,49 @@ interface IWebview extends HTMLElement {
   stop(): void;
   getURL(): string;
   loadURL(url: string): Promise<void>;
+  /**
+   * The second argument is what makes this useful: it tells Chromium to treat
+   * the call as though the user had done it. Without it `requestFullscreen`
+   * refuses — it is gesture-gated, and rightly so — and the player would
+   * silently stay windowed.
+   */
+  executeJavaScript(code: string, userGesture?: boolean): Promise<unknown>;
 }
+
+/**
+ * Ask the page to put its own player into fullscreen.
+ *
+ * The site's own button first, and not out of politeness: a player driven
+ * through its own control ends up in the state it expects — its chrome
+ * rescales, its keyboard shortcuts follow, and leaving fullscreen puts
+ * everything back. Calling `requestFullscreen` on the video element behind the
+ * player's back gets a full-size picture with a player that still believes it
+ * is windowed, which on YouTube means the controls stay small and mispositioned.
+ *
+ * The element fallback is for everything without a button we can name, which is
+ * every site that redesigns its player after this was written.
+ */
+const REQUEST_PAGE_FULLSCREEN = `(() => {
+  if (document.fullscreenElement) { return 'already'; }
+  const button = document.querySelector(
+    '.ytp-fullscreen-button, [data-a-target="player-fullscreen-button"], .fullscreen-control, .vp-fullscreen'
+  );
+  if (button) { button.click(); return 'button'; }
+  const video = document.querySelector('video');
+  if (video && video.requestFullscreen) { video.requestFullscreen(); return 'video'; }
+  return 'none';
+})()`;
+
+const EXIT_PAGE_FULLSCREEN = `(() => {
+  if (!document.fullscreenElement) { return 'none'; }
+  const button = document.querySelector(
+    '.ytp-fullscreen-button, [data-a-target="player-fullscreen-button"], .fullscreen-control, .vp-fullscreen'
+  );
+  // Same reasoning in reverse: let the player leave the way it came in.
+  if (button) { button.click(); return 'button'; }
+  document.exitFullscreen();
+  return 'exit';
+})()`;
 
 interface IWebviewProps {
   ref?: Ref<IWebview>;
@@ -129,6 +172,7 @@ interface IVideoBrowserProps {
 const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   const { t } = useTranslation();
   const webviewRef = useRef<IWebview | null>(null);
+  const graphView = useGraphView();
 
   // Read once, into a ref as well as into state: the `src` attribute must not
   // change after the tag has attached, or every navigation would reload the
@@ -139,6 +183,9 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   const [canGoForward, setCanGoForward] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [blockedUrl, setBlockedUrl] = useState('');
+  // Whether the guest has a document to be asked anything about. Nothing may
+  // call into it before `dom-ready`.
+  const [isGuestReady, setIsGuestReady] = useState(false);
   const [isAdBlockOn, setIsAdBlockOn] = useState(readStoredAdBlock);
   // The page asked for fullscreen — the button on YouTube's own player.
   //
@@ -154,6 +201,46 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   const [isPageFullScreen, setIsPageFullScreen] = useState(false);
 
   const activeSite = findSiteForUrl(currentUrl);
+
+  /**
+   * Take the page's own player with us into full screen.
+   *
+   * The graph's full-screen mode gives the window to the player and the graph.
+   * Without this the *window* was fullscreen and the video inside it was still
+   * a letterboxed rectangle in the middle of a search results page — which is
+   * the one thing the mode exists to avoid.
+   *
+   * Skipped while the tab is hidden. Forcing a background player fullscreen
+   * would be a page taking over a screen nobody is looking at it on, and the
+   * guest is still loaded and playing the whole time.
+   */
+  useEffect(() => {
+    const view = webviewRef.current;
+    if (!view || isHidden || !isGuestReady) {
+      return;
+    }
+    try {
+      view
+        .executeJavaScript(
+          graphView === 'fullscreen'
+            ? REQUEST_PAGE_FULLSCREEN
+            : EXIT_PAGE_FULLSCREEN,
+          // Counts as a user gesture. The click or the shortcut that opened the
+          // mode was one; Chromium has no way to know that from here, and
+          // `requestFullscreen` refuses without it.
+          true,
+        )
+        .catch(() => {
+          // The document went away mid-call — a navigation landing at the same
+          // moment. The next mode change will find the new one.
+        });
+    } catch {
+      // Throws rather than rejects when the guest has no web contents id yet.
+      // `dom-ready` is meant to have ruled that out, but a teardown racing this
+      // effect can still get here, and a crashed player is not worth taking the
+      // window down over.
+    }
+  }, [graphView, isGuestReady, isHidden]);
 
   // Written on every navigation rather than on close. There is no reliable
   // "about to quit" moment in a renderer — the window can go with the audio
@@ -242,6 +329,16 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     const handleEnterFullScreen = () => setIsPageFullScreen(true);
     const handleLeaveFullScreen = () => setIsPageFullScreen(false);
 
+    // Nothing may be asked of the guest before this.
+    //
+    // `executeJavaScript` needs a web contents id, and the tag has none until
+    // it is attached and its document exists — so calling it early does not
+    // reject, it *throws*, which is a different thing to have to catch and the
+    // reason the first attempt at this blew up on mount.
+    const handleReady = () => setIsGuestReady(true);
+    // A navigation replaces the document, so the id is briefly gone again.
+    const handleStartNavigating = () => setIsGuestReady(false);
+
     view.addEventListener('did-navigate', handleNavigated);
     view.addEventListener('did-navigate-in-page', handleNavigated);
     view.addEventListener('did-start-loading', handleStartLoading);
@@ -249,6 +346,8 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     view.addEventListener('will-navigate', handleWillNavigate);
     view.addEventListener('enter-html-full-screen', handleEnterFullScreen);
     view.addEventListener('leave-html-full-screen', handleLeaveFullScreen);
+    view.addEventListener('dom-ready', handleReady);
+    view.addEventListener('did-start-navigation', handleStartNavigating);
 
     return () => {
       view.removeEventListener('did-navigate', handleNavigated);
@@ -258,6 +357,8 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       view.removeEventListener('will-navigate', handleWillNavigate);
       view.removeEventListener('enter-html-full-screen', handleEnterFullScreen);
       view.removeEventListener('leave-html-full-screen', handleLeaveFullScreen);
+      view.removeEventListener('dom-ready', handleReady);
+      view.removeEventListener('did-start-navigation', handleStartNavigating);
     };
   }, [syncNavigationState]);
 

@@ -116,64 +116,56 @@
     min-width: 172px;
   }
 
-  // Not a field.
+  // The same pill as View beside it.
   //
-  // The row it sits in is a caption — a run of legends naming what each colour
-  // on the plot is — and dropping a bordered, filled control into it made one
-  // legend look like a form that had wandered in. So the trigger loses the
-  // field surface entirely and becomes what it reads as: the current look's
-  // name, in the legend's own voice, with an arrow to say it can be changed.
-  // The affordance survives; the box does not.
+  // It was plain underlined text for a while, on the argument that the row is a
+  // run of captions and a bordered control in it looks like a stray form field.
+  // That held right up until the row gained a second control — and two things
+  // that both open a list, sitting inches apart in different clothes, is worse
+  // than either choice made consistently. So it takes the button's shape, and
+  // the row now reads as caption, caption, caption, then two controls.
   .dropdown > [role='menu'] {
+    height: 19px;
     min-height: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
+    padding-block: 0;
+    padding-inline: 8px;
+    border: 1px solid rgba($secondary-light, 0.3);
+    border-radius: 9px;
     background: none;
     box-shadow: none;
-    color: rgba($primary-lighter, 0.82);
-    font-size: inherit;
-    font-weight: 600;
-    gap: 3px;
+    color: rgba($primary-lighter, 0.75);
+    font-size: 0.62rem;
+    font-weight: 650;
+    gap: 4px;
     justify-content: flex-start;
+    letter-spacing: 0.03em;
     overflow: visible;
 
     &:hover:not([aria-disabled='true']) {
-      border: 0;
+      border: 1px solid rgba($secondary-light, 0.65);
       color: $white;
     }
 
-    // Underlined always, not only on hover.
-    //
-    // Losing the box lost the last visual cue that this is a control, and a
-    // cue that only appears once you are already pointing at it is no cue at
-    // all. So the underline is standing: dim enough to belong in a caption
-    // row, present enough to be seen without looking for it. Hover brings it
-    // up to full.
-    //
-    // Only in the closed trigger — the same name is what fills every row of
-    // the open list, and forty underlined rows is a mess.
     .graph-look-name {
       flex: 0 0 auto;
       overflow: visible;
-      color: $white;
-      text-decoration: underline;
-      text-decoration-color: rgba($secondary-light, 0.7);
-      text-decoration-thickness: 1px;
+      color: inherit;
       text-overflow: clip;
-      text-underline-offset: 4px;
       white-space: nowrap;
     }
 
-    &:hover:not([aria-disabled='true']) .graph-look-name {
-      text-decoration-color: $secondary-light;
-    }
-
     svg.arrow {
-      width: 9px;
-      margin-left: 3px;
-      opacity: 0.6;
+      width: 8px;
+      margin-left: auto;
+      opacity: 0.7;
     }
+  }
+
+  // Filled in while the list is open, exactly as the View button is while its
+  // menu is — the one place a trigger has a state worth showing.
+  .dropdown--open > [role='menu'] {
+    border-color: $secondary-light;
+    background: rgba($secondary-light, 0.16);
   }
 
   .dropdown--open > [role='menu'] {
