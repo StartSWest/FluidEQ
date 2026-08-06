@@ -190,20 +190,20 @@ export const useGraphGridHidden = () =>
 /**
  * Whether full screen keeps FluidEQ's own top bar.
  *
- * Off by default, because the mode is for watching and the bar is the largest
- * thing between the picture and the top of the screen. On, the whole titlebar
- * stays exactly where it is — the creature, the waveform, the actions menu, all
- * of it — and the workspace starts below it as it does everywhere else.
+ * On by default. Somebody arriving in this mode for the first time should still
+ * be able to see where they are and how to get back — the creature, the
+ * waveform and the actions menu all live in that bar — and the version without
+ * it is the one to opt into rather than the one to discover you are in. The
+ * switch is in the View menu beside the modes themselves, so taking it away is
+ * one press from the control that got you here.
  *
  * One switch rather than one per element. The bar is a single row and the parts
  * of it are not independently useful: a waveform with no creature beside it is
  * the same bar with a hole in it.
  *
- * Not persisted, like the modes it sits beside. Somebody who turned it on for
- * one session and forgot would come back to a full screen that is not full,
- * with the reason three menus away.
+ * Not persisted, like the modes it sits beside.
  */
-let hasFullScreenTopBar = false;
+let hasFullScreenTopBar = true;
 
 const topBarListeners = new Set<() => void>();
 

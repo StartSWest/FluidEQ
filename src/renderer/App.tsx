@@ -39,9 +39,7 @@ import BugReportDialog from './components/BugReportDialog';
 import AudioTroubleshooter from './components/AudioTroubleshooter';
 import SideBar from './SideBar';
 import {
-  getLiveOutputSolo,
   onWindowFullScreenChange,
-  setLiveOutputSolo,
   useGraphFullScreen,
   useGraphView,
   useFullScreenTopBar,
@@ -244,15 +242,7 @@ const AppContent = () => {
     }
 
     setHasOpenedVideo(true);
-
-    // Wave-only for as long as the tab is open. Somebody watching a video with
-    // the graph underneath wants the trace moving to the music, not the EQ
-    // response, the voicing layer and eight draggable band handles over the
-    // top of it. What was there before is put back on the way out, so the
-    // setting is borrowed rather than changed.
-    const previousSolo = getLiveOutputSolo();
-    setLiveOutputSolo(true);
-    return () => setLiveOutputSolo(previousSolo);
+    return undefined;
   }, [isVideoTab]);
 
   useEffect(() => {
