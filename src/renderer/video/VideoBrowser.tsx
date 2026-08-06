@@ -44,7 +44,6 @@ import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
 import { useIsAdBlockRevealed } from '../utils/adBlockReveal';
 import { useGraphView } from '../utils/graphStyle';
-import { reportInfo } from '../utils/logger';
 import VideoSearch from './VideoSearch';
 import VideoSiteIcon from './VideoSiteIcon';
 import '../styles/VideoBrowser.scss';
@@ -96,21 +95,10 @@ interface IWebview extends HTMLElement {
  * the rule reached inside and hid its own children — the video among them.
  */
 const PLAYER_ONLY_CSS = `
-  /* DIAGNOSTIC — temporary. Three different blacks are indistinguishable on
-     screen, so for one run each is a colour of its own:
-
-       red     the stripped page itself, meaning the injection ran and the
-               player box is not covering the page
-       magenta the pinned player box, meaning the chain was marked but the
-               video inside it is not painting
-       blue    our own stage behind the guest, meaning the guest is not
-               painting at all
-
-     Put back to #000 the moment we know which. */
   html[data-fluideq-solo],
   html[data-fluideq-solo] body {
     overflow: hidden !important;
-    background: #c0392b !important;
+    background: #000 !important;
   }
   html[data-fluideq-solo]
     [data-fluideq-keep]:not([data-fluideq-player])
@@ -133,8 +121,7 @@ const PLAYER_ONLY_CSS = `
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    /* DIAGNOSTIC — temporary, see above. Was #000. */
-    background: #b0179b !important;
+    background: #000 !important;
   }
 
   /* Twitch, and Twitch alone.
@@ -411,40 +398,6 @@ const resumePlaybackScript = (position: number) => `(() => {
   };
   attempt();
   return 'ok';
-})()`;
-
-/**
- * DIAGNOSTIC — temporary. What the injection actually left on the page.
- *
- * "It goes black" cannot distinguish a mode that never applied from one that
- * was applied and then taken off again, and those have opposite fixes. This
- * reads the state back out of the guest a moment after the mode is entered, so
- * the log says which.
- */
-const REPORT_SOLO_STATE = `(() => {
-  const box = (el) => {
-    if (!el) { return 'none'; }
-    const r = el.getBoundingClientRect();
-    return Math.round(r.width) + 'x' + Math.round(r.height) +
-      ' at ' + Math.round(r.x) + ',' + Math.round(r.y);
-  };
-  const player = document.querySelector('[data-fluideq-player]');
-  const video = document.querySelector('video');
-  return JSON.stringify({
-    solo: document.documentElement.hasAttribute('data-fluideq-solo'),
-    gen: window.__fluideqGen === undefined ? 'none' : window.__fluideqGen,
-    observing: !!window.__fluideqSolo,
-    keeps: document.querySelectorAll('[data-fluideq-keep]').length,
-    player: player ? (player.id || player.tagName.toLowerCase()) : 'none',
-    playerBox: box(player),
-    videoBox: box(video),
-    videoReady: video ? video.readyState : 'none',
-    videoPaused: video ? video.paused : 'none',
-    pageFullscreen: document.fullscreenElement
-      ? document.fullscreenElement.tagName.toLowerCase()
-      : 'none',
-    viewport: window.innerWidth + 'x' + window.innerHeight,
-  });
 })()`;
 
 /**
@@ -779,29 +732,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     } catch {
       // No web contents to inject into, and so nothing to undo either.
     }
-    // DIAGNOSTIC — temporary. Reads the state back out once the page has had a
-    // moment to settle, so the log can say whether the mode never applied or
-    // was applied and then taken off again.
-    const report = window.setTimeout(() => {
-      const { current } = webviewRef;
-      if (!current) {
-        return;
-      }
-      try {
-        current
-          .executeJavaScript(REPORT_SOLO_STATE)
-          .then((state) => {
-            reportInfo(`[solo ${graphView} gen ${generation}] ${state}`);
-            return state;
-          })
-          .catch(() => undefined);
-      } catch {
-        // The guest went away before it could be asked.
-      }
-    }, 900);
-
     return () => {
-      window.clearTimeout(report);
       isCancelled = true;
       if (key !== undefined) {
         view.removeInsertedCSS(key).catch(() => undefined);
