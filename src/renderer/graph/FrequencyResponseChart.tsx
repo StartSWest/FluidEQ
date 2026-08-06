@@ -134,6 +134,14 @@ type PendingPointEdit = Partial<
 const SUPPORTING_CURVE_OPACITY = 0.5;
 
 /**
+ * How long silence has to last before the graph believes the music stopped.
+ *
+ * Long enough to ride out a track change or a stream stalling, short enough
+ * that pausing something and looking back at the EQ does not feel like waiting.
+ */
+const SILENCE_GRACE_MS = 2000;
+
+/**
  * The forty looks, as dropdown entries.
  *
  * Built once at module scope: the list never changes, and rebuilding it per
@@ -853,6 +861,63 @@ const FrequencyResponseChart = () => {
   // — the points arrived already softened, then got softened again, and the
   // curve swelled after the music instead of with it.
 
+  /**
+   * Whether audio was playing recently enough to still count as playing.
+   *
+   * Silence empties the frame, and an empty frame brings the EQ curves back —
+   * which is the right thing to do when the music has stopped and a blink when
+   * it merely dipped. Tracks change, a stream buffers, a passage goes quiet for
+   * a fifth of a second; every one of those flashed the whole EQ across the
+   * graph and took it away again.
+   *
+   * So silence has to persist before it is believed. Coming back is immediate:
+   * the moment there is a frame there is a trace, and delaying *that* would be
+   * a graph that lags the music.
+   */
+  const [hasRecentAudio, setHasRecentAudio] = useState(false);
+  const silenceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    if (liveOutput.points.length > 0) {
+      if (silenceTimer.current !== undefined) {
+        clearTimeout(silenceTimer.current);
+        silenceTimer.current = undefined;
+      }
+      setHasRecentAudio(true);
+      return;
+    }
+    if (silenceTimer.current === undefined) {
+      silenceTimer.current = setTimeout(() => {
+        silenceTimer.current = undefined;
+        setHasRecentAudio(false);
+      }, SILENCE_GRACE_MS);
+    }
+  }, [liveOutput.points.length]);
+
+  useEffect(
+    () => () => {
+      if (silenceTimer.current !== undefined) {
+        clearTimeout(silenceTimer.current);
+      }
+    },
+    [],
+  );
+
+  /**
+   * What to draw when there is no frame.
+   *
+   * Outside solo the EQ curves were never away, so this is simply them. In solo
+   * they are what silence brings back — after a couple of seconds of it, not
+   * immediately, or a track change flashes the whole EQ across the graph and
+   * takes it away again.
+   */
+  const silentData = useMemo(
+    () => (isSolo && hasRecentAudio ? [] : chartData),
+    [chartData, hasRecentAudio, isSolo],
+  );
+
   const displayData = useMemo(
     () =>
       liveOutput.points.length > 0
@@ -867,7 +932,7 @@ const FrequencyResponseChart = () => {
             // Negating the gain mirrors about 0 dB, which is the vertical
             // centre of a scale running -20 to +20 — so this is a true
             // reflection rather than an offset that happens to look like one.
-            ...(waveOrientation === 'mirrored'
+            ...(waveOrientation === 'mirrored' || waveOrientation === 'centred'
               ? [
                   {
                     id: 'Live Output Mirror',
@@ -875,6 +940,7 @@ const FrequencyResponseChart = () => {
                     isContinuous: true,
                     isFlipped: true,
                     isHalfHeight: true,
+                    isFromCentre: waveOrientation === 'centred',
                     line: {
                       color: ColorEnum.ANALOGOUS2,
                       strokeWidth: isSolo ? 2.6 : 2,
@@ -889,7 +955,9 @@ const FrequencyResponseChart = () => {
               name: 'Live processed output',
               isContinuous: true,
               isFlipped: waveOrientation === 'down',
-              isHalfHeight: waveOrientation === 'mirrored',
+              isHalfHeight:
+                waveOrientation === 'mirrored' || waveOrientation === 'centred',
+              isFromCentre: waveOrientation === 'centred',
               line: {
                 color: ColorEnum.ANALOGOUS2,
                 // Heavier as well as brighter when it is the only thing drawn.
@@ -910,8 +978,8 @@ const FrequencyResponseChart = () => {
               },
             } as IChartCurveData,
           ]
-        : chartData,
-    [chartData, isSolo, liveOutput.points, waveOrientation],
+        : silentData,
+    [silentData, chartData, isSolo, liveOutput.points, waveOrientation],
   );
 
   const editablePoints: IEditableChartPoint[] = useMemo(() => {
@@ -1004,6 +1072,23 @@ const FrequencyResponseChart = () => {
             not. They belong together: they are all captions and controls for
             the same drawing. */}
         <span className="graph-legend-group">
+          {/* First in the cluster rather than alone at the left of the strip.
+
+              Out there it shared the corner with the creature in full screen
+              and the two were drawn over each other — and pushing one or the
+              other around by a fixed amount is a fix that lasts until something
+              else changes width. In the group it travels with the controls and
+              cannot collide with anything that is not in the group.
+
+              Only while there is something to drag: solo takes the band handles
+              off the plot, so every one of these gestures does nothing, and
+              instructions for controls that are not on screen read as controls
+              that have stopped working. */}
+          {!isSolo && (
+            <span className="graph-edit-hint">
+              Drag points · Ctrl/Shift select · Ctrl+scroll: Q
+            </span>
+          )}
           {!isSolo && convolution && (
             <span className="graph-legend graph-legend--convolution">
               Headset convolution
@@ -1145,16 +1230,6 @@ const FrequencyResponseChart = () => {
         {liveOutput.isClipping && (
           <span className="graph-clip-warning" role="status">
             CLIPPING - reduce preamp
-          </span>
-        )}
-        {/* Only while there is something to drag.
-
-            Solo takes the band handles off the plot, so every one of these
-            gestures does nothing — and a row of instructions for controls that
-            are not on screen reads as controls that have stopped working. */}
-        {!isSolo && (
-          <span className="graph-edit-hint">
-            Drag points · Ctrl/Shift select · Ctrl+scroll: Q
           </span>
         )}
       </div>

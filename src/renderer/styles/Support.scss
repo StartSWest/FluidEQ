@@ -823,3 +823,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 }
+
+// Which app this is, at the top of the panel.
+//
+// The name lives in the titlebar everywhere else, and this is the one window
+// reachable when the titlebar is not on screen: the creature sits in the corner
+// over a full-screen video, and clicking it used to open a panel with a mascot,
+// a QR code and nothing saying what any of it belonged to.
+//
+// Quiet on purpose. It is a signature, not a heading — the panel is about the
+// work rather than about the brand, and a logo lockup at the top of it would
+// change what the whole thing sounds like.
+.support-dialog__brand {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  color: rgba($primary-lighter, 0.72);
+  font-size: 0.78rem;
+  font-weight: 700;
+  gap: 8px;
+  letter-spacing: 0.02em;
+
+  .brand-mark {
+    width: 22px;
+    height: 22px;
+    flex: 0 0 auto;
+  }
+}
+
+.support-dialog__version {
+  margin-left: 6px;
+  color: rgba($primary-lighter, 0.45);
+  font-size: 0.68rem;
+  font-weight: 500;
+}

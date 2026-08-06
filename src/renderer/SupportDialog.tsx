@@ -47,6 +47,12 @@ import './styles/Support.scss';
  */
 const IS_DEV = process.env.NODE_ENV !== 'production';
 
+/**
+ * The shipped version, substituted by webpack. Empty outside the bundler — a
+ * bare unit-test import — so the badge is conditional rather than "vundefined".
+ */
+const APP_VERSION = process.env.FLUIDEQ_VERSION || '';
+
 interface ISupportDialogProps {
   hasContributed: boolean;
   onContributed: () => void;
@@ -320,6 +326,26 @@ export default function SupportDialog({
 
         {/* Everything that scrolls, which is everything except the way out. */}
         <div className="support-dialog__scroll">
+          {/* Which app this is.
+
+              Everywhere else the name is in the titlebar, and this panel is the
+              one thing reachable when the titlebar is not on screen — the
+              creature is in the corner over a full-screen video, and clicking
+              it opens a window with a mascot, a QR code and no indication of
+              what it belongs to. */}
+          <div className="support-dialog__brand">
+            <div className="brand-mark" aria-hidden="true">
+              <svg viewBox="0 0 48 48">
+                <path d="M5 24c6-13 12-13 18 0s12 13 20 0" />
+              </svg>
+            </div>
+            <span>
+              FluidEQ
+              {APP_VERSION && (
+                <span className="support-dialog__version">v{APP_VERSION}</span>
+              )}
+            </span>
+          </div>
           {/* Euphoria, announced across the whole panel.
               A row of its own above both columns rather than a tag in the
               corner of the trace: the mode is not something the waveform is

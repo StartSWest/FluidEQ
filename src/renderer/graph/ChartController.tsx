@@ -89,6 +89,14 @@ export interface IChartCurveData {
    * over each other, which is a tangle rather than a reflection.
    */
   isHalfHeight?: boolean;
+  /**
+   * With `isHalfHeight`, grow out of the middle instead of in from the edge.
+   *
+   * The difference between a waveform as an editor draws one — silence a flat
+   * line across the centre, a loud frame reaching both edges — and two spectrum
+   * analysers facing each other, which is what growing inward looks like.
+   */
+  isFromCentre?: boolean;
   line: {
     color: Color;
     strokeWidth: number;

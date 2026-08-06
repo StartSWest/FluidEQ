@@ -193,8 +193,13 @@ export const useGraphGridHidden = () =>
  *  - `up` — standing on the bottom, as it always has.
  *  - `down` — hanging from the top. Bars become stalactites, a filled wave
  *    becomes a ceiling.
- *  - `mirrored` — both at once, symmetrical about the middle, which is what a
- *    waveform looks like everywhere else in audio.
+ *  - `mirrored` — both at once, each growing in from its own edge, so loud
+ *    frames meet in the middle.
+ *  - `centred` — both at once, both growing *out* from the middle, so a loud
+ *    frame reaches the top and the bottom together. This is the one that looks
+ *    like a waveform in an editor; the other is the one that looks like a pair
+ *    of spectrum analysers facing each other. Both are worth having and they
+ *    are not interchangeable.
  *
  * Every one of the forty looks is drawn from the same points, so this is done
  * to the points and all forty follow. A CSS flip on the path would have been
@@ -202,9 +207,9 @@ export const useGraphGridHidden = () =>
  * for themselves, and mirror the glow and the lit tips with the shape — right
  * for the geometry, wrong for the light.
  */
-export type TWaveOrientation = 'up' | 'down' | 'mirrored';
+export type TWaveOrientation = 'up' | 'down' | 'mirrored' | 'centred';
 
-const ORIENTATIONS: TWaveOrientation[] = ['up', 'down', 'mirrored'];
+const ORIENTATIONS: TWaveOrientation[] = ['up', 'down', 'mirrored', 'centred'];
 
 let orientation: TWaveOrientation = 'up';
 

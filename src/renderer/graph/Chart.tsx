@@ -402,13 +402,24 @@ const Chart = ({
           // both taking the whole plot and crossing through one another.
           <g
             key={e.id}
-            transform={
-              e.isHalfHeight
-                ? `translate(0, ${plotHeight / 2}) scale(1, ${
-                    e.isFlipped ? -0.5 : 0.5
-                  })`
-                : `translate(0, ${plotHeight}) scale(1, -1)`
-            }
+            transform={(() => {
+              if (!e.isHalfHeight) {
+                return `translate(0, ${plotHeight}) scale(1, -1)`;
+              }
+              if (e.isFromCentre) {
+                // Baseline at the middle, peaks reaching the edges. The upper
+                // copy is a plain half-scale — its baseline already lands on
+                // the centre line — and the lower one is that reflected about
+                // the bottom.
+                return e.isFlipped
+                  ? `scale(1, 0.5)`
+                  : `translate(0, ${plotHeight}) scale(1, -0.5)`;
+              }
+              // Baseline at the edges, peaks meeting in the middle.
+              return `translate(0, ${plotHeight / 2}) scale(1, ${
+                e.isFlipped ? -0.5 : 0.5
+              })`;
+            })()}
           >
             <Curve data={e} xScale={xScaleFreq} yScale={yScaleGain} />
           </g>

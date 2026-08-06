@@ -1209,17 +1209,15 @@ $tab-border: rgba($secondary-light, 0.2);
   background: #dbe7ff;
 }
 
-// Pinned to the left end of the strip, with everything else pushed right.
+// Inside the legend cluster, at its left, rather than alone at the far end of
+// the strip.
 //
-// The row is right-aligned so that the controls sit in the corner and stay
-// there. The hint is not a control — it is a sentence about how the plot below
-// works — and among the buttons it read as another one, as well as being the
-// thing that moved when any of them changed width. `margin-right: auto` takes
-// the slack, so the text starts at the left and the controls keep the corner.
+// Out there it shared the corner with the creature in full screen and the two
+// were drawn over each other. Pushing one of them along by a fixed amount is a
+// fix that lasts until something else changes width; travelling with the
+// controls means it cannot collide with anything outside the group.
 .graph-edit-hint {
   @include truncate;
-  order: -1;
-  margin-right: auto;
   flex: 0 1 auto;
   color: rgba($primary-lighter, 0.68);
   font-size: 0.6rem;

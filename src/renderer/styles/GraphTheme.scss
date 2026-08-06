@@ -685,7 +685,25 @@
   // every time.
   .workspace-tabs,
   .video-browser__bar {
-    visibility: hidden;
+    display: none;
+  }
+
+  // And with them gone, the player is the panel.
+  //
+  // The card around it — border, padding, its own background — exists to make
+  // the video one tab among several. Behind an expanded graph there are no
+  // other tabs to be one of: what is wanted is the picture, as large as the
+  // column allows, with the graph over it. So the frame goes and the stage
+  // takes the space the toolbar and the tab strip have just given up.
+  .workspace-tab-panel--video {
+    padding: 0;
+    border: none;
+    background: none;
+    box-shadow: none;
+  }
+
+  .video-browser__stage {
+    border-radius: 0;
   }
 
   > .graph-wrapper {

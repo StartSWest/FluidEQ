@@ -57,7 +57,8 @@ interface IGraphViewMenuProps {
 const ORIENTATION_LABEL: Record<TWaveOrientation, string> = {
   up: 'Hang the wave down',
   down: 'Mirror the wave',
-  mirrored: 'Stand the wave up',
+  mirrored: 'Mirror from the centre',
+  centred: 'Stand the wave up',
 };
 
 const VIEW_LABEL: Record<TGraphView, string> = {
