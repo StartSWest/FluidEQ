@@ -87,6 +87,9 @@ const browserUserAgent = () =>
 /** Every attached player, for pushing a settings change out to all of them. */
 const attachedPlayers = new Set<WebContents>();
 
+/** How much of a guest's console line is worth keeping. See where it is used. */
+const CONSOLE_MESSAGE_LIMIT = 200;
+
 const broadcastAdBlockSetting = () => {
   attachedPlayers.forEach((contents) => {
     if (!contents.isDestroyed()) {
@@ -198,7 +201,20 @@ const hardenPlayer = (contents: WebContents) => {
     const where = details.sourceId
       ? ` (${details.sourceId}:${details.lineNumber})`
       : '';
-    log.info(`[player] ${details.level}: ${details.message}${where}`);
+    // Truncated, because an ad tracker's URL is not a diagnosis.
+    //
+    // A blocked doubleclick request logs its entire query string — click ids,
+    // consent tokens, viewability telemetry — which runs to two or three
+    // kilobytes per line, several times a second on a video page. It rotated a
+    // megabyte of log inside an hour and buried every line that was actually
+    // worth reading, which is the opposite of what this listener is for. The
+    // first two hundred characters carry the error and the origin; the rest has
+    // never explained anything.
+    const message =
+      details.message.length > CONSOLE_MESSAGE_LIMIT
+        ? `${details.message.slice(0, CONSOLE_MESSAGE_LIMIT)}…`
+        : details.message;
+    log.info(`[player] ${details.level}: ${message}${where}`);
   });
 
   /**

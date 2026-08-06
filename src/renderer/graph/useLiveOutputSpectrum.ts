@@ -49,8 +49,17 @@ const WAVEFORM_POINT_COUNT = 96;
  * by frame count: it reads `timestampMs` and clamps the real delta, so more
  * frames give it the same answer in more pieces. The constant stays where it is
  * and keeps doing its other job, which is bounding a stalled tick.
+ *
+ * Thirty a second rather than fifty, and the difference is not taste. Every
+ * tick publishes into a context and re-renders the chart, so the tick is also a
+ * render budget: at twenty milliseconds a render that overruns means the next
+ * tick lands before the queue has drained, the chain never breaks, and React
+ * gives up with "Maximum update depth exceeded" — which it did. Thirty-three
+ * leaves room for a slow frame to catch up, and against the forty-five this
+ * replaced it still takes a quarter off the delay before the smoothing below
+ * takes its own share.
  */
-const UPDATE_INTERVAL_MS = 20;
+const UPDATE_INTERVAL_MS = 33;
 
 // The live trace shows real decibels referenced to THE TRACK, not to the
 // volume knob. Windows loopback carries whatever volume is set, so an absolute
@@ -306,6 +315,16 @@ const useLiveOutputSpectrum = () => {
   const streamRef = useRef<MediaStream | undefined>(undefined);
   const audioContextRef = useRef<AudioContext | undefined>(undefined);
   const pumpRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+  // The device-lost timer and the listeners that arm it, on refs so that
+  // `stop()` can reach them — see where they are installed for what happened
+  // when they were locals of `start()`.
+  const muteTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+  const detachTrackRef = useRef<(() => void) | undefined>(undefined);
+  const sourceNodeRef = useRef<MediaStreamAudioSourceNode | undefined>(
+    undefined,
+  );
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
@@ -359,6 +378,19 @@ const useLiveOutputSpectrum = () => {
       clearInterval(pumpRef.current);
       pumpRef.current = undefined;
     }
+    // The device-lost watch, which outlives the track it was watching unless it
+    // is taken down here.
+    if (muteTimerRef.current !== undefined) {
+      clearTimeout(muteTimerRef.current);
+      muteTimerRef.current = undefined;
+    }
+    detachTrackRef.current?.();
+    detachTrackRef.current = undefined;
+    // Explicit, rather than left to `close()` to collect. Closing the context
+    // does release the graph, but only on the path where closing happens — and
+    // an analyser holding an FFT buffer is worth disconnecting on every path.
+    sourceNodeRef.current?.disconnect();
+    sourceNodeRef.current = undefined;
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = undefined;
     audioContextRef.current?.close().catch(() => undefined);
@@ -467,6 +499,25 @@ const useLiveOutputSpectrum = () => {
         stream?.removeTrack(track);
       });
 
+      // Abandoned while the capture was being negotiated.
+      //
+      // The guard at the top of this function ran before the await above, and
+      // `getDisplayMedia` is not quick — a permission decision, a Windows
+      // Graphics Capture negotiation, seconds of it. If the hook was torn down
+      // inside that window then `stop()` has already run, and it found both
+      // refs still undefined and so cleared nothing at all.
+      //
+      // Carrying on from here would then install a live loopback stream, an
+      // AudioContext, an analyser and a thirty-millisecond interval that
+      // nothing holds a reference to and nothing will ever stop — publishing
+      // frames into a dead hook for as long as the window is open. Once is a
+      // leak; in development it is once per hot reload, which is how a renderer
+      // reaches several gigabytes in an afternoon.
+      if (!autoStartRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return false;
+      }
+
       const [audioTrack] = stream.getAudioTracks();
       if (!audioTrack) {
         throw new Error('Windows did not provide a system-audio stream.');
@@ -475,6 +526,13 @@ const useLiveOutputSpectrum = () => {
       audioContext = new AudioContext();
       const activeAudioContext = audioContext;
       await activeAudioContext.resume();
+      // And again, for the same reason: `resume()` is a second await, and the
+      // context it just started is a hardware stream nobody would ever close.
+      if (!autoStartRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        activeAudioContext.close().catch(() => undefined);
+        return false;
+      }
       const analyser = activeAudioContext.createAnalyser();
       analyser.fftSize = FFT_SIZE;
       analyser.minDecibels = -100;
@@ -495,12 +553,15 @@ const useLiveOutputSpectrum = () => {
       // the graph did.
       //
       // 0.2 is 80% there immediately and 99% by the third, and the tick above
-      // is now 20ms, so the two compound the other way: the same steadying
+      // is shorter too, so the two compound the other way: the same steadying
       // costs about a fifth of the delay it used to. Still not zero, because a
       // raw FFT bin jitters frame to frame and a curve made of pure noise is
       // worse than a slow one.
       analyser.smoothingTimeConstant = 0.2;
-      activeAudioContext.createMediaStreamSource(stream).connect(analyser);
+      // Kept, so it can be disconnected rather than left for `close()`.
+      sourceNodeRef.current =
+        activeAudioContext.createMediaStreamSource(stream);
+      sourceNodeRef.current.connect(analyser);
 
       streamRef.current = stream;
       audioContextRef.current = activeAudioContext;
@@ -652,27 +713,45 @@ const useLiveOutputSpectrum = () => {
        * cancels it, and only a mute that persists is treated as a device that
        * has gone.
        */
-      let muteTimer: ReturnType<typeof setTimeout> | undefined;
-      audioTrack.addEventListener('mute', () => {
-        if (muteTimer !== undefined) {
+      // Held on a ref rather than in this closure, so `stop()` can reach it.
+      //
+      // It was a local, which meant nothing outside this call could clear it: a
+      // restart cycle left the previous track's pending timer running, and when
+      // it fired it called `stop()` on whatever stream had replaced it and
+      // scheduled another restart. On a flapping endpoint that compounds — each
+      // cycle leaving another timer behind to trigger the next — and what looks
+      // like a device problem is the app restarting itself in a loop, opening
+      // an AudioContext every time.
+      muteTimerRef.current = undefined;
+      const onMute = () => {
+        if (muteTimerRef.current !== undefined) {
           return;
         }
-        muteTimer = setTimeout(() => {
-          muteTimer = undefined;
+        muteTimerRef.current = setTimeout(() => {
+          muteTimerRef.current = undefined;
           // Still muted after the wait, so this is not a gap in the audio.
           if (audioTrack.muted && streamRef.current) {
             stop();
             setTimeout(() => scheduleStartRef.current(), 0);
           }
         }, DEVICE_LOST_GRACE_MS);
-      });
-
-      audioTrack.addEventListener('unmute', () => {
-        if (muteTimer !== undefined) {
-          clearTimeout(muteTimer);
-          muteTimer = undefined;
+      };
+      const onUnmute = () => {
+        if (muteTimerRef.current !== undefined) {
+          clearTimeout(muteTimerRef.current);
+          muteTimerRef.current = undefined;
         }
-      });
+      };
+      audioTrack.addEventListener('mute', onMute);
+      audioTrack.addEventListener('unmute', onUnmute);
+      // Taken off the track when the capture ends. The `ended` listener below
+      // uses `{ once: true }` and needs no such thing; these two fire many
+      // times over a track's life, so they have to be removed by hand or every
+      // restart leaves another pair attached to a track nobody is reading.
+      detachTrackRef.current = () => {
+        audioTrack.removeEventListener('mute', onMute);
+        audioTrack.removeEventListener('unmute', onUnmute);
+      };
 
       return true;
     } catch (captureError) {
