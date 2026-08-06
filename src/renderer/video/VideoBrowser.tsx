@@ -44,6 +44,7 @@ import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
 import { useIsAdBlockRevealed } from '../utils/adBlockReveal';
 import { useGraphView } from '../utils/graphStyle';
+import { reportInfo } from '../utils/logger';
 import VideoSearch from './VideoSearch';
 import VideoSiteIcon from './VideoSiteIcon';
 import '../styles/VideoBrowser.scss';
@@ -389,6 +390,40 @@ const resumePlaybackScript = (position: number) => `(() => {
 })()`;
 
 /**
+ * DIAGNOSTIC — temporary. What the injection actually left on the page.
+ *
+ * "It goes black" cannot distinguish a mode that never applied from one that
+ * was applied and then taken off again, and those have opposite fixes. This
+ * reads the state back out of the guest a moment after the mode is entered, so
+ * the log says which.
+ */
+const REPORT_SOLO_STATE = `(() => {
+  const box = (el) => {
+    if (!el) { return 'none'; }
+    const r = el.getBoundingClientRect();
+    return Math.round(r.width) + 'x' + Math.round(r.height) +
+      ' at ' + Math.round(r.x) + ',' + Math.round(r.y);
+  };
+  const player = document.querySelector('[data-fluideq-player]');
+  const video = document.querySelector('video');
+  return JSON.stringify({
+    solo: document.documentElement.hasAttribute('data-fluideq-solo'),
+    gen: window.__fluideqGen === undefined ? 'none' : window.__fluideqGen,
+    observing: !!window.__fluideqSolo,
+    keeps: document.querySelectorAll('[data-fluideq-keep]').length,
+    player: player ? (player.id || player.tagName.toLowerCase()) : 'none',
+    playerBox: box(player),
+    videoBox: box(video),
+    videoReady: video ? video.readyState : 'none',
+    videoPaused: video ? video.paused : 'none',
+    pageFullscreen: document.fullscreenElement
+      ? document.fullscreenElement.tagName.toLowerCase()
+      : 'none',
+    viewport: window.innerWidth + 'x' + window.innerHeight,
+  });
+})()`;
+
+/**
  * End the page's own fullscreen, and never begin one.
  *
  * `exitFullscreen` rather than the site's button, deliberately: the button is a
@@ -720,7 +755,29 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     } catch {
       // No web contents to inject into, and so nothing to undo either.
     }
+    // DIAGNOSTIC — temporary. Reads the state back out once the page has had a
+    // moment to settle, so the log can say whether the mode never applied or
+    // was applied and then taken off again.
+    const report = window.setTimeout(() => {
+      const { current } = webviewRef;
+      if (!current) {
+        return;
+      }
+      try {
+        current
+          .executeJavaScript(REPORT_SOLO_STATE)
+          .then((state) => {
+            reportInfo(`[solo ${graphView} gen ${generation}] ${state}`);
+            return state;
+          })
+          .catch(() => undefined);
+      } catch {
+        // The guest went away before it could be asked.
+      }
+    }, 900);
+
     return () => {
+      window.clearTimeout(report);
       isCancelled = true;
       if (key !== undefined) {
         view.removeInsertedCSS(key).catch(() => undefined);
