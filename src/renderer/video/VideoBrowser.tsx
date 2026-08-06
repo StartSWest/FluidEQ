@@ -337,30 +337,22 @@ const resumePlaybackScript = (position: number) => `(() => {
   return 'ok';
 })()`;
 
-/**
- * Leave the page's own fullscreen, and never do anything that could enter it.
+/*
+ * There is deliberately nothing here about the page's own fullscreen.
  *
- * This used to press the site's fullscreen button, on the reasoning that a
- * player should leave the way it came in. That button is a *toggle*. Whether
- * pressing it exited or entered depended on what `document.fullscreenElement`
- * happened to be at the instant the call landed — so the same keystroke put the
- * page into fullscreen about as often as it took it out, and the page's
- * fullscreen puts the player in Chromium's top layer while the injected rules
- * are still pinning it to the viewport. Two accounts of where the player
- * belongs, and a black screen. That is the whole of "full screen works
- * sometimes"; expanded never showed it because the modes are otherwise the
- * same and only this ran differently by timing.
+ * This player used to ask for it, then only undo it, and both were wrong. The
+ * page's fullscreen puts the player into Chromium's top layer while the
+ * injected rules are still pinning it to the viewport — two accounts of where
+ * the player belongs, and the one that showed up was a black screen, sometimes.
+ * The undo was no better: it pressed the site's own fullscreen button, which is
+ * a toggle, so whether it left or entered came down to what the page happened
+ * to be doing at that instant.
  *
- * `exitFullscreen` cannot do the opposite of what it says. The site's own
- * fullscreen is now something this player only ever ends, never begins — the
- * injection already gives the picture the entire window in both modes, so there
- * was never anything for the site's version to add.
+ * The mode does not need any of it. Full screen resizes FluidEQ's window and
+ * the rules above pin the player to the viewport, so the picture already grows
+ * to whatever the window becomes. The site's fullscreen has nothing to add to
+ * that and one thing to take away, so it is not touched at all.
  */
-const EXIT_PAGE_FULLSCREEN = `(() => {
-  if (!document.fullscreenElement) { return 'none'; }
-  document.exitFullscreen();
-  return 'exit';
-})()`;
 
 interface IWebviewProps {
   ref?: Ref<IWebview>;
@@ -605,57 +597,6 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       // No web contents to ask; the page is still where it was.
     }
   }, [pageToken]);
-
-  /**
-   * Take the page's own player with us into full screen.
-   *
-   * The graph's full-screen mode gives the window to the player and the graph.
-   * Without this the *window* was fullscreen and the video inside it was still
-   * a letterboxed rectangle in the middle of a search results page — which is
-   * the one thing the mode exists to avoid.
-   *
-   * Skipped while the tab is hidden. Forcing a background player fullscreen
-   * would be a page taking over a screen nobody is looking at it on, and the
-   * guest is still loaded and playing the whole time.
-   */
-  useEffect(() => {
-    const view = webviewRef.current;
-    if (!view || isHidden || !isGuestReady) {
-      return;
-    }
-    try {
-      view
-        .executeJavaScript(
-          // Never asked for any more, only ever undone.
-          //
-          // Full screen used to ask for it, and that is the blank screen: the
-          // page's fullscreen puts the player in Chromium's top layer while the
-          // injected rules are still pinning it to the viewport, and the two
-          // accounts of where it belongs disagree. Pressing Escape dropped the
-          // page's fullscreen, left the injection alone, and the picture
-          // appeared — which is the symptom that names the cause exactly.
-          //
-          // The injection already strips the page to the player in both modes,
-          // so there is nothing left for the site's own fullscreen to add. What
-          // remains here is the undo, for a page somebody put into fullscreen
-          // with the player's own button.
-          EXIT_PAGE_FULLSCREEN,
-          // Counts as a user gesture. The click or the shortcut that opened the
-          // mode was one; Chromium has no way to know that from here, and
-          // `requestFullscreen` refuses without it.
-          true,
-        )
-        .catch(() => {
-          // The document went away mid-call — a navigation landing at the same
-          // moment. The next mode change will find the new one.
-        });
-    } catch {
-      // Throws rather than rejects when the guest has no web contents id yet.
-      // `dom-ready` is meant to have ruled that out, but a teardown racing this
-      // effect can still get here, and a crashed player is not worth taking the
-      // window down over.
-    }
-  }, [graphView, isGuestReady, isHidden]);
 
   /**
    * Strip the page back to its player while the graph is over it.
