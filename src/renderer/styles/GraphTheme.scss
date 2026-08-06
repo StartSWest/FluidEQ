@@ -3,16 +3,6 @@
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The opaque bar the expanded card grows over the player, and the room reserved
-// for it. Named once because two rules have to agree — the bar and the padding
-// that keeps the drawing out from under it — and a number matching in one place
-// but not the other shows up as a wave clipped by a hair.
-//
-// There was a matching bar along the bottom. It went when stripping the page
-// back to its player made the subtitles legible for the first time, because
-// they sit exactly where it was.
-$expanded-video-bar-top: 40px;
-
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency
 // region brightens as it is actually heard, and a bar underneath fills with its
 // confidence — so "still listening" has a visible reason.
@@ -661,69 +651,18 @@ $expanded-video-bar-top: 40px;
 // moved — and a row squeezed into the right-hand third of the card with nothing
 // beside it is the layout for a problem that no longer exists.
 
-// A solid bar behind the controls, over the player, in expanded view only.
+// There is deliberately no bar behind the controls over the player.
 //
-// This is the one arrangement where the strip has a moving picture directly
-// under it: expanded puts the card over the Video tab and the see-through
-// setting is meant to be used there, so the labels end up on video rather than
-// on a panel and stop being readable. Everywhere else there is a card behind
-// them and a bar would be a second surface for no reason.
+// There was one, in a panel gradient across the top of the card, put there when
+// the labels sat directly on a moving picture and stopped being readable. It
+// paid for itself then and does not now: the strip is short, the card carries a
+// surface of its own that the see-through slider sets, and a filled band across
+// the top of a full-bleed video is the sort of chrome these modes exist to get
+// rid of.
 //
-// Full screen is excluded deliberately — there the strip shares the top of the
-// screen with the waveform and the creature, and a filled bar behind part of
-// that row would cut it in half.
-//
-// Drawn as a layer behind rather than a background on the strip itself, so it
-// can reach past the strip's inset to the card's own edges and be the full
-// width of it. Out of hit-testing, so nothing it covers stops being clickable.
-// Both modes now, not just expanded. They were separated when full screen owned
-// the whole display and shared its top edge with a strip of chrome; it does
-// neither any more, so the two differ by which panes are on screen and by
-// nothing else.
-.center-workspace.is-graph-full:has(.workspace-tab-panel--video:not(.is-hidden))
-  > .graph-wrapper
-  > .live-output-controls::before {
-  position: absolute;
-  z-index: -1;
-  border-radius: $radius-xl $radius-xl 0 0;
-  // The card's own gradient, not a flat fill.
-  //
-  // `$surface-panel` is the colour panels sit *on*, so a bar painted in it read
-  // as a slab of background laid across the top of a card rather than as part
-  // of the card. This is the same top-tinted gradient every panel in the app
-  // uses, cut off where the bar ends — which is what makes it the card's top
-  // edge instead of something covering it.
-  background: linear-gradient(
-    180deg,
-    panel-top($secondary-dark, 5%) 0%,
-    $panel-bottom 320%
-  );
-  content: '';
-  inset: -9px -11px -9px -11px;
-  pointer-events: none;
-}
-
-// The drawing lives between the two bars rather than behind them.
-//
-// They are opaque, so a wave reaching the top of the card was simply cut off by
-// the bar in front of it — a peak that vanishes at a horizontal line reads as
-// the graph being clipped rather than as a bar being in front. Reserving the
-// space means the plot is measured smaller and the wave is drawn whole inside
-// what is left, so nothing ever passes underneath either bar.
-//
-// As padding on the card, so the plot's own box shrinks: the chart measures
-// that box and scales the drawing to it, which is the difference between the
-// wave fitting and the wave being trimmed.
-// Both modes, for the same reason as the bar it makes room for.
-.center-workspace.is-graph-full:has(.workspace-tab-panel--video:not(.is-hidden))
-  > .graph-wrapper {
-  padding-top: $expanded-video-bar-top;
-  // Nothing reserved at the bottom. The bar that used to be there is gone, and
-  // what is down there instead is the subtitles — which the page-stripping made
-  // legible for the first time, and which a band of panel colour across the
-  // bottom of the card was sitting directly on top of.
-  padding-bottom: 0;
-}
+// The padding that reserved room for it goes too. It was there so a peak could
+// not disappear behind an opaque bar; nothing up there is opaque any more, and
+// the drawing gets the height back.
 
 // The card takes clicks, as every other pane does.
 //
