@@ -20,7 +20,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import {
-  deviceProfilesToString,
+  deviceProfilesToFiles,
   getStateForAudioDevice,
 } from '../../../main/deviceProfiles';
 import {
@@ -28,6 +28,7 @@ import {
   IDeviceProfileSettings,
   getDefaultState,
 } from '../../../common/constants';
+import { expandApoConfig } from '../../utils/apoConfig';
 
 const GUID = '{2de2e800-7980-4b45-a318-34276fe3d3b4}';
 
@@ -267,13 +268,12 @@ describe('per-device state isolation', () => {
   });
 
   it('writes each device only what its own profile carries', () => {
-    const config = deviceProfilesToString(settings, presetsDir).replace(
-      /\r/g,
-      '',
-    );
+    // Every Include followed, so a leak into another device's feature file is
+    // just as visible as one into its block.
+    const config = expandApoConfig(deviceProfilesToFiles(settings, presetsDir));
     const blockFor = (guid: string) => {
       const start = config.indexOf(`Device: ${guid}`);
-      const next = config.indexOf('# ', start);
+      const next = config.indexOf('Device: ', start + 1);
       return config.slice(start, next === -1 ? undefined : next);
     };
 

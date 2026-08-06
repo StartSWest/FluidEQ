@@ -127,62 +127,90 @@ const resolvePreAmp = (
   return -Math.max(0, filterPeak + graphicPeak);
 };
 
-export const stateToString = (
-  state: IState,
-  convolutionFileName?: string,
-  devicePattern = 'all',
-) => {
-  if (!state.isEnabled) {
-    return '';
-  }
+/**
+ * The features a chain is built from, in the order Equalizer APO applies them.
+ *
+ * The sequence reads physical, then intended, then taste, then measured: fix
+ * the transducer, aim at a target, season it, correct what is left.
+ *
+ *  - `driver` compensates the transducer itself — a property of the hardware,
+ *    like the impulse response above it. Below the voicing it read as if it
+ *    were correcting the voicing.
+ *  - `eq` is the user's own bands, or the GraphicEQ curve that stands in for
+ *    them.
+ *  - `voicing` is the target curve they picked.
+ *  - `loudness` is a preference about how loud this should feel rather than a
+ *    fix for anything, so it sits on top of all three corrections.
+ *  - `smart` is last of all, because it is a correction of everything above it:
+ *    the capture that produced it heard the bands, the voicing and the driver
+ *    together, so its residual only means anything stacked on top of them.
+ *    Anything appended after it would be un-measured.
+ *
+ * Nothing audible depends on the order. Cascaded biquads are linear, so their
+ * magnitudes add in dB whatever the sequence, and the preamp is a peak over the
+ * same set either way. It is for whoever is reading the config at two in the
+ * morning wondering which layer did what — and now for which file they are
+ * reading, since each of these is written to one of its own.
+ */
+export const APO_FEATURES = [
+  'driver',
+  'eq',
+  'voicing',
+  'loudness',
+  'smart',
+] as const;
 
-  let output: string[] = [];
+export type TApoFeature = (typeof APO_FEATURES)[number];
 
-  output.push(`Device: ${devicePattern}`);
-  output.push('Channel: all');
+/** A filter stripped to the four things a config line is made of. */
+type TChainFilter = Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>;
 
-  if (state.convolution && convolutionFileName) {
-    output.push(`Convolution: ${convolutionFileName}`);
-  }
+/** What one feature contributes to a device's chain. */
+interface IApoLayer {
+  feature: TApoFeature;
+  /** The filters it writes, in order. Empty for a GraphicEQ profile. */
+  filters: TChainFilter[];
+  /** The `GraphicEQ:` command the EQ writes instead of filters, if any. */
+  graphicEq?: string;
+}
 
-  // APO numbers filters globally, so the EQ bands and every layer written after
-  // them — voicing, driver compensation, Smart EQ — share one counter.
-  let filterIndex = 0;
-  // Everything actually emitted, so the preamp below can be sized from the real
-  // chain rather than from whatever the UI last happened to compute.
-  const writtenFilters: Array<
-    Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>
-  > = [];
+/**
+ * A layer's filters, stripped to what the config needs.
+ *
+ * The `isRenderableFilter` pass is the last line of defence before Equalizer
+ * APO. A band whose numbers are not finite — a malformed import, a corrupt
+ * preset — cannot be rendered as a filter APO can build, so it is dropped
+ * rather than written out as `Fc NaN Hz` and left for APO to choke on.
+ */
+const layerFilters = (filters: TChainFilter[]): TChainFilter[] =>
+  filters
+    .filter(isRenderableFilter)
+    .map(({ type, frequency, gain, quality }) => ({
+      type,
+      frequency,
+      gain,
+      quality,
+    }));
 
-  // Driver compensation first of the filter layers, beside the convolution.
-  //
-  // It corrects the transducer itself — a property of the hardware, like the
-  // impulse response above it — so the chain reads physical, then intended,
-  // then taste, then measured: fix the speaker, aim at a target, season it,
-  // correct what is left. Below the voicing it read as if it were correcting
-  // the voicing.
-  //
-  // Nothing audible moves. Cascaded biquads are linear, so their magnitudes add
-  // in dB whatever the sequence, and the preamp is a peak over the same set
-  // either way. This is for whoever is reading the config at two in the morning
-  // wondering which layer did what.
-  //
+/**
+ * The chain a state describes, feature by feature.
+ *
+ * A feature with nothing to say is absent rather than empty, which is what lets
+ * the writer decide "this device has no voicing" by asking whether the layer is
+ * there — the same question, whether it ends up as an omitted block of lines or
+ * an omitted `Include:`.
+ */
+const buildLayers = (state: IState): IApoLayer[] => {
+  const layers: IApoLayer[] = [];
+  const addLayer = (feature: TApoFeature, filters: TChainFilter[]) => {
+    if (filters.length) {
+      layers.push({ feature, filters });
+    }
+  };
+
   // Outside the isFlat check, like the voicing: clearing the EQ resets the
   // bands somebody tuned, not the correction for what they are listening on.
-  output = output.concat(
-    getDriverFilters(state.driver)
-      .filter(isRenderableFilter)
-      .map(({ frequency, gain, type, quality }) => {
-        filterIndex += 1;
-        writtenFilters.push({ type, frequency, gain, quality });
-        const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
-          frequency,
-        )} Hz`;
-        return NO_GAIN_FILTER_TYPES.includes(type)
-          ? `${head} Q ${clampQuality(quality)}`
-          : `${head} Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
-      }),
-  );
+  addLayer('driver', layerFilters(getDriverFilters(state.driver)));
 
   if (!state.isFlat) {
     if (state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length) {
@@ -194,128 +222,192 @@ export const stateToString = (
         .map(({ frequency, gain }) => `${frequency} ${clampGain(gain)}`)
         .join('; ');
       if (points) {
-        output.push(`GraphicEQ: ${points}`);
+        layers.push({
+          feature: 'eq',
+          filters: [],
+          graphicEq: `GraphicEQ: ${points}`,
+        });
       }
     } else {
-      // A zero-gain PK/shelf is neutral. Do not leave inert EQ commands in APO
-      // after the user presses Reset gains.
-      output = output.concat(
-        Object.values(state.filters)
-          // Last line of defence before Equalizer APO. A band whose numbers are
-          // not finite — a malformed import, a corrupt preset — cannot be
-          // rendered as a filter APO can build, so it is dropped rather than
-          // written out as `Fc NaN Hz` and left for APO to choke on.
-          .filter(isRenderableFilter)
-          .filter(
-            ({ gain, type }) =>
-              ![
-                FilterTypeEnum.PK,
-                FilterTypeEnum.LSC,
-                FilterTypeEnum.HSC,
-              ].includes(type) || clampGain(gain) !== 0,
-          )
-          .map(({ frequency, gain, type, quality }) => {
-            filterIndex += 1;
-            writtenFilters.push({ type, frequency, gain, quality });
-            const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
-              frequency,
-            )} Hz`;
-            // Band pass, notch, low pass and high pass have no Gain parameter
-            // in Equalizer APO's ParametricEQ grammar — the token only belongs
-            // to the peaking and shelf forms. Emitting it for the others makes
-            // APO reject the line, so the band silently did nothing.
-            return NO_GAIN_FILTER_TYPES.includes(type)
-              ? `${head} Q ${clampQuality(quality)}`
-              : `${head} Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
-          }),
+      addLayer(
+        'eq',
+        layerFilters(Object.values(state.filters)).filter(
+          // A zero-gain PK/shelf is neutral. Do not leave inert EQ commands in
+          // APO after the user presses Reset gains.
+          ({ gain, type }) =>
+            ![
+              FilterTypeEnum.PK,
+              FilterTypeEnum.LSC,
+              FilterTypeEnum.HSC,
+            ].includes(type) || clampGain(gain) !== 0,
+        ),
       );
     }
   }
 
-  // The voicing is its own layer, written after the user's bands and numbered
-  // straight on from them (APO requires unique, ordered filter indices). It is
-  // deliberately outside the isFlat check: clearing the EQ resets the bands the
+  // Deliberately outside the isFlat check: clearing the EQ resets the bands the
   // user tuned, not the target curve they chose, and switching the voicing off
   // restores their tuning untouched.
-  output = output.concat(
-    getVoicingFilters(state.voicing)
-      .filter(isRenderableFilter)
-      .map(({ frequency, gain, type, quality }) => {
-        filterIndex += 1;
-        writtenFilters.push({ type, frequency, gain, quality });
-        const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
-          frequency,
-        )} Hz`;
-        return NO_GAIN_FILTER_TYPES.includes(type)
-          ? `${head} Q ${clampQuality(quality)}`
-          : `${head} Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
-      }),
-  );
+  addLayer('voicing', layerFilters(getVoicingFilters(state.voicing)));
 
-  // Loudness after the corrections and before the measurement. It is a
-  // preference about how loud this should feel, not a fix for anything, so it
-  // sits on top of the bands, the voicing and the driver compensation — and
-  // below Smart EQ, which measured all of them and has to stay last.
-  //
   // Written into the same chain the preamp is computed from, which is what
-  // makes it safe: turning it on cannot clip, because the preamp comes down to
-  // meet it. The cost is headroom, taken automatically and visibly, rather
-  // than a peak nobody checked.
-  output = output.concat(
-    getLoudnessFilters(state.loudness)
-      .filter(isRenderableFilter)
-      .map(({ frequency, gain, type, quality }) => {
-        filterIndex += 1;
-        writtenFilters.push({ type, frequency, gain, quality });
-        return `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
-          frequency,
-        )} Hz Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
-      }),
-  );
+  // makes loudness safe: turning it on cannot clip, because the preamp comes
+  // down to meet it. The cost is headroom, taken automatically and visibly,
+  // rather than a peak nobody checked.
+  addLayer('loudness', layerFilters(getLoudnessFilters(state.loudness)));
 
-  // Smart EQ last of all, because it is a correction of everything above it:
-  // the capture that produced it heard the bands, the voicing and the driver
-  // together, so its residual only means anything stacked on top of them.
-  // Anything appended after it would be un-measured. Outside the isFlat check
-  // for the same reason as the other two layers — clearing the bands the user
-  // tuned does not un-measure what came out of the speakers.
-  output = output.concat(
-    getSmartEqFilters(state.smartEq)
-      .filter(isRenderableFilter)
-      .map(({ frequency, gain, type, quality }) => {
-        filterIndex += 1;
-        writtenFilters.push({ type, frequency, gain, quality });
-        const head = `Filter ${filterIndex}: ON ${type} Fc ${clampFrequency(
-          frequency,
-        )} Hz`;
-        return NO_GAIN_FILTER_TYPES.includes(type)
-          ? `${head} Q ${clampQuality(quality)}`
-          : `${head} Gain ${clampGain(gain)} dB Q ${clampQuality(quality)}`;
-      }),
-  );
+  // Outside the isFlat check for the same reason as the other two layers —
+  // clearing the bands the user tuned does not un-measure what came out of the
+  // speakers.
+  addLayer('smart', layerFilters(getSmartEqFilters(state.smartEq)));
 
-  // Equalizer APO applies rules in order: convolution, EQ bands, then gain.
-  // This line MUST be "Preamp" without a capitalized P for APO to work.
-  //
-  // One preamp for the whole chain, and its value is derived here rather than
-  // stored. Every layer above shares it, so it has to cancel the peak of all of
-  // them combined — and because it is recomputed from what was just written,
-  // removing a layer gives its headroom straight back instead of leaving the
-  // output quietly attenuated for a boost that no longer exists.
-  //
-  // Only when Auto normalize is on. With it off the preamp is the user's own
-  // setting and nothing may touch it.
-  output.push(
-    `Preamp: ${clampGain(
-      resolvePreAmp(
-        state,
-        writtenFilters,
-        Boolean(state.convolution && convolutionFileName),
+  return layers;
+};
+
+const renderFilter = (filter: TChainFilter, index: number) => {
+  const head = `Filter ${index}: ON ${filter.type} Fc ${clampFrequency(
+    filter.frequency,
+  )} Hz`;
+  // Band pass, notch, low pass and high pass have no Gain parameter in
+  // Equalizer APO's ParametricEQ grammar — the token only belongs to the
+  // peaking and shelf forms. Emitting it for the others makes APO reject the
+  // line, so the band silently did nothing.
+  return NO_GAIN_FILTER_TYPES.includes(filter.type)
+    ? `${head} Q ${clampQuality(filter.quality)}`
+    : `${head} Gain ${clampGain(filter.gain)} dB Q ${clampQuality(
+        filter.quality,
+      )}`;
+};
+
+/**
+ * One layer's lines, numbered on from `startIndex`.
+ *
+ * The index is a label, not an address: APO applies `Filter:` lines in the
+ * order it reads them and never refers to one by number. Written into a single
+ * file the count runs on across the layers, because a repeated index in one
+ * file reads like a mistake to anyone opening it. Written into a file per
+ * feature each starts at 1, which is what makes a feature file independent of
+ * every other feature — the point of splitting them at all.
+ */
+const renderLayer = (layer: IApoLayer, startIndex = 0): string[] =>
+  layer.graphicEq
+    ? [layer.graphicEq]
+    : layer.filters.map((filter, offset) =>
+        renderFilter(filter, startIndex + offset + 1),
+      );
+
+/**
+ * The one `Preamp:` line for a chain.
+ *
+ * This line MUST be "Preamp" without a capitalized P for APO to work.
+ *
+ * One preamp for the whole chain, and its value is derived here rather than
+ * stored. Every layer shares it, so it has to cancel the peak of all of them
+ * combined — and because it is recomputed from what was just written, removing
+ * a layer gives its headroom straight back instead of leaving the output
+ * quietly attenuated for a boost that no longer exists.
+ *
+ * It is therefore the one thing that cannot move into a feature's own file: the
+ * peak of a sum is not the sum of the peaks, so independent reserves would
+ * under-protect. It belongs to the device, after everything it is protecting.
+ */
+const preAmpLine = (
+  state: IState,
+  layers: IApoLayer[],
+  hasConvolution: boolean,
+) =>
+  `Preamp: ${clampGain(
+    resolvePreAmp(
+      state,
+      layers.reduce<TChainFilter[]>(
+        (written, layer) => written.concat(layer.filters),
+        [],
       ),
-    )} dB`,
-  );
+      hasConvolution,
+    ),
+  )} dB`;
+
+/**
+ * A whole chain as one block of config text.
+ *
+ * The flat form: everything for one device between its `Device:` line and its
+ * preamp. Nothing writes this to disk any more — `stateToApoFiles` does that,
+ * split across files — but it is still exactly what APO ends up seeing once the
+ * includes are followed, which makes it the right thing to compare a config on
+ * disk against when deciding whether anything drifted while we were away.
+ */
+export const stateToString = (
+  state: IState,
+  convolutionFileName?: string,
+  devicePattern = 'all',
+) => {
+  if (!state.isEnabled) {
+    return '';
+  }
+
+  const hasConvolution = Boolean(state.convolution && convolutionFileName);
+  const layers = buildLayers(state);
+  const output = [`Device: ${devicePattern}`, 'Channel: all'];
+
+  if (hasConvolution) {
+    output.push(`Convolution: ${convolutionFileName}`);
+  }
+
+  let filterIndex = 0;
+  layers.forEach((layer) => {
+    output.push(...renderLayer(layer, filterIndex));
+    filterIndex += layer.filters.length;
+  });
+
+  output.push(preAmpLine(state, layers, hasConvolution));
 
   return output.join('\n\r');
+};
+
+/** A chain as the pieces the device file is assembled from. */
+export interface IApoChainFiles {
+  /** The `Convolution:` line, when this device has an impulse response. */
+  convolution?: string;
+  /** One entry per feature with anything to say, in the order APO applies them. */
+  features: Array<{ feature: TApoFeature; lines: string[] }>;
+  /** The `Preamp:` line, sized over every filter of every feature above. */
+  preAmp: string;
+}
+
+/**
+ * A chain as one file per feature, plus what has to stay with the device.
+ *
+ * The point is that a feature is one thing even though its filters are many.
+ * Ten `Filter:` lines sharing a config with everyone else's cannot be switched
+ * off atomically; one `Include:` line can simply not be written. Everything a
+ * feature contributes goes in its own file and nothing else does, so a write
+ * for one of them cannot reach another's.
+ *
+ * Two things stay behind, both because they are properties of the whole chain
+ * rather than of any feature: the convolution, which APO applies before all of
+ * them, and the preamp, which is sized against all of them at once.
+ */
+export const stateToApoFiles = (
+  state: IState,
+  convolutionFileName?: string,
+): IApoChainFiles | undefined => {
+  if (!state.isEnabled) {
+    return undefined;
+  }
+
+  const hasConvolution = Boolean(state.convolution && convolutionFileName);
+  const layers = buildLayers(state);
+
+  return {
+    ...(hasConvolution
+      ? { convolution: `Convolution: ${convolutionFileName}` }
+      : {}),
+    features: layers.map((layer) => ({
+      feature: layer.feature,
+      lines: renderLayer(layer),
+    })),
+    preAmp: preAmpLine(state, layers, hasConvolution),
+  };
 };
 
 export const serializeState = (state: IState) => {

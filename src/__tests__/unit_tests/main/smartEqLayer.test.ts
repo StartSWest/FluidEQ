@@ -35,9 +35,10 @@ import {
 import { getChainPeakGain } from 'common/response';
 import { fetchPreset, savePreset, stateToString } from 'main/flush';
 import {
-  deviceProfilesToString,
+  deviceProfilesToFiles,
   getStateForAudioDevice,
 } from 'main/deviceProfiles';
+import { expandApoConfig } from '../../utils/apoConfig';
 
 const smartLayer = (
   gainsByFrequency: Record<number, number>,
@@ -277,9 +278,9 @@ describe('the Smart EQ layer and the profile it belongs to', () => {
       },
     };
 
-    expect(deviceProfilesToString(settings, presetsDir)).toContain(
-      'Fc 1000 Hz Gain 3 dB Q 1.4',
-    );
+    expect(
+      expandApoConfig(deviceProfilesToFiles(settings, presetsDir)),
+    ).toContain('Fc 1000 Hz Gain 3 dB Q 1.4');
   });
 
   it('does not follow the user onto an output that never measured', () => {

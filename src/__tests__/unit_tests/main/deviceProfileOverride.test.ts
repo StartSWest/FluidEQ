@@ -19,12 +19,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { deviceProfilesToString } from '../../../main/deviceProfiles';
+import { deviceProfilesToFiles } from '../../../main/deviceProfiles';
 import {
   FilterTypeEnum,
   IDeviceProfileSettings,
   getDefaultState,
 } from '../../../common/constants';
+
+/**
+ * Every file the writer produced, run together.
+ *
+ * Deliberately all of them rather than only the ones the root includes.
+ * Stacking is what these tests are about, and a preset left behind in a file
+ * nobody includes is one write away from being audible again — the strictest
+ * question is whether the overridden device's filters were written down at all.
+ */
+const configFor = (...args: Parameters<typeof deviceProfilesToFiles>) =>
+  [...deviceProfilesToFiles(...args).values()].join('\n');
 
 const KRAKEN_GUID = '{2de2e800-7980-4b45-a318-34276fe3d3b4}';
 const LEVIATHAN_GUID = '{df3f87bf-424b-4635-ba54-44da3227dedd}';
@@ -96,7 +107,7 @@ describe('device profiles with an active session override', () => {
   };
 
   it('names the overridden device exactly once', () => {
-    const output = deviceProfilesToString(settings, presetsDir, undefined, {
+    const output = configFor(settings, presetsDir, undefined, {
       deviceId: 'kraken',
       devicePattern: KRAKEN_GUID,
       state: clearedState(),
@@ -107,7 +118,7 @@ describe('device profiles with an active session override', () => {
   });
 
   it('drops the assigned preset once the EQ is cleared', () => {
-    const output = deviceProfilesToString(settings, presetsDir, undefined, {
+    const output = configFor(settings, presetsDir, undefined, {
       deviceId: 'kraken',
       devicePattern: KRAKEN_GUID,
       state: clearedState(),
@@ -119,7 +130,7 @@ describe('device profiles with an active session override', () => {
   });
 
   it('leaves every other device on its own profile', () => {
-    const output = deviceProfilesToString(settings, presetsDir, undefined, {
+    const output = configFor(settings, presetsDir, undefined, {
       deviceId: 'kraken',
       devicePattern: KRAKEN_GUID,
       state: clearedState(),
@@ -130,7 +141,7 @@ describe('device profiles with an active session override', () => {
   });
 
   it('matches the overridden device by pattern when there is no id', () => {
-    const output = deviceProfilesToString(settings, presetsDir, undefined, {
+    const output = configFor(settings, presetsDir, undefined, {
       devicePattern: KRAKEN_GUID,
       state: clearedState(),
     });
@@ -140,7 +151,7 @@ describe('device profiles with an active session override', () => {
   });
 
   it('keeps every profile when nothing is overriding them', () => {
-    const output = deviceProfilesToString(settings, presetsDir);
+    const output = configFor(settings, presetsDir);
 
     expect(output).toContain(`Device: ${KRAKEN_GUID}`);
     expect(output).toContain(`Device: ${LEVIATHAN_GUID}`);
@@ -162,7 +173,7 @@ describe('device profiles with an active session override', () => {
       },
     };
 
-    const output = deviceProfilesToString(settings, presetsDir, undefined, {
+    const output = configFor(settings, presetsDir, undefined, {
       deviceId: 'kraken',
       devicePattern: KRAKEN_GUID,
       state: tuned,
