@@ -1132,6 +1132,26 @@ const FrequencyResponseChart = () => {
               they are: a caption, and the thing it captions. Run together they
               read as one long legend nobody realises is clickable. */}
             <span className="graph-legend__label">Live output</span>
+            {/* Arrows either side of the name, so walking the forty looks never
+                depends on where the keyboard is pointing.
+
+                Space and Ctrl+Space still do it, and stop the moment somebody
+                clicks the video: the guest takes focus and every key after that
+                belongs to the page, so Space pauses the video instead of
+                changing the drawing. That is exactly when somebody is most
+                likely to want a different one, and a mouse is already in their
+                hand. */}
+            <button
+              type="button"
+              className="graph-look-step"
+              aria-label="Previous style"
+              title="Previous style (Ctrl+Space)"
+              onClick={() => cycleGraphLook(-1)}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <path d="M10 3.5l-4 4.5 4 4.5" />
+              </svg>
+            </button>
             <Dropdown
               name="live-output-style"
               options={graphLookOptions}
@@ -1142,6 +1162,17 @@ const FrequencyResponseChart = () => {
               placement="down"
               handleChange={setGraphLook}
             />
+            <button
+              type="button"
+              className="graph-look-step"
+              aria-label="Next style"
+              title="Next style (Space)"
+              onClick={() => cycleGraphLook(1)}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <path d="M6 3.5l4 4.5-4 4.5" />
+              </svg>
+            </button>
             {/* Everything else off, so the drawing has the grid to itself.
               Sits inside the live-output legend because that is the only
               thing it leaves behind. */}

@@ -207,6 +207,40 @@ $expanded-video-bar-bottom: 34px;
   gap: $spacing-s;
 }
 
+// One step through the looks, either side of the name.
+//
+// Small on purpose: they sit between a caption and a dropdown in a row of
+// captions, and a pair of real buttons there would read as the important thing
+// in the strip. What they are is the shortcut, for when the shortcut cannot
+// reach — click the video and focus is in the guest, so Space belongs to the
+// page from then on.
+.graph-look-step {
+  display: inline-flex;
+  width: 16px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: rgba($primary-lighter, 0.5);
+  cursor: pointer;
+
+  svg {
+    width: 9px;
+    height: 9px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  &:hover {
+    color: $white;
+  }
+}
+
 // *** The view menu ***********************************************************
 
 .graph-view-menu {
@@ -652,6 +686,27 @@ $expanded-video-bar-bottom: 34px;
   padding-bottom: $expanded-video-bar-bottom;
 }
 
+// The card takes no clicks while it is over the player.
+//
+// In both larger modes the graph covers the column, so every click meant for
+// the video — pause, seek, the player's own fullscreen button — landed on a
+// chart instead. The picture is right there and visibly playing, which makes an
+// unresponsive one read as the app having frozen rather than as a pane being in
+// front of it.
+//
+// The chrome exempts itself: `.live-output-controls` already re-enables its own
+// children, so the picker, the buttons and the sliders keep working while
+// everything between them passes straight through.
+//
+// The trade is the band handles, which stop being draggable in these modes on
+// this tab — they are a thing you do while editing, and this is the arrangement
+// for watching. Normal view is untouched, and so is every other tab: without a
+// video behind it there is nothing for a click to fall through to.
+.center-workspace.is-graph-full:has(.workspace-tab-panel--video:not(.is-hidden))
+  > .graph-wrapper {
+  pointer-events: none;
+}
+
 // Full screen is the whole screen, corner to corner.
 //
 // The two modes want opposite edges and it is not a detail: expanded is a card
@@ -791,7 +846,13 @@ $expanded-video-bar-bottom: 34px;
   > .graph-wrapper {
     position: absolute;
     z-index: 40;
-    inset: 0;
+    // A pixel past the left edge of the column.
+    //
+    // The card's own 1px border ran just inside it, and against the pane behind
+    // it that read as a stray line down the left of the graph rather than as
+    // the card's edge. Pushing the box out by exactly the border width tucks it
+    // under the column boundary, where it belongs.
+    inset: 0 0 0 -1px;
     width: auto;
     height: auto;
     flex: none;
