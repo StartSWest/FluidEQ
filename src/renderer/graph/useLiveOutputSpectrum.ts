@@ -99,6 +99,16 @@ const SILENCE_ABORT_MS = 15000;
  */
 const WATCHDOG_MS = 120000;
 
+/**
+ * How long a muted capture is given before it is treated as a lost device.
+ *
+ * Long enough that ordinary gaps — a track change, a stream buffering, the
+ * moment Equalizer APO reloads its config — pass without a restart, and short
+ * enough that somebody who has just reinstalled the audio engine does not sit
+ * watching a flat line wondering whether the app noticed.
+ */
+const DEVICE_LOST_GRACE_MS = 2500;
+
 /** Log-spaced analysis frequencies. Constant for a given sample rate. */
 const createFrequencyAxis = (sampleRate: number): number[] => {
   const logMin = Math.log10(MIN_FREQUENCY);
@@ -596,6 +606,48 @@ const useLiveOutputSpectrum = () => {
         },
         { once: true },
       );
+
+      /**
+       * The device went away without the track noticing.
+       *
+       * `ended` covers a track that stops. It does not cover the case that
+       * actually happens here, which is Windows invalidating the endpoint
+       * underneath a track that stays live — reinstalling Equalizer APO,
+       * restarting the audio service, changing the default device. Chromium
+       * reports `AUDCLNT_E_DEVICE_INVALIDATED`, quietly substitutes a *fake*
+       * audio path, and carries on. The track is still there, still "live",
+       * and delivering digital silence for ever.
+       *
+       * Which is why the trace simply stopped moving and nothing recovered it:
+       * the one event being listened for was the one that never fired.
+       *
+       * `mute` is what does fire. It is also fired for ordinary gaps, so the
+       * restart waits — a source that comes back on its own sends `unmute` and
+       * cancels it, and only a mute that persists is treated as a device that
+       * has gone.
+       */
+      let muteTimer: ReturnType<typeof setTimeout> | undefined;
+      audioTrack.addEventListener('mute', () => {
+        if (muteTimer !== undefined) {
+          return;
+        }
+        muteTimer = setTimeout(() => {
+          muteTimer = undefined;
+          // Still muted after the wait, so this is not a gap in the audio.
+          if (audioTrack.muted && streamRef.current) {
+            stop();
+            setTimeout(() => scheduleStartRef.current(), 0);
+          }
+        }, DEVICE_LOST_GRACE_MS);
+      });
+
+      audioTrack.addEventListener('unmute', () => {
+        if (muteTimer !== undefined) {
+          clearTimeout(muteTimer);
+          muteTimer = undefined;
+        }
+      });
+
       return true;
     } catch (captureError) {
       stream?.getTracks().forEach((track) => track.stop());

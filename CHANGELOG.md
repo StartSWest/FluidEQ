@@ -6,56 +6,73 @@ opens it again any time.
 
 ---
 
-## 0.9.0
+## 0.10.0
 
 ### New
 
-- **Loudness.** A switch under the euphoria pill that lifts the bass and treble
-  the ear stops hearing at low volume, so quiet listening sounds full instead of
-  thin. It is the loudness button every amplifier used to have, and it cannot
-  clip you — the preamp is recalculated to make room for it, the same way it
-  already does for a voicing or a convolution. Not a compressor: Equalizer APO
-  has no dynamics processing at all, so nothing here can lift a quiet passage
-  without lifting a loud one by the same amount, and a control claiming
-  otherwise would be lying to you.
-- **Report a problem**, in the actions menu. It gathers what is needed, shows
-  you the whole thing, and sends nothing until you press a button — as a public
-  GitHub issue or privately by email, whichever you prefer.
-- **Nothing personal goes in a report.** Your Windows account name is stripped
-  from every path it appears in, and from anywhere else it turns up: a preset
-  named after you, a device called "your name's headphones". Email addresses
-  and machine names go too. It is all visible and editable before you send it,
-  because no automatic rule can know what a preset name means to you.
-
-### Fixed
-
-- **"Equalizer APO is not responding" can be clicked.** It reopens the notice
-  with the Install and Retry buttons — which, once dismissed, previously could
-  not be reached again at all, because it only reappears when the error text
-  changes and for a missing audio engine it never does.
-
----
-
-## 0.9.0
-
-### New
-
+- **A Video tab.** A player inside FluidEQ — YouTube, YouTube Music, SoundCloud,
+  Bandcamp, Vimeo, Twitch — so a track can be tuned while it plays, with the
+  spectrum moving underneath it. It is not a browser: it goes to those sites and
+  nowhere else, deliberately.
+- **The search box remembers.** What you looked for before comes back as you
+  type, closest matches first, with a cross on each to forget it. Anyone
+  checking a crossover plays the same reference track twenty times in a week.
+- **Two sizes for the graph, on one menu.** _Expand view_ (Ctrl+S) floats it
+  over the workspace while you keep working; _Full screen_ (Ctrl+F) gives it the
+  whole screen and takes the video player fullscreen with it. Escape comes back
+  from either.
+- **See through the graph.** In full screen, two sliders decide how much of what
+  is behind shows through and how hard it is blurred — all the way to a graph
+  drawn straight over the video with no panel at all.
+- **Hide the grid** (Ctrl+G), so nothing is left but the wave. Separate from
+  _Wave only_ (Ctrl+W), which hides the EQ curves and keeps the scale.
+- **Every shortcut is written down** in that menu, beside the thing it does.
 - **Loudness.** One press, under the euphoria pill, and quiet listening stops
   sounding thin. The ear loses bass and treble far faster than it loses the
   midrange as the volume comes down — which is why music at low level sounds
   hollow rather than merely quiet — so this puts back what your hearing stops
-  picking up. It reads as fuller and louder while the peak level barely moves.
-  It cannot clip you: the preamp comes down to meet it automatically, the same
-  way it does for every other layer. Switching it off leaves your tuning
-  exactly as it was.
+  picking up. It reads as fuller while the peak level barely moves, and it
+  cannot clip you: the preamp comes down to meet it automatically, the same way
+  it does for every other layer. Not a compressor — Equalizer APO has no
+  dynamics processing at all, and a control claiming otherwise would be lying.
 - **Report a problem**, in the actions menu. It gathers the logs, strips
   anything that identifies you, shows you the whole thing, and lets you post it
   as a GitHub issue or email it privately. Nothing is sent until you press one
   of those, and you can read and edit every word first. Account names, file
   paths, email addresses and network share names are removed automatically.
-- **The status line does something now.** When it says Equalizer APO is not
-  responding, clicking it brings back the panel with the Install and Retry
-  buttons — which previously could be dismissed and never seen again.
+
+### Fixed
+
+- **Signing in to YouTube closed the app.** Not the tab — the whole thing. The
+  guard that turns back a link leading off the allowed sites was cancelling the
+  navigation from inside the notification that it had started, and taking
+  Chromium down with it.
+- **The graph goes on watching after the audio device changes.** Reinstalling
+  Equalizer APO, restarting the audio service or switching the default device
+  leaves the capture running against an endpoint Windows has invalidated —
+  live, silent, and never recovering. The trace simply stopped moving. It now
+  notices and re-acquires.
+- **The divider between the panes keeps its proportion.** It remembered a number
+  of pixels, so a split set on a large monitor was most of a laptop screen — and
+  the correction that kept the panes on screen overwrote the setting, losing it
+  for good. It remembers the ratio.
+- **Reinstall Equalizer APO says something useful when the installer is
+  missing.** It showed the words `apo-bundle-missing` over "please restart the
+  application". It now opens Equalizer APO's own download page, which is the one
+  situation where that is the right answer.
+- **The window's own errors reach the log.** Nothing in the interface had ever
+  written a line to the file a bug report attaches, so a report about the part
+  of the app you actually look at described everything except it. Crashes in the
+  main process are recorded too, rather than leaving a window that just
+  disappears.
+- **"Equalizer APO is not responding" can be clicked.** It reopens the notice
+  with the Install and Retry buttons — which, once dismissed, previously could
+  not be reached again at all, because it only reappears when the error text
+  changes and for a missing audio engine it never does.
+- **The player comes back where you left it** after a restart, instead of on
+  YouTube's home page.
+- **The live trace is at full strength in _Wave only_.** It was drawn at half
+  strength to sit under the EQ curves — which are exactly what that mode hides.
 
 ---
 
