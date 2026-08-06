@@ -217,6 +217,24 @@ const hardenPlayer = (contents: WebContents) => {
   });
 
   contents.on('did-start-navigation', (details) => {
+    // Every main-frame move, before any judgement is passed on it.
+    //
+    // The refusals above are only half a diagnosis. When a click does nothing,
+    // the question that decides everything is whether the page tried to go
+    // anywhere at all — a refusal means the allow-list is wrong, and silence
+    // means the click never reached a link and the allow-list is innocent.
+    // Logging only the refusals cannot tell those apart: both look like an
+    // empty log. So the successes are named too, and `same-document` is on the
+    // line because a site whose routing is client-side moves without ever
+    // asking for a page.
+    if (details.isMainFrame) {
+      log.info(
+        `Video player navigating to ${details.url}${
+          details.isSameDocument ? ' (same-document)' : ''
+        }`,
+      );
+    }
+
     // Same-document moves are YouTube's own routing pushing a new path onto a
     // page that is already loaded and already allowed. There is no request to
     // stop, and stopping one would break ordinary navigation around the site.
@@ -259,6 +277,7 @@ const hardenPlayer = (contents: WebContents) => {
     // navigating the contents that is being asked about, from inside the
     // answer, is a re-entrant call.
     if (isNavigableVideoUrl(url)) {
+      log.info(`Video player took a popup to ${url} into the player`);
       setImmediate(() => {
         if (!contents.isDestroyed()) {
           contents.loadURL(url).catch(() => {
