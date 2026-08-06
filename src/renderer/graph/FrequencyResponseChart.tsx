@@ -725,6 +725,24 @@ const FrequencyResponseChart = () => {
     }
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        // Not while something is open in front of it.
+        //
+        // These are window-level handlers, so an Escape meant for the dialog on
+        // screen — Report a problem, Fix audio problems, the view menu itself —
+        // reached this as well and did both things at once: the dialog closed
+        // and the graph dropped out of full screen behind it. Escape means
+        // "close the nearest thing", and the nearest thing is whatever is over
+        // the top.
+        if (
+          document.querySelector('[role="dialog"], [role="menu"]') ||
+          // Every one of these also has its own key handling, and a text field
+          // in particular treats Escape as "cancel this edit".
+          (event.target as HTMLElement | null)?.closest?.(
+            'input, textarea, [contenteditable]',
+          )
+        ) {
+          return;
+        }
         exitGraphFullScreen();
         return;
       }
