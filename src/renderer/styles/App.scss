@@ -1140,7 +1140,14 @@ $tab-border: rgba($secondary-light, 0.2);
 // own: it reads directly on the graph card.
 .live-output-controls {
   position: absolute;
-  z-index: 1;
+  // Above the plot, and stated rather than left to document order.
+  //
+  // It was 1, which already beat the plot's `auto` — but only because nothing
+  // in the drawing had ever claimed a layer of its own, and the strip has no
+  // surface behind it, so a wave crossing the row read as being in front
+  // whether it was or not. With the band gone the peaks come all the way up
+  // here, so this is worth being explicit about.
+  z-index: 3;
   top: 8px;
   right: 10px;
   left: 10px;
@@ -1150,6 +1157,13 @@ $tab-border: rgba($secondary-light, 0.2);
   justify-content: flex-end;
   gap: $spacing-s;
   font-size: 0.65rem;
+  // Enough dark behind each glyph to hold it apart from whatever is moving
+  // underneath, and nothing that draws a box. A band across the top was the
+  // other answer and it cost the whole edge of the picture; this costs the
+  // width of the letters.
+  text-shadow:
+    0 1px 2px rgba($black, 0.75),
+    0 0 6px rgba($black, 0.55);
   pointer-events: none;
 
   > * {
