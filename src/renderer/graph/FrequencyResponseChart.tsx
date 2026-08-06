@@ -778,8 +778,20 @@ const FrequencyResponseChart = () => {
               isContinuous: true,
               line: {
                 color: ColorEnum.ANALOGOUS2,
-                strokeWidth: 2,
-                opacity: SUPPORTING_CURVE_OPACITY,
+                // Heavier as well as brighter when it is the only thing drawn.
+                // Two pixels is a supporting weight, chosen so five curves of
+                // similar thickness do not read as a tangle; alone on the grid
+                // it just looks thin.
+                strokeWidth: isSolo ? 2.6 : 2,
+                // Held back only while there is something to hold it back for.
+                //
+                // The live trace is dimmed because it is context for the curve
+                // being edited — one of four layers under the response, and at
+                // full strength they fight. Solo removes every one of them, so
+                // the reason to dim it goes with them: what was left was the
+                // one drawing on screen, drawn at half strength for the benefit
+                // of curves that are no longer there.
+                opacity: isSolo ? 1 : SUPPORTING_CURVE_OPACITY,
                 points: liveOutput.points,
               },
             } as IChartCurveData,

@@ -211,6 +211,27 @@
   }
 }
 
+// The live trace coming forward, and going back.
+//
+// Wave only takes the trace from a supporting layer to the subject of the
+// graph: brighter, and a little heavier. Snapping between the two reads as a
+// glitch — the drawing is already moving with the music, so an instant change
+// of weight looks like a frame was dropped rather than like a mode changed.
+// Eased, it reads as the trace stepping forward.
+//
+// On the opacity and the stroke width only, and both are compositor-friendly:
+// nothing here re-rasterises the path, which matters because this is the one
+// curve being re-pathed twenty-two times a second underneath the transition.
+//
+// These are SVG presentation attributes rather than inline styles — d3 sets
+// them with `.attr` — and Chromium transitions the computed value just the
+// same, which is why this works without touching how the trace is drawn.
+.chart-live-trace {
+  transition:
+    opacity 420ms ease,
+    stroke-width 420ms ease;
+}
+
 // Hide everything but the live trace.
 //
 // A real button rather than more plain text: unlike the picker beside it this

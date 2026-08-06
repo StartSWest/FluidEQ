@@ -317,6 +317,7 @@ const Line = ({
       {glow && gradientId && (
         <path
           name={`${name} glow`}
+          className={smooth ? 'chart-live-trace' : undefined}
           d={d || undefined}
           stroke={`url(#${gradientId})`}
           strokeWidth={strokeWidth + 7}
@@ -336,7 +337,16 @@ const Line = ({
       <path
         name={name}
         ref={ref}
-        className={look.palette === 'rainbow' ? 'is-rainbow' : undefined}
+        // `chart-live-trace` carries the transition between the trace's
+        // supporting strength and its full one — see GraphTheme. Only the live
+        // curve gets it: every other curve here is redrawn when a band moves,
+        // and an opacity easing over that would smear one edit into the next.
+        className={[
+          look.palette === 'rainbow' ? 'is-rainbow' : '',
+          smooth ? 'chart-live-trace' : '',
+        ]
+          .filter(Boolean)
+          .join(' ')}
         stroke={isPainted ? 'none' : paint}
         strokeWidth={strokeWidth}
         strokeLinecap="round"
