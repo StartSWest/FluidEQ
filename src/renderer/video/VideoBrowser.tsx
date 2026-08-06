@@ -337,13 +337,27 @@ const resumePlaybackScript = (position: number) => `(() => {
   return 'ok';
 })()`;
 
+/**
+ * Leave the page's own fullscreen, and never do anything that could enter it.
+ *
+ * This used to press the site's fullscreen button, on the reasoning that a
+ * player should leave the way it came in. That button is a *toggle*. Whether
+ * pressing it exited or entered depended on what `document.fullscreenElement`
+ * happened to be at the instant the call landed — so the same keystroke put the
+ * page into fullscreen about as often as it took it out, and the page's
+ * fullscreen puts the player in Chromium's top layer while the injected rules
+ * are still pinning it to the viewport. Two accounts of where the player
+ * belongs, and a black screen. That is the whole of "full screen works
+ * sometimes"; expanded never showed it because the modes are otherwise the
+ * same and only this ran differently by timing.
+ *
+ * `exitFullscreen` cannot do the opposite of what it says. The site's own
+ * fullscreen is now something this player only ever ends, never begins — the
+ * injection already gives the picture the entire window in both modes, so there
+ * was never anything for the site's version to add.
+ */
 const EXIT_PAGE_FULLSCREEN = `(() => {
   if (!document.fullscreenElement) { return 'none'; }
-  const button = document.querySelector(
-    '.ytp-fullscreen-button, [data-a-target="player-fullscreen-button"], .fullscreen-control, .vp-fullscreen'
-  );
-  // Same reasoning in reverse: let the player leave the way it came in.
-  if (button) { button.click(); return 'button'; }
   document.exitFullscreen();
   return 'exit';
 })()`;
