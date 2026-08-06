@@ -115,6 +115,46 @@ const PLAYER_ONLY_CSS = `
     height: 100vh !important;
     background: #000 !important;
   }
+
+  /* YouTube Music's band down the side.
+
+     Only there, and the selector says so. On YouTube the marked player is
+     '#movie_player' itself and its own resize logic follows the box it is
+     given. On YouTube Music the marked player is 'ytmusic-player' — the app's
+     element, chosen deliberately so the nav rail and the queue stay on the
+     chain — and YouTube's player sits inside it still sized for a layout with
+     that rail beside it. Pinning the outer element tells the inner one
+     nothing, so it kept its width and left black down the side where it no
+     longer reached.
+
+     Checked rather than assumed: YouTube Music uses no shadow DOM, so
+     '#movie_player' really is a light-DOM descendant here and an ordinary
+     descendant selector reaches it. */
+  html[data-fluideq-solo] ytmusic-player[data-fluideq-player] #movie_player,
+  html[data-fluideq-solo] ytmusic-player[data-fluideq-player] .html5-video-player,
+  html[data-fluideq-solo] ytmusic-player[data-fluideq-player] .html5-video-container {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    max-height: none !important;
+  }
+
+  /* And the video itself, which does not follow on its own.
+
+     These players size their video element in inline styles, against the
+     container they believe they have. 'contain' rather than 'cover' because
+     the alternative to a black band is not a stretched picture: a video that
+     does not match the window letterboxes, as it does everywhere else. */
+  html[data-fluideq-solo] [data-fluideq-player] video {
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: contain !important;
+  }
 `;
 
 /**
@@ -139,7 +179,7 @@ const ENTER_PLAYER_ONLY = `(() => {
   // rail, queue, now-playing bar — off the chain and therefore hidden, which on
   // a music app removes the half people actually use.
   const SELECTOR =
-    'ytmusic-player, #movie_player, .html5-video-player, [data-a-target="video-player"], .vp-player-layout';
+    'ytmusic-player, #movie_player, .html5-video-player, [data-a-target="video-player"]';
   const mark = () => {
     // The largest video, rather than the first in the document. Pages are full
     // of thumbnails and preview loops; the one being watched is the big one.
@@ -454,8 +494,8 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
    * `will-navigate` is visible to this component and already raises the notice.
    * A `target="_blank"` is not: it is answered in the main process, so a click
    * that opened a window to somewhere unlisted did nothing at all and looked
-   * exactly like a broken page — which is how Vimeo reads when a video will not
-   * open. The boundary should be legible; that is the whole point of having one.
+   * exactly like a broken page. The boundary should be legible; that is the
+   * whole point of having one.
    */
   useEffect(() => {
     const off = window.electron.ipcRenderer.on(
