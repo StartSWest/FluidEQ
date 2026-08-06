@@ -32,11 +32,10 @@
   // Enough that the trace behind stays legible while the panel is read, opaque
   // enough that the text on it is not sitting on moving bars.
   background: rgba(#0e1520, 0.94);
-  // Deliberately not hidden: the form picker's menu is positioned absolutely
-  // from its trigger, and clipping it here would cut a list of thirty-six off
-  // at the panel's edge. The graph card around it is what bounds it instead,
-  // which is where the picker in the legend above is already bounded.
-  overflow: visible;
+  // Clipped again. This was `visible` to let the panel's own form dropdown open
+  // past the edge; that dropdown is gone — the picker in the header does the
+  // job — and nothing left in here escapes its own box.
+  overflow: hidden;
 }
 
 // The legend keeps its row.
@@ -75,9 +74,17 @@
   line-height: 1;
 }
 
-// The form, which is the choice everything below it is a refinement of.
+// Says where the form is chosen, since it is not chosen in here.
+//
+// The panel opens on whatever the picker is showing and re-forms as that
+// changes, which is only obvious once somebody has tried it — so it is worth
+// one line to say so rather than leaving the shape control apparently missing.
 .look-designer__pick {
-  padding: 11px 12px 0;
+  margin: 0;
+  padding: 10px 12px 0;
+  color: rgba($primary-lighter, 0.55);
+  font-size: 0.58rem;
+  line-height: 1.35;
 }
 
 .look-designer__body {
@@ -217,6 +224,116 @@
   }
 }
 
+// The colour stops, in the order they are painted.
+.look-designer__swatches {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+
+// A stop, with the control to drop it tucked into its corner.
+//
+// The remove button sits on top of the swatch rather than beside it: six stops
+// each with a button next to them is twelve controls in a 228px column, and the
+// row wraps into an unreadable grid. On the corner it is out of the way until
+// wanted, and the swatch stays big enough to judge the colour by.
+.look-designer__swatch {
+  position: relative;
+  display: inline-flex;
+
+  input[type='color'] {
+    width: 30px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid rgba($secondary-light, 0.35);
+    border-radius: $radius-xs;
+    background: none;
+    cursor: pointer;
+
+    &:focus-visible {
+      @include focus-ring;
+      outline: none;
+    }
+
+    // Chromium draws its own inset swatch; these strip it back to the colour.
+    &::-webkit-color-swatch-wrapper {
+      padding: 2px;
+    }
+
+    &::-webkit-color-swatch {
+      border: 0;
+      border-radius: 3px;
+    }
+  }
+}
+
+.look-designer__swatch-drop {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  border: 1px solid rgba($primary-lighter, 0.25);
+  border-radius: 50%;
+  background: $surface-panel;
+  color: rgba($primary-lighter, 0.8);
+  font-size: 0.44rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0;
+  transition: $transition-control;
+
+  // Shown on hover or focus, so the row is swatches until it needs to be
+  // controls — but never keyboard-unreachable.
+  .look-designer__swatch:hover &,
+  &:focus-visible {
+    opacity: 1;
+  }
+
+  &:hover {
+    color: $white;
+    border-color: rgba(#ff6b6b, 0.8);
+  }
+}
+
+.look-designer__swatch-add {
+  @include ghost-button;
+
+  width: 30px;
+  height: 24px;
+  padding: 0;
+  border-radius: $radius-xs;
+  font-size: 0.72rem;
+  line-height: 1;
+}
+
+// What the ramp will actually look like, drawn the way the graph runs it.
+.look-designer__ramp {
+  height: 8px;
+  border: 1px solid rgba($primary-lighter, 0.14);
+  border-radius: $radius-pill;
+}
+
+// Puts the stops back to what the palette paints on its own.
+.look-designer__reset {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: rgba($secondary-light, 0.85);
+  font: inherit;
+  font-size: 0.58rem;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+
+  &:hover {
+    color: $white;
+  }
+}
+
 .look-designer__check {
   width: 14px;
   height: 14px;
@@ -282,28 +399,6 @@
       background: rgba(#ff6b6b, 0.18);
     }
   }
-}
-
-// The form picker reuses the app's dropdown, which is sized for a card.
-.look-designer .dropdown {
-  width: 100%;
-
-  .list-wrapper {
-    width: 228px;
-    min-width: 228px;
-  }
-
-  ul {
-    max-height: 260px;
-  }
-
-  li {
-    font-size: 0.68rem;
-  }
-}
-
-.look-designer__form {
-  @include truncate;
 }
 
 // A narrow window has no room for a panel and a readable plot side by side, so

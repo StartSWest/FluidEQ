@@ -84,6 +84,7 @@ import {
   useWaveOrientation,
   useGraphView,
   useFullScreenTopBar,
+  useGraphLook,
   useLiveOutputSolo,
   useSelectedLookId,
 } from '../utils/graphStyle';
@@ -156,6 +157,9 @@ const FrequencyResponseChart = () => {
   // is drawing an unsaved draft whose id is in no list, and a picker handed
   // that id would show nothing.
   const selectedLookId = useSelectedLookId();
+  // The resolved look, which unlike the id above follows the designer's draft —
+  // so a border switched on in the panel is on the card before it is saved.
+  const liveLook = useGraphLook();
   const customLooks = useCustomLooks();
   const [isDesignerOpen, setIsDesignerOpen] = useState(false);
   const isSolo = useLiveOutputSolo();
@@ -1119,13 +1123,16 @@ const FrequencyResponseChart = () => {
         isGridHidden ? ' is-gridless' : ''
       }${isStretched ? ' is-stretched' : ''}${
         isDesignerOpen ? ' is-designing' : ''
-      }`}
+      }${liveLook.tuning.border ? ' has-euphoria-border' : ''}`}
       aria-disabled={!isEngineUsable}
       // Read by the full-screen rules only. Handed down as variables rather
       // than as a style on the card itself, because what they actually apply to
       // is the surface layer behind the drawing — see GraphTheme.
       style={
         {
+          // Read only by the euphoria border rule, which is the one place the
+          // look gets to set a size on the card rather than on the drawing.
+          '--euphoria-border-width': `${liveLook.tuning.borderWidth}px`,
           '--graph-overlay-opacity': overlayOpacity,
           // The whole filter, so that no blur is the keyword `none` rather than
           // `blur(0px)` — which is still a filter, and still costs a

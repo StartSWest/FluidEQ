@@ -32,6 +32,21 @@ export const BAND_SPECTRUM_STOPS: ReadonlyArray<{
   color: `rgb(${stop.color.join(', ')})`,
 }));
 
+/**
+ * The same palette as hex, for the colour pickers in the look designer.
+ *
+ * A native colour input speaks `#rrggbb` and nothing else — hand it
+ * `rgb(0, 229, 207)` and it silently shows black — so somebody starting from
+ * the spectrum needs it in that form. Derived from the same stops rather than
+ * written out again, for the reason the comment above already gives.
+ */
+export const BAND_SPECTRUM_HEX: readonly string[] = BAND_COLOR_STOPS.map(
+  (stop) =>
+    `#${stop.color
+      .map((channel) => channel.toString(16).padStart(2, '0'))
+      .join('')}`,
+);
+
 export const getBandColor = (progress: number): IBandColor => {
   const normalized = Math.max(0, Math.min(1, progress));
   const rightStop =

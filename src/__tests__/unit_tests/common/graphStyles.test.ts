@@ -17,10 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  GLOW_COMPLEXITY_LIMIT,
   GRAPH_LOOKS,
   GRAPH_PALETTES,
   GRAPH_STYLES,
   GRAPH_STYLE_LABELS,
+  getGlowStyle,
   MAX_GRAPH_COLUMNS,
   MIN_GRAPH_COLUMNS,
   clampGraphColumns,
@@ -562,5 +564,64 @@ describe('the later forms are the right way up', () => {
     expect(area).not.toContain(0);
     expect(canyon).toContain(0);
     expect(canyon).not.toContain(BASELINE);
+  });
+});
+
+describe('the glow picks its own silhouette', () => {
+  // What a halo is stroked from. Light comes off the outside of a thing, and a
+  // wall of LED bricks should glow as one lit bar rather than as forty
+  // separately haloed bricks — but a thin zigzag should glow as itself, not as
+  // a bar chart standing behind it. The engine decides by measuring, because
+  // deciding by hand put bars behind the zipper.
+  it('lights the simple forms as themselves', () => {
+    // Every one of these draws few enough pieces that the light can follow the
+    // real geometry, which always reads better than an impression of it.
+    ['line', 'bars', 'zipper', 'spikes', 'dots', 'area', 'slope'].forEach(
+      (style) => {
+        const shape = shapeOf(style as GraphStyle);
+        expect(shape.length).toBeLessThanOrEqual(GLOW_COMPLEXITY_LIMIT);
+        expect(getGlowStyle(style as GraphStyle, shape.length)).toBe(style);
+      },
+    );
+  });
+
+  it('falls back to a silhouette for the intricate ones', () => {
+    // An order of magnitude heavier than the forms above, and made of pieces
+    // whose individual outlines are not what anybody is looking at.
+    (['blocks', 'matrix', 'ribs', 'honeycomb'] as GraphStyle[]).forEach(
+      (style) => {
+        const shape = shapeOf(style);
+        expect(shape.length).toBeGreaterThan(GLOW_COMPLEXITY_LIMIT);
+        expect(getGlowStyle(style, shape.length)).toBe('bars');
+      },
+    );
+  });
+
+  it('gives the skyline solid towers rather than a gapped bar chart', () => {
+    // Buildings stand shoulder to shoulder; the gaps a bar chart leaves would
+    // read as light between towers that are not there.
+    expect(getGlowStyle('skyline', 99999)).toBe('pillars');
+  });
+
+  it('keeps a continuous form continuous', () => {
+    // A run of bars behind a curve is not that curve's shadow.
+    expect(getGlowStyle('hatch', 99999)).toBe('area');
+    expect(getGlowStyle('echo', 99999)).toBe('area');
+  });
+
+  it('follows the look rather than the form', () => {
+    // The same form crosses the line on its own once its density is turned up,
+    // which is the point of measuring rather than listing.
+    const sparse = createGraphShape(points, 'blocks', BASELINE, 8);
+    const dense = createGraphShape(points, 'blocks', BASELINE, 160);
+    expect(getGlowStyle('blocks', sparse.length)).toBe('blocks');
+    expect(getGlowStyle('blocks', dense.length)).toBe('bars');
+  });
+
+  it('never asks for a silhouette that is itself intricate', () => {
+    // Otherwise the fallback would be as expensive as the thing it replaced.
+    (['bars', 'pillars', 'area'] as GraphStyle[]).forEach((style) => {
+      expect(shapeOf(style).length).toBeLessThanOrEqual(GLOW_COMPLEXITY_LIMIT);
+    });
   });
 });

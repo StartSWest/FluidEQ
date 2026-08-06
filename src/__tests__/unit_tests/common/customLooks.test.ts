@@ -29,8 +29,12 @@ import {
 } from 'common/graphStyles';
 import {
   CUSTOM_LOOK_PREFIX,
+  DEFAULT_BORDER_WIDTH,
+  DEFAULT_GLOW,
+  DEFAULT_LEVEL_COLOURS,
   ICustomLook,
   MAX_ATTACK_MS,
+  MAX_LOOK_COLOURS,
   MAX_CUSTOM_LOOKS,
   MAX_FILL_OPACITY,
   MAX_LOOK_NAME_LENGTH,
@@ -38,17 +42,23 @@ import {
   MAX_STROKE_WIDTH,
   MIN_ATTACK_MS,
   MIN_FILL_OPACITY,
+  MIN_GLOW,
+  MAX_GLOW,
   MIN_RELEASE_MS,
   MIN_STROKE_WIDTH,
   createCustomLookId,
   createDraftLook,
+  getDefaultPaletteColours,
   getDefaultTuning,
   isCustomLookId,
+  isLookColour,
   normalizeCustomLook,
+  normalizeLookColours,
   normalizeLookName,
   normalizeTuning,
   parseCustomLooks,
   rebaseDraftLook,
+  recolourDraftLook,
   resolveCustomLook,
   serializeCustomLooks,
 } from 'common/customLooks';
@@ -103,6 +113,7 @@ describe('normalizeTuning', () => {
         strokeWidth: 3,
         fillOpacity: 0.4,
         accents: false,
+        glow: 0.5,
       },
       'bars',
     );
@@ -115,7 +126,33 @@ describe('normalizeTuning', () => {
       fillOpacity: 0.4,
       // Bars have no lit tips to switch on, so the stored answer is irrelevant.
       accents: false,
+      glow: 0.5,
+      border: false,
+      borderWidth: DEFAULT_BORDER_WIDTH,
     });
+  });
+
+  it('leaves the euphoria border off unless it is asked for', () => {
+    // It decorates the window rather than the drawing, and a frame nobody chose
+    // is furniture.
+    expect(getDefaultTuning('bars').border).toBe(false);
+    expect(normalizeTuning({ border: true }, 'bars').border).toBe(true);
+    expect(normalizeTuning({ border: 'yes' }, 'bars').border).toBe(false);
+  });
+
+  it('lets the glow be turned off entirely', () => {
+    // Zero has to survive, because it is the setting somebody reaches for when
+    // the halo is softening a drawing they wanted sharp — and a floor above it
+    // would make that unreachable.
+    expect(normalizeTuning({ glow: 0 }, 'bars').glow).toBe(0);
+    expect(normalizeTuning({ glow: -3 }, 'bars').glow).toBe(MIN_GLOW);
+    expect(normalizeTuning({ glow: 9 }, 'bars').glow).toBe(MAX_GLOW);
+  });
+
+  it('keeps the glow low by default, so the figure stays sharp', () => {
+    // A drawing read through its own light is not a drawing you can read.
+    expect(getDefaultTuning('bars').glow).toBe(DEFAULT_GLOW);
+    expect(DEFAULT_GLOW).toBeLessThan(0.5);
   });
 
   it('pulls every number back inside its range from above', () => {
@@ -356,7 +393,117 @@ describe('resolveCustomLook', () => {
       style: 'bars',
       palette: 'signal',
       tuning: look.tuning,
+      colours: [],
       isCustom: true,
     });
+  });
+});
+
+describe('palette colours', () => {
+  it('leaves the palettes that already have colours alone', () => {
+    // Empty is not "no colours" — it is "the ones already on screen". Signal
+    // keeps taking the curve's own colour and rainbow keeps painting from the
+    // chart's full-spectrum gradient, so every look that shipped before any of
+    // this existed draws exactly as it did.
+    expect(getDefaultPaletteColours('signal')).toEqual([]);
+    expect(getDefaultPaletteColours('rainbow')).toEqual([]);
+  });
+
+  it('gives the level palette a ramp of its own', () => {
+    // The one palette with nothing existing to point at, so it carries stops.
+    const colours = getDefaultPaletteColours('level');
+    expect(colours).toEqual(DEFAULT_LEVEL_COLOURS);
+    expect(colours.length).toBeGreaterThan(1);
+  });
+
+  it('ends the level ramp on red, because that is what loud means', () => {
+    // Not decoration. The whole reason the palette reads without explanation is
+    // that it ends where every level meter ever built ends.
+    const [red, green, blue] = (
+      DEFAULT_LEVEL_COLOURS[DEFAULT_LEVEL_COLOURS.length - 1].match(
+        /[\da-f]{2}/gi,
+      ) ?? []
+    ).map((pair) => parseInt(pair, 16));
+    expect(red).toBeGreaterThan(green);
+    expect(red).toBeGreaterThan(blue);
+  });
+
+  it('hands back a copy, so a look cannot edit the defaults', () => {
+    const first = getDefaultPaletteColours('level');
+    first.push('#000000');
+    expect(getDefaultPaletteColours('level')).toEqual(DEFAULT_LEVEL_COLOURS);
+  });
+
+  it('accepts the hex a colour input actually emits', () => {
+    expect(isLookColour('#ff4f4f')).toBe(true);
+    expect(isLookColour('#FFF')).toBe(true);
+    // A native colour input speaks hex and nothing else, and an `rgb()` string
+    // handed to one silently shows black.
+    expect(isLookColour('rgb(255, 0, 0)')).toBe(false);
+    expect(isLookColour('red')).toBe(false);
+    expect(isLookColour('#12345')).toBe(false);
+    expect(isLookColour('')).toBe(false);
+    expect(isLookColour(null)).toBe(false);
+  });
+});
+
+describe('normalizeLookColours', () => {
+  it('keeps a readable ramp, lowercased', () => {
+    expect(normalizeLookColours(['#FF0000', ' #00ff00 '], 'level')).toEqual([
+      '#ff0000',
+      '#00ff00',
+    ]);
+  });
+
+  it('drops what it cannot read rather than guessing at it', () => {
+    // There is no sensible "nearest colour" to a value that is not one.
+    expect(
+      normalizeLookColours(['#ff0000', 'chartreuse', 42, null], 'level'),
+    ).toEqual(['#ff0000']);
+  });
+
+  it('falls back to the palette when nothing is usable', () => {
+    // Losing a look to a bad colour is worse than drawing it in the default.
+    expect(normalizeLookColours(['nonsense'], 'level')).toEqual(
+      DEFAULT_LEVEL_COLOURS,
+    );
+    expect(normalizeLookColours([], 'rainbow')).toEqual([]);
+    expect(normalizeLookColours('not an array', 'level')).toEqual(
+      DEFAULT_LEVEL_COLOURS,
+    );
+  });
+
+  it('stops at the most stops the eye can separate', () => {
+    const many = Array.from({ length: MAX_LOOK_COLOURS + 5 }, () => '#123456');
+    expect(normalizeLookColours(many, 'level')).toHaveLength(MAX_LOOK_COLOURS);
+  });
+});
+
+describe('recolourDraftLook', () => {
+  it('takes the new palette’s colours rather than carrying the old ones', () => {
+    // Four colours running quiet-to-loud up the decibel axis are not four
+    // colours running bass-to-treble across the frequency axis. Carried over,
+    // a level ramp would silently start reading as a spectrum.
+    const level = { ...draftOf('bars'), palette: 'level' as const };
+    const coloured = { ...level, colours: ['#111111', '#222222'] };
+    const rebased = recolourDraftLook(coloured, 'rainbow');
+    expect(rebased.palette).toBe('rainbow');
+    expect(rebased.colours).toEqual([]);
+  });
+
+  it('leaves the form and its tuning completely alone', () => {
+    // A change of colouring, not of shape.
+    const draft = draftOf('skyline');
+    const rebased = recolourDraftLook(draft, 'level');
+    expect(rebased.style).toBe('skyline');
+    expect(rebased.tuning).toEqual(draft.tuning);
+    expect(rebased.name).toBe(draft.name);
+  });
+
+  it('does nothing at all when the palette has not changed', () => {
+    // Identity: this runs on every press of the palette buttons, and a fresh
+    // object would throw away an edit in progress.
+    const draft = draftOf('bars');
+    expect(recolourDraftLook(draft, draft.palette)).toBe(draft);
   });
 });

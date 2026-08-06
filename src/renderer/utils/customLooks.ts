@@ -20,6 +20,7 @@ import { useSyncExternalStore } from 'react';
 import {
   ICustomLook,
   MAX_CUSTOM_LOOKS,
+  normalizeCustomLook,
   parseCustomLooks,
   serializeCustomLooks,
 } from 'common/customLooks';
@@ -127,3 +128,47 @@ const NO_LOOKS: readonly ICustomLook[] = [];
 
 export const useCustomLooks = (): readonly ICustomLook[] =>
   useSyncExternalStore(subscribeCustomLooks, getCustomLooks, () => NO_LOOKS);
+
+/**
+ * The look being built but not yet saved.
+ *
+ * Kept because losing it is worse than the thing not keeping it avoids. The
+ * original reasoning was that an unsaved draft outliving a restart is a look
+ * somebody cannot find in the picker and cannot get rid of — but that only
+ * bites if the draft comes back on its own, and it does not: it is read when
+ * the panel is opened, and both ways of leaving the panel clear it. Save keeps
+ * the look properly; Close is an explicit discard.
+ *
+ * What is left is exactly the case worth surviving — a reload, a crash, a
+ * restart in the middle of mixing a ramp — where the alternative is doing it
+ * all again from memory.
+ */
+const DRAFT_KEY = 'fluideq.lookDraft';
+
+export const readLookDraft = (): ICustomLook | null => {
+  try {
+    const stored = window.localStorage.getItem(DRAFT_KEY);
+    // Through the same validation a saved look gets. It was written by a build
+    // that may not be this one, and a draft is no more trustworthy than the
+    // list.
+    return stored ? normalizeCustomLook(JSON.parse(stored)) : null;
+  } catch {
+    return null;
+  }
+};
+
+export const writeLookDraft = (look: ICustomLook): void => {
+  try {
+    window.localStorage.setItem(DRAFT_KEY, JSON.stringify(look));
+  } catch {
+    // Not worth failing a slider drag over.
+  }
+};
+
+export const clearLookDraft = (): void => {
+  try {
+    window.localStorage.removeItem(DRAFT_KEY);
+  } catch {
+    // Nothing to do; the next open validates whatever is there anyway.
+  }
+};

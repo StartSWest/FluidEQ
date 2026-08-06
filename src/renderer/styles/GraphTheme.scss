@@ -3,11 +3,6 @@
 @use 'spacing' as *;
 @use 'theme' as *;
 
-// The room the header line takes: its 8px inset plus the height of the tallest
-// thing in it. Named because two rules read it — the space reserved for it, and
-// the one mode that gives that space back.
-$graph-controls-height: 40px;
-
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency
 // region brightens as it is actually heard, and a bar underneath fills with its
 // confidence — so "still listening" has a visible reason.
@@ -460,6 +455,21 @@ $graph-controls-height: 40px;
     stroke-width 420ms ease;
 }
 
+// The halo behind the live trace, off unless euphoria is on.
+//
+// `display: none` rather than a zero opacity, and that is the performance
+// story: a transparent path is still one the compositor lays out and paints,
+// and this one is a wide stroke of a figure rewritten twenty-two times a
+// second. Undisplayed it costs nothing — and the frame loop skips writing to it
+// entirely, which is the larger half of the saving, since `d` is parsed whether
+// or not anything is painted.
+//
+// No colour and no weight of its own: Line.tsx owns both, and strokes it with
+// whatever the trace itself is painted with.
+.chart-live-glow {
+  display: none;
+}
+
 // A look the user made, marked wherever its name appears.
 //
 // The picker holds two kinds of thing that are otherwise indistinguishable —
@@ -674,31 +684,19 @@ $graph-controls-height: 40px;
 // moved — and a row squeezed into the right-hand third of the card with nothing
 // beside it is the layout for a problem that no longer exists.
 
-// The drawing starts below the header line, in every mode but one.
+// Nothing is reserved above the drawing, in any mode.
 //
-// The controls float over the card, so without this the wave runs up behind
-// them — legible, since they sit above it and carry a shadow, but busy: a trace
-// crossing a row of labels is two things competing for the same band of the
-// card. Reserving the height means the plot is measured smaller and the drawing
-// is whole inside what is left.
+// There was a strip the height of the header line, so the wave could not run up
+// behind the controls. It reads as a filled band across the top of the card —
+// the card's surface is lighter at its top edge, so forty pixels of it above
+// the drawing is a bar whether or not anything was painted there — and over the
+// player it is the most obvious thing on screen. Worse with the blur up, since
+// the strip sat above the blurred region and stayed sharp while everything
+// under it softened.
 //
-// As padding on the card rather than a margin on the plot, because the chart
-// measures its own box and scales to it. That is the difference between the
-// wave fitting and the wave being trimmed.
-.graph-wrapper {
-  padding-top: $graph-controls-height;
-}
-
-// Full screen is the exception, and it is the one place it should be.
-//
-// There the card is the whole display and the drawing is the reason the mode
-// exists — a strip of reserved air across the top of a full-bleed picture is
-// exactly the framing this mode is for getting rid of. The controls still sit
-// above the wave and are still readable on it; here they simply share the space
-// rather than being given their own.
-.app-workspace.is-app-full .center-workspace.is-graph-full > .graph-wrapper {
-  padding-top: 0;
-}
+// The controls keep their own surface and their own shadow, which is what makes
+// them readable where they overlap the trace, and in the larger modes they fade
+// out entirely when nothing is happening. The drawing gets the height back.
 
 // The panel behind it squares off too, for the same reason.
 .app-workspace.is-app-full .center-workspace.is-graph-full {

@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import {
-  BALANCE_FRAME_INTERVAL_MS,
   IAxisCell,
   IBalanceCaptureState,
   IBalanceProgress,
@@ -37,7 +36,21 @@ const MIN_FREQUENCY = 20;
 const MAX_FREQUENCY = 20000;
 const POINT_COUNT = 320;
 const WAVEFORM_POINT_COUNT = 96;
-const UPDATE_INTERVAL_MS = BALANCE_FRAME_INTERVAL_MS;
+/**
+ * How often the analyser is read, which is most of how late the picture is.
+ *
+ * This used to be `BALANCE_FRAME_INTERVAL_MS` — the Smart EQ measurement's
+ * cadence — and the two have no reason to be the same number. Forty-five
+ * milliseconds is a fine rate at which to accumulate minutes of listening; it
+ * is a poor one at which to watch a kick, because the tick alone puts the
+ * drawing up to a frame behind before anything eases it.
+ *
+ * Safe to shorten because the measurement is driven by elapsed time rather than
+ * by frame count: it reads `timestampMs` and clamps the real delta, so more
+ * frames give it the same answer in more pieces. The constant stays where it is
+ * and keeps doing its other job, which is bounding a stalled tick.
+ */
+const UPDATE_INTERVAL_MS = 20;
 
 // The live trace shows real decibels referenced to THE TRACK, not to the
 // volume knob. Windows loopback carries whatever volume is set, so an absolute
@@ -51,12 +64,18 @@ const UPDATE_INTERVAL_MS = BALANCE_FRAME_INTERVAL_MS;
 // clipping still shows even though the reference moves.
 const LIVE_FULL_SCALE_DB = MAX_GAIN;
 /**
- * Reference release, in dB per frame (~22 fps). Rises instantly to a new peak
- * so a louder passage cannot overshoot the top, then falls about 1 dB per
- * second — slow enough to ride out a quiet bar, fast enough to follow a track
- * change within a few seconds.
+ * Reference release, in dB per frame. Rises instantly to a new peak so a louder
+ * passage cannot overshoot the top, then falls about 1 dB per second — slow
+ * enough to ride out a quiet bar, fast enough to follow a track change within a
+ * few seconds.
+ *
+ * Derived from the tick rather than written as a number, because it is a rate
+ * per frame and the frames got shorter. Left at the old 0.045 it would have
+ * fallen at two and a half dB a second the moment the interval was cut, which
+ * is the sort of thing that changes how the whole plot behaves while looking
+ * like a performance fix.
  */
-const TRACK_REFERENCE_RELEASE_DB = 0.045;
+const TRACK_REFERENCE_RELEASE_DB = UPDATE_INTERVAL_MS / 1000;
 /** Below this the output is silence; there is no meaningful shape to show. */
 const LIVE_SILENCE_DB = -95;
 
@@ -470,10 +489,17 @@ const useLiveOutputSpectrum = () => {
       // anything drew it.
       //
       // At 0.4 the same transient is 60% there immediately and 94% by the
-      // third frame, which is what lets the curve move with a kick instead of
-      // swelling after it. Not zero, because a raw FFT bin jitters frame to
-      // frame and a curve made of pure noise is worse than a slow one.
-      analyser.smoothingTimeConstant = 0.4;
+      // third frame. That was measured against a forty-five millisecond tick,
+      // where three frames is 135ms of lag on its own — and it was the largest
+      // single term in a delay somebody could hear as the bass arriving before
+      // the graph did.
+      //
+      // 0.2 is 80% there immediately and 99% by the third, and the tick above
+      // is now 20ms, so the two compound the other way: the same steadying
+      // costs about a fifth of the delay it used to. Still not zero, because a
+      // raw FFT bin jitters frame to frame and a curve made of pure noise is
+      // worse than a slow one.
+      analyser.smoothingTimeConstant = 0.2;
       activeAudioContext.createMediaStreamSource(stream).connect(analyser);
 
       streamRef.current = stream;

@@ -227,17 +227,29 @@ export const isFilledGraphStyle = (style: GraphStyle): boolean =>
  * colour and in the spectrum, and pairing them as forty flat entries would
  * mean forty pieces of geometry where twenty and a flag will do.
  *
- * `signal` is the trace's own colour, one hue for the whole figure. `rainbow`
- * runs the spectrum across the frequency axis, so a bar's colour says where in
- * the range it sits.
+ * `signal` is the trace's own colour, one hue for the whole figure.
+ *
+ * The other two are gradients, and they differ in which axis they run along —
+ * which is to say, in what the colour actually tells you:
+ *
+ *  - `rainbow` runs across the frequency axis, so a bar's colour says where in
+ *    the range it sits. Colour is position; a bar never changes hue.
+ *  - `level` runs up the decibel axis, so a bar's colour says how loud it is.
+ *    Colour is the signal, and a bar reddens as it grows.
+ *
+ * Both are painted from a gradient pinned to the plot rather than to the
+ * figure, which is the whole reason `level` means anything: tied to the shape's
+ * own bounding box the top of every bar would be the same red whether it was
+ * the loudest thing on screen or barely off the floor.
  */
-export type GraphPalette = 'signal' | 'rainbow';
+export type GraphPalette = 'signal' | 'rainbow' | 'level';
 
-export const GRAPH_PALETTES: GraphPalette[] = ['signal', 'rainbow'];
+export const GRAPH_PALETTES: GraphPalette[] = ['signal', 'rainbow', 'level'];
 
 export const GRAPH_PALETTE_LABELS: Record<GraphPalette, string> = {
   signal: '',
   rainbow: 'rainbow',
+  level: 'level',
 };
 
 /** One selectable look: a form and how it is coloured. */
@@ -1549,6 +1561,72 @@ export const createGraphShape = (
  */
 const ACCENTS: Partial<Record<GraphStyle, 'bead'>> = {
   stems: 'bead',
+};
+
+/**
+ * The form a look's glow should be taken from, which is not always its own.
+ *
+ * Light comes off the outside of a thing. A wall of LED bricks glows as one
+ * lit bar, not as forty separately haloed bricks; hatching glows along the
+ * edge of the hatched region, not around each diagonal. Drawing the halo from
+ * the real geometry gets that wrong in exactly the way that looks cheap — every
+ * internal detail ringed in light, so the figure reads as embroidery rather
+ * than as something glowing.
+ *
+ * It is also what makes the halo affordable. The ornate forms are hundreds of
+ * pieces and a stroke has to be tessellated from every one of them; a
+ * silhouette is one rectangle per band whatever is drawn inside it. Simplifying
+ * for looks and simplifying for cost turn out to be the same edit, which is
+ * usually the sign of the right one — and it buys back enough budget for the
+ * halo to be drawn twice, which is what gives it a falloff instead of an edge.
+ *
+ * Forms already shaped like their own silhouette answer with themselves.
+ */
+/**
+ * Where "too many pieces to light individually" begins, in characters of path.
+ *
+ * Measured rather than guessed, which matters because guessing got it wrong:
+ * a hand-written list of which forms deserved a silhouette put a bar chart
+ * behind the zipper, a form that turns out to be one of the cheapest here.
+ *
+ * The real spread is not close. Drawn over the same spectrum, the thin forms
+ * land between 1,200 and 5,300 — slope 1.2k, zipper 2.3k, bars 2.4k, line 4.6k,
+ * contour 5.1k — and the stacked ones are an order of magnitude past that:
+ * hatch 14k, honeycomb 18k, matrix 28k, skyline 31k, ribs 33k, blocks 44k.
+ * There is an empty gap between about 5k and 9k with almost nothing in it, so
+ * the line goes there and no form sits near enough to flicker across it.
+ *
+ * The string's length is the measure because it is a fair proxy for the work a
+ * wide stroke has to do — every command in it is a piece to tessellate — and it
+ * is free, being already built. It also means the decision follows the look
+ * rather than the form: turn a bar chart's density up to a hundred and sixty
+ * and it crosses the line on its own.
+ */
+export const GLOW_COMPLEXITY_LIMIT = 8000;
+
+/**
+ * The silhouette to use when a figure is too intricate to light piece by piece.
+ *
+ * Only reached past the limit above. `pillars` for the skyline because towers
+ * stand shoulder to shoulder and the gaps a bar chart leaves would read as
+ * light between buildings that are not there.
+ */
+const GLOW_SILHOUETTES: Partial<Record<GraphStyle, GraphStyle>> = {
+  skyline: 'pillars',
+};
+
+export const getGlowStyle = (
+  style: GraphStyle,
+  pathLength: number,
+): GraphStyle => {
+  if (pathLength <= GLOW_COMPLEXITY_LIMIT) {
+    // Few enough pieces that the light can follow the real thing, which always
+    // looks better — it is the actual shape rather than an impression of it.
+    return style;
+  }
+  return (
+    GLOW_SILHOUETTES[style] ?? (isDiscreteGraphStyle(style) ? 'bars' : 'area')
+  );
 };
 
 /**

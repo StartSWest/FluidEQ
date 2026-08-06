@@ -63,6 +63,30 @@ export interface ILookTuning {
   fillOpacity: number;
   /** Lit tips, for the forms that have them. */
   accents: boolean;
+  /**
+   * How strongly the euphoria halo burns, from nothing to full.
+   *
+   * A setting rather than a constant because it trades two things off against
+   * each other and only the person looking can say where the line is: the halo
+   * is light thrown off the figure, and light thrown off a figure softens its
+   * edges. Turned up it pumps; turned up too far the drawing stops being sharp
+   * and the graph stops being readable. At zero the figure is exactly as crisp
+   * as it is with the mode off.
+   */
+  glow: number;
+  /**
+   * Whether euphoria rings the graph in a colour that travels.
+   *
+   * Separate from the glow, because it is a different idea rather than more of
+   * the same one: the glow is light off the figure and stays in the figure's
+   * own colours, while this is the frame around the card cycling through the
+   * whole wheel — the thing a room full of visualisers does, and the one part
+   * of the mode that is decoration rather than a reading. Some looks want it
+   * and some are ruined by it, so it is a switch rather than a rule.
+   */
+  border: boolean;
+  /** How heavy that frame is, in pixels. */
+  borderWidth: number;
 }
 
 export interface ICustomLook {
@@ -71,7 +95,91 @@ export interface ICustomLook {
   style: GraphStyle;
   palette: GraphPalette;
   tuning: ILookTuning;
+  /** Gradient stops. Empty means the palette's own built-in colours. */
+  colours: string[];
 }
+
+/**
+ * How few and how many colours a gradient may be built from.
+ *
+ * One is a flat fill, which is what the signal palette is. Above about six the
+ * stops are closer together than the eye can separate on a bar a few pixels
+ * wide, and the picture stops reading as a gradient and starts reading as
+ * noise.
+ */
+export const MIN_LOOK_COLOURS = 1;
+export const MAX_LOOK_COLOURS = 6;
+
+/**
+ * The colour the live trace is drawn in, for the designer to start from.
+ *
+ * Only a seed. The signal palette itself answers with no colours at all (see
+ * below), so this is what the panel puts in the picker the moment somebody
+ * decides to change it — starting them on the colour that is already on screen
+ * rather than on an arbitrary one.
+ *
+ * Kept in step with `ColorEnum.ANALOGOUS2`, which is what the chart hands the
+ * live curve. It is repeated rather than imported because that enum is in the
+ * renderer's stylesheet layer and this file is shared with the main process.
+ */
+export const DEFAULT_SIGNAL_COLOUR = '#54ff8a';
+
+/**
+ * Quiet to loud.
+ *
+ * Cyan through green and amber into red — the same reading as every level meter
+ * ever built, which is the point: nobody has to be told what the red end means.
+ */
+export const DEFAULT_LEVEL_COLOURS = [
+  '#00e5cf',
+  '#54ff8a',
+  '#ffcc4d',
+  '#ff4f4f',
+];
+
+/**
+ * What a palette paints when nobody has chosen otherwise.
+ *
+ * Two of the three answer with nothing, and that is the point: empty means "the
+ * colours already on screen", so every look that shipped before any of this
+ * existed draws exactly as it did. `signal` keeps taking the colour the chart
+ * hands the curve, and `rainbow` keeps painting from the full-spectrum gradient
+ * in the chart's own `<defs>` — whose stops live in the renderer beside the
+ * bands that share them, and copying those five values down here to hand back
+ * would be the second copy the comment on the original warns will drift.
+ *
+ * `level` is the exception because it is new. There is no existing gradient for
+ * it to point at, so it carries its own.
+ */
+export const getDefaultPaletteColours = (palette: GraphPalette): string[] =>
+  palette === 'level' ? [...DEFAULT_LEVEL_COLOURS] : [];
+
+/** `#rgb` or `#rrggbb`, which is all an SVG stop needs and all a colour input emits. */
+const HEX_COLOUR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
+
+export const isLookColour = (value: unknown): value is string =>
+  typeof value === 'string' && HEX_COLOUR.test(value.trim());
+
+/**
+ * The stops a look will actually be painted with.
+ *
+ * Anything unreadable is dropped rather than repaired — there is no sensible
+ * "nearest colour" to a value that is not one — and a look left with nothing
+ * usable falls back to its palette's own colours rather than to a blank figure.
+ */
+export const normalizeLookColours = (
+  raw: unknown,
+  palette: GraphPalette,
+): string[] => {
+  if (!Array.isArray(raw)) {
+    return getDefaultPaletteColours(palette);
+  }
+  const colours = raw
+    .filter(isLookColour)
+    .map((colour) => colour.trim().toLowerCase())
+    .slice(0, MAX_LOOK_COLOURS);
+  return colours.length ? colours : getDefaultPaletteColours(palette);
+};
 
 /**
  * A look with every drawing question already answered.
@@ -88,6 +196,8 @@ export interface IResolvedLook {
   style: GraphStyle;
   palette: GraphPalette;
   tuning: ILookTuning;
+  /** Gradient stops. Empty means the palette's own built-in colours. */
+  colours: string[];
   isCustom: boolean;
 }
 
@@ -109,6 +219,29 @@ export const MIN_STROKE_WIDTH = 1;
 export const MAX_STROKE_WIDTH = 6;
 export const MIN_FILL_OPACITY = 0.15;
 export const MAX_FILL_OPACITY = 1;
+export const MIN_GLOW = 0;
+export const MAX_GLOW = 1;
+
+/**
+ * How hard the halo burns on a look nobody has set it on.
+ *
+ * Low deliberately. The glow is the loudest thing on screen when it is up, and
+ * a drawing read through its own light is not a drawing you can read — so the
+ * default keeps the figure sharp and leaves the spectacle to whoever wants to
+ * reach for it.
+ */
+export const DEFAULT_GLOW = 0.3;
+
+/**
+ * How heavy the euphoria frame may be.
+ *
+ * One pixel is the card's own edge lit up, which is the restrained reading;
+ * eight is a band of colour around the picture, which is the other one. Both
+ * are wanted by somebody, and neither is right for everyone.
+ */
+export const MIN_BORDER_WIDTH = 1;
+export const MAX_BORDER_WIDTH = 8;
+export const DEFAULT_BORDER_WIDTH = 2;
 
 /**
  * How many looks somebody may keep.
@@ -167,6 +300,11 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     strokeWidth: DEFAULT_STROKE_WIDTH,
     fillOpacity: DEFAULT_FILL_OPACITY,
     accents: hasGraphAccent(style),
+    glow: DEFAULT_GLOW,
+    // Off unless asked for. It is the one part of the mode that decorates the
+    // window rather than the drawing, and a frame nobody chose is furniture.
+    border: false,
+    borderWidth: DEFAULT_BORDER_WIDTH,
   };
 };
 
@@ -227,6 +365,14 @@ export const normalizeTuning = (
     // A form with no lit tips cannot be given them by asking: the accent is a
     // piece of geometry that only exists for the forms in the engine's table.
     accents: hasGraphAccent(style) && readBoolean(source.accents, true),
+    glow: readNumber(source.glow, MIN_GLOW, MAX_GLOW, defaults.glow),
+    border: readBoolean(source.border, defaults.border),
+    borderWidth: readNumber(
+      source.borderWidth,
+      MIN_BORDER_WIDTH,
+      MAX_BORDER_WIDTH,
+      defaults.borderWidth,
+    ),
   };
 };
 
@@ -299,14 +445,19 @@ export const normalizeCustomLook = (raw: unknown): ICustomLook | null => {
   }
   const name =
     typeof source.name === 'string' ? normalizeLookName(source.name) : '';
+  const palette = isGraphPalette(source.palette) ? source.palette : 'signal';
   return {
     id,
     // A look with no name is still a look; naming it after the form it came
     // from is more use than dropping it or showing an empty row.
     name: name || GRAPH_STYLE_LABELS[style],
     style,
-    palette: isGraphPalette(source.palette) ? source.palette : 'signal',
+    palette,
     tuning: normalizeTuning(source.tuning, style),
+    // Looks saved before palettes were colourable have no stops at all, which
+    // is exactly the value that means "the palette's own" — so they keep
+    // drawing as they did.
+    colours: normalizeLookColours(source.colours, palette),
   };
 };
 
@@ -364,6 +515,7 @@ export const createDraftLook = (
   style,
   palette,
   tuning: getDefaultTuning(style),
+  colours: getDefaultPaletteColours(palette),
 });
 
 /**
@@ -384,12 +536,31 @@ export const rebaseDraftLook = (
     ? draft
     : { ...draft, style, tuning: getDefaultTuning(style) };
 
+/**
+ * The same look, recoloured for a different palette.
+ *
+ * The stops go with the palette rather than surviving it, because they mean
+ * different things in each: four colours running quiet-to-loud up the decibel
+ * axis are not four colours running bass-to-treble across the frequency axis,
+ * and carrying them over would hand somebody a level ramp that reads as a
+ * spectrum. The form and its tuning are untouched — this is a change of
+ * colouring, not of shape.
+ */
+export const recolourDraftLook = (
+  draft: ICustomLook,
+  palette: GraphPalette,
+): ICustomLook =>
+  draft.palette === palette
+    ? draft
+    : { ...draft, palette, colours: getDefaultPaletteColours(palette) };
+
 export const resolveBuiltInLook = (look: IGraphLook): IResolvedLook => ({
   id: look.id,
   label: look.label,
   style: look.style,
   palette: look.palette,
   tuning: getDefaultTuning(look.style),
+  colours: getDefaultPaletteColours(look.palette),
   isCustom: false,
 });
 
@@ -399,5 +570,6 @@ export const resolveCustomLook = (look: ICustomLook): IResolvedLook => ({
   style: look.style,
   palette: look.palette,
   tuning: look.tuning,
+  colours: look.colours,
   isCustom: true,
 });

@@ -44,6 +44,50 @@ import {
  */
 const STORAGE_KEY = 'fluideq-graph-style';
 
+/**
+ * The graph's view settings, remembered.
+ *
+ * These used to be deliberately forgotten, on the reasoning that a mode which
+ * outlives a restart is how somebody ends up convinced their sliders have
+ * vanished — and that a window coming back full screen with no visible way out
+ * is worse still. Both are real, and they are the reason the reasoning is
+ * written here rather than quietly reversed.
+ *
+ * They are remembered anyway because of what the graph turned into. It is not
+ * only a measurement now: it is a visualiser somebody sets up the way they want
+ * it — this form, mirrored, no grid, stretched, full screen — and then leaves
+ * running. Rebuilding that arrangement by hand on every launch is the cost of
+ * the old rule, and it is paid every single time. The way out is also better
+ * signposted than it was: Escape leaves, the View menu lists every one of these
+ * with its shortcut, and the sidebar switch turns the graph off entirely.
+ */
+const VIEW_KEYS = {
+  solo: 'fluideq.graphSolo',
+  grid: 'fluideq.graphGridHidden',
+  stretch: 'fluideq.graphStretched',
+  orientation: 'fluideq.waveOrientation',
+  view: 'fluideq.graphView',
+};
+
+const readStored = (key: string): string | null => {
+  try {
+    return window.localStorage.getItem(key);
+  } catch {
+    // Storage can be unavailable; every one of these has a sane default.
+    return null;
+  }
+};
+
+const writeStored = (key: string, value: string) => {
+  try {
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Not worth failing a mode change over.
+  }
+};
+
+const readStoredFlag = (key: string): boolean => readStored(key) === 'true';
+
 const listeners = new Set<() => void>();
 
 /**
@@ -134,6 +178,16 @@ export const getSelectableLooks = (
 export const getGraphLookId = () => selectedId;
 
 /**
+ * What is on the graph right now, with every setting already worked out.
+ *
+ * For the designer, which starts a new look from what is being looked at rather
+ * than from the form's own defaults. Those are two different things the moment
+ * anything has been tuned — and starting from the defaults meant opening the
+ * panel visibly changed the drawing before a single control had been touched.
+ */
+export const getResolvedLook = (): IResolvedLook => resolved;
+
+/**
  * The next look along, for the click on the plot.
  *
  * The picker is for reaching a particular one out of ninety-odd; this is for
@@ -145,13 +199,14 @@ export const getGraphLookId = () => selectedId;
  * made is reachable the same way as one that shipped.
  */
 export const cycleGraphLook = (direction: 1 | -1 = 1) => {
-  // Nothing to see while a draft is up. The click on the plot and the Space
-  // key both land here, and both would move a selection the draft is currently
-  // covering — so the graph would not change, the picker behind the panel
-  // would, and closing it later would land somewhere nobody chose.
-  if (draft) {
-    return;
-  }
+  // Deliberately live while the designer is open.
+  //
+  // This used to refuse, on the reasoning that the draft covers the selection
+  // so nothing would appear to happen. That was the wrong end to fix: the
+  // designer now follows the selection instead, so the arrows, Space and the
+  // click on the plot are how the form is chosen while building a look — which
+  // is one control doing one job rather than a second form picker inside the
+  // panel duplicating the one already in the header.
   const ids = getSelectableLooks().map((look) => look.id);
   const index = ids.indexOf(selectedId);
   const count = ids.length;
@@ -246,7 +301,7 @@ export const useSelectedLookId = () =>
  * is a mode, and a mode that survives a restart is how somebody ends up
  * convinced their bands have vanished. It lasts as long as the window does.
  */
-let isSolo = false;
+let isSolo = readStoredFlag(VIEW_KEYS.solo);
 
 const soloListeners = new Set<() => void>();
 
@@ -264,6 +319,7 @@ const setLiveOutputSolo = (next: boolean) => {
     return;
   }
   isSolo = next;
+  writeStored(VIEW_KEYS.solo, String(isSolo));
   soloListeners.forEach((listener) => listener());
 };
 
@@ -300,12 +356,13 @@ export const useLiveOutputSolo = () =>
  * Not persisted, like the modes it sits beside. A graph that comes back with no
  * axes is a graph somebody will report as broken.
  */
-let isGridHidden = false;
+let isGridHidden = readStoredFlag(VIEW_KEYS.grid);
 
 const gridListeners = new Set<() => void>();
 
 export const toggleGraphGrid = () => {
   isGridHidden = !isGridHidden;
+  writeStored(VIEW_KEYS.grid, String(isGridHidden));
   gridListeners.forEach((listener) => listener());
 };
 
@@ -386,7 +443,9 @@ export type TWaveOrientation = 'up' | 'down' | 'mirrored' | 'centred';
 
 const ORIENTATIONS: TWaveOrientation[] = ['up', 'down', 'mirrored', 'centred'];
 
-let orientation: TWaveOrientation = 'up';
+let orientation: TWaveOrientation =
+  ORIENTATIONS.find((entry) => entry === readStored(VIEW_KEYS.orientation)) ??
+  'up';
 
 const orientationListeners = new Set<() => void>();
 
@@ -394,6 +453,7 @@ const orientationListeners = new Set<() => void>();
 export const cycleWaveOrientation = () => {
   orientation =
     ORIENTATIONS[(ORIENTATIONS.indexOf(orientation) + 1) % ORIENTATIONS.length];
+  writeStored(VIEW_KEYS.orientation, orientation);
   orientationListeners.forEach((listener) => listener());
 };
 
@@ -424,12 +484,13 @@ export const useWaveOrientation = () =>
  * So it is a switch rather than a decision made here, and it sits beside the
  * others in the view menu.
  */
-let isStretched = false;
+let isStretched = readStoredFlag(VIEW_KEYS.stretch);
 
 const stretchListeners = new Set<() => void>();
 
 export const toggleGraphStretch = () => {
   isStretched = !isStretched;
+  writeStored(VIEW_KEYS.stretch, String(isStretched));
   stretchListeners.forEach((listener) => listener());
 };
 
@@ -473,7 +534,10 @@ export const useGraphStretched = () =>
  */
 export type TGraphView = 'normal' | 'expanded' | 'fullscreen';
 
-let view: TGraphView = 'normal';
+const GRAPH_VIEWS: TGraphView[] = ['normal', 'expanded', 'fullscreen'];
+
+let view: TGraphView =
+  GRAPH_VIEWS.find((entry) => entry === readStored(VIEW_KEYS.view)) ?? 'normal';
 
 const fullScreenListeners = new Set<() => void>();
 
@@ -486,6 +550,13 @@ let applyWindowFullScreen: ((next: boolean) => void) | undefined;
 
 export const onWindowFullScreenChange = (apply: (next: boolean) => void) => {
   applyWindowFullScreen = apply;
+  // A restored full screen has to be applied the moment there is something to
+  // apply it with. The store is read at import, long before App is mounted to
+  // register this — so without it the app comes back believing it is full
+  // screen, lays itself out that way, and sits in a window that is not.
+  if (view === 'fullscreen') {
+    apply(true);
+  }
 };
 
 export const setGraphView = (next: TGraphView) => {
@@ -494,6 +565,7 @@ export const setGraphView = (next: TGraphView) => {
   }
   const wasFullScreen = view === 'fullscreen';
   view = next;
+  writeStored(VIEW_KEYS.view, view);
   if (wasFullScreen !== (next === 'fullscreen')) {
     applyWindowFullScreen?.(next === 'fullscreen');
   }

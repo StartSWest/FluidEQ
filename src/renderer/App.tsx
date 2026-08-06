@@ -96,6 +96,45 @@ const WHATS_NEW_SEEN_KEY = 'fluideq.whatsNewSeen';
  */
 const APP_VERSION = process.env.FLUIDEQ_VERSION || '';
 
+/** The workspace tab the app was left on. */
+const WORKSPACE_TAB_KEY = 'fluideq.workspaceTab';
+
+type TWorkspaceTab = 'eq' | 'voicing' | 'convolution' | 'video';
+
+const WORKSPACE_TABS: TWorkspaceTab[] = [
+  'eq',
+  'voicing',
+  'convolution',
+  'video',
+];
+
+/**
+ * Which tab to open on.
+ *
+ * Remembered, which is a departure from the rule the graph's modes follow —
+ * solo and full screen are deliberately forgotten, because a mode that outlives
+ * a restart is how somebody ends up convinced their bands have vanished. A tab
+ * is not that: all four are visibly tabs, the one you are on is named in the
+ * row, and getting back is one click that is already on screen.
+ *
+ * And the Video tab is the reason it is worth doing. Something is playing in
+ * it. Dropping back to the EQ on every reload stops what was being listened to
+ * and puts the app on the pane that was not being used — during development,
+ * where a reload happens on every save, that is most of them.
+ *
+ * Validated against the list rather than cast, because this is storage a user
+ * can edit and an older build may have written a name this one no longer has.
+ */
+const readWorkspaceTab = (): TWorkspaceTab => {
+  try {
+    const stored = window.localStorage.getItem(WORKSPACE_TAB_KEY);
+    return WORKSPACE_TABS.find((tab) => tab === stored) ?? 'eq';
+  } catch {
+    // Storage can be unavailable, and the EQ is the right place to land.
+    return 'eq';
+  }
+};
+
 const AppContent = () => {
   const {
     isLoading,
@@ -211,9 +250,8 @@ const AppContent = () => {
   const [isCaptureNoticeHidden, setIsCaptureNoticeHidden] = useState(false);
   // A new failure is worth showing again even if the last one was dismissed.
   useEffect(() => setIsCaptureNoticeHidden(false), [captureError]);
-  const [activeWorkspaceTab, setActiveWorkspaceTab] = useState<
-    'eq' | 'voicing' | 'convolution' | 'video'
-  >('eq');
+  const [activeWorkspaceTab, setActiveWorkspaceTab] =
+    useState<TWorkspaceTab>(readWorkspaceTab);
   // The player is mounted on first visit and never unmounted, because its page
   // is destroyed the moment the element leaves the DOM — switching to the EQ
   // to move a band would otherwise stop whatever was playing. Until somebody
@@ -274,6 +312,17 @@ const AppContent = () => {
     setHasOpenedVideo(true);
     return undefined;
   }, [isVideoTab]);
+
+  // Written on every change rather than on the way out, because there is no
+  // reliable way out: a development reload, a crash and a quit all end the
+  // renderer without warning, and the reload is the one this exists for.
+  useEffect(() => {
+    try {
+      window.localStorage.setItem(WORKSPACE_TAB_KEY, activeWorkspaceTab);
+    } catch {
+      // Not worth failing a tab change over.
+    }
+  }, [activeWorkspaceTab]);
 
   useEffect(() => {
     let mounted = true;
