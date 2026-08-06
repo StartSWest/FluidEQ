@@ -366,68 +366,24 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   /**
    * Strip the page back to its player while the graph is over it.
    *
-   * Keyed on the mode and re-applied whenever the guest reloads: a navigation
-   * throws inserted CSS away with the document, so without `isGuestReady` in
-   * the dependencies, playing a second video would come back with the whole
-   * page around it.
-   *
-   * The cleanup removes the sheet by the key `insertCSS` hands back rather than
-   * injecting a second one to undo the first — two stylesheets fighting is how
-   * a page ends up in a state neither of them describes.
-   */
-  useEffect(() => {
-    const view = webviewRef.current;
-    if (!view || isHidden || !isGuestReady || graphView === 'normal') {
-      return undefined;
-    }
-    let key: string | undefined;
-    let isCancelled = false;
-    try {
-      view
-        .insertCSS(PLAYER_ONLY_CSS)
-        .then((inserted) => {
-          if (isCancelled) {
-            // The mode changed while this was in flight. Take it straight back
-            // out rather than leaving a sheet nothing has the key to.
-            view.removeInsertedCSS(inserted).catch(() => undefined);
-          } else {
-            key = inserted;
-          }
-          return inserted;
-        })
-        .catch(() => undefined);
-      // The stylesheet alone does nothing until the chain is marked; the two
-      // are inserted together and removed together.
-      view.executeJavaScript(ENTER_PLAYER_ONLY).catch(() => undefined);
-    } catch {
-      // No web contents to inject into; nothing to undo either.
-    }
-    return () => {
-      isCancelled = true;
-      if (key !== undefined) {
-        view.removeInsertedCSS(key).catch(() => undefined);
-      }
-      try {
-        // The attributes go too. Left behind they are inert without the
-        // stylesheet, but they would be waiting for the next time it is
-        // inserted, describing a chain to a player that may have been replaced.
-        view.executeJavaScript(EXIT_PLAYER_ONLY).catch(() => undefined);
-      } catch {
-        // The guest is gone, which removes them rather more thoroughly.
-      }
-    };
-  }, [graphView, isGuestReady, isHidden]);
-
-  /**
-   * Strip the page back to its player while the graph is over it.
-   *
    * Re-applied when the guest reloads: a navigation throws inserted CSS away
    * with the document, so without `isGuestReady` in the dependencies the second
    * video would come back wearing the whole page.
    */
   useEffect(() => {
     const view = webviewRef.current;
-    if (!view || isHidden || !isGuestReady || graphView === 'normal') {
+    // Expanded only, and that exclusion is load-bearing.
+    //
+    // Full screen already asks the page's own player to go fullscreen, which
+    // strips the page to the player by itself and does it the way the site
+    // intends. Running both left a blank screen: the player is in Chromium's
+    // top layer as the fullscreen element while these rules are still pinning
+    // and hiding things around it, and the two descriptions of where it belongs
+    // do not agree.
+    //
+    // One mechanism per mode. Expanded has no fullscreen worth asking for — the
+    // guest would fill the pane it already fills — so it gets the injection.
+    if (!view || isHidden || !isGuestReady || graphView !== 'expanded') {
       return undefined;
     }
     let key: string | undefined;

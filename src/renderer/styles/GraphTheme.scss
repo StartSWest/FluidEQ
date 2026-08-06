@@ -216,15 +216,23 @@ $expanded-video-bar-top: 40px;
 // in the strip. What they are is the shortcut, for when the shortcut cannot
 // reach — click the video and focus is in the guest, so Space belongs to the
 // page from then on.
-.graph-look-step {
+// Scoped under the strip, and not for tidiness: `.live-output-controls button`
+// gives every button in here the ghost surface and a 28px minimum height, and
+// that outranks a lone class. Unqualified, these came out as two empty pills
+// with the arrows squeezed to nothing inside them.
+.live-output-controls .graph-look-step {
   display: inline-flex;
   width: 16px;
+  min-width: 0;
   height: 18px;
+  min-height: 0;
   align-items: center;
   justify-content: center;
   padding: 0;
   border: none;
+  border-radius: 0;
   background: none;
+  box-shadow: none;
   color: rgba($primary-lighter, 0.5);
   cursor: pointer;
 
@@ -239,6 +247,8 @@ $expanded-video-bar-top: 40px;
   }
 
   &:hover {
+    border: none;
+    background: none;
     color: $white;
   }
 }
