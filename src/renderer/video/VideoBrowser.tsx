@@ -95,10 +95,14 @@ interface IWebview extends HTMLElement {
  * the rule reached inside and hid its own children — the video among them.
  */
 const PLAYER_ONLY_CSS = `
+  /* Transparent rather than black, so the letterbox is the app's own
+     background rather than two different blacks meeting at the edge of the
+     picture. A video that does not match the window shape now sits in the
+     workspace instead of in a black box inside it. */
   html[data-fluideq-solo],
   html[data-fluideq-solo] body {
     overflow: hidden !important;
-    background: #000 !important;
+    background: transparent !important;
   }
   html[data-fluideq-solo]
     [data-fluideq-keep]:not([data-fluideq-player])
@@ -121,7 +125,7 @@ const PLAYER_ONLY_CSS = `
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    background: #000 !important;
+    background: transparent !important;
   }
 
   /* Twitch, and Twitch alone.

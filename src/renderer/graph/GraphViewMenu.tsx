@@ -51,6 +51,16 @@ interface IGraphViewMenuProps {
   onToggleStretch: () => void;
   waveOrientation: TWaveOrientation;
   onCycleOrientation: () => void;
+  /**
+   * How much of what is behind the card shows through, and how hard it is
+   * blurred. Only meaningful in full screen, and only offered there.
+   */
+  overlayOpacity: number;
+  onChangeOverlayOpacity: (next: number) => void;
+  overlayBlur: number;
+  onChangeOverlayBlur: (next: number) => void;
+  minOverlayOpacity: number;
+  maxOverlayBlur: number;
 }
 
 /** Names the state the next press moves to, since three states cycle. */
@@ -101,6 +111,12 @@ const GraphViewMenu = ({
   onToggleStretch,
   waveOrientation,
   onCycleOrientation,
+  overlayOpacity,
+  onChangeOverlayOpacity,
+  overlayBlur,
+  onChangeOverlayBlur,
+  minOverlayOpacity,
+  maxOverlayBlur,
 }: IGraphViewMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState<IPlacement>({
@@ -287,6 +303,74 @@ const GraphViewMenu = ({
             <span>Previous style</span>
             <kbd>Ctrl+Space</kbd>
           </button>
+
+          {/* Two sliders, in the menu rather than in the strip beside it.
+
+              They lived in the row for a good reason — they are judged by
+              looking at what they affect, not by reading a number — and the
+              menu keeps that: it opens over the graph, so the picture is still
+              on screen while either is dragged.
+
+              What they cost out there was the whole row. They are by some way
+              the widest things in it, they appear only in full screen, and the
+              row is right-aligned — so arriving in the mode shoved every other
+              control left, and on a narrow window pushed them under the
+              waveform. A menu has vertical space to spend and the strip has
+              none.
+
+              Full screen only, because it is the only mode where the card has
+              anything behind it worth seeing. */}
+          {view === 'fullscreen' && (
+            <>
+              <div className="graph-view-menu__divider" />
+              <label
+                className="graph-view-menu__slider"
+                htmlFor="graph-see-through"
+                title="How much of the page shows through the graph"
+              >
+                <Icon>
+                  <path d="M8 3.5c3 0 5 2.3 5.5 4.5-.5 2.2-2.5 4.5-5.5 4.5S3 10.2 2.5 8C3 5.8 5 3.5 8 3.5z" />
+                  <path d="M8 6.2a1.8 1.8 0 100 3.6 1.8 1.8 0 100-3.6z" />
+                </Icon>
+                <span>See through</span>
+                <input
+                  id="graph-see-through"
+                  type="range"
+                  min={minOverlayOpacity * 100}
+                  max={100}
+                  step={1}
+                  // Inverted, so right is more see-through. The stored value is
+                  // an opacity because that is what CSS wants; the slider is a
+                  // transparency because that is what the label says.
+                  value={Math.round((1 - overlayOpacity) * 100)}
+                  onChange={(event) =>
+                    onChangeOverlayOpacity(1 - Number(event.target.value) / 100)
+                  }
+                />
+              </label>
+              <label
+                className="graph-view-menu__slider"
+                htmlFor="graph-see-through-blur"
+                title="Blur what shows through, so it reads as light rather than as a second picture"
+              >
+                <Icon>
+                  <path d="M8 2.5C5.5 5.4 4 7.3 4 9a4 4 0 008 0c0-1.7-1.5-3.6-4-6.5z" />
+                </Icon>
+                <span>Blur</span>
+                <input
+                  id="graph-see-through-blur"
+                  type="range"
+                  min={0}
+                  max={maxOverlayBlur}
+                  step={1}
+                  value={overlayBlur}
+                  onChange={(event) =>
+                    onChangeOverlayBlur(Number(event.target.value))
+                  }
+                />
+              </label>
+            </>
+          )}
         </div>
       )}
     </div>

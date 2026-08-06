@@ -1189,57 +1189,11 @@ const FrequencyResponseChart = () => {
             >
               {isSolo ? 'Show EQ' : 'Wave only'}
             </button>
-            {/* Only while full screen, because that is the only time the card
-              has anything behind it worth seeing. Shown here rather than in a
-              settings panel so it can be adjusted against the thing it affects
-              — this is a judgement made by looking, not by reading a number.
-
-              Ahead of the View menu, not after it. These two appear and vanish
-              with the mode, and on the end they pushed View out of the corner
-              every time it was used — so the control that got you into full
-              screen was somewhere else the moment you arrived. The row reads the
-              same in every mode, with View last. */}
-            {isFullScreen && (
-              <span className="graph-see-through">
-                <label
-                  htmlFor="graph-see-through"
-                  title="How much of the page shows through the graph"
-                >
-                  <span>See through</span>
-                  <input
-                    id="graph-see-through"
-                    type="range"
-                    min={MIN_OVERLAY_OPACITY * 100}
-                    max={100}
-                    step={1}
-                    // Inverted, so right is more see-through. The stored value is
-                    // an opacity because that is what CSS wants; the slider is a
-                    // transparency because that is what the label says.
-                    value={Math.round((1 - overlayOpacity) * 100)}
-                    onChange={(event) =>
-                      setOverlayOpacity(1 - Number(event.target.value) / 100)
-                    }
-                  />
-                </label>
-                <label
-                  htmlFor="graph-see-through-blur"
-                  title="Blur what shows through, so it reads as light rather than as a second picture"
-                >
-                  <span>Blur</span>
-                  <input
-                    id="graph-see-through-blur"
-                    type="range"
-                    min={0}
-                    max={MAX_OVERLAY_BLUR}
-                    step={1}
-                    value={overlayBlur}
-                    onChange={(event) =>
-                      setOverlayBlur(Number(event.target.value))
-                    }
-                  />
-                </label>
-              </span>
-            )}
+            {/* The see-through and blur sliders used to sit here, between this
+              and the menu. They are in the menu now — they only exist in full
+              screen, they are the widest things the row ever held, and the row
+              is right-aligned, so arriving in the mode shoved everything else
+              left and on a narrow window pushed it under the waveform. */}
             {/* Last, at the right-hand end of the row, in every mode. Both sizes
               live here, and every shortcut that reaches them; Escape gets back
               from either. */}
@@ -1255,6 +1209,12 @@ const FrequencyResponseChart = () => {
               onToggleStretch={toggleGraphStretch}
               waveOrientation={waveOrientation}
               onCycleOrientation={cycleWaveOrientation}
+              overlayOpacity={overlayOpacity}
+              onChangeOverlayOpacity={setOverlayOpacity}
+              overlayBlur={overlayBlur}
+              onChangeOverlayBlur={setOverlayBlur}
+              minOverlayOpacity={MIN_OVERLAY_OPACITY}
+              maxOverlayBlur={MAX_OVERLAY_BLUR}
             />
           </span>
         </span>

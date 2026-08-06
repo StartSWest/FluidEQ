@@ -374,6 +374,54 @@ $expanded-video-bar-top: 40px;
   background: rgba($primary-lighter, 0.1);
 }
 
+// The two sliders, laid out as menu rows rather than as controls in a strip.
+//
+// Same three columns as every button in the list — icon, label, control — so
+// the slider lands where the shortcut hints do and the column reads straight
+// down. It is a `label`, not a `button`, so clicking it does not close the menu;
+// these are adjusted by watching the graph behind, which needs the list to stay
+// open while the thumb is dragged.
+.graph-view-menu__slider {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+  padding: 5px 8px;
+  color: rgba($primary-lighter, 0.72);
+  font-size: 0.68rem;
+  cursor: pointer;
+
+  svg {
+    flex: 0 0 auto;
+    opacity: 0.75;
+  }
+
+  > span {
+    flex: 1 1 auto;
+    white-space: nowrap;
+  }
+
+  input[type='range'] {
+    width: 86px;
+    height: 3px;
+    flex: 0 0 auto;
+    padding: 0;
+    border: none;
+    border-radius: 999px;
+    background: rgba($primary-lighter, 0.18);
+    appearance: none;
+    cursor: pointer;
+
+    &::-webkit-slider-thumb {
+      width: 11px;
+      height: 11px;
+      border: none;
+      border-radius: 50%;
+      background: $secondary-light;
+      appearance: none;
+    }
+  }
+}
+
 .graph-view-menu kbd {
   flex: 0 0 auto;
   padding: 1px 5px;
@@ -537,8 +585,9 @@ $expanded-video-bar-top: 40px;
 
   // The two sliders have nothing to act on here — the surface is already clear
   // and there is nothing behind it to blur. A control that cannot change what
-  // you are looking at is worse than no control.
-  .graph-see-through {
+  // you are looking at is worse than no control. They are rows in the View menu
+  // now; the reasoning is unchanged and so is the answer.
+  .graph-view-menu__slider {
     display: none;
   }
 }
@@ -940,49 +989,6 @@ $expanded-video-bar-top: 40px;
       opacity: var(--graph-overlay-opacity, 1);
       content: '';
       inset: 0;
-    }
-  }
-
-  // The two sliders, in the header strip beside the full-screen button. Only
-  // rendered in this mode, so there is nothing to hide here — the styling is
-  // all that lives in the full-screen block.
-  .graph-see-through {
-    display: inline-flex;
-    align-items: center;
-    gap: $spacing-s;
-
-    label {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      color: rgba($primary-lighter, 0.55);
-      font-size: 0.58rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      cursor: pointer;
-    }
-
-    // Short on purpose. This sits in a strip that already holds a dropdown and
-    // two buttons, and a full-length slider would push them onto a second row
-    // over the top of the plot.
-    input[type='range'] {
-      width: 68px;
-      height: 3px;
-      padding: 0;
-      border: none;
-      border-radius: 999px;
-      background: rgba($primary-lighter, 0.18);
-      appearance: none;
-      cursor: pointer;
-
-      &::-webkit-slider-thumb {
-        width: 10px;
-        height: 10px;
-        border: none;
-        border-radius: 50%;
-        background: $secondary-light;
-        appearance: none;
-      }
     }
   }
 
