@@ -81,6 +81,14 @@ export interface IChartCurveData {
    * rather than the same wave hanging from the ceiling.
    */
   isFlipped?: boolean;
+  /**
+   * Draw this curve into half the plot, anchored at the middle.
+   *
+   * For the mirrored orientation, where two copies share the height rather than
+   * both taking all of it — at full height they are two full-size waves drawn
+   * over each other, which is a tangle rather than a reflection.
+   */
+  isHalfHeight?: boolean;
   line: {
     color: Color;
     strokeWidth: number;

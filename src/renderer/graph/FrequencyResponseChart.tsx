@@ -871,6 +871,7 @@ const FrequencyResponseChart = () => {
                     name: 'Live processed output, mirrored',
                     isContinuous: true,
                     isFlipped: true,
+                    isHalfHeight: true,
                     line: {
                       color: ColorEnum.ANALOGOUS2,
                       strokeWidth: isSolo ? 2.6 : 2,
@@ -885,6 +886,7 @@ const FrequencyResponseChart = () => {
               name: 'Live processed output',
               isContinuous: true,
               isFlipped: waveOrientation === 'down',
+              isHalfHeight: waveOrientation === 'mirrored',
               line: {
                 color: ColorEnum.ANALOGOUS2,
                 // Heavier as well as brighter when it is the only thing drawn.

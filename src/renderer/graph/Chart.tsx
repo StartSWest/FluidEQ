@@ -377,7 +377,7 @@ const Chart = ({
         />
       )}
       {data.map((e: IChartCurveData) =>
-        e.isFlipped ? (
+        e.isFlipped || e.isHalfHeight ? (
           // Mirrored as a drawing, not as data.
           //
           // Negating the gain was the first attempt and it gives the *negative*
@@ -389,7 +389,20 @@ const Chart = ({
           // exactly and turns it upside down, which is what hanging from the
           // ceiling means. `translate` then `scale(1,-1)` because a bare flip
           // would send it off the top of the viewport.
-          <g key={e.id} transform={`translate(0, ${plotHeight}) scale(1, -1)`}>
+          //
+          // Half height anchors at the middle instead of at an edge, so the two
+          // copies of a mirrored wave grow away from each other rather than
+          // both taking the whole plot and crossing through one another.
+          <g
+            key={e.id}
+            transform={
+              e.isHalfHeight
+                ? `translate(0, ${plotHeight / 2}) scale(1, ${
+                    e.isFlipped ? -0.5 : 0.5
+                  })`
+                : `translate(0, ${plotHeight}) scale(1, -1)`
+            }
+          >
             <Curve data={e} xScale={xScaleFreq} yScale={yScaleGain} />
           </g>
         ) : (
