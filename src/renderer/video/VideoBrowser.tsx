@@ -32,6 +32,14 @@ import {
   isNavigableVideoUrl,
   isSignInUrl,
 } from 'common/videoSites';
+import {
+  TPlaybackMarks,
+  parsePlaybackMarks,
+  rememberPlayback,
+  resumePositionFor,
+  resumeUrlFor,
+  serialisePlaybackMarks,
+} from 'common/videoResume';
 import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
 import { useIsAdBlockRevealed } from '../utils/adBlockReveal';
@@ -255,6 +263,76 @@ const STOP_PLAYBACK = `(() => {
   return 'ok';
 })()`;
 
+/**
+ * How far into whatever is playing, in seconds.
+ *
+ * The one that is running is preferred over the one that is biggest: a page can
+ * hold a muted preview loop larger than the thing being listened to, and an
+ * audio element has no size at all, so area alone picks the wrong one on a
+ * music site. Falls back to the largest when nothing is playing, which is the
+ * paused video somebody means to come back to.
+ */
+const READ_POSITION = `(() => {
+  const media = Array.from(document.querySelectorAll('video, audio'));
+  if (!media.length) { return 0; }
+  media.sort(
+    (a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight)
+  );
+  const playing = media.find((el) => !el.paused && el.currentTime > 0);
+  const chosen = playing || media[0];
+  return Number.isFinite(chosen.currentTime) ? chosen.currentTime : 0;
+})()`;
+
+/**
+ * Pick the video back up where it was left.
+ *
+ * Waiting rather than assuming, because there is nothing to seek when this
+ * runs: the page has only just been asked to load and builds its player from
+ * script, which on a slow morning is several seconds after `dom-ready`. The
+ * poll is bounded — twenty seconds and then it gives up, so a page that never
+ * grows a player does not leave a timer running behind it for the rest of the
+ * session.
+ *
+ * The seek waits again, on the media's own terms: `currentTime` before metadata
+ * has arrived is discarded silently, which is the difference between resuming
+ * and quietly starting from the beginning.
+ */
+const resumePlaybackScript = (position: number) => `(() => {
+  const at = ${position};
+  let tries = 0;
+  const attempt = () => {
+    const media = Array.from(document.querySelectorAll('video, audio'));
+    media.sort(
+      (a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight)
+    );
+    const el = media[0];
+    if (!el) {
+      tries += 1;
+      if (tries < 80) { setTimeout(attempt, 250); }
+      return;
+    }
+    const start = () => {
+      try {
+        // Past the end is not a resume, it is a video that finished.
+        if (at > 0 && (!Number.isFinite(el.duration) || at < el.duration)) {
+          el.currentTime = at;
+        }
+      } catch (e) { /* a server-controlled stream can refuse a seek */ }
+      const played = el.play();
+      if (played && played.catch) {
+        // Chromium can still refuse without a gesture it recognises. The page
+        // is where it was either way, which is most of what was wanted.
+        played.catch(() => {});
+      }
+    };
+    if (el.readyState >= 1) { start(); } else {
+      el.addEventListener('loadedmetadata', start, { once: true });
+    }
+  };
+  attempt();
+  return 'ok';
+})()`;
+
 const EXIT_PAGE_FULLSCREEN = `(() => {
   if (!document.fullscreenElement) { return 'none'; }
   const button = document.querySelector(
@@ -316,6 +394,36 @@ const readStoredUrl = () => {
   }
 };
 
+/**
+ * Where each site was left, so switching between them is not switching off.
+ *
+ * Separate from the key above, which is one URL for the whole player and
+ * answers a different question — where to come up after a restart. This is one
+ * mark per site, and it is what makes the site buttons feel like tabs rather
+ * than like six front pages.
+ */
+const VIDEO_RESUME_KEY = 'fluideq.videoResume';
+
+/** How often to note the position, in milliseconds. */
+const RESUME_SAMPLE_MS = 5000;
+
+const readStoredMarks = (): TPlaybackMarks => {
+  try {
+    return parsePlaybackMarks(localStorage.getItem(VIDEO_RESUME_KEY));
+  } catch {
+    // A blocked or full store is a lost mark, not a broken tab.
+    return {};
+  }
+};
+
+const writeStoredMarks = (marks: TPlaybackMarks) => {
+  try {
+    localStorage.setItem(VIDEO_RESUME_KEY, serialisePlaybackMarks(marks));
+  } catch {
+    // As above.
+  }
+};
+
 const readStoredAdBlock = () => {
   try {
     const stored = localStorage.getItem(VIDEO_AD_BLOCK_STORAGE_KEY);
@@ -354,6 +462,10 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   // Whether the guest has a document to be asked anything about. Nothing may
   // call into it before `dom-ready`.
   const [isGuestReady, setIsGuestReady] = useState(false);
+  // Which document is in the guest. Incremented on every `dom-ready`, so
+  // anything that has to be done again to a freshly loaded page can depend on
+  // it. See `handleReady` for why a boolean was not enough.
+  const [pageToken, setPageToken] = useState(0);
   const [isAdBlockOn, setIsAdBlockOn] = useState(readStoredAdBlock);
   // Whether the switch is in the interface at all. Owned by a root-level flag
   // rather than by this component, because the chord that moves it is pressed
@@ -373,6 +485,93 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   const [isPageFullScreen, setIsPageFullScreen] = useState(false);
 
   const activeSite = findSiteForUrl(currentUrl);
+
+  // Held in a ref rather than in state. Nothing renders from it, and a sample
+  // every five seconds that re-rendered the pane would be five seconds of work
+  // to change nothing on screen.
+  const marksRef = useRef<TPlaybackMarks>(readStoredMarks());
+  // A position waiting for a page to grow a player. Consumed once, by the next
+  // guest that becomes ready — put in a ref because it is a message to a later
+  // effect, not a thing the interface has an opinion about.
+  const pendingResumeRef = useRef(0);
+
+  /**
+   * Note where this site is, over and over, while it plays.
+   *
+   * Sampled rather than captured on the way out, and that is the whole design.
+   * Reading the position at the moment of leaving is one call racing a document
+   * that is being torn down, and it gets nothing at all when the way out is the
+   * window closing or the app crashing — which, for an equalizer that gets
+   * restarted to bounce the audio service, is most of the time. A cheap sample
+   * on a timer is already correct when any of those happen.
+   *
+   * Only while the tab is on screen. A player left running in the background is
+   * still playing and its position still moves, but so does the position of the
+   * page somebody has since switched to, and the site whose mark this would
+   * overwrite is the one they are not looking at.
+   */
+  useEffect(() => {
+    if (isHidden || !isGuestReady || !activeSite) {
+      return undefined;
+    }
+
+    const siteId = activeSite.id;
+    const sample = () => {
+      const view = webviewRef.current;
+      if (!view) {
+        return;
+      }
+      try {
+        view
+          .executeJavaScript(READ_POSITION)
+          .then((position) => {
+            const seconds = typeof position === 'number' ? position : 0;
+            marksRef.current = rememberPlayback(
+              marksRef.current,
+              siteId,
+              view.getURL(),
+              seconds,
+            );
+            writeStoredMarks(marksRef.current);
+            return seconds;
+          })
+          .catch(() => undefined);
+      } catch {
+        // Throws rather than rejects when the guest has gone. The next sample
+        // finds the new one, or there is no next sample.
+      }
+    };
+
+    sample();
+    const timer = window.setInterval(sample, RESUME_SAMPLE_MS);
+    return () => window.clearInterval(timer);
+  }, [activeSite, isGuestReady, isHidden]);
+
+  /**
+   * Hand a waiting position to the page that has just loaded.
+   *
+   * Keyed on the page token, so it fires exactly once per document — which is
+   * what makes a single ref enough to carry the position across a navigation.
+   */
+  useEffect(() => {
+    const view = webviewRef.current;
+    const position = pendingResumeRef.current;
+    if (!view || !pageToken || position <= 0) {
+      return;
+    }
+    pendingResumeRef.current = 0;
+    try {
+      // Counted as a gesture: the site button that started this was one, and
+      // Chromium has no way to see that from here. Without it `play()` is
+      // refused and the page comes back paused at the right place, which is
+      // half the feature.
+      view
+        .executeJavaScript(resumePlaybackScript(position), true)
+        .catch(() => undefined);
+    } catch {
+      // No web contents to ask; the page is still where it was.
+    }
+  }, [pageToken]);
 
   /**
    * Take the page's own player with us into full screen.
@@ -471,7 +670,12 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         // thoroughly than asking it to.
       }
     };
-  }, [graphView, isGuestReady, isHidden]);
+    // `pageToken` and not just `isGuestReady`: a navigation throws inserted CSS
+    // away with the document it was inserted into, and the flag never changes
+    // again after the first page, so this had been running once and once only.
+    // The token moves for every document, which is what puts the stripping back
+    // on the second video.
+  }, [graphView, isGuestReady, isHidden, pageToken]);
 
   // Written on every navigation rather than on close. There is no reliable
   // "about to quit" moment in a renderer — the window can go with the audio
@@ -617,7 +821,19 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     // constantly for its own in-page routing. So the flag spent almost all of
     // its time false, and the one thing gated on it, taking the page's player
     // full screen, almost never ran.
-    const handleReady = () => setIsGuestReady(true);
+    const handleReady = () => {
+      setIsGuestReady(true);
+      // Counted, not flagged.
+      //
+      // `isGuestReady` only ever goes from false to true, so an effect that
+      // depends on it runs once for the life of the pane — which is not what
+      // "re-applied when the guest reloads" needs, and quietly was not
+      // happening: the second video came back wearing the whole page because
+      // the injection never ran again. A number that changes on every
+      // `dom-ready` is the honest way to say "a new document exists", and both
+      // the page-stripping and the resume hang off it.
+      setPageToken((token) => token + 1);
+    };
 
     view.addEventListener('did-navigate', handleNavigated);
     view.addEventListener('did-navigate-in-page', handleNavigated);
@@ -669,6 +885,32 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       view.loadURL(url).catch(() => undefined);
     }
   }, []);
+
+  /**
+   * Open a site where it was left rather than at its front page.
+   *
+   * The buttons are the things you move between, so they should behave like
+   * tabs: coming back to YouTube Music should find the album that was playing,
+   * not a page of recommendations. The position goes into the ref for the
+   * effect above to pick up once the new page has a player to seek.
+   *
+   * Pressing the site you are already on is the way back to its front page.
+   * Without that there would be no way to reach it again short of clearing the
+   * mark, and a button that reloads the page you are looking at is not worth
+   * having when it could do something.
+   */
+  const goToSite = useCallback(
+    (site: IVideoSite) => {
+      if (activeSite?.id === site.id) {
+        pendingResumeRef.current = 0;
+        goTo(site.home);
+        return;
+      }
+      pendingResumeRef.current = resumePositionFor(marksRef.current, site.id);
+      goTo(resumeUrlFor(marksRef.current, site.id) ?? site.home);
+    },
+    [activeSite, goTo],
+  );
 
   const handleSearch = useCallback(
     (terms: string) => {
@@ -778,7 +1020,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
                 activeSite?.id === site.id ? ' is-active' : ''
               }`}
               aria-pressed={activeSite?.id === site.id}
-              onClick={() => goTo(site.home)}
+              onClick={() => goToSite(site)}
             >
               <VideoSiteIcon siteId={site.id} />
               {site.name}
