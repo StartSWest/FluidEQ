@@ -335,9 +335,16 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     // it is attached and its document exists — so calling it early does not
     // reject, it *throws*, which is a different thing to have to catch and the
     // reason the first attempt at this blew up on mount.
+    // Once, and it stays true.
+    //
+    // It used to be cleared again on `did-start-navigation`, on the reasoning
+    // that a new document means a new id. That reasoning is wrong twice over:
+    // the id belongs to the tag rather than to the document, so it survives a
+    // navigation — and YouTube is a single-page app that fires that event
+    // constantly for its own in-page routing. So the flag spent almost all of
+    // its time false, and the one thing gated on it, taking the page's player
+    // full screen, almost never ran.
     const handleReady = () => setIsGuestReady(true);
-    // A navigation replaces the document, so the id is briefly gone again.
-    const handleStartNavigating = () => setIsGuestReady(false);
 
     view.addEventListener('did-navigate', handleNavigated);
     view.addEventListener('did-navigate-in-page', handleNavigated);
@@ -347,7 +354,6 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     view.addEventListener('enter-html-full-screen', handleEnterFullScreen);
     view.addEventListener('leave-html-full-screen', handleLeaveFullScreen);
     view.addEventListener('dom-ready', handleReady);
-    view.addEventListener('did-start-navigation', handleStartNavigating);
 
     return () => {
       view.removeEventListener('did-navigate', handleNavigated);
@@ -358,7 +364,6 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       view.removeEventListener('enter-html-full-screen', handleEnterFullScreen);
       view.removeEventListener('leave-html-full-screen', handleLeaveFullScreen);
       view.removeEventListener('dom-ready', handleReady);
-      view.removeEventListener('did-start-navigation', handleStartNavigating);
     };
   }, [syncNavigationState]);
 

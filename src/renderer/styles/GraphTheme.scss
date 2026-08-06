@@ -116,29 +116,15 @@
     min-width: 172px;
   }
 
-  // The same pill as View beside it.
-  //
-  // It was plain underlined text for a while, on the argument that the row is a
-  // run of captions and a bordered control in it looks like a stray form field.
-  // That held right up until the row gained a second control — and two things
-  // that both open a list, sitting inches apart in different clothes, is worse
-  // than either choice made consistently. So it takes the button's shape, and
-  // the row now reads as caption, caption, caption, then two controls.
+  // Everything the pill itself is comes from the shared rule further down,
+  // which this trigger and the View button now split between them. What is left
+  // here is only what the shared shape cannot know: the field surface App.scss
+  // would otherwise give a `[role="menu"]`, and how the label and the arrow sit
+  // inside it.
   .dropdown > [role='menu'] {
-    height: 19px;
     min-height: 0;
-    padding-block: 0;
-    padding-inline: 8px;
-    border: 1px solid rgba($secondary-light, 0.3);
-    border-radius: 9px;
-    background: none;
     box-shadow: none;
-    color: rgba($primary-lighter, 0.75);
-    font-size: 0.62rem;
-    font-weight: 650;
-    gap: 4px;
     justify-content: flex-start;
-    letter-spacing: 0.03em;
     overflow: visible;
 
     &:hover:not([aria-disabled='true']) {
@@ -265,13 +251,11 @@
     border: none;
     border-radius: $radius-s;
     background: none;
-    // Near enough to full strength to read as available.
-    //
-    // These were dimmer, and a dim row in a menu does not read as "quieter", it
-    // reads as disabled — which for two of them was almost true, because they
-    // were not buttons at all. Now that every row does something, every row
-    // says so.
-    color: rgba($primary-lighter, 0.92);
+    // Full strength. A dim row in a menu does not read as "quieter", it reads
+    // as disabled — and `$primary-lighter` at any alpha is a muted blue-grey,
+    // so every item still looked unavailable. Menu items are the content of a
+    // menu; there is nothing for them to recede behind.
+    color: $white;
     font-size: 0.68rem;
     gap: 8px;
     text-align: left;
@@ -331,7 +315,7 @@
   padding: 1px 5px;
   border: 1px solid rgba($primary-lighter, 0.16);
   border-radius: 4px;
-  color: rgba($primary-lighter, 0.62);
+  color: rgba($primary-lighter, 0.8);
   font-family: inherit;
   font-size: 0.58rem;
   white-space: nowrap;
@@ -375,16 +359,28 @@
 // one has a state, and a state needs somewhere to show — so it takes a border
 // when it is off and fills in when it is on, and the label says what pressing
 // it will do rather than what is currently true.
-.graph-solo {
-  height: 19px;
-  padding-inline: 8px;
+.graph-solo,
+// The style picker's trigger wears the same pill, and shares the rule rather
+// than restating it. Two near-identical blocks are how the two ended up
+// different heights: one had `height`, the other took its height from padding
+// and a line box, so they agreed at one font size and drifted at every other.
+// One declaration, one shape.
+.graph-legend--picker .dropdown > [role='menu'] {
+  display: inline-flex;
+  height: 22px;
+  box-sizing: border-box;
+  align-items: center;
+  padding-block: 0;
+  padding-inline: 9px;
   border: 1px solid rgba($secondary-light, 0.3);
-  border-radius: 9px;
+  border-radius: 11px;
   background: none;
   color: rgba($primary-lighter, 0.75);
   font-size: 0.62rem;
   font-weight: 650;
+  gap: 5px;
   letter-spacing: 0.03em;
+  line-height: 1;
   white-space: nowrap;
   cursor: pointer;
 
@@ -446,20 +442,73 @@
 // ends is the one thing guaranteed to look like a mistake — full screen keeps
 // its border, because there it is a panel over a video and the edge is the
 // point.
-.app-workspace:not(.is-app-full)
-  .center-workspace.is-graph-full
-  > .graph-wrapper {
-  border-color: transparent;
-
-  &::before {
-    mask-image: linear-gradient(
-      to bottom,
-      transparent 0%,
-      rgb(0 0 0) var(--graph-overlay-fade, 0%),
-      rgb(0 0 0) calc(100% - var(--graph-overlay-fade, 0%)),
-      transparent 100%
-    );
+// Only the player is worth keeping behind the card.
+//
+// Seeing through the graph is for watching something play underneath it. On the
+// EQ, Voicing and Convolution tabs what shows through is a pane full of sliders
+// and headings — not a backdrop but the interface itself, softened and
+// half-legible behind a chart, which reads as a rendering fault rather than as
+// a choice. So on those tabs the pane gets out of the way and the see-through
+// reveals the workspace, which is quiet.
+//
+// Expanded takes the panel. Full screen takes the tab strip with it, since
+// nothing there is reachable anyway while the card covers the column.
+//
+// `visibility` rather than `display` throughout, for the reason it always is
+// here: the boxes keep their space, so nothing relayouts on the way in or out
+// and no panel loses its scroll position for having been away.
+.center-workspace.is-graph-full:not(:has(.workspace-tab-panel--video)) {
+  // The panel and the tab strip together — `.middle-content` is both. Neither
+  // is reachable while the card covers the column, so there is nothing lost.
+  > .middle-content {
+    visibility: hidden;
   }
+
+  // And the card's surface goes with them, all the way to clear.
+  //
+  // With nothing behind it but the workspace, a panel drawn on top of a panel
+  // is a second sheet of the same colour: it flattens the graph and adds an
+  // edge where the eye expects none. At zero the drawing floats on the app's
+  // own background, which is what the expanded view looked like it wanted to be
+  // all along.
+  > .graph-wrapper::before {
+    opacity: 0;
+  }
+
+  // The two sliders have nothing to act on here — the surface is already clear
+  // and there is nothing behind it to blur. A control that cannot change what
+  // you are looking at is worse than no control.
+  .graph-see-through {
+    display: none;
+  }
+}
+
+// Nothing behind the card draws a frame.
+//
+// The pane underneath is a card in its own right — border, rounded corners, a
+// shadow — and the graph's surface fades out at its top and bottom edges, so
+// that border came through the fade as a curved line cutting across the top of
+// the graph. It reads as a rendering fault on the graph rather than as the
+// panel it belongs to, which is exactly how it was reported.
+//
+// Only the frame goes. The panel's *content* still shows through, because that
+// is what the see-through slider is for; what it does not need to show is an
+// edge belonging to a box that is completely covered.
+.center-workspace.is-graph-full > .middle-content .workspace-tab-panel {
+  border-color: transparent;
+  box-shadow: none;
+}
+
+// Full screen is the whole screen, corner to corner.
+//
+// The two modes want opposite edges and it is not a detail: expanded is a card
+// laid over a workspace that is still there, so it keeps the rounded border
+// every other panel has and reads as one of them. Full screen has nothing
+// around it to be a card *against* — rounded corners there just carve four
+// notches out of the display and show the desktop through them.
+.app-workspace.is-app-full .center-workspace.is-graph-full > .graph-wrapper {
+  border: none;
+  border-radius: 0;
 }
 
 .app-workspace.is-app-full {
@@ -567,9 +616,6 @@
   > .graph-wrapper {
     position: absolute;
     z-index: 40;
-    // The whole column. The card covers everything, so the frosting is over all
-    // of the video rather than a band across the middle of it — the drawing
-    // inside keeps its own height and does not stretch to match.
     inset: 0;
     width: auto;
     height: auto;
@@ -624,6 +670,23 @@
         180deg,
         panel-top($secondary-dark, 5%) 0%,
         $panel-bottom 62%
+      );
+
+      // Clear at the top and bottom edges, solid through the middle — in both
+      // modes, by the same amount at each end.
+      //
+      // This lived under a `:not(.is-app-full)` and so did nothing at all in
+      // full screen, which is the mode with the most behind it to reveal. The
+      // width of the fade comes from the see-through slider, because they are
+      // one intent: a card set solid should be solid, and at zero the stops
+      // collapse to the edges and the gradient does nothing. The blur needs no
+      // mention here — it is on the card and already applies to both.
+      mask-image: linear-gradient(
+        to bottom,
+        transparent 0%,
+        rgb(0 0 0) var(--graph-overlay-fade, 0%),
+        rgb(0 0 0) calc(100% - var(--graph-overlay-fade, 0%)),
+        transparent 100%
       );
       // Set from the sliders in the graph's header. Solid by default: seeing
       // through the card is a thing to go looking for, not a thing to be given

@@ -192,11 +192,17 @@ const GraphViewMenu = ({
 
           <div className="graph-view-menu__divider" />
 
+          {/* No `is-on` on either of the two below, unlike the modes above.
+              Their labels already flip — "Wave only" becomes "Show EQ curves" —
+              so colouring them as well states the same thing twice, and it
+              picked out two rows in a colour the rest of the menu never uses
+              for no reason a reader could work out. The modes keep it because
+              their labels do *not* change and something has to say which of the
+              two you are in. */}
           <button
             type="button"
             role="menuitemcheckbox"
             aria-checked={isSolo}
-            className={isSolo ? 'is-on' : undefined}
             onClick={choose(onToggleSolo)}
           >
             <Icon>
@@ -214,7 +220,6 @@ const GraphViewMenu = ({
             type="button"
             role="menuitemcheckbox"
             aria-checked={isGridHidden}
-            className={isGridHidden ? 'is-on' : undefined}
             onClick={choose(onToggleGrid)}
           >
             <Icon>
