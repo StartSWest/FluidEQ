@@ -469,21 +469,15 @@ $expanded-video-bar-top: 40px;
 // They share the card rules below — `is-graph-full` is set for both — because
 // the difference between them is what surrounds the card, not the card.
 
-// Full screen is for watching, so the browser stops being a browser.
+// There is deliberately no full-screen rule for the player's toolbar.
 //
-// The toolbar's whole job is choosing what to play — sites, search, back and
-// forward. None of that is happening while a video is filling the screen, and
-// the site's own player has gone fullscreen underneath, so a strip of our
-// chrome above it is a browser frame drawn over a fullscreen video.
+// There was one, and it said so itself: `display: none` "rather than the mask
+// used in expanded view… the guest is resized once on the way in and once on
+// the way out". That is the difference between the mode that worked and the
+// mode that did not. The shared rule below already takes the toolbar off the
+// screen in both modes; this one only added a resize of a `<webview>`, which is
+// its own compositor surface and does not always come back.
 //
-// `display: none` here rather than the mask used in expanded view, and the
-// difference is the point: this reclaims the space for the picture. The guest
-// is resized once on the way in and once on the way out, which is exactly when
-// it is being resized anyway.
-.app-workspace.is-app-full .video-browser__bar {
-  display: none;
-}
-
 // Expanded, and only expanded: both edges of the card dissolve into the middle.
 //
 // The card here is laid over a workspace that is still fully present — the
@@ -613,42 +607,13 @@ $expanded-video-bar-top: 40px;
   }
 }
 
-// The graph's controls join that strip rather than sitting under it.
+// The graph's controls sit where they sit, in both modes.
 //
-// The chrome runs across the top with its right-hand third empty, and this row
-// is right-aligned — so lifting it onto the same line fills the gap and leaves
-// one band of controls instead of two stacked ones. The strip does not take
-// clicks, only its children do, so the two can share the line without the
-// buttons becoming unreachable.
-.app-workspace.is-app-full .live-output-controls {
-  top: 18px;
-
-  // Kept out of the middle third, where the waveform is.
-  //
-  // The row spans the whole card and is right-aligned, so on a window with more
-  // controls than room its left end simply carried on underneath the waveform —
-  // and the chrome is painted above it, so the hint, the legend and the style
-  // picker were covered rather than pushed aside. Which is what it looked like:
-  // a strip of controls with a card sitting on top of half of them.
-  //
-  // 210px is half of the chrome's centre track at its widest, and that track is
-  // centred on the window, so its right edge is never past this. The row starts
-  // there and wraps within what is left, which is the same third the grid keeps
-  // empty for it.
-  left: calc(50% + 210px + #{$spacing-s});
-
-  // And the one caption that will not fit beside everything else.
-  //
-  // It is advice about dragging band handles, and it is by some way the widest
-  // thing in the row — losing it buys back more space than the rest of the
-  // captions together. Full screen is also the worst place to spend that space:
-  // it is where somebody is watching rather than learning the gestures, and the
-  // same line is already hidden in wave-only mode for a version of the same
-  // reason. The graph's own controls all stay.
-  .graph-edit-hint {
-    display: none;
-  }
-}
+// This used to lift them onto the strip of chrome that full screen drew across
+// the top, and reserve the middle third of it for the waveform. There is no
+// such strip any more — the titlebar was never hidden, so the waveform never
+// moved — and a row squeezed into the right-hand third of the card with nothing
+// beside it is the layout for a problem that no longer exists.
 
 // A solid bar behind the controls, over the player, in expanded view only.
 //
@@ -665,10 +630,11 @@ $expanded-video-bar-top: 40px;
 // Drawn as a layer behind rather than a background on the strip itself, so it
 // can reach past the strip's inset to the card's own edges and be the full
 // width of it. Out of hit-testing, so nothing it covers stops being clickable.
-.app-workspace:not(.is-app-full)
-  .center-workspace.is-graph-full:has(
-    .workspace-tab-panel--video:not(.is-hidden)
-  )
+// Both modes now, not just expanded. They were separated when full screen owned
+// the whole display and shared its top edge with a strip of chrome; it does
+// neither any more, so the two differ by which panes are on screen and by
+// nothing else.
+.center-workspace.is-graph-full:has(.workspace-tab-panel--video:not(.is-hidden))
   > .graph-wrapper
   > .live-output-controls::before {
   position: absolute;
@@ -702,10 +668,8 @@ $expanded-video-bar-top: 40px;
 // As padding on the card, so the plot's own box shrinks: the chart measures
 // that box and scales the drawing to it, which is the difference between the
 // wave fitting and the wave being trimmed.
-.app-workspace:not(.is-app-full)
-  .center-workspace.is-graph-full:has(
-    .workspace-tab-panel--video:not(.is-hidden)
-  )
+// Both modes, for the same reason as the bar it makes room for.
+.center-workspace.is-graph-full:has(.workspace-tab-panel--video:not(.is-hidden))
   > .graph-wrapper {
   padding-top: $expanded-video-bar-top;
   // Nothing reserved at the bottom. The bar that used to be there is gone, and
@@ -732,10 +696,12 @@ $expanded-video-bar-top: 40px;
 // every other panel has and reads as one of them. Full screen has nothing
 // around it to be a card *against* — rounded corners there just carve four
 // notches out of the display and show the desktop through them.
-.app-workspace.is-app-full .center-workspace.is-graph-full > .graph-wrapper {
-  border: none;
-  border-radius: 0;
-}
+// The card keeps its border and its corners in both modes.
+//
+// Full screen used to strip them, from when it owned the whole screen and an
+// edge would have been an edge against nothing. It does not own the screen any
+// more — it is the same card over the same column, with two panes hidden beside
+// it — so it gets the same card.
 
 .app-workspace.is-app-full {
   // The side panels hold profiles, presets and support links. None of them is
@@ -751,10 +717,13 @@ $expanded-video-bar-top: 40px;
     display: none;
   }
 
+  // The columns collapse to one, and nothing else changes.
+  //
+  // The workspace keeps its padding and its gap. Taking those away was more of
+  // the same mistake as everything else in this mode: it moved the centre
+  // column, and moving the centre column resizes the `<webview>` inside it.
   grid-template-areas: 'center-workspace';
   grid-template-columns: 1fr;
-  padding: 0;
-  gap: 0;
 }
 
 // The titlebar stays exactly where it is, and so does the room it occupies.
@@ -808,13 +777,15 @@ $expanded-video-bar-top: 40px;
   // because the card covers the column and takes every click, so there is
   // nothing lost by not drawing them.
   //
-  // `visibility` rather than `display`: the boxes keep their space, so the
-  // stage below does not grow, the guest is never resized, and toggling the
-  // mode costs no relayout. A `display: none` here would resize the video
-  // every time.
+  // `visibility` rather than `display`, and the comment has been right about
+  // this for longer than the code has. The boxes keep their space, so the stage
+  // below does not grow, the guest is never resized, and toggling the mode
+  // costs no relayout. A `display: none` here resizes the video every time —
+  // which is what it had quietly become, and a `<webview>` is its own
+  // compositor surface and does not reliably come back from being resized.
   .workspace-tabs,
   .video-browser__bar {
-    display: none;
+    visibility: hidden;
   }
 
   // And with them gone, the player is the panel.
