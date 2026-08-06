@@ -40,7 +40,6 @@ import AudioTroubleshooter from './components/AudioTroubleshooter';
 import SideBar from './SideBar';
 import {
   getLiveOutputSolo,
-  onWindowFullScreenChange,
   setLiveOutputSolo,
   useGraphFullScreen,
   useGraphView,
@@ -82,7 +81,6 @@ import {
   savePreset,
 } from './utils/equalizerApi';
 import { startEqualizerApoInstall } from './utils/apoInstall';
-import { reportError } from './utils/logger';
 
 const APO_RESTART_RECOMMENDED_KEY = 'fluideq.apoRestartRecommended';
 /** The version whose notes have already been shown. */
@@ -137,29 +135,22 @@ const AppContent = () => {
   // and the side panels and titlebar are further out still.
   const isGraphFullScreen = useGraphFullScreen();
   const graphView = useGraphView();
-  /** The window itself is full screen, so the titlebar is not on screen. */
+  /**
+   * The mode takes the whole window, and leaves the window alone.
+   *
+   * It used to call `setFullScreen` as well. That resized the `<webview>` on
+   * top of the three resizes the layout already causes — the side panes going,
+   * the titlebar going, and its 78px of padding going with it — and a guest is
+   * its own compositor surface. It came back black about half the time.
+   * Expanded changes no window state at all and never once failed.
+   *
+   * Hiding the panes gives the centre column everything they were using, which
+   * is the whole of what this mode was for. The titlebar is hidden either way,
+   * so nothing below depends on the window's own state.
+   */
   const isAppFullScreen = graphView === 'fullscreen' && isGraphViewOn;
   const editorHeight = useEditorHeight();
 
-  /**
-   * Take the window fullscreen when the graph asks for it.
-   *
-   * Registered here rather than done in the store, because it is an IPC call
-   * and a layout preference should not have to know the shape of the app's API
-   * to hold a value. The store says *what* it wants; this says how.
-   *
-   * The cleanup is not optional. A hot reload that swapped this effect without
-   * putting the window back would leave a fullscreen window whose only way out
-   * is a mode nothing is listening to any more.
-   */
-  useEffect(() => {
-    onWindowFullScreenChange((next) => {
-      window.electron.ipcRenderer.setWindowFullScreen(next).catch((e) => {
-        reportError('Could not change the window to full screen', e);
-      });
-    });
-    return () => onWindowFullScreenChange(() => undefined);
-  }, []);
   // The live capture's own failure, read once and reported once.
   //
   // It used to be printed inline in two places at the same time — a bare

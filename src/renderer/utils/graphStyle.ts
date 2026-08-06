@@ -303,25 +303,25 @@ let view: TGraphView = 'normal';
 const fullScreenListeners = new Set<() => void>();
 
 /**
- * Taking the window fullscreen is the main process's business, so the store
- * cannot do it — and importing an IPC call here would tie a layout preference
- * to the shape of the app's API. App registers what to do instead.
+ * The window is never taken fullscreen, and that is the point.
+ *
+ * It used to be: entering this mode called `setFullScreen` on the window, on
+ * top of the layout already hiding the side panes, the titlebar and the
+ * titlebar's padding. Each of those resizes the `<webview>`, and an OS
+ * fullscreen transition in the same tick resized it again — a guest is its own
+ * compositor surface, and it came back black about half the time. Expanded does
+ * none of it and never failed once.
+ *
+ * The mode does not need the window to change at all. Hiding the panes gives
+ * the centre column everything they were using, the graph is pinned over it,
+ * and the player is pinned to the viewport it already has — so the picture
+ * grows into the space on its own, which is all that was ever wanted from it.
  */
-let applyWindowFullScreen: ((next: boolean) => void) | undefined;
-
-export const onWindowFullScreenChange = (apply: (next: boolean) => void) => {
-  applyWindowFullScreen = apply;
-};
-
 export const setGraphView = (next: TGraphView) => {
   if (next === view) {
     return;
   }
-  const wasFullScreen = view === 'fullscreen';
   view = next;
-  if (wasFullScreen !== (next === 'fullscreen')) {
-    applyWindowFullScreen?.(next === 'fullscreen');
-  }
   fullScreenListeners.forEach((listener) => listener());
 };
 
