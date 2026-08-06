@@ -61,7 +61,55 @@ interface IWebview extends HTMLElement {
    * silently stay windowed.
    */
   executeJavaScript(code: string, userGesture?: boolean): Promise<unknown>;
+  /** Returns a key the stylesheet can be removed by. */
+  insertCSS(css: string): Promise<string>;
+  removeInsertedCSS(key: string): Promise<void>;
 }
+
+/**
+ * Just the picture, with the page it came from out of the way.
+ *
+ * Injected into the guest while the graph is expanded or full screen. The rest
+ * of a video page — the header, the sidebar, the recommendations, the comments
+ * — is what you scroll through to *find* something; once it is playing and a
+ * spectrum is drawn over it, all of it is furniture around a rectangle.
+ *
+ * The player is pinned rather than the page hidden. Hiding everything and
+ * showing one subtree means naming that subtree correctly on six sites that
+ * each redesign independently, and being wrong means a black screen. Lifting
+ * the player to cover the viewport needs only to find it, and the fallback —
+ * the `<video>` element itself — exists on every one of them by definition.
+ *
+ * The site's own player is preferred over the bare element on purpose: it
+ * brings its controls with it, which is what makes the video still pausable
+ * once the graph stops taking clicks.
+ */
+const PLAYER_ONLY_CSS = `
+  html, body {
+    overflow: hidden !important;
+    background: #000 !important;
+  }
+  #movie_player,
+  .html5-video-player,
+  [data-a-target="video-player"],
+  .vp-player-layout,
+  .videoWrapper,
+  video {
+    position: fixed !important;
+    z-index: 2147483647 !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: none !important;
+    max-height: none !important;
+    margin: 0 !important;
+    background: #000 !important;
+  }
+  video {
+    object-fit: contain !important;
+  }
+`;
 
 /**
  * Ask the page to put its own player into fullscreen.
@@ -240,6 +288,50 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       // effect can still get here, and a crashed player is not worth taking the
       // window down over.
     }
+  }, [graphView, isGuestReady, isHidden]);
+
+  /**
+   * Strip the page back to its player while the graph is over it.
+   *
+   * Keyed on the mode and re-applied whenever the guest reloads: a navigation
+   * throws inserted CSS away with the document, so without `isGuestReady` in
+   * the dependencies, playing a second video would come back with the whole
+   * page around it.
+   *
+   * The cleanup removes the sheet by the key `insertCSS` hands back rather than
+   * injecting a second one to undo the first — two stylesheets fighting is how
+   * a page ends up in a state neither of them describes.
+   */
+  useEffect(() => {
+    const view = webviewRef.current;
+    if (!view || isHidden || !isGuestReady || graphView === 'normal') {
+      return undefined;
+    }
+    let key: string | undefined;
+    let isCancelled = false;
+    try {
+      view
+        .insertCSS(PLAYER_ONLY_CSS)
+        .then((inserted) => {
+          if (isCancelled) {
+            // The mode changed while this was in flight. Take it straight back
+            // out rather than leaving a sheet nothing has the key to.
+            view.removeInsertedCSS(inserted).catch(() => undefined);
+          } else {
+            key = inserted;
+          }
+          return inserted;
+        })
+        .catch(() => undefined);
+    } catch {
+      // No web contents to inject into; nothing to undo either.
+    }
+    return () => {
+      isCancelled = true;
+      if (key !== undefined) {
+        view.removeInsertedCSS(key).catch(() => undefined);
+      }
+    };
   }, [graphView, isGuestReady, isHidden]);
 
   // Written on every navigation rather than on close. There is no reliable
