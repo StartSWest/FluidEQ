@@ -686,26 +686,15 @@ $expanded-video-bar-bottom: 34px;
   padding-bottom: $expanded-video-bar-bottom;
 }
 
-// The card takes no clicks while it is over the player.
+// The card takes clicks, as every other pane does.
 //
-// In both larger modes the graph covers the column, so every click meant for
-// the video — pause, seek, the player's own fullscreen button — landed on a
-// chart instead. The picture is right there and visibly playing, which makes an
-// unresponsive one read as the app having frozen rather than as a pane being in
-// front of it.
-//
-// The chrome exempts itself: `.live-output-controls` already re-enables its own
-// children, so the picker, the buttons and the sliders keep working while
-// everything between them passes straight through.
-//
-// The trade is the band handles, which stop being draggable in these modes on
-// this tab — they are a thing you do while editing, and this is the arrangement
-// for watching. Normal view is untouched, and so is every other tab: without a
-// video behind it there is nothing for a click to fall through to.
-.center-workspace.is-graph-full:has(.workspace-tab-panel--video:not(.is-hidden))
-  > .graph-wrapper {
-  pointer-events: none;
-}
+// It was briefly transparent to them, so that pause and seek could reach the
+// player underneath. That bought less than it cost: the band handles stopped
+// being draggable and the graph stopped being something you could interact with
+// at all. Stripping the page back to its player answers the same problem
+// without taking anything away — the picture is the whole pane and its own
+// controls are on it. Two mechanisms for one problem, and this was the one with
+// a price.
 
 // Full screen is the whole screen, corner to corner.
 //

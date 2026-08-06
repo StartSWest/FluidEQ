@@ -85,31 +85,81 @@ interface IWebview extends HTMLElement {
  * once the graph stops taking clicks.
  */
 const PLAYER_ONLY_CSS = `
-  html, body {
+  html[data-fluideq-solo],
+  html[data-fluideq-solo] body {
     overflow: hidden !important;
     background: #000 !important;
   }
-  #movie_player,
-  .html5-video-player,
-  [data-a-target="video-player"],
-  .vp-player-layout,
-  .videoWrapper,
-  video {
+  /* At every level of the chain down to the player, everything that is not on
+     the chain goes. The player's own subtree is untouched, because nothing
+     inside it is a sibling of the chain — which is what keeps its controls. */
+  html[data-fluideq-solo] [data-fluideq-keep] > *:not([data-fluideq-keep]) {
+    display: none !important;
+  }
+  /* And the chain itself stops imposing a layout on what is left. Sites wrap
+     players in grids and flex rows sized for a page that is no longer there. */
+  html[data-fluideq-solo] [data-fluideq-keep] {
+    display: block !important;
+    width: auto !important;
+    max-width: none !important;
+    height: auto !important;
+    max-height: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+  html[data-fluideq-solo] [data-fluideq-player] {
     position: fixed !important;
     z-index: 2147483647 !important;
     top: 0 !important;
     left: 0 !important;
     width: 100vw !important;
     height: 100vh !important;
-    max-width: none !important;
-    max-height: none !important;
-    margin: 0 !important;
     background: #000 !important;
   }
-  video {
+  html[data-fluideq-solo] [data-fluideq-player] video {
+    width: 100% !important;
+    height: 100% !important;
     object-fit: contain !important;
   }
 `;
+
+/**
+ * Mark the path from the document down to the player.
+ *
+ * Pinning the player with a z-index was the first attempt and it cannot work: a
+ * z-index only sorts within its own stacking context, and every one of these
+ * sites wraps its player in several — so the comments and the sidebar carried
+ * on painting over a video that had been told to be on top of everything.
+ *
+ * Hiding by chain has no such ceiling. Nothing is named per-site: the player is
+ * found once, and the rule that hides the rest is expressed in terms of the
+ * path rather than in terms of any particular page's markup.
+ */
+const ENTER_PLAYER_ONLY = `(() => {
+  const player = document.querySelector(
+    '#movie_player, .html5-video-player, [data-a-target="video-player"], .vp-player-layout'
+  ) || document.querySelector('video')?.parentElement;
+  if (!player) { return 'none'; }
+  player.setAttribute('data-fluideq-player', '');
+  let node = player;
+  while (node && node !== document.documentElement) {
+    node.setAttribute('data-fluideq-keep', '');
+    node = node.parentElement;
+  }
+  document.documentElement.setAttribute('data-fluideq-solo', '');
+  return 'ok';
+})()`;
+
+const EXIT_PLAYER_ONLY = `(() => {
+  document.documentElement.removeAttribute('data-fluideq-solo');
+  document
+    .querySelectorAll('[data-fluideq-keep], [data-fluideq-player]')
+    .forEach((node) => {
+      node.removeAttribute('data-fluideq-keep');
+      node.removeAttribute('data-fluideq-player');
+    });
+  return 'ok';
+})()`;
 
 /**
  * Ask the page to put its own player into fullscreen.
@@ -323,6 +373,9 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
           return inserted;
         })
         .catch(() => undefined);
+      // The stylesheet alone does nothing until the chain is marked; the two
+      // are inserted together and removed together.
+      view.executeJavaScript(ENTER_PLAYER_ONLY).catch(() => undefined);
     } catch {
       // No web contents to inject into; nothing to undo either.
     }
@@ -330,6 +383,14 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       isCancelled = true;
       if (key !== undefined) {
         view.removeInsertedCSS(key).catch(() => undefined);
+      }
+      try {
+        // The attributes go too. Left behind they are inert without the
+        // stylesheet, but they would be waiting for the next time it is
+        // inserted, describing a chain to a player that may have been replaced.
+        view.executeJavaScript(EXIT_PLAYER_ONLY).catch(() => undefined);
+      } catch {
+        // The guest is gone, which removes them rather more thoroughly.
       }
     };
   }, [graphView, isGuestReady, isHidden]);
