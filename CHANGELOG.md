@@ -40,6 +40,13 @@ opens it again any time.
   as a GitHub issue or email it privately. Nothing is sent until you press one
   of those, and you can read and edit every word first. Account names, file
   paths, email addresses and network share names are removed automatically.
+- **Fix audio problems**, also in the actions menu. When the sound stops there
+  are four things worth trying, they escalate, and until now they sat in a flat
+  list with nothing to say which to press first or what each one costs you.
+  This puts them in order — restart the audio service, re-select your devices,
+  reinstall Equalizer APO, then remove and re-add the device across two
+  restarts — with what each one fixes and what it will cost, and a button on
+  every step that can be automated. Stop at the first one that works.
 
 ### Fixed
 

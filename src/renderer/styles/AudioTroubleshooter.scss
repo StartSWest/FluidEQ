@@ -1,0 +1,181 @@
+/*
+<AQUA: System-wide parametric audio equalizer interface>
+Copyright (C) <2023>  <AQUA Dev Team>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.troubleshoot-backdrop {
+  position: fixed;
+  z-index: 4000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba($black, 0.62);
+  inset: 0;
+}
+
+.troubleshoot {
+  @include menu-surface;
+  width: min(560px, 100%);
+  max-height: 100%;
+  padding: 18px 20px 20px;
+  overflow-y: auto;
+}
+
+.troubleshoot__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+
+  h2 {
+    margin: 0;
+    color: $white;
+    font-size: 0.98rem;
+  }
+
+  button {
+    display: flex;
+    width: 24px;
+    height: 24px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    color: rgba($primary-lighter, 0.6);
+    cursor: pointer;
+
+    svg {
+      width: 10px;
+      height: 10px;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-width: 1.8;
+    }
+
+    &:hover {
+      background: rgba($white, 0.08);
+      color: $white;
+    }
+  }
+}
+
+.troubleshoot__lead {
+  margin: 8px 0 14px;
+  color: rgba($primary-lighter, 0.8);
+  font-size: 0.78rem;
+  line-height: 1.5;
+}
+
+// Numbered, and the numbers matter — this is a sequence, not a set of options.
+.troubleshoot__steps {
+  margin: 0;
+  padding-left: 20px;
+  list-style: decimal;
+
+  > li {
+    margin-bottom: 14px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid rgba($primary-lighter, 0.08);
+    color: rgba($primary-lighter, 0.78);
+
+    &:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+
+    // Dimmed once run, so somebody working down the list can see where they
+    // are. Dimmed rather than struck through: any of them can be run again,
+    // and a crossed-out step reads as one that is no longer available.
+    &.is-tried {
+      opacity: 0.62;
+    }
+  }
+
+  p {
+    margin: 4px 0 0;
+    font-size: 0.74rem;
+    line-height: 1.5;
+  }
+}
+
+.troubleshoot__step-head {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-s;
+
+  h3 {
+    margin: 0;
+    color: $white;
+    font-size: 0.82rem;
+  }
+}
+
+.troubleshoot__tried {
+  color: $secondary-light;
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// What it costs, set apart from what it fixes. Somebody deciding whether to
+// press a button that reboots their computer should not have to find that out
+// in the middle of a paragraph about symptoms.
+.troubleshoot__cost {
+  color: rgba($primary-lighter, 0.52);
+  font-style: italic;
+}
+
+.troubleshoot__action {
+  margin-top: 9px;
+  padding: 5px 12px;
+  border: 1px solid rgba($secondary-light, 0.45);
+  border-radius: 999px;
+  background: rgba($secondary-light, 0.12);
+  color: $secondary-light;
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease;
+
+  &:hover {
+    border-color: $secondary-light;
+    background: rgba($secondary-light, 0.24);
+    color: $white;
+  }
+}
+
+.troubleshoot__foot {
+  margin: 16px 0 0;
+  padding-top: 14px;
+  border-top: 1px solid rgba($primary-lighter, 0.08);
+  color: rgba($primary-lighter, 0.6);
+  font-size: 0.72rem;
+  line-height: 1.5;
+
+  strong {
+    color: rgba($primary-lighter, 0.85);
+  }
+}

@@ -36,6 +36,7 @@ import SupportPet from './SupportPet';
 import { FluidEqProvider, useFluidEqContext } from './utils/FluidEqContext';
 import PrereqMissingModal from './PrereqMissingModal';
 import BugReportDialog from './components/BugReportDialog';
+import AudioTroubleshooter from './components/AudioTroubleshooter';
 import SideBar from './SideBar';
 import {
   getLiveOutputSolo,
@@ -121,6 +122,7 @@ const AppContent = () => {
   // Opened from the actions menu. Nothing is gathered until it is on screen,
   // so an app nobody is reporting a problem with never reads its own logs.
   const [showBugReport, setShowBugReport] = useState(false);
+  const [showTroubleshooter, setShowTroubleshooter] = useState(false);
   // Bumping this remounts the prerequisite notice, which is how a dismissed
   // one comes back. Without it the notice was a one-shot: close it once and
   // the only route to "Install Equalizer APO" was gone until the error
@@ -650,6 +652,23 @@ const AppContent = () => {
 
                         <hr className="workspace-header__menu-rule" />
 
+                        {/* First, above the individual repairs, because it is
+                            the one to open when you do not already know which
+                            of them you need — which is everybody whose audio
+                            has just stopped. The three below are the same
+                            actions, for anyone who does know. */}
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setShowAudioToolsMenu(false);
+                            setShowTroubleshooter(true);
+                          }}
+                        >
+                          <MenuIcon name="configure" />
+                          Fix audio problems…
+                        </button>
+
                         {/* Repairing, rather than configuring. APO can be
                             installed and still not working — a Windows update
                             can detach it from an endpoint. Reconfigure covers
@@ -951,6 +970,18 @@ const AppContent = () => {
             is no reason to hide an equalizer that is still working. */}
         {showBugReport && (
           <BugReportDialog onClose={() => setShowBugReport(false)} />
+        )}
+        {/* The repairs are the same handlers the menu calls directly. Passed
+            in rather than imported there, so there is one definition of what
+            "reinstall Equalizer APO" does — including the confirmation and the
+            restart advice that follows it. */}
+        {showTroubleshooter && (
+          <AudioTroubleshooter
+            onClose={() => setShowTroubleshooter(false)}
+            onRestartAudio={handleRestartWindowsAudio}
+            onReconfigure={handleConfigureEqualizerApo}
+            onReinstallApo={handleReinstallApo}
+          />
         )}
         {globalError && isBlockingError && (
           <PrereqMissingModal
