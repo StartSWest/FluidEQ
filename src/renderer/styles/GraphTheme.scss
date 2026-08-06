@@ -622,6 +622,32 @@ $expanded-video-bar-top: 40px;
 // buttons becoming unreachable.
 .app-workspace.is-app-full .live-output-controls {
   top: 18px;
+
+  // Kept out of the middle third, where the waveform is.
+  //
+  // The row spans the whole card and is right-aligned, so on a window with more
+  // controls than room its left end simply carried on underneath the waveform —
+  // and the chrome is painted above it, so the hint, the legend and the style
+  // picker were covered rather than pushed aside. Which is what it looked like:
+  // a strip of controls with a card sitting on top of half of them.
+  //
+  // 210px is half of the chrome's centre track at its widest, and that track is
+  // centred on the window, so its right edge is never past this. The row starts
+  // there and wraps within what is left, which is the same third the grid keeps
+  // empty for it.
+  left: calc(50% + 210px + #{$spacing-s});
+
+  // And the one caption that will not fit beside everything else.
+  //
+  // It is advice about dragging band handles, and it is by some way the widest
+  // thing in the row — losing it buys back more space than the rest of the
+  // captions together. Full screen is also the worst place to spend that space:
+  // it is where somebody is watching rather than learning the gestures, and the
+  // same line is already hidden in wave-only mode for a version of the same
+  // reason. The graph's own controls all stay.
+  .graph-edit-hint {
+    display: none;
+  }
 }
 
 // A solid bar behind the controls, over the player, in expanded view only.
