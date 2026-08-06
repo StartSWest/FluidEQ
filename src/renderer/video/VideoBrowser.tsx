@@ -124,6 +124,49 @@ const PLAYER_ONLY_CSS = `
     background: #000 !important;
   }
 
+  /* Twitch, and Twitch alone.
+
+     Pinning its player works — the box really is the viewport — but the video
+     inside stayed short and left a band across the bottom. The cause is one
+     inline style Twitch puts on 'video-player__container':
+
+       max-height: calc(-16rem + 100vh)
+
+     which is the room it leaves for the chat and the channel bar underneath.
+     With the rest of the page hidden there is nothing under it to leave room
+     for, and 16rem is 160px here rather than 256 because Twitch sets its root
+     font size to 10px. On a 720-tall window that capped the picture at 560 and
+     put 160 pixels of black below it.
+
+     Measured on a live channel rather than reasoned about: player 1280x720,
+     video 1280x560, and 1280x720 throughout once these three rules are in.
+
+     Scoped by 'data-a-target', which is Twitch's own attribute and exists on no
+     other site here — so this cannot reach YouTube's player, which does not
+     have the problem and has twice been broken by a rule meant for somebody
+     else. 'contain' keeps a stream that does not match the window letterboxed
+     rather than stretched. */
+  html[data-fluideq-solo]
+    [data-a-target='video-player'][data-fluideq-player]
+    .video-player__container,
+  html[data-fluideq-solo]
+    [data-a-target='video-player'][data-fluideq-player]
+    [data-a-target='video-ref'],
+  html[data-fluideq-solo]
+    [data-a-target='video-player'][data-fluideq-player]
+    video {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    height: 100% !important;
+    max-height: none !important;
+  }
+  html[data-fluideq-solo]
+    [data-a-target='video-player'][data-fluideq-player]
+    video {
+    object-fit: contain !important;
+  }
 `;
 
 /**
