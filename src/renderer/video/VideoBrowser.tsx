@@ -184,30 +184,6 @@ const EXIT_PLAYER_ONLY = `(() => {
   return 'ok';
 })()`;
 
-/**
- * Ask the page to put its own player into fullscreen.
- *
- * The site's own button first, and not out of politeness: a player driven
- * through its own control ends up in the state it expects — its chrome
- * rescales, its keyboard shortcuts follow, and leaving fullscreen puts
- * everything back. Calling `requestFullscreen` on the video element behind the
- * player's back gets a full-size picture with a player that still believes it
- * is windowed, which on YouTube means the controls stay small and mispositioned.
- *
- * The element fallback is for everything without a button we can name, which is
- * every site that redesigns its player after this was written.
- */
-const REQUEST_PAGE_FULLSCREEN = `(() => {
-  if (document.fullscreenElement) { return 'already'; }
-  const button = document.querySelector(
-    '.ytp-fullscreen-button, [data-a-target="player-fullscreen-button"], .fullscreen-control, .vp-fullscreen'
-  );
-  if (button) { button.click(); return 'button'; }
-  const video = document.querySelector('video');
-  if (video && video.requestFullscreen) { video.requestFullscreen(); return 'video'; }
-  return 'none';
-})()`;
-
 const EXIT_PAGE_FULLSCREEN = `(() => {
   if (!document.fullscreenElement) { return 'none'; }
   const button = document.querySelector(
@@ -343,9 +319,20 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     try {
       view
         .executeJavaScript(
-          graphView === 'fullscreen'
-            ? REQUEST_PAGE_FULLSCREEN
-            : EXIT_PAGE_FULLSCREEN,
+          // Never asked for any more, only ever undone.
+          //
+          // Full screen used to ask for it, and that is the blank screen: the
+          // page's fullscreen puts the player in Chromium's top layer while the
+          // injected rules are still pinning it to the viewport, and the two
+          // accounts of where it belongs disagree. Pressing Escape dropped the
+          // page's fullscreen, left the injection alone, and the picture
+          // appeared — which is the symptom that names the cause exactly.
+          //
+          // The injection already strips the page to the player in both modes,
+          // so there is nothing left for the site's own fullscreen to add. What
+          // remains here is the undo, for a page somebody put into fullscreen
+          // with the player's own button.
+          EXIT_PAGE_FULLSCREEN,
           // Counts as a user gesture. The click or the shortcut that opened the
           // mode was one; Chromium has no way to know that from here, and
           // `requestFullscreen` refuses without it.
