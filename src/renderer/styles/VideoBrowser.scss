@@ -36,6 +36,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 1 auto;
   flex-direction: column;
   gap: $spacing-s;
+  // Never a horizontal scrollbar.
+  //
+  // The toolbar is a wrapping flex row and the stage is sized from its parent,
+  // so on the first paint of the tab — before the panel has been measured and
+  // while the site pills are still laying out — the row can be momentarily
+  // wider than the column it is in. That overflow gave the panel a horizontal
+  // scrollbar and pushed the player sideways out of view, which is a poor first
+  // impression of a tab whose whole content is a picture.
+  //
+  // There is nothing here worth scrolling to sideways in any case: the row
+  // wraps and the stage fits by construction.
+  overflow-x: hidden;
 
   // Not unmounted when another tab is open, so that the audio keeps playing.
   // `display: none` leaves the guest page attached; removing the element from
