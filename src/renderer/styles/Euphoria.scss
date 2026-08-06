@@ -156,20 +156,21 @@ it under the terms of the GNU General Public License version 3 or later.
   // it cheap: one registered custom property ticks, and the two rules below
   // read it. No filter, nothing re-rasterised, and it is the same sweep every
   // other euphoric surface in the app is already running in step with.
-  // Deliberately over-qualified.
+  // The figure's own outline, travelling through the wheel.
   //
-  // The larger graph modes restate the card's border at four classes deep, and
-  // this has to win in those modes above all — they are where somebody is
-  // watching rather than working, which is what the frame is for. A shorter
-  // selector lost to them silently and the switch appeared to do nothing.
-  .app-workspace .center-workspace .graph-wrapper.has-euphoria-border {
+  // On the drawing, not on the card. This first framed the graph pane, which
+  // was the wrong reading of it entirely: the setting belongs to a look, and a
+  // look describes a wave — the window and its menus are not the look's to
+  // decorate. What it does now is what a visualiser means by a cycling border:
+  // the shape is outlined, and the outline runs the hue.
+  //
+  // On a filled form that is an edge around each piece with the look's own
+  // colours still inside it. On a form that is already a line, the line itself
+  // takes the sweep, which is the only thing an outline can mean there.
+  .chart-live-trace.has-euphoria-outline {
+    stroke: hsl(var(--euphoria-hue) 90% 62%);
+    stroke-width: var(--euphoria-border-width, 2px);
     animation: euphoria-sweep 3.6s linear infinite;
-    border-color: hsl(var(--euphoria-hue) 90% 62% / 70%);
-    // Set per look — see the thickness slider in the designer.
-    border-width: var(--euphoria-border-width, 2px);
-    box-shadow:
-      inset 0 0 0 1px hsl(var(--euphoria-hue) 95% 60% / 25%),
-      0 0 26px hsl(var(--euphoria-hue) 95% 60% / 30%);
   }
 
   // The lit tips come up with it. They are already painted from the trace's own

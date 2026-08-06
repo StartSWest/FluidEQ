@@ -48,7 +48,11 @@ import {
   MIN_STROKE_WIDTH,
   createDraftLook,
   getDefaultTuning,
+  getMaxLookColours,
   normalizeLookName,
+  parseLookFile,
+  serializeLookFile,
+  toLookFileName,
   rebaseDraftLook,
   recolourDraftLook,
 } from 'common/customLooks';
@@ -120,6 +124,130 @@ const seedPaletteColours = (palette: GraphPalette): string[] => {
     return BAND_SPECTRUM_HEX.slice(0, MAX_LOOK_COLOURS);
   }
   return [DEFAULT_SIGNAL_COLOUR];
+};
+
+/**
+ * The colours a stop can be set to without leaving the panel.
+ *
+ * The native colour input opens Chromium's own picker, which is a saturation
+ * square, a hue strip and three numeric fields — about three hundred pixels of
+ * chrome dropped over a two-hundred-and-fifty pixel panel, covering the very
+ * graph the colour is being chosen against. It is a fine tool for specifying a
+ * colour and a poor one for picking one while watching a wave.
+ *
+ * This is the other half of that trade: a fixed set, one click, nothing
+ * covered. Two rows — the app's own accents first, then a spread around the
+ * wheel — which is enough to build any ramp anybody has asked for. The native
+ * picker is still there behind "custom" for the case this cannot serve.
+ */
+const SWATCH_CHOICES = [
+  '#00e5cf',
+  '#54ff8a',
+  '#ffcc4d',
+  '#ff8a3d',
+  '#ff4f4f',
+  '#ff4f9a',
+  '#c86bff',
+  '#6b8aff',
+  '#00b3ff',
+  '#ffffff',
+  '#9aa7b8',
+  '#0d1420',
+];
+
+interface IStopPickerProps {
+  colour: string;
+  index: number;
+  canRemove: boolean;
+  onChange: (colour: string) => void;
+  onRemove: () => void;
+}
+
+/**
+ * One stop: a swatch that opens a small grid, and a corner control to drop it.
+ */
+const StopPicker = ({
+  colour,
+  index,
+  canRemove,
+  onChange,
+  onRemove,
+}: IStopPickerProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  // Anywhere else closes it. Pointer-down rather than click, so the grid is
+  // gone by the time whatever was pressed reacts.
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+    const close = () => setIsOpen(false);
+    window.addEventListener('pointerdown', close);
+    return () => window.removeEventListener('pointerdown', close);
+  }, [isOpen]);
+
+  return (
+    <span
+      className="look-designer__swatch"
+      // The listener above is on the window, so a press inside must not reach
+      // it or the grid would close on the way to the colour being chosen.
+      onPointerDown={(event) => event.stopPropagation()}
+    >
+      <button
+        type="button"
+        className="look-designer__swatch-face"
+        style={{ background: colour }}
+        aria-label={`Colour ${index + 1}: ${colour}`}
+        aria-expanded={isOpen}
+        title={colour}
+        onClick={() => setIsOpen((open) => !open)}
+      />
+      {canRemove && (
+        <button
+          type="button"
+          className="look-designer__swatch-drop"
+          aria-label={`Remove colour ${index + 1}`}
+          onClick={onRemove}
+        >
+          ✕
+        </button>
+      )}
+      {isOpen && (
+        <div className="look-designer__swatch-grid" role="group">
+          {SWATCH_CHOICES.map((choice) => (
+            <button
+              key={choice}
+              type="button"
+              className={`look-designer__swatch-choice${
+                choice === colour ? ' is-on' : ''
+              }`}
+              style={{ background: choice }}
+              aria-label={choice}
+              title={choice}
+              onClick={() => {
+                onChange(choice);
+                setIsOpen(false);
+              }}
+            />
+          ))}
+          <label
+            className="look-designer__swatch-custom"
+            htmlFor={`look-designer-custom-${index}`}
+            title="Any other colour"
+          >
+            Custom
+            <input
+              id={`look-designer-custom-${index}`}
+              type="color"
+              value={colour}
+              aria-label="Any other colour"
+              onChange={(event) => onChange(event.target.value)}
+            />
+          </label>
+        </div>
+      )}
+    </span>
+  );
 };
 
 interface ISettingRowProps {
@@ -253,6 +381,7 @@ const LookDesigner = ({ onClose }: ILookDesignerProps) => {
     };
   });
   const [draft, setDraft] = useState<ICustomLook>(origin.look);
+  const [importError, setImportError] = useState('');
 
   // Follow the picker.
   //
@@ -375,6 +504,58 @@ const LookDesigner = ({ onClose }: ILookDesignerProps) => {
     onClose();
   };
 
+  /**
+   * The look as a file, through a blob and a link click.
+   *
+   * Not through the main process. Every other file this app opens is one it has
+   * to find for itself — a preset directory, an impulse response, the APO
+   * config — and needs a native dialog to do it. This is the browser's own
+   * download of a few hundred bytes the renderer already has in hand, and
+   * routing it through IPC would add a channel, a handler and a round trip to
+   * something the platform does in three lines.
+   */
+  const handleExport = () => {
+    const look: ICustomLook = {
+      ...draft,
+      name: normalizeLookName(draft.name) || fallbackName,
+    };
+    const url = URL.createObjectURL(
+      new Blob([serializeLookFile([look])], { type: 'application/json' }),
+    );
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = toLookFileName(look.name);
+    link.click();
+    // The blob is held alive by the URL until it is let go, and a session of
+    // exporting would keep every one of them.
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (file: File | undefined) => {
+    if (!file) {
+      return;
+    }
+    file
+      .text()
+      .then((text) => parseLookFile(text))
+      .then((looks) => {
+        if (!looks.length) {
+          // Says nothing was found rather than nothing at all. The likeliest
+          // reason is that this is not a look file, and silence reads as a bug.
+          setImportError('No looks in that file.');
+          return false;
+        }
+        // Same id means the same look, so importing an updated copy replaces
+        // it rather than leaving two entries nobody can tell apart.
+        looks.forEach(saveCustomLook);
+        setGraphLook(looks[0].id);
+        clearLookDraft();
+        onClose();
+        return true;
+      })
+      .catch(() => setImportError('Could not read that file.'));
+  };
+
   return (
     <div
       className="look-designer"
@@ -461,31 +642,21 @@ const LookDesigner = ({ onClose }: ILookDesignerProps) => {
           </span>
           <div className="look-designer__swatches">
             {draft.colours.map((colour, index) => (
-              // Keyed by position, which is what a stop actually is: the
-              // list is a ramp read from one end to the other, the same
-              // colour may legitimately appear twice, and nothing here ever
-              // reorders. Identity IS the index.
-              // eslint-disable-next-line react/no-array-index-key
-              <span className="look-designer__swatch" key={index}>
-                <input
-                  type="color"
-                  value={colour}
-                  aria-label={`Colour ${index + 1}`}
-                  onChange={(event) => setColourAt(index, event.target.value)}
-                />
-                {draft.colours.length > MIN_LOOK_COLOURS && (
-                  <button
-                    type="button"
-                    className="look-designer__swatch-drop"
-                    aria-label={`Remove colour ${index + 1}`}
-                    onClick={() => removeColourAt(index)}
-                  >
-                    ✕
-                  </button>
-                )}
-              </span>
+              <StopPicker
+                // Keyed by position, which is what a stop actually is: the list
+                // is a ramp read from one end to the other, the same colour may
+                // legitimately appear twice, and nothing here ever reorders.
+                // Identity IS the index.
+                // eslint-disable-next-line react/no-array-index-key
+                key={index}
+                colour={colour}
+                index={index}
+                canRemove={draft.colours.length > MIN_LOOK_COLOURS}
+                onChange={(next) => setColourAt(index, next)}
+                onRemove={() => removeColourAt(index)}
+              />
             ))}
-            {draft.colours.length < MAX_LOOK_COLOURS && (
+            {draft.colours.length < getMaxLookColours(draft.palette) && (
               <button
                 type="button"
                 className="look-designer__swatch-add"
@@ -630,11 +801,19 @@ const LookDesigner = ({ onClose }: ILookDesignerProps) => {
           </SettingRow>
         )}
 
-        {/* Greyed out rather than hidden when the mode is off.
+        {/* What the mode does to this look, gathered under its own heading.
 
-            A control that vanishes takes its explanation with it, and "why is
-            there no glow setting" is a worse question than "why is this one
-            disabled" — the second answers itself in the hint underneath. */}
+            These three do nothing at all outside euphoria, and scattered among
+            the settings that always apply they read as broken rather than as
+            conditional. Under a heading in the mode's own colour they read as
+            what they are: a section that belongs to something else.
+
+            Greyed rather than hidden when the mode is off, because a control
+            that vanishes takes its explanation with it — "why is there no glow
+            setting" is a worse question than "why is this one disabled", and
+            the second answers itself in the hint underneath. */}
+        <p className="look-designer__group">Euphoria</p>
+
         <SettingRow
           id="look-designer-glow"
           label="Glow"
@@ -746,22 +925,76 @@ const LookDesigner = ({ onClose }: ILookDesignerProps) => {
         </label>
       </div>
 
+      {importError && (
+        <p className="look-designer__error" role="status">
+          {importError}
+        </p>
+      )}
+
+      {/* One row.
+
+          These were two rows of wide buttons, which in a 252px panel is a
+          block of furniture at the bottom of a pane that exists to show a
+          drawing. Only Save is worth a word — it is the one with a consequence
+          — so the rest become squares, each with a title and a label for
+          anything that is not reading the picture. */}
       <div className="look-designer__actions">
         <button
           type="button"
-          className="look-designer__button"
+          className="look-designer__icon"
           onClick={() => tune(getDefaultTuning(style))}
+          aria-label="Reset every setting"
           title="Put every setting back to how this form ships"
         >
-          Reset
+          <svg viewBox="0 0 16 16" aria-hidden>
+            <path d="M13 8a5 5 0 1 1-1.6-3.7M13 2v3h-3" />
+          </svg>
         </button>
+        <button
+          type="button"
+          className="look-designer__icon"
+          onClick={handleExport}
+          aria-label="Export this look to a file"
+          title="Write this look to a file you can send to somebody"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden>
+            <path d="M8 10V2M5 5l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" />
+          </svg>
+        </button>
+        <label
+          className="look-designer__icon"
+          htmlFor="look-designer-import"
+          title="Add a look from a file"
+        >
+          <svg viewBox="0 0 16 16" aria-hidden>
+            <path d="M8 2v8M5 7l3 3 3-3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" />
+          </svg>
+          <input
+            id="look-designer-import"
+            type="file"
+            accept="application/json,.json"
+            aria-label="Import a look from a file"
+            onChange={(event) => {
+              const [file] = Array.from(event.target.files ?? []);
+              // Cleared, or choosing the same file twice in a row does nothing
+              // the second time: the value has not changed, so no event fires.
+              // eslint-disable-next-line no-param-reassign
+              event.target.value = '';
+              handleImport(file);
+            }}
+          />
+        </label>
         {origin.isEditing && (
           <button
             type="button"
-            className="look-designer__button look-designer__button--danger"
+            className="look-designer__icon look-designer__icon--danger"
             onClick={handleDelete}
+            aria-label="Delete this look"
+            title="Delete this look"
           >
-            Delete
+            <svg viewBox="0 0 16 16" aria-hidden>
+              <path d="M3 4h10M6.5 4V2.5h3V4M4.5 4l.5 9h6l.5-9M6.5 6.5v4M9.5 6.5v4" />
+            </svg>
           </button>
         )}
         <button

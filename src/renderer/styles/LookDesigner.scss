@@ -130,6 +130,30 @@
   }
 }
 
+// The heading over the settings that only euphoria uses.
+//
+// In the mode's own yellow, and the only colour in the panel that is not the
+// app's cyan — which is the whole job it does. The rows under it are inert
+// unless the mode is on, and a section that looks like it belongs to something
+// else is how somebody reads that without being told twice.
+.look-designer__group {
+  margin: 4px 0 0;
+  color: #ffcc4d;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+// What went wrong with an import, said where the button is.
+.look-designer__error {
+  margin: 0;
+  padding: 0 12px;
+  color: rgba(#ff9d9d, 0.95);
+  font-size: 0.58rem;
+  line-height: 1.35;
+}
+
 .look-designer__caption {
   display: flex;
   align-items: baseline;
@@ -225,11 +249,15 @@
 }
 
 // The colour stops, in the order they are painted.
+//
+// Across the full width rather than lined up at the left, and each one taking
+// an equal share of it: the row is a ramp read end to end, so a gap after the
+// last swatch reads as a stop that is missing rather than as space. Adding a
+// colour narrows them all instead of pushing the row along.
 .look-designer__swatches {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
+  align-items: stretch;
+  gap: 5px;
 }
 
 // A stop, with the control to drop it tucked into its corner.
@@ -240,31 +268,86 @@
 // wanted, and the swatch stays big enough to judge the colour by.
 .look-designer__swatch {
   position: relative;
-  display: inline-flex;
+  display: flex;
+  // An equal share of the row, however many there are.
+  flex: 1 1 0;
+  min-width: 0;
+}
+
+// The stop itself: a plain block of the colour, and nothing else.
+.look-designer__swatch-face {
+  width: 100%;
+  height: 26px;
+  padding: 0;
+  // Barely there. The swatch IS a colour, and a bright edge round it competes
+  // with the thing it is supposed to be showing — which matters most at the
+  // dark end of a ramp, where a light border reads as part of the colour.
+  border: 1px solid rgba($primary-lighter, 0.16);
+  border-radius: $radius-xs;
+  cursor: pointer;
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+}
+
+// The choices, opened under the stop rather than over the window.
+//
+// Anchored to the swatch and only as big as it needs to be, which is the whole
+// point of it: the native picker covers the graph the colour is being judged
+// against, and a colour chosen without seeing the wave is a colour chosen
+// twice.
+.look-designer__swatch-grid {
+  @include menu-surface;
+
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 5px);
+  left: 0;
+  display: grid;
+  width: 132px;
+  padding: 6px;
+  gap: 4px;
+  grid-template-columns: repeat(6, 1fr);
+}
+
+.look-designer__swatch-choice {
+  width: 100%;
+  height: 16px;
+  padding: 0;
+  border: 1px solid rgba($primary-lighter, 0.18);
+  border-radius: 3px;
+  cursor: pointer;
+
+  &.is-on,
+  &:hover,
+  &:focus-visible {
+    border-color: $white;
+    outline: none;
+  }
+}
+
+// The way out, for a colour this grid does not have.
+.look-designer__swatch-custom {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 0 1px;
+  color: rgba($primary-lighter, 0.7);
+  font-size: 0.54rem;
+  grid-column: 1 / -1;
+  cursor: pointer;
+
+  &:hover {
+    color: $white;
+  }
 
   input[type='color'] {
-    width: 30px;
-    height: 24px;
-    padding: 0;
-    border: 1px solid rgba($secondary-light, 0.35);
-    border-radius: $radius-xs;
-    background: none;
-    cursor: pointer;
-
-    &:focus-visible {
-      @include focus-ring;
-      outline: none;
-    }
-
-    // Chromium draws its own inset swatch; these strip it back to the colour.
-    &::-webkit-color-swatch-wrapper {
-      padding: 2px;
-    }
-
-    &::-webkit-color-swatch {
-      border: 0;
-      border-radius: 3px;
-    }
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
   }
 }
 
@@ -298,11 +381,17 @@
   }
 }
 
+// Narrow, and not part of the ramp.
+//
+// It sits in the same row but is a control rather than a colour, so it keeps a
+// fixed width while the stops share what is left — otherwise adding a colour
+// would be indistinguishable from the swatches at a glance.
 .look-designer__swatch-add {
   @include ghost-button;
 
-  width: 30px;
-  height: 24px;
+  width: 24px;
+  height: 26px;
+  flex: 0 0 auto;
   padding: 0;
   border-radius: $radius-xs;
   font-size: 0.72rem;
@@ -310,10 +399,16 @@
 }
 
 // What the ramp will actually look like, drawn the way the graph runs it.
+//
+// Tall enough to read. At eight pixels a vertical gradient — which is what the
+// level palette is — had no room to be a gradient at all, and showed as a
+// stripe of whichever colour happened to land in the middle. This is the one
+// place the ramp can be judged before it is on the graph, so it is worth the
+// height.
 .look-designer__ramp {
-  height: 8px;
-  border: 1px solid rgba($primary-lighter, 0.14);
-  border-radius: $radius-pill;
+  height: 30px;
+  border: 1px solid rgba($primary-lighter, 0.12);
+  border-radius: $radius-xs;
 }
 
 // Puts the stops back to what the palette paints on its own.
@@ -359,6 +454,59 @@
   &:focus-visible {
     @include focus-ring;
     outline: none;
+  }
+}
+
+// Reset, Export, Import and Delete, as squares.
+//
+// Only Save is worth a word — it is the one with a consequence. The rest were
+// two rows of wide labelled buttons, which in a 252px panel is a block of
+// furniture at the bottom of a pane whose whole job is to show a drawing. Each
+// carries a title and an accessible name, so nothing is lost but the width.
+.look-designer__icon {
+  @include ghost-button;
+
+  display: inline-flex;
+  width: 28px;
+  height: 26px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border-radius: $radius-xs;
+  cursor: pointer;
+
+  svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.4;
+  }
+
+  // Import is a label wrapping a file input, because a file input cannot be
+  // styled and a button cannot open one. Hidden rather than removed:
+  // `display: none` would take it out of the tab order and leave the control
+  // unreachable from the keyboard.
+  input[type='file'] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  &:focus-within {
+    @include focus-ring;
+    outline: none;
+  }
+
+  &--danger:hover {
+    color: $white;
+    border-color: rgba(#ff6b6b, 0.85);
+    background: rgba(#ff6b6b, 0.18);
   }
 }
 

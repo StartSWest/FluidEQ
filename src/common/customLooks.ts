@@ -167,6 +167,12 @@ export const isLookColour = (value: unknown): value is string =>
  * "nearest colour" to a value that is not one — and a look left with nothing
  * usable falls back to its palette's own colours rather than to a blank figure.
  */
+export const getMaxLookColours = (palette: GraphPalette): number =>
+  // A flat fill is one colour by definition. A second stop cannot be painted —
+  // there is no axis to run it along — so it is not an option that does nothing,
+  // it is not an option.
+  palette === 'signal' ? 1 : MAX_LOOK_COLOURS;
+
 export const normalizeLookColours = (
   raw: unknown,
   palette: GraphPalette,
@@ -177,7 +183,7 @@ export const normalizeLookColours = (
   const colours = raw
     .filter(isLookColour)
     .map((colour) => colour.trim().toLowerCase())
-    .slice(0, MAX_LOOK_COLOURS);
+    .slice(0, getMaxLookColours(palette));
   return colours.length ? colours : getDefaultPaletteColours(palette);
 };
 
@@ -553,6 +559,96 @@ export const recolourDraftLook = (
   draft.palette === palette
     ? draft
     : { ...draft, palette, colours: getDefaultPaletteColours(palette) };
+
+/**
+ * The version of the look file format.
+ *
+ * Written into every export and read back on import. It is one number and it
+ * costs nothing now; without it, the first change to the shape of a look turns
+ * every file anybody has shared into something that has to be guessed at.
+ *
+ * A reader older than the file it is given cannot be trusted to understand it,
+ * so it declines rather than importing half of one.
+ */
+export const LOOK_FILE_SCHEMA = 1;
+
+/** What a `.fluideq-look.json` file holds. */
+export interface ILookFile {
+  schema: number;
+  /** Informational. The app that wrote it, for anybody reading one by hand. */
+  app: string;
+  looks: readonly ICustomLook[];
+}
+
+/**
+ * Looks as a file somebody can send to somebody else.
+ *
+ * Indented, because the whole point of a text format is that it can be opened
+ * and read — and a look is a couple of dozen values, not a database. The cost
+ * of the whitespace is nothing against being able to see what you are sharing.
+ */
+export const serializeLookFile = (looks: readonly ICustomLook[]): string =>
+  `${JSON.stringify(
+    {
+      schema: LOOK_FILE_SCHEMA,
+      app: 'FluidEQ',
+      looks,
+    } satisfies ILookFile,
+    null,
+    2,
+  )}\n`;
+
+/**
+ * Everything readable in a look file, or empty if it is not one.
+ *
+ * Never throws. This is a file chosen from a disk by a person, which means it
+ * is as likely to be a screenshot they misclicked as a look — and the answer to
+ * that is a message saying nothing was found, not a stack trace.
+ *
+ * Every look still goes through `normalizeCustomLook`, so a hand-edited file
+ * gets exactly the same clamping and validation as the stored list. A file is
+ * no more trustworthy than local storage; it is rather less.
+ */
+export const parseLookFile = (json: string): ICustomLook[] => {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(json);
+  } catch {
+    return [];
+  }
+  if (!raw || typeof raw !== 'object') {
+    return [];
+  }
+  const file = raw as Partial<ILookFile>;
+  // A newer file than this build understands. Better to say so than to import
+  // the parts that happen to still parse and leave somebody with a look that
+  // quietly lost whatever the new version added.
+  if (typeof file.schema !== 'number' || file.schema > LOOK_FILE_SCHEMA) {
+    return [];
+  }
+  if (!Array.isArray(file.looks)) {
+    return [];
+  }
+  const looks: ICustomLook[] = [];
+  const seen = new Set<string>();
+  file.looks.forEach((entry) => {
+    const look = normalizeCustomLook(entry);
+    if (look && !seen.has(look.id) && looks.length < MAX_CUSTOM_LOOKS) {
+      seen.add(look.id);
+      looks.push(look);
+    }
+  });
+  return looks;
+};
+
+/** A filename that survives being saved on any of the three platforms. */
+export const toLookFileName = (name: string): string =>
+  `${
+    name
+      .replace(/[^a-z0-9]+/gi, '-')
+      .replace(/^-+|-+$/g, '')
+      .toLowerCase() || 'look'
+  }.fluideq-look.json`;
 
 export const resolveBuiltInLook = (look: IGraphLook): IResolvedLook => ({
   id: look.id,

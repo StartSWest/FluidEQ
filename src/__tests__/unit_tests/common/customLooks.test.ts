@@ -33,6 +33,10 @@ import {
   DEFAULT_GLOW,
   DEFAULT_LEVEL_COLOURS,
   ICustomLook,
+  ILookTuning,
+  MIN_BORDER_WIDTH,
+  MAX_BORDER_WIDTH,
+  getMaxLookColours,
   MAX_ATTACK_MS,
   MAX_LOOK_COLOURS,
   MAX_CUSTOM_LOOKS,
@@ -54,6 +58,10 @@ import {
   isLookColour,
   normalizeCustomLook,
   normalizeLookColours,
+  LOOK_FILE_SCHEMA,
+  parseLookFile,
+  serializeLookFile,
+  toLookFileName,
   normalizeLookName,
   normalizeTuning,
   parseCustomLooks,
@@ -505,5 +513,127 @@ describe('recolourDraftLook', () => {
     // object would throw away an edit in progress.
     const draft = draftOf('bars');
     expect(recolourDraftLook(draft, draft.palette)).toBe(draft);
+  });
+});
+
+describe('the look file', () => {
+  it('round-trips a look through a file', () => {
+    const look = draftOf('skyline');
+    expect(parseLookFile(serializeLookFile([look]))).toEqual([look]);
+  });
+
+  it('carries a version, so a later shape is not guessed at', () => {
+    const file = JSON.parse(serializeLookFile([draftOf()]));
+    expect(file.schema).toBe(LOOK_FILE_SCHEMA);
+    expect(file.app).toBe('FluidEQ');
+  });
+
+  it('declines a file written by a newer build', () => {
+    // Importing the parts that still happen to parse would leave somebody with
+    // a look that quietly lost whatever the new version added.
+    const file = JSON.parse(serializeLookFile([draftOf()]));
+    file.schema = LOOK_FILE_SCHEMA + 1;
+    expect(parseLookFile(JSON.stringify(file))).toEqual([]);
+  });
+
+  it('survives being handed something that is not a look file at all', () => {
+    // This is a file chosen off a disk by a person, and is as likely to be a
+    // screenshot they misclicked. Never throws.
+    expect(parseLookFile('')).toEqual([]);
+    expect(parseLookFile('not json')).toEqual([]);
+    expect(parseLookFile('[]')).toEqual([]);
+    expect(parseLookFile('{"schema":1}')).toEqual([]);
+    expect(parseLookFile('{"looks":[]}')).toEqual([]);
+    expect(parseLookFile(JSON.stringify({ schema: 1, looks: 'nope' }))).toEqual(
+      [],
+    );
+  });
+
+  it('validates every look in it exactly as the stored list is', () => {
+    // A file is no more trustworthy than local storage; it is rather less.
+    const json = JSON.stringify({
+      schema: LOOK_FILE_SCHEMA,
+      looks: [
+        { ...draftOf('bars'), tuning: { columns: -9, glow: 40 } },
+        { id: 'not-ours', style: 'bars' },
+      ],
+    });
+    const looks = parseLookFile(json);
+    expect(looks).toHaveLength(1);
+    expect(looks[0].tuning.columns).toBe(MIN_GRAPH_COLUMNS);
+    expect(looks[0].tuning.glow).toBe(MAX_GLOW);
+  });
+
+  it('names the file after the look, safely on any platform', () => {
+    expect(toLookFileName('My Bars!')).toBe('my-bars.fluideq-look.json');
+    expect(toLookFileName('  ///  ')).toBe('look.fluideq-look.json');
+  });
+});
+
+describe('every stored setting is validated', () => {
+  // The stored list, a look file and a resumed draft all arrive through
+  // `normalizeCustomLook`, so this is the one gate a bad value has to pass. A
+  // field added to the tuning without a rule here is a field a hand-edited file
+  // can set to anything at all.
+  const NUMERIC: [keyof ILookTuning, number, number][] = [
+    ['columns', MIN_GRAPH_COLUMNS, MAX_GRAPH_COLUMNS],
+    ['attackMs', MIN_ATTACK_MS, MAX_ATTACK_MS],
+    ['releaseMs', MIN_RELEASE_MS, MAX_RELEASE_MS],
+    ['strokeWidth', MIN_STROKE_WIDTH, MAX_STROKE_WIDTH],
+    ['fillOpacity', MIN_FILL_OPACITY, MAX_FILL_OPACITY],
+    ['glow', MIN_GLOW, MAX_GLOW],
+    ['borderWidth', MIN_BORDER_WIDTH, MAX_BORDER_WIDTH],
+  ];
+
+  it.each(NUMERIC)('clamps %s to its range', (key, min, max) => {
+    expect(normalizeTuning({ [key]: -99999 }, 'bars')[key]).toBe(min);
+    expect(normalizeTuning({ [key]: 99999 }, 'bars')[key]).toBe(max);
+  });
+
+  it.each(NUMERIC)('refuses a non-number for %s', (key) => {
+    const fallback = getDefaultTuning('bars')[key];
+    ['', 'loud', null, undefined, NaN, Infinity, {}, []].forEach((value) => {
+      expect(normalizeTuning({ [key]: value }, 'bars')[key]).toBe(fallback);
+    });
+  });
+
+  it.each(['filled', 'accents', 'border'] as (keyof ILookTuning)[])(
+    'refuses a non-boolean for %s',
+    (key) => {
+      // A form with no lit tips answers false whatever is asked, so the check
+      // is that nothing here ever produces a non-boolean.
+      ['yes', 1, 0, null, {}].forEach((value) => {
+        expect(typeof normalizeTuning({ [key]: value }, 'stems')[key]).toBe(
+          'boolean',
+        );
+      });
+    },
+  );
+
+  it('covers every field of the tuning', () => {
+    // The guard against adding a setting and forgetting to validate it: the
+    // rules above plus the booleans have to account for the whole shape.
+    const covered = new Set([
+      ...NUMERIC.map(([key]) => key),
+      'filled',
+      'accents',
+      'border',
+    ]);
+    Object.keys(getDefaultTuning('bars')).forEach((key) => {
+      expect(covered.has(key)).toBe(true);
+    });
+  });
+
+  it('holds a flat look to a single colour', () => {
+    // A flat fill has no axis to run a ramp along, so a second stop is not an
+    // option that does nothing — it is not an option. Stored ones are trimmed
+    // so an old look, or a hand-edited file, cannot smuggle one in.
+    expect(getMaxLookColours('signal')).toBe(1);
+    expect(
+      normalizeLookColours(['#111111', '#222222', '#333333'], 'signal'),
+    ).toEqual(['#111111']);
+    expect(normalizeLookColours(['#111111', '#222222'], 'level')).toHaveLength(
+      2,
+    );
   });
 });

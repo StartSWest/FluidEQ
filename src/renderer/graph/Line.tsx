@@ -508,13 +508,16 @@ const Line = ({
   // its colours are the chart's shared spectrum gradient.
   const isSelfColoured =
     isLive && (look.colours.length > 0 || look.palette === 'rainbow');
-  const [onlyColour] = look.colours;
+  const [firstColour] = look.colours;
   let paint = color;
   if (isLive) {
     if (hasOwnGradient) {
       paint = `url(#${lookGradientId})`;
-    } else if (look.colours.length === 1) {
-      paint = onlyColour;
+    } else if (firstColour) {
+      // One stop, or a flat palette that has somehow been handed several. The
+      // first is the answer either way — falling through to the curve's own
+      // colour would silently discard a colour somebody chose.
+      paint = firstColour;
     } else if (look.palette === 'rainbow') {
       paint = 'url(#chart-live-rainbow)';
     }
@@ -662,11 +665,19 @@ const Line = ({
           // Tested on the colours rather than on the palette's name, so a flat
           // look somebody has deliberately coloured is covered too.
           isSelfColoured ? 'is-self-coloured' : '',
+          // The look's own cycling outline, which euphoria draws on the figure
+          // rather than round the card. Stroked even on a filled form, so the
+          // fill keeps the look's colours and only the edge runs the hue.
+          isLive && look.tuning.border ? 'has-euphoria-outline' : '',
           smooth ? 'chart-live-trace' : '',
         ]
           .filter(Boolean)
           .join(' ')}
-        stroke={isPainted ? 'none' : paint}
+        // A filled form normally has no stroke at all. It gets one when the
+        // look asks for the cycling outline, or there would be nothing for the
+        // hue to run along — the colour comes from the stylesheet, so what is
+        // set here only has to be something other than `none`.
+        stroke={isPainted && !look.tuning.border ? 'none' : paint}
         strokeWidth={liveStrokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
