@@ -91,6 +91,20 @@ export interface IVideoSite {
  *
  * The same DRM wall stands in front of Netflix, Prime Video and anything else
  * licensed. What is here plays without it.
+ *
+ * Vimeo was here and had to go, for a reason worth writing down because it will
+ * look like a regression otherwise. Vimeo renders its listings on the client
+ * from an API that answers nothing to a session it does not recognise: search,
+ * Staff Picks and `/watch` all return their chrome — tabs, filters, footer —
+ * and not one result. Checked twice, in this player and in a second browser,
+ * with the same outcome both times. A direct video URL still plays perfectly;
+ * there is simply no way to reach one from inside, and the first thing a click
+ * on that empty page found was the signup wall, which is refused.
+ *
+ * That is not a bug this end can fix. The player's session is in-memory by
+ * design and always will be, so it is permanently the session Vimeo declines to
+ * answer. A button leading to a page with nothing on it is worse than no button
+ * — the whole promise of this file is that a site in the UI is one that works.
  */
 export const VIDEO_SITES: IVideoSite[] = [
   {
@@ -116,12 +130,6 @@ export const VIDEO_SITES: IVideoSite[] = [
     name: 'Bandcamp',
     home: 'https://bandcamp.com/',
     search: 'https://bandcamp.com/search?q={query}',
-  },
-  {
-    id: 'vimeo',
-    name: 'Vimeo',
-    home: 'https://vimeo.com/',
-    search: 'https://vimeo.com/search?q={query}',
   },
   {
     id: 'twitch',
@@ -166,8 +174,6 @@ const ALLOWED_HOSTS: string[] = [
   'sndcdn.com',
   'bandcamp.com',
   'bcbits.com',
-  'vimeo.com',
-  'vimeocdn.com',
   'twitch.tv',
   'ttvnw.net',
   'jtvnw.net',
@@ -207,7 +213,6 @@ const SIGN_IN_PATHS: Record<string, string[]> = {
   'youtube.com': ['/signin'],
   'soundcloud.com': ['/signin'],
   'bandcamp.com': ['/login', '/signup', '/join'],
-  'vimeo.com': ['/log_in', '/join', '/oauth'],
   'twitch.tv': ['/login', '/signup'],
 };
 

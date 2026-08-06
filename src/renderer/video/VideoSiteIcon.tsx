@@ -70,11 +70,6 @@ const PATHS: Record<string, string[]> = {
   ],
   // The slanted quadrilateral of the wordmark's badge.
   bandcamp: ['M1.2 4.1h13.6l-4 7.8H1.2Z'],
-  // A rounded square with a v cut out of it.
-  vimeo: [
-    'M3.2 1.8h9.6a1.4 1.4 0 0 1 1.4 1.4v9.6a1.4 1.4 0 0 1-1.4 1.4H3.2a1.4 1.4 0 0 1-1.4-1.4V3.2a1.4 1.4 0 0 1 1.4-1.4Z',
-    'M5.4 5.4h5.2L8 11Z',
-  ],
   // The glitch bubble, with its two bars as counters.
   twitch: [
     'M3.1 1H15v7.9l-3.4 3.4H8.9l-2.3 2.3v-2.3H3.1V3.4Z',

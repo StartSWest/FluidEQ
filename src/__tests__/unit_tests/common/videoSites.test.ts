@@ -121,7 +121,7 @@ describe('sign-in refusal', () => {
     expect(isSignInUrl('https://soundcloud.com/signin')).toBe(true);
     expect(isSignInUrl('https://secure.soundcloud.com/sign-in')).toBe(true);
     expect(isSignInUrl('https://bandcamp.com/login')).toBe(true);
-    expect(isSignInUrl('https://vimeo.com/log_in')).toBe(true);
+    expect(isSignInUrl('https://bandcamp.com/join')).toBe(true);
     expect(isSignInUrl('https://www.twitch.tv/login')).toBe(true);
     expect(isSignInUrl('https://id.twitch.tv/oauth2/authorize')).toBe(true);
   });
@@ -130,7 +130,7 @@ describe('sign-in refusal', () => {
     // A trailing slash is the same page, and a segment below it is still the
     // sign-in flow.
     expect(isSignInUrl('https://www.twitch.tv/login/')).toBe(true);
-    expect(isSignInUrl('https://vimeo.com/oauth/authorize')).toBe(true);
+    expect(isSignInUrl('https://id.twitch.tv/oauth2/authorize')).toBe(true);
     expect(isSignInUrl('https://WWW.YouTube.COM/SignIn')).toBe(true);
   });
 

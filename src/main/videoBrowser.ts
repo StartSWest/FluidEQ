@@ -247,9 +247,9 @@ const hardenPlayer = (contents: WebContents) => {
     }
 
     // Past the point of cancelling — this fires once the navigation has begun.
-    // Stopping it and returning to somewhere known is the honest recovery:
-    // leaving a half-loaded page from an unlisted host on screen would be
-    // worse than either allowing it or refusing it cleanly.
+    // Stopping it is the recovery: leaving a half-loaded page from an unlisted
+    // host on screen would be worse than either allowing it or refusing it
+    // cleanly.
     //
     // Deferred, for the same reason `setWindowOpenHandler` below is. This runs
     // inside Chromium's own navigation dispatch, and tearing that navigation
@@ -262,9 +262,26 @@ const hardenPlayer = (contents: WebContents) => {
         return;
       }
       contents.stop();
-      contents.loadURL(HOME_SITE.home).catch(() => {
-        // Nothing further to try if even the home page will not load.
-      });
+
+      // Home is for when there is nowhere to stay, and only then.
+      //
+      // This used to load the home page unconditionally, which meant pressing
+      // Join on one site put you on a different site's front page — a refusal
+      // that reads as the app wandering off. Almost every refusal happens on a
+      // page that is itself perfectly allowed: a sign-in link, an advert, a
+      // link out to somewhere unlisted. Stopping leaves that page exactly as it
+      // was, which is what a browser does and what the notice the renderer
+      // raises is written to accompany.
+      //
+      // The exception is a player with nothing behind it — a refusal on the
+      // very first load, where stopping alone would leave a blank guest and no
+      // way back. That, and only that, goes home.
+      const here = contents.getURL();
+      if (!here || !isNavigableVideoUrl(here)) {
+        contents.loadURL(HOME_SITE.home).catch(() => {
+          // Nothing further to try if even the home page will not load.
+        });
+      }
     });
   });
 
@@ -291,9 +308,8 @@ const hardenPlayer = (contents: WebContents) => {
       // `will-navigate` has a listener in the renderer that raises the notice
       // naming the host; a popup denied here had nothing of the kind, so a
       // click that opened a new window to somewhere unlisted simply did
-      // nothing at all. That is indistinguishable from a broken page — it is
-      // exactly how Vimeo reads when a video refuses to open — and the whole
-      // point of the allow-list is that a boundary should be legible.
+      // nothing at all. That is indistinguishable from a broken page, and the
+      // whole point of the allow-list is that a boundary should be legible.
       //
       // `about:blank` is the one to watch for: a site that opens an empty
       // window and then navigates it asks about the blank, which is never on
