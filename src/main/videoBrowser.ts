@@ -165,11 +165,56 @@ const hardenPlayer = (contents: WebContents) => {
   const blockDisallowed = (details: Electron.Event<{ url: string }>) => {
     if (!isAllowedVideoUrl(details.url)) {
       details.preventDefault();
+      // Named in the log, every time.
+      //
+      // The allow-list is the right shape for this app and the wrong thing to
+      // debug blind: when a site stops working the only question that matters
+      // is which host it wanted, and until now the answer was nowhere. A
+      // refusal is not an error — it is the feature working — so this is
+      // `info`, and it is the difference between diagnosing the next site in a
+      // minute and guessing at it for an afternoon.
+      log.info(`Video player refused a navigation to ${details.url}`);
     }
   };
 
   contents.on('will-navigate', blockDisallowed);
   contents.on('will-redirect', blockDisallowed);
+
+  /**
+   * What the page itself is complaining about.
+   *
+   * A guest has its own console, and nobody has it open. So when a site does
+   * not work in here — and only in here — the one account of why was going
+   * straight into a devtools window that does not exist, and every diagnosis
+   * started from a screenshot and a guess.
+   *
+   * Warnings and errors only. A video page logs hundreds of informational lines
+   * a minute and none of them has ever explained anything.
+   */
+  contents.on('console-message', (details) => {
+    if (details.level !== 'error' && details.level !== 'warning') {
+      return;
+    }
+    const where = details.sourceId
+      ? ` (${details.sourceId}:${details.lineNumber})`
+      : '';
+    log.info(`[player] ${details.level}: ${details.message}${where}`);
+  });
+
+  /**
+   * And a page that never arrived.
+   *
+   * Distinct from a refusal: this is the network or the site failing, which
+   * looks identical from the outside — a click that does nothing — and has an
+   * entirely different cause. `-3` is an aborted load, which is what every
+   * navigation replaced by a newer one reports, so it is not worth a line.
+   */
+  contents.on('did-fail-load', (_event, errorCode, errorDescription, url) => {
+    if (errorCode === -3) {
+      return;
+    }
+    log.info(`Video player failed to load ${url}: ${errorDescription}`);
+  });
 
   contents.on('did-start-navigation', (details) => {
     // Same-document moves are YouTube's own routing pushing a new path onto a
