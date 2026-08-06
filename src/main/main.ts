@@ -29,6 +29,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   app,
   BrowserWindow,
+  contentTracing,
   desktopCapturer,
   dialog,
   ipcMain,
@@ -254,6 +255,208 @@ const startMemoryProbe = () => {
   // The window can go before the app does, and a probe reporting on a renderer
   // that no longer exists is noise in the one log being read to find a leak.
   mainWindow.on('closed', () => clearInterval(probe));
+};
+
+/**
+ * Ask Chromium itself where the memory went.
+ *
+ * The probe above can say the renderer is growing while its JS heap and its
+ * DOM are not, which is enough to rule our own objects out and nothing like
+ * enough to say what is actually holding it. Only Chromium knows that, and
+ * memory-infra is how it will say: every subsystem that tracks its own
+ * allocations — cc/tile_memory, skia, partition_alloc, discardable, malloc —
+ * reports into a periodic dump, and the row that grows between the first dump
+ * and the last is the answer.
+ *
+ * Bound rather than left running. The dumps are expensive enough that
+ * Chromium's own documentation calls the category high-overhead, and a trace
+ * left recording would change the thing it is measuring.
+ *
+ * Toggled from the keyboard rather than started at launch, because the
+ * question is never "what does the app allocate" — it is "what does the app
+ * allocate *while doing this particular thing*", and only the person driving
+ * it knows when that has started.
+ */
+/**
+ * Every five seconds, not every two.
+ *
+ * A detailed dump is not a number, it is the whole allocator tree — nearly
+ * seven thousand nodes per process per dump, most of them individual Blink
+ * object buckets. At two seconds across seven processes that is a hundred
+ * megabytes a minute of trace, and the growth being measured here is steady
+ * enough that five seconds resolves it just as well.
+ */
+const TRACE_DUMP_INTERVAL_MS = 5000;
+const TRACE_MAX_MS = 5 * 60 * 1000;
+
+/**
+ * Keep the end of the recording, not the beginning.
+ *
+ * The default is `record-until-full`, which keeps the earliest events and
+ * silently drops everything after the buffer fills. The first recording taken
+ * here filled at around two minutes and threw away the entire period the
+ * memory was actually climbing — leaving a 371MB file describing the part
+ * where nothing happened, with nothing to say it was incomplete.
+ *
+ * A ring buffer gets this the right way round: whatever else is lost, the
+ * dumps nearest the moment recording stopped survive, and those are the ones
+ * being compared against.
+ */
+const TRACE_RECORD_MODE = 'record-continuously' as const;
+/** The default is 100MB, and 100MB of this category is about two minutes. */
+const TRACE_BUFFER_KB = 800 * 1024;
+
+let traceStopTimer: NodeJS.Timeout | undefined;
+let isTracing = false;
+/**
+ * True while a start or a stop is still in flight.
+ *
+ * Both are asynchronous, and the flag above is set the moment one begins — so
+ * a second press during the await saw a recording that had been declared but
+ * not yet begun, and tried to stop it. Chromium's answer to that is "no trace
+ * in progress", after which our flag and its reality disagree and the control
+ * is stuck until the app restarts.
+ */
+let isTraceBusy = false;
+
+/**
+ * Tell the window what the recording is doing.
+ *
+ * Pushed rather than returned, because the recording can also end without
+ * anybody asking — the five-minute guard below stops it — and a button whose
+ * label only updates when it is pressed would sit there claiming to be
+ * recording long after the trace had been written.
+ */
+const publishTraceState = (detail?: string) => {
+  mainWindow?.webContents.send(ChannelEnum.TOGGLE_MEMORY_TRACE, {
+    result: { isRecording: isTracing, detail },
+  });
+};
+
+const stopMemoryTrace = async () => {
+  if (!isTracing || isTraceBusy) {
+    return;
+  }
+  isTraceBusy = true;
+  isTracing = false;
+  if (traceStopTimer) {
+    clearTimeout(traceStopTimer);
+    traceStopTimer = undefined;
+  }
+  try {
+    const target = path.join(
+      app.getPath('userData'),
+      'logs',
+      `memory-trace-${Date.now()}.json`,
+    );
+    const written = await contentTracing.stopRecording(target);
+    log.info(`[trace] written to ${written}`);
+    publishTraceState(`Saved ${path.basename(written)}`);
+  } catch (e) {
+    log.info(`[trace] failed to stop: ${(e as Error).message}`);
+    publishTraceState('Failed to save');
+  } finally {
+    isTraceBusy = false;
+  }
+};
+
+const startMemoryTrace = async () => {
+  if (isTraceBusy) {
+    return;
+  }
+  if (isTracing) {
+    await stopMemoryTrace();
+    return;
+  }
+  isTraceBusy = true;
+  isTracing = true;
+  try {
+    await contentTracing.startRecording({
+      // Only memory-infra. Everything else in a trace is noise for this
+      // question and makes the file large enough to be awkward to load.
+      included_categories: ['disabled-by-default-memory-infra'],
+      excluded_categories: ['*'],
+      recording_mode: TRACE_RECORD_MODE,
+      trace_buffer_size_in_kb: TRACE_BUFFER_KB,
+      // `detailed` is what breaks the total down per allocator. `light` gives
+      // totals only, which is the number we already have.
+      memory_dump_config: {
+        triggers: [
+          { mode: 'detailed', periodic_interval_ms: TRACE_DUMP_INTERVAL_MS },
+        ],
+      },
+    });
+    log.info(
+      `[trace] recording memory-infra — press again to stop, or it ends in ${
+        TRACE_MAX_MS / 1000
+      }s`,
+    );
+    publishTraceState('Recording');
+    // A trace nobody remembers to stop is a trace that fills the disk and
+    // distorts the measurement it was opened for.
+    traceStopTimer = setTimeout(() => {
+      stopMemoryTrace();
+    }, TRACE_MAX_MS);
+  } catch (e) {
+    isTracing = false;
+    log.info(`[trace] failed to start: ${(e as Error).message}`);
+    publishTraceState('Failed to start');
+  } finally {
+    isTraceBusy = false;
+  }
+};
+
+// Development only, and checked here as well as at the control that sends it.
+// A renderer is the wrong place to enforce anything: the button not being
+// rendered is a matter of what the user sees, and this is a matter of what the
+// main process will do when asked.
+ipcMain.on(ChannelEnum.TOGGLE_MEMORY_TRACE, () => {
+  if (process.env.NODE_ENV !== 'development') {
+    return;
+  }
+  startMemoryTrace();
+});
+
+/**
+ * Started and stopped by dropping a file next to the log.
+ *
+ * A keyboard shortcut was the obvious way and it does not survive contact with
+ * this app. `before-input-event` never fires while focus is inside the video
+ * guest, which is one of the two places worth measuring; and on Windows
+ * Ctrl+Alt is AltGr, so the key reported for Ctrl+Alt+M is not `m` on every
+ * layout. A global shortcut would work and would take the combination away
+ * from every other application on the machine, for a developer diagnostic.
+ *
+ * A sentinel file has none of those problems, works no matter where focus is,
+ * and can be driven from a shell — which matters, because the person timing
+ * the recording is usually not the person driving the window.
+ */
+const TRACE_POLL_MS = 1000;
+
+const setUpMemoryTraceTrigger = () => {
+  if (process.env.NODE_ENV !== 'development' || !mainWindow) {
+    return;
+  }
+  const logsDir = path.join(app.getPath('userData'), 'logs');
+  const startFile = path.join(logsDir, 'trace.start');
+  const stopFile = path.join(logsDir, 'trace.stop');
+
+  const poll = setInterval(() => {
+    // Consumed rather than merely read, so one file is one recording and a
+    // sentinel left behind cannot restart the trace on the next tick.
+    if (fs.existsSync(startFile)) {
+      fs.rmSync(startFile, { force: true });
+      startMemoryTrace();
+      return;
+    }
+    if (fs.existsSync(stopFile)) {
+      fs.rmSync(stopFile, { force: true });
+      stopMemoryTrace();
+    }
+  }, TRACE_POLL_MS);
+
+  mainWindow.on('closed', () => clearInterval(poll));
+  log.info(`[trace] drop trace.start / trace.stop in ${logsDir}`);
 };
 
 const setUpAutoUpdates = () => {
@@ -2789,6 +2992,7 @@ const createMainWindow = async () => {
 
   setUpAutoUpdates();
   startMemoryProbe();
+  setUpMemoryTraceTrigger();
 };
 
 /**
