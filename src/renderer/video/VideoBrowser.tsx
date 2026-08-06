@@ -91,14 +91,22 @@ const PLAYER_ONLY_CSS = `
     background: #000 !important;
   }
   /* At every level of the chain down to the player, everything that is not on
-     the chain goes. The player's own subtree is untouched, because nothing
-     inside it is a sibling of the chain — which is what keeps its controls. */
-  html[data-fluideq-solo] [data-fluideq-keep] > *:not([data-fluideq-keep]) {
+     the chain goes.
+
+     Stopping *at* the player is the whole of it. The player is itself on the
+     chain, so without the exclusion this rule reached inside it and hid its own
+     children — the video among them, which is a black screen with the page
+     correctly removed from in front of it. Its subtree is not something to
+     prune; it is the thing being kept. */
+  html[data-fluideq-solo]
+    [data-fluideq-keep]:not([data-fluideq-player])
+    > *:not([data-fluideq-keep]) {
     display: none !important;
   }
   /* And the chain itself stops imposing a layout on what is left. Sites wrap
-     players in grids and flex rows sized for a page that is no longer there. */
-  html[data-fluideq-solo] [data-fluideq-keep] {
+     players in grids and flex rows sized for a page that is no longer there.
+     The player is excluded again: it gets its own size below. */
+  html[data-fluideq-solo] [data-fluideq-keep]:not([data-fluideq-player]) {
     display: block !important;
     width: auto !important;
     max-width: none !important;
