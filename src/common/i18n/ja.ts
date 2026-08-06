@@ -175,7 +175,6 @@ const ja: Partial<Dictionary> = {
   'eq.smart.cancel': 'キャンセル',
   'eq.smart.aria': '再生中の出力からスマート EQ を作成',
   'eq.smart.cancelAria': 'スマート EQ の測定をキャンセル',
-  'eq.smart.fromFlat': 'フラットから',
   'eq.layers': '同時に適用中',
   'eq.layers.aria': 'この出力に効いているその他の処理',
   'eq.layers.convolution': 'コンボリューション',
@@ -190,9 +189,6 @@ const ja: Partial<Dictionary> = {
     'リファレンス機種と、それが作ったバンドを消します',
   'eq.layers.clearSmart':
     '測定した補正を外します。バンドとリファレンス機種はそのまま残ります。',
-  'eq.fromFlat': 'フラットから',
-  'eq.fromFlat.hint':
-    '試聴の前に前回のスマート EQ 補正を破棄します。既存のカットが、まさにそのカットが効いている帯域を隠してしまっているときに使ってください — 測定は自分の補正の向こう側を見られません。バンドには一切触れません。',
   'eq.clear': 'EQ をクリア',
   'eq.addBand': 'バンドを追加',
   'eq.addBandAria': 'EQ バンドを追加',

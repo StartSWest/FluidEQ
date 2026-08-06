@@ -114,7 +114,16 @@ let isSolo = false;
 
 const soloListeners = new Set<() => void>();
 
-export const setLiveOutputSolo = (next: boolean) => {
+/**
+ * Not exported, and there is nothing left that should set this directly.
+ *
+ * The Video tab used to force it on while it was open and put the old value
+ * back on the way out. That decided for people — the graph is over a video so
+ * the curve can be read against what is playing, and taking the curves away is
+ * the opposite of that — so it went, and the pair of helpers it needed went
+ * with it. Ctrl+W is how anybody says they want the wave alone.
+ */
+const setLiveOutputSolo = (next: boolean) => {
   if (next === isSolo) {
     return;
   }
@@ -123,15 +132,6 @@ export const setLiveOutputSolo = (next: boolean) => {
 };
 
 export const toggleLiveOutputSolo = () => setLiveOutputSolo(!isSolo);
-
-/**
- * The current value, for a caller that means to put it back.
- *
- * Read outside React by the Video tab, which turns solo on while it is open —
- * the whole point of watching something with the graph underneath is the trace,
- * not the band handles — and restores whatever was there on the way out.
- */
-export const getLiveOutputSolo = () => isSolo;
 
 const subscribeSolo = (listener: () => void) => {
   soloListeners.add(listener);

@@ -209,7 +209,6 @@ const en = {
   'eq.smart.cancel': 'Cancel',
   'eq.smart.aria': 'Smart EQ from live output',
   'eq.smart.cancelAria': 'Cancel Smart EQ measurement',
-  'eq.smart.fromFlat': 'From flat',
   'eq.layers': 'Also applied',
   'eq.layers.aria': 'Also shaping this output',
   'eq.layers.convolution': 'Convolution',
@@ -224,9 +223,6 @@ const en = {
     'Clear the reference model and the bands it wrote',
   'eq.layers.clearSmart':
     'Remove the measured correction. Your bands and the reference stay.',
-  'eq.fromFlat': 'From flat',
-  'eq.fromFlat.hint':
-    'Discard the previous Smart EQ correction before listening. Use this when an existing cut is hiding the region it affects — the measurement cannot see through its own correction. Your bands are never touched.',
   'eq.clear': 'Clear EQ',
   'eq.addBand': 'Add band',
   'eq.addBandAria': 'Add EQ band',

@@ -182,7 +182,6 @@ const hi: Partial<Dictionary> = {
   'eq.smart.cancel': 'रद्द करें',
   'eq.smart.aria': 'चल रहे आउटपुट से स्मार्ट EQ बनाएँ',
   'eq.smart.cancelAria': 'स्मार्ट EQ माप रद्द करें',
-  'eq.smart.fromFlat': 'शून्य से',
   'eq.layers': 'यह भी लागू है',
   'eq.layers.aria': 'इस आउटपुट पर और क्या असर डाल रहा है',
   'eq.layers.convolution': 'कन्वॉल्यूशन',
@@ -196,9 +195,6 @@ const hi: Partial<Dictionary> = {
   'eq.layers.clearReference': 'संदर्भ मॉडल और उससे बने बैंड हटाएँ',
   'eq.layers.clearSmart':
     'मापा गया सुधार हटाएँ। आपके बैंड और संदर्भ मॉडल वैसे ही रहेंगे।',
-  'eq.fromFlat': 'शून्य से',
-  'eq.fromFlat.hint':
-    'सुनने से पहले पिछला स्मार्ट EQ सुधार हटा देता है। जब पहले से किया गया कट ठीक उसी हिस्से को ढक रहा हो जिस पर वह असर डालता है, तब यह काम आता है — माप अपनी ही सुधार के पार नहीं देख सकता। आपके बैंड कभी नहीं छुए जाते।',
   'eq.clear': 'EQ ख़ाली करें',
   'eq.addBand': 'बैंड जोड़ें',
   'eq.addBandAria': 'EQ बैंड जोड़ें',

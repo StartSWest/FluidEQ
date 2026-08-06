@@ -177,7 +177,6 @@ const de: Partial<Dictionary> = {
   'eq.smart.cancel': 'Abbrechen',
   'eq.smart.aria': 'Smart-EQ aus dem laufenden Ausgangssignal',
   'eq.smart.cancelAria': 'Smart-EQ-Messung abbrechen',
-  'eq.smart.fromFlat': 'Von neutral',
   'eq.layers': 'Ebenfalls aktiv',
   'eq.layers.aria': 'Was diesen Ausgang außerdem formt',
   'eq.layers.convolution': 'Faltung',
@@ -192,9 +191,6 @@ const de: Partial<Dictionary> = {
     'Referenzmodell und die daraus erzeugten Bänder löschen',
   'eq.layers.clearSmart':
     'Gemessene Korrektur entfernen. Deine Bänder und die Referenz bleiben.',
-  'eq.fromFlat': 'Von neutral',
-  'eq.fromFlat.hint':
-    'Verwirft vor dem Hören die vorherige Smart-EQ-Korrektur. Nützlich, wenn eine bestehende Absenkung genau den Bereich verdeckt, den sie betrifft — die Messung sieht nicht durch ihre eigene Korrektur hindurch. Deine Bänder bleiben unangetastet.',
   'eq.clear': 'EQ zurücksetzen',
   'eq.addBand': 'Band hinzufügen',
   'eq.addBandAria': 'EQ-Band hinzufügen',

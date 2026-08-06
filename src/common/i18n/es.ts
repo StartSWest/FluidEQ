@@ -178,7 +178,6 @@ const es: Partial<Dictionary> = {
   'eq.smart.cancel': 'Cancelar',
   'eq.smart.aria': 'EQ inteligente a partir de la salida en directo',
   'eq.smart.cancelAria': 'Cancelar la medición del EQ inteligente',
-  'eq.smart.fromFlat': 'Desde plano',
   'eq.layers': 'También aplicado',
   'eq.layers.aria': 'Otros ajustes que afectan a esta salida',
   'eq.layers.convolution': 'Convolución',
@@ -193,9 +192,6 @@ const es: Partial<Dictionary> = {
     'Borrar el modelo de referencia y las bandas que generó',
   'eq.layers.clearSmart':
     'Quitar la corrección medida. Tus bandas y la referencia se mantienen.',
-  'eq.fromFlat': 'Desde plano',
-  'eq.fromFlat.hint':
-    'Descarta la corrección anterior del EQ inteligente antes de escuchar. Úsalo cuando un corte existente esté tapando justo la zona que afecta: la medición no puede ver a través de su propia corrección. Tus bandas nunca se tocan.',
   'eq.clear': 'Vaciar EQ',
   'eq.addBand': 'Añadir banda',
   'eq.addBandAria': 'Añadir una banda de EQ',

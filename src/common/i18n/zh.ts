@@ -168,7 +168,6 @@ const zh: Partial<Dictionary> = {
   'eq.smart.cancel': '取消',
   'eq.smart.aria': '根据实时输出生成智能均衡',
   'eq.smart.cancelAria': '取消智能均衡测量',
-  'eq.smart.fromFlat': '从零开始',
   'eq.layers': '同时生效',
   'eq.layers.aria': '还有什么在影响这个输出',
   'eq.layers.convolution': '卷积',
@@ -181,9 +180,6 @@ const zh: Partial<Dictionary> = {
   'eq.layers.remove': '移除{layer}层',
   'eq.layers.clearReference': '清除参考型号及其生成的频段',
   'eq.layers.clearSmart': '移除测得的修正。你的频段和参考型号都会保留。',
-  'eq.fromFlat': '从零开始',
-  'eq.fromFlat.hint':
-    '开始试听前丢弃上一次智能均衡的修正。当已有的衰减正好挡住了它自己作用的那一段时用得上——测量看不穿自己的修正。你的频段始终不会被改动。',
   'eq.clear': '清空均衡',
   'eq.addBand': '添加频段',
   'eq.addBandAria': '添加一个均衡频段',

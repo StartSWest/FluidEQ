@@ -6,7 +6,17 @@ opens it again any time.
 
 ---
 
-## 0.11.0
+## 1.0.0
+
+The version number is the only thing here that changed suddenly. FluidEQ has
+been a finished program for a while — automatic per-output profiles, four
+processing layers written into one Equalizer APO config, a measured correction,
+ten languages, an updater that works. What it did not have was a video playing
+underneath the spectrum, and that is what the last two releases were for. It
+works now, on every site it offers, in every size the graph comes in.
+
+So: 1.0. Not because a milestone was reached, but because calling it 0.x had
+stopped being honest.
 
 ### New
 

@@ -178,7 +178,6 @@ const fr: Partial<Dictionary> = {
   'eq.smart.cancel': 'Annuler',
   'eq.smart.aria': 'Égalisation automatique à partir de la sortie en direct',
   'eq.smart.cancelAria': 'Annuler la mesure d’égalisation automatique',
-  'eq.smart.fromFlat': 'Depuis plat',
   'eq.layers': 'Également appliqué',
   'eq.layers.aria': 'Autres traitements appliqués à cette sortie',
   'eq.layers.convolution': 'Convolution',
@@ -193,9 +192,6 @@ const fr: Partial<Dictionary> = {
     'Effacer le modèle de référence et les bandes qu’il a produites',
   'eq.layers.clearSmart':
     'Retirer la correction mesurée. Vos bandes et la référence restent en place.',
-  'eq.fromFlat': 'Depuis plat',
-  'eq.fromFlat.hint':
-    'Écarte la correction automatique précédente avant d’écouter. À utiliser quand une atténuation existante masque justement la zone qu’elle touche : la mesure ne voit pas à travers sa propre correction. Vos bandes ne sont jamais touchées.',
   'eq.clear': 'Vider l’égaliseur',
   'eq.addBand': 'Ajouter une bande',
   'eq.addBandAria': 'Ajouter une bande d’égalisation',

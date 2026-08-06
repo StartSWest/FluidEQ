@@ -204,6 +204,18 @@ const completeCapture = async () => {
 const lastWrittenLayer = () =>
   mockSetSmartEqApi.mock.calls[mockSetSmartEqApi.mock.calls.length - 1]?.[0];
 
+/**
+ * Only the calls that write a correction, not the ones that take one away.
+ *
+ * Every attempt now begins by clearing the previous layer — measuring the
+ * already-corrected output cannot see through its own cuts, so the run always
+ * starts from flat — and those clears are calls with `undefined`. The property
+ * these tests are about is narrower and unchanged: nothing may write a *layer*
+ * back over a clear the user made, or onto a profile it was not measured from.
+ */
+const writtenLayers = () =>
+  mockSetSmartEqApi.mock.calls.filter(([layer]) => layer !== undefined);
+
 beforeEach(() => {
   mockLive.filters = {
     low: band('low', 63, 3),
@@ -224,13 +236,30 @@ describe('a Smart EQ run while the world changes underneath it', () => {
     await startRun();
     await completeCapture();
 
-    await waitFor(() => expect(mockSetSmartEqApi).toHaveBeenCalled());
+    await waitFor(() => expect(writtenLayers().length).toBeGreaterThan(0));
     // The residual landed on top of the layer it was measured against, which
     // is the whole point of the loop.
     expect(lastWrittenLayer()?.filters['smart-63'].gain).toBeGreaterThan(0);
   });
 
-  it('does not undo a layer cleared from the chip while it listened', async () => {
+  /**
+   * Narrower than it was, and the reason is worth stating.
+   *
+   * The run clears the layer itself now, always, so that it measures a flat
+   * output. That makes a clear arriving from the chip mid-listen invisible to
+   * it: the state was already `undefined`, so there is nothing to notice and no
+   * way to tell somebody else's clear from its own. What used to be checked
+   * here — that the run restarts rather than writing over the clear — cannot be
+   * checked any more, because the situation it described no longer exists.
+   *
+   * What must still hold is that the result is measured from nothing rather
+   * than accumulated onto the layer that was there when the run began. That is
+   * the half with teeth, and it is what this asserts.
+   *
+   * The property about *other profiles* is untouched and still guarded by the
+   * test below: a different layer arriving mid-run is a value the run can see.
+   */
+  it('measures from flat, not from the layer it started with', async () => {
     mockLive.smartEq = LAYER_A;
     await startRun();
 
@@ -240,14 +269,9 @@ describe('a Smart EQ run while the world changes underneath it', () => {
     });
     await completeCapture();
 
-    // Nothing may be written back over that clear. The run notices instead and
-    // starts listening again to what is now playing.
-    expect(mockSetSmartEqApi).not.toHaveBeenCalled();
-    expect(mockCaptureBalanceProfile).toHaveBeenCalledTimes(2);
-
-    // And the second attempt starts from nothing, not from the cleared layer.
-    await completeCapture();
-    await waitFor(() => expect(mockSetSmartEqApi).toHaveBeenCalled());
+    await waitFor(() => expect(writtenLayers().length).toBeGreaterThan(0));
+    // Seeded from nothing. Accumulating onto LAYER_A would leave this at or
+    // above the +6 dB it carried at 63 Hz; a fresh solve is far below it.
     expect(lastWrittenLayer()?.filters['smart-63'].gain).toBeLessThan(
       LAYER_A?.filters['smart-63'].gain ?? 0,
     );
@@ -265,12 +289,12 @@ describe('a Smart EQ run while the world changes underneath it', () => {
     });
     await completeCapture();
 
-    expect(mockSetSmartEqApi).not.toHaveBeenCalled();
+    expect(writtenLayers()).toHaveLength(0);
     expect(mockCaptureBalanceProfile).toHaveBeenCalledTimes(2);
 
     // The second attempt measures B, and must be seeded from B's gains.
     await completeCapture();
-    await waitFor(() => expect(mockSetSmartEqApi).toHaveBeenCalled());
+    await waitFor(() => expect(writtenLayers().length).toBeGreaterThan(0));
 
     const written = lastWrittenLayer();
     // A's +6 dB at 63 Hz never appears: B started at -4 dB, and one residual

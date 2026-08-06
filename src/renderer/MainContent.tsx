@@ -118,7 +118,6 @@ const MainContent = () => {
     useLiveAudioControl();
   const [balanceStatus, setBalanceStatus] = useState('');
   const [isBalancing, setIsBalancing] = useState(false);
-  const [measureFromFlat, setMeasureFromFlat] = useState(false);
   const balanceAbortRef = useRef<AbortController | undefined>(undefined);
   // Bumped whenever a run is superseded, so a late resolution from an
   // abandoned measurement cannot write gains or overwrite the status.
@@ -461,13 +460,19 @@ const MainContent = () => {
         // commonest reason to go round again is that they loaded another one.
         let layer = smartEqRef.current;
 
-        // Measuring the corrected output is normally the right thing — the loop
-        // converges and self-corrects any error in the filter model. It has one
-        // blind spot: a region already cut hard has almost no energy left in it,
-        // so the measurement marks it untrustworthy and never touches it again.
-        // The correction hides the very problem it is causing. Discarding it
-        // first is the escape hatch for exactly that.
-        if (measureFromFlat && hasSmartEqLayer(layer)) {
+        // Always from flat, and it used to be a choice.
+        //
+        // Measuring the already-corrected output sounds better — the loop
+        // converges and self-corrects any error in the filter model — and it
+        // has a blind spot that undoes all of that: a region already cut hard
+        // has almost no energy left in it, so the measurement marks it
+        // untrustworthy and never touches it again. The correction hides the
+        // very problem it is causing, and the only way out is the thing that
+        // was behind the checkbox.
+        //
+        // A switch whose right answer is the same every time is not a choice,
+        // it is a way of being wrong. So the escape hatch became the road.
+        if (hasSmartEqLayer(layer)) {
           // Only this layer. The bands, the reference they came from, the
           // voicing and the driver compensation are all somebody's deliberate
           // choice, and a measurement has no business throwing any of them away
@@ -768,18 +773,6 @@ const MainContent = () => {
             <MenuIcon name="smart" className="eq-toolbar__icon" />
             {isBalancing ? t('eq.smart.cancel') : t('eq.smart')}
           </Button>
-          {/* Off by default: the closed loop is the better answer almost
-              always, and this throws away the correction it already found. */}
-          <label className="eq-toolbar__option" htmlFor="smart-eq-from-flat">
-            <input
-              id="smart-eq-from-flat"
-              type="checkbox"
-              checked={measureFromFlat}
-              disabled={isBalancing}
-              onChange={(event) => setMeasureFromFlat(event.target.checked)}
-            />
-            <span title={t('eq.fromFlat.hint')}>{t('eq.fromFlat')}</span>
-          </label>
           {balanceStatus && (
             <span className="eq-toolbar__status" role="status">
               {balanceStatus}
