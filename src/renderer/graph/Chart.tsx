@@ -29,6 +29,7 @@ import useController, {
 } from './ChartController';
 import { BAND_SPECTRUM_STOPS } from '../utils/bandColors';
 import { toggleGraphFullScreen, useGraphGridHidden } from '../utils/graphStyle';
+import { toggleChromeNow } from '../utils/idleChrome';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 
@@ -236,6 +237,20 @@ const Chart = ({
           return;
         }
         toggleGraphFullScreen();
+      }}
+      // A single click on the drawing shows the chrome or puts it away.
+      //
+      // Only full screen is watching, so this does nothing in any other mode.
+      // A toggle rather than a hide, because a control that works in one
+      // direction only is one somebody presses twice and then stops trusting.
+      //
+      // Not on a band handle: those are for dragging, and moving the toolbar
+      // every time one is touched would be a control that punishes being used.
+      onClick={(event) => {
+        if ((event.target as Element).closest?.('.graph-edit-point')) {
+          return;
+        }
+        toggleChromeNow();
       }}
       onPointerDown={handleSelectionStart}
       onPointerMove={handleSelectionMove}

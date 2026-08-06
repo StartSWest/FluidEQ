@@ -56,7 +56,24 @@ export const CHROME_IDLE_MS = 2600;
  * mid-keystroke would take the labels away exactly when the shortcut changed
  * what they say.
  */
-const ACTIVITY_EVENTS = ['pointermove', 'pointerdown', 'keydown', 'wheel'];
+// Pressing is deliberately absent. A click on the drawing *toggles* the chrome
+// — see `toggleChromeNow` — and it cannot toggle anything if the press that
+// carries it has already brought the chrome back a moment earlier. Moving the
+// pointer still reveals, which is the gesture people actually reach for.
+const ACTIVITY_EVENTS = ['pointermove', 'keydown', 'wheel'];
+
+/**
+ * The one key that does not wake anything, and the reason for the exception.
+ *
+ * Space walks the visualiser styles, and walking them is the most watching
+ * thing there is to do in this mode — several presses in a row, looking at the
+ * result of each. Treating that as activity meant the toolbar reappeared on
+ * every press, which is the opposite of what somebody flipping through looks is
+ * asking for. Every other shortcut changes what the labels say, so every other
+ * shortcut still brings them back to be read.
+ */
+const isQuietKey = (event: KeyboardEvent) =>
+  event.code === 'Space' || event.key === ' ';
 
 let isIdle = false;
 let isWatching = false;
@@ -88,10 +105,37 @@ const clearTimer = () => {
   }
 };
 
-const handleActivity = () => {
+const handleActivity = (event?: Event) => {
+  if (event?.type === 'keydown' && isQuietKey(event as KeyboardEvent)) {
+    return;
+  }
   setIdle(false);
   clearTimer();
   timer = window.setTimeout(() => setIdle(true), CHROME_IDLE_MS);
+};
+
+/**
+ * Put the chrome away now, or bring it back — whichever it is not.
+ *
+ * Bound to a click on the drawing, and a toggle rather than a hide because a
+ * control that only works in one direction is one somebody presses twice and
+ * then stops trusting. Waiting out the timer is the right answer for a person
+ * who has simply stopped moving, and a strange thing to ask of one who has just
+ * said what they want.
+ *
+ * Showing restarts the clock, so a click to look at something is followed by
+ * the same fade as any other reveal.
+ */
+export const toggleChromeNow = () => {
+  if (!isWatching) {
+    return;
+  }
+  if (isIdle) {
+    handleActivity();
+    return;
+  }
+  clearTimer();
+  setIdle(true);
 };
 
 /**
