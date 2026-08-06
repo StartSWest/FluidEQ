@@ -506,6 +506,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // one — which is where a tighter radius is the right answer.
   border: none;
   border-radius: $radius-m $radius-m $radius-xl $radius-xl;
+  // A clip path as well as the radius, because the guest is not clipped by
+  // either on its own.
+  //
+  // `overflow: hidden` and a border-radius clip painting done by this document.
+  // A `<webview>` is not painted by this document — it is its own surface,
+  // handed to the compositor separately — so its black corners carried on
+  // sitting square outside the rounded ones, which is the overflow at the
+  // bottom. `clip-path` is applied at composite time and reaches it.
+  clip-path: inset(0 round $radius-m $radius-m $radius-xl $radius-xl);
   // Black rather than the shell colour: this is where a picture goes, and any
   // tint behind a letterboxed video is visible as a border around it.
   background: #000;

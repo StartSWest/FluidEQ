@@ -638,7 +638,18 @@ $expanded-video-bar-top: 40px;
   position: absolute;
   z-index: -1;
   border-radius: $radius-xl $radius-xl 0 0;
-  background: $surface-panel;
+  // The card's own gradient, not a flat fill.
+  //
+  // `$surface-panel` is the colour panels sit *on*, so a bar painted in it read
+  // as a slab of background laid across the top of a card rather than as part
+  // of the card. This is the same top-tinted gradient every panel in the app
+  // uses, cut off where the bar ends — which is what makes it the card's top
+  // edge instead of something covering it.
+  background: linear-gradient(
+    180deg,
+    panel-top($secondary-dark, 5%) 0%,
+    $panel-bottom 320%
+  );
   content: '';
   inset: -9px -11px -9px -11px;
   pointer-events: none;
@@ -817,6 +828,9 @@ $expanded-video-bar-top: 40px;
   // against the workspace's rounded everything else.
   .video-browser__stage {
     border-radius: $radius-xl;
+    // Matched to the radius above, and needed for the same reason as the base
+    // rule: the guest is composited separately and only a clip path reaches it.
+    clip-path: inset(0 round $radius-xl);
   }
 
   > .graph-wrapper {
