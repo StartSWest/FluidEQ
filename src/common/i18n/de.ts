@@ -183,6 +183,10 @@ const de: Partial<Dictionary> = {
   'eq.layers.voicing': 'Klangcharakter',
   'eq.layers.driver': 'Treiber',
   'eq.layers.headset': 'Hörer',
+  'eq.layers.loudness': 'Loudness',
+  'eq.layers.loudness.name': 'Ein',
+  'eq.layers.clearLoudness':
+    'Die gehörrichtige Lautstärke ausschalten. Bänder und alle anderen Ebenen bleiben.',
   'eq.layers.smart': 'Smart-EQ',
   'eq.layers.smart.fullRange': 'Gemessen · voller Bereich',
   'eq.layers.smart.range': 'Gemessen · {low} bis {high}',

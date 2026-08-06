@@ -182,6 +182,10 @@ const ru: Partial<Dictionary> = {
   'eq.layers.voicing': 'Характер',
   'eq.layers.driver': 'Излучатель',
   'eq.layers.headset': 'Наушники',
+  'eq.layers.loudness': 'Тонкомпенсация',
+  'eq.layers.loudness.name': 'Вкл.',
+  'eq.layers.clearLoudness':
+    'Выключить тонкомпенсацию. Полосы и остальные слои останутся.',
   'eq.layers.smart': 'Умный EQ',
   'eq.layers.smart.fullRange': 'Измерено · весь диапазон',
   'eq.layers.smart.range': 'Измерено · от {low} до {high}',

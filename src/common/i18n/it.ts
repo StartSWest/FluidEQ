@@ -182,6 +182,10 @@ const it: Partial<Dictionary> = {
   'eq.layers.voicing': 'Carattere',
   'eq.layers.driver': 'Driver',
   'eq.layers.headset': 'Cuffie',
+  'eq.layers.loudness': 'Loudness',
+  'eq.layers.loudness.name': 'Attivo',
+  'eq.layers.clearLoudness':
+    'Disattiva il contorno di loudness. Le tue bande e gli altri livelli restano.',
   'eq.layers.smart': 'EQ intelligente',
   'eq.layers.smart.fullRange': 'Misurato · tutta la banda',
   'eq.layers.smart.range': 'Misurato · da {low} a {high}',

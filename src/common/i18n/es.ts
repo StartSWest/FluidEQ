@@ -184,6 +184,10 @@ const es: Partial<Dictionary> = {
   'eq.layers.voicing': 'Carácter',
   'eq.layers.driver': 'Transductor',
   'eq.layers.headset': 'Auriculares',
+  'eq.layers.loudness': 'Sonoridad',
+  'eq.layers.loudness.name': 'Activada',
+  'eq.layers.clearLoudness':
+    'Desactiva el contorno de sonoridad. Tus bandas y las demás capas se mantienen.',
   'eq.layers.smart': 'EQ inteligente',
   'eq.layers.smart.fullRange': 'Medido · todo el rango',
   'eq.layers.smart.range': 'Medido · de {low} a {high}',

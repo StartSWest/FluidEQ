@@ -215,6 +215,10 @@ const en = {
   'eq.layers.voicing': 'Voicing',
   'eq.layers.driver': 'Driver',
   'eq.layers.headset': 'Headset',
+  'eq.layers.loudness': 'Loudness',
+  'eq.layers.loudness.name': 'On',
+  'eq.layers.clearLoudness':
+    'Turn the loudness contour off. Your bands and every other layer stay.',
   'eq.layers.smart': 'Smart EQ',
   'eq.layers.smart.fullRange': 'Measured · full range',
   'eq.layers.smart.range': 'Measured · {low} to {high}',

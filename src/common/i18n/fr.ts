@@ -184,6 +184,10 @@ const fr: Partial<Dictionary> = {
   'eq.layers.voicing': 'Caractère',
   'eq.layers.driver': 'Transducteur',
   'eq.layers.headset': 'Casque',
+  'eq.layers.loudness': 'Loudness',
+  'eq.layers.loudness.name': 'Activé',
+  'eq.layers.clearLoudness':
+    'Désactive la correction physiologique. Vos bandes et les autres couches restent.',
   'eq.layers.smart': 'Égalisation auto',
   'eq.layers.smart.fullRange': 'Mesuré · toute la bande',
   'eq.layers.smart.range': 'Mesuré · de {low} à {high}',

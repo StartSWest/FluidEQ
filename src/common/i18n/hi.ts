@@ -188,6 +188,10 @@ const hi: Partial<Dictionary> = {
   'eq.layers.voicing': 'ध्वनि रंग',
   'eq.layers.driver': 'ड्राइवर',
   'eq.layers.headset': 'हेडफ़ोन',
+  'eq.layers.loudness': 'लाउडनेस',
+  'eq.layers.loudness.name': 'चालू',
+  'eq.layers.clearLoudness':
+    'लाउडनेस कंटूर बंद करें। आपके बैंड और बाकी सभी लेयर बनी रहेंगी।',
   'eq.layers.smart': 'स्मार्ट EQ',
   'eq.layers.smart.fullRange': 'मापा गया · पूरी रेंज',
   'eq.layers.smart.range': 'मापा गया · {low} से {high} तक',

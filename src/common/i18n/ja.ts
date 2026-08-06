@@ -181,6 +181,10 @@ const ja: Partial<Dictionary> = {
   'eq.layers.voicing': '音の傾向',
   'eq.layers.driver': 'ドライバー',
   'eq.layers.headset': 'ヘッドホン',
+  'eq.layers.loudness': 'ラウドネス',
+  'eq.layers.loudness.name': 'オン',
+  'eq.layers.clearLoudness':
+    'ラウドネス補正をオフにします。バンドとその他のレイヤーはそのままです。',
   'eq.layers.smart': 'スマート EQ',
   'eq.layers.smart.fullRange': '測定済み · 全帯域',
   'eq.layers.smart.range': '測定済み · {low}〜{high}',

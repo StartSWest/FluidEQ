@@ -26,6 +26,7 @@ import {
   clearConvolution,
   clearHeadset,
   setDriver as setDriverApi,
+  setLoudness as setLoudnessApi,
   setSmartEq as setSmartEqApi,
   setVoicing as setVoicingApi,
 } from '../utils/equalizerApi';
@@ -54,6 +55,7 @@ const ActiveLayers = () => {
     smartEq,
     headset,
     headsetTarget,
+    loudness,
     isEnabled,
     isBlockingError,
     refreshState,
@@ -169,6 +171,34 @@ const ActiveLayers = () => {
       onClear: async () => {
         setSmartEq(undefined);
         await setSmartEqApi(undefined);
+        await refreshState();
+      },
+    });
+  }
+
+  // The loudness contour, which is a layer in the config like any of the above
+  // and used to be a pill on the waveform meter.
+  //
+  // It belongs here for the reason all of these do: this row is the answer to
+  // "what is shaping this output", and a layer missing from it is one somebody
+  // has to remember. On the meter it was also the only control in the app that
+  // changed what you hear from a pane whose whole job is to report it.
+  //
+  // Not a compressor and it does not claim to be one — Equalizer APO has no
+  // dynamics processing at all, so nothing here can lift a quiet passage
+  // without lifting a loud one by as much. It is the Fletcher-Munson trick
+  // every amplifier had a button for: the ear loses bass and treble faster
+  // than midrange as level drops, so restoring both ends reads as fuller while
+  // the peak barely moves.
+  if (loudness?.isOn) {
+    layers.push({
+      key: 'loudness',
+      icon: 'waveform',
+      label: t('eq.layers.loudness'),
+      name: t('eq.layers.loudness.name'),
+      clearHint: t('eq.layers.clearLoudness'),
+      onClear: async () => {
+        await setLoudnessApi(false, loudness?.intensity ?? 0.5);
         await refreshState();
       },
     });
