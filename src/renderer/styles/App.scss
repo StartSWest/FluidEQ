@@ -817,6 +817,23 @@ select option {
   overflow: visible;
 }
 
+// With no graph under it, the editor takes the whole column.
+//
+// The height above is one side of a split, and a split needs two panes. With
+// the graph switched off there is only one, so the divider's stored value stops
+// meaning anything: every tab was left sitting in a box the size of whatever
+// the split happened to be when it was last dragged, with dead space beneath
+// it — and a different amount of dead space per tab, since each panel's content
+// is a different length.
+//
+// Asked with `:has()` rather than by threading another class down from App,
+// because the question *is* "is there a graph next to me" and the stylesheet
+// can see that for itself.
+.center-workspace:not(:has(> .graph-wrapper)) > .middle-content {
+  height: auto;
+  flex: 1 1 auto;
+}
+
 // The EQ tab used to be special here, and is not any more.
 //
 // It treated the divider's value as a ceiling rather than a height, so the

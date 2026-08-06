@@ -62,6 +62,7 @@ const STORAGE_KEY = 'fluideq-graph-style';
  * with its shortcut, and the sidebar switch turns the graph off entirely.
  */
 const VIEW_KEYS = {
+  wave: 'fluideq.graphWaveHidden',
   solo: 'fluideq.graphSolo',
   grid: 'fluideq.graphGridHidden',
   stretch: 'fluideq.graphStretched',
@@ -356,6 +357,42 @@ export const useLiveOutputSolo = () =>
  * Not persisted, like the modes it sits beside. A graph that comes back with no
  * axes is a graph somebody will report as broken.
  */
+/**
+ * Whether the live wave is drawn at all.
+ *
+ * Distinct from solo, which hides the *other* curves, and from the grid, which
+ * hides the paper. This hides the visualiser itself and leaves the measurement:
+ * the response being edited, the layers under it, the band handles, the axes.
+ *
+ * Worth having on its own terms — the graph is a tool as well as a toy, and a
+ * trace jumping about over the curve you are dragging is not always wanted. It
+ * also takes the whole live drawing out of the tree rather than merely stilling
+ * it, which is a thing nothing else here could do.
+ */
+let isWaveHidden = readStoredFlag(VIEW_KEYS.wave);
+
+const waveListeners = new Set<() => void>();
+
+export const toggleGraphWave = () => {
+  isWaveHidden = !isWaveHidden;
+  writeStored(VIEW_KEYS.wave, String(isWaveHidden));
+  waveListeners.forEach((listener) => listener());
+};
+
+const subscribeWave = (listener: () => void) => {
+  waveListeners.add(listener);
+  return () => {
+    waveListeners.delete(listener);
+  };
+};
+
+export const useGraphWaveHidden = () =>
+  useSyncExternalStore(
+    subscribeWave,
+    () => isWaveHidden,
+    () => false,
+  );
+
 let isGridHidden = readStoredFlag(VIEW_KEYS.grid);
 
 const gridListeners = new Set<() => void>();

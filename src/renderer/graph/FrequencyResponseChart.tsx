@@ -80,6 +80,8 @@ import {
   toggleLiveOutputSolo,
   useGraphFullScreen,
   useGraphGridHidden,
+  useGraphWaveHidden,
+  toggleGraphWave,
   useGraphStretched,
   useWaveOrientation,
   useGraphView,
@@ -165,6 +167,7 @@ const FrequencyResponseChart = () => {
   const isSolo = useLiveOutputSolo();
   const graphView = useGraphView();
   const isGridHidden = useGraphGridHidden();
+  const isWaveHidden = useGraphWaveHidden();
   const isStretched = useGraphStretched();
   const waveOrientation = useWaveOrientation();
 
@@ -994,7 +997,11 @@ const FrequencyResponseChart = () => {
 
   const displayData = useMemo(
     () =>
-      liveOutput.points.length > 0
+      // Hidden means gone, not transparent. The live curve is the one thing
+      // here redrawn between measurements rather than when something is
+      // dragged, so leaving it in the tree at zero opacity would keep every bit
+      // of that work and show nothing for it.
+      liveOutput.points.length > 0 && !isWaveHidden
         ? [
             // Soloing drops the EQ layers rather than hiding them with an
             // opacity: a curve at zero alpha is still a path being rebuilt
@@ -1053,7 +1060,14 @@ const FrequencyResponseChart = () => {
             } as IChartCurveData,
           ]
         : silentData,
-    [silentData, chartData, isSolo, liveOutput.points, waveOrientation],
+    [
+      silentData,
+      chartData,
+      isSolo,
+      isWaveHidden,
+      liveOutput.points,
+      waveOrientation,
+    ],
   );
 
   const editablePoints: IEditableChartPoint[] = useMemo(() => {
@@ -1123,15 +1137,16 @@ const FrequencyResponseChart = () => {
         isGridHidden ? ' is-gridless' : ''
       }${isStretched ? ' is-stretched' : ''}${
         isDesignerOpen ? ' is-designing' : ''
-      }${liveLook.tuning.border ? ' has-euphoria-border' : ''}`}
+      }`}
       aria-disabled={!isEngineUsable}
       // Read by the full-screen rules only. Handed down as variables rather
       // than as a style on the card itself, because what they actually apply to
       // is the surface layer behind the drawing — see GraphTheme.
       style={
         {
-          // Read only by the euphoria border rule, which is the one place the
-          // look gets to set a size on the card rather than on the drawing.
+          // Inherited by the trace, which is what the outline is drawn on. Set
+          // here rather than on the path because the path's attributes are
+          // rewritten every frame and this is not one of them.
           '--euphoria-border-width': `${liveLook.tuning.borderWidth}px`,
           '--graph-overlay-opacity': overlayOpacity,
           // The whole filter, so that no blur is the keyword `none` rather than
@@ -1232,6 +1247,7 @@ const FrequencyResponseChart = () => {
               className="graph-look-step"
               aria-label="Previous style"
               title="Previous style (Ctrl+Space)"
+              disabled={isWaveHidden}
               onClick={() => cycleGraphLook(-1)}
             >
               <svg viewBox="0 0 16 16" aria-hidden>
@@ -1245,7 +1261,7 @@ const FrequencyResponseChart = () => {
               name="live-output-style"
               options={graphLookOptions}
               value={selectedLookId}
-              isDisabled={false}
+              isDisabled={isWaveHidden}
               isFilterable
               filterPlaceholder="Search styles"
               placement="down"
@@ -1256,6 +1272,7 @@ const FrequencyResponseChart = () => {
               className="graph-look-step"
               aria-label="Next style"
               title="Next style (Space)"
+              disabled={isWaveHidden}
               onClick={() => cycleGraphLook(1)}
             >
               <svg viewBox="0 0 16 16" aria-hidden>
@@ -1272,13 +1289,20 @@ const FrequencyResponseChart = () => {
             <button
               type="button"
               className={`graph-solo${isDesignerOpen ? ' is-on' : ''}`}
+              // There is nothing to design against with the wave switched off:
+              // every control in the panel is judged by what it does to a
+              // drawing that is not there.
+              disabled={isWaveHidden}
               onClick={() => setIsDesignerOpen((open) => !open)}
               aria-pressed={isDesignerOpen}
-              title={
-                isDesignerOpen
+              title={(() => {
+                if (isWaveHidden) {
+                  return 'Show the wave first — there is nothing to design against';
+                }
+                return isDesignerOpen
                   ? 'Close the look designer (Esc)'
-                  : 'Build a look of your own from this one'
-              }
+                  : 'Build a look of your own from this one';
+              })()}
             >
               {(() => {
                 if (isDesignerOpen) {
@@ -1319,6 +1343,8 @@ const FrequencyResponseChart = () => {
               onChangeView={setGraphView}
               onToggleSolo={toggleLiveOutputSolo}
               onCycleLook={cycleGraphLook}
+              isWaveHidden={isWaveHidden}
+              onToggleWave={toggleGraphWave}
               isGridHidden={isGridHidden}
               onToggleGrid={toggleGraphGrid}
               isStretched={isStretched}

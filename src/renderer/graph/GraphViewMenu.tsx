@@ -45,6 +45,8 @@ interface IGraphViewMenuProps {
   onChangeView: (next: TGraphView) => void;
   onToggleSolo: () => void;
   onCycleLook: (direction: 1 | -1) => void;
+  isWaveHidden: boolean;
+  onToggleWave: () => void;
   isGridHidden: boolean;
   onToggleGrid: () => void;
   isStretched: boolean;
@@ -108,6 +110,8 @@ const GraphViewMenu = ({
   onChangeView,
   onToggleSolo,
   onCycleLook,
+  isWaveHidden,
+  onToggleWave,
   isGridHidden,
   onToggleGrid,
   isStretched,
@@ -249,6 +253,24 @@ const GraphViewMenu = ({
             <kbd>Ctrl+W</kbd>
           </button>
 
+          {/* The wave itself, which is the other half of the solo switch.
+              Solo keeps the trace and drops everything else; this drops the
+              trace and keeps everything else — the response being edited, the
+              layers under it, the handles, the scale. For the times the graph
+              is a tool rather than a toy, and a drawing jumping about over the
+              curve being dragged is in the way. */}
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={isWaveHidden}
+            onClick={choose(onToggleWave)}
+          >
+            <Icon>
+              <path d="M1.5 8c1.6 0 1.6-4 3.2-4s1.6 8 3.2 8 1.6-8 3.2-8 1.6 4 3.2 4" />
+            </Icon>
+            <span>{isWaveHidden ? 'Show the wave' : 'Hide the wave'}</span>
+          </button>
+
           {/* The paper, rather than what is drawn on it. Solo above hides the
               other curves and keeps the scale, which is what reading a trace
               needs; this takes the scale away too, for when the graph has
@@ -283,7 +305,16 @@ const GraphViewMenu = ({
           {/* Three states, so it cycles and names the one it will go to next
               rather than the one you are in. Every look is drawn from the same
               points, so this flips all forty at once. */}
-          <button type="button" role="menuitem" onClick={onCycleOrientation}>
+          {/* Nothing to turn over when there is no wave. Greyed rather than
+              removed, so the row does not appear and vanish as the wave is
+              switched — and so the reason it is unavailable is legible from
+              the row directly above it. */}
+          <button
+            type="button"
+            role="menuitem"
+            disabled={isWaveHidden}
+            onClick={onCycleOrientation}
+          >
             <Icon>
               <path d="M2 8h12M5 5l-3 3 3 3M11 5l3 3-3 3" />
             </Icon>
@@ -294,14 +325,24 @@ const GraphViewMenu = ({
           <div className="graph-view-menu__divider" />
 
           {/* Left open on purpose — see `choose` above. */}
-          <button type="button" role="menuitem" onClick={() => onCycleLook(1)}>
+          <button
+            type="button"
+            role="menuitem"
+            disabled={isWaveHidden}
+            onClick={() => onCycleLook(1)}
+          >
             <Icon>
               <path d="M6 3.5l4 4.5-4 4.5" />
             </Icon>
             <span>Next style</span>
             <kbd>Space</kbd>
           </button>
-          <button type="button" role="menuitem" onClick={() => onCycleLook(-1)}>
+          <button
+            type="button"
+            role="menuitem"
+            disabled={isWaveHidden}
+            onClick={() => onCycleLook(-1)}
+          >
             <Icon>
               <path d="M10 3.5l-4 4.5 4 4.5" />
             </Icon>
