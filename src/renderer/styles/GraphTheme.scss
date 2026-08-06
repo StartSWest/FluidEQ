@@ -3,6 +3,14 @@
 @use 'spacing' as *;
 @use 'theme' as *;
 
+// The two opaque bars the expanded card grows over the player, and the room
+// reserved for them. Named once because three rules have to agree: the bar at
+// the top, the bar at the bottom, and the padding that keeps the drawing out
+// from under both. A number that only matched in two of the three would show up
+// as a wave clipped by a hair.
+$expanded-video-bar-top: 40px;
+$expanded-video-bar-bottom: 34px;
+
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency
 // region brightens as it is actually heard, and a bar underneath fills with its
 // confidence — so "still listening" has a visible reason.
@@ -617,11 +625,31 @@
   right: 0;
   bottom: 0;
   left: 0;
-  height: 34px;
+  height: $expanded-video-bar-bottom;
   border-radius: 0 0 $radius-xl $radius-xl;
   background: $surface-panel;
   content: '';
   pointer-events: none;
+}
+
+// The drawing lives between the two bars rather than behind them.
+//
+// They are opaque, so a wave reaching the top of the card was simply cut off by
+// the bar in front of it — a peak that vanishes at a horizontal line reads as
+// the graph being clipped rather than as a bar being in front. Reserving the
+// space means the plot is measured smaller and the wave is drawn whole inside
+// what is left, so nothing ever passes underneath either bar.
+//
+// As padding on the card, so the plot's own box shrinks: the chart measures
+// that box and scales the drawing to it, which is the difference between the
+// wave fitting and the wave being trimmed.
+.app-workspace:not(.is-app-full)
+  .center-workspace.is-graph-full:has(
+    .workspace-tab-panel--video:not(.is-hidden)
+  )
+  > .graph-wrapper {
+  padding-top: $expanded-video-bar-top;
+  padding-bottom: $expanded-video-bar-bottom;
 }
 
 // Full screen is the whole screen, corner to corner.
