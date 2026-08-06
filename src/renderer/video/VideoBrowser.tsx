@@ -193,6 +193,21 @@ const EXIT_PLAYER_ONLY = `(() => {
  * name.
  */
 
+/**
+ * Pause every media element on the page.
+ *
+ * Run before navigating away. A player still running holds its document open
+ * against the navigation, which is why choosing another site while YouTube
+ * Music was playing appeared to do nothing at all — the request was made and
+ * the page simply would not let go.
+ */
+const STOP_PLAYBACK = `(() => {
+  document.querySelectorAll('video, audio').forEach((media) => {
+    try { media.pause(); } catch (e) { /* already gone */ }
+  });
+  return 'ok';
+})()`;
+
 const EXIT_PAGE_FULLSCREEN = `(() => {
   if (!document.fullscreenElement) { return 'none'; }
   const button = document.querySelector(
@@ -526,9 +541,32 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
 
   const goTo = useCallback((url: string) => {
     setBlockedUrl('');
-    webviewRef.current?.loadURL(url).catch(() => {
-      // A navigation replaced by a newer one rejects; that is not a failure.
-    });
+    const view = webviewRef.current;
+    if (!view) {
+      return;
+    }
+    try {
+      // Stop whatever is playing before leaving the page.
+      //
+      // YouTube Music holds onto its player hard: clicking another site while
+      // it was playing did nothing at all, because a media element still
+      // running keeps the document alive through the navigation the tag is
+      // trying to start. Pausing first lets go of it.
+      //
+      // One player, always — the tag is reused rather than one per site — so
+      // there is never a second video in memory once this document goes.
+      view
+        .executeJavaScript(STOP_PLAYBACK)
+        .catch(() => undefined)
+        .finally(() => {
+          view.loadURL(url).catch(() => {
+            // A navigation replaced by a newer one rejects; not a failure.
+          });
+        });
+    } catch {
+      // No web contents to ask. Nothing is playing in that case either.
+      view.loadURL(url).catch(() => undefined);
+    }
   }, []);
 
   const handleSearch = useCallback(
