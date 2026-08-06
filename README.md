@@ -228,14 +228,8 @@ pnpm build
 pnpm package
 ```
 
-`pnpm package` produces two files in `release/build`: the NSIS installer and
-`latest.yml`. **Both** must be attached to a GitHub release — `latest.yml` is
-the manifest the updater fetches to compare versions, and a release without it
-looks fine on GitHub while no user ever sees the update.
-
-```powershell
-gh release create vX.Y.Z --title "FluidEQ X.Y.Z" --notes-file notes.md "release/build/FluidEQ-Setup-X.Y.Z.exe" "release/build/latest.yml"
-```
+`pnpm package` builds an unsigned installer into `release/build`, which is what
+you want for checking a change end to end on a real machine.
 
 The version lives in both `package.json` and `release/app/package.json` and the
 two must agree, or the artifact is named after the wrong one.
