@@ -28,6 +28,7 @@ import useController, {
   IMarginLike,
 } from './ChartController';
 import { BAND_SPECTRUM_STOPS } from '../utils/bandColors';
+import { useGraphGridHidden } from '../utils/graphStyle';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 
@@ -71,16 +72,22 @@ const Chart = ({
     [height, margins],
   );
 
+  // Every one of these gutters exists to hold a label, so with the grid off
+  // there is nothing in any of them — fifty pixels down the left for the decibel
+  // scale and thirty along the bottom for the frequency marks, both empty, both
+  // taken out of the drawing. The wave runs edge to edge instead.
+  const isGridHidden = useGraphGridHidden();
+
   const padding = useMemo(() => {
     return {
-      left: 50,
+      left: isGridHidden ? 0 : 50,
       // Axis labels are centred on their tick, so the topmost one (+20 dB)
       // needs half a line of headroom or the SVG viewport cuts it in half.
-      top: 10,
+      top: isGridHidden ? 0 : 10,
       right: 0,
-      bottom: 30,
+      bottom: isGridHidden ? 0 : 30,
     };
-  }, []);
+  }, [isGridHidden]);
 
   // Width of the plotting area itself, i.e. everything to the right of the
   // y-axis label gutter. Grid lines are drawn from that gutter, so they must

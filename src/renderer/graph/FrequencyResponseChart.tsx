@@ -827,11 +827,14 @@ const FrequencyResponseChart = () => {
       // space this mode exists to reclaim, and there is no band handle up there
       // to clip once the drawing is the point rather than the measurement.
       top: isStretched ? 4 : 30,
-      right: 30,
+      // Air at the sides, so a curve running off the edge of the plot is not
+      // cut flush against the card. With the grid hidden there is nothing to
+      // read at the edges and the wave is better for having them.
+      right: isGridHidden ? 0 : 30,
       // The frequency labels live down here, and with the grid hidden there is
       // nothing to leave room for.
       bottom: isStretched && isGridHidden ? 0 : 10,
-      left: 30,
+      left: isGridHidden ? 0 : 30,
     },
   };
 
