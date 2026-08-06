@@ -250,6 +250,52 @@ export const sanitizeSmartEqSettings = (
 };
 
 /**
+ * The layer as read back from its own file in the Equalizer APO config.
+ *
+ * Smart EQ is the one layer a config can hand back whole. A voicing or a driver
+ * correction is a profile id and an intensity that generated those lines, and
+ * nothing in the file records which — read them back and you get bands, not the
+ * layer. This one has no generator: the filters ARE what the measurement
+ * decided. So once it has a file of its own, the correction stops being
+ * something only state.txt remembers, and the report that applying a model can
+ * make a measurement disappear stops being able to cost anybody one — whatever
+ * the cause, the answer is still in the config and comes back on the next
+ * launch.
+ *
+ * Bands are matched to the layer's own ids by frequency, which works because
+ * the layout is fixed and deliberately so. Anything at a frequency this layer
+ * never uses is not from this layer and is left out. A band at 0 dB is never
+ * written and does not need to come back: one missing from the map reads as
+ * zero when the next measurement accumulates onto it.
+ */
+export const smartEqFromFilters = (
+  filters: Array<Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>>,
+): ISmartEqSettings | undefined => {
+  const known = new Set<number>(SMART_EQ_FREQUENCIES);
+  const recovered: IFiltersMap = {};
+
+  filters.forEach((filter) => {
+    const frequency = Math.round(filter.frequency);
+    if (filter.type !== FilterTypeEnum.PK || !known.has(frequency)) {
+      return;
+    }
+    const id = `${SMART_EQ_BAND_ID_PREFIX}${frequency}`;
+    recovered[id] = {
+      id,
+      frequency,
+      gain: filter.gain,
+      // The layer's own Q rather than the file's. It is a property of the
+      // layout, and a rounded value read back off a config line would drift the
+      // shape a little further every time it made the round trip.
+      quality: SMART_EQ_QUALITY,
+      type: FilterTypeEnum.PK,
+    };
+  });
+
+  return sanitizeSmartEqSettings({ filters: recovered });
+};
+
+/**
  * Turn a solved set of gains into the layer to store.
  *
  * Every band is kept, including the ones that came out at 0 dB: the map is the

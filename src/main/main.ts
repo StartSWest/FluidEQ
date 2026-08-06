@@ -73,7 +73,12 @@ import { gatherBugReportFacts } from './bugReportFacts';
 import ChannelEnum from '../common/channels';
 import { getVoicingProfile } from '../common/voicing';
 import { getDriverProfile } from '../common/driver';
-import { hasSmartEqLayer, sanitizeSmartEqSettings } from '../common/smartEq';
+import {
+  hasSmartEqLayer,
+  sanitizeSmartEqSettings,
+  smartEqFromFilters,
+} from '../common/smartEq';
+import { parseEqText } from '../common/apoText';
 import {
   AutoEqFormat,
   FilterTypeEnum,
@@ -1329,6 +1334,30 @@ const adoptExistingApoConfig = () => {
     // one the "no bands, nothing to adopt" check bows out of.
     if (features) {
       adoptBypassFromConfig(features);
+    }
+
+    // The measurement, if the state has lost it and the config still has it.
+    //
+    // Alone among the layers, Smart EQ can be read back in full: its file is
+    // the correction rather than a rendering of settings that produced it. So
+    // it is the one place the config-as-truth rule can protect a layer instead
+    // of only describing it — whatever it was that made a measurement go
+    // missing, it is still in the config and comes back here.
+    //
+    // Only when there is nothing to lose. A layer already in the state is the
+    // newer of the two, and an absent file is not silence: it is how a
+    // switched-off layer is written, which the line above has just read.
+    if (features?.smart && !hasSmartEqLayer(state.smartEq)) {
+      const recovered = smartEqFromFilters(
+        Object.values(parseEqText(features.smart).filters),
+      );
+      if (recovered) {
+        console.log(
+          'Restoring the Smart EQ correction from the Equalizer APO config.',
+        );
+        state.smartEq = recovered;
+        save(state, userDataDir);
+      }
     }
 
     const adopted = adoptBlock({
