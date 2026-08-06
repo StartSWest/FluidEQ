@@ -733,18 +733,15 @@ $expanded-video-bar-top: 40px;
   grid-template-columns: 0 1fr 0;
 }
 
-// The titlebar stays exactly where it is, and so does the room it occupies.
-//
-// It used to be hidden here, and `#root`'s 78px of padding zeroed with it, to
-// reclaim the strip across the top. Every one of those is a relayout of the
-// whole workspace, and the workspace contains a `<webview>` — which is its own
-// compositor surface and came back black. Expanded moves none of it and has
-// never failed; this mode now moves none of it either.
-//
-// Hiding the titlebar also meant moving the creature and the waveform into a
-// second element, and a moved component is an unmounted one: two audio hooks on
-// one analyser, a support panel that lost its pet. Leaving the bar alone means
-// there is exactly one of each and nothing to move.
+// Real full screen: the bar goes, and the 78px of padding holding its place
+// goes with it, so the workspace runs the whole height of the display.
+.window-titlebar:has(~ .app-workspace.is-app-full) {
+  display: none;
+}
+
+#root:has(.app-workspace.is-app-full) {
+  padding-top: 0;
+}
 
 // The graph with the workspace to itself.
 //

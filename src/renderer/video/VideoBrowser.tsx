@@ -654,7 +654,10 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
    */
   useEffect(() => {
     const view = webviewRef.current;
-    if (!view || isHidden || !isGuestReady || graphView === 'normal') {
+    // Expanded only, for now. Full screen leaves the page exactly as the site
+    // built it — no stripping, no marking, no injected sheet — so that what is
+    // on screen in that mode is the site's own player and nothing of ours.
+    if (!view || isHidden || !isGuestReady || graphView !== 'expanded') {
       return undefined;
     }
     let key: string | undefined;
