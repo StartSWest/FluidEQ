@@ -25,9 +25,7 @@ import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import {
   clearConvolution,
-  clearGains,
   clearHeadset,
-  setGain,
   setDriver as setDriverApi,
   setLoudness as setLoudnessApi,
   setSmartEq as setSmartEqApi,
@@ -223,10 +221,7 @@ const ActiveLayers = () => {
   // layer would mean the chip is there from the first launch, saying nothing,
   // for everybody. Clearing the EQ puts every gain back to zero, so the chip
   // goes on its own.
-  // Bypassed counts as present, and has to. Switching it off flattens the very
-  // gains this condition tests, so without that clause the chip would remove
-  // itself the moment it was used and there would be no way to switch it back.
-  if (headset || hasShapedBands || bypassed.eq !== undefined) {
+  if (headset || hasShapedBands) {
     const reference = headsetTarget ? `${headset} · ${headsetTarget}` : headset;
     layers.push({
       key: 'eq',
@@ -244,35 +239,6 @@ const ActiveLayers = () => {
           await clearHeadset();
           await refreshState();
         }
-      },
-      // The purest A/B in the app: the whole tuning in, the whole tuning out.
-      //
-      // Every other layer here was written by the app from a profile it can
-      // regenerate. These bands are the one thing on this row somebody made by
-      // hand, so switching them off must not cost them — the gains are stashed,
-      // the chain goes flat, and pressing again puts every one of them back
-      // where it was. It works the same whether they came from a model or from
-      // dragging, which is the point of the two being one layer.
-      //
-      // Deliberately does not touch the reference, the voicing, the driver or
-      // the measurement. One press, one thing moves — otherwise there is no way
-      // to tell which of them is responsible for what you are hearing, and that
-      // is the whole reason to have a switch.
-      onBypass: async () => {
-        bypassLayer('eq', filters);
-        await clearGains();
-        await refreshState();
-      },
-      onRestore: async (settings) => {
-        const kept = settings as typeof filters;
-        // Band by band, because that is the only setter there is. The chain is
-        // written once at the end rather than per band — `refreshState` is what
-        // flushes it — so this is one config write, not forty.
-        await Object.values(kept ?? {}).reduce(
-          (chain, band) => chain.then(() => setGain(band.id, band.gain)),
-          Promise.resolve() as Promise<unknown>,
-        );
-        await refreshState();
       },
     });
   }
