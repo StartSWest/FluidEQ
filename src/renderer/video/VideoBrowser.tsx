@@ -142,10 +142,15 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   const [isAdBlockOn, setIsAdBlockOn] = useState(readStoredAdBlock);
   // The page asked for fullscreen — the button on YouTube's own player.
   //
-  // A guest going fullscreen fills the element it lives in, and nothing more,
-  // so on its own the fullscreen button would blow the video up to the size of
-  // this pane and stop. Taking the pane over the window is what makes it mean
-  // what it looks like it means.
+  // A guest going fullscreen fills the element it lives in and nothing more, so
+  // on its own the button would expand the video to the size of the box it was
+  // already in. This gives it the rest of the player's pane: the toolbar stands
+  // down and the picture takes the lot.
+  //
+  // The pane, and not the window. FluidEQ is not a browser, and the reason to
+  // play something in it is to watch the spectrum move with it — a video over
+  // the whole window covers the graph, which is the only thing here the video
+  // is for.
   const [isPageFullScreen, setIsPageFullScreen] = useState(false);
 
   const activeSite = findSiteForUrl(currentUrl);

@@ -1,4 +1,5 @@
 @use 'color' as *;
+@use 'theme' as *;
 
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency
 // region brightens as it is actually heard, and a bar underneath fills with its

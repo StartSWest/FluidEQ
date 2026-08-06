@@ -44,19 +44,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     display: none;
   }
 
-  // The page's own fullscreen button, honoured across the whole window.
+  // The page's own fullscreen button, honoured within this pane and no further.
   //
-  // A guest that goes fullscreen fills its own element, so without this the
-  // button would expand the video to the size of the pane it is already in —
-  // technically fullscreen, visibly nothing. Above every notice and the
-  // titlebar, because a video covering all but one strip of chrome looks
-  // broken rather than deliberate.
+  // It used to take the whole window — fixed, above the titlebar, above every
+  // notice. That is what a browser does, and it is the wrong thing here: the
+  // reason to play a video inside an equalizer is to watch the spectrum move
+  // with it, and a video over the entire window covers the one thing the app is
+  // for. So fullscreen means the whole of the player's own pane: the toolbar
+  // gets out of the way and the picture takes the rest, while the graph below
+  // and the divider between them stay exactly where they were.
+  //
+  // Something still has to happen, mind. A guest that goes fullscreen fills its
+  // own element and stops, so with no rule at all the button would expand the
+  // video to the size of the box it was already in — technically fullscreen,
+  // visibly nothing.
   &.is-fullscreen {
-    position: fixed;
-    z-index: 3000;
-    inset: 0;
     gap: 0;
-    background: #000;
   }
 }
 
@@ -65,6 +68,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: none;
 }
 
+// Edge to edge within the pane. The rounded card is what the player looks like
+// while it is one panel among several; filling its pane, the corners and the
+// shadow are a frame around something that no longer has anything to be framed
+// against.
 .video-browser.is-fullscreen .video-browser__stage {
   height: 100%;
   border: none;
