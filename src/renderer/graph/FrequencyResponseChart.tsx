@@ -88,6 +88,7 @@ import {
   useLiveOutputSolo,
 } from '../utils/graphStyle';
 import { useIsChromeIdle } from '../utils/idleChrome';
+import { useBypassedLayers } from '../utils/layerBypass';
 import {
   MAX_OVERLAY_BLUR,
   MIN_OVERLAY_OPACITY,
@@ -171,6 +172,7 @@ const FrequencyResponseChart = () => {
   const isFullScreen = useGraphFullScreen();
   const isChromeIdle = useIsChromeIdle();
   const hasTopBar = useFullScreenTopBar();
+  const bypassed = useBypassedLayers();
   const overlayOpacity = useOverlayOpacity();
   const overlayBlur = useOverlayBlur();
   const {
@@ -433,48 +435,60 @@ const FrequencyResponseChart = () => {
     // bands, which is what makes "EQ + voicing" an honest sum rather than an
     // approximation of one.
     const voicingFilterLines: IChartLineDataPointsById = {};
-    getVoicingFilters(voicing).forEach((filter, index) => {
-      const id = `voicing-${index}`;
-      voicingFilterLines[id] = getFilterLineData({
-        id,
-        frequency: filter.frequency,
-        gain: filter.gain,
-        quality: filter.quality,
-        type: filter.type,
-      });
-    });
+    // Nothing is drawn for a layer that is switched off.
+    //
+    // Bypass keeps the layer in state so the chip can put it back, which means
+    // the graph would happily go on drawing a curve for something that is no
+    // longer in the config — and a graph that disagrees with what you hear is
+    // worse than one that shows less. This is what makes the A/B honest.
+    (bypassed.voicing !== undefined ? [] : getVoicingFilters(voicing)).forEach(
+      (filter, index) => {
+        const id = `voicing-${index}`;
+        voicingFilterLines[id] = getFilterLineData({
+          id,
+          frequency: filter.frequency,
+          gain: filter.gain,
+          quality: filter.quality,
+          type: filter.type,
+        });
+      },
+    );
     const hasVoicing = Object.keys(voicingFilterLines).length > 0;
 
     // Driver compensation is a third APO layer, so it gets the same treatment:
     // its own curve, from the same biquad code, rather than an invisible
     // correction the user has to take on trust.
     const driverFilterLines: IChartLineDataPointsById = {};
-    getDriverFilters(driver).forEach((filter, index) => {
-      const id = `driver-${index}`;
-      driverFilterLines[id] = getFilterLineData({
-        id,
-        frequency: filter.frequency,
-        gain: filter.gain,
-        quality: filter.quality,
-        type: filter.type,
-      });
-    });
+    (bypassed.driver !== undefined ? [] : getDriverFilters(driver)).forEach(
+      (filter, index) => {
+        const id = `driver-${index}`;
+        driverFilterLines[id] = getFilterLineData({
+          id,
+          frequency: filter.frequency,
+          gain: filter.gain,
+          quality: filter.quality,
+          type: filter.type,
+        });
+      },
+    );
     const hasDriver = Object.keys(driverFilterLines).length > 0;
 
     // What the measurement decided, drawn like any other layer. This one has
     // the strongest claim to a curve of its own: nobody chose its shape, so the
     // graph is the only place it can be inspected at all.
     const smartFilterLines: IChartLineDataPointsById = {};
-    getSmartEqFilters(smartEq).forEach((filter, index) => {
-      const id = `smart-eq-${index}`;
-      smartFilterLines[id] = getFilterLineData({
-        id,
-        frequency: filter.frequency,
-        gain: filter.gain,
-        quality: filter.quality,
-        type: filter.type,
-      });
-    });
+    (bypassed.smart !== undefined ? [] : getSmartEqFilters(smartEq)).forEach(
+      (filter, index) => {
+        const id = `smart-eq-${index}`;
+        smartFilterLines[id] = getFilterLineData({
+          id,
+          frequency: filter.frequency,
+          gain: filter.gain,
+          quality: filter.quality,
+          type: filter.type,
+        });
+      },
+    );
     const hasSmartEq = Object.keys(smartFilterLines).length > 0;
 
     const convolutionFilterLines: IChartLineDataPointsById = {};
@@ -653,7 +667,16 @@ const FrequencyResponseChart = () => {
       // preamp so the graph and APO remain in sync without auto-adjusting it.
       autoPreAmpValue: isAutoPreAmpOn ? calculatedAutoPreAmpValue : preAmp,
     };
-  }, [convolution, driver, filters, isAutoPreAmpOn, preAmp, smartEq, voicing]);
+  }, [
+    bypassed,
+    convolution,
+    driver,
+    filters,
+    isAutoPreAmpOn,
+    preAmp,
+    smartEq,
+    voicing,
+  ]);
 
   useEffect(() => {
     // Auto normalize writes Equalizer APO's Preamp headroom value. When it is
@@ -1107,19 +1130,21 @@ const FrequencyResponseChart = () => {
           {!isSolo && (
             <span className="graph-legend graph-legend--eq">EQ response</span>
           )}
-          {!isSolo && voicing?.profileId ? (
+          {!isSolo && voicing?.profileId && bypassed.voicing === undefined ? (
             <span className="graph-legend graph-legend--voicing">Voicing</span>
           ) : null}
-          {!isSolo && driver?.profileId ? (
+          {!isSolo && driver?.profileId && bypassed.driver === undefined ? (
             <span className="graph-legend graph-legend--driver">Driver</span>
           ) : null}
-          {!isSolo && hasSmartEqLayer(smartEq) ? (
+          {!isSolo &&
+          hasSmartEqLayer(smartEq) &&
+          bypassed.smart === undefined ? (
             <span className="graph-legend graph-legend--smart">Smart EQ</span>
           ) : null}
           {!isSolo &&
-          (voicing?.profileId ||
-            driver?.profileId ||
-            hasSmartEqLayer(smartEq)) ? (
+          ((voicing?.profileId && bypassed.voicing === undefined) ||
+            (driver?.profileId && bypassed.driver === undefined) ||
+            (hasSmartEqLayer(smartEq) && bypassed.smart === undefined)) ? (
             <span className="graph-legend graph-legend--total">
               {[
                 'EQ',

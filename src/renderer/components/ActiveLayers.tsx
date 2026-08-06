@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { useEffect } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
@@ -73,6 +74,34 @@ const ActiveLayers = () => {
   } = useFluidEqContext();
   const { t } = useTranslation();
   const bypassed = useBypassedLayers();
+
+  // A layer applied afresh is applied, whatever was switched off before it.
+  //
+  // Bypass stashes the settings that were live at the time, and the settings
+  // can change from somewhere else entirely — picking another voicing on its
+  // own tab, a profile load bringing a different driver, a Smart EQ run
+  // finishing. Without this the new layer inherited the old one's switched-off
+  // state and arrived silent, which is the one thing an applied layer must
+  // never do.
+  //
+  // Compared by identity rather than by value, deliberately. Anything that
+  // hands back a fresh object clears the bypass, and that is the safe way to be
+  // wrong: the worst case is a layer that comes back on by itself, and the
+  // alternative is one that stays off without saying so.
+  useEffect(() => {
+    if (bypassed.voicing !== undefined && bypassed.voicing !== voicing) {
+      forgetBypassedLayer('voicing');
+    }
+    if (bypassed.driver !== undefined && bypassed.driver !== driver) {
+      forgetBypassedLayer('driver');
+    }
+    if (bypassed.smart !== undefined && bypassed.smart !== smartEq) {
+      forgetBypassedLayer('smart');
+    }
+    if (bypassed.loudness !== undefined && bypassed.loudness !== loudness) {
+      forgetBypassedLayer('loudness');
+    }
+  }, [bypassed, voicing, driver, smartEq, loudness]);
 
   const voicingProfile = getVoicingProfile(voicing?.profileId ?? '');
   const driverProfile = getDriverProfile(driver?.profileId ?? '');
