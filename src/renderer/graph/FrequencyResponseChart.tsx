@@ -76,6 +76,7 @@ import {
   toggleGraphFullScreen,
   toggleGraphGrid,
   toggleGraphStretch,
+  toggleFullScreenTopBar,
   toggleLiveOutputSolo,
   useGraphFullScreen,
   useGraphGridHidden,
@@ -83,8 +84,10 @@ import {
   useWaveOrientation,
   useGraphView,
   useGraphLook,
+  useFullScreenTopBar,
   useLiveOutputSolo,
 } from '../utils/graphStyle';
+import { useIsChromeIdle } from '../utils/idleChrome';
 import {
   MAX_OVERLAY_BLUR,
   MIN_OVERLAY_OPACITY,
@@ -166,6 +169,8 @@ const FrequencyResponseChart = () => {
   const isStretched = useGraphStretched();
   const waveOrientation = useWaveOrientation();
   const isFullScreen = useGraphFullScreen();
+  const isChromeIdle = useIsChromeIdle();
+  const hasTopBar = useFullScreenTopBar();
   const overlayOpacity = useOverlayOpacity();
   const overlayBlur = useOverlayBlur();
   const {
@@ -1063,7 +1068,12 @@ const FrequencyResponseChart = () => {
         } as CSSProperties
       }
     >
-      <div className="live-output-controls">
+      {/* `is-idle` only ever does anything in full screen — the store that sets
+          it is not watching in any other mode, so the class is simply never on
+          elsewhere. Kept unconditional here rather than gated on the mode as
+          well, because two things deciding the same question is how they come
+          to disagree. */}
+      <div className={`live-output-controls${isChromeIdle ? ' is-idle' : ''}`}>
         {/* One pane for the whole right-hand cluster.
 
             The card used to be on the style picker alone, which left the
@@ -1215,6 +1225,8 @@ const FrequencyResponseChart = () => {
               onChangeOverlayBlur={setOverlayBlur}
               minOverlayOpacity={MIN_OVERLAY_OPACITY}
               maxOverlayBlur={MAX_OVERLAY_BLUR}
+              hasTopBar={hasTopBar}
+              onToggleTopBar={toggleFullScreenTopBar}
             />
           </span>
         </span>

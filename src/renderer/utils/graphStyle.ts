@@ -188,6 +188,45 @@ export const useGraphGridHidden = () =>
   );
 
 /**
+ * Whether full screen keeps FluidEQ's own top bar.
+ *
+ * Off by default, because the mode is for watching and the bar is the largest
+ * thing between the picture and the top of the screen. On, the whole titlebar
+ * stays exactly where it is — the creature, the waveform, the actions menu, all
+ * of it — and the workspace starts below it as it does everywhere else.
+ *
+ * One switch rather than one per element. The bar is a single row and the parts
+ * of it are not independently useful: a waveform with no creature beside it is
+ * the same bar with a hole in it.
+ *
+ * Not persisted, like the modes it sits beside. Somebody who turned it on for
+ * one session and forgot would come back to a full screen that is not full,
+ * with the reason three menus away.
+ */
+let hasFullScreenTopBar = false;
+
+const topBarListeners = new Set<() => void>();
+
+export const toggleFullScreenTopBar = () => {
+  hasFullScreenTopBar = !hasFullScreenTopBar;
+  topBarListeners.forEach((listener) => listener());
+};
+
+const subscribeTopBar = (listener: () => void) => {
+  topBarListeners.add(listener);
+  return () => {
+    topBarListeners.delete(listener);
+  };
+};
+
+export const useFullScreenTopBar = () =>
+  useSyncExternalStore(
+    subscribeTopBar,
+    () => hasFullScreenTopBar,
+    () => false,
+  );
+
+/**
  * Which way up the live trace is drawn.
  *
  *  - `up` — standing on the bottom, as it always has.

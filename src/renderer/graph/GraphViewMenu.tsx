@@ -61,6 +61,9 @@ interface IGraphViewMenuProps {
   onChangeOverlayBlur: (next: number) => void;
   minOverlayOpacity: number;
   maxOverlayBlur: number;
+  /** Whether full screen keeps FluidEQ's own top bar. Full screen only. */
+  hasTopBar: boolean;
+  onToggleTopBar: () => void;
 }
 
 /** Names the state the next press moves to, since three states cycle. */
@@ -117,6 +120,8 @@ const GraphViewMenu = ({
   onChangeOverlayBlur,
   minOverlayOpacity,
   maxOverlayBlur,
+  hasTopBar,
+  onToggleTopBar,
 }: IGraphViewMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState<IPlacement>({
@@ -323,6 +328,25 @@ const GraphViewMenu = ({
           {view === 'fullscreen' && (
             <>
               <div className="graph-view-menu__divider" />
+
+              {/* One switch for the whole bar rather than one per piece. The
+                  parts of it are not independently useful — a waveform with no
+                  creature beside it is the same bar with a hole in it. */}
+              <button
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked={hasTopBar}
+                onClick={choose(onToggleTopBar)}
+              >
+                <Icon>
+                  <path d="M2.5 2.5h11v11h-11z" />
+                  <path d="M2.5 6h11" />
+                </Icon>
+                <span>
+                  {hasTopBar ? 'Hide the top bar' : 'Show the top bar'}
+                </span>
+              </button>
+
               <label
                 className="graph-view-menu__slider"
                 htmlFor="graph-see-through"

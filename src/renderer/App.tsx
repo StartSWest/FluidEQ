@@ -44,7 +44,9 @@ import {
   setLiveOutputSolo,
   useGraphFullScreen,
   useGraphView,
+  useFullScreenTopBar,
 } from './utils/graphStyle';
+import { useIsChromeIdle, watchChromeIdle } from './utils/idleChrome';
 import { reportError } from './utils/logger';
 import VideoBrowser from './video/VideoBrowser';
 import PaneResizer from './components/PaneResizer';
@@ -139,7 +141,20 @@ const AppContent = () => {
   const graphView = useGraphView();
   /** The window itself is full screen, so the titlebar is not on screen. */
   const isAppFullScreen = graphView === 'fullscreen' && isGraphViewOn;
+  // Full screen with the top bar kept. Everything below reads this rather than
+  // the mode alone, so "full screen" and "full screen with the bar" cannot end
+  // up disagreeing about which pieces are on screen.
+  const hasFullScreenTopBar = useFullScreenTopBar();
+  const isChromeHidden = isAppFullScreen && !hasFullScreenTopBar;
   const editorHeight = useEditorHeight();
+
+  // Watched only in full screen, and stopped on the way out — see the store for
+  // why leaving it running would strand a faded workspace.
+  const isChromeIdle = useIsChromeIdle();
+  useEffect(() => {
+    watchChromeIdle(isAppFullScreen);
+    return () => watchChromeIdle(false);
+  }, [isAppFullScreen]);
 
   /**
    * Take the window fullscreen when the graph asks for it.
@@ -499,7 +514,7 @@ const AppContent = () => {
             bar; this stays put behind it. */}
         <WaveformVisualizer />
         <div className="window-titlebar__right">
-          {!isAppFullScreen && (
+          {!isChromeHidden && (
             <SupportPet
               hasContributed={hasContributed}
               onOpen={() => setShowSupportDialog(true)}
@@ -787,7 +802,11 @@ const AppContent = () => {
           </div>
         </div>
       </header>
-      <main className={`app-workspace${isAppFullScreen ? ' is-app-full' : ''}`}>
+      <main
+        className={`app-workspace${isAppFullScreen ? ' is-app-full' : ''}${
+          isAppFullScreen && hasFullScreenTopBar ? ' has-top-bar' : ''
+        }`}
+      >
         {showAudioRestartRecommendation && (
           <aside className="audio-restart-notice" role="status">
             <span>{t('notice.apoReconfigured')}</span>
@@ -991,8 +1010,8 @@ const AppContent = () => {
             the top right, inside the graph. Moved rather than copied — the
             titlebar's own is not rendered in this mode, so there is exactly one
             of it. */}
-        {isAppFullScreen && (
-          <div className="fullscreen-chrome">
+        {isChromeHidden && (
+          <div className={`fullscreen-chrome${isChromeIdle ? ' is-idle' : ''}`}>
             <SupportPet
               hasContributed={hasContributed}
               onOpen={() => setShowSupportDialog(true)}

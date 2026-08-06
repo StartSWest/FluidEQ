@@ -682,6 +682,51 @@ $graph-controls-height: 40px;
   padding-top: 0;
 }
 
+// In full screen the header line gets a card of its own, and hides itself.
+//
+// Everywhere else it reads on a panel and needs no surface. Here it floats on a
+// picture, so it becomes a small pane hugging its own contents rather than a
+// row of labels lying on a video — the width comes off `left: auto`, which lets
+// it shrink to what is in it instead of spanning the screen.
+//
+// And it goes away when nothing is happening, as every video player's controls
+// do, for the same reason: this mode is watched rather than worked on, and a
+// toolbar is the only thing left between the drawing and the edge of the
+// screen. The creature fades with it, on the same timer — see `idleChrome`.
+.app-workspace.is-app-full .live-output-controls {
+  left: auto;
+  width: auto;
+  max-width: calc(100% - 20px);
+  padding: 5px 9px;
+  @include panel-surface($secondary-dark, 5%);
+  // No shadow. The mixin's is sized for a panel standing on the workspace; on a
+  // strip this small over a picture it reads as a smudge under the text.
+  box-shadow: none;
+  // The card supplies the contrast now, so the shadow that was holding the
+  // labels apart from a moving wave has nothing left to do.
+  text-shadow: none;
+}
+
+.app-workspace.is-app-full {
+  .live-output-controls,
+  .fullscreen-chrome {
+    // Slower out than in. Coming back should feel immediate — the pointer has
+    // just moved and something is being reached for — while leaving should not
+    // catch the eye, which is the whole point of it going.
+    transition: opacity 320ms ease;
+  }
+
+  .live-output-controls.is-idle,
+  .fullscreen-chrome.is-idle {
+    opacity: 0;
+    // Nothing invisible takes a click. Without this the strip is still there to
+    // be pressed, and a control you cannot see doing something is worse than
+    // one that is simply gone.
+    pointer-events: none;
+    transition-duration: 520ms;
+  }
+}
+
 // There is deliberately no bar behind the controls over the player.
 //
 // There was one, in a panel gradient across the top of the card, put there when
@@ -780,15 +825,38 @@ $graph-controls-height: 40px;
     border-radius: 0;
     clip-path: none;
   }
+
+  // The tab strip and the player's toolbar give their space back here, rather
+  // than merely going invisible.
+  //
+  // Everywhere else they are hidden with `visibility`, which keeps their boxes
+  // so the stage below never moves and the guest is never resized. In this mode
+  // that is exactly wrong: the space they hold is a band across the top that
+  // the picture never reaches, and reaching the top is the whole of what full
+  // screen is for.
+  //
+  // The resize this causes is fine now. It was not, for most of an evening —
+  // being resized left the player marked against an ancestor chain YouTube had
+  // already moved it off — and that is fixed where it belonged, in the marking.
+  .workspace-tabs,
+  .video-browser__bar {
+    display: none;
+  }
 }
 
 // Real full screen: the bar goes, and the 78px of padding holding its place
 // goes with it, so the workspace runs the whole height of the display.
-.window-titlebar:has(~ .app-workspace.is-app-full) {
+//
+// Unless it is asked to stay. `has-top-bar` is the View menu's switch, and with
+// it on this mode is the same screen as any other with the panes hidden — the
+// bar where it always is, the workspace starting below it. The creature is
+// rendered in the bar rather than in the corner then, so there is one of it
+// either way.
+.window-titlebar:has(~ .app-workspace.is-app-full:not(.has-top-bar)) {
   display: none;
 }
 
-#root:has(.app-workspace.is-app-full) {
+#root:has(.app-workspace.is-app-full:not(.has-top-bar)) {
   padding-top: 0;
 }
 
