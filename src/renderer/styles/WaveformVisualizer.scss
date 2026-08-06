@@ -30,9 +30,15 @@
   text-align: start;
   cursor: pointer;
   appearance: none;
+  // `height` is in here rather than beside the 64px euphoria sets, because a
+  // transition declared inside `.is-euphoric` is removed at the same instant
+  // the height it was meant to carry is: the pane grew over seven hundred
+  // milliseconds and then dropped back in one frame. On the base rule it eases
+  // both ways.
   transition:
     border-color 180ms ease,
-    box-shadow 180ms ease;
+    box-shadow 180ms ease,
+    height 700ms cubic-bezier(0.32, 0.72, 0, 1);
 
   &.is-active {
     border-color: rgba($secondary-light, 0.25);

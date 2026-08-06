@@ -23,6 +23,7 @@ import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useRhythmRun } from '../utils/rhythmRun';
 import {
   isEuphoriaAchieved,
+  publishIsEuphoric,
   toggleEuphoriaEnabled,
   useIsEuphoric,
   winEuphoria,
@@ -33,13 +34,13 @@ import '../styles/Euphoria.scss';
 const EUPHORIA_AT = 1;
 
 /**
- * How many values the level is allowed to take.
+ * How many values a band's level is allowed to take.
  *
  * Quantising it is the whole performance trick. Every element reading
- * `--euphoria-level` has its style recalculated when that property changes, and
- * a continuous value changes on literally every frame — up to thirty-one bands,
- * the graph points and the meters, invalidated twenty-two times a second for
- * differences of a thousandth that nobody can see.
+ * `--band-level` has its style recalculated when that property changes, and a
+ * continuous value changes on literally every frame — thirty-one bands,
+ * invalidated twenty-two times a second, for differences of a thousandth that
+ * nobody can see.
  *
  * Rounded to twelve steps it only changes when the music moves enough to be
  * visible, which in practice is a few times a second rather than twenty-two.
@@ -48,6 +49,13 @@ const EUPHORIA_AT = 1;
  * more honest look.
  */
 const LEVEL_STEPS = 12;
+
+/**
+ * How long to wait for a burst to tell us it has finished before assuming it
+ * never will. Comfortably past the 900ms ring and its 90ms-delayed sibling, so
+ * this only fires when the event did not arrive at all.
+ */
+const BURST_GIVE_UP_MS = 1600;
 
 /**
  * Give every band its own level, taken from its own frequency.
@@ -105,15 +113,22 @@ const publishBandLevels = (
  * was playing or not, and this app should cost nothing when nothing is
  * happening. Mounting it only at the ceiling means the subscription exists
  * exactly as long as something is using it.
+ *
+ * It publishes to the bands and to nothing else. There was a second half that
+ * wrote a whole-window `--euphoria-level` to the document root, and it has been
+ * removed rather than tuned, because no stylesheet ever read it. An inherited
+ * custom property set on `<html>` invalidates the computed style of every
+ * element beneath it, and with no `contain` anywhere in this application that
+ * is the entire tree rebuilt several times a second to publish a number nobody
+ * asked for. Quantising it to twelve steps only reduced how often that
+ * happened; the value still had no reader.
  */
 const EuphoriaLevel = () => {
-  const { points, waveform } = useLiveAudioFrame();
+  const { points } = useLiveAudioFrame();
   // The row is rebuilt when the band count changes and at no other time, so
   // that is what the re-query below keys on. Keying it on the frame would
   // re-query every frame and undo the saving entirely.
   const bandCount = Object.keys(useFluidEqContext().filters).length;
-  const levelRef = useRef(0);
-  const publishedRef = useRef(-1);
   const bandsRef = useRef<HTMLElement[]>([]);
   const bandLevelsRef = useRef<number[]>([]);
 
@@ -133,45 +148,6 @@ const EuphoriaLevel = () => {
   useEffect(() => {
     publishBandLevels(points, bandsRef.current, bandLevelsRef.current);
   }, [points]);
-
-  useEffect(() => {
-    let peak = 0;
-    for (let index = 0; index < waveform.length; index += 1) {
-      if (waveform[index] > peak) {
-        peak = waveform[index];
-      }
-    }
-    const level = Math.min(1, peak * 1.6);
-    // Instant attack, slow release, so the shell swells with the music instead
-    // of flickering between every transient.
-    levelRef.current =
-      level > levelRef.current
-        ? level
-        : levelRef.current + (level - levelRef.current) * 0.2;
-
-    const stepped = Math.round(levelRef.current * LEVEL_STEPS) / LEVEL_STEPS;
-    if (stepped === publishedRef.current) {
-      // Nothing visible changed. Writing it anyway would invalidate the style
-      // of every element reading it, for no difference on screen — which is
-      // the entire cost this is here to avoid.
-      return;
-    }
-    publishedRef.current = stepped;
-    // Written straight to the property rather than held in state: re-rendering
-    // anything at this rate to animate a glow would cost more than the glow is
-    // worth.
-    document.documentElement.style.setProperty(
-      '--euphoria-level',
-      String(stepped),
-    );
-  }, [waveform]);
-
-  useEffect(
-    () => () => {
-      document.documentElement.style.removeProperty('--euphoria-level');
-    },
-    [],
-  );
 
   return null;
 };
@@ -251,10 +227,33 @@ const EuphoriaGlow = () => {
     wasEuphoricRef.current = isEuphoric;
   }, [isEuphoric]);
 
+  // A backstop, because of what an unfinished burst leaves behind.
+  //
+  // The rings expand to ninety times their own size across a `position: fixed`
+  // element at the top of the stacking order, so a burst that never clears
+  // itself is a window-sized overlay the renderer has to keep drawing for —
+  // invisible, since it ends fully transparent, and permanent. `animationend`
+  // is the ordinary way out and it is not a guarantee: an animation that never
+  // starts never ends either, which is one stylesheet rule or one hidden
+  // ancestor away.
+  useEffect(() => {
+    if (burst === 0) {
+      return undefined;
+    }
+    const timer = window.setTimeout(() => setBurst(0), BURST_GIVE_UP_MS);
+    return () => window.clearTimeout(timer);
+  }, [burst]);
+
   useEffect(() => {
     const root = document.documentElement;
+    const isOn = joy >= EUPHORIA_AT;
     root.style.setProperty('--pet-joy', String(joy));
-    root.classList.toggle('is-euphoric', joy >= EUPHORIA_AT);
+    root.classList.toggle('is-euphoric', isOn);
+    // The same answer again, in the one form a class cannot take: something a
+    // component can subscribe to. Published here rather than derived anywhere
+    // else so that exactly one place decides the mode is on, and the class and
+    // the value change in the same breath — see `publishIsEuphoric`.
+    publishIsEuphoric(isOn);
   }, [joy]);
 
   useEffect(
@@ -262,6 +261,7 @@ const EuphoriaGlow = () => {
       const root = document.documentElement;
       root.classList.remove('is-euphoric');
       root.style.removeProperty('--pet-joy');
+      publishIsEuphoric(false);
     },
     [],
   );
