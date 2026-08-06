@@ -493,11 +493,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // three drew a rounded rectangle a few pixels inside another rounded
   // rectangle, which is the doubled edge that shows up around the video.
   //
-  // A radius it keeps, so the picture is not square inside a rounded card. One
-  // step tighter than the card's, which is what makes concentric corners look
-  // concentric rather than merely near each other.
+  // Rounded to match whatever it is up against.
+  //
+  // The panel pads only the top, so the stage runs flush to the card's own
+  // border on the left, the right and the bottom — and down there its corners
+  // have to be the card's corners or they cut across them. A tighter radius
+  // left two square-ish notches at the bottom, which is the "square borders"
+  // that shows up along the bottom edge.
+  //
+  // The top pair stays tighter, because up there the stage is inset from the
+  // card by the toolbar's padding and is a smaller box sitting inside a larger
+  // one — which is where a tighter radius is the right answer.
   border: none;
-  border-radius: $radius-m;
+  border-radius: $radius-m $radius-m $radius-xl $radius-xl;
   // Black rather than the shell colour: this is where a picture goes, and any
   // tint behind a letterboxed video is visible as a border around it.
   background: #000;
