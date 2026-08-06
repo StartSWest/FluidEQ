@@ -694,6 +694,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // where the button it styles is compiled out. Deliberately plain: it is a
 // debug affordance sitting inside the one dialog in the app that is asking
 // for something, and it must never read as part of that ask.
+// A row of its own for the dev switch, which is not attached to a sentence the
+// way the two beside the thanks line are. Centred so it reads as a debug
+// affordance sitting under the panel rather than as part of its layout, and it
+// exists only in a development build.
+.support-dialog__dev-row {
+  display: flex;
+  justify-content: center;
+
+  .support-dialog__dev-reset {
+    margin-left: 0;
+  }
+}
+
 .support-dialog__dev-reset {
   margin-left: 10px;
   padding: 1px 7px;

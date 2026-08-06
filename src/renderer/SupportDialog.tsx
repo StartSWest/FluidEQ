@@ -31,7 +31,10 @@ import {
 } from 'common/support';
 import { getStreakJoy } from 'common/rhythmGame';
 import { isAdBlockRevealChord } from 'common/videoAdBlock';
-import { toggleAdBlockRevealed } from './utils/adBlockReveal';
+import {
+  toggleAdBlockRevealed,
+  useIsAdBlockRevealed,
+} from './utils/adBlockReveal';
 import { useIsEuphoric, winEuphoria } from './utils/euphoriaMode';
 import { useRhythmRun } from './utils/rhythmRun';
 import supportQrImage from '../../assets/support-qr.png';
@@ -112,6 +115,9 @@ export default function SupportDialog({
   isCovered = false,
 }: ISupportDialogProps) {
   const { t } = useTranslation();
+  // Only the dev button below reads this, so that its label says which way it
+  // is about to go. The chord deliberately says nothing at all.
+  const isAdBlockShown = useIsAdBlockRevealed();
   const methods = getSupportMethods();
   // Read here as well as in the game, because the banner belongs to the panel
   // rather than to the trace — the same one line the titlebar meter uses, so
@@ -583,6 +589,35 @@ export default function SupportDialog({
               >
                 {t('support.contributed')}
               </button>
+            )}
+
+            {/* The chord, as a button, for a machine that cannot press it.
+
+                Ctrl+Shift+Alt+B is not a chord a Mac keyboard produces, so on
+                one there is no way into the switch at all. Rather than invent a
+                second chord and have two things to keep in step, development
+                gets a button; the chord is left exactly as it is.
+
+                Outside the contributed branch on purpose — the two buttons
+                above are behind the badge, and this is not a toy. It folds away
+                in a release the same way they do, so the switch stays something
+                somebody has to go and find, which is the whole point of it.
+
+                Untranslated, like the others: ten locales for a string no user
+                will ever read. */}
+            {IS_DEV && (
+              <div className="support-dialog__dev-row">
+                <button
+                  type="button"
+                  className="support-dialog__dev-reset"
+                  title="Development build only — shows or hides the ad blocker's switch in the Video tab. Same as Ctrl+Shift+Alt+B."
+                  onClick={toggleAdBlockRevealed}
+                >
+                  {isAdBlockShown
+                    ? 'dev: hide ad blocker switch'
+                    : 'dev: show ad blocker switch'}
+                </button>
+              </div>
             )}
 
             {/* The two quiet lines at the bottom share a row.
