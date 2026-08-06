@@ -86,6 +86,20 @@
   align-items: center;
   gap: 10px;
 
+  // A pane of its own, rather than text floating on the drawing.
+  //
+  // These sit over the plot, and the plot moves — so with the graph stretched
+  // to fill the card the labels ended up on top of a spectrum, which is
+  // unreadable at exactly the moments the spectrum is worth watching. A card
+  // gives them a surface to be read against wherever the wave happens to be.
+  //
+  // The same one every other floating thing in the app uses, so it belongs to
+  // the family and picks up the euphoria sweep for free rather than being one
+  // more panel that stays grey through a celebration.
+  @include menu-surface;
+  padding: 5px 10px;
+  border-radius: 999px;
+
   // "Live output" is the caption; the look's name is the value.
   //
   // Butted together at the row's own gap they read as one long legend, and
@@ -97,15 +111,10 @@
     font-weight: 400;
   }
 
-  // Set apart from the legends beside it.
-  //
-  // Everything else in this row is a label; this one is the only thing you can
-  // click. Sharing the row's gap with them made it read as a fourth caption,
-  // so it gets extra air and a hairline to its left — enough to say "this part
-  // is different" without becoming a toolbar.
+  // Set apart from the legends beside it. The card does that job now, so the
+  // hairline that used to is gone — an internal divider inside a pane that is
+  // already a boundary is one line too many.
   margin-inline-start: 6px;
-  padding-inline-start: 14px;
-  border-inline-start: 1px solid rgba($secondary-light, 0.22);
 
   // Wide enough for the name to be read, not guessed.
   //
@@ -320,31 +329,6 @@
   font-family: inherit;
   font-size: 0.58rem;
   white-space: nowrap;
-}
-
-// A scrim behind the controls once the plot fills the card.
-//
-// At two thirds the drawing stops well below this strip and it reads directly
-// on the card, which is what it was designed for. Filling the card puts the
-// wave straight underneath it, and a dropdown label over a moving spectrum is
-// unreadable at exactly the moments the spectrum is worth watching.
-//
-// A gradient rather than a bar: it fades out before it reaches the drawing, so
-// the controls get something to sit on without a hard edge across the top of a
-// mode whose whole point is an uninterrupted picture. Behind them and out of
-// hit-testing, so nothing it covers stops being clickable.
-.graph-wrapper.is-stretched > .live-output-controls::before {
-  position: absolute;
-  z-index: -1;
-  background: linear-gradient(
-    180deg,
-    rgba(#08141a, 0.85) 0%,
-    rgba(#08141a, 0.55) 55%,
-    transparent 100%
-  );
-  content: '';
-  inset: -10px -12px -26px;
-  pointer-events: none;
 }
 
 // The graph with no paper: no decibel scale, no frequency marks, no lines
@@ -649,7 +633,11 @@
 // property of the workspace, and the element that has to react to it is its
 // parent. The alternative is threading a class onto `#root` from React, which
 // means App knowing about the shell's padding.
-#root:has(> .app-workspace.is-app-full) {
+// A descendant match rather than a child one. The workspace is a direct child
+// today, but that is an accident of which providers happen to render DOM — one
+// wrapper appearing anywhere above it would silently put the gap back, and a
+// gap that returns for a reason invisible in this file is the worst kind.
+#root:has(.app-workspace.is-app-full) {
   padding-top: 0;
 }
 

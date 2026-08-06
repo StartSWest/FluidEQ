@@ -813,9 +813,18 @@ const FrequencyResponseChart = () => {
     width,
     height,
     margins: {
-      top: 30,
+      // Headroom above the plot, so a curve at +20 dB is not shaved off by the
+      // top of the viewport and the legend strip has something to float over.
+      //
+      // Stretching gives it up. That thirty pixels is most of the gap between
+      // the top of the card and the top of the wave — which is exactly the
+      // space this mode exists to reclaim, and there is no band handle up there
+      // to clip once the drawing is the point rather than the measurement.
+      top: isStretched ? 4 : 30,
       right: 30,
-      bottom: 10,
+      // The frequency labels live down here, and with the grid hidden there is
+      // nothing to leave room for.
+      bottom: isStretched && isGridHidden ? 0 : 10,
       left: 30,
     },
   };
