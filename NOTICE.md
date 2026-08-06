@@ -42,5 +42,27 @@ AutoEq is Copyright (c) 2018-2022 Jaakko Pasanen and distributed under the MIT
 License; its full license text is included in assets/licenses. Equalizer APO is
 a separate project and is not included as proprietary FluidEQ technology.
 
+## Third-party websites reached from the Video tab
+
+FluidEQ includes a Video tab, which opens a small fixed set of music and video
+websites in an embedded Chromium window so that something can be playing while
+the equaliser is adjusted.
+
+Those websites, their content, their trade marks and their names belong to their
+respective owners. FluidEQ is not affiliated with, endorsed by, sponsored by or
+connected to any of them, and no such relationship should be inferred from a
+site being reachable from the app.
+
+FluidEQ does not host, store, cache, copy, proxy or redistribute any content
+from those sites, and provides no means of downloading from them. Each site is
+loaded directly from its own servers, over HTTPS, into an ordinary browser
+engine, and is rendered as that site serves it. The session used is held in
+memory and discarded when the application exits.
+
+Use of each site remains subject to that site's own terms of service and to the
+rights of the copyright holders in the material it carries. Responsibility for
+observing those terms rests with the person using the application, not with this
+project.
+
 No part of this notice changes or restricts the rights granted by the GPL. If
 this repository and the license text conflict, the license text controls.

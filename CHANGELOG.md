@@ -33,21 +33,18 @@ opens it again any time.
 - **The player signs into nothing, and remembers nothing.** Its session is held
   in memory and dies with the app, and sign-in is turned away at each site's own
   front door. No account of yours is ever the identity behind what it does.
-- **The ad blocker is no longer part of the interface**, and is off. It is still
-  in there for anyone who goes looking.
 - **A refused link leaves you where you are.** Following one that goes outside
   the player used to move you to a different site's front page; now the page you
   were on simply stays, with a note saying what was refused.
 
 ### Fixed
 
-- **YouTube Music no longer has a black band down its side** in expanded view or
-  full screen. Its player sits inside the app's own element, still sized for a
-  layout with the nav rail beside it, and pinning the outer one told the inner
-  one nothing.
-- **The second video is stripped back like the first.** In expanded view and
-  full screen the page is reduced to just its player — but only ever on the
-  first page loaded. Every video after that came back wearing the whole site.
+- **Expanded view and full screen hold steady.** Moving between the two, or
+  playing one video after another, used to leave the picture missing until the
+  page was reloaded. Both now give the video the whole pane, every time and in
+  any order.
+- **YouTube Music fills the pane properly**, with no dark band down its side.
+- **Twitch fills it too**, with no band along the bottom.
 - **The player says what it refused.** A link that went nowhere used to go
   nowhere silently, which is indistinguishable from a broken page. Refusals,
   failed loads and the page's own errors are now in the log.

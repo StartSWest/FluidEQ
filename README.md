@@ -63,6 +63,17 @@ remembered. The position is only reused if a display still covers it, so
 unplugging a second monitor cannot strand the window somewhere you cannot
 reach it.
 
+**Plays something to tune against.** A **Video** tab opens a small set of music
+and video sites in a window inside the app, so a track can be playing while the
+spectrum moves underneath it and a band is dragged. It is not a browser: it goes
+to those sites and nowhere else, it downloads nothing, and its session is held
+in memory and thrown away when the app closes, so nothing is ever signed in.
+
+FluidEQ is not affiliated with, endorsed by, or connected to any of those sites.
+They are opened as they are, in an ordinary Chromium window; the app neither
+hosts, stores, copies nor redistributes anything from them. Whoever uses it is
+responsible for keeping to each site's own terms of service.
+
 **Local and account-free.** No cloud, no telemetry, no proprietary driver, no
 virtual audio device.
 
