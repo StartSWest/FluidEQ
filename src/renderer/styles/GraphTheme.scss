@@ -837,7 +837,17 @@ $graph-controls-height: 40px;
     padding: 0;
   }
 
-  .video-browser__stage {
+  // Every box the picture is inside, not just the stage.
+  //
+  // The radius is set on the stage and then inherited or restated down through
+  // the pane, the view and the guest's own element — and a clip path on any one
+  // of them rounds the picture whatever the others say, because a `<webview>`
+  // is composited separately and the clip is what reaches it. Squaring only the
+  // outermost left the corners rounded by whichever inner box still had it.
+  .video-browser,
+  .video-browser__view,
+  .video-browser__stage,
+  webview {
     border-radius: 0;
     clip-path: none;
   }
