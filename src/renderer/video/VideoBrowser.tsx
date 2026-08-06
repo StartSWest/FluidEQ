@@ -124,45 +124,6 @@ const PLAYER_ONLY_CSS = `
     background: #000 !important;
   }
 
-  /* YouTube Music's band down the side.
-
-     Only there, and the selector says so. On YouTube the marked player is
-     '#movie_player' itself and its own resize logic follows the box it is
-     given. On YouTube Music the marked player is 'ytmusic-player' — the app's
-     element, chosen deliberately so the nav rail and the queue stay on the
-     chain — and YouTube's player sits inside it still sized for a layout with
-     that rail beside it. Pinning the outer element tells the inner one
-     nothing, so it kept its width and left black down the side where it no
-     longer reached.
-
-     Checked rather than assumed: YouTube Music uses no shadow DOM, so
-     '#movie_player' really is a light-DOM descendant here and an ordinary
-     descendant selector reaches it. */
-  html[data-fluideq-solo] ytmusic-player[data-fluideq-player] #movie_player,
-  html[data-fluideq-solo] ytmusic-player[data-fluideq-player] .html5-video-player,
-  html[data-fluideq-solo] ytmusic-player[data-fluideq-player] .html5-video-container {
-    position: absolute !important;
-    inset: 0 !important;
-    width: 100% !important;
-    max-width: none !important;
-    height: 100% !important;
-    max-height: none !important;
-  }
-
-  /* And the video itself, which does not follow on its own.
-
-     These players size their video element in inline styles, against the
-     container they believe they have. 'contain' rather than 'cover' because
-     the alternative to a black band is not a stretched picture: a video that
-     does not match the window letterboxes, as it does everywhere else. */
-  html[data-fluideq-solo] [data-fluideq-player] video {
-    position: absolute !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    object-fit: contain !important;
-  }
 `;
 
 /**
@@ -670,12 +631,18 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         // thoroughly than asking it to.
       }
     };
-    // `pageToken` and not just `isGuestReady`: a navigation throws inserted CSS
-    // away with the document it was inserted into, and the flag never changes
-    // again after the first page, so this had been running once and once only.
-    // The token moves for every document, which is what puts the stripping back
-    // on the second video.
-  }, [graphView, isGuestReady, isHidden, pageToken]);
+    // Deliberately not keyed on `pageToken`, however tempting it looks.
+    //
+    // A navigation does throw the inserted CSS away, and this effect does only
+    // run once — so re-running it per document reads like the obvious fix. It
+    // is not: the cleanup disconnects the observer and unmarks the tree while
+    // the new run is inserting a sheet and marking it again, and the two orders
+    // those can land in are "stripped" and "black". Tried, and it broke the
+    // player intermittently, which is worse than the thing it was fixing.
+    //
+    // Whatever replaces this has to sequence the teardown against the setup
+    // rather than let React interleave them.
+  }, [graphView, isGuestReady, isHidden]);
 
   // Written on every navigation rather than on close. There is no reliable
   // "about to quit" moment in a renderer — the window can go with the audio
