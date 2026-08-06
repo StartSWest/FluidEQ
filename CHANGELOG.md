@@ -6,6 +6,54 @@ opens it again any time.
 
 ---
 
+## 0.11.0
+
+### New
+
+- **Every site remembers where you left it.** Switching between YouTube, YouTube
+  Music, SoundCloud, Bandcamp and Twitch now comes back to the track that was
+  playing, a few seconds before where you stopped, and carries on. Only one
+  player ever runs, so leaving a site still stops it — this is what makes coming
+  back cost nothing. Pressing the site you are already on goes to its front
+  page.
+- **The wave can hang, mirror, or grow from the middle.** Ctrl+I steps through
+  four shapes: standing up, hanging down, mirrored into two halves that share
+  the height, and mirrored outward from the centre line.
+- **Stretch the wave** across the whole card. With the grid hidden there is no
+  scale to leave room for, so the drawing takes the space the labels were using.
+
+### Changed
+
+- **Vimeo has been removed.** It renders its listings entirely on the client,
+  from an API that returns nothing to a session it does not recognise — search,
+  Staff Picks and the watch feed all arrive with their tabs and filters and not
+  one result. FluidEQ's player is signed out by design and always will be, so
+  that is the only Vimeo it can ever see. A button onto an empty page is worse
+  than no button.
+- **The player signs into nothing, and remembers nothing.** Its session is held
+  in memory and dies with the app, and sign-in is turned away at each site's own
+  front door. No account of yours is ever the identity behind what it does.
+- **The ad blocker is no longer part of the interface**, and is off. It is still
+  in there for anyone who goes looking.
+- **A refused link leaves you where you are.** Following one that goes outside
+  the player used to move you to a different site's front page; now the page you
+  were on simply stays, with a note saying what was refused.
+
+### Fixed
+
+- **YouTube Music no longer has a black band down its side** in expanded view or
+  full screen. Its player sits inside the app's own element, still sized for a
+  layout with the nav rail beside it, and pinning the outer one told the inner
+  one nothing.
+- **The second video is stripped back like the first.** In expanded view and
+  full screen the page is reduced to just its player — but only ever on the
+  first page loaded. Every video after that came back wearing the whole site.
+- **The player says what it refused.** A link that went nowhere used to go
+  nowhere silently, which is indistinguishable from a broken page. Refusals,
+  failed loads and the page's own errors are now in the log.
+
+---
+
 ## 0.10.0
 
 ### New
