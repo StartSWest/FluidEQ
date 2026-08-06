@@ -182,6 +182,8 @@ const ru: Partial<Dictionary> = {
   'eq.layers.voicing': 'Характер',
   'eq.layers.driver': 'Излучатель',
   'eq.layers.headset': 'Наушники',
+  'eq.layers.disable': 'Отключить «{layer}», не удаляя',
+  'eq.layers.enable': 'Снова включить «{layer}»',
   'eq.layers.loudness': 'Тонкомпенсация',
   'eq.layers.loudness.name': 'Вкл.',
   'eq.layers.clearLoudness':

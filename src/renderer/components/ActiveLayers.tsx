@@ -33,6 +33,12 @@ import {
 import { formatBalanceFrequency } from '../utils/autoBalance';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
+import {
+  bypassLayer,
+  forgetBypassedLayer,
+  restoreLayer,
+  useBypassedLayers,
+} from '../utils/layerBypass';
 import '../styles/ActiveLayers.scss';
 
 /**
@@ -66,6 +72,7 @@ const ActiveLayers = () => {
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
+  const bypassed = useBypassedLayers();
 
   const voicingProfile = getVoicingProfile(voicing?.profileId ?? '');
   const driverProfile = getDriverProfile(driver?.profileId ?? '');
@@ -79,6 +86,15 @@ const ActiveLayers = () => {
     onClear: () => Promise<void>;
     /** Overrides the generic "remove this layer" wording. */
     clearHint?: string;
+    /**
+     * Switch the layer off in the config while keeping it here, and switch it
+     * back on again. Present only on the layers that can be re-applied from
+     * settings alone — convolution needs its file back and the headset model
+     * needs its measurement, and a control that half works is worse than one
+     * that is not offered.
+     */
+    onBypass?: () => Promise<void>;
+    onRestore?: (settings: unknown) => Promise<void>;
   }[] = [];
 
   // First, because it is what the bands themselves came from rather than
@@ -129,6 +145,14 @@ const ActiveLayers = () => {
         await setVoicingApi('', voicing?.intensity ?? 1);
         await refreshState();
       },
+      onBypass: async () => {
+        bypassLayer('voicing', voicing);
+        await setVoicingApi('', voicing?.intensity ?? 1);
+      },
+      onRestore: async (settings) => {
+        const kept = settings as typeof voicing;
+        await setVoicingApi(kept?.profileId ?? '', kept?.intensity ?? 1);
+      },
     });
   }
 
@@ -142,6 +166,14 @@ const ActiveLayers = () => {
         setDriver({ profileId: '', intensity: driver?.intensity ?? 0.6 });
         await setDriverApi('', driver?.intensity ?? 0.6);
         await refreshState();
+      },
+      onBypass: async () => {
+        bypassLayer('driver', driver);
+        await setDriverApi('', driver?.intensity ?? 0.6);
+      },
+      onRestore: async (settings) => {
+        const kept = settings as typeof driver;
+        await setDriverApi(kept?.profileId ?? '', kept?.intensity ?? 0.6);
       },
     });
   }
@@ -173,6 +205,13 @@ const ActiveLayers = () => {
         await setSmartEqApi(undefined);
         await refreshState();
       },
+      onBypass: async () => {
+        bypassLayer('smart', smartEq);
+        await setSmartEqApi(undefined);
+      },
+      onRestore: async (settings) => {
+        await setSmartEqApi(settings as typeof smartEq);
+      },
     });
   }
 
@@ -201,6 +240,14 @@ const ActiveLayers = () => {
         await setLoudnessApi(false, loudness?.intensity ?? 0.5);
         await refreshState();
       },
+      onBypass: async () => {
+        bypassLayer('loudness', loudness);
+        await setLoudnessApi(false, loudness?.intensity ?? 0.5);
+      },
+      onRestore: async (settings) => {
+        const kept = settings as typeof loudness;
+        await setLoudnessApi(true, kept?.intensity ?? 0.5);
+      },
     });
   }
 
@@ -212,22 +259,81 @@ const ActiveLayers = () => {
     <div className="active-layers" aria-label={t('eq.layers.aria')}>
       <span className="active-layers__lede">{t('eq.layers')}</span>
       {layers.map((layer) => (
-        <span className="active-layer" key={layer.key}>
-          {layer.isVoicing ? (
-            <VoicingIcon
-              profileId={voicing?.profileId}
-              className="active-layer__icon"
-            />
+        <span
+          className={`active-layer${
+            bypassed[layer.key] !== undefined ? ' is-bypassed' : ''
+          }`}
+          key={layer.key}
+        >
+          {/* The body of the chip is the A/B switch.
+
+              Pressing it takes the layer out of the config and leaves it here,
+              dimmed; pressing again writes the same settings back. Nothing is
+              recomputed either way, which is the point — a correction is either
+              an improvement or it is not, and the only way to tell is to hear
+              the same passage both ways within a few seconds of itself.
+              Removing and re-applying is not that: Smart EQ takes half a minute
+              to measure and a cleared voicing is one you have to go and find.
+
+              A plain span where the layer cannot come back from settings
+              alone — convolution needs its file and the headset model needs its
+              measurement — because a switch that only works one way is worse
+              than no switch. */}
+          {layer.onBypass ? (
+            <button
+              type="button"
+              className="active-layer__body"
+              aria-pressed={bypassed[layer.key] === undefined}
+              disabled={isBlockingError || !isEnabled}
+              title={
+                bypassed[layer.key] !== undefined
+                  ? t('eq.layers.enable', { layer: layer.label })
+                  : t('eq.layers.disable', { layer: layer.label })
+              }
+              onClick={() => {
+                const stashed = bypassed[layer.key];
+                const run =
+                  stashed !== undefined
+                    ? layer.onRestore?.(restoreLayer(layer.key))
+                    : layer.onBypass?.();
+                run?.catch((e) => setGlobalError(e as ErrorDescription));
+              }}
+            >
+              {layer.isVoicing ? (
+                <VoicingIcon
+                  profileId={voicing?.profileId}
+                  className="active-layer__icon"
+                />
+              ) : (
+                <MenuIcon
+                  name={layer.icon as MenuIconName}
+                  className="active-layer__icon"
+                />
+              )}
+              <span className="active-layer__label">{layer.label}</span>
+              <span className="active-layer__name" title={layer.name}>
+                {layer.name}
+              </span>
+            </button>
           ) : (
-            <MenuIcon
-              name={layer.icon as MenuIconName}
-              className="active-layer__icon"
-            />
+            <span className="active-layer__body">
+              {layer.isVoicing ? (
+                <VoicingIcon
+                  profileId={voicing?.profileId}
+                  className="active-layer__icon"
+                />
+              ) : (
+                <MenuIcon
+                  name={layer.icon as MenuIconName}
+                  className="active-layer__icon"
+                />
+              )}
+              <span className="active-layer__label">{layer.label}</span>
+              <span className="active-layer__name" title={layer.name}>
+                {layer.name}
+              </span>
+            </span>
           )}
-          <span className="active-layer__label">{layer.label}</span>
-          <span className="active-layer__name" title={layer.name}>
-            {layer.name}
-          </span>
           <button
             type="button"
             aria-label={
@@ -237,11 +343,16 @@ const ActiveLayers = () => {
               layer.clearHint ?? t('eq.layers.remove', { layer: layer.label })
             }
             disabled={isBlockingError || !isEnabled}
-            onClick={() =>
+            onClick={() => {
+              // The stash goes with it. Somebody removing a layer they had
+              // switched off means it gone, not restored, and a leftover entry
+              // would hand the next layer under this key the old one's
+              // settings.
+              forgetBypassedLayer(layer.key);
               layer
                 .onClear()
-                .catch((e) => setGlobalError(e as ErrorDescription))
-            }
+                .catch((e) => setGlobalError(e as ErrorDescription));
+            }}
           >
             <svg viewBox="0 0 12 12" aria-hidden="true">
               <path d="M3 3l6 6M9 3l-6 6" />

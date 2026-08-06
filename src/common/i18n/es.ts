@@ -184,6 +184,8 @@ const es: Partial<Dictionary> = {
   'eq.layers.voicing': 'Carácter',
   'eq.layers.driver': 'Transductor',
   'eq.layers.headset': 'Auriculares',
+  'eq.layers.disable': 'Desactiva {layer} sin eliminarla',
+  'eq.layers.enable': 'Vuelve a activar {layer}',
   'eq.layers.loudness': 'Sonoridad',
   'eq.layers.loudness.name': 'Activada',
   'eq.layers.clearLoudness':

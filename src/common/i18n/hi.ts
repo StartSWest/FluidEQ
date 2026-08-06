@@ -188,6 +188,8 @@ const hi: Partial<Dictionary> = {
   'eq.layers.voicing': 'ध्वनि रंग',
   'eq.layers.driver': 'ड्राइवर',
   'eq.layers.headset': 'हेडफ़ोन',
+  'eq.layers.disable': '{layer} हटाए बिना बंद करें',
+  'eq.layers.enable': '{layer} फिर से चालू करें',
   'eq.layers.loudness': 'लाउडनेस',
   'eq.layers.loudness.name': 'चालू',
   'eq.layers.clearLoudness':

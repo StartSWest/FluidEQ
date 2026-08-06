@@ -54,7 +54,7 @@ it under the terms of the GNU General Public License version 3 or later.
   max-width: 100%;
   align-items: center;
   gap: 6px;
-  grid-template-columns: auto auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
   padding: 4px 5px 4px 9px;
   border: 1px solid rgba($secondary-light, 0.24);
   border-radius: $radius-pill;
@@ -83,7 +83,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: rgba($white, 0.86);
 }
 
-.active-layer button {
+.active-layer button:not(.active-layer__body) {
   display: grid;
   width: 18px;
   height: 18px;
@@ -116,5 +116,42 @@ it under the terms of the GNU General Public License version 3 or later.
   &:disabled {
     cursor: default;
     opacity: 0.4;
+  }
+}
+
+// The chip's body: everything except the remove button, and on the four layers
+// that can be re-applied from settings it is itself a button.
+//
+// It keeps the three tracks the chip used to lay out directly — icon, label,
+// name — so nothing moved when the wrapper appeared. No surface of its own:
+// pressing it is a state change you hear rather than one that needs a raised
+// edge to advertise itself.
+.active-layer__body {
+  display: grid;
+  min-width: 0;
+  align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+  gap: 6px;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  text-align: left;
+}
+
+button.active-layer__body {
+  cursor: pointer;
+}
+
+// Switched off, and still here. Dimmed rather than hidden, because the whole
+// point is that it comes back — and struck through, so "off" reads at a glance
+// instead of being inferred from a shade of grey.
+.active-layer.is-bypassed {
+  opacity: 0.45;
+
+  .active-layer__name,
+  .active-layer__label {
+    text-decoration: line-through;
   }
 }

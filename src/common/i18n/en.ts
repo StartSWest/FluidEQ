@@ -215,6 +215,8 @@ const en = {
   'eq.layers.voicing': 'Voicing',
   'eq.layers.driver': 'Driver',
   'eq.layers.headset': 'Headset',
+  'eq.layers.disable': 'Switch {layer} off without removing it',
+  'eq.layers.enable': 'Switch {layer} back on',
   'eq.layers.loudness': 'Loudness',
   'eq.layers.loudness.name': 'On',
   'eq.layers.clearLoudness':

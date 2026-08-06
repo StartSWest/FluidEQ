@@ -174,6 +174,8 @@ const zh: Partial<Dictionary> = {
   'eq.layers.voicing': '声音风格',
   'eq.layers.driver': '单元',
   'eq.layers.headset': '耳机',
+  'eq.layers.disable': '关闭{layer}但不移除',
+  'eq.layers.enable': '重新开启{layer}',
   'eq.layers.loudness': '等响度',
   'eq.layers.loudness.name': '已开启',
   'eq.layers.clearLoudness': '关闭等响度补偿。您的频段和其他所有层都会保留。',

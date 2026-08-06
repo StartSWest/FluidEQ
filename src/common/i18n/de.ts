@@ -183,6 +183,8 @@ const de: Partial<Dictionary> = {
   'eq.layers.voicing': 'Klangcharakter',
   'eq.layers.driver': 'Treiber',
   'eq.layers.headset': 'Hörer',
+  'eq.layers.disable': '{layer} ausschalten, ohne sie zu entfernen',
+  'eq.layers.enable': '{layer} wieder einschalten',
   'eq.layers.loudness': 'Loudness',
   'eq.layers.loudness.name': 'Ein',
   'eq.layers.clearLoudness':

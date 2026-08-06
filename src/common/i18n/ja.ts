@@ -181,6 +181,8 @@ const ja: Partial<Dictionary> = {
   'eq.layers.voicing': '音の傾向',
   'eq.layers.driver': 'ドライバー',
   'eq.layers.headset': 'ヘッドホン',
+  'eq.layers.disable': '{layer} を削除せずにオフにします',
+  'eq.layers.enable': '{layer} をもう一度オンにします',
   'eq.layers.loudness': 'ラウドネス',
   'eq.layers.loudness.name': 'オン',
   'eq.layers.clearLoudness':

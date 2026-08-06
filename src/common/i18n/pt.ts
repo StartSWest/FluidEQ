@@ -182,6 +182,8 @@ const pt: Partial<Dictionary> = {
   'eq.layers.voicing': 'Caráter',
   'eq.layers.driver': 'Driver',
   'eq.layers.headset': 'Fone',
+  'eq.layers.disable': 'Desliga {layer} sem a remover',
+  'eq.layers.enable': 'Liga {layer} novamente',
   'eq.layers.loudness': 'Loudness',
   'eq.layers.loudness.name': 'Ligado',
   'eq.layers.clearLoudness':
