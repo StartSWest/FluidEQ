@@ -23,7 +23,6 @@ import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useRhythmRun } from '../utils/rhythmRun';
 import {
   isEuphoriaAchieved,
-  publishIsEuphoric,
   toggleEuphoriaEnabled,
   useIsEuphoric,
   winEuphoria,
@@ -249,11 +248,6 @@ const EuphoriaGlow = () => {
     const isOn = joy >= EUPHORIA_AT;
     root.style.setProperty('--pet-joy', String(joy));
     root.classList.toggle('is-euphoric', isOn);
-    // The same answer again, in the one form a class cannot take: something a
-    // component can subscribe to. Published here rather than derived anywhere
-    // else so that exactly one place decides the mode is on, and the class and
-    // the value change in the same breath — see `publishIsEuphoric`.
-    publishIsEuphoric(isOn);
   }, [joy]);
 
   useEffect(
@@ -261,7 +255,6 @@ const EuphoriaGlow = () => {
       const root = document.documentElement;
       root.classList.remove('is-euphoric');
       root.style.removeProperty('--pet-joy');
-      publishIsEuphoric(false);
     },
     [],
   );

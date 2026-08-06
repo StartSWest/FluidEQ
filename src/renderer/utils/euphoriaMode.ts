@@ -81,27 +81,6 @@ try {
  */
 let enabled = false;
 
-/**
- * PAINTING. Whether the mode is actually on screen at this moment.
- *
- * Not a third flag so much as the answer the other two produce, published so
- * that something other than a stylesheet can act on it. The `is-euphoric` class
- * on the document root remains the source of truth for how things LOOK — one
- * class reaches the whole window and costs no renders, which is why it is
- * there.
- *
- * What a class cannot do is take an element out of the document. Some of what
- * euphoria adds is worth removing rather than hiding: a hidden element still
- * occupies its place in the tree, still holds whatever the renderer decided to
- * keep for it, and the entire complaint about this mode is what stays behind
- * once it is switched off. Unmounting needs a value a component can subscribe
- * to, and this is it.
- *
- * Written by the one component that owns the class, in the same breath as the
- * class itself, so the two cannot become two different answers.
- */
-let painting = false;
-
 export const isEuphoriaAchieved = () => achieved;
 export const isEuphoriaEnabled = () => enabled;
 
@@ -116,18 +95,6 @@ export const setEuphoriaEnabled = (next: boolean) => {
 };
 
 export const toggleEuphoriaEnabled = () => setEuphoriaEnabled(!enabled);
-
-/**
- * Say whether the mode is on screen. Called alongside the class, never instead
- * of it — see the note on `painting` above.
- */
-export const publishIsEuphoric = (next: boolean) => {
-  if (painting === next) {
-    return;
-  }
-  painting = next;
-  emit();
-};
 
 /**
  * A run just hit the ceiling.
@@ -171,25 +138,6 @@ export const useIsEuphoriaEnabled = () =>
   useSyncExternalStore(
     subscribe,
     () => enabled,
-    () => false,
-  );
-
-/**
- * Whether the mode is painting right now.
- *
- * For components that have to CREATE or DESTROY something rather than restyle
- * it. Everything cosmetic should keep reading the root class instead; this
- * exists so that euphoria-only elements can leave the document when the mode
- * does, which is the only way their cost leaves with it.
- *
- * Deliberately not `useIsEuphoric`: that one needs the current run passed in,
- * and a component that merely draws a halo has no business knowing what the
- * rhythm streak is.
- */
-export const useIsEuphoricNow = () =>
-  useSyncExternalStore(
-    subscribe,
-    () => painting,
     () => false,
   );
 
