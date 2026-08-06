@@ -457,7 +457,9 @@
 // `visibility` rather than `display` throughout, for the reason it always is
 // here: the boxes keep their space, so nothing relayouts on the way in or out
 // and no panel loses its scroll position for having been away.
-.center-workspace.is-graph-full:not(:has(.workspace-tab-panel--video)) {
+.center-workspace.is-graph-full:not(
+    :has(.workspace-tab-panel--video:not(.is-hidden))
+  ) {
   // The panel and the tab strip together — `.middle-content` is both. Neither
   // is reachable while the card covers the column, so there is nothing lost.
   > .middle-content {
@@ -497,6 +499,18 @@
 .center-workspace.is-graph-full > .middle-content .workspace-tab-panel {
   border-color: transparent;
   box-shadow: none;
+}
+
+// The creature, in the corner the titlebar used to occupy.
+//
+// Above the card, because the card covers the whole screen in this mode and
+// anything below it is simply not there. Fixed rather than absolute so it is
+// pinned to the display and not to a column that is itself positioned.
+.fullscreen-pet {
+  position: fixed;
+  z-index: 60;
+  top: 10px;
+  left: 12px;
 }
 
 // Full screen is the whole screen, corner to corner.
@@ -582,35 +596,23 @@
     display: none;
   }
 
-  // The chrome, faded out rather than switched off.
+  // The chrome, simply gone.
   //
-  // Turning the card to glass is meant to reveal the player. What it revealed
-  // instead was the tab strip and the player's own toolbar, sitting above the
-  // video and reading as a rendering fault. Neither is reachable in this mode —
-  // the card covers the whole column and takes every click — so neither needs
-  // to be seen.
+  // It was faded with a gradient for a while, on the theory that a hard edge
+  // where the chrome stopped and the picture started would be noticeable. It
+  // was — but so was the gradient, and a half-visible toolbar behind glass
+  // reads as a rendering fault rather than as a deliberate softening. Neither
+  // the tabs nor the player's toolbar is reachable in either of these modes,
+  // because the card covers the column and takes every click, so there is
+  // nothing lost by not drawing them.
   //
-  // A mask rather than `visibility`, because switching them off outright left a
-  // hard horizontal line where the chrome stopped and the picture started. The
-  // gradient dissolves the boundary instead: nothing at the top, arriving at
-  // full strength by the bottom edge, so there is no frontier to notice.
-  //
-  // Deliberately no blur here. The card's own blur is a setting, and a second
-  // one underneath it would compound with whatever that is set to — soft at
-  // zero and a smear at forty, which is a control that stops meaning what it
-  // says. A mask changes coverage and nothing else.
-  //
-  // It also keeps the boxes, which is the cheap part: the stage below does not
-  // grow, the guest is never resized, and toggling costs no relayout. A
-  // `display: none` here would resize the video on every toggle.
+  // `visibility` rather than `display`: the boxes keep their space, so the
+  // stage below does not grow, the guest is never resized, and toggling the
+  // mode costs no relayout. A `display: none` here would resize the video
+  // every time.
   .workspace-tabs,
   .video-browser__bar {
-    mask-image: linear-gradient(
-      to bottom,
-      transparent 0%,
-      transparent 55%,
-      rgba(0, 0, 0, 0.55) 100%
-    );
+    visibility: hidden;
   }
 
   > .graph-wrapper {
@@ -620,6 +622,15 @@
     width: auto;
     height: auto;
     flex: none;
+    // Promoted to its own compositing layer, and that is not an optimisation.
+    //
+    // A `<webview>` guest is not painted like the rest of the document — it is
+    // its own surface, handed to the compositor separately, and a plain
+    // z-index in the embedder does not reliably sort against it. So the graph
+    // could end up *underneath* the video it is supposed to be drawn over.
+    // A 3D transform forces this box onto a layer of its own, which does sort,
+    // and costs one layer for as long as the mode is open.
+    transform: translateZ(0);
     // Which is what centres it: one in-flow child, given a share of the height
     // rather than all of it, with the rest as air above and below.
     justify-content: center;
@@ -672,22 +683,15 @@
         $panel-bottom 62%
       );
 
-      // Clear at the top and bottom edges, solid through the middle — in both
-      // modes, by the same amount at each end.
+      // No fade at the edges. The card is a card: it has an edge, and the edge
+      // is where it stops.
       //
-      // This lived under a `:not(.is-app-full)` and so did nothing at all in
-      // full screen, which is the mode with the most behind it to reveal. The
-      // width of the fade comes from the see-through slider, because they are
-      // one intent: a card set solid should be solid, and at zero the stops
-      // collapse to the edges and the gradient does nothing. The blur needs no
-      // mention here — it is on the card and already applies to both.
-      mask-image: linear-gradient(
-        to bottom,
-        transparent 0%,
-        rgb(0 0 0) var(--graph-overlay-fade, 0%),
-        rgb(0 0 0) calc(100% - var(--graph-overlay-fade, 0%)),
-        transparent 100%
-      );
+      // Both ends used to dissolve into what was behind, which was meant to
+      // soften the boundary and instead drew attention to it — a gradient is
+      // itself a thing to look at, and it revealed the border of the panel
+      // underneath as a curved line across the top of the graph. Hiding the
+      // chrome behind it does the job the fade was reaching for, without
+      // putting anything new on screen.
       // Set from the sliders in the graph's header. Solid by default: seeing
       // through the card is a thing to go looking for, not a thing to be given
       // and have to undo.

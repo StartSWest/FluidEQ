@@ -975,6 +975,23 @@ const AppContent = () => {
             in rather than imported there, so there is one definition of what
             "reinstall Equalizer APO" does — including the confirmation and the
             restart advice that follows it. */}
+        {/* The creature keeps its corner in full screen.
+
+            The titlebar is hidden in that mode, and it went with it — which
+            takes away the only thing on screen that is alive when the window is
+            otherwise a video and a graph, and the one route to the support
+            panel. A second instance rather than a moved one: it is a few
+            elements and its own animation state, and threading the real one out
+            of the titlebar and back would mean the header laying out around a
+            hole. Only ever one of them is mounted. */}
+        {graphView === 'fullscreen' && isGraphViewOn && (
+          <div className="fullscreen-pet">
+            <SupportPet
+              hasContributed={hasContributed}
+              onOpen={() => setShowSupportDialog(true)}
+            />
+          </div>
+        )}
         {showTroubleshooter && (
           <AudioTroubleshooter
             onClose={() => setShowTroubleshooter(false)}

@@ -396,9 +396,20 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
 
   return (
     <div
-      className={`video-browser${isHidden ? ' is-hidden' : ''}${
-        isPageFullScreen ? ' is-fullscreen' : ''
-      }`}
+      // `workspace-tab-panel--video` is what marks this out as the tab's panel.
+      //
+      // It had no such class, because this is the one tab rendered outside the
+      // switch that builds the others — it is hidden rather than unmounted, so
+      // that leaving the tab does not stop the music. Everything keyed on the
+      // panel therefore missed it: the card the other tabs have never applied,
+      // and, worse, the rule that clears the workspace behind an expanded graph
+      // asks "is the video tab open?" by looking for exactly this class — so
+      // the answer was always no and the player was hidden along with the rest.
+      // Which is the opposite of the point: the player is the one thing worth
+      // keeping behind the graph.
+      className={`video-browser workspace-tab-panel--video${
+        isHidden ? ' is-hidden' : ''
+      }${isPageFullScreen ? ' is-fullscreen' : ''}`}
     >
       <div className="video-browser__bar">
         <div className="video-browser__nav">

@@ -934,15 +934,6 @@ const FrequencyResponseChart = () => {
       style={
         {
           '--graph-overlay-opacity': overlayOpacity,
-          // How far in from the top and bottom edges the card's surface fades.
-          //
-          // Driven by the see-through slider rather than fixed, because the two
-          // are the same intent. A card set solid should *be* solid — a fixed
-          // fade left it dissolving at both ends no matter where the slider
-          // was, which reads as an edge nobody asked for. At full transparency
-          // the fade is at its widest, and the panel melts into the picture
-          // instead of ending at a line.
-          '--graph-overlay-fade': `${Math.round((1 - overlayOpacity) * 14)}%`,
           // The whole filter, so that no blur is the keyword `none` rather than
           // `blur(0px)` — which is still a filter, and still costs a
           // compositing layer re-composited every frame to change nothing.

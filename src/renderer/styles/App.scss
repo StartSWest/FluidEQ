@@ -961,6 +961,14 @@ $tab-border: rgba($secondary-light, 0.2);
 // scrolled to.
 .workspace-tab-panel--video {
   flex: 1 1 auto;
+  // Padding at the top only, to hold the toolbar off the card's edge.
+  //
+  // The other tabs pad all four sides because their content is text and
+  // controls, which need air. This one's content is a picture, and every pixel
+  // of margin around a video is a pixel the video does not get — so the stage
+  // runs to the card's own edge on the sides and the bottom. Its rounded
+  // corners are what keep it inside the card's.
+  padding: 10px 0 0;
   overflow: hidden;
   scrollbar-gutter: auto;
 }

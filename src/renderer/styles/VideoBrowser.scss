@@ -88,9 +88,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   z-index: 5;
   display: flex;
   min-width: 0;
-  // Off the tab strip. Without it the toolbar butts straight up against the
-  // tabs, which reads as part of them rather than as the player's own chrome.
-  padding-top: $spacing-xs;
+  // The card pads the top; this pads the sides, so the toolbar is inset while
+  // the picture below it is not.
+  padding-inline: 12px;
   flex-wrap: wrap;
   align-items: center;
   gap: $spacing-s;
@@ -486,14 +486,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 100%;
   min-height: 0;
   flex: 1 1 auto;
-  border: 1px solid rgba($primary-lighter, 0.1);
-  border-radius: $radius-xl;
+  // No frame of its own.
+  //
+  // The player is a tab panel now, and the panel is the card — border, radius,
+  // shadow, the same as every other tab. The stage carrying a second set of all
+  // three drew a rounded rectangle a few pixels inside another rounded
+  // rectangle, which is the doubled edge that shows up around the video.
+  //
+  // A radius it keeps, so the picture is not square inside a rounded card. One
+  // step tighter than the card's, which is what makes concentric corners look
+  // concentric rather than merely near each other.
+  border: none;
+  border-radius: $radius-m;
   // Black rather than the shell colour: this is where a picture goes, and any
   // tint behind a letterboxed video is visible as a border around it.
   background: #000;
-  box-shadow:
-    inset 0 1px 0 rgba($white, 0.035),
-    0 20px 50px rgba($black, 0.18);
+  box-shadow: none;
   // The guest paints as a rectangle and ignores the parent's rounded corners
   // unless it is clipped here.
   isolation: isolate;
