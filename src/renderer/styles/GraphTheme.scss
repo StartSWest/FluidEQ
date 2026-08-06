@@ -725,10 +725,6 @@ $expanded-video-bar-top: 40px;
   // So the panes stay in the grid and go off screen, their tracks collapse to
   // zero, and the centre grows into the width. `visibility: hidden` as well, so
   // nothing off screen is focusable or clickable.
-  //
-  // Honest about what this does not fix: the centre column still changes width
-  // and the guest is still resized by that. If the picture still fails, the
-  // resize itself is the cause and not the way the tracks were removed.
   > .side-bar,
   > .right-content {
     position: absolute;
@@ -736,7 +732,38 @@ $expanded-video-bar-top: 40px;
     visibility: hidden;
   }
 
+  // Every edge the workspace normally keeps, given to the picture.
+  //
+  // The padding and the gap are what hold the panes apart from one another and
+  // from the window, and there are no panes here to hold apart — left in, they
+  // are a frame of background around a video, which is the one thing this mode
+  // exists not to have.
+  //
+  // Safe to take now in a way it was not before: the guest is resized by this,
+  // and being resized used to leave the player marked against a chain YouTube
+  // had already moved it off. That is fixed at the source, so a resize is
+  // merely a resize again.
   grid-template-columns: 0 1fr 0;
+  padding: 0;
+  gap: 0;
+}
+
+// And the last rounded corners, which have nothing left to be rounded against.
+//
+// The stage carries the card's radius so it sits inside the workspace properly.
+// In this mode there is no card and no workspace edge — the picture runs to the
+// glass — so a radius there is four notches of black in the corners of a full
+// screen video. The clip path goes with it: it exists to make the guest respect
+// the radius, and there is none to respect.
+.app-workspace.is-app-full .center-workspace.is-graph-full {
+  .workspace-tab-panel--video {
+    padding: 0;
+  }
+
+  .video-browser__stage {
+    border-radius: 0;
+    clip-path: none;
+  }
 }
 
 // Real full screen: the bar goes, and the 78px of padding holding its place
