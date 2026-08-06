@@ -94,6 +94,10 @@ const installUpdate = () =>
 const isWindowMaximized = () =>
   ipcRenderer.invoke('window-is-maximized') as Promise<boolean>;
 
+/** Real fullscreen. The renderer's own Fullscreen API cannot do this. */
+const setWindowFullScreen = (next: boolean) =>
+  ipcRenderer.invoke('window-set-full-screen', next) as Promise<boolean>;
+
 export default {
   ipcRenderer: {
     sendMessage,
@@ -109,5 +113,6 @@ export default {
     getChangelog,
     installUpdate,
     isWindowMaximized,
+    setWindowFullScreen,
   },
 };

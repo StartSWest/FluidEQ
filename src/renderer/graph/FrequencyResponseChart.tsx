@@ -68,11 +68,14 @@ import { GRAPH_LOOKS } from '../../common/graphStyles';
 import { getBandColor } from '../utils/bandColors';
 import {
   cycleGraphLook,
-  setGraphFullScreen,
+  exitGraphFullScreen,
   setGraphLook,
+  setGraphView,
+  toggleGraphExpanded,
   toggleGraphFullScreen,
   toggleLiveOutputSolo,
   useGraphFullScreen,
+  useGraphView,
   useGraphLook,
   useLiveOutputSolo,
 } from '../utils/graphStyle';
@@ -85,6 +88,7 @@ import {
   useOverlayOpacity,
 } from '../utils/graphOverlay';
 import Dropdown from '../widgets/Dropdown';
+import GraphViewMenu from './GraphViewMenu';
 import { getVoicingFilters } from '../../common/voicing';
 import { getDriverFilters } from '../../common/driver';
 import { getSmartEqFilters, hasSmartEqLayer } from '../../common/smartEq';
@@ -143,6 +147,7 @@ const FrequencyResponseChart = () => {
   const liveOutput = useLiveAudioFrame();
   const liveLook = useGraphLook();
   const isSolo = useLiveOutputSolo();
+  const graphView = useGraphView();
   const isFullScreen = useGraphFullScreen();
   const overlayOpacity = useOverlayOpacity();
   const overlayBlur = useOverlayBlur();
@@ -697,8 +702,12 @@ const FrequencyResponseChart = () => {
     updateDimensions();
   }, [isFullScreen, isGraphViewOn, updateDimensions]);
 
-  // Space walks the looks; Ctrl or Shift with it walks back. Escape leaves
-  // full screen.
+  // Ctrl+S expands, Ctrl+F fills the screen, Ctrl+W swaps between the wave and
+  // the EQ curves. Space walks the looks; Ctrl or Shift with it walks back.
+  // Escape comes all the way back from either size.
+  //
+  // Every one of them is listed in the view menu, because a shortcut bound to
+  // the window is fast once known and completely invisible until then.
   //
   // Bound to the window rather than to the graph, because the graph is an SVG
   // nobody has clicked and a key handler that only works after you have found
@@ -713,9 +722,31 @@ const FrequencyResponseChart = () => {
     }
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        setGraphFullScreen(false);
+        exitGraphFullScreen();
         return;
       }
+
+      // The modified trio. Alt held is somebody reaching for a menu, and a
+      // repeat is a key being leant on — neither should toggle a mode twice.
+      if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.repeat) {
+        const key = event.key.toLowerCase();
+        if (key === 's' || key === 'f' || key === 'w') {
+          // Ctrl+S is Save and Ctrl+W is Close Window everywhere else, and
+          // Chromium will do both from a renderer given the chance. There is
+          // nothing to save here and closing the window is the titlebar's
+          // business, so both are taken.
+          event.preventDefault();
+          if (key === 's') {
+            toggleGraphExpanded();
+          } else if (key === 'f') {
+            toggleGraphFullScreen();
+          } else {
+            toggleLiveOutputSolo();
+          }
+          return;
+        }
+      }
+
       if (event.code !== 'Space' || event.altKey || event.repeat) {
         return;
       }
@@ -949,20 +980,14 @@ const FrequencyResponseChart = () => {
           >
             {isSolo ? 'Show EQ' : 'Wave only'}
           </button>
-          {/* Fill the window with it. Escape, or this again, gets back. */}
-          <button
-            type="button"
-            className={`graph-solo${isFullScreen ? ' is-on' : ''}`}
-            onClick={toggleGraphFullScreen}
-            aria-pressed={isFullScreen}
-            title={
-              isFullScreen
-                ? 'Bring the EQ bands back (Esc)'
-                : 'Hide the EQ bands and give the graph the whole workspace'
-            }
-          >
-            {isFullScreen ? 'Exit full screen' : 'Full screen'}
-          </button>
+          {/* Both sizes, and every shortcut that reaches them. Escape gets
+              back from either. */}
+          <GraphViewMenu
+            view={graphView}
+            isSolo={isSolo}
+            onChangeView={setGraphView}
+            onToggleSolo={toggleLiveOutputSolo}
+          />
           {/* Only while full screen, because that is the only time the card
               has anything behind it worth seeing. Shown here rather than in a
               settings panel so it can be adjusted against the thing it affects

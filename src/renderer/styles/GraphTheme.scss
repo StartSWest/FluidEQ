@@ -211,6 +211,106 @@
   }
 }
 
+// *** The view menu ***********************************************************
+
+.graph-view-menu {
+  position: relative;
+  display: inline-flex;
+
+  // The trigger is a solo button with an arrow, because it belongs to the same
+  // row and the same family — it just opens something instead of toggling.
+  > .graph-solo {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    svg {
+      width: 8px;
+      height: 5px;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-width: 1.6;
+    }
+  }
+}
+
+.graph-view-menu__list {
+  position: absolute;
+  z-index: 60;
+  // Below the trigger and aligned to its right edge: the strip is at the top
+  // right of the graph, so a menu growing left has room and one growing right
+  // would run off the card.
+  top: calc(100% + 5px);
+  right: 0;
+  min-width: 200px;
+  padding: 4px;
+  border: 1px solid rgba($secondary-light, 0.28);
+  border-radius: $radius-m;
+  background: linear-gradient(160deg, rgba(#0d2029, 0.99), rgba(#0a161d, 0.99));
+  box-shadow: 0 18px 44px rgba($black, 0.5);
+
+  button {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 8px;
+    border: none;
+    border-radius: $radius-s;
+    background: none;
+    color: rgba($primary-lighter, 0.85);
+    font-size: 0.68rem;
+    gap: $spacing-s;
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba($secondary-light, 0.14);
+      color: $white;
+    }
+
+    // On, rather than merely hovered. The two modes are exclusive and the tick
+    // is how you tell which one you are in without reading the trigger.
+    &.is-on {
+      color: $secondary-light;
+
+      span::before {
+        margin-right: 5px;
+        content: '✓';
+      }
+    }
+  }
+}
+
+// Read-only rows. Same shape as the items above so the list reads as one thing,
+// without the hover that would suggest they do something.
+.graph-view-menu__hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5px 8px;
+  color: rgba($primary-lighter, 0.45);
+  font-size: 0.64rem;
+  gap: $spacing-s;
+}
+
+.graph-view-menu__divider {
+  height: 1px;
+  margin: 4px 2px;
+  background: rgba($primary-lighter, 0.1);
+}
+
+.graph-view-menu kbd {
+  padding: 1px 5px;
+  border: 1px solid rgba($primary-lighter, 0.16);
+  border-radius: 4px;
+  color: rgba($primary-lighter, 0.6);
+  font-family: inherit;
+  font-size: 0.58rem;
+  white-space: nowrap;
+}
+
 // The live trace coming forward, and going back.
 //
 // Wave only takes the trace from a supporting layer to the subject of the
@@ -263,6 +363,42 @@
   }
 }
 
+// *** The two sizes ***********************************************************
+//
+// Expanded gives the graph the workspace column. Full screen gives it the
+// screen: the window goes fullscreen in the main process, and everything that
+// is not the player and the graph gets out of the way here.
+//
+// They share the card rules below — `is-graph-full` is set for both — because
+// the difference between them is what surrounds the card, not the card.
+
+.app-workspace.is-app-full {
+  // The side panels hold profiles, presets and support links. None of them is
+  // something anybody is reading while watching a video full screen, and every
+  // one of them is a column of width the picture could have had.
+  //
+  // `display: none` rather than visibility, unlike the tab strip: these are
+  // grid columns, and the point here is precisely that the centre takes the
+  // space they were using. Nothing inside them is playing, so collapsing them
+  // costs nothing but a relayout on the way in and out.
+  > .side-bar,
+  > .right-content {
+    display: none;
+  }
+
+  grid-template-areas: 'center-workspace';
+  grid-template-columns: 1fr;
+  padding: 0;
+  gap: 0;
+}
+
+// The titlebar too. The window has no frame in this mode, so a strip of our own
+// chrome along the top is the only thing between the picture and the edge of
+// the screen — and Escape, Ctrl+F and the menu are all still there to get back.
+.window-titlebar:has(~ .app-workspace.is-app-full) {
+  display: none;
+}
+
 // The graph with the workspace to itself.
 //
 // An overlay, and the pane above it is the reason. This used to hide that pane
@@ -291,22 +427,35 @@
     display: none;
   }
 
-  // The chrome, out of sight for as long as the card is over it.
+  // The chrome, faded out rather than switched off.
   //
-  // Turning the card to glass is meant to reveal the player. What it actually
-  // revealed was the tab strip and the player's own toolbar, blurred just
-  // enough to look like a rendering fault, with the video a long way below
-  // them. Neither is reachable in this mode anyway — the card covers the whole
-  // column and takes every click — so hiding them costs nothing and leaves the
-  // picture as the only thing behind the glass.
+  // Turning the card to glass is meant to reveal the player. What it revealed
+  // instead was the tab strip and the player's own toolbar, sitting above the
+  // video and reading as a rendering fault. Neither is reachable in this mode —
+  // the card covers the whole column and takes every click — so neither needs
+  // to be seen.
   //
-  // `visibility` rather than `display`, and that is the cheap part: the boxes
-  // keep their space, so the stage below does not grow, the guest is not
-  // resized, and nothing has to relayout or re-composite when this turns on and
-  // off. A `display: none` here would resize the video on every toggle.
+  // A mask rather than `visibility`, because switching them off outright left a
+  // hard horizontal line where the chrome stopped and the picture started. The
+  // gradient dissolves the boundary instead: nothing at the top, arriving at
+  // full strength by the bottom edge, so there is no frontier to notice.
+  //
+  // Deliberately no blur here. The card's own blur is a setting, and a second
+  // one underneath it would compound with whatever that is set to — soft at
+  // zero and a smear at forty, which is a control that stops meaning what it
+  // says. A mask changes coverage and nothing else.
+  //
+  // It also keeps the boxes, which is the cheap part: the stage below does not
+  // grow, the guest is never resized, and toggling costs no relayout. A
+  // `display: none` here would resize the video on every toggle.
   .workspace-tabs,
   .video-browser__bar {
-    visibility: hidden;
+    mask-image: linear-gradient(
+      to bottom,
+      transparent 0%,
+      transparent 55%,
+      rgba(0, 0, 0, 0.55) 100%
+    );
   }
 
   > .graph-wrapper {

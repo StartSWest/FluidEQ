@@ -148,28 +148,73 @@ export const useLiveOutputSolo = () =>
   );
 
 /**
- * Whether the graph has the workspace to itself.
+ * How much of the screen the graph has, in three steps.
  *
- * Held here rather than in the chart because the thing that has to move is not
- * the chart — it is the EQ panel above it, which is a sibling owned by App. A
- * pane cannot hide its own neighbour, so both ends read this instead.
+ * Held here rather than in the chart because the things that have to move are
+ * not the chart — they are the EQ panel above it and, at the far end, the
+ * window itself. A pane cannot hide its own neighbour, so every end reads this.
  *
- * Not persisted, and for the same reason as the solo flag: a mode that
- * outlives a restart is how somebody ends up convinced their sliders are gone.
+ *  - `normal` — the split. The graph is a pane among panes.
+ *  - `expanded` — the graph covers the workspace column, floating over
+ *    whichever editor is open. The side panels, the titlebar and the tabs are
+ *    all still there; this is a bigger graph, not a different screen.
+ *  - `fullscreen` — the window goes fullscreen and everything that is not the
+ *    player and the graph goes with it. For watching something, rather than for
+ *    working on it.
+ *
+ * Two steps rather than one because they answer different questions. Expanded
+ * is "I want to see the trace better while I work"; fullscreen is "I am not
+ * working, I am listening". Collapsing them into one control meant the second
+ * had to be either unavailable or unavoidable.
+ *
+ * Not persisted, and for the same reason as the solo flag: a mode that outlives
+ * a restart is how somebody ends up convinced their sliders are gone. A window
+ * that comes back fullscreen with no visible way out is worse still.
  */
-let isFullScreen = false;
+export type TGraphView = 'normal' | 'expanded' | 'fullscreen';
+
+let view: TGraphView = 'normal';
 
 const fullScreenListeners = new Set<() => void>();
 
-export const setGraphFullScreen = (next: boolean) => {
-  if (next === isFullScreen) {
+/**
+ * Taking the window fullscreen is the main process's business, so the store
+ * cannot do it — and importing an IPC call here would tie a layout preference
+ * to the shape of the app's API. App registers what to do instead.
+ */
+let applyWindowFullScreen: ((next: boolean) => void) | undefined;
+
+export const onWindowFullScreenChange = (apply: (next: boolean) => void) => {
+  applyWindowFullScreen = apply;
+};
+
+export const setGraphView = (next: TGraphView) => {
+  if (next === view) {
     return;
   }
-  isFullScreen = next;
+  const wasFullScreen = view === 'fullscreen';
+  view = next;
+  if (wasFullScreen !== (next === 'fullscreen')) {
+    applyWindowFullScreen?.(next === 'fullscreen');
+  }
   fullScreenListeners.forEach((listener) => listener());
 };
 
-export const toggleGraphFullScreen = () => setGraphFullScreen(!isFullScreen);
+export const getGraphView = () => view;
+
+/**
+ * Escape, and the button that says Exit. Always all the way out, from either
+ * step — somebody pressing it wants their app back, not the next size down.
+ */
+export const exitGraphFullScreen = () => setGraphView('normal');
+
+/** Ctrl+S, and the click on the plot's own toggle. */
+export const toggleGraphExpanded = () =>
+  setGraphView(view === 'expanded' ? 'normal' : 'expanded');
+
+/** Ctrl+F. */
+export const toggleGraphFullScreen = () =>
+  setGraphView(view === 'fullscreen' ? 'normal' : 'fullscreen');
 
 const subscribeFullScreen = (listener: () => void) => {
   fullScreenListeners.add(listener);
@@ -178,9 +223,19 @@ const subscribeFullScreen = (listener: () => void) => {
   };
 };
 
-export const useGraphFullScreen = () =>
+export const useGraphView = () =>
   useSyncExternalStore(
     subscribeFullScreen,
-    () => isFullScreen,
-    () => false,
+    () => view,
+    () => 'normal' as TGraphView,
   );
+
+/**
+ * Whether the graph is over the workspace at all.
+ *
+ * True in both of the larger modes: the card covers the column either way, and
+ * everything that only needs to know "is the graph on top of things" — the
+ * layout class, the dimension recalculation — asks this rather than matching on
+ * the mode and having to be found again when a third one appears.
+ */
+export const useGraphFullScreen = () => useGraphView() !== 'normal';

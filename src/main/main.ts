@@ -2335,6 +2335,28 @@ ipcMain.handle('window-close', () => {
 
 ipcMain.handle('window-is-maximized', () => mainWindow?.isMaximized() ?? false);
 
+/**
+ * Real fullscreen — the OS kind, with the taskbar gone.
+ *
+ * Has to happen here: a renderer can ask for the Fullscreen API, but that
+ * fullscreens an element within the window rather than the window itself, so
+ * the taskbar and the window frame stay. The graph's fullscreen mode is for
+ * watching something, and a strip of Windows chrome along the bottom of it is
+ * the difference between a mode and a bigger panel.
+ *
+ * The window state is pushed afterwards because the titlebar's own buttons read
+ * it, and a maximise button that still says "restore" while the window has no
+ * frame at all is a control describing something that is not on screen.
+ */
+ipcMain.handle('window-set-full-screen', (_event, next: boolean) => {
+  if (!mainWindow) {
+    return false;
+  }
+  mainWindow.setFullScreen(!!next);
+  sendWindowState();
+  return mainWindow.isFullScreen();
+});
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
