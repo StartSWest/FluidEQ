@@ -183,7 +183,10 @@ const PLAYER_ONLY_CSS = `
  * of times a second and re-walking the ancestor chain on each one would cost
  * more than the page it is hiding.
  */
-const ENTER_PLAYER_ONLY = `(() => {
+const enterPlayerOnlyScript = (generation: number) => `(() => {
+  // Which run of the mode owns this page. The teardown reads it and refuses to
+  // undo a run newer than itself — see 'exitPlayerOnlyScript'.
+  window.__fluideqGen = ${generation};
   // Most specific first, because several of these match on the same page and
   // the first hit wins. YouTube Music is why the list is ordered rather than
   // merely long: it wraps the same '#movie_player' YouTube uses inside its own
@@ -204,6 +207,16 @@ const ENTER_PLAYER_ONLY = `(() => {
       document.querySelector(SELECTOR) ||
       (videos[0] && videos[0].parentElement);
     if (!player) { return; }
+    // Nothing is hidden until there is something to show in its place.
+    //
+    // These pages build the player element well before the video goes into it,
+    // and hiding the whole page around an empty box is a black screen. It is
+    // also the small picture in the corner that vanishes: the box is pinned to
+    // a viewport that is still being resized, measured before the video is in
+    // it. Returning leaves the page visible until there is a picture to replace
+    // it with, and the observer calls this again on the next change — the video
+    // arriving being one of them.
+    if (!player.querySelector('video')) { return; }
     // Already correct, and still attached. The common case by far.
     if (player.hasAttribute('data-fluideq-player') && player.isConnected) {
       return;
@@ -237,7 +250,33 @@ const ENTER_PLAYER_ONLY = `(() => {
   return 'ok';
 })()`;
 
-const EXIT_PLAYER_ONLY = `(() => {
+/**
+ * Take the mode off the page — unless a newer run has already put it back on.
+ *
+ * React runs an effect's cleanup before the next effect's body, and that
+ * ordering is worth nothing here: both of these are messages to another
+ * process. They are dispatched one after the other and execute in whichever
+ * order the guest reaches them. Every mode change sends a teardown and a setup
+ * within the same tick, so the winner alternates — which is exactly what
+ * "it inverts each time I hit Ctrl+F" means, and why the first go after a
+ * reload always worked and the next one did not.
+ *
+ * When the teardown wins it disconnects the observer the setup has just
+ * installed and unmarks the tree it has just marked. Nothing is left watching,
+ * so the page never recovers on its own; only a reload clears it, which is why
+ * expanded was broken afterwards too.
+ *
+ * The generation makes the pair order-independent instead of trying to make it
+ * ordered. A teardown only undoes the run whose number is still on the page.
+ */
+const exitPlayerOnlyScript = (generation: number) => `(() => {
+  if (
+    window.__fluideqGen !== undefined &&
+    window.__fluideqGen !== ${generation}
+  ) {
+    return 'stale';
+  }
+  window.__fluideqGen = undefined;
   if (window.__fluideqSolo) {
     window.__fluideqSolo.disconnect();
     window.__fluideqSolo = undefined;
@@ -416,6 +455,14 @@ const VIDEO_RESUME_KEY = 'fluideq.videoResume';
 
 /** How often to note the position, in milliseconds. */
 const RESUME_SAMPLE_MS = 5000;
+
+/**
+ * Which run of the page-stripping is the current one.
+ *
+ * Module scope rather than component state: nothing renders from it, it must
+ * survive a remount, and it only ever counts up. See `exitPlayerOnlyScript`.
+ */
+let soloGeneration = 0;
 
 const readStoredMarks = (): TPlaybackMarks => {
   try {
@@ -612,6 +659,10 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     }
     let key: string | undefined;
     let isCancelled = false;
+    // Claimed before either call goes out, so the teardown below carries the
+    // same number as the setup it belongs to, whichever order they land in.
+    soloGeneration += 1;
+    const generation = soloGeneration;
     try {
       view
         .insertCSS(PLAYER_ONLY_CSS)
@@ -628,7 +679,9 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         .catch(() => undefined);
       // The stylesheet does nothing until the chain is marked; the two go in
       // together and come out together.
-      view.executeJavaScript(ENTER_PLAYER_ONLY).catch(() => undefined);
+      view
+        .executeJavaScript(enterPlayerOnlyScript(generation))
+        .catch(() => undefined);
     } catch {
       // No web contents to inject into, and so nothing to undo either.
     }
@@ -638,7 +691,9 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         view.removeInsertedCSS(key).catch(() => undefined);
       }
       try {
-        view.executeJavaScript(EXIT_PLAYER_ONLY).catch(() => undefined);
+        view
+          .executeJavaScript(exitPlayerOnlyScript(generation))
+          .catch(() => undefined);
       } catch {
         // The guest is gone, which disconnects the observer rather more
         // thoroughly than asking it to.
