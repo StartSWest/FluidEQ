@@ -74,9 +74,11 @@ import {
   toggleGraphExpanded,
   toggleGraphFullScreen,
   toggleGraphGrid,
+  toggleGraphStretch,
   toggleLiveOutputSolo,
   useGraphFullScreen,
   useGraphGridHidden,
+  useGraphStretched,
   useGraphView,
   useGraphLook,
   useLiveOutputSolo,
@@ -151,6 +153,7 @@ const FrequencyResponseChart = () => {
   const isSolo = useLiveOutputSolo();
   const graphView = useGraphView();
   const isGridHidden = useGraphGridHidden();
+  const isStretched = useGraphStretched();
   const isFullScreen = useGraphFullScreen();
   const overlayOpacity = useOverlayOpacity();
   const overlayBlur = useOverlayBlur();
@@ -758,7 +761,13 @@ const FrequencyResponseChart = () => {
       // repeat is a key being leant on — neither should toggle a mode twice.
       if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.repeat) {
         const key = event.key.toLowerCase();
-        if (key === 's' || key === 'f' || key === 'w' || key === 'g') {
+        if (
+          key === 's' ||
+          key === 'f' ||
+          key === 'w' ||
+          key === 'g' ||
+          key === 'b'
+        ) {
           // Ctrl+S is Save and Ctrl+W is Close Window everywhere else, and
           // Chromium will do both from a renderer given the chance. There is
           // nothing to save here and closing the window is the titlebar's
@@ -770,6 +779,8 @@ const FrequencyResponseChart = () => {
             toggleGraphFullScreen();
           } else if (key === 'g') {
             toggleGraphGrid();
+          } else if (key === 'b') {
+            toggleGraphStretch();
           } else {
             toggleLiveOutputSolo();
           }
@@ -926,7 +937,7 @@ const FrequencyResponseChart = () => {
     <div
       className={`graph-wrapper${!isEngineUsable ? ' is-engine-disabled' : ''}${
         isGridHidden ? ' is-gridless' : ''
-      }`}
+      }${isStretched ? ' is-stretched' : ''}`}
       aria-disabled={!isEngineUsable}
       // Read by the full-screen rules only. Handed down as variables rather
       // than as a style on the card itself, because what they actually apply to
@@ -1074,6 +1085,8 @@ const FrequencyResponseChart = () => {
             onCycleLook={cycleGraphLook}
             isGridHidden={isGridHidden}
             onToggleGrid={toggleGraphGrid}
+            isStretched={isStretched}
+            onToggleStretch={toggleGraphStretch}
           />
         </span>
         {liveOutput.isClipping && (

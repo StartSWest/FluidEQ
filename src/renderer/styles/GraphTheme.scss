@@ -322,6 +322,31 @@
   white-space: nowrap;
 }
 
+// A scrim behind the controls once the plot fills the card.
+//
+// At two thirds the drawing stops well below this strip and it reads directly
+// on the card, which is what it was designed for. Filling the card puts the
+// wave straight underneath it, and a dropdown label over a moving spectrum is
+// unreadable at exactly the moments the spectrum is worth watching.
+//
+// A gradient rather than a bar: it fades out before it reaches the drawing, so
+// the controls get something to sit on without a hard edge across the top of a
+// mode whose whole point is an uninterrupted picture. Behind them and out of
+// hit-testing, so nothing it covers stops being clickable.
+.graph-wrapper.is-stretched > .live-output-controls::before {
+  position: absolute;
+  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    rgba(#08141a, 0.85) 0%,
+    rgba(#08141a, 0.55) 55%,
+    transparent 100%
+  );
+  content: '';
+  inset: -10px -12px -26px;
+  pointer-events: none;
+}
+
 // The graph with no paper: no decibel scale, no frequency marks, no lines
 // between them. Just the wave.
 //
@@ -814,5 +839,14 @@
   > .graph-wrapper > .graph-plot {
     min-height: 260px;
     flex: 0 1 66%;
+  }
+
+  // Unless it has been told to fill.
+  //
+  // Two thirds is right for reading a response and wrong for watching one: the
+  // vertical exaggeration that ruins a measurement is exactly what makes a wave
+  // worth looking at, and a visualiser wants every pixel there is.
+  > .graph-wrapper.is-stretched > .graph-plot {
+    flex: 1 1 auto;
   }
 }

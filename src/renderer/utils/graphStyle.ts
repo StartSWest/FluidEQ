@@ -188,6 +188,42 @@ export const useGraphGridHidden = () =>
   );
 
 /**
+ * Whether the plot fills the card or keeps its share of it.
+ *
+ * The larger modes centre the drawing at two thirds of the card's height, on
+ * the reasoning that a frequency response stretched over a whole monitor is a
+ * shape that says nothing except that the window is tall. That is right for
+ * reading a response and wrong for watching one: a spectrum used as a
+ * visualiser wants every pixel it can have, and the vertical exaggeration that
+ * ruins a measurement is exactly what makes a wave worth looking at.
+ *
+ * So it is a switch rather than a decision made here, and it sits beside the
+ * others in the view menu.
+ */
+let isStretched = false;
+
+const stretchListeners = new Set<() => void>();
+
+export const toggleGraphStretch = () => {
+  isStretched = !isStretched;
+  stretchListeners.forEach((listener) => listener());
+};
+
+const subscribeStretch = (listener: () => void) => {
+  stretchListeners.add(listener);
+  return () => {
+    stretchListeners.delete(listener);
+  };
+};
+
+export const useGraphStretched = () =>
+  useSyncExternalStore(
+    subscribeStretch,
+    () => isStretched,
+    () => false,
+  );
+
+/**
  * How much of the screen the graph has, in three steps.
  *
  * Held here rather than in the chart because the things that have to move are

@@ -47,6 +47,8 @@ interface IGraphViewMenuProps {
   onCycleLook: (direction: 1 | -1) => void;
   isGridHidden: boolean;
   onToggleGrid: () => void;
+  isStretched: boolean;
+  onToggleStretch: () => void;
 }
 
 const VIEW_LABEL: Record<TGraphView, string> = {
@@ -85,6 +87,8 @@ const GraphViewMenu = ({
   onCycleLook,
   isGridHidden,
   onToggleGrid,
+  isStretched,
+  onToggleStretch,
 }: IGraphViewMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState<IPlacement>({
@@ -228,6 +232,19 @@ const GraphViewMenu = ({
             </Icon>
             <span>{isGridHidden ? 'Show grid' : 'Hide grid'}</span>
             <kbd>Ctrl+G</kbd>
+          </button>
+
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={isStretched}
+            onClick={choose(onToggleStretch)}
+          >
+            <Icon>
+              <path d="M8 2.5v11M5.4 5.1L8 2.5l2.6 2.6M5.4 10.9L8 13.5l2.6-2.6" />
+            </Icon>
+            <span>{isStretched ? 'Fit the graph' : 'Stretch to fill'}</span>
+            <kbd>Ctrl+B</kbd>
           </button>
 
           <div className="graph-view-menu__divider" />
