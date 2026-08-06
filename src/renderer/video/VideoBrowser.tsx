@@ -376,22 +376,36 @@ const resumePlaybackScript = (position: number) => `(() => {
   return 'ok';
 })()`;
 
-/*
- * There is deliberately nothing here about the page's own fullscreen.
+/** Put the site's own player full screen, the way its button would. */
+const ENTER_PAGE_FULLSCREEN = `(() => {
+  if (document.fullscreenElement) { return 'already'; }
+  // The site's own control first, so the player ends up in the state it knows
+  // about — its controls, its exit affordance, its resize handling.
+  const button = document.querySelector(
+    '.ytp-fullscreen-button, [data-a-target="player-fullscreen-button"]'
+  );
+  if (button) { button.click(); return 'button'; }
+  const player = document.querySelector(
+    'ytmusic-player, #movie_player, .html5-video-player, [data-a-target="video-player"]'
+  ) || document.querySelector('video');
+  if (player && player.requestFullscreen) {
+    player.requestFullscreen().catch(() => {});
+    return 'request';
+  }
+  return 'none';
+})()`;
+
+/**
+ * And take it back out on the way down.
  *
- * This player used to ask for it, then only undo it, and both were wrong. The
- * page's fullscreen puts the player into Chromium's top layer while the
- * injected rules are still pinning it to the viewport — two accounts of where
- * the player belongs, and the one that showed up was a black screen, sometimes.
- * The undo was no better: it pressed the site's own fullscreen button, which is
- * a toggle, so whether it left or entered came down to what the page happened
- * to be doing at that instant.
- *
- * The mode does not need any of it. Full screen resizes FluidEQ's window and
- * the rules above pin the player to the viewport, so the picture already grows
- * to whatever the window becomes. The site's fullscreen has nothing to add to
- * that and one thing to take away, so it is not touched at all.
+ * `exitFullscreen` rather than the button, deliberately: the button is a toggle
+ * and would put the page *into* fullscreen whenever it was not already there.
  */
+const EXIT_PAGE_FULLSCREEN = `(() => {
+  if (!document.fullscreenElement) { return 'none'; }
+  document.exitFullscreen();
+  return 'exit';
+})()`;
 
 interface IWebviewProps {
   ref?: Ref<IWebview>;
@@ -652,11 +666,57 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
    * with the document, so without `isGuestReady` in the dependencies the second
    * video would come back wearing the whole page.
    */
+  /**
+   * Let the site's own player go full screen, once the window already is.
+   *
+   * Asked late on purpose. The window's fullscreen transition resizes the guest
+   * while the page would be putting its player into Chromium's top layer, and
+   * whichever landed first decided whether there was a picture — which is the
+   * whole of "it works about half the time". A tenth of a second is long enough
+   * for the transition to be over and the viewport to have stopped moving, and
+   * short enough that nobody sees a windowed frame first.
+   *
+   * The page-stripping deliberately does not run in this mode, so there is
+   * nothing of ours on the page to disagree with where the site puts its
+   * player. Expanded is the other way round: stripping, and no page fullscreen.
+   */
   useEffect(() => {
     const view = webviewRef.current;
-    // Expanded only, for now. Full screen leaves the page exactly as the site
-    // built it — no stripping, no marking, no injected sheet — so that what is
-    // on screen in that mode is the site's own player and nothing of ours.
+    if (!view || isHidden || !isGuestReady) {
+      return undefined;
+    }
+
+    if (graphView !== 'fullscreen') {
+      try {
+        view
+          .executeJavaScript(EXIT_PAGE_FULLSCREEN, true)
+          .catch(() => undefined);
+      } catch {
+        // The guest went away; it took its fullscreen with it.
+      }
+      return undefined;
+    }
+
+    try {
+      // Counts as a gesture: the shortcut or the menu item that opened the mode
+      // was one, and Chromium cannot see that from here. `requestFullscreen` is
+      // refused without it.
+      view
+        .executeJavaScript(ENTER_PAGE_FULLSCREEN, true)
+        .catch(() => undefined);
+    } catch {
+      // No web contents to ask.
+    }
+
+    return undefined;
+  }, [graphView, isGuestReady, isHidden]);
+
+  useEffect(() => {
+    const view = webviewRef.current;
+    // Expanded only. Full screen leaves the page exactly as the site built it —
+    // no marking, no chain, no injected sheet — because there the site's own
+    // player is the thing going full screen, and two accounts of where the
+    // player belongs is what made this fail.
     if (!view || isHidden || !isGuestReady || graphView !== 'expanded') {
       return undefined;
     }

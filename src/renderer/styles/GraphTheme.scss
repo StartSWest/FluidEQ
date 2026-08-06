@@ -696,12 +696,18 @@ $expanded-video-bar-top: 40px;
 // every other panel has and reads as one of them. Full screen has nothing
 // around it to be a card *against* — rounded corners there just carve four
 // notches out of the display and show the desktop through them.
-// The card keeps its border and its corners in both modes.
+// No card at all in full screen.
 //
-// Full screen used to strip them, from when it owned the whole screen and an
-// edge would have been an edge against nothing. It does not own the screen any
-// more — it is the same card over the same column, with two panes hidden beside
-// it — so it gets the same card.
+// The frame is what makes the graph a panel among panels, and there are no
+// other panels here — the mode is a video with a spectrum over it, and a
+// border, a radius and a shadow around that is a window drawn over a picture.
+// The surface itself stays, because that is what the see-through slider is for.
+.app-workspace.is-app-full .center-workspace.is-graph-full > .graph-wrapper {
+  border: none;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+}
 
 .app-workspace.is-app-full {
   // The side panels hold profiles, presets and support links. None of them is
