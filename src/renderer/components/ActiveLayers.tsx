@@ -338,8 +338,20 @@ const ActiveLayers = () => {
     });
   }
 
+  // Empty, but still there.
+  //
+  // This row grows as somebody works — the first band they shape, the first
+  // voicing they try — and appearing from nothing pushed the whole editor down
+  // under their hands mid-drag. A control that moves while you are using it is
+  // the worst thing an interface can do, and it happened at exactly the moment
+  // somebody was tuning for the first time.
+  //
+  // So the space is always reserved and the row simply has nothing in it. One
+  // line of height is a small price for an editor that never moves; the
+  // alternative was floating it over the layout, which trades the jump for a
+  // strip that covers whatever is underneath.
   if (layers.length === 0) {
-    return null;
+    return <div className="active-layers is-empty" aria-hidden />;
   }
 
   return (

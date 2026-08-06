@@ -27,6 +27,31 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   justify-content: center;
   gap: 6px;
+  // One chip's height, held whether there is a chip or not.
+  //
+  // The row fills up as somebody works, and appearing from nothing pushed the
+  // editor down under their hands mid-drag — at exactly the moment they were
+  // tuning for the first time. Reserving the line costs a strip of space and
+  // buys an editor that never moves.
+  //
+  // A floor rather than a fixed height: the row wraps, and four layers on a
+  // narrow window are two lines. It grows then, which is a layout change
+  // somebody caused by adding something rather than one that happened to them.
+  min-height: 28px;
+}
+
+// Wrapping is what makes this survive a narrow window, and the chips have to be
+// able to give ground for it to work. Each one shortens its own name rather
+// than pushing the next off the end, and the row stops being centred once it is
+// full — a centred second line of one chip reads as a stray control.
+@media (max-width: 900px) {
+  .active-layers {
+    justify-content: flex-start;
+  }
+
+  .active-layer {
+    max-width: 100%;
+  }
 }
 
 // Sits inline with the first chip rather than on a line of its own: with the
