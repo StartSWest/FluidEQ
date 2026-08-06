@@ -708,22 +708,29 @@ $expanded-video-bar-top: 40px;
   // something anybody is reading while watching a video full screen, and every
   // one of them is a column of width the picture could have had.
   //
-  // `display: none` rather than visibility, unlike the tab strip: these are
-  // grid columns, and the point here is precisely that the centre takes the
-  // space they were using. Nothing inside them is playing, so collapsing them
-  // costs nothing but a relayout on the way in and out.
+  // Taken out of the flow rather than out of the grid.
+  //
+  // `display: none` on a grid item removes the item, and this grid is three
+  // named tracks — so the whole template was being re-resolved, not merely
+  // resized. The centre column is going to get wider either way; that much is
+  // the point of the mode. What it should not also do is change how many things
+  // the grid is laying out, with a `<webview>` inside one of them.
+  //
+  // So the panes stay in the grid and go off screen, their tracks collapse to
+  // zero, and the centre grows into the width. `visibility: hidden` as well, so
+  // nothing off screen is focusable or clickable.
+  //
+  // Honest about what this does not fix: the centre column still changes width
+  // and the guest is still resized by that. If the picture still fails, the
+  // resize itself is the cause and not the way the tracks were removed.
   > .side-bar,
   > .right-content {
-    display: none;
+    position: absolute;
+    left: -20000px;
+    visibility: hidden;
   }
 
-  // The columns collapse to one, and nothing else changes.
-  //
-  // The workspace keeps its padding and its gap. Taking those away was more of
-  // the same mistake as everything else in this mode: it moved the centre
-  // column, and moving the centre column resizes the `<webview>` inside it.
-  grid-template-areas: 'center-workspace';
-  grid-template-columns: 1fr;
+  grid-template-columns: 0 1fr 0;
 }
 
 // The titlebar stays exactly where it is, and so does the room it occupies.
