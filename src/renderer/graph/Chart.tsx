@@ -376,9 +376,26 @@ const Chart = ({
           pointerEvents="none"
         />
       )}
-      {data.map((e: IChartCurveData) => (
-        <Curve key={e.id} data={e} xScale={xScaleFreq} yScale={yScaleGain} />
-      ))}
+      {data.map((e: IChartCurveData) =>
+        e.isFlipped ? (
+          // Mirrored as a drawing, not as data.
+          //
+          // Negating the gain was the first attempt and it gives the *negative*
+          // of the wave: every style draws upward from a baseline at the bottom
+          // of the plot, so a negated value makes a tall bar short rather than
+          // making it hang. The shape inverts instead of the picture.
+          //
+          // Reflecting the rendered geometry about the plot keeps the shape
+          // exactly and turns it upside down, which is what hanging from the
+          // ceiling means. `translate` then `scale(1,-1)` because a bare flip
+          // would send it off the top of the viewport.
+          <g key={e.id} transform={`translate(0, ${plotHeight}) scale(1, -1)`}>
+            <Curve data={e} xScale={xScaleFreq} yScale={yScaleGain} />
+          </g>
+        ) : (
+          <Curve key={e.id} data={e} xScale={xScaleFreq} yScale={yScaleGain} />
+        ),
+      )}
       {editablePoints.map((point) => (
         <EditablePoint
           key={point.id}

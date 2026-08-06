@@ -72,6 +72,15 @@ export interface IChartCurveData {
    * that string on every animation tick.
    */
   isContinuous?: boolean;
+  /**
+   * Draw this curve upside down.
+   *
+   * A reflection of the rendered geometry, not of the data — see Chart. The
+   * distinction matters: every style draws upward from a baseline, so negating
+   * the values gives the *negative* of the wave, tall where it was short,
+   * rather than the same wave hanging from the ceiling.
+   */
+  isFlipped?: boolean;
   line: {
     color: Color;
     strokeWidth: number;

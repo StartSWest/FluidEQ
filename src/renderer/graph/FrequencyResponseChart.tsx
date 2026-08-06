@@ -769,7 +769,8 @@ const FrequencyResponseChart = () => {
           key === 'f' ||
           key === 'w' ||
           key === 'g' ||
-          key === 'b'
+          key === 'b' ||
+          key === 'i'
         ) {
           // Ctrl+S is Save and Ctrl+W is Close Window everywhere else, and
           // Chromium will do both from a renderer given the chance. There is
@@ -784,6 +785,8 @@ const FrequencyResponseChart = () => {
             toggleGraphGrid();
           } else if (key === 'b') {
             toggleGraphStretch();
+          } else if (key === 'i') {
+            cycleWaveOrientation();
           } else {
             toggleLiveOutputSolo();
           }
@@ -847,22 +850,6 @@ const FrequencyResponseChart = () => {
   // — the points arrived already softened, then got softened again, and the
   // curve swelled after the music instead of with it.
 
-  /**
-   * The same frame, upside down.
-   *
-   * Built once per frame and shared by both orientations that need it, rather
-   * than inside the curve literals — `mirrored` uses it alongside the original,
-   * and mapping the array twice at twenty-two frames a second for a result that
-   * is identical is work for nothing.
-   */
-  const invertedLivePoints = useMemo(
-    () =>
-      waveOrientation === 'up'
-        ? liveOutput.points
-        : liveOutput.points.map((point) => ({ ...point, y: -point.y })),
-    [liveOutput.points, waveOrientation],
-  );
-
   const displayData = useMemo(
     () =>
       liveOutput.points.length > 0
@@ -883,11 +870,12 @@ const FrequencyResponseChart = () => {
                     id: 'Live Output Mirror',
                     name: 'Live processed output, mirrored',
                     isContinuous: true,
+                    isFlipped: true,
                     line: {
                       color: ColorEnum.ANALOGOUS2,
                       strokeWidth: isSolo ? 2.6 : 2,
                       opacity: isSolo ? 1 : SUPPORTING_CURVE_OPACITY,
-                      points: invertedLivePoints,
+                      points: liveOutput.points,
                     },
                   } as IChartCurveData,
                 ]
@@ -896,6 +884,7 @@ const FrequencyResponseChart = () => {
               id: 'Live Output',
               name: 'Live processed output',
               isContinuous: true,
+              isFlipped: waveOrientation === 'down',
               line: {
                 color: ColorEnum.ANALOGOUS2,
                 // Heavier as well as brighter when it is the only thing drawn.
@@ -912,15 +901,12 @@ const FrequencyResponseChart = () => {
                 // one drawing on screen, drawn at half strength for the benefit
                 // of curves that are no longer there.
                 opacity: isSolo ? 1 : SUPPORTING_CURVE_OPACITY,
-                points:
-                  waveOrientation === 'down'
-                    ? invertedLivePoints
-                    : liveOutput.points,
+                points: liveOutput.points,
               },
             } as IChartCurveData,
           ]
         : chartData,
-    [chartData, invertedLivePoints, isSolo, liveOutput.points, waveOrientation],
+    [chartData, isSolo, liveOutput.points, waveOrientation],
   );
 
   const editablePoints: IEditableChartPoint[] = useMemo(() => {
