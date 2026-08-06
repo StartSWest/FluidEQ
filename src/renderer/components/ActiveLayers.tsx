@@ -398,16 +398,14 @@ const ActiveLayers = () => {
             }
             disabled={isBlockingError || !isEnabled}
             onClick={() => {
-              // Switched back on as it goes. Somebody removing a layer they had
-              // switched off means it gone, not merely silent — and leaving the
-              // feature on the bypass list would hand the next layer applied
-              // here a config that refuses to include it.
-              const restore =
-                layer.feature && isBypassed(layer.feature)
-                  ? setLayerBypass(layer.feature, false)
-                  : Promise.resolve();
-              restore
-                .then(() => layer.onClear())
+              // Switching it back on is the main process's job, not this
+              // button's. Every clear here goes through a handler that already
+              // treats a layer being taken away as reason enough — and doing it
+              // from this side would have switched the EQ back on even where
+              // its X does nothing at all, which is the case for bands nobody
+              // applied a reference to.
+              layer
+                .onClear()
                 .catch((e) => setGlobalError(e as ErrorDescription));
             }}
           >

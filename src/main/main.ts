@@ -916,6 +916,29 @@ const reservePresetNameForActiveDevice = (requestedName: string) => {
  * it describes what came out of the speakers, not what went into the bands. See
  * resetStateToDefaults for the reset that does clear everything.
  */
+/**
+ * A layer applied afresh is applied, whatever was switched off before it.
+ *
+ * Called where a layer's settings arrive or are taken away, not where they are
+ * edited. Choosing a voicing, finishing a measurement, applying a reference
+ * model — each of those is somebody asking to hear something, and handing them
+ * silence because the previous occupant of that slot was switched off is the
+ * one thing an applied layer must never do. Clearing one has to do it too: the
+ * chip goes with the layer, and a list still naming it would leave nothing on
+ * screen able to switch it back on.
+ *
+ * Moving a band while its layer is bypassed is a different act. The chip is
+ * visibly off, and preparing a tuning before switching it in is a reasonable
+ * thing to want.
+ */
+const applyingLayer = (feature: TApoFeature) => {
+  if (!state.bypassed?.includes(feature)) {
+    return;
+  }
+  const rest = state.bypassed.filter((entry) => entry !== feature);
+  state.bypassed = rest.length ? rest : undefined;
+};
+
 const resetEqToDefaults = () => {
   switchToParametricEditing();
   clearCurrentLayoutSettings();
@@ -925,6 +948,12 @@ const resetEqToDefaults = () => {
   state.headset = undefined;
   state.headsetTarget = undefined;
   state.headsetSource = undefined;
+  // The bands are gone, so the switch that was holding them out of the config
+  // has nothing left to hold. Without this, clearing a bypassed EQ takes the
+  // chip off the row — no shaped bands, no reference, nothing to draw it — and
+  // leaves the feature on the bypass list, so the next tuning somebody builds
+  // is written nowhere and there is no control left to explain why.
+  applyingLayer('eq');
 };
 
 /**
@@ -935,25 +964,6 @@ const resetEqToDefaults = () => {
  * mean the EQ page said "flat" while three layers were still shaping the
  * output.
  */
-/**
- * A layer applied afresh is applied, whatever was switched off before it.
- *
- * Called where a layer's settings arrive, not where they are edited. Choosing a
- * voicing, finishing a measurement, applying a reference model — each of those
- * is somebody asking to hear something, and handing them silence because the
- * previous occupant of that slot was switched off is the one thing an applied
- * layer must never do. Moving a band while its layer is bypassed is a different
- * act: the chip is visibly off, and preparing a tuning before switching it in
- * is a reasonable thing to want.
- */
-const applyingLayer = (feature: TApoFeature) => {
-  if (!state.bypassed?.includes(feature)) {
-    return;
-  }
-  const rest = state.bypassed.filter((entry) => entry !== feature);
-  state.bypassed = rest.length ? rest : undefined;
-};
-
 const resetStateToDefaults = () => {
   resetEqToDefaults();
   state.convolution = undefined;
@@ -1310,15 +1320,22 @@ const adoptExistingApoConfig = () => {
   if (hasAdoptedExistingConfig || !configPath) {
     return;
   }
+
+  // Nothing to read until it is known which output this is about.
+  //
+  // The health check runs first and used to spend the one attempt here, at the
+  // moment the answer was still "no endpoint yet" — which resolved to the
+  // neutral `Device: all` block, the one FluidEQ writes precisely to say
+  // nothing. So the whole of this ran, found an empty block, and marked itself
+  // done. Deferring costs a few hundred milliseconds and is the difference
+  // between a config that is read back and one that never is.
+  const devicePattern = activeAudioDevice?.guid || activeAudioDevice?.name;
+  if (!devicePattern) {
+    return;
+  }
   hasAdoptedExistingConfig = true;
 
   try {
-    // Before any endpoint has been discovered the only block that can be about
-    // this session is the global one, which is the right answer for a machine
-    // with a single output and a harmless one otherwise: the device switch
-    // that follows replaces the state wholesale anyway.
-    const devicePattern =
-      activeAudioDevice?.guid || activeAudioDevice?.name || '';
     const chain = readApoDeviceChain(configPath, devicePattern);
     if (!chain) {
       return;
@@ -1753,6 +1770,11 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
       if (!deviceProfileSettings.assignments[activeDevice.id]) {
         createEmptyProfileForActiveDevice();
       }
+      // The first moment the config can be read back: there is now an endpoint
+      // to look up, and the state beside it is that endpoint's. It has to
+      // happen before the save and the flush below, both of which write this
+      // state over whatever the file was saying.
+      adoptExistingApoConfig();
       save(state, userDataDir);
       captureCurrentLayout();
 
