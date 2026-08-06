@@ -137,6 +137,8 @@ const AppContent = () => {
   // and the side panels and titlebar are further out still.
   const isGraphFullScreen = useGraphFullScreen();
   const graphView = useGraphView();
+  /** The window itself is full screen, so the titlebar is not on screen. */
+  const isAppFullScreen = graphView === 'fullscreen' && isGraphViewOn;
   const editorHeight = useEditorHeight();
 
   /**
@@ -484,12 +486,22 @@ const AppContent = () => {
             <div className="workspace-header__tagline">{t('app.tagline')}</div>
           </div>
         </div>
-        <WaveformVisualizer />
+        {/* Moved, not copied.
+
+            In full screen the titlebar is hidden, and both of these are lifted
+            out of it into the overlay below. Rendering a second copy instead
+            was the first attempt and it does not work: CSS-hiding the titlebar
+            leaves the originals mounted, so there were two creatures on one
+            analyser and neither drew correctly — the hero in the support dialog
+            went with them. Exactly one of each exists at any moment. */}
+        {!isAppFullScreen && <WaveformVisualizer />}
         <div className="window-titlebar__right">
-          <SupportPet
-            hasContributed={hasContributed}
-            onOpen={() => setShowSupportDialog(true)}
-          />
+          {!isAppFullScreen && (
+            <SupportPet
+              hasContributed={hasContributed}
+              onOpen={() => setShowSupportDialog(true)}
+            />
+          )}
           <div className="workspace-header__tools">
             <button
               type="button"
@@ -772,11 +784,7 @@ const AppContent = () => {
           </div>
         </div>
       </header>
-      <main
-        className={`app-workspace${
-          graphView === 'fullscreen' && isGraphViewOn ? ' is-app-full' : ''
-        }`}
-      >
+      <main className={`app-workspace${isAppFullScreen ? ' is-app-full' : ''}`}>
         {showAudioRestartRecommendation && (
           <aside className="audio-restart-notice" role="status">
             <span>{t('notice.apoReconfigured')}</span>
@@ -975,21 +983,16 @@ const AppContent = () => {
             in rather than imported there, so there is one definition of what
             "reinstall Equalizer APO" does — including the confirmation and the
             restart advice that follows it. */}
-        {/* The creature keeps its corner in full screen.
-
-            The titlebar is hidden in that mode, and it went with it — which
-            takes away the only thing on screen that is alive when the window is
-            otherwise a video and a graph, and the one route to the support
-            panel. A second instance rather than a moved one: it is a few
-            elements and its own animation state, and threading the real one out
-            of the titlebar and back would mean the header laying out around a
-            hole. Only ever one of them is mounted. */}
-        {graphView === 'fullscreen' && isGraphViewOn && (
-          <div className="fullscreen-pet">
+        {/* The two pieces of the titlebar worth keeping over a full-screen
+            video: the creature in the left corner, and the waveform across the
+            top. The view menu is already at the top right, inside the graph. */}
+        {isAppFullScreen && (
+          <div className="fullscreen-chrome">
             <SupportPet
               hasContributed={hasContributed}
               onOpen={() => setShowSupportDialog(true)}
             />
+            <WaveformVisualizer />
           </div>
         )}
         {showTroubleshooter && (

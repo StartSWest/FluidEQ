@@ -27,7 +27,6 @@ import useController, {
   IEditableChartPoint,
   IMarginLike,
 } from './ChartController';
-import { cycleGraphLook } from '../utils/graphStyle';
 import { BAND_SPECTRUM_STOPS } from '../utils/bandColors';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
@@ -183,24 +182,16 @@ const Chart = ({
     const right = Math.max(selection.startX, selection.currentX);
     const top = Math.min(selection.startY, selection.currentY);
     const bottom = Math.max(selection.startY, selection.currentY);
+    // A click on bare plot clears the selection and nothing else.
+    //
+    // It used to walk the live output to its next look as well, so that styles
+    // could be flicked through without taking the pointer off the graph. The
+    // trade was that one gesture did two unrelated things, and the one nobody
+    // asked for — a drawing that changes — happened every time somebody merely
+    // wanted to deselect. Space and Ctrl+Space cycle the looks; they are listed
+    // in the view menu, they work from anywhere, and they do not fire when the
+    // pointer happens to land on empty graph.
     const isClick = right - left < 6 && bottom - top < 6;
-    if (isClick) {
-      // A click on empty plot walks the live output to its next look, and
-      // backwards with a modifier held — with this many to walk through,
-      // overshooting by one would otherwise mean going the whole way round.
-      //
-      // It rides the same gesture that clears the selection, which is the
-      // trade being made knowingly: clicking bare graph both deselects and
-      // changes the drawing. The picker on the legend is there for reaching a
-      // particular look; this is for flicking through them while listening,
-      // without taking the pointer off the graph. A drag still selects, and a
-      // click on a band still grabs the band.
-      //
-      // A modified click is already the additive-select gesture, but an
-      // additive select of nothing leaves the selection exactly as it was, so
-      // the two do not fight.
-      cycleGraphLook(event.ctrlKey || event.metaKey || event.shiftKey ? -1 : 1);
-    }
     const selectedIds = isClick
       ? []
       : editablePoints

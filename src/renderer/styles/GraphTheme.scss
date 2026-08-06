@@ -1,4 +1,5 @@
 @use 'color' as *;
+@use 'constant' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -506,11 +507,34 @@
 // Above the card, because the card covers the whole screen in this mode and
 // anything below it is simply not there. Fixed rather than absolute so it is
 // pinned to the display and not to a column that is itself positioned.
-.fullscreen-pet {
+// What is kept from the titlebar, over a full-screen video: the creature on the
+// left and the waveform across the top. Both are the real ones, lifted out of
+// the hidden titlebar rather than mounted a second time.
+.fullscreen-chrome {
   position: fixed;
   z-index: 60;
-  top: 10px;
-  left: 12px;
+  top: 8px;
+  right: 0;
+  left: 0;
+  display: grid;
+  align-items: center;
+  padding-inline: 14px;
+  // The creature takes its own width; the waveform takes the rest and so ends
+  // up centred on the screen, which is where it sits in the titlebar too.
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 14px;
+  pointer-events: none;
+
+  // Only the creature is clickable — it is the way into the support panel. The
+  // strip itself must not swallow clicks meant for the video underneath it.
+  > * {
+    pointer-events: auto;
+  }
+}
+
+// The graph's header sits below that strip rather than under it.
+.app-workspace.is-app-full .live-output-controls {
+  top: 52px;
 }
 
 // Full screen is the whole screen, corner to corner.
@@ -545,9 +569,21 @@
   gap: 0;
 }
 
-// The titlebar too. The window has no frame in this mode, so a strip of our own
-// chrome along the top is the only thing between the picture and the edge of
-// the screen — and Escape, Ctrl+F and the menu are all still there to get back.
+// The titlebar loses its surface, not its contents.
+//
+// Hiding it outright was the first attempt and it took the wrong things with
+// it: the waveform, the euphoria pill and the creature are the parts of this
+// app that are *alive*, and full screen — a video with a spectrum over it — is
+// exactly when they are worth watching. What is not wanted is the strip they
+// sit on, which over a full-screen picture is a bar of chrome across the top.
+//
+// Keeping the real elements rather than mounting a second copy of them, which
+// was the other attempt: the titlebar is hidden with CSS, so its originals stay
+// mounted, and a duplicate creature meant two audio hooks on one analyser with
+// neither drawing correctly. There is only ever one of each.
+//
+// It is already `position: fixed`, so with `#root`'s padding gone below it the
+// graph runs the full height of the screen underneath.
 .window-titlebar:has(~ .app-workspace.is-app-full) {
   display: none;
 }
