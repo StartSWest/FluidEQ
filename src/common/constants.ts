@@ -283,7 +283,61 @@ export interface IState {
    * model name and nothing else, and must still restore by name alone.
    */
   headsetSource?: string;
+  /**
+   * Layers switched off without being thrown away.
+   *
+   * The whole of A/B testing: a correction is either an improvement or it is
+   * not, and the only way to know is to hear the same passage both ways within
+   * a few seconds of itself. Removing the layer and applying it again is not
+   * that — Smart EQ takes half a minute to measure, and a voicing you have
+   * cleared is a voicing you have to go and find.
+   *
+   * A bypassed feature keeps every one of its settings and simply loses its
+   * `Include:` line, so nothing is stashed, nothing is reconstructed, and there
+   * is no half-applied state to land in. It also means the config still tells
+   * the whole truth about what is being applied, which is why this can survive
+   * a restart where the old session-only stash could not.
+   */
+  bypassed?: TApoFeature[];
 }
+
+/**
+ * The features a chain is built from, in the order Equalizer APO applies them.
+ *
+ * The sequence reads physical, then intended, then taste, then measured: fix
+ * the transducer, aim at a target, season it, correct what is left.
+ *
+ *  - `driver` compensates the transducer itself — a property of the hardware,
+ *    like the impulse response above it. Below the voicing it read as if it
+ *    were correcting the voicing.
+ *  - `eq` is the user's own bands, or the GraphicEQ curve that stands in for
+ *    them.
+ *  - `voicing` is the target curve they picked.
+ *  - `loudness` is a preference about how loud this should feel rather than a
+ *    fix for anything, so it sits on top of all three corrections.
+ *  - `smart` is last of all, because it is a correction of everything above it:
+ *    the capture that produced it heard the bands, the voicing and the driver
+ *    together, so its residual only means anything stacked on top of them.
+ *    Anything appended after it would be un-measured.
+ *
+ * Nothing audible depends on the order. Cascaded biquads are linear, so their
+ * magnitudes add in dB whatever the sequence, and the preamp is a peak over the
+ * same set either way. It is for whoever is reading the config at two in the
+ * morning wondering which layer did what — and for which file they are reading,
+ * since each of these is written to one of its own.
+ *
+ * Here rather than beside the writer because three places have to agree on
+ * these names: the config files, the persisted state, and the row of chips.
+ */
+export const APO_FEATURES = [
+  'driver',
+  'eq',
+  'voicing',
+  'loudness',
+  'smart',
+] as const;
+
+export type TApoFeature = (typeof APO_FEATURES)[number];
 
 /**
  * Which voicing is active and how strongly.
@@ -406,6 +460,14 @@ export interface IPresetV2 {
   headsetTarget?: string;
   /** Which database it came from; absent in profiles predating the field. */
   headsetSource?: string;
+  /**
+   * Layers this profile has switched off — see IState.bypassed.
+   *
+   * Per profile for the same reason the layers themselves are: a driver
+   * correction switched off while comparing headphones has nothing to say about
+   * what the speakers should be doing.
+   */
+  bypassed?: TApoFeature[];
 }
 
 export interface IConvolutionProfile {

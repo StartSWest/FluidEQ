@@ -13,21 +13,21 @@ import path from 'path';
 import { createHash } from 'crypto';
 import { promisify } from 'util';
 import {
+  APO_FEATURES,
   IAudioDevice,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
   IPresetV2,
   IState,
+  TApoFeature,
   getDefaultState,
 } from '../common/constants';
 import {
   addFileToPath,
-  APO_FEATURES,
   FLUIDEQ_CONFIG_FILENAME,
   fetchPreset,
   IApoChainFiles,
   stateToApoFiles,
-  TApoFeature,
 } from './flush';
 import { writeConvolutionWav } from './convolution';
 
@@ -405,6 +405,10 @@ export const getStateForAudioDevice = (
     headset: preset?.headset,
     headsetTarget: preset?.headsetTarget,
     headsetSource: preset?.headsetSource,
+    // Listed like the rest, and for the same reason: a device whose profile
+    // bypasses nothing has to clear whatever the previous one had switched off,
+    // or a layer would arrive silent on an output that never switched it off.
+    bypassed: preset?.bypassed,
     // Absent means automatic, which is what every profile written before the
     // flag existed was. Not `?? defaultState` — the default is the same value,
     // but saying so here keeps the rule in one place.

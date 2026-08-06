@@ -108,6 +108,8 @@ import {
   RENDERER_READY_EVENT,
   OUTPUT_STATE_CHANGED_EVENT,
   AUTOEQ_SOURCE_ID,
+  APO_FEATURES,
+  TApoFeature,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
 import {
@@ -841,6 +843,10 @@ const getCurrentPreset = (): IPresetV2 => ({
   headset: state.headset,
   headsetTarget: state.headsetTarget,
   headsetSource: state.headsetSource,
+  // Which layers are switched off is part of what this profile sounds like, so
+  // it travels with it — otherwise switching outputs and back would bring every
+  // bypassed layer roaring back in.
+  bypassed: state.bypassed,
 });
 
 const switchToParametricEditing = () => {
@@ -924,12 +930,34 @@ const resetEqToDefaults = () => {
  * mean the EQ page said "flat" while three layers were still shaping the
  * output.
  */
+/**
+ * A layer applied afresh is applied, whatever was switched off before it.
+ *
+ * Called where a layer's settings arrive, not where they are edited. Choosing a
+ * voicing, finishing a measurement, applying a reference model — each of those
+ * is somebody asking to hear something, and handing them silence because the
+ * previous occupant of that slot was switched off is the one thing an applied
+ * layer must never do. Moving a band while its layer is bypassed is a different
+ * act: the chip is visibly off, and preparing a tuning before switching it in
+ * is a reasonable thing to want.
+ */
+const applyingLayer = (feature: TApoFeature) => {
+  if (!state.bypassed?.includes(feature)) {
+    return;
+  }
+  const rest = state.bypassed.filter((entry) => entry !== feature);
+  state.bypassed = rest.length ? rest : undefined;
+};
+
 const resetStateToDefaults = () => {
   resetEqToDefaults();
   state.convolution = undefined;
   state.voicing = undefined;
   state.driver = undefined;
   state.smartEq = undefined;
+  // Nothing is left to be switched off. Keeping the list would leave the next
+  // layer applied here silent for a reason nothing on screen accounts for.
+  state.bypassed = undefined;
 };
 
 /**
@@ -1230,6 +1258,49 @@ const expectedBandChain = (devicePattern: string) => {
   ].join('\n');
 };
 
+/**
+ * Believe the config about which layers are switched off.
+ *
+ * A bypassed layer is one whose settings are all still there and whose
+ * `Include:` is simply not written, so the config states it as plainly as it
+ * states anything else: this is a feature that would be written, and it is not
+ * in the file. That is what lets an A/B comparison survive a restart, which the
+ * old session-only stash could not — it had to be session-only precisely
+ * because a stash and a config would have been two places disagreeing about
+ * what was applied.
+ *
+ * Compared against what would be written with nothing bypassed, because the
+ * question is which of the layers this profile actually has are missing from
+ * the file. A feature with nothing to say is absent from both sides and is not
+ * switched off, it is empty.
+ */
+const adoptBypassFromConfig = (
+  features: Partial<Record<TApoFeature, string>>,
+) => {
+  const wouldWrite = stateToApoFiles(
+    { ...state, bypassed: undefined },
+    state.convolution?.fileName,
+  );
+  if (!wouldWrite) {
+    return;
+  }
+  const bypassed = wouldWrite.features
+    .map(({ feature }) => feature)
+    .filter((feature) => features[feature] === undefined);
+  const next = bypassed.length ? bypassed : undefined;
+
+  if (JSON.stringify(next) === JSON.stringify(state.bypassed)) {
+    return;
+  }
+  console.log(
+    `Adopting the switched-off layers from the Equalizer APO config: ${
+      next?.join(', ') || 'none'
+    }.`,
+  );
+  state.bypassed = next;
+  save(state, userDataDir);
+};
+
 const adoptExistingApoConfig = () => {
   if (hasAdoptedExistingConfig || !configPath) {
     return;
@@ -1252,6 +1323,14 @@ const adoptExistingApoConfig = () => {
     // the device's convolution and preamp, plus the EQ file, and none of the
     // layers. Without that attribution the whole block is all there is.
     const { features } = chain;
+
+    // First, and before any of the guards below can return: a bypassed EQ is
+    // one with no file at all, so the very case this has to recognise is the
+    // one the "no bands, nothing to adopt" check bows out of.
+    if (features) {
+      adoptBypassFromConfig(features);
+    }
+
     const adopted = adoptBlock({
       devicePattern: chain.devicePattern,
       text: features
@@ -1424,6 +1503,10 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     state.headset = presetSettings.headset;
     state.headsetTarget = presetSettings.headsetTarget;
     state.headsetSource = presetSettings.headsetSource;
+    // Which layers this profile has switched off comes with it, like the layers
+    // themselves. Keeping the previous profile's list would silence a layer this
+    // one never switched off.
+    state.bypassed = presetSettings.bypassed;
     attachPresetToActiveDevice(presetName);
     await handleUpdate(event, channel, true);
   } catch (ex) {
@@ -1463,6 +1546,7 @@ ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
     state.headset = baseline.headset;
     state.headsetTarget = baseline.headsetTarget;
     state.headsetSource = baseline.headsetSource;
+    state.bypassed = baseline.bypassed;
     // Restoring writes the profile back to the baseline, but deliberately does
     // NOT rewrite the baseline itself — restoring twice in a row is a no-op
     // rather than a way to lose the copy.
@@ -1792,6 +1876,7 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     state.headset = deviceName;
     state.headsetTarget = responseName;
     state.headsetSource = AUTOEQ_SOURCE_ID;
+    applyingLayer('eq');
     // AutoEQ may be ParametricEQ, FixedBandEQ, or GraphicEQ. Replace only the
     // EQ stage; an already loaded convolution remains an independent APO
     // stage.
@@ -1868,6 +1953,7 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
     // which database it meant. The panel falls back to matching on the model
     // name, which is what it did before the source was recorded at all.
     state.headsetSource = sourceId;
+    applyingLayer('eq');
     // Squiglink responses are editable EQ bands. Keep any separately selected
     // convolution profile in place while replacing only the EQ chain.
     state.isFlat = false;
@@ -1989,6 +2075,7 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
     state.filters = imported.filters;
     state.eqFormat = imported.eqFormat;
     state.graphicEq = imported.graphicEq;
+    applyingLayer('eq');
     // These bands came from a file, not from a measured model.
     state.headset = undefined;
     state.headsetTarget = undefined;
@@ -2495,6 +2582,7 @@ ipcMain.on(ChannelEnum.SET_VOICING, async (event, arg) => {
     return;
   }
 
+  applyingLayer('voicing');
   // The voicing is a layer of its own, so this never touches state.filters.
   state.voicing = {
     profileId,
@@ -2514,6 +2602,7 @@ ipcMain.on(ChannelEnum.SET_LOUDNESS, async (event, arg) => {
     return;
   }
 
+  applyingLayer('loudness');
   // A layer of its own, like the voicing, so this never touches state.filters —
   // switching it off restores the tuning underneath it exactly.
   state.loudness = {
@@ -2538,6 +2627,7 @@ ipcMain.on(ChannelEnum.SET_DRIVER, async (event, arg) => {
     return;
   }
 
+  applyingLayer('driver');
   // Its own layer, like the voicing: never touches state.filters, so the
   // user's bands survive switching driver types and switching back.
   state.driver = {
@@ -2575,7 +2665,47 @@ ipcMain.on(ChannelEnum.SET_SMART_EQ, async (event, arg) => {
     return;
   }
 
+  applyingLayer('smart');
   state.smartEq = sanitizeSmartEqSettings(settings);
+  await handleUpdate(event, channel, false, true);
+});
+
+/**
+ * Take a layer out of the config, or put it back, without touching its
+ * settings.
+ *
+ * The whole of it is a list of feature names the writer skips. There is nothing
+ * to stash and nothing to reconstruct, so there is no half-applied state to
+ * land in — which is exactly what went wrong when the bands were switched off
+ * by clearing them one at a time and restoring them one at a time.
+ *
+ * The preamp follows for free: it is measured over what was actually written,
+ * so switching a boosting layer off gives its headroom straight back.
+ */
+ipcMain.on(ChannelEnum.SET_LAYER_BYPASS, async (event, arg) => {
+  const channel = ChannelEnum.SET_LAYER_BYPASS;
+  const feature = arg?.[0];
+  const isBypassed = arg?.[1];
+
+  if (
+    !APO_FEATURES.includes(feature as TApoFeature) ||
+    typeof isBypassed !== 'boolean'
+  ) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+
+  // Rebuilt from APO_FEATURES rather than pushed onto, so the list keeps one
+  // order and cannot collect duplicates however often the switch is pressed.
+  const wanted = new Set(state.bypassed ?? []);
+  if (isBypassed) {
+    wanted.add(feature as TApoFeature);
+  } else {
+    wanted.delete(feature as TApoFeature);
+  }
+  const bypassed = APO_FEATURES.filter((entry) => wanted.has(entry));
+  state.bypassed = bypassed.length ? [...bypassed] : undefined;
+
   await handleUpdate(event, channel, false, true);
 });
 

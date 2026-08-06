@@ -16,8 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { ErrorDescription } from 'common/errors';
+import { TApoFeature } from 'common/constants';
 import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { hasSmartEqLayer } from 'common/smartEq';
@@ -27,6 +28,7 @@ import {
   clearConvolution,
   clearHeadset,
   setDriver as setDriverApi,
+  setLayerBypass,
   setLoudness as setLoudnessApi,
   setSmartEq as setSmartEqApi,
   setVoicing as setVoicingApi,
@@ -34,12 +36,6 @@ import {
 import { formatBalanceFrequency } from '../utils/autoBalance';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
-import {
-  bypassLayer,
-  forgetBypassedLayer,
-  restoreLayer,
-  useBypassedLayers,
-} from '../utils/layerBypass';
 import '../styles/ActiveLayers.scss';
 
 /**
@@ -66,6 +62,7 @@ const ActiveLayers = () => {
     loudness,
     isEnabled,
     isBlockingError,
+    bypassed,
     refreshState,
     setConvolution,
     setVoicing,
@@ -74,35 +71,8 @@ const ActiveLayers = () => {
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
-  const bypassed = useBypassedLayers();
 
-  // A layer applied afresh is applied, whatever was switched off before it.
-  //
-  // Bypass stashes the settings that were live at the time, and the settings
-  // can change from somewhere else entirely — picking another voicing on its
-  // own tab, a profile load bringing a different driver, a Smart EQ run
-  // finishing. Without this the new layer inherited the old one's switched-off
-  // state and arrived silent, which is the one thing an applied layer must
-  // never do.
-  //
-  // Compared by identity rather than by value, deliberately. Anything that
-  // hands back a fresh object clears the bypass, and that is the safe way to be
-  // wrong: the worst case is a layer that comes back on by itself, and the
-  // alternative is one that stays off without saying so.
-  useEffect(() => {
-    if (bypassed.voicing !== undefined && bypassed.voicing !== voicing) {
-      forgetBypassedLayer('voicing');
-    }
-    if (bypassed.driver !== undefined && bypassed.driver !== driver) {
-      forgetBypassedLayer('driver');
-    }
-    if (bypassed.smart !== undefined && bypassed.smart !== smartEq) {
-      forgetBypassedLayer('smart');
-    }
-    if (bypassed.loudness !== undefined && bypassed.loudness !== loudness) {
-      forgetBypassedLayer('loudness');
-    }
-  }, [bypassed, voicing, driver, smartEq, loudness]);
+  const isBypassed = (feature: TApoFeature) => bypassed.includes(feature);
 
   /**
    * Whether the bands still match what the reference model wrote.
@@ -147,14 +117,14 @@ const ActiveLayers = () => {
     /** Overrides the generic "remove this layer" wording. */
     clearHint?: string;
     /**
-     * Switch the layer off in the config while keeping it here, and switch it
-     * back on again. Present only on the layers that can be re-applied from
-     * settings alone — convolution needs its file back and the headset model
-     * needs its measurement, and a control that half works is worse than one
-     * that is not offered.
+     * Which file in the Equalizer APO config this chip stands for, and so what
+     * its A/B switch takes out of the chain.
+     *
+     * Every layer written as filters has one. The convolution does not: it is a
+     * `Convolution:` line in the device file rather than an include of its own,
+     * so there is nothing here to leave out.
      */
-    onBypass?: () => Promise<void>;
-    onRestore?: (settings: unknown) => Promise<void>;
+    feature?: TApoFeature;
   }[] = [];
 
   // The row reads in the order the config is written, so the chips and the
@@ -192,14 +162,7 @@ const ActiveLayers = () => {
         await setDriverApi('', driver?.intensity ?? 0.6);
         await refreshState();
       },
-      onBypass: async () => {
-        bypassLayer('driver', driver);
-        await setDriverApi('', driver?.intensity ?? 0.6);
-      },
-      onRestore: async (settings) => {
-        const kept = settings as typeof driver;
-        await setDriverApi(kept?.profileId ?? '', kept?.intensity ?? 0.6);
-      },
+      feature: 'driver',
     });
   }
 
@@ -240,6 +203,18 @@ const ActiveLayers = () => {
           await refreshState();
         }
       },
+      // The purest A/B in the app: the whole tuning out, the whole tuning back.
+      //
+      // It works because the bands are a file now. Switching them off is the
+      // `Include:` line not being written, so the tuning is never touched —
+      // where the first attempt at this had to clear every gain and put them
+      // back one at a time, which half-succeeded and left the chip describing a
+      // state it could not render.
+      //
+      // Nothing has to keep the chip on screen either. Bypass no longer
+      // flattens the gains this condition tests, so a switched-off EQ is still
+      // a shaped one and the chip stays of its own accord.
+      feature: 'eq',
     });
   }
 
@@ -254,14 +229,7 @@ const ActiveLayers = () => {
         await setVoicingApi('', voicing?.intensity ?? 1);
         await refreshState();
       },
-      onBypass: async () => {
-        bypassLayer('voicing', voicing);
-        await setVoicingApi('', voicing?.intensity ?? 1);
-      },
-      onRestore: async (settings) => {
-        const kept = settings as typeof voicing;
-        await setVoicingApi(kept?.profileId ?? '', kept?.intensity ?? 1);
-      },
+      feature: 'voicing',
     });
   }
 
@@ -292,13 +260,7 @@ const ActiveLayers = () => {
         await setSmartEqApi(undefined);
         await refreshState();
       },
-      onBypass: async () => {
-        bypassLayer('smart', smartEq);
-        await setSmartEqApi(undefined);
-      },
-      onRestore: async (settings) => {
-        await setSmartEqApi(settings as typeof smartEq);
-      },
+      feature: 'smart',
     });
   }
 
@@ -327,14 +289,7 @@ const ActiveLayers = () => {
         await setLoudnessApi(false, loudness?.intensity ?? 0.5);
         await refreshState();
       },
-      onBypass: async () => {
-        bypassLayer('loudness', loudness);
-        await setLoudnessApi(false, loudness?.intensity ?? 0.5);
-      },
-      onRestore: async (settings) => {
-        const kept = settings as typeof loudness;
-        await setLoudnessApi(true, kept?.intensity ?? 0.5);
-      },
+      feature: 'loudness',
     });
   }
 
@@ -360,42 +315,42 @@ const ActiveLayers = () => {
       {layers.map((layer) => (
         <span
           className={`active-layer${
-            bypassed[layer.key] !== undefined ? ' is-bypassed' : ''
+            layer.feature && isBypassed(layer.feature) ? ' is-bypassed' : ''
           }`}
           key={layer.key}
         >
           {/* The body of the chip is the A/B switch.
 
               Pressing it takes the layer out of the config and leaves it here,
-              dimmed; pressing again writes the same settings back. Nothing is
-              recomputed either way, which is the point — a correction is either
-              an improvement or it is not, and the only way to tell is to hear
-              the same passage both ways within a few seconds of itself.
-              Removing and re-applying is not that: Smart EQ takes half a minute
-              to measure and a cleared voicing is one you have to go and find.
+              dimmed; pressing again puts it back. Nothing is recomputed either
+              way, which is the point — a correction is either an improvement or
+              it is not, and the only way to tell is to hear the same passage
+              both ways within a few seconds of itself. Removing and re-applying
+              is not that: Smart EQ takes half a minute to measure and a cleared
+              voicing is one you have to go and find.
 
-              A plain span where the layer cannot come back from settings
-              alone — convolution needs its file and the headset model needs its
-              measurement — because a switch that only works one way is worse
-              than no switch. */}
-          {layer.onBypass ? (
+              One call each way, and the same call: a layer is switched off by
+              its file not being included, so there is no state in between for a
+              half-finished press to land in.
+
+              A plain span for the convolution, which is a line in the device
+              file rather than an include and so has nothing to leave out. */}
+          {layer.feature ? (
             <button
               type="button"
               className="active-layer__body"
-              aria-pressed={bypassed[layer.key] === undefined}
+              aria-pressed={!isBypassed(layer.feature)}
               disabled={isBlockingError || !isEnabled}
               title={
-                bypassed[layer.key] !== undefined
+                isBypassed(layer.feature)
                   ? t('eq.layers.enable', { layer: layer.label })
                   : t('eq.layers.disable', { layer: layer.label })
               }
               onClick={() => {
-                const stashed = bypassed[layer.key];
-                const run =
-                  stashed !== undefined
-                    ? layer.onRestore?.(restoreLayer(layer.key))
-                    : layer.onBypass?.();
-                run?.catch((e) => setGlobalError(e as ErrorDescription));
+                const feature = layer.feature as TApoFeature;
+                setLayerBypass(feature, !isBypassed(feature))
+                  .then(() => refreshState())
+                  .catch((e) => setGlobalError(e as ErrorDescription));
               }}
             >
               {layer.isVoicing ? (
@@ -443,13 +398,16 @@ const ActiveLayers = () => {
             }
             disabled={isBlockingError || !isEnabled}
             onClick={() => {
-              // The stash goes with it. Somebody removing a layer they had
-              // switched off means it gone, not restored, and a leftover entry
-              // would hand the next layer under this key the old one's
-              // settings.
-              forgetBypassedLayer(layer.key);
-              layer
-                .onClear()
+              // Switched back on as it goes. Somebody removing a layer they had
+              // switched off means it gone, not merely silent — and leaving the
+              // feature on the bypass list would hand the next layer applied
+              // here a config that refuses to include it.
+              const restore =
+                layer.feature && isBypassed(layer.feature)
+                  ? setLayerBypass(layer.feature, false)
+                  : Promise.resolve();
+              restore
+                .then(() => layer.onClear())
                 .catch((e) => setGlobalError(e as ErrorDescription));
             }}
           >

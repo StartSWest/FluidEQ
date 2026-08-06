@@ -46,7 +46,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import { findBlockForDevice, splitConfigBlocks } from '../common/apoSync';
-import { APO_FEATURES, FLUIDEQ_CONFIG_FILENAME, TApoFeature } from './flush';
+import { APO_FEATURES, TApoFeature } from '../common/constants';
+import { FLUIDEQ_CONFIG_FILENAME } from './flush';
 
 const INCLUDE_LINE = /^\s*Include\s*:\s*(.+?)\s*$/i;
 const DEVICE_FILE = /^fluideq-device-[0-9a-f]{12}\.txt$/i;

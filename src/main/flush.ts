@@ -19,8 +19,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import {
+  APO_FEATURES,
   AutoEqFormat,
   FilterTypeEnum,
+  TApoFeature,
   clampFrequency,
   clampGain,
   clampQuality,
@@ -127,41 +129,6 @@ const resolvePreAmp = (
   return -Math.max(0, filterPeak + graphicPeak);
 };
 
-/**
- * The features a chain is built from, in the order Equalizer APO applies them.
- *
- * The sequence reads physical, then intended, then taste, then measured: fix
- * the transducer, aim at a target, season it, correct what is left.
- *
- *  - `driver` compensates the transducer itself — a property of the hardware,
- *    like the impulse response above it. Below the voicing it read as if it
- *    were correcting the voicing.
- *  - `eq` is the user's own bands, or the GraphicEQ curve that stands in for
- *    them.
- *  - `voicing` is the target curve they picked.
- *  - `loudness` is a preference about how loud this should feel rather than a
- *    fix for anything, so it sits on top of all three corrections.
- *  - `smart` is last of all, because it is a correction of everything above it:
- *    the capture that produced it heard the bands, the voicing and the driver
- *    together, so its residual only means anything stacked on top of them.
- *    Anything appended after it would be un-measured.
- *
- * Nothing audible depends on the order. Cascaded biquads are linear, so their
- * magnitudes add in dB whatever the sequence, and the preamp is a peak over the
- * same set either way. It is for whoever is reading the config at two in the
- * morning wondering which layer did what — and now for which file they are
- * reading, since each of these is written to one of its own.
- */
-export const APO_FEATURES = [
-  'driver',
-  'eq',
-  'voicing',
-  'loudness',
-  'smart',
-] as const;
-
-export type TApoFeature = (typeof APO_FEATURES)[number];
-
 /** A filter stripped to the four things a config line is made of. */
 type TChainFilter = Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>;
 
@@ -199,11 +166,20 @@ const layerFilters = (filters: TChainFilter[]): TChainFilter[] =>
  * the writer decide "this device has no voicing" by asking whether the layer is
  * there — the same question, whether it ends up as an omitted block of lines or
  * an omitted `Include:`.
+ *
+ * A bypassed feature is absent for the same reason and by the same route, and
+ * that is the whole implementation of the A/B switch. Its settings are
+ * untouched; they simply are not written. Dropping it here rather than at the
+ * `Include:` is what keeps the preamp honest — the headroom comes back the
+ * moment the layer stops being applied, because it is measured over what was
+ * actually written.
  */
 const buildLayers = (state: IState): IApoLayer[] => {
   const layers: IApoLayer[] = [];
+  const isBypassed = (feature: TApoFeature) =>
+    (state.bypassed ?? []).includes(feature);
   const addLayer = (feature: TApoFeature, filters: TChainFilter[]) => {
-    if (filters.length) {
+    if (filters.length && !isBypassed(feature)) {
       layers.push({ feature, filters });
     }
   };
@@ -212,7 +188,7 @@ const buildLayers = (state: IState): IApoLayer[] => {
   // bands somebody tuned, not the correction for what they are listening on.
   addLayer('driver', layerFilters(getDriverFilters(state.driver)));
 
-  if (!state.isFlat) {
+  if (!state.isFlat && !isBypassed('eq')) {
     if (state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length) {
       const points = state.graphicEq
         .filter(
@@ -523,6 +499,23 @@ const normalizeLayerSelection = (value: unknown) => {
   };
 };
 
+/**
+ * The list of switched-off layers, off disk.
+ *
+ * Anything that is not a feature name is dropped rather than carried through.
+ * An unrecognised entry can only come from a hand edit or a newer FluidEQ, and
+ * a layer that is off for a reason nothing in this build understands is one
+ * nobody can switch back on. Filtering through APO_FEATURES also settles order
+ * and duplicates, so two equivalent lists compare equal.
+ */
+const normalizeBypassed = (value: unknown): TApoFeature[] | undefined => {
+  if (!Array.isArray(value)) {
+    return undefined;
+  }
+  const features = APO_FEATURES.filter((feature) => value.includes(feature));
+  return features.length ? [...features] : undefined;
+};
+
 const normalizeGraphicEq = (points: IGraphicEqPoint[] | undefined) =>
   Array.isArray(points)
     ? points.filter(
@@ -549,6 +542,7 @@ export const fetchSettings = (settingsDir: string) => {
       return undefined;
     }
 
+    const bypassed = normalizeBypassed(input.bypassed);
     const convolution = normalizeConvolution(input.convolution);
     // The recovery path rebuilds the state field by field, so a layer it does
     // not mention is silently thrown away — which is what used to happen to the
@@ -588,6 +582,7 @@ export const fetchSettings = (settingsDir: string) => {
       ...(voicing ? { voicing } : {}),
       ...(driver ? { driver } : {}),
       ...(smartEq ? { smartEq } : {}),
+      ...(bypassed ? { bypassed } : {}),
     } as IState;
   };
 
@@ -610,6 +605,7 @@ export const fetchSettings = (settingsDir: string) => {
       }
       throw new Error('Invalid state file loaded. Using default state.');
     }
+    const bypassed = normalizeBypassed(input.bypassed);
     // Manually set case sensitivity as false until it is confirmed in app that it can be enabled
     return {
       ...input,
@@ -618,6 +614,9 @@ export const fetchSettings = (settingsDir: string) => {
       ...(Array.isArray(input.graphicEq)
         ? { graphicEq: normalizeGraphicEq(input.graphicEq) }
         : {}),
+      // Sanitised where the file had one and left absent where it did not, so
+      // a state that never switched anything off is the object it always was.
+      ...(isObject(input) && 'bypassed' in input ? { bypassed } : {}),
       isCaseSensitiveFs: false,
     } as IState;
   } catch (ex) {
@@ -675,11 +674,13 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
     }
     const preset = json as IPresetV2;
     const graphicEq = normalizeGraphicEq(preset.graphicEq);
+    const bypassed = normalizeBypassed(preset.bypassed);
     return {
       ...preset,
       preAmp: clampGain(preset.preAmp),
       filters: normalizeFilters(preset.filters),
       ...(graphicEq ? { graphicEq } : {}),
+      ...('bypassed' in preset ? { bypassed } : {}),
     };
   } catch (ex) {
     console.log('Failed to get presets!!');

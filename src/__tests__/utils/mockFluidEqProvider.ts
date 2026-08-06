@@ -33,6 +33,9 @@ const defaultFluidEqContext: IFluidEqContext = {
   isEngineUsable: DEFAULT_STATE.isEnabled,
   driver: undefined,
   setDriver: () => {},
+  // Nothing switched off, which is what a test that has not said otherwise is
+  // describing.
+  bypassed: [],
   // Off by default, like a fresh install: it changes how everything sounds.
   loudness: DEFAULT_LOUDNESS,
   setLoudness: () => {},

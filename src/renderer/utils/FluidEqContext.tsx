@@ -35,6 +35,7 @@ import {
   IConvolutionProfile,
   IState,
   OUTPUT_STATE_CHANGED_EVENT,
+  TApoFeature,
 } from '../../common/constants';
 import { DEFAULT_VOICING, IVoicingSettings } from '../../common/voicing';
 import { DEFAULT_LOUDNESS, ILoudnessSettings } from '../../common/loudness';
@@ -176,6 +177,15 @@ export interface IFluidEqContext extends IState {
    * which amounts to the same thing and is stored as the same thing.
    */
   smartEq?: ISmartEqSettings;
+  /**
+   * Layers switched off without being thrown away.
+   *
+   * Read from the state rather than held here, because the config is what
+   * actually decides it: a bypassed layer is one whose `Include:` is not
+   * written, so the file, the profile and this row all say the same thing and
+   * an A/B comparison survives a restart.
+   */
+  bypassed: TApoFeature[];
   setDriver: (newValue: IDriverSettings) => void;
   setVoicing: (newValue: IVoicingSettings) => void;
   /**
@@ -390,6 +400,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [smartEq, setSmartEq] = useState<ISmartEqSettings | undefined>(
     DEFAULT_STATE.smartEq,
   );
+  const [bypassed, setBypassed] = useState<TApoFeature[]>(
+    DEFAULT_STATE.bypassed ?? [],
+  );
   const [convolution, setConvolution] = useState<
     IConvolutionProfile | undefined
   >(DEFAULT_STATE.convolution);
@@ -514,6 +527,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setVoicing(state.voicing ?? DEFAULT_VOICING);
         setDriver(state.driver ?? DEFAULT_DRIVER);
         setSmartEq(state.smartEq);
+        setBypassed(state.bypassed ?? []);
         setHeadset(state.headset);
         setHeadsetTarget(state.headsetTarget);
         setHeadsetSource(state.headsetSource);
@@ -650,6 +664,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         voicing,
         driver,
         smartEq,
+        bypassed,
         setDriver,
         setVoicing,
         setSmartEq,

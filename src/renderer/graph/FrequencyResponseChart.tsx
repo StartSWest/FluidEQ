@@ -25,6 +25,7 @@ import {
   MIN_FREQUENCY,
   MIN_GAIN,
   MIN_QUALITY,
+  TApoFeature,
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import {
@@ -91,7 +92,6 @@ import {
   useSelectedLookId,
 } from '../utils/graphStyle';
 import { setChromeHeld, useIsChromeIdle } from '../utils/idleChrome';
-import { useBypassedLayers } from '../utils/layerBypass';
 import {
   MAX_OVERLAY_BLUR,
   MIN_OVERLAY_OPACITY,
@@ -361,7 +361,6 @@ const FrequencyResponseChart = () => {
   const isFullScreen = useGraphFullScreen();
   const isChromeIdle = useIsChromeIdle();
   const hasTopBar = useFullScreenTopBar();
-  const bypassed = useBypassedLayers();
   const overlayOpacity = useOverlayOpacity();
   const overlayBlur = useOverlayBlur();
   const {
@@ -383,7 +382,9 @@ const FrequencyResponseChart = () => {
     voicing,
     driver,
     smartEq,
+    bypassed,
   } = useFluidEqContext();
+  const isBypassed = (feature: TApoFeature) => bypassed.includes(feature);
   const prevFilters = useRef<IFiltersMap>({});
   // Read by the window key handler, which is registered once and must not be
   // torn down and rebuilt every time a band moves.
@@ -634,7 +635,7 @@ const FrequencyResponseChart = () => {
     // the graph would happily go on drawing a curve for something that is no
     // longer in the config — and a graph that disagrees with what you hear is
     // worse than one that shows less. This is what makes the A/B honest.
-    (bypassed.voicing !== undefined ? [] : getVoicingFilters(voicing)).forEach(
+    (bypassed.includes('voicing') ? [] : getVoicingFilters(voicing)).forEach(
       (filter, index) => {
         const id = `voicing-${index}`;
         voicingFilterLines[id] = getFilterLineData({
@@ -652,7 +653,7 @@ const FrequencyResponseChart = () => {
     // its own curve, from the same biquad code, rather than an invisible
     // correction the user has to take on trust.
     const driverFilterLines: IChartLineDataPointsById = {};
-    (bypassed.driver !== undefined ? [] : getDriverFilters(driver)).forEach(
+    (bypassed.includes('driver') ? [] : getDriverFilters(driver)).forEach(
       (filter, index) => {
         const id = `driver-${index}`;
         driverFilterLines[id] = getFilterLineData({
@@ -670,7 +671,7 @@ const FrequencyResponseChart = () => {
     // the strongest claim to a curve of its own: nobody chose its shape, so the
     // graph is the only place it can be inspected at all.
     const smartFilterLines: IChartLineDataPointsById = {};
-    (bypassed.smart !== undefined ? [] : getSmartEqFilters(smartEq)).forEach(
+    (bypassed.includes('smart') ? [] : getSmartEqFilters(smartEq)).forEach(
       (filter, index) => {
         const id = `smart-eq-${index}`;
         smartFilterLines[id] = getFilterLineData({
@@ -694,9 +695,15 @@ const FrequencyResponseChart = () => {
     // line never includes the convolution response.
     // Auto-headroom has to see every layer, voicing included, or its reserve
     // is short by exactly the voicing's boost.
+    //
+    // Bands that are switched off are not part of it, for the same reason the
+    // other switched-off layers are not: this is what Equalizer APO is actually
+    // applying. The bands stay drawn and stay draggable — the editor is still
+    // the editor — but they are not in the sum, so the headroom this figure
+    // produces matches the preamp the writer computes from the same chain.
     const processedCurveData = getCombinedLineData(preAmp, {
       ...convolutionFilterLines,
-      ...updatedFilterLines,
+      ...(bypassed.includes('eq') ? {} : updatedFilterLines),
       ...voicingFilterLines,
       ...driverFilterLines,
       ...smartFilterLines,
@@ -1296,21 +1303,19 @@ const FrequencyResponseChart = () => {
           {!isSolo && (
             <span className="graph-legend graph-legend--eq">EQ response</span>
           )}
-          {!isSolo && voicing?.profileId && bypassed.voicing === undefined ? (
+          {!isSolo && voicing?.profileId && !isBypassed('voicing') ? (
             <span className="graph-legend graph-legend--voicing">Voicing</span>
           ) : null}
-          {!isSolo && driver?.profileId && bypassed.driver === undefined ? (
+          {!isSolo && driver?.profileId && !isBypassed('driver') ? (
             <span className="graph-legend graph-legend--driver">Driver</span>
           ) : null}
-          {!isSolo &&
-          hasSmartEqLayer(smartEq) &&
-          bypassed.smart === undefined ? (
+          {!isSolo && hasSmartEqLayer(smartEq) && !isBypassed('smart') ? (
             <span className="graph-legend graph-legend--smart">Smart EQ</span>
           ) : null}
           {!isSolo &&
-          ((voicing?.profileId && bypassed.voicing === undefined) ||
-            (driver?.profileId && bypassed.driver === undefined) ||
-            (hasSmartEqLayer(smartEq) && bypassed.smart === undefined)) ? (
+          ((voicing?.profileId && !isBypassed('voicing')) ||
+            (driver?.profileId && !isBypassed('driver')) ||
+            (hasSmartEqLayer(smartEq) && !isBypassed('smart'))) ? (
             <span className="graph-legend graph-legend--total">
               {[
                 'EQ',

@@ -42,6 +42,7 @@ import {
   IConvolutionProfile,
   ISmartEqSettings,
   ISquigSource,
+  TApoFeature,
 } from 'common/constants';
 import { IConvolutionCatalogEntry } from 'common/convolution';
 
@@ -876,6 +877,27 @@ export const setDriver = (
 export const setSmartEq = (settings?: ISmartEqSettings): Promise<void> => {
   const channel = ChannelEnum.SET_SMART_EQ;
   window.electron.ipcRenderer.sendMessage(channel, [settings]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
+/**
+ * Switch a layer out of the Equalizer APO config, or back into it.
+ *
+ * Nothing about the layer changes — its settings stay exactly where they were,
+ * and all that moves is whether its file is included. That is what makes this
+ * an A/B switch rather than a remove-and-reapply: pressing it twice returns to
+ * precisely the sound it started from, with nothing recomputed and nothing
+ * measured again.
+ * @param { TApoFeature } feature - which layer
+ * @param { boolean } isBypassed - true to take it out of the config
+ * @returns { Promise<void> } exception if the layer is not one of the five
+ */
+export const setLayerBypass = (
+  feature: TApoFeature,
+  isBypassed: boolean,
+): Promise<void> => {
+  const channel = ChannelEnum.SET_LAYER_BYPASS;
+  window.electron.ipcRenderer.sendMessage(channel, [feature, isBypassed]);
   return promisifyResult(setterResponseHandler, channel);
 };
 

@@ -85,6 +85,10 @@ enum ChannelEnum {
   // The measured correction, stored as its own layer. An empty payload removes
   // it; nothing here ever touches the user's bands.
   SET_SMART_EQ = 'setSmartEq',
+  // Switch a layer out of the config without disturbing a single one of its
+  // settings — the A/B switch on each chip. Takes a feature name and whether it
+  // should be off, and moves nothing else.
+  SET_LAYER_BYPASS = 'setLayerBypass',
   // Clearing a reference clears the bands it wrote, because applying one wrote
   // them. The layers stacked after them are untouched: none of them came from
   // the reference and none of them stop being true without it.
