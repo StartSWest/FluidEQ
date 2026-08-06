@@ -45,11 +45,10 @@ import { exec, execFile } from 'child_process';
 import { createHash } from 'crypto';
 import { redact } from '../common/bugReport';
 import {
-  addFileToPath,
   checkConfigFile,
   stateToString,
+  stateToApoFiles,
   fetchSettings,
-  FLUIDEQ_CONFIG_FILENAME,
   save,
   updateConfig,
   savePreset,
@@ -149,12 +148,8 @@ import {
   setUpVideoBrowser,
   setVideoAdBlockEnabled,
 } from './videoBrowser';
-import {
-  adoptBlock,
-  findBlockForDevice,
-  hasChainDrifted,
-  splitConfigBlocks,
-} from '../common/apoSync';
+import { adoptBlock, hasChainDrifted } from '../common/apoSync';
+import { readApoDeviceChain } from './apoConfigReader';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -1202,14 +1197,38 @@ const doesFilterIdExist = (
  * edit, another tool, an APO reinstall, a restore from backup. When they
  * disagree the file wins.
  *
- * Only the audible part is adopted. The voicing, driver and Smart EQ layers
- * reach APO as ordinary `Filter N:` lines with nothing marking them as layers,
- * so reading them back would turn them into hand-placed bands: the pickers
- * would read "none" while the sound was unchanged, and the next edit would
- * write all three in again on top of their own flattened copies. Their identity
- * stays where it can be represented, which is the profile.
+ * Only the audible part is adopted, and only the part the config can attribute.
+ * A config FluidEQ wrote keeps each feature in a file of its own, so the bands
+ * can be told apart from the voicing, the driver correction and the measured
+ * Smart EQ curve, and read back without dragging any of them along. A flat one
+ * — an older FluidEQ's, a hand-written one, another tool's — says nothing about
+ * where a `Filter N:` line came from, and there the old caution still holds.
  */
 let hasAdoptedExistingConfig = false;
+
+/**
+ * What we would write for the bands alone, in the shape the reader returns.
+ *
+ * The comparison has to be like for like. The reader hands back the device's
+ * own lines plus the EQ file, so this is the same slice of what the writer
+ * would produce — the convolution, the bands, and the whole-chain preamp that
+ * sits in the device file beside them. Comparing the state's own fields instead
+ * would report drift on FluidEQ's own output every launch, because the preamp
+ * is derived, inert bands are dropped and everything is clamped on the way out.
+ */
+const expectedBandChain = (devicePattern: string) => {
+  const files = stateToApoFiles(state, state.convolution?.fileName);
+  if (!files) {
+    return '';
+  }
+  return [
+    `Device: ${devicePattern}`,
+    'Channel: all',
+    ...(files.convolution ? [files.convolution] : []),
+    ...(files.features.find(({ feature }) => feature === 'eq')?.lines ?? []),
+    files.preAmp,
+  ].join('\n');
+};
 
 const adoptExistingApoConfig = () => {
   if (hasAdoptedExistingConfig || !configPath) {
@@ -1218,27 +1237,27 @@ const adoptExistingApoConfig = () => {
   hasAdoptedExistingConfig = true;
 
   try {
-    const filePath = addFileToPath(configPath, FLUIDEQ_CONFIG_FILENAME);
-    if (!fs.existsSync(filePath)) {
-      return;
-    }
-    const blocks = splitConfigBlocks(fs.readFileSync(filePath, 'utf8'));
-    if (blocks.length === 0) {
-      return;
-    }
-
     // Before any endpoint has been discovered the only block that can be about
     // this session is the global one, which is the right answer for a machine
     // with a single output and a harmless one otherwise: the device switch
     // that follows replaces the state wholesale anyway.
     const devicePattern =
       activeAudioDevice?.guid || activeAudioDevice?.name || '';
-    const block = findBlockForDevice(blocks, devicePattern);
-    if (!block) {
+    const chain = readApoDeviceChain(configPath, devicePattern);
+    if (!chain) {
       return;
     }
 
-    const adopted = adoptBlock(block);
+    // With the features in files of their own, the bands are read on their own:
+    // the device's convolution and preamp, plus the EQ file, and none of the
+    // layers. Without that attribution the whole block is all there is.
+    const { features } = chain;
+    const adopted = adoptBlock({
+      devicePattern: chain.devicePattern,
+      text: features
+        ? [chain.shared ?? '', features.eq ?? ''].join('\n')
+        : chain.text,
+    });
     if (!adopted) {
       return;
     }
@@ -1252,35 +1271,32 @@ const adoptExistingApoConfig = () => {
     //    band editor completely — no sliders at all, which is not a state the
     //    editor is even supposed to be able to reach.
     //
-    // 2. The voicing, driver and Smart EQ layers are written into the same
-    //    numbered `Filter N:` sequence as the user's own bands, with nothing
-    //    distinguishing them. If any of them is active, there is no way to
-    //    tell which lines came from where, and adopting would pull the layers
-    //    into the band editor as ordinary bands — where the next flush would
-    //    then write the layers on top of them again. Smart EQ is the worst
-    //    case: it is roughly two dozen bands, so adopting past it would double
-    //    a whole measured correction rather than one small curve.
+    // 2. In a flat config the voicing, driver and Smart EQ layers are written
+    //    into the same numbered `Filter N:` sequence as the user's own bands,
+    //    with nothing distinguishing them. If any of them is active, there is
+    //    no way to tell which lines came from where, and adopting would pull
+    //    the layers into the band editor as ordinary bands — where the next
+    //    flush would then write the layers on top of them again. Smart EQ is
+    //    the worst case: it is roughly two dozen bands, so adopting past it
+    //    would double a whole measured correction rather than one small curve.
+    //    This is the refusal the split exists to lift, and it now applies only
+    //    where it still has to.
     const hasBands =
       Object.keys(adopted.filters).length > 0 ||
       (adopted.graphicEq?.length ?? 0) > 0;
     const hasIndistinguishableLayers =
-      !!state.voicing?.profileId ||
-      !!state.driver?.profileId ||
-      hasSmartEqLayer(state.smartEq);
+      !features &&
+      (!!state.voicing?.profileId ||
+        !!state.driver?.profileId ||
+        hasSmartEqLayer(state.smartEq));
 
     if (!hasBands || hasIndistinguishableLayers) {
       return;
     }
 
-    // Compared against what the writer would actually produce, not against the
-    // state fields: the preamp is derived from the whole chain, inert bands are
-    // dropped, and the voicing and driver layers are appended. Comparing the
-    // raw state would report drift on FluidEQ's own output every launch.
-    const expected = stateToString(
-      state,
-      state.convolution?.fileName,
-      block.devicePattern,
-    );
+    const expected = features
+      ? expectedBandChain(chain.devicePattern)
+      : stateToString(state, state.convolution?.fileName, chain.devicePattern);
     if (!hasChainDrifted(expected, adopted)) {
       // The file says what we would have written. Nothing happened while we
       // were away.
@@ -1288,7 +1304,7 @@ const adoptExistingApoConfig = () => {
     }
 
     console.log(
-      `Adopting the Equalizer APO config for ${block.devicePattern}: it no longer matches the stored state.`,
+      `Adopting the Equalizer APO config for ${chain.devicePattern}: it no longer matches the stored state.`,
     );
     state.preAmp = adopted.preAmp;
     state.filters = adopted.filters;
