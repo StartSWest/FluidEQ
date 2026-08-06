@@ -111,72 +111,24 @@ it under the terms of the GNU General Public License version 3 or later.
         );
   }
 
-  // The live output trace, coloured rather than filtered.
+  // The live output trace: the sweep, handed to a drawing outside the cascade.
   //
-  // A stroke is chosen while painting a line that was going to be painted
-  // anyway; a drop-shadow is a second pass over everything the line touches,
-  // repeated every time it moves — which for this path is twenty-two times a
-  // second, forever.
-  // Not one that colours itself. A look painted from the spectrum across the
-  // frequency axis, or from a level ramp up the decibel axis, is saying
-  // something with its colour that one travelling hue cannot — overwriting it
-  // with the sweep throws the meaning away and leaves the setting looking
-  // broken. Euphoria recolours the trace only when the trace has no colour
-  // scheme of its own.
-  //
-  // Matched on `is-self-coloured` rather than on the rainbow specifically,
-  // because that is the actual rule. Testing for one palette by name meant
-  // every palette added afterwards was silently overridden.
-  path[name^='Live processed output']:not(.is-self-coloured) {
-    animation: euphoria-sweep 3.6s linear infinite;
-    stroke: hsl(var(--euphoria-hue) 95% 66%);
-  }
-
-  // The halo behind the trace, revealed.
-  //
-  // Nothing about the figure's own weight or fill is touched here, and that is
-  // deliberate: swelling the trace was tried and is the wrong tool, because it
-  // can only act on settings the look owns. A filled form has no stroke to
-  // thicken, and a look tuned to a light fill had that fill overridden to reach
-  // the effect — the mode was quietly editing the drawing rather than lighting
-  // it. The halo is a separate thing behind a figure that is left exactly as
-  // its look asked for it.
-  .chart-live-glow {
-    display: block;
-  }
-
-  // The frame around the card, travelling through the wheel.
-  //
-  // Only for looks that ask for it — see the switch in the designer. It is the
-  // one part of the mode that decorates the window rather than the drawing, and
-  // on a measurement it is noise; on a visualiser left running it is most of
-  // the point.
+  // Everything the mode used to do to the trace was a stylesheet rule over a
+  // path — recolour it when it has no colours of its own, reveal the halo,
+  // outline the figure for a look that asked for a border, bring the lit tips
+  // up. None of those can reach a canvas, so all four moved into the frame loop
+  // and what is left here is the one thing the loop cannot work out for itself:
+  // where in the wheel the sweep currently is.
   //
   // Animating `--euphoria-hue` rather than the colours themselves is what keeps
-  // it cheap: one registered custom property ticks, and the two rules below
-  // read it. No filter, nothing re-rasterised, and it is the same sweep every
-  // other euphoric surface in the app is already running in step with.
-  // The figure's own outline, travelling through the wheel.
-  //
-  // On the drawing, not on the card. This first framed the graph pane, which
-  // was the wrong reading of it entirely: the setting belongs to a look, and a
-  // look describes a wave — the window and its menus are not the look's to
-  // decorate. What it does now is what a visualiser means by a cycling border:
-  // the shape is outlined, and the outline runs the hue.
-  //
-  // On a filled form that is an edge around each piece with the look's own
-  // colours still inside it. On a form that is already a line, the line itself
-  // takes the sweep, which is the only thing an outline can mean there.
-  .chart-live-trace.has-euphoria-outline {
-    stroke: hsl(var(--euphoria-hue) 90% 62%);
-    stroke-width: var(--euphoria-border-width, 2px);
+  // it cheap: one registered custom property ticks, the painter reads it once a
+  // frame, and nothing is re-rasterised. The duration and the keyframes are the
+  // ones every other euphoric surface in the app uses, which is what keeps the
+  // wave in step with the frame around the window rather than drifting against
+  // it — see the note on the `@property` declaration for why this has to be
+  // animated on the element that reads it rather than inherited from the root.
+  .chart-live-canvas {
     animation: euphoria-sweep 3.6s linear infinite;
-  }
-
-  // The lit tips come up with it. They are already painted from the trace's own
-  // colour, so this only changes how present they are.
-  .graph-peak-halo {
-    opacity: 0.5;
   }
 
   // The target line joins in: thicker, and riding the same hue as everything

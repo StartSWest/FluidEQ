@@ -27,11 +27,11 @@ import useController, {
   IEditableChartPoint,
   IMarginLike,
 } from './ChartController';
-import { BAND_SPECTRUM_STOPS } from '../utils/bandColors';
 import { toggleGraphFullScreen, useGraphGridHidden } from '../utils/graphStyle';
 import { toggleChromeNow } from '../utils/idleChrome';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
+import LiveTraceCanvas from './LiveTraceCanvas';
 
 export interface ChartDimensions {
   height: number;
@@ -121,6 +121,27 @@ const Chart = ({
   }, []);
   const eqGradientStops: IChartGradientStop[] =
     data.find((curve) => curve.id === 'EQ Response')?.line.gradientStops || [];
+
+  /**
+   * Which curves go to which renderer.
+   *
+   * `isContinuous` marks the one curve fed by audio rather than by the user's
+   * own bands, and it is the only one that changes between measurements — so it
+   * is the only one that gains anything from a canvas. Everything else here is
+   * redrawn when something is dragged, which is rare enough that the DOM is the
+   * cheaper answer and hit-testing comes free with it.
+   *
+   * Split on the flag rather than on the id, so the two never disagree about
+   * which curve is the live one.
+   */
+  const liveCurves = useMemo(
+    () => data.filter((curve) => curve.isContinuous),
+    [data],
+  );
+  const bandCurves = useMemo(
+    () => data.filter((curve) => !curve.isContinuous),
+    [data],
+  );
   const svgRef = useRef<SVGSVGElement>(null);
   const selectionRef = useRef<
     | { startX: number; startY: number; currentX: number; currentY: number }
@@ -218,277 +239,240 @@ const Chart = ({
   };
 
   return (
-    <svg
-      ref={svgRef}
-      width={svgWidth}
-      height={svgHeight}
-      // Double-click the plot to fill the screen, and again to come back.
-      //
-      // The gesture every video player in the world uses, on the one pane here
-      // that behaves like one. It rides alongside the marquee rather than
-      // fighting it: a double click is two clicks, each of which selects
-      // nothing, so the selection is already empty by the time this fires.
-      //
-      // On a band handle it does nothing — those have their own handlers and
-      // stop the event — so dragging a point and accidentally double-tapping it
-      // does not throw the window into full screen.
-      onDoubleClick={(event) => {
-        if ((event.target as Element).closest?.('.graph-edit-point')) {
-          return;
-        }
-        toggleGraphFullScreen();
-      }}
-      // A single click on the drawing shows the chrome or puts it away.
-      //
-      // Only full screen is watching, so this does nothing in any other mode.
-      // A toggle rather than a hide, because a control that works in one
-      // direction only is one somebody presses twice and then stops trusting.
-      //
-      // Not on a band handle: those are for dragging, and moving the toolbar
-      // every time one is touched would be a control that punishes being used.
-      onClick={(event) => {
-        if ((event.target as Element).closest?.('.graph-edit-point')) {
-          return;
-        }
-        toggleChromeNow();
-      }}
-      onPointerDown={handleSelectionStart}
-      onPointerMove={handleSelectionMove}
-      onPointerUp={finishSelection}
-      onPointerCancel={finishSelection}
-      style={{
-        margin: `${margins.top}px ${margins.right}px ${margins.bottom}px ${margins.left}px`,
-      }}
-    >
-      <defs>
-        <linearGradient
-          id="chart-eq-spectrum-gradient"
-          gradientUnits="userSpaceOnUse"
-          x1={padding.left}
-          x2={svgWidth - padding.right}
-          y1={0}
-          y2={0}
-        >
-          {(eqGradientStops.length > 0
-            ? eqGradientStops
-            : [
-                { offset: 0, color: '#00e5cf' },
-                { offset: 1, color: '#8b5cff' },
-              ]
-          ).map((stop) => (
-            <stop
-              key={`${stop.offset}-${stop.color}`}
-              offset={`${Math.max(0, Math.min(1, stop.offset)) * 100}%`}
-              stopColor={stop.color}
-            />
-          ))}
-        </linearGradient>
-        {/* The rainbow palette's own gradient.
+    <>
+      {/* The live trace, on its own canvas behind the drawing.
 
-            Separate from the EQ one above, which is built from the stops of
-            whatever bands happen to exist — with four bands that is four
-            colours over part of the axis, which is why "rainbow" was coming
-            out as a two-tone wash. This is the app's full spectrum, the same
-            five colours the band rails use, laid across the whole plot so a
-            column's colour says which part of the range it sits in
-            regardless of how the EQ is set up. */}
-        <linearGradient
-          id="chart-live-rainbow"
-          gradientUnits="userSpaceOnUse"
-          x1={padding.left}
-          x2={svgWidth - padding.right}
-          y1={0}
-          y2={0}
-        >
-          {BAND_SPECTRUM_STOPS.map((stop) => (
-            <stop
-              key={stop.offset}
-              offset={`${stop.offset * 100}%`}
-              stopColor={stop.color}
-            />
-          ))}
-        </linearGradient>
-        <filter
-          id="chart-eq-neon-glow"
-          x="-30%"
-          y="-120%"
-          width="160%"
-          height="340%"
-          colorInterpolationFilters="sRGB"
-        >
-          <feGaussianBlur stdDeviation="5" />
-        </filter>
-      </defs>
-      {/* The paper, as one group, so it can be taken away as one thing.
+          A sibling of the SVG rather than a layer inside it, because that is
+          the whole point: a canvas draw replaces pixels, where a path rewrites
+          an attribute that the document then has to re-parse and re-rasterise.
+          Both boxes are laid over the same corner of the plot, so a coordinate
+          means the same thing in each — see the canvas for how it is sized. */}
+      {liveCurves.length > 0 && (
+        <LiveTraceCanvas
+          curves={liveCurves}
+          xScale={xScaleFreq}
+          yScale={yScaleGain}
+          width={svgWidth}
+          height={svgHeight}
+          offsetLeft={margins.left}
+          offsetTop={margins.top}
+        />
+      )}
+      <svg
+        ref={svgRef}
+        width={svgWidth}
+        height={svgHeight}
+        // Double-click the plot to fill the screen, and again to come back.
+        //
+        // The gesture every video player in the world uses, on the one pane here
+        // that behaves like one. It rides alongside the marquee rather than
+        // fighting it: a double click is two clicks, each of which selects
+        // nothing, so the selection is already empty by the time this fires.
+        //
+        // On a band handle it does nothing — those have their own handlers and
+        // stop the event — so dragging a point and accidentally double-tapping it
+        // does not throw the window into full screen.
+        onDoubleClick={(event) => {
+          if ((event.target as Element).closest?.('.graph-edit-point')) {
+            return;
+          }
+          toggleGraphFullScreen();
+        }}
+        // A single click on the drawing shows the chrome or puts it away.
+        //
+        // Only full screen is watching, so this does nothing in any other mode.
+        // A toggle rather than a hide, because a control that works in one
+        // direction only is one somebody presses twice and then stops trusting.
+        //
+        // Not on a band handle: those are for dragging, and moving the toolbar
+        // every time one is touched would be a control that punishes being used.
+        onClick={(event) => {
+          if ((event.target as Element).closest?.('.graph-edit-point')) {
+            return;
+          }
+          toggleChromeNow();
+        }}
+        onPointerDown={handleSelectionStart}
+        onPointerMove={handleSelectionMove}
+        onPointerUp={finishSelection}
+        onPointerCancel={finishSelection}
+        style={{
+          margin: `${margins.top}px ${margins.right}px ${margins.bottom}px ${margins.left}px`,
+        }}
+      >
+        <defs>
+          <linearGradient
+            id="chart-eq-spectrum-gradient"
+            gradientUnits="userSpaceOnUse"
+            x1={padding.left}
+            x2={svgWidth - padding.right}
+            y1={0}
+            y2={0}
+          >
+            {(eqGradientStops.length > 0
+              ? eqGradientStops
+              : [
+                  { offset: 0, color: '#00e5cf' },
+                  { offset: 1, color: '#8b5cff' },
+                ]
+            ).map((stop) => (
+              <stop
+                key={`${stop.offset}-${stop.color}`}
+                offset={`${Math.max(0, Math.min(1, stop.offset)) * 100}%`}
+                stopColor={stop.color}
+              />
+            ))}
+          </linearGradient>
+          {/* The rainbow palette's own gradient used to sit here beside the EQ
+              one, because a path could only be painted from a `<defs>` entry.
+              The live trace builds it against its own canvas now, from the same
+              `BAND_SPECTRUM_STOPS` — see `resolveTracePaint`, which also keeps
+              the reason the two gradients are separate. */}
+          <filter
+            id="chart-eq-neon-glow"
+            x="-30%"
+            y="-120%"
+            width="160%"
+            height="340%"
+            colorInterpolationFilters="sRGB"
+          >
+            <feGaussianBlur stdDeviation="5" />
+          </filter>
+        </defs>
+        {/* The paper, as one group, so it can be taken away as one thing.
           Grouped rather than each line carrying its own class: the hiding is a
           single decision and four grid layers plus two axes agreeing about it
           is four more places for one of them to be forgotten. */}
-      <g className="chart-grid">
-        <GridLine
-          type="vertical"
-          scale={xScaleFreq}
-          tickValues={[20, 100, 200, 1000, 2000, 10000, 20000]}
-          size={svgHeight - padding.bottom}
-          transform={`translate(0, ${svgHeight - padding.bottom})`}
-        />
-        <GridLine
-          type="vertical"
-          scale={xScaleFreq}
-          tickValues={[
-            40, 60, 80, 120, 140, 160, 180, 400, 600, 800, 1200, 1400, 1600,
-            1800, 4000, 6000, 8000, 12000, 14000, 16000, 18000,
-          ]}
-          size={svgHeight - padding.bottom - 20}
-          transform={`translate(0, ${svgHeight - padding.bottom - 10})`}
-        />
-        <GridLine
-          type="horizontal"
-          scale={yScaleGain}
-          tickValues={yGridTickValues}
-          size={plotWidth}
-          transform={`translate(${padding.left}, 0)`}
-        />
-        <GridLine
-          type="horizontal"
-          scale={yScaleGain}
-          tickValues={[0]}
-          size={plotWidth}
-          // Unity gain is a reference, not a measurement, so it reads as a
-          // brighter grid line rather than as another coloured curve. It was
-          // pink, which put a fourth near-identical magenta on a chart that
-          // already had three.
-          color="rgba(255, 255, 255, 0.22)"
-          transform={`translate(${padding.left}, 0)`}
-        />
-      </g>
-      {/* Smart EQ coverage. Each frequency region lights up as it is actually
+        <g className="chart-grid">
+          <GridLine
+            type="vertical"
+            scale={xScaleFreq}
+            tickValues={[20, 100, 200, 1000, 2000, 10000, 20000]}
+            size={svgHeight - padding.bottom}
+            transform={`translate(0, ${svgHeight - padding.bottom})`}
+          />
+          <GridLine
+            type="vertical"
+            scale={xScaleFreq}
+            tickValues={[
+              40, 60, 80, 120, 140, 160, 180, 400, 600, 800, 1200, 1400, 1600,
+              1800, 4000, 6000, 8000, 12000, 14000, 16000, 18000,
+            ]}
+            size={svgHeight - padding.bottom - 20}
+            transform={`translate(0, ${svgHeight - padding.bottom - 10})`}
+          />
+          <GridLine
+            type="horizontal"
+            scale={yScaleGain}
+            tickValues={yGridTickValues}
+            size={plotWidth}
+            transform={`translate(${padding.left}, 0)`}
+          />
+          <GridLine
+            type="horizontal"
+            scale={yScaleGain}
+            tickValues={[0]}
+            size={plotWidth}
+            // Unity gain is a reference, not a measurement, so it reads as a
+            // brighter grid line rather than as another coloured curve. It was
+            // pink, which put a fourth near-identical magenta on a chart that
+            // already had three.
+            color="rgba(255, 255, 255, 0.22)"
+            transform={`translate(${padding.left}, 0)`}
+          />
+        </g>
+        {/* Smart EQ coverage. Each frequency region lights up as it is actually
           heard, so the wait is legible: you can see which part of the spectrum
           the measurement is still missing rather than watching a percentage. */}
-      {coverage && coverage.length > 0 && (
-        <g className="chart-coverage" pointerEvents="none">
-          {coverage.map((region) => {
-            const left = Number(xScaleFreq(region.lowFrequency));
-            const right = Number(xScaleFreq(region.highFrequency));
-            const width = Math.max(0, right - left - 2);
-            const height = Math.max(0, plotHeight - padding.top);
-            return (
-              <g key={region.label}>
-                <rect
-                  className="chart-coverage__column"
-                  x={left + 1}
-                  y={padding.top}
-                  width={width}
-                  height={height}
-                  opacity={0.06 + region.confidence * 0.14}
-                />
-                <rect
-                  className="chart-coverage__track"
-                  x={left + 1}
-                  y={plotHeight - 6}
-                  width={width}
-                  height={4}
-                  rx={2}
-                />
-                <rect
-                  className={`chart-coverage__fill${
-                    region.isCovered ? ' is-covered' : ''
-                  }`}
-                  x={left + 1}
-                  y={plotHeight - 6}
-                  width={width * Math.min(1, region.confidence)}
-                  height={4}
-                  rx={2}
-                />
-              </g>
-            );
-          })}
-        </g>
-      )}
-      {selectionBox && (
-        <rect
-          className="chart-selection-box"
-          x={Math.min(selectionBox.startX, selectionBox.currentX)}
-          y={Math.min(selectionBox.startY, selectionBox.currentY)}
-          width={Math.abs(selectionBox.currentX - selectionBox.startX)}
-          height={Math.abs(selectionBox.currentY - selectionBox.startY)}
-          pointerEvents="none"
-        />
-      )}
-      {data.map((e: IChartCurveData) =>
-        e.isFlipped || e.isHalfHeight ? (
-          // Mirrored as a drawing, not as data.
-          //
-          // Negating the gain was the first attempt and it gives the *negative*
-          // of the wave: every style draws upward from a baseline at the bottom
-          // of the plot, so a negated value makes a tall bar short rather than
-          // making it hang. The shape inverts instead of the picture.
-          //
-          // Reflecting the rendered geometry about the plot keeps the shape
-          // exactly and turns it upside down, which is what hanging from the
-          // ceiling means. `translate` then `scale(1,-1)` because a bare flip
-          // would send it off the top of the viewport.
-          //
-          // Half height anchors at the middle instead of at an edge, so the two
-          // copies of a mirrored wave grow away from each other rather than
-          // both taking the whole plot and crossing through one another.
-          <g
-            key={e.id}
-            transform={(() => {
-              if (!e.isHalfHeight) {
-                return `translate(0, ${plotHeight}) scale(1, -1)`;
-              }
-              if (e.isFromCentre) {
-                // Baseline at the middle, peaks reaching the edges. The upper
-                // copy is a plain half-scale — its baseline already lands on
-                // the centre line — and the lower one is that reflected about
-                // the bottom.
-                return e.isFlipped
-                  ? `scale(1, 0.5)`
-                  : `translate(0, ${plotHeight}) scale(1, -0.5)`;
-              }
-              // Baseline at the edges, peaks meeting in the middle.
-              return `translate(0, ${plotHeight / 2}) scale(1, ${
-                e.isFlipped ? -0.5 : 0.5
-              })`;
-            })()}
-          >
-            <Curve data={e} xScale={xScaleFreq} yScale={yScaleGain} />
+        {coverage && coverage.length > 0 && (
+          <g className="chart-coverage" pointerEvents="none">
+            {coverage.map((region) => {
+              const left = Number(xScaleFreq(region.lowFrequency));
+              const right = Number(xScaleFreq(region.highFrequency));
+              const width = Math.max(0, right - left - 2);
+              const height = Math.max(0, plotHeight - padding.top);
+              return (
+                <g key={region.label}>
+                  <rect
+                    className="chart-coverage__column"
+                    x={left + 1}
+                    y={padding.top}
+                    width={width}
+                    height={height}
+                    opacity={0.06 + region.confidence * 0.14}
+                  />
+                  <rect
+                    className="chart-coverage__track"
+                    x={left + 1}
+                    y={plotHeight - 6}
+                    width={width}
+                    height={4}
+                    rx={2}
+                  />
+                  <rect
+                    className={`chart-coverage__fill${
+                      region.isCovered ? ' is-covered' : ''
+                    }`}
+                    x={left + 1}
+                    y={plotHeight - 6}
+                    width={width * Math.min(1, region.confidence)}
+                    height={4}
+                    rx={2}
+                  />
+                </g>
+              );
+            })}
           </g>
-        ) : (
+        )}
+        {selectionBox && (
+          <rect
+            className="chart-selection-box"
+            x={Math.min(selectionBox.startX, selectionBox.currentX)}
+            y={Math.min(selectionBox.startY, selectionBox.currentY)}
+            width={Math.abs(selectionBox.currentX - selectionBox.startX)}
+            height={Math.abs(selectionBox.currentY - selectionBox.startY)}
+            pointerEvents="none"
+          />
+        )}
+        {/* Everything the user is editing, or that made what they are editing.
+          The orientations — hanging, mirrored, centred — belong to the live
+          trace alone and are applied on the canvas, where the geometry they
+          reflect is drawn. */}
+        {bandCurves.map((e: IChartCurveData) => (
           <Curve key={e.id} data={e} xScale={xScaleFreq} yScale={yScaleGain} />
-        ),
-      )}
-      {editablePoints.map((point) => (
-        <EditablePoint
-          key={point.id}
-          point={point}
-          svgRef={svgRef}
-          xScale={xScaleFreq}
-          yScale={yScaleGain}
-        />
-      ))}
-      <clipPath id="chart-clip-path">
-        <rect x={padding.left} y={0} width={plotWidth} height={plotHeight} />
-      </clipPath>
-      {/* The scales, in the same group as the lines they label. A decibel axis
+        ))}
+        {editablePoints.map((point) => (
+          <EditablePoint
+            key={point.id}
+            point={point}
+            svgRef={svgRef}
+            xScale={xScaleFreq}
+            yScale={yScaleGain}
+          />
+        ))}
+        <clipPath id="chart-clip-path">
+          <rect x={padding.left} y={0} width={plotWidth} height={plotHeight} />
+        </clipPath>
+        {/* The scales, in the same group as the lines they label. A decibel axis
           beside a plot with no grid is a ruler with no marks on it. */}
-      <g className="chart-grid">
-        <Axis
-          type="left"
-          scale={yScaleGain}
-          transform={`translate(${padding.left}, 0)`}
-          tickValues={yAxisTickValues}
-          tickFormat={yTickFormat}
-        />
-        <Axis
-          type="bottom"
-          scale={xScaleFreq}
-          transform={`translate(0, ${svgHeight - padding.bottom})`}
-          tickValues={[20, 100, 200, 1000, 2000, 10000, 20000]}
-          tickFormat={xTickFormat}
-        />
-      </g>
-    </svg>
+        <g className="chart-grid">
+          <Axis
+            type="left"
+            scale={yScaleGain}
+            transform={`translate(${padding.left}, 0)`}
+            tickValues={yAxisTickValues}
+            tickFormat={yTickFormat}
+          />
+          <Axis
+            type="bottom"
+            scale={xScaleFreq}
+            transform={`translate(0, ${svgHeight - padding.bottom})`}
+            tickValues={[20, 100, 200, 1000, 2000, 10000, 20000]}
+            tickFormat={xTickFormat}
+          />
+        </g>
+      </svg>
+    </>
   );
 };
 

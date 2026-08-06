@@ -86,7 +86,6 @@ import {
   useWaveOrientation,
   useGraphView,
   useFullScreenTopBar,
-  useGraphLook,
   useLiveOutputSolo,
   useSelectedLookId,
 } from '../utils/graphStyle';
@@ -159,9 +158,6 @@ const FrequencyResponseChart = () => {
   // is drawing an unsaved draft whose id is in no list, and a picker handed
   // that id would show nothing.
   const selectedLookId = useSelectedLookId();
-  // The resolved look, which unlike the id above follows the designer's draft —
-  // so a border switched on in the panel is on the card before it is saved.
-  const liveLook = useGraphLook();
   const customLooks = useCustomLooks();
   const [isDesignerOpen, setIsDesignerOpen] = useState(false);
   const isSolo = useLiveOutputSolo();
@@ -1144,10 +1140,10 @@ const FrequencyResponseChart = () => {
       // is the surface layer behind the drawing — see GraphTheme.
       style={
         {
-          // Inherited by the trace, which is what the outline is drawn on. Set
-          // here rather than on the path because the path's attributes are
-          // rewritten every frame and this is not one of them.
-          '--euphoria-border-width': `${liveLook.tuning.borderWidth}px`,
+          // The euphoria border used to be handed down here as a custom
+          // property, because the trace was a path and its attributes were
+          // rewritten every frame. The trace draws itself now and reads the
+          // width straight off the look, so there is nothing left to inherit.
           '--graph-overlay-opacity': overlayOpacity,
           // The whole filter, so that no blur is the keyword `none` rather than
           // `blur(0px)` — which is still a filter, and still costs a

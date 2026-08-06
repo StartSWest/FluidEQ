@@ -434,40 +434,37 @@
   display: none;
 }
 
-// The live trace coming forward, and going back.
+// The live trace, and the drawing it sits behind.
 //
-// Wave only takes the trace from a supporting layer to the subject of the
-// graph: brighter, and a little heavier. Snapping between the two reads as a
-// glitch — the drawing is already moving with the music, so an instant change
-// of weight looks like a frame was dropped rather than like a mode changed.
-// Eased, it reads as the trace stepping forward.
+// Two layers over the same box: a canvas carrying the wave, and the chart's SVG
+// carrying the paper it is read against — the grid, the axes, the EQ curves and
+// the band handles. The canvas is placed by the chart, which knows the margins;
+// all this decides is which of the two is in front, and it has to say so
+// explicitly because a positioned element otherwise paints over a sibling that
+// is not positioned, whatever the document order.
 //
-// On the opacity and the stroke width only, and both are compositor-friendly:
-// nothing here re-rasterises the path, which matters because this is the one
-// curve being re-pathed twenty-two times a second underneath the transition.
+// The SVG wins. The trace used to be drawn over the grid and under the handles,
+// which no single layer can be, and of the two the handles matter more: they
+// are controls, and a control that vanishes under a moving drawing is worse
+// than a hairline crossing a wave.
 //
-// These are SVG presentation attributes rather than inline styles — d3 sets
-// them with `.attr` — and Chromium transitions the computed value just the
-// same, which is why this works without touching how the trace is drawn.
-.chart-live-trace {
-  transition:
-    opacity 420ms ease,
-    stroke-width 420ms ease;
+// `pointer-events: none` because every gesture on this pane — dragging a band,
+// the marquee, the click that cycles the chrome — is hit-tested against the SVG
+// underneath, and a canvas over the top would swallow all of them.
+//
+// Nothing here says anything about how the trace is painted. The opacity, the
+// weight, the glow and the euphoria colours are all decided in the frame loop
+// now; a canvas has no cascade, so the rules that used to live in a stylesheet
+// live in `liveTracePaint` instead.
+.graph-plot > svg {
+  position: relative;
+  z-index: 1;
 }
 
-// The halo behind the live trace, off unless euphoria is on.
-//
-// `display: none` rather than a zero opacity, and that is the performance
-// story: a transparent path is still one the compositor lays out and paints,
-// and this one is a wide stroke of a figure rewritten twenty-two times a
-// second. Undisplayed it costs nothing — and the frame loop skips writing to it
-// entirely, which is the larger half of the saving, since `d` is parsed whether
-// or not anything is painted.
-//
-// No colour and no weight of its own: Line.tsx owns both, and strokes it with
-// whatever the trace itself is painted with.
-.chart-live-glow {
-  display: none;
+.chart-live-canvas {
+  position: absolute;
+  z-index: 0;
+  pointer-events: none;
 }
 
 // A look the user made, marked wherever its name appears.
