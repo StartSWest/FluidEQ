@@ -682,6 +682,13 @@ $graph-controls-height: 40px;
   padding-top: 0;
 }
 
+// The panel behind it squares off too, for the same reason.
+.app-workspace.is-app-full .center-workspace.is-graph-full {
+  .workspace-tab-panel {
+    border-radius: 0;
+  }
+}
+
 // In full screen the header line gets a card of its own, and hides itself.
 //
 // Everywhere else it reads on a panel and needs no surface. Here it floats on a
@@ -765,9 +772,18 @@ $graph-controls-height: 40px;
 // The surface itself stays, because that is what the see-through slider is for.
 .app-workspace.is-app-full .center-workspace.is-graph-full > .graph-wrapper {
   border: none;
-  border-radius: 0;
   background: none;
   box-shadow: none;
+
+  // Square, all the way down. The radius is on the card, on the surface layer
+  // behind it and on the plot that clips to it — three places, because each
+  // inherits from the last and any one left rounded shows as a notch of
+  // workspace in the corner of a picture that should reach the glass.
+  &,
+  &::before,
+  > .graph-plot {
+    border-radius: 0;
+  }
 }
 
 .app-workspace.is-app-full {
