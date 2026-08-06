@@ -185,28 +185,13 @@ const EXIT_PLAYER_ONLY = `(() => {
 })()`;
 
 /**
- * Ask the page to put its own player into fullscreen.
+ * Put the page back if it is holding its own fullscreen.
  *
- * The site's own button first, and not out of politeness: a player driven
- * through its own control ends up in the state it expects — its chrome
- * rescales, its keyboard shortcuts follow, and leaving fullscreen puts
- * everything back. Calling `requestFullscreen` on the video element behind the
- * player's back gets a full-size picture with a player that still believes it
- * is windowed, which on YouTube means the controls stay small and mispositioned.
- *
- * The element fallback is for everything without a button we can name, which is
- * every site that redesigns its player after this was written.
+ * Through the site's own button where there is one: a player driven by its own
+ * control ends up in the state it expects, and leaving that way puts its chrome
+ * back. The element call is the fallback for anything without a button we can
+ * name.
  */
-const REQUEST_PAGE_FULLSCREEN = `(() => {
-  if (document.fullscreenElement) { return 'already'; }
-  const button = document.querySelector(
-    '.ytp-fullscreen-button, [data-a-target="player-fullscreen-button"], .fullscreen-control, .vp-fullscreen'
-  );
-  if (button) { button.click(); return 'button'; }
-  const video = document.querySelector('video');
-  if (video && video.requestFullscreen) { video.requestFullscreen(); return 'video'; }
-  return 'none';
-})()`;
 
 const EXIT_PAGE_FULLSCREEN = `(() => {
   if (!document.fullscreenElement) { return 'none'; }
@@ -324,42 +309,33 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   const activeSite = findSiteForUrl(currentUrl);
 
   /**
-   * Take the page's own player with us into full screen.
+   * Make sure the page is not holding its own fullscreen while we own the mode.
    *
-   * The graph's full-screen mode gives the window to the player and the graph.
-   * Without this the *window* was fullscreen and the video inside it was still
-   * a letterboxed rectangle in the middle of a search results page — which is
-   * the one thing the mode exists to avoid.
+   * Asking for the site's fullscreen was how full screen used to strip the
+   * page, and it is the wrong instrument: YouTube's fullscreen is YouTube's
+   * *interface* — its own controls, its own overlays, its own idea of what the
+   * screen is for — and it lands on top of the graph, which is the one thing
+   * this mode exists to show. Both larger modes strip the page the same way
+   * now, by hiding everything off the path to the player, which leaves the
+   * player's ordinary controls and nothing else.
    *
-   * Skipped while the tab is hidden. Forcing a background player fullscreen
-   * would be a page taking over a screen nobody is looking at it on, and the
-   * guest is still loaded and playing the whole time.
+   * What is left here is the undo. Somebody can still press the player's own
+   * fullscreen button, and a page left in that state while the mode changes
+   * around it is a video that has taken the screen from the app that was
+   * lending it.
    */
   useEffect(() => {
     const view = webviewRef.current;
-    if (!view || isHidden || !isGuestReady) {
+    if (!view || isHidden || !isGuestReady || graphView !== 'normal') {
       return;
     }
     try {
-      view
-        .executeJavaScript(
-          graphView === 'fullscreen'
-            ? REQUEST_PAGE_FULLSCREEN
-            : EXIT_PAGE_FULLSCREEN,
-          // Counts as a user gesture. The click or the shortcut that opened the
-          // mode was one; Chromium has no way to know that from here, and
-          // `requestFullscreen` refuses without it.
-          true,
-        )
-        .catch(() => {
-          // The document went away mid-call — a navigation landing at the same
-          // moment. The next mode change will find the new one.
-        });
+      view.executeJavaScript(EXIT_PAGE_FULLSCREEN, true).catch(() => {
+        // The document went away mid-call — a navigation landing at the same
+        // moment. Nothing is left in a bad state by not answering.
+      });
     } catch {
       // Throws rather than rejects when the guest has no web contents id yet.
-      // `dom-ready` is meant to have ruled that out, but a teardown racing this
-      // effect can still get here, and a crashed player is not worth taking the
-      // window down over.
     }
   }, [graphView, isGuestReady, isHidden]);
 
@@ -372,18 +348,19 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
    */
   useEffect(() => {
     const view = webviewRef.current;
-    // Expanded only, and that exclusion is load-bearing.
+    // Both larger modes, by the same route.
     //
-    // Full screen already asks the page's own player to go fullscreen, which
-    // strips the page to the player by itself and does it the way the site
-    // intends. Running both left a blank screen: the player is in Chromium's
-    // top layer as the fullscreen element while these rules are still pinning
-    // and hiding things around it, and the two descriptions of where it belongs
-    // do not agree.
+    // Full screen used to ask the site for *its* fullscreen instead, which
+    // brings YouTube's own interface with it — controls, overlays, the lot —
+    // and puts all of it on top of the graph, which is the thing the mode
+    // exists to show. And running that alongside this left a blank screen: a
+    // fullscreen element lives in Chromium's top layer while these rules are
+    // still pinning and hiding around it, and the two accounts of where the
+    // player belongs do not agree.
     //
-    // One mechanism per mode. Expanded has no fullscreen worth asking for — the
-    // guest would fill the pane it already fills — so it gets the injection.
-    if (!view || isHidden || !isGuestReady || graphView !== 'expanded') {
+    // One mechanism, both modes. The difference between them is how much room
+    // the pane has, which is not this file's business.
+    if (!view || isHidden || !isGuestReady || graphView === 'normal') {
       return undefined;
     }
     let key: string | undefined;
