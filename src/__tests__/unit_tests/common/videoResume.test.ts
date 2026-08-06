@@ -82,6 +82,18 @@ describe('remembering where a site was left', () => {
     expect(rememberPlayback({}, 'not-a-site', A_VIDEO, 120)).toEqual({});
   });
 
+  /**
+   * The bug this exists to make impossible. The position is sampled on a timer,
+   * and a tick landing between navigating away and the interface noticing filed
+   * YouTube Music's page under YouTube's name — after which the YouTube button
+   * went to YouTube Music, every time.
+   */
+  it('refuses a page belonging to a different site', () => {
+    expect(rememberPlayback({}, 'youtube', A_TRACK, 120)).toEqual({});
+    expect(rememberPlayback({}, 'youtube-music', A_VIDEO, 120)).toEqual({});
+    expect(rememberPlayback({}, 'soundcloud', A_VIDEO, 120)).toEqual({});
+  });
+
   it('refuses a sign-in page, which is refused everywhere else too', () => {
     expect(
       rememberPlayback({}, 'youtube', 'https://www.youtube.com/signin', 120),
@@ -164,6 +176,22 @@ describe('reading the store back', () => {
   it('drops an entry pointing somewhere the player may not go', () => {
     const raw = JSON.stringify({
       youtube: { url: 'https://example.com/watch', position: 30 },
+      'youtube-music': { url: A_TRACK, position: 30 },
+    });
+
+    expect(parsePlaybackMarks(raw)).toEqual({
+      'youtube-music': { url: A_TRACK, position: 30 },
+    });
+  });
+
+  /**
+   * Self-healing, and it has to be: a build that wrote mismatched marks has
+   * already put them on somebody's disk, and without this they would keep
+   * sending that button to the wrong site for good.
+   */
+  it('drops an entry filed under the wrong site', () => {
+    const raw = JSON.stringify({
+      youtube: { url: A_TRACK, position: 30 },
       'youtube-music': { url: A_TRACK, position: 30 },
     });
 

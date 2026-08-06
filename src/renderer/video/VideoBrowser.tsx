@@ -476,7 +476,6 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       return undefined;
     }
 
-    const siteId = activeSite.id;
     const sample = () => {
       const view = webviewRef.current;
       if (!view) {
@@ -486,11 +485,27 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         view
           .executeJavaScript(READ_POSITION)
           .then((position) => {
+            // The site is worked out from the page, at the moment the page is
+            // read, and never carried in from outside this callback.
+            //
+            // It used to be the `activeSite` this effect closed over, which is
+            // a different thing by one render: a tick landing between the
+            // navigation and the interface noticing filed the new site's page
+            // under the old site's name, and the button then went to the wrong
+            // site every time from then on. Reading both halves of the pair
+            // from the same source at the same instant is what makes them
+            // agree — `rememberPlayback` checks the pairing too, but this is
+            // where it stops being wrong in the first place.
+            const url = view.getURL();
+            const site = findSiteForUrl(url);
+            if (!site) {
+              return 0;
+            }
             const seconds = typeof position === 'number' ? position : 0;
             marksRef.current = rememberPlayback(
               marksRef.current,
-              siteId,
-              view.getURL(),
+              site.id,
+              url,
               seconds,
             );
             writeStoredMarks(marksRef.current);

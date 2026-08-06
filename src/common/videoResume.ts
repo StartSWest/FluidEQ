@@ -35,7 +35,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * disk and turns into a navigation — can be read and tested on their own.
  */
 
-import { VIDEO_SITES, isNavigableVideoUrl } from './videoSites';
+import { VIDEO_SITES, findSiteForUrl, isNavigableVideoUrl } from './videoSites';
 
 export interface IPlaybackMark {
   /** The page that was open. */
@@ -67,6 +67,22 @@ export const MIN_RESUME_SECONDS = 5;
 export const RESUME_REWIND_SECONDS = 3;
 
 const KNOWN_SITE_IDS = new Set(VIDEO_SITES.map((site) => site.id));
+
+/**
+ * Whether this URL is this site's to remember.
+ *
+ * The check that stops a mark being filed under the wrong button, which is not
+ * a hypothetical: the position is sampled on a timer, and one tick landing
+ * between navigating away and the interface noticing wrote the new site's page
+ * under the old site's name. The YouTube button then went to YouTube Music, and
+ * kept going there, because that is what the mark said.
+ *
+ * A mark is only ever as good as the pairing, so the pairing is checked here —
+ * on the way in and on the way back off disk — rather than trusted from a
+ * caller that cannot always know.
+ */
+const belongsToSite = (siteId: string, url: string) =>
+  findSiteForUrl(url)?.id === siteId;
 
 /**
  * Whether this is a mark worth keeping.
@@ -120,7 +136,14 @@ export const parsePlaybackMarks = (raw: string | null): TPlaybackMarks => {
     // Unknown ids are dropped rather than carried. It is what keeps the store
     // bounded by the length of the site list without a cap to maintain, and
     // it is how a removed site's mark stops existing.
-    if (!KNOWN_SITE_IDS.has(siteId) || !isUsableMark(mark)) {
+    if (
+      !KNOWN_SITE_IDS.has(siteId) ||
+      !isUsableMark(mark) ||
+      // Self-healing, and it has to be: a build that wrote mismatched marks has
+      // already put them on somebody's disk, and they would otherwise keep
+      // sending that button to the wrong site for good.
+      !belongsToSite(siteId, mark.url)
+    ) {
       return marks;
     }
     return { ...marks, [siteId]: { url: mark.url, position: mark.position } };
@@ -145,7 +168,11 @@ export const rememberPlayback = (
   url: string,
   position: number,
 ): TPlaybackMarks => {
-  if (!KNOWN_SITE_IDS.has(siteId) || !isNavigableVideoUrl(url)) {
+  if (
+    !KNOWN_SITE_IDS.has(siteId) ||
+    !isNavigableVideoUrl(url) ||
+    !belongsToSite(siteId, url)
+  ) {
     return marks;
   }
 
