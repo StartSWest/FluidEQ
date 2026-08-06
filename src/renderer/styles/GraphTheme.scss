@@ -519,11 +519,29 @@
   display: grid;
   align-items: center;
   padding-inline: 14px;
-  // The creature takes its own width; the waveform takes the rest and so ends
-  // up centred on the screen, which is where it sits in the titlebar too.
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  // The titlebar's own three-track split, for the same reason it uses it:
+  // equal outer columns are what keep the waveform optically centred in the
+  // window however wide the thing beside it is.
+  //
+  // It was `auto 1fr auto` with only two children, so the creature took the
+  // first track and the waveform took everything left of centre-right — centred
+  // in the remainder rather than in the screen, and visibly off.
+  grid-template-columns: minmax(0, 1fr) minmax(200px, 420px) minmax(0, 1fr);
   gap: 14px;
   pointer-events: none;
+
+  // First track, hard left, and twice the size.
+  //
+  // In the titlebar it sits in a row of controls and has to match their height.
+  // Here it is alone against a video, where forty pixels is a smudge. Scaled
+  // rather than resized: everything inside it — the art, the squash on the
+  // beat, the star — is laid out against that 40px box, and a transform takes
+  // all of it together. From the left edge, so it grows into the corner.
+  > .support-pet {
+    justify-self: start;
+    transform: scale(2);
+    transform-origin: left center;
+  }
 
   // Only the creature is clickable — it is the way into the support panel. The
   // strip itself must not swallow clicks meant for the video underneath it.
@@ -532,9 +550,15 @@
   }
 }
 
-// The graph's header sits below that strip rather than under it.
+// The graph's controls join that strip rather than sitting under it.
+//
+// The chrome runs across the top with its right-hand third empty, and this row
+// is right-aligned — so lifting it onto the same line fills the gap and leaves
+// one band of controls instead of two stacked ones. The strip does not take
+// clicks, only its children do, so the two can share the line without the
+// buttons becoming unreachable.
 .app-workspace.is-app-full .live-output-controls {
-  top: 52px;
+  top: 18px;
 }
 
 // Full screen is the whole screen, corner to corner.
