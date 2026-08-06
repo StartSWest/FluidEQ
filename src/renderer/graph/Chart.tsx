@@ -290,42 +290,48 @@ const Chart = ({
           <feGaussianBlur stdDeviation="5" />
         </filter>
       </defs>
-      <GridLine
-        type="vertical"
-        scale={xScaleFreq}
-        tickValues={[20, 100, 200, 1000, 2000, 10000, 20000]}
-        size={svgHeight - padding.bottom}
-        transform={`translate(0, ${svgHeight - padding.bottom})`}
-      />
-      <GridLine
-        type="vertical"
-        scale={xScaleFreq}
-        tickValues={[
-          40, 60, 80, 120, 140, 160, 180, 400, 600, 800, 1200, 1400, 1600, 1800,
-          4000, 6000, 8000, 12000, 14000, 16000, 18000,
-        ]}
-        size={svgHeight - padding.bottom - 20}
-        transform={`translate(0, ${svgHeight - padding.bottom - 10})`}
-      />
-      <GridLine
-        type="horizontal"
-        scale={yScaleGain}
-        tickValues={yGridTickValues}
-        size={plotWidth}
-        transform={`translate(${padding.left}, 0)`}
-      />
-      <GridLine
-        type="horizontal"
-        scale={yScaleGain}
-        tickValues={[0]}
-        size={plotWidth}
-        // Unity gain is a reference, not a measurement, so it reads as a
-        // brighter grid line rather than as another coloured curve. It was
-        // pink, which put a fourth near-identical magenta on a chart that
-        // already had three.
-        color="rgba(255, 255, 255, 0.22)"
-        transform={`translate(${padding.left}, 0)`}
-      />
+      {/* The paper, as one group, so it can be taken away as one thing.
+          Grouped rather than each line carrying its own class: the hiding is a
+          single decision and four grid layers plus two axes agreeing about it
+          is four more places for one of them to be forgotten. */}
+      <g className="chart-grid">
+        <GridLine
+          type="vertical"
+          scale={xScaleFreq}
+          tickValues={[20, 100, 200, 1000, 2000, 10000, 20000]}
+          size={svgHeight - padding.bottom}
+          transform={`translate(0, ${svgHeight - padding.bottom})`}
+        />
+        <GridLine
+          type="vertical"
+          scale={xScaleFreq}
+          tickValues={[
+            40, 60, 80, 120, 140, 160, 180, 400, 600, 800, 1200, 1400, 1600,
+            1800, 4000, 6000, 8000, 12000, 14000, 16000, 18000,
+          ]}
+          size={svgHeight - padding.bottom - 20}
+          transform={`translate(0, ${svgHeight - padding.bottom - 10})`}
+        />
+        <GridLine
+          type="horizontal"
+          scale={yScaleGain}
+          tickValues={yGridTickValues}
+          size={plotWidth}
+          transform={`translate(${padding.left}, 0)`}
+        />
+        <GridLine
+          type="horizontal"
+          scale={yScaleGain}
+          tickValues={[0]}
+          size={plotWidth}
+          // Unity gain is a reference, not a measurement, so it reads as a
+          // brighter grid line rather than as another coloured curve. It was
+          // pink, which put a fourth near-identical magenta on a chart that
+          // already had three.
+          color="rgba(255, 255, 255, 0.22)"
+          transform={`translate(${padding.left}, 0)`}
+        />
+      </g>
       {/* Smart EQ coverage. Each frequency region lights up as it is actually
           heard, so the wait is legible: you can see which part of the spectrum
           the measurement is still missing rather than watching a percentage. */}
@@ -394,20 +400,24 @@ const Chart = ({
       <clipPath id="chart-clip-path">
         <rect x={padding.left} y={0} width={plotWidth} height={plotHeight} />
       </clipPath>
-      <Axis
-        type="left"
-        scale={yScaleGain}
-        transform={`translate(${padding.left}, 0)`}
-        tickValues={yAxisTickValues}
-        tickFormat={yTickFormat}
-      />
-      <Axis
-        type="bottom"
-        scale={xScaleFreq}
-        transform={`translate(0, ${svgHeight - padding.bottom})`}
-        tickValues={[20, 100, 200, 1000, 2000, 10000, 20000]}
-        tickFormat={xTickFormat}
-      />
+      {/* The scales, in the same group as the lines they label. A decibel axis
+          beside a plot with no grid is a ruler with no marks on it. */}
+      <g className="chart-grid">
+        <Axis
+          type="left"
+          scale={yScaleGain}
+          transform={`translate(${padding.left}, 0)`}
+          tickValues={yAxisTickValues}
+          tickFormat={yTickFormat}
+        />
+        <Axis
+          type="bottom"
+          scale={xScaleFreq}
+          transform={`translate(0, ${svgHeight - padding.bottom})`}
+          tickValues={[20, 100, 200, 1000, 2000, 10000, 20000]}
+          tickFormat={xTickFormat}
+        />
+      </g>
     </svg>
   );
 };

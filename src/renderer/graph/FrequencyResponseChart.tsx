@@ -73,8 +73,10 @@ import {
   setGraphView,
   toggleGraphExpanded,
   toggleGraphFullScreen,
+  toggleGraphGrid,
   toggleLiveOutputSolo,
   useGraphFullScreen,
+  useGraphGridHidden,
   useGraphView,
   useGraphLook,
   useLiveOutputSolo,
@@ -148,6 +150,7 @@ const FrequencyResponseChart = () => {
   const liveLook = useGraphLook();
   const isSolo = useLiveOutputSolo();
   const graphView = useGraphView();
+  const isGridHidden = useGraphGridHidden();
   const isFullScreen = useGraphFullScreen();
   const overlayOpacity = useOverlayOpacity();
   const overlayBlur = useOverlayBlur();
@@ -730,7 +733,7 @@ const FrequencyResponseChart = () => {
       // repeat is a key being leant on — neither should toggle a mode twice.
       if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.repeat) {
         const key = event.key.toLowerCase();
-        if (key === 's' || key === 'f' || key === 'w') {
+        if (key === 's' || key === 'f' || key === 'w' || key === 'g') {
           // Ctrl+S is Save and Ctrl+W is Close Window everywhere else, and
           // Chromium will do both from a renderer given the chance. There is
           // nothing to save here and closing the window is the titlebar's
@@ -740,6 +743,8 @@ const FrequencyResponseChart = () => {
             toggleGraphExpanded();
           } else if (key === 'f') {
             toggleGraphFullScreen();
+          } else if (key === 'g') {
+            toggleGraphGrid();
           } else {
             toggleLiveOutputSolo();
           }
@@ -894,7 +899,9 @@ const FrequencyResponseChart = () => {
 
   return isGraphViewOn ? (
     <div
-      className={`graph-wrapper${!isEngineUsable ? ' is-engine-disabled' : ''}`}
+      className={`graph-wrapper${!isEngineUsable ? ' is-engine-disabled' : ''}${
+        isGridHidden ? ' is-gridless' : ''
+      }`}
       aria-disabled={!isEngineUsable}
       // Read by the full-screen rules only. Handed down as variables rather
       // than as a style on the card itself, because what they actually apply to
@@ -980,18 +987,16 @@ const FrequencyResponseChart = () => {
           >
             {isSolo ? 'Show EQ' : 'Wave only'}
           </button>
-          {/* Both sizes, and every shortcut that reaches them. Escape gets
-              back from either. */}
-          <GraphViewMenu
-            view={graphView}
-            isSolo={isSolo}
-            onChangeView={setGraphView}
-            onToggleSolo={toggleLiveOutputSolo}
-          />
           {/* Only while full screen, because that is the only time the card
               has anything behind it worth seeing. Shown here rather than in a
               settings panel so it can be adjusted against the thing it affects
-              — this is a judgement made by looking, not by reading a number. */}
+              — this is a judgement made by looking, not by reading a number.
+
+              Ahead of the View menu, not after it. These two appear and vanish
+              with the mode, and on the end they pushed View out of the corner
+              every time it was used — so the control that got you into full
+              screen was somewhere else the moment you arrived. The row reads the
+              same in every mode, with View last. */}
           {isFullScreen && (
             <span className="graph-see-through">
               <label
@@ -1033,15 +1038,34 @@ const FrequencyResponseChart = () => {
               </label>
             </span>
           )}
+          {/* Last, at the right-hand end of the row, in every mode. Both sizes
+              live here, and every shortcut that reaches them; Escape gets back
+              from either. */}
+          <GraphViewMenu
+            view={graphView}
+            isSolo={isSolo}
+            onChangeView={setGraphView}
+            onToggleSolo={toggleLiveOutputSolo}
+            onCycleLook={cycleGraphLook}
+            isGridHidden={isGridHidden}
+            onToggleGrid={toggleGraphGrid}
+          />
         </span>
         {liveOutput.isClipping && (
           <span className="graph-clip-warning" role="status">
             CLIPPING - reduce preamp
           </span>
         )}
-        <span className="graph-edit-hint">
-          Drag points · Ctrl/Shift select · Ctrl+scroll: Q
-        </span>
+        {/* Only while there is something to drag.
+
+            Solo takes the band handles off the plot, so every one of these
+            gestures does nothing — and a row of instructions for controls that
+            are not on screen reads as controls that have stopped working. */}
+        {!isSolo && (
+          <span className="graph-edit-hint">
+            Drag points · Ctrl/Shift select · Ctrl+scroll: Q
+          </span>
+        )}
       </div>
       {/* The measured box, and the card around it are now two different things.
           They used to be one, which is fine while the plot fills the card and

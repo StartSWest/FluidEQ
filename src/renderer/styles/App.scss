@@ -939,12 +939,30 @@ $tab-border: rgba($secondary-light, 0.2);
 }
 
 .workspace-tab-panel--eq,
-.workspace-tab-panel--convolution {
+.workspace-tab-panel--convolution,
+.workspace-tab-panel--video {
   @include panel-surface;
   display: flex;
   flex-direction: column;
   padding: 12px;
   border-top-color: $tab-border;
+}
+
+// The player is a tab like the others, and was the only one without the card.
+//
+// The tab strip is drawn to butt onto a panel — the active tab shares its top
+// border and loses its own bottom one — so a panel that is not there leaves the
+// selected tab hanging off the top of nothing, and the toolbar underneath
+// floating on the workspace background.
+//
+// It takes the pane rather than being sized by its contents, and does not
+// scroll: the stage inside is already fitted to whatever height it is given,
+// and a scrollbar on a video is a scrollbar on something that cannot be
+// scrolled to.
+.workspace-tab-panel--video {
+  flex: 1 1 auto;
+  overflow: hidden;
+  scrollbar-gutter: auto;
 }
 
 .workspace-tab-panel--eq {
@@ -1182,8 +1200,17 @@ $tab-border: rgba($secondary-light, 0.2);
   background: #dbe7ff;
 }
 
+// Pinned to the left end of the strip, with everything else pushed right.
+//
+// The row is right-aligned so that the controls sit in the corner and stay
+// there. The hint is not a control — it is a sentence about how the plot below
+// works — and among the buttons it read as another one, as well as being the
+// thing that moved when any of them changed width. `margin-right: auto` takes
+// the slack, so the text starts at the left and the controls keep the corner.
 .graph-edit-hint {
   @include truncate;
+  order: -1;
+  margin-right: auto;
   flex: 0 1 auto;
   color: rgba($primary-lighter, 0.68);
   font-size: 0.6rem;

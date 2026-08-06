@@ -54,14 +54,17 @@ const DEFAULT_OPACITY = 1;
 const DEFAULT_BLUR = 0;
 
 /**
- * Never fully clear.
+ * All the way to clear.
  *
- * Below about a fifth the grid and the axis labels stop being legible against
- * anything bright, and the control that would put it back is drawn on the same
- * surface — so the floor is what stops somebody making the panel invisible and
- * then being unable to find it.
+ * There was a floor here, on the reasoning that a panel faded to nothing is a
+ * panel nobody can find again. That reasoning was wrong about what the fade
+ * applies to: the transparency is on the surface layer *behind* the drawing, so
+ * at zero the card's background disappears and everything on it — the curve,
+ * the grid, the header and its controls — is still there at full strength,
+ * painted straight over the video. Which is the best thing this setting does,
+ * and it was the one position it would not go to.
  */
-export const MIN_OVERLAY_OPACITY = 0.2;
+export const MIN_OVERLAY_OPACITY = 0;
 
 /** Past this the backdrop is a flat wash and more costs frames for nothing. */
 export const MAX_OVERLAY_BLUR = 40;

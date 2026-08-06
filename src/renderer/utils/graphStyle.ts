@@ -148,6 +148,46 @@ export const useLiveOutputSolo = () =>
   );
 
 /**
+ * Whether the grid, the axes and their labels are drawn.
+ *
+ * Separate from solo, which hides the *curves* — the EQ response, the voicing,
+ * the driver. This hides the paper they are drawn on: the decibel scale down
+ * the side, the frequency marks along the bottom, the lines between them.
+ *
+ * Two switches because they are two different things to want. Solo is for
+ * reading the live trace without four other curves across it, and the grid is
+ * exactly what you keep for that — a spectrum with no scale is a pretty shape
+ * rather than a measurement. Turning the grid off is for when it has stopped
+ * being a measurement on purpose: a visualiser, over a video, with the graph
+ * pared back to nothing but the wave.
+ *
+ * Not persisted, like the modes it sits beside. A graph that comes back with no
+ * axes is a graph somebody will report as broken.
+ */
+let isGridHidden = false;
+
+const gridListeners = new Set<() => void>();
+
+export const toggleGraphGrid = () => {
+  isGridHidden = !isGridHidden;
+  gridListeners.forEach((listener) => listener());
+};
+
+const subscribeGrid = (listener: () => void) => {
+  gridListeners.add(listener);
+  return () => {
+    gridListeners.delete(listener);
+  };
+};
+
+export const useGraphGridHidden = () =>
+  useSyncExternalStore(
+    subscribeGrid,
+    () => isGridHidden,
+    () => false,
+  );
+
+/**
  * How much of the screen the graph has, in three steps.
  *
  * Held here rather than in the chart because the things that have to move are
