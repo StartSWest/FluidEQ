@@ -68,6 +68,7 @@ import { GRAPH_LOOKS } from '../../common/graphStyles';
 import { getBandColor } from '../utils/bandColors';
 import {
   cycleGraphLook,
+  cycleWaveOrientation,
   exitGraphFullScreen,
   setGraphLook,
   setGraphView,
@@ -79,6 +80,7 @@ import {
   useGraphFullScreen,
   useGraphGridHidden,
   useGraphStretched,
+  useWaveOrientation,
   useGraphView,
   useGraphLook,
   useLiveOutputSolo,
@@ -154,6 +156,7 @@ const FrequencyResponseChart = () => {
   const graphView = useGraphView();
   const isGridHidden = useGraphGridHidden();
   const isStretched = useGraphStretched();
+  const waveOrientation = useWaveOrientation();
   const isFullScreen = useGraphFullScreen();
   const overlayOpacity = useOverlayOpacity();
   const overlayBlur = useOverlayBlur();
@@ -844,6 +847,22 @@ const FrequencyResponseChart = () => {
   // — the points arrived already softened, then got softened again, and the
   // curve swelled after the music instead of with it.
 
+  /**
+   * The same frame, upside down.
+   *
+   * Built once per frame and shared by both orientations that need it, rather
+   * than inside the curve literals — `mirrored` uses it alongside the original,
+   * and mapping the array twice at twenty-two frames a second for a result that
+   * is identical is work for nothing.
+   */
+  const invertedLivePoints = useMemo(
+    () =>
+      waveOrientation === 'up'
+        ? liveOutput.points
+        : liveOutput.points.map((point) => ({ ...point, y: -point.y })),
+    [liveOutput.points, waveOrientation],
+  );
+
   const displayData = useMemo(
     () =>
       liveOutput.points.length > 0
@@ -853,6 +872,26 @@ const FrequencyResponseChart = () => {
             // whenever a band moves, and the point of this mode is to be left
             // with the one drawing and nothing else.
             ...(isSolo ? [] : chartData),
+            // Hanging from the top, or mirrored below as well.
+            //
+            // Negating the gain mirrors about 0 dB, which is the vertical
+            // centre of a scale running -20 to +20 — so this is a true
+            // reflection rather than an offset that happens to look like one.
+            ...(waveOrientation === 'mirrored'
+              ? [
+                  {
+                    id: 'Live Output Mirror',
+                    name: 'Live processed output, mirrored',
+                    isContinuous: true,
+                    line: {
+                      color: ColorEnum.ANALOGOUS2,
+                      strokeWidth: isSolo ? 2.6 : 2,
+                      opacity: isSolo ? 1 : SUPPORTING_CURVE_OPACITY,
+                      points: invertedLivePoints,
+                    },
+                  } as IChartCurveData,
+                ]
+              : []),
             {
               id: 'Live Output',
               name: 'Live processed output',
@@ -873,12 +912,15 @@ const FrequencyResponseChart = () => {
                 // one drawing on screen, drawn at half strength for the benefit
                 // of curves that are no longer there.
                 opacity: isSolo ? 1 : SUPPORTING_CURVE_OPACITY,
-                points: liveOutput.points,
+                points:
+                  waveOrientation === 'down'
+                    ? invertedLivePoints
+                    : liveOutput.points,
               },
             } as IChartCurveData,
           ]
         : chartData,
-    [chartData, isSolo, liveOutput.points],
+    [chartData, invertedLivePoints, isSolo, liveOutput.points, waveOrientation],
   );
 
   const editablePoints: IEditableChartPoint[] = useMemo(() => {
@@ -963,76 +1005,84 @@ const FrequencyResponseChart = () => {
       }
     >
       <div className="live-output-controls">
-        {!isSolo && convolution && (
-          <span className="graph-legend graph-legend--convolution">
-            Headset convolution
-          </span>
-        )}
-        {!isSolo && (
-          <span className="graph-legend graph-legend--eq">EQ response</span>
-        )}
-        {!isSolo && voicing?.profileId ? (
-          <span className="graph-legend graph-legend--voicing">Voicing</span>
-        ) : null}
-        {!isSolo && driver?.profileId ? (
-          <span className="graph-legend graph-legend--driver">Driver</span>
-        ) : null}
-        {!isSolo && hasSmartEqLayer(smartEq) ? (
-          <span className="graph-legend graph-legend--smart">Smart EQ</span>
-        ) : null}
-        {!isSolo &&
-        (voicing?.profileId ||
-          driver?.profileId ||
-          hasSmartEqLayer(smartEq)) ? (
-          <span className="graph-legend graph-legend--total">
-            {[
-              'EQ',
-              voicing?.profileId ? 'voicing' : '',
-              driver?.profileId ? 'driver' : '',
-              hasSmartEqLayer(smartEq) ? 'Smart EQ' : '',
-            ]
-              .filter(Boolean)
-              .join(' + ')}
-          </span>
-        ) : null}
-        {/* The legend is the control.
+        {/* One pane for the whole right-hand cluster.
+
+            The card used to be on the style picker alone, which left the
+            legends naming the curves — EQ response, Voicing, Driver — floating
+            on the grid beside it, so half the row had a surface and half did
+            not. They belong together: they are all captions and controls for
+            the same drawing. */}
+        <span className="graph-legend-group">
+          {!isSolo && convolution && (
+            <span className="graph-legend graph-legend--convolution">
+              Headset convolution
+            </span>
+          )}
+          {!isSolo && (
+            <span className="graph-legend graph-legend--eq">EQ response</span>
+          )}
+          {!isSolo && voicing?.profileId ? (
+            <span className="graph-legend graph-legend--voicing">Voicing</span>
+          ) : null}
+          {!isSolo && driver?.profileId ? (
+            <span className="graph-legend graph-legend--driver">Driver</span>
+          ) : null}
+          {!isSolo && hasSmartEqLayer(smartEq) ? (
+            <span className="graph-legend graph-legend--smart">Smart EQ</span>
+          ) : null}
+          {!isSolo &&
+          (voicing?.profileId ||
+            driver?.profileId ||
+            hasSmartEqLayer(smartEq)) ? (
+            <span className="graph-legend graph-legend--total">
+              {[
+                'EQ',
+                voicing?.profileId ? 'voicing' : '',
+                driver?.profileId ? 'driver' : '',
+                hasSmartEqLayer(smartEq) ? 'Smart EQ' : '',
+              ]
+                .filter(Boolean)
+                .join(' + ')}
+            </span>
+          ) : null}
+          {/* The legend is the control.
             
             Clicking the plot itself drags bands, so the picker needed its own
             place — and the label that already names the live output is the
             honest one, because it says what the choice changes. Forty looks is
             more than a cycle can reasonably walk, hence a searchable list. */}
-        <span className="graph-legend graph-legend--live graph-legend--picker">
-          {/* Named separately from the value so the two can look like what
+          <span className="graph-legend graph-legend--live graph-legend--picker">
+            {/* Named separately from the value so the two can look like what
               they are: a caption, and the thing it captions. Run together they
               read as one long legend nobody realises is clickable. */}
-          <span className="graph-legend__label">Live output</span>
-          <Dropdown
-            name="live-output-style"
-            options={graphLookOptions}
-            value={liveLook.id}
-            isDisabled={false}
-            isFilterable
-            filterPlaceholder="Search styles"
-            placement="down"
-            handleChange={setGraphLook}
-          />
-          {/* Everything else off, so the drawing has the grid to itself.
+            <span className="graph-legend__label">Live output</span>
+            <Dropdown
+              name="live-output-style"
+              options={graphLookOptions}
+              value={liveLook.id}
+              isDisabled={false}
+              isFilterable
+              filterPlaceholder="Search styles"
+              placement="down"
+              handleChange={setGraphLook}
+            />
+            {/* Everything else off, so the drawing has the grid to itself.
               Sits inside the live-output legend because that is the only
               thing it leaves behind. */}
-          <button
-            type="button"
-            className={`graph-solo${isSolo ? ' is-on' : ''}`}
-            onClick={toggleLiveOutputSolo}
-            aria-pressed={isSolo}
-            title={
-              isSolo
-                ? 'Show the EQ curves again'
-                : 'Hide the EQ curves and watch only the live output'
-            }
-          >
-            {isSolo ? 'Show EQ' : 'Wave only'}
-          </button>
-          {/* Only while full screen, because that is the only time the card
+            <button
+              type="button"
+              className={`graph-solo${isSolo ? ' is-on' : ''}`}
+              onClick={toggleLiveOutputSolo}
+              aria-pressed={isSolo}
+              title={
+                isSolo
+                  ? 'Show the EQ curves again'
+                  : 'Hide the EQ curves and watch only the live output'
+              }
+            >
+              {isSolo ? 'Show EQ' : 'Wave only'}
+            </button>
+            {/* Only while full screen, because that is the only time the card
               has anything behind it worth seeing. Shown here rather than in a
               settings panel so it can be adjusted against the thing it affects
               — this is a judgement made by looking, not by reading a number.
@@ -1042,61 +1092,64 @@ const FrequencyResponseChart = () => {
               every time it was used — so the control that got you into full
               screen was somewhere else the moment you arrived. The row reads the
               same in every mode, with View last. */}
-          {isFullScreen && (
-            <span className="graph-see-through">
-              <label
-                htmlFor="graph-see-through"
-                title="How much of the page shows through the graph"
-              >
-                <span>See through</span>
-                <input
-                  id="graph-see-through"
-                  type="range"
-                  min={MIN_OVERLAY_OPACITY * 100}
-                  max={100}
-                  step={1}
-                  // Inverted, so right is more see-through. The stored value is
-                  // an opacity because that is what CSS wants; the slider is a
-                  // transparency because that is what the label says.
-                  value={Math.round((1 - overlayOpacity) * 100)}
-                  onChange={(event) =>
-                    setOverlayOpacity(1 - Number(event.target.value) / 100)
-                  }
-                />
-              </label>
-              <label
-                htmlFor="graph-see-through-blur"
-                title="Blur what shows through, so it reads as light rather than as a second picture"
-              >
-                <span>Blur</span>
-                <input
-                  id="graph-see-through-blur"
-                  type="range"
-                  min={0}
-                  max={MAX_OVERLAY_BLUR}
-                  step={1}
-                  value={overlayBlur}
-                  onChange={(event) =>
-                    setOverlayBlur(Number(event.target.value))
-                  }
-                />
-              </label>
-            </span>
-          )}
-          {/* Last, at the right-hand end of the row, in every mode. Both sizes
+            {isFullScreen && (
+              <span className="graph-see-through">
+                <label
+                  htmlFor="graph-see-through"
+                  title="How much of the page shows through the graph"
+                >
+                  <span>See through</span>
+                  <input
+                    id="graph-see-through"
+                    type="range"
+                    min={MIN_OVERLAY_OPACITY * 100}
+                    max={100}
+                    step={1}
+                    // Inverted, so right is more see-through. The stored value is
+                    // an opacity because that is what CSS wants; the slider is a
+                    // transparency because that is what the label says.
+                    value={Math.round((1 - overlayOpacity) * 100)}
+                    onChange={(event) =>
+                      setOverlayOpacity(1 - Number(event.target.value) / 100)
+                    }
+                  />
+                </label>
+                <label
+                  htmlFor="graph-see-through-blur"
+                  title="Blur what shows through, so it reads as light rather than as a second picture"
+                >
+                  <span>Blur</span>
+                  <input
+                    id="graph-see-through-blur"
+                    type="range"
+                    min={0}
+                    max={MAX_OVERLAY_BLUR}
+                    step={1}
+                    value={overlayBlur}
+                    onChange={(event) =>
+                      setOverlayBlur(Number(event.target.value))
+                    }
+                  />
+                </label>
+              </span>
+            )}
+            {/* Last, at the right-hand end of the row, in every mode. Both sizes
               live here, and every shortcut that reaches them; Escape gets back
               from either. */}
-          <GraphViewMenu
-            view={graphView}
-            isSolo={isSolo}
-            onChangeView={setGraphView}
-            onToggleSolo={toggleLiveOutputSolo}
-            onCycleLook={cycleGraphLook}
-            isGridHidden={isGridHidden}
-            onToggleGrid={toggleGraphGrid}
-            isStretched={isStretched}
-            onToggleStretch={toggleGraphStretch}
-          />
+            <GraphViewMenu
+              view={graphView}
+              isSolo={isSolo}
+              onChangeView={setGraphView}
+              onToggleSolo={toggleLiveOutputSolo}
+              onCycleLook={cycleGraphLook}
+              isGridHidden={isGridHidden}
+              onToggleGrid={toggleGraphGrid}
+              isStretched={isStretched}
+              onToggleStretch={toggleGraphStretch}
+              waveOrientation={waveOrientation}
+              onCycleOrientation={cycleWaveOrientation}
+            />
+          </span>
         </span>
         {liveOutput.isClipping && (
           <span className="graph-clip-warning" role="status">

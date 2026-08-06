@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { TGraphView } from '../utils/graphStyle';
+import { TGraphView, TWaveOrientation } from '../utils/graphStyle';
 
 /**
  * How big the graph is, what it shows, and how to say either from the keyboard.
@@ -49,7 +49,16 @@ interface IGraphViewMenuProps {
   onToggleGrid: () => void;
   isStretched: boolean;
   onToggleStretch: () => void;
+  waveOrientation: TWaveOrientation;
+  onCycleOrientation: () => void;
 }
+
+/** Names the state the next press moves to, since three states cycle. */
+const ORIENTATION_LABEL: Record<TWaveOrientation, string> = {
+  up: 'Hang the wave down',
+  down: 'Mirror the wave',
+  mirrored: 'Stand the wave up',
+};
 
 const VIEW_LABEL: Record<TGraphView, string> = {
   normal: 'View',
@@ -89,6 +98,8 @@ const GraphViewMenu = ({
   onToggleGrid,
   isStretched,
   onToggleStretch,
+  waveOrientation,
+  onCycleOrientation,
 }: IGraphViewMenuProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState<IPlacement>({
@@ -245,6 +256,17 @@ const GraphViewMenu = ({
             </Icon>
             <span>{isStretched ? 'Fit the graph' : 'Stretch to fill'}</span>
             <kbd>Ctrl+B</kbd>
+          </button>
+
+          {/* Three states, so it cycles and names the one it will go to next
+              rather than the one you are in. Every look is drawn from the same
+              points, so this flips all forty at once. */}
+          <button type="button" role="menuitem" onClick={onCycleOrientation}>
+            <Icon>
+              <path d="M2 8h12M5 5l-3 3 3 3M11 5l3 3-3 3" />
+            </Icon>
+            <span>{ORIENTATION_LABEL[waveOrientation]}</span>
+            <kbd>Ctrl+I</kbd>
           </button>
 
           <div className="graph-view-menu__divider" />

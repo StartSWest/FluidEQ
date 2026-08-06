@@ -86,20 +86,6 @@
   align-items: center;
   gap: 10px;
 
-  // A pane of its own, rather than text floating on the drawing.
-  //
-  // These sit over the plot, and the plot moves — so with the graph stretched
-  // to fill the card the labels ended up on top of a spectrum, which is
-  // unreadable at exactly the moments the spectrum is worth watching. A card
-  // gives them a surface to be read against wherever the wave happens to be.
-  //
-  // The same one every other floating thing in the app uses, so it belongs to
-  // the family and picks up the euphoria sweep for free rather than being one
-  // more panel that stays grey through a celebration.
-  @include menu-surface;
-  padding: 5px 10px;
-  border-radius: 999px;
-
   // "Live output" is the caption; the look's name is the value.
   //
   // Butted together at the row's own gap they read as one long legend, and
@@ -197,6 +183,20 @@
   .dropdown li {
     font-size: 0.72rem;
   }
+}
+
+// No surface of its own. The legends and the controls read directly on the
+// graph card, the way they always have.
+//
+// A pane was tried around them — it makes them legible once the drawing is
+// stretched up behind them, and it costs more than it buys: a bordered box in
+// the corner of a graph is a second card inside a card, and it turns a quiet
+// row of captions into a piece of furniture. Discretion wins; the drawing is
+// what this pane is for.
+.graph-legend-group {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-s;
 }
 
 // *** The view menu ***********************************************************

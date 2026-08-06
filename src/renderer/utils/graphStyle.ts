@@ -188,6 +188,50 @@ export const useGraphGridHidden = () =>
   );
 
 /**
+ * Which way up the live trace is drawn.
+ *
+ *  - `up` — standing on the bottom, as it always has.
+ *  - `down` — hanging from the top. Bars become stalactites, a filled wave
+ *    becomes a ceiling.
+ *  - `mirrored` — both at once, symmetrical about the middle, which is what a
+ *    waveform looks like everywhere else in audio.
+ *
+ * Every one of the forty looks is drawn from the same points, so this is done
+ * to the points and all forty follow. A CSS flip on the path would have been
+ * fewer lines and wrong: it would fight the transforms some looks already set
+ * for themselves, and mirror the glow and the lit tips with the shape — right
+ * for the geometry, wrong for the light.
+ */
+export type TWaveOrientation = 'up' | 'down' | 'mirrored';
+
+const ORIENTATIONS: TWaveOrientation[] = ['up', 'down', 'mirrored'];
+
+let orientation: TWaveOrientation = 'up';
+
+const orientationListeners = new Set<() => void>();
+
+/** Cycles, because three states on one control is a cycle. */
+export const cycleWaveOrientation = () => {
+  orientation =
+    ORIENTATIONS[(ORIENTATIONS.indexOf(orientation) + 1) % ORIENTATIONS.length];
+  orientationListeners.forEach((listener) => listener());
+};
+
+const subscribeOrientation = (listener: () => void) => {
+  orientationListeners.add(listener);
+  return () => {
+    orientationListeners.delete(listener);
+  };
+};
+
+export const useWaveOrientation = () =>
+  useSyncExternalStore(
+    subscribeOrientation,
+    () => orientation,
+    () => 'up' as TWaveOrientation,
+  );
+
+/**
  * Whether the plot fills the card or keeps its share of it.
  *
  * The larger modes centre the drawing at two thirds of the card's height, on
