@@ -129,12 +129,25 @@ const PLAYER_ONLY_CSS = `
  * more than the page it is hiding.
  */
 const ENTER_PLAYER_ONLY = `(() => {
+  // Most specific first, because several of these match on the same page and
+  // the first hit wins. YouTube Music is why the list is ordered rather than
+  // merely long: it wraps the same '#movie_player' YouTube uses inside its own
+  // 'ytmusic-player', and marking the inner one leaves the app's chrome — nav
+  // rail, queue, now-playing bar — off the chain and therefore hidden, which on
+  // a music app removes the half people actually use.
   const SELECTOR =
-    '#movie_player, .html5-video-player, [data-a-target="video-player"], .vp-player-layout';
+    'ytmusic-player, #movie_player, .html5-video-player, [data-a-target="video-player"], .vp-player-layout';
   const mark = () => {
+    // The largest video, rather than the first in the document. Pages are full
+    // of thumbnails and preview loops; the one being watched is the big one.
+    const videos = Array.from(document.querySelectorAll('video'));
+    videos.sort(
+      (a, b) =>
+        b.clientWidth * b.clientHeight - a.clientWidth * a.clientHeight
+    );
     const player =
       document.querySelector(SELECTOR) ||
-      (document.querySelector('video') || {}).parentElement;
+      (videos[0] && videos[0].parentElement);
     if (!player) { return; }
     // Already correct, and still attached. The common case by far.
     if (player.hasAttribute('data-fluideq-player') && player.isConnected) {
@@ -181,6 +194,21 @@ const EXIT_PLAYER_ONLY = `(() => {
       node.removeAttribute('data-fluideq-keep');
       node.removeAttribute('data-fluideq-player');
     });
+  return 'ok';
+})()`;
+
+/**
+ * Pause every media element on the page.
+ *
+ * Run before navigating away. A player still running holds its document open
+ * against the navigation, which is why choosing another site while YouTube
+ * Music was playing appeared to do nothing at all — the request was made and
+ * the page simply would not let go.
+ */
+const STOP_PLAYBACK = `(() => {
+  document.querySelectorAll('video, audio').forEach((media) => {
+    try { media.pause(); } catch (e) { /* already gone */ }
+  });
   return 'ok';
 })()`;
 
@@ -348,61 +376,6 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       // effect can still get here, and a crashed player is not worth taking the
       // window down over.
     }
-  }, [graphView, isGuestReady, isHidden]);
-
-  /**
-   * Strip the page back to its player while the graph is over it.
-   *
-   * Keyed on the mode and re-applied whenever the guest reloads: a navigation
-   * throws inserted CSS away with the document, so without `isGuestReady` in
-   * the dependencies, playing a second video would come back with the whole
-   * page around it.
-   *
-   * The cleanup removes the sheet by the key `insertCSS` hands back rather than
-   * injecting a second one to undo the first — two stylesheets fighting is how
-   * a page ends up in a state neither of them describes.
-   */
-  useEffect(() => {
-    const view = webviewRef.current;
-    if (!view || isHidden || !isGuestReady || graphView === 'normal') {
-      return undefined;
-    }
-    let key: string | undefined;
-    let isCancelled = false;
-    try {
-      view
-        .insertCSS(PLAYER_ONLY_CSS)
-        .then((inserted) => {
-          if (isCancelled) {
-            // The mode changed while this was in flight. Take it straight back
-            // out rather than leaving a sheet nothing has the key to.
-            view.removeInsertedCSS(inserted).catch(() => undefined);
-          } else {
-            key = inserted;
-          }
-          return inserted;
-        })
-        .catch(() => undefined);
-      // The stylesheet alone does nothing until the chain is marked; the two
-      // are inserted together and removed together.
-      view.executeJavaScript(ENTER_PLAYER_ONLY).catch(() => undefined);
-    } catch {
-      // No web contents to inject into; nothing to undo either.
-    }
-    return () => {
-      isCancelled = true;
-      if (key !== undefined) {
-        view.removeInsertedCSS(key).catch(() => undefined);
-      }
-      try {
-        // The attributes go too. Left behind they are inert without the
-        // stylesheet, but they would be waiting for the next time it is
-        // inserted, describing a chain to a player that may have been replaced.
-        view.executeJavaScript(EXIT_PLAYER_ONLY).catch(() => undefined);
-      } catch {
-        // The guest is gone, which removes them rather more thoroughly.
-      }
-    };
   }, [graphView, isGuestReady, isHidden]);
 
   /**
@@ -580,9 +553,32 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
 
   const goTo = useCallback((url: string) => {
     setBlockedUrl('');
-    webviewRef.current?.loadURL(url).catch(() => {
-      // A navigation replaced by a newer one rejects; that is not a failure.
-    });
+    const view = webviewRef.current;
+    if (!view) {
+      return;
+    }
+    try {
+      // Stop whatever is playing before leaving the page.
+      //
+      // YouTube Music holds onto its player hard: choosing another site while
+      // it was playing did nothing at all, because a media element still
+      // running keeps the document alive against the navigation the tag is
+      // trying to start. Pausing first lets go of it.
+      //
+      // One player, always — the tag is reused rather than one per site — so
+      // there is never a second video in memory once this document goes.
+      view
+        .executeJavaScript(STOP_PLAYBACK)
+        .catch(() => undefined)
+        .finally(() => {
+          view.loadURL(url).catch(() => {
+            // A navigation replaced by a newer one rejects; not a failure.
+          });
+        });
+    } catch {
+      // No web contents to ask. Nothing is playing in that case either.
+      view.loadURL(url).catch(() => undefined);
+    }
   }, []);
 
   const handleSearch = useCallback(
