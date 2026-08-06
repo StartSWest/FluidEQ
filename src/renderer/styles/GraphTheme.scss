@@ -570,6 +570,60 @@
   top: 18px;
 }
 
+// A solid bar behind the controls, over the player, in expanded view only.
+//
+// This is the one arrangement where the strip has a moving picture directly
+// under it: expanded puts the card over the Video tab and the see-through
+// setting is meant to be used there, so the labels end up on video rather than
+// on a panel and stop being readable. Everywhere else there is a card behind
+// them and a bar would be a second surface for no reason.
+//
+// Full screen is excluded deliberately — there the strip shares the top of the
+// screen with the waveform and the creature, and a filled bar behind part of
+// that row would cut it in half.
+//
+// Drawn as a layer behind rather than a background on the strip itself, so it
+// can reach past the strip's inset to the card's own edges and be the full
+// width of it. Out of hit-testing, so nothing it covers stops being clickable.
+.app-workspace:not(.is-app-full)
+  .center-workspace.is-graph-full:has(
+    .workspace-tab-panel--video:not(.is-hidden)
+  )
+  > .graph-wrapper
+  > .live-output-controls::before {
+  position: absolute;
+  z-index: -1;
+  border-radius: $radius-xl $radius-xl 0 0;
+  background: $surface-panel;
+  content: '';
+  inset: -9px -11px -9px -11px;
+  pointer-events: none;
+}
+
+// And the same at the bottom, so the card is closed at both ends.
+//
+// The plot takes two thirds of the card's height and sits in the middle, so the
+// bottom strip is empty — a bar there costs no drawing and stops the card
+// looking like a solid top edge with the video simply running out underneath
+// it. Matched to the top: same colour, same reach to the card's edges, the
+// corners rounded the other way.
+.app-workspace:not(.is-app-full)
+  .center-workspace.is-graph-full:has(
+    .workspace-tab-panel--video:not(.is-hidden)
+  )
+  > .graph-wrapper::after {
+  position: absolute;
+  z-index: -1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 34px;
+  border-radius: 0 0 $radius-xl $radius-xl;
+  background: $surface-panel;
+  content: '';
+  pointer-events: none;
+}
+
 // Full screen is the whole screen, corner to corner.
 //
 // The two modes want opposite edges and it is not a detail: expanded is a card
