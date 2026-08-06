@@ -126,6 +126,25 @@ const ActiveLayers = () => {
     onRestore?: (settings: unknown) => Promise<void>;
   }[] = [];
 
+  // The row reads in the order the config is written, so the chips and the
+  // Equalizer APO chain tell the same story top to bottom. Convolution is
+  // first there because it is the base the rest is stacked on.
+  if (convolution) {
+    layers.push({
+      key: 'convolution',
+      icon: 'convolution',
+      label: t('eq.layers.convolution'),
+      name: convolution.name,
+      onClear: async () => {
+        // Optimistic: the chip has to go the moment it is clicked, or a slow
+        // config write reads as a dead button.
+        setConvolution(undefined);
+        await clearConvolution();
+        await refreshState();
+      },
+    });
+  }
+
   // First, because it is what the bands themselves came from rather than
   // something stacked after them. Its remove button takes the bands with it:
   // the reference is not a label attached to a tuning, it is the tuning, and
@@ -142,22 +161,6 @@ const ActiveLayers = () => {
       clearHint: t('eq.layers.clearReference'),
       onClear: async () => {
         await clearHeadset();
-        await refreshState();
-      },
-    });
-  }
-
-  if (convolution) {
-    layers.push({
-      key: 'convolution',
-      icon: 'convolution',
-      label: t('eq.layers.convolution'),
-      name: convolution.name,
-      onClear: async () => {
-        // Optimistic: the chip has to go the moment it is clicked, or a slow
-        // config write reads as a dead button.
-        setConvolution(undefined);
-        await clearConvolution();
         await refreshState();
       },
     });
