@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
@@ -56,6 +56,7 @@ import '../styles/ActiveLayers.scss';
  */
 const ActiveLayers = () => {
   const {
+    filters,
     convolution,
     voicing,
     driver,
@@ -102,6 +103,36 @@ const ActiveLayers = () => {
       forgetBypassedLayer('loudness');
     }
   }, [bypassed, voicing, driver, smartEq, loudness]);
+
+  /**
+   * Whether the bands still match what the reference model wrote.
+   *
+   * There is no flag for this anywhere — the model writes bands and then it is
+   * simply bands, indistinguishable from ones dragged by hand. So the shape is
+   * remembered at the moment a model arrives, and compared against on every
+   * render after it: a different signature means somebody has moved something.
+   *
+   * Keyed on the model, so choosing a different one re-snapshots rather than
+   * inheriting the last one's "modified". Sorted, because band order in the map
+   * is not meaningful and a reordering is not an edit.
+   */
+  const bandCount = Object.keys(filters).length;
+  // Flat means no layer, however many bands are sitting there at zero.
+  const hasShapedBands = Object.values(filters).some(
+    (f) => Math.abs(f.gain) > 0.01,
+  );
+  const bandSignature = Object.values(filters)
+    .map((f) => `${f.type}:${f.frequency}:${f.gain}:${f.quality}`)
+    .sort()
+    .join('|');
+  const referenceKey = `${headset ?? ''}|${headsetTarget ?? ''}`;
+  const eqOrigin = useRef<{ key: string; signature: string } | undefined>(
+    undefined,
+  );
+  if (!eqOrigin.current || eqOrigin.current.key !== referenceKey) {
+    eqOrigin.current = { key: referenceKey, signature: bandSignature };
+  }
+  const isEqModified = eqOrigin.current.signature !== bandSignature;
 
   const voicingProfile = getVoicingProfile(voicing?.profileId ?? '');
   const driverProfile = getDriverProfile(driver?.profileId ?? '');
@@ -172,18 +203,42 @@ const ActiveLayers = () => {
     });
   }
 
-  if (headset) {
+  // The bands, and where they came from — one chip, because an AutoEQ model
+  // *is* the manual EQ auto-tuned. Same filters, same layer, different origin,
+  // so two chips would have listed the same thing twice.
+  //
+  // Named by the model and its measurement when the bands came from one: a
+  // model alone is ambiguous, since most have several measurements and they do
+  // not sound alike. Named by how many bands there are when they were placed by
+  // hand, which is the only honest thing to say about a tuning with no source.
+  //
+  // Marked modified once the bands no longer match what the model wrote.
+  // Without that the chip goes on claiming a curve that is not on screen any
+  // more, and editing a reference tuning is the most ordinary thing anybody
+  // does here.
+  // Only once there is something to say. A row of bands all sitting at 0 dB is
+  // a flat EQ — the default state of the app — and listing it as an applied
+  // layer would mean the chip is there from the first launch, saying nothing,
+  // for everybody. Clearing the EQ puts every gain back to zero, so the chip
+  // goes on its own.
+  if (headset || hasShapedBands) {
+    const reference = headsetTarget ? `${headset} · ${headsetTarget}` : headset;
     layers.push({
-      key: 'headset',
+      key: 'eq',
       icon: 'model',
-      label: t('eq.layers.headset'),
-      // Model and measurement, because a model on its own is ambiguous — most
-      // have several measurements and they do not sound alike.
-      name: headsetTarget ? `${headset} · ${headsetTarget}` : headset,
-      clearHint: t('eq.layers.clearReference'),
+      label: t('eq.layers.eq'),
+      name: headset
+        ? `${reference}${isEqModified ? ` ${t('eq.layers.eq.modified')}` : ''}`
+        : t('eq.layers.eq.bands', { count: String(bandCount) }),
+      // Only offered when there is a reference to clear. Bands placed by hand
+      // are cleared with Clear EQ, and a second route to deleting somebody's
+      // tuning is not something this row should grow.
+      clearHint: headset ? t('eq.layers.clearReference') : undefined,
       onClear: async () => {
-        await clearHeadset();
-        await refreshState();
+        if (headset) {
+          await clearHeadset();
+          await refreshState();
+        }
       },
     });
   }
