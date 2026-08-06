@@ -44,6 +44,13 @@ enum ChannelEnum {
    * ten-second reply timeout and the edit reports itself as a failure.
    */
   SET_FILTER_VALUES = 'setFilterValues',
+  /**
+   * Start or stop a Chromium memory-infra recording.
+   *
+   * Development only — the handler refuses in a packaged build, and the
+   * control that sends it is not rendered there either.
+   */
+  TOGGLE_MEMORY_TRACE = 'toggleMemoryTrace',
   GET_FILTER_COUNT = 'getFilterCount',
   ADD_FILTER = 'addFilter',
   REMOVE_FILTER = 'removeFilter',

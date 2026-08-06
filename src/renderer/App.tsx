@@ -33,6 +33,7 @@ import './styles/App.scss';
 import MainContent from './MainContent';
 import SupportDialog from './SupportDialog';
 import SupportPet from './SupportPet';
+import MemoryTraceButton from './components/MemoryTraceButton';
 import { FluidEqProvider, useFluidEqContext } from './utils/FluidEqContext';
 import PrereqMissingModal from './PrereqMissingModal';
 import BugReportDialog from './components/BugReportDialog';
@@ -583,6 +584,10 @@ const AppContent = () => {
             bar; this stays put behind it. */}
         <WaveformVisualizer />
         <div className="window-titlebar__right">
+          {/* Renders nothing outside a development build — see the component,
+              where the check folds away at build time and takes the file with
+              it. */}
+          <MemoryTraceButton />
           {!isChromeHidden && (
             <SupportPet
               hasContributed={hasContributed}
