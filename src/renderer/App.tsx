@@ -485,14 +485,13 @@ const AppContent = () => {
             leaves the originals mounted, so there were two creatures on one
             analyser and neither drew correctly — the hero in the support dialog
             went with them. Exactly one of each exists at any moment. */}
-        {!isAppFullScreen && <WaveformVisualizer />}
+        <WaveformVisualizer />
         <div className="window-titlebar__right">
-          {!isAppFullScreen && (
-            <SupportPet
-              hasContributed={hasContributed}
-              onOpen={() => setShowSupportDialog(true)}
-            />
-          )}
+          <SupportPet
+            hasContributed={hasContributed}
+            onOpen={() => setShowSupportDialog(true)}
+          />
+
           <div className="workspace-header__tools">
             <button
               type="button"
@@ -974,18 +973,6 @@ const AppContent = () => {
             in rather than imported there, so there is one definition of what
             "reinstall Equalizer APO" does — including the confirmation and the
             restart advice that follows it. */}
-        {/* The two pieces of the titlebar worth keeping over a full-screen
-            video: the creature in the left corner, and the waveform across the
-            top. The view menu is already at the top right, inside the graph. */}
-        {isAppFullScreen && (
-          <div className="fullscreen-chrome">
-            <SupportPet
-              hasContributed={hasContributed}
-              onOpen={() => setShowSupportDialog(true)}
-            />
-            <WaveformVisualizer />
-          </div>
-        )}
         {showTroubleshooter && (
           <AudioTroubleshooter
             onClose={() => setShowTroubleshooter(false)}

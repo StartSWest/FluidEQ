@@ -757,44 +757,18 @@ $expanded-video-bar-top: 40px;
   gap: 0;
 }
 
-// The titlebar loses its surface, not its contents.
+// The titlebar stays exactly where it is, and so does the room it occupies.
 //
-// Hiding it outright was the first attempt and it took the wrong things with
-// it: the waveform, the euphoria pill and the creature are the parts of this
-// app that are *alive*, and full screen — a video with a spectrum over it — is
-// exactly when they are worth watching. What is not wanted is the strip they
-// sit on, which over a full-screen picture is a bar of chrome across the top.
+// It used to be hidden here, and `#root`'s 78px of padding zeroed with it, to
+// reclaim the strip across the top. Every one of those is a relayout of the
+// whole workspace, and the workspace contains a `<webview>` — which is its own
+// compositor surface and came back black. Expanded moves none of it and has
+// never failed; this mode now moves none of it either.
 //
-// Keeping the real elements rather than mounting a second copy of them, which
-// was the other attempt: the titlebar is hidden with CSS, so its originals stay
-// mounted, and a duplicate creature meant two audio hooks on one analyser with
-// neither drawing correctly. There is only ever one of each.
-//
-// It is already `position: fixed`, so with `#root`'s padding gone below it the
-// graph runs the full height of the screen underneath.
-.window-titlebar:has(~ .app-workspace.is-app-full) {
-  display: none;
-}
-
-// And the space it was holding open.
-//
-// The titlebar is `position: fixed`, so hiding it frees nothing on its own —
-// the room it occupies is 78px of padding on `#root`, put there so the
-// workspace starts below it. Take away the bar and leave the padding and full
-// screen has a black band across the top where the chrome used to be, which is
-// exactly the strip this mode exists to reclaim.
-//
-// Reached with `:has()` because the flag lives on a descendant: the mode is a
-// property of the workspace, and the element that has to react to it is its
-// parent. The alternative is threading a class onto `#root` from React, which
-// means App knowing about the shell's padding.
-// A descendant match rather than a child one. The workspace is a direct child
-// today, but that is an accident of which providers happen to render DOM — one
-// wrapper appearing anywhere above it would silently put the gap back, and a
-// gap that returns for a reason invisible in this file is the worst kind.
-#root:has(.app-workspace.is-app-full) {
-  padding-top: 0;
-}
+// Hiding the titlebar also meant moving the creature and the waveform into a
+// second element, and a moved component is an unmounted one: two audio hooks on
+// one analyser, a support panel that lost its pet. Leaving the bar alone means
+// there is exactly one of each and nothing to move.
 
 // The graph with the workspace to itself.
 //
