@@ -309,8 +309,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: 100%;
   margin: 6px 0 $spacing-xs;
   padding: 10px 12px;
+  // The filter column is the wide one because it is the only field whose value
+  // is a name rather than a number, and the two shelves and the two passes are
+  // told apart by a word each.
   grid-template-columns:
-    minmax(104px, max-content) 108px 96px 138px 64px
+    minmax(104px, max-content) 162px 96px 138px 64px
     minmax(104px, max-content);
   align-items: stretch;
   justify-self: center;
@@ -376,6 +379,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .number-input input[type='text'] {
     height: 100%;
   }
+}
+
+// The drawing and the name of a filter type, side by side.
+//
+// Both are needed. The drawing is what makes the list scannable, but a shelf
+// and a pass on the same side of the spectrum are two curves that leave the
+// same corner, and only the word separates them at a glance.
+.filter-type-option {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
+
+  svg {
+    flex: 0 0 auto;
+  }
+}
+
+// The line box has to be taller than the glyphs, because `truncate` brings
+// `overflow: hidden` with it: at a line height of 1 the box is exactly the
+// font size, so the descender of the p in "Low Pass" and the top of the L
+// were being shaved off by the very rule meant to add an ellipsis.
+.filter-type-option__label {
+  @include truncate;
+  padding-block: 1px;
+  color: rgba($white, 0.92);
+  font-size: 0.72rem;
+  line-height: 1.45;
 }
 
 // Stands in for the gain field on filter types that have no gain parameter.
