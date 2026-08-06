@@ -33,11 +33,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import { app, ipcMain, session, shell, WebContents } from 'electron';
+import log from 'electron-log';
 import path from 'path';
 import {
   VIDEO_BROWSER_PARTITION,
   VIDEO_SITES,
   isAllowedVideoUrl,
+  VIDEO_LINK_BLOCKED,
 } from '../common/videoSites';
 import {
   VIDEO_AD_BLOCK_CHANGED,
@@ -219,6 +221,21 @@ const hardenPlayer = (contents: WebContents) => {
           });
         }
       });
+    } else {
+      // Say so, rather than dropping it in silence.
+      //
+      // `will-navigate` has a listener in the renderer that raises the notice
+      // naming the host; a popup denied here had nothing of the kind, so a
+      // click that opened a new window to somewhere unlisted simply did
+      // nothing at all. That is indistinguishable from a broken page — it is
+      // exactly how Vimeo reads when a video refuses to open — and the whole
+      // point of the allow-list is that a boundary should be legible.
+      //
+      // `about:blank` is the one to watch for: a site that opens an empty
+      // window and then navigates it asks about the blank, which is never on
+      // the list, so this is the only place that behaviour is visible at all.
+      log.info(`Video player refused a popup to ${url}`);
+      contents.hostWebContents?.send(VIDEO_LINK_BLOCKED, url);
     }
 
     // Never a real popup. Anything not on the list is dropped here, and the

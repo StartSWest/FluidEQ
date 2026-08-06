@@ -835,6 +835,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // work rather than about the brand, and a logo lockup at the top of it would
 // change what the whole thing sounds like.
 .support-dialog__brand {
+  // Across both columns.
+  //
+  // The panel is a grid, so a new child without this took a cell of its own —
+  // which pushed the creature into the right-hand column, left the top of the
+  // left one empty, and threw the whole two-column layout out. A row that spans
+  // is what a header is.
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   margin-bottom: 4px;

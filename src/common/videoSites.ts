@@ -42,6 +42,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 export const VIDEO_BROWSER_PARTITION = 'persist:fluideq-video';
 
+/**
+ * A popup the player refused, sent from main to the window so it can say so.
+ *
+ * The renderer sees a refused *navigation* itself and raises the notice. A
+ * 'target="_blank"' is answered in the main process, where the renderer cannot
+ * see it — so without this a click that opened a window to somewhere unlisted
+ * did nothing at all and looked exactly like a broken page.
+ */
+export const VIDEO_LINK_BLOCKED = 'video-link-blocked';
+
 export interface IVideoSite {
   id: string;
   /** The brand's own name. Never translated — nobody localises "YouTube". */

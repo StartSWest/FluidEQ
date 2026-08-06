@@ -29,6 +29,7 @@ import {
   buildSearchUrl,
   findSiteForUrl,
   isAllowedVideoUrl,
+  VIDEO_LINK_BLOCKED,
 } from 'common/videoSites';
 import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
@@ -440,6 +441,32 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       // Coming back to the home page is a small loss, not a failure.
     }
   }, [currentUrl]);
+
+  /**
+   * A popup the main process refused, reported here.
+   *
+   * `will-navigate` is visible to this component and already raises the notice.
+   * A `target="_blank"` is not: it is answered in the main process, so a click
+   * that opened a window to somewhere unlisted did nothing at all and looked
+   * exactly like a broken page — which is how Vimeo reads when a video will not
+   * open. The boundary should be legible; that is the whole point of having one.
+   */
+  useEffect(() => {
+    const off = window.electron.ipcRenderer.on(
+      VIDEO_LINK_BLOCKED,
+      (...args: unknown[]) => {
+        const [url] = args;
+        if (typeof url === 'string' && url) {
+          setBlockedUrl(url);
+        }
+      },
+    );
+    // Wrapped rather than returned directly: the unsubscribe hands back the
+    // IpcRenderer, and a cleanup that returns anything is not a cleanup.
+    return () => {
+      off();
+    };
+  }, []);
 
   // Pushed to the main process, which is where the blocker actually reads it
   // from. Runs on mount too, so a player attached later starts in the state the
