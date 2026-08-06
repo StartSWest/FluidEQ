@@ -298,7 +298,11 @@ const Line = ({
   // The rainbow palette paints from the full-spectrum gradient in the chart's
   // defs — deliberately not the EQ one, which only carries a stop per band and
   // so covers whatever slice of the axis the user's bands happen to occupy.
-  const paint = look.palette === 'rainbow' ? 'url(#chart-live-rainbow)' : color;
+  // The style's palette paints the live trace; every other curve keeps the
+  // colour its legend names it by. A rainbow across all five made the legend a
+  // lie and left nothing to tell the layers apart.
+  const paint =
+    look.palette === 'rainbow' && smooth ? 'url(#chart-live-rainbow)' : color;
 
   useEffect(() => {
     if (!smooth) {
@@ -342,7 +346,18 @@ const Line = ({
         // curve gets it: every other curve here is redrawn when a band moves,
         // and an opacity easing over that would smear one edit into the next.
         className={[
-          look.palette === 'rainbow' ? 'is-rainbow' : '',
+          // The rainbow belongs to the live trace alone.
+          //
+          // A style's palette describes how the *output* is drawn, and the
+          // other curves here are not the output — they are the layers that
+          // made it, and each is named by a legend in its own colour. Painting
+          // them all rainbow made the legend a lie and the graph unreadable:
+          // five curves, one palette, nothing to tell them apart.
+          //
+          // 'smooth' is what marks the live curve — it is the only one eased
+          // between frames rather than redrawn on an edit — so it is the same
+          // test the trace transition already uses.
+          look.palette === 'rainbow' && smooth ? 'is-rainbow' : '',
           smooth ? 'chart-live-trace' : '',
         ]
           .filter(Boolean)
