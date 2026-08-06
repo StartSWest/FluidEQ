@@ -230,9 +230,33 @@ const enterPlayerOnlyScript = (generation: number) => `(() => {
     // it with, and the observer calls this again on the next change — the video
     // arriving being one of them.
     if (!player.querySelector('video')) { return; }
-    // Already correct, and still attached. The common case by far.
+    // Already correct — which means marked, attached, *and* still standing on a
+    // chain that is marked the whole way up.
+    //
+    // That last clause is the one this cost an evening for. YouTube reparents
+    // '#movie_player' when the viewport changes: a different layout container,
+    // four levels away from the old one. The element is still the player and
+    // still in the document, so the old test returned here and never re-walked
+    // — leaving the marks on ancestors it no longer has, and the rule below
+    // hiding the branch it had moved into. The player collapsed to 0x0 and no
+    // amount of observing brought it back, because every callback took this
+    // early return.
+    //
+    // It is why the two modes disagreed: each has its own viewport, so each
+    // gets its own chain, and whichever was marked first was wrong for the
+    // other. It is why it alternated, why the first go after a reload always
+    // worked, and why a reload was the only thing that fixed it.
+    //
+    // Walking up to check costs a dozen attribute reads at most once per
+    // animation frame, against a page that mutates hundreds of times a second.
     if (player.hasAttribute('data-fluideq-player') && player.isConnected) {
-      return;
+      let intact = true;
+      let up = player.parentElement;
+      while (up && up !== document.documentElement) {
+        if (!up.hasAttribute('data-fluideq-keep')) { intact = false; break; }
+        up = up.parentElement;
+      }
+      if (intact) { return; }
     }
     document
       .querySelectorAll('[data-fluideq-keep], [data-fluideq-player]')
