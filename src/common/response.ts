@@ -180,6 +180,61 @@ export const gainAtFrequency = (f: number, c: ITransferFuncCoeffs): number => {
  * summing the responses at every probe frequency and taking the maximum is the
  * real answer, and it costs one pass over a thousand samples.
  */
+/**
+ * How far below full scale music actually sits, by frequency.
+ *
+ * The headroom question is not "how much does this filter boost" but "how much
+ * boost will ever meet a full-scale signal". Those are the same only if the
+ * material is flat to 20 kHz, and nothing is: recorded music is loud from the
+ * bass through the lower mids and falls away steeply above, so a +8 dB lift at
+ * 12 kHz can never cost 8 dB of headroom because there is never 0 dBFS up there
+ * to lift.
+ *
+ * Reserving as if there were is what made the preamp read −11 dB on a chain
+ * nobody would call extreme. The numbers below are the shortfall, in dB, of
+ * typical program material against its own busiest region — deliberately
+ * conservative, roughly half of what measured spectra show, so the reserve
+ * still errs high. Zero from 60 Hz to 2 kHz, where music genuinely does reach
+ * full scale and the full boost has to be paid for.
+ *
+ * This is a model, not a measurement, and that is the point: it does not move
+ * while somebody is listening. Measuring the live output would be more accurate
+ * and would change the level under them, which is worse.
+ */
+const PROGRAM_ALLOWANCE: Array<[frequency: number, allowanceDb: number]> = [
+  [20, 4],
+  [40, 1.5],
+  [60, 0],
+  [2000, 0],
+  [4000, 1.5],
+  [6000, 3],
+  [10000, 5],
+  [16000, 7],
+  [20000, 8],
+];
+
+/** Linear interpolation in log frequency, which is how hearing spaces it. */
+const getProgramAllowance = (frequency: number): number => {
+  const first = PROGRAM_ALLOWANCE[0];
+  const last = PROGRAM_ALLOWANCE[PROGRAM_ALLOWANCE.length - 1];
+  if (frequency <= first[0]) {
+    return first[1];
+  }
+  if (frequency >= last[0]) {
+    return last[1];
+  }
+  for (let i = 1; i < PROGRAM_ALLOWANCE.length; i += 1) {
+    const [highFrequency, highAllowance] = PROGRAM_ALLOWANCE[i];
+    if (frequency <= highFrequency) {
+      const [lowFrequency, lowAllowance] = PROGRAM_ALLOWANCE[i - 1];
+      const span = Math.log10(highFrequency / lowFrequency);
+      const along = span > 0 ? Math.log10(frequency / lowFrequency) / span : 0;
+      return lowAllowance + (highAllowance - lowAllowance) * along;
+    }
+  }
+  return last[1];
+};
+
 export const getChainPeakGain = (
   filters: Array<Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>>,
 ): number => {
@@ -202,8 +257,10 @@ export const getChainPeakGain = (
     coefficients.forEach((c) => {
       total += gainAtFrequency(frequency, c);
     });
-    if (Number.isFinite(total) && total > peak) {
-      peak = total;
+    // What the boost will actually cost, not what it could cost in theory.
+    const needed = total - getProgramAllowance(frequency);
+    if (Number.isFinite(needed) && needed > peak) {
+      peak = needed;
     }
   });
 
