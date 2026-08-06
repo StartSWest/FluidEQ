@@ -80,6 +80,7 @@ import {
   IState,
   IPresetV2,
   IFilter,
+  IFilterEdit,
   MAX_FREQUENCY,
   MAX_GAIN,
   MAX_NUM_FILTERS,
@@ -184,7 +185,82 @@ import {
  * train has nothing to fix, and a red banner saying an update check failed
  * would be pure noise — it is logged and dropped.
  */
+/**
+ * Whether the update listeners and the hourly check are already installed.
+ *
+ * This runs at the end of `createMainWindow`, and a window can be created more
+ * than once — `activate` rebuilds one after the last was closed. Every call
+ * added another four `autoUpdater` listeners and another hourly interval, so
+ * the app would have checked for updates N times an hour and sent every update
+ * event to the renderer N times over.
+ *
+ * The listeners belong to the module rather than to a window, which is why the
+ * guard is here rather than a teardown somewhere: there is nothing to tear
+ * down, only something that must happen exactly once. `send` already handles
+ * the window being gone or replaced.
+ */
+let hasSetUpAutoUpdates = false;
+
+/**
+ * Which process is which, and how big each one is getting. Development only.
+ *
+ * Chasing a renderer that grew to two gigabytes, the hard part was not seeing
+ * the growth — Task Manager shows that — it was knowing *whose* growth it was.
+ * An Electron app playing a video runs half a dozen renderers and the operating
+ * system names them all `electron.exe`; picking ours out by process id is a
+ * guess, and a guess sends the search into the wrong file.
+ *
+ * Electron already knows. `getAppMetrics` labels every process by type, and the
+ * window's own `getOSProcessId` says which renderer is the app rather than a
+ * guest page. Written to the log so a session can be read back afterwards
+ * instead of watched live.
+ *
+ * Never in a shipped build: it is a timer and a log line every fifteen seconds
+ * in aid of a question only a developer is asking.
+ */
+const startMemoryProbe = () => {
+  if (process.env.NODE_ENV !== 'development' || !mainWindow) {
+    return;
+  }
+  const appRendererPid = mainWindow.webContents.getOSProcessId();
+  log.info(`[mem] app renderer pid=${appRendererPid}`);
+  const probe = setInterval(() => {
+    const rows = app
+      .getAppMetrics()
+      .map((metric) => {
+        const mb = Math.round(metric.memory.workingSetSize / 1024);
+        const mine = metric.pid === appRendererPid ? '*' : '';
+        return `${metric.type}${mine}:${metric.pid}=${mb}MB`;
+      })
+      .join(' ');
+    // The JS heap alongside the process size, because the two answer different
+    // questions and only the pair narrows anything. A renderer at a gigabyte
+    // with a hundred-megabyte heap is not leaking objects — it is leaking
+    // something the garbage collector never sees, which means DOM nodes,
+    // decoded images, canvas backing stores or retained paint. The opposite
+    // points straight back at our own code.
+    mainWindow?.webContents
+      .executeJavaScript(
+        // Node count alongside the heap, because "process grows, heap flat" has
+        // two very different explanations and this tells them apart: DOM piling
+        // up inside the document, or something the page never sees — detached
+        // nodes, retained paint, decoded images.
+        '(() => { const m = performance.memory; const h = m ? Math.round(m.usedJSHeapSize / 1048576) + "/" + Math.round(m.totalJSHeapSize / 1048576) : "n/a"; return h + "MB nodes=" + document.getElementsByTagName("*").length; })()',
+        true,
+      )
+      .then((heap) => log.info(`[mem] ${rows} jsHeap*=${heap}`))
+      .catch(() => log.info(`[mem] ${rows}`));
+  }, 15000);
+  // The window can go before the app does, and a probe reporting on a renderer
+  // that no longer exists is noise in the one log being read to find a leak.
+  mainWindow.on('closed', () => clearInterval(probe));
+};
+
 const setUpAutoUpdates = () => {
+  if (hasSetUpAutoUpdates) {
+    return;
+  }
+  hasSetUpAutoUpdates = true;
   log.transports.file.level = 'info';
   autoUpdater.logger = log;
 
@@ -1991,6 +2067,69 @@ ipcMain.on(ChannelEnum.SET_FILTER_TYPE, async (event, arg) => {
   await handleUpdate(event, channel + filterId, false, true);
 });
 
+/**
+ * Apply a whole group edit, then flush once.
+ *
+ * The single-band setters above are unchanged and still the right thing for a
+ * single band. This exists because the flush is the expensive half: sending it
+ * per band made a ten-band selection ten installation checks, ten retried
+ * config writes and ten preset saves for one movement of one control.
+ *
+ * All-or-nothing on validation. A batch that names a band that no longer
+ * exists, or carries a value out of range, is rejected before anything is
+ * written — half an edit reaching Equalizer APO would leave the config and the
+ * window disagreeing about what is playing, with nothing to say which bands
+ * made it.
+ */
+ipcMain.on(ChannelEnum.SET_FILTER_VALUES, async (event, arg) => {
+  const channel = ChannelEnum.SET_FILTER_VALUES;
+  const edits: IFilterEdit[] = Array.isArray(arg?.[0]) ? arg[0] : [];
+
+  if (edits.length === 0) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+
+  const isInRange = (value: number | undefined, min: number, max: number) =>
+    value === undefined ||
+    (Number.isFinite(value) && value >= min && value <= max);
+
+  const isValid = edits.every(
+    (edit) =>
+      typeof edit?.id === 'string' &&
+      edit.id in state.filters &&
+      isInRange(edit.gain, MIN_GAIN, MAX_GAIN) &&
+      isInRange(edit.frequency, MIN_FREQUENCY, MAX_FREQUENCY) &&
+      isInRange(edit.quality, MIN_QUALITY, MAX_QUALITY) &&
+      (edit.type === undefined ||
+        Object.values(FilterTypeEnum).includes(edit.type)),
+  );
+
+  if (!isValid) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+
+  switchToParametricEditing();
+  edits.forEach((edit) => {
+    const filter = state.filters[edit.id];
+    if (edit.frequency !== undefined) {
+      filter.frequency = edit.frequency;
+    }
+    if (edit.gain !== undefined) {
+      filter.gain = edit.gain;
+    }
+    if (edit.quality !== undefined) {
+      filter.quality = edit.quality;
+    }
+    if (edit.type !== undefined) {
+      filter.type = edit.type;
+    }
+  });
+  state.isFlat = false;
+  await handleUpdate(event, channel, false, true);
+});
+
 ipcMain.on(ChannelEnum.GET_FILTER_COUNT, async (event) => {
   const reply: TSuccess<number> = {
     result: Object.keys(state.filters).length,
@@ -2649,6 +2788,7 @@ const createMainWindow = async () => {
   });
 
   setUpAutoUpdates();
+  startMemoryProbe();
 };
 
 /**

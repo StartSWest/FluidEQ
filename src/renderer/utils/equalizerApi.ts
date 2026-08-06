@@ -26,6 +26,7 @@ import {
 import {
   FilterTypeEnum,
   FixedBandSizeEnum,
+  IFilterEdit,
   IFiltersMap,
   IState,
   IAudioDevice,
@@ -755,6 +756,21 @@ export const setType = (filterId: string, filterType: string) => {
   const channel = ChannelEnum.SET_FILTER_TYPE;
   window.electron.ipcRenderer.sendMessage(channel, [filterId, filterType]);
   return promisifyResult(setterResponseHandler, channel + filterId);
+};
+
+/**
+ * Change several bands at once, at the cost of changing one
+ * @param {IFilterEdit[]} edits - one entry per band, carrying only the fields that move
+ * @returns { Promise<void> } exception if failed, or if any edit is invalid
+ */
+export const setFilterValues = (edits: IFilterEdit[]) => {
+  const channel = ChannelEnum.SET_FILTER_VALUES;
+  // The reply is keyed on the bare channel rather than on a band id, because
+  // the batch has no single band to name. One group edit may therefore be in
+  // flight at a time — which is what the caller wants anyway: two overlapping
+  // batches over the same selection would race to write the same config.
+  window.electron.ipcRenderer.sendMessage(channel, [edits]);
+  return promisifyResult(setterResponseHandler, channel);
 };
 
 /**

@@ -215,6 +215,22 @@ export interface IFilter {
   quality: number;
 }
 
+/**
+ * One band's share of a group edit.
+ *
+ * Every field but the id is optional because a group edit moves one parameter
+ * across a selection: the batch that changes ten gains says nothing about ten
+ * frequencies, and an absent field must leave the band's own value alone
+ * rather than resetting it to a default.
+ */
+export interface IFilterEdit {
+  id: string;
+  frequency?: number;
+  gain?: number;
+  quality?: number;
+  type?: FilterTypeEnum;
+}
+
 export interface IState {
   isEnabled: boolean;
   isAutoPreAmpOn: boolean;

@@ -250,3 +250,103 @@ describe('FluidEqProvider band reveal', () => {
     expect(gainsById(context().filters)).toEqual(gainsById(tuned()));
   });
 });
+
+/**
+ * The reducer action behind a group edit.
+ *
+ * Every one of these is a way a group edit can arrive already out of date:
+ * it is dispatched from a throttled timer, so between the drag frame that
+ * built the list and the moment it lands, bands can be deleted and values can
+ * have moved to where the batch was going to put them anyway.
+ */
+describe('FluidEqProvider group edits', () => {
+  beforeEach(() => {
+    latest = undefined;
+    mockedGetEqualizerState.mockReset();
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      get: () => ({
+        ipcRenderer: {
+          on: () => () => {},
+        },
+      }),
+    });
+  });
+
+  it('applies every band in one commit', async () => {
+    await mount();
+
+    await act(async () => {
+      context().dispatchFilter({
+        type: FilterActionEnum.EDITS,
+        edits: [
+          { id: 'band-0', gain: -4 },
+          { id: 'band-1', gain: 6 },
+          { id: 'band-2', quality: 2.5 },
+        ],
+      });
+    });
+
+    expect(context().filters['band-0'].gain).toBe(-4);
+    expect(context().filters['band-1'].gain).toBe(6);
+    expect(context().filters['band-2'].quality).toBe(2.5);
+  });
+
+  // A group edit names one parameter; the bands' other values are not its
+  // business and a missing field must not be read as "set this to nothing".
+  it('leaves the fields an edit does not mention alone', async () => {
+    await mount();
+    const before = context().filters['band-3'];
+
+    await act(async () => {
+      context().dispatchFilter({
+        type: FilterActionEnum.EDITS,
+        edits: [{ id: 'band-3', gain: 5 }],
+      });
+    });
+
+    const after = context().filters['band-3'];
+    expect(after.gain).toBe(5);
+    expect(after.frequency).toBe(before.frequency);
+    expect(after.quality).toBe(before.quality);
+    expect(after.type).toBe(before.type);
+  });
+
+  it('drops bands that no longer exist rather than resurrecting them', async () => {
+    await mount();
+
+    await act(async () => {
+      context().dispatchFilter({
+        type: FilterActionEnum.REMOVE,
+        id: 'band-2',
+      });
+      context().dispatchFilter({
+        type: FilterActionEnum.EDITS,
+        edits: [
+          { id: 'band-2', gain: -9 },
+          { id: 'band-3', gain: -9 },
+        ],
+      });
+    });
+
+    expect(context().filters['band-2']).toBeUndefined();
+    expect(context().filters['band-3'].gain).toBe(-9);
+  });
+
+  // Identity matters: the response graph re-reads the whole tuning whenever
+  // the map changes, and its auto-headroom writes Equalizer APO's preamp for
+  // every tuning it is shown.
+  it('returns the same map when the edit asks for nothing', async () => {
+    await mount();
+    const before = context().filters;
+
+    await act(async () => {
+      context().dispatchFilter({
+        type: FilterActionEnum.EDITS,
+        edits: [{ id: 'band-0', gain: before['band-0'].gain }],
+      });
+    });
+
+    expect(context().filters).toBe(before);
+  });
+});

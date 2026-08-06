@@ -34,6 +34,16 @@ enum ChannelEnum {
   SET_FILTER_QUALITY = 'setFilterQuality',
   GET_FILTER_TYPE = 'getFilterType',
   SET_FILTER_TYPE = 'setFilterType',
+  /**
+   * Several bands, one write.
+   *
+   * The four setters above each end in a full flush: an installation check, a
+   * config rewrite behind a five-attempt retry, and a preset save. That is the
+   * right cost for one band. Editing a selection of ten paid it ten times over
+   * for a single knob turn, which is slow enough that the requests outlive the
+   * ten-second reply timeout and the edit reports itself as a failure.
+   */
+  SET_FILTER_VALUES = 'setFilterValues',
   GET_FILTER_COUNT = 'getFilterCount',
   ADD_FILTER = 'addFilter',
   REMOVE_FILTER = 'removeFilter',

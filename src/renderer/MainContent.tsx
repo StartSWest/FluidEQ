@@ -29,6 +29,8 @@ import {
   FilterTypeEnum,
   FilterTypeToLabelMap,
   FixedBandSizeEnum,
+  IFilter,
+  IFilterEdit,
   MAX_NUM_FILTERS,
   MAX_FREQUENCY,
   MAX_GAIN,
@@ -51,23 +53,20 @@ import { FilterActionEnum, useFluidEqContext } from './utils/FluidEqContext';
 import './styles/MainContent.scss';
 import './styles/MultiSelect.scss';
 import Spinner from './icons/Spinner';
-import { clamp, sortHelper } from './utils/utils';
+import { clamp, sortHelper, useThrottleAndExecuteLatest } from './utils/utils';
 import Button from './widgets/Button';
 import {
   addEqualizerSlider,
   clearGains,
   removeEqualizerSlider,
-  setFrequency,
+  setFilterValues,
   setFixedBand,
-  setGain,
-  setQuality,
   setSmartEq as setSmartEqApi,
-  setType,
 } from './utils/equalizerApi';
 import Dropdown from './widgets/Dropdown';
 import NumberInput from './widgets/NumberInput';
 import Knob from './widgets/Knob';
-import { FILTER_OPTIONS } from './icons/FilterTypeIcon';
+import { LABELLED_FILTER_OPTIONS } from './icons/FilterTypeIcon';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
 import {
   buildBalancedGains,
@@ -90,6 +89,16 @@ import { useTranslation } from './utils/I18nContext';
  * instead of an endless loop.
  */
 const MAX_BALANCE_ATTEMPTS = 3;
+
+/**
+ * How often a group edit is allowed to reach Equalizer APO, in ms.
+ *
+ * The same figure the individual band sliders throttle to, and for the same
+ * reason: a write is an installation check, a retried config rewrite and a
+ * preset save, none of which a drag needs sixty times a second. The trailing
+ * call always fires, so the value that lands is the one the control ended on.
+ */
+const GROUP_EDIT_INTERVAL = 100;
 
 const MainContent = () => {
   const {
@@ -138,21 +147,79 @@ const MainContent = () => {
   }, [frequencySortedFilters.length]);
   const bandLayout = frequencySortedFilters.length <= 10 ? 'centered' : 'wide';
 
+  /**
+   * The band the editor below is showing, or nothing at all.
+   *
+   * This used to fall back to the first band whenever the selection was empty,
+   * which meant the editor could never close: clearing the selection left it
+   * open on a band that was no longer highlighted anywhere, so the panel and
+   * the bands disagreed about what was selected and moving a control edited a
+   * band the user had just deselected.
+   */
   const selectedFilter = useMemo(
-    () => filters[selectedFilterId] ?? frequencySortedFilters[0] ?? undefined,
-    [filters, frequencySortedFilters, selectedFilterId],
+    () => filters[selectedFilterId],
+    [filters, selectedFilterId],
   );
   const isSelectedGainDisabled = selectedFilter
     ? NO_GAIN_FILTER_TYPES.includes(selectedFilter.type)
     : true;
 
+  /**
+   * Every band the editor is speaking for, primary first.
+   *
+   * Empty when nothing is selected, which is what closes the editor. One entry
+   * for the ordinary case, and the whole selection when there is one — so the
+   * controls below can say "3 bands" and act on all of them without each of
+   * them re-deriving which bands those are.
+   */
+  const selectedFilters = useMemo(
+    () =>
+      selectedFilterIds
+        .map((id) => filters[id])
+        .filter((filter): filter is IFilter => Boolean(filter)),
+    [filters, selectedFilterIds],
+  );
+  const selectedCount = selectedFilters.length;
+  const isGroupEdit = selectedCount > 1;
+
+  // Read by the group edit below, which runs from a throttled timer and must
+  // see the selection and the bands as they are when it fires rather than as
+  // they were when the drag started.
+  const selectedFilterRef = useRef(selectedFilter);
+  selectedFilterRef.current = selectedFilter;
+  const selectedFilterIdsRef = useRef(selectedFilterIds);
+  selectedFilterIdsRef.current = selectedFilterIds;
+
+  /**
+   * Something is selected to begin with, and nothing re-selects after that.
+   *
+   * This used to select the first band whenever the selection was empty, for
+   * any reason. That made deselecting impossible: clicking the empty part of
+   * the graph cleared the selection and this put one straight back, so the
+   * marquee's "select nothing" and the click-away both appeared to jump the
+   * selection to a band rather than release it.
+   *
+   * The two cases it actually needs to cover are narrower. Nothing has ever
+   * been selected — the first load, where the editor above would otherwise open
+   * on no band at all. And the selection has gone stale, which happens when the
+   * band it named is deleted or the layout is swapped underneath it; leaving
+   * that alone would show an editor for a band that no longer exists.
+   *
+   * An empty selection the user asked for is neither of those, and is now left
+   * exactly as they left it.
+   */
+  const hasSelectedOnce = useRef(false);
   useEffect(() => {
-    if (
-      (!selectedFilterId || !filters[selectedFilterId]) &&
-      frequencySortedFilters[0]
-    ) {
-      setSelectedFilterId(frequencySortedFilters[0].id);
+    const [firstFilter] = frequencySortedFilters;
+    if (!firstFilter) {
+      return;
     }
+    const isStale = Boolean(selectedFilterId) && !filters[selectedFilterId];
+    const isFirstEver = !hasSelectedOnce.current && !selectedFilterId;
+    if (isStale || isFirstEver) {
+      setSelectedFilterId(firstFilter.id);
+    }
+    hasSelectedOnce.current = true;
   }, [filters, frequencySortedFilters, selectedFilterId, setSelectedFilterId]);
 
   // Leaving the EQ tab unmounts this component; a measurement must not keep
@@ -219,66 +286,84 @@ const MainContent = () => {
     | undefined
   >();
 
+  /**
+   * Write a group edit to Equalizer APO.
+   *
+   * Separate from working out what the edit is, because the two want opposite
+   * treatment: the calculation is pure and cheap and runs on every frame of a
+   * drag, while this ends in a config rewrite and a preset save and must not.
+   */
+  const flushGroupEdit = useCallback(
+    async (edits: IFilterEdit[]) => {
+      try {
+        await setFilterValues(edits);
+      } catch (e) {
+        setGlobalError(e as ErrorDescription);
+      }
+    },
+    [setGlobalError],
+  );
+
+  const throttledGroupFlush = useThrottleAndExecuteLatest(
+    flushGroupEdit,
+    GROUP_EDIT_INTERVAL,
+  );
+
+  /**
+   * Move one parameter across everything selected.
+   *
+   * The value handed in is the one the control shows, which belongs to the
+   * primary band; every other band in the selection moves by the same amount
+   * rather than to the same value, so a selection keeps its shape. Bands that
+   * would run past an end of the range stop there — which does mean a group
+   * pushed to the top and then pulled back spreads out, and that is the only
+   * behaviour that does not silently discard the rest of the selection.
+   *
+   * The edit is shown immediately and written on a throttle. Both halves
+   * matter: showing it immediately is what makes the next delta measure from
+   * where the band actually is, and throttling the write is what stops a drag
+   * queueing a config rewrite per frame. They are absolute values, so a write
+   * skipped mid-drag loses nothing — the one that lands last is complete.
+   */
   const updateSelectedGroup = useCallback(
     async (field: 'frequency' | 'gain' | 'quality', newValue: number) => {
-      if (!selectedFilter) {
+      const primary = selectedFilterRef.current;
+      if (!primary) {
         return;
       }
-      const ids = selectedFilterIds.includes(selectedFilter.id)
-        ? selectedFilterIds
-        : [selectedFilter.id];
-      const delta = newValue - selectedFilter[field];
+      const liveFilters = filtersRef.current;
+      const ids = selectedFilterIdsRef.current.includes(primary.id)
+        ? selectedFilterIdsRef.current
+        : [primary.id];
+      const delta = newValue - primary[field];
       const bounds = {
         frequency: [MIN_FREQUENCY, MAX_FREQUENCY],
         gain: [MIN_GAIN, MAX_GAIN],
         quality: [MIN_QUALITY, MAX_QUALITY],
       }[field];
-      let actionType = FilterActionEnum.QUALITY;
-      if (field === 'frequency') {
-        actionType = FilterActionEnum.FREQUENCY;
-      } else if (field === 'gain') {
-        actionType = FilterActionEnum.GAIN;
+
+      const edits: IFilterEdit[] = [];
+      ids.forEach((id) => {
+        const filter = liveFilters[id];
+        if (
+          !filter ||
+          (field === 'gain' && NO_GAIN_FILTER_TYPES.includes(filter.type))
+        ) {
+          return;
+        }
+        const nextValue = clamp(filter[field] + delta, bounds[0], bounds[1]);
+        if (nextValue !== filter[field]) {
+          edits.push({ id, [field]: nextValue });
+        }
+      });
+
+      if (edits.length === 0) {
+        return;
       }
-      try {
-        await Promise.all(
-          ids.map(async (id) => {
-            const filter = filters[id];
-            if (
-              !filter ||
-              (field === 'gain' && NO_GAIN_FILTER_TYPES.includes(filter.type))
-            ) {
-              return;
-            }
-            const nextValue = clamp(
-              filter[field] + delta,
-              bounds[0],
-              bounds[1],
-            );
-            if (field === 'frequency') {
-              await setFrequency(id, nextValue);
-            } else if (field === 'gain') {
-              await setGain(id, nextValue);
-            } else {
-              await setQuality(id, nextValue);
-            }
-            dispatchFilter({
-              type: actionType,
-              id,
-              newValue: nextValue,
-            });
-          }),
-        );
-      } catch (e) {
-        setGlobalError(e as ErrorDescription);
-      }
+      dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+      await throttledGroupFlush(edits);
     },
-    [
-      dispatchFilter,
-      filters,
-      selectedFilter,
-      selectedFilterIds,
-      setGlobalError,
-    ],
+    [dispatchFilter, throttledGroupFlush],
   );
 
   const handleBandGainChange = useCallback(
@@ -379,17 +464,41 @@ const MainContent = () => {
     setSelectionBox(undefined);
   };
 
+  /**
+   * Delete the whole selection, down to the floor and no further.
+   *
+   * One request per band rather than a batch, because unlike a parameter edit
+   * each removal changes which bands exist and the main process hands back a
+   * new id space. The count is re-checked as it goes, so selecting everything
+   * and pressing delete leaves the minimum standing instead of failing
+   * outright — the alternative is a button that refuses to do anything at all
+   * once the selection is large enough.
+   */
   const deleteSelectedFilter = async () => {
-    if (!selectedFilter || frequencySortedFilters.length <= MIN_NUM_FILTERS) {
+    if (selectedCount === 0) {
+      return;
+    }
+    const deletable = selectedFilters.slice(
+      0,
+      Math.max(0, frequencySortedFilters.length - MIN_NUM_FILTERS),
+    );
+    if (deletable.length === 0) {
       return;
     }
     try {
-      await removeEqualizerSlider(selectedFilter.id);
-      dispatchFilter({
-        type: FilterActionEnum.REMOVE,
-        id: selectedFilter.id,
-      });
-      setSelectedFilterId('');
+      // Sequential on purpose: the main process rewrites the config on each
+      // removal, and firing them together is the flood this whole path exists
+      // to avoid.
+      // eslint-disable-next-line no-restricted-syntax
+      for (const filter of deletable) {
+        // eslint-disable-next-line no-await-in-loop
+        await removeEqualizerSlider(filter.id);
+        dispatchFilter({
+          type: FilterActionEnum.REMOVE,
+          id: filter.id,
+        });
+      }
+      setSelectedFilterIds([]);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
@@ -634,17 +743,39 @@ const MainContent = () => {
     }
   };
 
+  // Absolute rather than relative, unlike the sliders above: "back to zero"
+  // means the same thing for every band in the selection, and nudging a group
+  // by the primary's distance from zero would leave the rest somewhere else.
   const resetSelectedGain = async () => {
-    if (!selectedFilter || selectedFilter.gain === 0) {
+    const edits: IFilterEdit[] = selectedFilters
+      .filter(
+        (filter) =>
+          filter.gain !== 0 && !NO_GAIN_FILTER_TYPES.includes(filter.type),
+      )
+      .map((filter) => ({ id: filter.id, gain: 0 }));
+    if (edits.length === 0) {
       return;
     }
+    dispatchFilter({ type: FilterActionEnum.EDITS, edits });
     try {
-      await setGain(selectedFilter.id, 0);
-      dispatchFilter({
-        type: FilterActionEnum.GAIN,
-        id: selectedFilter.id,
-        newValue: 0,
-      });
+      await setFilterValues(edits);
+    } catch (e) {
+      setGlobalError(e as ErrorDescription);
+    }
+  };
+
+  // The one control that sets rather than nudges — a group of Peak bands asked
+  // to become Low Shelf all become Low Shelf.
+  const setSelectedType = async (newType: FilterTypeEnum) => {
+    const edits: IFilterEdit[] = selectedFilters
+      .filter((filter) => filter.type !== newType)
+      .map((filter) => ({ id: filter.id, type: newType }));
+    if (edits.length === 0) {
+      return;
+    }
+    dispatchFilter({ type: FilterActionEnum.EDITS, edits });
+    try {
+      await setFilterValues(edits);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
@@ -884,12 +1015,20 @@ const MainContent = () => {
         </div>
         {selectedFilter && (
           <div className="eq-flat-editor">
+            {/* Which band, or how many. A group edit moves everything
+                selected, so naming one frequency would be a lie about what
+                the controls beside it are about to do. */}
             <div className="eq-flat-editor__identity">
               <span>{t('eq.selected')}</span>
               <strong>
-                {selectedFilter.frequency >= 1000
-                  ? `${Number((selectedFilter.frequency / 1000).toFixed(1))} kHz`
-                  : `${selectedFilter.frequency} Hz`}
+                {(() => {
+                  if (isGroupEdit) {
+                    return `${selectedCount} bands`;
+                  }
+                  return selectedFilter.frequency >= 1000
+                    ? `${Number((selectedFilter.frequency / 1000).toFixed(1))} kHz`
+                    : `${selectedFilter.frequency} Hz`;
+                })()}
               </strong>
             </div>
             <div className="eq-flat-editor__control">
@@ -897,31 +1036,37 @@ const MainContent = () => {
               <Dropdown
                 name="selected-band-filter-type"
                 value={selectedFilter.type}
-                options={FILTER_OPTIONS}
+                options={LABELLED_FILTER_OPTIONS}
                 isDisabled={isBlockingError}
                 placement="up"
-                handleChange={async (newValue) => {
-                  try {
-                    await setType(selectedFilter.id, newValue);
-                    dispatchFilter({
-                      type: FilterActionEnum.TYPE,
-                      id: selectedFilter.id,
-                      newValue: newValue as FilterTypeEnum,
-                    });
-                  } catch (e) {
-                    setGlobalError(e as ErrorDescription);
-                  }
-                }}
+                handleChange={(newValue) =>
+                  setSelectedType(newValue as FilterTypeEnum)
+                }
               />
             </div>
-            <div className="eq-flat-editor__control">
+            {/* The one parameter a group cannot share.
+                Gain and Q move by the same amount and the selection keeps its
+                shape, but frequency is what tells the bands apart: nudging
+                every one of them by the same number of hertz squeezes the top
+                of the range flat and lets bands land on top of each other, and
+                a single box cannot express what was actually wanted. Left
+                visible rather than hidden so the row does not reshuffle, with
+                the reason on the row itself. */}
+            <div
+              className="eq-flat-editor__control"
+              title={
+                isGroupEdit
+                  ? 'Frequency is per band — select a single band to change it'
+                  : undefined
+              }
+            >
               <span>{t('eq.frequency')}</span>
               <NumberInput
                 name="selected-band-frequency"
                 value={selectedFilter.frequency}
                 min={MIN_FREQUENCY}
                 max={MAX_FREQUENCY}
-                isDisabled={false}
+                isDisabled={isGroupEdit}
                 showArrows
                 handleSubmit={(newValue) =>
                   updateSelectedGroup('frequency', newValue)
@@ -961,9 +1106,23 @@ const MainContent = () => {
                   <button
                     type="button"
                     className="eq-flat-editor__reset-gain"
-                    aria-label="Reset selected gain to 0 dB"
-                    title="Reset selected gain to 0 dB"
-                    disabled={isBlockingError || selectedFilter.gain === 0}
+                    aria-label={
+                      isGroupEdit
+                        ? `Reset all ${selectedCount} selected gains to 0 dB`
+                        : 'Reset selected gain to 0 dB'
+                    }
+                    title={
+                      isGroupEdit
+                        ? `Reset all ${selectedCount} selected gains to 0 dB`
+                        : 'Reset selected gain to 0 dB'
+                    }
+                    // Enabled while any band in the selection is off zero, not
+                    // only the primary: a group where the primary happens to
+                    // sit at 0 dB still has something to reset.
+                    disabled={
+                      isBlockingError ||
+                      !selectedFilters.some((filter) => filter.gain !== 0)
+                    }
                     onClick={resetSelectedGain}
                   >
                     ↺
@@ -992,8 +1151,16 @@ const MainContent = () => {
                 it is worth having even when the label is showing. */}
             <button
               type="button"
-              aria-label={t('eq.deleteAria')}
-              title={t('eq.deleteAria')}
+              aria-label={
+                isGroupEdit
+                  ? `Delete the ${selectedCount} selected bands`
+                  : t('eq.deleteAria')
+              }
+              title={
+                isGroupEdit
+                  ? `Delete the ${selectedCount} selected bands`
+                  : t('eq.deleteAria')
+              }
               className="eq-flat-editor__delete"
               disabled={frequencySortedFilters.length <= MIN_NUM_FILTERS}
               onClick={deleteSelectedFilter}

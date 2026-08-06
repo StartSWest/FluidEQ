@@ -30,6 +30,7 @@ import {
   FilterTypeEnum,
   getDefaultFilterWithId,
   getDefaultState,
+  IFilterEdit,
   IFiltersMap,
   IConvolutionProfile,
   IState,
@@ -58,6 +59,7 @@ export enum FilterActionEnum {
   CLEAR_GAINS,
   FIXED_BAND,
   GAINS,
+  EDITS,
 }
 
 type NumericalFilterAction =
@@ -79,6 +81,16 @@ export type FilterAction =
    * preamp for every tuning it is shown.
    */
   | { type: FilterActionEnum.GAINS; bands: IBandRevealBand[] }
+  /**
+   * A group edit, as one commit.
+   *
+   * `GAINS` above is the same idea for the one parameter a reveal moves. This
+   * is the general form, and it exists for the same reason: editing a
+   * selection of ten bands one dispatch at a time clones the map ten times and
+   * re-renders the response graph ten times for a single turn of a knob, and
+   * the graph's auto-headroom writes Equalizer APO's preamp on each one.
+   */
+  | { type: FilterActionEnum.EDITS; edits: IFilterEdit[] }
   | { type: FilterActionEnum.CLEAR_GAINS };
 
 type FilterDispatch = (action: FilterAction) => void;
@@ -224,6 +236,43 @@ const filterReducer: IFilterReducer = (
       const filtersCloned = cloneFilters(filters);
       landing.forEach((band) => {
         filtersCloned[band.id].gain = band.gain;
+      });
+      return filtersCloned;
+    }
+    case FilterActionEnum.EDITS: {
+      // Same defence as GAINS: this lands after an await, so a band named in
+      // the batch may have been deleted meanwhile, and a batch that asks for
+      // nothing returns the map it was given rather than a new one nothing
+      // downstream can tell apart from a real change.
+      const landing = action.edits.filter((edit) => {
+        const filter = filters[edit.id];
+        return (
+          filter &&
+          ((edit.frequency !== undefined &&
+            edit.frequency !== filter.frequency) ||
+            (edit.gain !== undefined && edit.gain !== filter.gain) ||
+            (edit.quality !== undefined && edit.quality !== filter.quality) ||
+            (edit.type !== undefined && edit.type !== filter.type))
+        );
+      });
+      if (landing.length === 0) {
+        return filters;
+      }
+      const filtersCloned = cloneFilters(filters);
+      landing.forEach((edit) => {
+        const filter = filtersCloned[edit.id];
+        if (edit.frequency !== undefined) {
+          filter.frequency = edit.frequency;
+        }
+        if (edit.gain !== undefined) {
+          filter.gain = edit.gain;
+        }
+        if (edit.quality !== undefined) {
+          filter.quality = edit.quality;
+        }
+        if (edit.type !== undefined) {
+          filter.type = edit.type;
+        }
       });
       return filtersCloned;
     }
@@ -376,6 +425,14 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     // at 0 dB — the very thing this is here to prevent.
     if (action.type === FilterActionEnum.GAIN) {
       revealEditedIdsRef.current?.add(action.id);
+    }
+    // A group edit says the same thing about each band it moved the gain of.
+    if (action.type === FilterActionEnum.EDITS) {
+      action.edits.forEach((edit) => {
+        if (edit.gain !== undefined) {
+          revealEditedIdsRef.current?.add(edit.id);
+        }
+      });
     }
     applyFilterAction(action);
   }, []);
