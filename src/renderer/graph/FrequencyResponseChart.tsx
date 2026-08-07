@@ -1253,6 +1253,8 @@ const FrequencyResponseChart = () => {
   return isGraphViewOn ? (
     <div
       className={`graph-wrapper${!isEngineUsable ? ' is-engine-disabled' : ''}${
+        bypassed.includes('eq') ? ' is-eq-bypassed' : ''
+      }${
         isGridHidden ? ' is-gridless' : ''
       }${isStretched ? ' is-stretched' : ''}${
         isDesignerOpen ? ' is-designing' : ''

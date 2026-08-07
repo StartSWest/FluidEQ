@@ -71,9 +71,36 @@
 // what goes inert.
 .workspace-tab-panel--convolution.is-engine-disabled > .voicing-panel,
 .workspace-tab-panel--convolution.is-engine-disabled > .convolution-panel,
-.graph-wrapper.is-engine-disabled > svg,
+// A descendant, not a child.
+//
+// This was `> svg`, and it was right when the plot was a direct child of the
+// wrapper. A `.graph-plot` element was introduced between them later, and a
+// child combinator does not complain when it stops matching — it silently
+// selects nothing. So the engine could be switched off and every band handle
+// in the plot stayed draggable, editing a config nothing was reading.
+.graph-wrapper.is-engine-disabled .graph-plot,
 .graph-wrapper.is-engine-disabled > .live-output-controls {
   pointer-events: none;
+}
+
+// The bands are not being applied, so they stop looking as though they are.
+//
+// Switching the EQ off leaves every band exactly where it was — that is what a
+// bypass is for — which meant the editor went on presenting a tuning at full
+// strength while Equalizer APO applied none of it. The handles and the glow are
+// what read as "live" here, so they are what goes quiet.
+//
+// Only the band layer. A voicing or a measurement that is still applied is
+// still applied, and dimming the whole plot would say otherwise.
+.graph-wrapper.is-eq-bypassed {
+  .graph-edit-point {
+    opacity: 0.4;
+  }
+
+  .graph-edit-point__halo,
+  .chart-curve__glow {
+    display: none;
+  }
 }
 
 // The live-output legend carries the style picker.
