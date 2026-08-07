@@ -401,6 +401,11 @@ export const getStateForAudioDevice = (
     isFlat: preset?.isFlat,
     voicing: preset?.voicing,
     driver: preset?.driver,
+    // Listed for the same reason as the rest, and missing for as long as it was
+    // missing from the saved profile: an output that never asked for the
+    // contour has to clear the one the previous output was using, or it follows
+    // the user from the headphones to the speakers.
+    loudness: preset?.loudness,
     smartEq: preset?.smartEq,
     headset: preset?.headset,
     headsetTarget: preset?.headsetTarget,

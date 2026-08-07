@@ -530,6 +530,25 @@ const normalizeBypassed = (value: unknown): TApoLayer[] | undefined => {
   return layers.length ? [...layers] : undefined;
 };
 
+/**
+ * The loudness contour off disk.
+ *
+ * `isOn` is the whole of whether it is applied and `intensity` scales every
+ * gain in the curve, so a value that is not a number would be multiplied
+ * through the whole contour.
+ */
+const normalizeLoudness = (value: unknown) => {
+  if (!isObject(value) || typeof value.isOn !== 'boolean') {
+    return undefined;
+  }
+  const intensity = toFiniteNumber(value.intensity);
+  return {
+    isOn: value.isOn,
+    intensity:
+      intensity === undefined ? 0.5 : Math.min(1, Math.max(0, intensity)),
+  };
+};
+
 const normalizeGraphicEq = (points: IGraphicEqPoint[] | undefined) =>
   Array.isArray(points)
     ? points.filter(
@@ -565,6 +584,7 @@ export const fetchSettings = (settingsDir: string) => {
     // other two it cannot be picked again from a list, only re-measured.
     const voicing = normalizeLayerSelection(input.voicing);
     const driver = normalizeLayerSelection(input.driver);
+    const loudness = normalizeLoudness(input.loudness);
     const smartEq = sanitizeSmartEqSettings(input.smartEq);
 
     return {
@@ -595,6 +615,7 @@ export const fetchSettings = (settingsDir: string) => {
       ...(convolution ? { convolution } : {}),
       ...(voicing ? { voicing } : {}),
       ...(driver ? { driver } : {}),
+      ...(loudness ? { loudness } : {}),
       ...(smartEq ? { smartEq } : {}),
       ...(bypassed ? { bypassed } : {}),
     } as IState;

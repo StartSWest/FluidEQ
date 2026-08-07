@@ -840,11 +840,20 @@ const getCurrentPreset = (): IPresetV2 => ({
   graphicEq: state.graphicEq,
   convolution: state.convolution,
   isFlat: state.isFlat,
-  // Without these three the device-profile block is rendered from a preset that
-  // has no idea they exist, and every one of the layers vanishes from the
-  // config the moment a profile is attached.
+  // Without these the device-profile block is rendered from a preset that has
+  // no idea they exist, and every one of the layers vanishes from the config
+  // the moment a profile is attached — which is always, since every output is
+  // given one.
+  //
+  // Loudness was added to the config, the chips and the graph long after this
+  // list was written, and never joined it. The result was a layer that could be
+  // switched on, drawn, and reasoned about, and that reached Equalizer APO
+  // exactly never: the session override rendered it from the state, the profile
+  // was written without it, and the profile is what the config comes from. Any
+  // layer added after this comment belongs in it.
   voicing: state.voicing,
   driver: state.driver,
+  loudness: state.loudness,
   smartEq: state.smartEq,
   isAutoPreAmpOn: state.isAutoPreAmpOn,
   headset: state.headset,
@@ -998,6 +1007,7 @@ const resetStateToDefaults = () => {
   state.convolution = undefined;
   state.voicing = undefined;
   state.driver = undefined;
+  state.loudness = undefined;
   state.smartEq = undefined;
   // Nothing is left to be switched off. Keeping the list would leave the next
   // layer applied here silent for a reason nothing on screen accounts for.

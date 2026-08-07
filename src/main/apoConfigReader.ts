@@ -56,6 +56,57 @@ const FEATURE_FILE = new RegExp(
   'i',
 );
 
+/** One file in the config, and the files it pulls in. */
+export interface IApoConfigFile {
+  fileName: string;
+  /** What this file says on its own behalf, with the Include lines taken out. */
+  lines: string[];
+  /** The files it includes, in the order APO reads them. */
+  includes: IApoConfigFile[];
+  /** Named by an Include that pointed at nothing we could read. */
+  isMissing?: boolean;
+}
+
+/** One output's whole chain, as the files that make it. */
+export interface IApoConfigDevice {
+  /** The `Device:` argument — a GUID, a name, or `all`. */
+  devicePattern: string;
+  /** The comment above it, which is how FluidEQ records what it is for. */
+  label?: string;
+  /** The device file and everything under it, when the block includes one. */
+  file?: IApoConfigFile;
+  /** How many `Filter:` lines the whole chain applies. */
+  filterCount: number;
+  /** The `Preamp:` line, which lives with the device rather than a feature. */
+  preAmp?: string;
+  /** The impulse response, if this output has one applied. */
+  convolution?: string;
+}
+
+/**
+ * The config as a shape rather than as text.
+ *
+ * For showing somebody what is actually being applied and where it comes from.
+ * The split made a chain into a dozen files, which is a much better thing to
+ * write and a much worse thing to read: the answer to "why does this output
+ * sound like this" now lives in five places. This puts the tree back together
+ * without flattening it, so the structure is still visible.
+ *
+ * Deliberately read from disk rather than rebuilt from the profiles. What the
+ * app would write is already visible everywhere else in the interface; the
+ * question this answers is what Equalizer APO has actually got, which is a
+ * different question exactly when it matters — after a hand edit, another tool,
+ * a failed write, a restore from backup.
+ */
+export interface IApoConfigTree {
+  /** The config directory these files were read from. */
+  configDirPath: string;
+  /** fluideq.txt, and the tree hanging off it. */
+  root: IApoConfigFile;
+  /** One entry per `Device:` block, in the order the config lists them. */
+  devices: IApoConfigDevice[];
+}
+
 export interface IApoDeviceChain {
   /** The `Device:` argument of the block that governs this output. */
   devicePattern: string;
@@ -188,5 +239,123 @@ export const readApoDeviceChain = (
     devicePattern: block.devicePattern,
     text,
     ...(shared === undefined ? {} : { shared, features }),
+  };
+};
+
+/**
+ * One file and everything it includes, read as a tree.
+ *
+ * `seen` is per branch rather than per read, so a file legitimately included by
+ * two different devices is expanded under each of them. Only a file that
+ * includes itself, directly or through a ring, is cut — and it is marked rather
+ * than dropped, because a config that loops is something somebody wants to be
+ * told about, not something to render as though it were fine.
+ */
+const readConfigFile = (
+  configDirPath: string,
+  fileName: string,
+  seen: ReadonlySet<string>,
+): IApoConfigFile => {
+  const contents = readIncluded(configDirPath, fileName);
+  if (contents === undefined || seen.has(fileName.toLowerCase())) {
+    return { fileName, lines: [], includes: [], isMissing: true };
+  }
+
+  const branch = new Set(seen).add(fileName.toLowerCase());
+  const lines: string[] = [];
+  const includes: IApoConfigFile[] = [];
+
+  contents.split(/\r?\n/).forEach((line) => {
+    const include = line.split('#')[0].match(INCLUDE_LINE);
+    if (include) {
+      includes.push(readConfigFile(configDirPath, include[1], branch));
+      return;
+    }
+    if (line.trim()) {
+      lines.push(line.trim());
+    }
+  });
+
+  return { fileName, lines, includes };
+};
+
+/** Every `Filter:` line in a file and everything under it. */
+const countFilters = (file: IApoConfigFile): number =>
+  file.lines.filter((line) => /^Filter\s+\d+\s*:/i.test(line)).length +
+  file.includes.reduce((total, child) => total + countFilters(child), 0);
+
+/** The first line of a file matching a command, searched depth-first. */
+const findLine = (file: IApoConfigFile, command: RegExp): string | undefined =>
+  file.lines.find((line) => command.test(line)) ??
+  file.includes.reduce<string | undefined>(
+    (found, child) => found ?? findLine(child, command),
+    undefined,
+  );
+
+/**
+ * The whole config, per device, as it stands on disk.
+ *
+ * Undefined only when there is no fluideq.txt at all — an APO install FluidEQ
+ * has never written to, which is a different thing from an empty one and worth
+ * saying differently.
+ */
+export const readApoConfigTree = (
+  configDirPath: string,
+): IApoConfigTree | undefined => {
+  let rootText: string;
+  try {
+    rootText = fs.readFileSync(
+      path.join(configDirPath, FLUIDEQ_CONFIG_FILENAME),
+      'utf8',
+    );
+  } catch {
+    return undefined;
+  }
+
+  // Walked line by line rather than through splitConfigBlocks, because the one
+  // thing that names a block is the comment FluidEQ writes *above* its Device
+  // line — and a block, by APO's own grammar, starts at the Device line. Split
+  // into blocks and every label lands on the device before the one it describes.
+  const devices: IApoConfigDevice[] = [];
+  let pendingLabel: string | undefined;
+
+  rootText.split(/\r?\n/).forEach((rawLine) => {
+    const comment = rawLine.match(/^\s*#\s*(.+?)\s*$/)?.[1];
+    if (comment) {
+      // The banner at the top of the file names no device.
+      pendingLabel = /^Generated by FluidEQ/i.test(comment)
+        ? undefined
+        : comment;
+      return;
+    }
+
+    const line = rawLine.split('#')[0].trim();
+    const device = line.match(/^Device\s*:\s*(.+?)\s*$/i);
+    if (device) {
+      devices.push({
+        devicePattern: device[1],
+        ...(pendingLabel ? { label: pendingLabel } : {}),
+        filterCount: 0,
+      });
+      pendingLabel = undefined;
+      return;
+    }
+
+    const include = line.match(INCLUDE_LINE)?.[1];
+    const current = devices[devices.length - 1];
+    if (!include || !current || current.file) {
+      return;
+    }
+    const file = readConfigFile(configDirPath, include, new Set());
+    current.file = file;
+    current.filterCount = countFilters(file);
+    current.preAmp = findLine(file, /^Preamp\s*:/i);
+    current.convolution = findLine(file, /^Convolution\s*:/i);
+  });
+
+  return {
+    configDirPath,
+    root: readConfigFile(configDirPath, FLUIDEQ_CONFIG_FILENAME, new Set()),
+    devices,
   };
 };
