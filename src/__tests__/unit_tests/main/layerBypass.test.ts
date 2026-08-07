@@ -106,6 +106,32 @@ describe('switching a layer out of the config', () => {
     );
   });
 
+  // The impulse has no file of its own — it is one Convolution line ahead of
+  // the includes — so switching it off is that line not being written. Same
+  // act, same switch, and the WAV never moves.
+  it('takes the impulse out of the chain and leaves its file alone', () => {
+    const withImpulse: IState = {
+      ...shaped(),
+      convolution: { name: 'Some HRTF', filters: {}, fileName: 'ir.wav' },
+    };
+
+    expect(stateToApoFiles(withImpulse, 'ir.wav')?.convolution).toBe(
+      'Convolution: ir.wav',
+    );
+    expect(
+      stateToApoFiles({ ...withImpulse, bypassed: ['convolution'] }, 'ir.wav')
+        ?.convolution,
+    ).toBeUndefined();
+    // Switching the impulse off says nothing about the layers that do have
+    // files: one press, one thing moves.
+    expect(
+      stateToApoFiles(
+        { ...withImpulse, bypassed: ['convolution'] },
+        'ir.wav',
+      )?.features.map(({ feature }) => feature),
+    ).toEqual(['eq', 'voicing', 'smart']);
+  });
+
   it('leaves a GraphicEQ curve out just as completely', () => {
     const state: IState = {
       ...getDefaultState(),

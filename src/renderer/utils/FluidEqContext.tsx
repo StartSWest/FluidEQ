@@ -35,7 +35,7 @@ import {
   IConvolutionProfile,
   IState,
   OUTPUT_STATE_CHANGED_EVENT,
-  TApoFeature,
+  TApoLayer,
 } from '../../common/constants';
 import { DEFAULT_VOICING, IVoicingSettings } from '../../common/voicing';
 import { DEFAULT_LOUDNESS, ILoudnessSettings } from '../../common/loudness';
@@ -185,7 +185,7 @@ export interface IFluidEqContext extends IState {
    * written, so the file, the profile and this row all say the same thing and
    * an A/B comparison survives a restart.
    */
-  bypassed: TApoFeature[];
+  bypassed: TApoLayer[];
   setDriver: (newValue: IDriverSettings) => void;
   setVoicing: (newValue: IVoicingSettings) => void;
   /**
@@ -400,7 +400,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [smartEq, setSmartEq] = useState<ISmartEqSettings | undefined>(
     DEFAULT_STATE.smartEq,
   );
-  const [bypassed, setBypassed] = useState<TApoFeature[]>(
+  const [bypassed, setBypassed] = useState<TApoLayer[]>(
     DEFAULT_STATE.bypassed ?? [],
   );
   const [convolution, setConvolution] = useState<

@@ -25,7 +25,7 @@ import {
   MIN_FREQUENCY,
   MIN_GAIN,
   MIN_QUALITY,
-  TApoFeature,
+  TApoLayer,
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import {
@@ -387,7 +387,7 @@ const FrequencyResponseChart = () => {
     loudness,
     bypassed,
   } = useFluidEqContext();
-  const isBypassed = (feature: TApoFeature) => bypassed.includes(feature);
+  const isBypassed = (layer: TApoLayer) => bypassed.includes(layer);
   const prevFilters = useRef<IFiltersMap>({});
   // Read by the window key handler, which is registered once and must not be
   // torn down and rebuilt every time a band moves.
@@ -688,10 +688,15 @@ const FrequencyResponseChart = () => {
     );
     const hasSmartEq = Object.keys(smartFilterLines).length > 0;
 
+    // Nothing drawn for an impulse that is switched off, for the same reason as
+    // the other layers: this is what Equalizer APO is applying, and a graph
+    // that disagrees with what you hear is worse than one that shows less.
     const convolutionFilterLines: IChartLineDataPointsById = {};
-    Object.values(convolution?.filters || {}).forEach((filter) => {
-      convolutionFilterLines[filter.id] = getFilterLineData(filter);
-    });
+    if (!bypassed.includes('convolution')) {
+      Object.values(convolution?.filters || {}).forEach((filter) => {
+        convolutionFilterLines[filter.id] = getFilterLineData(filter);
+      });
+    }
 
     const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
     const eqCurveData = getCombinedLineData(preAmp, updatedFilterLines);
@@ -766,7 +771,9 @@ const FrequencyResponseChart = () => {
     const calculatedAutoPreAmpValue = -Math.max(
       0,
       getChainPeakGain([
-        ...(convolution && !convolution.fileName
+        ...(convolution &&
+        !convolution.fileName &&
+        !bypassed.includes('convolution')
           ? Object.values(convolution.filters || {})
           : []),
         ...(bypassed.includes('eq') ? [] : Object.values(filters)),

@@ -298,7 +298,7 @@ export interface IState {
    * the whole truth about what is being applied, which is why this can survive
    * a restart where the old session-only stash could not.
    */
-  bypassed?: TApoFeature[];
+  bypassed?: TApoLayer[];
 }
 
 /**
@@ -338,6 +338,23 @@ export const APO_FEATURES = [
 ] as const;
 
 export type TApoFeature = (typeof APO_FEATURES)[number];
+
+/**
+ * Everything that can be switched off, which is the features plus the impulse.
+ *
+ * The convolution is not a feature and never gets a file: it is one
+ * `Convolution:` line in the device file, because APO applies an impulse
+ * response as a stage of its own ahead of the filters. But it is a layer in
+ * every sense the person listening cares about — it is on the row of chips, it
+ * shapes the sound, and the question "is this what I am hearing" is exactly as
+ * worth answering for it as for a voicing.
+ *
+ * Switching it off is the same act either way: a line that is not written. So
+ * it shares the list, and only the writer knows the difference.
+ */
+export const APO_LAYERS = [...APO_FEATURES, 'convolution'] as const;
+
+export type TApoLayer = (typeof APO_LAYERS)[number];
 
 /**
  * Which voicing is active and how strongly.
@@ -467,7 +484,7 @@ export interface IPresetV2 {
    * correction switched off while comparing headphones has nothing to say about
    * what the speakers should be doing.
    */
-  bypassed?: TApoFeature[];
+  bypassed?: TApoLayer[];
 }
 
 export interface IConvolutionProfile {

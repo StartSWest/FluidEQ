@@ -114,8 +114,9 @@ import {
   RENDERER_READY_EVENT,
   OUTPUT_STATE_CHANGED_EVENT,
   AUTOEQ_SOURCE_ID,
-  APO_FEATURES,
+  APO_LAYERS,
   TApoFeature,
+  TApoLayer,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
 import {
@@ -959,11 +960,11 @@ const reservePresetNameForActiveDevice = (requestedName: string) => {
  * visibly off, and preparing a tuning before switching it in is a reasonable
  * thing to want.
  */
-const applyingLayer = (feature: TApoFeature) => {
-  if (!state.bypassed?.includes(feature)) {
+const applyingLayer = (layer: TApoLayer) => {
+  if (!state.bypassed?.includes(layer)) {
     return;
   }
-  const rest = state.bypassed.filter((entry) => entry !== feature);
+  const rest = state.bypassed.filter((entry) => entry !== layer);
   state.bypassed = rest.length ? rest : undefined;
 };
 
@@ -1319,6 +1320,7 @@ const expectedBandChain = (devicePattern: string) => {
  */
 const adoptBypassFromConfig = (
   features: Partial<Record<TApoFeature, string>>,
+  shared: string,
 ) => {
   const wouldWrite = stateToApoFiles(
     { ...state, bypassed: undefined },
@@ -1327,9 +1329,17 @@ const adoptBypassFromConfig = (
   if (!wouldWrite) {
     return;
   }
-  const bypassed = wouldWrite.features
+  const bypassed: TApoLayer[] = wouldWrite.features
     .map(({ feature }) => feature)
     .filter((feature) => features[feature] === undefined);
+
+  // The impulse is read the same way, from the one place it can be: it has no
+  // file of its own, so what says it is applied is a Convolution line sitting
+  // in the device file among the includes.
+  if (wouldWrite.convolution && !/^\s*Convolution\s*:/im.test(shared)) {
+    bypassed.push('convolution');
+  }
+
   const next = bypassed.length ? bypassed : undefined;
 
   if (JSON.stringify(next) === JSON.stringify(state.bypassed)) {
@@ -1378,7 +1388,7 @@ const adoptExistingApoConfig = () => {
     // one with no file at all, so the very case this has to recognise is the
     // one the "no bands, nothing to adopt" check bows out of.
     if (features) {
-      adoptBypassFromConfig(features);
+      adoptBypassFromConfig(features, chain.shared ?? '');
     }
 
     // The measurement, if the state has lost it and the config still has it.
@@ -2071,6 +2081,7 @@ ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
     if (!configPath) {
       configPath = await getConfigPath();
     }
+    applyingLayer('convolution');
     state.convolution = await downloadConvolution(entryId, configPath);
     await handleUpdate(event, channel, false, true);
   } catch (error) {
@@ -2109,6 +2120,7 @@ ipcMain.on(ChannelEnum.CLEAR_HEADSET, async (event) => {
 
 ipcMain.on(ChannelEnum.CLEAR_CONVOLUTION, async (event) => {
   const channel = ChannelEnum.CLEAR_CONVOLUTION;
+  applyingLayer('convolution');
   state.convolution = undefined;
   await handleUpdate(event, channel, false, true);
 });
@@ -2197,6 +2209,7 @@ ipcMain.on(ChannelEnum.IMPORT_CONVOLUTION_FILE, async (event) => {
     if (!configPath) {
       configPath = await getConfigPath();
     }
+    applyingLayer('convolution');
     state.convolution = importConvolutionFile(sourcePath, configPath);
     await handleUpdateHelper<string>(
       event,
@@ -2767,7 +2780,7 @@ ipcMain.on(ChannelEnum.SET_LAYER_BYPASS, async (event, arg) => {
   const isBypassed = arg?.[1];
 
   if (
-    !APO_FEATURES.includes(feature as TApoFeature) ||
+    !APO_LAYERS.includes(feature as TApoLayer) ||
     typeof isBypassed !== 'boolean'
   ) {
     handleError(event, channel, ErrorCode.INVALID_PARAMETER);
@@ -2778,11 +2791,11 @@ ipcMain.on(ChannelEnum.SET_LAYER_BYPASS, async (event, arg) => {
   // order and cannot collect duplicates however often the switch is pressed.
   const wanted = new Set(state.bypassed ?? []);
   if (isBypassed) {
-    wanted.add(feature as TApoFeature);
+    wanted.add(feature as TApoLayer);
   } else {
-    wanted.delete(feature as TApoFeature);
+    wanted.delete(feature as TApoLayer);
   }
-  const bypassed = APO_FEATURES.filter((entry) => wanted.has(entry));
+  const bypassed = APO_LAYERS.filter((entry) => wanted.has(entry));
   state.bypassed = bypassed.length ? [...bypassed] : undefined;
 
   await handleUpdate(event, channel, false, true);

@@ -42,7 +42,7 @@ import {
   IConvolutionProfile,
   ISmartEqSettings,
   ISquigSource,
-  TApoFeature,
+  TApoLayer,
 } from 'common/constants';
 import { IConvolutionCatalogEntry } from 'common/convolution';
 
@@ -888,12 +888,12 @@ export const setSmartEq = (settings?: ISmartEqSettings): Promise<void> => {
  * an A/B switch rather than a remove-and-reapply: pressing it twice returns to
  * precisely the sound it started from, with nothing recomputed and nothing
  * measured again.
- * @param { TApoFeature } feature - which layer
+ * @param { TApoLayer } feature - which layer
  * @param { boolean } isBypassed - true to take it out of the config
  * @returns { Promise<void> } exception if the layer is not one of the five
  */
 export const setLayerBypass = (
-  feature: TApoFeature,
+  feature: TApoLayer,
   isBypassed: boolean,
 ): Promise<void> => {
   const channel = ChannelEnum.SET_LAYER_BYPASS;

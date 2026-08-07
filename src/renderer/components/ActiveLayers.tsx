@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useRef } from 'react';
 import { ErrorDescription } from 'common/errors';
-import { TApoFeature } from 'common/constants';
+import { TApoLayer } from 'common/constants';
 import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { hasSmartEqLayer } from 'common/smartEq';
@@ -72,7 +72,7 @@ const ActiveLayers = () => {
   } = useFluidEqContext();
   const { t } = useTranslation();
 
-  const isBypassed = (feature: TApoFeature) => bypassed.includes(feature);
+  const isBypassed = (layer: TApoLayer) => bypassed.includes(layer);
 
   /**
    * Whether the bands still match what the reference model wrote.
@@ -124,7 +124,7 @@ const ActiveLayers = () => {
      * `Convolution:` line in the device file rather than an include of its own,
      * so there is nothing here to leave out.
      */
-    feature?: TApoFeature;
+    feature?: TApoLayer;
   }[] = [];
 
   // The row reads in the order the config is written, so the chips and the
@@ -143,6 +143,13 @@ const ActiveLayers = () => {
         await clearConvolution();
         await refreshState();
       },
+      // Switchable like the rest of the row, now that switching a layer off is
+      // a line that is not written rather than settings that are cleared. This
+      // was the one chip without a switch, on the grounds that putting it back
+      // would mean finding its file again — and it never had to be gone at all.
+      // The WAV stays exactly where it is; only the line naming it comes and
+      // goes, which is the same act as omitting an Include.
+      feature: 'convolution',
     });
   }
 
@@ -347,7 +354,7 @@ const ActiveLayers = () => {
                   : t('eq.layers.disable', { layer: layer.label })
               }
               onClick={() => {
-                const feature = layer.feature as TApoFeature;
+                const feature = layer.feature as TApoLayer;
                 setLayerBypass(feature, !isBypassed(feature))
                   .then(() => refreshState())
                   .catch((e) => setGlobalError(e as ErrorDescription));

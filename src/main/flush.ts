@@ -19,10 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import {
-  APO_FEATURES,
   AutoEqFormat,
   FilterTypeEnum,
+  APO_LAYERS,
   TApoFeature,
+  TApoLayer,
   clampFrequency,
   clampGain,
   clampQuality,
@@ -176,8 +177,8 @@ const layerFilters = (filters: TChainFilter[]): TChainFilter[] =>
  */
 const buildLayers = (state: IState): IApoLayer[] => {
   const layers: IApoLayer[] = [];
-  const isBypassed = (feature: TApoFeature) =>
-    (state.bypassed ?? []).includes(feature);
+  const isBypassed = (layer: TApoLayer) =>
+    (state.bypassed ?? []).includes(layer);
   const addLayer = (feature: TApoFeature, filters: TChainFilter[]) => {
     if (filters.length && !isBypassed(feature)) {
       layers.push({ feature, filters });
@@ -304,6 +305,19 @@ const preAmpLine = (
   )} dB`;
 
 /**
+ * Whether the impulse response is part of this chain.
+ *
+ * The convolution never becomes a feature file — APO applies an impulse as a
+ * stage of its own, ahead of the filters, so it is one `Convolution:` line in
+ * the device file. But it is switched off the same way everything else is, by
+ * the line not being written, which is what lets it take the same A/B switch as
+ * the layers that do get files.
+ */
+const isConvolutionApplied = (state: IState, convolutionFileName?: string) =>
+  Boolean(state.convolution && convolutionFileName) &&
+  !(state.bypassed ?? []).includes('convolution');
+
+/**
  * A whole chain as one block of config text.
  *
  * The flat form: everything for one device between its `Device:` line and its
@@ -321,7 +335,7 @@ export const stateToString = (
     return '';
   }
 
-  const hasConvolution = Boolean(state.convolution && convolutionFileName);
+  const hasConvolution = isConvolutionApplied(state, convolutionFileName);
   const layers = buildLayers(state);
   const output = [`Device: ${devicePattern}`, 'Channel: all'];
 
@@ -371,7 +385,7 @@ export const stateToApoFiles = (
     return undefined;
   }
 
-  const hasConvolution = Boolean(state.convolution && convolutionFileName);
+  const hasConvolution = isConvolutionApplied(state, convolutionFileName);
   const layers = buildLayers(state);
 
   return {
@@ -508,12 +522,12 @@ const normalizeLayerSelection = (value: unknown) => {
  * nobody can switch back on. Filtering through APO_FEATURES also settles order
  * and duplicates, so two equivalent lists compare equal.
  */
-const normalizeBypassed = (value: unknown): TApoFeature[] | undefined => {
+const normalizeBypassed = (value: unknown): TApoLayer[] | undefined => {
   if (!Array.isArray(value)) {
     return undefined;
   }
-  const features = APO_FEATURES.filter((feature) => value.includes(feature));
-  return features.length ? [...features] : undefined;
+  const layers = APO_LAYERS.filter((layer) => value.includes(layer));
+  return layers.length ? [...layers] : undefined;
 };
 
 const normalizeGraphicEq = (points: IGraphicEqPoint[] | undefined) =>
