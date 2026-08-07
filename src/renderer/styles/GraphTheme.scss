@@ -95,12 +95,29 @@
 .graph-wrapper.is-eq-bypassed {
   .graph-edit-point {
     opacity: 0.4;
+    // Not editable either, and that is a decision rather than a side effect.
+    //
+    // Leaving them draggable would let somebody spend a minute shaping a curve
+    // that is not connected to anything — the bands would move, the graph would
+    // follow, and the sound would not, with only a dimmed handle to explain
+    // why. Switching the layer back on is one press and it is right there on
+    // the chip.
+    pointer-events: none;
   }
 
   .graph-edit-point__halo,
   .chart-curve__glow {
     display: none;
   }
+}
+
+// The sliders go with the handles: same layer, same reason, and they are the
+// other half of the same editor. The engine-off rule above dims the whole panel
+// because nothing in it is connected; this dims only the bands, because
+// everything else on the tab still is.
+.main-content.is-eq-bypassed {
+  opacity: 0.45;
+  pointer-events: none;
 }
 
 // The live-output legend carries the style picker.

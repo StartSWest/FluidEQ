@@ -87,6 +87,9 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
     driver: undefined,
     smartEq: mockLive.smartEq,
     setSmartEq: mockSetSmartEqState,
+    // Nothing switched off. The band editor reads this to decide whether the
+    // bands it is drawing are actually being applied, so it has to be an array.
+    bypassed: [],
     getBandSetGeneration: () => 0,
   }),
 }));

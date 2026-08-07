@@ -121,6 +121,7 @@ const MainContent = () => {
     smartEq,
     setSmartEq,
     getBandSetGeneration,
+    bypassed,
   } = useFluidEqContext();
   const { t } = useTranslation();
   const { captureBalanceProfile, isActive: isLiveOutputActive } =
@@ -956,7 +957,11 @@ const MainContent = () => {
             named here so the graph stops looking wrong. */}
         <ActiveLayers />
       </div>
-      <div className={`main-content main-content--${density}`}>
+      <div
+        className={`main-content main-content--${density}${
+          bypassed.includes('eq') ? ' is-eq-bypassed' : ''
+        }`}
+      >
         <div className="eq-scale" aria-hidden="true">
           <span>+20</span>
           <span>0 dB</span>
