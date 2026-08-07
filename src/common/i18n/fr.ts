@@ -185,6 +185,8 @@ const fr: Partial<Dictionary> = {
   'eq.smart.continuous.tracking': 'Égalisation continue : ajustement',
   'eq.smart.continuous.paused':
     'Égalisation continue : en pause, correction conservée',
+  'eq.smart.continuous.bypassed':
+    'Égalisation continue : en attente, l’EQ intelligent est désactivé',
   'eq.layers': 'Également appliqué',
   'eq.layers.aria': 'Autres traitements appliqués à cette sortie',
   'eq.layers.eq': 'EQ',

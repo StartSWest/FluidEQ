@@ -246,11 +246,38 @@ describe('the Smart EQ layer', () => {
       expect(gainAt(bands, stepped, 1000)).toBeCloseTo(CONTINUOUS_STEP_DB, 6);
     });
 
-    it('arrives exactly rather than overshooting once it is close', () => {
+    it('holds completely still for a drift nobody could hear', () => {
+      // The deadband is what makes the mode react to the sound rather than to
+      // a clock. A measurement never lands on exactly the gain a band already
+      // has, so without it every look would rewrite the whole correction for
+      // fractions of a decibel, forever.
       const bands = bandsAt({ 1000: 2 });
       const stepped = stepSmartEqGains(bands, solvedAt(bands, { 1000: 2.1 }));
 
-      expect(gainAt(bands, stepped, 1000)).toBeCloseTo(2.1, 6);
+      expect(gainAt(bands, stepped, 1000)).toBe(2);
+    });
+
+    it('moves only the ranges that drifted, not the whole correction', () => {
+      // What "per range" means in practice: one band out, one band right, and
+      // only the first of them moves.
+      const bands = bandsAt({ 100: 0, 1000: 2 });
+      const stepped = stepSmartEqGains(
+        bands,
+        solvedAt(bands, { 100: 4, 1000: 2.2 }),
+      );
+
+      expect(gainAt(bands, stepped, 100)).toBeCloseTo(CONTINUOUS_STEP_DB, 6);
+      expect(gainAt(bands, stepped, 1000)).toBe(2);
+    });
+
+    it('writes nothing at all when no range has drifted', () => {
+      const bands = bandsAt({ 100: -2, 1000: 2 });
+      const stepped = stepSmartEqGains(
+        bands,
+        solvedAt(bands, { 100: -2.3, 1000: 2.4 }),
+      );
+
+      expect(bands.every((band) => stepped[band.id] === band.gain)).toBe(true);
     });
 
     it('steps down as readily as up', () => {

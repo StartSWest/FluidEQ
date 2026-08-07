@@ -104,20 +104,22 @@ const MAX_BALANCE_ATTEMPTS = 3;
 const GROUP_EDIT_INTERVAL = 100;
 
 /**
- * How long Continuous EQ leaves the correction alone between updates.
+ * How long Continuous EQ waits before looking again — two answers, because
+ * "how often should this run" is really two different questions.
  *
- * Not a rate limit on the measurement — the capture takes as long as it takes —
- * but on the writing. Every correction is a rewritten Equalizer APO config that
- * APO then reloads, and a mode that runs all evening should not be doing that
- * every second.
+ * When a range has just moved there is more of that range to do: the step is
+ * bounded at half a decibel, so a range genuinely three decibels out needs
+ * several passes, and making it wait between them is making it wait for no
+ * reason. When nothing moved, the correction is where the measurement wants it
+ * and looking again soon would only find that out again.
  *
- * It is also what makes the mode converge on the right thing. Ten seconds and
- * half a decibel means the correction takes minutes to travel, which is far
- * slower than the music changes — so what one track pulls one way and the next
- * pulls the other averages out, and what every track agrees about, which is the
- * headphones and the room, is what accumulates.
+ * So the pacing follows the sound rather than a clock, which matters because
+ * every correction is a rewritten Equalizer APO config that APO then reloads.
+ * Once it has settled — which is most of the time, once it has been running a
+ * while — this is a capture a quarter of a minute and no writes at all.
  */
-const CONTINUOUS_PAUSE_MS = 10000;
+const CONTINUOUS_WORKING_PAUSE_MS = 2000;
+const CONTINUOUS_SETTLED_PAUSE_MS = 15000;
 
 /**
  * How long one of Continuous EQ's looks lasts.
@@ -181,6 +183,7 @@ const MainContent = () => {
   const [balanceStatus, setBalanceStatus] = useState('');
   const [isBalancing, setIsBalancing] = useState(false);
   const isContinuousOn = useContinuousEq();
+  const isSmartBypassed = bypassed.includes('smart');
   const balanceAbortRef = useRef<AbortController | undefined>(undefined);
   // Bumped whenever a run is superseded, so a late resolution from an
   // abandoned measurement cannot write gains or overwrite the status.
@@ -829,7 +832,18 @@ const MainContent = () => {
    * finishes.
    */
   useEffect(() => {
-    if (!isContinuousOn || !isLiveOutputActive || isBalancing) {
+    // Switching the Smart EQ layer off stops it. Its `Include:` is not in the
+    // config while it is bypassed, so every correction this loop worked out
+    // would be measured against a chain that does not contain the last one —
+    // it would hear its own correction missing, decide the room had changed,
+    // and walk the layer somewhere arbitrary for as long as the switch was off.
+    // The chip is the switch, and it is one press away.
+    if (
+      !isContinuousOn ||
+      !isLiveOutputActive ||
+      isBalancing ||
+      isSmartBypassed
+    ) {
       return undefined;
     }
 
@@ -838,6 +852,7 @@ const MainContent = () => {
 
     const loop = async () => {
       while (!signal.aborted) {
+        let hasMoved = false;
         try {
           // eslint-disable-next-line no-await-in-loop
           const result = await captureBalanceProfile({
@@ -872,12 +887,13 @@ const MainContent = () => {
                 highFrequency: result.highFrequency,
               },
             );
-            // Nothing written when the step rounds away to nothing, which is
-            // what converged looks like — and which is most of the time, once
-            // it has been running a while.
+            // Nothing written when no range drifted far enough to be worth
+            // moving, which is what settled looks like — and which is most of
+            // the time, once it has been running a while.
             if (
               describeSmartEqLayer(measured) !== describeSmartEqLayer(layer)
             ) {
+              hasMoved = true;
               setSmartEq(measured);
               // eslint-disable-next-line no-await-in-loop
               await setSmartEqApi(measured);
@@ -901,7 +917,10 @@ const MainContent = () => {
           // again is the right response to all of them.
         }
         // eslint-disable-next-line no-await-in-loop
-        await waitFor(CONTINUOUS_PAUSE_MS, signal);
+        await waitFor(
+          hasMoved ? CONTINUOUS_WORKING_PAUSE_MS : CONTINUOUS_SETTLED_PAUSE_MS,
+          signal,
+        );
       }
     };
 
@@ -912,9 +931,22 @@ const MainContent = () => {
     isBalancing,
     isContinuousOn,
     isLiveOutputActive,
+    isSmartBypassed,
     setSmartEq,
     t,
   ]);
+
+  // Says why it stopped, when it stopped for a reason the button cannot show.
+  //
+  // Bypassing Smart EQ is a press on the other side of the screen, and without
+  // this the only evidence that it also stopped the thing keeping the
+  // correction measured would be a button going dark somewhere nobody is
+  // looking at.
+  useEffect(() => {
+    if (isContinuousOn && isSmartBypassed) {
+      setBalanceStatus(t('eq.smart.continuous.bypassed'));
+    }
+  }, [isContinuousOn, isSmartBypassed, t]);
 
   // Absolute rather than relative, unlike the sliders above: "back to zero"
   // means the same thing for every band in the selection, and nudging a group
@@ -1080,10 +1112,16 @@ const MainContent = () => {
           {/* Keep it measured, without being asked each time.
               Beside the button rather than in settings, because it works the
               same layer and the two are read together. */}
+          {/* Lit only while it is actually working. The mode staying on
+              through a bypass is right — it is a preference, and the layer
+              comes back — but a lit button over a stopped loop is the app
+              claiming to be doing something it is not. */}
           <Button
             ariaLabel={t('eq.smart.continuousAria')}
             isDisabled={!isLiveOutputActive}
-            className={`small subtle${isContinuousOn ? ' is-on' : ''}`}
+            className={`small subtle${
+              isContinuousOn && !isSmartBypassed ? ' is-on' : ''
+            }`}
             isPressed={isContinuousOn}
             handleChange={() => {
               // Pausing leaves the correction exactly where it stands — this
@@ -1097,7 +1135,7 @@ const MainContent = () => {
               toggleContinuousEq();
             }}
           >
-            {isContinuousOn ? (
+            {isContinuousOn && !isSmartBypassed ? (
               // A pause bar while it runs, because that is what pressing it
               // does next. The Smart EQ glyph beside it already says what the
               // mode is about.

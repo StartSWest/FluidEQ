@@ -183,6 +183,8 @@ const de: Partial<Dictionary> = {
     'Smart EQ misst und justiert weiter, solange Musik läuft',
   'eq.smart.continuous.tracking': 'Fortlaufender EQ - justiert',
   'eq.smart.continuous.paused': 'Fortlaufender EQ - pausiert, Korrektur bleibt',
+  'eq.smart.continuous.bypassed':
+    'Fortlaufender EQ - wartet, Smart EQ ist ausgeschaltet',
   'eq.layers': 'Ebenfalls aktiv',
   'eq.layers.aria': 'Was diesen Ausgang außerdem formt',
   'eq.layers.eq': 'EQ',

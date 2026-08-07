@@ -183,6 +183,8 @@ const ru: Partial<Dictionary> = {
   'eq.smart.continuous.tracking': 'Непрерывный эквалайзер - подстройка',
   'eq.smart.continuous.paused':
     'Непрерывный эквалайзер - пауза, коррекция сохранена',
+  'eq.smart.continuous.bypassed':
+    'Непрерывный эквалайзер - ожидание, умный эквалайзер выключен',
   'eq.layers': 'Также применено',
   'eq.layers.aria': 'Что ещё влияет на этот выход',
   'eq.layers.eq': 'Эквалайзер',

@@ -182,6 +182,8 @@ const it: Partial<Dictionary> = {
     'Continua a misurare e regolare l’EQ mentre suona la musica',
   'eq.smart.continuous.tracking': 'EQ continuo: in regolazione',
   'eq.smart.continuous.paused': 'EQ continuo: in pausa, correzione mantenuta',
+  'eq.smart.continuous.bypassed':
+    'EQ continuo: in attesa, l’EQ intelligente è disattivato',
   'eq.layers': 'Applicato anche',
   'eq.layers.aria': 'Cos’altro sta modellando questa uscita',
   'eq.layers.eq': 'EQ',

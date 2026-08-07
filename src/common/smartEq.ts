@@ -321,12 +321,30 @@ export const CONTINUOUS_STEP_DB = 0.5;
 export const CONTINUOUS_MAX_DB = 6;
 
 /**
+ * How far a band has to be out before it is worth moving, in dB.
+ *
+ * This is what makes the mode react to the sound rather than to a clock. A
+ * measurement never lands on exactly the gain a band already has, so without a
+ * deadband every look would find every band a fraction out and rewrite the
+ * whole correction on a timer — for changes nobody can hear, forever.
+ *
+ * One decibel is about where a change to a single band starts to be audible at
+ * all, and it makes the mode per-range for free: the ranges that have drifted
+ * move, the ranges that are already right hold completely still, and a look in
+ * which nothing has drifted writes nothing at all. So the correction settles
+ * and stays settled, and a range that goes out — different headphones, a
+ * different room, a genuinely different balance — is the one thing that starts
+ * it moving again.
+ */
+export const CONTINUOUS_TRIGGER_DB = 1;
+
+/**
  * One continuous step: where each band moves to next, not where it belongs.
  *
  * `solved` is the destination the measurement worked out — absolute gains, the
  * same ones a manual run hands straight to `buildSmartEqSettings`. This walks
- * toward them instead, at most `maxStep` per band per call, and never past
- * `maxTotal` in either direction.
+ * toward them instead, at most `maxStep` per band per call, never past
+ * `maxTotal` in either direction, and only for bands more than `deadband` out.
  *
  * Bands the solve had nothing to say about are left exactly where they are
  * rather than pulled toward zero. Silence about a band is not evidence that it
@@ -340,16 +358,18 @@ export const stepSmartEqGains = (
   {
     maxStep = CONTINUOUS_STEP_DB,
     maxTotal = CONTINUOUS_MAX_DB,
-  }: { maxStep?: number; maxTotal?: number } = {},
+    deadband = CONTINUOUS_TRIGGER_DB,
+  }: { maxStep?: number; maxTotal?: number; deadband?: number } = {},
 ): Record<string, number> => {
   const stepped: Record<string, number> = {};
   bands.forEach((band) => {
     const destination = solved[band.id];
-    if (!Number.isFinite(destination)) {
+    const drift = destination - band.gain;
+    if (!Number.isFinite(destination) || Math.abs(drift) < deadband) {
       stepped[band.id] = band.gain;
       return;
     }
-    const move = Math.max(-maxStep, Math.min(maxStep, destination - band.gain));
+    const move = Math.max(-maxStep, Math.min(maxStep, drift));
     stepped[band.id] = Math.max(
       -maxTotal,
       Math.min(maxTotal, band.gain + move),

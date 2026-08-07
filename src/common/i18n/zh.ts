@@ -173,6 +173,7 @@ const zh: Partial<Dictionary> = {
   'eq.smart.continuousAria': '播放期间持续测量并调整智能均衡',
   'eq.smart.continuous.tracking': '持续均衡 - 调整中',
   'eq.smart.continuous.paused': '持续均衡 - 已暂停，保留当前校正',
+  'eq.smart.continuous.bypassed': '持续均衡 - 等待中，智能均衡已关闭',
   'eq.layers': '同时生效',
   'eq.layers.aria': '还有什么在影响这个输出',
   'eq.layers.eq': '均衡器',

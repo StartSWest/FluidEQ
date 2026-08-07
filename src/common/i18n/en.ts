@@ -215,6 +215,8 @@ const en = {
     'Keep Smart EQ measuring and adjusting while music plays',
   'eq.smart.continuous.tracking': 'Continuous EQ - tracking',
   'eq.smart.continuous.paused': 'Continuous EQ - paused, correction kept',
+  'eq.smart.continuous.bypassed':
+    'Continuous EQ - waiting, Smart EQ is switched off',
   'eq.layers': 'Also applied',
   'eq.layers.aria': 'Also shaping this output',
   'eq.layers.eq': 'EQ',
