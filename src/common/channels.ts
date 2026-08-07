@@ -92,6 +92,10 @@ enum ChannelEnum {
   // them. The layers stacked after them are untouched: none of them came from
   // the reference and none of them stop being true without it.
   CLEAR_HEADSET = 'clearHeadset',
+  // The Equalizer APO config as it stands on disk: every device, the files it
+  // includes, and what each of them holds. Read rather than rebuilt, because
+  // the question it answers is what APO has actually got.
+  GET_APO_CONFIG_TREE = 'getApoConfigTree',
   GET_AUDIO_DEVICES = 'getAudioDevices',
   SET_DEFAULT_AUDIO_DEVICE = 'setDefaultAudioDevice',
   ACTIVATE_AUDIO_DEVICE_PROFILE = 'activateAudioDeviceProfile',

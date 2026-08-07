@@ -43,6 +43,7 @@ const es: Partial<Dictionary> = {
   'tabs.eq': 'EQ y tipo de auriculares',
   'tabs.voicing': 'Carácter',
   'tabs.convolution': 'Convolución',
+  'tabs.config': 'Config',
   'tabs.video': 'Vídeo',
 
   'graph.resize': 'Arrastra para cambiar el tamaño de la gráfica',

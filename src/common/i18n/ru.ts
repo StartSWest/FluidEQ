@@ -43,6 +43,7 @@ const ru: Partial<Dictionary> = {
   'tabs.eq': 'Эквалайзер и тип наушников',
   'tabs.voicing': 'Характер',
   'tabs.convolution': 'Свёртка',
+  'tabs.config': 'Config',
   'tabs.video': 'Видео',
 
   'graph.resize': 'Потяните, чтобы изменить размер графика',

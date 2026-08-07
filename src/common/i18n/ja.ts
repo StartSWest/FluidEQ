@@ -43,6 +43,7 @@ const ja: Partial<Dictionary> = {
   'tabs.eq': 'EQ とドライバー種別',
   'tabs.voicing': '音の傾向',
   'tabs.convolution': 'コンボリューション',
+  'tabs.config': 'Config',
   'tabs.video': '動画',
 
   'graph.resize': 'ドラッグしてグラフの大きさを変更',

@@ -43,6 +43,7 @@ const pt: Partial<Dictionary> = {
   'tabs.eq': 'EQ e tipo de fone',
   'tabs.voicing': 'Caráter',
   'tabs.convolution': 'Convolução',
+  'tabs.config': 'Config',
   'tabs.video': 'Vídeo',
 
   'graph.resize': 'Arraste para redimensionar o gráfico',

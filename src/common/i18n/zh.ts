@@ -42,6 +42,7 @@ const zh: Partial<Dictionary> = {
   'tabs.eq': '均衡与耳机类型',
   'tabs.voicing': '声音风格',
   'tabs.convolution': '卷积',
+  'tabs.config': 'Config',
   'tabs.video': '视频',
 
   'graph.resize': '拖动可调整频响图大小',

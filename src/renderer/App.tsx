@@ -28,6 +28,7 @@ import {
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import { resetRhythmRun } from './utils/rhythmRun';
+import ConfigInspector from './components/ConfigInspector';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
 import MainContent from './MainContent';
@@ -99,12 +100,13 @@ const APP_VERSION = process.env.FLUIDEQ_VERSION || '';
 /** The workspace tab the app was left on. */
 const WORKSPACE_TAB_KEY = 'fluideq.workspaceTab';
 
-type TWorkspaceTab = 'eq' | 'voicing' | 'convolution' | 'video';
+type TWorkspaceTab = 'eq' | 'voicing' | 'convolution' | 'config' | 'video';
 
 const WORKSPACE_TABS: TWorkspaceTab[] = [
   'eq',
   'voicing',
   'convolution',
+  'config',
   'video',
 ];
 
@@ -970,6 +972,17 @@ const AppContent = () => {
               <button
                 type="button"
                 role="tab"
+                aria-selected={activeWorkspaceTab === 'config'}
+                className={`workspace-tab${
+                  activeWorkspaceTab === 'config' ? ' is-active' : ''
+                }`}
+                onClick={() => setActiveWorkspaceTab('config')}
+              >
+                {t('tabs.config')}
+              </button>
+              <button
+                type="button"
+                role="tab"
                 aria-selected={isVideoTab}
                 className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
                 onClick={() => setActiveWorkspaceTab('video')}
@@ -1015,6 +1028,20 @@ const AppContent = () => {
                 ) : (
                   <ConvolutionPanel />
                 )}
+              </div>
+            )}
+            {/* No engine-disabled state, unlike every panel above it.
+                Those are inert with the equaliser switched off because moving
+                their controls changes nothing you can hear. This one changes
+                nothing at all — it only reports what is on disk — and the
+                config is at its most worth reading precisely when something is
+                wrong, which includes the engine being off. */}
+            {activeWorkspaceTab === 'config' && (
+              <div
+                key={activeWorkspaceTab}
+                className="workspace-tab-panel workspace-tab-panel--config"
+              >
+                <ConfigInspector />
               </div>
             )}
             {/* Outside the tab switch above, and deliberately: this one is

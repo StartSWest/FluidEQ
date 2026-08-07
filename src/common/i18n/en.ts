@@ -69,6 +69,7 @@ const en = {
   'tabs.eq': 'EQ & headset mode',
   'tabs.voicing': 'Voicing',
   'tabs.convolution': 'Convolution',
+  'tabs.config': 'Config',
   'tabs.video': 'Video',
 
   // *** Response graph ******************************************************

@@ -47,6 +47,11 @@ import fs from 'fs';
 import path from 'path';
 import { findBlockForDevice, splitConfigBlocks } from '../common/apoSync';
 import { APO_FEATURES, TApoFeature } from '../common/constants';
+import {
+  IApoConfigDevice,
+  IApoConfigFile,
+  IApoConfigTree,
+} from '../common/apoConfig';
 import { FLUIDEQ_CONFIG_FILENAME } from './flush';
 
 const INCLUDE_LINE = /^\s*Include\s*:\s*(.+?)\s*$/i;
@@ -55,57 +60,6 @@ const FEATURE_FILE = new RegExp(
   `^fluideq-[0-9a-f]{12}-(${APO_FEATURES.join('|')})\\.txt$`,
   'i',
 );
-
-/** One file in the config, and the files it pulls in. */
-export interface IApoConfigFile {
-  fileName: string;
-  /** What this file says on its own behalf, with the Include lines taken out. */
-  lines: string[];
-  /** The files it includes, in the order APO reads them. */
-  includes: IApoConfigFile[];
-  /** Named by an Include that pointed at nothing we could read. */
-  isMissing?: boolean;
-}
-
-/** One output's whole chain, as the files that make it. */
-export interface IApoConfigDevice {
-  /** The `Device:` argument — a GUID, a name, or `all`. */
-  devicePattern: string;
-  /** The comment above it, which is how FluidEQ records what it is for. */
-  label?: string;
-  /** The device file and everything under it, when the block includes one. */
-  file?: IApoConfigFile;
-  /** How many `Filter:` lines the whole chain applies. */
-  filterCount: number;
-  /** The `Preamp:` line, which lives with the device rather than a feature. */
-  preAmp?: string;
-  /** The impulse response, if this output has one applied. */
-  convolution?: string;
-}
-
-/**
- * The config as a shape rather than as text.
- *
- * For showing somebody what is actually being applied and where it comes from.
- * The split made a chain into a dozen files, which is a much better thing to
- * write and a much worse thing to read: the answer to "why does this output
- * sound like this" now lives in five places. This puts the tree back together
- * without flattening it, so the structure is still visible.
- *
- * Deliberately read from disk rather than rebuilt from the profiles. What the
- * app would write is already visible everywhere else in the interface; the
- * question this answers is what Equalizer APO has actually got, which is a
- * different question exactly when it matters — after a hand edit, another tool,
- * a failed write, a restore from backup.
- */
-export interface IApoConfigTree {
-  /** The config directory these files were read from. */
-  configDirPath: string;
-  /** fluideq.txt, and the tree hanging off it. */
-  root: IApoConfigFile;
-  /** One entry per `Device:` block, in the order the config lists them. */
-  devices: IApoConfigDevice[];
-}
 
 export interface IApoDeviceChain {
   /** The `Device:` argument of the block that governs this output. */
@@ -359,3 +313,5 @@ export const readApoConfigTree = (
     devices,
   };
 };
+
+export type { IApoConfigDevice, IApoConfigFile, IApoConfigTree };

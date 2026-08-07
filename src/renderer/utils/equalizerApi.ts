@@ -45,6 +45,7 @@ import {
   TApoLayer,
 } from 'common/constants';
 import { IConvolutionCatalogEntry } from 'common/convolution';
+import { IApoConfigTree } from 'common/apoConfig';
 
 const TIMEOUT = 10000;
 
@@ -130,7 +131,8 @@ const buildResponseHandler = <
     | IConvolutionCatalogEntry[]
     | IConvolutionProfile
     | ISquigSource[]
-    | IGatheredFacts,
+    | IGatheredFacts
+    | IApoConfigTree,
 >(
   resultEvaluator: (
     result: Type,
@@ -174,7 +176,8 @@ const simpleResponseHandler = <
     | IConvolutionCatalogEntry[]
     | IConvolutionProfile
     | ISquigSource[]
-    | IGatheredFacts,
+    | IGatheredFacts
+    | IApoConfigTree,
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);
@@ -318,6 +321,19 @@ export const getPresetBaselineNames = (): Promise<string[]> => {
   const channel = ChannelEnum.GET_PRESET_BASELINE_NAMES;
   window.electron.ipcRenderer.sendMessage(channel, []);
   return promisifyResult(simpleResponseHandler<string[]>(), channel);
+};
+
+/**
+ * The Equalizer APO config as it stands on disk.
+ *
+ * Undefined when FluidEQ has never written there, which is a different thing
+ * from an empty config and worth saying differently.
+ * @returns { Promise<IApoConfigTree | undefined> } the tree, or nothing
+ */
+export const getApoConfigTree = (): Promise<IApoConfigTree> => {
+  const channel = ChannelEnum.GET_APO_CONFIG_TREE;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(simpleResponseHandler<IApoConfigTree>(), channel);
 };
 
 export const getAudioDevices = (): Promise<IAudioDevice[]> => {

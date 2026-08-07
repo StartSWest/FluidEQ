@@ -43,6 +43,7 @@ const de: Partial<Dictionary> = {
   'tabs.eq': 'EQ & Hörertyp',
   'tabs.voicing': 'Klangcharakter',
   'tabs.convolution': 'Faltung',
+  'tabs.config': 'Config',
   'tabs.video': 'Video',
 
   'graph.resize': 'Ziehen, um die Größe des Diagramms zu ändern',

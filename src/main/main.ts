@@ -158,7 +158,11 @@ import {
   setVideoAdBlockEnabled,
 } from './videoBrowser';
 import { adoptBlock, hasChainDrifted } from '../common/apoSync';
-import { readApoDeviceChain } from './apoConfigReader';
+import {
+  IApoConfigTree,
+  readApoConfigTree,
+  readApoDeviceChain,
+} from './apoConfigReader';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -1786,6 +1790,29 @@ ipcMain.on(ChannelEnum.GET_PRESET_FILE_LIST, async (event) => {
     console.error('Failed to get filenames');
     console.error(e);
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+  }
+});
+
+/**
+ * The config as it stands on disk, for the panel that shows it.
+ *
+ * Read every time rather than cached. The whole reason this view exists is
+ * that the files can say something the app did not put there — a hand edit,
+ * another tool, a write that failed — and a cached answer would be the app
+ * telling you what it believes, which is what every other panel already does.
+ */
+ipcMain.on(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
+  const channel = ChannelEnum.GET_APO_CONFIG_TREE;
+  try {
+    if (!configPath) {
+      configPath = await getConfigPath();
+    }
+    const reply: TSuccess<IApoConfigTree | undefined> = {
+      result: readApoConfigTree(configPath),
+    };
+    event.reply(channel, reply);
+  } catch (e) {
+    handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
   }
 });
 

@@ -49,6 +49,7 @@ const hi: Partial<Dictionary> = {
   'tabs.eq': 'EQ और ड्राइवर प्रकार',
   'tabs.voicing': 'ध्वनि रंग',
   'tabs.convolution': 'कन्वॉल्यूशन',
+  'tabs.config': 'Config',
   'tabs.video': 'वीडियो',
 
   'graph.resize': 'ग्राफ़ का आकार बदलने के लिए खींचें',

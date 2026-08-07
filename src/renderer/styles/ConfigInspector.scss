@@ -1,0 +1,199 @@
+// The Equalizer APO config, drawn as the tree it is.
+//
+// Monospace for anything that came out of a file, proportional for anything
+// this app is saying about it. That is the whole visual rule here: the panel is
+// a window onto somebody else's text, and blurring the line between the text
+// and the commentary is how a viewer starts lying.
+
+@use 'color' as *;
+@use 'constant' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.config-inspector {
+  display: flex;
+  overflow-y: auto;
+  min-height: 0;
+  flex-direction: column;
+  padding: $spacing-m;
+  gap: $spacing-m;
+
+  @include slim-scrollbar;
+}
+
+.config-inspector__bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-m;
+}
+
+.config-inspector__lede {
+  margin: 4px 0 0;
+  color: $text-muted;
+  font-size: 0.72rem;
+}
+
+.config-inspector__path {
+  color: $text-faint;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.66rem;
+  // A long install path must not stretch the panel; it wraps rather than
+  // pushing every card wider than the pane.
+  word-break: break-all;
+}
+
+.config-inspector__note {
+  margin: 0;
+  color: $text-muted;
+  font-size: 0.76rem;
+
+  &--error {
+    color: #ef6a6a;
+  }
+}
+
+// *** One output ***************************************************************
+
+.config-device {
+  display: flex;
+  flex-direction: column;
+  padding: $spacing-s $spacing-m $spacing-m;
+  border: 1px solid rgba($primary-lighter, 0.08);
+  border-radius: $radius-m;
+  background: rgba($primary-lighter, 0.03);
+  gap: 6px;
+}
+
+.config-device__head {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: $spacing-s;
+
+  h4 {
+    margin: 0;
+    font-size: 0.84rem;
+  }
+}
+
+.config-device__pattern {
+  color: $text-faint;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.64rem;
+  word-break: break-all;
+}
+
+.config-device__facts {
+  display: flex;
+  flex-wrap: wrap;
+  color: $secondary-light;
+  font-size: 0.66rem;
+  gap: $spacing-s;
+  letter-spacing: 0.04em;
+}
+
+.config-device__empty {
+  margin: 0;
+  color: $text-faint;
+  font-size: 0.72rem;
+  font-style: italic;
+}
+
+.config-device__tree,
+.config-node__children {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+// *** One file *****************************************************************
+
+.config-node {
+  --depth: 0;
+  margin-top: 4px;
+}
+
+.config-node__children {
+  // The indent is the include relationship, and it is the only thing in this
+  // panel carrying that information — flatten it and a feature file looks like
+  // a sibling of the device file that pulls it in.
+  padding-left: $spacing-m;
+  border-left: 1px solid rgba($secondary-default, 0.18);
+  margin-left: 6px;
+}
+
+.config-node__head {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  padding: 2px 4px;
+  border: none;
+  border-radius: $radius-s;
+  background: transparent;
+  color: $text-primary;
+  cursor: pointer;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.68rem;
+  gap: 6px;
+  text-align: left;
+  transition: $transition-control;
+
+  &:hover {
+    background: rgba($secondary-default, 0.12);
+  }
+}
+
+.config-node__twist {
+  flex: 0 0 auto;
+  color: $secondary-light;
+  font-size: 0.6rem;
+}
+
+.config-node__name {
+  @include truncate;
+  flex: 1 1 auto;
+}
+
+.config-node__badge {
+  flex: 0 0 auto;
+  padding: 1px 6px;
+  border-radius: $radius-pill;
+  background: rgba($secondary-default, 0.16);
+  color: $secondary-light;
+  font-family: inherit;
+  font-size: 0.6rem;
+
+  &--missing {
+    background: rgba(#ef6a6a, 0.18);
+    color: #ef6a6a;
+  }
+}
+
+.config-node--missing .config-node__name {
+  color: #ef6a6a;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.68rem;
+  text-decoration: line-through;
+}
+
+.config-node__lines {
+  overflow-x: auto;
+  max-height: 220px;
+  padding: 6px 8px;
+  border-radius: $radius-s;
+  margin: 2px 0 0 22px;
+  background: rgba(0, 0, 0, 0.28);
+  color: $text-muted;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.64rem;
+  line-height: 1.5;
+  // Copied out of a file and often copied back into one, so this is one of the
+  // few places in the app where selecting text is the point.
+  -webkit-user-select: text;
+  user-select: text;
+  white-space: pre;
+
+  @include slim-scrollbar;
+}
