@@ -183,15 +183,16 @@ const fr: Partial<Dictionary> = {
   'eq.smart.continuousAria':
     'Continuer à mesurer et ajuster l’égalisation pendant la lecture',
   'eq.smart.modeAria': 'Choisir la façon de mesurer',
-  'eq.smart.mode.once.note': 'Mesurer une fois puis s’arrêter',
+  'eq.smart.mode.once.note': 'Une mesure, à plat, appliquée en une fois',
   'eq.smart.mode.detail': 'Détail',
   'eq.smart.mode.detail.note':
-    'Corrige bosses et creux, garde le caractère du disque',
+    'Continue de mesurer · bosses et creux seulement',
   'eq.smart.mode.balance': 'Équilibre',
   'eq.smart.mode.balance.note':
-    'Uniformise aussi la brillance ou la chaleur des disques',
+    'Continue de mesurer · uniformise aussi brillance et chaleur',
   'eq.smart.mode.target': 'Cible',
-  'eq.smart.mode.target.note': 'Amène chaque disque au même équilibre tonal',
+  'eq.smart.mode.target.note':
+    'Continue de mesurer · chaque disque vers une courbe',
   'eq.layers': 'Également appliqué',
   'eq.layers.aria': 'Autres traitements appliqués à cette sortie',
   'eq.layers.eq': 'EQ',

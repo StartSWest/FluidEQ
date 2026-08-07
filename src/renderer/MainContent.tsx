@@ -986,19 +986,37 @@ const MainContent = () => {
       return [];
     }
 
-    // The nine range levels, not the three-hundred-point curve. Each is a whole
-    // range's own weighted mean over every frame that had energy in it, which
-    // is what "the bass is two decibels heavy" actually means — where a point
-    // of the smoothed curve is one FFT bin averaged with its neighbours and
-    // wanders with the arrangement. See `buildRegionSpectrum`.
-    const solved = buildBalancedGains(buildRegionSpectrum(report), bands, {
-      reference: getReferenceShape(referenceModeRef.current),
-      targetCurve: buildLayerTargetCurve(
-        filtersRef.current,
-        voicingRef.current,
-        driverRef.current,
-      ),
-    });
+    // How finely each mode is allowed to look, which is not the same question
+    // for all three.
+    //
+    // Balance and Target act on a record's overall tonal balance: its slope, or
+    // its distance from a broad target curve. Nine range levels answer that
+    // better than three hundred points do — each is a whole range's own weighted
+    // mean over every frame that had energy in it, which is what "the bass came
+    // out two decibels heavy" actually means, where a point of the smoothed
+    // curve is one FFT bin averaged with its neighbours and wanders with the
+    // arrangement.
+    //
+    // Detail is the opposite job and was quietly unable to do it. A resonance
+    // sits *inside* a range, so averaging the range smears it into the range's
+    // own level and there is nothing left to correct — the mode named for peaks
+    // and dips could not see one. It gets the full curve, and can afford to:
+    // the deadband, the half-decibel step and the long-run averaging all sit
+    // downstream of this and are what keep fine detail from being chased.
+    const solved = buildBalancedGains(
+      referenceModeRef.current === 'detail'
+        ? report.samples
+        : buildRegionSpectrum(report),
+      bands,
+      {
+        reference: getReferenceShape(referenceModeRef.current),
+        targetCurve: buildLayerTargetCurve(
+          filtersRef.current,
+          voicingRef.current,
+          driverRef.current,
+        ),
+      },
+    );
     if (Object.keys(solved).length === 0) {
       // No answer this time. The tilt fit needs a wide trusted span and a range
       // that was cleared a moment ago carries none, so a solve taken while the
