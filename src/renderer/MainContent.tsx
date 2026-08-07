@@ -103,6 +103,24 @@ const MAX_BALANCE_ATTEMPTS = 3;
  */
 const GROUP_EDIT_INTERVAL = 100;
 
+/**
+ * How long after a correction lands before the analyser is believed again.
+ *
+ * Equalizer APO reloads its config when the file changes, and what comes out
+ * while it does is neither the old chain nor the new one. Averaging that in is
+ * how a correction ends up measured against half of itself — and the regions
+ * that were just corrected are exactly the ones freshly cleared and listening,
+ * so they are exactly the ones that would swallow it.
+ *
+ * Three quarters of a second is comfortably longer than a reload and shorter
+ * than the gap between two checkpoints, so in the ordinary case it costs
+ * nothing at all: the window has closed again before the next one is due.
+ */
+const CONTINUOUS_SETTLE_MS = 750;
+
+/** After this, an outstanding write is treated as lost rather than pending. */
+const CONTINUOUS_APPLY_TIMEOUT_MS = 10000;
+
 const MainContent = () => {
   const {
     filters,
@@ -133,6 +151,27 @@ const MainContent = () => {
   const [isBalancing, setIsBalancing] = useState(false);
   const isContinuousOn = useContinuousEq();
   const isSmartBypassed = bypassed.includes('smart');
+  /** A correction is on its way to Equalizer APO right now. */
+  const isApplyingRef = useRef(false);
+  /** When it set off, so a write that never returns cannot wedge the mode. */
+  const applyStartedAtRef = useRef(0);
+  /** When the chain can be believed again, after the last one landed. */
+  const applySettledAtRef = useRef(0);
+  /** Regions to clear once it has: what they heard mid-change is not evidence. */
+  const pendingResetRef = useRef<number[]>([]);
+  /**
+   * The running Continuous EQ capture, so the manual button can end it.
+   *
+   * There is only one analyser session, and starting a second is refused. The
+   * effect below would tear this one down on its own — `isBalancing` is in its
+   * dependencies — but that happens on React's schedule, and `autoBalance`
+   * reaches for the analyser in the same tick it sets the flag. Whether the
+   * teardown wins the race depends on whether there is a layer to clear first,
+   * because that is what puts an `await` in front of the capture. So it is done
+   * here explicitly instead: pressing Smart EQ stops the loop before it asks
+   * for anything.
+   */
+  const continuousAbortRef = useRef<AbortController | undefined>(undefined);
   const balanceAbortRef = useRef<AbortController | undefined>(undefined);
   // Bumped whenever a run is superseded, so a late resolution from an
   // abandoned measurement cannot write gains or overwrite the status.
@@ -549,6 +588,11 @@ const MainContent = () => {
       return;
     }
 
+    // The analyser takes one session at a time, and Continuous EQ holds one for
+    // as long as it is switched on. See `continuousAbortRef` for why waiting
+    // for the effect to do this would be a race rather than an ordering.
+    continuousAbortRef.current?.abort();
+
     balanceRunRef.current += 1;
     const runId = balanceRunRef.current;
     const isCurrentRun = () => balanceRunRef.current === runId;
@@ -790,6 +834,44 @@ const MainContent = () => {
    * neighbours carry on undisturbed.
    */
   const applyReadyRegions = (report: IBalanceReport): number[] => {
+    // ONE correction at a time, and nothing measured while one is landing.
+    //
+    // Checkpoints arrive about once a second and a write takes an unknown
+    // fraction of that: the IPC, the config rewrite, Equalizer APO noticing and
+    // reloading. Two of them overlapping is not a rare race but the ordinary
+    // case, and it goes wrong twice over — the second solve reads a layer React
+    // has not re-rendered yet, so it starts from the pre-step gains and applies
+    // the same step a second time, and the two writes reach APO in whichever
+    // order they finish in.
+    //
+    // The window stays shut for a moment after the write lands as well. What
+    // the analyser hears while APO reloads is neither the old chain nor the new
+    // one, and averaging it in is how a correction gets measured against half
+    // of itself.
+    //
+    // The in-flight flag carries a deadline, because it is cleared by a promise
+    // and a promise that never settles would switch this mode off for the rest
+    // of the session with nothing on screen saying so. Ten seconds is far
+    // longer than a config write has ever taken; a write still outstanding then
+    // is not coming back, and carrying on is a better answer than stopping
+    // forever.
+    const isWriteInFlight =
+      isApplyingRef.current &&
+      Date.now() - applyStartedAtRef.current < CONTINUOUS_APPLY_TIMEOUT_MS;
+    if (isWriteInFlight || Date.now() < applySettledAtRef.current) {
+      return [];
+    }
+
+    // The transitional frames, thrown away now that the settle is over. The
+    // regions were cleared at the moment of the write so they could not be
+    // corrected twice; this second clear is about what they heard *since*, back
+    // when the chain was mid-change.
+    if (pendingResetRef.current.length > 0) {
+      const stale = pendingResetRef.current;
+      pendingResetRef.current = [];
+      return stale;
+    }
+
     // Read fresh each time rather than carried: over an evening the user will
     // have moved a band, loaded a profile, cleared the layer. Every one of
     // those makes the gains a held copy started from wrong.
@@ -843,13 +925,6 @@ const MainContent = () => {
       return [];
     }
 
-    setSmartEq(measured);
-    setSmartEqApi(measured).catch(() => {
-      // Reported nowhere on purpose: a write that fails from a loop nobody
-      // started should not raise the banner over the whole workspace. The next
-      // pass writes again.
-    });
-
     // Exactly the ranges that moved, and only those. A range whose bands all
     // sat inside the deadband is not stale — the chain under it did not change
     // — and clearing it would throw away good evidence for nothing.
@@ -861,6 +936,27 @@ const MainContent = () => {
           stepped[band.id] !== band.gain,
       ),
     );
+
+    // Shut before the write, not after it. `setSmartEqApi` returns a promise
+    // and the checkpoint that could collide with it is a whole second away, but
+    // the flag has to be set on this side of the call all the same: setting it
+    // in the promise body would leave a gap between deciding to write and being
+    // marked as writing, which is precisely the gap a race lives in.
+    isApplyingRef.current = true;
+    applyStartedAtRef.current = Date.now();
+    setSmartEq(measured);
+    setSmartEqApi(measured)
+      .catch(() => {
+        // Reported nowhere on purpose: a write that fails from a loop nobody
+        // started should not raise the banner over the whole workspace. The
+        // next pass writes again.
+      })
+      .finally(() => {
+        isApplyingRef.current = false;
+        applySettledAtRef.current = Date.now() + CONTINUOUS_SETTLE_MS;
+        pendingResetRef.current = moved.map(({ index }) => index);
+      });
+
     if (moved.length > 0) {
       setBalanceStatus(
         `${t('eq.smart.continuous.tracking')} · ${moved
@@ -894,6 +990,14 @@ const MainContent = () => {
     }
 
     const controller = new AbortController();
+    continuousAbortRef.current = controller;
+    // Nothing carried over from the last time the mode ran: a settle window
+    // that outlived its write, or a list of regions to clear in a capture that
+    // no longer exists, would both be applied to the wrong session.
+    isApplyingRef.current = false;
+    applySettledAtRef.current = 0;
+    pendingResetRef.current = [];
+
     captureBalanceProfile({
       signal: controller.signal,
       isContinuous: true,
@@ -902,7 +1006,12 @@ const MainContent = () => {
       // Aborting is how this ends, and an abort rejects. Nothing here is a
       // failure worth reporting.
     });
-    return () => controller.abort();
+    return () => {
+      controller.abort();
+      if (continuousAbortRef.current === controller) {
+        continuousAbortRef.current = undefined;
+      }
+    };
   }, [
     captureBalanceProfile,
     isBalancing,
