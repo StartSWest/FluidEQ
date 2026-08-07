@@ -48,7 +48,7 @@ import {
   setMainPreAmp,
   setQuality,
 } from 'renderer/utils/equalizerApi';
-import { clamp, useThrottleAndExecuteLatest } from 'renderer/utils/utils';
+import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
 import Chart, { ChartDimensions } from './Chart';
 import {
   GRAPH_END,
@@ -107,6 +107,8 @@ import GraphViewMenu from './GraphViewMenu';
 import { getVoicingFilters } from '../../common/voicing';
 import { getDriverFilters } from '../../common/driver';
 import { getSmartEqFilters, hasSmartEqLayer } from '../../common/smartEq';
+import { getLoudnessFilters } from '../../common/loudness';
+import { getChainPeakGain } from '../../common/response';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
 
@@ -382,6 +384,7 @@ const FrequencyResponseChart = () => {
     voicing,
     driver,
     smartEq,
+    loudness,
     bypassed,
   } = useFluidEqContext();
   const isBypassed = (feature: TApoFeature) => bypassed.includes(feature);
@@ -690,24 +693,6 @@ const FrequencyResponseChart = () => {
       convolutionFilterLines[filter.id] = getFilterLineData(filter);
     });
 
-    // Keep the complete chain for auto-headroom calculation only. The graph
-    // renders convolution and editable EQ as separate curves so the white EQ
-    // line never includes the convolution response.
-    // Auto-headroom has to see every layer, voicing included, or its reserve
-    // is short by exactly the voicing's boost.
-    //
-    // Bands that are switched off are not part of it, for the same reason the
-    // other switched-off layers are not: this is what Equalizer APO is actually
-    // applying. The bands stay drawn and stay draggable — the editor is still
-    // the editor — but they are not in the sum, so the headroom this figure
-    // produces matches the preamp the writer computes from the same chain.
-    const processedCurveData = getCombinedLineData(preAmp, {
-      ...convolutionFilterLines,
-      ...(bypassed.includes('eq') ? {} : updatedFilterLines),
-      ...voicingFilterLines,
-      ...driverFilterLines,
-      ...smartFilterLines,
-    });
     const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
     const eqCurveData = getCombinedLineData(preAmp, updatedFilterLines);
     const voicingCurveData = hasVoicing
@@ -758,16 +743,39 @@ const FrequencyResponseChart = () => {
     // Compute preAmp line data
     // const preAmpLine = getPreAmpLine(preAmp);
 
-    const highestPoint = processedCurveData.reduce(
-      (previousValue, currentValue) => {
-        return previousValue.y < currentValue.y ? currentValue : previousValue;
-      },
+    // One rule for how loud a chain is, and it is the writer's.
+    //
+    // This used to negate the highest point of the drawn curve with no floor at
+    // zero, so a chain that only cuts produced a *positive* preamp — sixteen
+    // decibels of makeup gain on one real profile — and the graph then drew
+    // itself lifted by it, which is why a heavily cut correction appeared to be
+    // sitting at unity. Equalizer APO never saw a decibel of it: the writer
+    // reserves headroom for boosts and stops at zero, so the file said 0 dB
+    // while the picture claimed otherwise and the volume never moved.
+    //
+    // Worse, it moved for no reason anybody could hear. Switching one band to
+    // Low Pass changes where the chain peaks, which changed the makeup, which
+    // slid the entire curve up or down — a redraw that looked like a tuning
+    // change and was not.
+    //
+    // So the peak comes from the same function the config is written from,
+    // weighted the same way and floored the same way. The convolution follows
+    // the writer's rule too: an impulse that came with a file was normalised by
+    // whoever published it, and counting it again reserves headroom nothing is
+    // using.
+    const calculatedAutoPreAmpValue = -Math.max(
+      0,
+      getChainPeakGain([
+        ...(convolution && !convolution.fileName
+          ? Object.values(convolution.filters || {})
+          : []),
+        ...(bypassed.includes('eq') ? [] : Object.values(filters)),
+        ...(bypassed.includes('driver') ? [] : getDriverFilters(driver)),
+        ...(bypassed.includes('voicing') ? [] : getVoicingFilters(voicing)),
+        ...(bypassed.includes('loudness') ? [] : getLoudnessFilters(loudness)),
+        ...(bypassed.includes('smart') ? [] : getSmartEqFilters(smartEq)),
+      ]),
     );
-
-    const calculatedAutoPreAmpValue =
-      Math.round(
-        clamp(-1 * (highestPoint.y - preAmp), MIN_GAIN, MAX_GAIN) * 100,
-      ) / 100;
 
     return {
       chartData: [
@@ -873,6 +881,7 @@ const FrequencyResponseChart = () => {
     driver,
     filters,
     isAutoPreAmpOn,
+    loudness,
     preAmp,
     smartEq,
     voicing,
