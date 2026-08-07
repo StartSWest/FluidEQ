@@ -116,4 +116,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       background: rgba($secondary-default, 0.24);
     }
   }
+
+  // Switched on, for the buttons that are switches rather than actions.
+  //
+  // Lit rather than merely darker: these sit in a row of things that only
+  // respond to a press, so "this one is currently doing something" has to read
+  // without hovering it. The outline carries it, since the label does not
+  // change — the word is the name of the mode either way.
+  &.is-on:not([aria-disabled='true']) {
+    color: $white;
+    border-color: rgba($secondary-default, 0.75);
+    background: rgba($secondary-default, 0.22);
+    box-shadow: 0 0 16px rgba($secondary-default, 0.18);
+  }
 }

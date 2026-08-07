@@ -24,6 +24,15 @@ interface IButtonProps {
   ariaLabel: string;
   isDisabled: boolean;
   className?: string;
+  /**
+   * For the buttons that are switches rather than actions.
+   *
+   * Optional, and absent means "not a switch" rather than "off" — a plain
+   * action button reporting `aria-pressed="false"` tells a screen reader it is
+   * a toggle that is currently off, which is a different control from the one
+   * on screen.
+   */
+  isPressed?: boolean;
   handleChange: () => void;
 }
 
@@ -32,6 +41,7 @@ const Button = ({
   ariaLabel,
   isDisabled,
   className = '',
+  isPressed,
   handleChange,
 }: IButtonProps) => {
   // `aria-disabled` only removes pointer events through CSS, so the handler
@@ -61,6 +71,7 @@ const Button = ({
       onKeyDown={onKeyDown}
       tabIndex={isDisabled ? -1 : 0}
       aria-disabled={isDisabled}
+      aria-pressed={isPressed}
     >
       {children}
     </div>
