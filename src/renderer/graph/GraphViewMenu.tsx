@@ -251,7 +251,7 @@ const GraphViewMenu = ({
             </Icon>
             {/* No shortcut named here any more. Ctrl+W now walks all four of
                 the things the plot can show — both, wave only, curves only,
-                curves with the handles gone — while these two items stay what
+                everything but the EQ curve — while these two items stay what
                 they are: precise switches that say which state they put you in.
                 Printing the key beside one of them would promise it did only
                 that. */}

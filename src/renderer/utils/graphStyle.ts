@@ -63,7 +63,6 @@ const STORAGE_KEY = 'fluideq-graph-style';
  */
 const VIEW_KEYS = {
   wave: 'fluideq.graphWaveHidden',
-  handles: 'fluideq.graphHandlesHidden',
   solo: 'fluideq.graphSolo',
   // Two of these are not keys any more but *stems*. The grid and the stretch
   // are kept once per view mode, under `<stem>.normal`, `<stem>.expanded` and
@@ -371,28 +370,37 @@ export const toggleLiveOutputSolo = () => setLiveOutputSolo(!isSolo);
  * really one choice, and walking it with a single key says so far better than
  * two keys that quietly undo one another.
  *
- * Everything, then the wave alone, then the curves alone, then the curves with
- * the editing furniture gone — which is the one for actually reading a chain,
- * because the handles are what the layer curves get lost behind.
+ * Everything, then the wave alone, then the curves alone, then everything again
+ * without the cyan EQ curve.
+ *
+ * That last one is the reading state. The bands' own line is the loudest thing
+ * on the plot — full weight, a glow, a spectrum gradient and two dozen handles
+ * sitting on it — and it is the one curve whose shape is already legible from
+ * the sliders underneath. What is not legible anywhere else is what the other
+ * layers are doing to it, and they are exactly what it covers. Its handles go
+ * with it, since the chart ties them to the curve they draw.
+ *
+ * The fourth state used to be the curves with only the handles taken off, which
+ * left the same bright line over the top of everything and so answered a
+ * question nobody was asking.
  */
 export const cycleGraphContents = () => {
-  if (!isSolo && !isWaveHidden) {
-    setHandlesHidden(false);
+  const isEqCurveHidden = hiddenCurves.includes('eq');
+  if (!isSolo && !isWaveHidden && !isEqCurveHidden) {
     setLiveOutputSolo(true);
     return;
   }
   if (isSolo) {
     setLiveOutputSolo(false);
     setWaveHidden(true);
-    setHandlesHidden(false);
     return;
   }
-  if (!areHandlesHidden) {
-    setHandlesHidden(true);
+  if (isWaveHidden) {
+    setWaveHidden(false);
+    setCurveHidden('eq', true);
     return;
   }
-  setWaveHidden(false);
-  setHandlesHidden(false);
+  setCurveHidden('eq', false);
 };
 
 const subscribeSolo = (listener: () => void) => {
@@ -461,43 +469,6 @@ export const useGraphWaveHidden = () =>
   );
 
 /**
- * Whether the band handles are drawn.
- *
- * The dots are the editing surface, not the reading. With every layer stacked
- * up there can be two dozen of them sitting on the one curve somebody is trying
- * to read the shape of, and the layers underneath — the voicing, the driver
- * correction, the measurement, the total — are exactly what gets lost behind
- * them. Taking them away leaves every curve and removes only the furniture.
- *
- * Its own flag rather than a mode, because it composes: it is as useful over
- * the wave as without it.
- */
-let areHandlesHidden = readStoredFlag(VIEW_KEYS.handles);
-
-const handleListeners = new Set<() => void>();
-
-function setHandlesHidden(next: boolean) {
-  if (next === areHandlesHidden) {
-    return;
-  }
-  areHandlesHidden = next;
-  writeStored(VIEW_KEYS.handles, String(areHandlesHidden));
-  handleListeners.forEach((listener) => listener());
-}
-
-export const useGraphHandlesHidden = () =>
-  useSyncExternalStore(
-    (listener: () => void) => {
-      handleListeners.add(listener);
-      return () => {
-        handleListeners.delete(listener);
-      };
-    },
-    () => areHandlesHidden,
-    () => false,
-  );
-
-/**
  * The curves that can be taken off the plot one at a time.
  *
  * Every id here is a curve the chart builds, and the legend chip naming it is
@@ -546,13 +517,23 @@ let hiddenCurves: readonly TGraphCurve[] = (readStored(CURVES_KEY) || '')
 
 const curveListeners = new Set<() => void>();
 
-export const toggleGraphCurve = (curve: TGraphCurve) => {
-  hiddenCurves = hiddenCurves.includes(curve)
-    ? hiddenCurves.filter((id) => id !== curve)
-    : [...hiddenCurves, curve];
+/**
+ * Declared rather than assigned, so `cycleGraphContents` — which is above it in
+ * the file, with the other things Ctrl+W walks — can call it.
+ */
+function setCurveHidden(curve: TGraphCurve, next: boolean) {
+  if (hiddenCurves.includes(curve) === next) {
+    return;
+  }
+  hiddenCurves = next
+    ? [...hiddenCurves, curve]
+    : hiddenCurves.filter((id) => id !== curve);
   writeStored(CURVES_KEY, hiddenCurves.join(','));
   curveListeners.forEach((listener) => listener());
-};
+}
+
+export const toggleGraphCurve = (curve: TGraphCurve) =>
+  setCurveHidden(curve, !hiddenCurves.includes(curve));
 
 export const useHiddenCurves = () =>
   useSyncExternalStore(

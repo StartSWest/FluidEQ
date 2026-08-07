@@ -120,13 +120,13 @@
   pointer-events: none;
 }
 
-// The editing furniture off, every curve kept.
+// No EQ curve, so no handles on it.
 //
-// With four layers stacked there can be two dozen handles sitting on the one
-// curve somebody is trying to read the shape of — and the voicing, the driver
-// correction, the measurement and the total underneath are exactly what they
-// hide. This is the state for reading a chain rather than building one, so the
-// dots go and nothing else does.
+// Set whenever the bands' own line is hidden — from the legend chip, or from
+// the last stop of Ctrl+W, which is the state for reading a chain rather than
+// building one. A dot you can drag with no line following it gives nothing
+// back, and two dozen of them over the layer curves are exactly what makes
+// those curves hard to read.
 .graph-wrapper.is-handles-hidden .graph-edit-point {
   display: none;
 }

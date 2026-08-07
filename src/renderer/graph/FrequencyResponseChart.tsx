@@ -84,7 +84,6 @@ import {
   useGraphFullScreen,
   useGraphGridHidden,
   useGraphWaveHidden,
-  useGraphHandlesHidden,
   useHiddenCurves,
   toggleGraphCurve,
   TGraphCurve,
@@ -374,8 +373,7 @@ const FrequencyResponseChart = () => {
   // The dots go with the line they draw. A handle you can drag over a curve
   // that is not on screen gives no feedback at all — the whole point of
   // dragging one is watching the response follow it.
-  const areHandlesHidden =
-    useGraphHandlesHidden() || hiddenCurves.includes('eq');
+  const areHandlesHidden = hiddenCurves.includes('eq');
   const isStretched = useGraphStretched();
   const waveOrientation = useWaveOrientation();
 
