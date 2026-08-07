@@ -74,6 +74,7 @@ import {
   buildBalancedGains,
   describeBalanceProgress,
   describeBalanceResult,
+  formatBalanceFrequency,
 } from './utils/autoBalance';
 import { buildLayerTargetCurve } from './utils/layerTargetCurve';
 import { planBandReveal, revealBands } from './utils/bandReveal';
@@ -117,6 +118,25 @@ const GROUP_EDIT_INTERVAL = 100;
  * headphones and the room, is what accumulates.
  */
 const CONTINUOUS_PAUSE_MS = 10000;
+
+/**
+ * How long one of Continuous EQ's looks lasts.
+ *
+ * A manual measurement waits until every frequency region has been heard well
+ * enough to correct, which is the right answer for a single measurement and the
+ * wrong one for a mode that repeats: it means a range heard clearly in the first
+ * two seconds waits on the range that needs twenty, and nothing at all is
+ * corrected until the slowest one arrives.
+ *
+ * So the looks are short and there are many of them. The solver already leaves a
+ * band it does not trust exactly where it is, so a short look corrects what it
+ * heard and says nothing about the rest — and across a run of looks each range
+ * is corrected as it is heard, rather than every range at the end. Three seconds
+ * is the floor because below that a region cannot support a variance estimate at
+ * all; eight is where the look gives back what it has instead of holding on.
+ */
+const CONTINUOUS_MIN_LISTEN_MS = 3000;
+const CONTINUOUS_MAX_LISTEN_MS = 8000;
 
 /** A sleep that gives up when the run does. */
 const waitFor = (ms: number, signal: AbortSignal) =>
@@ -820,7 +840,11 @@ const MainContent = () => {
       while (!signal.aborted) {
         try {
           // eslint-disable-next-line no-await-in-loop
-          const result = await captureBalanceProfile({ signal });
+          const result = await captureBalanceProfile({
+            signal,
+            minListenMs: CONTINUOUS_MIN_LISTEN_MS,
+            maxListenMs: CONTINUOUS_MAX_LISTEN_MS,
+          });
           if (signal.aborted) {
             return;
           }
@@ -857,7 +881,17 @@ const MainContent = () => {
               setSmartEq(measured);
               // eslint-disable-next-line no-await-in-loop
               await setSmartEqApi(measured);
-              setBalanceStatus(t('eq.smart.continuous.tracking'));
+              // Which range this look actually corrected, because that is the
+              // part that is otherwise invisible: the correction arrives a
+              // region at a time, and this is the only place saying which one
+              // just moved.
+              setBalanceStatus(
+                result.lowFrequency && result.highFrequency
+                  ? `${t('eq.smart.continuous.tracking')} · ${formatBalanceFrequency(
+                      result.lowFrequency,
+                    )}-${formatBalanceFrequency(result.highFrequency)}`
+                  : t('eq.smart.continuous.tracking'),
+              );
             }
           }
         } catch {

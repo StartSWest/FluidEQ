@@ -3,6 +3,7 @@ import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import {
   IAxisCell,
   IBalanceCaptureState,
+  IBalanceListenBounds,
   IBalanceProgress,
   IBalanceResult,
   accumulateBalanceFrame,
@@ -300,7 +301,7 @@ const captureSystemOutput = async (): Promise<MediaStream> => {
   }
 };
 
-export interface IBalanceCaptureOptions {
+export interface IBalanceCaptureOptions extends IBalanceListenBounds {
   signal?: AbortSignal;
   onProgress?: (progress: IBalanceProgress) => void;
 }
@@ -311,6 +312,13 @@ interface IBalanceSession {
   /** Identifies the analysis axis; a change means the device changed. */
   axisKey: string;
   onProgress?: (progress: IBalanceProgress) => void;
+  /**
+   * What this caller asked for instead of the defaults.
+   *
+   * Held on the session rather than read from the options at each tick,
+   * because the tick runs from an interval that outlives the call.
+   */
+  bounds: IBalanceListenBounds;
   detachAbort: () => void;
   watchdog: ReturnType<typeof setTimeout>;
   lastAcceptedWallMs: number;
@@ -449,7 +457,9 @@ const useLiveOutputSpectrum = () => {
         } else {
           // Something was heard: keep it rather than throwing the work away.
           settleBalance(
-            buildBalanceResult(evaluateBalanceCapture(session.state)),
+            buildBalanceResult(
+              evaluateBalanceCapture(session.state, session.bounds),
+            ),
           );
         }
         return;
@@ -476,7 +486,7 @@ const useLiveOutputSpectrum = () => {
         return;
       }
 
-      const report = evaluateBalanceCapture(session.state);
+      const report = evaluateBalanceCapture(session.state, session.bounds);
       const progress = buildBalanceProgress(report, session.lastPercent, {
         isSilent: silent,
         isPaused: paused,
@@ -832,6 +842,10 @@ const useLiveOutputSpectrum = () => {
           state: createBalanceCaptureState(axis),
           axisKey: String(Math.round(audioContext.sampleRate)),
           onProgress: options.onProgress,
+          bounds: {
+            minListenMs: options.minListenMs,
+            maxListenMs: options.maxListenMs,
+          },
           detachAbort: () =>
             options.signal?.removeEventListener('abort', onAbort),
           watchdog: setTimeout(

@@ -24,7 +24,9 @@ import {
 } from 'common/constants';
 import {
   BALANCE_FRAME_INTERVAL_MS,
+  CONVERGENCE_CHECK_MS,
   IBalanceFrame,
+  IBalanceListenBounds,
   IBalanceReport,
   MAX_LISTEN_MS,
   MIN_LISTEN_MS,
@@ -75,7 +77,11 @@ const buildFrame = (frameIndex: number, levelAt: LevelAt): IBalanceFrame => {
 };
 
 /** Drives the accumulator exactly the way the hook's pump does. */
-const runCapture = (levelAt: LevelAt, frameCount: number) => {
+const runCapture = (
+  levelAt: LevelAt,
+  frameCount: number,
+  bounds: IBalanceListenBounds = {},
+) => {
   const state = createBalanceCaptureState(AXIS);
   let report: IBalanceReport | undefined;
   let framesFed = 0;
@@ -84,14 +90,18 @@ const runCapture = (levelAt: LevelAt, frameCount: number) => {
     accumulateBalanceFrame(state, buildFrame(index, levelAt));
     framesFed += 1;
     if (isBalanceCheckDue(state)) {
-      report = evaluateBalanceCapture(state);
+      report = evaluateBalanceCapture(state, bounds);
       if (shouldFinishBalanceCapture(report)) {
         break;
       }
     }
   }
 
-  return { state, report: report ?? evaluateBalanceCapture(state), framesFed };
+  return {
+    state,
+    report: report ?? evaluateBalanceCapture(state, bounds),
+    framesFed,
+  };
 };
 
 const FRAMES_PER_SECOND = Math.round(1000 / BALANCE_FRAME_INTERVAL_MS);
@@ -221,6 +231,36 @@ describe('balance capture', () => {
         steady.report.listenedMs * 3,
       );
       expect(noisy.report.listenedMs).toBeLessThanOrEqual(MAX_LISTEN_MS);
+    });
+
+    // Continuous EQ's short looks. It takes many of them rather than one long
+    // measurement, so that a range heard clearly in the first seconds is
+    // corrected in the first seconds instead of waiting on the slowest range.
+    it('hands back what it has when the caller sets a shorter ceiling', () => {
+      const short = { minListenMs: 3000, maxListenMs: 8000 };
+      const { report } = runCapture(podcast, seconds(45), short);
+
+      // Plus one checkpoint: the ceiling is tested once per second of listened
+      // time, so it is a "stop at the next check after" rather than a limit the
+      // accumulator never crosses.
+      expect(report.listenedMs).toBeLessThan(8000 + CONVERGENCE_CHECK_MS);
+      expect(report.status).toBe('partial');
+      expect(shouldFinishBalanceCapture(report)).toBe(true);
+      // And it is a usable answer rather than an empty one: the ranges it did
+      // hear are covered, which is what the solver corrects and the rest is
+      // what it leaves alone.
+      const covered = report.regions.filter((region) => region.isCovered);
+      expect(covered.length).toBeGreaterThan(0);
+      expect(covered.length).toBeLessThan(report.regions.length);
+    });
+
+    it('still refuses to answer before the caller’s own floor', () => {
+      const { report } = runCapture(fullRange, seconds(2), {
+        minListenMs: 3000,
+        maxListenMs: 8000,
+      });
+      expect(report.listenedMs).toBeLessThan(3000);
+      expect(report.status).toBe('listening');
     });
 
     it('stops at the ceiling even if nothing ever settles', () => {

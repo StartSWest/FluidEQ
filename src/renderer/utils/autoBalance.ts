@@ -1024,11 +1024,33 @@ export const isBalanceCheckDue = (state: IBalanceCaptureState): boolean =>
     : state.listenedMs - state.checkpoint.atListenedMs >= CONVERGENCE_CHECK_MS;
 
 /**
+ * How long a capture may listen for, when the caller wants something other
+ * than the defaults.
+ *
+ * Continuous EQ is the reason this is a parameter. It takes short looks rather
+ * than one long one, so that a frequency range heard clearly in the first few
+ * seconds is corrected in the first few seconds instead of waiting on a range
+ * that needs twenty — the solver already leaves an untrusted band exactly where
+ * it is, so a short look corrects what it heard and says nothing about the
+ * rest. Over several looks the ranges come in as they are heard, which is what
+ * makes the correction arrive across the spectrum in parallel rather than all
+ * at the end.
+ */
+export interface IBalanceListenBounds {
+  minListenMs?: number;
+  maxListenMs?: number;
+}
+
+/**
  * Score the capture so far: per-region confidence, the averaged spectrum, and
  * whether we can stop. Mutates the convergence bookkeeping on `state`.
  */
 export const evaluateBalanceCapture = (
   state: IBalanceCaptureState,
+  {
+    minListenMs = MIN_LISTEN_MS,
+    maxListenMs = MAX_LISTEN_MS,
+  }: IBalanceListenBounds = {},
 ): IBalanceReport => {
   const regions: IBalanceRegionReport[] = state.regions.map((region, index) => {
     const s = state.regionStates[index];
@@ -1152,7 +1174,7 @@ export const evaluateBalanceCapture = (
     state.bestMeanAtMs = state.listenedMs;
   }
   const isStalled =
-    state.listenedMs >= MIN_LISTEN_MS &&
+    state.listenedMs >= minListenMs &&
     coverage < REGION_COVERED_CONFIDENCE &&
     state.listenedMs - state.bestWeakestAtMs >= STALL_GRACE_MS &&
     state.listenedMs - state.bestMeanAtMs >= STALL_GRACE_MS;
@@ -1162,11 +1184,11 @@ export const evaluateBalanceCapture = (
   // good measurement it is, rather than being downgraded by the backstop.
   const meetsGoal = isConverged && coverage >= REGION_COVERED_CONFIDENCE;
   let status: BalanceCaptureStatus;
-  if (state.listenedMs < MIN_LISTEN_MS) {
+  if (state.listenedMs < minListenMs) {
     status = 'listening';
   } else if (meetsGoal) {
     status = 'ready';
-  } else if (state.listenedMs >= MAX_LISTEN_MS) {
+  } else if (state.listenedMs >= maxListenMs) {
     status = 'partial';
   } else if (isConverged && isStalled) {
     // Only a settled measurement may be declared band-limited; otherwise a
