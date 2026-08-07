@@ -1,4 +1,5 @@
 @use 'color' as *;
+@use 'theme' as *;
 
 .waveform-visualizer {
   position: relative;
@@ -14,13 +15,22 @@
   padding: 8px 14px 10px;
   border: 1px solid rgba($primary-lighter, 0.1);
   border-radius: 18px;
+  // The same bargain the panels and the title bar make: translucent enough
+  // that the shell's own colour comes through, opaque enough that a trace drawn
+  // on it stays legible.
+  //
+  // It was `rgba(#0a121e, 0.82)` — nominally see-through and so much darker
+  // than everything around it that nothing showed. On the panel family it sits
+  // in the window rather than on it, while staying a shade under the title bar
+  // it is set into, which is what keeps it reading as a well rather than as a
+  // card. The wash above is its own and is unchanged.
   background:
     radial-gradient(
       120% 160% at 50% -40%,
       rgba($secondary-default, 0.09),
       transparent 62%
     ),
-    rgba(#0a121e, 0.82);
+    rgba($panel-bottom, 0.8);
   box-shadow:
     inset 0 1px 0 rgba($white, 0.05),
     0 0 22px rgba($secondary-default, 0.04);
@@ -48,14 +58,11 @@
       0 0 60px rgba($analogous-2, 0.08);
   }
 
+  // The trace goes flat and grey here too, but that is not this file's to say
+  // any more — see the note at the bottom. The pane's own dimming still is.
   &.is-paused {
     border-color: rgba($primary-lighter, 0.17);
     opacity: 0.78;
-
-    .waveform-visualizer__line {
-      stroke: rgba($primary-lighter, 0.68);
-      filter: none;
-    }
   }
 
   // Clipping is the one state worth interrupting the theme for.
@@ -141,44 +148,24 @@
   letter-spacing: 0.12em;
 }
 
-.waveform-visualizer__canvas {
-  width: 100%;
-  height: 100%;
-  overflow: visible;
-}
-
-// Faint rules behind the trace so the pane reads as an instrument rather than
-// a stray line on a dark rectangle.
-.waveform-visualizer__grid path {
-  fill: none;
-  stroke: rgba($primary-lighter, 0.07);
-  stroke-width: 1;
-}
-
-.waveform-visualizer__baseline {
-  fill: none;
-  stroke: rgba($primary-lighter, 0.15);
-  stroke-width: 1;
-  stroke-dasharray: 2 5;
-}
-
-.waveform-visualizer__fill {
-  fill: url('#waveform-fill');
-  stroke: none;
-}
-
-.waveform-visualizer__line {
-  fill: none;
-  stroke: url('#waveform-line');
-  stroke-width: 1.8;
-  stroke-linejoin: round;
-  filter: drop-shadow(0 0 3px rgba($neon-cyan, 0.9))
-    drop-shadow(0 0 7px rgba($neon-pink, 0.42));
-}
-
-.is-clipping .waveform-visualizer__line {
-  filter: drop-shadow(0 0 4px rgba($red, 0.95));
-}
+// *** The trace ************************************************************
+//
+// Nothing here. `.waveform-visualizer__canvas` is a canvas, and its box is set
+// inline by the component because the frame loop insets the drawing by the
+// same number of pixels it is grown by — two copies of that number in two
+// languages is two copies that will disagree, and the symptom would be a trace
+// quietly off centre.
+//
+// The rules that used to live here — the grid, the dashed baseline, the two
+// gradients, the neon bloom under the line, the flat grey it goes when the
+// analyser is paused, the red it glows when the output clips, and the ten
+// per-style paints that said which of the three paths each style draws with —
+// cannot reach a bitmap. Every one of them is resolved in the frame loop in
+// `WaveformVisualizer.tsx` instead, in the order the cascade used to resolve
+// them, and that file is where to change any of them.
+//
+// What the pane still owns is everything that is a box: its size, its border,
+// its glow, its label row and its readouts.
 
 @media (max-width: 940px) {
   .waveform-visualizer {
@@ -192,53 +179,4 @@
   .waveform-visualizer__peak {
     display: none;
   }
-}
-
-// *** Meter styles **********************************************************
-//
-// Ten ways to draw the same measurements, cycled by clicking the meter.
-//
-// Every one is built from the SAME three paths — the geometry changes, the
-// element count never does. A bar chart made of ninety-six rectangles would be
-// ninety-six elements to create on entering a style and destroy on leaving it,
-// and cycling would churn the DOM each time; as subpaths there is nothing to
-// create and so nothing to clean up.
-//
-// What is left here is only what CSS has to say: which of the three paths a
-// style paints with, and how.
-
-// Solid rather than gradient-filled: bars, dots, spikes and blocks are made of
-// separate pieces, and a gradient across the whole figure washes the quiet
-// ones out entirely.
-.waveform-visualizer--bars,
-.waveform-visualizer--mirror-bars,
-.waveform-visualizer--dots,
-.waveform-visualizer--blocks {
-  .waveform-visualizer__fill {
-    fill: url('#waveform-line');
-    opacity: 0.85;
-  }
-}
-
-.waveform-visualizer--spikes .waveform-visualizer__fill {
-  fill: url('#waveform-line');
-  opacity: 0.62;
-}
-
-// The body without an edge, so it reads as a shape rather than a trace.
-.waveform-visualizer--ribbon .waveform-visualizer__fill {
-  fill: url('#waveform-line');
-  opacity: 0.5;
-}
-
-// A comb of verticals, drawn by the line path rather than filled.
-.waveform-visualizer--lattice .waveform-visualizer__line {
-  stroke-width: 1.4;
-  stroke-linecap: round;
-  opacity: 0.85;
-}
-
-// One edge, thicker, because it is carrying the whole picture alone.
-.waveform-visualizer--outline .waveform-visualizer__line {
-  stroke-width: 2.4;
 }

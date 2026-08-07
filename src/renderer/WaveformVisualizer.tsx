@@ -1,3 +1,30 @@
+/**
+ * The titlebar's live output meter, drawn on a canvas rather than as SVG paths.
+ *
+ * WHY THIS IS NOT A PATH ANY MORE. Three `d` attributes were rewritten on every
+ * drawn frame, and a `d` is not a cheap assignment: it invalidates style,
+ * re-parses the whole string, re-lays-out the figure and re-rasterises the
+ * region, and all four stages run again on the next frame. The meter draws at
+ * thirty ordinarily and — this is the part that matters — at the display's full
+ * rate for as long as euphoria is on, which is the mode somebody deliberately
+ * leaves running. A canvas draw is a resource update instead: the pixels are
+ * replaced and nothing else in the document has an opinion about it.
+ *
+ * WHAT DID NOT CHANGE. `createWaveformShape` still returns SVG path data for
+ * all ten styles, because `new Path2D(d)` takes exactly that string. The shapes,
+ * the easing and the normalising are untouched — this is a renderer swap, not a
+ * redesign, and the geometry was never the problem.
+ *
+ * WHAT STAYS IN THE DOM. The pane, the labels, the held peak, the euphoria
+ * pill. Those are text and controls; they change when the audio changes *state*
+ * rather than when it moves, and they have to be hit-tested and read aloud.
+ *
+ * WHERE THE STYLESHEET WENT. A canvas has no cascade to appeal to, so every
+ * rule that used to paint a path — the ramps, the per-style fills, the paused
+ * and clipping treatments, the euphoria halo — is resolved in the frame loop
+ * below and the stylesheet keeps only what is still a box.
+ */
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { getStreakJoy } from 'common/rhythmGame';
 import { easeTowards, getEaseFactor } from 'common/smoothing';
@@ -12,6 +39,7 @@ import {
 } from './audio/LiveAudioContext';
 import { useRhythmRun } from './utils/rhythmRun';
 import { useSmoothFrames } from './utils/useSmoothFrames';
+import { BAND_SPECTRUM_STOPS } from './utils/bandColors';
 import {
   toggleEuphoriaEnabled,
   useIsEuphoriaAchieved,
@@ -20,6 +48,16 @@ import {
 import { useTranslation } from './utils/I18nContext';
 import './styles/WaveformVisualizer.scss';
 
+/**
+ * The box every shape is built in, and the one the pane is projected from.
+ *
+ * This was the SVG's `viewBox`, and it stays a fixed box for the same reason it
+ * was one: the styles carry absolute sizes — a dot is at least 1.4 across, an
+ * LED segment at least 2 tall — and those numbers were chosen against a
+ * fifty-eight unit box. Building the shape at the pane's real size instead
+ * would let them shrink into the floors and turn the ladder style into a row of
+ * gaps on a short titlebar.
+ */
 export const WAVEFORM_WIDTH = 420;
 export const WAVEFORM_HEIGHT = 58;
 
@@ -33,6 +71,22 @@ const WAVEFORM_AMPLITUDE = 25;
  * Raising the amplitude is what actually makes it reach for the edges.
  */
 const WAVEFORM_AMPLITUDE_MAX = WAVEFORM_HEIGHT / 2 - 2;
+
+/**
+ * How far the drawing is allowed to spill past the box it is measured in.
+ *
+ * The SVG could paint outside itself. The pane sets `overflow: visible`, so the
+ * bloom under the trace spread over the padding and past the pane's own border,
+ * and in euphoria — where the wave is deliberately reaching for the edges —
+ * that spill is most of what the mode looks like.
+ *
+ * A canvas cannot: everything is clipped to the backing store, and a glow
+ * sliced off flat along the top and bottom edges reads as a mistake. So the
+ * element is grown by this much on every side and the trace inset by the same
+ * amount, which puts the spill back inside the bitmap. Ten covers the widest
+ * halo below with a little to spare.
+ */
+const WAVEFORM_BLEED = 10;
 
 /**
  * Below this a frame is silence, and normalising it would stretch the noise
@@ -95,6 +149,8 @@ const normalise = (samples: number[], into: number[]): number[] => {
 const WAVEFORM_HALF_LIFE_MS = 18;
 /** Vertical rules behind the trace, so the pane reads as a meter. */
 const GRID_DIVISIONS = 12;
+/** How far short of the pane's edges those rules stop. */
+const GRID_INSET = 4;
 /** dB below which there is nothing worth showing a number for. */
 const SILENCE_DB = -70;
 /**
@@ -102,6 +158,132 @@ const SILENCE_DB = -70;
  * unreadable; holding it forever makes it a lie.
  */
 const PEAK_RELEASE_DB = 1.1;
+
+/**
+ * The paints the stylesheet used to hold.
+ *
+ * `$primary-lighter` at the three weights its rules carried, and the translucent
+ * body ramp that was the `#waveform-fill` gradient in the old `<defs>`. Written
+ * out in the colour space a canvas speaks because there is nothing left to ask:
+ * whatever this file decides is what gets painted.
+ */
+const GRID_STROKE = 'rgba(216, 210, 255, 0.07)';
+const BASELINE_STROKE = 'rgba(216, 210, 255, 0.15)';
+const BASELINE_DASH = [2, 5];
+const NO_DASH: number[] = [];
+/** Paused: one flat colour, and none of the light. */
+const PAUSED_STROKE = 'rgba(216, 210, 255, 0.68)';
+
+const BODY_STOPS = [
+  { offset: 0, colour: 'rgba(139, 246, 255, 0.18)' },
+  { offset: 0.5, colour: 'rgba(79, 247, 216, 0.42)' },
+  { offset: 1, colour: 'rgba(79, 110, 247, 0.18)' },
+];
+
+/** One pass of the bloom: how much wider than the figure, and how faint. */
+interface IGlowLayer {
+  colour: string;
+  widen: number;
+  alpha: number;
+}
+
+/**
+ * The trace's bloom, as strokes rather than as a filter.
+ *
+ * This was `drop-shadow(0 0 3px cyan) drop-shadow(0 0 7px pink)` on the line. A
+ * filter over geometry that is rewritten every frame has to be re-rasterised on
+ * every one of them, and an animated filter over live audio is precisely what
+ * put this app's memory into the gigabytes once already — which is why the
+ * euphoria stylesheet forbids them in as many words.
+ *
+ * Two strokes instead, widest and faintest underneath, which is what turns a
+ * hard edge into a falloff. The colours are `$neon-pink` and `$neon-cyan`, the
+ * same two the filter blurred, at the same order of weight.
+ */
+const NEON_LAYERS: readonly IGlowLayer[] = [
+  { colour: '#ff3cac', widen: 14, alpha: 0.12 },
+  { colour: '#00e5ff', widen: 6, alpha: 0.3 },
+];
+
+/**
+ * Clipping replaces the pair with one red one, exactly as the stylesheet's
+ * `.is-clipping` rule replaced the whole filter rather than adding to it.
+ */
+const CLIP_LAYERS: readonly IGlowLayer[] = [
+  { colour: '#ff647c', widen: 8, alpha: 0.38 },
+];
+
+/** Paused, where the trace is a flat line with nothing lighting it. */
+const NO_LAYERS: readonly IGlowLayer[] = [];
+
+/**
+ * The euphoria halo: a fat translucent copy of the figure under itself.
+ *
+ * It used to be a path element mounted with the mode and unmounted with it,
+ * because `display: none` stops a path being painted and does not stop the
+ * renderer holding a place for it — and what the mode is accused of is not what
+ * it costs while it runs, it is that none of it comes back afterwards. On a
+ * canvas there is no element either way: the mode is one more stroke while it
+ * is on and nothing at all when it is off, which is what the mounting was
+ * trying to buy.
+ */
+const EUPHORIA_GLOW_WIDTH = 7;
+const EUPHORIA_GLOW_ALPHA = 0.3;
+
+/** Everything the ten styles used to say about themselves in CSS. */
+interface IStylePaint {
+  /** Which ramp the closed figure takes. */
+  fill: 'body' | 'trace';
+  fillAlpha: number;
+  strokeWidth: number;
+  strokeAlpha: number;
+  lineCap: CanvasLineCap;
+}
+
+const BASE_PAINT: IStylePaint = {
+  fill: 'body',
+  fillAlpha: 1,
+  strokeWidth: 1.8,
+  strokeAlpha: 1,
+  lineCap: 'butt',
+};
+
+/**
+ * What each style changes, and nothing else.
+ *
+ * The styles made of separate pieces — bars, dots, spikes, blocks — take the
+ * trace's own spectrum rather than the translucent body ramp, because a ramp
+ * stretched across the whole figure washes the quiet pieces out entirely. Their
+ * opacities differ because a solid bar and a lattice of triangles do not carry
+ * the same amount of ink for the same loudness.
+ */
+const STYLE_PAINT: Partial<Record<WaveformStyle, Partial<IStylePaint>>> = {
+  bars: { fill: 'trace', fillAlpha: 0.85 },
+  'mirror-bars': { fill: 'trace', fillAlpha: 0.85 },
+  dots: { fill: 'trace', fillAlpha: 0.85 },
+  blocks: { fill: 'trace', fillAlpha: 0.85 },
+  spikes: { fill: 'trace', fillAlpha: 0.62 },
+  // The body without an edge, so it reads as a shape rather than a trace.
+  ribbon: { fill: 'trace', fillAlpha: 0.5 },
+  // A comb of verticals, drawn by the line path rather than filled.
+  lattice: { strokeWidth: 1.4, strokeAlpha: 0.85, lineCap: 'round' },
+  // One edge, thicker, because it is carrying the whole picture alone.
+  outline: { strokeWidth: 2.4 },
+};
+
+const resolveStylePaint = (style: WaveformStyle): IStylePaint => ({
+  ...BASE_PAINT,
+  ...STYLE_PAINT[style],
+});
+
+/**
+ * Canvas ignores an alpha outside 0..1 and keeps the last one, which is worse
+ * than clamping would be: one bad value would silently leave every later stroke
+ * at the previous frame's opacity.
+ */
+const setAlpha = (context: CanvasRenderingContext2D, alpha: number) => {
+  context.globalAlpha = Math.max(0, Math.min(1, alpha));
+};
 
 /** Loudest sample in the frame, as dBFS. Undefined when there is silence. */
 export const peakDbOf = (samples: number[]) => {
@@ -137,7 +319,7 @@ const WaveformVisualizer = () => {
   // The analyser publishes about twenty-two times a second, which is fast
   // enough to be live and slow enough that each frame lands as a visible
   // snap — the trace flickers rather than flows. One multiply-add per sample
-  // fixes it, which is nothing next to building the path string that follows.
+  // fixes it, which is nothing next to the drawing that follows.
   //
   // Euphoria eases harder. The meter is a meter first, so at rest it stays
   // responsive enough to read; at the ceiling nobody is reading it, they are
@@ -176,10 +358,13 @@ const WaveformVisualizer = () => {
   const smoothedRef = useRef<number[]>([]);
   // Where the normalised copy is built, reused between frames. See `normalise`.
   const normalisedRef = useRef<number[]>([]);
-  const glowRef = useRef<SVGPathElement>(null);
-  const lineRef = useRef<SVGPathElement>(null);
-  const mirrorRef = useRef<SVGPathElement>(null);
-  const fillRef = useRef<SVGPathElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // Held rather than fetched per frame: a context is bound to the element it
+  // came from, so the two are taken together and go stale together.
+  const contextRef = useRef<CanvasRenderingContext2D | null>(null);
+  // The element's own box in CSS pixels, kept by the observer below rather than
+  // measured in the frame, so drawing never asks layout a question.
+  const sizeRef = useRef({ width: 0, height: 0 });
   // Read inside the animation frame rather than closed over, so changing mode
   // does not have to rebuild the callback and restart the loop.
   const amplitudeRef = useRef(WAVEFORM_AMPLITUDE);
@@ -188,15 +373,61 @@ const WaveformVisualizer = () => {
     : WAVEFORM_AMPLITUDE;
   const normaliseRef = useRef(false);
   normaliseRef.current = isEuphoric;
+  // The three states that used to reach the trace as a class on an ancestor.
+  const isEuphoricRef = useRef(isEuphoric);
+  isEuphoricRef.current = isEuphoric;
+  const isPausedRef = useRef(isPaused);
+  isPausedRef.current = isPaused;
+  const isClippingRef = useRef(isClipping);
+  isClippingRef.current = isClipping;
+  // Resolved on the render that changes the style rather than on every frame,
+  // so the loop allocates nothing it does not hand to the rasteriser.
+  const paint = useMemo(() => resolveStylePaint(style), [style]);
+  const paintRef = useRef(paint);
+  paintRef.current = paint;
 
-  // One drawn frame, written straight to the three paths.
+  // One drawn frame, painted straight onto the canvas.
   //
   // Not through React, deliberately. Setting state at display rate would
   // re-render this component sixty times a second to move a line, and the
-  // whole reason the path is eased at all is that redrawing is the expensive
-  // part. The elements are the same ones React created; only their `d` is
-  // taken over, which is why the JSX below does not set it.
+  // whole reason the shape is eased at all is that redrawing is the expensive
+  // part.
   const drawFrame = useCallback((deltaMs: number) => {
+    const canvas = canvasRef.current;
+    const context = contextRef.current;
+    if (!canvas || !context) {
+      return false;
+    }
+    // The pane's own box, which is the element's less the bleed at each edge.
+    const boxWidth = sizeRef.current.width - WAVEFORM_BLEED * 2;
+    const boxHeight = sizeRef.current.height - WAVEFORM_BLEED * 2;
+    if (boxWidth <= 0 || boxHeight <= 0) {
+      return false;
+    }
+
+    // The backing store, in device pixels.
+    //
+    // Sized here rather than in an effect because the ratio is not only a
+    // property of the element: dragging the window onto a display with a
+    // different scale changes it with nothing to observe. Assigning either
+    // dimension clears the canvas and resets the context, which is why every
+    // piece of context state below is set on every frame rather than once.
+    const ratio = window.devicePixelRatio || 1;
+    const backingWidth = Math.max(1, Math.round(sizeRef.current.width * ratio));
+    const backingHeight = Math.max(
+      1,
+      Math.round(sizeRef.current.height * ratio),
+    );
+    if (canvas.width !== backingWidth || canvas.height !== backingHeight) {
+      canvas.width = backingWidth;
+      canvas.height = backingHeight;
+    }
+    // Cleared in device pixels, so the rounding above cannot leave a seam of
+    // last frame's drawing along an edge.
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, canvas.width, canvas.height);
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+
     const smoothed = smoothedRef.current;
     const moving = easeTowards(
       smoothed,
@@ -216,22 +447,200 @@ const WaveformVisualizer = () => {
       WAVEFORM_HEIGHT,
       amplitudeRef.current,
     );
-    // The same three elements serve all ten styles; a style that does not use
-    // one gives it an empty path, which draws nothing. Nothing is created when
-    // a style is chosen, so nothing has to be destroyed when it is left.
-    glowRef.current?.setAttribute('d', shape.line || shape.fill);
-    lineRef.current?.setAttribute('d', shape.line);
-    mirrorRef.current?.setAttribute('d', shape.mirror);
-    fillRef.current?.setAttribute('d', shape.fill);
+
+    const scaleX = boxWidth / WAVEFORM_WIDTH;
+    const scaleY = boxHeight / WAVEFORM_HEIGHT;
+    /**
+     * The canonical box carried onto the pane — baked into the geometry rather
+     * than left on the context.
+     *
+     * The SVG stretched unevenly (`preserveAspectRatio="none"`) and then kept
+     * every stroke out of that stretch (`vector-effect="non-scaling-stroke"`),
+     * which is the only reason a 1.8px line over a box four times wider than it
+     * is tall does not smear into a smudge. A context scaled the same way would
+     * smear it, because a canvas stroke is transformed with the path. Moving
+     * the points and leaving the pen alone is how that survives the port.
+     */
+    const project = {
+      a: scaleX,
+      b: 0,
+      c: 0,
+      d: scaleY,
+      e: WAVEFORM_BLEED,
+      f: WAVEFORM_BLEED,
+    };
+    const bake = (data: string) => {
+      const path = new Path2D();
+      path.addPath(new Path2D(data), project);
+      return path;
+    };
+
+    // Faint rules and a dashed centre, so the pane reads as an instrument
+    // rather than a stray line on a dark rectangle. Redrawn with everything
+    // else rather than kept on a second static canvas underneath: twelve
+    // straight lines cost far less than another layer to composite.
+    context.lineJoin = 'round';
+    context.lineCap = 'butt';
+    context.lineWidth = 1;
+    setAlpha(context, 1);
+    context.strokeStyle = GRID_STROKE;
+    context.setLineDash(NO_DASH);
+    context.beginPath();
+    for (let division = 1; division < GRID_DIVISIONS; division += 1) {
+      const x = WAVEFORM_BLEED + (division * boxWidth) / GRID_DIVISIONS;
+      context.moveTo(x, WAVEFORM_BLEED + GRID_INSET * scaleY);
+      context.lineTo(
+        x,
+        WAVEFORM_BLEED + (WAVEFORM_HEIGHT - GRID_INSET) * scaleY,
+      );
+    }
+    context.stroke();
+
+    const centre = WAVEFORM_BLEED + boxHeight / 2;
+    context.strokeStyle = BASELINE_STROKE;
+    context.setLineDash(BASELINE_DASH);
+    context.beginPath();
+    context.moveTo(WAVEFORM_BLEED, centre);
+    context.lineTo(WAVEFORM_BLEED + boxWidth, centre);
+    context.stroke();
+    context.setLineDash(NO_DASH);
+
+    // The spectrum, left to right, pinned to the pane rather than to the
+    // figure — which is what an `objectBoundingBox` gradient across a
+    // full-width path amounted to, and what keeps a given frequency the same
+    // colour whether the frame is loud or quiet.
+    const traceRamp = context.createLinearGradient(
+      WAVEFORM_BLEED,
+      0,
+      WAVEFORM_BLEED + boxWidth,
+      0,
+    );
+    BAND_SPECTRUM_STOPS.forEach((stop) => {
+      traceRamp.addColorStop(stop.offset, stop.color);
+    });
+
+    const chosen = paintRef.current;
+    const linePath = shape.line ? bake(shape.line) : undefined;
+    const mirrorPath = shape.mirror ? bake(shape.mirror) : undefined;
+    const figurePath = shape.fill ? bake(shape.fill) : undefined;
+
+    if (figurePath) {
+      let ramp: CanvasGradient = traceRamp;
+      if (chosen.fill === 'body') {
+        // Built only for the styles that ask for it, since most do not.
+        const bodyRamp = context.createLinearGradient(
+          WAVEFORM_BLEED,
+          0,
+          WAVEFORM_BLEED + boxWidth,
+          0,
+        );
+        BODY_STOPS.forEach((stop) => {
+          bodyRamp.addColorStop(stop.offset, stop.colour);
+        });
+        ramp = bodyRamp;
+      }
+      setAlpha(context, chosen.fillAlpha);
+      context.fillStyle = ramp;
+      context.fill(figurePath);
+    }
+
+    // The halo, and only in euphoria. The line where there is one, the filled
+    // body where there is not, so every style is lit rather than only the
+    // stroked ones.
+    const glowPath = linePath ?? figurePath;
+    if (isEuphoricRef.current && glowPath) {
+      setAlpha(context, EUPHORIA_GLOW_ALPHA);
+      context.strokeStyle = traceRamp;
+      context.lineWidth = EUPHORIA_GLOW_WIDTH;
+      context.lineCap = 'round';
+      context.stroke(glowPath);
+    }
+
+    // Which light the trace is under. Clipping outranks paused, exactly as the
+    // later stylesheet rule outranked the earlier one: a paused analyser that
+    // was clipping when it stopped keeps the warning.
+    let haloLayers = NEON_LAYERS;
+    if (isClippingRef.current) {
+      haloLayers = CLIP_LAYERS;
+    } else if (isPausedRef.current) {
+      haloLayers = NO_LAYERS;
+    }
+    const strokeColour = isPausedRef.current ? PAUSED_STROKE : traceRamp;
+
+    context.lineCap = chosen.lineCap;
+    const strokeFigure = (path: Path2D) => {
+      haloLayers.forEach((layer) => {
+        setAlpha(context, chosen.strokeAlpha * layer.alpha);
+        context.strokeStyle = layer.colour;
+        context.lineWidth = chosen.strokeWidth + layer.widen;
+        context.stroke(path);
+      });
+      setAlpha(context, chosen.strokeAlpha);
+      context.strokeStyle = strokeColour;
+      context.lineWidth = chosen.strokeWidth;
+      context.stroke(path);
+    };
+    if (linePath) {
+      strokeFigure(linePath);
+    }
+    // The mirrored edge, stroked the same way, so the shape is outlined rather
+    // than being a lit top over a bare bottom.
+    if (mirrorPath) {
+      strokeFigure(mirrorPath);
+    }
+
     return moving;
   }, []);
 
   // The celebration gets the display's full rate and everything else is
   // capped at thirty; the hook reads which from the shell, so this does not
   // have to re-render for the rate to change.
-  const kickFrames = useSmoothFrames(drawFrame, {
-    isEnabled: isActive && !isPaused,
-  });
+  //
+  // Always enabled, where the SVG version switched the loop off with the
+  // analyser. A stopped path keeps its `d` and can still be recoloured by a
+  // class; a stopped canvas keeps whatever pixels it last drew and nothing can
+  // reach them, so pausing has to be *drawn* rather than declared. The loop
+  // still costs nothing when there is nothing to do — it reports back that the
+  // shape has arrived and is not queued again until something kicks it.
+  const kickFrames = useSmoothFrames(drawFrame, { isEnabled: true });
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return;
+    }
+    contextRef.current = canvas.getContext('2d');
+  }, []);
+
+  /**
+   * Watch the box, because everything about this drawing is measured from it.
+   *
+   * The SVG scaled itself: one `viewBox` and the browser did the rest, through
+   * a window resize, a narrower titlebar and the seven hundred milliseconds the
+   * pane spends growing into euphoria. A canvas is a bitmap and knows none of
+   * that, so the observer is what replaces it — it fires on every step of that
+   * transition and each one asks for a frame.
+   *
+   * Kicking rather than re-rendering: the size lands in a ref the loop already
+   * reads, so a resize costs a draw and not a React pass.
+   */
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const observer = new ResizeObserver((entries) => {
+      const box = entries[entries.length - 1]?.contentRect;
+      if (!box) {
+        return;
+      }
+      sizeRef.current.width = box.width;
+      sizeRef.current.height = box.height;
+      kickFrames();
+    });
+    observer.observe(canvas);
+    return () => observer.disconnect();
+  }, [kickFrames]);
 
   // A new measurement is a new target, and a reason to start moving again.
   useEffect(() => {
@@ -244,15 +653,17 @@ const WaveformVisualizer = () => {
     kickFrames();
   }, [kickFrames, waveform]);
 
-  // Changing mode is also a reason to draw.
+  // Anything that changes how the meter looks is also a reason to draw.
   //
   // The loop stops once the shape has arrived, so through a quiet passage
-  // nothing is running — and the glow path mounts empty. Without this it would
-  // stay empty, and the taller pane would keep the old amplitude, until the
-  // music moved again. One frame settles both.
+  // nothing is running — and a canvas holds its last frame. Without this the
+  // pane would grow into euphoria around a wave still drawn at the old
+  // amplitude, a click would cycle to a style that did not appear until the
+  // music moved, and pausing would leave the trace lit. Under SVG the cascade
+  // covered three of those for free; here every one of them is a frame.
   useEffect(() => {
     kickFrames();
-  }, [isEuphoric, kickFrames]);
+  }, [isClipping, isEuphoric, isPaused, kickFrames, style]);
 
   // Held peak, so the number is readable instead of a blur of digits.
   const [heldPeak, setHeldPeak] = useState<number | undefined>(undefined);
@@ -279,25 +690,20 @@ const WaveformVisualizer = () => {
     }
   }, [waveform]);
 
-  const gridLines = useMemo(
-    () =>
-      Array.from(
-        { length: GRID_DIVISIONS - 1 },
-        (_value, index) => ((index + 1) * WAVEFORM_WIDTH) / GRID_DIVISIONS,
-      ),
-    [],
-  );
-
   return (
     // A wrapper, so the pill can be a real button.
     //
-    // The meter itself is a button — it pauses, or in euphoria it opens the
-    // panel — and a button inside a button is invalid markup that browsers
-    // resolve by silently unnesting, which loses the inner click. The pill
-    // therefore sits beside the meter and is positioned over it.
+    // The meter itself is a button — it cycles the meter style — and a button
+    // inside a button is invalid markup that browsers resolve by silently
+    // unnesting, which loses the inner click. The pill therefore sits beside
+    // the meter and is positioned over it.
     <div className="waveform-visualizer-shell">
       <button
         type="button"
+        // The style modifier no longer paints anything — the frame loop does —
+        // but it stays, because it is the only place the current style is
+        // legible to anything outside this component now that the drawing is a
+        // bitmap.
         className={`waveform-visualizer waveform-visualizer--${style}${isActive ? ' is-active' : ''}${
           isPaused ? ' is-paused' : ''
         }${isClipping ? ' is-clipping' : ''}`}
@@ -325,89 +731,30 @@ const WaveformVisualizer = () => {
             </span>
           </span>
         </div>
-        <svg
+        <canvas
+          ref={canvasRef}
           className="waveform-visualizer__canvas"
-          viewBox={`0 0 ${WAVEFORM_WIDTH} ${WAVEFORM_HEIGHT}`}
-          // The pane is responsive, so the trace stretches to fill it. Strokes
-          // opt out of that scaling below, or they would smear horizontally.
-          preserveAspectRatio="none"
-          role="img"
-          aria-label="Live output waveform"
-        >
-          <defs>
-            <linearGradient id="waveform-fill" x1="0" x2="1">
-              <stop offset="0" stopColor="#8bf6ff" stopOpacity="0.18" />
-              <stop offset="0.5" stopColor="#4ff7d8" stopOpacity="0.42" />
-              <stop offset="1" stopColor="#4f6ef7" stopOpacity="0.18" />
-            </linearGradient>
-            <linearGradient id="waveform-line" x1="0" x2="1" y1="0" y2="0">
-              <stop offset="0" stopColor="#00e5ff" />
-              <stop offset="0.28" stopColor="#54ff8a" />
-              <stop offset="0.52" stopColor="#ffe66d" />
-              <stop offset="0.76" stopColor="#ff3cac" />
-              <stop offset="1" stopColor="#8b5cff" />
-            </linearGradient>
-          </defs>
-          <g className="waveform-visualizer__grid">
-            {gridLines.map((x) => (
-              <path
-                key={x}
-                d={`M ${x} 4 L ${x} ${WAVEFORM_HEIGHT - 4}`}
-                vectorEffect="non-scaling-stroke"
-              />
-            ))}
-          </g>
-          <path
-            className="waveform-visualizer__baseline"
-            d={`M 0 ${WAVEFORM_HEIGHT / 2} L ${WAVEFORM_WIDTH} ${
-              WAVEFORM_HEIGHT / 2
-            }`}
-            vectorEffect="non-scaling-stroke"
-          />
-          {/* No `d` on any of these — the animation frame owns it. Setting it
-              from JSX too would have React overwrite the eased shape with the
-              last measured one on every re-render, which is the stepping this
-              exists to remove. */}
-          <path ref={fillRef} className="waveform-visualizer__fill" />
-          {/* The glow, and only in euphoria.
-
-              A fat translucent copy of the line sitting under it, NOT a
-              `drop-shadow`. A filter over a path whose shape is rewritten
-              every frame has to be recomputed every frame, and an animated one
-              over live audio is what put memory into the gigabytes earlier
-              today. A second stroke is one more path in a picture that was
-              already being drawn.
-
-              Mounted with the mode rather than hidden by it. It was a
-              `display: none` in the stylesheet, which is enough to stop it
-              being painted and not enough to stop the renderer holding a place
-              for it — and what this mode is accused of is not what it costs
-              while it runs, it is that none of it comes back afterwards. The
-              frame loop already writes through an optional ref, so with the
-              element gone the write is simply skipped. */}
-          {isEuphoric && (
-            <path
-              ref={glowRef}
-              className="waveform-visualizer__glow"
-              vectorEffect="non-scaling-stroke"
-            />
-          )}
-          <path
-            ref={lineRef}
-            className="waveform-visualizer__line"
-            vectorEffect="non-scaling-stroke"
-          />
-          {/* The mirrored edge, stroked the same way, so the shape is outlined
-            rather than being a lit top over a bare bottom. */}
-          <path
-            ref={mirrorRef}
-            className="waveform-visualizer__line waveform-visualizer__line--mirror"
-            vectorEffect="non-scaling-stroke"
-          />
-        </svg>
-        {/* The same pill the support panel shows, so the mode is named in one
-          recognisable way wherever it appears. This is the copy visible with
-          the dialog closed. */}
+          // Grown past its cell on every side, and inline rather than in the
+          // stylesheet because the frame loop insets the drawing by exactly the
+          // same number. Two copies of it in two languages is two copies that
+          // will disagree the first time one is adjusted, and the symptom would
+          // be a trace quietly off centre.
+          //
+          // The backing store is sized in the loop; these are CSS pixels and
+          // only say where the drawing sits.
+          style={{
+            margin: -WAVEFORM_BLEED,
+            width: `calc(100% + ${WAVEFORM_BLEED * 2}px)`,
+            height: `calc(100% + ${WAVEFORM_BLEED * 2}px)`,
+          }}
+          // A drawing of the sound, inside a button that already says what it
+          // is and what pressing it does. The SVG carried `role="img"` and a
+          // label of its own, which the button's `aria-label` overrode anyway;
+          // a canvas cannot carry it at all, since a canvas is interactive
+          // content and giving interactive content a non-interactive role is
+          // how a control disappears from the accessibility tree.
+          aria-hidden
+        />
       </button>
       {/* The switch, and only for someone who has already reached the ceiling
         the hard way. Before that it does not exist — the first x10 has to be
