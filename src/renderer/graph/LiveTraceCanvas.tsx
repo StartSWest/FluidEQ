@@ -55,7 +55,7 @@ import {
   getGlowStyle,
 } from 'common/graphStyles';
 import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
-import { useGraphLook } from 'renderer/utils/graphStyle';
+import { useGraphLook, useLiveOutputSolo } from 'renderer/utils/graphStyle';
 import { IChartCurveData, IChartPointData } from './ChartController';
 import {
   ACCENT_CORE_OPACITY,
@@ -71,6 +71,7 @@ import {
   resolveFigureStroke,
   resolveFigureStrokeWidth,
   resolveGlowStroke,
+  resolvePresentedStrokeWidth,
   resolveTracePaint,
 } from './liveTracePaint';
 
@@ -225,6 +226,14 @@ const LiveTraceCanvas = ({
   const lookRef = useRef(look);
   lookRef.current = look;
 
+  // Whether the trace has the grid to itself, which is the only thing outside
+  // the look that changes how it is drawn. Read from the store rather than
+  // taken off the curve, because what the mode changes here is a proportion of
+  // the look's weight and the descriptor knows nothing about the look.
+  const isSolo = useLiveOutputSolo();
+  const isSoloRef = useRef(isSolo);
+  isSoloRef.current = isSolo;
+
   // The points, eased toward each new measurement between measurements.
   //
   // The points are eased rather than the drawing, because the shape has to be
@@ -237,7 +246,12 @@ const LiveTraceCanvas = ({
   // The trace coming forward and going back — see the constant above. Opacity
   // starts at nothing so the first frame fades in rather than appearing.
   const shownOpacityRef = useRef(0);
-  const shownStrokeWidthRef = useRef(look.tuning.strokeWidth);
+  // The width, unlike the opacity, starts where it belongs: opening the graph
+  // already soloed should draw the heavier trace, not ease up to it from the
+  // supporting weight for no reason anybody watching could name.
+  const shownStrokeWidthRef = useRef(
+    resolvePresentedStrokeWidth(look.tuning.strokeWidth, isSolo),
+  );
 
   const drawFrame = useCallback(
     (deltaMs: number) => {
@@ -427,12 +441,18 @@ const LiveTraceCanvas = ({
       } else {
         shownOpacityRef.current = targetOpacity;
       }
-      const widthGap = tuning.strokeWidth - shownStrokeWidthRef.current;
+      // Heavier as well as brighter when it is the only thing drawn, and eased
+      // through the same settle as the opacity so the two arrive together.
+      const targetStrokeWidth = resolvePresentedStrokeWidth(
+        tuning.strokeWidth,
+        isSoloRef.current,
+      );
+      const widthGap = targetStrokeWidth - shownStrokeWidthRef.current;
       if (widthGap > STROKE_WIDTH_EPSILON || widthGap < -STROKE_WIDTH_EPSILON) {
         shownStrokeWidthRef.current += widthGap * settle;
         moving = true;
       } else {
-        shownStrokeWidthRef.current = tuning.strokeWidth;
+        shownStrokeWidthRef.current = targetStrokeWidth;
       }
       const opacity = shownOpacityRef.current;
       const strokeWidth = shownStrokeWidthRef.current;
@@ -569,7 +589,10 @@ const LiveTraceCanvas = ({
       easedRef.current = points.map((point) => ({ ...point }));
     }
     kickFrames();
-    // `look` is in here so that changing it redraws, and so is the box.
+    // `look` is in here so that changing it redraws, and so are solo and the
+    // box. Solo has to be named even though the curves are rebuilt when it
+    // changes: what it moves is the weight, which is eased over several frames,
+    // and the loop cannot ease anything it was not started for.
     //
     // The frame loop stops once the curve has settled, which through a pause or
     // a silent passage is immediately — and then nothing would repaint until
@@ -578,7 +601,7 @@ const LiveTraceCanvas = ({
     // the figure does, it would make the whole panel appear dead. A resize is
     // the same argument with a worse symptom: resizing the backing store clears
     // it, so a settled trace would simply vanish rather than merely go stale.
-  }, [curves, height, kickFrames, look, points, width]);
+  }, [curves, height, isSolo, kickFrames, look, points, width]);
 
   return (
     <canvas

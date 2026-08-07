@@ -194,6 +194,35 @@ export const resolveFigureStroke = (
 };
 
 /**
+ * How much heavier the trace is drawn when it is the only thing on the grid.
+ *
+ * A multiplier rather than a width, because the weight it scales is the user's
+ * own: a look tuned to a hairline and one tuned to a slab should both come
+ * forward by the same proportion, where a fixed width draws them identically
+ * and quietly discards the tuning. 1.3 is the old fixed 2.6 over the default 2,
+ * so a look nobody has tuned lands exactly where it used to.
+ *
+ * Small on purpose. Solo already takes the trace from a supporting half opacity
+ * to full and that is most of the change; the weight is what stops a line
+ * chosen so five curves do not read as a tangle from looking thin once four of
+ * them are gone.
+ */
+export const SOLO_STROKE_WIDTH_SCALE = 1.3;
+
+/**
+ * The weight the figure is heading for: the look's own, heavier while soloed.
+ *
+ * Kept apart from the resolver below because this is a target rather than a
+ * width to draw with — the canvas eases toward it, so entering the mode is
+ * something the drawing moves into rather than a frame where it is abruptly
+ * thicker.
+ */
+export const resolvePresentedStrokeWidth = (
+  strokeWidth: number,
+  isSolo: boolean,
+): number => (isSolo ? strokeWidth * SOLO_STROKE_WIDTH_SCALE : strokeWidth);
+
+/**
  * How heavy that stroke is.
  *
  * The border replaces the look's own weight rather than adding to it, which is

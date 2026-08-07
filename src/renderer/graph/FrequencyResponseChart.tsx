@@ -1020,7 +1020,8 @@ const FrequencyResponseChart = () => {
                     isFromCentre: waveOrientation === 'centred',
                     line: {
                       color: ColorEnum.ANALOGOUS2,
-                      strokeWidth: isSolo ? 2.6 : 2,
+                      // Not the weight this is drawn at — see the twin below.
+                      strokeWidth: 2,
                       opacity: isSolo ? 1 : SUPPORTING_CURVE_OPACITY,
                       points: liveOutput.points,
                     },
@@ -1037,11 +1038,14 @@ const FrequencyResponseChart = () => {
               isFromCentre: waveOrientation === 'centred',
               line: {
                 color: ColorEnum.ANALOGOUS2,
-                // Heavier as well as brighter when it is the only thing drawn.
-                // Two pixels is a supporting weight, chosen so five curves of
-                // similar thickness do not read as a tangle; alone on the grid
-                // it just looks thin.
-                strokeWidth: isSolo ? 2.6 : 2,
+                // Present because every curve descriptor carries a weight, and
+                // ignored because this one is drawn on a canvas: the live trace
+                // is stroked at the width the chosen look was tuned to, which
+                // only the canvas knows. Heavier in solo is a proportion of
+                // that width and lives there too — see
+                // `resolvePresentedStrokeWidth`. A number here would be a
+                // second opinion nothing reads.
+                strokeWidth: 2,
                 // Held back only while there is something to hold it back for.
                 //
                 // The live trace is dimmed because it is context for the curve

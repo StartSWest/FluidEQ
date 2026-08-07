@@ -41,6 +41,7 @@ import {
   resolveFigureStroke,
   resolveFigureStrokeWidth,
   resolveGlowStroke,
+  resolvePresentedStrokeWidth,
   resolveTracePaint,
 } from 'renderer/graph/liveTracePaint';
 
@@ -190,6 +191,26 @@ describe('the stroke cascade, in the order the stylesheet resolved it', () => {
 });
 
 describe('how heavy that stroke is', () => {
+  it('leaves the look’s weight alone while there is company on the grid', () => {
+    expect(resolvePresentedStrokeWidth(2, false)).toBe(2);
+  });
+
+  it('brings the trace forward when it is the only thing drawn', () => {
+    // The weight the old SVG path was given in solo, which is where the scale
+    // comes from: a look nobody has tuned has to land exactly where it did.
+    expect(resolvePresentedStrokeWidth(2, true)).toBeCloseTo(2.6);
+  });
+
+  it('scales the user’s own tuning rather than replacing it', () => {
+    // The whole reason this is a multiplier. A fixed 2.6 would draw a hairline
+    // and a slab as the same trace, so the mode would be quietly overriding a
+    // setting the look designer exists to offer.
+    const hairline = resolvePresentedStrokeWidth(1, true);
+    const slab = resolvePresentedStrokeWidth(6, true);
+    expect(hairline).toBeLessThan(slab);
+    expect(slab / hairline).toBeCloseTo(6);
+  });
+
   it('keeps the look’s own weight ordinarily', () => {
     expect(resolveFigureStrokeWidth(2.6, 8, false, false)).toBe(2.6);
     expect(resolveFigureStrokeWidth(2.6, 8, true, false)).toBe(2.6);
