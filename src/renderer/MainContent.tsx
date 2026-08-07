@@ -71,10 +71,10 @@ import { LABELLED_FILTER_OPTIONS } from './icons/FilterTypeIcon';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
 import { toggleContinuousEq, useContinuousEq } from './utils/continuousEq';
 import {
+  IBalanceReport,
   buildBalancedGains,
   describeBalanceProgress,
   describeBalanceResult,
-  formatBalanceFrequency,
 } from './utils/autoBalance';
 import { buildLayerTargetCurve } from './utils/layerTargetCurve';
 import { planBandReveal, revealBands } from './utils/bandReveal';
@@ -102,57 +102,6 @@ const MAX_BALANCE_ATTEMPTS = 3;
  * call always fires, so the value that lands is the one the control ended on.
  */
 const GROUP_EDIT_INTERVAL = 100;
-
-/**
- * How long Continuous EQ waits before looking again — two answers, because
- * "how often should this run" is really two different questions.
- *
- * When a range has just moved there is more of that range to do: the step is
- * bounded at half a decibel, so a range genuinely three decibels out needs
- * several passes, and making it wait between them is making it wait for no
- * reason. When nothing moved, the correction is where the measurement wants it
- * and looking again soon would only find that out again.
- *
- * So the pacing follows the sound rather than a clock, which matters because
- * every correction is a rewritten Equalizer APO config that APO then reloads.
- * Once it has settled — which is most of the time, once it has been running a
- * while — this is a capture a quarter of a minute and no writes at all.
- */
-const CONTINUOUS_WORKING_PAUSE_MS = 2000;
-const CONTINUOUS_SETTLED_PAUSE_MS = 15000;
-
-/**
- * How long one of Continuous EQ's looks lasts.
- *
- * A manual measurement waits until every frequency region has been heard well
- * enough to correct, which is the right answer for a single measurement and the
- * wrong one for a mode that repeats: it means a range heard clearly in the first
- * two seconds waits on the range that needs twenty, and nothing at all is
- * corrected until the slowest one arrives.
- *
- * So the looks are short and there are many of them. The solver already leaves a
- * band it does not trust exactly where it is, so a short look corrects what it
- * heard and says nothing about the rest — and across a run of looks each range
- * is corrected as it is heard, rather than every range at the end. Three seconds
- * is the floor because below that a region cannot support a variance estimate at
- * all; eight is where the look gives back what it has instead of holding on.
- */
-const CONTINUOUS_MIN_LISTEN_MS = 3000;
-const CONTINUOUS_MAX_LISTEN_MS = 8000;
-
-/** A sleep that gives up when the run does. */
-const waitFor = (ms: number, signal: AbortSignal) =>
-  new Promise<void>((resolve) => {
-    const timer = window.setTimeout(resolve, ms);
-    signal.addEventListener(
-      'abort',
-      () => {
-        window.clearTimeout(timer);
-        resolve();
-      },
-      { once: true },
-    );
-  });
 
 const MainContent = () => {
   const {
@@ -830,7 +779,104 @@ const MainContent = () => {
    * doing so suspends this loop rather than racing it: `isBalancing` is in the
    * dependencies, so the effect tears down and comes back when the manual run
    * finishes.
+   *
+   * ONE capture, not a series of them, and that is what makes the ranges
+   * independent. Every restart would put all nine regions back to zero
+   * together, so they would fill together, become ready together and be
+   * corrected together — which is what a series of measurements looks like from
+   * the outside and is exactly what this is not meant to be. Here each region
+   * fills at its own rate, is corrected the moment it alone has been heard well
+   * enough, and is cleared on its own so it can start again while its
+   * neighbours carry on undisturbed.
    */
+  const applyReadyRegions = (report: IBalanceReport): number[] => {
+    // Read fresh each time rather than carried: over an evening the user will
+    // have moved a band, loaded a profile, cleared the layer. Every one of
+    // those makes the gains a held copy started from wrong.
+    const layer = smartEqRef.current;
+    const bands = getSmartEqBands(layer);
+    const ready = report.regions
+      .map((region, index) => ({ region, index }))
+      .filter(({ region }) => region.isCovered);
+    if (ready.length === 0) {
+      return [];
+    }
+
+    const solved = buildBalancedGains(report.samples, bands, {
+      targetCurve: buildLayerTargetCurve(
+        filtersRef.current,
+        voicingRef.current,
+        driverRef.current,
+      ),
+    });
+    if (Object.keys(solved).length === 0) {
+      // No answer this time. The tilt fit needs a wide trusted span and a range
+      // that was cleared a moment ago carries none, so a solve taken while the
+      // midrange is refilling declines rather than fitting a slope through a
+      // hole. A cycle skipped, not a wrong correction.
+      return [];
+    }
+
+    // Only the ranges that have been heard. A band outside them has no entry
+    // here at all, and `stepSmartEqGains` leaves a band it is told nothing
+    // about exactly where it is.
+    const scoped: Record<string, number> = {};
+    bands.forEach((band) => {
+      const isReady = ready.some(
+        ({ region }) =>
+          band.frequency >= region.lowFrequency &&
+          band.frequency <= region.highFrequency,
+      );
+      if (isReady && Number.isFinite(solved[band.id])) {
+        scoped[band.id] = solved[band.id];
+      }
+    });
+
+    const stepped = stepSmartEqGains(bands, scoped);
+    const measured = buildSmartEqSettings(bands, stepped, {
+      status: report.status === 'ready' ? 'ready' : 'partial',
+    });
+    if (describeSmartEqLayer(measured) === describeSmartEqLayer(layer)) {
+      // Every ready range was already inside the deadband, so nothing was
+      // written and nothing has gone stale — those ranges keep accumulating,
+      // which only sharpens them.
+      return [];
+    }
+
+    setSmartEq(measured);
+    setSmartEqApi(measured).catch(() => {
+      // Reported nowhere on purpose: a write that fails from a loop nobody
+      // started should not raise the banner over the whole workspace. The next
+      // pass writes again.
+    });
+
+    // Exactly the ranges that moved, and only those. A range whose bands all
+    // sat inside the deadband is not stale — the chain under it did not change
+    // — and clearing it would throw away good evidence for nothing.
+    const moved = ready.filter(({ region }) =>
+      bands.some(
+        (band) =>
+          band.frequency >= region.lowFrequency &&
+          band.frequency <= region.highFrequency &&
+          stepped[band.id] !== band.gain,
+      ),
+    );
+    if (moved.length > 0) {
+      setBalanceStatus(
+        `${t('eq.smart.continuous.tracking')} · ${moved
+          .map(({ region }) => region.label)
+          .join(', ')}`,
+      );
+    }
+    return moved.map(({ index }) => index);
+  };
+
+  // Held on a ref so the capture is not torn down and restarted on every
+  // render. Restarting is the one thing this must not do casually: it would
+  // take every region's accumulated evidence with it.
+  const applyReadyRegionsRef = useRef(applyReadyRegions);
+  applyReadyRegionsRef.current = applyReadyRegions;
+
   useEffect(() => {
     // Switching the Smart EQ layer off stops it. Its `Include:` is not in the
     // config while it is bypassed, so every correction this loop worked out
@@ -848,83 +894,14 @@ const MainContent = () => {
     }
 
     const controller = new AbortController();
-    const { signal } = controller;
-
-    const loop = async () => {
-      while (!signal.aborted) {
-        let hasMoved = false;
-        try {
-          // eslint-disable-next-line no-await-in-loop
-          const result = await captureBalanceProfile({
-            signal,
-            minListenMs: CONTINUOUS_MIN_LISTEN_MS,
-            maxListenMs: CONTINUOUS_MAX_LISTEN_MS,
-          });
-          if (signal.aborted) {
-            return;
-          }
-
-          // Read fresh each time round rather than carried: over an evening the
-          // user will have changed a band, loaded a profile, cleared the layer.
-          // Every one of those makes the gains this loop started from wrong.
-          const layer = smartEqRef.current;
-          const bands = getSmartEqBands(layer);
-          const solved = buildBalancedGains(result.samples, bands, {
-            targetCurve: buildLayerTargetCurve(
-              filtersRef.current,
-              voicingRef.current,
-              driverRef.current,
-            ),
-          });
-
-          if (Object.keys(solved).length > 0) {
-            const measured = buildSmartEqSettings(
-              bands,
-              stepSmartEqGains(bands, solved),
-              {
-                status: result.status,
-                lowFrequency: result.lowFrequency,
-                highFrequency: result.highFrequency,
-              },
-            );
-            // Nothing written when no range drifted far enough to be worth
-            // moving, which is what settled looks like — and which is most of
-            // the time, once it has been running a while.
-            if (
-              describeSmartEqLayer(measured) !== describeSmartEqLayer(layer)
-            ) {
-              hasMoved = true;
-              setSmartEq(measured);
-              // eslint-disable-next-line no-await-in-loop
-              await setSmartEqApi(measured);
-              // Which range this look actually corrected, because that is the
-              // part that is otherwise invisible: the correction arrives a
-              // region at a time, and this is the only place saying which one
-              // just moved.
-              setBalanceStatus(
-                result.lowFrequency && result.highFrequency
-                  ? `${t('eq.smart.continuous.tracking')} · ${formatBalanceFrequency(
-                      result.lowFrequency,
-                    )}-${formatBalanceFrequency(result.highFrequency)}`
-                  : t('eq.smart.continuous.tracking'),
-              );
-            }
-          }
-        } catch {
-          // Every failure here is ordinary — nothing playing, the capture
-          // unavailable, the run aborted — and none of them should reach the
-          // error banner from a loop nobody asked to start. Waiting and trying
-          // again is the right response to all of them.
-        }
-        // eslint-disable-next-line no-await-in-loop
-        await waitFor(
-          hasMoved ? CONTINUOUS_WORKING_PAUSE_MS : CONTINUOUS_SETTLED_PAUSE_MS,
-          signal,
-        );
-      }
-    };
-
-    loop();
+    captureBalanceProfile({
+      signal: controller.signal,
+      isContinuous: true,
+      onReport: (report) => applyReadyRegionsRef.current(report),
+    }).catch(() => {
+      // Aborting is how this ends, and an abort rejects. Nothing here is a
+      // failure worth reporting.
+    });
     return () => controller.abort();
   }, [
     captureBalanceProfile,
@@ -932,8 +909,6 @@ const MainContent = () => {
     isContinuousOn,
     isLiveOutputActive,
     isSmartBypassed,
-    setSmartEq,
-    t,
   ]);
 
   // Says why it stopped, when it stopped for a reason the button cannot show.

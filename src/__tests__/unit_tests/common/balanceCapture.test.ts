@@ -44,6 +44,7 @@ import {
   formatBalanceFrequency,
   isBalanceCheckDue,
   readAbsoluteLevels,
+  resetBalanceRegion,
   shouldFinishBalanceCapture,
 } from 'renderer/utils/autoBalance';
 
@@ -261,6 +262,55 @@ describe('balance capture', () => {
       });
       expect(report.listenedMs).toBeLessThan(3000);
       expect(report.status).toBe('listening');
+    });
+
+    // Continuous EQ corrects one range at a time and clears that range's
+    // evidence, because the chain under it just changed. Clearing only that
+    // range is what keeps the other eight independent.
+    it('clears one region without touching the others', () => {
+      const { state, report } = runCapture(fullRange, seconds(30));
+      const target = state.regions.findIndex(
+        (region) => region.label === 'bass',
+      );
+      const others = report.regions
+        .map((region, index) => ({ region, index }))
+        .filter(({ index }) => index !== target);
+
+      expect(report.regions[target].isCovered).toBe(true);
+      resetBalanceRegion(state, target);
+      const after = evaluateBalanceCapture(state);
+
+      expect(after.regions[target].confidence).toBe(0);
+      expect(after.regions[target].isCovered).toBe(false);
+      others.forEach(({ region, index }) => {
+        expect(after.regions[index].confidence).toBeCloseTo(
+          region.confidence,
+          6,
+        );
+      });
+    });
+
+    it('clears the cleared region’s spectrum too, not just its confidence', () => {
+      // The averaged level is what the solver reads. Leaving it behind would
+      // have the next solve ask for a correction that has already been applied.
+      const { state } = runCapture(fullRange, seconds(30));
+      const target = state.regions.findIndex(
+        (region) => region.label === 'bass',
+      );
+      const region = state.regions[target];
+
+      resetBalanceRegion(state, target);
+
+      for (
+        let index = region.firstIndex;
+        index <= region.lastIndex;
+        index += 1
+      ) {
+        expect(state.weight[index]).toBe(0);
+      }
+      // And the neighbour above it still carries everything it heard.
+      const next = state.regions[target + 1];
+      expect(state.weight[next.lastIndex]).toBeGreaterThan(0);
     });
 
     it('stops at the ceiling even if nothing ever settles', () => {

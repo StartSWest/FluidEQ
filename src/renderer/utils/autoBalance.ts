@@ -906,6 +906,42 @@ export const createBalanceCaptureState = (
   };
 };
 
+/**
+ * Forget what one region has heard, because the chain under it just changed.
+ *
+ * This is what lets Continuous EQ correct one frequency range without
+ * disturbing the others. The capture measures the output *including* whatever
+ * correction is applied, so the moment a range is corrected everything already
+ * averaged for that range describes a chain that no longer exists — and a solve
+ * built on it would ask for the same correction a second time, and a third.
+ * Clearing the range is the only honest answer, and clearing only that range is
+ * what keeps the other eight accumulating undisturbed while it refills.
+ *
+ * The convergence probe goes too. It is sampled across the whole axis, so it is
+ * stale the moment any part of the axis is.
+ *
+ * The tilt fit that runs over the whole spectrum still needs a wide trusted
+ * span, and a freshly cleared range simply carries no confidence until it
+ * refills — so a solve taken while the midrange is empty declines to answer at
+ * all rather than fitting a slope through a hole. That is a cycle skipped, not
+ * a wrong correction.
+ */
+export const resetBalanceRegion = (
+  state: IBalanceCaptureState,
+  regionIndex: number,
+): void => {
+  const region = state.regions[regionIndex];
+  if (!region) {
+    return;
+  }
+  for (let index = region.firstIndex; index <= region.lastIndex; index += 1) {
+    state.power[index] = 0;
+    state.weight[index] = 0;
+  }
+  state.regionStates[regionIndex] = { weight: 0, mean: 0, m2: 0 };
+  state.checkpoint = undefined;
+};
+
 /** Power mean of `levels` over an inclusive index range, in dB. */
 const regionLevelDb = (
   levels: Float64Array,

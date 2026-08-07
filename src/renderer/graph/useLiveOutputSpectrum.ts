@@ -5,6 +5,7 @@ import {
   IBalanceCaptureState,
   IBalanceListenBounds,
   IBalanceProgress,
+  IBalanceReport,
   IBalanceResult,
   accumulateBalanceFrame,
   buildBalanceProgress,
@@ -14,6 +15,7 @@ import {
   evaluateBalanceCapture,
   isBalanceCheckDue,
   readAbsoluteLevels,
+  resetBalanceRegion,
   shouldFinishBalanceCapture,
 } from '../utils/autoBalance';
 import { IChartPointData } from './ChartController';
@@ -304,6 +306,27 @@ const captureSystemOutput = async (): Promise<MediaStream> => {
 export interface IBalanceCaptureOptions extends IBalanceListenBounds {
   signal?: AbortSignal;
   onProgress?: (progress: IBalanceProgress) => void;
+  /**
+   * Run until aborted rather than until the measurement is complete.
+   *
+   * For Continuous EQ, which does not want an answer — it wants to keep
+   * listening. A capture that resolved would take its accumulated evidence with
+   * it, so every restart would put all nine regions back to zero together,
+   * which is the one thing this mode is trying not to do.
+   *
+   * Silence does not end it either, and neither does the watchdog. Both exist
+   * to stop a measurement somebody is waiting on from hanging; nobody is
+   * waiting on this one, and music stopping for a while is an ordinary evening
+   * rather than a failure.
+   */
+  isContinuous?: boolean;
+  /**
+   * Called with the full report at every checkpoint, and answers with the
+   * regions whose accumulated evidence is now stale — because the caller just
+   * corrected them. Those regions are cleared and start filling again; the rest
+   * carry on as if nothing happened.
+   */
+  onReport?: (report: IBalanceReport) => number[] | void;
 }
 
 /** An auto-balance measurement in flight. */
@@ -319,8 +342,10 @@ interface IBalanceSession {
    * because the tick runs from an interval that outlives the call.
    */
   bounds: IBalanceListenBounds;
+  isContinuous: boolean;
+  onReport?: (report: IBalanceReport) => number[] | void;
   detachAbort: () => void;
-  watchdog: ReturnType<typeof setTimeout>;
+  watchdog: ReturnType<typeof setTimeout> | undefined;
   lastAcceptedWallMs: number;
   lastPercent: number;
   wasSilent: boolean;
@@ -447,7 +472,11 @@ const useLiveOutputSpectrum = () => {
       const paused = isPausedRef.current;
       const silent = !paused && silentFor >= SILENCE_HINT_MS;
 
-      if (silentFor >= SILENCE_ABORT_MS) {
+      // A continuous session outlives silence. Nobody is waiting on it, and
+      // music stopping for a while is an ordinary evening rather than a
+      // failure — where ending it would throw away every region's evidence and
+      // put all nine back to zero together when the music came back.
+      if (!session.isContinuous && silentFor >= SILENCE_ABORT_MS) {
         if (session.state.acceptedFrames === 0) {
           abortBalance(
             paused
@@ -497,7 +526,16 @@ const useLiveOutputSpectrum = () => {
       setBalanceProgress(progress);
       session.onProgress?.(progress);
 
-      if (shouldFinishBalanceCapture(report)) {
+      // The caller sees the whole report, corrects what it likes, and names the
+      // regions it has just made stale. Those are cleared here rather than by
+      // the caller, because the accumulator belongs to the session — see
+      // `resetBalanceRegion` for why clearing them is not optional.
+      if (session.onReport) {
+        const stale = session.onReport(report) ?? [];
+        stale.forEach((index) => resetBalanceRegion(session.state, index));
+      }
+
+      if (!session.isContinuous && shouldFinishBalanceCapture(report)) {
         settleBalance(buildBalanceResult(report));
       }
     },
@@ -846,12 +884,19 @@ const useLiveOutputSpectrum = () => {
             minListenMs: options.minListenMs,
             maxListenMs: options.maxListenMs,
           },
+          isContinuous: Boolean(options.isContinuous),
+          onReport: options.onReport,
           detachAbort: () =>
             options.signal?.removeEventListener('abort', onAbort),
-          watchdog: setTimeout(
-            () => abortBalance('The measurement timed out. Try again.'),
-            WATCHDOG_MS,
-          ),
+          // No backstop on a continuous session. The watchdog exists so a
+          // measurement somebody is waiting on cannot hang; this one is meant
+          // to run for as long as the mode is switched on.
+          watchdog: options.isContinuous
+            ? undefined
+            : setTimeout(
+                () => abortBalance('The measurement timed out. Try again.'),
+                WATCHDOG_MS,
+              ),
           lastAcceptedWallMs: performance.now(),
           lastPercent: 0,
           wasSilent: false,
