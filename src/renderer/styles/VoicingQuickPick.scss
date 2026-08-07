@@ -75,13 +75,35 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The one mark that says this is a menu rather than an action.
+//
+// Quieter than the label it follows, because it is a property of the control
+// rather than a second thing to read. It turns over when the menu is open,
+// which is the cheapest possible way to say the next press closes it.
+.voicing-pick__caret {
+  width: 11px;
+  height: 11px;
+  flex: 0 0 auto;
+  margin-left: 1px;
+  fill: none;
+  opacity: 0.7;
+  stroke: currentcolor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 2;
+  transition: transform 150ms ease;
+}
+
+.voicing-pick__trigger[aria-expanded='true'] .voicing-pick__caret {
+  transform: rotate(180deg);
+}
+
 // The toolbar has no room for six cards, so the names live in here instead.
 .voicing-pick__menu {
   @include menu-surface;
-  position: absolute;
+  // Positioned by AnchoredMenu, which renders it into the body so the panel
+  // it lives in cannot clip it.
   z-index: 1000;
-  top: calc(100% + 6px);
-  right: 0;
   display: grid;
   width: 236px;
   padding: 6px;

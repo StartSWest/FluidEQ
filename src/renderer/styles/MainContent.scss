@@ -185,19 +185,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 //
 // Right-aligned to the caret rather than left-aligned to the button, so it
 // hangs off the thing that opened it.
+// Positioned by `AnchoredMenu` rather than here: it is rendered into the body,
+// so the only thing this rule owns is what it looks like.
+//
+// `menu-surface` rather than a hand-rolled panel, which is what it was — and
+// which is why it was the one menu in the app that did not animate in. Every
+// dropdown here is built on that mixin so a new one cannot forget to.
 .eq-mode__menu {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 6px);
-  right: 0;
+  @include menu-surface;
+  z-index: 1000;
   display: flex;
-  min-width: 100%;
+  // Wide enough for the sentence under each name to read as a sentence. Sized
+  // to the trigger, it came out as a column about twelve characters across and
+  // the notes wrapped into a ribbon.
+  width: 288px;
   flex-direction: column;
-  padding: 4px;
-  border: 1px solid rgba($secondary-light, 0.22);
-  border-radius: $radius-m;
-  background: rgba(#0c1a26, 0.97);
-  box-shadow: 0 14px 30px rgba($black, 0.5);
+  padding: 5px;
 
   // Name and note, with the icon spanning both rows. Three of these do the same
   // job to three different depths, and the depth is the only thing being
@@ -241,7 +244,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .eq-mode__menu-note {
-  max-width: 34ch;
   grid-area: note;
   color: rgba($primary-lighter, 0.72);
   font-size: 0.63rem;

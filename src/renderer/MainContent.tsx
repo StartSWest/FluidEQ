@@ -59,6 +59,7 @@ import './styles/MultiSelect.scss';
 import Spinner from './icons/Spinner';
 import { clamp, sortHelper, useThrottleAndExecuteLatest } from './utils/utils';
 import Button from './widgets/Button';
+import AnchoredMenu, { isInsideAnchoredMenu } from './widgets/AnchoredMenu';
 import {
   addEqualizerSlider,
   clearGains,
@@ -212,7 +213,12 @@ const MainContent = () => {
       return undefined;
     }
     const onPointerDown = (event: MouseEvent) => {
-      if (!modeMenuHolder.current?.contains(event.target as Node)) {
+      // The menu itself is not inside the trigger any more — it is portalled
+      // out of the panel that clips — so it has to be asked about separately.
+      if (
+        !modeMenuHolder.current?.contains(event.target as Node) &&
+        !isInsideAnchoredMenu(event.target)
+      ) {
         setIsModeMenuOpen(false);
       }
     };
@@ -1354,36 +1360,39 @@ const MainContent = () => {
                 <path d="M4 6.5l4 4 4-4" />
               </svg>
             </button>
-            {isModeMenuOpen && (
-              // Only the ones this button is not. A menu listing the thing you
-              // are already looking at is a row that does nothing.
-              <span className="eq-mode__menu">
-                {SMART_EQ_MODES.filter((entry) => entry !== smartEqMode).map(
-                  (entry) => (
-                    <button
-                      key={entry}
-                      type="button"
-                      onClick={() => {
-                        setSmartEqMode(entry);
-                        setIsModeMenuOpen(false);
-                      }}
-                    >
-                      <MenuIcon name="smart" className="eq-toolbar__icon" />
-                      <span className="eq-mode__menu-name">
-                        {modeLabel(entry)}
-                      </span>
-                      {/* Each says what it overrides, because the names alone
-                          cannot: three of them do the same job to three
-                          different depths, and which depth is the whole choice
-                          being made here. */}
-                      <span className="eq-mode__menu-note">
-                        {modeNote(entry)}
-                      </span>
-                    </button>
-                  ),
-                )}
-              </span>
-            )}
+            {/* Rendered outside the panel, because the panel clips. Only the
+                modes this button is not: a menu listing what you are already
+                looking at is a row that does nothing. */}
+            <AnchoredMenu
+              anchor={modeMenuHolder.current}
+              isOpen={isModeMenuOpen}
+              className="eq-mode__menu"
+            >
+              {SMART_EQ_MODES.filter((entry) => entry !== smartEqMode).map(
+                (entry) => (
+                  <button
+                    key={entry}
+                    type="button"
+                    onClick={() => {
+                      setSmartEqMode(entry);
+                      setIsModeMenuOpen(false);
+                    }}
+                  >
+                    <MenuIcon name="smart" className="eq-toolbar__icon" />
+                    <span className="eq-mode__menu-name">
+                      {modeLabel(entry)}
+                    </span>
+                    {/* Each says what it overrides, because the names alone
+                        cannot: three of them do the same job to three different
+                        depths, and which depth is the whole choice being made
+                        here. */}
+                    <span className="eq-mode__menu-note">
+                      {modeNote(entry)}
+                    </span>
+                  </button>
+                ),
+              )}
+            </AnchoredMenu>
           </span>
           {balanceStatus && (
             <span className="eq-toolbar__status" role="status">

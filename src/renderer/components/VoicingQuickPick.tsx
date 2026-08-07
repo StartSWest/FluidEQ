@@ -21,6 +21,7 @@ import { VOICING_PROFILES, getVoicingProfile } from 'common/voicing';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
+import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { setVoicing as setVoicingApi } from '../utils/equalizerApi';
 import '../styles/VoicingQuickPick.scss';
 
@@ -47,7 +48,12 @@ const VoicingQuickPick = () => {
       return undefined;
     }
     const close = (event: Event) => {
-      if (!rootRef.current?.contains(event.target as Node)) {
+      // The menu is portalled out of the panel that clips, so it is no longer
+      // inside the trigger and has to be asked about separately.
+      if (
+        !rootRef.current?.contains(event.target as Node) &&
+        !isInsideAnchoredMenu(event.target)
+      ) {
         setIsOpen(false);
       }
     };
@@ -104,44 +110,55 @@ const VoicingQuickPick = () => {
         <span>
           {activeProfile ? activeProfile.name : t('voicing.quickLabel')}
         </span>
+        {/* It opens a menu, and nothing on it said so — it read as a button
+            that does something, in a row of buttons that do. The same chevron
+            the mode picker carries, turning over when it is open. */}
+        <svg className="voicing-pick__caret" viewBox="0 0 16 16" aria-hidden>
+          <path d="M4 6.5l4 4 4-4" />
+        </svg>
       </button>
 
-      {isOpen && (
-        <div className="voicing-pick__menu" role="menu">
+      {/* Out of the panel, because the panel clips — see AnchoredMenu. This one
+          is as tall as the profile list, so near the bottom of a scrolled
+          editor it was losing its last entries entirely. */}
+      <AnchoredMenu
+        anchor={rootRef.current}
+        isOpen={isOpen}
+        className="voicing-pick__menu"
+      >
+        <button
+          type="button"
+          role="menuitemradio"
+          aria-checked={activeId === ''}
+          className={`voicing-pick__item${activeId === '' ? ' is-active' : ''}`}
+          onClick={() => apply('')}
+        >
+          <VoicingIcon profileId="none" />
+          <span>
+            <strong>{t('voicing.none')}</strong>
+            <small>{t('voicing.quickNoneHint')}</small>
+          </span>
+        </button>
+
+        {VOICING_PROFILES.map((profile) => (
           <button
+            key={profile.id}
             type="button"
             role="menuitemradio"
-            aria-checked={activeId === ''}
-            className={`voicing-pick__item${activeId === '' ? ' is-active' : ''}`}
-            onClick={() => apply('')}
+            aria-checked={activeId === profile.id}
+            className={`voicing-pick__item${
+              activeId === profile.id ? ' is-active' : ''
+            }`}
+            onClick={() => apply(profile.id)}
           >
-            <VoicingIcon profileId="none" />
+            <VoicingIcon profileId={profile.id} />
             <span>
-              <strong>{t('voicing.none')}</strong>
-              <small>{t('voicing.quickNoneHint')}</small>
+              <strong>{profile.name}</strong>
+              <small>{profile.tagline}</small>
             </span>
           </button>
-
-          {VOICING_PROFILES.map((profile) => (
-            <button
-              key={profile.id}
-              type="button"
-              role="menuitemradio"
-              aria-checked={activeId === profile.id}
-              className={`voicing-pick__item${
-                activeId === profile.id ? ' is-active' : ''
-              }`}
-              onClick={() => apply(profile.id)}
-            >
-              <VoicingIcon profileId={profile.id} />
-              <span>
-                <strong>{profile.name}</strong>
-                <small>{profile.tagline}</small>
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
+        ))}
+      </AnchoredMenu>
     </div>
   );
 };
