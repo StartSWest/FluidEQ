@@ -63,6 +63,7 @@ const STORAGE_KEY = 'fluideq-graph-style';
  */
 const VIEW_KEYS = {
   wave: 'fluideq.graphWaveHidden',
+  quietEq: 'fluideq.graphQuietEq',
   solo: 'fluideq.graphSolo',
   // Two of these are not keys any more but *stems*. The grid and the stretch
   // are kept once per view mode, under `<stem>.normal`, `<stem>.expanded` and
@@ -385,8 +386,7 @@ export const toggleLiveOutputSolo = () => setLiveOutputSolo(!isSolo);
  * question nobody was asking.
  */
 export const cycleGraphContents = () => {
-  const isEqCurveHidden = hiddenCurves.includes('eq');
-  if (!isSolo && !isWaveHidden && !isEqCurveHidden) {
+  if (!isSolo && !isWaveHidden && !isEqQuiet) {
     setLiveOutputSolo(true);
     announceGraphMode('Wave only');
     return;
@@ -399,13 +399,58 @@ export const cycleGraphContents = () => {
   }
   if (isWaveHidden) {
     setWaveHidden(false);
-    setCurveHidden('eq', true);
+    setEqQuiet(true);
     announceGraphMode('Layers only');
     return;
   }
-  setCurveHidden('eq', false);
+  setEqQuiet(false);
   announceGraphMode('Everything');
 };
+
+/**
+ * Whether the EQ curve is drawn quietly rather than at full weight.
+ *
+ * The last stop of the cycle, and it used to take the curve away altogether.
+ * That was too much: the bands' line is the one everything else is read
+ * against, and a plot of four layer curves with nothing to compare them to
+ * answers a question nobody asked either. What made it unreadable was never the
+ * line, it was its furniture — a three-pixel stroke with a glow, a spectrum
+ * gradient, and two dozen handles sitting on top of the very curves you are
+ * trying to see behind it.
+ *
+ * So the furniture goes and the line stays: thin, plain cyan, no glow, no
+ * gradient, no handles. Present enough to read the others against, quiet enough
+ * to read them at all.
+ *
+ * Its own flag rather than the hidden-curves set, because the legend chip has
+ * to keep meaning what it says. Hiding the EQ curve from the legend hides it;
+ * this is a different state and conflating them would leave the chip unable to
+ * do the one thing it is for.
+ */
+let isEqQuiet = readStoredFlag(VIEW_KEYS.quietEq);
+
+const quietEqListeners = new Set<() => void>();
+
+function setEqQuiet(next: boolean) {
+  if (next === isEqQuiet) {
+    return;
+  }
+  isEqQuiet = next;
+  writeStored(VIEW_KEYS.quietEq, String(isEqQuiet));
+  quietEqListeners.forEach((listener) => listener());
+}
+
+export const useGraphEqQuiet = () =>
+  useSyncExternalStore(
+    (listener: () => void) => {
+      quietEqListeners.add(listener);
+      return () => {
+        quietEqListeners.delete(listener);
+      };
+    },
+    () => isEqQuiet,
+    () => false,
+  );
 
 /**
  * What the plot just became, said once in the middle of it.

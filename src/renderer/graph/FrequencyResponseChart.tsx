@@ -85,6 +85,7 @@ import {
   useGraphWaveHidden,
   useHiddenCurves,
   useGraphModeAnnouncement,
+  useGraphEqQuiet,
   toggleGraphCurve,
   TGraphCurve,
   toggleGraphWave,
@@ -446,7 +447,11 @@ const FrequencyResponseChart = () => {
   // The dots go with the line they draw. A handle you can drag over a curve
   // that is not on screen gives no feedback at all — the whole point of
   // dragging one is watching the response follow it.
-  const areHandlesHidden = hiddenCurves.includes('eq');
+  const isEqQuiet = useGraphEqQuiet();
+  // The dots go when the curve does, and when it is drawn quietly: the reading
+  // state is exactly the one where they are in the way, and a handle dragged
+  // over a hairline gives nothing back.
+  const areHandlesHidden = hiddenCurves.includes('eq') || isEqQuiet;
 
   const isStretched = useGraphStretched();
   const waveOrientation = useWaveOrientation();
@@ -1122,19 +1127,35 @@ const FrequencyResponseChart = () => {
               } as IChartCurveData,
             ]
           : []),
+        // Quietly in the reading state, at full weight everywhere else.
+        //
+        // The line itself was never what made the layer curves hard to read —
+        // its furniture was: three pixels of stroke with a glow under it, a
+        // spectrum gradient, and two dozen handles sitting on top of the very
+        // curves somebody is trying to see. Taking the whole curve away removed
+        // the thing everything else is read against, which answers a different
+        // question from the one being asked. So the furniture goes and the line
+        // stays, thin and plain.
         ...(hasEq
           ? [
               {
                 id: 'EQ Response',
                 name: 'EQ response',
-                line: {
-                  color: SecondaryColorEnum.DEFAULT,
-                  strokeWidth: 3,
-                  points: eqCurveData,
-                  gradientId: 'chart-eq-spectrum-gradient',
-                  gradientStops: eqGradientStops,
-                  glow: true,
-                },
+                line: isEqQuiet
+                  ? {
+                      color: SecondaryColorEnum.DEFAULT,
+                      strokeWidth: 1.5,
+                      opacity: SUPPORTING_CURVE_OPACITY,
+                      points: eqCurveData,
+                    }
+                  : {
+                      color: SecondaryColorEnum.DEFAULT,
+                      strokeWidth: 3,
+                      points: eqCurveData,
+                      gradientId: 'chart-eq-spectrum-gradient',
+                      gradientStops: eqGradientStops,
+                      glow: true,
+                    },
               } as IChartCurveData,
             ]
           : []),
@@ -1150,6 +1171,7 @@ const FrequencyResponseChart = () => {
     filters,
     hasConvolution,
     isAutoPreAmpOn,
+    isEqQuiet,
     preAmp,
     smartEq,
     voicing,
