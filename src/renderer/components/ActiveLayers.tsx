@@ -34,8 +34,7 @@ import {
 import { formatBalanceFrequency } from '../utils/autoBalance';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
-import { ColorEnum } from '../styles/color';
-import { getBandColor } from '../utils/bandColors';
+import { ColorEnum, SecondaryColorEnum } from '../styles/color';
 import '../styles/ActiveLayers.scss';
 
 /**
@@ -46,18 +45,19 @@ import '../styles/ActiveLayers.scss';
  * four chips in none, and the only way to pair them up was to switch a layer
  * off and watch what disappeared.
  *
- * These are CSS backgrounds rather than colours because the bands are not one
- * colour — their curve is drawn with the band spectrum, so its swatch is that
- * spectrum. Every other value must stay equal to the `ColorEnum` the chart
- * passes for that curve, which is why they are taken from it rather than
- * written out again.
+ * Each is the `ColorEnum` the chart passes for that curve, taken from it rather
+ * than written out again, so a swatch cannot come to name a colour that is not
+ * on the plot.
+ *
+ * The EQ is the cyan its curve is drawn in, not the band spectrum that curve is
+ * shaded with. A twelve-pixel rainbow reads as decoration rather than as a
+ * colour key — and the whole job of these is to be matched against a line at a
+ * glance.
  */
 const LAYER_SWATCH: Record<string, string> = {
   convolution: ColorEnum.COMPLEMENTARY,
   driver: ColorEnum.DRIVER,
-  eq: `linear-gradient(90deg, ${getBandColor(0).color}, ${
-    getBandColor(0.5).color
-  }, ${getBandColor(1).color})`,
+  eq: SecondaryColorEnum.DEFAULT,
   voicing: ColorEnum.TRIADIC1,
   smart: ColorEnum.SMART,
 };
