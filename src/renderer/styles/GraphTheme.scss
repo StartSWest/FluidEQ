@@ -1073,13 +1073,17 @@
   > .graph-wrapper {
     position: absolute;
     z-index: 40;
-    // A pixel past the left edge of the column.
+    // Flush with the column, and the pixel it was once pushed out by is a
+    // pixel it does not get back.
     //
-    // The card's own 1px border ran just inside it, and against the pane behind
-    // it that read as a stray line down the left of the graph rather than as
-    // the card's edge. Pushing the box out by exactly the border width tucks it
-    // under the column boundary, where it belongs.
-    inset: 0 0 0 -1px;
+    // That shift was meant to tuck the card's own border under the column
+    // boundary rather than let it read as a line just inside it. What it did
+    // instead was delete the border: `.center-workspace` clips to its padding
+    // box, so a 1px edge moved exactly 1px outside that box is not tucked under
+    // anything — it is outside the clip. The expanded card ran into the gap
+    // beside the sidebar with no left edge at all, which is the one boundary
+    // between the graph and the panel next to it.
+    inset: 0;
     width: auto;
     height: auto;
     flex: none;
