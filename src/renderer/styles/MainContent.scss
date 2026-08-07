@@ -82,6 +82,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
 }
 
+// The Continuous button's pause bars.
+//
+// `.button path { fill: $primary-dark }` is what every icon inside a button
+// inherits, and it is right for the solid buttons — a dark glyph on a bright
+// cyan surface. On the subtle variant the surface is dark too, so the same rule
+// draws a black rectangle nobody can see.
+.eq-toolbar__pause path {
+  fill: currentcolor;
+}
+
 // Its own cluster, closed up and separated from what precedes it: four
 // buttons that do the same kind of thing.
 .quick-layouts {

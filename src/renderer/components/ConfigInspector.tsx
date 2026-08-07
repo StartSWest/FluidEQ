@@ -29,6 +29,7 @@ import {
 } from '../utils/equalizerApi';
 import MenuIcon from '../icons/MenuIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useContinuousEq } from '../utils/continuousEq';
 import '../styles/ConfigInspector.scss';
 
 /**
@@ -228,6 +229,7 @@ const ConfigInspector = () => {
     convolution,
     preAmp,
   } = useFluidEqContext();
+  const isContinuousOn = useContinuousEq();
   const [state, setState] = useState<IApoConfigTreeState>({
     status: 'loading',
   });
@@ -446,6 +448,25 @@ const ConfigInspector = () => {
                       <span className="config-layer__name">
                         {layer.feature}
                       </span>
+                      {/* The one layer that can be changing while you read
+                          this. Everything else in the panel is a file sitting
+                          on disk exactly as somebody left it; Smart EQ under
+                          Continuous EQ is being rewritten as the measurement
+                          moves, and a panel that showed it as settled would be
+                          out of date by the time it was read.
+
+                          Only for the output actually playing: the loop
+                          measures what is coming out now, so it can only be
+                          keeping one device's file measured. */}
+                      {layer.feature === 'smart' &&
+                        layer.isApplied &&
+                        isContinuousOn &&
+                        isCurrent(shown) && (
+                          <span
+                            className="config-layer__live"
+                            title="Continuous EQ is keeping this measured"
+                          />
+                        )}
                       <span className="config-layer__state">
                         {layer.isApplied ? 'on' : 'off'}
                       </span>

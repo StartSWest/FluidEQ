@@ -123,10 +123,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // respond to a press, so "this one is currently doing something" has to read
   // without hovering it. The outline carries it, since the label does not
   // change — the word is the name of the mode either way.
+  //
+  // Cyan, not white. Every label in this toolbar is cyan and a white one reads
+  // as a different kind of control rather than as the same control switched on.
   &.is-on:not([aria-disabled='true']) {
-    color: $white;
+    color: $secondary-light;
     border-color: rgba($secondary-default, 0.75);
     background: rgba($secondary-default, 0.22);
-    box-shadow: 0 0 16px rgba($secondary-default, 0.18);
+    animation: button-running 2.4s ease-in-out infinite;
+  }
+}
+
+// On, and working.
+//
+// A switch that is merely lit says the mode is enabled; this one is doing
+// something continuously, in the background, for hours, and the difference
+// between "armed" and "running" is exactly what somebody glancing at it wants.
+// Breathing rather than blinking: a blink is an alert and wants dealing with.
+@keyframes button-running {
+  0%,
+  100% {
+    box-shadow: 0 0 8px rgba($secondary-default, 0.1);
+  }
+
+  50% {
+    box-shadow: 0 0 20px rgba($secondary-default, 0.32);
   }
 }

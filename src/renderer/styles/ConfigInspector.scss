@@ -298,6 +298,37 @@
   text-transform: uppercase;
 }
 
+// This layer's file is being rewritten while you are looking at it.
+//
+// Everything else in this panel is a file sitting on disk exactly as somebody
+// left it, which is the whole premise of reading the config rather than the
+// app's own state. Smart EQ under Continuous EQ is the exception, and a panel
+// that showed it as settled would be out of date by the time it was read.
+//
+// The same shape and rhythm as the pip on the Also Applied chip, deliberately:
+// the two rows describe the same layer from two ends — one from the editor, one
+// from the file — and nobody should have to work out that they mean the same
+// thing.
+.config-layer__live {
+  width: 5px;
+  height: 5px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: currentcolor;
+  animation: config-layer-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes config-layer-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
 .config-device__empty {
   margin: 0;
   color: $text-faint;

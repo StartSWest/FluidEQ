@@ -1140,10 +1140,9 @@ const MainContent = () => {
               // does next. The Smart EQ glyph beside it already says what the
               // mode is about.
               <svg
-                className="eq-toolbar__icon"
+                className="eq-toolbar__icon eq-toolbar__pause"
                 viewBox="0 0 16 16"
                 aria-hidden
-                fill="currentColor"
               >
                 <path d="M5 3h2.2v10H5zM8.8 3H11v10H8.8z" />
               </svg>

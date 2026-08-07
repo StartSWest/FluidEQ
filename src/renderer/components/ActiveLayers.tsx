@@ -22,7 +22,7 @@ import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { hasSmartEqLayer } from 'common/smartEq';
 import { useFluidEqContext } from '../utils/FluidEqContext';
-import { useContinuousEq } from '../utils/continuousEq';
+import { setContinuousEq, useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
 import {
   clearConvolution,
@@ -287,6 +287,14 @@ const ActiveLayers = () => {
       clearHint: t('eq.layers.clearSmart'),
       isLive: isContinuousOn && !isBypassed('smart'),
       onClear: async () => {
+        // Deleting the correction switches off the thing that maintains it.
+        //
+        // Otherwise this button does nothing you could see: the loop would
+        // measure the now-empty layer, find the room exactly as wrong as it was
+        // before, and start putting the correction back within seconds. Bypass
+        // is the switch for "off for a moment"; this one is "I do not want
+        // this", and it has to mean that.
+        setContinuousEq(false);
         setSmartEq(undefined);
         await setSmartEqApi(undefined);
         await refreshState();
