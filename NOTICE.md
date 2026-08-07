@@ -39,8 +39,30 @@ The bundled AutoEQ-derived preset data remains attributable to its respective
 authors and source projects. The current library was generated from the
 official AutoEq results at commit 7ae0f56d53074872b028649617a22bbb4232feb7.
 AutoEq is Copyright (c) 2018-2022 Jaakko Pasanen and distributed under the MIT
-License; its full license text is included in assets/licenses. Equalizer APO is
-a separate project and is not included as proprietary FluidEQ technology.
+License; its full license text is included in assets/licenses.
+
+## Equalizer APO
+
+FluidEQ is an interface to Equalizer APO and distributes its installer. It is a
+separate program, not a part of FluidEQ and not proprietary FluidEQ technology.
+
+- Upstream project: https://sourceforge.net/projects/equalizerapo/
+- Copyright © Jonas Thedering and contributors
+- License: GNU General Public License, version 2 or later
+- License text: `assets/licenses/EqualizerAPO-LICENSE.txt`, and in the
+  Equalizer APO installation itself
+
+Because the installer is distributed with FluidEQ, the corresponding source is
+distributed with it: `EqualizerAPO-src-<version>.zip` is published as an asset
+of the same release and matches the exact version bundled. Bumping the bundled
+version moves that archive with it.
+
+The two programs are never combined into one work. FluidEQ does not link
+against Equalizer APO, does not load it into its own process, and includes no
+part of its code; they are separate programs that exchange text configuration
+files. Where FluidEQ's source describes how Equalizer APO parses those files,
+that is a statement of fact about the interface, established by reading the
+published source. No part of it has been copied.
 
 ## Third-party websites reached from the Video tab
 
