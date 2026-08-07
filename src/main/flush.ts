@@ -234,19 +234,34 @@ const buildLayers = (state: IState): IApoLayer[] => {
   return layers;
 };
 
+/**
+ * A number as a config line should carry it.
+ *
+ * A fitted correction arrives as full double precision, so bands went into the
+ * file reading `Gain -0.5473804429990239 dB Q 2.530281730867148` — sixteen
+ * significant figures for a quantity whose smallest audible step is around a
+ * tenth of a decibel. APO parses it perfectly well and nobody can read it, and
+ * one of the things the split was for is a config a person can open at two in
+ * the morning and understand.
+ *
+ * Two places is past the threshold of hearing and past what any of these
+ * controls can express, so nothing is lost. Trailing zeros go with it: `3.5`
+ * rather than `3.50`, and `4` rather than `4.00`.
+ */
+const configNumber = (value: number) => Math.round(value * 100) / 100;
+
 const renderFilter = (filter: TChainFilter, index: number) => {
   const head = `Filter ${index}: ON ${filter.type} Fc ${clampFrequency(
     filter.frequency,
   )} Hz`;
+  const quality = configNumber(clampQuality(filter.quality));
   // Band pass, notch, low pass and high pass have no Gain parameter in
   // Equalizer APO's ParametricEQ grammar — the token only belongs to the
   // peaking and shelf forms. Emitting it for the others makes APO reject the
   // line, so the band silently did nothing.
   return NO_GAIN_FILTER_TYPES.includes(filter.type)
-    ? `${head} Q ${clampQuality(filter.quality)}`
-    : `${head} Gain ${clampGain(filter.gain)} dB Q ${clampQuality(
-        filter.quality,
-      )}`;
+    ? `${head} Q ${quality}`
+    : `${head} Gain ${configNumber(clampGain(filter.gain))} dB Q ${quality}`;
 };
 
 /**
@@ -943,17 +958,6 @@ export const renamePreset = (
   } catch (ex) {
     console.log('Failed to rename preset %d to preset %d', oldName, newName);
     throw ex;
-  }
-};
-
-export const flush = (state: IState, configDirPath: string) => {
-  const configPath = addFileToPath(configDirPath, FLUIDEQ_CONFIG_FILENAME);
-  try {
-    fs.writeFileSync(configPath, stateToString(state), {
-      encoding: 'utf8',
-    });
-  } catch (ex) {
-    console.log(`Failed to flush to ${configPath}`);
   }
 };
 

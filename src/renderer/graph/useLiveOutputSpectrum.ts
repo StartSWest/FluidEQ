@@ -128,6 +128,28 @@ const SILENCE_ABORT_MS = 15000;
 const WATCHDOG_MS = 120000;
 
 /**
+ * How soon a failed capture is tried again, and how many times.
+ *
+ * Doubling, and finite. A capture that fails once has usually lost a race —
+ * the endpoint is mid-switch, Windows has not finished handing the device
+ * over — and trying again shortly afterwards is exactly right.
+ *
+ * A capture that fails forever is a different situation and used to get the
+ * same answer: every 2.5 seconds, for as long as the window stayed open.
+ * Windows Graphics Capture denies the window on some setups — `CreateForWindow
+ * failed with hr: -2147024891`, which is E_ACCESSDENIED — and each attempt
+ * negotiated a fresh capture session, was refused, and logged two errors on
+ * the way out. Nothing about the tenth attempt was more likely to succeed than
+ * the second; it just made the log unreadable and kept Chromium busy.
+ *
+ * Six attempts over roughly a minute and a half covers every transient cause,
+ * and stopping after that is the honest answer: the wave has no data, which
+ * the graph already says by drawing nothing.
+ */
+const START_RETRY_MS = 2500;
+const MAX_START_RETRIES = 6;
+
+/**
  * How long a muted capture is given before it is treated as a lost device.
  *
  * Long enough that ordinary gaps — a track change, a stream buffering, the
@@ -328,6 +350,7 @@ const useLiveOutputSpectrum = () => {
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
+  const retriesRef = useRef(0);
   const isStartingRef = useRef(false);
   const autoStartRef = useRef(true);
   const isPausedRef = useRef(false);
@@ -838,12 +861,22 @@ const useLiveOutputSpectrum = () => {
     }
 
     start().then((didStart) => {
-      if (!didStart && autoStartRef.current) {
-        retryTimerRef.current = setTimeout(() => {
+      if (didStart) {
+        retriesRef.current = 0;
+        return didStart;
+      }
+      if (!autoStartRef.current || retriesRef.current >= MAX_START_RETRIES) {
+        return didStart;
+      }
+
+      retriesRef.current += 1;
+      retryTimerRef.current = setTimeout(
+        () => {
           retryTimerRef.current = undefined;
           scheduleStartRef.current();
-        }, 2500);
-      }
+        },
+        START_RETRY_MS * 2 ** (retriesRef.current - 1),
+      );
       return didStart;
     });
   }, [start]);
@@ -866,6 +899,10 @@ const useLiveOutputSpectrum = () => {
 
   useEffect(() => {
     autoStartRef.current = true;
+    // A fresh mount is a fresh set of attempts. The count is what stops a
+    // hopeless capture grinding forever, not a verdict that the machine can
+    // never do it — the graph being opened again is somebody asking.
+    retriesRef.current = 0;
     // JSDOM and non-Electron preview environments do not expose media
     // capture. Avoid scheduling a failing retry loop there; Electron's
     // renderer always has mediaDevices when the live analyser is available.
@@ -904,7 +941,15 @@ const useLiveOutputSpectrum = () => {
       // than only saying it went wrong. Windows refuses the loopback grab for
       // transient reasons — a device changing mid-start, a permission prompt
       // dismissed — and a second attempt very often works.
-      retry: start,
+      //
+      // Asking by hand also restores the automatic attempts. Those stop after
+      // a few failures so a capture the machine will never allow does not
+      // grind away in the background; a person pressing the button is saying
+      // something has changed, and it is worth believing them.
+      retry: () => {
+        retriesRef.current = 0;
+        return start();
+      },
     }),
     [captureBalanceProfile, error, isActive, isPaused, start, togglePaused],
   );
