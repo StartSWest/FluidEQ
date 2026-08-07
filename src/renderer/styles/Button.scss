@@ -77,7 +77,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &[aria-disabled='true'] {
     color: rgba($primary-lighter, 0.6);
     border-color: rgba($primary-lighter, 0.08);
-    background: rgba($primary-dark, 0.85);
+    // Matched to `field-disabled`: quieter than its neighbours, not a black
+    // rectangle. At 85% of `$primary-dark` this was the darkest thing on any
+    // panel it appeared on, so a button waiting for a prerequisite looked
+    // broken rather than merely unavailable.
+    background: rgba(#1a2b38, 0.42);
     box-shadow: none;
     cursor: default;
     pointer-events: none;

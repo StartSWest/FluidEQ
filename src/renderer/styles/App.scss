@@ -68,6 +68,19 @@ body {
   margin: 0;
   overflow: hidden;
   color: #edf8ff;
+  // Nothing in here is a document.
+  //
+  // This is an application window, and almost every gesture in it is a drag:
+  // bands up and down, points across the plot, the divider between the panes,
+  // a marquee over a row of handles. A browser answers all of those by
+  // highlighting whatever text the pointer crossed on the way, so a slow drag
+  // leaves the labels around it inverted and a double-click on a number selects
+  // the word next to it.
+  //
+  // Switched off here and given back below to the places where selecting text
+  // is the point — the fields you type in, and anything meant to be copied.
+  -webkit-user-select: none;
+  user-select: none;
   // Cyan-forward ambience. The warm accents stay as faint highlights only, so
   // the shell reads teal rather than violet.
   background:
@@ -283,7 +296,23 @@ select option {
   // the content would appear to slide out of the title text. The blur below is
   // what keeps that content legible at this opacity, so it has to stay.
   border-bottom: 1px solid rgba($primary-lighter, 0.05);
-  background: linear-gradient(180deg, rgba(#070f18, 0.82), rgba(#040a11, 0.86));
+  // A little of what the panels get, and not all of it.
+  //
+  // This was translucent already — and so dark that it made no difference: at
+  // #070f18 over #040a11 there was nothing for the shell's washes to tint, so
+  // the bar read as a black strip above a lit window. Moved onto the panel
+  // family and opened up slightly, it picks up the same cyan the cards do.
+  //
+  // Still the darkest surface on screen, deliberately. It is chrome — the
+  // window's frame rather than part of the work — and the cards should come
+  // forward of it. The blur stays, because unlike the panels this thing is
+  // fixed with content scrolling underneath it, which is the case
+  // `backdrop-filter` is actually for.
+  background: linear-gradient(
+    180deg,
+    rgba($panel-bottom, 0.84),
+    rgba(#0a1220, 0.88)
+  );
   box-shadow: 0 6px 16px rgba($black, 0.1);
   backdrop-filter: blur(20px) saturate(1.25);
   -webkit-app-region: drag;
@@ -713,6 +742,21 @@ select option {
   overflow: hidden;
 }
 
+// Where selecting text is the whole point.
+//
+// Everything the user types into, and anything they are expected to copy out
+// — a diagnostic, an error, a path. The blanket rule on `body` is about drags
+// not leaving highlighted labels behind them; it is not an instruction that
+// text may never be selected, and a field you cannot select inside is broken
+// rather than tidy.
+input,
+textarea,
+[contenteditable='true'],
+.is-selectable {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
 .app-workspace {
   display: grid;
   width: 100%;
@@ -959,6 +1003,25 @@ $tab-border: rgba($secondary-light, 0.2);
 .workspace-tab-panel--convolution,
 .workspace-tab-panel--video {
   @include panel-surface;
+  // The ramp measured against the window, not against this panel.
+  //
+  // `panel-surface` runs its gradient over whatever box it lands on, so a
+  // panel's colour depends on how tall that panel happens to be. This one sits
+  // above the graph and is therefore much shorter than the column beside it —
+  // and a gradient that reaches `$panel-bottom` at 62% of a short box reaches
+  // it far higher up the screen than the same gradient over a full-height one.
+  // Hence a tab page that reads noticeably darker than the pane next to it
+  // while being, on paper, the same surface.
+  //
+  // `fixed` positions the background against the viewport rather than the
+  // element, so every panel using it is showing one continuous ramp sampled at
+  // its own place on the screen. Two panels at the same height are then the
+  // same colour, whatever their sizes.
+  //
+  // Set after the include because `panel-surface` writes the `background`
+  // shorthand, which would reset both of these.
+  background-attachment: fixed;
+  background-size: 100% 100vh;
   display: flex;
   flex-direction: column;
   padding: 12px;
@@ -1079,10 +1142,34 @@ $tab-border: rgba($secondary-light, 0.2);
   overflow: visible;
 }
 
+// Put back the room the scrollbar was holding.
+//
+// The rule above frees a menu from its card by making every ancestor's overflow
+// visible — and an element with visible overflow is not a scroll container, so
+// it loses its scrollbar and, with it, the gutter `scrollbar-gutter: stable`
+// was reserving. The content is suddenly eight pixels wider than it was a
+// moment ago, so the whole panel jumps sideways as the menu opens and jumps
+// back as it closes.
+//
+// Padding of exactly the gutter's width is the same space by another name. It
+// is unconditional because the gutter is: `stable` reserves it whether or not
+// there is anything to scroll, so there is no case where this over-corrects.
+//
+// The real fix is for menus to escape by being positioned against the viewport
+// instead of by opening holes in their ancestors, at which point this rule and
+// the one above both go. That is a change to how the dropdown places itself,
+// not to a stylesheet.
+.workspace-tab-panel:has(.dropdown--open) {
+  padding-right: 8px;
+}
+
 // *** Right column ***********************************************************
 
 .right-content {
-  @include panel-surface($secondary-dark, 7%);
+  // The mixin's own mixture, like every other panel. It carried a different
+  // accent and a different amount, which is half of why the columns never
+  // quite matched.
+  @include panel-surface;
   display: grid;
   min-height: 0;
   padding: 12px;
@@ -1118,10 +1205,14 @@ $tab-border: rgba($secondary-light, 0.2);
   // This had its own border, its own gradient and its own shadow, all close to
   // the shared ones and none of them equal — so the graph read as a panel from
   // a slightly different app sitting in the middle of the window. The mixin
-  // exists precisely so these four agree, and it tints the top edge by its
-  // accent, which is where a card gets to have a personality without leaving
-  // the family.
-  @include panel-surface($secondary-dark, 5%);
+  // exists precisely so these four agree.
+  //
+  // Which it could not while every caller passed a different accent and amount.
+  // Four panels asked for four mixtures — 5%, 6%, 7% and 9%, across two
+  // different accents — and then wondered why they did not match. The argument
+  // is still there for anything that genuinely needs to stand apart; the panels
+  // that make up the window are not that, and they all take the default now.
+  @include panel-surface;
   // Above the pane it shares the column with.
   //
   // The card's header holds two menus, and both of them open out of the card
@@ -1288,12 +1379,86 @@ $tab-border: rgba($secondary-light, 0.2);
   }
 }
 
+// Three states, told apart by more than their size.
+//
+// Every one of these used to be the same filled dot in the band's colour, and
+// the only thing that separated them was the radius — so a selected band and a
+// merely hovered one were identical, and "is this the one I am about to edit"
+// was answered by comparing a handle against its neighbours.
+//
+// Filled versus hollow is the distinction that carries it. At rest a handle is
+// a ring: the band's colour drawn as an outline over the plot, clearly a marker
+// for something rather than something in hand. Selected, it fills in solid and
+// takes a white collar and a lit halo — it is what the sliders and the arrow
+// keys are pointing at, and it should look like the only one.
+// Cyan at rest, the spectrum in euphoria — the same bargain the sliders make.
+//
+// Every handle publishes its own colour from `getBandColor`, so the row of
+// them was a rainbow all the time, which left nothing for euphoria to give.
+// It also disagreed with the sliders directly below, which are now the app's
+// cyan until the mode arrives; two rows describing the same bands in two
+// different colour schemes is worse than either scheme.
+//
+// Overridden on the circles rather than on the group, for the same reason as
+// the sliders: the inline value sits on the group and inherits down, so a rule
+// on a descendant wins for that subtree with no `!important` and without the
+// component having to know the mode exists. `revert` drops back to the
+// inherited band colour, which is what the euphoric rules in Euphoria.scss
+// then read.
+.graph-edit-point__halo,
+.graph-edit-point__dot {
+  --point-color: #{$secondary-default};
+  --point-muted-color: #{rgba($secondary-default, 0.42)};
+}
+
+.is-euphoric .graph-edit-point__halo,
+.is-euphoric .graph-edit-point__dot {
+  --point-color: revert;
+  --point-muted-color: revert;
+}
+
+// The sizes, taken over from the component's own attributes.
+//
+// A handle at rest was a 5px disc, which is small for something that is
+// dragged — and smaller still now that it is a ring rather than a filled dot,
+// because a 2px stroke around a 5px radius leaves very little middle. The
+// resting size is what needed the room; the active one is nudged with it so
+// the step between them stays the same.
+//
+// `r` is a CSS property on SVG geometry in Chromium, and any rule outranks the
+// presentation attribute the component sets, so this is the value that applies.
+// That does leave the numbers in `EditablePoint.tsx` as a dead fallback and
+// they should go the next time that file is open — two places holding a size
+// is one more than can be kept true.
+.graph-edit-point__dot {
+  r: 6;
+}
+
+.graph-edit-point__halo {
+  r: 11;
+}
+
+.graph-edit-point:hover,
+.graph-edit-point--hovered,
+.graph-edit-point--selected,
+.graph-edit-point:focus-visible {
+  .graph-edit-point__dot {
+    r: 7.5;
+  }
+
+  .graph-edit-point__halo {
+    r: 13;
+  }
+}
+
 .graph-edit-point {
   outline: none;
 
+  // Mostly a target for the pointer. Visible enough at rest to say the handle
+  // has a reach, not so visible that a row of them reads as a second curve.
   &__halo {
-    fill: var(--point-muted-color);
-    stroke: var(--point-color);
+    fill: transparent;
+    stroke: var(--point-muted-color);
     stroke-width: 1;
     transition:
       r 120ms ease,
@@ -1302,21 +1467,65 @@ $tab-border: rgba($secondary-light, 0.2);
   }
 
   &__dot {
-    fill: var(--point-color);
-    stroke: rgba($white, 0.9);
-    stroke-width: 1.5;
-    filter: drop-shadow(0 0 5px var(--point-muted-color));
+    // Dark rather than transparent, so the ring reads against the trace when a
+    // wave passes behind it.
+    fill: rgba($primary-dark, 0.72);
+    stroke: var(--point-color);
+    stroke-width: 2;
     transition:
       r 120ms ease,
-      fill 120ms ease;
+      fill 120ms ease,
+      stroke 120ms ease,
+      stroke-width 120ms ease,
+      filter 120ms ease;
   }
 
+  // Hovering is a promise, not a state: the handle half-fills, so it is
+  // obvious which one a click would take without it claiming to be selected.
   &:hover,
-  &:focus-visible,
-  &--selected,
   &--hovered {
+    .graph-edit-point__halo {
+      stroke: var(--point-color);
+    }
+
     .graph-edit-point__dot {
-      filter: drop-shadow(0 0 9px var(--point-color));
+      fill: var(--point-muted-color);
+      filter: drop-shadow(0 0 6px var(--point-muted-color));
+    }
+  }
+
+  // Selected wins over hover, and being written last is not enough to make it.
+  //
+  // `&:hover .graph-edit-point__dot` is three selectors deep; `&--selected
+  // .graph-edit-point__dot` is two. Source order only breaks ties, and those do
+  // not tie — so pointing at the handle you had just selected showed you the
+  // hover look and took the white collar away, which reads as the selection
+  // having been lost at the exact moment you reached for it.
+  //
+  // The `--selected:hover` pair is what fixes it: three selectors, matching
+  // hover's weight, and later in the file, so now the tie-break really is
+  // source order.
+  &--selected,
+  &--selected:hover,
+  &:focus-visible {
+    .graph-edit-point__halo {
+      fill: var(--point-muted-color);
+      stroke: var(--point-color);
+    }
+
+    .graph-edit-point__dot {
+      fill: var(--point-color);
+      // A white ring, and it is the one thing on the handle that does not
+      // follow the palette.
+      //
+      // Everything else here is cyan at rest and the band's colour in
+      // euphoria, which is what makes the row read as one instrument. That is
+      // exactly why the selected handle needs something outside the scheme:
+      // against a rainbow of neighbours, another shade of the same family says
+      // very little, and white says it at any hue.
+      stroke: rgba($white, 0.95);
+      stroke-width: 2;
+      filter: drop-shadow(0 0 10px var(--point-color));
     }
   }
 }

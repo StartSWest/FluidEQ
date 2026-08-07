@@ -1,4 +1,5 @@
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 // The look designer, docked inside the graph card.
@@ -13,6 +14,18 @@
 // the rest of the plot alone.
 .look-designer {
   @include panel-surface;
+  // Grows out of the corner it is anchored to, and shrinks back into it.
+  //
+  // The exit needs the chart's help: React drops the element the instant the
+  // condition turns false, so the panel used to arrive with an animation and
+  // leave by blinking out. `DESIGNER_EXIT_MS` there holds it mounted for
+  // exactly as long as this takes.
+  @include animate(pop-in, $motion-fast, $ease-spring);
+  transform-origin: top right;
+
+  &.is-closing {
+    @include animate(pop-out, $motion-fast, $ease-out);
+  }
   // Whatever every other scrolling surface uses. It stopped taking a size on
   // purpose — a panel with its own slightly narrower scrollbar is the kind of
   // difference nobody sees and everybody feels.

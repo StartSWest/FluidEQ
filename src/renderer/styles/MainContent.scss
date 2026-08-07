@@ -231,6 +231,37 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // graph gains, which makes the tracks the right thing to give first when the
 // window is short. A stubby track is still perfectly draggable, and the numeric
 // field beside it is what precision goes through anyway.
+// One colour at rest, the spectrum in euphoria.
+//
+// Every band publishes its own colour from `getBandColor`, which paints the row
+// as a rainbow all the time — and a rainbow that is always there is not a
+// reward for anything. At rest the sliders are the app's own cyan, like every
+// other control, and the spectrum arriving is part of what euphoria is.
+//
+// Done by overriding the variable on a descendant rather than by changing what
+// the widget publishes. The inline value is set on the `.range` wrapper and
+// inherits down, so a rule on the input beats it for that subtree — no
+// `!important`, and no general-purpose widget made euphoria-aware. `revert`
+// drops this rule and lets the wrapper's own value inherit through again.
+// The arrows are named as well as the track. They sit beside the input rather
+// than inside it, so a rule on the input alone left them reading the band
+// colour off the wrapper — a cyan slider between two coloured triangles.
+.bandWrapper .range input[type='range'],
+.bandWrapper .range .arrow-up,
+.bandWrapper .range .arrow-down {
+  --slider-color: #{$secondary-default};
+  --slider-color-muted: #{rgba($secondary-default, 0.42)};
+  --slider-track: #{rgba($secondary-dark, 0.34)};
+}
+
+.is-euphoric .bandWrapper .range input[type='range'],
+.is-euphoric .bandWrapper .range .arrow-up,
+.is-euphoric .bandWrapper .range .arrow-down {
+  --slider-color: revert;
+  --slider-color-muted: revert;
+  --slider-track: revert;
+}
+
 .main-content--full .bandWrapper .range {
   --range-length: clamp(72px, calc(100vh - 620px), 132px);
 }

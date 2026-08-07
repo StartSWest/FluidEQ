@@ -193,10 +193,37 @@
 // the corner of a graph is a second card inside a card, and it turns a quiet
 // row of captions into a piece of furniture. Discretion wins; the drawing is
 // what this pane is for.
+// The pane the markup has always described and never had.
+//
+// Everything in here is a caption or a control for the same drawing, and
+// without a surface they were loose glyphs scattered over the plot — held
+// apart from whatever was moving underneath by a text shadow alone, which is
+// legibility rather than structure. On a pane they read as one instrument
+// panel sitting over the graph, which is what they are.
+//
+// Deliberately no `backdrop-filter`. It is the obvious way to make a floating
+// panel feel like glass, and it would sit directly over the one thing in this
+// app that repaints continuously — each frame underneath forcing the blur to
+// be sampled and composited again. A flat, mostly opaque surface costs
+// nothing per frame and reads the same at this size.
 .graph-legend-group {
   display: inline-flex;
   align-items: center;
+  padding: 5px 9px;
   gap: $spacing-s;
+  border: 1px solid rgba($secondary-light, 0.16);
+  border-radius: $radius-l;
+  background: rgba(#0c1a26, 0.86);
+  box-shadow:
+    0 10px 26px rgba($black, 0.42),
+    inset 0 1px 0 rgba($white, 0.05);
+
+  // The shadow on the strip exists to hold loose text off a moving
+  // background. Inside the pane there is no moving background, and it only
+  // muddies the letters.
+  > * {
+    text-shadow: none;
+  }
 }
 
 // One step through the looks, either side of the name.
@@ -461,6 +488,23 @@
   z-index: 1;
 }
 
+// The halo under the EQ curve is cyan at rest, like the curve it belongs to.
+//
+// It was stroked with the spectrum all the time, so a plain cyan line sat in a
+// rainbow bloom — the one part of the graph still insisting on colour after the
+// line, the handles and the sliders had all settled on the app's own. The
+// spectrum comes back with euphoria, which is where it earns its keep.
+//
+// A rule beats the presentation attribute the component sets, so nothing here
+// needs `!important` and the component stays unaware of the mode.
+.chart-curve__glow {
+  stroke: $secondary-default;
+}
+
+.is-euphoric .chart-curve__glow {
+  stroke: var(--curve-gradient);
+}
+
 .chart-live-canvas {
   position: absolute;
   z-index: 0;
@@ -696,6 +740,18 @@
 // out entirely when nothing is happening. The drawing gets the height back.
 
 // The panel behind it squares off too, for the same reason.
+// The picture reaches the edges of the display, on all four sides.
+//
+// The workspace pads itself so that panels standing side by side do not touch
+// the window frame — which is right in every mode where there are panels. Here
+// there is one thing on screen and it is a picture, and padding around a
+// picture is a black border around a picture. It survived because the rule
+// that opens this mode up only ever dealt with the title bar's height, so the
+// top came free and the other three sides did not.
+.app-workspace.is-app-full {
+  padding: 0;
+}
+
 .app-workspace.is-app-full .center-workspace.is-graph-full {
   .workspace-tab-panel {
     border-radius: 0;
@@ -713,38 +769,50 @@
 // do, for the same reason: this mode is watched rather than worked on, and a
 // toolbar is the only thing left between the drawing and the edge of the
 // screen. The creature fades with it, on the same timer — see `idleChrome`.
+// Only the shape of the strip, never its surface.
+//
+// This used to carry a `panel-surface` of its own, from when the controls
+// inside it had none and needed something to sit on over a video. They have
+// their own pane now — see `.graph-legend-group` — and keeping both gave full
+// screen a card inside a card, with two borders a few pixels apart.
+//
+// The positioning is the part worth keeping: `left: auto` lets the strip
+// shrink to what is in it rather than spanning the screen, which is what makes
+// it read as a small panel hugging its contents instead of a row of labels
+// lying across a picture.
 .app-workspace.is-app-full .live-output-controls {
   left: auto;
   width: auto;
   max-width: calc(100% - 20px);
-  padding: 5px 9px;
-  @include panel-surface($secondary-dark, 5%);
-  // No shadow. The mixin's is sized for a panel standing on the workspace; on a
-  // strip this small over a picture it reads as a smudge under the text.
-  box-shadow: none;
-  // The card supplies the contrast now, so the shadow that was holding the
-  // labels apart from a moving wave has nothing left to do.
-  text-shadow: none;
 }
 
-.app-workspace.is-app-full {
-  .live-output-controls,
-  .fullscreen-chrome {
-    // Slower out than in. Coming back should feel immediate — the pointer has
-    // just moved and something is being reached for — while leaving should not
-    // catch the eye, which is the whole point of it going.
-    transition: opacity 320ms ease;
-  }
+// Not scoped to a mode, because there is no longer a mode to scope to.
+//
+// These used to sit under `.app-workspace.is-app-full`, so the toolbar only
+// ever faded once the window itself had gone full screen. It fades in every
+// view now: the strip lies across the top of the plot, which is where the peaks
+// go, and it holds controls you reach for occasionally and then look past for
+// minutes.
+//
+// Whether it may fade at all is the store's question, not the cascade's —
+// `is-idle` is only ever applied while it is watching. Two things deciding the
+// same question is how they come to disagree, and here they did.
+.live-output-controls,
+.fullscreen-chrome {
+  // Slower out than in. Coming back should feel immediate — the pointer has
+  // just moved and something is being reached for — while leaving should not
+  // catch the eye, which is the whole point of it going.
+  transition: opacity 320ms ease;
+}
 
-  .live-output-controls.is-idle,
-  .fullscreen-chrome.is-idle {
-    opacity: 0;
-    // Nothing invisible takes a click. Without this the strip is still there to
-    // be pressed, and a control you cannot see doing something is worse than
-    // one that is simply gone.
-    pointer-events: none;
-    transition-duration: 520ms;
-  }
+.live-output-controls.is-idle,
+.fullscreen-chrome.is-idle {
+  opacity: 0;
+  // Nothing invisible takes a click. Without this the strip is still there to
+  // be pressed, and a control you cannot see doing something is worse than
+  // one that is simply gone.
+  pointer-events: none;
+  transition-duration: 520ms;
 }
 
 // There is deliberately no bar behind the controls over the player.
@@ -883,20 +951,48 @@
   }
 }
 
-// Real full screen: the bar goes, and the 78px of padding holding its place
-// goes with it, so the workspace runs the whole height of the display.
+// Real full screen: the bar goes, and the workspace runs the whole height of
+// the display.
 //
 // Unless it is asked to stay. `has-top-bar` is the View menu's switch, and with
-// it on this mode is the same screen as any other with the panes hidden — the
-// bar where it always is, the workspace starting below it. The creature is
-// rendered in the bar rather than in the corner then, so there is one of it
-// either way.
+// it on the bar stays where it always is. The creature is rendered in the bar
+// rather than in the corner then, so there is one of it either way.
 .window-titlebar:has(~ .app-workspace.is-app-full:not(.has-top-bar)) {
   display: none;
 }
 
-#root:has(.app-workspace.is-app-full:not(.has-top-bar)) {
+// The padding goes either way, and the bar floats.
+//
+// It used to go only when the bar was hidden, so keeping the bar meant the
+// picture started below it — a full-screen video with a strip of application
+// across the top of it, and the picture no longer reaching the edges of the
+// display, which is the whole point of the mode.
+//
+// The bar is `position: fixed` already; this padding was only ever reserving a
+// space for it to sit above rather than over. With it gone the picture runs
+// the full height and the bar lies on top of it, which is what its translucent
+// gradient and its blur were built for and never previously used.
+#root:has(.app-workspace.is-app-full) {
   padding-top: 0;
+}
+
+// Clear of the bar that is now lying over the picture.
+//
+// The strip normally starts 8px from the top of the card, and the card now
+// starts at the top of the display — so without this the controls sit behind
+// the title bar, which is a toolbar you can see and cannot press.
+.app-workspace.is-app-full.has-top-bar .live-output-controls,
+.app-workspace.is-app-full.has-top-bar .look-designer {
+  top: calc(#{$title-bar-height} + 8px);
+}
+
+// And it must not run off the bottom having been pushed down.
+//
+// The designer sizes itself against the card, which in this mode is the whole
+// display — so the height it asks for was already the height of the screen, and
+// moving it down by the title bar pushed exactly that much of it off the end.
+.app-workspace.is-app-full.has-top-bar .look-designer {
+  max-height: calc(100vh - #{$title-bar-height} - 24px);
 }
 
 // The graph with the workspace to itself.

@@ -84,6 +84,28 @@ stopped being honest.
   the player used to move you to a different site's front page; now the page you
   were on simply stays, with a note saying what was refused.
 
+- **The spectrum is drawn on a canvas.** Both of them — the one across the
+  graph and the small meter in the title bar. They were built out of SVG paths
+  before, which meant that thirty times a second the browser was handed a fresh
+  description of the shape as text, several thousand characters of it for the
+  denser looks, and asked to re-read it, re-measure it and repaint that part of
+  the window. A canvas is told to draw and draws. Nothing about the looks
+  changed: the same forty-six of them, the same palettes, the same glow, all
+  built by the same code — only what receives the drawing is different.
+- **The graph no longer redraws itself for sound it is not showing.** The chart
+  woke up around twenty-two times a second whether or not the wave was on
+  screen, rebuilt everything it owns, and threw the result away. Now only the
+  parts that actually show live audio listen for it: the wave, the clipping
+  warning, and the measurement overlay.
+- **The controls above the graph sit on a panel of their own** instead of
+  floating loose over the drawing, and in full screen there is one panel rather
+  than a panel inside a panel.
+- **The filter types are drawn against a shared 0 dB line, and named.** They
+  used to sit on two different baselines — a peak rising off the floor next to
+  a low shelf falling from the ceiling — which made a shelf read as a treble
+  cut and made the pairs look swapped. They are mirror images of each other now,
+  and the band editor spells out which is which.
+
 ### Fixed
 
 - **Expanded view and full screen hold steady.** Moving between the two, or
@@ -99,6 +121,29 @@ stopped being honest.
 - **The player says what it refused.** A link that went nowhere used to go
   nowhere silently, which is indistinguishable from a broken page. Refusals,
   failed loads and the page's own errors are now in the log.
+- **Editing several bands at once no longer fails.** Every band in a selection
+  sent its own request, and each of those rewrote the whole Equalizer APO
+  configuration. Ten selected bands meant ten rewrites for one turn of a knob,
+  which was slow enough that the edit gave up and reported a timeout — while
+  having worked. A group edit is one write now. Frequency is left out of it on
+  purpose: it is what tells the bands apart, and moving them all by the same
+  number of hertz stacks them on top of each other.
+- **The band editor closes when you deselect.** It used to fall back to the
+  first band whenever nothing was selected, so clicking away left it open on a
+  band that was highlighted nowhere — and moving a control edited a band you
+  had just let go of.
+- **Less memory is used while the graph is open.** Some of what the graph
+  allocated was never handed back; less of it is now. This is an improvement
+  rather than a conclusion — the remaining growth is still being tracked down,
+  and closing the graph pane has always released it.
+- **The live capture cleans up after itself.** Starting it crosses two points
+  where it can be cancelled, and neither was checked, so a capture could
+  survive the request to stop it — along with a timer and a listener that
+  nothing could reach afterwards.
+- **Euphoria stops doing work nobody can see.** It published a value several
+  times a second that no stylesheet ever read, which made the browser
+  recalculate the whole window's styling for nothing, and it left its glow
+  layers in place after the mode ended.
 
 ---
 

@@ -24,7 +24,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // Every card is fixed-size and top-aligned, so the column keeps exactly the
 // same shape whatever the workspace next to it is showing.
 .side-bar {
-  @include panel-surface($secondary-default, 9%);
+  // The mixin's own mixture. Nine percent made this column visibly greener
+  // than the panels it stands beside, which is a personality nothing asked it
+  // to have.
+  @include panel-surface;
   display: flex;
   min-width: 0;
   flex-direction: column;
