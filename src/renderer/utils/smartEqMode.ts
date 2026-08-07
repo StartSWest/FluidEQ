@@ -36,14 +36,26 @@ import { setContinuousEq } from './continuousEq';
  *
  * Remembered, because it is a way of working rather than a moment's choice.
  */
-export type TSmartEqMode = 'smart' | 'continuous';
+export type TSmartEqMode = 'smart' | 'detail' | 'balance' | 'target';
+
+/** The three that keep running, so callers can ask "is this a continuous one". */
+export const CONTINUOUS_MODES: TSmartEqMode[] = ['detail', 'balance', 'target'];
+
+export const isContinuousMode = (mode: TSmartEqMode) => mode !== 'smart';
 
 const STORAGE_KEY = 'fluideq.smartEqMode';
 
 const read = (): TSmartEqMode => {
   try {
-    return window.localStorage.getItem(STORAGE_KEY) === 'continuous'
-      ? 'continuous'
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    // 'continuous' is what the single continuous mode was called before there
+    // were three; it is the one that fits a line to the record, which is now
+    // 'detail'.
+    if (stored === 'continuous') {
+      return 'detail';
+    }
+    return CONTINUOUS_MODES.includes(stored as TSmartEqMode)
+      ? (stored as TSmartEqMode)
       : 'smart';
   } catch {
     // Storage can be unavailable. The one-shot measurement is the safe default:
@@ -66,7 +78,7 @@ export const setSmartEqMode = (next: TSmartEqMode) => {
   // Leaving Continuous behind switches it off rather than leaving it running
   // out of sight. The button is the only thing that says the mode is on, and a
   // button now showing something else cannot say it.
-  if (mode !== 'continuous') {
+  if (!isContinuousMode(mode)) {
     setContinuousEq(false);
   }
   try {

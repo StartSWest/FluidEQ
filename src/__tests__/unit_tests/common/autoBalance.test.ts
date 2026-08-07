@@ -21,8 +21,10 @@ import {
   buildBalancedGains,
   fitSpectralTilt,
   sampleSpectrumAt,
+  tiltLevelAt,
   ISpectrumSample,
 } from 'renderer/utils/autoBalance';
+import { REFERENCE_SLOPE_DB_PER_DECADE } from 'common/referenceCurve';
 
 const band = (frequency: number, id = `b${frequency}`): IFilter => ({
   id,
@@ -31,6 +33,10 @@ const band = (frequency: number, id = `b${frequency}`): IFilter => ({
   quality: 1,
   type: FilterTypeEnum.PK,
 });
+
+const TEN_BAND = [32, 64, 125, 250, 500, 1000, 2000, 4000, 8000, 16000].map(
+  (frequency) => band(frequency),
+);
 
 /** 320 log-spaced points from 20 Hz to 20 kHz, like the live analyser. */
 const buildSpectrum = (
@@ -140,6 +146,53 @@ describe('autoBalance', () => {
           [],
         ),
       ).toEqual({});
+    });
+  });
+
+  describe('the reference a record is held to', () => {
+    // The three continuous modes differ in one place and this is it: what a
+    // record is held to. Fitted, its own tilt is correct by definition.
+    it('holds a given slope instead of finding one, and still fits the level', () => {
+      const samples = buildSpectrum(
+        (frequency) => -6 * Math.log10(frequency) + 12,
+      );
+
+      // Fitted: the record's own tilt comes back.
+      expect(fitSpectralTilt(samples).slope).toBeCloseTo(-6, 5);
+
+      // Held: the slope is what was asked for, and the level is placed so the
+      // line still sits through the middle of the measurement.
+      const held = fitSpectralTilt(samples, -8);
+      expect(held.slope).toBe(-8);
+      const middle = 1000;
+      expect(tiltLevelAt(held, middle)).toBeCloseTo(
+        -6 * Math.log10(middle) + 12,
+        0,
+      );
+    });
+
+    it('leaves a record alone at its own tilt and lifts a duller one', () => {
+      // Two records, one at the reference slope and one falling twice as fast.
+      // Against a fitted line both are correct; against a held one only the
+      // first is, which is the whole point of the mode.
+      const atReference = buildSpectrum(
+        (frequency) => REFERENCE_SLOPE_DB_PER_DECADE * Math.log10(frequency),
+      );
+      const duller = buildSpectrum(
+        (frequency) =>
+          REFERENCE_SLOPE_DB_PER_DECADE * 2 * Math.log10(frequency),
+      );
+      const reference = { slope: REFERENCE_SLOPE_DB_PER_DECADE };
+
+      const settled = buildBalancedGains(atReference, TEN_BAND, { reference });
+      const lifted = buildBalancedGains(duller, TEN_BAND, { reference });
+      const top = TEN_BAND[TEN_BAND.length - 2].id;
+      const bottom = TEN_BAND[1].id;
+
+      // Already there: nothing worth doing.
+      expect(Math.abs(settled[top] - settled[bottom])).toBeLessThan(1);
+      // Too dark: the top has to come up relative to the bottom.
+      expect(lifted[top] - lifted[bottom]).toBeGreaterThan(2);
     });
   });
 });

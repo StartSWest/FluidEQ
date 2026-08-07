@@ -183,6 +183,15 @@ const es: Partial<Dictionary> = {
   'eq.smart.continuousAria':
     'Mantener el EQ inteligente midiendo y ajustando mientras suena la música',
   'eq.smart.modeAria': 'Elegir cómo mide el EQ inteligente',
+  'eq.smart.mode.once.note': 'Medir una vez y parar',
+  'eq.smart.mode.detail': 'Detalle',
+  'eq.smart.mode.detail.note':
+    'Corrige picos y huecos, conserva el carácter del disco',
+  'eq.smart.mode.balance': 'Equilibrio',
+  'eq.smart.mode.balance.note':
+    'Además iguala lo brillante o cálido que llega cada disco',
+  'eq.smart.mode.target': 'Objetivo',
+  'eq.smart.mode.target.note': 'Lleva todos los discos al mismo balance tonal',
   'eq.layers': 'También aplicado',
   'eq.layers.aria': 'Otros ajustes que afectan a esta salida',
   'eq.layers.eq': 'EQ',

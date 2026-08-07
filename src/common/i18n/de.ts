@@ -182,6 +182,15 @@ const de: Partial<Dictionary> = {
   'eq.smart.continuousAria':
     'Smart EQ misst und justiert weiter, solange Musik läuft',
   'eq.smart.modeAria': 'Wählen, wie Smart EQ misst',
+  'eq.smart.mode.once.note': 'Einmal messen und aufhören',
+  'eq.smart.mode.detail': 'Detail',
+  'eq.smart.mode.detail.note':
+    'Korrigiert Spitzen und Senken, bewahrt den Charakter',
+  'eq.smart.mode.balance': 'Balance',
+  'eq.smart.mode.balance.note':
+    'Gleicht zusätzlich Helligkeit und Wärme der Aufnahmen an',
+  'eq.smart.mode.target': 'Ziel',
+  'eq.smart.mode.target.note': 'Bringt jede Aufnahme auf dieselbe Klangbalance',
   'eq.layers': 'Ebenfalls aktiv',
   'eq.layers.aria': 'Was diesen Ausgang außerdem formt',
   'eq.layers.eq': 'EQ',

@@ -51,6 +51,7 @@ import {
   hasSmartEqLayer,
   stepSmartEqGains,
 } from 'common/smartEq';
+import { getReferenceShape } from 'common/referenceCurve';
 import FrequencyBand from './components/FrequencyBand';
 import { FilterActionEnum, useFluidEqContext } from './utils/FluidEqContext';
 import './styles/MainContent.scss';
@@ -73,7 +74,9 @@ import { LABELLED_FILTER_OPTIONS } from './icons/FilterTypeIcon';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
 import { toggleContinuousEq, useContinuousEq } from './utils/continuousEq';
 import {
+  CONTINUOUS_MODES,
   TSmartEqMode,
+  isContinuousMode,
   setSmartEqMode,
   useSmartEqMode,
 } from './utils/smartEqMode';
@@ -112,7 +115,7 @@ const MAX_BALANCE_ATTEMPTS = 3;
 const GROUP_EDIT_INTERVAL = 100;
 
 /** In the order the picker offers them. */
-const SMART_EQ_MODES: TSmartEqMode[] = ['smart', 'continuous'];
+const SMART_EQ_MODES: TSmartEqMode[] = ['smart', ...CONTINUOUS_MODES];
 
 /**
  * How long after a correction lands before the analyser is believed again.
@@ -173,11 +176,35 @@ const MainContent = () => {
    * to be doing something it is not.
    */
   const isContinuousRunning =
-    smartEqMode === 'continuous' && isContinuousOn && !isSmartBypassed;
+    isContinuousMode(smartEqMode) && isContinuousOn && !isSmartBypassed;
   const smartLabel = isBalancing
     ? t('eq.smart.cancelAria')
     : t('eq.smart.aria');
   const continuousLabel = t('eq.smart.continuousAria');
+  const modeLabel = (entry: TSmartEqMode) => {
+    if (entry === 'detail') {
+      return t('eq.smart.mode.detail');
+    }
+    if (entry === 'balance') {
+      return t('eq.smart.mode.balance');
+    }
+    if (entry === 'target') {
+      return t('eq.smart.mode.target');
+    }
+    return t('eq.smart');
+  };
+  const modeNote = (entry: TSmartEqMode) => {
+    if (entry === 'detail') {
+      return t('eq.smart.mode.detail.note');
+    }
+    if (entry === 'balance') {
+      return t('eq.smart.mode.balance.note');
+    }
+    if (entry === 'target') {
+      return t('eq.smart.mode.target.note');
+    }
+    return t('eq.smart.mode.once.note');
+  };
 
   // Closes on a click elsewhere and on Escape, like every other menu here.
   useEffect(() => {
@@ -219,6 +246,15 @@ const MainContent = () => {
   const longRunTargetRef = useRef<Record<string, number>>({});
   /** How many windows running each band has disagreed with that estimate. */
   const longRunDriftRef = useRef<TSmartEqDrift>({});
+  /**
+   * Which reference the loop is holding records to, read from a ref.
+   *
+   * The capture runs for as long as the mode is on and the callback inside it
+   * is held on a ref for the same reason, so reading the mode through state
+   * would give it whatever was current when the capture started.
+   */
+  const referenceModeRef = useRef(smartEqMode);
+  referenceModeRef.current = smartEqMode;
   /**
    * The running Continuous EQ capture, so the manual button can end it.
    *
@@ -950,6 +986,7 @@ const MainContent = () => {
     // of the smoothed curve is one FFT bin averaged with its neighbours and
     // wanders with the arrangement. See `buildRegionSpectrum`.
     const solved = buildBalancedGains(buildRegionSpectrum(report), bands, {
+      reference: getReferenceShape(referenceModeRef.current),
       targetCurve: buildLayerTargetCurve(
         filtersRef.current,
         voicingRef.current,
@@ -1271,10 +1308,10 @@ const MainContent = () => {
           >
             <Button
               ariaLabel={
-                smartEqMode === 'continuous' ? continuousLabel : smartLabel
+                isContinuousMode(smartEqMode) ? continuousLabel : smartLabel
               }
               isDisabled={
-                smartEqMode === 'continuous'
+                isContinuousMode(smartEqMode)
                   ? !isLiveOutputActive
                   : !isBalancing && !isLiveOutputActive
               }
@@ -1282,10 +1319,10 @@ const MainContent = () => {
               // the Smart EQ button's own look, because it is that button.
               className={`small eq-mode__main${isContinuousRunning ? ' is-running' : ''}`}
               isPressed={
-                smartEqMode === 'continuous' ? isContinuousOn : undefined
+                isContinuousMode(smartEqMode) ? isContinuousOn : undefined
               }
               handleChange={
-                smartEqMode === 'continuous' ? toggleContinuousEq : autoBalance
+                isContinuousMode(smartEqMode) ? toggleContinuousEq : autoBalance
               }
             >
               {isContinuousRunning ? (
@@ -1301,8 +1338,8 @@ const MainContent = () => {
               ) : (
                 <MenuIcon name="smart" className="eq-toolbar__icon" />
               )}
-              {smartEqMode === 'continuous'
-                ? t('eq.smart.continuous')
+              {isContinuousMode(smartEqMode)
+                ? modeLabel(smartEqMode)
                 : (isBalancing && t('eq.smart.cancel')) || t('eq.smart')}
             </Button>
             <button
@@ -1332,10 +1369,15 @@ const MainContent = () => {
                       }}
                     >
                       <MenuIcon name="smart" className="eq-toolbar__icon" />
-                      <span>
-                        {entry === 'continuous'
-                          ? t('eq.smart.continuous')
-                          : t('eq.smart')}
+                      <span className="eq-mode__menu-name">
+                        {modeLabel(entry)}
+                      </span>
+                      {/* Each says what it overrides, because the names alone
+                          cannot: three of them do the same job to three
+                          different depths, and which depth is the whole choice
+                          being made here. */}
+                      <span className="eq-mode__menu-note">
+                        {modeNote(entry)}
                       </span>
                     </button>
                   ),

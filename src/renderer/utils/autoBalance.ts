@@ -24,6 +24,7 @@ import {
   NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
 import { SMART_EQ_MAX_FREQUENCY, SMART_EQ_MIN_FREQUENCY } from 'common/smartEq';
+import { IReferenceShape } from 'common/referenceCurve';
 import { clamp } from './utils';
 
 /**
@@ -331,6 +332,14 @@ export interface IAutoBalanceOptions {
    * anything else cannot converge.
    */
   targetCurve?: ISpectrumSample[];
+  /**
+   * What the record is held to, rather than what it is.
+   *
+   * Empty means the reference is a line fitted to this record, which is the
+   * behaviour every caller had before there was a choice. See
+   * common/referenceCurve for the three shapes and what each overrides.
+   */
+  reference?: IReferenceShape;
 }
 
 const DEFAULTS: Required<IAutoBalanceOptions> = {
@@ -341,6 +350,7 @@ const DEFAULTS: Required<IAutoBalanceOptions> = {
   minConfidence: MIN_BAND_CONFIDENCE,
   relativeToCurrentGain: true,
   targetCurve: [],
+  reference: {},
 };
 
 const clamp01 = (value: number) => clamp(value, 0, 1);
@@ -444,7 +454,23 @@ const solveLinearSystem = (
  * from the fitted tilt removes resonances, boom and honk while leaving the
  * natural balance of the recording intact.
  */
-export const fitSpectralTilt = (samples: ISpectrumSample[]) => {
+export const fitSpectralTilt = (
+  samples: ISpectrumSample[],
+  /**
+   * A slope to hold rather than one to find.
+   *
+   * This is the whole difference between correcting a record's bumps and
+   * correcting the record. Fitted, the slope is whatever this music happens to
+   * have and is therefore correct by definition, so a dull record stays dull.
+   * Held, a record duller than the given slope reads as a deficit and gets
+   * lifted — and, crucially, it stays lifted, because the thing it is compared
+   * against does not move when the music does.
+   *
+   * The intercept is fitted either way. Loopback carries whatever the volume
+   * knob is set to, so an absolute level here means nothing at all.
+   */
+  fixedSlope?: number,
+) => {
   const usable = samples.filter(
     ({ frequency, level }) =>
       frequency > 0 && Number.isFinite(level) && Number.isFinite(frequency),
@@ -470,6 +496,12 @@ export const fitSpectralTilt = (samples: ISpectrumSample[]) => {
 
   if (sumW <= 0) {
     return { slope: 0, intercept: 0 };
+  }
+  // Held slope: only the level is left to find, and the weighted mean of
+  // `level - slope * x` is it.
+  if (Number.isFinite(fixedSlope)) {
+    const slope = fixedSlope as number;
+    return { slope, intercept: (sumY - slope * sumX) / sumW };
   }
   const denominator = sumW * sumXX - sumX * sumX;
   if (Math.abs(denominator) < 1e-9) {
@@ -577,6 +609,7 @@ export const buildBalancedGains = (
     minConfidence,
     relativeToCurrentGain,
     targetCurve,
+    reference,
   } = { ...DEFAULTS, ...options };
 
   const usable = spectrum
@@ -636,11 +669,28 @@ export const buildBalancedGains = (
     confidence: sample.confidence,
   }));
 
-  const fit = fitSpectralTilt(steered);
+  // What this record is being held to.
+  //
+  // A line fitted to the record itself says its own tonal signature is correct
+  // by definition, so only its bumps and dips are corrected. A line at a fixed
+  // slope says nothing of the sort, and a record duller than that slope is
+  // lifted toward it — and stays lifted, because what it is compared against no
+  // longer moves when the music does. The shape on top is the rest of a target
+  // curve, when there is one. See `common/referenceCurve`.
+  const fit = fitSpectralTilt(steered, reference.slope);
+  const hasShape = Boolean(reference.shape?.length);
   const deviation = smoothSpectrum(
     steered.map((sample) => ({
       frequency: sample.frequency,
-      level: sample.level - tiltLevelAt(fit, sample.frequency),
+      level:
+        sample.level -
+        tiltLevelAt(fit, sample.frequency) -
+        (hasShape
+          ? sampleSpectrumAt(
+              reference.shape as ISpectrumSample[],
+              sample.frequency,
+            )
+          : 0),
       confidence: sample.confidence,
     })),
     smoothingOctaves,
