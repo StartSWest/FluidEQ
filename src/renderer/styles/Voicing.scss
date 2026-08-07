@@ -137,7 +137,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: rgba($secondary-light, 0.72);
   border: 1px solid rgba($primary-lighter, 0.14);
   border-radius: $radius-s;
-  background: rgba(#050b12, 0.55);
+  // Was `rgba(#050b12, 0.55)` — a near-black over a panel that now shows the
+  // shell through it, which left this row of cards as the darkest thing on the
+  // page by a wide margin. Same recess, lighter base, less of it.
+  background: rgba(#0b1626, 0.34);
   transition: $transition-control;
 
   .voicing-icon {

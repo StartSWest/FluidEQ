@@ -124,6 +124,26 @@ $motion-slow: 300ms;
   }
 }
 
+/**
+ * The way out of `pop-in`, and deliberately not its reverse.
+ *
+ * Arriving is worth watching — it tells you where the thing came from. Leaving
+ * is not: what matters is that the space is free again, so it goes faster and
+ * shrinks less. A mirror image of the entrance reads as the panel being
+ * reluctant.
+ */
+@keyframes pop-out {
+  from {
+    opacity: 1;
+    scale: 1;
+  }
+
+  to {
+    opacity: 0;
+    scale: 0.94;
+  }
+}
+
 @mixin animate(
   $name,
   $duration: $motion-base,

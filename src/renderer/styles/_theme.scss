@@ -25,6 +25,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @use 'sass:color' as sass-color;
 @use 'color' as *;
+@use 'motion' as *;
 
 // *** Geometry ***************************************************************
 
@@ -46,16 +47,27 @@ $field-padding-inline: 11px;
 // *** Surfaces ***************************************************************
 
 // Deep navy the whole shell sits on.
-$surface-base: #0b1119;
+$surface-base: #0c131d;
 // Card background used by the sidebar, EQ panel, graph and profile columns.
-$surface-panel: #0e1520;
+$surface-panel: #101822;
 
 // Opaque endpoints of the shared card gradient. They are deliberately opaque
 // rather than alpha-over-the-page so that a workspace tab sitting above a
 // panel can reuse the exact same colour and the two read as one surface.
 // Both lean teal rather than violet, matching the shell ambience.
-$panel-top-base: #142131;
-$panel-bottom: #0a121b;
+//
+// These have been wrong in both directions and this pair is the middle of them.
+// At #142131/#0a121b the panels and the page they sit on were within a few
+// values of each other and the window had no structure — a row of controls
+// floating on nothing. At #1b2b3e/#111d2b there was structure and no mood: the
+// cards came forward far enough to read as light grey, which is not what this
+// app is. Halfway keeps the cards distinguishable from the shell without
+// lifting the whole window out of the dark it is supposed to sit in.
+//
+// The distance between the two is what shapes a card, and it is unchanged —
+// only where the pair starts has moved.
+$panel-top-base: #16253a;
+$panel-bottom: #0d1725;
 // Recessed background for fields, menus and inner wells.
 $surface-field: #16303f;
 $surface-field-end: #1b2138;
@@ -98,13 +110,26 @@ $transition-control:
   color: $text-primary;
   border: 1px solid $border-field;
   border-radius: $radius-s;
-  background:
-    linear-gradient(
-      180deg,
-      rgba($surface-field, 0.96),
-      rgba($surface-field-end, 0.97)
-    ),
-    $surface-panel;
+  // Translucent, like the card it is set into.
+  //
+  // This was two nearly-opaque stops over an opaque `$surface-panel` backstop,
+  // which is three ways of saying the same thing: nothing behind a field ever
+  // showed. Now that the panels let the shell through, a field painted solid
+  // was the one element still asserting a flat colour of its own — a dark box
+  // stuck onto a lit surface.
+  //
+  // The backstop goes with the opacity. It existed so the gradient always had
+  // a known colour underneath; what it actually did was guarantee the card
+  // behind could never contribute anything.
+  //
+  // Deliberately more see-through than a panel. A field is a well cut into a
+  // card, and the way that reads is by showing more of what is beneath it, not
+  // less.
+  background: linear-gradient(
+    180deg,
+    rgba($surface-field, 0.6),
+    rgba($surface-field-end, 0.66)
+  );
   box-shadow: inset 0 1px 0 rgba($white, 0.05);
   transition: $transition-control;
 }
@@ -123,25 +148,43 @@ $transition-control:
   }
 }
 
+// Unavailable, not switched off at the wall.
+//
+// This kept the opaque `$surface-panel` backstop after `field-surface` lost it,
+// so a disabled control was the one thing in the window still painting a solid
+// colour — and a dark one, which made "you cannot use this yet" look like "this
+// is broken". Disabled should read as quieter than its neighbours, not as a
+// hole in the panel.
 @mixin field-disabled {
   color: rgba($primary-lighter, 0.5);
   border-color: rgba($primary-lighter, 0.1);
-  background:
-    linear-gradient(180deg, rgba(#16262f, 0.8), rgba(#191c2c, 0.86)),
-    $surface-panel;
+  background: linear-gradient(180deg, rgba(#1a2b38, 0.4), rgba(#1d2334, 0.44));
   box-shadow: none;
   cursor: default;
 }
 
 // Floating menu surface: dropdown lists, the titlebar tool menu, popovers.
+// Lighter, and genuinely translucent — the blur below was already paying for a
+// transparency the colour never used.
+//
+// At 0.985 this was opaque in all but name, so a menu was a dark slab dropped
+// over a window that has since learned to show its own colour through
+// everything else. It stays the most solid surface in the app, because it
+// opens over arbitrary content and the text on it has to win against whatever
+// is behind — but 0.94 of the panel family reads as glass over the workspace
+// rather than as a hole cut in it.
 @mixin menu-surface {
   border: 1px solid rgba($secondary-light, 0.22);
   border-radius: $radius-l;
-  background: linear-gradient(
-    155deg,
-    rgba(#0f1c29, 0.985),
-    rgba(#131427, 0.985)
-  );
+  // Every menu built on this surface arrives the same way.
+  //
+  // Emitted here rather than per component for the same reason the euphoria
+  // rule below is: a dropdown added later cannot forget to do it. Short and
+  // slightly springy — a menu is a response to a click that has already
+  // happened, so it should feel like it was waiting rather than like it is
+  // being fetched.
+  @include animate(pop-in, $motion-fast, $ease-spring);
+  background: linear-gradient(155deg, rgba(#18293e, 0.94), rgba(#141f31, 0.94));
   box-shadow:
     0 18px 44px rgba($black, 0.5),
     0 0 28px rgba($secondary-default, 0.08),
@@ -185,11 +228,50 @@ $transition-control:
 @mixin panel-surface($accent: $secondary-default, $amount: 6%) {
   border: 1px solid $border-panel;
   border-radius: $radius-xl;
-  background: linear-gradient(
+  // The ramp reaches its end at the foot of the window, not two thirds up it.
+  //
+  // 62% was measured against the panel's own height, where it meant "most of
+  // the way down this card". Against the viewport it means the bottom third of
+  // the *window* is flat `$panel-bottom` — so every panel went uniformly dark
+  // below that line and the shell lost its gradient exactly where most of the
+  // controls are.
+  //
+  // Translucent, so the shell shows through.
+  //
+  // These endpoints were opaque on purpose, so that a tab panel sitting above
+  // another panel could reuse the exact colour and the two would read as one
+  // surface. That argument is spent: `background-attachment: fixed` below
+  // already guarantees two panels at the same height are the same colour,
+  // whatever they are stacked on.
+  //
+  // What opacity cost was the page underneath — the shell carries four radial
+  // washes of cyan and teal, and every panel painted straight over them, so
+  // the app's own ambience only ever showed in the gaps between cards. At this
+  // alpha the washes come through the panels as a tint rather than a haze, and
+  // the window stops being a set of flat slabs on a coloured background and
+  // becomes one lit surface. Far enough from transparent that text keeps its
+  // contrast, which is the only hard limit here.
+  background-image: linear-gradient(
     180deg,
-    panel-top($accent, $amount) 0%,
-    $panel-bottom 62%
+    rgba(panel-top($accent, $amount), 0.86) 0%,
+    rgba($panel-bottom, 0.86) 100%
   );
+  // Measured against the window, not against the panel.
+  //
+  // The gradient used to run over whatever box it landed on, so a panel's
+  // colour depended on how tall that panel happened to be: the tab page above
+  // the graph is a fraction of the height of the column beside it, so it
+  // reached `$panel-bottom` far higher up the screen and read as a darker
+  // surface than the one it was supposed to match. Four panels, four heights,
+  // four different colours from one mixin.
+  //
+  // `fixed` anchors the background to the viewport, so every panel is showing
+  // one continuous ramp sampled at its own place on screen. Two panels level
+  // with each other are now the same colour whatever their sizes, which is
+  // what this mixin existed to guarantee and could not.
+  background-attachment: fixed;
+  background-size: 100% 100vh;
+  background-repeat: no-repeat;
   box-shadow:
     inset 0 1px 0 rgba($white, 0.035),
     0 20px 48px rgba($black, 0.2);
@@ -198,10 +280,17 @@ $transition-control:
 // Recessed well used inside cards (mapping summary, sidebar control chips,
 // the profile list). Derived from the panel's own bottom colour so a well
 // reads as a dip in the card rather than a black hole punched through it.
+// A well cut into a card, and it reads as one by showing more of what is
+// underneath rather than by being painted darker.
+//
+// At 62% of a near-black it was doing the opposite: a solid dark patch on a
+// panel that now lets the shell's colour through, so the wells were the only
+// flat black left in the window. Lower alpha over a lighter base gets the same
+// recess with the card and the shell still visible in it.
 @mixin inset-surface {
   border: 1px solid rgba($secondary-light, 0.13);
   border-radius: $radius-m;
-  background: rgba(#0a141f, 0.62);
+  background: rgba(#0b1626, 0.4);
   box-shadow: inset 0 1px 3px rgba($black, 0.28);
 }
 

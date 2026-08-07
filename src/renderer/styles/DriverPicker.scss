@@ -123,7 +123,10 @@
       rgba($secondary-default, 0.08),
       transparent 70%
     ),
-    rgba(#050b12, 0.55);
+    // The same lift the voicing cards got — off a near-black onto the wells
+    // the rest of the window uses. These two rows are the same control in two
+    // panels and were drifting apart.
+    rgba(#0b1626, 0.34);
 }
 
 .driver-curve {

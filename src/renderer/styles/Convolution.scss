@@ -104,7 +104,11 @@
   color: rgba($primary-lighter, 0.66);
   border: 1px solid rgba($primary-lighter, 0.1);
   border-radius: $radius-xs;
-  background: rgba($primary-default, 0.38);
+  // Was `rgba($primary-default, 0.38)` — the purple family, which is where
+  // every surface in this file came from and where none of the rest of the app
+  // is any more. Against teal panels a violet-black note reads as a hole rather
+  // than as a recess.
+  background: rgba(#0b1626, 0.34);
   font-size: 0.7rem;
   line-height: 1.45;
 }
@@ -132,7 +136,10 @@
   gap: 12px;
   border: 1px solid rgba($primary-lighter, 0.11);
   border-radius: $radius-s;
-  background: rgba($primary-dark, 0.48);
+  // Same move as the note above: off `$primary-dark`, which is nearly black and
+  // faintly violet, and onto the wells the rest of the window uses. A list this
+  // long is mostly this colour, so it was the single biggest dark area left.
+  background: rgba(#0b1626, 0.36);
 
   &__details {
     display: flex;

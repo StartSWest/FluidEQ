@@ -83,9 +83,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  // Arrows only appear on hover/focus so dense band columns stay quiet.
-  // `visibility` keeps their column reserved, so revealing them never nudges
-  // the number sideways.
+  // Quiet at rest rather than absent.
+  //
+  // These were `visibility: hidden` until the pointer arrived, which kept dense
+  // band columns calm and had a cost nobody had paid attention to: on a field
+  // you are looking straight at — the preamp, the frequency and gain boxes in
+  // the editor — there was no indication the control could be stepped at all.
+  // A stepper you have to discover by hovering is one most people never find.
+  //
+  // Faint is enough. The number is the thing being read and it keeps all of the
+  // contrast; the arrows are there to be noticed once, and then to be reachable
+  // without hunting. Opacity rather than visibility for the same reason
+  // visibility was chosen over display: the column stays reserved either way,
+  // so nothing shifts sideways when they come up to full.
   .arrows {
     display: flex;
     flex: 0 0 auto;
@@ -93,7 +103,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: $spacing-xxs;
     padding: 3px 5px 3px 1px;
     background: none;
-    visibility: hidden;
+    opacity: 0.5;
+    transition: opacity 140ms ease;
 
     svg {
       width: 12px;
@@ -103,7 +114,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:hover .arrows,
   .input-wrapper:focus-within .arrows {
-    visibility: visible;
+    opacity: 1;
   }
 
   // Marks an edited-but-unsaved value. It is a flow item so it can never sit

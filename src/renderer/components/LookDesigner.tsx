@@ -321,6 +321,14 @@ const SettingSlider = ({
 
 interface ILookDesignerProps {
   onClose: () => void;
+  /**
+   * The panel is on its way out and should play its exit before it goes.
+   *
+   * Owned by the chart rather than by this component, because the thing that
+   * has to wait is the unmount, and only the owner can delay that. All this
+   * does is put the class on.
+   */
+  isClosing?: boolean;
 }
 
 /**
@@ -338,7 +346,7 @@ interface ILookDesignerProps {
  * edge. A thumbnail would be a second analyser, a second animation loop and a
  * smaller, less honest picture.
  */
-const LookDesigner = ({ onClose }: ILookDesignerProps) => {
+const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
   // Where this panel started, worked out once.
   //
   // Opening it on a look the user made edits that look; opening it on one of
@@ -558,7 +566,7 @@ const LookDesigner = ({ onClose }: ILookDesignerProps) => {
 
   return (
     <div
-      className="look-designer"
+      className={`look-designer${isClosing ? ' is-closing' : ''}`}
       role="dialog"
       aria-label={origin.isEditing ? 'Edit look' : 'Create look'}
     >
