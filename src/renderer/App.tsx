@@ -220,9 +220,20 @@ const AppContent = () => {
   // why leaving it running would strand a faded workspace.
   const isChromeIdle = useIsChromeIdle();
   useEffect(() => {
-    watchChromeIdle(isAppFullScreen);
+    // Every mode the graph is drawn in, not only the ones that fill the screen.
+    //
+    // This started as a full-screen behaviour on the theory that a toolbar only
+    // gets in the way once the picture is the whole window. It gets in the way
+    // in the ordinary view too: the strip lies over the top of the plot, which
+    // is where the peaks go, and the controls on it are ones you reach for
+    // occasionally and then look past for minutes at a time.
+    //
+    // Tied to the graph being on screen at all rather than to `true`, so that
+    // with the pane closed there is no listener on the window watching a
+    // pointer for the benefit of something that is not rendered.
+    watchChromeIdle(isGraphViewOn);
     return () => watchChromeIdle(false);
-  }, [isAppFullScreen]);
+  }, [isGraphViewOn]);
 
   /**
    * Take the window fullscreen when the graph asks for it.

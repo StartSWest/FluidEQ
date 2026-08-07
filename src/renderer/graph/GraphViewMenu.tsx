@@ -55,7 +55,7 @@ interface IGraphViewMenuProps {
   onCycleOrientation: () => void;
   /**
    * How much of what is behind the card shows through, and how hard it is
-   * blurred. Only meaningful in full screen, and only offered there.
+   * blurred. Meaningful in both of the larger modes, and offered in both.
    */
   overlayOpacity: number;
   onChangeOverlayOpacity: (next: number) => void;
@@ -364,29 +364,44 @@ const GraphViewMenu = ({
               waveform. A menu has vertical space to spend and the strip has
               none.
 
-              Full screen only, because it is the only mode where the card has
-              anything behind it worth seeing. */}
-          {view === 'fullscreen' && (
+              Both of the larger modes, not full screen alone. They were full
+              screen only, on the reasoning that it is the only mode where the
+              card has anything behind it — and that is not what the stylesheet
+              says. `--graph-overlay-opacity` and `--graph-overlay-filter` are
+              read under `.center-workspace.is-graph-full`, which is set for
+              expanded as well: the card floats over whichever editor is open
+              and these two decide how much of it comes through. Offering the
+              sliders in one of the two modes they work in was already odd
+              while the value was shared, because full screen could at least set
+              it for both. Now that each mode keeps its own it would be a
+              setting expanded has and cannot reach. */}
+          {view !== 'normal' && (
             <>
               <div className="graph-view-menu__divider" />
 
               {/* One switch for the whole bar rather than one per piece. The
                   parts of it are not independently useful — a waveform with no
-                  creature beside it is the same bar with a hole in it. */}
-              <button
-                type="button"
-                role="menuitemcheckbox"
-                aria-checked={hasTopBar}
-                onClick={choose(onToggleTopBar)}
-              >
-                <Icon>
-                  <path d="M2.5 2.5h11v11h-11z" />
-                  <path d="M2.5 6h11" />
-                </Icon>
-                <span>
-                  {hasTopBar ? 'Hide the top bar' : 'Show the top bar'}
-                </span>
-              </button>
+                  creature beside it is the same bar with a hole in it.
+
+                  Full screen alone, this one: it is the mode that takes the
+                  app's own chrome away, so it is the only one with a top bar to
+                  argue about. */}
+              {view === 'fullscreen' && (
+                <button
+                  type="button"
+                  role="menuitemcheckbox"
+                  aria-checked={hasTopBar}
+                  onClick={choose(onToggleTopBar)}
+                >
+                  <Icon>
+                    <path d="M2.5 2.5h11v11h-11z" />
+                    <path d="M2.5 6h11" />
+                  </Icon>
+                  <span>
+                    {hasTopBar ? 'Hide the top bar' : 'Show the top bar'}
+                  </span>
+                </button>
+              )}
 
               <label
                 className="graph-view-menu__slider"

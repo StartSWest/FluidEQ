@@ -64,6 +64,11 @@ const STORAGE_KEY = 'fluideq-graph-style';
 const VIEW_KEYS = {
   wave: 'fluideq.graphWaveHidden',
   solo: 'fluideq.graphSolo',
+  // Two of these are not keys any more but *stems*. The grid and the stretch
+  // are kept once per view mode, under `<stem>.normal`, `<stem>.expanded` and
+  // `<stem>.fullscreen` — see `createPerViewSetting` at the foot of this file,
+  // which is also the only thing that still reads the bare stem, once, to move
+  // an older install's value across.
   grid: 'fluideq.graphGridHidden',
   stretch: 'fluideq.graphStretched',
   orientation: 'fluideq.waveOrientation',
@@ -87,9 +92,29 @@ const writeStored = (key: string, value: string) => {
   }
 };
 
+const removeStored = (key: string) => {
+  try {
+    window.localStorage.removeItem(key);
+  } catch {
+    // Only reachable if storage is unavailable altogether, in which case the
+    // write that was supposed to replace this key did nothing either and there
+    // is nothing to be inconsistent about.
+  }
+};
+
 const readStoredFlag = (key: string): boolean => readStored(key) === 'true';
 
 const listeners = new Set<() => void>();
+
+/**
+ * Every per-view setting's "your value has changed underneath you" call.
+ *
+ * Filled by `createPerViewSetting` and rung by `setGraphView`. It lives up here
+ * with the rest of the storage machinery because the two ends are far apart in
+ * the file: the thing that rings it is the view store in the middle, and the
+ * things that fill it are all at the bottom.
+ */
+const perViewEmitters = new Set<() => void>();
 
 /**
  * What the picker points at.
@@ -319,6 +344,16 @@ const setLiveOutputSolo = (next: boolean) => {
   if (next === isSolo) {
     return;
   }
+  // Wave only, with the wave switched off, is an empty graph.
+  //
+  // The two settings were independent and one combination of them showed
+  // nothing at all: solo drops the EQ curves, hiding the wave drops the trace,
+  // and together they leave a grid. Asking for the wave alone is asking for the
+  // wave, so it comes back — see `setWaveHidden` for the other half of this,
+  // which is the same rule approached from the other side.
+  if (next && isWaveHidden) {
+    setWaveHidden(false);
+  }
   isSolo = next;
   writeStored(VIEW_KEYS.solo, String(isSolo));
   soloListeners.forEach((listener) => listener());
@@ -341,23 +376,6 @@ export const useLiveOutputSolo = () =>
   );
 
 /**
- * Whether the grid, the axes and their labels are drawn.
- *
- * Separate from solo, which hides the *curves* — the EQ response, the voicing,
- * the driver. This hides the paper they are drawn on: the decibel scale down
- * the side, the frequency marks along the bottom, the lines between them.
- *
- * Two switches because they are two different things to want. Solo is for
- * reading the live trace without four other curves across it, and the grid is
- * exactly what you keep for that — a spectrum with no scale is a pretty shape
- * rather than a measurement. Turning the grid off is for when it has stopped
- * being a measurement on purpose: a visualiser, over a video, with the graph
- * pared back to nothing but the wave.
- *
- * Not persisted, like the modes it sits beside. A graph that comes back with no
- * axes is a graph somebody will report as broken.
- */
-/**
  * Whether the live wave is drawn at all.
  *
  * Distinct from solo, which hides the *other* curves, and from the grid, which
@@ -373,10 +391,25 @@ let isWaveHidden = readStoredFlag(VIEW_KEYS.wave);
 
 const waveListeners = new Set<() => void>();
 
-export const toggleGraphWave = () => {
-  isWaveHidden = !isWaveHidden;
+function setWaveHidden(next: boolean) {
+  if (next === isWaveHidden) {
+    return;
+  }
+  isWaveHidden = next;
   writeStored(VIEW_KEYS.wave, String(isWaveHidden));
   waveListeners.forEach((listener) => listener());
+}
+
+export const toggleGraphWave = () => {
+  const next = !isWaveHidden;
+  // The other half of the rule in `setLiveOutputSolo`: with the curves already
+  // dropped by solo, taking the wave away as well would leave a bare grid. The
+  // curves come back rather than the request being refused, because a control
+  // that quietly does nothing is worse than one that does something sensible.
+  if (next && isSolo) {
+    setLiveOutputSolo(false);
+  }
+  setWaveHidden(next);
 };
 
 const subscribeWave = (listener: () => void) => {
@@ -390,30 +423,6 @@ export const useGraphWaveHidden = () =>
   useSyncExternalStore(
     subscribeWave,
     () => isWaveHidden,
-    () => false,
-  );
-
-let isGridHidden = readStoredFlag(VIEW_KEYS.grid);
-
-const gridListeners = new Set<() => void>();
-
-export const toggleGraphGrid = () => {
-  isGridHidden = !isGridHidden;
-  writeStored(VIEW_KEYS.grid, String(isGridHidden));
-  gridListeners.forEach((listener) => listener());
-};
-
-const subscribeGrid = (listener: () => void) => {
-  gridListeners.add(listener);
-  return () => {
-    gridListeners.delete(listener);
-  };
-};
-
-export const useGraphGridHidden = () =>
-  useSyncExternalStore(
-    subscribeGrid,
-    () => isGridHidden,
     () => false,
   );
 
@@ -509,43 +518,6 @@ export const useWaveOrientation = () =>
   );
 
 /**
- * Whether the plot fills the card or keeps its share of it.
- *
- * The larger modes centre the drawing at two thirds of the card's height, on
- * the reasoning that a frequency response stretched over a whole monitor is a
- * shape that says nothing except that the window is tall. That is right for
- * reading a response and wrong for watching one: a spectrum used as a
- * visualiser wants every pixel it can have, and the vertical exaggeration that
- * ruins a measurement is exactly what makes a wave worth looking at.
- *
- * So it is a switch rather than a decision made here, and it sits beside the
- * others in the view menu.
- */
-let isStretched = readStoredFlag(VIEW_KEYS.stretch);
-
-const stretchListeners = new Set<() => void>();
-
-export const toggleGraphStretch = () => {
-  isStretched = !isStretched;
-  writeStored(VIEW_KEYS.stretch, String(isStretched));
-  stretchListeners.forEach((listener) => listener());
-};
-
-const subscribeStretch = (listener: () => void) => {
-  stretchListeners.add(listener);
-  return () => {
-    stretchListeners.delete(listener);
-  };
-};
-
-export const useGraphStretched = () =>
-  useSyncExternalStore(
-    subscribeStretch,
-    () => isStretched,
-    () => false,
-  );
-
-/**
  * How much of the screen the graph has, in three steps.
  *
  * Held here rather than in the chart because the things that have to move are
@@ -606,6 +578,15 @@ export const setGraphView = (next: TGraphView) => {
   if (wasFullScreen !== (next === 'fullscreen')) {
     applyWindowFullScreen?.(next === 'fullscreen');
   }
+  // Every per-view setting has a new answer now, and not one of them was set.
+  //
+  // Their getters already read the right thing the instant `view` moved — they
+  // index the current mode. What has not happened is anybody being told, and
+  // `useSyncExternalStore` re-reads only when its subscription fires. Without
+  // this line the chart and the View menu keep drawing the mode they came from
+  // until some unrelated render knocks them out of it, which on screen is
+  // indistinguishable from the setting never having been saved.
+  perViewEmitters.forEach((emit) => emit());
   fullScreenListeners.forEach((listener) => listener());
 };
 
@@ -648,3 +629,194 @@ export const useGraphView = () =>
  * the mode and having to be found again when a third one appears.
  */
 export const useGraphFullScreen = () => useGraphView() !== 'normal';
+
+/**
+ * A setting the graph keeps one of per view mode.
+ *
+ * These were one value each, shared by all three modes, and that turned out to
+ * be wrong about what they are. Hiding the grid is the sort of thing somebody
+ * does on the way *into* full screen — full screen is where the graph stops
+ * being a measurement and becomes something to watch — and it is the first
+ * thing they want back when the window is a pane among panes again. One shared
+ * value made the return trip cost a second visit to the menu, every time, in
+ * both directions, which is how a setting ends up not being used.
+ *
+ * What is deliberately *not* here is the look. Which visualiser is on the graph
+ * follows you between the modes, because it is a choice about the thing being
+ * drawn rather than about how much of the screen it has, and a picker that
+ * silently pointed somewhere else after Ctrl+F would be its own bug.
+ *
+ * Held as three loaded values rather than a read from storage per access:
+ * `useSyncExternalStore` asks its getter on every render of every subscriber,
+ * and `localStorage.getItem` is a synchronous trip out of the JavaScript heap.
+ */
+export interface IPerViewSetting<T> {
+  /** The value for whichever mode the graph is in right now. */
+  get: () => T;
+  /** Sets it for the current mode only; the other two are left alone. */
+  set: (next: T) => void;
+  subscribe: (listener: () => void) => () => void;
+}
+
+/**
+ * The stored keys are the old flat key with the mode appended —
+ * `fluideq.graphGridHidden.expanded`. Appending rather than prefixing keeps the
+ * three of them sorted next to each other and next to their old name, which is
+ * what anybody reading the storage in devtools is actually trying to do.
+ *
+ * Exported because `graphOverlay` needs the same thing for the see-through
+ * sliders, and the machinery has to live on this side: it is keyed by the
+ * current view, which is this file's business. The dependency runs one way —
+ * overlay knows about the view, the view knows nothing about overlay.
+ */
+export const createPerViewSetting = <T>(
+  /** The old flat key, now the stem that the three real keys hang off. */
+  stem: string,
+  fallback: T,
+  parse: (raw: string) => T,
+  serialize: (value: T) => string,
+): IPerViewSetting<T> => {
+  const keyFor = (mode: TGraphView) => `${stem}.${mode}`;
+
+  /**
+   * What somebody already had, carried across — once, on the first read after
+   * the update that split these.
+   *
+   * All three modes are seeded from the one old value rather than one mode
+   * being picked to inherit it. Whatever was set was set with no notion of
+   * modes at all, so it is equally true of every one of them; giving it to one
+   * would mean an app that appears to have forgotten a setting for two thirds
+   * of the time it is used.
+   *
+   * The old key is then removed rather than kept as a fallback. A fallback
+   * would work and would leave the format ambiguous forever: every future
+   * reader would have to understand both shapes, and there would never be a
+   * point at which the flat key could be dropped, because nothing would
+   * distinguish a migrated install from a fresh one. Deleting it makes the
+   * presence of a flat key mean exactly one thing — this storage was last
+   * written by a build from before the split, and that value is the truth for
+   * all three modes, including any per-view keys an in-between build left
+   * behind.
+   */
+  const legacy = readStored(stem);
+  if (legacy !== null) {
+    GRAPH_VIEWS.forEach((mode) => writeStored(keyFor(mode), legacy));
+    removeStored(stem);
+  }
+
+  // Written out rather than built by folding `GRAPH_VIEWS`, so that adding a
+  // fourth mode is a compiler error here rather than a mode that quietly reads
+  // `undefined` and draws whatever that coerces to.
+  const values: Record<TGraphView, T> = {
+    normal: fallback,
+    expanded: fallback,
+    fullscreen: fallback,
+  };
+  GRAPH_VIEWS.forEach((mode) => {
+    const raw = readStored(keyFor(mode));
+    if (raw !== null) {
+      values[mode] = parse(raw);
+    }
+  });
+
+  const settingListeners = new Set<() => void>();
+  const emit = () => {
+    settingListeners.forEach((listener) => listener());
+  };
+
+  perViewEmitters.add(emit);
+
+  return {
+    get: () => values[view],
+    set: (next: T) => {
+      if (next === values[view]) {
+        return;
+      }
+      values[view] = next;
+      writeStored(keyFor(view), serialize(next));
+      emit();
+    },
+    subscribe: (listener: () => void) => {
+      settingListeners.add(listener);
+      return () => {
+        settingListeners.delete(listener);
+      };
+    },
+  };
+};
+
+const parseFlag = (raw: string) => raw === 'true';
+const serializeFlag = (value: boolean) => String(value);
+
+/**
+ * Whether the grid, the axes and their labels are drawn.
+ *
+ * Separate from solo, which hides the *curves* — the EQ response, the voicing,
+ * the driver. This hides the paper they are drawn on: the decibel scale down
+ * the side, the frequency marks along the bottom, the lines between them.
+ *
+ * Two switches because they are two different things to want. Solo is for
+ * reading the live trace without four other curves across it, and the grid is
+ * exactly what you keep for that — a spectrum with no scale is a pretty shape
+ * rather than a measurement. Turning the grid off is for when it has stopped
+ * being a measurement on purpose: a visualiser, over a video, with the graph
+ * pared back to nothing but the wave.
+ *
+ * Which is the whole argument for it being per mode. That last sentence
+ * describes full screen and nothing else, and the same person editing bands in
+ * the normal view wants every label they can get.
+ */
+const gridSetting = createPerViewSetting(
+  VIEW_KEYS.grid,
+  false,
+  parseFlag,
+  serializeFlag,
+);
+
+export const toggleGraphGrid = () => {
+  gridSetting.set(!gridSetting.get());
+};
+
+/**
+ * The same answer outside a render, for the same reason `getGraphView` exists
+ * beside `useGraphView`: not everything that needs to know is a component.
+ */
+export const getGraphGridHidden = () => gridSetting.get();
+
+export const useGraphGridHidden = () =>
+  useSyncExternalStore(gridSetting.subscribe, gridSetting.get, () => false);
+
+/**
+ * Whether the plot fills the card or keeps its share of it.
+ *
+ * The larger modes centre the drawing at two thirds of the card's height, on
+ * the reasoning that a frequency response stretched over a whole monitor is a
+ * shape that says nothing except that the window is tall. That is right for
+ * reading a response and wrong for watching one: a spectrum used as a
+ * visualiser wants every pixel it can have, and the vertical exaggeration that
+ * ruins a measurement is exactly what makes a wave worth looking at.
+ *
+ * So it is a switch rather than a decision made here, and it sits beside the
+ * others in the view menu — one per mode, because reading and watching are
+ * usually done in different ones.
+ */
+const stretchSetting = createPerViewSetting(
+  VIEW_KEYS.stretch,
+  false,
+  parseFlag,
+  serializeFlag,
+);
+
+export const toggleGraphStretch = () => {
+  stretchSetting.set(!stretchSetting.get());
+};
+
+/** Outside a render. See `getGraphGridHidden`. */
+export const getGraphStretched = () => stretchSetting.get();
+
+export const useGraphStretched = () =>
+  useSyncExternalStore(
+    stretchSetting.subscribe,
+    stretchSetting.get,
+    () => false,
+  );

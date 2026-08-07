@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'react';
+import { createPerViewSetting } from './graphStyle';
 
 /**
  * How much of the page shows through the full-screen graph.
@@ -39,6 +40,14 @@ import { useSyncExternalStore } from 'react';
  * Persisted. It is a preference about how somebody likes to look at their own
  * screen, not a mode, and having to set it again every launch is how a setting
  * ends up never being used.
+ *
+ * Persisted once per view mode, at that. The two larger modes are both cards
+ * laid over the workspace and both read these variables, but they are laid over
+ * different things: expanded floats over whatever editor is open, full screen
+ * over a video with everything else gone. Glass is the obvious answer to one of
+ * those and often the wrong answer to the other, and a single shared value made
+ * choosing for one a choice for both. These are stems rather than keys for that
+ * reason — see `createPerViewSetting`, which owns the naming and the migration.
  */
 const OPACITY_KEY = 'fluideq.graphOverlayOpacity';
 const BLUR_KEY = 'fluideq.graphOverlayBlur';
@@ -72,73 +81,66 @@ export const MAX_OVERLAY_BLUR = 40;
 const clamp = (value: number, low: number, high: number) =>
   Math.min(high, Math.max(low, value));
 
-const readStored = (
-  key: string,
-  fallback: number,
-  low: number,
-  high: number,
-) => {
-  try {
-    const raw = window.localStorage.getItem(key);
-    if (raw === null) {
-      return fallback;
-    }
+/**
+ * Anything that is not a number is the default rather than a refusal.
+ *
+ * What is in storage was written by some build of this app, but not
+ * necessarily this one, and it is a string either way. A slider given `NaN`
+ * stops responding to the pointer entirely — there is no position for it to be
+ * at — so a value that cannot be read is treated as one that was never set.
+ * Clamped as well as parsed, because the bounds have moved once already and
+ * will again.
+ */
+const parseNumber =
+  (fallback: number, low: number, high: number) => (raw: string) => {
     const value = Number(raw);
     return Number.isFinite(value) ? clamp(value, low, high) : fallback;
-  } catch {
-    return fallback;
-  }
-};
+  };
 
-let opacity = readStored(OPACITY_KEY, DEFAULT_OPACITY, MIN_OVERLAY_OPACITY, 1);
-let blur = readStored(BLUR_KEY, DEFAULT_BLUR, 0, MAX_OVERLAY_BLUR);
+const serializeNumber = (value: number) => String(value);
 
-const listeners = new Set<() => void>();
+const opacitySetting = createPerViewSetting(
+  OPACITY_KEY,
+  DEFAULT_OPACITY,
+  parseNumber(DEFAULT_OPACITY, MIN_OVERLAY_OPACITY, 1),
+  serializeNumber,
+);
 
-const publish = (key: string, value: number) => {
-  try {
-    window.localStorage.setItem(key, String(value));
-  } catch {
-    // A preference that cannot be written is not worth failing a drag over.
-  }
-  listeners.forEach((listener) => listener());
-};
+const blurSetting = createPerViewSetting(
+  BLUR_KEY,
+  DEFAULT_BLUR,
+  parseNumber(DEFAULT_BLUR, 0, MAX_OVERLAY_BLUR),
+  serializeNumber,
+);
 
+// Clamped here as well as on the way out of storage. The store keeps whatever
+// it is handed, and these are driven by a range input whose bounds are props —
+// which is one refactor away from being wrong.
 export const setOverlayOpacity = (next: number) => {
-  const value = clamp(next, MIN_OVERLAY_OPACITY, 1);
-  if (value === opacity) {
-    return;
-  }
-  opacity = value;
-  publish(OPACITY_KEY, value);
+  opacitySetting.set(clamp(next, MIN_OVERLAY_OPACITY, 1));
 };
 
 export const setOverlayBlur = (next: number) => {
-  const value = clamp(Math.round(next), 0, MAX_OVERLAY_BLUR);
-  if (value === blur) {
-    return;
-  }
-  blur = value;
-  publish(BLUR_KEY, value);
+  blurSetting.set(clamp(Math.round(next), 0, MAX_OVERLAY_BLUR));
 };
 
-const subscribe = (listener: () => void) => {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-};
+/**
+ * The same two values outside a render, for the same reason the graph store has
+ * `getGraphView` beside `useGraphView`.
+ */
+export const getOverlayOpacity = () => opacitySetting.get();
+export const getOverlayBlur = () => blurSetting.get();
 
 export const useOverlayOpacity = () =>
   useSyncExternalStore(
-    subscribe,
-    () => opacity,
+    opacitySetting.subscribe,
+    opacitySetting.get,
     () => DEFAULT_OPACITY,
   );
 
 export const useOverlayBlur = () =>
   useSyncExternalStore(
-    subscribe,
-    () => blur,
+    blurSetting.subscribe,
+    blurSetting.get,
     () => DEFAULT_BLUR,
   );

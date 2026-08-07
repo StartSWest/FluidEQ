@@ -79,6 +79,38 @@ let isIdle = false;
 let isWatching = false;
 let timer: number | undefined;
 
+/**
+ * Put away by hand, rather than by the clock running out.
+ *
+ * The two are the same state on screen and must not behave the same way. Fading
+ * because nobody has moved is a guess, and any movement should take it back —
+ * that is the whole contract of an auto-hiding toolbar. Being dismissed with a
+ * click is not a guess: somebody said to put it away, and the next twitch of
+ * the mouse is not them changing their mind.
+ *
+ * Without this the click did work, for a few milliseconds. `pointermove` counts
+ * as activity, so releasing the button, or a hand resting on the mouse, brought
+ * the toolbar straight back and the click read as having done nothing at all.
+ *
+ * Cleared by the click that asks for the chrome back, and by leaving the mode.
+ */
+let isDismissed = false;
+
+/**
+ * Something on screen needs the chrome to stay put.
+ *
+ * The look designer is the case this exists for: it is a panel opened from the
+ * toolbar, sitting beside it, and every control in it is judged against the
+ * drawing behind. Letting the strip fade while that is open takes away the
+ * controls the panel was opened from, and does it at the exact moment somebody
+ * has stopped moving the mouse to look at what they just changed.
+ *
+ * A hold rather than a dismissal in reverse: those two are decisions about what
+ * the user wants, and this is a statement that the question does not apply
+ * right now.
+ */
+let isHeld = false;
+
 const listeners = new Set<() => void>();
 
 const emit = () => listeners.forEach((listener) => listener());
@@ -109,6 +141,18 @@ const handleActivity = (event?: Event) => {
   if (event?.type === 'keydown' && isQuietKey(event as KeyboardEvent)) {
     return;
   }
+  // Nothing wakes a toolbar that was dismissed on purpose. Only the click
+  // asking for it back does, and that comes in through `toggleChromeNow`
+  // without an event.
+  if (isDismissed && event) {
+    return;
+  }
+  // Held open: present, and no clock running to take it away again.
+  if (isHeld) {
+    setIdle(false);
+    clearTimer();
+    return;
+  }
   setIdle(false);
   clearTimer();
   timer = window.setTimeout(() => setIdle(true), CHROME_IDLE_MS);
@@ -126,14 +170,40 @@ const handleActivity = (event?: Event) => {
  * Showing restarts the clock, so a click to look at something is followed by
  * the same fade as any other reveal.
  */
+/**
+ * Keep the chrome on screen regardless, while something needs it there.
+ *
+ * Releasing restarts the clock as though the pointer had just moved, so the
+ * toolbar does not vanish the instant a panel is closed — the thing that was
+ * holding it open going away is not the same as somebody walking off.
+ */
+export const setChromeHeld = (next: boolean) => {
+  if (next === isHeld) {
+    return;
+  }
+  isHeld = next;
+  if (next) {
+    // A hold outranks a dismissal: whatever was put away by hand is needed now.
+    isDismissed = false;
+    clearTimer();
+    setIdle(false);
+    return;
+  }
+  handleActivity();
+};
+
 export const toggleChromeNow = () => {
-  if (!isWatching) {
+  if (!isWatching || isHeld) {
     return;
   }
   if (isIdle) {
+    isDismissed = false;
     handleActivity();
     return;
   }
+  // Dismissed rather than merely faded, so that moving the mouse afterwards
+  // leaves it where it was put.
+  isDismissed = true;
   clearTimer();
   setIdle(true);
 };
@@ -167,6 +237,12 @@ export const watchChromeIdle = (next: boolean) => {
     window.removeEventListener(event, handleActivity),
   );
   clearTimer();
+  // A dismissal belongs to the mode it was made in. Carrying it out would mean
+  // the next time this mode opened, the toolbar was already hidden and no
+  // amount of moving the mouse would explain why. A hold is dropped for the
+  // same reason: whatever was asking for it is gone with the mode.
+  isDismissed = false;
+  isHeld = false;
   setIdle(false);
 };
 
