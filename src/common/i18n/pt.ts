@@ -181,6 +181,7 @@ const pt: Partial<Dictionary> = {
   'eq.smart.continuousAria':
     'Continuar a medir e ajustar o EQ enquanto a música toca',
   'eq.smart.continuous.tracking': 'EQ contínuo: a ajustar',
+  'eq.smart.continuous.paused': 'EQ contínuo: em pausa, correção mantida',
   'eq.layers': 'Também aplicado',
   'eq.layers.aria': 'Outros ajustes que afetam esta saída',
   'eq.layers.eq': 'EQ',

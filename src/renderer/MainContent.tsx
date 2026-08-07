@@ -1051,9 +1051,33 @@ const MainContent = () => {
             isDisabled={!isLiveOutputActive}
             className={`small subtle${isContinuousOn ? ' is-on' : ''}`}
             isPressed={isContinuousOn}
-            handleChange={toggleContinuousEq}
+            handleChange={() => {
+              // Pausing leaves the correction exactly where it stands — this
+              // stops the measuring, it does not undo anything. Said in the
+              // status line because the button going dark is the same thing it
+              // looks like when the mode was never on, and somebody who has
+              // just pressed it wants to know which of the two happened.
+              setBalanceStatus(
+                isContinuousOn ? t('eq.smart.continuous.paused') : '',
+              );
+              toggleContinuousEq();
+            }}
           >
-            <MenuIcon name="smart" className="eq-toolbar__icon" />
+            {isContinuousOn ? (
+              // A pause bar while it runs, because that is what pressing it
+              // does next. The Smart EQ glyph beside it already says what the
+              // mode is about.
+              <svg
+                className="eq-toolbar__icon"
+                viewBox="0 0 16 16"
+                aria-hidden
+                fill="currentColor"
+              >
+                <path d="M5 3h2.2v10H5zM8.8 3H11v10H8.8z" />
+              </svg>
+            ) : (
+              <MenuIcon name="smart" className="eq-toolbar__icon" />
+            )}
             {t('eq.smart.continuous')}
           </Button>
           {balanceStatus && (

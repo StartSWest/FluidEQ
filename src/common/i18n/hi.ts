@@ -187,6 +187,7 @@ const hi: Partial<Dictionary> = {
   'eq.smart.continuousAria':
     'संगीत चलते समय स्मार्ट EQ मापता और समायोजित करता रहे',
   'eq.smart.continuous.tracking': 'निरंतर EQ - समायोजन जारी',
+  'eq.smart.continuous.paused': 'निरंतर EQ - रुका हुआ, सुधार बना रहेगा',
   'eq.layers': 'यह भी लागू है',
   'eq.layers.aria': 'इस आउटपुट पर और क्या असर डाल रहा है',
   'eq.layers.eq': 'EQ',

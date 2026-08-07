@@ -183,6 +183,8 @@ const fr: Partial<Dictionary> = {
   'eq.smart.continuousAria':
     'Continuer à mesurer et ajuster l’égalisation pendant la lecture',
   'eq.smart.continuous.tracking': 'Égalisation continue : ajustement',
+  'eq.smart.continuous.paused':
+    'Égalisation continue : en pause, correction conservée',
   'eq.layers': 'Également appliqué',
   'eq.layers.aria': 'Autres traitements appliqués à cette sortie',
   'eq.layers.eq': 'EQ',

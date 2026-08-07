@@ -181,6 +181,8 @@ const ru: Partial<Dictionary> = {
   'eq.smart.continuousAria':
     'Продолжать измерять и подстраивать эквалайзер во время музыки',
   'eq.smart.continuous.tracking': 'Непрерывный эквалайзер - подстройка',
+  'eq.smart.continuous.paused':
+    'Непрерывный эквалайзер - пауза, коррекция сохранена',
   'eq.layers': 'Также применено',
   'eq.layers.aria': 'Что ещё влияет на этот выход',
   'eq.layers.eq': 'Эквалайзер',

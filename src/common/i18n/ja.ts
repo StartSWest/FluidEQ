@@ -179,6 +179,7 @@ const ja: Partial<Dictionary> = {
   'eq.smart.continuous': '連続',
   'eq.smart.continuousAria': '再生中もスマート EQ の測定と調整を続ける',
   'eq.smart.continuous.tracking': '連続 EQ - 調整中',
+  'eq.smart.continuous.paused': '連続 EQ - 一時停止、補正はそのまま',
   'eq.layers': '同時に適用中',
   'eq.layers.aria': 'この出力に効いているその他の処理',
   'eq.layers.eq': 'EQ',
