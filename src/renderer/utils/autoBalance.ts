@@ -1495,6 +1495,57 @@ export const describeBalanceProgress = (progress: IBalanceProgress): string => {
   return `Listening ${progress.percent}% - needs ${progress.weakestLabel}`;
 };
 
+/**
+ * How far a range has to average before it is worth naming, in dB.
+ *
+ * Under a decibel is not a thing anybody can hear on a broad band, and saying
+ * it would turn a description into a readout — nine ranges all reporting a
+ * fraction, none of it audible, changing every time it is looked at.
+ */
+export const NAMEABLE_CORRECTION_DB = 0.8;
+
+/** At most this many, biggest first. A list of nine is not a description. */
+export const MAX_NAMED_RANGES = 3;
+
+/**
+ * What a correction is actually doing, in words, from the gains it applied.
+ *
+ * Read off the layer rather than off the measurement, and that is the whole
+ * point: the measurement is what was heard, which is a claim about the room the
+ * app cannot verify, while the gains are what FluidEQ has done and can be
+ * checked against the config file on disk. Nothing here is inferred, guessed or
+ * rounded up to sound impressive — a range is named only if the bands inside it
+ * really do average that far from zero.
+ *
+ * By range and not by band, because "more air" is a sentence and "+1.2 at 10k,
+ * +0.9 at 12.5k, +1.4 at 8k" is a table. The ranges are the same nine the
+ * measurement already reports coverage for, so the words line up with the
+ * columns drawn on the graph while it listens.
+ */
+export const describeCorrectionShape = (filters: IFilter[]): string => {
+  const named = BALANCE_REGION_LABELS.map((label, index) => {
+    const low = BALANCE_REGION_EDGES[index];
+    const high = BALANCE_REGION_EDGES[index + 1];
+    const inside = filters.filter(
+      (filter) => filter.frequency >= low && filter.frequency < high,
+    );
+    const mean = inside.length
+      ? inside.reduce((total, filter) => total + filter.gain, 0) / inside.length
+      : 0;
+    return { label, mean };
+  })
+    .filter((entry) => Math.abs(entry.mean) >= NAMEABLE_CORRECTION_DB)
+    .sort((left, right) => Math.abs(right.mean) - Math.abs(left.mean))
+    .slice(0, MAX_NAMED_RANGES)
+    // Verbs, because this is a thing being done rather than a column of
+    // numbers. "Lifting air" is what somebody would say about it out loud;
+    // "air +2.4" is what the config file already says, better.
+    .map((entry) => `${entry.mean > 0 ? 'lifting' : 'easing'} ${entry.label}`);
+
+  const said = named.join(', ');
+  return said ? said.charAt(0).toUpperCase() + said.slice(1) : '';
+};
+
 export const describeBalanceResult = (result: IBalanceResult): string => {
   if (result.status === 'ready') {
     return 'Balanced - full range';

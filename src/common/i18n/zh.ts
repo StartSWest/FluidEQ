@@ -178,7 +178,7 @@ const zh: Partial<Dictionary> = {
   'eq.smart.mode.balance': '平衡',
   'eq.smart.mode.balance.note': '持续测量 · 同时统一明亮与温暖',
   'eq.smart.mode.target': '目标',
-  'eq.smart.mode.target.note': '持续测量 · 每张唱片归于同一曲线',
+  'eq.smart.mode.target.note': '持续测量 · 每张唱片归于你的音色，或内置曲线',
   'eq.layers': '同时生效',
   'eq.layers.aria': '还有什么在影响这个输出',
   'eq.layers.eq': '均衡器',

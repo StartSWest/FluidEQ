@@ -85,25 +85,41 @@ export const REFERENCE_SLOPE_DB_PER_DECADE = -8;
 /**
  * How the target departs from that line, in dB.
  *
- * Deliberately small. This is added on top of a slope that already does most of
- * the work, and every decibel here is a decibel of somebody's mastering being
- * overruled — so it says only the three things worth saying:
+ * DEPARTURES FROM THE SLOPED LINE, NOT FROM FLAT — and getting that wrong is
+ * exactly what the first version of this did. It carried a bass shelf, +3 dB at
+ * 35 Hz, on the reasoning that every target curve has one. Every target curve
+ * has one *relative to flat*; this one is added to a line that already rises
+ * eight decibels per decade toward the bottom, which is nearly twelve decibels
+ * of lift at 40 Hz before the shelf is even applied.
  *
- *   a little weight underneath, because a line alone leaves the bottom octave
- *   thinner than any record intends;
+ * So the bass was counted twice, and the symptom was precise: on material with
+ * perfectly good low end, Target kept reporting that it was lifting the deep
+ * bass. It was — into a region where records genuinely have little, because the
+ * reference was asking for more than any master delivers. What it bought was
+ * rumble and lost headroom.
+ *
+ * The bottom is now pulled back rather than pushed. Below about 60 Hz the line
+ * over-promises for real music, which mostly rolls away down there on purpose,
+ * and it is also where a loopback measurement is least worth believing.
+ *
+ * What is left says two things:
  *
  *   a little presence, which is the "sharp" everybody means when they say a mix
  *   sounds dull, and which sits where the ear is most sensitive;
  *
- *   a little off the very top, where a loopback measurement is mostly codec
- *   hash and lifting it lifts the hash.
+ *   a little off the very top, where the measurement is mostly codec hash and
+ *   lifting it lifts the hash.
  *
- * Between the points the solver interpolates, so four of them describe a smooth
- * curve rather than four steps.
+ * The punch comes from the slope, which already puts real weight under a record
+ * without any help from here.
+ *
+ * Between the points the solver interpolates, so these describe a smooth curve
+ * rather than a set of steps.
  */
 export const REFERENCE_SHAPE: IReferencePoint[] = [
-  { frequency: 35, level: 3 },
-  { frequency: 120, level: 1.5 },
+  { frequency: 35, level: -3 },
+  { frequency: 60, level: -1 },
+  { frequency: 150, level: 0 },
   { frequency: 700, level: 0 },
   { frequency: 3000, level: 1.5 },
   { frequency: 8000, level: 0 },
@@ -124,13 +140,40 @@ export interface IReferenceShape {
  * Which covers the one-shot measurement: pressing Smart EQ by hand is a
  * different act from choosing what records should sound like, and it keeps the
  * behaviour it always had.
+ *
+ * A VOICING REPLACES THE BUILT-IN SHAPE, and the reason it does so by being
+ * *removed* rather than substituted is worth following, because the opposite
+ * looks more obvious and is wrong.
+ *
+ * The voicing is already applied. It is in the chain, it is in the output, and
+ * it is in the measurement — and the solve subtracts it, along with the bands
+ * and the driver correction, before deciding anything. So what the correction
+ * drives to the reference is the programme alone, and the voicing lands on top
+ * of the result afterwards, in the chain, where it always was.
+ *
+ * Which means adding the built-in shape as well would apply two curves: the
+ * voicing you chose and a target you did not, stacked. Leaving the shape out
+ * makes the programme flat to the line and the voicing the only thing shaping
+ * it — the output follows the voicing exactly, which is what picking one ought
+ * to mean.
+ *
+ * So with a voicing, Target and Balance do the same thing. That is not a
+ * degenerate case, it is the correct one: the difference between them is which
+ * curve is imposed, and when you have named a curve there is nothing left to
+ * choose.
  */
-export const getReferenceShape = (mode: string): IReferenceShape => {
+export const getReferenceShape = (
+  mode: string,
+  isVoicingActive = false,
+): IReferenceShape => {
   if (mode === 'balance') {
     return { slope: REFERENCE_SLOPE_DB_PER_DECADE };
   }
   if (mode === 'target') {
-    return { slope: REFERENCE_SLOPE_DB_PER_DECADE, shape: REFERENCE_SHAPE };
+    return {
+      slope: REFERENCE_SLOPE_DB_PER_DECADE,
+      ...(isVoicingActive ? {} : { shape: REFERENCE_SHAPE }),
+    };
   }
   return {};
 };

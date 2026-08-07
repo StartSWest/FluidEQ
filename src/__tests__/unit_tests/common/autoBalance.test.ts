@@ -18,7 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { FilterTypeEnum, IFilter } from 'common/constants';
 import {
+  MAX_NAMED_RANGES,
   buildBalancedGains,
+  describeCorrectionShape,
   fitSpectralTilt,
   sampleSpectrumAt,
   tiltLevelAt,
@@ -146,6 +148,49 @@ describe('autoBalance', () => {
           [],
         ),
       ).toEqual({});
+    });
+  });
+
+  describe('describing what a correction did', () => {
+    // The whole requirement is that these words are read off the gains that are
+    // applied, so nothing here is allowed to say something the bands do not.
+    const at = (frequency: number, gain: number) => ({
+      ...band(frequency, `b${frequency}`),
+      gain,
+    });
+
+    it('names the direction each range actually moved', () => {
+      expect(describeCorrectionShape([at(10000, 3), at(100, -2)])).toBe(
+        'Lifting air, easing bass',
+      );
+    });
+
+    it('says nothing about a range nobody could hear it in', () => {
+      // Under a decibel on a broad band is not audible, and nine ranges each
+      // reporting a fraction is a readout rather than a description.
+      expect(describeCorrectionShape([at(1000, 0.5), at(100, -0.7)])).toBe('');
+      expect(describeCorrectionShape([])).toBe('');
+    });
+
+    it('leads with the biggest and stops at three', () => {
+      const said = describeCorrectionShape([
+        at(50, 1),
+        at(200, -2),
+        at(1000, 4),
+        at(3000, -3),
+        at(12000, 1.5),
+      ]);
+
+      expect(said.split(', ')).toHaveLength(MAX_NAMED_RANGES);
+      // 1 kHz is in `upper mids` — the region edges are 560 and 1120, not the
+      // round numbers the name suggests.
+      expect(said.startsWith('Lifting upper mids')).toBe(true);
+    });
+
+    it('averages a range rather than reporting its loudest band', () => {
+      // Two bands in the same range pulling opposite ways is a range that has
+      // not moved, and saying "more bass" for it would be the fake thing.
+      expect(describeCorrectionShape([at(75, 4), at(120, -4)])).toBe('');
     });
   });
 

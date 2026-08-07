@@ -32,7 +32,7 @@ import {
   setSmartEq as setSmartEqApi,
   setVoicing as setVoicingApi,
 } from '../utils/equalizerApi';
-import { formatBalanceFrequency } from '../utils/autoBalance';
+import { useSmartEqMode } from '../utils/smartEqMode';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
 import { ColorEnum, SecondaryColorEnum } from '../styles/color';
@@ -97,6 +97,14 @@ const ActiveLayers = () => {
   } = useFluidEqContext();
   const { t } = useTranslation();
   const isContinuousOn = useContinuousEq();
+  const smartEqMode = useSmartEqMode();
+  /** Which of the four wrote this layer, in the words the picker uses. */
+  const modeName = {
+    smart: t('eq.smart'),
+    detail: t('eq.smart.mode.detail'),
+    balance: t('eq.smart.mode.balance'),
+    target: t('eq.smart.mode.target'),
+  }[smartEqMode];
 
   const isBypassed = (layer: TApoLayer) => bypassed.includes(layer);
 
@@ -272,18 +280,20 @@ const ActiveLayers = () => {
       key: 'smart',
       icon: 'smart',
       label: t('eq.layers.smart'),
-      // A partial measurement corrected the range it managed to hear and left
-      // the rest alone, so saying which range is the difference between a
-      // result and a mystery.
-      name:
-        smartEq?.status === 'partial' &&
-        smartEq.lowFrequency &&
-        smartEq.highFrequency
-          ? t('eq.layers.smart.range', {
-              low: formatBalanceFrequency(smartEq.lowFrequency),
-              high: formatBalanceFrequency(smartEq.highFrequency),
-            })
-          : t('eq.layers.smart.fullRange'),
+      // Which mode wrote it, and nothing else.
+      //
+      // Four modes write this one layer, so the chip naming none of them could
+      // not say why the correction looks the way it does — and that matters,
+      // because Detail and Target disagree about what a record should sound
+      // like.
+      //
+      // What the correction is *doing* used to be here as well and has moved to
+      // the bubble on the button. This row is a list of what is applied, read
+      // at a glance; a sentence that changes as the mode works belongs with the
+      // thing that is working, and having it in both places made the row shift
+      // under the eye while nothing about the layer had actually changed. The
+      // pip beside it already says whether it is running.
+      name: modeName,
       clearHint: t('eq.layers.clearSmart'),
       isLive: isContinuousOn && !isBypassed('smart'),
       onClear: async () => {

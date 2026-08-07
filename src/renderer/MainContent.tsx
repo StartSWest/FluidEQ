@@ -52,6 +52,7 @@ import {
   stepSmartEqGains,
 } from 'common/smartEq';
 import { getReferenceShape } from 'common/referenceCurve';
+import { getVoicingProfile } from 'common/voicing';
 import FrequencyBand from './components/FrequencyBand';
 import { FilterActionEnum, useFluidEqContext } from './utils/FluidEqContext';
 import './styles/MainContent.scss';
@@ -86,6 +87,7 @@ import {
   buildBalancedGains,
   describeBalanceProgress,
   describeBalanceResult,
+  describeCorrectionShape,
 } from './utils/autoBalance';
 import { buildLayerTargetCurve } from './utils/layerTargetCurve';
 import { planBandReveal, revealBands } from './utils/bandReveal';
@@ -93,6 +95,7 @@ import VoicingQuickPick from './components/VoicingQuickPick';
 import ActiveLayers from './components/ActiveLayers';
 import MenuIcon from './icons/MenuIcon';
 import TrashIcon from './icons/TrashIcon';
+import { PetArt } from './SupportPet';
 import { useTranslation } from './utils/I18nContext';
 
 /**
@@ -134,6 +137,37 @@ const CONTINUOUS_SETTLE_MS = 750;
 
 /** After this, an outstanding write is treated as lost rather than pending. */
 const CONTINUOUS_APPLY_TIMEOUT_MS = 10000;
+
+/**
+ * The least time between two corrections.
+ *
+ * Separate from the settle above, which is about the analyser being lied to for
+ * a moment while Equalizer APO reloads. This one is about the person in the
+ * room. Checkpoints arrive about once a second, and a mode that is allowed to
+ * act on every one of them is a mode that can rewrite the config a dozen times
+ * a minute and announce each — which is exhausting to sit next to even when
+ * every individual correction is right.
+ *
+ * Twenty seconds, with a deadband large enough that most checkpoints have
+ * nothing to say anyway. Together they turn the mode from something fidgeting
+ * constantly into something that speaks up when it has a reason to.
+ */
+const CONTINUOUS_QUIET_MS = 20000;
+
+/**
+ * How long the bubble stays up after the last thing it had to say.
+ *
+ * It is a remark, not a readout. These modes run for hours and are silent for
+ * most of that — nothing is written once a correction has settled — so a bubble
+ * that stayed put would be a stale sentence hanging over the toolbar all
+ * evening, describing something that finished long ago.
+ *
+ * Long enough to read twice, and reset by anything new, so a measurement
+ * reporting progress every second keeps it up for as long as it is working. An
+ * unchanged message does not reset it: saying the same thing again is not news,
+ * and by then the correction has stopped moving.
+ */
+const STATUS_LINGER_MS = 6000;
 
 const MainContent = () => {
   const {
@@ -241,6 +275,8 @@ const MainContent = () => {
   const applySettledAtRef = useRef(0);
   /** Regions to clear once it has: what they heard mid-change is not evidence. */
   const pendingResetRef = useRef<number[]>([]);
+  /** The floor between two corrections — see CONTINUOUS_QUIET_MS. */
+  const quietUntilRef = useRef(0);
   /**
    * Where the correction is heading, averaged over every window so far.
    *
@@ -308,6 +344,56 @@ const MainContent = () => {
       // not worth the banner over the whole workspace.
     });
   }, [smartEqMode, setSmartEq]);
+
+  /**
+   * A new voicing is a new destination, so the correction starts again.
+   *
+   * The same staleness as a mode change, arrived at from the other side: the
+   * layer already applied was solved with the old voicing subtracted from the
+   * measurement and — under Target — aimed at the old voicing's curve. Keep it
+   * and the new voicing lands on top of a correction built for the last one,
+   * which is a third shape neither of them describes.
+   *
+   * Said out loud, too, because this is the one change made somewhere else
+   * entirely: somebody picks Music at the far end of the toolbar and the
+   * correction quietly rebuilds itself over the next minute. A mode working
+   * away on something nobody pressed reads as the app being wrong.
+   */
+  // Said, then gone. See `STATUS_LINGER_MS`.
+  useEffect(() => {
+    if (!balanceStatus) {
+      return undefined;
+    }
+    const timer = window.setTimeout(
+      () => setBalanceStatus(''),
+      STATUS_LINGER_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [balanceStatus]);
+
+  const voicingId = voicing?.profileId ?? '';
+  const previousVoicingRef = useRef(voicingId);
+  useEffect(() => {
+    if (previousVoicingRef.current === voicingId) {
+      return;
+    }
+    previousVoicingRef.current = voicingId;
+    if (!isContinuousMode(smartEqMode) || !isContinuousOn) {
+      return;
+    }
+    const name = getVoicingProfile(voicingId)?.name;
+    setBalanceStatus(
+      name ? `${name} — matching the new voicing` : 'Voicing off — remeasuring',
+    );
+    if (!hasSmartEqLayer(smartEqRef.current)) {
+      return;
+    }
+    setSmartEq(undefined);
+    setSmartEqApi(undefined).catch(() => {
+      // Rebuilt within a window either way.
+    });
+  }, [voicingId, smartEqMode, isContinuousOn, setSmartEq]);
+
   /**
    * The running Continuous EQ capture, so the manual button can end it.
    *
@@ -925,7 +1011,20 @@ const MainContent = () => {
           setSmartEq(measured);
         }
 
-        setBalanceStatus(describeBalanceResult(result));
+        // What was heard, and then what was done about it. The first half was
+        // all this said for a long time, and it is the half the app cannot be
+        // held to: it describes a measurement. The second half is the gains it
+        // wrote, which are on disk and can be argued with.
+        {
+          const shape = describeCorrectionShape(
+            Object.values(measured?.filters ?? {}),
+          );
+          setBalanceStatus(
+            shape
+              ? `${describeBalanceResult(result)} · ${shape}`
+              : describeBalanceResult(result),
+          );
+        }
         break;
       }
     } catch (e) {
@@ -1027,6 +1126,14 @@ const MainContent = () => {
       return stale;
     }
 
+    // Not yet, whatever the measurement says. Checked after the stale clear
+    // above rather than before it, because throwing away contaminated frames is
+    // housekeeping the quiet window has no business delaying — it is about how
+    // often the correction may CHANGE, not about how often the loop may think.
+    if (Date.now() < quietUntilRef.current) {
+      return [];
+    }
+
     // Read fresh each time rather than carried: over an evening the user will
     // have moved a band, loaded a profile, cleared the layer. Every one of
     // those makes the gains a held copy started from wrong.
@@ -1059,7 +1166,13 @@ const MainContent = () => {
     // total is capped. None of that is true of a single measurement applied
     // whole.
     const solved = buildBalancedGains(report.samples, bands, {
-      reference: getReferenceShape(referenceModeRef.current),
+      // A voicing, when there is one, is the curve records are aimed at — see
+      // `getReferenceShape` for why that means leaving the built-in one out
+      // rather than swapping it in.
+      reference: getReferenceShape(
+        referenceModeRef.current,
+        Boolean(voicingRef.current?.profileId),
+      ),
       targetCurve: buildLayerTargetCurve(
         filtersRef.current,
         voicingRef.current,
@@ -1149,14 +1262,25 @@ const MainContent = () => {
       .finally(() => {
         isApplyingRef.current = false;
         applySettledAtRef.current = Date.now() + CONTINUOUS_SETTLE_MS;
+        // The two windows do different jobs and both start now: the short one
+        // is the analyser being lied to while APO reloads, the long one is how
+        // often anybody should have to notice this mode at all.
+        quietUntilRef.current = Date.now() + CONTINUOUS_QUIET_MS;
         pendingResetRef.current = moved.map(({ index }) => index);
       });
 
-    // Nothing written to the status line. This runs for hours and moves half a
-    // decibel at a time, so a running commentary beside the button is noise on
-    // screen permanently in exchange for saying what the button already says by
-    // being lit and breathing. The status line belongs to the manual
-    // measurement, which is a thing somebody is waiting on.
+    // What the correction is doing, not what just happened to it.
+    //
+    // An earlier version narrated each step — which ranges moved this time —
+    // and that was noise: it changed every few seconds, said nothing that
+    // outlived the sentence, and sat on screen permanently. This says what the
+    // whole correction currently amounts to, read off the gains that are in the
+    // config file. So it holds still once the mode has settled, because by then
+    // the answer really is not changing, and it is checkable: every word of it
+    // corresponds to bands somebody can go and look at.
+    setBalanceStatus(
+      describeCorrectionShape(Object.values(measured?.filters ?? {})),
+    );
     return moved.map(({ index }) => index);
   };
 
@@ -1189,6 +1313,7 @@ const MainContent = () => {
     // no longer exists, would both be applied to the wrong session.
     isApplyingRef.current = false;
     applySettledAtRef.current = 0;
+    quietUntilRef.current = 0;
     pendingResetRef.current = [];
     // A fresh session starts with no opinion. The last one may have been
     // measuring a different output, a different headphone, or a chain the
@@ -1468,12 +1593,23 @@ const MainContent = () => {
                 ),
               )}
             </AnchoredMenu>
+            {/* What it is doing, said by the pet, from the button itself.
+                It was a bare run of text sitting in the row, which put a
+                sentence that changes among a line of controls that do not and
+                made the toolbar reflow every time the wording changed. Hung off
+                the button it belongs to, it is obviously about that button —
+                and the creature saying it is the same one that reacts to the
+                music everywhere else in the app, so the app has one voice
+                rather than a label here and a character there. */}
+            {balanceStatus && (
+              <span className="eq-mode__bubble" role="status">
+                <span className="eq-mode__bubble-pet" aria-hidden>
+                  <PetArt />
+                </span>
+                <span className="eq-mode__bubble-text">{balanceStatus}</span>
+              </span>
+            )}
           </span>
-          {balanceStatus && (
-            <span className="eq-toolbar__status" role="status">
-              {balanceStatus}
-            </span>
-          )}
           <Button
             ariaLabel={t('eq.clear')}
             isDisabled={false}

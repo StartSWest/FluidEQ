@@ -188,7 +188,8 @@ const it: Partial<Dictionary> = {
   'eq.smart.mode.balance.note':
     'Continua a misurare · uniforma anche brillantezza e calore',
   'eq.smart.mode.target': 'Obiettivo',
-  'eq.smart.mode.target.note': 'Continua a misurare · ogni disco su una curva',
+  'eq.smart.mode.target.note':
+    'Continua a misurare · ogni disco al tuo voicing, o a una curva integrata',
   'eq.layers': 'Applicato anche',
   'eq.layers.aria': 'Cos’altro sta modellando questa uscita',
   'eq.layers.eq': 'EQ',

@@ -298,16 +298,24 @@ export const smartEqFromFilters = (
 /**
  * How far one continuous update is allowed to move a band, in dB.
  *
- * The whole difference between Continuous EQ and pressing the button is here.
- * A solve answers "where should this band be", and applying that answer whole
- * is a step somebody hears; applying a fraction of it and solving again is a
- * correction that arrives without ever announcing itself.
+ * RARELY, AND THEN PROPERLY — which is a reversal, and the reason is worth
+ * keeping.
  *
- * Half a decibel is below the level at which a broad change reads as an event
- * rather than as the sound simply being like that, and with an update every ten
- * seconds it still crosses the whole of the range below in about two minutes.
+ * It was half a decibel, chosen so a correction would arrive without ever
+ * announcing itself: below the level at which a broad change reads as an event.
+ * That worked, and it made the mode a nuisance to live with. Half a decibel at
+ * a time means six writes to close a three-decibel gap, six config rewrites,
+ * six reloads, and six times the app pipes up to say what it just did. The
+ * arrival was imperceptible and the fuss around it was not.
+ *
+ * Two decibels, and only for a range that is far enough out to be worth
+ * correcting at all — see `CONTINUOUS_TRIGGER_DB`, which is now larger than
+ * this. That pairing is the whole design: nothing happens until something is
+ * genuinely wrong, and then one step very nearly fixes it. A range three
+ * decibels out is corrected once and falls inside the deadband, rather than
+ * being nudged at for a minute.
  */
-export const CONTINUOUS_STEP_DB = 0.5;
+export const CONTINUOUS_STEP_DB = 2;
 
 /**
  * How far the accumulated correction may go, per band, in dB.
@@ -336,7 +344,7 @@ export const CONTINUOUS_MAX_DB = 6;
  * different room, a genuinely different balance — is the one thing that starts
  * it moving again.
  */
-export const CONTINUOUS_TRIGGER_DB = 1;
+export const CONTINUOUS_TRIGGER_DB = 2.5;
 
 /**
  * How much of one window's answer to believe.
@@ -372,6 +380,12 @@ export const CONTINUOUS_MEMORY = 0.15;
  * three decibels out, is not: the estimate is simply no longer describing what
  * is being played, and the honest response is to take the new answer whole
  * rather than creep toward it.
+ *
+ * This is the fast half of the pair, and it is what keeps the raised deadband
+ * from making the mode sluggish. Something genuinely and suddenly different —
+ * other headphones, another room, a source with a different balance — is
+ * adopted outright within a few windows, where an ordinary drift has to earn
+ * its way past the threshold slowly.
  *
  * Both numbers matter and they do different jobs. The threshold decides what
  * counts as disagreement at all; the count is what stops a single unusual track

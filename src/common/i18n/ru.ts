@@ -188,7 +188,8 @@ const ru: Partial<Dictionary> = {
   'eq.smart.mode.balance.note':
     'Измеряет постоянно · выравнивает яркость и теплоту',
   'eq.smart.mode.target': 'Цель',
-  'eq.smart.mode.target.note': 'Измеряет постоянно · все записи к одной кривой',
+  'eq.smart.mode.target.note':
+    'Измеряет постоянно · все записи к вашему тембру или встроенной кривой',
   'eq.layers': 'Также применено',
   'eq.layers.aria': 'Что ещё влияет на этот выход',
   'eq.layers.eq': 'Эквалайзер',

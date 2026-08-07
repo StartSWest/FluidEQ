@@ -192,7 +192,7 @@ const fr: Partial<Dictionary> = {
     'Continue de mesurer · uniformise aussi brillance et chaleur',
   'eq.smart.mode.target': 'Cible',
   'eq.smart.mode.target.note':
-    'Continue de mesurer · chaque disque vers une courbe',
+    'Continue de mesurer · chaque disque vers votre voicing, ou une courbe intégrée',
   'eq.layers': 'Également appliqué',
   'eq.layers.aria': 'Autres traitements appliqués à cette sortie',
   'eq.layers.eq': 'EQ',

@@ -221,7 +221,8 @@ const en = {
   'eq.smart.mode.balance.note':
     'Keeps measuring · also evens out bright and warm',
   'eq.smart.mode.target': 'Target',
-  'eq.smart.mode.target.note': 'Keeps measuring · every record to one curve',
+  'eq.smart.mode.target.note':
+    'Keeps measuring · every record to your voicing, or a built-in curve',
   'eq.layers': 'Also applied',
   'eq.layers.aria': 'Also shaping this output',
   'eq.layers.eq': 'EQ',

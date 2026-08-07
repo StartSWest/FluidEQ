@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'color' as *;
 @use 'constant' as *;
 @use 'spacing' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 // *** Panel heading and toolbar **********************************************
@@ -82,6 +83,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
 }
 
+// The caret segment width, shared by the segment itself and by the bubble that
+// starts where the label ends rather than past it.
+$eq-caret-width: 24px;
+
 // Smart EQ and its caret, drawn as one control.
 //
 // The button keeps exactly the look it had — it is still the same button, and
@@ -135,7 +140,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .eq-mode__caret {
     display: inline-flex;
-    width: 24px;
+    width: $eq-caret-width;
     align-items: center;
     justify-content: center;
     padding: 0;
@@ -181,10 +186,145 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// The other measurement, under the button that is not it.
+// What the correction is doing, said from the button that is doing it.
 //
-// Right-aligned to the caret rather than left-aligned to the button, so it
-// hangs off the thing that opened it.
+// Absolutely positioned so it cannot push the toolbar around: the sentence
+// changes as the mode works, and a row of eleven controls that reflows every
+// time a word gets longer is a row nobody can aim at. It takes no clicks
+// either — it is the app talking, not another thing to press.
+.eq-mode__bubble {
+  position: absolute;
+  z-index: 5;
+  // Above the pair, and starting where the label ends rather than past the
+  // caret. The caret is the control for opening the menu; a bubble hanging off
+  // it would read as belonging to the menu instead of to the mode that is
+  // running.
+  bottom: calc(100% + 9px);
+  left: calc(100% - #{$eq-caret-width});
+  display: flex;
+  // `max-content`, and it is not a nicety.
+  //
+  // An absolutely positioned box shrink-wraps to what is left of its containing
+  // block after the offset — and the offset here is nearly the whole width of a
+  // small button, so the box was given about two dozen pixels to lay a sentence
+  // out in and wrapped it one word per line into a tall lozenge. Sizing to the
+  // content instead lets it be as wide as it needs, and the cap stops a long
+  // one running off across the panel.
+  width: max-content;
+  max-width: 300px;
+  align-items: center;
+  padding: 6px 11px 6px 8px;
+  border: 1px solid rgba($secondary-light, 0.5);
+  // A rounded rectangle rather than a pill: a pill radius on a box that is
+  // sometimes two lines tall turns into a lozenge, which is what it did.
+  border-radius: $radius-m;
+  // The row's own cyan, lit rather than dark. It is the app speaking, and the
+  // app speaks in cyan everywhere else — a near-black card here read as another
+  // panel that had appeared rather than as a remark from the button.
+  background: linear-gradient(
+    160deg,
+    rgba($secondary-default, 0.24),
+    rgba($secondary-default, 0.13)
+  );
+  box-shadow:
+    0 10px 26px rgba($black, 0.45),
+    0 0 22px rgba($secondary-default, 0.18),
+    inset 0 1px 0 rgba($white, 0.1);
+  gap: 8px;
+  backdrop-filter: blur(14px) saturate(1.2);
+  pointer-events: none;
+  // Rises as it arrives, and keeps drifting: a bubble that pops into place and
+  // then sits perfectly still is a label. Written out rather than through the
+  // `animate` mixin because there are two of them — the mixin sets the whole
+  // `animation` property, so including it would drop whichever came second.
+  animation:
+    pop-in $motion-fast $ease-spring both,
+    eq-bubble-float 3.4s ease-in-out 240ms infinite;
+
+  // The tail, which is what makes it a bubble rather than a floating label.
+  // Underneath, pointing back down at the corner it grew from.
+  &::before {
+    position: absolute;
+    bottom: -5px;
+    left: 14px;
+    width: 8px;
+    height: 8px;
+    border-right: 1px solid rgba($secondary-light, 0.5);
+    border-bottom: 1px solid rgba($secondary-light, 0.5);
+    background: rgba($secondary-default, 0.16);
+    content: '';
+    transform: rotate(45deg);
+  }
+}
+
+// Barely anything, and deliberately: two pixels over three and a half seconds
+// reads as something held up rather than as something animating.
+@keyframes eq-bubble-float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+
+  50% {
+    translate: 0 -2px;
+  }
+}
+
+// She listens while the bubble is up, which is the whole time a mode is
+// working.
+//
+// Her own sway in `SupportPet.scss` is gated behind the celebrating state and
+// driven by a per-frame audio level, and neither belongs here: this one is a
+// small figure inside a caption, and reaching for the analyser to nod a
+// twenty-two pixel head would be subscribing to twenty-two frames a second to
+// animate something a slow keyframe does just as well.
+.eq-mode__bubble-pet {
+  display: grid;
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  place-items: center;
+  animation: eq-bubble-listen 1800ms cubic-bezier(0.4, 0, 0.2, 1) infinite;
+  transform-origin: 50% 85%;
+
+  svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// A head tipped one way, then the other, with a hold at each end — the shape of
+// somebody listening rather than of something spinning. Near seventy beats a
+// minute, which is where a comfortable nod sits.
+@keyframes eq-bubble-listen {
+  0%,
+  100% {
+    transform: rotate(-5deg);
+  }
+
+  20%,
+  30% {
+    transform: rotate(-5deg);
+  }
+
+  50% {
+    transform: rotate(5deg);
+  }
+
+  70%,
+  80% {
+    transform: rotate(5deg);
+  }
+}
+
+.eq-mode__bubble-text {
+  min-width: 0;
+  color: $secondary-light;
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
 // Positioned by `AnchoredMenu` rather than here: it is rendered into the body,
 // so the only thing this rule owns is what it looks like.
 //

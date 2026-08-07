@@ -189,7 +189,8 @@ const de: Partial<Dictionary> = {
   'eq.smart.mode.balance.note':
     'Misst weiter · gleicht auch Helligkeit und Wärme an',
   'eq.smart.mode.target': 'Ziel',
-  'eq.smart.mode.target.note': 'Misst weiter · jede Aufnahme auf eine Kurve',
+  'eq.smart.mode.target.note':
+    'Misst weiter · jede Aufnahme auf Ihr Voicing oder eine eingebaute Kurve',
   'eq.layers': 'Ebenfalls aktiv',
   'eq.layers.aria': 'Was diesen Ausgang außerdem formt',
   'eq.layers.eq': 'EQ',

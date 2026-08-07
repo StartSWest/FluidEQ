@@ -190,7 +190,8 @@ const es: Partial<Dictionary> = {
   'eq.smart.mode.balance.note':
     'Sigue midiendo · también iguala brillo y calidez',
   'eq.smart.mode.target': 'Objetivo',
-  'eq.smart.mode.target.note': 'Sigue midiendo · todos los discos a una curva',
+  'eq.smart.mode.target.note':
+    'Sigue midiendo · cada disco a tu voz, o a una curva incorporada',
   'eq.layers': 'También aplicado',
   'eq.layers.aria': 'Otros ajustes que afectan a esta salida',
   'eq.layers.eq': 'EQ',

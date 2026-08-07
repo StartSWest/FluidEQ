@@ -185,7 +185,8 @@ const ja: Partial<Dictionary> = {
   'eq.smart.mode.balance': 'バランス',
   'eq.smart.mode.balance.note': '測定を続ける · 明るさと暖かさもそろえる',
   'eq.smart.mode.target': 'ターゲット',
-  'eq.smart.mode.target.note': '測定を続ける · すべてを一つのカーブへ',
+  'eq.smart.mode.target.note':
+    '測定を続ける · すべてを選んだ音色、なければ内蔵カーブへ',
   'eq.layers': '同時に適用中',
   'eq.layers.aria': 'この出力に効いているその他の処理',
   'eq.layers.eq': 'EQ',

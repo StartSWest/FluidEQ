@@ -193,7 +193,8 @@ const hi: Partial<Dictionary> = {
   'eq.smart.mode.balance': 'संतुलन',
   'eq.smart.mode.balance.note': 'मापता रहे · चमक और गर्माहट भी बराबर करे',
   'eq.smart.mode.target': 'लक्ष्य',
-  'eq.smart.mode.target.note': 'मापता रहे · हर रिकॉर्ड एक ही कर्व पर',
+  'eq.smart.mode.target.note':
+    'मापता रहे · हर रिकॉर्ड आपकी वॉइसिंग पर, या अंतर्निहित कर्व पर',
   'eq.layers': 'यह भी लागू है',
   'eq.layers.aria': 'इस आउटपुट पर और क्या असर डाल रहा है',
   'eq.layers.eq': 'EQ',
