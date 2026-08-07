@@ -56,6 +56,14 @@ export enum ColorEnum {
    * near-white total to read as a curve of its own rather than part of it.
    */
   SMART = '#3d9bff',
+  /**
+   * The loudness contour. Green, because the wheel is genuinely full: amber
+   * holds the driver, azure the measurement, violet the voicing, cyan the EQ
+   * line and near-white the total. This is the one remaining region far from
+   * all of them, and the contour is a wide gentle shape rather than a spiky
+   * one, so it reads as a background even at this saturation.
+   */
+  LOUDNESS = '#4fd98a',
   /** The sum of every layer, kept neutral so it reads as a result. */
   TOTAL = '#dbe7ff',
 }

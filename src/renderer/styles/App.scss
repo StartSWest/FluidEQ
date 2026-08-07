@@ -1327,6 +1327,10 @@ $tab-border: rgba($secondary-light, 0.2);
   background: #3d9bff;
 }
 
+.graph-legend--loudness::before {
+  background: #4fd98a;
+}
+
 .graph-legend--total::before {
   background: #dbe7ff;
 }
