@@ -117,6 +117,7 @@ import {
   APO_LAYERS,
   TApoFeature,
   TApoLayer,
+  describeBandShape,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
 import {
@@ -158,11 +159,8 @@ import {
   setVideoAdBlockEnabled,
 } from './videoBrowser';
 import { adoptBlock, hasChainDrifted } from '../common/apoSync';
-import {
-  IApoConfigTree,
-  readApoConfigTree,
-  readApoDeviceChain,
-} from './apoConfigReader';
+import { readApoConfigTree, readApoDeviceChain } from './apoConfigReader';
+import { IApoConfigLayer, IApoConfigTree } from '../common/apoConfig';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -862,6 +860,7 @@ const getCurrentPreset = (): IPresetV2 => ({
   headset: state.headset,
   headsetTarget: state.headsetTarget,
   headsetSource: state.headsetSource,
+  headsetSignature: state.headsetSignature,
   // Which layers are switched off is part of what this profile sounds like, so
   // it travels with it — otherwise switching outputs and back would bring every
   // bypassed layer roaring back in.
@@ -1599,6 +1598,7 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     state.headset = presetSettings.headset;
     state.headsetTarget = presetSettings.headsetTarget;
     state.headsetSource = presetSettings.headsetSource;
+    state.headsetSignature = presetSettings.headsetSignature;
     // Which layers this profile has switched off comes with it, like the layers
     // themselves. Keeping the previous profile's list would silence a layer this
     // one never switched off.
@@ -1642,6 +1642,7 @@ ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
     state.headset = baseline.headset;
     state.headsetTarget = baseline.headsetTarget;
     state.headsetSource = baseline.headsetSource;
+    state.headsetSignature = baseline.headsetSignature;
     state.bypassed = baseline.bypassed;
     // Restoring writes the profile back to the baseline, but deliberately does
     // NOT rewrite the baseline itself — restoring twice in a row is a no-op
@@ -1844,14 +1845,90 @@ ipcMain.on(ChannelEnum.WRITE_APO_CONFIG_FILE, async (event, arg) => {
  * another tool, a write that failed — and a cached answer would be the app
  * telling you what it believes, which is what every other panel already does.
  */
+/**
+ * Which layers an output has, and which of them the config is applying.
+ *
+ * The files cannot answer this on their own. A switched-off layer has no file,
+ * so absence in the config is just absence: nothing there distinguishes an
+ * output with no voicing from one whose voicing is switched off, and the panel
+ * would simply stop showing a layer the moment somebody bypassed it — which is
+ * the opposite of what a bypass switch wants to be able to say. Reading the
+ * profile beside the config is the only way to report "this exists, and it is
+ * off".
+ *
+ * Built by asking the writer what it would produce with nothing bypassed, so
+ * the list is exactly the layers with something to say. A layer that is empty
+ * is not switched off, it is empty, and it belongs on this list no more than it
+ * belongs in the config.
+ */
+const describeDeviceLayers = (
+  assignment: IDeviceProfileAssignment,
+): IApoConfigLayer[] | undefined => {
+  let preset: IPresetV2;
+  try {
+    preset = fetchPreset(assignment.presetName, presetPath);
+  } catch {
+    return undefined;
+  }
+
+  const bypassed: string[] = preset.bypassed ?? [];
+  // Any truthy name will do: it only has to make the convolution count as
+  // present, and nothing here is written to disk.
+  const everything = stateToApoFiles(
+    {
+      isEnabled: true,
+      isGraphViewOn: false,
+      isCaseSensitiveFs: false,
+      ...preset,
+      isAutoPreAmpOn: preset.isAutoPreAmpOn ?? true,
+      bypassed: undefined,
+    },
+    preset.convolution ? 'impulse' : undefined,
+  );
+  if (!everything) {
+    return undefined;
+  }
+
+  return [
+    ...(everything.convolution
+      ? [
+          {
+            feature: 'convolution',
+            isApplied: !bypassed.includes('convolution'),
+          },
+        ]
+      : []),
+    ...everything.features.map(({ feature }) => ({
+      feature: feature as string,
+      isApplied: !bypassed.includes(feature),
+    })),
+  ];
+};
+
 ipcMain.on(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
   const channel = ChannelEnum.GET_APO_CONFIG_TREE;
   try {
     if (!configPath) {
       configPath = await getConfigPath();
     }
+    const tree = readApoConfigTree(configPath);
     const reply: TSuccess<IApoConfigTree | undefined> = {
-      result: readApoConfigTree(configPath),
+      result: tree && {
+        ...tree,
+        devices: tree.devices.map((device) => {
+          const assignment = Object.values(
+            deviceProfileSettings.assignments,
+          ).find(
+            (entry) =>
+              (entry.deviceGuid || entry.deviceName).toLowerCase() ===
+              device.devicePattern.toLowerCase(),
+          );
+          const layers = assignment
+            ? describeDeviceLayers(assignment)
+            : undefined;
+          return layers ? { ...device, layers } : device;
+        }),
+      },
     };
     event.reply(channel, reply);
   } catch (e) {
@@ -2042,6 +2119,7 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     state.headset = deviceName;
     state.headsetTarget = responseName;
     state.headsetSource = AUTOEQ_SOURCE_ID;
+    state.headsetSignature = describeBandShape(state.filters);
     applyingLayer('eq');
     // AutoEQ may be ParametricEQ, FixedBandEQ, or GraphicEQ. Replace only the
     // EQ stage; an already loaded convolution remains an independent APO
@@ -2119,6 +2197,7 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
     // which database it meant. The panel falls back to matching on the model
     // name, which is what it did before the source was recorded at all.
     state.headsetSource = sourceId;
+    state.headsetSignature = describeBandShape(state.filters);
     applyingLayer('eq');
     // Squiglink responses are editable EQ bands. Keep any separately selected
     // convolution profile in place while replacing only the EQ chain.

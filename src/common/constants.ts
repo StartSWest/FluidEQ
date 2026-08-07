@@ -184,6 +184,23 @@ export const FilterTypeToLabelMap: Record<FilterTypeEnum, string> = {
   [FilterTypeEnum.BP]: 'Band Pass Filter',
 };
 
+/**
+ * A band set as a comparable string, for "is this still what was applied".
+ *
+ * Sorted, because band order in the map is not meaningful and a reordering is
+ * not an edit. Ids are left out for the same reason: they are minted fresh
+ * whenever a layout is rebuilt, so including them would call an untouched
+ * tuning modified the moment anything re-created it.
+ */
+export const describeBandShape = (filters: IFiltersMap): string =>
+  Object.values(filters)
+    .map(
+      (filter) =>
+        `${filter.type}:${filter.frequency}:${filter.gain}:${filter.quality}`,
+    )
+    .sort()
+    .join('|');
+
 export const NO_GAIN_FILTER_TYPES = [
   FilterTypeEnum.BP,
   FilterTypeEnum.LPQ,
@@ -281,6 +298,17 @@ export interface IState {
    * model name and nothing else, and must still restore by name alone.
    */
   headsetSource?: string;
+  /**
+   * The bands exactly as the reference wrote them — see describeBandShape.
+   *
+   * What "modified" is measured against. Recorded where the model is applied,
+   * because that is the only place that knows what it wrote: the chips used to
+   * take this snapshot themselves on the render after a reference arrived,
+   * which caught the bands mid-animation and then called an untouched tuning
+   * modified forever. Being state rather than a ref, it also survives leaving
+   * the tab and coming back.
+   */
+  headsetSignature?: string;
   /**
    * Layers switched off without being thrown away.
    *
@@ -453,6 +481,15 @@ export interface IPresetV2 {
   headsetTarget?: string;
   /** Which database it came from; absent in profiles predating the field. */
   headsetSource?: string;
+  /**
+   * The bands as the reference wrote them, so "modified" is a fact.
+   *
+   * Recorded where the model is applied, because that is the only place that
+   * knows what it wrote. The row of chips used to snapshot this itself on the
+   * render after a reference arrived — which caught the bands mid-animation,
+   * and was a ref, so it also forgot everything on remount.
+   */
+  headsetSignature?: string;
   /**
    * Layers this profile has switched off — see IState.bypassed.
    *

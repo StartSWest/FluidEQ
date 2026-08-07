@@ -251,6 +251,53 @@
   letter-spacing: 0.04em;
 }
 
+// Every layer the output has, applied or switched off.
+//
+// The off ones are the reason this exists: they have no file, so the tree
+// below cannot mention them at all, and a bypass switch that makes its layer
+// vanish from the config view is a switch you cannot check the result of.
+.config-layers {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: 2px 0 0;
+  gap: 5px;
+  list-style: none;
+}
+
+.config-layer {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border: 1px solid rgba($neon-lime, 0.3);
+  border-radius: $radius-pill;
+  background: rgba($neon-lime, 0.12);
+  color: $neon-lime;
+  font-size: 0.6rem;
+  font-weight: 700;
+  gap: 5px;
+  letter-spacing: 0.05em;
+
+  // Dimmed and struck through rather than hidden or merely greyed. The layer
+  // is still there and still yours; it is simply not in the chain, and that is
+  // a different statement from being gone.
+  &.is-off {
+    border-color: rgba($primary-lighter, 0.16);
+    background: transparent;
+    color: $text-faint;
+
+    .config-layer__name {
+      text-decoration: line-through;
+    }
+  }
+}
+
+.config-layer__state {
+  opacity: 0.75;
+  font-size: 0.55rem;
+  text-transform: uppercase;
+}
+
 .config-device__empty {
   margin: 0;
   color: $text-faint;

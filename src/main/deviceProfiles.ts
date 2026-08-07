@@ -453,6 +453,7 @@ export const getStateForAudioDevice = (
     headset: preset?.headset,
     headsetTarget: preset?.headsetTarget,
     headsetSource: preset?.headsetSource,
+    headsetSignature: preset?.headsetSignature,
     // Listed like the rest, and for the same reason: a device whose profile
     // bypasses nothing has to clear whatever the previous one had switched off,
     // or a layer would arrive silent on an output that never switched it off.

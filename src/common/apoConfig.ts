@@ -35,6 +35,23 @@ export interface IApoConfigFile {
   isMissing?: boolean;
 }
 
+/**
+ * One layer of an output's chain, and whether it is reaching Equalizer APO.
+ *
+ * The one thing on this panel that does not come from the files, and it cannot:
+ * a switched-off layer has no file, so the config has nothing to say about the
+ * difference between an output with no voicing and an output whose voicing is
+ * switched off. Absence is absence. Answering that needs the profile beside the
+ * config, which is why this is filled in where both are to hand rather than by
+ * the reader.
+ */
+export interface IApoConfigLayer {
+  /** `driver`, `eq`, `voicing`, `smart`, or `convolution`. */
+  feature: string;
+  /** False when the profile has this layer and the config leaves it out. */
+  isApplied: boolean;
+}
+
 /** One output's whole chain, as the files that make it. */
 export interface IApoConfigDevice {
   /** The `Device:` argument — a GUID, a name, or `all`. */
@@ -49,6 +66,13 @@ export interface IApoConfigDevice {
   preAmp?: string;
   /** The impulse response, if this output has one applied. */
   convolution?: string;
+  /**
+   * Every layer this output's profile carries, applied or switched off.
+   *
+   * Absent for a block with no profile behind it — the neutral fallback, or an
+   * output whose profile has gone missing.
+   */
+  layers?: IApoConfigLayer[];
 }
 
 /**

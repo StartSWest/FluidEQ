@@ -28,6 +28,7 @@ import {
   writeApoConfigFile,
 } from '../utils/equalizerApi';
 import MenuIcon from '../icons/MenuIcon';
+import { useFluidEqContext } from '../utils/FluidEqContext';
 import '../styles/ConfigInspector.scss';
 
 /**
@@ -217,6 +218,16 @@ const splitLabel = (device: IApoConfigDevice) => {
 };
 
 const ConfigInspector = () => {
+  const {
+    isEnabled,
+    bypassed,
+    filters,
+    voicing,
+    driver,
+    smartEq,
+    convolution,
+    preAmp,
+  } = useFluidEqContext();
   const [state, setState] = useState<IApoConfigTreeState>({
     status: 'loading',
   });
@@ -244,9 +255,30 @@ const ConfigInspector = () => {
     setState(tree ? { status: 'ready', tree } : { status: 'absent' });
   }, []);
 
+  // Re-read whenever anything that rewrites the config changes.
+  //
+  // This panel reports a file, and the file is rewritten by every edit made
+  // anywhere else in the app — so a view that only read once was a snapshot
+  // pretending to be a window. Switching the engine off rewrites the config to
+  // name no output at all, and the panel went on showing the chain that was no
+  // longer being applied.
+  //
+  // Keyed on the state that reaches the writer rather than on a change event,
+  // because there is no such event: the flush is a file write, and nothing
+  // downstream of it tells the window it happened.
   useEffect(() => {
     load();
-  }, [load]);
+  }, [
+    load,
+    isEnabled,
+    bypassed,
+    filters,
+    voicing,
+    driver,
+    smartEq,
+    convolution,
+    preAmp,
+  ]);
 
   /**
    * The current output first, and everything else in the order the config
@@ -396,8 +428,31 @@ const ConfigInspector = () => {
                   {shown.filterCount === 1 ? 'filter' : 'filters'}
                 </span>
                 {shown.preAmp && <span>{shown.preAmp}</span>}
-                {shown.convolution && <span>impulse response</span>}
               </div>
+              {/* Every layer this output has, applied or not.
+                  A switched-off layer has no file, so without this the panel
+                  would simply stop showing it the moment it was bypassed —
+                  which is the one thing somebody who just pressed a bypass
+                  switch wants to see confirmed. */}
+              {shown.layers && shown.layers.length > 0 && (
+                <ul className="config-layers">
+                  {shown.layers.map((layer) => (
+                    <li
+                      key={layer.feature}
+                      className={`config-layer${
+                        layer.isApplied ? '' : ' is-off'
+                      }`}
+                    >
+                      <span className="config-layer__name">
+                        {layer.feature}
+                      </span>
+                      <span className="config-layer__state">
+                        {layer.isApplied ? 'on' : 'off'}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
               {shown.file ? (
                 <ul className="config-device__tree">
                   <ConfigFileNode file={shown.file} onSaved={load} />

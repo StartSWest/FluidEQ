@@ -16,9 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useRef } from 'react';
 import { ErrorDescription } from 'common/errors';
-import { TApoLayer } from 'common/constants';
+import { describeBandShape, TApoLayer } from 'common/constants';
 import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { hasSmartEqLayer } from 'common/smartEq';
@@ -58,6 +57,7 @@ const ActiveLayers = () => {
     smartEq,
     headset,
     headsetTarget,
+    headsetSignature,
     isEnabled,
     isBlockingError,
     bypassed,
@@ -72,35 +72,22 @@ const ActiveLayers = () => {
 
   const isBypassed = (layer: TApoLayer) => bypassed.includes(layer);
 
-  /**
-   * Whether the bands still match what the reference model wrote.
-   *
-   * There is no flag for this anywhere — the model writes bands and then it is
-   * simply bands, indistinguishable from ones dragged by hand. So the shape is
-   * remembered at the moment a model arrives, and compared against on every
-   * render after it: a different signature means somebody has moved something.
-   *
-   * Keyed on the model, so choosing a different one re-snapshots rather than
-   * inheriting the last one's "modified". Sorted, because band order in the map
-   * is not meaningful and a reordering is not an edit.
-   */
   const bandCount = Object.keys(filters).length;
   // Flat means no layer, however many bands are sitting there at zero.
   const hasShapedBands = Object.values(filters).some(
     (f) => Math.abs(f.gain) > 0.01,
   );
-  const bandSignature = Object.values(filters)
-    .map((f) => `${f.type}:${f.frequency}:${f.gain}:${f.quality}`)
-    .sort()
-    .join('|');
-  const referenceKey = `${headset ?? ''}|${headsetTarget ?? ''}`;
-  const eqOrigin = useRef<{ key: string; signature: string } | undefined>(
-    undefined,
-  );
-  if (!eqOrigin.current || eqOrigin.current.key !== referenceKey) {
-    eqOrigin.current = { key: referenceKey, signature: bandSignature };
-  }
-  const isEqModified = eqOrigin.current.signature !== bandSignature;
+  // Compared against what the reference actually wrote, recorded by the main
+  // process at the moment it wrote it.
+  //
+  // This used to be a snapshot taken here, on the first render after a
+  // reference arrived — which was the wrong moment twice over. An apply is
+  // followed by a band reveal that walks the gains in over several frames, so
+  // the snapshot caught a half-drawn tuning and nothing ever matched it again;
+  // and it was a ref keyed on the model name, so re-applying the same model
+  // could not clear the mark and leaving the tab lost it entirely.
+  const isEqModified =
+    !!headsetSignature && headsetSignature !== describeBandShape(filters);
 
   const voicingProfile = getVoicingProfile(voicing?.profileId ?? '');
   const driverProfile = getDriverProfile(driver?.profileId ?? '');
