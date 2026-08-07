@@ -185,10 +185,6 @@ const ja: Partial<Dictionary> = {
   'eq.layers.driver': 'ドライバー',
   'eq.layers.disable': '{layer} を削除せずにオフにします',
   'eq.layers.enable': '{layer} をもう一度オンにします',
-  'eq.layers.loudness': 'ユーフォリア ラウドネス',
-  'eq.layers.loudness.name': 'オン',
-  'eq.layers.clearLoudness':
-    'ラウドネス補正をオフにします。バンドとその他のレイヤーはそのままです。',
   'eq.layers.smart': 'スマート EQ',
   'eq.layers.smart.fullRange': '測定済み · 全帯域',
   'eq.layers.smart.range': '測定済み · {low}〜{high}',

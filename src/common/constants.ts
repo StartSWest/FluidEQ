@@ -247,8 +247,6 @@ export interface IState {
   convolution?: IConvolutionProfile;
   /** Curated target curve applied as its own APO layer after the EQ bands. */
   voicing?: IVoicingSettings;
-  /** The loudness contour. Its own layer, like the voicing. */
-  loudness?: ILoudnessSettings;
   /** Transducer-family correction, its own APO layer after the voicing. */
   driver?: IDriverSettings;
   /** Measured correction, the last APO layer — see src/common/smartEq.ts. */
@@ -313,8 +311,6 @@ export interface IState {
  *  - `eq` is the user's own bands, or the GraphicEQ curve that stands in for
  *    them.
  *  - `voicing` is the target curve they picked.
- *  - `loudness` is a preference about how loud this should feel rather than a
- *    fix for anything, so it sits on top of all three corrections.
  *  - `smart` is last of all, because it is a correction of everything above it:
  *    the capture that produced it heard the bands, the voicing and the driver
  *    together, so its residual only means anything stacked on top of them.
@@ -329,13 +325,7 @@ export interface IState {
  * Here rather than beside the writer because three places have to agree on
  * these names: the config files, the persisted state, and the row of chips.
  */
-export const APO_FEATURES = [
-  'driver',
-  'eq',
-  'voicing',
-  'loudness',
-  'smart',
-] as const;
+export const APO_FEATURES = ['driver', 'eq', 'voicing', 'smart'] as const;
 
 export type TApoFeature = (typeof APO_FEATURES)[number];
 
@@ -405,18 +395,6 @@ export const EQUALIZER_APO_OFFICIAL_DOWNLOAD =
   'https://sourceforge.net/projects/equalizerapo/files/latest/download';
 
 /**
- * The loudness contour, on or off and how strongly.
- *
- * Here rather than in loudness.ts for the same reason as the two above: it is
- * part of the persisted state, and loudness.ts already depends on this module.
- */
-export interface ILoudnessSettings {
-  isOn: boolean;
-  /** 0..1 scale applied to every gain in the curve. */
-  intensity: number;
-}
-
-/**
  * What Smart EQ measured, as a layer.
  *
  * Here for the same reason as the two above: it is part of the persisted state
@@ -458,8 +436,6 @@ export interface IPresetV2 {
    * correction measured on one output says nothing about another.
    */
   voicing?: IVoicingSettings;
-  /** The loudness contour. Its own layer, like the voicing. */
-  loudness?: ILoudnessSettings;
   driver?: IDriverSettings;
   smartEq?: ISmartEqSettings;
   /**

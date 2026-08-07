@@ -80,7 +80,6 @@ enum ChannelEnum {
   CLEAR_GAINS = 'clearGains',
   SET_FIXED_BAND = 'setFixedBand',
   SET_VOICING = 'setVoicing',
-  SET_LOUDNESS = 'setLoudness',
   SET_DRIVER = 'setDriver',
   // The measured correction, stored as its own layer. An empty payload removes
   // it; nothing here ever touches the user's bands.

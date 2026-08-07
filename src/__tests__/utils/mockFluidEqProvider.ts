@@ -20,8 +20,6 @@ import { getDefaultState } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import { FilterAction, IFluidEqContext } from 'renderer/utils/FluidEqContext';
 
-import { DEFAULT_LOUDNESS } from 'common/loudness';
-
 const DEFAULT_STATE = getDefaultState();
 
 const defaultFluidEqContext: IFluidEqContext = {
@@ -36,9 +34,6 @@ const defaultFluidEqContext: IFluidEqContext = {
   // Nothing switched off, which is what a test that has not said otherwise is
   // describing.
   bypassed: [],
-  // Off by default, like a fresh install: it changes how everything sounds.
-  loudness: DEFAULT_LOUDNESS,
-  setLoudness: () => {},
   refreshState: async () => {},
   isEnabled: DEFAULT_STATE.isEnabled,
   isAutoPreAmpOn: DEFAULT_STATE.isAutoPreAmpOn,

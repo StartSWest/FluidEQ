@@ -188,10 +188,6 @@ const fr: Partial<Dictionary> = {
   'eq.layers.driver': 'Transducteur',
   'eq.layers.disable': 'Désactive {layer} sans la supprimer',
   'eq.layers.enable': 'Réactive {layer}',
-  'eq.layers.loudness': 'Loudness d’euphorie',
-  'eq.layers.loudness.name': 'Activé',
-  'eq.layers.clearLoudness':
-    'Désactive la correction physiologique. Vos bandes et les autres couches restent.',
   'eq.layers.smart': 'Égalisation auto',
   'eq.layers.smart.fullRange': 'Mesuré · toute la bande',
   'eq.layers.smart.range': 'Mesuré · de {low} à {high}',

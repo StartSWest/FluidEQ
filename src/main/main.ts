@@ -845,15 +845,13 @@ const getCurrentPreset = (): IPresetV2 => ({
   // the moment a profile is attached — which is always, since every output is
   // given one.
   //
-  // Loudness was added to the config, the chips and the graph long after this
-  // list was written, and never joined it. The result was a layer that could be
-  // switched on, drawn, and reasoned about, and that reached Equalizer APO
-  // exactly never: the session override rendered it from the state, the profile
-  // was written without it, and the profile is what the config comes from. Any
-  // layer added after this comment belongs in it.
+  // Any layer added later belongs in this list, and one of them was missed for
+  // months: it could be switched on, drawn and reasoned about, and it reached
+  // Equalizer APO exactly never, because the session override rendered it from
+  // the state while the profile was written without it — and the profile is
+  // what the config is built from.
   voicing: state.voicing,
   driver: state.driver,
-  loudness: state.loudness,
   smartEq: state.smartEq,
   isAutoPreAmpOn: state.isAutoPreAmpOn,
   headset: state.headset,
@@ -1007,7 +1005,6 @@ const resetStateToDefaults = () => {
   state.convolution = undefined;
   state.voicing = undefined;
   state.driver = undefined;
-  state.loudness = undefined;
   state.smartEq = undefined;
   // Nothing is left to be switched off. Keeping the list would leave the next
   // layer applied here silent for a reason nothing on screen accounts for.
@@ -2688,27 +2685,6 @@ ipcMain.on(ChannelEnum.SET_VOICING, async (event, arg) => {
   // The voicing is a layer of its own, so this never touches state.filters.
   state.voicing = {
     profileId,
-    intensity: Math.min(1, Math.max(0, intensity)),
-  };
-
-  await handleUpdate(event, channel, false, true);
-});
-
-ipcMain.on(ChannelEnum.SET_LOUDNESS, async (event, arg) => {
-  const channel = ChannelEnum.SET_LOUDNESS;
-  const isOn: boolean = arg[0];
-  const intensity: number = arg[1];
-
-  if (typeof isOn !== 'boolean' || !Number.isFinite(intensity)) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  applyingLayer('loudness');
-  // A layer of its own, like the voicing, so this never touches state.filters —
-  // switching it off restores the tuning underneath it exactly.
-  state.loudness = {
-    isOn,
     intensity: Math.min(1, Math.max(0, intensity)),
   };
 

@@ -38,7 +38,6 @@ import {
   TApoLayer,
 } from '../../common/constants';
 import { DEFAULT_VOICING, IVoicingSettings } from '../../common/voicing';
-import { DEFAULT_LOUDNESS, ILoudnessSettings } from '../../common/loudness';
 import { DEFAULT_DRIVER, IDriverSettings } from '../../common/driver';
 import { ISmartEqSettings } from '../../common/smartEq';
 import {
@@ -188,11 +187,6 @@ export interface IFluidEqContext extends IState {
   bypassed: TApoLayer[];
   setDriver: (newValue: IDriverSettings) => void;
   setVoicing: (newValue: IVoicingSettings) => void;
-  /**
-   * The loudness contour. `loudness` itself arrives through IState, since it is
-   * persisted with everything else the config describes.
-   */
-  setLoudness: (newValue: ILoudnessSettings) => void;
   setSmartEq: (newValue?: ISmartEqSettings) => void;
   /** Filter currently selected in the EQ editor and response graph. */
   selectedFilterId: string;
@@ -388,9 +382,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     DEFAULT_STATE.isCaseSensitiveFs,
   );
   const [preAmp, setPreAmp] = useState<number>(DEFAULT_STATE.preAmp);
-  const [loudness, setLoudness] = useState<ILoudnessSettings>(
-    DEFAULT_STATE.loudness ?? DEFAULT_LOUDNESS,
-  );
   const [voicing, setVoicing] = useState<IVoicingSettings>(
     DEFAULT_STATE.voicing ?? DEFAULT_VOICING,
   );
@@ -517,7 +508,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
       try {
         const state = await getEqualizerState();
         setIsEnabled(state.isEnabled);
-        setLoudness(state.loudness ?? DEFAULT_LOUDNESS);
         // Keep the persisted preference so Auto normalize can be disabled for
         // users who want to set the APO preamp manually.
         setAutoPreAmpOn(state.isAutoPreAmpOn);
@@ -642,8 +632,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         isBlockingError: isBlockingErrorCode(globalError),
         isEngineUsable: isEnabled && !isBlockingErrorCode(globalError),
         isEnabled,
-        loudness,
-        setLoudness,
         isAutoPreAmpOn,
         isGraphViewOn,
         isCaseSensitiveFs,

@@ -186,10 +186,6 @@ const ru: Partial<Dictionary> = {
   'eq.layers.driver': 'Излучатель',
   'eq.layers.disable': 'Отключить «{layer}», не удаляя',
   'eq.layers.enable': 'Снова включить «{layer}»',
-  'eq.layers.loudness': 'Тонкомпенсация эйфории',
-  'eq.layers.loudness.name': 'Вкл.',
-  'eq.layers.clearLoudness':
-    'Выключить тонкомпенсацию. Полосы и остальные слои останутся.',
   'eq.layers.smart': 'Умный EQ',
   'eq.layers.smart.fullRange': 'Измерено · весь диапазон',
   'eq.layers.smart.range': 'Измерено · от {low} до {high}',

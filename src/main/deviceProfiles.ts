@@ -405,7 +405,6 @@ export const getStateForAudioDevice = (
     // missing from the saved profile: an output that never asked for the
     // contour has to clear the one the previous output was using, or it follows
     // the user from the headphones to the speakers.
-    loudness: preset?.loudness,
     smartEq: preset?.smartEq,
     headset: preset?.headset,
     headsetTarget: preset?.headsetTarget,
@@ -538,10 +537,21 @@ const writeIfChanged = (filePath: string, contents: string) => {
  * directory also holds the impulse response WAVs, APO's own sample configs, and
  * whatever the user put there.
  */
+/**
+ * Features this writer no longer has, whose files may still be on disk.
+ *
+ * A name removed from APO_FEATURES stops being written and stops being
+ * recognised, which would leave its files sitting in the config directory
+ * forever — unreferenced, inaudible, and looking exactly like something that is
+ * still applied. Kept here so the sweep below can still take them away.
+ */
+const RETIRED_FEATURES = ['loudness'];
+
 const GENERATED_FILE = new RegExp(
-  `^fluideq-(?:device-[0-9a-f]{12}|[0-9a-f]{12}-(?:${APO_FEATURES.join(
-    '|',
-  )}))\\.txt$`,
+  `^fluideq-(?:device-[0-9a-f]{12}|[0-9a-f]{12}-(?:${[
+    ...APO_FEATURES,
+    ...RETIRED_FEATURES,
+  ].join('|')}))\\.txt$`,
 );
 
 /**

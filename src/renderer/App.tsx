@@ -28,7 +28,7 @@ import {
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
 import { resetRhythmRun } from './utils/rhythmRun';
-import { resetEuphoriaMode, useIsEuphoriaEnabled } from './utils/euphoriaMode';
+import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
 import MainContent from './MainContent';
 import SupportDialog from './SupportDialog';
@@ -82,7 +82,6 @@ import {
   loadPreset,
   renamePreset,
   savePreset,
-  setLoudness as setLoudnessApi,
 } from './utils/equalizerApi';
 import { startEqualizerApoInstall } from './utils/apoInstall';
 
@@ -186,35 +185,6 @@ const AppContent = () => {
   const hasFullScreenTopBar = useFullScreenTopBar();
   const isChromeHidden = isAppFullScreen && !hasFullScreenTopBar;
   const editorHeight = useEditorHeight();
-
-  /**
-   * Euphoria brings the loudness contour with it, and takes it away again.
-   *
-   * The mode is "make this sound and look as good as it can", and the contour
-   * is the audible half of that — the ear loses bass and treble faster than
-   * midrange as level drops, so restoring both ends is what makes quiet
-   * listening feel full rather than thin.
-   *
-   * Skipped on the first render. Without that, starting the app with euphoria
-   * already on would write the contour before anybody asked for anything, and
-   * starting with it off would tear down a contour somebody switched on
-   * themselves last session.
-   */
-  const isEuphoriaOn = useIsEuphoriaEnabled();
-  const hadEuphoria = useRef<boolean | undefined>(undefined);
-  useEffect(() => {
-    if (hadEuphoria.current === undefined) {
-      hadEuphoria.current = isEuphoriaOn;
-      return;
-    }
-    if (hadEuphoria.current === isEuphoriaOn) {
-      return;
-    }
-    hadEuphoria.current = isEuphoriaOn;
-    setLoudnessApi(isEuphoriaOn, 0.5)
-      .then(() => refreshState())
-      .catch((e) => reportError('Could not follow euphoria with loudness', e));
-  }, [isEuphoriaOn, refreshState]);
 
   // Watched only in full screen, and stopped on the way out — see the store for
   // why leaving it running would strand a faded workspace.

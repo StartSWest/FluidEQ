@@ -187,10 +187,6 @@ const de: Partial<Dictionary> = {
   'eq.layers.driver': 'Treiber',
   'eq.layers.disable': '{layer} ausschalten, ohne sie zu entfernen',
   'eq.layers.enable': '{layer} wieder einschalten',
-  'eq.layers.loudness': 'Euphoria-Loudness',
-  'eq.layers.loudness.name': 'Ein',
-  'eq.layers.clearLoudness':
-    'Die gehörrichtige Lautstärke ausschalten. Bänder und alle anderen Ebenen bleiben.',
   'eq.layers.smart': 'Smart-EQ',
   'eq.layers.smart.fullRange': 'Gemessen · voller Bereich',
   'eq.layers.smart.range': 'Gemessen · {low} bis {high}',

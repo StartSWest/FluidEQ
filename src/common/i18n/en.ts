@@ -219,10 +219,6 @@ const en = {
   'eq.layers.driver': 'Driver',
   'eq.layers.disable': 'Switch {layer} off without removing it',
   'eq.layers.enable': 'Switch {layer} back on',
-  'eq.layers.loudness': 'Euphoria loudness',
-  'eq.layers.loudness.name': 'On',
-  'eq.layers.clearLoudness':
-    'Turn the loudness contour off. Your bands and every other layer stay.',
   'eq.layers.smart': 'Smart EQ',
   'eq.layers.smart.fullRange': 'Measured · full range',
   'eq.layers.smart.range': 'Measured · {low} to {high}',

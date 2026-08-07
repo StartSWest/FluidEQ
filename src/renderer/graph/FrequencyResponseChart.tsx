@@ -107,7 +107,6 @@ import GraphViewMenu from './GraphViewMenu';
 import { getVoicingFilters } from '../../common/voicing';
 import { getDriverFilters } from '../../common/driver';
 import { getSmartEqFilters, hasSmartEqLayer } from '../../common/smartEq';
-import { getLoudnessFilters } from '../../common/loudness';
 import { getChainPeakGain } from '../../common/response';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
@@ -384,7 +383,6 @@ const FrequencyResponseChart = () => {
     voicing,
     driver,
     smartEq,
-    loudness,
     bypassed,
   } = useFluidEqContext();
   const isBypassed = (layer: TApoLayer) => bypassed.includes(layer);
@@ -688,30 +686,6 @@ const FrequencyResponseChart = () => {
     );
     const hasSmartEq = Object.keys(smartFilterLines).length > 0;
 
-    // The loudness contour, which is a layer in the config like the three above
-    // and was the only one the graph never drew.
-    //
-    // It went unnoticed because it also went uncounted: the headroom figure
-    // ignored it too, so the picture was at least consistent with itself. Once
-    // the reserve started including it — which it had to, the contour lifts both
-    // ends by several decibels — switching loudness on moved the whole curve
-    // with nothing on screen to account for the movement. A layer that is
-    // audible, has a chip, and shapes the reserve has to be visible.
-    const loudnessFilterLines: IChartLineDataPointsById = {};
-    (bypassed.includes('loudness') ? [] : getLoudnessFilters(loudness)).forEach(
-      (filter, index) => {
-        const id = `loudness-${index}`;
-        loudnessFilterLines[id] = getFilterLineData({
-          id,
-          frequency: filter.frequency,
-          gain: filter.gain,
-          quality: filter.quality,
-          type: filter.type,
-        });
-      },
-    );
-    const hasLoudness = Object.keys(loudnessFilterLines).length > 0;
-
     // Nothing drawn for an impulse that is switched off, for the same reason as
     // the other layers: this is what Equalizer APO is applying, and a graph
     // that disagrees with what you hear is worse than one that shows less.
@@ -733,20 +707,16 @@ const FrequencyResponseChart = () => {
     const smartCurveData = hasSmartEq
       ? getCombinedLineData(0, smartFilterLines)
       : [];
-    const loudnessCurveData = hasLoudness
-      ? getCombinedLineData(0, loudnessFilterLines)
-      : [];
     // What actually reaches the ears once every layer is applied. Worth its own
     // curve because the layers are written separately but heard together, and
     // two gentle corrections in the same region are not obviously gentle once
     // they add up.
-    const hasExtraLayers = hasVoicing || hasDriver || hasSmartEq || hasLoudness;
+    const hasExtraLayers = hasVoicing || hasDriver || hasSmartEq;
     const totalCurveData = hasExtraLayers
       ? getCombinedLineData(preAmp, {
           ...updatedFilterLines,
           ...voicingFilterLines,
           ...driverFilterLines,
-          ...loudnessFilterLines,
           ...smartFilterLines,
         })
       : [];
@@ -754,7 +724,6 @@ const FrequencyResponseChart = () => {
       'EQ',
       hasVoicing ? 'voicing' : '',
       hasDriver ? 'driver' : '',
-      hasLoudness ? 'loudness' : '',
       hasSmartEq ? 'Smart EQ' : '',
     ]
       .filter(Boolean)
@@ -808,7 +777,6 @@ const FrequencyResponseChart = () => {
         ...(bypassed.includes('eq') ? [] : Object.values(filters)),
         ...(bypassed.includes('driver') ? [] : getDriverFilters(driver)),
         ...(bypassed.includes('voicing') ? [] : getVoicingFilters(voicing)),
-        ...(bypassed.includes('loudness') ? [] : getLoudnessFilters(loudness)),
         ...(bypassed.includes('smart') ? [] : getSmartEqFilters(smartEq)),
       ]),
     );
@@ -880,23 +848,6 @@ const FrequencyResponseChart = () => {
               } as IChartCurveData,
             ]
           : []),
-        // The contour, drawn like the rest of them. It lifts both ends by
-        // several decibels, which is the largest single thing on this graph
-        // when it is on and was the only layer with nothing to show for itself.
-        ...(hasLoudness
-          ? [
-              {
-                id: 'Loudness',
-                name: 'Loudness contour',
-                line: {
-                  color: ColorEnum.LOUDNESS,
-                  strokeWidth: 2,
-                  opacity: SUPPORTING_CURVE_OPACITY,
-                  points: loudnessCurveData,
-                },
-              } as IChartCurveData,
-            ]
-          : []),
         ...(hasExtraLayers
           ? [
               {
@@ -934,7 +885,6 @@ const FrequencyResponseChart = () => {
     driver,
     filters,
     isAutoPreAmpOn,
-    loudness,
     preAmp,
     smartEq,
     voicing,
@@ -1374,22 +1324,15 @@ const FrequencyResponseChart = () => {
           {!isSolo && hasSmartEqLayer(smartEq) && !isBypassed('smart') ? (
             <span className="graph-legend graph-legend--smart">Smart EQ</span>
           ) : null}
-          {!isSolo && loudness?.isOn && !isBypassed('loudness') ? (
-            <span className="graph-legend graph-legend--loudness">
-              Loudness
-            </span>
-          ) : null}
           {!isSolo &&
           ((voicing?.profileId && !isBypassed('voicing')) ||
             (driver?.profileId && !isBypassed('driver')) ||
-            (loudness?.isOn && !isBypassed('loudness')) ||
             (hasSmartEqLayer(smartEq) && !isBypassed('smart'))) ? (
             <span className="graph-legend graph-legend--total">
               {[
                 'EQ',
                 voicing?.profileId ? 'voicing' : '',
                 driver?.profileId ? 'driver' : '',
-                loudness?.isOn ? 'loudness' : '',
                 hasSmartEqLayer(smartEq) ? 'Smart EQ' : '',
               ]
                 .filter(Boolean)

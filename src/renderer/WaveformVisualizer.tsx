@@ -777,13 +777,6 @@ const WaveformVisualizer = () => {
           {t('support.game.euphoria')}
         </button>
       )}
-
-      {/* Loudness used to sit here, under euphoria. It is a layer written into
-          the Equalizer APO config like any other, so it belongs with the rest
-          of them — on the EQ tab, in the row that says what is shaping this
-          output — and not in a meter whose job is to draw the sound. A pill on
-          the waveform was the only control in the app that changed what you
-          hear from a place that otherwise only reports it. */}
     </div>
   );
 };

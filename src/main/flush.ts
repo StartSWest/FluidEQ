@@ -39,7 +39,6 @@ import {
   AUTOMATIC_PRESET_PREFIX,
 } from '../common/constants';
 import { getVoicingFilters } from '../common/voicing';
-import { getLoudnessFilters } from '../common/loudness';
 import { getDriverFilters } from '../common/driver';
 import { getSmartEqFilters, sanitizeSmartEqSettings } from '../common/smartEq';
 import { getChainPeakGain } from '../common/response';
@@ -226,12 +225,6 @@ const buildLayers = (state: IState): IApoLayer[] => {
   // user tuned, not the target curve they chose, and switching the voicing off
   // restores their tuning untouched.
   addLayer('voicing', layerFilters(getVoicingFilters(state.voicing)));
-
-  // Written into the same chain the preamp is computed from, which is what
-  // makes loudness safe: turning it on cannot clip, because the preamp comes
-  // down to meet it. The cost is headroom, taken automatically and visibly,
-  // rather than a peak nobody checked.
-  addLayer('loudness', layerFilters(getLoudnessFilters(state.loudness)));
 
   // Outside the isFlat check for the same reason as the other two layers —
   // clearing the bands the user tuned does not un-measure what came out of the
@@ -530,25 +523,6 @@ const normalizeBypassed = (value: unknown): TApoLayer[] | undefined => {
   return layers.length ? [...layers] : undefined;
 };
 
-/**
- * The loudness contour off disk.
- *
- * `isOn` is the whole of whether it is applied and `intensity` scales every
- * gain in the curve, so a value that is not a number would be multiplied
- * through the whole contour.
- */
-const normalizeLoudness = (value: unknown) => {
-  if (!isObject(value) || typeof value.isOn !== 'boolean') {
-    return undefined;
-  }
-  const intensity = toFiniteNumber(value.intensity);
-  return {
-    isOn: value.isOn,
-    intensity:
-      intensity === undefined ? 0.5 : Math.min(1, Math.max(0, intensity)),
-  };
-};
-
 const normalizeGraphicEq = (points: IGraphicEqPoint[] | undefined) =>
   Array.isArray(points)
     ? points.filter(
@@ -584,7 +558,6 @@ export const fetchSettings = (settingsDir: string) => {
     // other two it cannot be picked again from a list, only re-measured.
     const voicing = normalizeLayerSelection(input.voicing);
     const driver = normalizeLayerSelection(input.driver);
-    const loudness = normalizeLoudness(input.loudness);
     const smartEq = sanitizeSmartEqSettings(input.smartEq);
 
     return {
@@ -615,7 +588,6 @@ export const fetchSettings = (settingsDir: string) => {
       ...(convolution ? { convolution } : {}),
       ...(voicing ? { voicing } : {}),
       ...(driver ? { driver } : {}),
-      ...(loudness ? { loudness } : {}),
       ...(smartEq ? { smartEq } : {}),
       ...(bypassed ? { bypassed } : {}),
     } as IState;
