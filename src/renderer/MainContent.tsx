@@ -84,7 +84,6 @@ import {
 import {
   IBalanceReport,
   buildBalancedGains,
-  buildRegionSpectrum,
   describeBalanceProgress,
   describeBalanceResult,
 } from './utils/autoBalance';
@@ -261,6 +260,54 @@ const MainContent = () => {
    */
   const referenceModeRef = useRef(smartEqMode);
   referenceModeRef.current = smartEqMode;
+
+  /**
+   * Arriving at a continuous mode throws away the correction the last one
+   * built, so the new one starts from nothing.
+   *
+   * Without this a mode change barely does anything, and the reason is the
+   * closed loop. The layer already applied was built to satisfy the OLD
+   * reference, and the measurement includes it — so the new mode listens,
+   * hears a record that has already been bent toward somebody else's idea of
+   * right, finds little left to disagree with, and leaves it. Switching from
+   * Target to Detail would keep the target curve indefinitely.
+   *
+   * Clearing costs a moment of the correction being absent, which is exactly
+   * what the continuous modes refuse to do on their own — but this is a
+   * deliberate press rather than something happening on its own schedule, and
+   * a mode change that leaves the sound unchanged is worse than a moment of it
+   * changing.
+   */
+  /**
+   * The one-shot, reachable from an effect.
+   *
+   * `autoBalance` is rebuilt every render and closes over half the component,
+   * so naming it as a dependency would re-run the mode-change effect constantly
+   * — and that effect exists precisely to fire once, on a change.
+   */
+  const runAutoBalanceRef = useRef(() => {});
+  const previousModeRef = useRef(smartEqMode);
+  useEffect(() => {
+    if (previousModeRef.current === smartEqMode) {
+      return;
+    }
+    previousModeRef.current = smartEqMode;
+    if (!isContinuousMode(smartEqMode)) {
+      // The one-shot runs the moment it is chosen, like the other three do.
+      // Nothing to tear down first — it clears from flat itself, so choosing it
+      // IS the press.
+      runAutoBalanceRef.current();
+      return;
+    }
+    if (!hasSmartEqLayer(smartEqRef.current)) {
+      return;
+    }
+    setSmartEq(undefined);
+    setSmartEqApi(undefined).catch(() => {
+      // The loop rebuilds it within a window either way, and a failed clear is
+      // not worth the banner over the whole workspace.
+    });
+  }, [smartEqMode, setSmartEq]);
   /**
    * The running Continuous EQ capture, so the manual button can end it.
    *
@@ -903,6 +950,12 @@ const MainContent = () => {
     }
   };
 
+  runAutoBalanceRef.current = () => {
+    autoBalance().catch(() => {
+      // Reported in the status line by the run itself.
+    });
+  };
+
   /**
    * Continuous EQ: measure, move a little, measure again, for as long as there
    * is music.
@@ -986,37 +1039,33 @@ const MainContent = () => {
       return [];
     }
 
-    // How finely each mode is allowed to look, which is not the same question
-    // for all three.
+    // The whole curve, for all three, which is what Smart EQ has always used.
     //
-    // Balance and Target act on a record's overall tonal balance: its slope, or
-    // its distance from a broad target curve. Nine range levels answer that
-    // better than three hundred points do — each is a whole range's own weighted
-    // mean over every frame that had energy in it, which is what "the bass came
-    // out two decibels heavy" actually means, where a point of the smoothed
-    // curve is one FFT bin averaged with its neighbours and wanders with the
-    // arrangement.
+    // The nine range levels were here first and the argument for them was
+    // sound: each is a weighted mean over every frame that had energy in that
+    // range, where a point of the smoothed curve is one FFT bin averaged with
+    // its neighbours. Sturdier, and deliberately blind to anything narrower
+    // than an octave.
     //
-    // Detail is the opposite job and was quietly unable to do it. A resonance
-    // sits *inside* a range, so averaging the range smears it into the range's
-    // own level and there is nothing left to correct — the mode named for peaks
-    // and dips could not see one. It gets the full curve, and can afford to:
-    // the deadband, the half-decibel step and the long-run averaging all sit
-    // downstream of this and are what keep fine detail from being chased.
-    const solved = buildBalancedGains(
-      referenceModeRef.current === 'detail'
-        ? report.samples
-        : buildRegionSpectrum(report),
-      bands,
-      {
-        reference: getReferenceShape(referenceModeRef.current),
-        targetCurve: buildLayerTargetCurve(
-          filtersRef.current,
-          voicingRef.current,
-          driverRef.current,
-        ),
-      },
-    );
+    // Too blind, as it turns out. A resonance sits *inside* a range, so a range
+    // average smears it into that range's own level and there is nothing left
+    // to correct — and the difference is audible: the one-shot measurement,
+    // which never used ranges, is the one people actually like the sound of.
+    //
+    // The continuous modes can afford the finer input where the one-shot
+    // cannot, because everything that protects them sits downstream of this: a
+    // band must be a decibel out before it moves at all, it moves half a
+    // decibel at a time, the destination is averaged over many windows, and the
+    // total is capped. None of that is true of a single measurement applied
+    // whole.
+    const solved = buildBalancedGains(report.samples, bands, {
+      reference: getReferenceShape(referenceModeRef.current),
+      targetCurve: buildLayerTargetCurve(
+        filtersRef.current,
+        voicingRef.current,
+        driverRef.current,
+      ),
+    });
     if (Object.keys(solved).length === 0) {
       // No answer this time. The tilt fit needs a wide trusted span and a range
       // that was cleared a moment ago carries none, so a solve taken while the
@@ -1161,12 +1210,20 @@ const MainContent = () => {
         continuousAbortRef.current = undefined;
       }
     };
+    // The mode restarts the capture, which is the point of it being here rather
+    // than only on the ref the callback reads. Everything a region has heard was
+    // heard through the correction the old mode had applied, and that correction
+    // has just been cleared — so the evidence describes a chain that no longer
+    // exists, exactly as it does after a single region is corrected. Starting
+    // over is the same answer at a larger scale, and it takes the long-run
+    // destinations with it.
   }, [
     captureBalanceProfile,
     isBalancing,
     isContinuousOn,
     isLiveOutputActive,
     isSmartBypassed,
+    smartEqMode,
   ]);
 
   // Absolute rather than relative, unlike the sliders above: "back to zero"

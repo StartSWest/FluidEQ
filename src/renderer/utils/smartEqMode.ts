@@ -75,12 +75,15 @@ export const setSmartEqMode = (next: TSmartEqMode) => {
     return;
   }
   mode = next;
-  // Leaving Continuous behind switches it off rather than leaving it running
-  // out of sight. The button is the only thing that says the mode is on, and a
-  // button now showing something else cannot say it.
-  if (!isContinuousMode(mode)) {
-    setContinuousEq(false);
-  }
+  // Choosing one starts it, and leaving one stops it.
+  //
+  // Picking a mode from a menu and then having to press the button as well is
+  // two gestures for one decision, and the state in between — the mode chosen,
+  // nothing happening — looks exactly like the thing being broken. Stopping on
+  // the way out is the same rule read backwards: the button is the only thing
+  // that says the mode is running, and a button now showing something else
+  // cannot say it.
+  setContinuousEq(isContinuousMode(mode));
   try {
     window.localStorage.setItem(STORAGE_KEY, mode);
   } catch {

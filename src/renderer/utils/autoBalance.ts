@@ -943,10 +943,13 @@ export interface IBalanceRegionReport {
   /**
    * What this range came out at, in dB relative to the frame's own mean level.
    *
-   * The whole range as one number, which is a far sturdier statement than any
-   * point inside it: it is a weighted mean over every frame that had energy
-   * here, and `standardErrorDb` says how much to believe it. Nine of these are
-   * what Continuous EQ corrects from — see `buildRegionSpectrum`.
+   * The whole range as one number: a weighted mean over every frame that had
+   * energy here, with `standardErrorDb` saying how much to believe it.
+   *
+   * Nothing corrects from these — see the note above `buildBalanceResult` for
+   * why that was tried and undone. They are here because a report describing a
+   * range without saying what it came out at is a report missing its answer,
+   * and because the panel and the tests read them.
    */
   levelDb: number;
   weight: number;
@@ -1411,33 +1414,23 @@ export const evaluateBalanceCapture = (
 export const shouldFinishBalanceCapture = (report: IBalanceReport): boolean =>
   report.status !== 'listening';
 
-/**
- * The measurement as nine numbers rather than three hundred and twenty.
+/*
+ * THE MEASUREMENT AS NINE NUMBERS, AND WHY IT IS NOT HERE ANY MORE.
  *
- * What Continuous EQ corrects from. Each point is a whole frequency range's own
- * weighted mean, accumulated over every frame that had energy in it, which is a
- * far sturdier statement than any single point of the smoothed curve — a point
- * is one bin of one FFT averaged with its neighbours, and it wanders with the
- * arrangement. "The bass came out two decibels heavy" does not.
+ * There was a `buildRegionSpectrum` in this spot, turning the report into one
+ * point per frequency range so the continuous modes could correct a range's
+ * overall level rather than the detail inside it. Sturdier by construction: a
+ * range level is a weighted mean over every frame that had energy in it, where
+ * a point of the smoothed curve is one FFT bin averaged with its neighbours.
  *
- * That is also the difference between correcting the range and correcting the
- * detail inside it. A room mode at 63 Hz moves when you move your head; the
- * bass being heavy does not, and it is the one worth acting on. The solver
- * interpolates between these centres, so what it fits is the shape of the nine,
- * not the shape of whatever the last thirty seconds of music happened to do.
+ * It was also too blind to be useful. A resonance sits *inside* a range, so the
+ * average smears it into that range's own level and there is nothing left to
+ * correct — and the difference turned out to be audible, with the one-shot
+ * measurement, which never used ranges, the one people prefer the sound of.
  *
- * A region nobody has heard yet carries zero confidence rather than being left
- * out, so the solve refuses it by its own rules instead of silently narrowing
- * the range it thinks it measured.
+ * The regions still decide WHEN a range may be corrected, through coverage and
+ * confidence. They no longer decide what the correction is.
  */
-export const buildRegionSpectrum = (
-  report: IBalanceReport,
-): ISpectrumSample[] =>
-  report.regions.map((region) => ({
-    frequency: region.centreFrequency,
-    level: region.levelDb,
-    confidence: region.confidence,
-  }));
 
 export const buildBalanceResult = (report: IBalanceReport): IBalanceResult => {
   const covered = report.regions.filter((region) => region.isCovered);
