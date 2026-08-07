@@ -164,6 +164,40 @@ export const useIsEuphoric = (isEarned: boolean): boolean => {
 };
 
 /**
+ * Whether the app is drawing in euphoria right now, from the root class.
+ *
+ * That class is the single source of truth the drawing itself uses, and asking
+ * it saves a caller from having to know about rhythm streaks — which is why a
+ * panel of look settings reaches for it rather than for the two flags above.
+ * Read directly during render, though, it is a DOM read React cannot see: the
+ * class changes, nothing re-renders, and controls gated on it stay frozen in
+ * whatever state they had when the panel opened.
+ *
+ * Observing the attribute makes the same answer reactive. The snapshot is a
+ * boolean, so `useSyncExternalStore` compares it by value and settles.
+ */
+const subscribeToRootEuphoria = (onChange: () => void) => {
+  if (typeof document === 'undefined') {
+    return () => {};
+  }
+  const observer = new MutationObserver(onChange);
+  observer.observe(document.documentElement, {
+    attributes: true,
+    attributeFilter: ['class'],
+  });
+  return () => observer.disconnect();
+};
+
+export const useIsRootEuphoric = () =>
+  useSyncExternalStore(
+    subscribeToRootEuphoria,
+    () =>
+      typeof document !== 'undefined' &&
+      document.documentElement.classList.contains('is-euphoric'),
+    () => false,
+  );
+
+/**
  * Reset, for the development affordance that gives the badge back.
  *
  * The unlock has to go with it, or "remove badge" leaves the app still offering

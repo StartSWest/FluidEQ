@@ -249,8 +249,12 @@ const GraphViewMenu = ({
             <Icon>
               <path d="M1.5 8c1.6-4.4 3.2-4.4 4.8 0s3.2 4.4 4.8 0 3.2-4.4 3.4 0" />
             </Icon>
+            {/* No shortcut named here any more. Ctrl+W now walks all three of
+                the things the plot can show — both, wave only, curves only —
+                while these two items stay what they are: precise switches that
+                say which state they put you in. Printing the key beside one of
+                them would promise it did only that. */}
             <span>{isSolo ? 'Show EQ curves' : 'Wave only'}</span>
-            <kbd>Ctrl+W</kbd>
           </button>
 
           {/* The wave itself, which is the other half of the solo switch.

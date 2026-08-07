@@ -57,6 +57,7 @@ import {
   recolourDraftLook,
 } from 'common/customLooks';
 import { BAND_SPECTRUM_HEX } from '../utils/bandColors';
+import { useIsRootEuphoric } from '../utils/euphoriaMode';
 import {
   clearLookDraft,
   deleteCustomLook,
@@ -457,12 +458,14 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
 
   // Whether the mode the glow belongs to is actually running.
   //
-  // Read from the root class, the same single source of truth the drawing uses,
-  // rather than from the euphoria store — which would need the rhythm streak
-  // passed in to answer, and this panel has no business knowing about that.
-  const isEuphoric =
-    typeof document !== 'undefined' &&
-    document.documentElement.classList.contains('is-euphoric');
+  // Still the root class, the same single source of truth the drawing uses,
+  // rather than the euphoria store — which would need the rhythm streak passed
+  // in to answer, and this panel has no business knowing about that. Observed
+  // rather than read during render, though: switching the mode while the panel
+  // was open changed nothing here, because a DOM read is not something React
+  // re-runs, so these settings sat enabled over a mode that was off and
+  // disabled under one that was on.
+  const isEuphoric = useIsRootEuphoric();
 
   const { tuning, style } = draft;
   const isDiscrete = isDiscreteGraphStyle(style);

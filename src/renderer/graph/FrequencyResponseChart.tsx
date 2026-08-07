@@ -79,6 +79,7 @@ import {
   toggleGraphGrid,
   toggleGraphStretch,
   toggleFullScreenTopBar,
+  cycleGraphContents,
   toggleLiveOutputSolo,
   useGraphFullScreen,
   useGraphGridHidden,
@@ -1067,7 +1068,9 @@ const FrequencyResponseChart = () => {
           } else if (key === 'i') {
             cycleWaveOrientation();
           } else {
-            toggleLiveOutputSolo();
+            // Ctrl+W walks the three things the plot can show rather than
+            // toggling one of two switches that each turn the other off.
+            cycleGraphContents();
           }
           return;
         }

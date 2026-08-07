@@ -361,6 +361,31 @@ const setLiveOutputSolo = (next: boolean) => {
 
 export const toggleLiveOutputSolo = () => setLiveOutputSolo(!isSolo);
 
+/**
+ * The three things the plot can show, in one gesture.
+ *
+ * Two independent switches make four combinations, and one of them is an empty
+ * grid — which is why each already turns the other off rather than allow it.
+ * Given that, they are not really two settings: they are one choice between
+ * three states, and a single key walking them says so far better than two keys
+ * that quietly undo each other.
+ *
+ * Both first, because that is what the graph is for; then the wave alone; then
+ * the curves alone.
+ */
+export const cycleGraphContents = () => {
+  if (!isSolo && !isWaveHidden) {
+    setLiveOutputSolo(true);
+    return;
+  }
+  if (isSolo) {
+    setLiveOutputSolo(false);
+    setWaveHidden(true);
+    return;
+  }
+  setWaveHidden(false);
+};
+
 const subscribeSolo = (listener: () => void) => {
   soloListeners.add(listener);
   return () => {
