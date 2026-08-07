@@ -215,6 +215,38 @@ const MainContent = () => {
     ? t('eq.smart.cancelAria')
     : t('eq.smart.aria');
   const continuousLabel = t('eq.smart.continuousAria');
+  /**
+   * What the capture is still waiting to hear, for the bubble's resting state.
+   *
+   * Kept as its own state rather than folded into `balanceStatus`, which is a
+   * remark with a timer on it: this one is a condition, true for as long as it
+   * is true, and it must not be cleared by a timeout that exists to stop a
+   * sentence going stale.
+   *
+   * Updated only when the answer CHANGES, which is a handful of times per
+   * capture rather than once a second. That distinction is the whole reason it
+   * is safe to have here at all — MainContent lays out every band in the
+   * editor, so a state update per checkpoint would re-render the lot at the
+   * analyser's cadence, which is the thing this file's other subscriptions were
+   * all pushed down into leaf components to avoid.
+   */
+  const [listeningFor, setListeningFor] = useState('');
+  const listeningForRef = useRef('');
+  /**
+   * What the bubble says, with a resting state underneath the remarks.
+   *
+   * It used to show only `balanceStatus`, which is set when a correction is
+   * written — and then corrections were made rare on purpose, so the bubble
+   * appeared for six seconds every few minutes and was absent the rest of the
+   * time. A mode running all evening looked like a mode doing nothing.
+   *
+   * Listening is the truth for almost all of that time, and it is worth saying:
+   * the capture really is open, the pet really is nodding along to it, and the
+   * silence means nothing is far enough out to be worth touching rather than
+   * that the feature has stopped. Anything it has to report replaces this for a
+   * few seconds and then falls back to it.
+   */
+  const bubbleText = balanceStatus || (isContinuousRunning ? listeningFor : '');
   const modeLabel = (entry: TSmartEqMode) => {
     if (entry === 'detail') {
       return t('eq.smart.mode.detail');
@@ -1315,6 +1347,10 @@ const MainContent = () => {
     applySettledAtRef.current = 0;
     quietUntilRef.current = 0;
     pendingResetRef.current = [];
+    // A fresh session has heard nothing yet, and saying otherwise would leave
+    // the bubble asserting a condition from the last one.
+    listeningForRef.current = 'Listening';
+    setListeningFor('Listening');
     // A fresh session starts with no opinion. The last one may have been
     // measuring a different output, a different headphone, or a chain the
     // manual button has since rebuilt from flat.
@@ -1324,6 +1360,40 @@ const MainContent = () => {
     captureBalanceProfile({
       signal: controller.signal,
       isContinuous: true,
+      // What it is waiting on, and only when that answer changes. See
+      // `listeningFor` — this fires at every checkpoint, so writing state
+      // unconditionally here would re-render the whole editor once a second.
+      onProgress: (progress) => {
+        const next = (() => {
+          if (progress.isPaused) {
+            return 'Paused';
+          }
+          if (progress.isSilent) {
+            return 'Waiting for sound';
+          }
+          // Every range still filling, not only the weakest one.
+          //
+          // The weakest was all this said, and it misrepresented the design:
+          // the ranges fill independently and are corrected independently, so
+          // naming one made a parallel process look like a queue working
+          // through a list. Two names and a count of the rest fits in the
+          // bubble and says how much is really outstanding.
+          const missing = progress.regions
+            .filter((region) => !region.isCovered)
+            .map((region) => region.label);
+          if (missing.length === 0) {
+            return 'Listening · every range heard';
+          }
+          const rest = missing.length - 2;
+          return `Listening for ${missing.slice(0, 2).join(', ')}${
+            rest > 0 ? ` +${rest}` : ''
+          }`;
+        })();
+        if (next !== listeningForRef.current) {
+          listeningForRef.current = next;
+          setListeningFor(next);
+        }
+      },
       onReport: (report) => applyReadyRegionsRef.current(report),
     }).catch(() => {
       // Aborting is how this ends, and an abort rejects. Nothing here is a
@@ -1601,12 +1671,12 @@ const MainContent = () => {
                 and the creature saying it is the same one that reacts to the
                 music everywhere else in the app, so the app has one voice
                 rather than a label here and a character there. */}
-            {balanceStatus && (
+            {bubbleText && (
               <span className="eq-mode__bubble" role="status">
                 <span className="eq-mode__bubble-pet" aria-hidden>
                   <PetArt />
                 </span>
-                <span className="eq-mode__bubble-text">{balanceStatus}</span>
+                <span className="eq-mode__bubble-text">{bubbleText}</span>
               </span>
             )}
           </span>
