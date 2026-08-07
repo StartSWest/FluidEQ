@@ -247,6 +247,41 @@ const ja: Partial<Dictionary> = {
   'voicing.headroom':
     '最大 +{peak} dB 増えます。自動ノーマライズが余裕を確保するので、プリアンプを手動で決めるのでなければオンのままにしてください。',
 
+  'config.eyebrow': 'Equalizer APO の設定',
+  'config.lede':
+    'いま実際にディスクにある内容です。FluidEQ の意図ではありません。',
+  'config.reload': '再読み込み',
+  'config.reloadTitle': '設定をディスクから読み直します',
+  'config.reading': '読み込み中…',
+  'config.absent':
+    'FluidEQ はこの Equalizer APO にまだ何も書き込んでいません。',
+  'config.status.notIncluded':
+    'Equalizer APO はこの設定を読み込んでいません。以下は何も適用されていません。',
+  'config.status.engineOff':
+    'FluidEQ のエンジンがオフです。この設定は出力を一つも指定していないため、Equalizer APO は何も適用しません。',
+  'config.status.active': '有効 — Equalizer APO がこの設定を適用しています。',
+  'config.outputsAria': 'Equalizer APO の設定にある出力',
+  'config.filters.one': 'フィルター {count} 個',
+  'config.filters.many': 'フィルター {count} 個',
+  'config.impulse': 'インパルス応答',
+  'config.playingNow': '再生中',
+  'config.liveTitle': '連続 EQ がこの測定を更新し続けています',
+  'config.layer.on': 'オン',
+  'config.layer.off': 'オフ',
+  'config.empty': '何も含まれていません。この出力はそのままです。',
+  'config.file.missing': '見つかりません',
+  'config.export': 'チェーンを書き出す',
+  'config.import': 'チェーンを読み込む',
+  'config.import.hint': '読み込みは再生中の出力に適用されます。',
+  'config.file.yours': 'あなたの',
+  'config.hint.custom': 'あなたのファイルです。上書きされません。',
+  'config.hint.generated': '自動生成 — 次の変更で書き直されます。',
+  'config.hint.saving':
+    '保存するとファイルに書き込まれ、Equalizer APO が読み取ります。',
+  'config.edit': '編集',
+  'config.cancel': 'キャンセル',
+  'config.save': '保存',
+
   'support.eyebrow': '完全に任意です',
 
   'support.petHint': 'スペースキーで跳ねさせられます',

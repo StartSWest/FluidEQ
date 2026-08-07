@@ -99,6 +99,10 @@ enum ChannelEnum {
   // Write one config file back. Only files FluidEQ generated, only inside the
   // config directory, and only ever the one named — see the handler.
   WRITE_APO_CONFIG_FILE = 'writeApoConfigFile',
+  // One output's whole chain, out to a file and back in again. The profile
+  // travels rather than the generated files — see common/chainBundle for why.
+  EXPORT_DEVICE_CHAIN = 'exportDeviceChain',
+  IMPORT_DEVICE_CHAIN = 'importDeviceChain',
   GET_AUDIO_DEVICES = 'getAudioDevices',
   SET_DEFAULT_AUDIO_DEVICE = 'setDefaultAudioDevice',
   ACTIVATE_AUDIO_DEVICE_PROFILE = 'activateAudioDeviceProfile',

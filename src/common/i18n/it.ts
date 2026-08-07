@@ -249,6 +249,43 @@ const it: Partial<Dictionary> = {
   'voicing.headroom':
     'Aggiunge fino a +{peak} dB. Normalizza automaticamente riserva il margine; lascialo attivo a meno che tu non regoli la preamplificazione a mano.',
 
+  'config.eyebrow': 'Configurazione di Equalizer APO',
+  'config.lede':
+    'Quello che c’è sul disco adesso, non quello che FluidEQ vorrebbe.',
+  'config.reload': 'Ricarica',
+  'config.reloadTitle': 'Rileggi la configurazione dal disco',
+  'config.reading': 'Lettura…',
+  'config.absent':
+    'FluidEQ non ha ancora scritto nulla in questa installazione di Equalizer APO.',
+  'config.status.notIncluded':
+    'Equalizer APO non sta includendo questa configurazione. Nulla di quanto segue viene applicato.',
+  'config.status.engineOff':
+    'Il motore di FluidEQ è spento: questa configurazione non nomina alcuna uscita, quindi Equalizer APO non ne applica nulla.',
+  'config.status.active':
+    'Attiva — Equalizer APO sta applicando questa configurazione.',
+  'config.outputsAria': 'Uscite nella configurazione di Equalizer APO',
+  'config.filters.one': '{count} filtro',
+  'config.filters.many': '{count} filtri',
+  'config.impulse': 'impulso',
+  'config.playingNow': 'In riproduzione',
+  'config.liveTitle': 'L’EQ continuo tiene aggiornata questa misura',
+  'config.layer.on': 'attivo',
+  'config.layer.off': 'inattivo',
+  'config.empty': 'Non include nulla: questa uscita resta intatta.',
+  'config.file.missing': 'assente',
+  'config.export': 'Esporta catena',
+  'config.import': 'Importa catena',
+  'config.import.hint':
+    'L’importazione si applica all’uscita che stai ascoltando.',
+  'config.file.yours': 'tuo',
+  'config.hint.custom': 'È tuo. Non viene mai sovrascritto.',
+  'config.hint.generated': 'Generato: riscritto alla prossima modifica.',
+  'config.hint.saving':
+    'Salvando si scrive il file; Equalizer APO lo recepisce.',
+  'config.edit': 'Modifica',
+  'config.cancel': 'Annulla',
+  'config.save': 'Salva',
+
   'support.eyebrow': 'DEL TUTTO FACOLTATIVO',
 
   'support.petHint': 'Premi spazio per farlo saltare',

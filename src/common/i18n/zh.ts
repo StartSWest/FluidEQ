@@ -235,6 +235,38 @@ const zh: Partial<Dictionary> = {
   'voicing.headroom':
     '最多会增加 +{peak} dB。自动归一化会预留余量；除非你要手动设置前级增益，否则请保持开启。',
 
+  'config.eyebrow': 'Equalizer APO 配置',
+  'config.lede': '这是磁盘上此刻的内容，而不是 FluidEQ 打算写入的内容。',
+  'config.reload': '重新读取',
+  'config.reloadTitle': '再次从磁盘读取配置',
+  'config.reading': '正在读取…',
+  'config.absent': 'FluidEQ 还没有向这套 Equalizer APO 写入过任何内容。',
+  'config.status.notIncluded':
+    'Equalizer APO 没有包含这份配置，下面的内容全都没有生效。',
+  'config.status.engineOff':
+    'FluidEQ 引擎已关闭——这份配置没有指定任何输出，所以 Equalizer APO 不会应用其中的任何内容。',
+  'config.status.active': '已生效——Equalizer APO 正在应用这份配置。',
+  'config.outputsAria': 'Equalizer APO 配置里的输出',
+  'config.filters.one': '{count} 个滤波器',
+  'config.filters.many': '{count} 个滤波器',
+  'config.impulse': '脉冲响应',
+  'config.playingNow': '正在播放',
+  'config.liveTitle': '持续均衡正在保持这项测量',
+  'config.layer.on': '开',
+  'config.layer.off': '关',
+  'config.empty': '没有包含任何内容——这个输出保持原样。',
+  'config.file.missing': '缺失',
+  'config.export': '导出链路',
+  'config.import': '导入链路',
+  'config.import.hint': '导入会应用到你正在收听的输出。',
+  'config.file.yours': '你的',
+  'config.hint.custom': '这是你的文件，永远不会被覆盖。',
+  'config.hint.generated': '自动生成——下次改动时会被重写。',
+  'config.hint.saving': '保存会写入文件；Equalizer APO 随即读取。',
+  'config.edit': '编辑',
+  'config.cancel': '取消',
+  'config.save': '保存',
+
   'support.eyebrow': '完全自愿',
 
   'support.petHint': '按空格键让它跳一下',

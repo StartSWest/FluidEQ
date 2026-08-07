@@ -251,6 +251,42 @@ const fr: Partial<Dictionary> = {
   'voicing.headroom':
     'Ajoute jusqu’à +{peak} dB. La normalisation auto réserve la marge ; laissez-la active sauf si vous réglez le préampli à la main.',
 
+  'config.eyebrow': 'Configuration Equalizer APO',
+  'config.lede':
+    'Ce qui se trouve sur le disque en ce moment, pas ce que FluidEQ prévoit.',
+  'config.reload': 'Actualiser',
+  'config.reloadTitle': 'Relire la configuration depuis le disque',
+  'config.reading': 'Lecture…',
+  'config.absent':
+    'FluidEQ n’a encore rien écrit dans cette installation d’Equalizer APO.',
+  'config.status.notIncluded':
+    'Equalizer APO n’inclut pas cette configuration. Rien de ce qui suit n’est appliqué.',
+  'config.status.engineOff':
+    'Le moteur FluidEQ est éteint : cette configuration ne nomme aucune sortie, Equalizer APO n’en applique donc rien.',
+  'config.status.active':
+    'Active — Equalizer APO applique cette configuration.',
+  'config.outputsAria': 'Sorties dans la configuration Equalizer APO',
+  'config.filters.one': '{count} filtre',
+  'config.filters.many': '{count} filtres',
+  'config.impulse': 'impulsion',
+  'config.playingNow': 'En lecture',
+  'config.liveTitle': 'L’égalisation continue tient cette mesure à jour',
+  'config.layer.on': 'actif',
+  'config.layer.off': 'inactif',
+  'config.empty': 'Rien d’inclus : cette sortie est laissée telle quelle.',
+  'config.file.missing': 'absent',
+  'config.export': 'Exporter la chaîne',
+  'config.import': 'Importer une chaîne',
+  'config.import.hint': 'L’import s’applique à la sortie que vous écoutez.',
+  'config.file.yours': 'à vous',
+  'config.hint.custom': 'À vous. Jamais écrasé.',
+  'config.hint.generated': 'Généré : réécrit au prochain changement.',
+  'config.hint.saving':
+    'Enregistrer écrit le fichier ; Equalizer APO le reprend.',
+  'config.edit': 'Modifier',
+  'config.cancel': 'Annuler',
+  'config.save': 'Enregistrer',
+
   'support.eyebrow': 'ENTIÈREMENT FACULTATIF',
 
   'support.petHint': 'Appuyez sur espace pour le faire sauter',

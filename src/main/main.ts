@@ -159,6 +159,13 @@ import {
   setVideoAdBlockEnabled,
 } from './videoBrowser';
 import { adoptBlock, hasChainDrifted } from '../common/apoSync';
+import {
+  CHAIN_BUNDLE_EXTENSION,
+  IChainBundle,
+  chainBundleFileName,
+  parseChainBundle,
+  serializeChainBundle,
+} from '../common/chainBundle';
 import { readApoConfigTree, readApoDeviceChain } from './apoConfigReader';
 import { IApoConfigLayer, IApoConfigTree } from '../common/apoConfig';
 import {
@@ -167,6 +174,7 @@ import {
   flushDeviceProfiles,
   getStateForAudioDevice,
   IActiveStateOverride,
+  getCustomFileNameForDevice,
   isGeneratedConfigFile,
   loadDeviceProfileSettings,
   removeAssignmentsForPreset,
@@ -2381,6 +2389,197 @@ ipcMain.on(ChannelEnum.IMPORT_CONVOLUTION_FILE, async (event) => {
       channel,
       ErrorCode.IMPORT_ERROR,
       error instanceof Error ? error.message : undefined,
+    );
+  }
+});
+
+/**
+ * One output's whole chain, out to a file somebody can send to somebody else.
+ *
+ * The profile rather than the generated files — see `common/chainBundle` for
+ * why moving the files themselves cannot work. The custom file travels
+ * literally, because it is the only part of a chain FluidEQ does not generate
+ * and so the only part that cannot be rebuilt at the other end.
+ *
+ * Named by `devicePattern` rather than by endpoint id, because that is what the
+ * config panel has to offer: it reads the config off disk, and what a `Device:`
+ * line carries is a GUID or a name, never the id Windows uses internally. Same
+ * match the tree handler makes.
+ */
+ipcMain.on(ChannelEnum.EXPORT_DEVICE_CHAIN, async (event, arg) => {
+  const channel = ChannelEnum.EXPORT_DEVICE_CHAIN;
+  const devicePattern = arg?.[0];
+  if (typeof devicePattern !== 'string' || !devicePattern) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+
+  try {
+    const assignment = Object.values(deviceProfileSettings.assignments).find(
+      (entry) =>
+        (entry.deviceGuid || entry.deviceName).toLowerCase() ===
+        devicePattern.toLowerCase(),
+    );
+    if (!assignment) {
+      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+      return;
+    }
+
+    const preset = fetchPreset(assignment.presetName, presetPath);
+    let custom: string | undefined;
+    try {
+      if (!configPath) {
+        configPath = await getConfigPath();
+      }
+      custom = fs.readFileSync(
+        path.join(configPath, getCustomFileNameForDevice(assignment.deviceId)),
+        'utf8',
+      );
+    } catch {
+      // An output that has never had one simply exports without it.
+    }
+
+    const bundle: IChainBundle = {
+      version: 1,
+      exportedFrom: assignment.deviceName,
+      exportedAt: new Date().toISOString(),
+      preset,
+      custom,
+    };
+
+    const saveOptions = {
+      title: 'Export this chain',
+      defaultPath: chainBundleFileName(assignment.deviceName),
+      filters: [
+        { name: 'FluidEQ chain', extensions: [CHAIN_BUNDLE_EXTENSION] },
+      ],
+    };
+    const target = mainWindow
+      ? await dialog.showSaveDialog(mainWindow, saveOptions)
+      : await dialog.showSaveDialog(saveOptions);
+
+    if (target.canceled || !target.filePath) {
+      // Cancelling is a normal outcome rather than a failure.
+      const reply: TSuccess<string> = { result: '' };
+      event.reply(channel, reply);
+      return;
+    }
+
+    fs.writeFileSync(target.filePath, serializeChainBundle(bundle), 'utf8');
+    const reply: TSuccess<string> = {
+      result: `Exported the chain for ${assignment.deviceName}.`,
+    };
+    event.reply(channel, reply);
+  } catch (e) {
+    handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
+  }
+});
+
+/**
+ * A chain from a file, onto the output being listened on.
+ *
+ * Onto the ACTIVE output deliberately, rather than onto whichever card was
+ * clicked. Importing is the one direction that changes what is heard, and
+ * "apply this to what I am listening to" is a sentence somebody can check
+ * against their own ears at the moment they say it. Writing a chain onto an
+ * output that is not playing is a change nobody can verify.
+ *
+ * The bundle's own `exportedFrom` is never consulted for this: a chain exported
+ * from one person's headphones is meant to be usable on another's.
+ */
+ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
+  const channel = ChannelEnum.IMPORT_DEVICE_CHAIN;
+  try {
+    if (!activeAudioDeviceId) {
+      handleError(
+        event,
+        channel,
+        ErrorCode.FAILURE,
+        'No output is active, so there is nothing to import onto.',
+      );
+      return;
+    }
+
+    const sourcePath = await showImportDialog('Import a chain', [
+      { name: 'FluidEQ chain', extensions: [CHAIN_BUNDLE_EXTENSION] },
+      { name: 'All files', extensions: ['*'] },
+    ]);
+    if (!sourcePath) {
+      const reply: TSuccess<string> = { result: '' };
+      event.reply(channel, reply);
+      return;
+    }
+
+    const bundle = parseChainBundle(
+      JSON.parse(fs.readFileSync(sourcePath, 'utf8')),
+    );
+    if (!bundle) {
+      handleError(
+        event,
+        channel,
+        ErrorCode.IMPORT_ERROR,
+        'That file is not a FluidEQ chain.',
+      );
+      return;
+    }
+
+    // Named for where it is going rather than where it came from, because the
+    // profile list is indexed by that and it is what the user will look for.
+    const name = reservePresetNameForActiveDevice(
+      activeAudioDevice?.name || activeAudioDeviceId,
+    );
+    savePreset(name, bundle.preset, presetPath);
+    savePresetBaseline(name, bundle.preset, baselinePath);
+    attachPresetToActiveDevice(name);
+
+    if (bundle.custom !== undefined) {
+      if (!configPath) {
+        configPath = await getConfigPath();
+      }
+      // Over the top of this output's own custom file, which is the only part
+      // of an import that destroys something written by hand. It is also the
+      // only honest reading of "import this chain": leaving the old one would
+      // apply somebody else's chain plus your own additions, which is a third
+      // thing neither of you has ever heard.
+      fs.writeFileSync(
+        path.join(configPath, getCustomFileNameForDevice(activeAudioDeviceId)),
+        bundle.custom,
+        'utf8',
+      );
+    }
+
+    // Field by field, like loading a profile, because `state` is the live one
+    // rather than a value to swap: every reader here holds the same object.
+    clearCurrentLayoutSettings();
+    state.preAmp = bundle.preset.preAmp;
+    state.filters = bundle.preset.filters;
+    state.eqFormat = bundle.preset.eqFormat;
+    state.graphicEq = bundle.preset.graphicEq;
+    state.convolution = bundle.preset.convolution;
+    state.isFlat = bundle.preset.isFlat;
+    state.voicing = bundle.preset.voicing;
+    state.driver = bundle.preset.driver;
+    state.smartEq = bundle.preset.smartEq;
+    state.headset = bundle.preset.headset;
+    state.headsetTarget = bundle.preset.headsetTarget;
+    state.headsetSource = bundle.preset.headsetSource;
+    state.headsetSignature = bundle.preset.headsetSignature;
+    state.bypassed = bundle.preset.bypassed;
+
+    await handleUpdateHelper<string>(
+      event,
+      channel,
+      `Imported the chain${
+        bundle.exportedFrom ? ` from ${bundle.exportedFrom}` : ''
+      }.`,
+      true,
+    );
+  } catch (e) {
+    handleError(
+      event,
+      channel,
+      ErrorCode.IMPORT_ERROR,
+      e instanceof Error ? e.message : undefined,
     );
   }
 });

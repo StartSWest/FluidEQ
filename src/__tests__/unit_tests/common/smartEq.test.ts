@@ -20,6 +20,8 @@ import { FilterTypeEnum, IFilter } from 'common/constants';
 import {
   CONTINUOUS_MAX_DB,
   CONTINUOUS_MEMORY,
+  CONTINUOUS_RESET_DB,
+  CONTINUOUS_RESET_HOLDS,
   CONTINUOUS_STEP_DB,
   CONTINUOUS_TRIGGER_DB,
   blendSmartEqTarget,
@@ -311,34 +313,69 @@ describe('the Smart EQ layer', () => {
       // does not change. A bass-heavy album and a thin one are two steady,
       // confident, opposite answers, and acting on each in turn is a correction
       // that raises the bass and then lowers it for as long as anybody listens.
-      const bassy = { b: 4 };
-      const thin = { b: -4 };
+      // Alternating either side of the settled answer rather than far out on
+      // one side, which is what music does and what the averaging is for. Far
+      // out and staying there is the other case entirely — see the reset below.
+      const bassy = { b: 2 };
+      const thin = { b: -2 };
 
-      let target: Record<string, number> = {};
       // The first answer is taken whole: with no history, one measurement is
       // the estimate.
-      target = blendSmartEqTarget(target, bassy);
-      expect(target.b).toBe(4);
+      let blended = blendSmartEqTarget({}, bassy);
+      expect(blended.target.b).toBe(2);
 
       // Then they cancel rather than accumulate.
       for (let pass = 0; pass < 20; pass += 1) {
-        target = blendSmartEqTarget(target, pass % 2 === 0 ? thin : bassy);
+        blended = blendSmartEqTarget(
+          blended.target,
+          pass % 2 === 0 ? thin : bassy,
+          { drift: blended.drift },
+        );
       }
-      expect(Math.abs(target.b)).toBeLessThan(1);
+      expect(Math.abs(blended.target.b)).toBeLessThan(1);
     });
 
     it('moves by a fraction, so a single disagreeing track writes nothing', () => {
       // Under the deadband on purpose: the two rules together are what stop it
       // writing at all once it is right.
-      const target = blendSmartEqTarget({ b: 0 }, { b: 2 });
+      const { target } = blendSmartEqTarget({ b: 0 }, { b: 2 });
       expect(target.b).toBeCloseTo(2 * CONTINUOUS_MEMORY, 6);
       expect(target.b).toBeLessThan(CONTINUOUS_TRIGGER_DB);
     });
 
+    it('takes a big disagreement whole once it has survived long enough', () => {
+      // The other half of the mode: averaging is right until the thing being
+      // corrected actually changes, and then it is defending an obsolete
+      // answer. Different headphones, another room, a source with a different
+      // balance — all of them look like this.
+      let blended = blendSmartEqTarget({ b: 0 }, { b: 5 });
+      expect(blended.target.b).toBeCloseTo(5 * CONTINUOUS_MEMORY, 6);
+
+      for (let pass = 1; pass < CONTINUOUS_RESET_HOLDS; pass += 1) {
+        blended = blendSmartEqTarget(blended.target, { b: 5 }, blended);
+      }
+      // Adopted, not crept toward.
+      expect(blended.target.b).toBe(5);
+      expect(blended.drift.b).toBeUndefined();
+    });
+
+    it('needs the disagreement to be a run, not three scattered tracks', () => {
+      let blended = blendSmartEqTarget({ b: 0 }, { b: 5 });
+      // One agreeing window in the middle and the count starts over, because a
+      // loud chorus between two ordinary ones is music rather than a change of
+      // circumstances.
+      blended = blendSmartEqTarget(blended.target, { b: 0.6 }, blended);
+      for (let pass = 0; pass < CONTINUOUS_RESET_HOLDS - 1; pass += 1) {
+        blended = blendSmartEqTarget(blended.target, { b: 5 }, blended);
+      }
+
+      expect(blended.target.b).toBeLessThan(CONTINUOUS_RESET_DB);
+    });
+
     it('keeps the destination of a band this window said nothing about', () => {
       // No evidence is not evidence of nothing, so it must not decay to zero.
-      expect(blendSmartEqTarget({ b: 3 }, {}).b).toBe(3);
-      expect(blendSmartEqTarget({ b: 3 }, { b: Number.NaN }).b).toBe(3);
+      expect(blendSmartEqTarget({ b: 3 }, {}).target.b).toBe(3);
+      expect(blendSmartEqTarget({ b: 3 }, { b: Number.NaN }).target.b).toBe(3);
     });
 
     it('leaves a band the solve said nothing about exactly where it is', () => {

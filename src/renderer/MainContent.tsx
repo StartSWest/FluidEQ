@@ -43,6 +43,7 @@ import {
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import {
+  TSmartEqDrift,
   blendSmartEqTarget,
   buildSmartEqSettings,
   describeSmartEqLayer,
@@ -216,6 +217,8 @@ const MainContent = () => {
    * meaningful across corrections where an average of measurements is not.
    */
   const longRunTargetRef = useRef<Record<string, number>>({});
+  /** How many windows running each band has disagreed with that estimate. */
+  const longRunDriftRef = useRef<TSmartEqDrift>({});
   /**
    * The running Continuous EQ capture, so the manual button can end it.
    *
@@ -988,10 +991,14 @@ const MainContent = () => {
     // gains and so are comparable across corrections, which is what makes an
     // average of them meaningful where an average of raw measurements would
     // not be.
-    longRunTargetRef.current = blendSmartEqTarget(
-      longRunTargetRef.current,
-      scoped,
-    );
+    // Two rates. Small disagreements are averaged away so it settles and stops;
+    // a large one that survives three windows running is a different situation
+    // rather than a different track, and is taken whole.
+    const blended = blendSmartEqTarget(longRunTargetRef.current, scoped, {
+      drift: longRunDriftRef.current,
+    });
+    longRunTargetRef.current = blended.target;
+    longRunDriftRef.current = blended.drift;
     const stepped = stepSmartEqGains(bands, longRunTargetRef.current);
     const measured = buildSmartEqSettings(bands, stepped, {
       status: report.status === 'ready' ? 'ready' : 'partial',
@@ -1077,6 +1084,7 @@ const MainContent = () => {
     // measuring a different output, a different headphone, or a chain the
     // manual button has since rebuilt from flat.
     longRunTargetRef.current = {};
+    longRunDriftRef.current = {};
 
     captureBalanceProfile({
       signal: controller.signal,

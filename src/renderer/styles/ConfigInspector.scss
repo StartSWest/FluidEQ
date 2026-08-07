@@ -329,6 +329,48 @@
   }
 }
 
+// A chain, out to a file and back in again.
+//
+// Under the facts rather than up in the header, because it acts on the output
+// being shown rather than on the panel — and the note sits with the buttons for
+// the same reason it exists at all: both go through a native dialog, so what
+// happened is only knowable after the fact.
+.config-device__transfer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 8px;
+  gap: 8px;
+
+  button {
+    padding: 5px 11px;
+    border: 1px solid rgba($secondary-light, 0.28);
+    border-radius: $radius-xs;
+    background: rgba($secondary-default, 0.08);
+    color: $secondary-light;
+    font: inherit;
+    font-size: 0.68rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover,
+    &:focus-visible {
+      border-color: rgba($secondary-light, 0.55);
+      background: rgba($secondary-default, 0.18);
+      color: $white;
+      outline: none;
+    }
+  }
+}
+
+.config-device__transfer-note {
+  min-width: 0;
+  flex: 1 1 auto;
+  color: $text-faint;
+  font-size: 0.68rem;
+}
+
 .config-device__empty {
   margin: 0;
   color: $text-faint;

@@ -159,6 +159,18 @@ const featureFileName = (slug: string, feature: TApoFeature) =>
  */
 const customFileName = (slug: string) => `fluideq-${slug}-custom.txt`;
 
+/**
+ * The custom file belonging to one output, by its endpoint id.
+ *
+ * Exported because exporting a chain has to carry this file literally: it is
+ * the one part of an output's chain that is not generated from the profile, so
+ * it is the one part that cannot be rebuilt at the other end. The slug is a
+ * digest and the name is assembled from it in two places here, neither of which
+ * anything outside this file should be reproducing by hand.
+ */
+export const getCustomFileNameForDevice = (deviceId: string) =>
+  customFileName(deviceSlug(deviceId));
+
 /** What a custom file says before anybody has put anything in it. */
 const CUSTOM_FILE_TEMPLATE = [
   '# Yours. FluidEQ creates this file once and never writes it again, so',

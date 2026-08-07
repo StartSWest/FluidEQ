@@ -360,6 +360,38 @@ export const CONTINUOUS_TRIGGER_DB = 1;
 export const CONTINUOUS_MEMORY = 0.15;
 
 /**
+ * When a disagreement stops being noise and starts being a different situation.
+ *
+ * Averaging alone converges on what every record agrees about and then holds
+ * there, which is right until the thing being corrected genuinely changes —
+ * other headphones, another room, a source with a different balance. Then the
+ * memory is not steadying the answer, it is defending an obsolete one, and a
+ * seventh of the way per window means minutes of hearing something wrong.
+ *
+ * One window three decibels out is a loud chorus. Three in a row, all still
+ * three decibels out, is not: the estimate is simply no longer describing what
+ * is being played, and the honest response is to take the new answer whole
+ * rather than creep toward it.
+ *
+ * Both numbers matter and they do different jobs. The threshold decides what
+ * counts as disagreement at all; the count is what stops a single unusual track
+ * from qualifying, and it is the reason this does not collapse back into
+ * correcting every song — which is the behaviour the averaging was added to
+ * stop.
+ */
+export const CONTINUOUS_RESET_DB = 3;
+export const CONTINUOUS_RESET_HOLDS = 3;
+
+/**
+ * How far each band has been out, for how long — the state the reset needs.
+ *
+ * Carried by the caller rather than kept here so this file stays pure, and per
+ * band rather than per range because a range's bands can disagree with the
+ * settled answer independently.
+ */
+export type TSmartEqDrift = Record<string, number>;
+
+/**
  * Where the correction is heading, averaged over everything heard so far.
  *
  * `solved` is one window's answer in absolute gains — already relative to what
@@ -373,23 +405,67 @@ export const CONTINUOUS_MEMORY = 0.15;
  * one measurement is the estimate. A band this window said nothing about keeps
  * the destination it had rather than decaying toward zero — no evidence is not
  * evidence of nothing.
+ *
+ * Two rates, not one. Averaging is right until the thing being corrected
+ * actually changes, at which point it is defending an obsolete answer — so a
+ * disagreement that is both large and sustained resets the estimate instead of
+ * being averaged into it. See `CONTINUOUS_RESET_DB`. The returned drift counts
+ * are what the next call needs to know how long each band has been out; hand
+ * them straight back.
  */
 export const blendSmartEqTarget = (
   previous: Record<string, number>,
   solved: Record<string, number>,
-  memory = CONTINUOUS_MEMORY,
-): Record<string, number> => {
+  {
+    memory = CONTINUOUS_MEMORY,
+    drift = {},
+    resetDb = CONTINUOUS_RESET_DB,
+    resetHolds = CONTINUOUS_RESET_HOLDS,
+  }: {
+    memory?: number;
+    /** How many windows running each band has been far out. */
+    drift?: TSmartEqDrift;
+    resetDb?: number;
+    resetHolds?: number;
+  } = {},
+): { target: Record<string, number>; drift: TSmartEqDrift } => {
   const blended = { ...previous };
+  const nextDrift: TSmartEqDrift = { ...drift };
+
   Object.entries(solved).forEach(([id, answer]) => {
     if (!Number.isFinite(answer)) {
       return;
     }
     const held = blended[id];
-    blended[id] = Number.isFinite(held)
-      ? held + memory * (answer - held)
-      : answer;
+    if (!Number.isFinite(held)) {
+      blended[id] = answer;
+      delete nextDrift[id];
+      return;
+    }
+
+    if (Math.abs(answer - held) < resetDb) {
+      // Back in agreement. The count goes to nothing rather than down by one,
+      // because what earns a reset is a run of them: three scattered across ten
+      // minutes is ordinary music, three in a row is a different situation.
+      delete nextDrift[id];
+      blended[id] = held + memory * (answer - held);
+      return;
+    }
+
+    const runLength = (nextDrift[id] ?? 0) + 1;
+    if (runLength >= resetHolds) {
+      // Long enough. Take the new answer whole — creeping toward it a seventh
+      // at a time would be minutes of defending an estimate that has already
+      // been contradicted three times running.
+      delete nextDrift[id];
+      blended[id] = answer;
+      return;
+    }
+    nextDrift[id] = runLength;
+    blended[id] = held + memory * (answer - held);
   });
-  return blended;
+
+  return { target: blended, drift: nextDrift };
 };
 
 /**

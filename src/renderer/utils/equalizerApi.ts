@@ -354,6 +354,34 @@ export const writeApoConfigFile = (
   return promisifyResult(setterResponseHandler, channel);
 };
 
+/**
+ * One output's whole chain, out to a file.
+ *
+ * Named by the `Device:` pattern rather than by endpoint id, because that is
+ * what the config panel has: it reads the config off disk, where an output is a
+ * GUID or a name and never the id Windows uses internally.
+ *
+ * Resolves with an empty string when the save dialog was cancelled, which is an
+ * ordinary outcome rather than a failure.
+ */
+export const exportDeviceChain = (devicePattern: string): Promise<string> => {
+  const channel = ChannelEnum.EXPORT_DEVICE_CHAIN;
+  window.electron.ipcRenderer.sendMessage(channel, [devicePattern]);
+  return promisifyResult(simpleResponseHandler<string>(), channel);
+};
+
+/**
+ * A chain from a file, onto the output being listened on.
+ *
+ * Takes no argument for that reason: importing changes what is heard, and the
+ * only output somebody can check the result on is the one already playing.
+ */
+export const importDeviceChain = (): Promise<string> => {
+  const channel = ChannelEnum.IMPORT_DEVICE_CHAIN;
+  window.electron.ipcRenderer.sendMessage(channel, []);
+  return promisifyResult(simpleResponseHandler<string>(), channel);
+};
+
 export const getAudioDevices = (): Promise<IAudioDevice[]> => {
   const channel = ChannelEnum.GET_AUDIO_DEVICES;
   window.electron.ipcRenderer.sendMessage(channel, []);

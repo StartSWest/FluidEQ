@@ -249,6 +249,41 @@ const pt: Partial<Dictionary> = {
   'voicing.headroom':
     'Adiciona até +{peak} dB. Normalizar automaticamente reserva a margem; deixe ligado a menos que você ajuste a pré-amplificação na mão.',
 
+  'config.eyebrow': 'Configuração do Equalizer APO',
+  'config.lede': 'O que está no disco agora, não o que o FluidEQ pretende.',
+  'config.reload': 'Recarregar',
+  'config.reloadTitle': 'Ler a configuração do disco outra vez',
+  'config.reading': 'Lendo…',
+  'config.absent':
+    'O FluidEQ ainda não escreveu nada nesta instalação do Equalizer APO.',
+  'config.status.notIncluded':
+    'O Equalizer APO não está incluindo esta configuração. Nada do que está abaixo é aplicado.',
+  'config.status.engineOff':
+    'O motor do FluidEQ está desligado: esta configuração não nomeia nenhuma saída, então o Equalizer APO não aplica nada dela.',
+  'config.status.active':
+    'Ativa: o Equalizer APO está aplicando esta configuração.',
+  'config.outputsAria': 'Saídas na configuração do Equalizer APO',
+  'config.filters.one': '{count} filtro',
+  'config.filters.many': '{count} filtros',
+  'config.impulse': 'impulso',
+  'config.playingNow': 'Tocando agora',
+  'config.liveTitle': 'O EQ contínuo mantém esta medição em dia',
+  'config.layer.on': 'ativo',
+  'config.layer.off': 'inativo',
+  'config.empty': 'Nada incluído: esta saída fica intocada.',
+  'config.file.missing': 'ausente',
+  'config.export': 'Exportar cadeia',
+  'config.import': 'Importar cadeia',
+  'config.import.hint': 'A importação aplica-se à saída que estás a ouvir.',
+  'config.file.yours': 'seu',
+  'config.hint.custom': 'É seu. Nunca é sobrescrito.',
+  'config.hint.generated': 'Gerado: reescrito na próxima alteração.',
+  'config.hint.saving':
+    'Salvar grava o arquivo; o Equalizer APO o assume em seguida.',
+  'config.edit': 'Editar',
+  'config.cancel': 'Cancelar',
+  'config.save': 'Salvar',
+
   'support.eyebrow': 'TOTALMENTE OPCIONAL',
 
   'support.petHint': 'Pressione espaço para fazê-lo pular',

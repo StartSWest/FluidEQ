@@ -254,6 +254,40 @@ const hi: Partial<Dictionary> = {
   'voicing.headroom':
     '+{peak} dB तक बढ़ाता है। “अपने आप सामान्य करें” यह जगह छोड़कर रखता है; जब तक आप प्रीएम्प खुद तय न कर रहे हों, इसे चालू रहने दें।',
 
+  'config.eyebrow': 'Equalizer APO कॉन्फ़िग',
+  'config.lede': 'अभी डिस्क पर जो है वही, न कि जो FluidEQ चाहता है।',
+  'config.reload': 'फिर से पढ़ें',
+  'config.reloadTitle': 'कॉन्फ़िग को डिस्क से दोबारा पढ़ें',
+  'config.reading': 'पढ़ा जा रहा है…',
+  'config.absent':
+    'FluidEQ ने इस Equalizer APO इंस्टॉलेशन में अभी तक कुछ नहीं लिखा है।',
+  'config.status.notIncluded':
+    'Equalizer APO इस कॉन्फ़िग को शामिल नहीं कर रहा। नीचे का कुछ भी लागू नहीं हो रहा।',
+  'config.status.engineOff':
+    'FluidEQ इंजन बंद है — यह कॉन्फ़िग किसी आउटपुट का नाम नहीं लेता, इसलिए Equalizer APO इसमें से कुछ भी लागू नहीं कर रहा।',
+  'config.status.active': 'चालू — Equalizer APO यह कॉन्फ़िग लागू कर रहा है।',
+  'config.outputsAria': 'Equalizer APO कॉन्फ़िग के आउटपुट',
+  'config.filters.one': '{count} फ़िल्टर',
+  'config.filters.many': '{count} फ़िल्टर',
+  'config.impulse': 'इंपल्स',
+  'config.playingNow': 'अभी बज रहा है',
+  'config.liveTitle': 'निरंतर EQ इसे मापता रहता है',
+  'config.layer.on': 'चालू',
+  'config.layer.off': 'बंद',
+  'config.empty': 'कुछ भी शामिल नहीं — यह आउटपुट वैसा ही छोड़ा गया है।',
+  'config.file.missing': 'नहीं मिली',
+  'config.export': 'चेन निर्यात करें',
+  'config.import': 'चेन आयात करें',
+  'config.import.hint': 'आयात उसी आउटपुट पर लागू होगा जिसे आप सुन रहे हैं।',
+  'config.file.yours': 'आपकी',
+  'config.hint.custom': 'यह आपकी है। कभी अधिलेखित नहीं होती।',
+  'config.hint.generated': 'अपने आप बनी — अगले बदलाव पर फिर से लिखी जाएगी।',
+  'config.hint.saving':
+    'सहेजने पर फ़ाइल लिखी जाती है; Equalizer APO उसे उठा लेता है।',
+  'config.edit': 'संपादित करें',
+  'config.cancel': 'रद्द करें',
+  'config.save': 'सहेजें',
+
   'support.eyebrow': 'पूरी तरह वैकल्पिक',
 
   'support.petHint': 'इसे उछालने के लिए स्पेस दबाएँ',

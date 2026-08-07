@@ -250,6 +250,44 @@ const de: Partial<Dictionary> = {
   'voicing.headroom':
     'Fügt bis zu +{peak} dB hinzu. Die automatische Normalisierung hält den Spielraum frei; lassen Sie sie an, außer Sie setzen die Vorverstärkung selbst.',
 
+  'config.eyebrow': 'Equalizer-APO-Konfiguration',
+  'config.lede':
+    'Was gerade auf der Platte steht, nicht das, was FluidEQ vorhat.',
+  'config.reload': 'Neu laden',
+  'config.reloadTitle': 'Die Konfiguration erneut von der Platte lesen',
+  'config.reading': 'Wird gelesen…',
+  'config.absent':
+    'FluidEQ hat in diese Equalizer-APO-Installation noch nichts geschrieben.',
+  'config.status.notIncluded':
+    'Equalizer APO bindet diese Konfiguration nicht ein. Nichts davon wird angewendet.',
+  'config.status.engineOff':
+    'Die FluidEQ-Engine ist ausgeschaltet — diese Konfiguration nennt keinen Ausgang, Equalizer APO wendet also nichts davon an.',
+  'config.status.active':
+    'Aktiv — Equalizer APO wendet diese Konfiguration an.',
+  'config.outputsAria': 'Ausgänge in der Equalizer-APO-Konfiguration',
+  'config.filters.one': '{count} Filter',
+  'config.filters.many': '{count} Filter',
+  'config.impulse': 'Impuls',
+  'config.playingNow': 'Läuft gerade',
+  'config.liveTitle': 'Der fortlaufende EQ hält diese Messung aktuell',
+  'config.layer.on': 'ein',
+  'config.layer.off': 'aus',
+  'config.empty': 'Nichts eingebunden — dieser Ausgang bleibt unangetastet.',
+  'config.file.missing': 'fehlt',
+  'config.export': 'Kette exportieren',
+  'config.import': 'Kette importieren',
+  'config.import.hint':
+    'Der Import landet auf dem Ausgang, den Sie gerade hören.',
+  'config.file.yours': 'Ihre',
+  'config.hint.custom': 'Ihre Datei. Wird nie überschrieben.',
+  'config.hint.generated':
+    'Generiert — wird bei der nächsten Änderung neu geschrieben.',
+  'config.hint.saving':
+    'Speichern schreibt die Datei; Equalizer APO übernimmt sie.',
+  'config.edit': 'Bearbeiten',
+  'config.cancel': 'Abbrechen',
+  'config.save': 'Speichern',
+
   'support.eyebrow': 'VÖLLIG FREIWILLIG',
 
   'support.petHint': 'Drücke die Leertaste, damit es hüpft',

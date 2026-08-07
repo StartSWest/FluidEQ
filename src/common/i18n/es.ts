@@ -251,6 +251,43 @@ const es: Partial<Dictionary> = {
   'voicing.headroom':
     'Añade hasta +{peak} dB. Normalizar automáticamente reserva el margen; déjalo activado salvo que ajustes la preamplificación a mano.',
 
+  'config.eyebrow': 'Configuración de Equalizer APO',
+  'config.lede':
+    'Lo que hay ahora mismo en el disco, no lo que FluidEQ pretende.',
+  'config.reload': 'Recargar',
+  'config.reloadTitle': 'Volver a leer la configuración del disco',
+  'config.reading': 'Leyendo…',
+  'config.absent':
+    'FluidEQ todavía no ha escrito nada en esta instalación de Equalizer APO.',
+  'config.status.notIncluded':
+    'Equalizer APO no está incluyendo esta configuración. No se aplica nada de lo que hay debajo.',
+  'config.status.engineOff':
+    'El motor de FluidEQ está apagado: esta configuración no nombra ninguna salida, así que Equalizer APO no aplica nada de ella.',
+  'config.status.active':
+    'Activa: Equalizer APO está aplicando esta configuración.',
+  'config.outputsAria': 'Salidas en la configuración de Equalizer APO',
+  'config.filters.one': '{count} filtro',
+  'config.filters.many': '{count} filtros',
+  'config.impulse': 'impulso',
+  'config.playingNow': 'Sonando ahora',
+  'config.liveTitle': 'El EQ continuo mantiene esta medición al día',
+  'config.layer.on': 'activo',
+  'config.layer.off': 'inactivo',
+  'config.empty': 'No incluye nada: esta salida se deja sin tocar.',
+  'config.file.missing': 'falta',
+  'config.export': 'Exportar cadena',
+  'config.import': 'Importar cadena',
+  'config.import.hint':
+    'La importación se aplica a la salida que estás escuchando.',
+  'config.file.yours': 'tuyo',
+  'config.hint.custom': 'Es tuyo. Nunca se sobrescribe.',
+  'config.hint.generated': 'Generado: se reescribe con el próximo cambio.',
+  'config.hint.saving':
+    'Al guardar se escribe el archivo; Equalizer APO lo recoge.',
+  'config.edit': 'Editar',
+  'config.cancel': 'Cancelar',
+  'config.save': 'Guardar',
+
   'support.eyebrow': 'TOTALMENTE OPCIONAL',
 
   'support.petHint': 'Pulsa espacio para hacerlo saltar',

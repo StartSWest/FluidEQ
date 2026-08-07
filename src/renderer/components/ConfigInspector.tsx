@@ -23,13 +23,16 @@ import {
   IApoConfigTree,
 } from 'common/apoConfig';
 import {
+  exportDeviceChain,
   getApoConfigTree,
   getAudioDevices,
+  importDeviceChain,
   writeApoConfigFile,
 } from '../utils/equalizerApi';
 import MenuIcon from '../icons/MenuIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useContinuousEq } from '../utils/continuousEq';
+import { useTranslation } from '../utils/I18nContext';
 import '../styles/ConfigInspector.scss';
 
 /**
@@ -73,6 +76,7 @@ const ConfigFileNode = ({
   file: IApoConfigFile;
   onSaved: () => void;
 }) => {
+  const { t } = useTranslation();
   // Open on arrival. There are never more than a handful and the whole point
   // of coming here is to see them; a tree that must be unfolded before it says
   // anything is a worse answer than the five files it is hiding.
@@ -89,7 +93,7 @@ const ConfigFileNode = ({
       <li className="config-node config-node--missing">
         <span className="config-node__name">{file.fileName}</span>
         <span className="config-node__badge config-node__badge--missing">
-          missing
+          {t('config.file.missing')}
         </span>
       </li>
     );
@@ -120,12 +124,15 @@ const ConfigFileNode = ({
         <span className="config-node__name">{file.fileName}</span>
         {isCustom && (
           <span className="config-node__badge config-node__badge--custom">
-            yours
+            {t('config.file.yours')}
           </span>
         )}
         {filterCount > 0 && (
           <span className="config-node__badge">
-            {filterCount} {filterCount === 1 ? 'filter' : 'filters'}
+            {t(
+              filterCount === 1 ? 'config.filters.one' : 'config.filters.many',
+              { count: filterCount },
+            )}
           </span>
         )}
       </button>
@@ -146,15 +153,15 @@ const ConfigFileNode = ({
                     their work disappears. */}
                 <span className="config-node__hint">
                   {isCustom
-                    ? 'Yours. Never overwritten.'
-                    : 'Generated — rewritten on the next change.'}
+                    ? t('config.hint.custom')
+                    : t('config.hint.generated')}
                 </span>
                 <button
                   type="button"
                   className="config-node__edit"
                   onClick={() => setDraft(file.lines.join('\n'))}
                 >
-                  Edit
+                  {t('config.edit')}
                 </button>
               </div>
             </div>
@@ -170,17 +177,17 @@ const ConfigFileNode = ({
               {saveError && <p className="config-node__error">{saveError}</p>}
               <div className="config-node__actions">
                 <span className="config-node__hint">
-                  Saving writes the file; Equalizer APO picks it up.
+                  {t('config.hint.saving')}
                 </span>
                 <button type="button" onClick={() => setDraft(undefined)}>
-                  Cancel
+                  {t('config.cancel')}
                 </button>
                 <button
                   type="button"
                   className="config-node__edit"
                   onClick={save}
                 >
-                  Save
+                  {t('config.save')}
                 </button>
               </div>
             </div>
@@ -219,6 +226,7 @@ const splitLabel = (device: IApoConfigDevice) => {
 };
 
 const ConfigInspector = () => {
+  const { t } = useTranslation();
   const {
     isEnabled,
     bypassed,
@@ -268,6 +276,55 @@ const ConfigInspector = () => {
   // Keyed on the state that reaches the writer rather than on a change event,
   // because there is no such event: the flush is a file write, and nothing
   // downstream of it tells the window it happened.
+  //
+  // Except while Continuous EQ is running, and that exception is why this note
+  // is longer than the effect. That mode rewrites the Smart EQ file every few
+  // seconds, and each rewrite landed here as a full re-read of every config
+  // file, plus a device enumeration, plus a rebuild of the tree — the panel
+  // visibly reloading itself over and over for as long as anybody left it open.
+  // Watching a file that is being written continuously is not a thing to do
+  // continuously.
+  //
+  // Nothing is lost by leaving it out. That layer's row already carries a pip
+  // saying it is being maintained while you read it, which is a truer statement
+  // than a number that was right two seconds ago, and Reload is there for
+  // anybody who wants the bytes as they stand. Every other change still reloads
+  // at once — including switching the mode off, which is what puts the panel
+  // back in step.
+  /**
+   * Whatever the last export or import had to say, or nothing.
+   *
+   * Both go through a native dialog, so the window has no idea whether anything
+   * happened until the reply comes back — and cancelling is an ordinary outcome
+   * that replies with an empty string rather than an error. One line for the
+   * answer either way, next to the buttons that asked.
+   */
+  const [transferNote, setTransferNote] = useState('');
+
+  const transferChain = useCallback(
+    async (run: () => Promise<string>) => {
+      setTransferNote('');
+      try {
+        const note = await run();
+        setTransferNote(note);
+        if (note) {
+          // Only when something actually changed. A cancelled dialog leaves the
+          // files exactly as they were, and re-reading them says nothing.
+          await load();
+        }
+      } catch (error) {
+        setTransferNote((error as Error).message);
+      }
+    },
+    [load],
+  );
+
+  const exportChain = useCallback(
+    (device: IApoConfigDevice) => exportDeviceChain(device.devicePattern),
+    [],
+  );
+
+  const settledSmartEq = isContinuousOn ? undefined : smartEq;
   useEffect(() => {
     load();
   }, [
@@ -277,9 +334,10 @@ const ConfigInspector = () => {
     filters,
     voicing,
     driver,
-    smartEq,
+    settledSmartEq,
     convolution,
     preAmp,
+    isContinuousOn,
   ]);
 
   /**
@@ -321,10 +379,8 @@ const ConfigInspector = () => {
     <div className="config-inspector">
       <div className="config-inspector__bar">
         <div className="config-inspector__title">
-          <span className="eyebrow">Equalizer APO config</span>
-          <p className="config-inspector__lede">
-            What is on disk right now, not what FluidEQ intends.
-          </p>
+          <span className="eyebrow">{t('config.eyebrow')}</span>
+          <p className="config-inspector__lede">{t('config.lede')}</p>
         </div>
         {/* Icon and label, sized like the rest of the app's controls. A bare
             <button> inherited the global field styling and came out as a wide
@@ -334,17 +390,19 @@ const ConfigInspector = () => {
           className="config-inspector__reload"
           onClick={load}
           disabled={state.status === 'loading'}
-          title="Read the config from disk again"
+          title={t('config.reloadTitle')}
         >
           <MenuIcon name="restart" />
-          <span>{state.status === 'loading' ? 'Reading…' : 'Reload'}</span>
+          <span>
+            {state.status === 'loading'
+              ? t('config.reading')
+              : t('config.reload')}
+          </span>
         </button>
       </div>
 
       {state.status === 'absent' && (
-        <p className="config-inspector__note">
-          FluidEQ has not written to this Equalizer APO installation yet.
-        </p>
+        <p className="config-inspector__note">{t('config.absent')}</p>
       )}
       {state.status === 'failed' && (
         <p className="config-inspector__note config-inspector__note--error">
@@ -364,26 +422,24 @@ const ConfigInspector = () => {
               any different from a flat chain when all you can see is files. */}
           {!state.tree.isIncludedByApo && (
             <p className="config-status config-status--off">
-              Equalizer APO is not including this config. Nothing below is being
-              applied.
+              {t('config.status.notIncluded')}
             </p>
           )}
           {state.tree.isIncludedByApo && !state.tree.isApplied && (
             <p className="config-status config-status--off">
-              The FluidEQ engine is switched off — this config names no output,
-              so Equalizer APO is applying none of it.
+              {t('config.status.engineOff')}
             </p>
           )}
           {state.tree.isIncludedByApo && state.tree.isApplied && (
             <p className="config-status config-status--on">
-              Active — Equalizer APO is applying this config.
+              {t('config.status.active')}
             </p>
           )}
 
           <div
             className="config-inspector__cards"
             role="tablist"
-            aria-label="Outputs in the Equalizer APO config"
+            aria-label={t('config.outputsAria')}
           >
             {devices.map((device) => {
               const { output, profile } = splitLabel(device);
@@ -404,12 +460,18 @@ const ConfigInspector = () => {
                     <span className="config-card__profile">{profile}</span>
                   )}
                   <span className="config-card__facts">
-                    {device.filterCount}{' '}
-                    {device.filterCount === 1 ? 'filter' : 'filters'}
-                    {device.convolution ? ' · impulse' : ''}
+                    {t(
+                      device.filterCount === 1
+                        ? 'config.filters.one'
+                        : 'config.filters.many',
+                      { count: device.filterCount },
+                    )}
+                    {device.convolution ? ` · ${t('config.impulse')}` : ''}
                   </span>
                   {isCurrent(device) && (
-                    <span className="config-card__badge">Playing now</span>
+                    <span className="config-card__badge">
+                      {t('config.playingNow')}
+                    </span>
                   )}
                 </button>
               );
@@ -426,10 +488,43 @@ const ConfigInspector = () => {
               </header>
               <div className="config-device__facts">
                 <span>
-                  {shown.filterCount}{' '}
-                  {shown.filterCount === 1 ? 'filter' : 'filters'}
+                  {t(
+                    shown.filterCount === 1
+                      ? 'config.filters.one'
+                      : 'config.filters.many',
+                    { count: shown.filterCount },
+                  )}
                 </span>
                 {shown.preAmp && <span>{shown.preAmp}</span>}
+              </div>
+              {/* A chain, out to a file and back in again.
+                  What travels is the profile, not these files: their names
+                  carry a hash of the output they belong to, so the files
+                  themselves are meaningless anywhere else. The profile
+                  regenerates the whole chain correctly named for wherever it
+                  lands. The custom file goes along literally, being the one
+                  part FluidEQ does not generate.
+
+                  Import is not per-card on purpose. It changes what is heard,
+                  and the only output somebody can judge the result on is the
+                  one already playing — so it always lands on that, and says
+                  so. */}
+              <div className="config-device__transfer">
+                <button
+                  type="button"
+                  onClick={() => transferChain(() => exportChain(shown))}
+                >
+                  {t('config.export')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => transferChain(importDeviceChain)}
+                >
+                  {t('config.import')}
+                </button>
+                <span className="config-device__transfer-note">
+                  {transferNote || t('config.import.hint')}
+                </span>
               </div>
               {/* Every layer this output has, applied or not.
                   A switched-off layer has no file, so without this the panel
@@ -464,11 +559,13 @@ const ConfigInspector = () => {
                         isCurrent(shown) && (
                           <span
                             className="config-layer__live"
-                            title="Continuous EQ is keeping this measured"
+                            title={t('config.liveTitle')}
                           />
                         )}
                       <span className="config-layer__state">
-                        {layer.isApplied ? 'on' : 'off'}
+                        {layer.isApplied
+                          ? t('config.layer.on')
+                          : t('config.layer.off')}
                       </span>
                     </li>
                   ))}
@@ -483,9 +580,7 @@ const ConfigInspector = () => {
                 // without a profile. It names no file because it applies
                 // nothing, and saying so is better than an empty space
                 // somebody has to interpret.
-                <p className="config-device__empty">
-                  Nothing included — this output is left alone.
-                </p>
+                <p className="config-device__empty">{t('config.empty')}</p>
               )}
             </section>
           )}

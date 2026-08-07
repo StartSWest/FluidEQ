@@ -284,6 +284,40 @@ const en = {
   'voicing.headroom':
     'Adds up to +{peak} dB. Auto normalize reserves the headroom; leave it on unless you are setting the preamp by hand.',
 
+  // *** Config inspector ****************************************************
+  'config.eyebrow': 'Equalizer APO config',
+  'config.lede': 'What is on disk right now, not what FluidEQ intends.',
+  'config.reload': 'Reload',
+  'config.reloadTitle': 'Read the config from disk again',
+  'config.reading': 'Reading…',
+  'config.absent':
+    'FluidEQ has not written to this Equalizer APO installation yet.',
+  'config.status.notIncluded':
+    'Equalizer APO is not including this config. Nothing below is being applied.',
+  'config.status.engineOff':
+    'The FluidEQ engine is switched off — this config names no output, so Equalizer APO is applying none of it.',
+  'config.status.active': 'Active — Equalizer APO is applying this config.',
+  'config.outputsAria': 'Outputs in the Equalizer APO config',
+  'config.filters.one': '{count} filter',
+  'config.filters.many': '{count} filters',
+  'config.impulse': 'impulse',
+  'config.playingNow': 'Playing now',
+  'config.liveTitle': 'Continuous EQ is keeping this measured',
+  'config.layer.on': 'on',
+  'config.layer.off': 'off',
+  'config.empty': 'Nothing included — this output is left alone.',
+  'config.file.missing': 'missing',
+  'config.export': 'Export chain',
+  'config.import': 'Import chain',
+  'config.import.hint': 'Import lands on the output you are listening to.',
+  'config.file.yours': 'yours',
+  'config.hint.custom': 'Yours. Never overwritten.',
+  'config.hint.generated': 'Generated — rewritten on the next change.',
+  'config.hint.saving': 'Saving writes the file; Equalizer APO picks it up.',
+  'config.edit': 'Edit',
+  'config.cancel': 'Cancel',
+  'config.save': 'Save',
+
   // *** Support *************************************************************
   'support.eyebrow': 'ENTIRELY OPTIONAL',
   'support.petHint': 'Press space to make it jump',

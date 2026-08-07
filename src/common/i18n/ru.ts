@@ -248,6 +248,41 @@ const ru: Partial<Dictionary> = {
   'voicing.headroom':
     'Добавляет до +{peak} дБ. Авто-нормализация резервирует запас; оставьте её включённой, если не задаёте предусиление вручную.',
 
+  'config.eyebrow': 'Конфигурация Equalizer APO',
+  'config.lede': 'То, что сейчас лежит на диске, а не то, что задумал FluidEQ.',
+  'config.reload': 'Обновить',
+  'config.reloadTitle': 'Перечитать конфигурацию с диска',
+  'config.reading': 'Чтение…',
+  'config.absent':
+    'FluidEQ ещё ничего не записал в эту установку Equalizer APO.',
+  'config.status.notIncluded':
+    'Equalizer APO не подключает эту конфигурацию. Ничего из перечисленного ниже не применяется.',
+  'config.status.engineOff':
+    'Движок FluidEQ выключен — в этой конфигурации не назван ни один выход, поэтому Equalizer APO ничего из неё не применяет.',
+  'config.status.active': 'Активна — Equalizer APO применяет эту конфигурацию.',
+  'config.outputsAria': 'Выходы в конфигурации Equalizer APO',
+  'config.filters.one': '{count} фильтр',
+  'config.filters.many': 'фильтров: {count}',
+  'config.impulse': 'импульс',
+  'config.playingNow': 'Звучит сейчас',
+  'config.liveTitle': 'Непрерывный EQ поддерживает это измерение',
+  'config.layer.on': 'вкл',
+  'config.layer.off': 'выкл',
+  'config.empty': 'Ничего не подключено — этот выход оставлен как есть.',
+  'config.file.missing': 'нет файла',
+  'config.export': 'Экспорт цепочки',
+  'config.import': 'Импорт цепочки',
+  'config.import.hint': 'Импорт применяется к выходу, который вы слушаете.',
+  'config.file.yours': 'ваш',
+  'config.hint.custom': 'Ваш файл. Никогда не перезаписывается.',
+  'config.hint.generated':
+    'Создан автоматически — будет переписан при следующем изменении.',
+  'config.hint.saving':
+    'Сохранение записывает файл; Equalizer APO его подхватывает.',
+  'config.edit': 'Изменить',
+  'config.cancel': 'Отмена',
+  'config.save': 'Сохранить',
+
   'support.eyebrow': 'СОВЕРШЕННО ДОБРОВОЛЬНО',
 
   'support.petHint': 'Нажмите пробел, чтобы он подпрыгнул',
