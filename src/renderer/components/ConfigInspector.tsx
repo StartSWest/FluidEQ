@@ -16,13 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   IApoConfigDevice,
   IApoConfigFile,
   IApoConfigTree,
 } from 'common/apoConfig';
-import { getApoConfigTree } from '../utils/equalizerApi';
+import { getApoConfigTree, getAudioDevices } from '../utils/equalizerApi';
+import MenuIcon from '../icons/MenuIcon';
 import '../styles/ConfigInspector.scss';
 
 /**
@@ -56,17 +57,10 @@ type IApoConfigTreeState =
  */
 
 /** One file and its children, drawn as a disclosure. */
-const ConfigFileNode = ({
-  file,
-  depth,
-}: {
-  file: IApoConfigFile;
-  depth: number;
-}) => {
-  // Feature files open on arrival, the device file with them. There are never
-  // more than a handful and the whole point of coming here is to see them; a
-  // tree that must be unfolded before it says anything is a worse answer than
-  // the five files it is hiding.
+const ConfigFileNode = ({ file }: { file: IApoConfigFile }) => {
+  // Open on arrival. There are never more than a handful and the whole point
+  // of coming here is to see them; a tree that must be unfolded before it says
+  // anything is a worse answer than the five files it is hiding.
   const [isOpen, setIsOpen] = useState(true);
   const filterCount = file.lines.filter((line) =>
     /^Filter\s+\d+\s*:/i.test(line),
@@ -84,7 +78,7 @@ const ConfigFileNode = ({
   }
 
   return (
-    <li className="config-node" style={{ '--depth': depth } as never}>
+    <li className="config-node">
       <button
         type="button"
         className="config-node__head"
@@ -109,11 +103,7 @@ const ConfigFileNode = ({
           {file.includes.length > 0 && (
             <ul className="config-node__children">
               {file.includes.map((child) => (
-                <ConfigFileNode
-                  key={child.fileName}
-                  file={child}
-                  depth={depth + 1}
-                />
+                <ConfigFileNode key={child.fileName} file={child} />
               ))}
             </ul>
           )}
@@ -123,91 +113,197 @@ const ConfigFileNode = ({
   );
 };
 
-const ConfigDeviceCard = ({ device }: { device: IApoConfigDevice }) => (
-  <section className="config-device">
-    <header className="config-device__head">
-      <h4>{device.label ?? device.devicePattern}</h4>
-      <code className="config-device__pattern">{device.devicePattern}</code>
-    </header>
-    <div className="config-device__facts">
-      <span>
-        {device.filterCount} {device.filterCount === 1 ? 'filter' : 'filters'}
-      </span>
-      {device.preAmp && <span>{device.preAmp}</span>}
-      {device.convolution && <span>impulse response</span>}
-    </div>
-    {device.file ? (
-      <ul className="config-device__tree">
-        <ConfigFileNode file={device.file} depth={0} />
-      </ul>
-    ) : (
-      // The neutral fallback block FluidEQ writes for every output without a
-      // profile. It names no file because it applies nothing, and saying so is
-      // better than an empty space somebody has to interpret.
-      <p className="config-device__empty">
-        Nothing included — this output is left alone.
-      </p>
-    )}
-  </section>
-);
+/**
+ * The name a card carries.
+ *
+ * FluidEQ writes `<output> -> <profile>` above every Device line, so the label
+ * already holds both halves. Split so the output can be the title and the
+ * profile the subtitle, and fall back to the whole string for a block written
+ * by anything else.
+ */
+const splitLabel = (device: IApoConfigDevice) => {
+  const [output, profile] = (device.label ?? '').split(' -> ');
+  if (!output) {
+    return { output: device.devicePattern, profile: undefined };
+  }
+  return { output, profile };
+};
 
 const ConfigInspector = () => {
-  const [tree, setTree] = useState<IApoConfigTreeState>({ status: 'loading' });
+  const [state, setState] = useState<IApoConfigTreeState>({
+    status: 'loading',
+  });
+  /** The `Device:` pattern of the output Windows is playing through. */
+  const [currentPattern, setCurrentPattern] = useState<string>('');
+  const [selected, setSelected] = useState<string | undefined>(undefined);
 
   const load = useCallback(async () => {
-    setTree({ status: 'loading' });
-    try {
-      const result = await getApoConfigTree();
-      setTree(
-        result ? { status: 'ready', tree: result } : { status: 'absent' },
-      );
-    } catch (error) {
-      setTree({ status: 'failed', message: (error as Error).message });
+    setState({ status: 'loading' });
+    // The devices are asked for alongside the config rather than before it, so
+    // a machine where enumeration is slow still shows the tree promptly and
+    // simply cannot mark which output is current.
+    const [tree, devices] = await Promise.all([
+      getApoConfigTree().catch((error: Error) => error),
+      getAudioDevices().catch(() => []),
+    ]);
+
+    const active = devices.find((device) => device.isDefault);
+    setCurrentPattern(active?.guid || active?.name || '');
+
+    if (tree instanceof Error) {
+      setState({ status: 'failed', message: tree.message });
+      return;
     }
+    setState(tree ? { status: 'ready', tree } : { status: 'absent' });
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
 
+  /**
+   * The current output first, and everything else in the order the config
+   * lists it.
+   *
+   * The one somebody is listening through is the one they came here about, so
+   * it is worth taking out of file order and putting at the front. The rest
+   * stay as APO reads them, because that order is a fact about the file rather
+   * than a presentation choice.
+   */
+  const devices = useMemo(() => {
+    if (state.status !== 'ready') {
+      return [];
+    }
+    const matches = (device: IApoConfigDevice) =>
+      !!currentPattern &&
+      device.devicePattern.toLowerCase() === currentPattern.toLowerCase();
+
+    return [
+      ...state.tree.devices.filter(matches),
+      ...state.tree.devices.filter((device) => !matches(device)),
+    ];
+  }, [state, currentPattern]);
+
+  const isCurrent = (device: IApoConfigDevice) =>
+    !!currentPattern &&
+    device.devicePattern.toLowerCase() === currentPattern.toLowerCase();
+
+  const keyOf = (device: IApoConfigDevice) =>
+    `${device.devicePattern}|${device.label ?? ''}`;
+
+  // Defaults to the first card, which the sort above has already made the
+  // current output wherever there is one.
+  const selectedKey = selected ?? (devices[0] ? keyOf(devices[0]) : undefined);
+  const shown = devices.find((device) => keyOf(device) === selectedKey);
+
   return (
     <div className="config-inspector">
       <div className="config-inspector__bar">
-        <div>
+        <div className="config-inspector__title">
           <span className="eyebrow">Equalizer APO config</span>
           <p className="config-inspector__lede">
             What is on disk right now, not what FluidEQ intends.
           </p>
         </div>
-        <button type="button" onClick={load}>
-          Reload
+        {/* Icon and label, sized like the rest of the app's controls. A bare
+            <button> inherited the global field styling and came out as a wide
+            pale slab that read as a text input somebody had disabled. */}
+        <button
+          type="button"
+          className="config-inspector__reload"
+          onClick={load}
+          disabled={state.status === 'loading'}
+          title="Read the config from disk again"
+        >
+          <MenuIcon name="restart" />
+          <span>{state.status === 'loading' ? 'Reading…' : 'Reload'}</span>
         </button>
       </div>
 
-      {tree.status === 'loading' && (
-        <p className="config-inspector__note">Reading the config…</p>
-      )}
-      {tree.status === 'absent' && (
+      {state.status === 'absent' && (
         <p className="config-inspector__note">
           FluidEQ has not written to this Equalizer APO installation yet.
         </p>
       )}
-      {tree.status === 'failed' && (
+      {state.status === 'failed' && (
         <p className="config-inspector__note config-inspector__note--error">
-          {tree.message}
+          {state.message}
         </p>
       )}
-      {tree.status === 'ready' && (
+
+      {state.status === 'ready' && (
         <>
+          <div
+            className="config-inspector__cards"
+            role="tablist"
+            aria-label="Outputs in the Equalizer APO config"
+          >
+            {devices.map((device) => {
+              const { output, profile } = splitLabel(device);
+              const key = keyOf(device);
+              return (
+                <button
+                  type="button"
+                  role="tab"
+                  key={key}
+                  aria-selected={key === selectedKey}
+                  className={`config-card${
+                    key === selectedKey ? ' is-selected' : ''
+                  }${isCurrent(device) ? ' is-current' : ''}`}
+                  onClick={() => setSelected(key)}
+                >
+                  <span className="config-card__name">{output}</span>
+                  {profile && (
+                    <span className="config-card__profile">{profile}</span>
+                  )}
+                  <span className="config-card__facts">
+                    {device.filterCount}{' '}
+                    {device.filterCount === 1 ? 'filter' : 'filters'}
+                    {device.convolution ? ' · impulse' : ''}
+                  </span>
+                  {isCurrent(device) && (
+                    <span className="config-card__badge">Playing now</span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {shown && (
+            <section className="config-device">
+              <header className="config-device__head">
+                <h4>{splitLabel(shown).output}</h4>
+                <code className="config-device__pattern">
+                  {shown.devicePattern}
+                </code>
+              </header>
+              <div className="config-device__facts">
+                <span>
+                  {shown.filterCount}{' '}
+                  {shown.filterCount === 1 ? 'filter' : 'filters'}
+                </span>
+                {shown.preAmp && <span>{shown.preAmp}</span>}
+                {shown.convolution && <span>impulse response</span>}
+              </div>
+              {shown.file ? (
+                <ul className="config-device__tree">
+                  <ConfigFileNode file={shown.file} />
+                </ul>
+              ) : (
+                // The neutral fallback block FluidEQ writes for every output
+                // without a profile. It names no file because it applies
+                // nothing, and saying so is better than an empty space
+                // somebody has to interpret.
+                <p className="config-device__empty">
+                  Nothing included — this output is left alone.
+                </p>
+              )}
+            </section>
+          )}
+
           <code className="config-inspector__path">
-            {tree.tree.configDirPath}
+            {state.tree.configDirPath}
           </code>
-          {tree.tree.devices.map((device) => (
-            <ConfigDeviceCard
-              key={`${device.devicePattern}-${device.label ?? ''}`}
-              device={device}
-            />
-          ))}
         </>
       )}
     </div>

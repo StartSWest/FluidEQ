@@ -53,6 +53,120 @@
   }
 }
 
+// A control, not a field.
+//
+// A bare <button> here inherited the global input styling — full width, pale,
+// generously padded — and read as a text box somebody had disabled rather than
+// as something to press. Sized and coloured like the app's other small actions
+// instead, and shrink-wrapped so it sits at the end of the bar.
+.config-inspector__reload {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  padding: 5px 12px;
+  border: 1px solid rgba($secondary-default, 0.35);
+  border-radius: $radius-pill;
+  background: rgba($secondary-default, 0.14);
+  color: $secondary-light;
+  cursor: pointer;
+  font-size: 0.68rem;
+  font-weight: 700;
+  gap: 6px;
+  letter-spacing: 0.06em;
+  transition: $transition-control;
+  white-space: nowrap;
+
+  svg {
+    width: 13px;
+    height: 13px;
+  }
+
+  &:hover:not(:disabled) {
+    background: rgba($secondary-default, 0.26);
+    color: $white;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: progress;
+  }
+}
+
+// *** The outputs, as cards ****************************************************
+
+.config-inspector__cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-s;
+}
+
+.config-card {
+  display: flex;
+  min-width: 150px;
+  max-width: 240px;
+  flex: 1 1 170px;
+  flex-direction: column;
+  padding: 8px 10px;
+  border: 1px solid rgba($primary-lighter, 0.1);
+  border-radius: $radius-m;
+  background: rgba($primary-lighter, 0.04);
+  cursor: pointer;
+  gap: 2px;
+  text-align: left;
+  transition: $transition-control;
+
+  &:hover {
+    border-color: rgba($secondary-default, 0.4);
+    background: rgba($secondary-default, 0.1);
+  }
+
+  // Selection is a border and a fill, not a colour swap: the card goes on
+  // saying the same thing whether or not it is the one being read.
+  &.is-selected {
+    border-color: $secondary-default;
+    background: rgba($secondary-default, 0.18);
+  }
+
+  // The output being played through, which is the one somebody almost always
+  // came here about. Marked as well as sorted first, because "first" stops
+  // meaning anything the moment they click another card.
+  &.is-current {
+    box-shadow: inset 2px 0 0 $neon-lime;
+  }
+}
+
+.config-card__name {
+  @include truncate;
+  color: $text-primary;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.config-card__profile {
+  @include truncate;
+  color: $text-muted;
+  font-size: 0.64rem;
+}
+
+.config-card__facts {
+  color: $secondary-light;
+  font-size: 0.6rem;
+  letter-spacing: 0.05em;
+}
+
+.config-card__badge {
+  align-self: flex-start;
+  padding: 1px 7px;
+  border-radius: $radius-pill;
+  margin-top: 3px;
+  background: rgba($neon-lime, 0.18);
+  color: $neon-lime;
+  font-size: 0.55rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
 // *** One output ***************************************************************
 
 .config-device {
