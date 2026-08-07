@@ -210,7 +210,32 @@ const filterReducer: IFilterReducer = (
 ) => {
   switch (action.type) {
     case FilterActionEnum.INIT:
-      return action.filters;
+      // An EQ with no bands is not a state this editor has.
+      //
+      // A flat chain is written to Equalizer APO as a preamp and no filter
+      // lines, because a band at 0 dB does nothing and there is no reason to
+      // spend a line on it. Read back, that is indistinguishable from "there
+      // are no bands" — so pulling every gain to zero, pressing Clear EQ, or
+      // applying a reference that corrects nothing emptied the slider row
+      // completely and left the Parametric EQ section as a box with a dB scale
+      // beside it.
+      //
+      // Nothing was broken underneath: APO had been told to apply no
+      // correction, which is what was asked for. What was wrong is that "no
+      // correction" was being drawn as "no equaliser".
+      //
+      // The bands already on screen are what stands in, and that distinction
+      // is the whole fix: somebody with thirty-one bands at their own
+      // frequencies who pulls them all to zero still has thirty-one bands, and
+      // handing them back a default ten would be a layout they never asked for
+      // and cannot undo.
+      //
+      // Guarded in the reducer rather than at any one caller because three
+      // separate paths reach here with a band set from the main process —
+      // refreshState, Clear EQ, and the fixed-band layouts — and a flat config
+      // reads as empty through all of them. One guard where they converge
+      // cannot be forgotten by the fourth.
+      return Object.keys(action.filters).length > 0 ? action.filters : filters;
     case FilterActionEnum.FREQUENCY: {
       const filtersCloned = cloneFilters(filters);
       filtersCloned[action.id].frequency = action.newValue;

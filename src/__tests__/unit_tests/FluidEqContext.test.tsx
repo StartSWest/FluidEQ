@@ -350,3 +350,63 @@ describe('FluidEqProvider group edits', () => {
     expect(context().filters).toBe(before);
   });
 });
+
+/**
+ * A reference that corrects nothing still leaves an equaliser.
+ *
+ * A flat target contains no filters at all, which is a perfectly good answer to
+ * "what should be corrected" and a terrible one to "what should the editor
+ * show". Applying one used to hand the band set an empty map, and the whole
+ * slider row disappeared.
+ */
+describe('FluidEqProvider empty band sets', () => {
+  beforeEach(() => {
+    latest = undefined;
+    mockedGetEqualizerState.mockReset();
+    Object.defineProperty(window, 'electron', {
+      configurable: true,
+      get: () => ({
+        ipcRenderer: {
+          on: () => () => {},
+        },
+      }),
+    });
+  });
+
+  it('keeps the bands already on screen when a refresh brings none', async () => {
+    await mount();
+    mockedGetEqualizerState.mockResolvedValue(stateWith({}));
+
+    await act(async () => {
+      await context().refreshState();
+    });
+
+    // The layout that was there, not a fresh default one: somebody who pulled
+    // thirty-one bands to zero still has thirty-one bands.
+    expect(Object.keys(context().filters).sort()).toEqual(
+      Object.keys(flat()).sort(),
+    );
+  });
+
+  it('does the same when the bands are being revealed', async () => {
+    await mount();
+    mockedGetEqualizerState.mockResolvedValue(stateWith({}));
+
+    await act(async () => {
+      await context().refreshState({ revealBands: true });
+    });
+
+    expect(Object.keys(context().filters).length).toBeGreaterThan(0);
+  });
+
+  it('leaves a real band set exactly as it arrived', async () => {
+    await mount();
+    mockedGetEqualizerState.mockResolvedValue(stateWith(tuned()));
+
+    await act(async () => {
+      await context().refreshState();
+    });
+
+    expect(gainsById(context().filters)).toEqual(gainsById(tuned()));
+  });
+});
