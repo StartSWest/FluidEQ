@@ -71,6 +71,11 @@ import { LABELLED_FILTER_OPTIONS } from './icons/FilterTypeIcon';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
 import { toggleContinuousEq, useContinuousEq } from './utils/continuousEq';
 import {
+  TSmartEqMode,
+  setSmartEqMode,
+  useSmartEqMode,
+} from './utils/smartEqMode';
+import {
   IBalanceReport,
   buildBalancedGains,
   buildRegionSpectrum,
@@ -103,6 +108,9 @@ const MAX_BALANCE_ATTEMPTS = 3;
  * call always fires, so the value that lands is the one the control ended on.
  */
 const GROUP_EDIT_INTERVAL = 100;
+
+/** In the order the picker offers them. */
+const SMART_EQ_MODES: TSmartEqMode[] = ['smart', 'continuous'];
 
 /**
  * How long after a correction lands before the analyser is believed again.
@@ -152,6 +160,45 @@ const MainContent = () => {
   const [isBalancing, setIsBalancing] = useState(false);
   const isContinuousOn = useContinuousEq();
   const isSmartBypassed = bypassed.includes('smart');
+  const smartEqMode = useSmartEqMode();
+  const [isModeMenuOpen, setIsModeMenuOpen] = useState(false);
+  const modeMenuHolder = useRef<HTMLSpanElement>(null);
+  /**
+   * On, chosen, and not held up by a switch on the other side of the screen.
+   *
+   * The mode staying on through a bypass is right — it is a preference, and the
+   * layer comes back — but a lit button over a stopped loop is the app claiming
+   * to be doing something it is not.
+   */
+  const isContinuousRunning =
+    smartEqMode === 'continuous' && isContinuousOn && !isSmartBypassed;
+  const smartLabel = isBalancing
+    ? t('eq.smart.cancelAria')
+    : t('eq.smart.aria');
+  const continuousLabel = t('eq.smart.continuousAria');
+
+  // Closes on a click elsewhere and on Escape, like every other menu here.
+  useEffect(() => {
+    if (!isModeMenuOpen) {
+      return undefined;
+    }
+    const onPointerDown = (event: MouseEvent) => {
+      if (!modeMenuHolder.current?.contains(event.target as Node)) {
+        setIsModeMenuOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsModeMenuOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isModeMenuOpen]);
   /** A correction is on its way to Equalizer APO right now. */
   const isApplyingRef = useRef(false);
   /** When it set off, so a write that never returns cannot wedge the mode. */
@@ -963,13 +1010,11 @@ const MainContent = () => {
         pendingResetRef.current = moved.map(({ index }) => index);
       });
 
-    if (moved.length > 0) {
-      setBalanceStatus(
-        `${t('eq.smart.continuous.tracking')} · ${moved
-          .map(({ region }) => region.label)
-          .join(', ')}`,
-      );
-    }
+    // Nothing written to the status line. This runs for hours and moves half a
+    // decibel at a time, so a running commentary beside the button is noise on
+    // screen permanently in exchange for saying what the button already says by
+    // being lit and breathing. The status line belongs to the manual
+    // measurement, which is a thing somebody is waiting on.
     return moved.map(({ index }) => index);
   };
 
@@ -1025,18 +1070,6 @@ const MainContent = () => {
     isLiveOutputActive,
     isSmartBypassed,
   ]);
-
-  // Says why it stopped, when it stopped for a reason the button cannot show.
-  //
-  // Bypassing Smart EQ is a press on the other side of the screen, and without
-  // this the only evidence that it also stopped the thing keeping the
-  // correction measured would be a button going dark somewhere nobody is
-  // looking at.
-  useEffect(() => {
-    if (isContinuousOn && isSmartBypassed) {
-      setBalanceStatus(t('eq.smart.continuous.bypassed'));
-    }
-  }, [isContinuousOn, isSmartBypassed, t]);
 
   // Absolute rather than relative, unlike the sliders above: "back to zero"
   // means the same thing for every band in the selection, and nudging a group
@@ -1188,59 +1221,89 @@ const MainContent = () => {
         </div>
         <div className="eq-toolbar">
           <VoicingQuickPick />
-          <Button
-            ariaLabel={
-              isBalancing ? t('eq.smart.cancelAria') : t('eq.smart.aria')
-            }
-            isDisabled={!isBalancing && !isLiveOutputActive}
-            className="small"
-            handleChange={autoBalance}
+          {/* One button, and it is whichever way of measuring is chosen.
+              The two do the same job by different means and only one can be
+              running, so a row offering both at once invited pressing both. The
+              caret is where the other one lives; picking it changes what this
+              button is, and a press then does it. */}
+          <span
+            className={`eq-mode${isModeMenuOpen ? ' is-open' : ''}`}
+            ref={modeMenuHolder}
           >
-            <MenuIcon name="smart" className="eq-toolbar__icon" />
-            {isBalancing ? t('eq.smart.cancel') : t('eq.smart')}
-          </Button>
-          {/* Keep it measured, without being asked each time.
-              Beside the button rather than in settings, because it works the
-              same layer and the two are read together. */}
-          {/* Lit only while it is actually working. The mode staying on
-              through a bypass is right — it is a preference, and the layer
-              comes back — but a lit button over a stopped loop is the app
-              claiming to be doing something it is not. */}
-          <Button
-            ariaLabel={t('eq.smart.continuousAria')}
-            isDisabled={!isLiveOutputActive}
-            className={`small subtle${
-              isContinuousOn && !isSmartBypassed ? ' is-on' : ''
-            }`}
-            isPressed={isContinuousOn}
-            handleChange={() => {
-              // Pausing leaves the correction exactly where it stands — this
-              // stops the measuring, it does not undo anything. Said in the
-              // status line because the button going dark is the same thing it
-              // looks like when the mode was never on, and somebody who has
-              // just pressed it wants to know which of the two happened.
-              setBalanceStatus(
-                isContinuousOn ? t('eq.smart.continuous.paused') : '',
-              );
-              toggleContinuousEq();
-            }}
-          >
-            {isContinuousOn && !isSmartBypassed ? (
-              // A pause bar while it runs, because that is what pressing it
-              // does next. The Smart EQ glyph beside it already says what the
-              // mode is about.
-              <svg
-                className="eq-toolbar__icon eq-toolbar__pause"
-                viewBox="0 0 16 16"
-                aria-hidden
-              >
-                <path d="M5 3h2.2v10H5zM8.8 3H11v10H8.8z" />
+            <Button
+              ariaLabel={
+                smartEqMode === 'continuous' ? continuousLabel : smartLabel
+              }
+              isDisabled={
+                smartEqMode === 'continuous'
+                  ? !isLiveOutputActive
+                  : !isBalancing && !isLiveOutputActive
+              }
+              // Running gets the breathing outline and nothing else. It keeps
+              // the Smart EQ button's own look, because it is that button.
+              className={`small eq-mode__main${isContinuousRunning ? ' is-running' : ''}`}
+              isPressed={
+                smartEqMode === 'continuous' ? isContinuousOn : undefined
+              }
+              handleChange={
+                smartEqMode === 'continuous' ? toggleContinuousEq : autoBalance
+              }
+            >
+              {isContinuousRunning ? (
+                // A pause bar while it runs, because that is what pressing it
+                // does next.
+                <svg
+                  className="eq-toolbar__icon eq-toolbar__pause"
+                  viewBox="0 0 16 16"
+                  aria-hidden
+                >
+                  <path d="M5 3h2.2v10H5zM8.8 3H11v10H8.8z" />
+                </svg>
+              ) : (
+                <MenuIcon name="smart" className="eq-toolbar__icon" />
+              )}
+              {smartEqMode === 'continuous'
+                ? t('eq.smart.continuous')
+                : (isBalancing && t('eq.smart.cancel')) || t('eq.smart')}
+            </Button>
+            <button
+              type="button"
+              className="eq-mode__caret"
+              aria-label={t('eq.smart.modeAria')}
+              aria-expanded={isModeMenuOpen}
+              disabled={!isLiveOutputActive}
+              onClick={() => setIsModeMenuOpen((wasOpen) => !wasOpen)}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <path d="M4 6.5l4 4 4-4" />
               </svg>
-            ) : (
-              <MenuIcon name="smart" className="eq-toolbar__icon" />
+            </button>
+            {isModeMenuOpen && (
+              // Only the ones this button is not. A menu listing the thing you
+              // are already looking at is a row that does nothing.
+              <span className="eq-mode__menu">
+                {SMART_EQ_MODES.filter((entry) => entry !== smartEqMode).map(
+                  (entry) => (
+                    <button
+                      key={entry}
+                      type="button"
+                      onClick={() => {
+                        setSmartEqMode(entry);
+                        setIsModeMenuOpen(false);
+                      }}
+                    >
+                      <MenuIcon name="smart" className="eq-toolbar__icon" />
+                      <span>
+                        {entry === 'continuous'
+                          ? t('eq.smart.continuous')
+                          : t('eq.smart')}
+                      </span>
+                    </button>
+                  ),
+                )}
+              </span>
             )}
-            {t('eq.smart.continuous')}
-          </Button>
+          </span>
           {balanceStatus && (
             <span className="eq-toolbar__status" role="status">
               {balanceStatus}

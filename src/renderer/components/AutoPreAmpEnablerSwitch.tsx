@@ -18,7 +18,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ErrorDescription } from 'common/errors';
 import { useCallback } from 'react';
-import { disableAutoPreAmp, enableAutoPreAmp } from '../utils/equalizerApi';
+import {
+  disableAutoPreAmp,
+  enableAutoPreAmp,
+  setMainPreAmp,
+} from '../utils/equalizerApi';
+import { getManualPreAmp } from '../utils/manualPreAmp';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import Switch from '../widgets/Switch';
 
@@ -32,13 +37,30 @@ interface IAutoPreAmpEnablerSwitchProps {
 export default function AutoPreAmpEnablerSwitch({
   id,
 }: IAutoPreAmpEnablerSwitchProps) {
-  const { isBlockingError, isAutoPreAmpOn, setGlobalError, setAutoPreAmpOn } =
-    useFluidEqContext();
+  const {
+    isBlockingError,
+    isAutoPreAmpOn,
+    setGlobalError,
+    setAutoPreAmpOn,
+    setPreAmp,
+  } = useFluidEqContext();
 
   const handleToggle = useCallback(async () => {
     try {
       if (isAutoPreAmpOn) {
         await disableAutoPreAmp();
+        // Hand the preamp back rather than abandoning it wherever the last
+        // automatic value happened to leave it.
+        //
+        // Switching this off used to mean keeping a number nobody chose: the
+        // slider and the headroom effect both wrote the same field, so somebody
+        // who had deliberately set -3 dB, tried auto-normalize and turned it
+        // off again was left on -7.4 dB with nothing to say what their own
+        // figure had been. Zero when there has never been one, which is where
+        // the app starts.
+        const manual = getManualPreAmp();
+        await setMainPreAmp(manual);
+        setPreAmp(manual);
       } else {
         await enableAutoPreAmp();
       }
@@ -46,7 +68,7 @@ export default function AutoPreAmpEnablerSwitch({
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
-  }, [isAutoPreAmpOn, setGlobalError, setAutoPreAmpOn]);
+  }, [isAutoPreAmpOn, setGlobalError, setAutoPreAmpOn, setPreAmp]);
 
   return (
     <Switch

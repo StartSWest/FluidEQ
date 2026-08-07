@@ -126,27 +126,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   //
   // Cyan, not white. Every label in this toolbar is cyan and a white one reads
   // as a different kind of control rather than as the same control switched on.
-  &.is-on:not([aria-disabled='true']) {
-    color: $secondary-light;
-    border-color: rgba($secondary-default, 0.75);
-    background: rgba($secondary-default, 0.22);
+  // Working, for the buttons that keep working after they are pressed.
+  //
+  // The glow and nothing else. An earlier version recoloured the button as
+  // well, and that was the mistake: it took a control out of the row's own
+  // palette to say something the row already had a way of saying. A button that
+  // changes colour reads as a different kind of control; one that breathes
+  // reads as the same control, busy.
+  &.is-running:not([aria-disabled='true']) {
     animation: button-running 2.4s ease-in-out infinite;
   }
 }
 
-// On, and working.
-//
-// A switch that is merely lit says the mode is enabled; this one is doing
-// something continuously, in the background, for hours, and the difference
-// between "armed" and "running" is exactly what somebody glancing at it wants.
-// Breathing rather than blinking: a blink is an alert and wants dealing with.
+// Breathing rather than blinking: a blink is an alert and wants dealing with,
+// and this will be on screen for hours.
 @keyframes button-running {
   0%,
   100% {
-    box-shadow: 0 0 8px rgba($secondary-default, 0.1);
+    box-shadow: 0 0 8px rgba($secondary-default, 0.12);
   }
 
   50% {
-    box-shadow: 0 0 20px rgba($secondary-default, 0.32);
+    box-shadow: 0 0 22px rgba($secondary-default, 0.42);
   }
 }

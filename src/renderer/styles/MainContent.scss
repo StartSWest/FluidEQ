@@ -82,6 +82,110 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
 }
 
+// Smart EQ and its caret, drawn as one control.
+//
+// The button keeps exactly the look it had — it is still the same button, and
+// which of the two measurements it runs is a setting rather than a different
+// kind of thing to press. The caret is a narrow segment sharing its edge, so
+// the pair reads as one pill with a divider rather than as two buttons that
+// happen to be touching.
+.eq-mode {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+
+  .eq-mode__main {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+  }
+}
+
+.eq-mode__caret {
+  display: inline-flex;
+  width: 22px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  // The button's own border, minus the edge they share, so the divider between
+  // them is one line rather than two sitting side by side.
+  border: 1px solid rgba($secondary-light, 0.38);
+  border-left: 1px solid rgba($primary-dark, 0.25);
+  border-radius: 0 $radius-s $radius-s 0;
+  background: $secondary-default;
+  color: #03110f;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+    transition: transform 150ms ease;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible:not(:disabled) {
+    background: $secondary-light;
+    outline: none;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.45;
+  }
+
+  .eq-mode.is-open & svg {
+    transform: rotate(180deg);
+  }
+}
+
+// The other measurement, under the button that is not it.
+//
+// Right-aligned to the caret rather than left-aligned to the button, so it
+// hangs off the thing that opened it.
+.eq-mode__menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  right: 0;
+  display: flex;
+  min-width: 100%;
+  flex-direction: column;
+  padding: 4px;
+  border: 1px solid rgba($secondary-light, 0.22);
+  border-radius: $radius-m;
+  background: rgba(#0c1a26, 0.97);
+  box-shadow: 0 14px 30px rgba($black, 0.5);
+
+  button {
+    display: flex;
+    align-items: center;
+    padding: 6px 10px;
+    border: 0;
+    border-radius: $radius-xs;
+    background: none;
+    color: $secondary-light;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    gap: 7px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover,
+    &:focus-visible {
+      background: rgba($secondary-default, 0.18);
+      color: $white;
+      outline: none;
+    }
+  }
+}
+
 // The Continuous button's pause bars.
 //
 // `.button path { fill: $primary-dark }` is what every icon inside a button
