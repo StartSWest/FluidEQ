@@ -73,6 +73,7 @@ import { toggleContinuousEq, useContinuousEq } from './utils/continuousEq';
 import {
   IBalanceReport,
   buildBalancedGains,
+  buildRegionSpectrum,
   describeBalanceProgress,
   describeBalanceResult,
 } from './utils/autoBalance';
@@ -884,7 +885,12 @@ const MainContent = () => {
       return [];
     }
 
-    const solved = buildBalancedGains(report.samples, bands, {
+    // The nine range levels, not the three-hundred-point curve. Each is a whole
+    // range's own weighted mean over every frame that had energy in it, which
+    // is what "the bass is two decibels heavy" actually means — where a point
+    // of the smoothed curve is one FFT bin averaged with its neighbours and
+    // wanders with the arrangement. See `buildRegionSpectrum`.
+    const solved = buildBalancedGains(buildRegionSpectrum(report), bands, {
       targetCurve: buildLayerTargetCurve(
         filtersRef.current,
         voicingRef.current,

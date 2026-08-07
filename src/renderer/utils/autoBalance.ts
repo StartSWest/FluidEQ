@@ -196,6 +196,90 @@ export const MIN_TRUSTED_OCTAVES = 4;
 export const TRUSTED_LOW_ANCHOR_HZ = 560;
 export const TRUSTED_HIGH_ANCHOR_HZ = 1120;
 
+/**
+ * What the fitted reference says the level should be at one frequency.
+ *
+ * A STRAIGHT LINE IN LOG-FREQUENCY, AND IT HAS TO STAY ONE.
+ *
+ * It is tempting to give this a knee. Average music is not a straight line over
+ * nine octaves — it is roughly level up to a few hundred hertz and falls above
+ * — so one line through both halves is too steep through the bass and too
+ * shallow through the treble, and the residual carries a bow that is not a
+ * system error at all. That reasoning is correct and the fix does not work.
+ *
+ * Hinging the basis at 200 Hz was tried. The closed-loop tests caught it within
+ * a run: a low shelf at 200 Hz is an ordinary voicing, it is close to a straight
+ * line over the correctable band, and a straight line is the one shape this fit
+ * removes *entirely*. Make the reference flat below the knee and that shelf
+ * stops being absorbable — it reads as a permanent deviation no gain can
+ * satisfy, every run adds another slice of it, and the layer marches off until
+ * it hits the clamps. Six runs made it unmistakable.
+ *
+ * So the rigidity is the feature, and the cost of it is a known bias rather
+ * than a bug to fix here. Any richer reference — a knee, a quadratic — can
+ * represent more of the *system's* error as well, and the errors this exists to
+ * find are broad. The reference has to be the one shape a system error cannot
+ * take.
+ */
+export const tiltLevelAt = (
+  fit: { slope: number; intercept: number },
+  frequency: number,
+) => fit.slope * Math.log10(frequency) + fit.intercept;
+
+/**
+ * How much a frequency counts toward the solve, on top of how well it was
+ * heard.
+ *
+ * Confidence answers "did we hear this", which is not the same question as
+ * "does being wrong here matter". Three decibels at three kilohertz and three
+ * at forty are the same measurement and nothing like the same mistake, and the
+ * solve used to treat them identically — so an unlucky reading at the very
+ * bottom or top could pull midrange bands around to satisfy it.
+ *
+ * A gentle bell rather than a real loudness contour: a proper one is level-
+ * dependent and this has no idea how loud anybody is listening. Wide enough
+ * that two hundred hertz still counts for most of a midrange point, and floored
+ * so the extremes are quietened rather than ignored — they are still the
+ * frequencies most likely to be genuinely wrong.
+ */
+export const AUDIBILITY_CENTRE_HZ = 2000;
+export const AUDIBILITY_WIDTH_OCTAVES = 3.5;
+export const AUDIBILITY_FLOOR = 0.25;
+
+export const audibilityWeight = (frequency: number): number => {
+  if (!(frequency > 0)) {
+    return AUDIBILITY_FLOOR;
+  }
+  const octaves = Math.log2(frequency / AUDIBILITY_CENTRE_HZ);
+  const bell = Math.exp(-((octaves / AUDIBILITY_WIDTH_OCTAVES) ** 2));
+  return AUDIBILITY_FLOOR + (1 - AUDIBILITY_FLOOR) * bell;
+};
+
+/**
+ * How wide to smooth, at a given frequency, in octaves.
+ *
+ * It was half an octave everywhere, which is wrong at both ends in opposite
+ * directions. What goes wrong in a room at the bottom is broad, and the fine
+ * detail down there is modal — it moves when you move your head, so correcting
+ * it fits the measurement and not the room. What goes wrong at the top is
+ * narrower and the ear resolves it better.
+ *
+ * An octave below the knee, a third of an octave above two kilohertz, and a
+ * smooth walk between the two so no band sits on a discontinuity.
+ */
+export const SMOOTHING_WIDE_BELOW_HZ = 200;
+export const SMOOTHING_NARROW_ABOVE_HZ = 2000;
+
+export const smoothingOctavesAt = (frequency: number): number => {
+  const wide = 1;
+  const narrow = 1 / 3;
+  const low = Math.log10(SMOOTHING_WIDE_BELOW_HZ);
+  const high = Math.log10(SMOOTHING_NARROW_ABOVE_HZ);
+  const x = Math.log10(Math.max(frequency, 1));
+  const t = clamp((x - low) / (high - low), 0, 1);
+  return wide + (narrow - wide) * t;
+};
+
 /* -------------------------------------------------------------------------
  * Types
  * ---------------------------------------------------------------------- */
@@ -218,8 +302,12 @@ export interface IAutoBalanceOptions {
   /** Boosting a dip costs headroom, so it is limited harder than a cut. */
   maxBoost?: number;
   maxCut?: number;
-  /** Width of the smoothing window used to reject FFT noise. */
-  smoothingOctaves?: number;
+  /**
+   * Width of the smoothing window used to reject FFT noise, in octaves — one
+   * number, or a function of frequency for a width that is not the same at both
+   * ends of the range. Defaults to `smoothingOctavesAt`.
+   */
+  smoothingOctaves?: number | ((frequency: number) => number);
   /** Bands below this confidence hold their current gain instead of guessing. */
   minConfidence?: number;
   /**
@@ -249,7 +337,7 @@ const DEFAULTS: Required<IAutoBalanceOptions> = {
   strength: 0.65,
   maxBoost: 6,
   maxCut: 9,
-  smoothingOctaves: 0.5,
+  smoothingOctaves: smoothingOctavesAt,
   minConfidence: MIN_BAND_CONFIDENCE,
   relativeToCurrentGain: true,
   targetCurve: [],
@@ -391,13 +479,20 @@ export const fitSpectralTilt = (samples: ISpectrumSample[]) => {
   return { slope, intercept: (sumY - slope * sumX) / sumW };
 };
 
-/** Confidence-weighted fractional-octave smoothing in the log domain. */
+/**
+ * Confidence-weighted fractional-octave smoothing in the log domain.
+ *
+ * The width may be a function of frequency rather than one number, because the
+ * right amount is not the same at both ends — see `smoothingOctavesAt`.
+ */
 export const smoothSpectrum = (
   samples: ISpectrumSample[],
-  octaves: number,
-): ISpectrumSample[] => {
-  const halfWidth = Math.log10(2 ** (octaves / 2));
-  return samples.map((sample, index) => {
+  octaves: number | ((frequency: number) => number),
+): ISpectrumSample[] =>
+  samples.map((sample, index) => {
+    const width =
+      typeof octaves === 'function' ? octaves(sample.frequency) : octaves;
+    const halfWidth = Math.log10(2 ** (width / 2));
     const centre = Math.log10(sample.frequency);
     let total = 0;
     let count = 0;
@@ -427,7 +522,6 @@ export const smoothSpectrum = (
       confidence: sample.confidence,
     };
   });
-};
 
 /** Linear interpolation of a spectrum field at an arbitrary frequency. */
 export const sampleSpectrumAt = (
@@ -542,11 +636,11 @@ export const buildBalancedGains = (
     confidence: sample.confidence,
   }));
 
-  const { slope, intercept } = fitSpectralTilt(steered);
+  const fit = fitSpectralTilt(steered);
   const deviation = smoothSpectrum(
     steered.map((sample) => ({
       frequency: sample.frequency,
-      level: sample.level - (slope * Math.log10(sample.frequency) + intercept),
+      level: sample.level - tiltLevelAt(fit, sample.frequency),
       confidence: sample.confidence,
     })),
     smoothingOctaves,
@@ -576,9 +670,12 @@ export const buildBalancedGains = (
 
   // Desired correction at every measured frequency, centred so the answer is a
   // change of tone rather than of level.
+  // Two weights, and they answer different questions: confidence is whether we
+  // heard this frequency, audibility is whether being wrong here matters.
   const targets = deviation.map((sample) => ({
     frequency: sample.frequency,
-    weight: clamp01(sample.confidence ?? 1),
+    weight:
+      clamp01(sample.confidence ?? 1) * audibilityWeight(sample.frequency),
     want: -sample.level * strength,
   }));
   const totalWeight = targets.reduce((total, point) => total + point.weight, 0);
@@ -791,6 +888,17 @@ export interface IBalanceRegionReport {
   label: string;
   lowFrequency: number;
   highFrequency: number;
+  /** Geometric centre, which is where the region's level is taken to apply. */
+  centreFrequency: number;
+  /**
+   * What this range came out at, in dB relative to the frame's own mean level.
+   *
+   * The whole range as one number, which is a far sturdier statement than any
+   * point inside it: it is a weighted mean over every frame that had energy
+   * here, and `standardErrorDb` says how much to believe it. Nine of these are
+   * what Continuous EQ corrects from — see `buildRegionSpectrum`.
+   */
+  levelDb: number;
   weight: number;
   standardErrorDb: number;
   confidence: number;
@@ -1106,6 +1214,8 @@ export const evaluateBalanceCapture = (
       label: region.label,
       lowFrequency: region.lowFrequency,
       highFrequency: region.highFrequency,
+      centreFrequency: region.centreFrequency,
+      levelDb: s.mean,
       weight: s.weight,
       standardErrorDb,
       confidence,
@@ -1250,6 +1360,34 @@ export const evaluateBalanceCapture = (
 
 export const shouldFinishBalanceCapture = (report: IBalanceReport): boolean =>
   report.status !== 'listening';
+
+/**
+ * The measurement as nine numbers rather than three hundred and twenty.
+ *
+ * What Continuous EQ corrects from. Each point is a whole frequency range's own
+ * weighted mean, accumulated over every frame that had energy in it, which is a
+ * far sturdier statement than any single point of the smoothed curve — a point
+ * is one bin of one FFT averaged with its neighbours, and it wanders with the
+ * arrangement. "The bass came out two decibels heavy" does not.
+ *
+ * That is also the difference between correcting the range and correcting the
+ * detail inside it. A room mode at 63 Hz moves when you move your head; the
+ * bass being heavy does not, and it is the one worth acting on. The solver
+ * interpolates between these centres, so what it fits is the shape of the nine,
+ * not the shape of whatever the last thirty seconds of music happened to do.
+ *
+ * A region nobody has heard yet carries zero confidence rather than being left
+ * out, so the solve refuses it by its own rules instead of silently narrowing
+ * the range it thinks it measured.
+ */
+export const buildRegionSpectrum = (
+  report: IBalanceReport,
+): ISpectrumSample[] =>
+  report.regions.map((region) => ({
+    frequency: region.centreFrequency,
+    level: region.levelDb,
+    confidence: region.confidence,
+  }));
 
 export const buildBalanceResult = (report: IBalanceReport): IBalanceResult => {
   const covered = report.regions.filter((region) => region.isCovered);
