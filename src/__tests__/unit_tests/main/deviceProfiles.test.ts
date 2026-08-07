@@ -114,21 +114,26 @@ describe('device profile configuration', () => {
       .split(/\r?\n/)
       .filter((line) => line.startsWith('Include: '));
 
-    expect(includes).toHaveLength(3);
+    // The custom file rides last, after the preamp: FluidEQ cannot know what
+    // is in it, so it cannot reserve headroom for it.
+    expect(includes).toHaveLength(4);
     expect(includes.map((line) => line.split('-').pop())).toEqual([
       'driver.txt',
       'eq.txt',
       'voicing.txt',
+      'custom.txt',
     ]);
 
     // Each feature file holds that feature's lines and nothing else, and each
     // numbers from one — the index is a label APO never refers back to.
-    includes.forEach((line) => {
-      const contents = files.get(line.replace('Include: ', '')) ?? '';
-      expect(contents).toContain('Filter 1:');
-      expect(contents).not.toContain('Preamp:');
-      expect(contents).not.toContain('Device:');
-    });
+    includes
+      .filter((line) => !line.endsWith('custom.txt'))
+      .forEach((line) => {
+        const contents = files.get(line.replace('Include: ', '')) ?? '';
+        expect(contents).toContain('Filter 1:');
+        expect(contents).not.toContain('Preamp:');
+        expect(contents).not.toContain('Device:');
+      });
 
     const eq = files.get(
       includes
@@ -155,7 +160,9 @@ describe('device profile configuration', () => {
     const deviceFile = deviceFileFor(files, '{1234-ABCD}');
     const lines = deviceFile.split(/\r?\n/);
 
-    expect(lines[lines.length - 1]).toBe('Preamp: -3 dB');
+    // Last of the generated lines. Only the user's own file comes after it.
+    expect(lines[lines.length - 2]).toBe('Preamp: -3 dB');
+    expect(lines[lines.length - 1]).toMatch(/^Include: fluideq-.*-custom.txt$/);
     expect(
       [...files.values()].filter((contents) => contents.includes('Preamp:')),
     ).toHaveLength(1);

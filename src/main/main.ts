@@ -169,6 +169,7 @@ import {
   flushDeviceProfiles,
   getStateForAudioDevice,
   IActiveStateOverride,
+  isGeneratedConfigFile,
   loadDeviceProfileSettings,
   removeAssignmentsForPreset,
   removeDeviceProfile,
@@ -1790,6 +1791,48 @@ ipcMain.on(ChannelEnum.GET_PRESET_FILE_LIST, async (event) => {
     console.error('Failed to get filenames');
     console.error(e);
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+  }
+});
+
+/**
+ * Write one config file back to disk.
+ *
+ * Editing the config from inside the app means text out of a window ends up in
+ * the audio engine's directory, so the name is checked rather than trusted. It
+ * has to be one FluidEQ itself generates — the same list the stale sweep uses —
+ * which rules out APO's own config.txt, its sample configs, anything carrying a
+ * path, and anything at all outside that directory. The contents are the user's
+ * business; the destination is not.
+ *
+ * Nothing is adopted back into the state. Equalizer APO reloads when a file in
+ * its config directory changes, which is the same route a text editor takes and
+ * makes the edit audible at once. What FluidEQ generates it will generate again
+ * on the next change, and the panel says as much beside the file.
+ */
+ipcMain.on(ChannelEnum.WRITE_APO_CONFIG_FILE, async (event, arg) => {
+  const channel = ChannelEnum.WRITE_APO_CONFIG_FILE;
+  const fileName = arg?.[0];
+  const contents = arg?.[1];
+
+  if (
+    typeof fileName !== 'string' ||
+    typeof contents !== 'string' ||
+    fileName !== path.basename(fileName) ||
+    !isGeneratedConfigFile(fileName)
+  ) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+
+  try {
+    if (!configPath) {
+      configPath = await getConfigPath();
+    }
+    fs.writeFileSync(path.join(configPath, fileName), contents, 'utf8');
+    const reply: TSuccess<void> = { result: undefined };
+    event.reply(channel, reply);
+  } catch (e) {
+    handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
   }
 });
 

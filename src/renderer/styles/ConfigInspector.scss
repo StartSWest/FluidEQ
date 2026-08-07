@@ -92,6 +92,49 @@
   }
 }
 
+// Whether any of it is reaching the sound card.
+//
+// A line rather than a badge tucked in a corner: it is the first thing worth
+// knowing on this panel, and when the answer is "none of this is applied" it
+// changes how everything below should be read.
+.config-status {
+  display: flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: $radius-s;
+  margin: 0;
+  font-size: 0.7rem;
+  font-weight: 600;
+  gap: 8px;
+
+  &::before {
+    width: 7px;
+    height: 7px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    content: '';
+  }
+
+  &--on {
+    background: rgba($neon-lime, 0.1);
+    color: $neon-lime;
+
+    &::before {
+      background: $neon-lime;
+      box-shadow: 0 0 8px rgba($neon-lime, 0.8);
+    }
+  }
+
+  &--off {
+    background: rgba(#ef6a6a, 0.1);
+    color: #ef6a6a;
+
+    &::before {
+      background: #ef6a6a;
+    }
+  }
+}
+
 // *** The outputs, as cards ****************************************************
 
 .config-inspector__cards {
@@ -283,6 +326,82 @@
     background: rgba(#ef6a6a, 0.18);
     color: #ef6a6a;
   }
+
+  // The one file here that is not going to be overwritten, and the badge is
+  // most of how anybody learns that.
+  &--custom {
+    background: rgba($neon-lime, 0.18);
+    color: $neon-lime;
+  }
+}
+
+.config-node__body {
+  display: flex;
+  flex-direction: column;
+  margin-left: 22px;
+  gap: 4px;
+}
+
+.config-node__actions {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+.config-node__hint {
+  flex: 1 1 auto;
+  color: $text-faint;
+  font-size: 0.6rem;
+  font-style: italic;
+}
+
+// Small and quiet, like the reload control. Bare buttons in this app inherit
+// the global field styling and come out looking like disabled text inputs.
+.config-node__edit,
+.config-node__actions button {
+  flex: 0 0 auto;
+  padding: 3px 10px;
+  border: 1px solid rgba($secondary-default, 0.3);
+  border-radius: $radius-pill;
+  background: rgba($secondary-default, 0.12);
+  color: $secondary-light;
+  cursor: pointer;
+  font-size: 0.62rem;
+  font-weight: 700;
+  transition: $transition-control;
+
+  &:hover {
+    background: rgba($secondary-default, 0.24);
+    color: $white;
+  }
+}
+
+.config-node__editor {
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid rgba($secondary-default, 0.35);
+  border-radius: $radius-s;
+  background: rgba(0, 0, 0, 0.35);
+  color: $text-primary;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.64rem;
+  line-height: 1.5;
+  resize: vertical;
+  // Tabs and spaces are meaningful in a config, and the browser's default
+  // wrapping would hide a long line rather than let it be seen and scrolled.
+  white-space: pre;
+}
+
+.config-node__error {
+  margin: 0;
+  color: #ef6a6a;
+  font-size: 0.62rem;
+}
+
+// The custom file gets an edge, so the eye finds the editable one without
+// reading every badge in the tree.
+.config-node--custom > .config-node__head {
+  box-shadow: inset 2px 0 0 $neon-lime;
 }
 
 .config-node--missing .config-node__name {

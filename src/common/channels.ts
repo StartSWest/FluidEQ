@@ -96,6 +96,9 @@ enum ChannelEnum {
   // includes, and what each of them holds. Read rather than rebuilt, because
   // the question it answers is what APO has actually got.
   GET_APO_CONFIG_TREE = 'getApoConfigTree',
+  // Write one config file back. Only files FluidEQ generated, only inside the
+  // config directory, and only ever the one named — see the handler.
+  WRITE_APO_CONFIG_FILE = 'writeApoConfigFile',
   GET_AUDIO_DEVICES = 'getAudioDevices',
   SET_DEFAULT_AUDIO_DEVICE = 'setDefaultAudioDevice',
   ACTIVATE_AUDIO_DEVICE_PROFILE = 'activateAudioDeviceProfile',

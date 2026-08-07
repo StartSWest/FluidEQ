@@ -52,7 +52,7 @@ import {
   IApoConfigFile,
   IApoConfigTree,
 } from '../common/apoConfig';
-import { FLUIDEQ_CONFIG_FILENAME } from './flush';
+import { checkConfigFile, FLUIDEQ_CONFIG_FILENAME } from './flush';
 
 const INCLUDE_LINE = /^\s*Include\s*:\s*(.+?)\s*$/i;
 const DEVICE_FILE = /^fluideq-device-[0-9a-f]{12}\.txt$/i;
@@ -311,6 +311,20 @@ export const readApoConfigTree = (
     configDirPath,
     root: readConfigFile(configDirPath, FLUIDEQ_CONFIG_FILENAME, new Set()),
     devices,
+    // Nothing names an output, so nothing is being asked of APO. That is what
+    // the engine switch writes, and it is a different silence from a chain
+    // that happens to be flat.
+    isApplied: devices.length > 0,
+    // And the whole tree is inert regardless if APO is not reading it. Checked
+    // rather than assumed: config.txt belongs to Equalizer APO and anything can
+    // have rewritten it since FluidEQ last looked.
+    isIncludedByApo: (() => {
+      try {
+        return checkConfigFile(configDirPath);
+      } catch {
+        return false;
+      }
+    })(),
   };
 };
 

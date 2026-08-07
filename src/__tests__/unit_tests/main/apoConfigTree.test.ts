@@ -125,7 +125,7 @@ describe('reading the whole config as a tree', () => {
     );
     expect(
       kraken?.file?.includes.map(({ fileName }) => fileName.split('-').pop()),
-    ).toEqual(['eq.txt', 'voicing.txt']);
+    ).toEqual(['eq.txt', 'voicing.txt', 'custom.txt']);
     // The device file holds the preamp itself and delegates the rest.
     expect(kraken?.file?.lines.some((line) => /^Preamp:/.test(line))).toBe(
       true,
@@ -146,8 +146,12 @@ describe('reading the whole config as a tree', () => {
     const speakers = tree?.devices.find((d) => d.devicePattern === SPEAKERS);
 
     expect(speakers?.filterCount).toBe(0);
-    expect(speakers?.file?.includes).toEqual([]);
     expect(speakers?.preAmp).toBe('Preamp: 0 dB');
+    // The custom file and nothing else: an output with no chain still gets
+    // somewhere of its own to put one.
+    expect(
+      speakers?.file?.includes.map(({ fileName }) => fileName.split('-').pop()),
+    ).toEqual(['custom.txt']);
   });
 
   // A file named by an Include that is not there is the single most useful
@@ -171,5 +175,29 @@ describe('reading the whole config as a tree', () => {
 
   it('returns nothing when FluidEQ has never written here', () => {
     expect(readApoConfigTree(configDir)).toBeUndefined();
+  });
+
+  // Three ways to be silent, and only one of them is a chain that happens to
+  // be flat. A tree of files looks identical in all three.
+  it('says whether any of it is being applied', () => {
+    flushDeviceProfiles(settings, presetsDir, configDir);
+    expect(readApoConfigTree(configDir)?.isApplied).toBe(true);
+
+    // The engine switch: a config that names no output at all.
+    flushDeviceProfiles(settings, presetsDir, configDir, undefined, false);
+    expect(readApoConfigTree(configDir)?.isApplied).toBe(false);
+  });
+
+  // Everything below is inert if Equalizer APO is not reading the root file,
+  // and that is APO's own config.txt — anything can have rewritten it.
+  it('says whether Equalizer APO is including the config at all', () => {
+    flushDeviceProfiles(settings, presetsDir, configDir);
+    expect(readApoConfigTree(configDir)?.isIncludedByApo).toBe(false);
+
+    fs.writeFileSync(
+      path.join(configDir, 'config.txt'),
+      'Include: fluideq.txt\n',
+    );
+    expect(readApoConfigTree(configDir)?.isIncludedByApo).toBe(true);
   });
 });

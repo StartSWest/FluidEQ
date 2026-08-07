@@ -145,6 +145,30 @@ const deviceFileName = (slug: string) => `fluideq-device-${slug}.txt`;
 const featureFileName = (slug: string, feature: TApoFeature) =>
   `fluideq-${slug}-${feature}.txt`;
 
+/**
+ * The one file in a device's chain that FluidEQ does not write.
+ *
+ * Created empty when an output first gets a chain and never touched again, so
+ * whatever goes in it survives every flush. Every other file here is generated
+ * from the profile and rewritten the moment anything changes, which makes them
+ * all the wrong place to put anything by hand — a hand edit to one is not
+ * refused, it simply disappears at the next slider move.
+ *
+ * This is where an Equalizer APO command FluidEQ has no interface for belongs:
+ * a `Plugin:` line for a VST, a `Copy:` for channel routing, a `Delay:`.
+ */
+const customFileName = (slug: string) => `fluideq-${slug}-custom.txt`;
+
+/** What a custom file says before anybody has put anything in it. */
+const CUSTOM_FILE_TEMPLATE = [
+  '# Yours. FluidEQ creates this file once and never writes it again, so',
+  '# anything here survives every change made in the app.',
+  '#',
+  '# Applied last, after the generated chain and after its preamp. Equalizer',
+  '# APO commands go here — Plugin:, Copy:, Delay: and the rest.',
+  '',
+];
+
 const presetForDeviceChain = (
   preset: IPresetV2,
   convolutionFileName?: string,
@@ -210,9 +234,22 @@ const chainToFiles = (
       ...chain.features.map(
         ({ feature }) => `Include: ${featureFileName(slug, feature)}`,
       ),
-      // Last, and after the includes: it is the peak of everything they add up
-      // to, so it cannot be decided until they have all had their say.
+      // After the includes: it is the peak of everything they add up to, so it
+      // cannot be decided until they have all had their say.
       chain.preAmp,
+      // And the user's own file after even that.
+      //
+      // Everything above is generated and rewritten on the next edit, so it is
+      // no place to put anything by hand. This one is never generated: FluidEQ
+      // creates it empty and then leaves it alone forever, which makes it the
+      // only line in the chain somebody can own.
+      //
+      // Last on purpose, and after the preamp rather than before it. FluidEQ
+      // cannot know what is in here, so it cannot reserve headroom for it —
+      // running it after the reserve keeps the arithmetic above honest and
+      // makes the ownership plain: this is the generated chain, and then this
+      // is yours.
+      `Include: ${customFileName(slug)}`,
     ].join(CRLF),
   ]);
 
@@ -558,8 +595,25 @@ const GENERATED_FILE = new RegExp(
   `^fluideq-(?:device-[0-9a-f]{12}|[0-9a-f]{12}-(?:${[
     ...APO_FEATURES,
     ...RETIRED_FEATURES,
+    // Swept like the rest, but only when its output is gone entirely — the
+    // keep-set below holds every live one. It is the single file here that may
+    // contain somebody's own work, so it outlives every generated sibling and
+    // goes only with the device.
+    'custom',
   ].join('|')}))\\.txt$`,
 );
+
+/**
+ * Whether a name is one of the files FluidEQ writes into the config directory.
+ *
+ * Exported so the editor can be held to the same list the sweep uses. Anything
+ * arriving from a window is a name to check rather than trust, and this is the
+ * only definition of what FluidEQ is entitled to write — `config.txt` is APO's,
+ * the sample configs are APO's, and everything else in that directory belongs
+ * to somebody who is not us.
+ */
+export const isGeneratedConfigFile = (fileName: string) =>
+  GENERATED_FILE.test(fileName);
 
 /**
  * Delete the files of outputs and features that no longer exist.
@@ -569,7 +623,7 @@ const GENERATED_FILE = new RegExp(
  * filling with the layers of every device ever plugged in, each looking like
  * something that is still applied.
  */
-const removeStaleFiles = (configDirPath: string, keep: TApoConfigFiles) => {
+const removeStaleFiles = (configDirPath: string, keep: ReadonlySet<string>) => {
   let fileNames: string[];
   try {
     fileNames = fs.readdirSync(configDirPath);
@@ -588,6 +642,32 @@ const removeStaleFiles = (configDirPath: string, keep: TApoConfigFiles) => {
     });
 };
 
+/**
+ * Make sure every live output has a custom file, and never write over one.
+ *
+ * Created empty rather than on demand, because a file that only appears once
+ * somebody has found the right menu is a feature nobody discovers. It is in
+ * the include list from the first flush, so it is visible in the config view
+ * from the first flush, waiting.
+ *
+ * The existence check is the whole safety of it: this runs on every edit, and
+ * writing the template unconditionally would erase whatever was in there on
+ * the very next slider move.
+ */
+const ensureCustomFiles = (configDirPath: string, slugs: ReadonlySet<string>) =>
+  slugs.forEach((slug) => {
+    const filePath = addFileToPath(configDirPath, customFileName(slug));
+    if (fs.existsSync(filePath)) {
+      return;
+    }
+    try {
+      fs.writeFileSync(filePath, CUSTOM_FILE_TEMPLATE.join(CRLF), 'utf8');
+    } catch {
+      // An output whose custom file cannot be created still gets its chain;
+      // the Include simply points at nothing, which the config view reports.
+    }
+  });
+
 export const flushDeviceProfiles = (
   settings: IDeviceProfileSettings,
   presetsDir: string,
@@ -603,6 +683,21 @@ export const flushDeviceProfiles = (
     isEnabled,
   );
 
+  // Every output that still has a chain, by the digest its files are named
+  // with. Derived from the device files rather than passed alongside them,
+  // because that is the same list by construction and cannot fall out of step.
+  const liveSlugs = new Set<string>();
+  files.forEach((_contents, fileName) => {
+    const slug = fileName.match(/^fluideq-device-([0-9a-f]{12})\.txt$/)?.[1];
+    if (slug) {
+      liveSlugs.add(slug);
+    }
+  });
+
+  // Before the device files that include them, like every other dependency
+  // here: an Include must never name a file that is not there yet.
+  ensureCustomFiles(configDirPath, liveSlugs);
+
   // In the map's order, which is dependency order: nothing names a file that
   // has not been written yet, so a reload landing between two of these writes
   // sees a config that is behind but never one that is broken.
@@ -611,5 +706,11 @@ export const flushDeviceProfiles = (
   });
 
   // After the root, so nothing is deleted while something still includes it.
-  removeStaleFiles(configDirPath, files);
+  // A custom file is kept for as long as its output has a chain — it is the
+  // one file here somebody may have put work into, and it goes only when the
+  // output it belongs to does.
+  removeStaleFiles(
+    configDirPath,
+    new Set([...files.keys(), ...[...liveSlugs].map(customFileName)]),
+  );
 };

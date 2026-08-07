@@ -73,4 +73,20 @@ export interface IApoConfigTree {
   root: IApoConfigFile;
   /** One entry per `Device:` block, in the order the config lists them. */
   devices: IApoConfigDevice[];
+  /**
+   * Whether Equalizer APO is being told to do anything at all.
+   *
+   * Two quite different situations end in silence and they are worth telling
+   * apart. The engine switched off makes FluidEQ write a config with no
+   * `Device:` block in it, deliberately — that is the switch working. A config
+   * that has blocks but no filters is a chain that happens to be flat.
+   *
+   * Derived from whether anything names an output rather than from the state,
+   * because the point of this whole view is to report the file rather than the
+   * app's belief about it. `config.txt` not including fluideq.txt at all is the
+   * third case, and it is the one that means somebody else has been editing.
+   */
+  isApplied: boolean;
+  /** Whether APO's own config.txt still includes fluideq.txt. */
+  isIncludedByApo: boolean;
 }

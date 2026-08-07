@@ -336,6 +336,24 @@ export const getApoConfigTree = (): Promise<IApoConfigTree> => {
   return promisifyResult(simpleResponseHandler<IApoConfigTree>(), channel);
 };
 
+/**
+ * Write one config file back to disk.
+ *
+ * The main process checks the name against the files FluidEQ generates and
+ * refuses anything else, so a bad name is an error rather than a write.
+ * @param { string } fileName - a generated config file, no path
+ * @param { string } contents - what it should say
+ * @returns { Promise<void> } exception if the name is not one we may write
+ */
+export const writeApoConfigFile = (
+  fileName: string,
+  contents: string,
+): Promise<void> => {
+  const channel = ChannelEnum.WRITE_APO_CONFIG_FILE;
+  window.electron.ipcRenderer.sendMessage(channel, [fileName, contents]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
 export const getAudioDevices = (): Promise<IAudioDevice[]> => {
   const channel = ChannelEnum.GET_AUDIO_DEVICES;
   window.electron.ipcRenderer.sendMessage(channel, []);
