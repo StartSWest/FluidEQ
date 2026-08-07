@@ -47,6 +47,7 @@ import {
   describeSmartEqLayer,
   getSmartEqBands,
   hasSmartEqLayer,
+  stepSmartEqGains,
 } from 'common/smartEq';
 import FrequencyBand from './components/FrequencyBand';
 import { FilterActionEnum, useFluidEqContext } from './utils/FluidEqContext';
@@ -67,11 +68,8 @@ import Dropdown from './widgets/Dropdown';
 import NumberInput from './widgets/NumberInput';
 import Knob from './widgets/Knob';
 import { LABELLED_FILTER_OPTIONS } from './icons/FilterTypeIcon';
-import {
-  useLiveAudioControl,
-  useLiveAudioFrame,
-} from './audio/LiveAudioContext';
-import { toggleAutoSmartEq, useAutoSmartEq } from './utils/autoSmartEq';
+import { useLiveAudioControl } from './audio/LiveAudioContext';
+import { toggleContinuousEq, useContinuousEq } from './utils/continuousEq';
 import {
   buildBalancedGains,
   describeBalanceProgress,
@@ -105,74 +103,34 @@ const MAX_BALANCE_ATTEMPTS = 3;
 const GROUP_EDIT_INTERVAL = 100;
 
 /**
- * How long the output has to go quiet before it counts as a new piece of music.
+ * How long Continuous EQ leaves the correction alone between updates.
  *
- * There is no track metadata to read — Equalizer APO sits on the audio endpoint,
- * not on the player — so the only evidence of a change is the gap. A second is
- * comfortably longer than any gap inside a piece: a bar of rest is a fraction of
- * that at any tempo anybody plays at, and gapless albums have no gap at all and
- * so are correctly read as one continuous piece. It is short enough that the
- * pause between two tracks in a normal playlist clears it.
+ * Not a rate limit on the measurement — the capture takes as long as it takes —
+ * but on the writing. Every correction is a rewritten Equalizer APO config that
+ * APO then reloads, and a mode that runs all evening should not be doing that
+ * every second.
+ *
+ * It is also what makes the mode converge on the right thing. Ten seconds and
+ * half a decibel means the correction takes minutes to travel, which is far
+ * slower than the music changes — so what one track pulls one way and the next
+ * pulls the other averages out, and what every track agrees about, which is the
+ * headphones and the room, is what accumulates.
  */
-const TRACK_GAP_MS = 1000;
+const CONTINUOUS_PAUSE_MS = 10000;
 
-/**
- * How long to let a new track get going before listening to it.
- *
- * The first seconds of a piece are the least representative part of it — an
- * intro, a count-in, one instrument on its own — and a correction fitted to that
- * is a correction to something that is over by the time it lands.
- *
- * It does not have to be exactly right, which is why it is not longer. The
- * capture keeps listening until it has heard every frequency region well enough
- * to correct one, so a thin passage extends the measurement rather than
- * corrupting it; this only stops the run beginning at the one moment that is
- * reliably unrepresentative.
- */
-const TRACK_SETTLE_MS = 8000;
-
-/**
- * Watches for the music changing, and reports it.
- *
- * Renders nothing, and that is the whole design: the analyser publishes about
- * twenty-two times a second and anything subscribing to it re-renders at that
- * rate. MainContent lays out every band in the editor, so it must never be the
- * subscriber — see the note at the top of FrequencyResponseChart, which is the
- * same problem and the same answer.
- *
- * Silence is an empty frame, which the pump publishes once and then stops
- * repeating, so how long the gap has lasted cannot be counted in frames. The
- * timer does it: it is started when the sound stops and cleared if the sound
- * comes back too soon, and only a gap it survives arms the report. The report
- * itself waits for the sound to return, because a measurement needs something
- * to measure.
- */
-const TrackChangeWatch = ({ onTrackChange }: { onTrackChange: () => void }) => {
-  const { points } = useLiveAudioFrame();
-  const isQuiet = points.length === 0;
-  const hasGapPassed = useRef(false);
-  // Read through a ref so a changed handler does not restart the timer: this
-  // effect is about the audio, and the handler changes on every render of the
-  // component that owns it.
-  const report = useRef(onTrackChange);
-  report.current = onTrackChange;
-
-  useEffect(() => {
-    if (!isQuiet) {
-      if (hasGapPassed.current) {
-        hasGapPassed.current = false;
-        report.current();
-      }
-      return undefined;
-    }
-    const timer = window.setTimeout(() => {
-      hasGapPassed.current = true;
-    }, TRACK_GAP_MS);
-    return () => window.clearTimeout(timer);
-  }, [isQuiet]);
-
-  return null;
-};
+/** A sleep that gives up when the run does. */
+const waitFor = (ms: number, signal: AbortSignal) =>
+  new Promise<void>((resolve) => {
+    const timer = window.setTimeout(resolve, ms);
+    signal.addEventListener(
+      'abort',
+      () => {
+        window.clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
+  });
 
 const MainContent = () => {
   const {
@@ -202,9 +160,7 @@ const MainContent = () => {
     useLiveAudioControl();
   const [balanceStatus, setBalanceStatus] = useState('');
   const [isBalancing, setIsBalancing] = useState(false);
-  const isAutoSmartEqOn = useAutoSmartEq();
-  /** The pending "the track changed, start listening soon" wait. */
-  const settleTimer = useRef<number | undefined>(undefined);
+  const isContinuousOn = useContinuousEq();
   const balanceAbortRef = useRef<AbortController | undefined>(undefined);
   // Bumped whenever a run is superseded, so a late resolution from an
   // abandoned measurement cannot write gains or overwrite the status.
@@ -614,7 +570,7 @@ const MainContent = () => {
    * region has been heard well enough to correct — or reports which range it
    * managed to measure, and leaves the rest alone.
    */
-  const autoBalance = async ({ fromCurrent = false } = {}) => {
+  const autoBalance = async () => {
     if (isBalancing) {
       // The button is a Cancel while a measurement is running.
       balanceAbortRef.current?.abort();
@@ -660,20 +616,14 @@ const MainContent = () => {
         // A switch whose right answer is the same every time is not a choice,
         // it is a way of being wrong. So the escape hatch became the road.
         //
-        // Except when the run started itself. An automatic re-measure happens
-        // once a track, and clearing first would take the correction off for
-        // the ten or twenty seconds the capture listens for — a hole in the
-        // sound at the start of every piece, which is worse than anything the
-        // correction was fixing. So those runs measure the residual of what is
-        // already applied and accumulate onto it, which is also what makes the
-        // change between tracks a small step rather than off-and-back-on.
-        //
-        // The blind spot above is still real, and this is why the button did
-        // not change: a region cut so hard that nothing is left to measure will
-        // stay cut through any number of automatic runs, and pressing Smart EQ
-        // by hand is the way back out. One of the two has to be the honest
-        // measurement, and it is the one somebody asked for.
-        if (!fromCurrent && hasSmartEqLayer(layer)) {
+        // Continuous EQ does not do this, and the difference is the point of
+        // having both. It cannot afford to: clearing first would take the
+        // correction off for the length of every capture, over and over, all
+        // evening. So it accumulates, and inherits the blind spot — a region
+        // cut so hard that nothing is left to measure stays cut, through any
+        // number of updates. This button is the way back out of that, which is
+        // why it is still the honest measurement and still starts from flat.
+        if (hasSmartEqLayer(layer)) {
           // Only this layer. The bands, the reference they came from, the
           // voicing and the driver compensation are all somebody's deliberate
           // choice, and a measurement has no business throwing any of them away
@@ -836,41 +786,101 @@ const MainContent = () => {
   };
 
   /**
-   * The automatic re-measure, once the music has been going for a moment.
+   * Continuous EQ: measure, move a little, measure again, for as long as there
+   * is music.
    *
-   * Two things are deliberately separate here: noticing the track changed, and
-   * deciding to act on it. The watch reports the gap the moment sound returns,
-   * and this waits `TRACK_SETTLE_MS` before starting — cancelling that wait if
-   * the sound stops again, which is what a skipped track or a paused player
-   * looks like from here. Without the cancel, flicking through five tracks
-   * would queue five measurements.
+   * The difference from pressing the button is entirely in the size of the
+   * move. A solve says where every band belongs; this goes half a decibel of
+   * the way there and solves again, so the correction arrives without ever
+   * announcing itself — and so that what it converges on is the system rather
+   * than the song. A correction that could keep up with the content would be a
+   * dynamic EQ: it would flatten a bass drop at exactly the moment the drop is
+   * meant to land. This one moves far slower than the music does, so one
+   * track's emphasis and the next one's cancel, and only what every track
+   * agrees about survives — which is the headphones and the room, which is the
+   * thing worth correcting.
    *
-   * Nothing is scheduled while one is already running: a piece shorter than a
-   * measurement would otherwise keep cancelling its own correction and never
-   * land one.
+   * It never clears first. The from-flat rule the button follows exists for a
+   * real reason, written out where the button does it, but applying it here
+   * would mean the correction going away for the length of every capture, over
+   * and over. Pressing Smart EQ by hand is still the way to start again, and
+   * doing so suspends this loop rather than racing it: `isBalancing` is in the
+   * dependencies, so the effect tears down and comes back when the manual run
+   * finishes.
    */
-  const handleTrackChange = () => {
-    if (isBalancing) {
-      return;
+  useEffect(() => {
+    if (!isContinuousOn || !isLiveOutputActive || isBalancing) {
+      return undefined;
     }
-    window.clearTimeout(settleTimer.current);
-    setBalanceStatus(t('eq.smart.auto.waiting'));
-    settleTimer.current = window.setTimeout(() => {
-      autoBalance({ fromCurrent: true }).catch(() => {
-        // `autoBalance` reports its own failures in the status line. Nothing
-        // here should reach the global error banner, least of all from a run
-        // nobody asked for.
-      });
-    }, TRACK_SETTLE_MS);
-  };
 
-  // Dropped when the mode goes off and when the tab does. A timer that fires
-  // after the switch has been turned off would start a measurement the user has
-  // just said they did not want.
-  useEffect(
-    () => () => window.clearTimeout(settleTimer.current),
-    [isAutoSmartEqOn],
-  );
+    const controller = new AbortController();
+    const { signal } = controller;
+
+    const loop = async () => {
+      while (!signal.aborted) {
+        try {
+          // eslint-disable-next-line no-await-in-loop
+          const result = await captureBalanceProfile({ signal });
+          if (signal.aborted) {
+            return;
+          }
+
+          // Read fresh each time round rather than carried: over an evening the
+          // user will have changed a band, loaded a profile, cleared the layer.
+          // Every one of those makes the gains this loop started from wrong.
+          const layer = smartEqRef.current;
+          const bands = getSmartEqBands(layer);
+          const solved = buildBalancedGains(result.samples, bands, {
+            targetCurve: buildLayerTargetCurve(
+              filtersRef.current,
+              voicingRef.current,
+              driverRef.current,
+            ),
+          });
+
+          if (Object.keys(solved).length > 0) {
+            const measured = buildSmartEqSettings(
+              bands,
+              stepSmartEqGains(bands, solved),
+              {
+                status: result.status,
+                lowFrequency: result.lowFrequency,
+                highFrequency: result.highFrequency,
+              },
+            );
+            // Nothing written when the step rounds away to nothing, which is
+            // what converged looks like — and which is most of the time, once
+            // it has been running a while.
+            if (
+              describeSmartEqLayer(measured) !== describeSmartEqLayer(layer)
+            ) {
+              setSmartEq(measured);
+              // eslint-disable-next-line no-await-in-loop
+              await setSmartEqApi(measured);
+              setBalanceStatus(t('eq.smart.continuous.tracking'));
+            }
+          }
+        } catch {
+          // Every failure here is ordinary — nothing playing, the capture
+          // unavailable, the run aborted — and none of them should reach the
+          // error banner from a loop nobody asked to start. Waiting and trying
+          // again is the right response to all of them.
+        }
+        // eslint-disable-next-line no-await-in-loop
+        await waitFor(CONTINUOUS_PAUSE_MS, signal);
+      }
+    };
+
+    loop();
+    return () => controller.abort();
+  }, [
+    captureBalanceProfile,
+    isBalancing,
+    isContinuousOn,
+    isLiveOutputActive,
+    setSmartEq,
+    t,
+  ]);
 
   // Absolute rather than relative, unlike the sliders above: "back to zero"
   // means the same thing for every band in the selection, and nudging a group
@@ -1034,24 +1044,18 @@ const MainContent = () => {
             {isBalancing ? t('eq.smart.cancel') : t('eq.smart')}
           </Button>
           {/* Keep it measured, without being asked each time.
-              Beside the button rather than in settings, because it changes what
-              that button's layer does and the two are read together. */}
+              Beside the button rather than in settings, because it works the
+              same layer and the two are read together. */}
           <Button
-            ariaLabel={t('eq.smart.autoAria')}
+            ariaLabel={t('eq.smart.continuousAria')}
             isDisabled={!isLiveOutputActive}
-            className={`small subtle${isAutoSmartEqOn ? ' is-on' : ''}`}
-            isPressed={isAutoSmartEqOn}
-            handleChange={toggleAutoSmartEq}
+            className={`small subtle${isContinuousOn ? ' is-on' : ''}`}
+            isPressed={isContinuousOn}
+            handleChange={toggleContinuousEq}
           >
             <MenuIcon name="smart" className="eq-toolbar__icon" />
-            {t('eq.smart.auto')}
+            {t('eq.smart.continuous')}
           </Button>
-          {/* Only while the mode is on and there is a capture to listen to.
-              Unmounted otherwise, so nothing subscribes to the analyser's
-              twenty-two frames a second for a feature that is switched off. */}
-          {isAutoSmartEqOn && isLiveOutputActive && (
-            <TrackChangeWatch onTrackChange={handleTrackChange} />
-          )}
           {balanceStatus && (
             <span className="eq-toolbar__status" role="status">
               {balanceStatus}

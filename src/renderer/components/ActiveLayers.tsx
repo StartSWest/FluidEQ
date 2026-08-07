@@ -22,6 +22,7 @@ import { getVoicingProfile } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { hasSmartEqLayer } from 'common/smartEq';
 import { useFluidEqContext } from '../utils/FluidEqContext';
+import { useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
 import {
   clearConvolution,
@@ -95,6 +96,7 @@ const ActiveLayers = () => {
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
+  const isContinuousOn = useContinuousEq();
 
   const isBypassed = (layer: TApoLayer) => bypassed.includes(layer);
 
@@ -127,6 +129,16 @@ const ActiveLayers = () => {
     onClear: () => Promise<void>;
     /** Overrides the generic "remove this layer" wording. */
     clearHint?: string;
+    /**
+     * Whether this layer is being maintained right now rather than sitting
+     * where a measurement left it.
+     *
+     * Only Smart EQ can be, and only under Continuous EQ. Worth saying on the
+     * chip because the difference is invisible otherwise: the curve moves half
+     * a decibel at a time, which is the point of it and also why nobody would
+     * notice it was moving.
+     */
+    isLive?: boolean;
     /**
      * Which file in the Equalizer APO config this chip stands for, and so what
      * its A/B switch takes out of the chain.
@@ -273,6 +285,7 @@ const ActiveLayers = () => {
             })
           : t('eq.layers.smart.fullRange'),
       clearHint: t('eq.layers.clearSmart'),
+      isLive: isContinuousOn && !isBypassed('smart'),
       onClear: async () => {
         setSmartEq(undefined);
         await setSmartEqApi(undefined);
@@ -361,6 +374,15 @@ const ActiveLayers = () => {
               <span className="active-layer__label">{layer.label}</span>
               <span className="active-layer__name" title={layer.name}>
                 {layer.name}
+                {/* A pip, not a word. The row is four chips wide already and
+                    this is a state of one of them rather than a fifth thing to
+                    read; the title carries the sentence. */}
+                {layer.isLive && (
+                  <span
+                    className="active-layer__live"
+                    title={t('eq.smart.continuousAria')}
+                  />
+                )}
               </span>
             </button>
           ) : (
@@ -384,6 +406,15 @@ const ActiveLayers = () => {
               <span className="active-layer__label">{layer.label}</span>
               <span className="active-layer__name" title={layer.name}>
                 {layer.name}
+                {/* A pip, not a word. The row is four chips wide already and
+                    this is a state of one of them rather than a fifth thing to
+                    read; the title carries the sentence. */}
+                {layer.isLive && (
+                  <span
+                    className="active-layer__live"
+                    title={t('eq.smart.continuousAria')}
+                  />
+                )}
               </span>
             </span>
           )}

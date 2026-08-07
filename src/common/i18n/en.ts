@@ -210,9 +210,10 @@ const en = {
   'eq.smart.cancel': 'Cancel',
   'eq.smart.aria': 'Smart EQ from live output',
   'eq.smart.cancelAria': 'Cancel Smart EQ measurement',
-  'eq.smart.auto': 'Auto',
-  'eq.smart.autoAria': 'Re-measure Smart EQ when the music changes',
-  'eq.smart.auto.waiting': 'New track - listening shortly',
+  'eq.smart.continuous': 'Continuous',
+  'eq.smart.continuousAria':
+    'Keep Smart EQ measuring and adjusting while music plays',
+  'eq.smart.continuous.tracking': 'Continuous EQ - tracking',
   'eq.layers': 'Also applied',
   'eq.layers.aria': 'Also shaping this output',
   'eq.layers.eq': 'EQ',

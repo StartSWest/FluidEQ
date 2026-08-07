@@ -179,10 +179,10 @@ const fr: Partial<Dictionary> = {
   'eq.smart.cancel': 'Annuler',
   'eq.smart.aria': 'Égalisation automatique à partir de la sortie en direct',
   'eq.smart.cancelAria': 'Annuler la mesure d’égalisation automatique',
-  'eq.smart.auto': 'Auto',
-  'eq.smart.autoAria':
-    'Remesurer l’égalisation automatique quand la musique change',
-  'eq.smart.auto.waiting': 'Nouveau morceau : écoute imminente',
+  'eq.smart.continuous': 'Continu',
+  'eq.smart.continuousAria':
+    'Continuer à mesurer et ajuster l’égalisation pendant la lecture',
+  'eq.smart.continuous.tracking': 'Égalisation continue : ajustement',
   'eq.layers': 'Également appliqué',
   'eq.layers.aria': 'Autres traitements appliqués à cette sortie',
   'eq.layers.eq': 'EQ',

@@ -177,9 +177,10 @@ const it: Partial<Dictionary> = {
   'eq.smart.cancel': 'Annulla',
   'eq.smart.aria': 'EQ intelligente dall’uscita dal vivo',
   'eq.smart.cancelAria': 'Annulla la misurazione dell’EQ intelligente',
-  'eq.smart.auto': 'Auto',
-  'eq.smart.autoAria': 'Rimisura l’EQ intelligente quando cambia la musica',
-  'eq.smart.auto.waiting': 'Nuovo brano: a breve in ascolto',
+  'eq.smart.continuous': 'Continuo',
+  'eq.smart.continuousAria':
+    'Continua a misurare e regolare l’EQ mentre suona la musica',
+  'eq.smart.continuous.tracking': 'EQ continuo: in regolazione',
   'eq.layers': 'Applicato anche',
   'eq.layers.aria': 'Cos’altro sta modellando questa uscita',
   'eq.layers.eq': 'EQ',

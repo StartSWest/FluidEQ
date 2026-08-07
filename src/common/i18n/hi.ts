@@ -183,9 +183,10 @@ const hi: Partial<Dictionary> = {
   'eq.smart.cancel': 'रद्द करें',
   'eq.smart.aria': 'चल रहे आउटपुट से स्मार्ट EQ बनाएँ',
   'eq.smart.cancelAria': 'स्मार्ट EQ माप रद्द करें',
-  'eq.smart.auto': 'ऑटो',
-  'eq.smart.autoAria': 'संगीत बदलने पर स्मार्ट EQ फिर से मापें',
-  'eq.smart.auto.waiting': 'नया ट्रैक - जल्द ही सुनना शुरू',
+  'eq.smart.continuous': 'निरंतर',
+  'eq.smart.continuousAria':
+    'संगीत चलते समय स्मार्ट EQ मापता और समायोजित करता रहे',
+  'eq.smart.continuous.tracking': 'निरंतर EQ - समायोजन जारी',
   'eq.layers': 'यह भी लागू है',
   'eq.layers.aria': 'इस आउटपुट पर और क्या असर डाल रहा है',
   'eq.layers.eq': 'EQ',

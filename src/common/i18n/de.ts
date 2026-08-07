@@ -178,9 +178,10 @@ const de: Partial<Dictionary> = {
   'eq.smart.cancel': 'Abbrechen',
   'eq.smart.aria': 'Smart-EQ aus dem laufenden Ausgangssignal',
   'eq.smart.cancelAria': 'Smart-EQ-Messung abbrechen',
-  'eq.smart.auto': 'Auto',
-  'eq.smart.autoAria': 'Smart EQ neu messen, wenn die Musik wechselt',
-  'eq.smart.auto.waiting': 'Neuer Titel - gleich wird gemessen',
+  'eq.smart.continuous': 'Fortlaufend',
+  'eq.smart.continuousAria':
+    'Smart EQ misst und justiert weiter, solange Musik läuft',
+  'eq.smart.continuous.tracking': 'Fortlaufender EQ - justiert',
   'eq.layers': 'Ebenfalls aktiv',
   'eq.layers.aria': 'Was diesen Ausgang außerdem formt',
   'eq.layers.eq': 'EQ',

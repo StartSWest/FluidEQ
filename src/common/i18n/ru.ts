@@ -177,9 +177,10 @@ const ru: Partial<Dictionary> = {
   'eq.smart.cancel': 'Отмена',
   'eq.smart.aria': 'Умный эквалайзер по текущему сигналу',
   'eq.smart.cancelAria': 'Отменить измерение умного эквалайзера',
-  'eq.smart.auto': 'Авто',
-  'eq.smart.autoAria': 'Перемерять умный эквалайзер при смене музыки',
-  'eq.smart.auto.waiting': 'Новый трек - скоро начнём слушать',
+  'eq.smart.continuous': 'Непрерывно',
+  'eq.smart.continuousAria':
+    'Продолжать измерять и подстраивать эквалайзер во время музыки',
+  'eq.smart.continuous.tracking': 'Непрерывный эквалайзер - подстройка',
   'eq.layers': 'Также применено',
   'eq.layers.aria': 'Что ещё влияет на этот выход',
   'eq.layers.eq': 'Эквалайзер',

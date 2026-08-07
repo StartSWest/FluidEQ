@@ -120,6 +120,32 @@ it under the terms of the GNU General Public License version 3 or later.
   color: rgba($white, 0.86);
 }
 
+// This layer is being kept measured right now.
+//
+// Breathing rather than blinking. A blink is an alert and wants dealing with;
+// this is a thing quietly working, and it will be on screen for hours.
+.active-layer__live {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-inline-start: 5px;
+  border-radius: 50%;
+  background: $secondary-default;
+  vertical-align: middle;
+  animation: active-layer-breathe 2.4s ease-in-out infinite;
+}
+
+@keyframes active-layer-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
 .active-layer button:not(.active-layer__body) {
   display: grid;
   width: 18px;

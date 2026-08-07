@@ -19,19 +19,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useSyncExternalStore } from 'react';
 
 /**
- * Whether Smart EQ re-measures itself when the music changes.
+ * Whether the correction keeps measuring and adjusting itself, for as long as
+ * there is music.
  *
- * Off by default and deliberately so: it is a mode in which the correction
- * moves on its own, and something that quietly retunes the sound is not a thing
- * to discover by accident. Once switched on it is remembered, because the
- * people who want it want it every day.
+ * Off by default and deliberately so: it is a mode in which the sound changes
+ * without anybody touching anything, and that is not a thing to discover by
+ * accident. Once switched on it is remembered, because the people who want it
+ * want it every day.
  *
- * The switch is only half the feature. What makes it work is the two rules in
- * `MainContent`: what counts as the music changing, and what an automatic run
- * measures against — see `TRACK_GAP_MS` and the `fromCurrent` branch of
- * `autoBalance`.
+ * The switch is only half the feature. What makes it a mode rather than a
+ * measurement on repeat is the size of the steps it takes — see
+ * `CONTINUOUS_STEP_DB` and `stepSmartEqGains` in `common/smartEq`, and the loop
+ * in `MainContent` that drives them.
  */
-const STORAGE_KEY = 'fluideq.autoSmartEq';
+const STORAGE_KEY = 'fluideq.continuousEq';
 
 let isOn = false;
 try {
@@ -43,9 +44,9 @@ try {
 
 const listeners = new Set<() => void>();
 
-export const isAutoSmartEqOn = () => isOn;
+export const isContinuousEqOn = () => isOn;
 
-export const setAutoSmartEq = (next: boolean) => {
+export const setContinuousEq = (next: boolean) => {
   if (isOn === next) {
     return;
   }
@@ -58,9 +59,9 @@ export const setAutoSmartEq = (next: boolean) => {
   listeners.forEach((listener) => listener());
 };
 
-export const toggleAutoSmartEq = () => setAutoSmartEq(!isOn);
+export const toggleContinuousEq = () => setContinuousEq(!isOn);
 
-export const useAutoSmartEq = () =>
+export const useContinuousEq = () =>
   useSyncExternalStore(
     (listener: () => void) => {
       listeners.add(listener);

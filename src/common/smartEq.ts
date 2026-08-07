@@ -296,6 +296,69 @@ export const smartEqFromFilters = (
 };
 
 /**
+ * How far one continuous update is allowed to move a band, in dB.
+ *
+ * The whole difference between Continuous EQ and pressing the button is here.
+ * A solve answers "where should this band be", and applying that answer whole
+ * is a step somebody hears; applying a fraction of it and solving again is a
+ * correction that arrives without ever announcing itself.
+ *
+ * Half a decibel is below the level at which a broad change reads as an event
+ * rather than as the sound simply being like that, and with an update every ten
+ * seconds it still crosses the whole of the range below in about two minutes.
+ */
+export const CONTINUOUS_STEP_DB = 0.5;
+
+/**
+ * How far the accumulated correction may go, per band, in dB.
+ *
+ * This mode runs unattended for hours, so the question is not how much
+ * correction is useful — it is how wrong it is allowed to get while nobody is
+ * watching. Six decibels covers any real headphone or room problem; past that
+ * the likelier explanation is that the measurement is being misled, and a cap
+ * turns "it sounded strange after a while" into "it stopped short of strange".
+ */
+export const CONTINUOUS_MAX_DB = 6;
+
+/**
+ * One continuous step: where each band moves to next, not where it belongs.
+ *
+ * `solved` is the destination the measurement worked out — absolute gains, the
+ * same ones a manual run hands straight to `buildSmartEqSettings`. This walks
+ * toward them instead, at most `maxStep` per band per call, and never past
+ * `maxTotal` in either direction.
+ *
+ * Bands the solve had nothing to say about are left exactly where they are
+ * rather than pulled toward zero. Silence about a band is not evidence that it
+ * should be flat, and treating it as such would undo a good correction every
+ * time a passage had no energy in that region — which, over a long listen, is
+ * most passages for most bands.
+ */
+export const stepSmartEqGains = (
+  bands: IFilter[],
+  solved: Record<string, number>,
+  {
+    maxStep = CONTINUOUS_STEP_DB,
+    maxTotal = CONTINUOUS_MAX_DB,
+  }: { maxStep?: number; maxTotal?: number } = {},
+): Record<string, number> => {
+  const stepped: Record<string, number> = {};
+  bands.forEach((band) => {
+    const destination = solved[band.id];
+    if (!Number.isFinite(destination)) {
+      stepped[band.id] = band.gain;
+      return;
+    }
+    const move = Math.max(-maxStep, Math.min(maxStep, destination - band.gain));
+    stepped[band.id] = Math.max(
+      -maxTotal,
+      Math.min(maxTotal, band.gain + move),
+    );
+  });
+  return stepped;
+};
+
+/**
  * Turn a solved set of gains into the layer to store.
  *
  * Every band is kept, including the ones that came out at 0 dB: the map is the

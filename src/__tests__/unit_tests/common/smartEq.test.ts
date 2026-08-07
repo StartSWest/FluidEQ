@@ -16,12 +16,15 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { FilterTypeEnum } from 'common/constants';
+import { FilterTypeEnum, IFilter } from 'common/constants';
 import {
+  CONTINUOUS_MAX_DB,
+  CONTINUOUS_STEP_DB,
   SMART_EQ_MAX_FREQUENCY,
   SMART_EQ_MIN_FREQUENCY,
   SMART_EQ_QUALITY,
   buildSmartEqSettings,
+  stepSmartEqGains,
   describeSmartEqLayer,
   getSmartEqBands,
   getSmartEqFilters,
@@ -210,6 +213,76 @@ describe('the Smart EQ layer', () => {
         describeSmartEqLayer(first),
       );
       expect(describeSmartEqLayer(undefined)).toBe('');
+    });
+  });
+
+  describe('stepping toward a solve, for Continuous EQ', () => {
+    const bandsAt = (gainsByFrequency: Record<number, number>) =>
+      getSmartEqBands(layerOf(gainsByFrequency));
+
+    const bandAt = (bands: IFilter[], frequency: number) =>
+      bands.find((candidate) => candidate.frequency === frequency);
+
+    const solvedAt = (
+      bands: IFilter[],
+      gainsByFrequency: Record<number, number>,
+    ) =>
+      Object.fromEntries(
+        bands
+          .filter((band) => band.frequency in gainsByFrequency)
+          .map((band) => [band.id, gainsByFrequency[band.frequency]]),
+      );
+
+    const gainAt = (
+      bands: IFilter[],
+      stepped: Record<string, number>,
+      frequency: number,
+    ) => stepped[bandAt(bands, frequency)?.id ?? ''];
+
+    it('moves at most one step toward the answer, not all the way to it', () => {
+      const bands = bandsAt({});
+      const stepped = stepSmartEqGains(bands, solvedAt(bands, { 1000: 4 }));
+
+      expect(gainAt(bands, stepped, 1000)).toBeCloseTo(CONTINUOUS_STEP_DB, 6);
+    });
+
+    it('arrives exactly rather than overshooting once it is close', () => {
+      const bands = bandsAt({ 1000: 2 });
+      const stepped = stepSmartEqGains(bands, solvedAt(bands, { 1000: 2.1 }));
+
+      expect(gainAt(bands, stepped, 1000)).toBeCloseTo(2.1, 6);
+    });
+
+    it('steps down as readily as up', () => {
+      const bands = bandsAt({ 1000: 3 });
+      const stepped = stepSmartEqGains(bands, solvedAt(bands, { 1000: -5 }));
+
+      expect(gainAt(bands, stepped, 1000)).toBeCloseTo(
+        3 - CONTINUOUS_STEP_DB,
+        6,
+      );
+    });
+
+    it('never accumulates past the cap, however long it runs', () => {
+      let bands = bandsAt({});
+      // Far more updates than it takes to cross the range, every one pulling
+      // the same way — which is the shape of the failure the cap is there for:
+      // a measurement that is confidently wrong for an hour.
+      for (let pass = 0; pass < 200; pass += 1) {
+        const stepped = stepSmartEqGains(bands, solvedAt(bands, { 1000: 40 }));
+        bands = getSmartEqBands(buildSmartEqSettings(bands, stepped));
+      }
+
+      expect(bandAt(bands, 1000)?.gain).toBeCloseTo(CONTINUOUS_MAX_DB, 6);
+    });
+
+    it('leaves a band the solve said nothing about exactly where it is', () => {
+      const bands = bandsAt({ 1000: 3 });
+      const stepped = stepSmartEqGains(bands, {});
+
+      // Not pulled toward flat: a passage with no energy at 1 kHz is not
+      // evidence that 1 kHz needs no correction.
+      expect(gainAt(bands, stepped, 1000)).toBeCloseTo(3, 6);
     });
   });
 });
