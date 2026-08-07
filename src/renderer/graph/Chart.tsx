@@ -29,7 +29,11 @@ import useController, {
   ILiveCurveData,
   IMarginLike,
 } from './ChartController';
-import { toggleGraphFullScreen, useGraphGridHidden } from '../utils/graphStyle';
+import {
+  toggleGraphFullScreen,
+  useGraphGridHidden,
+  useLiveOutputSolo,
+} from '../utils/graphStyle';
 import { toggleChromeNow } from '../utils/idleChrome';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
@@ -65,8 +69,14 @@ const CoverageOverlay = ({
   plotHeight: number;
 }) => {
   const { balanceProgress } = useLiveAudioFrame();
+  const isSolo = useLiveOutputSolo();
   const coverage = balanceProgress?.regions;
-  if (!coverage || coverage.length === 0) {
+  // Nothing while the curves are off. Somebody in that mode is watching the
+  // wave, and columns marching across it are measurement furniture on a drawing
+  // that is not a measurement — being left with the one thing is the whole
+  // point of it. The measurement carries on regardless; only the picture of it
+  // waits.
+  if (isSolo || !coverage || coverage.length === 0) {
     return null;
   }
   return (
@@ -441,7 +451,14 @@ const Chart = ({
           />
         </g>
         {/* Drawn only while a measurement is running, and subscribed to that
-          measurement itself rather than handed it — see the component. */}
+          measurement itself rather than handed it — see the component.
+
+          And only where the curves are. Somebody who has taken the response
+          off the plot is watching the wave, and columns marching across it are
+          measurement furniture on a drawing that is not a measurement — the
+          whole point of that mode is to be left with the one thing. The
+          measurement carries on regardless; it is only the picture of it that
+          waits. */}
         <CoverageOverlay
           xScale={xScaleFreq}
           top={padding.top}

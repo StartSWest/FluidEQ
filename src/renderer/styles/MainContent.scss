@@ -94,51 +94,63 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: inline-flex;
   align-items: stretch;
 
-  .eq-mode__main {
+  // `.button.small` sets a radius of its own at the same specificity as
+  // anything written as `.eq-mode .eq-mode__main`, so which one won came down
+  // to which stylesheet the bundler put last — and it put Button's last, which
+  // is why the two halves were drawn as two separate pills. Naming both classes
+  // settles it rather than hoping.
+  .button.eq-mode__main {
     border-top-right-radius: 0;
     border-bottom-right-radius: 0;
-  }
-}
-
-.eq-mode__caret {
-  display: inline-flex;
-  width: 22px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  // The button's own border, minus the edge they share, so the divider between
-  // them is one line rather than two sitting side by side.
-  border: 1px solid rgba($secondary-light, 0.38);
-  border-left: 1px solid rgba($primary-dark, 0.25);
-  border-radius: 0 $radius-s $radius-s 0;
-  background: $secondary-default;
-  color: #03110f;
-  cursor: pointer;
-  transition: $transition-control;
-
-  svg {
-    width: 11px;
-    height: 11px;
-    fill: none;
-    stroke: currentcolor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2;
-    transition: transform 150ms ease;
+    // The pair share one edge. Without this the two borders sit side by side
+    // and the divider is twice as heavy as every other line in the row.
+    border-right: 0;
   }
 
-  &:hover:not(:disabled),
-  &:focus-visible:not(:disabled) {
-    background: $secondary-light;
-    outline: none;
+  .eq-mode__caret {
+    display: inline-flex;
+    width: 24px;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    border: 1px solid rgba($secondary-light, 0.38);
+    // The divider, and the only line between them.
+    border-left: 1px solid rgba(#03110f, 0.28);
+    border-radius: 0 $radius-xs $radius-xs 0;
+    background: $secondary-default;
+    // The same fill and the same ink as the half it is attached to, because it
+    // is not a second button — it is the end of this one.
+    color: #03110f;
+    box-shadow:
+      0 8px 22px rgba($secondary-default, 0.12),
+      inset 0 1px 0 rgba($white, 0.36);
+    cursor: pointer;
+    transition: $transition-control;
+
+    svg {
+      width: 11px;
+      height: 11px;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-width: 2;
+      transition: transform 150ms ease;
+    }
+
+    &:hover:not(:disabled),
+    &:focus-visible:not(:disabled) {
+      background: $secondary-light;
+      outline: none;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.45;
+    }
   }
 
-  &:disabled {
-    cursor: default;
-    opacity: 0.45;
-  }
-
-  .eq-mode.is-open & svg {
+  &.is-open .eq-mode__caret svg {
     transform: rotate(180deg);
   }
 }

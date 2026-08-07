@@ -84,6 +84,7 @@ import {
   useGraphGridHidden,
   useGraphWaveHidden,
   useHiddenCurves,
+  useGraphModeAnnouncement,
   toggleGraphCurve,
   TGraphCurve,
   toggleGraphWave,
@@ -441,6 +442,7 @@ const FrequencyResponseChart = () => {
   const isGridHidden = useGraphGridHidden();
   const isWaveHidden = useGraphWaveHidden();
   const hiddenCurves = useHiddenCurves();
+  const modeAnnouncement = useGraphModeAnnouncement();
   // The dots go with the line they draw. A handle you can drag over a curve
   // that is not on screen gives no feedback at all — the whole point of
   // dragging one is watching the response follow it.
@@ -1792,6 +1794,21 @@ const FrequencyResponseChart = () => {
           drawing keeps a sensible height in the middle of it. Measuring the
           card there would stretch the plot to the full height of the window,
           which is the one thing a frequency response should not do. */}
+      {/* What Ctrl+W just did, over the middle of the plot for a moment.
+          A shortcut that rearranges four things at once is quick to use and
+          impossible to learn: the drawing changes and nothing says which of the
+          four you are now in. Keyed on the announcement rather than its words,
+          so cycling back to a mode you were in a second ago animates again
+          instead of reusing an element whose entrance is already over. */}
+      {modeAnnouncement.label && (
+        <div
+          key={modeAnnouncement.id}
+          className="graph-mode-announce"
+          role="status"
+        >
+          {modeAnnouncement.label}
+        </div>
+      )}
       <div className="graph-plot" ref={ref}>
         {isLoading ? (
           <div className="center full row">

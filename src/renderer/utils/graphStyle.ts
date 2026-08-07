@@ -388,19 +388,88 @@ export const cycleGraphContents = () => {
   const isEqCurveHidden = hiddenCurves.includes('eq');
   if (!isSolo && !isWaveHidden && !isEqCurveHidden) {
     setLiveOutputSolo(true);
+    announceGraphMode('Wave only');
     return;
   }
   if (isSolo) {
     setLiveOutputSolo(false);
     setWaveHidden(true);
+    announceGraphMode('Curves only');
     return;
   }
   if (isWaveHidden) {
     setWaveHidden(false);
     setCurveHidden('eq', true);
+    announceGraphMode('Layers only');
     return;
   }
   setCurveHidden('eq', false);
+  announceGraphMode('Everything');
+};
+
+/**
+ * What the plot just became, said once in the middle of it.
+ *
+ * A shortcut that changes four things at once is fast to use and impossible to
+ * learn: the drawing rearranges and nothing says which of the four you are now
+ * in or how many are left. Naming it for a moment turns the key into something
+ * somebody can walk without counting.
+ *
+ * Only for the key. Choosing a state deliberately from the menu or the legend
+ * does not need to be told what it did — the control that was pressed says so,
+ * and a caption appearing over the graph in answer to a press on the graph's own
+ * legend is the app talking over the user.
+ *
+ * A store rather than state on the chart, because the thing that fires it is a
+ * window key handler and the thing that draws it is a div three components down.
+ */
+const MODE_ANNOUNCEMENT_MS = 1100;
+
+let announcement = '';
+/** Bumped per announcement, so the same mode twice still reads as twice. */
+let announcementId = 0;
+let announcementTimer: ReturnType<typeof setTimeout> | undefined;
+const announcementListeners = new Set<() => void>();
+
+const emitAnnouncement = () => {
+  announcementListeners.forEach((listener) => listener());
+};
+
+export const announceGraphMode = (label: string) => {
+  announcement = label;
+  announcementId += 1;
+  if (announcementTimer) {
+    clearTimeout(announcementTimer);
+  }
+  announcementTimer = setTimeout(() => {
+    announcement = '';
+    announcementTimer = undefined;
+    emitAnnouncement();
+  }, MODE_ANNOUNCEMENT_MS);
+  emitAnnouncement();
+};
+
+const subscribeAnnouncement = (listener: () => void) => {
+  announcementListeners.add(listener);
+  return () => {
+    announcementListeners.delete(listener);
+  };
+};
+
+/**
+ * The caption and a key that changes with every announcement.
+ *
+ * The key is what lets the same words animate again: React reuses an element
+ * whose key has not changed, so cycling back to a mode you were in a moment ago
+ * would otherwise put the caption up with its entrance already over.
+ */
+export const useGraphModeAnnouncement = () => {
+  const id = useSyncExternalStore(
+    subscribeAnnouncement,
+    () => announcementId,
+    () => 0,
+  );
+  return { label: announcement, id };
 };
 
 const subscribeSolo = (listener: () => void) => {
