@@ -32,7 +32,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 import * as d3 from 'd3';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import {
+  type CSSProperties,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import { useIsFirstRender } from 'renderer/utils/utils';
 import {
   GRAPH_ANIMATE_DURATION,
@@ -108,6 +114,29 @@ const Line = ({
   );
 
   const d = useMemo(() => line(data), [data, line]);
+
+  /**
+   * The curve's gradient, handed to the stylesheet instead of its id.
+   *
+   * Euphoria paints this line in the band colours rather than in one, and the
+   * paint it needs is a `<defs>` entry that lives in the chart. A stylesheet
+   * cannot be told an id — it would have to spell `url(#chart-eq-spectrum-...)`
+   * out, and the moment two charts are on screen at once those ids stop being
+   * unique and the rule starts pointing at whichever gradient the browser found
+   * first. The element that knows the id publishes it; the rule reads a
+   * property.
+   *
+   * Only curves that actually have a gradient get the property and the class
+   * that goes with it, so the euphoric rule cannot select a curve it has no
+   * paint for and leave it stroked with nothing.
+   */
+  const spectrum = useMemo(
+    () =>
+      gradientId
+        ? ({ '--curve-gradient': `url(#${gradientId})` } as CSSProperties)
+        : undefined,
+    [gradientId],
+  );
 
   // Define different types of animation that we can use
   const animateLeft = useCallback(() => {
@@ -192,7 +221,14 @@ const Line = ({
       {glow && gradientId && (
         <path
           name={`${name} glow`}
+          className="chart-curve__glow"
           d={d || undefined}
+          // The gradient travels with the halo as well as with the line, so a
+          // stylesheet can put either of them back to the spectrum. The
+          // attribute below is only the fallback: any CSS rule outranks a
+          // presentation attribute, which is what lets the halo be cyan at rest
+          // without this component knowing anything about the mode.
+          style={spectrum}
           stroke={`url(#${gradientId})`}
           strokeWidth={strokeWidth + 7}
           strokeLinecap="round"
@@ -208,6 +244,8 @@ const Line = ({
       <path
         name={name}
         ref={ref}
+        className={`chart-curve${spectrum ? ' chart-curve--spectrum' : ''}`}
+        style={spectrum}
         stroke={color}
         strokeWidth={strokeWidth}
         strokeLinecap="round"

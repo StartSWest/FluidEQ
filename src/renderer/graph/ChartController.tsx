@@ -64,39 +64,6 @@ export interface IChartLineDataPointsById {
 export interface IChartCurveData {
   id: string;
   name: string;
-  /**
-   * A curve whose points are replaced continuously rather than edited, so it
-   * is drawn straight to the DOM instead of transitioned. A 100 ms ease onto
-   * data that is replaced every 45 ms never arrives, and d3 pays for it by
-   * building an interpolator for every number in the path string and rebuilding
-   * that string on every animation tick.
-   */
-  isContinuous?: boolean;
-  /**
-   * Draw this curve upside down.
-   *
-   * A reflection of the rendered geometry, not of the data — see Chart. The
-   * distinction matters: every style draws upward from a baseline, so negating
-   * the values gives the *negative* of the wave, tall where it was short,
-   * rather than the same wave hanging from the ceiling.
-   */
-  isFlipped?: boolean;
-  /**
-   * Draw this curve into half the plot, anchored at the middle.
-   *
-   * For the mirrored orientation, where two copies share the height rather than
-   * both taking all of it — at full height they are two full-size waves drawn
-   * over each other, which is a tangle rather than a reflection.
-   */
-  isHalfHeight?: boolean;
-  /**
-   * With `isHalfHeight`, grow out of the middle instead of in from the edge.
-   *
-   * The difference between a waveform as an editor draws one — silence a flat
-   * line across the centre, a loud frame reaching both edges — and two spectrum
-   * analysers facing each other, which is what growing inward looks like.
-   */
-  isFromCentre?: boolean;
   line: {
     color: Color;
     strokeWidth: number;
@@ -113,6 +80,61 @@ export interface IChartCurveData {
     opacity?: number;
   };
   controlPoint?: IChartPointData;
+}
+
+/**
+ * A live trace, described rather than handed over.
+ *
+ * The points are deliberately not in here, and that absence is the point. They
+ * are replaced about twenty-two times a second, so everything they pass through
+ * re-renders at that rate — which for the response graph meant a fourteen
+ * hundred line component and every d3 effect beneath it, all so that a canvas at
+ * the bottom of the tree could read one array. What travels down instead is the
+ * trace's *configuration*: which way up it is drawn, in what colour, how
+ * present. That changes when somebody chooses something, which is rare, and
+ * `LiveTraceCanvas` subscribes to the frames itself.
+ *
+ * Separate from `IChartCurveData` rather than a variant of it, because the two
+ * are drawn by different renderers with almost nothing in common — the band
+ * curves are SVG paths with hit testing and transitions, this is pixels. One
+ * shared type meant every band curve carrying four fields only the live trace
+ * could use, and a `points` array the canvas no longer wants.
+ */
+export interface ILiveCurveData {
+  /**
+   * Draw this copy upside down.
+   *
+   * A reflection of the rendered geometry, not of the data. The distinction
+   * matters: every style draws upward from a baseline, so negating the values
+   * gives the *negative* of the wave, tall where it was short, rather than the
+   * same wave hanging from the ceiling.
+   */
+  isFlipped?: boolean;
+  /**
+   * Draw this copy into half the plot, anchored at the middle.
+   *
+   * For the mirrored orientation, where two copies share the height rather than
+   * both taking all of it — at full height they are two full-size waves drawn
+   * over each other, which is a tangle rather than a reflection.
+   */
+  isHalfHeight?: boolean;
+  /**
+   * With `isHalfHeight`, grow out of the middle instead of in from the edge.
+   *
+   * The difference between a waveform as an editor draws one — silence a flat
+   * line across the centre, a loud frame reaching both edges — and two spectrum
+   * analysers facing each other, which is what growing inward looks like.
+   */
+  isFromCentre?: boolean;
+  /** What to paint with when the look brings no colours of its own. */
+  colour: Color;
+  /**
+   * How present the trace is.
+   *
+   * Held back while it is one of several layers under the response being
+   * edited, full strength when solo has taken the others away.
+   */
+  opacity: number;
 }
 
 export interface IEditableChartPoint {

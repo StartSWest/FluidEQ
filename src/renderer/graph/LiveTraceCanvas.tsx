@@ -44,6 +44,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * grid and under the band handles, which no single layer can be; of the two,
  * the handles matter more — they are controls, and a control that disappears
  * under a moving drawing is worse than a hairline grid crossing a wave.
+ *
+ * WHY THE POINTS ARE READ HERE RATHER THAN PASSED IN. This is the only thing on
+ * the graph that wants a measurement, and it is the last component in the tree,
+ * so it is the only one that should be subscribed to them. Handed down as a prop
+ * they went through `FrequencyResponseChart` and `Chart` on the way, which
+ * re-rendered both of those about twenty-two times a second — the chart for
+ * nothing at all, since it does not draw the trace, and every d3 effect under it
+ * for a frame it could not use. A renderer that draws outside React should be
+ * subscribed outside React's tree as well, and this is as close as a context
+ * gets: the component wakes up per frame, and nothing above it does.
  */
 
 import type { AxisScale, NumberValue } from 'd3';
@@ -56,7 +66,8 @@ import {
 } from 'common/graphStyles';
 import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
 import { useGraphLook } from 'renderer/utils/graphStyle';
-import { IChartCurveData, IChartPointData } from './ChartController';
+import { useLiveAudioFrame } from '../audio/LiveAudioContext';
+import { IChartPointData, ILiveCurveData } from './ChartController';
 import {
   ACCENT_CORE_OPACITY,
   ACCENT_HALO_EUPHORIC_OPACITY,
@@ -155,8 +166,11 @@ interface ILiveTraceCanvasProps {
    * way up they are. That is why the easing, the projection and the shape are
    * built once below and drawn once per curve — where the SVG version built the
    * whole figure twice.
+   *
+   * Configuration only. The measurement itself is read from the frame context
+   * below; see the file comment for why it does not come down with these.
    */
-  curves: IChartCurveData[];
+  curves: ILiveCurveData[];
   xScale: AxisScale<NumberValue>;
   yScale: AxisScale<NumberValue>;
   /** The chart's own box, which this covers exactly. */
@@ -212,7 +226,11 @@ const LiveTraceCanvas = ({
   offsetLeft,
   offsetTop,
 }: ILiveTraceCanvasProps) => {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  // The measurement, straight from the analyser. This component re-renders with
+  // every frame and nothing above it does — which is the entire arrangement.
+  const { points } = useLiveAudioFrame();
+
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // Held rather than fetched per frame: the computed style is a live object
   // bound to the element, and it goes stale with the context if the canvas is
   // ever replaced, so the two are taken together.
@@ -246,10 +264,9 @@ const LiveTraceCanvas = ({
       if (!canvas || !context) {
         return false;
       }
-      // Every live curve carries the same measurement; see the prop's comment.
-      const data = curves[0]?.line.points;
+      const data = points;
       const eased = easedRef.current;
-      if (!data || data.length < 2 || eased.length !== data.length) {
+      if (data.length < 2 || eased.length !== data.length) {
         return false;
       }
 
@@ -419,7 +436,7 @@ const LiveTraceCanvas = ({
 
       // The trace's presence, eased rather than transitioned.
       const settle = getEaseFactor(deltaMs, PRESENTATION_SETTLE_MS);
-      const targetOpacity = curves[0].line.opacity ?? 1;
+      const targetOpacity = curves[0].opacity;
       const opacityGap = targetOpacity - shownOpacityRef.current;
       if (opacityGap > OPACITY_EPSILON || opacityGap < -OPACITY_EPSILON) {
         shownOpacityRef.current += opacityGap * settle;
@@ -468,7 +485,7 @@ const LiveTraceCanvas = ({
         const basePaint = resolveTracePaint(
           lookRef.current.palette,
           lookRef.current.colours,
-          curve.line.color,
+          curve.colour,
           plot,
         );
         const canvasPaint = toCanvasPaint(context, basePaint);
@@ -543,26 +560,39 @@ const LiveTraceCanvas = ({
 
       return moving;
     },
-    [curves, height, width, xScale, yScale],
+    [curves, height, points, width, xScale, yScale],
   );
 
   const kickFrames = useSmoothFrames(drawFrame, { isEnabled: true });
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
+  /**
+   * Take the context when the element arrives, and let everything go when it
+   * leaves.
+   *
+   * A callback ref rather than a mount effect because the element comes and goes
+   * with the music: silence takes it out of the tree entirely — see the render
+   * below — and an effect keyed on nothing would hold the context of a canvas
+   * that no longer exists.
+   *
+   * Going away also resets what the drawing had settled into. The component
+   * itself stays mounted through the gap, so without this the trace would come
+   * back at whatever opacity, weight and glow it was at when the music stopped,
+   * where it used to arrive fresh — it is a first appearance again, and it
+   * should fade in like one.
+   */
+  const attachCanvas = useCallback((canvas: HTMLCanvasElement | null) => {
+    canvasRef.current = canvas;
+    contextRef.current = canvas ? canvas.getContext('2d') : null;
+    computedRef.current = canvas ? window.getComputedStyle(canvas) : null;
     if (!canvas) {
-      return;
+      easedRef.current = [];
+      pumpRef.current = 0;
+      shownOpacityRef.current = 0;
+      shownStrokeWidthRef.current = lookRef.current.tuning.strokeWidth;
     }
-    contextRef.current = canvas.getContext('2d');
-    computedRef.current = window.getComputedStyle(canvas);
   }, []);
 
-  const points = curves[0]?.line.points;
-
   useEffect(() => {
-    if (!points) {
-      return;
-    }
     if (easedRef.current.length !== points.length) {
       // First measurement, or the analyser changed size. The curve arrives
       // whole rather than growing out of a flat line.
@@ -580,9 +610,19 @@ const LiveTraceCanvas = ({
     // it, so a settled trace would simply vanish rather than merely go stale.
   }, [curves, height, kickFrames, look, points, width]);
 
+  // Silence takes the canvas out of the document rather than leaving an empty
+  // one behind it. An element that is drawing nothing still costs something to
+  // keep: in euphoria it carries the keyframes that sweep the hue, which is a
+  // style recalculation several times a second for a drawing nobody can see.
+  // This is also what makes the trace disappear the moment the music does — the
+  // pixels go with the element, so there is nothing to clear.
+  if (points.length === 0) {
+    return null;
+  }
+
   return (
     <canvas
-      ref={canvasRef}
+      ref={attachCanvas}
       className="chart-live-canvas"
       // The chart's own box, to the pixel. The backing store is sized in the
       // frame loop; these are CSS pixels and only say where the drawing sits.

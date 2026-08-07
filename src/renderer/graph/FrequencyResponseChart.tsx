@@ -56,6 +56,7 @@ import {
   IChartLineDataPointsById,
   IChartPointData,
   IEditableChartPoint,
+  ILiveCurveData,
 } from './ChartController';
 import {
   getFilterLineData,
@@ -89,7 +90,7 @@ import {
   useLiveOutputSolo,
   useSelectedLookId,
 } from '../utils/graphStyle';
-import { useIsChromeIdle } from '../utils/idleChrome';
+import { setChromeHeld, useIsChromeIdle } from '../utils/idleChrome';
 import { useBypassedLayers } from '../utils/layerBypass';
 import {
   MAX_OVERLAY_BLUR,
@@ -149,17 +150,170 @@ const SUPPORTING_CURVE_OPACITY = 0.5;
  */
 const SILENCE_GRACE_MS = 2000;
 
+/**
+ * How long the look designer is kept mounted after being told to close.
+ *
+ * Must match the exit animation in LookDesigner.scss. Shorter and the panel
+ * disappears mid-flight; longer and there is a pause between the animation
+ * finishing and the panel going, which reads as the app hesitating.
+ */
+const DESIGNER_EXIT_MS = 170;
+
+/**
+ * WHY TWO COMPONENTS IN THIS FILE DRAW ALMOST NOTHING.
+ *
+ * The analyser publishes about twenty-two times a second, and a component that
+ * reads those frames re-renders every time one lands. This one used to: it took
+ * the frame at the top and handed the points down to the canvas that draws them,
+ * which meant fourteen hundred lines of chart — and every d3 axis, grid and
+ * curve effect underneath it — running twenty-two times a second for as long as
+ * music was playing. Measured, that was a leak of roughly twenty megabytes a
+ * minute, in Blink's heaps rather than the JS one, which is what a d3 transition
+ * rebuilt per frame looks like from the outside. It grew for as long as the
+ * window stayed open, and hiding the wave did not stop it: the chart was
+ * re-rendering for a drawing it was not even making.
+ *
+ * So the subscriptions moved down to the leaves that actually want a frame —
+ * these two, the coverage overlay in `Chart`, and `LiveTraceCanvas`, which is
+ * the only one that draws anything substantial and does it outside React
+ * entirely. Each reads one field and renders one small thing or nothing at all.
+ * What travels down the tree instead is what somebody chose: which look, which
+ * way up, whether the wave is shown. That changes when a control is used, and
+ * the chart re-renders then, which is exactly when it should.
+ */
+
+/**
+ * The clip indication.
+ *
+ * Reads `isClipping` and only `isClipping` — a boolean that is true for a few
+ * hundred milliseconds after the output rails and false the rest of the time, so
+ * this renders the same nothing on almost every frame and React has nothing to
+ * do with it.
+ */
+const LiveClipWarning = () => {
+  const { isClipping } = useLiveAudioFrame();
+  return isClipping ? (
+    <span className="graph-clip-warning" role="status">
+      CLIPPING - reduce preamp
+    </span>
+  ) : null;
+};
+
+/**
+ * Whether audio was playing recently enough to still count as playing.
+ *
+ * Silence empties the frame, and an empty frame brings the EQ curves back —
+ * which is the right thing to do when the music has stopped and a blink when it
+ * merely dipped. Tracks change, a stream buffers, a passage goes quiet for a
+ * fifth of a second; every one of those flashed the whole EQ across the graph
+ * and took it away again.
+ *
+ * So silence has to persist before it is believed. Coming back is immediate: the
+ * moment there is a frame there is a trace, and delaying *that* would be a graph
+ * that lags the music.
+ *
+ * Renders nothing and reports upward, because the answer is needed by the chart
+ * — it decides whether the EQ curves are drawn — while the question can only be
+ * answered by watching every frame. Mounted only in solo, which is the only mode
+ * where the answer changes anything, and it reports `false` on the way out so
+ * that a stale "yes" cannot outlive the subscription and leave the graph empty
+ * for two seconds the next time solo is switched on in a quiet room.
+ */
+const SilenceWatch = ({
+  onChange,
+}: {
+  onChange: (hasRecentAudio: boolean) => void;
+}) => {
+  const { points } = useLiveAudioFrame();
+  const hasFrame = points.length > 0;
+  const silenceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  useEffect(() => {
+    if (hasFrame) {
+      if (silenceTimer.current !== undefined) {
+        clearTimeout(silenceTimer.current);
+        silenceTimer.current = undefined;
+      }
+      onChange(true);
+      return;
+    }
+    if (silenceTimer.current === undefined) {
+      silenceTimer.current = setTimeout(() => {
+        silenceTimer.current = undefined;
+        onChange(false);
+      }, SILENCE_GRACE_MS);
+    }
+  }, [hasFrame, onChange]);
+
+  useEffect(
+    () => () => {
+      if (silenceTimer.current !== undefined) {
+        clearTimeout(silenceTimer.current);
+      }
+      onChange(false);
+    },
+    [onChange],
+  );
+
+  return null;
+};
+
 // The look list is no longer a module constant: it now depends on the looks the
 // user has saved, so it is built inside the component from `getSelectableLooks`
 // and memoised on that list instead.
 const FrequencyResponseChart = () => {
-  const liveOutput = useLiveAudioFrame();
   // The selection, not the resolved look: while the designer is open the chart
   // is drawing an unsaved draft whose id is in no list, and a picker handed
   // that id would show nothing.
   const selectedLookId = useSelectedLookId();
   const customLooks = useCustomLooks();
   const [isDesignerOpen, setIsDesignerOpen] = useState(false);
+  /**
+   * Closing, but not yet gone.
+   *
+   * React unmounts the moment the condition turns false, which is why the panel
+   * arrived with an animation and left by vanishing. Nothing in CSS can hold an
+   * element that is no longer in the tree, so the wait has to live here: the
+   * class goes on, the panel plays its exit, and only then is it dropped.
+   */
+  const [isDesignerClosing, setIsDesignerClosing] = useState(false);
+  const designerExitTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
+    undefined,
+  );
+
+  const closeDesigner = useCallback(() => {
+    setIsDesignerClosing(true);
+    clearTimeout(designerExitTimer.current);
+    designerExitTimer.current = setTimeout(() => {
+      designerExitTimer.current = undefined;
+      setIsDesignerClosing(false);
+      setIsDesignerOpen(false);
+    }, DESIGNER_EXIT_MS);
+  }, []);
+
+  const openDesigner = useCallback(() => {
+    // A reopen mid-exit is somebody changing their mind, and it must not be
+    // followed a moment later by the timer that was closing it.
+    clearTimeout(designerExitTimer.current);
+    designerExitTimer.current = undefined;
+    setIsDesignerClosing(false);
+    setIsDesignerOpen(true);
+  }, []);
+
+  // A pending close must not fire into an unmounted component, and leaving the
+  // graph is itself a reason for the panel to be gone.
+  useEffect(() => () => clearTimeout(designerExitTimer.current), []);
+
+  // The toolbar stays while the designer is open — the panel was opened from
+  // it, sits beside it, and every control in it is judged against the drawing
+  // behind. Fading the strip out from under it takes the controls away at the
+  // exact moment somebody has stopped moving the mouse to look at a change.
+  useEffect(() => {
+    setChromeHeld(isDesignerOpen);
+    return () => setChromeHeld(false);
+  }, [isDesignerOpen]);
   const isSolo = useLiveOutputSolo();
   const graphView = useGraphView();
   const isGridHidden = useGraphGridHidden();
@@ -231,6 +385,10 @@ const FrequencyResponseChart = () => {
     smartEq,
   } = useFluidEqContext();
   const prevFilters = useRef<IFiltersMap>({});
+  // Read by the window key handler, which is registered once and must not be
+  // torn down and rebuilt every time a band moves.
+  const filtersRef = useRef(filters);
+  filtersRef.current = filters;
   const prevFilterLines = useRef<IChartLineDataPointsById>({});
   const pendingPointEdits = useRef<Record<string, PendingPointEdit>>({});
   const pointEditTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>(
@@ -831,7 +989,7 @@ const FrequencyResponseChart = () => {
         // the innermost thing on screen, so it is what Escape means. Closing it
         // rather than the mode also matters because it holds an unsaved draft.
         if (isDesignerOpen) {
-          setIsDesignerOpen(false);
+          closeDesigner();
           return;
         }
         if (document.querySelector('[role="dialog"]')) {
@@ -845,6 +1003,27 @@ const FrequencyResponseChart = () => {
       // repeat is a key being leant on — neither should toggle a mode twice.
       if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.repeat) {
         const key = event.key.toLowerCase();
+        // Ctrl+A takes every band, so the whole tuning can be moved, retyped or
+        // deleted in one gesture — the marquee already does this for a region
+        // and there was no way to ask for all of it.
+        //
+        // Guarded on the target, unlike the toggles below, and that difference
+        // is deliberate: in a text field Ctrl+A means "select this text", and
+        // taking it would make the frequency and gain boxes the two places in
+        // the app where the most reflexive shortcut there is quietly does
+        // something else.
+        if (key === 'a') {
+          const typing = event.target as HTMLElement | null;
+          if (
+            typing?.isContentEditable ||
+            typing?.closest('input, textarea, [contenteditable]')
+          ) {
+            return;
+          }
+          event.preventDefault();
+          setSelectedFilterIds(Object.keys(filtersRef.current));
+          return;
+        }
         if (
           key === 's' ||
           key === 'f' ||
@@ -894,7 +1073,7 @@ const FrequencyResponseChart = () => {
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isGraphViewOn, isDesignerOpen]);
+  }, [isGraphViewOn, isDesignerOpen, closeDesigner, setSelectedFilterIds]);
 
   const dimensions: ChartDimensions = {
     width,
@@ -919,152 +1098,77 @@ const FrequencyResponseChart = () => {
     },
   };
 
-  // The live curve, eased toward each new frame rather than snapping to it.
-  //
-  // The analyser publishes about twenty-two times a second, and at that rate
-  // every frame lands as a visible step — the trace jitters instead of
-  // flowing. Easing each point costs one multiply-add per bin, against a curve
-  // d3 is about to re-path anyway.
-  //
-  // Done here rather than in the analyser because the game's beat detection
-  // reads the same frames and needs its transients sharp; rounding them off at
-  // the source would blunt the edges it exists to find.
-  // No smoothing here. The live curve is eased inside `Line`, on animation
-  // frames, and doing it in both places stacked two lags on top of each other
-  // — the points arrived already softened, then got softened again, and the
-  // curve swelled after the music instead of with it.
-
   /**
-   * Whether audio was playing recently enough to still count as playing.
+   * Whether the frames are still arriving, watched on the chart's behalf.
    *
-   * Silence empties the frame, and an empty frame brings the EQ curves back —
-   * which is the right thing to do when the music has stopped and a blink when
-   * it merely dipped. Tracks change, a stream buffers, a passage goes quiet for
-   * a fifth of a second; every one of those flashed the whole EQ across the
-   * graph and took it away again.
-   *
-   * So silence has to persist before it is believed. Coming back is immediate:
-   * the moment there is a frame there is a trace, and delaying *that* would be
-   * a graph that lags the music.
+   * Only solo consults it — see `SilenceWatch`, which is mounted only in that
+   * mode, and which is the only thing here that sees a frame at all.
    */
   const [hasRecentAudio, setHasRecentAudio] = useState(false);
-  const silenceTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
-    undefined,
-  );
-
-  useEffect(() => {
-    if (liveOutput.points.length > 0) {
-      if (silenceTimer.current !== undefined) {
-        clearTimeout(silenceTimer.current);
-        silenceTimer.current = undefined;
-      }
-      setHasRecentAudio(true);
-      return;
-    }
-    if (silenceTimer.current === undefined) {
-      silenceTimer.current = setTimeout(() => {
-        silenceTimer.current = undefined;
-        setHasRecentAudio(false);
-      }, SILENCE_GRACE_MS);
-    }
-  }, [liveOutput.points.length]);
-
-  useEffect(
-    () => () => {
-      if (silenceTimer.current !== undefined) {
-        clearTimeout(silenceTimer.current);
-      }
-    },
-    [],
-  );
 
   /**
-   * What to draw when there is no frame.
+   * The curves the user is editing, or nothing.
    *
-   * Outside solo the EQ curves were never away, so this is simply them. In solo
-   * they are what silence brings back — after a couple of seconds of it, not
-   * immediately, or a track change flashes the whole EQ across the graph and
-   * takes it away again.
+   * Soloing drops the EQ layers rather than hiding them with an opacity: a curve
+   * at zero alpha is still a path being rebuilt whenever a band moves, and the
+   * point of this mode is to be left with the one drawing and nothing else. They
+   * come back when the music has been gone long enough to believe.
    */
-  const silentData = useMemo(
+  const displayData = useMemo(
     () => (isSolo && hasRecentAudio ? [] : chartData),
     [chartData, hasRecentAudio, isSolo],
   );
 
-  const displayData = useMemo(
-    () =>
-      // Hidden means gone, not transparent. The live curve is the one thing
-      // here redrawn between measurements rather than when something is
-      // dragged, so leaving it in the tree at zero opacity would keep every bit
-      // of that work and show nothing for it.
-      liveOutput.points.length > 0 && !isWaveHidden
+  /**
+   * How to draw the live trace — not what to draw, which the canvas reads for
+   * itself.
+   *
+   * Nothing at all when the wave is hidden, because hidden means gone rather
+   * than transparent: an empty list takes the canvas out of the document, where
+   * a zero opacity would leave every frame of work being done for a drawing
+   * nobody can see.
+   *
+   * Rebuilt only when one of these choices changes, which is when somebody uses
+   * a control. That is the whole trick — this array is what used to carry three
+   * hundred points and change twenty-two times a second.
+   */
+  const liveCurves = useMemo<ILiveCurveData[]>(() => {
+    if (isWaveHidden) {
+      return [];
+    }
+    // Held back only while there is something to hold it back for.
+    //
+    // The live trace is dimmed because it is context for the curve being edited
+    // — one of four layers under the response, and at full strength they fight.
+    // Solo removes every one of them, so the reason to dim it goes with them:
+    // what was left was the one drawing on screen, drawn at half strength for
+    // the benefit of curves that are no longer there.
+    const opacity = isSolo ? 1 : SUPPORTING_CURVE_OPACITY;
+    const isHalfHeight =
+      waveOrientation === 'mirrored' || waveOrientation === 'centred';
+    return [
+      // Hanging from the top, or mirrored below as well. Drawn first so the
+      // upright copy lands over it.
+      ...(isHalfHeight
         ? [
-            // Soloing drops the EQ layers rather than hiding them with an
-            // opacity: a curve at zero alpha is still a path being rebuilt
-            // whenever a band moves, and the point of this mode is to be left
-            // with the one drawing and nothing else.
-            ...(isSolo ? [] : chartData),
-            // Hanging from the top, or mirrored below as well.
-            //
-            // Negating the gain mirrors about 0 dB, which is the vertical
-            // centre of a scale running -20 to +20 — so this is a true
-            // reflection rather than an offset that happens to look like one.
-            ...(waveOrientation === 'mirrored' || waveOrientation === 'centred'
-              ? [
-                  {
-                    id: 'Live Output Mirror',
-                    name: 'Live processed output, mirrored',
-                    isContinuous: true,
-                    isFlipped: true,
-                    isHalfHeight: true,
-                    isFromCentre: waveOrientation === 'centred',
-                    line: {
-                      color: ColorEnum.ANALOGOUS2,
-                      strokeWidth: isSolo ? 2.6 : 2,
-                      opacity: isSolo ? 1 : SUPPORTING_CURVE_OPACITY,
-                      points: liveOutput.points,
-                    },
-                  } as IChartCurveData,
-                ]
-              : []),
             {
-              id: 'Live Output',
-              name: 'Live processed output',
-              isContinuous: true,
-              isFlipped: waveOrientation === 'down',
-              isHalfHeight:
-                waveOrientation === 'mirrored' || waveOrientation === 'centred',
+              isFlipped: true,
+              isHalfHeight: true,
               isFromCentre: waveOrientation === 'centred',
-              line: {
-                color: ColorEnum.ANALOGOUS2,
-                // Heavier as well as brighter when it is the only thing drawn.
-                // Two pixels is a supporting weight, chosen so five curves of
-                // similar thickness do not read as a tangle; alone on the grid
-                // it just looks thin.
-                strokeWidth: isSolo ? 2.6 : 2,
-                // Held back only while there is something to hold it back for.
-                //
-                // The live trace is dimmed because it is context for the curve
-                // being edited — one of four layers under the response, and at
-                // full strength they fight. Solo removes every one of them, so
-                // the reason to dim it goes with them: what was left was the
-                // one drawing on screen, drawn at half strength for the benefit
-                // of curves that are no longer there.
-                opacity: isSolo ? 1 : SUPPORTING_CURVE_OPACITY,
-                points: liveOutput.points,
-              },
-            } as IChartCurveData,
+              colour: ColorEnum.ANALOGOUS2,
+              opacity,
+            },
           ]
-        : silentData,
-    [
-      silentData,
-      chartData,
-      isSolo,
-      isWaveHidden,
-      liveOutput.points,
-      waveOrientation,
-    ],
-  );
+        : []),
+      {
+        isFlipped: waveOrientation === 'down',
+        isHalfHeight,
+        isFromCentre: waveOrientation === 'centred',
+        colour: ColorEnum.ANALOGOUS2,
+        opacity,
+      },
+    ];
+  }, [isSolo, isWaveHidden, waveOrientation]);
 
   const editablePoints: IEditableChartPoint[] = useMemo(() => {
     // Sliders are ordered by frequency, so use the exact same ordering when
@@ -1289,7 +1393,9 @@ const FrequencyResponseChart = () => {
               // every control in the panel is judged by what it does to a
               // drawing that is not there.
               disabled={isWaveHidden}
-              onClick={() => setIsDesignerOpen((open) => !open)}
+              onClick={() =>
+                isDesignerOpen ? closeDesigner() : openDesigner()
+              }
               aria-pressed={isDesignerOpen}
               title={(() => {
                 if (isWaveHidden) {
@@ -1358,12 +1464,15 @@ const FrequencyResponseChart = () => {
             />
           </span>
         </span>
-        {liveOutput.isClipping && (
-          <span className="graph-clip-warning" role="status">
-            CLIPPING - reduce preamp
-          </span>
-        )}
+        {/* Its own subscriber, so that a badge which is absent almost all of the
+            time does not wake the graph up to say so. */}
+        <LiveClipWarning />
       </div>
+      {/* Only solo cares whether the music stopped, because it is the only mode
+          where silence puts something back on the graph. Outside it nothing here
+          watches the frames at all, and the chart re-renders when a band moves
+          and at no other time. */}
+      {isSolo && <SilenceWatch onChange={setHasRecentAudio} />}
       {/* The measured box, and the card around it are now two different things.
           They used to be one, which is fine while the plot fills the card and
           wrong the moment it should not: in full screen the card covers the
@@ -1379,13 +1488,13 @@ const FrequencyResponseChart = () => {
         ) : (
           <Chart
             data={displayData}
-            // The band curves, without the live trace appended below. Their
-            // identity survives a live frame, which is what keeps the y-extent
-            // memos from rescanning every point 22 times a second.
+            // The band curves, which are also the only curves: the live trace
+            // is not in `data` at all any more, so nothing the analyser does can
+            // make the y-extent memos rescan every point.
             scaleData={chartData}
             dimensions={dimensions}
             editablePoints={isSolo ? [] : editablePoints}
-            coverage={liveOutput.balanceProgress?.regions}
+            liveCurves={liveCurves}
             onMarqueeSelect={(ids, additive) =>
               setSelectedFilterIds(
                 additive ? [...new Set([...selectedFilterIds, ...ids])] : ids,
@@ -1399,7 +1508,7 @@ const FrequencyResponseChart = () => {
           change while the sliders move. Unmounted when closed, so the draft it
           holds is dropped with it. */}
       {isDesignerOpen && (
-        <LookDesigner onClose={() => setIsDesignerOpen(false)} />
+        <LookDesigner onClose={closeDesigner} isClosing={isDesignerClosing} />
       )}
     </div>
   ) : null;

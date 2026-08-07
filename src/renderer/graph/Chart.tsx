@@ -17,14 +17,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { PointerEvent, useMemo, useRef, useState } from 'react';
+import type { AxisScale, NumberValue } from 'd3';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import Axis from './Axis';
 import GridLine from './GridLine';
-import { IBalanceProgressRegion } from '../utils/autoBalance';
+import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import useController, {
   IChartCurveData,
   IChartGradientStop,
   IEditableChartPoint,
+  ILiveCurveData,
   IMarginLike,
 } from './ChartController';
 import { toggleGraphFullScreen, useGraphGridHidden } from '../utils/graphStyle';
@@ -39,6 +41,76 @@ export interface ChartDimensions {
   margins: IMarginLike;
 }
 
+/**
+ * The Smart EQ coverage overlay, subscribed to the measurement itself.
+ *
+ * Its own component for the same reason the trace is: the regions arrive with
+ * the analyser frames, and a `coverage` prop threaded through the chart woke the
+ * whole chart up at frame rate to redraw seven rectangles that only exist while
+ * a measurement is running — which is a few seconds in the life of the app and
+ * never at all for most people. Down here the subscription costs one component
+ * rendering null.
+ *
+ * Each frequency region lights up as it is actually heard, so the wait is
+ * legible: you can see which part of the spectrum the measurement is still
+ * missing rather than watching a percentage.
+ */
+const CoverageOverlay = ({
+  xScale,
+  top,
+  plotHeight,
+}: {
+  xScale: AxisScale<NumberValue>;
+  top: number;
+  plotHeight: number;
+}) => {
+  const { balanceProgress } = useLiveAudioFrame();
+  const coverage = balanceProgress?.regions;
+  if (!coverage || coverage.length === 0) {
+    return null;
+  }
+  return (
+    <g className="chart-coverage" pointerEvents="none">
+      {coverage.map((region) => {
+        const left = Number(xScale(region.lowFrequency));
+        const right = Number(xScale(region.highFrequency));
+        const width = Math.max(0, right - left - 2);
+        const height = Math.max(0, plotHeight - top);
+        return (
+          <g key={region.label}>
+            <rect
+              className="chart-coverage__column"
+              x={left + 1}
+              y={top}
+              width={width}
+              height={height}
+              opacity={0.06 + region.confidence * 0.14}
+            />
+            <rect
+              className="chart-coverage__track"
+              x={left + 1}
+              y={plotHeight - 6}
+              width={width}
+              height={4}
+              rx={2}
+            />
+            <rect
+              className={`chart-coverage__fill${
+                region.isCovered ? ' is-covered' : ''
+              }`}
+              x={left + 1}
+              y={plotHeight - 6}
+              width={width * Math.min(1, region.confidence)}
+              height={4}
+              rx={2}
+            />
+          </g>
+        );
+      })}
+    </g>
+  );
+};
+
 interface IChartProps {
   data: IChartCurveData[];
   /**
@@ -50,8 +122,12 @@ interface IChartProps {
   scaleData: IChartCurveData[];
   dimensions: ChartDimensions;
   editablePoints?: IEditableChartPoint[];
-  /** Per-region Smart EQ coverage, drawn while a measurement is running. */
-  coverage?: IBalanceProgressRegion[];
+  /**
+   * How to draw the live trace, in draw order, or nothing when the wave is
+   * hidden. Configuration only — the measurement never comes through here; see
+   * `LiveTraceCanvas`, which subscribes to it directly.
+   */
+  liveCurves?: ILiveCurveData[];
   onMarqueeSelect?: (ids: string[], additive: boolean) => void;
 }
 
@@ -60,7 +136,7 @@ const Chart = ({
   scaleData = [],
   dimensions,
   editablePoints = [],
-  coverage,
+  liveCurves = [],
   onMarqueeSelect,
 }: IChartProps) => {
   const { width, height, margins } = dimensions;
@@ -122,26 +198,6 @@ const Chart = ({
   const eqGradientStops: IChartGradientStop[] =
     data.find((curve) => curve.id === 'EQ Response')?.line.gradientStops || [];
 
-  /**
-   * Which curves go to which renderer.
-   *
-   * `isContinuous` marks the one curve fed by audio rather than by the user's
-   * own bands, and it is the only one that changes between measurements — so it
-   * is the only one that gains anything from a canvas. Everything else here is
-   * redrawn when something is dragged, which is rare enough that the DOM is the
-   * cheaper answer and hit-testing comes free with it.
-   *
-   * Split on the flag rather than on the id, so the two never disagree about
-   * which curve is the live one.
-   */
-  const liveCurves = useMemo(
-    () => data.filter((curve) => curve.isContinuous),
-    [data],
-  );
-  const bandCurves = useMemo(
-    () => data.filter((curve) => !curve.isContinuous),
-    [data],
-  );
   const svgRef = useRef<SVGSVGElement>(null);
   const selectionRef = useRef<
     | { startX: number; startY: number; currentX: number; currentY: number }
@@ -246,7 +302,10 @@ const Chart = ({
           the whole point: a canvas draw replaces pixels, where a path rewrites
           an attribute that the document then has to re-parse and re-rasterise.
           Both boxes are laid over the same corner of the plot, so a coordinate
-          means the same thing in each — see the canvas for how it is sized. */}
+          means the same thing in each — see the canvas for how it is sized.
+
+          Handed how to draw and not what: the measurement it reads for itself,
+          which is what keeps this chart still while the music plays. */}
       {liveCurves.length > 0 && (
         <LiveTraceCanvas
           curves={liveCurves}
@@ -381,49 +440,13 @@ const Chart = ({
             transform={`translate(${padding.left}, 0)`}
           />
         </g>
-        {/* Smart EQ coverage. Each frequency region lights up as it is actually
-          heard, so the wait is legible: you can see which part of the spectrum
-          the measurement is still missing rather than watching a percentage. */}
-        {coverage && coverage.length > 0 && (
-          <g className="chart-coverage" pointerEvents="none">
-            {coverage.map((region) => {
-              const left = Number(xScaleFreq(region.lowFrequency));
-              const right = Number(xScaleFreq(region.highFrequency));
-              const width = Math.max(0, right - left - 2);
-              const height = Math.max(0, plotHeight - padding.top);
-              return (
-                <g key={region.label}>
-                  <rect
-                    className="chart-coverage__column"
-                    x={left + 1}
-                    y={padding.top}
-                    width={width}
-                    height={height}
-                    opacity={0.06 + region.confidence * 0.14}
-                  />
-                  <rect
-                    className="chart-coverage__track"
-                    x={left + 1}
-                    y={plotHeight - 6}
-                    width={width}
-                    height={4}
-                    rx={2}
-                  />
-                  <rect
-                    className={`chart-coverage__fill${
-                      region.isCovered ? ' is-covered' : ''
-                    }`}
-                    x={left + 1}
-                    y={plotHeight - 6}
-                    width={width * Math.min(1, region.confidence)}
-                    height={4}
-                    rx={2}
-                  />
-                </g>
-              );
-            })}
-          </g>
-        )}
+        {/* Drawn only while a measurement is running, and subscribed to that
+          measurement itself rather than handed it — see the component. */}
+        <CoverageOverlay
+          xScale={xScaleFreq}
+          top={padding.top}
+          plotHeight={plotHeight}
+        />
         {selectionBox && (
           <rect
             className="chart-selection-box"
@@ -438,7 +461,7 @@ const Chart = ({
           The orientations — hanging, mirrored, centred — belong to the live
           trace alone and are applied on the canvas, where the geometry they
           reflect is drawn. */}
-        {bandCurves.map((e: IChartCurveData) => (
+        {data.map((e: IChartCurveData) => (
           <Curve key={e.id} data={e} xScale={xScaleFreq} yScale={yScaleGain} />
         ))}
         {editablePoints.map((point) => (
