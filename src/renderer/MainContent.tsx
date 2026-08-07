@@ -43,6 +43,7 @@ import {
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
 import {
+  blendSmartEqTarget,
   buildSmartEqSettings,
   describeSmartEqLayer,
   getSmartEqBands,
@@ -207,6 +208,14 @@ const MainContent = () => {
   const applySettledAtRef = useRef(0);
   /** Regions to clear once it has: what they heard mid-change is not evidence. */
   const pendingResetRef = useRef<number[]>([]);
+  /**
+   * Where the correction is heading, averaged over every window so far.
+   *
+   * The one thing in this loop that deliberately outlives a region being
+   * cleared. See `blendSmartEqTarget` for why an average of destinations is
+   * meaningful across corrections where an average of measurements is not.
+   */
+  const longRunTargetRef = useRef<Record<string, number>>({});
   /**
    * The running Continuous EQ capture, so the manual button can end it.
    *
@@ -967,7 +976,23 @@ const MainContent = () => {
       }
     });
 
-    const stepped = stepSmartEqGains(bands, scoped);
+    // Toward where every window so far agrees the band belongs, not toward
+    // what this one said.
+    //
+    // Clearing a range after correcting it is necessary — its old average
+    // describes a chain that no longer exists — but it also threw away the
+    // long-run memory, so every decision rested on the music of the last minute
+    // or two. That is enough for a bass-heavy album and a thin one to be
+    // measured separately, agreed to separately, and corrected in opposite
+    // directions one after the other, forever. The destinations are absolute
+    // gains and so are comparable across corrections, which is what makes an
+    // average of them meaningful where an average of raw measurements would
+    // not be.
+    longRunTargetRef.current = blendSmartEqTarget(
+      longRunTargetRef.current,
+      scoped,
+    );
+    const stepped = stepSmartEqGains(bands, longRunTargetRef.current);
     const measured = buildSmartEqSettings(bands, stepped, {
       status: report.status === 'ready' ? 'ready' : 'partial',
     });
@@ -1048,6 +1073,10 @@ const MainContent = () => {
     isApplyingRef.current = false;
     applySettledAtRef.current = 0;
     pendingResetRef.current = [];
+    // A fresh session starts with no opinion. The last one may have been
+    // measuring a different output, a different headphone, or a chain the
+    // manual button has since rebuilt from flat.
+    longRunTargetRef.current = {};
 
     captureBalanceProfile({
       signal: controller.signal,
@@ -1227,7 +1256,9 @@ const MainContent = () => {
               caret is where the other one lives; picking it changes what this
               button is, and a press then does it. */}
           <span
-            className={`eq-mode${isModeMenuOpen ? ' is-open' : ''}`}
+            className={`eq-mode${isModeMenuOpen ? ' is-open' : ''}${
+              isLiveOutputActive ? '' : ' is-disabled'
+            }`}
             ref={modeMenuHolder}
           >
             <Button

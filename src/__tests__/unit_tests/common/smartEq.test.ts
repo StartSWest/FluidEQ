@@ -19,7 +19,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { FilterTypeEnum, IFilter } from 'common/constants';
 import {
   CONTINUOUS_MAX_DB,
+  CONTINUOUS_MEMORY,
   CONTINUOUS_STEP_DB,
+  CONTINUOUS_TRIGGER_DB,
+  blendSmartEqTarget,
   SMART_EQ_MAX_FREQUENCY,
   SMART_EQ_MIN_FREQUENCY,
   SMART_EQ_QUALITY,
@@ -301,6 +304,41 @@ describe('the Smart EQ layer', () => {
       }
 
       expect(bandAt(bands, 1000)?.gain).toBeCloseTo(CONTINUOUS_MAX_DB, 6);
+    });
+
+    it('averages the destination over windows, so one album cannot move it', () => {
+      // What Continuous EQ converges on has to be the system, and the system
+      // does not change. A bass-heavy album and a thin one are two steady,
+      // confident, opposite answers, and acting on each in turn is a correction
+      // that raises the bass and then lowers it for as long as anybody listens.
+      const bassy = { b: 4 };
+      const thin = { b: -4 };
+
+      let target: Record<string, number> = {};
+      // The first answer is taken whole: with no history, one measurement is
+      // the estimate.
+      target = blendSmartEqTarget(target, bassy);
+      expect(target.b).toBe(4);
+
+      // Then they cancel rather than accumulate.
+      for (let pass = 0; pass < 20; pass += 1) {
+        target = blendSmartEqTarget(target, pass % 2 === 0 ? thin : bassy);
+      }
+      expect(Math.abs(target.b)).toBeLessThan(1);
+    });
+
+    it('moves by a fraction, so a single disagreeing track writes nothing', () => {
+      // Under the deadband on purpose: the two rules together are what stop it
+      // writing at all once it is right.
+      const target = blendSmartEqTarget({ b: 0 }, { b: 2 });
+      expect(target.b).toBeCloseTo(2 * CONTINUOUS_MEMORY, 6);
+      expect(target.b).toBeLessThan(CONTINUOUS_TRIGGER_DB);
+    });
+
+    it('keeps the destination of a band this window said nothing about', () => {
+      // No evidence is not evidence of nothing, so it must not decay to zero.
+      expect(blendSmartEqTarget({ b: 3 }, {}).b).toBe(3);
+      expect(blendSmartEqTarget({ b: 3 }, { b: Number.NaN }).b).toBe(3);
     });
 
     it('leaves a band the solve said nothing about exactly where it is', () => {

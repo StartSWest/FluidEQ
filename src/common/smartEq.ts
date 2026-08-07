@@ -339,6 +339,60 @@ export const CONTINUOUS_MAX_DB = 6;
 export const CONTINUOUS_TRIGGER_DB = 1;
 
 /**
+ * How much of one window's answer to believe.
+ *
+ * The correction is supposed to converge on the system — the headphones, the
+ * room — and those do not change. What changes is the music, and a single
+ * window of it is a measurement of one piece rather than of the system. A
+ * bass-heavy album and a thin one really do have different long-run balances,
+ * both perfectly steady, both easily passing the confidence test, so acting on
+ * each in turn is a correction that raises the bass and then lowers it for as
+ * long as anybody keeps listening.
+ *
+ * Averaging the answers is what makes them cancel. At 0.15 a window moves the
+ * destination by a seventh of the way, so it takes half a dozen of them —
+ * minutes of different music — for the destination to travel, and one album
+ * cannot take it anywhere. Combined with the deadband this is what stops the
+ * mode moving at all once it is right: a track that disagrees by two decibels
+ * shifts the destination by 0.3, which is under the threshold, so nothing is
+ * written.
+ */
+export const CONTINUOUS_MEMORY = 0.15;
+
+/**
+ * Where the correction is heading, averaged over everything heard so far.
+ *
+ * `solved` is one window's answer in absolute gains — already relative to what
+ * is applied, because the solve accumulates onto the layer's own bands — so
+ * answers from different windows are directly comparable and averaging them is
+ * meaningful even though the chain changed in between. That is the property
+ * that lets this survive a correction, where averaging raw measurements could
+ * not.
+ *
+ * A band with no history takes the first answer whole: with nothing else known,
+ * one measurement is the estimate. A band this window said nothing about keeps
+ * the destination it had rather than decaying toward zero — no evidence is not
+ * evidence of nothing.
+ */
+export const blendSmartEqTarget = (
+  previous: Record<string, number>,
+  solved: Record<string, number>,
+  memory = CONTINUOUS_MEMORY,
+): Record<string, number> => {
+  const blended = { ...previous };
+  Object.entries(solved).forEach(([id, answer]) => {
+    if (!Number.isFinite(answer)) {
+      return;
+    }
+    const held = blended[id];
+    blended[id] = Number.isFinite(held)
+      ? held + memory * (answer - held)
+      : answer;
+  });
+  return blended;
+};
+
+/**
  * One continuous step: where each band moves to next, not where it belongs.
  *
  * `solved` is the destination the measurement worked out — absolute gains, the

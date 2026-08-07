@@ -93,6 +93,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: relative;
   display: inline-flex;
   align-items: stretch;
+  transition: transform 150ms ease;
+
+  // The pair rises together, or not at all.
+  //
+  // The lift is written on `.button`, so hovering the main half raised it and
+  // left the caret sitting where it was — one control coming apart in the
+  // middle. It moves up here instead, where it applies to the whole thing, and
+  // the half that was doing it is told not to.
+  &:hover:not(.is-disabled) {
+    transform: translateY(-1px);
+  }
+
+  .button.eq-mode__main:hover:not([aria-disabled='true']) {
+    transform: none;
+  }
+
+  // And either half lights both, for the same reason: hovering one end of a
+  // control should not make the other end look like a separate one that is not
+  // being hovered.
+  &:hover:not(.is-disabled) {
+    .button.eq-mode__main:not([aria-disabled='true']),
+    .eq-mode__caret:not(:disabled) {
+      color: #03201d;
+      background: $secondary-light;
+    }
+  }
 
   // `.button.small` sets a radius of its own at the same specificity as
   // anything written as `.eq-mode .eq-mode__main`, so which one won came down
