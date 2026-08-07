@@ -267,12 +267,17 @@ const renderFilter = (filter: TChainFilter, index: number) => {
 /**
  * One layer's lines, numbered on from `startIndex`.
  *
- * The index is a label, not an address: APO applies `Filter:` lines in the
- * order it reads them and never refers to one by number. Written into a single
- * file the count runs on across the layers, because a repeated index in one
- * file reads like a mistake to anyone opening it. Written into a file per
- * feature each starts at 1, which is what makes a feature file independent of
- * every other feature — the point of splitting them at all.
+ * The index is a label, not an address, and this is the assumption the whole
+ * split rests on: a feature file that starts again at `Filter 1:` is only safe
+ * if nothing downstream reads the number. Equalizer APO's own source settles
+ * it — `BiQuadFilterFactory::createFilter` tests `command.find(L"Filter") == 0`
+ * and never parses the digits at all, constructing one biquad per matching line
+ * and appending it in document order.
+ *
+ * Written into a single file the count still runs on across the layers, because
+ * a repeated index in one file reads like a mistake to anyone opening it.
+ * Written into a file per feature each starts at 1, which is what makes a
+ * feature file independent of every other feature — the point of splitting them.
  */
 const renderLayer = (layer: IApoLayer, startIndex = 0): string[] =>
   layer.graphicEq

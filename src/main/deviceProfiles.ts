@@ -178,6 +178,13 @@ interface IDeviceFiles {
  * its features. Nothing in this shape says which output is current, which is
  * the point: APO's own `Device:` guard picks the matching block at playback
  * time, so switching Windows outputs needs no config write at all.
+ *
+ * The guard reaches into the included files too, which is what makes a device
+ * file safe to write without repeating the `Device:` line inside it.
+ * `DeviceFilterFactory` keeps `deviceMatches` across a nested file load — there
+ * is no per-file reset, only a `startOfConfiguration` one — and while it is
+ * false every command is blanked, the `Include:` line included. So another
+ * output's files are not merely filtered out at playback; they are never opened.
  */
 const chainToFiles = (
   chain: IApoChainFiles,
