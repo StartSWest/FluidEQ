@@ -84,6 +84,7 @@ import {
   useGraphFullScreen,
   useGraphGridHidden,
   useGraphWaveHidden,
+  useGraphHandlesHidden,
   toggleGraphWave,
   useGraphStretched,
   useWaveOrientation,
@@ -320,6 +321,7 @@ const FrequencyResponseChart = () => {
   const graphView = useGraphView();
   const isGridHidden = useGraphGridHidden();
   const isWaveHidden = useGraphWaveHidden();
+  const areHandlesHidden = useGraphHandlesHidden();
   const isStretched = useGraphStretched();
   const waveOrientation = useWaveOrientation();
 
@@ -698,7 +700,25 @@ const FrequencyResponseChart = () => {
     }
 
     const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
-    const eqCurveData = getCombinedLineData(preAmp, updatedFilterLines);
+    // The bands, switched off, are a flat line at the preamp — not the shape
+    // they would have had. Every other layer already disappears when it is
+    // bypassed; the EQ curve stayed drawn because it is the one curve that is
+    // always on screen, and that made it the one curve that could lie.
+    const eqLineData = bypassed.includes('eq') ? {} : updatedFilterLines;
+    // The bands are drawn from zero, and the preamp is left to the output
+    // curve.
+    //
+    // This curve is the thing being edited, and its handles sit at the gains
+    // they were given — so folding the preamp into it slid the line off its own
+    // handles by however much headroom the chain happened to need, and moved
+    // every band on screen whenever a band nowhere near it got louder. Nothing
+    // about the tuning changed; only the drawing did, which is the complaint
+    // the auto-normalize floor was already fixed for once.
+    //
+    // The preamp is real and still has to be visible, so the output curve below
+    // carries it. That is the honest place for it: it is the level the chain
+    // comes out at, not a property of any one band.
+    const eqCurveData = getCombinedLineData(0, eqLineData);
     const voicingCurveData = hasVoicing
       ? getCombinedLineData(0, voicingFilterLines)
       : [];
@@ -712,23 +732,45 @@ const FrequencyResponseChart = () => {
     // curve because the layers are written separately but heard together, and
     // two gentle corrections in the same region are not obviously gentle once
     // they add up.
-    const hasExtraLayers = hasVoicing || hasDriver || hasSmartEq;
+    //
+    // Drawn whenever a second layer EXISTS, not whenever one is switched on.
+    // Gating it on the latter meant bypassing the only extra layer took the
+    // output curve off the plot altogether — so the one curve that answers
+    // "what does this switch actually do to what I hear" vanished at the exact
+    // moment it was asked. It stays, and it moves.
+    //
+    // Every bypassed layer is already an empty set of lines by this point, EQ
+    // included, so this sum is the chain as Equalizer APO has it and nothing
+    // more.
+    //
+    // A non-zero preamp counts as a reason on its own, now that the bands are
+    // drawn from zero: with a plain EQ and nothing else, this is the only curve
+    // left that shows the headroom being reserved, and a chain quietly sitting
+    // 6 dB down with nothing on screen saying so is how a silent output goes
+    // unnoticed. At 0 dB it would be the EQ curve traced twice, so it is not
+    // drawn.
+    const hasExtraLayers = Boolean(
+      convolution ||
+      Math.abs(preAmp) > 0.01 ||
+      getVoicingFilters(voicing).length ||
+      getDriverFilters(driver).length ||
+      getSmartEqFilters(smartEq).length,
+    );
     const totalCurveData = hasExtraLayers
       ? getCombinedLineData(preAmp, {
-          ...updatedFilterLines,
+          ...eqLineData,
+          ...convolutionFilterLines,
           ...voicingFilterLines,
           ...driverFilterLines,
           ...smartFilterLines,
         })
       : [];
-    const totalCurveName = [
-      'EQ',
-      hasVoicing ? 'voicing' : '',
-      hasDriver ? 'driver' : '',
-      hasSmartEq ? 'Smart EQ' : '',
-    ]
-      .filter(Boolean)
-      .join(' + ');
+    // Named for what it is rather than for what went into it.
+    //
+    // It used to spell out its own ingredients — "EQ + voicing + Smart EQ" —
+    // which is the longest chip in the legend and still does not say the thing
+    // that matters, which is that this line is the one you are listening to.
+    const totalCurveName = 'Final output';
     const sortedFilters = Object.values(filters).sort(
       (a, b) => a.frequency - b.frequency,
     );
@@ -865,7 +907,7 @@ const FrequencyResponseChart = () => {
           : []),
         {
           id: 'EQ Response',
-          name: 'EQ + preamp',
+          name: 'EQ response',
           line: {
             color: SecondaryColorEnum.DEFAULT,
             strokeWidth: 3,
@@ -1068,7 +1110,7 @@ const FrequencyResponseChart = () => {
           } else if (key === 'i') {
             cycleWaveOrientation();
           } else {
-            // Ctrl+W walks the three things the plot can show rather than
+            // Ctrl+W walks the four things the plot can show rather than
             // toggling one of two switches that each turn the other off.
             cycleGraphContents();
           }
@@ -1257,7 +1299,7 @@ const FrequencyResponseChart = () => {
     <div
       className={`graph-wrapper${!isEngineUsable ? ' is-engine-disabled' : ''}${
         bypassed.includes('eq') ? ' is-eq-bypassed' : ''
-      }${
+      }${areHandlesHidden ? ' is-handles-hidden' : ''}${
         isGridHidden ? ' is-gridless' : ''
       }${isStretched ? ' is-stretched' : ''}${
         isDesignerOpen ? ' is-designing' : ''
@@ -1329,19 +1371,18 @@ const FrequencyResponseChart = () => {
           {!isSolo && hasSmartEqLayer(smartEq) && !isBypassed('smart') ? (
             <span className="graph-legend graph-legend--smart">Smart EQ</span>
           ) : null}
+          {/* The output curve is on the plot whenever there is more than one
+              layer to add up, switched on or not — see the note by
+              `hasExtraLayers`. So the chip follows the same rule, or the line
+              would be drawn with nothing naming it. */}
           {!isSolo &&
-          ((voicing?.profileId && !isBypassed('voicing')) ||
-            (driver?.profileId && !isBypassed('driver')) ||
-            (hasSmartEqLayer(smartEq) && !isBypassed('smart'))) ? (
+          (convolution ||
+            Math.abs(preAmp) > 0.01 ||
+            voicing?.profileId ||
+            driver?.profileId ||
+            hasSmartEqLayer(smartEq)) ? (
             <span className="graph-legend graph-legend--total">
-              {[
-                'EQ',
-                voicing?.profileId ? 'voicing' : '',
-                driver?.profileId ? 'driver' : '',
-                hasSmartEqLayer(smartEq) ? 'Smart EQ' : '',
-              ]
-                .filter(Boolean)
-                .join(' + ')}
+              Final output
             </span>
           ) : null}
           {/* The legend is the control.

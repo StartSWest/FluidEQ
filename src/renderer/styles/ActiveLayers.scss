@@ -87,6 +87,18 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: 0.66rem;
 }
 
+// The chip's line on the graph, in the chip.
+//
+// A short bar rather than a dot, because that is the shape it has on the plot —
+// the legend at the foot of the graph uses the same 13px stroke, and two
+// different shapes for the same thing would be one more pairing to work out.
+.active-layer__swatch {
+  width: 10px;
+  height: 3px;
+  flex: 0 0 auto;
+  border-radius: 2px;
+}
+
 .active-layer__icon {
   width: 13px;
   height: 13px;
@@ -147,10 +159,15 @@ it under the terms of the GNU General Public License version 3 or later.
 // The chip's body: everything except the remove button, and on the four layers
 // that can be re-applied from settings it is itself a button.
 //
-// It keeps the three tracks the chip used to lay out directly — icon, label,
-// name — so nothing moved when the wrapper appeared. No surface of its own:
-// pressing it is a state change you hear rather than one that needs a raised
-// edge to advertise itself.
+// Four tracks — swatch, icon, label, name — and only the last one flexible.
+//
+// The count matters: a child with no track of its own is placed on an implicit
+// second row, which is what the swatch did when it arrived and the template
+// still said three. The chip grew to two lines and the name dropped underneath
+// the label.
+//
+// No surface of its own: pressing it is a state change you hear rather than one
+// that needs a raised edge to advertise itself.
 .active-layer__body {
   display: grid;
   min-width: 0;
@@ -161,7 +178,7 @@ it under the terms of the GNU General Public License version 3 or later.
   color: inherit;
   font: inherit;
   gap: 6px;
-  grid-template-columns: auto auto minmax(0, 1fr);
+  grid-template-columns: auto auto auto minmax(0, 1fr);
   text-align: left;
 }
 

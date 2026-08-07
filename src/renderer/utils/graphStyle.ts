@@ -63,6 +63,7 @@ const STORAGE_KEY = 'fluideq-graph-style';
  */
 const VIEW_KEYS = {
   wave: 'fluideq.graphWaveHidden',
+  handles: 'fluideq.graphHandlesHidden',
   solo: 'fluideq.graphSolo',
   // Two of these are not keys any more but *stems*. The grid and the stretch
   // are kept once per view mode, under `<stem>.normal`, `<stem>.expanded` and
@@ -362,28 +363,36 @@ const setLiveOutputSolo = (next: boolean) => {
 export const toggleLiveOutputSolo = () => setLiveOutputSolo(!isSolo);
 
 /**
- * The three things the plot can show, in one gesture.
+ * The four things the plot can show, in one gesture.
  *
- * Two independent switches make four combinations, and one of them is an empty
- * grid — which is why each already turns the other off rather than allow it.
- * Given that, they are not really two settings: they are one choice between
- * three states, and a single key walking them says so far better than two keys
- * that quietly undo each other.
+ * Solo and hide-the-wave are two switches making four combinations, one of
+ * which is an empty grid — which is why each already turns the other off
+ * rather than allow it. Two settings that will not let each other be true are
+ * really one choice, and walking it with a single key says so far better than
+ * two keys that quietly undo one another.
  *
- * Both first, because that is what the graph is for; then the wave alone; then
- * the curves alone.
+ * Everything, then the wave alone, then the curves alone, then the curves with
+ * the editing furniture gone — which is the one for actually reading a chain,
+ * because the handles are what the layer curves get lost behind.
  */
 export const cycleGraphContents = () => {
   if (!isSolo && !isWaveHidden) {
+    setHandlesHidden(false);
     setLiveOutputSolo(true);
     return;
   }
   if (isSolo) {
     setLiveOutputSolo(false);
     setWaveHidden(true);
+    setHandlesHidden(false);
+    return;
+  }
+  if (!areHandlesHidden) {
+    setHandlesHidden(true);
     return;
   }
   setWaveHidden(false);
+  setHandlesHidden(false);
 };
 
 const subscribeSolo = (listener: () => void) => {
@@ -448,6 +457,43 @@ export const useGraphWaveHidden = () =>
   useSyncExternalStore(
     subscribeWave,
     () => isWaveHidden,
+    () => false,
+  );
+
+/**
+ * Whether the band handles are drawn.
+ *
+ * The dots are the editing surface, not the reading. With every layer stacked
+ * up there can be two dozen of them sitting on the one curve somebody is trying
+ * to read the shape of, and the layers underneath — the voicing, the driver
+ * correction, the measurement, the total — are exactly what gets lost behind
+ * them. Taking them away leaves every curve and removes only the furniture.
+ *
+ * Its own flag rather than a mode, because it composes: it is as useful over
+ * the wave as without it.
+ */
+let areHandlesHidden = readStoredFlag(VIEW_KEYS.handles);
+
+const handleListeners = new Set<() => void>();
+
+function setHandlesHidden(next: boolean) {
+  if (next === areHandlesHidden) {
+    return;
+  }
+  areHandlesHidden = next;
+  writeStored(VIEW_KEYS.handles, String(areHandlesHidden));
+  handleListeners.forEach((listener) => listener());
+}
+
+export const useGraphHandlesHidden = () =>
+  useSyncExternalStore(
+    (listener: () => void) => {
+      handleListeners.add(listener);
+      return () => {
+        handleListeners.delete(listener);
+      };
+    },
+    () => areHandlesHidden,
     () => false,
   );
 

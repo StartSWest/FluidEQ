@@ -120,6 +120,17 @@
   pointer-events: none;
 }
 
+// The editing furniture off, every curve kept.
+//
+// With four layers stacked there can be two dozen handles sitting on the one
+// curve somebody is trying to read the shape of — and the voicing, the driver
+// correction, the measurement and the total underneath are exactly what they
+// hide. This is the state for reading a chain rather than building one, so the
+// dots go and nothing else does.
+.graph-wrapper.is-handles-hidden .graph-edit-point {
+  display: none;
+}
+
 // The live-output legend carries the style picker.
 //
 // Clicking the plot cycles through the looks, which is for flicking past them

@@ -34,7 +34,33 @@ import {
 import { formatBalanceFrequency } from '../utils/autoBalance';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
+import { ColorEnum } from '../styles/color';
+import { getBandColor } from '../utils/bandColors';
 import '../styles/ActiveLayers.scss';
+
+/**
+ * The colour each chip's layer is drawn in on the graph.
+ *
+ * The row and the plot describe the same chain, and until now nothing said
+ * which line was which: four supporting curves in four colours above a row of
+ * four chips in none, and the only way to pair them up was to switch a layer
+ * off and watch what disappeared.
+ *
+ * These are CSS backgrounds rather than colours because the bands are not one
+ * colour — their curve is drawn with the band spectrum, so its swatch is that
+ * spectrum. Every other value must stay equal to the `ColorEnum` the chart
+ * passes for that curve, which is why they are taken from it rather than
+ * written out again.
+ */
+const LAYER_SWATCH: Record<string, string> = {
+  convolution: ColorEnum.COMPLEMENTARY,
+  driver: ColorEnum.DRIVER,
+  eq: `linear-gradient(90deg, ${getBandColor(0).color}, ${
+    getBandColor(0.5).color
+  }, ${getBandColor(1).color})`,
+  voicing: ColorEnum.TRIADIC1,
+  smart: ColorEnum.SMART,
+};
 
 /**
  * What is shaping the sound besides the bands on screen.
@@ -316,6 +342,11 @@ const ActiveLayers = () => {
                   .catch((e) => setGlobalError(e as ErrorDescription));
               }}
             >
+              <span
+                className="active-layer__swatch"
+                style={{ background: LAYER_SWATCH[layer.key] }}
+                aria-hidden
+              />
               {layer.isVoicing ? (
                 <VoicingIcon
                   profileId={voicing?.profileId}
@@ -334,6 +365,11 @@ const ActiveLayers = () => {
             </button>
           ) : (
             <span className="active-layer__body">
+              <span
+                className="active-layer__swatch"
+                style={{ background: LAYER_SWATCH[layer.key] }}
+                aria-hidden
+              />
               {layer.isVoicing ? (
                 <VoicingIcon
                   profileId={voicing?.profileId}
