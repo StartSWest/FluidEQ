@@ -14,6 +14,7 @@ import {
   type CSSProperties,
   memo,
   useCallback,
+  useEffect,
   useMemo,
   useRef,
 } from 'react';
@@ -24,6 +25,70 @@ import {
   IEditableChartPoint,
   IChartPointData,
 } from './ChartController';
+
+/**
+ * What a handle has to say about itself to something outside React.
+ *
+ * Deliberately the three things euphoria needs and nothing else. `frequency`
+ * puts the handle in the frequency order the analyser's axis is in, which is
+ * how it finds the slice of spectrum that belongs to this band; `selected` is
+ * the gate, because only the handle being edited lights; and `published` is the
+ * last stepped level it was told, so a frame where nothing moved can decide to
+ * write nothing without reading the element back.
+ *
+ * `published` living here rather than in the pump is what keeps the bookkeeping
+ * correct across a handle appearing and disappearing. A shared array indexed by
+ * position goes wrong the moment a band is added, removed or dragged past its
+ * neighbour: the entry survives and now describes a different band.
+ */
+export interface IGraphPointState {
+  frequency: number;
+  selected: boolean;
+  published: number;
+}
+
+/**
+ * Every handle currently drawn on the graph.
+ *
+ * Euphoria lights these with the music, and it has to reach them from outside
+ * React: the level arrives with the analyser frame around twenty-two times a
+ * second, and waking memoised components that often — to change a glow — is
+ * exactly the cost the mode is built to avoid. It writes a custom property
+ * straight to the element instead, which is what the slider row already does.
+ *
+ * A registry rather than a `querySelectorAll`, because the graph comes and
+ * goes. It is a pane the user can switch off entirely, and even when it is on
+ * the chart holds a spinner before it holds any handles. Anything that caches
+ * the result of a query then has to guess when to run it again, and every
+ * signal available for that guess — the band count, the view toggle — is a
+ * proxy for "the handles were replaced" rather than the fact itself. Mounting
+ * is the fact itself, so mounting is what maintains this.
+ */
+const mountedPoints = new Map<SVGGElement, IGraphPointState>();
+
+/**
+ * Visit every handle on the graph, in mount order.
+ *
+ * Empty whenever the graph is not showing, which is the caller's answer to
+ * "is there anything to light" without asking anybody. Mount order and not
+ * frequency order, which is why the state carries a frequency at all — the
+ * chart builds these from `Object.values(filters)` and only the colours are
+ * sorted, so where a handle sits in the map says nothing about where it sits on
+ * the axis.
+ */
+export const forEachGraphPoint = (
+  visit: (element: SVGGElement, state: IGraphPointState) => void,
+) => {
+  mountedPoints.forEach((state, element) => visit(element, state));
+};
+
+/**
+ * How many there are, which is the band count whenever the graph is showing.
+ *
+ * The spectrum is divided across the bands by index, so anything working out
+ * which slice belongs to a handle needs to know how many slices there are.
+ */
+export const graphPointCount = () => mountedPoints.size;
 
 interface IEditablePointProps {
   point: IEditableChartPoint;
@@ -39,7 +104,41 @@ const EditablePoint = ({
   yScale,
 }: IEditablePointProps) => {
   const dragging = useRef(false);
+  const groupRef = useRef<SVGGElement>(null);
   const { data, selected, hovered } = point;
+
+  // One record per handle, created once and then kept current in place.
+  //
+  // Written during render rather than from an effect, the way the trace canvas
+  // holds on to its look: both of these change when a band is dragged or the
+  // selection moves and at no other time, so an effect would be a second render
+  // pass and a second set of dependencies to get wrong. The assignment is
+  // idempotent, which is what makes it safe to do here.
+  const stateRef = useRef<IGraphPointState>({
+    frequency: data.x,
+    selected,
+    published: -1,
+  });
+  stateRef.current.frequency = data.x;
+  stateRef.current.selected = selected;
+
+  // In and out of the registry with the element itself. Empty deps because the
+  // group is created once per handle and never swapped — a band being dragged
+  // moves this node, it does not replace it — and because the record above is
+  // the same object for the life of the handle, so registering it once is
+  // registering it for good.
+  useEffect(() => {
+    const group = groupRef.current;
+    const state = stateRef.current;
+    if (!group) {
+      return undefined;
+    }
+    mountedPoints.set(group, state);
+    return () => {
+      mountedPoints.delete(group);
+    };
+  }, []);
+
   const scaledX = useMemo(() => Number(xScale(data.x)) || 0, [data.x, xScale]);
   const scaledY = useMemo(() => Number(yScale(data.y)) || 0, [data.y, yScale]);
 
@@ -117,6 +216,7 @@ const EditablePoint = ({
 
   return (
     <g
+      ref={groupRef}
       className={`graph-edit-point${selected ? ' graph-edit-point--selected' : ''}${hovered ? ' graph-edit-point--hovered' : ''}`}
       transform={`translate(${scaledX}, ${scaledY})`}
       role="slider"

@@ -92,13 +92,15 @@ it under the terms of the GNU General Public License version 3 or later.
   // it moves. If a future effect wants the overall loudness, it should be given
   // to the element that draws it and to nothing else.
   //
-  // The band points on the graph are left alone. They mark where a filter sits
-  // and they are dragged; fading them with the music makes a control harder to
-  // see and to hit, and the graph already has the trace doing the moving.
+  // The sliders stay fully opaque. Dimming them read as the EQ being disabled
+  // rather than as it dancing — the pulse belongs in the glow, which adds light
+  // instead of taking it away.
   //
-  // The sliders stay fully opaque too. Dimming them read as the EQ being
-  // disabled rather than as it dancing — the pulse belongs in the glow, which
-  // adds light instead of taking it away.
+  // That rule is why the band handles on the graph are allowed to join in at
+  // all. They mark where a filter sits and they are dragged, so nothing may
+  // make one harder to see or to hit; a glow behind them takes nothing away,
+  // and at silence it is fully transparent, which is to say the handles look
+  // exactly as they do with the mode off until there is music to answer.
 
   // Fixed blur radii, varying only in colour.
   //
@@ -108,21 +110,115 @@ it under the terms of the GNU General Public License version 3 or later.
   //
   // The pulse survives — `--band-level` drives the alpha instead of the size,
   // and a band going bright to dim reads the same either way.
+  // The range these mix over is the whole effect, so it runs to the top.
+  //
+  // It used to stop at 75% of the band's colour on the inner ring and 45% on
+  // the outer, which meant the brightest moment in the loudest passage was
+  // still visibly holding something back — the row read as lit-but-dimmed
+  // rather than as lit. A peak now reaches the colour itself.
+  //
+  // The floors matter as much: at silence there is still a ring, because a
+  // band that goes completely dark between beats reads as switched off rather
+  // than as quiet.
   .bandWrapper .range input[type='range']::-webkit-slider-runnable-track {
     box-shadow:
       inset 0 1px 2px rgba($black, 0.38),
       0 0 10px
         color-mix(
           in srgb,
-          var(--slider-color) calc(30% + var(--band-level, 0) * 45%),
+          var(--slider-color) calc(45% + var(--band-level, 0) * 55%),
           transparent
         ),
       0 0 22px
         color-mix(
           in srgb,
-          var(--slider-color) calc(12% + var(--band-level, 0) * 33%),
+          var(--slider-color) calc(20% + var(--band-level, 0) * 50%),
           transparent
         );
+  }
+
+  // The selected handle, lit by its own frequency.
+  //
+  // Only the selected one, and that is the design rather than an optimisation
+  // that happened to be available — though it is that too. Every other handle
+  // on the graph is a target waiting to be grabbed, and a row of thirty-one
+  // flashing targets is both harder to aim at and a blurrier restatement of
+  // what the live trace behind them already says properly. The handle in hand
+  // answers the music; the rest hold still. Unselected handles are never
+  // written to at all, so with the mode on they are the handles with the mode
+  // off, to the pixel.
+  //
+  // `--point-level` is that band's own share of the spectrum — the peak of the
+  // slice of the analyser's frequency axis belonging to it, quantised to twelve
+  // steps — written straight to the element by `EuphoriaGlow`. It is the same
+  // number reached the same way as `--band-level` on the slider below, and
+  // deliberately from the same function, so a selected handle and its slider
+  // light together rather than nearly together. Select the band at 60Hz and it
+  // moves on the kick; select the one at 8k and it moves on the hats.
+  //
+  // The floor is zero, which is what makes the paragraph above true of silence
+  // as well: with nothing playing the mix is fully transparent and the scale is
+  // exactly one. The mode adds light and never takes any.
+  //
+  // Four selectors deep on purpose. App.scss's hover rule is three
+  // (`.graph-edit-point:hover .graph-edit-point__dot`) and source order only
+  // breaks ties, so a three-deep rule here would lose to hover — which is to
+  // say the glow would go out the instant you pointed at the handle you were
+  // dragging, which is the whole time you are dragging it. Doubling the class
+  // up in `&.graph-edit-point--selected` reaches four and settles it outright.
+  //
+  // The state's own glow is repeated rather than composed: this filter is the
+  // one App.scss gives a selected dot, with the music's chained after it, so
+  // the pulse rides on top of the look instead of replacing it. Change it there
+  // and it has to change here. The alternative wanted an empty custom property
+  // for the resting value, and there is no way to write one that Sass and CSS
+  // both read the same way.
+  //
+  // Fixed blur radii, for the reason the slider track above gives at length:
+  // the geometry of a shadow is the expensive part, and only its colour moves.
+  .graph-edit-point {
+    &.graph-edit-point--selected,
+    &:focus-visible {
+      .graph-edit-point__dot {
+        // It breathes as well as glows, on the same number.
+        //
+        // One signal driving both is what keeps it reading as one thing
+        // happening: a handle that brightened on its own band's energy while
+        // swelling on something else would be two effects sharing an element.
+        // The dot grows on the frequency it is sitting over.
+        //
+        // Eight percent at a full peak, which on real material lands nearer
+        // four. Enough that the eye catches it against the still handles beside
+        // it; past that it stops being a swell and starts being a handle that
+        // will not sit down.
+        //
+        // `transform` rather than `r`, and this is the whole of why it is
+        // affordable: the radius is a geometry property, so moving it re-runs
+        // layout for the element on every step, where a scale is a matrix
+        // applied to a shape that has already been worked out. `fill-box` puts
+        // the origin on the circle's own bounding box — the circles have no
+        // `cx`/`cy`, so their box is centred on the handle's position and the
+        // dot grows about its middle instead of drifting away from it. The
+        // handle's centre therefore does not move, which is what keeps a drag
+        // in progress pointing at the same place; the capture set on pointer
+        // down is not geometric anyway and could not be disturbed by this.
+        //
+        // The halo is deliberately left still: it is the reach of the target,
+        // and a pointer already inside it should not find itself outside.
+        transform: scale(calc(1 + var(--point-level, 0) * 0.08));
+        transform-box: fill-box;
+        transform-origin: center;
+        filter: drop-shadow(0 0 10px var(--point-color))
+          drop-shadow(
+            0 0 14px
+              color-mix(
+                in srgb,
+                var(--point-color) calc(var(--point-level, 0) * 100%),
+                transparent
+              )
+          );
+      }
+    }
   }
 
   // The live output trace: the sweep, handed to a drawing outside the cascade.
@@ -145,6 +241,42 @@ it under the terms of the GNU General Public License version 3 or later.
     animation: euphoria-sweep 3.6s linear infinite;
   }
 
+  // The EQ curve keeps its own colour, and gains only weight.
+  //
+  // The weight is the part that stayed. It is competing with a live trace that
+  // is colourful and lit while the mode runs, and a heavier line is the
+  // cheapest way to say which of the two is the thing being edited — nothing is
+  // recomputed for it, where a second stroked copy underneath would be another
+  // path to keep in step with a `d` that d3 eases.
+  //
+  // It was given the spectrum here, matched to the band handles so a dot sat on
+  // a section of line in its own colour — correct on paper and wrong on screen.
+  // The line is what is being edited, and a rainbow is what everything else in
+  // this mode already is; painting it too left the one curve that should stand
+  // apart looking like part of the scenery.
+  //
+  // The gradient itself is still built and still published by `Line.tsx` as
+  // `--curve-gradient`, because nothing about it was wasted work — it is simply
+  // not referenced from here any more.
+  .chart-curve--spectrum {
+    stroke-width: 4;
+  }
+
+  // And the halo under it turns into a shadow, which is the other half of
+  // staying readable.
+  //
+  // Ordinarily this is the rainbow: a wide, blurred, half-transparent copy of
+  // the line stroked with the spectrum and dropped three pixels, so the cyan
+  // line above it sits in a coloured bloom. With the line itself gone rainbow
+  // that bloom stops being decoration and starts being camouflage — a rainbow
+  // haze around a rainbow line, over a trace that is by now also rainbow, and
+  // the eye has nothing to hold on to.
+  //
+  // With the line back to its own colour the bloom is not camouflage any more,
+  // so it stays exactly as it is outside the mode and this rule is gone. The
+  // reasoning above is kept because the trade is a real one and will come back
+  // the moment anything else in here is made rainbow.
+
   // The target line joins in: thicker, and riding the same hue as everything
   // else. Nothing here needs undoing on a miss — the class is on the document
   // root and a broken streak removes it, so the line goes back to its ordinary
@@ -166,8 +298,10 @@ it under the terms of the GNU General Public License version 3 or later.
   // the bar taller, which would shift the entire workspace down, since `#root`
   // is padded by the titlebar height.
   //
-  // The SVG scales with the box, so the waves grow with it and end up nearly
-  // touching the edges.
+  // The trace grows with the box and ends up nearly touching the edges. That
+  // used to be free — an SVG scales itself — and is now a `ResizeObserver` in
+  // the meter, which is fed every step of the seven hundred milliseconds below
+  // and redraws the canvas at each one.
   //
   // The easing that carries it lives on the meter's own rule rather than in
   // here. Declared inside this block it only existed while the class did, so
@@ -342,30 +476,21 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// The meter's line, glowing.
+// The meter's line, glowing — and no longer a rule.
 //
-// A wide translucent copy of the trace underneath the real one — not a
-// `drop-shadow`. A filter over a path whose shape is rewritten every frame has
-// to be recomputed on every one of them, and an animated filter over live
-// audio is precisely what sent memory into the gigabytes. A second stroke is
-// one more path in a picture already being drawn, and it costs nothing that
-// scales with time.
+// This was a wide translucent copy of the trace stroked underneath the real
+// one, deliberately not a `drop-shadow`: a filter over a path whose shape is
+// rewritten every frame has to be recomputed on every one of them, and an
+// animated filter over live audio is precisely what sent memory into the
+// gigabytes. That argument survives, the element does not. The meter is a
+// canvas now, so the halo is a stroke in its frame loop and this rule had
+// nothing left to select.
 //
-// Absent outside euphoria rather than merely transparent, and absent rather
-// than hidden: the meter mounts this path with the mode and unmounts it again,
-// so there is no rule here turning it on or off. `display: none` kept it out of
-// the paint and left it in the document, which is enough while the mode is on
-// and worth nothing when it is over — an element the renderer is still holding
-// a place for is precisely what "switching it off gives nothing back" is made
-// of.
-.waveform-visualizer__glow {
-  fill: none;
-  stroke: url('#waveform-line');
-  stroke-width: 7;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  opacity: 0.3;
-}
+// It also settles what the rule's own comment used to worry about. The path
+// was mounted with the mode and unmounted again, because `display: none` keeps
+// an element out of the paint and leaves the renderer holding a place for it,
+// which is what "switching it off gives nothing back" is made of. A stroke that
+// is simply not drawn holds nothing at all.
 
 // Loudness, directly under the euphoria pill.
 //
