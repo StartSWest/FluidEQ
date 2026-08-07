@@ -32,7 +32,7 @@ interface ICurveProps {
 }
 
 const Curve = ({ xScale, yScale, data }: ICurveProps) => {
-  const { name, line, controlPoint, isContinuous } = data;
+  const { name, line, controlPoint } = data;
 
   return (
     <>
@@ -46,11 +46,11 @@ const Curve = ({ xScale, yScale, data }: ICurveProps) => {
         gradientId={line.gradientId}
         glow={line.glow}
         opacity={line.opacity}
-        animation={
-          isContinuous
-            ? LineAnimationOptionsEnum.NONE
-            : LineAnimationOptionsEnum.LEFT
-        }
+        // Every curve that reaches here is the user's own tuning, so every one
+        // of them is drawn on. The live trace used to arrive here too and had to
+        // opt out of that animation; it is a canvas now and never comes this
+        // way, so there is no longer a second answer to give.
+        animation={LineAnimationOptionsEnum.LEFT}
       />
       {controlPoint && (
         <Point
@@ -67,8 +67,9 @@ const Curve = ({ xScale, yScale, data }: ICurveProps) => {
   );
 };
 
-// Every curve is reconciled whenever the chart re-renders, which the live
-// trace makes happen ~22 times a second. The band curves keep their object
-// identity across those frames, so memoising skips their whole subtree and
-// only the curve that actually changed is walked.
+// Every curve is reconciled whenever the chart re-renders, and one dragged band
+// re-renders the chart. The other curves keep their object identity across that,
+// so memoising skips their whole subtree and only the one that actually changed
+// is walked — which matters most during a drag, where the chart re-renders as
+// fast as the pointer moves.
 export default memo(Curve);

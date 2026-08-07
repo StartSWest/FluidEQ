@@ -33,7 +33,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { GraphPalette } from 'common/graphStyles';
 import { BAND_SPECTRUM_STOPS } from '../utils/bandColors';
-import { IChartCurveData } from './ChartController';
+import { ILiveCurveData } from './ChartController';
 
 /**
  * A gradient described rather than built.
@@ -293,7 +293,7 @@ export interface IWaveTransform {
 }
 
 export const getWaveTransform = (
-  curve: Pick<IChartCurveData, 'isFlipped' | 'isHalfHeight' | 'isFromCentre'>,
+  curve: Pick<ILiveCurveData, 'isFlipped' | 'isHalfHeight' | 'isFromCentre'>,
   plotHeight: number,
 ): IWaveTransform => {
   if (!curve.isFlipped && !curve.isHalfHeight) {
