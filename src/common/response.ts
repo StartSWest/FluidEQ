@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { FilterTypeEnum, IFilter } from './constants';
+import { clampGain, FilterTypeEnum, IFilter, IFiltersMap } from './constants';
 
 /**
  * Biquad magnitude response, shared by the graph and the config writer.
@@ -233,6 +233,104 @@ const getProgramAllowance = (frequency: number): number => {
     }
   }
   return last[1];
+};
+
+/**
+ * How far a chain departs from flat, in either direction.
+ *
+ * Unweighted and unsigned, unlike getChainPeakGain below: that one asks what a
+ * boost will cost in headroom, which is a question about loud passages and only
+ * about boosts. This asks how extreme the correction is at all, and a chain
+ * that buries the midrange forty decibels down is exactly as unusable as one
+ * that lifts it by forty.
+ */
+export const getChainExcursion = (
+  filters: Array<Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>>,
+): number => {
+  const coefficients = filters
+    .filter(
+      (filter) =>
+        Number.isFinite(filter.frequency) &&
+        Number.isFinite(filter.gain) &&
+        Number.isFinite(filter.quality),
+    )
+    .map((filter) => getTFCoefficients(filter as IFilter));
+
+  let excursion = 0;
+  SAMPLE_FREQUENCIES.forEach((frequency) => {
+    let total = 0;
+    coefficients.forEach((c) => {
+      total += gainAtFrequency(frequency, c);
+    });
+    if (Number.isFinite(total)) {
+      excursion = Math.max(excursion, Math.abs(total));
+    }
+  });
+
+  return excursion;
+};
+
+/**
+ * Scale a correction until the equaliser can actually express it.
+ *
+ * The shield in front of every applied reference, and it bounds the *chain*
+ * rather than the bands. Bounding the bands is what the per-band ceiling
+ * already does, and it is not enough on its own: a fit that spends eleven
+ * filters on one excursion produces eleven individually legal bands whose sum
+ * is fifty decibels of cut, which is silence. Nothing about any one of those
+ * bands looks wrong, because nothing was.
+ *
+ * Compressed rather than clipped, because clipping invents a shape. Every gain
+ * moves by the same factor, so each frequency keeps its position relative to
+ * every other and the correction is recognisably the one the measurement asked
+ * for, only gentler. A curve already inside the limit is returned untouched —
+ * this costs a sane reference nothing.
+ *
+ * Found by halving rather than by dividing. Scaling straight to the ratio of
+ * the limit to the excursion looks like the obvious step and lands a whisker
+ * over, every time, because a peaking filter's response is not quite
+ * proportional to its gain — so the bound would be one it very nearly kept.
+ * Halving the interval converges on the largest factor that fits and cannot
+ * overshoot: the low end of it is always a factor that already fits.
+ */
+export const compressChainToLimit = (
+  filters: IFiltersMap,
+  limit: number,
+): IFiltersMap => {
+  const bands = Object.values(filters);
+  if (!bands.length || !(limit > 0)) {
+    return filters;
+  }
+
+  const excursionAt = (scale: number) =>
+    getChainExcursion(
+      bands.map((band) => ({ ...band, gain: band.gain * scale })),
+    );
+
+  if (excursionAt(1) <= limit) {
+    return filters;
+  }
+
+  // Zero always fits — a chain of nothing departs from flat by nothing — so the
+  // low end is a factor known to be inside the limit throughout.
+  let low = 0;
+  let high = 1;
+  for (let pass = 0; pass < 12; pass += 1) {
+    const mid = (low + high) / 2;
+    if (excursionAt(mid) > limit) {
+      high = mid;
+    } else {
+      low = mid;
+    }
+  }
+  const scale = low;
+
+  return Object.fromEntries(
+    bands.map((band) => [
+      band.id,
+      { ...band, gain: clampGain(band.gain * scale) },
+    ]),
+  );
 };
 
 export const getChainPeakGain = (

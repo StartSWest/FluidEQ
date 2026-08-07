@@ -79,6 +79,7 @@ import {
   smartEqFromFilters,
 } from '../common/smartEq';
 import { parseEqText } from '../common/apoText';
+import { compressChainToLimit } from '../common/response';
 import {
   AutoEqFormat,
   FilterTypeEnum,
@@ -853,6 +854,33 @@ const getCurrentPreset = (): IPresetV2 => ({
   // bypassed layer roaring back in.
   bypassed: state.bypassed,
 });
+
+/**
+ * The shield in front of every reference this app applies on somebody's behalf.
+ *
+ * A published measurement is a claim, and some of them are wrong. One Squiglink
+ * model with no flat baseline to subtract from arrived as a negated raw SPL
+ * curve — read literally, a correction of fifty decibels of cut across the
+ * whole midrange. It was applied, it was written to Equalizer APO, and the
+ * output went silent.
+ *
+ * Nothing downstream could have caught it. The per-band ceiling did fire: it
+ * trimmed eleven separate bands to -12 dB, and eleven legal bands still summed
+ * to -50, because a limit on each band is not a limit on the chain. The preamp
+ * could not catch it either — it only ever attenuates, so a chain that has
+ * already thrown away fifty decibels is not something it can give back.
+ *
+ * So the chain itself is bounded here, once, before any of it is applied.
+ * Compressed rather than clipped, so a correction that is merely strong keeps
+ * the shape the measurement asked for and only gets gentler; one already inside
+ * the range is passed through untouched and costs nothing.
+ *
+ * Deliberately not applied to a profile the user loads. Their own tuning is
+ * theirs, however extreme, and quietly rescaling a saved profile on load would
+ * change a sound they chose and kept.
+ */
+const shieldReferenceBands = (filters: IFiltersMap) =>
+  compressChainToLimit(filters, MAX_GAIN);
 
 const switchToParametricEditing = () => {
   state.eqFormat = AutoEqFormat.PARAMETRIC;
@@ -1916,7 +1944,7 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     const presetSettings: IPresetV2 = getAutoEqPreset(deviceName, responseName);
     clearCurrentLayoutSettings();
     state.preAmp = presetSettings.preAmp;
-    state.filters = presetSettings.filters;
+    state.filters = shieldReferenceBands(presetSettings.filters);
     state.eqFormat = presetSettings.eqFormat;
     state.graphicEq = presetSettings.graphicEq;
     // Which model these bands came from, and out of which database. Not
@@ -1995,7 +2023,7 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
       : await getSquiglinkPreset(deviceName, responseName);
     clearCurrentLayoutSettings();
     state.preAmp = presetSettings.preAmp;
-    state.filters = presetSettings.filters;
+    state.filters = shieldReferenceBands(presetSettings.filters);
     state.eqFormat = AutoEqFormat.PARAMETRIC;
     state.graphicEq = undefined;
     state.headset = deviceName;
@@ -2123,7 +2151,7 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
     const imported = importEqFile(sourcePath);
     clearCurrentLayoutSettings();
     state.preAmp = imported.preAmp;
-    state.filters = imported.filters;
+    state.filters = shieldReferenceBands(imported.filters);
     state.eqFormat = imported.eqFormat;
     state.graphicEq = imported.graphicEq;
     applyingLayer('eq');
