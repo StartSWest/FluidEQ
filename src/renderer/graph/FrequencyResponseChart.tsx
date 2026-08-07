@@ -80,7 +80,6 @@ import {
   toggleGraphStretch,
   toggleFullScreenTopBar,
   cycleGraphContents,
-  toggleLiveOutputSolo,
   useGraphFullScreen,
   useGraphGridHidden,
   useGraphWaveHidden,
@@ -233,6 +232,78 @@ const CurveLegend = ({
   );
 };
 
+interface ICurveChip {
+  curve: TGraphCurve;
+  label: string;
+}
+
+/**
+ * The curve switches, when the row is too narrow to hold them.
+ *
+ * Six chips is a hundred and eighty pixels more than the strip has in a
+ * half-width window, and the row is right-aligned over the plot, so the
+ * overflow does not simply stop at an edge — it pushes the picker and the menu
+ * off the left of the card. Behind one button they cost the width of the word.
+ *
+ * The same `CurveLegend` inside, not a second rendering of the same idea: the
+ * pressed state, the colour and the hidden styling are the chip's, and a menu
+ * that reimplemented them would be a menu that drifts.
+ */
+const CurveLegendMenu = ({ chips }: { chips: ICurveChip[] }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const holder = useRef<HTMLSpanElement>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return undefined;
+    }
+    const onPointerDown = (event: MouseEvent) => {
+      if (!holder.current?.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', onPointerDown);
+    window.addEventListener('keydown', onKeyDown);
+    return () => {
+      window.removeEventListener('mousedown', onPointerDown);
+      window.removeEventListener('keydown', onKeyDown);
+    };
+  }, [isOpen]);
+
+  return (
+    <span className="graph-legend-menu" ref={holder}>
+      <button
+        type="button"
+        className={`graph-legend-menu__trigger${isOpen ? ' is-on' : ''}`}
+        aria-expanded={isOpen}
+        title="Which curves are drawn"
+        onClick={() => setIsOpen((wasOpen) => !wasOpen)}
+      >
+        <svg viewBox="0 0 16 16" aria-hidden>
+          <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
+        </svg>
+        Curves
+      </button>
+      {isOpen && (
+        <span className="graph-legend-menu__list">
+          {chips.map((chip) => (
+            <CurveLegend
+              key={chip.curve}
+              curve={chip.curve}
+              label={chip.label}
+            />
+          ))}
+        </span>
+      )}
+    </span>
+  );
+};
+
 /**
  * The clip indication.
  *
@@ -374,6 +445,7 @@ const FrequencyResponseChart = () => {
   // that is not on screen gives no feedback at all — the whole point of
   // dragging one is watching the response follow it.
   const areHandlesHidden = hiddenCurves.includes('eq');
+
   const isStretched = useGraphStretched();
   const waveOrientation = useWaveOrientation();
 
@@ -447,6 +519,90 @@ const FrequencyResponseChart = () => {
   // which is the rule every other layer already followed.
   const hasConvolution =
     Boolean(convolution) && !bypassed.includes('convolution');
+
+  /**
+   * The curve switches the legend is currently offering, as data.
+   *
+   * One list, two renderings — inline along the strip, or stacked behind a
+   * button when the strip is too narrow for them. Written out twice, the
+   * conditions deciding which layers have a chip would be the thing that
+   * drifted, and the narrow window is the one nobody is looking at while they
+   * work.
+   *
+   * A chip is here only when its layer is in the Equalizer APO chain: a hidden
+   * curve can always be brought back, and a bypassed one is gone from the
+   * legend rather than sitting in it pretending it could be shown. Solo has no
+   * curves at all, so it has no list.
+   */
+  const curveChips: ICurveChip[] = [];
+  if (!isSolo) {
+    if (hasConvolution) {
+      curveChips.push({ curve: 'convolution', label: 'Headset convolution' });
+    }
+    if (!isBypassed('eq')) {
+      curveChips.push({ curve: 'eq', label: 'EQ response' });
+    }
+    if (voicing?.profileId && !isBypassed('voicing')) {
+      curveChips.push({ curve: 'voicing', label: 'Voicing' });
+    }
+    if (driver?.profileId && !isBypassed('driver')) {
+      curveChips.push({ curve: 'driver', label: 'Driver' });
+    }
+    if (hasSmartEqLayer(smartEq) && !isBypassed('smart')) {
+      curveChips.push({ curve: 'smart', label: 'Smart EQ' });
+    }
+    // The output curve is drawn whenever there is more than one layer to add
+    // up, switched on or not — see the note by `hasExtraLayers` — so its chip
+    // follows that rule rather than the others, or the line would be on the
+    // plot with nothing naming it.
+    if (
+      convolution ||
+      Math.abs(preAmp) > 0.01 ||
+      voicing?.profileId ||
+      driver?.profileId ||
+      hasSmartEqLayer(smartEq)
+    ) {
+      curveChips.push({ curve: 'total', label: 'Final output' });
+    }
+  }
+
+  /**
+   * Whether the chips fit, measured rather than guessed at a breakpoint.
+   *
+   * A media query would have to assume how wide six of them are, and that
+   * changes with the layers in the chain and with the window: this row is
+   * right-aligned over the plot, and the plot is whatever is left after the
+   * sidebar. So the natural width is remembered from the last time they were
+   * laid out and compared against the room there is now — which is also what
+   * stops it oscillating, since the collapsed row is narrower than the
+   * threshold that collapsed it.
+   */
+  const legendGroup = useRef<HTMLSpanElement>(null);
+  const naturalLegendWidth = useRef(0);
+  const [areChipsCollapsed, setAreChipsCollapsed] = useState(false);
+  const chipKey = curveChips.map((chip) => chip.curve).join(',');
+
+  useLayoutEffect(() => {
+    const group = legendGroup.current;
+    const row = group?.parentElement;
+    if (!group || !row || typeof ResizeObserver === 'undefined') {
+      return undefined;
+    }
+    const measure = () => {
+      if (!areChipsCollapsed) {
+        naturalLegendWidth.current = group.scrollWidth;
+      }
+      setAreChipsCollapsed(naturalLegendWidth.current > row.clientWidth);
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(row);
+    observer.observe(group);
+    return () => observer.disconnect();
+    // `chipKey` rather than the array: a new array every render would rebuild
+    // the observer every render, and what actually changes the width is which
+    // chips there are.
+  }, [areChipsCollapsed, chipKey]);
   const prevFilters = useRef<IFiltersMap>({});
   // Read by the window key handler, which is registered once and must not be
   // torn down and rebuilt every time a band moves.
@@ -1417,7 +1573,7 @@ const FrequencyResponseChart = () => {
             on the grid beside it, so half the row had a surface and half did
             not. They belong together: they are all captions and controls for
             the same drawing. */}
-        <span className="graph-legend-group">
+        <span className="graph-legend-group" ref={legendGroup}>
           {/* First in the cluster rather than alone at the left of the strip.
 
               Out there it shared the corner with the creature in full screen
@@ -1426,11 +1582,11 @@ const FrequencyResponseChart = () => {
               else changes width. In the group it travels with the controls and
               cannot collide with anything that is not in the group.
 
-              Only while there is something to drag: solo takes the band handles
-              off the plot, so every one of these gestures does nothing, and
-              instructions for controls that are not on screen read as controls
-              that have stopped working. */}
-          {!isSolo && (
+              Only while there is something to drag: solo and a hidden EQ curve
+              both take the band handles off the plot, so every one of these
+              gestures does nothing, and instructions for controls that are not
+              on screen read as controls that have stopped working. */}
+          {!isSolo && !areHandlesHidden && !areChipsCollapsed && (
             <span className="graph-edit-hint">
               Drag points · Ctrl/Shift select · Ctrl+scroll: Q
             </span>
@@ -1445,37 +1601,23 @@ const FrequencyResponseChart = () => {
               This hides a drawing and nothing else. Taking a layer *out* is the
               chip in the row above the editor, which rewrites the Equalizer APO
               config and is audible; the two are deliberately at opposite ends of
-              the screen. A chip is only here at all when its layer is in the
-              chain, so a hidden curve can always be brought back, and a bypassed
-              one is gone from the legend rather than sitting here pretending it
-              could be shown. */}
-          {!isSolo && hasConvolution && (
-            <CurveLegend curve="convolution" label="Headset convolution" />
+              the screen.
+
+              Behind one button when the strip runs out of room. The row is
+              right-aligned over the plot, so chips that do not fit do not stop
+              at an edge — they push the picker and the menu off the left of the
+              card. */}
+          {areChipsCollapsed && curveChips.length > 0 ? (
+            <CurveLegendMenu chips={curveChips} />
+          ) : (
+            curveChips.map((chip) => (
+              <CurveLegend
+                key={chip.curve}
+                curve={chip.curve}
+                label={chip.label}
+              />
+            ))
           )}
-          {!isSolo && !isBypassed('eq') ? (
-            <CurveLegend curve="eq" label="EQ response" />
-          ) : null}
-          {!isSolo && voicing?.profileId && !isBypassed('voicing') ? (
-            <CurveLegend curve="voicing" label="Voicing" />
-          ) : null}
-          {!isSolo && driver?.profileId && !isBypassed('driver') ? (
-            <CurveLegend curve="driver" label="Driver" />
-          ) : null}
-          {!isSolo && hasSmartEqLayer(smartEq) && !isBypassed('smart') ? (
-            <CurveLegend curve="smart" label="Smart EQ" />
-          ) : null}
-          {/* The output curve is on the plot whenever there is more than one
-              layer to add up, switched on or not — see the note by
-              `hasExtraLayers`. So the chip follows the same rule, or the line
-              would be drawn with nothing naming it. */}
-          {!isSolo &&
-          (convolution ||
-            Math.abs(preAmp) > 0.01 ||
-            voicing?.profileId ||
-            driver?.profileId ||
-            hasSmartEqLayer(smartEq)) ? (
-            <CurveLegend curve="total" label="Final output" />
-          ) : null}
           {/* The legend is the control.
             
             Clicking the plot itself drags bands, so the picker needed its own
@@ -1594,22 +1736,12 @@ const FrequencyResponseChart = () => {
                   : 'New look';
               })()}
             </button>
-            {/* Everything else off, so the drawing has the grid to itself.
-              Sits inside the live-output legend because that is the only
-              thing it leaves behind. */}
-            <button
-              type="button"
-              className={`graph-solo${isSolo ? ' is-on' : ''}`}
-              onClick={toggleLiveOutputSolo}
-              aria-pressed={isSolo}
-              title={
-                isSolo
-                  ? 'Show the EQ curves again'
-                  : 'Hide the EQ curves and watch only the live output'
-              }
-            >
-              {isSolo ? 'Show EQ' : 'Wave only'}
-            </button>
+            {/* Solo — the wave with every curve dropped — had a button here and
+              no longer does. It is the second stop of Ctrl+W, and as a control
+              of its own it was the odd one in a row where everything else names
+              a single drawing and switches that: this one took away five and
+              was labelled for the one it kept. The row is also the thing that
+              runs out of width first, and this was a whole pill of it. */}
             {/* The see-through and blur sliders used to sit here, between this
               and the menu. They are in the menu now — they only exist in full
               screen, they are the widest things the row ever held, and the row
@@ -1620,12 +1752,13 @@ const FrequencyResponseChart = () => {
               from either. */}
             <GraphViewMenu
               view={graphView}
-              isSolo={isSolo}
               onChangeView={setGraphView}
-              onToggleSolo={toggleLiveOutputSolo}
               onCycleLook={cycleGraphLook}
               isWaveHidden={isWaveHidden}
               onToggleWave={toggleGraphWave}
+              isEqHidden={hiddenCurves.includes('eq')}
+              onToggleEq={() => toggleGraphCurve('eq')}
+              onCycleContents={cycleGraphContents}
               isGridHidden={isGridHidden}
               onToggleGrid={toggleGraphGrid}
               isStretched={isStretched}

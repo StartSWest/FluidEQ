@@ -41,12 +41,14 @@ import { TGraphView, TWaveOrientation } from '../utils/graphStyle';
 
 interface IGraphViewMenuProps {
   view: TGraphView;
-  isSolo: boolean;
   onChangeView: (next: TGraphView) => void;
-  onToggleSolo: () => void;
   onCycleLook: (direction: 1 | -1) => void;
   isWaveHidden: boolean;
   onToggleWave: () => void;
+  isEqHidden: boolean;
+  onToggleEq: () => void;
+  /** Walks the four states the three switches below add up to. */
+  onCycleContents: () => void;
   isGridHidden: boolean;
   onToggleGrid: () => void;
   isStretched: boolean;
@@ -106,12 +108,13 @@ const Icon = ({ children }: { children: ReactNode }) => (
 
 const GraphViewMenu = ({
   view,
-  isSolo,
   onChangeView,
-  onToggleSolo,
   onCycleLook,
   isWaveHidden,
   onToggleWave,
+  isEqHidden,
+  onToggleEq,
+  onCycleContents,
   isGridHidden,
   onToggleGrid,
   isStretched,
@@ -233,37 +236,36 @@ const GraphViewMenu = ({
 
           <div className="graph-view-menu__divider" />
 
-          {/* No `is-on` on either of the two below, unlike the modes above.
-              Their labels already flip — "Wave only" becomes "Show EQ curves" —
-              so colouring them as well states the same thing twice, and it
-              picked out two rows in a colour the rest of the menu never uses
-              for no reason a reader could work out. The modes keep it because
-              their labels do *not* change and something has to say which of the
-              two you are in. */}
-          <button
-            type="button"
-            role="menuitemcheckbox"
-            aria-checked={isSolo}
-            onClick={choose(onToggleSolo)}
-          >
+          {/* The key that walks the group, given a row of its own.
+
+              Ctrl+W moves between four arrangements of the three switches under
+              it, so printing it beside any one of them would promise it did
+              only that — and leaving it off the menu entirely, which is what
+              happened before, left the app's most-used graph shortcut written
+              down nowhere. A row that does the cycling says exactly what the
+              key says. */}
+          <button type="button" onClick={choose(onCycleContents)}>
             <Icon>
-              <path d="M1.5 8c1.6-4.4 3.2-4.4 4.8 0s3.2 4.4 4.8 0 3.2-4.4 3.4 0" />
+              <path d="M13.5 6.5A5.5 5.5 0 1 0 14 9" />
+              <path d="M13.8 2.6v4h-4" />
             </Icon>
-            {/* No shortcut named here any more. Ctrl+W now walks all four of
-                the things the plot can show — both, wave only, curves only,
-                everything but the EQ curve — while these two items stay what
-                they are: precise switches that say which state they put you in.
-                Printing the key beside one of them would promise it did only
-                that. */}
-            <span>{isSolo ? 'Show EQ curves' : 'Wave only'}</span>
+            <span>Cycle what is shown</span>
+            <kbd>Ctrl+W</kbd>
           </button>
 
-          {/* The wave itself, which is the other half of the solo switch.
-              Solo keeps the trace and drops everything else; this drops the
-              trace and keeps everything else — the response being edited, the
-              layers under it, the handles, the scale. For the times the graph
-              is a tool rather than a toy, and a drawing jumping about over the
-              curve being dragged is in the way. */}
+          {/* No `is-on` on either of the two below, unlike the modes above.
+              Their labels already flip — "Hide the wave" becomes "Show the
+              wave" — so colouring them as well states the same thing twice, and
+              it picked out rows in a colour the rest of the menu never uses for
+              no reason a reader could work out. The modes keep it because their
+              labels do *not* change and something has to say which of the two
+              you are in.
+
+              Solo — the wave with every curve dropped — had a row here and no
+              longer does. It is the second stop of the cycle above, one press
+              away, and as a switch of its own it was the odd one out: the other
+              two say which single drawing they take away, where solo took away
+              five of them and was named for the one it kept. */}
           <button
             type="button"
             role="menuitemcheckbox"
@@ -274,6 +276,25 @@ const GraphViewMenu = ({
               <path d="M1.5 8c1.6 0 1.6-4 3.2-4s1.6 8 3.2 8 1.6-8 3.2-8 1.6 4 3.2 4" />
             </Icon>
             <span>{isWaveHidden ? 'Show the wave' : 'Hide the wave'}</span>
+          </button>
+
+          {/* The bands' own line, which the legend chip also switches.
+
+              Worth a row here because it is the last stop of the cycle above
+              and because it is the loudest thing on the plot: full weight, a
+              glow, a spectrum gradient and every handle sitting on it. Taking
+              it away is how you see what the other layers are doing, and its
+              handles go with it — there is nothing to watch follow them. */}
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={isEqHidden}
+            onClick={choose(onToggleEq)}
+          >
+            <Icon>
+              <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
+            </Icon>
+            <span>{isEqHidden ? 'Show EQ curve' : 'Hide EQ curve'}</span>
           </button>
 
           {/* The paper, rather than what is drawn on it. Solo above hides the

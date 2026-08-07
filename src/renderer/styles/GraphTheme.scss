@@ -131,6 +131,70 @@
   display: none;
 }
 
+// The curve switches, folded up because the row ran out of width.
+//
+// Opens downward and left-aligned to its button, which is safe in a way the
+// view menu's placement logic is not needed for: this button is in the middle
+// of the strip rather than at its right edge, and the strip is pinned to the
+// top of the card, so there is always the whole plot below it.
+.graph-legend-menu {
+  position: relative;
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.live-output-controls .graph-legend-menu__trigger {
+  display: inline-flex;
+  min-height: 0;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 8px;
+  border: 1px solid rgba($primary-lighter, 0.28);
+  border-radius: $radius-pill;
+  background: rgba($primary-lighter, 0.08);
+  color: $primary-lighter;
+  font: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+
+  svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+  }
+
+  &:hover,
+  &.is-on {
+    border-color: rgba($primary-lighter, 0.5);
+    background: rgba($primary-lighter, 0.18);
+    color: $white;
+  }
+}
+
+// The same chips, stacked. Left-aligned as a column so the swatches line up
+// down the edge and the colours can be read as a key rather than hunted for.
+.graph-legend-menu__list {
+  position: absolute;
+  z-index: 4;
+  top: calc(100% + 6px);
+  left: 0;
+  display: flex;
+  min-width: 100%;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 6px;
+  border: 1px solid rgba($secondary-light, 0.16);
+  border-radius: $radius-m;
+  background: rgba(#0c1a26, 0.96);
+  box-shadow: 0 12px 28px rgba($black, 0.5);
+}
+
 // The live-output legend carries the style picker.
 //
 // Clicking the plot cycles through the looks, which is for flicking past them
