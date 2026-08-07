@@ -498,6 +498,75 @@ export const useGraphHandlesHidden = () =>
   );
 
 /**
+ * The curves that can be taken off the plot one at a time.
+ *
+ * Every id here is a curve the chart builds, and the legend chip naming it is
+ * the switch — which is why the ids are these words rather than the chart's
+ * internal `'Total Response'` and friends: the store is what both ends agree
+ * on, so neither has to know the other's naming.
+ */
+export const GRAPH_CURVES = [
+  'convolution',
+  'eq',
+  'voicing',
+  'driver',
+  'smart',
+  'total',
+] as const;
+
+export type TGraphCurve = (typeof GRAPH_CURVES)[number];
+
+/**
+ * Which curves are hidden. DRAWING ONLY — this changes nothing in the config.
+ *
+ * The distinction matters more here than anywhere else in this file, because
+ * the app has a second thing that also makes a curve disappear and it is not
+ * this one: bypassing a layer takes its `Include:` out of the Equalizer APO
+ * chain, which is audible. Hiding is for reading a crowded plot — six curves is
+ * a tangle, and the question is usually about two of them.
+ *
+ * So the two switches are kept far apart in the interface as well: bypass is
+ * the chip in the layer row above the editor, hiding is the chip in the graph's
+ * own legend. Neither one is reachable by aiming at the other and missing.
+ *
+ * Remembered, for the same reason the rest of the view is: somebody who works
+ * with the wave and the total alone should not have to say so every morning.
+ */
+const CURVES_KEY = 'fluideq.graphHiddenCurves';
+
+/** A stable empty list, because a server snapshot must not change identity. */
+const NO_CURVES: readonly TGraphCurve[] = [];
+
+const isGraphCurve = (id: string): id is TGraphCurve =>
+  (GRAPH_CURVES as readonly string[]).includes(id);
+
+let hiddenCurves: readonly TGraphCurve[] = (readStored(CURVES_KEY) || '')
+  .split(',')
+  .filter(isGraphCurve);
+
+const curveListeners = new Set<() => void>();
+
+export const toggleGraphCurve = (curve: TGraphCurve) => {
+  hiddenCurves = hiddenCurves.includes(curve)
+    ? hiddenCurves.filter((id) => id !== curve)
+    : [...hiddenCurves, curve];
+  writeStored(CURVES_KEY, hiddenCurves.join(','));
+  curveListeners.forEach((listener) => listener());
+};
+
+export const useHiddenCurves = () =>
+  useSyncExternalStore(
+    (listener: () => void) => {
+      curveListeners.add(listener);
+      return () => {
+        curveListeners.delete(listener);
+      };
+    },
+    () => hiddenCurves,
+    () => NO_CURVES,
+  );
+
+/**
  * Whether full screen keeps FluidEQ's own top bar.
  *
  * On by default. Somebody arriving in this mode for the first time should still

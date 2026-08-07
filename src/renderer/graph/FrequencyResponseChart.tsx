@@ -85,6 +85,9 @@ import {
   useGraphGridHidden,
   useGraphWaveHidden,
   useGraphHandlesHidden,
+  useHiddenCurves,
+  toggleGraphCurve,
+  TGraphCurve,
   toggleGraphWave,
   useGraphStretched,
   useWaveOrientation,
@@ -184,6 +187,52 @@ const DESIGNER_EXIT_MS = 170;
  * way up, whether the wave is shown. That changes when a control is used, and
  * the chart re-renders then, which is exactly when it should.
  */
+
+/**
+ * Which stored curve each of the chart's curves is, so the legend and the store
+ * can name the same line without either having to use the other's words.
+ */
+const CURVE_BY_CHART_ID: Record<string, TGraphCurve> = {
+  'Headphone Convolution': 'convolution',
+  'EQ Response': 'eq',
+  Voicing: 'voicing',
+  Driver: 'driver',
+  'Smart EQ': 'smart',
+  'Total Response': 'total',
+};
+
+/**
+ * One legend chip: the name of a curve, its colour, and the switch that shows
+ * or hides it.
+ *
+ * A component rather than six copies of the same markup because the pressed
+ * state, the title and the class all move together — and because every one of
+ * them subscribes to the same store, which is a line of hook per chip if they
+ * are written out by hand.
+ */
+const CurveLegend = ({
+  curve,
+  label,
+}: {
+  curve: TGraphCurve;
+  label: string;
+}) => {
+  const hiddenCurves = useHiddenCurves();
+  const isHidden = hiddenCurves.includes(curve);
+  return (
+    <button
+      type="button"
+      className={`graph-legend graph-legend--${curve}${
+        isHidden ? ' is-hidden' : ''
+      }`}
+      aria-pressed={!isHidden}
+      title={isHidden ? `Show ${label}` : `Hide ${label}`}
+      onClick={() => toggleGraphCurve(curve)}
+    >
+      {label}
+    </button>
+  );
+};
 
 /**
  * The clip indication.
@@ -321,7 +370,12 @@ const FrequencyResponseChart = () => {
   const graphView = useGraphView();
   const isGridHidden = useGraphGridHidden();
   const isWaveHidden = useGraphWaveHidden();
-  const areHandlesHidden = useGraphHandlesHidden();
+  const hiddenCurves = useHiddenCurves();
+  // The dots go with the line they draw. A handle you can drag over a curve
+  // that is not on screen gives no feedback at all — the whole point of
+  // dragging one is watching the response follow it.
+  const areHandlesHidden =
+    useGraphHandlesHidden() || hiddenCurves.includes('eq');
   const isStretched = useGraphStretched();
   const waveOrientation = useWaveOrientation();
 
@@ -389,6 +443,12 @@ const FrequencyResponseChart = () => {
     bypassed,
   } = useFluidEqContext();
   const isBypassed = (layer: TApoLayer) => bypassed.includes(layer);
+  // A boolean rather than the two tests written out at each of the three places
+  // that need them — the curve, its legend chip, and the sum they both feed.
+  // Switched off, the impulse is not in the config and so is not on the plot,
+  // which is the rule every other layer already followed.
+  const hasConvolution =
+    Boolean(convolution) && !bypassed.includes('convolution');
   const prevFilters = useRef<IFiltersMap>({});
   // Read by the window key handler, which is registered once and must not be
   // torn down and rebuilt every time a band moves.
@@ -700,11 +760,12 @@ const FrequencyResponseChart = () => {
     }
 
     const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
-    // The bands, switched off, are a flat line at the preamp — not the shape
-    // they would have had. Every other layer already disappears when it is
-    // bypassed; the EQ curve stayed drawn because it is the one curve that is
-    // always on screen, and that made it the one curve that could lie.
-    const eqLineData = bypassed.includes('eq') ? {} : updatedFilterLines;
+    // A switched-off EQ has no curve at all, like every other switched-off
+    // layer. It used to be drawn flat, which is not the same claim: flat says
+    // "these bands are doing nothing", and what is true is that they are not in
+    // the chain. The output curve below is where the difference shows.
+    const hasEq = !bypassed.includes('eq');
+    const eqLineData = hasEq ? updatedFilterLines : {};
     // The bands are drawn from zero, and the preamp is left to the output
     // curve.
     //
@@ -826,7 +887,7 @@ const FrequencyResponseChart = () => {
 
     return {
       chartData: [
-        ...(convolution
+        ...(hasConvolution && convolution
           ? [
               {
                 id: 'Headphone Convolution',
@@ -905,18 +966,22 @@ const FrequencyResponseChart = () => {
               } as IChartCurveData,
             ]
           : []),
-        {
-          id: 'EQ Response',
-          name: 'EQ response',
-          line: {
-            color: SecondaryColorEnum.DEFAULT,
-            strokeWidth: 3,
-            points: eqCurveData,
-            gradientId: 'chart-eq-spectrum-gradient',
-            gradientStops: eqGradientStops,
-            glow: true,
-          },
-        } as IChartCurveData,
+        ...(hasEq
+          ? [
+              {
+                id: 'EQ Response',
+                name: 'EQ response',
+                line: {
+                  color: SecondaryColorEnum.DEFAULT,
+                  strokeWidth: 3,
+                  points: eqCurveData,
+                  gradientId: 'chart-eq-spectrum-gradient',
+                  gradientStops: eqGradientStops,
+                  glow: true,
+                },
+              } as IChartCurveData,
+            ]
+          : []),
       ],
       // Rounding to two decimals. When disabled, expose the current manual
       // preamp so the graph and APO remain in sync without auto-adjusting it.
@@ -927,6 +992,7 @@ const FrequencyResponseChart = () => {
     convolution,
     driver,
     filters,
+    hasConvolution,
     isAutoPreAmpOn,
     preAmp,
     smartEq,
@@ -1179,8 +1245,21 @@ const FrequencyResponseChart = () => {
    * come back when the music has been gone long enough to believe.
    */
   const displayData = useMemo(
-    () => (isSolo && hasRecentAudio ? [] : chartData),
-    [chartData, hasRecentAudio, isSolo],
+    () =>
+      isSolo && hasRecentAudio
+        ? []
+        : // Anything switched off in the legend is dropped rather than drawn
+          // transparent, for the same reason solo drops these wholesale: a path
+          // at zero alpha is still rebuilt every time a band moves.
+          //
+          // The scale is still built from the full list further down, so hiding
+          // a curve does not rescale the axis under the ones left. A grid that
+          // moves when you take a line off it makes the remaining lines look
+          // like they changed.
+          chartData.filter(
+            (curve) => !hiddenCurves.includes(CURVE_BY_CHART_ID[curve.id]),
+          ),
+    [chartData, hasRecentAudio, hiddenCurves, isSolo],
   );
 
   /**
@@ -1253,9 +1332,14 @@ const FrequencyResponseChart = () => {
 
     return Object.values(filters).map((filter) => {
       const bandColor = colorsById.get(filter.id) || getBandColor(0);
+      // Where the curve puts it, or — when there is no curve, because the EQ is
+      // switched off or hidden — where the band itself sits. Plain gain rather
+      // than gain plus preamp, matching the curve now that the curve is drawn
+      // from zero; the old fallback jumped every handle by the headroom on any
+      // frame the curve was missing.
       const curveGain = eqCurve
         ? getLineGainAtFrequency(eqCurve, filter.frequency)
-        : filter.gain + preAmp;
+        : filter.gain;
       return {
         id: filter.id,
         name: `${filter.type} band`,
@@ -1290,7 +1374,6 @@ const FrequencyResponseChart = () => {
     handlePointQualityWheel,
     handlePointSelect,
     hoveredFilterId,
-    preAmp,
     selectedFilterIds,
     setHoveredFilterId,
   ]);
@@ -1354,22 +1437,34 @@ const FrequencyResponseChart = () => {
               Drag points · Ctrl/Shift select · Ctrl+scroll: Q
             </span>
           )}
-          {!isSolo && convolution && (
-            <span className="graph-legend graph-legend--convolution">
-              Headset convolution
-            </span>
+          {/* Every chip is its curve's switch.
+
+              The legend already had the two things a control needs — it names
+              the curve and it carries its colour — and it sat there inert while
+              the plot got to six lines. Six is a tangle, and the question being
+              asked of it is almost always about two of them.
+
+              This hides a drawing and nothing else. Taking a layer *out* is the
+              chip in the row above the editor, which rewrites the Equalizer APO
+              config and is audible; the two are deliberately at opposite ends of
+              the screen. A chip is only here at all when its layer is in the
+              chain, so a hidden curve can always be brought back, and a bypassed
+              one is gone from the legend rather than sitting here pretending it
+              could be shown. */}
+          {!isSolo && hasConvolution && (
+            <CurveLegend curve="convolution" label="Headset convolution" />
           )}
-          {!isSolo && (
-            <span className="graph-legend graph-legend--eq">EQ response</span>
-          )}
+          {!isSolo && !isBypassed('eq') ? (
+            <CurveLegend curve="eq" label="EQ response" />
+          ) : null}
           {!isSolo && voicing?.profileId && !isBypassed('voicing') ? (
-            <span className="graph-legend graph-legend--voicing">Voicing</span>
+            <CurveLegend curve="voicing" label="Voicing" />
           ) : null}
           {!isSolo && driver?.profileId && !isBypassed('driver') ? (
-            <span className="graph-legend graph-legend--driver">Driver</span>
+            <CurveLegend curve="driver" label="Driver" />
           ) : null}
           {!isSolo && hasSmartEqLayer(smartEq) && !isBypassed('smart') ? (
-            <span className="graph-legend graph-legend--smart">Smart EQ</span>
+            <CurveLegend curve="smart" label="Smart EQ" />
           ) : null}
           {/* The output curve is on the plot whenever there is more than one
               layer to add up, switched on or not — see the note by
@@ -1381,9 +1476,7 @@ const FrequencyResponseChart = () => {
             voicing?.profileId ||
             driver?.profileId ||
             hasSmartEqLayer(smartEq)) ? (
-            <span className="graph-legend graph-legend--total">
-              Final output
-            </span>
+            <CurveLegend curve="total" label="Final output" />
           ) : null}
           {/* The legend is the control.
             
@@ -1391,11 +1484,36 @@ const FrequencyResponseChart = () => {
             place — and the label that already names the live output is the
             honest one, because it says what the choice changes. Forty looks is
             more than a cycle can reasonably walk, hence a searchable list. */}
-          <span className="graph-legend graph-legend--live graph-legend--picker">
+          <span
+            className={`graph-legend graph-legend--live graph-legend--picker${
+              isWaveHidden ? ' is-hidden' : ''
+            }`}
+          >
             {/* Named separately from the value so the two can look like what
               they are: a caption, and the thing it captions. Run together they
-              read as one long legend nobody realises is clickable. */}
-            <span className="graph-legend__label">Live output</span>
+              read as one long legend nobody realises is clickable.
+
+              The caption is the switch, like every chip to its left — the one
+              curve on the plot that could not be turned off from the legend was
+              the only one that moves. Its swatch is a wave rather than a rule,
+              because a straight line is what all six other curves are drawn as
+              and this is the one that never is. */}
+            <button
+              type="button"
+              className="graph-legend__label"
+              aria-pressed={!isWaveHidden}
+              title={isWaveHidden ? 'Show the wave' : 'Hide the wave'}
+              onClick={toggleGraphWave}
+            >
+              <svg
+                className="graph-legend__wave"
+                viewBox="0 0 16 12"
+                aria-hidden
+              >
+                <path d="M1 6c1.4 0 1.4-4 2.8-4s1.4 8 2.8 8 1.4-8 2.8-8 1.4 4 2.8 4" />
+              </svg>
+              Live output
+            </button>
             {/* Arrows either side of the name, so walking the looks never
                 depends on where the keyboard is pointing.
 

@@ -147,9 +147,56 @@
   // nobody realises the second half is a control. So the caption steps back —
   // lighter and dimmer, like the labels it belongs with — and the value comes
   // forward in white, underlined, with real air between the two.
+  // It is also the wave's on/off switch, so it is a button — with no surface,
+  // for the same reason the curve chips have none.
   .graph-legend__label {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 2px 4px;
+    border: 0;
+    border-radius: $radius-xs;
+    background: none;
     color: rgba($primary-lighter, 0.72);
+    font: inherit;
     font-weight: 400;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover,
+    &:focus-visible {
+      color: $primary-lighter;
+      background: rgba($primary-lighter, 0.12);
+      outline: none;
+    }
+  }
+
+  // A wave, not a rule.
+  //
+  // Every other swatch in this legend is a straight line because every other
+  // curve is one; this is the drawing that moves, and giving it the same dash
+  // as the rest made it the one chip whose swatch said nothing.
+  .graph-legend__wave {
+    width: 15px;
+    height: 11px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: var(--curve-color, white);
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+
+  // Off: the wave flattens to the rule it is not, which is the shape of a
+  // stilled trace.
+  &.is-hidden .graph-legend__wave {
+    stroke: rgba($primary-lighter, 0.5);
+    stroke-dasharray: 2 2;
+  }
+
+  // The chip's own dash is suppressed — it has the wave instead, and two
+  // swatches on one legend reads as two curves.
+  &::before {
+    display: none;
   }
 
   // Set apart from the legends beside it. The card does that job now, so the

@@ -1294,41 +1294,85 @@ $tab-border: rgba($secondary-light, 0.2);
   color: $primary-lighter;
   white-space: nowrap;
 
+  // The swatch takes its colour from a custom property rather than from the
+  // modifier setting `background` directly, so the hidden state below can
+  // reuse the same colour for an outline. Six colours written once each.
   &::before {
     width: 13px;
     height: 2px;
     flex: 0 0 auto;
-    background: white;
+    background: var(--curve-color, white);
     content: '';
   }
 }
 
-.graph-legend--live::before {
-  background: $analogous-2;
+// Most of these are buttons now: the chip naming a curve is the switch that
+// shows and hides it. No surface of its own — a row of six raised buttons under
+// the plot would read as a toolbar, and this is a legend that happens to be
+// live.
+button.graph-legend {
+  padding: 2px 4px;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    background: rgba($primary-lighter, 0.12);
+    outline: none;
+  }
+
+  // Off. The swatch keeps its colour and loses its fill, so the chip still says
+  // which line it is about while saying that line is not being drawn — where
+  // dimming the whole chip evenly would have made a hidden curve look like a
+  // disabled control.
+  &.is-hidden {
+    color: rgba($primary-lighter, 0.5);
+
+    &::before {
+      height: 5px;
+      border: 1px solid var(--curve-color, white);
+      background: none;
+    }
+  }
 }
 
-.graph-legend--convolution::before {
-  background: $complementary;
+.graph-legend--live {
+  --curve-color: #{$analogous-2};
 }
 
-.graph-legend--voicing::before {
-  background: $triadic-1;
+.graph-legend--convolution {
+  --curve-color: #{$complementary};
+}
+
+.graph-legend--voicing {
+  --curve-color: #{$triadic-1};
+}
+
+// The bands' own line, and the one colour here that is not from `ColorEnum` —
+// its curve is drawn in `SecondaryColorEnum.DEFAULT`, shaded with the band
+// spectrum on top.
+.graph-legend--eq {
+  --curve-color: #{$secondary-default};
 }
 
 // Amber, azure and near-white, chosen to sit well away from the three pinks the
 // graph already had. Must match ColorEnum.DRIVER, ColorEnum.SMART and
 // ColorEnum.TOTAL exactly, or a legend swatch names a colour that is not on the
 // chart.
-.graph-legend--driver::before {
-  background: #ffb648;
+.graph-legend--driver {
+  --curve-color: #ffb648;
 }
 
-.graph-legend--smart::before {
-  background: #3d9bff;
+.graph-legend--smart {
+  --curve-color: #3d9bff;
 }
 
-.graph-legend--total::before {
-  background: #dbe7ff;
+.graph-legend--total {
+  --curve-color: #dbe7ff;
 }
 
 // Inside the legend cluster, at its left, rather than alone at the far end of
