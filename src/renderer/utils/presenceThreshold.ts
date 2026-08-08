@@ -281,7 +281,24 @@ export const resetPresenceRange = (
   notify();
 };
 
-/** Everything, for when somebody has dragged themselves into a hole. */
+/**
+ * Whether this range has been moved in this mode, so nothing offers a dead
+ * reset.
+ *
+ * Per range AND per mode, which is the same separation the store itself keeps.
+ * A range dragged in Target has nothing to say about the same range in Detail:
+ * those modes want different things from it, which is why they hold different
+ * numbers, and a reset that crossed the boundary would undo work in one mode to
+ * tidy another.
+ */
+export const hasCustomPresenceRange = (
+  label: string,
+  mode: TSmartEqMode = getSmartEqMode(),
+): boolean =>
+  lines[keyOf(mode, label, 'floor')] !== undefined ||
+  lines[keyOf(mode, label, 'full')] !== undefined;
+
+/** Every mode at once, for a preferences-level "put it all back". */
 export const resetPresenceLines = () => {
   if (Object.keys(lines).length === 0) {
     return;

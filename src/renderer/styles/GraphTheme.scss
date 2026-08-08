@@ -92,6 +92,40 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: ns-resize;
 }
 
+// Put this range back, sitting in the ramp between the two lines it undoes.
+// Only drawn once the range has been moved, so it is never a dead button, and
+// only on approach, so nine of them do not stand over the trace.
+// Faint rather than absent at rest. Invisible does not mean unreachable — an
+// element at zero opacity is still hit — but it does mean unaimable, which from
+// the pointer's side is the same problem. A quarter of an opacity is enough to
+// say "there is something here" without joining the trace.
+.chart-presence__reset {
+  cursor: pointer;
+  opacity: 0.25;
+  transition: opacity 140ms ease;
+
+  .chart-presence__reset-pad {
+    fill: transparent;
+  }
+
+  circle {
+    fill: rgba(12, 26, 38, 0.86);
+    stroke: rgba(216, 210, 255, 0.35);
+    stroke-width: 1;
+  }
+
+  text {
+    fill: $primary-lighter;
+    font-size: 0.7rem;
+    font-weight: 700;
+    pointer-events: none;
+  }
+
+  &:hover circle {
+    stroke: rgba(216, 210, 255, 0.8);
+  }
+}
+
 // Nine captions standing permanently over the trace would be worse than none,
 // so it arrives on approach and leaves again.
 .chart-presence__label {
@@ -119,7 +153,8 @@ it under the terms of the GNU General Public License version 3 or later.
     opacity: 1;
   }
 
-  .chart-presence__label {
+  .chart-presence__label,
+  .chart-presence__reset {
     opacity: 1;
   }
 }
@@ -127,7 +162,8 @@ it under the terms of the GNU General Public License version 3 or later.
 @media (prefers-reduced-motion: reduce) {
   .chart-presence__dead,
   .chart-presence__ramp,
-  .chart-presence__label {
+  .chart-presence__label,
+  .chart-presence__reset {
     transition: none;
   }
 }

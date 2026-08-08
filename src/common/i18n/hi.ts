@@ -289,6 +289,7 @@ const hi: Partial<Dictionary> = {
   // हर रेंज के साथ सही रहता है।
   'eq.smart.presence.ignoredBelow': '{range} · {db} dB से नीचे गिनती नहीं',
   'eq.smart.presence.trustedAbove': '{range} · {db} dB से ऊपर पूरा भरोसा',
+  'eq.smart.presence.reset': 'इस मोड के लिए {range} रीसेट करें',
 
   'convolution.eyebrow': 'APO इंपल्स रिस्पॉन्स',
   'convolution.title': 'कन्वॉल्यूशन लाइब्रेरी',

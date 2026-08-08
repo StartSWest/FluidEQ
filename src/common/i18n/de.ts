@@ -292,6 +292,7 @@ const de: Partial<Dictionary> = {
   // Bereichs richten müsste — „Höhen zählen“, aber „Bass zählt“.
   'eq.smart.presence.ignoredBelow': '{range} · unter {db} dB ignoriert',
   'eq.smart.presence.trustedAbove': '{range} · über {db} dB voll vertraut',
+  'eq.smart.presence.reset': '{range} für diesen Modus zurücksetzen',
 
   'convolution.eyebrow': 'APO-IMPULSANTWORTEN',
   'convolution.title': 'Faltungsbibliothek',

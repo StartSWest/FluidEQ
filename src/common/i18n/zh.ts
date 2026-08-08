@@ -262,6 +262,7 @@ const zh: Partial<Dictionary> = {
   'eq.smart.error.closed': 'FluidEQ 结束了这次测量。',
   'eq.smart.presence.ignoredBelow': '{range} · 低于 {db} dB 时忽略',
   'eq.smart.presence.trustedAbove': '{range} · 高于 {db} dB 时完全采信',
+  'eq.smart.presence.reset': '在此模式下重置 {range}',
 
   'convolution.eyebrow': 'APO 脉冲响应',
   'convolution.title': '卷积库',

@@ -39,6 +39,7 @@ import {
 import { toggleChromeNow } from '../utils/idleChrome';
 import {
   getPresenceLine,
+  hasCustomPresenceRange,
   resetPresenceRange,
   setPresenceLine,
   usePresenceLines,
@@ -65,6 +66,13 @@ export interface ChartDimensions {
  * is invisible and much taller.
  */
 const PRESENCE_GRAB_PX = 9;
+
+/**
+ * Half-height of the band through the middle of a ramp that brings its reset
+ * button up. Capped, because this pad swallows clicks and a tall ramp would
+ * otherwise make a great deal of plot unclickable for a button wanted once.
+ */
+const PRESENCE_RESET_PAD_PX = 14;
 
 /**
  * The Smart EQ coverage overlay, subscribed to the measurement itself.
@@ -233,6 +241,80 @@ const CoverageOverlay = ({
                     width={width}
                     height={Math.abs(floorY - fullY)}
                   />
+                  {/*
+                   * Put this range back, in this mode, where the two lines can
+                   * see it.
+                   *
+                   * In the ramp rather than off in a toolbar: the thing being
+                   * undone is right here, and a reset that lives somewhere else
+                   * is a reset nobody finds after they have made a mess. Only
+                   * drawn once the range has actually been moved, so it is
+                   * never a button that does nothing, and only on approach, so
+                   * nine of them are not sitting over the trace.
+                   *
+                   * This mode's copy only. The same range in another mode holds
+                   * different numbers because that mode wants different things
+                   * from it, and tidying one has no business undoing another.
+                   */}
+                  {hasCustomPresenceRange(region.label) && (
+                    <g
+                      className="chart-presence__reset"
+                      pointerEvents="all"
+                      onPointerDown={(event) => event.stopPropagation()}
+                      onClick={() => resetPresenceRange(region.label)}
+                    >
+                      <title>
+                        {t('eq.smart.presence.reset', {
+                          range: balanceRangeName(region.label, t),
+                        })}
+                      </title>
+                      {/*
+                       * The gap itself is the target, not the glyph.
+                       *
+                       * A seven-pixel circle that is invisible until you are on
+                       * it is a thing you find by accident. Opacity does not
+                       * stop an element being hit, so the button was always
+                       * reachable — it was just unaimable, which is the same
+                       * problem from the user's side. So the whole width of the
+                       * range, through the middle of the ramp, brings it up.
+                       *
+                       * Height capped rather than the whole ramp: this pad does
+                       * swallow clicks, and a ramp fourteen decibels tall
+                       * spanning a range is a lot of plot to make unclickable
+                       * for a button somebody wants once.
+                       */}
+                      <rect
+                        className="chart-presence__reset-pad"
+                        x={left + 1}
+                        y={
+                          (floorY + fullY) / 2 -
+                          Math.min(
+                            PRESENCE_RESET_PAD_PX,
+                            Math.abs(floorY - fullY) / 2,
+                          )
+                        }
+                        width={width}
+                        height={
+                          Math.min(
+                            PRESENCE_RESET_PAD_PX,
+                            Math.abs(floorY - fullY) / 2,
+                          ) * 2
+                        }
+                      />
+                      <circle
+                        cx={left + 1 + width / 2}
+                        cy={(floorY + fullY) / 2}
+                        r={8}
+                      />
+                      <text
+                        x={left + 1 + width / 2}
+                        y={(floorY + fullY) / 2 + 4}
+                        textAnchor="middle"
+                      >
+                        ↺
+                      </text>
+                    </g>
+                  )}
                   {(['floor', 'full'] as const).map((edge) => {
                     const db = edge === 'floor' ? floorDb : fullDb;
                     const y = edge === 'floor' ? floorY : fullY;

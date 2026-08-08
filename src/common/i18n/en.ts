@@ -356,6 +356,7 @@ const en = {
   // the range in several of the others.
   'eq.smart.presence.ignoredBelow': '{range} · ignored below {db} dB',
   'eq.smart.presence.trustedAbove': '{range} · fully trusted above {db} dB',
+  'eq.smart.presence.reset': 'Reset {range} for this mode',
 
   // *** Convolution *********************************************************
   'convolution.eyebrow': 'APO impulse responses',

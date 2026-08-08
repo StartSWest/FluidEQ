@@ -290,6 +290,7 @@ const pt: Partial<Dictionary> = {
   'eq.smart.presence.ignoredBelow': '{range} · não conta abaixo de {db} dB',
   'eq.smart.presence.trustedAbove':
     '{range} · totalmente fiável acima de {db} dB',
+  'eq.smart.presence.reset': 'Repor {range} neste modo',
 
   'convolution.eyebrow': 'RESPOSTAS AO IMPULSO DO APO',
   'convolution.title': 'Biblioteca de convolução',

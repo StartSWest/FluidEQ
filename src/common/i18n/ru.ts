@@ -286,6 +286,7 @@ const ru: Partial<Dictionary> = {
   // согласования: «не учитывается» пришлось бы менять для «высокие».
   'eq.smart.presence.ignoredBelow': '{range} · ниже {db} дБ не считаем',
   'eq.smart.presence.trustedAbove': '{range} · выше {db} дБ доверяем полностью',
+  'eq.smart.presence.reset': 'Сбросить {range} для этого режима',
 
   'convolution.eyebrow': 'ИМПУЛЬСНЫЕ ХАРАКТЕРИСТИКИ APO',
   'convolution.title': 'Библиотека свёртки',

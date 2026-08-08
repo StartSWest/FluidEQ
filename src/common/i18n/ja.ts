@@ -282,6 +282,7 @@ const ja: Partial<Dictionary> = {
   // 数値が英語とは別の位置に来る。連結では作れない語順。
   'eq.smart.presence.ignoredBelow': '{range} · {db} dB 未満は無視',
   'eq.smart.presence.trustedAbove': '{range} · {db} dB 以上は完全に信頼',
+  'eq.smart.presence.reset': 'このモードの {range} をリセット',
 
   'convolution.eyebrow': 'APO インパルス応答',
   'convolution.title': 'コンボリューション ライブラリ',

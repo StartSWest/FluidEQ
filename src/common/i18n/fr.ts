@@ -294,6 +294,7 @@ const fr: Partial<Dictionary> = {
     '{range} · ne compte pas en dessous de {db} dB',
   'eq.smart.presence.trustedAbove':
     '{range} · pleine confiance au-dessus de {db} dB',
+  'eq.smart.presence.reset': 'Réinitialiser {range} pour ce mode',
 
   'convolution.eyebrow': 'RÉPONSES IMPULSIONNELLES APO',
   'convolution.title': 'Bibliothèque de convolution',
