@@ -53,6 +53,11 @@ const hi: Partial<Dictionary> = {
   'tabs.video': 'वीडियो',
 
   'graph.resize': 'ग्राफ़ का आकार बदलने के लिए खींचें',
+  'graph.meter.aria':
+    'लाइव आउटपुट स्तर, फ़ुल स्केल से नीचे वास्तविक डेसिबल में',
+  'graph.meter.left': 'L',
+  'graph.meter.right': 'R',
+  'graph.meter.mono': 'M',
   'video.sites': 'वीडियो साइटें',
   'video.back': 'पीछे',
   'video.forward': 'आगे',
@@ -287,8 +292,8 @@ const hi: Partial<Dictionary> = {
   'eq.smart.error.closed': 'FluidEQ ने माप बंद कर दिया।',
   // «गिनती नहीं» — क्रिया रेंज के लिंग के साथ नहीं बदलती, इसलिए एक ही रूप
   // हर रेंज के साथ सही रहता है।
-  'eq.smart.presence.ignoredBelow': '{range} · {db} dB से नीचे गिनती नहीं',
-  'eq.smart.presence.trustedAbove': '{range} · {db} dB से ऊपर पूरा भरोसा',
+  'eq.smart.presence.ignoredBelow': '{db} dB से नीचे नहीं',
+  'eq.smart.presence.trustedAbove': '{db} dB से ऊपर भरोसा',
   'eq.smart.presence.reset': 'इस मोड के लिए {range} रीसेट करें',
   'eq.smart.limit.label': 'Smart EQ सीमा {db} dB',
   'eq.smart.gap.title':

@@ -47,6 +47,11 @@ const it: Partial<Dictionary> = {
   'tabs.video': 'Video',
 
   'graph.resize': 'Trascina per ridimensionare il grafico',
+  'graph.meter.aria':
+    'Livello di uscita in tempo reale, in decibel reali sotto il fondo scala',
+  'graph.meter.left': 'S',
+  'graph.meter.right': 'D',
+  'graph.meter.mono': 'M',
   'video.sites': 'Siti video',
   'video.back': 'Indietro',
   'video.forward': 'Avanti',
@@ -288,9 +293,8 @@ const it: Partial<Dictionary> = {
   'eq.smart.error.closed': 'FluidEQ ha chiuso la misurazione.',
   // Impersonale con «si», perché un participio concorderebbe con il nome della
   // gamma e nel segnaposto ci sta una forma sola.
-  'eq.smart.presence.ignoredBelow': '{range} · si ignora sotto {db} dB',
-  'eq.smart.presence.trustedAbove':
-    '{range} · pienamente affidabile sopra {db} dB',
+  'eq.smart.presence.ignoredBelow': 'ignorato sotto {db} dB',
+  'eq.smart.presence.trustedAbove': 'affidabile sopra {db} dB',
   'eq.smart.presence.reset': 'Ripristina {range} per questa modalità',
   'eq.smart.limit.label': 'Limite Smart EQ {db} dB',
   'eq.smart.gap.title':

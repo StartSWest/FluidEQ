@@ -47,6 +47,10 @@ const ja: Partial<Dictionary> = {
   'tabs.video': '動画',
 
   'graph.resize': 'ドラッグしてグラフの大きさを変更',
+  'graph.meter.aria': 'ライブ出力レベル（フルスケール基準の実際のデシベル）',
+  'graph.meter.left': 'L',
+  'graph.meter.right': 'R',
+  'graph.meter.mono': 'M',
   'video.sites': '動画サイト',
   'video.back': '戻る',
   'video.forward': '進む',
@@ -280,8 +284,8 @@ const ja: Partial<Dictionary> = {
     '測定がタイムアウトしました。もう一度お試しください。',
   'eq.smart.error.closed': 'FluidEQ が測定を終了しました。',
   // 数値が英語とは別の位置に来る。連結では作れない語順。
-  'eq.smart.presence.ignoredBelow': '{range} · {db} dB 未満は無視',
-  'eq.smart.presence.trustedAbove': '{range} · {db} dB 以上は完全に信頼',
+  'eq.smart.presence.ignoredBelow': '{db} dB 未満は無視',
+  'eq.smart.presence.trustedAbove': '{db} dB 以上は信頼',
   'eq.smart.presence.reset': 'このモードの {range} をリセット',
   'eq.smart.limit.label': 'Smart EQ 上限 {db} dB',
   'eq.smart.gap.title': '{range}: ずれの大きさと、動くために必要な量',

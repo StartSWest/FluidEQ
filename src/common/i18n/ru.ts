@@ -47,6 +47,11 @@ const ru: Partial<Dictionary> = {
   'tabs.video': 'Видео',
 
   'graph.resize': 'Потяните, чтобы изменить размер графика',
+  'graph.meter.aria':
+    'Текущий уровень выхода, в реальных децибелах относительно полной шкалы',
+  'graph.meter.left': 'Л',
+  'graph.meter.right': 'П',
+  'graph.meter.mono': 'М',
   'video.sites': 'Видеосайты',
   'video.back': 'Назад',
   'video.forward': 'Вперёд',
@@ -284,8 +289,8 @@ const ru: Partial<Dictionary> = {
   'eq.smart.error.closed': 'FluidEQ завершил измерение.',
   // «Не считаем» — от первого лица, как и остальной словарь, и заодно без
   // согласования: «не учитывается» пришлось бы менять для «высокие».
-  'eq.smart.presence.ignoredBelow': '{range} · ниже {db} дБ не считаем',
-  'eq.smart.presence.trustedAbove': '{range} · выше {db} дБ доверяем полностью',
+  'eq.smart.presence.ignoredBelow': 'ниже {db} дБ не считаем',
+  'eq.smart.presence.trustedAbove': 'выше {db} дБ доверяем',
   'eq.smart.presence.reset': 'Сбросить {range} для этого режима',
   'eq.smart.limit.label': 'Предел Smart EQ {db} дБ',
   'eq.smart.gap.title':

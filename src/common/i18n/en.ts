@@ -74,6 +74,19 @@ const en = {
 
   // *** Response graph ******************************************************
   'graph.resize': 'Drag to resize the graph',
+  // The level meter down the right-hand edge of the plot. "Below full scale"
+  // is the part that has to survive translation: the trace beside it is drawn
+  // against the record's own peak and this is not, and somebody who cannot see
+  // the colours has only this sentence to tell the two apart.
+  'graph.meter.aria': 'Live output level, in real decibels below full scale',
+  // One letter each, over the bar it names. Kept as keys because L and R are
+  // not universal — Russian audio gear says Л and П, Chinese 左 and 右 — and a
+  // dictionary is the only place a translator can say so.
+  'graph.meter.left': 'L',
+  'graph.meter.right': 'R',
+  // Only when Windows hands over a genuinely mono endpoint, in which case one
+  // bar is drawn and labelled honestly rather than two showing the same number.
+  'graph.meter.mono': 'M',
 
   // *** Built-in player *****************************************************
   'video.sites': 'Video sites',
@@ -354,8 +367,8 @@ const en = {
   // One key, not a range name with an English tail concatenated onto it: the
   // number goes in a different place in Japanese and the verb has to agree with
   // the range in several of the others.
-  'eq.smart.presence.ignoredBelow': '{range} · ignored below {db} dB',
-  'eq.smart.presence.trustedAbove': '{range} · fully trusted above {db} dB',
+  'eq.smart.presence.ignoredBelow': 'ignored below {db} dB',
+  'eq.smart.presence.trustedAbove': 'trusted above {db} dB',
   'eq.smart.presence.reset': 'Reset {range} for this mode',
   'eq.smart.limit.label': 'Smart EQ limit {db} dB',
   'eq.smart.gap.title':

@@ -47,6 +47,11 @@ const pt: Partial<Dictionary> = {
   'tabs.video': 'Vídeo',
 
   'graph.resize': 'Arraste para redimensionar o gráfico',
+  'graph.meter.aria':
+    'Nível de saída ao vivo, em decibéis reais abaixo do fundo de escala',
+  'graph.meter.left': 'E',
+  'graph.meter.right': 'D',
+  'graph.meter.mono': 'M',
   'video.sites': 'Sites de vídeo',
   'video.back': 'Voltar',
   'video.forward': 'Avançar',
@@ -287,9 +292,8 @@ const pt: Partial<Dictionary> = {
   'eq.smart.error.closed': 'O FluidEQ encerrou a medição.',
   // «Não conta» em vez de «ignorado»: o particípio concordaria com o nome da
   // faixa, e no espaço reservado cabe só uma forma.
-  'eq.smart.presence.ignoredBelow': '{range} · não conta abaixo de {db} dB',
-  'eq.smart.presence.trustedAbove':
-    '{range} · totalmente fiável acima de {db} dB',
+  'eq.smart.presence.ignoredBelow': 'não conta abaixo de {db} dB',
+  'eq.smart.presence.trustedAbove': 'fiável acima de {db} dB',
   'eq.smart.presence.reset': 'Repor {range} neste modo',
   'eq.smart.limit.label': 'Limite Smart EQ {db} dB',
   'eq.smart.gap.title':

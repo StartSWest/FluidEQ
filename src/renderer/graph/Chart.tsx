@@ -79,6 +79,40 @@ export interface ChartDimensions {
 const PRESENCE_GRAB_PX = 9;
 
 /**
+ * The gutters the scales live in, inside the chart's own box.
+ *
+ * Fifty pixels down the left for the decibel labels and thirty along the bottom
+ * for the frequency marks; the ten at the top is half a line of headroom, since
+ * axis labels are centred on their tick and the topmost one (+20 dB) would
+ * otherwise be cut in half by the viewport.
+ *
+ * Named and exported because they are the plot's real edges, and the level
+ * meter has to stand on the same ones — it hangs off the card rather than off
+ * the chart, so without this it would be a second copy of these four numbers
+ * drifting quietly out of step with the first.
+ */
+const GRID_AXIS_PADDING: IMarginLike = {
+  left: 50,
+  top: 10,
+  right: 0,
+  bottom: 30,
+};
+
+/**
+ * With the grid off there is nothing in any of the gutters, so the wave runs
+ * edge to edge instead.
+ */
+const NO_AXIS_PADDING: IMarginLike = {
+  left: 0,
+  top: 0,
+  right: 0,
+  bottom: 0,
+};
+
+export const getAxisPadding = (isGridHidden: boolean): IMarginLike =>
+  isGridHidden ? NO_AXIS_PADDING : GRID_AXIS_PADDING;
+
+/**
  * Red at nothing earned, green at everything, blended in between.
  *
  * The same two colours the lines are drawn in and in the same order, so the
@@ -491,28 +525,43 @@ const CoverageOverlay = ({
                           y1={y}
                           y2={y}
                         />
-                        {/* Named and numbered on approach, so a drag is aimed
-                            rather than guessed at. Hidden until then — eighteen
-                            captions standing permanently over the trace would be
-                            far worse than none. */}
+                        {/*
+                         * Named and numbered on approach, so a drag is aimed
+                         * rather than guessed at. Hidden until then — eighteen
+                         * captions standing permanently over the trace would be
+                         * far worse than none.
+                         *
+                         * TWO LINES, because SVG text does not wrap and a range
+                         * is only as wide as its own slice of the spectrum. On
+                         * one line the caption ran clean out of its band and
+                         * across its neighbours, so the label for the treble
+                         * was sitting over the mids, which is worse than
+                         * useless: it attaches a number to the wrong range.
+                         *
+                         * The range name goes above and the rule below, since
+                         * the name is what identifies the caption and the rule
+                         * is what you read once you have found it.
+                         */}
                         <text
                           className="chart-presence__label"
                           x={left + 1 + width / 2}
-                          // Above the line, unless that would put it above the
-                          // plot — a line dragged to the ceiling would otherwise
-                          // caption itself outside the chart entirely.
-                          y={Math.max(top + 10, y - 5)}
+                          // Both lines above the line they describe, and not
+                          // above the plot: a line dragged to the ceiling would
+                          // otherwise caption itself outside the chart.
+                          y={Math.max(top + 10, y - 16)}
                           textAnchor="middle"
                         >
-                          {t(
-                            edge === 'floor'
-                              ? 'eq.smart.presence.ignoredBelow'
-                              : 'eq.smart.presence.trustedAbove',
-                            {
-                              range: balanceRangeName(region.label, t),
-                              db: db.toFixed(0),
-                            },
-                          )}
+                          <tspan x={left + 1 + width / 2}>
+                            {balanceRangeName(region.label, t)}
+                          </tspan>
+                          <tspan x={left + 1 + width / 2} dy="1.15em">
+                            {t(
+                              edge === 'floor'
+                                ? 'eq.smart.presence.ignoredBelow'
+                                : 'eq.smart.presence.trustedAbove',
+                              { db: db.toFixed(0) },
+                            )}
+                          </tspan>
                         </text>
                         <rect
                           className="chart-presence__grab"
@@ -766,16 +815,7 @@ const Chart = ({
   // taken out of the drawing. The wave runs edge to edge instead.
   const isGridHidden = useGraphGridHidden();
 
-  const padding = useMemo(() => {
-    return {
-      left: isGridHidden ? 0 : 50,
-      // Axis labels are centred on their tick, so the topmost one (+20 dB)
-      // needs half a line of headroom or the SVG viewport cuts it in half.
-      top: isGridHidden ? 0 : 10,
-      right: 0,
-      bottom: isGridHidden ? 0 : 30,
-    };
-  }, [isGridHidden]);
+  const padding = useMemo(() => getAxisPadding(isGridHidden), [isGridHidden]);
 
   // Width of the plotting area itself, i.e. everything to the right of the
   // y-axis label gutter. Grid lines are drawn from that gutter, so they must

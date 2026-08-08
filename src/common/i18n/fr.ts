@@ -47,6 +47,11 @@ const fr: Partial<Dictionary> = {
   'tabs.video': 'Vidéo',
 
   'graph.resize': 'Faites glisser pour redimensionner le graphique',
+  'graph.meter.aria':
+    'Niveau de sortie en direct, en décibels réels sous la pleine échelle',
+  'graph.meter.left': 'G',
+  'graph.meter.right': 'D',
+  'graph.meter.mono': 'M',
   'video.sites': 'Sites vidéo',
   'video.back': 'Précédent',
   'video.forward': 'Suivant',
@@ -290,10 +295,8 @@ const fr: Partial<Dictionary> = {
   'eq.smart.error.closed': 'FluidEQ a fermé la mesure.',
   // « Ne compte pas » plutôt qu’« ignoré » : le participe s’accorderait avec le
   // nom de la plage, et une seule forme tient dans l’emplacement.
-  'eq.smart.presence.ignoredBelow':
-    '{range} · ne compte pas en dessous de {db} dB',
-  'eq.smart.presence.trustedAbove':
-    '{range} · pleine confiance au-dessus de {db} dB',
+  'eq.smart.presence.ignoredBelow': 'ignoré sous {db} dB',
+  'eq.smart.presence.trustedAbove': 'fiable au-dessus de {db} dB',
   'eq.smart.presence.reset': 'Réinitialiser {range} pour ce mode',
   'eq.smart.limit.label': 'Limite Smart EQ {db} dB',
   'eq.smart.gap.title':

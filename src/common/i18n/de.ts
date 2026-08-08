@@ -47,6 +47,11 @@ const de: Partial<Dictionary> = {
   'tabs.video': 'Video',
 
   'graph.resize': 'Ziehen, um die Größe des Diagramms zu ändern',
+  'graph.meter.aria':
+    'Live-Ausgangspegel, in echten Dezibel unter Vollaussteuerung',
+  'graph.meter.left': 'L',
+  'graph.meter.right': 'R',
+  'graph.meter.mono': 'M',
   'video.sites': 'Video-Seiten',
   'video.back': 'Zurück',
   'video.forward': 'Vorwärts',
@@ -290,8 +295,8 @@ const de: Partial<Dictionary> = {
   'eq.smart.error.closed': 'FluidEQ hat die Messung beendet.',
   // Partizip ohne Hilfsverb, weil ein finites Verb sich nach der Zahl des
   // Bereichs richten müsste — „Höhen zählen“, aber „Bass zählt“.
-  'eq.smart.presence.ignoredBelow': '{range} · unter {db} dB ignoriert',
-  'eq.smart.presence.trustedAbove': '{range} · über {db} dB voll vertraut',
+  'eq.smart.presence.ignoredBelow': 'unter {db} dB ignoriert',
+  'eq.smart.presence.trustedAbove': 'über {db} dB verlässlich',
   'eq.smart.presence.reset': '{range} für diesen Modus zurücksetzen',
   'eq.smart.limit.label': 'Smart-EQ-Grenze {db} dB',
   'eq.smart.gap.title':
