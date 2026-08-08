@@ -42,3 +42,6 @@ presets/**
 # Equalizer APO is fetched at build time, not committed. See
 # .erb/scripts/fetch-equalizer-apo.ts
 /vendor
+
+# Clyvor metadata
+.gigaide/

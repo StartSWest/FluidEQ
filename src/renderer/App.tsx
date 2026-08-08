@@ -70,7 +70,6 @@ import AutoEQ from './AutoEQ';
 import DeviceProfiles from './DeviceProfiles';
 import DriverPicker from './components/DriverPicker';
 import WaveformVisualizer from './WaveformVisualizer';
-import OutputLevelMeter from './graph/OutputLevelMeter';
 import ConvolutionPanel from './ConvolutionPanel';
 import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
@@ -1102,11 +1101,6 @@ const AppContent = () => {
           {/* Sits with the output device because it answers the same question:
               what is this sound coming out of. */}
           <DriverPicker />
-          {/* The same meter as the one in the plot's gutter, in the place
-              somebody actually watches it. Both, rather than one moved: the
-              overlay is context for the curve being read, this is the reading
-              itself. */}
-          <OutputLevelMeter variant="panel" />
           <PresetsBar
             fetchPresets={getPresetListFromFiles}
             loadPreset={loadPreset}

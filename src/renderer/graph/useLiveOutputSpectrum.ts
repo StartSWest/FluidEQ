@@ -806,9 +806,31 @@ const useLiveOutputSpectrum = () => {
        * implementation that does not report it is taken at the ordinary case
        * rather than demoted to mono.
        */
-      const captureChannels = audioTrack.getSettings?.().channelCount;
+      /*
+       * TWO OPINIONS ABOUT THE CHANNEL COUNT, AND ONLY ONE OF THEM IS EVIDENCE.
+       *
+       * `getSettings().channelCount` reports what the track was NEGOTIATED for,
+       * and Chromium frequently answers with the constraint that was asked for
+       * rather than with what the endpoint is delivering — so a perfectly
+       * ordinary stereo loopback can describe itself as mono and get drawn as
+       * one bar. Which is what happened.
+       *
+       * The source node's own `channelCount` is the graph's view of the same
+       * stream and does not go through that negotiation, so it is the better
+       * witness. Mono is believed only when BOTH say so; either one claiming
+       * two is enough, and an implementation that reports nothing is taken at
+       * the ordinary case.
+       *
+       * Guessing stereo wrongly costs a second bar that mirrors the first.
+       * Guessing mono wrongly throws away half the meter on every machine
+       * where the negotiation lies, which is the worse of the two by far.
+       */
+      const trackChannels = audioTrack.getSettings?.().channelCount;
+      const nodeChannels = source.channelCount;
       const isStereoCapture =
-        captureChannels === undefined || captureChannels >= METER_CHANNELS;
+        trackChannels === undefined ||
+        trackChannels >= METER_CHANNELS ||
+        (Number.isFinite(nodeChannels) && nodeChannels >= METER_CHANNELS);
       if (isStereoCapture) {
         const splitter =
           activeAudioContext.createChannelSplitter(METER_CHANNELS);

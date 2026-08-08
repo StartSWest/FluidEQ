@@ -28,6 +28,7 @@ import './styles/SideBar.scss';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import GraphViewSwitch from './components/GraphViewSwitch';
+import OutputLevelMeter from './graph/OutputLevelMeter';
 import Spinner from './icons/Spinner';
 
 interface SideBarProps {
@@ -101,6 +102,12 @@ const SideBar = ({ showGraphToggle }: SideBarProps) => {
               <span className="control-kicker">{t('sidebar.visualizer')}</span>
               <h4>{t('sidebar.graphView')}</h4>
               <GraphViewSwitch id="graphViewEnabler" />
+              {/* Under the visualizer switch, because it answers the question
+                  that switch raises: the graph says what the sound is shaped
+                  like, this says how loud it actually is. The same component
+                  as the plot's gutter meter — see its variant prop for why one
+                  and not two. */}
+              <OutputLevelMeter variant="panel" />
             </div>
           ) : null}
         </>

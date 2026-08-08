@@ -1070,34 +1070,27 @@ it under the terms of the GNU General Public License version 3 or later.
  * viewport with a floor and a ceiling, so a short screen does not force a
  * meter taller than the pane and a tall one does not stretch it to absurdity.
  */
+/*
+ * The panel meter, under the visualizer switch.
+ *
+ * SIZED LIKE A METER, NOT LIKE A PANEL. Stretched to the card's full width it
+ * became two fat slabs that read as progress bars — a level meter is a thin
+ * tall thing, and the proportion is most of what makes it recognisable at a
+ * glance. So the bars keep a meter's width and the pair is centred in whatever
+ * room the card has, which also means the sidebar can be resized without the
+ * meter turning into something else.
+ */
 .output-meter--panel {
-  container-type: inline-size;
   width: 100%;
-  height: clamp(84px, 18vh, 180px);
+  height: clamp(72px, 14vh, 132px);
   box-sizing: border-box;
-  padding: 8px 10px;
-  border: 1px solid rgba(216, 210, 255, 0.1);
-  border-radius: $radius-m;
-  margin-block-start: 8px;
-  background: rgba(12, 26, 38, 0.5);
-  gap: 8px;
+  padding-block: 6px;
+  margin-block-start: 10px;
+  gap: 10px;
+  justify-content: center;
 
   .output-meter__channel {
-    width: auto;
-    flex: 1 1 0;
-  }
-
-  .output-meter__track {
-    width: 100%;
-  }
-}
-
-// Narrow pane: the channel letters are the first thing to go. Two bars side by
-// side still say which is which by position, and a letter squeezed under a
-// four-pixel bar is unreadable anyway.
-@container (max-width: 90px) {
-  .output-meter--panel .output-meter__name {
-    display: none;
+    width: 10px;
   }
 }
 
