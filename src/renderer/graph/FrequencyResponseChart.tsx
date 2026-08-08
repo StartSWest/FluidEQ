@@ -1050,11 +1050,16 @@ const FrequencyResponseChart = () => {
     // Clamping loses nothing real: a chain needing more than 20 dB of headroom
     // will clip on the loudest peaks whatever this says, and the alternative is
     // not "correct headroom" but "no application".
-    const calculatedAutoPreAmpValue = Math.max(
-      MIN_GAIN,
-      -Math.max(
-        0,
-        getChainPeakGain([
+    // Both directions, and clamped at both ends. The third copy of this
+    // arithmetic and the third place the same `Math.max(0, …)` was pinning the
+    // preamp to attenuation only — so a chain that merely cut left the volume
+    // on the floor, live as well as on disk. Positive when the chain cuts,
+    // negative when it boosts; the loudest point lands at unity either way.
+    const calculatedAutoPreAmpValue = Math.min(
+      MAX_GAIN,
+      Math.max(
+        MIN_GAIN,
+        -getChainPeakGain([
           ...(convolution &&
           !convolution.fileName &&
           !bypassed.includes('convolution')

@@ -96,11 +96,51 @@ describe('preamp headroom', () => {
     expect(preampValue(after)).toBe(before);
   });
 
-  it('reserves nothing when the chain only cuts', () => {
+  it('gives the volume back when the chain only cuts', () => {
+    // This asserted zero, which was the old rule stated as an intention: cuts
+    // need no headroom, so nothing was reserved. True, and only half the job —
+    // the half it left out was the audible one. A chain that only cuts makes
+    // everything quieter, and with the preamp pinned at zero nothing put that
+    // back, so switching a voicing on cost loudness with no visible cause.
+    //
+    // Normalising means both directions. The amount is the same number either
+    // way: whatever brings the chain's loudest point back to unity. It cannot
+    // clip, because that point lands exactly at 0 dB and the rest below it.
     const state = withBands();
     state.filters.a.gain = -6;
 
-    expect(preampValue(state)).toBe(0);
+    expect(preampValue(state)).toBeGreaterThan(0);
+  });
+
+  it('leaves a narrow cut alone, because nothing was taken away', () => {
+    // The distinction that makes the rule safe rather than merely generous.
+    // A peaking cut lowers its own neighbourhood and nothing else — away from
+    // its centre the chain is still at unity, so the loudest point never moved
+    // and there is nothing to restore. Restoring anyway would be inventing
+    // volume, which is what a compressor does and this is not one.
+    const state = withBands();
+    state.filters.a.gain = -6;
+    state.filters.a.quality = 3;
+
+    expect(Math.abs(preampValue(state))).toBeLessThan(0.5);
+  });
+
+  it('restores a shelf that took the whole band down with it', () => {
+    // A wide shelf IS the case worth restoring: everything below its corner
+    // comes down together, so the chain's loudest point genuinely drops and
+    // the preamp is what puts it back.
+    const state = withBands();
+    state.filters = {
+      a: {
+        id: 'a',
+        frequency: 12000,
+        gain: -6,
+        quality: 0.7,
+        type: FilterTypeEnum.LSC,
+      },
+    };
+
+    expect(preampValue(state)).toBeGreaterThan(1);
   });
 
   it('reserves nothing when the EQ is cleared and no layer is active', () => {

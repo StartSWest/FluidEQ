@@ -350,7 +350,21 @@ export const getChainPeakGain = (
     )
     .map((filter) => getTFCoefficients(filter as IFilter));
 
-  let peak = 0;
+  /*
+   * THE TRUE MAXIMUM, WHICH CAN BE NEGATIVE.
+   *
+   * This started at zero, so a chain that only ever cuts reported a peak of
+   * zero rather than the negative number it actually has — and the preamp,
+   * being derived from it, sat at zero while the output got quieter. Nothing
+   * put that volume back, so using a voicing cost loudness with no visible
+   * cause. Clamping here and again at the caller was the same mistake written
+   * twice.
+   *
+   * Negative now means what it says: the chain's loudest point is this far
+   * below unity, and a preamp of that much in the other direction restores it
+   * without any risk of clipping, since the loudest point lands exactly at 0.
+   */
+  let peak = -Infinity;
   SAMPLE_FREQUENCIES.forEach((frequency) => {
     let total = 0;
     coefficients.forEach((c) => {
@@ -363,5 +377,11 @@ export const getChainPeakGain = (
     }
   });
 
+  // No usable filter contributed anything, so there is no chain to speak of and
+  // nothing to correct for. Zero rather than the sentinel, which would travel
+  // out of here as an infinite preamp.
+  if (!Number.isFinite(peak)) {
+    return 0;
+  }
   return Math.round(peak * 100) / 100;
 };

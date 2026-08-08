@@ -126,9 +126,28 @@ const resolvePreAmp = (
     ...convolutionFilters,
   ]);
 
-  // Cuts need no headroom, so a chain that only cuts reserves nothing. The
-  // graphic curve is a separate APO stage, so its boost does stack on top.
-  return -Math.max(0, filterPeak + graphicPeak);
+  /*
+   * BOTH DIRECTIONS, WHICH IS WHAT "NORMALISE" MEANS.
+   *
+   * This used to be `-Math.max(0, peak)`: reserve for a boost, and do nothing
+   * at all for a cut. Half a job, and the missing half was the audible one — a
+   * chain that only cuts made everything quieter and nothing put it back, so
+   * switching a voicing on cost volume with no way to see where it went.
+   *
+   * The correct amount in either direction is the same number: whatever brings
+   * the chain's loudest point back to unity. Positive when the chain cuts,
+   * negative when it boosts, and it cannot clip in either case — by
+   * construction the loudest point lands at 0 dB and everything else below it.
+   *
+   * Raising also lifts whatever noise the chain had attenuated, by exactly the
+   * amount it had attenuated it, so the signal-to-noise ratio is unchanged.
+   * What changes is only that the listener is not silently taxed for using a
+   * feature.
+   *
+   * The graphic curve is a separate APO stage, so its contribution stacks on
+   * top rather than sharing the peak.
+   */
+  return -(filterPeak + graphicPeak);
 };
 
 /** A filter stripped to the four things a config line is made of. */
