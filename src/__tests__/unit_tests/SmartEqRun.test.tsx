@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -188,6 +189,11 @@ const RESULT: IBalanceResult = {
   status: 'ready',
   lowFrequency: 35,
   highFrequency: 15000,
+  // Empty on purpose. This file is about the run control — who may start a
+  // measurement and when — rather than about what a correction decides, and an
+  // empty range list earns no boost anywhere, so nothing here can come to
+  // depend on a gain.
+  regions: [],
 };
 
 let rerenderHost: () => void = () => undefined;

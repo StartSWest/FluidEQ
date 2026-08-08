@@ -407,4 +407,78 @@ describe('autoBalance', () => {
       });
     });
   });
+
+  /**
+   * A range with nothing playing in it must not be lifted.
+   *
+   * The failure this prevents is specific and was measured. A range accumulates
+   * if it sits within 45 dB of the frame peak, which a solo passage clears
+   * easily — so a guitar intro with no bass instrument in it reads as a record
+   * with no bass, and every mode drove 40 Hz and 50 Hz to +6 dB, their hard
+   * limit, on material where a full mix is CUT by two to four.
+   *
+   * It cost volume as well as tone. Forty to fifty hertz is where music
+   * genuinely reaches full scale, so a boost there is the most expensive thing
+   * the preamp can be asked to reserve for: an arrangement change was quietly
+   * taking six decibels of headroom.
+   */
+  describe('a range with nothing playing in it', () => {
+    const fullMix = (frequency: number) => -15 * Math.log10(frequency) + 40;
+    // Nothing below the lowest string, falling away steeply beneath it.
+    const soloGuitar = (frequency: number) =>
+      frequency >= 82
+        ? fullMix(frequency)
+        : fullMix(frequency) - 30 * Math.log2(82 / frequency);
+
+    const gainsFor = (
+      levelAt: (frequency: number) => number,
+      boostAllowance?: (frequency: number) => number,
+    ) =>
+      buildBalancedGains(buildSpectrum(levelAt), TEN_BAND, {
+        reference: getReferenceShape('balance'),
+        boostAllowance,
+      });
+
+    it('is boosted to the limit without the gate, which is the bug', () => {
+      const gains = gainsFor(soloGuitar);
+
+      // 32 Hz sits below the correctable span and is zero either way, so the
+      // lowest band this can be asked about is 64.
+      expect(gains.b64).toBeGreaterThan(3);
+      // The same frequencies in a full mix want the opposite.
+      expect(gainsFor(fullMix).b64).toBeLessThan(0);
+    });
+
+    it('is not boosted at all once the gate says it is silent', () => {
+      // No allowance below 120 Hz: during the intro the bass sits far under its
+      // own floor line, so it has earned none of its boost.
+      const gains = gainsFor(soloGuitar, (frequency) =>
+        frequency < 120 ? 0 : 1,
+      );
+
+      expect(gains.b64).toBe(0);
+    });
+
+    it('still cuts a range it is not allowed to boost', () => {
+      // The asymmetry is the point. Taking away something nobody can hear takes
+      // away nothing; it is only boosts that compound against evidence that
+      // never arrives, and only boosts that cost headroom.
+      const gains = gainsFor(fullMix, () => 0);
+
+      expect(gains.b64).toBeLessThan(0);
+      expect(
+        Math.max(...TEN_BAND.map((filter) => gains[filter.id] ?? 0)),
+      ).toBeLessThanOrEqual(0);
+    });
+
+    it('lets a range part-way up the ramp have part of its boost', () => {
+      const full = gainsFor(soloGuitar, () => 1);
+      const half = gainsFor(soloGuitar, (frequency) =>
+        frequency < 120 ? 0.5 : 1,
+      );
+
+      expect(half.b64).toBeGreaterThan(0);
+      expect(half.b64).toBeLessThan(full.b64);
+    });
+  });
 });

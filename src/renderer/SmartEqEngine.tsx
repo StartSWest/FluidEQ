@@ -29,6 +29,7 @@ import {
 import { getReferenceShape } from 'common/referenceCurve';
 import { getVoicingFilters } from 'common/voicing';
 import { getDriverFilters } from 'common/driver';
+import { getPresenceLine, presenceAllowance } from './utils/presenceThreshold';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { sortHelper } from './utils/utils';
@@ -37,6 +38,7 @@ import { useLiveAudioControl } from './audio/LiveAudioContext';
 import { useContinuousEq } from './utils/continuousEq';
 import { isContinuousMode, useSmartEqMode } from './utils/smartEqMode';
 import {
+  IBalanceRegionReport,
   IBalanceReport,
   buildBalancedGains,
   describeBalanceProgress,
@@ -252,6 +254,39 @@ const SmartEqEngine = () => {
    * record's tonality, because a fitted line absorbs whatever tilt it is shown.
    * Balance and Target hold a slope and converge on it from anywhere.
    */
+  /**
+   * How much boost each frequency has earned, read off the lines on the plot.
+   *
+   * Built here rather than inside the solver, because it joins two things the
+   * solver has no business knowing about: what each range is doing at this
+   * moment, which comes off the capture, and where somebody has dragged that
+   * range's two lines, which is a preference. The solver is handed one number
+   * per frequency and stays a function of its own measurement.
+   *
+   * Ranges are contiguous and a band falls in exactly one, so this is a scan
+   * rather than an interpolation. Blending across an edge would let a silent
+   * range borrow permission from a loud neighbour, which is the whole failure
+   * being fixed, one step removed.
+   */
+  const allowanceFrom =
+    (regions: IBalanceRegionReport[]) => (frequency: number) => {
+      const region = regions.find(
+        (entry) =>
+          frequency >= entry.lowFrequency && frequency <= entry.highFrequency,
+      );
+      if (!region) {
+        // Outside every range there is nothing that could have been heard, so
+        // nothing is earned. Those bands sit outside the correctable span in
+        // any case.
+        return 0;
+      }
+      return presenceAllowance(
+        region.liveDb,
+        getPresenceLine('floor', region.label, region.centreFrequency),
+        getPresenceLine('full', region.label, region.centreFrequency),
+      );
+    };
+
   /**
    * The one-shot, reachable from an effect.
    *
@@ -557,6 +592,9 @@ const SmartEqEngine = () => {
         // driver layer.
         const gains = buildBalancedGains(result.samples, bands, {
           reference: getReferenceShape(referenceModeRef.current),
+          // A range nothing is playing in cannot be lifted, however loudly it
+          // reports a deficit. See the presence lines on the plot.
+          boostAllowance: allowanceFrom(result.regions),
           targetCurve: buildLayerTargetCurve(
             voicingRef.current,
             driverRef.current,
@@ -798,6 +836,9 @@ const SmartEqEngine = () => {
     // total is capped. None of that is true of a single measurement applied
     // whole.
     const solved = buildBalancedGains(report.samples, bands, {
+      // A range nothing is playing in cannot be lifted, however loudly it
+      // reports a deficit. See the presence lines on the plot.
+      boostAllowance: allowanceFrom(report.regions),
       // The mode's curve, whatever else is switched on. Which mode is chosen
       // decides the destination and nothing else does — see
       // `getReferenceShape`.

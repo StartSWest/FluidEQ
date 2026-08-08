@@ -115,6 +115,36 @@ export const ABS_FLOOR_DBFS = -85;
 export const REGION_FLOOR_DB = 45;
 export const REGION_FLOOR_RAMP_DB = 10;
 
+/* -------------------------------------------------------------------------
+ * Presence: is this range playing at all
+ * ---------------------------------------------------------------------- */
+
+/**
+ * The plot's own top, which is where a record's recent peak is drawn.
+ *
+ * The presence lines are set by eye against the live trace, so the level the
+ * detector compares to them has to be expressed the way the trace is: relative
+ * to the track's recent peak, with that peak at the top of the plot. Anything
+ * else and the line means one thing on screen and another in the maths.
+ */
+export const PRESENCE_FULL_SCALE_DB = MAX_GAIN;
+
+/** Release of the peak follower, in dB per second. Matches the plot's. */
+export const PRESENCE_RELEASE_DB_PER_S = 1;
+
+/** Below this a range is silent rather than quiet, and starts there. */
+export const PRESENCE_SILENT_DB = -200;
+
+/**
+ * How fast a range's own level follows the music, as a per-frame coefficient.
+ *
+ * Slow enough that a single quiet frame between drum hits does not read as an
+ * instrument leaving, fast enough that an instrument actually leaving is
+ * noticed inside a second. Bar-length events are what this is for; note-length
+ * ones are not.
+ */
+export const PRESENCE_SMOOTHING = 0.25;
+
 /**
  * Power averaging is outlier-sensitive by design; this bounds what a single
  * leaked full-scale bin can do to a point.
@@ -381,6 +411,19 @@ export interface IAutoBalanceOptions {
   maxBoost?: number;
   maxCut?: number;
   /**
+   * How much of the boost limit a frequency has earned, from 0 to 1.
+   *
+   * Zero where nothing is playing, so a range that is silent cannot be lifted
+   * however long it reports a deficit. Cuts are never scaled by this: a range
+   * with no signal has nothing that needs taking away, and it is only boosts
+   * that compound against evidence that never arrives.
+   *
+   * Supplied by whoever owns the capture, since it is built from the live
+   * region levels and the lines somebody has set on the plot. Absent means one
+   * everywhere, which is how this behaved before there were any lines.
+   */
+  boostAllowance?: (frequency: number) => number;
+  /**
    * Width of the smoothing window used to reject FFT noise, in octaves — one
    * number, or a function of frequency for a width that is not the same at both
    * ends of the range. Defaults to `smoothingOctavesAt`.
@@ -461,6 +504,8 @@ const DEFAULTS: Required<IAutoBalanceOptions> = {
   strength: 1,
   maxBoost: 6,
   maxCut: 9,
+  // Everything is allowed until somebody supplies a reason it is not.
+  boostAllowance: () => 1,
   smoothingOctaves: smoothingOctavesAt,
   minConfidence: MIN_BAND_CONFIDENCE,
   relativeToCurrentGain: true,
@@ -720,6 +765,7 @@ export const buildBalancedGains = (
     strength,
     maxBoost,
     maxCut,
+    boostAllowance,
     smoothingOctaves,
     minConfidence,
     relativeToCurrentGain,
@@ -988,8 +1034,26 @@ export const buildBalancedGains = (
       // to the others would move them on the strength of an average they took no
       // part in, which is a correction nobody measured.
       const correction = entry.isSolvable ? entry.correction - mean : 0;
+      /*
+       * How much of a boost this band has earned, and cuts are untouched.
+       *
+       * A range with nothing playing in it reports a deficit forever and
+       * nothing ever arrives to contradict it, so a boost there compounds until
+       * it hits its limit — which is exactly what a guitar intro did to the
+       * bass. A cut has no such failure: taking away something nobody could
+       * hear takes away nothing. So the allowance bounds one side only.
+       *
+       * One at the top of the ramp and zero at its floor, which is what makes
+       * the two lines on the plot the whole story. Absent means one, so a
+       * caller that knows nothing about presence — every test that predates
+       * this, and any synthetic frame — behaves exactly as it did.
+       */
+      const allowance = boostAllowance
+        ? clamp01(boostAllowance(entry.filter.frequency))
+        : 1;
       const gain =
-        base + clamp(correction * entry.confidence, -maxCut, maxBoost);
+        base +
+        clamp(correction * entry.confidence, -maxCut, maxBoost * allowance);
       return [entry.id, Math.round(clamp(gain, MIN_GAIN, MAX_GAIN) * 10) / 10];
     }),
   );
@@ -1125,6 +1189,29 @@ export interface IBalanceCaptureState {
   power: Float64Array;
   weight: Float64Array;
   regionStates: IBalanceRegionState[];
+  /**
+   * The record's own recent peak in dBFS, followed the way the plot follows it.
+   *
+   * Instant attack, about a decibel a second of release — which is exactly what
+   * `useLiveOutputSpectrum` does for the trace it draws. That is not tidiness.
+   * Somebody sets the presence lines by looking at the trace, so the number the
+   * detector compares against those lines has to be the number they were
+   * looking at. Two followers with different time constants would put a line in
+   * one place on screen and another in the maths, and the disagreement would
+   * only ever surface as the correction doing something with no visible reason.
+   */
+  trackReferenceDb?: number;
+  /**
+   * What each range is doing right now, on the plot's own axis.
+   *
+   * Deliberately not accumulated. Coverage and confidence answer "have we heard
+   * enough of this range to correct it", which is a question about the whole
+   * session. This answers "is anything playing here at the moment", which is a
+   * question about this second — and averaging it would defeat the entire
+   * purpose, because a bass guitar that stops for a verse is precisely the
+   * thing being detected.
+   */
+  liveDb: Float64Array;
   frames: number;
   acceptedFrames: number;
   listenedMs: number;
@@ -1155,6 +1242,16 @@ export interface IBalanceRegionReport {
    * and because the panel and the tests read them.
    */
   levelDb: number;
+  /**
+   * What this range is doing right now, on the plot's own axis.
+   *
+   * Not a session average like `levelDb` — this is the last second or so, which
+   * is the only timescale on which "the bass guitar has stopped playing" is a
+   * meaningful statement. Compared against the presence lines somebody has set
+   * on the graph, and expressed the way the graph expresses everything so the
+   * comparison means what it looks like.
+   */
+  liveDb: number;
   weight: number;
   standardErrorDb: number;
   confidence: number;
@@ -1184,6 +1281,16 @@ export interface IBalanceResult {
   status: 'ready' | 'partial';
   lowFrequency: number;
   highFrequency: number;
+  /**
+   * The ranges as they stood when the measurement finished.
+   *
+   * Carried so a one-shot can be held to the same presence rule as the
+   * continuous modes. A single press is if anything MORE exposed to it: there
+   * is no second pass to notice that a range was silent and take the boost back
+   * again, so whatever it decides during a quiet intro is what somebody lives
+   * with until they press it again.
+   */
+  regions: IBalanceRegionReport[];
 }
 
 /** Per-region coverage, for drawing the measurement onto the response graph. */
@@ -1272,6 +1379,9 @@ export const createBalanceCaptureState = (
     power: new Float64Array(axis.length),
     weight: new Float64Array(axis.length),
     regionStates: regions.map(() => ({ weight: 0, mean: 0, m2: 0 })),
+    // Starts below anything real, so a range is absent until a frame says
+    // otherwise rather than being trusted before it has been heard at all.
+    liveDb: new Float64Array(regions.length).fill(PRESENCE_SILENT_DB),
     frames: 0,
     acceptedFrames: 0,
     listenedMs: 0,
@@ -1512,8 +1622,55 @@ export const accumulateBalanceFrame = (
   state.listenedMs += dt;
   state.acceptedFrames += 1;
 
+  /*
+   * IS THIS RANGE PLAYING AT ALL — a different question from every other one
+   * here, and the one that was missing.
+   *
+   * A range is measured if it sits within 45 dB of the frame peak, which a solo
+   * passage clears easily. So a guitar intro with no bass instrument in it reads
+   * as a record with no bass and the correction answers by boosting: measured on
+   * a synthetic solo guitar, every mode drove 40 Hz and 50 Hz to their +6 dB
+   * limit, where the same material inside a full mix is CUT by two to four.
+   *
+   * That gate cannot simply be tightened, because music's own tilt spans about
+   * 25 dB and a threshold tight enough to catch a missing bass guitar throws
+   * away the real air of acoustic material. No single number against the frame
+   * peak separates "quiet because nothing is playing there" from "quiet because
+   * that is what this range does".
+   *
+   * So each range is followed on its own, against the record's recent peak, and
+   * expressed exactly as the plot expresses it — see `PRESENCE_FULL_SCALE_DB`.
+   * Which is what makes the lines on the graph mean what they appear to mean.
+   */
+  const peak = frame.peakDb;
+  if (Number.isFinite(peak)) {
+    const released =
+      state.trackReferenceDb === undefined
+        ? peak
+        : state.trackReferenceDb - (dt / 1000) * PRESENCE_RELEASE_DB_PER_S;
+    state.trackReferenceDb = Math.max(peak, released);
+  }
+  const reference = state.trackReferenceDb;
+
   state.regions.forEach((region, regionIndex) => {
     const absDb = regionLevelDb(levels, region.firstIndex, region.lastIndex);
+
+    // Followed whether or not the range is accumulated below. A range under the
+    // absolute floor has not stopped existing — it has gone quiet, which is the
+    // single most important thing this is here to notice, and returning early
+    // before recording it would leave the detector believing whatever it last
+    // saw for as long as the silence lasted.
+    if (reference !== undefined) {
+      const chartDb = Number.isFinite(absDb)
+        ? absDb - reference + PRESENCE_FULL_SCALE_DB
+        : PRESENCE_SILENT_DB;
+      const previous = state.liveDb[regionIndex];
+      state.liveDb[regionIndex] =
+        previous <= PRESENCE_SILENT_DB
+          ? chartDb
+          : previous + (chartDb - previous) * PRESENCE_SMOOTHING;
+    }
+
     if (!Number.isFinite(absDb) || absDb < ABS_FLOOR_DBFS) {
       return;
     }
@@ -1626,6 +1783,7 @@ export const evaluateBalanceCapture = (
       highFrequency: region.highFrequency,
       centreFrequency: region.centreFrequency,
       levelDb: s.mean,
+      liveDb: state.liveDb[index],
       weight: s.weight,
       standardErrorDb,
       confidence,
@@ -1796,6 +1954,7 @@ export const buildBalanceResult = (report: IBalanceReport): IBalanceResult => {
     status: report.status === 'ready' ? 'ready' : 'partial',
     lowFrequency: covered[0]?.lowFrequency ?? 0,
     highFrequency: covered[covered.length - 1]?.highFrequency ?? 0,
+    regions: report.regions,
   };
 };
 
