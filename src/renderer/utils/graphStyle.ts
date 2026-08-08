@@ -348,11 +348,12 @@ const setLiveOutputSolo = (next: boolean) => {
   }
   // Wave only, with the wave switched off, is an empty graph.
   //
-  // The two settings were independent and one combination of them showed
-  // nothing at all: solo drops the EQ curves, hiding the wave drops the trace,
-  // and together they leave a grid. Asking for the wave alone is asking for the
-  // wave, so it comes back — see `setWaveHidden` for the other half of this,
-  // which is the same rule approached from the other side.
+  // Belt and braces now rather than the rule itself. `setGraphContents` is the
+  // only caller and it sets the wave a line later anyway, so this can no longer
+  // be the thing that saves the plot — what saves it is that "solo" and "wave
+  // hidden" are two *states* rather than two switches, and there is no state in
+  // which both are true. Kept because the invariant is worth stating where the
+  // flag lives, and because it costs one comparison.
   if (next && isWaveHidden) {
     setWaveHidden(false);
   }
@@ -361,7 +362,17 @@ const setLiveOutputSolo = (next: boolean) => {
   soloListeners.forEach((listener) => listener());
 };
 
-export const toggleLiveOutputSolo = () => setLiveOutputSolo(!isSolo);
+/**
+ * Through the state machine, not straight at the flag.
+ *
+ * This used to call `setLiveOutputSolo` directly, which made it a second writer
+ * of the three flags and let them drift out of step with `hiddenCurves`: coming
+ * out of solo left the EQ curve in the hidden list, so the plot claimed to be
+ * showing everything while the bands' own line was still gone. Naming the state
+ * instead of poking one switch is what keeps that impossible.
+ */
+export const toggleLiveOutputSolo = () =>
+  setGraphContents(isSolo ? 'everything' : 'wave');
 
 /**
  * The four things the plot can show, in one gesture.
@@ -408,7 +419,14 @@ const CONTENTS_ORDER: TGraphContents[] = [
   'layers',
 ];
 
-const CONTENTS_LABEL: Record<TGraphContents, string> = {
+/**
+ * What each state is called, in one place.
+ *
+ * Exported because the View menu names the state the plot is in rather than
+ * leaving its cycle row saying nothing, and a second list of these words in the
+ * menu would be a second thing to keep in step with the machine.
+ */
+export const GRAPH_CONTENTS_LABEL: Record<TGraphContents, string> = {
   everything: 'Everything',
   wave: 'Wave only',
   curves: 'Curves only',
@@ -426,7 +444,7 @@ export const getGraphContents = (): TGraphContents => {
 };
 
 /**
- * Move the plot to a state, and say so.
+ * Move the plot to a state. THE ONLY WRITER OF THE FOUR VALUES BELOW IT.
  *
  * The EQ curve's own hidden flag is set from here as well, because the two
  * questions turned out to be one: "show me no curves" and "hide the EQ curve"
@@ -434,19 +452,93 @@ export const getGraphContents = (): TGraphContents => {
  * line away is not asking to read five layer curves against nothing — that line
  * is what the others are read against — so hiding it takes the plot to the wave,
  * and showing it again brings everything back.
+ *
+ * A `function` rather than a `const`, so it hoists. Everything that changes what
+ * the plot shows now comes through here, and two of those — the wave toggle and
+ * the solo toggle — sit above it in the file with the flags they used to write
+ * directly.
  */
-export const setGraphContents = (view: TGraphContents) => {
-  setLiveOutputSolo(view === 'wave');
-  setWaveHidden(view === 'curves');
-  setEqQuiet(view === 'layers');
-  setCurveHidden('eq', view === 'wave');
-  announceGraphMode(CONTENTS_LABEL[view]);
-};
+export function setGraphContents(next: TGraphContents) {
+  setLiveOutputSolo(next === 'wave');
+  setWaveHidden(next === 'curves');
+  setEqQuiet(next === 'layers');
+  setCurveHidden('eq', next === 'wave');
+}
 
+/**
+ * The caption belongs to the key, not to the writer.
+ *
+ * It used to be raised inside `setGraphContents`, which meant every control that
+ * named a state got one — including the legend chip, which is on the graph, an
+ * inch from where the caption appears. `announceGraphMode` says why that is
+ * wrong: a control that was just pressed has already said what it did. So the
+ * announcement moved out here, where the one caller that needs it is.
+ */
 export const cycleGraphContents = () => {
   const at = CONTENTS_ORDER.indexOf(getGraphContents());
-  setGraphContents(CONTENTS_ORDER[(at + 1) % CONTENTS_ORDER.length]);
+  const next = CONTENTS_ORDER[(at + 1) % CONTENTS_ORDER.length];
+  setGraphContents(next);
+  announceGraphMode(GRAPH_CONTENTS_LABEL[next]);
 };
+
+/**
+ * Put the bands' own line back, whatever the plot was doing. Ctrl+Q.
+ *
+ * Unconditional rather than a toggle, which is the whole point: the one thing
+ * the key promises is that the EQ curve is on the plot afterwards, so leaning on
+ * it can never be what took the curve away. A second press does nothing.
+ *
+ * Only `wave` is rescued, and the two states it leaves alone are deliberate
+ * rather than an oversight.
+ *
+ * `curves` already draws the line at full weight with its handles — the wave is
+ * what is missing there, and somebody who asked for the EQ curve did not ask for
+ * the visualiser back. Turning it on would be answering a question that was not
+ * put.
+ *
+ * `layers` draws the line too, thinly. That state exists so the curves
+ * underneath can be read *against* it, so the line being quiet is the deliberate
+ * arrangement rather than a curve gone missing, and a key that yanked somebody
+ * out of the reading state would be undoing a choice instead of repairing one.
+ * Ctrl+W is one press away for anybody who does want out.
+ *
+ * Which leaves `wave`, the single state where the EQ curve is genuinely not
+ * drawn — and `everything` is where it goes, because the wave is already up in
+ * that state and taking it away to add the curves would be trading one drawing
+ * for another.
+ */
+export const showEqCurve = () => {
+  if (getGraphContents() === 'wave') {
+    setGraphContents('everything');
+  }
+};
+
+/**
+ * Which of the four the plot is in, for anything that draws a control for it.
+ *
+ * One subscription across the three flags rather than three hooks and a
+ * derivation at each call site. The View menu needs the answer three times over
+ * — the wave row, the EQ row and the cycle row are all views onto this — and a
+ * menu that worked each of them out from a different flag is exactly how it
+ * ended up offering to hide a curve that was already gone.
+ */
+const subscribeContents = (listener: () => void) => {
+  soloListeners.add(listener);
+  waveListeners.add(listener);
+  quietEqListeners.add(listener);
+  return () => {
+    soloListeners.delete(listener);
+    waveListeners.delete(listener);
+    quietEqListeners.delete(listener);
+  };
+};
+
+export const useGraphContents = () =>
+  useSyncExternalStore(
+    subscribeContents,
+    getGraphContents,
+    () => 'everything' as TGraphContents,
+  );
 
 /**
  * Whether the EQ curve is drawn quietly rather than at full weight.
@@ -597,17 +689,31 @@ function setWaveHidden(next: boolean) {
   waveListeners.forEach((listener) => listener());
 }
 
-export const toggleGraphWave = () => {
-  const next = !isWaveHidden;
-  // The other half of the rule in `setLiveOutputSolo`: with the curves already
-  // dropped by solo, taking the wave away as well would leave a bare grid. The
-  // curves come back rather than the request being refused, because a control
-  // that quietly does nothing is worse than one that does something sensible.
-  if (next && isSolo) {
-    setLiveOutputSolo(false);
-  }
-  setWaveHidden(next);
-};
+/**
+ * The legend's own caption, and the View menu's row for it.
+ *
+ * Named states rather than the flag it reads, and that is the fix for a real
+ * fault rather than tidying. This used to set `isWaveHidden` itself and clear
+ * solo by hand, which made it the second writer of a set of values only
+ * `setGraphContents` is allowed to touch — and the drift was visible: hiding the
+ * wave while the plot was on `wave` left the EQ curve in `hiddenCurves`, so the
+ * plot said "curves only" with the loudest curve missing, and the next Ctrl+W
+ * put it back as if the key had done it.
+ *
+ * The no-blank-graph rule survives without being written twice. `curves` is a
+ * state with the wave off and the curves on, so asking for the wave to go can no
+ * longer also take the curves with it.
+ */
+export const toggleGraphWave = () =>
+  setGraphContents(isWaveHidden ? 'everything' : 'curves');
+
+/**
+ * The same answer outside a render. See `getGraphGridHidden`.
+ *
+ * For the key handler, which is registered once and would otherwise read a
+ * boolean captured when it was.
+ */
+export const getGraphWaveHidden = () => isWaveHidden;
 
 const subscribeWave = (listener: () => void) => {
   waveListeners.add(listener);
