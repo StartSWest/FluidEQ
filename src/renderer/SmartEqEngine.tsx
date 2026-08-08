@@ -25,6 +25,7 @@ import {
   describeSmartEqLayer,
   getSmartEqBands,
   stepSmartEqGains,
+  CONTINUOUS_SETTLE_DB,
 } from 'common/smartEq';
 import { getReferenceShape } from 'common/referenceCurve';
 import { getVoicingFilters } from 'common/voicing';
@@ -108,6 +109,48 @@ const CONTINUOUS_APPLY_TIMEOUT_MS = 10000;
  * constantly into something that speaks up when it has a reason to.
  */
 const CONTINUOUS_QUIET_MS = 20000;
+
+/**
+ * The shortest that window gets, when what is waiting is worth hearing about.
+ *
+ * Twenty seconds for everything was the same wait for a correction of eight
+ * tenths of a decibel and one of four, and that has no defence: the window
+ * exists so nobody has to notice this mode a dozen times a minute, and a
+ * correction big enough to hear is not the kind anybody minds noticing.
+ *
+ * So the wait scales with what is at stake. At the deadband it is the full
+ * twenty seconds, because a correction that only just clears the bar is exactly
+ * the sort that should wait its turn. At three decibels out it is four, because
+ * by then the sound is audibly wrong and making somebody sit through most of a
+ * minute of it to spare them a config write is the wrong trade.
+ *
+ * The window is global rather than per range, and that is not a limitation to
+ * be worked around: a write rewrites the whole config and Equalizer APO reloads
+ * the lot. Nine independent windows would be nine reloads, which is the thing
+ * being rationed. What is NOT waited on is the other ranges being ready -- only
+ * the ranges with something to say are written, and the rest are not held back
+ * by them.
+ */
+const CONTINUOUS_QUIET_MIN_MS = 4000;
+
+/** Disagreement at which the wait is as short as it gets, in dB. */
+const CONTINUOUS_URGENT_DB = 3;
+
+/**
+ * How long to wait before the next write, given the largest thing pending.
+ *
+ * Linear between the deadband and `CONTINUOUS_URGENT_DB`, so there is no step
+ * at which the behaviour jumps -- a correction that grows while it waits gets
+ * its turn sooner rather than crossing a threshold and lurching.
+ */
+const quietWindowFor = (largestDb: number) => {
+  const span = CONTINUOUS_URGENT_DB - CONTINUOUS_SETTLE_DB;
+  const over = Math.max(0, Math.min(span, largestDb - CONTINUOUS_SETTLE_DB));
+  const t = span > 0 ? over / span : 1;
+  return Math.round(
+    CONTINUOUS_QUIET_MS - (CONTINUOUS_QUIET_MS - CONTINUOUS_QUIET_MIN_MS) * t,
+  );
+};
 
 /**
  * How long the bubble stays up after the last thing it had to say.
@@ -921,20 +964,25 @@ const SmartEqEngine = () => {
      * actually be written. A range still gathering evidence contributes no
      * entry at all, which is the truthful answer rather than a zero.
      */
-    setSmartEqDisagreement(
-      Object.fromEntries(
-        report.regions.map((region) => {
-          const gaps = bands
-            .filter(
-              (band) =>
-                band.frequency >= region.lowFrequency &&
-                band.frequency <= region.highFrequency &&
-                scoped[band.id] !== undefined,
-            )
-            .map((band) => Math.abs(scoped[band.id] - band.gain));
-          return [region.label, gaps.length > 0 ? Math.max(...gaps) : 0];
-        }),
-      ),
+    const gapsByRange = Object.fromEntries(
+      report.regions.map((region) => {
+        const gaps = bands
+          .filter(
+            (band) =>
+              band.frequency >= region.lowFrequency &&
+              band.frequency <= region.highFrequency &&
+              scoped[band.id] !== undefined,
+          )
+          .map((band) => Math.abs(scoped[band.id] - band.gain));
+        return [region.label, gaps.length > 0 ? Math.max(...gaps) : 0];
+      }),
+    );
+    setSmartEqDisagreement(gapsByRange);
+    // The biggest thing waiting to be written, which is what sizes the wait
+    // before the next write. See `quietWindowFor`.
+    const largestPendingDb = Math.max(
+      0,
+      ...(Object.values(gapsByRange) as number[]),
     );
 
     // Toward where every window so far agrees the band belongs, not toward
@@ -1019,9 +1067,11 @@ const SmartEqEngine = () => {
         // The two windows do different jobs and both start now: the short one
         // is the analyser being lied to while APO reloads, the long one is how
         // often anybody should have to notice this mode at all.
-        quietUntilRef.current = Date.now() + CONTINUOUS_QUIET_MS;
-        // Published so the plot can say how long is left, but only for the
-        // ranges that have nothing else to wait for. See its store.
+        // Sized by what was actually pending, so a big correction is not made
+        // to wait as long as a marginal one. See `quietWindowFor`.
+        quietUntilRef.current = Date.now() + quietWindowFor(largestPendingDb);
+        // Published so the plot can say how long is left. One number, because
+        // one config write serves every range at once.
         setSmartEqQuietUntil(quietUntilRef.current);
         pendingResetRef.current = moved.map(({ index }) => index);
         // Marked here and nowhere earlier: this is the moment the chain on disk

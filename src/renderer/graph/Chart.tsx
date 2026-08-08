@@ -703,21 +703,39 @@ const CoverageOverlay = ({
                 })}
               </title>
             </rect>
-            {region.isCovered &&
-              disagreement[region.label] >= DISAGREEMENT_DEADBAND_DB &&
-              secondsLeft > 0 && (
-                <text
-                  className="chart-coverage__countdown"
-                  x={left + 1 + width / 2}
-                  y={plotHeight - 16}
-                  textAnchor="middle"
-                >
-                  {t('eq.smart.gap.countdown', { seconds: secondsLeft })}
-                </text>
-              )}
           </g>
         );
       })}
+      {/*
+       * ONE COUNTDOWN, NOT ONE PER RANGE, because there is one thing being
+       * waited for.
+       *
+       * It was drawn over every ready range and read as nine independent
+       * timers that all happened to agree, which is a strange thing for a
+       * picture to say. The wait is global because what it rations is global: a
+       * write rewrites the whole config and Equalizer APO reloads all of it, so
+       * nine windows would be nine reloads.
+       *
+       * What is NOT waited on is the other ranges. Only the ranges with
+       * something to say are written, and a range that is ready is never held
+       * back by one that is not — which the bars above already show, range by
+       * range. This says the remaining thing: when the next write may happen.
+       */}
+      {secondsLeft > 0 &&
+        coverage.some(
+          (region) =>
+            region.isCovered &&
+            (disagreement[region.label] ?? 0) >= DISAGREEMENT_DEADBAND_DB,
+        ) && (
+          <text
+            className="chart-coverage__countdown"
+            x={Number(xScale(20000)) - 6}
+            y={plotHeight - 16}
+            textAnchor="end"
+          >
+            {t('eq.smart.gap.countdown', { seconds: secondsLeft })}
+          </text>
+        )}
       {/*
        * HOW MUCH, AND NO MORE THAN THIS.
        *
