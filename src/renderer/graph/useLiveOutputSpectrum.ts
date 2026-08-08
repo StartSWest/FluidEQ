@@ -38,6 +38,7 @@ import {
   resetBalanceRegion,
   shouldFinishBalanceCapture,
 } from '../utils/autoBalance';
+import { getPresenceLine, presenceAllowance } from '../utils/presenceThreshold';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData } from './ChartController';
 
@@ -359,6 +360,13 @@ export interface IBalanceCaptureOptions extends IBalanceListenBounds {
 /** An auto-balance measurement in flight. */
 interface IBalanceSession {
   state: IBalanceCaptureState;
+  /**
+   * Scratch for the presence gate, reused rather than allocated per frame.
+   *
+   * Recomputed thirty times a second for as long as somebody is listening,
+   * which is the same reason the capture keeps its own reconstruction buffer.
+   */
+  presenceGate?: Float64Array;
   /** Identifies the analysis axis; a change means the device changed. */
   axisKey: string;
   onProgress?: (progress: IBalanceProgress) => void;
@@ -821,6 +829,33 @@ const useLiveOutputSpectrum = () => {
            * always describing the same instant.
            */
           setPresenceLevels(Array.from(session.state.liveDb));
+          /*
+           * The presence gate, recomputed from the lines every frame.
+           *
+           * Written here rather than inside the accumulator for the same reason
+           * the chain response is: it depends on where somebody has dragged
+           * these lines, which is a preference, and the accumulator has no
+           * business reading a store. It also has to be refreshed rather than
+           * held, because a drag moves it while the capture is running and the
+           * point of the drag is to see the fill respond.
+           *
+           * Ordered exactly as `state.regions`, which is what the accumulator
+           * indexes it by.
+           */
+          if (!session.presenceGate) {
+            session.presenceGate = new Float64Array(
+              session.state.regions.length,
+            );
+          }
+          session.state.regions.forEach((region, index) => {
+            const gate = presenceAllowance(
+              session.state.liveDb[index],
+              getPresenceLine('floor', region.label, region.centreFrequency),
+              getPresenceLine('full', region.label, region.centreFrequency),
+            );
+            (session.presenceGate as Float64Array)[index] = gate;
+          });
+          session.state.presenceGate = session.presenceGate;
         }
         evaluateSession(session, performance.now());
       };

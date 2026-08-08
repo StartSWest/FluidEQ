@@ -48,6 +48,7 @@ import {
   describeCorrectionShape,
 } from './utils/autoBalance';
 import { flashCorrection } from './utils/correctionFlash';
+import { setSmartEqDisagreement } from './utils/smartEqDisagreement';
 import {
   buildChainGainDb,
   buildLayerTargetCurve,
@@ -878,6 +879,36 @@ const SmartEqEngine = () => {
         scoped[band.id] = solved[band.id];
       }
     });
+
+    /*
+     * How far each range is from where it is being steered, for the plot.
+     *
+     * The coverage bar answers "how much of this range have I heard", which is
+     * only half of why a correction has not landed — and alone it is the
+     * misleading half, because a range can be completely heard and still sit
+     * there having nothing to say. Published beside it so both halves are
+     * visible: the largest gap in the range between a band and where this solve
+     * wanted it.
+     *
+     * Taken from `scoped` rather than `solved`, so it describes what would
+     * actually be written. A range still gathering evidence contributes no
+     * entry at all, which is the truthful answer rather than a zero.
+     */
+    setSmartEqDisagreement(
+      Object.fromEntries(
+        report.regions.map((region) => {
+          const gaps = bands
+            .filter(
+              (band) =>
+                band.frequency >= region.lowFrequency &&
+                band.frequency <= region.highFrequency &&
+                scoped[band.id] !== undefined,
+            )
+            .map((band) => Math.abs(scoped[band.id] - band.gain));
+          return [region.label, gaps.length > 0 ? Math.max(...gaps) : 0];
+        }),
+      ),
+    );
 
     // Toward where every window so far agrees the band belongs, not toward
     // what this one said.

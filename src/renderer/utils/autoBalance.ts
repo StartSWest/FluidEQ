@@ -1239,6 +1239,26 @@ export interface IBalanceCaptureState {
    * thing being detected.
    */
   liveDb: Float64Array;
+  /**
+   * How much each range is believed at this instant, from 0 to 1.
+   *
+   * Written by the owner of the capture rather than computed here, for the same
+   * reason `chainGainDb` is: it depends on where somebody has dragged that
+   * range's presence lines, which is a preference rather than a property of the
+   * measurement. The accumulator multiplies its frame weight by it and asks no
+   * questions.
+   *
+   * THIS IS WHY MOVING A LINE CHANGES HOW FAST A RANGE FILLS. The lines used to
+   * bound only the boost, so dragging one changed what a range was ALLOWED and
+   * not what was HEARD — and a coverage bar sitting under a line that plainly
+   * did not feed it explains less than no bar at all. Evidence gathered while a
+   * range is silent is evidence about silence, so it now counts for as little
+   * as the boost it would have justified.
+   *
+   * Absent means one everywhere, which is how every synthetic frame and every
+   * test predating this behaves.
+   */
+  presenceGate?: Float64Array;
   frames: number;
   acceptedFrames: number;
   listenedMs: number;
@@ -1741,7 +1761,16 @@ export const accumulateBalanceFrame = (
     if (e <= 0) {
       return;
     }
-    const ww = w * e;
+    // What this range has earned the right to teach, which is the same number
+    // that bounds what it may be given. A silent range now fills its evidence
+    // as slowly as it would have been corrected — see `presenceGate`.
+    const gate = state.presenceGate
+      ? clamp01(state.presenceGate[regionIndex])
+      : 1;
+    if (gate <= 0) {
+      return;
+    }
+    const ww = w * e * gate;
 
     // Weighted Welford, so the standard error is available without keeping
     // every frame.

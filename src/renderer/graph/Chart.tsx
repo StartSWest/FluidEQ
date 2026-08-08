@@ -47,6 +47,10 @@ import {
   usePresenceLines,
 } from '../utils/presenceThreshold';
 import { balanceRangeName } from '../utils/autoBalance';
+import {
+  DISAGREEMENT_DEADBAND_DB,
+  useSmartEqDisagreement,
+} from '../utils/smartEqDisagreement';
 import { useSmartEqMode } from '../utils/smartEqMode';
 import { useTranslation } from '../utils/I18nContext';
 import Curve from './Curve';
@@ -149,6 +153,8 @@ const CoverageOverlay = ({
   // all. The values themselves are taken through `getPresenceLine`, which knows
   // where an unset edge's default goes and which mode is asking.
   usePresenceLines();
+  // The other half of why a correction has not landed yet. See its store.
+  const disagreement = useSmartEqDisagreement();
   // Each mode keeps its own pair, so a mode change moves every line on screen.
   // Subscribed here rather than read once, because nothing else in this
   // component would notice.
@@ -534,6 +540,13 @@ const CoverageOverlay = ({
               height={4}
               rx={2}
             />
+            {/*
+             * The bar fills at the rate the presence gate allows, so it is
+             * tinted by that gate. Two readings of one fact rather than two
+             * facts: a range under its floor teaches nothing, so its bar stops
+             * growing, and now it says why by turning the same red as its
+             * column and its mark.
+             */}
             <rect
               className={`chart-coverage__fill${
                 region.isCovered ? ' is-covered' : ''
@@ -543,7 +556,47 @@ const CoverageOverlay = ({
               width={width * Math.min(1, region.confidence)}
               height={4}
               rx={2}
+              fill={region.isCovered ? undefined : presenceTint(allowance)}
             />
+            {/*
+             * How far this range disagrees with where it is being steered.
+             *
+             * The fill alone is the misleading half of the answer. A range can
+             * be completely heard and still sit there doing nothing, because
+             * being heard is not the same as having something to say — a write
+             * also needs the disagreement to clear the settle deadband. Without
+             * this, a full bar next to a correction that never comes looks like
+             * a fault.
+             *
+             * Drawn as a tick that crosses the bar once the deadband is passed,
+             * so its position is the ratio and its state is the verdict. Not a
+             * countdown: the quiet period and the evidence are two further
+             * conditions, and a single clock would promise an arrival either of
+             * them can postpone.
+             */}
+            {disagreement[region.label] > 0 && (
+              <rect
+                className={`chart-coverage__gap${
+                  disagreement[region.label] >= DISAGREEMENT_DEADBAND_DB
+                    ? ' is-past'
+                    : ''
+                }`}
+                x={
+                  left +
+                  1 +
+                  width *
+                    Math.min(
+                      1,
+                      disagreement[region.label] / DISAGREEMENT_DEADBAND_DB,
+                    ) -
+                  1
+                }
+                y={plotHeight - 9}
+                width={2}
+                height={10}
+                rx={1}
+              />
+            )}
           </g>
         );
       })}

@@ -34,6 +34,29 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// How far this range disagrees with where it is being steered, as a fraction of
+// the deadband a write has to clear. The fill beside it says how much has been
+// heard, which alone is the misleading half: a range can be fully heard and
+// still sit there, because being heard is not the same as having something to
+// say. Muted until the deadband is passed, then bright — position is the ratio,
+// brightness is the verdict.
+.chart-coverage__gap {
+  fill: rgba(216, 210, 255, 0.4);
+  transition:
+    x 400ms ease,
+    fill 200ms ease;
+
+  &.is-past {
+    fill: #ffd24a;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-coverage__gap {
+    transition: none;
+  }
+}
+
 // The presence line: below it a range counts as not playing, and is never
 // boosted. Deliberately thin, because it is read against the trace it sits
 // under and a thick rule would hide the very thing it is being set by. What
