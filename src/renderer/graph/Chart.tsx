@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -36,6 +37,12 @@ import {
   useLiveOutputSolo,
 } from '../utils/graphStyle';
 import { toggleChromeNow } from '../utils/idleChrome';
+import {
+  getPresenceThreshold,
+  resetPresenceThreshold,
+  setPresenceThreshold,
+  usePresenceThresholds,
+} from '../utils/presenceThreshold';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 import LiveTraceCanvas from './LiveTraceCanvas';
@@ -45,6 +52,16 @@ export interface ChartDimensions {
   width: number;
   margins: IMarginLike;
 }
+
+/**
+ * How far either side of a presence line takes the pointer.
+ *
+ * The line has to be thin — it is being read against the trace it sits under,
+ * and a thick one hides the very thing somebody is judging it by. So the line
+ * is drawn at a couple of pixels and the thing you actually grab is this, which
+ * is invisible and much taller.
+ */
+const PRESENCE_GRAB_PX = 9;
 
 /**
  * The Smart EQ coverage overlay, subscribed to the measurement itself.
@@ -63,10 +80,12 @@ export interface ChartDimensions {
 
 const CoverageOverlay = ({
   xScale,
+  yScale,
   top,
   plotHeight,
 }: {
   xScale: AxisScale<NumberValue>;
+  yScale: AxisScale<NumberValue>;
   top: number;
   plotHeight: number;
 }) => {
@@ -76,6 +95,29 @@ const CoverageOverlay = ({
   // `useGraphCoverageHidden` for why the switch stops short of them.
   const isWashHidden = useGraphCoverageHidden();
   const coverage = balanceProgress?.regions;
+  // Read so a drag anywhere re-renders every line, since one store holds them
+  // all. The values themselves are taken through `getPresenceThreshold`, which
+  // knows where an unset range's default goes.
+  usePresenceThresholds();
+  const dragging = useRef<string | undefined>(undefined);
+
+  /**
+   * Where a pointer sits, in the chart's own decibels.
+   *
+   * Read off the owning `<svg>` rather than the group, because the group is
+   * translated by the margins and `getBoundingClientRect` on an SVG group
+   * reports the union of what it draws — which changes as the lines move, so a
+   * drag computed against it would chase itself.
+   */
+  const dbAt = (event: { clientY: number; currentTarget: SVGElement }) => {
+    const svg = event.currentTarget.ownerSVGElement;
+    if (!svg) {
+      return undefined;
+    }
+    const y = event.clientY - svg.getBoundingClientRect().top;
+    const { invert } = yScale as unknown as { invert?: (v: number) => number };
+    return typeof invert === 'function' ? invert(y) : undefined;
+  };
 
   // Nothing while the curves are off: somebody in that mode is watching the
   // wave, and columns marching across it are measurement furniture on a drawing
@@ -104,6 +146,14 @@ const CoverageOverlay = ({
         const right = Number(xScale(region.highFrequency));
         const width = Math.max(0, right - left - 2);
         const height = Math.max(0, plotHeight - top);
+        // Geometric centre, which is what the range's own `centreFrequency`
+        // is — recomputed here rather than carried through the progress report,
+        // since only the default placement needs it.
+        const thresholdDb = getPresenceThreshold(
+          region.label,
+          Math.sqrt(region.lowFrequency * region.highFrequency),
+        );
+        const thresholdY = Number(yScale(thresholdDb));
         return (
           <g key={region.label}>
             {!isWashHidden && (
@@ -115,6 +165,90 @@ const CoverageOverlay = ({
                 height={height}
                 opacity={0.06 + region.confidence * 0.14}
               />
+            )}
+            {/*
+             * The line under which this range is not playing, and so is not
+             * boosted. It goes with the shaded columns rather than with the
+             * bars along the foot: it belongs to the range it divides, it needs
+             * the whole height of the plot to be dragged through, and somebody
+             * who has switched the columns off has said they do not want the
+             * measurement drawn over the music.
+             *
+             * The grab area is much taller than the line and is the only part
+             * that takes a pointer, so a two-pixel rule is catchable without
+             * the line itself having to be thick enough to obscure the trace it
+             * is being set against.
+             */}
+            {!isWashHidden && Number.isFinite(thresholdY) && (
+              <g
+                className={`chart-presence${
+                  dragging.current === region.label ? ' is-dragging' : ''
+                }`}
+              >
+                {/*
+                 * The dead zone, drawn rather than described.
+                 *
+                 * A line on its own says where something changes but not what
+                 * changes, and nobody reads a tooltip before dragging. Shading
+                 * everything underneath says it in the only way that needs no
+                 * words: this part of this range does not count. When the trace
+                 * dips into the shaded area during a solo passage, the reason
+                 * the bass is not being lifted is on screen, in the place the
+                 * lifting would have happened.
+                 */}
+                <rect
+                  className="chart-presence__floor"
+                  x={left + 1}
+                  y={thresholdY}
+                  width={width}
+                  height={Math.max(0, plotHeight - thresholdY)}
+                />
+                <line
+                  className="chart-presence__line"
+                  x1={left + 1}
+                  x2={left + 1 + width}
+                  y1={thresholdY}
+                  y2={thresholdY}
+                />
+                {/* Named and numbered on approach, so a drag is aimed rather
+                    than guessed at. Hidden until then — nine captions standing
+                    permanently over the trace is worse than no caption. */}
+                <text
+                  className="chart-presence__label"
+                  x={left + 1 + width / 2}
+                  y={thresholdY - 5}
+                  textAnchor="middle"
+                >
+                  {`${region.label} · ignored below ${thresholdDb.toFixed(0)} dB`}
+                </text>
+                <rect
+                  className="chart-presence__grab"
+                  x={left + 1}
+                  y={thresholdY - PRESENCE_GRAB_PX}
+                  width={width}
+                  height={PRESENCE_GRAB_PX * 2}
+                  pointerEvents="all"
+                  onPointerDown={(event) => {
+                    event.stopPropagation();
+                    dragging.current = region.label;
+                    event.currentTarget.setPointerCapture(event.pointerId);
+                  }}
+                  onPointerMove={(event) => {
+                    if (dragging.current !== region.label) {
+                      return;
+                    }
+                    const db = dbAt(event);
+                    if (db !== undefined) {
+                      setPresenceThreshold(region.label, db);
+                    }
+                  }}
+                  onPointerUp={(event) => {
+                    dragging.current = undefined;
+                    event.currentTarget.releasePointerCapture(event.pointerId);
+                  }}
+                  onDoubleClick={() => resetPresenceThreshold(region.label)}
+                />
+              </g>
             )}
             <rect
               className="chart-coverage__track"
@@ -481,6 +615,7 @@ const Chart = ({
           waits. */}
         <CoverageOverlay
           xScale={xScaleFreq}
+          yScale={yScaleGain}
           top={padding.top}
           plotHeight={plotHeight}
         />
