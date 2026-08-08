@@ -529,7 +529,14 @@ const CoverageOverlay = ({
                     const y = edge === 'floor' ? floorY : fullY;
                     const dragKey = `${region.label}:${edge}`;
                     return (
-                      <g key={edge} className={`chart-presence--${edge}`}>
+                      <g
+                        key={edge}
+                        // Its own dragging flag, so the caption that follows a
+                        // drag is the dragged line's and only that one.
+                        className={`chart-presence--${edge}${
+                          dragging.current === dragKey ? ' is-dragging' : ''
+                        }`}
+                      >
                         <line
                           className="chart-presence__line"
                           x1={left + 1}

@@ -285,10 +285,21 @@ it under the terms of the GNU General Public License version 3 or later.
     opacity: 1;
   }
 
-  .chart-presence__label,
   .chart-presence__reset {
     opacity: 1;
   }
+}
+
+// Each caption lights with ITS OWN line, not with the pair. Group hover showed
+// both at once, and the moment the two lines sat close — which is what a
+// narrow ramp is — their two-line captions printed over each other into hash.
+// Per-edge, only the caption of the line under the pointer (or being dragged)
+// exists, so there is never a second one to collide with.
+.chart-presence--floor:hover .chart-presence__label,
+.chart-presence--floor.is-dragging .chart-presence__label,
+.chart-presence--full:hover .chart-presence__label,
+.chart-presence--full.is-dragging .chart-presence__label {
+  opacity: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
