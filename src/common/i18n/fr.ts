@@ -207,6 +207,7 @@ const fr: Partial<Dictionary> = {
   'eq.layers.smart.fullRange': 'Mesuré · toute la bande',
   'eq.layers.smart.range': 'Mesuré · de {low} à {high}',
   'eq.layers.remove': 'Retirer la couche {layer}',
+  'eq.layers.clearBands': 'Remettre toutes les bandes à 0 dB',
   'eq.layers.clearReference':
     'Effacer le modèle de référence et les bandes qu’il a produites',
   'eq.layers.clearSmart':
@@ -252,6 +253,9 @@ const fr: Partial<Dictionary> = {
   'voicing.title': 'Caractère',
   'voicing.intro':
     'Une cible réglée pour ce que vous êtes en train de faire. Chacune s’écrit comme sa propre couche après vos bandes, votre réglage n’est donc jamais touché et revenir à Aucun le restitue exactement.',
+  'voicing.refused': 'Impossible de changer le voicing',
+  'voicing.groupPurpose': 'Pour quoi',
+  'voicing.groupGenre': 'Genre',
   'voicing.none': 'Aucun',
   'voicing.none.hint': 'Vos bandes d’égalisation seules, rien par-dessus',
   'voicing.strength': 'Intensité',

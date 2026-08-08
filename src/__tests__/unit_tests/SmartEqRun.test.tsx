@@ -246,23 +246,21 @@ describe('a Smart EQ run while the world changes underneath it', () => {
   });
 
   /**
-   * Narrower than it was, and the reason is worth stating.
+   * Checkable again, and it was not for a while.
    *
-   * The run clears the layer itself now, always, so that it measures a flat
-   * output. That makes a clear arriving from the chip mid-listen invisible to
-   * it: the state was already `undefined`, so there is nothing to notice and no
-   * way to tell somebody else's clear from its own. What used to be checked
-   * here — that the run restarts rather than writing over the clear — cannot be
-   * checked any more, because the situation it described no longer exists.
+   * The run used to clear this layer before listening, so that it measured a
+   * flat output — which made a clear arriving from the chip mid-listen
+   * invisible to it. The state was already `undefined`, so there was nothing to
+   * notice and no way to tell somebody else's clear from its own, and this test
+   * had to be narrowed to the half that survived.
    *
-   * What must still hold is that the result is measured from nothing rather
-   * than accumulated onto the layer that was there when the run began. That is
-   * the half with teeth, and it is what this asserts.
-   *
-   * The property about *other profiles* is untouched and still guarded by the
-   * test below: a different layer arriving mid-run is a value the run can see.
+   * Nothing is cleared before listening now; the run measures the output as it
+   * stands. So the situation exists again and so does the property with teeth: a
+   * clear is a change to the audible chain like any other, and a run that wrote
+   * `the gains it started from + this residual` over the top of one would
+   * silently undo it.
    */
-  it('measures from flat, not from the layer it started with', async () => {
+  it('restarts rather than writing over a clear that arrived mid-listen', async () => {
     mockLive.smartEq = LAYER_A;
     await startRun();
 
@@ -272,9 +270,13 @@ describe('a Smart EQ run while the world changes underneath it', () => {
     });
     await completeCapture();
 
+    expect(writtenLayers()).toHaveLength(0);
+    expect(mockCaptureBalanceProfile).toHaveBeenCalledTimes(2);
+
+    // The second attempt measures the chain the user now has, and is seeded
+    // from nothing rather than from LAYER_A's +6 dB at 63 Hz.
+    await completeCapture();
     await waitFor(() => expect(writtenLayers().length).toBeGreaterThan(0));
-    // Seeded from nothing. Accumulating onto LAYER_A would leave this at or
-    // above the +6 dB it carried at 63 Hz; a fresh solve is far below it.
     expect(lastWrittenLayer()?.filters['smart-63'].gain).toBeLessThan(
       LAYER_A?.filters['smart-63'].gain ?? 0,
     );

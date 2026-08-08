@@ -147,6 +147,24 @@ export const EFFECTIVE_FRAME_RATIO = 0.15;
 /** Confidence at which a region counts as heard. */
 export const REGION_COVERED_CONFIDENCE = 0.9;
 
+/**
+ * Weight below which a region is not being fed at all, rather than being fed
+ * slowly.
+ *
+ * Only the readout uses it, and only under the continuous modes, where evidence
+ * decays on a half-life: a region the music has stopped reaching loses weight
+ * steadily, so a low weight really does mean "nothing is arriving here lately"
+ * rather than "this only just started".
+ *
+ * The distinction matters because a range with no content never covers and never
+ * will. Naming it as something the measurement still needs is true and useless —
+ * it is what left "Listening 0% - needs air" on screen for an entire evening
+ * while every other range filled, was corrected, and filled again. About a third
+ * of a second of fully-excited frames, which anything actually present clears
+ * immediately.
+ */
+export const REGION_ACTIVE_WEIGHT = REGION_TARGET_WEIGHT * 0.15;
+
 /** Floor no convergence test can bypass, and the hard ceiling. Both measure
  * *listened* time, so silence never counts against the user. */
 export const MIN_LISTEN_MS = 4000;
@@ -916,6 +934,27 @@ export interface IBalanceRegionState {
 
 export interface IBalanceCaptureState {
   axis: number[];
+  /** Set only for a capture that never ends. See CONTINUOUS_HALF_LIFE_MS. */
+  halfLifeMs?: number;
+  /**
+   * What the applied chain is doing at each axis point right now, in dB, so the
+   * capture measures the record rather than the output. See
+   * `accumulateBalanceFrame` for why that is the whole design and not an
+   * adjustment to it.
+   *
+   * Written by the owner of the capture rather than by the accumulator, because
+   * the chain changes underneath a session that never ends — every correction
+   * this loop applies changes it — and the accumulator has no way to know.
+   * Absent means "nothing is applied", which is what a synthetic frame in a test
+   * wants.
+   */
+  chainGainDb?: number[];
+  /**
+   * Scratch for the reconstructed source. Reused rather than allocated per
+   * frame: this runs about twenty times a second for as long as somebody is
+   * listening.
+   */
+  sourceLevels?: Float64Array;
   regions: IBalanceRegion[];
   /** Sum of weight * linear power per axis point, relative to the frame's own
    * mean level. */
@@ -990,10 +1029,17 @@ export interface IBalanceProgressRegion {
   highFrequency: number;
   confidence: number;
   isCovered: boolean;
+  /** How much evidence this range holds — see `REGION_ACTIVE_WEIGHT` for the
+   * one thing the readout does with it. */
+  weight: number;
 }
 
 export interface IBalanceProgress {
-  /** 0..100, monotone; never reaches 100 until the capture is done. */
+  /**
+   * 0..100. Monotone during a one-shot, where it is progress toward an answer
+   * and must never count backwards; live under the continuous modes, where it
+   * is the state of nine independent ranges and has no destination.
+   */
   percent: number;
   weakestLabel: string;
   isSettling: boolean;
@@ -1047,10 +1093,17 @@ export const createBalanceRegions = (
 
 export const createBalanceCaptureState = (
   axis: readonly number[],
+  /**
+   * How long evidence keeps its full weight, for a capture that never ends.
+   * Absent means never forget, which is right for a measurement that stops of
+   * its own accord — see `CONTINUOUS_HALF_LIFE_MS`.
+   */
+  halfLifeMs?: number,
 ): IBalanceCaptureState => {
   const regions = createBalanceRegions(axis);
   return {
     axis: [...axis],
+    halfLifeMs,
     regions,
     power: new Float64Array(axis.length),
     weight: new Float64Array(axis.length),
@@ -1103,6 +1156,40 @@ export const resetBalanceRegion = (
   state.checkpoint = undefined;
 };
 
+/**
+ * How long evidence takes to lose half its weight, for a capture that never
+ * ends.
+ *
+ * THE ACCUMULATOR WAS BUILT FOR A MEASUREMENT THAT STOPS. Four to twenty-five
+ * seconds, everything weighted equally, and at the end an answer — for which
+ * adding weight forever is not merely acceptable but correct.
+ *
+ * Continuous EQ then ran the same accumulator for hours, and the arithmetic
+ * turns against it: after a few minutes the summed weight is so large that a
+ * new frame moves the average by almost nothing. The measurement freezes at
+ * whatever it heard early on and stops responding to the room, the record, or
+ * anything else. Corrected ranges are cleared and recover; ranges that were
+ * already right are never cleared, so they never recover — and once everything
+ * is inside the deadband, nothing is cleared again and the whole thing is stuck
+ * for good, still reporting confidently.
+ *
+ * A half-life fixes it in one line of arithmetic: old evidence fades, so the
+ * estimate is always of roughly the last couple of minutes rather than of
+ * everything since the mode was switched on. Confidence fades with it, which is
+ * the right second-order effect — a range that stops being heard stops being
+ * correctable rather than staying trusted on the strength of an old
+ * measurement.
+ *
+ * Forty-five seconds, against a couple of seconds to reach coverage and twenty
+ * between corrections: long enough that a correction is decided on far more
+ * than one passage, short enough that a change of record is reflected within a
+ * few minutes.
+ *
+ * Measured in LISTENED time, like every other clock here, so an evening with
+ * the music paused does not age anything.
+ */
+export const CONTINUOUS_HALF_LIFE_MS = 45000;
+
 /** Power mean of `levels` over an inclusive index range, in dB. */
 const regionLevelDb = (
   levels: Float64Array,
@@ -1133,8 +1220,69 @@ export const accumulateBalanceFrame = (
   state: IBalanceCaptureState,
   frame: IBalanceFrame,
 ): IBalanceCaptureState => {
+  /*
+   * THE RECORD, THROUGH THE ONE LAYER THAT IS TRYING TO FIX IT.
+   *
+   * The capture is a loopback, so what arrives is the output: the record with
+   * every layer already on it. Neither taking that at face value nor stripping
+   * it back to nothing is right, and the reasons pull in opposite directions.
+   *
+   * Measuring the whole output is blind to a cut. Crush 6.5 kHz by 20 dB and the
+   * evidence that the cut is wrong goes with it — the range never gathers enough
+   * to act on, so the measurement waits on it for the rest of the evening, and
+   * the bigger the mistake the more thoroughly it hides. It also cannot tell a
+   * fault from a decision, so every deliberate layer has to be handed back as a
+   * list of exceptions to excuse, which is a list that was wrong about at least
+   * one entry at every point in this file's history.
+   *
+   * Subtracting the whole chain fixes that and breaks something worse: it opens
+   * the loop. A correction that cannot hear its own result cannot check it.
+   * Every error in the filter model, in this subtraction, in the analyser's own
+   * response would land in the sound and stay there uncontested, because nothing
+   * downstream ever measures the consequence.
+   *
+   * So `chainGainDb` carries everything EXCEPT the Smart EQ layer. What is left
+   * after the subtraction is the record plus the correction so far, which is
+   * exactly the quantity worth having: how far the sound still is from where it
+   * belongs, given everything already done about it. Cuts made by the user no
+   * longer hide anything, because they are gone from the measurement; cuts made
+   * by the correction are still audible to it, because they are the thing being
+   * verified.
+   *
+   * Re-read every frame, because a continuous session changes the chain
+   * underneath itself every time it corrects something.
+   *
+   * Reconstruction is not resurrection. A point at the analyser's floor carries
+   * no information and adding gain to it would manufacture a spectrum out of
+   * dither, so those are dropped rather than compensated — which is the one
+   * thing subtraction genuinely cannot get back.
+   */
+  let { levels, peakDb } = frame;
+  if (state.chainGainDb) {
+    if (!state.sourceLevels || state.sourceLevels.length !== levels.length) {
+      state.sourceLevels = new Float64Array(levels.length);
+    }
+    const source = state.sourceLevels;
+    let peak = Number.NEGATIVE_INFINITY;
+    for (let index = 0; index < levels.length; index += 1) {
+      const level = levels[index];
+      if (!Number.isFinite(level) || level < ABS_FLOOR_DBFS) {
+        source[index] = Number.NaN;
+      } else {
+        source[index] = level - (state.chainGainDb[index] ?? 0);
+        if (source[index] > peak) {
+          peak = source[index];
+        }
+      }
+    }
+    levels = source;
+    if (Number.isFinite(peak)) {
+      peakDb = peak;
+    }
+  }
+
   const w = clamp01(
-    (frame.peakDb - FRAME_MIN_PEAK_DBFS) /
+    (peakDb - FRAME_MIN_PEAK_DBFS) /
       (FRAME_FULL_PEAK_DBFS - FRAME_MIN_PEAK_DBFS),
   );
 
@@ -1156,8 +1304,8 @@ export const accumulateBalanceFrame = (
   // constant, so using it changes nothing downstream except the noise.
   let refPower = 0;
   let refCount = 0;
-  for (let index = 0; index < frame.levels.length; index += 1) {
-    const level = frame.levels[index];
+  for (let index = 0; index < levels.length; index += 1) {
+    const level = levels[index];
     if (Number.isFinite(level)) {
       refPower += 10 ** (level / 10);
       refCount += 1;
@@ -1171,21 +1319,42 @@ export const accumulateBalanceFrame = (
     return state;
   }
 
+  // Age what is already here before adding to it.
+  //
+  // Everything is scaled by the same factor, so every mean is untouched and
+  // only the confidence behind it shrinks — which is exactly the claim being
+  // made: the estimate still says what it said, it is simply less sure of it
+  // than it was a minute ago. See `CONTINUOUS_HALF_LIFE_MS`.
+  if (state.halfLifeMs && dt > 0) {
+    const keep = 0.5 ** (dt / state.halfLifeMs);
+    for (let index = 0; index < state.power.length; index += 1) {
+      state.power[index] *= keep;
+      state.weight[index] *= keep;
+    }
+    state.regionStates.forEach((region) => {
+      /* eslint-disable no-param-reassign */
+      region.weight *= keep;
+      region.m2 *= keep;
+      /* eslint-enable no-param-reassign */
+    });
+  }
+
   state.listenedMs += dt;
   state.acceptedFrames += 1;
 
   state.regions.forEach((region, regionIndex) => {
-    const absDb = regionLevelDb(
-      frame.levels,
-      region.firstIndex,
-      region.lastIndex,
-    );
+    const absDb = regionLevelDb(levels, region.firstIndex, region.lastIndex);
     if (!Number.isFinite(absDb) || absDb < ABS_FLOOR_DBFS) {
       return;
     }
 
+    // Both sides of this are the source, which is what makes it mean what it
+    // says: "the record has nothing here" rather than "the chain has left
+    // nothing here". The second is what it used to mean, and it is why a range
+    // cut hard was never corrected — the cut removed the evidence against
+    // itself.
     const e = clamp01(
-      (absDb - (frame.peakDb - REGION_FLOOR_DB)) / REGION_FLOOR_RAMP_DB,
+      (absDb - (peakDb - REGION_FLOOR_DB)) / REGION_FLOOR_RAMP_DB,
     );
     if (e <= 0) {
       return;
@@ -1202,7 +1371,7 @@ export const accumulateBalanceFrame = (
     s.m2 += ww * delta * (x - s.mean);
 
     for (let index = region.firstIndex; index <= region.lastIndex; index += 1) {
-      const level = frame.levels[index];
+      const level = levels[index];
       if (Number.isFinite(level)) {
         const rel = clamp(level - refDb, LEVEL_CLAMP_LO, LEVEL_CLAMP_HI);
         state.power[index] += ww * 10 ** (rel / 10);
@@ -1445,21 +1614,52 @@ export const buildBalanceResult = (report: IBalanceReport): IBalanceResult => {
 export const buildBalanceProgress = (
   report: IBalanceReport,
   previousPercent: number,
-  flags: { isSilent: boolean; isPaused: boolean },
+  flags: { isSilent: boolean; isPaused: boolean; isContinuous?: boolean },
 ): IBalanceProgress => {
   const isSettling =
     report.coverage >= REGION_COVERED_CONFIDENCE && !report.isConverged;
+  // The weakest region for a one-shot, the average of them for a continuous
+  // mode, and the difference is not cosmetic.
+  //
+  // "All frequencies heard" is a minimum, and a measurement that has to finish
+  // is right to report the range holding it up. Nine ranges running
+  // independently have nothing holding them up: each is corrected the moment it
+  // alone has been heard. Reporting the minimum there hands the whole readout to
+  // whichever range the music never reaches — one quiet top end and it says 0%
+  // for the evening while everything else fills, corrects, and fills again.
+  const heard = Math.round(
+    (flags.isContinuous ? report.meanCoverage : report.coverage) * 100,
+  );
+  // Monotone for the one-shot: coverage dips when a new region starts
+  // contributing, and a progress bar that counts backwards on its way to an
+  // answer reads as a malfunction.
+  //
+  // NOT monotone for the continuous modes, where the same rule froze the
+  // readout. Coverage there is a live state and not a journey: correcting a
+  // range clears its evidence deliberately, and the half-life takes the rest
+  // back when the music stops feeding it. Both are the number falling for a
+  // good reason. Clamped, it reached 100 within a minute of the first track and
+  // stayed there for the evening, over a row of full bars, next to the words
+  // "needs deep bass" — a readout that was wrong, stuck, and arguing with itself
+  // at the same time.
+  const percent = (() => {
+    if (flags.isContinuous) {
+      return heard;
+    }
+    if (report.status !== 'listening') {
+      return 100;
+    }
+    return Math.min(99, Math.max(previousPercent, heard));
+  })();
   return {
-    // Monotone: coverage can dip when a new region starts contributing, and a
-    // progress number that goes backwards reads as a malfunction.
-    percent:
-      report.status !== 'listening'
-        ? 100
-        : Math.min(
-            99,
-            Math.max(previousPercent, Math.round(report.coverage * 100)),
-          ),
-    weakestLabel: isSettling ? '' : (report.weakest?.label ?? ''),
+    percent,
+    // Named only while it is actually short. A covered region is not something
+    // the measurement still needs, and saying it needed one at 100% was the
+    // contradiction on screen.
+    weakestLabel:
+      isSettling || report.weakest?.isCovered
+        ? ''
+        : (report.weakest?.label ?? ''),
     isSettling,
     isSilent: flags.isSilent,
     isPaused: flags.isPaused,
@@ -1470,8 +1670,65 @@ export const buildBalanceProgress = (
       highFrequency: region.highFrequency,
       confidence: region.confidence,
       isCovered: region.isCovered,
+      weight: region.weight,
     })),
   };
+};
+
+/**
+ * What the continuous modes are doing, which is several things at once.
+ *
+ * Its own describer rather than the one-shot's, because the two measurements
+ * have a different shape and the sentence has to match. A one-shot converges as
+ * a whole and is over when it is over, so naming the single range holding it up
+ * is exactly the useful thing to say. The continuous modes never converge and
+ * never finish: every range fills at its own rate, is corrected the moment it
+ * alone has been heard, and is cleared on its own so it can start again while
+ * its neighbours carry on undisturbed. At any moment several are mid-flight and
+ * the rest are covered.
+ *
+ * Borrowing the one-shot's sentence for it named one of those and implied it was
+ * the only one, and — because `weakest` is the least confident region rather
+ * than a short one — went on naming it after everything was covered, so the
+ * bubble asked for deep bass while nothing anywhere was moving.
+ *
+ * Ranges still filling, all of them, capped so it stays a sentence. Empty when
+ * none are, which is the ordinary steady state: everything heard, nothing far
+ * enough out to touch, still listening.
+ */
+export const describeContinuousProgress = (
+  progress: IBalanceProgress,
+): string => {
+  if (progress.isPaused) {
+    return 'Paused';
+  }
+  if (progress.isSilent) {
+    return 'Waiting for sound';
+  }
+  // Filling right now — uncovered AND actually being fed. The second half is
+  // what stops the sentence going stale: a range with no content never covers,
+  // so on the first test alone it stayed named forever and the bubble was frozen
+  // on a request nothing was ever going to satisfy.
+  const filling = progress.regions
+    .filter(
+      (region) => !region.isCovered && region.weight >= REGION_ACTIVE_WEIGHT,
+    )
+    .map((region) => region.label);
+  if (filling.length === 0) {
+    return 'Listening';
+  }
+  const named = filling.slice(0, MAX_NAMED_RANGES).join(', ');
+  const rest = filling.length - MAX_NAMED_RANGES;
+  // "Waiting on", not "needs".
+  //
+  // Both mean "has not heard this range well enough yet", and only one of them
+  // survives being read quickly. "Needs air" over a top end somebody has just
+  // boosted by seventeen decibels reads as the app asking for more of it, which
+  // is the opposite of what it means and makes the whole readout look like it is
+  // not listening to the same sound the user is.
+  return `Listening ${progress.percent}% - waiting on ${named}${
+    rest > 0 ? ` +${rest}` : ''
+  }`;
 };
 
 export const formatBalanceFrequency = (frequency: number): string =>
@@ -1492,7 +1749,10 @@ export const describeBalanceProgress = (progress: IBalanceProgress): string => {
   if (!progress.weakestLabel) {
     return `Listening ${progress.percent}%`;
   }
-  return `Listening ${progress.percent}% - needs ${progress.weakestLabel}`;
+  // "Waiting on" rather than "needs", for the reason written out in
+  // `describeContinuousProgress`: this names a range the measurement has not
+  // heard enough of, and "needs" reads as a request to boost it.
+  return `Listening ${progress.percent}% - waiting on ${progress.weakestLabel}`;
 };
 
 /**
@@ -1537,10 +1797,84 @@ export const describeCorrectionShape = (filters: IFilter[]): string => {
     .filter((entry) => Math.abs(entry.mean) >= NAMEABLE_CORRECTION_DB)
     .sort((left, right) => Math.abs(right.mean) - Math.abs(left.mean))
     .slice(0, MAX_NAMED_RANGES)
-    // Verbs, because this is a thing being done rather than a column of
-    // numbers. "Lifting air" is what somebody would say about it out loud;
-    // "air +2.4" is what the config file already says, better.
-    .map((entry) => `${entry.mean > 0 ? 'lifting' : 'easing'} ${entry.label}`);
+    // Verbs, because this is a thing that was done rather than a column of
+    // numbers. "Lifted air" is what somebody would say about it out loud; "air
+    // +2.4" is what the config file already says, better.
+    //
+    // Past tense, and that is not a nicety. This is read off the gains of a
+    // finished layer and printed next to the word that says the measurement is
+    // over — "lifting air" beside "Balanced" reads as a run still going, which
+    // is the one thing the sentence must not imply.
+    .map((entry) => `${entry.mean > 0 ? 'lifted' : 'eased'} ${entry.label}`);
+
+  const said = named.join(', ');
+  return said ? said.charAt(0).toUpperCase() + said.slice(1) : '';
+};
+
+/**
+ * What the correction still owes the music, in words.
+ *
+ * The sibling of `describeCorrectionShape`, and the difference is which
+ * question it answers. That one says what the correction adds up to, which is
+ * the right thing to report at the end of a measurement. This one says what is
+ * about to change, which is the right thing to report while a mode is running.
+ *
+ * Handed the gains the layer WOULD have — `stepSmartEqGains` against the
+ * long-run destination — rather than the destination itself, and that is what
+ * makes it honest. A band inside the deadband does not move, and a band already
+ * at the ceiling cannot, so neither can be named: the step function has already
+ * decided both, and reading its answer means this cannot promise a correction
+ * that is never going to happen. It stays true for as long as the gap does,
+ * which is the whole time the mode is working toward it and no longer.
+ *
+ * Only bands that move count toward a range's average. Averaging the still ones
+ * in as zeroes is how a range with one band a long way out reported a quarter of
+ * what it was about to do.
+ *
+ * Phrased as a need rather than as an operation. "Needs more air" is what the
+ * thing is for; "lifting air" is a description of a subroutine.
+ */
+export const describeCorrectionNeed = (
+  bands: IFilter[],
+  next: Record<string, number>,
+  regions: {
+    label: string;
+    lowFrequency: number;
+    highFrequency: number;
+  }[] = BALANCE_REGION_LABELS.map((label, index) => ({
+    label,
+    lowFrequency: BALANCE_REGION_EDGES[index],
+    highFrequency: BALANCE_REGION_EDGES[index + 1],
+  })),
+): string => {
+  const named = regions
+    .map((region) => {
+      const moving = bands
+        .filter(
+          (band) =>
+            band.frequency >= region.lowFrequency &&
+            band.frequency < region.highFrequency,
+        )
+        .map((band) =>
+          Number.isFinite(next[band.id]) ? next[band.id] - band.gain : 0,
+        )
+        .filter((delta) => delta !== 0);
+      const delta = moving.length
+        ? moving.reduce((total, entry) => total + entry, 0) / moving.length
+        : 0;
+      return { label: region.label, delta };
+    })
+    .filter((entry) => entry.delta !== 0)
+    .sort((left, right) => Math.abs(right.delta) - Math.abs(left.delta))
+    .slice(0, MAX_NAMED_RANGES)
+    // What is wrong, not what is being done about it. "Easing air" is a
+    // description of a subroutine; "too much air" is the observation that made
+    // it run, and it is the half somebody can agree or disagree with — which
+    // matters, because the commonest reason to look at this is to check whether
+    // the thing is hearing the same sound you are.
+    .map((entry) =>
+      entry.delta > 0 ? `needs more ${entry.label}` : `too much ${entry.label}`,
+    );
 
   const said = named.join(', ');
   return said ? said.charAt(0).toUpperCase() + said.slice(1) : '';

@@ -110,6 +110,62 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 2px;
 }
 
+// Quieter than the name and riding alongside it, because it qualifies the name
+// rather than being a second thing on the button.
+//
+// Fixed width and tabular figures, so no value between 0% and 100% is a
+// different size from any other. Without both, dragging the strength slider on
+// the applied-layer chip resized this button on every step and pushed the rest
+// of the toolbar around — `min-width` alone is not enough, because proportional
+// digits are individually different widths.
+.voicing-pick__strength {
+  display: inline-block;
+  min-width: 2.9em;
+  margin-left: 5px;
+  color: inherit;
+  font-size: 0.9em;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  opacity: 0.7;
+  text-align: right;
+}
+
+// Under the trigger, out of the flow, so a toolbar of eleven controls does not
+// reflow the moment a switch is refused.
+.voicing-pick__refused {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 5px);
+  left: 0;
+  width: max-content;
+  max-width: 220px;
+  padding: 4px 8px;
+  border: 1px solid rgba($red, 0.5);
+  border-radius: $radius-xs;
+  background: rgba($red, 0.16);
+  color: rgba($white, 0.92);
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1.3;
+  pointer-events: none;
+}
+
+// A heading rather than an entry: no hover, no pointer, and small enough that
+// it separates the list without competing with the names in it.
+.voicing-pick__group {
+  margin: 8px 0 2px;
+  padding: 0 8px;
+  color: rgba($white, 0.45);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+
+  &:first-child {
+    margin-top: 2px;
+  }
+}
+
 .voicing-pick__item {
   display: grid;
   align-items: center;

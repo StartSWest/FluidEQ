@@ -243,17 +243,52 @@ $eq-caret-width: 24px;
 
   // The tail, which is what makes it a bubble rather than a floating label.
   // Underneath, pointing back down at the corner it grew from.
+  //
+  // Filled with the gradient's LAST stop rather than a colour of its own. The
+  // bubble is a gradient and the tail was a flat wash close to its middle, so
+  // the two did not meet: it read as a small diamond lying next to a card
+  // instead of part of the same shape. This is the exact tone the bubble has
+  // where the tail joins it.
   &::before {
     position: absolute;
     bottom: -5px;
-    left: 14px;
-    width: 8px;
-    height: 8px;
+    left: 12px;
+    width: 9px;
+    height: 9px;
     border-right: 1px solid rgba($secondary-light, 0.5);
     border-bottom: 1px solid rgba($secondary-light, 0.5);
-    background: rgba($secondary-default, 0.16);
+    // Softens the point, so it reads as drawn rather than as a clipped square.
+    border-bottom-right-radius: 2px;
+    background: rgba($secondary-default, 0.13);
     content: '';
     transform: rotate(45deg);
+  }
+
+  // Landed. The whole bubble turns, tail included, so the change is impossible
+  // to miss at the edge of vision — the point of it is that somebody looking at
+  // the graph rather than at the toolbar still notices the sound just moved.
+  //
+  // Green rather than a brighter cyan because cyan is what this thing says
+  // everything else in; a second cyan meaning "done" is a shade, not a signal.
+  // The same green the graph marks a covered range with, so "done" is one
+  // colour across the app rather than two that nearly match.
+  &.is-applied {
+    border-color: rgba($analogous-2, 0.55);
+    background: linear-gradient(
+      160deg,
+      rgba($analogous-2, 0.26),
+      rgba($analogous-2, 0.14)
+    );
+    box-shadow:
+      0 10px 26px rgba($black, 0.45),
+      0 0 22px rgba($analogous-2, 0.2),
+      inset 0 1px 0 rgba($white, 0.1);
+
+    &::before {
+      border-right-color: rgba($analogous-2, 0.55);
+      border-bottom-color: rgba($analogous-2, 0.55);
+      background: rgba($analogous-2, 0.14);
+    }
   }
 }
 
@@ -401,12 +436,31 @@ $eq-caret-width: 24px;
   fill: currentcolor;
 }
 
-// Its own cluster, closed up and separated from what precedes it: four
-// buttons that do the same kind of thing.
+// A selector, not four more verbs — and it is drawn as one.
+//
+// Everything to its left is something to press once: measure, clear, add a
+// band. These four are the same question asked four ways, exactly one of which
+// is true at a time, and the answer is already shown by the solid button among
+// three subtle ones. A rule down the left said "these are different" without
+// saying how; a recessed track says which kind of different, because a row of
+// choices sunk into the panel is what a segmented control looks like
+// everywhere else.
+//
+// It replaces the divider rather than joining it. Both at once is two
+// separators for one seam.
 .quick-layouts {
-  gap: 6px;
-  padding-left: 10px;
-  border-left: 1px solid rgba($primary-lighter, 0.12);
+  @include inset-surface;
+  // Pill, against the mixin's own $radius-m: the track wraps a row of pills
+  // and a squarer end around a round button leaves a crescent of surface in
+  // each corner.
+  border-radius: $radius-pill;
+  // Closer together inside the track than the toolbar's own spacing, so the
+  // four read as one control rather than as four that share a background.
+  gap: 4px;
+  padding: 3px 6px 3px 10px;
+  // The gap the border used to hold open. The track's own edge is the seam
+  // now, and it needs a little air on the outside of it to be seen as one.
+  margin-left: 3px;
 
   > span {
     display: inline-flex;
@@ -477,12 +531,61 @@ $eq-caret-width: 24px;
   grid-template-columns: 38px minmax(0, 1fr);
   grid-template-rows: minmax(min-content, 1fr) auto;
 
+  // The face the sliders are set into, so the band row is one instrument
+  // rather than a line of separate controls standing on the card.
+  //
+  // A pseudo-element spanning both columns rather than a wrapper element around
+  // the scale and the bands. The marquee measures itself against `.bands`'
+  // own box and picks bands out of it by query, so a new box in between is a
+  // second thing that has to stay in step with it for no visual gain.
+  //
+  // Spanning the scale column is the whole point. The dB labels and the
+  // sliders they label were two things that happened to be level with each
+  // other; on one surface they are one scale with its readout at the left.
+  //
+  // Outdented rather than padded, because the row's height is its content's:
+  // padding would push the sliders in and shorten nothing, whereas a few
+  // pixels of overhang gives the topmost caption and the lowest thumb room
+  // inside the face without moving either. The vertical outdent is symmetric,
+  // which is what keeps the 0 dB line below at the same height it has always
+  // been drawn at.
+  //
+  // The sideways overhang stays inside this grid's own padding — 4px against
+  // the 10px here and the 6px the narrow layout drops to. The panel above is a
+  // scroll container, and a face hanging past the padding box would be
+  // horizontal overflow: a scrollbar across the bottom of the workspace, for
+  // the sake of four pixels nobody would have noticed either way.
+  &::before {
+    @include inset-surface;
+    grid-row: 1;
+    grid-column: 1 / -1;
+    margin: -6px -4px;
+    border-radius: $radius-l;
+    // The 0 dB guide, moved here from `.bands` so it runs under the scale too.
+    // It used to stop at the band group's left edge, and with ten bands
+    // centred on a wide panel that left "0 dB" naming a line it did not reach.
+    background-image: linear-gradient(
+      to bottom,
+      transparent calc(50% - 0.5px),
+      rgba($primary-lighter, 0.12) calc(50% - 0.5px),
+      rgba($primary-lighter, 0.12) calc(50% + 0.5px),
+      transparent calc(50% + 0.5px)
+    );
+    content: '';
+  }
+
+  // Above the face, both of them. Without this the face paints over the row it
+  // is supposed to sit behind — it is a grid item like the others, not a
+  // backdrop.
   > .eq-scale {
+    position: relative;
+    z-index: 1;
     grid-row: 1;
     grid-column: 1;
   }
 
   > .bands {
+    z-index: 1;
     grid-row: 1;
     grid-column: 2;
   }
@@ -508,6 +611,18 @@ $eq-caret-width: 24px;
   color: rgba($primary-lighter, 0.62);
   font-size: 0.56rem;
   font-variant-numeric: tabular-nums;
+
+  // The middle one, brighter than the two ends.
+  //
+  // It is the only label of the three that names a line actually drawn on the
+  // face, and now that the line reaches this column the two should carry the
+  // same weight. Addressed by position because these are a fixed tuple in the
+  // markup — a top, a middle and a bottom — rather than a list that might grow
+  // a fourth entry.
+  span:nth-child(2) {
+    color: rgba($primary-lighter, 0.85);
+    font-weight: 700;
+  }
 }
 
 .bands {
@@ -518,14 +633,9 @@ $eq-caret-width: 24px;
   padding: 0;
   grid-template-columns: repeat(var(--band-count), minmax(0, 1fr));
   align-items: center;
-  // The 0 dB guide behind the sliders.
-  background: linear-gradient(
-    to bottom,
-    transparent calc(50% - 0.5px),
-    rgba($primary-lighter, 0.12) calc(50% - 0.5px),
-    rgba($primary-lighter, 0.12) calc(50% + 0.5px),
-    transparent calc(50% + 0.5px)
-  );
+  // No background of its own any more. The 0 dB guide moved onto the face
+  // behind this row so that it reaches the scale column as well — see
+  // `.main-content::before`.
 }
 
 // Small layouts read better as a centred group; past ten bands use the full
@@ -581,16 +691,25 @@ $eq-caret-width: 24px;
   --slider-track: revert;
 }
 
-.main-content--full .bandWrapper .range {
+// ONE LENGTH FOR EVERY DENSITY, where there used to be three.
+//
+// The density classes are about horizontal room: at thirty-one bands a column
+// is a third the width it is at six, and the label, the arrows and the numeric
+// field all have to shrink to fit. That is real and stays.
+//
+// Track *length* is vertical and has nothing to do with any of it, but was
+// scaled alongside — so choosing a different band count resized every slider,
+// and because the editor is content-sized, changed the height of the whole
+// panel and moved everything under it. Picking 15 bands instead of 10 is a
+// question about frequency resolution; answering it should not make the graph
+// jump.
+//
+// The tallest of the three is the one kept. The shorter variants existed to be
+// proportionate to the narrower columns, which is a rule about width applied to
+// a height — a dense layout does not need a stubbier slider, and giving it one
+// only made the drag less precise exactly where the bands are hardest to hit.
+.bandWrapper .range {
   --range-length: clamp(72px, calc(100vh - 620px), 132px);
-}
-
-.main-content--compact .bandWrapper .range {
-  --range-length: clamp(64px, calc(100vh - 636px), 116px);
-}
-
-.main-content--dense .bandWrapper .range {
-  --range-length: clamp(56px, calc(100vh - 650px), 102px);
 }
 
 // Folding the AutoEQ section used to stretch the sliders into the room it gave
@@ -607,33 +726,17 @@ $eq-caret-width: 24px;
 // EQ owns the whole workspace column, so the tracks grow to use it rather than
 // leaving the panel half empty.
 #root.minimized {
-  .main-content--full .bandWrapper .range {
+  .bandWrapper .range {
     --range-length: clamp(132px, calc(100vh - 470px), 300px);
-  }
-
-  .main-content--compact .bandWrapper .range {
-    --range-length: clamp(116px, calc(100vh - 486px), 280px);
-  }
-
-  .main-content--dense .bandWrapper .range {
-    --range-length: clamp(102px, calc(100vh - 500px), 260px);
   }
 
   // Both at once — no graph and no reference picker — is the most room the EQ
   // can ever have, so the ceilings come off rather than the two rules fighting
   // over which cap applies.
-  .workspace-tab-panel--eq:has(.autoeq-section:not(.is-open)) {
-    .main-content--full .bandWrapper .range {
-      --range-length: clamp(132px, calc(100vh - 330px), 420px);
-    }
-
-    .main-content--compact .bandWrapper .range {
-      --range-length: clamp(116px, calc(100vh - 346px), 380px);
-    }
-
-    .main-content--dense .bandWrapper .range {
-      --range-length: clamp(102px, calc(100vh - 360px), 340px);
-    }
+  .workspace-tab-panel--eq:has(.autoeq-section:not(.is-open))
+    .bandWrapper
+    .range {
+    --range-length: clamp(132px, calc(100vh - 330px), 420px);
   }
 }
 
@@ -699,10 +802,23 @@ $eq-caret-width: 24px;
   }
 }
 
+// What is being edited, drawn as a readout rather than as another control.
+//
+// The row was six cells of equal weight, so the band's own name — the one
+// thing in it that is a fact rather than a lever — looked like a seventh thing
+// to press. A well with the frequency sitting in it says subject first, then
+// the controls that act on it, which is the order the row is read in anyway.
+//
+// A well and not a field: `field-surface` is what every editable control here
+// is built from, and wearing it would promise an edit that is not on offer.
 .eq-flat-editor__identity strong {
+  @include inset-surface;
   display: flex;
   height: $control-height;
   align-items: center;
+  justify-content: center;
+  padding-inline: 10px;
+  border-radius: $radius-s;
   color: $secondary-light;
   font-size: 0.76rem;
   font-variant-numeric: tabular-nums;
@@ -836,27 +952,45 @@ $eq-caret-width: 24px;
   display: none;
 }
 
+// Quiet until it is reached for.
+//
+// It sat in red at rest, which put the loudest colour on the panel on the one
+// control nobody opens this row to use. The fields beside it are what a band
+// is shaped with and they are used constantly; this removes the band and is
+// pressed once, if ever — and it was drawn as their equal.
+//
+// So it holds its place in the row and gives up its colour, taking it back on
+// hover and focus. That is the moment the warning is worth anything: a red
+// button somebody is not pointing at is decoration, and a red button they are
+// about to press is information. Not hidden and not moved — a destructive
+// action that has to be hunted for is its own kind of bad.
+//
+// `$red` rather than the two hand-mixed pinks that were here, which existed
+// only because nothing had reached for the token.
 .eq-flat-editor__delete {
   width: 100%;
   height: $control-height;
   align-self: end;
   padding-inline: 12px;
-  color: #ffadba;
-  border: 1px solid rgba(#ff7185, 0.28);
+  color: $text-muted;
+  border: 1px solid rgba($primary-lighter, 0.14);
   border-radius: $radius-s;
-  background: rgba(#ff7185, 0.045);
+  background: transparent;
   white-space: nowrap;
   cursor: pointer;
   transition: $transition-control;
 
   &:hover:not(:disabled) {
-    border-color: rgba(#ff7185, 0.5);
-    background: rgba(#ff7185, 0.09);
+    color: $white;
+    border-color: rgba($red, 0.55);
+    background: rgba($red, 0.14);
   }
 
   &:focus-visible {
-    border-color: rgba(#ff7185, 0.8);
-    @include focus-ring(#ff7185);
+    color: $white;
+    border-color: rgba($red, 0.8);
+    background: rgba($red, 0.14);
+    @include focus-ring($red);
   }
 
   &:disabled {
@@ -949,16 +1083,8 @@ $eq-caret-width: 24px;
     font-size: 0.5rem;
   }
 
-  .main-content--full .bandWrapper .range {
+  .bandWrapper .range {
     --range-length: 112px;
-  }
-
-  .main-content--compact .bandWrapper .range {
-    --range-length: 100px;
-  }
-
-  .main-content--dense .bandWrapper .range {
-    --range-length: 88px;
   }
 
   .eq-flat-editor {

@@ -34,15 +34,14 @@ import {
   IDeviceProfileSettings,
   IAutoEqUpdateStatus,
   MAX_FREQUENCY,
-  MAX_GAIN,
   MAX_QUALITY,
   MIN_FREQUENCY,
-  MIN_GAIN,
   MIN_QUALITY,
   IConvolutionProfile,
   ISmartEqSettings,
   ISquigSource,
   TApoLayer,
+  clampGain,
 } from 'common/constants';
 import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
@@ -698,16 +697,28 @@ export const getMainPreAmp = (): Promise<number> => {
 
 /**
  * Adjusts the main preamplification gain value
- * @param {number} gain - new gain value in [-20, 20]
+ * @param {number} gain - new gain value, brought into [-20, 20]
+ *
+ * Clamped rather than rejected, and it used to throw.
+ *
+ * Throwing was defensible when every caller was a slider, because a slider
+ * cannot produce an out-of-range number and one that did was a bug worth
+ * hearing about. It is not defensible now that the largest caller is derived:
+ * auto normalize computes this from the whole chain, five layers deep, and a
+ * chain wanting more headroom than the range allows is an ordinary thing rather
+ * than a fault. What the throw did with it was take the app away — the call
+ * happens in an effect on mount, so the failure arrived before anything was on
+ * screen and returned on every restart, because the chain that caused it is on
+ * disk. The user could not even reach the sliders to undo it.
+ *
+ * The boundary is the honest answer in both cases. A chain asking for 24 dB of
+ * headroom gets the 20 the format has, which is the closest thing to what it
+ * asked for that Equalizer APO can hold, and the peaks that clip are audible and
+ * fixable. Nothing here is silently wrong: the value written is the value shown.
  */
 export const setMainPreAmp = (gain: number) => {
   const channel = ChannelEnum.SET_PREAMP;
-  if (gain > MAX_GAIN || gain < MIN_GAIN) {
-    throw new Error(
-      `Invalid gain value - outside of range [${MIN_GAIN}, ${MAX_GAIN}]`,
-    );
-  }
-  window.electron.ipcRenderer.sendMessage(channel, [gain]);
+  window.electron.ipcRenderer.sendMessage(channel, [clampGain(gain)]);
   return promisifyResult(setterResponseHandler, channel);
 };
 
@@ -726,16 +737,15 @@ export const getGain = (filterId: string): Promise<number> => {
 /**
  * Adjusts a slider's gain value
  * @param {string} filterId - id of the slider being adjusted
- * @param {number} gain - new gain value in [-20, 20]
+ * @param {number} gain - new gain value, brought into [-20, 20]
+ *
+ * Clamped for the same reason as `setMainPreAmp`: a band that has ended up
+ * outside the range must come back to the edge of it, because a band that
+ * refuses every write is a band nobody can drag back.
  */
 export const setGain = (filterId: string, gain: number) => {
   const channel = ChannelEnum.SET_FILTER_GAIN;
-  if (gain > MAX_GAIN || gain < MIN_GAIN) {
-    throw new Error(
-      `Invalid gain value - outside of range [${MIN_GAIN}, ${MAX_GAIN}]`,
-    );
-  }
-  window.electron.ipcRenderer.sendMessage(channel, [filterId, gain]);
+  window.electron.ipcRenderer.sendMessage(channel, [filterId, clampGain(gain)]);
   return promisifyResult(setterResponseHandler, channel + filterId);
 };
 

@@ -16,7 +16,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { FilterTypeEnum, IFilter, IFiltersMap } from 'common/constants';
+import {
+  FilterTypeEnum,
+  IFilter,
+  IFiltersMap,
+  describeBandShape,
+} from 'common/constants';
 import {
   ISmartEqSettings,
   buildSmartEqSettings,
@@ -24,6 +29,7 @@ import {
   getSmartEqFilters,
 } from 'common/smartEq';
 import { IVoicingSettings, getVoicingFilters } from 'common/voicing';
+import { IDriverSettings, getDriverFilters } from 'common/driver';
 import {
   buildBalancedGains,
   ISpectrumSample,
@@ -131,11 +137,18 @@ const measure = (chain: IFilter[], room: IFilter[] = []): ISpectrumSample[] => {
 
 interface ILoopOptions {
   bands?: IFiltersMap;
+  /**
+   * Bands the AutoEQ panel wrote, as opposed to bands the user typed.
+   *
+   * The same map type and the same place in the chain — the difference is only
+   * that a signature was recorded for these, which is what puts them in the goal
+   * instead of in what gets corrected.
+   */
+  headset?: IFiltersMap;
   voicing?: IVoicingSettings;
+  driver?: IDriverSettings;
   /** Something wrong with the output that no layer put there. */
   room?: IFilter[];
-  /** Leave the bands out of the goal, which is what the loop used to do. */
-  omitBandsFromTarget?: boolean;
 }
 
 const chainOf = (
@@ -143,8 +156,12 @@ const chainOf = (
   layer: ISmartEqSettings | undefined,
 ) => [
   ...Object.values(options.bands ?? {}),
+  ...Object.values(options.headset ?? {}),
   ...getVoicingFilters(options.voicing).map((filter, index) =>
     asFilter(filter, `voicing-${index}`),
+  ),
+  ...getDriverFilters(options.driver).map((filter, index) =>
+    asFilter(filter, `driver-${index}`),
   ),
   ...smartEqFiltersOf(layer),
 ];
@@ -159,10 +176,14 @@ const runOnce = (
     measure(chainOf(options, layer), options.room),
     bands,
     {
+      // The user's own bands are NOT handed in, which is the contract this
+      // whole file exists to hold the loop to. The headset ones are, through
+      // the signature, which is the only thing that tells them apart. See
+      // `buildLayerTargetCurve`.
       targetCurve: buildLayerTargetCurve(
-        options.omitBandsFromTarget ? undefined : options.bands,
         options.voicing,
-        undefined,
+        options.driver,
+        options.headset ? describeBandShape(options.headset) : undefined,
       ),
     },
   );
@@ -196,52 +217,67 @@ const retentionOf = (
 };
 
 describe('the Smart EQ closed loop', () => {
-  describe('a headphone correction the user applied', () => {
-    it('is intact after a single run', () => {
-      retentionOf(
-        HEADPHONE_CORRECTION,
-        runLoop(1, { bands: HEADPHONE_CORRECTION }),
-      ).forEach((fraction) => {
-        expect(fraction).toBeGreaterThan(0.98);
-        expect(fraction).toBeLessThan(1.02);
-      });
-    });
-
-    it('survives repeated runs instead of being eroded away', () => {
-      // The failure this guards against is silent: the band editor goes on
-      // showing the correction at full value while Smart EQ inverts it
-      // underneath, and four runs is where the sign flip appears.
-      retentionOf(
-        HEADPHONE_CORRECTION,
-        runLoop(4, { bands: HEADPHONE_CORRECTION }),
-      ).forEach((fraction) => {
-        expect(fraction).toBeGreaterThan(0.98);
-        expect(fraction).toBeLessThan(1.02);
-      });
-    });
-
-    it('leaves nothing audible to correct at all', () => {
-      // The strongest statement of the same thing. With a clean program and the
-      // bands accounted for there is no residual, so the layer that would be
-      // written is no layer, and the chip never appears.
-      expect(runLoop(4, { bands: HEADPHONE_CORRECTION })).toBeUndefined();
-    });
-
-    it('is destroyed when the bands are left out of the goal', () => {
-      // The bug itself, kept executable. Without the bands in the target the
-      // loop reads them as error and its fixed point is total cancellation:
-      // 73% / 51% / 40% of the correction left after one run, 57% / 14% / -8%
-      // after four, the air lift having turned into a cut.
+  /*
+   * WHAT THE USER'S OWN BANDS ARE, AND WHY THIS SECTION READS BACKWARDS FROM
+   * WHAT IT USED TO.
+   *
+   * These tests once asserted the opposite: that a correction sitting in the
+   * bands survived the loop untouched, because the bands were handed to the
+   * solver as part of the goal. That protected a headphone correction applied
+   * from the AutoEQ panel — and it did so by making Smart EQ blind to every
+   * other thing in those bands, including a slider somebody had dragged to
+   * -16 dB. A measurement that subtracts the damage before looking for it will
+   * always report that there is none.
+   *
+   * So the bands are output now, not intent. Pull one and Smart EQ pulls it
+   * back. A correction that must survive belongs in the driver layer, which is
+   * still in the goal — and for a better reason than "the user chose it": the
+   * capture is a digital loopback and cannot hear the headphone, so a
+   * correction for the headphone is invisible to it and can only ever look like
+   * error.
+   */
+  describe('a correction the user typed into the bands', () => {
+    it('is read as output and flattened, not preserved', () => {
       const retained = retentionOf(
         HEADPHONE_CORRECTION,
-        runLoop(4, {
-          bands: HEADPHONE_CORRECTION,
-          omitBandsFromTarget: true,
-        }),
+        runLoop(4, { bands: HEADPHONE_CORRECTION }),
       );
 
       expect(Math.max(...retained)).toBeLessThan(0.6);
-      expect(Math.min(...retained)).toBeLessThan(0);
+    });
+
+    it('is already going after a single run', () => {
+      // One press is enough to see it move, which is the whole point: pressing
+      // the button on a chain somebody has bent should change the sound.
+      const retained = retentionOf(
+        HEADPHONE_CORRECTION,
+        runLoop(1, { bands: HEADPHONE_CORRECTION }),
+      );
+
+      expect(Math.max(...retained)).toBeLessThan(0.95);
+    });
+  });
+
+  describe('a driver correction, which the loopback cannot hear', () => {
+    const driver: IDriverSettings = {
+      profileId: 'dynamic-headphone',
+      intensity: 1,
+    };
+
+    it('is left exactly where it was, run after run', () => {
+      const driverFilters = getDriverFilters(driver).map((filter, index) =>
+        asFilter(filter, `driver-${index}`),
+      );
+      const intended = responseOf(driverFilters);
+      const layer = runLoop(4, { driver });
+      const net = responseOf([...driverFilters, ...smartEqFiltersOf(layer)]);
+
+      PROBE_FREQUENCIES.forEach((frequency) => {
+        expect(getLineGainAtFrequency(net, frequency)).toBeCloseTo(
+          getLineGainAtFrequency(intended, frequency),
+          1,
+        );
+      });
     });
   });
 
@@ -281,7 +317,7 @@ describe('the Smart EQ closed loop', () => {
           quality: 0.7,
         },
       };
-      const layer = runLoop(6, { bands: shelfOnly });
+      const layer = runLoop(6, { headset: shelfOnly });
 
       [40, 100, 1000, 10000].forEach((frequency) => {
         expect(
@@ -302,7 +338,7 @@ describe('the Smart EQ closed loop', () => {
           'room',
         ),
       ];
-      const layer = runLoop(4, { bands: HEADPHONE_CORRECTION, room });
+      const layer = runLoop(4, { headset: HEADPHONE_CORRECTION, room });
       const smart = smartEqFiltersOf(layer);
 
       // Most of the mode is gone.
@@ -332,13 +368,19 @@ describe('the Smart EQ closed loop', () => {
   });
 
   describe('the target curve', () => {
+    const voicing: IVoicingSettings = { profileId: 'music', intensity: 1 };
+    const driver: IDriverSettings = {
+      profileId: 'dynamic-headphone',
+      intensity: 1,
+    };
+
     it('is the same sum the response graph draws', () => {
-      const curve = buildLayerTargetCurve(
-        HEADPHONE_CORRECTION,
-        undefined,
-        undefined,
+      const curve = buildLayerTargetCurve(voicing, undefined);
+      const graph = responseOf(
+        getVoicingFilters(voicing).map((filter, index) =>
+          asFilter(filter, `voicing-${index}`),
+        ),
       );
-      const graph = responseOf(Object.values(HEADPHONE_CORRECTION));
 
       expect(curve.length).toBe(graph.length);
       curve.forEach((point, index) => {
@@ -347,55 +389,33 @@ describe('the Smart EQ closed loop', () => {
       });
     });
 
-    it('adds the voicing on top of the bands rather than replacing them', () => {
-      const voicing: IVoicingSettings = { profileId: 'music', intensity: 1 };
-      const withBoth = buildLayerTargetCurve(
-        HEADPHONE_CORRECTION,
-        voicing,
-        undefined,
-      );
-      const bandsOnly = buildLayerTargetCurve(
-        HEADPHONE_CORRECTION,
-        undefined,
-        undefined,
-      );
-      const voicingOnly = buildLayerTargetCurve(undefined, voicing, undefined);
+    it('adds the driver on top of the voicing rather than replacing it', () => {
+      const withBoth = buildLayerTargetCurve(voicing, driver);
+      const voicingOnly = buildLayerTargetCurve(voicing, undefined);
+      const driverOnly = buildLayerTargetCurve(undefined, driver);
 
       expect(voicingOnly.length).toBeGreaterThan(0);
+      expect(driverOnly.length).toBeGreaterThan(0);
       withBoth.forEach((point, index) => {
         expect(point.level).toBeCloseTo(
-          bandsOnly[index].level + voicingOnly[index].level,
+          voicingOnly[index].level + driverOnly[index].level,
           6,
         );
       });
     });
 
-    it('ignores a band Equalizer APO could never build', () => {
-      // One NaN in the sum poisons every point of the curve rather than one of
-      // them, which would hand the solver a target of NaN everywhere.
-      const curve = buildLayerTargetCurve(
-        {
-          ...HEADPHONE_CORRECTION,
-          broken: {
-            id: 'broken',
-            type: FilterTypeEnum.PK,
-            frequency: Number.NaN,
-            gain: 3,
-            quality: 1,
-          },
-        },
-        undefined,
-        undefined,
-      );
-
-      expect(curve.every((point) => Number.isFinite(point.level))).toBe(true);
+    it('does not contain the user"s own bands at any strength', () => {
+      // The contract, stated directly rather than inferred from the loop: there
+      // is no argument to put them in, and nothing the user types into the band
+      // editor can appear in what the measurement is aiming at.
+      expect(buildLayerTargetCurve(undefined, undefined)).toEqual([]);
     });
 
     it('is empty when there is nothing deliberate to steer towards', () => {
-      expect(buildLayerTargetCurve(undefined, undefined, undefined)).toEqual(
-        [],
-      );
-      expect(buildLayerTargetCurve({}, undefined, undefined)).toEqual([]);
+      expect(buildLayerTargetCurve(undefined, undefined)).toEqual([]);
+      expect(
+        buildLayerTargetCurve({ profileId: '', intensity: 1 }, undefined),
+      ).toEqual([]);
     });
   });
 });

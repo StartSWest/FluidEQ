@@ -23,6 +23,7 @@ import {
   IFilter,
   IFiltersMap,
   ISmartEqSettings,
+  MAX_GAIN,
   NO_GAIN_FILTER_TYPES,
   clampFrequency,
   clampGain,
@@ -318,15 +319,50 @@ export const smartEqFromFilters = (
 export const CONTINUOUS_STEP_DB = 2;
 
 /**
+ * The largest single move, and the fraction of the remaining distance a step
+ * aims at.
+ *
+ * A flat two decibels was right while the errors were small, and stopped being
+ * right the moment the ceiling came off: a band sixteen decibels out needs eight
+ * writes at twenty seconds apart to be reached, which is nearly three minutes of
+ * a mode visibly failing to fix something obvious. Half the remaining distance
+ * each time gets there in three, and the sequence is the familiar one — a big
+ * move, a smaller one, a nudge — which is what somebody watching expects of a
+ * thing that knows what it is doing.
+ *
+ * The floor stays `CONTINUOUS_STEP_DB`, so the ordinary case is untouched: a
+ * range three decibels out is still corrected in one step and still falls inside
+ * the deadband afterwards. Only a genuine mess moves faster, and it slows down
+ * as it stops being one.
+ */
+export const CONTINUOUS_MAX_STEP_DB = 8;
+export const CONTINUOUS_STEP_FRACTION = 0.5;
+
+/**
  * How far the accumulated correction may go, per band, in dB.
  *
- * This mode runs unattended for hours, so the question is not how much
- * correction is useful — it is how wrong it is allowed to get while nobody is
- * watching. Six decibels covers any real headphone or room problem; past that
- * the likelier explanation is that the measurement is being misled, and a cap
- * turns "it sounded strange after a while" into "it stopped short of strange".
+ * The whole range the equaliser has, and it used to be six.
+ *
+ * The argument for six was about running unattended: the question is not how
+ * much correction is useful but how wrong it may get while nobody is watching,
+ * and six decibels covers any real headphone or room problem. That reasoning
+ * assumed the only thing being corrected was a system — something small, steady
+ * and physical.
+ *
+ * It is not. What this now measures is the output as it stands, the user's own
+ * bands included, and a band dragged to -16 dB is a sixteen-decibel error that a
+ * six-decibel correction cannot reach. The mode did the worst possible thing
+ * with that: it moved the full six, sat on the clamp, and went on reporting that
+ * it was working on it. Capped short of the problem, forever.
+ *
+ * A ceiling below the size of the errors it is asked to fix is not a safety
+ * limit, it is a hang. `MAX_GAIN` is the real one — the point past which
+ * Equalizer APO cannot go either — and the protection against a runaway sits
+ * where it always did: nothing moves until it is `CONTINUOUS_TRIGGER_DB` out,
+ * the destination is averaged over many windows before it is believed, and the
+ * step size is bounded per write.
  */
-export const CONTINUOUS_MAX_DB = 6;
+export const CONTINUOUS_MAX_DB = MAX_GAIN;
 
 /**
  * How far a band has to be out before it is worth moving, in dB.
@@ -345,6 +381,30 @@ export const CONTINUOUS_MAX_DB = 6;
  * it moving again.
  */
 export const CONTINUOUS_TRIGGER_DB = 2.5;
+
+/**
+ * How close a band that is ALREADY moving has to get before it stops.
+ *
+ * The trigger above was doing two jobs and is only right for one of them. As
+ * "how wrong does this have to be before I bother", 2.5 dB is a good answer: it
+ * is what stops the mode rewriting the correction on a timer for changes nobody
+ * can hear. As "how close is close enough", it is a bad one, because it means
+ * the correction stops the moment it is within 2.5 dB and never finishes — a
+ * band could sit two and a half decibels out for the rest of the evening while
+ * the mode reported that everything was fine. Which is exactly what it looked
+ * like: it moved once, reached a level, and stayed there with an audible problem
+ * still in the sound.
+ *
+ * So a band starts moving at `CONTINUOUS_TRIGGER_DB` and keeps moving until it
+ * is inside this. Hysteresis, which is the standard answer whenever one
+ * threshold is being asked to both start and stop something.
+ *
+ * Three quarters of a decibel is below the level at which a broad change is
+ * audible, so stopping there is stopping at "done" rather than at "close". It
+ * cannot cause the fidgeting the trigger prevents, because a band only ever gets
+ * here by having been more than 2.5 dB out first.
+ */
+export const CONTINUOUS_SETTLE_DB = 0.75;
 
 /**
  * How much of one window's answer to believe.
@@ -487,33 +547,56 @@ export const blendSmartEqTarget = (
  *
  * `solved` is the destination the measurement worked out — absolute gains, the
  * same ones a manual run hands straight to `buildSmartEqSettings`. This walks
- * toward them instead, at most `maxStep` per band per call, never past
- * `maxTotal` in either direction, and only for bands more than `deadband` out.
+ * toward them instead, never past `maxTotal` in either direction, and only for
+ * bands more than `deadband` out.
+ *
+ * The size of the walk scales with how far there is to go — see
+ * `CONTINUOUS_MAX_STEP_DB`. Small errors move by the floor and are done in one
+ * step; large ones close half the gap at a time and are done in three, instead
+ * of inching toward something obviously broken for minutes.
  *
  * Bands the solve had nothing to say about are left exactly where they are
  * rather than pulled toward zero. Silence about a band is not evidence that it
  * should be flat, and treating it as such would undo a good correction every
  * time a passage had no energy in that region — which, over a long listen, is
  * most passages for most bands.
+ *
+ * `moving` is which bands were still travelling after the last call, and it is
+ * what lets a correction finish. A band in that set is held to `settle` instead
+ * of `deadband` — see `CONTINUOUS_SETTLE_DB`. The caller keeps the set, because
+ * deriving it is trivial and exact: a band moved if its gain changed.
  */
 export const stepSmartEqGains = (
   bands: IFilter[],
   solved: Record<string, number>,
   {
-    maxStep = CONTINUOUS_STEP_DB,
+    maxStep = CONTINUOUS_MAX_STEP_DB,
     maxTotal = CONTINUOUS_MAX_DB,
     deadband = CONTINUOUS_TRIGGER_DB,
-  }: { maxStep?: number; maxTotal?: number; deadband?: number } = {},
+    settle = CONTINUOUS_SETTLE_DB,
+    moving,
+  }: {
+    maxStep?: number;
+    maxTotal?: number;
+    deadband?: number;
+    settle?: number;
+    moving?: ReadonlySet<string>;
+  } = {},
 ): Record<string, number> => {
   const stepped: Record<string, number> = {};
   bands.forEach((band) => {
     const destination = solved[band.id];
     const drift = destination - band.gain;
-    if (!Number.isFinite(destination) || Math.abs(drift) < deadband) {
+    const threshold = moving?.has(band.id) ? settle : deadband;
+    if (!Number.isFinite(destination) || Math.abs(drift) < threshold) {
       stepped[band.id] = band.gain;
       return;
     }
-    const move = Math.max(-maxStep, Math.min(maxStep, drift));
+    const step = Math.min(
+      maxStep,
+      Math.max(CONTINUOUS_STEP_DB, Math.abs(drift) * CONTINUOUS_STEP_FRACTION),
+    );
+    const move = Math.max(-step, Math.min(step, drift));
     stepped[band.id] = Math.max(
       -maxTotal,
       Math.min(maxTotal, band.gain + move),

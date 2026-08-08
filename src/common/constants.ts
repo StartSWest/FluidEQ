@@ -201,6 +201,46 @@ export const describeBandShape = (filters: IFiltersMap): string =>
     .sort()
     .join('|');
 
+/**
+ * The same string read back as bands, for anything that needs the shape itself
+ * rather than a comparison against it.
+ *
+ * Smart EQ is the caller that matters. It corrects the output toward a
+ * destination, and the user's live bands are part of what it corrects — drag one
+ * and it drags back. A headphone correction lives in those same bands and must
+ * NOT be corrected, because the capture is a digital loopback and cannot hear
+ * the headphone: a correction for something invisible to the measurement can
+ * only ever look like error to it.
+ *
+ * This signature is what tells the two apart. It is the bands exactly as the
+ * reference wrote them, so it is the headphone correction with nothing of the
+ * user's mixed into it, and whatever differs between it and the live bands is
+ * precisely what somebody has moved by hand since.
+ *
+ * Anything unparseable is dropped rather than guessed at: one non-finite point
+ * poisons an entire summed curve rather than a single band of it.
+ */
+export const parseBandShape = (signature: string | undefined): IFilter[] =>
+  (signature ?? '')
+    .split('|')
+    .filter(Boolean)
+    .map((entry, index) => {
+      const [type, frequency, gain, quality] = entry.split(':');
+      return {
+        id: `headset-${index}`,
+        type: type as FilterTypeEnum,
+        frequency: Number(frequency),
+        gain: Number(gain),
+        quality: Number(quality),
+      };
+    })
+    .filter(
+      (filter) =>
+        Number.isFinite(filter.frequency) &&
+        Number.isFinite(filter.gain) &&
+        Number.isFinite(filter.quality),
+    );
+
 export const NO_GAIN_FILTER_TYPES = [
   FilterTypeEnum.BP,
   FilterTypeEnum.LPQ,

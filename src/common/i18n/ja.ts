@@ -201,6 +201,7 @@ const ja: Partial<Dictionary> = {
   'eq.layers.smart.fullRange': '測定済み · 全帯域',
   'eq.layers.smart.range': '測定済み · {low}〜{high}',
   'eq.layers.remove': '{layer} のレイヤーを外す',
+  'eq.layers.clearBands': 'すべてのバンドを 0 dB に戻す',
   'eq.layers.clearReference':
     'リファレンス機種と、それが作ったバンドを消します',
   'eq.layers.clearSmart':
@@ -246,6 +247,9 @@ const ja: Partial<Dictionary> = {
   'voicing.title': '音の傾向',
   'voicing.intro':
     'いま実際にやっていることに合わせて調整したターゲットです。どれもあなたのバンドの後ろに独立したレイヤーとして書かれるので、自分の調整は一切触られず、「なし」に戻せばそのまま元通りになります。',
+  'voicing.refused': 'ボイシングを切り替えられませんでした',
+  'voicing.groupPurpose': '用途',
+  'voicing.groupGenre': 'ジャンル',
   'voicing.none': 'なし',
   'voicing.none.hint': '自分の EQ バンドだけ。上に重ねるものはありません',
   'voicing.strength': '強さ',

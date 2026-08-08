@@ -50,8 +50,23 @@ $filter-dropdown-width: 56px;
       0 0 18px rgba($secondary-default, 0.1);
   }
 
+  // Lit down its length rather than tinted flat.
+  //
+  // An even wash is what a highlighted row in a list looks like, and a row in
+  // a list is exactly what these should not read as — they are channels on a
+  // strip, stood side by side and each doing the same job at its own
+  // frequency. A gradient strongest at the head and falling away toward the
+  // foot gives the selected one the look of a channel switched on, which is
+  // the reading the rest of this row is now built for.
+  //
+  // Same alpha at its midpoint as the flat fill it replaces, so the selection
+  // is no louder overall than it was — only shaped.
   &.is-selected {
-    background: rgba($secondary-default, 0.1);
+    background: linear-gradient(
+      180deg,
+      rgba($secondary-default, 0.16),
+      rgba($secondary-default, 0.04)
+    );
     box-shadow:
       inset 0 0 0 1px rgba($secondary-light, 0.3),
       0 0 16px rgba($secondary-default, 0.12);

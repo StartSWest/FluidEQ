@@ -11,6 +11,7 @@ import {
   buildBalanceProgress,
   buildBalanceResult,
   createAxisCells,
+  CONTINUOUS_HALF_LIFE_MS,
   createBalanceCaptureState,
   evaluateBalanceCapture,
   isBalanceCheckDue,
@@ -327,6 +328,15 @@ export interface IBalanceCaptureOptions extends IBalanceListenBounds {
    * carry on as if nothing happened.
    */
   onReport?: (report: IBalanceReport) => number[] | void;
+  /**
+   * What the applied chain is doing to each region, asked for again at every
+   * checkpoint — see `buildRegionGainDb` for what it is for.
+   *
+   * A function rather than a value because a continuous session outlives any
+   * particular chain: it is the loop's own corrections, among other things, that
+   * keep changing the answer.
+   */
+  getChainGainDb?: (axis: number[]) => number[];
 }
 
 /** An auto-balance measurement in flight. */
@@ -344,6 +354,7 @@ interface IBalanceSession {
   bounds: IBalanceListenBounds;
   isContinuous: boolean;
   onReport?: (report: IBalanceReport) => number[] | void;
+  getChainGainDb?: (axis: number[]) => number[];
   detachAbort: () => void;
   watchdog: ReturnType<typeof setTimeout> | undefined;
   lastAcceptedWallMs: number;
@@ -519,6 +530,7 @@ const useLiveOutputSpectrum = () => {
       const progress = buildBalanceProgress(report, session.lastPercent, {
         isSilent: silent,
         isPaused: paused,
+        isContinuous: session.isContinuous,
       });
       session.lastPercent = progress.percent;
       session.wasSilent = silent;
@@ -738,6 +750,13 @@ const useLiveOutputSpectrum = () => {
           return;
         }
         if (peak !== undefined) {
+          // Refreshed per frame rather than held, because a continuous session
+          // changes the chain underneath itself every time it corrects
+          // something — and this is what lets the gate ask about the source
+          // rather than about the output it just altered.
+          session.state.chainGainDb = session.getChainGainDb?.(
+            session.state.axis,
+          );
           accumulateBalanceFrame(session.state, {
             levels: levelBuffer,
             peakDb: peak,
@@ -877,7 +896,11 @@ const useLiveOutputSpectrum = () => {
         options.signal?.addEventListener('abort', onAbort);
 
         sessionRef.current = {
-          state: createBalanceCaptureState(axis),
+          // A continuous session forgets; a measurement that ends does not.
+          state: createBalanceCaptureState(
+            axis,
+            options.isContinuous ? CONTINUOUS_HALF_LIFE_MS : undefined,
+          ),
           axisKey: String(Math.round(audioContext.sampleRate)),
           onProgress: options.onProgress,
           bounds: {
@@ -886,6 +909,7 @@ const useLiveOutputSpectrum = () => {
           },
           isContinuous: Boolean(options.isContinuous),
           onReport: options.onReport,
+          getChainGainDb: options.getChainGainDb,
           detachAbort: () =>
             options.signal?.removeEventListener('abort', onAbort),
           // No backstop on a continuous session. The watchdog exists so a

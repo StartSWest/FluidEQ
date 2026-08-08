@@ -141,39 +141,42 @@ export interface IReferenceShape {
  * different act from choosing what records should sound like, and it keeps the
  * behaviour it always had.
  *
- * A VOICING REPLACES THE BUILT-IN SHAPE, and the reason it does so by being
- * *removed* rather than substituted is worth following, because the opposite
- * looks more obvious and is wrong.
+ * THE MODE IS THE ONLY INPUT, and it used to take a second one — whether a
+ * voicing was active — which is the more obvious design and was wrong.
  *
- * The voicing is already applied. It is in the chain, it is in the output, and
- * it is in the measurement — and the solve subtracts it, along with the bands
- * and the driver correction, before deciding anything. So what the correction
- * drives to the reference is the programme alone, and the voicing lands on top
- * of the result afterwards, in the chain, where it always was.
+ * Under it, choosing a voicing made Target drop the built-in shape and return a
+ * bare line, on the argument that the output already carries the voicing and
+ * adding a second target curve would stack two of them. The argument is not
+ * baseless: it does stack. It is just a bad trade, for three reasons that only
+ * became clear once people used it.
  *
- * Which means adding the built-in shape as well would apply two curves: the
- * voicing you chose and a target you did not, stacked. Leaving the shape out
- * makes the programme flat to the line and the voicing the only thing shaping
- * it — the output follows the voicing exactly, which is what picking one ought
- * to mean.
+ * The shape is ±3 dB. It is a statement about what a well-made record's spectrum
+ * looks like, not a flavour, and stacking a mild reference under a flavour is
+ * exactly what every other layer here already does.
  *
- * So with a voicing, Target and Balance do the same thing. That is not a
- * degenerate case, it is the correct one: the difference between them is which
- * curve is imposed, and when you have named a curve there is nothing left to
- * choose.
+ * It made an unrelated control change what the correction was aiming at, with
+ * nothing on screen saying so. Picking Games and watching the Smart EQ curve sit
+ * perfectly still is not a thing anybody can reason about from the outside.
+ *
+ * And it collapsed two of the three modes into one: with a voicing on, Target
+ * and Balance did the same thing, so the choice between them quietly stopped
+ * meaning anything at the exact moment somebody had expressed a preference.
+ *
+ * So the rule is now one sentence. Smart EQ measures the record with the chain
+ * subtracted and puts it on the curve the mode names, always. Every other layer
+ * — the voicing, the genre, the driver correction, the user's own bands — sits
+ * on top of that result, which is where they were applied and where they belong.
+ *
+ * The modes keep their ladder, and now keep it in all circumstances: `detail`
+ * fits the record's own tilt and removes only what stands out from it, `balance`
+ * imposes the standard tilt, `target` imposes the tilt and this shape.
  */
-export const getReferenceShape = (
-  mode: string,
-  isVoicingActive = false,
-): IReferenceShape => {
+export const getReferenceShape = (mode: string): IReferenceShape => {
   if (mode === 'balance') {
     return { slope: REFERENCE_SLOPE_DB_PER_DECADE };
   }
   if (mode === 'target') {
-    return {
-      slope: REFERENCE_SLOPE_DB_PER_DECADE,
-      ...(isVoicingActive ? {} : { shape: REFERENCE_SHAPE }),
-    };
+    return { slope: REFERENCE_SLOPE_DB_PER_DECADE, shape: REFERENCE_SHAPE };
   }
   return {};
 };

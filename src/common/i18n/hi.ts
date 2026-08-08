@@ -209,6 +209,7 @@ const hi: Partial<Dictionary> = {
   'eq.layers.smart.fullRange': 'मापा गया · पूरी रेंज',
   'eq.layers.smart.range': 'मापा गया · {low} से {high} तक',
   'eq.layers.remove': '{layer} परत हटाएँ',
+  'eq.layers.clearBands': 'सभी बैंड 0 dB पर लौटाएँ',
   'eq.layers.clearReference': 'संदर्भ मॉडल और उससे बने बैंड हटाएँ',
   'eq.layers.clearSmart':
     'मापा गया सुधार हटाएँ। आपके बैंड और संदर्भ मॉडल वैसे ही रहेंगे।',
@@ -253,6 +254,9 @@ const hi: Partial<Dictionary> = {
   'voicing.title': 'ध्वनि रंग',
   'voicing.intro':
     'आप अभी जो कर रहे हैं उसके हिसाब से तय किया गया लक्ष्य। हर एक आपके बैंड के बाद अपनी अलग परत के रूप में लिखा जाता है, इसलिए आपकी अपनी ट्यूनिंग को कभी छुआ नहीं जाता और “कोई नहीं” पर लौटते ही वह हूबहू वापस आ जाती है।',
+  'voicing.refused': 'वॉइसिंग नहीं बदल सका',
+  'voicing.groupPurpose': 'किसके लिए',
+  'voicing.groupGenre': 'शैली',
   'voicing.none': 'कोई नहीं',
   'voicing.none.hint': 'सिर्फ़ आपके EQ बैंड, ऊपर कुछ नहीं',
   'voicing.strength': 'मात्रा',

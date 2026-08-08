@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ReactNode, useEffect, useState } from 'react';
+import { ReactNode, useLayoutEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 /**
@@ -35,31 +35,47 @@ import { createPortal } from 'react-dom';
  * flow is also what lets it cover the graph, which is a sibling of the panel
  * rather than a descendant.
  *
- * Upward by default. These triggers live in a toolbar at the top of a panel
- * that scrolls, so "down" is into the part of the window most likely to have
- * run out — and the thing a menu must never do is open into a space that is not
- * there. It flips down only when the room above is genuinely too small.
+ * Upward by preference, downward when that does not fit, and scrolling when
+ * neither does.
+ *
+ * Upward is the preference because these triggers sit in a toolbar at the top of
+ * a panel that scrolls, so "down" is into the part of the window most likely to
+ * have run out. It was the only behaviour for a while, on a fixed guess at how
+ * much room a menu needs — which held until the voicing list grew genre entries
+ * and became twice as tall as the guess. A menu that opens into a space it does
+ * not fit in loses its far end silently, and the far end is where the new
+ * entries are.
+ *
+ * So the menu is measured, and the answer is the side it actually fits on. If
+ * neither side can hold it, it takes the larger side and scrolls — because a
+ * menu that is a little awkward to use is still usable, and one whose last three
+ * items are off-screen is not.
  */
-
-/** Room above the trigger, below which opening upward stops being sensible. */
-const MIN_ROOM_ABOVE = 200;
 
 /** The gap between the trigger and the menu, matching the in-flow menus. */
 const OFFSET = 6;
 
-const positionFrom = (rect: DOMRect) => {
-  const openUpward = rect.top >= MIN_ROOM_ABOVE;
+/** Clearance kept from the window edge, so it never looks pinned to it. */
+const MARGIN = 8;
+
+const positionFrom = (rect: DOMRect, menuHeight: number) => {
+  const roomAbove = rect.top - OFFSET - MARGIN;
+  const roomBelow = window.innerHeight - rect.bottom - OFFSET - MARGIN;
+  // Unmeasured on the first pass — height 0 fits anywhere, so this takes the
+  // preferred side and the measured pass corrects it before the frame is
+  // painted.
+  const openUpward = menuHeight <= roomAbove || roomAbove >= roomBelow;
   return {
     position: 'fixed' as const,
-    // Anchored by its bottom edge when opening upward, which means the menu
-    // never has to be measured: its height can be whatever it turns out to be
-    // and the edge nearest the trigger stays put either way.
+    // Anchored by the edge nearest the trigger in both directions, so the menu
+    // grows away from the control rather than over it.
     ...(openUpward
       ? { bottom: window.innerHeight - rect.top + OFFSET }
       : { top: rect.bottom + OFFSET }),
+    maxHeight: Math.max(0, openUpward ? roomAbove : roomBelow),
     // Right-aligned to the trigger, like every other menu here, and held inside
     // the window so a control near the edge cannot push it off.
-    right: Math.max(8, window.innerWidth - rect.right),
+    right: Math.max(MARGIN, window.innerWidth - rect.right),
   };
 };
 
@@ -76,12 +92,25 @@ const AnchoredMenu = ({
   children: ReactNode;
 }) => {
   const [style, setStyle] = useState<React.CSSProperties>();
+  // The menu element itself, as state rather than a ref, because placing it
+  // depends on its measured height and a ref would not re-run the effect when
+  // it arrives.
+  const [menu, setMenu] = useState<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!isOpen || !anchor) {
       return undefined;
     }
-    const place = () => setStyle(positionFrom(anchor.getBoundingClientRect()));
+    const place = () =>
+      setStyle(
+        positionFrom(
+          anchor.getBoundingClientRect(),
+          // `scrollHeight`, so a menu already capped and scrolling still
+          // reports how tall it wants to be. `offsetHeight` would report the
+          // cap, which would then look like a perfect fit and never flip back.
+          menu?.scrollHeight ?? 0,
+        ),
+      );
     place();
     // Anything that moves the trigger moves the menu. `true` on the scroll
     // listener catches scrolling inside the panel as well as the window, which
@@ -93,14 +122,20 @@ const AnchoredMenu = ({
       window.removeEventListener('scroll', place, true);
       window.removeEventListener('resize', place);
     };
-  }, [anchor, isOpen]);
+  }, [anchor, isOpen, menu]);
 
   if (!isOpen || !style || typeof document === 'undefined') {
     return null;
   }
 
   return createPortal(
-    <div className={className} style={style} role="menu" data-anchored-menu>
+    <div
+      ref={setMenu}
+      className={className}
+      style={style}
+      role="menu"
+      data-anchored-menu
+    >
       {children}
     </div>,
     document.body,

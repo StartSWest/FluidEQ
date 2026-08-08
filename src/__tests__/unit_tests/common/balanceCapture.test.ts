@@ -762,7 +762,7 @@ describe('balance capture', () => {
       expect(progress.percent).toBe(40);
       expect(progress.percent).toBeLessThanOrEqual(99);
       expect(describeBalanceProgress(progress)).toBe(
-        'Listening 40% - needs air',
+        'Listening 40% - waiting on air',
       );
     });
 

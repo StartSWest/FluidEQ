@@ -19,10 +19,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { FilterTypeEnum, IFilter } from 'common/constants';
 import {
   CONTINUOUS_MAX_DB,
+  CONTINUOUS_MAX_STEP_DB,
   CONTINUOUS_MEMORY,
   CONTINUOUS_RESET_DB,
   CONTINUOUS_RESET_HOLDS,
+  CONTINUOUS_SETTLE_DB,
   CONTINUOUS_STEP_DB,
+  CONTINUOUS_STEP_FRACTION,
   CONTINUOUS_TRIGGER_DB,
   blendSmartEqTarget,
   SMART_EQ_MAX_FREQUENCY,
@@ -287,12 +290,75 @@ describe('the Smart EQ layer', () => {
 
     it('steps down as readily as up', () => {
       const bands = bandsAt({ 1000: 3 });
-      const stepped = stepSmartEqGains(bands, solvedAt(bands, { 1000: -5 }));
+      const stepped = stepSmartEqGains(bands, solvedAt(bands, { 1000: 0 }));
 
       expect(gainAt(bands, stepped, 1000)).toBeCloseTo(
         3 - CONTINUOUS_STEP_DB,
         6,
       );
+    });
+
+    it('finishes a correction instead of stopping inside the trigger', () => {
+      // The failure this exists for: one threshold doing both jobs meant a band
+      // stopped the moment it was within 2.5 dB and stayed there, so the mode
+      // reached a level, went quiet, and left an audible error in the sound.
+      const drift = (CONTINUOUS_TRIGGER_DB + CONTINUOUS_SETTLE_DB) / 2;
+      const bands = bandsAt({ 1000: 0 });
+      const destination = solvedAt(bands, { 1000: drift });
+
+      // Not moving: inside the trigger, so it is not worth starting.
+      expect(gainAt(bands, stepSmartEqGains(bands, destination), 1000)).toBe(0);
+
+      // Already moving: the same distance is now worth finishing.
+      const id = bandAt(bands, 1000)?.id ?? '';
+      expect(
+        gainAt(
+          bands,
+          stepSmartEqGains(bands, destination, { moving: new Set([id]) }),
+          1000,
+        ),
+      ).toBeCloseTo(drift, 6);
+    });
+
+    it('stops once a moving band has actually arrived', () => {
+      // Hysteresis must still end. A band inside the settle tolerance is done,
+      // whether or not it was travelling a moment ago.
+      const bands = bandsAt({ 1000: 0 });
+      const id = bandAt(bands, 1000)?.id ?? '';
+      const stepped = stepSmartEqGains(
+        bands,
+        solvedAt(bands, { 1000: CONTINUOUS_SETTLE_DB / 2 }),
+        { moving: new Set([id]) },
+      );
+
+      expect(gainAt(bands, stepped, 1000)).toBe(0);
+    });
+
+    it('moves further the further it has to go', () => {
+      // The ordinary case is unchanged — a few decibels out is one step of the
+      // floor — and a mess is closed by halves instead of inched at. Sixteen
+      // decibels at a flat two per write is eight writes twenty seconds apart,
+      // which is three minutes of a mode visibly failing to fix something
+      // obvious.
+      const near = bandsAt({ 1000: 0 });
+      expect(
+        gainAt(near, stepSmartEqGains(near, solvedAt(near, { 1000: 3 })), 1000),
+      ).toBeCloseTo(CONTINUOUS_STEP_DB, 6);
+
+      const far = bandsAt({ 1000: 0 });
+      expect(
+        gainAt(far, stepSmartEqGains(far, solvedAt(far, { 1000: 9 })), 1000),
+      ).toBeCloseTo(9 * CONTINUOUS_STEP_FRACTION, 6);
+
+      // And never more than one step's worth, however wild the destination.
+      const wild = bandsAt({ 1000: 0 });
+      expect(
+        gainAt(
+          wild,
+          stepSmartEqGains(wild, solvedAt(wild, { 1000: 40 })),
+          1000,
+        ),
+      ).toBeCloseTo(CONTINUOUS_MAX_STEP_DB, 6);
     });
 
     it('never accumulates past the cap, however long it runs', () => {

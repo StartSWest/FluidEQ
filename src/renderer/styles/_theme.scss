@@ -176,6 +176,12 @@ $transition-control:
 @mixin menu-surface {
   border: 1px solid rgba($secondary-light, 0.22);
   border-radius: $radius-l;
+  // Scrolls only if it has to. `AnchoredMenu` caps the height to the room
+  // actually available; without somewhere for the overflow to go, that cap
+  // would clip the last entries instead of letting them be reached — the exact
+  // failure the cap exists to prevent, moved one step along.
+  overflow-y: auto;
+  overscroll-behavior: contain;
   // Every menu built on this surface arrives the same way.
   //
   // Emitted here rather than per component for the same reason the euphoria

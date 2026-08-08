@@ -54,6 +54,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
 }
 
+// A heading inside an auto-fit grid, which needs saying explicitly: without the
+// full-row span it would be handed one column and the cards would flow around
+// it, so the label for a group would sit beside that group rather than above it.
+.voicing-cards__group {
+  margin: 4px 0 -2px;
+  color: rgba($white, 0.45);
+  font-size: 0.64rem;
+  font-weight: 700;
+  grid-column: 1 / -1;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
 // Full cards, not chips: this is the page where you choose a voicing, so the
 // glyph gets its own tile and the description gets room to be read.
 .voicing-card {

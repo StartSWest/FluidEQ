@@ -205,6 +205,7 @@ const pt: Partial<Dictionary> = {
   'eq.layers.smart.fullRange': 'Medido · faixa inteira',
   'eq.layers.smart.range': 'Medido · de {low} a {high}',
   'eq.layers.remove': 'Remover a camada de {layer}',
+  'eq.layers.clearBands': 'Repor todas as bandas a 0 dB',
   'eq.layers.clearReference':
     'Limpar o modelo de referência e as bandas que ele gerou',
   'eq.layers.clearSmart':
@@ -250,6 +251,9 @@ const pt: Partial<Dictionary> = {
   'voicing.title': 'Caráter',
   'voicing.intro':
     'Um alvo ajustado para o que você realmente está fazendo. Cada um é escrito como uma camada própria depois das suas bandas, então o seu ajuste nunca é tocado e voltar para Nenhum o restaura exatamente.',
+  'voicing.refused': 'Não foi possível mudar o voicing',
+  'voicing.groupPurpose': 'Para quê',
+  'voicing.groupGenre': 'Género',
   'voicing.none': 'Nenhum',
   'voicing.none.hint': 'Apenas suas bandas de EQ, sem nada por cima',
   'voicing.strength': 'Intensidade',

@@ -215,11 +215,123 @@ button.active-layer__body {
 // Switched off, and still here. Dimmed rather than hidden, because the whole
 // point is that it comes back — and struck through, so "off" reads at a glance
 // instead of being inferred from a shade of grey.
+//
+// Fainter than it was, and desaturated with it. 0.45 was not enough on its own:
+// these chips are bright, and 45% of bright is still a lit control sitting in a
+// row of lit controls. Losing the colour as well as the brightness is what makes
+// it read as a state rather than as slightly different styling.
+//
+// The swatch is the reason saturation matters rather than just level. It exists
+// to be matched against a curve on the graph, and a switched-off layer has no
+// curve — so a swatch still glowing in the layer's colour is pointing at a line
+// that is not being drawn.
+// The BODY fades, not the whole chip, and that is a functional requirement
+// rather than a nicety. `opacity` on a parent is a ceiling its children cannot
+// climb back out of, and one of those children is the strength slider — the only
+// way back from a voicing turned down to zero. Fading the chip would leave the
+// escape route at 32% and greyed out.
 .active-layer.is-bypassed {
-  opacity: 0.45;
+  .active-layer__body {
+    opacity: 0.32;
+    filter: grayscale(0.8);
+  }
 
   .active-layer__name,
   .active-layer__label {
     text-decoration: line-through;
+  }
+}
+
+// A fixed cell, so the digits cannot resize the chip.
+//
+// Wide enough for "100%" and right-aligned, with tabular figures — proportional
+// digits are different widths from each other, so even at a fixed cell width a
+// 1 changing to an 8 would shift the text inside it. Every number between 0 and
+// 100 now occupies exactly the same space.
+.active-layer__percent {
+  // `inline-block` because a plain inline box ignores `min-width` entirely,
+  // which is the whole mechanism here.
+  display: inline-block;
+  // Wide enough for the separator and "100%" together, since both live inside
+  // this box. Right-aligned, so the pair sits against the trailing edge and the
+  // cell's left edge never moves.
+  min-width: 3.8em;
+  margin-left: 5px;
+  opacity: 0.72;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+
+  // The separator lives here rather than in the name string, so it comes and
+  // goes with the number it separates and the reserved cell above stays exactly
+  // as wide whatever the number is.
+  &::before {
+    margin-right: 5px;
+    content: '·';
+    opacity: 0.7;
+  }
+}
+
+// A third column, and only when there is a third thing.
+//
+// The chip is a two-track grid — body, remove — so a slider dropped in as a
+// third child had nowhere to go and wrapped the remove button onto a second
+// row, which is what it did. Declared as a modifier rather than widening the
+// base rule, because an empty third track still renders its gap and every chip
+// in the row would gain six pixels it has no use for.
+.active-layer.has-strength {
+  grid-template-columns: minmax(0, 1fr) auto auto;
+}
+
+// A layer's strength, on the chip rather than only on its own tab.
+//
+// Narrow on purpose. It sits inside a chip in a row of chips and is a trim
+// control, not the panel's full slider — enough travel to find 40% or 70% by
+// eye, and the exact number is already printed beside it in the chip's name.
+//
+// The box is sized to the THUMB and the track is drawn inside it. Styling the
+// input's own background instead leaves the element at the browser's intrinsic
+// height for a range input, which is around twenty pixels and stretched the chip
+// taller than every other one in the row.
+//
+// Painted from `--fill` for the same reason the panel's slider is: a range input
+// gives no way to style the two halves of its track apart.
+.active-layer__strength {
+  width: 58px;
+  height: 12px;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+
+  &::-webkit-slider-runnable-track {
+    height: 4px;
+    border-radius: 999px;
+    background: linear-gradient(
+      to right,
+      rgba($secondary-default, 0.9) var(--fill, 100%),
+      rgba($white, 0.16) var(--fill, 100%)
+    );
+  }
+
+  &::-webkit-slider-thumb {
+    width: 10px;
+    height: 10px;
+    border: 0;
+    // Half the thumb's overhang, so it rides centred on a 4px track rather than
+    // hanging off the bottom of it.
+    margin-top: -3px;
+    border-radius: 50%;
+    appearance: none;
+    background: $secondary-light;
+    box-shadow: 0 1px 4px rgba($black, 0.5);
+    cursor: pointer;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
   }
 }

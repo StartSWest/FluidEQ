@@ -40,6 +40,27 @@ const PATHS: Record<string, string> = {
   loudness: 'M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z',
   // Crossed-out circle, for "no voicing".
   none: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM6 6l12 12',
+
+  // Genres. Drawn on the same 24 grid and at the same weight, so a genre and a
+  // purpose read as the same kind of thing in the same list — which they are.
+  // Lightning: amplified.
+  rock: 'M13 3 5 14h5l-1 7 8-11h-5l1-7z',
+  // Amplifier stack.
+  metal: 'M4 4h16v7H4zm0 9h16v7H4zM8 7.5h.01M16 7.5h.01M8 16.5h.01M16 16.5h.01',
+  // Star.
+  pop: 'M12 3.5l2.6 5.6 6 .8-4.4 4.2 1.1 6-5.3-3-5.3 3 1.1-6L3.4 9.9l6-.8z',
+  // Turntable: platter, spindle and arm.
+  hiphop:
+    'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zm0 6.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zM17.5 6.5 13.5 10.5',
+  // Waveform on a scope.
+  electronic: 'M3 12h3l2-6 3 12 3-9 2 3h5',
+  // Saxophone.
+  jazz: 'M14 3v8a5 5 0 0 1-5 5 3 3 0 0 0 0 6h5M11 7h4M11 11h4',
+  // Concert hall: pediment and columns.
+  classical: 'M5 20h14M4 9h16L12 3 4 9zM7 9v9m4-9v9m4-9v9',
+  // Acoustic guitar: body, soundhole and neck.
+  acoustic:
+    'M14 3h4m-2 0v8m-2.5 1.5a5.5 5.5 0 1 1-5.5 5.5 5.5 5.5 0 0 1 5.5-5.5zm0 3.5a2 2 0 1 0 0 4 2 2 0 0 0 0-4z',
 };
 
 /** The strip of sliders that stands for voicing as a whole. */
@@ -55,7 +76,10 @@ export default function VoicingIcon({
   profileId,
   className,
 }: IVoicingIconProps) {
-  const path = profileId ? PATHS[profileId] : GENERIC;
+  // Falls back rather than rendering nothing. `PATHS[unknown]` is `undefined`
+  // and a path with no `d` draws an empty glyph, so a profile added without one
+  // would leave a hole in the list that looks like a failed load.
+  const path = (profileId ? PATHS[profileId] : GENERIC) ?? GENERIC;
 
   return (
     <svg

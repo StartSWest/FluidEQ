@@ -193,6 +193,7 @@ const zh: Partial<Dictionary> = {
   'eq.layers.smart.fullRange': '已测量 · 全频段',
   'eq.layers.smart.range': '已测量 · {low} 至 {high}',
   'eq.layers.remove': '移除{layer}层',
+  'eq.layers.clearBands': '将所有频段重置为 0 dB',
   'eq.layers.clearReference': '清除参考型号及其生成的频段',
   'eq.layers.clearSmart': '移除测得的修正。你的频段和参考型号都会保留。',
   'eq.clear': '清空均衡',
@@ -233,6 +234,9 @@ const zh: Partial<Dictionary> = {
   'voicing.title': '声音风格',
   'voicing.intro':
     '针对你眼下在做的事调好的目标曲线。每一条都作为独立的一层写在你的频段之后，所以你自己的调音不会被动到，切回“无”就能原样恢复。',
+  'voicing.refused': '无法切换音色',
+  'voicing.groupPurpose': '用途',
+  'voicing.groupGenre': '流派',
   'voicing.none': '无',
   'voicing.none.hint': '只用你自己的频段，不叠加任何东西',
   'voicing.strength': '强度',

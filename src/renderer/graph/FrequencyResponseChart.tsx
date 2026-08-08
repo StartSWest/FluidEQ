@@ -1031,19 +1031,36 @@ const FrequencyResponseChart = () => {
     // the writer's rule too: an impulse that came with a file was normalised by
     // whoever published it, and counting it again reserves headroom nothing is
     // using.
-    const calculatedAutoPreAmpValue = -Math.max(
-      0,
-      getChainPeakGain([
-        ...(convolution &&
-        !convolution.fileName &&
-        !bypassed.includes('convolution')
-          ? Object.values(convolution.filters || {})
-          : []),
-        ...(bypassed.includes('eq') ? [] : Object.values(filters)),
-        ...(bypassed.includes('driver') ? [] : getDriverFilters(driver)),
-        ...(bypassed.includes('voicing') ? [] : getVoicingFilters(voicing)),
-        ...(bypassed.includes('smart') ? [] : getSmartEqFilters(smartEq)),
-      ]),
+    // Floored at MIN_GAIN, because the chain can now ask for more headroom than
+    // a preamp is allowed to give.
+    //
+    // Every layer is capped at 20 dB on its own and there are five of them, so
+    // the sum has always been able to exceed the range — but in practice the
+    // only layer that stacked on top of the user's own was Smart EQ, and Smart
+    // EQ was capped at 6. Taking that cap off, so a continuous mode can actually
+    // undo a band somebody dragged to -16, is what made the arithmetic reachable
+    // and threw "Invalid gain value - outside of range" out of an effect on
+    // mount, which the error boundary turns into a blank workspace.
+    //
+    // Clamping loses nothing real: a chain needing more than 20 dB of headroom
+    // will clip on the loudest peaks whatever this says, and the alternative is
+    // not "correct headroom" but "no application".
+    const calculatedAutoPreAmpValue = Math.max(
+      MIN_GAIN,
+      -Math.max(
+        0,
+        getChainPeakGain([
+          ...(convolution &&
+          !convolution.fileName &&
+          !bypassed.includes('convolution')
+            ? Object.values(convolution.filters || {})
+            : []),
+          ...(bypassed.includes('eq') ? [] : Object.values(filters)),
+          ...(bypassed.includes('driver') ? [] : getDriverFilters(driver)),
+          ...(bypassed.includes('voicing') ? [] : getVoicingFilters(voicing)),
+          ...(bypassed.includes('smart') ? [] : getSmartEqFilters(smartEq)),
+        ]),
+      ),
     );
 
     return {
@@ -1183,18 +1200,26 @@ const FrequencyResponseChart = () => {
     if (isAutoPreAmpOn && !isLoading && !globalError) {
       setMainPreAmp(autoPreAmpValue)
         .then(() => setPreAmp(autoPreAmpValue))
-        .catch((error: ErrorDescription) => {
-          setGlobalError(error);
+        .catch(() => {
+          // Deliberately not raised to the workspace, and this is the one place
+          // where that rule is not a judgement call.
+          //
+          // This runs from an effect on mount, off a value derived from the
+          // whole chain. Raising here took a number that had drifted out of
+          // range — one clamp missing, five layers deep — and turned it into the
+          // error boundary over the entire app: no graph, no bands, no way to
+          // undo whatever caused it, and the same failure again on restart,
+          // because the chain that produced it is on disk. An unrecoverable
+          // blank screen for a headroom value.
+          //
+          // Nothing here needs a person. The preamp is derived, so the next
+          // render recomputes it from scratch; if it lands in range it is
+          // written and the app never mentions it. Missing it means the loudest
+          // peaks may clip, which is a thing somebody can hear and act on, and
+          // is not worth the app for.
         });
     }
-  }, [
-    autoPreAmpValue,
-    globalError,
-    isAutoPreAmpOn,
-    isLoading,
-    setGlobalError,
-    setPreAmp,
-  ]);
+  }, [autoPreAmpValue, globalError, isAutoPreAmpOn, isLoading, setPreAmp]);
 
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState<number>(0);

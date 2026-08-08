@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { VOICING_PROFILES, getVoicingProfile } from 'common/voicing';
 import VoicingIcon from '../icons/VoicingIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
@@ -38,10 +38,13 @@ const VoicingQuickPick = () => {
     useFluidEqContext();
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
+  /** A switch the engine refused, shown until the next attempt. */
+  const [isRefused, setRefused] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
   const activeId = voicing?.profileId ?? '';
   const activeProfile = getVoicingProfile(activeId);
+  const strengthPercent = Math.round((voicing?.intensity ?? 1) * 100);
 
   useEffect(() => {
     if (!isOpen) {
@@ -74,15 +77,23 @@ const VoicingQuickPick = () => {
     setIsOpen(false);
     const intensity = voicing?.intensity ?? 1;
     setVoicing({ profileId, intensity });
+    setRefused(false);
     try {
       await setVoicingApi(profileId, intensity);
     } catch {
-      // Deliberately swallowed after reverting. This is an onClick handler, so
-      // nothing is awaiting the rejection — rethrowing here would only produce
-      // an unhandled promise rejection. Failing to switch voicing must also not
-      // blank the workspace the way a global error would, and the trigger
-      // snapping back to the previous profile is the feedback that matters.
+      // Not raised globally, and not silent either — both extremes are wrong
+      // here, and the app has now been each of them.
+      //
+      // Raising blanks the workspace over a layer that will not switch, which
+      // is out of all proportion. Saying nothing is what this used to do, and
+      // the result was a genre entry that simply could not be selected: the
+      // trigger snapped back and nothing anywhere said why. It took a restart
+      // and a read of the IPC handler to find out that the main process was
+      // refusing the id.
+      //
+      // So it reverts, and it says so, on the control that was pressed.
       setVoicing(voicing ?? { profileId: '', intensity: 1 });
+      setRefused(true);
     }
   };
 
@@ -95,12 +106,14 @@ const VoicingQuickPick = () => {
         aria-expanded={isOpen}
         aria-label={
           activeProfile
-            ? t('voicing.quickAria', { name: activeProfile.name })
+            ? t('voicing.quickAria', {
+                name: `${activeProfile.name} ${strengthPercent}%`,
+              })
             : t('voicing.quickNone')
         }
         title={
           activeProfile
-            ? `${activeProfile.name} — ${activeProfile.tagline}`
+            ? `${activeProfile.name} · ${strengthPercent}% — ${activeProfile.tagline}`
             : t('voicing.quickTitle')
         }
         disabled={isBlockingError || !isEnabled}
@@ -109,6 +122,14 @@ const VoicingQuickPick = () => {
         <VoicingIcon profileId={activeProfile?.id} />
         <span>
           {activeProfile ? activeProfile.name : t('voicing.quickLabel')}
+          {/* In a cell of a reserved width, which is the only reason it can be
+              here at all. Appended as plain text it changed this button's width
+              on every step of a drag, and this button sits in a row of eleven —
+              so the whole toolbar shuffled sideways while you were aiming at
+              one of them. */}
+          {activeProfile && (
+            <small className="voicing-pick__strength">{strengthPercent}%</small>
+          )}
         </span>
         {/* It opens a menu, and nothing on it said so — it read as a button
             that does something, in a row of buttons that do. The same chevron
@@ -117,6 +138,17 @@ const VoicingQuickPick = () => {
           <path d="M4 6.5l4 4 4-4" />
         </svg>
       </button>
+
+      {/* On the control, not over the workspace. It stays until the next
+          attempt rather than fading, because the thing it is reporting is that
+          nothing changed — and a message about nothing having happened that
+          disappears on its own is indistinguishable from never having been
+          there. */}
+      {isRefused && (
+        <span className="voicing-pick__refused" role="status">
+          {t('voicing.refused')}
+        </span>
+      )}
 
       {/* Out of the panel, because the panel clips — see AnchoredMenu. This one
           is as tall as the profile list, so near the bottom of a scrolled
@@ -140,23 +172,34 @@ const VoicingQuickPick = () => {
           </span>
         </button>
 
-        {VOICING_PROFILES.map((profile) => (
-          <button
-            key={profile.id}
-            type="button"
-            role="menuitemradio"
-            aria-checked={activeId === profile.id}
-            className={`voicing-pick__item${
-              activeId === profile.id ? ' is-active' : ''
-            }`}
-            onClick={() => apply(profile.id)}
-          >
-            <VoicingIcon profileId={profile.id} />
-            <span>
-              <strong>{profile.name}</strong>
-              <small>{profile.tagline}</small>
-            </span>
-          </button>
+        {VOICING_PROFILES.map((profile, index) => (
+          <Fragment key={profile.id}>
+            {/* A heading at each change of group, rather than a fixed pair of
+                sections, so adding a profile to either one cannot leave it
+                filed under the wrong header. */}
+            {profile.group !== VOICING_PROFILES[index - 1]?.group && (
+              <span className="voicing-pick__group" role="presentation">
+                {profile.group === 'genre'
+                  ? t('voicing.groupGenre')
+                  : t('voicing.groupPurpose')}
+              </span>
+            )}
+            <button
+              type="button"
+              role="menuitemradio"
+              aria-checked={activeId === profile.id}
+              className={`voicing-pick__item${
+                activeId === profile.id ? ' is-active' : ''
+              }`}
+              onClick={() => apply(profile.id)}
+            >
+              <VoicingIcon profileId={profile.id} />
+              <span>
+                <strong>{profile.name}</strong>
+                <small>{profile.tagline}</small>
+              </span>
+            </button>
+          </Fragment>
         ))}
       </AnchoredMenu>
     </div>

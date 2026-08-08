@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useRef } from 'react';
+import { Fragment, useEffect, useRef } from 'react';
 import { ErrorDescription } from 'common/errors';
 import {
   VOICING_PROFILES,
@@ -111,24 +111,34 @@ const VoicingPanel = () => {
           <small>{t('voicing.none.hint')}</small>
         </button>
 
-        {VOICING_PROFILES.map((profile) => (
-          <button
-            key={profile.id}
-            type="button"
-            role="radio"
-            aria-checked={activeId === profile.id}
-            className={`voicing-card${
-              activeId === profile.id ? ' is-active' : ''
-            }`}
-            disabled={isBlockingError || !isEnabled}
-            onClick={() => apply(profile.id, intensity)}
-          >
-            <span className="voicing-card__icon">
-              <VoicingIcon profileId={profile.id} />
-            </span>
-            <strong>{profile.name}</strong>
-            <small>{profile.tagline}</small>
-          </button>
+        {VOICING_PROFILES.map((profile, index) => (
+          <Fragment key={profile.id}>
+            {/* A heading at each change of group. It spans the whole grid row
+                so the cards under it keep their columns. */}
+            {profile.group !== VOICING_PROFILES[index - 1]?.group && (
+              <span className="voicing-cards__group" role="presentation">
+                {profile.group === 'genre'
+                  ? t('voicing.groupGenre')
+                  : t('voicing.groupPurpose')}
+              </span>
+            )}
+            <button
+              type="button"
+              role="radio"
+              aria-checked={activeId === profile.id}
+              className={`voicing-card${
+                activeId === profile.id ? ' is-active' : ''
+              }`}
+              disabled={isBlockingError || !isEnabled}
+              onClick={() => apply(profile.id, intensity)}
+            >
+              <span className="voicing-card__icon">
+                <VoicingIcon profileId={profile.id} />
+              </span>
+              <strong>{profile.name}</strong>
+              <small>{profile.tagline}</small>
+            </button>
+          </Fragment>
         ))}
       </div>
 

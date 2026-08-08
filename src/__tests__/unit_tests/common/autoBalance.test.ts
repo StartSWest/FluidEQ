@@ -161,7 +161,7 @@ describe('autoBalance', () => {
 
     it('names the direction each range actually moved', () => {
       expect(describeCorrectionShape([at(10000, 3), at(100, -2)])).toBe(
-        'Lifting air, easing bass',
+        'Lifted air, eased bass',
       );
     });
 
@@ -184,7 +184,7 @@ describe('autoBalance', () => {
       expect(said.split(', ')).toHaveLength(MAX_NAMED_RANGES);
       // 1 kHz is in `upper mids` — the region edges are 560 and 1120, not the
       // round numbers the name suggests.
-      expect(said.startsWith('Lifting upper mids')).toBe(true);
+      expect(said.startsWith('Lifted upper mids')).toBe(true);
     });
 
     it('averages a range rather than reporting its loudest band', () => {

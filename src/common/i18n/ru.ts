@@ -204,6 +204,7 @@ const ru: Partial<Dictionary> = {
   'eq.layers.smart.fullRange': 'Измерено · весь диапазон',
   'eq.layers.smart.range': 'Измерено · от {low} до {high}',
   'eq.layers.remove': 'Убрать слой «{layer}»',
+  'eq.layers.clearBands': 'Вернуть все полосы к 0 dB',
   'eq.layers.clearReference': 'Убрать эталонную модель и созданные ею полосы',
   'eq.layers.clearSmart':
     'Убрать измеренную коррекцию. Ваши полосы и эталон останутся на месте.',
@@ -248,6 +249,9 @@ const ru: Partial<Dictionary> = {
   'voicing.title': 'Характер',
   'voicing.intro':
     'Подобранная цель под то, чем вы сейчас заняты. Каждая пишется отдельным слоем после ваших полос, поэтому ваша настройка не трогается, а возврат к «Нет» восстанавливает её в точности.',
+  'voicing.refused': 'Не удалось сменить воисинг',
+  'voicing.groupPurpose': 'Для чего',
+  'voicing.groupGenre': 'Жанр',
   'voicing.none': 'Нет',
   'voicing.none.hint': 'Только ваши полосы, ничего сверху',
   'voicing.strength': 'Сила',

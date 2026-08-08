@@ -16,9 +16,10 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { useRef } from 'react';
 import { ErrorDescription } from 'common/errors';
 import { describeBandShape, TApoLayer } from 'common/constants';
-import { getVoicingProfile } from 'common/voicing';
+import { getVoicingProfile, isVoicingActive } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { hasSmartEqLayer } from 'common/smartEq';
 import { useFluidEqContext } from '../utils/FluidEqContext';
@@ -26,6 +27,7 @@ import { setContinuousEq, useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
 import {
   clearConvolution,
+  clearGains,
   clearHeadset,
   setDriver as setDriverApi,
   setLayerBypass,
@@ -63,6 +65,9 @@ const LAYER_SWATCH: Record<string, string> = {
   smart: ColorEnum.SMART,
 };
 
+/** How long a strength drag settles before it is written. */
+const STRENGTH_WRITE_DEBOUNCE_MS = 250;
+
 /**
  * What is shaping the sound besides the bands on screen.
  *
@@ -76,6 +81,7 @@ const LAYER_SWATCH: Record<string, string> = {
  * place you would otherwise have to go to turn it off.
  */
 const ActiveLayers = () => {
+  const strengthTimers = useRef<Record<string, number>>({});
   const {
     filters,
     convolution,
@@ -93,6 +99,7 @@ const ActiveLayers = () => {
     setVoicing,
     setDriver,
     setSmartEq,
+    setPreAmp,
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
@@ -125,6 +132,60 @@ const ActiveLayers = () => {
   const isEqModified =
     !!headsetSignature && headsetSignature !== describeBandShape(filters);
 
+  /**
+   * Strength, applied at once and written a moment later.
+   *
+   * The same debounce the two owning tabs use on their own sliders, and for the
+   * same reason: dragging across the track fires a change per step, and each one
+   * is a config rewrite that Equalizer APO then reloads. The state moves
+   * immediately so the chip and the graph follow the thumb, and only the last
+   * value reaches disk.
+   *
+   * ONE TIMER PER LAYER, keyed, and not one timer shared between them.
+   *
+   * Sharing looked harmless — nobody drags two sliders at once — and is not:
+   * the point of a debounce is that the write happens *after* you stop moving,
+   * so a pending write outlives the drag that scheduled it. Reach for the second
+   * slider inside that window and the shared timer is cleared, the first layer's
+   * write never happens, and it sits showing a value that was never written. The
+   * next state refresh pulls the old one back and the slider appears to move on
+   * its own, on a chip nobody touched.
+   */
+  const setLayerStrength = (
+    key: string,
+    apply: (intensity: number) => void,
+    write: (intensity: number) => Promise<void>,
+    intensity: number,
+  ) => {
+    apply(intensity);
+    const pending = strengthTimers.current[key];
+    if (pending !== undefined) {
+      window.clearTimeout(pending);
+    }
+    strengthTimers.current[key] = window.setTimeout(() => {
+      delete strengthTimers.current[key];
+      write(intensity).catch((e) => setGlobalError(e as ErrorDescription));
+    }, STRENGTH_WRITE_DEBOUNCE_MS);
+  };
+
+  const setVoicingStrength = (intensity: number) =>
+    setLayerStrength(
+      'voicing',
+      (value) =>
+        setVoicing({ profileId: voicing?.profileId ?? '', intensity: value }),
+      (value) => setVoicingApi(voicing?.profileId ?? '', value),
+      intensity,
+    );
+
+  const setDriverStrength = (intensity: number) =>
+    setLayerStrength(
+      'driver',
+      (value) =>
+        setDriver({ profileId: driver?.profileId ?? '', intensity: value }),
+      (value) => setDriverApi(driver?.profileId ?? '', value),
+      intensity,
+    );
+
   const voicingProfile = getVoicingProfile(voicing?.profileId ?? '');
   const driverProfile = getDriverProfile(driver?.profileId ?? '');
 
@@ -147,6 +208,34 @@ const ActiveLayers = () => {
      * notice it was moving.
      */
     isLive?: boolean;
+    /**
+     * How strongly this layer is applied, when that is a thing it has.
+     *
+     * Only the voicing, and it is here rather than only on its own tab because
+     * strength is the setting people actually reach for. Which voicing is a
+     * decision made once; how much of it is a dial you turn while listening, and
+     * turning it meant leaving the EQ and coming back.
+     */
+    strength?: number;
+    /** Where a drag on that slider goes. */
+    onStrength?: (intensity: number) => void;
+    /**
+     * The strength as a number, drawn in a fixed-width cell of its own.
+     *
+     * Separate from `name` so it can be given reserved space. Appended to the
+     * name it made the chip a different width at 5% than at 100%, so dragging
+     * the slider shoved every chip to its right back and forth under the cursor.
+     */
+    percent?: number;
+    /**
+     * Chosen, but contributing nothing — a voicing turned down to zero.
+     *
+     * Drawn like a bypassed layer, because that is what it is from the sound's
+     * point of view. Kept separate from bypass itself because the switch is
+     * still on: pressing the body toggles the include, and the way back from
+     * this state is the slider, not the switch.
+     */
+    isInactive?: boolean;
     /**
      * Which file in the Equalizer APO config this chip stands for, and so what
      * its A/B switch takes out of the chain.
@@ -189,12 +278,19 @@ const ActiveLayers = () => {
   // the reference is not a label attached to a tuning, it is the tuning, and
   // removing only the label left a curve behind that the EQ page then claimed
   // nothing was responsible for.
-  if (driverProfile && (driver?.intensity ?? 0) > 0) {
+  // Shown whenever a driver is chosen, for the same reason the voicing is: the
+  // chip carries the strength slider, so hiding it at 0% would take away the
+  // only control that could bring the layer back.
+  if (driverProfile) {
     layers.push({
       key: 'driver',
       icon: 'waveform',
       label: t('eq.layers.driver'),
-      name: `${driverProfile.name} · ${Math.round((driver?.intensity ?? 0) * 100)}%`,
+      name: driverProfile.name,
+      percent: Math.round((driver?.intensity ?? 0) * 100),
+      strength: driver?.intensity ?? 0,
+      isInactive: (driver?.intensity ?? 0) <= 0,
+      onStrength: setDriverStrength,
       onClear: async () => {
         setDriver({ profileId: '', intensity: driver?.intensity ?? 0.6 });
         await setDriverApi('', driver?.intensity ?? 0.6);
@@ -231,15 +327,29 @@ const ActiveLayers = () => {
       name: headset
         ? `${reference}${isEqModified ? ` ${t('eq.layers.eq.modified')}` : ''}`
         : t('eq.layers.eq.bands', { count: String(bandCount) }),
-      // Only offered when there is a reference to clear. Bands placed by hand
-      // are cleared with Clear EQ, and a second route to deleting somebody's
-      // tuning is not something this row should grow.
-      clearHint: headset ? t('eq.layers.clearReference') : undefined,
+      // Clears the bands, like every other chip in this row clears its layer.
+      //
+      // It used to clear only the headset attribution, and only when there was
+      // one, on the argument that Clear EQ already exists and a second route to
+      // deleting somebody's tuning is not something this row should grow. That
+      // is a fair argument about buttons and the wrong one about this row: every
+      // other chip here removes the layer it names, so the one that does not is
+      // the surprise, and "delete the EQ chip" plainly means "take the EQ off".
+      //
+      // The attribution goes with it when there is one, because bands cleared to
+      // zero are no longer the model that wrote them.
+      clearHint: t('eq.layers.clearBands'),
       onClear: async () => {
         if (headset) {
           await clearHeadset();
-          await refreshState();
         }
+        await clearGains();
+        setPreAmp(0);
+        // The AutoEQ panel keeps its own idea of what is selected, and a
+        // reference cleared from here would otherwise leave its picker still
+        // naming the model whose bands have just gone.
+        window.dispatchEvent(new Event('fluideq-clear-autoeq-selection'));
+        await refreshState();
       },
       // The purest A/B in the app: the whole tuning out, the whole tuning back.
       //
@@ -256,12 +366,26 @@ const ActiveLayers = () => {
     });
   }
 
-  if (voicingProfile && (voicing?.intensity ?? 0) > 0) {
+  // Shown whenever a voicing is CHOSEN, not whenever it is doing something.
+  //
+  // Those are different questions and this is the one where the difference bites:
+  // the chip carries the strength slider, so hiding it at 0% takes away the only
+  // control that could bring the voicing back. You would drag to zero and the
+  // thing would vanish under the cursor.
+  //
+  // It is marked inactive instead — see `isInactive`, which is the same faded
+  // treatment a bypassed layer gets, because a voicing at zero strength is
+  // exactly as absent from the sound as one that is switched off.
+  if (voicingProfile) {
     layers.push({
       key: 'voicing',
       isVoicing: true,
       label: t('eq.layers.voicing'),
-      name: `${voicingProfile.name} · ${Math.round((voicing?.intensity ?? 0) * 100)}%`,
+      name: voicingProfile.name,
+      percent: Math.round((voicing?.intensity ?? 0) * 100),
+      strength: voicing?.intensity ?? 1,
+      isInactive: !isVoicingActive(voicing),
+      onStrength: setVoicingStrength,
       onClear: async () => {
         setVoicing({ profileId: '', intensity: voicing?.intensity ?? 1 });
         await setVoicingApi('', voicing?.intensity ?? 1);
@@ -335,7 +459,14 @@ const ActiveLayers = () => {
       {layers.map((layer) => (
         <span
           className={`active-layer${
-            layer.feature && isBypassed(layer.feature) ? ' is-bypassed' : ''
+            (layer.feature && isBypassed(layer.feature)) || layer.isInactive
+              ? ' is-bypassed'
+              : ''
+          }${
+            layer.strength !== undefined &&
+            !(layer.feature && isBypassed(layer.feature))
+              ? ' has-strength'
+              : ''
           }`}
           key={layer.key}
         >
@@ -392,6 +523,13 @@ const ActiveLayers = () => {
               <span className="active-layer__label">{layer.label}</span>
               <span className="active-layer__name" title={layer.name}>
                 {layer.name}
+                {/* Its own cell with a reserved width, so 5% and 100% take the
+                    same room. Appended to the name it changed the chip width on
+                    every step of a drag, shoving the chips beside it around
+                    under the cursor. */}
+                {layer.percent !== undefined && (
+                  <em className="active-layer__percent">{layer.percent}%</em>
+                )}
                 {/* A pip, not a word. The row is four chips wide already and
                     this is a state of one of them rather than a fifth thing to
                     read; the title carries the sentence. */}
@@ -424,6 +562,13 @@ const ActiveLayers = () => {
               <span className="active-layer__label">{layer.label}</span>
               <span className="active-layer__name" title={layer.name}>
                 {layer.name}
+                {/* Its own cell with a reserved width, so 5% and 100% take the
+                    same room. Appended to the name it changed the chip width on
+                    every step of a drag, shoving the chips beside it around
+                    under the cursor. */}
+                {layer.percent !== undefined && (
+                  <em className="active-layer__percent">{layer.percent}%</em>
+                )}
                 {/* A pip, not a word. The row is four chips wide already and
                     this is a state of one of them rather than a fifth thing to
                     read; the title carries the sentence. */}
@@ -436,6 +581,34 @@ const ActiveLayers = () => {
               </span>
             </span>
           )}
+          {/* Outside the body, not inside it: the body is a button, and a range
+              input nested in one cannot be dragged — the button swallows the
+              pointer and every attempt to slide toggles the layer off instead.
+
+              Hidden while the layer is bypassed, because there is nothing to
+              set the strength of. */}
+          {layer.strength !== undefined &&
+            !(layer.feature && isBypassed(layer.feature)) && (
+              <input
+                type="range"
+                className="active-layer__strength"
+                min={0}
+                max={100}
+                step={5}
+                value={Math.round(layer.strength * 100)}
+                aria-label={t('voicing.strength')}
+                title={t('voicing.strength')}
+                disabled={isBlockingError || !isEnabled}
+                style={
+                  {
+                    '--fill': `${Math.round(layer.strength * 100)}%`,
+                  } as React.CSSProperties
+                }
+                onChange={(event) =>
+                  layer.onStrength?.(Number(event.target.value) / 100)
+                }
+              />
+            )}
           <button
             type="button"
             aria-label={

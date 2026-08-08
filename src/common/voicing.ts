@@ -45,10 +45,21 @@ export interface IVoicingFilter {
   reason: string;
 }
 
+/**
+ * Which heading a profile sits under in the picker.
+ *
+ * `purpose` is what you are doing — music, a film, a call. `genre` is what the
+ * record is. They are the same kind of object and behave identically; the split
+ * exists because a flat list of fifteen is a list nobody reads, and because
+ * somebody usually knows which of the two questions they are answering.
+ */
+export type TVoicingGroup = 'purpose' | 'genre';
+
 export interface IVoicingProfile {
   id: string;
   name: string;
   tagline: string;
+  group: TVoicingGroup;
   filters: IVoicingFilter[];
 }
 
@@ -111,6 +122,7 @@ const highPass = (
 export const VOICING_PROFILES: IVoicingProfile[] = [
   {
     id: 'music',
+    group: 'purpose',
     name: 'Music',
     tagline: 'Warm low end, relaxed mids, open top',
     filters: [
@@ -121,6 +133,7 @@ export const VOICING_PROFILES: IVoicingProfile[] = [
   },
   {
     id: 'movies',
+    group: 'purpose',
     name: 'Movies',
     tagline: 'Impact underneath, dialogue that cuts through',
     filters: [
@@ -132,6 +145,7 @@ export const VOICING_PROFILES: IVoicingProfile[] = [
   },
   {
     id: 'games',
+    group: 'purpose',
     name: 'Games',
     tagline: 'Footsteps and positional cues stop being masked',
     filters: [
@@ -143,6 +157,7 @@ export const VOICING_PROFILES: IVoicingProfile[] = [
   },
   {
     id: 'speech',
+    group: 'purpose',
     name: 'Speech',
     tagline: 'Podcasts, calls and audiobooks, made intelligible',
     filters: [
@@ -154,6 +169,7 @@ export const VOICING_PROFILES: IVoicingProfile[] = [
   },
   {
     id: 'loudness',
+    group: 'purpose',
     name: 'Late night',
     tagline: 'Restores the bass and treble your ears lose when quiet',
     filters: [
@@ -162,12 +178,150 @@ export const VOICING_PROFILES: IVoicingProfile[] = [
       highShelf(8000, 4, 0.7, 'Equal-loudness: treble sensitivity drops too'),
     ],
   },
+
+  /*
+   * GENRES, AND AN HONEST NOTE ABOUT WHERE THEY COME FROM.
+   *
+   * Every "genre EQ" in existence descends from one 10-band preset table that
+   * shipped with Winamp and was copied into every player since. There is no
+   * research behind it — no listening panels, no measurements, nothing of the
+   * kind that stands behind a headphone target. It is a convention, and a
+   * strong one: people have a firm idea of what "Rock" should do to a stereo
+   * because they have seen that table for thirty years.
+   *
+   * So these follow the convention's *shapes* and none of its numbers. Copying
+   * the table would have been quicker and is not something this project can
+   * licence — the best archive of it says outright that its own author does not
+   * know what licence the files carry.
+   *
+   * They are also written in this app's domain rather than a stereo's. Those
+   * presets assume they are the only thing touching the sound; here they sit on
+   * top of a correction that has already put the record on a known curve, so a
+   * genre only has to say how it departs from that. Hence gains of two or three
+   * decibels where a Winamp preset would say ten, and hence a low-mid cut in
+   * most of them: once the record is where it should be, the useful move is
+   * almost always taking congestion out rather than piling more on.
+   */
+  {
+    id: 'rock',
+    group: 'genre',
+    name: 'Rock',
+    tagline: 'Drums with weight, guitars that stop crowding each other',
+    filters: [
+      lowShelf(90, 3, 0.7, 'Kick and bass guitar get their body back'),
+      pk(420, -2.5, 1.0, 'The band of layered guitars, where a mix congests'),
+      pk(3200, 2.5, 1.0, 'Snare crack and the edge of a guitar'),
+      highShelf(9000, 1.5, 0.7, 'Cymbals and room'),
+    ],
+  },
+  {
+    id: 'metal',
+    group: 'genre',
+    name: 'Metal',
+    tagline: 'Tight underneath, articulate through the wall of guitar',
+    filters: [
+      highPass(32, 0.7, 'Sub rumble under the kick, which only eats headroom'),
+      lowShelf(85, 2.5, 0.7, 'Kick weight without softening it'),
+      pk(450, -3, 1.1, 'Untangles down-tuned guitars from the bass'),
+      pk(3400, 3, 1.1, 'Beater attack and pick definition'),
+      highShelf(9000, 1.5, 0.7, 'Cymbal detail in a dense mix'),
+    ],
+  },
+  {
+    id: 'pop',
+    group: 'genre',
+    name: 'Pop',
+    tagline: 'Vocal forward, bass deep, top end polished',
+    filters: [
+      lowShelf(75, 3, 0.7, 'The low end modern pop is mastered to have'),
+      pk(320, -2, 1.1, 'Keeps a dense arrangement from thickening'),
+      pk(2600, 2.5, 1.0, 'Lead vocal presence'),
+      highShelf(10000, 2.5, 0.7, 'The sheen the genre is mixed for'),
+    ],
+  },
+  {
+    id: 'hiphop',
+    group: 'genre',
+    name: 'Hip-hop & R&B',
+    tagline: 'Sub weight underneath, vocal clear on top of it',
+    filters: [
+      lowShelf(60, 4.5, 0.7, 'Where 808s live, low enough to feel not muddy'),
+      pk(260, -2.5, 1.1, 'Stops the sub smearing into the low mids'),
+      pk(2800, 2, 1.0, 'Keeps the vocal above a heavy beat'),
+      highShelf(11000, 1.5, 0.7, 'Hats and air'),
+    ],
+  },
+  {
+    id: 'electronic',
+    group: 'genre',
+    name: 'Electronic & Dance',
+    tagline: 'Club low end, synths with edges',
+    filters: [
+      lowShelf(70, 4, 0.7, 'The weight a club system would give it'),
+      pk(360, -3, 1.2, 'Clears the mud synth layers build up here'),
+      pk(4200, 2, 1.2, 'Hats, plucks and the attack of a lead'),
+      highShelf(12000, 2.5, 0.7, 'Air and the top of a riser'),
+    ],
+  },
+  {
+    id: 'jazz',
+    group: 'genre',
+    name: 'Jazz',
+    tagline: 'Natural, warm, with the room left in',
+    filters: [
+      lowShelf(100, 2, 0.7, 'Double bass body without losing its pitch'),
+      pk(400, -1.5, 1.0, 'A light touch: the recordings are rarely congested'),
+      pk(3500, 1.5, 1.2, 'Brushes, brass and the breath of a horn'),
+      highShelf(11000, 1.5, 0.7, 'Cymbal shimmer and the room around it'),
+    ],
+  },
+  {
+    id: 'classical',
+    group: 'genre',
+    name: 'Classical',
+    tagline: 'The hall, not the desk — the lightest of these by far',
+    filters: [
+      lowShelf(120, 1.5, 0.7, 'Weight under the orchestra, gently'),
+      pk(350, -1.5, 1.0, 'Boxiness from close-miked strings'),
+      highShelf(10000, 2, 0.7, 'The air of the hall, which is the recording'),
+    ],
+  },
+  {
+    id: 'acoustic',
+    group: 'genre',
+    name: 'Acoustic & Folk',
+    tagline: 'Strings and voice, close and uncluttered',
+    filters: [
+      pk(200, -2, 1.0, 'The boom of a guitar body, which a mic exaggerates'),
+      pk(2400, 2, 1.0, 'Pick, string and fret detail'),
+      highShelf(10000, 2, 0.7, 'Air around a close-recorded voice'),
+    ],
+  },
 ];
 
 export const getVoicingProfile = (
   profileId: string,
 ): IVoicingProfile | undefined =>
   VOICING_PROFILES.find((profile) => profile.id === profileId);
+
+/**
+ * Whether a voicing is actually shaping the sound.
+ *
+ * A profile chosen at zero strength is not, and reading the id alone missed
+ * that. Smart EQ asks this question to decide whether a curve has been named —
+ * and answering yes at 0% gave the worst of both: the voicing contributed
+ * nothing, and Target dropped its own built-in shape as though something had
+ * replaced it, so the record was driven to a bare tilt with neither curve on it.
+ *
+ * Here rather than at the call sites because two of them asked, and a rule about
+ * what counts as an active voicing belongs with the voicing.
+ */
+export const isVoicingActive = (
+  settings: IVoicingSettings | undefined,
+): boolean =>
+  Boolean(settings?.profileId) &&
+  (settings?.intensity ?? 0) > 0 &&
+  Boolean(getVoicingProfile(settings?.profileId ?? ''));
 
 /**
  * The filters a voicing contributes at a given intensity.

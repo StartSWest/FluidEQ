@@ -237,6 +237,7 @@ const en = {
   'eq.layers.smart.fullRange': 'Measured · full range',
   'eq.layers.smart.range': 'Measured · {low} to {high}',
   'eq.layers.remove': 'Remove the {layer} layer',
+  'eq.layers.clearBands': 'Reset every band to 0 dB',
   'eq.layers.clearReference':
     'Clear the reference model and the bands it wrote',
   'eq.layers.clearSmart':
@@ -284,6 +285,9 @@ const en = {
   'voicing.title': 'Voicing',
   'voicing.intro':
     'A tuned target for what you are actually doing. Each one is written as its own layer after your EQ bands, so your own tuning is never touched and switching back to None restores it exactly.',
+  'voicing.refused': 'Could not switch voicing',
+  'voicing.groupPurpose': 'What for',
+  'voicing.groupGenre': 'Genre',
   'voicing.none': 'None',
   'voicing.none.hint': 'Your EQ bands only, nothing layered on top',
   'voicing.strength': 'Strength',

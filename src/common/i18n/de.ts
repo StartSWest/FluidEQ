@@ -205,6 +205,7 @@ const de: Partial<Dictionary> = {
   'eq.layers.smart.fullRange': 'Gemessen · voller Bereich',
   'eq.layers.smart.range': 'Gemessen · {low} bis {high}',
   'eq.layers.remove': 'Ebene {layer} entfernen',
+  'eq.layers.clearBands': 'Alle Bänder auf 0 dB zurücksetzen',
   'eq.layers.clearReference':
     'Referenzmodell und die daraus erzeugten Bänder löschen',
   'eq.layers.clearSmart':
@@ -250,6 +251,9 @@ const de: Partial<Dictionary> = {
   'voicing.title': 'Klangcharakter',
   'voicing.intro':
     'Eine abgestimmte Zielkurve für das, was Sie gerade tun. Jede wird als eigene Ebene hinter Ihren Bändern geschrieben, Ihre eigene Abstimmung wird also nie angetastet und die Rückkehr zu „Keiner“ stellt sie exakt wieder her.',
+  'voicing.refused': 'Voicing konnte nicht gewechselt werden',
+  'voicing.groupPurpose': 'Wofür',
+  'voicing.groupGenre': 'Genre',
   'voicing.none': 'Keiner',
   'voicing.none.hint': 'Nur Ihre EQ-Bänder, nichts darüber',
   'voicing.strength': 'Stärke',

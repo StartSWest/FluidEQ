@@ -204,6 +204,7 @@ const it: Partial<Dictionary> = {
   'eq.layers.smart.fullRange': 'Misurato · tutta la banda',
   'eq.layers.smart.range': 'Misurato · da {low} a {high}',
   'eq.layers.remove': 'Rimuovi il livello {layer}',
+  'eq.layers.clearBands': 'Riporta tutte le bande a 0 dB',
   'eq.layers.clearReference':
     'Cancella il modello di riferimento e le bande che ha prodotto',
   'eq.layers.clearSmart':
@@ -249,6 +250,9 @@ const it: Partial<Dictionary> = {
   'voicing.title': 'Carattere',
   'voicing.intro':
     'Un obiettivo tarato su quello che stai davvero facendo. Ognuno viene scritto come livello a sé dopo le tue bande, quindi la tua taratura non viene mai toccata e tornare a Nessuno la ripristina esattamente.',
+  'voicing.refused': 'Impossibile cambiare il voicing',
+  'voicing.groupPurpose': 'Per cosa',
+  'voicing.groupGenre': 'Genere',
   'voicing.none': 'Nessuno',
   'voicing.none.hint': 'Solo le tue bande di EQ, senza nulla sopra',
   'voicing.strength': 'Intensità',

@@ -59,6 +59,7 @@ export interface ChartDimensions {
  * legible: you can see which part of the spectrum the measurement is still
  * missing rather than watching a percentage.
  */
+
 const CoverageOverlay = ({
   xScale,
   top,
@@ -71,12 +72,25 @@ const CoverageOverlay = ({
   const { balanceProgress } = useLiveAudioFrame();
   const isSolo = useLiveOutputSolo();
   const coverage = balanceProgress?.regions;
-  // Nothing while the curves are off. Somebody in that mode is watching the
+
+  // Nothing while the curves are off: somebody in that mode is watching the
   // wave, and columns marching across it are measurement furniture on a drawing
-  // that is not a measurement — being left with the one thing is the whole
-  // point of it. The measurement carries on regardless; only the picture of it
-  // waits.
-  if (isSolo || !coverage || coverage.length === 0) {
+  // that is not a measurement. The measurement carries on regardless; only the
+  // picture of it waits.
+  //
+  // Drawn for the continuous modes exactly as for the one-shot, and that is a
+  // deliberate reversal. It was hidden under them for a while on the argument
+  // that a permanent row of full bars reports the same fact all evening — which
+  // is true of a capture that keeps accumulating forever, and is no longer how
+  // the continuous ones work: evidence decays on a half-life, so the bars fall
+  // back when the music stops feeding a range and fill again when it returns.
+  // They move, and what they say while moving is the same thing they say during
+  // a measurement.
+  //
+  // Marking only the ranges a correction had just landed on was tried instead
+  // and is worse: a block of colour laid over part of the graph reads as
+  // something having been added to the chain rather than as an event.
+  if (isSolo || !coverage?.length) {
     return null;
   }
   return (
