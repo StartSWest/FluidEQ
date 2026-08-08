@@ -23,7 +23,6 @@ import {
   buildSmartEqSettings,
   describeSmartEqLayer,
   getSmartEqBands,
-  hasSmartEqLayer,
   stepSmartEqGains,
 } from 'common/smartEq';
 import { getReferenceShape } from 'common/referenceCurve';
@@ -204,22 +203,35 @@ const SmartEqEngine = () => {
   const referenceModeRef = useRef(smartEqMode);
   referenceModeRef.current = smartEqMode;
 
-  /**
-   * Arriving at a continuous mode throws away the correction the last one
-   * built, so the new one starts from nothing.
+  /*
+   * ARRIVING AT A CONTINUOUS MODE USED TO THROW THE CORRECTION AWAY, AND MUST
+   * NOT.
    *
-   * Without this a mode change barely does anything, and the reason is the
-   * closed loop. The layer already applied was built to satisfy the OLD
-   * reference, and the measurement includes it — so the new mode listens,
-   * hears a record that has already been bent toward somebody else's idea of
-   * right, finds little left to disagree with, and leaves it. Switching from
-   * Target to Detail would keep the target curve indefinitely.
+   * The argument for clearing was about the closed loop, and it was not silly.
+   * The layer already applied was built to satisfy the OLD reference and the
+   * measurement includes it, so the new mode can listen to a record already
+   * bent toward somebody else's idea of right and find little left to disagree
+   * with. Switching from Target to Detail could keep the target curve.
    *
-   * Clearing costs a moment of the correction being absent, which is exactly
-   * what the continuous modes refuse to do on their own — but this is a
-   * deliberate press rather than something happening on its own schedule, and
-   * a mode change that leaves the sound unchanged is worse than a moment of it
-   * changing.
+   * What that argument left out is what clearing sounds like. A correction that
+   * is mostly cuts — which most of them are, since a record is more often too
+   * much of something than too little — disappears all at once, and the output
+   * jumps up by however much it was holding down. Not a fade: one config write.
+   * On headphones that is unpleasant. On a PA in front of people it is the kind
+   * of thing that damages equipment and ears, and it fires on an ordinary menu
+   * click, which is the worst possible trigger for it.
+   *
+   * So the new mode starts from the curve the old one left and works from
+   * there. Every continuous mode is a closed loop over the output: whatever it
+   * inherits is measured, compared against its own reference, and moved toward
+   * it a step at a time. Inheriting a curve costs convergence time. Clearing
+   * costs a level jump nobody asked for, and only one of those is recoverable.
+   *
+   * The inheritance the old comment worried about is real but narrower than it
+   * says, and it is fixed in the right place instead: only the modes that FIT
+   * the tilt rather than holding one can mistake our own correction for the
+   * record's tonality, because a fitted line absorbs whatever tilt it is shown.
+   * Balance and Target hold a slope and converge on it from anywhere.
    */
   /**
    * The one-shot, reachable from an effect.
@@ -237,20 +249,12 @@ const SmartEqEngine = () => {
     previousModeRef.current = smartEqMode;
     if (!isContinuousMode(smartEqMode)) {
       // The one-shot runs the moment it is chosen, like the other three do.
-      // Nothing to tear down first — it clears from flat itself, so choosing it
-      // IS the press.
       runAutoBalanceRef.current();
-      return;
     }
-    if (!hasSmartEqLayer(smartEqRef.current)) {
-      return;
-    }
-    setSmartEq(undefined);
-    setSmartEqApi(undefined).catch(() => {
-      // The loop rebuilds it within a window either way, and a failed clear is
-      // not worth the banner over the whole workspace.
-    });
-  }, [smartEqMode, setSmartEq]);
+    // A continuous mode needs no setting up. It keeps whatever curve is already
+    // applied and steers it toward its own reference on the next checkpoint,
+    // which is the only transition that cannot make the output jump.
+  }, [smartEqMode]);
 
   /*
    * A VOICING CHANGE USED TO RESTART THE CORRECTION, AND NO LONGER DOES.
