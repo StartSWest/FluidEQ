@@ -219,6 +219,70 @@ const ja: Partial<Dictionary> = {
   'eq.delete': 'バンドを削除',
   'eq.deleteAria': '選択中の EQ バンドを削除',
 
+  // 動詞が文末に来るので、帯域名は助詞ごと節の中に置く。英語の語順のまま
+  // 語をつなぐと日本語にならない。区切りは読点。
+  'eq.smart.range.deepBass': '重低音',
+  'eq.smart.range.bass': '低音',
+  'eq.smart.range.lowMids': '中低音',
+  'eq.smart.range.mids': '中音',
+  'eq.smart.range.upperMids': '中高音',
+  'eq.smart.range.presence': 'プレゼンス',
+  'eq.smart.range.treble': '高音',
+  'eq.smart.range.highTreble': '超高音',
+  'eq.smart.range.air': '空気感',
+  'eq.smart.range.separator': '、',
+  'eq.smart.shape.lifted': '{range}を持ち上げた',
+  'eq.smart.shape.eased': '{range}を抑えた',
+  'eq.smart.need.more': '{range}が足りない',
+  'eq.smart.need.less': '{range}が多すぎる',
+  'eq.smart.status.listening': '聴取中',
+  'eq.smart.status.listeningPercent': '聴取中 {percent}%',
+  'eq.smart.status.settling': '聴取中 {percent}% - 安定させています',
+  'eq.smart.status.waitingOn': '聴取中 {percent}% - {ranges}を待っています',
+  'eq.smart.status.waitingOnMore':
+    '聴取中 {percent}% - {ranges}を待っています +{count}',
+  'eq.smart.status.paused': '一時停止中',
+  'eq.smart.status.pausedResume': '一時停止中 - 再開すると完了します',
+  'eq.smart.status.pausedSilent': '一時停止中 - 音が再生されていません',
+  'eq.smart.status.waitingForSound': '音を待っています',
+  'eq.smart.status.soundChanged': '音が変わりました - 測定し直しています',
+  'eq.smart.status.keptChanging': '音が変わり続けました - 中止しました',
+  'eq.smart.status.notEnoughRange': '測定できる帯域が足りません',
+  'eq.smart.status.alreadyBalanced': 'すでに整っています',
+  'eq.smart.status.applying': '適用中…',
+  'eq.smart.status.cancelled': 'キャンセルしました - 変更はありません',
+  'eq.smart.status.failed': '出力を測定できませんでした。',
+  'eq.smart.result.fullRange': '調整完了 - 全帯域',
+  'eq.smart.result.range': '調整完了 - {low}〜{high} のみ',
+  'eq.smart.result.withShape': '{result} · {shape}',
+  'eq.smart.frequency.hz': '{value} Hz',
+  'eq.smart.frequency.khz': '{value} kHz',
+  'eq.smart.error.noCapture': 'この環境では音声のキャプチャができません。',
+  'eq.smart.error.noLoopback':
+    'この環境ではシステム出力のキャプチャができません。',
+  'eq.smart.error.streamStopped': '測定が終わる前に出力が止まりました。',
+  'eq.smart.error.analyserPaused':
+    'アナライザーが一時停止しているため、測定を止めました。',
+  'eq.smart.error.noSound':
+    '音が鳴っていませんでした。音楽を再生してもう一度測定してください。',
+  'eq.smart.error.noAudioTrack':
+    'Windows がシステム音声のストリームを返しませんでした。',
+  'eq.smart.error.formatChanged':
+    '測定中に出力フォーマットが変わりました。もう一度お試しください。',
+  'eq.smart.error.deviceChanged':
+    '測定中にオーディオデバイスが変わりました。もう一度お試しください。',
+  'eq.smart.error.captureFailed':
+    '処理後のシステム出力をキャプチャできませんでした。',
+  'eq.smart.error.analyserOff':
+    'ライブ出力アナライザーが動いていないため、測定するものがありません。',
+  'eq.smart.error.alreadyRunning': 'すでに測定が実行中です。',
+  'eq.smart.error.timedOut':
+    '測定がタイムアウトしました。もう一度お試しください。',
+  'eq.smart.error.closed': 'FluidEQ が測定を終了しました。',
+  // 数値が英語とは別の位置に来る。連結では作れない語順。
+  'eq.smart.presence.ignoredBelow': '{range} · {db} dB 未満は無視',
+  'eq.smart.presence.trustedAbove': '{range} · {db} dB 以上は完全に信頼',
+
   'convolution.eyebrow': 'APO インパルス応答',
   'convolution.title': 'コンボリューション ライブラリ',
   'convolution.intro':

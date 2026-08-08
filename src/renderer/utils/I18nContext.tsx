@@ -29,6 +29,7 @@ import {
   DEFAULT_LOCALE,
   LocaleCode,
   resolveLocale,
+  Translate,
   translate,
   TranslateVars,
   TranslationKey,
@@ -39,7 +40,7 @@ const STORAGE_KEY = 'fluideq.locale';
 interface II18nContext {
   locale: LocaleCode;
   setLocale: (next: LocaleCode) => void;
-  t: (key: TranslationKey, vars?: TranslateVars) => string;
+  t: Translate;
 }
 
 const I18nContext = createContext<II18nContext | undefined>(undefined);

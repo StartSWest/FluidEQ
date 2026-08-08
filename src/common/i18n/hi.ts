@@ -226,6 +226,70 @@ const hi: Partial<Dictionary> = {
   'eq.delete': 'बैंड हटाएँ',
   'eq.deleteAria': 'चुना हुआ EQ बैंड हटाएँ',
 
+  // वाक्यांश लेबल की तरह लिखे हैं — रेंज, फिर विसर्ग — ताकि रेंज का नाम अपने
+  // मूल रूप में रहे। «हवा बढ़ाई» और «बास बढ़ाया» में क्रिया लिंग के साथ बदलती
+  // है, और खाली जगह में सिर्फ़ एक ही रूप डाला जा सकता है; संज्ञा के बाद विसर्ग
+  // यह समस्या ही हटा देता है।
+  'eq.smart.range.deepBass': 'गहरा बास',
+  'eq.smart.range.bass': 'बास',
+  'eq.smart.range.lowMids': 'निचले मिड',
+  'eq.smart.range.mids': 'मिड',
+  'eq.smart.range.upperMids': 'ऊपरी मिड',
+  'eq.smart.range.presence': 'प्रेज़ेंस',
+  'eq.smart.range.treble': 'ट्रेबल',
+  'eq.smart.range.highTreble': 'ऊँचा ट्रेबल',
+  'eq.smart.range.air': 'एयर',
+  'eq.smart.range.separator': ', ',
+  'eq.smart.shape.lifted': '{range}: बढ़त',
+  'eq.smart.shape.eased': '{range}: कटौती',
+  'eq.smart.need.more': '{range}: और चाहिए',
+  'eq.smart.need.less': '{range}: बहुत ज़्यादा',
+  'eq.smart.status.listening': 'सुन रहा है',
+  'eq.smart.status.listeningPercent': 'सुन रहा है {percent}%',
+  'eq.smart.status.settling': 'सुन रहा है {percent}% - स्थिर हो रहा है',
+  'eq.smart.status.waitingOn': 'सुन रहा है {percent}% - इंतज़ार: {ranges}',
+  'eq.smart.status.waitingOnMore':
+    'सुन रहा है {percent}% - इंतज़ार: {ranges} +{count}',
+  'eq.smart.status.paused': 'रुका हुआ',
+  'eq.smart.status.pausedResume': 'रुका हुआ - पूरा करने के लिए फिर चलाएँ',
+  'eq.smart.status.pausedSilent': 'रुका हुआ - कोई आवाज़ नहीं चल रही',
+  'eq.smart.status.waitingForSound': 'आवाज़ का इंतज़ार',
+  'eq.smart.status.soundChanged': 'आवाज़ बदल गई - फिर से मापा जा रहा है',
+  'eq.smart.status.keptChanging': 'आवाज़ बदलती रही - रोक दिया',
+  'eq.smart.status.notEnoughRange': 'मापने के लिए पर्याप्त रेंज नहीं',
+  'eq.smart.status.alreadyBalanced': 'पहले से संतुलित',
+  'eq.smart.status.applying': 'लागू किया जा रहा है…',
+  'eq.smart.status.cancelled': 'रद्द - कुछ नहीं बदला',
+  'eq.smart.status.failed': 'आउटपुट मापा नहीं जा सका।',
+  'eq.smart.result.fullRange': 'संतुलित - पूरी रेंज',
+  'eq.smart.result.range': 'संतुलित - केवल {low} से {high} तक',
+  'eq.smart.result.withShape': '{result} · {shape}',
+  'eq.smart.frequency.hz': '{value} Hz',
+  'eq.smart.frequency.khz': '{value} kHz',
+  'eq.smart.error.noCapture': 'इस माहौल में ऑडियो कैप्चर उपलब्ध नहीं है।',
+  'eq.smart.error.noLoopback':
+    'इस माहौल में सिस्टम आउटपुट का कैप्चर उपलब्ध नहीं है।',
+  'eq.smart.error.streamStopped': 'माप पूरा होने से पहले आउटपुट रुक गया।',
+  'eq.smart.error.analyserPaused':
+    'विश्लेषक रुका हुआ है, इसलिए माप रोक दिया गया।',
+  'eq.smart.error.noSound': 'कुछ नहीं बज रहा था। संगीत चलाएँ और फिर से मापें।',
+  'eq.smart.error.noAudioTrack': 'Windows ने सिस्टम ऑडियो स्ट्रीम नहीं दी।',
+  'eq.smart.error.formatChanged':
+    'माप के दौरान आउटपुट फ़ॉर्मैट बदल गया। फिर से कोशिश करें।',
+  'eq.smart.error.deviceChanged':
+    'माप के दौरान ऑडियो डिवाइस बदल गया। फिर से कोशिश करें।',
+  'eq.smart.error.captureFailed':
+    'प्रोसेस किया गया सिस्टम आउटपुट कैप्चर नहीं हो सका।',
+  'eq.smart.error.analyserOff':
+    'लाइव आउटपुट विश्लेषक चालू नहीं है, इसलिए मापने को कुछ नहीं है।',
+  'eq.smart.error.alreadyRunning': 'एक माप पहले से चल रहा है।',
+  'eq.smart.error.timedOut': 'माप का समय पूरा हो गया। फिर से कोशिश करें।',
+  'eq.smart.error.closed': 'FluidEQ ने माप बंद कर दिया।',
+  // «गिनती नहीं» — क्रिया रेंज के लिंग के साथ नहीं बदलती, इसलिए एक ही रूप
+  // हर रेंज के साथ सही रहता है।
+  'eq.smart.presence.ignoredBelow': '{range} · {db} dB से नीचे गिनती नहीं',
+  'eq.smart.presence.trustedAbove': '{range} · {db} dB से ऊपर पूरा भरोसा',
+
   'convolution.eyebrow': 'APO इंपल्स रिस्पॉन्स',
   'convolution.title': 'कन्वॉल्यूशन लाइब्रेरी',
   'convolution.intro':

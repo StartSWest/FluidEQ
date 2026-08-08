@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,6 +26,7 @@ import {
 } from 'common/constants';
 import { SMART_EQ_MAX_FREQUENCY, SMART_EQ_MIN_FREQUENCY } from 'common/smartEq';
 import { IReferenceShape } from 'common/referenceCurve';
+import { Translate, TranslationKey } from 'common/i18n';
 import { clamp } from './utils';
 
 /**
@@ -1882,14 +1884,84 @@ export const buildBalanceProgress = (
  * none are, which is the ordinary steady state: everything heard, nothing far
  * enough out to touch, still listening.
  */
+/*
+ * -------------------------------------------------------------------------
+ * Saying it, in the language the app is in
+ * -------------------------------------------------------------------------
+ *
+ * EVERY SENTENCE BELOW IS BUILT FROM PARTS, AND NONE OF THEM IS BUILT FROM
+ * TRANSLATED PARTS.
+ *
+ * The difference is the whole reason this section exists. "Lifted air, eased
+ * bass" is a verb, a range name and a separator, and the obvious way to
+ * translate it — look up the verb, look up the noun, put a space between them —
+ * produces a sentence that is wrong in most languages and in a way nobody who
+ * only reads English will ever see. Spanish and Italian make the participle
+ * agree with the noun's gender; German and Russian want it in a case the noun
+ * is not in; Japanese puts the verb last. There is no ordering of two
+ * separately-translated fragments that is right in all ten.
+ *
+ * So the clause is the unit. `eq.smart.shape.lifted` is a whole phrase with the
+ * range in a placeholder, and each dictionary decides where the range goes and
+ * what surrounds it — several of them deliberately phrase it as a label with a
+ * colon so the noun can stay in its dictionary form, because a placeholder
+ * cannot be declined.
+ *
+ * The range names are still their own keys, because they are also said alone,
+ * in a list, after "waiting on". Even the comma is a key: a list of nouns is
+ * separated by an ideographic comma in Chinese and Japanese.
+ *
+ * `t` is passed in rather than reached for. These functions are pure — a test
+ * drives them with a translator bound to whatever locale it wants to assert
+ * against — and the caller is a component that already has one.
+ */
+
+/**
+ * The translation key for a region, from the label the capture carries.
+ *
+ * `BALANCE_REGION_LABELS` stays English on purpose: those strings are
+ * identifiers. They key the flash store, they are React keys on the coverage
+ * columns, and a test asserts on them. Translating them at the source would
+ * turn every one of those into something that changes with the menu.
+ */
+export const BALANCE_REGION_KEYS: Record<string, TranslationKey> = {
+  'deep bass': 'eq.smart.range.deepBass',
+  bass: 'eq.smart.range.bass',
+  'low mids': 'eq.smart.range.lowMids',
+  mids: 'eq.smart.range.mids',
+  'upper mids': 'eq.smart.range.upperMids',
+  presence: 'eq.smart.range.presence',
+  treble: 'eq.smart.range.treble',
+  'high treble': 'eq.smart.range.highTreble',
+  air: 'eq.smart.range.air',
+};
+
+/** A region's name to say out loud. Unknown labels are passed through. */
+export const balanceRangeName = (label: string, t: Translate): string => {
+  const key = BALANCE_REGION_KEYS[label];
+  return key ? t(key) : label;
+};
+
+/**
+ * Sentence case, for a line assembled from clauses that are written lowercase
+ * so they can also appear second and third.
+ *
+ * A no-op in Chinese, Japanese and Devanagari, which have no case, and correct
+ * in German, where the first word of these clauses is a noun and already
+ * capitalised.
+ */
+const asSentence = (said: string): string =>
+  said ? said.charAt(0).toUpperCase() + said.slice(1) : '';
+
 export const describeContinuousProgress = (
   progress: IBalanceProgress,
+  t: Translate,
 ): string => {
   if (progress.isPaused) {
-    return 'Paused';
+    return t('eq.smart.status.paused');
   }
   if (progress.isSilent) {
-    return 'Waiting for sound';
+    return t('eq.smart.status.waitingForSound');
   }
   // Filling right now — uncovered AND actually being fed. The second half is
   // what stops the sentence going stale: a range with no content never covers,
@@ -1901,9 +1973,12 @@ export const describeContinuousProgress = (
     )
     .map((region) => region.label);
   if (filling.length === 0) {
-    return 'Listening';
+    return t('eq.smart.status.listening');
   }
-  const named = filling.slice(0, MAX_NAMED_RANGES).join(', ');
+  const named = filling
+    .slice(0, MAX_NAMED_RANGES)
+    .map((label) => balanceRangeName(label, t))
+    .join(t('eq.smart.range.separator'));
   const rest = filling.length - MAX_NAMED_RANGES;
   // "Waiting on", not "needs".
   //
@@ -1912,33 +1987,59 @@ export const describeContinuousProgress = (
   // boosted by seventeen decibels reads as the app asking for more of it, which
   // is the opposite of what it means and makes the whole readout look like it is
   // not listening to the same sound the user is.
-  return `Listening ${progress.percent}% - waiting on ${named}${
-    rest > 0 ? ` +${rest}` : ''
-  }`;
+  //
+  // The overflow is its own key rather than a "+3" stapled onto the end of the
+  // other one. Same reason as everything else here: a language that ends the
+  // sentence with the verb has nowhere to staple it.
+  return rest > 0
+    ? t('eq.smart.status.waitingOnMore', {
+        percent: progress.percent,
+        ranges: named,
+        count: rest,
+      })
+    : t('eq.smart.status.waitingOn', {
+        percent: progress.percent,
+        ranges: named,
+      });
 };
 
-export const formatBalanceFrequency = (frequency: number): string =>
+/**
+ * A frequency as a listener reads it.
+ *
+ * The unit goes through the dictionary too, which looks like ceremony over two
+ * characters until you notice that Russian writes them Гц and кГц.
+ */
+export const formatBalanceFrequency = (
+  frequency: number,
+  t: Translate,
+): string =>
   frequency >= 1000
-    ? `${Math.round(frequency / 100) / 10} kHz`
-    : `${Math.round(frequency)} Hz`;
+    ? t('eq.smart.frequency.khz', { value: Math.round(frequency / 100) / 10 })
+    : t('eq.smart.frequency.hz', { value: Math.round(frequency) });
 
-export const describeBalanceProgress = (progress: IBalanceProgress): string => {
+export const describeBalanceProgress = (
+  progress: IBalanceProgress,
+  t: Translate,
+): string => {
   if (progress.isPaused) {
-    return 'Paused - resume to finish';
+    return t('eq.smart.status.pausedResume');
   }
   if (progress.isSilent) {
-    return 'Paused - no sound playing';
+    return t('eq.smart.status.pausedSilent');
   }
   if (progress.isSettling) {
-    return `Listening ${progress.percent}% - settling`;
+    return t('eq.smart.status.settling', { percent: progress.percent });
   }
   if (!progress.weakestLabel) {
-    return `Listening ${progress.percent}%`;
+    return t('eq.smart.status.listeningPercent', { percent: progress.percent });
   }
   // "Waiting on" rather than "needs", for the reason written out in
   // `describeContinuousProgress`: this names a range the measurement has not
   // heard enough of, and "needs" reads as a request to boost it.
-  return `Listening ${progress.percent}% - waiting on ${progress.weakestLabel}`;
+  return t('eq.smart.status.waitingOn', {
+    percent: progress.percent,
+    ranges: balanceRangeName(progress.weakestLabel, t),
+  });
 };
 
 /**
@@ -1968,7 +2069,10 @@ export const MAX_NAMED_RANGES = 3;
  * measurement already reports coverage for, so the words line up with the
  * columns drawn on the graph while it listens.
  */
-export const describeCorrectionShape = (filters: IFilter[]): string => {
+export const describeCorrectionShape = (
+  filters: IFilter[],
+  t: Translate,
+): string => {
   const named = BALANCE_REGION_LABELS.map((label, index) => {
     const low = BALANCE_REGION_EDGES[index];
     const high = BALANCE_REGION_EDGES[index + 1];
@@ -1991,10 +2095,16 @@ export const describeCorrectionShape = (filters: IFilter[]): string => {
     // finished layer and printed next to the word that says the measurement is
     // over — "lifting air" beside "Balanced" reads as a run still going, which
     // is the one thing the sentence must not imply.
-    .map((entry) => `${entry.mean > 0 ? 'lifted' : 'eased'} ${entry.label}`);
+    //
+    // One key per clause, not a verb glued to a noun. See the note above
+    // `BALANCE_REGION_KEYS` for why that distinction is the whole of this.
+    .map((entry) =>
+      t(entry.mean > 0 ? 'eq.smart.shape.lifted' : 'eq.smart.shape.eased', {
+        range: balanceRangeName(entry.label, t),
+      }),
+    );
 
-  const said = named.join(', ');
-  return said ? said.charAt(0).toUpperCase() + said.slice(1) : '';
+  return asSentence(named.join(t('eq.smart.range.separator')));
 };
 
 /**
@@ -2023,6 +2133,9 @@ export const describeCorrectionShape = (filters: IFilter[]): string => {
 export const describeCorrectionNeed = (
   bands: IFilter[],
   next: Record<string, number>,
+  // After the data and before the ranges, because the ranges have a default and
+  // a defaulted parameter cannot come before a required one.
+  t: Translate,
   regions: {
     label: string;
     lowFrequency: number;
@@ -2059,18 +2172,23 @@ export const describeCorrectionNeed = (
     // matters, because the commonest reason to look at this is to check whether
     // the thing is hearing the same sound you are.
     .map((entry) =>
-      entry.delta > 0 ? `needs more ${entry.label}` : `too much ${entry.label}`,
+      t(entry.delta > 0 ? 'eq.smart.need.more' : 'eq.smart.need.less', {
+        range: balanceRangeName(entry.label, t),
+      }),
     );
 
-  const said = named.join(', ');
-  return said ? said.charAt(0).toUpperCase() + said.slice(1) : '';
+  return asSentence(named.join(t('eq.smart.range.separator')));
 };
 
-export const describeBalanceResult = (result: IBalanceResult): string => {
+export const describeBalanceResult = (
+  result: IBalanceResult,
+  t: Translate,
+): string => {
   if (result.status === 'ready') {
-    return 'Balanced - full range';
+    return t('eq.smart.result.fullRange');
   }
-  return `Balanced - ${formatBalanceFrequency(
-    result.lowFrequency,
-  )} to ${formatBalanceFrequency(result.highFrequency)} only`;
+  return t('eq.smart.result.range', {
+    low: formatBalanceFrequency(result.lowFrequency, t),
+    high: formatBalanceFrequency(result.highFrequency, t),
+  });
 };

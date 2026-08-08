@@ -225,6 +225,75 @@ const es: Partial<Dictionary> = {
   'eq.delete': 'Eliminar banda',
   'eq.deleteAria': 'Eliminar la banda de EQ seleccionada',
 
+  // Las cláusulas son sustantivos con «de», que no concuerdan en género:
+  // «realce de aire» y «realce de presencia» son ambos correctos, mientras que
+  // un participio pospuesto («aire realzado», «presencia realzada») obligaría a
+  // declinar el nombre del rango dentro del hueco.
+  'eq.smart.range.deepBass': 'graves profundos',
+  'eq.smart.range.bass': 'graves',
+  'eq.smart.range.lowMids': 'medios bajos',
+  'eq.smart.range.mids': 'medios',
+  'eq.smart.range.upperMids': 'medios altos',
+  'eq.smart.range.presence': 'presencia',
+  'eq.smart.range.treble': 'agudos',
+  'eq.smart.range.highTreble': 'agudos altos',
+  'eq.smart.range.air': 'aire',
+  'eq.smart.range.separator': ', ',
+  'eq.smart.shape.lifted': 'realce de {range}',
+  'eq.smart.shape.eased': 'reducción de {range}',
+  'eq.smart.need.more': 'falta de {range}',
+  'eq.smart.need.less': 'exceso de {range}',
+  'eq.smart.status.listening': 'Escuchando',
+  'eq.smart.status.listeningPercent': 'Escuchando {percent}%',
+  'eq.smart.status.settling': 'Escuchando {percent}% - estabilizando',
+  'eq.smart.status.waitingOn': 'Escuchando {percent}% - esperando {ranges}',
+  'eq.smart.status.waitingOnMore':
+    'Escuchando {percent}% - esperando {ranges} +{count}',
+  'eq.smart.status.paused': 'En pausa',
+  'eq.smart.status.pausedResume': 'En pausa - reanuda para terminar',
+  'eq.smart.status.pausedSilent': 'En pausa - no suena nada',
+  'eq.smart.status.waitingForSound': 'Esperando sonido',
+  'eq.smart.status.soundChanged': 'El sonido cambió - midiendo otra vez',
+  'eq.smart.status.keptChanging': 'El sonido no dejó de cambiar - detenido',
+  'eq.smart.status.notEnoughRange': 'No hay suficiente rango para medir',
+  'eq.smart.status.alreadyBalanced': 'Ya está equilibrado',
+  'eq.smart.status.applying': 'Aplicando…',
+  'eq.smart.status.cancelled': 'Cancelado - no cambió nada',
+  'eq.smart.status.failed': 'No se pudo medir la salida.',
+  'eq.smart.result.fullRange': 'Equilibrado - rango completo',
+  'eq.smart.result.range': 'Equilibrado - solo de {low} a {high}',
+  'eq.smart.result.withShape': '{result} · {shape}',
+  'eq.smart.frequency.hz': '{value} Hz',
+  'eq.smart.frequency.khz': '{value} kHz',
+  'eq.smart.error.noCapture':
+    'La captura de audio no está disponible en este entorno.',
+  'eq.smart.error.noLoopback':
+    'La captura de la salida del sistema no está disponible en este entorno.',
+  'eq.smart.error.streamStopped':
+    'La salida se detuvo antes de terminar la medición.',
+  'eq.smart.error.analyserPaused':
+    'El analizador está en pausa, así que la medición se detuvo.',
+  'eq.smart.error.noSound':
+    'No sonaba nada. Pon algo de música y vuelve a medir.',
+  'eq.smart.error.noAudioTrack':
+    'Windows no entregó una señal de audio del sistema.',
+  'eq.smart.error.formatChanged':
+    'El formato de salida cambió durante la medición. Inténtalo otra vez.',
+  'eq.smart.error.deviceChanged':
+    'El dispositivo de audio cambió durante la medición. Inténtalo otra vez.',
+  'eq.smart.error.captureFailed':
+    'No se pudo capturar la salida procesada del sistema.',
+  'eq.smart.error.analyserOff':
+    'El analizador de salida en vivo no está funcionando, así que no hay nada que medir.',
+  'eq.smart.error.alreadyRunning': 'Ya hay una medición en curso.',
+  'eq.smart.error.timedOut': 'La medición tardó demasiado. Inténtalo otra vez.',
+  'eq.smart.error.closed': 'FluidEQ cerró la medición.',
+  // «No cuenta» en vez de «ignorado»: el participio concordaría con el nombre
+  // del rango, y en el hueco solo cabe una forma.
+  'eq.smart.presence.ignoredBelow': '{range} · no cuenta por debajo de {db} dB',
+  'eq.smart.presence.trustedAbove':
+    '{range} · fiable del todo por encima de {db} dB',
+
   'convolution.eyebrow': 'RESPUESTAS AL IMPULSO DE APO',
   'convolution.title': 'Biblioteca de convolución',
   'convolution.intro':

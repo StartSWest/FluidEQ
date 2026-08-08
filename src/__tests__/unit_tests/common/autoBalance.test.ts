@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -30,6 +31,26 @@ import {
   REFERENCE_SLOPE_DB_PER_DECADE,
   getReferenceShape,
 } from 'common/referenceCurve';
+import { LocaleCode, Translate, TranslationKey, translate } from 'common/i18n';
+
+/**
+ * A translator bound to one language, which is what the describers take.
+ *
+ * The assertions below build their expected sentence from the same keys the
+ * code uses rather than quoting an English literal. That is not a way of making
+ * the test agree with itself: what these tests are for is that the RIGHT range
+ * is named and in the right direction, and quoting English froze that behaviour
+ * to one dictionary — the next translator to reword "lifted" would have broken
+ * a test about arithmetic.
+ */
+const translator =
+  (locale: LocaleCode): Translate =>
+  (key, vars) =>
+    translate(locale, key, vars);
+
+const t = translator('en');
+/** A second language, to prove the sentence is not assembled in English. */
+const t2 = translator('de');
 
 const band = (frequency: number, id = `b${frequency}`): IFilter => ({
   id,
@@ -162,38 +183,83 @@ describe('autoBalance', () => {
       gain,
     });
 
+    /** One clause, exactly as its dictionary writes it. */
+    const clause = (
+      locale: LocaleCode,
+      key: 'eq.smart.shape.lifted' | 'eq.smart.shape.eased',
+      range: TranslationKey,
+    ) => translate(locale, key, { range: translate(locale, range) });
+
+    /** Clauses joined and sentence-cased, the way the describer does it. */
+    const line = (locale: LocaleCode, ...clauses: string[]) => {
+      const said = clauses.join(translate(locale, 'eq.smart.range.separator'));
+      return said.charAt(0).toUpperCase() + said.slice(1);
+    };
+
     it('names the direction each range actually moved', () => {
-      expect(describeCorrectionShape([at(10000, 3), at(100, -2)])).toBe(
-        'Lifted air, eased bass',
+      expect(describeCorrectionShape([at(10000, 3), at(100, -2)], t)).toBe(
+        line(
+          'en',
+          clause('en', 'eq.smart.shape.lifted', 'eq.smart.range.air'),
+          clause('en', 'eq.smart.shape.eased', 'eq.smart.range.bass'),
+        ),
       );
+    });
+
+    it('takes the whole clause from the dictionary, not a verb and a noun', () => {
+      // The one thing a translated readout can get wrong that an English one
+      // cannot. German writes this range-first — "Luft: angehoben" — and the
+      // only way the output can come out in that order is if the clause was
+      // looked up whole with the range dropped into it. Gluing a translated
+      // verb to a translated noun would produce English word order in German
+      // words, which is the failure this exists to catch.
+      const de = describeCorrectionShape([at(10000, 3), at(100, -2)], t2);
+
+      expect(de).toBe(
+        line(
+          'de',
+          clause('de', 'eq.smart.shape.lifted', 'eq.smart.range.air'),
+          clause('de', 'eq.smart.shape.eased', 'eq.smart.range.bass'),
+        ),
+      );
+      expect(de).toContain(translate('de', 'eq.smart.range.air'));
+      expect(de).not.toContain('air');
     });
 
     it('says nothing about a range nobody could hear it in', () => {
       // Under a decibel on a broad band is not audible, and nine ranges each
       // reporting a fraction is a readout rather than a description.
-      expect(describeCorrectionShape([at(1000, 0.5), at(100, -0.7)])).toBe('');
-      expect(describeCorrectionShape([])).toBe('');
+      expect(describeCorrectionShape([at(1000, 0.5), at(100, -0.7)], t)).toBe(
+        '',
+      );
+      expect(describeCorrectionShape([], t)).toBe('');
     });
 
     it('leads with the biggest and stops at three', () => {
-      const said = describeCorrectionShape([
-        at(50, 1),
-        at(200, -2),
-        at(1000, 4),
-        at(3000, -3),
-        at(12000, 1.5),
-      ]);
+      const said = describeCorrectionShape(
+        [at(50, 1), at(200, -2), at(1000, 4), at(3000, -3), at(12000, 1.5)],
+        t,
+      );
 
-      expect(said.split(', ')).toHaveLength(MAX_NAMED_RANGES);
+      expect(
+        said.split(translate('en', 'eq.smart.range.separator')),
+      ).toHaveLength(MAX_NAMED_RANGES);
       // 1 kHz is in `upper mids` — the region edges are 560 and 1120, not the
       // round numbers the name suggests.
-      expect(said.startsWith('Lifted upper mids')).toBe(true);
+      expect(
+        said.startsWith(
+          line(
+            'en',
+            clause('en', 'eq.smart.shape.lifted', 'eq.smart.range.upperMids'),
+          ),
+        ),
+      ).toBe(true);
     });
 
     it('averages a range rather than reporting its loudest band', () => {
       // Two bands in the same range pulling opposite ways is a range that has
       // not moved, and saying "more bass" for it would be the fake thing.
-      expect(describeCorrectionShape([at(75, 4), at(120, -4)])).toBe('');
+      expect(describeCorrectionShape([at(75, 4), at(120, -4)], t)).toBe('');
     });
   });
 

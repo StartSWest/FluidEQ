@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -47,8 +48,16 @@ import {
   resetBalanceRegion,
   shouldFinishBalanceCapture,
 } from 'renderer/utils/autoBalance';
+import { Translate, translate } from 'common/i18n';
 
 /* --- harness ----------------------------------------------------------- */
+
+/**
+ * The readout in English, because these tests are about the measurement and
+ * not about the wording. Expectations are built from the same keys the code
+ * looks up, so rewording a dictionary entry cannot fail a test about coverage.
+ */
+const t: Translate = (key, vars) => translate('en', key, vars);
 
 /** 320 log-spaced points from 20 Hz to 20 kHz, like the live analyser. */
 const AXIS = Array.from(
@@ -703,24 +712,35 @@ describe('balance capture', () => {
   describe('Suite G - reporting', () => {
     it('describes a full-range result', () => {
       const { report } = runCapture(fullRange, seconds(30));
-      expect(describeBalanceResult(buildBalanceResult(report))).toBe(
-        'Balanced - full range',
+      expect(describeBalanceResult(buildBalanceResult(report), t)).toBe(
+        t('eq.smart.result.fullRange'),
       );
     });
 
     it('names the measured range for a partial result', () => {
       const { report } = runCapture(podcast, seconds(45));
-      const text = describeBalanceResult(buildBalanceResult(report));
+      const text = describeBalanceResult(buildBalanceResult(report), t);
       expect(text).toMatch(/^Balanced - .+ to .+ only$/);
       expect(text).not.toContain('undefined');
       expect(text).not.toContain('NaN');
+      // The placeholders were filled: neither survives into what is shown.
+      expect(text).not.toContain('{low}');
+      expect(text).not.toContain('{high}');
     });
 
     it('formats frequencies the way a listener reads them', () => {
-      expect(formatBalanceFrequency(35)).toBe('35 Hz');
-      expect(formatBalanceFrequency(1120)).toBe('1.1 kHz');
-      expect(formatBalanceFrequency(8960)).toBe('9 kHz');
-      expect(formatBalanceFrequency(15000)).toBe('15 kHz');
+      expect(formatBalanceFrequency(35, t)).toBe(
+        t('eq.smart.frequency.hz', { value: 35 }),
+      );
+      expect(formatBalanceFrequency(1120, t)).toBe(
+        t('eq.smart.frequency.khz', { value: 1.1 }),
+      );
+      expect(formatBalanceFrequency(8960, t)).toBe(
+        t('eq.smart.frequency.khz', { value: 9 }),
+      );
+      expect(formatBalanceFrequency(15000, t)).toBe(
+        t('eq.smart.frequency.khz', { value: 15 }),
+      );
     });
 
     // The graph draws these, so an empty list means an invisible measurement.
@@ -761,8 +781,11 @@ describe('balance capture', () => {
       // backwards from 40%.
       expect(progress.percent).toBe(40);
       expect(progress.percent).toBeLessThanOrEqual(99);
-      expect(describeBalanceProgress(progress)).toBe(
-        'Listening 40% - waiting on air',
+      expect(describeBalanceProgress(progress, t)).toBe(
+        t('eq.smart.status.waitingOn', {
+          percent: 40,
+          ranges: t('eq.smart.range.air'),
+        }),
       );
     });
 
@@ -772,13 +795,17 @@ describe('balance capture', () => {
         isSilent: true,
         isPaused: true,
       });
-      expect(describeBalanceProgress(paused)).toBe('Paused - resume to finish');
+      expect(describeBalanceProgress(paused, t)).toBe(
+        t('eq.smart.status.pausedResume'),
+      );
 
       const silent = buildBalanceProgress(report, 0, {
         isSilent: true,
         isPaused: false,
       });
-      expect(describeBalanceProgress(silent)).toBe('Paused - no sound playing');
+      expect(describeBalanceProgress(silent, t)).toBe(
+        t('eq.smart.status.pausedSilent'),
+      );
     });
 
     it('says it is settling once every region is covered', () => {
@@ -794,8 +821,8 @@ describe('balance capture', () => {
         90,
         { isSilent: false, isPaused: false },
       );
-      expect(describeBalanceProgress(settling)).toBe(
-        'Listening 97% - settling',
+      expect(describeBalanceProgress(settling, t)).toBe(
+        t('eq.smart.status.settling', { percent: 97 }),
       );
     });
   });

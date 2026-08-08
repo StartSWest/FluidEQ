@@ -1,5 +1,24 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { Translate } from 'common/i18n';
 import {
   IAxisCell,
   IBalanceCaptureState,
@@ -19,6 +38,7 @@ import {
   resetBalanceRegion,
   shouldFinishBalanceCapture,
 } from '../utils/autoBalance';
+import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData } from './ChartController';
 
 /**
@@ -254,9 +274,11 @@ const writeWaveformPoints = (
   return target;
 };
 
-const captureSystemOutput = async (): Promise<MediaStream> => {
+// Handed a translator rather than reaching for one: this is a plain async
+// function outside the component, so it cannot call a hook.
+const captureSystemOutput = async (t: Translate): Promise<MediaStream> => {
   if (!navigator.mediaDevices) {
-    throw new Error('Media capture is not available in this environment.');
+    throw new Error(t('eq.smart.error.noCapture'));
   }
 
   let displayCaptureError: unknown;
@@ -275,12 +297,7 @@ const captureSystemOutput = async (): Promise<MediaStream> => {
   }
 
   if (!navigator.mediaDevices.getUserMedia) {
-    throw (
-      displayCaptureError ||
-      new Error(
-        'Desktop loopback capture is not available in this environment.',
-      )
-    );
+    throw displayCaptureError || new Error(t('eq.smart.error.noLoopback'));
   }
 
   try {
@@ -367,6 +384,19 @@ interface IBalanceSession {
 }
 
 const useLiveOutputSpectrum = () => {
+  /**
+   * The language, on a ref.
+   *
+   * Every message below is written from inside a callback that a running
+   * capture holds — and `captureBalanceProfile`'s identity is in the Smart EQ
+   * engine's effect dependencies, so if `t` went into these `useCallback` lists
+   * a language change would rebuild the callback, restart the capture, and take
+   * every region's accumulated evidence with it. A ref is current without being
+   * a dependency of anything.
+   */
+  const { t } = useTranslation();
+  const tRef = useRef(t);
+  tRef.current = t;
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
   const [error, setError] = useState('');
@@ -440,7 +470,7 @@ const useLiveOutputSpectrum = () => {
 
   const stop = useCallback(() => {
     // A capture must never outlive the stream it is measuring.
-    abortBalance('The output stream stopped before the measurement finished.');
+    abortBalance(tRef.current('eq.smart.error.streamStopped'));
     if (pumpRef.current !== undefined) {
       clearInterval(pumpRef.current);
       pumpRef.current = undefined;
@@ -490,9 +520,11 @@ const useLiveOutputSpectrum = () => {
       if (!session.isContinuous && silentFor >= SILENCE_ABORT_MS) {
         if (session.state.acceptedFrames === 0) {
           abortBalance(
-            paused
-              ? 'The analyser is paused, so the measurement stopped.'
-              : 'No sound was playing. Start some music and measure again.',
+            tRef.current(
+              paused
+                ? 'eq.smart.error.analyserPaused'
+                : 'eq.smart.error.noSound',
+            ),
           );
         } else {
           // Something was heard: keep it rather than throwing the work away.
@@ -564,7 +596,7 @@ const useLiveOutputSpectrum = () => {
     let stream: MediaStream | undefined;
     let audioContext: AudioContext | undefined;
     try {
-      stream = await captureSystemOutput();
+      stream = await captureSystemOutput(tRef.current);
       // STOPPED, not disabled — and the difference is gigabytes.
       //
       // Windows only hands out loopback audio through `getDisplayMedia`, so a
@@ -603,7 +635,7 @@ const useLiveOutputSpectrum = () => {
 
       const [audioTrack] = stream.getAudioTracks();
       if (!audioTrack) {
-        throw new Error('Windows did not provide a system-audio stream.');
+        throw new Error(tRef.current('eq.smart.error.noAudioTrack'));
       }
 
       audioContext = new AudioContext();
@@ -746,7 +778,7 @@ const useLiveOutputSpectrum = () => {
           // Index-to-frequency changed underneath the accumulator. Mixing two
           // axes yields frequency-shifted garbage, which is the worst possible
           // input to an EQ writer. Never resample — abort.
-          abortBalance('The output format changed while measuring. Try again.');
+          abortBalance(tRef.current('eq.smart.error.formatChanged'));
           return;
         }
         if (peak !== undefined) {
@@ -775,7 +807,7 @@ const useLiveOutputSpectrum = () => {
       audioTrack.addEventListener(
         'ended',
         () => {
-          abortBalance('The audio device changed while measuring. Try again.');
+          abortBalance(tRef.current('eq.smart.error.deviceChanged'));
           stop();
           // Let the current capture promise finish before retrying. This
           // avoids the in-flight guard suppressing the restart.
@@ -851,7 +883,7 @@ const useLiveOutputSpectrum = () => {
       setError(
         captureError instanceof Error
           ? captureError.message
-          : 'Unable to capture the processed system output.',
+          : tRef.current('eq.smart.error.captureFailed'),
       );
       return false;
     } finally {
@@ -872,15 +904,11 @@ const useLiveOutputSpectrum = () => {
       new Promise<IBalanceResult>((resolve, reject) => {
         const audioContext = audioContextRef.current;
         if (!streamRef.current || !audioContext) {
-          reject(
-            new Error(
-              'The live output analyser is not running, so there is nothing to measure.',
-            ),
-          );
+          reject(new Error(tRef.current('eq.smart.error.analyserOff')));
           return;
         }
         if (sessionRef.current) {
-          reject(new Error('A measurement is already running.'));
+          reject(new Error(tRef.current('eq.smart.error.alreadyRunning')));
           return;
         }
         if (options.signal?.aborted) {
@@ -918,7 +946,7 @@ const useLiveOutputSpectrum = () => {
           watchdog: options.isContinuous
             ? undefined
             : setTimeout(
-                () => abortBalance('The measurement timed out. Try again.'),
+                () => abortBalance(tRef.current('eq.smart.error.timedOut')),
                 WATCHDOG_MS,
               ),
           lastAcceptedWallMs: performance.now(),
@@ -999,7 +1027,7 @@ const useLiveOutputSpectrum = () => {
         clearTimeout(retryTimerRef.current);
         retryTimerRef.current = undefined;
       }
-      abortBalance('FluidEQ closed the measurement.');
+      abortBalance(tRef.current('eq.smart.error.closed'));
       stop();
     };
   }, [abortBalance, scheduleStart, stop]);

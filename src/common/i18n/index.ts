@@ -121,6 +121,16 @@ export const resolveLocale = (tag?: string | null): LocaleCode => {
 
 export type TranslateVars = Record<string, string | number>;
 
+/**
+ * A lookup already bound to a language.
+ *
+ * Named because it gets passed around. Anything that builds a sentence out of
+ * several keys — the Smart EQ readout is the one that does — has to be handed
+ * the same `t` the component around it uses, or half the line comes back in one
+ * language and half in another.
+ */
+export type Translate = (key: TranslationKey, vars?: TranslateVars) => string;
+
 const PLACEHOLDER = /\{(\w+)\}/g;
 
 /**

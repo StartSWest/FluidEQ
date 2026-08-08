@@ -256,6 +256,107 @@ const en = {
   'eq.delete': 'Delete band',
   'eq.deleteAria': 'Delete selected EQ band',
 
+  // *** Smart EQ readout ****************************************************
+  //
+  // The bubble over the Smart EQ button, and every sentence in it is ASSEMBLED
+  // rather than written: a clause per frequency range, the loudest three,
+  // joined into one line.
+  //
+  // Which is why each clause is a whole key with the range dropped into a
+  // placeholder, and never a verb and a noun glued together in code. English is
+  // the one language where that would have worked. "lifted" + "air" is fine;
+  // the same two halves in Spanish have to agree in gender, in Russian and
+  // German in case, and in Japanese the verb goes last — so a translator needs
+  // the whole clause in front of them, and the freedom to move the range
+  // wherever their language puts it.
+  //
+  // The range names are separate keys because they are also said on their own,
+  // in a list, after "waiting on". Several dictionaries deliberately phrase the
+  // clauses so the noun can stay in its dictionary form — a label with a colon,
+  // or a noun phrase — because a slot cannot be declined and a wrong case reads
+  // worse than a plain one.
+  'eq.smart.range.deepBass': 'deep bass',
+  'eq.smart.range.bass': 'bass',
+  'eq.smart.range.lowMids': 'low mids',
+  'eq.smart.range.mids': 'mids',
+  'eq.smart.range.upperMids': 'upper mids',
+  'eq.smart.range.presence': 'presence',
+  'eq.smart.range.treble': 'treble',
+  'eq.smart.range.highTreble': 'high treble',
+  'eq.smart.range.air': 'air',
+  // Between two named ranges. Its own key because the comma-and-space of a
+  // Latin script is an ideographic comma in Chinese and Japanese.
+  'eq.smart.range.separator': ', ',
+  // What a finished correction did. Past tense: it is printed beside the word
+  // that says the measurement is over, and a present participle there reads as
+  // a run still going.
+  'eq.smart.shape.lifted': 'lifted {range}',
+  'eq.smart.shape.eased': 'eased {range}',
+  // What the correction still owes the music — the observation that made it
+  // run, rather than the operation it is performing.
+  'eq.smart.need.more': 'needs more {range}',
+  'eq.smart.need.less': 'too much {range}',
+  'eq.smart.status.listening': 'Listening',
+  'eq.smart.status.listeningPercent': 'Listening {percent}%',
+  'eq.smart.status.settling': 'Listening {percent}% - settling',
+  // "Waiting on", not "needs": this names a range the measurement has not heard
+  // enough of, and "needs air" over a top end somebody has just boosted reads as
+  // the app asking for more of it.
+  'eq.smart.status.waitingOn': 'Listening {percent}% - waiting on {ranges}',
+  'eq.smart.status.waitingOnMore':
+    'Listening {percent}% - waiting on {ranges} +{count}',
+  'eq.smart.status.paused': 'Paused',
+  'eq.smart.status.pausedResume': 'Paused - resume to finish',
+  'eq.smart.status.pausedSilent': 'Paused - no sound playing',
+  'eq.smart.status.waitingForSound': 'Waiting for sound',
+  'eq.smart.status.soundChanged': 'Sound changed - measuring again',
+  'eq.smart.status.keptChanging': 'The sound kept changing - stopped',
+  'eq.smart.status.notEnoughRange': 'Not enough range to measure',
+  'eq.smart.status.alreadyBalanced': 'Already balanced',
+  'eq.smart.status.applying': 'Applying…',
+  'eq.smart.status.cancelled': 'Cancelled - nothing changed',
+  'eq.smart.status.failed': 'Could not measure the output.',
+  'eq.smart.result.fullRange': 'Balanced - full range',
+  'eq.smart.result.range': 'Balanced - {low} to {high} only',
+  // What was heard, then what was done about it. One key so a language can
+  // repunctuate the join or swap the halves.
+  'eq.smart.result.withShape': '{result} · {shape}',
+  'eq.smart.frequency.hz': '{value} Hz',
+  'eq.smart.frequency.khz': '{value} kHz',
+  // Why a measurement stopped. These are thrown as Error messages by the
+  // capture hook and land in the same bubble as everything above, so they are
+  // looked up where they are thrown rather than where they are caught — the
+  // catch cannot tell one of ours from one the browser raised.
+  'eq.smart.error.noCapture':
+    'Media capture is not available in this environment.',
+  'eq.smart.error.noLoopback':
+    'Desktop loopback capture is not available in this environment.',
+  'eq.smart.error.streamStopped':
+    'The output stream stopped before the measurement finished.',
+  'eq.smart.error.analyserPaused':
+    'The analyser is paused, so the measurement stopped.',
+  'eq.smart.error.noSound':
+    'No sound was playing. Start some music and measure again.',
+  'eq.smart.error.noAudioTrack':
+    'Windows did not provide a system-audio stream.',
+  'eq.smart.error.formatChanged':
+    'The output format changed while measuring. Try again.',
+  'eq.smart.error.deviceChanged':
+    'The audio device changed while measuring. Try again.',
+  'eq.smart.error.captureFailed':
+    'Unable to capture the processed system output.',
+  'eq.smart.error.analyserOff':
+    'The live output analyser is not running, so there is nothing to measure.',
+  'eq.smart.error.alreadyRunning': 'A measurement is already running.',
+  'eq.smart.error.timedOut': 'The measurement timed out. Try again.',
+  'eq.smart.error.closed': 'FluidEQ closed the measurement.',
+  // The caption on the draggable presence line inside each listening band.
+  // One key, not a range name with an English tail concatenated onto it: the
+  // number goes in a different place in Japanese and the verb has to agree with
+  // the range in several of the others.
+  'eq.smart.presence.ignoredBelow': '{range} · ignored below {db} dB',
+  'eq.smart.presence.trustedAbove': '{range} · fully trusted above {db} dB',
+
   // *** Convolution *********************************************************
   'convolution.eyebrow': 'APO impulse responses',
   'convolution.title': 'Convolution library',

@@ -222,6 +222,71 @@ const ru: Partial<Dictionary> = {
   'eq.delete': 'Удалить полосу',
   'eq.deleteAria': 'Удалить выбранную полосу эквалайзера',
 
+  // Клаузы построены как подпись — диапазон, двоеточие, вывод, — чтобы название
+  // диапазона осталось в именительном падеже. «Не хватает воздуха» требует
+  // родительного, «ждём верхнюю середину» — винительного, а подставить в дырку
+  // можно только одну форму. Двоеточие снимает вопрос падежа целиком.
+  'eq.smart.range.deepBass': 'глубокий бас',
+  'eq.smart.range.bass': 'бас',
+  'eq.smart.range.lowMids': 'нижняя середина',
+  'eq.smart.range.mids': 'середина',
+  'eq.smart.range.upperMids': 'верхняя середина',
+  'eq.smart.range.presence': 'презенс',
+  'eq.smart.range.treble': 'высокие',
+  'eq.smart.range.highTreble': 'верхние высокие',
+  'eq.smart.range.air': 'воздух',
+  'eq.smart.range.separator': ', ',
+  'eq.smart.shape.lifted': '{range}: подъём',
+  'eq.smart.shape.eased': '{range}: ослабление',
+  'eq.smart.need.more': '{range}: не хватает',
+  'eq.smart.need.less': '{range}: слишком много',
+  'eq.smart.status.listening': 'Слушаем',
+  'eq.smart.status.listeningPercent': 'Слушаем {percent}%',
+  'eq.smart.status.settling': 'Слушаем {percent}% - стабилизация',
+  'eq.smart.status.waitingOn': 'Слушаем {percent}% - ждём: {ranges}',
+  'eq.smart.status.waitingOnMore':
+    'Слушаем {percent}% - ждём: {ranges} +{count}',
+  'eq.smart.status.paused': 'Пауза',
+  'eq.smart.status.pausedResume': 'Пауза - продолжите, чтобы закончить',
+  'eq.smart.status.pausedSilent': 'Пауза - звука нет',
+  'eq.smart.status.waitingForSound': 'Ждём звук',
+  'eq.smart.status.soundChanged': 'Звук изменился - измеряем заново',
+  'eq.smart.status.keptChanging': 'Звук всё время менялся - остановлено',
+  'eq.smart.status.notEnoughRange': 'Слишком узкий диапазон для измерения',
+  'eq.smart.status.alreadyBalanced': 'Уже сбалансировано',
+  'eq.smart.status.applying': 'Применение…',
+  'eq.smart.status.cancelled': 'Отменено - ничего не изменилось',
+  'eq.smart.status.failed': 'Не удалось измерить выход.',
+  'eq.smart.result.fullRange': 'Сбалансировано - весь диапазон',
+  'eq.smart.result.range': 'Сбалансировано - только от {low} до {high}',
+  'eq.smart.result.withShape': '{result} · {shape}',
+  'eq.smart.frequency.hz': '{value} Гц',
+  'eq.smart.frequency.khz': '{value} кГц',
+  'eq.smart.error.noCapture': 'Захват звука в этой среде недоступен.',
+  'eq.smart.error.noLoopback':
+    'Захват системного вывода в этой среде недоступен.',
+  'eq.smart.error.streamStopped': 'Вывод прекратился до окончания измерения.',
+  'eq.smart.error.analyserPaused':
+    'Анализатор на паузе, поэтому измерение остановлено.',
+  'eq.smart.error.noSound':
+    'Ничего не играло. Включите музыку и измерьте заново.',
+  'eq.smart.error.noAudioTrack': 'Windows не дала системный аудиопоток.',
+  'eq.smart.error.formatChanged':
+    'Формат вывода изменился во время измерения. Попробуйте ещё раз.',
+  'eq.smart.error.deviceChanged':
+    'Устройство вывода изменилось во время измерения. Попробуйте ещё раз.',
+  'eq.smart.error.captureFailed':
+    'Не удалось захватить обработанный системный вывод.',
+  'eq.smart.error.analyserOff':
+    'Анализатор живого вывода не работает, измерять нечего.',
+  'eq.smart.error.alreadyRunning': 'Измерение уже идёт.',
+  'eq.smart.error.timedOut': 'Время измерения истекло. Попробуйте ещё раз.',
+  'eq.smart.error.closed': 'FluidEQ завершил измерение.',
+  // «Не считаем» — от первого лица, как и остальной словарь, и заодно без
+  // согласования: «не учитывается» пришлось бы менять для «высокие».
+  'eq.smart.presence.ignoredBelow': '{range} · ниже {db} дБ не считаем',
+  'eq.smart.presence.trustedAbove': '{range} · выше {db} дБ доверяем полностью',
+
   'convolution.eyebrow': 'ИМПУЛЬСНЫЕ ХАРАКТЕРИСТИКИ APO',
   'convolution.title': 'Библиотека свёртки',
   'convolution.intro':

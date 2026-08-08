@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,6 +30,7 @@ import { getReferenceShape } from 'common/referenceCurve';
 import { getVoicingFilters } from 'common/voicing';
 import { getDriverFilters } from 'common/driver';
 import { useFluidEqContext } from './utils/FluidEqContext';
+import { useTranslation } from './utils/I18nContext';
 import { sortHelper } from './utils/utils';
 import { setSmartEq as setSmartEqApi } from './utils/equalizerApi';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
@@ -145,6 +147,23 @@ const SmartEqEngine = () => {
   } = useFluidEqContext();
   const { captureBalanceProfile, isActive: isLiveOutputActive } =
     useLiveAudioControl();
+  /**
+   * The language, on a ref, and the ref is the point.
+   *
+   * Everything that writes a status here does it from inside a capture that
+   * runs for tens of seconds or, in a continuous mode, all evening — so reading
+   * `t` from the closure would freeze the readout in whatever language was
+   * selected when the capture started. Worse, putting it in the effect's
+   * dependencies would tear the capture down and start it again on a language
+   * change, taking every region's accumulated evidence with it. A ref is the
+   * only version that is both current and free.
+   *
+   * A sentence already on screen stays in the old language until the next one
+   * is written, which for a running measurement is about a second.
+   */
+  const { t } = useTranslation();
+  const tRef = useRef(t);
+  tRef.current = t;
   /** What the page shows, and the flag the loop stands down for. */
   const { status, isRunning } = useSmartEqRun();
   const isContinuousOn = useContinuousEq();
@@ -467,13 +486,15 @@ const SmartEqEngine = () => {
         // the chip's clear button, a profile load — from the run's own.
         const layerBeforeCapture = describeSmartEqLayer(layer);
 
-        setSmartEqStatus('Listening 0%');
+        setSmartEqStatus(
+          tRef.current('eq.smart.status.listeningPercent', { percent: 0 }),
+        );
         const result = await captureBalanceProfile({
           signal: controller.signal,
           getChainGainDb: (axis) => chainGainDbRef.current(axis),
           onProgress: (progress) => {
             if (isCurrentRun()) {
-              setSmartEqStatus(describeBalanceProgress(progress));
+              setSmartEqStatus(describeBalanceProgress(progress, tRef.current));
             }
           },
         });
@@ -498,10 +519,10 @@ const SmartEqEngine = () => {
           describeSmartEqLayer(smartEqRef.current) !== layerBeforeCapture
         ) {
           if (attempt >= MAX_BALANCE_ATTEMPTS) {
-            setSmartEqStatus('The sound kept changing - stopped');
+            setSmartEqStatus(tRef.current('eq.smart.status.keptChanging'));
             return;
           }
-          setSmartEqStatus('Sound changed - measuring again');
+          setSmartEqStatus(tRef.current('eq.smart.status.soundChanged'));
           // eslint-disable-next-line no-continue
           continue;
         }
@@ -542,7 +563,7 @@ const SmartEqEngine = () => {
           ),
         });
         if (Object.keys(gains).length === 0) {
-          setSmartEqStatus('Not enough range to measure');
+          setSmartEqStatus(tRef.current('eq.smart.status.notEnoughRange'));
           return;
         }
 
@@ -556,11 +577,11 @@ const SmartEqEngine = () => {
         // moves every band by less than the rounding step has genuinely found
         // nothing left to correct.
         if (describeSmartEqLayer(measured) === describeSmartEqLayer(layer)) {
-          setSmartEqStatus('Already balanced');
+          setSmartEqStatus(tRef.current('eq.smart.status.alreadyBalanced'));
           return;
         }
 
-        setSmartEqStatus('Applying...');
+        setSmartEqStatus(tRef.current('eq.smart.status.applying'));
 
         // The same reveal the AutoEQ panel uses, pointed at the layer instead
         // of at the bands: its curve climbs onto the graph a band at a time
@@ -609,14 +630,23 @@ const SmartEqEngine = () => {
         // all this said for a long time, and it is the half the app cannot be
         // held to: it describes a measurement. The second half is the gains it
         // wrote, which are on disk and can be argued with.
+        //
+        // Joined through a key rather than with a template literal, because the
+        // separator between the two halves is a typographic decision and one of
+        // the ten dictionaries may want a different one.
         {
           const shape = describeCorrectionShape(
             Object.values(measured?.filters ?? {}),
+            tRef.current,
           );
+          const heard = describeBalanceResult(result, tRef.current);
           setSmartEqStatus(
             shape
-              ? `${describeBalanceResult(result)} · ${shape}`
-              : describeBalanceResult(result),
+              ? tRef.current('eq.smart.result.withShape', {
+                  result: heard,
+                  shape,
+                })
+              : heard,
           );
         }
         break;
@@ -629,10 +659,18 @@ const SmartEqEngine = () => {
       // capture unavailable); report it in place rather than as a global
       // failure that would blank the whole workspace.
       if (e instanceof DOMException && e.name === 'AbortError') {
-        setSmartEqStatus('Cancelled - nothing changed');
+        setSmartEqStatus(tRef.current('eq.smart.status.cancelled'));
       } else {
+        // An Error's own message is passed through, and it is already
+        // translated: everything the capture rejects with is looked up in
+        // `useLiveOutputSpectrum` before it is thrown, precisely so this line
+        // does not have to guess. What is left for the key below is the case
+        // where something threw a non-Error, which no code here does and only a
+        // browser can.
         setSmartEqStatus(
-          e instanceof Error ? e.message : 'Could not measure the output.',
+          e instanceof Error
+            ? e.message
+            : tRef.current('eq.smart.status.failed'),
         );
       }
     } finally {
@@ -894,6 +932,7 @@ const SmartEqEngine = () => {
       describeCorrectionNeed(
         bands,
         stepped,
+        tRef.current,
         moved.map(({ region }) => region),
       ),
     );
@@ -980,8 +1019,8 @@ const SmartEqEngine = () => {
     pendingResetRef.current = [];
     // A fresh session has heard nothing yet, and saying otherwise would leave
     // the bubble asserting a condition from the last one.
-    listeningForRef.current = 'Listening';
-    setSmartEqListening('Listening');
+    listeningForRef.current = tRef.current('eq.smart.status.listening');
+    setSmartEqListening(listeningForRef.current);
     // A fresh session starts with no opinion. The last one may have been
     // measuring a different output, a different headphone, or a chain the
     // manual button has since rebuilt from flat.
@@ -1007,7 +1046,7 @@ const SmartEqEngine = () => {
       // does not stop, so the guard is worth having even though the percentage
       // usually changes anyway.
       onProgress: (progress) => {
-        const next = describeContinuousProgress(progress);
+        const next = describeContinuousProgress(progress, tRef.current);
         if (next !== listeningForRef.current) {
           listeningForRef.current = next;
           setSmartEqListening(next);

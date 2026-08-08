@@ -224,6 +224,75 @@ const de: Partial<Dictionary> = {
   'eq.delete': 'Band löschen',
   'eq.deleteAria': 'Gewähltes EQ-Band löschen',
 
+  // Die Teilsätze stehen als Etikett — Bereich, Doppelpunkt, Befund — damit der
+  // Bereichsname im Nominativ bleiben kann. „Zu viel Höhen“ müsste „zu viele“
+  // heißen, „Überschuss an oberen Mitten“ dekliniert das Adjektiv mit: beides
+  // kann eine Lücke im Satz nicht leisten, ein Doppelpunkt schon.
+  'eq.smart.range.deepBass': 'Tiefbass',
+  'eq.smart.range.bass': 'Bass',
+  'eq.smart.range.lowMids': 'untere Mitten',
+  'eq.smart.range.mids': 'Mitten',
+  'eq.smart.range.upperMids': 'obere Mitten',
+  'eq.smart.range.presence': 'Präsenz',
+  'eq.smart.range.treble': 'Höhen',
+  'eq.smart.range.highTreble': 'obere Höhen',
+  'eq.smart.range.air': 'Luft',
+  'eq.smart.range.separator': ', ',
+  'eq.smart.shape.lifted': '{range}: angehoben',
+  'eq.smart.shape.eased': '{range}: abgesenkt',
+  'eq.smart.need.more': '{range}: zu wenig',
+  'eq.smart.need.less': '{range}: zu viel',
+  'eq.smart.status.listening': 'Hört zu',
+  'eq.smart.status.listeningPercent': 'Hört zu {percent}%',
+  'eq.smart.status.settling': 'Hört zu {percent}% - beruhigt sich',
+  'eq.smart.status.waitingOn': 'Hört zu {percent}% - wartet auf {ranges}',
+  'eq.smart.status.waitingOnMore':
+    'Hört zu {percent}% - wartet auf {ranges} +{count}',
+  'eq.smart.status.paused': 'Pausiert',
+  'eq.smart.status.pausedResume': 'Pausiert - zum Abschließen fortsetzen',
+  'eq.smart.status.pausedSilent': 'Pausiert - es läuft kein Ton',
+  'eq.smart.status.waitingForSound': 'Wartet auf Ton',
+  'eq.smart.status.soundChanged': 'Der Ton hat sich geändert - misst neu',
+  'eq.smart.status.keptChanging': 'Der Ton änderte sich ständig - abgebrochen',
+  'eq.smart.status.notEnoughRange': 'Zu wenig Bandbreite zum Messen',
+  'eq.smart.status.alreadyBalanced': 'Schon ausgewogen',
+  'eq.smart.status.applying': 'Wird angewendet…',
+  'eq.smart.status.cancelled': 'Abgebrochen - nichts geändert',
+  'eq.smart.status.failed': 'Der Ausgang konnte nicht gemessen werden.',
+  'eq.smart.result.fullRange': 'Ausgewogen - voller Bereich',
+  'eq.smart.result.range': 'Ausgewogen - nur {low} bis {high}',
+  'eq.smart.result.withShape': '{result} · {shape}',
+  'eq.smart.frequency.hz': '{value} Hz',
+  'eq.smart.frequency.khz': '{value} kHz',
+  'eq.smart.error.noCapture':
+    'Audioaufnahme ist in dieser Umgebung nicht verfügbar.',
+  'eq.smart.error.noLoopback':
+    'Die Aufnahme der Systemausgabe ist in dieser Umgebung nicht verfügbar.',
+  'eq.smart.error.streamStopped':
+    'Die Ausgabe endete, bevor die Messung fertig war.',
+  'eq.smart.error.analyserPaused':
+    'Der Analysator ist pausiert, deshalb wurde die Messung beendet.',
+  'eq.smart.error.noSound':
+    'Es lief nichts. Starte Musik und miss noch einmal.',
+  'eq.smart.error.noAudioTrack':
+    'Windows hat keinen System-Audiostream geliefert.',
+  'eq.smart.error.formatChanged':
+    'Das Ausgabeformat hat sich während der Messung geändert. Noch einmal versuchen.',
+  'eq.smart.error.deviceChanged':
+    'Das Audiogerät hat sich während der Messung geändert. Noch einmal versuchen.',
+  'eq.smart.error.captureFailed':
+    'Die verarbeitete Systemausgabe konnte nicht aufgenommen werden.',
+  'eq.smart.error.analyserOff':
+    'Der Live-Ausgangsanalysator läuft nicht, es gibt also nichts zu messen.',
+  'eq.smart.error.alreadyRunning': 'Es läuft bereits eine Messung.',
+  'eq.smart.error.timedOut':
+    'Bei der Messung ist die Zeit abgelaufen. Noch einmal versuchen.',
+  'eq.smart.error.closed': 'FluidEQ hat die Messung beendet.',
+  // Partizip ohne Hilfsverb, weil ein finites Verb sich nach der Zahl des
+  // Bereichs richten müsste — „Höhen zählen“, aber „Bass zählt“.
+  'eq.smart.presence.ignoredBelow': '{range} · unter {db} dB ignoriert',
+  'eq.smart.presence.trustedAbove': '{range} · über {db} dB voll vertraut',
+
   'convolution.eyebrow': 'APO-IMPULSANTWORTEN',
   'convolution.title': 'Faltungsbibliothek',
   'convolution.intro':
