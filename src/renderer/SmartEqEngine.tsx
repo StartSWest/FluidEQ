@@ -49,7 +49,10 @@ import {
   describeCorrectionShape,
 } from './utils/autoBalance';
 import { flashCorrection } from './utils/correctionFlash';
-import { setSmartEqDisagreement } from './utils/smartEqDisagreement';
+import {
+  setSmartEqDisagreement,
+  setSmartEqQuietUntil,
+} from './utils/smartEqDisagreement';
 import {
   buildChainGainDb,
   buildLayerTargetCurve,
@@ -1017,6 +1020,9 @@ const SmartEqEngine = () => {
         // is the analyser being lied to while APO reloads, the long one is how
         // often anybody should have to notice this mode at all.
         quietUntilRef.current = Date.now() + CONTINUOUS_QUIET_MS;
+        // Published so the plot can say how long is left, but only for the
+        // ranges that have nothing else to wait for. See its store.
+        setSmartEqQuietUntil(quietUntilRef.current);
         pendingResetRef.current = moved.map(({ index }) => index);
         // Marked here and nowhere earlier: this is the moment the chain on disk
         // actually changed, so it is the moment the sound did. Announcing it at

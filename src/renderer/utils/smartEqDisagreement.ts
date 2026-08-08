@@ -51,6 +51,27 @@ let disagreement: TDisagreement = {};
 const listeners = new Set<() => void>();
 
 /**
+ * When the quiet window between writes closes, as a wall-clock timestamp.
+ *
+ * The one condition that IS a clock. Evidence and disagreement are not — they
+ * depend on what the music does next, and a countdown against either would be
+ * inventing a schedule for something nobody can schedule.
+ *
+ * Which is why a countdown was refused twice before this and is right now: the
+ * objection only holds while the other two are outstanding. Once both are met,
+ * time is genuinely the only thing left, and saying so promises nothing that
+ * cannot be delivered.
+ */
+let quietUntilMs = 0;
+
+export const setSmartEqQuietUntil = (atMs: number) => {
+  quietUntilMs = atMs;
+  listeners.forEach((listener) => listener());
+};
+
+export const getSmartEqQuietUntil = () => quietUntilMs;
+
+/**
  * Replaced whole rather than merged.
  *
  * A range missing from a solve has not kept its old disagreement — it was not

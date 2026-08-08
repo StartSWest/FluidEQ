@@ -289,6 +289,7 @@ const ja: Partial<Dictionary> = {
   'eq.smart.presence.reset': 'このモードの {range} をリセット',
   'eq.smart.limit.label': 'Smart EQ 上限 {db} dB',
   'eq.smart.gap.title': '{range}: ずれの大きさと、動くために必要な量',
+  'eq.smart.gap.countdown': '{seconds}秒後に適用',
 
   'convolution.eyebrow': 'APO インパルス応答',
   'convolution.title': 'コンボリューション ライブラリ',

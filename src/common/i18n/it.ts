@@ -299,6 +299,7 @@ const it: Partial<Dictionary> = {
   'eq.smart.limit.label': 'Limite Smart EQ {db} dB',
   'eq.smart.gap.title':
     '{range}: quanto diverge, rispetto a quanto serve per agire',
+  'eq.smart.gap.countdown': 'scrive tra {seconds}s',
 
   'convolution.eyebrow': 'RISPOSTE ALL’IMPULSO DI APO',
   'convolution.title': 'Libreria di convoluzione',

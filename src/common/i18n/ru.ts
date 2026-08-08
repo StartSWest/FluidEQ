@@ -295,6 +295,7 @@ const ru: Partial<Dictionary> = {
   'eq.smart.limit.label': 'Предел Smart EQ {db} дБ',
   'eq.smart.gap.title':
     '{range}: насколько расходится, против порога для действия',
+  'eq.smart.gap.countdown': 'запишем через {seconds}с',
 
   'convolution.eyebrow': 'ИМПУЛЬСНЫЕ ХАРАКТЕРИСТИКИ APO',
   'convolution.title': 'Библиотека свёртки',

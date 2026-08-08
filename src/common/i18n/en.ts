@@ -373,6 +373,7 @@ const en = {
   'eq.smart.limit.label': 'Smart EQ limit {db} dB',
   'eq.smart.gap.title':
     '{range}: how far it disagrees, against the amount needed to act',
+  'eq.smart.gap.countdown': 'writing in {seconds}s',
 
   // *** Convolution *********************************************************
   'convolution.eyebrow': 'APO impulse responses',

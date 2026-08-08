@@ -301,6 +301,7 @@ const de: Partial<Dictionary> = {
   'eq.smart.limit.label': 'Smart-EQ-Grenze {db} dB',
   'eq.smart.gap.title':
     '{range}: wie weit es abweicht, gemessen an der nötigen Schwelle',
+  'eq.smart.gap.countdown': 'schreibt in {seconds}s',
 
   'convolution.eyebrow': 'APO-IMPULSANTWORTEN',
   'convolution.title': 'Faltungsbibliothek',

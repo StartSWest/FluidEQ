@@ -298,6 +298,7 @@ const hi: Partial<Dictionary> = {
   'eq.smart.limit.label': 'Smart EQ सीमा {db} dB',
   'eq.smart.gap.title':
     '{range}: कितना अंतर है, कार्रवाई के लिए ज़रूरी मात्रा के सामने',
+  'eq.smart.gap.countdown': '{seconds}से॰ में लागू',
 
   'convolution.eyebrow': 'APO इंपल्स रिस्पॉन्स',
   'convolution.title': 'कन्वॉल्यूशन लाइब्रेरी',

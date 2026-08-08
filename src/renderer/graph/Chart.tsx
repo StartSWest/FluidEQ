@@ -49,6 +49,7 @@ import {
 import { balanceRangeName } from '../utils/autoBalance';
 import {
   DISAGREEMENT_DEADBAND_DB,
+  getSmartEqQuietUntil,
   useSmartEqDisagreement,
 } from '../utils/smartEqDisagreement';
 import { useSmartEqMode } from '../utils/smartEqMode';
@@ -195,6 +196,17 @@ const CoverageOverlay = ({
   usePresenceLines();
   // The other half of why a correction has not landed yet. See its store.
   const disagreement = useSmartEqDisagreement();
+  /*
+   * Seconds until the quiet window closes, recomputed every render.
+   *
+   * Free to derive rather than tick on its own timer: this component already
+   * re-renders on every frame the capture publishes, so the number is current
+   * without a second clock to start, stop and forget to clear.
+   */
+  const secondsLeft = Math.max(
+    0,
+    Math.ceil((getSmartEqQuietUntil() - Date.now()) / 1000),
+  );
   // How far Smart EQ may move any band, drawn as one symmetric pair.
   const correctionLimit = useCorrectionLimit();
   // Each mode keeps its own pair, so a mode change moves every line on screen.
@@ -648,10 +660,16 @@ const CoverageOverlay = ({
              * fills has the scale built in: full is full. Two bars, both full,
              * means the only thing left to wait for is the quiet period.
              *
-             * Still not a countdown. Evidence, disagreement and the twenty
-             * seconds between writes are three independent conditions, and one
-             * clock would promise an arrival that any of the other two can
-             * postpone.
+             * AND A COUNTDOWN ONCE BOTH ARE FULL, which was refused twice
+             * before this and is right now. The objection — that evidence and
+             * disagreement depend on what the music does next, so a clock
+             * against either invents a schedule nobody can keep — only holds
+             * while one of them is outstanding. Once both are met, time is
+             * genuinely the only thing left, and saying how much of it remains
+             * promises nothing that cannot be delivered.
+             *
+             * So the seconds appear exactly when they become true, and not one
+             * moment earlier.
              */}
             <rect
               className="chart-coverage__gap-track"
@@ -685,6 +703,18 @@ const CoverageOverlay = ({
                 })}
               </title>
             </rect>
+            {region.isCovered &&
+              disagreement[region.label] >= DISAGREEMENT_DEADBAND_DB &&
+              secondsLeft > 0 && (
+                <text
+                  className="chart-coverage__countdown"
+                  x={left + 1 + width / 2}
+                  y={plotHeight - 16}
+                  textAnchor="middle"
+                >
+                  {t('eq.smart.gap.countdown', { seconds: secondsLeft })}
+                </text>
+              )}
           </g>
         );
       })}
