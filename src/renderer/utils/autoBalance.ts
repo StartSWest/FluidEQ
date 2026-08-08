@@ -1077,13 +1077,29 @@ export const buildBalancedGains = (
       // subtracted only from bands that were actually answered for — applying it
       // to the others would move them on the strength of an average they took no
       // part in, which is a correction nobody measured.
-      // Still corrected, even where no boost is allowed. Withholding the whole
-      // correction from a gated band was tried and is wrong: it takes the cuts
-      // away with the boosts, and a range that is quiet AND too loud for its
-      // target is a real thing — the gate exists to stop a silent range being
-      // lifted, not to make it untouchable. The clamp below is where the one
-      // direction is refused; this is not.
-      const correction = entry.isSolvable ? entry.correction - mean : 0;
+      /*
+       * The anchor applies only to the bands that are in it.
+       *
+       * A gated band was already left out of the mean — it cannot pay its share
+       * of a boost it is not allowed to make — and subtracting that mean from it
+       * anyway is the same mistake as anchoring a band the solver declined: it
+       * moves on the strength of an average it took no part in. When the rest of
+       * the spectrum wants lifting, the mean is positive, and a silent range
+       * quietly gets cut by that much for no reason anybody measured.
+       *
+       * Which is a ratchet across records rather than within one, and that is
+       * why it survived the first fix and needed a two-hundred-pass simulation
+       * to find: during a passage with no bass the bass is trimmed, the next
+       * record has to spend its own correction undoing that, and the two never
+       * quite cancel. Left running it cost 1.8 dB of level and grew the spread
+       * from ten decibels to fourteen.
+       *
+       * Its own correction still applies, so a range that is quiet AND genuinely
+       * too loud for its target is still cut. The gate refuses one direction;
+       * it does not make a band untouchable.
+       */
+      const anchor = allowanceOf(entry) > 0 ? mean : 0;
+      const correction = entry.isSolvable ? entry.correction - anchor : 0;
       /*
        * How much of a boost this band has earned, and cuts are untouched.
        *
