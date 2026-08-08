@@ -32,7 +32,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * Kept separate from the player itself and free of the DOM, so the rules about
  * what is worth resuming — and the validation of a value that comes back off
- * disk and turns into a navigation — can be read and tested on their own.
+ * disk and turns into a navigation — can be read and tested on their own. The
+ * script that carries a position into the page is here for the same reason: it
+ * is a string until the guest evaluates it, and what it does — and, after this
+ * was once a bug, what it deliberately does not do — is then something a test
+ * can hold it to.
  */
 
 import { VIDEO_SITES, findSiteForUrl, isNavigableVideoUrl } from './videoSites';
@@ -216,4 +220,69 @@ export const resumePositionFor = (
     return 0;
   }
   return Math.max(0, position - RESUME_REWIND_SECONDS);
+};
+
+/**
+ * The script that moves the playhead in a page that has just come back.
+ *
+ * Waiting rather than assuming, because there is nothing to seek when this
+ * runs: the page has only just been asked to load and builds its player from
+ * script, which on a slow morning is several seconds after `dom-ready`. The
+ * poll is bounded — twenty seconds and then it gives up, so a page that never
+ * grows a player does not leave a timer running behind it for the rest of the
+ * session.
+ *
+ * The seek waits again, on the media's own terms: `currentTime` before metadata
+ * has arrived is discarded silently, which is the difference between resuming
+ * and quietly starting from the beginning. The listener is left in place rather
+ * than given up on, so a page that keeps its metadata to itself until somebody
+ * presses play still lands on the right second when they do.
+ *
+ * What it does not do is press play, and that is the whole of the change it
+ * once needed. It used to call `play()` straight after the seek, which is why
+ * coming back to the tab started making noise over whatever was already on.
+ * Restoring the page and restoring the position are worth having on their own;
+ * deciding to listen belongs to whoever is sitting there.
+ *
+ * A string rather than a function because it is handed to another process to
+ * evaluate. It lives here, with the rest of the resume rules, so that "restores
+ * without playing" is something a test can hold to rather than a line of a
+ * component nothing can reach.
+ */
+export const buildResumeSeekScript = (position: number): string => {
+  // Pinned to a number on the way into source. Everything upstream already
+  // checks this — `isUsableMark` on the way off disk, `resumePositionFor` on
+  // the way out — but this is the point where a value becomes code in someone
+  // else's page, and the check costs a line.
+  const at = Number.isFinite(position) && position > 0 ? position : 0;
+
+  return `(() => {
+  const at = ${at};
+  let tries = 0;
+  const attempt = () => {
+    const media = Array.from(document.querySelectorAll('video, audio'));
+    media.sort(
+      (a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight)
+    );
+    const el = media[0];
+    if (!el) {
+      tries += 1;
+      if (tries < 80) { setTimeout(attempt, 250); }
+      return;
+    }
+    const seek = () => {
+      try {
+        // Past the end is not a resume, it is a video that finished.
+        if (at > 0 && (!Number.isFinite(el.duration) || at < el.duration)) {
+          el.currentTime = at;
+        }
+      } catch (e) { /* a server-controlled stream can refuse a seek */ }
+    };
+    if (el.readyState >= 1) { seek(); } else {
+      el.addEventListener('loadedmetadata', seek, { once: true });
+    }
+  };
+  attempt();
+  return 'ok';
+})()`;
 };

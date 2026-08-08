@@ -75,6 +75,7 @@ import {
   IEuphoriaPaint,
   TracePaint,
   getWaveTransform,
+  isEuphoriaFigureStroke,
   isSelfColouredLook,
   isTraceGradient,
   readEuphoriaHue,
@@ -484,6 +485,57 @@ const LiveTraceCanvas = ({
         tuning.border,
         isEuphoric,
       );
+      // Whose edge this is, which decides where it is allowed to sit.
+      const isEuphoriaEdge = isEuphoriaFigureStroke(
+        tuning.border,
+        isSelfColoured,
+        euphoria,
+      );
+
+      /**
+       * Everywhere the figure is not, for the euphoria border to be stroked in.
+       *
+       * A canvas stroke straddles its path, so half of every border landed
+       * inside the shape and painted over the fill — which on the discrete forms
+       * is most of the shape. Bars at the default sixty-four columns are about
+       * six pixels wide on a full-width plot and the border goes to eight, so
+       * the fill the border was decorating did not survive at all. That is the
+       * bug: a rainbow or a level ramp says something, and the decoration was
+       * erasing it.
+       *
+       * Chromium has no `stroke-alignment`, and neither SVG nor canvas offers
+       * one, so the stroke is drawn at twice the weight through a clip that
+       * excludes the figure — the inner half is masked away and exactly
+       * `figureStrokeWidth` is left standing outside the edge. The alternatives
+       * were both worse: stroking under the fill leaks through, because the fill
+       * is translucent by default and `fillOpacity` goes as low as 0.15; and
+       * `destination-over` leaks for the same reason, since it composites on
+       * alpha rather than on geometry.
+       *
+       * Even-odd is what makes the figure a hole in the surrounding rectangle
+       * rather than being swallowed by it. The figure itself is filled non-zero,
+       * so a form whose pieces overlap each other has a small disagreement
+       * between the two in the overlap — no built-in form does, and the worst it
+       * could cost is a sliver of border over a fill that is already doubled.
+       *
+       * Built once per frame rather than per curve: it is expressed in the same
+       * space as the figure, and the mirrored copy's transform is applied when
+       * the clip is set rather than when it is built.
+       */
+      const needsOutside =
+        isEuphoriaEdge && tuning.filled && figureStrokeWidth > 0;
+      let outside: Path2D | undefined;
+      if (needsOutside) {
+        const bleed = figureStrokeWidth + 1;
+        outside = new Path2D();
+        outside.rect(
+          plot.left - bleed,
+          -bleed,
+          plot.right - plot.left + bleed * 2,
+          baseline + bleed * 2,
+        );
+        outside.addPath(figure);
+      }
 
       context.lineCap = 'round';
       context.lineJoin = 'round';
@@ -546,8 +598,37 @@ const LiveTraceCanvas = ({
         if (figureStroke !== undefined && figureStrokeWidth > 0) {
           setAlpha(context, opacity);
           context.strokeStyle = paintFor(figureStroke);
-          context.lineWidth = figureStrokeWidth;
-          context.stroke(figure);
+          if (outside) {
+            // A painted form: the border goes round the outside of the fill,
+            // double weight through the mask built above. See the note there.
+            context.save();
+            context.clip(outside, 'evenodd');
+            context.lineWidth = figureStrokeWidth * 2;
+            context.stroke(figure);
+            context.restore();
+          } else if (isEuphoriaEdge && isSelfColoured) {
+            // A stroked form that already says something with its colour — the
+            // only way here is with the border switched on, since the sweep
+            // otherwise leaves a self-coloured look alone.
+            //
+            // There is no fill to clip against on a form that is only a line,
+            // so the border becomes a casing laid under it: stroked first, wide
+            // enough that `figureStrokeWidth` of it stands proud on each side,
+            // and then the look's own paint over the top at its own weight. The
+            // spectrum survives with the travelling hue around it, where before
+            // the border simply replaced it and a rainbow trace turned into one
+            // cycling colour.
+            context.lineWidth = strokeWidth + figureStrokeWidth * 2;
+            context.stroke(figure);
+            context.strokeStyle = canvasPaint;
+            context.lineWidth = strokeWidth;
+            context.stroke(figure);
+          } else {
+            // Either the look's own edge, or a trace with no colours of its own
+            // for the sweep to take away. Centred, as it has always been.
+            context.lineWidth = figureStrokeWidth;
+            context.stroke(figure);
+          }
         }
 
         // Lit tips. Only the peaks, and only on the forms that have them — the

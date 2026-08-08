@@ -831,9 +831,11 @@
 // Expanded takes the panel. Full screen takes the tab strip with it, since
 // nothing there is reachable anyway while the card covers the column.
 //
-// `visibility` rather than `display` throughout, for the reason it always is
-// here: the boxes keep their space, so nothing relayouts on the way in or out
-// and no panel loses its scroll position for having been away.
+// `visibility` rather than `display` here, for the reason it usually is: the
+// boxes keep their space, so nothing relayouts on the way in or out and no
+// panel loses its scroll position for having been away. The one place that
+// reasoning is overruled is the player's tab, where the space the boxes keep is
+// a band the picture cannot reach — see the chrome rule further down.
 .center-workspace.is-graph-full:not(
     :has(.workspace-tab-panel--video:not(.is-hidden))
   ) {
@@ -1140,22 +1142,14 @@
     clip-path: none;
   }
 
-  // The tab strip and the player's toolbar give their space back here, rather
-  // than merely going invisible.
+  // The tab strip and the player's toolbar used to give their space back here
+  // and only here, on the reasoning that a band across the top the picture
+  // never reaches is the one thing full screen exists not to have.
   //
-  // Everywhere else they are hidden with `visibility`, which keeps their boxes
-  // so the stage below never moves and the guest is never resized. In this mode
-  // that is exactly wrong: the space they hold is a band across the top that
-  // the picture never reaches, and reaching the top is the whole of what full
-  // screen is for.
-  //
-  // The resize this causes is fine now. It was not, for most of an evening —
-  // being resized left the player marked against an ancestor chain YouTube had
-  // already moved it off — and that is fixed where it belonged, in the marking.
-  .workspace-tabs,
-  .video-browser__bar {
-    display: none;
-  }
+  // Every word of which is just as true of expanded — the card covers the
+  // column there too — so the rule moved to where both modes can use it. See
+  // the shared block further down, which is also where the case for accepting
+  // the resize is now written out.
 }
 
 // Real full screen: the bar goes, and the workspace runs the whole height of
@@ -1240,15 +1234,38 @@
   // because the card covers the column and takes every click, so there is
   // nothing lost by not drawing them.
   //
-  // `visibility` rather than `display`, and the comment has been right about
-  // this for longer than the code has. The boxes keep their space, so the stage
-  // below does not grow, the guest is never resized, and toggling the mode
-  // costs no relayout. A `display: none` here resizes the video every time —
-  // which is what it had quietly become, and a `<webview>` is its own
-  // compositor surface and does not reliably come back from being resized.
-  .workspace-tabs,
-  .video-browser__bar {
-    visibility: hidden;
+  // `display` rather than `visibility`, which is the reverse of what this rule
+  // said for a while and is the whole of the black band across the top of an
+  // expanded graph.
+  //
+  // Hidden with `visibility` these two keep their boxes, and the boxes are the
+  // band: the card is laid over the column edge to edge, so the strip they
+  // reserve — the height of the tab row plus the player's toolbar — is a piece
+  // of workspace at the top of the card that the picture never reaches, showing
+  // through a see-through surface as black. The toolbar sits on the first part
+  // of it and the +20 dB label on the rest, which is how it gets reported: the
+  // video starts somewhere below the controls instead of at the top edge.
+  //
+  // Moving the card down to meet the picture is the other way to close it, and
+  // it only moves the strip — the band ends up above the toolbar rather than
+  // below it, and the graph stops covering the column. The picture has to grow
+  // instead, which means the guest is resized on the way into the mode and on
+  // the way out. That was worth avoiding when a resize left the player marked
+  // against an ancestor chain YouTube had already moved it off; that is fixed
+  // where it belonged, in the marking, and full screen has been giving the same
+  // space back on the same reasoning since.
+  //
+  // Only on the tab that has a picture to give it to. On the other three the
+  // whole of `.middle-content` is already hidden — see the rule under "The two
+  // sizes" that asks this same question the other way round — so collapsing the
+  // strip there would change nothing anybody can see while relaying out an
+  // editor behind the card, and the EQ panel is a scroll container, which is how
+  // a panel loses its place for having been away.
+  &:has(.workspace-tab-panel--video:not(.is-hidden)) {
+    .workspace-tabs,
+    .video-browser__bar {
+      display: none;
+    }
   }
 
   // And with them gone, the player is the panel.

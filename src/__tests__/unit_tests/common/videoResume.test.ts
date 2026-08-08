@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   MIN_RESUME_SECONDS,
   RESUME_REWIND_SECONDS,
+  buildResumeSeekScript,
   forgetPlayback,
   parsePlaybackMarks,
   rememberPlayback,
@@ -153,6 +154,120 @@ describe('deciding where to start', () => {
 
     expect(resumeUrlFor(marks, 'youtube')).toBe(A_VIDEO);
     expect(resumePositionFor(marks, 'youtube')).toBe(0);
+  });
+});
+
+/**
+ * Put a media element on the page for the script to find.
+ *
+ * jsdom has a real `<video>` and real events; what it has no notion of is
+ * loading anything, so the three properties a player would have filled in are
+ * defined on the instance. `play` is a spy rather than jsdom's own, which
+ * throws "not implemented" — and a throw is not the thing being watched for
+ * here, a call is.
+ */
+const givenMediaOnThePage = ({ readyState = 0, duration = 300 } = {}) => {
+  const el = document.createElement('video');
+  Object.defineProperty(el, 'readyState', {
+    value: readyState,
+    configurable: true,
+  });
+  Object.defineProperty(el, 'duration', {
+    value: duration,
+    configurable: true,
+  });
+  Object.defineProperty(el, 'currentTime', {
+    value: 0,
+    writable: true,
+    configurable: true,
+  });
+  const play = jest.fn(() => Promise.resolve());
+  el.play = play;
+  document.body.appendChild(el);
+  return { el, play };
+};
+
+/**
+ * Run it the way the player does: as source, against a document.
+ *
+ * Reading the text of the script and asserting on that would pass just as
+ * happily against something that no longer parses, and the whole value of this
+ * file is that it is the same string the guest is handed.
+ */
+const runInThePage = (script: string) =>
+  // eslint-disable-next-line no-new-func
+  new Function(`return ${script};`)();
+
+describe('picking a page back up', () => {
+  afterEach(() => {
+    document.body.innerHTML = '';
+  });
+
+  it('seeks to the position once the media says how long it is', () => {
+    const { el } = givenMediaOnThePage();
+
+    runInThePage(buildResumeSeekScript(117));
+
+    // Nothing yet: `currentTime` set before metadata has arrived is discarded
+    // silently, which would be a resume that quietly started from the top.
+    expect(el.currentTime).toBe(0);
+
+    el.dispatchEvent(new Event('loadedmetadata'));
+
+    expect(el.currentTime).toBe(117);
+  });
+
+  it('seeks straight away when the media is already loaded', () => {
+    const { el } = givenMediaOnThePage({ readyState: 1 });
+
+    runInThePage(buildResumeSeekScript(117));
+
+    expect(el.currentTime).toBe(117);
+  });
+
+  /**
+   * The rule this whole thing exists for, and the one that regresses silently:
+   * everything still looks right on screen when a restored page plays itself,
+   * it is only the room it happens in that is wrong. Opening the tab restores
+   * what was on and leaves it paused; pressing play is somebody's decision.
+   */
+  it('never presses play', () => {
+    const { el, play } = givenMediaOnThePage({ readyState: 1 });
+
+    runInThePage(buildResumeSeekScript(117));
+    el.dispatchEvent(new Event('loadedmetadata'));
+
+    expect(play).not.toHaveBeenCalled();
+  });
+
+  it('leaves a video that had already finished where it is', () => {
+    const { el } = givenMediaOnThePage({ readyState: 1, duration: 60 });
+
+    runInThePage(buildResumeSeekScript(117));
+
+    expect(el.currentTime).toBe(0);
+  });
+
+  it('has nothing to seek to when there was no position worth keeping', () => {
+    const { el, play } = givenMediaOnThePage({ readyState: 1 });
+
+    runInThePage(buildResumeSeekScript(0));
+
+    expect(el.currentTime).toBe(0);
+    expect(play).not.toHaveBeenCalled();
+  });
+
+  /**
+   * The position becomes source in another process's page. It has been checked
+   * twice before it gets here, which is the reason to check it once more rather
+   * than the reason not to.
+   */
+  it('writes nothing but a number into the script', () => {
+    expect(buildResumeSeekScript(Number.NaN)).toContain('const at = 0;');
+    expect(buildResumeSeekScript(Number.POSITIVE_INFINITY)).toContain(
+      'const at = 0;',
+    );
+    expect(buildResumeSeekScript(-30)).toContain('const at = 0;');
   });
 });
 

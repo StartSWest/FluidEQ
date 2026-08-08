@@ -33,6 +33,13 @@ import {
 } from 'common/smartEq';
 import { IBalanceResult, ISpectrumSample } from 'renderer/utils/autoBalance';
 import MainContent from 'renderer/MainContent';
+import SmartEqEngine from 'renderer/SmartEqEngine';
+import { setSmartEqMode } from 'renderer/utils/smartEqMode';
+import {
+  setSmartEqListening,
+  setSmartEqRunning,
+  setSmartEqStatus,
+} from 'renderer/utils/smartEqRun';
 
 /**
  * A Smart EQ run takes tens of seconds, and the world does not hold still for
@@ -40,6 +47,11 @@ import MainContent from 'renderer/MainContent';
  * button, and a profile load that replaces every layer at once. Both used to be
  * overwritten by the run still in flight, because it read the layer once at the
  * start and never looked again.
+ *
+ * The run does not live in the EQ page any more — `SmartEqEngine` hosts it,
+ * above the tabs — so these render the pair the way `App` does: the engine that
+ * measures, and the panel whose button asks it to. The last test in the file is
+ * about why they were separated at all.
  */
 
 /* --- the world the run reads ------------------------------------------- */
@@ -53,10 +65,16 @@ const mockSetSmartEqState = jest.fn((next?: ISmartEqSettings) => {
   mockLive.smartEq = next;
 });
 
+/** Enough of the capture's options to see which session is which. */
+interface ICaptureOptions {
+  signal: AbortSignal;
+  isContinuous?: boolean;
+}
+
 /** Resolves the pending capture, so a run can be held open mid-listen. */
 let mockFinishCapture: ((result: IBalanceResult) => void) | undefined;
 const mockCaptureBalanceProfile = jest.fn(
-  () =>
+  (_options: ICaptureOptions) =>
     new Promise<IBalanceResult>((resolve) => {
       mockFinishCapture = resolve;
     }),
@@ -172,17 +190,32 @@ const RESULT: IBalanceResult = {
   highFrequency: 15000,
 };
 
-let rerenderMainContent: () => void = () => undefined;
+let rerenderHost: () => void = () => undefined;
+let showEqPanel: (isShown: boolean) => void = () => undefined;
 
-const HarnessedMainContent = () => {
+/**
+ * The app's arrangement, in miniature.
+ *
+ * The engine is mounted unconditionally, as `App` mounts it — outside the tab
+ * switch. The panel is the tab, and can be taken away without taking the
+ * measurement with it, which is the property the last test checks.
+ */
+const Harness = () => {
   const [, setTick] = useState(0);
-  rerenderMainContent = () => setTick((value) => value + 1);
-  return <MainContent />;
+  const [isPanelShown, setIsPanelShown] = useState(true);
+  rerenderHost = () => setTick((value) => value + 1);
+  showEqPanel = setIsPanelShown;
+  return (
+    <>
+      <SmartEqEngine />
+      {isPanelShown && <MainContent />}
+    </>
+  );
 };
 
 const startRun = async () => {
   const user = userEvent.setup();
-  render(<HarnessedMainContent />);
+  render(<Harness />);
   await user.click(
     screen.getByRole('button', { name: 'Smart EQ from live output' }),
   );
@@ -193,7 +226,7 @@ const startRun = async () => {
 const writeMidCapture = async (next: () => void) => {
   await act(async () => {
     next();
-    rerenderMainContent();
+    rerenderHost();
   });
 };
 
@@ -219,6 +252,11 @@ const lastWrittenLayer = () =>
 const writtenLayers = () =>
   mockSetSmartEqApi.mock.calls.filter(([layer]) => layer !== undefined);
 
+const lastCaptureOptions = () =>
+  mockCaptureBalanceProfile.mock.calls[
+    mockCaptureBalanceProfile.mock.calls.length - 1
+  ]?.[0];
+
 beforeEach(() => {
   mockLive.filters = {
     low: band('low', 63, 3),
@@ -229,6 +267,13 @@ beforeEach(() => {
   mockCaptureBalanceProfile.mockClear();
   mockSetSmartEqApi.mockClear();
   mockSetSmartEqState.mockClear();
+  // Module state, so it outlives a render tree. A run abandoned by the previous
+  // test's unmount never reaches its own `finally`, and a stale "running" would
+  // turn the next test's press into a cancel.
+  setSmartEqMode('smart');
+  setSmartEqRunning(false);
+  setSmartEqStatus('');
+  setSmartEqListening('');
 });
 
 /* --- the tests ---------------------------------------------------------- */
@@ -308,5 +353,55 @@ describe('a Smart EQ run while the world changes underneath it', () => {
     expect(describeSmartEqLayer(written)).not.toBe(
       describeSmartEqLayer(LAYER_A),
     );
+  });
+});
+
+/**
+ * The reason any of this was moved out of the EQ page.
+ *
+ * A continuous mode is meant to run for hours: each of its nine regions fills
+ * at its own rate, is corrected when it alone has been heard well enough, and
+ * keeps a long-run destination averaged over every window since it started.
+ * None of that survives a restart — and it used to be restarted by the most
+ * ordinary thing in the app, which is looking at another tab. The panel
+ * unmounted, React ran the effect cleanup, the cleanup aborted the capture, and
+ * coming back began again from nothing.
+ *
+ * The capture is one session, so "still running" is checkable directly: the
+ * signal it was handed is not aborted, and no second session was ever opened.
+ */
+describe('a continuous measurement while the view comes and goes', () => {
+  it('keeps listening when the EQ panel unmounts', async () => {
+    // Chosen before anything renders, so the engine comes up already in the
+    // mode rather than clearing the layer on the way into it.
+    setSmartEqMode('balance');
+
+    render(<Harness />);
+    await waitFor(() => expect(mockCaptureBalanceProfile).toHaveBeenCalled());
+    expect(lastCaptureOptions().isContinuous).toBe(true);
+    const session = lastCaptureOptions().signal;
+
+    // Somebody switches to the Voicing tab.
+    await act(async () => {
+      showEqPanel(false);
+    });
+    expect(
+      screen.queryByRole('button', {
+        name: 'Keep Smart EQ measuring and adjusting while music plays',
+      }),
+    ).not.toBeInTheDocument();
+
+    // The measurement is untouched: same session, still open, never restarted.
+    expect(session.aborted).toBe(false);
+    expect(mockCaptureBalanceProfile).toHaveBeenCalledTimes(1);
+
+    // And coming back does not start a second one either — the evidence the
+    // regions have accumulated is the same evidence.
+    await act(async () => {
+      showEqPanel(true);
+    });
+    expect(session.aborted).toBe(false);
+    expect(mockCaptureBalanceProfile).toHaveBeenCalledTimes(1);
+    expect(lastCaptureOptions().signal).toBe(session);
   });
 });

@@ -22,6 +22,7 @@ import {
   IApoConfigFile,
   IApoConfigTree,
 } from 'common/apoConfig';
+import { APO_FEATURES } from 'common/constants';
 import {
   exportDeviceChain,
   getApoConfigTree,
@@ -33,6 +34,7 @@ import MenuIcon from '../icons/MenuIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
+import { LAYER_SWATCH } from '../styles/color';
 import '../styles/ConfigInspector.scss';
 
 /**
@@ -68,6 +70,51 @@ type IApoConfigTreeState =
 /** The one file per output that FluidEQ creates and then never writes again. */
 const isCustomFile = (fileName: string) => /-custom\.txt$/i.test(fileName);
 
+/**
+ * Which layer a file holds, read off the name FluidEQ gave it.
+ *
+ * This is what lets a pill and a file block be shown in the same colour, which
+ * is the only thing tying the two halves of this panel together: the pills name
+ * layers, the tree names files, and nothing said that `voicing` and
+ * `fluideq-4e9fbe8266bb-voicing.txt` were the same thing.
+ *
+ * Built from `APO_FEATURES` rather than spelled out, so a feature added later
+ * cannot end up with a file this panel quietly declines to colour. The device
+ * file and the custom file match nothing here on purpose — neither is a layer.
+ */
+const FEATURE_FILE = new RegExp(`-(${APO_FEATURES.join('|')})\\.txt$`, 'i');
+
+const layerOfFile = (fileName: string) =>
+  fileName.match(FEATURE_FILE)?.[1].toLowerCase();
+
+/**
+ * The layer's colour as a custom property, or nothing for a layer without one.
+ *
+ * Returning `undefined` rather than a fallback hex leaves the default in the
+ * stylesheet, where it can be written in the same tokens as everything around
+ * it instead of being a second hard-coded colour in the TSX.
+ */
+const layerStyle = (layer: string | undefined) =>
+  layer && LAYER_SWATCH[layer]
+    ? ({ '--layer-color': LAYER_SWATCH[layer] } as React.CSSProperties)
+    : undefined;
+
+/**
+ * The `Preamp:` line with its number rounded, for the one-line summary only.
+ *
+ * The writer works the headroom out in floating point and gives Equalizer APO
+ * every digit of it, so the file genuinely says `Preamp: -3.876390213587826
+ * dB`. That is right on disk and unreadable in a facts row: the two digits that
+ * mean anything are lost among thirteen that never change what you hear, and
+ * the string is long enough to wrap the row it sits in.
+ *
+ * Only the first number is touched, and only for display — the file's own text
+ * is shown verbatim in the block below, so nothing is hidden by rounding the
+ * summary. A preamp written without decimals is left exactly as it is.
+ */
+const roundPreAmp = (line: string) =>
+  line.replace(/-?\d+\.\d+/, (value) => Number(value).toFixed(2));
+
 /** One file and its children, drawn as a disclosure and editable in place. */
 const ConfigFileNode = ({
   file,
@@ -87,6 +134,7 @@ const ConfigFileNode = ({
     /^Filter\s+\d+\s*:/i.test(line),
   ).length;
   const isCustom = isCustomFile(file.fileName);
+  const layer = layerOfFile(file.fileName);
 
   if (file.isMissing) {
     return (
@@ -111,7 +159,15 @@ const ConfigFileNode = ({
   };
 
   return (
-    <li className={`config-node${isCustom ? ' config-node--custom' : ''}`}>
+    // The layer's colour, carried down to the head's edge below. A file block
+    // and the pill above it are the same layer said twice, and the colour is
+    // what says so — see `layerOfFile`.
+    <li
+      className={`config-node${isCustom ? ' config-node--custom' : ''}${
+        layer ? ' config-node--layer' : ''
+      }`}
+      style={layerStyle(layer)}
+    >
       <button
         type="button"
         className="config-node__head"
@@ -495,7 +551,7 @@ const ConfigInspector = () => {
                     { count: shown.filterCount },
                   )}
                 </span>
-                {shown.preAmp && <span>{shown.preAmp}</span>}
+                {shown.preAmp && <span>{roundPreAmp(shown.preAmp)}</span>}
               </div>
               {/* A chain, out to a file and back in again.
                   What travels is the profile, not these files: their names
@@ -509,22 +565,35 @@ const ConfigInspector = () => {
                   and the only output somebody can judge the result on is the
                   one already playing — so it always lands on that, and says
                   so. */}
+              {/* Import sits at the far right, with the note between the two.
+
+                  Side by side they were a pair of equals, and they are not:
+                  Export writes a file you chose the name of, Import overwrites
+                  the chain you are listening to right now. The one you can undo
+                  should not be the neighbour of the one you cannot, close
+                  enough to hit by accident. The note has to go somewhere and the
+                  gap is the one place it is not trailing off the end of a row.
+
+                  The reading order is unchanged, so tabbing still reaches
+                  Export before Import. */}
               <div className="config-device__transfer">
                 <button
                   type="button"
+                  className="config-device__export"
                   onClick={() => transferChain(() => exportChain(shown))}
                 >
                   {t('config.export')}
                 </button>
+                <span className="config-device__transfer-note">
+                  {transferNote || t('config.import.hint')}
+                </span>
                 <button
                   type="button"
+                  className="config-device__import"
                   onClick={() => transferChain(importDeviceChain)}
                 >
                   {t('config.import')}
                 </button>
-                <span className="config-device__transfer-note">
-                  {transferNote || t('config.import.hint')}
-                </span>
               </div>
               {/* Every layer this output has, applied or not.
                   A switched-off layer has no file, so without this the panel
@@ -539,7 +608,23 @@ const ConfigInspector = () => {
                       className={`config-layer${
                         layer.isApplied ? '' : ' is-off'
                       }`}
+                      style={layerStyle(layer.feature)}
                     >
+                      {/* The same bar the chip row draws, in the same colour,
+                          because it is the same layer: a pill here, a chip on
+                          the EQ page and a curve on the graph now all agree.
+                          Every pill used to be the one lime, so the row said
+                          which layers existed and nothing about which was
+                          which.
+
+                          The name stays the raw feature key rather than the
+                          translated one. It reads as a developer token, and
+                          that is exactly its value here — `voicing` is
+                          literally the suffix of
+                          `fluideq-4e9fbe8266bb-voicing.txt` in the tree below,
+                          so the word itself is half the answer to "which file
+                          is this". A prettier label would break that. */}
+                      <span className="config-layer__swatch" aria-hidden />
                       <span className="config-layer__name">
                         {layer.feature}
                       </span>

@@ -71,6 +71,7 @@ const VIEW_KEYS = {
   // which is also the only thing that still reads the bare stem, once, to move
   // an older install's value across.
   grid: 'fluideq.graphGridHidden',
+  coverage: 'fluideq.graphCoverageHidden',
   stretch: 'fluideq.graphStretched',
   orientation: 'fluideq.waveOrientation',
   view: 'fluideq.graphView',
@@ -384,27 +385,67 @@ export const toggleLiveOutputSolo = () => setLiveOutputSolo(!isSolo);
  * The fourth state used to be the curves with only the handles taken off, which
  * left the same bright line over the top of everything and so answered a
  * question nobody was asking.
+ *
+ * FOUR NAMED STATES, not three loose flags.
+ *
+ * The flags came first and each arrived for its own reason, which is how they
+ * ended up able to contradict each other — and how the legend ended up able to
+ * contradict all three. Hiding the EQ curve from its chip left this cycle still
+ * believing the view was "everything", so the next press moved to "wave only"
+ * and looked like it had done nothing, because the curve it was taking away was
+ * already gone.
+ *
+ * The flags are still what the chart reads, since its components subscribe to
+ * them individually. Nothing sets them except `setGraphContents`, so they cannot
+ * drift apart.
  */
-export const cycleGraphContents = () => {
-  if (!isSolo && !isWaveHidden && !isEqQuiet) {
-    setLiveOutputSolo(true);
-    announceGraphMode('Wave only');
-    return;
-  }
+export type TGraphContents = 'everything' | 'wave' | 'curves' | 'layers';
+
+const CONTENTS_ORDER: TGraphContents[] = [
+  'everything',
+  'wave',
+  'curves',
+  'layers',
+];
+
+const CONTENTS_LABEL: Record<TGraphContents, string> = {
+  everything: 'Everything',
+  wave: 'Wave only',
+  curves: 'Curves only',
+  layers: 'Layers only',
+};
+
+export const getGraphContents = (): TGraphContents => {
   if (isSolo) {
-    setLiveOutputSolo(false);
-    setWaveHidden(true);
-    announceGraphMode('Curves only');
-    return;
+    return 'wave';
   }
   if (isWaveHidden) {
-    setWaveHidden(false);
-    setEqQuiet(true);
-    announceGraphMode('Layers only');
-    return;
+    return 'curves';
   }
-  setEqQuiet(false);
-  announceGraphMode('Everything');
+  return isEqQuiet ? 'layers' : 'everything';
+};
+
+/**
+ * Move the plot to a state, and say so.
+ *
+ * The EQ curve's own hidden flag is set from here as well, because the two
+ * questions turned out to be one: "show me no curves" and "hide the EQ curve"
+ * are the same request arriving from two controls. Somebody who takes the bands'
+ * line away is not asking to read five layer curves against nothing — that line
+ * is what the others are read against — so hiding it takes the plot to the wave,
+ * and showing it again brings everything back.
+ */
+export const setGraphContents = (view: TGraphContents) => {
+  setLiveOutputSolo(view === 'wave');
+  setWaveHidden(view === 'curves');
+  setEqQuiet(view === 'layers');
+  setCurveHidden('eq', view === 'wave');
+  announceGraphMode(CONTENTS_LABEL[view]);
+};
+
+export const cycleGraphContents = () => {
+  const at = CONTENTS_ORDER.indexOf(getGraphContents());
+  setGraphContents(CONTENTS_ORDER[(at + 1) % CONTENTS_ORDER.length]);
 };
 
 /**
@@ -646,8 +687,22 @@ function setCurveHidden(curve: TGraphCurve, next: boolean) {
   curveListeners.forEach((listener) => listener());
 }
 
-export const toggleGraphCurve = (curve: TGraphCurve) =>
+/**
+ * The legend chips. Every curve but one is simply on or off.
+ *
+ * The EQ curve goes through the view instead, because taking the bands' line
+ * off the plot is the same request as "no curves" — see `setGraphContents`. Handled
+ * here rather than in the chip so both the chip and Ctrl+W get the same answer;
+ * a rule about what hiding a curve means belongs with the curves, not with one
+ * of the two controls that can ask for it.
+ */
+export const toggleGraphCurve = (curve: TGraphCurve) => {
+  if (curve === 'eq') {
+    setGraphContents(hiddenCurves.includes('eq') ? 'everything' : 'wave');
+    return;
+  }
   setCurveHidden(curve, !hiddenCurves.includes(curve));
+};
 
 export const useHiddenCurves = () =>
   useSyncExternalStore(
@@ -1020,6 +1075,50 @@ export const getGraphGridHidden = () => gridSetting.get();
 
 export const useGraphGridHidden = () =>
   useSyncExternalStore(gridSetting.subscribe, gridSetting.get, () => false);
+
+/**
+ * Whether the shaded columns behind the Smart EQ regions are drawn.
+ *
+ * They are the loudest thing on the plot that is not a curve — nine tinted
+ * blocks the full height of the drawing, brightening as each range is heard —
+ * and while a measurement is running that is exactly what they are for. Over a
+ * video, or on a graph somebody is using as a visualiser, they are nine grey
+ * rectangles across the picture.
+ *
+ * A menu switch and NOT part of the Ctrl+W cycle, deliberately. That cycle is
+ * four states of what the plot is *about*, walked with one key, and a fifth stop
+ * for a background wash would make it longer for everybody to reach the states
+ * they actually use. Hidden here means hidden: it does not come back when the
+ * cycle moves, which is the whole point of it being a separate switch.
+ *
+ * The progress bars along the foot are not covered by this. They are two pixels
+ * of the plot's height and they are the part that answers "is it still working",
+ * so taking the wash away and leaving them is a clearer measurement rather than
+ * a hidden one — and somebody who has switched the columns off is usually
+ * watching something else and still wants to know when the correction lands.
+ *
+ * Per view mode, like the grid, and for the same reason: the arrangement wanted
+ * over a video is not the arrangement wanted while editing bands.
+ */
+const coverageSetting = createPerViewSetting(
+  VIEW_KEYS.coverage,
+  false,
+  parseFlag,
+  serializeFlag,
+);
+
+export const toggleGraphCoverage = () => {
+  coverageSetting.set(!coverageSetting.get());
+};
+
+export const getGraphCoverageHidden = () => coverageSetting.get();
+
+export const useGraphCoverageHidden = () =>
+  useSyncExternalStore(
+    coverageSetting.subscribe,
+    coverageSetting.get,
+    () => false,
+  );
 
 /**
  * Whether the plot fills the card or keeps its share of it.

@@ -34,6 +34,7 @@ import {
   euphoriaOutlineColour,
   euphoriaTraceColour,
   getWaveTransform,
+  isEuphoriaFigureStroke,
   isSelfColouredLook,
   isTraceGradient,
   readEuphoriaHue,
@@ -187,6 +188,28 @@ describe('the stroke cascade, in the order the stylesheet resolved it', () => {
   it('leaves a self-coloured look its own paint when it wants no border', () => {
     const ramp = resolveTracePaint('rainbow', [], '#54ff8a', PLOT);
     expect(resolveFigureStroke(ramp, false, false, true, ON)).toBe(ramp);
+  });
+});
+
+describe('whether the stroke is euphoria’s or the look’s own', () => {
+  // Which decides where it is drawn, and that is the whole of it: the look's
+  // own edge straddles the path the way it always has, and euphoria's is laid
+  // outside the figure so the fill it decorates survives underneath. Answer
+  // this wrong and a border eats half its width out of a spectrum.
+  it('claims both of the cases the sweep reaches', () => {
+    expect(isEuphoriaFigureStroke(false, false, ON)).toBe(true);
+    expect(isEuphoriaFigureStroke(true, true, ON)).toBe(true);
+  });
+
+  it('leaves a self-coloured look that asked for no border alone', () => {
+    expect(isEuphoriaFigureStroke(false, true, ON)).toBe(false);
+  });
+
+  it('claims nothing at all with the mode off', () => {
+    // Including a look with the border switched on: the border is a euphoria
+    // setting, so outside the mode there is no border to place anywhere.
+    expect(isEuphoriaFigureStroke(true, false, OFF)).toBe(false);
+    expect(isEuphoriaFigureStroke(true, true, OFF)).toBe(false);
   });
 });
 

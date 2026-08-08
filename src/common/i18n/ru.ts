@@ -181,7 +181,7 @@ const ru: Partial<Dictionary> = {
   'eq.smart.continuousAria':
     'Продолжать измерять и подстраивать эквалайзер во время музыки',
   'eq.smart.modeAria': 'Выбрать способ измерения',
-  'eq.smart.mode.once.note': 'Одно измерение, с нуля, применяется целиком',
+  'eq.smart.mode.once.note': 'Одно измерение, применяется сразу',
   'eq.smart.mode.detail': 'Детали',
   'eq.smart.mode.detail.note': 'Измеряет постоянно · только пики и провалы',
   'eq.smart.mode.balance': 'Баланс',
@@ -189,7 +189,7 @@ const ru: Partial<Dictionary> = {
     'Измеряет постоянно · выравнивает яркость и теплоту',
   'eq.smart.mode.target': 'Цель',
   'eq.smart.mode.target.note':
-    'Измеряет постоянно · все записи к вашему тембру или встроенной кривой',
+    'Продолжает измерять · каждую запись к одной кривой',
   'eq.layers': 'Также применено',
   'eq.layers.aria': 'Что ещё влияет на этот выход',
   'eq.layers.eq': 'Эквалайзер',

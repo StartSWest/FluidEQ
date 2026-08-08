@@ -47,6 +47,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// `auto-fit` only while the panel is too narrow for the column count to be
+// worth choosing. Above that it is pinned — see the responsive section at the
+// foot of this file for which counts leave a group's last row tidy and which
+// leave holes in it.
 .voicing-grid {
   display: grid;
   flex: 0 0 auto;
@@ -57,14 +61,35 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // A heading inside an auto-fit grid, which needs saying explicitly: without the
 // full-row span it would be handed one column and the cards would flow around
 // it, so the label for a group would sit beside that group rather than above it.
+//
+// Thirteen profiles under two headings is the whole point of the split, so the
+// headings have to be able to carry it. At `rgba($white, 0.45)` they were
+// fainter than the taglines they were meant to be labelling, and with 4px of
+// clearance above they sat closer to the cards of the group before them than to
+// their own. Most of the space now goes above the label, and the rule beside it
+// gives the eye the edge of a section to follow.
 .voicing-cards__group {
-  margin: 4px 0 -2px;
-  color: rgba($white, 0.45);
-  font-size: 0.64rem;
+  display: flex;
+  align-items: center;
+  margin: 14px 0 -2px;
+  gap: 10px;
+  color: $text-muted;
+  font-size: 0.66rem;
   font-weight: 700;
   grid-column: 1 / -1;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+
+  &::after {
+    height: 1px;
+    flex: 1 1 auto;
+    background: linear-gradient(
+      90deg,
+      rgba($secondary-light, 0.24),
+      transparent 72%
+    );
+    content: '';
+  }
 }
 
 // Full cards, not chips: this is the page where you choose a voicing, so the
@@ -139,6 +164,42 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The off switch, not a fourteenth voicing.
+//
+// As a tile it had a row entirely to itself and could not share it: the group
+// headings under it span the full width, so nothing is able to flow up beside
+// it, and on a wide panel that left four empty columns to its right which read
+// as a layout fault rather than as a choice. A bar across the top of the picker
+// says the same thing deliberately. The glyph moves alongside the text rather
+// than above it because a 40px icon stacked over two short lines in a box this
+// wide is mostly air.
+.voicing-card--none {
+  align-items: center;
+  padding: 12px 16px;
+  gap: 2px 14px;
+  grid-column: 1 / -1;
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-rows: auto auto;
+
+  .voicing-card__icon {
+    margin-bottom: 0;
+    grid-area: 1 / 1 / span 2 / auto;
+  }
+
+  // Placed rather than auto-flowed, and pulled towards each other across the
+  // row boundary: the two rows split whatever height the icon does not use, so
+  // left to their defaults the name and the hint drift apart by that much.
+  strong {
+    align-self: end;
+    grid-area: 1 / 2;
+  }
+
+  small {
+    align-self: start;
+    grid-area: 2 / 2;
+  }
+}
+
 // The glyph gets a tile of its own so the card has an anchor rather than a
 // floating stroke drawing.
 .voicing-card__icon {
@@ -162,10 +223,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Everything the chosen voicing is doing: how much of it, which filters that
+// works out to, and what it costs in headroom. One block rather than three
+// loose rows of the panel, so that on a wide panel it can be laid out as
+// columns instead of as a stack — see the responsive section.
+.voicing-result {
+  display: grid;
+  // Does not give ground. The workspace squeezes this panel to the height of
+  // the pane it is in, and the filter list was the one child that could shrink:
+  // it carried `min-height: 0`, so it was made shorter than its own rows, and
+  // grid content is not clipped — the last rows drew straight over the headroom
+  // notice underneath. The panel sits inside a scroller, so overflowing it is
+  // the right answer here; silently absorbing the overflow was not.
+  flex: 0 0 auto;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .voicing-strength {
   @include inset-surface;
   display: grid;
-  flex: 0 0 auto;
   padding: 13px 16px 16px;
   gap: 10px;
 
@@ -266,16 +343,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-variant-numeric: tabular-nums;
 }
 
-// Every filter the voicing actually writes, in plain sight.
 // Every filter this voicing writes, as rows rather than as loose text. Each
 // one is a real APO command, and the point of showing them is that you can
 // check the claim — which needs the numbers in a column you can scan down, not
 // run together with the prose.
+//
+// On a surface of its own rather than straight on the panel: unpainted, it
+// butted onto the strength card above with nothing between the two, and read
+// as that card's overflow instead of as a list.
 .voicing-detail {
+  @include inset-surface;
   display: grid;
-  min-height: 0;
   margin: 0;
-  padding: 0;
+  padding: 7px;
   gap: 3px;
   list-style: none;
 
@@ -336,11 +416,84 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: 0.68rem;
   line-height: 1.45;
 
+  // The character itself, not the `\26A0` escape it used to be written as. A
+  // scripted edit read that escape as an octal one, so what shipped was a
+  // control byte followed by the letters `A0`, printed in amber in front of the
+  // warning. The literal has nothing in it for a shell to interpret.
   &::before {
     color: rgba(#ffb648, 0.9);
-    content: 'A0';
+    content: '⚠';
     font-size: 0.8rem;
     line-height: 1.2;
+  }
+}
+
+// *** Responsive *************************************************************
+//
+// Measured against the workspace panel rather than the window. With both
+// sidebars open the panel is several hundred pixels narrower than the viewport,
+// so a viewport breakpoint fires at the wrong moment — `.workspace-tab-panel`
+// in App.scss names itself `eq-panel` for exactly this.
+
+// A column count, not `auto-fit`, once the panel is wide enough for the choice
+// to matter.
+//
+// How tidily a row ends is decided by whether the column count divides into the
+// group sizes, and the groups are five profiles and eight. Five columns fits the
+// purpose group exactly and leaves the genres as 5+3; three leaves a single
+// empty slot in each. Four — which is what `auto-fit` picks through most of the
+// band between roughly 750px and 940px — is the one count that strands a lone
+// purpose card on a row with three empty columns beside it, which is the
+// arrangement the None card was moved out of and not one to reintroduce here.
+// More than five is worse again, and it is where `auto-fit` was heading: it
+// takes as many columns as will fit, so on a wide panel it handed the grid more
+// columns than either group has cards, and both groups ended in a run of empty
+// ones.
+@container eq-panel (min-width: 700px) {
+  .voicing-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@container eq-panel (min-width: 940px) {
+  .voicing-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+// The strength control beside its readout instead of above it.
+//
+// Stacked, the slider is as wide as the panel, and a 0–100% control drawn that
+// long with `Off` at one end and `Full` at the other reads as a timeline rather
+// than as an amount. In a column of its own it is the size of a control, the
+// filter list gets the width it actually wants, and the two stop being a stack
+// of bars with the panel's width to fill each.
+//
+// 340px is sized off the longest strings the card has to hold rather than off
+// the slider, which would fit in half of it: `Выкл / 50% / Максимум` is the
+// widest of the translated scales, and `Intensidade` beside the percentage is
+// the widest label row.
+@container eq-panel (min-width: 820px) {
+  .voicing-result {
+    align-items: start;
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+
+    .voicing-strength {
+      grid-area: 1 / 1;
+    }
+
+    .voicing-detail {
+      grid-area: 1 / 2;
+    }
+
+    // Under both columns rather than under the slider: it is a note about what
+    // the voicing costs, not about the control that happens to be nearest. Its
+    // row only exists when the notice does, so nothing is left holding a gap
+    // open when there is no headroom to warn about.
+    .voicing-headroom {
+      grid-column: 1 / -1;
+      grid-row: 2;
+    }
   }
 }
 

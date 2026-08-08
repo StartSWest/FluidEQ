@@ -30,8 +30,11 @@ import { setup } from '../utils/userEventUtils';
 
 describe('FrequencyBand', () => {
   const filter = getDefaultFilterWithId();
-  const filterTypeDropdownLabel = `${filter.frequency}-filter-type`;
-  const filterGainNumberLabel = `${filter.frequency}-gain-number`;
+  // The band is a frequency caption, a gain slider and a gain readout, at every
+  // band count. The type dropdown and the frequency/gain/Q number inputs it used
+  // to carry at low counts are gone — they made the strip a different height per
+  // layout, and the Selected band editor below offers all four with more room.
+  const frequencyCaptionLabel = `Edit ${filter.frequency} Hz band`;
   const filterGainRangeLabel = `${filter.frequency}-gain-range`;
   const trashIconLabel = 'Trash Icon';
   const handleSubmit = jest.fn();
@@ -46,7 +49,7 @@ describe('FrequencyBand', () => {
         <FrequencyBand filter={filter} isMinSliderCount={false} />
       </FluidEqProviderWrapper>,
     );
-    expect(screen.getByLabelText(filterTypeDropdownLabel)).toBeInTheDocument();
+    expect(screen.getByLabelText(frequencyCaptionLabel)).toBeInTheDocument();
     expect(screen.getByLabelText(trashIconLabel)).not.toHaveAttribute(
       'aria-disabled',
       'true',
@@ -74,8 +77,6 @@ describe('FrequencyBand', () => {
           })}
       </FluidEqProviderWrapper>,
     );
-    const gainNumberInputs = screen.getAllByLabelText(filterGainNumberLabel);
-    gainNumberInputs.forEach((input) => expect(input).not.toBeDisabled());
     const gainRangeInputs = screen.getAllByLabelText(filterGainRangeLabel);
     gainRangeInputs.forEach((input) => expect(input).not.toBeDisabled());
   });
@@ -92,8 +93,6 @@ describe('FrequencyBand', () => {
         ))}
       </FluidEqProviderWrapper>,
     );
-    const gainNumberInputs = screen.getAllByLabelText(filterGainNumberLabel);
-    gainNumberInputs.forEach((input) => expect(input).toBeDisabled());
     const gainRangeInputs = screen.getAllByLabelText(filterGainRangeLabel);
     gainRangeInputs.forEach((input) => expect(input).toBeDisabled());
   });
@@ -110,6 +109,33 @@ describe('FrequencyBand', () => {
     );
   });
 
+  it('renders the same controls at every density', () => {
+    // The property the uniform band exists for. Density still decides how wide
+    // a column is; it must not decide how many controls are stacked in it,
+    // because the editor is content-sized and a different row count per layout
+    // moved the whole panel — and the graph under it — when the band count
+    // changed.
+    const shapeOf = (density: 'full' | 'compact' | 'dense') => {
+      const { container, unmount } = setup(
+        <FluidEqProviderWrapper value={defaultFluidEqContext}>
+          <FrequencyBand
+            filter={filter}
+            isMinSliderCount={false}
+            density={density}
+          />
+        </FluidEqProviderWrapper>,
+      );
+      const shape = Array.from(container.querySelectorAll('.band > *')).map(
+        (node) => node.className,
+      );
+      unmount();
+      return shape;
+    };
+
+    expect(shapeOf('compact')).toEqual(shapeOf('full'));
+    expect(shapeOf('dense')).toEqual(shapeOf('full'));
+  });
+
   it('keeps the gain slider usable in dense layouts without wide inputs', () => {
     const { container } = setup(
       <FluidEqProviderWrapper value={defaultFluidEqContext}>
@@ -124,12 +150,6 @@ describe('FrequencyBand', () => {
 
     expect(container.querySelector('.bandWrapper--dense')).toBeInTheDocument();
     expect(screen.getByLabelText(filterGainRangeLabel)).toBeInTheDocument();
-    expect(
-      screen.queryByLabelText(filterGainNumberLabel),
-    ).not.toBeInTheDocument();
-    expect(
-      screen.queryByLabelText(filterTypeDropdownLabel),
-    ).not.toBeInTheDocument();
     expect(screen.queryByLabelText(trashIconLabel)).not.toBeInTheDocument();
   });
 });

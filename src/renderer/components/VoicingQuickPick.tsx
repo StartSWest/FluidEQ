@@ -93,7 +93,18 @@ const VoicingQuickPick = () => {
 
   const apply = async (profileId: string) => {
     setIsOpen(false);
-    const intensity = voicing?.intensity ?? 1;
+    // A new voicing arrives at full strength, always.
+    //
+    // Strength used to carry over from whatever was chosen before, which is
+    // defensible and wrong in practice: somebody turns Music down to 20%,
+    // switches to Rock to hear what it does, and hears almost nothing — because
+    // they are listening to a fifth of it. The obvious conclusion is that the
+    // voicing does nothing, and the control that would show otherwise is a
+    // slider they are not looking at on a chip at the other end of the toolbar.
+    //
+    // Picking a profile is asking what it sounds like. Full is the answer to
+    // that question, and turning it down afterwards is one drag away.
+    const intensity = profileId ? 1 : (voicing?.intensity ?? 1);
     setVoicing({ profileId, intensity });
     setRefused(false);
     try {

@@ -32,6 +32,7 @@ import ConfigInspector from './components/ConfigInspector';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
 import './styles/App.scss';
 import MainContent from './MainContent';
+import SmartEqEngine from './SmartEqEngine';
 import SupportDialog from './SupportDialog';
 import SupportPet from './SupportPet';
 import MemoryTraceButton from './components/MemoryTraceButton';
@@ -1049,6 +1050,13 @@ const AppContent = () => {
                 stop the music. It has no engine-disabled state either — a
                 video plays whether or not Equalizer APO is behind it. */}
             {hasOpenedVideo && <VideoBrowser isHidden={!isVideoTab} />}
+            {/* Outside the tab switch for the same class of reason, and more
+                strictly: this one renders nothing at all. It hosts both Smart
+                EQ measurements, which used to live in the EQ panel above and so
+                were torn down mid-capture whenever anybody looked at another
+                tab. Mounted once and never unmounted, a continuous measurement
+                keeps its evidence for as long as the window is open. */}
+            <SmartEqEngine />
           </div>
           {/* One divider, both tabs, always in the same place: the seam between
               whatever is above and the graph. In full screen there is nothing

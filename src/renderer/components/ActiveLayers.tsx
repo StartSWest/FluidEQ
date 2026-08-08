@@ -37,33 +37,8 @@ import {
 import { useSmartEqMode } from '../utils/smartEqMode';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
 import VoicingIcon from '../icons/VoicingIcon';
-import { ColorEnum, SecondaryColorEnum } from '../styles/color';
+import { LAYER_SWATCH } from '../styles/color';
 import '../styles/ActiveLayers.scss';
-
-/**
- * The colour each chip's layer is drawn in on the graph.
- *
- * The row and the plot describe the same chain, and until now nothing said
- * which line was which: four supporting curves in four colours above a row of
- * four chips in none, and the only way to pair them up was to switch a layer
- * off and watch what disappeared.
- *
- * Each is the `ColorEnum` the chart passes for that curve, taken from it rather
- * than written out again, so a swatch cannot come to name a colour that is not
- * on the plot.
- *
- * The EQ is the cyan its curve is drawn in, not the band spectrum that curve is
- * shaded with. A twelve-pixel rainbow reads as decoration rather than as a
- * colour key — and the whole job of these is to be matched against a line at a
- * glance.
- */
-const LAYER_SWATCH: Record<string, string> = {
-  convolution: ColorEnum.COMPLEMENTARY,
-  driver: ColorEnum.DRIVER,
-  eq: SecondaryColorEnum.DEFAULT,
-  voicing: ColorEnum.TRIADIC1,
-  smart: ColorEnum.SMART,
-};
 
 /** How long a strength drag settles before it is written. */
 const STRENGTH_WRITE_DEBOUNCE_MS = 250;

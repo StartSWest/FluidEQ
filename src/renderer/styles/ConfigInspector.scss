@@ -266,13 +266,28 @@
 }
 
 .config-layer {
+  // Overridden inline per pill, from the same map the graph draws its curves
+  // with. The default lives here rather than in the component so an
+  // unrecognised feature still lands on a palette colour instead of putting a
+  // second hard-coded hex into the TSX.
+  --layer-color: #{$secondary-default};
+
   display: inline-flex;
   align-items: center;
   padding: 2px 8px;
-  border: 1px solid rgba($neon-lime, 0.3);
+  border: 1px solid color-mix(in srgb, var(--layer-color) 34%, transparent);
   border-radius: $radius-pill;
-  background: rgba($neon-lime, 0.12);
-  color: $neon-lime;
+  background: color-mix(in srgb, var(--layer-color) 13%, transparent);
+  // Near-white, with the hue left to the swatch and the edge.
+  //
+  // Every pill used to be lime on lime, which was legible and said nothing —
+  // the row told you which layers existed and not which was which. Colouring
+  // the text per layer was the obvious next move and is the wrong one: at
+  // 0.6rem the violet voicing (#8b5cff) sits around 3.4:1 against this
+  // background, which is a word you have to lean in to read. The bar beside it
+  // carries the same colour at full saturation with nothing riding on its
+  // contrast, so the pill can be identified at a glance and still be read.
+  color: $text-primary;
   font-size: 0.6rem;
   font-weight: 700;
   gap: 5px;
@@ -289,7 +304,27 @@
     .config-layer__name {
       text-decoration: line-through;
     }
+
+    // Faded, not removed. Which layer this is stays the same question whether
+    // or not it is in the chain, and a pill that dropped its only identifying
+    // mark when switched off would be hardest to read exactly when somebody is
+    // checking what they just switched off.
+    .config-layer__swatch {
+      opacity: 0.45;
+    }
   }
+}
+
+// The same 10x3 bar the chip row draws, at the same size and in the same
+// colour, deliberately: a pill here and a chip on the EQ page are one layer
+// said twice, and two different swatch shapes would make that something to work
+// out rather than something to see.
+.config-layer__swatch {
+  width: 10px;
+  height: 3px;
+  flex: 0 0 auto;
+  border-radius: 2px;
+  background: var(--layer-color);
 }
 
 .config-layer__state {
@@ -364,6 +399,21 @@
   }
 }
 
+// Held at the far end of the row.
+//
+// The note between the two buttons already pushes it there while everything
+// fits on one line; this keeps it there when the note is short, empty, or has
+// wrapped the row onto a second line — which is exactly when a button that was
+// only positioned by its neighbour would drift back beside Export.
+.config-device__import {
+  margin-inline-start: auto;
+}
+
+// Between the two buttons rather than trailing after both.
+//
+// `min-width: 0` is what lets it shrink past its own text instead of forcing
+// Import onto a line of its own: a long note now takes the room that is left,
+// and the row keeps its shape.
 .config-device__transfer-note {
   min-width: 0;
   flex: 1 1 auto;
@@ -524,6 +574,18 @@
   box-shadow: inset 2px 0 0 $neon-lime;
 }
 
+// And a layer's file gets the edge of the pill that names it.
+//
+// This is the other half of the swatch above: the pills say which layers the
+// output has, the tree says which files it is made of, and until both were
+// drawn in the same colour nothing said that `voicing` and
+// `fluideq-4e9fbe8266bb-voicing.txt` were the same thing. The two never collide
+// — the custom file is not a layer and matches no feature name — so the rules
+// are independent rather than one overriding the other.
+.config-node--layer > .config-node__head {
+  box-shadow: inset 2px 0 0 var(--layer-color);
+}
+
 .config-node--missing .config-node__name {
   color: #ef6a6a;
   font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
@@ -531,12 +593,20 @@
   text-decoration: line-through;
 }
 
+// Indented once, by the body it sits in, and not twice.
+//
+// It carried its own 22px on top of the 22px `.config-node__body` already
+// applies, from before there was a body to sit in. So the config text stood a
+// further indent to the right of everything around it — and of the editor that
+// replaces it, which has no such margin: pressing Edit slid the same text
+// sideways under the cursor, on the one panel whose whole promise is that it
+// shows the file exactly as it is.
 .config-node__lines {
   overflow-x: auto;
   max-height: 220px;
   padding: 6px 8px;
   border-radius: $radius-s;
-  margin: 2px 0 0 22px;
+  margin: 2px 0 0;
   background: rgba(0, 0, 0, 0.28);
   color: $text-muted;
   font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;

@@ -18,8 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { FilterTypeEnum, IFilter } from 'common/constants';
 import {
-  CONTINUOUS_MAX_DB,
   CONTINUOUS_MAX_STEP_DB,
+  SMART_EQ_MAX_BOOST_DB,
+  SMART_EQ_MAX_CUT_DB,
   CONTINUOUS_MEMORY,
   CONTINUOUS_RESET_DB,
   CONTINUOUS_RESET_HOLDS,
@@ -351,17 +352,22 @@ describe('the Smart EQ layer', () => {
       ).toBeCloseTo(9 * CONTINUOUS_STEP_FRACTION, 6);
 
       // And never more than one step's worth, however wild the destination.
+      // Downwards, because the total cap on a boost is smaller than one full
+      // step and would clamp the answer before the step limit could show.
       const wild = bandsAt({ 1000: 0 });
       expect(
         gainAt(
           wild,
-          stepSmartEqGains(wild, solvedAt(wild, { 1000: 40 })),
+          stepSmartEqGains(wild, solvedAt(wild, { 1000: -40 })),
           1000,
         ),
-      ).toBeCloseTo(CONTINUOUS_MAX_STEP_DB, 6);
+      ).toBeCloseTo(-CONTINUOUS_MAX_STEP_DB, 6);
     });
 
-    it('never accumulates past the cap, however long it runs', () => {
+    it('never accumulates past what one measurement may ask for', () => {
+      // The cap IS the per-run limit, so twenty confidently-wrong solves get no
+      // further than one does. Both directions, because the two limits differ:
+      // a boost costs headroom and a cut costs only level.
       let bands = bandsAt({});
       // Far more updates than it takes to cross the range, every one pulling
       // the same way — which is the shape of the failure the cap is there for:
@@ -371,7 +377,15 @@ describe('the Smart EQ layer', () => {
         bands = getSmartEqBands(buildSmartEqSettings(bands, stepped));
       }
 
-      expect(bandAt(bands, 1000)?.gain).toBeCloseTo(CONTINUOUS_MAX_DB, 6);
+      expect(bandAt(bands, 1000)?.gain).toBeCloseTo(SMART_EQ_MAX_BOOST_DB, 6);
+
+      let cut = bandsAt({});
+      for (let pass = 0; pass < 200; pass += 1) {
+        const stepped = stepSmartEqGains(cut, solvedAt(cut, { 1000: -40 }));
+        cut = getSmartEqBands(buildSmartEqSettings(cut, stepped));
+      }
+
+      expect(bandAt(cut, 1000)?.gain).toBeCloseTo(-SMART_EQ_MAX_CUT_DB, 6);
     });
 
     it('averages the destination over windows, so one album cannot move it', () => {

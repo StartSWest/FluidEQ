@@ -51,6 +51,8 @@ interface IGraphViewMenuProps {
   onCycleContents: () => void;
   isGridHidden: boolean;
   onToggleGrid: () => void;
+  isCoverageHidden: boolean;
+  onToggleCoverage: () => void;
   isStretched: boolean;
   onToggleStretch: () => void;
   waveOrientation: TWaveOrientation;
@@ -117,6 +119,8 @@ const GraphViewMenu = ({
   onCycleContents,
   isGridHidden,
   onToggleGrid,
+  isCoverageHidden,
+  onToggleCoverage,
   isStretched,
   onToggleStretch,
   waveOrientation,
@@ -313,6 +317,33 @@ const GraphViewMenu = ({
             </Icon>
             <span>{isGridHidden ? 'Show grid' : 'Hide grid'}</span>
             <kbd>Ctrl+G</kbd>
+          </button>
+
+          {/* Beside the grid because it is the same kind of switch: furniture
+              belonging to the measurement rather than to the sound.
+
+              No shortcut and no place in the Ctrl+W cycle, deliberately. That
+              cycle is four states of what the plot is *about*, walked with one
+              key; a fifth stop for a background wash would make everybody pass
+              through it to reach the states they actually use. Hidden here stays
+              hidden, whatever the cycle then does.
+
+              The progress bars along the foot are not covered by this — see
+              `useGraphCoverageHidden`. */}
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={isCoverageHidden}
+            onClick={choose(onToggleCoverage)}
+          >
+            <Icon>
+              <path d="M2.5 3.5h3v9h-3zM6.5 3.5h3v9h-3zM10.5 3.5h3v9h-3z" />
+            </Icon>
+            <span>
+              {isCoverageHidden
+                ? 'Show listening bands'
+                : 'Hide listening bands'}
+            </span>
           </button>
 
           <button

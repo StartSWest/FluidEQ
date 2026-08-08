@@ -524,6 +524,33 @@ const WaveformVisualizer = () => {
     const mirrorPath = shape.mirror ? bake(shape.mirror) : undefined;
     const figurePath = shape.fill ? bake(shape.fill) : undefined;
 
+    // The halo, and only in euphoria. The line where there is one, the filled
+    // body where there is not, so every style is lit rather than only the
+    // stroked ones.
+    //
+    // UNDER the figure rather than over it, which is the whole of this
+    // paragraph. A canvas stroke straddles its path, so three and a half of
+    // these seven pixels were landing inside the shape — and on the styles
+    // built from separate pieces there is not that much shape to land in. A bar
+    // is `step * 0.6` wide, which at the analyser's resolution is under three
+    // pixels, so the halo covered the piece entirely and the spectrum fill
+    // underneath stopped being visible at all. Drawn first, the fill paints back
+    // over the inner half and only the outer half is left showing, which is what
+    // a glow round a shape is supposed to look like.
+    //
+    // It stays a plain centred stroke rather than the masked double-weight one
+    // the graph's border uses: this is light coming off the figure and not a
+    // border, so having it read faintly through a translucent fill is right
+    // where a border showing through would not be.
+    const glowPath = linePath ?? figurePath;
+    if (isEuphoricRef.current && glowPath) {
+      setAlpha(context, EUPHORIA_GLOW_ALPHA);
+      context.strokeStyle = traceRamp;
+      context.lineWidth = EUPHORIA_GLOW_WIDTH;
+      context.lineCap = 'round';
+      context.stroke(glowPath);
+    }
+
     if (figurePath) {
       let ramp: CanvasGradient = traceRamp;
       if (chosen.fill === 'body') {
@@ -542,18 +569,6 @@ const WaveformVisualizer = () => {
       setAlpha(context, chosen.fillAlpha);
       context.fillStyle = ramp;
       context.fill(figurePath);
-    }
-
-    // The halo, and only in euphoria. The line where there is one, the filled
-    // body where there is not, so every style is lit rather than only the
-    // stroked ones.
-    const glowPath = linePath ?? figurePath;
-    if (isEuphoricRef.current && glowPath) {
-      setAlpha(context, EUPHORIA_GLOW_ALPHA);
-      context.strokeStyle = traceRamp;
-      context.lineWidth = EUPHORIA_GLOW_WIDTH;
-      context.lineCap = 'round';
-      context.stroke(glowPath);
     }
 
     // Which light the trace is under. Clipping outranks paused, exactly as the

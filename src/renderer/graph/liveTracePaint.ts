@@ -194,6 +194,26 @@ export const resolveFigureStroke = (
 };
 
 /**
+ * Whether the stroke the resolver just handed back is euphoria's rather than
+ * the look's own.
+ *
+ * The two euphoria branches of `resolveFigureStroke` above, asked as a question
+ * — because where a stroke is *placed* depends on whose it is. A look's own edge
+ * is part of the drawing and belongs centred on the path, the way it has always
+ * been. Euphoria's is decoration laid over somebody else's picture, and centred
+ * it eats half its width out of the fill it is decorating: at the border's
+ * eight-pixel ceiling that is four pixels into a bar about six wide, so a
+ * spectrum or a level ramp is simply gone and the figure reads as one travelling
+ * hue. The caller draws this one outside the figure instead; see the two
+ * branches at the drawing end for how.
+ */
+export const isEuphoriaFigureStroke = (
+  hasBorder: boolean,
+  isSelfColoured: boolean,
+  euphoria: IEuphoriaPaint,
+): boolean => euphoria.isOn && (!isSelfColoured || hasBorder);
+
+/**
  * How much heavier the trace is drawn when it is the only thing on the grid.
  *
  * A multiplier rather than a width, because the weight it scales is the user's
@@ -227,6 +247,13 @@ export const resolvePresentedStrokeWidth = (
  *
  * The border replaces the look's own weight rather than adding to it, which is
  * what the `stroke-width` in the euphoria rule did.
+ *
+ * What it means at the drawing end is "how much border there is", not "how wide
+ * the pen is set": the border is laid outside the figure now rather than
+ * straddling its edge, so the canvas asks for twice this and masks the inner
+ * half away, or lays a casing this much proud of a line on each side. Either
+ * way this many pixels of border end up visible, which is the number a person
+ * moving the slider is choosing.
  */
 export const resolveFigureStrokeWidth = (
   strokeWidth: number,

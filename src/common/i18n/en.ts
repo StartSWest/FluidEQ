@@ -214,7 +214,7 @@ const en = {
   'eq.smart.continuousAria':
     'Keep Smart EQ measuring and adjusting while music plays',
   'eq.smart.modeAria': 'Choose how Smart EQ measures',
-  'eq.smart.mode.once.note': 'One measurement, from flat, applied at once',
+  'eq.smart.mode.once.note': 'One measurement, applied at once',
   'eq.smart.mode.detail': 'Detail',
   'eq.smart.mode.detail.note': 'Keeps measuring · peaks and dips only',
   'eq.smart.mode.balance': 'Balance',
@@ -222,7 +222,7 @@ const en = {
     'Keeps measuring · also evens out bright and warm',
   'eq.smart.mode.target': 'Target',
   'eq.smart.mode.target.note':
-    'Keeps measuring · every record to your voicing, or a built-in curve',
+    'Keeps measuring · every record to the same curve',
   'eq.layers': 'Also applied',
   'eq.layers.aria': 'Also shaping this output',
   'eq.layers.eq': 'EQ',

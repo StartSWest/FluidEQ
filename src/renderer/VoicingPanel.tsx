@@ -100,7 +100,9 @@ const VoicingPanel = () => {
           type="button"
           role="radio"
           aria-checked={activeId === ''}
-          className={`voicing-card${activeId === '' ? ' is-active' : ''}`}
+          className={`voicing-card voicing-card--none${
+            activeId === '' ? ' is-active' : ''
+          }`}
           disabled={isBlockingError || !isEnabled}
           onClick={() => apply('', intensity)}
         >
@@ -130,7 +132,10 @@ const VoicingPanel = () => {
                 activeId === profile.id ? ' is-active' : ''
               }`}
               disabled={isBlockingError || !isEnabled}
-              onClick={() => apply(profile.id, intensity)}
+              // Full strength, not whatever the last profile was left at — see
+              // the same rule in VoicingQuickPick for why. Choosing a profile is
+              // asking what it sounds like.
+              onClick={() => apply(profile.id, 1)}
             >
               <span className="voicing-card__icon">
                 <VoicingIcon profileId={profile.id} />
@@ -143,7 +148,11 @@ const VoicingPanel = () => {
       </div>
 
       {activeProfile && (
-        <>
+        // Wrapped rather than left as three siblings of the panel: strength,
+        // the filters and the headroom note are one readout, and on a wide
+        // panel the stylesheet lays them out as columns, which needs a box to
+        // do it in.
+        <div className="voicing-result">
           <div className="voicing-strength">
             <label htmlFor="voicing-intensity">
               {t('voicing.strength')}
@@ -203,7 +212,7 @@ const VoicingPanel = () => {
               {t('voicing.headroom', { peak: peakBoost })}
             </p>
           )}
-        </>
+        </div>
       )}
     </section>
   );

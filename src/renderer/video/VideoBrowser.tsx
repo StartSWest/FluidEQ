@@ -34,6 +34,7 @@ import {
 } from 'common/videoSites';
 import {
   TPlaybackMarks,
+  buildResumeSeekScript,
   parsePlaybackMarks,
   rememberPlayback,
   resumePositionFor,
@@ -66,10 +67,15 @@ interface IWebview extends HTMLElement {
   getURL(): string;
   loadURL(url: string): Promise<void>;
   /**
-   * The second argument is what makes this useful: it tells Chromium to treat
-   * the call as though the user had done it. Without it `requestFullscreen`
-   * refuses — it is gesture-gated, and rightly so — and the player would
-   * silently stay windowed.
+   * The second argument tells Chromium to treat the call as though the user had
+   * done it, which is what a gesture-gated API like `requestFullscreen`
+   * requires.
+   *
+   * Nothing here passes it, and that is a decision rather than an oversight: a
+   * granted gesture is also a user activation on the guest, and the tag's
+   * autoplay policy reads exactly that to decide whether the page may start
+   * playing on its own. Anything that needs the flag later has to be sure it is
+   * not also handing the page permission to make noise.
    */
   executeJavaScript(code: string, userGesture?: boolean): Promise<unknown>;
   /** Returns a key the stylesheet can be removed by. */
@@ -355,56 +361,6 @@ const READ_POSITION = `(() => {
 })()`;
 
 /**
- * Pick the video back up where it was left.
- *
- * Waiting rather than assuming, because there is nothing to seek when this
- * runs: the page has only just been asked to load and builds its player from
- * script, which on a slow morning is several seconds after `dom-ready`. The
- * poll is bounded — twenty seconds and then it gives up, so a page that never
- * grows a player does not leave a timer running behind it for the rest of the
- * session.
- *
- * The seek waits again, on the media's own terms: `currentTime` before metadata
- * has arrived is discarded silently, which is the difference between resuming
- * and quietly starting from the beginning.
- */
-const resumePlaybackScript = (position: number) => `(() => {
-  const at = ${position};
-  let tries = 0;
-  const attempt = () => {
-    const media = Array.from(document.querySelectorAll('video, audio'));
-    media.sort(
-      (a, b) => (b.clientWidth * b.clientHeight) - (a.clientWidth * a.clientHeight)
-    );
-    const el = media[0];
-    if (!el) {
-      tries += 1;
-      if (tries < 80) { setTimeout(attempt, 250); }
-      return;
-    }
-    const start = () => {
-      try {
-        // Past the end is not a resume, it is a video that finished.
-        if (at > 0 && (!Number.isFinite(el.duration) || at < el.duration)) {
-          el.currentTime = at;
-        }
-      } catch (e) { /* a server-controlled stream can refuse a seek */ }
-      const played = el.play();
-      if (played && played.catch) {
-        // Chromium can still refuse without a gesture it recognises. The page
-        // is where it was either way, which is most of what was wanted.
-        played.catch(() => {});
-      }
-    };
-    if (el.readyState >= 1) { start(); } else {
-      el.addEventListener('loadedmetadata', start, { once: true });
-    }
-  };
-  attempt();
-  return 'ok';
-})()`;
-
-/**
  * End the page's own fullscreen, and never begin one.
  *
  * `exitFullscreen` rather than the site's button, deliberately: the button is a
@@ -421,6 +377,8 @@ interface IWebviewProps {
   ref?: Ref<IWebview>;
   src: string;
   partition: string;
+  /** A comma-separated features string — see `VIDEO_WEB_PREFERENCES`. */
+  webpreferences?: string;
   className?: string;
 }
 
@@ -432,6 +390,33 @@ interface IWebviewProps {
  * generally available.
  */
 const Webview = 'webview' as unknown as FC<IWebviewProps>;
+
+/**
+ * Nothing in the page may start playing until somebody in it has asked.
+ *
+ * This is the bug that opening the tab used to be: the pane mounts on first
+ * visit, loads the page that was last open, and the site started playing it —
+ * over the top of whatever the machine was already playing. Nothing in FluidEQ
+ * called for that. The page did, because Electron let it: its default is
+ * `no-user-gesture-required`, which is a browser's autoplay rules with the
+ * brakes off, and a watch URL loaded under that policy plays on sight.
+ *
+ * `document-user-activation-required` rather than `user-gesture-required`. The
+ * strict one wants a gesture per play, so the next track in a queue — or a
+ * player picking itself back up after an ad — would need a press of its own,
+ * and a music site would stop between songs. This one is sticky per document:
+ * the first press anywhere in the page lifts it and everything after behaves
+ * like an ordinary browser. A page that has just been loaded and not yet
+ * touched has no activation at all, which is precisely the case in hand.
+ *
+ * Declared on the tag rather than in the main process on purpose. What the main
+ * process imposes at attach is the sandbox — the preload, the partition, what
+ * the guest is allowed to reach — and it leaves the rest of what the tag asked
+ * for alone. Whether the player starts by itself is a decision about this pane,
+ * so it is written where the pane is.
+ */
+const VIDEO_WEB_PREFERENCES =
+  'autoplayPolicy=document-user-activation-required';
 
 const HOME_SITE: IVideoSite = VIDEO_SITES[0];
 
@@ -648,6 +633,14 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
    *
    * Keyed on the page token, so it fires exactly once per document — which is
    * what makes a single ref enough to carry the position across a navigation.
+   *
+   * It moves the playhead and stops there. This used to run with `userGesture`
+   * set, which did two things at once: it let the script's own `play()` through,
+   * and it handed the guest a user activation — the page's own licence to start
+   * playing, under the policy in `VIDEO_WEB_PREFERENCES`. Both halves of that
+   * are sound nobody asked for, so the call is now made as what it is, which is
+   * a script that seeks. Coming back to a site finds the video where it was,
+   * paused, on the frame it was left on.
    */
   useEffect(() => {
     const view = webviewRef.current;
@@ -657,12 +650,8 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     }
     pendingResumeRef.current = 0;
     try {
-      // Counted as a gesture: the site button that started this was one, and
-      // Chromium has no way to see that from here. Without it `play()` is
-      // refused and the page comes back paused at the right place, which is
-      // half the feature.
       view
-        .executeJavaScript(resumePlaybackScript(position), true)
+        .executeJavaScript(buildResumeSeekScript(position))
         .catch(() => undefined);
     } catch {
       // No web contents to ask; the page is still where it was.
@@ -697,7 +686,14 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       return;
     }
     try {
-      view.executeJavaScript(EXIT_PAGE_FULLSCREEN, true).catch(() => undefined);
+      // Asked without a gesture, unlike the call this replaces. Leaving a
+      // fullscreen is not gesture-gated — only entering one is — so the flag
+      // bought nothing here, and it cost something: it grants the guest a user
+      // activation, which is the page's licence to start playing on its own.
+      // This effect runs at `dom-ready` whenever the graph is expanded, so with
+      // the flag on, opening the tab in that state was the autoplay again by
+      // another road.
+      view.executeJavaScript(EXIT_PAGE_FULLSCREEN).catch(() => undefined);
     } catch {
       // The guest went away, and took its fullscreen with it.
     }
@@ -1148,6 +1144,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
           // that has to be right for the tag to attach at all; the main process
           // overwrites it anyway, so the two can never drift apart.
           partition={VIDEO_BROWSER_PARTITION}
+          webpreferences={VIDEO_WEB_PREFERENCES}
         />
         {blockedUrl && (
           <div className="video-browser__blocked" role="alert">

@@ -72,3 +72,34 @@ export const getColor = (index: number) => {
 
 export type Color =
   PrimaryColorEnum | SecondaryColorEnum | ColorEnum | GrayScaleEnum;
+
+/**
+ * The colour each layer is drawn in on the graph, keyed by `TApoLayer`.
+ *
+ * The chip row, the plot and the config panel describe the same chain, and
+ * until now nothing said which line was which: four supporting curves in four
+ * colours above a row of four chips in none, and the only way to pair them up
+ * was to switch a layer off and watch what disappeared.
+ *
+ * Each is the `ColorEnum` the chart passes for that curve, taken from it rather
+ * than written out again, so a swatch cannot come to name a colour that is not
+ * on the plot.
+ *
+ * The EQ is the cyan its curve is drawn in, not the band spectrum that curve is
+ * shaded with. A twelve-pixel rainbow reads as decoration rather than as a
+ * colour key — and the whole job of these is to be matched against a line at a
+ * glance.
+ *
+ * It lives here, beside the enums it is built from, rather than in the chip row
+ * that first needed it. The config panel wants the same mapping so that a pill,
+ * a chip and a curve all agree, and importing it from a component would have
+ * dragged that component's whole dependency graph — and its stylesheet — into a
+ * panel that only wanted five hex values.
+ */
+export const LAYER_SWATCH: Record<string, string> = {
+  convolution: ColorEnum.COMPLEMENTARY,
+  driver: ColorEnum.DRIVER,
+  eq: SecondaryColorEnum.DEFAULT,
+  voicing: ColorEnum.TRIADIC1,
+  smart: ColorEnum.SMART,
+};

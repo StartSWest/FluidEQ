@@ -31,6 +31,7 @@ import useController, {
 } from './ChartController';
 import {
   toggleGraphFullScreen,
+  useGraphCoverageHidden,
   useGraphGridHidden,
   useLiveOutputSolo,
 } from '../utils/graphStyle';
@@ -71,6 +72,9 @@ const CoverageOverlay = ({
 }) => {
   const { balanceProgress } = useLiveAudioFrame();
   const isSolo = useLiveOutputSolo();
+  // The shaded columns only. The bars along the foot are drawn either way — see
+  // `useGraphCoverageHidden` for why the switch stops short of them.
+  const isWashHidden = useGraphCoverageHidden();
   const coverage = balanceProgress?.regions;
 
   // Nothing while the curves are off: somebody in that mode is watching the
@@ -102,14 +106,16 @@ const CoverageOverlay = ({
         const height = Math.max(0, plotHeight - top);
         return (
           <g key={region.label}>
-            <rect
-              className="chart-coverage__column"
-              x={left + 1}
-              y={top}
-              width={width}
-              height={height}
-              opacity={0.06 + region.confidence * 0.14}
-            />
+            {!isWashHidden && (
+              <rect
+                className="chart-coverage__column"
+                x={left + 1}
+                y={top}
+                width={width}
+                height={height}
+                opacity={0.06 + region.confidence * 0.14}
+              />
+            )}
             <rect
               className="chart-coverage__track"
               x={left + 1}

@@ -18,37 +18,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ErrorDescription } from 'common/errors';
 import {
-  FilterTypeEnum,
   IFilter,
-  MAX_FREQUENCY,
   MAX_GAIN,
-  MAX_QUALITY,
-  MIN_FREQUENCY,
   MIN_GAIN,
-  MIN_QUALITY,
   NO_GAIN_FILTER_TYPES,
 } from 'common/constants';
 import IconButton, { IconName } from 'renderer/widgets/IconButton';
 import {
   ForwardedRef,
   forwardRef,
+  useCallback,
   useMemo,
   useState,
-  WheelEvent,
-  useCallback,
-  useEffect,
 } from 'react';
 import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
-import { FILTER_OPTIONS } from '../icons/FilterTypeIcon';
-import Dropdown from '../widgets/Dropdown';
-import {
-  removeEqualizerSlider,
-  setFrequency,
-  setGain,
-  setQuality,
-  setType,
-} from '../utils/equalizerApi';
-import NumberInput from '../widgets/NumberInput';
+import { removeEqualizerSlider, setGain } from '../utils/equalizerApi';
 import { FilterActionEnum, useFluidEqContext } from '../utils/FluidEqContext';
 import Slider from './Slider';
 import '../styles/FrequencyBand.scss';
@@ -87,27 +71,12 @@ const FrequencyBand = forwardRef(
     ref: ForwardedRef<HTMLDivElement>,
   ) => {
     const INTERVAL = 100;
-    const { isBlockingError, setGlobalError, dispatchFilter } =
-      useFluidEqContext();
+    const { setGlobalError, dispatchFilter } = useFluidEqContext();
     const [isLoading, setIsLoading] = useState(false);
     const isRemoveDisabled = useMemo(
       () => isMinSliderCount || isLoading,
       [isLoading, isMinSliderCount],
     );
-    // Local copy of quality/freq value used so that the number input increases smoothly while throttling EQ APO writes
-    const [qualityValue, setQualityValue] = useState<number>(filter.quality);
-    const [frequencyValue, setFrequencyValue] = useState<number>(
-      filter.frequency,
-    );
-
-    useEffect(() => {
-      setQualityValue(filter.quality);
-    }, [filter.quality]);
-
-    useEffect(() => {
-      setFrequencyValue(filter.frequency);
-    }, [filter.frequency]);
-
     // *** Define functions for updating filter values and obtain throttled versions of them  ***
     const normalSetGain = useCallback(
       async (newValue: number) => {
@@ -142,40 +111,6 @@ const FrequencyBand = forwardRef(
       INTERVAL,
     );
 
-    const normalSetQuality = useCallback(
-      async (newValue: number) => {
-        dispatchFilter({
-          type: FilterActionEnum.QUALITY,
-          id: filter.id,
-          newValue,
-        });
-        await setQuality(filter.id, newValue);
-      },
-      [dispatchFilter, filter.id],
-    );
-
-    const throttleSetQuality = useThrottleAndExecuteLatest(
-      normalSetQuality,
-      INTERVAL,
-    );
-
-    const normalSetFrequency = useCallback(
-      async (newValue: number) => {
-        dispatchFilter({
-          type: FilterActionEnum.FREQUENCY,
-          id: filter.id,
-          newValue,
-        });
-        await setFrequency(filter.id, newValue);
-      },
-      [dispatchFilter, filter.id],
-    );
-
-    const throttleSetFrequency = useThrottleAndExecuteLatest(
-      normalSetFrequency,
-      INTERVAL,
-    );
-
     // *** Define handlers for handling changes in gain, frequency, quality and filter type ***
     const handleGainSubmit = useCallback(
       async (newValue: number) => {
@@ -187,37 +122,6 @@ const FrequencyBand = forwardRef(
       },
       [setGlobalError, throttleSetGain],
     );
-
-    const handleFrequencySubmit = async (newValue: number) => {
-      setFrequencyValue(newValue);
-      try {
-        throttleSetFrequency(newValue);
-      } catch (e) {
-        setGlobalError(e as ErrorDescription);
-      }
-    };
-
-    const handleQualitySubmit = async (newValue: number) => {
-      setQualityValue(newValue);
-      try {
-        throttleSetQuality(newValue);
-      } catch (e) {
-        setGlobalError(e as ErrorDescription);
-      }
-    };
-
-    const handleFilterTypeSubmit = async (newValue: string) => {
-      try {
-        await setType(filter.id, newValue);
-        dispatchFilter({
-          type: FilterActionEnum.TYPE,
-          id: filter.id,
-          newValue: newValue as FilterTypeEnum,
-        });
-      } catch (e) {
-        setGlobalError(e as ErrorDescription);
-      }
-    };
 
     const isGainDisabled = useMemo(
       () =>
@@ -240,15 +144,6 @@ const FrequencyBand = forwardRef(
       setIsLoading(false);
     };
 
-    const onWheelFrequency = (e: WheelEvent) => {
-      const ranges = [10000, 5000, 2000, 1000, 500, 200, 100, 50, 20];
-      const range = ranges.find((bound) => bound <= filter.frequency);
-      const offset = range ? range / 10 : 1;
-      return e.deltaY < 0
-        ? offset // scroll up
-        : offset * -1; // scroll down
-    };
-
     // Only the fallback: MainContent.scss sets --range-length per density and
     // per window size, which is what actually drives the track length.
     const sliderHeight = '132px';
@@ -258,7 +153,7 @@ const FrequencyBand = forwardRef(
         ref={ref}
         className={`col bandWrapper bandWrapper--${density}${isSelected ? ' is-selected' : ''}${isHovered ? ' is-hovered' : ''}`}
         data-filter-id={filter.id}
-        title={`${frequencyValue} Hz / ${filter.gain.toFixed(2)} dB / Q ${qualityValue.toFixed(2)}`}
+        title={`${filter.frequency} Hz / ${filter.gain.toFixed(2)} dB / Q ${filter.quality.toFixed(2)}`}
         // Select before the browser starts a slider drag so any interaction
         // with this band's controls updates the selected-band editor.
         onPointerDown={(event) => {
@@ -276,42 +171,39 @@ const FrequencyBand = forwardRef(
             isDisabled={isRemoveDisabled}
           />
         )}
+        {/* ONE SHAPE AT EVERY BAND COUNT.
+
+            This used to render three different bands. At six it carried a type
+            dropdown, a frequency number input, a gain input inside the slider
+            and a quality input; at fifteen the two number inputs went; at
+            thirty-one the dropdown went too. Four stacked controls against two,
+            so the strip's height changed with the band count — and because the
+            editor is content-sized, choosing 15 bands instead of 10 moved the
+            whole panel and the graph underneath it. Picking a band count is a
+            question about frequency resolution, and answering it should not
+            rearrange the page.
+
+            The narrowest form is the one kept, because it is the only one that
+            fits at thirty-one and because everything the others added is
+            already below: the Selected band editor gives type, frequency, gain
+            and Q for whichever band is chosen, at every count, with more room
+            than a column an eighth of the panel wide ever had. Inline copies of
+            those controls were a second way to do the same thing that existed
+            only when there was space for it. */}
         <div className="col band">
-          {!flatLayout && density !== 'dense' && (
-            <Dropdown
-              name={`${frequencyValue}-filter-type`}
-              value={filter.type}
-              options={FILTER_OPTIONS}
-              isDisabled={isBlockingError}
-              handleChange={handleFilterTypeSubmit}
-            />
-          )}
-          {!flatLayout && density === 'full' ? (
-            <NumberInput
-              value={frequencyValue}
-              min={MIN_FREQUENCY}
-              max={MAX_FREQUENCY}
-              name={`${frequencyValue}-frequency`}
-              isDisabled={isBlockingError}
-              showArrows
-              handleSubmit={handleFrequencySubmit}
-              onWheelValueChange={onWheelFrequency}
-            />
-          ) : (
-            <button
-              type="button"
-              className="band-frequency-caption"
-              aria-label={`Edit ${frequencyValue} Hz band`}
-              onClick={onSelect}
-            >
-              {frequencyValue >= 1000
-                ? `${Number((frequencyValue / 1000).toFixed(1))}k`
-                : frequencyValue}
-            </button>
-          )}
+          <button
+            type="button"
+            className="band-frequency-caption"
+            aria-label={`Edit ${filter.frequency} Hz band`}
+            onClick={onSelect}
+          >
+            {filter.frequency >= 1000
+              ? `${Number((filter.frequency / 1000).toFixed(1))}k`
+              : filter.frequency}
+          </button>
           <div className="col center slider">
             <Slider
-              name={`${frequencyValue}-gain`}
+              name={`${filter.frequency}-gain`}
               min={MIN_GAIN}
               max={MAX_GAIN}
               value={filter.gain}
@@ -319,27 +211,13 @@ const FrequencyBand = forwardRef(
               setValue={handleGainSubmit}
               isDisabled={isGainDisabled}
               colorProgress={colorProgress}
-              showNumberInput={!flatLayout && density === 'full'}
+              showNumberInput={false}
             />
           </div>
-          {(flatLayout || density !== 'full') && (
-            <span className="band-gain-caption">
-              {filter.gain > 0 ? '+' : ''}
-              {filter.gain.toFixed(1)}
-            </span>
-          )}
-          {!flatLayout && density === 'full' && (
-            <NumberInput
-              value={qualityValue}
-              min={MIN_QUALITY}
-              max={MAX_QUALITY}
-              name={`${frequencyValue}-quality`}
-              isDisabled={isBlockingError}
-              floatPrecision={2}
-              showArrows
-              handleSubmit={handleQualitySubmit}
-            />
-          )}
+          <span className="band-gain-caption">
+            {filter.gain > 0 ? '+' : ''}
+            {filter.gain.toFixed(1)}
+          </span>
         </div>
       </div>
     );

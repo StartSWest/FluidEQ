@@ -30,7 +30,7 @@ import { useSyncExternalStore } from 'react';
  * The switch is only half the feature. What makes it a mode rather than a
  * measurement on repeat is the size of the steps it takes — see
  * `CONTINUOUS_STEP_DB` and `stepSmartEqGains` in `common/smartEq`, and the loop
- * in `MainContent` that drives them.
+ * in `SmartEqEngine` that drives them.
  */
 const STORAGE_KEY = 'fluideq.continuousEq';
 

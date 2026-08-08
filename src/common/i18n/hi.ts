@@ -187,14 +187,13 @@ const hi: Partial<Dictionary> = {
   'eq.smart.continuousAria':
     'संगीत चलते समय स्मार्ट EQ मापता और समायोजित करता रहे',
   'eq.smart.modeAria': 'चुनें कि स्मार्ट EQ कैसे मापे',
-  'eq.smart.mode.once.note': 'एक माप, सपाट से, एक बार में लागू',
+  'eq.smart.mode.once.note': 'एक माप, एक ही बार में लागू',
   'eq.smart.mode.detail': 'डिटेल',
   'eq.smart.mode.detail.note': 'मापता रहे · केवल चोटियाँ और गड्ढे',
   'eq.smart.mode.balance': 'संतुलन',
   'eq.smart.mode.balance.note': 'मापता रहे · चमक और गर्माहट भी बराबर करे',
   'eq.smart.mode.target': 'लक्ष्य',
-  'eq.smart.mode.target.note':
-    'मापता रहे · हर रिकॉर्ड आपकी वॉइसिंग पर, या अंतर्निहित कर्व पर',
+  'eq.smart.mode.target.note': 'मापता रहता है · हर रिकॉर्डिंग को एक ही कर्व पर',
   'eq.layers': 'यह भी लागू है',
   'eq.layers.aria': 'इस आउटपुट पर और क्या असर डाल रहा है',
   'eq.layers.eq': 'EQ',

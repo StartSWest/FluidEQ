@@ -23,7 +23,6 @@ import {
   IFilter,
   IFiltersMap,
   ISmartEqSettings,
-  MAX_GAIN,
   NO_GAIN_FILTER_TYPES,
   clampFrequency,
   clampGain,
@@ -339,30 +338,37 @@ export const CONTINUOUS_MAX_STEP_DB = 8;
 export const CONTINUOUS_STEP_FRACTION = 0.5;
 
 /**
- * How far the accumulated correction may go, per band, in dB.
+ * How far this layer may go, per band, in dB — and the rule is that IT DOES NOT
+ * ACCUMULATE. The total is exactly what one measurement is allowed to ask for,
+ * so repeated runs settle rather than stack.
  *
- * The whole range the equaliser has, and it used to be six.
+ * The numbers are `buildBalancedGains`' own per-run boost and cut limits, which
+ * is what makes that sentence true: whatever a single solve may do is also the
+ * furthest twenty solves may get. Every path that writes this layer is held to
+ * them — the one-shot through `buildSmartEqSettings`, the continuous modes
+ * through `stepSmartEqGains`.
  *
- * The argument for six was about running unattended: the question is not how
- * much correction is useful but how wrong it may get while nobody is watching,
- * and six decibels covers any real headphone or room problem. That reasoning
- * assumed the only thing being corrected was a system — something small, steady
- * and physical.
+ * Asymmetric because cutting and boosting are not equally risky. A cut costs
+ * nothing but level; a boost costs headroom, and this layer sits on top of the
+ * user's bands, a voicing and a driver correction, with the preamp reserving
+ * room for the sum of all of them.
  *
- * It is not. What this now measures is the output as it stands, the user's own
- * bands included, and a band dragged to -16 dB is a sixteen-decibel error that a
- * six-decibel correction cannot reach. The mode did the worst possible thing
- * with that: it moved the full six, sat on the clamp, and went on reporting that
- * it was working on it. Capped short of the problem, forever.
+ * It has been six, and twenty, on the way here, and both were right about the
+ * architecture they were written for. Six was for correcting a system — a
+ * headphone, a room, something small and physical. Twenty came when the
+ * measurement briefly treated the whole output as correctable, the user's own
+ * bands included: a slider dragged to -16 dB was then a sixteen-decibel error,
+ * and a six-decibel correction could not reach it, so the mode moved the full
+ * six, sat on the clamp and went on reporting that it was working on it. A
+ * ceiling below the size of the errors it is asked to fix is not a safety limit,
+ * it is a hang.
  *
- * A ceiling below the size of the errors it is asked to fix is not a safety
- * limit, it is a hang. `MAX_GAIN` is the real one — the point past which
- * Equalizer APO cannot go either — and the protection against a runaway sits
- * where it always did: nothing moves until it is `CONTINUOUS_TRIGGER_DB` out,
- * the destination is averaged over many windows before it is believed, and the
- * step size is bounded per write.
+ * The premise of that is gone. The capture subtracts the chain, so Smart EQ
+ * never sees a slider somebody dragged and is never asked to undo one. It
+ * corrects the record, and a record does not need twenty decibels of anything.
  */
-export const CONTINUOUS_MAX_DB = MAX_GAIN;
+export const SMART_EQ_MAX_BOOST_DB = 6;
+export const SMART_EQ_MAX_CUT_DB = 9;
 
 /**
  * How far a band has to be out before it is worth moving, in dB.
@@ -571,13 +577,15 @@ export const stepSmartEqGains = (
   solved: Record<string, number>,
   {
     maxStep = CONTINUOUS_MAX_STEP_DB,
-    maxTotal = CONTINUOUS_MAX_DB,
+    maxBoost = SMART_EQ_MAX_BOOST_DB,
+    maxCut = SMART_EQ_MAX_CUT_DB,
     deadband = CONTINUOUS_TRIGGER_DB,
     settle = CONTINUOUS_SETTLE_DB,
     moving,
   }: {
     maxStep?: number;
-    maxTotal?: number;
+    maxBoost?: number;
+    maxCut?: number;
     deadband?: number;
     settle?: number;
     moving?: ReadonlySet<string>;
@@ -597,10 +605,7 @@ export const stepSmartEqGains = (
       Math.max(CONTINUOUS_STEP_DB, Math.abs(drift) * CONTINUOUS_STEP_FRACTION),
     );
     const move = Math.max(-step, Math.min(step, drift));
-    stepped[band.id] = Math.max(
-      -maxTotal,
-      Math.min(maxTotal, band.gain + move),
-    );
+    stepped[band.id] = Math.max(-maxCut, Math.min(maxBoost, band.gain + move));
   });
   return stepped;
 };
@@ -624,9 +629,18 @@ export const buildSmartEqSettings = (
   const filters: IFiltersMap = {};
   bands.forEach((band) => {
     const solved = gains[band.id];
+    const gain = Number.isFinite(solved) ? solved : band.gain;
     filters[band.id] = {
       ...band,
-      gain: Number.isFinite(solved) ? solved : band.gain,
+      // Bounded here rather than only in the continuous stepper, so every path
+      // that writes this layer is bounded — including the one-shot, which
+      // accumulates onto whatever is already there now that it no longer clears
+      // to flat first. Without this, pressing the button repeatedly could walk a
+      // band past the ceiling one residual at a time.
+      gain: Math.max(
+        -SMART_EQ_MAX_CUT_DB,
+        Math.min(SMART_EQ_MAX_BOOST_DB, gain),
+      ),
     };
   });
 
