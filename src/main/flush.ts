@@ -41,7 +41,7 @@ import {
 import { getVoicingFilters } from '../common/voicing';
 import { getDriverFilters } from '../common/driver';
 import { getSmartEqFilters, sanitizeSmartEqSettings } from '../common/smartEq';
-import { getChainPeakGain } from '../common/response';
+import { getChainLoudnessGain } from '../common/response';
 import {
   validatePresetV1,
   validatePresetV2,
@@ -115,11 +115,15 @@ const resolvePreAmp = (
       ? Object.values(state.convolution.filters || {})
       : [];
 
-  // One combined peak over everything, not a sum of separate peaks. Boosts at
-  // different frequencies never coincide, and adding their peaks would throw
-  // away volume for headroom that is never needed — the same reasoning the
-  // band chain already uses.
-  const filterPeak = getChainPeakGain([
+  // One combined figure over everything, not a sum of separate ones. Boosts at
+  // different frequencies never coincide, and adding them would throw away
+  // volume for headroom that is never needed.
+  //
+  // How much louder the chain makes music rather than how high it goes anywhere
+  // — see `getChainLoudnessGain` for the difference and for what it trades. The
+  // graph reserves from the same call, so the number on screen and the number
+  // in the config cannot disagree.
+  const filterPeak = getChainLoudnessGain([
     ...writtenFilters,
     ...convolutionFilters,
   ]);

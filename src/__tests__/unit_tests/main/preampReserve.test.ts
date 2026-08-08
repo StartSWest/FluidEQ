@@ -17,7 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { stateToString } from '../../../main/flush';
-import { getChainPeakGain } from '../../../common/response';
+import {
+  getChainLoudnessGain,
+  getChainPeakGain,
+} from '../../../common/response';
 import {
   AutoEqFormat,
   FilterTypeEnum,
@@ -185,7 +188,33 @@ describe('preamp headroom', () => {
       .filter((entry) => entry.startsWith('Preamp:'))[0];
     const preamp = Number(/-?[\d.]+/.exec(line)?.[0]);
 
+    // It is counted — that is what this test is for, since the convolution is a
+    // line of its own rather than a feature file and was once left out entirely.
     expect(preamp).toBeLessThan(0);
-    expect(preamp).toBeCloseTo(-5, 0);
+
+    // But it costs far less than its own height. The reserve is how much louder
+    // the chain makes music, not how high it goes anywhere, and one filter at
+    // Q 1 covers a fraction of an octave out of ten — see
+    // `getChainLoudnessGain`. Reserving the full 5 dB for it would drop every
+    // second of every track to protect a moment that needs full-scale content at
+    // exactly 120 Hz.
+    expect(preamp).toBeGreaterThan(-5);
+  });
+
+  it('charges a wide boost far more than a narrow one of the same height', () => {
+    // The property the loudness reserve exists for, and the one that keeps it
+    // honest: it is not simply "reserve less". A shelf that lifts everything
+    // really does make the output louder and is charged for it; a single
+    // resonance of the same height barely moves the total energy.
+    const narrow = getChainLoudnessGain([
+      { type: FilterTypeEnum.PK, frequency: 1000, gain: 8, quality: 4 },
+    ]);
+    const wide = getChainLoudnessGain([
+      { type: FilterTypeEnum.LSC, frequency: 1000, gain: 8, quality: 0.7 },
+    ]);
+
+    expect(narrow).toBeGreaterThan(0);
+    expect(narrow).toBeLessThan(2);
+    expect(wide).toBeGreaterThan(narrow * 2);
   });
 });
