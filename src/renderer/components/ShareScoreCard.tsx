@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -25,6 +26,7 @@ import {
   getShareUrl,
 } from 'common/shareScore';
 import { SUPPORT_CONFIG } from 'common/support';
+import { PRODUCT_NAME } from 'common/branding';
 import { EYE_WAVE_AMPLITUDE, EYE_WAVE_PERIOD } from '../SupportPet';
 import { useTranslation } from '../utils/I18nContext';
 import '../styles/ShareScore.scss';
@@ -389,7 +391,7 @@ const drawCard = (
   } else {
     context.fillStyle = 'rgba(226, 240, 247, 0.55)';
     context.font = `600 26px ${FONT_STACK}`;
-    context.fillText('FLUIDEQ · BEAT GAME', column, 133);
+    context.fillText(`${PRODUCT_NAME.toUpperCase()} · BEAT GAME`, column, 133);
   }
 
   context.fillStyle = '#ffffff';
@@ -408,7 +410,7 @@ const drawCard = (
   context.fillStyle = 'rgba(226, 240, 247, 0.85)';
   context.font = `600 30px ${FONT_STACK}`;
   context.fillText(
-    'FluidEQ — free system-wide EQ for Windows',
+    `${PRODUCT_NAME} — free system-wide EQ for Windows`,
     CARD_WIDTH / 2,
     584,
   );

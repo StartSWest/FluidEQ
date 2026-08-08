@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -168,6 +169,7 @@ import {
 } from '../common/chainBundle';
 import { readApoConfigTree, readApoDeviceChain } from './apoConfigReader';
 import { IApoConfigLayer, IApoConfigTree } from '../common/apoConfig';
+import { APP_ID, PRODUCT_NAME } from '../common/branding';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -2342,7 +2344,7 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
       event,
       channel,
       imported.unsupported > 0
-        ? `Imported ${Object.keys(imported.filters).length} bands from the ${imported.sourceLabel}. ${imported.unsupported} band(s) used a filter type FluidEQ cannot edit and were skipped.`
+        ? `Imported ${Object.keys(imported.filters).length} bands from the ${imported.sourceLabel}. ${imported.unsupported} band(s) used a filter type ${PRODUCT_NAME} cannot edit and were skipped.`
         : `Imported ${Object.keys(imported.filters).length} bands from the ${imported.sourceLabel}.`,
       false,
       true,
@@ -2451,7 +2453,7 @@ ipcMain.on(ChannelEnum.EXPORT_DEVICE_CHAIN, async (event, arg) => {
       title: 'Export this chain',
       defaultPath: chainBundleFileName(assignment.deviceName),
       filters: [
-        { name: 'FluidEQ chain', extensions: [CHAIN_BUNDLE_EXTENSION] },
+        { name: `${PRODUCT_NAME} chain`, extensions: [CHAIN_BUNDLE_EXTENSION] },
       ],
     };
     const target = mainWindow
@@ -2501,7 +2503,7 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
     }
 
     const sourcePath = await showImportDialog('Import a chain', [
-      { name: 'FluidEQ chain', extensions: [CHAIN_BUNDLE_EXTENSION] },
+      { name: `${PRODUCT_NAME} chain`, extensions: [CHAIN_BUNDLE_EXTENSION] },
       { name: 'All files', extensions: ['*'] },
     ]);
     if (!sourcePath) {
@@ -2518,7 +2520,7 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
         event,
         channel,
         ErrorCode.IMPORT_ERROR,
-        'That file is not a FluidEQ chain.',
+        `That file is not a ${PRODUCT_NAME} chain.`,
       );
       return;
     }
@@ -2903,7 +2905,7 @@ ipcMain.on(ChannelEnum.ADD_FILTER, async (event, arg) => {
       event,
       channel,
       ErrorCode.INVALID_PARAMETER,
-      `You already have the most bands FluidEQ can apply (${MAX_NUM_FILTERS}).`,
+      `You already have the most bands ${PRODUCT_NAME} can apply (${MAX_NUM_FILTERS}).`,
       'Remove a band before adding another, or adjust one you already have.',
     );
     return;
@@ -3435,7 +3437,10 @@ const createMainWindow = async () => {
           const source =
             sources.find((candidate) => candidate.id === windowSourceId) ||
             sources.find((candidate) =>
-              candidate.name.toLowerCase().includes('fluideq'),
+              // The window title, which is the product name. Derived from it
+              // rather than spelled out, so a rename does not silently lose
+              // the fallback and start capturing an arbitrary window.
+              candidate.name.toLowerCase().includes(PRODUCT_NAME.toLowerCase()),
             ) ||
             sources[0];
 
@@ -3642,24 +3647,26 @@ app
     // the exe's FileDescription resource, which electron-builder stamps from
     // build.productName at package time, and the taskbar groups by the AUMID
     // set on the next line.
-    app.setName('FluidEQ');
+    app.setName(PRODUCT_NAME);
     if (process.platform === 'win32') {
       // Without this the taskbar attributes the window to Electron itself,
       // which is also why notifications and pinning misbehave in development.
-      app.setAppUserModelId('com.gigabytz.fluideq');
+      // Must stay equal to electron-builder's `appId`, which is why it is
+      // written once, in branding.
+      app.setAppUserModelId(APP_ID);
     }
     // Before any window exists, so the player's session and the rules its web
     // contents run under are in place by the time one can be attached.
     setUpVideoBrowser();
     createMainWindow().catch((error) => {
-      console.error('Failed to create the FluidEQ window', error);
+      console.error(`Failed to create the ${PRODUCT_NAME} window`, error);
     });
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) {
         createMainWindow().catch((error) => {
-          console.error('Failed to create the FluidEQ window', error);
+          console.error(`Failed to create the ${PRODUCT_NAME} window`, error);
         });
       }
     });

@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -27,6 +28,11 @@ import {
 } from 'react';
 import { ErrorCode, ErrorDescription } from 'common/errors';
 import { SUPPORT_CONTRIBUTED_KEY } from 'common/support';
+import {
+  LATEST_RELEASE_URL,
+  PRODUCT_NAME,
+  PRODUCT_VERSION,
+} from 'common/branding';
 import { resetRhythmRun } from './utils/rhythmRun';
 import ConfigInspector from './components/ConfigInspector';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
@@ -70,6 +76,8 @@ import MenuIcon from './icons/MenuIcon';
 import LanguagePicker from './components/LanguagePicker';
 import UpdateNotice from './components/UpdateNotice';
 import WhatsNewDialog from './components/WhatsNewDialog';
+import AboutDialog from './components/AboutDialog';
+import BrandMark from './icons/BrandMark';
 import { I18nProvider, useTranslation } from './utils/I18nContext';
 import {
   LiveAudioProvider,
@@ -95,8 +103,10 @@ const WHATS_NEW_SEEN_KEY = 'fluideq.whatsNewSeen';
  * Shipped build version, substituted by webpack at compile time. Empty in any
  * context that does not go through the bundler (a bare unit-test import), so
  * the badge is rendered conditionally rather than showing "vundefined".
+ *
+ * Defined once in `common/branding`, alongside the name it sits next to.
  */
-const APP_VERSION = process.env.FLUIDEQ_VERSION || '';
+const APP_VERSION = PRODUCT_VERSION;
 
 /** The workspace tab the app was left on. */
 const WORKSPACE_TAB_KEY = 'fluideq.workspaceTab';
@@ -165,6 +175,9 @@ const AppContent = () => {
   // Opened from the actions menu. Nothing is gathered until it is on screen,
   // so an app nobody is reporting a problem with never reads its own logs.
   const [showBugReport, setShowBugReport] = useState(false);
+  // Licence, attribution, trademark and what else is bundled. Opened, never
+  // automatic — but reachable, which is the whole point of it existing.
+  const [showAbout, setShowAbout] = useState(false);
   const [showTroubleshooter, setShowTroubleshooter] = useState(false);
   // Bumping this remounts the prerequisite notice, which is how a dismissed
   // one comes back. Without it the notice was a one-shot: close it once and
@@ -410,7 +423,7 @@ const AppContent = () => {
         'Its setup will open so you can re-select which audio devices to ' +
         'equalise. Windows will ask for administrator permission, and your ' +
         'computer will need to restart afterwards.\n\n' +
-        'Your FluidEQ settings and profiles are not affected.',
+        `Your ${PRODUCT_NAME} settings and profiles are not affected.`,
     );
     if (!confirmed) {
       return;
@@ -423,9 +436,9 @@ const AppContent = () => {
       // `apo-bundle-missing` over "Please restart the application" — no
       // download, and nothing anybody could act on.
       window.alert(
-        'This copy of FluidEQ has no Equalizer APO installer inside it.\n\n' +
+        `This copy of ${PRODUCT_NAME} has no Equalizer APO installer inside it.\n\n` +
           "Opening Equalizer APO's own download page instead. Install it from " +
-          'there and FluidEQ will find it.',
+          `there and ${PRODUCT_NAME} will find it.`,
       );
       return;
     }
@@ -532,14 +545,10 @@ const AppContent = () => {
         onDoubleClick={handleTitlebarDoubleClick}
       >
         <div className="workspace-header__identity">
-          <div className="brand-mark" aria-hidden="true">
-            <svg viewBox="0 0 48 48">
-              <path d="M5 24c6-13 12-13 18 0s12 13 20 0" />
-            </svg>
-          </div>
+          <BrandMark />
           <div>
             <div className="workspace-header__name">
-              FluidEQ
+              {PRODUCT_NAME}
               {/* Inlined at build time from the same package.json
                   electron-builder versions the installer with, so a bug report
                   quoting this is quoting the real build. */}
@@ -642,7 +651,7 @@ const AppContent = () => {
                     <div className="workspace-header__menu-columns">
                       <div className="workspace-header__menu-column">
                         <p className="workspace-header__menu-heading">
-                          FluidEQ
+                          {PRODUCT_NAME}
                         </p>
                         {/* Bringing your own files in belongs at the top: it
                             is the only thing here that changes what you
@@ -694,20 +703,35 @@ const AppContent = () => {
                           <MenuIcon name="info" />
                           Report a problem
                         </button>
+                        {/* Beside the release notes rather than at the bottom
+                            of the column: both answer "what is this copy of
+                            the app", and the licence should not read as a
+                            footnote to reinstalling. */}
+                        <button
+                          type="button"
+                          role="menuitem"
+                          onClick={() => {
+                            setShowAudioToolsMenu(false);
+                            setShowAbout(true);
+                          }}
+                        >
+                          <MenuIcon name="info" />
+                          About {PRODUCT_NAME}…
+                        </button>
                         <button
                           type="button"
                           role="menuitem"
                           onClick={() => {
                             setShowAudioToolsMenu(false);
                             window.open(
-                              'https://github.com/StartSWest/FluidEQ/releases/latest',
+                              LATEST_RELEASE_URL,
                               '_blank',
                               'noopener',
                             );
                           }}
                         >
                           <MenuIcon name="restart" />
-                          Reinstall FluidEQ…
+                          Reinstall {PRODUCT_NAME}…
                         </button>
                       </div>
 
@@ -1091,6 +1115,7 @@ const AppContent = () => {
         {showBugReport && (
           <BugReportDialog onClose={() => setShowBugReport(false)} />
         )}
+        {showAbout && <AboutDialog onClose={() => setShowAbout(false)} />}
         {/* The repairs are the same handlers the menu calls directly. Passed
             in rather than imported there, so there is one definition of what
             "reinstall Equalizer APO" does — including the confirmation and the

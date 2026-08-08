@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ReactNode, useEffect, useState } from 'react';
+import { PRODUCT_NAME } from 'common/branding';
 import '../styles/AudioTroubleshooter.scss';
 
 /**
@@ -127,7 +129,7 @@ export default function AudioTroubleshooter({
         'list.',
       cost:
         'Administrator permission, and your computer needs to restart ' +
-        'afterwards. Your FluidEQ profiles and presets are not touched.',
+        `afterwards. Your ${PRODUCT_NAME} profiles and presets are not touched.`,
       action: { label: 'Reinstall Equalizer APO', run: onReinstallApo },
     },
     {

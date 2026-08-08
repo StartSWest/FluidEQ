@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -24,6 +25,7 @@ import {
   type MutableRefObject,
   type RefObject,
 } from 'react';
+import { PRODUCT_NAME } from 'common/branding';
 import {
   useLiveAudioControl,
   useLiveAudioFrame,
@@ -467,7 +469,7 @@ export default function SupportPet({
   const { pump, isListening, isDancing } = usePetAudio(ref, hasContributed);
 
   const title = hasContributed
-    ? 'Thank you for supporting FluidEQ'
+    ? `Thank you for supporting ${PRODUCT_NAME}`
     : 'Support the work';
 
   return (

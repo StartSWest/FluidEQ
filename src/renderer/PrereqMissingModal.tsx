@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useEffect, useState } from 'react';
+import { BUNDLED_ENGINE, PRODUCT_NAME } from 'common/branding';
 import Button from './widgets/Button';
 import { startEqualizerApoInstall } from './utils/apoInstall';
 import './styles/Modal.scss';
@@ -74,7 +76,7 @@ export default function PrereqMissingModal({
         </p>
         <p className="dependency-credit">
           {startError ??
-            'Equalizer APO is included with FluidEQ — nothing will be downloaded. Its setup will ask which audio devices to equalise, and for a restart afterwards. Separate GPLv2 project by Jonas Thedering, bundled unchanged.'}
+            `Equalizer APO is included with ${PRODUCT_NAME} — nothing will be downloaded. Its setup will ask which audio devices to equalise, and for a restart afterwards. Separate GPLv2 project by ${BUNDLED_ENGINE.author}, bundled unchanged.`}
         </p>
       </div>
       <div className="prereq-notice__actions">

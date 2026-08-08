@@ -41,6 +41,30 @@ official AutoEq results at commit 7ae0f56d53074872b028649617a22bbb4232feb7.
 AutoEq is Copyright (c) 2018-2022 Jaakko Pasanen and distributed under the MIT
 License; its full license text is included in assets/licenses.
 
+## The FluidEQ name and logo
+
+The name **FluidEQ** and the FluidEQ logo — the teal S-curve wave glyph on a
+dark rounded square, as in `assets/icon.svg` and the in-app brand mark — are
+unregistered marks of Ivan Carmenates Garcia.
+
+They are distributed with one additional term, of the kind GPL-3.0 section 7(e)
+expressly allows a licensor to add:
+
+> Rights under trademark law to use the name FluidEQ or the FluidEQ logo are
+> not granted. This term declines to grant those rights. It does not restrict
+> any right the GPL grants, and it does not apply to the source code.
+
+This is an additional term under section 7, not a further restriction on the
+licence. The code stays GPL-3.0-or-later in full. Redistributing FluidEQ
+unchanged under its own name is fine; naming it truthfully as the thing your
+work is based on is fine; a modified version distributed to others should carry
+a name and an icon of its own, which `src/common/branding.ts` makes a one-file
+change. Section 7 also permits removing this term from material you convey.
+The full policy is in `TRADEMARK.md`.
+
+AQUA is the name of the upstream project and is used here only to say
+truthfully where FluidEQ came from. No claim is made to it.
+
 ## Equalizer APO
 
 FluidEQ is an interface to Equalizer APO and distributes its installer. It is a

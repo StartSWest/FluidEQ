@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { PRODUCT_NAME } from './branding';
+
 export enum ErrorCode {
   EQUALIZER_APO_NOT_INSTALLED,
   CONFIG_NOT_FOUND,
@@ -103,8 +105,7 @@ export const errors: Record<ErrorCode, ErrorDescription> = {
   // the problem and this generic text is replaced.
   [ErrorCode.IMPORT_ERROR]: {
     shortError: 'That file could not be imported.',
-    action:
-      'Please check that the file is an Equalizer APO EQ text file, a FluidEQ profile, or a WAV impulse response.',
+    action: `Please check that the file is an Equalizer APO EQ text file, a ${PRODUCT_NAME} profile, or a WAV impulse response.`,
     code: ErrorCode.IMPORT_ERROR,
   },
 };

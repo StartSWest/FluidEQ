@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -38,6 +39,7 @@ import {
   NO_GAIN_FILTER_TYPES,
   AUTOMATIC_PRESET_PREFIX,
 } from '../common/constants';
+import { PRODUCT_NAME } from '../common/branding';
 import { getVoicingFilters } from '../common/voicing';
 import { getDriverFilters } from '../common/driver';
 import { getSmartEqFilters, sanitizeSmartEqSettings } from '../common/smartEq';
@@ -648,7 +650,10 @@ export const fetchSettings = (settingsDir: string) => {
     } as IState;
   } catch (ex) {
     if ((ex as NodeJS.ErrnoException).code !== 'ENOENT') {
-      console.error('Unable to load saved FluidEQ state; using defaults.', ex);
+      console.error(
+        `Unable to load saved ${PRODUCT_NAME} state; using defaults.`,
+        ex,
+      );
     }
     // if unable to fetch the state, use a default one
     return getDefaultState();

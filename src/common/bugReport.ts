@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -29,8 +30,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * not a guarantee.
  */
 
-/** Where reports are meant to go. */
-export const ISSUES_URL = 'https://github.com/StartSWest/FluidEQ/issues';
+import { ISSUES_URL, PRODUCT_NAME } from './branding';
+
+/**
+ * Where reports are meant to go.
+ *
+ * Re-exported rather than moved: the address is part of the project's identity
+ * and belongs in `branding`, but this is the module every caller already
+ * imports it from, and a redirect is cheaper than touching all of them.
+ */
+export { ISSUES_URL };
 
 /**
  * How much log to carry.
@@ -152,7 +161,7 @@ export const buildBugReport = (facts: IBugReportFacts): string => {
     '',
     `| | |`,
     `| --- | --- |`,
-    `| FluidEQ | ${appVersion} |`,
+    `| ${PRODUCT_NAME} | ${appVersion} |`,
     `| Windows | ${platform} ${arch} |`,
     `| Electron | ${electron} |`,
     `| Equalizer APO | ${isEqualizerApoInstalled ? 'installed' : 'NOT installed'} |`,
@@ -220,7 +229,7 @@ export const buildMailtoUrl = (
   report: string,
   version = '',
 ): { url: string; isTruncated: boolean } => {
-  const subject = `FluidEQ bug report${version ? ` (${version})` : ''}`;
+  const subject = `${PRODUCT_NAME} bug report${version ? ` (${version})` : ''}`;
   const isTruncated = report.length > MAX_MAILTO_BODY;
   const body = isTruncated
     ? `${report.slice(0, MAX_MAILTO_BODY)}\n\n[...] The full report is on your clipboard — paste it here.`

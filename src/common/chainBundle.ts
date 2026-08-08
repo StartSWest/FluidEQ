@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { IPresetV2 } from './constants';
 import { validatePresetV2 } from './validator';
+import { PRODUCT_NAME } from './branding';
 
 /**
  * One output's whole chain, as a single file somebody can send to somebody
@@ -53,6 +55,11 @@ export interface IChainBundle {
   custom?: string;
 }
 
+/**
+ * Spelled out rather than built from the product name: it is the extension on
+ * files people have already saved and already sent each other, and a rebrand
+ * that changed it would stop the app opening its own exports.
+ */
 export const CHAIN_BUNDLE_EXTENSION = 'fluideq';
 
 /**
@@ -107,5 +114,5 @@ export const chainBundleFileName = (label: string): string => {
     .replace(/[<>:"/\\|?*]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  return `${cleaned || 'FluidEQ chain'}.${CHAIN_BUNDLE_EXTENSION}`;
+  return `${cleaned || `${PRODUCT_NAME} chain`}.${CHAIN_BUNDLE_EXTENSION}`;
 };

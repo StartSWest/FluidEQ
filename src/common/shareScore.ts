@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -23,6 +24,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * each network will and will not accept in a URL, and how a score becomes a
  * sentence — can be tested without rendering anything.
  */
+
+import { PRODUCT_NAME } from './branding';
 
 export type ShareNetwork = 'x' | 'linkedin' | 'facebook';
 
@@ -84,9 +87,9 @@ export const buildShareText = (
     // Reaching the ceiling is the whole story, so it leads. Thirty-six
     // consecutive perfect taps is the thing worth telling people about; the
     // number is the evidence, not the headline.
-    return `I hit EUPHORIA MODE — ×${Math.max(EUPHORIA_MULTIPLIER, peak)}, ${points} points — on the beat game hidden inside FluidEQ, a free open-source equaliser for Windows. The entire interface goes rainbow with the music.`;
+    return `I hit EUPHORIA MODE — ×${Math.max(EUPHORIA_MULTIPLIER, peak)}, ${points} points — on the beat game hidden inside ${PRODUCT_NAME}, a free open-source equaliser for Windows. The entire interface goes rainbow with the music.`;
   }
-  return `I scored ${points} points at ×${peak} on the beat game hidden inside FluidEQ, a free open-source equaliser for Windows.`;
+  return `I scored ${points} points at ×${peak} on the beat game hidden inside ${PRODUCT_NAME}, a free open-source equaliser for Windows.`;
 };
 
 /**

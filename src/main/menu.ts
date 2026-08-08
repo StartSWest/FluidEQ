@@ -23,6 +23,7 @@ import {
   BrowserWindow,
   MenuItemConstructorOptions,
 } from 'electron';
+import { PRODUCT_NAME, REPOSITORY_URL } from '../common/branding';
 
 interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   selector?: string;
@@ -143,17 +144,17 @@ export default class MenuBuilder {
 
   buildDarwinTemplate(): MenuItemConstructorOptions[] {
     const subMenuAbout: DarwinMenuItemConstructorOptions = {
-      label: 'FluidEQ',
+      label: PRODUCT_NAME,
       submenu: [
         {
-          label: 'About FluidEQ',
+          label: `About ${PRODUCT_NAME}`,
           selector: 'orderFrontStandardAboutPanel:',
         },
         { type: 'separator' },
         { label: 'Services', submenu: [] },
         { type: 'separator' },
         {
-          label: 'Hide FluidEQ',
+          label: `Hide ${PRODUCT_NAME}`,
           accelerator: 'Command+H',
           selector: 'hide:',
         },
@@ -331,7 +332,7 @@ export default class MenuBuilder {
           {
             label: 'Documentation',
             click() {
-              shell.openExternal('https://github.com/StartSWest/FluidEQ');
+              shell.openExternal(REPOSITORY_URL);
             },
           },
         ],

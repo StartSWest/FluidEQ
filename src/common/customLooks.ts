@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -31,6 +32,7 @@ import {
   hasGraphAccent,
   isFilledGraphStyle,
 } from './graphStyles';
+import { PRODUCT_NAME } from './branding';
 
 /**
  * A look the user made, rather than one of the seventy-two that ship.
@@ -591,7 +593,7 @@ export const serializeLookFile = (looks: readonly ICustomLook[]): string =>
   `${JSON.stringify(
     {
       schema: LOOK_FILE_SCHEMA,
-      app: 'FluidEQ',
+      app: PRODUCT_NAME,
       looks,
     } satisfies ILookFile,
     null,

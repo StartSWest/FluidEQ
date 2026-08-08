@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -18,9 +19,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { createRoot } from 'react-dom/client';
 import { RENDERER_READY_EVENT } from 'common/constants';
+import { PRODUCT_NAME } from 'common/branding';
 import App from './App';
 import ErrorBoundary from './ErrorBoundary';
 import { installGlobalErrorHandlers } from './utils/logger';
+
+// The window title, which `index.ejs` also carries so that something sensible
+// is on the taskbar before any JavaScript runs. Set again from branding
+// because the title is not only cosmetic: main matches on it when it has to
+// pick this window out of the list of capturable sources, so a rename that
+// changed one and not the other would break the loopback capture quietly.
+document.title = PRODUCT_NAME;
 
 // Before anything renders, so a throw while building the first tree is caught
 // as well. The boundary below only sees failures inside React's own render;

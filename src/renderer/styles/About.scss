@@ -1,0 +1,199 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// Same level as the release notes: both are opened from the tools menu, only
+// one can be on screen at a time, and neither should ever be behind the
+// support dialog at 1400.
+.about-backdrop {
+  @include animate(fade-in, $motion-fast);
+  position: fixed;
+  z-index: 1450;
+  inset: 0;
+  display: grid;
+  padding: $spacing-m;
+  place-items: center;
+  background: rgba(#03070d, 0.62);
+  backdrop-filter: blur(3px);
+}
+
+.about {
+  @include animate(pop-in, $motion-base, $ease-spring);
+  display: grid;
+  width: min(620px, 100%);
+  max-height: min(720px, calc(100vh - 48px));
+  grid-template-rows: auto minmax(0, 1fr);
+  border: 1px solid rgba($secondary-light, 0.28);
+  border-radius: $radius-l;
+  background: linear-gradient(150deg, rgba(#101d2a, 0.99), rgba(#08121b, 0.99));
+  box-shadow: 0 30px 80px rgba($black, 0.5);
+
+  // Its own surface rather than the shared `menu-surface`, matching the
+  // release notes, so the euphoria treatment has to be spelled out.
+  .is-euphoric & {
+    animation: euphoria-sweep 3.6s linear infinite;
+    border-color: hsl(var(--euphoria-hue, 160deg) 90% 62% / 55%);
+    box-shadow:
+      0 30px 80px rgba($black, 0.5),
+      0 0 36px hsl(var(--euphoria-hue, 160deg) 95% 60% / 22%);
+  }
+}
+
+.is-euphoric .about__header .eyebrow {
+  animation: euphoria-sweep 3.6s linear infinite;
+  color: hsl(var(--euphoria-hue, 160deg) 95% 68%);
+  text-shadow: 0 0 12px hsl(var(--euphoria-hue, 160deg) 95% 60% / 45%);
+}
+
+.about__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: $spacing-m;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba($primary-lighter, 0.12);
+
+  h2 {
+    margin: 3px 0 0;
+    color: rgba($white, 0.95);
+    font-size: 1.1rem;
+  }
+}
+
+.about__close {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: rgba($white, 0.72);
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.4);
+    background: rgba($secondary-default, 0.16);
+    outline: none;
+  }
+}
+
+.about__body {
+  min-height: 0;
+  padding: $spacing-m 20px 20px;
+  overflow-y: auto;
+  color: rgba($primary-lighter, 0.84);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  @include slim-scrollbar;
+
+  p {
+    margin: 8px 0;
+  }
+
+  a {
+    color: $secondary-light;
+    text-decoration: none;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+  }
+
+  code {
+    padding: 1px 5px;
+    color: $secondary-light;
+    border-radius: $radius-xs;
+    background: rgba($secondary-default, 0.1);
+    font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+    font-size: 0.72rem;
+    word-break: break-all;
+  }
+}
+
+// The name and the version, once, at the top — the same pairing as the
+// titlebar, so the panel opens onto something already familiar.
+.about__identity {
+  display: flex;
+  align-items: center;
+  gap: $spacing-s;
+  padding-bottom: $spacing-m;
+  border-bottom: 1px solid rgba($primary-lighter, 0.12);
+}
+
+.about__name {
+  display: flex;
+  align-items: baseline;
+  margin: 0;
+  gap: $spacing-xs;
+  color: rgba($white, 0.95);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.about__version {
+  color: rgba($primary-lighter, 0.62);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.about__tagline {
+  margin: 2px 0 0;
+  color: rgba($primary-lighter, 0.66);
+  font-size: 0.7rem;
+}
+
+.about__section {
+  margin-top: $spacing-m;
+
+  h3 {
+    margin: 0 0 4px;
+    color: rgba($white, 0.9);
+    font-size: 0.7rem;
+    font-weight: 750;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+}
+
+// Copyright lines are read as a block, not as prose.
+.about__copyright {
+  color: rgba($white, 0.88);
+}
+
+.about__aside {
+  color: rgba($primary-lighter, 0.66);
+}
+
+.about__footer {
+  margin-top: $spacing-l;
+  padding-top: $spacing-s;
+  border-top: 1px solid rgba($primary-lighter, 0.12);
+  color: rgba($primary-lighter, 0.62);
+  font-size: 0.72rem;
+}

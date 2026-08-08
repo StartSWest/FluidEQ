@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -31,6 +32,8 @@ import {
 } from 'common/support';
 import { getStreakJoy } from 'common/rhythmGame';
 import { isAdBlockRevealChord } from 'common/videoAdBlock';
+import { PRODUCT_NAME, PRODUCT_VERSION } from 'common/branding';
+import BrandMark from './icons/BrandMark';
 import {
   toggleAdBlockRevealed,
   useIsAdBlockRevealed,
@@ -55,8 +58,10 @@ const IS_DEV = process.env.NODE_ENV !== 'production';
 /**
  * The shipped version, substituted by webpack. Empty outside the bundler — a
  * bare unit-test import — so the badge is conditional rather than "vundefined".
+ *
+ * Defined once in `common/branding`, alongside the name it sits next to.
  */
-const APP_VERSION = process.env.FLUIDEQ_VERSION || '';
+const APP_VERSION = PRODUCT_VERSION;
 
 interface ISupportDialogProps {
   hasContributed: boolean;
@@ -357,13 +362,9 @@ export default function SupportDialog({
               it opens a window with a mascot, a QR code and no indication of
               what it belongs to. */}
           <div className="support-dialog__brand">
-            <div className="brand-mark" aria-hidden="true">
-              <svg viewBox="0 0 48 48">
-                <path d="M5 24c6-13 12-13 18 0s12 13 20 0" />
-              </svg>
-            </div>
+            <BrandMark />
             <span>
-              FluidEQ
+              {PRODUCT_NAME}
               {APP_VERSION && (
                 <span className="support-dialog__version">v{APP_VERSION}</span>
               )}

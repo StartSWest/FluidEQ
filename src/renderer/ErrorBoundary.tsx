@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -17,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { Component, ErrorInfo, ReactNode } from 'react';
+import { PRODUCT_NAME } from 'common/branding';
 import { reportError } from './utils/logger';
 import './styles/ErrorBoundary.scss';
 
@@ -78,10 +80,10 @@ export default class ErrorBoundary extends Component<
       <div className="crash-screen" role="alert">
         <div className="crash-screen__card">
           <p className="eyebrow">SOMETHING BROKE</p>
-          <h1>FluidEQ hit an error while drawing the window</h1>
+          <h1>{PRODUCT_NAME} hit an error while drawing the window</h1>
           <p className="crash-screen__lead">
             Your audio is unaffected — Equalizer APO keeps applying the last
-            settings FluidEQ wrote, whatever happens in here.
+            settings {PRODUCT_NAME} wrote, whatever happens in here.
           </p>
 
           <pre className="crash-screen__detail">
@@ -95,7 +97,7 @@ export default class ErrorBoundary extends Component<
               className="crash-screen__action crash-screen__action--primary"
               onClick={() => window.location.reload()}
             >
-              Reload FluidEQ
+              Reload {PRODUCT_NAME}
             </button>
             <button
               type="button"

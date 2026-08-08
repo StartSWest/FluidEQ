@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -37,8 +38,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * .env had no creature in the titlebar and no way in from the menu at all.
  */
 
+import { PRODUCT_NAME, REPOSITORY_URL } from './branding';
+
 /**
  * Where the "already contributed" flag lives.
+ *
+ * Spelled out rather than built from the product name: it is a key in a user's
+ * existing localStorage, and a rebrand that renamed it would quietly forget who
+ * had already contributed.
  *
  * A hosted checkout opens in the browser and a crypto transfer happens on a
  * chain, so the app genuinely cannot tell whether anyone paid. The flag is
@@ -202,8 +209,8 @@ export interface ISupportEnv {
   FLUIDEQ_DOWNLOAD_URL?: string;
 }
 
-const DEFAULT_CRYPTO_LABEL = 'FluidEQ development';
-const DEFAULT_REPOSITORY_URL = 'https://github.com/StartSWest/FluidEQ';
+const DEFAULT_CRYPTO_LABEL = `${PRODUCT_NAME} development`;
+const DEFAULT_REPOSITORY_URL = REPOSITORY_URL;
 
 const clean = (value: string | undefined) => (value || '').trim();
 

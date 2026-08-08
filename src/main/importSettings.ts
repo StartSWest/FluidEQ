@@ -1,6 +1,7 @@
 /*
 <AQUA: System-wide parametric audio equalizer interface>
 Copyright (C) <2023>  <AQUA Dev Team>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
@@ -41,6 +42,7 @@ import {
 } from '../common/constants';
 import { parseEqText } from '../common/apoText';
 import { validatePresetV1, validatePresetV2 } from '../common/validator';
+import { PRODUCT_NAME } from '../common/branding';
 
 /** Big enough for a long impulse response, small enough to refuse a mistake. */
 const MAX_WAV_BYTES = 128 * 1024 * 1024;
@@ -206,14 +208,14 @@ export const importEqFile = (sourcePath: string): IImportedEq => {
       preset = fromPresetV1(json as IPresetV1);
     }
     if (!preset) {
-      throw new Error('That JSON file is not a FluidEQ profile.');
+      throw new Error(`That JSON file is not a ${PRODUCT_NAME} profile.`);
     }
     return {
       preAmp: clampGain(preset.preAmp),
       filters: preset.filters,
       eqFormat: preset.eqFormat ?? AutoEqFormat.PARAMETRIC,
       graphicEq: preset.graphicEq,
-      sourceLabel: 'FluidEQ profile',
+      sourceLabel: `${PRODUCT_NAME} profile`,
       unsupported: 0,
     };
   }
@@ -221,7 +223,7 @@ export const importEqFile = (sourcePath: string): IImportedEq => {
   const parsed = parseEqText(content);
   if (parsed.isEmpty) {
     throw new Error(
-      'No Equalizer APO filters were found in that file. Expected a ParametricEQ, GraphicEQ or FluidEQ profile.',
+      `No Equalizer APO filters were found in that file. Expected a ParametricEQ, GraphicEQ or ${PRODUCT_NAME} profile.`,
     );
   }
 

@@ -324,7 +324,7 @@ Because that means redistributing APO's binary, every FluidEQ release also
 publishes the matching **`EqualizerAPO-src-<version>.zip`** as a release asset,
 which is how the GPL's source requirement is met. It is deliberately hosted
 alongside the installer rather than linked elsewhere. APO's licence text ships
-in `resources/licenses/EqualizerAPO-LICENSE.txt`, its installer is bundled
+in `resources/assets/licenses/EqualizerAPO-LICENSE.txt`, its installer is bundled
 unmodified, and the version is pinned and checksum-verified in
 [`.erb/scripts/fetch-equalizer-apo.ts`](.erb/scripts/fetch-equalizer-apo.ts).
 If you bump that version, publish the matching source archive with it.
@@ -351,3 +351,20 @@ FluidEQ modifications copyright © 2026 Ivan Carmenates Garcia
 You may use, study, modify and redistribute this software under the GPL. A
 distributed modified version must also make its corresponding source available
 under the same license. This summary is not a substitute for the license text.
+
+### Additional term under GPL-3.0 section 7(e)
+
+As section 7(e) of the GNU General Public License version 3 expressly permits,
+this program is distributed with one additional term:
+
+> Rights under trademark law to use the name **FluidEQ** or the FluidEQ logo
+> are not granted. This term declines to grant those rights. It does not
+> restrict any right the GPL grants, and it does not apply to the source code.
+
+You may redistribute FluidEQ unchanged under its own name, and you may always
+say truthfully that your work is based on it. Give a modified version you
+distribute a name and an icon of your own — the branding is centralised in
+[`src/common/branding.ts`](src/common/branding.ts) so that this is a one-file
+change. Section 7 also lets you remove this term from material you convey. The
+full policy, and what it deliberately does not cover, is in
+[TRADEMARK.md](TRADEMARK.md).
