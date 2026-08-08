@@ -403,6 +403,15 @@ const useLiveOutputSpectrum = () => {
   const [points, setPoints] = useState<IChartPointData[]>([]);
   const [waveform, setWaveform] = useState<number[]>([]);
   const [isClipping, setIsClipping] = useState(false);
+  /**
+   * Each range's live level, published on the frame rather than the progress.
+   *
+   * The progress carries coverage, which is a fact about the whole session and
+   * is recomputed once a second. This is what the music is doing now, and it is
+   * drawn as a mark inside each band so the presence lines can be seen being
+   * crossed. Once a second, that mark lurches.
+   */
+  const [presenceLevels, setPresenceLevels] = useState<number[]>([]);
   const [balanceProgress, setBalanceProgress] = useState<
     IBalanceProgress | undefined
   >(undefined);
@@ -795,6 +804,23 @@ const useLiveOutputSpectrum = () => {
             timestampMs: performance.now(),
           });
           session.lastAcceptedWallMs = performance.now();
+          /*
+           * Published every frame, and separately from the progress, because
+           * they answer questions on completely different timescales.
+           *
+           * `balanceProgress` is the result of `evaluateBalanceCapture`, which
+           * is expensive and runs once a second — right for coverage, which is
+           * a fact about the whole session. These are the live level of each
+           * range, drawn as a mark inside its band so somebody can watch it
+           * cross the presence lines. At one update a second that mark lurches;
+           * what it is showing is the music, and the music does not move once a
+           * second.
+           *
+           * Nine numbers copied out of the accumulator, on the same tick the
+           * trace itself is published, so the mark and the wave under it are
+           * always describing the same instant.
+           */
+          setPresenceLevels(Array.from(session.state.liveDb));
         }
         evaluateSession(session, performance.now());
       };
@@ -1037,8 +1063,8 @@ const useLiveOutputSpectrum = () => {
   // Handed out as one object they were indistinguishable to React, so a
   // consumer reading nothing but `isActive` still re-rendered at frame rate.
   const frame = useMemo(
-    () => ({ balanceProgress, isClipping, points, waveform }),
-    [balanceProgress, isClipping, points, waveform],
+    () => ({ balanceProgress, isClipping, points, presenceLevels, waveform }),
+    [balanceProgress, isClipping, points, presenceLevels, waveform],
   );
 
   const control = useMemo(

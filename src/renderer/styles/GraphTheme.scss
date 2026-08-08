@@ -87,6 +87,17 @@ it under the terms of the GNU General Public License version 3 or later.
   fill: #7dffa8;
 }
 
+// Where the range actually is, which is the one thing the two lines could not
+// say. Thicker than them and drawn over them: this is the measurement, they are
+// only settings. Its colour is the allowance, so the mark, the column and the
+// ramp all say the same thing at once.
+.chart-presence__live {
+  stroke-width: 3;
+  stroke-linecap: round;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
 .chart-presence__grab {
   fill: transparent;
   cursor: ns-resize;

@@ -1298,8 +1298,18 @@ export interface IBalanceProgressRegion {
   label: string;
   lowFrequency: number;
   highFrequency: number;
+  centreFrequency: number;
   confidence: number;
   isCovered: boolean;
+  /**
+   * What this range is doing right now, on the plot's own axis.
+   *
+   * Carried into the picture so the presence rule can be SHOWN rather than
+   * explained. Two lines on their own describe a rule and leave somebody to
+   * imagine where the sound is in relation to them; a mark at this level, drawn
+   * between them, is the same rule with nothing left to imagine.
+   */
+  liveDb: number;
   /** How much evidence this range holds — see `REGION_ACTIVE_WEIGHT` for the
    * one thing the readout does with it. */
   weight: number;
@@ -2018,6 +2028,8 @@ export const buildBalanceProgress = (
       confidence: region.confidence,
       isCovered: region.isCovered,
       weight: region.weight,
+      liveDb: region.liveDb,
+      centreFrequency: region.centreFrequency,
     })),
   };
 };

@@ -40,6 +40,7 @@ import { toggleChromeNow } from '../utils/idleChrome';
 import {
   getPresenceLine,
   hasCustomPresenceRange,
+  presenceAllowance,
   resetPresenceRange,
   setPresenceLine,
   usePresenceLines,
@@ -75,6 +76,45 @@ const PRESENCE_GRAB_PX = 9;
 const PRESENCE_RESET_PAD_PX = 14;
 
 /**
+ * Red at nothing earned, green at everything, blended in between.
+ *
+ * The same two colours the lines are drawn in and in the same order, so the
+ * column, the ramp and the two rules all read as one idea rather than three
+ * decorations. Mixed here rather than in CSS because it varies per range and
+ * per frame, and a class per percentage is not a thing.
+ */
+const PRESENCE_TINT_LOW = [255, 90, 110];
+const PRESENCE_TINT_HIGH = [84, 255, 138];
+
+/**
+ * Keep a drawn y inside the plot.
+ *
+ * The lines themselves are held to the axis range by the store, but the live
+ * level is a real measurement and goes where the music goes — several hundred
+ * decibels down during silence, which puts the mark and its caption far outside
+ * the plot and over whatever else is on the page. Clamping the DRAWN position
+ * only: the allowance is computed from the true level, so a range below the
+ * bottom of the axis still reads as earning nothing rather than as sitting on
+ * the axis minimum.
+ */
+const clampToPlot = (y: number, top: number, bottom: number): number => {
+  if (!Number.isFinite(y)) {
+    return bottom;
+  }
+  return Math.max(top, Math.min(bottom, y));
+};
+
+const presenceTint = (allowance: number): string => {
+  const t = Math.max(0, Math.min(1, allowance));
+  const channel = (index: number) =>
+    Math.round(
+      PRESENCE_TINT_LOW[index] +
+        (PRESENCE_TINT_HIGH[index] - PRESENCE_TINT_LOW[index]) * t,
+    );
+  return `rgb(${channel(0)}, ${channel(1)}, ${channel(2)})`;
+};
+
+/**
  * The Smart EQ coverage overlay, subscribed to the measurement itself.
  *
  * Its own component for the same reason the trace is: the regions arrive with
@@ -100,7 +140,7 @@ const CoverageOverlay = ({
   top: number;
   plotHeight: number;
 }) => {
-  const { balanceProgress } = useLiveAudioFrame();
+  const { balanceProgress, presenceLevels } = useLiveAudioFrame();
   // The region labels arriving with the measurement are identifiers, not words
   // — they key the flash store and are React keys down here — so the caption
   // localises them at the point it says them, through the same lookup the
@@ -163,7 +203,7 @@ const CoverageOverlay = ({
   }
   return (
     <g className="chart-coverage" pointerEvents="none">
-      {coverage.map((region) => {
+      {coverage.map((region, index) => {
         const left = Number(xScale(region.lowFrequency));
         const right = Number(xScale(region.highFrequency));
         const width = Math.max(0, right - left - 2);
@@ -174,10 +214,39 @@ const CoverageOverlay = ({
         const centre = Math.sqrt(region.lowFrequency * region.highFrequency);
         const floorDb = getPresenceLine('floor', region.label, centre);
         const fullDb = getPresenceLine('full', region.label, centre);
-        const floorY = Number(yScale(floorDb));
-        const fullY = Number(yScale(fullDb));
+        const floorY = clampToPlot(Number(yScale(floorDb)), top, plotHeight);
+        const fullY = clampToPlot(Number(yScale(fullDb)), top, plotHeight);
+        /*
+         * The fast copy of this range's level when there is one.
+         *
+         * The progress report is rebuilt once a second, which is right for
+         * coverage — a fact about the whole session — and far too slow for a
+         * mark that is showing the music. At that rate it lurches. The frame
+         * carries the same nine numbers on every tick.
+         */
+        const liveDb = presenceLevels?.[index] ?? region.liveDb;
+        // Allowance from the true level, so a range far below the plot still
+        // reads as zero rather than as whatever the bottom of the axis is.
+        const allowance = presenceAllowance(liveDb, floorDb, fullDb);
+        // Drawn position clamped, because the live level is a real measurement
+        // and goes wherever the music goes — including hundreds of decibels
+        // down during silence, which lands the mark far outside the plot.
+        const liveY = clampToPlot(Number(yScale(liveDb)), top, plotHeight);
         return (
           <g key={region.label}>
+            {/*
+             * TWO CHANNELS, TWO QUESTIONS, AND THEY ARE GENUINELY DIFFERENT.
+             *
+             * Opacity is confidence: how much of this range we have heard over
+             * the session. Hue is allowance: how much boost it has earned RIGHT
+             * NOW, which is what the two lines decide. A range can be thoroughly
+             * known and momentarily silent — that is a bright red column, and it
+             * is exactly the guitar-intro case this exists for.
+             *
+             * Colouring it is what turns the rule from something to understand
+             * into something to look at. The lines alone describe a rule and
+             * leave somebody to imagine where the sound sits against it.
+             */}
             {!isWashHidden && (
               <rect
                 className="chart-coverage__column"
@@ -185,6 +254,7 @@ const CoverageOverlay = ({
                 y={top}
                 width={width}
                 height={height}
+                fill={presenceTint(allowance)}
                 opacity={0.06 + region.confidence * 0.14}
               />
             )}
@@ -241,6 +311,30 @@ const CoverageOverlay = ({
                     width={width}
                     height={Math.abs(floorY - fullY)}
                   />
+                  {/*
+                   * Where this range is, right now.
+                   *
+                   * The one thing the two lines could not say. They describe a
+                   * rule and leave somebody to imagine the sound's position
+                   * against it — which is the whole of why the arrangement was
+                   * confusing. A mark at the live level removes the imagining:
+                   * during a solo passage you watch the bass mark drop under
+                   * its red line and the column go red with it, and when the
+                   * band comes back in you watch it climb the ramp.
+                   *
+                   * Wider than the lines and drawn over them, because it is the
+                   * measurement and they are only settings.
+                   */}
+                  {Number.isFinite(liveY) && (
+                    <line
+                      className="chart-presence__live"
+                      x1={left + 1}
+                      x2={left + 1 + width}
+                      y1={liveY}
+                      y2={liveY}
+                      stroke={presenceTint(allowance)}
+                    />
+                  )}
                   {/*
                    * Put this range back, in this mode, where the two lines can
                    * see it.
@@ -335,7 +429,10 @@ const CoverageOverlay = ({
                         <text
                           className="chart-presence__label"
                           x={left + 1 + width / 2}
-                          y={y - 5}
+                          // Above the line, unless that would put it above the
+                          // plot — a line dragged to the ceiling would otherwise
+                          // caption itself outside the chart entirely.
+                          y={Math.max(top + 10, y - 5)}
                           textAnchor="middle"
                         >
                           {t(
