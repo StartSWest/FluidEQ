@@ -46,13 +46,45 @@ it under the terms of the GNU General Public License version 3 or later.
   pointer-events: none;
 }
 
-// Below the line does not count, said by shading it rather than by a caption.
+// Two lines, and what they mean never changes: red is the floor below which a
+// range is not playing, green is where it has shown enough of itself to be
+// trusted with the whole correction. The mode moves them; it never redefines
+// them. Colour that means one thing in Detail and another in Target would have
+// to be re-read on every switch, which is the opposite of glanceable.
+//
+// Below the floor does not count, said by shading it rather than by a caption.
 // Very faint at rest: it sits over the live trace all the time a measurement is
 // running, and the trace is the thing being read.
-.chart-presence__floor {
+.chart-presence__dead {
   fill: rgba(255, 90, 110, 0.07);
   pointer-events: none;
   transition: fill 160ms ease;
+}
+
+// And the ramp between them, which is the part that would otherwise need
+// explaining. Trust is not a switch: the higher the trace sits in this band,
+// the more boost the range has earned, and a gradient is what that looks like.
+.chart-presence__ramp {
+  fill: url('#chart-presence-ramp');
+  opacity: 0.5;
+  pointer-events: none;
+  transition: opacity 160ms ease;
+}
+
+.chart-presence--floor .chart-presence__line {
+  stroke: #ff5a6e;
+}
+
+.chart-presence--floor .chart-presence__label {
+  fill: #ff8a97;
+}
+
+.chart-presence--full .chart-presence__line {
+  stroke: #54ff8a;
+}
+
+.chart-presence--full .chart-presence__label {
+  fill: #7dffa8;
 }
 
 .chart-presence__grab {
@@ -79,8 +111,12 @@ it under the terms of the GNU General Public License version 3 or later.
     opacity: 1;
   }
 
-  .chart-presence__floor {
+  .chart-presence__dead {
     fill: rgba(255, 90, 110, 0.16);
+  }
+
+  .chart-presence__ramp {
+    opacity: 1;
   }
 
   .chart-presence__label {
@@ -89,7 +125,8 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .chart-presence__floor,
+  .chart-presence__dead,
+  .chart-presence__ramp,
   .chart-presence__label {
     transition: none;
   }

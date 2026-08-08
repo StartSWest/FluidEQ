@@ -38,11 +38,14 @@ import {
 } from '../utils/graphStyle';
 import { toggleChromeNow } from '../utils/idleChrome';
 import {
-  getPresenceThreshold,
-  resetPresenceThreshold,
-  setPresenceThreshold,
-  usePresenceThresholds,
+  getPresenceLine,
+  resetPresenceRange,
+  setPresenceLine,
+  usePresenceLines,
 } from '../utils/presenceThreshold';
+import { balanceRangeName } from '../utils/autoBalance';
+import { useSmartEqMode } from '../utils/smartEqMode';
+import { useTranslation } from '../utils/I18nContext';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
 import LiveTraceCanvas from './LiveTraceCanvas';
@@ -90,15 +93,26 @@ const CoverageOverlay = ({
   plotHeight: number;
 }) => {
   const { balanceProgress } = useLiveAudioFrame();
+  // The region labels arriving with the measurement are identifiers, not words
+  // — they key the flash store and are React keys down here — so the caption
+  // localises them at the point it says them, through the same lookup the
+  // Smart EQ bubble uses.
+  const { t } = useTranslation();
   const isSolo = useLiveOutputSolo();
   // The shaded columns only. The bars along the foot are drawn either way — see
   // `useGraphCoverageHidden` for why the switch stops short of them.
   const isWashHidden = useGraphCoverageHidden();
   const coverage = balanceProgress?.regions;
   // Read so a drag anywhere re-renders every line, since one store holds them
-  // all. The values themselves are taken through `getPresenceThreshold`, which
-  // knows where an unset range's default goes.
-  usePresenceThresholds();
+  // all. The values themselves are taken through `getPresenceLine`, which knows
+  // where an unset edge's default goes and which mode is asking.
+  usePresenceLines();
+  // Each mode keeps its own pair, so a mode change moves every line on screen.
+  // Subscribed here rather than read once, because nothing else in this
+  // component would notice.
+  useSmartEqMode();
+  // `range:edge`, because two lines in the same range are both grabbable and
+  // the pointer has to be told which one it caught.
   const dragging = useRef<string | undefined>(undefined);
 
   /**
@@ -149,11 +163,11 @@ const CoverageOverlay = ({
         // Geometric centre, which is what the range's own `centreFrequency`
         // is — recomputed here rather than carried through the progress report,
         // since only the default placement needs it.
-        const thresholdDb = getPresenceThreshold(
-          region.label,
-          Math.sqrt(region.lowFrequency * region.highFrequency),
-        );
-        const thresholdY = Number(yScale(thresholdDb));
+        const centre = Math.sqrt(region.lowFrequency * region.highFrequency);
+        const floorDb = getPresenceLine('floor', region.label, centre);
+        const fullDb = getPresenceLine('full', region.label, centre);
+        const floorY = Number(yScale(floorDb));
+        const fullY = Number(yScale(fullDb));
         return (
           <g key={region.label}>
             {!isWashHidden && (
@@ -179,77 +193,115 @@ const CoverageOverlay = ({
              * the line itself having to be thick enough to obscure the trace it
              * is being set against.
              */}
-            {!isWashHidden && Number.isFinite(thresholdY) && (
-              <g
-                className={`chart-presence${
-                  dragging.current === region.label ? ' is-dragging' : ''
-                }`}
-              >
-                {/*
-                 * The dead zone, drawn rather than described.
-                 *
-                 * A line on its own says where something changes but not what
-                 * changes, and nobody reads a tooltip before dragging. Shading
-                 * everything underneath says it in the only way that needs no
-                 * words: this part of this range does not count. When the trace
-                 * dips into the shaded area during a solo passage, the reason
-                 * the bass is not being lifted is on screen, in the place the
-                 * lifting would have happened.
-                 */}
-                <rect
-                  className="chart-presence__floor"
-                  x={left + 1}
-                  y={thresholdY}
-                  width={width}
-                  height={Math.max(0, plotHeight - thresholdY)}
-                />
-                <line
-                  className="chart-presence__line"
-                  x1={left + 1}
-                  x2={left + 1 + width}
-                  y1={thresholdY}
-                  y2={thresholdY}
-                />
-                {/* Named and numbered on approach, so a drag is aimed rather
-                    than guessed at. Hidden until then — nine captions standing
-                    permanently over the trace is worse than no caption. */}
-                <text
-                  className="chart-presence__label"
-                  x={left + 1 + width / 2}
-                  y={thresholdY - 5}
-                  textAnchor="middle"
+            {!isWashHidden &&
+              Number.isFinite(floorY) &&
+              Number.isFinite(fullY) && (
+                <g
+                  className={`chart-presence${
+                    dragging.current?.startsWith(`${region.label}:`)
+                      ? ' is-dragging'
+                      : ''
+                  }`}
                 >
-                  {`${region.label} · ignored below ${thresholdDb.toFixed(0)} dB`}
-                </text>
-                <rect
-                  className="chart-presence__grab"
-                  x={left + 1}
-                  y={thresholdY - PRESENCE_GRAB_PX}
-                  width={width}
-                  height={PRESENCE_GRAB_PX * 2}
-                  pointerEvents="all"
-                  onPointerDown={(event) => {
-                    event.stopPropagation();
-                    dragging.current = region.label;
-                    event.currentTarget.setPointerCapture(event.pointerId);
-                  }}
-                  onPointerMove={(event) => {
-                    if (dragging.current !== region.label) {
-                      return;
-                    }
-                    const db = dbAt(event);
-                    if (db !== undefined) {
-                      setPresenceThreshold(region.label, db);
-                    }
-                  }}
-                  onPointerUp={(event) => {
-                    dragging.current = undefined;
-                    event.currentTarget.releasePointerCapture(event.pointerId);
-                  }}
-                  onDoubleClick={() => resetPresenceThreshold(region.label)}
-                />
-              </g>
-            )}
+                  {/*
+                   * The dead zone, drawn rather than described.
+                   *
+                   * A line says where something changes but not what changes,
+                   * and nobody reads a tooltip before dragging. Shading below
+                   * the floor says it without words: this part of this range
+                   * does not count. When the trace dips into it during a solo
+                   * passage, the reason the bass is not being lifted is on
+                   * screen, in the place the lifting would have happened.
+                   */}
+                  <rect
+                    className="chart-presence__dead"
+                    x={left + 1}
+                    y={floorY}
+                    width={width}
+                    height={Math.max(0, plotHeight - floorY)}
+                  />
+                  {/*
+                   * And the ramp between the two, which is the part that would
+                   * otherwise need explaining. Trust is not a switch: the higher
+                   * the trace sits in this band, the more boost the range has
+                   * earned, and a gradient is what that sentence looks like.
+                   */}
+                  <rect
+                    className="chart-presence__ramp"
+                    x={left + 1}
+                    y={Math.min(floorY, fullY)}
+                    width={width}
+                    height={Math.abs(floorY - fullY)}
+                  />
+                  {(['floor', 'full'] as const).map((edge) => {
+                    const db = edge === 'floor' ? floorDb : fullDb;
+                    const y = edge === 'floor' ? floorY : fullY;
+                    const dragKey = `${region.label}:${edge}`;
+                    return (
+                      <g key={edge} className={`chart-presence--${edge}`}>
+                        <line
+                          className="chart-presence__line"
+                          x1={left + 1}
+                          x2={left + 1 + width}
+                          y1={y}
+                          y2={y}
+                        />
+                        {/* Named and numbered on approach, so a drag is aimed
+                            rather than guessed at. Hidden until then — eighteen
+                            captions standing permanently over the trace would be
+                            far worse than none. */}
+                        <text
+                          className="chart-presence__label"
+                          x={left + 1 + width / 2}
+                          y={y - 5}
+                          textAnchor="middle"
+                        >
+                          {t(
+                            edge === 'floor'
+                              ? 'eq.smart.presence.ignoredBelow'
+                              : 'eq.smart.presence.trustedAbove',
+                            {
+                              range: balanceRangeName(region.label, t),
+                              db: db.toFixed(0),
+                            },
+                          )}
+                        </text>
+                        <rect
+                          className="chart-presence__grab"
+                          x={left + 1}
+                          y={y - PRESENCE_GRAB_PX}
+                          width={width}
+                          height={PRESENCE_GRAB_PX * 2}
+                          pointerEvents="all"
+                          onPointerDown={(event) => {
+                            event.stopPropagation();
+                            dragging.current = dragKey;
+                            event.currentTarget.setPointerCapture(
+                              event.pointerId,
+                            );
+                          }}
+                          onPointerMove={(event) => {
+                            if (dragging.current !== dragKey) {
+                              return;
+                            }
+                            const next = dbAt(event);
+                            if (next !== undefined) {
+                              setPresenceLine(edge, region.label, next, centre);
+                            }
+                          }}
+                          onPointerUp={(event) => {
+                            dragging.current = undefined;
+                            event.currentTarget.releasePointerCapture(
+                              event.pointerId,
+                            );
+                          }}
+                          onDoubleClick={() => resetPresenceRange(region.label)}
+                        />
+                      </g>
+                    );
+                  })}
+                </g>
+              )}
             <rect
               className="chart-coverage__track"
               x={left + 1}
@@ -551,6 +603,16 @@ const Chart = ({
               The live trace builds it against its own canvas now, from the same
               `BAND_SPECTRUM_STOPS` — see `resolveTracePaint`, which also keeps
               the reason the two gradients are separate. */}
+          {/*
+            Red at the bottom, green at the top, and the whole point is what is
+            in between: the ramp over which a range earns its correction. Object
+            bounding box units rather than user space, so one definition serves
+            nine bands whose ramps sit at nine different heights and widths.
+          */}
+          <linearGradient id="chart-presence-ramp" x1="0" x2="0" y1="0" y2="1">
+            <stop offset="0%" stopColor="#54ff8a" stopOpacity="0.3" />
+            <stop offset="100%" stopColor="#ff5a6e" stopOpacity="0.3" />
+          </linearGradient>
           <filter
             id="chart-eq-neon-glow"
             x="-30%"
