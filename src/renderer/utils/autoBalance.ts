@@ -360,8 +360,31 @@ export interface IAutoBalanceOptions {
   reference?: IReferenceShape;
 }
 
+/**
+ * The fraction of the measured deviation one pass asks for. It was 0.65.
+ *
+ * That number was chosen when a run cleared the layer to flat and applied its
+ * whole answer at once, where asking for everything really could overshoot with
+ * nothing to pull it back. Neither half of that is true now: the layer stays in
+ * the measurement, so what a run solves is a residual, and a pass that goes too
+ * far is measured as too far and corrected on the next one.
+ *
+ * The conservatism was costing far more than it bought, and the amount is
+ * measurable rather than a matter of taste. At 0.65 a single pass removes about
+ * 2.7 dB of an 8 dB resonance — a third of it, which is a correction nobody can
+ * see on the plot and few would notice by ear. Records that are genuinely dark,
+ * bright or bass-heavy were moved by around a decibel and left there, which is
+ * the difference between a feature that works and one that appears not to.
+ *
+ * A one is not a promise of a full correction, which is the part worth knowing
+ * before reaching for something larger: the ridge term in the solve damps the
+ * answer as well, so one pass at 1.0 removes about half of the same resonance.
+ * The rest arrives over the following passes, which is what a closed loop is
+ * for. Everything downstream still bounds it — `SMART_EQ_MAX_BOOST_DB` and its
+ * cut, the continuous stepper's own limits, and the deadband.
+ */
 const DEFAULTS: Required<IAutoBalanceOptions> = {
-  strength: 0.65,
+  strength: 1,
   maxBoost: 6,
   maxCut: 9,
   smoothingOctaves: smoothingOctavesAt,

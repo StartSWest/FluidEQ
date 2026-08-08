@@ -31,6 +31,18 @@ Everything worth knowing about them is available through commands:
   editing tools for anything containing `$` or a backslash, which means every
   stylesheet and every `.nsh`.
 - **`pnpm add` needs `-w`** at the workspace root.
+- **In dev, the renderer hot-reloads and the main process does not.** Main runs
+  through `ts-node` on `dev-main.cjs` and is restarted by electronmon, which is
+  told what to watch by the `electronmon.patterns` list in `package.json` —
+  everything is excluded and then a few paths are added back. `src/common` is
+  now one of them, and was not: the renderer picked up a change there instantly
+  while main kept running the copy it loaded at startup, so the two processes
+  disagreed about the same module. That fails _quietly and wrongly_ rather than
+  loudly — a new voicing profile came back from `SET_VOICING` as an invalid
+  parameter because main's copy of the profile list was minutes old, and the
+  quick pick reverted with no message. If a change to `src/common` seems not to
+  have taken effect, restart `pnpm dev` before believing anything else; the
+  pattern list only takes effect when electronmon starts.
 - **Jest will not start without a build.** `setupFiles` runs
   `check-build-exists.ts`, which throws unless `dist` holds both bundles. Tests
   pass locally only because a build is always lying around, so any new CI job

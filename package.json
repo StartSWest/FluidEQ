@@ -333,7 +333,9 @@
   "electronmon": {
     "patterns": [
       "!**/**",
-      "src/main/*"
+      "src/main/**",
+      "src/common/**",
+      "!src/common/i18n/**"
     ],
     "logLevel": "quiet"
   }
