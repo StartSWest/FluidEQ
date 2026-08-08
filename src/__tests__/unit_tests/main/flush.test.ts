@@ -220,10 +220,7 @@ describe('flush', () => {
       const returnedString = stateToString(state);
 
       expect(returnedString).toContain('Gain 20 dB');
-      // The gain clamp is what this test is for. The preamp is derived from the
-      // clamped chain rather than from the -30 the state carried, and it is no
-      // longer the band's own height — see `getChainLoudnessGain`.
-      expect(returnedString).toMatch(/Preamp: -\d/);
+      expect(returnedString).toContain('Preamp: -20 dB');
       expect(returnedString).not.toContain('Gain 30 dB');
       expect(returnedString).not.toContain('Preamp: -30 dB');
     });

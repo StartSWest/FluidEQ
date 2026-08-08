@@ -32,7 +32,7 @@ import {
   getSmartEqFilters,
   hasSmartEqLayer,
 } from 'common/smartEq';
-import { getChainLoudnessGain } from 'common/response';
+import { getChainPeakGain } from 'common/response';
 import { fetchPreset, savePreset, stateToString } from 'main/flush';
 import {
   deviceProfilesToFiles,
@@ -185,10 +185,9 @@ describe('the Smart EQ layer and the shared preamp', () => {
 
     expect(preampOf(withoutLayer)).toBe(0);
     expect(preampOf(withLayer)).toBeLessThan(0);
-    // Derived from the real chain, not from a stored number — and from the
-    // same call the graph reserves with, so the two cannot disagree.
+    // Derived from the real chain peak, not from a stored number.
     expect(preampOf(withLayer)).toBeCloseTo(
-      -getChainLoudnessGain(getSmartEqFilters(withLayer.smartEq)),
+      -getChainPeakGain(getSmartEqFilters(withLayer.smartEq)),
       1,
     );
   });

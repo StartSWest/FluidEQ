@@ -71,12 +71,11 @@ describe('device profile configuration', () => {
     );
     expect(root).toContain('# USB Headphones -> Studio');
     expect(root).toContain('Device: {1234-ABCD}');
-    // The preamp is derived from the chain, not read back from the preset:
-    // this profile stored -4 dB and the value written owes it nothing. It is
-    // also not the band's own height any more — the reserve is how much louder
-    // the chain makes music, and one peaking filter is narrow. See
-    // `getChainLoudnessGain`.
-    expect(output).toContain('Preamp: -0.8 dB');
+    // The preamp is derived from the chain, not read back from the preset.
+    // This profile stored -4 dB, but its only band is a +3 dB peak, so the
+    // headroom actually needed is 3 dB — the extra decibel the preset carried
+    // was attenuation nobody could hear a reason for.
+    expect(output).toContain('Preamp: -3 dB');
     expect(output).toContain('Fc 80 Hz Gain 3 dB Q 0.8');
   });
 
@@ -162,7 +161,7 @@ describe('device profile configuration', () => {
     const lines = deviceFile.split(/\r?\n/);
 
     // Last of the generated lines. Only the user's own file comes after it.
-    expect(lines[lines.length - 2]).toBe('Preamp: -0.8 dB');
+    expect(lines[lines.length - 2]).toBe('Preamp: -3 dB');
     expect(lines[lines.length - 1]).toMatch(/^Include: fluideq-.*-custom.txt$/);
     expect(
       [...files.values()].filter((contents) => contents.includes('Preamp:')),

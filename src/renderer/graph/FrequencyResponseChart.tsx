@@ -114,7 +114,7 @@ import GraphViewMenu from './GraphViewMenu';
 import { getVoicingFilters } from '../../common/voicing';
 import { getDriverFilters } from '../../common/driver';
 import { getSmartEqFilters, hasSmartEqLayer } from '../../common/smartEq';
-import { getChainLoudnessGain } from '../../common/response';
+import { getChainPeakGain } from '../../common/response';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
 
@@ -1052,7 +1052,7 @@ const FrequencyResponseChart = () => {
       MIN_GAIN,
       -Math.max(
         0,
-        getChainLoudnessGain([
+        getChainPeakGain([
           ...(convolution &&
           !convolution.fileName &&
           !bypassed.includes('convolution')
