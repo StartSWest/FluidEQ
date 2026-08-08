@@ -406,45 +406,56 @@ describe('the Smart EQ closed loop', () => {
       expect(responseAt(buried, 400)).toBeCloseTo(responseAt(plain, 400), 0);
     });
 
-    it('converges on the same correction whatever it starts from', () => {
-      // The closed loop, and stated as a contraction rather than as equality at
-      // some chosen run count, because that is what it actually is. Smart EQ's
-      // own layer stays in the measurement, so each run solves a residual and
-      // closes part of the remaining gap — part, not all, because of the ridge
-      // term in the solver. Twenty-four runs from a deliberately wrong layer are
-      // still a decibel or so off where a fresh one settles.
+    it('converges on the same correction shape whatever it starts from', () => {
+      // The closed loop, stated as a contraction rather than as equality at some
+      // chosen run count, because that is what it is: Smart EQ's own layer stays
+      // in the measurement, so each run solves a residual and closes part of the
+      // remaining gap — part, not all, because of the ridge term in the solver.
       //
-      // Written out rather than hidden behind a loose tolerance, because it is
-      // the cost of having dropped the clear-to-flat step: one press does not
-      // wash out a badly wrong existing layer, it pulls it most of the way in.
-      // Clear EQ discards one outright, which is why that is where the
+      // IN SHAPE, and that qualifier is not slack in the test. Every correction
+      // is anchored to a weighted average of itself, so it is zero-mean by
+      // construction and therefore says nothing about level. A layer that starts
+      // with an overall offset keeps it: the correction cannot remove what it is
+      // not allowed to express. That is deliberate — it is what stops a
+      // continuous mode walking the volume down over an evening — and it is
+      // harmless, because a uniform offset is level rather than tone, it is
+      // bounded by the caps, and auto normalize absorbs it into the preamp.
+      //
+      // The remaining gap is the cost of having dropped the clear-to-flat step:
+      // one press does not wash out a badly wrong layer, it pulls it most of the
+      // way in. Clear EQ discards one outright, which is why that is where the
       // destructive act lives.
-      const settled = smartEqFiltersOf(runLoop(24, { room }));
-      const startFrom = (runs: number) => {
+      const PROBES = [100, 400, 1000, 6000, 12000];
+      const shapeOf = (filters: IFilter[]) => {
+        const levels = PROBES.map((frequency) =>
+          responseAt(filters, frequency),
+        );
+        const mean =
+          levels.reduce((total, level) => total + level, 0) / levels.length;
+        return levels.map((level) => level - mean);
+      };
+
+      const settled = shapeOf(smartEqFiltersOf(runLoop(24, { room })));
+      const gapAfter = (runs: number) => {
         let layer = layerOfGains({ 400: 9, 1000: -7, 6000: 5 });
         for (let run = 0; run < runs; run += 1) {
           layer = runOnce(layer, { room });
         }
-        return smartEqFiltersOf(layer);
-      };
-      const gapAfter = (runs: number) =>
-        Math.max(
-          ...[100, 400, 1000, 6000, 12000].map((frequency) =>
-            Math.abs(
-              responseAt(startFrom(runs), frequency) -
-                responseAt(settled, frequency),
-            ),
-          ),
+        const shape = shapeOf(smartEqFiltersOf(layer));
+        return Math.max(
+          ...shape.map((level, index) => Math.abs(level - settled[index])),
         );
+      };
 
       const early = gapAfter(3);
       const late = gapAfter(24);
 
-      // Going the right way, decisively — not drifting and not stalling.
-      expect(late).toBeLessThan(early / 2);
-      // And within a decibel and a half by then, on a solver whose ridge term
-      // deliberately trades the last of the accuracy for stability.
-      expect(late).toBeLessThan(1.5);
+      // Going the right way, decisively — not drifting and not stalling. The
+      // exact ratio is not the property and is not worth pinning: what matters
+      // is that a lot of the gap is gone, and that where it ends up is somewhere
+      // nobody could hear.
+      expect(late).toBeLessThan(early * 0.6);
+      expect(late).toBeLessThan(1);
     });
   });
 

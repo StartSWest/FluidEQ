@@ -809,7 +809,56 @@ export const buildBalancedGains = (
     }
   }
 
-  const mean = 0;
+  /*
+   * THE CORRECTION IS ANCHORED TO THE MIDRANGE, so it changes the balance and
+   * not the volume.
+   *
+   * This was `const mean = 0` — the remains of an earlier centring — so nothing
+   * held the correction's overall level at all. Every write was free to sit a
+   * little lower than the last, and over an evening of a continuous mode that
+   * is what happened: most music carries more bass than the target asks for, so
+   * pass after pass took a little more out, no single step looked wrong, and
+   * the sound quietly got smaller. A correction meant to improve the balance
+   * was paying for it in loudness.
+   *
+   * Subtracting the midrange average makes that impossible by construction. It
+   * says exactly the same thing about the SHAPE — every band's position
+   * relative to every other is untouched — and nothing at all about the level,
+   * so no number of passes can accumulate one.
+   *
+   * WEIGHTED TOWARD THE MIDRANGE, ACROSS THE WHOLE SPECTRUM — not an average of
+   * the midrange, which is the version that looks right and is not.
+   *
+   * A flat average over twenty octaves would let a change in the top one count
+   * as much as a change at 1 kHz, and hearing does not work that way: what
+   * anybody means by "the volume" is overwhelmingly what the mids are doing.
+   * So the average has to lean there.
+   *
+   * But taking it *only* from a midrange window is worse, and the tests caught
+   * it immediately: a resonance at 1 kHz sits inside that window, so the anchor
+   * ends up computed from the very fault being corrected, subtracts it from
+   * itself, and the correction comes out as nothing. It would have made the
+   * feature blind in exactly the region it matters most.
+   *
+   * `audibilityWeight` is the shape that gets both: a gentle bell around 2 kHz
+   * with a floor, so a narrow midrange fault contributes only its own small
+   * share of a broad average and is still corrected, while a broad level shift
+   * anywhere is removed. Times confidence, so a band nobody has heard cannot
+   * drag the anchor and take the whole correction with it.
+   */
+  const anchorWeightOf = (entry: (typeof raw)[number]) =>
+    audibilityWeight(entry.filter.frequency) * entry.confidence;
+  const anchorWeight = raw.reduce(
+    (total, entry) => total + anchorWeightOf(entry),
+    0,
+  );
+  const mean =
+    anchorWeight > 0
+      ? raw.reduce(
+          (total, entry) => total + entry.correction * anchorWeightOf(entry),
+          0,
+        ) / anchorWeight
+      : 0;
 
   return Object.fromEntries(
     raw.map((entry) => {
