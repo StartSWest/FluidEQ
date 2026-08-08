@@ -191,15 +191,16 @@ const play = (passes: number, perRecord: number, mode: string): IRun => {
  * fix is, it has to hold those invariants, so it is not simply a subtraction.
  */
 const KNOWN: Record<string, string[]> = {
-  // The level leak is GONE in all four, which is what bounding the layer's
-  // tilt bought: sixty gentle passes in one direction used to accumulate
-  // exactly as one steep one, and the anchor could not see it because it
-  // centres each correction rather than the thing they add up to.
+  // The level leak is GONE in all four — first from bounding the layer's tilt,
+  // then completely once the layer's own level was zeroed, which also ended
+  // most of the path dependence the determinism suite measures.
   //
-  // What remains is the spread, in the three modes that can impose one. It is
-  // close to saturation — twelve decibels against a per-band limit of six — so
-  // the bound is holding the line rather than winning yet.
-  smart: [],
+  // What remains is the spread, in the saturation regime: cycling four records
+  // that disagree walks every mode's spread up against the clamps, and there it
+  // sits. Smart's entry is the marginal one — it lived within a decibel of the
+  // threshold all along and moved twelve hundredths over the line when the
+  // level zeroing landed. Same regime, same defect, now over instead of under.
+  smart: ['spread'],
   detail: ['spread'],
   balance: ['spread'],
   target: ['spread'],

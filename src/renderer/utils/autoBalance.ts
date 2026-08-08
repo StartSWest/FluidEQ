@@ -195,6 +195,24 @@ const roundGains = (gains: Record<string, number>): Record<string, number> =>
 export const MAX_TILT_SPAN_DB = 3;
 
 /**
+ * How far under the reference an edge run must sit to count as rolloff, in dB.
+ *
+ * Generous on purpose. A record that is merely light at the bottom — six or
+ * eight decibels under the line — is still corrected; only the cliff where the
+ * material genuinely ends is left alone. Ten is comfortably past anything a
+ * tonal balance justifies filling and comfortably short of the twenty-plus a
+ * real rolloff measures.
+ */
+export const EDGE_ROLLOFF_DB = 10;
+
+/**
+ * How steeply a candidate run must fall toward the edge to be believed, in dB
+ * per octave. Real rolloffs measure twenty and up; the darkest master falls at
+ * seven. Twelve sits between with room on both sides.
+ */
+export const ROLLOFF_MIN_DB_PER_OCTAVE = 12;
+
+/**
  * How fast a range's TYPICAL level follows the music, in dB per second.
  *
  * This is what lets the presence lines place themselves. It was a tenth of a
@@ -961,6 +979,65 @@ export const buildBalancedGains = (
     };
   });
 
+  /*
+   * THE RECORD'S OWN ROLLOFF AT THE SPECTRUM EDGES IS NEVER FILLED.
+   *
+   * Every record falls away steeply below its lowest note and above what its
+   * production kept, while a reference line extends straight past both. So at
+   * the edges the line demands energy no master has ever had, the solver reads
+   * a fifteen-decibel deficit, and the bass bands walk to their limit — a hump
+   * at the bottom of the plot that grows to the cap on any record, because it
+   * is not a property of the record, it is the line over-promising.
+   *
+   * Room correction settled this decades ago: dips and rolloffs are never
+   * boosted, because the energy is not missing, it was never there. The same
+   * asymmetry as everywhere else in this file — an edge with too MUCH energy is
+   * still cut, since taking away something real is always safe.
+   *
+   * Detected from the deviation itself: a contiguous run from either end of the
+   * measured span that sits more than EDGE_ROLLOFF_DB under the reference is a
+   * rolloff, and its deficit is not a correction target. The run stops the
+   * moment the record comes back within range of the line, so a genuine broad
+   * dip in the middle of the spectrum is untouched by this.
+   */
+  const isEdgeRolloff = deviation.map(() => false);
+  /*
+   * Depth alone does not make a rolloff, and treating it as one broke the
+   * mode's whole point: a record twice as dark as the reference sits more than
+   * ten decibels under the line across its entire top end, and marking that as
+   * "not there" refused the very lift the mode exists to give. What separates a
+   * cliff from a dark master is STEEPNESS — a real rolloff falls at twenty-plus
+   * decibels an octave, a dark record at three to seven — so a candidate run is
+   * only believed if it falls toward the edge that fast.
+   */
+  const markEdgeRun = (from: number, step: number) => {
+    let end = from;
+    while (
+      end >= 0 &&
+      end < deviation.length &&
+      deviation[end].level < -EDGE_ROLLOFF_DB
+    ) {
+      end += step;
+    }
+    if (end === from) {
+      // The first sample already fails the depth test: no run at all.
+      return;
+    }
+    const inner = end - step;
+    const octaves = Math.abs(
+      Math.log2(deviation[from].frequency / deviation[inner].frequency),
+    );
+    const drop = deviation[inner].level - deviation[from].level;
+    if (octaves < 0.25 || drop / octaves < ROLLOFF_MIN_DB_PER_OCTAVE) {
+      return;
+    }
+    for (let i = from; i !== end; i += step) {
+      isEdgeRolloff[i] = true;
+    }
+  };
+  markEdgeRun(0, 1);
+  markEdgeRun(deviation.length - 1, -1);
+
   // Desired correction at every measured frequency, centred so the answer is a
   // change of tone rather than of level.
   // Two weights, and they answer different questions: confidence is whether we
@@ -971,6 +1048,53 @@ export const buildBalancedGains = (
       clamp01(sample.confidence ?? 1) * audibilityWeight(sample.frequency),
     want: -sample.level * strength,
   }));
+  // Applied after the map so the index lines up: an edge rolloff may be cut,
+  // never filled.
+  targets.forEach((point, index) => {
+    if (isEdgeRolloff[index] && point.want > 0) {
+      point.want = 0;
+      // And it carries no weight either, so ten octaves of unfillable deficit
+      // cannot drag the level anchor or the joint solve toward the edge.
+      point.weight = 0;
+    }
+  });
+
+  /*
+   * And a band that lives inside a rolloff goes HOME, not wherever it was.
+   *
+   * Removing the target was half the rule and the wrong half on its own: with
+   * nothing asking anything of those bands, they simply held their last value —
+   * a layer that arrived bent at the bottom stayed bent there forever, which is
+   * path dependence in its purest form, and the divergence test measured it at
+   * seven decibels.
+   *
+   * The right resting state for a correction aimed at energy that was never
+   * there is no correction. So these bands decay toward zero, which has the one
+   * property everything else here keeps fighting for: it is the same
+   * destination from every starting point.
+   */
+  const lowEdgeHz = (() => {
+    let last = -Infinity;
+    for (let i = 0; i < deviation.length; i += 1) {
+      if (!isEdgeRolloff[i]) {
+        break;
+      }
+      last = deviation[i].frequency;
+    }
+    return last;
+  })();
+  const highEdgeHz = (() => {
+    let first = Infinity;
+    for (let i = deviation.length - 1; i >= 0; i -= 1) {
+      if (!isEdgeRolloff[i]) {
+        break;
+      }
+      first = deviation[i].frequency;
+    }
+    return first;
+  })();
+  const isInRolloff = (frequency: number) =>
+    frequency < lowEdgeHz || frequency > highEdgeHz;
   const totalWeight = targets.reduce((total, point) => total + point.weight, 0);
   const wantMean =
     totalWeight > 0
@@ -1189,6 +1313,14 @@ export const buildBalancedGains = (
        * it does not make a band untouchable.
        */
       const anchor = allowanceOf(entry) > 0 ? mean : 0;
+      // Home, for a band aimed at a rolloff — see `isInRolloff`. Scaled by
+      // strength so it relaxes at the same pace everything else corrects.
+      if (entry.isSolvable && isInRolloff(entry.filter.frequency)) {
+        const relaxed = relativeToCurrentGain
+          ? entry.gain * (1 - strength * 0.5)
+          : 0;
+        return [entry.id, clamp(relaxed, MIN_GAIN, MAX_GAIN)];
+      }
       const correction = entry.isSolvable ? entry.correction - anchor : 0;
       /*
        * How much of a boost this band has earned, and cuts are untouched.
@@ -1211,6 +1343,53 @@ export const buildBalancedGains = (
       return [entry.id, clamp(gain, MIN_GAIN, MAX_GAIN)];
     }),
   );
+
+  /*
+   * THE LAYER'S OWN LEVEL IS ZERO, and nothing else makes it so.
+   *
+   * The reference fits its level to the measurement — rightly, since loopback
+   * carries the volume knob — so a uniform offset in the layer disappears into
+   * the fitted intercept and is invisible to every correction that follows. The
+   * anchor centres each increment, but an inherited level is not an increment.
+   * Measured: a layer that started seven decibels low SETTLED seven decibels
+   * low, with the shape fully converged around it. Same record, same tone,
+   * seven decibels quieter, forever — path dependence as a volume knob.
+   *
+   * A correction layer is a statement about tone. Level belongs to the preamp.
+   * So the weighted mean of the layer is taken out of the layer, under the two
+   * protections whose absence sank the first attempt at exactly this: every
+   * band stays inside its own correction limits, and a band the presence gate
+   * has refused is neither counted nor moved — which is also what stops the
+   * gated-band ratchet this would otherwise reintroduce. The clamps mean one
+   * pass may not fully centre it; the loop finishes the job, which is what a
+   * loop is for.
+   *
+   * The weights are the anchor's own, so Detail keeps its designed shape: its
+   * anchor weighs the bass, a bass-weighted mean of zero pins the bass at zero,
+   * and the lift above survives intact.
+   */
+  const levelled = raw.filter(
+    (entry) => entry.isSolvable && allowanceOf(entry) > 0,
+  );
+  const levelledWeight = levelled.reduce(
+    (total, entry) => total + anchorWeightOf(entry),
+    0,
+  );
+  if (levelledWeight > 0) {
+    const level =
+      levelled.reduce(
+        (total, entry) =>
+          total + (gains[entry.id] ?? 0) * anchorWeightOf(entry),
+        0,
+      ) / levelledWeight;
+    levelled.forEach((entry) => {
+      gains[entry.id] = clamp(
+        (gains[entry.id] ?? 0) - level,
+        Math.max(MIN_GAIN, -maxCut),
+        Math.min(MAX_GAIN, maxBoost * allowanceOf(entry)),
+      );
+    });
+  }
 
   /*
    * AND THE TILT OF THE RESULT IS BOUNDED, which is not the same as bounding
@@ -1934,7 +2113,10 @@ export const accumulateBalanceFrame = (
    * expressed exactly as the plot expresses it — see `PRESENCE_FULL_SCALE_DB`.
    * Which is what makes the lines on the graph mean what they appear to mean.
    */
-  const peak = frame.peakDb;
+  // The record's peak, not the output's, for the same reason the levels below
+  // are the record's: a reference that contains the correction moves when the
+  // correction does, and everything referenced to it moves with it.
+  const peak = gatePeakDb;
   if (Number.isFinite(peak)) {
     const released =
       state.trackReferenceDb === undefined
@@ -1946,6 +2128,25 @@ export const accumulateBalanceFrame = (
 
   state.regions.forEach((region, regionIndex) => {
     const absDb = regionLevelDb(levels, region.firstIndex, region.lastIndex);
+    /*
+     * THE PRESENCE LINE ASKS ABOUT THE RECORD, NOT ABOUT WHAT WE DID TO IT.
+     *
+     * Taken from the output, this measured itself. Boost a range, its level in
+     * the output rises, its typical level follows, its floor rises with it, and
+     * more boost fits underneath — a loop with the correction inside it, which
+     * on screen is a red line drifting up and down for no reason anybody can
+     * point at. That is the report this fixes, and it is the same fault the
+     * evidence gate a few lines below was already written to avoid.
+     *
+     * So it reads the reconstructed source, exactly as that gate does: the
+     * question "is anything playing here" is about the music, and the chain is
+     * not the music.
+     */
+    const sourceDb = regionLevelDb(
+      gateLevels,
+      region.firstIndex,
+      region.lastIndex,
+    );
 
     // Followed whether or not the range is accumulated below. A range under the
     // absolute floor has not stopped existing — it has gone quiet, which is the
@@ -1953,8 +2154,8 @@ export const accumulateBalanceFrame = (
     // before recording it would leave the detector believing whatever it last
     // saw for as long as the silence lasted.
     if (reference !== undefined) {
-      const chartDb = Number.isFinite(absDb)
-        ? absDb - reference + PRESENCE_FULL_SCALE_DB
+      const chartDb = Number.isFinite(sourceDb)
+        ? sourceDb - reference + PRESENCE_FULL_SCALE_DB
         : PRESENCE_SILENT_DB;
       const previous = state.liveDb[regionIndex];
       // Straight up, and down at a rate. A transient reaches its true height

@@ -435,6 +435,10 @@ $eq-caret-width: 24px;
 // draws a black rectangle nobody can see.
 .eq-toolbar__pause path {
   fill: currentcolor;
+  // Softened, because two solid near-black rectangles on a saturated cyan field
+  // read as a hole punched in the button rather than as a glyph. The label
+  // needs that full contrast to stay legible; a shape this simple does not.
+  opacity: 0.72;
 }
 
 // A selector, not four more verbs — and it is drawn as one.
