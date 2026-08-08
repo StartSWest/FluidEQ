@@ -136,14 +136,37 @@ export const PRESENCE_RELEASE_DB_PER_S = 1;
 export const PRESENCE_SILENT_DB = -200;
 
 /**
- * How fast a range's own level follows the music, as a per-frame coefficient.
+ * Meter ballistics for a range's own level: instant attack, measured release.
  *
- * Slow enough that a single quiet frame between drum hits does not read as an
- * instrument leaving, fast enough that an instrument actually leaving is
- * noticed inside a second. Bar-length events are what this is for; note-length
- * ones are not.
+ * IT WAS A SYMMETRIC ONE-POLE AND THAT BIASED THE WHOLE DETECTOR AGAINST THE
+ * TOP OF THE SPECTRUM, which is a real defect rather than a nicety, and the
+ * amount is measurable. At a quarter per frame on a thirty-three millisecond
+ * tick the time constant is 132 ms, the same for all nine ranges — and what a
+ * range does in 132 ms depends entirely on which range it is:
+ *
+ *   cymbal edge      30 ms   reaches  5.0 dB of a 20 dB event  (15.0 short)
+ *   snare body       80 ms            8.8                      (11.3 short)
+ *   vocal consonant 120 ms           13.7                       (6.3 short)
+ *   bass note       400 ms           19.4                       (0.6 short)
+ *   sustained pad  1500 ms           20.0                       (none)
+ *
+ * Short events are disproportionately treble and long ones disproportionately
+ * bass, so the smoother was reading the top of the spectrum up to fifteen
+ * decibels below what it actually does. Under-read means under its floor, which
+ * means gated, which means never boosted — the "still waiting on presence" that
+ * never resolved was this, not a shortage of music.
+ *
+ * Instant attack fixes it without a per-band constant, because what limits the
+ * attack is the frame rate rather than the frequency: a transient is caught at
+ * its real height whether it is a kick or a hi-hat. The release then decides
+ * how long a range goes on counting as present, which is the question that was
+ * being asked all along.
+ *
+ * Twelve decibels a second is about a decibel per frame — long enough to ride
+ * the gap between drum hits, short enough that an instrument actually leaving
+ * is obvious within a second.
  */
-export const PRESENCE_SMOOTHING = 0.25;
+export const PRESENCE_LEVEL_RELEASE_DB_PER_S = 12;
 
 /**
  * How fast a range's TYPICAL level follows the music, in dB per second.
@@ -1786,10 +1809,16 @@ export const accumulateBalanceFrame = (
         ? absDb - reference + PRESENCE_FULL_SCALE_DB
         : PRESENCE_SILENT_DB;
       const previous = state.liveDb[regionIndex];
+      // Straight up, and down at a rate. A transient reaches its true height
+      // whatever its length, which is what stops the top of the spectrum being
+      // read fifteen decibels low — see `PRESENCE_LEVEL_RELEASE_DB_PER_S`.
       const live =
-        previous <= PRESENCE_SILENT_DB
+        previous <= PRESENCE_SILENT_DB || chartDb >= previous
           ? chartDb
-          : previous + (chartDb - previous) * PRESENCE_SMOOTHING;
+          : Math.max(
+              chartDb,
+              previous - (dt / 1000) * PRESENCE_LEVEL_RELEASE_DB_PER_S,
+            );
       state.liveDb[regionIndex] = live;
 
       /*
