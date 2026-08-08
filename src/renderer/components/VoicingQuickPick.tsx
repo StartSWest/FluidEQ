@@ -22,7 +22,10 @@ import VoicingIcon from '../icons/VoicingIcon';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { useTranslation } from '../utils/I18nContext';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
-import { setVoicing as setVoicingApi } from '../utils/equalizerApi';
+import {
+  setLayerBypass,
+  setVoicing as setVoicingApi,
+} from '../utils/equalizerApi';
 import '../styles/VoicingQuickPick.scss';
 
 /**
@@ -34,8 +37,14 @@ import '../styles/VoicingQuickPick.scss';
  * room for six cards — the menu carries the names.
  */
 const VoicingQuickPick = () => {
-  const { isBlockingError, isEnabled, voicing, setVoicing } =
-    useFluidEqContext();
+  const {
+    isBlockingError,
+    isEnabled,
+    voicing,
+    setVoicing,
+    bypassed,
+    refreshState,
+  } = useFluidEqContext();
   const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   /** A switch the engine refused, shown until the next attempt. */
@@ -45,6 +54,15 @@ const VoicingQuickPick = () => {
   const activeId = voicing?.profileId ?? '';
   const activeProfile = getVoicingProfile(activeId);
   const strengthPercent = Math.round((voicing?.intensity ?? 1) * 100);
+  /**
+   * The layer's A/B switch, which lives on the applied-layer chip.
+   *
+   * Shown here as well because this button is the one that names the voicing,
+   * and it was naming one that was not in the chain — "Music" in full colour
+   * over a config with no voicing in it. The chip said so and this did not, and
+   * they are at opposite ends of the toolbar.
+   */
+  const isVoicingBypassed = bypassed.includes('voicing');
 
   useEffect(() => {
     if (!isOpen) {
@@ -80,6 +98,16 @@ const VoicingQuickPick = () => {
     setRefused(false);
     try {
       await setVoicingApi(profileId, intensity);
+      // Choosing a voicing switches the layer back on.
+      //
+      // Picking one while it is bypassed is not a request to change which
+      // voicing is not being applied. Without this the new choice landed in the
+      // config and stayed out of the chain, so the button changed, the chip
+      // changed, and the sound did not.
+      if (profileId && bypassed.includes('voicing')) {
+        await setLayerBypass('voicing', false);
+      }
+      await refreshState();
     } catch {
       // Not raised globally, and not silent either — both extremes are wrong
       // here, and the app has now been each of them.
@@ -101,7 +129,9 @@ const VoicingQuickPick = () => {
     <div className="voicing-pick" ref={rootRef}>
       <button
         type="button"
-        className={`voicing-pick__trigger${activeProfile ? ' is-active' : ''}`}
+        className={`voicing-pick__trigger${activeProfile ? ' is-active' : ''}${
+          activeProfile && isVoicingBypassed ? ' is-bypassed' : ''
+        }`}
         aria-haspopup="menu"
         aria-expanded={isOpen}
         aria-label={

@@ -110,6 +110,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 2px;
 }
 
+// Chosen, and not in the chain.
+//
+// The same treatment the applied-layer chip gets, for the same reason and in
+// the same words: struck through and desaturated, so a voicing that is switched
+// off does not sit here in full colour claiming to be applied. The two controls
+// are at opposite ends of the toolbar and used to disagree.
+//
+// STRUCK THROUGH ONLY, with none of the fading the chip gets. Fading is how
+// this app draws a control you cannot use, and this one is fully usable —
+// pressing it opens the menu, and choosing a voicing switches the layer back
+// on. Dimming it would say "disabled", which is the opposite of true and would
+// make bypass look like a trap you can only leave from the other end of the
+// toolbar.
+.voicing-pick__trigger.is-bypassed span {
+  text-decoration: line-through;
+}
+
 // Quieter than the name and riding alongside it, because it qualifies the name
 // rather than being a second thing on the button.
 //

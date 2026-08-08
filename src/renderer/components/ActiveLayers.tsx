@@ -462,12 +462,7 @@ const ActiveLayers = () => {
             (layer.feature && isBypassed(layer.feature)) || layer.isInactive
               ? ' is-bypassed'
               : ''
-          }${
-            layer.strength !== undefined &&
-            !(layer.feature && isBypassed(layer.feature))
-              ? ' has-strength'
-              : ''
-          }`}
+          }${layer.strength !== undefined ? ' has-strength' : ''}`}
           key={layer.key}
         >
           {/* The body of the chip is the A/B switch.
@@ -585,30 +580,37 @@ const ActiveLayers = () => {
               input nested in one cannot be dragged — the button swallows the
               pointer and every attempt to slide toggles the layer off instead.
 
-              Hidden while the layer is bypassed, because there is nothing to
-              set the strength of. */}
-          {layer.strength !== undefined &&
-            !(layer.feature && isBypassed(layer.feature)) && (
-              <input
-                type="range"
-                className="active-layer__strength"
-                min={0}
-                max={100}
-                step={5}
-                value={Math.round(layer.strength * 100)}
-                aria-label={t('voicing.strength')}
-                title={t('voicing.strength')}
-                disabled={isBlockingError || !isEnabled}
-                style={
-                  {
-                    '--fill': `${Math.round(layer.strength * 100)}%`,
-                  } as React.CSSProperties
-                }
-                onChange={(event) =>
-                  layer.onStrength?.(Number(event.target.value) / 100)
-                }
-              />
-            )}
+              Disabled while the layer is bypassed, not removed. Taking it away
+              changed the chip's width, so switching a layer off resized it and
+              shoved every chip beside it along — and it left nothing on screen
+              to say the setting still exists and is waiting. Greyed out, it says
+              both: this has a strength, and it is not doing anything at the
+              moment. */}
+          {layer.strength !== undefined && (
+            <input
+              type="range"
+              className="active-layer__strength"
+              min={0}
+              max={100}
+              step={5}
+              value={Math.round(layer.strength * 100)}
+              aria-label={t('voicing.strength')}
+              title={t('voicing.strength')}
+              disabled={
+                isBlockingError ||
+                !isEnabled ||
+                Boolean(layer.feature && isBypassed(layer.feature))
+              }
+              style={
+                {
+                  '--fill': `${Math.round(layer.strength * 100)}%`,
+                } as React.CSSProperties
+              }
+              onChange={(event) =>
+                layer.onStrength?.(Number(event.target.value) / 100)
+              }
+            />
+          )}
           <button
             type="button"
             aria-label={
