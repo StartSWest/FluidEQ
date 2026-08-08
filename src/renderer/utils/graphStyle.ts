@@ -397,7 +397,7 @@ export const toggleLiveOutputSolo = () =>
  * left the same bright line over the top of everything and so answered a
  * question nobody was asking.
  *
- * FOUR NAMED STATES, not three loose flags.
+ * FIVE NAMED STATES, not three loose flags.
  *
  * The flags came first and each arrived for its own reason, which is how they
  * ended up able to contradict each other — and how the legend ended up able to
@@ -410,13 +410,15 @@ export const toggleLiveOutputSolo = () =>
  * them individually. Nothing sets them except `setGraphContents`, so they cannot
  * drift apart.
  */
-export type TGraphContents = 'everything' | 'wave' | 'curves' | 'layers';
+export type TGraphContents =
+  'everything' | 'wave' | 'curves' | 'layers' | 'layersAlone';
 
 const CONTENTS_ORDER: TGraphContents[] = [
   'everything',
   'wave',
   'curves',
   'layers',
+  'layersAlone',
 ];
 
 /**
@@ -430,7 +432,12 @@ export const GRAPH_CONTENTS_LABEL: Record<TGraphContents, string> = {
   everything: 'Everything',
   wave: 'Wave only',
   curves: 'Curves only',
-  layers: 'Layers only',
+  // Renamed, because it was not true. This state quiets the EQ curve and leaves
+  // the wave running underneath, which is a useful thing to look at and is not
+  // what 'Layers only' describes. The name now belongs to the state that earns
+  // it.
+  layers: 'Layers over wave',
+  layersAlone: 'Layers only',
 };
 
 export const getGraphContents = (): TGraphContents => {
@@ -438,7 +445,7 @@ export const getGraphContents = (): TGraphContents => {
     return 'wave';
   }
   if (isWaveHidden) {
-    return 'curves';
+    return isEqQuiet ? 'layersAlone' : 'curves';
   }
   return isEqQuiet ? 'layers' : 'everything';
 };
@@ -460,8 +467,8 @@ export const getGraphContents = (): TGraphContents => {
  */
 export function setGraphContents(next: TGraphContents) {
   setLiveOutputSolo(next === 'wave');
-  setWaveHidden(next === 'curves');
-  setEqQuiet(next === 'layers');
+  setWaveHidden(next === 'curves' || next === 'layersAlone');
+  setEqQuiet(next === 'layers' || next === 'layersAlone');
   setCurveHidden('eq', next === 'wave');
 }
 
