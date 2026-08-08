@@ -1047,16 +1047,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .output-meter {
   display: flex;
   align-items: stretch;
-  gap: 4px;
   pointer-events: none;
-}
-
-// The gutter meter: pinned into the plot's own right margin, floating over the
-// drawing. Positioned from TypeScript because it stands on the chart's real
-// edges, which only the chart knows.
-.output-meter--overlay {
-  position: absolute;
-  z-index: 2;
 }
 
 /*
@@ -1080,17 +1071,21 @@ it under the terms of the GNU General Public License version 3 or later.
  * room the card has, which also means the sidebar can be resized without the
  * meter turning into something else.
  */
-.output-meter--panel {
+.output-meter {
   width: 100%;
-  height: clamp(72px, 14vh, 132px);
+  min-height: 72px;
   box-sizing: border-box;
   padding-block: 6px;
   margin-block-start: 10px;
+  // Takes whatever the card has left rather than a height of its own. A meter
+  // is the rare control that is simply better tall: the same twenty decibels
+  // spread over more pixels is more resolution, for free.
+  flex: 1 1 auto;
   gap: 10px;
   justify-content: center;
 
   .output-meter__channel {
-    width: 10px;
+    width: 12px;
   }
 }
 

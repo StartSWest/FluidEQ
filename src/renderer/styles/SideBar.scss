@@ -73,6 +73,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+/*
+ * The visualizer card takes the rest of the column, because it is the only one
+ * with something inside that can use it.
+ *
+ * The others are a switch and a label — fixed things that would only be
+ * stretched into whitespace. This one holds the level meter, and a meter is
+ * the one control here that is genuinely better tall: more resolution per
+ * decibel, and it fills what was otherwise a dead half-column under the
+ * switch.
+ *
+ * `min-height: 0` because a flex item's default floor is its content size,
+ * which would let the meter refuse to shrink on a short window and push the
+ * column past the shell.
+ */
+.side-bar__response {
+  min-height: 0;
+  flex: 1 1 auto;
+  align-self: stretch;
+}
+
 .side-bar__preamp {
   display: flex;
   flex-direction: column;

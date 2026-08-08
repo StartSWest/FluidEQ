@@ -107,7 +107,7 @@ const SideBar = ({ showGraphToggle }: SideBarProps) => {
                   like, this says how loud it actually is. The same component
                   as the plot's gutter meter — see its variant prop for why one
                   and not two. */}
-              <OutputLevelMeter variant="panel" />
+              <OutputLevelMeter />
             </div>
           ) : null}
         </>

@@ -50,8 +50,7 @@ import {
   setQuality,
 } from 'renderer/utils/equalizerApi';
 import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
-import Chart, { ChartDimensions, getAxisPadding } from './Chart';
-import OutputLevelMeter from './OutputLevelMeter';
+import Chart, { ChartDimensions } from './Chart';
 import {
   GRAPH_END,
   GRAPH_START,
@@ -1890,21 +1889,6 @@ const FrequencyResponseChart = () => {
             }
           />
         )}
-        {/* How loud the output actually is, in real decibels below full scale.
-            Its own subscriber for the same reason the trace and the coverage
-            overlay are — the readings arrive thirty times a second, and a prop
-            through the chart would wake every d3 effect under it to move two
-            bars.
-
-            Handed where the drawing area starts and ends rather than measuring
-            for itself: those are the chart's own gutters, so they come from the
-            chart, and they change on a resize rather than on a frame. */}
-        <OutputLevelMeter
-          plotTop={dimensions.margins.top + getAxisPadding(isGridHidden).top}
-          plotBottom={
-            dimensions.margins.bottom + getAxisPadding(isGridHidden).bottom
-          }
-        />
       </div>
       {/* Inside the graph card, alongside the plot rather than over in a
           dialog of its own — what the panel is for is watching this chart

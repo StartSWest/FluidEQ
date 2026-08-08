@@ -215,7 +215,20 @@ const hardenPlayer = (contents: WebContents) => {
       details.message.length > CONSOLE_MESSAGE_LIMIT
         ? `${details.message.slice(0, CONSOLE_MESSAGE_LIMIT)}…`
         : details.message;
-    log.info(`[player] ${details.level}: ${message}${where}`);
+    /*
+     * ITS OWN TAG FAMILY, because none of this is ours.
+     *
+     * Everything on this line was written by the embedded page — YouTube's
+     * player, its ad stack, whatever a video decides to complain about. It used
+     * to arrive under `[player]`, which reads like a FluidEQ subsystem and put
+     * somebody else's noise in the same visual class as our own diagnostics.
+     *
+     * `[page:warn]` says both things at once: not ours, and how loud. One grep
+     * silences the chatter — YouTube emits three preload warnings every few
+     * seconds while a video plays, which is exactly when the log is most likely
+     * to be read for another reason — and `[page:error]` survives it.
+     */
+    log.info(`[page:${details.level}] ${message}${where}`);
   });
 
   /**

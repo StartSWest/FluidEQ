@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 /**
- * The output level meter, down the right-hand edge of the plot.
+ * The output level meter, in the sidebar under the visualizer switch.
  *
  * WHY IT IS ITS OWN COMPONENT. The readings arrive with the analyser frames,
  * thirty times a second, and a prop threaded down through the chart would wake
@@ -32,30 +32,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * measuring a different thing, and the two only happen to share a vertical
  * edge. See the head of `outputLevel.ts` for why they must not be the same.
  *
- * WHY IT OVERLAYS RATHER THAN SITS BESIDE. The plot already keeps thirty pixels
- * of air on its right, so with the grid on this lands in that gutter and takes
- * nothing at all from the frequency axis. With the grid off there is no gutter
- * and it lays over the last of the treble — which is the right trade in a mode
- * whose whole point is that the drawing has stopped being a measurement.
+ * WHERE IT SITS. Under the visualizer switch, because it answers the question
+ * that switch raises: the graph says what the sound is shaped like, this says
+ * how loud it actually is. It takes the rest of that column, since a meter is
+ * the rare control that is simply better tall — the same twenty decibels over
+ * more pixels is more resolution, for nothing.
  */
 
 import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import { levelFraction, levelZone } from './outputLevel';
-
-/**
- * How far down the card the strip has to start to clear the legend row.
- *
- * The controls float over the top right of the plot at eight pixels with
- * twenty-eight-pixel buttons, and they are right-aligned — so they sit exactly
- * where the top of this would otherwise be, and the top of a meter is the part
- * that must never be hidden. Taken as a floor rather than as the position, so
- * an already lower plot is left where it is.
- */
-const LEGEND_CLEARANCE_PX = 42;
-/** Air between the strip and the card's right edge. */
-const EDGE_GAP_PX = 4;
 
 /**
  * Stable React keys for a list that is one or two entries and never reorders.
@@ -82,32 +69,17 @@ const channelNameKey = (index: number, isStereo: boolean): TranslationKey => {
   return index === 0 ? 'graph.meter.left' : 'graph.meter.right';
 };
 
-interface IOutputLevelMeterProps {
-  /**
-   * Where the plot's drawing area starts and ends inside the card. Only the
-   * overlay needs them; a panel meter is laid out by its container like
-   * anything else on the page.
-   */
-  plotTop?: number;
-  plotBottom?: number;
-  /**
-   * TWO PLACES, ONE COMPONENT, and the same subscription in both.
-   *
-   * The overlay hangs in the plot's right gutter, where it is context for the
-   * curve you are reading. The panel version stands in the device column,
-   * where it is the thing you are actually watching. Both are the same
-   * measurement, and duplicating the component to move it would be two copies
-   * of the dBFS-versus-track-reference distinction to keep in step -- which is
-   * the one thing about this feature that is easy to get quietly wrong.
-   */
-  variant?: 'overlay' | 'panel';
-}
-
-const OutputLevelMeter = ({
-  plotTop = 0,
-  plotBottom = 0,
-  variant = 'overlay',
-}: IOutputLevelMeterProps) => {
+/**
+ * ONE HOME, IN THE SIDEBAR.
+ *
+ * It began as an overlay in the plot's right gutter and was briefly in both
+ * places. Both was wrong for a reason worth keeping: a second copy of the same
+ * reading, four inches from the first, is not context — it is a thing to
+ * check against, and two meters that must always agree are two chances to
+ * notice they do not. The sidebar one is the one somebody watches, so it is
+ * the one that stays.
+ */
+const OutputLevelMeter = () => {
   // The readings, straight from the capture. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
   const { isClipping, outputLevels } = useLiveAudioFrame();
@@ -122,18 +94,7 @@ const OutputLevelMeter = ({
   const isStereo = outputLevels.length > 1;
   return (
     <div
-      className={`output-meter output-meter--${variant}${
-        isClipping ? ' is-clipping' : ''
-      }`}
-      style={
-        variant === 'overlay'
-          ? {
-              top: Math.max(plotTop, LEGEND_CLEARANCE_PX),
-              bottom: plotBottom,
-              insetInlineEnd: EDGE_GAP_PX,
-            }
-          : undefined
-      }
+      className={`output-meter${isClipping ? ' is-clipping' : ''}`}
       // One thing with one meaning, so it is announced once and its bars are
       // not read out as a list of empty boxes.
       //
