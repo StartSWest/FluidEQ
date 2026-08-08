@@ -845,16 +845,28 @@ export const buildBalancedGains = (
    * share of a broad average and is still corrected, while a broad level shift
    * anywhere is removed. Times confidence, so a band nobody has heard cannot
    * drag the anchor and take the whole correction with it.
+   *
+   * OVER THE SOLVED BANDS ONLY, and that is not a detail.
+   *
+   * `raw` holds every band; only the solvable ones carry an answer, and the rest
+   * sit at a correction of zero because the solver deliberately declined them —
+   * outside the trusted span, or below the confidence floor. Averaging those
+   * zeroes in pulls the anchor toward nothing, and subtracting the anchor from
+   * them moves bands the measurement had explicitly refused to move. On a record
+   * whose correction is mostly a bass cut, the anchor is negative, so every band
+   * the solver had left alone quietly rose by that much — which reads as the
+   * correction doing nothing but lifting the top.
    */
   const anchorWeightOf = (entry: (typeof raw)[number]) =>
     audibilityWeight(entry.filter.frequency) * entry.confidence;
-  const anchorWeight = raw.reduce(
+  const anchored = raw.filter((entry) => entry.isSolvable);
+  const anchorWeight = anchored.reduce(
     (total, entry) => total + anchorWeightOf(entry),
     0,
   );
   const mean =
     anchorWeight > 0
-      ? raw.reduce(
+      ? anchored.reduce(
           (total, entry) => total + entry.correction * anchorWeightOf(entry),
           0,
         ) / anchorWeight
@@ -872,9 +884,13 @@ export const buildBalancedGains = (
       // between them, which is safe: the preamp is sized from the peak of the
       // whole written chain, layers included, so the headroom follows.
       const base = relativeToCurrentGain ? entry.gain : 0;
+      // A band the solver declined holds exactly where it is. The anchor is
+      // subtracted only from bands that were actually answered for — applying it
+      // to the others would move them on the strength of an average they took no
+      // part in, which is a correction nobody measured.
+      const correction = entry.isSolvable ? entry.correction - mean : 0;
       const gain =
-        base +
-        clamp((entry.correction - mean) * entry.confidence, -maxCut, maxBoost);
+        base + clamp(correction * entry.confidence, -maxCut, maxBoost);
       return [entry.id, Math.round(clamp(gain, MIN_GAIN, MAX_GAIN) * 10) / 10];
     }),
   );
