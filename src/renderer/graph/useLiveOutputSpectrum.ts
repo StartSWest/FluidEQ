@@ -41,6 +41,15 @@ import {
 import { getPresenceLine, presenceAllowance } from '../utils/presenceThreshold';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData } from './ChartController';
+import {
+  ILevelFollower,
+  IOutputLevel,
+  LEVEL_FLOOR_DB,
+  advanceLevel,
+  amplitudeToDb,
+  createLevelFollower,
+  readPeakAmplitude,
+} from './outputLevel';
 
 /**
  * The analyser window, and the one source of lag nothing downstream can undo.
@@ -112,6 +121,37 @@ const LIVE_FULL_SCALE_DB = MAX_GAIN;
 const TRACK_REFERENCE_RELEASE_DB = UPDATE_INTERVAL_MS / 1000;
 /** Below this the output is silence; there is no meaningful shape to show. */
 const LIVE_SILENCE_DB = -95;
+
+/**
+ * The level meter's window, and the one number in this file that must not be
+ * shortened.
+ *
+ * The meter reads sample peaks out of `getFloatTimeDomainData`, which hands back
+ * the most recent `fftSize` samples and nothing older. At 48kHz, 2048 samples is
+ * 42ms — comfortably more than the 33ms between ticks, so every sample the
+ * output produced is seen by at least one read. Halve it and the window stops
+ * covering the gap: a transient that lands in the missing eleven milliseconds is
+ * never measured at all, and the meter silently under-reads the exact events it
+ * exists to catch.
+ *
+ * No smoothing on these analysers, unlike the spectrum's. The FFT's averaging is
+ * there to stop a jittery bin from making a noisy curve; a peak reading has no
+ * such problem, and blending it with the previous block is just a slower attack
+ * bolted on underneath the ballistics that are supposed to own it.
+ */
+const LEVEL_FFT_SIZE = 2048;
+/**
+ * How many channels the meter will ever show.
+ *
+ * Two, and taken off the front of whatever the endpoint delivers. A surround
+ * mix down-mixes discretely through the splitter, so those two are front left
+ * and front right rather than a fold-down of six — which is the honest reading
+ * for a meter, since it is those two that are about to clip the headphones.
+ */
+const METER_CHANNELS = 2;
+
+/** Shared empty, so a stopped capture never mints a fresh array. */
+const NO_LEVELS: IOutputLevel[] = [];
 
 /**
  * Digital full scale, in the 0..255 byte domain the analyser reports.
@@ -412,6 +452,21 @@ const useLiveOutputSpectrum = () => {
   const [waveform, setWaveform] = useState<number[]>([]);
   const [isClipping, setIsClipping] = useState(false);
   /**
+   * The real output level, per channel, in real dBFS.
+   *
+   * Nothing to do with `points`, and deliberately so. The trace is referenced to
+   * the record's own peak so that the volume knob cannot flatten it; this is
+   * referenced to digital full scale, because a meter whose top follows the
+   * programme cannot answer the only question a meter is asked. See
+   * `LIVE_FULL_SCALE_DB` above and the head of `outputLevel.ts`.
+   *
+   * One entry per channel the capture actually carries — two ordinarily, one if
+   * Windows hands over a mono endpoint. Never a copy of the left pretending to
+   * be the right: a meter that invents a channel is worse than one that admits
+   * it only has the one.
+   */
+  const [outputLevels, setOutputLevels] = useState<IOutputLevel[]>(NO_LEVELS);
+  /**
    * Each range's live level, published on the frame rather than the progress.
    *
    * The progress carries coverage, which is a fact about the whole session and
@@ -440,6 +495,10 @@ const useLiveOutputSpectrum = () => {
   const sourceNodeRef = useRef<MediaStreamAudioSourceNode | undefined>(
     undefined,
   );
+  // The meter's fan-out, held for the same reason the source is: it is the node
+  // the two per-channel analysers hang off, and it is worth taking down on every
+  // path rather than only on the one where the context is closed.
+  const splitterNodeRef = useRef<ChannelSplitterNode | undefined>(undefined);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(
     undefined,
   );
@@ -507,6 +566,8 @@ const useLiveOutputSpectrum = () => {
     // an analyser holding an FFT buffer is worth disconnecting on every path.
     sourceNodeRef.current?.disconnect();
     sourceNodeRef.current = undefined;
+    splitterNodeRef.current?.disconnect();
+    splitterNodeRef.current = undefined;
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = undefined;
     audioContextRef.current?.close().catch(() => undefined);
@@ -520,6 +581,10 @@ const useLiveOutputSpectrum = () => {
     pointsRef.current = NO_POINTS;
     setPoints(NO_POINTS);
     setWaveform(NO_WAVEFORM);
+    // Emptied rather than left at the floor. A meter pinned at silence says
+    // "nothing is playing"; there being no capture at all is a different fact,
+    // and the strip is taken off the graph to say it.
+    setOutputLevels(NO_LEVELS);
   }, [abortBalance]);
 
   /**
@@ -695,7 +760,66 @@ const useLiveOutputSpectrum = () => {
       // Kept, so it can be disconnected rather than left for `close()`.
       sourceNodeRef.current =
         activeAudioContext.createMediaStreamSource(stream);
-      sourceNodeRef.current.connect(analyser);
+      const source = sourceNodeRef.current;
+      source.connect(analyser);
+
+      /*
+       * THE METER'S OWN ANALYSERS, AND WHY THE ONE ABOVE COULD NOT DO IT.
+       *
+       * An AnalyserNode reports one signal, not one per channel: whatever
+       * arrives is folded down before the FFT, so the spectrum above already
+       * describes left and right added together. That is right for a shape and
+       * useless for a stereo meter — there is no way to ask it what the right
+       * channel alone is doing, and a "right" meter driven from it would be the
+       * left one with a different letter over it.
+       *
+       * A ChannelSplitterNode is how the channels are told apart. It fans the
+       * source out into one output per channel, each carrying that channel and
+       * nothing else, and an analyser on each gives two genuinely independent
+       * readings. Hard-panned material moves one meter and not the other, which
+       * is the test that says this is real.
+       *
+       * The source keeps its existing connection to the spectrum analyser as
+       * well — a node may drive several destinations, and both see the same
+       * samples.
+       */
+      const meterAnalysers: AnalyserNode[] = [];
+      const createMeterAnalyser = () => {
+        const meterAnalyser = activeAudioContext.createAnalyser();
+        meterAnalyser.fftSize = LEVEL_FFT_SIZE;
+        meterAnalyser.smoothingTimeConstant = 0;
+        meterAnalysers.push(meterAnalyser);
+        return meterAnalyser;
+      };
+      /*
+       * How many channels there actually are, asked of the track rather than
+       * assumed.
+       *
+       * A splitter always produces the number of outputs it was built with, so
+       * splitting a mono endpoint into two would give a silent second output
+       * and a right-hand meter that never moved — a fabricated channel, which is
+       * the one outcome worth going out of the way to avoid. Windows loopback is
+       * stereo on every ordinary endpoint; where it is not, one meter is drawn
+       * and it says so.
+       *
+       * `channelCount` is optional in the settings dictionary, so an
+       * implementation that does not report it is taken at the ordinary case
+       * rather than demoted to mono.
+       */
+      const captureChannels = audioTrack.getSettings?.().channelCount;
+      const isStereoCapture =
+        captureChannels === undefined || captureChannels >= METER_CHANNELS;
+      if (isStereoCapture) {
+        const splitter =
+          activeAudioContext.createChannelSplitter(METER_CHANNELS);
+        splitterNodeRef.current = splitter;
+        source.connect(splitter);
+        for (let channel = 0; channel < METER_CHANNELS; channel += 1) {
+          splitter.connect(createMeterAnalyser(), channel);
+        }
+      } else {
+        source.connect(createMeterAnalyser());
+      }
 
       streamRef.current = stream;
       audioContextRef.current = activeAudioContext;
@@ -714,6 +838,30 @@ const useLiveOutputSpectrum = () => {
       let bufferSlot = 0;
       const axisKey = String(Math.round(activeAudioContext.sampleRate));
       let trackReferenceDb: number | undefined;
+
+      // One block of samples, read into again per channel per tick, and the
+      // ballistics that carry each channel's two readings between ticks.
+      const meterSamples = new Float32Array(LEVEL_FFT_SIZE);
+      const meterFollowers: ILevelFollower[] = meterAnalysers.map(() =>
+        createLevelFollower(),
+      );
+      // Published in pairs for the same reason the points are: React needs a
+      // changed identity to re-render, so the frame it is holding must not be
+      // the one being overwritten. Two channels of two numbers is not much to
+      // allocate, but it would be allocated thirty times a second forever.
+      const meterFrames: [IOutputLevel[], IOutputLevel[]] = [
+        meterAnalysers.map(() => ({
+          levelDb: LEVEL_FLOOR_DB,
+          peakDb: LEVEL_FLOOR_DB,
+        })),
+        meterAnalysers.map(() => ({
+          levelDb: LEVEL_FLOOR_DB,
+          peakDb: LEVEL_FLOOR_DB,
+        })),
+      ];
+      // Wall clock rather than a frame count, because the fall rates are per
+      // second and this interval runs late whenever the renderer is busy.
+      let lastMeterMs = performance.now();
 
       const pump = () => {
         const session = sessionRef.current;
@@ -788,6 +936,39 @@ const useLiveOutputSpectrum = () => {
             isClippingRef.current = clipping;
             setIsClipping(clipping);
           }
+
+          /*
+           * The meter, in real decibels below full scale.
+           *
+           * Read here rather than beside the FFT above because it is
+           * presentation and nothing else — no measurement consults it, so
+           * behind a hidden window it is pure waste. The ballistics carry on
+           * from wherever they were when the window went away; the attack is
+           * instant, so the first visible frame is already correct and only the
+           * fall has any catching up to do.
+           *
+           * Clamped, because a window that has been minimised for an hour hands
+           * back an hour as its first delta and would drop the meter to the
+           * floor in a single step for no reason anybody watching could name.
+           */
+          const meterNowMs = performance.now();
+          const meterDeltaMs = Math.min(
+            200,
+            Math.max(0, meterNowMs - lastMeterMs),
+          );
+          lastMeterMs = meterNowMs;
+          const meterFrame = meterFrames[bufferSlot];
+          for (let channel = 0; channel < meterAnalysers.length; channel += 1) {
+            meterAnalysers[channel].getFloatTimeDomainData(meterSamples);
+            const follower = advanceLevel(
+              meterFollowers[channel],
+              amplitudeToDb(readPeakAmplitude(meterSamples)),
+              meterDeltaMs,
+            );
+            meterFrame[channel].levelDb = follower.levelDb;
+            meterFrame[channel].peakDb = follower.peakDb;
+          }
+          setOutputLevels(meterFrame);
         }
 
         if (!session) {
@@ -1114,6 +1295,7 @@ const useLiveOutputSpectrum = () => {
     () => ({
       balanceProgress,
       isClipping,
+      outputLevels,
       points,
       presenceLevels,
       presenceTypical,
@@ -1122,6 +1304,7 @@ const useLiveOutputSpectrum = () => {
     [
       balanceProgress,
       isClipping,
+      outputLevels,
       points,
       presenceLevels,
       presenceTypical,
