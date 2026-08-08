@@ -19,6 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { FilterTypeEnum, IFilter } from 'common/constants';
 import {
+  SAMPLE_FREQUENCIES,
+  gainAtFrequency,
+  getTFCoefficients,
+} from 'common/response';
+import {
   CONTINUOUS_MAX_STEP_DB,
   SMART_EQ_MAX_BOOST_DB,
   CONTINUOUS_MEMORY,
@@ -33,6 +38,7 @@ import {
   SMART_EQ_MIN_FREQUENCY,
   SMART_EQ_QUALITY,
   buildSmartEqSettings,
+  confineSmartEqResponse,
   stepSmartEqGains,
   describeSmartEqLayer,
   getSmartEqBands,
@@ -471,5 +477,44 @@ describe('the Smart EQ layer', () => {
       // evidence that 1 kHz needs no correction.
       expect(gainAt(bands, stepped, 1000)).toBeCloseTo(3, 6);
     });
+  });
+});
+
+describe('confining the response to the limit', () => {
+  const bands = getSmartEqBands(undefined);
+
+  it('scales a stacked response home in one call, keeping its shape', () => {
+    // Three neighbours at a lawful +6 each stack well past +6 in the response.
+    const gains: Record<string, number> = {};
+    bands.forEach((band) => {
+      if (band.frequency >= 800 && band.frequency <= 1250) {
+        gains[band.id] = 6;
+      }
+    });
+    const confined = confineSmartEqResponse(gains, bands, 6);
+    const filters = bands
+      .filter((band) => Number.isFinite(confined[band.id]))
+      .map((band) => ({ ...band, gain: confined[band.id] }));
+    const peak = Math.max(
+      ...SAMPLE_FREQUENCIES.map((frequency) =>
+        Math.abs(
+          filters.reduce(
+            (sum, filter) =>
+              sum + gainAtFrequency(frequency, getTFCoefficients(filter)),
+            0,
+          ),
+        ),
+      ),
+    );
+
+    expect(peak).toBeLessThanOrEqual(6.05);
+    // Shape preserved: every band shrank by the same factor.
+    const ratios = Object.keys(gains).map((id) => confined[id] / gains[id]);
+    expect(Math.max(...ratios) - Math.min(...ratios)).toBeLessThan(1e-9);
+  });
+
+  it('leaves a layer already inside the limit untouched', () => {
+    const gains = { [bands[3].id]: 3 };
+    expect(confineSmartEqResponse(gains, bands, 6)).toEqual(gains);
   });
 });

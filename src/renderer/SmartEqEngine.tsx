@@ -22,6 +22,7 @@ import {
   TSmartEqDrift,
   blendSmartEqTarget,
   buildSmartEqSettings,
+  confineSmartEqResponse,
   describeSmartEqLayer,
   getSmartEqBands,
   stepSmartEqGains,
@@ -677,7 +678,7 @@ const SmartEqEngine = () => {
 
         const measured = buildSmartEqSettings(
           bands,
-          gains,
+          confineSmartEqResponse(gains, bands, getCorrectionLimit()),
           {
             status: result.status,
             lowFrequency: result.lowFrequency,
@@ -1006,12 +1007,21 @@ const SmartEqEngine = () => {
     const { target, drift } = blended;
     longRunTargetRef.current = target;
     longRunDriftRef.current = drift;
-    const stepped = stepSmartEqGains(bands, longRunTargetRef.current, {
+    const steppedRaw = stepSmartEqGains(bands, longRunTargetRef.current, {
       moving: movingBandsRef.current,
       // Symmetric, and whatever the listener chose. See `correctionLimit`.
       maxBoost: getCorrectionLimit(),
       maxCut: getCorrectionLimit(),
     });
+    // The limit line bounds the CURVE, and bells sum: two lawful bands can
+    // stack past it, and a layer inherited from a wider limit starts outside
+    // it. Out of bounds is scaled home in one move rather than stepped -- see
+    // confineSmartEqResponse.
+    const stepped = confineSmartEqResponse(
+      steppedRaw,
+      bands,
+      getCorrectionLimit(),
+    );
     // Which bands are still travelling, for the next pass. Derived rather than
     // tracked: a band moved exactly when its gain changed, so this cannot drift
     // out of step with what was actually written.

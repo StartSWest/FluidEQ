@@ -111,22 +111,25 @@ const MODE_MARGINS: Record<TSmartEqMode, { floor: number; ramp: number }> = {
 };
 
 /**
- * Detail's promise, enforced where it can be seen rather than only in the maths.
+ * Detail is merely stricter about the bass, no longer deaf to it.
  *
- * Detail exists to open up the mids and highs *without touching the bottom*.
- * The solver already refuses to fund that by cutting the bass — it anchors
- * there instead of on loudness — but nothing stopped it lifting the bass either,
- * and a mode that quietly adds low end is not the mode it says it is.
+ * The first version pinned the bass floor to the ceiling of the plot — no
+ * boost, ever — on the argument that a mode promising "without touching the
+ * bottom" should be seen to keep it. That over-reached: the promise is about
+ * not CUTTING the bass to fund the lift, and the anchor already keeps it. An
+ * outright wall meant a genuine bass resonance dip could never be repaired in
+ * Detail at all, which read as the mode being broken in its lowest two bands.
  *
- * So in Detail the bass floor goes to the top of the plot. The trace cannot get
- * above it, no boost is ever allowed there, and the reason is visible: the red
- * line is sitting at the ceiling of the bass band.
+ * So the bass keeps a tighter margin than the rest of the spectrum — its floor
+ * sits four decibels higher, its ramp is wider — and earns correction the same
+ * way everything else does, just more slowly and on stronger evidence.
  */
 const DETAIL_BASS_CEILING_HZ = 150;
+const DETAIL_BASS_MARGINS = { floor: 8, ramp: 12 };
 
 const marginsFor = (mode: TSmartEqMode, centreFrequency: number) => {
   if (mode === 'detail' && centreFrequency <= DETAIL_BASS_CEILING_HZ) {
-    return { floor: -99, ramp: 0 };
+    return DETAIL_BASS_MARGINS;
   }
   return MODE_MARGINS[mode] ?? MODE_MARGINS.smart;
 };

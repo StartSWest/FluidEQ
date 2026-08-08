@@ -18,6 +18,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  SAMPLE_FREQUENCIES,
+  gainAtFrequency,
+  getTFCoefficients,
+} from './response';
+import {
   FilterTypeEnum,
   FixedBandSizeEnum,
   FIXED_BAND_FREQUENCIES,
@@ -654,4 +659,54 @@ export const buildSmartEqSettings = (
   });
 
   return sanitizeSmartEqSettings({ filters, ...measurement });
+};
+
+/**
+ * Scale the whole layer back inside a response limit, immediately.
+ *
+ * The per-band clamp bounds each band and the CURVE is what the limit line
+ * promises: neighbouring bells sum, so two lawful +6 bands can stack +9 into
+ * the response, and a layer inherited from a wider limit can sit outside the
+ * new one entirely. Walking back at the ordinary step pace leaves the plot
+ * showing a curve over a line it must never cross, for minutes.
+ *
+ * So an out-of-bounds RESPONSE is not stepped home, it is scaled home in one
+ * move. Scaling down is the one intervention that is always safe — it reduces
+ * a correction that was already judged too large and can lift nothing — and
+ * because every gain shrinks by the same factor, the correction keeps its
+ * shape: it gets smaller, not different. Two passes, because a biquad's
+ * response is only approximately proportional to its gain.
+ */
+export const confineSmartEqResponse = (
+  gains: Record<string, number>,
+  bands: IFilter[],
+  limitDb: number,
+): Record<string, number> => {
+  if (!(limitDb > 0)) {
+    return gains;
+  }
+  let scaled = { ...gains };
+  for (let pass = 0; pass < 2; pass += 1) {
+    const current = scaled;
+    const filters = bands
+      .filter((band) => Number.isFinite(current[band.id]))
+      .map((band) => ({ ...band, gain: current[band.id] }));
+    let peak = 0;
+    SAMPLE_FREQUENCIES.forEach((frequency) => {
+      const total = filters.reduce(
+        (sum, filter) =>
+          sum + gainAtFrequency(frequency, getTFCoefficients(filter)),
+        0,
+      );
+      peak = Math.max(peak, Math.abs(total));
+    });
+    if (peak <= limitDb) {
+      break;
+    }
+    const factor = limitDb / peak;
+    scaled = Object.fromEntries(
+      Object.entries(scaled).map(([id, gain]) => [id, gain * factor]),
+    );
+  }
+  return scaled;
 };
