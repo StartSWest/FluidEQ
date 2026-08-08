@@ -14,6 +14,26 @@ it under the terms of the GNU General Public License version 3 or later.
 // Smart EQ coverage, drawn only while a measurement is running. Each frequency
 // region brightens as it is actually heard, and a bar underneath fills with its
 // confidence — so "still listening" has a visible reason.
+// The whole overlay fades rather than being snatched away. Coverage vanishes
+// the instant the music stops — a silent capture reports no ranges — and nine
+// full-height columns disappearing between two frames reads as a glitch, not
+// as a state changing. Slower out than in: arriving is news, leaving is not.
+.chart-coverage {
+  opacity: 1;
+  transition: opacity 260ms ease;
+
+  &.is-leaving {
+    opacity: 0;
+    transition-duration: 520ms;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chart-coverage {
+    transition: none;
+  }
+}
+
 .chart-coverage__column {
   fill: #00e5cf;
   transition: opacity 400ms ease;

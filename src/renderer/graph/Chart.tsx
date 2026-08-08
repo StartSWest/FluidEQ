@@ -219,6 +219,8 @@ const CoverageOverlay = ({
   const dragging = useRef<string | undefined>(undefined);
   /** Last pointer position of a pair drag, in decibels. See its use. */
   const dragFrom = useRef<number | undefined>(undefined);
+  /** The last ranges seen, so they can fade rather than vanish. */
+  const lastCoverage = useRef<typeof coverage>(undefined);
 
   /**
    * Where a pointer sits, in the chart's own decibels.
@@ -255,12 +257,33 @@ const CoverageOverlay = ({
   // Marking only the ranges a correction had just landed on was tried instead
   // and is worse: a block of colour laid over part of the graph reads as
   // something having been added to the chain rather than as an event.
-  if (isSolo || !coverage?.length) {
+  /*
+   * FADED OUT, NOT SNATCHED AWAY.
+   *
+   * Coverage vanishes the moment the music stops — a silent capture reports no
+   * ranges — and nine full-height columns disappearing between one frame and
+   * the next reads as a glitch rather than as a state changing. Pausing a track
+   * should not look like the app dropping something.
+   *
+   * So the last ranges are held while the group fades, and only then let go.
+   * Held in a ref rather than in state on purpose: this component renders at
+   * frame rate, and the retained copy must not be a second reason to re-render
+   * — it is read during a render that was already happening.
+   */
+  const isGone = isSolo || !coverage?.length;
+  if (coverage?.length) {
+    lastCoverage.current = coverage;
+  }
+  const shown = coverage?.length ? coverage : lastCoverage.current;
+  if (!shown?.length) {
     return null;
   }
   return (
-    <g className="chart-coverage" pointerEvents="none">
-      {coverage.map((region, index) => {
+    <g
+      className={`chart-coverage${isGone ? ' is-leaving' : ''}`}
+      pointerEvents="none"
+    >
+      {shown.map((region, index) => {
         const left = Number(xScale(region.lowFrequency));
         const right = Number(xScale(region.highFrequency));
         const width = Math.max(0, right - left - 2);
@@ -729,7 +752,7 @@ const CoverageOverlay = ({
        * range. This says the remaining thing: when the next write may happen.
        */}
       {secondsLeft > 0 &&
-        coverage.some(
+        shown.some(
           (region) =>
             region.isCovered &&
             (disagreement[region.label] ?? 0) >= DISAGREEMENT_DEADBAND_DB,
