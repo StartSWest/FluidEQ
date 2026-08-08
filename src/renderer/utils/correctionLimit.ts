@@ -50,7 +50,12 @@ export const MIN_CORRECTION_LIMIT_DB = 1;
 export const MAX_CORRECTION_LIMIT_DB = MAX_GAIN;
 export const DEFAULT_CORRECTION_LIMIT_DB = SMART_EQ_MAX_BOOST_DB;
 
-const STORAGE_KEY = 'fluideq.correctionLimit';
+// Re-keyed once, deliberately. Values written under the old key were stored
+// while the feature was still being tuned, the same afternoon it was built,
+// and it has never shipped under that key — so retiring it costs nobody a real
+// setting and guarantees everyone actually starts at the six the default
+// promises, rather than at whatever they dragged past while it was raw.
+const STORAGE_KEY = 'fluideq.correctionLimitDb';
 
 const clampLimit = (db: number) =>
   Math.max(MIN_CORRECTION_LIMIT_DB, Math.min(MAX_CORRECTION_LIMIT_DB, db));
