@@ -64,10 +64,18 @@ it under the terms of the GNU General Public License version 3 or later.
 // And the ramp between them, which is the part that would otherwise need
 // explaining. Trust is not a switch: the higher the trace sits in this band,
 // the more boost the range has earned, and a gradient is what that looks like.
+// Takes the pointer, and drags the pair. Setting where a range starts to be
+// trusted and setting how gradually it gets there are two different thoughts;
+// having decided the second, moving the first should not cost two drags and a
+// subtraction to keep the width the same.
+//
+// It is also what brings the reset button up, which is why that button no
+// longer carries a hit pad of its own — the pad had become the one stripe of
+// the gap that could not be dragged.
 .chart-presence__ramp {
   fill: url('#chart-presence-ramp');
+  cursor: ns-resize;
   opacity: 0.5;
-  pointer-events: none;
   transition: opacity 160ms ease;
 }
 

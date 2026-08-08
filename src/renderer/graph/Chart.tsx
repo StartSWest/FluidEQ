@@ -40,6 +40,7 @@ import { toggleChromeNow } from '../utils/idleChrome';
 import {
   getPresenceLine,
   hasCustomPresenceRange,
+  movePresenceRange,
   presenceAllowance,
   resetPresenceRange,
   setPresenceLine,
@@ -67,13 +68,6 @@ export interface ChartDimensions {
  * is invisible and much taller.
  */
 const PRESENCE_GRAB_PX = 9;
-
-/**
- * Half-height of the band through the middle of a ramp that brings its reset
- * button up. Capped, because this pad swallows clicks and a tall ramp would
- * otherwise make a great deal of plot unclickable for a button wanted once.
- */
-const PRESENCE_RESET_PAD_PX = 14;
 
 /**
  * Red at nothing earned, green at everything, blended in between.
@@ -160,8 +154,11 @@ const CoverageOverlay = ({
   // component would notice.
   useSmartEqMode();
   // `range:edge`, because two lines in the same range are both grabbable and
-  // the pointer has to be told which one it caught.
+  // the pointer has to be told which one it caught. `range:both` is the gap
+  // between them, which slides the pair.
   const dragging = useRef<string | undefined>(undefined);
+  /** Last pointer position of a pair drag, in decibels. See its use. */
+  const dragFrom = useRef<number | undefined>(undefined);
 
   /**
    * Where a pointer sits, in the chart's own decibels.
@@ -310,6 +307,49 @@ const CoverageOverlay = ({
                     y={Math.min(floorY, fullY)}
                     width={width}
                     height={Math.abs(floorY - fullY)}
+                    pointerEvents="all"
+                    onPointerDown={(event) => {
+                      event.stopPropagation();
+                      const db = dbAt(event);
+                      if (db === undefined) {
+                        return;
+                      }
+                      dragging.current = `${region.label}:both`;
+                      dragFrom.current = db;
+                      event.currentTarget.setPointerCapture(event.pointerId);
+                    }}
+                    onPointerMove={(event) => {
+                      if (dragging.current !== `${region.label}:both`) {
+                        return;
+                      }
+                      const db = dbAt(event);
+                      if (db === undefined || dragFrom.current === undefined) {
+                        return;
+                      }
+                      /*
+                       * Against the last position rather than the first.
+                       *
+                       * A delta from where the drag started would have to be
+                       * applied to the values as they were when it started, and
+                       * those are not what the store holds after the first
+                       * move. Stepping from the previous position keeps the
+                       * pair following the pointer exactly, including through
+                       * the clamp at either end of the axis.
+                       */
+                      movePresenceRange(
+                        region.label,
+                        db - dragFrom.current,
+                        centre,
+                      );
+                      dragFrom.current = db;
+                    }}
+                    onPointerUp={(event) => {
+                      dragging.current = undefined;
+                      dragFrom.current = undefined;
+                      event.currentTarget.releasePointerCapture(
+                        event.pointerId,
+                      );
+                    }}
                   />
                   {/*
                    * Where this range is, right now.
@@ -363,38 +403,18 @@ const CoverageOverlay = ({
                         })}
                       </title>
                       {/*
-                       * The gap itself is the target, not the glyph.
+                       * No hit pad of its own any more. It had one — a wide
+                       * invisible band across the middle of the ramp — for a
+                       * good reason: a small circle that is transparent until
+                       * you are on it is reachable but not aimable, which from
+                       * the pointer's side is the same problem.
                        *
-                       * A seven-pixel circle that is invisible until you are on
-                       * it is a thing you find by accident. Opacity does not
-                       * stop an element being hit, so the button was always
-                       * reachable — it was just unaimable, which is the same
-                       * problem from the user's side. So the whole width of the
-                       * range, through the middle of the ramp, brings it up.
-                       *
-                       * Height capped rather than the whole ramp: this pad does
-                       * swallow clicks, and a ramp fourteen decibels tall
-                       * spanning a range is a lot of plot to make unclickable
-                       * for a button somebody wants once.
+                       * The ramp now takes the pointer itself, so hovering
+                       * anywhere in the gap brings the button up, and the pad
+                       * had become the one part of the gap that could not be
+                       * dragged — a dead stripe through the middle of the very
+                       * thing it was sitting on.
                        */}
-                      <rect
-                        className="chart-presence__reset-pad"
-                        x={left + 1}
-                        y={
-                          (floorY + fullY) / 2 -
-                          Math.min(
-                            PRESENCE_RESET_PAD_PX,
-                            Math.abs(floorY - fullY) / 2,
-                          )
-                        }
-                        width={width}
-                        height={
-                          Math.min(
-                            PRESENCE_RESET_PAD_PX,
-                            Math.abs(floorY - fullY) / 2,
-                          ) * 2
-                        }
-                      />
                       <circle
                         cx={left + 1 + width / 2}
                         cy={(floorY + fullY) / 2}

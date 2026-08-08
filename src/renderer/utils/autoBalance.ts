@@ -1004,7 +1004,30 @@ export const buildBalancedGains = (
     (reference.anchor === 'bass'
       ? bassWeight(entry.filter.frequency)
       : audibilityWeight(entry.filter.frequency)) * entry.confidence;
-  const anchored = raw.filter((entry) => entry.isSolvable);
+  /** Read twice — once to decide the anchor, once to bound the gain. */
+  const allowanceOf = (entry: (typeof raw)[number]) =>
+    boostAllowance ? clamp01(boostAllowance(entry.filter.frequency)) : 1;
+  /*
+   * A BAND THAT MAY NOT MOVE UP DOES NOT GET A VOTE ON THE LEVEL EITHER, and
+   * leaving it one is a ratchet that empties the record.
+   *
+   * The anchor keeps a correction from changing the volume: subtract the
+   * weighted mean and what is left is a change of tone. That holds only while
+   * the cuts and the boosts it averages both actually happen. Once the presence
+   * gate could refuse a boost, they did not — a silent range asked to come up,
+   * the mean went positive, every band had that positive number subtracted, and
+   * the boosts that were supposed to pay for it were never applied.
+   *
+   * So each pass took a little off the whole record and none of it went back.
+   * Over an evening the correction slid toward its floor with the shape of a
+   * deepening V, which is exactly what it looked like: the ranges that kept
+   * playing held their ground while everything intermittent sank.
+   *
+   * The same rule the declined bands already followed, for the same reason.
+   */
+  const anchored = raw.filter(
+    (entry) => entry.isSolvable && allowanceOf(entry) > 0,
+  );
   const anchorWeight = anchored.reduce(
     (total, entry) => total + anchorWeightOf(entry),
     0,
@@ -1033,6 +1056,12 @@ export const buildBalancedGains = (
       // subtracted only from bands that were actually answered for — applying it
       // to the others would move them on the strength of an average they took no
       // part in, which is a correction nobody measured.
+      // Still corrected, even where no boost is allowed. Withholding the whole
+      // correction from a gated band was tried and is wrong: it takes the cuts
+      // away with the boosts, and a range that is quiet AND too loud for its
+      // target is a real thing — the gate exists to stop a silent range being
+      // lifted, not to make it untouchable. The clamp below is where the one
+      // direction is refused; this is not.
       const correction = entry.isSolvable ? entry.correction - mean : 0;
       /*
        * How much of a boost this band has earned, and cuts are untouched.
@@ -1048,9 +1077,7 @@ export const buildBalancedGains = (
        * caller that knows nothing about presence — every test that predates
        * this, and any synthetic frame — behaves exactly as it did.
        */
-      const allowance = boostAllowance
-        ? clamp01(boostAllowance(entry.filter.frequency))
-        : 1;
+      const allowance = allowanceOf(entry);
       const gain =
         base +
         clamp(correction * entry.confidence, -maxCut, maxBoost * allowance);

@@ -275,10 +275,18 @@ const SmartEqEngine = () => {
           frequency >= entry.lowFrequency && frequency <= entry.highFrequency,
       );
       if (!region) {
-        // Outside every range there is nothing that could have been heard, so
-        // nothing is earned. Those bands sit outside the correctable span in
-        // any case.
-        return 0;
+        /*
+         * No range covering this frequency means no presence information about
+         * it, which is not the same claim as "nothing is playing here" — and
+         * answering zero makes the second claim. A capture that reported no
+         * ranges at all would then refuse every correction, silently, and look
+         * exactly like a measurement that had decided the record was perfect.
+         *
+         * So absence of evidence permits rather than forbids. Everything
+         * downstream still bounds it, and a frequency genuinely outside the
+         * correctable span is declined long before this is consulted.
+         */
+        return 1;
       }
       return presenceAllowance(
         region.liveDb,

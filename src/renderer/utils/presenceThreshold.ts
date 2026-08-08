@@ -282,6 +282,43 @@ export const resetPresenceRange = (
 };
 
 /**
+ * Slide both lines together, keeping the gap between them.
+ *
+ * Dragging the pair is a different intention from dragging either edge, and it
+ * is the commoner one: the gap says how gradually a range earns its correction,
+ * and having decided that, moving it up or down is a single thought — "trust
+ * this range less" — that should not cost two drags and a subtraction to keep
+ * the width the same.
+ *
+ * Clamped as a pair rather than one at a time. Clamping each edge separately
+ * would let the leading one hit the ceiling while the other kept coming, so the
+ * gap would silently close on the way up and never reopen on the way down.
+ */
+export const movePresenceRange = (
+  label: string,
+  deltaDb: number,
+  centreFrequency: number,
+  mode: TSmartEqMode = getSmartEqMode(),
+) => {
+  const floor = getPresenceLine('floor', label, centreFrequency, mode);
+  const full = getPresenceLine('full', label, centreFrequency, mode);
+  const room = Math.max(
+    PRESENCE_MIN_DB - floor,
+    Math.min(PRESENCE_MAX_DB - full, deltaDb),
+  );
+  if (room === 0) {
+    return;
+  }
+  lines = {
+    ...lines,
+    [keyOf(mode, label, 'floor')]: floor + room,
+    [keyOf(mode, label, 'full')]: full + room,
+  };
+  persist();
+  notify();
+};
+
+/**
  * Whether this range has been moved in this mode, so nothing offers a dead
  * reset.
  *
