@@ -200,7 +200,9 @@ const KNOWN: Record<string, string[]> = {
   // sits. Smart's entry is the marginal one — it lived within a decibel of the
   // threshold all along and moved twelve hundredths over the line when the
   // level zeroing landed. Same regime, same defect, now over instead of under.
-  smart: ['spread'],
+  // Smart came back under its line when the post-passes were clamped to the
+  // caller's limits rather than the axis.
+  smart: [],
   detail: ['spread'],
   balance: ['spread'],
   target: ['spread'],

@@ -1472,11 +1472,18 @@ export const buildBalancedGains = (
     }
     const tilt = slope * Math.log10(entry.filter.frequency) + intercept;
     const next = (gains[entry.id] ?? 0) - tilt * (1 - keep);
+    // Inside the caller's own limits, not the axis. These two passes run
+    // AFTER the per-band clamp, and bounding them only by ±20 let them push a
+    // band past the limit somebody had just drawn on the plot — which is the
+    // one thing a line named "limit" must never appear to allow.
+    const within = clamp(
+      next,
+      Math.max(MIN_GAIN, -maxCut),
+      Math.min(MAX_GAIN, maxBoost * allowanceOf(entry)),
+    );
     // A gated range may be brought down by this and never up.
     bounded[entry.id] =
-      allowanceOf(entry) > 0
-        ? clamp(next, MIN_GAIN, MAX_GAIN)
-        : Math.min(gains[entry.id] ?? 0, clamp(next, MIN_GAIN, MAX_GAIN));
+      allowanceOf(entry) > 0 ? within : Math.min(gains[entry.id] ?? 0, within);
   });
 
   return roundGains(bounded);
