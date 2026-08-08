@@ -83,12 +83,31 @@ const channelNameKey = (index: number, isStereo: boolean): TranslationKey => {
 };
 
 interface IOutputLevelMeterProps {
-  /** Where the plot's drawing area starts and ends inside the card. */
-  plotTop: number;
-  plotBottom: number;
+  /**
+   * Where the plot's drawing area starts and ends inside the card. Only the
+   * overlay needs them; a panel meter is laid out by its container like
+   * anything else on the page.
+   */
+  plotTop?: number;
+  plotBottom?: number;
+  /**
+   * TWO PLACES, ONE COMPONENT, and the same subscription in both.
+   *
+   * The overlay hangs in the plot's right gutter, where it is context for the
+   * curve you are reading. The panel version stands in the device column,
+   * where it is the thing you are actually watching. Both are the same
+   * measurement, and duplicating the component to move it would be two copies
+   * of the dBFS-versus-track-reference distinction to keep in step -- which is
+   * the one thing about this feature that is easy to get quietly wrong.
+   */
+  variant?: 'overlay' | 'panel';
 }
 
-const OutputLevelMeter = ({ plotTop, plotBottom }: IOutputLevelMeterProps) => {
+const OutputLevelMeter = ({
+  plotTop = 0,
+  plotBottom = 0,
+  variant = 'overlay',
+}: IOutputLevelMeterProps) => {
   // The readings, straight from the capture. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
   const { isClipping, outputLevels } = useLiveAudioFrame();
@@ -103,12 +122,18 @@ const OutputLevelMeter = ({ plotTop, plotBottom }: IOutputLevelMeterProps) => {
   const isStereo = outputLevels.length > 1;
   return (
     <div
-      className={`output-meter${isClipping ? ' is-clipping' : ''}`}
-      style={{
-        top: Math.max(plotTop, LEGEND_CLEARANCE_PX),
-        bottom: plotBottom,
-        insetInlineEnd: EDGE_GAP_PX,
-      }}
+      className={`output-meter output-meter--${variant}${
+        isClipping ? ' is-clipping' : ''
+      }`}
+      style={
+        variant === 'overlay'
+          ? {
+              top: Math.max(plotTop, LEGEND_CLEARANCE_PX),
+              bottom: plotBottom,
+              insetInlineEnd: EDGE_GAP_PX,
+            }
+          : undefined
+      }
       // One thing with one meaning, so it is announced once and its bars are
       // not read out as a list of empty boxes.
       //

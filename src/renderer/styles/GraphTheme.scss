@@ -1045,12 +1045,60 @@ it under the terms of the GNU General Public License version 3 or later.
 // that puts the chrome away — is hit-tested against the SVG underneath, and an
 // overlay that took the pointer would swallow all of them near the right edge.
 .output-meter {
-  position: absolute;
-  z-index: 2;
   display: flex;
   align-items: stretch;
   gap: 4px;
   pointer-events: none;
+}
+
+// The gutter meter: pinned into the plot's own right margin, floating over the
+// drawing. Positioned from TypeScript because it stands on the chart's real
+// edges, which only the chart knows.
+.output-meter--overlay {
+  position: absolute;
+  z-index: 2;
+}
+
+/*
+ * The panel meter: a block in the device column, laid out like anything else
+ * on the page.
+ *
+ * Responsive by measuring against the pane rather than the window. The column
+ * is user-resizable, so a window-width breakpoint would be answering the wrong
+ * question — what matters is how much room this card has, which is exactly
+ * what container queries were added to CSS to ask. Height comes from the
+ * viewport with a floor and a ceiling, so a short screen does not force a
+ * meter taller than the pane and a tall one does not stretch it to absurdity.
+ */
+.output-meter--panel {
+  container-type: inline-size;
+  width: 100%;
+  height: clamp(84px, 18vh, 180px);
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid rgba(216, 210, 255, 0.1);
+  border-radius: $radius-md;
+  margin-block-start: 8px;
+  background: rgba(12, 26, 38, 0.5);
+  gap: 8px;
+
+  .output-meter__channel {
+    width: auto;
+    flex: 1 1 0;
+  }
+
+  .output-meter__track {
+    width: 100%;
+  }
+}
+
+// Narrow pane: the channel letters are the first thing to go. Two bars side by
+// side still say which is which by position, and a letter squeezed under a
+// four-pixel bar is unreadable anyway.
+@container (max-width: 90px) {
+  .output-meter--panel .output-meter__name {
+    display: none;
+  }
 }
 
 .output-meter__channel {
