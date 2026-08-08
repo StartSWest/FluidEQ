@@ -78,12 +78,21 @@ it under the terms of the GNU General Public License version 3 or later.
 // still sit there, because being heard is not the same as having something to
 // say. Muted until the deadband is passed, then bright — position is the ratio,
 // brightness is the verdict.
+// Its own track, so an empty one reads as empty rather than as absent. The bar
+// below it says how much of the range has been heard; this one says how much it
+// has to say about what it heard. Both full means the only thing left to wait
+// for is the quiet period between writes.
+.chart-coverage__gap-track {
+  fill: rgba(216, 210, 255, 0.1);
+}
+
 .chart-coverage__gap {
-  fill: rgba(216, 210, 255, 0.4);
+  fill: rgba(255, 210, 74, 0.45);
   transition:
-    x 400ms ease,
+    width 400ms ease,
     fill 200ms ease;
 
+  // Past the deadband: this range now has something worth writing.
   &.is-past {
     fill: #ffd24a;
   }

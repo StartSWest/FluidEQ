@@ -288,6 +288,8 @@ const ru: Partial<Dictionary> = {
   'eq.smart.presence.trustedAbove': '{range} · выше {db} дБ доверяем полностью',
   'eq.smart.presence.reset': 'Сбросить {range} для этого режима',
   'eq.smart.limit.label': 'Предел Smart EQ {db} дБ',
+  'eq.smart.gap.title':
+    '{range}: насколько расходится, против порога для действия',
 
   'convolution.eyebrow': 'ИМПУЛЬСНЫЕ ХАРАКТЕРИСТИКИ APO',
   'convolution.title': 'Библиотека свёртки',

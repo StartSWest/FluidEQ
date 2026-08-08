@@ -294,6 +294,8 @@ const de: Partial<Dictionary> = {
   'eq.smart.presence.trustedAbove': '{range} · über {db} dB voll vertraut',
   'eq.smart.presence.reset': '{range} für diesen Modus zurücksetzen',
   'eq.smart.limit.label': 'Smart-EQ-Grenze {db} dB',
+  'eq.smart.gap.title':
+    '{range}: wie weit es abweicht, gemessen an der nötigen Schwelle',
 
   'convolution.eyebrow': 'APO-IMPULSANTWORTEN',
   'convolution.title': 'Faltungsbibliothek',

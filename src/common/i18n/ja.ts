@@ -284,6 +284,7 @@ const ja: Partial<Dictionary> = {
   'eq.smart.presence.trustedAbove': '{range} · {db} dB 以上は完全に信頼',
   'eq.smart.presence.reset': 'このモードの {range} をリセット',
   'eq.smart.limit.label': 'Smart EQ 上限 {db} dB',
+  'eq.smart.gap.title': '{range}: ずれの大きさと、動くために必要な量',
 
   'convolution.eyebrow': 'APO インパルス応答',
   'convolution.title': 'コンボリューション ライブラリ',

@@ -358,6 +358,8 @@ const en = {
   'eq.smart.presence.trustedAbove': '{range} · fully trusted above {db} dB',
   'eq.smart.presence.reset': 'Reset {range} for this mode',
   'eq.smart.limit.label': 'Smart EQ limit {db} dB',
+  'eq.smart.gap.title':
+    '{range}: how far it disagrees, against the amount needed to act',
 
   // *** Convolution *********************************************************
   'convolution.eyebrow': 'APO impulse responses',

@@ -296,6 +296,8 @@ const fr: Partial<Dictionary> = {
     '{range} · pleine confiance au-dessus de {db} dB',
   'eq.smart.presence.reset': 'Réinitialiser {range} pour ce mode',
   'eq.smart.limit.label': 'Limite Smart EQ {db} dB',
+  'eq.smart.gap.title':
+    '{range} : son désaccord, face au seuil requis pour agir',
 
   'convolution.eyebrow': 'RÉPONSES IMPULSIONNELLES APO',
   'convolution.title': 'Bibliothèque de convolution',

@@ -583,44 +583,59 @@ const CoverageOverlay = ({
               fill={region.isCovered ? undefined : presenceTint(allowance)}
             />
             {/*
-             * How far this range disagrees with where it is being steered.
+             * TWO CONDITIONS, TWO BARS, BOTH FILLING LEFT TO RIGHT.
              *
-             * The fill alone is the misleading half of the answer. A range can
-             * be completely heard and still sit there doing nothing, because
-             * being heard is not the same as having something to say — a write
-             * also needs the disagreement to clear the settle deadband. Without
-             * this, a full bar next to a correction that never comes looks like
+             * The bar below says how much of this range has been heard. Alone
+             * it is the misleading half of the answer: a range can be entirely
+             * heard and still sit there doing nothing, because being heard is
+             * not the same as having something to say. A write also needs the
+             * disagreement to clear the settle deadband, and without that on
+             * screen a full bar beside a correction that never comes looks like
              * a fault.
              *
-             * Drawn as a tick that crosses the bar once the deadband is passed,
-             * so its position is the ratio and its state is the verdict. Not a
-             * countdown: the quiet period and the evidence are two further
-             * conditions, and a single clock would promise an arrival either of
-             * them can postpone.
+             * This was a two-pixel tick sliding along the same bar, and it told
+             * nobody anything — a mark whose POSITION carries the meaning needs
+             * a scale to be read against, and there was none. A second bar that
+             * fills has the scale built in: full is full. Two bars, both full,
+             * means the only thing left to wait for is the quiet period.
+             *
+             * Still not a countdown. Evidence, disagreement and the twenty
+             * seconds between writes are three independent conditions, and one
+             * clock would promise an arrival that any of the other two can
+             * postpone.
              */}
-            {disagreement[region.label] > 0 && (
-              <rect
-                className={`chart-coverage__gap${
-                  disagreement[region.label] >= DISAGREEMENT_DEADBAND_DB
-                    ? ' is-past'
-                    : ''
-                }`}
-                x={
-                  left +
-                  1 +
-                  width *
-                    Math.min(
-                      1,
-                      disagreement[region.label] / DISAGREEMENT_DEADBAND_DB,
-                    ) -
-                  1
-                }
-                y={plotHeight - 9}
-                width={2}
-                height={10}
-                rx={1}
-              />
-            )}
+            <rect
+              className="chart-coverage__gap-track"
+              x={left + 1}
+              y={plotHeight - 12}
+              width={width}
+              height={3}
+              rx={1.5}
+            />
+            <rect
+              className={`chart-coverage__gap${
+                disagreement[region.label] >= DISAGREEMENT_DEADBAND_DB
+                  ? ' is-past'
+                  : ''
+              }`}
+              x={left + 1}
+              y={plotHeight - 12}
+              width={
+                width *
+                Math.min(
+                  1,
+                  (disagreement[region.label] ?? 0) / DISAGREEMENT_DEADBAND_DB,
+                )
+              }
+              height={3}
+              rx={1.5}
+            >
+              <title>
+                {t('eq.smart.gap.title', {
+                  range: balanceRangeName(region.label, t),
+                })}
+              </title>
+            </rect>
           </g>
         );
       })}

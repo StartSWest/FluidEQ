@@ -264,6 +264,7 @@ const zh: Partial<Dictionary> = {
   'eq.smart.presence.trustedAbove': '{range} · 高于 {db} dB 时完全采信',
   'eq.smart.presence.reset': '在此模式下重置 {range}',
   'eq.smart.limit.label': 'Smart EQ 限制 {db} dB',
+  'eq.smart.gap.title': '{range}：偏差程度，对照采取行动所需的阈值',
 
   'convolution.eyebrow': 'APO 脉冲响应',
   'convolution.title': '卷积库',
