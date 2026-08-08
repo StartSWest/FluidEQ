@@ -45,7 +45,10 @@ import {
   describeCorrectionShape,
 } from './utils/autoBalance';
 import { flashCorrection } from './utils/correctionFlash';
-import { buildChainGainDb } from './utils/layerTargetCurve';
+import {
+  buildChainGainDb,
+  buildLayerTargetCurve,
+} from './utils/layerTargetCurve';
 import { planBandReveal, revealBands } from './utils/bandReveal';
 import {
   registerSmartEqControl,
@@ -503,13 +506,36 @@ const SmartEqEngine = () => {
         // merely flattening — the same reference the continuous modes use, so
         // Target means the same thing whichever way it is reached.
         //
-        // No target curve, and there used to be one — a sum of every deliberate
-        // layer, handed to the solver so it could excuse each of them in the
-        // measurement. It is gone because the measurement no longer contains
-        // any of them: the capture subtracts the whole chain and hands back the
-        // record. Nothing to excuse, and no list of exceptions to get wrong.
+        // What the measurement is allowed to leave alone.
+        //
+        // The capture accumulates the output, so everything applied is in it.
+        // Driving all of that to the reference would cancel the layers somebody
+        // deliberately chose — pick a voicing and Smart EQ would quietly undo
+        // it, which is the least useful thing it could possibly do.
+        //
+        // TWO LAYERS ARE EXCUSED, AND ONLY TWO: the voicing and the driver.
+        //
+        // A voicing is a colouration somebody asked for by name. A driver
+        // correction compensates the transducer, which is the one thing a
+        // digital loopback categorically cannot hear — so it will always look
+        // like error to this measurement and cancelling it is always wrong.
+        //
+        // Everything else is what the correction listens for: the bands, a
+        // headset curve applied into them, and the convolution. All three are
+        // part of what is coming out, and if what is coming out is wrong they
+        // are corrected like anything else.
+        //
+        // The cost of putting the headset curve on that side belongs in
+        // writing, because it is not obvious: it is also a correction for
+        // something invisible to a loopback, so Smart EQ will flatten it over a
+        // few passes. A headphone correction that must survive belongs in the
+        // driver layer.
         const gains = buildBalancedGains(result.samples, bands, {
           reference: getReferenceShape(referenceModeRef.current),
+          targetCurve: buildLayerTargetCurve(
+            voicingRef.current,
+            driverRef.current,
+          ),
         });
         if (Object.keys(gains).length === 0) {
           setSmartEqStatus('Not enough range to measure');
@@ -730,11 +756,14 @@ const SmartEqEngine = () => {
     // total is capped. None of that is true of a single measurement applied
     // whole.
     const solved = buildBalancedGains(report.samples, bands, {
-      // The mode's curve, whatever else is switched on. Nothing about the
-      // voicing, the genre or the user's bands reaches this decision — they are
-      // subtracted from the measurement and applied on top of the result. See
+      // The mode's curve, whatever else is switched on. Which mode is chosen
+      // decides the destination and nothing else does — see
       // `getReferenceShape`.
       reference: getReferenceShape(referenceModeRef.current),
+      // The same two exceptions the one-shot makes, for the same reasons: the
+      // voicing is a named choice and the driver corrects the one thing this
+      // measurement cannot hear. Everything else in the output is fair game.
+      targetCurve: buildLayerTargetCurve(voicingRef.current, driverRef.current),
     });
     if (Object.keys(solved).length === 0) {
       // No answer this time. The tilt fit needs a wide trusted span and a range

@@ -1345,7 +1345,9 @@ export const accumulateBalanceFrame = (
    * dither, so those are dropped rather than compensated — which is the one
    * thing subtraction genuinely cannot get back.
    */
-  let { levels, peakDb } = frame;
+  const { levels } = frame;
+  let gateLevels = levels;
+  let gatePeakDb = frame.peakDb;
   if (state.chainGainDb) {
     if (!state.sourceLevels || state.sourceLevels.length !== levels.length) {
       state.sourceLevels = new Float64Array(levels.length);
@@ -1363,14 +1365,18 @@ export const accumulateBalanceFrame = (
         }
       }
     }
-    levels = source;
+    gateLevels = source;
     if (Number.isFinite(peak)) {
-      peakDb = peak;
+      gatePeakDb = peak;
     }
   }
 
+  // Loud enough to trust, asked of the record. A chain that has turned
+  // everything down does not make the music silent, and frames rejected as
+  // silence because of the user's own attenuation are frames the correction
+  // never gets to learn from.
   const w = clamp01(
-    (peakDb - FRAME_MIN_PEAK_DBFS) /
+    (gatePeakDb - FRAME_MIN_PEAK_DBFS) /
       (FRAME_FULL_PEAK_DBFS - FRAME_MIN_PEAK_DBFS),
   );
 
@@ -1436,13 +1442,31 @@ export const accumulateBalanceFrame = (
       return;
     }
 
-    // Both sides of this are the source, which is what makes it mean what it
-    // says: "the record has nothing here" rather than "the chain has left
-    // nothing here". The second is what it used to mean, and it is why a range
-    // cut hard was never corrected — the cut removed the evidence against
-    // itself.
+    /*
+     * THE GATE ASKS ABOUT THE RECORD; EVERYTHING ELSE MEASURES THE OUTPUT.
+     *
+     * Two different questions, and running both off the same numbers gets one
+     * of them wrong whichever way it is done.
+     *
+     * What to correct is a question about the output, because the output is
+     * what anybody hears. Whether a range CAN be corrected is a question about
+     * the record, and asking it of the output is self-concealing: cut 6.5 kHz
+     * by 20 dB and the evidence that the cut is wrong goes down with it, so the
+     * range never gathers enough to act on and the measurement waits on it for
+     * the rest of the evening. The louder the mistake, the more completely it
+     * hides.
+     *
+     * So the gate runs on the reconstructed record — the capture with the chain
+     * removed, see `chainGainDb` — and the level that is accumulated below is
+     * the measured output, untouched.
+     */
+    const gateDb = regionLevelDb(
+      gateLevels,
+      region.firstIndex,
+      region.lastIndex,
+    );
     const e = clamp01(
-      (absDb - (peakDb - REGION_FLOOR_DB)) / REGION_FLOOR_RAMP_DB,
+      (gateDb - (gatePeakDb - REGION_FLOOR_DB)) / REGION_FLOOR_RAMP_DB,
     );
     if (e <= 0) {
       return;

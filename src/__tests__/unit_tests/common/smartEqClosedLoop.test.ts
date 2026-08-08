@@ -29,7 +29,10 @@ import {
   buildBalancedGains,
   ISpectrumSample,
 } from 'renderer/utils/autoBalance';
-import { buildChainGainDb } from 'renderer/utils/layerTargetCurve';
+import {
+  buildChainGainDb,
+  buildLayerTargetCurve,
+} from 'renderer/utils/layerTargetCurve';
 import { getReferenceShape } from 'common/referenceCurve';
 import {
   getCombinedLineData,
@@ -187,19 +190,25 @@ const chainOf = (
 /**
  * One press of Smart EQ, against a chain that already holds `layer`.
  *
- * THE SUBTRACTION IS THE POINT OF THIS FILE.
+ * WHAT IS MEASURED IS THE OUTPUT, and what is excused is named explicitly.
  *
- * The capture hears the output — the record with every layer on it — and
- * `buildChainGainDb` is removed from it per analysis frequency before anything
- * is solved. Everything comes out except the Smart EQ layer, which stays in on
- * purpose: what is left is the record plus the correction so far, which is a
- * residual, and a residual is what makes repeated runs converge instead of
- * doubling.
+ * The capture accumulates the output — the record with every layer on it,
+ * Smart EQ's own included, which is what makes the answer a residual and what
+ * makes repeated runs converge instead of doubling.
  *
- * No target curve. There used to be one, listing every deliberate layer so the
- * solver could excuse each of them, and the tests in this file drove it long
- * after production had stopped calling it. Nothing needs excusing now, because
- * nothing deliberate is left in what is measured.
+ * Two layers are handed back as a target so the solver leaves them alone: the
+ * voicing, which somebody asked for by name, and the driver correction, which
+ * compensates the transducer and is therefore invisible to a digital loopback
+ * and can only ever look like error. Everything else — the bands, a headset
+ * curve applied into them, the convolution — is part of what is coming out and
+ * is corrected like anything else.
+ *
+ * The chain subtraction has not gone away; it moved. It is the capture's
+ * evidence gate now, deciding whether a range has enough of the RECORD in it to
+ * be worth correcting, which is the one question that must not be asked of the
+ * output — a range cut hard has no evidence left to convict the cut. That lives
+ * in `accumulateBalanceFrame` and is exercised by the capture tests; at this
+ * level the spectrum handed in is simply what came out.
  */
 const runOnce = (
   layer: ISmartEqSettings | undefined,
@@ -207,14 +216,10 @@ const runOnce = (
 ): ISmartEqSettings | undefined => {
   const bands = getSmartEqBands(layer);
   const heard = measure(chainOf(options, layer), options.room);
-  const chainDb = buildChainGainDb(subtractedOf(options), AXIS);
-  const source = heard.map((sample, index) => ({
-    frequency: sample.frequency,
-    level: sample.level - chainDb[index],
-  }));
 
-  const gains = buildBalancedGains(source, bands, {
+  const gains = buildBalancedGains(heard, bands, {
     reference: getReferenceShape(options.mode ?? 'smart'),
+    targetCurve: buildLayerTargetCurve(options.voicing, options.driver),
   });
   return buildSmartEqSettings(bands, gains);
 };
@@ -247,56 +252,50 @@ const retentionOf = (
 
 describe('the Smart EQ closed loop', () => {
   /*
-   * WHY EVERY LAYER IS LEFT ALONE, INCLUDING THE USER'S OWN BANDS.
+   * WHICH LAYERS ARE EXCUSED, AND WHY THIS SECTION HAS BEEN WRITTEN THREE WAYS.
    *
-   * This section has been rewritten twice and the two rewrites went in opposite
-   * directions, so the current answer is worth stating with its history.
+   * The boundary has moved twice and the history is worth keeping, because each
+   * position was right about something and wrong about something else.
    *
-   * At first the bands were handed to the solver as part of the goal, to protect
-   * a headphone correction applied from the AutoEQ panel. That worked and made
-   * Smart EQ blind to everything else in those bands, including a slider dragged
-   * to -16 dB: a measurement that subtracts the damage before looking for it
-   * always reports that there is none.
+   * First the user's bands were part of the goal, to protect a headphone
+   * correction applied from the AutoEQ panel. That protected it and made Smart
+   * EQ blind to everything else in those bands: a measurement that subtracts the
+   * damage before looking for it always reports there is none, so a slider
+   * dragged to -16 dB was invisible.
    *
-   * Then the bands were treated as error, so a hand-dragged slider was corrected
-   * — and so was the headphone correction, which is a correction for something a
-   * digital loopback categorically cannot hear.
+   * Then the whole chain was subtracted and only the record was corrected. That
+   * left every layer untouched and gave up on the thing the feature is for — if
+   * what comes out is wrong, it stays wrong, because what comes out is not what
+   * was measured.
    *
-   * Both were arguments about what to *excuse in the measurement*, and the
-   * measurement is the wrong place to be making that decision. The capture now
-   * subtracts the whole chain, so nothing deliberate is in it to be excused or
-   * mistaken for a fault. Every layer keeps exactly the response it was given,
-   * because Smart EQ never sees any of them; it corrects the record underneath
-   * and they sit on top of the result, where they were applied.
+   * Now: the OUTPUT is measured, and exactly two layers are handed back as a
+   * target so the solver leaves them alone. A voicing, because somebody named
+   * it. A driver correction, because it compensates the transducer and a digital
+   * loopback cannot hear transducers — it will always look like error, so
+   * cancelling it is always wrong. Everything else is fair game, including a
+   * headset curve, which is the acknowledged cost of the split: it is also a
+   * correction for something invisible here, so it will be flattened. A
+   * headphone correction that must survive belongs in the driver layer.
    */
-  describe('the layers below it', () => {
-    it('leaves the user’s own bands exactly where they were', () => {
+  describe('what it corrects and what it leaves', () => {
+    it('corrects the user’s own bands like anything else in the output', () => {
       const retained = retentionOf(
         HEADPHONE_CORRECTION,
         runLoop(4, { bands: HEADPHONE_CORRECTION }),
       );
 
-      retained.forEach((fraction) => {
-        expect(fraction).toBeGreaterThan(0.9);
-        expect(fraction).toBeLessThan(1.1);
-      });
+      expect(Math.max(...retained)).toBeLessThan(0.7);
     });
 
-    it('does not erode them over many runs', () => {
-      // The failure this guards is silent: the editor goes on showing a tuning
-      // at full value while Smart EQ inverts it underneath, a little per run.
-      const four = retentionOf(
+    it('is already pulling them back after a single pass', () => {
+      // One press has to change the sound. A correction that only arrives after
+      // four presses reads as a button that does nothing.
+      const retained = retentionOf(
         HEADPHONE_CORRECTION,
-        runLoop(4, { bands: HEADPHONE_CORRECTION }),
-      );
-      const twelve = retentionOf(
-        HEADPHONE_CORRECTION,
-        runLoop(12, { bands: HEADPHONE_CORRECTION }),
+        runLoop(1, { bands: HEADPHONE_CORRECTION }),
       );
 
-      twelve.forEach((fraction, index) => {
-        expect(fraction).toBeCloseTo(four[index], 1);
-      });
+      expect(Math.max(...retained)).toBeLessThan(0.95);
     });
   });
 
@@ -343,22 +342,20 @@ describe('the Smart EQ closed loop', () => {
       });
     });
 
-    it('does not walk away from a layer that is mostly a slope', () => {
-      // A bass shelf is close to a straight line over the correctable band, and
-      // a straight line is the one shape the tilt fit removes entirely. Get the
-      // bookkeeping wrong and that slope reads as a permanent deviation no gain
-      // can satisfy: every run adds another slice of it and the layer marches
-      // off until it hits the clamps. Six runs makes that unmistakable.
-      const shelfOnly: IFiltersMap = {
-        s: {
-          id: 's',
-          type: FilterTypeEnum.LSC,
-          frequency: 200,
-          gain: 10,
-          quality: 0.7,
-        },
-      };
-      const layer = runLoop(6, { bands: shelfOnly });
+    it('does not walk away from an excused layer that is mostly a slope', () => {
+      // A shelf is close to a straight line over the correctable band, and a
+      // straight line is the one shape the tilt fit removes entirely. Get the
+      // bookkeeping wrong on an EXCUSED layer and that slope reads as a
+      // permanent deviation no gain can satisfy: every run adds another slice of
+      // it and the layer marches off until it hits the clamps. Six runs makes
+      // that unmistakable.
+      //
+      // The voicing carries it, because that is a layer the solver is told to
+      // leave alone. In the bands it would be corrected, which is the intended
+      // behaviour rather than a runaway and would say nothing about this.
+      const layer = runLoop(6, {
+        voicing: { profileId: 'music', intensity: 1 },
+      });
 
       [40, 100, 1000, 10000].forEach((frequency) => {
         expect(
@@ -382,11 +379,11 @@ describe('the Smart EQ closed loop', () => {
       ),
     ];
 
-    it('finds a fault underneath a chain that has buried it', () => {
-      // The blind spot, stated as a test. A band cut hard over the same range as
-      // the fault used to take the evidence for that fault down with it — the
-      // measurement saw a quiet region, had nothing to correct from, and left
-      // the problem in place. The louder the cut, the more completely it hid.
+    it('brings a range back that the chain had buried', () => {
+      // A band cut hard over the same range as the fault. Both are in the
+      // output, so both are corrected, and what matters is where the sum ends
+      // up rather than what the layer looks like on its own — the layer here is
+      // a BOOST, because the cut is deeper than the resonance.
       const cut: IFiltersMap = {
         c: {
           id: 'c',
@@ -396,14 +393,17 @@ describe('the Smart EQ closed loop', () => {
           quality: 1.4,
         },
       };
-      const buried = smartEqFiltersOf(runLoop(4, { bands: cut, room }));
-      const plain = smartEqFiltersOf(runLoop(4, { room }));
+      const smart = smartEqFiltersOf(runLoop(4, { bands: cut, room }));
 
-      // Found either way, and to about the same depth: what the correction is
-      // solved from is the record, so what somebody has done to the output on
-      // top of it does not change the answer.
-      expect(responseAt(buried, 400)).toBeLessThan(-4);
-      expect(responseAt(buried, 400)).toBeCloseTo(responseAt(plain, 400), 0);
+      const before = responseAt([...Object.values(cut), ...room], 400);
+      const after = responseAt([...Object.values(cut), ...room, ...smart], 400);
+
+      // Buried eight decibels deep to begin with, and pulled most of the way
+      // back. The caps stop it arriving in four passes, which is the point of
+      // them; what this asserts is that it is going there rather than sitting in
+      // the hole, which is what a gate asking about the output would do.
+      expect(before).toBeLessThan(-7);
+      expect(after).toBeGreaterThan(before + 3);
     });
 
     it('converges on the same correction shape whatever it starts from', () => {
@@ -460,42 +460,26 @@ describe('the Smart EQ closed loop', () => {
   });
 
   describe('something actually wrong with the output', () => {
-    it('is still corrected, without wrecking the correction', () => {
-      // The target must not turn Smart EQ into a no-op. An 8 dB room mode the
-      // bands are not responsible for still has to be found and cut, and the
-      // headphone correction has to come through it recognisable.
+    it('is found and cut whatever else the chain is doing', () => {
+      // The excused layers must not turn Smart EQ into a no-op. An 8 dB room
+      // mode still has to be found and taken out with a voicing and a driver
+      // correction both live and both off limits.
       const room = [
         asFilter(
           { type: FilterTypeEnum.PK, frequency: 400, gain: 8, quality: 1.4 },
           'room',
         ),
       ];
-      const layer = runLoop(4, { bands: HEADPHONE_CORRECTION, room });
-      const smart = smartEqFiltersOf(layer);
+      const smart = smartEqFiltersOf(
+        runLoop(4, {
+          voicing: { profileId: 'music', intensity: 1 },
+          driver: { profileId: 'dynamic-headphone', intensity: 1 },
+          room,
+        }),
+      );
 
-      // Most of the mode is gone.
       expect(responseAt(smart, 400)).toBeLessThan(-4);
       expect(responseAt([...room, ...smart], 400)).toBeLessThan(3);
-
-      // And the correction is still there, within the couple of dB the tilt fit
-      // is thrown out by a hump that size.
-      const intended = responseOf(Object.values(HEADPHONE_CORRECTION));
-      const net = responseOf([
-        ...Object.values(HEADPHONE_CORRECTION),
-        ...smart,
-      ]);
-      PROBE_FREQUENCIES.forEach((frequency) => {
-        expect(
-          Math.abs(
-            getLineGainAtFrequency(net, frequency) -
-              getLineGainAtFrequency(intended, frequency),
-          ),
-        ).toBeLessThan(2.5);
-      });
-      // The presence cut and the air lift keep their sign, which is the part
-      // the old behaviour lost.
-      expect(getLineGainAtFrequency(net, 3000)).toBeLessThan(-3);
-      expect(getLineGainAtFrequency(net, 6000)).toBeGreaterThan(2);
     });
   });
 
