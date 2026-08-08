@@ -138,7 +138,8 @@ const CoverageOverlay = ({
   top: number;
   plotHeight: number;
 }) => {
-  const { balanceProgress, presenceLevels } = useLiveAudioFrame();
+  const { balanceProgress, presenceLevels, presenceTypical } =
+    useLiveAudioFrame();
   // The region labels arriving with the measurement are identifiers, not words
   // — they key the flash store and are React keys down here — so the caption
   // localises them at the point it says them, through the same lookup the
@@ -215,8 +216,17 @@ const CoverageOverlay = ({
         // is — recomputed here rather than carried through the progress report,
         // since only the default placement needs it.
         const centre = Math.sqrt(region.lowFrequency * region.highFrequency);
-        const floorDb = getPresenceLine('floor', region.label, centre);
-        const fullDb = getPresenceLine('full', region.label, centre);
+        // Where this range typically sits, which is what the lines place
+        // themselves from. Fast copy first, so a drag is judged against the
+        // same number the detector is using this frame.
+        const typicalDb = presenceTypical?.[index] ?? region.typicalDb;
+        const floorDb = getPresenceLine(
+          'floor',
+          region.label,
+          centre,
+          typicalDb,
+        );
+        const fullDb = getPresenceLine('full', region.label, centre, typicalDb);
         const floorY = clampToPlot(Number(yScale(floorDb)), top, plotHeight);
         const fullY = clampToPlot(Number(yScale(fullDb)), top, plotHeight);
         /*
@@ -371,6 +381,7 @@ const CoverageOverlay = ({
                         region.label,
                         db - dragFrom.current,
                         centre,
+                        typicalDb,
                       );
                       dragFrom.current = db;
                     }}
@@ -516,7 +527,13 @@ const CoverageOverlay = ({
                             }
                             const next = dbAt(event);
                             if (next !== undefined) {
-                              setPresenceLine(edge, region.label, next, centre);
+                              setPresenceLine(
+                                edge,
+                                region.label,
+                                next,
+                                centre,
+                                typicalDb,
+                              );
                             }
                           }}
                           onPointerUp={(event) => {

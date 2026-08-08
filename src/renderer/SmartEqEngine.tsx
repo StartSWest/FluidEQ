@@ -291,8 +291,18 @@ const SmartEqEngine = () => {
       }
       return presenceAllowance(
         region.liveDb,
-        getPresenceLine('floor', region.label, region.centreFrequency),
-        getPresenceLine('full', region.label, region.centreFrequency),
+        getPresenceLine(
+          'floor',
+          region.label,
+          region.centreFrequency,
+          region.typicalDb,
+        ),
+        getPresenceLine(
+          'full',
+          region.label,
+          region.centreFrequency,
+          region.typicalDb,
+        ),
       );
     };
 

@@ -420,6 +420,8 @@ const useLiveOutputSpectrum = () => {
    * crossed. Once a second, that mark lurches.
    */
   const [presenceLevels, setPresenceLevels] = useState<number[]>([]);
+  /** The same levels followed slowly, which is where the lines sit. */
+  const [presenceTypical, setPresenceTypical] = useState<number[]>([]);
   const [balanceProgress, setBalanceProgress] = useState<
     IBalanceProgress | undefined
   >(undefined);
@@ -829,6 +831,7 @@ const useLiveOutputSpectrum = () => {
            * always describing the same instant.
            */
           setPresenceLevels(Array.from(session.state.liveDb));
+          setPresenceTypical(Array.from(session.state.typicalDb));
           /*
            * The presence gate, recomputed from the lines every frame.
            *
@@ -850,8 +853,18 @@ const useLiveOutputSpectrum = () => {
           session.state.regions.forEach((region, index) => {
             const gate = presenceAllowance(
               session.state.liveDb[index],
-              getPresenceLine('floor', region.label, region.centreFrequency),
-              getPresenceLine('full', region.label, region.centreFrequency),
+              getPresenceLine(
+                'floor',
+                region.label,
+                region.centreFrequency,
+                session.state.typicalDb[index],
+              ),
+              getPresenceLine(
+                'full',
+                region.label,
+                region.centreFrequency,
+                session.state.typicalDb[index],
+              ),
             );
             (session.presenceGate as Float64Array)[index] = gate;
           });
@@ -1098,8 +1111,22 @@ const useLiveOutputSpectrum = () => {
   // Handed out as one object they were indistinguishable to React, so a
   // consumer reading nothing but `isActive` still re-rendered at frame rate.
   const frame = useMemo(
-    () => ({ balanceProgress, isClipping, points, presenceLevels, waveform }),
-    [balanceProgress, isClipping, points, presenceLevels, waveform],
+    () => ({
+      balanceProgress,
+      isClipping,
+      points,
+      presenceLevels,
+      presenceTypical,
+      waveform,
+    }),
+    [
+      balanceProgress,
+      isClipping,
+      points,
+      presenceLevels,
+      presenceTypical,
+      waveform,
+    ],
   );
 
   const control = useMemo(

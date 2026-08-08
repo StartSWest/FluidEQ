@@ -134,7 +134,38 @@ const marginsFor = (mode: TSmartEqMode, centreFrequency: number) => {
 const clampDb = (db: number) =>
   Math.max(PRESENCE_MIN_DB, Math.min(PRESENCE_MAX_DB, db));
 
-export const defaultThresholdDb = (
+/**
+ * How far the automatic placement may come DOWN from the tilt model, and no
+ * further, ever.
+ *
+ * Without a bound, a follower always ends up in the dangerous direction. Down
+ * is the dangerous direction: the lower a floor sits, the more readily a range
+ * counts as present, and the bottom of that is boosting silence again — the
+ * original fault in slow motion, which is worse than the original fault because
+ * it takes minutes to appear instead of seconds. There is always a quieter
+ * record than the last one, so an unbounded follower gets there eventually.
+ *
+ * What separates the two cases is not the range's history but how far it sits
+ * under the rest of the record. Fifteen decibels below expectation is quiet and
+ * real — an acoustic record with modest bass. Forty-five is not there at all.
+ * Eight decibels of travel reaches the first and cannot reach the second: a
+ * genuinely light record pulls its floor down over a couple of minutes and gets
+ * corrected, while a range that truly is absent sits twenty or thirty decibels
+ * below a floor it will never meet however long it plays.
+ *
+ * It comes from the tilt model rather than being written per range, which is
+ * what makes one number right at every frequency: the model already knows the
+ * air lives lower than the bass, so "a bit quieter than usual" is the same
+ * eight decibels in both.
+ *
+ * Upward is unbounded back to the model and no further. That direction only
+ * ever corrects less, so nothing needs protecting from it — but neither is
+ * there a reason to let a loud record raise its own bar.
+ */
+export const PRESENCE_AUTO_TRAVEL_DB = 8;
+
+/** Where the tilt model alone puts an edge, before the music is consulted. */
+export const modelThresholdDb = (
   edge: TPresenceEdge,
   mode: TSmartEqMode,
   centreFrequency: number,
@@ -150,13 +181,51 @@ export const defaultThresholdDb = (
 };
 
 /**
+ * Where a line places itself, given what this range typically does.
+ *
+ * The model says where music of this kind usually sits; the measurement says
+ * where THIS record sits. Following the measurement is what stops a range that
+ * is real but modest waiting forever to be heard, and the bound above is what
+ * stops the same mechanism talking itself into believing silence.
+ *
+ * With no measurement yet it is the model, which is also what every test and
+ * every synthetic frame sees.
+ */
+export const defaultThresholdDb = (
+  edge: TPresenceEdge,
+  mode: TSmartEqMode,
+  centreFrequency: number,
+  typicalDb?: number,
+): number => {
+  const model = modelThresholdDb(edge, mode, centreFrequency);
+  if (typicalDb === undefined || !Number.isFinite(typicalDb)) {
+    return model;
+  }
+  const { floor } = marginsFor(mode, centreFrequency);
+  // The floor is what tracks; the full line rides above it at the mode's own
+  // ramp width, so the gap somebody has judged does not change underneath them.
+  const trackedFloor = typicalDb - floor;
+  const modelFloor = modelThresholdDb('floor', mode, centreFrequency);
+  const bounded = Math.max(
+    modelFloor - PRESENCE_AUTO_TRAVEL_DB,
+    Math.min(modelFloor, trackedFloor),
+  );
+  return clampDb(Math.round((bounded + (model - modelFloor)) * 10) / 10);
+};
+
+/**
  * Keyed by mode, range and edge, because each mode keeps its own pair.
  *
  * Dragging a line in Target says something about Target. Detail has a different
  * appetite for correction and a different promise to keep, and inheriting a
  * number set for another mode would break both quietly.
  */
-const STORAGE_KEY = 'fluideq.presenceLines';
+// Renamed with the change from positions to displacements. An old absolute
+// read as an offset would be nonsense — a line stored at -15 would become
+// fifteen decibels BELOW wherever the music put it — and there is no way to
+// tell the two apart from the number alone, so the safe migration is not to
+// attempt one.
+const STORAGE_KEY = 'fluideq.presenceOffsets';
 
 const keyOf = (mode: TSmartEqMode, label: string, edge: TPresenceEdge) =>
   `${mode}:${label}:${edge}`;
@@ -180,8 +249,9 @@ const read = (): TLines => {
         ([, value]) =>
           typeof value === 'number' &&
           Number.isFinite(value) &&
-          value >= PRESENCE_MIN_DB &&
-          value <= PRESENCE_MAX_DB,
+          // A displacement, so it spans the axis in both directions.
+          value >= PRESENCE_MIN_DB - PRESENCE_MAX_DB &&
+          value <= PRESENCE_MAX_DB - PRESENCE_MIN_DB,
       ) as Array<[string, number]>,
     );
   } catch {
@@ -205,17 +275,29 @@ const persist = () => {
   }
 };
 
-/** The stored line for one edge of one range in one mode, or its default. */
+/**
+ * Where a line is: the automatic placement, plus whatever somebody moved it by.
+ *
+ * AN OFFSET, NOT A POSITION, and that is the point of it. Stored as an absolute
+ * the two halves of what was asked for would fight: a line that follows the
+ * music cannot also be a line that stays where it was put. As a displacement
+ * they compose — the automatic part keeps tracking the record, and the drag
+ * keeps meaning "and a bit lower than that", which is what somebody adjusting
+ * it actually intends.
+ *
+ * So the reset is not "back to a number" but "back to automatic", which is a
+ * better thing for that button to mean.
+ */
 export const getPresenceLine = (
   edge: TPresenceEdge,
   label: string,
   centreFrequency: number,
+  typicalDb?: number,
   mode: TSmartEqMode = getSmartEqMode(),
 ): number => {
-  const stored = lines[keyOf(mode, label, edge)];
-  return stored === undefined
-    ? defaultThresholdDb(edge, mode, centreFrequency)
-    : stored;
+  const auto = defaultThresholdDb(edge, mode, centreFrequency, typicalDb);
+  const offset = lines[keyOf(mode, label, edge)] ?? 0;
+  return clampDb(auto + offset);
 };
 
 /**
@@ -234,23 +316,36 @@ export const setPresenceLine = (
   label: string,
   db: number,
   centreFrequency: number,
+  typicalDb?: number,
   mode: TSmartEqMode = getSmartEqMode(),
 ) => {
   const next = clampDb(db);
   const otherEdge: TPresenceEdge = edge === 'floor' ? 'full' : 'floor';
-  const other = getPresenceLine(otherEdge, label, centreFrequency, mode);
+  const other = getPresenceLine(
+    otherEdge,
+    label,
+    centreFrequency,
+    typicalDb,
+    mode,
+  );
 
   const pushed =
     edge === 'floor'
       ? Math.max(other, next + PRESENCE_MIN_GAP_DB)
       : Math.min(other, next - PRESENCE_MIN_GAP_DB);
 
-  const update: TLines = {
+  // Stored as displacements from where the automatic placement puts each edge,
+  // so the line keeps following the record after it has been adjusted. Writing
+  // the absolute would freeze it, which is exactly the half of the behaviour a
+  // drag is not meant to destroy.
+  const autoOf = (which: TPresenceEdge) =>
+    defaultThresholdDb(which, mode, centreFrequency, typicalDb);
+
+  lines = {
     ...lines,
-    [keyOf(mode, label, edge)]: next,
-    [keyOf(mode, label, otherEdge)]: clampDb(pushed),
+    [keyOf(mode, label, edge)]: next - autoOf(edge),
+    [keyOf(mode, label, otherEdge)]: clampDb(pushed) - autoOf(otherEdge),
   };
-  lines = update;
   persist();
   notify();
 };
@@ -298,10 +393,17 @@ export const movePresenceRange = (
   label: string,
   deltaDb: number,
   centreFrequency: number,
+  typicalDb?: number,
   mode: TSmartEqMode = getSmartEqMode(),
 ) => {
-  const floor = getPresenceLine('floor', label, centreFrequency, mode);
-  const full = getPresenceLine('full', label, centreFrequency, mode);
+  const floor = getPresenceLine(
+    'floor',
+    label,
+    centreFrequency,
+    typicalDb,
+    mode,
+  );
+  const full = getPresenceLine('full', label, centreFrequency, typicalDb, mode);
   const room = Math.max(
     PRESENCE_MIN_DB - floor,
     Math.min(PRESENCE_MAX_DB - full, deltaDb),
@@ -309,10 +411,14 @@ export const movePresenceRange = (
   if (room === 0) {
     return;
   }
+  // Added to the existing displacement rather than written as a position, so
+  // both lines go on tracking the record after the pair has been moved.
   lines = {
     ...lines,
-    [keyOf(mode, label, 'floor')]: floor + room,
-    [keyOf(mode, label, 'full')]: full + room,
+    [keyOf(mode, label, 'floor')]:
+      (lines[keyOf(mode, label, 'floor')] ?? 0) + room,
+    [keyOf(mode, label, 'full')]:
+      (lines[keyOf(mode, label, 'full')] ?? 0) + room,
   };
   persist();
   notify();

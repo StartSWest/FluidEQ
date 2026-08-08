@@ -146,6 +146,27 @@ export const PRESENCE_SILENT_DB = -200;
 export const PRESENCE_SMOOTHING = 0.25;
 
 /**
+ * How fast a range's TYPICAL level follows the music, in dB per second.
+ *
+ * This is what lets the presence lines place themselves, and the rate is the
+ * design rather than a tuning detail. The floor sits a margin under this, so a
+ * follower that chased the instantaneous level would sink to meet a range that
+ * had gone quiet, declare it present again, and undo the whole protection — the
+ * guitar intro would be driving the bass to its limit again within seconds.
+ *
+ * A tenth of a decibel a second is one decibel every ten. A record genuinely
+ * light on bass pulls its floor down over a couple of minutes and gets
+ * corrected; a thirty-second passage with no bass guitar moves it three
+ * decibels, which changes nothing. Slow enough to ignore an arrangement, fast
+ * enough to notice an album.
+ *
+ * Symmetric on purpose. A fast attack would let the loudest bar of the record
+ * set the level and hold it there, which is the same failure from the other
+ * side.
+ */
+export const PRESENCE_TYPICAL_DB_PER_S = 0.1;
+
+/**
  * Power averaging is outlier-sensitive by design; this bounds what a single
  * leaked full-scale bin can do to a point.
  */
@@ -1259,6 +1280,15 @@ export interface IBalanceCaptureState {
    * test predating this behaves.
    */
   presenceGate?: Float64Array;
+  /**
+   * What each range TYPICALLY does on this record, on the plot own axis.
+   *
+   * Where the presence lines place themselves from. Distinct from liveDb, which
+   * is this second: this one moves at a tenth of a decibel a second, so it
+   * describes the album rather than the bar. See PRESENCE_TYPICAL_DB_PER_S for
+   * why that rate is the whole point.
+   */
+  typicalDb: Float64Array;
   frames: number;
   acceptedFrames: number;
   listenedMs: number;
@@ -1299,6 +1329,9 @@ export interface IBalanceRegionReport {
    * comparison means what it looks like.
    */
   liveDb: number;
+  /** The same level followed slowly, which is where the lines place
+   * themselves from. See PRESENCE_TYPICAL_DB_PER_S. */
+  typicalDb: number;
   weight: number;
   standardErrorDb: number;
   confidence: number;
@@ -1357,6 +1390,11 @@ export interface IBalanceProgressRegion {
    * between them, is the same rule with nothing left to imagine.
    */
   liveDb: number;
+  /**
+   * The same level followed slowly, which is where this range's lines place
+   * themselves from. See `PRESENCE_TYPICAL_DB_PER_S`.
+   */
+  typicalDb: number;
   /** How much evidence this range holds — see `REGION_ACTIVE_WEIGHT` for the
    * one thing the readout does with it. */
   weight: number;
@@ -1439,6 +1477,7 @@ export const createBalanceCaptureState = (
     // Starts below anything real, so a range is absent until a frame says
     // otherwise rather than being trusted before it has been heard at all.
     liveDb: new Float64Array(regions.length).fill(PRESENCE_SILENT_DB),
+    typicalDb: new Float64Array(regions.length).fill(PRESENCE_SILENT_DB),
     frames: 0,
     acceptedFrames: 0,
     listenedMs: 0,
@@ -1722,10 +1761,39 @@ export const accumulateBalanceFrame = (
         ? absDb - reference + PRESENCE_FULL_SCALE_DB
         : PRESENCE_SILENT_DB;
       const previous = state.liveDb[regionIndex];
-      state.liveDb[regionIndex] =
+      const live =
         previous <= PRESENCE_SILENT_DB
           ? chartDb
           : previous + (chartDb - previous) * PRESENCE_SMOOTHING;
+      state.liveDb[regionIndex] = live;
+
+      /*
+       * And the same level again, followed far more slowly.
+       *
+       * The lines place themselves from this rather than from the live value,
+       * which is the difference between "this range is quiet on this record"
+       * and "this range is quiet in this bar". Only the first is a reason to
+       * move a threshold; acting on the second is how a follower talks itself
+       * into believing silence.
+       *
+       * Rate-limited rather than smoothed, so the bound is a real one: a
+       * passage of any length can move this by at most a tenth of a decibel
+       * per second of it, and no amount of loudness or quiet can move it faster
+       * than that. An exponential average has no such guarantee — a long enough
+       * extreme drags it anywhere.
+       *
+       * Silence does not pull it down. A range at the silent floor says nothing
+       * about what the record typically does there; it says the instrument
+       * stopped, which is the one case this must not learn from.
+       */
+      const typical = state.typicalDb[regionIndex];
+      if (live > PRESENCE_SILENT_DB) {
+        const step = (dt / 1000) * PRESENCE_TYPICAL_DB_PER_S;
+        state.typicalDb[regionIndex] =
+          typical <= PRESENCE_SILENT_DB
+            ? live
+            : typical + clamp(live - typical, -step, step);
+      }
     }
 
     if (!Number.isFinite(absDb) || absDb < ABS_FLOOR_DBFS) {
@@ -1850,6 +1918,7 @@ export const evaluateBalanceCapture = (
       centreFrequency: region.centreFrequency,
       levelDb: s.mean,
       liveDb: state.liveDb[index],
+      typicalDb: state.typicalDb[index],
       weight: s.weight,
       standardErrorDb,
       confidence,
@@ -2085,6 +2154,7 @@ export const buildBalanceProgress = (
       isCovered: region.isCovered,
       weight: region.weight,
       liveDb: region.liveDb,
+      typicalDb: region.typicalDb,
       centreFrequency: region.centreFrequency,
     })),
   };
