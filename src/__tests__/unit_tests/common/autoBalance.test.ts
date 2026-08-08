@@ -364,8 +364,13 @@ describe('autoBalance', () => {
       // that is the mode working, not failing, and the extremes always move
       // most. What must be true is that the reference sits nearer to where real
       // music actually lives than it used to.
+      // Half a decibel rather than a whole one, because the tilt bound now
+      // holds BOTH slopes back: the old one was worse largely by way of the
+      // tilt it imposed, and capping that narrows the gap between them. The
+      // property still stands — the corrected slope asks less of a good master
+      // — it is just no longer asking dramatically less.
       expect(worstUnder(REFERENCE_SLOPE_DB_PER_DECADE)).toBeLessThan(
-        worstUnder(-8) - 1,
+        worstUnder(-8) - 0.5,
       );
     });
 

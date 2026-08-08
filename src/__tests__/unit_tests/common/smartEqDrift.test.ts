@@ -191,18 +191,18 @@ const play = (passes: number, perRecord: number, mode: string): IRun => {
  * fix is, it has to hold those invariants, so it is not simply a subtraction.
  */
 const KNOWN: Record<string, string[]> = {
-  // Fitted-tilt modes never disagree with the record's own slope, so they do
-  // not walk. Smart still leaks a little level.
-  smart: ['level', 'spread'],
-  detail: [],
-  // The fixed-slope modes are where it bites. Cycling records whose own tilts
-  // differ by ten decibels per decade drives the layer further out each time
-  // until both rails are hit: measured over four hundred passes the spread goes
-  // 9.3, 10.9, 12.9, 14.3, 14.8 and then sits at exactly 15.0 — the boost limit
-  // plus the cut limit — for the rest of the run. At that point the layer has
-  // stopped following the record at all.
-  balance: ['level', 'ratchet', 'spread'],
-  target: ['level'],
+  // The level leak is GONE in all four, which is what bounding the layer's
+  // tilt bought: sixty gentle passes in one direction used to accumulate
+  // exactly as one steep one, and the anchor could not see it because it
+  // centres each correction rather than the thing they add up to.
+  //
+  // What remains is the spread, in the three modes that can impose one. It is
+  // close to saturation — twelve decibels against a per-band limit of six — so
+  // the bound is holding the line rather than winning yet.
+  smart: [],
+  detail: ['spread'],
+  balance: ['spread'],
+  target: ['spread'],
 };
 
 const check = (mode: string, what: string) =>

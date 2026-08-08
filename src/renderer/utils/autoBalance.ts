@@ -168,6 +168,32 @@ export const PRESENCE_SILENT_DB = -200;
  */
 export const PRESENCE_LEVEL_RELEASE_DB_PER_S = 12;
 
+/** One decimal, which is all Equalizer APO reads and all anybody can hear. */
+const roundGains = (gains: Record<string, number>): Record<string, number> =>
+  Object.fromEntries(
+    Object.entries(gains).map(([id, gain]) => [id, Math.round(gain * 10) / 10]),
+  );
+
+/**
+ * How much overall tilt a correction may impose, end to end, in dB.
+ *
+ * Three, against a per-band limit of six that permits twelve. The distinction
+ * is between flattening a defect and rewriting a record: a narrow resonance is
+ * wrong on any material and should be taken out in full, while a tilt is only
+ * "wrong" relative to a slope somebody chose, and the material furthest from
+ * that choice takes the largest imposition through no fault of its own.
+ *
+ * There is no slope that avoids this. Measured across three plausible masters —
+ * a modern one, an older brighter one and a dark one — every candidate value
+ * left at least one of them seven to twelve decibels out. Choosing better is
+ * not available; bounding what the choice may cost is.
+ *
+ * Three decibels moves a record audibly toward the house curve without any
+ * record ever arriving somewhere it was never near, which is the behaviour that
+ * holds for material nobody has heard yet.
+ */
+export const MAX_TILT_SPAN_DB = 3;
+
 /**
  * How fast a range's TYPICAL level follows the music, in dB per second.
  *
@@ -189,14 +215,17 @@ export const PRESENCE_LEVEL_RELEASE_DB_PER_S = 12;
  * floor through its whole allowance in a couple of seconds and the bass is
  * still far beneath it, still gated, exactly as before.
  *
- * So four decibels a second, which is the full travel in about two — fast
- * enough that the lines are where they belong before anybody notices they
- * moved.
+ * Four decibels a second was the first answer and it was too fast in the other
+ * direction: at that rate the line follows the music bar by bar, so it is
+ * visibly moving the whole time and reads as something wrong rather than as a
+ * threshold. One decibel a second crosses the full travel in eight -- quick
+ * enough that a record is settled long before its first chorus, slow enough
+ * that the line looks like a setting rather than a meter.
  *
  * Symmetric, because the bound makes both directions safe, and an asymmetric
  * follower would let the loudest bar of a record set the level and hold it.
  */
-export const PRESENCE_TYPICAL_DB_PER_S = 4;
+export const PRESENCE_TYPICAL_DB_PER_S = 1;
 
 /**
  * Power averaging is outlier-sensitive by design; this bounds what a single
@@ -1093,7 +1122,36 @@ export const buildBalancedGains = (
         ) / anchorWeight
       : 0;
 
-  return Object.fromEntries(
+  /*
+   * TWO KINDS OF CORRECTION, AND ONLY ONE OF THEM SHOULD BE ALLOWED TO BE BIG.
+   *
+   * Flattening a resonance — a narrow bump at 200 Hz, three decibels of it — is
+   * almost always right, on any record, in any genre. It is a defect.
+   *
+   * Imposing a TILT is a different act wearing the same clothes. Holding a
+   * record to a fixed slope means any record whose own slope differs gets the
+   * whole difference applied to it, and the difference between an old master
+   * and a modern one is four or five decibels per decade — which over the
+   * audible band is twelve decibels from end to end. That is not correcting a
+   * defect, it is rewriting the record, and there is no slope that avoids it:
+   * whatever value is chosen, the material furthest from it takes the largest
+   * imposition. Measured across three plausible masters, every candidate slope
+   * left at least one of them seven to twelve decibels out.
+   *
+   * Both used to share one limit, so a tilt could quietly spend the whole of
+   * it. The per-band ceiling of six decibels permits twelve end to end, which is
+   * exactly what it was doing — and why the long-run simulation found the
+   * correction saturated against both rails with a band pinned at each.
+   *
+   * So the tilt is fitted out of the answer and bounded on its own, hard, and
+   * what is left over keeps the per-band limit it always had. A record still
+   * moves toward the house curve; it just cannot be dragged all the way there.
+   *
+   * This is the one form of the rule that does not depend on knowing what the
+   * music is, which is the property that matters: it bounds how much may be
+   * rewritten rather than asserting what is correct.
+   */
+  const gains: Record<string, number> = Object.fromEntries(
     raw.map((entry) => {
       // Clamp the correction, then clamp the total. The correction limit is
       // what stops one run swinging a band further than a measurement can
@@ -1150,9 +1208,99 @@ export const buildBalancedGains = (
       const gain =
         base +
         clamp(correction * entry.confidence, -maxCut, maxBoost * allowance);
-      return [entry.id, Math.round(clamp(gain, MIN_GAIN, MAX_GAIN) * 10) / 10];
+      return [entry.id, clamp(gain, MIN_GAIN, MAX_GAIN)];
     }),
   );
+
+  /*
+   * AND THE TILT OF THE RESULT IS BOUNDED, which is not the same as bounding
+   * the tilt of one pass and is the version that works.
+   *
+   * The first attempt fitted the tilt out of the CORRECTION and scaled that.
+   * Each pass was then duly gentle and the layer still walked to twelve
+   * decibels end to end, because sixty gentle passes in the same direction
+   * accumulate exactly as one steep one. What has to be bounded is the thing
+   * that persists.
+   *
+   * The property being defended is worth restating, because it is the only one
+   * here that holds for music nobody has heard yet. Flattening a resonance is
+   * right on any record: it is a defect. Imposing a tilt is only "right"
+   * relative to a slope somebody picked, and the material furthest from that
+   * pick takes the largest imposition through no fault of its own — measured
+   * across a modern master, an older brighter one and a dark one, every
+   * candidate slope left at least one of them seven to twelve decibels out.
+   * Choosing better is not on offer. Bounding what the choice may cost is.
+   *
+   * So the straight line through the layer is fitted and scaled back to its
+   * allowance, and everything that is not a straight line survives untouched.
+   * A record still moves toward the house curve; it can no longer be dragged
+   * the whole way there.
+   *
+   * Only bands that may move are adjusted, and never upward past where they
+   * are: shrinking a downward tilt raises the bottom end, and a range the
+   * presence gate has refused to lift must not be lifted by the side effect of
+   * a correction to something else.
+   */
+  const tiltable = raw.filter(
+    (entry) => entry.isSolvable && entry.confidence > 0,
+  );
+  if (tiltable.length < 2) {
+    return roundGains(gains);
+  }
+
+  let sumW = 0;
+  let sumX = 0;
+  let sumY = 0;
+  let sumXX = 0;
+  let sumXY = 0;
+  tiltable.forEach((entry) => {
+    const w = anchorWeightOf(entry);
+    const x = Math.log10(entry.filter.frequency);
+    const y = gains[entry.id] ?? 0;
+    sumW += w;
+    sumX += w * x;
+    sumY += w * y;
+    sumXX += w * x * x;
+    sumXY += w * x * y;
+  });
+  const denominator = sumW * sumXX - sumX * sumX;
+  if (!(Math.abs(denominator) > 1e-9)) {
+    return roundGains(gains);
+  }
+  const slope = (sumW * sumXY - sumX * sumY) / denominator;
+  const intercept = (sumY - slope * sumX) / sumW;
+
+  const decades =
+    tiltable.reduce(
+      (widest, entry) => Math.max(widest, Math.log10(entry.filter.frequency)),
+      -Infinity,
+    ) -
+    tiltable.reduce(
+      (narrowest, entry) =>
+        Math.min(narrowest, Math.log10(entry.filter.frequency)),
+      Infinity,
+    );
+  const span = Math.abs(slope * decades);
+  if (!(span > MAX_TILT_SPAN_DB)) {
+    return roundGains(gains);
+  }
+  const keep = MAX_TILT_SPAN_DB / span;
+
+  const bounded: Record<string, number> = { ...gains };
+  raw.forEach((entry) => {
+    if (!entry.isSolvable) {
+      return;
+    }
+    const tilt = slope * Math.log10(entry.filter.frequency) + intercept;
+    const next = (gains[entry.id] ?? 0) - tilt * (1 - keep);
+    // A gated range may be brought down by this and never up.
+    bounded[entry.id] =
+      allowanceOf(entry) > 0
+        ? clamp(next, MIN_GAIN, MAX_GAIN)
+        : Math.min(gains[entry.id] ?? 0, clamp(next, MIN_GAIN, MAX_GAIN));
+  });
+
+  return roundGains(bounded);
 };
 
 /* -------------------------------------------------------------------------
