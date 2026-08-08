@@ -203,6 +203,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     grid-area: response;
   }
 
+  /*
+   * No meter in the compact shell.
+   *
+   * Here the sidebar is a strip of chips above the workspace on rows of about
+   * forty-eight pixels, and a level meter in that is neither readable nor
+   * honest: a bar three characters tall cannot show the difference between
+   * -6 and -20 dBFS, which is the only thing it exists to show. Better absent
+   * than present and useless — and the switch it sits under still works, which
+   * is what that card is for at this size.
+   */
+  .side-bar__response .output-meter {
+    display: none;
+  }
+
   .side-bar__preamp {
     grid-area: preamp;
     grid-template-columns: minmax(0, 1fr);

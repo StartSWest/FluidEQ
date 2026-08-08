@@ -1190,6 +1190,14 @@ it under the terms of the GNU General Public License version 3 or later.
 // Actually railed, which is the capture's own verdict taken from railed samples
 // and the only definition of clipping this app has. The zones go: at this point
 // they are no longer the story and the whole bar is.
+// Nothing listening: present so the column keeps its shape, dim so it cannot be
+// mistaken for silence. The two are different statements and the meter should
+// only ever make the true one.
+.output-meter.is-idle {
+  opacity: 0.32;
+  filter: saturate(0.4);
+}
+
 .output-meter.is-clipping .output-meter__fill {
   background: #ff5a6e;
 }

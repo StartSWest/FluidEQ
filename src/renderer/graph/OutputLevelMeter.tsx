@@ -42,7 +42,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
-import { levelFraction, levelZone } from './outputLevel';
+import { LEVEL_FLOOR_DB, levelFraction, levelZone } from './outputLevel';
 
 /**
  * Stable React keys for a list that is one or two entries and never reorders.
@@ -85,16 +85,37 @@ const OutputLevelMeter = () => {
   const { isClipping, outputLevels } = useLiveAudioFrame();
   const { t } = useTranslation();
 
-  // No capture, no meter. Not a bar sitting at the floor: that would read as
-  // "silence", and "there is nothing listening" is a different statement.
-  if (outputLevels.length === 0) {
-    return null;
-  }
-
-  const isStereo = outputLevels.length > 1;
+  /*
+   * ALWAYS DRAWN, AND VISIBLY OFF WHEN NOTHING IS LISTENING.
+   *
+   * It used to return null with no capture, on the sound argument that a bar
+   * resting at the floor reads as "silence" while the truth is "nothing is
+   * listening" — two different statements, and the meter should not tell the
+   * first one.
+   *
+   * But it now takes the rest of the sidebar column, so returning nothing
+   * collapsed the card and handed the space to the preamp slider: switching the
+   * graph off resized a control on the other side of the panel, for no reason
+   * anybody could see. Layout that depends on whether audio happens to be
+   * flowing is worse than a meter that has to say what it is doing.
+   *
+   * So it always occupies its space, and says which of the two it means by
+   * going dim. Empty tracks at rest, and a pair of them, because two is what
+   * comes back when a capture starts.
+   */
+  const isIdle = outputLevels.length === 0;
+  const channels = isIdle
+    ? [
+        { levelDb: LEVEL_FLOOR_DB, peakDb: LEVEL_FLOOR_DB },
+        { levelDb: LEVEL_FLOOR_DB, peakDb: LEVEL_FLOOR_DB },
+      ]
+    : outputLevels;
+  const isStereo = channels.length > 1;
   return (
     <div
-      className={`output-meter${isClipping ? ' is-clipping' : ''}`}
+      className={`output-meter${isClipping ? ' is-clipping' : ''}${
+        isIdle ? ' is-idle' : ''
+      }`}
       // One thing with one meaning, so it is announced once and its bars are
       // not read out as a list of empty boxes.
       //
@@ -106,7 +127,7 @@ const OutputLevelMeter = () => {
       role="img"
       aria-label={t('graph.meter.aria')}
     >
-      {outputLevels.map((channel, index) => {
+      {channels.map((channel, index) => {
         // The fast bar and the held mark are coloured independently, because
         // they genuinely differ: the point of a peak-hold is that it is still
         // showing red a second after the bar has fallen back to green.
