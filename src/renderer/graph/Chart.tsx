@@ -225,10 +225,35 @@ const CoverageOverlay = ({
         // Allowance from the true level, so a range far below the plot still
         // reads as zero rather than as whatever the bottom of the axis is.
         const allowance = presenceAllowance(liveDb, floorDb, fullDb);
-        // Drawn position clamped, because the live level is a real measurement
-        // and goes wherever the music goes — including hundreds of decibels
-        // down during silence, which lands the mark far outside the plot.
         const liveY = clampToPlot(Number(yScale(liveDb)), top, plotHeight);
+        /*
+         * FOUR STATES, AND THE FIRST OF THEM IS DRAWING NOTHING.
+         *
+         * A silent range sits hundreds of decibels down. Clamping it to the
+         * bottom of the plot put a mark there, and a mark is a reading — it
+         * says "this range is at the axis minimum", which is not what happened.
+         * Nothing playing is better said by nothing drawn.
+         *
+         * Below the floor it is faint: present, and not trusted to rise. Inside
+         * the ramp it is solid, which is the state worth having a word for —
+         * the range is being listened to and earning part of its correction.
+         * Above the full line it is bright and has everything.
+         *
+         * It stays visible below the floor rather than disappearing there,
+         * which was the other suggestion and is the one thing that would undo
+         * the point of drawing it at all: if the mark vanished under the red
+         * line, "not corrected because this range is quiet" and "no data"
+         * would look identical, and the first of those is the answer somebody
+         * came to the graph for.
+         */
+        const isLiveDrawn = Number.isFinite(liveDb) && liveDb >= MIN_GAIN;
+        const liveState =
+          // eslint-disable-next-line no-nested-ternary
+          liveDb >= fullDb
+            ? 'trusted'
+            : liveDb > floorDb
+              ? 'listening'
+              : 'idle';
         return (
           <g key={region.label}>
             {/*
@@ -365,9 +390,9 @@ const CoverageOverlay = ({
                    * Wider than the lines and drawn over them, because it is the
                    * measurement and they are only settings.
                    */}
-                  {Number.isFinite(liveY) && (
+                  {isLiveDrawn && (
                     <line
-                      className="chart-presence__live"
+                      className={`chart-presence__live is-${liveState}`}
                       x1={left + 1}
                       x2={left + 1 + width}
                       y1={liveY}

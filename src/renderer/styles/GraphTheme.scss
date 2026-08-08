@@ -99,11 +99,37 @@ it under the terms of the GNU General Public License version 3 or later.
 // say. Thicker than them and drawn over them: this is the measurement, they are
 // only settings. Its colour is the allowance, so the mark, the column and the
 // ramp all say the same thing at once.
+// Three drawn states, and a fourth that is drawing nothing at all. A silent
+// range sits hundreds of decibels down, and clamping it to the bottom of the
+// plot put a mark there — a mark is a reading, and "at the axis minimum" is not
+// what happened. Nothing playing is said by nothing drawn.
 .chart-presence__live {
   stroke-width: 3;
   stroke-linecap: round;
-  opacity: 0.9;
   pointer-events: none;
+  transition: opacity 120ms ease;
+
+  // Present, and not trusted to rise. Faint and broken, so it reads as a
+  // condition rather than as a measurement worth acting on — but still there,
+  // because "not corrected because this range is quiet" is exactly the answer
+  // somebody came to the graph for, and it must not look like missing data.
+  &.is-idle {
+    stroke-width: 2;
+    stroke-dasharray: 3 4;
+    opacity: 0.45;
+  }
+
+  // Inside the ramp: being listened to, earning part of its correction.
+  &.is-listening {
+    opacity: 0.9;
+  }
+
+  // Above the full line, with everything available to it.
+  &.is-trusted {
+    stroke-width: 3.5;
+    opacity: 1;
+    filter: drop-shadow(0 0 4px rgb(84 255 138 / 55%));
+  }
 }
 
 .chart-presence__grab {
