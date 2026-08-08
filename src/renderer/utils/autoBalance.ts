@@ -148,23 +148,32 @@ export const PRESENCE_SMOOTHING = 0.25;
 /**
  * How fast a range's TYPICAL level follows the music, in dB per second.
  *
- * This is what lets the presence lines place themselves, and the rate is the
- * design rather than a tuning detail. The floor sits a margin under this, so a
- * follower that chased the instantaneous level would sink to meet a range that
- * had gone quiet, declare it present again, and undo the whole protection — the
- * guitar intro would be driving the bass to its limit again within seconds.
+ * This is what lets the presence lines place themselves. It was a tenth of a
+ * decibel a second, on the argument that a follower chasing the live level
+ * would sink to meet a range that had gone quiet, declare it present again, and
+ * undo the whole protection.
  *
- * A tenth of a decibel a second is one decibel every ten. A record genuinely
- * light on bass pulls its floor down over a couple of minutes and gets
- * corrected; a thirty-second passage with no bass guitar moves it three
- * decibels, which changes nothing. Slow enough to ignore an arrangement, fast
- * enough to notice an album.
+ * THAT ARGUMENT WAS REDUNDANT, and believing it cost something real: a record
+ * whose lines needed to travel took eighty seconds to get there, so most of a
+ * song played under a threshold that was still wrong. A poor price for a
+ * guarantee that was already being made somewhere else.
  *
- * Symmetric on purpose. A fast attack would let the loudest bar of the record
- * set the level and hold it there, which is the same failure from the other
- * side.
+ * The BOUND is what protects, not the rate. The automatic placement may leave
+ * the tilt model by eight decibels and no further — see
+ * `PRESENCE_AUTO_TRAVEL_DB` — so however fast this moves, the floor cannot
+ * reach a range that is genuinely absent: absent is twenty or thirty decibels
+ * down and eight will not span that. A passage with no bass guitar pulls the
+ * floor through its whole allowance in a couple of seconds and the bass is
+ * still far beneath it, still gated, exactly as before.
+ *
+ * So four decibels a second, which is the full travel in about two — fast
+ * enough that the lines are where they belong before anybody notices they
+ * moved.
+ *
+ * Symmetric, because the bound makes both directions safe, and an asymmetric
+ * follower would let the loudest bar of a record set the level and hold it.
  */
-export const PRESENCE_TYPICAL_DB_PER_S = 0.1;
+export const PRESENCE_TYPICAL_DB_PER_S = 4;
 
 /**
  * Power averaging is outlier-sensitive by design; this bounds what a single
