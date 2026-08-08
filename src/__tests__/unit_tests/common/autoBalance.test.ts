@@ -26,7 +26,10 @@ import {
   tiltLevelAt,
   ISpectrumSample,
 } from 'renderer/utils/autoBalance';
-import { REFERENCE_SLOPE_DB_PER_DECADE } from 'common/referenceCurve';
+import {
+  REFERENCE_SLOPE_DB_PER_DECADE,
+  getReferenceShape,
+} from 'common/referenceCurve';
 
 const band = (frequency: number, id = `b${frequency}`): IFilter => ({
   id,
@@ -238,6 +241,104 @@ describe('autoBalance', () => {
       expect(Math.abs(settled[top] - settled[bottom])).toBeLessThan(1);
       // Too dark: the top has to come up relative to the bottom.
       expect(lifted[top] - lifted[bottom]).toBeGreaterThan(2);
+    });
+  });
+
+  /**
+   * The four modes, and the fact that they are four.
+   *
+   * Detail and the one-shot used to aim at exactly the same destination —
+   * `getReferenceShape` returns the bare fitted line for anything it does not
+   * recognise, and 'detail' was not one of the names it recognised. Two modes,
+   * one behaviour, and nothing on screen to say so.
+   */
+  describe('what each mode is held to', () => {
+    const MODES = ['smart', 'detail', 'balance', 'target'];
+    // A modern master: falls about fifteen decibels per decade, nothing wrong.
+    const goodMaster = (frequency: number) => -15 * Math.log10(frequency) + 40;
+    const gainsFor = (mode: string, levelAt: (f: number) => number) =>
+      buildBalancedGains(buildSpectrum(levelAt), TEN_BAND, {
+        reference: getReferenceShape(mode),
+      });
+    const at = (gains: Record<string, number>, frequency: number) =>
+      gains[`b${frequency}`] ?? 0;
+
+    it('gives all four of them different destinations', () => {
+      const shapes = MODES.map((mode) =>
+        TEN_BAND.map((filter) =>
+          at(
+            gainsFor(mode, goodMaster),
+            filter.id.slice(1) as unknown as number,
+          ),
+        ),
+      );
+      const asText = shapes.map((shape) => shape.join(','));
+
+      expect(new Set(asText).size).toBe(MODES.length);
+    });
+
+    /**
+     * The slope is the number that decides whether a good record is left alone,
+     * and it was wrong: at eight decibels per decade the reference was brighter
+     * than any real master, so Balance thinned a perfectly good one — measured
+     * at −3.3 dB in the bass and +4.5 dB at 12.5 kHz, which is the "only the air
+     * ever moves" report. Eleven leaves it alone.
+     */
+    it('leaves a good modern master closer to alone than the old slope did', () => {
+      const worstUnder = (slope: number) => {
+        const gains = buildBalancedGains(buildSpectrum(goodMaster), TEN_BAND, {
+          reference: { slope },
+        });
+        return Math.max(
+          ...TEN_BAND.map((filter) => Math.abs(gains[filter.id] ?? 0)),
+        );
+      };
+
+      // Balance imposes a tilt, so a record whose own tilt differs is tilted —
+      // that is the mode working, not failing, and the extremes always move
+      // most. What must be true is that the reference sits nearer to where real
+      // music actually lives than it used to.
+      expect(worstUnder(REFERENCE_SLOPE_DB_PER_DECADE)).toBeLessThan(
+        worstUnder(-8) - 1,
+      );
+    });
+
+    /**
+     * Detail's whole promise, and the one the anchor would otherwise break: the
+     * solver keeps the level still by subtracting a weighted mean, so a lift in
+     * the mids is normally funded by a cut underneath it. Anchoring on the
+     * bottom is what stops that.
+     */
+    it('lifts the mids and highs under Detail without cutting the bass', () => {
+      const gains = gainsFor('detail', goodMaster);
+
+      expect(at(gains, 32)).toBeGreaterThanOrEqual(-0.3);
+      expect(at(gains, 64)).toBeGreaterThanOrEqual(-0.3);
+      expect(at(gains, 2000)).toBeGreaterThan(at(gains, 64));
+      expect(at(gains, 4000)).toBeGreaterThan(at(gains, 64));
+    });
+
+    /**
+     * Every other mode holds the level still instead, so raising one region is
+     * paid for by the rest — which is what makes adjusting any frequency
+     * compensate across the others rather than turning the record up.
+     */
+    it('keeps the level still in the modes that are not Detail', () => {
+      ['smart', 'balance', 'target'].forEach((mode) => {
+        const gains = gainsFor(
+          mode,
+          (frequency) =>
+            // Dull: needs a real correction, so there is something to centre.
+            goodMaster(frequency) - 4 * Math.log10(frequency),
+        );
+        const mean =
+          TEN_BAND.reduce(
+            (total, filter) => total + (gains[filter.id] ?? 0),
+            0,
+          ) / TEN_BAND.length;
+
+        expect(Math.abs(mean)).toBeLessThan(1.5);
+      });
     });
   });
 });

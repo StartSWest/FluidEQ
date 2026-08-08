@@ -245,6 +245,29 @@ export const tiltLevelAt = (
   frequency: number,
 ) => fit.slope * Math.log10(frequency) + fit.intercept;
 
+/*
+ * WHY THERE IS NO TOLERANCE CORRIDOR HERE, since it is the obvious idea and was
+ * built before being taken back out.
+ *
+ * The reasoning for one is good. Chasing an exact line leaves a residual at
+ * every frequency forever, so there is always something left to do and the
+ * gains never stop moving; the one commercial reference worth copying draws its
+ * targets as ranges rather than lines, because analysing enough masters shows
+ * good records agree on a corridor and not on a curve. Correct only the excess
+ * outside it and there is finally a state in which the answer is "nothing".
+ *
+ * It costs the property this whole feature exists for. A dead band is
+ * path-dependent: a correction stops at the edge it happened to approach from,
+ * so where it settles depends on where it started, and two records can both be
+ * "correct" two decibels apart. Every source arriving at the same signature is
+ * the one thing that cannot be traded away for smoothness.
+ *
+ * And it turned out not to be needed. The wander it was meant to stop was the
+ * reference slope being too bright — held to the corrected one, a good modern
+ * master draws no correction at all, so there is nothing left to suppress. The
+ * continuous stepper's own settle hysteresis covers the rest.
+ */
+
 /**
  * How much a frequency counts toward the solve, on top of how well it was
  * heard.
@@ -272,6 +295,40 @@ export const audibilityWeight = (frequency: number): number => {
   const octaves = Math.log2(frequency / AUDIBILITY_CENTRE_HZ);
   const bell = Math.exp(-((octaves / AUDIBILITY_WIDTH_OCTAVES) ** 2));
   return AUDIBILITY_FLOOR + (1 - AUDIBILITY_FLOOR) * bell;
+};
+
+/** Where the bass ends, for anchoring: full weight below, none above. */
+const BASS_ANCHOR_FULL_HZ = 150;
+const BASS_ANCHOR_NONE_HZ = 400;
+
+/**
+ * Weight for anchoring on the bottom instead of on loudness.
+ *
+ * Subtracting a weighted mean of the correction is what stops a run changing
+ * the volume, and which frequencies carry the weight decides what is being held
+ * still. Weighted by audibility it is the perceived level, which is what nearly
+ * everything here wants.
+ *
+ * Detail does not. It exists to raise the mids and highs, and against a loudness
+ * anchor a rise up there is paid for by a cut down here — so the one mode whose
+ * whole promise is "without touching the bass" would be the one mode that
+ * reliably took a decibel off it. Anchoring on the bass makes the bottom the
+ * fixed point instead: it lands at zero and the lift goes upward from there.
+ *
+ * Flat below 150 Hz and gone by 400, with a raised cosine between, so no band
+ * sits on a step and a filter near the boundary contributes part of itself.
+ */
+export const bassWeight = (frequency: number): number => {
+  if (!(frequency > 0) || frequency <= BASS_ANCHOR_FULL_HZ) {
+    return 1;
+  }
+  if (frequency >= BASS_ANCHOR_NONE_HZ) {
+    return 0;
+  }
+  const t =
+    Math.log2(frequency / BASS_ANCHOR_FULL_HZ) /
+    Math.log2(BASS_ANCHOR_NONE_HZ / BASS_ANCHOR_FULL_HZ);
+  return 0.5 * (1 + Math.cos(Math.PI * t));
 };
 
 /**
@@ -382,6 +439,21 @@ export interface IAutoBalanceOptions {
  * The rest arrives over the following passes, which is what a closed loop is
  * for. Everything downstream still bounds it — `SMART_EQ_MAX_BOOST_DB` and its
  * cut, the continuous stepper's own limits, and the deadband.
+ *
+ * IT STAYS AT ONE, and the reason is worth recording because the received
+ * wisdom says otherwise. Practitioners matching a long-term average spectrum
+ * report having to back the result off to about half before it sounds like
+ * anything but a caricature, and match EQs fit deliberately few bands for the
+ * same reason. Both are true, and neither applies here: they describe a static
+ * match that computes its whole answer once and commits it, where being wrong
+ * is permanent. This re-measures and converges, so a pass that overshoots is
+ * seen as an overshoot and taken back.
+ *
+ * Tried at 0.6 anyway, and measured what it cost. Against a bass shelf and a
+ * presence scoop totalling 5.5 dB, a pass at 0.6 corrects 1.4 dB where a pass
+ * at 1.0 corrects 2.4. The complaint this feature actually attracts is that it
+ * does nothing visible to a curve somebody has plainly bent, and halving the
+ * only number that answers that is the wrong direction.
  */
 const DEFAULTS: Required<IAutoBalanceOptions> = {
   strength: 1,
@@ -881,7 +953,9 @@ export const buildBalancedGains = (
    * correction doing nothing but lifting the top.
    */
   const anchorWeightOf = (entry: (typeof raw)[number]) =>
-    audibilityWeight(entry.filter.frequency) * entry.confidence;
+    (reference.anchor === 'bass'
+      ? bassWeight(entry.filter.frequency)
+      : audibilityWeight(entry.filter.frequency)) * entry.confidence;
   const anchored = raw.filter((entry) => entry.isSolvable);
   const anchorWeight = anchored.reduce(
     (total, entry) => total + anchorWeightOf(entry),

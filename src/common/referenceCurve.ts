@@ -29,20 +29,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * database and the driver profiles are for, and they work from published
  * measurements rather than from this. What these correct is the RECORD.
  *
- * Three of them, differing only in how much of a record they are willing to
- * override:
+ * Four of them, differing in how much of a record they are willing to override
+ * and in how wide a corridor they will accept it inside:
  *
- *   detail  — the reference is a line fitted to this record. Its own tonal
- *             signature is correct by definition, and only bumps and dips
- *             relative to it are corrected. Leaves a dull record dull.
- *   balance — the reference is a line at a FIXED slope. A dull record is
- *             brightened and a boomy one tightened, and each stays where it
- *             lands, but nothing imposes a shape: all the record's own detail
- *             survives.
- *   target  — the reference is a whole curve. Every record is brought to the
- *             same tonal balance.
+ *   (one-shot) — repair. The reference is a line fitted to this record, and the
+ *             corridor is the widest of the four, so only what plainly stands
+ *             out is touched. Runs once, on a press, and stops. Imposes nothing
+ *             and is the only one that is not a way of listening.
+ *   detail  — release detail. The reference is still the line fitted to this
+ *             record, so the master's own tilt survives, with a rise through
+ *             the mids and highs on top of it and the bass held where it is.
+ *             The record stays itself and opens up.
+ *   balance — even it out. The reference is a line at a FIXED slope. A dull
+ *             record is brightened and a boomy one tightened, and each stays
+ *             where it lands, but nothing imposes a shape: all the record's own
+ *             character survives.
+ *   target  — the house sound. The reference is a whole curve. Every record is
+ *             brought to the same tonal balance, and this is the mode that
+ *             makes two different masters arrive sounding like each other.
  *
- * The level is always fitted, in all three. An absolute level means nothing
+ * The level is always fitted, in all four. An absolute level means nothing
  * here — loopback carries whatever the volume knob is set to — and the solver
  * centres its answer anyway, so fitting it is free and assuming it is wrong.
  */
@@ -70,17 +76,29 @@ export interface IReferencePoint {
  * opposite of what anybody wants. Real programme falls away toward the top, and
  * this is roughly where.
  *
- * Taken from this project's own model of typical music rather than invented:
- * the capture tests describe pink-ish full-band material as falling eight
- * decibels per decade, and pink noise on a per-bin axis is ten. Eight sits
- * between "as recorded" and "as pink", which is about where mastered music
- * lives.
+ * It was eight, taken from this project's own capture tests, and eight was too
+ * bright — which is a thing that can be measured rather than argued about.
+ *
+ * On a per-bin axis, which is what the analyser reads, pink noise falls ten
+ * decibels per decade: three per octave. Analyser convention puts classic pop
+ * at about that and modern productions nearer four and a half per octave, which
+ * is fifteen. Eight per decade is 2.4 per octave — shallower than pink, so
+ * brighter than any real record.
+ *
+ * Held to it, a perfectly good modern master measured as deficient everywhere
+ * above a kilohertz and excessive below. Running the solver against a synthetic
+ * one gave −3.3 dB at 50 Hz and +4.5 dB at 12.5 kHz: it thinned a record that
+ * needed nothing, and the treble bands sat near their boost limit for as long
+ * as it ran. That is the "only the air ever moves" complaint, and it was this
+ * number rather than the caps or the anchor.
+ *
+ * Eleven sits between classic and modern, and leaves a good master alone.
  *
  * THE NUMBER MOST LIKELY TO WANT TUNING BY EAR. Everything else here is
  * structure; this is a judgement about what music should sound like, and it is
  * one decibel per decade away from being noticeably different.
  */
-export const REFERENCE_SLOPE_DB_PER_DECADE = -8;
+export const REFERENCE_SLOPE_DB_PER_DECADE = -11;
 
 /**
  * How the target departs from that line, in dB.
@@ -126,12 +144,54 @@ export const REFERENCE_SHAPE: IReferencePoint[] = [
   { frequency: 15000, level: -2 },
 ];
 
+/**
+ * Detail's own destination: clearer, without taking anything off the bottom.
+ *
+ * Detail keeps fitting the record's own tilt, so whatever the master intended
+ * survives — this rides on top of that line rather than replacing it. Which is
+ * what separates it from Balance and Target, both of which say the record's
+ * tilt is wrong and impose their own.
+ *
+ * Until now it had no shape at all, and `getReferenceShape` returns the bare
+ * fitted line for anything it does not recognise — so Detail and the one-shot
+ * aimed at precisely the same destination and differed only in how often they
+ * ran. Two modes, one behaviour, and no way to tell from the outside.
+ *
+ * The bass sits at zero rather than being cut to fund the lift. It is anchored
+ * there too (see `anchor`), because the solver otherwise pays for a rise in the
+ * mids by lowering everything else, which is the one thing this mode must not
+ * do.
+ */
+export const DETAIL_SHAPE: IReferencePoint[] = [
+  { frequency: 20, level: 0 },
+  { frequency: 150, level: 0 },
+  { frequency: 400, level: 0.5 },
+  { frequency: 1000, level: 1.5 },
+  { frequency: 3000, level: 2.5 },
+  { frequency: 8000, level: 2.5 },
+  { frequency: 15000, level: 1.5 },
+];
+
 /** What a mode asks of the fit: a fixed slope, a shape, or neither. */
 export interface IReferenceShape {
   /** Absent means fit the slope to the record, which is `detail`. */
   slope?: number;
   /** Departures from the line. Absent means the line itself is the target. */
   shape?: IReferencePoint[];
+  /**
+   * What the correction is centred on, so it changes tone and not volume.
+   *
+   * `loudness` weights by audibility and is what every mode but Detail wants:
+   * lift one region and the others come down to pay for it, so the level holds
+   * still and adjusting any frequency is compensated by the rest.
+   *
+   * `bass` centres on the bottom instead, which pins it at zero and lets the
+   * lift go upward from there. Louder overall, and the reason that is now
+   * affordable is that headroom stopped being this layer's problem: the preamp
+   * reserves the chain's true peak, so with auto-normalise on it cannot clip
+   * whatever is asked for here.
+   */
+  anchor?: 'loudness' | 'bass';
 }
 
 /**
@@ -172,6 +232,9 @@ export interface IReferenceShape {
  * imposes the standard tilt, `target` imposes the tilt and this shape.
  */
 export const getReferenceShape = (mode: string): IReferenceShape => {
+  if (mode === 'detail') {
+    return { shape: DETAIL_SHAPE, anchor: 'bass' };
+  }
   if (mode === 'balance') {
     return { slope: REFERENCE_SLOPE_DB_PER_DECADE };
   }
