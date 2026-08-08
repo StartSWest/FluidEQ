@@ -190,6 +190,50 @@ describe('the same sound, from anywhere', () => {
     });
   });
 
+  /*
+   * ARRIVING FROM ANOTHER MODE IS JUST ANOTHER STARTING POINT, and must land in
+   * the same place as arriving from nothing. Switching modes deliberately keeps
+   * the previous layer -- clearing it mid-room is a level jump nobody asked for
+   * -- so the handover is the commonest "wrong start" there is: every mode
+   * change begins from the last mode's answer.
+   */
+  describe('arriving from another mode', () => {
+    const [, modern] = RECORDS[0];
+    const MODES = ['smart', 'detail', 'balance', 'target'];
+    const settledIn = Object.fromEntries(
+      MODES.map((mode) => [mode, settle(modern, mode, () => 0)]),
+    );
+
+    MODES.forEach((to) => {
+      MODES.filter((from) => from !== to).forEach((from) => {
+        const start = settledIn[from];
+        const fromPrevious = () => {
+          const byId = Object.fromEntries(
+            bands.map((band, index) => [band.id, start[index]]),
+          );
+          return (band: IFilter) => byId[band.id] ?? 0;
+        };
+        // The one-shot's fitted line absorbs the layer's slope as well as its
+        // level, so any inherited slope survives in it up to the tilt bound —
+        // and every mode's settled layer carries one, Detail's included, since
+        // its lift is itself a slope. The same defect the flat-vs-bent entries
+        // record, reached from every direction.
+        const known = to === 'smart' ? it.failing : it;
+        /* eslint-disable jest/no-standalone-expect */
+        known(`${from} to ${to} lands where ${to} lands from flat`, () => {
+          const handed = settle(modern, to, fromPrevious());
+          const clean = responseOf(settledIn[to]);
+          const inherited = responseOf(handed);
+          const worst = Math.max(
+            ...clean.map((value, index) => Math.abs(value - inherited[index])),
+          );
+          expect(worst).toBeLessThan(1.5);
+        });
+        /* eslint-enable jest/no-standalone-expect */
+      });
+    });
+  });
+
   /**
    * And the one that matters for Target specifically, since it is the mode
    * whose whole promise is a single signature: two DIFFERENT records must not

@@ -153,9 +153,17 @@ it under the terms of the GNU General Public License version 3 or later.
 // the gap that could not be dragged.
 .chart-presence__ramp {
   fill: url('#chart-presence-ramp');
-  cursor: ns-resize;
+  // A hand, not a resize arrow: grabbing the gap MOVES the pair, it does not
+  // stretch anything. The two edges keep ns-resize, which is what they do —
+  // three zones, and the cursor says which of the two gestures each one is
+  // before anything is pressed.
+  cursor: grab;
   opacity: 0.5;
   transition: opacity 160ms ease;
+}
+
+.chart-presence.is-dragging .chart-presence__ramp {
+  cursor: grabbing;
 }
 
 .chart-presence--floor .chart-presence__line {
