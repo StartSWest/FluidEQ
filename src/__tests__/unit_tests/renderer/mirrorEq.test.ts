@@ -163,16 +163,44 @@ describe('which layers a mirror reproduces', () => {
     expect(withDriver.length).toBeGreaterThan(1);
   });
 
-  it('carries the loudness contour', () => {
-    // Added to APO by 0.9.0 while this branch was in flight. A layer that
-    // exists in `stateToString` and not here is one a mirrored speaker
-    // silently loses, and nothing fails when that happens.
-    const withLoudness = getMirrorFilters({
+  it('drops a layer that has been switched off', () => {
+    // Bypass lives in `flush`'s own `addLayer` rather than in the getters, so
+    // it is the one rule the mirror re-states instead of inheriting — which
+    // makes it the one most able to drift. A bypassed layer still being
+    // audible on a mirrored speaker is exactly the silent kind of wrong.
+    const tuned = {
       ...baseState(),
-      loudness: { isOn: true, intensity: 0.5 },
+      driver: { profileId: 'dynamic-headphone', intensity: 1 },
+      voicing: { profileId: 'music', intensity: 1 },
+    };
+
+    expect(getMirrorFilters({ ...tuned, bypassed: ['driver'] })).toEqual(
+      getMirrorFilters({ ...tuned, driver: undefined }),
+    );
+    expect(getMirrorFilters({ ...tuned, bypassed: ['voicing'] })).toEqual(
+      getMirrorFilters({ ...tuned, voicing: undefined }),
+    );
+    expect(getMirrorFilters({ ...tuned, bypassed: ['eq'] })).toEqual(
+      getMirrorFilters({ ...tuned, filters: {} }),
+    );
+  });
+
+  it('drops the bands when the EQ has been cleared', () => {
+    // `isFlat` gates the bands in `flush` and nothing else, so the layers
+    // around them must survive it.
+    const cleared = getMirrorFilters({
+      ...baseState(),
+      voicing: { profileId: 'music', intensity: 1 },
+      isFlat: true,
     });
 
-    expect(withLoudness.length).toBeGreaterThan(1);
+    expect(cleared).toEqual(
+      getMirrorFilters({
+        ...baseState(),
+        voicing: { profileId: 'music', intensity: 1 },
+        filters: {},
+      }),
+    );
   });
 
   it('carries the Smart EQ layer', () => {
@@ -186,11 +214,11 @@ describe('which layers a mirror reproduces', () => {
     expect(withSmartEq).toHaveLength(2);
   });
 
-  it('keeps APO’s order: driver, bands, voicing, loudness, Smart EQ', () => {
+  it('keeps APO’s order: driver, bands, voicing, Smart EQ', () => {
     // Cascaded biquads multiply, so the order changes nothing you can hear.
-    // It is held identical to stateToString anyway — physical, intended,
-    // taste, measured — so the two engines can be read side by side on the
-    // day they disagree about something that does matter.
+    // It is held identical to the layers `flush` builds anyway — physical,
+    // intended, taste, measured — so the two engines can be read side by side
+    // on the day they disagree about something that does matter.
     const driverSettings = { profileId: 'dynamic-headphone', intensity: 1 };
     const driverFilters = getDriverFilters(driverSettings);
 
@@ -198,7 +226,6 @@ describe('which layers a mirror reproduces', () => {
       ...baseState(),
       driver: driverSettings,
       voicing: { profileId: 'music', intensity: 1 },
-      loudness: { isOn: true, intensity: 0.5 },
       smartEq: {
         filters: { correction: makeFilter({ id: 'correction', gain: 3 }) },
       },
@@ -215,17 +242,26 @@ describe('which layers a mirror reproduces', () => {
     expect(chain[chain.length - 1]).toMatchObject({ gain: 3 });
   });
 
-  it('applies nothing at all to a GraphicEQ profile', () => {
-    // A GraphicEQ profile is an arbitrary curve, not a filter list. Applying
-    // whatever editable projection happens to be in `filters` would put a
-    // fragment of the curve on the speaker, which is worse than none of it.
-    expect(
+  it('drops only the bands for a GraphicEQ profile, not the whole chain', () => {
+    // A GraphicEQ profile is an arbitrary curve, not a filter list, and
+    // applying whatever editable projection happens to sit in `filters` would
+    // put a fragment of that curve on the speaker. It replaces the bands and
+    // nothing else, exactly as in `flush` — the layers around them still run.
+    const graphic = getMirrorFilters({
+      ...baseState(),
+      voicing: { profileId: 'music', intensity: 1 },
+      eqFormat: AutoEqFormat.GRAPHIC,
+      graphicEq: [{ frequency: 100, gain: 3 }],
+    });
+
+    expect(graphic).toEqual(
       getMirrorFilters({
         ...baseState(),
-        eqFormat: AutoEqFormat.GRAPHIC,
-        graphicEq: [{ frequency: 100, gain: 3 }],
+        voicing: { profileId: 'music', intensity: 1 },
+        filters: {},
       }),
-    ).toEqual([]);
+    );
+    expect(graphic.length).toBeGreaterThan(0);
   });
 });
 

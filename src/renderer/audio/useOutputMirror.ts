@@ -135,11 +135,12 @@ const useOutputMirror = () => {
   // These fields only change when the tuning actually does.
   const {
     activeDeviceId,
+    bypassed: liveBypassed,
     driver: liveDriver,
     eqFormat: liveEqFormat,
     filters: liveFilters,
     graphicEq: liveGraphicEq,
-    loudness: liveLoudness,
+    isFlat: liveIsFlat,
     preAmp: livePreAmp,
     smartEq: liveSmartEq,
     voicing: liveVoicing,
@@ -280,22 +281,24 @@ const useOutputMirror = () => {
   const liveEq = useMemo<IMirrorEqSettings>(
     () => ({
       filters: getMirrorFilters({
+        bypassed: liveBypassed,
         driver: liveDriver,
         eqFormat: liveEqFormat,
         filters: liveFilters,
         graphicEq: liveGraphicEq,
-        loudness: liveLoudness,
+        isFlat: liveIsFlat,
         smartEq: liveSmartEq,
         voicing: liveVoicing,
       }),
       preAmp: livePreAmp,
     }),
     [
+      liveBypassed,
       liveDriver,
       liveEqFormat,
       liveFilters,
       liveGraphicEq,
-      liveLoudness,
+      liveIsFlat,
       livePreAmp,
       liveSmartEq,
       liveVoicing,

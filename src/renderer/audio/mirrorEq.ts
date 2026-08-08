@@ -7,9 +7,8 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { AutoEqFormat, IFilter, IState } from 'common/constants';
+import { AutoEqFormat, IFilter, IState, TApoLayer } from 'common/constants';
 import { getDriverFilters } from 'common/driver';
-import { getLoudnessFilters } from 'common/loudness';
 import { getTFCoefficients } from 'common/response';
 import { getSmartEqFilters } from 'common/smartEq';
 import { getVoicingFilters } from 'common/voicing';
@@ -70,27 +69,27 @@ const isUsable = (values: number[]): boolean =>
 /**
  * Every filter a device's profile contributes, in the order APO writes them.
  *
- * Driver compensation first, then the user's bands, then voicing, then the
- * loudness contour, then Smart EQ — the same sequence as `stateToString`:
+ * Driver, then the user's bands, then voicing, then Smart EQ — the same
+ * sequence `flush` builds its layers in, and for the same stated reason:
  * physical, intended, taste, measured. Anything added there is a layer a
  * mirrored speaker will silently lose until it is added here too.
  *
- * A layer switched off rather than removed needs nothing here: voicing and
- * driver go quiet through `profileId`/`intensity` and loudness through its
- * own `isOn`, and all three getters already answer with an empty list. That
- * is worth not duplicating — a second copy of "is this layer on" is exactly
- * how the two engines would drift apart.
+ * Each layer answers to `bypassed` exactly as `addLayer` does, and the bands
+ * additionally to `isFlat`. This is the one place the mirror does duplicate a
+ * rule rather than inherit it, because the rule lives in `flush`'s local
+ * `addLayer` rather than in the getters — so it is written to read the same
+ * way, off the same `TApoLayer` names.
  *
- * Cascaded biquads multiply, so the
- * order does not change the magnitude response, but keeping it identical means
- * the two paths can be compared line by line when they ever disagree.
+ * Cascaded biquads multiply, so the order does not change the magnitude
+ * response, but keeping it identical means the two paths can be compared line
+ * by line when they ever disagree.
  *
  * Two things are deliberately absent, and a profile using either is mirrored
  * without it:
  *
- * - **GraphicEQ.** A `GraphicEQ:` profile writes no filters at all; it is an
- *   arbitrary curve, and reproducing one faithfully needs an FIR rather than a
- *   handful of biquads.
+ * - **GraphicEQ.** An arbitrary curve rather than filters, and reproducing one
+ *   faithfully needs an FIR rather than a handful of biquads. It replaces only
+ *   the bands, exactly as in `flush` — the other layers still apply.
  * - **Convolution.** `ConvolverNode` could carry it, but the impulse response
  *   lives in a WAV written for APO, and fetching and decoding it per mirror is
  *   its own piece of work rather than a line here.
@@ -106,22 +105,29 @@ export const getMirrorFilters = (
     | 'filters'
     | 'voicing'
     | 'driver'
-    | 'loudness'
     | 'smartEq'
+    | 'isFlat'
+    | 'bypassed'
   >,
 ): TMirrorFilter[] => {
-  // A GraphicEQ profile keeps its curve in `graphicEq` and leaves `filters`
-  // as whatever editable projection existed; using those would apply a
-  // fragment of a curve, which is worse than applying none of it.
-  if (state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length) {
-    return [];
-  }
+  const isBypassed = (layer: TApoLayer) =>
+    (state.bypassed ?? []).includes(layer);
+
+  // A GraphicEQ profile keeps its curve in `graphicEq` and leaves `filters` as
+  // whatever editable projection existed; using those would apply a fragment
+  // of a curve, which is worse than applying none of it.
+  const isGraphicCurve =
+    state.eqFormat === AutoEqFormat.GRAPHIC && !!state.graphicEq?.length;
+  const bands =
+    state.isFlat || isBypassed('eq') || isGraphicCurve
+      ? []
+      : Object.values(state.filters ?? {});
+
   return [
-    ...getDriverFilters(state.driver),
-    ...Object.values(state.filters ?? {}),
-    ...getVoicingFilters(state.voicing),
-    ...getLoudnessFilters(state.loudness),
-    ...getSmartEqFilters(state.smartEq),
+    ...(isBypassed('driver') ? [] : getDriverFilters(state.driver)),
+    ...bands,
+    ...(isBypassed('voicing') ? [] : getVoicingFilters(state.voicing)),
+    ...(isBypassed('smart') ? [] : getSmartEqFilters(state.smartEq)),
   ];
 };
 
