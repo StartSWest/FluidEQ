@@ -291,6 +291,7 @@ const pt: Partial<Dictionary> = {
   'eq.smart.presence.trustedAbove':
     '{range} · totalmente fiável acima de {db} dB',
   'eq.smart.presence.reset': 'Repor {range} neste modo',
+  'eq.smart.limit.label': 'Limite Smart EQ {db} dB',
 
   'convolution.eyebrow': 'RESPOSTAS AO IMPULSO DO APO',
   'convolution.title': 'Biblioteca de convolução',

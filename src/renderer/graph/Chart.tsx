@@ -52,6 +52,11 @@ import {
   useSmartEqDisagreement,
 } from '../utils/smartEqDisagreement';
 import { useSmartEqMode } from '../utils/smartEqMode';
+import {
+  DEFAULT_CORRECTION_LIMIT_DB,
+  setCorrectionLimit,
+  useCorrectionLimit,
+} from '../utils/correctionLimit';
 import { useTranslation } from '../utils/I18nContext';
 import Curve from './Curve';
 import EditablePoint from './EditablePoint';
@@ -156,6 +161,8 @@ const CoverageOverlay = ({
   usePresenceLines();
   // The other half of why a correction has not landed yet. See its store.
   const disagreement = useSmartEqDisagreement();
+  // How far Smart EQ may move any band, drawn as one symmetric pair.
+  const correctionLimit = useCorrectionLimit();
   // Each mode keeps its own pair, so a mode change moves every line on screen.
   // Subscribed here rather than read once, because nothing else in this
   // component would notice.
@@ -617,6 +624,85 @@ const CoverageOverlay = ({
           </g>
         );
       })}
+      {/*
+       * HOW MUCH, AND NO MORE THAN THIS.
+       *
+       * One pair across the whole plot rather than a pair per range, because it
+       * is one decision: Smart EQ may move any band this far and no further.
+       * The presence lines are per range because presence is a fact about a
+       * range; this is a preference about the feature.
+       *
+       * Symmetric, and drawn that way so it cannot be misread. It used to be
+       * +6 up and −9 down, which sounds prudent — a boost costs headroom and a
+       * cut does not — and quietly biased every correction downward: the anchor
+       * removes the mean, then the tighter side truncates first, so what is
+       * applied carries a mean nobody asked for. Two hundred passes of that is
+       * a record that ends the evening quieter than it started.
+       *
+       * Dragging either half moves both, because they are one number. A control
+       * that let them differ would be offering the bias back.
+       */}
+      {!isWashHidden &&
+        ([1, -1] as const).map((side) => {
+          const y = clampToPlot(
+            Number(yScale(side * correctionLimit)),
+            top,
+            plotHeight,
+          );
+          const edge = Number(xScale(20000));
+          return (
+            <g className="chart-limit" key={side}>
+              <line
+                className="chart-limit__line"
+                x1={0}
+                x2={edge}
+                y1={y}
+                y2={y}
+              />
+              <text
+                className="chart-limit__label"
+                x={edge - 6}
+                y={side > 0 ? y - 4 : y + 12}
+                textAnchor="end"
+              >
+                {t('eq.smart.limit.label', { db: correctionLimit.toFixed(0) })}
+              </text>
+              <rect
+                className="chart-limit__grab"
+                x={0}
+                y={y - PRESENCE_GRAB_PX}
+                width={Math.max(0, edge)}
+                height={PRESENCE_GRAB_PX * 2}
+                pointerEvents="all"
+                onPointerDown={(event) => {
+                  event.stopPropagation();
+                  dragging.current = 'limit';
+                  event.currentTarget.setPointerCapture(event.pointerId);
+                }}
+                onPointerMove={(event) => {
+                  if (dragging.current !== 'limit') {
+                    return;
+                  }
+                  const db = dbAt(event);
+                  if (db !== undefined) {
+                    // The magnitude, whichever half was grabbed. Dragging the
+                    // lower line down and the upper one up both mean "allow
+                    // more", which is the only reading that survives being one
+                    // symmetric number.
+                    setCorrectionLimit(Math.abs(db));
+                  }
+                }}
+                onPointerUp={(event) => {
+                  dragging.current = undefined;
+                  event.currentTarget.releasePointerCapture(event.pointerId);
+                }}
+                onDoubleClick={() =>
+                  setCorrectionLimit(DEFAULT_CORRECTION_LIMIT_DB)
+                }
+              />
+            </g>
+          );
+        })}
     </g>
   );
 };

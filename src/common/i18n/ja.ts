@@ -283,6 +283,7 @@ const ja: Partial<Dictionary> = {
   'eq.smart.presence.ignoredBelow': '{range} · {db} dB 未満は無視',
   'eq.smart.presence.trustedAbove': '{range} · {db} dB 以上は完全に信頼',
   'eq.smart.presence.reset': 'このモードの {range} をリセット',
+  'eq.smart.limit.label': 'Smart EQ 上限 {db} dB',
 
   'convolution.eyebrow': 'APO インパルス応答',
   'convolution.title': 'コンボリューション ライブラリ',

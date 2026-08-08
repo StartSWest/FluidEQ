@@ -30,6 +30,7 @@ import { getReferenceShape } from 'common/referenceCurve';
 import { getVoicingFilters } from 'common/voicing';
 import { getDriverFilters } from 'common/driver';
 import { getPresenceLine, presenceAllowance } from './utils/presenceThreshold';
+import { getCorrectionLimit } from './utils/correctionLimit';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import { sortHelper } from './utils/utils';
@@ -614,6 +615,10 @@ const SmartEqEngine = () => {
           // A range nothing is playing in cannot be lifted, however loudly it
           // reports a deficit. See the presence lines on the plot.
           boostAllowance: allowanceFrom(result.regions),
+          // Symmetric limits, whatever the listener chose. An asymmetric pair
+          // biases a centred correction; see `correctionLimit`.
+          maxBoost: getCorrectionLimit(),
+          maxCut: getCorrectionLimit(),
           targetCurve: buildLayerTargetCurve(
             voicingRef.current,
             driverRef.current,
@@ -624,11 +629,16 @@ const SmartEqEngine = () => {
           return;
         }
 
-        const measured = buildSmartEqSettings(bands, gains, {
-          status: result.status,
-          lowFrequency: result.lowFrequency,
-          highFrequency: result.highFrequency,
-        });
+        const measured = buildSmartEqSettings(
+          bands,
+          gains,
+          {
+            status: result.status,
+            lowFrequency: result.lowFrequency,
+            highFrequency: result.highFrequency,
+          },
+          getCorrectionLimit(),
+        );
 
         // Compared on what will be written, not on object identity: a run that
         // moves every band by less than the rounding step has genuinely found
@@ -858,6 +868,10 @@ const SmartEqEngine = () => {
       // A range nothing is playing in cannot be lifted, however loudly it
       // reports a deficit. See the presence lines on the plot.
       boostAllowance: allowanceFrom(report.regions),
+      // Symmetric limits, whatever the listener chose. An asymmetric pair
+      // biases a centred correction; see `correctionLimit`.
+      maxBoost: getCorrectionLimit(),
+      maxCut: getCorrectionLimit(),
       // The mode's curve, whatever else is switched on. Which mode is chosen
       // decides the destination and nothing else does — see
       // `getReferenceShape`.
@@ -943,6 +957,9 @@ const SmartEqEngine = () => {
     longRunDriftRef.current = drift;
     const stepped = stepSmartEqGains(bands, longRunTargetRef.current, {
       moving: movingBandsRef.current,
+      // Symmetric, and whatever the listener chose. See `correctionLimit`.
+      maxBoost: getCorrectionLimit(),
+      maxCut: getCorrectionLimit(),
     });
     // Which bands are still travelling, for the next pass. Derived rather than
     // tracked: a band moved exactly when its gain changed, so this cannot drift
@@ -952,9 +969,12 @@ const SmartEqEngine = () => {
         .filter((band) => stepped[band.id] !== band.gain)
         .map((band) => band.id),
     );
-    const measured = buildSmartEqSettings(bands, stepped, {
-      status: report.status === 'ready' ? 'ready' : 'partial',
-    });
+    const measured = buildSmartEqSettings(
+      bands,
+      stepped,
+      { status: report.status === 'ready' ? 'ready' : 'partial' },
+      getCorrectionLimit(),
+    );
     if (describeSmartEqLayer(measured) === describeSmartEqLayer(layer)) {
       // Every ready range was inside its threshold, so nothing was written and
       // nothing has gone stale — those ranges keep accumulating, which only

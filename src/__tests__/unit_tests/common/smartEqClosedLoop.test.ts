@@ -455,7 +455,11 @@ describe('the Smart EQ closed loop', () => {
       // exact ratio is not the property and is not worth pinning: what matters
       // is that a lot of the gap is gone, and that where it ends up is somewhere
       // nobody could hear.
-      expect(late).toBeLessThan(early * 0.6);
+      // Loosened from 0.6 when the cut limit came in from -9 to match the
+      // boost at +6. Less room to cut is less room to undo a bad starting
+      // point, so convergence from one is slower by exactly that much -- which
+      // is a cost of the symmetry rather than a regression in the loop.
+      expect(late).toBeLessThan(early * 0.75);
       expect(late).toBeLessThan(1);
     });
   });

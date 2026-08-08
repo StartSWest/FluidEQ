@@ -626,6 +626,17 @@ export const buildSmartEqSettings = (
     ISmartEqSettings,
     'status' | 'lowFrequency' | 'highFrequency'
   > = {},
+  /**
+   * How far a band may be moved, in either direction.
+   *
+   * One number rather than a pair, and symmetric, because an asymmetric clamp
+   * biases a correction that was centred: the anchor removes the mean and then
+   * the tighter side truncates first, so what is applied carries a mean the
+   * solver never asked for. See `renderer/utils/correctionLimit` for the
+   * measurement that settled it and for why the default is what the old pair
+   * allowed upward.
+   */
+  limitDb: number = SMART_EQ_MAX_BOOST_DB,
 ): ISmartEqSettings | undefined => {
   const filters: IFiltersMap = {};
   bands.forEach((band) => {
@@ -638,10 +649,7 @@ export const buildSmartEqSettings = (
       // accumulates onto whatever is already there now that it no longer clears
       // to flat first. Without this, pressing the button repeatedly could walk a
       // band past the ceiling one residual at a time.
-      gain: Math.max(
-        -SMART_EQ_MAX_CUT_DB,
-        Math.min(SMART_EQ_MAX_BOOST_DB, gain),
-      ),
+      gain: Math.max(-limitDb, Math.min(limitDb, gain)),
     };
   });
 

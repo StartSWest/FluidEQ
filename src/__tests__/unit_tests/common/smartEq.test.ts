@@ -21,7 +21,6 @@ import { FilterTypeEnum, IFilter } from 'common/constants';
 import {
   CONTINUOUS_MAX_STEP_DB,
   SMART_EQ_MAX_BOOST_DB,
-  SMART_EQ_MAX_CUT_DB,
   CONTINUOUS_MEMORY,
   CONTINUOUS_RESET_DB,
   CONTINUOUS_RESET_HOLDS,
@@ -386,7 +385,12 @@ describe('the Smart EQ layer', () => {
         cut = getSmartEqBands(buildSmartEqSettings(cut, stepped));
       }
 
-      expect(bandAt(cut, 1000)?.gain).toBeCloseTo(-SMART_EQ_MAX_CUT_DB, 6);
+      // Symmetric with the boost above, which is the point of the default.
+      // The pair used to be +6 and -9, and the asymmetry biased every centred
+      // correction downward: the anchor removes the mean, then the tighter side
+      // truncates first, so what is applied carries a mean nobody asked for.
+      // See `renderer/utils/correctionLimit`.
+      expect(bandAt(cut, 1000)?.gain).toBeCloseTo(-SMART_EQ_MAX_BOOST_DB, 6);
     });
 
     it('averages the destination over windows, so one album cannot move it', () => {

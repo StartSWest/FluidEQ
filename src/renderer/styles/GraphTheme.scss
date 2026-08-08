@@ -34,6 +34,44 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// How much Smart EQ may move any band, and no more. One pair across the whole
+// plot, because it is one decision rather than a fact about a range — and drawn
+// symmetric because it IS symmetric: an asymmetric pair biases every centred
+// correction downward, which is what it used to do.
+.chart-limit__line {
+  stroke: #ffd24a;
+  stroke-width: 1.25;
+  stroke-dasharray: 7 5;
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.chart-limit__label {
+  fill: #ffd24a;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 140ms ease;
+}
+
+.chart-limit__grab {
+  fill: transparent;
+  cursor: ns-resize;
+}
+
+.chart-limit:hover {
+  .chart-limit__line {
+    stroke-width: 2;
+    opacity: 1;
+  }
+
+  .chart-limit__label {
+    opacity: 1;
+  }
+}
+
 // How far this range disagrees with where it is being steered, as a fraction of
 // the deadband a write has to clear. The fill beside it says how much has been
 // heard, which alone is the misleading half: a range can be fully heard and

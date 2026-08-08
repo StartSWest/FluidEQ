@@ -357,6 +357,7 @@ const en = {
   'eq.smart.presence.ignoredBelow': '{range} · ignored below {db} dB',
   'eq.smart.presence.trustedAbove': '{range} · fully trusted above {db} dB',
   'eq.smart.presence.reset': 'Reset {range} for this mode',
+  'eq.smart.limit.label': 'Smart EQ limit {db} dB',
 
   // *** Convolution *********************************************************
   'convolution.eyebrow': 'APO impulse responses',
