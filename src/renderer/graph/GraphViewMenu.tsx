@@ -100,10 +100,22 @@ const VIEW_LABEL: Record<TGraphView, string> = {
 interface IPlacement {
   isAbove: boolean;
   isLeftAligned: boolean;
+  /** How tall it may be here, or none if it fits without a cap. */
+  maxHeight?: number;
 }
 
-/** Enough room to be worth opening into; less than this and it flips. */
-const MENU_ESTIMATED_HEIGHT = 260;
+/**
+ * How close to the window edge the list may come before it stops growing.
+ *
+ * There used to be an ESTIMATED height here — 260 pixels, guessed once and
+ * never revisited — and the menu outgrew it. A guess that is too small means
+ * the list believes it fits below when it does not, so it never flips and the
+ * last rows are simply cut off by the window. Which is what happened.
+ *
+ * It measures itself now, so nothing has to be kept in step with how many rows
+ * the menu has. This is only the margin left around it.
+ */
+const MENU_EDGE_GAP = 12;
 const MENU_ESTIMATED_WIDTH = 210;
 
 const Icon = ({ children }: { children: ReactNode }) => (
@@ -148,6 +160,8 @@ const GraphViewMenu = ({
     isLeftAligned: false,
   });
   const rootRef = useRef<HTMLDivElement>(null);
+  /** The list itself, so its height is measured rather than guessed. */
+  const menuRef = useRef<HTMLDivElement>(null);
 
   // Measured before the browser paints, so the list never appears in the wrong
   // place and jumps. `useLayoutEffect` is the difference between choosing a
@@ -160,11 +174,30 @@ const GraphViewMenu = ({
     if (!trigger) {
       return;
     }
+    /*
+     * MEASURED, THEN PLACED, THEN CAPPED.
+     *
+     * The list is already in the document by the time this runs — it is
+     * rendered when `isOpen` turns true and this is a layout effect — so its
+     * natural height can simply be asked for rather than predicted. `scrollHeight`
+     * rather than `offsetHeight`, because a previous opening may have left a cap
+     * on it and the question is how tall it WANTS to be.
+     *
+     * Then the side with more room wins, and the cap is that room. Both, rather
+     * than either: flipping alone still fails on a short window where neither
+     * side fits, and scrolling alone would leave it opening downward into three
+     * visible rows when there was a full menu's worth of space above.
+     */
+    const menu = menuRef.current;
+    const wanted = menu ? menu.scrollHeight : 0;
+    const below = window.innerHeight - trigger.bottom - MENU_EDGE_GAP;
+    const above = trigger.top - MENU_EDGE_GAP;
+    const isAbove = wanted > below && above > below;
+    const room = isAbove ? above : below;
     setPlacement({
-      isAbove:
-        window.innerHeight - trigger.bottom < MENU_ESTIMATED_HEIGHT &&
-        trigger.top > MENU_ESTIMATED_HEIGHT,
+      isAbove,
       isLeftAligned: trigger.right < MENU_ESTIMATED_WIDTH,
+      maxHeight: wanted > room ? Math.max(120, room) : undefined,
     });
   }, [isOpen]);
 
@@ -212,6 +245,12 @@ const GraphViewMenu = ({
           className={`graph-view-menu__list${
             placement.isAbove ? ' is-above' : ''
           }${placement.isLeftAligned ? ' is-left' : ''}`}
+          ref={menuRef}
+          style={
+            placement.maxHeight
+              ? { maxHeight: placement.maxHeight, overflowY: 'auto' }
+              : undefined
+          }
           role="menu"
         >
           <button

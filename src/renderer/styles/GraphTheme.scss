@@ -807,7 +807,14 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+// Scrolls inside itself when the window is too short for it, capped from the
+// measurement in GraphViewMenu. `overscroll-behavior` so reaching the end of
+// the list does not carry on and scroll the page behind it, which on a menu
+// reads as the whole app lurching.
 .graph-view-menu__list {
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+
   // The shared floating-menu surface, rather than one built here.
   //
   // Which is what gives it the euphoria treatment for free: the mixin carries
