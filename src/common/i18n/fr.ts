@@ -68,9 +68,13 @@ const fr: Partial<Dictionary> = {
   'video.adBlock': 'Bloquer les pubs',
   'video.adBlockHint':
     'Passe les pubs vidéo et masque les encarts publicitaires sur YouTube.',
+  'video.signOut': 'Se déconnecter de tous les sites',
+  'video.signOutBusy': 'Déconnexion…',
+  'video.signOutHint':
+    'Efface tous les cookies, connexions et pages en cache conservés par le lecteur.',
+  'video.signOutDone': 'Déconnexion effectuée',
+  'video.signOutFailed': 'Impossible de se déconnecter',
   'video.blockedTitle': 'Ce lien mène hors du lecteur',
-  'video.blockedSignInTitle':
-    'La connexion se fait dans votre navigateur, pas ici',
   'video.openInBrowser': 'Ouvrir dans le navigateur',
   'video.resize': 'Faites glisser pour redimensionner le lecteur',
 

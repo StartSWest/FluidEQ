@@ -68,8 +68,13 @@ const de: Partial<Dictionary> = {
   'video.adBlock': 'Werbung blockieren',
   'video.adBlockHint':
     'Überspringt Videowerbung und blendet Werbeflächen auf YouTube aus.',
+  'video.signOut': 'Von allen Seiten abmelden',
+  'video.signOutBusy': 'Wird abgemeldet…',
+  'video.signOutHint':
+    'Löscht alle Cookies, Anmeldungen und zwischengespeicherten Seiten des Players.',
+  'video.signOutDone': 'Abgemeldet',
+  'video.signOutFailed': 'Abmelden nicht möglich',
   'video.blockedTitle': 'Dieser Link führt aus dem Player heraus',
-  'video.blockedSignInTitle': 'Die Anmeldung passiert im Browser, nicht hier',
   'video.openInBrowser': 'Im Browser öffnen',
   'video.resize': 'Ziehen, um die Größe des Players zu ändern',
 

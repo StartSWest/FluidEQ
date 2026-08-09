@@ -29,6 +29,7 @@ import {
   serialisePlaybackMarks,
   TPlaybackMarks,
 } from '../../../common/videoResume';
+import { isNavigableVideoUrl } from '../../../common/videoSites';
 
 const A_VIDEO = 'https://www.youtube.com/watch?v=abcdefghijk';
 const A_TRACK = 'https://music.youtube.com/watch?v=zyxwvutsrqp';
@@ -96,9 +97,21 @@ describe('remembering where a site was left', () => {
     expect(rememberPlayback({}, 'soundcloud', A_VIDEO, 120)).toEqual({});
   });
 
-  it('refuses a sign-in page, which is refused everywhere else too', () => {
+  /**
+   * Reachable, and still not somewhere to come back to.
+   *
+   * The player may navigate to a sign-in page now — that is the whole point of
+   * a session that persists. Filing one as 'where you left off' would mean
+   * somebody who signed in and pressed the site button landed back on the login
+   * form they had just finished with.
+   */
+  it('refuses an account page, which it is allowed to navigate to', () => {
+    expect(isNavigableVideoUrl('https://www.youtube.com/signin')).toBe(true);
     expect(
       rememberPlayback({}, 'youtube', 'https://www.youtube.com/signin', 120),
+    ).toEqual({});
+    expect(
+      rememberPlayback({}, 'twitch', 'https://www.twitch.tv/login', 120),
     ).toEqual({});
   });
 

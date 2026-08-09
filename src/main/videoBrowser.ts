@@ -430,6 +430,41 @@ export const setVideoAdBlockEnabled = (enabled: boolean) => {
 };
 
 /**
+ * Throw away everything the player has accumulated. Every account, at once.
+ *
+ * THIS IS WHAT MAKES A PERSISTENT SESSION DEFENSIBLE. Before it, the promise was
+ * that nothing was kept; now the promise is that nothing is kept that was not
+ * asked for and that all of it can be dropped in one press. A store somebody can
+ * fill and cannot empty is the version of this feature that should not ship.
+ *
+ * `clearStorageData()` with no arguments rather than a list of quotas: the
+ * default is every type it knows, which is the point. Naming types here would
+ * mean this function silently stopped covering whatever Chromium adds next, and
+ * the failure would be a login surviving a sign-out — the exact thing it exists
+ * to prevent. Cache goes with it, since a cached authenticated page can still
+ * show somebody's name and library after their cookies are gone.
+ *
+ * Every attached player is sent home afterwards. A tab left sitting on a
+ * logged-in page would keep rendering it from memory, which looks precisely like
+ * the sign-out having failed.
+ */
+export const clearVideoSession = async () => {
+  const videoSession = session.fromPartition(VIDEO_BROWSER_PARTITION);
+
+  await videoSession.clearStorageData();
+  await videoSession.clearCache();
+  await videoSession.clearAuthCache();
+
+  attachedPlayers.forEach((contents) => {
+    if (!contents.isDestroyed()) {
+      contents.loadURL(HOME_SITE.home).catch(() => {
+        // The player is going away, or already has. Nothing to say about it.
+      });
+    }
+  });
+};
+
+/**
  * Open a blocked address in the user's real browser.
  *
  * Reached only from the notice the player shows after refusing to navigate,

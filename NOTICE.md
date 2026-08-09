@@ -102,13 +102,22 @@ site being reachable from the app.
 FluidEQ does not host, store, cache, copy, proxy or redistribute any content
 from those sites, and provides no means of downloading from them. Each site is
 loaded directly from its own servers, over HTTPS, into an ordinary browser
-engine, and is rendered as that site serves it. The session used is held in
-memory and discarded when the application exits.
+engine, and is rendered as that site serves it.
+
+The session used is kept between runs, so that a site you have signed in to
+remembers you the next time the tab is opened. It is a browser profile and
+nothing more: cookies and site storage written by those sites, held in a
+partition of their own, separate from anything else the application stores, and
+encrypted at rest by the operating system in the same way any browser profile on
+the machine is. FluidEQ does not read it. No credential, token or cookie is
+inspected, transmitted, or sent anywhere by this application, and none is shared
+with any other part of it. The Video tab's toolbar carries a control that
+deletes the whole of it — every cookie, sign-in and cached page — in one press.
 
 Use of each site remains subject to that site's own terms of service and to the
-rights of the copyright holders in the material it carries. Responsibility for
-observing those terms rests with the person using the application, not with this
-project.
+rights of the copyright holders in the material it carries. Signing in to an
+account brings that account's terms with it. Responsibility for observing those
+terms rests with the person using the application, not with this project.
 
 No part of this notice changes or restricts the rights granted by the GPL. If
 this repository and the license text conflict, the license text controls.

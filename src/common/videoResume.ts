@@ -90,6 +90,40 @@ const belongsToSite = (siteId: string, url: string) =>
   findSiteForUrl(url)?.id === siteId;
 
 /**
+ * Pages that are account plumbing rather than somewhere to come back to.
+ *
+ * THIS IS NOT A SECURITY CHECK AND MUST NOT BE MISTAKEN FOR ONE. The player is
+ * allowed to navigate to every one of these — signing in is the point of the
+ * session persisting. The question here is a different one: whether a page is
+ * worth *returning* to, and a login form never is. Worse than useless, in fact:
+ * somebody who signs in and then goes back to what they were listening to would
+ * find the site button carrying them to the login page they already finished
+ * with.
+ *
+ * A bare list rather than the per-domain scoping the old sign-in rule needed,
+ * because the stakes are not the same. That rule decided whether a page could be
+ * reached, so a false positive was a page that mysteriously would not open. This
+ * one decides whether a page is remembered, so a false positive is a Twitch
+ * channel called `login` not being resumed — which nobody will ever notice.
+ *
+ * The hosted sign-in pages — `accounts.google.com`, `id.twitch.tv`,
+ * `accounts.spotify.com` — need no entry. They are not the host of any site's
+ * home page, so `belongsToSite` has already declined to file them under
+ * anything.
+ */
+const ACCOUNT_PATHS = ['/signin', '/login', '/signup', '/join', '/logout'];
+
+const isAccountPage = (url: string) => {
+  let path: string;
+  try {
+    path = new URL(url).pathname.toLowerCase().replace(/\/$/, '');
+  } catch {
+    return false;
+  }
+  return ACCOUNT_PATHS.includes(path);
+};
+
+/**
  * Whether this is a mark worth keeping.
  *
  * The URL is checked against the same list the main process enforces. This
@@ -106,6 +140,7 @@ const isUsableMark = (value: unknown): value is IPlaybackMark => {
   return (
     typeof url === 'string' &&
     isNavigableVideoUrl(url) &&
+    !isAccountPage(url) &&
     typeof position === 'number' &&
     Number.isFinite(position) &&
     position >= 0
@@ -176,6 +211,11 @@ export const rememberPlayback = (
   if (
     !KNOWN_SITE_IDS.has(siteId) ||
     !isNavigableVideoUrl(url) ||
+    // Checked on the way in as well as on the way back off disk. A sign-in page
+    // is somewhere the player may go and nowhere it should return to, and the
+    // sampler runs on a timer — so without this, pausing on a login form for
+    // five seconds is enough to make it the page that site button opens.
+    isAccountPage(url) ||
     !belongsToSite(siteId, url)
   ) {
     return marks;

@@ -66,8 +66,13 @@ const ja: Partial<Dictionary> = {
   'video.searchForgetAll': '最近の検索を消去',
   'video.adBlock': '広告をブロック',
   'video.adBlockHint': 'YouTube の動画広告をスキップし、広告枠を隠します。',
+  'video.signOut': 'すべてのサイトからログアウト',
+  'video.signOutBusy': 'ログアウト中…',
+  'video.signOutHint':
+    'プレーヤーが保持している Cookie、ログイン情報、キャッシュされたページをすべて消去します。',
+  'video.signOutDone': 'ログアウトしました',
+  'video.signOutFailed': 'ログアウトできませんでした',
   'video.blockedTitle': 'このリンクはプレーヤーの外に出ます',
-  'video.blockedSignInTitle': 'ログインはここではなくブラウザーで行います',
   'video.openInBrowser': 'ブラウザで開く',
   'video.resize': 'ドラッグしてプレーヤーの大きさを変更',
 

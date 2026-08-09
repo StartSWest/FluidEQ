@@ -65,8 +65,12 @@ const zh: Partial<Dictionary> = {
   'video.searchForgetAll': '清除最近的搜索',
   'video.adBlock': '拦截广告',
   'video.adBlockHint': '跳过视频广告，并隐藏 YouTube 上的广告位。',
+  'video.signOut': '退出所有网站登录',
+  'video.signOutBusy': '正在退出…',
+  'video.signOutHint': '清除播放器保存的所有 Cookie、登录信息和缓存页面。',
+  'video.signOutDone': '已退出登录',
+  'video.signOutFailed': '无法退出登录',
   'video.blockedTitle': '这个链接会离开播放器',
-  'video.blockedSignInTitle': '登录请在浏览器中完成，而不是这里',
   'video.openInBrowser': '在浏览器中打开',
   'video.resize': '拖动可调整播放器大小',
 

@@ -473,13 +473,55 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// *** Sign out ***************************************************************
+
+// It carries the `margin-left: auto` that used to be on the ad-block group,
+// because it comes first in the row and is always rendered where that one
+// appears only after its chord. Two auto margins in one flex row split the free
+// space between them, which opens a gap in the middle rather than closing it.
+.video-browser__sign-out {
+  display: flex;
+  margin-left: auto;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: $spacing-xs;
+
+  button {
+    flex: 0 0 auto;
+    padding: 5px 10px;
+    border: 1px solid rgba($secondary-light, 0.35);
+    border-radius: $radius-s;
+    background: rgba($secondary-light, 0.1);
+    color: rgba($secondary-light, 0.9);
+    font-size: 0.68rem;
+    white-space: nowrap;
+    cursor: pointer;
+
+    &:hover:not(:disabled) {
+      border-color: rgba($secondary-light, 0.5);
+      background: rgba($secondary-light, 0.2);
+      color: $secondary-light;
+    }
+
+    &:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+  }
+}
+
+// What it did, once it has. Same size as the button's label so the row does not
+// change height when this appears beside it.
+.video-browser__sign-out-result {
+  color: rgba($primary-lighter, 0.75);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
 // *** Ad blocker switch ******************************************************
 
 .video-browser__ad-block {
   display: flex;
-  // Pinned to the far end, so the space the capped search box does not take
-  // lands here rather than as a gap in the middle of the row.
-  margin-left: auto;
   flex: 0 0 auto;
   align-items: center;
   gap: $spacing-xs;

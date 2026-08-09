@@ -31,7 +31,6 @@ import {
   buildSearchUrl,
   findSiteForUrl,
   isNavigableVideoUrl,
-  isSignInUrl,
 } from 'common/videoSites';
 import {
   TPlaybackMarks,
@@ -419,6 +418,9 @@ const Webview = 'webview' as unknown as FC<IWebviewProps>;
 const VIDEO_WEB_PREFERENCES =
   'autoplayPolicy=document-user-activation-required';
 
+/** How long "Signed out" stays up before the button goes back to offering it. */
+const SIGN_OUT_NOTICE_MS = 4000;
+
 const HOME_SITE: IVideoSite = VIDEO_SITES[0];
 
 /**
@@ -533,6 +535,18 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   // anything that has to be done again to a freshly loaded page can depend on
   // it. See `handleReady` for why a boolean was not enough.
   const [pageToken, setPageToken] = useState(0);
+  /**
+   * How the sign-out is going, as one value rather than three booleans.
+   *
+   * A clear can be in flight, can have worked, or can have failed, and those are
+   * exclusive — `isClearing && didFail` is not a state this can be in, so it
+   * should not be a state it can express. The result is deliberately not sticky:
+   * it goes back to idle on its own, because a permanent "Signed out" beside a
+   * button would still be there next time somebody wondered whether they were.
+   */
+  const [signOutState, setSignOutState] = useState<
+    'idle' | 'clearing' | 'done' | 'failed'
+  >('idle');
   const [isAdBlockOn, setIsAdBlockOn] = useState(readStoredAdBlock);
   // Whether the switch is in the interface at all. Owned by a root-level flag
   // rather than by this component, because the chord that moves it is pressed
@@ -1007,6 +1021,44 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     [activeSite, goTo],
   );
 
+  /**
+   * Sign out of everything, and say so.
+   *
+   * The main process does the clearing and sends every player home afterwards,
+   * so there is nothing to reload from here — a page left showing somebody's
+   * name from cache is exactly the failure this button exists to avoid, and it
+   * is fixed on the side that knows when the store is actually empty.
+   *
+   * `once` rather than a standing listener: a reply belongs to the press that
+   * asked for it, and a listener that outlived the press would answer a later
+   * one with an earlier result.
+   */
+  const handleSignOut = useCallback(() => {
+    setSignOutState('clearing');
+    window.electron.ipcRenderer.once(ChannelEnum.CLEAR_VIDEO_SESSION, (arg) => {
+      const reply = arg as { result?: boolean };
+      setSignOutState(reply?.result ? 'done' : 'failed');
+    });
+    window.electron.ipcRenderer.sendMessage(
+      ChannelEnum.CLEAR_VIDEO_SESSION,
+      [],
+    );
+  }, []);
+
+  // The confirmation clears itself. Left up, "Signed out" would still be on
+  // screen the next time somebody looked to check whether they were — which is
+  // the one question this control exists to answer, answered wrongly.
+  useEffect(() => {
+    if (signOutState !== 'done' && signOutState !== 'failed') {
+      return undefined;
+    }
+    const timer = window.setTimeout(
+      () => setSignOutState('idle'),
+      SIGN_OUT_NOTICE_MS,
+    );
+    return () => window.clearTimeout(timer);
+  }, [signOutState]);
+
   const blockedHost = (() => {
     try {
       return new URL(blockedUrl).hostname;
@@ -1015,11 +1067,10 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     }
   })();
 
-  // A sign-in was refused on purpose and is not the same thing as a link off
-  // the list, so it does not get told it is leaving the player — it is not.
-  // Derived rather than remembered alongside the URL: two pieces of state
-  // saying one thing is two pieces of state that can disagree.
-  const isBlockedSignIn = Boolean(blockedUrl) && isSignInUrl(blockedUrl);
+  // There used to be a second kind of refusal here: a sign-in, turned away on
+  // purpose and told apart from a link off the list so it could be answered
+  // differently. Sign-in is the point now, so there is one kind of refusal left
+  // — the address is not on the list — and one thing to say about it.
 
   return (
     <div
@@ -1118,6 +1169,44 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
           />
         </div>
 
+        {/*
+          THE OTHER HALF OF A SESSION THAT REMEMBERS.
+
+          The player keeps cookies now, so that signing in is worth doing — and
+          the moment it does, somebody has to be able to undo it. Always visible,
+          unlike the ad-block switch behind its chord: a privacy control that has
+          to be discovered is one most people never find, and this one is the
+          whole justification for the store existing.
+
+          It says what it did afterwards rather than just going quiet. A press
+          that clears five logins and shows nothing is indistinguishable from a
+          press that failed, and the difference matters more here than anywhere
+          else in the app.
+        */}
+        <div className="video-browser__sign-out">
+          <button
+            type="button"
+            onClick={handleSignOut}
+            disabled={signOutState === 'clearing'}
+            title={t('video.signOutHint')}
+          >
+            {t(
+              signOutState === 'clearing'
+                ? 'video.signOutBusy'
+                : 'video.signOut',
+            )}
+          </button>
+          {signOutState !== 'idle' && signOutState !== 'clearing' && (
+            <span className="video-browser__sign-out-result" role="status">
+              {t(
+                signOutState === 'done'
+                  ? 'video.signOutDone'
+                  : 'video.signOutFailed',
+              )}
+            </span>
+          )}
+        </div>
+
         {isAdBlockRevealed && (
           <div className="video-browser__ad-block">
             <span
@@ -1150,13 +1239,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
         {blockedUrl && (
           <div className="video-browser__blocked" role="alert">
             <div>
-              <strong>
-                {t(
-                  isBlockedSignIn
-                    ? 'video.blockedSignInTitle'
-                    : 'video.blockedTitle',
-                )}
-              </strong>
+              <strong>{t('video.blockedTitle')}</strong>
               <span title={blockedUrl}>{blockedHost}</span>
             </div>
             <button

@@ -68,8 +68,13 @@ const pt: Partial<Dictionary> = {
   'video.adBlock': 'Bloquear anúncios',
   'video.adBlockHint':
     'Pula os anúncios em vídeo e esconde os espaços de anúncio no YouTube.',
+  'video.signOut': 'Sair de todos os sites',
+  'video.signOutBusy': 'Saindo…',
+  'video.signOutHint':
+    'Apaga todos os cookies, logins e páginas em cache que o player guarda.',
+  'video.signOutDone': 'Sessões encerradas',
+  'video.signOutFailed': 'Não foi possível sair',
   'video.blockedTitle': 'Esse link leva para fora do player',
-  'video.blockedSignInTitle': 'O login acontece no seu navegador, não aqui',
   'video.openInBrowser': 'Abrir no navegador',
   'video.resize': 'Arraste para redimensionar o player',
 

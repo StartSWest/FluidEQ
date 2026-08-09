@@ -155,6 +155,7 @@ import {
 } from './convolutionCatalog';
 import { importConvolutionFile, importEqFile } from './importSettings';
 import {
+  clearVideoSession,
   openVideoLinkExternally,
   setUpVideoBrowser,
   setVideoAdBlockEnabled,
@@ -2702,6 +2703,24 @@ ipcMain.on(ChannelEnum.SET_VIDEO_AD_BLOCK, (_event, arg) => {
 
 ipcMain.on(ChannelEnum.OPEN_VIDEO_LINK_EXTERNALLY, (_event, arg) => {
   openVideoLinkExternally(String(arg[0] ?? ''));
+});
+
+/**
+ * Sign out of everything in the player.
+ *
+ * It replies even when the clear fails, and that is deliberate: the button is a
+ * privacy control, so a silent failure would leave somebody believing they had
+ * signed out of five accounts when they had not. The reply carries whether it
+ * worked, and the renderer says which.
+ */
+ipcMain.on(ChannelEnum.CLEAR_VIDEO_SESSION, async (event) => {
+  try {
+    await clearVideoSession();
+    event.reply(ChannelEnum.CLEAR_VIDEO_SESSION, { result: true });
+  } catch (ex) {
+    log.error(`Failed to clear the video session: ${ex}`);
+    event.reply(ChannelEnum.CLEAR_VIDEO_SESSION, { result: false });
+  }
 });
 
 ipcMain.on(ChannelEnum.GET_PREAMP, async (event) => {

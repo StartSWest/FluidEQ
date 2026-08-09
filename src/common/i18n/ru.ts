@@ -68,8 +68,13 @@ const ru: Partial<Dictionary> = {
   'video.adBlock': 'Блокировать рекламу',
   'video.adBlockHint':
     'Пропускает рекламу в видео и скрывает рекламные блоки на YouTube.',
+  'video.signOut': 'Выйти со всех сайтов',
+  'video.signOutBusy': 'Выход…',
+  'video.signOutHint':
+    'Удаляет все файлы cookie, сохранённые входы и кешированные страницы плеера.',
+  'video.signOutDone': 'Выход выполнен',
+  'video.signOutFailed': 'Не удалось выйти',
   'video.blockedTitle': 'Эта ссылка ведёт за пределы плеера',
-  'video.blockedSignInTitle': 'Вход выполняется в браузере, а не здесь',
   'video.openInBrowser': 'Открыть в браузере',
   'video.resize': 'Потяните, чтобы изменить размер плеера',
 

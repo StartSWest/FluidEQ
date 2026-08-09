@@ -77,6 +77,16 @@ const PATHS: Record<string, string[]> = {
     'M6.9 4.2h1.2v3.9H6.9Z',
     'M10.2 4.2h1.2v3.9h-1.2Z',
   ],
+  // The disc, with three arcs knocked out of it. Each arc is a closed band
+  // rather than a stroke — the same rule the rest of this file follows, since a
+  // stroke would be painted rather than punched and would carry the wrong colour
+  // the moment the pill behind it lit up.
+  spotify: [
+    'M8 1.4a6.6 6.6 0 1 1 0 13.2A6.6 6.6 0 0 1 8 1.4Z',
+    'M3.6 7Q8 4 12.4 7L12.4 8.35Q8 5.35 3.6 8.35Z',
+    'M4.6 9.3Q8 6.8 11.4 9.3L11.4 10.5Q8 8.1 4.6 10.5Z',
+    'M5.6 11.4Q8 9.5 10.4 11.4L10.4 12.45Q8 10.75 5.6 12.45Z',
+  ],
 };
 
 interface IVideoSiteIconProps {

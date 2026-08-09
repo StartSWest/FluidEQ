@@ -74,8 +74,13 @@ const hi: Partial<Dictionary> = {
   'video.adBlock': 'विज्ञापन ब्लॉक करें',
   'video.adBlockHint':
     'YouTube पर वीडियो विज्ञापन छोड़ता है और विज्ञापन की जगह छिपाता है।',
+  'video.signOut': 'सभी साइटों से साइन आउट करें',
+  'video.signOutBusy': 'साइन आउट हो रहा है…',
+  'video.signOutHint':
+    'प्लेयर में सहेजी गई सभी कुकीज़, लॉगिन और कैश किए गए पेज मिटा देता है।',
+  'video.signOutDone': 'साइन आउट हो गया',
+  'video.signOutFailed': 'साइन आउट नहीं हो सका',
   'video.blockedTitle': 'यह लिंक प्लेयर से बाहर ले जाता है',
-  'video.blockedSignInTitle': 'साइन इन आपके ब्राउज़र में होता है, यहाँ नहीं',
   'video.openInBrowser': 'ब्राउज़र में खोलें',
   'video.resize': 'प्लेयर का आकार बदलने के लिए खींचें',
 

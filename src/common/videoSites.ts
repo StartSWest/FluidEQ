@@ -34,23 +34,43 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
 /**
- * The player's own cookie jar, and it empties itself.
+ * The player's own cookie jar, and it now keeps what is put in it.
  *
- * No `persist:`, which makes this an in-memory session: every cookie in it dies
- * with the app. That is the point. Nobody's account should be the identity
- * behind what this player does — an equalizer is not worth putting somebody's
- * YouTube login at risk over, and a session that cannot outlive a run cannot
- * quietly become the one a site holds against them.
+ * IT USED TO EMPTY ITSELF, and the reasoning was sound as far as it went: a
+ * session that cannot outlive a run cannot quietly become the identity a site
+ * holds against somebody. What it also could not do was log in — and every one
+ * of these sites is better, or only usable at all, from an account. A signed-out
+ * YouTube shows ads to a Premium subscriber, a signed-out SoundCloud has no
+ * likes, and a signed-out Spotify has nothing whatsoever.
  *
- * A separate partition as well, so none of it shares a cookie store with the
- * app's own window and the locked-down permission handlers apply to the player
- * alone.
+ * So `persist:`, and the guarantee changes from "nothing is kept" to "nothing is
+ * kept that you did not ask for, and you can throw all of it away in one press".
+ * That press is `CLEAR_VIDEO_SESSION`, wired to a button in the player's own
+ * toolbar. A store nobody can empty is the version of this that would have been
+ * indefensible.
  *
- * The cost is real and accepted: no subscriptions, no history, and each launch
- * meets the consent banner again. Where you left off is remembered by FluidEQ
- * itself, not by the site, so that much survives.
+ * What did NOT change, and is what actually contains the blast radius:
+ *
+ *  - A separate partition, so none of it shares a cookie store with the app's
+ *    own window and the locked-down handlers below apply to the player alone.
+ *  - Cookies are encrypted at rest by Chromium, per user, by the OS.
+ *  - Nothing reads this jar over IPC. FluidEQ never sees a cookie, a token or a
+ *    password; it hands the partition to Chromium and asks no questions of it.
+ *  - The guest still runs sandboxed with context isolation and no node, and the
+ *    preload exposes nothing through `contextBridge` — so a hostile page in a
+ *    logged-in tab still cannot reach the app.
+ *
+ * The allowlist is what carries the weight now. A logged-in session raises the
+ * price of reaching a host we did not intend, which is why sign-in hosts were
+ * added to it deliberately and one at a time rather than by loosening the check.
  */
-export const VIDEO_BROWSER_PARTITION = 'fluideq-video';
+export const VIDEO_BROWSER_PARTITION = 'persist:fluideq-video';
+
+/** Throw away every cookie, token and cache the player has accumulated. */
+export const CLEAR_VIDEO_SESSION = 'clear-video-session';
+
+/** Sent back when it is done, so the player can reload onto a clean session. */
+export const VIDEO_SESSION_CLEARED = 'video-session-cleared';
 
 /**
  * A popup the player refused, sent from main to the window so it can say so.
@@ -79,32 +99,33 @@ export interface IVideoSite {
  * through their own EQ curve. Adding one here is all it takes to make it
  * reachable — but see `ALLOWED_HOSTS`, which is what actually decides.
  *
- * Spotify is missing, and not for lack of wanting it. Two independent reasons,
- * either of which is on its own decisive:
+ * SPOTIFY IS HERE AND ITS PLAYBACK NEEDS A CDM THIS BUILD DOES NOT HAVE.
+ * Browsing, search, library and the whole interface work signed in; pressing
+ * play does not, and Spotify says so itself in the player rather than failing
+ * silently. Its audio is encrypted under Widevine and Electron ships no Widevine
+ * CDM, so there is nothing to decrypt it with.
  *
- *  - Its web player streams under Widevine, and Electron ships no Widevine
- *    CDM. The page would load, the controls would work and every track would
- *    fail at play. Getting one means building on castLabs' Electron fork and
- *    holding one of their VMP signing certificates.
- *  - Spotify's terms do not permit its service being wrapped in a third-party
- *    client, and the blocker below would be stripping the advertising that
- *    pays for the free tier. That is not a grey area worth standing in.
+ * That is fixable and the route is known: castLabs publish an Electron fork with
+ * the CDM built in, and their EVS service signs a build for production use.
+ * Development signatures are not enough — a Widevine server answers those with a
+ * 500 and the symptom is exactly "tracks skip and stop", which is the shape of
+ * every report of this. It is a change to how the application is built rather
+ * than to anything in this file, so it is recorded where build steps are
+ * recorded and not here.
  *
- * The same DRM wall stands in front of Netflix, Prime Video and anything else
- * licensed. What is here plays without it.
+ * The same wall stands in front of Netflix, Prime Video and anything else
+ * licensed. Everything else in this list plays without it.
  *
  * Vimeo was here and had to go, for a reason worth writing down because it will
  * look like a regression otherwise. Vimeo renders its listings on the client
  * from an API that answers nothing to a session it does not recognise: search,
- * Staff Picks and `/watch` all return their chrome — tabs, filters, footer —
- * and not one result. Checked twice, in this player and in a second browser,
- * with the same outcome both times. A direct video URL still plays perfectly;
- * there is simply no way to reach one from inside, and the first thing a click
- * on that empty page found was the signup wall, which is refused.
+ * Staff Picks and `/watch` all returned their chrome — tabs, filters, footer —
+ * and not one result. A direct video URL still played perfectly; there was
+ * simply no way to reach one from inside.
  *
- * That is not a bug this end can fix. The player's session is in-memory by
- * design and always will be, so it is permanently the session Vimeo declines to
- * answer. A button leading to a page with nothing on it is worse than no button
+ * That was diagnosed against a session that could not log in, which is no longer
+ * the case, so it is worth another look before anybody takes this paragraph as
+ * settled. A button leading to a page with nothing on it is worse than no button
  * — the whole promise of this file is that a site in the UI is one that works.
  */
 export const VIDEO_SITES: IVideoSite[] = [
@@ -138,6 +159,12 @@ export const VIDEO_SITES: IVideoSite[] = [
     home: 'https://www.twitch.tv/',
     search: 'https://www.twitch.tv/search?term={query}',
   },
+  {
+    id: 'spotify',
+    name: 'Spotify',
+    home: 'https://open.spotify.com/',
+    search: 'https://open.spotify.com/search/{query}',
+  },
 ];
 
 /**
@@ -152,20 +179,31 @@ export const VIDEO_SITES: IVideoSite[] = [
  * blocked navigation in the middle of ordinary use reads as a broken app.
  * They serve media, not pages, so they widen the surface very little.
  *
- * `consent.google.com` is here and has to be. The player's session is
- * in-memory, so it arrives at YouTube with no consent cookie every single
- * launch and is redirected straight to that host before it will serve a page.
- * Off the list, the first thing anybody sees is the refusal notice and the
- * player never loads at all — a signed-out session and a consent wall come as a
- * pair, and allowing the first without the second leaves a dead player.
+ * `consent.google.com` is here and has to be: a session with no consent cookie
+ * is redirected straight to that host before YouTube will serve a page at all.
  *
- * Notably absent: `accounts.google.com`. Google refuses to complete a sign-in
- * inside an embedded view regardless of what we allow, so listing it would buy
- * a dead-end page rather than a login. Signed-out YouTube plays fine.
+ * THE SIGN-IN HOSTS ARE THE NEW ARRIVALS, and they are the reason this list
+ * deserves rereading rather than skimming. Each is the host that service uses to
+ * take a password, and each was added by name — not by relaxing the check, and
+ * not as a wildcard. This list is the whole boundary now: a page in this player
+ * can hold a live login, so the cost of a host reaching it that we did not
+ * intend went up, and the answer to that is a list that stayed exact.
+ *
+ * `accounts.google.com` is here at last and comes with a caveat that is not
+ * ours to fix: Google decides for itself whether it will complete a sign-in in
+ * an embedded view, and often refuses one with "this browser may not be secure".
+ * Listing it makes the attempt possible. It does not make it succeed. Everything
+ * else on this list signs in normally.
+ *
+ * The CDN domains serve media rather than pages, so they widen the surface very
+ * little, and these sites do navigate to them — a Bandcamp download and a Twitch
+ * clip both leave the main domain.
  */
 const ALLOWED_HOSTS: string[] = [
   'youtube.com',
   'consent.google.com',
+  'accounts.google.com',
+  'accounts.youtube.com',
   'youtu.be',
   'youtube-nocookie.com',
   'googlevideo.com',
@@ -178,84 +216,31 @@ const ALLOWED_HOSTS: string[] = [
   'twitch.tv',
   'ttvnw.net',
   'jtvnw.net',
+  // Spotify. `open.` is the player, `accounts.` takes the password, and the two
+  // CDNs carry cover art and audio — all four are reached in one ordinary
+  // listen.
+  'spotify.com',
+  'scdn.co',
+  'spotifycdn.com',
 ];
 
 /**
- * Hosts that exist to sign somebody in, and nothing else.
+ * The sign-in refusal is gone, and what replaced it is worth stating.
  *
- * Most of these sit under domains the list above allows, so the host check
- * passes and only this stops them.
+ * There used to be a second list here — sign-in hosts and sign-in paths — and a
+ * predicate that turned every one of them away. It existed to enforce the
+ * in-memory session's promise: if no account can be entered, no account can be
+ * kept. The session keeps things now, on purpose, so a rule whose entire job was
+ * to prevent that had nothing left to do.
  *
- * `accounts.google.com` is the exception and is already refused for being off
- * the list entirely. It is named here anyway so that pressing Sign in on
- * YouTube is answered by the reason it was refused, rather than by a message
- * about leaving the player.
+ * It was also never the thing doing the work, and that is the part worth
+ * remembering. Its own comment admitted the gap: it saw navigations, so it
+ * turned away sign-in *links*, and it never saw an in-page login dialog —
+ * Twitch's opens without navigating anywhere. A boundary with a hole in it that
+ * is documented in the boundary is a policy, not a defence. `ALLOWED_HOSTS`
+ * above is the defence, it has no such hole, and it is checked on all four ways
+ * a page can move.
  */
-const SIGN_IN_HOSTS: string[] = [
-  'accounts.google.com',
-  'secure.soundcloud.com',
-  'id.twitch.tv',
-  'passport.twitch.tv',
-];
-
-/**
- * Where each site keeps its sign-in, by registrable domain.
- *
- * Scoped per domain rather than matched as bare words anywhere, because these
- * paths are only special on the site that owns them: `twitch.tv/login` is a
- * login page, and a channel called `login` on some other site is not.
- *
- * `accounts.google.com` is absent from `ALLOWED_HOSTS` and stays absent, which
- * is what actually stops a YouTube sign-in. `/signin` is here so the refusal
- * happens on the link rather than one redirect later, where all the player can
- * do is stop and go home.
- */
-const SIGN_IN_PATHS: Record<string, string[]> = {
-  'youtube.com': ['/signin'],
-  'soundcloud.com': ['/signin'],
-  'bandcamp.com': ['/login', '/signup', '/join'],
-  'twitch.tv': ['/login', '/signup'],
-};
-
-/**
- * Whether this URL is a way into an account.
- *
- * Deliberately separate from the host list: that one is a security boundary and
- * this one is a policy, they are refused for different reasons, and the player
- * says something different about each.
- *
- * Honest about its reach. It sees navigations, so it turns away the sign-in
- * links and pages. It does not see an in-page login dialog — Twitch's opens
- * without navigating anywhere — so somebody determined can still sign in for
- * the length of one run. Nothing survives the app closing either way, which is
- * the guarantee that actually matters.
- */
-export const isSignInUrl = (url: string): boolean => {
-  let parsed: URL;
-  try {
-    parsed = new URL(url);
-  } catch {
-    return false;
-  }
-
-  const host = parsed.hostname.toLowerCase().replace(/\.$/, '');
-  if (SIGN_IN_HOSTS.includes(host)) {
-    return true;
-  }
-
-  // Trailing slash removed so `/login` and `/login/` are one case, and the
-  // empty string that leaves for a bare `/` matches no entry.
-  const path = parsed.pathname.toLowerCase().replace(/\/$/, '');
-
-  return Object.entries(SIGN_IN_PATHS).some(([domain, paths]) => {
-    if (host !== domain && !host.endsWith(`.${domain}`)) {
-      return false;
-    }
-    return paths.some(
-      (entry) => path === entry || path.startsWith(`${entry}/`),
-    );
-  });
-};
 
 /**
  * Whether the player may go here.
@@ -296,14 +281,17 @@ export const isAllowedVideoUrl = (url: string): boolean => {
 };
 
 /**
- * Whether the player may go here, for a caller that only needs the answer.
+ * Whether the player may go here — the question every navigation guard asks.
  *
- * Both refusals in one. Every navigation guard asks this rather than having to
- * remember to ask two questions, which is the kind of thing that stays right
- * for exactly as long as nobody adds a fifth place a page can move.
+ * It used to be two refusals in one, the allowlist and the sign-in policy. The
+ * policy is gone, so it is one, and this keeps its name rather than the guards
+ * being repointed at `isAllowedVideoUrl`: they ask "may the player navigate
+ * here", and if a second condition is ever needed again this is where it goes.
+ * Four call sites all asking the same question through one name is what stopped
+ * the last one from drifting.
  */
 export const isNavigableVideoUrl = (url: string): boolean =>
-  isAllowedVideoUrl(url) && !isSignInUrl(url);
+  isAllowedVideoUrl(url);
 
 /** A site's search page for these terms, or its home page for empty ones. */
 export const buildSearchUrl = (site: IVideoSite, query: string): string => {

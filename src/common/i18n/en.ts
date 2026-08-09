@@ -107,8 +107,13 @@ const en = {
   'video.searchForgetAll': 'Clear recent searches',
   'video.adBlock': 'Block ads',
   'video.adBlockHint': 'Skips video ads and hides ad slots on YouTube.',
+  'video.signOut': 'Sign out of all sites',
+  'video.signOutBusy': 'Signing out…',
+  'video.signOutHint':
+    'Clears every cookie, login and cached page the player is holding.',
+  'video.signOutDone': 'Signed out',
+  'video.signOutFailed': 'Could not sign out',
   'video.blockedTitle': 'That link leads outside the player',
-  'video.blockedSignInTitle': 'Sign-in happens in your browser, not here',
   'video.openInBrowser': 'Open in browser',
   'video.resize': 'Drag to resize the player',
 
