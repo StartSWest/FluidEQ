@@ -664,6 +664,9 @@ const hardenPopup = (contents: WebContents) => {
    * to look at it.
    */
   const { opener } = contents;
+  // Which frame Electron considers the opener, from the side that knows. The
+  // page's own view of it can only ever be "same origin or not".
+  log.info(`Sign-in popup opened by ${opener ? opener.url : 'nothing'}`);
   if (opener) {
     opener
       .executeJavaScript('JSON.stringify(sessionStorage)')
@@ -718,8 +721,21 @@ const hardenPopup = (contents: WebContents) => {
       .executeJavaScript(
         `(() => {
           try {
+            // WHICH opener, not merely whether there is one. SoundCloud's
+            // callback hands the token back only when the opener's origin is
+            // the one it expects, and says nothing when it is not. Reading the
+            // origin across origins throws, and that is an answer too.
+            let openerOrigin = 'none';
+            if (window.opener) {
+              try {
+                openerOrigin = window.opener.location.origin;
+              } catch (error) {
+                openerOrigin = 'cross-origin';
+              }
+            }
             return JSON.stringify({
-              opener: !!window.opener,
+              here: window.location.origin,
+              openerOrigin,
               keys: Object.keys(sessionStorage),
               local: Object.keys(localStorage).length,
             });
