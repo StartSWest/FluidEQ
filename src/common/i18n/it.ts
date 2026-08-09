@@ -386,6 +386,8 @@ const it: Partial<Dictionary> = {
   'config.import': 'Importa catena',
   'config.import.hint':
     'L’importazione si applica all’uscita che stai ascoltando.',
+  'config.import.customSkipped':
+    'File personale del mittente ignorato: una riga Include: o Plugin: caricherebbe codice nell’audio di Windows.',
   'config.file.yours': 'tuo',
   'config.hint.custom': 'È tuo. Non viene mai sovrascritto.',
   'config.hint.generated': 'Generato: riscritto alla prossima modifica.',

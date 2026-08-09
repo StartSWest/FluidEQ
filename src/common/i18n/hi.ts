@@ -383,6 +383,8 @@ const hi: Partial<Dictionary> = {
   'config.export': 'चेन निर्यात करें',
   'config.import': 'चेन आयात करें',
   'config.import.hint': 'आयात उसी आउटपुट पर लागू होगा जिसे आप सुन रहे हैं।',
+  'config.import.customSkipped':
+    'भेजने वाले की अपनी फ़ाइल छोड़ दी गई: उसमें मौजूद Include: या Plugin: पंक्ति Windows ऑडियो में कोड लोड कर देती।',
   'config.file.yours': 'आपकी',
   'config.hint.custom': 'यह आपकी है। कभी अधिलेखित नहीं होती।',
   'config.hint.generated': 'अपने आप बनी — अगले बदलाव पर फिर से लिखी जाएगी।',

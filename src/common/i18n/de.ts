@@ -388,6 +388,8 @@ const de: Partial<Dictionary> = {
   'config.import': 'Kette importieren',
   'config.import.hint':
     'Der Import landet auf dem Ausgang, den Sie gerade hören.',
+  'config.import.customSkipped':
+    'Eigene Datei des Absenders übersprungen: eine Include:- oder Plugin:-Zeile darin würde Code in die Windows-Audiokette laden.',
   'config.file.yours': 'Ihre',
   'config.hint.custom': 'Ihre Datei. Wird nie überschrieben.',
   'config.hint.generated':

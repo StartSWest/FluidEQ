@@ -471,6 +471,12 @@ const en = {
   'config.export': 'Export chain',
   'config.import': 'Import chain',
   'config.import.hint': 'Import lands on the output you are listening to.',
+  // Said after an import that otherwise worked. The custom block in a shared
+  // chain is the sender's own text, and Include: and Plugin: are the two APO
+  // commands that reach outside the audio — so it is dropped and named, rather
+  // than the whole chain being refused over a line nobody asked for.
+  'config.import.customSkipped':
+    'Skipped the sender’s custom file: an Include: or Plugin: line in it would load code into Windows audio.',
   'config.file.yours': 'yours',
   'config.hint.custom': 'Yours. Never overwritten.',
   'config.hint.generated': 'Generated — rewritten on the next change.',

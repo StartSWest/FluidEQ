@@ -46,6 +46,7 @@ import {
 } from 'common/constants';
 import { IConvolutionCatalogEntry } from 'common/convolution';
 import { IApoConfigTree } from 'common/apoConfig';
+import { IChainImport } from 'common/chainBundle';
 
 const TIMEOUT = 10000;
 
@@ -132,7 +133,8 @@ const buildResponseHandler = <
     | IConvolutionProfile
     | ISquigSource[]
     | IGatheredFacts
-    | IApoConfigTree,
+    | IApoConfigTree
+    | IChainImport,
 >(
   resultEvaluator: (
     result: Type,
@@ -177,7 +179,8 @@ const simpleResponseHandler = <
     | IConvolutionProfile
     | ISquigSource[]
     | IGatheredFacts
-    | IApoConfigTree,
+    | IApoConfigTree
+    | IChainImport,
 >() =>
   buildResponseHandler<Type>((result, resolve) => {
     resolve(result);
@@ -375,11 +378,16 @@ export const exportDeviceChain = (devicePattern: string): Promise<string> => {
  *
  * Takes no argument for that reason: importing changes what is heard, and the
  * only output somebody can check the result on is the one already playing.
+ *
+ * Answers with more than a note because part of a bundle can be refused while
+ * the rest of it lands — the sender's custom block, when it carries something
+ * that would execute. Main can only report that as a flag; the sentence for it
+ * lives where the dictionary does.
  */
-export const importDeviceChain = (): Promise<string> => {
+export const importDeviceChain = (): Promise<IChainImport> => {
   const channel = ChannelEnum.IMPORT_DEVICE_CHAIN;
   window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<string>(), channel);
+  return promisifyResult(simpleResponseHandler<IChainImport>(), channel);
 };
 
 export const getAudioDevices = (): Promise<IAudioDevice[]> => {

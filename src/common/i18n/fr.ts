@@ -386,6 +386,8 @@ const fr: Partial<Dictionary> = {
   'config.export': 'Exporter la chaîne',
   'config.import': 'Importer une chaîne',
   'config.import.hint': 'L’import s’applique à la sortie que vous écoutez.',
+  'config.import.customSkipped':
+    'Fichier personnel de l’expéditeur ignoré : une ligne Include: ou Plugin: chargerait du code dans l’audio de Windows.',
   'config.file.yours': 'à vous',
   'config.hint.custom': 'À vous. Jamais écrasé.',
   'config.hint.generated': 'Généré : réécrit au prochain changement.',

@@ -380,6 +380,8 @@ const ru: Partial<Dictionary> = {
   'config.export': 'Экспорт цепочки',
   'config.import': 'Импорт цепочки',
   'config.import.hint': 'Импорт применяется к выходу, который вы слушаете.',
+  'config.import.customSkipped':
+    'Собственный файл отправителя пропущен: строка Include: или Plugin: в нём загрузила бы код в аудиотракт Windows.',
   'config.file.yours': 'ваш',
   'config.hint.custom': 'Ваш файл. Никогда не перезаписывается.',
   'config.hint.generated':

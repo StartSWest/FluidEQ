@@ -349,6 +349,8 @@ const zh: Partial<Dictionary> = {
   'config.export': '导出链路',
   'config.import': '导入链路',
   'config.import.hint': '导入会应用到你正在收听的输出。',
+  'config.import.customSkipped':
+    '已跳过发送者自己的文件：其中的 Include: 或 Plugin: 行会把代码加载进 Windows 音频。',
   'config.file.yours': '你的',
   'config.hint.custom': '这是你的文件，永远不会被覆盖。',
   'config.hint.generated': '自动生成——下次改动时会被重写。',

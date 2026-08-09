@@ -164,7 +164,9 @@ import { adoptBlock, hasChainDrifted } from '../common/apoSync';
 import {
   CHAIN_BUNDLE_EXTENSION,
   IChainBundle,
+  IChainImport,
   chainBundleFileName,
+  isSafeImportedCustomBlock,
   parseChainBundle,
   serializeChainBundle,
 } from '../common/chainBundle';
@@ -2622,7 +2624,9 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
       { name: 'All files', extensions: ['*'] },
     ]);
     if (!sourcePath) {
-      const reply: TSuccess<string> = { result: '' };
+      const reply: TSuccess<IChainImport> = {
+        result: { note: '', isCustomSkipped: false },
+      };
       event.reply(channel, reply);
       return;
     }
@@ -2649,20 +2653,38 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
     savePresetBaseline(name, bundle.preset, baselinePath);
     attachPresetToActiveDevice(name);
 
+    // The one part of a bundle that is not a tuning but a program. Everything
+    // else here has been through the preset schema; this is text on its way to
+    // a file Equalizer APO includes, so it is asked first — see
+    // `isSafeImportedCustomBlock` for what is refused and why.
+    let isCustomSkipped = false;
     if (bundle.custom !== undefined) {
-      if (!configPath) {
-        configPath = await getConfigPath();
+      if (isSafeImportedCustomBlock(bundle.custom)) {
+        if (!configPath) {
+          configPath = await getConfigPath();
+        }
+        // Over the top of this output's own custom file, which is the only part
+        // of an import that destroys something written by hand. It is also the
+        // only honest reading of "import this chain": leaving the old one would
+        // apply somebody else's chain plus your own additions, which is a third
+        // thing neither of you has ever heard.
+        fs.writeFileSync(
+          path.join(
+            configPath,
+            getCustomFileNameForDevice(activeAudioDeviceId),
+          ),
+          bundle.custom,
+          'utf8',
+        );
+      } else {
+        // And a refused block does NOT clear the file it was going to replace.
+        // Overwriting is what an accepted import earns; doing it for a refused
+        // one would hand a stranger a way to wipe somebody's hand-written file
+        // by sending a bundle that was never going to be applied. The chain is
+        // a hybrid afterwards — theirs, plus your own last line — and the note
+        // below says so, which is better than silently deleting your work.
+        isCustomSkipped = true;
       }
-      // Over the top of this output's own custom file, which is the only part
-      // of an import that destroys something written by hand. It is also the
-      // only honest reading of "import this chain": leaving the old one would
-      // apply somebody else's chain plus your own additions, which is a third
-      // thing neither of you has ever heard.
-      fs.writeFileSync(
-        path.join(configPath, getCustomFileNameForDevice(activeAudioDeviceId)),
-        bundle.custom,
-        'utf8',
-      );
     }
 
     // Field by field, like loading a profile, because `state` is the live one
@@ -2704,12 +2726,15 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
     state.headphone = bundle.preset.headphone;
     state.bypassed = bundle.preset.bypassed;
 
-    await handleUpdateHelper<string>(
+    await handleUpdateHelper<IChainImport>(
       event,
       channel,
-      `Imported the chain${
-        bundle.exportedFrom ? ` from ${bundle.exportedFrom}` : ''
-      }.`,
+      {
+        note: `Imported the chain${
+          bundle.exportedFrom ? ` from ${bundle.exportedFrom}` : ''
+        }.`,
+        isCustomSkipped,
+      },
       true,
     );
   } catch (e) {

@@ -383,6 +383,8 @@ const pt: Partial<Dictionary> = {
   'config.export': 'Exportar cadeia',
   'config.import': 'Importar cadeia',
   'config.import.hint': 'A importação aplica-se à saída que estás a ouvir.',
+  'config.import.customSkipped':
+    'O arquivo próprio do remetente foi ignorado: uma linha Include: ou Plugin: carregaria código no áudio do Windows.',
   'config.file.yours': 'seu',
   'config.hint.custom': 'É seu. Nunca é sobrescrito.',
   'config.hint.generated': 'Gerado: reescrito na próxima alteração.',

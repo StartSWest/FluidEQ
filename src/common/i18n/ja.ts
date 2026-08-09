@@ -374,6 +374,8 @@ const ja: Partial<Dictionary> = {
   'config.export': 'チェーンを書き出す',
   'config.import': 'チェーンを読み込む',
   'config.import.hint': '読み込みは再生中の出力に適用されます。',
+  'config.import.customSkipped':
+    '送信者自身のファイルは読み込みませんでした。中の Include: 行や Plugin: 行は Windows のオーディオにコードを読み込ませます。',
   'config.file.yours': 'あなたの',
   'config.hint.custom': 'あなたのファイルです。上書きされません。',
   'config.hint.generated': '自動生成 — 次の変更で書き直されます。',

@@ -484,6 +484,22 @@ const ConfigInspector = () => {
     [],
   );
 
+  /**
+   * The import's own note, plus the one thing main cannot phrase.
+   *
+   * A bundle's custom block is the sender's text rather than a tuning, so an
+   * import that carries a `Plugin:` or an `Include:` lands everything except
+   * that block — see `isSafeImportedCustomBlock`. Saying nothing would leave
+   * somebody with a chain that is quietly missing a part of itself, so the
+   * sentence is appended here, where the dictionary is.
+   */
+  const importChain = useCallback(async () => {
+    const outcome = await importDeviceChain();
+    return outcome.isCustomSkipped
+      ? `${outcome.note} ${t('config.import.customSkipped')}`
+      : outcome.note;
+  }, [t]);
+
   const settledSmartEq = isContinuousOn ? undefined : smartEq;
   useEffect(() => {
     load();
@@ -729,7 +745,7 @@ const ConfigInspector = () => {
                   <button
                     type="button"
                     className="config-device__import"
-                    onClick={() => transferChain(importDeviceChain)}
+                    onClick={() => transferChain(importChain)}
                   >
                     {t('config.import')}
                   </button>

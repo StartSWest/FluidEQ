@@ -22,6 +22,7 @@ import {
   CHAIN_BUNDLE_EXTENSION,
   IChainBundle,
   chainBundleFileName,
+  isSafeImportedCustomBlock,
   parseChainBundle,
   serializeChainBundle,
 } from 'common/chainBundle';
@@ -139,6 +140,22 @@ describe('a chain bundle', () => {
     expect(read?.custom).toBeUndefined();
   });
 
+  it('brings the rest of a chain in when the custom block cannot come', () => {
+    // A `.fluideq` is a file a stranger can send, and its custom block is
+    // copied into a file Equalizer APO includes — so a `Plugin:` line in one is
+    // a DLL loaded into the Windows audio pipeline by email. The tuning is
+    // still just a tuning, so it arrives; the block does not.
+    const read = parseChainBundle({
+      version: 1,
+      preset,
+      custom: 'Preamp: -2 dB\r\nPlugin: evil.dll\r\n',
+    });
+
+    expect(read?.preset.preAmp).toBe(-3);
+    expect(read?.preset.filters.a.frequency).toBe(1000);
+    expect(isSafeImportedCustomBlock(read?.custom || '')).toBe(false);
+  });
+
   it('builds a file name Windows will accept from an output name', () => {
     // Real endpoint names are full of characters a filename may not carry.
     expect(chainBundleFileName('Speakers (Realtek(R) Audio)')).toBe(
@@ -150,5 +167,78 @@ describe('a chain bundle', () => {
     expect(chainBundleFileName('   ')).toBe(
       `FluidEQ chain.${CHAIN_BUNDLE_EXTENSION}`,
     );
+  });
+});
+
+describe('a custom block arriving inside a bundle', () => {
+  it('refuses the two commands that reach outside the audio', () => {
+    // `Plugin:` loads a DLL into the Windows audio pipeline and `Include:`
+    // pulls in any other file on disk. Neither is arithmetic on the signal,
+    // and a chain that needs one is not a chain anybody has to be able to send.
+    expect(isSafeImportedCustomBlock('Plugin: evil.dll')).toBe(false);
+    expect(isSafeImportedCustomBlock('Include: C:\\Users\\me\\evil.txt')).toBe(
+      false,
+    );
+    // The spelling that actually loads the library: APO's own factory tests
+    // `command == L"VSTPlugin"`, and there is no `Plugin` command at all.
+    expect(isSafeImportedCustomBlock('VSTPlugin: Library "evil.dll"')).toBe(
+      false,
+    );
+  });
+
+  it('matches the way Equalizer APO matches, not the way it is usually typed', () => {
+    // APO cuts a line at the first colon and trims the key — the comment on
+    // that line in FilterEngine.cpp is "allow to use indentation" — so a check
+    // anchored to column zero would be one space wide. Case is refused more
+    // loosely than APO compares it, because a check that only catches `Plugin`
+    // is a check anybody bypasses with the shift key.
+    expect(isSafeImportedCustomBlock('  plugin: evil.dll')).toBe(false);
+    expect(isSafeImportedCustomBlock('\tInClUdE: evil.txt')).toBe(false);
+    expect(isSafeImportedCustomBlock('Preamp: -3 dB\r\n   Plugin : x')).toBe(
+      false,
+    );
+    expect(isSafeImportedCustomBlock('Filter: ON PK Fc 100 Hz\nplugin:x')).toBe(
+      false,
+    );
+  });
+
+  it('refuses a control character that is not a line break or an indent', () => {
+    // The same reason `isSafeConvolutionFileName` refuses them: what the
+    // parser does with a NUL or an escape is not ours to reason about.
+    expect(isSafeImportedCustomBlock('Preamp: -3 dB\u0000')).toBe(false);
+    expect(isSafeImportedCustomBlock('Preamp: -3 dB\u001b[0m')).toBe(false);
+    expect(isSafeImportedCustomBlock('Preamp: -3 dB\u007f')).toBe(false);
+  });
+
+  it('leaves an ordinary custom block exactly as it was sent', () => {
+    // Everything else in the grammar is arithmetic on the audio, and carrying
+    // it is the whole point of sharing a chain.
+    const block = [
+      '# Mine.',
+      'Preamp: -4 dB',
+      'Filter: ON PK Fc 120 Hz Gain -2.5 dB Q 1.20',
+      'Copy: L=R R=L',
+      'Delay: 5 ms',
+      'Stage: post',
+      'Channel: L',
+      'GraphicEQ: 25 -3; 40 -2; 100 0',
+      '',
+    ].join('\r\n');
+
+    expect(isSafeImportedCustomBlock(block)).toBe(true);
+  });
+
+  it('reads a command only where a command can be, so a comment survives', () => {
+    // Not a nicety: the template FluidEQ writes into every custom file says
+    // "Equalizer APO commands go here — Plugin:, Copy:, Delay: and the rest",
+    // so a rule that matched anywhere in a line would refuse the custom block
+    // of every chain this app has ever exported.
+    expect(
+      isSafeImportedCustomBlock('# commands go here — Plugin:, Copy:, Delay:'),
+    ).toBe(true);
+    // And a longer word that merely starts the same way is a different command
+    // to APO, which compares the whole trimmed key.
+    expect(isSafeImportedCustomBlock('Includes: 3')).toBe(true);
+    expect(isSafeImportedCustomBlock('MyPlugin: 1')).toBe(true);
   });
 });
