@@ -433,10 +433,16 @@ const ConfigInspector = () => {
   const shown = devices.find((device) => keyOf(device) === selectedKey);
 
   return (
-    <div className="config-inspector">
+    <section className="config-inspector" aria-labelledby="config-title">
+      {/* The same header every other tab page carries: a kicker, the name of
+          the page, and a line saying what it is for. This one had the kicker
+          and the line but no heading at all, which left it the one tab a
+          screen reader could not announce and the one that did not look like
+          the others. */}
       <div className="config-inspector__bar">
         <div className="config-inspector__title">
           <span className="eyebrow">{t('config.eyebrow')}</span>
+          <h2 id="config-title">{t('config.title')}</h2>
           <p className="config-inspector__lede">{t('config.lede')}</p>
         </div>
         {/* Icon and label, sized like the rest of the app's controls. A bare
@@ -676,7 +682,7 @@ const ConfigInspector = () => {
           </code>
         </>
       )}
-    </div>
+    </section>
   );
 };
 

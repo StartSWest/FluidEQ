@@ -1008,7 +1008,9 @@ $tab-border: rgba($secondary-light, 0.2);
 }
 
 .workspace-tab-panel--eq,
+.workspace-tab-panel--autoeq,
 .workspace-tab-panel--convolution,
+.workspace-tab-panel--config,
 .workspace-tab-panel--video {
   @include panel-surface;
   // The ramp measured against the window, not against this panel.
@@ -1084,7 +1086,6 @@ $tab-border: rgba($secondary-light, 0.2);
   min-height: 0;
   gap: 10px;
 
-  > .autoeq-section,
   > .main-content-title {
     flex: 0 0 auto;
   }
@@ -1108,12 +1109,16 @@ $tab-border: rgba($secondary-light, 0.2);
 // Inheriting `.workspace-tab-panel`'s scroll and its stable gutter puts both
 // tabs on one behaviour, and the gutter is what stops the content shifting
 // sideways as the bar appears.
-.workspace-tab-panel--convolution {
+.workspace-tab-panel--convolution,
+.workspace-tab-panel--autoeq,
+.workspace-tab-panel--config {
   min-height: 0;
   flex: 1 1 auto;
 
   > .convolution-panel,
-  > .voicing-panel {
+  > .voicing-panel,
+  > .autoeq-panel,
+  > .config-inspector {
     min-height: 0;
     flex: 1 1 auto;
   }

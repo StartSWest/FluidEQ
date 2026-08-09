@@ -148,7 +148,7 @@ const es: Partial<Dictionary> = {
   'autoeq.page.eyebrow': 'AJUSTA TUS AURICULARES',
   'autoeq.page.title': 'Corrección de auriculares',
   'autoeq.page.intro':
-    'Di con qué auriculares estás escuchando y FluidEQ aplica la corrección publicada para ellos. Cada medición se tomó en un banco real y alguien la publicó; nada se deduce del nombre del modelo.',
+    'Di con qué auriculares estás escuchando y FluidEQ aplica la corrección publicada para ellos. Entra como una capa propia, con su intensidad y su interruptor, así que tus bandas de EQ no se tocan nunca. Cada medición se tomó en un banco real y alguien la publicó; nada se deduce del nombre del modelo.',
   'autoeq.source.hint':
     'De qué base de datos vienen las mediciones. «Todas las bases de datos» busca en todas a la vez.',
   'autoeq.model.hint':
@@ -224,8 +224,7 @@ const es: Partial<Dictionary> = {
   'eq.layers.smart.range': 'Medido · de {low} a {high}',
   'eq.layers.remove': 'Quitar la capa de {layer}',
   'eq.layers.clearBands': 'Poner todas las bandas a 0 dB',
-  'eq.layers.clearReference':
-    'Borrar el modelo de referencia y las bandas que generó',
+  'eq.layers.clearReference': 'Quitar la corrección de auriculares',
   'eq.layers.clearSmart':
     'Quitar la corrección medida. Tus bandas y la referencia se mantienen.',
   'eq.clear': 'Vaciar EQ',
@@ -354,7 +353,8 @@ const es: Partial<Dictionary> = {
   'voicing.headroom':
     'Añade hasta +{peak} dB. Normalizar automáticamente reserva el margen; déjalo activado salvo que ajustes la preamplificación a mano.',
 
-  'config.eyebrow': 'Configuración de Equalizer APO',
+  'config.eyebrow': 'LO QUE LEE EL MOTOR',
+  'config.title': 'Configuración de Equalizer APO',
   'config.lede':
     'Lo que hay ahora mismo en el disco, no lo que FluidEQ pretende.',
   'config.reload': 'Recargar',

@@ -191,7 +191,7 @@ const en = {
   'autoeq.page.eyebrow': 'MATCH YOUR HEADPHONES',
   'autoeq.page.title': 'Headphone correction',
   'autoeq.page.intro':
-    'Say which headphones you are listening on and FluidEQ applies the correction published for them. Every measurement here was taken on a real rig by somebody who published their results — none of it is guessed from the model name.',
+    'Say which headphones you are listening on and FluidEQ applies the correction published for them. It goes in as a layer of its own, with its own strength and its own switch, so your EQ bands are never touched. Every measurement here was taken on a real rig and published — none of it is guessed from the model name.',
   'autoeq.source.hint':
     'Which database the measurements come from. “All databases” looks through every one at once.',
   'autoeq.model.hint':
@@ -268,8 +268,7 @@ const en = {
   'eq.layers.smart.range': 'Measured · {low} to {high}',
   'eq.layers.remove': 'Remove the {layer} layer',
   'eq.layers.clearBands': 'Reset every band to 0 dB',
-  'eq.layers.clearReference':
-    'Clear the reference model and the bands it wrote',
+  'eq.layers.clearReference': 'Remove the headphone correction',
   'eq.layers.clearSmart':
     'Remove the measured correction. Your bands and the reference stay.',
   'eq.clear': 'Clear EQ',
@@ -434,7 +433,11 @@ const en = {
     'Adds up to +{peak} dB. Auto normalize reserves the headroom; leave it on unless you are setting the preamp by hand.',
 
   // *** Config inspector ****************************************************
-  'config.eyebrow': 'Equalizer APO config',
+  // Kicker, heading, lede — the same three the other tab pages carry. The
+  // eyebrow used to be the whole header and read as the title; it is the
+  // kicker now, and the name of the page has a heading of its own.
+  'config.eyebrow': 'WHAT THE ENGINE READS',
+  'config.title': 'Equalizer APO config',
   'config.lede': 'What is on disk right now, not what FluidEQ intends.',
   'config.reload': 'Reload',
   'config.reloadTitle': 'Read the config from disk again',

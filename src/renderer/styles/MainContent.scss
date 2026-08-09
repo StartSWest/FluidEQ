@@ -717,32 +717,24 @@ $eq-caret-width: 24px;
   --range-length: clamp(72px, calc(100vh - 620px), 132px);
 }
 
-// Folding the AutoEQ section used to stretch the sliders into the room it gave
-// back. It no longer does anything to them at all.
+// The reference picker used to sit above the bands and folding it stretched the
+// sliders into the room it gave back. It has a tab of its own now, so the EQ
+// panel is bands and nothing else and there is no fold to react to.
 //
-// The room now goes to the graph, which is the pane that gets better the more
-// of it there is — a taller slider track is a slightly finer drag, whereas a
-// taller graph is more of the curve you are actually reading. It also means the
-// bands stay exactly where they are when the section folds: the control used to
-// move every slider on screen, so folding it to get a clearer look at the
-// response also rearranged the thing you were about to touch.
+// What that room goes to instead is the graph, which is the pane that gets
+// better the more of it there is — a taller slider track is a slightly finer
+// drag, whereas a taller graph is more of the curve you are actually reading.
 
 // With the response graph hidden (FluidEqContext marks the root `minimized`) the
 // EQ owns the whole workspace column, so the tracks grow to use it rather than
 // leaving the panel half empty.
-#root.minimized {
-  .bandWrapper .range {
-    --range-length: clamp(132px, calc(100vh - 470px), 300px);
-  }
-
-  // Both at once — no graph and no reference picker — is the most room the EQ
-  // can ever have, so the ceilings come off rather than the two rules fighting
-  // over which cap applies.
-  .workspace-tab-panel--eq:has(.autoeq-section:not(.is-open))
-    .bandWrapper
-    .range {
-    --range-length: clamp(132px, calc(100vh - 330px), 420px);
-  }
+//
+// One ceiling, not two. There used to be a taller one for "no graph and no
+// reference picker either", which was the most room the bands could ever have;
+// with the picker gone from this tab for good that is simply what no graph
+// means, so the two collapsed into the larger of them.
+#root.minimized .bandWrapper .range {
+  --range-length: clamp(132px, calc(100vh - 330px), 420px);
 }
 
 .bands__selection-box {

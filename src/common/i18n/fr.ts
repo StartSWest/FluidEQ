@@ -148,7 +148,7 @@ const fr: Partial<Dictionary> = {
   'autoeq.page.eyebrow': 'ADAPTEZ VOTRE CASQUE',
   'autoeq.page.title': 'Correction du casque',
   'autoeq.page.intro':
-    'Indiquez le casque que vous utilisez et FluidEQ applique la correction publiée pour lui. Chaque mesure a été prise sur un vrai banc et publiée par quelqu’un ; rien n’est deviné à partir du nom du modèle.',
+    'Indiquez le casque que vous utilisez et FluidEQ applique la correction publiée pour lui. Elle s’écrit dans sa propre couche, avec son intensité et son interrupteur, vos bandes d’égalisation ne sont donc jamais touchées. Chaque mesure a été prise sur un vrai banc et publiée par quelqu’un ; rien n’est deviné à partir du nom du modèle.',
   'autoeq.source.hint':
     'La base de données d’où viennent les mesures. « Toutes les bases » les parcourt toutes à la fois.',
   'autoeq.model.hint':
@@ -225,8 +225,7 @@ const fr: Partial<Dictionary> = {
   'eq.layers.smart.range': 'Mesuré · de {low} à {high}',
   'eq.layers.remove': 'Retirer la couche {layer}',
   'eq.layers.clearBands': 'Remettre toutes les bandes à 0 dB',
-  'eq.layers.clearReference':
-    'Effacer le modèle de référence et les bandes qu’il a produites',
+  'eq.layers.clearReference': 'Retirer la correction du casque',
   'eq.layers.clearSmart':
     'Retirer la correction mesurée. Vos bandes et la référence restent en place.',
   'eq.clear': 'Vider l’égaliseur',
@@ -354,7 +353,8 @@ const fr: Partial<Dictionary> = {
   'voicing.headroom':
     'Ajoute jusqu’à +{peak} dB. La normalisation auto réserve la marge ; laissez-la active sauf si vous réglez le préampli à la main.',
 
-  'config.eyebrow': 'Configuration Equalizer APO',
+  'config.eyebrow': 'CE QUE LIT LE MOTEUR',
+  'config.title': 'Configuration Equalizer APO',
   'config.lede':
     'Ce qui se trouve sur le disque en ce moment, pas ce que FluidEQ prévoit.',
   'config.reload': 'Actualiser',

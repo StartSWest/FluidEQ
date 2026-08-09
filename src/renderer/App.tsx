@@ -66,7 +66,7 @@ import {
 } from './utils/paneSizes';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import PresetsBar from './PresetsBar';
-import AutoEQ from './AutoEQ';
+import AutoEQPanel from './AutoEQPanel';
 import DeviceProfiles from './DeviceProfiles';
 import DriverPicker from './components/DriverPicker';
 import WaveformVisualizer from './WaveformVisualizer';
@@ -111,14 +111,29 @@ const APP_VERSION = PRODUCT_VERSION;
 /** The workspace tab the app was left on. */
 const WORKSPACE_TAB_KEY = 'fluideq.workspaceTab';
 
-type TWorkspaceTab = 'eq' | 'voicing' | 'convolution' | 'config' | 'video';
+type TWorkspaceTab =
+  'eq' | 'autoeq' | 'voicing' | 'convolution' | 'video' | 'config';
 
+/**
+ * The tab strip, in the order it is drawn.
+ *
+ * Config last, and deliberately at the end rather than beside the panels that
+ * change the sound. It is the only one that changes nothing — it reports what
+ * is on disk — so it is where you go when something is wrong, not somewhere you
+ * pass through on the way to a tuning.
+ *
+ * Reordering this list is safe because what is persisted is the tab's name and
+ * not its position: `readWorkspaceTab` looks the stored string up here, so a
+ * tab that moves takes its remembered state with it. An index would have sent
+ * everybody who left the app on Config to a different tab on the next launch.
+ */
 const WORKSPACE_TABS: TWorkspaceTab[] = [
   'eq',
+  'autoeq',
   'voicing',
   'convolution',
-  'config',
   'video',
+  'config',
 ];
 
 /**
@@ -127,8 +142,8 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
  * Remembered, which is a departure from the rule the graph's modes follow —
  * solo and full screen are deliberately forgotten, because a mode that outlives
  * a restart is how somebody ends up convinced their bands have vanished. A tab
- * is not that: all four are visibly tabs, the one you are on is named in the
- * row, and getting back is one click that is already on screen.
+ * is not that: every one of them is visibly a tab, the one you are on is named
+ * in the row, and getting back is one click that is already on screen.
  *
  * And the Video tab is the reason it is worth doing. Something is playing in
  * it. Dropping back to the EQ on every reload stops what was being listened to
@@ -942,12 +957,11 @@ const AppContent = () => {
         >
           <div
             className="middle-content"
-            // What the divider actually sets. The stylesheet decides whether
-            // this reads as a height or only as a ceiling: on the EQ tab it is
-            // a ceiling, so the card hugs its content and the divider follows
-            // it up when the reference picker folds, with nothing having to
-            // notice the fold. Everywhere else it is the height, because a web
-            // page and a scrolling catalogue have no content height to follow.
+            // What the divider actually sets: the height of everything above
+            // the graph, on every tab. It used to be a ceiling on the EQ tab so
+            // the card could hug its content — see App.scss for why one handle
+            // behaving differently depending on the open tab was not worth what
+            // it bought.
             style={
               showsGraph && !isGraphFullScreen
                 ? ({
@@ -971,6 +985,20 @@ const AppContent = () => {
                 onClick={() => setActiveWorkspaceTab('eq')}
               >
                 {t('tabs.eq')}
+              </button>
+              {/* Next to the EQ rather than out at the end, because it is
+                  where most tunings start: you pick the headphones you own,
+                  and then go and edit what it gave you. */}
+              <button
+                type="button"
+                role="tab"
+                aria-selected={activeWorkspaceTab === 'autoeq'}
+                className={`workspace-tab${
+                  activeWorkspaceTab === 'autoeq' ? ' is-active' : ''
+                }`}
+                onClick={() => setActiveWorkspaceTab('autoeq')}
+              >
+                {t('tabs.autoeq')}
               </button>
               <button
                 type="button"
@@ -997,6 +1025,17 @@ const AppContent = () => {
               <button
                 type="button"
                 role="tab"
+                aria-selected={isVideoTab}
+                className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
+                onClick={() => setActiveWorkspaceTab('video')}
+              >
+                {t('tabs.video')}
+              </button>
+              {/* Last. See WORKSPACE_TABS for why the one tab that changes
+                  nothing sits at the end of the row. */}
+              <button
+                type="button"
+                role="tab"
                 aria-selected={activeWorkspaceTab === 'config'}
                 className={`workspace-tab${
                   activeWorkspaceTab === 'config' ? ' is-active' : ''
@@ -1004,15 +1043,6 @@ const AppContent = () => {
                 onClick={() => setActiveWorkspaceTab('config')}
               >
                 {t('tabs.config')}
-              </button>
-              <button
-                type="button"
-                role="tab"
-                aria-selected={isVideoTab}
-                className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
-                onClick={() => setActiveWorkspaceTab('video')}
-              >
-                {t('tabs.video')}
               </button>
             </div>
             {activeWorkspaceTab === 'eq' && (
@@ -1032,8 +1062,23 @@ const AppContent = () => {
                 }`}
                 aria-disabled={!isEngineUsable}
               >
-                <AutoEQ />
                 <MainContent />
+              </div>
+            )}
+            {/* Its own page rather than a strip above the bands, which is
+                where it used to live. It was the first thing on the EQ tab and
+                the one thing there that is not a band, so it took a row of the
+                editor's height from everybody — including everybody who does
+                not own a measured headphone. */}
+            {activeWorkspaceTab === 'autoeq' && (
+              <div
+                key={activeWorkspaceTab}
+                className={`workspace-tab-panel workspace-tab-panel--autoeq${
+                  !isEngineUsable ? ' is-engine-disabled' : ''
+                }`}
+                aria-disabled={!isEngineUsable}
+              >
+                <AutoEQPanel />
               </div>
             )}
             {(activeWorkspaceTab === 'voicing' ||

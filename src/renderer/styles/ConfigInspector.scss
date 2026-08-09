@@ -18,22 +18,38 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
+// Neither scrolls nor pads itself: the workspace panel around it does both, the
+// same way the voicing and convolution pages work.
+//
+// It used to do both, inside a panel that was doing neither — this was the one
+// tab with no card under it, so the padding and the scrollbar had to come from
+// somewhere. With the card there they are the card's, which is what stops the
+// bar sitting a scrollbar's width in from the edge and reading as a different
+// application from the tab beside it.
 .config-inspector {
   display: flex;
-  overflow-y: auto;
   min-height: 0;
   flex-direction: column;
-  padding: $spacing-m;
   gap: $spacing-m;
-
-  @include slim-scrollbar;
 }
 
 .config-inspector__bar {
   display: flex;
+  flex: 0 0 auto;
   align-items: flex-start;
   justify-content: space-between;
   gap: $spacing-m;
+
+  h2 {
+    margin: 1px 0 0;
+    font-size: 1.22rem;
+  }
+}
+
+// The heading side of the bar, which must give way to the reload button rather
+// than push it off the end.
+.config-inspector__title {
+  min-width: 0;
 }
 
 .config-inspector__lede {

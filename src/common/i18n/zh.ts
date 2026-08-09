@@ -138,7 +138,7 @@ const zh: Partial<Dictionary> = {
   'autoeq.page.eyebrow': '匹配你的耳机',
   'autoeq.page.title': '耳机校正',
   'autoeq.page.intro':
-    '选择你正在使用的耳机，FluidEQ 就会套用为它公开发布的校正。这里的每一条测量都来自真实的测量台，并由测量者公开发布，没有一条是根据型号名称猜出来的。',
+    '选择你正在使用的耳机，FluidEQ 就会套用为它公开发布的校正。它会作为独立的一层写入，有自己的强度和开关，你的均衡频段完全不会被动到。这里的每一条测量都来自真实的测量台，并由测量者公开发布，没有一条是根据型号名称猜出来的。',
   'autoeq.source.hint':
     '测量数据来自哪个数据库。“全部数据库”会同时搜索所有来源。',
   'autoeq.model.hint':
@@ -210,7 +210,7 @@ const zh: Partial<Dictionary> = {
   'eq.layers.smart.range': '已测量 · {low} 至 {high}',
   'eq.layers.remove': '移除{layer}层',
   'eq.layers.clearBands': '将所有频段重置为 0 dB',
-  'eq.layers.clearReference': '清除参考型号及其生成的频段',
+  'eq.layers.clearReference': '移除耳机校正',
   'eq.layers.clearSmart': '移除测得的修正。你的频段和参考型号都会保留。',
   'eq.clear': '清空均衡',
   'eq.addBand': '添加频段',
@@ -319,7 +319,8 @@ const zh: Partial<Dictionary> = {
   'voicing.headroom':
     '最多会增加 +{peak} dB。自动归一化会预留余量；除非你要手动设置前级增益，否则请保持开启。',
 
-  'config.eyebrow': 'Equalizer APO 配置',
+  'config.eyebrow': '引擎实际读到的内容',
+  'config.title': 'Equalizer APO 配置',
   'config.lede': '这是磁盘上此刻的内容，而不是 FluidEQ 打算写入的内容。',
   'config.reload': '重新读取',
   'config.reloadTitle': '再次从磁盘读取配置',

@@ -144,7 +144,7 @@ const ja: Partial<Dictionary> = {
   'autoeq.page.eyebrow': 'ヘッドホンに合わせる',
   'autoeq.page.title': 'ヘッドホン補正',
   'autoeq.page.intro':
-    '使っているヘッドホンを選ぶと、FluidEQ がその機種向けに公開されている補正を適用します。ここにある測定はすべて実際の測定装置で取られ、測った人が公開したものです。機種名から推測したものはひとつもありません。',
+    '使っているヘッドホンを選ぶと、FluidEQ がその機種向けに公開されている補正を適用します。補正は独立したレイヤーとして入り、強さもオン・オフも別に持つので、あなたの EQ バンドには一切触れません。ここにある測定はすべて実際の測定装置で取られ、測った人が公開したものです。機種名から推測したものはひとつもありません。',
   'autoeq.source.hint':
     '測定データがどのデータベース由来かです。「すべてのデータベース」はすべてを同時に検索します。',
   'autoeq.model.hint':
@@ -217,8 +217,7 @@ const ja: Partial<Dictionary> = {
   'eq.layers.smart.range': '測定済み · {low}〜{high}',
   'eq.layers.remove': '{layer} のレイヤーを外す',
   'eq.layers.clearBands': 'すべてのバンドを 0 dB に戻す',
-  'eq.layers.clearReference':
-    'リファレンス機種と、それが作ったバンドを消します',
+  'eq.layers.clearReference': 'ヘッドホン補正を外す',
   'eq.layers.clearSmart':
     '測定した補正を外します。バンドとリファレンス機種はそのまま残ります。',
   'eq.clear': 'EQ をクリア',
@@ -342,7 +341,8 @@ const ja: Partial<Dictionary> = {
   'voicing.headroom':
     '最大 +{peak} dB 増えます。自動ノーマライズが余裕を確保するので、プリアンプを手動で決めるのでなければオンのままにしてください。',
 
-  'config.eyebrow': 'Equalizer APO の設定',
+  'config.eyebrow': 'エンジンが実際に読むもの',
+  'config.title': 'Equalizer APO の設定',
   'config.lede':
     'いま実際にディスクにある内容です。FluidEQ の意図ではありません。',
   'config.reload': '再読み込み',

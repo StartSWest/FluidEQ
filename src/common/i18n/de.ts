@@ -147,7 +147,7 @@ const de: Partial<Dictionary> = {
   'autoeq.page.eyebrow': 'AUF IHREN KOPFHÖRER ABSTIMMEN',
   'autoeq.page.title': 'Kopfhörerkorrektur',
   'autoeq.page.intro':
-    'Sagen Sie, mit welchem Kopfhörer Sie hören, und FluidEQ wendet die dafür veröffentlichte Korrektur an. Jede Messung wurde auf einem echten Messplatz gemacht und veröffentlicht – nichts davon ist aus dem Modellnamen geraten.',
+    'Sagen Sie, mit welchem Kopfhörer Sie hören, und FluidEQ wendet die dafür veröffentlichte Korrektur an. Sie kommt als eigene Ebene hinein, mit eigener Stärke und eigenem Schalter, Ihre EQ-Bänder werden also nie angetastet. Jede Messung wurde auf einem echten Messplatz gemacht und veröffentlicht – nichts davon ist aus dem Modellnamen geraten.',
   'autoeq.source.hint':
     'Aus welcher Datenbank die Messungen stammen. „Alle Datenbanken“ durchsucht alle auf einmal.',
   'autoeq.model.hint':
@@ -223,8 +223,7 @@ const de: Partial<Dictionary> = {
   'eq.layers.smart.range': 'Gemessen · {low} bis {high}',
   'eq.layers.remove': 'Ebene {layer} entfernen',
   'eq.layers.clearBands': 'Alle Bänder auf 0 dB zurücksetzen',
-  'eq.layers.clearReference':
-    'Referenzmodell und die daraus erzeugten Bänder löschen',
+  'eq.layers.clearReference': 'Kopfhörer-Korrektur entfernen',
   'eq.layers.clearSmart':
     'Gemessene Korrektur entfernen. Deine Bänder und die Referenz bleiben.',
   'eq.clear': 'EQ zurücksetzen',
@@ -354,7 +353,8 @@ const de: Partial<Dictionary> = {
   'voicing.headroom':
     'Fügt bis zu +{peak} dB hinzu. Die automatische Normalisierung hält den Spielraum frei; lassen Sie sie an, außer Sie setzen die Vorverstärkung selbst.',
 
-  'config.eyebrow': 'Equalizer-APO-Konfiguration',
+  'config.eyebrow': 'WAS DIE ENGINE LIEST',
+  'config.title': 'Equalizer-APO-Konfiguration',
   'config.lede':
     'Was gerade auf der Platte steht, nicht das, was FluidEQ vorhat.',
   'config.reload': 'Neu laden',

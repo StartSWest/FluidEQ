@@ -146,7 +146,7 @@ const pt: Partial<Dictionary> = {
   'autoeq.page.eyebrow': 'AJUSTE AOS SEUS FONES',
   'autoeq.page.title': 'Correção de fones',
   'autoeq.page.intro':
-    'Diga com que fones você está ouvindo e o FluidEQ aplica a correção publicada para eles. Cada medição foi feita em uma bancada real e publicada por alguém; nada é adivinhado a partir do nome do modelo.',
+    'Diga com que fones você está ouvindo e o FluidEQ aplica a correção publicada para eles. Ela entra como uma camada própria, com intensidade e chave próprias, então as suas bandas de EQ nunca são tocadas. Cada medição foi feita em uma bancada real e publicada por alguém; nada é adivinhado a partir do nome do modelo.',
   'autoeq.source.hint':
     'De qual banco de dados vêm as medições. «Todos os bancos de dados» procura em todos ao mesmo tempo.',
   'autoeq.model.hint':
@@ -222,8 +222,7 @@ const pt: Partial<Dictionary> = {
   'eq.layers.smart.range': 'Medido · de {low} a {high}',
   'eq.layers.remove': 'Remover a camada de {layer}',
   'eq.layers.clearBands': 'Repor todas as bandas a 0 dB',
-  'eq.layers.clearReference':
-    'Limpar o modelo de referência e as bandas que ele gerou',
+  'eq.layers.clearReference': 'Remover a correção dos auscultadores',
   'eq.layers.clearSmart':
     'Remover a correção medida. Suas bandas e a referência permanecem.',
   'eq.clear': 'Limpar EQ',
@@ -351,7 +350,8 @@ const pt: Partial<Dictionary> = {
   'voicing.headroom':
     'Adiciona até +{peak} dB. Normalizar automaticamente reserva a margem; deixe ligado a menos que você ajuste a pré-amplificação na mão.',
 
-  'config.eyebrow': 'Configuração do Equalizer APO',
+  'config.eyebrow': 'O QUE O MOTOR LÊ',
+  'config.title': 'Configuração do Equalizer APO',
   'config.lede': 'O que está no disco agora, não o que o FluidEQ pretende.',
   'config.reload': 'Recarregar',
   'config.reloadTitle': 'Ler a configuração do disco outra vez',

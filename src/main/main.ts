@@ -2288,7 +2288,26 @@ ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
  */
 ipcMain.on(ChannelEnum.CLEAR_HEADSET, async (event) => {
   const channel = ChannelEnum.CLEAR_HEADSET;
-  resetEqToDefaults();
+  /*
+   * CLEARS THE CORRECTION, NOT THE PERSON'S BANDS.
+   *
+   * It called `resetEqToDefaults`, which was right while a reference WAS the
+   * bands: clearing one meant flattening them. Now that the correction is a
+   * layer of its own the two have swapped places, and left alone this did
+   * exactly the wrong thing in both directions at once — wiped a tuning it no
+   * longer owns, and left the correction playing with nothing on screen naming
+   * it.
+   *
+   * Found by the agent moving this button to its new page rather than by
+   * anything here, which is worth recording: splitting a layer out leaves every
+   * "clear it" path pointing at the old address.
+   */
+  applyingLayer('headphone');
+  state.headphone = undefined;
+  state.headset = undefined;
+  state.headsetTarget = undefined;
+  state.headsetSource = undefined;
+  state.headsetSignature = undefined;
   // Replies with the new bands, the same as Clear EQ, so a caller that is not
   // about to re-read the whole state can adopt them: getDefaultFilters mints
   // fresh ids, and every id the renderer still holds has just stopped existing.

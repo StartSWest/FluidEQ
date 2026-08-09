@@ -1,0 +1,241 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+@use 'color' as *;
+@use 'theme' as *;
+
+// The AutoEQ tab.
+//
+// Everything here is layout around `AutoEQ`, which is rendered exactly as it is
+// and is not this file's to change. What the page does is give it the room it
+// never had inside the EQ card: the reference is stated across the top, the
+// three pickers get a line to themselves, and what belongs in each of them is
+// written underneath rather than being something you find out by opening menus.
+//
+// Overrides are written against `.sidebar-section`'s class names wherever they
+// can be, because those come from the collapsible and not from AutoEQ itself.
+// Specificity, not source order, is what wins them: this stylesheet and
+// AutoEQ.scss are injected in whatever order the bundler evaluates the modules,
+// which is not a thing to hang a layout on.
+
+// Does not scroll itself — the workspace panel around it does, the same way the
+// voicing and convolution pages work.
+.autoeq-panel {
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.autoeq-panel__intro {
+  flex: 0 0 auto;
+
+  h2 {
+    margin: 1px 0 4px;
+    font-size: 1.22rem;
+  }
+
+  p:not(.eyebrow) {
+    max-width: 680px;
+    margin: 0;
+    color: $text-muted;
+    font-size: 0.72rem;
+    line-height: 1.45;
+  }
+}
+
+// *** The picker card ********************************************************
+
+// One well holding the whole reference picker, so the page reads as a heading
+// and a thing to use rather than as two cards of similar weight stacked up.
+.autoeq-panel__picker {
+  @include inset-surface;
+  flex: 0 0 auto;
+  padding: 2px 4px 6px;
+}
+
+// The collapsible gives up its own surface to the card around it: one recess,
+// not a box inside a box.
+.autoeq-panel__picker .sidebar-section {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.autoeq-panel__picker .sidebar-section.is-open .sidebar-section__summary,
+.autoeq-panel__picker .sidebar-section.is-open .sidebar-section__reveal {
+  background: transparent;
+}
+
+// The fold control goes.
+//
+// Folding was worth having when this sat above the bands, where the three rows
+// it gave back went to the sliders. On a tab of its own there is nothing
+// underneath to hand them to, and a header whose only job is to hide everything
+// below it can do nothing here except empty the page. The page's own heading
+// says what this is; the section mounts open and stays open.
+.autoeq-panel__picker .sidebar-section__header {
+  display: none;
+}
+
+// What is applied, as a banner rather than a line of text.
+//
+// It is the first thing on the page for the same reason the convolution panel
+// states its own at the top: the question "is anything correcting my
+// headphones right now" is the one people come here with, and it should not
+// have to be answered by reading the pickers.
+.autoeq-panel__picker .sidebar-section .autoeq-applied {
+  padding: 10px 12px;
+  gap: 9px;
+  border: 1px solid rgba($secondary-light, 0.3);
+  border-radius: $radius-s;
+  background: linear-gradient(
+    145deg,
+    rgba($secondary-default, 0.13),
+    rgba($secondary-default, 0.04)
+  );
+  font-size: 0.76rem;
+
+  .menu-icon {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.autoeq-panel__picker .sidebar-section.is-open .sidebar-section__summary {
+  padding: 10px 11px 10px;
+}
+
+.autoeq-panel__picker .sidebar-section.is-open .sidebar-section__body {
+  padding: 0 11px 8px;
+}
+
+// Whose measurements these are, back in the flow.
+//
+// In the sidebar it was lifted into the section header's empty corner, where it
+// cost no height. There is no such corner here — the header is gone — and the
+// page has height to spare, so it goes back to being a line: a credit above the
+// source it belongs to, aligned with the update status at the other end of the
+// card.
+.autoeq-panel__picker .sidebar-section .autoeq-attribution {
+  position: static;
+  max-width: 100%;
+  margin-bottom: 2px;
+  font-size: 0.66rem;
+}
+
+// *** The pickers themselves *************************************************
+
+// Three fields across the page, and the apply button on a line of its own.
+//
+// Squeezed into the EQ card all four shared one row, which is as much as that
+// width could carry: the model picker is where a name like "Sennheiser HD 600 ·
+// AutoEq official" has to fit, and it was the narrowest it has ever been. The
+// tab is wider than the row needs and the extra is worth more to the fields
+// than to a button that was already big enough.
+.autoeq-panel__picker .auto-eq {
+  padding: 2px 0 0;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  > .button {
+    min-width: 172px;
+    grid-column: 3;
+    justify-self: end;
+  }
+}
+
+// The field labels carry a little more weight here than in the strip: with a
+// note about each one further down the page, they are what ties the two
+// together.
+.autoeq-panel__picker .autoeq-field__title {
+  font-size: 0.7rem;
+}
+
+// Already inside the card's padding.
+.autoeq-panel__picker .autoeq-update {
+  margin: 6px 0 0;
+}
+
+// *** What goes in each picker ***********************************************
+
+// The same three, in the same order, with the sentence each needed and never
+// had room for. They are notes and not steps you tick off, so they sit under
+// the controls rather than in front of them.
+.autoeq-panel__guide {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+}
+
+.autoeq-guide {
+  @include inset-surface;
+  display: grid;
+  min-width: 0;
+  padding: 12px 14px 13px;
+  gap: 3px 9px;
+  grid-template-columns: auto minmax(0, 1fr);
+
+  strong {
+    align-self: center;
+    color: rgba($white, 0.92);
+    font-size: 0.78rem;
+  }
+
+  p {
+    margin: 0;
+    color: rgba($primary-lighter, 0.66);
+    font-size: 0.7rem;
+    grid-column: 2;
+    line-height: 1.45;
+  }
+}
+
+.autoeq-guide__step {
+  display: grid;
+  width: 21px;
+  height: 21px;
+  place-items: center;
+  color: $secondary-light;
+  border: 1px solid rgba($secondary-light, 0.32);
+  border-radius: $radius-pill;
+  background: rgba($secondary-default, 0.12);
+  font-size: 0.63rem;
+  font-weight: 800;
+}
+
+// *** Responsive *************************************************************
+
+// The panel is the box these have to fit inside, not the window — the two
+// sidebars take several hundred pixels of it. Same container the strip measured
+// against, declared once on `.workspace-tab-panel` in App.scss.
+//
+// Restated rather than inherited: the rules above beat AutoEQ.scss's own
+// container queries on specificity, so without these the three columns would
+// stay three columns all the way down.
+@container autoeq-workspace (max-width: 900px) {
+  .autoeq-panel__picker .auto-eq {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+
+    > .button {
+      grid-column: 2;
+    }
+  }
+}
+
+@container autoeq-workspace (max-width: 520px) {
+  .autoeq-panel__picker .auto-eq {
+    grid-template-columns: minmax(0, 1fr);
+
+    > .button {
+      width: 100%;
+      grid-column: 1;
+    }
+  }
+}
