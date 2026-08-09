@@ -53,6 +53,10 @@ interface IGraphViewMenuProps {
   onToggleGrid: () => void;
   isCoverageHidden: boolean;
   onToggleCoverage: () => void;
+  isMeterHidden: boolean;
+  onToggleMeter: () => void;
+  isTitlebarWaveHidden: boolean;
+  onToggleTitlebarWave: () => void;
   isStretched: boolean;
   onToggleStretch: () => void;
   waveOrientation: TWaveOrientation;
@@ -121,6 +125,10 @@ const GraphViewMenu = ({
   onToggleGrid,
   isCoverageHidden,
   onToggleCoverage,
+  isMeterHidden,
+  onToggleMeter,
+  isTitlebarWaveHidden,
+  onToggleTitlebarWave,
   isStretched,
   onToggleStretch,
   waveOrientation,
@@ -343,6 +351,41 @@ const GraphViewMenu = ({
               {isCoverageHidden
                 ? 'Show listening bands'
                 : 'Hide listening bands'}
+            </span>
+          </button>
+
+          {/* Neither of the next two is on the plot, and they are here anyway.
+              This menu is where every "show me less" switch already lives, and
+              a second menu elsewhere for one more toggle is worse than one
+              slightly broad menu. Both are remembered across every view mode
+              rather than per mode: the sidebar and the titlebar are the same in
+              all three, so a control that came back on a mode change would only
+              ever be surprising. */}
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={isMeterHidden}
+            onClick={choose(onToggleMeter)}
+          >
+            <Icon>
+              <path d="M5 3.5h2v9H5zM9 3.5h2v9H9z" />
+            </Icon>
+            <span>
+              {isMeterHidden ? 'Show level meter' : 'Hide level meter'}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={isTitlebarWaveHidden}
+            onClick={choose(onToggleTitlebarWave)}
+          >
+            <Icon>
+              <path d="M1.5 8h2l2-4 2 8 2-6 1.5 2h2" />
+            </Icon>
+            <span>
+              {isTitlebarWaveHidden ? 'Show top wave' : 'Hide top wave'}
             </span>
           </button>
 

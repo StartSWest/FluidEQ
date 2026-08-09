@@ -42,6 +42,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import type { TranslationKey } from 'common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
+import { useGraphMeterHidden } from '../utils/graphStyle';
 import { LEVEL_FLOOR_DB, levelFraction, levelZone } from './outputLevel';
 
 /**
@@ -84,6 +85,7 @@ const OutputLevelMeter = () => {
   // every frame and nothing above it does — which is the entire arrangement.
   const { isClipping, outputLevels } = useLiveAudioFrame();
   const { t } = useTranslation();
+  const isHidden = useGraphMeterHidden();
 
   /*
    * ALWAYS DRAWN, AND VISIBLY OFF WHEN NOTHING IS LISTENING.
@@ -103,6 +105,14 @@ const OutputLevelMeter = () => {
    * going dim. Empty tracks at rest, and a pair of them, because two is what
    * comes back when a capture starts.
    */
+  // Switched off from the View menu. Unmounted rather than dimmed, because
+  // this is somebody saying they do not want it — the layout stability the idle
+  // state protects is about audio stopping, which is not a decision anybody
+  // made.
+  if (isHidden) {
+    return null;
+  }
+
   const isIdle = outputLevels.length === 0;
   const channels = isIdle
     ? [

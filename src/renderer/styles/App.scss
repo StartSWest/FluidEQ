@@ -324,6 +324,13 @@ select option {
     min-width: 0;
   }
 
+  // Switched off from the View menu. Visibility rather than display, so the
+  // titlebar's grid keeps its three columns and the controls either side do not
+  // slide across when it goes.
+  .waveform-visualizer-shell.is-hidden {
+    visibility: hidden;
+  }
+
   .waveform-visualizer {
     justify-self: center;
     width: 100%;

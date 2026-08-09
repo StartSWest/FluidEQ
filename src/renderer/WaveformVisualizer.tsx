@@ -63,6 +63,7 @@ import {
   useIsEuphoriaAchieved,
   useIsEuphoric,
 } from './utils/euphoriaMode';
+import { useTitlebarWaveHidden } from './utils/graphStyle';
 import { useTranslation } from './utils/I18nContext';
 import './styles/WaveformVisualizer.scss';
 
@@ -317,6 +318,7 @@ export const peakDbOf = (samples: number[]) => {
 };
 
 const WaveformVisualizer = () => {
+  const isTitlebarWaveHidden = useTitlebarWaveHidden();
   const { t } = useTranslation();
   // Subscribed rather than read from the DOM class the shell sets, so this
   // re-renders when the run changes instead of being told by a stylesheet.
@@ -730,7 +732,19 @@ const WaveformVisualizer = () => {
     // inside a button is invalid markup that browsers resolve by silently
     // unnesting, which loses the inner click. The pill therefore sits beside
     // the meter and is positioned over it.
-    <div className="waveform-visualizer-shell">
+    <div
+      /*
+       * Hidden by class, never unmounted.
+       *
+       * The same rule the full-screen path follows and for the same reason:
+       * tearing this down takes its analyser hook with it and builds a new one
+       * on the way back, for a component nobody can see. The bar stops being
+       * drawn; the capture behind it carries on untouched.
+       */
+      className={`waveform-visualizer-shell${
+        isTitlebarWaveHidden ? ' is-hidden' : ''
+      }`}
+    >
       <button
         type="button"
         // The style modifier no longer paints anything — the frame loop does —

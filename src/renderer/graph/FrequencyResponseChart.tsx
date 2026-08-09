@@ -78,12 +78,16 @@ import {
   toggleGraphExpanded,
   toggleGraphFullScreen,
   toggleGraphCoverage,
+  toggleGraphMeter,
+  toggleTitlebarWave,
   toggleGraphGrid,
   toggleGraphStretch,
   toggleFullScreenTopBar,
   cycleGraphContents,
   useGraphFullScreen,
   useGraphCoverageHidden,
+  useGraphMeterHidden,
+  useTitlebarWaveHidden,
   useGraphGridHidden,
   useGraphWaveHidden,
   useHiddenCurves,
@@ -445,6 +449,8 @@ const FrequencyResponseChart = () => {
   const graphView = useGraphView();
   const isGridHidden = useGraphGridHidden();
   const isCoverageHidden = useGraphCoverageHidden();
+  const isMeterHidden = useGraphMeterHidden();
+  const isTitlebarWaveHidden = useTitlebarWaveHidden();
   const isWaveHidden = useGraphWaveHidden();
   const hiddenCurves = useHiddenCurves();
   const modeAnnouncement = useGraphModeAnnouncement();
@@ -1821,6 +1827,10 @@ const FrequencyResponseChart = () => {
               onToggleGrid={toggleGraphGrid}
               isCoverageHidden={isCoverageHidden}
               onToggleCoverage={toggleGraphCoverage}
+              isMeterHidden={isMeterHidden}
+              onToggleMeter={toggleGraphMeter}
+              isTitlebarWaveHidden={isTitlebarWaveHidden}
+              onToggleTitlebarWave={toggleTitlebarWave}
               isStretched={isStretched}
               onToggleStretch={toggleGraphStretch}
               waveOrientation={waveOrientation}

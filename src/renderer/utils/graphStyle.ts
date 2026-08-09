@@ -72,6 +72,8 @@ const VIEW_KEYS = {
   // an older install's value across.
   grid: 'fluideq.graphGridHidden',
   coverage: 'fluideq.graphCoverageHidden',
+  meter: 'fluideq.graphMeterHidden',
+  titlebarWave: 'fluideq.titlebarWaveHidden',
   stretch: 'fluideq.graphStretched',
   orientation: 'fluideq.waveOrientation',
   view: 'fluideq.graphView',
@@ -105,6 +107,37 @@ const removeStored = (key: string) => {
 };
 
 const readStoredFlag = (key: string): boolean => readStored(key) === 'true';
+
+/**
+ * A plain remembered on/off, for the switches that are the same in every view.
+ *
+ * The per-view machinery below exists for settings whose right answer genuinely
+ * differs between editing bands and watching a video — the grid, the coverage
+ * wash. A switch that means the same thing in all three modes wants none of
+ * that, and building it out of `createPerViewSetting` would store three copies
+ * of one answer and let them drift.
+ */
+const createFlagSetting = (key: string, fallback: boolean) => {
+  let value = readStored(key) === null ? fallback : readStoredFlag(key);
+  const flagListeners = new Set<() => void>();
+  return {
+    get: () => value,
+    set: (next: boolean) => {
+      if (next === value) {
+        return;
+      }
+      value = next;
+      writeStored(key, String(next));
+      flagListeners.forEach((listener) => listener());
+    },
+    subscribe: (listener: () => void) => {
+      flagListeners.add(listener);
+      return () => {
+        flagListeners.delete(listener);
+      };
+    },
+  };
+};
 
 const listeners = new Set<() => void>();
 
@@ -1230,6 +1263,58 @@ export const useGraphCoverageHidden = () =>
   useSyncExternalStore(
     coverageSetting.subscribe,
     coverageSetting.get,
+    () => false,
+  );
+
+/**
+ * Whether the output level meter is drawn at all.
+ *
+ * It lives in the sidebar rather than on the plot, so hiding it is not a
+ * statement about the graph — but the graph's View menu is where every other
+ * "show me less" switch already is, and a second menu somewhere else for one
+ * more toggle is worse than a slightly broad one here.
+ *
+ * NOT per view mode, unlike the grid and the coverage wash. Those are about how
+ * busy the drawing should be in a given mode, and the answer genuinely differs
+ * over a video. The sidebar is the same sidebar in every mode, so a meter that
+ * appeared and vanished as the view changed would only ever be surprising.
+ */
+const meterSetting = createFlagSetting(VIEW_KEYS.meter, false);
+
+export const toggleGraphMeter = () => {
+  meterSetting.set(!meterSetting.get());
+};
+
+export const getGraphMeterHidden = () => meterSetting.get();
+
+export const useGraphMeterHidden = () =>
+  useSyncExternalStore(meterSetting.subscribe, meterSetting.get, () => false);
+
+/**
+ * Whether the titlebar keeps its waveform.
+ *
+ * The strip across the top is the one piece of this app that is decoration
+ * before it is instrumentation — it says the audio is alive and little else,
+ * and somebody working on a curve for an hour may reasonably want the top of
+ * the window to stop moving.
+ *
+ * Hidden by CSS rather than by unmounting, which is the same rule the full
+ * screen path already follows: tearing the component down takes its analyser
+ * hook with it and builds a new one on every toggle, for a component nobody can
+ * see. The bar stops being drawn; the capture behind it is untouched.
+ */
+const titlebarWaveSetting = createFlagSetting(VIEW_KEYS.titlebarWave, false);
+
+export const toggleTitlebarWave = () => {
+  titlebarWaveSetting.set(!titlebarWaveSetting.get());
+};
+
+export const getTitlebarWaveHidden = () => titlebarWaveSetting.get();
+
+export const useTitlebarWaveHidden = () =>
+  useSyncExternalStore(
+    titlebarWaveSetting.subscribe,
+    titlebarWaveSetting.get,
     () => false,
   );
 
