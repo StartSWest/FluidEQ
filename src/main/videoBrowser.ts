@@ -334,24 +334,8 @@ const hardenPlayer = (contents: WebContents) => {
     });
   });
 
-  contents.setWindowOpenHandler(({ url }) => {
-    // These sites open plenty of things in a new tab — a video from a channel
-    // page, a track from a search result. There is only ever one player, so an
-    // allowed destination is loaded into it rather than lost.
-    //
-    // Deferred: this runs inside Chromium's own window-open handling, and
-    // navigating the contents that is being asked about, from inside the
-    // answer, is a re-entrant call.
-    if (isNavigableVideoUrl(url)) {
-      log.info(`Video player took a popup to ${url} into the player`);
-      setImmediate(() => {
-        if (!contents.isDestroyed()) {
-          contents.loadURL(url).catch(() => {
-            // A navigation that loses a race with another is not an error.
-          });
-        }
-      });
-    } else {
+  contents.setWindowOpenHandler(({ url, disposition }) => {
+    if (!isNavigableVideoUrl(url)) {
       // Say so, rather than dropping it in silence.
       //
       // `will-navigate` has a listener in the renderer that raises the notice
@@ -365,10 +349,69 @@ const hardenPlayer = (contents: WebContents) => {
       // the list, so this is the only place that behaviour is visible at all.
       log.info(`Video player refused a popup to ${url}`);
       contents.hostWebContents?.send(VIDEO_LINK_BLOCKED, url);
+      return { action: 'deny' };
     }
 
-    // Never a real popup. Anything not on the list is dropped here, and the
-    // renderer says so — it is watching the same navigations.
+    /*
+     * A LINK THAT WANTED A TAB BECOMES THE PLAYER. A WINDOW THAT WANTED TO BE A
+     * WINDOW GETS TO BE ONE.
+     *
+     * Everything used to be denied and loaded into the player instead, which is
+     * right for the common case — these sites open a video from a channel page
+     * or a track from a search result in a new tab, there is only ever one
+     * player, and losing the click would be worse than reusing it.
+     *
+     * It is wrong for the other case, and the other case is signing in.
+     * `window.open` returns `null` to a page whose popup was denied, and a site
+     * reads that as the browser having a popup blocker turned on. SoundCloud
+     * says so out loud — "Please enable popup windows and try again" — and
+     * Spotify simply does nothing, which is the same failure without the
+     * courtesy. Navigating the opener out from under the flow does not help
+     * either: the popup is supposed to hand its result back through
+     * `window.opener`, and there is no opener left if the opener has gone
+     * somewhere else.
+     *
+     * `disposition` separates them exactly. A `target="_blank"` link arrives as
+     * a tab; `window.open` with a size, which is what every sign-in flow uses,
+     * arrives as `new-window`.
+     */
+    if (disposition === 'new-window') {
+      log.info(`Video player opened a popup window to ${url}`);
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          width: 520,
+          height: 720,
+          autoHideMenuBar: true,
+          // Stated rather than inherited. A popup takes the opener's
+          // preferences when nothing is said, which is safe today only because
+          // `hardenAttachment` made the opener safe — and a security posture
+          // that holds by inheritance is one edit away from not holding. No
+          // preload: the ad blocker has no business inside a login form.
+          webPreferences: {
+            nodeIntegration: false,
+            nodeIntegrationInSubFrames: false,
+            contextIsolation: true,
+            sandbox: true,
+            webSecurity: true,
+            allowRunningInsecureContent: false,
+            experimentalFeatures: false,
+          },
+        },
+      };
+    }
+
+    // Deferred: this runs inside Chromium's own window-open handling, and
+    // navigating the contents that is being asked about, from inside the
+    // answer, is a re-entrant call.
+    log.info(`Video player took a popup to ${url} into the player`);
+    setImmediate(() => {
+      if (!contents.isDestroyed()) {
+        contents.loadURL(url).catch(() => {
+          // A navigation that loses a race with another is not an error.
+        });
+      }
+    });
     return { action: 'deny' };
   });
 
@@ -416,7 +459,62 @@ const hardenAttachment = (
 
   // The tag's own attributes, decided here rather than in markup.
   params.partition = VIDEO_BROWSER_PARTITION;
-  delete params.allowpopups;
+
+  /*
+   * POPUPS ARE ALLOWED AT THE TAG, AND JUDGED ONE BY ONE ABOVE.
+   *
+   * This used to `delete params.allowpopups`, and that single line was the
+   * reason signing in failed. Without the attribute a `<webview>` cannot open a
+   * window at all: `window.open` returns `null` before Chromium ever asks the
+   * window-open handler about it. So the handler's careful answers were being
+   * given to a question nobody was asking, and the site saw exactly what a
+   * popup blocker looks like — SoundCloud said so, Spotify just stopped.
+   *
+   * Deleting it looked like defence in depth and was not. Depth needs two
+   * layers that fail differently; this was the same allow-list decision made
+   * twice, once as "no, never" and once as "only these hosts" — and the blunt
+   * one won, so the considered one never ran.
+   *
+   * The boundary is unchanged. Every popup still goes through
+   * `setWindowOpenHandler`, is still checked against the allow-list, and is
+   * still refused with a notice when it fails. What changed is that a window
+   * that passes now actually opens.
+   */
+  params.allowpopups = 'true';
+};
+
+/**
+ * Lock down a sign-in popup opened by a player.
+ *
+ * It is a window rather than a webview, so `hardenAttachment` never sees it and
+ * its preferences came from the answer that allowed it. What it still needs is
+ * the navigation guard: a login flow redirects several times, and every one of
+ * those hops has to be held to the same list as the player's own.
+ *
+ * Not given the player's other treatment, deliberately. It is not added to
+ * `attachedPlayers` — it holds no playback and a sign-out sending it "home" to
+ * YouTube would be nonsense — and it has no home-page backstop, because the
+ * right answer for a popup that tries to leave the list is to refuse the
+ * navigation and let the window sit there, not to turn a login window into a
+ * second video player.
+ */
+const hardenPopup = (contents: WebContents) => {
+  const blockDisallowed = (details: Electron.Event<{ url: string }>) => {
+    if (!isNavigableVideoUrl(details.url)) {
+      details.preventDefault();
+      log.info(`Sign-in popup refused a navigation to ${details.url}`);
+    }
+  };
+
+  contents.on('will-navigate', blockDisallowed);
+  contents.on('will-redirect', blockDisallowed);
+
+  // A popup opening a further popup is not a flow any of these sites uses, and
+  // is what a hijacked one would try. One window deep is the whole allowance.
+  contents.setWindowOpenHandler(({ url }) => {
+    log.info(`Sign-in popup refused a popup to ${url}`);
+    return { action: 'deny' };
+  });
 };
 
 /**
@@ -431,6 +529,15 @@ export const setUpVideoBrowser = () => {
   app.on('web-contents-created', (_event, contents) => {
     if (contents.getType() === 'webview') {
       hardenPlayer(contents);
+      return;
+    }
+
+    // A sign-in popup a player opened. Recognised by its session rather than by
+    // its type — it is a `window`, exactly like FluidEQ's own, and the thing
+    // that tells the two apart is that a popup inherits the player's partition
+    // and nothing else in the application uses that partition.
+    if (contents.session === session.fromPartition(VIDEO_BROWSER_PARTITION)) {
+      hardenPopup(contents);
       return;
     }
 
