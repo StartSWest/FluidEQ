@@ -137,3 +137,28 @@ export const hasHeadphoneLayer = (
 ): boolean =>
   getHeadphoneGraphicEq(settings).length > 0 ||
   getHeadphoneFilters(settings).length > 0;
+
+/**
+ * Whether a correction is HELD, whether or not any of it is being applied.
+ *
+ * A different question from `hasHeadphoneLayer`, and the difference is the
+ * whole reason this exists: at zero strength nothing is written, so that one
+ * answers no — correctly, for anything asking what Equalizer APO will see or
+ * what to draw on the graph.
+ *
+ * It is the wrong question for a control. Dragging the strength to zero made
+ * the chip that owns the slider vanish, taking the slider with it, so the
+ * correction could be turned off and then never turned back on. The settings
+ * were still there; the only way back to them was gone. The chip already had an
+ * inactive state ready for exactly this, and never reached it.
+ *
+ * The driver and the voicing chips have always been drawn on whether their
+ * layer is chosen and dimmed on whether it is audible. This is that same rule,
+ * for the one layer that did not have it.
+ */
+export const hasHeadphoneCorrection = (
+  settings: IHeadphoneSettings | undefined,
+): boolean =>
+  Boolean(settings) &&
+  (Object.keys(settings?.filters ?? {}).length > 0 ||
+    (settings?.graphicEq?.length ?? 0) > 0);

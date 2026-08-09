@@ -23,7 +23,7 @@ import { TApoLayer } from 'common/constants';
 import { getVoicingProfile, isVoicingActive } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { hasSmartEqLayer } from 'common/smartEq';
-import { hasHeadphoneLayer } from '../../common/headphone';
+import { hasHeadphoneCorrection } from '../../common/headphone';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { setContinuousEq, useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
@@ -303,7 +303,11 @@ const ActiveLayers = () => {
    * Two things now, because they always were two things: what the headphones
    * need, and what this person likes.
    */
-  if (hasHeadphoneLayer(headphone)) {
+  // Drawn on whether a correction is held, dimmed on whether any of it is
+  // applied — the rule the driver and voicing chips have always used. Asking
+  // whether it is audible made the slider disappear at the end of its own
+  // travel, with no way back to it.
+  if (hasHeadphoneCorrection(headphone)) {
     layers.push({
       key: 'headphone',
       icon: 'waveform',
