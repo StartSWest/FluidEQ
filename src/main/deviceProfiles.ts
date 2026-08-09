@@ -33,6 +33,16 @@ import { writeConvolutionWav } from './convolution';
 
 export interface IActiveStateOverride {
   deviceId?: string;
+  /**
+   * What Windows calls this output, for the comment above its block.
+   *
+   * Every other block is headed `<output> -> <profile>`, and that comment is
+   * the only thing in the config that names an output in words — the `Device:`
+   * line is a GUID and the file names are a digest of one. A session override
+   * had no name to put there, so the one output somebody is listening through
+   * was the one whose files could not say what they were for.
+   */
+  deviceName?: string;
   devicePattern: string;
   state: IState;
 }
@@ -415,7 +425,14 @@ export const deviceProfilesToFiles = (
 
     addDevice(
       stateToApoFiles(activeOverride.state, activeConvolutionFileName),
-      'Active FluidEQ session override',
+      // In the same `<output> -> <what it is>` shape every other block carries,
+      // so the config view splits it the same way and the device file's first
+      // line names the output rather than only the mechanism. Without a name to
+      // put there it stays what it was — a caller that cannot say which output
+      // this is must not be made to invent one.
+      activeOverride.deviceName
+        ? `${activeOverride.deviceName} -> Active FluidEQ session`
+        : 'Active FluidEQ session override',
       activeOverride.devicePattern,
       activeOverride.deviceId || activeOverride.devicePattern,
     );

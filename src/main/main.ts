@@ -1259,6 +1259,7 @@ const handleUpdateHelper = async <T>(
       hasActiveSessionOverride && activeDevicePattern
         ? {
             deviceId: activeAudioDeviceId,
+            deviceName: activeAudioDevice?.name,
             devicePattern: activeDevicePattern,
             state,
           }
