@@ -25,24 +25,15 @@ import {
   isEligibleMirrorTarget,
   matchAudioDevices,
 } from 'common/audioDeviceBridge';
-import { IAudioDevice, IState } from 'common/constants';
+import { IAudioDevice, IDeviceProfileSettings } from 'common/constants';
 import { hasVirtualRouting } from 'common/virtualAudioDevices';
-import { getAudioDevices, getStateForAudioDevice } from '../utils/equalizerApi';
-import { useFluidEqContext } from '../utils/FluidEqContext';
+import {
+  getAudioDevices,
+  getDeviceProfileSettings,
+} from '../utils/equalizerApi';
 import { reportInfo } from '../utils/logger';
 import { useLiveAudioControl } from './LiveAudioContext';
-import {
-  createMirrorEqChain,
-  getMirrorFilters,
-  TMirrorFilter,
-} from './mirrorEq';
 import { IOutputMirror, startOutputMirror } from './outputMirror';
-
-/** The EQ one mirror should apply. Compared by reference, so it is memoised. */
-interface IMirrorEqSettings {
-  filters: TMirrorFilter[];
-  preAmp: number;
-}
 
 /**
  * Where the chosen mirrors live between runs.
@@ -76,21 +67,27 @@ export interface IMirrorTarget {
   isSelected: boolean;
   /** Audio is genuinely going to it right now. */
   isRunning: boolean;
-  /** The EQ controls are currently editing this output's profile. */
-  isBeingTuned: boolean;
+  /**
+   * The profile attached to this endpoint, exactly as the output picker means
+   * it — raw, so the caller can tell an automatic one from a named one and
+   * label each the way that panel already does.
+   *
+   * Read-only here. Equalizer APO applies it to the endpoint itself, so the
+   * mirror neither chooses it nor reproduces it; this is only so the row can
+   * say which profile the speaker is already playing.
+   */
+  presetName: string;
 }
 
-/** A mirror that should be running, and what it should be running with. */
+/** A mirror that should be running. */
 interface IDesiredMirror {
   guid: string;
   sinkId: string;
-  eq?: IMirrorEqSettings;
 }
 
 /** A mirror that is running, kept so the reconciler can spot a change. */
 interface IRunningMirror {
   sinkId: string;
-  eq?: IMirrorEqSettings;
   mirror: IOutputMirror;
 }
 
@@ -136,37 +133,30 @@ const listMediaOutputs = async (): Promise<IMediaOutputDevice[]> => {
  * the running graphs themselves.
  *
  * Several at once, because that is the feature — one capture fanned out to as
- * many outputs as asked for, each carrying its own device's profile. The
- * capture is shared and read-only to all of them, so the cost of another is a
- * filter chain and a stream, not another `getDisplayMedia`.
+ * many outputs as asked for. The capture is shared and read-only to all of
+ * them, so the cost of another is a stream, not another `getDisplayMedia`.
+ *
+ * **The mirror applies no EQ, deliberately.** Equalizer APO hooks every
+ * endpoint, and FluidEQ already writes a `Device:` block per assigned output —
+ * so the profile for a mirrored speaker is applied to that speaker by APO, on
+ * the way out, exactly as it is when you are listening on it directly. A
+ * filter chain here would apply the same correction a second time, and a
+ * doubled correction is doubled in dB: a 6 dB dip becomes 12, which is audible
+ * as a hollow, phasey wrongness rather than as "a bit much".
+ *
+ * What the capture still carries is the *primary* device's correction, baked
+ * in before FluidEQ ever sees it. That is the one real defect left in this
+ * path, and the fix if it proves audible is to apply the inverse of the
+ * primary's chain — not to re-apply the target's.
  */
 const useOutputMirror = () => {
   const { capture } = useLiveAudioControl();
-  // The live editing session. When the output being tuned is also one being
-  // mirrored, the mirror follows the bands as they move rather than waiting
-  // for a save — otherwise setting one up means dragging a slider and hearing
-  // nothing change on the speaker it belongs to.
-  //
-  // Destructured rather than held whole: the context value is a fresh literal
-  // every render, so depending on it would rebuild every mirror continuously.
-  // These fields only change when the tuning actually does.
-  const {
-    activeDeviceId,
-    bypassed: liveBypassed,
-    driver: liveDriver,
-    eqFormat: liveEqFormat,
-    filters: liveFilters,
-    graphicEq: liveGraphicEq,
-    headphone: liveHeadphone,
-    isFlat: liveIsFlat,
-    preAmp: livePreAmp,
-    smartEq: liveSmartEq,
-    voicing: liveVoicing,
-  } = useFluidEqContext();
   const [devices, setDevices] = useState<IAudioDevice[]>([]);
   const [outputs, setOutputs] = useState<IMediaOutputDevice[]>([]);
+  const [assignments, setAssignments] = useState<
+    IDeviceProfileSettings | undefined
+  >(undefined);
   const [selectedGuids, setSelectedGuids] = useState<string[]>(loadSelection);
-  const [profiles, setProfiles] = useState<Record<string, IState>>({});
   const [runningGuids, setRunningGuids] = useState<string[]>([]);
   const [error, setError] = useState('');
   const runningRef = useRef(new Map<string, IRunningMirror>());
@@ -175,12 +165,14 @@ const useOutputMirror = () => {
 
   const refresh = useCallback(async () => {
     try {
-      const [nextDevices, nextOutputs] = await Promise.all([
+      const [nextDevices, nextOutputs, nextSettings] = await Promise.all([
         getAudioDevices(),
         listMediaOutputs(),
+        getDeviceProfileSettings(),
       ]);
       setDevices(nextDevices);
       setOutputs(nextOutputs);
+      setAssignments(nextSettings);
     } catch {
       // A failed enumeration is not worth an error banner: the list simply
       // stays as it was, and the next device change refreshes it again.
@@ -217,11 +209,11 @@ const useOutputMirror = () => {
         isUsable: isEligible && match.status === DeviceMatchEnum.MATCHED,
         isSelected: selectedGuids.includes(device.guid),
         isRunning: runningGuids.includes(device.guid),
-        isBeingTuned: Boolean(activeDeviceId && device.id === activeDeviceId),
+        presetName: assignments?.assignments[device.id]?.presetName ?? '',
       };
     });
   }, [
-    activeDeviceId,
+    assignments,
     captureSourceGuid,
     devices,
     outputs,
@@ -239,122 +231,14 @@ const useOutputMirror = () => {
     [targets],
   );
 
-  // Each mirrored device's OWN profile, which is the point of per-mirror EQ.
-  // Keyed on the endpoint ids alone: the target objects are rebuilt on every
-  // device refresh, and refetching every profile each time would be pointless
-  // traffic and would restart every running mirror.
-  const profileKey = useMemo(
-    () =>
-      selectedTargets
-        .map((target) => target.device.id)
-        .sort()
-        .join('|'),
-    [selectedTargets],
-  );
-  const selectedTargetsRef = useRef(selectedTargets);
-  selectedTargetsRef.current = selectedTargets;
-
-  useEffect(() => {
-    const wanted = selectedTargetsRef.current;
-    if (wanted.length === 0) {
-      setProfiles({});
-      return undefined;
-    }
-    let isCancelled = false;
-    Promise.all(
-      wanted.map(async (target) => {
-        try {
-          return [
-            target.device.guid,
-            await getStateForAudioDevice(target.device.id),
-          ] as const;
-        } catch {
-          // No profile is a real answer: that device plays flat rather than
-          // borrowing the primary device's correction, which is the one thing
-          // it must never do.
-          return [target.device.guid, undefined] as const;
-        }
-      }),
-    ).then((entries) => {
-      if (!isCancelled) {
-        setProfiles(
-          Object.fromEntries(
-            entries.filter((entry): entry is [string, IState] =>
-              Boolean(entry[1]),
-            ),
-          ),
-        );
-      }
-      return entries;
-    });
-    return () => {
-      isCancelled = true;
-    };
-  }, [profileKey]);
-
-  // Memoised on the fields themselves, not on the context object, which is a
-  // fresh literal on every render. Feeding that straight into `desired` would
-  // make the reconciler restart every mirror on every render — the same shape
-  // of loop the running-set publish had.
-  const liveEq = useMemo<IMirrorEqSettings>(
-    () => ({
-      filters: getMirrorFilters({
-        bypassed: liveBypassed,
-        driver: liveDriver,
-        eqFormat: liveEqFormat,
-        filters: liveFilters,
-        graphicEq: liveGraphicEq,
-        headphone: liveHeadphone,
-        isFlat: liveIsFlat,
-        smartEq: liveSmartEq,
-        voicing: liveVoicing,
-      }),
-      preAmp: livePreAmp,
-    }),
-    [
-      liveBypassed,
-      liveDriver,
-      liveEqFormat,
-      liveFilters,
-      liveGraphicEq,
-      liveHeadphone,
-      liveIsFlat,
-      livePreAmp,
-      liveSmartEq,
-      liveVoicing,
-    ],
-  );
-
-  const savedEq = useMemo<Record<string, IMirrorEqSettings>>(
-    () =>
-      Object.fromEntries(
-        Object.entries(profiles).map(([guid, state]) => [
-          guid,
-          { filters: getMirrorFilters(state), preAmp: state.preAmp },
-        ]),
-      ),
-    [profiles],
-  );
-
   const desired = useMemo<IDesiredMirror[]>(
     () =>
       selectedTargets.flatMap((target) =>
         target.isUsable && target.match.sinkId
-          ? [
-              {
-                guid: target.device.guid,
-                sinkId: target.match.sinkId,
-                // The output being tuned right now takes the live state; every
-                // other one takes what its profile says on disk.
-                eq:
-                  target.device.id === activeDeviceId
-                    ? liveEq
-                    : savedEq[target.device.guid],
-              },
-            ]
+          ? [{ guid: target.device.guid, sinkId: target.match.sinkId }]
           : [],
       ),
-    [activeDeviceId, liveEq, savedEq, selectedTargets],
+    [selectedTargets],
   );
   const desiredRef = useRef(desired);
   desiredRef.current = desired;
@@ -392,9 +276,7 @@ const useOutputMirror = () => {
 
     running.forEach((entry, guid) => {
       const want = desired.find((candidate) => candidate.guid === guid);
-      // EQ compared by identity: both sides are memoised, so a new object
-      // means the filters genuinely changed and the chain has to be rebuilt.
-      if (!want || want.sinkId !== entry.sinkId || want.eq !== entry.eq) {
+      if (!want || want.sinkId !== entry.sinkId) {
         entry.mirror.stop();
         running.delete(guid);
       }
@@ -409,37 +291,21 @@ const useOutputMirror = () => {
         context: capture.context,
         source: capture.source,
         sinkId: want.sinkId,
-        // Bands, voicing, driver compensation and Smart EQ, all from the
-        // shared derivation. GraphicEQ and convolution are still absent —
-        // see `getMirrorFilters` for why each needs more than a biquad.
-        eq: want.eq
-          ? createMirrorEqChain(
-              capture.context,
-              want.eq.filters,
-              want.eq.preAmp,
-            )
-          : undefined,
       })
         .then((mirror) => {
           pendingRef.current.delete(want.guid);
-          // It may have been switched off, or its profile replaced, while the
-          // sink was being selected. Anything no longer wanted stops itself
-          // rather than leaking a live element nothing holds.
+          // It may have been switched off while the sink was being selected.
+          // Anything no longer wanted stops itself rather than leaking a live
+          // element nothing holds.
           const stillWanted = desiredRef.current.find(
             (candidate) =>
-              candidate.guid === want.guid &&
-              candidate.sinkId === want.sinkId &&
-              candidate.eq === want.eq,
+              candidate.guid === want.guid && candidate.sinkId === want.sinkId,
           );
           if (!stillWanted) {
             mirror.stop();
             return mirror;
           }
-          running.set(want.guid, {
-            sinkId: want.sinkId,
-            eq: want.eq,
-            mirror,
-          });
+          running.set(want.guid, { sinkId: want.sinkId, mirror });
           publish();
           return mirror;
         })

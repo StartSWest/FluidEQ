@@ -44,6 +44,20 @@ it under the terms of the GNU General Public License version 3 or later.
   font-weight: 700;
 }
 
+// The profile this output already carries. Quiet: it is information, not a
+// control, and the switch beside it is the thing to press.
+.extra-outputs__profile {
+  flex: 0 0 auto;
+  margin-left: auto;
+  max-width: 45%;
+  overflow: hidden;
+  color: $secondary-light;
+  font-size: 0.64rem;
+  text-align: right;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 // Which input of a routing driver this is. Voicemeeter's three differ by a
 // single word, so the distinction has to be visible at a glance.
 .extra-outputs__tag {

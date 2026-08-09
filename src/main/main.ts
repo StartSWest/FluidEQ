@@ -2076,27 +2076,6 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
   }
 });
 
-// Read-only, and deliberately so: this reports what an endpoint's profile
-// says without touching the live state, the active device or the APO config.
-// The mirror asks about a device the user is not listening on, and answering
-// must not disturb the one they are.
-ipcMain.on(ChannelEnum.GET_STATE_FOR_AUDIO_DEVICE, async (event, arg) => {
-  const channel = ChannelEnum.GET_STATE_FOR_AUDIO_DEVICE;
-  try {
-    const reply: TSuccess<IState> = {
-      result: getStateForAudioDevice(
-        deviceProfileSettings,
-        arg[0] as string,
-        presetPath,
-      ),
-    };
-    event.reply(channel, reply);
-  } catch (e) {
-    console.error('Failed to read the profile for an output', e);
-    handleError(event, channel, ErrorCode.FAILURE);
-  }
-});
-
 ipcMain.on(ChannelEnum.SET_DEFAULT_AUDIO_DEVICE, async (event, arg) => {
   const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
   try {

@@ -131,8 +131,6 @@ const de: Partial<Dictionary> = {
   'extraOutput.off': 'Aus',
   'extraOutput.none': 'Keine weiteren Ausgänge gefunden',
   'extraOutput.active': 'SPIEGELT',
-  'extraOutput.setUp': 'Einrichten',
-  'extraOutput.tuning': 'Wird abgestimmt',
   'extraOutput.latency':
     'Der gespiegelte Ton kommt etwa eine Fünftelsekunde später an. Für Musik in einem anderen Raum in Ordnung, für Video oder Spiele unbrauchbar, und ein Echo, wenn Sie beides gleichzeitig hören.',
   'extraOutput.virtual':

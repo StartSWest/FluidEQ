@@ -122,8 +122,6 @@ const zh: Partial<Dictionary> = {
   'extraOutput.off': '关闭',
   'extraOutput.none': '未找到其他输出',
   'extraOutput.active': '镜像中',
-  'extraOutput.setUp': '设置',
-  'extraOutput.tuning': '调整中',
   'extraOutput.latency':
     '镜像的声音大约会晚五分之一秒。在另一个房间放音乐没问题，用于视频或游戏则不可用；若两边同时听得见，会有回声。',
   'extraOutput.virtual':

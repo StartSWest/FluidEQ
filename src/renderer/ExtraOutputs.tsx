@@ -9,11 +9,11 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { useMemo } from 'react';
 import { DeviceMatchEnum } from 'common/audioDeviceBridge';
+import { AUTOMATIC_PRESET_PREFIX } from 'common/constants';
 import { identifyVirtualDevice } from 'common/virtualAudioDevices';
 import SidebarSection from './components/SidebarSection';
 import Switch from './widgets/Switch';
 import useOutputMirror, { IMirrorTarget } from './audio/useOutputMirror';
-import { activateAudioDeviceProfile } from './utils/equalizerApi';
 import { useTranslation } from './utils/I18nContext';
 import './styles/ExtraOutputs.scss';
 
@@ -46,6 +46,17 @@ const ExtraOutputs = () => {
       return t('extraOutput.labelsHidden');
     }
     return t('extraOutput.unmatched');
+  };
+
+  // Exactly how the output picker reads an assignment, reusing its strings so
+  // the same profile cannot be called two different things in two panels.
+  const describeProfile = (presetName: string): string => {
+    if (!presetName) {
+      return t('output.mapping.neutral');
+    }
+    return presetName.startsWith(AUTOMATIC_PRESET_PREFIX)
+      ? t('output.mapping.live')
+      : presetName;
   };
 
   const blocked = selectedTargets.filter((target) => !target.isUsable);
@@ -99,20 +110,14 @@ const ExtraOutputs = () => {
                     {virtual.inputLabel}
                   </span>
                 )}
-                {/* Points every EQ control at this output's own profile,
-                    without making it the Windows default. A device with no
-                    profile yet gets an empty one, so it starts flat rather
-                    than inheriting the output you are listening on. */}
-                <button
-                  className="link-button extra-outputs__tune"
-                  disabled={target.isBeingTuned}
-                  onClick={() => activateAudioDeviceProfile(target.device.id)}
-                  type="button"
-                >
-                  {target.isBeingTuned
-                    ? t('extraOutput.tuning')
-                    : t('extraOutput.setUp')}
-                </button>
+                {/* The profile this output already carries — the same one it
+                    plays when it is the device you are listening on. There is
+                    nothing to set up here: it follows the endpoint, and this
+                    only says which it is. Named the way the output picker
+                    names it, so the two panels cannot disagree. */}
+                <span className="extra-outputs__profile">
+                  {describeProfile(target.presetName)}
+                </span>
               </li>
             );
           })}
