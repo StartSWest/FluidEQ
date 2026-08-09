@@ -1076,7 +1076,10 @@ it under the terms of the GNU General Public License version 3 or later.
   min-height: 72px;
   box-sizing: border-box;
   padding-block: 6px;
-  margin-block-start: 10px;
+  // Air between the switch and the meter. They are two different kinds of
+  // thing sharing a card -- one is a control, the other a reading -- and
+  // without a gap the meter reads as part of the switch.
+  margin-block-start: 18px;
   // Takes whatever the card has left rather than a height of its own. A meter
   // is the rare control that is simply better tall: the same twenty decibels
   // spread over more pixels is more resolution, for free.
