@@ -222,6 +222,22 @@ const ALLOWED_HOSTS: string[] = [
   'spotify.com',
   'scdn.co',
   'spotifycdn.com',
+  /*
+   * The other two doors SoundCloud offers, and refusing them was ours.
+   *
+   * Its sign-in panel has four buttons: Facebook, Google, Apple and email. Only
+   * two of those hosts were listed, so pressing either of the others opened a
+   * window and had it refused mid-flight — which is not a boundary anybody
+   * chose, it is two entries nobody wrote. The log named them exactly:
+   * `facebook.com/dialog/oauth` and `appleid.apple.com/auth/authorize`.
+   *
+   * `appleid.apple.com` by name rather than `apple.com`, because Apple's
+   * sign-in lives on that host and the rest of the domain has no business here.
+   * Facebook's dialog moves between `www.` and `m.` and `web.` depending on
+   * what it decides you are, so that one is the registrable domain.
+   */
+  'facebook.com',
+  'appleid.apple.com',
 ];
 
 /**

@@ -209,6 +209,31 @@ describe('sign-in', () => {
     expect(isNavigableVideoUrl('javascript:alert(1)')).toBe(false);
   });
 
+  /**
+   * All four of SoundCloud's doors, because two of them were shut by omission.
+   *
+   * Its panel offers Facebook, Google, Apple and email. Only two of those hosts
+   * were listed, so pressing either of the others opened a window and had it
+   * refused mid-flight — a boundary nobody chose, made of two entries nobody
+   * wrote.
+   */
+  it('reaches every provider a listed site offers', () => {
+    expect(
+      isNavigableVideoUrl('https://www.facebook.com/dialog/oauth?client_id=1'),
+    ).toBe(true);
+    expect(
+      isNavigableVideoUrl(
+        'https://appleid.apple.com/auth/authorize?scope=name',
+      ),
+    ).toBe(true);
+    // Named host only. Apple's sign-in lives there; the rest of the domain has
+    // no business in a music player.
+    expect(isNavigableVideoUrl('https://www.apple.com/store')).toBe(false);
+    expect(isNavigableVideoUrl('https://facebook.com.evil.example/')).toBe(
+      false,
+    );
+  });
+
   it('reaches Spotify at every host one listen touches', () => {
     expect(isNavigableVideoUrl('https://open.spotify.com/')).toBe(true);
     expect(isNavigableVideoUrl('https://accounts.spotify.com/en/login')).toBe(
