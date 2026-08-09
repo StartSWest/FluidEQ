@@ -127,8 +127,18 @@ const videoPreloadPath = () =>
 /** Every attached player, for pushing a settings change out to all of them. */
 const attachedPlayers = new Set<WebContents>();
 
-/** How much of a guest's console line is worth keeping. See where it is used. */
+/** How much of a guest's console warning is worth keeping. See its use. */
 const CONSOLE_MESSAGE_LIMIT = 200;
+
+/**
+ * The same for an error, which is worth a great deal more.
+ *
+ * Errors are rare and are the reason anybody opens this log; warnings are the
+ * ad stack talking to itself. A CORS refusal in particular puts the reason last,
+ * after the origin and the whole URL, so the warning-sized cap removed exactly
+ * the part being looked for.
+ */
+const CONSOLE_ERROR_LIMIT = 1200;
 
 const broadcastAdBlockSetting = () => {
   attachedPlayers.forEach((contents) => {
@@ -241,18 +251,29 @@ const hardenPlayer = (contents: WebContents) => {
     const where = details.sourceId
       ? ` (${details.sourceId}:${details.lineNumber})`
       : '';
-    // Truncated, because an ad tracker's URL is not a diagnosis.
-    //
-    // A blocked doubleclick request logs its entire query string — click ids,
-    // consent tokens, viewability telemetry — which runs to two or three
-    // kilobytes per line, several times a second on a video page. It rotated a
-    // megabyte of log inside an hour and buried every line that was actually
-    // worth reading, which is the opposite of what this listener is for. The
-    // first two hundred characters carry the error and the origin; the rest has
-    // never explained anything.
+    /*
+     * Truncated, because an ad tracker's URL is not a diagnosis — but errors
+     * get far more room than warnings, and the difference was learned the hard
+     * way.
+     *
+     * The cap exists for the chatter. A blocked doubleclick request logs its
+     * entire query string — click ids, consent tokens, viewability telemetry —
+     * two or three kilobytes a line, several times a second on a video page. It
+     * rotated a megabyte of log inside an hour and buried everything worth
+     * reading.
+     *
+     * Every one of those is a warning. Errors are rare, and an error is the
+     * whole reason somebody is reading this file. A CORS refusal names the
+     * offending origin, then the URL, then the actual reason — and the reason
+     * is last, so two hundred characters cut it off precisely. Debugging a
+     * sign-in here meant staring at a line that had been shortened by the
+     * logger written to make debugging possible.
+     */
+    const limit =
+      details.level === 'error' ? CONSOLE_ERROR_LIMIT : CONSOLE_MESSAGE_LIMIT;
     const message =
-      details.message.length > CONSOLE_MESSAGE_LIMIT
-        ? `${details.message.slice(0, CONSOLE_MESSAGE_LIMIT)}…`
+      details.message.length > limit
+        ? `${details.message.slice(0, limit)}…`
         : details.message;
     /*
      * ITS OWN TAG FAMILY, because none of this is ours.
