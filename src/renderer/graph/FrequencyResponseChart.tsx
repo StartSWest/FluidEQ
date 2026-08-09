@@ -119,6 +119,7 @@ import Dropdown from '../widgets/Dropdown';
 import GraphViewMenu from './GraphViewMenu';
 import { getVoicingFilters } from '../../common/voicing';
 import { getDriverFilters } from '../../common/driver';
+import { getHeadphoneFilters, hasHeadphoneLayer } from '../../common/headphone';
 import { getSmartEqFilters, hasSmartEqLayer } from '../../common/smartEq';
 import { getChainPeakGain } from '../../common/response';
 import '../styles/MultiSelect.scss';
@@ -205,6 +206,11 @@ const CURVE_BY_CHART_ID: Record<string, TGraphCurve> = {
   'EQ Response': 'eq',
   Voicing: 'voicing',
   Driver: 'driver',
+  // Spelled out rather than left as `Headphone`, which would sit one line under
+  // the impulse response's `Headphone Convolution` and read as its abbreviation.
+  // They are different layers with different colours and either can hide the
+  // other's chip if the two ids are confused.
+  'Headphone Correction': 'headphone',
   'Smart EQ': 'smart',
   'Total Response': 'total',
 };
@@ -530,6 +536,7 @@ const FrequencyResponseChart = () => {
     setHoveredFilterId,
     voicing,
     driver,
+    headphone,
     smartEq,
     bypassed,
   } = useFluidEqContext();
@@ -569,6 +576,17 @@ const FrequencyResponseChart = () => {
     if (driver?.profileId && !isBypassed('driver')) {
       curveChips.push({ curve: 'driver', label: 'Driver' });
     }
+    // Beside the driver, because it is written beside it and because it is the
+    // same kind of thing: a correction for the hardware rather than for taste.
+    //
+    // The word is the one the chip row above the editor uses for this layer —
+    // `eq.layers.headphone` — but written out, like every other label here. The
+    // legend is not translated: `Driver`, `Voicing`, `Smart EQ` and `Final
+    // output` are all English in the source, and one translated chip among six
+    // would be the odd one rather than the start of anything.
+    if (hasHeadphoneLayer(headphone) && !isBypassed('headphone')) {
+      curveChips.push({ curve: 'headphone', label: 'Headphone' });
+    }
     if (hasSmartEqLayer(smartEq) && !isBypassed('smart')) {
       curveChips.push({ curve: 'smart', label: 'Smart EQ' });
     }
@@ -581,6 +599,7 @@ const FrequencyResponseChart = () => {
       Math.abs(preAmp) > 0.01 ||
       voicing?.profileId ||
       driver?.profileId ||
+      hasHeadphoneLayer(headphone) ||
       hasSmartEqLayer(smartEq)
     ) {
       curveChips.push({ curve: 'total', label: 'Final output' });
@@ -908,6 +927,38 @@ const FrequencyResponseChart = () => {
     );
     const hasDriver = Object.keys(driverFilterLines).length > 0;
 
+    // The published headphone correction, which had no curve here at all.
+    //
+    // It was the one layer the graph did not know about: no line, no chip, and
+    // — the part that was wrong rather than merely missing — absent from the
+    // total and from the headroom below, so the curve labelled "Final output"
+    // was not the output and the preamp reserved nothing for a correction that
+    // can easily ask for six decibels. It was reported as "the AutoEQ is being
+    // applied as the EQ", which is what a correction with no line of its own
+    // looks like from the outside.
+    //
+    // The filter projection rather than the published points, because a curve
+    // here is built from biquads: `getHeadphoneFilters` is what the editor and
+    // the band handles already read, so the line on the plot is the line the
+    // sliders describe. The writer prefers the points where a profile has them
+    // — see `getHeadphoneGraphicEq` — so this is an approximation of the
+    // published curve in exactly the way the editor's own bands are.
+    const headphoneFilterLines: IChartLineDataPointsById = {};
+    (bypassed.includes('headphone')
+      ? []
+      : getHeadphoneFilters(headphone)
+    ).forEach((filter, index) => {
+      const id = `headphone-${index}`;
+      headphoneFilterLines[id] = getFilterLineData({
+        id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      });
+    });
+    const hasHeadphone = Object.keys(headphoneFilterLines).length > 0;
+
     // What the measurement decided, drawn like any other layer. This one has
     // the strongest claim to a curve of its own: nobody chose its shape, so the
     // graph is the only place it can be inspected at all.
@@ -963,6 +1014,9 @@ const FrequencyResponseChart = () => {
     const driverCurveData = hasDriver
       ? getCombinedLineData(0, driverFilterLines)
       : [];
+    const headphoneCurveData = hasHeadphone
+      ? getCombinedLineData(0, headphoneFilterLines)
+      : [];
     const smartCurveData = hasSmartEq
       ? getCombinedLineData(0, smartFilterLines)
       : [];
@@ -992,6 +1046,7 @@ const FrequencyResponseChart = () => {
       Math.abs(preAmp) > 0.01 ||
       getVoicingFilters(voicing).length ||
       getDriverFilters(driver).length ||
+      getHeadphoneFilters(headphone).length ||
       getSmartEqFilters(smartEq).length,
     );
     const totalCurveData = hasExtraLayers
@@ -1000,6 +1055,12 @@ const FrequencyResponseChart = () => {
           ...convolutionFilterLines,
           ...voicingFilterLines,
           ...driverFilterLines,
+          // The line this was named for. Left out, the sum was every layer but
+          // one and still called itself the final output — and the layer it
+          // omitted is frequently the largest thing in the chain, so the curve
+          // somebody reads to answer "what am I actually hearing" was wrong by
+          // several decibels wherever the correction was working hardest.
+          ...headphoneFilterLines,
           ...smartFilterLines,
         })
       : [];
@@ -1078,6 +1139,14 @@ const FrequencyResponseChart = () => {
             : []),
           ...(bypassed.includes('eq') ? [] : Object.values(filters)),
           ...(bypassed.includes('driver') ? [] : getDriverFilters(driver)),
+          // The layer this list was missing. A published correction routinely
+          // boosts by six decibels or more, and with it absent the graph showed
+          // headroom for a chain it was not measuring — the writer reserves for
+          // it, so the number under the plot disagreed with the `Preamp:` line
+          // on disk by however much the correction boosts.
+          ...(bypassed.includes('headphone')
+            ? []
+            : getHeadphoneFilters(headphone)),
           ...(bypassed.includes('voicing') ? [] : getVoicingFilters(voicing)),
           ...(bypassed.includes('smart') ? [] : getSmartEqFilters(smartEq)),
         ]),
@@ -1129,6 +1198,24 @@ const FrequencyResponseChart = () => {
                   strokeWidth: 2,
                   opacity: SUPPORTING_CURVE_OPACITY,
                   points: driverCurveData,
+                },
+              } as IChartCurveData,
+            ]
+          : []),
+        // Beside the driver, and drawn like it: a correction applied on your
+        // behalf, visible rather than taken on trust. It was the only one of the
+        // four without a line, and frequently the largest of them — so the only
+        // way to see its shape was to switch it off and watch the total move.
+        ...(hasHeadphone
+          ? [
+              {
+                id: 'Headphone Correction',
+                name: 'Headphone correction',
+                line: {
+                  color: ColorEnum.HEADPHONE,
+                  strokeWidth: 2,
+                  opacity: SUPPORTING_CURVE_OPACITY,
+                  points: headphoneCurveData,
                 },
               } as IChartCurveData,
             ]
@@ -1208,6 +1295,7 @@ const FrequencyResponseChart = () => {
     driver,
     filters,
     hasConvolution,
+    headphone,
     isAutoPreAmpOn,
     isEqQuiet,
     preAmp,

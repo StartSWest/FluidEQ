@@ -1,0 +1,271 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+/**
+ * The headphone layer, on the graph.
+ *
+ * It was the one layer the plot did not know about. Not drawing it was the
+ * visible half; the half worth a test is that it was also missing from the sum
+ * the plot calls "Final output" and from the headroom shown under it — so the
+ * graph drew a total that was not the total, and did it silently, with every
+ * other curve looking exactly right.
+ *
+ * A missing curve is noticed the first time somebody looks. A total that is
+ * wrong by however much a published correction boosts is not noticed at all,
+ * which is why these cases go through the chart's own data rather than through
+ * the helpers underneath it: what has to hold is that the layer reaches the sum,
+ * and only the component knows what it puts in that sum.
+ */
+
+import '@testing-library/jest-dom';
+import { render, screen } from '@testing-library/react';
+import {
+  FilterTypeEnum,
+  IFiltersMap,
+  IHeadphoneSettings,
+  TApoLayer,
+} from 'common/constants';
+import { getHeadphoneFilters } from 'common/headphone';
+import { getChainPeakGain } from 'common/response';
+import { getLineGainAtFrequency } from 'renderer/graph/utils';
+import { IChartCurveData } from 'renderer/graph/ChartController';
+
+/* --- the world the chart reads ------------------------------------------ */
+
+interface IWorld {
+  filters: IFiltersMap;
+  headphone?: IHeadphoneSettings;
+  bypassed: TApoLayer[];
+  isAutoPreAmpOn: boolean;
+}
+
+const mockWorld: IWorld = {
+  filters: {},
+  headphone: undefined,
+  bypassed: [],
+  isAutoPreAmpOn: false,
+};
+
+/** Every preamp the chart asked Equalizer APO to write, in order. */
+const mockWrittenPreAmps: number[] = [];
+
+jest.mock('renderer/utils/FluidEqContext', () => ({
+  ...jest.requireActual('renderer/utils/FluidEqContext'),
+  useFluidEqContext: () => ({
+    filters: mockWorld.filters,
+    headphone: mockWorld.headphone,
+    bypassed: mockWorld.bypassed,
+    isAutoPreAmpOn: mockWorld.isAutoPreAmpOn,
+    isGraphViewOn: true,
+    isEngineUsable: true,
+    isLoading: false,
+    globalError: undefined,
+    preAmp: 0,
+    convolution: undefined,
+    voicing: undefined,
+    driver: undefined,
+    smartEq: undefined,
+    setGlobalError: jest.fn(),
+    setPreAmp: jest.fn(),
+    dispatchFilter: jest.fn(),
+    selectedFilterIds: [],
+    setSelectedFilterIds: jest.fn(),
+    hoveredFilterId: '',
+    setHoveredFilterId: jest.fn(),
+  }),
+}));
+
+jest.mock('renderer/utils/equalizerApi', () => ({
+  setFrequency: jest.fn(),
+  setGain: jest.fn(),
+  setQuality: jest.fn(),
+  setMainPreAmp: (value: number) => {
+    mockWrittenPreAmps.push(value);
+    return Promise.resolve();
+  },
+}));
+
+/**
+ * The plot itself, replaced by something that only records what it was handed.
+ *
+ * The curves are the subject here, and the real chart is d3 measuring a box
+ * jsdom gives no size — so drawing it would test the renderer's opinion of an
+ * element that is zero pixels wide rather than the arithmetic above it.
+ */
+const mockChart: { data: IChartCurveData[] } = { data: [] };
+
+jest.mock('renderer/graph/Chart', () => ({
+  __esModule: true,
+  default: (props: { data: IChartCurveData[] }) => {
+    mockChart.data = props.data;
+    return null;
+  },
+}));
+
+// The clip badge subscribes to the analyser and refuses to render outside a
+// provider. A silent frame is what these cases want anyway: no wave, no clip,
+// and nothing arriving between a render and an assertion.
+jest.mock('renderer/audio/LiveAudioContext', () => ({
+  ...jest.requireActual('renderer/audio/LiveAudioContext'),
+  useLiveAudioFrame: () => ({ points: [], isClipping: false }),
+}));
+
+// Neither takes part in deciding a curve, and both drag a stylesheet and a
+// portal into a test about numbers.
+jest.mock('renderer/graph/GraphViewMenu', () => () => null);
+jest.mock('renderer/components/LookDesigner', () => () => null);
+
+// eslint-disable-next-line import/first
+import FrequencyResponseChart from 'renderer/graph/FrequencyResponseChart';
+
+/* --- harness ------------------------------------------------------------ */
+
+const band = (id: string, frequency: number, gain: number) => ({
+  id,
+  frequency,
+  gain,
+  quality: 1,
+  type: FilterTypeEnum.PK,
+});
+
+/** One band at 100 Hz, so the EQ curve is present and obviously not this. */
+const EQ_BANDS: IFiltersMap = { low: band('low', 100, 3) };
+
+/** A published correction: one clear 6 dB lift, an octave away from the band. */
+const CORRECTION: IHeadphoneSettings = {
+  filters: { hp: band('hp', 1000, 6) },
+  intensity: 1,
+};
+
+const draw = (world: Partial<IWorld>) => {
+  Object.assign(mockWorld, {
+    filters: EQ_BANDS,
+    headphone: undefined,
+    bypassed: [],
+    isAutoPreAmpOn: false,
+    ...world,
+  });
+  mockChart.data = [];
+  mockWrittenPreAmps.length = 0;
+  return render(<FrequencyResponseChart />);
+};
+
+const curve = (id: string) => mockChart.data.find((entry) => entry.id === id);
+
+/** The headroom the chart settled on, which is the last one it wrote. */
+const writtenPreAmp = () => mockWrittenPreAmps[mockWrittenPreAmps.length - 1];
+
+const gainAt = (id: string, frequency: number) => {
+  const points = curve(id)?.line.points;
+  if (!points) {
+    throw new Error(`no curve on the plot with the id ${id}`);
+  }
+  return getLineGainAtFrequency(points, frequency);
+};
+
+describe('the headphone layer on the frequency response graph', () => {
+  it('draws the published correction as a curve of its own', () => {
+    draw({ headphone: CORRECTION });
+
+    // Its own line, not folded into the bands: the EQ curve is still only the
+    // one band at 100 Hz, which is the whole complaint that started this — a
+    // correction shown as if the user had dialled it in.
+    expect(gainAt('Headphone Correction', 1000)).toBeCloseTo(6, 1);
+    expect(gainAt('EQ Response', 1000)).toBeCloseTo(0, 1);
+    expect(gainAt('EQ Response', 100)).toBeCloseTo(3, 1);
+  });
+
+  it('names it in the legend, beside the layers that already had a chip', () => {
+    draw({ headphone: CORRECTION });
+
+    expect(screen.getByRole('button', { name: 'Headphone' })).toBeVisible();
+  });
+
+  /**
+   * THE PART THAT WAS WRONG RATHER THAN MISSING.
+   *
+   * A curve nobody drew is a gap. A curve labelled "Final output" that leaves
+   * out the largest correction in the chain is a claim, and it was false —
+   * silently, because the line was there and looked like a total.
+   */
+  it('adds it into the final output', () => {
+    draw({ headphone: CORRECTION });
+
+    const total = gainAt('Total Response', 1000);
+    expect(total).toBeCloseTo(6, 1);
+    // The sum of the layers, and not merely "not zero": the EQ contributes
+    // almost nothing an octave up, so the total there IS the correction.
+    expect(total).toBeCloseTo(
+      gainAt('EQ Response', 1000) + gainAt('Headphone Correction', 1000),
+      1,
+    );
+    // And still the sum of the two down where the bands are, so the layer was
+    // added rather than swapped in for them.
+    expect(gainAt('Total Response', 100)).toBeCloseTo(
+      gainAt('EQ Response', 100) + gainAt('Headphone Correction', 100),
+      1,
+    );
+    expect(gainAt('EQ Response', 100)).toBeCloseTo(3, 1);
+  });
+
+  it('reserves headroom for it', () => {
+    draw({ headphone: CORRECTION, isAutoPreAmpOn: true });
+
+    // Against the same function the config is written from, so the number under
+    // the plot and the `Preamp:` line on disk cannot drift apart — which is
+    // exactly what they did while this layer was missing from the list.
+    expect(writtenPreAmp()).toBeCloseTo(
+      -getChainPeakGain([
+        ...Object.values(EQ_BANDS),
+        ...getHeadphoneFilters(CORRECTION),
+      ]),
+      2,
+    );
+
+    const withCorrection = writtenPreAmp();
+    draw({ isAutoPreAmpOn: true });
+    const withoutCorrection = writtenPreAmp();
+
+    // The bands already reserve three of the correction's six, so what the
+    // layer costs on top is the other three — and that three used to cost
+    // nothing at all, because nothing in this arithmetic knew it was there.
+    expect(withoutCorrection).toBeCloseTo(
+      -getChainPeakGain(Object.values(EQ_BANDS)),
+      2,
+    );
+    expect(withCorrection).toBeLessThan(withoutCorrection - 2.5);
+  });
+
+  it('takes the curve, the chip and the headroom away when it is bypassed', () => {
+    draw({
+      headphone: CORRECTION,
+      bypassed: ['headphone'],
+      isAutoPreAmpOn: true,
+    });
+
+    // Switched off means not in the config, so it is not on the plot either —
+    // the rule every other layer already followed, and what makes the A/B
+    // honest.
+    expect(curve('Headphone Correction')).toBeUndefined();
+    expect(screen.queryByRole('button', { name: 'Headphone' })).toBeNull();
+    expect(writtenPreAmp()).toBeCloseTo(
+      -getChainPeakGain(Object.values(EQ_BANDS)),
+      2,
+    );
+  });
+});

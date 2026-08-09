@@ -31,6 +31,7 @@ import {
 import { getReferenceShape } from 'common/referenceCurve';
 import { getVoicingFilters } from 'common/voicing';
 import { getDriverFilters } from 'common/driver';
+import { getHeadphoneFilters } from 'common/headphone';
 import { getPresenceLine, presenceAllowance } from './utils/presenceThreshold';
 import { getCorrectionLimit } from './utils/correctionLimit';
 import { useFluidEqContext } from './utils/FluidEqContext';
@@ -1178,6 +1179,17 @@ const SmartEqEngine = () => {
         ...(bypassedRef.current.includes('driver')
           ? []
           : getDriverFilters(driverRef.current)),
+        // Named in the paragraph above since that paragraph was written, and
+        // not actually taken out until now. The layer was in the target curve —
+        // "do not undo this" — but not in the subtraction, so the reconstructed
+        // record still carried it: the gate then judged how much programme was
+        // in a range using levels the correction had already lifted or dropped
+        // by several decibels, and trusted or skipped ranges on that basis. The
+        // driver is in both lists for exactly the same reason; this was the one
+        // layer in one list and not the other.
+        ...(bypassedRef.current.includes('headphone')
+          ? []
+          : getHeadphoneFilters(headphoneRef.current)),
         ...(bypassedRef.current.includes('voicing')
           ? []
           : getVoicingFilters(voicingRef.current)),

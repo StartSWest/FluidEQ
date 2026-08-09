@@ -57,6 +57,24 @@ export enum ColorEnum {
    * near-white total to read as a curve of its own rather than part of it.
    */
   SMART = '#3d9bff',
+  /**
+   * The published headphone correction.
+   *
+   * Magenta, which is uncomfortably close to the pinks above and is still the
+   * best slot left: with amber, cyan, violet, azure and near-white spoken for,
+   * every remaining hue is either a red — which on this plot means the clip
+   * badge — or a green, which is what the live trace is drawn in by default.
+   *
+   * Measured rather than eyeballed, because "close to the pinks" is exactly the
+   * mistake recorded above. Composited at the half opacity every supporting
+   * curve is drawn at, this sits 27 and 28 CIELAB units from the convolution
+   * pink and the voicing violet, against 30 for the closest pair the palette
+   * already had and 15 for the two the note above calls hard to tell apart. And
+   * it is 88 from the driver amber, which is the one that matters most: driver
+   * and headphone are both transducer corrections and are the two most likely
+   * to be on the plot together.
+   */
+  HEADPHONE = '#ff0af5',
   /** The sum of every layer, kept neutral so it reads as a result. */
   TOTAL = '#dbe7ff',
 }
@@ -100,6 +118,11 @@ export type Color =
 export const LAYER_SWATCH: Record<string, string> = {
   convolution: ColorEnum.COMPLEMENTARY,
   driver: ColorEnum.DRIVER,
+  // Missing until now, which is why the headphone chip drew a swatch with no
+  // background at all and its file in the config panel got the default edge:
+  // the layer existed everywhere except in the one map that says what colour it
+  // is. Keyed by `TApoLayer`, so every layer that can be written needs a row.
+  headphone: ColorEnum.HEADPHONE,
   eq: SecondaryColorEnum.DEFAULT,
   voicing: ColorEnum.TRIADIC1,
   smart: ColorEnum.SMART,

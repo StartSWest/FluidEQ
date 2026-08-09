@@ -992,6 +992,15 @@ export const GRAPH_CURVES = [
   'eq',
   'voicing',
   'driver',
+  // Beside the driver, which is the layer it is written next to in the chain
+  // and the layer it is: both correct the transducer rather than the taste.
+  //
+  // Only for whoever reads this list, though — nothing here is ordered. The
+  // legend's order is the order the chart pushes its chips, the draw order is
+  // the order of `chartData`, and the stored list keeps the order curves were
+  // hidden in. Putting it here changes none of those, and a reader who assumed
+  // otherwise would be assuming something the file never promised.
+  'headphone',
   'smart',
   'total',
 ] as const;
