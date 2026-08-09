@@ -74,12 +74,50 @@ const load = (): IStores => {
   return stores!;
 };
 
+/** What a `useSyncExternalStore` call was handed, once it is not React's. */
+interface ISubscribed<T> {
+  subscribe: (listener: () => void) => () => void;
+  getSnapshot: () => T;
+}
+
+/**
+ * The same fresh copy, with `useSyncExternalStore` standing aside.
+ *
+ * Four of the per-view settings are reached through listener sets of their own
+ * rather than through the factory's, and the only way into those from outside
+ * the module is the hooks — which throw outside a component. A stand-in hands
+ * back the two functions the store passed it, and those are exactly the pair
+ * under test: whether a mode change rings the subscription, and whether the
+ * getter then answers with the mode that was moved to.
+ */
+const loadWithoutReact = (): TGraphStyle => {
+  let style: TGraphStyle;
+  jest.isolateModules(() => {
+    jest.doMock('react', () => ({
+      useSyncExternalStore: (
+        subscribe: (listener: () => void) => () => void,
+        getSnapshot: () => unknown,
+      ) => ({ subscribe, getSnapshot }),
+    }));
+    // eslint-disable-next-line global-require
+    style = require('renderer/utils/graphStyle');
+  });
+  jest.dontMock('react');
+  return style!;
+};
+
 const stored = (key: string) => window.localStorage.getItem(key);
 
 const GRID_STEM = 'fluideq.graphGridHidden';
 const STRETCH_STEM = 'fluideq.graphStretched';
 const OPACITY_STEM = 'fluideq.graphOverlayOpacity';
 const BLUR_STEM = 'fluideq.graphOverlayBlur';
+
+/** The four the Ctrl+W cycle walks, split per mode after the same argument. */
+const WAVE_STEM = 'fluideq.graphWaveHidden';
+const SOLO_STEM = 'fluideq.graphSolo';
+const QUIET_EQ_STEM = 'fluideq.graphQuietEq';
+const CURVES_STEM = 'fluideq.graphHiddenCurves';
 
 describe('one set of view settings per mode', () => {
   beforeEach(() => window.localStorage.clear());
@@ -168,6 +206,85 @@ describe('one set of view settings per mode', () => {
     expect(overlay.getOverlayOpacity()).toBe(1);
     expect(overlay.getOverlayBlur()).toBe(0);
   });
+
+  it('keeps what the plot is showing per mode, on four stems', () => {
+    // The four values Ctrl+W walks. They went per mode for the reason the grid
+    // did and then some: the arrangement wanted over a video is the one the
+    // cycle exists to reach, and sharing it meant walking the cycle again in
+    // both directions on every Ctrl+F.
+    const { style } = load();
+
+    style.setGraphView('fullscreen');
+    style.toggleGraphWave();
+
+    expect(stored(`${WAVE_STEM}.fullscreen`)).toBe('true');
+    expect(stored(`${WAVE_STEM}.normal`)).toBeNull();
+    expect(stored(WAVE_STEM)).toBeNull();
+
+    style.setGraphView('normal');
+    expect(style.getGraphWaveHidden()).toBe(false);
+    style.setGraphView('fullscreen');
+    expect(style.getGraphWaveHidden()).toBe(true);
+  });
+
+  it('keeps the hidden curves per mode, still comma-joined', () => {
+    // The one value here that is not a flag. Its list format is unchanged —
+    // only the key it is written under moved — because the ids are what the
+    // legend and the chart agree on and a second shape would be a second thing
+    // to keep in step.
+    const { style } = load();
+
+    style.setGraphView('expanded');
+    style.toggleGraphCurve('voicing');
+    style.toggleGraphCurve('driver');
+
+    expect(stored(`${CURVES_STEM}.expanded`)).toBe('voicing,driver');
+    expect(stored(`${CURVES_STEM}.normal`)).toBeNull();
+
+    style.toggleGraphCurve('voicing');
+    expect(stored(`${CURVES_STEM}.expanded`)).toBe('driver');
+  });
+
+  it('keeps the no-blank-graph rule, one mode at a time', () => {
+    // Wave only, with the wave switched off, is a grid and nothing else. Both
+    // halves are per mode now, so the rule has to hold *within* a mode — it
+    // used to be a statement about a pair of single values, and a version that
+    // still read one of them from whichever mode last wrote it would let the
+    // plot go blank exactly once per Ctrl+F.
+    const { style } = load();
+
+    style.setGraphView('fullscreen');
+    style.toggleGraphWave();
+    expect(stored(`${WAVE_STEM}.fullscreen`)).toBe('true');
+
+    style.toggleLiveOutputSolo();
+    expect(stored(`${SOLO_STEM}.fullscreen`)).toBe('true');
+    expect(stored(`${WAVE_STEM}.fullscreen`)).toBe('false');
+
+    // And from the other side: hiding the wave while solo is on drops solo.
+    style.toggleGraphWave();
+    expect(stored(`${WAVE_STEM}.fullscreen`)).toBe('true');
+    expect(stored(`${SOLO_STEM}.fullscreen`)).toBe('false');
+  });
+
+  it('does not reach into another mode to do it', () => {
+    // Solo asked for in the normal view survives hiding the wave in full
+    // screen. The rule pairs two values inside one mode, and a version that
+    // reached across would take something away where nobody could see it go.
+    const { style } = load();
+
+    style.setGraphView('normal');
+    style.toggleLiveOutputSolo();
+    style.setGraphView('fullscreen');
+    style.toggleGraphWave();
+
+    expect(stored(`${SOLO_STEM}.normal`)).toBe('true');
+    expect(stored(`${WAVE_STEM}.fullscreen`)).toBe('true');
+    expect(stored(`${SOLO_STEM}.fullscreen`)).toBeNull();
+
+    style.setGraphView('normal');
+    expect(style.getGraphContents()).toBe('wave');
+  });
 });
 
 describe('the settings that stay shared', () => {
@@ -189,51 +306,28 @@ describe('the settings that stay shared', () => {
     expect(style.getGraphLookId()).toBe(chosen);
   });
 
-  it('leaves the wave, the solo and the orientation on flat keys', () => {
+  it('leaves the orientation, the meter and the titlebar wave flat', () => {
+    // The three that stayed single, each for its own reason. Which way up the
+    // trace is drawn is a property of the drawing rather than of how much room
+    // it has, and the other two are not on the plot at all — a meter that came
+    // and went with Ctrl+F would only ever be surprising.
     const { style } = load();
 
     style.setGraphView('fullscreen');
-    style.toggleGraphWave();
     style.cycleWaveOrientation();
+    style.toggleGraphMeter();
+    style.toggleTitlebarWave();
 
-    expect(stored('fluideq.graphWaveHidden')).toBe('true');
-    expect(stored('fluideq.graphWaveHidden.fullscreen')).toBeNull();
-    expect(stored('fluideq.graphSolo.fullscreen')).toBeNull();
+    expect(stored('fluideq.waveOrientation')).toBe('down');
     expect(stored('fluideq.waveOrientation.fullscreen')).toBeNull();
-  });
-
-  it('keeps the no-blank-graph rule, which is a rule about two shared values', () => {
-    // Wave only, with the wave switched off, is a grid and nothing else.
-    // Neither half is per mode, so the pairing is exactly the rule it always
-    // was — worth a guard because both halves live in the file that was split.
-    const { style } = load();
-
-    style.setGraphView('fullscreen');
-    style.toggleGraphWave();
-    expect(stored('fluideq.graphWaveHidden')).toBe('true');
-
-    style.toggleLiveOutputSolo();
-    expect(stored('fluideq.graphSolo')).toBe('true');
-    expect(stored('fluideq.graphWaveHidden')).toBe('false');
-
-    // And from the other side: hiding the wave while solo is on drops solo.
-    style.toggleGraphWave();
-    expect(stored('fluideq.graphWaveHidden')).toBe('true');
-    expect(stored('fluideq.graphSolo')).toBe('false');
-  });
-
-  it('does not reach across modes to do it', () => {
-    // The rule pairs two values that are each single, so changing mode in
-    // between must not change the answer.
-    const { style } = load();
+    expect(stored('fluideq.graphMeterHidden')).toBe('true');
+    expect(stored('fluideq.graphMeterHidden.fullscreen')).toBeNull();
+    expect(stored('fluideq.titlebarWaveHidden')).toBe('true');
+    expect(stored('fluideq.titlebarWaveHidden.fullscreen')).toBeNull();
 
     style.setGraphView('normal');
-    style.toggleLiveOutputSolo();
-    style.setGraphView('fullscreen');
-    style.toggleGraphWave();
-
-    expect(stored('fluideq.graphSolo')).toBe('false');
-    expect(stored('fluideq.graphWaveHidden')).toBe('true');
+    expect(style.getGraphMeterHidden()).toBe(true);
+    expect(style.getTitlebarWaveHidden()).toBe(true);
   });
 });
 
@@ -309,6 +403,38 @@ describe('telling subscribers the mode moved', () => {
     setting.set(3);
     expect(woken).toHaveBeenCalledTimes(1);
   });
+
+  it('wakes the listener sets the plot itself subscribes through', () => {
+    // The factory's own emitter is not enough. Solo, the quiet EQ curve, the
+    // wave and the hidden curves each keep a listener set that predates the
+    // split, and those sets are what the chart, the legend and the View menu
+    // are all on. Woken only through the factory, the graph carried on drawing
+    // the mode it came from with the right answer sitting underneath it — which
+    // looks exactly like the setting never having been saved.
+    const style = loadWithoutReact();
+
+    const solo = style.useLiveOutputSolo() as unknown as ISubscribed<boolean>;
+    const curves = style.useHiddenCurves() as unknown as ISubscribed<
+      readonly string[]
+    >;
+    const wokenSolo = jest.fn();
+    const wokenCurves = jest.fn();
+    solo.subscribe(wokenSolo);
+    curves.subscribe(wokenCurves);
+
+    style.toggleLiveOutputSolo();
+    expect(solo.getSnapshot()).toBe(true);
+    expect(curves.getSnapshot()).toEqual(['eq']);
+
+    wokenSolo.mockClear();
+    wokenCurves.mockClear();
+
+    style.setGraphView('fullscreen');
+    expect(wokenSolo).toHaveBeenCalled();
+    expect(wokenCurves).toHaveBeenCalled();
+    expect(solo.getSnapshot()).toBe(false);
+    expect(curves.getSnapshot()).toEqual([]);
+  });
 });
 
 describe('carrying an older install across', () => {
@@ -344,6 +470,27 @@ describe('carrying an older install across', () => {
       expect(style.getGraphGridHidden()).toBe(true);
       expect(overlay.getOverlayBlur()).toBe(18);
     });
+  });
+
+  it("carries an older install's plot contents into all three modes", () => {
+    // The cycle's four values were flat keys until this split, and an install
+    // that had walked to a state should still be in it — in every mode, since
+    // whatever was set was set with no notion of modes at all.
+    window.localStorage.setItem(WAVE_STEM, 'true');
+    window.localStorage.setItem(QUIET_EQ_STEM, 'true');
+    window.localStorage.setItem(SOLO_STEM, 'false');
+    window.localStorage.setItem(CURVES_STEM, 'voicing,driver');
+
+    const { style } = load();
+
+    MODES.forEach((mode) => {
+      style.setGraphView(mode);
+      expect(style.getGraphContents()).toBe('layersAlone');
+      expect(stored(`${CURVES_STEM}.${mode}`)).toBe('voicing,driver');
+    });
+
+    expect(stored(WAVE_STEM)).toBeNull();
+    expect(stored(CURVES_STEM)).toBeNull();
   });
 
   it('removes the flat key, so the format does not stay ambiguous forever', () => {
