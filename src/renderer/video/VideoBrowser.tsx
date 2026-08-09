@@ -385,8 +385,14 @@ interface IWebviewProps {
    * main process. Without it `window.open` returns `null` before Chromium gets
    * as far as asking the window-open handler about the address, and every
    * sign-in that opens a window sees a popup blocker.
+   *
+   * A STRING, NOT A BOOLEAN, and the difference is whether it exists at all.
+   * `webview` is a custom element as far as React is concerned, so it has no
+   * idea `allowpopups` is a presence attribute; handed `true` it declines to
+   * write anything and says so in a console warning. Written as `"true"` it
+   * lands in the DOM, which is the only place Chromium looks.
    */
-  allowpopups?: boolean;
+  allowpopups?: string;
   /** A comma-separated features string — see `VIDEO_WEB_PREFERENCES`. */
   webpreferences?: string;
   className?: string;
@@ -1255,7 +1261,7 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
           // `setWindowOpenHandler`, still checked against the allow-list, and
           // still refused with a notice naming the host. This only lets the
           // question be asked.
-          allowpopups
+          allowpopups="true"
           webpreferences={VIDEO_WEB_PREFERENCES}
         />
         {blockedUrl && (
