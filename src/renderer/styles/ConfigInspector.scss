@@ -462,6 +462,32 @@ it under the terms of the GNU General Public License version 3 or later.
   align-items: center;
   margin-inline-start: auto;
   gap: 6px;
+
+  // Icon and label on one line, in one control.
+  //
+  // `inline-flex` rather than leaving the glyph as an inline box: an SVG on a
+  // text baseline sits low by its own descender, so the arrow would ride under
+  // the word it belongs to and the two buttons would each be off by a pixel in
+  // a different direction.
+  button {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  // Drawn rather than filled, like every other glyph here, and sized near the
+  // label's cap height so the pair reads as one object rather than as a picture
+  // with a caption beside it.
+  svg {
+    width: 13px;
+    height: 13px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
+  }
 }
 
 // To the left of the pair, filling the room they do not need.
