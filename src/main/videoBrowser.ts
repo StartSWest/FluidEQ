@@ -638,6 +638,61 @@ const hardenPopup = (contents: WebContents) => {
     }
   });
 
+  /*
+   * DO WHAT A BROWSER DOES: HAND THE WINDOW ITS OPENER'S SESSION STORAGE.
+   *
+   * The HTML spec says a browsing context created by `window.open` starts with
+   * a copy of its opener's session storage. Chromium does it; Electron does not,
+   * and the difference is invisible until a site leans on it.
+   *
+   * SoundCloud leans on it. Its "verifying device" step writes a nonce into
+   * `sessionStorage`, then opens this window, then reads the nonce back in the
+   * callback — and the callback found nothing, so it crashed on
+   * `e.state.substring(2)` and closed itself. Measured, not guessed: this window
+   * reported `{"opener":true,"keys":[],"local":17}` on every attempt. An opener
+   * it had; local storage it had, seventeen keys of it; session storage was
+   * empty every time.
+   *
+   * Seeded once, while the window is still `about:blank` and therefore still on
+   * the opener's origin — which is exactly when a browser does it, and is what
+   * makes the copy land under the right origin for the rest of the flow.
+   *
+   * The data goes across as JSON through a string literal rather than being
+   * spliced into source, so a value that happens to contain a quote is a value
+   * and not code. Nothing is read back and nothing is logged but a count: the
+   * point is to move somebody's sign-in state from one window to another, not
+   * to look at it.
+   */
+  const { opener } = contents;
+  if (opener) {
+    opener
+      .executeJavaScript('JSON.stringify(sessionStorage)')
+      .then((dump: unknown) =>
+        contents.executeJavaScript(
+          `(() => {
+            const carried = JSON.parse(${JSON.stringify(String(dump))});
+            const names = Object.keys(carried);
+            names.forEach((name) => {
+              try {
+                sessionStorage.setItem(name, carried[name]);
+              } catch (error) {
+                // A full or unavailable store is not worth failing the whole
+                // sign-in over; the site will say so itself if it matters.
+              }
+            });
+            return names.length;
+          })()`,
+        ),
+      )
+      .then((carried) =>
+        log.info(`Sign-in popup inherited ${carried} session-storage keys`),
+      )
+      .catch(() => {
+        // Either window can go away mid-copy, and a sign-in that never opened
+        // is not a failure worth a line of its own.
+      });
+  }
+
   forwardConsole(contents, 'signin');
 
   /*
