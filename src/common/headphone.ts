@@ -18,10 +18,68 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   IFilter,
+  IGraphicEqPoint,
   IHeadphoneSettings,
   NO_GAIN_FILTER_TYPES,
   clampGain,
 } from './constants';
+
+/**
+ * The strength this correction is applied at, as a fraction.
+ *
+ * Shared by both readings of the settings so a half-strength graphic curve and a
+ * half-strength filter set mean the same thing, and so a corrupt value falls
+ * back to full in one place rather than two.
+ */
+const layerIntensity = (settings: IHeadphoneSettings | undefined): number => {
+  if (!settings) {
+    return 0;
+  }
+  return Number.isFinite(settings.intensity)
+    ? Math.max(0, Math.min(1, settings.intensity))
+    : 1;
+};
+
+/**
+ * The published correction as a graphic curve, scaled by its strength.
+ *
+ * Preferred over the filters when it is there, because it is what the profile
+ * actually said. AutoEQ publishes some corrections as points and Equalizer APO
+ * renders them natively; the filter projection alongside them exists so the
+ * editor has bands to draw, and applying that projection instead was a quiet
+ * downgrade — a smoothed approximation standing in for the measurement.
+ *
+ * A curve that is flat everywhere is no curve at all, and is dropped like an
+ * inert filter would be. Unlike a filter set, it is NOT sorted or deduplicated
+ * here: APO reads the points in the order they are written and interpolates
+ * between neighbours, so reordering them would redraw the curve.
+ */
+export const getHeadphoneGraphicEq = (
+  settings: IHeadphoneSettings | undefined,
+): IGraphicEqPoint[] => {
+  if (!settings?.graphicEq?.length) {
+    return [];
+  }
+  const intensity = layerIntensity(settings);
+  if (intensity === 0) {
+    return [];
+  }
+
+  const scaled = settings.graphicEq
+    .filter(
+      ({ frequency, gain }) =>
+        Number.isFinite(frequency) && Number.isFinite(gain),
+    )
+    .map(({ frequency, gain }) => ({
+      frequency,
+      // Rounded like the filters are, and for the same reason: a tenth is what
+      // APO reads and what anybody hears, and a halved curve otherwise writes
+      // out a file full of 2.8499999.
+      gain: clampGain(Math.round(gain * intensity * 10) / 10),
+    }));
+
+  return scaled.some(({ gain }) => gain !== 0) ? scaled : [];
+};
 
 /**
  * The published headphone correction as filters, scaled by its strength.
@@ -34,6 +92,10 @@ import {
  * A peak or shelf at 0 dB is inert, so it is dropped rather than written as a
  * command that does nothing — the same rule every other layer follows. A
  * gainless type is kept, because it shapes the signal at 0 dB.
+ *
+ * These are the fallback, not the first choice, when a profile also carries a
+ * graphic curve: see `getHeadphoneGraphicEq`. They stay the editor's reading of
+ * the layer either way, since bands are what a graph and a slider are made of.
  */
 export const getHeadphoneFilters = (
   settings: IHeadphoneSettings | undefined,
@@ -41,9 +103,7 @@ export const getHeadphoneFilters = (
   if (!settings?.filters) {
     return [];
   }
-  const intensity = Number.isFinite(settings.intensity)
-    ? Math.max(0, Math.min(1, settings.intensity))
-    : 1;
+  const intensity = layerIntensity(settings);
   if (intensity === 0) {
     return [];
   }
@@ -74,4 +134,6 @@ export const getHeadphoneFilters = (
 /** Whether anything of this layer would actually reach Equalizer APO. */
 export const hasHeadphoneLayer = (
   settings: IHeadphoneSettings | undefined,
-): boolean => getHeadphoneFilters(settings).length > 0;
+): boolean =>
+  getHeadphoneGraphicEq(settings).length > 0 ||
+  getHeadphoneFilters(settings).length > 0;

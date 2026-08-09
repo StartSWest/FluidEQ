@@ -504,6 +504,20 @@ export interface IHeadphoneSettings {
   /** The correction as filters. Nothing audible means no layer at all. */
   filters: IFiltersMap;
   /**
+   * The same correction as a graphic curve, when that is how it was published.
+   *
+   * AutoEQ ships some profiles as a list of points rather than as biquads, and
+   * Equalizer APO renders those natively with one `GraphicEQ:` command. The
+   * parser projects them onto peaking filters as well, so the graph and the band
+   * controls have something to draw — but that projection is an approximation of
+   * the curve, not the curve, and applying it in place of the real thing throws
+   * away resolution nobody asked to lose.
+   *
+   * So both are carried and the writer prefers this one. `filters` stays
+   * populated as the fallback and as what the editor reads.
+   */
+  graphicEq?: IGraphicEqPoint[];
+  /**
    * How much of it to apply, 0 to 1.
    *
    * Published corrections are frequently stronger than people want — a full

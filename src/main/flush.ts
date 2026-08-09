@@ -42,7 +42,10 @@ import {
 import { PRODUCT_NAME } from '../common/branding';
 import { getVoicingFilters } from '../common/voicing';
 import { getDriverFilters } from '../common/driver';
-import { getHeadphoneFilters } from '../common/headphone';
+import {
+  getHeadphoneFilters,
+  getHeadphoneGraphicEq,
+} from '../common/headphone';
 import { getSmartEqFilters, sanitizeSmartEqSettings } from '../common/smartEq';
 import { getChainPeakGain } from '../common/response';
 import {
@@ -83,30 +86,49 @@ const isRenderableFilter = ({
  */
 const resolvePreAmp = (
   state: IState,
-  writtenFilters: Array<
-    Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>
-  >,
+  layers: IApoLayer[],
   hasConvolution: boolean,
 ) => {
   if (!state.isAutoPreAmpOn) {
     return state.preAmp;
   }
 
-  // Everything that boosts has to be counted, not just the parametric bands.
-  //
-  // A GraphicEQ profile writes no Filter lines at all, and a convolution is a
-  // single Convolution line rather than a filter list — so a chain built from
-  // either contributes nothing to `writtenFilters` and would reserve no
-  // headroom whatsoever. A +9 dB graphic curve would then be handed to APO
-  // with Preamp: 0 dB and clip.
-  const graphicPeak =
-    state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length
-      ? state.graphicEq.reduce(
+  const writtenFilters = layers.reduce<TChainFilter[]>(
+    (written, layer) => written.concat(layer.filters),
+    [],
+  );
+
+  /*
+   * Everything that boosts has to be counted, not just the parametric bands.
+   *
+   * A GraphicEQ profile writes no Filter lines at all, and a convolution is a
+   * single Convolution line rather than a filter list — so a chain built from
+   * either contributes nothing to `writtenFilters` and would reserve no
+   * headroom whatsoever. A +9 dB graphic curve would then be handed to APO with
+   * Preamp: 0 dB and clip.
+   *
+   * Read off the layers that were built rather than off the state, which is the
+   * same rule the filters already followed and now matters twice over. There
+   * can be two graphic curves in a chain since the headphone correction learned
+   * to write one, and a curve that was bypassed used to go on reserving its
+   * headroom because this asked the state whether one existed rather than
+   * asking what was written.
+   *
+   * Summed, not maximised: each is a separate APO stage, so they stack.
+   */
+  const graphicPeak = layers.reduce(
+    (total, layer) =>
+      total +
+      Math.max(
+        0,
+        (layer.graphicPoints ?? []).reduce(
           (highest, { gain }) =>
             Number.isFinite(gain) ? Math.max(highest, gain) : highest,
           0,
-        )
-      : 0;
+        ),
+      ),
+    0,
+  );
 
   // A downloaded impulse response is already normalised by whoever published
   // it — the filter set stored alongside it is only a sketch for the graph, so
@@ -159,8 +181,15 @@ interface IApoLayer {
   feature: TApoFeature;
   /** The filters it writes, in order. Empty for a GraphicEQ profile. */
   filters: TChainFilter[];
-  /** The `GraphicEQ:` command the EQ writes instead of filters, if any. */
+  /** The `GraphicEQ:` command it writes instead of filters, if any. */
   graphicEq?: string;
+  /**
+   * The points that command was built from.
+   *
+   * Kept beside the rendered line so the preamp can measure the curve's peak
+   * without parsing the text back out of it — see `resolvePreAmp`.
+   */
+  graphicPoints?: IGraphicEqPoint[];
 }
 
 /**
@@ -206,6 +235,25 @@ const buildLayers = (state: IState): IApoLayer[] => {
     }
   };
 
+  /**
+   * A graphic curve as the one line APO reads it from, or nothing.
+   *
+   * Shared by the EQ and the headphone layer because they are the same command
+   * with the same rules: non-finite points dropped, gains clamped, order kept.
+   * Order matters — APO interpolates between neighbouring points, so sorting
+   * them would be redrawing the curve rather than tidying it.
+   */
+  const graphicEqCommand = (points: IGraphicEqPoint[]): string | undefined => {
+    const written = points
+      .filter(
+        ({ frequency, gain }) =>
+          Number.isFinite(frequency) && Number.isFinite(gain),
+      )
+      .map(({ frequency, gain }) => `${frequency} ${clampGain(gain)}`)
+      .join('; ');
+    return written ? `GraphicEQ: ${written}` : undefined;
+  };
+
   // Outside the isFlat check, like the voicing: clearing the EQ resets the
   // bands somebody tuned, not the correction for what they are listening on.
   addLayer('driver', layerFilters(getDriverFilters(state.driver)));
@@ -214,22 +262,35 @@ const buildLayers = (state: IState): IApoLayer[] => {
   // for the same reason: clearing the EQ resets the tuning somebody made, not
   // the published correction for the headphones they are wearing. That it used
   // to live inside those bands is exactly why clearing took it with it.
-  addLayer('headphone', layerFilters(getHeadphoneFilters(state.headphone)));
+  //
+  // A profile published as a graphic curve is written as one, not as the
+  // peaking filters the parser fits to it for the editor's benefit. Those exist
+  // so there is something to draw and something to drag; handing them to APO in
+  // place of the curve substitutes a smoothed approximation for the
+  // measurement, which is a downgrade nobody chose.
+  const headphoneCurve = graphicEqCommand(
+    getHeadphoneGraphicEq(state.headphone),
+  );
+  if (headphoneCurve && !isBypassed('headphone')) {
+    layers.push({
+      feature: 'headphone',
+      filters: [],
+      graphicEq: headphoneCurve,
+      graphicPoints: getHeadphoneGraphicEq(state.headphone),
+    });
+  } else {
+    addLayer('headphone', layerFilters(getHeadphoneFilters(state.headphone)));
+  }
 
   if (!state.isFlat && !isBypassed('eq')) {
     if (state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length) {
-      const points = state.graphicEq
-        .filter(
-          ({ frequency, gain }) =>
-            Number.isFinite(frequency) && Number.isFinite(gain),
-        )
-        .map(({ frequency, gain }) => `${frequency} ${clampGain(gain)}`)
-        .join('; ');
-      if (points) {
+      const eqCurve = graphicEqCommand(state.graphicEq);
+      if (eqCurve) {
         layers.push({
           feature: 'eq',
           filters: [],
-          graphicEq: `GraphicEQ: ${points}`,
+          graphicEq: eqCurve,
+          graphicPoints: state.graphicEq,
         });
       }
     } else {
@@ -333,17 +394,7 @@ const preAmpLine = (
   state: IState,
   layers: IApoLayer[],
   hasConvolution: boolean,
-) =>
-  `Preamp: ${clampGain(
-    resolvePreAmp(
-      state,
-      layers.reduce<TChainFilter[]>(
-        (written, layer) => written.concat(layer.filters),
-        [],
-      ),
-      hasConvolution,
-    ),
-  )} dB`;
+) => `Preamp: ${clampGain(resolvePreAmp(state, layers, hasConvolution))} dB`;
 
 /**
  * Whether the impulse response is part of this chain.

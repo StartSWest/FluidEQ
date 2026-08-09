@@ -2133,6 +2133,20 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
      */
     state.headphone = {
       filters: shieldReferenceBands(presetSettings.filters),
+      /*
+       * The curve as published, when it was published as one.
+       *
+       * A GraphicEQ profile is a list of points, and Equalizer APO renders
+       * those natively. The parser fits peaking filters to them as well so the
+       * graph has a shape and the bands have values — but that fit is an
+       * approximation, and applying it instead of the curve quietly gave the
+       * listener a smoothed version of the measurement they asked for. Both are
+       * kept; the writer prefers this one.
+       */
+      graphicEq:
+        presetSettings.eqFormat === AutoEqFormat.GRAPHIC
+          ? presetSettings.graphicEq
+          : undefined,
       // Full strength on arrival. Somebody who wants half of a published
       // correction can say so; somebody who applied one and got half of it
       // would reasonably think it had not worked.
