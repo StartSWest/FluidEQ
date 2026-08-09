@@ -163,6 +163,41 @@ describe('which layers a mirror reproduces', () => {
     expect(withDriver.length).toBeGreaterThan(1);
   });
 
+  it('carries the headphone correction layer', () => {
+    // Added to APO while this branch was in flight, between the driver and the
+    // bands. A layer in `APO_FEATURES` and not here is one a mirrored speaker
+    // silently loses — and it typechecks perfectly, which is the problem.
+    const withHeadphone = getMirrorFilters({
+      ...baseState(),
+      headphone: {
+        filters: { hp: makeFilter({ id: 'hp', gain: 4 }) },
+        intensity: 1,
+      },
+    });
+
+    expect(withHeadphone).toHaveLength(2);
+  });
+
+  it('plays nothing for a headphone correction published as a curve', () => {
+    // `flush` writes those as a GraphicEQ command and deliberately does not
+    // hand APO the peaking filters the editor fits to them. The mirror cannot
+    // play a curve at all, so it plays none of it rather than the smoothed
+    // approximation the editor draws.
+    const asCurve = getMirrorFilters({
+      ...baseState(),
+      headphone: {
+        filters: { hp: makeFilter({ id: 'hp', gain: 4 }) },
+        graphicEq: [
+          { frequency: 100, gain: 3 },
+          { frequency: 1000, gain: -2 },
+        ],
+        intensity: 1,
+      },
+    });
+
+    expect(asCurve).toEqual(getMirrorFilters(baseState()));
+  });
+
   it('drops a layer that has been switched off', () => {
     // Bypass lives in `flush`'s own `addLayer` rather than in the getters, so
     // it is the one rule the mirror re-states instead of inheriting — which
@@ -183,6 +218,17 @@ describe('which layers a mirror reproduces', () => {
     expect(getMirrorFilters({ ...tuned, bypassed: ['eq'] })).toEqual(
       getMirrorFilters({ ...tuned, filters: {} }),
     );
+
+    const withHeadphone = {
+      ...tuned,
+      headphone: {
+        filters: { hp: makeFilter({ id: 'hp', gain: 4 }) },
+        intensity: 1,
+      },
+    };
+    expect(
+      getMirrorFilters({ ...withHeadphone, bypassed: ['headphone'] }),
+    ).toEqual(getMirrorFilters(tuned));
   });
 
   it('drops the bands when the EQ has been cleared', () => {
@@ -214,7 +260,7 @@ describe('which layers a mirror reproduces', () => {
     expect(withSmartEq).toHaveLength(2);
   });
 
-  it('keeps APO’s order: driver, bands, voicing, Smart EQ', () => {
+  it('keeps APO’s order: driver, headphone, bands, voicing, Smart EQ', () => {
     // Cascaded biquads multiply, so the order changes nothing you can hear.
     // It is held identical to the layers `flush` builds anyway — physical,
     // intended, taste, measured — so the two engines can be read side by side
@@ -225,6 +271,10 @@ describe('which layers a mirror reproduces', () => {
     const chain = getMirrorFilters({
       ...baseState(),
       driver: driverSettings,
+      headphone: {
+        filters: { hp: makeFilter({ id: 'hp', frequency: 250, gain: 4 }) },
+        intensity: 1,
+      },
       voicing: { profileId: 'music', intensity: 1 },
       smartEq: {
         filters: { correction: makeFilter({ id: 'correction', gain: 3 }) },
@@ -233,8 +283,13 @@ describe('which layers a mirror reproduces', () => {
 
     // Driver compensation opens the chain.
     expect(chain.slice(0, driverFilters.length)).toEqual(driverFilters);
-    // The user's own band comes straight after it.
+    // The published headphone correction comes next.
     expect(chain[driverFilters.length]).toMatchObject({
+      frequency: 250,
+      gain: 4,
+    });
+    // Then the user's own band.
+    expect(chain[driverFilters.length + 1]).toMatchObject({
       frequency: 1000,
       gain: 6,
     });

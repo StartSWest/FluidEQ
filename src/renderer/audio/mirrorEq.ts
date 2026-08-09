@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { AutoEqFormat, IFilter, IState, TApoLayer } from 'common/constants';
 import { getDriverFilters } from 'common/driver';
+import { getHeadphoneFilters, getHeadphoneGraphicEq } from 'common/headphone';
 import { getTFCoefficients } from 'common/response';
 import { getSmartEqFilters } from 'common/smartEq';
 import { getVoicingFilters } from 'common/voicing';
@@ -69,10 +70,12 @@ const isUsable = (values: number[]): boolean =>
 /**
  * Every filter a device's profile contributes, in the order APO writes them.
  *
- * Driver, then the user's bands, then voicing, then Smart EQ — the same
- * sequence `flush` builds its layers in, and for the same stated reason:
- * physical, intended, taste, measured. Anything added there is a layer a
- * mirrored speaker will silently lose until it is added here too.
+ * Driver, then the headphone correction, then the user's bands, then voicing,
+ * then Smart EQ — the same sequence `flush` builds its layers in, and for the
+ * same stated reason: physical, intended, taste, measured. Anything added
+ * there is a layer a mirrored speaker will silently lose until it is added
+ * here too, and nothing fails when that happens: `APO_FEATURES` is the list to
+ * check this against.
  *
  * Each layer answers to `bypassed` exactly as `addLayer` does, and the bands
  * additionally to `isFlat`. This is the one place the mirror does duplicate a
@@ -105,6 +108,7 @@ export const getMirrorFilters = (
     | 'filters'
     | 'voicing'
     | 'driver'
+    | 'headphone'
     | 'smartEq'
     | 'isFlat'
     | 'bypassed'
@@ -123,8 +127,19 @@ export const getMirrorFilters = (
       ? []
       : Object.values(state.filters ?? {});
 
+  // A headphone correction published as a curve is written to APO as one, and
+  // `flush` deliberately does not hand over the peaking filters the editor
+  // fits to it — those exist to be drawn and dragged, and substituting them
+  // for the measurement is a downgrade. The mirror cannot play a curve at all,
+  // so it plays nothing here rather than that same approximation.
+  const headphone =
+    isBypassed('headphone') || getHeadphoneGraphicEq(state.headphone).length
+      ? []
+      : getHeadphoneFilters(state.headphone);
+
   return [
     ...(isBypassed('driver') ? [] : getDriverFilters(state.driver)),
+    ...headphone,
     ...bands,
     ...(isBypassed('voicing') ? [] : getVoicingFilters(state.voicing)),
     ...(isBypassed('smart') ? [] : getSmartEqFilters(state.smartEq)),
