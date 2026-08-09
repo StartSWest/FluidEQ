@@ -634,20 +634,44 @@ const FrequencyResponseChart = () => {
   const pointEditTimers = useRef<Record<string, ReturnType<typeof setTimeout>>>(
     {},
   );
+  /**
+   * What a drag is measured from: the pointer, and every band's starting value.
+   *
+   * IT USED TO BE MEASURED FROM THE CURVE, and that was two bugs in one line.
+   * Each band recorded the height of the drawn response at its own frequency,
+   * and a move applied the difference between the pointer and that height.
+   *
+   * The first bug is that the two were not the same curve. The dot is drawn on
+   * a response built with no preamp; the origin was built with the real one, so
+   * the very first move — before the cursor had travelled a pixel — produced a
+   * gain delta of exactly minus the preamp. Auto-normalise makes that negative
+   * whenever the chain boosts, so a band jumped UP by the whole headroom the
+   * instant it was touched. Two commits drifted apart: one aligned the origin
+   * with the drawn curve, a later one changed the drawn curve and left the
+   * origin behind.
+   *
+   * The second is that a handle is thirteen pixels across and only its centre
+   * sits on the curve. Grabbing an edge snapped the band by the difference,
+   * every time, because nothing recorded where the grab actually landed.
+   *
+   * Both go away by measuring the drag against the pointer instead. `grab` is
+   * where the press happened in chart units; a move applies the difference from
+   * there to each band's own starting frequency and gain. The rendered curve is
+   * not consulted at all, so it cannot disagree with anything, and grabbing an
+   * edge simply means the cursor stays on that edge.
+   */
   const pointDragState = useRef<
     | {
         sourceId: string;
         ids: string[];
-        origins: Record<
-          string,
-          Pick<IFilter, 'frequency' | 'gain'> & { curveGain: number }
-        >;
+        grab: IChartPointData;
+        origins: Record<string, Pick<IFilter, 'frequency' | 'gain'>>;
       }
     | undefined
   >(undefined);
 
   const handlePointSelect = useCallback(
-    (filterId: string, additive: boolean) => {
+    (filterId: string, additive: boolean, grab: IChartPointData) => {
       let ids = [filterId];
       if (additive) {
         ids = selectedFilterIds.includes(filterId)
@@ -656,33 +680,23 @@ const FrequencyResponseChart = () => {
       } else if (selectedFilterIds.includes(filterId)) {
         ids = selectedFilterIds;
       }
-      const currentEqCurve = getCombinedLineData(
-        preAmp,
-        prevFilterLines.current,
-      );
       pointDragState.current = {
         sourceId: filterId,
         ids,
+        grab,
         origins: Object.fromEntries(
           ids
             .map((id) => filters[id])
             .filter(Boolean)
             .map((filter) => [
               filter.id,
-              {
-                frequency: filter.frequency,
-                gain: filter.gain,
-                curveGain:
-                  currentEqCurve.length > 0
-                    ? getLineGainAtFrequency(currentEqCurve, filter.frequency)
-                    : filter.gain + preAmp,
-              },
+              { frequency: filter.frequency, gain: filter.gain },
             ]),
         ),
       };
       setSelectedFilterIds(ids);
     },
-    [filters, preAmp, selectedFilterIds, setSelectedFilterIds],
+    [filters, selectedFilterIds, setSelectedFilterIds],
   );
 
   const flushPointEdit = useCallback(
@@ -734,43 +748,28 @@ const FrequencyResponseChart = () => {
 
   const handlePointMove = useCallback(
     (filterId: string, point: IChartPointData) => {
-      // Dots are placed on the complete EQ response at their frequency. Move
-      // the filter by the delta between the pointer and that curve value so
-      // dragging still edits the band's own gain, not the rendered response.
-      const sourceFilter = filters[filterId];
-      if (!sourceFilter) {
+      // Every band moves by how far the pointer has travelled since the press,
+      // applied to what that band was when the press happened. See
+      // `pointDragState` for why it is not measured against the drawn curve.
+      const drag = pointDragState.current;
+      if (!filters[filterId] || drag?.sourceId !== filterId) {
+        // No press was recorded for this handle, so there is no distance to
+        // measure and nothing safe to guess. Bailing out loses one frame of a
+        // drag that cannot happen; the fallbacks that used to stand here
+        // rebuilt an origin from the live filter on every move, which turned a
+        // constant error into one that compounded.
         return;
       }
-      const sourceFrequency = Math.max(
-        MIN_FREQUENCY,
-        Math.min(MAX_FREQUENCY, Math.round(point.x)),
-      );
-      const targetCurveGain =
-        Math.round(Math.max(MIN_GAIN, Math.min(MAX_GAIN, point.y)) * 100) / 100;
-      const drag = pointDragState.current;
-      const ids = drag?.sourceId === filterId ? drag.ids : [filterId];
-      const sourceOrigin = drag?.origins[filterId] || {
-        frequency: sourceFilter.frequency,
-        gain: sourceFilter.gain,
-        curveGain: getLineGainAtFrequency(
-          getCombinedLineData(preAmp, prevFilterLines.current),
-          sourceFilter.frequency,
-        ),
-      };
-      const frequencyDelta = sourceFrequency - sourceOrigin.frequency;
-      const gainDelta = targetCurveGain - sourceOrigin.curveGain;
-      ids.forEach((id) => {
+      const frequencyDelta =
+        Math.max(MIN_FREQUENCY, Math.min(MAX_FREQUENCY, Math.round(point.x))) -
+        drag.grab.x;
+      const gainDelta =
+        Math.round(Math.max(MIN_GAIN, Math.min(MAX_GAIN, point.y)) * 100) /
+          100 -
+        drag.grab.y;
+      drag.ids.forEach((id) => {
         const filter = filters[id];
-        const origin =
-          drag?.origins[id] ||
-          (filter && {
-            frequency: filter.frequency,
-            gain: filter.gain,
-            curveGain: getLineGainAtFrequency(
-              getCombinedLineData(preAmp, prevFilterLines.current),
-              filter.frequency,
-            ),
-          });
+        const origin = drag.origins[id];
         if (!filter || !origin) {
           return;
         }
@@ -798,7 +797,10 @@ const FrequencyResponseChart = () => {
         queuePointEdit(id, { frequency, gain });
       });
     },
-    [dispatchFilter, filters, preAmp, queuePointEdit],
+    // No `preAmp`. It was here because the old arithmetic rebuilt the response
+    // curve on every move; a drag measured from the pointer never asks what the
+    // headroom is, which is the whole reason it cannot disagree with the dot.
+    [dispatchFilter, filters, queuePointEdit],
   );
 
   const handlePointQualityWheel = useCallback(
@@ -1574,7 +1576,8 @@ const FrequencyResponseChart = () => {
         data: { x: filter.frequency, y: curveGain },
         selected: selectedFilterIds.includes(filter.id),
         hovered: hoveredFilterId === filter.id,
-        onSelect: (additive: boolean) => handlePointSelect(filter.id, additive),
+        onSelect: (additive: boolean, grab: IChartPointData) =>
+          handlePointSelect(filter.id, additive, grab),
         onHover: (isHovered: boolean) =>
           setHoveredFilterId(isHovered ? filter.id : ''),
         onChange: (point: IChartPointData) => handlePointMove(filter.id, point),

@@ -146,7 +146,8 @@ export interface IEditableChartPoint {
   data: IChartPointData;
   selected: boolean;
   hovered: boolean;
-  onSelect: (additive: boolean) => void;
+  /**  is where the press landed, in chart units — see the drag state. */
+  onSelect: (additive: boolean, grab: IChartPointData) => void;
   onChange: (data: IChartPointData) => void;
   onCommit: () => void;
   onQualityWheel: (direction: number) => void;

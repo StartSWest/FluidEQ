@@ -182,7 +182,25 @@ const EditablePoint = ({
     event.stopPropagation();
     dragging.current = true;
     event.currentTarget.setPointerCapture(event.pointerId);
-    point.onSelect(event.ctrlKey || event.metaKey || event.shiftKey);
+    /*
+     * WHERE THE PRESS LANDED, NOT WHERE THE DOT IS.
+     *
+     * A drag is a distance travelled, and a distance needs somewhere to start.
+     * This used to record nothing, so the first move was measured against the
+     * dot's own position on the curve — which meant grabbing a handle anywhere
+     * but dead centre snapped the band by the difference, and a mismatch
+     * between the drawn curve and the one the origin was built from threw it
+     * further still.
+     *
+     * The point mapped from the pointer, in the same units the moves arrive in,
+     * so the subtraction is exact and the cursor stays where it was put. It is
+     * read through `getPointFromEvent` rather than from the dot, precisely so
+     * that it is the pointer being tracked and nothing else.
+     */
+    point.onSelect(
+      event.ctrlKey || event.metaKey || event.shiftKey,
+      getPointFromEvent(event) ?? { x: data.x, y: data.y },
+    );
   };
 
   const handlePointerMove = (event: PointerEvent<SVGCircleElement>) => {
