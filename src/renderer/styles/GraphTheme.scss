@@ -671,31 +671,33 @@ it under the terms of the GNU General Public License version 3 or later.
       transform: rotate(180deg);
     }
   }
+}
 
-  // The menu is not tied to the width of a two-word label.
-  //
-  // Names like "Mirrored ridge · Rainbow" do not fit in the space the trigger
-  // happens to occupy, and a list that ellipsises every row is a list you have
-  // to guess at. It takes the width it needs, clamped to the window on a
-  // narrow one; Dropdown.tsx measures the result and slides it back inside the
-  // viewport, so widening it here cannot push it off the right edge.
-  .dropdown .list-wrapper {
-    // Fixed rather than `max-content`: Dropdown.tsx writes an inline max-width
-    // when it repositions, which would override a max-width set here and let a
-    // content-sized menu grow to whatever the longest label happened to be.
-    width: 268px;
-    min-width: 268px;
-  }
+// The look picker's menu, at the top level because it is portalled to the body
+// and the strip above is no longer one of its ancestors.
+//
+// It is not tied to the width of a two-word label: names like "Mirrored ridge ·
+// Rainbow" do not fit in the space the trigger happens to occupy, and a list
+// that ellipsises every row is a list you have to guess at. It takes the width
+// it needs, clamped to the window on a narrow one; Dropdown.tsx measures the
+// result and slides it back inside the viewport, so widening it here cannot
+// push it off the right edge.
+.graph-look-menu .list-wrapper {
+  // Fixed rather than `max-content`: Dropdown.tsx writes an inline max-width
+  // when it repositions, which would override a max-width set here and let a
+  // content-sized menu grow to whatever the longest label happened to be.
+  width: 268px;
+  min-width: 268px;
+}
 
-  // Enough entries that the list gets room to be scrolled rather than
-  // squinted at through a slot.
-  .dropdown ul {
-    max-height: 320px;
-  }
+// Enough entries that the list gets room to be scrolled rather than squinted at
+// through a slot.
+.graph-look-menu ul {
+  max-height: 320px;
+}
 
-  .dropdown li {
-    font-size: 0.72rem;
-  }
+.graph-look-menu li {
+  font-size: 0.72rem;
 }
 
 // No surface of its own. The legends and the controls read directly on the

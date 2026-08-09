@@ -77,82 +77,73 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       stroke: rgba($primary-lighter, 0.5);
     }
   }
+}
 
-  // *** Floating menu ***
+// *** Floating menu ***
+//
+// Rendered into `document.body` by Dropdown.tsx and positioned against the
+// window, so no card edge or scroll container between it and the root can clip
+// it. See the head of Dropdown.tsx for what that replaced; the short version is
+// that the menu used to escape its pane by turning off the pane's overflow,
+// which also turned off the pane's scrollbar.
+//
+// The layer itself has no box — it exists to carry the placement class and to
+// give the menu one parent to measure and to test clicks against.
+.dropdown-menu-layer {
+  display: contents;
+}
 
-  // Unfolds from the trigger it is attached to. The transform origin is the
-  // edge it grows out of, so an upward menu does not appear to grow downward
-  // and then jump.
-  .list-wrapper {
-    @include fold(down);
-    position: absolute;
-    z-index: 20;
-    width: 100%;
-    min-width: 100%;
-    max-width: min(560px, calc(100vw - 32px));
-    max-height: min(360px, calc(100vh - 120px));
-    margin-block-start: 5px;
-    overflow: hidden;
-  }
+// The tab-order guards, one either side of the list. Focusable and nothing
+// else: they exist to be landed on and immediately left, so they take no space
+// and draw no ring. See Dropdown.tsx for what they redirect to.
+.dropdown-menu-layer__guard {
+  position: fixed;
+  width: 0;
+  height: 0;
+  outline: 0;
+  opacity: 0;
+  pointer-events: none;
+}
 
-  .list-wrapper .list {
-    max-height: min(310px, calc(100vh - 180px));
-    overflow: auto;
-    overscroll-behavior: contain;
-    background: transparent;
-    border-radius: inherit;
-    @include slim-scrollbar;
-  }
+// Unfolds from the trigger it is attached to. The transform origin is the edge
+// it grows out of, so an upward menu does not appear to grow downward and then
+// jump.
+//
+// Every offset is inline, from the measurement in Dropdown.tsx: `position:
+// fixed` resolves percentages against the window, so the old
+// `calc(100% + 5px)` would now mean the whole viewport rather than the
+// trigger's height.
+.dropdown-menu-layer .list-wrapper {
+  @include fold(down);
+  position: fixed;
+  z-index: 1001;
+  width: var(--dropdown-trigger-width);
+  min-width: var(--dropdown-trigger-width);
+  max-height: min(360px, calc(100vh - 120px));
+  overflow: hidden;
+}
 
-  // Dropdown.tsx measures the viewport and writes max-width/max-height inline
-  // when the menu would otherwise overflow. Let the list flex inside that box.
-  .list-wrapper[style] {
-    display: flex;
-    flex-direction: column;
+.dropdown-menu-layer .list-wrapper .list {
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
+  overscroll-behavior: contain;
+  background: transparent;
+  border-radius: inherit;
+  flex: 1 1 auto;
+  @include slim-scrollbar;
+}
 
-    .list {
-      min-height: 0;
-      max-height: none;
-      flex: 1 1 auto;
-    }
-  }
+// The wrapper is always given a height budget now, so the list always has to
+// flex inside it rather than only when one was written.
+.dropdown-menu-layer .list-wrapper {
+  display: flex;
+  flex-direction: column;
 }
 
 // *** Placement ***
-// Emitted after the sizing rules above so the adaptive direction chosen by
-// Dropdown.tsx is never offset by the default downward margin.
+// Direction only. Where it goes is inline; this is which edge it unfolds from.
 
-.dropdown--up .list-wrapper {
+.dropdown-menu-layer.dropdown--up .list-wrapper {
   @include fold(up);
-  top: auto;
-  bottom: calc(100% + 5px);
-  margin-block-start: 0;
-}
-
-.dropdown--left .list-wrapper,
-.dropdown--right .list-wrapper {
-  top: 0;
-  bottom: auto;
-  margin-block-start: 0;
-}
-
-.dropdown--left .list-wrapper {
-  right: calc(100% + 8px);
-  left: auto;
-}
-
-.dropdown--right .list-wrapper {
-  right: auto;
-  left: calc(100% + 8px);
-}
-
-// An open menu has to clear every local stacking context created by the cards
-// it floats over. Ancestor chains are raised in App.scss.
-.dropdown--open {
-  position: relative;
-  z-index: 1000;
-
-  > .list-wrapper {
-    z-index: 1001;
-  }
 }

@@ -672,6 +672,7 @@ const AutoEQ = () => {
           <span className="autoeq-field__title">{t('autoeq.source')}</span>
           <Dropdown
             name="Measurement source"
+            menuClassName="auto-eq-menu"
             options={sourceOptions}
             value={sourceId}
             noSelectionPlaceholder={t('autoeq.selectSourcePlaceholder')}
@@ -687,6 +688,7 @@ const AutoEQ = () => {
           <span className="autoeq-field__title">{t('autoeq.model')}</span>
           <Dropdown
             name="Audio Device"
+            menuClassName="auto-eq-menu"
             options={deviceOptions}
             value={currentDevice}
             handleChange={handleDeviceChange}
@@ -701,6 +703,7 @@ const AutoEQ = () => {
           <span className="autoeq-field__title">{t('autoeq.target')}</span>
           <Dropdown
             name="Target Frequency Response"
+            menuClassName="auto-eq-menu"
             options={responseOptions}
             value={currentResponse}
             handleChange={(newValue) => setCurrentResponse(newValue)}

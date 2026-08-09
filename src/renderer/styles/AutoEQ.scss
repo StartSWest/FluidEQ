@@ -249,12 +249,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // The measurement and model catalogues are long, so their menus are allowed to
 // outgrow the trigger. Dropdown.tsx clamps them to the viewport.
-.auto-eq .dropdown--filterable .list-wrapper {
-  width: max(100%, min(520px, 34vw));
+//
+// Selected through the class the call site hands the menu, not through
+// `.auto-eq`: the menu is portalled to the body, so this panel is not one of its
+// ancestors any more. `--dropdown-trigger-width` is the trigger's measured
+// width, published by Dropdown.tsx — it is what `100%` used to mean here.
+.auto-eq-menu.dropdown--filterable .list-wrapper {
+  width: max(var(--dropdown-trigger-width), min(520px, 34vw));
 }
 
-.auto-eq .dropdown:not(.dropdown--filterable) .list-wrapper {
-  width: max(100%, min(340px, 28vw));
+.auto-eq-menu:not(.dropdown--filterable) .list-wrapper {
+  width: max(var(--dropdown-trigger-width), min(340px, 28vw));
 }
 
 // *** Database update strip **************************************************

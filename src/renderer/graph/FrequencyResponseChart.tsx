@@ -1744,6 +1744,7 @@ const FrequencyResponseChart = () => {
                 picker handed that id would go blank. */}
             <Dropdown
               name="live-output-style"
+              menuClassName="graph-look-menu"
               options={graphLookOptions}
               value={selectedLookId}
               isDisabled={isWaveHidden}

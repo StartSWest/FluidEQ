@@ -121,20 +121,36 @@ export const useThrottleAndExecuteLatest = <T extends (...args: any[]) => any>(
   );
 };
 
+/**
+ * "Outside" means outside every one of these, not outside the first.
+ *
+ * A widget that portals part of itself elsewhere — a menu rendered into
+ * `document.body` so no ancestor can clip it — is one component in the React
+ * tree and two subtrees in the DOM. These listeners are native and see only the
+ * DOM, so the portalled half has to be named explicitly or clicking inside it
+ * reads as a click outside the widget.
+ */
+const isInsideAny = (
+  refs: RefObject<HTMLElement | null>[],
+  target: EventTarget | null,
+) => refs.some((ref) => ref.current && ref.current.contains(target as Node));
+
 // https://github.com/teetotum/react-attached-properties/blob/master/examples/useClickOutside.js
 export const useClickOutside = <T extends HTMLElement = HTMLElement>(
   ref: RefObject<T | null>,
   callback: () => void,
+  ...alsoInside: RefObject<HTMLElement | null>[]
 ) => {
   const handleClick = useMemo(() => {
     return (e: globalThis.MouseEvent) => {
-      if (!ref.current || ref.current.contains(e.target as Node)) {
+      if (!ref.current || isInsideAny([ref, ...alsoInside], e.target)) {
         return;
       }
 
       callback();
     };
-  }, [callback, ref]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [callback, ref, ...alsoInside]);
 
   useEffect(() => {
     document.addEventListener('click', handleClick, true);
@@ -168,16 +184,18 @@ export const useMouseDownOutside = <T extends HTMLElement = HTMLElement>(
 export const useFocusOutside = <T extends HTMLElement = HTMLElement>(
   ref: RefObject<T | null>,
   callback: () => void,
+  ...alsoInside: RefObject<HTMLElement | null>[]
 ) => {
   const handleFocus = useMemo(() => {
     return (e: globalThis.FocusEvent) => {
-      if (!ref.current || ref.current.contains(e.target as Node)) {
+      if (!ref.current || isInsideAny([ref, ...alsoInside], e.target)) {
         return;
       }
 
       callback();
     };
-  }, [callback, ref]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [callback, ref, ...alsoInside]);
 
   useEffect(() => {
     document.addEventListener('focusin', handleFocus, true);

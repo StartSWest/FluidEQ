@@ -60,6 +60,7 @@ const LanguagePicker = () => {
       <MenuIcon name="language" />
       <Dropdown
         name={t('language.aria')}
+        menuClassName="language-picker-menu"
         options={options}
         value={locale}
         handleChange={(newValue) => setLocale(newValue as LocaleCode)}

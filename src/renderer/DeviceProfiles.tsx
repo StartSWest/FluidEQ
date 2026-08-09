@@ -184,6 +184,7 @@ const DeviceProfiles = () => {
           </span>
           <Dropdown
             name={t('output.device')}
+            menuClassName="device-profiles-menu"
             options={deviceOptions}
             value={selectedDeviceId}
             handleChange={handleDeviceChange}

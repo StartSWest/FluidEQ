@@ -66,35 +66,39 @@ it under the terms of the GNU General Public License version 3 or later.
   &:focus-within .dropdown > [role='menu'] .arrow {
     color: $secondary-light;
   }
+}
 
-  // The list is sized for the menu, not for the catalogues the Dropdown was
-  // built for. Those hold tens of thousands of entries and earn their roomy
-  // rows; this holds ten short words, and at the default size it came out
-  // taller than the menu it drops out of and needed a scrollbar to show a list
-  // that fits on any screen.
-  //
-  // Rows match the menu buttons above: same height, same type, same radius.
-  .list-wrapper {
-    min-width: 100%;
-    border-radius: $radius-xs;
+// The list is sized for the menu, not for the catalogues the Dropdown was built
+// for. Those hold tens of thousands of entries and earn their roomy rows; this
+// holds ten short words, and at the default size it came out taller than the
+// menu it drops out of and needed a scrollbar to show a list that fits on any
+// screen.
+//
+// Rows match the menu buttons above: same height, same type, same radius.
+//
+// At the top level because the menu is portalled to the body — `.language-picker`
+// is not one of its ancestors any more, and the class below is what the call
+// site hands it instead.
+.language-picker-menu .list-wrapper {
+  min-width: var(--dropdown-trigger-width);
+  border-radius: $radius-xs;
 
-    // Nested under `.list` rather than reaching for the `li` directly, so this
-    // outranks List.scss instead of merely tying with it. A tie would leave
-    // the winner up to the order webpack happens to emit the two stylesheets
-    // in, which is decided by an import somewhere else entirely.
-    .list {
-      padding: 4px;
-      // Ten short entries always fit, so no scrollbar appears in practice.
-      // The cap is only here so an eleventh language cannot push the list off
-      // the bottom of the window.
-      max-height: min(420px, 60vh);
+  // Nested under `.list` rather than reaching for the `li` directly, so this
+  // outranks List.scss instead of merely tying with it. A tie would leave the
+  // winner up to the order webpack happens to emit the two stylesheets in,
+  // which is decided by an import somewhere else entirely.
+  .list {
+    padding: 4px;
+    // Ten short entries always fit, so no scrollbar appears in practice. The
+    // cap is only here so an eleventh language cannot push the list off the
+    // bottom of the window.
+    max-height: min(420px, 60vh);
 
-      li {
-        min-height: 30px;
-        margin: 1px 0;
-        padding: 6px 10px;
-        font-size: 0.7rem;
-      }
+    li {
+      min-height: 30px;
+      margin: 1px 0;
+      padding: 6px 10px;
+      font-size: 0.7rem;
     }
   }
 }
