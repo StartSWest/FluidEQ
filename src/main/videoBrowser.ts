@@ -58,7 +58,35 @@ import {
  * equalizer is not a decision anyone can make well, and none of these sites
  * needs one to play a video.
  */
-const GRANTED_PERMISSIONS = new Set(['fullscreen']);
+/*
+ * What a page in the player may ask for and be given.
+ *
+ * `fullscreen` is the video button, and was the whole list.
+ *
+ * THE TWO STORAGE ONES ARE HOW A SIGN-IN THAT IS NOT THE SITE'S OWN COMPLETES.
+ * SoundCloud's "continue with Google" runs Google's identity code in a frame
+ * belonging to Google inside a page belonging to SoundCloud, and that frame has
+ * to reach its own cookies to know who you are. The Storage Access API is how a
+ * frame asks for that, this handler answers every request, and the answer to
+ * everything was no — so the frame came back not knowing, and the flow died as
+ * `FedCM get() rejects with NetworkError`, which reads like a network fault and
+ * is a permission refusal.
+ *
+ * Granting it automatically rather than prompting, because the prompt this
+ * stands in for is a browser's, and there is nowhere here to show one. What
+ * makes that acceptable is the allow-list: the only frames that can ask are
+ * frames on hosts this file already decided to load. It is not a general
+ * "third-party storage is fine" — it is "the five sites offered, and Google's
+ * sign-in, may use their own cookies", which is the thing being asked for.
+ *
+ * Everything else stays refused: no camera, no microphone, no location, no
+ * notifications, no MIDI, no clipboard, no device enumeration.
+ */
+const GRANTED_PERMISSIONS = new Set([
+  'fullscreen',
+  'storage-access',
+  'top-level-storage-access',
+]);
 
 /** Where a player is sent when it has to be pulled back from somewhere else. */
 const HOME_SITE = VIDEO_SITES[0];

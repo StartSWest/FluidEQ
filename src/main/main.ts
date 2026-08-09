@@ -3434,6 +3434,37 @@ if (isDebug && process.getuid?.() === 0) {
   app.commandLine.appendSwitch('disable-setuid-sandbox');
 }
 
+/*
+ * ASK WINDOWS FOR ITS OWN DRM, WHICH IS THE ONE DRM THIS BUILD MIGHT HAVE.
+ *
+ * The Video tab's Spotify fails at play with `EMEError: No supported keysystem
+ * was found`, and the reason has always been read as "Electron ships no Widevine
+ * CDM", which is true. What the player's own log showed is that Widevine is not
+ * the only thing Spotify asks for on Windows: it probes
+ * `com.microsoft.playready.recommendation.3000` as well, and PlayReady is not
+ * something anybody has to ship. It is part of Windows.
+ *
+ * Chromium can hand EME to the operating system's PlayReady CDM through Media
+ * Foundation, gated behind this feature. Electron does not turn it on by
+ * default and has an open request to; a maintainer's answer there is that the
+ * switch works on any build carrying the Chromium commits. This one carries
+ * Chromium 150, well past the 140 the feature landed in.
+ *
+ * Windows-only, because the feature is: on anything else the switch names
+ * something Chromium does not have, and Chromium's response to an unknown
+ * feature name is to ignore it — harmless, but a line that reads as though it
+ * did something everywhere would be a lie.
+ *
+ * NOT A PROMISE. Hardware-secure decryption needs Windows 11 and a machine
+ * whose GPU and firmware support it, and Spotify may decline PlayReady from a
+ * client it does not recognise the way it declines a development Widevine
+ * signature. This costs one line and one launch to find out, which is a great
+ * deal cheaper than the fork it would otherwise take.
+ */
+if (process.platform === 'win32') {
+  app.commandLine.appendSwitch('enable-features', 'HardwareSecureDecryption');
+}
+
 if (isDebug) {
   require('electron-debug').default();
 }
