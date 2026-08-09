@@ -442,6 +442,12 @@ export const toggleLiveOutputSolo = () =>
  * The flags are still what the chart reads, since its components subscribe to
  * them individually. Nothing sets them except `setGraphContents`, so they cannot
  * drift apart.
+ *
+ * ONLY THE KEY REACHES TWO OF THEM. `layers` and `layersAlone` quiet the EQ
+ * curve, and nothing in the app has a switch for that — the wave toggle, the EQ
+ * toggle and the legend chip between them can build the other three and no more.
+ * So the View menu's cycle row is the whole mouse-driven route to those two, and
+ * it names the state it is in for that reason rather than for tidiness.
  */
 export type TGraphContents =
   'everything' | 'wave' | 'curves' | 'layers' | 'layersAlone';
@@ -459,7 +465,9 @@ const CONTENTS_ORDER: TGraphContents[] = [
  *
  * Exported because the View menu names the state the plot is in rather than
  * leaving its cycle row saying nothing, and a second list of these words in the
- * menu would be a second thing to keep in step with the machine.
+ * menu would be a second thing to keep in step with the machine. These are also
+ * what `announceGraphMode` says out loud, so the caption after a keypress and
+ * the row under the pointer cannot disagree about what the plot is doing.
  */
 export const GRAPH_CONTENTS_LABEL: Record<TGraphContents, string> = {
   everything: 'Everything',

@@ -17,7 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { TGraphView, TWaveOrientation } from '../utils/graphStyle';
+import {
+  GRAPH_CONTENTS_LABEL,
+  TGraphContents,
+  TGraphView,
+  TWaveOrientation,
+} from '../utils/graphStyle';
 
 /**
  * How big the graph is, what it shows, and how to say either from the keyboard.
@@ -47,7 +52,14 @@ interface IGraphViewMenuProps {
   onToggleWave: () => void;
   isEqHidden: boolean;
   onToggleEq: () => void;
-  /** Walks the four states the three switches below add up to. */
+  /**
+   * Which of the five arrangements the plot is in, so the row can say so.
+   *
+   * Two of them quiet the EQ curve, which no switch below reaches, so this row
+   * is the only way in and had to stop being anonymous.
+   */
+  contents: TGraphContents;
+  /** Walks the five states the switches below only partly add up to. */
   onCycleContents: () => void;
   isGridHidden: boolean;
   onToggleGrid: () => void;
@@ -132,6 +144,7 @@ const GraphViewMenu = ({
   onToggleWave,
   isEqHidden,
   onToggleEq,
+  contents,
   onCycleContents,
   isGridHidden,
   onToggleGrid,
@@ -289,18 +302,30 @@ const GraphViewMenu = ({
 
           {/* The key that walks the group, given a row of its own.
 
-              Ctrl+W moves between four arrangements of the three switches under
-              it, so printing it beside any one of them would promise it did
-              only that — and leaving it off the menu entirely, which is what
-              happened before, left the app's most-used graph shortcut written
-              down nowhere. A row that does the cycling says exactly what the
-              key says. */}
-          <button type="button" onClick={choose(onCycleContents)}>
+              Ctrl+W moves between five arrangements of the switches under it, so
+              printing it beside any one of them would promise it did only that
+              — and leaving it off the menu entirely, which is what happened
+              before, left the app's most-used graph shortcut written down
+              nowhere.
+
+              It names the state it is in rather than only the action, and that
+              is not decoration. Two of the five — "Layers over wave" and
+              "Layers only" — cannot be built out of the switches below at all;
+              they quiet the EQ curve, and nothing else in the app has a control
+              for that. So this row is the only way to reach them, and a row
+              reading "Cycle what is shown" gave no hint that there was anywhere
+              to get to.
+
+              It does not close the menu, unlike the mode rows above. Five
+              states walked one press at a time is the same comparing gesture
+              the style rows make, and closing after each would mean reopening
+              the menu four times to see the fourth one. */}
+          <button type="button" onClick={onCycleContents}>
             <Icon>
               <path d="M13.5 6.5A5.5 5.5 0 1 0 14 9" />
               <path d="M13.8 2.6v4h-4" />
             </Icon>
-            <span>Cycle what is shown</span>
+            <span>Showing: {GRAPH_CONTENTS_LABEL[contents]}</span>
             <kbd>Ctrl+W</kbd>
           </button>
 

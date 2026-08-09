@@ -84,6 +84,7 @@ import {
   toggleGraphStretch,
   toggleFullScreenTopBar,
   cycleGraphContents,
+  useGraphContents,
   useGraphFullScreen,
   useGraphCoverageHidden,
   useGraphMeterHidden,
@@ -453,6 +454,9 @@ const FrequencyResponseChart = () => {
   const isTitlebarWaveHidden = useTitlebarWaveHidden();
   const isWaveHidden = useGraphWaveHidden();
   const hiddenCurves = useHiddenCurves();
+  // Which of the five arrangements the switches add up to, so the View menu's
+  // cycle row can name it instead of only offering to move on from it.
+  const graphContents = useGraphContents();
   const modeAnnouncement = useGraphModeAnnouncement();
   // The dots go with the line they draw. A handle you can drag over a curve
   // that is not on screen gives no feedback at all — the whole point of
@@ -1394,8 +1398,10 @@ const FrequencyResponseChart = () => {
           } else if (key === 'i') {
             cycleWaveOrientation();
           } else {
-            // Ctrl+W walks the four things the plot can show rather than
-            // toggling one of two switches that each turn the other off.
+            // Ctrl+W walks the five things the plot can show rather than
+            // toggling one of two switches that each turn the other off. Two of
+            // the five are reachable no other way, which is why the View menu's
+            // row for this names the state rather than only the action.
             cycleGraphContents();
           }
           return;
@@ -1823,6 +1829,7 @@ const FrequencyResponseChart = () => {
               onToggleWave={toggleGraphWave}
               isEqHidden={hiddenCurves.includes('eq')}
               onToggleEq={() => toggleGraphCurve('eq')}
+              contents={graphContents}
               onCycleContents={cycleGraphContents}
               isGridHidden={isGridHidden}
               onToggleGrid={toggleGraphGrid}
