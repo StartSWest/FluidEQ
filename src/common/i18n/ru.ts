@@ -375,6 +375,7 @@ const ru: Partial<Dictionary> = {
   'config.layer.on': 'вкл',
   'config.layer.off': 'выкл',
   'config.layers.noFile': 'Без своего файла',
+  'config.layers.inFile': 'Записывается в этот файл, а не в отдельный.',
   'config.empty': 'Ничего не подключено — этот выход оставлен как есть.',
   'config.file.missing': 'нет файла',
   'config.export': 'Экспорт цепочки',

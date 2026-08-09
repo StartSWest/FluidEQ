@@ -381,6 +381,7 @@ const es: Partial<Dictionary> = {
   'config.layer.on': 'activo',
   'config.layer.off': 'inactivo',
   'config.layers.noFile': 'Sin archivo propio',
+  'config.layers.inFile': 'Se escribe en este archivo, no en uno propio.',
   'config.empty': 'No incluye nada: esta salida se deja sin tocar.',
   'config.file.missing': 'falta',
   'config.export': 'Exportar cadena',

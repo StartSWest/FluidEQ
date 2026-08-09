@@ -18,6 +18,25 @@ it under the terms of the GNU General Public License version 3 or later.
 @use 'spacing' as *;
 @use 'theme' as *;
 
+// Every row in the tree is one of these tall, whatever it happens to hold.
+//
+// It was whatever its contents came to, so a row with a pill stood two pixels
+// taller than a row with only a badge and the rows drifted out of step down the
+// list. Fixing it is also what lets the connecting lines be drawn: an elbow
+// meeting a rail at the row's middle needs the middle to be somewhere
+// predictable.
+$row-height: 22px;
+$row-gap: 4px;
+
+// Where every pill in the tree starts.
+//
+// `ch` is exactly one character in the monospace the rows are set in, and the
+// longest name FluidEQ generates — `fluideq-<12 hex>-headphone.txt` — is 34 of
+// them. So the pills begin where the longest possible file name ends, on every
+// row, and a longer name than that (a hand-written config) pushes its own pill
+// along rather than dragging the whole column out of line.
+$name-column: 34ch;
+
 // Neither scrolls nor pads itself: the workspace panel around it does both, the
 // same way the voicing and convolution pages work.
 //
@@ -275,14 +294,15 @@ it under the terms of the GNU General Public License version 3 or later.
   letter-spacing: 0.04em;
 }
 
-// The layers the tree cannot show, and only those.
+// The layers of an output that has no tree to hang them on.
 //
-// Every layer with a file is drawn in that file's row now, beside the name it
-// shares. What is left over is a bypassed layer, which writes no file, and the
-// convolution, which never has one — and a bypass switch whose only visible
-// effect is a row quietly disappearing is a switch you cannot check the result
-// of. So this strip stays, holding the leftovers rather than a copy of the
-// tree, and shows up only when there is something to say.
+// Every layer is drawn in the tree now: the ones with a file in that file's
+// row, the impulse in the row of the device file that holds its line, and a
+// bypassed layer as a row of its own at the level its `Include:` is missing
+// from. This strip is what is left for the one case where there is no tree —
+// an output whose block includes nothing — and a bypass switch whose only
+// visible effect is a row quietly disappearing is a switch you cannot check
+// the result of.
 .config-layers {
   display: flex;
   flex-wrap: wrap;
@@ -497,7 +517,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .config-node {
   --depth: 0;
-  margin-top: 4px;
+  margin-top: $row-gap;
 }
 
 .config-node__children {
@@ -505,13 +525,66 @@ it under the terms of the GNU General Public License version 3 or later.
   // panel carrying that information — flatten it and a feature file looks like
   // a sibling of the device file that pulls it in.
   padding-left: $spacing-m;
-  border-left: 1px solid rgba($secondary-default, 0.18);
   margin-left: 6px;
 }
 
+// The rail, drawn per row rather than once down the whole list.
+//
+// It was a border on the list itself, which ran its full height — so an
+// expanded file left a line beside two hundred pixels of config text pointing
+// at nothing, and the tree had no visible end. Per row it can stop where the
+// tree stops: every row carries the segment beside it, and the last carries
+// only as much as it takes to reach its own elbow.
+.config-node__children > .config-node {
+  position: relative;
+
+  &::before {
+    position: absolute;
+    // Up into the gap above, so consecutive rows draw one unbroken line rather
+    // than a dashed one with a break at every margin.
+    top: -$row-gap;
+    bottom: 0;
+    left: -$spacing-m;
+    width: 1px;
+    background: rgba($secondary-default, 0.18);
+    content: '';
+  }
+
+  &:last-child::before {
+    bottom: auto;
+    height: $row-gap + $row-height * 0.5;
+  }
+}
+
+// And the elbow that ties each row to it.
+//
+// The rail alone said "these are under something"; it did not say which of them
+// each row hung off, and with a name, a pill and a badge on every line there
+// was nothing for the eye to follow back. `top: 50%` rather than a measurement,
+// so the stroke meets the row's middle whatever the row turns out to be.
+//
+// Three selectors because there are three shapes of row and the pseudo-element
+// has to be one the row is not already using: a file draws its elbow on the
+// head button inside it, while the two rows that have no head — a missing file
+// and a layer with no file at all — are the `<li>` themselves, whose ::before
+// is the rail above.
+.config-node__children > .config-node > .config-node__head::before,
+.config-node__children > .config-node--missing::after,
+.config-node__children > .config-node--unwritten::after {
+  position: absolute;
+  top: 50%;
+  left: -$spacing-m;
+  width: $spacing-m - $spacing-xs;
+  height: 1px;
+  background: rgba($secondary-default, 0.18);
+  content: '';
+}
+
 .config-node__head {
+  position: relative;
   display: flex;
   width: 100%;
+  min-height: $row-height;
   align-items: center;
   padding: 2px 4px;
   border: none;
@@ -536,34 +609,40 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: 0.6rem;
 }
 
-// The name takes the slack, which is what holds the badges at the right-hand
-// end of the row.
+// The name takes what it needs and no more; the slack is the badge's now.
 .config-node__name {
   @include truncate;
-  flex: 1 1 auto;
+  flex: 0 1 auto;
 }
 
-// Unless a pill follows it, in which case the pill takes the slack instead.
+// A column, not a position after the name.
 //
-// The pill has to sit against the file name — the point of moving it here is
-// that `voicing` and `…-voicing.txt` can be read as one phrase — so the name
-// gives up its growth and the pill's end margin absorbs the row. The badges do
-// not move: they are still pushed to the end, by the pill rather than by the
-// name. Rows with no layer keep the rule above and line up with these, because
-// nothing was inserted to make room for a pill that is not there.
-.config-node--layer > .config-node__head > .config-node__name {
-  flex: 0 1 auto;
+// The pill has to sit against the file name — the point of putting it in the
+// row is that `voicing` and `…-voicing.txt` read as one phrase — but a name is
+// as long as it is, so five rows of pills came out at five different offsets
+// and had to be read one at a time. Holding the name column open to the widest
+// name there can be costs a little space on the shorter ones and turns the
+// pills into something you can scan down.
+//
+// Only inside a tree: the device file's row is the head of the whole thing and
+// has nothing to line up with.
+.config-node__children .config-node__name {
+  min-width: $name-column;
 }
 
 .config-node__head > .config-layer {
   flex: 0 0 auto;
-  margin-inline-end: auto;
 }
 
 .config-node__badge {
   flex: 0 0 auto;
   padding: 1px 6px;
   border-radius: $radius-pill;
+  // The first badge takes the slack, which is what holds every badge at the
+  // right-hand end of its row. The layer pill used to do this with an auto end
+  // margin, and that stopped being right the moment a row could carry two
+  // pills — the gap landed in the middle of the pair instead of after it.
+  margin-inline-start: auto;
   background: rgba($secondary-default, 0.16);
   color: $secondary-light;
   font-family: inherit;
@@ -580,6 +659,33 @@ it under the terms of the GNU General Public License version 3 or later.
     background: rgba($neon-lime, 0.18);
     color: $neon-lime;
   }
+}
+
+// Only the first one is pushed; the rest follow it as a group.
+.config-node__badge ~ .config-node__badge {
+  margin-inline-start: 0;
+}
+
+// Which output the chain under this file is for.
+//
+// The device file heads the whole tree and was the one row saying nothing about
+// what it belonged to — its name is a digest of the endpoint id, which is all
+// Equalizer APO needs and nothing a person can read. The name is already in the
+// file, on its first line, so this is not new information; it is information
+// that was one disclosure away from the row that needed it.
+//
+// Monospace like the rest of the row, and for the same reason: it is the
+// comment at the top of this file, not the app's own words about it.
+.config-node__subject {
+  @include truncate;
+  max-width: 22rem;
+  flex: 0 1 auto;
+  padding: 1px 8px;
+  border: 1px solid rgba($secondary-light, 0.22);
+  border-radius: $radius-pill;
+  background: rgba($secondary-default, 0.1);
+  color: $text-muted;
+  font-size: 0.62rem;
 }
 
 .config-node__body {
@@ -664,27 +770,20 @@ it under the terms of the GNU General Public License version 3 or later.
   box-shadow: inset 2px 0 0 var(--layer-color);
 }
 
-// The one row with nothing to disclose, laid out like the heads above it
+// The two rows with nothing to disclose, laid out like the heads above them
 // anyway.
 //
-// It has no button to inherit a flex row from, so its name, its pill and its
-// badge sat directly in the list item and ran into each other — which nobody
-// noticed while it was two spans and is plainly wrong now the layer's pill is
-// between them. The badge keeps the right-hand end whether or not there is a
-// pill, so a missing file lines up with the rows around it.
-.config-node--missing {
+// Neither has a button to inherit a flex row from, so a name, a pill and a
+// badge sat directly in the list item and ran into each other. Same height and
+// same columns as every other row, because what both of these are saying is
+// where they sit.
+.config-node--missing,
+.config-node--unwritten {
   display: flex;
+  min-height: $row-height;
   align-items: center;
   padding: 2px 4px;
   gap: 6px;
-
-  > .config-node__name {
-    flex: 0 1 auto;
-  }
-
-  > .config-node__badge {
-    margin-inline-start: auto;
-  }
 }
 
 .config-node--missing .config-node__name {
@@ -692,6 +791,25 @@ it under the terms of the GNU General Public License version 3 or later.
   font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
   font-size: 0.68rem;
   text-decoration: line-through;
+}
+
+// A layer whose file would have been here, and is not.
+//
+// A bypassed layer keeps every one of its settings and loses only its
+// `Include:` line — that is the whole of the A/B switch — so there is no file
+// for its pill to sit beside and nothing but the level to say where it belongs.
+// The row is that level: it is drawn among the includes of the file the layer
+// is missing from, in the same pill column as the layers that were written.
+//
+// The name column holds the app's own words rather than a file name, so it is
+// dimmed and italic. It stays in the row's monospace all the same, because what
+// the column is for is holding the pills in line and `ch` only means a
+// character while the font is fixed-width.
+.config-node--unwritten .config-node__name {
+  color: $text-faint;
+  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  font-size: 0.66rem;
+  font-style: italic;
 }
 
 // Indented once, by the body it sits in, and not twice.

@@ -21,6 +21,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   IApoConfigDevice,
   IApoConfigFile,
+  IApoConfigLayer,
   IApoConfigTree,
 } from 'common/apoConfig';
 import { APO_FEATURES } from 'common/constants';
@@ -144,23 +145,29 @@ const roundPreAmp = (line: string) =>
 /**
  * One layer, said in the one place it belongs.
  *
- * Almost always that place is the row of the file it describes — the pill and
- * the file are the same layer said twice, and said three inches apart they had
- * to be matched up by eye. The exceptions are the layers with no file at all,
- * which is why this is a component rather than markup inlined into the tree:
- * the strip below the tree draws the same pill from the same source, so a
- * bypassed voicing looks like the voicing it is rather than like a second
- * notation for one.
+ * Usually that place is the row of the file it describes — the pill and the
+ * file are the same layer said twice, and said three inches apart they had to
+ * be matched up by eye. A layer with no file still has a place: the impulse is
+ * a line in the device file, so its pill goes in that file's row, and a
+ * bypassed layer belongs at the level its `Include:` is missing from, so it
+ * gets a row of its own among the includes that were written.
+ *
+ * A component rather than markup inlined into the tree because all four of
+ * those draw it, and a bypassed voicing has to look like the voicing it is
+ * rather than like a second notation for one.
  */
 const LayerPill = ({
   feature,
   isApplied,
   isLive,
+  title,
 }: {
   feature: string;
   isApplied: boolean;
   /** Whether Continuous EQ is maintaining this output as you read it. */
   isLive: boolean;
+  /** Said on hover where the pill's place in the tree needs a sentence. */
+  title?: string;
 }) => {
   const { t } = useTranslation();
   return (
@@ -177,6 +184,7 @@ const LayerPill = ({
     <span
       className={`config-layer${isApplied ? '' : ' is-off'}`}
       style={layerStyle(feature)}
+      title={title}
     >
       <span className="config-layer__swatch" aria-hidden />
       <span className="config-layer__name">{feature}</span>
@@ -203,11 +211,40 @@ const ConfigFileNode = ({
   file,
   isLive,
   onSaved,
+  subject,
+  heldLayers = [],
+  unwrittenLayers = [],
 }: {
   file: IApoConfigFile;
   /** Passed to the pills: Continuous EQ is running on this output. */
   isLive: boolean;
   onSaved: () => void;
+  /**
+   * The output whose chain this file heads, named in the file's own row.
+   *
+   * Only the device file is given one, and it is the row that needed it: its
+   * name is a digest of the endpoint id, so the file at the top of the tree was
+   * the only one whose row said nothing about what it was for.
+   */
+  subject?: string;
+  /**
+   * Layers this file carries as a line of its own rather than as an `Include:`.
+   *
+   * The impulse response, in practice. Equalizer APO applies a convolution as a
+   * stage ahead of the filters, so it is one `Convolution:` line in the device
+   * file and never gets a file of its own — which used to leave its pill
+   * floating in a strip above the tree, saying it had no file and nothing about
+   * which file it was in. It is in this one.
+   */
+  heldLayers?: IApoConfigLayer[];
+  /**
+   * Layers whose `Include:` would have been in this file and is not.
+   *
+   * A bypassed layer keeps every setting and loses only its include, which is
+   * the whole of the A/B switch — so there is no file to put its pill beside,
+   * and the level it is missing from is the only thing left that places it.
+   */
+  unwrittenLayers?: IApoConfigLayer[];
 }) => {
   const { t } = useTranslation();
   // Open on arrival. There are never more than a handful and the whole point
@@ -272,15 +309,35 @@ const ConfigFileNode = ({
         </span>
         <span className="config-node__name">{file.fileName}</span>
         {/* Immediately after the name, and only when the name has a layer in
-            it. The device file and the custom file are not layers, and neither
-            gets a placeholder — an empty pill-sized gap would shift their names
-            out of line with every other row for the sake of saying nothing.
+            it — the device file and the custom file are not layers and get
+            nothing here. The column the pills start at is held open by the
+            name, in the stylesheet, so a row without one still lines up with
+            the rows around it rather than closing the gap.
 
             Applied, because the file is here and the config includes it. That
             comes from the file rather than from the profile deliberately: the
             profile's own answer belongs to the layers with no file, and this
             panel's promise is to report what is on disk. */}
         {layer && <LayerPill feature={layer} isApplied isLive={isLive} />}
+        {subject && (
+          <span className="config-node__subject" title={subject}>
+            {subject}
+          </span>
+        )}
+        {/* In this row because this is the file the line is in. Applied or
+            not comes from the profile here rather than from the file, and it
+            has to: an impulse that is switched off leaves no `Convolution:`
+            line behind, so the file alone cannot tell "no impulse" from "an
+            impulse, switched off". */}
+        {heldLayers.map((held) => (
+          <LayerPill
+            key={held.feature}
+            feature={held.feature}
+            isApplied={held.isApplied}
+            isLive={isLive}
+            title={t('config.layers.inFile')}
+          />
+        ))}
         {isCustom && (
           <span className="config-node__badge config-node__badge--custom">
             {t('config.file.yours')}
@@ -351,7 +408,7 @@ const ConfigFileNode = ({
               </div>
             </div>
           )}
-          {file.includes.length > 0 && (
+          {(file.includes.length > 0 || unwrittenLayers.length > 0) && (
             <ul className="config-node__children">
               {file.includes.map((child) => (
                 <ConfigFileNode
@@ -360,6 +417,26 @@ const ConfigFileNode = ({
                   isLive={isLive}
                   onSaved={onSaved}
                 />
+              ))}
+              {/* After the includes, because that is what they are not. A row
+                  among the files, at the level the layer's own file would have
+                  been written to, saying it was not — which is a different
+                  statement from the row simply not being there, and the only
+                  one a bypass switch can be checked against. */}
+              {unwrittenLayers.map((unwritten) => (
+                <li
+                  key={unwritten.feature}
+                  className="config-node config-node--unwritten"
+                >
+                  <span className="config-node__name">
+                    {t('config.layers.noFile')}
+                  </span>
+                  <LayerPill
+                    feature={unwritten.feature}
+                    isApplied={unwritten.isApplied}
+                    isLive={isLive}
+                  />
+                </li>
               ))}
             </ul>
           )}
@@ -552,20 +629,15 @@ const ConfigInspector = () => {
   const shown = devices.find((device) => keyOf(device) === selectedKey);
 
   /**
-   * The layers with no row in the tree, because they have no file.
+   * The layers with no file, which is not the same as the layers with no place.
    *
    * Every other layer is drawn in the row of the file it wrote, which is where
-   * it belongs — the pill and the file name say the same word. These cannot be:
-   * there is nothing for them to sit beside. Two quite different things end up
-   * here and both need saying. A bypassed layer writes no file at all, and a
-   * bypass whose only visible consequence is a row quietly disappearing is a
-   * switch you cannot check the result of. The convolution never has a file in
-   * any state — APO applies an impulse ahead of the filters, so it is one line
-   * in the device file — and it would otherwise be the one layer this panel
-   * never mentioned.
-   *
-   * Kept to exactly those, so the strip is not a second copy of the tree: it
-   * appears only when there is something the files below cannot tell you.
+   * it belongs — the pill and the file name say the same word. These have no
+   * such row, and used to be swept into a strip above the tree labelled "no
+   * file of its own": true, and no help at all to somebody looking at an
+   * `impulse` pill hanging over five files and wondering which of them it was
+   * part of. Both kinds have a level even though neither has a file, so both go
+   * into the tree at theirs.
    */
   const filelessLayers = useMemo(() => {
     if (!shown) {
@@ -574,6 +646,25 @@ const ConfigInspector = () => {
     const filed = new Set(filedLayers(shown.file));
     return (shown.layers ?? []).filter((layer) => !filed.has(layer.feature));
   }, [shown]);
+
+  /**
+   * Which of them the device file holds, and which are simply absent from it.
+   *
+   * Split on whether the layer is a feature, because that is exactly what
+   * decides it: a feature is written to a file of its own and is therefore
+   * missing from the includes when it is bypassed, while anything that is not a
+   * feature — the convolution — is a line in the device file whether or not any
+   * feature is switched off. The first kind is a row among the includes; the
+   * second is a pill in the row of the file it is a line of.
+   */
+  const { heldLayers, unwrittenLayers } = useMemo(() => {
+    const isFeature = (layer: IApoConfigLayer) =>
+      (APO_FEATURES as readonly string[]).includes(layer.feature);
+    return {
+      heldLayers: filelessLayers.filter((layer) => !isFeature(layer)),
+      unwrittenLayers: filelessLayers.filter(isFeature),
+    };
+  }, [filelessLayers]);
 
   return (
     <section className="config-inspector" aria-labelledby="config-title">
@@ -751,11 +842,13 @@ const ConfigInspector = () => {
                   </button>
                 </div>
               </div>
-              {/* Above the tree rather than under it, which is where the row
-                  of every layer used to be. What is left in it is the one
-                  thing the files cannot report, and a bypass confirmed only
-                  after scrolling past five expanded files is not confirmed. */}
-              {filelessLayers.length > 0 && (
+              {/* Only for an output with no tree to put them in.
+                  Where there is one they are in it — the impulse in the row of
+                  the device file that holds its line, a bypassed layer as a row
+                  at the level its include is missing from. This is the leftover
+                  case: a block that includes nothing at all still has layers
+                  worth reporting, and nowhere to report them but here. */}
+              {!shown.file && filelessLayers.length > 0 && (
                 <div className="config-layers">
                   <span className="config-layers__lead" id="config-fileless">
                     {t('config.layers.noFile')}
@@ -780,6 +873,9 @@ const ConfigInspector = () => {
                 <ul className="config-device__tree">
                   <ConfigFileNode
                     file={shown.file}
+                    subject={splitLabel(shown).output}
+                    heldLayers={heldLayers}
+                    unwrittenLayers={unwrittenLayers}
                     isLive={isContinuousOn && isCurrent(shown)}
                     onSaved={load}
                   />

@@ -344,6 +344,7 @@ const zh: Partial<Dictionary> = {
   'config.layer.on': '开',
   'config.layer.off': '关',
   'config.layers.noFile': '没有自己的文件',
+  'config.layers.inFile': '写在这个文件里，而不是它自己的文件。',
   'config.empty': '没有包含任何内容——这个输出保持原样。',
   'config.file.missing': '缺失',
   'config.export': '导出链路',

@@ -462,10 +462,14 @@ const en = {
   'config.liveTitle': 'Continuous EQ is keeping this measured',
   'config.layer.on': 'on',
   'config.layer.off': 'off',
-  // Why these layers are not in the tree below. Every layer with a file is
-  // drawn in that file's row; what is left is a bypassed layer, which writes no
-  // file, and the impulse, which is a line in the device file and never has one.
+  // The name column of a row that stands for a layer with no file: a bypassed
+  // one, whose `Include:` is simply not written. It is drawn among the includes
+  // it is missing from, so the row says where as well as what.
   'config.layers.noFile': 'No file of its own',
+  // On the pill of a layer that has no file because it never gets one — the
+  // impulse, which Equalizer APO applies ahead of the filters as one line of
+  // the device file. Its pill sits in that file's row, and this says why.
+  'config.layers.inFile': 'Written into this file, not one of its own.',
   'config.empty': 'Nothing included — this output is left alone.',
   'config.file.missing': 'missing',
   'config.export': 'Export chain',

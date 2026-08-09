@@ -380,6 +380,7 @@ const it: Partial<Dictionary> = {
   'config.layer.on': 'attivo',
   'config.layer.off': 'inattivo',
   'config.layers.noFile': 'Senza file proprio',
+  'config.layers.inFile': 'Scritto in questo file, non in uno proprio.',
   'config.empty': 'Non include nulla: questa uscita resta intatta.',
   'config.file.missing': 'assente',
   'config.export': 'Esporta catena',

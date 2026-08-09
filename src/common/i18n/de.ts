@@ -382,6 +382,7 @@ const de: Partial<Dictionary> = {
   'config.layer.on': 'ein',
   'config.layer.off': 'aus',
   'config.layers.noFile': 'Keine eigene Datei',
+  'config.layers.inFile': 'Steht in dieser Datei, nicht in einer eigenen.',
   'config.empty': 'Nichts eingebunden — dieser Ausgang bleibt unangetastet.',
   'config.file.missing': 'fehlt',
   'config.export': 'Kette exportieren',

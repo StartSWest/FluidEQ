@@ -369,6 +369,8 @@ const ja: Partial<Dictionary> = {
   'config.layer.on': 'オン',
   'config.layer.off': 'オフ',
   'config.layers.noFile': '専用ファイルなし',
+  'config.layers.inFile':
+    '専用ファイルではなく、このファイルに書き込まれます。',
   'config.empty': '何も含まれていません。この出力はそのままです。',
   'config.file.missing': '見つかりません',
   'config.export': 'チェーンを書き出す',

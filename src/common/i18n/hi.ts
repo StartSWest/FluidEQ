@@ -378,6 +378,8 @@ const hi: Partial<Dictionary> = {
   'config.layer.on': 'चालू',
   'config.layer.off': 'बंद',
   'config.layers.noFile': 'अपनी कोई फ़ाइल नहीं',
+  'config.layers.inFile':
+    'अपनी अलग फ़ाइल में नहीं, इसी फ़ाइल में लिखा जाता है।',
   'config.empty': 'कुछ भी शामिल नहीं — यह आउटपुट वैसा ही छोड़ा गया है।',
   'config.file.missing': 'नहीं मिली',
   'config.export': 'चेन निर्यात करें',
