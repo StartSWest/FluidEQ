@@ -242,15 +242,19 @@ button.active-layer__body {
     text-decoration: line-through;
   }
 
-  // Faded but still live, which is the difference the `disabled` attribute got
-  // wrong. The slider is the only way back to a strength, so disabling it while
-  // a layer was off locked that strength wherever it happened to be. It reads as
-  // switched off and it still moves; moving it is what switches the layer back
-  // on.
-  .active-layer__strength {
-    opacity: 0.45;
-    filter: grayscale(0.7);
-  }
+  /*
+   * THE SLIDER IS NOT FADED WITH THE REST, and that is deliberate twice over.
+   *
+   * The body dims and the name is struck through, which is what says the layer
+   * is off. The slider is the way back on, and a control that looks unavailable
+   * is one nobody tries — it was `disabled` before this, which locked a layer's
+   * strength wherever it stood, and dimming it would have kept the appearance
+   * of that dead end after removing the dead end itself.
+   *
+   * A layer at zero is bypassed now, so this is the state every chip lands in
+   * at the end of its own travel. It has to look draggable there, because that
+   * is the only moment it has to be.
+   */
 }
 
 // A fixed cell, so the digits cannot resize the chip.

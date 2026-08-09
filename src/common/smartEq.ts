@@ -148,6 +148,22 @@ export const getSmartEqFilters = (
     return [];
   }
 
+  /*
+   * Scaled by strength, the way every other layer is.
+   *
+   * Absent means all of it, and that has to stay true: every profile saved
+   * before this field existed carries no strength, and reading a missing one as
+   * zero would silence all of them on upgrade. A value that is not a finite
+   * number is treated the same way rather than clamped to zero, for the same
+   * reason and with the same consequence if it were not.
+   */
+  const intensity = Number.isFinite(settings.intensity)
+    ? Math.max(0, Math.min(1, settings.intensity as number))
+    : 1;
+  if (intensity === 0) {
+    return [];
+  }
+
   return Object.values(settings.filters)
     .filter(
       (filter) =>
@@ -158,7 +174,10 @@ export const getSmartEqFilters = (
     .map(({ type, frequency, gain, quality }) => ({
       type,
       frequency,
-      gain: clampGain(gain),
+      // Rounded to a tenth, which is all Equalizer APO reads and all anybody
+      // hears. Without it, halving a correction writes gains like 2.8499999
+      // into a file somebody may well open and read.
+      gain: clampGain(Math.round(gain * intensity * 10) / 10),
       quality,
     }))
     .filter(

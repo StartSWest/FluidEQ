@@ -456,6 +456,35 @@ const ActiveLayers = () => {
       // pip beside it already says whether it is running.
       name: modeName,
       clearHint: t('eq.layers.clearSmart'),
+      /*
+       * A strength, arriving last of the four and for the opposite reason to
+       * the others.
+       *
+       * The voicing, the driver and the headphone correction are all published
+       * curves somebody chose, so dialling one back was obviously wanted. This
+       * layer writes itself: a measurement decides what the filters are, and
+       * there was nothing to dial back FROM.
+       *
+       * Which turns out to be the argument for it. A measured correction is a
+       * claim about a room, and half of one is a reasonable thing to want when
+       * the claim is more confident than the listener is — the same want that
+       * made "back the whole thing off by half" the most common piece of advice
+       * about automatic room correction anywhere.
+       */
+      percent: Math.round((smartEq?.intensity ?? 1) * 100),
+      strength: smartEq?.intensity ?? 1,
+      isInactive: (smartEq?.intensity ?? 1) <= 0,
+      onStrength: (intensity: number) =>
+        setLayerStrength(
+          'smart',
+          (value) =>
+            setSmartEq(smartEq ? { ...smartEq, intensity: value } : smartEq),
+          (value) =>
+            setSmartEqApi(
+              smartEq ? { ...smartEq, intensity: value } : undefined,
+            ),
+          intensity,
+        ),
       isLive: isContinuousOn && !isBypassed('smart'),
       onClear: async () => {
         // Deleting the correction switches off the thing that maintains it.
@@ -529,9 +558,31 @@ const ActiveLayers = () => {
                   ? t('eq.layers.enable', { layer: layer.label })
                   : t('eq.layers.disable', { layer: layer.label })
               }
+              /*
+               * SWITCHING ON FROM ZERO GOES TO FULL, so the switch is a switch.
+               *
+               * Zero strength and bypassed are one state now, which means a
+               * layer can be arrived at from either control — and un-bypassing
+               * one that was dragged to zero used to put it back at zero. The
+               * chip lit up, the file was written, and not one decibel of it was
+               * applied: a control that says "on" and does nothing, which is
+               * worse than one that refuses.
+               *
+               * Only from zero. A layer left at 40% comes back at 40%, because
+               * that is a strength somebody chose and the switch is not the
+               * place to lose it.
+               */
               onClick={() => {
                 const feature = layer.feature as TApoLayer;
-                setLayerBypass(feature, !isBypassed(feature))
+                const turningOn = isBypassed(feature);
+                if (
+                  turningOn &&
+                  layer.onStrength &&
+                  (layer.strength ?? 0) <= 0
+                ) {
+                  layer.onStrength(1);
+                }
+                setLayerBypass(feature, !turningOn)
                   .then(() => refreshState())
                   .catch((e) => setGlobalError(e as ErrorDescription));
               }}
