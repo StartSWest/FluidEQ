@@ -1037,6 +1037,40 @@ const resetStateToDefaults = () => {
  */
 const UNTITLED_PROFILE_PREFIX = 'Untitled profile';
 
+/**
+ * One profile mutation at a time, in the order they arrived.
+ *
+ * These handlers are `async` and every `await` in them is a place another one
+ * can start. They share three things — `deviceProfileSettings`, the equaliser
+ * `state`, and the config on disk — so two that overlap are not two operations
+ * but one interleaved mess.
+ *
+ * Deleting several profiles quickly is where it shows, because delete is the
+ * longest of them. Two deletes that both removed the profile their output was
+ * playing each reach `createEmptyProfileForActiveDevice`, and each counts the
+ * catalogue *before* the other has written to it, so both pick the same number
+ * and one silently loses. Meanwhile both are part-way through
+ * `removeAssignmentsForPreset` on the same object and both call `handleUpdate`,
+ * so the config is rewritten from a state that is halfway between two edits.
+ * Nothing throws. The list simply comes back wrong.
+ *
+ * A chain rather than a lock, because a lock needs releasing on every path out
+ * — including the ones that throw — and this cannot be forgotten. The failure
+ * handler on the tail is what keeps the queue alive: without it, one rejected
+ * mutation would leave every later one waiting on a promise that never settles,
+ * which turns a wrong list into a dead panel.
+ *
+ * It does NOT serialise the whole application. Reads are untouched, and so is
+ * everything that does not write to these three things.
+ */
+let profileMutations: Promise<unknown> = Promise.resolve();
+
+const runProfileMutation = (work: () => Promise<void>): Promise<void> => {
+  const next = profileMutations.then(work, work);
+  profileMutations = next.catch(() => undefined);
+  return next;
+};
+
 const createEmptyProfileForActiveDevice = () => {
   if (!activeAudioDeviceId) {
     return;
@@ -1692,63 +1726,75 @@ ipcMain.on(ChannelEnum.GET_PRESET_BASELINE_NAMES, async (event) => {
   }
 });
 
+// Queued with the others. `reservePresetNameForActiveDevice` reads the whole
+// catalogue to pick a free name, so two saves that overlap read the same
+// catalogue and reserve the same name — the second then writes over the first.
 ipcMain.on(ChannelEnum.SAVE_PRESET, async (event, arg) => {
   const channel = ChannelEnum.SAVE_PRESET;
   const presetName = arg[0];
 
-  try {
-    // Validate that the preset name is not restricted
-    if (isRestrictedPresetName(presetName)) {
-      handleError(event, channel, ErrorCode.INVALID_PRESET_NAME);
-      return;
+  await runProfileMutation(async () => {
+    try {
+      // Validate that the preset name is not restricted
+      if (isRestrictedPresetName(presetName)) {
+        handleError(event, channel, ErrorCode.INVALID_PRESET_NAME);
+        return;
+      }
+
+      // Never over the top of a profile another output is using. Saving on the
+      // speakers must not overwrite what the headphones are playing, however
+      // similar the two names are.
+      const targetName = reservePresetNameForActiveDevice(presetName);
+
+      const preset = getCurrentPreset();
+      savePreset(targetName, preset, presetPath);
+      // This is the copy the user chose to keep. Later edits auto-save over the
+      // profile itself, so this is the only thing left to restore from.
+      savePresetBaseline(targetName, preset, baselinePath);
+      attachPresetToActiveDevice(targetName);
+      await handleUpdateHelper<string>(event, channel, targetName, true);
+    } catch (e) {
+      handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
     }
-
-    // Never over the top of a profile another output is using. Saving on the
-    // speakers must not overwrite what the headphones are playing, however
-    // similar the two names are.
-    const targetName = reservePresetNameForActiveDevice(presetName);
-
-    const preset = getCurrentPreset();
-    savePreset(targetName, preset, presetPath);
-    // This is the copy the user chose to keep. Later edits auto-save over the
-    // profile itself, so this is the only thing left to restore from.
-    savePresetBaseline(targetName, preset, baselinePath);
-    attachPresetToActiveDevice(targetName);
-    await handleUpdateHelper<string>(event, channel, targetName, true);
-  } catch (e) {
-    handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
-  }
+  });
 });
 
+// Queued, because deleting several quickly is exactly what people do and this
+// is the longest of the profile mutations. See `runProfileMutation`.
 ipcMain.on(ChannelEnum.DELETE_PRESET, async (event, arg) => {
   const channel = ChannelEnum.DELETE_PRESET;
   const presetName = arg[0];
-  const pathToDelete = path.join(presetPath, presetName);
-  console.log(`Deleting preset: ${presetName} at location ${pathToDelete}`);
-  try {
-    const wasAttachedHere =
-      deviceProfileSettings.assignments[activeAudioDeviceId]?.presetName ===
-      presetName;
+  await runProfileMutation(async () => {
+    const pathToDelete = path.join(presetPath, presetName);
+    console.log(`Deleting preset: ${presetName} at location ${pathToDelete}`);
+    try {
+      const wasAttachedHere =
+        deviceProfileSettings.assignments[activeAudioDeviceId]?.presetName ===
+        presetName;
 
-    deletePreset(presetName, presetPath);
-    deletePresetBaseline(presetName, baselinePath);
-    removeAssignmentsForPreset(deviceProfileSettings, presetName);
-    saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+      deletePreset(presetName, presetPath);
+      deletePresetBaseline(presetName, baselinePath);
+      removeAssignmentsForPreset(deviceProfileSettings, presetName);
+      saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
 
-    // Deleting what this output was playing through leaves it with nothing.
-    // Reset to neutral and hand it a fresh empty profile rather than leaving
-    // the user on a nameless tuning they cannot save to or get back from.
-    if (wasAttachedHere) {
-      resetStateToDefaults();
-      createEmptyProfileForActiveDevice();
+      // Deleting what this output was playing through leaves it with nothing.
+      // Reset to neutral and hand it a fresh empty profile rather than leaving
+      // the user on a nameless tuning they cannot save to or get back from.
+      if (wasAttachedHere) {
+        resetStateToDefaults();
+        createEmptyProfileForActiveDevice();
+      }
+
+      await handleUpdate(event, channel);
+    } catch (e) {
+      handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
     }
-
-    await handleUpdate(event, channel);
-  } catch (e) {
-    handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
-  }
+  });
 });
 
+// Queued with the others: it decides a name from what exists on disk and then
+// rewrites the assignments, so a save or a delete landing between those two
+// steps is a rename applied to a catalogue that has since moved.
 ipcMain.on(ChannelEnum.RENAME_PRESET, async (event, arg) => {
   const channel = ChannelEnum.RENAME_PRESET;
   const [oldName, newName]: string[] = arg;
@@ -1759,37 +1805,39 @@ ipcMain.on(ChannelEnum.RENAME_PRESET, async (event, arg) => {
     event.reply(channel, reply);
   }
 
-  try {
-    /**
-     * Validate the provided name acording to the following rules:
-     * - Disallow renaming to a restricted name
-     * - Disallow renaming to an existing preset name
-     *
-     * Note: the function doesPresetExist performs comparisons based on the file system, meaning it whether the comparison
-     * is case sensitive depends on the file system settings. For case sensitive systems, the existence of a preset that
-     * matches the new name exactly is guaranteed to be an invalid operation (since we already handled the case where the
-     * old and new names are exactly equal). For case insensitive systems, there is an edge case where we want to allow
-     * the new name to be a duplicate of an existing preset. This is the case where we are renaming a preset to change the
-     * casing of the characters.
-     */
-    if (
-      isRestrictedPresetName(newName) ||
-      (doesPresetExist(newName, presetPath) &&
-        (state.isCaseSensitiveFs ||
-          oldName.toLocaleLowerCase() !== newName.toLocaleLowerCase()))
-    ) {
-      handleError(event, channel, ErrorCode.INVALID_PRESET_NAME);
-      return;
-    }
+  await runProfileMutation(async () => {
+    try {
+      /**
+       * Validate the provided name acording to the following rules:
+       * - Disallow renaming to a restricted name
+       * - Disallow renaming to an existing preset name
+       *
+       * Note: the function doesPresetExist performs comparisons based on the file system, meaning it whether the comparison
+       * is case sensitive depends on the file system settings. For case sensitive systems, the existence of a preset that
+       * matches the new name exactly is guaranteed to be an invalid operation (since we already handled the case where the
+       * old and new names are exactly equal). For case insensitive systems, there is an edge case where we want to allow
+       * the new name to be a duplicate of an existing preset. This is the case where we are renaming a preset to change the
+       * casing of the characters.
+       */
+      if (
+        isRestrictedPresetName(newName) ||
+        (doesPresetExist(newName, presetPath) &&
+          (state.isCaseSensitiveFs ||
+            oldName.toLocaleLowerCase() !== newName.toLocaleLowerCase()))
+      ) {
+        handleError(event, channel, ErrorCode.INVALID_PRESET_NAME);
+        return;
+      }
 
-    renamePreset(oldName, newName, presetPath);
-    renamePresetBaseline(oldName, newName, baselinePath);
-    renameAssignedPreset(deviceProfileSettings, oldName, newName);
-    saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
-    await handleUpdate(event, channel);
-  } catch (e) {
-    handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
-  }
+      renamePreset(oldName, newName, presetPath);
+      renamePresetBaseline(oldName, newName, baselinePath);
+      renameAssignedPreset(deviceProfileSettings, oldName, newName);
+      saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+      await handleUpdate(event, channel);
+    } catch (e) {
+      handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+    }
+  });
 });
 
 ipcMain.on(ChannelEnum.GET_PRESET_FILE_LIST, async (event) => {
@@ -2228,22 +2276,38 @@ ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
     const presetSettings = sourceId
       ? await getSquiglinkPreset(sourceId, deviceName, responseName)
       : await getSquiglinkPreset(deviceName, responseName);
-    clearCurrentLayoutSettings();
+    /*
+     * INTO THE HEADPHONE LAYER, LIKE THE OTHER DATABASE.
+     *
+     * This used to replace `state.filters`, and it was the half of the split
+     * that got missed: the AutoEq path was moved onto its own layer and this
+     * one — the same panel, the same button, a different database behind it —
+     * went on overwriting the bands somebody had tuned. So whether applying a
+     * headphone correction destroyed your EQ depended on which source the
+     * dropdown happened to be pointing at, which is not a distinction anybody
+     * could have guessed at.
+     *
+     * As a layer it survives a Clear EQ, Smart EQ is handed it as something not
+     * to correct rather than reading it as error, and the bands stay whatever
+     * the person made them. The reasons are written out in full at
+     * `LOAD_AUTO_EQ_PRESET`; this is the same decision, applied where it should
+     * have been applied at the same time.
+     */
+    state.headphone = {
+      filters: shieldReferenceBands(presetSettings.filters),
+      // Full strength on arrival, like the other source. Somebody who wants
+      // half of a published correction can say so afterwards.
+      intensity: 1,
+    };
     state.preAmp = presetSettings.preAmp;
-    state.filters = shieldReferenceBands(presetSettings.filters);
-    state.eqFormat = AutoEqFormat.PARAMETRIC;
-    state.graphicEq = undefined;
     state.headset = deviceName;
     state.headsetTarget = responseName;
     // Left undefined on the legacy three-argument request, which does not say
     // which database it meant. The panel falls back to matching on the model
     // name, which is what it did before the source was recorded at all.
     state.headsetSource = sourceId;
-    state.headsetSignature = describeBandShape(state.filters);
-    applyingLayer('eq');
-    // Squiglink responses are editable EQ bands. Keep any separately selected
-    // convolution profile in place while replacing only the EQ chain.
-    state.isFlat = false;
+    state.headsetSignature = describeBandShape(state.headphone.filters);
+    applyingLayer('headphone');
     await handleUpdate(event, channel, false, true);
   } catch (error) {
     console.error(
