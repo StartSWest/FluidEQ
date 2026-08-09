@@ -241,6 +241,16 @@ button.active-layer__body {
   .active-layer__label {
     text-decoration: line-through;
   }
+
+  // Faded but still live, which is the difference the `disabled` attribute got
+  // wrong. The slider is the only way back to a strength, so disabling it while
+  // a layer was off locked that strength wherever it happened to be. It reads as
+  // switched off and it still moves; moving it is what switches the layer back
+  // on.
+  .active-layer__strength {
+    opacity: 0.45;
+    filter: grayscale(0.7);
+  }
 }
 
 // A fixed cell, so the digits cannot resize the chip.

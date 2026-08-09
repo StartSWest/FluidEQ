@@ -617,12 +617,19 @@ const ActiveLayers = () => {
               input nested in one cannot be dragged — the button swallows the
               pointer and every attempt to slide toggles the layer off instead.
 
-              Disabled while the layer is bypassed, not removed. Taking it away
-              changed the chip's width, so switching a layer off resized it and
-              shoved every chip beside it along — and it left nothing on screen
-              to say the setting still exists and is waiting. Greyed out, it says
-              both: this has a strength, and it is not doing anything at the
-              moment. */}
+              ALWAYS DRAGGABLE, INCLUDING WHILE BYPASSED, and that is a fix
+              rather than a relaxation. It used to be disabled when the layer was
+              switched off, which reads as sensible and is a dead end: the only
+              way back to a strength is the slider, so switching a layer off
+              locked its strength wherever it happened to be. Two of today's
+              reports were the same shape — a control that removes itself at the
+              end of its own travel — and this is the third instance of it.
+
+              It stays greyed to the eye through `.is-bypassed` on the chip, so
+              it still says "this has a strength and none of it is being
+              applied" without also refusing to be moved. It is never removed
+              either: taking it away changed the chip's width, so switching a
+              layer off resized it and shoved every chip beside it along. */}
           {layer.strength !== undefined && (
             <input
               type="range"
@@ -633,19 +640,38 @@ const ActiveLayers = () => {
               value={Math.round(layer.strength * 100)}
               aria-label={t('voicing.strength')}
               title={t('voicing.strength')}
-              disabled={
-                isBlockingError ||
-                !isEnabled ||
-                Boolean(layer.feature && isBypassed(layer.feature))
-              }
+              disabled={isBlockingError || !isEnabled}
               style={
                 {
                   '--fill': `${Math.round(layer.strength * 100)}%`,
                 } as React.CSSProperties
               }
-              onChange={(event) =>
-                layer.onStrength?.(Number(event.target.value) / 100)
-              }
+              /*
+               * ZERO IS THE SAME AS SWITCHED OFF, so the chip says so.
+               *
+               * They were already the same in the sound — a layer at zero
+               * strength writes no filters, exactly like a bypassed one — and
+               * having two controls that reach one outcome by different routes
+               * meant the chip could sit at 0% looking applied, or bypassed at
+               * 100% looking loud. Neither described what was coming out.
+               *
+               * So the two are kept in step from here: arriving at zero
+               * bypasses, and moving off zero un-bypasses. The switch still
+               * works on its own — it is the fast way, and it leaves the
+               * strength where it was for when it comes back.
+               */
+              onChange={(event) => {
+                const next = Number(event.target.value) / 100;
+                layer.onStrength?.(next);
+                if (layer.feature) {
+                  const shouldBypass = next <= 0;
+                  if (shouldBypass !== isBypassed(layer.feature)) {
+                    setLayerBypass(layer.feature, shouldBypass).catch((e) =>
+                      setGlobalError(e as ErrorDescription),
+                    );
+                  }
+                }
+              }}
             />
           )}
           <button
