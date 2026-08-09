@@ -3489,7 +3489,26 @@ if (isDebug && process.getuid?.() === 0) {
 app.commandLine.appendSwitch('disable-features', 'FedCm');
 
 if (isDebug) {
-  require('electron-debug').default();
+  /*
+   * SHORTCUTS AND THE INSPECT MENU, BUT NOT AN INSPECTOR ON EVERY WINDOW.
+   *
+   * `showDevTools` defaults to true and means "open DevTools on each created
+   * BrowserWindow" — every one, including the sign-in popups the video player
+   * now opens. That is worse than untidy on those: Google's abuse page lists
+   * "use of developer or inspection tools" among its reasons for refusing a
+   * sign-in, so the inspector opening by itself was helping to cause the
+   * failure it was there to diagnose.
+   *
+   * Turning it off costs nothing at all, which is what makes this the right
+   * place to fix it rather than closing the window's DevTools after the fact.
+   * The main window opens its own further down, explicitly, in this same debug
+   * branch — so this option was only ever duplicating that for the one window
+   * that wanted it, and supplying it to every window that did not.
+   *
+   * F12 and the context menu are untouched; they come from the rest of the
+   * package and still work on any window.
+   */
+  require('electron-debug').default({ showDevTools: false });
 }
 
 const installExtensions = async () => {
