@@ -3465,6 +3465,35 @@ if (process.platform === 'win32') {
   app.commandLine.appendSwitch('enable-features', 'HardwareSecureDecryption');
 }
 
+/*
+ * SAY WE DO NOT HAVE FEDCM, BECAUSE WE DO NOT REALLY HAVE FEDCM.
+ *
+ * Signing in to SoundCloud with a Google account fails in the player, and the
+ * page's own log gives the reason: `FedCM get() rejects with NetworkError`.
+ *
+ * FedCM is browser-mediated by design. `navigator.credentials.get({identity})`
+ * hands the whole exchange to the browser, which fetches the provider's
+ * endpoints and shows its own account chooser — and that chooser lives in
+ * Chrome's browser layer, not in the Chromium content layer Electron is built
+ * on. So the API is present, answers, and cannot ever succeed.
+ *
+ * Which is the worst of the three possibilities. A site feature-detects: absent
+ * means "use the old flow", working means "use this one", and present-but-
+ * broken means it takes the new path and dies there — with an error that reads
+ * like the network, so nobody looks at the browser.
+ *
+ * Turning it off is not giving something up. It is the same lesson as the user
+ * agent one file over: claiming a capability we do not have is worse than
+ * admitting the one we do. Google's identity library has a non-FedCM path, it
+ * warns on every load that sites have not migrated to FedCM yet, and that path
+ * needs a popup — which this build now allows.
+ *
+ * It has a shelf life. Google intend to make FedCM mandatory, and when they do
+ * this stops helping and the answer becomes Electron implementing FedCM. The
+ * warning in the page log is the countdown.
+ */
+app.commandLine.appendSwitch('disable-features', 'FedCm');
+
 if (isDebug) {
   require('electron-debug').default();
 }
