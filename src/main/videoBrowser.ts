@@ -363,6 +363,49 @@ const hardenPlayer = (contents: WebContents) => {
   });
 
   contents.setWindowOpenHandler(({ url, disposition }) => {
+    /*
+     * AN EMPTY WINDOW, OPENED TO BE FILLED IN A MOMENT.
+     *
+     * Sign-in flows do not call `window.open` with their address. They open a
+     * blank window inside the click handler — synchronously, which is the only
+     * way a browser will let a popup through at all — and set its location once
+     * the request that decides the address comes back. So the URL this handler
+     * is asked about is `about:blank`, which is on no list and never will be,
+     * and the answer was to refuse it and raise a notice naming a host that
+     * `about:blank` does not have. An unnamed refusal with a button that could
+     * not act on it either, since `shell.openExternal` will not take `about:`.
+     *
+     * Allowed only as a window, and only because refusing it protects nothing.
+     * The window arrives empty; there is no content in it to be wary of. What
+     * the site then puts in it is a navigation on the popup's own contents, and
+     * `hardenPopup` has `will-navigate` and `will-redirect` on that, checked
+     * against the same list as everything else. The boundary did not move — it
+     * just stopped being enforced one step too early, at the moment a window
+     * was asked for rather than at the moment it was pointed somewhere.
+     */
+    const isBlankPopup = disposition === 'new-window' && url === 'about:blank';
+
+    if (isBlankPopup) {
+      log.info('Video player opened an empty popup window, to be navigated');
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          width: 520,
+          height: 720,
+          autoHideMenuBar: true,
+          webPreferences: {
+            nodeIntegration: false,
+            nodeIntegrationInSubFrames: false,
+            contextIsolation: true,
+            sandbox: true,
+            webSecurity: true,
+            allowRunningInsecureContent: false,
+            experimentalFeatures: false,
+          },
+        },
+      };
+    }
+
     if (!isNavigableVideoUrl(url)) {
       // Say so, rather than dropping it in silence.
       //

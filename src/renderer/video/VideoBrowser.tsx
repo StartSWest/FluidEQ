@@ -1077,9 +1077,31 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
 
   const blockedHost = (() => {
     try {
-      return new URL(blockedUrl).hostname;
+      // A refused address with no host — `about:blank` is the one that happens
+      // — would print an empty string, which is a notice that says nothing at
+      // all. The whole address is worth more than a blank in that case.
+      return new URL(blockedUrl).hostname || blockedUrl;
     } catch {
       return blockedUrl;
+    }
+  })();
+
+  /**
+   * Whether the real browser could do anything with this if offered it.
+   *
+   * `shell.openExternal` is handed the address in the main process and refuses
+   * anything that is not `http:` or `https:` — rightly, since the OS acts on
+   * whatever scheme it is given. But the button offering it was drawn
+   * regardless, so a refusal of `about:blank` put up a control that did
+   * precisely nothing when pressed, which is worse than not offering it: it
+   * reads as the app being broken rather than as the address being unopenable.
+   */
+  const canOpenBlockedExternally = (() => {
+    try {
+      const { protocol } = new URL(blockedUrl);
+      return protocol === 'https:' || protocol === 'http:';
+    } catch {
+      return false;
     }
   })();
 
@@ -1270,18 +1292,20 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
               <strong>{t('video.blockedTitle')}</strong>
               <span title={blockedUrl}>{blockedHost}</span>
             </div>
-            <button
-              type="button"
-              onClick={() => {
-                window.electron.ipcRenderer.sendMessage(
-                  ChannelEnum.OPEN_VIDEO_LINK_EXTERNALLY,
-                  [blockedUrl],
-                );
-                setBlockedUrl('');
-              }}
-            >
-              {t('video.openInBrowser')}
-            </button>
+            {canOpenBlockedExternally && (
+              <button
+                type="button"
+                onClick={() => {
+                  window.electron.ipcRenderer.sendMessage(
+                    ChannelEnum.OPEN_VIDEO_LINK_EXTERNALLY,
+                    [blockedUrl],
+                  );
+                  setBlockedUrl('');
+                }}
+              >
+                {t('video.openInBrowser')}
+              </button>
+            )}
             <button
               type="button"
               aria-label={t('app.dismiss')}
