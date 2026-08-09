@@ -49,19 +49,11 @@ import {
 } from '../common/videoAdBlock';
 
 /**
- * The only thing the player is allowed to ask for.
- *
- * Fullscreen, because the fullscreen button is most of the point of a video.
- * Everything else — camera, microphone, location, notifications, MIDI, USB,
- * serial, clipboard reads, screen capture — is refused without being shown to
- * the user at all. A permission prompt raised by a web page inside an
- * equalizer is not a decision anyone can make well, and none of these sites
- * needs one to play a video.
- */
-/*
  * What a page in the player may ask for and be given.
  *
- * `fullscreen` is the video button, and was the whole list.
+ * `fullscreen` is the video button, and was once the whole list. A permission
+ * prompt raised by a web page inside an equalizer is not a decision anybody can
+ * make well, so the rest are answered without being shown to the user at all.
  *
  * THE TWO STORAGE ONES ARE HOW A SIGN-IN THAT IS NOT THE SITE'S OWN COMPLETES.
  * SoundCloud's "continue with Google" runs Google's identity code in a frame
