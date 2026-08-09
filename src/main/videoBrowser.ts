@@ -65,20 +65,52 @@ import {
  * is a permission refusal.
  *
  * Granting it automatically rather than prompting, because the prompt this
- * stands in for is a browser's, and there is nowhere here to show one. What
- * makes that acceptable is the allow-list: the only frames that can ask are
- * frames on hosts this file already decided to load. It is not a general
- * "third-party storage is fine" — it is "the five sites offered, and Google's
- * sign-in, may use their own cookies", which is the thing being asked for.
+ * stands in for is a browser's and there is nowhere here to show one.
+ *
+ * THE ORIGIN IS CHECKED, AND THE COMMENT THAT SAID SO USED TO BE WRONG. It
+ * claimed the allow-list already meant only intended frames could ask. It does
+ * not: the navigation guards are main-frame events, and subframe navigation is
+ * unrestricted by design — it has to be, or every embed on these sites breaks.
+ * So the grant reached any third-party iframe on any page the player had open,
+ * which in a partition now holding live sign-ins is exactly the cross-site
+ * tracking the API exists to gate. Found in review, and the reasoning was mine.
+ *
+ * So it asks who is calling. Both handlers are told the requesting origin, and
+ * the storage pair is answered yes only for an origin the list already allows.
+ * `fullscreen` is not origin-checked because it grants nothing but a shape.
  *
  * Everything else stays refused: no camera, no microphone, no location, no
  * notifications, no MIDI, no clipboard, no device enumeration.
  */
-const GRANTED_PERMISSIONS = new Set([
-  'fullscreen',
+const GRANTED_PERMISSIONS = new Set(['fullscreen']);
+
+/** Granted, but only to a frame on a host the allow-list already names. */
+const ORIGIN_CHECKED_PERMISSIONS = new Set([
   'storage-access',
   'top-level-storage-access',
 ]);
+
+/**
+ * Whether this permission may be given to whoever is asking.
+ *
+ * An origin arrives as a bare `https://host` with no path, which
+ * `isNavigableVideoUrl` parses and checks exactly as it checks a navigation —
+ * same list, same label-boundary rule, same https-only rule. One predicate for
+ * "may the player deal with this host" rather than a second one to keep in
+ * step.
+ */
+const isPermissionGranted = (
+  permission: string,
+  origin: string | undefined,
+) => {
+  if (GRANTED_PERMISSIONS.has(permission)) {
+    return true;
+  }
+  if (!ORIGIN_CHECKED_PERMISSIONS.has(permission)) {
+    return false;
+  }
+  return Boolean(origin) && isNavigableVideoUrl(origin as string);
+};
 
 /**
  * Size and chrome for a sign-in window. See `hardenPopup` for its guards.
@@ -149,6 +181,37 @@ const videoPreloadPath = () =>
  * worth reopening against the client hints as well, because changing only the
  * header is what caused this.
  */
+
+/**
+ * A URL with everything after the path taken off, for the log.
+ *
+ * THESE LINES LEAVE THE MACHINE. The bug reporter attaches the tail of
+ * `main.log` and offers to open a prefilled GitHub issue with it — a public one
+ * — so anything written here is one helpful bug report away from being
+ * published.
+ *
+ * And the query and the fragment of a sign-in URL ARE the credential. That is
+ * not incidental: the redirect line exists precisely to capture the hop back
+ * from an identity provider, which is the hop carrying `code=`, `state=` and,
+ * on the implicit flow, a signed `id_token` in the fragment. Somebody who signs
+ * in and then reports an unrelated bug would be handing a live session over
+ * with it.
+ *
+ * The host and the path are what every diagnosis made from this file actually
+ * rested on — which host it stopped at, which callback it reached. Not one of
+ * them needed a token.
+ *
+ * Anything unparseable comes back whole. `about:blank` carries nothing and a
+ * popup opening blank is a step worth seeing.
+ */
+const forLog = (url: string): string => {
+  try {
+    const { origin, pathname } = new URL(url);
+    return `${origin}${pathname}`;
+  } catch {
+    return url;
+  }
+};
 
 /** Every attached player, for pushing a settings change out to all of them. */
 const attachedPlayers = new Set<WebContents>();
@@ -247,13 +310,18 @@ const lockDownSession = () => {
   // No `setUserAgent` here on purpose. See the note above it in this file.
 
   videoSession.setPermissionRequestHandler(
-    (_contents, permission, callback) => {
-      callback(GRANTED_PERMISSIONS.has(permission));
+    (_contents, permission, callback, details) => {
+      // `requestingUrl` is the frame's own address, which is what has to be
+      // judged — not the top document's, since the whole point is that a frame
+      // deep inside a page is doing the asking.
+      const asker = (details as { requestingUrl?: string } | undefined)
+        ?.requestingUrl;
+      callback(isPermissionGranted(permission, asker));
     },
   );
 
-  videoSession.setPermissionCheckHandler((_contents, permission) =>
-    GRANTED_PERMISSIONS.has(permission),
+  videoSession.setPermissionCheckHandler((_contents, permission, origin) =>
+    isPermissionGranted(permission, origin),
   );
 
   // Nothing here may enumerate a HID, serial or USB device.
@@ -312,7 +380,7 @@ const hardenPlayer = (contents: WebContents) => {
       // refusal is not an error — it is the feature working — so this is
       // `info`, and it is the difference between diagnosing the next site in a
       // minute and guessing at it for an afternoon.
-      log.info(`Video player refused a navigation to ${details.url}`);
+      log.info(`Video player refused a navigation to ${forLog(details.url)}`);
     }
   };
 
@@ -349,7 +417,7 @@ const hardenPlayer = (contents: WebContents) => {
     // asking for a page.
     if (details.isMainFrame) {
       log.info(
-        `Video player navigating to ${details.url}${
+        `Video player navigating to ${forLog(details.url)}${
           details.isSameDocument ? ' (same-document)' : ''
         }`,
       );
@@ -448,7 +516,7 @@ const hardenPlayer = (contents: WebContents) => {
       // `about:blank` is the one to watch for: a site that opens an empty
       // window and then navigates it asks about the blank, which is never on
       // the list, so this is the only place that behaviour is visible at all.
-      log.info(`Video player refused a popup to ${url}`);
+      log.info(`Video player refused a popup to ${forLog(url)}`);
       contents.hostWebContents?.send(VIDEO_LINK_BLOCKED, url);
       return { action: 'deny' };
     }
@@ -477,7 +545,7 @@ const hardenPlayer = (contents: WebContents) => {
      * arrives as `new-window`.
      */
     if (disposition === 'new-window') {
-      log.info(`Video player opened a popup window to ${url}`);
+      log.info(`Video player opened a popup window to ${forLog(url)}`);
       return {
         action: 'allow',
         overrideBrowserWindowOptions: POPUP_WINDOW_OPTIONS,
@@ -487,7 +555,7 @@ const hardenPlayer = (contents: WebContents) => {
     // Deferred: this runs inside Chromium's own window-open handling, and
     // navigating the contents that is being asked about, from inside the
     // answer, is a re-entrant call.
-    log.info(`Video player took a popup to ${url} into the player`);
+    log.info(`Video player took a popup to ${forLog(url)} into the player`);
     setImmediate(() => {
       if (!contents.isDestroyed()) {
         contents.loadURL(url).catch(() => {
@@ -585,7 +653,7 @@ const hardenPopup = (contents: WebContents) => {
   const blockDisallowed = (details: Electron.Event<{ url: string }>) => {
     if (!isNavigableVideoUrl(details.url)) {
       details.preventDefault();
-      log.info(`Sign-in popup refused a navigation to ${details.url}`);
+      log.info(`Sign-in popup refused a navigation to ${forLog(details.url)}`);
     }
   };
 
@@ -595,7 +663,7 @@ const hardenPopup = (contents: WebContents) => {
   // A popup opening a further popup is not a flow any of these sites uses, and
   // is what a hijacked one would try. One window deep is the whole allowance.
   contents.setWindowOpenHandler(({ url }) => {
-    log.info(`Sign-in popup refused a popup to ${url}`);
+    log.info(`Sign-in popup refused a popup to ${forLog(url)}`);
     return { action: 'deny' };
   });
 
@@ -614,7 +682,7 @@ const hardenPopup = (contents: WebContents) => {
    */
   contents.on('did-start-navigation', (details) => {
     if (details.isMainFrame) {
-      log.info(`Sign-in popup navigating to ${details.url}`);
+      log.info(`Sign-in popup navigating to ${forLog(details.url)}`);
     }
   });
 
@@ -626,7 +694,7 @@ const hardenPopup = (contents: WebContents) => {
   // where the crash was. The hop that is not logged is the hop the bug is on.
   contents.on('did-redirect-navigation', (details) => {
     if (details.isMainFrame) {
-      log.info(`Sign-in popup redirected to ${details.url}`);
+      log.info(`Sign-in popup redirected to ${forLog(details.url)}`);
     }
   });
 
@@ -634,7 +702,9 @@ const hardenPopup = (contents: WebContents) => {
     // `-3` is an aborted load, which every navigation replaced by a newer one
     // reports. A redirect chain is made of those.
     if (errorCode !== -3) {
-      log.info(`Sign-in popup failed to load ${url}: ${errorDescription}`);
+      log.info(
+        `Sign-in popup failed to load ${forLog(url)}: ${errorDescription}`,
+      );
     }
   });
 
@@ -666,7 +736,9 @@ const hardenPopup = (contents: WebContents) => {
   const { opener } = contents;
   // Which frame Electron considers the opener, from the side that knows. The
   // page's own view of it can only ever be "same origin or not".
-  log.info(`Sign-in popup opened by ${opener ? opener.url : 'nothing'}`);
+  log.info(
+    `Sign-in popup opened by ${opener ? forLog(opener.url) : 'nothing'}`,
+  );
   if (opener) {
     opener
       .executeJavaScript('JSON.stringify(sessionStorage)')

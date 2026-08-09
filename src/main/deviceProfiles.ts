@@ -37,8 +37,29 @@ export interface IActiveStateOverride {
   state: IState;
 }
 
+/**
+ * Whether this name may be written into a `Convolution:` line.
+ *
+ * `path.basename` splits on separators and nothing else, so the old pair of
+ * checks accepted a name containing a newline — and A NEWLINE IN AN APO CONFIG
+ * FILE ENDS THE COMMAND. A name of `ir.wav`, a carriage return, and a `Plugin:`
+ * line would have been written out as two commands, the second of which makes
+ * Equalizer APO load a DLL into the Windows audio pipeline.
+ *
+ * Reachable because a preset read from disk does not pass through
+ * `normalizeConvolution` and the preset schema does not constrain this field at
+ * all, so an imported profile is the delivery mechanism. Found in review rather
+ * than the other way round.
+ *
+ * Every control character rather than the two that end a line: what the config
+ * parser does with a NUL or an escape is not this file's to reason about, and
+ * none of them belong in a filename anybody meant to write.
+ */
 const isSafeConvolutionFileName = (fileName: string) =>
-  fileName === path.basename(fileName) && !fileName.includes('..');
+  fileName === path.basename(fileName) &&
+  !fileName.includes('..') &&
+  // eslint-disable-next-line no-control-regex -- the characters are the point
+  !/[\u0000-\u001f\u007f]/.test(fileName);
 
 const execFileAsync = promisify(execFile);
 const SETTINGS_FILENAME = 'device-profiles.json';
