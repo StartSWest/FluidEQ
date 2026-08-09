@@ -640,6 +640,45 @@ const hardenPopup = (contents: WebContents) => {
 
   forwardConsole(contents, 'signin');
 
+  /*
+   * DOES THIS WINDOW CARRY WHAT A POPUP IS SUPPOSED TO CARRY?
+   *
+   * A sign-in flow does not only pass a token through the URL. SoundCloud's
+   * puts a nonce in `sessionStorage` before opening the window and reads it
+   * back in the callback, and the browser is what connects the two: a window
+   * opened by `window.open` inherits its opener's session storage for that
+   * origin, and inherits an `opener` to talk back through. Both are things the
+   * platform does, not things the site does — which is exactly why a site can
+   * rely on them without saying so, and exactly the kind of thing an embedded
+   * window can quietly lack.
+   *
+   * The callback crashed reading a value that should have been there. This
+   * says whether it was.
+   *
+   * Counts and names only, never values: what is in that storage is somebody's
+   * sign-in state, and the question here is whether it arrived at all.
+   */
+  contents.on('did-finish-load', () => {
+    contents
+      .executeJavaScript(
+        `(() => {
+          try {
+            return JSON.stringify({
+              opener: !!window.opener,
+              keys: Object.keys(sessionStorage),
+              local: Object.keys(localStorage).length,
+            });
+          } catch (error) {
+            return JSON.stringify({ unreadable: String(error) });
+          }
+        })()`,
+      )
+      .then((result) => log.info(`Sign-in popup carries ${result}`))
+      .catch(() => {
+        // The window went away mid-question, which the next line already says.
+      });
+  });
+
   // How it ended. A flow that succeeded closes its own window, so this line is
   // the difference between "finished" and "gave up and closed it by hand" —
   // which are the same screenshot and different bugs.
