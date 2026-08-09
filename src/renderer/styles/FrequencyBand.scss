@@ -194,9 +194,11 @@ button.band-frequency-caption {
 
 // *** Densities **************************************************************
 
-.bands--full .bandWrapper {
-  padding-top: 12px;
-}
+// Was twelve pixels of extra padding at six bands and nothing at the others,
+// which moved the whole editor whenever the count crossed that line. The same
+// vertical-measurement-by-density mistake as the gap and the track length,
+// and the last of the three: the roomy layout does not need its column taller,
+// it needs its column wider, and it already is.
 
 .bandWrapper--compact {
   .dropdown > [role='menu'] {
