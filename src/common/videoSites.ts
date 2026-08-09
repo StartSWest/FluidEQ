@@ -45,9 +45,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  *
  * So `persist:`, and the guarantee changes from "nothing is kept" to "nothing is
  * kept that you did not ask for, and you can throw all of it away in one press".
- * That press is `CLEAR_VIDEO_SESSION`, wired to a button in the player's own
- * toolbar. A store nobody can empty is the version of this that would have been
- * indefensible.
+ * That press is `ChannelEnum.CLEAR_VIDEO_SESSION`, wired to a button in the
+ * player's own toolbar. A store nobody can empty is the version of this that
+ * would have been indefensible.
  *
  * What did NOT change, and is what actually contains the blast radius:
  *
@@ -65,12 +65,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * added to it deliberately and one at a time rather than by loosening the check.
  */
 export const VIDEO_BROWSER_PARTITION = 'persist:fluideq-video';
-
-/** Throw away every cookie, token and cache the player has accumulated. */
-export const CLEAR_VIDEO_SESSION = 'clear-video-session';
-
-/** Sent back when it is done, so the player can reload onto a clean session. */
-export const VIDEO_SESSION_CLEARED = 'video-session-cleared';
 
 /**
  * A popup the player refused, sent from main to the window so it can say so.
