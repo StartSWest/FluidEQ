@@ -2681,6 +2681,27 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
     state.headsetTarget = bundle.preset.headsetTarget;
     state.headsetSource = bundle.preset.headsetSource;
     state.headsetSignature = bundle.preset.headsetSignature;
+    /*
+     * The headphone layer, which this list forgot when the layer was added.
+     *
+     * Three other sites copy a preset onto the live state and all three carry
+     * it; only this one did not, so importing a chain silently dropped the
+     * correction it was carrying. Worse than dropped: `headsetSignature` two
+     * lines up WAS copied, so the layers strip then described a correction
+     * against bands that had never produced it.
+     *
+     * And it did not stop at this run. `handleUpdateHelper` re-saves the
+     * profile from `getCurrentPreset()`, which reads the live state — so the
+     * correct file this import had just written to disk was immediately
+     * overwritten from a state still holding the PREVIOUS output's correction.
+     * The imported profile was destroyed by the act of importing it.
+     *
+     * The comment above this block names the invariant it broke, and the one on
+     * `getCurrentPreset` says a miss of exactly this kind "was missed for
+     * months". Both were right and neither was enough; a test is, so there is
+     * one now.
+     */
+    state.headphone = bundle.preset.headphone;
     state.bypassed = bundle.preset.bypassed;
 
     await handleUpdateHelper<string>(

@@ -57,6 +57,52 @@ describe('a chain bundle', () => {
     expect(read?.exportedFrom).toBe('Headphones');
   });
 
+  /**
+   * The headphone layer travels, and the import has to carry it off the bundle.
+   *
+   * It did not. The handler copies fifteen preset fields onto the live state one
+   * by one, and when the headphone correction became a layer this list was the
+   * one of four such sites that never learned about it — so importing a chain
+   * dropped the correction it was carrying while still copying the signature
+   * that describes it.
+   *
+   * Then it went further than the session: the profile is re-saved from the
+   * live state immediately afterwards, so the correct file the import had just
+   * written was overwritten from a state holding the previous output's
+   * correction. Importing a chain destroyed the thing it imported.
+   *
+   * Asserted on the field rather than on the handler because the handler needs
+   * a running main process. What this pins is the half that can be pinned: the
+   * bundle carries it, so a copy that omits it is losing something that arrived
+   * intact.
+   */
+  it('carries a headphone correction through the format', () => {
+    const withHeadphone: IChainBundle = {
+      ...bundle,
+      preset: {
+        ...preset,
+        headphone: {
+          filters: {
+            h: {
+              id: 'h',
+              frequency: 3000,
+              gain: -5,
+              quality: 1.4,
+              type: FilterTypeEnum.PK,
+            },
+          },
+          intensity: 1,
+        },
+      },
+    };
+    const read = parseChainBundle(
+      JSON.parse(serializeChainBundle(withHeadphone)),
+    );
+
+    expect(read?.preset.headphone?.intensity).toBe(1);
+    expect(read?.preset.headphone?.filters.h.gain).toBe(-5);
+  });
+
   it('carries the custom file, which is the one part that cannot be rebuilt', () => {
     // Everything else in a chain is generated from the preset at the far end.
     // This file is not, so if it does not travel it is simply gone.

@@ -684,6 +684,7 @@ const SmartEqEngine = () => {
             driverRef.current,
             undefined,
             headphoneRef.current,
+            bypassedRef.current,
           ),
         });
         if (Object.keys(gains).length === 0) {
@@ -946,6 +947,7 @@ const SmartEqEngine = () => {
         driverRef.current,
         undefined,
         headphoneRef.current,
+        bypassedRef.current,
       ),
     });
     if (Object.keys(solved).length === 0) {

@@ -17,7 +17,12 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { IFilter, IHeadphoneSettings, parseBandShape } from 'common/constants';
+import {
+  IFilter,
+  IHeadphoneSettings,
+  TApoLayer,
+  parseBandShape,
+} from 'common/constants';
 import { getHeadphoneFilters } from 'common/headphone';
 import { IVoicingSettings, getVoicingFilters } from 'common/voicing';
 import { IDriverSettings, getDriverFilters } from 'common/driver';
@@ -138,15 +143,35 @@ export const buildChainGainDb = (
   return axis.map((frequency) => sampleSpectrumAt(curve, frequency));
 };
 
+/**
+ * What the solver must not try to undo — MINUS ANYTHING SWITCHED OFF.
+ *
+ * The bypass list is the point of the last argument, and leaving it out was a
+ * fault rather than a missing nicety. A bypassed layer is not written to the
+ * config, so the capture cannot contain it; summed here anyway, the solver is
+ * told to expect a shape that is not in the sound. It reads the absence as
+ * error and rebuilds the switched-off layer inside `smart`.
+ *
+ * Which turns the bypass into the opposite of what it is for. It is described
+ * as an A/B switch — the same passage, both ways, a second apart — and a switch
+ * that quietly recreates what it just removed cannot answer that question. The
+ * chain-gain subtraction in `SmartEqEngine` already honoured this list; only its
+ * partner did not, which is the shape every layer bug in this codebase has had.
+ *
+ * `headsetSignature` is deliberately NOT gated. It is not a layer and has no
+ * switch: it describes a correction applied into the bands back when none of
+ * this was a layer, so there is nothing to bypass and nothing to leave out.
+ */
 export const buildLayerTargetCurve = (
   voicing: IVoicingSettings | undefined,
   driver: IDriverSettings | undefined,
   headsetSignature?: string,
   headphone?: IHeadphoneSettings,
+  bypassed: readonly TApoLayer[] = [],
 ): ISpectrumSample[] =>
   curveOf([
-    ...getVoicingFilters(voicing),
-    ...getDriverFilters(driver),
+    ...(bypassed.includes('voicing') ? [] : getVoicingFilters(voicing)),
+    ...(bypassed.includes('driver') ? [] : getDriverFilters(driver)),
     /*
      * The published correction, handed back as something not to undo.
      *
@@ -160,6 +185,6 @@ export const buildLayerTargetCurve = (
      * all that is left of them. New ones arrive here instead, in full, rather
      * than as a description reconstructed from a string.
      */
-    ...getHeadphoneFilters(headphone),
+    ...(bypassed.includes('headphone') ? [] : getHeadphoneFilters(headphone)),
     ...parseBandShape(headsetSignature),
   ]);
