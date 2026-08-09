@@ -74,10 +74,11 @@ const isCustomFile = (fileName: string) => /-custom\.txt$/i.test(fileName);
 /**
  * Which layer a file holds, read off the name FluidEQ gave it.
  *
- * This is what lets a pill and a file block be shown in the same colour, which
- * is the only thing tying the two halves of this panel together: the pills name
- * layers, the tree names files, and nothing said that `voicing` and
- * `fluideq-4e9fbe8266bb-voicing.txt` were the same thing.
+ * This is what puts the pill in the row of the file it describes, and colours
+ * both the same. The panel used to name layers in one row and files in another
+ * with nothing saying that `voicing` and `fluideq-4e9fbe8266bb-voicing.txt` were
+ * the same thing; the name is what says so, so the name is what they are matched
+ * on — never the order they happen to be listed in.
  *
  * Built from `APO_FEATURES` rather than spelled out, so a feature added later
  * cannot end up with a file this panel quietly declines to colour. The device
@@ -87,6 +88,30 @@ const FEATURE_FILE = new RegExp(`-(${APO_FEATURES.join('|')})\\.txt$`, 'i');
 
 const layerOfFile = (fileName: string) =>
   fileName.match(FEATURE_FILE)?.[1].toLowerCase();
+
+/**
+ * Every layer the tree actually holds a file for, read off the names.
+ *
+ * Off the names rather than off the layer list, because those are two different
+ * claims and this panel reports the file: a layer the profile calls applied
+ * that has no file under the device is precisely the disagreement worth
+ * showing, and asking the profile which layers have files would hide it.
+ *
+ * The whole tree rather than the device file's own includes — a chain built by
+ * an older FluidEQ, or edited by hand, can nest one file deeper than this one
+ * would, and a layer whose pill has a row somewhere must not also be listed as
+ * having none.
+ */
+const filedLayers = (file: IApoConfigFile | undefined): string[] => {
+  if (!file) {
+    return [];
+  }
+  const own = layerOfFile(file.fileName);
+  return [
+    ...(own ? [own] : []),
+    ...file.includes.flatMap((child) => filedLayers(child)),
+  ];
+};
 
 /**
  * The layer's colour as a custom property, or nothing for a layer without one.
@@ -116,12 +141,72 @@ const layerStyle = (layer: string | undefined) =>
 const roundPreAmp = (line: string) =>
   line.replace(/-?\d+\.\d+/, (value) => Number(value).toFixed(2));
 
+/**
+ * One layer, said in the one place it belongs.
+ *
+ * Almost always that place is the row of the file it describes — the pill and
+ * the file are the same layer said twice, and said three inches apart they had
+ * to be matched up by eye. The exceptions are the layers with no file at all,
+ * which is why this is a component rather than markup inlined into the tree:
+ * the strip below the tree draws the same pill from the same source, so a
+ * bypassed voicing looks like the voicing it is rather than like a second
+ * notation for one.
+ */
+const LayerPill = ({
+  feature,
+  isApplied,
+  isLive,
+}: {
+  feature: string;
+  isApplied: boolean;
+  /** Whether Continuous EQ is maintaining this output as you read it. */
+  isLive: boolean;
+}) => {
+  const { t } = useTranslation();
+  return (
+    // The same bar the chip row draws, in the same colour, because it is the
+    // same layer: a pill here, a chip on the EQ page and a curve on the graph
+    // all agree. Every pill used to be the one lime, so the row said which
+    // layers existed and nothing about which was which.
+    //
+    // The name stays the raw feature key rather than the translated one. It
+    // reads as a developer token, and that is exactly its value here — `voicing`
+    // is literally the suffix of the `fluideq-4e9fbe8266bb-voicing.txt` it now
+    // sits beside, so the word is what ties the pill to the file name a
+    // centimetre to its left. A prettier label would break that.
+    <span
+      className={`config-layer${isApplied ? '' : ' is-off'}`}
+      style={layerStyle(feature)}
+    >
+      <span className="config-layer__swatch" aria-hidden />
+      <span className="config-layer__name">{feature}</span>
+      {/* The one layer that can be changing while you read this. Everything
+          else in the panel is a file sitting on disk exactly as somebody left
+          it; Smart EQ under Continuous EQ is being rewritten as the measurement
+          moves, and a panel that showed it as settled would be out of date by
+          the time it was read.
+
+          Only for the output actually playing: the loop measures what is coming
+          out now, so it can only be keeping one device's file measured. */}
+      {feature === 'smart' && isApplied && isLive && (
+        <span className="config-layer__live" title={t('config.liveTitle')} />
+      )}
+      <span className="config-layer__state">
+        {isApplied ? t('config.layer.on') : t('config.layer.off')}
+      </span>
+    </span>
+  );
+};
+
 /** One file and its children, drawn as a disclosure and editable in place. */
 const ConfigFileNode = ({
   file,
+  isLive,
   onSaved,
 }: {
   file: IApoConfigFile;
+  /** Passed to the pills: Continuous EQ is running on this output. */
+  isLive: boolean;
   onSaved: () => void;
 }) => {
   const { t } = useTranslation();
@@ -139,8 +224,14 @@ const ConfigFileNode = ({
 
   if (file.isMissing) {
     return (
+      // The pill goes on this row too, and says the layer is applied, because
+      // an Include naming it is the config asking for it. That it is also
+      // marked missing is the second half of the same sentence — and the pill
+      // has nowhere else to be said: the strip below only holds layers the tree
+      // never mentions, and this one it mentions and cannot find.
       <li className="config-node config-node--missing">
         <span className="config-node__name">{file.fileName}</span>
+        {layer && <LayerPill feature={layer} isApplied isLive={isLive} />}
         <span className="config-node__badge config-node__badge--missing">
           {t('config.file.missing')}
         </span>
@@ -160,9 +251,10 @@ const ConfigFileNode = ({
   };
 
   return (
-    // The layer's colour, carried down to the head's edge below. A file block
-    // and the pill above it are the same layer said twice, and the colour is
-    // what says so — see `layerOfFile`.
+    // The layer's colour, carried down to the head's edge and into the pill in
+    // it. Both are read off the file's own name — see `layerOfFile` — so the
+    // edge, the swatch and the `-voicing.txt` at the end of the name are one
+    // fact drawn three ways rather than three things to reconcile.
     <li
       className={`config-node${isCustom ? ' config-node--custom' : ''}${
         layer ? ' config-node--layer' : ''
@@ -179,6 +271,16 @@ const ConfigFileNode = ({
           {isOpen ? '▾' : '▸'}
         </span>
         <span className="config-node__name">{file.fileName}</span>
+        {/* Immediately after the name, and only when the name has a layer in
+            it. The device file and the custom file are not layers, and neither
+            gets a placeholder — an empty pill-sized gap would shift their names
+            out of line with every other row for the sake of saying nothing.
+
+            Applied, because the file is here and the config includes it. That
+            comes from the file rather than from the profile deliberately: the
+            profile's own answer belongs to the layers with no file, and this
+            panel's promise is to report what is on disk. */}
+        {layer && <LayerPill feature={layer} isApplied isLive={isLive} />}
         {isCustom && (
           <span className="config-node__badge config-node__badge--custom">
             {t('config.file.yours')}
@@ -255,6 +357,7 @@ const ConfigFileNode = ({
                 <ConfigFileNode
                   key={child.fileName}
                   file={child}
+                  isLive={isLive}
                   onSaved={onSaved}
                 />
               ))}
@@ -432,6 +535,30 @@ const ConfigInspector = () => {
   const selectedKey = selected ?? (devices[0] ? keyOf(devices[0]) : undefined);
   const shown = devices.find((device) => keyOf(device) === selectedKey);
 
+  /**
+   * The layers with no row in the tree, because they have no file.
+   *
+   * Every other layer is drawn in the row of the file it wrote, which is where
+   * it belongs — the pill and the file name say the same word. These cannot be:
+   * there is nothing for them to sit beside. Two quite different things end up
+   * here and both need saying. A bypassed layer writes no file at all, and a
+   * bypass whose only visible consequence is a row quietly disappearing is a
+   * switch you cannot check the result of. The convolution never has a file in
+   * any state — APO applies an impulse ahead of the filters, so it is one line
+   * in the device file — and it would otherwise be the one layer this panel
+   * never mentioned.
+   *
+   * Kept to exactly those, so the strip is not a second copy of the tree: it
+   * appears only when there is something the files below cannot tell you.
+   */
+  const filelessLayers = useMemo(() => {
+    if (!shown) {
+      return [];
+    }
+    const filed = new Set(filedLayers(shown.file));
+    return (shown.layers ?? []).filter((layer) => !filed.has(layer.feature));
+  }, [shown]);
+
   return (
     <section className="config-inspector" aria-labelledby="config-title">
       {/* The same header every other tab page carries: a kicker, the name of
@@ -572,100 +699,74 @@ const ConfigInspector = () => {
                   and the only output somebody can judge the result on is the
                   one already playing — so it always lands on that, and says
                   so. */}
-              {/* Import sits at the far right, with the note between the two.
+              {/* The two buttons together at the end of the row, with the note
+                  holding the space to their left.
 
-                  Side by side they were a pair of equals, and they are not:
-                  Export writes a file you chose the name of, Import overwrites
-                  the chain you are listening to right now. The one you can undo
-                  should not be the neighbour of the one you cannot, close
-                  enough to hit by accident. The note has to go somewhere and the
-                  gap is the one place it is not trailing off the end of a row.
+                  They were separated for a while, Export at one end and Import
+                  at the other with the note between, on the argument that the
+                  undoable one should not sit next to the one that overwrites
+                  what you are listening to. That was tried and is not what this
+                  is: they are one pair of opposite directions through the same
+                  door, and split across a row they read as two unrelated
+                  controls with a caption in the middle.
 
-                  The reading order is unchanged, so tabbing still reaches
-                  Export before Import. */}
+                  Export is still first in the markup, so tabbing reaches it
+                  before Import. The note leads now rather than sitting between
+                  them, which is the order it is read in as well as the order it
+                  is laid out in. */}
               <div className="config-device__transfer">
-                <button
-                  type="button"
-                  className="config-device__export"
-                  onClick={() => transferChain(() => exportChain(shown))}
-                >
-                  {t('config.export')}
-                </button>
                 <span className="config-device__transfer-note">
                   {transferNote || t('config.import.hint')}
                 </span>
-                <button
-                  type="button"
-                  className="config-device__import"
-                  onClick={() => transferChain(importDeviceChain)}
-                >
-                  {t('config.import')}
-                </button>
+                <div className="config-device__transfer-actions">
+                  <button
+                    type="button"
+                    className="config-device__export"
+                    onClick={() => transferChain(() => exportChain(shown))}
+                  >
+                    {t('config.export')}
+                  </button>
+                  <button
+                    type="button"
+                    className="config-device__import"
+                    onClick={() => transferChain(importDeviceChain)}
+                  >
+                    {t('config.import')}
+                  </button>
+                </div>
               </div>
-              {/* Every layer this output has, applied or not.
-                  A switched-off layer has no file, so without this the panel
-                  would simply stop showing it the moment it was bypassed —
-                  which is the one thing somebody who just pressed a bypass
-                  switch wants to see confirmed. */}
-              {shown.layers && shown.layers.length > 0 && (
-                <ul className="config-layers">
-                  {shown.layers.map((layer) => (
-                    <li
-                      key={layer.feature}
-                      className={`config-layer${
-                        layer.isApplied ? '' : ' is-off'
-                      }`}
-                      style={layerStyle(layer.feature)}
-                    >
-                      {/* The same bar the chip row draws, in the same colour,
-                          because it is the same layer: a pill here, a chip on
-                          the EQ page and a curve on the graph now all agree.
-                          Every pill used to be the one lime, so the row said
-                          which layers existed and nothing about which was
-                          which.
-
-                          The name stays the raw feature key rather than the
-                          translated one. It reads as a developer token, and
-                          that is exactly its value here — `voicing` is
-                          literally the suffix of
-                          `fluideq-4e9fbe8266bb-voicing.txt` in the tree below,
-                          so the word itself is half the answer to "which file
-                          is this". A prettier label would break that. */}
-                      <span className="config-layer__swatch" aria-hidden />
-                      <span className="config-layer__name">
-                        {layer.feature}
-                      </span>
-                      {/* The one layer that can be changing while you read
-                          this. Everything else in the panel is a file sitting
-                          on disk exactly as somebody left it; Smart EQ under
-                          Continuous EQ is being rewritten as the measurement
-                          moves, and a panel that showed it as settled would be
-                          out of date by the time it was read.
-
-                          Only for the output actually playing: the loop
-                          measures what is coming out now, so it can only be
-                          keeping one device's file measured. */}
-                      {layer.feature === 'smart' &&
-                        layer.isApplied &&
-                        isContinuousOn &&
-                        isCurrent(shown) && (
-                          <span
-                            className="config-layer__live"
-                            title={t('config.liveTitle')}
-                          />
-                        )}
-                      <span className="config-layer__state">
-                        {layer.isApplied
-                          ? t('config.layer.on')
-                          : t('config.layer.off')}
-                      </span>
-                    </li>
-                  ))}
-                </ul>
+              {/* Above the tree rather than under it, which is where the row
+                  of every layer used to be. What is left in it is the one
+                  thing the files cannot report, and a bypass confirmed only
+                  after scrolling past five expanded files is not confirmed. */}
+              {filelessLayers.length > 0 && (
+                <div className="config-layers">
+                  <span className="config-layers__lead" id="config-fileless">
+                    {t('config.layers.noFile')}
+                  </span>
+                  <ul
+                    className="config-layers__list"
+                    aria-labelledby="config-fileless"
+                  >
+                    {filelessLayers.map((layer) => (
+                      <li key={layer.feature}>
+                        <LayerPill
+                          feature={layer.feature}
+                          isApplied={layer.isApplied}
+                          isLive={isContinuousOn && isCurrent(shown)}
+                        />
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               )}
               {shown.file ? (
                 <ul className="config-device__tree">
-                  <ConfigFileNode file={shown.file} onSaved={load} />
+                  <ConfigFileNode
+                    file={shown.file}
+                    isLive={isContinuousOn && isCurrent(shown)}
+                    onSaved={load}
+                  />
                 </ul>
               ) : (
                 // The neutral fallback block FluidEQ writes for every output

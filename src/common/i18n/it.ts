@@ -379,6 +379,7 @@ const it: Partial<Dictionary> = {
   'config.liveTitle': 'L’EQ continuo tiene aggiornata questa misura',
   'config.layer.on': 'attivo',
   'config.layer.off': 'inattivo',
+  'config.layers.noFile': 'Senza file proprio',
   'config.empty': 'Non include nulla: questa uscita resta intatta.',
   'config.file.missing': 'assente',
   'config.export': 'Esporta catena',

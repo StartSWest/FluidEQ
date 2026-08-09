@@ -368,6 +368,7 @@ const ja: Partial<Dictionary> = {
   'config.liveTitle': '連続 EQ がこの測定を更新し続けています',
   'config.layer.on': 'オン',
   'config.layer.off': 'オフ',
+  'config.layers.noFile': '専用ファイルなし',
   'config.empty': '何も含まれていません。この出力はそのままです。',
   'config.file.missing': '見つかりません',
   'config.export': 'チェーンを書き出す',

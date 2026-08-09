@@ -462,6 +462,10 @@ const en = {
   'config.liveTitle': 'Continuous EQ is keeping this measured',
   'config.layer.on': 'on',
   'config.layer.off': 'off',
+  // Why these layers are not in the tree below. Every layer with a file is
+  // drawn in that file's row; what is left is a bypassed layer, which writes no
+  // file, and the impulse, which is a line in the device file and never has one.
+  'config.layers.noFile': 'No file of its own',
   'config.empty': 'Nothing included — this output is left alone.',
   'config.file.missing': 'missing',
   'config.export': 'Export chain',

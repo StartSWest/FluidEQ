@@ -275,16 +275,35 @@ it under the terms of the GNU General Public License version 3 or later.
   letter-spacing: 0.04em;
 }
 
-// Every layer the output has, applied or switched off.
+// The layers the tree cannot show, and only those.
 //
-// The off ones are the reason this exists: they have no file, so the tree
-// below cannot mention them at all, and a bypass switch that makes its layer
-// vanish from the config view is a switch you cannot check the result of.
+// Every layer with a file is drawn in that file's row now, beside the name it
+// shares. What is left over is a bypassed layer, which writes no file, and the
+// convolution, which never has one — and a bypass switch whose only visible
+// effect is a row quietly disappearing is a switch you cannot check the result
+// of. So this strip stays, holding the leftovers rather than a copy of the
+// tree, and shows up only when there is something to say.
 .config-layers {
   display: flex;
   flex-wrap: wrap;
-  padding: 0;
+  align-items: center;
   margin: 2px 0 0;
+  gap: $spacing-s;
+}
+
+// Why the pills beside it are not in the tree, in as few words as it takes.
+// Without it the strip is a handful of layers with no stated relationship to
+// the files under it, which is the thing this whole change set out to fix.
+.config-layers__lead {
+  color: $text-faint;
+  font-size: 0.66rem;
+}
+
+.config-layers__list {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 0;
+  margin: 0;
   gap: 5px;
   list-style: none;
 }
@@ -394,12 +413,18 @@ it under the terms of the GNU General Public License version 3 or later.
 // being shown rather than on the panel — and the note sits with the buttons for
 // the same reason it exists at all: both go through a native dialog, so what
 // happened is only knowable after the fact.
+//
+// `align-items: center` and not `baseline`, and the baselines line up anyway:
+// the note and the button labels are the same size and both sit centred in
+// their boxes, so centring the boxes centres the text. Baseline alignment would
+// hang the taller buttons off the note's single line and break the moment the
+// note wrapped.
 .config-device__transfer {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   margin-top: 8px;
-  gap: 8px;
+  gap: $spacing-s;
 
   button {
     padding: 5px 11px;
@@ -423,21 +448,30 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Held at the far end of the row.
+// The two buttons as one control, held at the end of the row.
 //
-// The note between the two buttons already pushes it there while everything
-// fits on one line; this keeps it there when the note is short, empty, or has
-// wrapped the row onto a second line — which is exactly when a button that was
-// only positioned by its neighbour would drift back beside Export.
-.config-device__import {
+// Their own box rather than an `auto` margin on Import, so they stay a pair
+// when the row wraps: a short note used to leave Import at the far end and
+// Export stranded beside the text, and on a narrow pane they landed on
+// different lines. The gap inside is tighter than the row's own, which is what
+// makes them read as one thing with two directions rather than as two controls
+// that happen to be adjacent.
+.config-device__transfer-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
   margin-inline-start: auto;
+  gap: 6px;
 }
 
-// Between the two buttons rather than trailing after both.
+// To the left of the pair, filling the room they do not need.
 //
-// `min-width: 0` is what lets it shrink past its own text instead of forcing
-// Import onto a line of its own: a long note now takes the room that is left,
-// and the row keeps its shape.
+// It stays in the row rather than moving under the buttons because a lone line
+// of text below them would read as a caption for the last thing pressed, and it
+// is as often the hint that nothing has been pressed yet. `min-width: 0` is
+// what lets it shrink past its own text instead of pushing the pair onto a line
+// of its own: a long note takes the room that is left, and the row keeps its
+// shape.
 .config-device__transfer-note {
   min-width: 0;
   flex: 1 1 auto;
@@ -502,9 +536,28 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: 0.6rem;
 }
 
+// The name takes the slack, which is what holds the badges at the right-hand
+// end of the row.
 .config-node__name {
   @include truncate;
   flex: 1 1 auto;
+}
+
+// Unless a pill follows it, in which case the pill takes the slack instead.
+//
+// The pill has to sit against the file name — the point of moving it here is
+// that `voicing` and `…-voicing.txt` can be read as one phrase — so the name
+// gives up its growth and the pill's end margin absorbs the row. The badges do
+// not move: they are still pushed to the end, by the pill rather than by the
+// name. Rows with no layer keep the rule above and line up with these, because
+// nothing was inserted to make room for a pill that is not there.
+.config-node--layer > .config-node__head > .config-node__name {
+  flex: 0 1 auto;
+}
+
+.config-node__head > .config-layer {
+  flex: 0 0 auto;
+  margin-inline-end: auto;
 }
 
 .config-node__badge {
@@ -598,16 +651,40 @@ it under the terms of the GNU General Public License version 3 or later.
   box-shadow: inset 2px 0 0 $neon-lime;
 }
 
-// And a layer's file gets the edge of the pill that names it.
+// And a layer's file gets the edge of the pill sitting in its row.
 //
-// This is the other half of the swatch above: the pills say which layers the
-// output has, the tree says which files it is made of, and until both were
-// drawn in the same colour nothing said that `voicing` and
-// `fluideq-4e9fbe8266bb-voicing.txt` were the same thing. The two never collide
-// — the custom file is not a layer and matches no feature name — so the rules
-// are independent rather than one overriding the other.
+// The edge, the pill's swatch and the `-voicing` at the end of the file name
+// are one fact drawn three ways. It mattered more when the pills were a row of
+// their own at the top of the card and the colour was all that tied the two
+// halves together; now that they sit in the row, the edge is what carries the
+// layer out to where the eye scans for it. The two never collide — the custom
+// file is not a layer and matches no feature name — so the rules are
+// independent rather than one overriding the other.
 .config-node--layer > .config-node__head {
   box-shadow: inset 2px 0 0 var(--layer-color);
+}
+
+// The one row with nothing to disclose, laid out like the heads above it
+// anyway.
+//
+// It has no button to inherit a flex row from, so its name, its pill and its
+// badge sat directly in the list item and ran into each other — which nobody
+// noticed while it was two spans and is plainly wrong now the layer's pill is
+// between them. The badge keeps the right-hand end whether or not there is a
+// pill, so a missing file lines up with the rows around it.
+.config-node--missing {
+  display: flex;
+  align-items: center;
+  padding: 2px 4px;
+  gap: 6px;
+
+  > .config-node__name {
+    flex: 0 1 auto;
+  }
+
+  > .config-node__badge {
+    margin-inline-start: auto;
+  }
 }
 
 .config-node--missing .config-node__name {

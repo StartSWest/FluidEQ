@@ -374,6 +374,7 @@ const ru: Partial<Dictionary> = {
   'config.liveTitle': 'Непрерывный EQ поддерживает это измерение',
   'config.layer.on': 'вкл',
   'config.layer.off': 'выкл',
+  'config.layers.noFile': 'Без своего файла',
   'config.empty': 'Ничего не подключено — этот выход оставлен как есть.',
   'config.file.missing': 'нет файла',
   'config.export': 'Экспорт цепочки',
