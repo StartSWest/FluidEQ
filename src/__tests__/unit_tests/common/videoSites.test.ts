@@ -86,6 +86,42 @@ describe('video site allowlist', () => {
     expect(isAllowedVideoUrl('https://www.google.com/search?q=x')).toBe(false);
   });
 
+  /**
+   * The last hop of a Google sign-in, which is not on `.com`.
+   *
+   * `accounts.google.<cc>/accounts/SetSID` is the request that plants the
+   * session cookie, and Google picks the country domain — observed as
+   * `accounts.google.nl` from a machine nowhere near the Netherlands. Refusing
+   * it let the whole flow run and then failed on the one navigation that made
+   * it count.
+   */
+  it('allows Google sign-in to finish on any of its country domains', () => {
+    expect(
+      isAllowedVideoUrl('https://accounts.google.nl/accounts/SetSID'),
+    ).toBe(true);
+    expect(isAllowedVideoUrl('https://accounts.google.de/')).toBe(true);
+    expect(isAllowedVideoUrl('https://accounts.google.co.uk/')).toBe(true);
+    expect(isAllowedVideoUrl('https://accounts.google.com.br/')).toBe(true);
+  });
+
+  /**
+   * The pattern is a wider door than a literal host, so this is where its edges
+   * are nailed down. It matches one host label on one domain and a TLD shaped
+   * like a country's — not the long vanity TLDs anybody can register, and not
+   * anything else under google.
+   */
+  it('keeps the country-domain pattern to the shape it was written for', () => {
+    expect(isAllowedVideoUrl('https://accounts.google.somethinglong/')).toBe(
+      false,
+    );
+    expect(isAllowedVideoUrl('https://mail.google.nl/')).toBe(false);
+    expect(isAllowedVideoUrl('https://accounts.google.nl.evil.example/')).toBe(
+      false,
+    );
+    expect(isAllowedVideoUrl('https://evil-accounts.google.nl/')).toBe(false);
+    expect(isAllowedVideoUrl('https://accounts.notgoogle.nl/')).toBe(false);
+  });
+
   it('refuses every scheme but https', () => {
     // Plain http is on the list because it is rewritable in transit, and the
     // rest because they reach past the page into the app or the disk.

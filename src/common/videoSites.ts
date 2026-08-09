@@ -258,6 +258,31 @@ const ALLOWED_HOSTS: string[] = [
  *    alone would accept `evil-youtube.com`, which is precisely the trick this
  *    is guarding against.
  */
+/**
+ * Google finishes a sign-in on a country domain, and there are nearly two
+ * hundred of them.
+ *
+ * The last hop of a Google sign-in is `accounts.google.<cc>/accounts/SetSID` —
+ * the request that actually plants the session cookie — and which country
+ * domain it lands on is decided by Google, not by us. Observed here as
+ * `accounts.google.nl` from a machine nowhere near the Netherlands. So the
+ * whole flow ran, the password was accepted, and the refusal fell on the one
+ * navigation that made it count.
+ *
+ * A pattern rather than a list because the list is every ccTLD Google operates,
+ * and a list that is 190 entries long and one short is worse than no list: the
+ * missing one is somebody's login failing at the last step, for reasons nothing
+ * on screen explains.
+ *
+ * TIGHTER THAN IT LOOKS, and deliberately. Two or three letters, optionally
+ * followed by a two-letter second level — which is the shape of `com`, `nl`,
+ * `co.uk` and `com.br`, and is not the shape of any of the long vanity TLDs
+ * anybody can buy. `accounts.google.somethinglong` does not match. It is still
+ * a wider door than a literal host, and it is one host label on one domain,
+ * which is as narrow as this can be made while leaving the flow able to finish.
+ */
+const GOOGLE_ACCOUNTS_HOST = /^accounts\.google\.[a-z]{2,3}(\.[a-z]{2})?$/;
+
 export const isAllowedVideoUrl = (url: string): boolean => {
   let parsed: URL;
   try {
@@ -275,8 +300,11 @@ export const isAllowedVideoUrl = (url: string): boolean => {
   // Chromium resolves to YouTube.
   const host = parsed.hostname.toLowerCase().replace(/\.$/, '');
 
-  return ALLOWED_HOSTS.some(
-    (allowed) => host === allowed || host.endsWith(`.${allowed}`),
+  return (
+    GOOGLE_ACCOUNTS_HOST.test(host) ||
+    ALLOWED_HOSTS.some(
+      (allowed) => host === allowed || host.endsWith(`.${allowed}`),
+    )
   );
 };
 
