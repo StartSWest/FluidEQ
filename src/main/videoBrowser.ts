@@ -726,16 +726,24 @@ const hardenPopup = (contents: WebContents) => {
             // the one it expects, and says nothing when it is not. Reading the
             // origin across origins throws, and that is an answer too.
             let openerOrigin = 'none';
+            // The last of SoundCloud's three silent branches. Origin matches
+            // and an opener exists, so the only remaining way for the handover
+            // to be dropped without a word is the callback simply not being
+            // there on the opener to call.
+            let handback = 'unknown';
             if (window.opener) {
               try {
                 openerOrigin = window.opener.location.origin;
+                handback = typeof window.opener.webOAuthCallback;
               } catch (error) {
                 openerOrigin = 'cross-origin';
+                handback = 'unreachable';
               }
             }
             return JSON.stringify({
               here: window.location.origin,
               openerOrigin,
+              handback,
               keys: Object.keys(sessionStorage),
               local: Object.keys(localStorage).length,
             });
