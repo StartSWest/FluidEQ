@@ -140,6 +140,66 @@ const CONSOLE_MESSAGE_LIMIT = 200;
  */
 const CONSOLE_ERROR_LIMIT = 1200;
 
+/**
+ * Send a guest's console to the log, since nobody has its devtools open.
+ *
+ * A guest has a console and no reader. When a site does not work in here — and
+ * only in here — the one account of why went into a devtools window that does
+ * not exist, and every diagnosis started from a screenshot and a guess.
+ *
+ * Warnings and errors only. A video page logs hundreds of informational lines a
+ * minute and not one of them has ever explained anything.
+ *
+ * A function rather than the inline block it used to be because the sign-in
+ * popup needs it too. That window had no instrumentation whatsoever, which is
+ * precisely why several attempts at fixing sign-in were guesses: it opened, and
+ * then the log said nothing at all until something was refused.
+ */
+const forwardConsole = (contents: WebContents, tag: string) => {
+  contents.on('console-message', (details) => {
+    if (details.level !== 'error' && details.level !== 'warning') {
+      return;
+    }
+    const where = details.sourceId
+      ? ` (${details.sourceId}:${details.lineNumber})`
+      : '';
+    /*
+     * Truncated, because an ad tracker's URL is not a diagnosis — but errors
+     * get far more room than warnings, and that difference was learned the hard
+     * way.
+     *
+     * The cap exists for the chatter. A blocked doubleclick request logs its
+     * entire query string — click ids, consent tokens, viewability telemetry —
+     * two or three kilobytes a line, several times a second on a video page. It
+     * rotated a megabyte of log inside an hour and buried everything worth
+     * reading.
+     *
+     * Every one of those is a warning. Errors are rare, and an error is the
+     * whole reason somebody is reading this file. A CORS refusal names the
+     * origin, then the whole URL, then the reason — and the reason is last, so
+     * the warning-sized cap cut off exactly the part being looked for.
+     */
+    const limit =
+      details.level === 'error' ? CONSOLE_ERROR_LIMIT : CONSOLE_MESSAGE_LIMIT;
+    const message =
+      details.message.length > limit
+        ? `${details.message.slice(0, limit)}…`
+        : details.message;
+    /*
+     * ITS OWN TAG FAMILY, because none of this is ours.
+     *
+     * Everything on this line was written by the embedded page. It used to
+     * arrive under `[player]`, which reads like a FluidEQ subsystem and put
+     * somebody else's noise in the same visual class as our own diagnostics.
+     *
+     * `[page:warn]` says both things at once: not ours, and how loud. One grep
+     * silences the chatter and `[page:error]` survives it. The sign-in window
+     * takes a tag of its own so two windows can be told apart in one log.
+     */
+    log.info(`[${tag}:${details.level}] ${message}${where}`);
+  });
+};
+
 const broadcastAdBlockSetting = () => {
   attachedPlayers.forEach((contents) => {
     if (!contents.isDestroyed()) {
@@ -233,63 +293,7 @@ const hardenPlayer = (contents: WebContents) => {
   contents.on('will-navigate', blockDisallowed);
   contents.on('will-redirect', blockDisallowed);
 
-  /**
-   * What the page itself is complaining about.
-   *
-   * A guest has its own console, and nobody has it open. So when a site does
-   * not work in here — and only in here — the one account of why was going
-   * straight into a devtools window that does not exist, and every diagnosis
-   * started from a screenshot and a guess.
-   *
-   * Warnings and errors only. A video page logs hundreds of informational lines
-   * a minute and none of them has ever explained anything.
-   */
-  contents.on('console-message', (details) => {
-    if (details.level !== 'error' && details.level !== 'warning') {
-      return;
-    }
-    const where = details.sourceId
-      ? ` (${details.sourceId}:${details.lineNumber})`
-      : '';
-    /*
-     * Truncated, because an ad tracker's URL is not a diagnosis — but errors
-     * get far more room than warnings, and the difference was learned the hard
-     * way.
-     *
-     * The cap exists for the chatter. A blocked doubleclick request logs its
-     * entire query string — click ids, consent tokens, viewability telemetry —
-     * two or three kilobytes a line, several times a second on a video page. It
-     * rotated a megabyte of log inside an hour and buried everything worth
-     * reading.
-     *
-     * Every one of those is a warning. Errors are rare, and an error is the
-     * whole reason somebody is reading this file. A CORS refusal names the
-     * offending origin, then the URL, then the actual reason — and the reason
-     * is last, so two hundred characters cut it off precisely. Debugging a
-     * sign-in here meant staring at a line that had been shortened by the
-     * logger written to make debugging possible.
-     */
-    const limit =
-      details.level === 'error' ? CONSOLE_ERROR_LIMIT : CONSOLE_MESSAGE_LIMIT;
-    const message =
-      details.message.length > limit
-        ? `${details.message.slice(0, limit)}…`
-        : details.message;
-    /*
-     * ITS OWN TAG FAMILY, because none of this is ours.
-     *
-     * Everything on this line was written by the embedded page — YouTube's
-     * player, its ad stack, whatever a video decides to complain about. It used
-     * to arrive under `[player]`, which reads like a FluidEQ subsystem and put
-     * somebody else's noise in the same visual class as our own diagnostics.
-     *
-     * `[page:warn]` says both things at once: not ours, and how loud. One grep
-     * silences the chatter — YouTube emits three preload warnings every few
-     * seconds while a video plays, which is exactly when the log is most likely
-     * to be read for another reason — and `[page:error]` survives it.
-     */
-    log.info(`[page:${details.level}] ${message}${where}`);
-  });
+  forwardConsole(contents, 'page');
 
   /**
    * And a page that never arrived.
@@ -598,6 +602,42 @@ const hardenPopup = (contents: WebContents) => {
   contents.setWindowOpenHandler(({ url }) => {
     log.info(`Sign-in popup refused a popup to ${url}`);
     return { action: 'deny' };
+  });
+
+  /*
+   * SAY WHAT THIS WINDOW IS DOING, NOT ONLY WHAT IT WAS STOPPED FROM DOING.
+   *
+   * Until now the only line a sign-in window ever wrote was a refusal. It
+   * opened, and then the log went quiet — so "the popup opened and the sign-in
+   * did not work" was the entire evidence available, and several attempts at
+   * fixing it were guesses dressed up as diagnoses. The player has had this
+   * treatment since it was written, which is why every problem on the player
+   * side was found in one reading.
+   *
+   * A sign-in is a chain of redirects across three or four hosts, and where it
+   * stops is the whole answer. That chain is now written down.
+   */
+  contents.on('did-start-navigation', (details) => {
+    if (details.isMainFrame) {
+      log.info(`Sign-in popup navigating to ${details.url}`);
+    }
+  });
+
+  contents.on('did-fail-load', (_event, errorCode, errorDescription, url) => {
+    // `-3` is an aborted load, which every navigation replaced by a newer one
+    // reports. A redirect chain is made of those.
+    if (errorCode !== -3) {
+      log.info(`Sign-in popup failed to load ${url}: ${errorDescription}`);
+    }
+  });
+
+  forwardConsole(contents, 'signin');
+
+  // How it ended. A flow that succeeded closes its own window, so this line is
+  // the difference between "finished" and "gave up and closed it by hand" —
+  // which are the same screenshot and different bugs.
+  contents.on('destroyed', () => {
+    log.info('Sign-in popup closed');
   });
 };
 
