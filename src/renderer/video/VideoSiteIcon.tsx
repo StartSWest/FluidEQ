@@ -61,14 +61,6 @@ const PATHS: Record<string, string[]> = {
     'M8 1.4a6.6 6.6 0 1 1 0 13.2A6.6 6.6 0 0 1 8 1.4Z',
     'M6.6 5.2v5.6L11 8Z',
   ],
-  // The waveform bars, rising into the cloud they sit under.
-  soundcloud: [
-    'M1 9.2h1.1v3.3H1Z',
-    'M3.2 7.6h1.1v4.9H3.2Z',
-    'M5.4 6.2h1.1v6.3H5.4Z',
-    'M7.6 7h1.1v5.5H7.6Z',
-    'M9.8 5.1c.6-1.9 3-2.5 4.3-1 .5.6.7 1.4.6 2.2 1.4.5 1.4 2.7 0 3.2-.2.1-.5.1-.8.1H9.8Z',
-  ],
   // The slanted quadrilateral of the wordmark's badge.
   bandcamp: ['M1.2 4.1h13.6l-4 7.8H1.2Z'],
   // The glitch bubble, with its two bars as counters.
@@ -76,16 +68,6 @@ const PATHS: Record<string, string[]> = {
     'M3.1 1H15v7.9l-3.4 3.4H8.9l-2.3 2.3v-2.3H3.1V3.4Z',
     'M6.9 4.2h1.2v3.9H6.9Z',
     'M10.2 4.2h1.2v3.9h-1.2Z',
-  ],
-  // The disc, with three arcs knocked out of it. Each arc is a closed band
-  // rather than a stroke — the same rule the rest of this file follows, since a
-  // stroke would be painted rather than punched and would carry the wrong colour
-  // the moment the pill behind it lit up.
-  spotify: [
-    'M8 1.4a6.6 6.6 0 1 1 0 13.2A6.6 6.6 0 0 1 8 1.4Z',
-    'M3.6 7Q8 4 12.4 7L12.4 8.35Q8 5.35 3.6 8.35Z',
-    'M4.6 9.3Q8 6.8 11.4 9.3L11.4 10.5Q8 8.1 4.6 10.5Z',
-    'M5.6 11.4Q8 9.5 10.4 11.4L10.4 12.45Q8 10.75 5.6 12.45Z',
   ],
 };
 

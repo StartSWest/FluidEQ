@@ -479,43 +479,72 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // because it comes first in the row and is always rendered where that one
 // appears only after its chord. Two auto margins in one flex row split the free
 // space between them, which opens a gap in the middle rather than closing it.
+// One small square at the end of the row, and nothing else.
+//
+// It carries the `margin-left: auto` that used to be on the ad-block group,
+// because it comes first and is always rendered where that one appears only
+// after its chord. Two auto margins in one flex row split the free space
+// between them, which opens a gap in the middle rather than closing it.
+//
+// Sized to the row's other glyph buttons rather than to its own label, because
+// it no longer has one — the words are in the tooltip and in what a screen
+// reader is given.
 .video-browser__sign-out {
-  display: flex;
+  display: grid;
+  width: 26px;
+  height: 26px;
   margin-left: auto;
   flex: 0 0 auto;
-  align-items: center;
-  gap: $spacing-xs;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  background: transparent;
+  color: rgba($primary-lighter, 0.6);
+  place-items: center;
+  cursor: pointer;
+  transition:
+    color 140ms ease,
+    border-color 140ms ease,
+    background 140ms ease;
 
-  button {
-    flex: 0 0 auto;
-    padding: 5px 10px;
-    border: 1px solid rgba($secondary-light, 0.35);
-    border-radius: $radius-s;
-    background: rgba($secondary-light, 0.1);
-    color: rgba($secondary-light, 0.9);
-    font-size: 0.68rem;
-    white-space: nowrap;
-    cursor: pointer;
-
-    &:hover:not(:disabled) {
-      border-color: rgba($secondary-light, 0.5);
-      background: rgba($secondary-light, 0.2);
-      color: $secondary-light;
-    }
-
-    &:disabled {
-      cursor: default;
-      opacity: 0.6;
-    }
+  svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.5;
   }
-}
 
-// What it did, once it has. Same size as the button's label so the row does not
-// change height when this appears beside it.
-.video-browser__sign-out-result {
-  color: rgba($primary-lighter, 0.75);
-  font-size: 0.68rem;
-  white-space: nowrap;
+  &:hover:not(:disabled) {
+    border-color: rgba($secondary-light, 0.4);
+    background: rgba($secondary-light, 0.14);
+    color: $secondary-light;
+  }
+
+  &:focus-visible {
+    border-color: rgba($secondary-light, 0.5);
+    color: $secondary-light;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  // What it did, in the only currency a glyph has. Held for a few seconds by
+  // the component, then back to the door.
+  // The app's own accent rather than a green, because there is no green in this
+  // palette and inventing one for a four-second tick is how a palette stops
+  // being one.
+  &.is-done {
+    color: $secondary-default;
+  }
+
+  &.is-failed {
+    color: $red;
+  }
 }
 
 // *** Ad blocker switch ******************************************************

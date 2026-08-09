@@ -176,15 +176,9 @@ describe('sign-in', () => {
     expect(
       isNavigableVideoUrl('https://accounts.google.com/ServiceLogin'),
     ).toBe(true);
-    expect(isNavigableVideoUrl('https://secure.soundcloud.com/sign-in')).toBe(
-      true,
-    );
     expect(isNavigableVideoUrl('https://bandcamp.com/login')).toBe(true);
     expect(isNavigableVideoUrl('https://www.twitch.tv/login')).toBe(true);
     expect(isNavigableVideoUrl('https://id.twitch.tv/oauth2/authorize')).toBe(
-      true,
-    );
-    expect(isNavigableVideoUrl('https://accounts.spotify.com/en/login')).toBe(
       true,
     );
   });
@@ -192,58 +186,29 @@ describe('sign-in', () => {
   /**
    * Dropping the sign-in rule must not have dropped the host check with it.
    *
-   * This is the assertion that would catch someone "fixing" a refused login by
-   * loosening `isNavigableVideoUrl` rather than by naming a host — the whole
-   * boundary now rests on that list, and a session holding five live logins is
-   * a worse thing to widen than one holding none.
+   * This is the assertion that would catch someone 'fixing' a refused login by
+   * loosening the predicate rather than by naming a host. The whole boundary
+   * rests on that list, and a session holding live logins is a worse thing to
+   * widen than one holding none.
    */
   it('did not become a predicate that allows everything', () => {
     expect(isNavigableVideoUrl('https://login.evil.example/')).toBe(false);
     expect(
       isNavigableVideoUrl('https://accounts.google.com.evil.example/'),
     ).toBe(false);
-    expect(isNavigableVideoUrl('https://spotify.com.attacker.net/login')).toBe(
-      false,
-    );
+    expect(isNavigableVideoUrl('https://suno.com.attacker.net/')).toBe(false);
     // eslint-disable-next-line no-script-url -- the point of the assertion
     expect(isNavigableVideoUrl('javascript:alert(1)')).toBe(false);
   });
 
   /**
-   * All four of SoundCloud's doors, because two of them were shut by omission.
-   *
-   * Its panel offers Facebook, Google, Apple and email. Only two of those hosts
-   * were listed, so pressing either of the others opened a window and had it
-   * refused mid-flight — a boundary nobody chose, made of two entries nobody
-   * wrote.
+   * Suno answers on its old domain as well, with a redirect. A redirect the
+   * player refuses is a dead link, so both names have to be reachable.
    */
-  it('reaches every provider a listed site offers', () => {
-    expect(
-      isNavigableVideoUrl('https://www.facebook.com/dialog/oauth?client_id=1'),
-    ).toBe(true);
-    expect(
-      isNavigableVideoUrl(
-        'https://appleid.apple.com/auth/authorize?scope=name',
-      ),
-    ).toBe(true);
-    // Named host only. Apple's sign-in lives there; the rest of the domain has
-    // no business in a music player.
-    expect(isNavigableVideoUrl('https://www.apple.com/store')).toBe(false);
-    expect(isNavigableVideoUrl('https://facebook.com.evil.example/')).toBe(
-      false,
-    );
-  });
-
-  it('reaches Spotify at every host one listen touches', () => {
-    expect(isNavigableVideoUrl('https://open.spotify.com/')).toBe(true);
-    expect(isNavigableVideoUrl('https://accounts.spotify.com/en/login')).toBe(
-      true,
-    );
-    // Cover art and audio, which the player fetches without navigating.
-    expect(isNavigableVideoUrl('https://i.scdn.co/image/abc')).toBe(true);
-    expect(isNavigableVideoUrl('https://encore.spotifycdn.com/x.css')).toBe(
-      true,
-    );
+  it('follows Suno from its old domain to its new one', () => {
+    expect(isNavigableVideoUrl('https://suno.com/')).toBe(true);
+    expect(isNavigableVideoUrl('https://suno.ai/')).toBe(true);
+    expect(isNavigableVideoUrl('https://cdn1.suno.ai/track.mp3')).toBe(true);
   });
 
   it('still allows every site it puts a button on', () => {

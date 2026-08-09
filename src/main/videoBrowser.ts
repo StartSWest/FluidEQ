@@ -698,66 +698,6 @@ const hardenPopup = (contents: WebContents) => {
 
   forwardConsole(contents, 'signin');
 
-  /*
-   * DOES THIS WINDOW CARRY WHAT A POPUP IS SUPPOSED TO CARRY?
-   *
-   * A sign-in flow does not only pass a token through the URL. SoundCloud's
-   * puts a nonce in `sessionStorage` before opening the window and reads it
-   * back in the callback, and the browser is what connects the two: a window
-   * opened by `window.open` inherits its opener's session storage for that
-   * origin, and inherits an `opener` to talk back through. Both are things the
-   * platform does, not things the site does — which is exactly why a site can
-   * rely on them without saying so, and exactly the kind of thing an embedded
-   * window can quietly lack.
-   *
-   * The callback crashed reading a value that should have been there. This
-   * says whether it was.
-   *
-   * Counts and names only, never values: what is in that storage is somebody's
-   * sign-in state, and the question here is whether it arrived at all.
-   */
-  contents.on('did-finish-load', () => {
-    contents
-      .executeJavaScript(
-        `(() => {
-          try {
-            // WHICH opener, not merely whether there is one. SoundCloud's
-            // callback hands the token back only when the opener's origin is
-            // the one it expects, and says nothing when it is not. Reading the
-            // origin across origins throws, and that is an answer too.
-            let openerOrigin = 'none';
-            // The last of SoundCloud's three silent branches. Origin matches
-            // and an opener exists, so the only remaining way for the handover
-            // to be dropped without a word is the callback simply not being
-            // there on the opener to call.
-            let handback = 'unknown';
-            if (window.opener) {
-              try {
-                openerOrigin = window.opener.location.origin;
-                handback = typeof window.opener.webOAuthCallback;
-              } catch (error) {
-                openerOrigin = 'cross-origin';
-                handback = 'unreachable';
-              }
-            }
-            return JSON.stringify({
-              here: window.location.origin,
-              openerOrigin,
-              handback,
-              keys: Object.keys(sessionStorage),
-              local: Object.keys(localStorage).length,
-            });
-          } catch (error) {
-            return JSON.stringify({ unreadable: String(error) });
-          }
-        })()`,
-      )
-      .then((result) => log.info(`Sign-in popup carries ${result}`))
-      .catch(() => {
-        // The window went away mid-question, which the next line already says.
-      });
-  });
-
   // How it ended. A flow that succeeded closes its own window, so this line is
   // the difference between "finished" and "gave up and closed it by hand" —
   // which are the same screenshot and different bugs.

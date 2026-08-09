@@ -99,34 +99,37 @@ export interface IVideoSite {
  * through their own EQ curve. Adding one here is all it takes to make it
  * reachable — but see `ALLOWED_HOSTS`, which is what actually decides.
  *
- * SPOTIFY IS HERE AND ITS PLAYBACK NEEDS A CDM THIS BUILD DOES NOT HAVE.
- * Browsing, search, library and the whole interface work signed in; pressing
- * play does not, and Spotify says so itself in the player rather than failing
- * silently. Its audio is encrypted under Widevine and Electron ships no Widevine
- * CDM, so there is nothing to decrypt it with.
+ * THREE SITES HAVE BEEN TRIED AND REMOVED, AND EACH IS WORTH A PARAGRAPH,
+ * because without one the next person adds it back and spends the same day.
+ * A button leading to a page that does not work is worse than no button — the
+ * whole promise of this file is that a site in the UI is one that plays.
  *
- * That is fixable and the route is known: castLabs publish an Electron fork with
- * the CDM built in, and their EVS service signs a build for production use.
- * Development signatures are not enough — a Widevine server answers those with a
- * 500 and the symptom is exactly "tracks skip and stop", which is the shape of
- * every report of this. It is a change to how the application is built rather
- * than to anything in this file, so it is recorded where build steps are
- * recorded and not here.
+ * SPOTIFY: its audio is encrypted under Widevine, and Electron ships no Widevine
+ * CDM. Everything else about it worked — it signed in, it browsed, it searched —
+ * and every press of play answered `EMEError: No supported keysystem was found`.
+ * The route past it is known and is not code: castLabs publish an Electron fork
+ * carrying the CDM, and their EVS service signs a build for production, without
+ * which a licence server returns 500 and tracks skip and stop. PlayReady was
+ * tried too, since Windows ships that one — `HardwareSecureDecryption` on
+ * Chromium 150 changed nothing, because registering that key system also happens
+ * in a browser layer Electron does not have. The same wall stands in front of
+ * Netflix and Prime Video.
  *
- * The same wall stands in front of Netflix, Prime Video and anything else
- * licensed. Everything else in this list plays without it.
+ * SOUNDCLOUD: it would not accept a sign-in from this player by any of its four
+ * routes — Facebook, Google, Apple or email — and the email one uses no popup,
+ * no OAuth and no cross-window handover at all, yet failed without producing a
+ * single client-side error. Measured, not assumed: the popup opened, its opener
+ * was the right frame on the right origin, the handover function was present on
+ * it, and Google returned a valid token. Nothing here refused anything. What was
+ * left is its own server declining this client, which is not something this file
+ * can answer.
  *
- * Vimeo was here and had to go, for a reason worth writing down because it will
- * look like a regression otherwise. Vimeo renders its listings on the client
- * from an API that answers nothing to a session it does not recognise: search,
- * Staff Picks and `/watch` all returned their chrome — tabs, filters, footer —
- * and not one result. A direct video URL still played perfectly; there was
- * simply no way to reach one from inside.
- *
- * That was diagnosed against a session that could not log in, which is no longer
- * the case, so it is worth another look before anybody takes this paragraph as
- * settled. A button leading to a page with nothing on it is worse than no button
- * — the whole promise of this file is that a site in the UI is one that works.
+ * VIMEO: it renders its listings from an API that answers nothing to a session
+ * it does not recognise. Search, Staff Picks and `/watch` all returned their
+ * chrome — tabs, filters, footer — and not one result. A direct video URL played
+ * perfectly; there was simply no way to reach one from inside. That was
+ * diagnosed against a session that could not log in, which is no longer true, so
+ * it is the one of the three worth another look.
  */
 export const VIDEO_SITES: IVideoSite[] = [
   {
@@ -142,12 +145,6 @@ export const VIDEO_SITES: IVideoSite[] = [
     search: 'https://music.youtube.com/search?q={query}',
   },
   {
-    id: 'soundcloud',
-    name: 'SoundCloud',
-    home: 'https://soundcloud.com/discover',
-    search: 'https://soundcloud.com/search?q={query}',
-  },
-  {
     id: 'bandcamp',
     name: 'Bandcamp',
     home: 'https://bandcamp.com/',
@@ -160,10 +157,14 @@ export const VIDEO_SITES: IVideoSite[] = [
     search: 'https://www.twitch.tv/search?term={query}',
   },
   {
-    id: 'spotify',
-    name: 'Spotify',
-    home: 'https://open.spotify.com/',
-    search: 'https://open.spotify.com/search/{query}',
+    id: 'suno',
+    name: 'Suno',
+    home: 'https://suno.com/',
+    // `/search?q=` answers with a redirect to the canonical form rather than a
+    // page, which is fine and is deliberately the one written here: if the
+    // canonical moves again, a redirect still lands right where a hard-coded
+    // one would not.
+    search: 'https://suno.com/search?q={query}',
   },
 ];
 
@@ -209,35 +210,16 @@ const ALLOWED_HOSTS: string[] = [
   'googlevideo.com',
   'ytimg.com',
   'ggpht.com',
-  'soundcloud.com',
-  'sndcdn.com',
   'bandcamp.com',
   'bcbits.com',
   'twitch.tv',
   'ttvnw.net',
   'jtvnw.net',
-  // Spotify. `open.` is the player, `accounts.` takes the password, and the two
-  // CDNs carry cover art and audio — all four are reached in one ordinary
-  // listen.
-  'spotify.com',
-  'scdn.co',
-  'spotifycdn.com',
-  /*
-   * The other two doors SoundCloud offers, and refusing them was ours.
-   *
-   * Its sign-in panel has four buttons: Facebook, Google, Apple and email. Only
-   * two of those hosts were listed, so pressing either of the others opened a
-   * window and had it refused mid-flight — which is not a boundary anybody
-   * chose, it is two entries nobody wrote. The log named them exactly:
-   * `facebook.com/dialog/oauth` and `appleid.apple.com/auth/authorize`.
-   *
-   * `appleid.apple.com` by name rather than `apple.com`, because Apple's
-   * sign-in lives on that host and the rest of the domain has no business here.
-   * Facebook's dialog moves between `www.` and `m.` and `web.` depending on
-   * what it decides you are, so that one is the registrable domain.
-   */
-  'facebook.com',
-  'appleid.apple.com',
+  // Suno. `suno.ai` is the old domain and still answers — it redirects to
+  // `suno.com`, and a redirect the player refuses is a dead link, so both are
+  // here. Its audio and artwork are served from subdomains of the same two.
+  'suno.com',
+  'suno.ai',
 ];
 
 /**

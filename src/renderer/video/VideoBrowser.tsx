@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { FC, Ref, useCallback, useEffect, useRef, useState } from 'react';
 import ChannelEnum from 'common/channels';
+import type { TranslationKey } from 'common/i18n';
 import {
   VIDEO_AD_BLOCK_DEFAULT,
   VIDEO_AD_BLOCK_STORAGE_KEY,
@@ -1211,39 +1212,54 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
           THE OTHER HALF OF A SESSION THAT REMEMBERS.
 
           The player keeps cookies now, so that signing in is worth doing — and
-          the moment it does, somebody has to be able to undo it. Always visible,
+          the moment it does, somebody has to be able to undo it. Always there,
           unlike the ad-block switch behind its chord: a privacy control that has
           to be discovered is one most people never find, and this one is the
           whole justification for the store existing.
 
-          It says what it did afterwards rather than just going quiet. A press
-          that clears five logins and shows nothing is indistinguishable from a
-          press that failed, and the difference matters more here than anywhere
-          else in the app.
+          A MARK RATHER THAN A SENTENCE. It was a labelled button with a result
+          beside it, which is two pieces of prose in a toolbar whose other
+          controls are all glyphs — and it read as the loudest thing in the row
+          for something pressed once a month. The words live in the tooltip and
+          the label the screen reader gets; the corner keeps one small square.
+
+          It still says what it did, in the only currency it has left: the glyph
+          becomes a tick or a cross for a few seconds. A press that clears every
+          login and then shows nothing is indistinguishable from one that failed,
+          and that difference matters more here than anywhere else in the app.
         */}
-        <div className="video-browser__sign-out">
-          <button
-            type="button"
-            onClick={handleSignOut}
-            disabled={signOutState === 'clearing'}
-            title={t('video.signOutHint')}
-          >
-            {t(
-              signOutState === 'clearing'
-                ? 'video.signOutBusy'
-                : 'video.signOut',
-            )}
-          </button>
-          {signOutState !== 'idle' && signOutState !== 'clearing' && (
-            <span className="video-browser__sign-out-result" role="status">
-              {t(
-                signOutState === 'done'
-                  ? 'video.signOutDone'
-                  : 'video.signOutFailed',
-              )}
-            </span>
+        <button
+          type="button"
+          className={`video-browser__sign-out is-${signOutState}`}
+          onClick={handleSignOut}
+          disabled={signOutState === 'clearing'}
+          title={t('video.signOutHint')}
+          aria-label={t(
+            {
+              idle: 'video.signOut',
+              clearing: 'video.signOutBusy',
+              done: 'video.signOutDone',
+              failed: 'video.signOutFailed',
+            }[signOutState] as TranslationKey,
           )}
-        </div>
+        >
+          {/* Announced through the button's own label, so the drawing is
+              hidden from anything that reads rather than looks. */}
+          <svg viewBox="0 0 16 16" aria-hidden>
+            {signOutState === 'done' && <path d="M3.5 8.4l3 3 6-6.6" />}
+            {signOutState === 'failed' && (
+              <path d="M4.5 4.5l7 7M11.5 4.5l-7 7" />
+            )}
+            {signOutState !== 'done' && signOutState !== 'failed' && (
+              // A door with an arrow leaving it, which is what every other
+              // application in the world uses for this.
+              <>
+                <path d="M9.5 2.5h-6v11h6" />
+                <path d="M7.5 8h7M11.5 5l3 3-3 3" />
+              </>
+            )}
+          </svg>
+        </button>
 
         {isAdBlockRevealed && (
           <div className="video-browser__ad-block">
