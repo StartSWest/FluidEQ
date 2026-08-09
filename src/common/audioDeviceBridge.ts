@@ -97,14 +97,40 @@ export interface IAudioDeviceMatch {
 const PSEUDO_SINK_IDS = new Set(['default', 'communications']);
 
 /**
+ * The USB id Chromium adds and Windows does not.
+ *
+ * Chromium appends the vendor and product id to the label of a **USB** audio
+ * device, to tell two identical products apart:
+ *
+ *     Windows:   Speakers (Razer Leviathan V2)
+ *     Chromium:  Speakers (Razer Leviathan V2) (1532:0532)
+ *
+ * Anything that is not USB — onboard Realtek, an NVIDIA HDMI output — gets no
+ * suffix and already matches byte for byte. So this is not a fuzzy allowance
+ * for names that are merely similar; it is one exact, mechanical difference,
+ * and every USB endpoint on a machine has it.
+ *
+ * Deliberately narrow: four hex digits, a colon, four hex digits, in trailing
+ * parentheses. A real name ending in brackets — "(NVIDIA High Definition
+ * Audio)" — cannot match it, and the refusal rule is untouched, because two
+ * devices that collide *after* the suffix comes off are still ambiguous and
+ * still refused.
+ */
+const USB_PRODUCT_ID = /\s*\([0-9a-f]{4}:[0-9a-f]{4}\)$/i;
+
+/**
  * Both sides read the same Windows property, so the strings normally agree
- * byte for byte. The normalisation is only here to absorb the differences that
- * are never meaningful: surrounding space, a doubled space inside, and case.
- * `toLocaleLowerCase` rather than `toLowerCase`, matching how
+ * byte for byte. The normalisation absorbs only differences that are never
+ * meaningful: surrounding space, a doubled space inside, case, and the USB id
+ * above. `toLocaleLowerCase` rather than `toLowerCase`, matching how
  * `filterVisibleAudioDevices` already folds names in `src/main/deviceProfiles`.
  */
 export const normalizeDeviceName = (name: string): string =>
-  name.trim().replace(/\s+/g, ' ').toLocaleLowerCase();
+  name
+    .trim()
+    .replace(USB_PRODUCT_ID, '')
+    .replace(/\s+/g, ' ')
+    .toLocaleLowerCase();
 
 /** Real endpoints only: no aliases, nothing without a usable id. */
 const getMatchableOutputs = (

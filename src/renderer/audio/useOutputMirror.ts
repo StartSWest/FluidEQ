@@ -29,6 +29,7 @@ import { IAudioDevice, IState } from 'common/constants';
 import { hasVirtualRouting } from 'common/virtualAudioDevices';
 import { getAudioDevices, getStateForAudioDevice } from '../utils/equalizerApi';
 import { useFluidEqContext } from '../utils/FluidEqContext';
+import { reportInfo } from '../utils/logger';
 import { useLiveAudioControl } from './LiveAudioContext';
 import {
   createMirrorEqChain,
@@ -102,16 +103,32 @@ interface IRunningMirror {
  */
 const listMediaOutputs = async (): Promise<IMediaOutputDevice[]> => {
   if (!navigator.mediaDevices?.enumerateDevices) {
+    reportInfo('[mirror] this environment has no enumerateDevices');
     return [];
   }
   const devices = await navigator.mediaDevices.enumerateDevices();
-  return devices
+  const outputs = devices
     .filter((device) => device.kind === 'audiooutput')
     .map((device) => ({
       deviceId: device.deviceId,
       label: device.label,
       groupId: device.groupId,
     }));
+
+  // Logged because this is the join the whole feature rests on, and when it
+  // fails it fails silently: the panel can only say "cannot reach it", which
+  // covers Chromium offering nothing at all and Chromium offering names that
+  // do not match Windows'. Those need opposite fixes, and nothing else in the
+  // app can tell them apart afterwards.
+  reportInfo(
+    `[mirror] Chromium offers ${outputs.length} audio outputs: ${
+      outputs
+        .map((output) => `${output.deviceId.slice(0, 8)}="${output.label}"`)
+        .join(' | ') || 'none'
+    }`,
+  );
+
+  return outputs;
 };
 
 /**

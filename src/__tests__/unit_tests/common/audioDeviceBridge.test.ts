@@ -56,6 +56,57 @@ describe('bridging Windows GUIDs to Chromium sink ids', () => {
     expect(normalizeDeviceName('  Studio   Monitors ')).toBe('studio monitors');
   });
 
+  it('matches through the USB id Chromium adds and Windows does not', () => {
+    // Real names, off a real machine. Chromium appends the vendor:product id
+    // to USB endpoints only, which is why the Realtek output below matched all
+    // along and every Razer one did not.
+    const devices = [
+      makeDevice('Speakers (Razer Leviathan V2)', '{usb}'),
+      makeDevice('Speakers (Realtek(R) Audio)', '{onboard}'),
+    ];
+    const outputs = [
+      makeOutput('sink-usb', 'Speakers (Razer Leviathan V2) (1532:0532)'),
+      makeOutput('sink-onboard', 'Speakers (Realtek(R) Audio)'),
+    ];
+
+    expect(
+      matchAudioDevices(devices, outputs).map((match) => [
+        match.status,
+        match.sinkId,
+      ]),
+    ).toEqual([
+      [DeviceMatchEnum.MATCHED, 'sink-usb'],
+      [DeviceMatchEnum.MATCHED, 'sink-onboard'],
+    ]);
+  });
+
+  it('does not mistake a bracketed name for a USB id', () => {
+    // The suffix is four hex digits, a colon, four hex digits. An ordinary
+    // name that happens to end in brackets must survive intact, or two NVIDIA
+    // outputs would fold into one another and both be refused.
+    expect(normalizeDeviceName('Y27qf-30 (NVIDIA High Definition Audio)')).toBe(
+      'y27qf-30 (nvidia high definition audio)',
+    );
+    expect(
+      normalizeDeviceName('Speakers (Razer Leviathan V2) (1532:0532)'),
+    ).toBe('speakers (razer leviathan v2)');
+  });
+
+  it('still refuses when stripping the USB id makes two names collide', () => {
+    // Two of the same product. The suffix is exactly what told them apart, so
+    // removing it must not turn a refusal into a coin flip.
+    const devices = [makeDevice('Speakers (Razer Kraken V4 Pro)', '{aaa}')];
+    const outputs = [
+      makeOutput('sink-1', 'Speakers (Razer Kraken V4 Pro) (1532:0567)'),
+      makeOutput('sink-2', 'Speakers (Razer Kraken V4 Pro) (1532:0568)'),
+    ];
+
+    const [match] = matchAudioDevices(devices, outputs);
+
+    expect(match.status).toBe(DeviceMatchEnum.AMBIGUOUS);
+    expect(match.sinkId).toBeUndefined();
+  });
+
   it('refuses when two outputs answer to the same name', () => {
     const devices = [makeDevice('Speakers', '{ccc}')];
     const outputs = [
