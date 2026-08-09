@@ -586,6 +586,28 @@ const hardenPopup = (contents: WebContents) => {
     log.info(`Sign-in popup refused a popup to ${url}`);
     return { action: 'deny' };
   });
+
+  /*
+   * NO DEVTOOLS ON A SIGN-IN WINDOW, AND NOT FOR TIDINESS.
+   *
+   * `electron-debug` opens DevTools on every new window in development, and a
+   * popup is a new window, so signing in came with an inspector attached. That
+   * is worse than untidy here: Google's abuse detection lists "use of developer
+   * or inspection tools" among its reasons for refusing a sign-in, and refusing
+   * a sign-in is the exact thing this whole sequence of changes has been
+   * chasing. The tool meant to help diagnose the problem was one of the causes.
+   *
+   * Closed rather than prevented, because the opening is done by a package
+   * reacting to window creation and there is no hook that runs first. A window
+   * that shows an inspector for a frame is still better than one that keeps it.
+   *
+   * Nothing is lost. The player's own console already arrives in the log
+   * through `hardenPlayer`, which is where these have actually been diagnosed
+   * from all along.
+   */
+  contents.on('devtools-opened', () => {
+    contents.closeDevTools();
+  });
 };
 
 /**
