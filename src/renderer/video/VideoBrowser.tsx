@@ -377,6 +377,16 @@ interface IWebviewProps {
   ref?: Ref<IWebview>;
   src: string;
   partition: string;
+  /**
+   * Whether the guest may open a window at all.
+   *
+   * A presence attribute, and one that is read when the tag attaches rather
+   * than asked for later — which is why it has to be here and not only in the
+   * main process. Without it `window.open` returns `null` before Chromium gets
+   * as far as asking the window-open handler about the address, and every
+   * sign-in that opens a window sees a popup blocker.
+   */
+  allowpopups?: boolean;
   /** A comma-separated features string — see `VIDEO_WEB_PREFERENCES`. */
   webpreferences?: string;
   className?: string;
@@ -1234,6 +1244,18 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
           // that has to be right for the tag to attach at all; the main process
           // overwrites it anyway, so the two can never drift apart.
           partition={VIDEO_BROWSER_PARTITION}
+          // Same reasoning as the partition above: named here as well as forced
+          // in the main process, because this is one of the attributes the tag
+          // reads while attaching. Setting it only in `will-attach-webview` was
+          // too late — the guest attached without it and `window.open` returned
+          // null, so SoundCloud showed "Please enable popup windows and try
+          // again" with a handler standing ready that Chromium never consulted.
+          //
+          // It does NOT widen what may open. Every popup is still put to
+          // `setWindowOpenHandler`, still checked against the allow-list, and
+          // still refused with a notice naming the host. This only lets the
+          // question be asked.
+          allowpopups
           webpreferences={VIDEO_WEB_PREFERENCES}
         />
         {blockedUrl && (
