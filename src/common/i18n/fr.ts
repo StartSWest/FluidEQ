@@ -40,7 +40,8 @@ const fr: Partial<Dictionary> = {
   'app.dismiss': 'Fermer',
 
   'tabs.aria': 'Espace de travail sonore',
-  'tabs.eq': 'Égaliseur et type de casque',
+  'tabs.eq': 'Égaliseur',
+  'tabs.autoeq': 'AutoEQ',
   'tabs.voicing': 'Caractère',
   'tabs.convolution': 'Convolution',
   'tabs.config': 'Config',
@@ -144,6 +145,16 @@ const fr: Partial<Dictionary> = {
   'profiles.error.duplicate': 'Ce nom existe déjà, choisissez-en un autre.',
   'profiles.edit': 'Modifier le nom du profil',
 
+  'autoeq.page.eyebrow': 'ADAPTEZ VOTRE CASQUE',
+  'autoeq.page.title': 'Correction du casque',
+  'autoeq.page.intro':
+    'Indiquez le casque que vous utilisez et FluidEQ applique la correction publiée pour lui. Chaque mesure a été prise sur un vrai banc et publiée par quelqu’un ; rien n’est deviné à partir du nom du modèle.',
+  'autoeq.source.hint':
+    'La base de données d’où viennent les mesures. « Toutes les bases » les parcourt toutes à la fois.',
+  'autoeq.model.hint':
+    'Cherchez par marque ou par modèle. Si le vôtre n’est pas mesuré, un proche parent de la même gamme vous en rapproche souvent beaucoup.',
+  'autoeq.target.hint':
+    'La plupart des modèles sont mesurés plusieurs fois — bancs différents, courbes cibles différentes — et cela ne sonne pas pareil. Il vaut la peine d’en essayer plusieurs.',
   'autoeq.eyebrow': 'PARTIR D’UNE RÉFÉRENCE',
   'autoeq.title': 'Bibliothèque AutoEQ',
   'autoeq.selectSource': 'Choisissez une source',
@@ -206,6 +217,7 @@ const fr: Partial<Dictionary> = {
   'eq.layers.convolution': 'Convolution',
   'eq.layers.voicing': 'Caractère',
   'eq.layers.driver': 'Transducteur',
+  'eq.layers.headphone': 'Casque',
   'eq.layers.disable': 'Désactive {layer} sans la supprimer',
   'eq.layers.enable': 'Réactive {layer}',
   'eq.layers.smart': 'Égalisation auto',

@@ -37,6 +37,7 @@ import {
   IState,
   OUTPUT_STATE_CHANGED_EVENT,
   TApoLayer,
+  IHeadphoneSettings,
 } from '../../common/constants';
 import { DEFAULT_VOICING, IVoicingSettings } from '../../common/voicing';
 import { DEFAULT_DRIVER, IDriverSettings } from '../../common/driver';
@@ -189,6 +190,9 @@ export interface IFluidEqContext extends IState {
   setDriver: (newValue: IDriverSettings) => void;
   setVoicing: (newValue: IVoicingSettings) => void;
   setSmartEq: (newValue?: ISmartEqSettings) => void;
+  /** The published headphone correction, as its own layer. */
+  headphone?: IHeadphoneSettings;
+  setHeadphone: (newValue?: IHeadphoneSettings) => void;
   /** Filter currently selected in the EQ editor and response graph. */
   selectedFilterId: string;
   setSelectedFilterId: (newValue: string) => void;
@@ -392,6 +396,9 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [smartEq, setSmartEq] = useState<ISmartEqSettings | undefined>(
     DEFAULT_STATE.smartEq,
   );
+  const [headphone, setHeadphone] = useState<IHeadphoneSettings | undefined>(
+    DEFAULT_STATE.headphone,
+  );
   const [bypassed, setBypassed] = useState<TApoLayer[]>(
     DEFAULT_STATE.bypassed ?? [],
   );
@@ -521,6 +528,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setVoicing(state.voicing ?? DEFAULT_VOICING);
         setDriver(state.driver ?? DEFAULT_DRIVER);
         setSmartEq(state.smartEq);
+        setHeadphone(state.headphone);
         setBypassed(state.bypassed ?? []);
         setHeadset(state.headset);
         setHeadsetTarget(state.headsetTarget);
@@ -658,6 +666,8 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         voicing,
         driver,
         smartEq,
+        headphone,
+        setHeadphone,
         bypassed,
         setDriver,
         setVoicing,

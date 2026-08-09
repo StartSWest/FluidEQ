@@ -309,8 +309,10 @@ export interface IState {
   driver?: IDriverSettings;
   /** Measured correction, the last APO layer — see src/common/smartEq.ts. */
   smartEq?: ISmartEqSettings;
+  /** The published headphone correction, as its own layer. */
+  headphone?: IHeadphoneSettings;
   /**
-   * The measured headphone the bands were generated from.
+   * The measured headphone this correction came from.
    *
    * Not a layer — applying a reference writes into the bands themselves — but
    * knowing which model a curve came from is the difference between a set of
@@ -394,7 +396,13 @@ export interface IState {
  * Here rather than beside the writer because three places have to agree on
  * these names: the config files, the persisted state, and the row of chips.
  */
-export const APO_FEATURES = ['driver', 'eq', 'voicing', 'smart'] as const;
+export const APO_FEATURES = [
+  'driver',
+  'headphone',
+  'eq',
+  'voicing',
+  'smart',
+] as const;
 
 export type TApoFeature = (typeof APO_FEATURES)[number];
 
@@ -471,6 +479,40 @@ export const EQUALIZER_APO_OFFICIAL_DOWNLOAD =
  * the driver it is not a named profile — nobody picked it, it was measured — so
  * what has to be stored is the correction itself.
  */
+/**
+ * A published headphone correction, kept as a layer of its own.
+ *
+ * IT USED TO BE WRITTEN INTO THE USER'S BANDS, and that was wrong in three ways
+ * at once. Clearing the EQ threw the headphone correction away with the tuning.
+ * Smart EQ, which measures the output and cannot hear a transducer, saw the
+ * correction as error and flattened it over a few passes — a cost this project
+ * has been carrying knowingly, with a comment saying "a headphone correction
+ * that must survive belongs in the driver layer". And a curve somebody spent an
+ * afternoon on could be lost by dragging one band.
+ *
+ * As its own layer none of that is true: it survives a clear, it is handed back
+ * to the solver as something not to correct, and it can be switched off and on
+ * without touching anything the user wrote.
+ *
+ * Distinct from `driver` even though both correct a transducer. The driver
+ * profile is a broad character — what a balanced armature does — chosen from a
+ * short list. This is a specific published measurement of a specific model, and
+ * somebody may well want both: the model's own curve, and then a nudge for the
+ * kind of driver it is.
+ */
+export interface IHeadphoneSettings {
+  /** The correction as filters. Nothing audible means no layer at all. */
+  filters: IFiltersMap;
+  /**
+   * How much of it to apply, 0 to 1.
+   *
+   * Published corrections are frequently stronger than people want — a full
+   * Harman match is a big change — and halving one is a real listening choice
+   * rather than a compromise. The same control the voicing and the driver have.
+   */
+  intensity: number;
+}
+
 export interface ISmartEqSettings {
   /** The correction, keyed by band id. Nothing audible means no layer at all. */
   filters: IFiltersMap;
@@ -507,6 +549,7 @@ export interface IPresetV2 {
   voicing?: IVoicingSettings;
   driver?: IDriverSettings;
   smartEq?: ISmartEqSettings;
+  headphone?: IHeadphoneSettings;
   /**
    * Whether this profile wants its preamp derived from its own chain.
    *

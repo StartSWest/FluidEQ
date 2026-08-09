@@ -40,7 +40,8 @@ const es: Partial<Dictionary> = {
   'app.dismiss': 'Descartar',
 
   'tabs.aria': 'Espacio de trabajo de sonido',
-  'tabs.eq': 'EQ y tipo de auriculares',
+  'tabs.eq': 'EQ',
+  'tabs.autoeq': 'AutoEQ',
   'tabs.voicing': 'Carácter',
   'tabs.convolution': 'Convolución',
   'tabs.config': 'Config',
@@ -144,6 +145,16 @@ const es: Partial<Dictionary> = {
   'profiles.error.duplicate': 'Ese nombre ya existe, elige otro.',
   'profiles.edit': 'Editar el nombre del perfil',
 
+  'autoeq.page.eyebrow': 'AJUSTA TUS AURICULARES',
+  'autoeq.page.title': 'Corrección de auriculares',
+  'autoeq.page.intro':
+    'Di con qué auriculares estás escuchando y FluidEQ aplica la corrección publicada para ellos. Cada medición se tomó en un banco real y alguien la publicó; nada se deduce del nombre del modelo.',
+  'autoeq.source.hint':
+    'De qué base de datos vienen las mediciones. «Todas las bases de datos» busca en todas a la vez.',
+  'autoeq.model.hint':
+    'Busca por marca o modelo. Si el tuyo no está medido, un pariente cercano de la misma gama suele acercarte bastante.',
+  'autoeq.target.hint':
+    'La mayoría de los modelos se miden más de una vez —distintos bancos, distintas curvas objetivo— y no suenan igual. Merece la pena probar más de una.',
   'autoeq.eyebrow': 'EMPIEZA POR UNA REFERENCIA',
   'autoeq.title': 'Biblioteca AutoEQ',
   'autoeq.selectSource': 'Elige un origen',
@@ -205,6 +216,7 @@ const es: Partial<Dictionary> = {
   'eq.layers.convolution': 'Convolución',
   'eq.layers.voicing': 'Carácter',
   'eq.layers.driver': 'Transductor',
+  'eq.layers.headphone': 'Auriculares',
   'eq.layers.disable': 'Desactiva {layer} sin eliminarla',
   'eq.layers.enable': 'Vuelve a activar {layer}',
   'eq.layers.smart': 'EQ inteligente',

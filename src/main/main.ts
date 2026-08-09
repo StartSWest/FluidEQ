@@ -866,6 +866,7 @@ const getCurrentPreset = (): IPresetV2 => ({
   voicing: state.voicing,
   driver: state.driver,
   smartEq: state.smartEq,
+  headphone: state.headphone,
   isAutoPreAmpOn: state.isAutoPreAmpOn,
   headset: state.headset,
   headsetTarget: state.headsetTarget,
@@ -1605,6 +1606,7 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     state.voicing = presetSettings.voicing;
     state.driver = presetSettings.driver;
     state.smartEq = presetSettings.smartEq;
+    state.headphone = presetSettings.headphone;
     state.headset = presetSettings.headset;
     state.headsetTarget = presetSettings.headsetTarget;
     state.headsetSource = presetSettings.headsetSource;
@@ -1649,6 +1651,7 @@ ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
     state.voicing = baseline.voicing;
     state.driver = baseline.driver;
     state.smartEq = baseline.smartEq;
+    state.headphone = baseline.headphone;
     state.headset = baseline.headset;
     state.headsetTarget = baseline.headsetTarget;
     state.headsetSource = baseline.headsetSource;
@@ -2116,11 +2119,29 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
 
   try {
     const presetSettings: IPresetV2 = getAutoEqPreset(deviceName, responseName);
-    clearCurrentLayoutSettings();
+    /*
+     * INTO ITS OWN LAYER, NOT INTO THE USER'S BANDS.
+     *
+     * This used to replace `state.filters` outright, which meant applying a
+     * headphone reference threw away whatever tuning was there, clearing the EQ
+     * threw the reference away in turn, and Smart EQ -- which measures the
+     * output and cannot hear a transducer -- read the correction as error and
+     * flattened it over a few passes. Three problems with one cause.
+     *
+     * As a layer it survives a clear, it is handed to the solver as something
+     * not to correct, and the bands stay whatever the person made them.
+     */
+    state.headphone = {
+      filters: shieldReferenceBands(presetSettings.filters),
+      // Full strength on arrival. Somebody who wants half of a published
+      // correction can say so; somebody who applied one and got half of it
+      // would reasonably think it had not worked.
+      intensity: 1,
+    };
+    // The preamp still comes from the measurement, because the correction it
+    // belongs to is the one being applied. Everything else about the user's
+    // stage is left alone.
     state.preAmp = presetSettings.preAmp;
-    state.filters = shieldReferenceBands(presetSettings.filters);
-    state.eqFormat = presetSettings.eqFormat;
-    state.graphicEq = presetSettings.graphicEq;
     // Which model these bands came from, and out of which database. Not
     // recoverable from the bands, and the difference between a curve you can
     // reason about and a set of numbers. The source is recorded because the
@@ -2129,12 +2150,8 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     state.headset = deviceName;
     state.headsetTarget = responseName;
     state.headsetSource = AUTOEQ_SOURCE_ID;
-    state.headsetSignature = describeBandShape(state.filters);
-    applyingLayer('eq');
-    // AutoEQ may be ParametricEQ, FixedBandEQ, or GraphicEQ. Replace only the
-    // EQ stage; an already loaded convolution remains an independent APO
-    // stage.
-    state.isFlat = false;
+    state.headsetSignature = describeBandShape(state.headphone.filters);
+    applyingLayer('headphone');
     await handleUpdate(event, channel, false, true);
   } catch (ex) {
     console.log(
@@ -3035,6 +3052,47 @@ ipcMain.on(ChannelEnum.SET_VOICING, async (event, arg) => {
   // The voicing is a layer of its own, so this never touches state.filters.
   state.voicing = {
     profileId,
+    intensity: Math.min(1, Math.max(0, intensity)),
+  };
+
+  await handleUpdate(event, channel, false, true);
+});
+
+/*
+ * How much of the published correction to apply, and whether to keep it.
+ *
+ * Only the strength travels, never the filters: those arrive once when a
+ * measurement is applied and are not something the renderer should be able to
+ * rewrite. Undefined clears the layer outright, which is what the chip's X
+ * means — and unlike the old behaviour it takes nothing of the user's with it.
+ */
+ipcMain.on(ChannelEnum.SET_HEADPHONE, async (event, arg) => {
+  const channel = ChannelEnum.SET_HEADPHONE;
+  const intensity: unknown = arg?.[0];
+
+  if (intensity === undefined || intensity === null) {
+    applyingLayer('headphone');
+    state.headphone = undefined;
+    state.headset = undefined;
+    state.headsetTarget = undefined;
+    state.headsetSource = undefined;
+    state.headsetSignature = undefined;
+    await handleUpdate(event, channel, false, true);
+    return;
+  }
+
+  if (typeof intensity !== 'number' || !Number.isFinite(intensity)) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+  if (!state.headphone) {
+    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
+    return;
+  }
+
+  applyingLayer('headphone');
+  state.headphone = {
+    ...state.headphone,
     intensity: Math.min(1, Math.max(0, intensity)),
   };
 

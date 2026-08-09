@@ -462,6 +462,7 @@ export const getStateForAudioDevice = (
     // contour has to clear the one the previous output was using, or it follows
     // the user from the headphones to the speakers.
     smartEq: preset?.smartEq,
+    headphone: preset?.headphone,
     headset: preset?.headset,
     headsetTarget: preset?.headsetTarget,
     headsetSource: preset?.headsetSource,

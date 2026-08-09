@@ -31,6 +31,7 @@ const defaultFluidEqContext: IFluidEqContext = {
   isEngineUsable: DEFAULT_STATE.isEnabled,
   driver: undefined,
   setDriver: () => {},
+  setHeadphone: () => {},
   // Nothing switched off, which is what a test that has not said otherwise is
   // describing.
   bypassed: [],

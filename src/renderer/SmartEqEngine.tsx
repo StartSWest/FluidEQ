@@ -191,6 +191,7 @@ const SmartEqEngine = () => {
     voicing,
     driver,
     smartEq,
+    headphone,
     setSmartEq,
     getBandSetGeneration,
     bypassed,
@@ -462,6 +463,17 @@ const SmartEqEngine = () => {
   voicingRef.current = voicing;
   const driverRef = useRef(driver);
   driverRef.current = driver;
+  /*
+   * The published headphone correction, excused like the driver.
+   *
+   * It corrects a transducer and a digital loopback cannot hear one, so it will
+   * always look like error to this measurement and cancelling it is always
+   * wrong. On a ref for the same reason every other layer here is: the capture
+   * runs for minutes and the closure would freeze whatever was applied when it
+   * started.
+   */
+  const headphoneRef = useRef(headphone);
+  headphoneRef.current = headphone;
   // The bands as the AutoEQ panel wrote them, which is how the target curve
   // keeps a headphone correction while still correcting what the user has done
   // to the same bands since.
@@ -669,6 +681,8 @@ const SmartEqEngine = () => {
           targetCurve: buildLayerTargetCurve(
             voicingRef.current,
             driverRef.current,
+            undefined,
+            headphoneRef.current,
           ),
         });
         if (Object.keys(gains).length === 0) {
@@ -926,7 +940,12 @@ const SmartEqEngine = () => {
       // The same two exceptions the one-shot makes, for the same reasons: the
       // voicing is a named choice and the driver corrects the one thing this
       // measurement cannot hear. Everything else in the output is fair game.
-      targetCurve: buildLayerTargetCurve(voicingRef.current, driverRef.current),
+      targetCurve: buildLayerTargetCurve(
+        voicingRef.current,
+        driverRef.current,
+        undefined,
+        headphoneRef.current,
+      ),
     });
     if (Object.keys(solved).length === 0) {
       // No answer this time. The tilt fit needs a wide trusted span and a range

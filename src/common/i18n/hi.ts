@@ -46,7 +46,8 @@ const hi: Partial<Dictionary> = {
   'app.dismiss': 'हटाएँ',
 
   'tabs.aria': 'साउंड वर्कस्पेस',
-  'tabs.eq': 'EQ और ड्राइवर प्रकार',
+  'tabs.eq': 'EQ',
+  'tabs.autoeq': 'AutoEQ',
   'tabs.voicing': 'ध्वनि रंग',
   'tabs.convolution': 'कन्वॉल्यूशन',
   'tabs.config': 'Config',
@@ -148,6 +149,16 @@ const hi: Partial<Dictionary> = {
   'profiles.error.duplicate': 'यह नाम पहले से है, दूसरा चुनें।',
   'profiles.edit': 'प्रोफ़ाइल का नाम बदलें',
 
+  'autoeq.page.eyebrow': 'अपने हेडफ़ोन से मिलाएँ',
+  'autoeq.page.title': 'हेडफ़ोन सुधार',
+  'autoeq.page.intro':
+    'बताइए आप किन हेडफ़ोन पर सुन रहे हैं और FluidEQ उनके लिए प्रकाशित सुधार लगा देगा। यहाँ का हर माप असली रिग पर लिया गया है और किसी ने उसे प्रकाशित किया है — कुछ भी मॉडल के नाम से अंदाज़े में नहीं बनाया गया।',
+  'autoeq.source.hint':
+    'माप किस डेटाबेस से आए हैं। “सभी डेटाबेस” सब में एक साथ खोजता है।',
+  'autoeq.model.hint':
+    'ब्रांड या मॉडल से खोजें। अगर आपका मॉडल मापा नहीं गया है, तो उसी श्रेणी का नज़दीकी मॉडल आमतौर पर काफ़ी क़रीब ले आता है।',
+  'autoeq.target.hint':
+    'ज़्यादातर मॉडल एक से ज़्यादा बार मापे जाते हैं — अलग रिग, अलग लक्ष्य कर्व — और वे एक जैसे नहीं लगते। एक से ज़्यादा आज़माना सही रहता है।',
   'autoeq.eyebrow': 'किसी संदर्भ से शुरू करें',
   'autoeq.title': 'AutoEQ लाइब्रेरी',
   'autoeq.selectSource': 'स्रोत चुनें',
@@ -207,6 +218,7 @@ const hi: Partial<Dictionary> = {
   'eq.layers.convolution': 'कन्वॉल्यूशन',
   'eq.layers.voicing': 'ध्वनि रंग',
   'eq.layers.driver': 'ड्राइवर',
+  'eq.layers.headphone': 'हेडफ़ोन',
   'eq.layers.disable': '{layer} हटाए बिना बंद करें',
   'eq.layers.enable': '{layer} फिर से चालू करें',
   'eq.layers.smart': 'स्मार्ट EQ',

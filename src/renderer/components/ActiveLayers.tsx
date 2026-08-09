@@ -23,6 +23,7 @@ import { describeBandShape, TApoLayer } from 'common/constants';
 import { getVoicingProfile, isVoicingActive } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { hasSmartEqLayer } from 'common/smartEq';
+import { hasHeadphoneLayer } from '../../common/headphone';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { setContinuousEq, useContinuousEq } from '../utils/continuousEq';
 import { useTranslation } from '../utils/I18nContext';
@@ -31,6 +32,7 @@ import {
   clearGains,
   clearHeadset,
   setDriver as setDriverApi,
+  setHeadphone as setHeadphoneApi,
   setLayerBypass,
   setSmartEq as setSmartEqApi,
   setVoicing as setVoicingApi,
@@ -63,6 +65,8 @@ const ActiveLayers = () => {
     convolution,
     voicing,
     driver,
+    headphone,
+    setHeadphone,
     smartEq,
     headset,
     headsetTarget,
@@ -150,6 +154,17 @@ const ActiveLayers = () => {
       (value) =>
         setVoicing({ profileId: voicing?.profileId ?? '', intensity: value }),
       (value) => setVoicingApi(voicing?.profileId ?? '', value),
+      intensity,
+    );
+
+  const setHeadphoneStrength = (intensity: number) =>
+    setLayerStrength(
+      'headphone',
+      (value) =>
+        setHeadphone(
+          headphone ? { ...headphone, intensity: value } : undefined,
+        ),
+      (value) => setHeadphoneApi(value),
       intensity,
     );
 
@@ -273,6 +288,37 @@ const ActiveLayers = () => {
         await refreshState();
       },
       feature: 'driver',
+    });
+  }
+
+  /*
+   * The published headphone correction, on its own chip.
+   *
+   * It used to be written into the bands, so it shared theirs — "an AutoEQ
+   * model IS the manual EQ auto-tuned", which was true of the implementation
+   * and never true of the intention. One chip meant clearing the EQ threw the
+   * correction away, switching it off was impossible without losing the tuning,
+   * and the strength of one could not be set without the other.
+   *
+   * Two things now, because they always were two things: what the headphones
+   * need, and what this person likes.
+   */
+  if (hasHeadphoneLayer(headphone)) {
+    layers.push({
+      key: 'headphone',
+      icon: 'waveform',
+      label: t('eq.layers.headphone'),
+      name: headset ?? t('eq.layers.headphone'),
+      percent: Math.round((headphone?.intensity ?? 0) * 100),
+      strength: headphone?.intensity ?? 0,
+      isInactive: (headphone?.intensity ?? 0) <= 0,
+      onStrength: setHeadphoneStrength,
+      onClear: async () => {
+        setHeadphone(undefined);
+        await setHeadphoneApi(undefined);
+        await refreshState();
+      },
+      feature: 'headphone',
     });
   }
 

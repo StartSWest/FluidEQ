@@ -914,6 +914,18 @@ export const setVoicing = (
  * @param {number} intensity - 0..1 scale over the profile's gains
  * @returns { Promise<void> } exception if the profile is unknown.
  */
+/**
+ * How much of the published headphone correction to apply, or none at all.
+ *
+ * `undefined` clears the layer. Only the strength is sent — the filters came
+ * from a measurement and are not the renderer's to rewrite.
+ */
+export const setHeadphone = (intensity?: number): Promise<void> => {
+  const channel = ChannelEnum.SET_HEADPHONE;
+  window.electron.ipcRenderer.sendMessage(channel, [intensity]);
+  return promisifyResult(setterResponseHandler, channel);
+};
+
 export const setDriver = (
   profileId: string,
   intensity: number,

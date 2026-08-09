@@ -82,6 +82,7 @@ enum ChannelEnum {
   SET_FIXED_BAND = 'setFixedBand',
   SET_VOICING = 'setVoicing',
   SET_DRIVER = 'setDriver',
+  SET_HEADPHONE = 'setHeadphone',
   // The measured correction, stored as its own layer. An empty payload removes
   // it; nothing here ever touches the user's bands.
   SET_SMART_EQ = 'setSmartEq',

@@ -40,7 +40,8 @@ const pt: Partial<Dictionary> = {
   'app.dismiss': 'Dispensar',
 
   'tabs.aria': 'Área de trabalho de som',
-  'tabs.eq': 'EQ e tipo de fone',
+  'tabs.eq': 'EQ',
+  'tabs.autoeq': 'AutoEQ',
   'tabs.voicing': 'Caráter',
   'tabs.convolution': 'Convolução',
   'tabs.config': 'Config',
@@ -142,6 +143,16 @@ const pt: Partial<Dictionary> = {
   'profiles.error.duplicate': 'Esse nome já existe, escolha outro.',
   'profiles.edit': 'Editar o nome do perfil',
 
+  'autoeq.page.eyebrow': 'AJUSTE AOS SEUS FONES',
+  'autoeq.page.title': 'Correção de fones',
+  'autoeq.page.intro':
+    'Diga com que fones você está ouvindo e o FluidEQ aplica a correção publicada para eles. Cada medição foi feita em uma bancada real e publicada por alguém; nada é adivinhado a partir do nome do modelo.',
+  'autoeq.source.hint':
+    'De qual banco de dados vêm as medições. «Todos os bancos de dados» procura em todos ao mesmo tempo.',
+  'autoeq.model.hint':
+    'Procure por marca ou modelo. Se o seu não foi medido, um parente próximo da mesma linha costuma chegar bem perto.',
+  'autoeq.target.hint':
+    'A maioria dos modelos é medida mais de uma vez — bancadas diferentes, curvas-alvo diferentes — e não soam igual. Vale a pena experimentar mais de uma.',
   'autoeq.eyebrow': 'COMECE POR UMA REFERÊNCIA',
   'autoeq.title': 'Biblioteca AutoEQ',
   'autoeq.selectSource': 'Escolha uma origem',
@@ -203,6 +214,7 @@ const pt: Partial<Dictionary> = {
   'eq.layers.convolution': 'Convolução',
   'eq.layers.voicing': 'Caráter',
   'eq.layers.driver': 'Driver',
+  'eq.layers.headphone': 'Auscultadores',
   'eq.layers.disable': 'Desliga {layer} sem a remover',
   'eq.layers.enable': 'Liga {layer} novamente',
   'eq.layers.smart': 'EQ inteligente',

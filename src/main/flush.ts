@@ -42,6 +42,7 @@ import {
 import { PRODUCT_NAME } from '../common/branding';
 import { getVoicingFilters } from '../common/voicing';
 import { getDriverFilters } from '../common/driver';
+import { getHeadphoneFilters } from '../common/headphone';
 import { getSmartEqFilters, sanitizeSmartEqSettings } from '../common/smartEq';
 import { getChainPeakGain } from '../common/response';
 import {
@@ -208,6 +209,12 @@ const buildLayers = (state: IState): IApoLayer[] => {
   // Outside the isFlat check, like the voicing: clearing the EQ resets the
   // bands somebody tuned, not the correction for what they are listening on.
   addLayer('driver', layerFilters(getDriverFilters(state.driver)));
+
+  // Ahead of the user's bands, like the driver, and outside the isFlat check
+  // for the same reason: clearing the EQ resets the tuning somebody made, not
+  // the published correction for the headphones they are wearing. That it used
+  // to live inside those bands is exactly why clearing took it with it.
+  addLayer('headphone', layerFilters(getHeadphoneFilters(state.headphone)));
 
   if (!state.isFlat && !isBypassed('eq')) {
     if (state.eqFormat === AutoEqFormat.GRAPHIC && state.graphicEq?.length) {

@@ -39,7 +39,8 @@ const zh: Partial<Dictionary> = {
   'app.dismiss': '知道了',
 
   'tabs.aria': '声音工作区',
-  'tabs.eq': '均衡与耳机类型',
+  'tabs.eq': '均衡器',
+  'tabs.autoeq': 'AutoEQ',
   'tabs.voicing': '声音风格',
   'tabs.convolution': '卷积',
   'tabs.config': 'Config',
@@ -134,6 +135,16 @@ const zh: Partial<Dictionary> = {
   'profiles.error.duplicate': '名称重复，请换一个。',
   'profiles.edit': '修改配置名称',
 
+  'autoeq.page.eyebrow': '匹配你的耳机',
+  'autoeq.page.title': '耳机校正',
+  'autoeq.page.intro':
+    '选择你正在使用的耳机，FluidEQ 就会套用为它公开发布的校正。这里的每一条测量都来自真实的测量台，并由测量者公开发布，没有一条是根据型号名称猜出来的。',
+  'autoeq.source.hint':
+    '测量数据来自哪个数据库。“全部数据库”会同时搜索所有来源。',
+  'autoeq.model.hint':
+    '按品牌或型号搜索。如果你的型号没有被测过，同系列中相近的一款通常也能接近。',
+  'autoeq.target.hint':
+    '大多数型号都被测过不止一次——测量台不同，目标曲线也不同——听感并不一样，值得多试几条。',
   'autoeq.eyebrow': '从一条参考曲线开始',
   'autoeq.title': 'AutoEQ 库',
   'autoeq.selectSource': '选择来源',
@@ -191,6 +202,7 @@ const zh: Partial<Dictionary> = {
   'eq.layers.convolution': '卷积',
   'eq.layers.voicing': '声音风格',
   'eq.layers.driver': '单元',
+  'eq.layers.headphone': '耳机',
   'eq.layers.disable': '关闭{layer}但不移除',
   'eq.layers.enable': '重新开启{layer}',
   'eq.layers.smart': '智能均衡',

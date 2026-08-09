@@ -40,7 +40,8 @@ const ru: Partial<Dictionary> = {
   'app.dismiss': 'Скрыть',
 
   'tabs.aria': 'Рабочая область звука',
-  'tabs.eq': 'Эквалайзер и тип наушников',
+  'tabs.eq': 'Эквалайзер',
+  'tabs.autoeq': 'AutoEQ',
   'tabs.voicing': 'Характер',
   'tabs.convolution': 'Свёртка',
   'tabs.config': 'Config',
@@ -142,6 +143,16 @@ const ru: Partial<Dictionary> = {
   'profiles.error.duplicate': 'Такое имя уже есть, выберите другое.',
   'profiles.edit': 'Изменить имя профиля',
 
+  'autoeq.page.eyebrow': 'НАСТРОЙТЕ ПОД СВОИ НАУШНИКИ',
+  'autoeq.page.title': 'Коррекция наушников',
+  'autoeq.page.intro':
+    'Укажите, в каких наушниках вы слушаете, и FluidEQ применит опубликованную для них коррекцию. Каждое измерение сделано на настоящем стенде и кем-то опубликовано — ничего не угадывается по названию модели.',
+  'autoeq.source.hint':
+    'Из какой базы взяты измерения. «Все базы» ищет сразу во всех.',
+  'autoeq.model.hint':
+    'Ищите по марке или модели. Если вашей нет, близкий родственник из той же линейки обычно даёт почти то же самое.',
+  'autoeq.target.hint':
+    'Большинство моделей измеряют не один раз — разные стенды, разные целевые кривые — и звучат они по-разному. Стоит попробовать несколько.',
   'autoeq.eyebrow': 'НАЧНИТЕ С ЭТАЛОНА',
   'autoeq.title': 'Библиотека AutoEQ',
   'autoeq.selectSource': 'Выберите источник',
@@ -203,6 +214,7 @@ const ru: Partial<Dictionary> = {
   'eq.layers.convolution': 'Свёртка',
   'eq.layers.voicing': 'Характер',
   'eq.layers.driver': 'Излучатель',
+  'eq.layers.headphone': 'Наушники',
   'eq.layers.disable': 'Отключить «{layer}», не удаляя',
   'eq.layers.enable': 'Снова включить «{layer}»',
   'eq.layers.smart': 'Умный EQ',

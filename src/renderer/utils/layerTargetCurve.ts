@@ -17,7 +17,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { IFilter, parseBandShape } from 'common/constants';
+import { IFilter, IHeadphoneSettings, parseBandShape } from 'common/constants';
+import { getHeadphoneFilters } from 'common/headphone';
 import { IVoicingSettings, getVoicingFilters } from 'common/voicing';
 import { IDriverSettings, getDriverFilters } from 'common/driver';
 import { getCombinedLineData, getFilterLineData } from '../graph/utils';
@@ -141,9 +142,24 @@ export const buildLayerTargetCurve = (
   voicing: IVoicingSettings | undefined,
   driver: IDriverSettings | undefined,
   headsetSignature?: string,
+  headphone?: IHeadphoneSettings,
 ): ISpectrumSample[] =>
   curveOf([
     ...getVoicingFilters(voicing),
     ...getDriverFilters(driver),
+    /*
+     * The published correction, handed back as something not to undo.
+     *
+     * It corrects a transducer, and a digital loopback cannot hear a
+     * transducer — so to the measurement it will always look like error, and
+     * cancelling it is always wrong. Exactly the driver's argument, which is
+     * why it sits beside the driver here.
+     *
+     * The signature below stays for corrections applied before this was a layer
+     * of its own: those went into the bands, and a shape recorded at the time is
+     * all that is left of them. New ones arrive here instead, in full, rather
+     * than as a description reconstructed from a string.
+     */
+    ...getHeadphoneFilters(headphone),
     ...parseBandShape(headsetSignature),
   ]);

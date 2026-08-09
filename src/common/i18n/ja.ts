@@ -40,7 +40,8 @@ const ja: Partial<Dictionary> = {
   'app.dismiss': '閉じる',
 
   'tabs.aria': 'サウンド作業領域',
-  'tabs.eq': 'EQ とドライバー種別',
+  'tabs.eq': 'EQ',
+  'tabs.autoeq': 'AutoEQ',
   'tabs.voicing': '音の傾向',
   'tabs.convolution': 'コンボリューション',
   'tabs.config': 'Config',
@@ -140,6 +141,16 @@ const ja: Partial<Dictionary> = {
   'profiles.error.duplicate': '同じ名前があります。別の名前にしてください。',
   'profiles.edit': 'プロファイル名を編集',
 
+  'autoeq.page.eyebrow': 'ヘッドホンに合わせる',
+  'autoeq.page.title': 'ヘッドホン補正',
+  'autoeq.page.intro':
+    '使っているヘッドホンを選ぶと、FluidEQ がその機種向けに公開されている補正を適用します。ここにある測定はすべて実際の測定装置で取られ、測った人が公開したものです。機種名から推測したものはひとつもありません。',
+  'autoeq.source.hint':
+    '測定データがどのデータベース由来かです。「すべてのデータベース」はすべてを同時に検索します。',
+  'autoeq.model.hint':
+    'メーカー名か機種名で検索します。手持ちの機種が測られていなくても、同じシリーズの近い機種でかなり近づきます。',
+  'autoeq.target.hint':
+    'ほとんどの機種は複数回測定されています。測定装置もターゲットカーブも違い、音も同じではないので、いくつか試す価値があります。',
   'autoeq.eyebrow': 'リファレンスから始める',
   'autoeq.title': 'AutoEQ ライブラリ',
   'autoeq.selectSource': 'ソースを選択',
@@ -198,6 +209,7 @@ const ja: Partial<Dictionary> = {
   'eq.layers.convolution': 'コンボリューション',
   'eq.layers.voicing': '音の傾向',
   'eq.layers.driver': 'ドライバー',
+  'eq.layers.headphone': 'ヘッドホン',
   'eq.layers.disable': '{layer} を削除せずにオフにします',
   'eq.layers.enable': '{layer} をもう一度オンにします',
   'eq.layers.smart': 'スマート EQ',

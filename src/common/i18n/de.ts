@@ -40,7 +40,8 @@ const de: Partial<Dictionary> = {
   'app.dismiss': 'Ausblenden',
 
   'tabs.aria': 'Klang-Arbeitsbereich',
-  'tabs.eq': 'EQ & Hörertyp',
+  'tabs.eq': 'EQ',
+  'tabs.autoeq': 'AutoEQ',
   'tabs.voicing': 'Klangcharakter',
   'tabs.convolution': 'Faltung',
   'tabs.config': 'Config',
@@ -143,6 +144,16 @@ const de: Partial<Dictionary> = {
     'Diesen Namen gibt es schon, bitte einen anderen wählen.',
   'profiles.edit': 'Profilnamen bearbeiten',
 
+  'autoeq.page.eyebrow': 'AUF IHREN KOPFHÖRER ABSTIMMEN',
+  'autoeq.page.title': 'Kopfhörerkorrektur',
+  'autoeq.page.intro':
+    'Sagen Sie, mit welchem Kopfhörer Sie hören, und FluidEQ wendet die dafür veröffentlichte Korrektur an. Jede Messung wurde auf einem echten Messplatz gemacht und veröffentlicht – nichts davon ist aus dem Modellnamen geraten.',
+  'autoeq.source.hint':
+    'Aus welcher Datenbank die Messungen stammen. „Alle Datenbanken“ durchsucht alle auf einmal.',
+  'autoeq.model.hint':
+    'Nach Marke oder Modell suchen. Ist Ihres nicht gemessen, kommt ein naher Verwandter aus derselben Reihe meist schon sehr nah heran.',
+  'autoeq.target.hint':
+    'Die meisten Modelle sind mehrfach gemessen – andere Messplätze, andere Zielkurven – und sie klingen nicht gleich. Es lohnt sich, mehrere auszuprobieren.',
   'autoeq.eyebrow': 'MIT EINER REFERENZ BEGINNEN',
   'autoeq.title': 'AutoEQ-Bibliothek',
   'autoeq.selectSource': 'Quelle wählen',
@@ -204,6 +215,7 @@ const de: Partial<Dictionary> = {
   'eq.layers.convolution': 'Faltung',
   'eq.layers.voicing': 'Klangcharakter',
   'eq.layers.driver': 'Treiber',
+  'eq.layers.headphone': 'Kopfhörer',
   'eq.layers.disable': '{layer} ausschalten, ohne sie zu entfernen',
   'eq.layers.enable': '{layer} wieder einschalten',
   'eq.layers.smart': 'Smart-EQ',

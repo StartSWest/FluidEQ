@@ -66,7 +66,11 @@ const en = {
 
   // *** Workspace tabs ******************************************************
   'tabs.aria': 'Sound workspace',
-  'tabs.eq': 'EQ & headset mode',
+  // Just "EQ" since the reference picker moved out of it. It read "EQ &
+  // headset mode" while the headset was chosen on that tab, and a label that
+  // names something the tab no longer holds sends people to the wrong one.
+  'tabs.eq': 'EQ',
+  'tabs.autoeq': 'AutoEQ',
   'tabs.voicing': 'Voicing',
   'tabs.convolution': 'Convolution',
   'tabs.config': 'Config',
@@ -182,6 +186,18 @@ const en = {
   'profiles.edit': 'Edit Preset Name',
 
   // *** AutoEQ library *****************************************************
+  // The tab's own heading. The section inside it keeps `autoeq.eyebrow` and
+  // `autoeq.title`, which name the library; these name the page.
+  'autoeq.page.eyebrow': 'MATCH YOUR HEADPHONES',
+  'autoeq.page.title': 'Headphone correction',
+  'autoeq.page.intro':
+    'Say which headphones you are listening on and FluidEQ applies the correction published for them. Every measurement here was taken on a real rig by somebody who published their results — none of it is guessed from the model name.',
+  'autoeq.source.hint':
+    'Which database the measurements come from. “All databases” looks through every one at once.',
+  'autoeq.model.hint':
+    'Search by brand or model. If yours is not measured, a close relation from the same range usually gets you most of the way.',
+  'autoeq.target.hint':
+    'Most models are measured more than once — different rigs, different target curves — and they do not sound alike. It is worth trying more than one.',
   'autoeq.eyebrow': 'START FROM A REFERENCE',
   'autoeq.title': 'AutoEQ library',
   'autoeq.selectSource': 'Select a source',
@@ -244,6 +260,7 @@ const en = {
   'eq.layers.convolution': 'Convolution',
   'eq.layers.voicing': 'Voicing',
   'eq.layers.driver': 'Driver',
+  'eq.layers.headphone': 'Headphone',
   'eq.layers.disable': 'Switch {layer} off without removing it',
   'eq.layers.enable': 'Switch {layer} back on',
   'eq.layers.smart': 'Smart EQ',
