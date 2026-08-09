@@ -71,19 +71,38 @@ const videoPreloadPath = () =>
     ? path.join(__dirname, 'video-preload.js')
     : path.join(__dirname, '../../.erb/dll/video-preload.js');
 
-/**
- * A user agent with FluidEQ's fingerprints filed off.
+/*
+ * THE USER AGENT IS NO LONGER TOUCHED, AND THAT IS THE FIX RATHER THAN A
+ * REGRESSION.
  *
- * Electron's default advertises both `Electron/43.2.0` and the app's own name
- * and version. YouTube reads that and serves a degraded page — and it is also
- * gratuitous: telling every site which build of which audio utility somebody
- * is running identifies them far more precisely than a plain Chrome string.
- * What is left is what the underlying Chromium really is.
+ * It used to have FluidEQ's fingerprints filed off: `Electron/43.2.0` and the
+ * app's own name and version stripped out of `app.userAgentFallback`, on the
+ * reasoning that YouTube reads them and serves a degraded page, and that naming
+ * the exact build of an audio utility identifies somebody far more precisely
+ * than a plain Chrome string does. Both of those are still true as far as they
+ * go. The problem is what the edit could not reach.
+ *
+ * `setUserAgent` rewrites the header and nothing else. Chromium keeps sending
+ * user-agent client hints — `Sec-CH-UA`, `Sec-CH-UA-Platform`, and
+ * `navigator.userAgentData` in the page — and those are built from the real
+ * brand list, which still said Electron. So the player arrived claiming to be
+ * plain Chrome in one channel and Electron in another, at the same moment.
+ *
+ * A disagreement like that is a far louder "embedded or automated browser"
+ * signal than an honest answer, and Google's sign-in refuses on exactly that
+ * kind of signal: "this browser or app may not be secure". Stripping the string
+ * did not hide the player. It marked it.
+ *
+ * The evidence for that being the actual cause, rather than a guess: another
+ * Electron 43 application on this machine loads Google sign-in in an ordinary
+ * `<webview>` and completes it, and it does nothing at all to its user agent —
+ * it says `Electron/43.2.0` outright, agreeing with its own client hints.
+ *
+ * So this session now sends Electron's default, unmodified. If a site really
+ * does serve a worse page for it, that is a trade worth reopening — but it is
+ * worth reopening against the client hints as well, because changing only the
+ * header is what caused this.
  */
-const browserUserAgent = () =>
-  app.userAgentFallback
-    .replace(/\s(Electron|FluidEQ|fluideq)\/[\d.]+/gi, '')
-    .trim();
 
 /** Every attached player, for pushing a settings change out to all of them. */
 const attachedPlayers = new Set<WebContents>();
@@ -109,7 +128,7 @@ const broadcastAdBlockSetting = () => {
 const lockDownSession = () => {
   const videoSession = session.fromPartition(VIDEO_BROWSER_PARTITION);
 
-  videoSession.setUserAgent(browserUserAgent());
+  // No `setUserAgent` here on purpose. See the note above it in this file.
 
   videoSession.setPermissionRequestHandler(
     (_contents, permission, callback) => {
