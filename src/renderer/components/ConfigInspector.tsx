@@ -825,12 +825,23 @@ const ConfigInspector = () => {
                 <span className="config-device__transfer-note">
                   {transferNote || t('config.import.hint')}
                 </span>
+                {/* One arrow each, and they point at the difference.
+                    Side by side these are a mirrored pair of words, and in
+                    several of the ten languages the words for export and import
+                    differ by a syllable. The tray tells them apart before the
+                    label is read: out of the machine, or into it. Hidden from
+                    anything that reads rather than looks, because the label
+                    beside it already says which is which. */}
                 <div className="config-device__transfer-actions">
                   <button
                     type="button"
                     className="config-device__export"
                     onClick={() => transferChain(() => exportChain(shown))}
                   >
+                    <svg viewBox="0 0 16 16" aria-hidden>
+                      <path d="M8 10V2.5M5.2 5.3L8 2.5l2.8 2.8" />
+                      <path d="M2.5 9.8v3.7h11V9.8" />
+                    </svg>
                     {t('config.export')}
                   </button>
                   <button
@@ -838,6 +849,10 @@ const ConfigInspector = () => {
                     className="config-device__import"
                     onClick={() => transferChain(importChain)}
                   >
+                    <svg viewBox="0 0 16 16" aria-hidden>
+                      <path d="M8 2.5V10M5.2 7.2L8 10l2.8-2.8" />
+                      <path d="M2.5 9.8v3.7h11V9.8" />
+                    </svg>
                     {t('config.import')}
                   </button>
                 </div>

@@ -530,6 +530,21 @@ export interface IHeadphoneSettings {
 export interface ISmartEqSettings {
   /** The correction, keyed by band id. Nothing audible means no layer at all. */
   filters: IFiltersMap;
+  /**
+   * How much of it to apply, 0 to 1. Absent means all of it.
+   *
+   * The same control the voicing, the driver and the headphone correction have,
+   * and it arrived last because this is the layer that writes itself: a
+   * measurement decides what the filters are, so there was nothing to dial back
+   * from. That is exactly the argument for it, though — a measured correction
+   * is a claim about the room, and half of one is a reasonable thing to want
+   * when the claim is more confident than you are.
+   *
+   * Optional rather than defaulted at the type level: every profile saved
+   * before this existed has no such field, and absent has to keep meaning full
+   * strength or those all become silent on upgrade.
+   */
+  intensity?: number;
   /** Whether the capture heard the whole correctable band or only part of it. */
   status?: 'ready' | 'partial';
   /** The range the capture actually covered, so the UI can say what it did. */
