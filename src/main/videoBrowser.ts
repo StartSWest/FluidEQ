@@ -80,6 +80,32 @@ const GRANTED_PERMISSIONS = new Set([
   'top-level-storage-access',
 ]);
 
+/**
+ * Size and chrome for a sign-in window. See `hardenPopup` for its guards.
+ *
+ * WHY IT SAYS NOTHING ELSE. A popup inherits its opener's web preferences, and
+ * the opener is a player guest that `hardenAttachment` has already forced into
+ * sandboxed, context-isolated, node-free, `webSecurity: true` — so every value
+ * this used to repeat is applied to the window either way.
+ *
+ * Repeating them made the window subtly not a popup. Chromium treats one whose
+ * preferences differ from its opener's differently, and a sign-in is built
+ * entirely on the relationship between the two: SoundCloud's callback script
+ * crashed reading something off it, `Cannot read properties of undefined
+ * (reading 'substring')` in `secure.sndcdn.com/web_auth.js`, three milliseconds
+ * before the window closed itself. Found by reading the log rather than by
+ * guessing, which took six guesses to start doing.
+ *
+ * The guards that matter are not preferences and did not move: `hardenPopup`
+ * still checks every navigation and redirect against the allow-list, still
+ * refuses a popup from a popup, and the session is still the locked-down one.
+ */
+const POPUP_WINDOW_OPTIONS = {
+  width: 520,
+  height: 720,
+  autoHideMenuBar: true,
+};
+
 /** Where a player is sent when it has to be pulled back from somewhere else. */
 const HOME_SITE = VIDEO_SITES[0];
 
@@ -406,20 +432,7 @@ const hardenPlayer = (contents: WebContents) => {
       log.info('Video player opened an empty popup window, to be navigated');
       return {
         action: 'allow',
-        overrideBrowserWindowOptions: {
-          width: 520,
-          height: 720,
-          autoHideMenuBar: true,
-          webPreferences: {
-            nodeIntegration: false,
-            nodeIntegrationInSubFrames: false,
-            contextIsolation: true,
-            sandbox: true,
-            webSecurity: true,
-            allowRunningInsecureContent: false,
-            experimentalFeatures: false,
-          },
-        },
+        overrideBrowserWindowOptions: POPUP_WINDOW_OPTIONS,
       };
     }
 
@@ -467,25 +480,7 @@ const hardenPlayer = (contents: WebContents) => {
       log.info(`Video player opened a popup window to ${url}`);
       return {
         action: 'allow',
-        overrideBrowserWindowOptions: {
-          width: 520,
-          height: 720,
-          autoHideMenuBar: true,
-          // Stated rather than inherited. A popup takes the opener's
-          // preferences when nothing is said, which is safe today only because
-          // `hardenAttachment` made the opener safe — and a security posture
-          // that holds by inheritance is one edit away from not holding. No
-          // preload: the ad blocker has no business inside a login form.
-          webPreferences: {
-            nodeIntegration: false,
-            nodeIntegrationInSubFrames: false,
-            contextIsolation: true,
-            sandbox: true,
-            webSecurity: true,
-            allowRunningInsecureContent: false,
-            experimentalFeatures: false,
-          },
-        },
+        overrideBrowserWindowOptions: POPUP_WINDOW_OPTIONS,
       };
     }
 
@@ -620,6 +615,18 @@ const hardenPopup = (contents: WebContents) => {
   contents.on('did-start-navigation', (details) => {
     if (details.isMainFrame) {
       log.info(`Sign-in popup navigating to ${details.url}`);
+    }
+  });
+
+  // Redirects, which `did-start-navigation` does not repeat for.
+  //
+  // A server-side chain is one navigation with several hops, so the last run
+  // showed the window going to Google and nothing after it — when what actually
+  // happened was Google answering and redirecting back to SoundCloud's callback,
+  // where the crash was. The hop that is not logged is the hop the bug is on.
+  contents.on('did-redirect-navigation', (details) => {
+    if (details.isMainFrame) {
+      log.info(`Sign-in popup redirected to ${details.url}`);
     }
   });
 
