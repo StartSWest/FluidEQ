@@ -87,7 +87,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * which would let the meter refuse to shrink on a short window and push the
  * column past the shell.
  */
-.side-bar__response {
+// Selected through the parent, because `.side-bar > div` sets `flex: 0 0 auto`
+// on every card and one class alone loses to a class plus an element. The rule
+// was there and simply never applied, which is the least visible way for CSS to
+// be wrong.
+.side-bar > .side-bar__response {
   min-height: 0;
   flex: 1 1 auto;
   align-self: stretch;
@@ -99,8 +103,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 4px;
 
-  // The preamp track length is a layout decision, not a per-tab one. It only
-  // grows when the response graph is hidden and the column has room to spare.
+  // The preamp track length is a layout decision, not a per-tab one.
+  //
+  // It used to grow when the response graph was hidden, on the reasoning that
+  // the column then had room to spare. That room is no longer spare — the level
+  // meter takes it — so growing here only meant one control resizing whenever
+  // another was switched, which is exactly what it looked like.
   .range {
     --range-length: 102px;
   }
@@ -120,9 +128,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-#root.minimized .side-bar__preamp .range {
-  --range-length: clamp(102px, calc(100vh - 540px), 220px);
-}
+// Hiding the graph no longer stretches the preamp. See `.side-bar__preamp`:
+// the space it was reaching into belongs to the meter now, and a slider that
+// changed length whenever the graph was toggled read as a glitch rather than as
+// a layout adapting.
 
 // *** Compact shell **********************************************************
 //
