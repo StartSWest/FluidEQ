@@ -62,6 +62,18 @@ const en = {
   'app.window.maximizeApp': 'Maximize FluidEQ',
   'app.window.restoreApp': 'Restore FluidEQ',
   'app.window.closeApp': 'Close FluidEQ',
+  // The titlebar's transport. The tooltips are the short form and the aria
+  // labels carry the fact that makes these different from a player's own
+  // buttons: they command whatever is playing on the machine, which is usually
+  // not this application. Someone reading the screen has no other way to know
+  // that, and someone who assumes these control the Video tab will press them
+  // at the wrong moment.
+  'app.media.previous': 'Previous track',
+  'app.media.playPause': 'Play or pause',
+  'app.media.next': 'Next track',
+  'app.media.previousAria': 'Previous track, anywhere on this computer',
+  'app.media.playPauseAria': 'Play or pause, anywhere on this computer',
+  'app.media.nextAria': 'Next track, anywhere on this computer',
   'app.dismiss': 'Dismiss',
 
   // *** Workspace tabs ******************************************************

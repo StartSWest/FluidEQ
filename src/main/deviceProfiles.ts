@@ -30,6 +30,7 @@ import {
   stateToApoFiles,
 } from './flush';
 import { writeConvolutionWav } from './convolution';
+import { POWERSHELL_PATH } from './powershell';
 
 export interface IActiveStateOverride {
   deviceId?: string;
@@ -560,7 +561,10 @@ export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
   }
 
   const { stdout } = await execFileAsync(
-    'powershell.exe',
+    // Absolute, never a bare name: libuv searches the current directory before
+    // PATH, and a shortcut-launched Electron app has its install directory as
+    // the current directory. See the comment on the constant.
+    POWERSHELL_PATH,
     [
       '-NoLogo',
       '-NoProfile',
@@ -589,7 +593,8 @@ export const setDefaultAudioDevice = async (deviceId: string) => {
   }
 
   await execFileAsync(
-    'powershell.exe',
+    // Absolute, for the same reason as the discovery call above.
+    POWERSHELL_PATH,
     [
       '-NoLogo',
       '-NoProfile',

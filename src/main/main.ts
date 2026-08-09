@@ -188,6 +188,8 @@ import {
   saveDeviceProfileSettings,
   setDefaultAudioDevice,
 } from './deviceProfiles';
+import { sendMediaTransportKey } from './mediaKeys';
+import { POWERSHELL_PATH } from './powershell';
 
 /**
  * Check GitHub for a newer FluidEQ and tell the user about it in the app.
@@ -3453,7 +3455,19 @@ ipcMain.handle('restart-windows-audio', async () => {
     'utf16le',
   ).toString('base64');
   const elevateCommand = [
-    "$process = Start-Process -FilePath 'powershell.exe'",
+    // `$PSHOME` and not `'powershell.exe'`, for the reason the constant below
+    // is used instead of a bare name: `Start-Process -Verb RunAs` goes through
+    // ShellExecute, which searches the working directory first — and the
+    // working directory here is inherited from the app, which a shortcut sets
+    // to the install directory. A `powershell.exe` dropped there would be the
+    // one the user is asked to approve for administrator rights.
+    //
+    // `Join-Path` and not a quoted `"$PSHOME\powershell.exe"`: this whole
+    // string is one `-Command` argument, and a double quote inside one has to
+    // survive libuv escaping it and then PowerShell re-reading the raw command
+    // line. That round trip is the classic way an elevation prompt starts
+    // failing for no visible reason, so there are no double quotes here at all.
+    "$process = Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe')",
     '-Verb RunAs -WindowStyle Hidden',
     `-ArgumentList '-NoProfile','-EncodedCommand','${restartCommand}'`,
     '-Wait -PassThru;',
@@ -3462,7 +3476,11 @@ ipcMain.handle('restart-windows-audio', async () => {
 
   return new Promise<string>((resolve) => {
     execFile(
-      'powershell.exe',
+      // Absolute, because a bare `'powershell.exe'` is resolved by libuv
+      // against the CURRENT DIRECTORY before PATH — and a shortcut-launched
+      // Electron app has its install directory as the current directory. This
+      // particular call then asks Windows to elevate whatever it found.
+      POWERSHELL_PATH,
       ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', elevateCommand],
       { windowsHide: true },
       (error) => {
@@ -3474,6 +3492,20 @@ ipcMain.handle('restart-windows-audio', async () => {
       },
     );
   });
+});
+
+/**
+ * The titlebar's transport buttons, pressed on behalf of the whole machine.
+ *
+ * Takes a name and nothing else. The renderer never says which key to press —
+ * see `mediaKeys`, where the three names are turned into the only three codes
+ * this app will send, and an unrecognised name is dropped without a word.
+ *
+ * Returns nothing on purpose. Windows gives no answer to a media key, so there
+ * is nothing honest to hand back and nothing for the window to wait on.
+ */
+ipcMain.handle('media-transport', async (_event, action: unknown) => {
+  await sendMediaTransportKey(action);
 });
 
 const sendWindowState = () => {

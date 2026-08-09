@@ -37,6 +37,12 @@ const ja: Partial<Dictionary> = {
   'app.window.maximizeApp': 'FluidEQ を最大化',
   'app.window.restoreApp': 'FluidEQ を元に戻す',
   'app.window.closeApp': 'FluidEQ を閉じる',
+  'app.media.previous': '前のトラック',
+  'app.media.playPause': '再生または一時停止',
+  'app.media.next': '次のトラック',
+  'app.media.previousAria': 'このパソコンで再生中のものを前のトラックへ',
+  'app.media.playPauseAria': 'このパソコンで再生中のものを再生または一時停止',
+  'app.media.nextAria': 'このパソコンで再生中のものを次のトラックへ',
   'app.dismiss': '閉じる',
 
   'tabs.aria': 'サウンド作業領域',

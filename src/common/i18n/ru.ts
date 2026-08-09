@@ -37,6 +37,14 @@ const ru: Partial<Dictionary> = {
   'app.window.maximizeApp': 'Развернуть FluidEQ',
   'app.window.restoreApp': 'Восстановить FluidEQ',
   'app.window.closeApp': 'Закрыть FluidEQ',
+  'app.media.previous': 'Предыдущий трек',
+  'app.media.playPause': 'Воспроизведение или пауза',
+  'app.media.next': 'Следующий трек',
+  'app.media.previousAria':
+    'Предыдущий трек в любой программе на этом компьютере',
+  'app.media.playPauseAria':
+    'Воспроизведение или пауза в любой программе на этом компьютере',
+  'app.media.nextAria': 'Следующий трек в любой программе на этом компьютере',
   'app.dismiss': 'Скрыть',
 
   'tabs.aria': 'Рабочая область звука',

@@ -36,6 +36,12 @@ const zh: Partial<Dictionary> = {
   'app.window.maximizeApp': '最大化 FluidEQ',
   'app.window.restoreApp': '还原 FluidEQ',
   'app.window.closeApp': '关闭 FluidEQ',
+  'app.media.previous': '上一曲',
+  'app.media.playPause': '播放或暂停',
+  'app.media.next': '下一曲',
+  'app.media.previousAria': '上一曲，控制本机上正在播放的任何内容',
+  'app.media.playPauseAria': '播放或暂停本机上正在播放的任何内容',
+  'app.media.nextAria': '下一曲，控制本机上正在播放的任何内容',
   'app.dismiss': '知道了',
 
   'tabs.aria': '声音工作区',

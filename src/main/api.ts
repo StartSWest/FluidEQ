@@ -18,6 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ipcRenderer, IpcRendererEvent } from 'electron';
+// Type only, so the preload bundle does not pull `child_process` in behind it.
+import type { TMediaTransportAction } from './mediaKeys';
 
 export type Channels = string;
 
@@ -99,7 +101,24 @@ const isWindowMaximized = () =>
 const setWindowFullScreen = (next: boolean) =>
   ipcRenderer.invoke('window-set-full-screen', next) as Promise<boolean>;
 
+/**
+ * Press a media key for the whole machine, not for this app's player.
+ *
+ * A name and never a key code: main keeps the only table that turns one into
+ * the other. Nothing comes back — Windows does not say who answered.
+ */
+const sendMediaTransport = (action: TMediaTransportAction) =>
+  ipcRenderer.invoke('media-transport', action) as Promise<void>;
+
 export default {
+  /**
+   * What this build is running on, read once while the preload has a `process`.
+   *
+   * The window needs this to decide what to draw, and the transport buttons are
+   * the case: they press Windows virtual keys, so on any other platform they
+   * would be three controls that do nothing at all. Better not drawn.
+   */
+  platform: process.platform,
   ipcRenderer: {
     sendMessage,
     on,
@@ -115,5 +134,6 @@ export default {
     installUpdate,
     isWindowMaximized,
     setWindowFullScreen,
+    sendMediaTransport,
   },
 };

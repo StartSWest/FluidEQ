@@ -340,6 +340,18 @@ select option {
   }
 }
 
+// The whole left column of the bar: who this is, then the transport.
+//
+// One grid child rather than two, because the bar's three tracks are what hold
+// the waveform in the middle of the window — a fourth child would take a column
+// of its own and move it.
+.window-titlebar__left {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 12px;
+}
+
 .workspace-header__identity {
   display: flex;
   min-width: 0;
@@ -349,6 +361,22 @@ select option {
   > div {
     min-width: 0;
   }
+}
+
+// Media transport, matching the window buttons on purpose — same class, so the
+// size, the radius, the hover and the `no-drag` are one definition rather than
+// a copy that drifts. Only the glyph box differs: a triangle beside two bars
+// needs more width than a 12-square, and squeezing it into one turned the pause
+// into a smudge at this size.
+.window-titlebar__transport {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 3px;
+  // Belt and braces with the buttons' own rule. The titlebar is a drag region,
+  // and anything inside one that does not opt out cannot be clicked — the
+  // pointer goes to the window manager instead of to the button.
+  -webkit-app-region: no-drag;
 }
 
 .brand-mark {
@@ -722,6 +750,13 @@ select option {
     color: $white;
     border-color: rgba(#ff7180, 0.7);
     background: #c53a4c;
+  }
+
+  // Same 13px of height as every other glyph in the bar, so the row reads as
+  // one weight. The extra width is the viewBox being 16 wide rather than 12.
+  &--media svg {
+    width: 17px;
+    height: 13px;
   }
 }
 
@@ -1730,8 +1765,15 @@ button.graph-legend {
     font-size: 1rem;
   }
 
-  .window-titlebar__controls {
+  .window-titlebar__controls,
+  .window-titlebar__transport {
     gap: 1px;
+  }
+
+  // The transport keeps its full width while the identity beside it truncates,
+  // so the space between them is the one thing left to give back.
+  .window-titlebar__left {
+    gap: 8px;
   }
 
   .window-control {

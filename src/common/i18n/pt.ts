@@ -37,6 +37,14 @@ const pt: Partial<Dictionary> = {
   'app.window.maximizeApp': 'Maximizar o FluidEQ',
   'app.window.restoreApp': 'Restaurar o FluidEQ',
   'app.window.closeApp': 'Fechar o FluidEQ',
+  'app.media.previous': 'Faixa anterior',
+  'app.media.playPause': 'Reproduzir ou pausar',
+  'app.media.next': 'Próxima faixa',
+  'app.media.previousAria':
+    'Faixa anterior, em qualquer parte deste computador',
+  'app.media.playPauseAria':
+    'Reproduzir ou pausar, em qualquer parte deste computador',
+  'app.media.nextAria': 'Próxima faixa, em qualquer parte deste computador',
   'app.dismiss': 'Dispensar',
 
   'tabs.aria': 'Área de trabalho de som',

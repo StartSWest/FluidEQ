@@ -43,6 +43,12 @@ const hi: Partial<Dictionary> = {
   'app.window.maximizeApp': 'FluidEQ बड़ा करें',
   'app.window.restoreApp': 'FluidEQ पहले जैसा करें',
   'app.window.closeApp': 'FluidEQ बंद करें',
+  'app.media.previous': 'पिछला ट्रैक',
+  'app.media.playPause': 'चलाएँ या रोकें',
+  'app.media.next': 'अगला ट्रैक',
+  'app.media.previousAria': 'पिछला ट्रैक, इस कंप्यूटर पर कहीं भी चल रहा हो',
+  'app.media.playPauseAria': 'चलाएँ या रोकें, इस कंप्यूटर पर कहीं भी चल रहा हो',
+  'app.media.nextAria': 'अगला ट्रैक, इस कंप्यूटर पर कहीं भी चल रहा हो',
   'app.dismiss': 'हटाएँ',
 
   'tabs.aria': 'साउंड वर्कस्पेस',

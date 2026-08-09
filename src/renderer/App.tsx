@@ -33,6 +33,9 @@ import {
   PRODUCT_NAME,
   PRODUCT_VERSION,
 } from 'common/branding';
+// Type only. The module itself is main-process code and never enters this
+// bundle; what is shared is the closed set of names the transport can send.
+import type { TMediaTransportAction } from 'main/mediaKeys';
 import { resetRhythmRun } from './utils/rhythmRun';
 import ConfigInspector from './components/ConfigInspector';
 import { resetEuphoriaMode } from './utils/euphoriaMode';
@@ -538,6 +541,30 @@ const AppContent = () => {
     window.electron.ipcRenderer.closeWindow().catch(() => undefined);
   };
 
+  /**
+   * Whether the transport buttons are drawn at all.
+   *
+   * They press Windows virtual keys, and there is no equivalent anywhere else —
+   * so on macOS or Linux they would be three controls that look like every
+   * other control and do nothing when pressed. Not rendering them is the honest
+   * version of that. The main process refuses the same way, independently.
+   */
+  const isWindows = window.electron.platform === 'win32';
+
+  /**
+   * A transport button, for whatever is playing on the machine.
+   *
+   * Fire and forget, and nothing is read back. The main process sends a media
+   * key and Windows tells nobody which application answered it — so there is no
+   * playing/paused state to hold here, and the play button is one glyph that
+   * means "toggle" rather than a light that could be wrong.
+   */
+  const handleMediaTransport = (action: TMediaTransportAction) => {
+    window.electron.ipcRenderer
+      .sendMediaTransport(action)
+      .catch(() => undefined);
+  };
+
   const handleTitlebarDoubleClick = (event: MouseEvent<HTMLElement>) => {
     const target = event.target as HTMLElement;
     if (target.closest('button, a, input, select, textarea')) {
@@ -559,22 +586,87 @@ const AppContent = () => {
         className="workspace-header window-titlebar"
         onDoubleClick={handleTitlebarDoubleClick}
       >
-        <div className="workspace-header__identity">
-          <BrandMark />
-          <div>
-            <div className="workspace-header__name">
-              {PRODUCT_NAME}
-              {/* Inlined at build time from the same package.json
-                  electron-builder versions the installer with, so a bug report
-                  quoting this is quoting the real build. */}
-              {APP_VERSION && (
-                <span className="workspace-header__version">
-                  v{APP_VERSION}
-                </span>
-              )}
+        {/* One grid child, two things in it.
+
+            The bar's three columns are what keep the waveform optically
+            centred, so the transport cannot be a fourth child — an extra column
+            would push the analyser off centre by exactly its width. It shares
+            the left track with the identity block instead, which is the track
+            with room: the right one already carries the creature, the actions
+            menu and three window buttons. */}
+        <div className="window-titlebar__left">
+          <div className="workspace-header__identity">
+            <BrandMark />
+            <div>
+              <div className="workspace-header__name">
+                {PRODUCT_NAME}
+                {/* Inlined at build time from the same package.json
+                    electron-builder versions the installer with, so a bug
+                    report quoting this is quoting the real build. */}
+                {APP_VERSION && (
+                  <span className="workspace-header__version">
+                    v{APP_VERSION}
+                  </span>
+                )}
+              </div>
+              <div className="workspace-header__tagline">
+                {t('app.tagline')}
+              </div>
             </div>
-            <div className="workspace-header__tagline">{t('app.tagline')}</div>
           </div>
+          {/* The machine's transport, not this app's player.
+
+              Deliberately at this end of the bar and not beside the window
+              buttons: "next track" one gap away from "close" is a misclick that
+              quits the application, and these are buttons people press quickly
+              and repeatedly without looking.
+
+              Windows only — see `isWindows`. Every button here carries
+              `no-drag` through `.window-control`, because the bar around them is
+              a drag region and a control inside one cannot be clicked at all
+              without it. */}
+          {isWindows && (
+            <div className="window-titlebar__transport">
+              <button
+                type="button"
+                className="window-control window-control--media"
+                aria-label={t('app.media.previousAria')}
+                title={t('app.media.previous')}
+                onClick={() => handleMediaTransport('previous')}
+              >
+                <svg viewBox="0 0 16 12" aria-hidden="true">
+                  <path d="M3.6 3v6M12.4 3.2v5.6L6.6 6z" />
+                </svg>
+              </button>
+              {/* One glyph, both meanings — the same pairing a keyboard's media
+                  row prints on its key. There is no way to know whether
+                  anything is playing without the WinRT session manager, which
+                  is a native module this app does not carry, so a button that
+                  showed a state would be showing a guess. */}
+              <button
+                type="button"
+                className="window-control window-control--media"
+                aria-label={t('app.media.playPauseAria')}
+                title={t('app.media.playPause')}
+                onClick={() => handleMediaTransport('playPause')}
+              >
+                <svg viewBox="0 0 16 12" aria-hidden="true">
+                  <path d="M2.8 3.2v5.6L7.6 6zM10.6 3.2v5.6M13.4 3.2v5.6" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="window-control window-control--media"
+                aria-label={t('app.media.nextAria')}
+                title={t('app.media.next')}
+                onClick={() => handleMediaTransport('next')}
+              >
+                <svg viewBox="0 0 16 12" aria-hidden="true">
+                  <path d="M3.6 3.2v5.6L9.4 6zM12.4 3v6" />
+                </svg>
+              </button>
+            </div>
+          )}
         </div>
         {/* Moved, not copied.
 
