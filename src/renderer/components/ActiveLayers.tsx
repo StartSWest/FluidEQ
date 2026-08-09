@@ -19,7 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useRef } from 'react';
 import { ErrorDescription } from 'common/errors';
-import { describeBandShape, TApoLayer } from 'common/constants';
+import { TApoLayer } from 'common/constants';
 import { getVoicingProfile, isVoicingActive } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { hasSmartEqLayer } from 'common/smartEq';
@@ -30,7 +30,6 @@ import { useTranslation } from '../utils/I18nContext';
 import {
   clearConvolution,
   clearGains,
-  clearHeadset,
   setDriver as setDriverApi,
   setHeadphone as setHeadphoneApi,
   setLayerBypass,
@@ -69,8 +68,6 @@ const ActiveLayers = () => {
     setHeadphone,
     smartEq,
     headset,
-    headsetTarget,
-    headsetSignature,
     isEnabled,
     isBlockingError,
     bypassed,
@@ -100,17 +97,20 @@ const ActiveLayers = () => {
   const hasShapedBands = Object.values(filters).some(
     (f) => Math.abs(f.gain) > 0.01,
   );
-  // Compared against what the reference actually wrote, recorded by the main
-  // process at the moment it wrote it.
-  //
-  // This used to be a snapshot taken here, on the first render after a
-  // reference arrived — which was the wrong moment twice over. An apply is
-  // followed by a band reveal that walks the gains in over several frames, so
-  // the snapshot caught a half-drawn tuning and nothing ever matched it again;
-  // and it was a ref keyed on the model name, so re-applying the same model
-  // could not clear the mark and leaving the tab lost it entirely.
-  const isEqModified =
-    !!headsetSignature && headsetSignature !== describeBandShape(filters);
+  /*
+   * The "(modified)" mark is gone with the attribution it qualified.
+   *
+   * It compared `headsetSignature` against the shape of the bands, which was
+   * exactly right while a reference WAS the bands. Since the correction became
+   * a layer, that signature describes the layer's filters — so the comparison
+   * was between two different things and could only ever come out unequal. The
+   * chip said modified the moment a reference was applied and never stopped.
+   *
+   * There is nothing to replace it with here, either: a band the user moved is
+   * a band, and this chip now says how many there are. `headsetSignature` still
+   * earns its keep elsewhere — `buildLayerTargetCurve` reads it to protect
+   * corrections applied before the split, which really did go into the bands.
+   */
 
   /**
    * Strength, applied at once and written a moment later.
@@ -340,37 +340,48 @@ const ActiveLayers = () => {
   // layer would mean the chip is there from the first launch, saying nothing,
   // for everybody. Clearing the EQ puts every gain back to zero, so the chip
   // goes on its own.
-  if (headset || hasShapedBands) {
-    const reference = headsetTarget ? `${headset} · ${headsetTarget}` : headset;
+  /*
+   * THE BANDS, AND ONLY THE BANDS. It used to name itself after the measured
+   * model, and that stopped being true when the headphone correction became a
+   * layer of its own: the model is applied beside these bands now, not inside
+   * them, and it has its own chip two along saying so. Naming this one after it
+   * claimed a curve that had moved out — the screenshot that reported it showed
+   * both chips carrying the same headphones, which is the whole bug in one row.
+   *
+   * The "(modified)" it also carried was the same mistake read a second way.
+   * `headsetSignature` now describes the LAYER's filters, so comparing it with
+   * the bands is comparing two different things and can only ever differ. It
+   * said modified the instant a reference was applied, before anybody had
+   * touched anything.
+   *
+   * So: how many bands there are, which is the only honest thing to say about a
+   * tuning with no source of its own. The attribution lives on the chip that
+   * actually holds it.
+   */
+  if (hasShapedBands) {
     layers.push({
       key: 'eq',
       icon: 'model',
       label: t('eq.layers.eq'),
-      name: headset
-        ? `${reference}${isEqModified ? ` ${t('eq.layers.eq.modified')}` : ''}`
-        : t('eq.layers.eq.bands', { count: String(bandCount) }),
-      // Clears the bands, like every other chip in this row clears its layer.
-      //
-      // It used to clear only the headset attribution, and only when there was
-      // one, on the argument that Clear EQ already exists and a second route to
-      // deleting somebody's tuning is not something this row should grow. That
-      // is a fair argument about buttons and the wrong one about this row: every
-      // other chip here removes the layer it names, so the one that does not is
-      // the surprise, and "delete the EQ chip" plainly means "take the EQ off".
-      //
-      // The attribution goes with it when there is one, because bands cleared to
-      // zero are no longer the model that wrote them.
+      name: t('eq.layers.eq.bands', { count: String(bandCount) }),
+      /*
+       * Clears the bands, like every other chip in this row clears its layer —
+       * AND NOTHING ELSE, WHICH IS THE FIX.
+       *
+       * It used to call `clearHeadset` as well, from back when the measured
+       * correction lived inside these bands: clearing them to zero really did
+       * mean the model was gone, so the attribution had to go with it.
+       *
+       * The correction is its own layer now, so that same line deleted a
+       * neighbouring layer this chip does not own. Reported exactly that way —
+       * delete the EQ chip and the AutoEQ goes with it — and there is no reading
+       * of "take the EQ off" that includes somebody's headphone correction. The
+       * headphone chip clears the headphone layer; this one clears the bands.
+       */
       clearHint: t('eq.layers.clearBands'),
       onClear: async () => {
-        if (headset) {
-          await clearHeadset();
-        }
         await clearGains();
         setPreAmp(0);
-        // The AutoEQ panel keeps its own idea of what is selected, and a
-        // reference cleared from here would otherwise leave its picker still
-        // naming the model whose bands have just gone.
-        window.dispatchEvent(new Event('fluideq-clear-autoeq-selection'));
         await refreshState();
       },
       // The purest A/B in the app: the whole tuning out, the whole tuning back.
