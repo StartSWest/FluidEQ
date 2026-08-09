@@ -30,8 +30,25 @@ interface DarwinMenuItemConstructorOptions extends MenuItemConstructorOptions {
   submenu?: DarwinMenuItemConstructorOptions[] | Menu;
 }
 
-// Chromium's own zoom steps: each level is a factor of 1.2, so the sizes the
-// user lands on are the ones every browser uses rather than an arbitrary ramp.
+/*
+ * How far one press moves, and it is half a browser step.
+ *
+ * Chromium's own ramp is a factor of 1.2 per level, which is right for a page:
+ * a browser zoom is usually reached for once, to make text readable, and the
+ * next stop wants to be visibly different. This is an instrument panel, and the
+ * thing people do with it is settle — find the size at which the graph and the
+ * band row both fit the screen they have. A 20% jump steps straight over that
+ * size, and the way back is another 20% jump to somewhere else.
+ *
+ * A half level puts a stop between each pair of browser sizes: about 9.5% a
+ * press instead of 20%, twice as many stops across the same range. The range
+ * itself is unchanged, so the smallest and largest the interface can get are
+ * exactly what they were — this only adds places to stop on the way.
+ *
+ * Chromium takes a fractional level perfectly well; the integers are a
+ * convention of the zoom menu, not a constraint of the API.
+ */
+const ZOOM_STEP = 0.5;
 const ZOOM_MIN_LEVEL = -3;
 const ZOOM_MAX_LEVEL = 4;
 
@@ -101,13 +118,13 @@ export default class MenuBuilder {
         input.key === '=' ||
         input.code === 'NumpadAdd'
       ) {
-        next = Math.min(ZOOM_MAX_LEVEL, current + 1);
+        next = Math.min(ZOOM_MAX_LEVEL, current + ZOOM_STEP);
       } else if (
         input.key === '-' ||
         input.key === '_' ||
         input.code === 'NumpadSubtract'
       ) {
-        next = Math.max(ZOOM_MIN_LEVEL, current - 1);
+        next = Math.max(ZOOM_MIN_LEVEL, current - ZOOM_STEP);
       } else if (input.key === '0' || input.code === 'Numpad0') {
         next = 0;
       }
