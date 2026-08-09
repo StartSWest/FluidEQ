@@ -3435,35 +3435,29 @@ if (isDebug && process.getuid?.() === 0) {
 }
 
 /*
- * ASK WINDOWS FOR ITS OWN DRM, WHICH IS THE ONE DRM THIS BUILD MIGHT HAVE.
+ * WINDOWS' OWN DRM WAS TRIED HERE AND DOES NOT WORK. DO NOT TRY IT AGAIN.
  *
- * The Video tab's Spotify fails at play with `EMEError: No supported keysystem
- * was found`, and the reason has always been read as "Electron ships no Widevine
- * CDM", which is true. What the player's own log showed is that Widevine is not
- * the only thing Spotify asks for on Windows: it probes
- * `com.microsoft.playready.recommendation.3000` as well, and PlayReady is not
- * something anybody has to ship. It is part of Windows.
+ * Spotify in the Video tab fails at play with `EMEError: No supported keysystem
+ * was found`, which everyone reads as "Electron ships no Widevine CDM". True,
+ * and its log shows Widevine is not the only thing it asks for on Windows: it
+ * probes `com.microsoft.playready.recommendation` and `.recommendation.3000` as
+ * well. PlayReady is part of Windows and nobody has to ship it, so that looked
+ * like a way to the same place without a forked Electron.
  *
- * Chromium can hand EME to the operating system's PlayReady CDM through Media
- * Foundation, gated behind this feature. Electron does not turn it on by
- * default and has an open request to; a maintainer's answer there is that the
- * switch works on any build carrying the Chromium commits. This one carries
- * Chromium 150, well past the 140 the feature landed in.
+ * It is not, and the experiment is recorded rather than repeated:
+ * `app.commandLine.appendSwitch('enable-features', 'HardwareSecureDecryption')`
+ * on Chromium 150 changed nothing. Same EMEError, same `local_player_disabled`
+ * after it, and the PlayReady console warnings that look like progress were
+ * already there before the switch — Chromium emits those when a page *asks*
+ * for the key system, not when it has one.
  *
- * Windows-only, because the feature is: on anything else the switch names
- * something Chromium does not have, and Chromium's response to an unknown
- * feature name is to ignore it — harmless, but a line that reads as though it
- * did something everywhere would be a lie.
- *
- * NOT A PROMISE. Hardware-secure decryption needs Windows 11 and a machine
- * whose GPU and firmware support it, and Spotify may decline PlayReady from a
- * client it does not recognise the way it declines a development Widevine
- * signature. This costs one line and one launch to find out, which is a great
- * deal cheaper than the fork it would otherwise take.
+ * The reason is the same shape as FedCM two paragraphs down. Registering the
+ * PlayReady key system happens in Chrome's browser layer, not in the Chromium
+ * content layer Electron builds on, so there is no switch in this process that
+ * can conjure it. The upstream request to add it is open, and open is the
+ * answer: castLabs' fork with production VMP signing remains the only route to
+ * Spotify playback, and that is a decision about how this is built.
  */
-if (process.platform === 'win32') {
-  app.commandLine.appendSwitch('enable-features', 'HardwareSecureDecryption');
-}
 
 /*
  * SAY WE DO NOT HAVE FEDCM, BECAUSE WE DO NOT REALLY HAVE FEDCM.
