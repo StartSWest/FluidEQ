@@ -73,6 +73,20 @@ $filter-dropdown-width: 56px;
       0 0 16px rgba($secondary-default, 0.12);
   }
 
+  /*
+   * ONE GAP AT EVERY DENSITY, because it is a vertical measurement.
+   *
+   * The compact and dense layouts used to tighten this to three pixels and one,
+   * which changed the height of the whole editor whenever somebody switched
+   * between six bands and thirty-one — every slider, every caption and the
+   * panel around them shifting for a choice about how many columns to draw.
+   *
+   * The density classes are about horizontal room. A narrow column needs a
+   * narrower thumb and less side padding; it does not need its captions closer
+   * together vertically, and squeezing them there was a rule about width
+   * applied to a height. The same mistake the track length made, in the same
+   * file, for the same reason.
+   */
   .band {
     display: flex;
     width: 100%;
@@ -185,10 +199,6 @@ button.band-frequency-caption {
 }
 
 .bandWrapper--compact {
-  .band {
-    gap: 3px;
-  }
-
   .dropdown > [role='menu'] {
     min-height: 28px;
     padding: 4px 5px;
@@ -198,10 +208,6 @@ button.band-frequency-caption {
 .bandWrapper--dense {
   padding-inline: 0;
   border-radius: 5px;
-
-  .band {
-    gap: 1px;
-  }
 
   .range input[type='range']::-webkit-slider-thumb {
     width: 13px;
