@@ -55,7 +55,7 @@ interface IGraphViewMenuProps {
   /**
    * Which of the five arrangements the plot is in, so the row can say so.
    *
-   * Two of them quiet the EQ curve, which no switch below reaches, so this row
+   * One of them quiets the EQ curve, which no switch below reaches, so this row
    * is the only way in and had to stop being anonymous.
    */
   contents: TGraphContents;
@@ -309,12 +309,11 @@ const GraphViewMenu = ({
               nowhere.
 
               It names the state it is in rather than only the action, and that
-              is not decoration. Two of the five — "Layers over wave" and
-              "Layers only" — cannot be built out of the switches below at all;
-              they quiet the EQ curve, and nothing else in the app has a control
-              for that. So this row is the only way to reach them, and a row
-              reading "Cycle what is shown" gave no hint that there was anywhere
-              to get to.
+              is not decoration. One of the five — "Layers over wave" — cannot
+              be built out of the switches below at all; it quiets the EQ curve,
+              and nothing else in the app has a control for that. So this row is
+              the only way to reach it, and a row reading "Cycle what is shown"
+              gave no hint that there was anywhere to get to.
 
               It does not close the menu, unlike the mode rows above. Five
               states walked one press at a time is the same comparing gesture
@@ -338,7 +337,7 @@ const GraphViewMenu = ({
               you are in.
 
               Solo — the wave with every curve dropped — had a row here and no
-              longer does. It is the second stop of the cycle above, one press
+              longer does. It is the last stop of the cycle above, one press
               away, and as a switch of its own it was the odd one out: the other
               two say which single drawing they take away, where solo took away
               five of them and was named for the one it kept. */}
@@ -394,11 +393,17 @@ const GraphViewMenu = ({
           {/* Beside the grid because it is the same kind of switch: furniture
               belonging to the measurement rather than to the sound.
 
-              No shortcut and no place in the Ctrl+W cycle, deliberately. That
-              cycle is four states of what the plot is *about*, walked with one
-              key; a fifth stop for a background wash would make everybody pass
-              through it to reach the states they actually use. Hidden here stays
-              hidden, whatever the cycle then does.
+              No shortcut of its own, but the cycle above does reach it now —
+              "Clean" is its fourth stop. That is not the cycle getting longer:
+              it still has five states, because "Clean" took the place of one
+              that only changed the weight of a line. So hidden here no longer
+              stays hidden whatever the cycle does; stepping off "Clean" brings
+              the columns back.
+
+              This switch is still the way in and out of that one state without
+              walking the other four, and it is exactly reversible — it moves
+              this flag and nothing else, so showing the columns again puts back
+              whichever state was underneath, quiet EQ line and all.
 
               The progress bars along the foot are not covered by this — see
               `useGraphCoverageHidden`. */}

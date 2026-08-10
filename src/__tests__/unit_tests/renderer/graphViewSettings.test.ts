@@ -113,11 +113,13 @@ const STRETCH_STEM = 'fluideq.graphStretched';
 const OPACITY_STEM = 'fluideq.graphOverlayOpacity';
 const BLUR_STEM = 'fluideq.graphOverlayBlur';
 
-/** The four the Ctrl+W cycle walks, split per mode after the same argument. */
+/** The five the Ctrl+W cycle walks, split per mode after the same argument. */
 const WAVE_STEM = 'fluideq.graphWaveHidden';
 const SOLO_STEM = 'fluideq.graphSolo';
 const QUIET_EQ_STEM = 'fluideq.graphQuietEq';
 const CURVES_STEM = 'fluideq.graphHiddenCurves';
+/** The newest of them: a menu switch first, and the cycle's fourth stop since. */
+const COVERAGE_STEM = 'fluideq.graphCoverageHidden';
 
 describe('one set of view settings per mode', () => {
   beforeEach(() => window.localStorage.clear());
@@ -207,8 +209,8 @@ describe('one set of view settings per mode', () => {
     expect(overlay.getOverlayBlur()).toBe(0);
   });
 
-  it('keeps what the plot is showing per mode, on four stems', () => {
-    // The four values Ctrl+W walks. They went per mode for the reason the grid
+  it('keeps what the plot is showing per mode, on five stems', () => {
+    // The five values Ctrl+W walks. They went per mode for the reason the grid
     // did and then some: the arrangement wanted over a video is the one the
     // cycle exists to reach, and sharing it meant walking the cycle again in
     // both directions on every Ctrl+F.
@@ -225,6 +227,13 @@ describe('one set of view settings per mode', () => {
     expect(style.getGraphWaveHidden()).toBe(false);
     style.setGraphView('fullscreen');
     expect(style.getGraphWaveHidden()).toBe(true);
+
+    // The coverage wash joined them when `clean` did. It was already per mode
+    // as a menu switch, which is the only reason the cycle could take it
+    // without one mode's stop showing up in another's.
+    style.setGraphContents('clean');
+    expect(stored(`${COVERAGE_STEM}.fullscreen`)).toBe('true');
+    expect(stored(`${COVERAGE_STEM}.normal`)).toBeNull();
   });
 
   it('keeps the hidden curves per mode, still comma-joined', () => {
@@ -473,9 +482,15 @@ describe('carrying an older install across', () => {
   });
 
   it("carries an older install's plot contents into all three modes", () => {
-    // The cycle's four values were flat keys until this split, and an install
-    // that had walked to a state should still be in it — in every mode, since
+    // The cycle's values were flat keys until this split, and an install that
+    // had walked to a state should still be in it — in every mode, since
     // whatever was set was set with no notion of modes at all.
+    //
+    // These two flags used to be `layersAlone`, the stop that was dropped when
+    // `clean` took its place. Nothing had to be migrated for that, and this is
+    // the case that says so: what storage holds is the flags, never the state's
+    // name, and a hidden wave with a quiet EQ line simply derives as `curves`
+    // now — the same drawing, minus one line's worth of weight.
     window.localStorage.setItem(WAVE_STEM, 'true');
     window.localStorage.setItem(QUIET_EQ_STEM, 'true');
     window.localStorage.setItem(SOLO_STEM, 'false');
@@ -485,7 +500,7 @@ describe('carrying an older install across', () => {
 
     MODES.forEach((mode) => {
       style.setGraphView(mode);
-      expect(style.getGraphContents()).toBe('layersAlone');
+      expect(style.getGraphContents()).toBe('curves');
       expect(stored(`${CURVES_STEM}.${mode}`)).toBe('voicing,driver');
     });
 

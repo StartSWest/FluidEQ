@@ -86,7 +86,7 @@ const en = {
   'tabs.voicing': 'Voicing',
   'tabs.convolution': 'Convolution',
   'tabs.config': 'Config',
-  'tabs.video': 'Video',
+  'tabs.media': 'Media',
 
   // *** Response graph ******************************************************
   'graph.resize': 'Drag to resize the graph',

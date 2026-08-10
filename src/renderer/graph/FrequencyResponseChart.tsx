@@ -1489,8 +1489,8 @@ const FrequencyResponseChart = () => {
             cycleWaveOrientation();
           } else {
             // Ctrl+W walks the five things the plot can show rather than
-            // toggling one of two switches that each turn the other off. Two of
-            // the five are reachable no other way, which is why the View menu's
+            // toggling one of two switches that each turn the other off. One of
+            // the five is reachable no other way, which is why the View menu's
             // row for this names the state rather than only the action.
             cycleGraphContents();
           }
@@ -1899,7 +1899,7 @@ const FrequencyResponseChart = () => {
               })()}
             </button>
             {/* Solo — the wave with every curve dropped — had a button here and
-              no longer does. It is the second stop of Ctrl+W, and as a control
+              no longer does. It is the last stop of Ctrl+W, and as a control
               of its own it was the odd one in a row where everything else names
               a single drawing and switches that: this one took away five and
               was labelled for the one it kept. The row is also the thing that
@@ -1962,9 +1962,9 @@ const FrequencyResponseChart = () => {
           card there would stretch the plot to the full height of the window,
           which is the one thing a frequency response should not do. */}
       {/* What Ctrl+W just did, over the middle of the plot for a moment.
-          A shortcut that rearranges four things at once is quick to use and
+          A shortcut that rearranges five things at once is quick to use and
           impossible to learn: the drawing changes and nothing says which of the
-          four you are now in. Keyed on the announcement rather than its words,
+          five you are now in. Keyed on the announcement rather than its words,
           so cycling back to a mode you were in a second ago animates again
           instead of reusing an element whose entrance is already over. */}
       {modeAnnouncement.label && (

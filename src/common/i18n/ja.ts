@@ -51,7 +51,7 @@ const ja: Partial<Dictionary> = {
   'tabs.voicing': '音の傾向',
   'tabs.convolution': 'コンボリューション',
   'tabs.config': 'Config',
-  'tabs.video': '動画',
+  'tabs.media': 'メディア',
 
   'graph.resize': 'ドラッグしてグラフの大きさを変更',
   'graph.meter.aria': 'ライブ出力レベル（フルスケール基準の実際のデシベル）',

@@ -50,7 +50,7 @@ const zh: Partial<Dictionary> = {
   'tabs.voicing': '声音风格',
   'tabs.convolution': '卷积',
   'tabs.config': 'Config',
-  'tabs.video': '视频',
+  'tabs.media': '媒体',
 
   'graph.resize': '拖动可调整频响图大小',
   'graph.meter.aria': '实时输出电平，以满刻度以下的真实分贝显示',

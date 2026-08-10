@@ -53,7 +53,7 @@ const ru: Partial<Dictionary> = {
   'tabs.voicing': 'Характер',
   'tabs.convolution': 'Свёртка',
   'tabs.config': 'Config',
-  'tabs.video': 'Видео',
+  'tabs.media': 'Медиа',
 
   'graph.resize': 'Потяните, чтобы изменить размер графика',
   'graph.meter.aria':

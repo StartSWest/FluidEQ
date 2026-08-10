@@ -52,7 +52,7 @@ const de: Partial<Dictionary> = {
   'tabs.voicing': 'Klangcharakter',
   'tabs.convolution': 'Faltung',
   'tabs.config': 'Config',
-  'tabs.video': 'Video',
+  'tabs.media': 'Medien',
 
   'graph.resize': 'Ziehen, um die Größe des Diagramms zu ändern',
   'graph.meter.aria':

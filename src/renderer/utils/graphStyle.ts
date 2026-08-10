@@ -537,7 +537,7 @@ const serializeFlag = (value: boolean) => String(value);
  * the graph exists, and completely beside the point when what you want is to
  * watch the music. This hides them, leaving the trace alone on the grid.
  *
- * Per view mode, along with the other three things Ctrl+W moves. The whole
+ * Per view mode, along with the other four things Ctrl+W moves. The whole
  * reason to want the wave on its own is that the graph has stopped being a
  * measurement for a while, which is what full screen is *for* and almost never
  * what the pane between the sliders and the editor is for. Shared, the key
@@ -597,7 +597,7 @@ export const toggleLiveOutputSolo = () =>
   setGraphContents(soloSetting.get() ? 'everything' : 'wave');
 
 /**
- * The four things the plot can show, in one gesture.
+ * The five things the plot can show, in one gesture.
  *
  * Solo and hide-the-wave are two switches making four combinations, one of
  * which is an empty grid — which is why each already turns the other off
@@ -605,19 +605,22 @@ export const toggleLiveOutputSolo = () =>
  * really one choice, and walking it with a single key says so far better than
  * two keys that quietly undo one another.
  *
- * Everything, then the wave alone, then the curves alone, then everything again
- * without the cyan EQ curve.
+ * Everything; then everything with the cyan EQ curve quieted; then the curves
+ * with the wave switched off; then everything again with the coverage columns
+ * taken away; then the wave alone.
  *
- * That last one is the reading state. The bands' own line is the loudest thing
- * on the plot — full weight, a glow, a spectrum gradient and two dozen handles
+ * `layers` is the reading state. The bands' own line is the loudest thing on
+ * the plot — full weight, a glow, a spectrum gradient and two dozen handles
  * sitting on it — and it is the one curve whose shape is already legible from
  * the sliders underneath. What is not legible anywhere else is what the other
  * layers are doing to it, and they are exactly what it covers. Its handles go
  * with it, since the chart ties them to the curve they draw.
  *
- * The fourth state used to be the curves with only the handles taken off, which
- * left the same bright line over the top of everything and so answered a
- * question nobody was asking.
+ * `clean` is the watching state, and it takes nothing off the measurement:
+ * every curve, the grid, the wave and the handles are all there. What goes is
+ * the Smart EQ coverage wash — nine tinted blocks the full height of the
+ * drawing, which are the entire point while a scan is running and a sheet of
+ * grey over the curves for everything else.
  *
  * FIVE NAMED STATES, not three loose flags.
  *
@@ -629,24 +632,37 @@ export const toggleLiveOutputSolo = () =>
  * already gone.
  *
  * The flags are still what the chart reads, since its components subscribe to
- * them individually. Nothing sets them except `setGraphContents`, so they cannot
- * drift apart.
+ * them individually. `setGraphContents` is the only thing that moves the plot
+ * between states, so they cannot drift apart.
  *
- * ONLY THE KEY REACHES TWO OF THEM. `layers` and `layersAlone` quiet the EQ
- * curve, and nothing in the app has a switch for that — the wave toggle, the EQ
- * toggle and the legend chip between them can build the other three and no more.
- * So the View menu's cycle row is the whole mouse-driven route to those two, and
+ * `clean` TOOK A STOP RATHER THAN ADDING ONE. The state it replaced was
+ * `layersAlone` — the layer curves with the wave switched off and the EQ line
+ * quieted — and it differed from `curves` in the weight of exactly one line.
+ * The argument for keeping that line drawn at all is written on
+ * `quietEqSetting`: it is what the other curves are read *against*. Which is
+ * just as good an argument against a whole stop of the cycle spent making it
+ * fainter, so the stop went. Nobody was asking the question it answered.
+ *
+ * Nothing has to be migrated for somebody sitting in it. What is stored is the
+ * flags, never the name: a hidden wave with a quiet EQ line derives as `curves`
+ * now, which is the same drawing minus one line's weight and is a state that
+ * still exists.
+ *
+ * ONLY THE KEY REACHES ONE OF THEM. `layers` quiets the EQ curve and nothing in
+ * the app has a switch for that — the wave toggle, the EQ toggle, the legend
+ * chip and the coverage switch between them can build the other four and no
+ * more. So the View menu's cycle row is the whole mouse-driven route to it, and
  * it names the state it is in for that reason rather than for tidiness.
  */
 export type TGraphContents =
-  'everything' | 'wave' | 'curves' | 'layers' | 'layersAlone';
+  'everything' | 'layers' | 'curves' | 'clean' | 'wave';
 
 const CONTENTS_ORDER: TGraphContents[] = [
   'everything',
-  'wave',
-  'curves',
   'layers',
-  'layersAlone',
+  'curves',
+  'clean',
+  'wave',
 ];
 
 /**
@@ -660,28 +676,44 @@ const CONTENTS_ORDER: TGraphContents[] = [
  */
 export const GRAPH_CONTENTS_LABEL: Record<TGraphContents, string> = {
   everything: 'Everything',
-  wave: 'Wave only',
-  curves: 'Curves only',
-  // Renamed, because it was not true. This state quiets the EQ curve and leaves
-  // the wave running underneath, which is a useful thing to look at and is not
-  // what 'Layers only' describes. The name now belongs to the state that earns
-  // it.
+  // Named for what it is rather than 'Layers only', which it never was: the
+  // wave is still running underneath, and that is a useful thing to look at.
+  // The state that did earn the older name is gone — see `TGraphContents`.
   layers: 'Layers over wave',
-  layersAlone: 'Layers only',
+  curves: 'Curves only',
+  // Short on purpose. It is not "everything minus the coverage columns" to
+  // anybody using it; it is the plot with nothing washed over it.
+  clean: 'Clean',
+  wave: 'Wave only',
 };
 
+/**
+ * Which state the flags add up to.
+ *
+ * THE ORDER OF THESE TESTS IS PART OF THE SPECIFICATION. Coverage is asked
+ * second — ahead of the hidden wave and the quiet EQ line — so that the menu's
+ * own show/hide of the columns is the exact inverse of what the cycle does.
+ * Hiding them while the plot is on `layers` leaves `eqQuiet` exactly where it
+ * was and derives `clean`; showing them again finds `eqQuiet` still set and
+ * gives `layers` back. Asked last, the trip out would still work and the trip
+ * home would not: the state would have been read off a flag the switch never
+ * touched, and there would be nothing to come back to.
+ */
 export const getGraphContents = (): TGraphContents => {
   if (soloSetting.get()) {
     return 'wave';
   }
+  if (coverageSetting.get()) {
+    return 'clean';
+  }
   if (waveSetting.get()) {
-    return quietEqSetting.get() ? 'layersAlone' : 'curves';
+    return 'curves';
   }
   return quietEqSetting.get() ? 'layers' : 'everything';
 };
 
 /**
- * Move the plot to a state. THE ONLY WRITER OF THE FOUR VALUES BELOW IT.
+ * Move the plot to a state. THE ONLY THING THAT MOVES IT BETWEEN STATES.
  *
  * The EQ curve's own hidden flag is set from here as well, because the two
  * questions turned out to be one: "show me no curves" and "hide the EQ curve"
@@ -690,6 +722,14 @@ export const getGraphContents = (): TGraphContents => {
  * is what the others are read against — so hiding it takes the plot to the wave,
  * and showing it again brings everything back.
  *
+ * The coverage wash is set from here too, and it is the one value in the machine
+ * with a second writer: `toggleGraphCoverage`, the menu switch. That is not a
+ * crack in the rule, it is what the rule buys. The switch moves one flag and
+ * names no state, so it can only ever land on `clean` and come straight back to
+ * whatever was underneath — which is the whole reason `getGraphContents` asks
+ * about coverage before it asks about the wave. Every other flag here still has
+ * exactly one writer, and this one is reversible precisely because it does not.
+ *
  * A `function` rather than a `const`, so it hoists. Everything that changes what
  * the plot shows now comes through here, and two of those — the wave toggle and
  * the solo toggle — sit above it in the file with the flags they used to write
@@ -697,9 +737,13 @@ export const getGraphContents = (): TGraphContents => {
  */
 export function setGraphContents(next: TGraphContents) {
   setLiveOutputSolo(next === 'wave');
-  setWaveHidden(next === 'curves' || next === 'layersAlone');
-  setEqQuiet(next === 'layers' || next === 'layersAlone');
+  setWaveHidden(next === 'curves');
+  setEqQuiet(next === 'layers');
   setCurveHidden('eq', next === 'wave');
+  // Solo drops the wash anyway — the whole overlay leaves with the curves — so
+  // this is what keeps `wave` and `clean` from disagreeing about a flag that is
+  // invisible in one of them and would come back on the way out.
+  setCoverageHidden(next === 'clean' || next === 'wave');
 }
 
 /**
@@ -725,8 +769,9 @@ export const cycleGraphContents = () => {
  * the key promises is that the EQ curve is on the plot afterwards, so leaning on
  * it can never be what took the curve away. A second press does nothing.
  *
- * Only `wave` is rescued, and the two states it leaves alone are deliberate
- * rather than an oversight.
+ * Only `wave` is rescued. `everything` and `clean` both draw the line at full
+ * weight already, so there is nothing there to repair; the two that could look
+ * like an oversight are left alone deliberately.
  *
  * `curves` already draws the line at full weight with its handles — the wave is
  * what is missing there, and somebody who asked for the EQ curve did not ask for
@@ -751,22 +796,29 @@ export const showEqCurve = () => {
 };
 
 /**
- * Which of the four the plot is in, for anything that draws a control for it.
+ * Which of the five the plot is in, for anything that draws a control for it.
  *
- * One subscription across the three flags rather than three hooks and a
+ * One subscription across the four flags rather than four hooks and a
  * derivation at each call site. The View menu needs the answer three times over
  * — the wave row, the EQ row and the cycle row are all views onto this — and a
  * menu that worked each of them out from a different flag is exactly how it
  * ended up offering to hide a curve that was already gone.
+ *
+ * Coverage is in here because the state is derived from it now. Left out, the
+ * cycle row would go on saying "Everything" after the columns were switched off
+ * two rows below it, until some unrelated render knocked it loose — which is
+ * the same class of fault as the one above, arriving through the newest flag.
  */
 const subscribeContents = (listener: () => void) => {
   soloListeners.add(listener);
   waveListeners.add(listener);
   quietEqListeners.add(listener);
+  const stopCoverage = coverageSetting.subscribe(listener);
   return () => {
     soloListeners.delete(listener);
     waveListeners.delete(listener);
     quietEqListeners.delete(listener);
+    stopCoverage();
   };
 };
 
@@ -780,7 +832,7 @@ export const useGraphContents = () =>
 /**
  * Whether the EQ curve is drawn quietly rather than at full weight.
  *
- * The last stop of the cycle, and it used to take the curve away altogether.
+ * The second stop of the cycle, and it used to take the curve away altogether.
  * That was too much: the bands' line is the one everything else is read
  * against, and a plot of four layer curves with nothing to compare them to
  * answers a question nobody asked either. What made it unreadable was never the
@@ -835,8 +887,8 @@ export const useGraphEqQuiet = () =>
 /**
  * What the plot just became, said once in the middle of it.
  *
- * A shortcut that changes four things at once is fast to use and impossible to
- * learn: the drawing rearranges and nothing says which of the four you are now
+ * A shortcut that changes five things at once is fast to use and impossible to
+ * learn: the drawing rearranges and nothing says which of the five you are now
  * in or how many are left. Naming it for a moment turns the key into something
  * somebody can walk without counting.
  *
@@ -1337,11 +1389,21 @@ export const useGraphGridHidden = () =>
  * video, or on a graph somebody is using as a visualiser, they are nine grey
  * rectangles across the picture.
  *
- * A menu switch and NOT part of the Ctrl+W cycle, deliberately. That cycle is
- * four states of what the plot is *about*, walked with one key, and a fifth stop
- * for a background wash would make it longer for everybody to reach the states
- * they actually use. Hidden here means hidden: it does not come back when the
- * cycle moves, which is the whole point of it being a separate switch.
+ * A menu switch AND the fourth stop of the Ctrl+W cycle, which it was not. The
+ * objection to putting it in the cycle was length: that cycle is what the plot
+ * is *about*, walked with one key, and an extra stop for a background wash
+ * would have made everybody pass through it to reach the states they use.
+ *
+ * That objection is answered rather than overruled. The cycle is still five
+ * stops long, because `clean` took the place of `layersAlone` instead of being
+ * added beside it — a stop that only changed the weight of one line, traded for
+ * the state somebody watches a scan run in. Nobody walks further than before.
+ *
+ * So hidden here no longer means hidden until said otherwise: the cycle writes
+ * this flag now, and stepping off `clean` brings the columns back. The switch
+ * is still worth having, because it is the way in and out of that one state
+ * without walking the other four — and because it is exactly reversible, which
+ * is what `getGraphContents` asking about coverage before the wave is for.
  *
  * The progress bars along the foot are not covered by this. They are two pixels
  * of the plot's height and they are the part that answers "is it still working",
@@ -1359,8 +1421,25 @@ const coverageSetting = createPerViewSetting(
   serializeFlag,
 );
 
+/**
+ * Declared rather than assigned, so `setGraphContents` — which sits up the file
+ * with the rest of the cycle — can reach it.
+ */
+function setCoverageHidden(next: boolean) {
+  coverageSetting.set(next);
+}
+
+/**
+ * The menu switch: the one control that moves a value in the machine without
+ * naming a state.
+ *
+ * Deliberately not routed through `setGraphContents`, because what makes it
+ * reversible is everything it does *not* touch. It leaves `eqQuiet` alone, so
+ * hiding the columns from `layers` derives `clean` and showing them again finds
+ * the quiet line still set and gives `layers` straight back.
+ */
 export const toggleGraphCoverage = () => {
-  coverageSetting.set(!coverageSetting.get());
+  setCoverageHidden(!coverageSetting.get());
 };
 
 export const getGraphCoverageHidden = () => coverageSetting.get();

@@ -57,7 +57,7 @@ const hi: Partial<Dictionary> = {
   'tabs.voicing': 'ध्वनि रंग',
   'tabs.convolution': 'कन्वॉल्यूशन',
   'tabs.config': 'Config',
-  'tabs.video': 'वीडियो',
+  'tabs.media': 'मीडिया',
 
   'graph.resize': 'ग्राफ़ का आकार बदलने के लिए खींचें',
   'graph.meter.aria':

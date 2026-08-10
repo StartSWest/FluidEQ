@@ -1009,6 +1009,17 @@ $tab-border: rgba($secondary-light, 0.2);
   }
 }
 
+// Pushed to the far edge, away from the five tabs that change the sound. It
+// reports what is on disk rather than altering it, and the gap says so more
+// plainly than its position at the end of the row ever did.
+//
+// An auto margin and not a spacer element: when the strip is too narrow to have
+// any free space it collapses to nothing on its own, and Config falls back to
+// sitting at the end of a row that scrolls.
+.workspace-tab--config {
+  margin-left: auto;
+}
+
 .workspace-tab-panel {
   // Replayed on every tab change: App.tsx keys the panel by the active tab, so
   // React remounts it and the animation runs again. Without the key, switching

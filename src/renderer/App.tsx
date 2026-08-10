@@ -1122,15 +1122,16 @@ const AppContent = () => {
                 className={`workspace-tab${isVideoTab ? ' is-active' : ''}`}
                 onClick={() => setActiveWorkspaceTab('video')}
               >
-                {t('tabs.video')}
+                {t('tabs.media')}
               </button>
-              {/* Last. See WORKSPACE_TABS for why the one tab that changes
-                  nothing sits at the end of the row. */}
+              {/* Last, and held out at the far edge by an auto margin. See
+                  WORKSPACE_TABS for why the one tab that changes nothing is
+                  kept apart from the ones that do. */}
               <button
                 type="button"
                 role="tab"
                 aria-selected={activeWorkspaceTab === 'config'}
-                className={`workspace-tab${
+                className={`workspace-tab workspace-tab--config${
                   activeWorkspaceTab === 'config' ? ' is-active' : ''
                 }`}
                 onClick={() => setActiveWorkspaceTab('config')}

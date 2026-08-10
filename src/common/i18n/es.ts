@@ -52,7 +52,7 @@ const es: Partial<Dictionary> = {
   'tabs.voicing': 'Carácter',
   'tabs.convolution': 'Convolución',
   'tabs.config': 'Config',
-  'tabs.video': 'Vídeo',
+  'tabs.media': 'Multimedia',
 
   'graph.resize': 'Arrastra para cambiar el tamaño de la gráfica',
   'graph.meter.aria':

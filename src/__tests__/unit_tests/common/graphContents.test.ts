@@ -22,8 +22,10 @@ import {
   TGraphView,
   cycleGraphContents,
   getGraphContents,
+  getGraphCoverageHidden,
   setGraphContents,
   setGraphView,
+  toggleGraphCoverage,
 } from 'renderer/utils/graphStyle';
 
 const STATES = Object.keys(GRAPH_CONTENTS_LABEL) as TGraphContents[];
@@ -44,15 +46,20 @@ const MODES: TGraphView[] = ['normal', 'expanded', 'fullscreen'];
  * sets. Nothing else here checks that, and it is one careless flag away from
  * being false again.
  *
- * All four values are now kept once per view mode, so the machine is really
+ * All five values are now kept once per view mode, so the machine is really
  * three machines that share one set of writers. That is where a careless read
  * would show up: a state recognised from one mode's flags while another mode's
  * were being written would be the same contradiction as before, wearing a
  * different hat.
+ *
+ * One of the five — the coverage wash — has a second writer on purpose, and the
+ * cases below are where that is held to its bargain. The menu switch may move
+ * it without naming a state only because it is the exact inverse of the stop
+ * that does, and nothing but a test says so.
  */
 describe('what the plot is showing', () => {
   afterEach(() => {
-    // Every mode, not only the one the case left off in. The four values are
+    // Every mode, not only the one the case left off in. The five values are
     // per view mode, so a state abandoned in full screen would sit there
     // waiting for the next case that happened to switch to it.
     MODES.forEach((mode) => {
@@ -62,14 +69,26 @@ describe('what the plot is showing', () => {
     setGraphView('normal');
   });
 
+  it('has five stops, each with a name of its own', () => {
+    expect(STATES).toHaveLength(5);
+    // The caption after a keypress and the View menu's row read the same list,
+    // so two states sharing a word would be two states nobody can tell apart.
+    expect(new Set(Object.values(GRAPH_CONTENTS_LABEL)).size).toBe(5);
+  });
+
   it('recognises every state it can be put into', () => {
     STATES.forEach((state) => {
+      // Back through `everything` between each, rather than straight from the
+      // last state. A state that forgets to write one of the five flags would
+      // otherwise inherit the right value from its neighbour and pass — which
+      // is exactly the drift the machine exists to make impossible.
+      setGraphContents('everything');
       setGraphContents(state);
       expect(getGraphContents()).toBe(state);
     });
   });
 
-  it('visits all of them and comes back, without repeating one', () => {
+  it('visits all of them in order and comes back', () => {
     setGraphContents('everything');
     const seen: TGraphContents[] = [];
     for (let step = 0; step < STATES.length; step += 1) {
@@ -77,28 +96,52 @@ describe('what the plot is showing', () => {
       seen.push(getGraphContents());
     }
 
-    // Every state exactly once, ending where it started.
-    expect(new Set(seen).size).toBe(STATES.length);
-    expect(seen[seen.length - 1]).toBe('everything');
+    // Every state exactly once, in the order the key walks them, ending where
+    // it started.
+    expect(seen).toEqual(['layers', 'curves', 'clean', 'wave', 'everything']);
   });
 
   /**
-   * The fifth state, and the reason the fourth was renamed.
+   * The fourth stop, and the switch that has to be its exact inverse.
    *
-   * `layers` quiets the EQ curve and leaves the wave running underneath, which
-   * is a useful thing to look at and is not what "Layers only" describes. The
-   * name now belongs to the state that earns it.
+   * `clean` is the one state whose flag a menu switch also writes, so that
+   * switch has to be able to undo itself from wherever it was pressed —
+   * including from `layers`, whose quiet EQ line no control in the app can put
+   * back. It works because the switch moves the coverage flag and nothing else,
+   * and because `getGraphContents` asks about coverage before it asks about the
+   * quiet line. Read the other way round, the trip out would still work and the
+   * trip home would land somewhere else.
    */
-  it('separates layers over the wave from layers alone', () => {
+  it('lets the coverage switch reach clean and come straight back', () => {
     setGraphContents('layers');
-    const overWave = getGraphContents();
 
-    setGraphContents('layersAlone');
+    toggleGraphCoverage();
+    expect(getGraphCoverageHidden()).toBe(true);
+    expect(getGraphContents()).toBe('clean');
 
-    expect(overWave).toBe('layers');
-    expect(getGraphContents()).toBe('layersAlone');
-    expect(GRAPH_CONTENTS_LABEL.layersAlone).toBe('Layers only');
-    expect(GRAPH_CONTENTS_LABEL.layers).not.toBe('Layers only');
+    toggleGraphCoverage();
+    expect(getGraphCoverageHidden()).toBe(false);
+    expect(getGraphContents()).toBe('layers');
+  });
+
+  it('takes the wash away at the fourth stop and gives it back round the loop', () => {
+    setGraphContents('everything');
+    expect(getGraphCoverageHidden()).toBe(false);
+
+    setGraphContents('clean');
+    expect(getGraphCoverageHidden()).toBe(true);
+
+    // `wave` keeps it hidden — there are no curves left for it to wash over —
+    // and the press after that is back at the top with the columns on. Hidden
+    // here used to mean hidden until somebody said otherwise; the cycle writes
+    // this flag now, which is the whole of what `clean` cost.
+    cycleGraphContents();
+    expect(getGraphContents()).toBe('wave');
+    expect(getGraphCoverageHidden()).toBe(true);
+
+    cycleGraphContents();
+    expect(getGraphContents()).toBe('everything');
+    expect(getGraphCoverageHidden()).toBe(false);
   });
 
   /**
@@ -130,21 +173,21 @@ describe('what the plot is showing', () => {
     setGraphView('expanded');
     setGraphContents('curves');
     setGraphView('fullscreen');
-    setGraphContents('layersAlone');
+    setGraphContents('clean');
 
     setGraphView('normal');
     setGraphContents('everything');
     cycleGraphContents();
-    expect(getGraphContents()).toBe('wave');
+    expect(getGraphContents()).toBe('layers');
 
     // The neighbours were mid-cycle when the key was pressed and are still
-    // exactly there. A press that walked all three at once would be four
+    // exactly there. A press that walked all three at once would be five
     // settings pretending to be one again, which is the fault this whole
     // machine exists to make impossible.
     setGraphView('expanded');
     expect(getGraphContents()).toBe('curves');
     setGraphView('fullscreen');
-    expect(getGraphContents()).toBe('layersAlone');
+    expect(getGraphContents()).toBe('clean');
   });
 
   it('starts each mode from everything, rather than from its neighbour', () => {
