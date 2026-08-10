@@ -48,18 +48,28 @@ const ExtraOutputs = () => {
     return t('extraOutput.unmatched');
   };
 
-  // Exactly how the output picker reads an assignment, reusing its strings so
-  // the same profile cannot be called two different things in two panels.
+  // The profile an output carries, when saying so tells you anything.
+  //
+  // An automatic profile is named after the endpoint that owns it, so printing
+  // it beside that endpoint's own name says the same thing twice — and it is
+  // what nearly every output has, so the column filled up with one repeated
+  // phrase. A named profile is worth showing; "no profile" is worth showing,
+  // because it means that speaker gets no correction at all.
   const describeProfile = (presetName: string): string => {
     if (!presetName) {
       return t('output.mapping.neutral');
     }
-    return presetName.startsWith(AUTOMATIC_PRESET_PREFIX)
-      ? t('output.mapping.live')
-      : presetName;
+    return presetName.startsWith(AUTOMATIC_PRESET_PREFIX) ? '' : presetName;
   };
 
-  const blocked = selectedTargets.filter((target) => !target.isUsable);
+  // Only outputs that could have run. One that has since become the device you
+  // are listening on is not a problem to report: it is absent from the list
+  // because the capture cannot mirror to itself, and complaining about a row
+  // that is not on screen is just a stale message about a healthy state. The
+  // selection is kept, so it comes back the moment you listen elsewhere.
+  const blocked = selectedTargets.filter(
+    (target) => target.isEligible && !target.isUsable,
+  );
 
   return (
     <SidebarSection
@@ -89,6 +99,7 @@ const ExtraOutputs = () => {
             // word, and someone pointing an application at one of them needs
             // to know which.
             const virtual = identifyVirtualDevice(target.device);
+            const profile = describeProfile(target.presetName);
             return (
               <li className="extra-outputs__row" key={target.device.guid}>
                 <Switch
@@ -102,21 +113,26 @@ const ExtraOutputs = () => {
                     target.isRunning ? 'device-dot active' : 'device-dot'
                   }
                 />
-                <span className="extra-outputs__name">
-                  {target.device.name}
-                </span>
-                {virtual && (
-                  <span className="extra-outputs__tag">
-                    {virtual.inputLabel}
+                {/* Name and profile stack rather than sharing the width. A
+                    sidebar this narrow cannot hold an endpoint name and a
+                    profile name side by side, and splitting it put "Odyssey G5
+                    (NVIDIA High Definition Audio)" across four lines. */}
+                <span className="extra-outputs__text">
+                  <span className="extra-outputs__name">
+                    {target.device.name}
+                    {virtual && (
+                      <span className="extra-outputs__tag">
+                        {virtual.inputLabel}
+                      </span>
+                    )}
                   </span>
-                )}
-                {/* The profile this output already carries — the same one it
-                    plays when it is the device you are listening on. There is
-                    nothing to set up here: it follows the endpoint, and this
-                    only says which it is. Named the way the output picker
-                    names it, so the two panels cannot disagree. */}
-                <span className="extra-outputs__profile">
-                  {describeProfile(target.presetName)}
+                  {/* The profile this output already carries — the same one it
+                      plays when it is the device you are listening on. Nothing
+                      to set up: it follows the endpoint, and this only says
+                      which it is. */}
+                  {profile && (
+                    <span className="extra-outputs__profile">{profile}</span>
+                  )}
                 </span>
               </li>
             );

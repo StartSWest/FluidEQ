@@ -22,17 +22,40 @@ it under the terms of the GNU General Public License version 3 or later.
   list-style: none;
 }
 
+// Switch and dot hold their size; the text takes whatever is left. Aligned to
+// the top rather than centred, so a name that needs two lines grows downward
+// instead of dragging the switch off the row it belongs to.
 .extra-outputs__row {
   display: flex;
   min-width: 0;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
+
+  // The switch is a fixed control, not something to squeeze when a name is
+  // long — without this, a four-word endpoint name flattens it.
+  > .switch,
+  > .device-dot {
+    flex: 0 0 auto;
+    margin-top: 2px;
+  }
+}
+
+// Name over profile. Nothing here may push the row wider than the card, which
+// is what `min-width: 0` on a flex child actually buys.
+.extra-outputs__text {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 1px;
 }
 
 .extra-outputs__name {
   min-width: 0;
+  // Endpoint names are long, arbitrary and full of brackets. Break them where
+  // they must break rather than letting one push the panel sideways.
   overflow-wrap: anywhere;
   font-size: 0.72rem;
+  line-height: 1.25;
 }
 
 // The resting state of the summary, when nothing is being mirrored. Quiet on
@@ -46,14 +69,13 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The profile this output already carries. Quiet: it is information, not a
 // control, and the switch beside it is the thing to press.
+// Under the name, not beside it, and quieter than it: this is what the output
+// already plays, not something to act on.
 .extra-outputs__profile {
-  flex: 0 0 auto;
-  margin-left: auto;
-  max-width: 45%;
+  min-width: 0;
   overflow: hidden;
-  color: $secondary-light;
-  font-size: 0.64rem;
-  text-align: right;
+  color: $text-muted;
+  font-size: 0.62rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -61,8 +83,10 @@ it under the terms of the GNU General Public License version 3 or later.
 // Which input of a routing driver this is. Voicemeeter's three differ by a
 // single word, so the distinction has to be visible at a glance.
 .extra-outputs__tag {
-  flex: 0 0 auto;
+  display: inline-block;
+  margin-left: 6px;
   padding: 2px 6px;
+  vertical-align: middle;
   color: $secondary-light;
   border: 1px solid rgba($secondary-default, 0.35);
   border-radius: $radius-pill;
