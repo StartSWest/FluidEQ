@@ -136,6 +136,7 @@ const hi: Partial<Dictionary> = {
   'extraOutput.off': 'बंद',
   'extraOutput.none': 'कोई दूसरा आउटपुट नहीं मिला',
   'extraOutput.active': 'मिरर हो रहा है',
+  'extraOutput.volume': 'आवाज़',
   'extraOutput.latency':
     'मिरर की गई आवाज़ लगभग पाँचवें हिस्से भर सेकंड देर से पहुँचती है। दूसरे कमरे में संगीत के लिए ठीक है, वीडियो या गेम के लिए बेकार, और दोनों एक साथ सुनाई दें तो गूँज बन जाती है।',
   'extraOutput.virtual':

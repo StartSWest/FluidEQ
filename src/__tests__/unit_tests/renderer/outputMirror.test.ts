@@ -25,6 +25,7 @@ const createFakes = () => {
   };
   const sink: IMirrorSink = {
     srcObject: null,
+    volume: 1,
     setSinkId: jest.fn(async () => {
       calls.push('setSinkId');
     }),
@@ -133,6 +134,48 @@ describe('mirroring the capture to a second output', () => {
     expect(fakes.source.disconnect).toHaveBeenCalledWith(fakes.destination);
     expect(fakes.sink.pause).toHaveBeenCalled();
     expect(fakes.sink.srcObject).toBeNull();
+  });
+
+  it('applies the starting level before the first sample plays', async () => {
+    const fakes = createFakes();
+
+    await startOutputMirror({
+      context: fakes.context,
+      source: fakes.source,
+      sinkId: 'sink-1',
+      volume: 0.4,
+      createSink: () => fakes.sink,
+    });
+
+    // A mirror turned down should not announce itself at full level for the
+    // moment between play and the first update.
+    expect(fakes.sink.volume).toBeCloseTo(0.4, 5);
+    expect(fakes.calls.indexOf('play')).toBeGreaterThan(-1);
+  });
+
+  it('changes level without touching the running graph', async () => {
+    const fakes = createFakes();
+
+    const mirror = await start(fakes);
+    mirror.setVolume(0.25);
+
+    expect(fakes.sink.volume).toBeCloseTo(0.25, 5);
+    // Nothing was rebuilt: a level is not a reason to put a gap in the audio.
+    expect(fakes.source.connect).toHaveBeenCalledTimes(1);
+    expect(fakes.source.disconnect).not.toHaveBeenCalled();
+    expect(fakes.sink.setSinkId).toHaveBeenCalledTimes(1);
+  });
+
+  it('holds the level inside what the sink can actually do', async () => {
+    const fakes = createFakes();
+
+    const mirror = await start(fakes);
+    mirror.setVolume(4);
+    expect(fakes.sink.volume).toBe(1);
+    mirror.setVolume(-2);
+    expect(fakes.sink.volume).toBe(0);
+    mirror.setVolume(Number.NaN);
+    expect(fakes.sink.volume).toBe(1);
   });
 
   it('is safe to stop twice', async () => {

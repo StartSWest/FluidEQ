@@ -129,6 +129,7 @@ const ja: Partial<Dictionary> = {
   'extraOutput.off': 'オフ',
   'extraOutput.none': 'ほかの出力が見つかりません',
   'extraOutput.active': 'ミラー中',
+  'extraOutput.volume': '音量',
   'extraOutput.latency':
     'ミラーした音は約 5 分の 1 秒遅れて届きます。別の部屋で音楽を鳴らすには十分ですが、動画やゲームには使えません。両方が同時に聞こえる場所ではエコーになります。',
   'extraOutput.virtual':

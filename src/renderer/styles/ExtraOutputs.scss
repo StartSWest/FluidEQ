@@ -69,6 +69,33 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The profile this output already carries. Quiet: it is information, not a
 // control, and the switch beside it is the thing to press.
+// Level for one mirrored output. Sits under its own row rather than in a
+// column of its own, so a long name and a slider never compete for width.
+.extra-outputs__volume {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  margin-top: 3px;
+  gap: 6px;
+
+  input[type='range'] {
+    min-width: 0;
+    flex: 1 1 auto;
+    height: 3px;
+    accent-color: $secondary-default;
+    cursor: pointer;
+  }
+}
+
+.extra-outputs__volumeValue {
+  flex: 0 0 auto;
+  min-width: 30px;
+  color: $text-muted;
+  font-size: 0.6rem;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
 // Under the name, not beside it, and quieter than it: this is what the output
 // already plays, not something to act on.
 .extra-outputs__profile {

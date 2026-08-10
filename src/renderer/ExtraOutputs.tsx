@@ -24,6 +24,7 @@ const ExtraOutputs = () => {
     isMirroring,
     isVirtualRoutingAvailable,
     selectedTargets,
+    setTargetVolume,
     targets,
     toggleTarget,
   } = useOutputMirror();
@@ -132,6 +133,33 @@ const ExtraOutputs = () => {
                       which it is. */}
                   {profile && (
                     <span className="extra-outputs__profile">{profile}</span>
+                  )}
+                  {/* Only for outputs that are on. A level control under a
+                      switch that is off adjusts nothing, and seven of them
+                      would bury the list it belongs to. */}
+                  {target.isSelected && (
+                    <div className="extra-outputs__volume">
+                      <input
+                        aria-label={`${t('extraOutput.volume')} — ${
+                          target.device.name
+                        }`}
+                        max="100"
+                        min="0"
+                        onChange={(event) =>
+                          setTargetVolume(
+                            target.device.guid,
+                            Number(event.target.value) / 100,
+                          )
+                        }
+                        step="1"
+                        title={t('extraOutput.volume')}
+                        type="range"
+                        value={Math.round(target.volume * 100)}
+                      />
+                      <span className="extra-outputs__volumeValue">
+                        {Math.round(target.volume * 100)}%
+                      </span>
+                    </div>
                   )}
                 </span>
               </li>

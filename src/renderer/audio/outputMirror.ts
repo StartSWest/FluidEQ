@@ -48,10 +48,30 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 export interface IMirrorSink {
   srcObject: MediaStream | null;
+  volume: number;
   setSinkId(sinkId: string): Promise<void>;
   play(): Promise<void>;
   pause(): void;
 }
+
+/**
+ * How loud one mirrored output plays, as a fraction of the source.
+ *
+ * 0 to 1, because that is the element's range and the honest one: above unity
+ * a mirror would be amplifying audio that has already been through the
+ * primary device's preamp, with no headroom left to do it in. Turning a
+ * speaker *down* is what this is for — the far room does not need to match the
+ * desk.
+ */
+export const MIN_MIRROR_VOLUME = 0;
+export const MAX_MIRROR_VOLUME = 1;
+
+export const clampMirrorVolume = (value: number): number => {
+  if (!Number.isFinite(value)) {
+    return MAX_MIRROR_VOLUME;
+  }
+  return Math.min(MAX_MIRROR_VOLUME, Math.max(MIN_MIRROR_VOLUME, value));
+};
 
 /**
  * The two operations the mirror performs on the shared capture node.
@@ -77,12 +97,16 @@ export interface IOutputMirrorOptions {
   source: IMirrorSource;
   /** A Chromium sink id from the name bridge. Never `default`. */
   sinkId: string;
+  /** Starting level, 0 to 1. Applied before the first sample plays. */
+  volume?: number;
   /** Injectable purely so the tests can watch what happens to it. */
   createSink?: () => IMirrorSink;
 }
 
 export interface IOutputMirror {
   readonly sinkId: string;
+  /** Change the level without restarting anything. */
+  setVolume(value: number): void;
   stop(): void;
 }
 
@@ -111,6 +135,7 @@ export const startOutputMirror = async ({
   context,
   source,
   sinkId,
+  volume = MAX_MIRROR_VOLUME,
   createSink = createAudioSink,
 }: IOutputMirrorOptions): Promise<IOutputMirror> => {
   if (!sinkId) {
@@ -137,6 +162,10 @@ export const startOutputMirror = async ({
     source.connect(destination);
     isConnected = true;
     sink.srcObject = destination.stream;
+    // Set before `play`, for the same reason the sink is: a mirror turned
+    // down to nothing should not announce itself at full level for the
+    // fraction of a second before the first update lands.
+    sink.volume = clampMirrorVolume(volume);
     await sink.setSinkId(sinkId);
     await sink.play();
   } catch (error) {
@@ -146,6 +175,9 @@ export const startOutputMirror = async ({
 
   return {
     sinkId,
+    setVolume: (value: number) => {
+      sink.volume = clampMirrorVolume(value);
+    },
     stop: teardown,
   };
 };

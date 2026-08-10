@@ -132,6 +132,7 @@ const pt: Partial<Dictionary> = {
   'extraOutput.off': 'Desligado',
   'extraOutput.none': 'Nenhuma outra saída encontrada',
   'extraOutput.active': 'ESPELHANDO',
+  'extraOutput.volume': 'Volume',
   'extraOutput.latency':
     'O som espelhado chega cerca de um quinto de segundo depois. Serve para música em outro cômodo, é inútil para vídeo ou jogos, e vira eco se você ouvir as duas ao mesmo tempo.',
   'extraOutput.virtual':

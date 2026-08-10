@@ -177,6 +177,7 @@ const en = {
   'extraOutput.off': 'Off',
   'extraOutput.none': 'No other outputs found',
   'extraOutput.active': 'MIRRORING',
+  'extraOutput.volume': 'Volume',
   'extraOutput.latency':
     'Mirrored sound arrives about a fifth of a second late. Fine for music in another room, unusable for video or games, and an echo if you can hear both at once.',
   'extraOutput.virtual':

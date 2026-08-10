@@ -132,6 +132,7 @@ const fr: Partial<Dictionary> = {
   'extraOutput.off': 'Désactivé',
   'extraOutput.none': 'Aucune autre sortie trouvée',
   'extraOutput.active': 'DUPLICATION',
+  'extraOutput.volume': 'Volume',
   'extraOutput.latency':
     'Le son dupliqué arrive avec environ un cinquième de seconde de retard. Parfait pour de la musique dans une autre pièce, inutilisable pour la vidéo ou les jeux, et un écho si vous entendez les deux à la fois.',
   'extraOutput.virtual':

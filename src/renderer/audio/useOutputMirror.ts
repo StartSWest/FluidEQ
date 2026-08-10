@@ -33,7 +33,12 @@ import {
 } from '../utils/equalizerApi';
 import { reportInfo } from '../utils/logger';
 import { useLiveAudioControl } from './LiveAudioContext';
-import { IOutputMirror, startOutputMirror } from './outputMirror';
+import {
+  clampMirrorVolume,
+  IOutputMirror,
+  MAX_MIRROR_VOLUME,
+  startOutputMirror,
+} from './outputMirror';
 
 /**
  * Where the chosen mirrors live between runs.
@@ -43,6 +48,8 @@ import { IOutputMirror, startOutputMirror } from './outputMirror';
  * the GUID is what Windows and APO already agree on.
  */
 const MIRROR_TARGETS_KEY = 'fluideq-mirror-target-guids';
+/** Levels, keyed by the same GUIDs and for the same reason. */
+const MIRROR_VOLUMES_KEY = 'fluideq-mirror-volumes';
 
 const loadSelection = (): string[] => {
   try {
@@ -52,6 +59,22 @@ const loadSelection = (): string[] => {
       : [];
   } catch {
     return [];
+  }
+};
+
+const loadVolumes = (): Record<string, number> => {
+  try {
+    const stored = JSON.parse(localStorage.getItem(MIRROR_VOLUMES_KEY) ?? '{}');
+    if (!stored || typeof stored !== 'object' || Array.isArray(stored)) {
+      return {};
+    }
+    return Object.fromEntries(
+      Object.entries(stored as Record<string, unknown>)
+        .filter(([, value]) => typeof value === 'number')
+        .map(([guid, value]) => [guid, clampMirrorVolume(value as number)]),
+    );
+  } catch {
+    return {};
   }
 };
 
@@ -67,6 +90,8 @@ export interface IMirrorTarget {
   isSelected: boolean;
   /** Audio is genuinely going to it right now. */
   isRunning: boolean;
+  /** How loud this mirror plays, 0 to 1. Full unless turned down. */
+  volume: number;
   /**
    * The profile attached to this endpoint, exactly as the output picker means
    * it — raw, so the caller can tell an automatic one from a named one and
@@ -157,6 +182,7 @@ const useOutputMirror = () => {
     IDeviceProfileSettings | undefined
   >(undefined);
   const [selectedGuids, setSelectedGuids] = useState<string[]>(loadSelection);
+  const [volumes, setVolumes] = useState<Record<string, number>>(loadVolumes);
   const [runningGuids, setRunningGuids] = useState<string[]>([]);
   const [error, setError] = useState('');
   const runningRef = useRef(new Map<string, IRunningMirror>());
@@ -210,6 +236,7 @@ const useOutputMirror = () => {
         isSelected: selectedGuids.includes(device.guid),
         isRunning: runningGuids.includes(device.guid),
         presetName: assignments?.assignments[device.id]?.presetName ?? '',
+        volume: volumes[device.guid] ?? MAX_MIRROR_VOLUME,
       };
     });
   }, [
@@ -219,6 +246,7 @@ const useOutputMirror = () => {
     outputs,
     runningGuids,
     selectedGuids,
+    volumes,
   ]);
 
   const isVirtualRoutingAvailable = useMemo(
@@ -242,6 +270,12 @@ const useOutputMirror = () => {
   );
   const desiredRef = useRef(desired);
   desiredRef.current = desired;
+  // Read by the reconciler when it starts a mirror, but deliberately not a
+  // dependency of it: a level is not a reason to tear a stream down and build
+  // another, and doing so would put a gap in the audio every time the slider
+  // moved. The effect below carries changes to the mirrors already running.
+  const volumesRef = useRef(volumes);
+  volumesRef.current = volumes;
 
   // Reconcile what is running against what is wanted.
   //
@@ -291,6 +325,7 @@ const useOutputMirror = () => {
         context: capture.context,
         source: capture.source,
         sinkId: want.sinkId,
+        volume: volumesRef.current[want.guid] ?? MAX_MIRROR_VOLUME,
       })
         .then((mirror) => {
           pendingRef.current.delete(want.guid);
@@ -323,6 +358,16 @@ const useOutputMirror = () => {
     return undefined;
   }, [capture, desired]);
 
+  // Levels reach the running mirrors without going near the reconciler, so a
+  // slider changes how loud a speaker is and nothing else. `runningGuids` is
+  // in here so a mirror that has only just started picks up a level that was
+  // set while it was still opening its sink.
+  useEffect(() => {
+    runningRef.current.forEach((entry, guid) => {
+      entry.mirror.setVolume(volumes[guid] ?? MAX_MIRROR_VOLUME);
+    });
+  }, [runningGuids, volumes]);
+
   // Unmount only. See the reconciler above for why this is not its cleanup.
   useEffect(() => {
     const running = runningRef.current;
@@ -343,9 +388,18 @@ const useOutputMirror = () => {
     });
   }, []);
 
+  const setTargetVolume = useCallback((guid: string, value: number) => {
+    setVolumes((current) => {
+      const next = { ...current, [guid]: clampMirrorVolume(value) };
+      localStorage.setItem(MIRROR_VOLUMES_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
   return {
     error,
     isVirtualRoutingAvailable,
+    setTargetVolume,
     /** True while audio is genuinely going somewhere extra. */
     isMirroring: runningGuids.length > 0,
     mirroringCount: runningGuids.length,

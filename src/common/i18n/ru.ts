@@ -132,6 +132,7 @@ const ru: Partial<Dictionary> = {
   'extraOutput.off': 'Выключено',
   'extraOutput.none': 'Других выходов не найдено',
   'extraOutput.active': 'ДУБЛИРУЕТСЯ',
+  'extraOutput.volume': 'Громкость',
   'extraOutput.latency':
     'Продублированный звук приходит примерно на пятую долю секунды позже. Для музыки в соседней комнате нормально, для видео и игр непригодно, а если слышно оба сразу, получается эхо.',
   'extraOutput.virtual':
