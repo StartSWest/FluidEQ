@@ -56,11 +56,24 @@ const ExtraOutputs = () => {
   // what nearly every output has, so the column filled up with one repeated
   // phrase. A named profile is worth showing; "no profile" is worth showing,
   // because it means that speaker gets no correction at all.
-  const describeProfile = (presetName: string): string => {
-    if (!presetName) {
+  const describeProfile = (target: IMirrorTarget): string => {
+    // Nothing, while it is actually mirroring — because the profile attached
+    // to this endpoint is not what it is playing.
+    //
+    // The capture is taken after Equalizer APO has corrected the output being
+    // listened on, so the *primary* device's chain is baked into the audio
+    // before FluidEQ sees it, and that is what reaches every mirror. Naming
+    // this endpoint's own profile beside it would say a speaker was playing a
+    // tuning it is not.
+    if (target.isRunning) {
+      return '';
+    }
+    if (!target.presetName) {
       return t('output.mapping.neutral');
     }
-    return presetName.startsWith(AUTOMATIC_PRESET_PREFIX) ? '' : presetName;
+    return target.presetName.startsWith(AUTOMATIC_PRESET_PREFIX)
+      ? ''
+      : target.presetName;
   };
 
   // Only outputs that could have run. One that has since become the device you
@@ -100,7 +113,7 @@ const ExtraOutputs = () => {
             // word, and someone pointing an application at one of them needs
             // to know which.
             const virtual = identifyVirtualDevice(target.device);
-            const profile = describeProfile(target.presetName);
+            const profile = describeProfile(target);
             return (
               <li className="extra-outputs__row" key={target.device.guid}>
                 <Switch

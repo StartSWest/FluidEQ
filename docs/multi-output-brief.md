@@ -1,7 +1,10 @@
 # Multiple outputs at once
 
-Play to several devices simultaneously, the way Voicemeeter does — with each
-output getting its own EQ.
+Play to several devices simultaneously, the way Voicemeeter does.
+
+Built, and listened to. Where a section below turned out to be wrong once it met
+a real machine, it says so rather than being quietly rewritten — the reasoning
+that led there is the useful part.
 
 This document is the brief for that work. It exists because the constraint at
 the top of it is not obvious, is easy to get wrong, and is the reason the
@@ -37,9 +40,9 @@ capture into a Web Audio graph, filters it, and renders it to a second output vi
 ```
 app -> APO -> headphones
                  |
-                 '- FluidEQ captures the mix
+                 '- FluidEQ captures the mix, already corrected
                         |
-                        '- own EQ -> speakers  (150-300ms later)
+                        '- straight through -> speakers  (150-300ms later)
 ```
 
 **Works with no install and nothing to configure.** That is its whole appeal.
@@ -52,18 +55,40 @@ played again. Say so in the UI rather than hoping nobody notices:
 - Both devices audible from one seat — a slapback echo.
 - Only works while FluidEQ is open. It is not a service.
 
-### Mirrored outputs get their OWN EQ
+### Mirrored outputs get their OWN EQ — this was wrong
 
-Decided deliberately. The captured audio has **already been EQ'd by APO for the
-primary device**, so mirroring it raw sends a headphone correction to a speaker —
-worse than no EQ at all, because a correction built for one driver is actively
-wrong on another.
+The original argument: the captured audio has **already been EQ'd by APO for the
+primary device**, so mirroring it raw sends a headphone correction to a speaker,
+and the mirror therefore needs a second EQ engine in Web Audio applying the
+target device's profile.
 
-This means **a second EQ engine**, in the renderer, using Web Audio biquads,
-living alongside APO. Same band parameters, different implementation. They have
-to agree, or the response graph will show one curve while a mirrored speaker
-does another. Share the band maths with `src/common/` rather than reimplementing
-it — that shared derivation is the thing that keeps them honest.
+It was built that way. The first time anyone listened, it sounded hollow and
+phasey — "like cancelling" — and the level dropped whenever a second output was
+switched on. Two causes, neither visible from the code:
+
+1. **APO hooks the endpoint the mirror plays into.** Where it is attached
+   there, it applies that device's profile on the way out — so the Web Audio
+   chain was applying the same correction a second time. A doubled correction
+   is doubled in dB: a 6 dB dip becomes 12.
+2. **Chromium's echo canceller was running on the loopback.** The capture asked
+   for a bare `audio: true`, so voice processing applied. Echo cancellation
+   subtracts what the machine is playing from what it hears, and a mirror plays
+   the very audio being captured — so it chased its own output.
+
+Both are fixed. The mirror applies **no EQ at all**, and the capture explicitly
+asks for `autoGainControl`, `echoCancellation` and `noiseSuppression` off —
+which also stops the live curve describing Chromium's idea of loudness rather
+than the track's.
+
+**What reaches a mirrored output is the primary device's correction**, baked
+into the capture before FluidEQ sees it. Both outputs therefore sound the same,
+and changing the primary's tuning changes every mirror with it. That was
+accepted rather than fixed.
+
+If it ever does need fixing, the answer is the **inverse** of the primary's
+chain — for peaking and shelf filters, the same filter with the gain negated,
+exact, from `getTFCoefficients` — and _not_ reapplying the target's. The
+mistake worth not repeating is correcting twice.
 
 ## Route B — Virtual device, when one is present
 
@@ -101,14 +126,14 @@ worse than refusing.
 
 ## Where the existing pieces are
 
-| What                       | Where                                        |
-| -------------------------- | -------------------------------------------- |
-| System audio capture       | `src/renderer/graph/useLiveOutputSpectrum.ts` |
-| Live audio provider        | `src/renderer/audio/LiveAudioContext.tsx`     |
-| Device enumeration (IPC)   | `ChannelEnum.GET_AUDIO_DEVICES`, `src/main/`  |
-| Device shape               | `IAudioDevice` in `src/common/constants.ts`   |
-| Per-device profiles        | `src/main/deviceProfiles.ts`                  |
-| Config writing             | `src/main/flush.ts`, `src/common/apoSync.ts`  |
+| What                     | Where                                         |
+| ------------------------ | --------------------------------------------- |
+| System audio capture     | `src/renderer/graph/useLiveOutputSpectrum.ts` |
+| Live audio provider      | `src/renderer/audio/LiveAudioContext.tsx`     |
+| Device enumeration (IPC) | `ChannelEnum.GET_AUDIO_DEVICES`, `src/main/`  |
+| Device shape             | `IAudioDevice` in `src/common/constants.ts`   |
+| Per-device profiles      | `src/main/deviceProfiles.ts`                  |
+| Config writing           | `src/main/flush.ts`, `src/common/apoSync.ts`  |
 
 **Reuse the existing capture. Do not open a second one.** A previous session
 spent a long time on a memory leak caused by `getDisplayMedia` — Windows only
@@ -120,7 +145,8 @@ disabled. See the 0.7.0 changelog entry, and `useLiveOutputSpectrum.ts`.
 
 1. Bridge the GUID <-> `deviceId` namespaces, and decide the ambiguous case.
 2. Mirror one extra device, no EQ, so the plumbing is provable by ear.
-3. Per-mirror EQ sharing the band maths with the APO path.
+3. ~~Per-mirror EQ sharing the band maths with the APO path.~~ Built, then
+   removed — see the section above. The mirror applies no EQ.
 4. Detect virtual devices and let each hold a profile.
 5. One checkbox UI over both, which names which mechanism is in use and warns
    about latency only when the mirror is what is actually running.
