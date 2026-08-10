@@ -17,26 +17,45 @@ on. Plug in your headphones and their tuning comes back; switch to speakers and
 theirs does. FluidEQ maps the stable Windows endpoint ID, not the display name,
 so it survives renames and re-plugs.
 
-**Four layers, one chain.** Each is written as its own stage in the Equalizer
-APO config, in this order:
+**Six layers, one chain.** Each is written as its own file in the Equalizer APO
+config, included in this order:
 
-| Layer         | What it is                                                                                                                                                                                |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Convolution   | A measured impulse response applied before anything else — from the AutoEq catalogue or a WAV of your own.                                                                                |
-| Parametric EQ | Up to 128 bands. Peak, low/high shelf, low/high pass, band pass and notch, each with frequency, gain and Q.                                                                               |
-| Voicing       | Five curated target curves — music, movies, games, speech, late night — with a strength slider.                                                                                           |
-| Driver type   | Twelve compensation profiles for what you are actually listening on: dynamic, planar, balanced armature, electrostatic, bone conduction, the common diaphragm materials, and driver size. |
+| Layer                | What it is                                                                                                                                                                                      |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Convolution          | A measured impulse response applied before anything else — from the AutoEq catalogue or a WAV of your own.                                                                                      |
+| Driver type          | Twelve compensation profiles for the kind of transducer you are listening on: dynamic and planar headphones, dynamic, balanced-armature and hybrid IEMs, three diaphragm materials, four sizes. |
+| Headphone correction | A published measurement for your exact model, applied as a layer beside your tuning rather than into it.                                                                                        |
+| Parametric EQ        | Your own bands, up to 128 of them. Peak, low/high shelf, low/high pass, band pass and notch, each with frequency, gain and Q.                                                                   |
+| Voicing              | Thirteen curated target curves — music, movies, games, speech and late night, plus eight by genre.                                                                                              |
+| Smart EQ             | What a measurement of your own output asked for, one-shot or continuously maintained.                                                                                                           |
+
+**Any layer can be switched off without being lost.** Every one of them has a
+switch on its chip, and the four corrections — driver, headphone, voicing and
+Smart EQ — have a strength from 0 to 100% beside it. Switching one off leaves its
+file out of the chain and touches nothing it holds, so pressing the switch again
+puts exactly the same settings back: which is how you find out whether a
+correction is actually an improvement, the same passage both ways, a second
+apart. It survives a restart, because a config with an include missing is a
+truthful config.
 
 Everything active is named on the EQ page, so a bump in the graph is never a
 mystery — you can see what put it there and remove it in one click.
 
 **Start from a measurement.** 6,028 headphone models and 8,850 responses ship
 offline from the official AutoEq results. The GadgetryTech Squiglink database is
-available online as a second source. Once applied, FluidEQ remembers which model
-your bands came from and says so.
+available online as a second source. Either way the correction arrives as its
+own layer: it survives clearing the EQ, it can be weakened or switched off on
+its own, and it never overwrites a band you placed yourself.
 
 **Smart EQ.** Measures what is actually coming out of your output and flattens
-what it hears, rather than assuming a target.
+what it hears, rather than assuming a target. It subtracts the rest of the chain
+as it measures, so it corrects the recording and the hardware rather than
+undoing your own tuning. **Continuous EQ** is the same measurement as a mode
+rather than a press: it moves a fraction of the way and measures again, for as
+long as there is music, so only what every record agrees about survives —
+which is your headphones and your room. Three of them: _Detail_ corrects peaks
+and dips, _Balance_ also evens out a bright or warm recording, and _Target_
+brings every record to the same tonal balance.
 
 **One preamp, computed.** Every layer contributes to a single `Preamp:` line
 derived from the real combined response, so adding a voicing or a convolution
@@ -44,6 +63,25 @@ cannot clip you — and removing one gives the headroom back.
 
 **Import what you already have.** An Equalizer APO ParametricEQ or GraphicEQ
 file, a FluidEQ profile, or any WAV impulse response.
+
+**Send a chain to somebody.** A **Config** tab shows the config Equalizer APO has
+actually got on disk, per output, as the include tree it really is — what each
+file holds, which layers are on, and any include pointing at nothing. Every
+output also gets one file FluidEQ never rewrites, for the APO commands that have
+no interface here. From that tab a whole chain exports to a `.fluideq` file and
+imports back onto the output you are listening to.
+
+**Media buttons in the title bar.** Previous, play/pause and next, commanding
+whatever is playing anywhere on the computer — a desktop player, a browser tab,
+FluidEQ's own Video tab. They send the media keys a keyboard sends, so anything
+already listening for those responds. Windows only.
+
+**Plays in two places at once.** A second output mirrors what you are hearing to
+any number of other devices, with a level for each, and nothing to install.
+Mirrored sound arrives about a fifth of a second late — fine for music in another
+room, unusable for video or anywhere you can hear both at once — it runs only
+while FluidEQ is open, and every mirror carries the correction of the device you
+are listening on, because that is already in the sound before FluidEQ sees it.
 
 **Ten languages.** English, 简体中文, हिन्दी, Español, Français, Português,
 Русский, 日本語, Deutsch, Italiano — the most-spoken left-to-right scripts.
@@ -64,10 +102,17 @@ unplugging a second monitor cannot strand the window somewhere you cannot
 reach it.
 
 **Plays something to tune against.** A **Video** tab opens a small set of music
-and video sites in a window inside the app, so a track can be playing while the
-spectrum moves underneath it and a band is dragged. It is not a browser: it goes
-to those sites and nowhere else, it downloads nothing, and its session is held
-in memory and thrown away when the app closes, so nothing is ever signed in.
+and video sites — YouTube, YouTube Music, Bandcamp, Twitch and Suno — in a window
+inside the app, so a track can be playing while the spectrum moves underneath it
+and a band is dragged. It is not a browser: it goes to those sites and nowhere
+else, and it downloads nothing.
+
+You can sign in, and it remembers you next time. Its cookies live in a store of
+its own that no other part of FluidEQ reads, encrypted at rest by Windows the
+same way any browser profile on the machine is, and one button in its toolbar
+throws the whole lot away — every cookie, sign-in and cached page — in a single
+press. Sign-in through a Google account may be refused; Google decides for itself
+whether it will complete one inside an embedded view, and often will not.
 
 FluidEQ is not affiliated with, endorsed by, or connected to any of those sites.
 They are opened as they are, in an ordinary Chromium window; the app neither
@@ -85,16 +130,23 @@ hand edit, another tool, an APO reinstall, a restore from backup — because the
 file is what you are hearing and the app's copy is only what it last believed.
 On startup the file wins.
 
-For everything it can express, at least, and that limit is the whole design.
-Voicing and driver corrections reach APO as ordinary `Filter N:` lines with
-nothing marking them as layers, so reading them back as truth would turn both
-into hand-placed bands — the pickers would read "none" while the sound was
-unchanged, and the next edit would write the layers in again on top of their own
-flattened copies. So:
+This used to be hedged, and the hedge is most of why the config is split into
+one file per layer. A voicing, a driver correction and a Smart EQ curve all
+reached APO as ordinary `Filter N:` lines with nothing marking them as layers, so
+reading a config back would have turned every one of them into hand-placed bands
+— the pickers reading "none" while the sound was unchanged, and the next edit
+writing the layers in again on top of their own flattened copies. The only safe
+answer was to refuse to read anything at all whenever a layer was live.
 
-| Owned by the APO config                                           | Owned by the profile                                                             |
-| ----------------------------------------------------------------- | -------------------------------------------------------------------------------- |
-| Bands, preamp, GraphicEQ points, which impulse response is loaded | Which voicing, which driver profile, which headphone reference, the profile name |
+An `Include:` naming a file answers the question the text never could. Startup
+adopts the bands and leaves the layers alone, and it learns which layers you had
+switched off from which includes are missing. The old refusal is kept exactly
+where it still applies: a flat config — an older FluidEQ's, a hand-written one,
+another tool's — attributes nothing, and there nothing is adopted.
+
+| Owned by the APO config                                                                          | Owned by the profile                                                             |
+| ------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| Bands, preamp, GraphicEQ points, which impulse response is loaded, which layers are switched off | Which voicing, which driver profile, which headphone reference, the profile name |
 
 Nothing in the second column is audible on its own. Everything in the first
 column is.
@@ -104,6 +156,7 @@ column is.
 FluidEQ writes one `Device:` block per assigned output into its own config file,
 which Equalizer APO includes. Because APO accumulates every block whose device
 matches, the block for the output you are listening on is the one that applies.
+Each block names a file of its own:
 
 ```text
 # Neutral fallback for every output without an attached profile.
@@ -113,11 +166,28 @@ Channel: all
 # Headphones -> Sony XM5 · Music
 Device: {HEADPHONE-ENDPOINT-GUID}
 Channel: all
-Preamp: -6.4 dB
-Convolution: fluideq-ir-8f2a1c9b4d70.wav
-Filter 1: ON LSC Fc 105 Hz Gain 5.4 dB Q 0.7
-Filter 2: ON PK Fc 2200 Hz Gain -3.1 dB Q 1.41
+Include: fluideq-device-8f2a1c9b4d70.txt
 ```
+
+The device's own file states the impulse response, includes one file per layer
+in the order APO applies them, and ends with the single computed preamp — and
+then your own file, which FluidEQ creates once and never writes again:
+
+```text
+# Headphones -> Sony XM5 · Music
+Convolution: fluideq-convolution-8f2a1c9b4d70.wav
+Include: fluideq-8f2a1c9b4d70-driver.txt
+Include: fluideq-8f2a1c9b4d70-headphone.txt
+Include: fluideq-8f2a1c9b4d70-eq.txt
+Include: fluideq-8f2a1c9b4d70-voicing.txt
+Include: fluideq-8f2a1c9b4d70-smart.txt
+Preamp: -6.4 dB
+Include: fluideq-8f2a1c9b4d70-custom.txt
+```
+
+A layer that is switched off is an `Include:` that is not written. The name in
+the middle is a digest of the Windows endpoint id, so an output's files are
+findable again rather than accumulating a fresh set every launch.
 
 No virtual output device and no kernel driver.
 
@@ -138,13 +208,13 @@ the current output automatically. Every output keeps at least one profile, and
 you only need more if you want several tunings for the same device. Rename one
 with the pencil on its row.
 
-> The installer is not code-signed yet, so SmartScreen will warn on first run —
-> and on each update, until there is a certificate. Choose
-> **More info → Run anyway**, or build it yourself from source below.
+> Windows SmartScreen may hold the installer on first run, and again on an
+> update. Choose **More info → Run anyway**, or build it yourself from source
+> below.
 
 ## Known limitations
 
-- **No code signing.** SmartScreen warns on install and on every update.
+- **SmartScreen warns.** On install, and on updates.
 - **Windows only.** Equalizer APO is the audio engine and there is no
   equivalent to target elsewhere. On other platforms FluidEQ starts with two
   demonstration endpoints so the UI can be developed, and touches nothing.
@@ -154,18 +224,17 @@ with the pencil on its row.
 
 ## Where things live
 
-| Path            | What is in it                                                                                                                   |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| `src/common/`   | Pure logic, no Electron: filter maths, the APO text reader and writer, voicing and driver profiles, translations, validation.   |
-| `src/main/`     | Electron main. `flush.ts` writes the APO config, `apoSync.ts` reads it back, `main.ts` owns the IPC surface and the live state. |
-| `src/renderer/` | React. `FluidEqContext` holds the live EQ, `I18nContext` holds the language.                                                    |
-| `CHANGELOG.md`  | The release notes, rendered inside the app.                                                                                     |
-| `CLAUDE.md`     | The release procedure and the constraints that are not obvious from the code.                                                   |
+| Path            | What is in it                                                                                                                                                                                 |
+| --------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/common/`   | Pure logic, no Electron: filter maths, the APO text reader and writer, voicing and driver profiles, translations, validation.                                                                 |
+| `src/main/`     | Electron main. `flush.ts` renders the chain, `deviceProfiles.ts` lays it out as files and writes them, `apoConfigReader.ts` reads it back, `main.ts` owns the IPC surface and the live state. |
+| `src/renderer/` | React. `FluidEqContext` holds the live EQ, `I18nContext` holds the language.                                                                                                                  |
+| `CHANGELOG.md`  | The release notes. The newest section is what the app shows in **What's new**.                                                                                                                |
+| `CLAUDE.md`     | The constraints that are not obvious from the code.                                                                                                                                           |
 
 ## Supporting the work
 
-FluidEQ is free and stays free. Nothing is behind a paywall, nothing is tracked,
-and there is no paid tier waiting in the wings.
+Nothing here is tracked. No telemetry, no analytics, no account.
 
 **This is one person's work — mine, Ivan Carmenates Garcia — built with a lot of love
 and an unreasonable amount of attention to detail.** Every panel was drawn by
@@ -228,8 +297,8 @@ pnpm build
 pnpm package
 ```
 
-`pnpm package` builds an unsigned installer into `release/build`, which is what
-you want for checking a change end to end on a real machine.
+`pnpm package` builds an installer into `release/build`, which is what you want
+for checking a change end to end on a real machine.
 
 The version lives in both `package.json` and `release/app/package.json` and the
 two must agree, or the artifact is named after the wrong one.
@@ -254,16 +323,30 @@ below is new work, and it is most of what you interact with.
   the Windows endpoint you were listening on, by stable GUID rather than by
   display name. Switch outputs and the right sound follows, with no save step.
   This is the idea the whole app is built around.
-- **Driver-type compensation.** Twelve profiles for what you are actually
-  listening on — dynamic, planar magnetic, balanced armature, electrostatic,
-  bone conduction, the common diaphragm materials, and driver size — each its
-  own APO layer with a strength control and its own curve on the graph.
-- **Voicing.** Five curated target curves, written after your bands so your own
-  tuning is never overwritten and switching back restores it exactly.
+- **Driver-type compensation.** Twelve profiles for the kind of transducer you
+  are actually listening on — dynamic and planar headphones, dynamic,
+  balanced-armature and hybrid IEMs, three diaphragm materials and four driver
+  sizes — each its own APO layer with a strength control and its own curve on
+  the graph.
+- **A headphone correction that is a layer, not your bands.** A published
+  measurement for your model is applied beside your own tuning rather than over
+  the top of it, so clearing the EQ does not take it with it and it can be
+  weakened or switched off on its own.
+- **Voicing.** Thirteen curated target curves — five by purpose, eight by genre
+  — written after your bands so your own tuning is never overwritten and
+  switching back restores it exactly.
 - **Convolution.** Verified minimum-phase impulse responses from the AutoEq
   catalogue, or any WAV of your own, applied ahead of the parametric stage.
 - **Smart EQ.** Measures what is actually coming out of your output and
-  flattens what it hears, rather than assuming a target curve.
+  flattens what it hears, rather than assuming a target curve. It subtracts the
+  rest of the chain as it measures, and **Continuous EQ** keeps it measured
+  while music plays.
+- **A file per layer.** The chain is a root file, a file per output and a file
+  per layer, so a layer can be switched off by leaving its include out, its
+  origin can be told apart from your own bands when the config is read back,
+  and every output has one file FluidEQ never rewrites.
+- **A second output.** What you are hearing, mirrored to other devices with a
+  level for each, without a routing driver.
 - **One computed preamp.** Every layer contributes to a single `Preamp:` line
   derived from the real combined response, so stacking a voicing on a
   convolution cannot clip you and removing one gives the headroom back.
@@ -284,6 +367,15 @@ below is new work, and it is most of what you interact with.
   panels fighting over the window, a response graph with draggable points and a
   live output curve, and a motion vocabulary that respects
   `prefers-reduced-motion`.
+- **A switch and a strength on every layer**, so any of them can be compared
+  against, weakened, or taken out without being taken apart.
+- **A Config tab** showing what Equalizer APO has actually got on disk, and
+  **export and import** of a whole chain as a `.fluideq` file.
+- **A Video tab** with a player for a fixed list of sites, so something can be
+  playing while a band is dragged.
+- **Media buttons in the title bar** for whatever is playing on the machine.
+- **A live spectrum, a response graph and a real level meter**, in three sizes
+  that each remember how you left them.
 - **Ten languages**, with a test that fails the build when one falls behind.
 - **In-app updates** and a What's new dialog rendered from the changelog.
 - Window position and size remembered, and no white flash on launch.

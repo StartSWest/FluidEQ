@@ -15,18 +15,32 @@ present in upstream AQUA:
 
 - automatic per-output profiles keyed to the stable Windows endpoint GUID,
   with attach-on-edit and a restorable manual snapshot;
+- a per-layer Equalizer APO config: a root file, a file for each output and a
+  file for each layer within it, so that a layer is switched off by omitting an
+  include, and one file per output that FluidEQ creates and never rewrites;
 - driver-type compensation, twelve transducer profiles written as their own
   Equalizer APO layer;
-- voicing, five curated target curves written as a further layer;
+- headphone correction as a layer of its own rather than as the user's bands;
+- voicing, thirteen curated target curves written as a further layer;
 - convolution, from the AutoEq catalogue or a user's own WAV;
-- Smart EQ, closed-loop correction from a live measurement of the output;
-- a single preamp computed from the combined response of every layer;
-- reading the Equalizer APO config back as the source of truth on startup;
+- Smart EQ, closed-loop correction from a live measurement of the output, one
+  shot or continuously maintained in three modes;
+- a strength control and a bypass on every layer;
+- a single preamp computed from the combined response of every layer, in both
+  directions;
+- reading the Equalizer APO config back as the source of truth on startup,
+  attributed to the layer that wrote each part;
+- an inspector for the Equalizer APO config as it stands on disk;
 - import of Equalizer APO ParametricEQ and GraphicEQ files and WAV impulse
   responses, with a reader covering the full APO filter grammar;
+- export and import of a whole chain as a single file;
 - the GadgetryTech / Squiglink measurement source, fitted locally;
 - a rebuilt interface: design-token layer, scrolling workspace, editable
-  response graph with a live output curve, shared motion vocabulary;
+  response graph with a live output curve, live spectrum and level meter,
+  shared motion vocabulary;
+- an embedded player for a fixed list of media sites, in a session of its own;
+- media transport controls for whatever is playing on the machine;
+- mirroring the output to further audio devices;
 - ten-language localisation;
 - in-app updates and release notes;
 - the FluidEQ name and visual identity.
@@ -87,6 +101,15 @@ part of its code; they are separate programs that exchange text configuration
 files. Where FluidEQ's source describes how Equalizer APO parses those files,
 that is a statement of fact about the interface, established by reading the
 published source. No part of it has been copied.
+
+## Libraries FluidEQ is built with
+
+FluidEQ ships Electron and ten npm packages. All are permissively licensed —
+MIT, except d3, which is ISC — and both licences require their copyright notice
+to accompany the software rather than stay in a repository. It travels in
+`assets/licenses/THIRD-PARTY-NOTICES.txt`, which is installed alongside the
+application, together with the notices for Chromium and Node.js that Electron
+brings with it.
 
 ## Third-party websites reached from the Video tab
 

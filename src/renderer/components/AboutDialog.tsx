@@ -199,8 +199,11 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
           </section>
 
           <p className="about__footer">
-            The complete derivative-work, third-party and trademark notices are{' '}
-            <code>NOTICE.md</code> and <code>TRADEMARK.md</code> in the source.
+            The libraries {PRODUCT_NAME} is built on are listed with their
+            copyright notices in{' '}
+            <code>{LICENSE_DIR}/THIRD-PARTY-NOTICES.txt</code>. The complete
+            derivative-work and trademark notices install beside the application
+            as <code>NOTICE.md</code> and <code>TRADEMARK.md</code>.
             <br />
             <a href={REPOSITORY_URL} target="_blank" rel="noreferrer">
               {REPOSITORY_URL}

@@ -1,8 +1,153 @@
 # What's new in FluidEQ
 
-Every released version, newest first. FluidEQ shows this file in the app the
-first time you run a new version — the **What's new** entry in the actions menu
-opens it again any time.
+Every released version, newest first. FluidEQ shows you the newest section of
+this file the first time you run a new version — the **What's new** entry in the
+actions menu opens it again any time.
+
+---
+
+## 1.1.0
+
+Equalizer APO's configuration used to be one block per output, with every layer
+poured into a single run of numbered filter lines and nothing in it saying where
+the voicing stopped and your own bands began. It is now a file per layer, and
+that is where most of what follows comes from: a layer with a file of its own can
+be switched off without being taken apart, told apart from your own tuning when
+FluidEQ starts up again, read on disk, and sent to somebody else.
+
+### New
+
+- **Any layer switches off without being lost, and every correction has a
+  strength.** Switching one off leaves its file out of the chain rather than
+  clearing its settings and stashing them, so pressing the switch again puts
+  exactly the same thing back, and it survives a restart. Your bands can finally
+  have a switch of their own, so can the impulse response, and Smart EQ has
+  joined the driver, headphone and voicing layers in having a strength — half of
+  a measured correction is a reasonable thing to want when the measurement is
+  more confident than you are.
+- **A headphone correction is a layer of its own, on a page of its own.**
+  Applying a published measurement used to replace your bands outright, so
+  clearing the EQ threw the correction away with your tuning and Smart EQ read it
+  as error and flattened it over a few passes. It now sits beside your bands with
+  its own chip, strength, switch and curve, from either headphone database.
+- **Continuous EQ.** Pressing Smart EQ applies one measurement whole; this is a
+  mode instead — measure, move a fraction of the way, measure again, for as long
+  as there is music — so one track's emphasis and the next one's cancel out and
+  only what every record agrees about survives, which is your headphones and your
+  room. **Detail** corrects peaks and dips, **Balance** also evens out a bright or
+  warm recording, and **Target** brings every record to the same tonal balance.
+- **A Config tab, showing what is actually on disk.** Every other panel shows
+  what FluidEQ intends; this one shows what Equalizer APO has got, and the two
+  differ exactly when it matters — after a hand edit, another tool, a restore
+  from backup. Each output also gets one file FluidEQ creates empty and never
+  writes again, applied last, for the APO commands that have no interface here.
+- **Send a chain to somebody.** A whole output's tuning exports to a `.fluideq`
+  file and imports back, always onto the output you are listening to, because
+  that is the only one you can judge the result on.
+- **Media buttons in the title bar** — previous, play/pause and next, commanding
+  whatever is playing anywhere on the computer rather than only our own player.
+  Expect up to a second between the press and the track changing. Windows only.
+- **Play to a second output at the same time**, with a level for each and nothing
+  to install. What it is not: the sound arrives about a fifth of a second late,
+  so it suits music in another room and not video; it runs only while FluidEQ is
+  open; and every mirror carries the correction of the device you are listening
+  on, because that is in the sound before FluidEQ sees it.
+- **A level meter that reads in real decibels**, both channels separately.
+  Nothing on screen answered "how loud is this, really" before.
+- **Eight genre voicings** — rock, metal, pop, hip-hop and R&B, electronic, jazz,
+  classical, acoustic — beside the five that were already there.
+- **The graph remembers each of its sizes separately**, so arranging the plot for
+  a video in full screen no longer rearranges it for editing bands afterwards.
+  The legend is a set of switches, one per curve, and the View menu can switch
+  off the level meter and the title-bar wave.
+- **The player stays signed in between runs.** It ran on a session thrown away
+  when the app closed, which made it no use to anyone with an account: a
+  signed-out music service shows ads to somebody who pays not to see them. The
+  guarantee changes from "nothing is kept" to "nothing is kept that you did not
+  ask for, and one press throws all of it away" — that press is a new button in
+  the player's toolbar, always visible.
+
+### Changed
+
+- **Auto-normalise gives volume back as well as taking it away.** The preamp
+  could only ever attenuate, so a chain that merely cut made everything quieter
+  and nothing put it back. It will not invent volume either: a narrow cut
+  restores nothing, because away from its centre the chain never moved.
+- **Smart EQ measures the record, not what you have already done to it.** It
+  treated everything it heard as correctable, so it could not see past a cut —
+  a range dropped 20 dB by mistake hid the very evidence that the cut was wrong.
+- **Loudness has been removed.** It was an EQ curve wearing the name of something
+  Equalizer APO cannot do: a loudness control on an amplifier raises perceived
+  level, and APO has filters and nothing else. Measured, it lifted the ends by
+  4.5 dB, the preamp reserved 4.1 dB against that boost, and the midrange ended
+  five decibels down — turning it on made things quieter. The equal-loudness
+  voicing curve stays, being the same idea stated honestly.
+- **Spotify and SoundCloud have gone, and Suno is being tried.** A button leading
+  to a page that does not play is worse than no button. Spotify signed in,
+  browsed and searched perfectly and never played a note, its audio being
+  encrypted with a system this runtime has no decoder for; SoundCloud refused a
+  sign-in by all four of its routes without producing a single error anywhere we
+  could see. Suno is on the same terms as everything else: it stays only if it
+  works.
+- **A published correction reaches Equalizer APO as the curve it was published
+  as.** Some ship as a list of points rather than as filters and APO draws those
+  natively, where until now it was FluidEQ's approximation being written out.
+  Nothing on screen ever showed the difference — only the file APO reads.
+- **On startup, FluidEQ can tell which layer wrote what.** It used to refuse to
+  read a config back at all while any layer was live, because a voicing and a row
+  of hand-placed bands looked identical in the text. That refusal now applies
+  only to a flat config, and which layers you had switched off comes back too.
+- **Zoom moves in half steps**, about 9.5% a press instead of 20%, because
+  settling on a size is what people actually do with it.
+
+### Fixed
+
+- **A chain somebody sends you can no longer carry code into Windows audio.** A
+  `.fluideq` is advertised as a settings file, and the part of it holding your own
+  Equalizer APO commands was written into the config word for word — into a file
+  included all the way up to APO's own, in a language that can load libraries. An
+  imported block is now refused if any line loads code, includes another file, or
+  carries a control character that could end one command and start another; the
+  rest of the chain still imports, and the panel says what was dropped and why.
+- **The player no longer writes sign-in addresses to the log.** Every address it
+  navigated to was recorded whole, and the report-a-problem tool attaches the
+  tail of that log and offers to post it publicly. The tail of a sign-in address
+  is not a location, it is the credential.
+- **The player stopped handing a storage permission to anything that asked**, and
+  an impulse response file name can no longer smuggle a second command past the
+  config writer — a newline in a name ends a line in an Equalizer APO config.
+- **A band drag starts where you grabbed it.** Pressing a handle threw the band
+  upward before the cursor had moved a pixel, and grabbing one off-centre snapped
+  it by however far off you were: it was measured against the drawn curve rather
+  than against your pointer, and the two had stopped being the same curve.
+- **A layer that is switched off stays switched off.** Smart EQ preserved the
+  voicing, the driver and the headphone correction whether or not you had
+  bypassed them, so it looked for shapes that were not in the sound and rebuilt
+  the layer you had just switched off inside its own.
+- **Importing a chain no longer destroys the thing being imported.** It dropped
+  the headphone correction on the way in, then saved the profile back from what
+  was live a moment later.
+- **Clear on the AutoEQ page clears the correction and leaves your bands alone.**
+  It flattened every band, which was right back when clearing a reference meant
+  undoing the bands it had written — so it wiped a tuning it no longer owned and
+  left the correction playing with nothing on screen naming it.
+- **A strength slider can always be moved.** It was disabled while its layer was
+  off, which pinned the strength wherever it happened to be. Dragging it brings
+  the layer back, dragging it to zero switches the layer off, and switching a
+  layer on from zero goes to full.
+- **The bands do not vanish when every one of them is at zero.** A flat chain is
+  written as a preamp and no filter lines, because a band at 0 dB does nothing —
+  but read back, "no filters" and "no bands" look identical.
+- **A switched-off equaliser cannot be edited**, and neither can the band handles
+  with the engine off. Both stayed draggable while looking inert, so you could
+  spend a minute shaping a curve connected to nothing.
+- **The EQ chip is about the bands**, which is all it holds now; it was naming
+  itself after the headphone model, so one pair of headphones appeared twice in
+  the same row. The headphone chip no longer vanishes at zero strength either.
+- **Opening a dropdown no longer takes the pane's scrollbar with it**, freezing
+  the panel and letting its content jump sideways into the gutter. The View menu
+  measures itself rather than running off the bottom of the screen, and the
+  expanded graph has its left edge back.
 
 ---
 

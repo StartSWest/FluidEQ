@@ -15,9 +15,11 @@
  * Licensing: Equalizer APO is GPL-2.0-or-later by Jonas Thedering, so it is
  * compatible with FluidEQ's GPL-3.0 and may be redistributed — provided the
  * corresponding source goes with it. That is not optional and it is not
- * satisfied by a link to somebody else's server: the release runbook in
- * CLAUDE.md lists the source archive as a required asset alongside the
- * installer. If you are changing the pinned version here, change it there too.
+ * satisfied by a link to somebody else's server: `pnpm fetch-apo:source`
+ * fetches the archive matching the version pinned below, and it has to be
+ * published alongside the installer wherever that installer is offered, to the
+ * same people and at no extra charge. Bumping the version here moves the hash,
+ * the byte count and the source archive together.
  */
 
 import { createHash } from 'crypto';
@@ -185,7 +187,7 @@ export const fetchEqualizerApoSource = async (): Promise<string> => {
   throw new Error(
     `Could not fetch ${APO_SOURCE_ARCHIVE}. This is not optional: publishing` +
       ` the installer without the corresponding source is a licence` +
-      ` violation. See CLAUDE.md, step 6.\n${failures.join('\n')}`,
+      ` violation.\n${failures.join('\n')}`,
   );
 };
 

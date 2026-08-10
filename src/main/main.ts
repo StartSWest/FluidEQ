@@ -173,6 +173,7 @@ import {
 import { readApoConfigTree, readApoDeviceChain } from './apoConfigReader';
 import { IApoConfigLayer, IApoConfigTree } from '../common/apoConfig';
 import { APP_ID, PRODUCT_NAME } from '../common/branding';
+import { latestReleaseNotes } from '../common/changelog';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -3373,11 +3374,14 @@ ipcMain.on('quit-app', () => {
 });
 
 /**
- * The release notes, read from the file that ships with the app.
+ * The release notes for this version, read from the file that ships with the app.
  *
  * A file rather than a string baked into the bundle, so writing an entry is
  * editing CHANGELOG.md and nothing else — no constant to update, no chance of
  * the two drifting apart. It is also the same file people read on GitHub.
+ *
+ * Only the newest section crosses to the renderer. The whole history is what
+ * the file is for; it is not what "What's new" means.
  */
 ipcMain.handle('get-changelog', () => {
   const candidates = [
@@ -3390,7 +3394,7 @@ ipcMain.handle('get-changelog', () => {
     return '';
   }
   try {
-    return fs.readFileSync(found, 'utf8');
+    return latestReleaseNotes(fs.readFileSync(found, 'utf8'));
   } catch {
     return '';
   }

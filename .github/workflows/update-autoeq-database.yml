@@ -44,8 +44,12 @@ jobs:
           }
           $manifest | ConvertTo-Json | Set-Content ./assets/autoeq-version.json -Encoding utf8NoBOM
 
+      # AutoEq's licence travels with the measurements. The zip is downloaded and
+      # unpacked on its own, away from the repository the rest of the notices
+      # live in, so MIT's "include the copyright notice in all copies" is only
+      # satisfied if the notice is inside the archive.
       - name: Package database
-        run: zip -qr autoeq-database.zip autoeq assets/autoeq-version.json
+        run: zip -qr autoeq-database.zip autoeq assets/autoeq-version.json assets/licenses/AutoEq-LICENSE.txt
 
       - name: Publish update assets
         env:

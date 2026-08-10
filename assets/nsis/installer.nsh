@@ -17,9 +17,11 @@
 ;     modification.
 ;
 ; Equalizer APO is GPL-2.0-or-later, copyright Jonas Thedering. Its licence is
-; installed beside ours in resources/licenses, and the corresponding source is
-; published with every FluidEQ release — see CLAUDE.md, which lists it as a
-; required asset.
+; installed beside ours in resources/assets/licenses — the assets directory
+; keeps its own name on the way in, so it is not resources/licenses — and the
+; corresponding source archive is published alongside every FluidEQ release.
+; That archive is a licence obligation rather than a courtesy; fetch the one
+; matching the pinned version with `pnpm fetch-apo:source`.
 
 ; Write a line to the install log.
 ;

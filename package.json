@@ -1,6 +1,6 @@
 {
   "name": "fluideq",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "type": "commonjs",
   "description": "Open-source system-wide parametric EQ with automatic per-device profiles",
   "keywords": [
@@ -311,6 +311,8 @@
       },
       "./autoeq/**",
       "./CHANGELOG.md",
+      "./NOTICE.md",
+      "./TRADEMARK.md",
       {
         "from": "vendor/equalizer-apo",
         "to": "equalizer-apo",
