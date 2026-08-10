@@ -223,6 +223,34 @@ const useOutputMirror = () => {
     [devices],
   );
 
+  // Switching the output you listen on switches every mirror off.
+  //
+  // What a mirror means is "send what I am hearing there as well", and moving
+  // the primary changes what that sentence refers to entirely — the room the
+  // sound was going to may now be the room you are in, and the device you were
+  // mirroring may be the one you just moved to. Rather than guess which of
+  // those the user meant, the mirrors stop and wait to be switched on again.
+  //
+  // Only on a genuine change between two known endpoints. The first reading
+  // arrives as undefined and then as a GUID, which is discovery rather than a
+  // switch, and clearing on it would throw away the selection restored from
+  // the last session every time the app started.
+  const lastCaptureSourceRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    const previous = lastCaptureSourceRef.current;
+    lastCaptureSourceRef.current = captureSourceGuid;
+    if (!previous || !captureSourceGuid || previous === captureSourceGuid) {
+      return;
+    }
+    setSelectedGuids((current) => {
+      if (current.length === 0) {
+        return current;
+      }
+      localStorage.setItem(MIRROR_TARGETS_KEY, JSON.stringify([]));
+      return [];
+    });
+  }, [captureSourceGuid]);
+
   const targets = useMemo<IMirrorTarget[]>(() => {
     const matches = matchAudioDevices(devices, outputs);
     return devices.map((device, index) => {

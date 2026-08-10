@@ -328,6 +328,38 @@ const captureSystemOutput = async (t: Translate): Promise<MediaStream> => {
   // avoids the legacy desktop constraints trying to open a physical monitor.
   if (navigator.mediaDevices.getDisplayMedia) {
     try {
+      // Chromium's voice processing off, explicitly, and it matters twice over.
+      //
+      // As a *measurement*: this capture is what draws the live curve and what
+      // Smart EQ corrects from, and all three of these change the signal.
+      // Automatic gain rides the level, so the curve would describe Chromium's
+      // idea of loudness rather than the track's; noise suppression carves at
+      // quiet detail; the reading has to be of the output, not of a processed
+      // version of it.
+      //
+      // As a *mirror*: echo cancellation is the one that bites. It exists to
+      // subtract what the machine is playing from what it is hearing — and a
+      // mirror plays the very audio this is capturing, so the canceller treats
+      // its own output as an echo to remove and chases it. That is heard as
+      // level pumping and a hollow, phasey cancelling that arrives exactly
+      // when a second output is switched on.
+      return await navigator.mediaDevices.getDisplayMedia({
+        audio: {
+          autoGainControl: false,
+          echoCancellation: false,
+          noiseSuppression: false,
+        },
+        video: true,
+      });
+    } catch (constrainedError) {
+      displayCaptureError = constrainedError;
+    }
+
+    try {
+      // Some builds reject an audio constraint object on a display capture
+      // outright. A processed capture is worse than an unprocessed one but far
+      // better than none: losing the analyser, Smart EQ and the mirror over a
+      // constraint is not a trade worth making.
       return await navigator.mediaDevices.getDisplayMedia({
         audio: true,
         video: true,
