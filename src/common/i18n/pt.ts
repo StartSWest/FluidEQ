@@ -234,6 +234,24 @@ const pt: Partial<Dictionary> = {
     'A versão {version} está pronta. Reinicie o FluidEQ para concluir.',
   'update.restart': 'Reiniciar agora',
   'update.restarting': 'Reiniciando…',
+  'update.mandatory.title': 'Esta versão precisa de ser atualizada',
+  'update.mandatory.body':
+    'Esta versão corrige um problema grave o suficiente para que o FluidEQ não deva continuar a funcionar como está. A atualização está a ser transferida agora.',
+  'update.mandatory.notOptional':
+    'Não é uma atualização opcional. Pode fechar este aviso e terminar o que estava a fazer — voltará a aparecer até o FluidEQ estar atualizado.',
+  'update.mandatory.later': 'Agora não',
+  'update.mandatory.waiting': 'A obter a atualização…',
+  'update.mandatory.readyPrompt':
+    'A atualização já foi transferida. O FluidEQ vai fechar durante a instalação e abrir novamente a seguir.',
+  'update.mandatory.install': 'Instalar e reiniciar',
+  'update.mandatory.installing': 'A instalar…',
+  'update.mandatory.failedDownload':
+    'Não foi possível transferir a atualização. Ou não se conseguiu contactar o servidor de transferências, ou a ligação caiu a meio.',
+  'update.mandatory.failedInstall':
+    'A atualização foi transferida, mas o instalador não arrancou. O Windows pode tê-lo recusado, ou o ficheiro transferido pode estar danificado.',
+  'update.mandatory.manual':
+    'Também pode instalá-la manualmente: transfira a versão mais recente na página de lançamentos e execute-a. As suas definições e perfis são mantidos.',
+  'update.mandatory.releasePage': 'Abrir a página de transferências',
   'notice.restartDone':
     'O áudio do Windows foi reiniciado. Reabra qualquer aplicativo que continuar mudo.',
 

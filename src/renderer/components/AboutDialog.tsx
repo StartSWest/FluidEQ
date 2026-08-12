@@ -28,6 +28,7 @@ import {
   TRADEMARK,
   UPSTREAM,
 } from 'common/branding';
+import { DISCLAIMER_HEADING, DISCLAIMER_PARAGRAPHS } from 'common/disclaimer';
 import { useTranslation } from '../utils/I18nContext';
 import BrandMark from '../icons/BrandMark';
 import '../styles/About.scss';
@@ -135,6 +136,21 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
                 — it also ships with this copy, as <code>{LICENSE.path}</code>.
               </span>
             </p>
+          </section>
+
+          {/* Directly under the licence, because it is what two sections of
+              that licence say. Sections 15 and 16 are already in LICENSE, in
+              every file header and on the installer's licence page, and in all
+              three places they are in the register of a licence rather than of
+              a sentence — which is a way of being present without being read.
+              The same words come up on first run, from the same module, so
+              what was acknowledged and what can be re-read here are one text
+              rather than two drafts. */}
+          <section className="about__section">
+            <h3>{DISCLAIMER_HEADING}</h3>
+            {DISCLAIMER_PARAGRAPHS.map((paragraph) => (
+              <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+            ))}
           </section>
 
           <section className="about__section">

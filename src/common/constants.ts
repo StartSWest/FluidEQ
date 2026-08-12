@@ -137,11 +137,31 @@ export const APP_UPDATE_EVENT = 'app-update';
  * Deliberately has no "checking" or "up to date" phase. Those are the normal
  * case, they happen on every launch, and reporting them would put a message on
  * screen every time the app opened to say that nothing had happened.
+ *
+ * `failed` is the one exception to that rule and is sent only while a mandatory
+ * update is pending. An ordinary update that cannot be fetched is still not
+ * worth interrupting anyone over — the version they have is working. A
+ * mandatory one is different: the window is already blocked, so silence would
+ * leave a modal that has stopped explaining itself.
  */
 export interface IAppUpdateStatus {
-  phase: 'available' | 'downloading' | 'ready';
+  phase: 'available' | 'downloading' | 'ready' | 'failed';
   version?: string;
   percent?: number;
+  /**
+   * Whether this release said, in `latest.yml`, that it must be taken.
+   *
+   * Present only when it is `true`, and `true` only for the exact well-formed
+   * signal — see `common/mandatoryUpdate`. Absent or `false` means the app
+   * behaves exactly as it always has.
+   */
+  isMandatory?: boolean;
+  /**
+   * Which step failed, for a modal that has to say so in plain language.
+   *
+   * Only meaningful on the `failed` phase.
+   */
+  failure?: 'download' | 'install';
 }
 
 // Need to use LPQ and HPQ to allow users to adjust quality for low/high pass filters

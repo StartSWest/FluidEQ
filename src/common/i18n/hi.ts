@@ -231,6 +231,24 @@ const hi: Partial<Dictionary> = {
     'संस्करण {version} तैयार है। पूरा करने के लिए FluidEQ फिर से चालू करें।',
   'update.restart': 'अभी फिर चालू करें',
   'update.restarting': 'फिर चालू हो रहा है…',
+  'update.mandatory.title': 'यह संस्करण अपडेट करना ज़रूरी है',
+  'update.mandatory.body':
+    'यह रिलीज़ एक ऐसी गड़बड़ी ठीक करती है जो इतनी गंभीर है कि FluidEQ को इसी हाल में चलते नहीं रहना चाहिए। अपडेट अभी लिया जा रहा है।',
+  'update.mandatory.notOptional':
+    'यह वैकल्पिक अपडेट नहीं है। आप यह सूचना बंद करके अपना काम पूरा कर सकते हैं — FluidEQ अपडेट होने तक यह फिर से दिखती रहेगी।',
+  'update.mandatory.later': 'अभी नहीं',
+  'update.mandatory.waiting': 'अपडेट लिया जा रहा है…',
+  'update.mandatory.readyPrompt':
+    'अपडेट डाउनलोड हो चुका है। इंस्टॉल के दौरान FluidEQ बंद होगा और उसके बाद फिर से खुल जाएगा।',
+  'update.mandatory.install': 'इंस्टॉल करें और फिर चालू करें',
+  'update.mandatory.installing': 'इंस्टॉल हो रहा है…',
+  'update.mandatory.failedDownload':
+    'अपडेट डाउनलोड नहीं हो सका। या तो डाउनलोड सर्वर तक पहुँच नहीं बनी, या बीच में कनेक्शन टूट गया।',
+  'update.mandatory.failedInstall':
+    'अपडेट डाउनलोड तो हो गया, पर इंस्टॉलर चालू नहीं हुआ। हो सकता है Windows ने उसे रोक दिया हो, या डाउनलोड की गई फ़ाइल खराब हो।',
+  'update.mandatory.manual':
+    'आप इसे खुद भी इंस्टॉल कर सकते हैं: रिलीज़ पेज से नवीनतम संस्करण डाउनलोड करके चलाएँ। आपकी सेटिंग्स और प्रोफ़ाइल बनी रहेंगी।',
+  'update.mandatory.releasePage': 'डाउनलोड पेज खोलें',
   'notice.restartDone':
     'Windows ऑडियो फिर से चालू हो गया। जो ऐप अब भी चुप हैं उन्हें दोबारा खोलें।',
 

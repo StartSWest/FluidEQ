@@ -214,6 +214,24 @@ const zh: Partial<Dictionary> = {
   'update.ready': '版本 {version} 已就绪。重启 FluidEQ 即可完成。',
   'update.restart': '立即重启',
   'update.restarting': '正在重启…',
+  'update.mandatory.title': '此版本必须更新',
+  'update.mandatory.body':
+    '本次发布修复的问题足够严重，FluidEQ 不应继续以当前状态运行。更新正在获取中。',
+  'update.mandatory.notOptional':
+    '这不是可选更新。你可以关掉这条提示，把手头的事做完——在 FluidEQ 更新之前，它还会再出现。',
+  'update.mandatory.later': '暂不更新',
+  'update.mandatory.waiting': '正在获取更新…',
+  'update.mandatory.readyPrompt':
+    '更新已下载完成。安装期间 FluidEQ 会关闭，随后自动重新打开。',
+  'update.mandatory.install': '安装并重启',
+  'update.mandatory.installing': '正在安装…',
+  'update.mandatory.failedDownload':
+    '更新下载失败。可能是无法连接下载服务器，也可能是连接在中途中断。',
+  'update.mandatory.failedInstall':
+    '更新已下载，但安装程序没有启动。可能被 Windows 拒绝，也可能是下载的文件已损坏。',
+  'update.mandatory.manual':
+    '你也可以自行安装：从发布页面下载最新版本并运行即可。你的设置和配置文件会保留。',
+  'update.mandatory.releasePage': '打开下载页面',
   'notice.restartDone': 'Windows 音频已重启。请重新打开仍然没有声音的程序。',
 
   'sidebar.engine': '处理引擎',

@@ -229,6 +229,24 @@ const ja: Partial<Dictionary> = {
     'バージョン {version} の準備ができました。FluidEQ を再起動すると適用されます。',
   'update.restart': '今すぐ再起動',
   'update.restarting': '再起動中…',
+  'update.mandatory.title': 'このバージョンは更新が必要です',
+  'update.mandatory.body':
+    'このリリースは、FluidEQ を現状のまま使い続けるべきではないほど重大な問題を修正しています。更新を取得しています。',
+  'update.mandatory.notOptional':
+    'これは任意の更新ではありません。この通知を閉じて作業を終わらせても構いませんが、FluidEQ を更新するまで繰り返し表示されます。',
+  'update.mandatory.later': '後で',
+  'update.mandatory.waiting': '更新を取得しています…',
+  'update.mandatory.readyPrompt':
+    '更新のダウンロードが終わりました。インストール中は FluidEQ が終了し、そのあと自動的に開き直します。',
+  'update.mandatory.install': 'インストールして再起動',
+  'update.mandatory.installing': 'インストール中…',
+  'update.mandatory.failedDownload':
+    '更新をダウンロードできませんでした。ダウンロードサーバーに接続できなかったか、途中で通信が途切れた可能性があります。',
+  'update.mandatory.failedInstall':
+    '更新はダウンロードできましたが、インストーラーが起動しませんでした。Windows に拒否されたか、ダウンロードしたファイルが壊れている可能性があります。',
+  'update.mandatory.manual':
+    '手動でインストールすることもできます。リリースページから最新版をダウンロードして実行してください。設定とプロファイルはそのまま残ります。',
+  'update.mandatory.releasePage': 'ダウンロードページを開く',
   'notice.restartDone':
     'Windows オーディオを再起動しました。まだ無音のアプリは開き直してください。',
 

@@ -34,12 +34,20 @@ import '../styles/UpdateNotice.scss';
  * to install is not urgent — the current version is working — and a banner that
  * cannot be got rid of is a worse citizen than one the user closes and finds
  * again next time they start the app.
+ *
+ * The one update this does not describe is the one that says it must be taken.
+ * `MandatoryUpdateModal` handles that, and this steps aside for it rather than
+ * repeating the same version number in a dismissable banner underneath a
+ * dialog that is not.
  */
 const UpdateNotice = () => {
   const { t } = useTranslation();
   const [status, setStatus] = useState<IAppUpdateStatus>();
   const [isDismissed, setIsDismissed] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
+  // Latched for the same reason the modal latches it: a later check that says
+  // nothing must not hand the banner back.
+  const [isMandatory, setIsMandatory] = useState(false);
 
   useEffect(() => {
     const unsubscribe = window.electron.ipcRenderer.on(
@@ -48,6 +56,9 @@ const UpdateNotice = () => {
         const next = args[0] as IAppUpdateStatus | undefined;
         if (!next) {
           return;
+        }
+        if (next.isMandatory === true) {
+          setIsMandatory(true);
         }
         setStatus(next);
         // A download finishing is new information, so it earns the right to
@@ -62,7 +73,14 @@ const UpdateNotice = () => {
     };
   }, []);
 
-  if (!status || isDismissed) {
+  if (!status || isDismissed || isMandatory) {
+    return null;
+  }
+
+  // `failed` is only ever sent while a mandatory update is pending, so this is
+  // unreachable in practice. It is here so that a phase this banner has no
+  // wording for can never be drawn as "Version undefined is available".
+  if (status.phase === 'failed') {
     return null;
   }
 

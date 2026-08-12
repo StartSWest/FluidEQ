@@ -234,6 +234,24 @@ const es: Partial<Dictionary> = {
     'La versión {version} está lista. Reinicia FluidEQ para terminar.',
   'update.restart': 'Reiniciar ahora',
   'update.restarting': 'Reiniciando…',
+  'update.mandatory.title': 'Esta versión debe actualizarse',
+  'update.mandatory.body':
+    'Esta versión corrige un problema lo bastante grave como para que FluidEQ no deba seguir funcionando tal cual. La actualización se está descargando ahora.',
+  'update.mandatory.notOptional':
+    'No es una actualización opcional. Puedes cerrar este aviso y terminar lo que estabas haciendo: volverá a aparecer hasta que FluidEQ esté actualizado.',
+  'update.mandatory.later': 'Ahora no',
+  'update.mandatory.waiting': 'Obteniendo la actualización…',
+  'update.mandatory.readyPrompt':
+    'La actualización ya está descargada. FluidEQ se cerrará mientras se instala y volverá a abrirse después.',
+  'update.mandatory.install': 'Instalar y reiniciar',
+  'update.mandatory.installing': 'Instalando…',
+  'update.mandatory.failedDownload':
+    'No se ha podido descargar la actualización. O no se ha podido conectar con el servidor de descargas, o la conexión se ha cortado a mitad.',
+  'update.mandatory.failedInstall':
+    'La actualización se ha descargado, pero el instalador no ha arrancado. Puede que Windows lo haya rechazado o que el archivo descargado esté dañado.',
+  'update.mandatory.manual':
+    'También puedes instalarla tú: descarga la última versión desde la página de versiones y ejecútala. Tus ajustes y perfiles se conservan.',
+  'update.mandatory.releasePage': 'Abrir la página de descargas',
   'notice.restartDone':
     'El audio de Windows se ha reiniciado. Vuelve a abrir cualquier aplicación que siga en silencio.',
 

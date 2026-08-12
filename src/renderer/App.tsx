@@ -82,6 +82,8 @@ import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
 import LanguagePicker from './components/LanguagePicker';
 import UpdateNotice from './components/UpdateNotice';
+import MandatoryUpdateModal from './components/MandatoryUpdateModal';
+import DisclaimerGate from './components/DisclaimerGate';
 import WhatsNewDialog from './components/WhatsNewDialog';
 import AboutDialog from './components/AboutDialog';
 import BrandMark from './icons/BrandMark';
@@ -1511,6 +1513,17 @@ const AppContent = () => {
             onClose={() => setShowSupportDialog(false)}
           />
         )}
+        {/* Last, and in this order, because these two are the only things that
+            arrive over the top of the workspace on their own.
+
+            The acknowledgement is second, and therefore in front. It is the
+            only one of the pair that cannot be dismissed, and a gate drawn
+            underneath a dialog it is holding focus away from is a window
+            nobody can use: its focus lock would keep pulling focus out of the
+            update notice, and its Escape handler would eat the key that
+            notice closes on. Front-most is the only place a lock belongs. */}
+        <MandatoryUpdateModal />
+        <DisclaimerGate />
       </main>
     </>
   );

@@ -233,6 +233,24 @@ const de: Partial<Dictionary> = {
     'Version {version} ist bereit. Starten Sie FluidEQ neu, um sie zu übernehmen.',
   'update.restart': 'Jetzt neu starten',
   'update.restarting': 'Wird neu gestartet…',
+  'update.mandatory.title': 'Diese Version muss aktualisiert werden',
+  'update.mandatory.body':
+    'Diese Version behebt ein Problem, das schwer genug wiegt, dass FluidEQ so nicht weiterlaufen sollte. Das Update wird gerade geladen.',
+  'update.mandatory.notOptional':
+    'Dieses Update ist nicht optional. Sie können diesen Hinweis schließen und zu Ende bringen, woran Sie gerade sind — er kommt wieder, bis FluidEQ aktualisiert ist.',
+  'update.mandatory.later': 'Jetzt nicht',
+  'update.mandatory.waiting': 'Update wird geholt…',
+  'update.mandatory.readyPrompt':
+    'Das Update ist geladen. FluidEQ schließt sich für die Installation und öffnet sich danach wieder.',
+  'update.mandatory.install': 'Installieren und neu starten',
+  'update.mandatory.installing': 'Wird installiert…',
+  'update.mandatory.failedDownload':
+    'Das Update konnte nicht geladen werden. Entweder war der Download-Server nicht erreichbar, oder die Verbindung ist unterwegs abgebrochen.',
+  'update.mandatory.failedInstall':
+    'Das Update wurde geladen, aber das Installationsprogramm ist nicht gestartet. Möglicherweise hat Windows es abgelehnt, oder die geladene Datei ist beschädigt.',
+  'update.mandatory.manual':
+    'Sie können es auch selbst installieren: Laden Sie die neueste Version von der Release-Seite herunter und führen Sie sie aus. Ihre Einstellungen und Profile bleiben erhalten.',
+  'update.mandatory.releasePage': 'Download-Seite öffnen',
   'notice.restartDone':
     'Windows-Audio wurde neu gestartet. Öffnen Sie Programme, die noch stumm sind, erneut.',
 

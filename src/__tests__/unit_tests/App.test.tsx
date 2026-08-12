@@ -24,6 +24,10 @@ import {
   screen,
   waitFor,
 } from '@testing-library/react';
+import {
+  DISCLAIMER_ACCEPTED_KEY,
+  buildAcceptance,
+} from '../../common/disclaimer';
 import App from '../../renderer/App';
 import { Channels } from '../../main/api';
 
@@ -35,6 +39,15 @@ describe('App', () => {
     setWindowFullScreen.mockClear();
     sendMediaTransport.mockClear();
     window.localStorage.clear();
+    // The first-run acknowledgement is a gate: on a profile that has never
+    // accepted it, it takes the window and holds focus, and every assertion
+    // below about the workspace would be an assertion about a dialog covering
+    // it. Recorded here so these tests are about the app, and asserted on its
+    // own terms in the last test in this file.
+    window.localStorage.setItem(
+      DISCLAIMER_ACCEPTED_KEY,
+      JSON.stringify(buildAcceptance('1.2.0')),
+    );
     // jsdom deliberately has no canvas implementation. The visualizer already
     // treats a missing context as unavailable; make that path quiet so a shell
     // test reports only failures it can act on.
@@ -275,5 +288,18 @@ describe('App', () => {
       'aria-selected',
       'true',
     );
+  });
+
+  it('puts the acknowledgement in front of the workspace on a fresh profile', async () => {
+    // The one test here that does not clear the gate first. Everything above
+    // asserts the app is usable; this asserts that on a machine that has never
+    // seen the disclaimer, it is not — which is the whole point of mounting it.
+    window.localStorage.removeItem(DISCLAIMER_ACCEPTED_KEY);
+    render(<App />);
+    await act(async () => Promise.resolve());
+
+    const gate = screen.getByRole('alertdialog');
+    expect(gate).toHaveAttribute('aria-modal', 'true');
+    expect(gate).toContainElement(document.activeElement as HTMLElement);
   });
 });

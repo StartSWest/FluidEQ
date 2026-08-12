@@ -123,6 +123,7 @@ import {
   TApoLayer,
   describeBandShape,
 } from '../common/constants';
+import { isMandatoryUpdate } from '../common/mandatoryUpdate';
 import { ErrorCode } from '../common/errors';
 import {
   isFixedBandSizeEnumValue,
@@ -505,22 +506,73 @@ const setUpAutoUpdates = () => {
     mainWindow.webContents.send(APP_UPDATE_EVENT, payload);
   };
 
+  /**
+   * Whether the release we are heading towards said it must be taken.
+   *
+   * Latched for the life of the process, and held nowhere else. Latched,
+   * because once an update has said this the hourly re-check must not undo it
+   * the first time a train goes through a tunnel. In memory only, because a
+   * flag written to disk is one a bug could leave behind forever — a restart
+   * clears this, and a release that really is mandatory simply says so again
+   * on the next successful check.
+   */
+  let isMandatoryPending = false;
+
+  /**
+   * Whether the bytes are already on disk.
+   *
+   * Only used to tell the two failures apart in the message: before this, an
+   * error means the update could not be fetched; after it, it means the
+   * installer would not run. They read differently and lead somewhere
+   * different, so the modal is told which one it is.
+   */
+  let hasDownloaded = false;
+
   autoUpdater.on('update-available', (info) => {
-    send({ phase: 'available', version: info.version });
+    // `info` is typed, but it is a YAML document off the internet. The parse
+    // is written to answer `false` to anything it does not recognise.
+    if (isMandatoryUpdate(info)) {
+      isMandatoryPending = true;
+      log.info(`Update ${info.version} is marked mandatory`);
+    }
+    send({
+      phase: 'available',
+      version: info.version,
+      ...(isMandatoryPending ? { isMandatory: true } : {}),
+    });
   });
 
   autoUpdater.on('download-progress', (progress) => {
-    send({ phase: 'downloading', percent: Math.round(progress.percent) });
+    send({
+      phase: 'downloading',
+      percent: Math.round(progress.percent),
+      ...(isMandatoryPending ? { isMandatory: true } : {}),
+    });
   });
 
   autoUpdater.on('update-downloaded', (info) => {
-    send({ phase: 'ready', version: info.version });
+    hasDownloaded = true;
+    send({
+      phase: 'ready',
+      version: info.version,
+      ...(isMandatoryPending ? { isMandatory: true } : {}),
+    });
   });
 
   autoUpdater.on('error', (error) => {
     // Almost always "no network" or "GitHub is having a moment". Neither is
     // something the user can act on, and neither should interrupt them.
     log.info('Update check failed', error);
+    // Unless the window is already blocked waiting for this download, in which
+    // case saying nothing leaves a modal that cannot explain itself. Nobody
+    // else hears about it, so the ordinary case is untouched.
+    if (isMandatoryPending) {
+      send({
+        phase: 'failed',
+        isMandatory: true,
+        failure: hasDownloaded ? 'install' : 'download',
+      });
+    }
   });
 
   autoUpdater.checkForUpdates().catch((error) => {
@@ -3675,7 +3727,17 @@ ipcMain.handle('get-changelog', (_event, scope: 'latest' | 'all') => {
 ipcMain.handle('install-update', () => {
   // `false` for isSilent: the NSIS installer shows its progress, which is the
   // honest thing when the app the user was using has just vanished.
-  autoUpdater.quitAndInstall(false, true);
+  //
+  // Rethrown rather than swallowed. The ordinary update banner already treats
+  // a rejection as "put the button back", and the mandatory-update modal needs
+  // it to reach the manual-install instructions — a blocking window whose only
+  // button silently does nothing is the exact failure this must not have.
+  try {
+    autoUpdater.quitAndInstall(false, true);
+  } catch (error) {
+    log.info('Update install could not start', error);
+    throw error;
+  }
 });
 
 ipcMain.handle('open-equalizer-apo-configurator', async () => {

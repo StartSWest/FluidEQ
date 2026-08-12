@@ -237,6 +237,24 @@ const fr: Partial<Dictionary> = {
     'La version {version} est prête. Redémarrez FluidEQ pour terminer.',
   'update.restart': 'Redémarrer maintenant',
   'update.restarting': 'Redémarrage…',
+  'update.mandatory.title': 'Cette version doit être mise à jour',
+  'update.mandatory.body':
+    'Cette version corrige un problème suffisamment grave pour que FluidEQ ne doive pas continuer à fonctionner en l’état. La mise à jour est en cours de téléchargement.',
+  'update.mandatory.notOptional':
+    'Cette mise à jour n’est pas facultative. Vous pouvez fermer cet avis et terminer ce que vous faisiez : il reviendra tant que FluidEQ n’aura pas été mis à jour.',
+  'update.mandatory.later': 'Pas maintenant',
+  'update.mandatory.waiting': 'Récupération de la mise à jour…',
+  'update.mandatory.readyPrompt':
+    'La mise à jour est téléchargée. FluidEQ va se fermer pendant l’installation, puis se rouvrir.',
+  'update.mandatory.install': 'Installer et redémarrer',
+  'update.mandatory.installing': 'Installation…',
+  'update.mandatory.failedDownload':
+    'La mise à jour n’a pas pu être téléchargée. Soit le serveur de téléchargement était injoignable, soit la connexion a été coupée en cours de route.',
+  'update.mandatory.failedInstall':
+    'La mise à jour a été téléchargée, mais le programme d’installation n’a pas démarré. Windows l’a peut-être refusé, ou le fichier téléchargé est endommagé.',
+  'update.mandatory.manual':
+    'Vous pouvez aussi l’installer vous-même : téléchargez la dernière version depuis la page des versions et exécutez-la. Vos réglages et vos profils sont conservés.',
+  'update.mandatory.releasePage': 'Ouvrir la page de téléchargement',
   'notice.restartDone':
     'L’audio de Windows a redémarré. Rouvrez les applications encore muettes.',
 

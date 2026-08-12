@@ -273,6 +273,30 @@ const en = {
   'update.ready': 'Version {version} is ready. Restart FluidEQ to finish.',
   'update.restart': 'Restart now',
   'update.restarting': 'Restarting…',
+  // The release that says it has to be taken. Translated, unlike the About
+  // panel and the first-run notice: those are legal statements, where a
+  // mistranslation is worse than English. This is an instruction about what is
+  // happening to somebody's computer, and English is worse than a translation.
+  'update.mandatory.title': 'This version has to be updated',
+  'update.mandatory.body':
+    'This release fixes a problem serious enough that FluidEQ should not keep running as it is. The update is being fetched now.',
+  // The line that stops a closable dialog reading like an ordinary update
+  // banner. It says what closing it means, which is "later" and not "no".
+  'update.mandatory.notOptional':
+    'This is not an optional update. You can close this notice and finish what you are doing — it will come back until FluidEQ has been updated.',
+  'update.mandatory.later': 'Not now',
+  'update.mandatory.waiting': 'Fetching the update…',
+  'update.mandatory.readyPrompt':
+    'The update has been downloaded. FluidEQ will close while it installs, and open again afterwards.',
+  'update.mandatory.install': 'Install and restart',
+  'update.mandatory.installing': 'Installing…',
+  'update.mandatory.failedDownload':
+    'The update could not be downloaded. Either the download server could not be reached, or the connection stopped part of the way through.',
+  'update.mandatory.failedInstall':
+    'The update was downloaded, but the installer did not start. Windows may have refused it, or the downloaded file may be damaged.',
+  'update.mandatory.manual':
+    'You can install it yourself instead: download the latest version from the release page and run it. Your settings and profiles are kept.',
+  'update.mandatory.releasePage': 'Open the download page',
   'notice.restartDone':
     'Windows Audio restarted. Reopen any application that is still silent.',
 

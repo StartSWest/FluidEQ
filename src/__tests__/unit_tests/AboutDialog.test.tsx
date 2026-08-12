@@ -26,6 +26,7 @@ import {
   PRODUCT_NAME,
   UPSTREAM,
 } from 'common/branding';
+import { DISCLAIMER_PARAGRAPHS } from 'common/disclaimer';
 import AboutDialog from '../../renderer/components/AboutDialog';
 
 /**
@@ -79,5 +80,18 @@ describe('AboutDialog', () => {
     expect(text).toContain(BUNDLED_ENGINE.author);
     expect(text).toContain(BUNDLED_ENGINE.license);
     expect(text).toContain('separate programs');
+  });
+
+  it('states the warranty and liability disclaimer in readable words', () => {
+    // Sections 15 and 16 were already in LICENSE, in every file header and on
+    // the installer's licence page, all three in the register of a licence
+    // rather than of a sentence — which is a way of being present without
+    // being read. Asserted paragraph by paragraph against the same module the
+    // first-run acknowledgement renders, so the text somebody agreed to and
+    // the text they can come back and re-read cannot drift apart.
+    const text = openAndRead();
+    DISCLAIMER_PARAGRAPHS.forEach((paragraph) => {
+      expect(text).toContain(paragraph);
+    });
   });
 });

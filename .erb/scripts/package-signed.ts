@@ -49,6 +49,7 @@
 import { spawn } from 'child_process';
 
 import { fetchEqualizerApoSource } from './fetch-equalizer-apo';
+import { readMandatoryUpdateArgs } from './mandatory-update';
 
 interface ISigningSettings {
   endpoint: string;
@@ -105,7 +106,13 @@ export const toBuilderArgs = (settings: ISigningSettings): string[] =>
 
 if (require.main === module) {
   let settings: ISigningSettings | undefined;
+  // Whether this release tells installed copies they have to take it. Read
+  // first, and separately, because a misspelled value here has to stop the
+  // build before it spends ten minutes producing a release that its author
+  // believes is marked and is not. See .erb/scripts/mandatory-update.ts.
+  let mandatoryArgs: string[] = [];
   try {
+    mandatoryArgs = readMandatoryUpdateArgs();
     settings = readSigningSettings();
   } catch (error) {
     console.error((error as Error).message);
@@ -148,11 +155,23 @@ if (require.main === module) {
 
     console.log(`Signing as: ${signing.publisherName}`);
     console.log(`Publish this alongside the installer: ${apoSource}`);
+    if (mandatoryArgs.length > 0) {
+      // Said out loud. This is the one build setting whose effect lands on
+      // other people's machines rather than on this one, and it should not be
+      // possible to produce it without having seen a line about it go past.
+      console.log(
+        'MANDATORY RELEASE: installed copies will block themselves until they take this update.',
+      );
+    }
 
-    const child = spawn('pnpm', ['package', ...toBuilderArgs(signing)], {
-      stdio: 'inherit',
-      shell: true,
-    });
+    const child = spawn(
+      'pnpm',
+      ['package', ...toBuilderArgs(signing), ...mandatoryArgs],
+      {
+        stdio: 'inherit',
+        shell: true,
+      },
+    );
     child.on('exit', (code) => process.exit(code ?? 1));
   })();
 }

@@ -1,0 +1,246 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+// A card over a blurred backdrop, for the two things that interrupt the app.
+//
+// Named for what it looks like rather than for what it does, because its two
+// users no longer do the same thing:
+//
+//   - the first-run acknowledgement is a gate. It has no way out but the
+//     button, it holds focus, and it takes `--locked`.
+//   - the mandatory-update notice is insistent, not a gate. It can be closed,
+//     it comes back on a timer while the update is still pending, and it takes
+//     no modifier.
+//
+// They still look alike deliberately. Two visual languages for "something has
+// interrupted you" would make the closable one read as the more serious of the
+// two on a bad day, purely because it was drawn differently.
+//
+// Everything else in the app tops out at z-index 1450 (the About panel), so
+// both sit above that. `--locked` sits above the plain one in turn: when both
+// are on screen, the one that cannot be dismissed has to be the one in front,
+// or its focus lock is fighting a dialog painted over the top of it.
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.overlay-card__backdrop {
+  position: fixed;
+  z-index: 1500;
+  inset: 0;
+  display: grid;
+  padding: $spacing-m;
+  place-items: center;
+  // Heavier and blurrier than the About panel's. That panel is something you
+  // opened; these arrive on their own, and the workspace behind them should
+  // not look like the thing to carry on reading.
+  background: rgba(#03070d, 0.82);
+  backdrop-filter: blur(8px);
+}
+
+.overlay-card__backdrop--locked {
+  z-index: 1600;
+}
+
+.overlay-card {
+  @include animate(pop-in, $motion-base, $ease-spring);
+  display: grid;
+  width: min(560px, 100%);
+  max-height: min(720px, calc(100vh - 48px));
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  border: 1px solid rgba($secondary-light, 0.28);
+  border-radius: $radius-l;
+  background: linear-gradient(150deg, rgba(#101d2a, 0.99), rgba(#08121b, 0.99));
+  box-shadow: 0 30px 80px rgba($black, 0.55);
+}
+
+.overlay-card--alert {
+  border-color: rgba($red, 0.45);
+}
+
+.overlay-card__header {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-s;
+  padding: 18px 20px 14px;
+  border-bottom: 1px solid rgba($primary-lighter, 0.12);
+
+  h2 {
+    margin: 0;
+    flex: 1 1 auto;
+    color: rgba($white, 0.95);
+    font-size: 1.05rem;
+  }
+}
+
+.overlay-card__mark {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 auto;
+  color: $secondary-light;
+}
+
+// Same geometry as the About panel's close button, because it is the same
+// gesture and should not need learning twice.
+.overlay-card__close {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: rgba($white, 0.72);
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.4);
+    background: rgba($secondary-default, 0.16);
+    outline: none;
+  }
+}
+
+.overlay-card__body {
+  min-height: 0;
+  padding: $spacing-m 20px;
+  overflow-y: auto;
+  color: rgba($primary-lighter, 0.84);
+  font-size: 0.78rem;
+  line-height: 1.6;
+  @include slim-scrollbar;
+
+  p {
+    margin: 8px 0;
+  }
+
+  a {
+    color: $secondary-light;
+    text-decoration: none;
+    word-break: break-all;
+
+    &:hover,
+    &:focus-visible {
+      text-decoration: underline;
+    }
+  }
+}
+
+// The sentence that says closing this is a postponement rather than a
+// decision. Set apart because it is the one line whose absence would make the
+// whole dialog read as an ordinary update notice.
+.overlay-card__insist {
+  margin: $spacing-s 0 0;
+  padding-left: 10px;
+  border-left: 3px solid rgba($secondary-default, 0.5);
+  color: rgba($white, 0.88);
+}
+
+// What went wrong, set apart from the explanation above it so that a reader
+// who has already read the explanation can find the new part.
+.overlay-card__failure {
+  margin: $spacing-s 0 0;
+  padding: $spacing-s 10px;
+  border: 1px solid rgba($red, 0.4);
+  border-left-width: 3px;
+  border-radius: $radius-xs;
+  background: rgba($red, 0.08);
+  color: rgba($white, 0.88);
+}
+
+// The download bar. A width, and nothing that moves on its own: a progress
+// indicator that animates while a stalled download reports nothing is a lie
+// told slowly.
+.overlay-card__progress {
+  height: 4px;
+  margin-top: $spacing-s;
+  overflow: hidden;
+  border-radius: $radius-pill;
+  background: rgba($primary-lighter, 0.14);
+}
+
+.overlay-card__progress-fill {
+  height: 100%;
+  border-radius: $radius-pill;
+  background: linear-gradient(90deg, $secondary-dark, $secondary-default);
+  transition: width $motion-base linear;
+}
+
+.overlay-card__footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: $spacing-s;
+  padding: 14px 20px 18px;
+  border-top: 1px solid rgba($primary-lighter, 0.12);
+}
+
+.overlay-card__button {
+  min-height: $control-height-sm;
+  padding: 0 16px;
+  color: rgba($white, 0.9);
+  border: 1px solid rgba($secondary-light, 0.35);
+  border-radius: $radius-xs;
+  background: rgba($secondary-default, 0.14);
+  cursor: pointer;
+  font-size: 0.78rem;
+  transition: $transition-control;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    border-color: rgba($secondary-light, 0.6);
+    background: rgba($secondary-default, 0.24);
+    outline: none;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.55;
+  }
+}
+
+// For the way out of the acknowledgement, and for "later" on the update
+// notice. Present, reachable and visibly not the thing being asked for.
+.overlay-card__button--quiet {
+  color: rgba($primary-lighter, 0.8);
+  border-color: rgba($primary-lighter, 0.22);
+  background: transparent;
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: rgba($white, 0.92);
+    border-color: rgba($primary-lighter, 0.45);
+    background: rgba($primary-lighter, 0.08);
+  }
+}
