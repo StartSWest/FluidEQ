@@ -183,15 +183,15 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
           <section className="about__section">
             <h3>Attribution</h3>
             <p>
-              {PRODUCT_NAME} is a modified version of {UPSTREAM.name}, a
-              system-wide parametric equalizer interface by the {UPSTREAM.name}{' '}
-              Dev Team. It is not an official continuation and is not endorsed
-              by them.
+              {PRODUCT_NAME} is written and maintained by its author. It began
+              as a fork of {UPSTREAM.name}, and about a tenth of the source is
+              still theirs, used under the GPL — neither an official
+              continuation nor endorsed by them.
             </p>
             <p className="about__copyright">
-              {UPSTREAM.copyright}
+              {COPYRIGHT}
               <br />
-              {PRODUCT_NAME} modifications: {COPYRIGHT}
+              Portions: {UPSTREAM.copyright}
             </p>
             <p>
               <a href={UPSTREAM.url} target="_blank" rel="noreferrer">

@@ -334,12 +334,17 @@ is inlined into the renderer bundle and is therefore public by construction —
 the file says so at the top, at length, because that is exactly the kind of
 thing people get wrong once.
 
-## What FluidEQ adds over AQUA
+## Where this came from
 
-FluidEQ started as a fork of [AQUA](https://github.com/h39s/AQUA) and owes it
-the foundation: an Electron/React equalizer, Equalizer APO integration, AutoEQ
-support, filter controls, preset management and a response graph. Everything
-below is new work, and it is most of what you interact with.
+FluidEQ is designed, written and maintained by Ivan Carmenates Garcia. It began
+as a fork of [AQUA](https://github.com/h39s/AQUA), which gave it a foundation:
+an Electron and React shell, Equalizer APO integration, filter controls, presets
+and a response graph. That foundation is credited here with thanks.
+
+Roughly a tenth of the source is still theirs, and the rest is new work. What
+remains is mostly plumbing — a number input, a spinner, part of the IPC
+scaffold. Everything below was written for FluidEQ, and it is essentially all of
+what you interact with.
 
 **Sound**
 
@@ -410,19 +415,19 @@ below is new work, and it is most of what you interact with.
 - A small animated companion in the titlebar, because the app should be
   pleasant to leave open.
 
-FluidEQ keeps AQUA's Git history, the copyright notices in every source file
-and the GPL licensing. It is not presented as an official continuation and is
-not endorsed by the AQUA maintainers.
+The Git history is kept whole, every file that came from the fork still carries
+its notice, and the licence is unchanged. FluidEQ is neither an official
+continuation of that project nor endorsed by its maintainers.
 
 ## Attribution
 
-FluidEQ is a derivative work of [AQUA](https://github.com/h39s/AQUA),
-copyright © 2023 AQUA Dev Team, used under the GPL.
+Parts of FluidEQ derive from [AQUA](https://github.com/h39s/AQUA), © 2023 AQUA
+Dev Team, used under the GPL. Full notices, and what was changed, are in
+[NOTICE.md](NOTICE.md).
 
 AutoEq data and targets are credited to
-[Jaakko Pasanen](https://github.com/jaakkopasanen/AutoEq) and
-[Ian Walton](https://github.com/iwalton3/AutoEq). The bundled library is the
-official AutoEq results snapshot at commit
+[Jaakko Pasanen](https://github.com/jaakkopasanen/AutoEq). The bundled library is
+the official AutoEq results snapshot at commit
 `7ae0f56d53074872b028649617a22bbb4232feb7`; maintainers can refresh it with
 `pnpm autoeq:update` and validate every generated filter with
 `pnpm test:autoeq`.
@@ -461,10 +466,10 @@ See [NOTICE.md](NOTICE.md) for the full derivative-work notice.
 ## License
 
 FluidEQ is free software under the
-[GNU General Public License v3.0 or later](LICENSE), matching upstream AQUA.
+[GNU General Public License v3.0 or later](LICENSE).
 
-Copyright © 2023 AQUA Dev Team<br>
-FluidEQ modifications copyright © 2026 Ivan Carmenates Garcia
+Copyright © 2026 Ivan Carmenates Garcia<br>
+Portions copyright © 2023 AQUA Dev Team
 
 You may use, study, modify and redistribute this software under the GPL. A
 distributed modified version must also make its corresponding source available
