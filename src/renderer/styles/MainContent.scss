@@ -725,16 +725,42 @@ $eq-caret-width: 24px;
 // better the more of it there is — a taller slider track is a slightly finer
 // drag, whereas a taller graph is more of the curve you are actually reading.
 
-// With the response graph hidden (FluidEqContext marks the root `minimized`) the
-// EQ owns the whole workspace column, so the tracks grow to use it rather than
-// leaving the panel half empty.
+// With the response graph hidden (App.tsx marks the root `minimized`) the EQ
+// owns the whole workspace column, so the tracks are longer than they are while
+// the graph is sharing it.
 //
-// One ceiling, not two. There used to be a taller one for "no graph and no
-// reference picker either", which was the most room the bands could ever have;
-// with the picker gone from this tab for good that is simply what no graph
-// means, so the two collapsed into the larger of them.
+// BOTH NUMBERS IN THIS CLAMP WERE WRONG, in the same direction, and together
+// they are what "the EQ goes crazy on small screens" was.
+//
+// The subtracted term stands for everything on screen that is not track: the
+// titlebar and the workspace padding, the tab strip, the panel's own padding,
+// the three-row heading above the bands, the selected-band editor below them,
+// and the 114px of caption, arrows and gain readout that every band carries
+// around its own track. Added up that is a little over five hundred pixels. It
+// said 330 — so on any window shorter than about nine hundred the bands asked
+// for a couple of hundred pixels the card did not have, and the panel scrolled
+// the down arrows off its bottom edge while the frequency labels bunched up
+// against the top. The taller the window, the better it looked, which is why it
+// survived this long: it is very nearly right on the machine it was written on.
+//
+// The ceiling was 420px, which no ordinary window ever reached without
+// overflowing first. It is the survivor of two — there was a taller one again
+// for "no graph and no reference picker either", and with the picker gone from
+// this tab that is simply what no graph means — so it was the largest number
+// two rounds of merging could produce and nobody had since asked what a track
+// is actually for. Twice the graph-on length above is what it is worth:
+// 132px is what this file calls a full-length slider when the graph is up,
+// hiding the graph gives the editor about half as much column again, and past
+// that a longer track is not a finer drag — it is a longer reach for the same
+// gesture, and precision goes through the number field either way.
+//
+// Whatever is left over on a tall window stays at the foot of the card, where
+// every other tab leaves its spare room. Pouring it into the tracks is the bug
+// being fixed here; pouring it into the row instead would centre the bands in a
+// taller face while the dB scale beside them kept its own padding, which is two
+// scales that no longer line up in exchange for a gap nobody minded.
 #root.minimized .bandWrapper .range {
-  --range-length: clamp(132px, calc(100vh - 330px), 420px);
+  --range-length: clamp(132px, calc(100vh - 560px), 264px);
 }
 
 .bands__selection-box {
