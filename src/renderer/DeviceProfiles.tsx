@@ -1,6 +1,5 @@
 /*
-<AQUA: System-wide parametric audio equalizer interface>
-Copyright (C) <2023> <AQUA Dev Team>
+<FluidEQ: System-wide parametric audio equalizer interface>
 Copyright (C) <2026>  <Ivan Carmenates Garcia>
 
 This program is free software: you can redistribute it and/or modify
