@@ -20,6 +20,7 @@ import {
   MAX_MAILTO_BODY,
   MAX_URL_BODY,
   buildMailtoUrl,
+  REPORT_EMAIL,
   buildBugReport,
   buildIssueUrl,
   redact,
@@ -164,10 +165,23 @@ describe('the issue link', () => {
 });
 
 describe('the email link', () => {
-  it('is addressed to the maintainer with a useful subject', () => {
+  it('is addressed wherever this build was told, with a useful subject', () => {
+    // Not a literal address any more. It comes from the build, so asserting a
+    // particular one here would only be asserting how this checkout happens to
+    // be configured — and it used to pin a personal address into the tests of
+    // a public repository.
     const { url } = buildMailtoUrl('a report', '0.8.2');
-    expect(url.startsWith('mailto:ivancarmenates@gmail.com')).toBe(true);
+    expect(url.startsWith(`mailto:${REPORT_EMAIL}?`)).toBe(true);
     expect(url).toContain(encodeURIComponent('FluidEQ bug report (0.8.2)'));
+  });
+
+  it('puts the address straight after the scheme, or nothing at all', () => {
+    // Unconditional, so it says the same thing whether or not this checkout has
+    // an address configured. With none, the URL is `mailto:?…` — which is why
+    // the dialog hides the button rather than opening an empty compose window
+    // that looks like it worked.
+    const { url } = buildMailtoUrl('a report');
+    expect(url.slice('mailto:'.length, url.indexOf('?'))).toBe(REPORT_EMAIL);
   });
 
   it('carries a short report whole', () => {

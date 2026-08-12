@@ -197,8 +197,19 @@ export const buildIssueUrl = (
   };
 };
 
-/** Where a private report goes. */
-export const REPORT_EMAIL = 'ivancarmenates@gmail.com';
+/**
+ * Where a private report goes, from the build rather than from this file.
+ *
+ * It used to be a literal here, which put a personal address in a public
+ * repository and inside every binary built from it — including forks, who would
+ * have been sending their own bugs to a stranger. It is public by nature, so it
+ * belongs with the other public build values rather than in a secret.
+ *
+ * Empty when unset, and callers must treat that as "no private route". A
+ * `mailto:` with no address opens an empty compose window, which looks like the
+ * app working and is a report nobody receives.
+ */
+export const REPORT_EMAIL = process.env.FLUIDEQ_SUPPORT_EMAIL || '';
 
 /**
  * A `mailto:` body has to be far shorter than a URL query string.

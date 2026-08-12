@@ -34,6 +34,11 @@ const PUBLIC_ENV_DEFAULTS = {
   FLUIDEQ_CRYPTO_LABEL: '',
   FLUIDEQ_REPOSITORY_URL: '',
   FLUIDEQ_DOWNLOAD_URL: '',
+  // Empty like the rest, and for a sharper reason than the others: a fork
+  // building from this source must not ship somebody else's support address.
+  // With none set the private route is simply not offered, and the public one
+  // through GitHub still is.
+  FLUIDEQ_SUPPORT_EMAIL: '',
 };
 
 export default PUBLIC_ENV_DEFAULTS;

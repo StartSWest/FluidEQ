@@ -22,6 +22,7 @@ import {
   buildBugReport,
   buildIssueUrl,
   buildMailtoUrl,
+  REPORT_EMAIL,
 } from 'common/bugReport';
 import { gatherBugReport } from '../utils/equalizerApi';
 import '../styles/BugReport.scss';
@@ -205,8 +206,10 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
 
         <p className="bug-report__privacy">
           Account names, paths and email addresses are removed automatically.
-          Nothing is sent until you press one of these. The email goes only to
-          the developer; the issue is public.
+          Nothing is sent until you press one of these.
+          {REPORT_EMAIL
+            ? ' The email goes only to the developer; the issue is public.'
+            : ' The issue is public.'}
         </p>
 
         <div className="bug-report__actions">
@@ -217,9 +220,14 @@ export default function BugReportDialog({ onClose }: IBugReportDialogProps) {
           >
             Open a GitHub issue
           </button>
-          <button type="button" onClick={sendEmail}>
-            Email it privately
-          </button>
+          {/* Only when this build has an address. A mailto with none opens an
+              empty compose window, which looks like it worked and is a report
+              nobody ever receives. */}
+          {REPORT_EMAIL && (
+            <button type="button" onClick={sendEmail}>
+              Email it privately
+            </button>
+          )}
           <button type="button" onClick={copy}>
             Copy
           </button>
