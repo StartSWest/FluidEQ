@@ -6,6 +6,142 @@ actions menu opens it again any time.
 
 ---
 
+## 1.2.0
+
+FluidEQ has a Karaoke tab. It sits between Media and Config, it plays songs you
+already own, and it is the largest single thing this program has been given: a
+lyric stage, a live pitch lane, a microphone that is measured rather than
+recorded, a chord guide guessed out of the backing track, and a full-screen mode
+for standing back from the screen. None of it reaches the network and none of it
+is a catalogue — FluidEQ ships no songs and no lyrics, and downloads none.
+
+The equaliser did not stand still. The other half of this release is about what
+Equalizer APO has on disk: the file FluidEQ leaves for your own commands is now a
+layer you can see, and an edit you make in APO itself no longer goes unnoticed.
+Auto-normalise also takes back a decision made in 1.0.0 that turned out to be
+wrong, and that one is audible.
+
+### New
+
+- **A Karaoke workspace, built out of your own files.** Open a song, add a
+  folder, or drop files anywhere on the window. Audio can be MP3, WAV, OGG, FLAC
+  or M4A; lyrics can be `.lrc` for line timing, enhanced `.lrc` for word timing,
+  or an UltraStar `.txt` for syllables and real target notes. Files sharing a
+  name pair into a playlist you can reorder, remove and pick through, and where
+  the pairing is genuinely ambiguous FluidEQ asks instead of guessing. A file
+  this build of Chromium cannot decode says so rather than being called
+  supported.
+- **Lyrics that follow the track rather than a timer.** Every frame asks the
+  audio where it has got to instead of counting forward on its own, which is what
+  keeps a long song from drifting away from its words. Where the file carries
+  word or syllable timing, the current line fills as it is sung. Scroll to read
+  ahead without moving the music, click a line to jump to it, and set the text
+  size to whatever you can read from across the room.
+- **A pitch lane, honest about where the target comes from.** Turn on a
+  microphone — chosen from a list, never opened without your press — and your
+  pitch is drawn live, named as a note, and marked high, in tune or low. Target
+  notes appear **only when the song file actually contains them**, which today
+  means UltraStar. An `.lrc` or a bare audio file gets a working live tuner and a
+  line saying there is no target pitch in this song, not an invented melody drawn
+  under your voice. There is no score in either case.
+- **A melody guide tone.** Where a song does carry target notes, FluidEQ will
+  play them as a soft tone at its own volume, so the melody is something you can
+  hear rather than something you read off a lane.
+- **A performance review.** The places you sang high, sang low, or missed are
+  collected as a list of times; pick one and the song jumps there and counts you
+  in — 1, 2, 3, GO.
+- **A chord guide.** FluidEQ analyses the backing track and shows the chord under
+  the playhead and the one coming next, with the seconds until it arrives. It is
+  an estimate made from audio and says so: it reports its own confidence, admits
+  when it cannot find a stable chord, and knows major and minor triads and
+  nothing else.
+- **A full-screen stage.** The window goes to the lyrics, the floating controls
+  fade after two seconds of stillness and come back the moment you move, and the
+  FluidEQ header can be hidden. Playlist, microphone panel and pitch lane all
+  resize and remember their sizes. Your playlist, its order, the selected song
+  and the playhead all come back when FluidEQ next opens.
+- **The microphone is measured, not recorded.** It opens on an explicit press and
+  is released the moment you leave the Karaoke tab. Nothing is recorded, nothing
+  is sent anywhere, and it is not played back through your speakers, so you hear
+  yourself in the room. Echo cancellation, noise suppression and automatic gain
+  are all turned off, because each of them rewrites the pitch being measured —
+  which also means a microphone sitting beside a loudspeaker will be heard
+  singing along with the record. The song keeps playing when you visit another
+  tab. The microphone does not.
+- **What it is not.** Karaoke does not strip the vocal out of a recording, change
+  its key or its tempo, or separate it into stems — an instrumental is something
+  you bring. There is no permanent library and no account.
+- **Your own Equalizer APO file is a layer like any other.** 1.1.0 gave each
+  output a file FluidEQ creates and never writes to, for the APO commands that
+  have no interface here — and then ignored what you put in it. Its filters are
+  now drawn on the graph in orange, named by a chip that switches off like every
+  other layer, and counted in the preamp, so a custom file that boosts no longer
+  pushes the chain past the reserve. Only `Preamp`, `Filter` and `GraphicEQ` are
+  read: a `Plugin`, `Copy` or `Delay` line gets the chip but no curve and no
+  headroom, and the chip's clear button empties the whole file including those
+  lines.
+- **An edit made in Equalizer APO itself shows up while FluidEQ is open.** Change
+  a gain by hand in one of the layer files and the app adopts it, redraws it,
+  re-derives the preamp and saves it into your profile, with the layer's chip
+  renaming itself to say where the change came from. Where the edit uses a filter
+  type FluidEQ cannot represent it is refused silently — your file is left as you
+  wrote it, but nothing on screen says the two have stopped agreeing.
+- **The AutoEQ and convolution searches remember what you looked for**, the way
+  the player's search box already did, with one press to forget all of it.
+
+### Changed
+
+- **Auto-normalise reserves against the whole curve again.** 1.0.0 started
+  discounting a boost by how little music usually holds at that frequency — up to
+  8 dB of it in the treble. "Usually" is not what a preamp is for: a recording
+  that does reach full scale at 12 kHz was clipped by the reserve meant to
+  prevent exactly that. The allowance is gone and the reserve is measured against
+  the real peak of the chain. A chain whose largest boost is in the treble is
+  several decibels quieter than it was in 1.1.0, everything else is 0.2 dB
+  quieter, and nothing gets louder — some system volumes will want turning up. A
+  cut no longer buys makeup gain unless the whole curve sits below unity.
+- **A convolution file is measured rather than sketched.** The impulse response
+  is analysed when it arrives, so the graph draws the file's own response instead
+  of the approximation published beside it, and a locally imported WAV — which
+  used to draw nothing at all — has a curve. The preamp reserves against what the
+  file actually does, so most published responses come out slightly louder and a
+  hot one is brought down rather than left to clip.
+- **Squiglink is a link now, not a second library.** Browsing GadgetryTech from
+  inside FluidEQ has gone, and the measurement-source picker with it. In its
+  place is a guided import: open Squiglink in your browser, export the EQ text,
+  then paste it or open the file here, with the curve previewed before anything
+  is applied. This is the smaller feature and it is worth saying so — what
+  arrives becomes your editable bands rather than a headphone layer of its own,
+  so it does not survive clearing the EQ. A correction already applied from that
+  database keeps playing; the pickers no longer name it.
+- **The Ctrl+W cycle trades a stop nobody used for one worth having.** Still five
+  stops: `Everything → Layers over wave → Curves only → Clean → Wave only`.
+  `Layers only` has gone — it differed from `Curves only` in the weight of
+  exactly one line — and `Clean` takes its place: every curve, the grid, the wave
+  and the band handles still drawn, without the nine tinted columns that brighten
+  as Smart EQ hears each range. That is the state for watching a measurement run
+  rather than watching a wash of grey settle over the curves.
+- **Every curve can be switched off from the View menu**, not only the EQ line —
+  and hiding that line now only hides it, leaving the other layers up to read
+  against, where before it quietly rearranged the whole plot. The legend runs in
+  the order Equalizer APO applies the layers. The graph also remembers per tab
+  whether it was open and how the space was split, so closing it on Convolution
+  leaves it open on EQ.
+- **The Video tab is called Media**, in all ten languages, and **Config sits at
+  the far edge of the tab strip**, away from the tabs that change the sound.
+- **Euphoria mode is called Rainbow mode.**
+
+### Fixed
+
+- **Smart EQ at zero strength keeps its chip.** A measured correction turned all
+  the way down was dropped out of the state altogether, which took away the
+  slider that would have brought it back.
+- **A dropdown you can search puts the cursor in its search box.** The list is
+  drawn outside the control it belongs to, and the field was being looked for
+  inside it, so opening one and typing went nowhere.
+
+---
+
 ## 1.1.0
 
 Equalizer APO's configuration used to be one block per output, with every layer
