@@ -28,7 +28,7 @@ describe('PresetListItem', () => {
   const samplePresetNames = ['Apple', 'Banana', 'Oranges'];
   const newPresetButtonLabel = 'Start a new profile from the current EQ';
   const savePresetButtonLabel = 'Save settings to preset';
-  const editIconLabel = 'Edit Icon';
+  const editIconLabel = 'Edit';
   const editModeLabel = 'Edit Preset Name';
   const caseSensitiveContext = {
     ...defaultFluidEqContext,

@@ -64,8 +64,11 @@ const mockWorld: IWorld = {
   isAutoPreAmpOn: false,
 };
 
-/** Every preamp the chart asked Equalizer APO to write, in order. */
-const mockWrittenPreAmps: number[] = [];
+/** Every automatic preamp the chart presented in the UI, in order. */
+const mockDisplayedPreAmps: number[] = [];
+
+/** Automatic values must never be persisted through the manual-preamp API. */
+const mockSetMainPreAmp = jest.fn(() => Promise.resolve());
 
 jest.mock('renderer/utils/FluidEqContext', () => ({
   ...jest.requireActual('renderer/utils/FluidEqContext'),
@@ -84,7 +87,7 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
     driver: mockWorld.driver,
     smartEq: undefined,
     setGlobalError: jest.fn(),
-    setPreAmp: jest.fn(),
+    setPreAmp: (value: number) => mockDisplayedPreAmps.push(value),
     dispatchFilter: jest.fn(),
     selectedFilterIds: [],
     setSelectedFilterIds: jest.fn(),
@@ -97,10 +100,7 @@ jest.mock('renderer/utils/equalizerApi', () => ({
   setFrequency: jest.fn(),
   setGain: jest.fn(),
   setQuality: jest.fn(),
-  setMainPreAmp: (value: number) => {
-    mockWrittenPreAmps.push(value);
-    return Promise.resolve();
-  },
+  setMainPreAmp: mockSetMainPreAmp,
 }));
 
 /**
@@ -165,14 +165,16 @@ const draw = (world: Partial<IWorld>) => {
     ...world,
   });
   mockChart.data = [];
-  mockWrittenPreAmps.length = 0;
+  mockDisplayedPreAmps.length = 0;
+  mockSetMainPreAmp.mockClear();
   return render(<FrequencyResponseChart />);
 };
 
 const curve = (id: string) => mockChart.data.find((entry) => entry.id === id);
 
-/** The headroom the chart settled on, which is the last one it wrote. */
-const writtenPreAmp = () => mockWrittenPreAmps[mockWrittenPreAmps.length - 1];
+/** The headroom the chart settled on, which is the last one it displayed. */
+const displayedPreAmp = () =>
+  mockDisplayedPreAmps[mockDisplayedPreAmps.length - 1];
 
 const gainAt = (id: string, frequency: number) => {
   const points = curve(id)?.line.points;
@@ -233,7 +235,7 @@ describe('the headphone layer on the frequency response graph', () => {
     // Against the same function the config is written from, so the number under
     // the plot and the `Preamp:` line on disk cannot drift apart — which is
     // exactly what they did while this layer was missing from the list.
-    expect(writtenPreAmp()).toBeCloseTo(
+    expect(displayedPreAmp()).toBeCloseTo(
       -(
         getChainPeakGain([
           ...Object.values(EQ_BANDS),
@@ -243,9 +245,9 @@ describe('the headphone layer on the frequency response graph', () => {
       2,
     );
 
-    const withCorrection = writtenPreAmp();
+    const withCorrection = displayedPreAmp();
     draw({ isAutoPreAmpOn: true });
-    const withoutCorrection = writtenPreAmp();
+    const withoutCorrection = displayedPreAmp();
 
     // The bands already reserve three of the correction's six, so what the
     // layer costs on top is the other three — and that three used to cost
@@ -255,6 +257,7 @@ describe('the headphone layer on the frequency response graph', () => {
       2,
     );
     expect(withCorrection).toBeLessThan(withoutCorrection - 2.5);
+    expect(mockSetMainPreAmp).not.toHaveBeenCalled();
   });
 
   it('takes the curve, the chip and the headroom away when it is bypassed', () => {
@@ -269,7 +272,7 @@ describe('the headphone layer on the frequency response graph', () => {
     // honest.
     expect(curve('Headphone Correction')).toBeUndefined();
     expect(screen.queryByRole('button', { name: 'Headphone' })).toBeNull();
-    expect(writtenPreAmp()).toBeCloseTo(
+    expect(displayedPreAmp()).toBeCloseTo(
       -(getChainPeakGain(Object.values(EQ_BANDS)) + 0.2),
       2,
     );

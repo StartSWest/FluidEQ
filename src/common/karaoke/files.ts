@@ -201,6 +201,7 @@ export const selectKaraokePlaylist = (
         : audio.name
       )
         .replace(/[_-]+/g, ' ')
+        .replace(/\s+/g, ' ')
         .trim(),
       relativePath: karaokeFileRelativePath(audio),
     };

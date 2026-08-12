@@ -32,6 +32,8 @@ export interface IKaraokeToken {
 
 export interface IKaraokeLine {
   id: string;
+  /** Structural lyric metadata such as [Verse] or [Chorus], never a sung word. */
+  kind?: 'lyrics' | 'section';
   startMs?: number;
   endMs?: number;
   tokens: IKaraokeToken[];

@@ -59,6 +59,20 @@ const configuration: webpack.Configuration = {
 
   target: ['web', 'electron-renderer'],
 
+  resolve: {
+    conditionNames: ['browser', 'import', 'module', 'default'],
+    alias: {
+      '@fluideq/whisper-wasm': path.resolve(
+        webpackPaths.rootPath,
+        'node_modules/@huggingface/transformers/dist/ort-wasm-simd-threaded.jsep.wasm',
+      ),
+      '@fluideq/whisper-runtime': path.resolve(
+        webpackPaths.rootPath,
+        'node_modules/@huggingface/transformers/dist/ort-wasm-simd-threaded.jsep.mjs',
+      ),
+    },
+  },
+
   entry: [
     `webpack-dev-server/client?http://localhost:${port}/dist`,
     'webpack/hot/only-dev-server',
@@ -113,6 +127,19 @@ const configuration: webpack.Configuration = {
         test: /\.worklet$/i,
         type: 'asset/resource',
         generator: { filename: '[name].js' },
+      },
+      {
+        test: /\.(json|bin)$/i,
+        resourceQuery: /url/,
+        type: 'asset/resource',
+        generator: { filename: 'karaoke-models/basic-pitch/[name][ext]' },
+      },
+      {
+        // ONNX Runtime dynamically imports the JS bootstrap before it opens
+        // the WASM binary. They must be emitted together under stable names.
+        test: /ort-wasm-simd-threaded\.jsep\.(?:mjs|wasm)$/i,
+        type: 'asset/resource',
+        generator: { filename: 'karaoke-models/whisper/[name][ext]' },
       },
     ],
   },

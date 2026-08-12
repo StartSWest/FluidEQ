@@ -25,6 +25,7 @@ import KaraokePitchLane, {
   groupKaraokePitchWords,
   IKaraokePitchPoint,
   karaokeNoteTimingState,
+  karaokePitchWordProgress,
   karaokePitchScrubTime,
 } from '../../renderer/karaoke/KaraokePitchLane';
 
@@ -160,6 +161,13 @@ describe('KaraokePitchLane', () => {
       { text: 'jungle', startMs: 0, endMs: 200 },
       { text: 'friend', startMs: 200, endMs: 400 },
     ]);
+  });
+
+  it('fills each tuning-guide word progressively with its timing', () => {
+    expect(karaokePitchWordProgress(1_000, 2_000, 999)).toBe(0);
+    expect(karaokePitchWordProgress(1_000, 2_000, 1_250)).toBe(0.25);
+    expect(karaokePitchWordProgress(1_000, 2_000, 1_750)).toBe(0.75);
+    expect(karaokePitchWordProgress(1_000, 2_000, 2_000)).toBe(1);
   });
 
   it('matches each word span to all of its notes and melismas', () => {

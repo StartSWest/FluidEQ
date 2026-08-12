@@ -69,6 +69,8 @@ const PATHS: Record<string, string> = {
   graph: 'M4 19V5M4 19h16M7 15l3-4 3 2 5-7',
   folder:
     'M3.5 7.5h6l2-2h3l2 2h4v10.5a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V7.5z',
+  folderTree:
+    'M3.5 5.5h5l1.8 2H20v9H9.5M6 7.5v11M6 12h3.5M6 18.5h3.5M11.5 10h7v4h-7zM11.5 16.5h7v4h-7z',
   filePlus: 'M6 3.5h8l4 4V20H6V3.5zM14 3.5v4h4M12 11v6M9 14h6',
   menu: 'M5 7h14M5 12h14M5 17h14',
   microphone:

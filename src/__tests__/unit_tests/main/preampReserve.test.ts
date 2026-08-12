@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { stateToString } from '../../../main/flush';
+import { getResolvedPreAmp, stateToString } from '../../../main/flush';
 import { getChainPeakGain } from '../../../common/response';
 import {
   AutoEqFormat,
@@ -41,14 +41,17 @@ const withBands = (): IState => {
   return state;
 };
 
-const preampLines = (state: IState) =>
-  stateToString(state, state.convolution?.fileName)
+const preampLines = (
+  state: IState,
+  convolutionFileName = state.convolution?.fileName,
+) =>
+  stateToString(state, convolutionFileName)
     .replace(/\r/g, '')
     .split('\n')
     .filter((line) => line.startsWith('Preamp:'));
 
-const preampValue = (state: IState) =>
-  Number(/-?[\d.]+/.exec(preampLines(state)[0])?.[0]);
+const preampValue = (state: IState, convolutionFileName?: string) =>
+  Number(/-?[\d.]+/.exec(preampLines(state, convolutionFileName)[0])?.[0]);
 
 /**
  * Every layer shares one preamp, and its value is derived from what was
@@ -93,6 +96,53 @@ describe('preamp headroom', () => {
     // it — the whole point is that nothing is left over.
     const after = withBands();
     expect(preampValue(after)).toBe(before);
+  });
+
+  it('does not compound a previous automatic preamp value', () => {
+    const state = withBands();
+    const resolved = preampValue(state);
+
+    // The persisted field may still describe an earlier render. Automatic
+    // normalization is derived from the post-EQ chain, not from its own last
+    // answer, so neither the right answer nor a stale lower one can be fed back
+    // into the next pass and attenuated again.
+    state.preAmp = resolved;
+    expect(preampValue(state)).toBe(resolved);
+
+    state.preAmp = resolved - 6;
+    expect(preampValue(state)).toBe(resolved);
+  });
+
+  it('replaces a manual root value when automatic mode is enabled', () => {
+    const state = withBands();
+    state.preAmp = -5;
+
+    const automatic = getResolvedPreAmp(state);
+
+    expect(automatic).toBe(preampValue(state));
+    expect(automatic).not.toBe(-5);
+  });
+
+  it('includes a generated convolution in the synchronized root value', () => {
+    const state = getDefaultState();
+    state.isAutoPreAmpOn = true;
+    state.convolution = {
+      name: 'Generated room correction',
+      filters: {
+        boost: {
+          id: 'boost',
+          frequency: 1000,
+          gain: 6,
+          quality: 1,
+          type: FilterTypeEnum.PK,
+        },
+      },
+    };
+
+    expect(getResolvedPreAmp(state)).toBe(
+      preampValue(state, 'generated-convolution.wav'),
+    );
+    expect(getResolvedPreAmp(state)).toBeLessThan(-5);
   });
 
   it('does not invent makeup gain for a peaking cut', () => {

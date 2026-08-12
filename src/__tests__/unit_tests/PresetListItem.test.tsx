@@ -23,8 +23,8 @@ import PresetListItem from '../../renderer/components/PresetListItem';
 
 describe('PresetListItem', () => {
   const editModeLabel = 'Edit Preset Name';
-  const editIconLabel = 'Edit Icon';
-  const deleteIconLabel = 'Delete Icon';
+  const editIconLabel = 'Edit';
+  const deleteIconLabel = 'Delete';
   const handleRename = jest.fn();
   const handleDelete = jest.fn();
   const validate = jest.fn();
@@ -188,7 +188,7 @@ describe('PresetListItem', () => {
     );
     const editIcon = screen.getByLabelText(editIconLabel);
     expect(editIcon).toHaveAttribute('aria-disabled', 'true');
-    const deleteIcon = screen.getByLabelText(editIconLabel);
+    const deleteIcon = screen.getByLabelText(deleteIconLabel);
     expect(deleteIcon).toHaveAttribute('aria-disabled', 'true');
   });
 });

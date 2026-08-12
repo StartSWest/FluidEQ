@@ -90,10 +90,10 @@ describe('AutoEQ', () => {
     await renderPanel({});
 
     expect(
-      screen.getByRole('menu', { name: 'Audio Device' }),
+      screen.getByRole('menu', { name: 'Audio device' }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole('menu', { name: 'Target Frequency Response' }),
+      screen.getByRole('menu', { name: 'Target frequency response' }),
     ).toBeInTheDocument();
     expect(screen.queryByText(/Squiglink/i)).not.toBeInTheDocument();
     expect(screen.getByText('AutoEq official database')).toBeInTheDocument();
@@ -107,9 +107,9 @@ describe('AutoEQ', () => {
       headsetSource: 'autoeq',
     });
 
-    const modelMenu = screen.getByRole('menu', { name: 'Audio Device' });
+    const modelMenu = screen.getByRole('menu', { name: 'Audio device' });
     const targetMenu = screen.getByRole('menu', {
-      name: 'Target Frequency Response',
+      name: 'Target frequency response',
     });
     expect(within(modelMenu).getByText(MODEL)).toBeInTheDocument();
     expect(within(targetMenu).getByText(MODEL)).toBeInTheDocument();

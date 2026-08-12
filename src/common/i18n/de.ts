@@ -91,6 +91,8 @@ const de: Partial<Dictionary> = {
     'konnte nicht gelesen werden; das Audio bleibt ohne synchronisierten Text verfügbar.',
   'karaoke.song.unknownArtist': 'Lokaler Song',
   'karaoke.playlist.title': 'Wiedergabeliste',
+  'karaoke.playlist.groupFolders': 'Nach Ordner gruppieren',
+  'karaoke.playlist.looseFiles': 'Lose Dateien',
   'karaoke.playlist.select': '{title} auswählen',
   'karaoke.playlist.moveUp': '{title} nach oben verschieben',
   'karaoke.playlist.moveDown': '{title} nach unten verschieben',

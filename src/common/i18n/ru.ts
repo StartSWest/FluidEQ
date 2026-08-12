@@ -92,6 +92,8 @@ const ru: Partial<Dictionary> = {
     'не удалось разобрать; аудио останется доступно без синхронного текста.',
   'karaoke.song.unknownArtist': 'Локальная песня',
   'karaoke.playlist.title': 'Плейлист',
+  'karaoke.playlist.groupFolders': 'Группировать по папкам',
+  'karaoke.playlist.looseFiles': 'Файлы без папки',
   'karaoke.playlist.select': 'Выбрать {title}',
   'karaoke.playlist.moveUp': 'Переместить {title} вверх',
   'karaoke.playlist.moveDown': 'Переместить {title} вниз',

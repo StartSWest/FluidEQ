@@ -95,6 +95,8 @@ const hi: Partial<Dictionary> = {
     'को पढ़ा नहीं जा सका; ऑडियो समयबद्ध बोल के बिना उपलब्ध रहेगा।',
   'karaoke.song.unknownArtist': 'स्थानीय गाना',
   'karaoke.playlist.title': 'प्लेलिस्ट',
+  'karaoke.playlist.groupFolders': 'फ़ोल्डर के अनुसार समूहित करें',
+  'karaoke.playlist.looseFiles': 'असमूहीकृत फ़ाइलें',
   'karaoke.playlist.select': '{title} चुनें',
   'karaoke.playlist.moveUp': '{title} को ऊपर ले जाएँ',
   'karaoke.playlist.moveDown': '{title} को नीचे ले जाएँ',

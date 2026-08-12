@@ -42,7 +42,6 @@ export type TKaraokeSessionError =
 export interface IKaraokeSessionWarning {
   kind: 'lyrics';
   fileName: string;
-  detail: string;
 }
 
 const persistedVolume = (): number => {
@@ -62,6 +61,7 @@ const displayTitleFromFile = (file: File): string => {
   const extension = karaokeFileExtension(file.name);
   return (extension ? file.name.slice(0, -(extension.length + 1)) : file.name)
     .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
     .trim();
 };
 
@@ -135,6 +135,13 @@ export const useKaraokeSession = (isActive: boolean) => {
     setDurationMs(0);
   }, [revokeObjectUrl]);
 
+  /** Replace only the parsed karaoke metadata while keeping the loaded audio alive. */
+  const applySong = useCallback((nextSong: IKaraokeSong) => {
+    setSong(nextSong);
+    setError(undefined);
+    setWarning(undefined);
+  }, []);
+
   const loadFiles = useCallback(
     async (files: readonly File[]): Promise<boolean> => {
       const selection = selectKaraokeFiles(files);
@@ -154,14 +161,10 @@ export const useKaraokeSession = (isActive: boolean) => {
       if (selection.lyrics) {
         try {
           parsed = await parseKaraokeLyricFile(selection.lyrics);
-        } catch (parseError) {
+        } catch {
           setWarning({
             kind: 'lyrics',
             fileName: selection.lyrics.name,
-            detail:
-              parseError instanceof Error
-                ? parseError.message
-                : 'The lyric file could not be parsed.',
           });
         }
       }
@@ -399,6 +402,7 @@ export const useKaraokeSession = (isActive: boolean) => {
     durationMs,
     volume,
     loadFiles,
+    applySong,
     clear,
     play,
     pause,

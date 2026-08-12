@@ -36,7 +36,7 @@ describe('FrequencyBand', () => {
   // layout, and the Selected band editor below offers all four with more room.
   const frequencyCaptionLabel = `Edit ${filter.frequency} Hz band`;
   const filterGainRangeLabel = `${filter.frequency}-gain-range`;
-  const trashIconLabel = 'Trash Icon';
+  const trashIconLabel = 'Remove';
   const handleSubmit = jest.fn();
 
   beforeEach(() => {

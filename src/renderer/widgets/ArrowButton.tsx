@@ -25,6 +25,7 @@ import {
 } from 'react';
 import ArrowIcon from '../icons/ArrowIcon';
 import { useInterval } from '../utils/utils';
+import { useTranslation } from '../utils/I18nContext';
 import '../styles/ArrowButton.scss';
 
 interface IArrowButtonProps {
@@ -40,6 +41,7 @@ const ArrowButton = ({
   isDisabled,
   handleChange,
 }: IArrowButtonProps) => {
+  const { t } = useTranslation();
   const INTERVAL = 200;
 
   const buttonRef = useRef<HTMLDivElement | null>(null);
@@ -88,7 +90,9 @@ const ArrowButton = ({
     <div
       ref={buttonRef}
       role="button"
-      aria-label={`${type === 'up' ? 'Increase' : 'Decrease'} ${name}`}
+      aria-label={t(type === 'up' ? 'common.increase' : 'common.decrease', {
+        item: name,
+      })}
       className={`center arrow-${type}`}
       onMouseDown={onMouseDown}
       onMouseUp={stopChange}

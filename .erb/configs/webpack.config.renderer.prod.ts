@@ -33,6 +33,22 @@ const configuration: webpack.Configuration = {
 
   target: ['web', 'electron-renderer'],
 
+  // Karaoke's lazy Transformers.js import must resolve its browser/WASM
+  // export even though the rest of this renderer also targets Electron.
+  resolve: {
+    conditionNames: ['browser', 'import', 'module', 'default'],
+    alias: {
+      '@fluideq/whisper-wasm': path.resolve(
+        webpackPaths.rootPath,
+        'node_modules/@huggingface/transformers/dist/ort-wasm-simd-threaded.jsep.wasm',
+      ),
+      '@fluideq/whisper-runtime': path.resolve(
+        webpackPaths.rootPath,
+        'node_modules/@huggingface/transformers/dist/ort-wasm-simd-threaded.jsep.mjs',
+      ),
+    },
+  },
+
   entry: [path.join(webpackPaths.srcRendererPath, 'index.tsx')],
 
   output: {
@@ -101,6 +117,22 @@ const configuration: webpack.Configuration = {
         test: /\.worklet$/i,
         type: 'asset/resource',
         generator: { filename: '[name].js' },
+      },
+      // Basic Pitch's TensorFlow graph references its binary shard by a
+      // relative URL. Emit both under one stable folder so that relationship
+      // survives development and packaged builds.
+      {
+        test: /\.(json|bin)$/i,
+        resourceQuery: /url/,
+        type: 'asset/resource',
+        generator: { filename: 'karaoke-models/basic-pitch/[name][ext]' },
+      },
+      {
+        // ONNX Runtime dynamically imports this MJS bootstrap and then loads
+        // the matching WASM binary. A packaged build needs both local files.
+        test: /ort-wasm-simd-threaded\.jsep\.(?:mjs|wasm)$/i,
+        type: 'asset/resource',
+        generator: { filename: 'karaoke-models/whisper/[name][ext]' },
       },
     ],
   },

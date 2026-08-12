@@ -21,6 +21,7 @@ import { IFilter } from 'common/constants';
 import { IDriverFilter } from 'common/driver';
 import { getCombinedLineData, getFilterLineData } from '../graph/utils';
 import { IChartLineDataPointsById } from '../graph/ChartController';
+import { useTranslation } from '../utils/I18nContext';
 
 const WIDTH = 280;
 const HEIGHT = 58;
@@ -49,6 +50,7 @@ interface IDriverCurveProps {
  * what it will sound like.
  */
 export default function DriverCurve({ filters }: IDriverCurveProps) {
+  const { t } = useTranslation();
   const path = useMemo(() => {
     if (filters.length === 0) {
       return '';
@@ -89,7 +91,7 @@ export default function DriverCurve({ filters }: IDriverCurveProps) {
       viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
       preserveAspectRatio="none"
       role="img"
-      aria-label="Frequency response of this driver correction"
+      aria-label={t('graph.driverCurve')}
     >
       <defs>
         <linearGradient id="driver-curve-stroke" x1="0" x2="1" y1="0" y2="0">

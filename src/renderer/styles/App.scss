@@ -1073,6 +1073,14 @@ textarea,
   &.has-top-bar .karaoke-workspace.is-fullscreen {
     padding-top: calc(#{$title-bar-height} + 8px);
   }
+
+  // Maker uses fixed positioning in full screen so a remembered scrollTop
+  // cannot crop its header. Keep that fixed surface below the optional shared
+  // titlebar. Unlike the regular player surface it has its own full-width
+  // header, so it meets the titlebar directly instead of leaving an 8px seam.
+  &.has-top-bar .karaoke-maker.is-fullscreen {
+    top: $title-bar-height;
+  }
 }
 
 .side-bar {
@@ -1994,11 +2002,24 @@ button.graph-legend {
   .workspace-tab-panel--eq {
     min-height: min-content;
   }
+
+  // Karaoke and its Canvas-backed Maker cannot usefully collapse to the
+  // natural height of their toolbars. In the one-column shell the document is
+  // already the scroll surface, so give the active performance/editor surface
+  // a dependable working height instead of squeezing lyrics and pitch into a
+  // short card above the profile panels.
+  .center-workspace:has(.workspace-tab-panel--karaoke:not(.is-hidden))
+    > .middle-content {
+    min-height: clamp(620px, calc(100vh - #{$title-bar-height} - 20px), 720px);
+  }
 }
 
 @media (max-width: 1080px) {
   .window-titlebar {
-    grid-template-columns: minmax(0, 1fr) minmax(140px, 2fr) minmax(0, 1fr);
+    // The right cluster has several fixed-size controls. Equal outer tracks
+    // made that cluster overflow left over the waveform as the window became
+    // narrow. Content-sized outer columns give the trace the actual remainder.
+    grid-template-columns: auto minmax(100px, 1fr) auto;
     gap: 8px;
     padding-inline: 12px;
   }
@@ -2028,9 +2049,24 @@ button.graph-legend {
   }
 
   .window-titlebar {
-    grid-template-columns: minmax(0, 1fr) minmax(90px, 2fr) minmax(0, 1fr);
-    gap: 8px;
+    grid-template-columns: auto minmax(72px, 1fr) auto;
+    gap: 5px;
     padding-inline: 8px;
+
+    .waveform-visualizer {
+      width: 100%;
+      min-width: 0;
+      max-width: 220px;
+      height: 46px;
+      padding: 6px 8px 7px;
+      border-radius: 14px;
+    }
+  }
+
+  .window-titlebar > .waveform-visualizer-shell {
+    width: 100%;
+    max-width: 220px;
+    justify-self: center;
   }
 
   .brand-mark {
@@ -2053,6 +2089,34 @@ button.graph-legend {
     gap: 1px;
   }
 
+  .window-titlebar__right {
+    gap: 3px;
+  }
+
+  .support-pet {
+    width: 32px;
+    height: 32px;
+  }
+
+  .support-pet__art {
+    width: 30px;
+    height: 30px;
+  }
+
+  .window-titlebar__transport {
+    padding-inline: 2px;
+
+    .window-control--media {
+      width: 26px;
+      height: 26px;
+    }
+
+    .window-control--media-toggle {
+      width: 34px;
+      height: 34px;
+    }
+  }
+
   // The transport keeps its full width while the identity beside it truncates,
   // so the space between them is the one thing left to give back.
   .window-titlebar__left {
@@ -2060,7 +2124,14 @@ button.graph-legend {
   }
 
   .window-control {
-    width: 28px;
+    width: 26px;
+    height: 32px;
+  }
+
+  .workspace-header__tools-trigger {
+    width: 34px;
+    height: 32px;
+    padding: 0;
   }
 
   .workspace-tabs {

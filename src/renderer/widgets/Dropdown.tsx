@@ -38,6 +38,7 @@ import '../styles/Dropdown.scss';
 import { useClickOutside, useFocusOutside } from '../utils/utils';
 import List, { renderOptionDisplay } from './List';
 import TextInput from './TextInput';
+import { useTranslation } from '../utils/I18nContext';
 
 interface IOptionEntry {
   value: string;
@@ -149,15 +150,21 @@ const Dropdown = ({
   emptyOptionsPlaceholder,
   handleChange,
   isFilterable = false,
-  filterPlaceholder = 'Search...',
+  filterPlaceholder,
   searchHistory,
-  searchHistoryLabel = 'Recent searches',
-  clearSearchHistoryLabel = 'Clear recent searches',
+  searchHistoryLabel,
+  clearSearchHistoryLabel,
   onSearchCommit,
   onClearSearchHistory,
   placement = 'down',
   menuClassName,
 }: IDropdownProps) => {
+  const { t } = useTranslation();
+  const resolvedFilterPlaceholder = filterPlaceholder ?? t('common.search');
+  const resolvedSearchHistoryLabel =
+    searchHistoryLabel ?? t('common.recentSearches');
+  const resolvedClearSearchHistoryLabel =
+    clearSearchHistoryLabel ?? t('common.clearRecentSearches');
   const nullElement = createElement('div');
   const [isOpen, setIsOpen] = useState<boolean>(false);
   const [menuPlacement, setMenuPlacement] =
@@ -545,20 +552,20 @@ const Dropdown = ({
             <div className="dropdown-filter-tools">
               <TextInput
                 value={searchString}
-                ariaLabel="Filter audio devices"
+                ariaLabel={t('common.filterOptions')}
                 isDisabled={isDisabled}
                 errorMessage=""
-                placeholder={filterPlaceholder}
+                placeholder={resolvedFilterPlaceholder}
                 handleChange={(newValue) => setSearchString(newValue)}
                 handleSubmit={(query) => onSearchCommit?.(query)}
               />
               {searchSuggestions.length > 0 && (
                 <div className="dropdown-search-history">
                   <div className="dropdown-search-history__head">
-                    <span>{searchHistoryLabel}</span>
+                    <span>{resolvedSearchHistoryLabel}</span>
                     {onClearSearchHistory && (
                       <button type="button" onClick={onClearSearchHistory}>
-                        {clearSearchHistoryLabel}
+                        {resolvedClearSearchHistoryLabel}
                       </button>
                     )}
                   </div>

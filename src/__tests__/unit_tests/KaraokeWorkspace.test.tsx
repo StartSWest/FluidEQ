@@ -50,6 +50,8 @@ describe('KaraokeWorkspace', () => {
   const restoreKaraokeSession = jest.fn().mockResolvedValue(undefined);
   const readKaraokeSessionFile = jest.fn().mockResolvedValue(undefined);
   const clearKaraokeSession = jest.fn().mockResolvedValue(undefined);
+  const loadKaraokeMakerDraft = jest.fn().mockResolvedValue(undefined);
+  const saveKaraokeMakerDraft = jest.fn().mockResolvedValue(undefined);
 
   beforeAll(() => {
     Object.defineProperty(URL, 'createObjectURL', {
@@ -85,6 +87,8 @@ describe('KaraokeWorkspace', () => {
     restoreKaraokeSession.mockReset().mockResolvedValue(undefined);
     readKaraokeSessionFile.mockReset().mockResolvedValue(undefined);
     clearKaraokeSession.mockReset().mockResolvedValue(undefined);
+    loadKaraokeMakerDraft.mockReset().mockResolvedValue(undefined);
+    saveKaraokeMakerDraft.mockReset().mockResolvedValue(undefined);
     Object.defineProperty(window, 'electron', {
       configurable: true,
       value: {
@@ -95,6 +99,8 @@ describe('KaraokeWorkspace', () => {
           restoreKaraokeSession,
           readKaraokeSessionFile,
           clearKaraokeSession,
+          loadKaraokeMakerDraft,
+          saveKaraokeMakerDraft,
         },
       },
     });
@@ -225,6 +231,105 @@ describe('KaraokeWorkspace', () => {
       name: 'Karaoke actions',
     });
     expect(lyricToolbar.parentElement).toHaveClass('karaoke-workspace__stage');
+  });
+
+  it('lets the Maker enter and exit the Karaoke full-screen surface', async () => {
+    const canvasContext = jest
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue(null);
+    const toggleFullScreen = jest.fn();
+    const { container, rerender } = render(
+      <KaraokeWorkspace
+        isHidden={false}
+        onToggleFullScreen={toggleFullScreen}
+      />,
+    );
+    const input = container.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+    fireEvent.change(input, {
+      target: {
+        files: [
+          new File(['audio'], 'Maker screen.mp3', { type: 'audio/mpeg' }),
+        ],
+      },
+    });
+    expect(
+      await screen.findByRole('heading', { name: 'Maker screen' }),
+    ).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+
+    const maker = await waitFor(() => {
+      const element = container.querySelector('.karaoke-maker');
+      expect(element).toBeInTheDocument();
+      return element as HTMLElement;
+    });
+    expect(
+      screen.queryByRole('button', { name: 'Preview · 1, 2, 3' }),
+    ).not.toBeInTheDocument();
+    fireEvent.click(
+      maker.querySelector(
+        'button[aria-label="Prepare karaoke"]',
+      ) as HTMLButtonElement,
+    );
+    expect(
+      screen.getByRole('dialog', { name: 'Download Whisper Tiny?' }),
+    ).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
+    const hand = maker.querySelector(
+      'button[aria-label="Hand · pan timeline"]',
+    ) as HTMLButtonElement;
+    const addNote = maker.querySelector(
+      'button[aria-label="Note"]',
+    ) as HTMLButtonElement;
+    const deleteSelection = maker.querySelector(
+      'button[aria-label="Delete"]',
+    ) as HTMLButtonElement;
+    expect(deleteSelection).toBeDisabled();
+    fireEvent.click(addNote);
+    expect(deleteSelection).toBeEnabled();
+    fireEvent.keyDown(window, { key: 'Delete', code: 'Delete' });
+    expect(deleteSelection).toBeDisabled();
+    fireEvent.click(hand);
+    expect(hand).toHaveAttribute('aria-pressed', 'true');
+    expect(maker.querySelector('.karaoke-maker__canvas')).toHaveClass(
+      'is-hand-pan',
+    );
+    expect(maker).toHaveTextContent(
+      'drag anywhere on the canvas to move through the song without editing',
+    );
+    const enter = maker.querySelector(
+      'button[aria-label="Enter full screen"]',
+    ) as HTMLButtonElement;
+    fireEvent.click(enter);
+    expect(toggleFullScreen).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <KaraokeWorkspace
+        isHidden={false}
+        isFullScreen
+        onToggleFullScreen={toggleFullScreen}
+      />,
+    );
+    expect(container.querySelector('.karaoke-maker')).toHaveClass(
+      'is-fullscreen',
+    );
+    expect(
+      container.querySelector(
+        '.karaoke-maker button[aria-label="Exit full screen"]',
+      ),
+    ).not.toHaveTextContent('Exit full screen');
+    const fullscreenMakerHeader = container.querySelector(
+      '.karaoke-maker.is-fullscreen > .karaoke-maker__header',
+    );
+    expect(fullscreenMakerHeader).toBeInTheDocument();
+    expect(
+      fullscreenMakerHeader?.querySelector('input[aria-label="Song title"]'),
+    ).toHaveValue('Maker screen');
+    expect(
+      fullscreenMakerHeader?.querySelector('button[aria-label="Play"]'),
+    ).toBeInTheDocument();
+    canvasContext.mockRestore();
   });
 
   it('only applies the idle fade to the full-screen actions', () => {
@@ -604,6 +709,17 @@ describe('KaraokeWorkspace', () => {
     expect(screen.getByRole('heading', { name: 'Playlist' })).toBeVisible();
     expect(screen.getByText('2')).toBeVisible();
     expect(screen.queryByText('License')).not.toBeInTheDocument();
+    const groupFolders = screen.getByRole('button', {
+      name: 'Group by folder',
+    });
+    expect(groupFolders).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.queryByText('Album')).not.toBeInTheDocument();
+    fireEvent.click(groupFolders);
+    expect(groupFolders).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('Album')).toBeVisible();
+    expect(
+      window.localStorage.getItem('fluideq-karaoke-playlist-group-by-folder'),
+    ).toBe('true');
 
     fireEvent.click(
       screen.getByRole('button', { name: 'Select Artist Second' }),
@@ -619,12 +735,19 @@ describe('KaraokeWorkspace', () => {
     expect(
       await screen.findByRole('heading', { name: 'Folder First' }),
     ).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    expect(screen.getByRole('textbox', { name: 'Song title' })).toHaveValue(
+      'Folder First',
+    );
     const audio = container.querySelector('audio') as HTMLAudioElement;
     fireEvent.playing(audio);
     fireEvent.ended(audio);
     expect(
       await screen.findByRole('heading', { name: 'Artist Second' }),
     ).toBeVisible();
+    expect(screen.getByRole('textbox', { name: 'Song title' })).toHaveValue(
+      'Artist Second',
+    );
     expect(play).not.toHaveBeenCalled();
     await finishCountIn(container);
     expect(play).toHaveBeenCalledTimes(1);

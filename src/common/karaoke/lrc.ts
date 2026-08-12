@@ -26,6 +26,8 @@ import {
 const LINE_TIMESTAMP = /\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g;
 const WORD_TIMESTAMP = /<(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?>/g;
 const META_TAG = /^\[([a-z]+):([^\]]*)\]\s*$/i;
+const SECTION_MARKER =
+  /^\s*\[\s*(intro|verse(?:\s+\d+)?|pre[\s-]?chorus|chorus(?:\s+\d+)?|bridge|break|instrumental|interlude|solo|outro|hook|refrain|ending)\s*\]\s*$/iu;
 
 const fractionToMs = (fraction = ''): number => {
   if (!fraction) {
@@ -60,18 +62,23 @@ const parseEnhancedTokens = (
   if ((matches[0].index ?? 0) > 0) {
     tokens.push({ text: text.slice(0, matches[0].index) });
   }
+  let previousText = '';
   matches.forEach((match, index) => {
     const textStart = (match.index ?? 0) + match[0].length;
     const textEnd = matches[index + 1]?.index ?? text.length;
     const startMs = timestampToMs(match[1], match[2], match[3]) + offsetMs;
     const next = matches[index + 1];
+    const tokenText = text.slice(textStart, textEnd);
     tokens.push({
-      text: text.slice(textStart, textEnd),
+      text: tokenText,
+      startsWord:
+        index === 0 || /^\s/u.test(tokenText) || /\s$/u.test(previousText),
       startMs,
       endMs: next
         ? timestampToMs(next[1], next[2], next[3]) + offsetMs
         : undefined,
     });
+    previousText = tokenText;
   });
   return tokens;
 };
@@ -123,6 +130,7 @@ export const parseLrc = (contents: string): IKaraokeParsedLyrics => {
       const startMs = timestampToMs(stamp[1], stamp[2], stamp[3]) + offsetMs;
       lines.push({
         id: `lrc-${sourceIndex}-${stampIndex}-${startMs}`,
+        kind: SECTION_MARKER.test(lyricText) ? 'section' : 'lyrics',
         startMs,
         tokens: enhanced
           ? parseEnhancedTokens(lyricText, offsetMs)

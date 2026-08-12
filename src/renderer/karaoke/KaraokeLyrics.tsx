@@ -31,6 +31,7 @@ import { useTranslation } from '../utils/I18nContext';
 
 const WHEEL_STEP_THRESHOLD = 24;
 const LYRIC_MOTION_TIME_MS = 105;
+const SONG_LYRIC_ENTRANCE_TIME_MS = 560;
 const EUPHORIA_SWEEP_TIME_MS = 3_600;
 const LYRIC_FONT_FAMILY = 'Inter, system-ui, -apple-system, sans-serif';
 const LYRIC_TEXT_SIZE_KEY = 'fluideq-karaoke-lyric-text-size';
@@ -40,6 +41,12 @@ export const MAX_LYRIC_TEXT_SIZE = 300;
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value));
+
+/** A soft ease-out used only when a different song enters the player. */
+export const karaokeLyricEntranceOpacity = (elapsedMs: number): number => {
+  const progress = clamp(elapsedMs / SONG_LYRIC_ENTRANCE_TIME_MS, 0, 1);
+  return 1 - (1 - progress) ** 3;
+};
 
 export const readLyricTextSize = (): number => {
   try {
@@ -60,21 +67,130 @@ export const writeLyricTextSize = (textSize: number): void => {
   }
 };
 
-const tokenProgress = (token: IKaraokeToken, playheadMs: number): number => {
-  if (token.startMs === undefined) {
+const timingProgress = (
+  startMs: number | undefined,
+  endMs: number | undefined,
+  playheadMs: number,
+): number => {
+  if (startMs === undefined) {
     return 0;
   }
-  if (playheadMs <= token.startMs) {
+  if (playheadMs <= startMs) {
     return 0;
   }
-  if (token.endMs === undefined || token.endMs <= token.startMs) {
+  if (endMs === undefined || endMs <= startMs) {
     return 1;
   }
-  return clamp(
-    (playheadMs - token.startMs) / (token.endMs - token.startMs),
+  return clamp((playheadMs - startMs) / (endMs - startMs), 0, 1);
+};
+
+/** Preserve provider word boundaries after Maker normalization trims tokens. */
+export const karaokeTokenDisplayText = (
+  token: IKaraokeToken,
+  tokenIndex: number,
+  previousToken?: IKaraokeToken,
+): string =>
+  tokenIndex > 0 &&
+  token.startsWord === true &&
+  !/^\s/u.test(token.text) &&
+  !/\s$/u.test(previousToken?.text ?? '')
+    ? ` ${token.text}`
+    : token.text;
+
+export interface IKaraokeVisualWord {
+  /** Provider syllables that must be painted as one indivisible word. */
+  tokens: IKaraokeToken[];
+  text: string;
+}
+
+const karaokeVisualWordCache = new WeakMap<
+  readonly IKaraokeToken[],
+  IKaraokeVisualWord[]
+>();
+
+/**
+ * Providers such as UltraStar time syllables independently. Keep those
+ * timings, but combine continuation tokens before measuring or painting so a
+ * glyph run can never acquire a seam in the middle of a word.
+ */
+export const groupKaraokeTokensIntoWords = (
+  tokens: readonly IKaraokeToken[],
+): IKaraokeVisualWord[] => {
+  const cached = karaokeVisualWordCache.get(tokens);
+  if (cached) {
+    return cached;
+  }
+  const words: IKaraokeVisualWord[] = [];
+  tokens.forEach((token) => {
+    const current = words[words.length - 1];
+    if (!current || token.startsWord !== false) {
+      words.push({ tokens: [token], text: token.text });
+      return;
+    }
+    current.tokens.push(token);
+    current.text += token.text;
+  });
+  karaokeVisualWordCache.set(tokens, words);
+  return words;
+};
+
+const karaokeVisualWordDisplayText = (
+  word: IKaraokeVisualWord,
+  wordIndex: number,
+  previousWord?: IKaraokeVisualWord,
+): string =>
+  wordIndex > 0 &&
+  word.tokens[0]?.startsWord === true &&
+  !/^\s/u.test(word.text) &&
+  !/\s$/u.test(previousWord?.text ?? '')
+    ? ` ${word.text}`
+    : word.text;
+
+const karaokeVisualWordProgressWidth = (
+  context: CanvasRenderingContext2D,
+  word: IKaraokeVisualWord,
+  displayText: string,
+  playheadMs: number,
+): number => {
+  const leadingText = displayText.slice(
     0,
-    1,
+    displayText.length - word.text.length,
   );
+  let precedingText = leadingText;
+  let paintedWidth = 0;
+
+  word.tokens.forEach((token, tokenIndex) => {
+    if (!token.text) {
+      return;
+    }
+    const segmentStart = context.measureText(precedingText).width;
+    precedingText += token.text;
+    const segmentEnd = context.measureText(precedingText).width;
+    let effectiveEndMs = token.endMs;
+    // Empty following tokens are sustained melody notes for this same
+    // syllable. Include them in its sweep instead of completing the word at
+    // the first note boundary.
+    for (
+      let nextIndex = tokenIndex + 1;
+      nextIndex < word.tokens.length && !word.tokens[nextIndex].text;
+      nextIndex += 1
+    ) {
+      const continuation = word.tokens[nextIndex];
+      effectiveEndMs = Math.max(
+        effectiveEndMs ?? continuation.endMs ?? 0,
+        continuation.endMs ?? continuation.startMs ?? 0,
+      );
+    }
+    const progress = timingProgress(token.startMs, effectiveEndMs, playheadMs);
+    if (progress > 0) {
+      paintedWidth = Math.max(
+        paintedWidth,
+        segmentStart + (segmentEnd - segmentStart) * progress,
+      );
+    }
+  });
+
+  return paintedWidth;
 };
 
 interface IKaraokeLyricsProps {
@@ -82,6 +198,7 @@ interface IKaraokeLyricsProps {
   playheadMs: number;
   onSeek: (timeMs: number) => void;
   followRequestKey?: number;
+  showFollowButton?: boolean;
   textSize?: number;
 }
 
@@ -115,6 +232,11 @@ interface ILyricMotionState {
   frameTimeMs: number;
 }
 
+interface ILyricEntranceState {
+  songId: string;
+  startedAtMs: number;
+}
+
 const lyricLineMotion = (offset: number) => {
   const distance = Math.abs(offset);
   if (distance < 1) {
@@ -142,6 +264,7 @@ const KaraokeLyrics = ({
   playheadMs,
   onSeek,
   followRequestKey = 0,
+  showFollowButton = true,
   textSize = DEFAULT_LYRIC_TEXT_SIZE,
 }: IKaraokeLyricsProps) => {
   const { t } = useTranslation();
@@ -151,6 +274,18 @@ const KaraokeLyrics = ({
   const wheelDeltaRef = useRef(0);
   const lineHitRegionsRef = useRef<ILyricHitRegion[]>([]);
   const motionStateRef = useRef<ILyricMotionState | undefined>(undefined);
+  const entranceStateRef = useRef<ILyricEntranceState>({
+    songId: song.id,
+    startedAtMs: performance.now(),
+  });
+  // Reset synchronously with the incoming song. Waiting for an effect would
+  // allow one fully opaque frame from a newly loaded song to flash first.
+  if (entranceStateRef.current.songId !== song.id) {
+    entranceStateRef.current = {
+      songId: song.id,
+      startedAtMs: performance.now(),
+    };
+  }
   const textSizeRef = useRef(textSize);
   textSizeRef.current = textSize;
   const activeIndex = findActiveKaraokeLine(song.lines, playheadMs);
@@ -229,6 +364,11 @@ const KaraokeLyrics = ({
       const reducedMotion = window.matchMedia?.(
         '(prefers-reduced-motion: reduce)',
       ).matches;
+      const songEntranceOpacity = reducedMotion
+        ? 1
+        : karaokeLyricEntranceOpacity(
+            frameTimeMs - entranceStateRef.current.startedAtMs,
+          );
       const isEuphoric =
         typeof document !== 'undefined' &&
         document.documentElement.classList.contains('is-euphoric');
@@ -307,6 +447,7 @@ const KaraokeLyrics = ({
       let hitRegionCount = 0;
       for (let index = first; index <= last; index += 1) {
         const line = currentSong.lines[index];
+        const isSection = line.kind === 'section';
         const offset = index - animatedCenter;
         const motion = lyricLineMotion(offset);
         const y = centerY + offset * rowSpacing;
@@ -319,40 +460,62 @@ const KaraokeLyrics = ({
         // focused font immediately would make the incoming line pop before it
         // actually reaches the center.
         const focusAmount = clamp(1 - Math.abs(offset), 0, 1);
-        const isTimingActive = index === currentActiveIndex;
-        const restingFontSize = clamp(width * 0.0155, 13, 18.5);
-        const focusedFontSize = clamp(width * 0.028, 20, 32);
+        const isTimingActive = index === currentActiveIndex && !isSection;
+        const restingFontSize = isSection
+          ? clamp(width * 0.012, 11, 15)
+          : clamp(width * 0.0155, 13, 18.5);
+        const focusedFontSize = isSection
+          ? clamp(width * 0.017, 15, 22)
+          : clamp(width * 0.028, 20, 32);
         let fontSize =
           restingFontSize + (focusedFontSize - restingFontSize) * focusAmount;
         fontSize *= motion.scale * textScale;
-        const fontWeight = Math.round(720 + 180 * focusAmount);
+        const fontWeight = Math.round(
+          (isSection ? 760 : 720) + (isSection ? 80 : 180) * focusAmount,
+        );
         context.font = `${fontWeight} ${fontSize}px ${LYRIC_FONT_FAMILY}`;
 
+        const visualWords = groupKaraokeTokensIntoWords(line.tokens);
         let textWidth = 0;
         for (
-          let tokenIndex = 0;
-          tokenIndex < line.tokens.length;
-          tokenIndex += 1
+          let wordIndex = 0;
+          wordIndex < visualWords.length;
+          wordIndex += 1
         ) {
-          const token = line.tokens[tokenIndex];
-          textWidth += context.measureText(token.text).width;
+          const word = visualWords[wordIndex];
+          textWidth += context.measureText(
+            karaokeVisualWordDisplayText(
+              word,
+              wordIndex,
+              visualWords[wordIndex - 1],
+            ),
+          ).width;
         }
         const availableWidth = Math.max(1, width - 40);
         if (textWidth > availableWidth) {
-          fontSize = Math.max(10.5, fontSize * (availableWidth / textWidth));
+          // Fit the complete phrase even in the shorter Maker preview. A hard
+          // font-size floor allowed exceptionally long lines to be clipped in
+          // the middle of their first/last word.
+          fontSize = Math.max(1, fontSize * (availableWidth / textWidth));
           context.font = `${fontWeight} ${fontSize}px ${LYRIC_FONT_FAMILY}`;
           textWidth = 0;
           for (
-            let tokenIndex = 0;
-            tokenIndex < line.tokens.length;
-            tokenIndex += 1
+            let wordIndex = 0;
+            wordIndex < visualWords.length;
+            wordIndex += 1
           ) {
-            const token = line.tokens[tokenIndex];
-            textWidth += context.measureText(token.text).width;
+            const word = visualWords[wordIndex];
+            textWidth += context.measureText(
+              karaokeVisualWordDisplayText(
+                word,
+                wordIndex,
+                visualWords[wordIndex - 1],
+              ),
+            ).width;
           }
         }
 
-        const alpha = motion.opacity * viewportFade;
+        const alpha = motion.opacity * viewportFade * songEntranceOpacity;
         const textLeft = (width - textWidth) * 0.5;
         const hasEuphoriaText = isEuphoric && focusAmount > 0.08;
         const euphoriaFill = hasEuphoriaText
@@ -387,17 +550,22 @@ const KaraokeLyrics = ({
         context.shadowBlur = hasEuphoriaText
           ? 18 * focusAmount
           : 28 * focusAmount;
-        let tokenX = textLeft;
+        let wordX = textLeft;
         for (
-          let tokenIndex = 0;
-          tokenIndex < line.tokens.length;
-          tokenIndex += 1
+          let wordIndex = 0;
+          wordIndex < visualWords.length;
+          wordIndex += 1
         ) {
-          const token = line.tokens[tokenIndex];
-          const tokenWidth = context.measureText(token.text).width;
-          const red = Math.round(225 + 17 * focusAmount);
-          const green = Math.round(231 + 15 * focusAmount);
-          const blue = Math.round(244 + 11 * focusAmount);
+          const word = visualWords[wordIndex];
+          const displayText = karaokeVisualWordDisplayText(
+            word,
+            wordIndex,
+            visualWords[wordIndex - 1],
+          );
+          const wordWidth = context.measureText(displayText).width;
+          const red = isSection ? 96 : Math.round(225 + 17 * focusAmount);
+          const green = isSection ? 232 : Math.round(231 + 15 * focusAmount);
+          const blue = isSection ? 219 : Math.round(244 + 11 * focusAmount);
           const textAlpha = 0.42 + 0.56 * focusAmount;
 
           if (hasEuphoriaText) {
@@ -409,31 +577,36 @@ const KaraokeLyrics = ({
             context.shadowBlur = 0;
             context.lineWidth = 3.2 * focusAmount;
             context.strokeStyle = `rgba(2, 8, 15, ${0.72 * focusAmount})`;
-            context.strokeText(token.text, tokenX, y);
+            context.strokeText(displayText, wordX, y);
             context.lineWidth = Math.max(0.7, 1.15 * focusAmount);
             context.strokeStyle = `hsla(${
-              (euphoriaHue + tokenIndex * 11) % 360
+              (euphoriaHue + wordIndex * 11) % 360
             }, 96%, 70%, ${0.72 * focusAmount})`;
             context.shadowColor = `hsla(${euphoriaHue}, 98%, 64%, ${
               0.4 * focusAmount
             })`;
             context.shadowBlur = 10 * focusAmount;
-            context.strokeText(token.text, tokenX, y);
+            context.strokeText(displayText, wordX, y);
             context.restore();
           }
 
           context.fillStyle = `rgba(${red}, ${green}, ${blue}, ${textAlpha})`;
-          context.fillText(token.text, tokenX, y);
+          context.fillText(displayText, wordX, y);
 
           if (isTimingActive) {
-            const progress = tokenProgress(token, currentPlayheadMs);
-            if (progress > 0) {
+            const progressWidth = karaokeVisualWordProgressWidth(
+              context,
+              word,
+              displayText,
+              currentPlayheadMs,
+            );
+            if (progressWidth > 0) {
               context.save();
               context.beginPath();
               context.rect(
-                tokenX,
+                wordX,
                 y - fontSize * 0.72,
-                tokenWidth * progress,
+                Math.min(wordWidth, progressWidth),
                 fontSize * 1.44,
               );
               context.clip();
@@ -442,11 +615,11 @@ const KaraokeLyrics = ({
                 context.shadowColor = `hsla(${euphoriaHue}, 98%, 65%, 0.5)`;
                 context.shadowBlur = 13 * focusAmount;
               }
-              context.fillText(token.text, tokenX, y);
+              context.fillText(displayText, wordX, y);
               context.restore();
             }
           }
-          tokenX += tokenWidth;
+          wordX += wordWidth;
         }
         context.restore();
 
@@ -594,7 +767,7 @@ const KaraokeLyrics = ({
         onPointerDown={onCanvasPointerDown}
         onKeyDown={onCanvasKeyDown}
       />
-      {!isFollowing && (
+      {showFollowButton && !isFollowing && (
         <button
           type="button"
           className="button small subtle karaoke-lyrics__follow"

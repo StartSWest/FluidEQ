@@ -41,13 +41,6 @@ interface IDeviceEntry {
   name: string;
 }
 
-const deviceOptionDisplay = (device: IDeviceEntry) => () => (
-  <div className="eq-device-option">
-    <strong>{device.name}</strong>
-    <small>AutoEq official</small>
-  </div>
-);
-
 const getResponseFormatLabel = (response: string) => {
   if (/graphiceq/i.test(response)) {
     return 'Graphic EQ · native APO GraphicEQ';
@@ -281,10 +274,15 @@ const AutoEQ = () => {
     () =>
       devices.map((device) => ({
         value: device.value,
-        label: `${device.name} · AutoEq official`,
-        display: deviceOptionDisplay(device),
+        label: `${device.name} · ${t('autoeq.official')}`,
+        display: (
+          <div className="eq-device-option">
+            <strong>{device.name}</strong>
+            <small>{t('autoeq.official')}</small>
+          </div>
+        ),
       })),
-    [devices],
+    [devices, t],
   );
 
   let applyLabel = t('autoeq.apply');
@@ -333,14 +331,14 @@ const AutoEQ = () => {
     >
       <div className="autoeq-attribution">
         <a href={AUTOEQ_ATTRIBUTION_URL} target="_blank" rel="noreferrer">
-          AutoEq official database
+          {t('autoeq.officialDatabase')}
         </a>
       </div>
       <div className="auto-eq">
         <div className="autoeq-field autoeq-field--model">
           <span className="autoeq-field__title">{t('autoeq.model')}</span>
           <Dropdown
-            name="Audio Device"
+            name={t('autoeq.deviceAria')}
             menuClassName="auto-eq-menu"
             options={deviceOptions}
             value={currentDevice}
@@ -360,7 +358,7 @@ const AutoEQ = () => {
         <div className="autoeq-field autoeq-field--target">
           <span className="autoeq-field__title">{t('autoeq.target')}</span>
           <Dropdown
-            name="Target Frequency Response"
+            name={t('autoeq.targetAria')}
             menuClassName="auto-eq-menu"
             options={responseOptions}
             value={currentResponse}

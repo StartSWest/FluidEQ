@@ -20,7 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * Euphoria mode: two flags, and they are not the same question.
  *
  *   ACHIEVED — has this install ever won the game? Persisted, one-way.
- *   ENABLED  — is the look switched on right now? Not persisted.
+ *   ENABLED  — is the look switched on right now? Persisted preference.
  *
  * They were previously muddled together, and the muddle was a real bug: the
  * mode combined "the current streak is at the ceiling" with "the switch is on"
@@ -49,6 +49,7 @@ import { useSyncExternalStore } from 'react';
  * reach.
  */
 const ACHIEVED_KEY = 'fluideq-euphoria-reached';
+const ENABLED_KEY = 'fluideq-euphoria-enabled';
 
 const listeners = new Set<() => void>();
 
@@ -70,16 +71,20 @@ try {
 }
 
 /**
- * ENABLED. Held in the module rather than storage on purpose: winning is an
- * achievement and outlives the app, but leaving the rainbow switched on is a
- * mood — and an equaliser that reopens in full spectrum every morning because
- * of one click last week is a worse default than starting quiet.
+ * ENABLED. The user's last explicit choice survives a reload or restart. It is
+ * still gated by ACHIEVED so a stale or manually written preference can never
+ * unlock the mode by itself.
  *
  * COSMETIC ONLY. This turns the look on and nothing else: no multiplier, no
  * points, no streak. The score measures how accurately somebody played, and a
  * switch that granted x10 would make it measure whether they found the switch.
  */
 let enabled = false;
+try {
+  enabled = achieved && window.localStorage.getItem(ENABLED_KEY) === 'true';
+} catch {
+  // Storage can be unavailable. Keep the quiet default for this session.
+}
 
 export const isEuphoriaAchieved = () => achieved;
 export const isEuphoriaEnabled = () => enabled;
@@ -91,6 +96,11 @@ export const setEuphoriaEnabled = (next: boolean) => {
     return;
   }
   enabled = next;
+  try {
+    window.localStorage.setItem(ENABLED_KEY, String(next));
+  } catch {
+    // The current session still follows the user's choice.
+  }
   emit();
 };
 
@@ -114,6 +124,11 @@ export const winEuphoria = () => {
     } catch {
       // Unlocked for this session even if it cannot be remembered.
     }
+  }
+  try {
+    window.localStorage.setItem(ENABLED_KEY, 'true');
+  } catch {
+    // Enabled for this session even if the preference cannot be remembered.
   }
   emit();
 };
@@ -208,6 +223,7 @@ export const resetEuphoriaMode = () => {
   enabled = false;
   try {
     window.localStorage.removeItem(ACHIEVED_KEY);
+    window.localStorage.removeItem(ENABLED_KEY);
   } catch {
     // Nothing to undo if it was never written.
   }

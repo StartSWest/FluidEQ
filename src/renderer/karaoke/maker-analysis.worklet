@@ -1,0 +1,182 @@
+/* FluidEQ Karaoke Maker analysis worker. GPL-3.0-or-later. */
+
+const clamp = (value, minimum, maximum) =>
+  Math.min(maximum, Math.max(minimum, value));
+
+const median = (values) => {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2
+    ? sorted[middle]
+    : (sorted[middle - 1] + sorted[middle]) / 2;
+};
+
+const pitchFrame = (samples, offset, frameSize, sampleRate) => {
+  let energy = 0;
+  let mean = 0;
+  for (let index = 0; index < frameSize; index += 1) {
+    mean += samples[offset + index] || 0;
+  }
+  mean /= frameSize;
+  for (let index = 0; index < frameSize; index += 1) {
+    const value = (samples[offset + index] || 0) - mean;
+    energy += value * value;
+  }
+  const rms = Math.sqrt(energy / frameSize);
+  if (rms < 0.008) return { rms, confidence: 0 };
+
+  const minimumLag = Math.max(2, Math.floor(sampleRate / 1_050));
+  const maximumLag = Math.min(frameSize - 16, Math.floor(sampleRate / 65));
+  let bestLag = 0;
+  let bestCorrelation = 0;
+  let previous = 0;
+  for (let lag = minimumLag; lag <= maximumLag; lag += 1) {
+    let product = 0;
+    let leftEnergy = 0;
+    let rightEnergy = 0;
+    const length = frameSize - lag;
+    for (let index = 0; index < length; index += 1) {
+      const left = (samples[offset + index] || 0) - mean;
+      const right = (samples[offset + index + lag] || 0) - mean;
+      product += left * right;
+      leftEnergy += left * left;
+      rightEnergy += right * right;
+    }
+    const correlation =
+      product / Math.max(1e-9, Math.sqrt(leftEnergy * rightEnergy));
+    // The first strong local peak avoids choosing an octave multiple merely
+    // because its correlation is a fraction higher.
+    if (
+      lag > minimumLag &&
+      previous > correlation &&
+      previous > 0.72 &&
+      previous >= bestCorrelation * 0.93
+    ) {
+      bestLag = lag - 1;
+      bestCorrelation = previous;
+      break;
+    }
+    if (correlation > bestCorrelation) {
+      bestCorrelation = correlation;
+      bestLag = lag;
+    }
+    previous = correlation;
+  }
+  if (!bestLag || bestCorrelation < 0.58) {
+    return { rms, confidence: bestCorrelation };
+  }
+  const frequencyHz = sampleRate / bestLag;
+  return {
+    rms,
+    confidence: clamp(bestCorrelation, 0, 1),
+    frequencyHz,
+    midi: 69 + 12 * Math.log2(frequencyHz / 440),
+  };
+};
+
+const waveformPeaks = (samples, count = 2_048) => {
+  const peaks = new Array(count).fill(0);
+  const stride = Math.max(1, Math.ceil(samples.length / count));
+  for (let peakIndex = 0; peakIndex < count; peakIndex += 1) {
+    const start = peakIndex * stride;
+    const end = Math.min(samples.length, start + stride);
+    let peak = 0;
+    for (let index = start; index < end; index += 1) {
+      peak = Math.max(peak, Math.abs(samples[index] || 0));
+    }
+    peaks[peakIndex] = peak;
+  }
+  const maximum = Math.max(0.001, ...peaks);
+  return peaks.map((peak) => peak / maximum);
+};
+
+const notesFromFrames = (frames) => {
+  const notes = [];
+  let pending;
+  const flush = () => {
+    if (!pending) return;
+    if (pending.endMs - pending.startMs >= 75) {
+      notes.push({
+        startMs: pending.startMs,
+        endMs: pending.endMs,
+        targetMidi: median(pending.midis),
+        confidence: median(pending.confidences),
+      });
+    }
+    pending = undefined;
+  };
+  frames.forEach((frame) => {
+    if (frame.midi === undefined || frame.confidence < 0.62) {
+      if (pending && frame.timeMs - pending.endMs > 90) flush();
+      return;
+    }
+    const rounded = Math.round(frame.midi);
+    if (
+      pending &&
+      frame.timeMs - pending.endMs <= 100 &&
+      Math.abs(rounded - Math.round(median(pending.midis))) <= 1
+    ) {
+      pending.endMs = frame.timeMs + 55;
+      pending.midis.push(frame.midi);
+      pending.confidences.push(frame.confidence);
+      return;
+    }
+    flush();
+    pending = {
+      startMs: Math.max(0, frame.timeMs - 20),
+      endMs: frame.timeMs + 55,
+      midis: [frame.midi],
+      confidences: [frame.confidence],
+    };
+  });
+  flush();
+  return notes;
+};
+
+self.onmessage = (event) => {
+  const { id, samples, sampleRate } = event.data || {};
+  if (!id || !(samples instanceof Float32Array) || !sampleRate) return;
+  try {
+    const frameSize = Math.min(
+      768,
+      Math.max(384, Math.round(sampleRate * 0.05)),
+    );
+    const hopSize = Math.max(160, Math.round(sampleRate * 0.04));
+    const frames = [];
+    const frameCount = Math.max(
+      0,
+      Math.floor((samples.length - frameSize) / hopSize) + 1,
+    );
+    for (let frameIndex = 0; frameIndex < frameCount; frameIndex += 1) {
+      const offset = frameIndex * hopSize;
+      const estimate = pitchFrame(samples, offset, frameSize, sampleRate);
+      frames.push({
+        timeMs: ((offset + frameSize / 2) / sampleRate) * 1_000,
+        ...estimate,
+      });
+      if (frameIndex % 50 === 0) {
+        self.postMessage({
+          id,
+          type: 'progress',
+          progress: frameCount ? frameIndex / frameCount : 1,
+        });
+      }
+    }
+    self.postMessage({
+      id,
+      type: 'complete',
+      result: {
+        waveform: waveformPeaks(samples),
+        frames,
+        notes: notesFromFrames(frames),
+      },
+    });
+  } catch (error) {
+    self.postMessage({
+      id,
+      type: 'error',
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+};
