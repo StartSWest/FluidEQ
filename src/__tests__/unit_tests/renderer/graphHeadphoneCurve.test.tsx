@@ -36,6 +36,7 @@ import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import {
   FilterTypeEnum,
+  IDriverSettings,
   IFiltersMap,
   IHeadphoneSettings,
   TApoLayer,
@@ -50,6 +51,7 @@ import { IChartCurveData } from 'renderer/graph/ChartController';
 interface IWorld {
   filters: IFiltersMap;
   headphone?: IHeadphoneSettings;
+  driver?: IDriverSettings;
   bypassed: TApoLayer[];
   isAutoPreAmpOn: boolean;
 }
@@ -57,6 +59,7 @@ interface IWorld {
 const mockWorld: IWorld = {
   filters: {},
   headphone: undefined,
+  driver: undefined,
   bypassed: [],
   isAutoPreAmpOn: false,
 };
@@ -78,7 +81,7 @@ jest.mock('renderer/utils/FluidEqContext', () => ({
     preAmp: 0,
     convolution: undefined,
     voicing: undefined,
-    driver: undefined,
+    driver: mockWorld.driver,
     smartEq: undefined,
     setGlobalError: jest.fn(),
     setPreAmp: jest.fn(),
@@ -156,6 +159,7 @@ const draw = (world: Partial<IWorld>) => {
   Object.assign(mockWorld, {
     filters: EQ_BANDS,
     headphone: undefined,
+    driver: undefined,
     bypassed: [],
     isAutoPreAmpOn: false,
     ...world,
@@ -230,10 +234,12 @@ describe('the headphone layer on the frequency response graph', () => {
     // the plot and the `Preamp:` line on disk cannot drift apart — which is
     // exactly what they did while this layer was missing from the list.
     expect(writtenPreAmp()).toBeCloseTo(
-      -getChainPeakGain([
-        ...Object.values(EQ_BANDS),
-        ...getHeadphoneFilters(CORRECTION),
-      ]),
+      -(
+        getChainPeakGain([
+          ...Object.values(EQ_BANDS),
+          ...getHeadphoneFilters(CORRECTION),
+        ]) + 0.2
+      ),
       2,
     );
 
@@ -245,7 +251,7 @@ describe('the headphone layer on the frequency response graph', () => {
     // layer costs on top is the other three — and that three used to cost
     // nothing at all, because nothing in this arithmetic knew it was there.
     expect(withoutCorrection).toBeCloseTo(
-      -getChainPeakGain(Object.values(EQ_BANDS)),
+      -(getChainPeakGain(Object.values(EQ_BANDS)) + 0.2),
       2,
     );
     expect(withCorrection).toBeLessThan(withoutCorrection - 2.5);
@@ -264,8 +270,31 @@ describe('the headphone layer on the frequency response graph', () => {
     expect(curve('Headphone Correction')).toBeUndefined();
     expect(screen.queryByRole('button', { name: 'Headphone' })).toBeNull();
     expect(writtenPreAmp()).toBeCloseTo(
-      -getChainPeakGain(Object.values(EQ_BANDS)),
+      -(getChainPeakGain(Object.values(EQ_BANDS)) + 0.2),
       2,
+    );
+  });
+
+  it('draws a native GraphicEQ file edit in its original layer and the total', () => {
+    draw({
+      driver: {
+        profileId: 'apo-custom',
+        intensity: 1,
+        apoOverride: {
+          filters: {},
+          graphicEq: [
+            { frequency: 20, gain: 0 },
+            { frequency: 1000, gain: 4.25 },
+            { frequency: 20000, gain: 0 },
+          ],
+        },
+      },
+    });
+
+    expect(gainAt('Driver', 1000)).toBeCloseTo(4.25, 2);
+    expect(gainAt('Total Response', 1000)).toBeCloseTo(
+      gainAt('EQ Response', 1000) + 4.25,
+      1,
     );
   });
 });

@@ -42,7 +42,7 @@ const withBands = (): IState => {
 };
 
 const preampLines = (state: IState) =>
-  stateToString(state)
+  stateToString(state, state.convolution?.fileName)
     .replace(/\r/g, '')
     .split('\n')
     .filter((line) => line.startsWith('Preamp:'));
@@ -95,20 +95,14 @@ describe('preamp headroom', () => {
     expect(preampValue(after)).toBe(before);
   });
 
-  it('gives the volume back when the chain only cuts', () => {
-    // This asserted zero, which was the old rule stated as an intention: cuts
-    // need no headroom, so nothing was reserved. True, and only half the job —
-    // the half it left out was the audible one. A chain that only cuts makes
-    // everything quieter, and with the preamp pinned at zero nothing put that
-    // back, so switching a voicing on cost loudness with no visible cause.
-    //
-    // Normalising means both directions. The amount is the same number either
-    // way: whatever brings the chain's loudest point back to unity. It cannot
-    // clip, because that point lands exactly at 0 dB and the rest below it.
+  it('does not invent makeup gain for a peaking cut', () => {
+    // Away from a peaking cut the chain still reaches unity. Strict peak
+    // normalization therefore applies only the shared safety ceiling; adding
+    // makeup here would push the unaffected frequencies over full scale.
     const state = withBands();
     state.filters.a.gain = -6;
 
-    expect(preampValue(state)).toBeGreaterThan(0);
+    expect(preampValue(state)).toBe(-0.2);
   });
 
   it('leaves a narrow cut alone, because nothing was taken away', () => {
@@ -197,7 +191,7 @@ describe('preamp headroom', () => {
       { frequency: 1000, gain: 0 },
     ];
 
-    expect(preampValue(state)).toBe(-9);
+    expect(preampValue(state)).toBe(-9.2);
   });
 
   it('reserves headroom for a convolution, which is one line too', () => {
@@ -227,5 +221,162 @@ describe('preamp headroom', () => {
 
     expect(preamp).toBeLessThan(0);
     expect(preamp).toBeCloseTo(-5, 0);
+  });
+
+  it('uses the measured response of a file-backed convolution', () => {
+    const state = getDefaultState();
+    state.isFlat = true;
+    state.isAutoPreAmpOn = true;
+    state.convolution = {
+      name: 'Measured AutoEq IR',
+      filters: {},
+      fileName: 'measured.wav',
+      peakGainDb: -1.92,
+      response: [
+        { frequency: 10, gain: -2.5 },
+        { frequency: 17.5, gain: -1.92 },
+        { frequency: 20000, gain: -8 },
+      ],
+    };
+
+    expect(preampValue(state)).toBe(1.72);
+  });
+
+  it('strictly normalizes the affected AutoEq profile instead of weighting program material', () => {
+    const state = getDefaultState();
+    state.isFlat = true;
+    state.isAutoPreAmpOn = true;
+    state.headphone = {
+      intensity: 1,
+      filters: {
+        lowShelf: {
+          id: 'lowShelf',
+          frequency: 105,
+          gain: 6.4,
+          quality: 0.7,
+          type: FilterTypeEnum.LSC,
+        },
+        broadCut: {
+          id: 'broadCut',
+          frequency: 152,
+          gain: -6.1,
+          quality: 0.56,
+          type: FilterTypeEnum.PK,
+        },
+        broadBoost: {
+          id: 'broadBoost',
+          frequency: 1011,
+          gain: 10.8,
+          quality: 0.18,
+          type: FilterTypeEnum.PK,
+        },
+        cut1433: {
+          id: 'cut1433',
+          frequency: 1433,
+          gain: -12,
+          quality: 0.51,
+          type: FilterTypeEnum.PK,
+        },
+        cut8474: {
+          id: 'cut8474',
+          frequency: 8474,
+          gain: -7.3,
+          quality: 1.28,
+          type: FilterTypeEnum.PK,
+        },
+        highShelf: {
+          id: 'highShelf',
+          frequency: 10000,
+          gain: -0.3,
+          quality: 0.7,
+          type: FilterTypeEnum.HSC,
+        },
+        cut2391: {
+          id: 'cut2391',
+          frequency: 2391,
+          gain: -2.2,
+          quality: 3.82,
+          type: FilterTypeEnum.PK,
+        },
+        boost1706: {
+          id: 'boost1706',
+          frequency: 1706,
+          gain: 1.8,
+          quality: 4.47,
+          type: FilterTypeEnum.PK,
+        },
+        cut1149: {
+          id: 'cut1149',
+          frequency: 1149,
+          gain: -0.4,
+          quality: 1.75,
+          type: FilterTypeEnum.PK,
+        },
+        boost3244: {
+          id: 'boost3244',
+          frequency: 3244,
+          gain: 2,
+          quality: 6,
+          type: FilterTypeEnum.PK,
+        },
+      },
+    };
+
+    const peak = getChainPeakGain(Object.values(state.headphone.filters));
+    expect(peak).toBe(6.23);
+    expect(preampValue(state)).toBe(-6.43);
+  });
+
+  it('reserves headroom for the measurable part of the custom FX file', () => {
+    const state = getDefaultState();
+    state.isFlat = true;
+    state.isAutoPreAmpOn = true;
+    state.customFx = {
+      fileName: 'fluideq-device-custom.txt',
+      preAmp: 2,
+      filters: {
+        custom: {
+          id: 'custom',
+          frequency: 1000,
+          gain: 4,
+          quality: 1,
+          type: FilterTypeEnum.PK,
+        },
+      },
+    };
+
+    expect(preampValue(state)).toBeLessThan(-5);
+  });
+
+  it('reserves makeup level for a custom GraphicEQ that cuts everywhere', () => {
+    const state = getDefaultState();
+    state.isFlat = true;
+    state.isAutoPreAmpOn = true;
+    state.customFx = {
+      fileName: 'fluideq-device-custom.txt',
+      preAmp: 0,
+      filters: {},
+      graphicEq: [
+        { frequency: 20, gain: -6 },
+        { frequency: 1000, gain: -6 },
+        { frequency: 20000, gain: -6 },
+      ],
+    };
+
+    expect(preampValue(state)).toBeCloseTo(6, 0);
+  });
+
+  it('does not reserve for a bypassed custom FX file', () => {
+    const state = getDefaultState();
+    state.isFlat = true;
+    state.isAutoPreAmpOn = true;
+    state.bypassed = ['custom'];
+    state.customFx = {
+      fileName: 'fluideq-device-custom.txt',
+      preAmp: 6,
+      filters: {},
+    };
+
+    expect(preampValue(state)).toBe(0);
   });
 });

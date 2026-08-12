@@ -253,6 +253,22 @@ describe('one set of view settings per mode', () => {
     expect(stored(`${CURVES_STEM}.expanded`)).toBe('driver');
   });
 
+  it('hides only the EQ curve from the View menu', () => {
+    const style = loadWithoutReact();
+    const curves = style.useHiddenCurves() as unknown as ISubscribed<
+      readonly string[]
+    >;
+
+    style.toggleGraphCurve('eq');
+
+    expect(curves.getSnapshot()).toEqual(['eq']);
+    expect(style.getGraphContents()).toBe('everything');
+    expect(style.getGraphWaveHidden()).toBe(false);
+
+    style.toggleGraphCurve('eq');
+    expect(curves.getSnapshot()).toEqual([]);
+  });
+
   it('keeps the no-blank-graph rule, one mode at a time', () => {
     // Wave only, with the wave switched off, is a grid and nothing else. Both
     // halves are per mode now, so the rule has to hold *within* a mode — it

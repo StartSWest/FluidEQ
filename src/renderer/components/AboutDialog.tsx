@@ -193,8 +193,8 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
               copyright © 2018–2022 Jaakko Pasanen, under the MIT License. Its
               licence text ships as{' '}
               <code>{LICENSE_DIR}/AutoEq-LICENSE.txt</code>. Measurements
-              fetched on demand from GadgetryTech / Squiglink stay the property
-              of whoever published them and are never redistributed here.
+              Squiglink exports are imported only when a user provides them and
+              are never redistributed here.
             </p>
           </section>
 

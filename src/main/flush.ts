@@ -33,6 +33,7 @@ import {
   IConvolutionProfile,
   IFiltersMap,
   IGraphicEqPoint,
+  IApoLayerOverride,
   IPresetV1,
   IPresetV2,
   IState,
@@ -40,14 +41,18 @@ import {
   AUTOMATIC_PRESET_PREFIX,
 } from '../common/constants';
 import { PRODUCT_NAME } from '../common/branding';
-import { getVoicingFilters } from '../common/voicing';
-import { getDriverFilters } from '../common/driver';
+import { getVoicingFilters, getVoicingGraphicEq } from '../common/voicing';
+import { getDriverFilters, getDriverGraphicEq } from '../common/driver';
 import {
   getHeadphoneFilters,
   getHeadphoneGraphicEq,
 } from '../common/headphone';
-import { getSmartEqFilters, sanitizeSmartEqSettings } from '../common/smartEq';
-import { getChainPeakGain } from '../common/response';
+import {
+  getSmartEqFilters,
+  getSmartEqGraphicEq,
+  sanitizeSmartEqSettings,
+} from '../common/smartEq';
+import { getAutoPreAmpGain } from '../common/response';
 import {
   validatePresetV1,
   validatePresetV2,
@@ -98,79 +103,61 @@ const resolvePreAmp = (
     [],
   );
 
-  /*
-   * Everything that boosts has to be counted, not just the parametric bands.
-   *
-   * A GraphicEQ profile writes no Filter lines at all, and a convolution is a
-   * single Convolution line rather than a filter list — so a chain built from
-   * either contributes nothing to `writtenFilters` and would reserve no
-   * headroom whatsoever. A +9 dB graphic curve would then be handed to APO with
-   * Preamp: 0 dB and clip.
-   *
-   * Read off the layers that were built rather than off the state, which is the
-   * same rule the filters already followed and now matters twice over. There
-   * can be two graphic curves in a chain since the headphone correction learned
-   * to write one, and a curve that was bypassed used to go on reserving its
-   * headroom because this asked the state whether one existed rather than
-   * asking what was written.
-   *
-   * Summed, not maximised: each is a separate APO stage, so they stack.
-   */
-  const graphicPeak = layers.reduce(
-    (total, layer) =>
-      total +
-      Math.max(
-        0,
-        (layer.graphicPoints ?? []).reduce(
-          (highest, { gain }) =>
-            Number.isFinite(gain) ? Math.max(highest, gain) : highest,
-          0,
-        ),
-      ),
-    0,
-  );
+  // Native GraphicEQ stages have to be measured alongside the biquads at the
+  // same frequencies. Adding each stage's independent maximum is safe but not
+  // normalized: it reserves volume for boosts that never occur together.
+  const curves = layers
+    .map((layer) => layer.graphicPoints)
+    .filter((points): points is IGraphicEqPoint[] => Boolean(points?.length));
 
-  // A downloaded impulse response is already normalised by whoever published
-  // it — the filter set stored alongside it is only a sketch for the graph, so
-  // treating it as real gain reserves headroom nothing is using and makes the
-  // output quieter than it needs to be. Only an impulse FluidEQ generated
-  // itself, which has no file of its own, is worth counting.
+  // The custom file is applied after FluidEQ's generated Preamp line, but its
+  // parsed EQ commands still contribute to the level the output finally sees.
+  // parseCustomFx removes editor-only GraphicEQ projections while retaining
+  // explicit Filter commands from a mixed file. Unknown Plugin/Copy/Delay
+  // commands remain outside this calculation because their gain cannot be
+  // inferred safely.
+  const customFx =
+    state.customFx && !(state.bypassed ?? []).includes('custom')
+      ? state.customFx
+      : undefined;
+  const customFilters = Object.values(customFx?.filters ?? {});
+  if (customFx?.graphicEq?.length) {
+    curves.push(customFx.graphicEq);
+  }
+
+  // A generated impulse is represented by the filters that created it. A
+  // downloaded/imported WAV is represented by its measured response instead;
+  // companion ParametricEQ filters omit the gain baked into the file and are
+  // therefore unsuitable for absolute headroom.
   const convolutionFilters =
     hasConvolution && state.convolution && !state.convolution.fileName
       ? Object.values(state.convolution.filters || {})
       : [];
+  if (
+    hasConvolution &&
+    state.convolution?.fileName &&
+    state.convolution.response?.length
+  ) {
+    curves.push(state.convolution.response);
+  } else if (
+    hasConvolution &&
+    state.convolution?.fileName &&
+    Number.isFinite(state.convolution.peakGainDb)
+  ) {
+    // Legacy metadata with only a peak cannot say where that peak occurs. A
+    // flat curve at that value is conservative until the WAV is re-analyzed.
+    const peak = state.convolution.peakGainDb as number;
+    curves.push([
+      { frequency: 10, gain: peak },
+      { frequency: 20000, gain: peak },
+    ]);
+  }
 
-  // One combined peak over everything, not a sum of separate peaks. Boosts at
-  // different frequencies never coincide, and adding their peaks would throw
-  // away volume for headroom that is never needed — the same reasoning the
-  // band chain already uses.
-  const filterPeak = getChainPeakGain([
-    ...writtenFilters,
-    ...convolutionFilters,
-  ]);
-
-  /*
-   * BOTH DIRECTIONS, WHICH IS WHAT "NORMALISE" MEANS.
-   *
-   * This used to be `-Math.max(0, peak)`: reserve for a boost, and do nothing
-   * at all for a cut. Half a job, and the missing half was the audible one — a
-   * chain that only cuts made everything quieter and nothing put it back, so
-   * switching a voicing on cost volume with no way to see where it went.
-   *
-   * The correct amount in either direction is the same number: whatever brings
-   * the chain's loudest point back to unity. Positive when the chain cuts,
-   * negative when it boosts, and it cannot clip in either case — by
-   * construction the loudest point lands at 0 dB and everything else below it.
-   *
-   * Raising also lifts whatever noise the chain had attenuated, by exactly the
-   * amount it had attenuated it, so the signal-to-noise ratio is unchanged.
-   * What changes is only that the listener is not silently taxed for using a
-   * feature.
-   *
-   * The graphic curve is a separate APO stage, so its contribution stacks on
-   * top rather than sharing the peak.
-   */
-  return -(filterPeak + graphicPeak);
+  return getAutoPreAmpGain({
+    filters: [...writtenFilters, ...convolutionFilters, ...customFilters],
+    curves,
+    constantGain: customFx?.preAmp ?? 0,
+  });
 };
 
 /** A filter stripped to the four things a config line is made of. */
@@ -256,7 +243,17 @@ const buildLayers = (state: IState): IApoLayer[] => {
 
   // Outside the isFlat check, like the voicing: clearing the EQ resets the
   // bands somebody tuned, not the correction for what they are listening on.
-  addLayer('driver', layerFilters(getDriverFilters(state.driver)));
+  const driverCurve = graphicEqCommand(getDriverGraphicEq(state.driver));
+  if (driverCurve && !isBypassed('driver')) {
+    layers.push({
+      feature: 'driver',
+      filters: [],
+      graphicEq: driverCurve,
+      graphicPoints: getDriverGraphicEq(state.driver),
+    });
+  } else {
+    addLayer('driver', layerFilters(getDriverFilters(state.driver)));
+  }
 
   // Ahead of the user's bands, like the driver, and outside the isFlat check
   // for the same reason: clearing the EQ resets the tuning somebody made, not
@@ -313,12 +310,32 @@ const buildLayers = (state: IState): IApoLayer[] => {
   // Deliberately outside the isFlat check: clearing the EQ resets the bands the
   // user tuned, not the target curve they chose, and switching the voicing off
   // restores their tuning untouched.
-  addLayer('voicing', layerFilters(getVoicingFilters(state.voicing)));
+  const voicingCurve = graphicEqCommand(getVoicingGraphicEq(state.voicing));
+  if (voicingCurve && !isBypassed('voicing')) {
+    layers.push({
+      feature: 'voicing',
+      filters: [],
+      graphicEq: voicingCurve,
+      graphicPoints: getVoicingGraphicEq(state.voicing),
+    });
+  } else {
+    addLayer('voicing', layerFilters(getVoicingFilters(state.voicing)));
+  }
 
   // Outside the isFlat check for the same reason as the other two layers —
   // clearing the bands the user tuned does not un-measure what came out of the
   // speakers.
-  addLayer('smart', layerFilters(getSmartEqFilters(state.smartEq)));
+  const smartCurve = graphicEqCommand(getSmartEqGraphicEq(state.smartEq));
+  if (smartCurve && !isBypassed('smart')) {
+    layers.push({
+      feature: 'smart',
+      filters: [],
+      graphicEq: smartCurve,
+      graphicPoints: getSmartEqGraphicEq(state.smartEq),
+    });
+  } else {
+    addLayer('smart', layerFilters(getSmartEqFilters(state.smartEq)));
+  }
 
   return layers;
 };
@@ -454,6 +471,8 @@ export interface IApoChainFiles {
   features: Array<{ feature: TApoFeature; lines: string[] }>;
   /** The `Preamp:` line, sized over every filter of every feature above. */
   preAmp: string;
+  /** Whether the user-owned custom file should remain in the chain. */
+  custom?: boolean;
 }
 
 /**
@@ -489,6 +508,10 @@ export const stateToApoFiles = (
       lines: renderLayer(layer),
     })),
     preAmp: preAmpLine(state, layers, hasConvolution),
+    // The custom file is deliberately not part of `layers`: FluidEQ cannot
+    // inspect arbitrary Plugin/Copy/Delay commands when reserving headroom.
+    // It can still switch its Include line for an A/B comparison.
+    custom: !(state.bypassed ?? []).includes('custom'),
   };
 };
 
@@ -576,11 +599,28 @@ const normalizeConvolution = (
   const filters = normalizeFilters(value.filters);
   const optionalString = (input: unknown) =>
     typeof input === 'string' && input ? input : undefined;
+  const response = Array.isArray(value.response)
+    ? value.response
+        .map((point) => {
+          if (!isObject(point)) {
+            return undefined;
+          }
+          const frequency = toFiniteNumber(point.frequency);
+          const gain = toFiniteNumber(point.gain);
+          return frequency !== undefined && frequency > 0 && gain !== undefined
+            ? { frequency, gain }
+            : undefined;
+        })
+        .filter((point): point is IGraphicEqPoint => point !== undefined)
+    : undefined;
+  const peakGainDb = toFiniteNumber(value.peakGainDb);
 
   return {
     name: value.name,
     filters,
     fileName: optionalString(value.fileName),
+    ...(response?.length ? { response } : {}),
+    ...(peakGainDb !== undefined ? { peakGainDb } : {}),
     sourceUrl: optionalString(value.sourceUrl),
     sourceId: optionalString(value.sourceId),
   };
@@ -593,15 +633,43 @@ const normalizeConvolution = (
  * unknown profile id is harmless because the layer lookup returns nothing for
  * it, but an intensity that is not a number would be scaled into every gain.
  */
+const normalizeApoOverride = (
+  value: unknown,
+): IApoLayerOverride | undefined => {
+  if (!isObject(value)) {
+    return undefined;
+  }
+  const filters = normalizeFilters(value.filters);
+  const graphicEq = Array.isArray(value.graphicEq)
+    ? value.graphicEq
+        .map((point) => {
+          if (!isObject(point)) {
+            return undefined;
+          }
+          const frequency = toFiniteNumber(point.frequency);
+          const gain = toFiniteNumber(point.gain);
+          return frequency !== undefined && gain !== undefined
+            ? { frequency, gain }
+            : undefined;
+        })
+        .filter((point): point is IGraphicEqPoint => point !== undefined)
+    : undefined;
+  return Object.keys(filters).length || graphicEq?.length
+    ? { filters, ...(graphicEq?.length ? { graphicEq } : {}) }
+    : undefined;
+};
+
 const normalizeLayerSelection = (value: unknown) => {
   if (!isObject(value) || typeof value.profileId !== 'string') {
     return undefined;
   }
   const intensity = toFiniteNumber(value.intensity);
+  const apoOverride = normalizeApoOverride(value.apoOverride);
   return {
     profileId: value.profileId,
     intensity:
       intensity === undefined ? 1 : Math.min(1, Math.max(0, intensity)),
+    ...(apoOverride ? { apoOverride } : {}),
   };
 };
 

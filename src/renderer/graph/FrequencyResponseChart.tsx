@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   IFiltersMap,
   IFilter,
+  AutoEqFormat,
   MAX_FREQUENCY,
   MAX_GAIN,
   MAX_QUALITY,
@@ -64,6 +65,7 @@ import {
   getFilterLineData,
   getCombinedLineData,
   getLineGainAtFrequency,
+  getGraphicEqLineData,
 } from './utils';
 import { ColorEnum, SecondaryColorEnum } from '../styles/color';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
@@ -117,11 +119,20 @@ import { useCustomLooks } from '../utils/customLooks';
 import LookDesigner from '../components/LookDesigner';
 import Dropdown from '../widgets/Dropdown';
 import GraphViewMenu from './GraphViewMenu';
-import { getVoicingFilters } from '../../common/voicing';
-import { getDriverFilters } from '../../common/driver';
-import { getHeadphoneFilters, hasHeadphoneLayer } from '../../common/headphone';
-import { getSmartEqFilters, hasSmartEqLayer } from '../../common/smartEq';
-import { getChainPeakGain } from '../../common/response';
+import { getVoicingFilters, getVoicingGraphicEq } from '../../common/voicing';
+import { getDriverFilters, getDriverGraphicEq } from '../../common/driver';
+import {
+  getHeadphoneFilters,
+  getHeadphoneGraphicEq,
+  hasHeadphoneLayer,
+} from '../../common/headphone';
+import {
+  getSmartEqFilters,
+  getSmartEqGraphicEq,
+  hasSmartEqLayer,
+} from '../../common/smartEq';
+import { hasCustomFxCurve } from '../../common/customFx';
+import { getAutoPreAmpGain } from '../../common/response';
 import '../styles/MultiSelect.scss';
 import '../styles/GraphTheme.scss';
 
@@ -212,6 +223,7 @@ const CURVE_BY_CHART_ID: Record<string, TGraphCurve> = {
   // other's chip if the two ids are confused.
   'Headphone Correction': 'headphone',
   'Smart EQ': 'smart',
+  'Custom FX': 'custom',
   'Total Response': 'total',
 };
 
@@ -401,7 +413,14 @@ const SilenceWatch = ({
 // The look list is no longer a module constant: it now depends on the looks the
 // user has saved, so it is built inside the component from `getSelectableLooks`
 // and memoised on that list instead.
-const FrequencyResponseChart = () => {
+interface IFrequencyResponseChartProps {
+  /** Controlled visibility for the active workspace tab. */
+  isVisible?: boolean;
+}
+
+const FrequencyResponseChart = ({
+  isVisible,
+}: IFrequencyResponseChartProps) => {
   // The selection, not the resolved look: while the designer is open the chart
   // is drawing an unsaved draft whose id is in no list, and a picker handed
   // that id would show nothing.
@@ -520,13 +539,15 @@ const FrequencyResponseChart = () => {
   const overlayBlur = useOverlayBlur();
   const {
     filters,
-    isGraphViewOn,
+    isGraphViewOn: isGlobalGraphViewOn,
     isEngineUsable,
     isLoading,
     globalError,
     isAutoPreAmpOn,
     convolution,
     preAmp,
+    eqFormat,
+    graphicEq,
     setGlobalError,
     setPreAmp,
     dispatchFilter,
@@ -539,7 +560,9 @@ const FrequencyResponseChart = () => {
     headphone,
     smartEq,
     bypassed,
+    customFx,
   } = useFluidEqContext();
+  const isGraphViewOn = isVisible ?? isGlobalGraphViewOn;
   const isBypassed = (layer: TApoLayer) => bypassed.includes(layer);
   // A boolean rather than the two tests written out at each of the three places
   // that need them — the curve, its legend chip, and the sum they both feed.
@@ -567,12 +590,6 @@ const FrequencyResponseChart = () => {
     if (hasConvolution) {
       curveChips.push({ curve: 'convolution', label: 'Headset convolution' });
     }
-    if (!isBypassed('eq')) {
-      curveChips.push({ curve: 'eq', label: 'EQ response' });
-    }
-    if (voicing?.profileId && !isBypassed('voicing')) {
-      curveChips.push({ curve: 'voicing', label: 'Voicing' });
-    }
     if (driver?.profileId && !isBypassed('driver')) {
       curveChips.push({ curve: 'driver', label: 'Driver' });
     }
@@ -587,8 +604,17 @@ const FrequencyResponseChart = () => {
     if (hasHeadphoneLayer(headphone) && !isBypassed('headphone')) {
       curveChips.push({ curve: 'headphone', label: 'Headphone' });
     }
+    if (!isBypassed('eq')) {
+      curveChips.push({ curve: 'eq', label: 'EQ response' });
+    }
+    if (voicing?.profileId && !isBypassed('voicing')) {
+      curveChips.push({ curve: 'voicing', label: 'Voicing' });
+    }
     if (hasSmartEqLayer(smartEq) && !isBypassed('smart')) {
       curveChips.push({ curve: 'smart', label: 'Smart EQ' });
+    }
+    if (customFx && !isBypassed('custom') && hasCustomFxCurve(customFx)) {
+      curveChips.push({ curve: 'custom', label: 'Custom FX' });
     }
     // The output curve is drawn whenever there is more than one layer to add
     // up, switched on or not — see the note by `hasExtraLayers` — so its chip
@@ -600,7 +626,8 @@ const FrequencyResponseChart = () => {
       voicing?.profileId ||
       driver?.profileId ||
       hasHeadphoneLayer(headphone) ||
-      hasSmartEqLayer(smartEq)
+      hasSmartEqLayer(smartEq) ||
+      hasCustomFxCurve(customFx)
     ) {
       curveChips.push({ curve: 'total', label: 'Final output' });
     }
@@ -889,42 +916,57 @@ const FrequencyResponseChart = () => {
     // bands, which is what makes "EQ + voicing" an honest sum rather than an
     // approximation of one.
     const voicingFilterLines: IChartLineDataPointsById = {};
+    const voicingGraphic = bypassed.includes('voicing')
+      ? []
+      : getVoicingGraphicEq(voicing);
+    if (voicingGraphic.length) {
+      voicingFilterLines['voicing-graphic'] =
+        getGraphicEqLineData(voicingGraphic);
+    }
     // Nothing is drawn for a layer that is switched off.
     //
     // Bypass keeps the layer in state so the chip can put it back, which means
     // the graph would happily go on drawing a curve for something that is no
     // longer in the config — and a graph that disagrees with what you hear is
     // worse than one that shows less. This is what makes the A/B honest.
-    (bypassed.includes('voicing') ? [] : getVoicingFilters(voicing)).forEach(
-      (filter, index) => {
-        const id = `voicing-${index}`;
-        voicingFilterLines[id] = getFilterLineData({
-          id,
-          frequency: filter.frequency,
-          gain: filter.gain,
-          quality: filter.quality,
-          type: filter.type,
-        });
-      },
-    );
+    (bypassed.includes('voicing') || voicingGraphic.length
+      ? []
+      : getVoicingFilters(voicing)
+    ).forEach((filter, index) => {
+      const id = `voicing-${index}`;
+      voicingFilterLines[id] = getFilterLineData({
+        id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      });
+    });
     const hasVoicing = Object.keys(voicingFilterLines).length > 0;
 
     // Driver compensation is a third APO layer, so it gets the same treatment:
     // its own curve, from the same biquad code, rather than an invisible
     // correction the user has to take on trust.
     const driverFilterLines: IChartLineDataPointsById = {};
-    (bypassed.includes('driver') ? [] : getDriverFilters(driver)).forEach(
-      (filter, index) => {
-        const id = `driver-${index}`;
-        driverFilterLines[id] = getFilterLineData({
-          id,
-          frequency: filter.frequency,
-          gain: filter.gain,
-          quality: filter.quality,
-          type: filter.type,
-        });
-      },
-    );
+    const driverGraphic = bypassed.includes('driver')
+      ? []
+      : getDriverGraphicEq(driver);
+    if (driverGraphic.length) {
+      driverFilterLines['driver-graphic'] = getGraphicEqLineData(driverGraphic);
+    }
+    (bypassed.includes('driver') || driverGraphic.length
+      ? []
+      : getDriverFilters(driver)
+    ).forEach((filter, index) => {
+      const id = `driver-${index}`;
+      driverFilterLines[id] = getFilterLineData({
+        id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      });
+    });
     const hasDriver = Object.keys(driverFilterLines).length > 0;
 
     // The published headphone correction, which had no curve here at all.
@@ -944,7 +986,14 @@ const FrequencyResponseChart = () => {
     // — see `getHeadphoneGraphicEq` — so this is an approximation of the
     // published curve in exactly the way the editor's own bands are.
     const headphoneFilterLines: IChartLineDataPointsById = {};
-    (bypassed.includes('headphone')
+    const headphoneGraphic = bypassed.includes('headphone')
+      ? []
+      : getHeadphoneGraphicEq(headphone);
+    if (headphoneGraphic.length) {
+      headphoneFilterLines['headphone-graphic'] =
+        getGraphicEqLineData(headphoneGraphic);
+    }
+    (bypassed.includes('headphone') || headphoneGraphic.length
       ? []
       : getHeadphoneFilters(headphone)
     ).forEach((filter, index) => {
@@ -963,18 +1012,25 @@ const FrequencyResponseChart = () => {
     // the strongest claim to a curve of its own: nobody chose its shape, so the
     // graph is the only place it can be inspected at all.
     const smartFilterLines: IChartLineDataPointsById = {};
-    (bypassed.includes('smart') ? [] : getSmartEqFilters(smartEq)).forEach(
-      (filter, index) => {
-        const id = `smart-eq-${index}`;
-        smartFilterLines[id] = getFilterLineData({
-          id,
-          frequency: filter.frequency,
-          gain: filter.gain,
-          quality: filter.quality,
-          type: filter.type,
-        });
-      },
-    );
+    const smartGraphic = bypassed.includes('smart')
+      ? []
+      : getSmartEqGraphicEq(smartEq);
+    if (smartGraphic.length) {
+      smartFilterLines['smart-graphic'] = getGraphicEqLineData(smartGraphic);
+    }
+    (bypassed.includes('smart') || smartGraphic.length
+      ? []
+      : getSmartEqFilters(smartEq)
+    ).forEach((filter, index) => {
+      const id = `smart-eq-${index}`;
+      smartFilterLines[id] = getFilterLineData({
+        id,
+        frequency: filter.frequency,
+        gain: filter.gain,
+        quality: filter.quality,
+        type: filter.type,
+      });
+    });
     const hasSmartEq = Object.keys(smartFilterLines).length > 0;
 
     // Nothing drawn for an impulse that is switched off, for the same reason as
@@ -982,9 +1038,15 @@ const FrequencyResponseChart = () => {
     // that disagrees with what you hear is worse than one that shows less.
     const convolutionFilterLines: IChartLineDataPointsById = {};
     if (!bypassed.includes('convolution')) {
-      Object.values(convolution?.filters || {}).forEach((filter) => {
-        convolutionFilterLines[filter.id] = getFilterLineData(filter);
-      });
+      if (convolution?.response?.length) {
+        convolutionFilterLines['convolution-response'] = getGraphicEqLineData(
+          convolution.response,
+        );
+      } else {
+        Object.values(convolution?.filters || {}).forEach((filter) => {
+          convolutionFilterLines[filter.id] = getFilterLineData(filter);
+        });
+      }
     }
 
     const convolutionCurveData = getCombinedLineData(0, convolutionFilterLines);
@@ -993,7 +1055,16 @@ const FrequencyResponseChart = () => {
     // "these bands are doing nothing", and what is true is that they are not in
     // the chain. The output curve below is where the difference shows.
     const hasEq = !bypassed.includes('eq');
-    const eqLineData = hasEq ? updatedFilterLines : {};
+    const nativeEqGraphic =
+      hasEq && eqFormat === AutoEqFormat.GRAPHIC && graphicEq?.length
+        ? graphicEq
+        : undefined;
+    let eqLineData: IChartLineDataPointsById = {};
+    if (hasEq) {
+      eqLineData = nativeEqGraphic
+        ? { 'eq-graphic': getGraphicEqLineData(nativeEqGraphic) }
+        : updatedFilterLines;
+    }
     // The bands are drawn from zero, and the preamp is left to the output
     // curve.
     //
@@ -1020,6 +1091,31 @@ const FrequencyResponseChart = () => {
     const smartCurveData = hasSmartEq
       ? getCombinedLineData(0, smartFilterLines)
       : [];
+    // The custom file is applied after the generated chain. Draw a native
+    // GraphicEQ directly; for parametric commands use the same biquad path as
+    // every other layer. The parser's GraphicEQ projection is not drawn twice.
+    const customFilterLines: IChartLineDataPointsById = {};
+    const customGraphicLines: IChartLineDataPointsById = {};
+    if (!bypassed.includes('custom') && customFx) {
+      if (customFx.graphicEq?.length) {
+        const graphic = getGraphicEqLineData(customFx.graphicEq);
+        if (graphic.length > 0) {
+          customGraphicLines['custom-graphic'] = graphic;
+        }
+      }
+      Object.values(customFx.filters).forEach((filter) => {
+        customFilterLines[filter.id] = getFilterLineData(filter);
+      });
+    }
+    const customLines = { ...customFilterLines, ...customGraphicLines };
+    const hasCustom =
+      Object.keys(customLines).length > 0 ||
+      (!bypassed.includes('custom') &&
+        customFx !== undefined &&
+        Math.abs(customFx.preAmp) > 0.001);
+    const customCurveData = hasCustom
+      ? getCombinedLineData(customFx?.preAmp ?? 0, customLines)
+      : [];
     // What actually reaches the ears once every layer is applied. Worth its own
     // curve because the layers are written separately but heard together, and
     // two gentle corrections in the same region are not obviously gentle once
@@ -1045,24 +1141,34 @@ const FrequencyResponseChart = () => {
       convolution ||
       Math.abs(preAmp) > 0.01 ||
       getVoicingFilters(voicing).length ||
+      getVoicingGraphicEq(voicing).length ||
       getDriverFilters(driver).length ||
+      getDriverGraphicEq(driver).length ||
       getHeadphoneFilters(headphone).length ||
-      getSmartEqFilters(smartEq).length,
+      getHeadphoneGraphicEq(headphone).length ||
+      getSmartEqFilters(smartEq).length ||
+      getSmartEqGraphicEq(smartEq).length ||
+      hasCustomFxCurve(customFx),
     );
     const totalCurveData = hasExtraLayers
-      ? getCombinedLineData(preAmp, {
-          ...eqLineData,
-          ...convolutionFilterLines,
-          ...voicingFilterLines,
-          ...driverFilterLines,
-          // The line this was named for. Left out, the sum was every layer but
-          // one and still called itself the final output — and the layer it
-          // omitted is frequently the largest thing in the chain, so the curve
-          // somebody reads to answer "what am I actually hearing" was wrong by
-          // several decibels wherever the correction was working hardest.
-          ...headphoneFilterLines,
-          ...smartFilterLines,
-        })
+      ? getCombinedLineData(
+          preAmp +
+            (bypassed.includes('custom') || !customFx ? 0 : customFx.preAmp),
+          {
+            ...eqLineData,
+            ...convolutionFilterLines,
+            ...voicingFilterLines,
+            ...driverFilterLines,
+            // The line this was named for. Left out, the sum was every layer but
+            // one and still called itself the final output — and the layer it
+            // omitted is frequently the largest thing in the chain, so the curve
+            // somebody reads to answer "what am I actually hearing" was wrong by
+            // several decibels wherever the correction was working hardest.
+            ...headphoneFilterLines,
+            ...smartFilterLines,
+            ...customLines,
+          },
+        )
       : [];
     // Named for what it is rather than for what went into it.
     //
@@ -1103,11 +1209,9 @@ const FrequencyResponseChart = () => {
     // slid the entire curve up or down — a redraw that looked like a tuning
     // change and was not.
     //
-    // So the peak comes from the same function the config is written from,
-    // weighted the same way and floored the same way. The convolution follows
-    // the writer's rule too: an impulse that came with a file was normalised by
-    // whoever published it, and counting it again reserves headroom nothing is
-    // using.
+    // So the peak comes from the same strict combined-response function the
+    // config writer uses. File-backed convolutions contribute their measured
+    // WAV response rather than an assumption about publisher normalization.
     // Floored at MIN_GAIN, because the chain can now ask for more headroom than
     // a preamp is allowed to give.
     //
@@ -1127,32 +1231,91 @@ const FrequencyResponseChart = () => {
     // preamp to attenuation only — so a chain that merely cut left the volume
     // on the floor, live as well as on disk. Positive when the chain cuts,
     // negative when it boosts; the loudest point lands at unity either way.
+    // Native GraphicEQ stages are not represented by the projected editor
+    // bands when APO writes the chain. Remove those projections from the
+    // biquad list and measure the actual points instead, matching flush.ts.
+    const nativeHeadphoneGraphic = bypassed.includes('headphone')
+      ? undefined
+      : getHeadphoneGraphicEq(headphone);
+    const nativeDriverGraphic = bypassed.includes('driver')
+      ? undefined
+      : getDriverGraphicEq(driver);
+    const nativeVoicingGraphic = bypassed.includes('voicing')
+      ? undefined
+      : getVoicingGraphicEq(voicing);
+    const nativeSmartGraphic = bypassed.includes('smart')
+      ? undefined
+      : getSmartEqGraphicEq(smartEq);
+    const nativeCustomGraphic =
+      !bypassed.includes('custom') && customFx?.graphicEq?.length
+        ? customFx.graphicEq
+        : undefined;
+    const eqFilters =
+      bypassed.includes('eq') || nativeEqGraphic ? [] : Object.values(filters);
+    const headphoneFilters =
+      bypassed.includes('headphone') || nativeHeadphoneGraphic?.length
+        ? []
+        : getHeadphoneFilters(headphone);
+    const customFilters =
+      bypassed.includes('custom') || !customFx
+        ? []
+        : Object.values(customFx.filters);
+    const customPreAmp =
+      bypassed.includes('custom') || !customFx ? 0 : customFx.preAmp;
+    const convolutionCurve =
+      convolution?.fileName &&
+      !bypassed.includes('convolution') &&
+      convolution.response?.length
+        ? convolution.response
+        : undefined;
+    const fallbackConvolutionCurve =
+      convolution?.fileName &&
+      !convolutionCurve &&
+      !bypassed.includes('convolution') &&
+      Number.isFinite(convolution.peakGainDb)
+        ? [
+            { frequency: 10, gain: convolution.peakGainDb as number },
+            { frequency: 20000, gain: convolution.peakGainDb as number },
+          ]
+        : undefined;
     const calculatedAutoPreAmpValue = Math.min(
       MAX_GAIN,
       Math.max(
         MIN_GAIN,
-        -getChainPeakGain([
-          ...(convolution &&
-          !convolution.fileName &&
-          !bypassed.includes('convolution')
-            ? Object.values(convolution.filters || {})
-            : []),
-          ...(bypassed.includes('eq') ? [] : Object.values(filters)),
-          ...(bypassed.includes('driver') ? [] : getDriverFilters(driver)),
-          // The layer this list was missing. A published correction routinely
-          // boosts by six decibels or more, and with it absent the graph showed
-          // headroom for a chain it was not measuring — the writer reserves for
-          // it, so the number under the plot disagreed with the `Preamp:` line
-          // on disk by however much the correction boosts.
-          ...(bypassed.includes('headphone')
-            ? []
-            : getHeadphoneFilters(headphone)),
-          ...(bypassed.includes('voicing') ? [] : getVoicingFilters(voicing)),
-          ...(bypassed.includes('smart') ? [] : getSmartEqFilters(smartEq)),
-        ]),
+        getAutoPreAmpGain({
+          filters: [
+            ...(convolution &&
+            !convolution.fileName &&
+            !bypassed.includes('convolution')
+              ? Object.values(convolution.filters || {})
+              : []),
+            ...eqFilters,
+            ...(bypassed.includes('driver') || nativeDriverGraphic?.length
+              ? []
+              : getDriverFilters(driver)),
+            ...headphoneFilters,
+            ...(bypassed.includes('voicing') || nativeVoicingGraphic?.length
+              ? []
+              : getVoicingFilters(voicing)),
+            ...(bypassed.includes('smart') || nativeSmartGraphic?.length
+              ? []
+              : getSmartEqFilters(smartEq)),
+            ...customFilters,
+          ],
+          curves: [
+            nativeEqGraphic,
+            nativeDriverGraphic,
+            nativeHeadphoneGraphic,
+            nativeVoicingGraphic,
+            nativeSmartGraphic,
+            nativeCustomGraphic,
+            convolutionCurve,
+            fallbackConvolutionCurve,
+          ],
+          constantGain: customPreAmp,
+        }),
       ),
     );
-
     return {
       chartData: [
         ...(hasConvolution && convolution
@@ -1238,6 +1401,20 @@ const FrequencyResponseChart = () => {
               } as IChartCurveData,
             ]
           : []),
+        ...(hasCustom
+          ? [
+              {
+                id: 'Custom FX',
+                name: `Custom FX · ${customFx?.fileName ?? 'custom file'}`,
+                line: {
+                  color: ColorEnum.CUSTOM,
+                  strokeWidth: 2,
+                  opacity: SUPPORTING_CURVE_OPACITY,
+                  points: customCurveData,
+                },
+              } as IChartCurveData,
+            ]
+          : []),
         ...(hasExtraLayers
           ? [
               {
@@ -1293,13 +1470,16 @@ const FrequencyResponseChart = () => {
     bypassed,
     convolution,
     driver,
+    eqFormat,
     filters,
+    graphicEq,
     hasConvolution,
     headphone,
     isAutoPreAmpOn,
     isEqQuiet,
     preAmp,
     smartEq,
+    customFx,
     voicing,
   ]);
 
@@ -1918,8 +2098,9 @@ const FrequencyResponseChart = () => {
               onCycleLook={cycleGraphLook}
               isWaveHidden={isWaveHidden}
               onToggleWave={toggleGraphWave}
-              isEqHidden={hiddenCurves.includes('eq')}
-              onToggleEq={() => toggleGraphCurve('eq')}
+              curveToggles={curveChips}
+              hiddenCurves={hiddenCurves}
+              onToggleCurve={toggleGraphCurve}
               contents={graphContents}
               onCycleContents={cycleGraphContents}
               isGridHidden={isGridHidden}

@@ -34,6 +34,10 @@ const ExtraOutputs = () => {
     () => targets.filter((target) => target.isEligible),
     [targets],
   );
+  const enabled = useMemo(
+    () => eligible.filter((target) => target.isSelected),
+    [eligible],
+  );
 
   // Why a chosen output cannot be used. Each of these needs a different thing
   // done about it, which is the entire reason the bridge reports them
@@ -86,18 +90,28 @@ const ExtraOutputs = () => {
 
   return (
     <SidebarSection
+      className="extra-outputs"
+      defaultOpen={false}
       eyebrow={t('extraOutput.eyebrow')}
       title={t('extraOutput.title')}
       summary={
-        <span className="device-profiles__label device-profiles__label--row">
-          {t('extraOutput.target')}
-          {isMirroring ? (
-            <span className="default-badge">{t('extraOutput.active')}</span>
-          ) : (
-            <span className="extra-outputs__idle">{t('extraOutput.off')}</span>
-          )}
-        </span>
+        enabled.length > 0 ? (
+          <ul className="extra-outputs__enabled">
+            {enabled.map((target) => (
+              <li key={target.device.guid}>
+                <span
+                  className={
+                    target.isRunning ? 'device-dot active' : 'device-dot'
+                  }
+                  aria-hidden="true"
+                />
+                <span>{target.device.name}</span>
+              </li>
+            ))}
+          </ul>
+        ) : undefined
       }
+      summaryWhenCollapsedOnly
     >
       {eligible.length === 0 ? (
         <p className="extra-outputs__hint">{t('extraOutput.none')}</p>

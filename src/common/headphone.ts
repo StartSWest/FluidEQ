@@ -57,15 +57,19 @@ const layerIntensity = (settings: IHeadphoneSettings | undefined): number => {
 export const getHeadphoneGraphicEq = (
   settings: IHeadphoneSettings | undefined,
 ): IGraphicEqPoint[] => {
-  if (!settings?.graphicEq?.length) {
+  const points = settings?.apoOverride
+    ? settings.apoOverride.graphicEq
+    : settings?.graphicEq;
+  if (!points?.length) {
     return [];
   }
   const intensity = layerIntensity(settings);
   if (intensity === 0) {
     return [];
   }
+  const gainPrecision = settings?.apoOverride ? 100 : 10;
 
-  const scaled = settings.graphicEq
+  const scaled = points
     .filter(
       ({ frequency, gain }) =>
         Number.isFinite(frequency) && Number.isFinite(gain),
@@ -75,7 +79,9 @@ export const getHeadphoneGraphicEq = (
       // Rounded like the filters are, and for the same reason: a tenth is what
       // APO reads and what anybody hears, and a halved curve otherwise writes
       // out a file full of 2.8499999.
-      gain: clampGain(Math.round(gain * intensity * 10) / 10),
+      gain: clampGain(
+        Math.round(gain * intensity * gainPrecision) / gainPrecision,
+      ),
     }));
 
   return scaled.some(({ gain }) => gain !== 0) ? scaled : [];
@@ -100,15 +106,19 @@ export const getHeadphoneGraphicEq = (
 export const getHeadphoneFilters = (
   settings: IHeadphoneSettings | undefined,
 ): Array<Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>> => {
-  if (!settings?.filters) {
+  const filters = settings?.apoOverride
+    ? settings.apoOverride.filters
+    : settings?.filters;
+  if (!filters || settings?.apoOverride?.graphicEq?.length) {
     return [];
   }
   const intensity = layerIntensity(settings);
   if (intensity === 0) {
     return [];
   }
+  const gainPrecision = settings?.apoOverride ? 100 : 10;
 
-  return Object.values(settings.filters)
+  return Object.values(filters)
     .filter(
       (filter) =>
         Number.isFinite(filter.frequency) &&
@@ -121,7 +131,9 @@ export const getHeadphoneFilters = (
       // Rounded to a tenth, which is all Equalizer APO reads and all anybody
       // can hear. Without it, halving a correction writes gains like 2.8499999
       // into a file somebody may well open and read.
-      gain: clampGain(Math.round(gain * intensity * 10) / 10),
+      gain: clampGain(
+        Math.round(gain * intensity * gainPrecision) / gainPrecision,
+      ),
       quality,
     }))
     .filter(
@@ -160,5 +172,8 @@ export const hasHeadphoneCorrection = (
   settings: IHeadphoneSettings | undefined,
 ): boolean =>
   Boolean(settings) &&
-  (Object.keys(settings?.filters ?? {}).length > 0 ||
-    (settings?.graphicEq?.length ?? 0) > 0);
+  (Object.keys(settings?.apoOverride?.filters ?? settings?.filters ?? {})
+    .length > 0 ||
+    (settings?.apoOverride?.graphicEq?.length ??
+      settings?.graphicEq?.length ??
+      0) > 0);

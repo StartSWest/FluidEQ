@@ -20,6 +20,7 @@ import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   GRAPH_CONTENTS_LABEL,
   TGraphContents,
+  TGraphCurve,
   TGraphView,
   TWaveOrientation,
 } from '../utils/graphStyle';
@@ -50,8 +51,10 @@ interface IGraphViewMenuProps {
   onCycleLook: (direction: 1 | -1) => void;
   isWaveHidden: boolean;
   onToggleWave: () => void;
-  isEqHidden: boolean;
-  onToggleEq: () => void;
+  /** Active response curves, already arranged in APO application order. */
+  curveToggles: readonly { curve: TGraphCurve; label: string }[];
+  hiddenCurves: readonly TGraphCurve[];
+  onToggleCurve: (curve: TGraphCurve) => void;
   /**
    * Which of the five arrangements the plot is in, so the row can say so.
    *
@@ -142,8 +145,9 @@ const GraphViewMenu = ({
   onCycleLook,
   isWaveHidden,
   onToggleWave,
-  isEqHidden,
-  onToggleEq,
+  curveToggles,
+  hiddenCurves,
+  onToggleCurve,
   contents,
   onCycleContents,
   isGridHidden,
@@ -328,7 +332,28 @@ const GraphViewMenu = ({
             <kbd>Ctrl+W</kbd>
           </button>
 
-          {/* No `is-on` on either of the two below, unlike the modes above.
+          {/* The same response switches as the strip above the graph, in the
+              same order APO applies them. Keeping the menu data-driven means
+              an appearing or bypassed layer changes both surfaces together. */}
+          {curveToggles.map(({ curve, label }) => {
+            const isHidden = hiddenCurves.includes(curve);
+            return (
+              <button
+                type="button"
+                role="menuitemcheckbox"
+                aria-checked={isHidden}
+                key={curve}
+                onClick={choose(() => onToggleCurve(curve))}
+              >
+                <Icon>
+                  <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
+                </Icon>
+                <span>{isHidden ? `Show ${label}` : `Hide ${label}`}</span>
+              </button>
+            );
+          })}
+
+          {/* No `is-on` on the drawing switches below, unlike the modes above.
               Their labels already flip — "Hide the wave" becomes "Show the
               wave" — so colouring them as well states the same thing twice, and
               it picked out rows in a colour the rest of the menu never uses for
@@ -353,23 +378,18 @@ const GraphViewMenu = ({
             <span>{isWaveHidden ? 'Show the wave' : 'Hide the wave'}</span>
           </button>
 
-          {/* The bands' own line, which the legend chip also switches.
-
-              Worth a row here because it is the last stop of the cycle above
-              and because it is the loudest thing on the plot: full weight, a
-              glow, a spectrum gradient and every handle sitting on it. Taking
-              it away is how you see what the other layers are doing, and its
-              handles go with it — there is nothing to watch follow them. */}
           <button
             type="button"
             role="menuitemcheckbox"
-            aria-checked={isEqHidden}
-            onClick={choose(onToggleEq)}
+            aria-checked={isTitlebarWaveHidden}
+            onClick={choose(onToggleTitlebarWave)}
           >
             <Icon>
-              <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
+              <path d="M1.5 8h2l2-4 2 8 2-6 1.5 2h2" />
             </Icon>
-            <span>{isEqHidden ? 'Show EQ curve' : 'Hide EQ curve'}</span>
+            <span>
+              {isTitlebarWaveHidden ? 'Show top wave' : 'Hide top wave'}
+            </span>
           </button>
 
           {/* The paper, rather than what is drawn on it. Solo above hides the
@@ -423,13 +443,13 @@ const GraphViewMenu = ({
             </span>
           </button>
 
-          {/* Neither of the next two is on the plot, and they are here anyway.
+          {/* The meter is not on the plot, and it is here anyway.
               This menu is where every "show me less" switch already lives, and
               a second menu elsewhere for one more toggle is worse than one
-              slightly broad menu. Both are remembered across every view mode
-              rather than per mode: the sidebar and the titlebar are the same in
-              all three, so a control that came back on a mode change would only
-              ever be surprising. */}
+              slightly broad menu. It is remembered across every view mode
+              rather than per mode: the sidebar is the same in all three, so a
+              control that came back on a mode change would only ever be
+              surprising. */}
           <button
             type="button"
             role="menuitemcheckbox"
@@ -441,20 +461,6 @@ const GraphViewMenu = ({
             </Icon>
             <span>
               {isMeterHidden ? 'Show level meter' : 'Hide level meter'}
-            </span>
-          </button>
-
-          <button
-            type="button"
-            role="menuitemcheckbox"
-            aria-checked={isTitlebarWaveHidden}
-            onClick={choose(onToggleTitlebarWave)}
-          >
-            <Icon>
-              <path d="M1.5 8h2l2-4 2 8 2-6 1.5 2h2" />
-            </Icon>
-            <span>
-              {isTitlebarWaveHidden ? 'Show top wave' : 'Hide top wave'}
             </span>
           </button>
 

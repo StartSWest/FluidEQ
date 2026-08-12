@@ -42,6 +42,7 @@ import {
 import { parseEqText } from '../common/apoText';
 import { validatePresetV1, validatePresetV2 } from '../common/validator';
 import { PRODUCT_NAME } from '../common/branding';
+import { analyzeConvolutionBuffer } from './convolutionAnalysis';
 
 /** Big enough for a long impulse response, small enough to refuse a mistake. */
 const MAX_WAV_BYTES = 128 * 1024 * 1024;
@@ -133,6 +134,7 @@ export const importConvolutionFile = (
       `That impulse response is ${sampleRate} Hz. Equalizer APO needs one of ${SUPPORTED_SAMPLE_RATES.join(', ')} Hz.`,
     );
   }
+  const analysis = analyzeConvolutionBuffer(buffer);
 
   const displayName = path.basename(sourcePath, path.extname(sourcePath));
   // Named from the content, not from the original filename: two different IRs
@@ -160,6 +162,8 @@ export const importConvolutionFile = (
     // has nothing to draw for it. The WAV is still what APO applies.
     filters: {},
     fileName,
+    response: analysis.response,
+    peakGainDb: analysis.peakGainDb,
   };
 };
 

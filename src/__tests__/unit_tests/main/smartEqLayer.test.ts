@@ -187,7 +187,7 @@ describe('the Smart EQ layer and the shared preamp', () => {
     expect(preampOf(withLayer)).toBeLessThan(0);
     // Derived from the real chain peak, not from a stored number.
     expect(preampOf(withLayer)).toBeCloseTo(
-      -getChainPeakGain(getSmartEqFilters(withLayer.smartEq)),
+      -(getChainPeakGain(getSmartEqFilters(withLayer.smartEq)) + 0.2),
       1,
     );
   });

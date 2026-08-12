@@ -1,0 +1,430 @@
+@use 'color' as *;
+@use 'theme' as *;
+
+.squig-import {
+  @include inset-surface;
+  position: relative;
+  overflow: hidden;
+  flex: 0 0 auto;
+  padding: 18px;
+  border-color: rgba($secondary-light, 0.28);
+  background:
+    radial-gradient(
+      circle at 100% 0,
+      rgba($secondary-default, 0.14),
+      transparent 40%
+    ),
+    linear-gradient(
+      145deg,
+      rgba($white, 0.025),
+      rgba($secondary-default, 0.045)
+    );
+}
+
+.squig-import::before {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    $secondary-light,
+    rgba($secondary-light, 0)
+  );
+  content: '';
+}
+
+.squig-import__heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+
+  h3 {
+    margin: 2px 0 5px;
+    color: rgba($white, 0.95);
+    font-size: 1rem;
+  }
+
+  p:not(.eyebrow) {
+    max-width: 640px;
+    margin: 0;
+    color: rgba($primary-lighter, 0.7);
+    font-size: 0.72rem;
+    line-height: 1.5;
+  }
+}
+
+.squig-import__visit {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 6px;
+  min-height: 31px;
+  padding: 0 10px;
+  color: $secondary-light;
+  border: 1px solid rgba($secondary-light, 0.36);
+  border-radius: $radius-pill;
+  background: rgba($secondary-default, 0.11);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    color 120ms ease;
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.7);
+    background: rgba($secondary-default, 0.22);
+  }
+
+  .menu-icon {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.squig-import__steps {
+  display: grid;
+  gap: 7px;
+  margin: 15px 0 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  span {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 7px;
+    color: rgba($primary-lighter, 0.68);
+    font-size: 0.67rem;
+    line-height: 1.35;
+  }
+
+  b {
+    display: grid;
+    width: 20px;
+    height: 20px;
+    flex: 0 0 auto;
+    place-items: center;
+    color: $secondary-light;
+    border: 1px solid rgba($secondary-light, 0.32);
+    border-radius: $radius-pill;
+    background: rgba($secondary-default, 0.12);
+    font-size: 0.62rem;
+  }
+}
+
+.squig-import__workspace {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1.08fr) minmax(250px, 0.92fr);
+}
+
+.squig-import__input,
+.squig-import__preview {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid rgba($white, 0.075);
+  border-radius: $radius-s;
+  background: rgba($black, 0.14);
+}
+
+.squig-import__input {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  label {
+    color: rgba($white, 0.84);
+    font-size: 0.7rem;
+    font-weight: 700;
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 126px;
+    resize: vertical;
+    padding: 10px;
+    color: rgba($white, 0.88);
+    border: 1px solid rgba($white, 0.1);
+    border-radius: $radius-s;
+    outline: 0;
+    background: rgba($black, 0.2);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: 0.66rem;
+    line-height: 1.45;
+    transition:
+      border-color 120ms ease,
+      box-shadow 120ms ease;
+
+    &::placeholder {
+      color: rgba($primary-lighter, 0.42);
+    }
+
+    &:focus {
+      border-color: rgba($secondary-light, 0.62);
+      box-shadow: 0 0 0 3px rgba($secondary-default, 0.12);
+    }
+  }
+}
+
+.squig-import__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+
+  .button {
+    display: inline-flex;
+    min-height: 29px;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 11px;
+    color: $secondary-light;
+    border: 1px solid rgba($secondary-light, 0.28);
+    border-radius: $radius-xs;
+    background: rgba($secondary-default, 0.08);
+    box-shadow: none;
+    font: inherit;
+    font-size: 0.66rem;
+    font-weight: 700;
+    transition: $transition-control;
+
+    .menu-icon {
+      width: 13px;
+      height: 13px;
+      flex: 0 0 auto;
+    }
+
+    &:hover:not([aria-disabled='true']),
+    &:focus-visible {
+      color: $white;
+      border-color: rgba($secondary-light, 0.55);
+      background: rgba($secondary-default, 0.18);
+      box-shadow: none;
+      outline: none;
+      transform: none;
+    }
+
+    &[aria-disabled='true'] {
+      color: rgba($primary-lighter, 0.45);
+      border-color: rgba($primary-lighter, 0.1);
+      background: rgba($primary-lighter, 0.04);
+      opacity: 0.72;
+    }
+  }
+}
+
+.squig-import__file {
+  display: none;
+}
+
+.squig-import__preview {
+  display: flex;
+  min-height: 194px;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.squig-import__preview-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+
+  strong,
+  small {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  strong {
+    margin-top: 5px;
+    color: rgba($white, 0.9);
+    font-size: 0.74rem;
+  }
+
+  small {
+    margin-top: 3px;
+    color: rgba($primary-lighter, 0.58);
+    font-size: 0.64rem;
+  }
+}
+
+.squig-import__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: $secondary-light;
+  font-size: 0.61rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: $secondary-light;
+    box-shadow: 0 0 8px rgba($secondary-light, 0.8);
+  }
+}
+
+.squig-import__status--pending {
+  color: rgba($primary-lighter, 0.5);
+
+  i {
+    background: rgba($primary-lighter, 0.46);
+    box-shadow: none;
+  }
+}
+
+.squig-import__clear {
+  flex: 0 0 auto;
+  padding: 3px 0;
+  color: rgba($primary-lighter, 0.6);
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 0.64rem;
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+  }
+}
+
+.squig-import__chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 140px;
+  overflow: visible;
+}
+
+.squig-import__grid {
+  stroke: rgba($white, 0.1);
+  stroke-dasharray: 2 4;
+  stroke-width: 1;
+}
+
+.squig-import__curve {
+  stroke-linecap: round;
+  stroke-width: 2.6;
+}
+
+.squig-import__curve--pending {
+  opacity: 0.32;
+  stroke-dasharray: 4 5;
+  filter: saturate(0.35);
+}
+
+.squig-import__curve--custom {
+  stroke-width: 2.1;
+  stroke-dasharray: 6 4;
+  opacity: 0.9;
+}
+
+.squig-import__curve-key {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 2px;
+  color: rgba($primary-lighter, 0.62);
+  font-size: 0.61rem;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+  }
+}
+
+.squig-import__curve-key-line {
+  display: inline-block;
+  width: 17px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, $secondary-light, #f3a8d7);
+}
+
+.squig-import__curve-key-line--custom {
+  height: 0;
+  border-top: 2px dashed #ff7a45;
+  border-radius: 0;
+  background: transparent;
+}
+
+.squig-import__axis {
+  fill: rgba($primary-lighter, 0.5);
+  font-size: 9px;
+}
+
+.squig-import__empty {
+  display: grid;
+  min-height: 166px;
+  place-items: center;
+  align-content: center;
+  gap: 7px;
+  text-align: center;
+
+  .menu-icon {
+    width: 29px;
+    height: 29px;
+    color: rgba($secondary-light, 0.7);
+    margin-bottom: 3px;
+  }
+
+  strong {
+    color: rgba($white, 0.88);
+    font-size: 0.76rem;
+  }
+
+  p {
+    max-width: 240px;
+    margin: 0;
+    color: rgba($primary-lighter, 0.57);
+    font-size: 0.66rem;
+    line-height: 1.45;
+  }
+}
+
+@container autoeq-workspace (max-width: 760px) {
+  .squig-import__heading {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .squig-import__visit {
+    align-self: flex-start;
+  }
+
+  .squig-import__workspace {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@container autoeq-workspace (max-width: 520px) {
+  .squig-import {
+    padding: 14px;
+  }
+
+  .squig-import__steps {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .squig-import__actions {
+    align-items: stretch;
+    flex-wrap: wrap;
+
+    .button {
+      flex: 1 1 auto;
+    }
+  }
+}

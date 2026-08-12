@@ -33,9 +33,15 @@ import Spinner from './icons/Spinner';
 
 interface SideBarProps {
   showGraphToggle: boolean;
+  isGraphVisible?: boolean;
+  onGraphVisibilityChange?: (next: boolean) => void | Promise<void>;
 }
 
-const SideBar = ({ showGraphToggle }: SideBarProps) => {
+const SideBar = ({
+  showGraphToggle,
+  isGraphVisible,
+  onGraphVisibilityChange,
+}: SideBarProps) => {
   const { isAutoPreAmpOn, isLoading, preAmp, setGlobalError, setPreAmp } =
     useFluidEqContext();
   const { t } = useTranslation();
@@ -101,7 +107,11 @@ const SideBar = ({ showGraphToggle }: SideBarProps) => {
             <div className="col center side-bar__control-card side-bar__response">
               <span className="control-kicker">{t('sidebar.visualizer')}</span>
               <h4>{t('sidebar.graphView')}</h4>
-              <GraphViewSwitch id="graphViewEnabler" />
+              <GraphViewSwitch
+                id="graphViewEnabler"
+                isOn={isGraphVisible}
+                onToggle={onGraphVisibilityChange}
+              />
               {/* Under the visualizer switch, because it answers the question
                   that switch raises: the graph says what the sound is shaped
                   like, this says how loud it actually is. The same component

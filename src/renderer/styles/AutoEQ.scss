@@ -23,13 +23,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 
 // The AutoEQ row reflows against the width of the EQ card, not the viewport:
-// the card can be narrow on a wide screen (three-column shell) and wide on a
+// the card can be narrow on a wide screen (multi-column shell) and wide on a
 // narrow one (stacked shell). The container itself is declared once on
 // .workspace-tab-panel in App.scss — declaring it twice for the same box meant
 // whichever stylesheet lost the cascade silently had no container at all.
 
 // The AutoEQ block is a collapsible now, and deliberately the same one as the
-// three in the output column: the surface, the border and the fold behaviour
+// the other sections in the output column: the surface, the border and the fold behaviour
 // all come from .sidebar-section unchanged, so a foldable region looks the
 // same wherever it appears. Only the inner padding differs, because this one
 // spans the full width of the EQ card.
@@ -49,7 +49,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   // The update-status row only has anything in it for the official AutoEq
-  // source. Left in the flow while empty it held open a band of dead space at
+  // database. Left in the flow while empty it held open a band of dead space at
   // the bottom of the fold, which is what made the section look unfinished.
   .autoeq-update:empty {
     display: none;
@@ -147,7 +147,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // Every column is the same two-row stack — label, control — and the control
-// row is a fixed height, so the three pickers and the apply button line up
+// row is a fixed height, so the pickers and the apply button line up
 // however many lines their selected entry renders inside the trigger.
 .auto-eq {
   position: relative;
@@ -155,9 +155,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   padding: 4px 0 2px;
   gap: 12px;
-  grid-template-columns:
-    minmax(180px, 1fr) minmax(210px, 1.3fr) minmax(190px, 1.1fr)
-    max-content;
+  grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) max-content;
   grid-template-rows: auto;
   align-items: end;
 
@@ -185,7 +183,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// One height for all three pickers, whatever their selected entry contains.
+// One height for all pickers, whatever their selected entry contains.
 .auto-eq .dropdown,
 .auto-eq .dropdown > [role='menu'] {
   height: $control-height-lg;
@@ -194,11 +192,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // *** Option rendering *******************************************************
 
 // Inside the closed trigger every option collapses to clipped lines; the
-// trigger's own fixed height is what keeps the three pickers aligned.
+// trigger's own fixed height is what keeps the pickers aligned.
 .auto-eq .dropdown > [role='menu'] {
   align-items: center;
 
-  .eq-source-option,
   .eq-device-option,
   .autoeq-response-option {
     display: grid;
@@ -218,7 +215,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.eq-source-option,
 .eq-device-option,
 .autoeq-response-option {
   display: grid;
@@ -235,16 +231,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: rgba($primary-lighter, 0.6);
     font-size: 0.62rem;
   }
-}
-
-// Source descriptions are the one place a second line is worth wrapping.
-.auto-eq .list .eq-source-option small {
-  overflow: visible;
-  white-space: normal;
-}
-
-.eq-source-option--child {
-  padding-left: 8px;
 }
 
 // The measurement and model catalogues are long, so their menus are allowed to

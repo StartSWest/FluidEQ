@@ -82,7 +82,9 @@ const isCustomFile = (fileName: string) => /-custom\.txt$/i.test(fileName);
  *
  * Built from `APO_FEATURES` rather than spelled out, so a feature added later
  * cannot end up with a file this panel quietly declines to colour. The device
- * file and the custom file match nothing here on purpose — neither is a layer.
+ * file still matches nothing; a non-empty custom file gets its own Custom FX
+ * pill below because its contents are user-owned rather than a generated
+ * feature file.
  */
 const FEATURE_FILE = new RegExp(`-(${APO_FEATURES.join('|')})\\.txt$`, 'i');
 
@@ -256,6 +258,12 @@ const ConfigFileNode = ({
     /^Filter\s+\d+\s*:/i.test(line),
   ).length;
   const isCustom = isCustomFile(file.fileName);
+  const hasCustomCommands =
+    isCustom &&
+    file.lines.some((line) => {
+      const command = line.split('#')[0].trim();
+      return command.length > 0;
+    });
   const layer = layerOfFile(file.fileName);
 
   if (file.isMissing) {
@@ -268,6 +276,14 @@ const ConfigFileNode = ({
       <li className="config-node config-node--missing">
         <span className="config-node__name">{file.fileName}</span>
         {layer && <LayerPill feature={layer} isApplied isLive={isLive} />}
+        {hasCustomCommands && (
+          <LayerPill
+            feature="custom"
+            isApplied
+            isLive={isLive}
+            title="User-owned custom APO commands"
+          />
+        )}
         <span className="config-node__badge config-node__badge--missing">
           {t('config.file.missing')}
         </span>
@@ -307,8 +323,8 @@ const ConfigFileNode = ({
           {isOpen ? '▾' : '▸'}
         </span>
         <span className="config-node__name">{file.fileName}</span>
-        {/* Immediately after the name, and only when the name has a layer in
-            it — the device file and the custom file are not layers and get
+        {/* Immediately after the name, when the name has a generated layer in
+            it or this is a non-empty custom file. The device file itself gets
             nothing here. The column the pills start at is held open by the
             name, in the stylesheet, so a row without one still lines up with
             the rows around it rather than closing the gap.
@@ -318,6 +334,14 @@ const ConfigFileNode = ({
             profile's own answer belongs to the layers with no file, and this
             panel's promise is to report what is on disk. */}
         {layer && <LayerPill feature={layer} isApplied isLive={isLive} />}
+        {hasCustomCommands && (
+          <LayerPill
+            feature="custom"
+            isApplied
+            isLive={isLive}
+            title="User-owned custom APO commands"
+          />
+        )}
         {subject && (
           <span className="config-node__subject" title={subject}>
             {subject}
@@ -470,8 +494,10 @@ const ConfigInspector = () => {
     voicing,
     driver,
     smartEq,
+    customFx,
     convolution,
     preAmp,
+    refreshState,
   } = useFluidEqContext();
   const isContinuousOn = useContinuousEq();
   const [state, setState] = useState<IApoConfigTreeState>({
@@ -500,6 +526,14 @@ const ConfigInspector = () => {
     }
     setState(tree ? { status: 'ready', tree } : { status: 'absent' });
   }, []);
+
+  const onConfigSaved = useCallback(async () => {
+    // A custom file is user-owned, so saving it bypasses the generated-state
+    // writer. Refresh the live state as well as this tree so a new curve is
+    // visible on the graph immediately.
+    await refreshState();
+    await load();
+  }, [load, refreshState]);
 
   // Re-read whenever anything that rewrites the config changes.
   //
@@ -587,6 +621,7 @@ const ConfigInspector = () => {
     voicing,
     driver,
     settledSmartEq,
+    customFx,
     convolution,
     preAmp,
     isContinuousOn,
@@ -886,12 +921,13 @@ const ConfigInspector = () => {
               {shown.file ? (
                 <ul className="config-device__tree">
                   <ConfigFileNode
+                    key={`${keyOf(shown)}|${customFx?.fileName ?? 'no-custom'}`}
                     file={shown.file}
                     subject={splitLabel(shown).output}
                     heldLayers={heldLayers}
                     unwrittenLayers={unwrittenLayers}
                     isLive={isContinuousOn && isCurrent(shown)}
-                    onSaved={load}
+                    onSaved={onConfigSaved}
                   />
                 </ul>
               ) : (

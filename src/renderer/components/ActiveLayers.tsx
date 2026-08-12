@@ -21,7 +21,7 @@ import { ErrorDescription } from 'common/errors';
 import { TApoLayer } from 'common/constants';
 import { getVoicingProfile, isVoicingActive } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
-import { hasSmartEqLayer } from 'common/smartEq';
+import { hasSmartEqCorrection } from 'common/smartEq';
 import { hasHeadphoneCorrection } from '../../common/headphone';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import { setContinuousEq, useContinuousEq } from '../utils/continuousEq';
@@ -34,6 +34,7 @@ import {
   setLayerBypass,
   setSmartEq as setSmartEqApi,
   setVoicing as setVoicingApi,
+  writeApoConfigFile,
 } from '../utils/equalizerApi';
 import { useSmartEqMode } from '../utils/smartEqMode';
 import MenuIcon, { MenuIconName } from '../icons/MenuIcon';
@@ -66,7 +67,9 @@ const ActiveLayers = () => {
     headphone,
     setHeadphone,
     smartEq,
+    customFx,
     headset,
+    isFlat,
     isEnabled,
     isBlockingError,
     bypassed,
@@ -93,9 +96,9 @@ const ActiveLayers = () => {
 
   const bandCount = Object.keys(filters).length;
   // Flat means no layer, however many bands are sitting there at zero.
-  const hasShapedBands = Object.values(filters).some(
-    (f) => Math.abs(f.gain) > 0.01,
-  );
+  const hasShapedBands =
+    isFlat === false ||
+    Object.values(filters).some((f) => Math.abs(f.gain) > 0.01);
   /*
    * The "(modified)" mark is gone with the attribution it qualified.
    *
@@ -151,7 +154,10 @@ const ActiveLayers = () => {
     setLayerStrength(
       'voicing',
       (value) =>
-        setVoicing({ profileId: voicing?.profileId ?? '', intensity: value }),
+        setVoicing({
+          ...(voicing ?? { profileId: '' }),
+          intensity: value,
+        }),
       (value) => setVoicingApi(voicing?.profileId ?? '', value),
       intensity,
     );
@@ -171,7 +177,10 @@ const ActiveLayers = () => {
     setLayerStrength(
       'driver',
       (value) =>
-        setDriver({ profileId: driver?.profileId ?? '', intensity: value }),
+        setDriver({
+          ...(driver ?? { profileId: '' }),
+          intensity: value,
+        }),
       (value) => setDriverApi(driver?.profileId ?? '', value),
       intensity,
     );
@@ -271,12 +280,12 @@ const ActiveLayers = () => {
   // Shown whenever a driver is chosen, for the same reason the voicing is: the
   // chip carries the strength slider, so hiding it at 0% would take away the
   // only control that could bring the layer back.
-  if (driverProfile) {
+  if (driverProfile || driver?.apoOverride) {
     layers.push({
       key: 'driver',
       icon: 'waveform',
       label: t('eq.layers.driver'),
-      name: driverProfile.name,
+      name: driverProfile?.name ?? 'Equalizer APO edit',
       percent: Math.round((driver?.intensity ?? 0) * 100),
       strength: driver?.intensity ?? 0,
       isInactive: (driver?.intensity ?? 0) <= 0,
@@ -412,12 +421,12 @@ const ActiveLayers = () => {
   // It is marked inactive instead — see `isInactive`, which is the same faded
   // treatment a bypassed layer gets, because a voicing at zero strength is
   // exactly as absent from the sound as one that is switched off.
-  if (voicingProfile) {
+  if (voicingProfile || voicing?.apoOverride) {
     layers.push({
       key: 'voicing',
       isVoicing: true,
       label: t('eq.layers.voicing'),
-      name: voicingProfile.name,
+      name: voicingProfile?.name ?? 'Equalizer APO edit',
       percent: Math.round((voicing?.intensity ?? 0) * 100),
       strength: voicing?.intensity ?? 1,
       isInactive: !isVoicingActive(voicing),
@@ -435,7 +444,7 @@ const ActiveLayers = () => {
   // above it. Clearing it takes nothing else with it — not the bands, not the
   // reference they came from, not the other two layers — which is the whole
   // point of it being a layer at all.
-  if (hasSmartEqLayer(smartEq)) {
+  if (hasSmartEqCorrection(smartEq)) {
     layers.push({
       key: 'smart',
       icon: 'smart',
@@ -499,6 +508,26 @@ const ActiveLayers = () => {
         await refreshState();
       },
       feature: 'smart',
+    });
+  }
+
+  // The custom file is owned by the user and may contain commands FluidEQ does
+  // not understand. Removing its chip clears the file's filter text, leaving
+  // the generated EQ and AutoEQ layers completely untouched.
+  if (customFx) {
+    layers.push({
+      key: 'custom',
+      icon: 'waveform',
+      label: t('eq.layers.custom'),
+      name: customFx.fileName,
+      clearHint: t('eq.layers.clearCustom'),
+      onClear: async () => {
+        // This pill describes the user-owned custom file. Clear that file's
+        // filter text without touching the generated EQ or AutoEQ layers.
+        await writeApoConfigFile(customFx.fileName, '');
+        await refreshState();
+      },
+      feature: 'custom',
     });
   }
 

@@ -31,6 +31,7 @@ import {
   MAX_NUM_FILTERS,
 } from '../common/constants';
 import { IConvolutionCatalogEntry } from '../common/convolution';
+import { analyzeConvolutionBuffer } from './convolutionAnalysis';
 
 const AUTOEQ_INDEX_URL =
   'https://raw.githubusercontent.com/jaakkopasanen/AutoEq/master/results/INDEX.md';
@@ -283,6 +284,7 @@ export const downloadConvolution = async (
     throw new Error('The convolution file is too large to import safely.');
   }
   validateWav(buffer, entry.sampleRate);
+  const analysis = analyzeConvolutionBuffer(buffer);
   const graphFilters = await fetchGraphFilters(entry.downloadUrl);
 
   const fileName = `fluideq-ir-${createHash('sha1')
@@ -308,6 +310,8 @@ export const downloadConvolution = async (
     // applies the downloaded WAV itself.
     filters: graphFilters,
     fileName,
+    response: analysis.response,
+    peakGainDb: analysis.peakGainDb,
     sourceId: entry.sourceId,
     sourceUrl: entry.sourceUrl,
   };

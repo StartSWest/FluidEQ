@@ -16,7 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { clampGain, FilterTypeEnum, IFilter, IFiltersMap } from './constants';
+import {
+  clampGain,
+  FilterTypeEnum,
+  IFilter,
+  IFiltersMap,
+  IGraphicEqPoint,
+} from './constants';
 
 /**
  * Biquad magnitude response, shared by the graph and the config writer.
@@ -45,6 +51,9 @@ export const RESPONSE_SAMPLE_FREQUENCY = 96000;
 const NUM_STEPS = 1000;
 export const RESPONSE_START = 10;
 export const RESPONSE_END = 20000;
+
+/** Shared output ceiling for strict automatic peak normalization. */
+export const AUTO_PREAMP_HEADROOM_DB = 0.2;
 
 const logStart = Math.log10(RESPONSE_START);
 const logEnd = Math.log10(RESPONSE_END);
@@ -201,77 +210,63 @@ export const gainAtFrequency = (
   return 10 * Math.log10(numerator / denominator);
 };
 
-/**
- * The loudest point of a whole filter chain, in dB, or 0 if it never boosts.
- *
- * This is the number the preamp has to cancel. Summing each filter's own peak
- * would over-reserve, because peaks at different frequencies never coincide;
- * summing the responses at every probe frequency and taking the maximum is the
- * real answer, and it costs one pass over a thousand samples.
- */
-/**
- * How far below full scale music actually sits, by frequency.
- *
- * The headroom question is not "how much does this filter boost" but "how much
- * boost will ever meet a full-scale signal". Those are the same only if the
- * material is flat to 20 kHz, and nothing is: recorded music is loud from the
- * bass through the lower mids and falls away steeply above, so a +8 dB lift at
- * 12 kHz can never cost 8 dB of headroom because there is never 0 dBFS up there
- * to lift.
- *
- * Reserving as if there were is what made the preamp read −11 dB on a chain
- * nobody would call extreme. The numbers below are the shortfall, in dB, of
- * typical program material against its own busiest region — deliberately
- * conservative, roughly half of what measured spectra show, so the reserve
- * still errs high. Zero from 60 Hz to 2 kHz, where music genuinely does reach
- * full scale and the full boost has to be paid for.
- *
- * This is a model, not a measurement, and that is the point: it does not move
- * while somebody is listening. Measuring the live output would be more accurate
- * and would change the level under them, which is worse.
- */
-const PROGRAM_ALLOWANCE: Array<[frequency: number, allowanceDb: number]> = [
-  [20, 4],
-  [40, 1.5],
-  [60, 0],
-  [2000, 0],
-  [4000, 1.5],
-  [6000, 3],
-  [10000, 5],
-  [16000, 7],
-  [20000, 8],
-];
+const sortedGraphicEqPoints = (points: IGraphicEqPoint[] | undefined) =>
+  (points ?? [])
+    .filter(
+      (point) =>
+        Number.isFinite(point.frequency) &&
+        point.frequency > 0 &&
+        Number.isFinite(point.gain),
+    )
+    .slice()
+    .sort((left, right) => left.frequency - right.frequency);
 
-/** Linear interpolation in log frequency, which is how hearing spaces it. */
-const getProgramAllowance = (frequency: number): number => {
-  const first = PROGRAM_ALLOWANCE[0];
-  const last = PROGRAM_ALLOWANCE[PROGRAM_ALLOWANCE.length - 1];
-  if (frequency <= first[0]) {
-    return first[1];
+const gainAtSortedGraphicEqFrequency = (
+  sorted: IGraphicEqPoint[],
+  frequency: number,
+): number => {
+  if (sorted.length === 0) {
+    return 0;
   }
-  if (frequency >= last[0]) {
-    return last[1];
+  if (frequency <= sorted[0].frequency) {
+    return sorted[0].gain;
   }
-  for (let i = 1; i < PROGRAM_ALLOWANCE.length; i += 1) {
-    const [highFrequency, highAllowance] = PROGRAM_ALLOWANCE[i];
-    if (frequency <= highFrequency) {
-      const [lowFrequency, lowAllowance] = PROGRAM_ALLOWANCE[i - 1];
-      const span = Math.log10(highFrequency / lowFrequency);
-      const along = span > 0 ? Math.log10(frequency / lowFrequency) / span : 0;
-      return lowAllowance + (highAllowance - lowAllowance) * along;
+  const last = sorted[sorted.length - 1];
+  if (frequency >= last.frequency) {
+    return last.gain;
+  }
+  let low = 0;
+  let high = sorted.length - 1;
+  while (high - low > 1) {
+    const middle = Math.floor((low + high) / 2);
+    if (sorted[middle].frequency <= frequency) {
+      low = middle;
+    } else {
+      high = middle;
     }
   }
-  return last[1];
+  const before = sorted[low];
+  const after = sorted[high];
+  const span = Math.log(after.frequency) - Math.log(before.frequency);
+  const progress =
+    span === 0 ? 0 : (Math.log(frequency) - Math.log(before.frequency)) / span;
+  return before.gain + (after.gain - before.gain) * progress;
 };
+
+/** Linear interpolation in log frequency, matching Equalizer APO GraphicEQ. */
+export const getGraphicEqGainAtFrequency = (
+  points: IGraphicEqPoint[] | undefined,
+  frequency: number,
+): number =>
+  gainAtSortedGraphicEqFrequency(sortedGraphicEqPoints(points), frequency);
 
 /**
  * How far a chain departs from flat, in either direction.
  *
- * Unweighted and unsigned, unlike getChainPeakGain below: that one asks what a
- * boost will cost in headroom, which is a question about loud passages and only
- * about boosts. This asks how extreme the correction is at all, and a chain
- * that buries the midrange forty decibels down is exactly as unusable as one
- * that lifts it by forty.
+ * Unsigned, unlike getChainPeakGain below: that one asks where the chain's
+ * highest absolute response lands. This asks how extreme the correction is in
+ * either direction, and a chain that buries the midrange forty decibels down is
+ * exactly as unusable as one that lifts it by forty.
  */
 export const getChainExcursion = (
   filters: Array<Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>>,
@@ -362,13 +357,28 @@ export const compressChainToLimit = (
   );
 };
 
-export const getChainPeakGain = (
-  filters: Array<Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>>,
-): number => {
-  if (filters.length === 0) {
-    return 0;
-  }
+export interface ICombinedResponse {
+  filters?: Array<Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>>;
+  /** Native GraphicEQ stages and measured convolution responses. */
+  curves?: Array<IGraphicEqPoint[] | undefined>;
+  /** Known frequency-independent gain, such as a custom-file Preamp line. */
+  constantGain?: number;
+}
 
+/**
+ * The strict peak of every measurable stage at the same frequencies.
+ *
+ * Peaks are combined before the maximum is selected. Adding each layer's own
+ * maximum would reserve headroom for boosts that never coincide, while a
+ * program-material weighting can leave a legal full-scale input above 0 dB.
+ * Curve frequencies are added to the normal probe grid so a measured FIR peak
+ * cannot fall between the logarithmic samples.
+ */
+export const getCombinedResponsePeakGain = ({
+  filters = [],
+  curves = [],
+  constantGain = 0,
+}: ICombinedResponse): number => {
   const coefficients = filters
     .filter(
       (filter) =>
@@ -377,6 +387,36 @@ export const getChainPeakGain = (
         Number.isFinite(filter.quality),
     )
     .map((filter) => getTFCoefficients(filter as IFilter));
+
+  // Sort each curve once. This calculation runs on every filter drag and a
+  // measured convolution carries about a thousand points; sorting it again at
+  // every probe frequency would turn one response calculation into thousands
+  // of full sorts.
+  const usableCurves = curves
+    .filter((curve): curve is IGraphicEqPoint[] => Array.isArray(curve))
+    .map(sortedGraphicEqPoints)
+    .filter((curve) => curve.length > 0);
+  const hasConstantGain = Number.isFinite(constantGain) && constantGain !== 0;
+  if (
+    coefficients.length === 0 &&
+    usableCurves.length === 0 &&
+    !hasConstantGain
+  ) {
+    return 0;
+  }
+
+  const frequencies = new Set(SAMPLE_FREQUENCIES);
+  usableCurves.forEach((curve) =>
+    curve.forEach(({ frequency }) => {
+      if (
+        Number.isFinite(frequency) &&
+        frequency >= RESPONSE_START &&
+        frequency <= RESPONSE_END
+      ) {
+        frequencies.add(frequency);
+      }
+    }),
+  );
 
   /*
    * THE TRUE MAXIMUM, WHICH CAN BE NEGATIVE.
@@ -393,15 +433,16 @@ export const getChainPeakGain = (
    * without any risk of clipping, since the loudest point lands exactly at 0.
    */
   let peak = -Infinity;
-  SAMPLE_FREQUENCIES.forEach((frequency) => {
-    let total = 0;
+  frequencies.forEach((frequency) => {
+    let total = Number.isFinite(constantGain) ? constantGain : 0;
     coefficients.forEach((c) => {
       total += gainAtFrequency(frequency, c);
     });
-    // What the boost will actually cost, not what it could cost in theory.
-    const needed = total - getProgramAllowance(frequency);
-    if (Number.isFinite(needed) && needed > peak) {
-      peak = needed;
+    usableCurves.forEach((curve) => {
+      total += gainAtSortedGraphicEqFrequency(curve, frequency);
+    });
+    if (Number.isFinite(total) && total > peak) {
+      peak = total;
     }
   });
 
@@ -412,4 +453,49 @@ export const getChainPeakGain = (
     return 0;
   }
   return Math.round(peak * 100) / 100;
+};
+
+export const getChainPeakGain = (
+  filters: Array<Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>>,
+): number => getCombinedResponsePeakGain({ filters });
+
+/**
+ * Preamp that puts the measurable chain below full scale by the shared margin.
+ * A genuinely empty chain remains at 0 dB instead of being attenuated merely
+ * because automatic normalization is enabled.
+ */
+export const getAutoPreAmpGain = (response: ICombinedResponse): number => {
+  const filters = response.filters ?? [];
+  const curves = (response.curves ?? []).filter(
+    (curve) => Array.isArray(curve) && curve.length > 0,
+  );
+  const constantGain = Number.isFinite(response.constantGain)
+    ? (response.constantGain ?? 0)
+    : 0;
+  if (filters.length === 0 && curves.length === 0 && constantGain === 0) {
+    return 0;
+  }
+  const gain = -(
+    getCombinedResponsePeakGain({ filters, curves, constantGain }) +
+    AUTO_PREAMP_HEADROOM_DB
+  );
+  return Math.round(gain * 100) / 100;
+};
+
+/**
+ * The peak of a native GraphicEQ stage, in dB.
+ *
+ * GraphicEQ is not a collection of biquads, so it cannot go through
+ * `getChainPeakGain`. APO interpolates between the supplied points, which
+ * cannot create a value above the largest point; the largest finite gain is
+ * therefore the stage peak. Keeping the negative result matters for a curve
+ * that cuts everywhere: auto-normalize should restore that lost level too.
+ */
+export const getGraphicEqPeakGain = (
+  points: IGraphicEqPoint[] | undefined,
+): number => {
+  const finiteGains = (points ?? [])
+    .map(({ gain }) => gain)
+    .filter((gain) => Number.isFinite(gain));
+  return finiteGains.length > 0 ? Math.max(...finiteGains) : 0;
 };

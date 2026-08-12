@@ -31,6 +31,8 @@ interface ISidebarSectionProps {
    * have to be unfolded again to be useful.
    */
   summary?: ReactNode;
+  /** Hide the summary while expanded when it only previews folded content. */
+  summaryWhenCollapsedOnly?: boolean;
   /** Extra class on the section, for callers outside the sidebar. */
   className?: string;
   /**
@@ -57,6 +59,7 @@ export default function SidebarSection({
   eyebrow,
   title,
   summary,
+  summaryWhenCollapsedOnly = false,
   className,
   defaultOpen = true,
   children,
@@ -98,7 +101,9 @@ export default function SidebarSection({
         </svg>
       </button>
 
-      {summary && <div className="sidebar-section__summary">{summary}</div>}
+      {summary && (!summaryWhenCollapsedOnly || !isOpen) && (
+        <div className="sidebar-section__summary">{summary}</div>
+      )}
 
       {/* A 0fr to 1fr grid row is the one height transition that needs no
           measured pixel value, so a section can hold anything — including a

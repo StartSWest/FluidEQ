@@ -72,8 +72,11 @@ export const PANE_MIN_HEIGHT = 150;
  */
 const CHROME_ALLOWANCE = 200;
 
-/** The share, 0..1. */
-const EDITOR_SHARE_KEY = 'fluideq.editorShare';
+/** Per-workspace top-pane shares, keyed by stable tab id. */
+const EDITOR_SHARES_BY_TAB_KEY = 'fluideq.editorShareByTab';
+
+/** The previous single share, retained as the fallback for untouched tabs. */
+const LEGACY_EDITOR_SHARE_KEY = 'fluideq.editorShare';
 
 /**
  * What the old builds wrote: a flat pixel height.
@@ -132,9 +135,9 @@ export const clampToWindow = (value: number) =>
 
 const clampShare = (share: number) => Math.min(0.95, Math.max(0.05, share));
 
-const readStoredShare = (): number => {
+const readStoredDefaultShare = (): number => {
   try {
-    const stored = Number(window.localStorage.getItem(EDITOR_SHARE_KEY));
+    const stored = Number(window.localStorage.getItem(LEGACY_EDITOR_SHARE_KEY));
     if (Number.isFinite(stored) && stored > 0) {
       return clampShare(stored);
     }
@@ -144,7 +147,9 @@ const readStoredShare = (): number => {
     );
     if (Number.isFinite(legacy) && legacy > 0) {
       window.localStorage.removeItem(LEGACY_EDITOR_HEIGHT_KEY);
-      return clampShare(legacy / splittableHeight());
+      const migrated = clampShare(legacy / splittableHeight());
+      window.localStorage.setItem(LEGACY_EDITOR_SHARE_KEY, String(migrated));
+      return migrated;
     }
   } catch {
     // Storage can be unavailable; the default is a perfectly good split.
@@ -152,7 +157,30 @@ const readStoredShare = (): number => {
   return EDITOR_DEFAULT_SHARE;
 };
 
-let editorShare = readStoredShare();
+const readStoredSharesByTab = (): Record<string, number> => {
+  try {
+    const source = JSON.parse(
+      window.localStorage.getItem(EDITOR_SHARES_BY_TAB_KEY) ?? '{}',
+    ) as Record<string, unknown>;
+    return Object.entries(source).reduce<Record<string, number>>(
+      (shares, [tab, value]) => {
+        if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+          shares[tab] = clampShare(value);
+        }
+        return shares;
+      },
+      {},
+    );
+  } catch {
+    return {};
+  }
+};
+
+const defaultEditorShare = readStoredDefaultShare();
+let editorSharesByTab = readStoredSharesByTab();
+
+const editorShareForTab = (tab: string) =>
+  editorSharesByTab[tab] ?? defaultEditorShare;
 
 const editorListeners = new Set<() => void>();
 
@@ -165,8 +193,8 @@ const editorListeners = new Set<() => void>();
  * big again restores exactly what was set rather than whatever the smallest
  * size it ever had happened to allow.
  */
-export const getEditorHeight = () =>
-  clampToWindow(Math.round(splittableHeight() * editorShare));
+export const getEditorHeight = (tab = 'default') =>
+  clampToWindow(Math.round(splittableHeight() * editorShareForTab(tab)));
 
 /**
  * Set from a drag, in pixels, converted straight back to a share.
@@ -175,12 +203,15 @@ export const getEditorHeight = () =>
  * has and what the screen shows; two pointer positions a fraction of a per cent
  * apart are the same divider position and are not worth a re-render.
  */
-export const setEditorHeight = (next: number) => {
+export const setEditorHeight = (next: number, tab = 'default') => {
   const value = clampToMinimum(next);
-  if (value === getEditorHeight()) {
+  if (value === getEditorHeight(tab)) {
     return;
   }
-  editorShare = clampShare(value / splittableHeight());
+  editorSharesByTab = {
+    ...editorSharesByTab,
+    [tab]: clampShare(value / splittableHeight()),
+  };
   editorListeners.forEach((listener) => listener());
 };
 
@@ -192,7 +223,10 @@ export const setEditorHeight = (next: number) => {
  */
 export const commitPaneSizes = () => {
   try {
-    window.localStorage.setItem(EDITOR_SHARE_KEY, String(editorShare));
+    window.localStorage.setItem(
+      EDITOR_SHARES_BY_TAB_KEY,
+      JSON.stringify(editorSharesByTab),
+    );
   } catch {
     // Not worth failing a drag over.
   }
@@ -205,10 +239,10 @@ const subscribeEditor = (listener: () => void) => {
   };
 };
 
-export const useEditorHeight = () =>
+export const useEditorHeight = (tab = 'default') =>
   useSyncExternalStore(
     subscribeEditor,
-    getEditorHeight,
+    () => getEditorHeight(tab),
     // Server snapshot for useSyncExternalStore. Never rendered to a user, so it
     // does not need the window it has no access to.
     () => 430,

@@ -43,6 +43,7 @@ import {
   getSmartEqBands,
   getSmartEqFilters,
   getSmartEqLayout,
+  hasSmartEqCorrection,
   hasSmartEqLayer,
   sanitizeSmartEqSettings,
 } from 'common/smartEq';
@@ -119,6 +120,15 @@ describe('the Smart EQ layer', () => {
       expect(Object.keys(layer?.filters ?? {}).length).toBe(
         getSmartEqLayout().length,
       );
+    });
+
+    it('keeps a measured correction held when its strength is zero', () => {
+      const layer = layerOf({ 1000: 3 });
+      const muted = sanitizeSmartEqSettings({ ...layer, intensity: 0 });
+
+      expect(muted?.intensity).toBe(0);
+      expect(hasSmartEqLayer(muted)).toBe(false);
+      expect(hasSmartEqCorrection(muted)).toBe(true);
     });
   });
 

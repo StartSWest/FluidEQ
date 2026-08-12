@@ -40,7 +40,6 @@ import {
   MIN_QUALITY,
   IConvolutionProfile,
   ISmartEqSettings,
-  ISquigSource,
   TApoLayer,
   clampGain,
 } from 'common/constants';
@@ -131,7 +130,6 @@ const buildResponseHandler = <
     | IAutoEqUpdateStatus
     | IConvolutionCatalogEntry[]
     | IConvolutionProfile
-    | ISquigSource[]
     | IGatheredFacts
     | IApoConfigTree
     | IChainImport,
@@ -177,7 +175,6 @@ const simpleResponseHandler = <
     | IAutoEqUpdateStatus
     | IConvolutionCatalogEntry[]
     | IConvolutionProfile
-    | ISquigSource[]
     | IGatheredFacts
     | IApoConfigTree
     | IChainImport,
@@ -474,53 +471,6 @@ export const loadAutoEqPreset = (
   return promisifyResult(setterResponseHandler, channel);
 };
 
-const DEFAULT_SQUIG_SOURCE = 'squiglink-gadgetrytech-headphones-headsets';
-
-export const getSquiglinkSourceList = (): Promise<ISquigSource[]> => {
-  const channel = ChannelEnum.GET_SQUIGLINK_SOURCE_LIST;
-  window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<ISquigSource[]>(), channel);
-};
-
-export const getSquiglinkDeviceList = (
-  sourceId = DEFAULT_SQUIG_SOURCE,
-): Promise<string[]> => {
-  const channel = ChannelEnum.GET_SQUIGLINK_DEVICE_LIST;
-  window.electron.ipcRenderer.sendMessage(channel, [sourceId]);
-  return promisifyResult(simpleResponseHandler<string[]>(), channel);
-};
-
-export const getSquiglinkResponseList = (
-  sourceIdOrDevice: string,
-  deviceMaybe?: string,
-): Promise<string[]> => {
-  const channel = ChannelEnum.GET_SQUIGLINK_RESPONSE_LIST;
-  const sourceId = deviceMaybe ? sourceIdOrDevice : DEFAULT_SQUIG_SOURCE;
-  const deviceName = deviceMaybe || sourceIdOrDevice;
-  window.electron.ipcRenderer.sendMessage(channel, [sourceId, deviceName]);
-  return promisifyResult(simpleResponseHandler<string[]>(), channel);
-};
-
-export const loadSquiglinkPreset = (
-  sourceIdOrDevice: string,
-  deviceOrResponse: string,
-  responseOrProfile?: string,
-  profileName?: string,
-): Promise<void> => {
-  const channel = ChannelEnum.LOAD_SQUIGLINK_PRESET;
-  const sourceId = profileName ? sourceIdOrDevice : DEFAULT_SQUIG_SOURCE;
-  const deviceName = profileName ? deviceOrResponse : sourceIdOrDevice;
-  const responseName = profileName ? responseOrProfile : deviceOrResponse;
-  const profile = profileName || responseOrProfile;
-  window.electron.ipcRenderer.sendMessage(channel, [
-    sourceId,
-    deviceName,
-    responseName,
-    profile,
-  ]);
-  return promisifyResult(setterResponseHandler, channel);
-};
-
 export const getConvolutionCatalog = (
   query = '',
 ): Promise<IConvolutionCatalogEntry[]> => {
@@ -581,6 +531,16 @@ export const importEqFile = (): Promise<string> => {
     channel,
     FILE_PICKER_TIMEOUT,
   );
+};
+
+/** Apply EQ text pasted or read by the Squiglink import panel. */
+export const importEqText = (
+  text: string,
+  label = 'Squiglink export',
+): Promise<string> => {
+  const channel = ChannelEnum.IMPORT_EQ_TEXT;
+  window.electron.ipcRenderer.sendMessage(channel, [text, label]);
+  return promisifyResult(simpleResponseHandler<string>(), channel);
 };
 
 /** Import a WAV impulse response the user picks. Same contract as above. */

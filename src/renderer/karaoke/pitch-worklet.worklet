@@ -1,0 +1,146 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+const WINDOW_SIZE = 2048;
+// 2,304 samples is 52 ms at 44.1 kHz and 48 ms at 48 kHz. That caps messages
+// around twenty per second while each estimate still uses a ~43 ms window.
+const HOP_SIZE = 2304;
+const MIN_FREQUENCY_HZ = 70;
+const MAX_FREQUENCY_HZ = 1200;
+// Speech has less periodic energy than a held sung note. These thresholds keep
+// room noise below the gate while allowing the curve UI to follow ordinary
+// voiced speech instead of appearing dead until somebody sustains a vowel.
+const YIN_THRESHOLD = 0.2;
+const MINIMUM_CONFIDENCE = 0.55;
+const MINIMUM_RMS = 0.0035;
+
+const detectPitch = (samples, difference) => {
+  let energy = 0;
+  for (let index = 0; index < samples.length; index += 1) {
+    energy += samples[index] * samples[index];
+  }
+  const rms = Math.sqrt(energy / samples.length);
+  if (rms < MINIMUM_RMS) return undefined;
+
+  const minTau = Math.max(2, Math.floor(sampleRate / MAX_FREQUENCY_HZ));
+  const maxTau = Math.min(
+    Math.floor(sampleRate / MIN_FREQUENCY_HZ),
+    Math.floor(samples.length / 2),
+  );
+  difference.fill(0, 0, maxTau + 1);
+  const comparisonLength = samples.length - maxTau;
+  for (let tau = 1; tau <= maxTau; tau += 1) {
+    let sum = 0;
+    for (let index = 0; index < comparisonLength; index += 1) {
+      const delta = samples[index] - samples[index + tau];
+      sum += delta * delta;
+    }
+    difference[tau] = sum;
+  }
+
+  difference[0] = 1;
+  let cumulative = 0;
+  for (let tau = 1; tau <= maxTau; tau += 1) {
+    cumulative += difference[tau];
+    difference[tau] =
+      cumulative > 0 ? (difference[tau] * tau) / cumulative : 1;
+  }
+
+  let selectedTau = -1;
+  for (let tau = minTau; tau <= maxTau; tau += 1) {
+    if (difference[tau] >= YIN_THRESHOLD) continue;
+    selectedTau = tau;
+    while (
+      selectedTau + 1 <= maxTau &&
+      difference[selectedTau + 1] < difference[selectedTau]
+    ) {
+      selectedTau += 1;
+    }
+    break;
+  }
+  if (selectedTau < 0) {
+    let bestValue = Infinity;
+    for (let tau = minTau; tau <= maxTau; tau += 1) {
+      if (difference[tau] < bestValue) {
+        bestValue = difference[tau];
+        selectedTau = tau;
+      }
+    }
+  }
+
+  const confidence = 1 - difference[selectedTau];
+  if (!Number.isFinite(confidence) || confidence < MINIMUM_CONFIDENCE) {
+    return undefined;
+  }
+  const left = difference[Math.max(1, selectedTau - 1)];
+  const center = difference[selectedTau];
+  const right = difference[Math.min(maxTau, selectedTau + 1)];
+  const denominator = 2 * (2 * center - right - left);
+  const refinedTau =
+    denominator === 0
+      ? selectedTau
+      : selectedTau + (right - left) / denominator;
+  return { frequencyHz: sampleRate / refinedTau, confidence, rms };
+};
+
+class FluidEqKaraokePitchProcessor extends AudioWorkletProcessor {
+  constructor() {
+    super();
+    this.ring = new Float32Array(WINDOW_SIZE);
+    this.window = new Float32Array(WINDOW_SIZE);
+    this.difference = new Float32Array(Math.floor(WINDOW_SIZE / 2) + 1);
+    this.writeIndex = 0;
+    this.samplesSeen = 0;
+    this.samplesSinceAnalysis = 0;
+  }
+
+  process(inputs) {
+    const channel = inputs[0] && inputs[0][0];
+    if (!channel) return true;
+    for (let index = 0; index < channel.length; index += 1) {
+      this.ring[this.writeIndex] = channel[index];
+      this.writeIndex = (this.writeIndex + 1) % WINDOW_SIZE;
+    }
+    this.samplesSeen += channel.length;
+    this.samplesSinceAnalysis += channel.length;
+    if (
+      this.samplesSeen < WINDOW_SIZE ||
+      this.samplesSinceAnalysis < HOP_SIZE
+    ) {
+      return true;
+    }
+    this.samplesSinceAnalysis %= HOP_SIZE;
+    for (let index = 0; index < WINDOW_SIZE; index += 1) {
+      this.window[index] = this.ring[(this.writeIndex + index) % WINDOW_SIZE];
+    }
+
+    const startedAt = performance.now();
+    const estimate = detectPitch(this.window, this.difference);
+    const capturedAtMs = performance.now();
+    this.port.postMessage({
+      frequencyHz: estimate ? estimate.frequencyHz : 0,
+      confidence: estimate ? estimate.confidence : 0,
+      rms: estimate ? estimate.rms : 0,
+      capturedAtMs,
+      processingMs: capturedAtMs - startedAt,
+    });
+    return true;
+  }
+}
+
+registerProcessor('fluideq-karaoke-pitch', FluidEqKaraokePitchProcessor);

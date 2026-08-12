@@ -1054,6 +1054,7 @@ export const GRAPH_CURVES = [
   // otherwise would be assuming something the file never promised.
   'headphone',
   'smart',
+  'custom',
   'total',
 ] as const;
 
@@ -1129,20 +1130,15 @@ function setCurveHidden(curve: TGraphCurve, next: boolean) {
 }
 
 /**
- * The legend chips. Every curve but one is simply on or off.
+ * The legend chips. Every curve is simply on or off.
  *
- * The EQ curve goes through the view instead, because taking the bands' line
- * off the plot is the same request as "no curves" — see `setGraphContents`. Handled
- * here rather than in the chip so both the chip and Ctrl+W get the same answer;
- * a rule about what hiding a curve means belongs with the curves, not with one
- * of the two controls that can ask for it.
+ * The EQ option in the View menu uses this same path, so it hides only the
+ * cyan EQ line and leaves the other response layers visible for comparison.
+ * The multi-line arrangements remain available through the Ctrl+W cycle and
+ * `setGraphContents`.
  */
 export const toggleGraphCurve = (curve: TGraphCurve) => {
   const hidden = curvesSetting.get();
-  if (curve === 'eq') {
-    setGraphContents(hidden.includes('eq') ? 'everything' : 'wave');
-    return;
-  }
   setCurveHidden(curve, !hidden.includes(curve));
 };
 

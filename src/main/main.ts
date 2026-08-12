@@ -80,11 +80,13 @@ import {
   smartEqFromFilters,
 } from '../common/smartEq';
 import { parseEqText } from '../common/apoText';
+import { parseCustomFx } from '../common/customFx';
 import { compressChainToLimit } from '../common/response';
 import {
   AutoEqFormat,
   FilterTypeEnum,
   IState,
+  ICustomFxSettings,
   IPresetV2,
   IFilter,
   IFilterEdit,
@@ -116,6 +118,7 @@ import {
   OUTPUT_STATE_CHANGED_EVENT,
   AUTOEQ_SOURCE_ID,
   APO_LAYERS,
+  APO_FEATURES,
   TApoFeature,
   TApoLayer,
   describeBandShape,
@@ -143,13 +146,6 @@ import {
   updateAutoEqDatabase,
 } from './autoeqUpdater';
 import {
-  getSquiglinkDeviceList,
-  getSquiglinkPreset,
-  getSquiglinkResponseList,
-  getSquiglinkSourceList,
-  syncSquiglinkDatabase,
-} from './squiglink';
-import {
   downloadConvolution,
   getConvolutionCatalog,
 } from './convolutionCatalog';
@@ -161,6 +157,10 @@ import {
   setVideoAdBlockEnabled,
 } from './videoBrowser';
 import { adoptBlock, hasChainDrifted } from '../common/apoSync';
+import {
+  adoptApoFeatureText,
+  describeApoFeatureText,
+} from '../common/apoFeatureSync';
 import {
   CHAIN_BUNDLE_EXTENSION,
   IChainBundle,
@@ -174,6 +174,13 @@ import { readApoConfigTree, readApoDeviceChain } from './apoConfigReader';
 import { IApoConfigLayer, IApoConfigTree } from '../common/apoConfig';
 import { APP_ID, PRODUCT_NAME } from '../common/branding';
 import { latestReleaseNotes } from '../common/changelog';
+import {
+  clearKaraokeSession,
+  readRestoredKaraokeFile,
+  restoreKaraokeSession,
+  saveKaraokeSession,
+} from './karaokeSession';
+import { IKaraokeSessionSnapshot } from '../common/karaoke/sessionPersistence';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -191,6 +198,7 @@ import {
 } from './deviceProfiles';
 import { sendMediaTransportKey } from './mediaKeys';
 import { POWERSHELL_PATH } from './powershell';
+import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 
 /**
  * Check GitHub for a newer FluidEQ and tell the user about it in the app.
@@ -654,10 +662,9 @@ const notifyOutputStateChanged = () => {
 };
 
 const syncDatabasesOnStartup = async () => {
-  const [autoeqResult, squiglinkResult] = await Promise.allSettled([
-    syncAutoEqDatabase(),
-    syncSquiglinkDatabase(),
-  ]);
+  const autoeqResult = await Promise.resolve(syncAutoEqDatabase())
+    .then((value) => ({ status: 'fulfilled' as const, value }))
+    .catch((reason) => ({ status: 'rejected' as const, reason }));
 
   if (autoeqResult.status === 'rejected') {
     console.warn(
@@ -665,13 +672,6 @@ const syncDatabasesOnStartup = async () => {
       autoeqResult.reason,
     );
   }
-  if (squiglinkResult.status === 'rejected') {
-    console.warn(
-      'Unable to synchronize the Squiglink database',
-      squiglinkResult.reason,
-    );
-  }
-
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
   }
@@ -679,10 +679,6 @@ const syncDatabasesOnStartup = async () => {
   mainWindow.webContents.send(DATABASES_SYNCED_EVENT, {
     autoeq:
       autoeqResult.status === 'fulfilled' ? autoeqResult.value : undefined,
-    squiglink:
-      squiglinkResult.status === 'fulfilled'
-        ? squiglinkResult.value
-        : undefined,
   });
 };
 
@@ -720,6 +716,32 @@ let configPath = '';
 let activeAudioDeviceId = '';
 let activeAudioDevice: IAudioDevice | undefined;
 let hasActiveSessionOverride = false;
+// The live APO reader must never observe the half-state between an app edit
+// mutating memory and that edit reaching the generated files. Otherwise it can
+// read the old file back as an external change and undo actions such as Clear
+// EQ. Nested because a few higher-level operations reuse the update helper.
+let apoAppWriteDepth = 0;
+let apoSyncDeferredByAppWrite = false;
+
+/** Backfill measured WAV metadata for profiles created before strict
+ * convolution normalization existed. The file analyzer caches by mtime, so
+ * repeated state reads do not repeat the FFT.
+ */
+const hydrateActiveConvolution = () => {
+  if (!configPath || !state.convolution?.fileName) {
+    return false;
+  }
+  try {
+    const hydrated = hydrateConvolutionAnalysis(state.convolution, configPath);
+    if (hydrated !== state.convolution) {
+      state.convolution = hydrated;
+      return true;
+    }
+  } catch (error) {
+    console.warn('Unable to analyze the active convolution WAV', error);
+  }
+  return false;
+};
 
 const LAYOUT_SETTINGS_FILENAME = 'layout-frequencies.json';
 interface ILayoutSettingsFile {
@@ -873,6 +895,7 @@ const getCurrentPreset = (): IPresetV2 => ({
   driver: state.driver,
   smartEq: state.smartEq,
   headphone: state.headphone,
+  eqImport: state.eqImport,
   isAutoPreAmpOn: state.isAutoPreAmpOn,
   headset: state.headset,
   headsetTarget: state.headsetTarget,
@@ -887,11 +910,11 @@ const getCurrentPreset = (): IPresetV2 => ({
 /**
  * The shield in front of every reference this app applies on somebody's behalf.
  *
- * A published measurement is a claim, and some of them are wrong. One Squiglink
- * model with no flat baseline to subtract from arrived as a negated raw SPL
- * curve — read literally, a correction of fifty decibels of cut across the
- * whole midrange. It was applied, it was written to Equalizer APO, and the
- * output went silent.
+ * A published measurement is a claim, and some of them are wrong. A model with
+ * no flat baseline to subtract from can arrive as a negated raw SPL curve —
+ * read literally, a correction of fifty decibels of cut across the whole
+ * midrange. It was applied, it was written to Equalizer APO, and the output
+ * went silent.
  *
  * Nothing downstream could have caught it. The per-band ceiling did fire: it
  * trimmed eleven separate bands to -12 dB, and eleven legal bands still summed
@@ -1005,6 +1028,7 @@ const resetEqToDefaults = () => {
   state.headset = undefined;
   state.headsetTarget = undefined;
   state.headsetSource = undefined;
+  state.eqImport = undefined;
   // The bands are gone, so the switch that was holding them out of the config
   // has nothing left to hold. Without this, clearing a bypassed EQ takes the
   // chip off the row — no shaped bands, no reference, nothing to draw it — and
@@ -1200,6 +1224,7 @@ const updateConfigPath = async (
     if (!checkConfigFile(configPath)) {
       updateConfig(configPath);
     }
+    startApoConfigWatcher();
   } catch (e) {
     handleError(event, channel, ErrorCode.CONFIG_NOT_FOUND);
     return false;
@@ -1207,7 +1232,7 @@ const updateConfigPath = async (
   return true;
 };
 
-const handleUpdateHelper = async <T>(
+const handleUpdateHelperCore = async <T>(
   event: Electron.IpcMainEvent,
   channel: ChannelEnum | string,
   response: T,
@@ -1225,6 +1250,7 @@ const handleUpdateHelper = async <T>(
     if (!configPath) {
       configPath = await getConfigPath();
     }
+    startApoConfigWatcher();
     if (!checkConfigFile(configPath)) {
       updateConfig(configPath);
     }
@@ -1293,6 +1319,31 @@ const handleUpdateHelper = async <T>(
 
   // Flush changes to our local state file after informing UI that the changes have been applied
   save(state, userDataDir);
+};
+
+const handleUpdateHelper = async <T>(
+  event: Electron.IpcMainEvent,
+  channel: ChannelEnum | string,
+  response: T,
+  syncActiveProfile = false,
+  useActiveSessionOverride = false,
+) => {
+  apoAppWriteDepth += 1;
+  try {
+    return await handleUpdateHelperCore(
+      event,
+      channel,
+      response,
+      syncActiveProfile,
+      useActiveSessionOverride,
+    );
+  } finally {
+    apoAppWriteDepth -= 1;
+    if (apoAppWriteDepth === 0 && apoSyncDeferredByAppWrite) {
+      apoSyncDeferredByAppWrite = false;
+      queueApoDiskSync();
+    }
+  }
 };
 
 const handleUpdate = async (
@@ -1384,13 +1435,13 @@ const expectedBandChain = (devicePattern: string) => {
 const adoptBypassFromConfig = (
   features: Partial<Record<TApoFeature, string>>,
   shared: string,
-) => {
+): boolean => {
   const wouldWrite = stateToApoFiles(
     { ...state, bypassed: undefined },
     state.convolution?.fileName,
   );
   if (!wouldWrite) {
-    return;
+    return false;
   }
   const bypassed: TApoLayer[] = wouldWrite.features
     .map(({ feature }) => feature)
@@ -1406,7 +1457,7 @@ const adoptBypassFromConfig = (
   const next = bypassed.length ? bypassed : undefined;
 
   if (JSON.stringify(next) === JSON.stringify(state.bypassed)) {
-    return;
+    return false;
   }
   console.log(
     `Adopting the switched-off layers from the Equalizer APO config: ${
@@ -1415,6 +1466,43 @@ const adoptBypassFromConfig = (
   );
   state.bypassed = next;
   save(state, userDataDir);
+  return true;
+};
+
+/**
+ * Read the active output's user-owned custom file without modifying it.
+ *
+ * The custom Include can be bypassed, so reading only the expanded chain would
+ * make the layer disappear and remove the very switch that could bring it
+ * back. The file name is deterministic from the endpoint id; reading it
+ * directly keeps the layer available in both states.
+ */
+const readCustomFxForDevice = (
+  deviceId: string,
+): ICustomFxSettings | undefined => {
+  if (!configPath || !deviceId) {
+    return undefined;
+  }
+  const fileName = getCustomFileNameForDevice(deviceId);
+  try {
+    const contents = fs.readFileSync(path.join(configPath, fileName), 'utf8');
+    return parseCustomFx(fileName, contents);
+  } catch {
+    return undefined;
+  }
+};
+
+const readCustomFxForActiveDevice = (): ICustomFxSettings | undefined =>
+  readCustomFxForDevice(activeAudioDeviceId);
+
+/** Refresh the renderer-facing description of the user-owned custom file. */
+const syncCustomFxFromConfig = (): boolean => {
+  const next = readCustomFxForActiveDevice();
+  if (JSON.stringify(next) === JSON.stringify(state.customFx)) {
+    return false;
+  }
+  state.customFx = next;
+  return true;
 };
 
 const adoptExistingApoConfig = () => {
@@ -1437,6 +1525,9 @@ const adoptExistingApoConfig = () => {
   hasAdoptedExistingConfig = true;
 
   try {
+    // This is independent of the generated feature files. It must be read
+    // before any early return below, including a bypassed custom Include.
+    syncCustomFxFromConfig();
     const chain = readApoDeviceChain(configPath, devicePattern);
     if (!chain) {
       return;
@@ -1542,6 +1633,7 @@ const adoptExistingApoConfig = () => {
     state.headset = undefined;
     state.headsetTarget = undefined;
     state.headsetSource = undefined;
+    state.eqImport = undefined;
 
     if (adopted.convolutionFileName) {
       // The WAV is still next to the config and still what APO is applying, so
@@ -1554,12 +1646,22 @@ const adoptExistingApoConfig = () => {
             : adopted.convolutionFileName,
         filters: state.convolution?.filters ?? {},
         fileName: adopted.convolutionFileName,
+        response:
+          state.convolution?.fileName === adopted.convolutionFileName
+            ? state.convolution.response
+            : undefined,
+        peakGainDb:
+          state.convolution?.fileName === adopted.convolutionFileName
+            ? state.convolution.peakGainDb
+            : undefined,
         sourceId: state.convolution?.sourceId,
         sourceUrl: state.convolution?.sourceUrl,
       };
     } else {
       state.convolution = undefined;
     }
+
+    hydrateActiveConvolution();
 
     save(state, userDataDir);
   } catch (error) {
@@ -1568,6 +1670,162 @@ const adoptExistingApoConfig = () => {
     console.warn('Unable to read the existing Equalizer APO config', error);
   }
 };
+
+/**
+ * Live two-way synchronization with the generated Equalizer APO files.
+ *
+ * `fs.watch` is only a wake-up signal. A single FluidEQ update touches more
+ * than one file and APO itself may also cause duplicate notifications, so the
+ * callback never treats an event as a change. After a short debounce it reads
+ * the complete active chain and compares each feature's parsed audible shape
+ * with what the current state would write. FluidEQ's own writes therefore
+ * compare equal and stop here; an external edit is adopted once, persisted,
+ * canonicalized, and the canonical write compares equal on the next event.
+ */
+const APO_WATCH_DEBOUNCE_MS = 180;
+let apoConfigWatcher: fs.FSWatcher | undefined;
+let watchedApoConfigPath = '';
+let apoWatchTimer: ReturnType<typeof setTimeout> | undefined;
+let apoSyncQueue: Promise<void> = Promise.resolve();
+
+const persistExternallyAdoptedState = () => {
+  save(state, userDataDir);
+  const assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
+  if (assignment) {
+    savePreset(assignment.presetName, getCurrentPreset(), presetPath);
+  }
+};
+
+const syncActiveApoFilesFromDisk = async () => {
+  if (apoAppWriteDepth > 0) {
+    apoSyncDeferredByAppWrite = true;
+    return;
+  }
+  if (!configPath || !activeAudioDeviceId) {
+    return;
+  }
+  const devicePattern =
+    activeAudioDevice?.guid || activeAudioDevice?.name || activeAudioDeviceId;
+  const chain = readApoDeviceChain(configPath, devicePattern);
+  let changed = syncCustomFxFromConfig();
+  let generatedChanged = false;
+  let containsUnsupportedCommands = false;
+
+  if (chain?.features) {
+    const expected = stateToApoFiles(state, state.convolution?.fileName);
+    const expectedByFeature = new Map<TApoFeature, string>(
+      (expected?.features ?? []).map(({ feature, lines }) => [
+        feature,
+        lines.join('\n'),
+      ]),
+    );
+
+    generatedChanged = adoptBypassFromConfig(
+      chain.features,
+      chain.shared ?? '',
+    );
+
+    APO_FEATURES.forEach((feature) => {
+      const actual = chain.features?.[feature];
+      if (actual === undefined) {
+        return;
+      }
+      const expectedText = expectedByFeature.get(feature) ?? '';
+      if (
+        describeApoFeatureText(actual) === describeApoFeatureText(expectedText)
+      ) {
+        return;
+      }
+      const adoption = adoptApoFeatureText(state, feature, actual);
+      if (adoption.unsupported) {
+        containsUnsupportedCommands = true;
+        console.warn(
+          `Not adopting ${feature}: its generated APO file contains ${adoption.unsupported} unsupported command(s).`,
+        );
+        return;
+      }
+      generatedChanged = generatedChanged || adoption.changed;
+      if (adoption.changed) {
+        console.log(
+          `Adopted an external Equalizer APO edit for the ${feature} layer.`,
+        );
+      }
+    });
+  }
+
+  changed = changed || generatedChanged;
+  if (!changed) {
+    return;
+  }
+
+  persistExternallyAdoptedState();
+
+  // Recompute automatic headroom and normalize the generated text after a
+  // supported external edit. Never rewrite a file containing commands the app
+  // cannot represent: preserving the user's APO work is more important than
+  // normalizing the other files in that same pass.
+  if (generatedChanged && !containsUnsupportedCommands) {
+    await retryHelper(5, () => {
+      flushDeviceProfiles(
+        deviceProfileSettings,
+        presetPath,
+        configPath,
+        undefined,
+        state.isEnabled,
+      );
+    });
+  }
+
+  notifyOutputStateChanged();
+};
+
+const queueApoDiskSync = () => {
+  if (apoWatchTimer !== undefined) {
+    clearTimeout(apoWatchTimer);
+  }
+  apoWatchTimer = setTimeout(() => {
+    apoWatchTimer = undefined;
+    apoSyncQueue = apoSyncQueue
+      .then(syncActiveApoFilesFromDisk)
+      .catch((error) =>
+        console.warn('Unable to synchronize Equalizer APO file edits', error),
+      );
+  }, APO_WATCH_DEBOUNCE_MS);
+};
+
+function startApoConfigWatcher() {
+  if (!configPath || watchedApoConfigPath === configPath) {
+    return;
+  }
+  apoConfigWatcher?.close();
+  watchedApoConfigPath = configPath;
+  try {
+    apoConfigWatcher = fs.watch(
+      configPath,
+      { persistent: false },
+      (_eventType, fileName) => {
+        if (
+          !fileName ||
+          /^fluideq(?:-device)?-[0-9a-f]{12}(?:-(?:driver|headphone|eq|voicing|smart|custom))?\.txt$/i.test(
+            fileName.toString(),
+          )
+        ) {
+          queueApoDiskSync();
+        }
+      },
+    );
+    apoConfigWatcher.on('error', (error) => {
+      console.warn('Equalizer APO config watcher stopped', error);
+      apoConfigWatcher?.close();
+      apoConfigWatcher = undefined;
+      watchedApoConfigPath = '';
+    });
+  } catch (error) {
+    apoConfigWatcher = undefined;
+    watchedApoConfigPath = '';
+    console.warn('Unable to watch the Equalizer APO config directory', error);
+  }
+}
 
 ipcMain.on(ChannelEnum.GATHER_BUG_REPORT, async (event) => {
   const channel = ChannelEnum.GATHER_BUG_REPORT;
@@ -1652,10 +1910,12 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     state.headsetTarget = presetSettings.headsetTarget;
     state.headsetSource = presetSettings.headsetSource;
     state.headsetSignature = presetSettings.headsetSignature;
+    state.eqImport = presetSettings.eqImport;
     // Which layers this profile has switched off comes with it, like the layers
     // themselves. Keeping the previous profile's list would silence a layer this
     // one never switched off.
     state.bypassed = presetSettings.bypassed;
+    hydrateActiveConvolution();
     attachPresetToActiveDevice(presetName);
     await handleUpdate(event, channel, true);
   } catch (ex) {
@@ -1697,7 +1957,9 @@ ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
     state.headsetTarget = baseline.headsetTarget;
     state.headsetSource = baseline.headsetSource;
     state.headsetSignature = baseline.headsetSignature;
+    state.eqImport = baseline.eqImport;
     state.bypassed = baseline.bypassed;
+    hydrateActiveConvolution();
     // Restoring writes the profile back to the baseline, but deliberately does
     // NOT rewrite the baseline itself — restoring twice in a row is a no-op
     // rather than a way to lose the copy.
@@ -1940,6 +2202,7 @@ const describeDeviceLayers = (
   }
 
   const bypassed: string[] = preset.bypassed ?? [];
+  const customFx = readCustomFxForDevice(assignment.deviceId);
   // Any truthy name will do: it only has to make the convolution count as
   // present, and nothing here is written to disk.
   const everything = stateToApoFiles(
@@ -1970,6 +2233,9 @@ const describeDeviceLayers = (
       feature: feature as string,
       isApplied: !bypassed.includes(feature),
     })),
+    ...(customFx
+      ? [{ feature: 'custom', isApplied: !bypassed.includes('custom') }]
+      : []),
   ];
 };
 
@@ -2220,6 +2486,7 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     state.headsetTarget = responseName;
     state.headsetSource = AUTOEQ_SOURCE_ID;
     state.headsetSignature = describeBandShape(state.headphone.filters);
+    state.eqImport = undefined;
     applyingLayer('headphone');
     await handleUpdate(event, channel, false, true);
   } catch (ex) {
@@ -2227,99 +2494,6 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
       `Failed to load autoeq preset from ${deviceName} to ${responseName}`,
     );
     console.log(ex);
-    handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.GET_SQUIGLINK_SOURCE_LIST, async (event) => {
-  const channel = ChannelEnum.GET_SQUIGLINK_SOURCE_LIST;
-  try {
-    const sources = await getSquiglinkSourceList();
-    event.reply(channel, { result: sources } as TSuccess<
-      Awaited<ReturnType<typeof getSquiglinkSourceList>>
-    >);
-  } catch (error) {
-    console.error('Failed to get Squiglink source list', error);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.GET_SQUIGLINK_DEVICE_LIST, async (event, arg) => {
-  const channel = ChannelEnum.GET_SQUIGLINK_DEVICE_LIST;
-  try {
-    const sourceId = typeof arg?.[0] === 'string' ? arg[0] : undefined;
-    const devices = await getSquiglinkDeviceList(sourceId);
-    event.reply(channel, { result: devices } as TSuccess<string[]>);
-  } catch (error) {
-    console.error('Failed to get Squiglink device list', error);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.GET_SQUIGLINK_RESPONSE_LIST, async (event, arg) => {
-  const channel = ChannelEnum.GET_SQUIGLINK_RESPONSE_LIST;
-  try {
-    const sourceId = typeof arg?.[0] === 'string' ? arg[0] : undefined;
-    const deviceName = arg?.[1] as string;
-    const responses = await getSquiglinkResponseList(
-      sourceId || deviceName,
-      sourceId ? deviceName : undefined,
-    );
-    event.reply(channel, { result: responses } as TSuccess<string[]>);
-  } catch (error) {
-    console.error('Failed to get Squiglink response list', error);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.LOAD_SQUIGLINK_PRESET, async (event, arg) => {
-  const channel = ChannelEnum.LOAD_SQUIGLINK_PRESET;
-  const isLegacyRequest = arg.length === 3;
-  const sourceId = isLegacyRequest ? undefined : (arg[0] as string);
-  const deviceName = (isLegacyRequest ? arg[0] : arg[1]) as string;
-  const responseName = (isLegacyRequest ? arg[1] : arg[2]) as string;
-  try {
-    const presetSettings = sourceId
-      ? await getSquiglinkPreset(sourceId, deviceName, responseName)
-      : await getSquiglinkPreset(deviceName, responseName);
-    /*
-     * INTO THE HEADPHONE LAYER, LIKE THE OTHER DATABASE.
-     *
-     * This used to replace `state.filters`, and it was the half of the split
-     * that got missed: the AutoEq path was moved onto its own layer and this
-     * one — the same panel, the same button, a different database behind it —
-     * went on overwriting the bands somebody had tuned. So whether applying a
-     * headphone correction destroyed your EQ depended on which source the
-     * dropdown happened to be pointing at, which is not a distinction anybody
-     * could have guessed at.
-     *
-     * As a layer it survives a Clear EQ, Smart EQ is handed it as something not
-     * to correct rather than reading it as error, and the bands stay whatever
-     * the person made them. The reasons are written out in full at
-     * `LOAD_AUTO_EQ_PRESET`; this is the same decision, applied where it should
-     * have been applied at the same time.
-     */
-    state.headphone = {
-      filters: shieldReferenceBands(presetSettings.filters),
-      // Full strength on arrival, like the other source. Somebody who wants
-      // half of a published correction can say so afterwards.
-      intensity: 1,
-    };
-    state.preAmp = presetSettings.preAmp;
-    state.headset = deviceName;
-    state.headsetTarget = responseName;
-    // Left undefined on the legacy three-argument request, which does not say
-    // which database it meant. The panel falls back to matching on the model
-    // name, which is what it did before the source was recorded at all.
-    state.headsetSource = sourceId;
-    state.headsetSignature = describeBandShape(state.headphone.filters);
-    applyingLayer('headphone');
-    await handleUpdate(event, channel, false, true);
-  } catch (error) {
-    console.error(
-      `Failed to load Squiglink preset from ${deviceName} / ${responseName}`,
-      error,
-    );
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
   }
 });
@@ -2458,6 +2632,7 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
     state.headset = undefined;
     state.headsetTarget = undefined;
     state.headsetSource = undefined;
+    state.eqImport = undefined;
     // An imported EQ is a tuning, so the flat flag has to come off or the
     // bands would be parsed, stored, and then not written.
     state.isFlat = false;
@@ -2472,6 +2647,65 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
     );
   } catch (error) {
     console.error('Failed to import EQ settings', error);
+    handleError(
+      event,
+      channel,
+      ErrorCode.IMPORT_ERROR,
+      error instanceof Error ? error.message : undefined,
+    );
+  }
+});
+
+ipcMain.on(ChannelEnum.IMPORT_EQ_TEXT, async (event, arg) => {
+  const channel = ChannelEnum.IMPORT_EQ_TEXT;
+  try {
+    const text = arg?.[0];
+    const label =
+      typeof arg?.[1] === 'string' ? arg[1].trim().slice(0, 240) : '';
+    if (typeof text !== 'string' || !text.trim()) {
+      throw new Error('Paste a Squiglink EQ export before importing it.');
+    }
+    if (Buffer.byteLength(text, 'utf8') > 4 * 1024 * 1024) {
+      throw new Error('That EQ export is too large to import.');
+    }
+
+    const parsed = parseEqText(text);
+    if (parsed.isEmpty) {
+      throw new Error(
+        'No Equalizer APO filters were found. Copy the exported ParametricEQ or GraphicEQ text from Squiglink.',
+      );
+    }
+
+    clearCurrentLayoutSettings();
+    state.preAmp = parsed.preAmp;
+    state.filters = shieldReferenceBands(parsed.filters);
+    state.eqFormat = parsed.eqFormat;
+    state.graphicEq = parsed.graphicEq;
+    state.isFlat = false;
+    state.headset = undefined;
+    state.headsetTarget = undefined;
+    state.headsetSource = undefined;
+    state.eqImport = {
+      source: 'squiglink',
+      sourceUrl: 'https://squig.link/',
+      label: label || 'Squiglink export',
+      eqFormat: parsed.eqFormat,
+      filterCount: Object.keys(parsed.filters).length,
+      text,
+    };
+    applyingLayer('eq');
+
+    await handleUpdateHelper<string>(
+      event,
+      channel,
+      parsed.unsupported > 0
+        ? `Imported ${Object.keys(parsed.filters).length} bands from the Squiglink export. ${parsed.unsupported} band(s) could not be edited in ${PRODUCT_NAME} and were skipped.`
+        : `Imported ${Object.keys(parsed.filters).length} bands from the Squiglink export.`,
+      false,
+      true,
+    );
+  } catch (error) {
+    console.error('Failed to import Squiglink EQ text', error);
     handleError(
       event,
       channel,
@@ -2699,6 +2933,7 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
     state.eqFormat = bundle.preset.eqFormat;
     state.graphicEq = bundle.preset.graphicEq;
     state.convolution = bundle.preset.convolution;
+    hydrateActiveConvolution();
     state.isFlat = bundle.preset.isFlat;
     state.voicing = bundle.preset.voicing;
     state.driver = bundle.preset.driver;
@@ -2707,6 +2942,7 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
     state.headsetTarget = bundle.preset.headsetTarget;
     state.headsetSource = bundle.preset.headsetSource;
     state.headsetSignature = bundle.preset.headsetSignature;
+    state.eqImport = bundle.preset.eqImport;
     /*
      * The headphone layer, which this list forgot when the layer was added.
      *
@@ -2781,6 +3017,13 @@ ipcMain.on(ChannelEnum.GET_STATE, async (event) => {
   const channel = ChannelEnum.GET_STATE;
   const res = await updateConfigPath(event, channel);
   if (res) {
+    if (hydrateActiveConvolution()) {
+      save(state, userDataDir);
+    }
+    // The custom file is user-editable and intentionally not part of the
+    // generated profile. Re-read it whenever the renderer asks for state so a
+    // Config inspector edit is reflected in the graph without a restart.
+    syncCustomFxFromConfig();
     const reply: TSuccess<IState> = { result: state };
     event.reply(channel, reply);
   } else {
@@ -3205,9 +3448,14 @@ ipcMain.on(ChannelEnum.SET_VOICING, async (event, arg) => {
   const profileId: string = arg[0];
   const intensity: number = arg[1];
 
+  const isExistingApoOverride =
+    state.voicing?.profileId === profileId &&
+    Boolean(state.voicing.apoOverride);
   if (
     typeof profileId !== 'string' ||
-    (profileId !== '' && !getVoicingProfile(profileId)) ||
+    (profileId !== '' &&
+      !getVoicingProfile(profileId) &&
+      !isExistingApoOverride) ||
     !Number.isFinite(intensity)
   ) {
     handleError(event, channel, ErrorCode.INVALID_PARAMETER);
@@ -3219,6 +3467,9 @@ ipcMain.on(ChannelEnum.SET_VOICING, async (event, arg) => {
   state.voicing = {
     profileId,
     intensity: Math.min(1, Math.max(0, intensity)),
+    ...(isExistingApoOverride
+      ? { apoOverride: state.voicing?.apoOverride }
+      : {}),
   };
 
   await handleUpdate(event, channel, false, true);
@@ -3270,9 +3521,13 @@ ipcMain.on(ChannelEnum.SET_DRIVER, async (event, arg) => {
   const profileId: string = arg[0];
   const intensity: number = arg[1];
 
+  const isExistingApoOverride =
+    state.driver?.profileId === profileId && Boolean(state.driver.apoOverride);
   if (
     typeof profileId !== 'string' ||
-    (profileId !== '' && !getDriverProfile(profileId)) ||
+    (profileId !== '' &&
+      !getDriverProfile(profileId) &&
+      !isExistingApoOverride) ||
     !Number.isFinite(intensity)
   ) {
     handleError(event, channel, ErrorCode.INVALID_PARAMETER);
@@ -3285,6 +3540,9 @@ ipcMain.on(ChannelEnum.SET_DRIVER, async (event, arg) => {
   state.driver = {
     profileId,
     intensity: Math.min(1, Math.max(0, intensity)),
+    ...(isExistingApoOverride
+      ? { apoOverride: state.driver?.apoOverride }
+      : {}),
   };
 
   await handleUpdate(event, channel, false, true);
@@ -3518,6 +3776,7 @@ const sendWindowState = () => {
   }
   mainWindow.webContents.send('window-state-changed', {
     isMaximized: mainWindow.isMaximized(),
+    isFullScreen: mainWindow.isFullScreen(),
   });
 };
 
@@ -3564,6 +3823,28 @@ ipcMain.handle('window-set-full-screen', (_event, next: boolean) => {
   mainWindow.setFullScreen(!!next);
   sendWindowState();
   return mainWindow.isFullScreen();
+});
+
+ipcMain.handle(
+  'karaoke-session-save',
+  (_event, snapshot: IKaraokeSessionSnapshot) => {
+    if (snapshot?.version !== 1 || !Array.isArray(snapshot.files)) {
+      return;
+    }
+    saveKaraokeSession(userDataDir, snapshot);
+  },
+);
+
+ipcMain.handle('karaoke-session-restore', () =>
+  restoreKaraokeSession(userDataDir),
+);
+
+ipcMain.handle('karaoke-session-read-file', (_event, token: unknown) =>
+  typeof token === 'string' ? readRestoredKaraokeFile(token) : undefined,
+);
+
+ipcMain.handle('karaoke-session-clear', () => {
+  clearKaraokeSession(userDataDir);
 });
 
 if (process.env.NODE_ENV === 'production') {
@@ -3739,55 +4020,81 @@ const createMainWindow = async () => {
     },
   });
 
-  mainWindow.webContents.session.setDisplayMediaRequestHandler(
-    (request, callback) => {
-      if (
-        !mainWindow ||
-        request.frame !== mainWindow.webContents.mainFrame ||
-        !request.audioRequested
-      ) {
-        callback({});
-        return;
-      }
+  const rendererUrl = resolveHtmlPath('index.html');
+  const appSession = mainWindow.webContents.session;
 
-      // Chromium still requires a video source for getDisplayMedia even when
-      // the renderer only consumes the audio track. Use the FluidEQ window as
-      // that source instead of a monitor: monitor capture is what triggers
-      // WGC's CreateForMonitor/E_ACCESSDENIED failures on some Windows setups.
-      // The loopback audio stream remains system-wide and is independent of
-      // the video source.
-      const provideLoopbackSource = async () => {
-        try {
-          const sources = await desktopCapturer.getSources({
-            types: ['window'],
-            thumbnailSize: { width: 0, height: 0 },
-            fetchWindowIcons: false,
-          });
-          const windowSourceId = mainWindow?.getMediaSourceId();
-          const source =
-            sources.find((candidate) => candidate.id === windowSourceId) ||
-            sources.find((candidate) =>
-              // The window title, which is the product name. Derived from it
-              // rather than spelled out, so a rename does not silently lose
-              // the fallback and start capturing an arbitrary window.
-              candidate.name.toLowerCase().includes(PRODUCT_NAME.toLowerCase()),
-            ) ||
-            sources[0];
-
-          if (source) {
-            callback({ video: source, audio: 'loopback' });
-          } else {
-            // A frame source is a valid final fallback if Windows does not
-            // expose any capturable windows (for example while minimized).
-            callback({ video: request.frame || undefined, audio: 'loopback' });
-          }
-        } catch {
-          callback({ video: request.frame || undefined, audio: 'loopback' });
-        }
-      };
-      provideLoopbackSource();
+  // Permission requests from FluidEQ's own renderer are deliberate UI
+  // actions. In particular, Karaoke's mic switch must be able to complete the
+  // getUserMedia handshake instead of depending on Electron's implicit
+  // permission default. Remote Media pages use a different, locked-down
+  // session in videoBrowser.ts, so this grant cannot leak into web content.
+  const isOwnMainFrame = (
+    contents: Electron.WebContents | null,
+    details: { isMainFrame: boolean },
+  ) => contents === mainWindow?.webContents && details.isMainFrame;
+  appSession.setPermissionRequestHandler(
+    (contents, _permission, callback, details) => {
+      callback(isOwnMainFrame(contents, details));
     },
   );
+  appSession.setPermissionCheckHandler(
+    (contents, _permission, _origin, details) =>
+      isOwnMainFrame(contents, details),
+  );
+
+  // Keep the app session's normal Electron media handling. Chromium reports
+  // the analyser's display-loopback handshake as a mixed media request even
+  // though FluidEQ immediately discards its required video track. Applying an
+  // audio-only policy to this session therefore disables the live spectrum.
+  // Remote Media pages remain isolated in VIDEO_BROWSER_PARTITION, whose
+  // permission and display-capture handlers are default-deny (videoBrowser.ts).
+  appSession.setDisplayMediaRequestHandler((request, callback) => {
+    if (
+      !mainWindow ||
+      request.frame !== mainWindow.webContents.mainFrame ||
+      !request.audioRequested
+    ) {
+      callback({});
+      return;
+    }
+
+    // Chromium still requires a video source for getDisplayMedia even when
+    // the renderer only consumes the audio track. Use the FluidEQ window as
+    // that source instead of a monitor: monitor capture is what triggers
+    // WGC's CreateForMonitor/E_ACCESSDENIED failures on some Windows setups.
+    // The loopback audio stream remains system-wide and is independent of
+    // the video source.
+    const provideLoopbackSource = async () => {
+      try {
+        const sources = await desktopCapturer.getSources({
+          types: ['window'],
+          thumbnailSize: { width: 0, height: 0 },
+          fetchWindowIcons: false,
+        });
+        const windowSourceId = mainWindow?.getMediaSourceId();
+        const source =
+          sources.find((candidate) => candidate.id === windowSourceId) ||
+          sources.find((candidate) =>
+            // The window title, which is the product name. Derived from it
+            // rather than spelled out, so a rename does not silently lose
+            // the fallback and start capturing an arbitrary window.
+            candidate.name.toLowerCase().includes(PRODUCT_NAME.toLowerCase()),
+          ) ||
+          sources[0];
+
+        if (source) {
+          callback({ video: source, audio: 'loopback' });
+        } else {
+          // A frame source is a valid final fallback if Windows does not
+          // expose any capturable windows (for example while minimized).
+          callback({ video: request.frame || undefined, audio: 'loopback' });
+        }
+      } catch {
+        callback({ video: request.frame || undefined, audio: 'loopback' });
+      }
+    };
+    provideLoopbackSource();
+  });
 
   // Only when there is nothing remembered. The saved size is a decision the
   // user made; forcing the graph-view height over the top of it would undo that
@@ -3862,7 +4169,6 @@ const createMainWindow = async () => {
     mainWindow = null;
   });
 
-  const rendererUrl = resolveHtmlPath('index.html');
   mainWindow.webContents.on('did-finish-load', sendWindowState);
   // Polling for the dev server is an optimisation, not a gate. Giving up used
   // to throw out of createMainWindow with nothing to catch it, so a slow bundle
@@ -3959,6 +4265,15 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+app.on('before-quit', () => {
+  if (apoWatchTimer !== undefined) {
+    clearTimeout(apoWatchTimer);
+    apoWatchTimer = undefined;
+  }
+  apoConfigWatcher?.close();
+  apoConfigWatcher = undefined;
 });
 
 app

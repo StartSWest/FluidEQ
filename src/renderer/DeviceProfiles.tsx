@@ -168,6 +168,7 @@ const DeviceProfiles = () => {
     // The picker is the summary, so folding this section hides the mapping
     // detail but leaves the output you are choosing between on screen.
     <SidebarSection
+      defaultOpen={false}
       eyebrow={t('output.eyebrow')}
       title={t('output.title')}
       summary={

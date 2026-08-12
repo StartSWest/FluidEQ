@@ -49,9 +49,11 @@ import { FluidEqProvider, useFluidEqContext } from './utils/FluidEqContext';
 import PrereqMissingModal from './PrereqMissingModal';
 import BugReportDialog from './components/BugReportDialog';
 import AudioTroubleshooter from './components/AudioTroubleshooter';
+import TitlebarMediaTransport from './components/TitlebarMediaTransport';
 import SideBar from './SideBar';
 import {
   onWindowFullScreenChange,
+  toggleFullScreenTopBar,
   useGraphFullScreen,
   useGraphView,
   useFullScreenTopBar,
@@ -59,6 +61,7 @@ import {
 import { useIsChromeIdle, watchChromeIdle } from './utils/idleChrome';
 import { reportError } from './utils/logger';
 import VideoBrowser from './video/VideoBrowser';
+import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
 import PaneResizer from './components/PaneResizer';
 import {
   clampToWindow,
@@ -114,9 +117,11 @@ const APP_VERSION = PRODUCT_VERSION;
 
 /** The workspace tab the app was left on. */
 const WORKSPACE_TAB_KEY = 'fluideq.workspaceTab';
+/** Independent response-graph visibility overrides for each workspace tab. */
+const GRAPH_VISIBILITY_BY_TAB_KEY = 'fluideq.graphVisibilityByTab';
 
 type TWorkspaceTab =
-  'eq' | 'autoeq' | 'voicing' | 'convolution' | 'video' | 'config';
+  'eq' | 'autoeq' | 'voicing' | 'convolution' | 'video' | 'karaoke' | 'config';
 
 /**
  * The tab strip, in the order it is drawn.
@@ -137,8 +142,34 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
   'voicing',
   'convolution',
   'video',
+  'karaoke',
   'config',
 ];
+
+type TWorkspaceGraphVisibility = Partial<Record<TWorkspaceTab, boolean>>;
+
+const readWorkspaceGraphVisibility = ():
+  TWorkspaceGraphVisibility | undefined => {
+  try {
+    const stored = window.localStorage.getItem(GRAPH_VISIBILITY_BY_TAB_KEY);
+    if (!stored) {
+      return undefined;
+    }
+    const parsed = JSON.parse(stored) as Record<string, unknown>;
+    const visibility = WORKSPACE_TABS.reduce<TWorkspaceGraphVisibility>(
+      (result, tab) => {
+        if (typeof parsed?.[tab] === 'boolean') {
+          result[tab] = parsed[tab] as boolean;
+        }
+        return result;
+      },
+      {},
+    );
+    return Object.keys(visibility).length ? visibility : undefined;
+  } catch {
+    return undefined;
+  }
+};
 
 /**
  * Which tab to open on.
@@ -179,6 +210,15 @@ const AppContent = () => {
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
+  const [activeWorkspaceTab, setActiveWorkspaceTab] =
+    useState<TWorkspaceTab>(readWorkspaceTab);
+  const [graphVisibilityByTab, setGraphVisibilityByTab] = useState<
+    TWorkspaceGraphVisibility | undefined
+  >(readWorkspaceGraphVisibility);
+  const isVideoTab = activeWorkspaceTab === 'video';
+  const isKaraokeTab = activeWorkspaceTab === 'karaoke';
+  const [isKaraokeFullScreen, setIsKaraokeFullScreen] = useState(false);
+  const karaokeFullScreenRequestedRef = useRef(false);
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
   const [isWindowMaximized, setIsWindowMaximized] = useState(false);
@@ -212,14 +252,31 @@ const AppContent = () => {
   // and the side panels and titlebar are further out still.
   const isGraphFullScreen = useGraphFullScreen();
   const graphView = useGraphView();
+  // Each workspace owns this choice. Karaoke starts without the response graph
+  // because its stage and pitch lane need the height; every other workspace
+  // inherits the legacy graph preference until the user chooses differently.
+  const showsGraph =
+    graphVisibilityByTab?.[activeWorkspaceTab] ??
+    (activeWorkspaceTab === 'karaoke' ? false : isGraphViewOn);
+  const setActiveTabGraphVisibility = useCallback(
+    (next: boolean) => {
+      setGraphVisibilityByTab((current) => ({
+        ...current,
+        [activeWorkspaceTab]: next,
+      }));
+    },
+    [activeWorkspaceTab],
+  );
   /** The window itself is full screen, so the titlebar is not on screen. */
-  const isAppFullScreen = graphView === 'fullscreen' && isGraphViewOn;
+  const isGraphAppFullScreen =
+    graphView === 'fullscreen' && showsGraph && !isKaraokeFullScreen;
   // Full screen with the top bar kept. Everything below reads this rather than
   // the mode alone, so "full screen" and "full screen with the bar" cannot end
   // up disagreeing about which pieces are on screen.
   const hasFullScreenTopBar = useFullScreenTopBar();
-  const isChromeHidden = isAppFullScreen && !hasFullScreenTopBar;
-  const editorHeight = useEditorHeight();
+  const isChromeHidden =
+    (isGraphAppFullScreen || isKaraokeFullScreen) && !hasFullScreenTopBar;
+  const editorHeight = useEditorHeight(activeWorkspaceTab);
 
   // Watched only in full screen, and stopped on the way out — see the store for
   // why leaving it running would strand a faded workspace.
@@ -236,9 +293,9 @@ const AppContent = () => {
     // Tied to the graph being on screen at all rather than to `true`, so that
     // with the pane closed there is no listener on the window watching a
     // pointer for the benefit of something that is not rendered.
-    watchChromeIdle(isGraphViewOn);
+    watchChromeIdle(showsGraph);
     return () => watchChromeIdle(false);
-  }, [isGraphViewOn]);
+  }, [showsGraph]);
 
   /**
    * Take the window fullscreen when the graph asks for it.
@@ -256,6 +313,61 @@ const AppContent = () => {
     return () => onWindowFullScreenChange(() => undefined);
   }, []);
 
+  const applyKaraokeFullScreen = useCallback(async (next: boolean) => {
+    karaokeFullScreenRequestedRef.current = next;
+    setIsKaraokeFullScreen(next);
+    try {
+      const applied =
+        await window.electron.ipcRenderer.setWindowFullScreen(next);
+      karaokeFullScreenRequestedRef.current = next && applied;
+      setIsKaraokeFullScreen(next && applied);
+    } catch (error) {
+      karaokeFullScreenRequestedRef.current = false;
+      setIsKaraokeFullScreen(false);
+      reportError('Could not change Karaoke full screen', error);
+    }
+  }, []);
+
+  // Karaoke owns Ctrl+F while its tab is active. The response graph also has
+  // that shortcut, so this listener runs in capture and stops the event before
+  // the graph can turn itself into the full-screen surface instead.
+  useEffect(() => {
+    if (!isKaraokeTab) {
+      return undefined;
+    }
+    const onKeyDown = (event: KeyboardEvent) => {
+      const wantsToggle =
+        (event.ctrlKey || event.metaKey) &&
+        !event.altKey &&
+        !event.repeat &&
+        event.key.toLowerCase() === 'f';
+      const wantsExit = event.key === 'Escape' && isKaraokeFullScreen;
+      if (!wantsToggle && !wantsExit) {
+        return;
+      }
+      if (
+        wantsExit &&
+        (document.querySelector('[role="dialog"], .dropdown--open') ||
+          (event.target as HTMLElement | null)?.closest?.(
+            'input, textarea, [contenteditable]',
+          ))
+      ) {
+        return;
+      }
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      applyKaraokeFullScreen(wantsExit ? false : !isKaraokeFullScreen);
+    };
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [applyKaraokeFullScreen, isKaraokeFullScreen, isKaraokeTab]);
+
+  useEffect(() => {
+    if (!isKaraokeTab && isKaraokeFullScreen) {
+      applyKaraokeFullScreen(false);
+    }
+  }, [applyKaraokeFullScreen, isKaraokeFullScreen, isKaraokeTab]);
+
   // The live capture's own failure, read once and reported once.
   //
   // It used to be printed inline in two places at the same time — a bare
@@ -267,20 +379,15 @@ const AppContent = () => {
   const [isCaptureNoticeHidden, setIsCaptureNoticeHidden] = useState(false);
   // A new failure is worth showing again even if the last one was dismissed.
   useEffect(() => setIsCaptureNoticeHidden(false), [captureError]);
-  const [activeWorkspaceTab, setActiveWorkspaceTab] =
-    useState<TWorkspaceTab>(readWorkspaceTab);
   // The player is mounted on first visit and never unmounted, because its page
   // is destroyed the moment the element leaves the DOM — switching to the EQ
   // to move a band would otherwise stop whatever was playing. Until somebody
   // opens the tab, though, there is no reason to have a browser engine running
   // at all, so it does not exist.
   const [hasOpenedVideo, setHasOpenedVideo] = useState(false);
-  const isVideoTab = activeWorkspaceTab === 'video';
-  // Every tab, not just the EQ. The response is what the app is for, and there
-  // is no tab where hiding it helps: voicing and convolution both change the
-  // curve, so watching it move is how you tell what they did. The switch in the
-  // sidebar is still the way to turn it off, and it now applies everywhere.
-  const showsGraph = isGraphViewOn;
+  // Karaoke follows the same lifetime rule. Once audio and microphone capture
+  // land here, leaving the tab must not tear either pipeline down.
+  const [hasOpenedKaraoke, setHasOpenedKaraoke] = useState(false);
 
   // The editor's height when the drag began, so every move is measured from one
   // fixed point rather than accumulated.
@@ -290,9 +397,9 @@ const AppContent = () => {
   const [isResizingPanes, setIsResizingPanes] = useState(false);
 
   const handleGraphResizeStart = useCallback(() => {
-    graphDragStart.current = getEditorHeight();
+    graphDragStart.current = getEditorHeight(activeWorkspaceTab);
     setIsResizingPanes(true);
-  }, []);
+  }, [activeWorkspaceTab]);
 
   /**
    * Move the divider.
@@ -302,9 +409,15 @@ const AppContent = () => {
    * direction the handle is being carried, and both ends of the drag stay live
    * because the pane being sized is the one whose content can actually vary.
    */
-  const handleGraphResizeDrag = useCallback((deltaY: number) => {
-    setEditorHeight(clampToWindow(graphDragStart.current + deltaY));
-  }, []);
+  const handleGraphResizeDrag = useCallback(
+    (deltaY: number) => {
+      setEditorHeight(
+        clampToWindow(graphDragStart.current + deltaY),
+        activeWorkspaceTab,
+      );
+    },
+    [activeWorkspaceTab],
+  );
 
   const handleGraphResizeEnd = useCallback(() => {
     setIsResizingPanes(false);
@@ -330,6 +443,15 @@ const AppContent = () => {
     return undefined;
   }, [isVideoTab]);
 
+  useEffect(() => {
+    if (!isKaraokeTab) {
+      return undefined;
+    }
+
+    setHasOpenedKaraoke(true);
+    return undefined;
+  }, [isKaraokeTab]);
+
   // Written on every change rather than on the way out, because there is no
   // reliable way out: a development reload, a crash and a quit all end the
   // renderer without warning, and the reload is the one this exists for.
@@ -340,6 +462,26 @@ const AppContent = () => {
       // Not worth failing a tab change over.
     }
   }, [activeWorkspaceTab]);
+
+  useEffect(() => {
+    if (!graphVisibilityByTab) {
+      return;
+    }
+    try {
+      window.localStorage.setItem(
+        GRAPH_VISIBILITY_BY_TAB_KEY,
+        JSON.stringify(graphVisibilityByTab),
+      );
+    } catch {
+      // A private/locked storage area must not break the live layout.
+    }
+  }, [graphVisibilityByTab]);
+
+  useEffect(() => {
+    const root = document.getElementById('root');
+    root?.classList.toggle('minimized', !showsGraph);
+    return () => root?.classList.remove('minimized');
+  }, [showsGraph]);
 
   useEffect(() => {
     let mounted = true;
@@ -360,8 +502,16 @@ const AppContent = () => {
     const unsubscribe = window.electron.ipcRenderer.on(
       'window-state-changed',
       (...args: unknown[]) => {
-        const state = args[0] as { isMaximized?: boolean } | undefined;
+        const state = args[0] as
+          { isMaximized?: boolean; isFullScreen?: boolean } | undefined;
         setIsWindowMaximized(Boolean(state?.isMaximized));
+        if (
+          state?.isFullScreen === false &&
+          karaokeFullScreenRequestedRef.current
+        ) {
+          karaokeFullScreenRequestedRef.current = false;
+          setIsKaraokeFullScreen(false);
+        }
       },
     );
 
@@ -378,7 +528,11 @@ const AppContent = () => {
 
     const closeMenu = (event: Event) => {
       const target = event.target as HTMLElement;
-      if (!target.closest('.workspace-header__tools')) {
+      // The language list is portalled to document.body so it can escape the
+      // titlebar menu without being clipped. It still belongs to this menu:
+      // closing the parent on the option's pointerdown unmounts the picker
+      // before List can deliver its click and the locale never changes.
+      if (!target.closest('.workspace-header__tools, .language-picker-menu')) {
         setShowAudioToolsMenu(false);
       }
     };
@@ -587,14 +741,9 @@ const AppContent = () => {
         className="workspace-header window-titlebar"
         onDoubleClick={handleTitlebarDoubleClick}
       >
-        {/* One grid child, two things in it.
-
-            The bar's three columns are what keep the waveform optically
-            centred, so the transport cannot be a fourth child — an extra column
-            would push the analyser off centre by exactly its width. It shares
-            the left track with the identity block instead, which is the track
-            with room: the right one already carries the creature, the actions
-            menu and three window buttons. */}
+        {/* The three direct grid children keep the waveform optically centred.
+            Identity stays in the left track; pet, transport, actions and window
+            controls share one ordered cluster in the right track. */}
         <div className="window-titlebar__left">
           <div className="workspace-header__identity">
             <BrandMark />
@@ -615,59 +764,6 @@ const AppContent = () => {
               </div>
             </div>
           </div>
-          {/* The machine's transport, not this app's player.
-
-              Deliberately at this end of the bar and not beside the window
-              buttons: "next track" one gap away from "close" is a misclick that
-              quits the application, and these are buttons people press quickly
-              and repeatedly without looking.
-
-              Windows only — see `isWindows`. Every button here carries
-              `no-drag` through `.window-control`, because the bar around them is
-              a drag region and a control inside one cannot be clicked at all
-              without it. */}
-          {isWindows && (
-            <div className="window-titlebar__transport">
-              <button
-                type="button"
-                className="window-control window-control--media"
-                aria-label={t('app.media.previousAria')}
-                title={t('app.media.previous')}
-                onClick={() => handleMediaTransport('previous')}
-              >
-                <svg viewBox="0 0 16 12" aria-hidden="true">
-                  <path d="M3.6 3v6M12.4 3.2v5.6L6.6 6z" />
-                </svg>
-              </button>
-              {/* One glyph, both meanings — the same pairing a keyboard's media
-                  row prints on its key. There is no way to know whether
-                  anything is playing without the WinRT session manager, which
-                  is a native module this app does not carry, so a button that
-                  showed a state would be showing a guess. */}
-              <button
-                type="button"
-                className="window-control window-control--media"
-                aria-label={t('app.media.playPauseAria')}
-                title={t('app.media.playPause')}
-                onClick={() => handleMediaTransport('playPause')}
-              >
-                <svg viewBox="0 0 16 12" aria-hidden="true">
-                  <path d="M2.8 3.2v5.6L7.6 6zM10.6 3.2v5.6M13.4 3.2v5.6" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                className="window-control window-control--media"
-                aria-label={t('app.media.nextAria')}
-                title={t('app.media.next')}
-                onClick={() => handleMediaTransport('next')}
-              >
-                <svg viewBox="0 0 16 12" aria-hidden="true">
-                  <path d="M3.6 3.2v5.6L9.4 6zM12.4 3v6" />
-                </svg>
-              </button>
-            </div>
-          )}
         </div>
         {/* Moved, not copied.
 
@@ -694,6 +790,11 @@ const AppContent = () => {
               hasContributed={hasContributed}
               onOpen={() => setShowSupportDialog(true)}
             />
+          )}
+          {/* Kept beside the pet, before the actions and window controls. The
+              gap after it protects fast media clicks from the close button. */}
+          {isWindows && (
+            <TitlebarMediaTransport onAction={handleMediaTransport} />
           )}
           <div className="workspace-header__tools">
             <button
@@ -993,9 +1094,13 @@ const AppContent = () => {
         </div>
       </header>
       <main
-        className={`app-workspace${isAppFullScreen ? ' is-app-full' : ''}${
-          isAppFullScreen && hasFullScreenTopBar ? ' has-top-bar' : ''
-        }`}
+        className={`app-workspace${
+          isGraphAppFullScreen || isKaraokeFullScreen ? ' is-app-full' : ''
+        }${
+          (isGraphAppFullScreen || isKaraokeFullScreen) && hasFullScreenTopBar
+            ? ' has-top-bar'
+            : ''
+        }${isKaraokeFullScreen ? ' is-karaoke-full' : ''}`}
       >
         {showAudioRestartRecommendation && (
           <aside className="audio-restart-notice" role="status">
@@ -1039,13 +1144,16 @@ const AppContent = () => {
             </div>
           </aside>
         )}
-        {/* Always. The graph is on every tab now, so the switch that turns it
-            off belongs on every tab too — and it has to stay visible once it
-            has been used, or there would be no way to bring the graph back. */}
-        <SideBar showGraphToggle />
+        <SideBar
+          showGraphToggle
+          isGraphVisible={showsGraph}
+          onGraphVisibilityChange={setActiveTabGraphVisibility}
+        />
         <div
           className={`center-workspace${
-            isGraphFullScreen && isGraphViewOn ? ' is-graph-full' : ''
+            isGraphFullScreen && showsGraph && !isKaraokeFullScreen
+              ? ' is-graph-full'
+              : ''
           }${isResizingPanes ? ' is-resizing' : ''}`}
         >
           <div
@@ -1123,6 +1231,15 @@ const AppContent = () => {
                 onClick={() => setActiveWorkspaceTab('video')}
               >
                 {t('tabs.media')}
+              </button>
+              <button
+                type="button"
+                role="tab"
+                aria-selected={isKaraokeTab}
+                className={`workspace-tab${isKaraokeTab ? ' is-active' : ''}`}
+                onClick={() => setActiveWorkspaceTab('karaoke')}
+              >
+                {t('tabs.karaoke')}
               </button>
               {/* Last, and held out at the far edge by an auto margin. See
                   WORKSPACE_TABS for why the one tab that changes nothing is
@@ -1213,6 +1330,20 @@ const AppContent = () => {
                 stop the music. It has no engine-disabled state either — a
                 video plays whether or not Equalizer APO is behind it. */}
             {hasOpenedVideo && <VideoBrowser isHidden={!isVideoTab} />}
+            {/* Mounted on first visit and then hidden instead of destroyed.
+                The empty shell has no live resources yet, but the lifetime is
+                correct before song playback and microphone capture arrive. */}
+            {hasOpenedKaraoke && (
+              <KaraokeWorkspace
+                isHidden={!isKaraokeTab}
+                isFullScreen={isKaraokeFullScreen}
+                hasFullScreenTopBar={hasFullScreenTopBar}
+                onToggleFullScreenTopBar={toggleFullScreenTopBar}
+                onToggleFullScreen={() =>
+                  applyKaraokeFullScreen(!isKaraokeFullScreen)
+                }
+              />
+            )}
             {/* Outside the tab switch for the same class of reason, and more
                 strictly: this one renders nothing at all. It hosts both Smart
                 EQ measurements, which used to live in the EQ panel above and so
@@ -1233,7 +1364,7 @@ const AppContent = () => {
               onEnd={handleGraphResizeEnd}
             />
           )}
-          {showsGraph ? <FrequencyResponseChart /> : null}
+          {showsGraph ? <FrequencyResponseChart isVisible /> : null}
         </div>
         <div className="right-content">
           <DeviceProfiles />

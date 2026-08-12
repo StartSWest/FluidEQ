@@ -100,9 +100,9 @@ describe('the custom file in a device chain', () => {
     expect(contents).toContain(`Include: ${custom}`);
   });
 
-  // Last, and after the preamp. FluidEQ cannot know what is in here, so it
-  // cannot reserve headroom for it; running it after the reserve keeps the
-  // arithmetic above it honest.
+  // Last, and after the preamp. The file remains user-owned, while its
+  // measurable EQ commands are read back so the generated preamp can protect
+  // the complete chain.
   it('is applied after the generated chain and its preamp', () => {
     flushDeviceProfiles(settings, presetsDir, configDir);
 
@@ -134,6 +134,32 @@ describe('the custom file in a device chain', () => {
     flushDeviceProfiles(settings, presetsDir, configDir);
 
     expect(fs.readFileSync(custom, 'utf8')).toBe(mine);
+  });
+
+  it('includes measurable custom gain when deriving the generated preamp', () => {
+    flushDeviceProfiles(settings, presetsDir, configDir);
+    const custom = path.join(configDir, customFileIn(configDir) as string);
+    fs.writeFileSync(
+      custom,
+      'Preamp: 2 dB\r\nFilter 1: ON PK Fc 900 Hz Gain 4 dB Q 1',
+      'utf8',
+    );
+
+    flushDeviceProfiles(settings, presetsDir, configDir);
+
+    const deviceFile = fs
+      .readdirSync(configDir)
+      .find((name) => name.startsWith('fluideq-device-'));
+    const preamp = Number(
+      /-?[\d.]+/.exec(
+        fs
+          .readFileSync(path.join(configDir, deviceFile as string), 'utf8')
+          .split(/\r?\n/)
+          .find((line) => line.startsWith('Preamp:')) ?? '',
+      )?.[0],
+    );
+
+    expect(preamp).toBeLessThan(-5);
   });
 
   // It outlives its generated siblings, but not the output itself: a file for

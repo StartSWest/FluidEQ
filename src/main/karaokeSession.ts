@@ -1,0 +1,279 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+import { createHash } from 'crypto';
+import fs from 'fs';
+import path from 'path';
+import {
+  IKaraokeRestoredFile,
+  IKaraokeRestoredFileBytes,
+  IKaraokeRestoredSession,
+  IKaraokeSessionFileReference,
+  IKaraokeSessionSnapshot,
+} from '../common/karaoke/sessionPersistence';
+
+const SESSION_FILENAME = 'karaoke-session.json';
+const MAX_FILES = 5_000;
+const MAX_LYRICS_BYTES = 4 * 1024 * 1024;
+const AUDIO_EXTENSIONS = new Set(['mp3', 'wav', 'ogg', 'flac', 'm4a']);
+const LYRIC_EXTENSIONS = new Set(['lrc', 'elrc', 'txt']);
+const MIME_TYPES: Record<string, string> = {
+  mp3: 'audio/mpeg',
+  wav: 'audio/wav',
+  ogg: 'audio/ogg',
+  flac: 'audio/flac',
+  m4a: 'audio/mp4',
+  lrc: 'text/plain',
+  elrc: 'text/plain',
+  txt: 'text/plain',
+};
+
+interface IKaraokeStoredFile {
+  localPath: string;
+  relativePath: string;
+}
+
+interface IKaraokeStoredSession {
+  version: 1;
+  files: IKaraokeStoredFile[];
+  playlistOrder: string[];
+  selectedPlaylistId?: string;
+  playheadMs: number;
+}
+
+const tokenPaths = new Map<string, string>();
+
+const extensionForPath = (localPath: string): string =>
+  path.extname(localPath).slice(1).toLowerCase();
+
+const roleForPath = (
+  localPath: string,
+): IKaraokeRestoredFile['role'] | undefined => {
+  const extension = extensionForPath(localPath);
+  if (AUDIO_EXTENSIONS.has(extension)) {
+    return 'audio';
+  }
+  if (LYRIC_EXTENSIONS.has(extension)) {
+    return 'lyrics';
+  }
+  return undefined;
+};
+
+const tokenForPath = (localPath: string): string =>
+  createHash('sha256').update(localPath).digest('hex').slice(0, 32);
+
+const sessionPath = (userDataDir: string): string =>
+  path.join(userDataDir, SESSION_FILENAME);
+
+const safeRelativePath = (value: unknown, fallback: string): string => {
+  if (typeof value !== 'string' || !value.trim() || value.length > 2_048) {
+    return fallback;
+  }
+  return value.replace(/^[/\\]+/, '');
+};
+
+const safeStringArray = (value: unknown): string[] =>
+  Array.isArray(value)
+    ? value.filter(
+        (entry): entry is string =>
+          typeof entry === 'string' && entry.length > 0 && entry.length < 2_048,
+      )
+    : [];
+
+const resolveReferencePath = (
+  reference: IKaraokeSessionFileReference,
+): string | undefined => {
+  if (reference.token) {
+    return tokenPaths.get(reference.token);
+  }
+  return reference.localPath;
+};
+
+const validateStoredFile = (
+  localPath: unknown,
+  relativePath: unknown,
+): IKaraokeStoredFile | undefined => {
+  if (
+    typeof localPath !== 'string' ||
+    !path.isAbsolute(localPath) ||
+    !roleForPath(localPath)
+  ) {
+    return undefined;
+  }
+  try {
+    const stats = fs.statSync(localPath);
+    if (!stats.isFile()) {
+      return undefined;
+    }
+    return {
+      localPath,
+      relativePath: safeRelativePath(relativePath, path.basename(localPath)),
+    };
+  } catch {
+    return undefined;
+  }
+};
+
+const normalizeStoredSession = (value: unknown): IKaraokeStoredSession => {
+  const candidate = value as Partial<IKaraokeStoredSession> | undefined;
+  if (candidate?.version !== 1 || !Array.isArray(candidate.files)) {
+    return { version: 1, files: [], playlistOrder: [], playheadMs: 0 };
+  }
+  const files: IKaraokeStoredFile[] = [];
+  const seen = new Set<string>();
+  candidate.files.slice(0, MAX_FILES).forEach((file) => {
+    const valid = validateStoredFile(file?.localPath, file?.relativePath);
+    const key = valid?.localPath.toLowerCase();
+    if (valid && key && !seen.has(key)) {
+      seen.add(key);
+      files.push(valid);
+    }
+  });
+  return {
+    version: 1,
+    files,
+    playlistOrder: safeStringArray(candidate.playlistOrder),
+    selectedPlaylistId:
+      typeof candidate.selectedPlaylistId === 'string'
+        ? candidate.selectedPlaylistId
+        : undefined,
+    playheadMs:
+      typeof candidate.playheadMs === 'number' &&
+      Number.isFinite(candidate.playheadMs)
+        ? Math.max(0, candidate.playheadMs)
+        : 0,
+  };
+};
+
+const readStoredSession = (userDataDir: string): IKaraokeStoredSession => {
+  try {
+    return normalizeStoredSession(
+      JSON.parse(fs.readFileSync(sessionPath(userDataDir), 'utf8')),
+    );
+  } catch {
+    return { version: 1, files: [], playlistOrder: [], playheadMs: 0 };
+  }
+};
+
+const activateTokens = (files: readonly IKaraokeStoredFile[]) => {
+  tokenPaths.clear();
+  files.forEach((file) => {
+    tokenPaths.set(tokenForPath(file.localPath), file.localPath);
+  });
+};
+
+export const saveKaraokeSession = (
+  userDataDir: string,
+  snapshot: IKaraokeSessionSnapshot,
+): void => {
+  const storedFiles = snapshot.files
+    .slice(0, MAX_FILES)
+    .map((reference) => {
+      const localPath = resolveReferencePath(reference);
+      return validateStoredFile(localPath, reference.relativePath);
+    })
+    .filter((file): file is IKaraokeStoredFile => Boolean(file));
+  const stored: IKaraokeStoredSession = {
+    version: 1,
+    files: storedFiles,
+    playlistOrder: safeStringArray(snapshot.playlistOrder),
+    selectedPlaylistId:
+      typeof snapshot.selectedPlaylistId === 'string'
+        ? snapshot.selectedPlaylistId
+        : undefined,
+    playheadMs:
+      Number.isFinite(snapshot.playheadMs) && snapshot.playheadMs > 0
+        ? snapshot.playheadMs
+        : 0,
+  };
+  fs.mkdirSync(userDataDir, { recursive: true });
+  fs.writeFileSync(sessionPath(userDataDir), JSON.stringify(stored, null, 2));
+  activateTokens(stored.files);
+};
+
+export const restoreKaraokeSession = (
+  userDataDir: string,
+): IKaraokeRestoredSession | undefined => {
+  const stored = readStoredSession(userDataDir);
+  if (!stored.files.length) {
+    tokenPaths.clear();
+    return undefined;
+  }
+  activateTokens(stored.files);
+  const files = stored.files.flatMap((file): IKaraokeRestoredFile[] => {
+    const role = roleForPath(file.localPath);
+    if (!role) {
+      return [];
+    }
+    const stats = fs.statSync(file.localPath);
+    const extension = extensionForPath(file.localPath);
+    if (role === 'lyrics' && stats.size > MAX_LYRICS_BYTES) {
+      return [];
+    }
+    return [
+      {
+        token: tokenForPath(file.localPath),
+        name: path.basename(file.localPath),
+        relativePath: file.relativePath,
+        type: MIME_TYPES[extension] ?? '',
+        lastModified: stats.mtimeMs,
+        role,
+        ...(role === 'lyrics'
+          ? { text: fs.readFileSync(file.localPath, 'utf8') }
+          : {}),
+      },
+    ];
+  });
+  if (!files.some((file) => file.role === 'audio')) {
+    return undefined;
+  }
+  return {
+    files,
+    playlistOrder: stored.playlistOrder,
+    selectedPlaylistId: stored.selectedPlaylistId,
+    playheadMs: stored.playheadMs,
+  };
+};
+
+export const readRestoredKaraokeFile = (
+  token: string,
+): Promise<IKaraokeRestoredFileBytes | undefined> => {
+  const localPath = tokenPaths.get(token);
+  if (!localPath || roleForPath(localPath) !== 'audio') {
+    return Promise.resolve(undefined);
+  }
+  return Promise.all([
+    fs.promises.stat(localPath),
+    fs.promises.readFile(localPath),
+  ])
+    .then(([stats, data]) => ({
+      data: new Uint8Array(data),
+      lastModified: stats.mtimeMs,
+      type: MIME_TYPES[extensionForPath(localPath)] ?? '',
+    }))
+    .catch(() => undefined);
+};
+
+export const clearKaraokeSession = (userDataDir: string): void => {
+  tokenPaths.clear();
+  try {
+    fs.rmSync(sessionPath(userDataDir), { force: true });
+  } catch {
+    // A locked profile should not prevent the user from clearing the UI.
+  }
+};

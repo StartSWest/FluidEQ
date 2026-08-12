@@ -57,13 +57,36 @@ it under the terms of the GNU General Public License version 3 or later.
   line-height: 1.25;
 }
 
-// The resting state of the summary, when nothing is being mirrored. Quiet on
-// purpose: it is the normal case, not a problem.
-.extra-outputs__idle {
-  flex: 0 0 auto;
-  color: $text-muted;
-  font-size: 0.62rem;
-  font-weight: 700;
+// A folded panel names only outputs that are actually switched on. When none
+// are enabled the header stays compact instead of spending a row saying Off.
+.extra-outputs__enabled {
+  display: grid;
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
+  list-style: none;
+
+  li {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 8px;
+    color: $text-muted;
+    font-size: 0.68rem;
+    font-weight: 700;
+  }
+
+  .device-dot {
+    flex: 0 0 auto;
+  }
+
+  li > span:last-child {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 // The profile this output already carries. Quiet: it is information, not a

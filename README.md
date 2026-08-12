@@ -42,10 +42,10 @@ Everything active is named on the EQ page, so a bump in the graph is never a
 mystery — you can see what put it there and remove it in one click.
 
 **Start from a measurement.** 6,028 headphone models and 8,850 responses ship
-offline from the official AutoEq results. The GadgetryTech Squiglink database is
-available online as a second source. Either way the correction arrives as its
-own layer: it survives clearing the EQ, it can be weakened or switched off on
-its own, and it never overwrites a band you placed yourself.
+offline from the official AutoEq results. For other measurements, the AutoEQ
+tab links to Squiglink so you can export its EQ text and import it
+locally. Official headphone corrections remain their own layer; an external
+export becomes editable EQ bands with a visible source and curve preview.
 
 **Smart EQ.** Measures what is actually coming out of your output and flattens
 what it hears, rather than assuming a target. It subtracts the rest of the chain
@@ -358,8 +358,8 @@ below is new work, and it is most of what you interact with.
   Up to 128 bands.
 - **Import** of Equalizer APO ParametricEQ and GraphicEQ files, FluidEQ
   profiles, and WAV impulse responses.
-- **A second measurement source**, GadgetryTech via Squiglink, fitted into PEQ
-  locally rather than bundled.
+- **A guided external import**, with a link to Squiglink and a
+  preview of the EQ text you paste or open locally.
 
 **Interface**
 
@@ -399,11 +399,9 @@ official AutoEq results snapshot at commit
 `pnpm autoeq:update` and validate every generated filter with
 `pnpm test:autoeq`.
 
-The optional **GadgetryTech / Squiglink** source stays separate from the offline
-library. FluidEQ reads their public `phone_book.json` and REW measurements on
-demand and fits the selected response into PEQ filters locally. Nothing from it
-is bundled or republished by the installer; it is cached in the user data
-directory only, and the attribution link stays visible in the app.
+Squiglink is linked as an external calculator, not bundled as a database. Users
+can export the EQ text there and paste it into FluidEQ; the
+import keeps the source link and a visible curve preview with the applied EQ.
 
 **Equalizer APO** is a separate project by
 [Jonas Thedering](https://sourceforge.net/projects/equalizerapo/), licensed
