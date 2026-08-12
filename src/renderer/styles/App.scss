@@ -273,6 +273,23 @@ select option {
 
 // *** Titlebar ***************************************************************
 
+// Every full-window overlay opts out of dragging the window.
+//
+// The titlebar below is a fixed drag region across the whole top of the window,
+// and a draggable region is not something a later element can cover: Chromium
+// builds it as the union of the `drag` rectangles minus the `no-drag` ones, so
+// painting a dialog on top of it changes what is drawn and not what the mouse
+// hits. Every modal here is centred, which puts its header — and its close
+// button — inside that strip, where the press became the start of a window drag
+// and the button never saw it. It failed only near the top of the dialog, which
+// reads as a flaky button rather than as the titlebar it actually is.
+//
+// Matched by suffix so a new dialog is covered by existing it, rather than by
+// remembering. Anything ending `-backdrop` covers the window by definition.
+[class$='-backdrop'] {
+  -webkit-app-region: no-drag;
+}
+
 .window-titlebar {
   position: fixed;
   z-index: 100;

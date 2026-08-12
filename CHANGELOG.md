@@ -8,18 +8,13 @@ actions menu opens it again any time.
 
 ## 1.2.0
 
-FluidEQ has a Karaoke tab. It sits between Media and Config, it plays songs you
-already own, and it is the largest single thing this program has been given: a
-lyric stage, a live pitch lane, a microphone that is measured rather than
-recorded, a chord guide guessed out of the backing track, and a full-screen mode
-for standing back from the screen. None of it reaches the network and none of it
-is a catalogue — FluidEQ ships no songs and no lyrics, and downloads none.
+FluidEQ has a Karaoke tab: songs you already own, with the words, your pitch
+drawn against the melody, and the chords guessed out of the backing track. It
+ships no music and downloads none.
 
-The equaliser did not stand still. The other half of this release is about what
-Equalizer APO has on disk: the file FluidEQ leaves for your own commands is now a
-layer you can see, and an edit you make in APO itself no longer goes unnoticed.
-Auto-normalise also takes back a decision made in 1.0.0 that turned out to be
-wrong, and that one is audible.
+The rest of the release is about the config on disk. Your own APO commands are a
+layer you can see, an edit made in APO itself no longer goes unnoticed, and
+auto-normalise takes back a decision from 1.0.0 that you will hear.
 
 ### New
 

@@ -3638,10 +3638,16 @@ ipcMain.on('quit-app', () => {
  * editing CHANGELOG.md and nothing else — no constant to update, no chance of
  * the two drifting apart. It is also the same file people read on GitHub.
  *
- * Only the newest section crosses to the renderer. The whole history is what
- * the file is for; it is not what "What's new" means.
+ * The dialog opens two ways and they are not the same question. After an update
+ * it opens by itself, and there "what's new" means the version just installed —
+ * everything below it is by definition not new. Opened deliberately, from the
+ * actions menu or from the support panel, it is somebody asking to read, and
+ * the whole history is a fair answer.
+ *
+ * So the caller says which it wants, and the slicing happens here rather than
+ * in the renderer because this is where the file is read.
  */
-ipcMain.handle('get-changelog', () => {
+ipcMain.handle('get-changelog', (_event, scope: 'latest' | 'all') => {
   const candidates = [
     path.join(process.resourcesPath, 'CHANGELOG.md'),
     path.join(__dirname, '../../CHANGELOG.md'),
@@ -3652,7 +3658,8 @@ ipcMain.handle('get-changelog', () => {
     return '';
   }
   try {
-    return latestReleaseNotes(fs.readFileSync(found, 'utf8'));
+    const markdown = fs.readFileSync(found, 'utf8');
+    return scope === 'all' ? markdown : latestReleaseNotes(markdown);
   } catch {
     return '';
   }

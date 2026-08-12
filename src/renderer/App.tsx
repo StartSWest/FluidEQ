@@ -243,9 +243,15 @@ const AppContent = () => {
   // the only route to "Install Equalizer APO" was gone until the error
   // changed, which for a missing engine it never does.
   const [prereqNonce, setPrereqNonce] = useState(0);
-  const [showWhatsNew, setShowWhatsNew] = useState(
+  // Null when closed, otherwise how much of the changelog to show. The dialog
+  // that opens itself after an update answers "what changed in the version I
+  // just got"; the one somebody opens from a menu is a request to read, and
+  // gets the history. Same dialog, two questions.
+  const [whatsNewScope, setWhatsNewScope] = useState<'latest' | 'all' | null>(
     () =>
-      !!APP_VERSION && localStorage.getItem(WHATS_NEW_SEEN_KEY) !== APP_VERSION,
+      !!APP_VERSION && localStorage.getItem(WHATS_NEW_SEEN_KEY) !== APP_VERSION
+        ? 'latest'
+        : null,
   );
   // Set from inside the graph pane; read here because the elements that have
   // to get out of the way are not the graph's — the EQ panel is its sibling,
@@ -895,7 +901,7 @@ const AppContent = () => {
                           role="menuitem"
                           onClick={() => {
                             setShowAudioToolsMenu(false);
-                            setShowWhatsNew(true);
+                            setWhatsNewScope('all');
                           }}
                         >
                           <MenuIcon name="info" />
@@ -1462,15 +1468,16 @@ const AppContent = () => {
         {/* Bottom left, opposite the failure notices, so two things arriving
             at once do not land on top of each other. */}
         <UpdateNotice />
-        {showWhatsNew && (
+        {whatsNewScope && (
           <WhatsNewDialog
+            scope={whatsNewScope}
             onClose={() => {
               // Written on close rather than on open: a dialog dismissed by a
               // crash should still be shown again.
               if (APP_VERSION) {
                 localStorage.setItem(WHATS_NEW_SEEN_KEY, APP_VERSION);
               }
-              setShowWhatsNew(false);
+              setWhatsNewScope(null);
             }}
           />
         )}
@@ -1480,8 +1487,8 @@ const AppContent = () => {
             // notes is a detour from deciding whether to contribute, not a
             // departure from it — closing them should put you back where you
             // were, not leave you staring at the workspace.
-            onShowReleaseNotes={() => setShowWhatsNew(true)}
-            isCovered={showWhatsNew}
+            onShowReleaseNotes={() => setWhatsNewScope('all')}
+            isCovered={whatsNewScope !== null}
             hasContributed={hasContributed}
             onContributed={() => {
               localStorage.setItem(SUPPORT_CONTRIBUTED_KEY, 'true');

@@ -91,9 +91,14 @@ const toggleMaximizeWindow = () =>
 
 const closeWindow = () => ipcRenderer.invoke('window-close') as Promise<void>;
 
-/** The release notes that shipped with this build. */
-const getChangelog = () =>
-  ipcRenderer.invoke('get-changelog') as Promise<string>;
+/**
+ * The release notes that shipped with this build.
+ *
+ * `latest` is the version just installed and nothing else; `all` is the whole
+ * file. Which one is right depends on whether the reader asked to see this.
+ */
+const getChangelog = (scope: 'latest' | 'all') =>
+  ipcRenderer.invoke('get-changelog', scope) as Promise<string>;
 
 /** Quit and run the update that has already been downloaded. */
 const installUpdate = () =>

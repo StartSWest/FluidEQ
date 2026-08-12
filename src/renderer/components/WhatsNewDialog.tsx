@@ -28,6 +28,14 @@ import '../styles/WhatsNew.scss';
 
 interface IWhatsNewDialogProps {
   onClose: () => void;
+  /**
+   * How much of the file to show, decided by how the dialog was opened.
+   *
+   * `latest` for the one that opens itself after an update, where the question
+   * is what changed in the version just installed. `all` when somebody went and
+   * asked for it, where the history is what they came for.
+   */
+  scope: 'latest' | 'all';
 }
 
 /**
@@ -58,6 +66,27 @@ const renderInline = (text: string, keyPrefix: string) => {
 const renderChangelog = (markdown: string) => {
   const blocks: ReactElement[] = [];
   let listItems: string[] = [];
+  let paragraph: string[] = [];
+
+  /**
+   * A paragraph is every line up to the next blank one, joined.
+   *
+   * Each source line used to become its own `<p>`, which meant the file's
+   * 80-column wrapping was drawn as if it were the layout: the text broke where
+   * the editor had broken it, two thirds of the way across a much wider dialog,
+   * and the gap between one paragraph and the next looked the same as the gap
+   * between two lines of one. Joining first lets the text reflow to whatever
+   * width it is given, which is what a paragraph is for. List items have always
+   * been assembled this way; paragraphs were the omission.
+   */
+  const flushParagraph = (key: string) => {
+    if (paragraph.length === 0) {
+      return;
+    }
+    const text = paragraph.join(' ');
+    blocks.push(<p key={key}>{renderInline(text, key)}</p>);
+    paragraph = [];
+  };
 
   const flushList = (key: string) => {
     if (listItems.length === 0) {
@@ -83,6 +112,7 @@ const renderChangelog = (markdown: string) => {
     // A list item can wrap onto the following lines; anything indented that is
     // not itself a bullet belongs to the item above it.
     if (/^[-*]\s+/.test(line)) {
+      flushParagraph(key);
       listItems.push(line.replace(/^[-*]\s+/, ''));
       return;
     }
@@ -94,10 +124,12 @@ const renderChangelog = (markdown: string) => {
     flushList(key);
 
     if (!line || line === '---') {
+      flushParagraph(key);
       return;
     }
     const heading = line.match(/^(#{1,4})\s+(.*)$/);
     if (heading) {
+      flushParagraph(key);
       const level = heading[1].length;
       const content = renderInline(heading[2], key);
       if (level <= 1) {
@@ -112,14 +144,18 @@ const renderChangelog = (markdown: string) => {
       }
       return;
     }
-    blocks.push(<p key={key}>{renderInline(line, key)}</p>);
+    paragraph.push(line);
   });
 
   flushList('tail');
+  flushParagraph('tail-paragraph');
   return blocks;
 };
 
-export default function WhatsNewDialog({ onClose }: IWhatsNewDialogProps) {
+export default function WhatsNewDialog({
+  onClose,
+  scope,
+}: IWhatsNewDialogProps) {
   const { t } = useTranslation();
   const [markdown, setMarkdown] = useState<string>();
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -137,10 +173,10 @@ export default function WhatsNewDialog({ onClose }: IWhatsNewDialogProps) {
 
   useEffect(() => {
     window.electron.ipcRenderer
-      .getChangelog()
+      .getChangelog(scope)
       .then((text) => setMarkdown(text))
       .catch(() => setMarkdown(''));
-  }, []);
+  }, [scope]);
 
   return (
     <div
