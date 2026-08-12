@@ -35,5 +35,9 @@
     "*.{css,sass,scss}.d.ts": true
   },
   "files.eol": "\n",
-  "editor.tabSize": 2
+  "editor.tabSize": 2,
+
+  "terminal.integrated.autoReplies": {
+    "Terminate batch job (Y/N)": "Y\r"
+  }
 }
