@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { FilterTypeEnum, IFilter } from 'common/constants';
+import { FilterTypeEnum, IFilter, IGraphicEqPoint } from 'common/constants';
 import { range } from 'renderer/utils/utils';
 import {
   IChartPointData,
@@ -206,6 +206,54 @@ export const getFilterLineData = (filter: IFilter): IChartPointData[] => {
   }
 
   return data;
+};
+
+/**
+ * Sample a native Equalizer APO GraphicEQ curve on the graph's log-frequency
+ * grid. APO interpolates between neighbouring points, so interpolate in
+ * logarithmic frequency space as well; that keeps a sparse custom curve
+ * faithful between its points instead of bending it toward the linear axis.
+ */
+export const getGraphicEqLineData = (
+  points: IGraphicEqPoint[],
+): IChartPointData[] => {
+  const sorted = points
+    .filter(
+      ({ frequency, gain }) =>
+        Number.isFinite(frequency) && Number.isFinite(gain),
+    )
+    .slice()
+    .sort((left, right) => left.frequency - right.frequency);
+
+  if (sorted.length === 0) {
+    return [];
+  }
+
+  return SAMPLE_FREQUENCIES.map((frequency) => {
+    if (frequency <= sorted[0].frequency) {
+      return { x: frequency, y: sorted[0].gain };
+    }
+    const last = sorted[sorted.length - 1];
+    if (frequency >= last.frequency) {
+      return { x: frequency, y: last.gain };
+    }
+
+    let index = 1;
+    while (index < sorted.length && sorted[index].frequency < frequency) {
+      index += 1;
+    }
+    const before = sorted[index - 1];
+    const after = sorted[index];
+    const span = Math.log(after.frequency) - Math.log(before.frequency);
+    const progress =
+      span === 0
+        ? 0
+        : (Math.log(frequency) - Math.log(before.frequency)) / span;
+    return {
+      x: frequency,
+      y: before.gain + (after.gain - before.gain) * progress,
+    };
+  });
 };
 
 // Get total curve info from filter and point data

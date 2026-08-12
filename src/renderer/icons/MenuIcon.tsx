@@ -63,6 +63,26 @@ const PATHS: Record<string, string> = {
     'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM4 12h16M12 4c2.2 2.2 3.3 5 3.3 8s-1.1 5.8-3.3 8c-2.2-2.2-3.3-5-3.3-8s1.1-5.8 3.3-8z',
   // X in a circle: take it off.
   clear: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM9.5 9.5l5 5M14.5 9.5l-5 5',
+  // Arrow leaving a small window: visit the source in the browser.
+  external:
+    'M14 4h6v6M20 4l-9 9M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5',
+  // A response curve over two axes: preview an imported correction.
+  graph: 'M4 19V5M4 19h16M7 15l3-4 3 2 5-7',
+  folder:
+    'M3.5 7.5h6l2-2h3l2 2h4v10.5a1.5 1.5 0 0 1-1.5 1.5H5A1.5 1.5 0 0 1 3.5 18V7.5z',
+  filePlus: 'M6 3.5h8l4 4V20H6V3.5zM14 3.5v4h4M12 11v6M9 14h6',
+  menu: 'M5 7h14M5 12h14M5 17h14',
+  microphone:
+    'M12 15a4 4 0 0 0 4-4V6a4 4 0 0 0-8 0v5a4 4 0 0 0 4 4zM5 11a7 7 0 0 0 14 0M12 18v3M9 21h6',
+  // Compact microphone plus adjustment rails: specifically mic settings,
+  // rather than the generic application settings cog.
+  microphoneSettings:
+    'M9.5 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3zM4.5 11a5 5 0 0 0 8.5 3.6M9.5 16v4M7 20h5M17 5v3M17 11v7M14.5 8h5M20.5 5v7M20.5 15v3M18 12h5',
+  previous: 'M15.5 6L9 12l6.5 6M7 6v12',
+  next: 'M8.5 6L15 12l-6.5 6M17 6v12',
+  play: 'M9 6l8 6-8 6V6z',
+  pause: 'M9 6v12M15 6v12',
+  volume: 'M5 10v4h3l4 3V7l-4 3H5M15 9a4 4 0 0 1 0 6',
 };
 
 export type MenuIconName = keyof typeof PATHS;

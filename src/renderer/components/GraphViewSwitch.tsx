@@ -24,31 +24,42 @@ import Switch from '../widgets/Switch';
 
 interface IGraphViewSwitchProps {
   id: string;
+  isOn?: boolean;
+  onToggle?: (next: boolean) => void | Promise<void>;
 }
 
-export default function GraphViewSwitch({ id }: IGraphViewSwitchProps) {
+export default function GraphViewSwitch({
+  id,
+  isOn,
+  onToggle,
+}: IGraphViewSwitchProps) {
   const { isBlockingError, isGraphViewOn, setGlobalError, setGraphViewOn } =
     useFluidEqContext();
+  const currentValue = isOn ?? isGraphViewOn;
 
   // Toggling the graph never resizes the OS window. The workspace keeps the
   // size the user chose and the EQ panel simply reclaims the freed height.
   const handleToggle = useCallback(async () => {
     try {
-      if (isGraphViewOn) {
+      if (onToggle) {
+        await onToggle(!currentValue);
+        return;
+      }
+      if (currentValue) {
         await disableGraphView();
       } else {
         await enableGraphView();
       }
-      setGraphViewOn(!isGraphViewOn);
+      setGraphViewOn(!currentValue);
     } catch (e) {
       setGlobalError(e as ErrorDescription);
     }
-  }, [isGraphViewOn, setGlobalError, setGraphViewOn]);
+  }, [currentValue, onToggle, setGlobalError, setGraphViewOn]);
 
   return (
     <Switch
       id={id}
-      isOn={isGraphViewOn}
+      isOn={currentValue}
       handleToggle={handleToggle}
       isDisabled={isBlockingError}
     />

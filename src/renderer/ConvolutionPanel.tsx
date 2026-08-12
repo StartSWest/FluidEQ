@@ -15,6 +15,7 @@ import {
   IConvolutionCatalogEntry,
 } from 'common/convolution';
 import { ErrorDescription } from 'common/errors';
+import { suggestSearches } from 'common/searchHistory';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
 import {
@@ -24,6 +25,11 @@ import {
   importConvolutionFile,
 } from './utils/equalizerApi';
 import MenuIcon from './icons/MenuIcon';
+import {
+  addConvolutionSearchToHistory,
+  clearConvolutionSearchHistory,
+  useConvolutionSearchHistory,
+} from './utils/convolutionSearchHistory';
 import './styles/Convolution.scss';
 
 const ConvolutionPanel = () => {
@@ -31,6 +37,9 @@ const ConvolutionPanel = () => {
     useFluidEqContext();
   const { t } = useTranslation();
   const [query, setQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const searchHistory = useConvolutionSearchHistory();
+  const searchSuggestions = suggestSearches(searchHistory, query);
   const [entries, setEntries] = useState<IConvolutionCatalogEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [downloadingId, setDownloadingId] = useState<string>();
@@ -63,6 +72,9 @@ const ConvolutionPanel = () => {
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
+      if (query.trim()) {
+        addConvolutionSearchToHistory(query);
+      }
       loadCatalog(query).catch(() => undefined);
     }, 220);
     return () => window.clearTimeout(timer);
@@ -164,15 +176,58 @@ const ConvolutionPanel = () => {
             <span id="convolution-model-search-label">
               {t('convolution.search')}
             </span>
-            <input
-              id="convolution-model-search"
-              type="search"
-              aria-labelledby="convolution-model-search-label"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={t('convolution.searchPlaceholder')}
-              autoComplete="off"
-            />
+            <div className="convolution-search__field">
+              <input
+                id="convolution-model-search"
+                type="search"
+                aria-labelledby="convolution-model-search-label"
+                value={query}
+                onChange={(event) => {
+                  setQuery(event.target.value);
+                  setIsSearchFocused(true);
+                }}
+                onFocus={() => setIsSearchFocused(true)}
+                onBlur={() => setIsSearchFocused(false)}
+                placeholder={t('convolution.searchPlaceholder')}
+                autoComplete="off"
+              />
+              {isSearchFocused && searchSuggestions.length > 0 && (
+                <div className="convolution-search__history">
+                  <div className="convolution-search__history-head">
+                    <span>{t('video.searchRecent')}</span>
+                    <button
+                      type="button"
+                      onMouseDown={(event) => {
+                        event.preventDefault();
+                        clearConvolutionSearchHistory();
+                        setIsSearchFocused(false);
+                      }}
+                    >
+                      {t('video.searchForgetAll')}
+                    </button>
+                  </div>
+                  <div className="convolution-search__history-items">
+                    {searchSuggestions.map((search) => (
+                      <button
+                        type="button"
+                        key={search}
+                        title={search}
+                        onMouseDown={(event) => {
+                          event.preventDefault();
+                          setQuery(search);
+                        }}
+                      >
+                        <svg viewBox="0 0 16 16" aria-hidden>
+                          <path d="M8 4v4l2.6 1.6" />
+                          <circle cx="8" cy="8" r="5.6" />
+                        </svg>
+                        <span>{search}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
           <div className="convolution-notice">{t('convolution.notice')}</div>
           <div className="convolution-results" aria-live="polite">

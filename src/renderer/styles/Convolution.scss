@@ -107,6 +107,103 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+.convolution-search__field {
+  position: relative;
+  min-width: 0;
+}
+
+.convolution-search__history {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 5px);
+  right: 0;
+  left: 0;
+  display: grid;
+  padding: 8px;
+  gap: 7px;
+  color: $text-primary;
+  border: 1px solid rgba($primary-lighter, 0.18);
+  border-radius: $radius-s;
+  background: rgba(#0b1626, 0.98);
+  box-shadow: 0 14px 30px rgba($black, 0.3);
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.convolution-search__history-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  color: rgba($primary-lighter, 0.62);
+  font-size: 0.58rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  button {
+    padding: 0;
+    color: inherit;
+    border: 0;
+    background: transparent;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      color: $secondary-light;
+      outline: none;
+    }
+  }
+}
+
+.convolution-search__history-items {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 5px;
+
+  > button {
+    display: flex;
+    max-width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 8px;
+    color: rgba($white, 0.84);
+    border: 1px solid rgba($primary-lighter, 0.14);
+    border-radius: $radius-xs;
+    background: rgba($primary-light, 0.12);
+    font-size: 0.64rem;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover,
+    &:focus-visible {
+      color: $secondary-light;
+      border-color: rgba($secondary-light, 0.36);
+      background: rgba($secondary-default, 0.12);
+      outline: none;
+    }
+
+    svg {
+      width: 11px;
+      flex: 0 0 11px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.4;
+    }
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
 .convolution-notice {
   padding: 7px 10px;
   color: rgba($primary-lighter, 0.66);

@@ -14,7 +14,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // Everything here is layout around `AutoEQ`, which is rendered exactly as it is
 // and is not this file's to change. What the page does is give it the room it
 // never had inside the EQ card: the reference is stated across the top, the
-// three pickers get a line to themselves, and what belongs in each of them is
+// the pickers get a line to themselves, and what belongs in each of them is
 // written underneath rather than being something you find out by opening menus.
 //
 // Overrides are written against `.sidebar-section`'s class names wherever they
@@ -74,7 +74,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // The fold control goes.
 //
-// Folding was worth having when this sat above the bands, where the three rows
+// Folding was worth having when this sat above the bands, where the rows
 // it gave back went to the sliders. On a tab of its own there is nothing
 // underneath to hand them to, and a header whose only job is to hide everything
 // below it can do nothing here except empty the page. The page's own heading
@@ -131,7 +131,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // *** The pickers themselves *************************************************
 
-// Three fields across the page, and the apply button on a line of its own.
+// Two fields across the page, and the apply button on the same row.
 //
 // Squeezed into the EQ card all four shared one row, which is as much as that
 // width could carry: the model picker is where a name like "Sennheiser HD 600 ·
@@ -141,7 +141,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .autoeq-panel__picker .auto-eq {
   padding: 2px 0 0;
   gap: 16px;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) max-content;
 
   > .button {
     min-width: 172px;
@@ -164,7 +164,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // *** What goes in each picker ***********************************************
 
-// The same three, in the same order, with the sentence each needed and never
+// The same two, in the same order, with the sentence each needed and never
 // had room for. They are notes and not steps you tick off, so they sit under
 // the controls rather than in front of them.
 .autoeq-panel__guide {
@@ -217,8 +217,8 @@ it under the terms of the GNU General Public License version 3 or later.
 // against, declared once on `.workspace-tab-panel` in App.scss.
 //
 // Restated rather than inherited: the rules above beat AutoEQ.scss's own
-// container queries on specificity, so without these the three columns would
-// stay three columns all the way down.
+// container queries on specificity, so without these the columns would stay
+// wide all the way down.
 @container autoeq-workspace (max-width: 900px) {
   .autoeq-panel__picker .auto-eq {
     grid-template-columns: repeat(2, minmax(0, 1fr));

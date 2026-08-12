@@ -47,7 +47,7 @@ export interface IApoConfigFile {
  * the reader.
  */
 export interface IApoConfigLayer {
-  /** `driver`, `eq`, `voicing`, `smart`, or `convolution`. */
+  /** `driver`, `eq`, `voicing`, `smart`, `convolution`, or `custom`. */
   feature: string;
   /** False when the profile has this layer and the config leaves it out. */
   isApplied: boolean;

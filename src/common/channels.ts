@@ -65,16 +65,13 @@ enum ChannelEnum {
   GET_AUTO_EQ_DEVICE_LIST = 'getAutoEqDeviceList',
   GET_AUTO_EQ_RESPONSE_LIST = 'getAutoEqResponseList',
   LOAD_AUTO_EQ_PRESET = 'loadAutoEqPreset',
-  GET_SQUIGLINK_DEVICE_LIST = 'getSquiglinkDeviceList',
-  GET_SQUIGLINK_RESPONSE_LIST = 'getSquiglinkResponseList',
-  LOAD_SQUIGLINK_PRESET = 'loadSquiglinkPreset',
-  GET_SQUIGLINK_SOURCE_LIST = 'getSquiglinkSourceList',
   GET_CONVOLUTION_CATALOG = 'getConvolutionCatalog',
   DOWNLOAD_CONVOLUTION = 'downloadConvolution',
   CLEAR_CONVOLUTION = 'clearConvolution',
   // Both open a native file picker in the main process and return a short
   // description of what was applied, so the renderer never handles a path.
   IMPORT_EQ_FILE = 'importEqFile',
+  IMPORT_EQ_TEXT = 'importEqText',
   IMPORT_CONVOLUTION_FILE = 'importConvolutionFile',
   CHECK_AUTO_EQ_UPDATE = 'checkAutoEqUpdate',
   UPDATE_AUTO_EQ_DATABASE = 'updateAutoEqDatabase',

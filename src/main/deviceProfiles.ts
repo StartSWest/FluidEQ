@@ -15,6 +15,7 @@ import { promisify } from 'util';
 import {
   APO_FEATURES,
   IAudioDevice,
+  ICustomFxSettings,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
   IPresetV2,
@@ -27,10 +28,13 @@ import {
   FLUIDEQ_CONFIG_FILENAME,
   fetchPreset,
   IApoChainFiles,
+  savePreset,
   stateToApoFiles,
 } from './flush';
+import { parseCustomFx } from '../common/customFx';
 import { writeConvolutionWav } from './convolution';
 import { POWERSHELL_PATH } from './powershell';
+import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 
 export interface IActiveStateOverride {
   deviceId?: string;
@@ -203,6 +207,25 @@ const customFileName = (slug: string) => `fluideq-${slug}-custom.txt`;
 export const getCustomFileNameForDevice = (deviceId: string) =>
   customFileName(deviceSlug(deviceId));
 
+/** Read the measurable EQ portion of an output's user-owned custom file. */
+const readCustomFx = (
+  configDirPath: string | undefined,
+  deviceId: string,
+): ICustomFxSettings | undefined => {
+  if (!configDirPath || !deviceId) {
+    return undefined;
+  }
+  const fileName = getCustomFileNameForDevice(deviceId);
+  try {
+    return parseCustomFx(
+      fileName,
+      fs.readFileSync(addFileToPath(configDirPath, fileName), 'utf8'),
+    );
+  } catch {
+    return undefined;
+  }
+};
+
 /** What a custom file says before anybody has put anything in it. */
 const CUSTOM_FILE_TEMPLATE = [
   '# Yours. FluidEQ creates this file once and never writes it again, so',
@@ -216,6 +239,7 @@ const CUSTOM_FILE_TEMPLATE = [
 const presetForDeviceChain = (
   preset: IPresetV2,
   convolutionFileName?: string,
+  customFx?: ICustomFxSettings,
 ) => {
   const presetState = {
     isEnabled: true,
@@ -226,6 +250,7 @@ const presetForDeviceChain = (
     // undefined would otherwise overwrite the default with nothing. Absent
     // means automatic, which every profile written before the flag existed was.
     isAutoPreAmpOn: preset.isAutoPreAmpOn ?? true,
+    customFx,
   };
 
   return stateToApoFiles(presetState, convolutionFileName);
@@ -293,7 +318,7 @@ const chainToFiles = (
       // running it after the reserve keeps the arithmetic above honest and
       // makes the ownership plain: this is the generated chain, and then this
       // is yours.
-      `Include: ${customFileName(slug)}`,
+      ...(chain.custom === false ? [] : [`Include: ${customFileName(slug)}`]),
     ].join(CRLF),
   ]);
 
@@ -376,6 +401,21 @@ export const deviceProfilesToFiles = (
     .forEach((assignment) => {
       try {
         const preset = fetchPreset(assignment.presetName, presetsDir);
+        if (configDirPath && preset.convolution?.fileName) {
+          try {
+            const hydrated = hydrateConvolutionAnalysis(
+              preset.convolution,
+              configDirPath,
+            );
+            if (hydrated !== preset.convolution) {
+              preset.convolution = hydrated;
+              savePreset(assignment.presetName, preset, presetsDir);
+            }
+          } catch {
+            // Keep the profile usable if a legacy WAV cannot be analyzed. APO
+            // will report an unreadable convolution independently.
+          }
+        }
         let convolutionFileName: string | undefined;
         if (configDirPath && preset.convolution) {
           convolutionFileName = getConvolutionFileName(assignment.deviceId);
@@ -394,8 +434,9 @@ export const deviceProfilesToFiles = (
             );
           }
         }
+        const customFx = readCustomFx(configDirPath, assignment.deviceId);
         addDevice(
-          presetForDeviceChain(preset, convolutionFileName),
+          presetForDeviceChain(preset, convolutionFileName, customFx),
           `${assignment.deviceName} -> ${assignment.presetName}`,
           assignment.deviceGuid || assignment.deviceName,
           assignment.deviceId,
@@ -406,26 +447,47 @@ export const deviceProfilesToFiles = (
     });
 
   if (activeOverride) {
+    let activeState = activeOverride.state;
+    if (configDirPath && activeState.convolution?.fileName) {
+      try {
+        const hydrated = hydrateConvolutionAnalysis(
+          activeState.convolution,
+          configDirPath,
+        );
+        if (hydrated !== activeState.convolution) {
+          activeState = { ...activeState, convolution: hydrated };
+          activeOverride.state.convolution = hydrated;
+        }
+      } catch {
+        // Same legacy fallback as assigned profiles above.
+      }
+    }
     let activeConvolutionFileName: string | undefined;
-    if (activeOverride.state.convolution) {
+    if (activeState.convolution) {
       if (
-        activeOverride.state.convolution.fileName &&
-        isSafeConvolutionFileName(activeOverride.state.convolution.fileName)
+        activeState.convolution.fileName &&
+        isSafeConvolutionFileName(activeState.convolution.fileName)
       ) {
-        activeConvolutionFileName = activeOverride.state.convolution.fileName;
+        activeConvolutionFileName = activeState.convolution.fileName;
       } else if (configDirPath && activeOverride.deviceId) {
         activeConvolutionFileName = getConvolutionFileName(
           activeOverride.deviceId,
         );
         writeConvolutionWav(
           addFileToPath(configDirPath, activeConvolutionFileName),
-          activeOverride.state.convolution.filters,
+          activeState.convolution.filters,
         );
       }
     }
 
+    const activeCustomFx =
+      activeState.customFx ??
+      readCustomFx(configDirPath, activeOverride.deviceId ?? '');
     addDevice(
-      stateToApoFiles(activeOverride.state, activeConvolutionFileName),
+      stateToApoFiles(
+        { ...activeState, customFx: activeCustomFx },
+        activeConvolutionFileName,
+      ),
       // In the same `<output> -> <what it is>` shape every other block carries,
       // so the config view splits it the same way and the device file's first
       // line names the output rather than only the mechanism. Without a name to
@@ -502,6 +564,8 @@ export const getStateForAudioDevice = (
     // the user from the headphones to the speakers.
     smartEq: preset?.smartEq,
     headphone: preset?.headphone,
+    eqImport: preset?.eqImport,
+    customFx: undefined,
     headset: preset?.headset,
     headsetTarget: preset?.headsetTarget,
     headsetSource: preset?.headsetSource,

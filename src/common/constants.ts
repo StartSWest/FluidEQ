@@ -175,6 +175,20 @@ export interface IGraphicEqPoint {
   gain: number;
 }
 
+/**
+ * The EQ-shaped part of an output's user-owned custom APO file.
+ *
+ * The file itself remains outside generated state. This description is
+ * refreshed from disk so the graph and the applied-layer row can acknowledge
+ * commands that Equalizer APO is already applying.
+ */
+export interface ICustomFxSettings {
+  fileName: string;
+  preAmp: number;
+  filters: IFiltersMap;
+  graphicEq?: IGraphicEqPoint[];
+}
+
 export const FilterTypeToLabelMap: Record<FilterTypeEnum, string> = {
   [FilterTypeEnum.PK]: 'Peak Filter',
   [FilterTypeEnum.NO]: 'Notch Filter',
@@ -289,6 +303,17 @@ export interface IFilterEdit {
   type?: FilterTypeEnum;
 }
 
+/** Provenance shown when an EQ export was imported from an external tool. */
+export interface IEqImportReference {
+  source: 'squiglink';
+  sourceUrl: string;
+  label: string;
+  eqFormat: AutoEqFormat;
+  filterCount: number;
+  /** The original export text, retained so the importer can restore it. */
+  text?: string;
+}
+
 export interface IState {
   isEnabled: boolean;
   isAutoPreAmpOn: boolean;
@@ -311,6 +336,10 @@ export interface IState {
   smartEq?: ISmartEqSettings;
   /** The published headphone correction, as its own layer. */
   headphone?: IHeadphoneSettings;
+  /** Commands read from the active output's user-owned custom APO file. */
+  customFx?: ICustomFxSettings;
+  /** Metadata for an EQ text imported from an external curve tool. */
+  eqImport?: IEqImportReference;
   /**
    * The measured headphone this correction came from.
    *
@@ -419,9 +448,21 @@ export type TApoFeature = (typeof APO_FEATURES)[number];
  * Switching it off is the same act either way: a line that is not written. So
  * it shares the list, and only the writer knows the difference.
  */
-export const APO_LAYERS = [...APO_FEATURES, 'convolution'] as const;
+export const APO_LAYERS = [...APO_FEATURES, 'convolution', 'custom'] as const;
 
 export type TApoLayer = (typeof APO_LAYERS)[number];
+
+/**
+ * A generated feature file edited directly in Equalizer APO.
+ *
+ * Kept beside the picker settings rather than replacing them, so the app can
+ * show the exact audible curve while still knowing which curated profile the
+ * layer came from. Choosing a profile again removes the override.
+ */
+export interface IApoLayerOverride {
+  filters: IFiltersMap;
+  graphicEq?: IGraphicEqPoint[];
+}
 
 /**
  * Which voicing is active and how strongly.
@@ -434,6 +475,8 @@ export interface IVoicingSettings {
   profileId: string;
   /** 0..1 scale applied to every gain in the profile. */
   intensity: number;
+  /** Exact applied file contents after an external APO edit. */
+  apoOverride?: IApoLayerOverride;
 }
 
 /**
@@ -447,6 +490,8 @@ export interface IDriverSettings {
   profileId: string;
   /** 0..1 scale applied to every gain in the profile. */
   intensity: number;
+  /** Exact applied file contents after an external APO edit. */
+  apoOverride?: IApoLayerOverride;
 }
 
 /**
@@ -525,6 +570,8 @@ export interface IHeadphoneSettings {
    * rather than a compromise. The same control the voicing and the driver have.
    */
   intensity: number;
+  /** Exact applied file contents after an external APO edit. */
+  apoOverride?: IApoLayerOverride;
 }
 
 export interface ISmartEqSettings {
@@ -545,6 +592,8 @@ export interface ISmartEqSettings {
    * strength or those all become silent on upgrade.
    */
   intensity?: number;
+  /** Exact applied file contents after an external APO edit. */
+  apoOverride?: IApoLayerOverride;
   /** Whether the capture heard the whole correctable band or only part of it. */
   status?: 'ready' | 'partial';
   /** The range the capture actually covered, so the UI can say what it did. */
@@ -579,6 +628,8 @@ export interface IPresetV2 {
   driver?: IDriverSettings;
   smartEq?: ISmartEqSettings;
   headphone?: IHeadphoneSettings;
+  /** Metadata for an EQ text imported from an external curve tool. */
+  eqImport?: IEqImportReference;
   /**
    * Whether this profile wants its preamp derived from its own chain.
    *
@@ -618,6 +669,17 @@ export interface IConvolutionProfile {
   filters: IFiltersMap;
   /** Relative WAV filename stored in the Equalizer APO config directory. */
   fileName?: string;
+  /**
+   * The measured magnitude response of the WAV Equalizer APO actually loads.
+   *
+   * Companion ParametricEQ filters are only a visual approximation and do not
+   * include the gain baked into the impulse. Persisting the measured response
+   * lets auto-normalize use the real file while keeping profile switches free
+   * of disk analysis.
+   */
+  response?: IGraphicEqPoint[];
+  /** Highest measured WAV magnitude between 10 Hz and 20 kHz, in dB. */
+  peakGainDb?: number;
   /** Original public source URL, retained for attribution and re-downloads. */
   sourceUrl?: string;
   sourceId?: string;
@@ -660,30 +722,11 @@ export interface IAutoEqUpdateStatus {
 /**
  * The bundled AutoEq database, as a source id.
  *
- * Squiglink sources name themselves in their manifest; the local database has
- * no manifest to name it, so the id is written here once and shared. Both
- * processes persist it into headsetSource and compare against it, and a typo
- * in either would silently stop a restored selection matching.
+ * The id is written once and shared by the main and renderer processes. It is
+ * persisted into headsetSource so a restored selection can be matched without
+ * guessing which catalogue supplied it.
  */
 export const AUTOEQ_SOURCE_ID = 'autoeq';
-
-export interface IEqSource {
-  /** Stable source id. Squiglink ids are supplied by its official manifest. */
-  id: string;
-  name: string;
-  description: string;
-  attributionUrl: string;
-  online: boolean;
-}
-
-export interface ISquigSource {
-  id: string;
-  username: string;
-  name: string;
-  type: string;
-  website: string;
-  dataUrl: string;
-}
 
 /** ----- Default Values ----- */
 

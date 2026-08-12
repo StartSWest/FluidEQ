@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   FilterTypeEnum,
   IVoicingSettings,
+  IGraphicEqPoint,
   NO_GAIN_FILTER_TYPES,
   clampGain,
 } from './constants';
@@ -322,7 +323,21 @@ export const isVoicingActive = (
 ): boolean =>
   Boolean(settings?.profileId) &&
   (settings?.intensity ?? 0) > 0 &&
-  Boolean(getVoicingProfile(settings?.profileId ?? ''));
+  (Boolean(settings?.apoOverride) ||
+    Boolean(getVoicingProfile(settings?.profileId ?? '')));
+
+export const getVoicingGraphicEq = (
+  settings: IVoicingSettings | undefined,
+): IGraphicEqPoint[] => {
+  const points = settings?.apoOverride?.graphicEq;
+  const intensity = Math.min(1, Math.max(0, settings?.intensity ?? 0));
+  return points?.length && intensity > 0
+    ? points.map(({ frequency, gain }) => ({
+        frequency,
+        gain: clampGain(Math.round(gain * intensity * 100) / 100),
+      }))
+    : [];
+};
 
 /**
  * The filters a voicing contributes at a given intensity.
@@ -339,13 +354,23 @@ export const getVoicingFilters = (
   if (!settings?.profileId) {
     return [];
   }
-  const profile = getVoicingProfile(settings.profileId);
-  if (!profile) {
+  const intensity = Math.min(1, Math.max(0, settings.intensity));
+  if (intensity <= 0 || settings.apoOverride?.graphicEq?.length) {
     return [];
   }
-
-  const intensity = Math.min(1, Math.max(0, settings.intensity));
-  if (intensity <= 0) {
+  if (settings.apoOverride) {
+    return Object.values(settings.apoOverride.filters).map((filter) => ({
+      type: filter.type,
+      frequency: filter.frequency,
+      gain: NO_GAIN_FILTER_TYPES.includes(filter.type)
+        ? filter.gain
+        : clampGain(Math.round(filter.gain * intensity * 100) / 100),
+      quality: filter.quality,
+      reason: 'Edited in Equalizer APO',
+    }));
+  }
+  const profile = getVoicingProfile(settings.profileId);
+  if (!profile) {
     return [];
   }
 

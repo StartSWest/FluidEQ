@@ -17,9 +17,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ipcRenderer, IpcRendererEvent } from 'electron';
+import { ipcRenderer, IpcRendererEvent, webUtils } from 'electron';
 // Type only, so the preload bundle does not pull `child_process` in behind it.
 import type { TMediaTransportAction } from './mediaKeys';
+import type {
+  IKaraokeRestoredFileBytes,
+  IKaraokeRestoredSession,
+  IKaraokeSessionSnapshot,
+} from '../common/karaoke/sessionPersistence';
 
 export type Channels = string;
 
@@ -110,6 +115,25 @@ const setWindowFullScreen = (next: boolean) =>
 const sendMediaTransport = (action: TMediaTransportAction) =>
   ipcRenderer.invoke('media-transport', action) as Promise<void>;
 
+/** Electron removed File.path; this is the supported replacement. */
+const getPathForFile = (file: File): string => webUtils.getPathForFile(file);
+
+const saveKaraokeSession = (snapshot: IKaraokeSessionSnapshot) =>
+  ipcRenderer.invoke('karaoke-session-save', snapshot) as Promise<void>;
+
+const restoreKaraokeSession = () =>
+  ipcRenderer.invoke('karaoke-session-restore') as Promise<
+    IKaraokeRestoredSession | undefined
+  >;
+
+const readKaraokeSessionFile = (token: string) =>
+  ipcRenderer.invoke('karaoke-session-read-file', token) as Promise<
+    IKaraokeRestoredFileBytes | undefined
+  >;
+
+const clearKaraokeSession = () =>
+  ipcRenderer.invoke('karaoke-session-clear') as Promise<void>;
+
 export default {
   /**
    * What this build is running on, read once while the preload has a `process`.
@@ -135,5 +159,10 @@ export default {
     isWindowMaximized,
     setWindowFullScreen,
     sendMediaTransport,
+    getPathForFile,
+    saveKaraokeSession,
+    restoreKaraokeSession,
+    readKaraokeSessionFile,
+    clearKaraokeSession,
   },
 };

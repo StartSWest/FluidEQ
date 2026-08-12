@@ -107,6 +107,13 @@ const configuration: webpack.Configuration = {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: 'asset/resource',
       },
+      // Emitted separately so AudioWorklet.addModule receives executable JS
+      // in development exactly as it does in the packaged renderer.
+      {
+        test: /\.worklet$/i,
+        type: 'asset/resource',
+        generator: { filename: '[name].js' },
+      },
     ],
   },
   plugins: [

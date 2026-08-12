@@ -94,6 +94,14 @@ const configuration: webpack.Configuration = {
         test: /\.(png|svg|jpg|jpeg|gif)$/i,
         type: 'asset/resource',
       },
+      // Standalone JavaScript fetched by AudioWorklet.addModule. Keeping the
+      // source outside the renderer bundle also keeps realtime DSP off the UI
+      // thread; the .js output name gives Chromium the expected module type.
+      {
+        test: /\.worklet$/i,
+        type: 'asset/resource',
+        generator: { filename: '[name].js' },
+      },
     ],
   },
 

@@ -141,6 +141,93 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-direction: column;
 }
 
+.dropdown-filter-tools {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  gap: 7px;
+}
+
+.dropdown-search-history {
+  display: grid;
+  min-width: 0;
+  gap: 5px;
+}
+
+.dropdown-search-history__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s;
+  color: rgba($primary-lighter, 0.62);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+
+  button {
+    padding: 0;
+    color: rgba($primary-lighter, 0.62);
+    border: 0;
+    background: transparent;
+    font: inherit;
+    letter-spacing: inherit;
+    text-transform: inherit;
+    cursor: pointer;
+
+    &:hover,
+    &:focus-visible {
+      color: $secondary-light;
+      outline: none;
+    }
+  }
+}
+
+.dropdown-search-history__items {
+  display: flex;
+  min-width: 0;
+  flex-wrap: wrap;
+  gap: 5px;
+
+  > button {
+    display: flex;
+    max-width: 100%;
+    min-width: 0;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 7px;
+    color: rgba($white, 0.82);
+    border: 1px solid rgba($primary-lighter, 0.14);
+    border-radius: $radius-xs;
+    background: rgba($primary-light, 0.12);
+    font-size: 0.62rem;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover,
+    &:focus-visible {
+      color: $secondary-light;
+      border-color: rgba($secondary-light, 0.36);
+      background: rgba($secondary-default, 0.12);
+      outline: none;
+    }
+
+    svg {
+      width: 11px;
+      flex: 0 0 11px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 1.4;
+    }
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+}
+
 // *** Placement ***
 // Direction only. Where it goes is inline; this is which edge it unfolds from.
 

@@ -1,0 +1,11 @@
+#TITLE:Neon Measure
+#ARTIST:FluidEQ Test Artist
+#MP3:Neon Measure.ogg
+#BPM:120
+#GAP:500
+: 0 4 0 Sing
+: 4 4 2  it
+- 8
+* 8 4 4 bright
+F 12 4 2  tonight
+E

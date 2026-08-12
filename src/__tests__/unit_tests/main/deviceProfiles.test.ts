@@ -91,9 +91,9 @@ describe('device profile configuration', () => {
     expect(root).toContain('Device: {1234-ABCD}');
     // The preamp is derived from the chain, not read back from the preset.
     // This profile stored -4 dB, but its only band is a +3 dB peak, so the
-    // headroom actually needed is 3 dB — the extra decibel the preset carried
-    // was attenuation nobody could hear a reason for.
-    expect(output).toContain('Preamp: -3 dB');
+    // The filter needs 3 dB plus the shared 0.2 dB safety ceiling. The extra
+    // attenuation the preset carried beyond that is not reused.
+    expect(output).toContain('Preamp: -3.2 dB');
     expect(output).toContain('Fc 80 Hz Gain 3 dB Q 0.8');
   });
 
@@ -132,8 +132,9 @@ describe('device profile configuration', () => {
       .split(/\r?\n/)
       .filter((line) => line.startsWith('Include: '));
 
-    // The custom file rides last, after the preamp: FluidEQ cannot know what
-    // is in it, so it cannot reserve headroom for it.
+    // The custom file rides last, after the generated preamp. Its measurable
+    // EQ subset is read back for headroom, while arbitrary APO commands remain
+    // outside the calculation.
     expect(includes).toHaveLength(4);
     expect(includes.map((line) => line.split('-').pop())).toEqual([
       'driver.txt',
@@ -179,7 +180,7 @@ describe('device profile configuration', () => {
     const lines = deviceFile.split(/\r?\n/);
 
     // Last of the generated lines. Only the user's own file comes after it.
-    expect(lines[lines.length - 2]).toBe('Preamp: -3 dB');
+    expect(lines[lines.length - 2]).toBe('Preamp: -3.2 dB');
     expect(lines[lines.length - 1]).toMatch(/^Include: fluideq-.*-custom.txt$/);
     expect(
       [...files.values()].filter((contents) => contents.includes('Preamp:')),

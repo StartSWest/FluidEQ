@@ -65,7 +65,13 @@ const VoicingPanel = () => {
    * trailing write wins, so the file still matches the control.
    */
   const apply = (profileId: string, nextIntensity: number) => {
-    setVoicing({ profileId, intensity: nextIntensity });
+    setVoicing({
+      profileId,
+      intensity: nextIntensity,
+      ...(profileId === voicing?.profileId && voicing.apoOverride
+        ? { apoOverride: voicing.apoOverride }
+        : {}),
+    });
 
     if (writeTimer.current !== undefined) {
       clearTimeout(writeTimer.current);

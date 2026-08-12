@@ -28,12 +28,15 @@ import {
   useState,
 } from 'react';
 import {
+  AutoEqFormat,
   FilterTypeEnum,
   getDefaultFilterWithId,
   getDefaultState,
   IFilterEdit,
+  IGraphicEqPoint,
   IFiltersMap,
   IConvolutionProfile,
+  IEqImportReference,
   IState,
   OUTPUT_STATE_CHANGED_EVENT,
   TApoLayer,
@@ -170,7 +173,8 @@ export interface IFluidEqContext extends IState {
   /** Which measurement of it. */
   headsetTarget?: string;
   /**
-   * Which database it came from: 'autoeq', or a Squiglink source id.
+   * Which bundled database it came from: 'autoeq'. Legacy values are retained
+   * only so older profiles can still be read safely.
    *
    * Undefined for profiles written before the source was recorded, so the
    * AutoEQ panel has to read "unknown" as a real answer and fall back to
@@ -202,6 +206,8 @@ export interface IFluidEqContext extends IState {
   /** The published headphone correction, as its own layer. */
   headphone?: IHeadphoneSettings;
   setHeadphone: (newValue?: IHeadphoneSettings) => void;
+  /** The active output's user-owned custom APO file, when it has commands. */
+  customFx?: IState['customFx'];
   /** Filter currently selected in the EQ editor and response graph. */
   selectedFilterId: string;
   setSelectedFilterId: (newValue: string) => void;
@@ -396,6 +402,18 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
     DEFAULT_STATE.isCaseSensitiveFs,
   );
   const [preAmp, setPreAmp] = useState<number>(DEFAULT_STATE.preAmp);
+  const [isFlat, setIsFlat] = useState<boolean | undefined>(
+    DEFAULT_STATE.isFlat,
+  );
+  const [eqFormat, setEqFormat] = useState<AutoEqFormat | undefined>(
+    DEFAULT_STATE.eqFormat,
+  );
+  const [graphicEq, setGraphicEq] = useState<IGraphicEqPoint[] | undefined>(
+    DEFAULT_STATE.graphicEq,
+  );
+  const [eqImport, setEqImport] = useState<IEqImportReference | undefined>(
+    DEFAULT_STATE.eqImport,
+  );
   const [voicing, setVoicing] = useState<IVoicingSettings>(
     DEFAULT_STATE.voicing ?? DEFAULT_VOICING,
   );
@@ -408,6 +426,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const [headphone, setHeadphone] = useState<IHeadphoneSettings | undefined>(
     DEFAULT_STATE.headphone,
   );
+  const [customFx, setCustomFx] = useState(DEFAULT_STATE.customFx);
   const [bypassed, setBypassed] = useState<TApoLayer[]>(
     DEFAULT_STATE.bypassed ?? [],
   );
@@ -459,6 +478,17 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
   const revealEditedIdsRef = useRef<Set<string> | undefined>(undefined);
 
   const dispatchFilter = useCallback((action: FilterAction) => {
+    if (action.type === FilterActionEnum.CLEAR_GAINS) {
+      setIsFlat(true);
+    } else if (
+      action.type !== FilterActionEnum.INIT &&
+      action.type !== FilterActionEnum.GAINS
+    ) {
+      // Main marks every deliberate band edit as a shaped EQ, including
+      // gainless pass/notch types whose gain remains 0 dB. Carry the same fact
+      // locally so the applied-layer chip does not depend on gain alone.
+      setIsFlat(false);
+    }
     if (
       action.type === FilterActionEnum.INIT ||
       action.type === FilterActionEnum.ADD ||
@@ -520,8 +550,6 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
 
   const setGraphViewOn = (newValue: boolean) => {
     setIsGraphViewOn(newValue);
-    const root = document.getElementById('root');
-    root?.setAttribute('class', newValue ? '' : 'minimized');
   };
 
   const refreshState = useCallback(
@@ -534,11 +562,16 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         setAutoPreAmpOn(state.isAutoPreAmpOn);
         setGraphViewOn(state.isGraphViewOn);
         setPreAmp(state.preAmp);
+        setIsFlat(state.isFlat);
+        setEqFormat(state.eqFormat);
+        setGraphicEq(state.graphicEq);
+        setEqImport(state.eqImport);
         setConvolution(state.convolution);
         setVoicing(state.voicing ?? DEFAULT_VOICING);
         setDriver(state.driver ?? DEFAULT_DRIVER);
         setSmartEq(state.smartEq);
         setHeadphone(state.headphone);
+        setCustomFx(state.customFx);
         setBypassed(state.bypassed ?? []);
         setHeadset(state.headset);
         setHeadsetTarget(state.headsetTarget);
@@ -668,6 +701,10 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         isGraphViewOn,
         isCaseSensitiveFs,
         preAmp,
+        isFlat,
+        eqFormat,
+        graphicEq,
+        eqImport,
         filters,
         performHealthCheck,
         refreshState,
@@ -686,6 +723,7 @@ export const FluidEqProvider = ({ children }: IFluidEqProviderProps) => {
         driver,
         smartEq,
         headphone,
+        customFx,
         setHeadphone,
         bypassed,
         setDriver,

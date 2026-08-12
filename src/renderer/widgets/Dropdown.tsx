@@ -32,6 +32,7 @@ import {
   ReactNode,
 } from 'react';
 import { createPortal } from 'react-dom';
+import { suggestSearches } from 'common/searchHistory';
 import ArrowIcon from '../icons/ArrowIcon';
 import '../styles/Dropdown.scss';
 import { useClickOutside, useFocusOutside } from '../utils/utils';
@@ -53,6 +54,11 @@ interface IDropdownProps {
   emptyOptionsPlaceholder?: ReactNode;
   isFilterable?: boolean;
   filterPlaceholder?: string;
+  searchHistory?: readonly string[];
+  searchHistoryLabel?: string;
+  clearSearchHistoryLabel?: string;
+  onSearchCommit?: (query: string) => void;
+  onClearSearchHistory?: () => void;
   placement?: 'up' | 'down' | 'left' | 'right';
   /**
    * Put on the portalled menu, for stylesheets that need to size it.
@@ -144,6 +150,11 @@ const Dropdown = ({
   handleChange,
   isFilterable = false,
   filterPlaceholder = 'Search...',
+  searchHistory,
+  searchHistoryLabel = 'Recent searches',
+  clearSearchHistoryLabel = 'Clear recent searches',
+  onSearchCommit,
+  onClearSearchHistory,
   placement = 'down',
   menuClassName,
 }: IDropdownProps) => {
@@ -161,6 +172,10 @@ const Dropdown = ({
 
   const [searchString, setSearchString] = useState<string>('');
   const deferredSearchString = useDeferredValue(searchString);
+  const searchSuggestions = useMemo(
+    () => suggestSearches(searchHistory ?? [], searchString),
+    [searchHistory, searchString],
+  );
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
 
   const indexedOptions = useMemo(
@@ -346,7 +361,10 @@ const Dropdown = ({
 
   useEffect(() => {
     if (isOpen && isFilterable) {
-      dropdownRef.current?.querySelector<HTMLInputElement>('input')?.focus();
+      // Filterable menus are portalled to document.body, so the search field
+      // is outside the trigger's subtree. Focus the menu itself after it has
+      // mounted; querying dropdownRef here silently misses the input.
+      menuRef.current?.querySelector<HTMLInputElement>('input')?.focus();
     }
   }, [isFilterable, isOpen]);
 
@@ -471,9 +489,110 @@ const Dropdown = ({
   };
 
   const onChange = (newValue: string) => {
+    if (searchString.trim()) {
+      onSearchCommit?.(searchString);
+    }
     handleChange(newValue);
     setIsOpen(false);
   };
+
+  const listStyle: CSSProperties = menuFrame
+    ? {
+        top: menuFrame.top !== undefined ? `${menuFrame.top}px` : undefined,
+        bottom:
+          menuFrame.bottom !== undefined ? `${menuFrame.bottom}px` : undefined,
+        left: menuFrame.left !== undefined ? `${menuFrame.left}px` : undefined,
+        right:
+          menuFrame.right !== undefined ? `${menuFrame.right}px` : undefined,
+        maxWidth: `${menuFrame.maxWidth}px`,
+        maxHeight: `${menuFrame.maxHeight}px`,
+      }
+    : // One render before the layout effect measures. Hidden rather than
+      // placed at a guess, so nothing is seen in the wrong position.
+      { visibility: 'hidden' };
+
+  const menu = isOpen ? (
+    <div
+      ref={menuRef}
+      className={`dropdown-menu-layer dropdown--${menuPlacement}${
+        isFilterable ? ' dropdown--filterable' : ''
+      }${menuClassName ? ` ${menuClassName}` : ''}`}
+      style={
+        {
+          '--dropdown-trigger-width': `${menuFrame?.width ?? 0}px`,
+        } as CSSProperties
+      }
+    >
+      <span
+        className="dropdown-menu-layer__guard"
+        // Focusable on purpose, and inert to everything else: a guard is
+        // landed on and left in the same instant.
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        tabIndex={0}
+        onFocus={handleGuardBefore}
+      />
+      <List
+        name={name}
+        value={value}
+        options={filteredOptions}
+        isDisabled={isDisabled}
+        handleChange={onChange}
+        emptyOptionsPlaceholder={emptyOptionsPlaceholder}
+        focusOnRender={!isFilterable}
+        onScroll={handleListScroll}
+        startingItem={
+          isFilterable ? (
+            <div className="dropdown-filter-tools">
+              <TextInput
+                value={searchString}
+                ariaLabel="Filter audio devices"
+                isDisabled={isDisabled}
+                errorMessage=""
+                placeholder={filterPlaceholder}
+                handleChange={(newValue) => setSearchString(newValue)}
+                handleSubmit={(query) => onSearchCommit?.(query)}
+              />
+              {searchSuggestions.length > 0 && (
+                <div className="dropdown-search-history">
+                  <div className="dropdown-search-history__head">
+                    <span>{searchHistoryLabel}</span>
+                    {onClearSearchHistory && (
+                      <button type="button" onClick={onClearSearchHistory}>
+                        {clearSearchHistoryLabel}
+                      </button>
+                    )}
+                  </div>
+                  <div className="dropdown-search-history__items">
+                    {searchSuggestions.map((query) => (
+                      <button
+                        type="button"
+                        key={query}
+                        title={query}
+                        onClick={() => setSearchString(query)}
+                      >
+                        <svg viewBox="0 0 16 16" aria-hidden>
+                          <path d="M8 4v4l2.6 1.6" />
+                          <circle cx="8" cy="8" r="5.6" />
+                        </svg>
+                        <span>{query}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          ) : undefined
+        }
+        style={listStyle}
+      />
+      <span
+        className="dropdown-menu-layer__guard"
+        // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
+        tabIndex={0}
+        onFocus={handleGuardAfter}
+      />
+    </div>
+  ) : null;
 
   return (
     <div
@@ -496,97 +615,7 @@ const Dropdown = ({
           : emptyOptionsPlaceholder || nullElement}
         <ArrowIcon type="down" className="arrow" />
       </div>
-      {isOpen &&
-        createPortal(
-          // `display: contents`, so the layer carries the placement class the
-          // fold animation reads without contributing a box of its own — and
-          // the menu keeps a single parent to measure and to test membership
-          // against.
-          <div
-            ref={menuRef}
-            className={`dropdown-menu-layer dropdown--${menuPlacement}${
-              isFilterable ? ' dropdown--filterable' : ''
-            }${menuClassName ? ` ${menuClassName}` : ''}`}
-            // The trigger's width, published rather than imposed. Stylesheets
-            // used to say `width: 100%` and mean "as wide as the trigger",
-            // which only worked while the menu was the trigger's child. They
-            // say `var(--dropdown-trigger-width)` now and mean the same thing,
-            // so a call site that wants to be wider than the trigger — the
-            // AutoEQ catalogues, the look picker — keeps deciding that itself.
-            style={
-              {
-                '--dropdown-trigger-width': `${menuFrame?.width ?? 0}px`,
-              } as CSSProperties
-            }
-          >
-            <span
-              className="dropdown-menu-layer__guard"
-              // Focusable on purpose, and inert to everything else: a guard is
-              // landed on and left in the same instant.
-              // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-              tabIndex={0}
-              onFocus={handleGuardBefore}
-            />
-            <List
-              name={name}
-              value={value}
-              options={filteredOptions}
-              isDisabled={isDisabled}
-              handleChange={onChange}
-              emptyOptionsPlaceholder={emptyOptionsPlaceholder}
-              focusOnRender={!isFilterable}
-              onScroll={handleListScroll}
-              startingItem={
-                isFilterable ? (
-                  <TextInput
-                    value={searchString}
-                    ariaLabel="Filter audio devices"
-                    isDisabled={isDisabled}
-                    errorMessage=""
-                    placeholder={filterPlaceholder}
-                    handleChange={(newValue) => setSearchString(newValue)}
-                  />
-                ) : undefined
-              }
-              style={
-                menuFrame
-                  ? {
-                      top:
-                        menuFrame.top !== undefined
-                          ? `${menuFrame.top}px`
-                          : undefined,
-                      bottom:
-                        menuFrame.bottom !== undefined
-                          ? `${menuFrame.bottom}px`
-                          : undefined,
-                      left:
-                        menuFrame.left !== undefined
-                          ? `${menuFrame.left}px`
-                          : undefined,
-                      right:
-                        menuFrame.right !== undefined
-                          ? `${menuFrame.right}px`
-                          : undefined,
-                      maxWidth: `${menuFrame.maxWidth}px`,
-                      maxHeight: `${menuFrame.maxHeight}px`,
-                    }
-                  : // One render before the layout effect measures. Hidden
-                    // rather than placed at a guess, so nothing is ever seen
-                    // in the wrong position.
-                    { visibility: 'hidden' }
-              }
-            />
-            <span
-              className="dropdown-menu-layer__guard"
-              // Focusable on purpose, and inert to everything else: a guard is
-              // landed on and left in the same instant.
-              // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex
-              tabIndex={0}
-              onFocus={handleGuardAfter}
-            />
-          </div>,
-          document.body,
-        )}
+      {menu && createPortal(menu, document.body)}
     </div>
   );
 };

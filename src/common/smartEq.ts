@@ -28,6 +28,7 @@ import {
   FIXED_BAND_FREQUENCIES,
   IFilter,
   IFiltersMap,
+  IGraphicEqPoint,
   ISmartEqSettings,
   NO_GAIN_FILTER_TYPES,
   clampFrequency,
@@ -144,7 +145,10 @@ export const getSmartEqBands = (
 export const getSmartEqFilters = (
   settings: ISmartEqSettings | undefined,
 ): Array<Pick<IFilter, 'type' | 'frequency' | 'gain' | 'quality'>> => {
-  if (!settings?.filters) {
+  const filters = settings?.apoOverride
+    ? settings.apoOverride.filters
+    : settings?.filters;
+  if (!filters || settings?.apoOverride?.graphicEq?.length) {
     return [];
   }
 
@@ -157,14 +161,15 @@ export const getSmartEqFilters = (
    * number is treated the same way rather than clamped to zero, for the same
    * reason and with the same consequence if it were not.
    */
-  const intensity = Number.isFinite(settings.intensity)
-    ? Math.max(0, Math.min(1, settings.intensity as number))
+  const intensity = Number.isFinite(settings?.intensity)
+    ? Math.max(0, Math.min(1, settings?.intensity as number))
     : 1;
   if (intensity === 0) {
     return [];
   }
+  const gainPrecision = settings?.apoOverride ? 100 : 10;
 
-  return Object.values(settings.filters)
+  return Object.values(filters)
     .filter(
       (filter) =>
         Number.isFinite(filter.frequency) &&
@@ -177,7 +182,9 @@ export const getSmartEqFilters = (
       // Rounded to a tenth, which is all Equalizer APO reads and all anybody
       // hears. Without it, halving a correction writes gains like 2.8499999
       // into a file somebody may well open and read.
-      gain: clampGain(Math.round(gain * intensity * 10) / 10),
+      gain: clampGain(
+        Math.round(gain * intensity * gainPrecision) / gainPrecision,
+      ),
       quality,
     }))
     .filter(
@@ -187,9 +194,46 @@ export const getSmartEqFilters = (
     .sort((left, right) => left.frequency - right.frequency);
 };
 
+export const getSmartEqGraphicEq = (
+  settings: ISmartEqSettings | undefined,
+): IGraphicEqPoint[] => {
+  const points = settings?.apoOverride?.graphicEq;
+  const intensity = Number.isFinite(settings?.intensity)
+    ? Math.max(0, Math.min(1, settings?.intensity as number))
+    : 1;
+  return points?.length && intensity > 0
+    ? points.map(({ frequency, gain }) => ({
+        frequency,
+        gain: clampGain(Math.round(gain * intensity * 100) / 100),
+      }))
+    : [];
+};
+
 /** Whether anything of this layer would actually reach Equalizer APO. */
 export const hasSmartEqLayer = (settings: ISmartEqSettings | undefined) =>
-  getSmartEqFilters(settings).length > 0;
+  getSmartEqFilters(settings).length > 0 ||
+  getSmartEqGraphicEq(settings).length > 0;
+
+/**
+ * Whether a measured correction is still held, even at zero strength.
+ *
+ * `hasSmartEqLayer` answers what APO can hear. Controls need a different
+ * answer: at 0% the filters intentionally write nothing, but removing the
+ * settings would also remove the slider that can bring them back.
+ */
+export const hasSmartEqCorrection = (
+  settings: ISmartEqSettings | undefined,
+): boolean =>
+  Boolean(settings) &&
+  (Object.values(
+    settings?.apoOverride?.filters ?? settings?.filters ?? {},
+  ).some(
+    ({ type, gain }) =>
+      NO_GAIN_FILTER_TYPES.includes(type) || Math.abs(gain) > 0.001,
+  ) ||
+    (settings?.apoOverride?.graphicEq ?? []).some(
+      ({ gain }) => Math.abs(gain) > 0.001,
+    ));
 
 /**
  * The layer as a comparable string, so "did the measurement change anything"
@@ -255,6 +299,51 @@ export const sanitizeSmartEqSettings = (
   );
 
   const settings: ISmartEqSettings = { filters };
+  const { intensity } = input;
+  if (typeof intensity === 'number' && Number.isFinite(intensity)) {
+    settings.intensity = Math.max(0, Math.min(1, intensity));
+  }
+  if (input.apoOverride && typeof input.apoOverride === 'object') {
+    const rawOverride = input.apoOverride as Record<string, unknown>;
+    const overrideFilters: IFiltersMap = {};
+    if (rawOverride.filters && typeof rawOverride.filters === 'object') {
+      Object.entries(rawOverride.filters as Record<string, unknown>).forEach(
+        ([id, filter]) => {
+          if (id.trim() && isFilterLike(filter)) {
+            overrideFilters[id] = {
+              id,
+              frequency: clampFrequency(filter.frequency),
+              gain: clampGain(filter.gain),
+              quality: clampQuality(filter.quality),
+              type: filter.type,
+            };
+          }
+        },
+      );
+    }
+    const graphicEq = Array.isArray(rawOverride.graphicEq)
+      ? rawOverride.graphicEq
+          .map((point) => {
+            if (!point || typeof point !== 'object') {
+              return undefined;
+            }
+            const { frequency, gain } = point as Record<string, unknown>;
+            return typeof frequency === 'number' &&
+              Number.isFinite(frequency) &&
+              typeof gain === 'number' &&
+              Number.isFinite(gain)
+              ? { frequency, gain: clampGain(gain) }
+              : undefined;
+          })
+          .filter((point): point is IGraphicEqPoint => point !== undefined)
+      : undefined;
+    if (Object.keys(overrideFilters).length || graphicEq?.length) {
+      settings.apoOverride = {
+        filters: overrideFilters,
+        ...(graphicEq?.length ? { graphicEq } : {}),
+      };
+    }
+  }
   if (input.status === 'ready' || input.status === 'partial') {
     settings.status = input.status;
   }
@@ -271,7 +360,7 @@ export const sanitizeSmartEqSettings = (
     settings.highFrequency = input.highFrequency;
   }
 
-  return hasSmartEqLayer(settings) ? settings : undefined;
+  return hasSmartEqCorrection(settings) ? settings : undefined;
 };
 
 /**

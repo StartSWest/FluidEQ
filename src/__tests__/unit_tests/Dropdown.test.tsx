@@ -305,6 +305,7 @@ describe('Dropdown', () => {
 
     await user.click(screen.getByLabelText(name));
     const search = screen.getByLabelText('Filter audio devices');
+    expect(search).toHaveFocus();
     await user.type(search, 'pro KRAKEN');
 
     expect(screen.getByLabelText('Razer Kraken V3 Pro')).toBeInTheDocument();
@@ -336,5 +337,69 @@ describe('Dropdown', () => {
     await user.type(screen.getByLabelText('Filter audio devices'), 'krak');
 
     expect(screen.getByLabelText('Razer Kraken Ultimate')).toBeInTheDocument();
+  });
+
+  it('offers recent searches and records the query used for a selection', async () => {
+    const options = [
+      {
+        value: 'Sennheiser HD 600',
+        label: 'Sennheiser HD 600',
+        display: <div>Sennheiser HD 600</div>,
+      },
+      {
+        value: 'Razer Kraken Ultimate',
+        label: 'Razer Kraken Ultimate',
+        display: <div>Razer Kraken Ultimate</div>,
+      },
+    ];
+    const commitSearch = jest.fn();
+    const clearHistory = jest.fn();
+    const { user } = setup(
+      <Dropdown
+        name={name}
+        value=""
+        options={options}
+        isDisabled={false}
+        isFilterable
+        searchHistory={['HD 600', 'Kraken']}
+        onSearchCommit={commitSearch}
+        onClearSearchHistory={clearHistory}
+        handleChange={handleChange}
+      />,
+    );
+
+    await user.click(screen.getByLabelText(name));
+    expect(screen.getByText('Recent searches')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'HD 600' }));
+    expect(screen.getByLabelText('Sennheiser HD 600')).toBeInTheDocument();
+    expect(
+      screen.queryByLabelText('Razer Kraken Ultimate'),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByLabelText('Sennheiser HD 600'));
+    expect(commitSearch).toHaveBeenCalledWith('HD 600');
+    expect(handleChange).toHaveBeenCalledWith('Sennheiser HD 600');
+  });
+
+  it('can clear recent searches from the filter menu', async () => {
+    const clearHistory = jest.fn();
+    const { user } = setup(
+      <Dropdown
+        name={name}
+        value=""
+        options={FILTER_OPTIONS}
+        isDisabled={false}
+        isFilterable
+        searchHistory={['headphones']}
+        onClearSearchHistory={clearHistory}
+        handleChange={handleChange}
+      />,
+    );
+
+    await user.click(screen.getByLabelText(name));
+    await user.click(
+      screen.getByRole('button', { name: 'Clear recent searches' }),
+    );
+    expect(clearHistory).toHaveBeenCalledTimes(1);
   });
 });

@@ -77,6 +77,8 @@ export enum ColorEnum {
   HEADPHONE = '#ff0af5',
   /** The sum of every layer, kept neutral so it reads as a result. */
   TOTAL = '#dbe7ff',
+  /** The user's own custom APO commands. */
+  CUSTOM = '#ff7a45',
 }
 
 export enum GrayScaleEnum {
@@ -126,4 +128,5 @@ export const LAYER_SWATCH: Record<string, string> = {
   eq: SecondaryColorEnum.DEFAULT,
   voicing: ColorEnum.TRIADIC1,
   smart: ColorEnum.SMART,
+  custom: ColorEnum.CUSTOM,
 };

@@ -133,7 +133,13 @@ const DriverPicker = () => {
    * trailing write wins, so the file still ends up matching the control.
    */
   const apply = (profileId: string, nextIntensity: number) => {
-    setDriver({ profileId, intensity: nextIntensity });
+    setDriver({
+      profileId,
+      intensity: nextIntensity,
+      ...(profileId === driver?.profileId && driver.apoOverride
+        ? { apoOverride: driver.apoOverride }
+        : {}),
+    });
 
     if (writeTimer.current !== undefined) {
       clearTimeout(writeTimer.current);

@@ -8,11 +8,12 @@ it under the terms of the GNU General Public License version 3 or later.
 
 import { TranslationKey } from 'common/i18n';
 import AutoEQ from './AutoEQ';
+import SquiglinkImport from './SquiglinkImport';
 import { useTranslation } from './utils/I18nContext';
 import './styles/AutoEQPanel.scss';
 
 /**
- * The three pickers, explained in the order they are asked.
+ * The two official database pickers, explained in the order they are asked.
  *
  * Titled with the same keys the pickers themselves carry, deliberately: a note
  * about "the measurement source" that does not use the words written above the
@@ -20,7 +21,6 @@ import './styles/AutoEQPanel.scss';
  * it would drift the first time either was reworded.
  */
 const GUIDE: { title: TranslationKey; hint: TranslationKey }[] = [
-  { title: 'autoeq.source', hint: 'autoeq.source.hint' },
   { title: 'autoeq.model', hint: 'autoeq.model.hint' },
   { title: 'autoeq.target', hint: 'autoeq.target.hint' },
 ];
@@ -29,7 +29,7 @@ const GUIDE: { title: TranslationKey; hint: TranslationKey }[] = [
  * The page the reference picker lives on.
  *
  * It is a page rather than a component with a heading because the picker had
- * been a strip across the top of the EQ tab, where it was three combo boxes and
+ * been a strip across the top of the EQ tab, where it was combo boxes and
  * a button with no room to say what any of them were for — and every band below
  * it paid for the height. Here it has the tab to itself: what is applied is
  * stated first, the pickers get a line of their own, and what to put in each of
@@ -54,11 +54,13 @@ const AutoEQPanel = () => {
         <AutoEQ />
       </div>
 
+      <SquiglinkImport />
+
       <div className="autoeq-panel__guide">
         {GUIDE.map((step, index) => (
           <article className="autoeq-guide" key={step.title}>
             {/* Decorative. The order is already carried by the reading order
-                and by the pickers above, so a screen reader counting to three
+                and by the pickers above, so a screen reader counting the pickers
                 would only be repeating itself. */}
             <span className="autoeq-guide__step" aria-hidden="true">
               {index + 1}

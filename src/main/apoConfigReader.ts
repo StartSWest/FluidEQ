@@ -57,6 +57,7 @@ import { checkConfigFile, FLUIDEQ_CONFIG_FILENAME } from './flush';
 
 const INCLUDE_LINE = /^\s*Include\s*:\s*(.+?)\s*$/i;
 const DEVICE_FILE = /^fluideq-device-[0-9a-f]{12}\.txt$/i;
+const CUSTOM_FILE = /^fluideq-[0-9a-f]{12}-custom\.txt$/i;
 const FEATURE_FILE = new RegExp(
   `^fluideq-[0-9a-f]{12}-(${APO_FEATURES.join('|')})\\.txt$`,
   'i',
@@ -82,6 +83,8 @@ export interface IApoDeviceChain {
    * restart. Absent entirely when nothing said which lines came from where.
    */
   features?: Partial<Record<TApoFeature, string>>;
+  /** The user-owned custom file, when the device chain includes it. */
+  custom?: { fileName: string; contents: string };
 }
 
 /**
@@ -166,6 +169,7 @@ export const readApoDeviceChain = (
 
   const features: Partial<Record<TApoFeature, string>> = {};
   let shared: string | undefined;
+  let custom: { fileName: string; contents: string } | undefined;
 
   const text = expandIncludes(
     configDirPath,
@@ -186,6 +190,10 @@ export const readApoDeviceChain = (
           .split(/\r?\n/)
           .filter((line) => !INCLUDE_LINE.test(line.split('#')[0]))
           .join('\n');
+        return;
+      }
+      if (CUSTOM_FILE.test(fileName)) {
+        custom = { fileName, contents };
       }
     },
   );
@@ -194,6 +202,7 @@ export const readApoDeviceChain = (
     devicePattern: block.devicePattern,
     text,
     ...(shared === undefined ? {} : { shared, features }),
+    ...(custom ? { custom } : {}),
   };
 };
 

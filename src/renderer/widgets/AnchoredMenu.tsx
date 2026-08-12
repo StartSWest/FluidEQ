@@ -84,12 +84,16 @@ const AnchoredMenu = ({
   anchor,
   isOpen,
   className,
+  role = 'menu',
+  ariaLabel,
   children,
 }: {
   /** The control it hangs off. Its position on screen is the whole input. */
   anchor: HTMLElement | null;
   isOpen: boolean;
   className: string;
+  role?: 'menu' | 'dialog';
+  ariaLabel?: string;
   children: ReactNode;
 }) => {
   const [style, setStyle] = useState<React.CSSProperties>();
@@ -134,7 +138,8 @@ const AnchoredMenu = ({
       ref={setMenu}
       className={className}
       style={style}
-      role="menu"
+      role={role}
+      aria-label={ariaLabel}
       data-anchored-menu
     >
       {children}

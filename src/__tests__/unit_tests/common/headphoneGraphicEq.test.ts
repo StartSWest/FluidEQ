@@ -153,7 +153,7 @@ describe('a headphone correction published as a graphic curve', () => {
       stateWith({ filters: PROJECTION, graphicEq: CURVE, intensity: 1 }),
     );
 
-    expect(config).toContain('Preamp: -6 dB');
+    expect(config).toContain('Preamp: -6.2 dB');
   });
 
   it('gives the headroom back when the layer is bypassed', () => {
@@ -181,6 +181,9 @@ describe('a headphone correction published as a graphic curve', () => {
       ],
     };
 
-    expect(stateToString(both)).toContain('Preamp: -9 dB');
+    // The two stages stack at each frequency, but their independent maxima do
+    // not: the 6 dB headphone peak is at 3.4 kHz while the 3 dB user peak is at
+    // 60 Hz. The combined curve plus the safety ceiling is the real reserve.
+    expect(stateToString(both)).toContain('Preamp: -6.78 dB');
   });
 });
