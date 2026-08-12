@@ -376,7 +376,7 @@ const drawCard = (
   // The pill, drawn the way the app draws it, because it is the badge the
   // whole post is about.
   if (euphoric) {
-    const label = 'EUPHORIA MODE';
+    const label = 'RAINBOW MODE';
     context.font = `800 30px ${FONT_STACK}`;
     const pillWidth = context.measureText(label).width + 56;
     context.save();

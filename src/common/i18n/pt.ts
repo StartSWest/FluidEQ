@@ -603,12 +603,12 @@ const pt: Partial<Dictionary> = {
 
   'support.game.share': 'Partilhar',
 
-  'support.game.shareEuphoria': 'Partilhar a euforia',
+  'support.game.shareEuphoria': 'Partilhar o arco-íris',
 
   'support.game.shareTitle': 'Partilhe a sua pontuação',
 
   'support.game.shareUnlock':
-    'Chegue a ×10 e este cartão passa a modo euforia, com todo o espetro.',
+    'Chegue a ×10 e este cartão passa a modo arco-íris, com todo o espetro.',
 
   'support.game.shareNote':
     'Guarde o cartão e anexe-o à publicação: nenhuma destas redes consegue tirar uma imagem de um link.',
@@ -626,9 +626,9 @@ const pt: Partial<Dictionary> = {
   'support.game.shareLinkOnly':
     'Partilha apenas o link: cole o texto você mesmo',
 
-  'support.game.euphoria': 'Modo euforia',
+  'support.game.euphoria': 'Modo arco-íris',
 
-  'support.game.euphoriaToggle': 'Ligar ou desligar o modo euforia',
+  'support.game.euphoriaToggle': 'Ligar ou desligar o modo arco-íris',
 
   'support.game.perfect': 'Perfeito',
 

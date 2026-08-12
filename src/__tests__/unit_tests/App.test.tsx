@@ -240,7 +240,9 @@ describe('App', () => {
     expect(container.querySelector('.app-workspace')).not.toHaveClass(
       'has-top-bar',
     );
-    expect(container.querySelector('.fullscreen-chrome')).toBeInTheDocument();
+    expect(
+      container.querySelector('.fullscreen-chrome'),
+    ).not.toBeInTheDocument();
     fireEvent.click(
       screen.getByRole('button', { name: 'Show the FluidEQ header' }),
     );

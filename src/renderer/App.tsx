@@ -290,12 +290,12 @@ const AppContent = () => {
     // is where the peaks go, and the controls on it are ones you reach for
     // occasionally and then look past for minutes at a time.
     //
-    // Tied to the graph being on screen at all rather than to `true`, so that
-    // with the pane closed there is no listener on the window watching a
-    // pointer for the benefit of something that is not rendered.
-    watchChromeIdle(showsGraph);
+    // Tied to visible auto-hiding chrome: the graph in any view, or Karaoke's
+    // centre dock while its stage owns the full screen. With neither rendered
+    // there is no listener on the window watching activity for nothing.
+    watchChromeIdle(showsGraph || isKaraokeFullScreen);
     return () => watchChromeIdle(false);
-  }, [showsGraph]);
+  }, [isKaraokeFullScreen, showsGraph]);
 
   /**
    * Take the window fullscreen when the graph asks for it.
@@ -1337,6 +1337,7 @@ const AppContent = () => {
               <KaraokeWorkspace
                 isHidden={!isKaraokeTab}
                 isFullScreen={isKaraokeFullScreen}
+                isChromeIdle={isChromeIdle}
                 hasFullScreenTopBar={hasFullScreenTopBar}
                 onToggleFullScreenTopBar={toggleFullScreenTopBar}
                 onToggleFullScreen={() =>
@@ -1394,12 +1395,11 @@ const AppContent = () => {
             in rather than imported there, so there is one definition of what
             "reinstall Equalizer APO" does — including the confirmation and the
             restart advice that follows it. */}
-        {/* The one piece of the titlebar worth keeping over a full-screen
-            video: the creature, in the left corner. The view menu is already at
-            the top right, inside the graph. Moved rather than copied — the
-            titlebar's own is not rendered in this mode, so there is exactly one
-            of it. */}
-        {isChromeHidden && (
+        {/* The creature remains over the full-screen graph, where the corner
+            is otherwise empty. Karaoke uses that same corner for its playlist
+            control and song metadata, so hiding the header also removes the
+            pet instead of laying an 80px decoration over the singer's UI. */}
+        {isChromeHidden && !isKaraokeFullScreen && (
           <div className={`fullscreen-chrome${isChromeIdle ? ' is-idle' : ''}`}>
             <SupportPet
               hasContributed={hasContributed}

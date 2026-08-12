@@ -610,12 +610,12 @@ const fr: Partial<Dictionary> = {
 
   'support.game.share': 'Partager',
 
-  'support.game.shareEuphoria': "Partager l'euphorie",
+  'support.game.shareEuphoria': "Partager l'arc-en-ciel",
 
   'support.game.shareTitle': 'Partagez votre score',
 
   'support.game.shareUnlock':
-    'Atteignez ×10 et cette carte passe en mode euphorie, spectre compris.',
+    'Atteignez ×10 et cette carte passe en mode arc-en-ciel, spectre compris.',
 
   'support.game.shareNote':
     "Enregistrez la carte puis joignez-la à votre publication : aucun de ces réseaux ne peut extraire une image d'un lien.",
@@ -633,9 +633,9 @@ const fr: Partial<Dictionary> = {
   'support.game.shareLinkOnly':
     'Partage seulement le lien : collez le texte vous-même',
 
-  'support.game.euphoria': 'Mode euphorie',
+  'support.game.euphoria': 'Mode arc-en-ciel',
 
-  'support.game.euphoriaToggle': 'Activer ou désactiver le mode euphorie',
+  'support.game.euphoriaToggle': 'Activer ou désactiver le mode arc-en-ciel',
 
   'support.game.perfect': 'Parfait',
 

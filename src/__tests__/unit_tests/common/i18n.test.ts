@@ -64,6 +64,12 @@ describe('i18n', () => {
     );
   });
 
+  it('presents the internal euphoria feature as Rainbow mode', () => {
+    expect(translate('en', 'support.game.euphoria')).toBe('Rainbow mode');
+    expect(translate('es', 'support.game.euphoria')).toBe('Modo arcoíris');
+    expect(translate('ja', 'support.game.euphoria')).toBe('レインボーモード');
+  });
+
   it('leaves an unfilled placeholder visible rather than blanking it', () => {
     // `{layer}` on screen says a developer forgot something. An empty gap says
     // the app is broken.

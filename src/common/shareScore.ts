@@ -86,7 +86,7 @@ export const buildShareText = (
     // Reaching the ceiling is the whole story, so it leads. Thirty-six
     // consecutive perfect taps is the thing worth telling people about; the
     // number is the evidence, not the headline.
-    return `I hit EUPHORIA MODE — ×${Math.max(EUPHORIA_MULTIPLIER, peak)}, ${points} points — on the beat game hidden inside ${PRODUCT_NAME}, a free open-source equaliser for Windows. The entire interface goes rainbow with the music.`;
+    return `I hit RAINBOW MODE — ×${Math.max(EUPHORIA_MULTIPLIER, peak)}, ${points} points — on the beat game hidden inside ${PRODUCT_NAME}, a free open-source equaliser for Windows. The entire interface goes rainbow with the music.`;
   }
   return `I scored ${points} points at ×${peak} on the beat game hidden inside ${PRODUCT_NAME}, a free open-source equaliser for Windows.`;
 };

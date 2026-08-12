@@ -554,12 +554,12 @@ const zh: Partial<Dictionary> = {
 
   'support.game.share': '分享',
 
-  'support.game.shareEuphoria': '分享狂喜时刻',
+  'support.game.shareEuphoria': '分享彩虹',
 
   'support.game.shareTitle': '分享你的分数',
 
   'support.game.shareUnlock':
-    '达到 ×10，这张卡片就会变成狂喜模式，整条光谱都在上面。',
+    '达到 ×10，这张卡片就会变成彩虹模式，整条光谱都在上面。',
 
   'support.game.shareNote':
     '先保存卡片，再附加到你的帖子里：这些平台都无法从链接中取出图片。',
@@ -576,9 +576,9 @@ const zh: Partial<Dictionary> = {
 
   'support.game.shareLinkOnly': '只会分享链接，文字请自行粘贴',
 
-  'support.game.euphoria': '狂喜模式',
+  'support.game.euphoria': '彩虹模式',
 
-  'support.game.euphoriaToggle': '开启或关闭狂喜模式',
+  'support.game.euphoriaToggle': '开启或关闭彩虹模式',
 
   'support.game.perfect': '完美',
 

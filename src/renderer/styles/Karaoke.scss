@@ -134,9 +134,57 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-workspace.is-fullscreen {
-  // The introduction/header is removed from the full-screen composition, so
-  // only a small stage gutter remains around the larger lyric surface.
-  padding: clamp(8px, 1vw, 14px);
+  // One continuous stage, edge to edge. The ordinary view keeps a card around
+  // this content; in full screen that card only reads as a second window frame.
+  position: relative;
+  isolation: isolate;
+  padding: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 14% 42%, rgba($neon-pink, 0.16), transparent 32%),
+    radial-gradient(
+      circle at 84% 36%,
+      rgba($secondary-default, 0.15),
+      transparent 34%
+    ),
+    radial-gradient(
+      circle at 52% 112%,
+      rgba($neon-cyan, 0.08),
+      transparent 34%
+    ),
+    linear-gradient(135deg, #101a2c 0%, #08131f 52%, #07131d 100%);
+
+  // The grid belongs to the whole stage rather than to the lyric card. It now
+  // continues behind an expanded playlist and reaches every screen edge.
+  &::before {
+    position: absolute;
+    z-index: 0;
+    inset: 0;
+    opacity: 0.2;
+    background-image:
+      linear-gradient(rgba($secondary-light, 0.08) 1px, transparent 1px),
+      linear-gradient(90deg, rgba($secondary-light, 0.08) 1px, transparent 1px);
+    background-size: 34px 34px;
+    pointer-events: none;
+    content: '';
+  }
+
+  > .karaoke-workspace__player,
+  > .karaoke-workspace__notice {
+    position: relative;
+    z-index: 1;
+  }
+
+  .karaoke-workspace__stage {
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+
+    &::before {
+      display: none;
+    }
+  }
 }
 
 .karaoke-workspace__actions.is-stage-toolbar {
@@ -163,6 +211,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transform: translateX(-50%);
   transition:
     opacity 180ms ease,
+    transform 220ms ease,
     border-color 180ms ease,
     box-shadow 180ms ease;
 
@@ -192,6 +241,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     border-color: rgba($secondary-default, 0.46);
     background: rgba($secondary-default, 0.1);
     box-shadow: 0 0 14px rgba($secondary-default, 0.1);
+  }
+
+  &.is-idle {
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -7px);
+    transition-duration: 480ms;
   }
 }
 
@@ -1187,7 +1243,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   backdrop-filter: blur(18px) saturate(1.25);
   transform: translateZ(0);
   transition:
-    transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1),
     border-color 260ms ease,
     box-shadow 260ms ease;
 
@@ -1216,7 +1271,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       0 0 36px rgba($secondary-default, 0.09),
       inset 0 1px 0 rgba($white, 0.11),
       inset 0 -1px 0 rgba($black, 0.26);
-    transform: translateY(-1px) translateZ(0);
   }
 }
 
@@ -1257,7 +1311,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       background: rgba($secondary-default, 0.14) !important;
       box-shadow: 0 0 16px rgba($secondary-default, 0.13) !important;
       filter: none;
-      transform: translateY(-1px) scale(1.04);
+      transform: none;
     }
 
     &:active:not([aria-disabled='true']) {
@@ -1301,7 +1355,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
         0 10px 25px rgba($black, 0.38),
         0 0 30px rgba($secondary-default, 0.46),
         inset 0 1px 0 rgba($white, 0.55) !important;
-      transform: translateY(-2px) scale(1.045);
     }
 
     &:active:not([aria-disabled='true']) {
@@ -1869,7 +1922,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   text-align: left;
   transform: translateZ(0);
   transition:
-    transform 280ms cubic-bezier(0.2, 0.8, 0.2, 1),
     border-color 280ms ease,
     box-shadow 280ms ease;
 
@@ -1898,7 +1950,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       0 0 36px rgba($secondary-default, 0.06),
       inset 0 1px 0 rgba($white, 0.07),
       inset 0 -1px 0 rgba($black, 0.26);
-    transform: translateY(-1px) translateZ(0);
   }
 
   &.is-microphone-live {

@@ -591,12 +591,12 @@ const ja: Partial<Dictionary> = {
 
   'support.game.share': '共有',
 
-  'support.game.shareEuphoria': 'ユーフォリアを共有',
+  'support.game.shareEuphoria': 'レインボーを共有',
 
   'support.game.shareTitle': 'スコアを共有',
 
   'support.game.shareUnlock':
-    '×10 に到達すると、このカードはユーフォリアモードになります。スペクトラムもすべて。',
+    '×10 に到達すると、このカードはレインボーモードになります。スペクトラムもすべて。',
 
   'support.game.shareNote':
     'カードを保存して投稿に添付してください。これらのサービスはリンクから画像を取り込めません。',
@@ -614,9 +614,9 @@ const ja: Partial<Dictionary> = {
   'support.game.shareLinkOnly':
     '共有されるのはリンクのみです。テキストはご自身で貼り付けてください',
 
-  'support.game.euphoria': 'ユーフォリアモード',
+  'support.game.euphoria': 'レインボーモード',
 
-  'support.game.euphoriaToggle': 'ユーフォリアモードのオン・オフ',
+  'support.game.euphoriaToggle': 'レインボーモードのオン・オフ',
 
   'support.game.perfect': 'パーフェクト',
 

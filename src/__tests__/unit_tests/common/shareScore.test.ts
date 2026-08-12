@@ -32,11 +32,11 @@ const REPO = 'https://github.com/StartSWest/FluidEQ';
 describe('buildShareText', () => {
   it('leads with euphoria once it has been reached', () => {
     const text = buildShareText(4200, 10);
-    expect(text).toContain('EUPHORIA MODE');
+    expect(text).toContain('RAINBOW MODE');
     expect(text).toContain('4200');
     // The ceiling is the story and the number is the evidence, so it has to
     // come first — a post that opens with a score reads as a leaderboard.
-    expect(text.indexOf('EUPHORIA')).toBeLessThan(text.indexOf('4200'));
+    expect(text.indexOf('RAINBOW')).toBeLessThan(text.indexOf('4200'));
   });
 
   it('does not claim euphoria below the ceiling', () => {

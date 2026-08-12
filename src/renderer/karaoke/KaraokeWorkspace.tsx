@@ -44,6 +44,7 @@ import {
 } from '../../common/karaoke/sessionPersistence';
 import { karaokeProviderDisplayName } from '../../common/karaoke/provider';
 import { useTranslation } from '../utils/I18nContext';
+import { revealChromeNow, setChromeHeld } from '../utils/idleChrome';
 import MenuIcon from '../icons/MenuIcon';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { KaraokeMicrophoneSettings } from './KaraokeMicrophone';
@@ -77,6 +78,7 @@ interface IKaraokeWorkspaceProps {
   /** Hidden instead of unmounted so future playback and capture survive tabs. */
   isHidden: boolean;
   isFullScreen?: boolean;
+  isChromeIdle?: boolean;
   hasFullScreenTopBar?: boolean;
   onToggleFullScreenTopBar?: () => void;
   onToggleFullScreen?: () => void;
@@ -150,6 +152,7 @@ const orderedRestoredPlaylist = (
 const KaraokeWorkspace = ({
   isHidden,
   isFullScreen = false,
+  isChromeIdle = false,
   hasFullScreenTopBar = true,
   onToggleFullScreenTopBar = () => undefined,
   onToggleFullScreen = () => undefined,
@@ -207,6 +210,17 @@ const KaraokeWorkspace = ({
   playlistRef.current = playlist;
   selectedPlaylistIdRef.current = selectedPlaylistId;
   layoutsRef.current = layouts;
+
+  // The microphone settings are anchored to the floating full-screen dock.
+  // Keep that dock present while its panel is open; otherwise a person who
+  // stops moving to read a device name would lose the control beneath it.
+  useEffect(() => {
+    if (!isFullScreen || !isMicrophoneMenuOpen) {
+      return undefined;
+    }
+    setChromeHeld(true);
+    return () => setChromeHeld(false);
+  }, [isFullScreen, isMicrophoneMenuOpen]);
 
   const changeLyricTextSize = useCallback((nextSize: number) => {
     const normalized = Math.min(
@@ -790,7 +804,7 @@ const KaraokeWorkspace = ({
     <div
       className={`karaoke-workspace__actions${
         isFullScreen ? ' is-stage-toolbar' : ''
-      }`}
+      }${isFullScreen && isChromeIdle ? ' is-idle' : ''}`}
       role="toolbar"
       aria-label={t('karaoke.actions')}
     >
@@ -909,6 +923,11 @@ const KaraokeWorkspace = ({
       aria-labelledby={isFullScreen ? undefined : 'karaoke-workspace-title'}
       aria-label={isFullScreen ? t('karaoke.title') : undefined}
       aria-hidden={isHidden}
+      onPointerDownCapture={() => {
+        if (isFullScreen) {
+          revealChromeNow();
+        }
+      }}
       // A labelled region is also the deliberate whole-surface drop target.
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
       onDragEnter={(event) => {

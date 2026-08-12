@@ -823,7 +823,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             that vanishes takes its explanation with it — "why is there no glow
             setting" is a worse question than "why is this one disabled", and
             the second answers itself in the hint underneath. */}
-        <p className="look-designer__group">Euphoria</p>
+        <p className="look-designer__group">Rainbow</p>
 
         <SettingRow
           id="look-designer-glow"
@@ -833,7 +833,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           hint={
             isEuphoric
               ? 'How hard the figure swells and brightens on a beat.'
-              : 'Needs euphoria mode. The glow is what that mode does to this figure — with it off, nothing here changes the drawing.'
+              : 'Needs Rainbow mode. The glow is what that mode does to this figure — with it off, nothing here changes the drawing.'
           }
         >
           <SettingSlider
@@ -856,7 +856,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             className="look-designer__caption"
             htmlFor="look-designer-border"
           >
-            <span>Euphoria border</span>
+            <span>Rainbow border</span>
             <input
               id="look-designer-border"
               type="checkbox"
@@ -869,7 +869,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           <span className="look-designer__hint">
             {isEuphoric
               ? 'Rings the graph in a colour that travels the whole wheel. Decoration rather than a reading — right on a visualiser, noise on a measurement.'
-              : 'Needs euphoria mode.'}
+              : 'Needs Rainbow mode.'}
           </span>
         </div>
 

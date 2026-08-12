@@ -606,12 +606,12 @@ const it: Partial<Dictionary> = {
 
   'support.game.share': 'Condividi',
 
-  'support.game.shareEuphoria': "Condividi l'euforia",
+  'support.game.shareEuphoria': "Condividi l'arcobaleno",
 
   'support.game.shareTitle': 'Condividi il tuo punteggio',
 
   'support.game.shareUnlock':
-    'Arriva a ×10 e questa scheda diventa modalità euforia, arcobaleno incluso.',
+    'Arriva a ×10 e questa scheda diventa modalità arcobaleno, spettro incluso.',
 
   'support.game.shareNote':
     "Salva la scheda e allegala al post: nessuna di queste reti può ricavare un'immagine da un link.",
@@ -629,9 +629,9 @@ const it: Partial<Dictionary> = {
   'support.game.shareLinkOnly':
     'Condivide solo il link: incolla il testo tu stesso',
 
-  'support.game.euphoria': 'Modalità euforia',
+  'support.game.euphoria': 'Modalità arcobaleno',
 
-  'support.game.euphoriaToggle': 'Attiva o disattiva la modalità euforia',
+  'support.game.euphoriaToggle': 'Attiva o disattiva la modalità arcobaleno',
 
   'support.game.perfect': 'Perfetto',
 

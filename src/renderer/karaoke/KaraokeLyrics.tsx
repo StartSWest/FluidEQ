@@ -36,7 +36,7 @@ const LYRIC_FONT_FAMILY = 'Inter, system-ui, -apple-system, sans-serif';
 const LYRIC_TEXT_SIZE_KEY = 'fluideq-karaoke-lyric-text-size';
 export const DEFAULT_LYRIC_TEXT_SIZE = 100;
 export const MIN_LYRIC_TEXT_SIZE = 75;
-export const MAX_LYRIC_TEXT_SIZE = 200;
+export const MAX_LYRIC_TEXT_SIZE = 300;
 
 const clamp = (value: number, minimum: number, maximum: number) =>
   Math.min(maximum, Math.max(minimum, value));
@@ -85,11 +85,23 @@ interface IKaraokeLyricsProps {
   textSize?: number;
 }
 
-interface ILyricHitRegion {
+export interface ILyricHitRegion {
   index: number;
+  left: number;
+  right: number;
   top: number;
   bottom: number;
 }
+
+export const lyricHitRegionContains = (
+  region: ILyricHitRegion,
+  x: number,
+  y: number,
+) =>
+  x >= region.left &&
+  x <= region.right &&
+  y >= region.top &&
+  y <= region.bottom;
 
 interface ILyricDrawState {
   song: IKaraokeSong;
@@ -440,12 +452,23 @@ const KaraokeLyrics = ({
 
         let hitRegion = hitRegions[hitRegionCount];
         if (!hitRegion) {
-          hitRegion = { index, top: 0, bottom: 0 };
+          hitRegion = {
+            index,
+            left: 0,
+            right: 0,
+            top: 0,
+            bottom: 0,
+          };
           hitRegions[hitRegionCount] = hitRegion;
         }
         hitRegion.index = index;
-        hitRegion.top = y - Math.max(20, fontSize * 0.85);
-        hitRegion.bottom = y + Math.max(20, fontSize * 0.85);
+        // Only the painted lyric is interactive. Previously these regions had
+        // vertical bounds alone, making the empty margins across the whole
+        // canvas seek to whichever line happened to share that row.
+        hitRegion.left = textLeft;
+        hitRegion.right = textLeft + textWidth;
+        hitRegion.top = y - fontSize * 0.68;
+        hitRegion.bottom = y + fontSize * 0.68;
         hitRegionCount += 1;
       }
       hitRegions.length = hitRegionCount;
@@ -509,9 +532,10 @@ const KaraokeLyrics = ({
 
   const onCanvasPointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const bounds = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - bounds.left;
     const y = event.clientY - bounds.top;
     event.currentTarget.style.cursor = lineHitRegionsRef.current.some(
-      (region) => y >= region.top && y <= region.bottom,
+      (region) => lyricHitRegionContains(region, x, y),
     )
       ? 'pointer'
       : 'default';
@@ -519,9 +543,10 @@ const KaraokeLyrics = ({
 
   const onCanvasPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const bounds = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - bounds.left;
     const y = event.clientY - bounds.top;
-    const hitRegion = lineHitRegionsRef.current.find(
-      (region) => y >= region.top && y <= region.bottom,
+    const hitRegion = lineHitRegionsRef.current.find((region) =>
+      lyricHitRegionContains(region, x, y),
     );
     if (hitRegion) {
       selectLyricLine(hitRegion.index);

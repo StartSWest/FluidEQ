@@ -600,12 +600,12 @@ const ru: Partial<Dictionary> = {
 
   'support.game.share': 'Поделиться',
 
-  'support.game.shareEuphoria': 'Поделиться эйфорией',
+  'support.game.shareEuphoria': 'Поделиться радугой',
 
   'support.game.shareTitle': 'Поделитесь результатом',
 
   'support.game.shareUnlock':
-    'Дойдите до ×10 — и карточка станет режимом эйфории, со всем спектром.',
+    'Дойдите до ×10 — и карточка перейдёт в режим радуги, со всем спектром.',
 
   'support.game.shareNote':
     'Сохраните карточку и прикрепите её к записи: ни одна из этих сетей не может взять изображение из ссылки.',
@@ -623,9 +623,9 @@ const ru: Partial<Dictionary> = {
   'support.game.shareLinkOnly':
     'Передаётся только ссылка — текст вставьте сами',
 
-  'support.game.euphoria': 'Режим эйфории',
+  'support.game.euphoria': 'Режим радуги',
 
-  'support.game.euphoriaToggle': 'Включить или выключить режим эйфории',
+  'support.game.euphoriaToggle': 'Включить или выключить режим радуги',
 
   'support.game.perfect': 'Идеально',
 

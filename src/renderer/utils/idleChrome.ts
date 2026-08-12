@@ -41,11 +41,10 @@ import { useSyncExternalStore } from 'react';
 /**
  * How long the pointer has to be still.
  *
- * Long enough not to fire while somebody is reaching for a control, short
- * enough that it does happen once they have stopped. Video players sit between
- * two and four seconds; this is in the middle of that.
+ * Two seconds is long enough to reach a control after revealing it, while
+ * still getting the chrome out of the singer's sight before the next phrase.
  */
-export const CHROME_IDLE_MS = 2600;
+export const CHROME_IDLE_MS = 2000;
 
 /**
  * What counts as being here.
@@ -206,6 +205,21 @@ export const toggleChromeNow = () => {
   isDismissed = true;
   clearTimer();
   setIdle(true);
+};
+
+/**
+ * Bring hidden chrome back without giving the caller toggle semantics.
+ *
+ * The graph uses a click on its drawing as an explicit show/hide toggle. The
+ * Karaoke stage has clickable lyrics and pitch controls, so a click there must
+ * only reveal the floating actions and then continue to its original target.
+ */
+export const revealChromeNow = () => {
+  if (!isWatching) {
+    return;
+  }
+  isDismissed = false;
+  handleActivity();
 };
 
 /**

@@ -595,12 +595,12 @@ const hi: Partial<Dictionary> = {
 
   'support.game.share': 'साझा करें',
 
-  'support.game.shareEuphoria': 'यूफोरिया साझा करें',
+  'support.game.shareEuphoria': 'इंद्रधनुष साझा करें',
 
   'support.game.shareTitle': 'अपना स्कोर साझा करें',
 
   'support.game.shareUnlock':
-    '×10 तक पहुँचिए और यह कार्ड यूफोरिया मोड बन जाएगा — पूरे रंगपट्ट के साथ।',
+    '×10 तक पहुँचिए और यह कार्ड इंद्रधनुष मोड बन जाएगा — पूरे रंगपट्ट के साथ।',
 
   'support.game.shareNote':
     'कार्ड सहेजें और उसे अपनी पोस्ट में जोड़ें — इनमें से कोई भी नेटवर्क लिंक से तस्वीर नहीं निकाल सकता।',
@@ -618,9 +618,9 @@ const hi: Partial<Dictionary> = {
   'support.game.shareLinkOnly':
     'केवल लिंक साझा होता है — टेक्स्ट स्वयं चिपकाएँ',
 
-  'support.game.euphoria': 'यूफोरिया मोड',
+  'support.game.euphoria': 'इंद्रधनुष मोड',
 
-  'support.game.euphoriaToggle': 'यूफोरिया मोड चालू या बंद करें',
+  'support.game.euphoriaToggle': 'इंद्रधनुष मोड चालू या बंद करें',
 
   'support.game.perfect': 'बिलकुल सही',
 

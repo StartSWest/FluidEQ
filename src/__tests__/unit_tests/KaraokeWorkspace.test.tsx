@@ -227,6 +227,21 @@ describe('KaraokeWorkspace', () => {
     expect(lyricToolbar.parentElement).toHaveClass('karaoke-workspace__stage');
   });
 
+  it('only applies the idle fade to the full-screen actions', () => {
+    const { rerender } = render(
+      <KaraokeWorkspace isHidden={false} isFullScreen isChromeIdle />,
+    );
+
+    expect(
+      screen.getByRole('toolbar', { name: 'Karaoke actions' }),
+    ).toHaveClass('is-stage-toolbar', 'is-idle');
+
+    rerender(<KaraokeWorkspace isHidden={false} isChromeIdle />);
+    expect(
+      screen.getByRole('toolbar', { name: 'Karaoke actions' }),
+    ).not.toHaveClass('is-stage-toolbar', 'is-idle');
+  });
+
   it('persists independent normal and fullscreen splitter layouts', async () => {
     const { container, rerender } = render(
       <KaraokeWorkspace isHidden={false} />,
@@ -413,7 +428,7 @@ describe('KaraokeWorkspace', () => {
       name: 'Lyric text size',
     });
     expect(lyricSize).toHaveValue('100');
-    expect(lyricSize).toHaveAttribute('max', '200');
+    expect(lyricSize).toHaveAttribute('max', '300');
     expect(lyricSize.closest('.karaoke-song__tools')).toBeInTheDocument();
     fireEvent.change(lyricSize, { target: { value: '180' } });
     expect(lyricSize).toHaveValue('180');
@@ -421,6 +436,9 @@ describe('KaraokeWorkspace', () => {
     expect(window.localStorage.getItem('fluideq-karaoke-lyric-text-size')).toBe(
       '180',
     );
+    fireEvent.change(lyricSize, { target: { value: '300' } });
+    expect(lyricSize).toHaveValue('300');
+    expect(lyricSize).toHaveAttribute('aria-valuetext', '300%');
     expect(container.querySelector('.karaoke-workspace')).toHaveClass(
       'has-song',
     );

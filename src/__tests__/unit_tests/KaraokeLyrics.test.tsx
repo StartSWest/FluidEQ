@@ -19,7 +19,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { IKaraokeSong } from '../../common/karaoke/types';
-import KaraokeLyrics from '../../renderer/karaoke/KaraokeLyrics';
+import KaraokeLyrics, {
+  lyricHitRegionContains,
+} from '../../renderer/karaoke/KaraokeLyrics';
 
 const song: IKaraokeSong = {
   id: 'motion-song',
@@ -59,6 +61,21 @@ describe('KaraokeLyrics motion', () => {
     expect(container.querySelectorAll('canvas')).toHaveLength(1);
     expect(container.querySelector('.karaoke-lyrics > li')).toBeNull();
     expect(container.querySelector('.karaoke-lyrics__token')).toBeNull();
+  });
+
+  it('only treats the painted lyric rectangle as clickable', () => {
+    const region = {
+      index: 2,
+      left: 240,
+      right: 560,
+      top: 180,
+      bottom: 220,
+    };
+
+    expect(lyricHitRegionContains(region, 400, 200)).toBe(true);
+    expect(lyricHitRegionContains(region, 40, 200)).toBe(false);
+    expect(lyricHitRegionContains(region, 760, 200)).toBe(false);
+    expect(lyricHitRegionContains(region, 400, 150)).toBe(false);
   });
 
   it('moves the next phrase into focus as soon as the current phrase ends', () => {
@@ -168,7 +185,7 @@ describe('KaraokeLyrics motion', () => {
         song={song}
         playheadMs={1_200}
         onSeek={jest.fn()}
-        textSize={200}
+        textSize={300}
       />,
     );
 

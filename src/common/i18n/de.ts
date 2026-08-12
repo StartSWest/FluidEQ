@@ -608,12 +608,12 @@ const de: Partial<Dictionary> = {
 
   'support.game.share': 'Teilen',
 
-  'support.game.shareEuphoria': 'Euphorie teilen',
+  'support.game.shareEuphoria': 'Regenbogen teilen',
 
   'support.game.shareTitle': 'Teile dein Ergebnis',
 
   'support.game.shareUnlock':
-    'Erreiche ×10 und diese Karte wird zum Euphorie-Modus – mit dem ganzen Farbspektrum.',
+    'Erreiche ×10 und diese Karte wird zum Regenbogenmodus – mit dem ganzen Farbspektrum.',
 
   'support.game.shareNote':
     'Speichere die Karte und hänge sie an deinen Beitrag an – keines dieser Netzwerke kann ein Bild aus einem Link ziehen.',
@@ -631,9 +631,9 @@ const de: Partial<Dictionary> = {
   'support.game.shareLinkOnly':
     'Teilt nur den Link – den Text fügst du selbst ein',
 
-  'support.game.euphoria': 'Euphorie-Modus',
+  'support.game.euphoria': 'Regenbogenmodus',
 
-  'support.game.euphoriaToggle': 'Euphorie-Modus ein- oder ausschalten',
+  'support.game.euphoriaToggle': 'Regenbogenmodus ein- oder ausschalten',
 
   'support.game.perfect': 'Perfekt',
 

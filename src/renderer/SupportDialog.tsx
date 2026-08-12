@@ -584,10 +584,10 @@ export default function SupportDialog({
                 <button
                   type="button"
                   className="support-dialog__dev-reset"
-                  title="Development build only — switches euphoria mode on without playing for it"
+                  title="Development build only — switches Rainbow mode on without playing for it"
                   onClick={winEuphoria}
                 >
-                  dev: euphoria
+                  dev: rainbow
                 </button>
                 <button
                   type="button"

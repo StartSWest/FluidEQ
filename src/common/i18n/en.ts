@@ -695,10 +695,10 @@ const en = {
   'support.game.noAudio': 'Play something and the beat shows up here',
   'support.game.listening': 'Listening for the beat…',
   'support.game.share': 'Share',
-  'support.game.shareEuphoria': 'Share euphoria',
+  'support.game.shareEuphoria': 'Share rainbow',
   'support.game.shareTitle': 'Share your score',
   'support.game.shareUnlock':
-    'Reach ×10 and this card turns into euphoria mode — spectrum and all.',
+    'Reach ×10 and this card turns into Rainbow mode — spectrum and all.',
   'support.game.shareNote':
     'Save the card, then attach it to your post — none of these networks can pull an image out of a link.',
   'support.game.shareSave': 'Save card',
@@ -708,8 +708,8 @@ const en = {
   'support.game.shareCopied': 'Copied',
   'support.game.shareLinkOnly':
     'Shares the link only — paste the text yourself',
-  'support.game.euphoria': 'Euphoria mode',
-  'support.game.euphoriaToggle': 'Turn euphoria mode on or off',
+  'support.game.euphoria': 'Rainbow mode',
+  'support.game.euphoriaToggle': 'Turn Rainbow mode on or off',
   'support.game.perfect': 'Perfect',
   'support.game.great': 'Great',
   'support.game.good': 'Good',
