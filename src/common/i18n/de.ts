@@ -663,7 +663,7 @@ const de: Partial<Dictionary> = {
   'support.title': 'Die Arbeit unterstützen',
   'support.close': 'Schließen',
   'support.pitch':
-    'FluidEQ ist frei und quelloffen und bleibt es auch — nichts steckt hinter einer Bezahlschranke, und es wird nie etwas mitgeschnitten. Wenn es sich einen Platz in Ihrem Setup verdient hat, finanziert ein Beitrag die Zeit, die es am Leben hält, und die nächsten Ideen aus derselben Werkstatt.',
+    'FluidEQ ist frei und quelloffen und bleibt es auch — der Quelltext ist öffentlich, Sie können ihn jederzeit kostenlos selbst bauen, und es wird nie etwas mitgeschnitten. Verkauft wird der signierte, sofort lauffähige Build. Wenn es sich einen Platz in Ihrem Setup verdient hat, finanziert ein Beitrag die Zeit, die es am Leben hält, und die nächsten Ideen aus derselben Werkstatt.',
   'support.craft':
     'Das hier ist die Arbeit eines Einzelnen, gebaut mit sehr viel Liebe und einer unvernünftigen Menge Sorgfalt im Detail. Jedes Panel ist von Hand gezeichnet und durchdiskutiert: wie sich die Kurve auf einen Blick liest, wie ein Menü aufklappt, was ein Regler tut, wenn man langsam zieht, welche Wörter auf einem Knopf stehen. Nichts davon ist eine Standardkomponente mit Anstrich.',
   'support.card': 'Karte oder Wallet',

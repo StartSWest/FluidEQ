@@ -741,7 +741,7 @@ const en = {
   'support.title': 'Support the work',
   'support.close': 'Close',
   'support.pitch':
-    'FluidEQ is free and open source, and it stays that way — nothing here is behind a paywall and nothing is ever tracked. If it earned a place in your setup, a contribution funds the time that keeps it maintained and the next ideas that come out of the same workshop.',
+    'FluidEQ is free and open source, and it stays that way — the source is public, you can always build it yourself for nothing, and nothing here is ever tracked. What is sold is the signed, ready-to-run build. If it earned a place in your setup, a contribution funds the time that keeps it maintained and the next ideas that come out of the same workshop.',
   'support.craft':
     'This is one person’s work, built with a lot of love and an unreasonable amount of attention to detail. Every panel was drawn by hand and argued over: how the response curve reads at a glance, the way a menu unfolds, what a knob does when you drag it slowly, which words go on a button. Nothing here is a stock component with a theme on top.',
   'support.card': 'Card or wallet',

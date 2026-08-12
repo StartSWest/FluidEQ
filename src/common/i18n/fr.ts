@@ -665,7 +665,7 @@ const fr: Partial<Dictionary> = {
   'support.title': 'Soutenir le projet',
   'support.close': 'Fermer',
   'support.pitch':
-    'FluidEQ est libre et open source, et le restera : rien ici n’est derrière un paywall et rien n’est jamais pisté. S’il a gagné sa place dans votre installation, une contribution finance le temps qui le maintient et les prochaines idées sorties du même atelier.',
+    'FluidEQ est libre et open source, et le restera : le code est public, vous pouvez toujours le compiler vous-même gratuitement, et rien n’est jamais pisté. Ce qui est vendu, c’est la version signée, prête à l’emploi. S’il a gagné sa place dans votre installation, une contribution finance le temps qui le maintient et les prochaines idées sorties du même atelier.',
   'support.craft':
     'C’est le travail d’une seule personne, fait avec beaucoup d’amour et un souci du détail déraisonnable. Chaque panneau a été dessiné à la main et discuté : comment la courbe se lit d’un coup d’œil, la façon dont un menu se déplie, ce que fait un bouton rotatif quand on le tourne lentement, quels mots vont sur un bouton. Rien ici n’est un composant tout fait avec un thème par-dessus.',
   'support.card': 'Carte ou portefeuille',
