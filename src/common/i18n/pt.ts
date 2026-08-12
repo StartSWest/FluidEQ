@@ -677,6 +677,21 @@ const pt: Partial<Dictionary> = {
   'support.footerBefore':
     'Prefere contribuir com tempo? Issues e pull requests são igualmente bem-vindos no',
 
+  'disclaimer.heading': 'Sem garantia e sem responsabilidade',
+  'disclaimer.asIs':
+    'O FluidEQ é fornecido tal como está, sem garantia de qualquer tipo. Ninguém promete que funciona, que serve para aquilo que quer fazer com ele, nem que continuará a funcionar. É o que dizem as secções 15 e 16 da GNU General Public License, e aplica-se quer lhe tenham dado esta cópia quer tenha pago por ela.',
+  'disclaimer.liability':
+    'O FluidEQ altera a forma como o áudio é processado no seu computador e instala e comanda o Equalizer APO, um programa separado que corre com direitos de administrador e fica no caminho de áudio do Windows. Na máxima medida permitida por lei, {author} não responde por quaisquer danos resultantes da sua utilização — à sua audição, a colunas, auscultadores ou outro equipamento, a dados ou a outro software, nem a seja o que for, incluindo perdas que não pudesse ter previsto.',
+  'disclaimer.volume':
+    'O som pode ser alto, e a equalização pode torná-lo mais alto do que o material original. Baixe o volume antes de mudar uma definição e suba-o depois.',
+  'disclaimer.localLaw':
+    'Alguns países não permitem que um vendedor exclua certas garantias ou responsabilidades. Onde for esse o caso, aplicam-se essas regras e este aviso não lhe retira os direitos que a lei lhe dá.',
+  'disclaimer.accepting': 'Ao usar o FluidEQ, aceita o que está acima.',
+  'disclaimer.language':
+    'Este aviso foi escrito em inglês. Se uma tradução divergir do texto em inglês, prevalece o texto em inglês.',
+  'disclaimer.accept': 'Compreendo e aceito',
+  'disclaimer.decline': 'Sair',
+
   'language.title': 'Idioma',
   'language.aria': 'Idioma da interface',
   'waveform.style': 'Mudar o estilo do medidor',

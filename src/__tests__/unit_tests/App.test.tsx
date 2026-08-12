@@ -46,7 +46,7 @@ describe('App', () => {
     // own terms in the last test in this file.
     window.localStorage.setItem(
       DISCLAIMER_ACCEPTED_KEY,
-      JSON.stringify(buildAcceptance('1.2.0')),
+      JSON.stringify(buildAcceptance('1.2.0', 'en')),
     );
     // jsdom deliberately has no canvas implementation. The visualizer already
     // treats a missing context as unavailable; make that path quiet so a shell

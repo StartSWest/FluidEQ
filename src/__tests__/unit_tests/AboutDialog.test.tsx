@@ -24,9 +24,15 @@ import {
   COPYRIGHT,
   LICENSE,
   PRODUCT_NAME,
+  TRADEMARK,
   UPSTREAM,
 } from 'common/branding';
-import { DISCLAIMER_PARAGRAPHS } from 'common/disclaimer';
+import {
+  DISCLAIMER_LANGUAGE_KEY,
+  DISCLAIMER_PARAGRAPH_KEYS,
+} from 'common/disclaimer';
+import { LocaleCode, translate } from 'common/i18n';
+import { I18nProvider } from 'renderer/utils/I18nContext';
 import AboutDialog from '../../renderer/components/AboutDialog';
 
 /**
@@ -45,6 +51,17 @@ import AboutDialog from '../../renderer/components/AboutDialog';
 describe('AboutDialog', () => {
   const openAndRead = () => {
     render(<AboutDialog onClose={() => undefined} />);
+    return screen.getByRole('dialog').textContent ?? '';
+  };
+
+  /** The same, with the app set to one of the other nine languages. */
+  const openAndReadIn = (locale: LocaleCode) => {
+    window.localStorage.setItem('fluideq.locale', locale);
+    render(
+      <I18nProvider>
+        <AboutDialog onClose={() => undefined} />
+      </I18nProvider>,
+    );
     return screen.getByRole('dialog').textContent ?? '';
   };
 
@@ -86,12 +103,37 @@ describe('AboutDialog', () => {
     // Sections 15 and 16 were already in LICENSE, in every file header and on
     // the installer's licence page, all three in the register of a licence
     // rather than of a sentence — which is a way of being present without
-    // being read. Asserted paragraph by paragraph against the same module the
+    // being read. Asserted paragraph by paragraph against the same keys the
     // first-run acknowledgement renders, so the text somebody agreed to and
     // the text they can come back and re-read cannot drift apart.
     const text = openAndRead();
-    DISCLAIMER_PARAGRAPHS.forEach((paragraph) => {
-      expect(text).toContain(paragraph);
+    DISCLAIMER_PARAGRAPH_KEYS.forEach((key) => {
+      expect(text).toContain(translate('en', key, { author: AUTHOR_NAME }));
     });
+    expect(text).toContain(translate('en', DISCLAIMER_LANGUAGE_KEY));
+  });
+
+  it('shows the disclaimer in the language the app is running in', () => {
+    // The one translated section in an otherwise untranslated panel. Somebody
+    // who accepted this in Portuguese on first run must not come back to it
+    // here and find only English — they would be right to wonder which of the
+    // two they had agreed to.
+    const text = openAndReadIn('pt');
+    DISCLAIMER_PARAGRAPH_KEYS.forEach((key) => {
+      expect(text).toContain(translate('pt', key, { author: AUTHOR_NAME }));
+    });
+  });
+
+  it('leaves the rest of the panel in English, whatever the language', () => {
+    // The other sections are identifiers — a licence name, an attribution, a
+    // copyright line, a trademark reservation — and translating an identifier
+    // changes what it names. Asserted here so that the exception made for the
+    // disclaimer does not quietly spread to its neighbours.
+    const text = openAndReadIn('ja');
+    expect(text).toContain(LICENSE.name);
+    expect(text).toContain(UPSTREAM.copyright);
+    expect(text).toContain(COPYRIGHT);
+    expect(text).toContain(TRADEMARK.notice);
+    expect(text).toContain(BUNDLED_ENGINE.license);
   });
 });

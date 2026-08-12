@@ -8,7 +8,7 @@ It puts a modern workflow on top of
 output, and the right sound follows the right device without you touching
 anything again.
 
-![The FluidEQ interface: the EQ page with the band editor, the response graph and the output column](docs/screenshot.png)
+![The FluidEQ EQ page: a ten-band quick layout above the response graph, and under it a row of chips naming everything else that is applied — a bio-cellulose driver correction at 60%, ten EQ bands, the Music voicing and Smart EQ — each with its own switch and strength slider. The live spectrum moves behind the layer curves in the graph below. Down the left are the preamp, auto-normalize and a stereo level meter; down the right, the output column with the device picker, the second output, the driver-type panel and the named profiles for this device. Media transport buttons sit in the title bar beside the level meter.](docs/screenshot.png)
 
 ## What it does
 
@@ -41,11 +41,15 @@ truthful config.
 Everything active is named on the EQ page, so a bump in the graph is never a
 mystery — you can see what put it there and remove it in one click.
 
+![The Voicing tab, one layer with a page of its own: thirteen target curves as cards, five by purpose across the top — Music, Movies, Games, Speech, Late night — and eight by genre below them, each with a line saying what it does to the sound. Music is selected. Underneath, a strength slider marked Off, 50% and Full sits at 100%, beside the three bands this curve actually adds — 105 Hz +3.5 dB, 300 Hz −1.5 dB, 10 kHz +2 dB — each with a sentence explaining it, and a note that the +3.5 dB is already reserved by auto-normalize.](docs/screenshot4.png)
+
 **Start from a measurement.** 6,028 headphone models and 8,850 responses ship
 offline from the official AutoEq results. For other measurements, the AutoEQ
 tab links to Squiglink so you can export its EQ text and import it
 locally. Official headphone corrections remain their own layer; an external
 export becomes editable EQ bands with a visible source and curve preview.
+
+![The AutoEQ tab: at the top, the headphone-correction picker — a model list, a measurement and target beside it, and a line saying the official database holds 6,028 models — with nothing applied to this output yet. Below it, the guided Squiglink import in three numbered steps: the EQ text exported from Squiglink pasted into the left pane as ParametricEQ filter lines with a preamp and per-filter frequency, gain and Q, and on the right the curve those ten bands produce, drawn before anything is applied and with a link to remove the import again.](docs/screenshot3.png)
 
 **Smart EQ.** Measures what is actually coming out of your output and flattens
 what it hears, rather than assuming a target. It subtracts the rest of the chain
@@ -73,7 +77,7 @@ imports back onto the output you are listening to.
 
 **Media buttons in the title bar.** Previous, play/pause and next, commanding
 whatever is playing anywhere on the computer — a desktop player, a browser tab,
-FluidEQ's own Video tab. They send the media keys a keyboard sends, so anything
+FluidEQ's own Media tab. They send the media keys a keyboard sends, so anything
 already listening for those responds. Windows only.
 
 **Plays in two places at once.** A second output mirrors what you are hearing to
@@ -101,11 +105,13 @@ remembered. The position is only reused if a display still covers it, so
 unplugging a second monitor cannot strand the window somewhere you cannot
 reach it.
 
-**Plays something to tune against.** A **Video** tab opens a small set of music
+**Plays something to tune against.** A **Media** tab opens a small set of music
 and video sites — YouTube, YouTube Music, Bandcamp, Twitch and Suno — in a window
 inside the app, so a track can be playing while the spectrum moves underneath it
 and a band is dragged. It is not a browser: it goes to those sites and nowhere
 else, and it downloads nothing.
+
+![The Media tab: Suno open inside the FluidEQ window and signed in, with the site's own page and player exactly as it comes, a track part-way through in the transport bar at the bottom of it, and the row of site chips — YouTube, YouTube Music, Bandcamp, Twitch, Suno — along the top beside a search box. FluidEQ's response graph and live spectrum carry on moving underneath the whole thing, and the layer curves are still drawn over it.](docs/screenshot6.png)
 
 You can sign in, and it remembers you next time. Its cookies live in a store of
 its own that no other part of FluidEQ reads, encrypted at rest by Windows the
@@ -118,6 +124,24 @@ FluidEQ is not affiliated with, endorsed by, or connected to any of those sites.
 They are opened as they are, in an ordinary Chromium window; the app neither
 hosts, stores, copies nor redistributes anything from them. Whoever uses it is
 responsible for keeping to each site's own terms of service.
+
+**Sing over what you already own.** A **Karaoke** tab turns your own files into
+a stage. Open a song or add a folder — MP3, WAV, OGG, FLAC or M4A, with lyrics
+from an `.lrc`, an enhanced `.lrc` for word timing, or an UltraStar `.txt` for
+syllables and real target notes — and files sharing a name pair themselves into
+a playlist. The words follow the audio's own clock rather than a timer, so a
+long song cannot drift away from them. A microphone you pick and switch on
+yourself draws your pitch live, named as a note and marked high, in tune or low,
+against the song's target notes where the file genuinely carries them and
+against nothing invented where it does not. It names the chord under the
+playhead and the one coming next, collects the places you sang high, low or
+missed so you can jump back to one and be counted in, and goes full screen with
+the controls fading out of the way. Nothing is recorded, nothing is sent
+anywhere, and no music ships with it — an instrumental is something you bring,
+because Karaoke does not strip a vocal out of a recording or separate it into
+stems.
+
+![The Karaoke tab mid-song: a playlist of twenty-four files down the left, the current line of the lyric large and lit in the middle of the stage with the lines before and after it dimmed above and below, and the estimated chord and the next one in the top right corner. Below the lyric, a pitch lane draws the song's target notes as blue blocks with their syllables labelled above them, the live microphone pitch running over the top in orange and green as it goes sharp or flat, and a performance-review strip marking every place that went high, low or missing. A transport bar with the playhead and a volume control sits at the bottom.](docs/screenshot8.png)
 
 **Local and account-free.** No cloud, no telemetry, no proprietary driver, no
 virtual audio device.
@@ -262,10 +286,10 @@ Prefer to contribute time? Issues and pull requests are just as welcome — see
 There is also a game hidden in that panel, for anyone who has contributed. Tap
 the pet or press space on the beat of whatever you are playing — it reads the
 real percussion out of your own audio, so it is your music you are playing
-along to. Thirty-six consecutive perfect taps and the whole interface goes
-rainbow with the sound:
+along to. Thirty-six consecutive perfect taps wins **Rainbow mode**, and the
+whole interface goes rainbow with the sound:
 
-![Euphoria mode: the support panel showing a score of 19350 at ×10, the rainbow waveform, and the response graph behind it drawn in the spectrum palette](docs/screenshot2.png)
+![The support panel with Rainbow mode running: the pet lit up beside a score of 759 at ×2.5, above the rainbow waveform strip you tap on as each spike reaches the line, and a line saying to keep it up because something happens at ×10. To the right sit the note about what a contribution funds, the Buy me a coffee link with its QR code, and a confirmation that the pet has its star and dances now.](docs/screenshot9.png)
 
 ## Development
 
@@ -371,8 +395,12 @@ below is new work, and it is most of what you interact with.
   against, weakened, or taken out without being taken apart.
 - **A Config tab** showing what Equalizer APO has actually got on disk, and
   **export and import** of a whole chain as a `.fluideq` file.
-- **A Video tab** with a player for a fixed list of sites, so something can be
+- **A Media tab** with a player for a fixed list of sites, so something can be
   playing while a band is dragged.
+- **A Karaoke tab** built out of your own files: a playlist paired from audio
+  and lyrics, words that follow the audio's own clock, a live pitch lane drawn
+  against the song's target notes where it has them, a chord guide read out of
+  the backing track, and a full-screen stage.
 - **Media buttons in the title bar** for whatever is playing on the machine.
 - **A live spectrum, a response graph and a real level meter**, in three sizes
   that each remember how you left them.

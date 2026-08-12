@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useEffect, useRef } from 'react';
 import {
+  AUTHOR_NAME,
   BUNDLED_ENGINE,
   COPYRIGHT,
   LICENSE,
@@ -28,7 +29,11 @@ import {
   TRADEMARK,
   UPSTREAM,
 } from 'common/branding';
-import { DISCLAIMER_HEADING, DISCLAIMER_PARAGRAPHS } from 'common/disclaimer';
+import {
+  DISCLAIMER_HEADING_KEY,
+  DISCLAIMER_LANGUAGE_KEY,
+  DISCLAIMER_PARAGRAPH_KEYS,
+} from 'common/disclaimer';
 import { useTranslation } from '../utils/I18nContext';
 import BrandMark from '../icons/BrandMark';
 import '../styles/About.scss';
@@ -47,11 +52,22 @@ interface IAboutDialogProps {
  * are things a user is entitled to be told without going to look for a
  * repository.
  *
- * Deliberately not translated. Every string here is a legal statement — a
- * licence name, a copyright line, an attribution, a trademark reservation — and
- * a mistranslated one is worse than an English one, because it still looks
- * authoritative. It follows the report-a-problem dialog, which is untranslated
- * for the same reason: the text that has to be exact stays in one language.
+ * Deliberately not translated, with one deliberate exception.
+ *
+ * Every other string here is an *identifier* — a licence name, a copyright
+ * line, an attribution, a trademark reservation. Translating one of those
+ * changes what it names, and a mistranslated one is worse than an English one
+ * because it still looks authoritative. It follows the report-a-problem dialog,
+ * which is untranslated for the same reason: the text that has to be exact
+ * stays in one language.
+ *
+ * The exception is the warranty and liability section, which is translated.
+ * That is not an identifier; it is a notice a consumer has to read and accept,
+ * and a term somebody cannot read is a term that in much of the world does not
+ * bind them — English-only protects less there, not more. It is also the one
+ * section that appears twice: a user who accepted it on first run in their own
+ * language must not find a different-looking English version of it here. See
+ * `common/disclaimer`.
  */
 export default function AboutDialog({ onClose }: IAboutDialogProps) {
   const { t } = useTranslation();
@@ -143,14 +159,25 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
               every file header and on the installer's licence page, and in all
               three places they are in the register of a licence rather than of
               a sentence — which is a way of being present without being read.
-              The same words come up on first run, from the same module, so
-              what was acknowledged and what can be re-read here are one text
-              rather than two drafts. */}
+              The same words come up on first run, from the same keys, so what
+              was acknowledged and what can be re-read here are one text rather
+              than two drafts.
+
+              The one translated section in an otherwise untranslated panel,
+              and the exception is deliberate. Everything else here is an
+              identifier — a licence name, an attribution, a copyright line, a
+              trademark reservation — and translating an identifier changes
+              what it names. This is a notice a consumer has to read and
+              accept, and one they cannot read is one that in much of the world
+              does not bind them. It would also be indefensible to have
+              somebody accept this in Spanish on first run and then find only
+              an English version of it here. */}
           <section className="about__section">
-            <h3>{DISCLAIMER_HEADING}</h3>
-            {DISCLAIMER_PARAGRAPHS.map((paragraph) => (
-              <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+            <h3>{t(DISCLAIMER_HEADING_KEY)}</h3>
+            {DISCLAIMER_PARAGRAPH_KEYS.map((key) => (
+              <p key={key}>{t(key, { author: AUTHOR_NAME })}</p>
             ))}
+            <p className="about__aside">{t(DISCLAIMER_LANGUAGE_KEY)}</p>
           </section>
 
           <section className="about__section">

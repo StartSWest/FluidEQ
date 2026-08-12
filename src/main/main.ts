@@ -563,15 +563,24 @@ const setUpAutoUpdates = () => {
     // Almost always "no network" or "GitHub is having a moment". Neither is
     // something the user can act on, and neither should interrupt them.
     log.info('Update check failed', error);
-    // Unless the window is already blocked waiting for this download, in which
-    // case saying nothing leaves a modal that cannot explain itself. Nobody
-    // else hears about it, so the ordinary case is untouched.
-    if (isMandatoryPending) {
-      send({
-        phase: 'failed',
-        isMandatory: true,
-        failure: hasDownloaded ? 'install' : 'download',
-      });
+    // Unless a mandatory update has not arrived yet, in which case saying
+    // nothing leaves a notice that cannot explain itself. Nobody else hears
+    // about it, so the ordinary case is untouched.
+    //
+    // ONLY BEFORE THE BYTES LAND. This handler hears every updater error,
+    // including the hourly re-check, and once the download is on disk those
+    // errors say nothing about it: the file is still there and Install still
+    // works. Reporting one as a failure moved the notice off `ready`, which
+    // greyed out the only Install button in the app — the mandatory notice
+    // stands `UpdateNotice` down — and told the user their installer was
+    // damaged because their laptop had gone through a tunnel.
+    //
+    // A real install failure is detected where the install is started, in the
+    // renderer: `installUpdate()` rejecting, or the timeout for the case where
+    // it neither rejects nor quits. Main cannot tell those from a failed poll
+    // and should not guess.
+    if (isMandatoryPending && !hasDownloaded) {
+      send({ phase: 'failed', isMandatory: true, failure: 'download' });
     }
   });
 

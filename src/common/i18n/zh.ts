@@ -627,6 +627,21 @@ const zh: Partial<Dictionary> = {
   'support.footerBefore':
     '更想用时间来贡献？在这里提 issue 和 pull request 同样受欢迎：',
 
+  'disclaimer.heading': '不提供担保，也不承担责任',
+  'disclaimer.asIs':
+    'FluidEQ 按现状提供，不附带任何形式的担保。没有人承诺它能正常工作、适合你的用途，或者会一直可用。这正是 GNU General Public License 第 15 条和第 16 条所说的内容；无论这份副本是别人给你的，还是你付费得到的，都同样适用。',
+  'disclaimer.liability':
+    'FluidEQ 会改变你电脑上的音频处理方式，并且会安装并驱动 Equalizer APO——那是一个独立程序，以管理员权限运行，位于 Windows 的音频通路上。在法律允许的最大范围内，{author} 对使用本软件所引起的损害不承担责任：包括对你的听力、对音箱、耳机或其他设备、对数据或其他软件的损害，以及任何其他损失，也包括你无法预见的损失。',
+  'disclaimer.volume':
+    '声音可能很大，而均衡处理可能让它比原始素材更响。改动设置前请先把音量调低，改完之后再调回去。',
+  'disclaimer.localLaw':
+    '有些国家不允许销售者排除某些担保或责任。在这些地方，以当地的规定为准，本声明不会剥夺法律赋予你的权利。',
+  'disclaimer.accepting': '使用 FluidEQ 即表示你接受以上内容。',
+  'disclaimer.language':
+    '本声明以英文写成。若译文与英文文本有出入，以英文文本为准。',
+  'disclaimer.accept': '我已理解并接受',
+  'disclaimer.decline': '退出',
+
   'language.title': '语言',
   'language.aria': '界面语言',
   'waveform.style': '更换指示器样式',

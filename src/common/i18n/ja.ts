@@ -665,6 +665,22 @@ const ja: Partial<Dictionary> = {
   'support.footerBefore':
     '時間で貢献したいですか？ Issue や Pull Request も同じように歓迎です：',
 
+  'disclaimer.heading': '保証はなく、責任も負いません',
+  'disclaimer.asIs':
+    'FluidEQ は現状のまま提供され、いかなる保証もありません。動作すること、目的に合うこと、今後も動き続けることを、誰も約束していません。これは GNU General Public License の第15条および第16条が述べている内容で、このコピーを譲り受けた場合でも、対価を払って入手した場合でも同じです。',
+  'disclaimer.liability':
+    'FluidEQ はコンピューターの音声処理を変更し、Equalizer APO をインストールして制御します。Equalizer APO は管理者権限で動作し、Windows の音声経路に入る別個のプログラムです。法律が認める最大限の範囲で、{author} は本ソフトウェアの使用によって生じた損害について責任を負いません。聴覚、スピーカーやヘッドホンなどの機器、データやほかのソフトウェア、そのほか何であれ、予見できなかった損失も含みます。',
+  'disclaimer.volume':
+    '音は大きくなることがあり、イコライジングによって元の素材より大きくなることもあります。設定を変える前に音量を下げ、変えたあとで上げてください。',
+  'disclaimer.localLaw':
+    '国によっては、販売者が一定の保証や責任を排除することが認められていません。その場合はその国の規定が適用され、この通知は法律があなたに与える権利を奪うものではありません。',
+  'disclaimer.accepting':
+    'FluidEQ を使用することで、以上の内容に同意したことになります。',
+  'disclaimer.language':
+    'この通知は英語で書かれています。翻訳が英語の本文と異なる場合は、英語の本文が優先します。',
+  'disclaimer.accept': '理解して同意します',
+  'disclaimer.decline': '終了',
+
   'language.title': '言語',
   'language.aria': '表示言語',
   'waveform.style': 'メーターのスタイルを変更',

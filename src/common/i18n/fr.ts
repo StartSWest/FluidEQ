@@ -685,6 +685,21 @@ const fr: Partial<Dictionary> = {
   'support.footerBefore':
     'Vous préférez donner du temps ? Les tickets et les pull requests sont tout aussi bienvenus sur',
 
+  'disclaimer.heading': 'Sans garantie et sans responsabilité',
+  'disclaimer.asIs':
+    'FluidEQ est fourni tel quel, sans garantie d’aucune sorte. Personne ne promet qu’il fonctionne, qu’il convienne à ce que vous voulez en faire, ni qu’il continuera de fonctionner. C’est ce que disent les sections 15 et 16 de la GNU General Public License, et cela s’applique que cette copie vous ait été donnée ou que vous l’ayez payée.',
+  'disclaimer.liability':
+    'FluidEQ modifie le traitement du son sur votre ordinateur, et il installe et pilote Equalizer APO, un programme distinct qui s’exécute avec les droits d’administrateur et s’insère dans la chaîne audio de Windows. Dans toute la mesure permise par la loi, {author} n’est pas responsable des dommages résultant de son utilisation : à votre audition, à des enceintes, à un casque ou à tout autre matériel, à des données ou à d’autres logiciels, ni à quoi que ce soit d’autre, y compris les pertes que vous n’auriez pas pu prévoir.',
+  'disclaimer.volume':
+    'Le son peut être fort, et l’égalisation peut le rendre plus fort que l’enregistrement d’origine. Baissez le volume avant de modifier un réglage, puis remontez-le.',
+  'disclaimer.localLaw':
+    'Certains pays n’autorisent pas un vendeur à exclure certaines garanties ou responsabilités. Dans ce cas, ce sont ces règles qui s’appliquent, et le présent avis ne vous retire aucun droit que la loi vous donne.',
+  'disclaimer.accepting': 'En utilisant FluidEQ, vous acceptez ce qui précède.',
+  'disclaimer.language':
+    'Cet avis a été rédigé en anglais. Si une traduction diffère du texte anglais, c’est le texte anglais qui s’applique.',
+  'disclaimer.accept': 'J’ai compris et j’accepte',
+  'disclaimer.decline': 'Quitter',
+
   'language.title': 'Langue',
   'language.aria': 'Langue de l’interface',
   'waveform.style': "Changer le style de l'indicateur",

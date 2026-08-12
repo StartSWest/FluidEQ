@@ -31,10 +31,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // interrupted you" would make the closable one read as the more serious of the
 // two on a bad day, purely because it was drawn differently.
 //
-// Everything else in the app tops out at z-index 1450 (the About panel), so
-// both sit above that. `--locked` sits above the plain one in turn: when both
-// are on screen, the one that cannot be dismissed has to be the one in front,
-// or its focus lock is fighting a dialog painted over the top of it.
+// These arrive on their own, so they go above everything that was opened on
+// purpose. That is a higher bar than it first looked: the audio troubleshooter
+// is at 4000 and the bug report at 1600, not the 1450 an earlier reading of
+// this file claimed. A notice that mounts by itself while the troubleshooter is
+// open used to take the keyboard behind an opaque backdrop — focus in a dialog
+// nobody could see, and Escape dismissing a warning that was never read.
+//
+// `--locked` sits above the plain one in turn: when both are on screen, the one
+// that cannot be dismissed has to be in front, or its focus lock is fighting a
+// dialog painted over the top of it.
+//
+// The titlebar is a fixed drag region across the whole width of the window, and
+// a drag region is not covered by painting over it — Chromium builds it as the
+// union of the drag rectangles minus the no-drag ones. App.scss has a rule for
+// every backdrop, matched on a `-backdrop` suffix, and these two do not match
+// it: BEM makes them `__backdrop` and `__backdrop--locked`. So they say it
+// here. Without this the close button of a centred card stops taking presses
+// whenever the card is tall enough to reach the top 78 pixels — which is the
+// exact fault that suffix rule was written to kill.
 
 @use 'color' as *;
 @use 'motion' as *;
@@ -43,8 +58,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .overlay-card__backdrop {
   position: fixed;
-  z-index: 1500;
+  z-index: 5000;
   inset: 0;
+  -webkit-app-region: no-drag;
   display: grid;
   padding: $spacing-m;
   place-items: center;
@@ -56,7 +72,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .overlay-card__backdrop--locked {
-  z-index: 1600;
+  z-index: 5100;
 }
 
 .overlay-card {
@@ -154,6 +170,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       text-decoration: underline;
     }
   }
+}
+
+// A note about the notice rather than part of it — which text is the original.
+// Quieter and smaller, so it reads as a footnote and not as another term.
+.overlay-card__aside {
+  margin-top: $spacing-m;
+  color: rgba($primary-lighter, 0.55);
+  font-size: 0.72rem;
 }
 
 // The sentence that says closing this is a postponement rather than a

@@ -11,6 +11,7 @@ import baseConfig from './webpack.config.base';
 import webpackPaths from './webpack.paths';
 import checkNodeEnv from '../scripts/check-node-env';
 import deleteSourceMaps from '../scripts/delete-source-maps';
+import PUBLIC_ENV_DEFAULTS from './public-env';
 
 checkNodeEnv('production');
 deleteSourceMaps();
@@ -94,6 +95,16 @@ const configuration: webpack.Configuration = {
       NODE_ENV: 'production',
       DEBUG_PROD: false,
       START_MINIMIZED: false,
+      // The same public values the renderer gets, because `src/common` is read
+      // by both and a constant that resolves in one process and comes back
+      // empty in the other is a fault nothing reports. PRODUCT_VERSION was
+      // already like that: main imports `branding`, and its version string was
+      // silently '' in this bundle while the window showed it correctly.
+      //
+      // Values only one side uses cost a few bytes and no thought. A rule that
+      // says "the public values are the public values" holds; a list of which
+      // ones each half happens to need today does not survive the next import.
+      ...PUBLIC_ENV_DEFAULTS,
     }),
   ],
 

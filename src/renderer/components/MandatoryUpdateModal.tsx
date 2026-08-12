@@ -116,6 +116,19 @@ export const REMINDER_INTERVAL_MS = 15 * 60 * 1000;
 const MandatoryUpdateModal = () => {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDivElement>(null);
+  const installTimerRef = useRef<number | undefined>(undefined);
+
+  // The install timeout is the one timer here not owned by an effect, because
+  // it starts from a press rather than from state. It still has to die with the
+  // component.
+  useEffect(
+    () => () => {
+      if (installTimerRef.current !== undefined) {
+        window.clearTimeout(installTimerRef.current);
+      }
+    },
+    [],
+  );
   const [isMandatory, setIsMandatory] = useState(false);
   const [status, setStatus] = useState<IAppUpdateStatus>();
   const [isInstalling, setIsInstalling] = useState(false);
@@ -221,8 +234,18 @@ const MandatoryUpdateModal = () => {
       setIsInstalling(false);
       setLocalFailure('install');
     }, INSTALL_TIMEOUT_MS);
-    window.electron.ipcRenderer.installUpdate().catch(() => {
+    installTimerRef.current = timer;
+    // Cleared on the way out however it goes, not only when it rejects. A
+    // resolved call means the app is quitting, and the timer that outlives it
+    // would land on a dismissed dialog and mark an install failed while the
+    // user is somewhere else entirely — the one timer in this file that could
+    // fire after its component was gone.
+    const done = () => {
       window.clearTimeout(timer);
+      installTimerRef.current = undefined;
+    };
+    window.electron.ipcRenderer.installUpdate().then(done, () => {
+      done();
       setIsInstalling(false);
       setLocalFailure('install');
     });

@@ -100,9 +100,9 @@ export const isMandatoryUpdate = (info: unknown): boolean => {
     ) {
       return false;
     }
-    // `in` rather than a bare read, so a key inherited from a prototype that
-    // somebody put on the parsed object cannot answer for one that is not
-    // actually in the file.
+    // `hasOwnProperty` and not `in`, which is the whole point: `in` walks the
+    // prototype chain, so a key put on a prototype would answer for one that is
+    // not in the file at all.
     if (!Object.prototype.hasOwnProperty.call(vendor, MANDATORY_UPDATE_FIELD)) {
       return false;
     }

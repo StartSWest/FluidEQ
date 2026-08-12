@@ -760,6 +760,37 @@ const en = {
   'support.footerBefore':
     'Prefer to contribute time instead? Issues and pull requests are just as welcome on',
 
+  // *** Warranty and liability **********************************************
+  //
+  // The one legal text in this file, and the exception to the rule that legal
+  // text in this app is not translated. That rule holds for the rest of the
+  // About panel — a licence name, an attribution, a trademark reservation are
+  // identifiers, and translating one changes what it names. This is a notice a
+  // consumer has to read and accept, and a term somebody cannot read is a term
+  // that in much of the world does not bind them. English-only protects less
+  // here, not more.
+  //
+  // Plain and direct in every language, in the register of the rest of the
+  // dictionary. Nothing here is to be softened in translation and nothing is
+  // to be embellished: "not liable for damage to hearing, equipment or data"
+  // has to land as squarely everywhere as it does here. `disclaimer.localLaw`
+  // is the sentence that must survive intact — it is the one that stops the
+  // rest overstating itself. See `common/disclaimer`.
+  'disclaimer.heading': 'No warranty, and no liability',
+  'disclaimer.asIs':
+    'FluidEQ is provided as is, with no warranty of any kind. Nobody promises that it works, that it suits what you want it for, or that it will keep working. This is what sections 15 and 16 of the GNU General Public License say, and it applies whether you were given this copy or paid for it.',
+  'disclaimer.liability':
+    'FluidEQ changes how audio is processed on your computer, and it installs and drives Equalizer APO, a separate program that runs with administrator rights and sits in the Windows audio path. To the fullest extent the law allows, {author} is not liable for any damage arising from using it — to your hearing, to speakers, headphones or other equipment, to data or other software, or to anything else, including loss you could not have foreseen.',
+  'disclaimer.volume':
+    'Sound can be loud, and equalisation can make it louder than the material was. Set your volume low before changing a setting, and turn it up afterwards.',
+  'disclaimer.localLaw':
+    'Some countries do not allow a seller to exclude certain warranties or liabilities. Where that is the case, those rules apply and this notice does not take away rights the law gives you.',
+  'disclaimer.accepting': 'By using FluidEQ you accept the above.',
+  'disclaimer.language':
+    'This notice was written in English. If a translation differs from the English text, the English text is the one that applies.',
+  'disclaimer.accept': 'I understand and accept',
+  'disclaimer.decline': 'Quit',
+
   // *** Language ************************************************************
   'language.title': 'Language',
   'language.aria': 'Interface language',

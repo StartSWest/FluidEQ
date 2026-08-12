@@ -19,14 +19,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { useRef, useState } from 'react';
 import {
   DISCLAIMER_ACCEPTED_KEY,
-  DISCLAIMER_ACCEPT_LABEL,
-  DISCLAIMER_DECLINE_LABEL,
-  DISCLAIMER_HEADING,
-  DISCLAIMER_PARAGRAPHS,
+  DISCLAIMER_ACCEPT_KEY,
+  DISCLAIMER_DECLINE_KEY,
+  DISCLAIMER_HEADING_KEY,
+  DISCLAIMER_LANGUAGE_KEY,
+  DISCLAIMER_PARAGRAPH_KEYS,
   buildAcceptance,
   readAcceptance,
 } from 'common/disclaimer';
-import { PRODUCT_VERSION } from 'common/branding';
+import { AUTHOR_NAME, PRODUCT_VERSION } from 'common/branding';
+import { useTranslation } from '../utils/I18nContext';
 import { useFocusLock } from '../utils/useFocusLock';
 import '../styles/OverlayCard.scss';
 
@@ -38,20 +40,26 @@ import '../styles/OverlayCard.scss';
  * every file header and on the installer's licence page; what none of those
  * gave was a moment where somebody read them and said so.
  *
- * ## The same words, in two places
+ * ## The same words, in two places, in one language
  *
- * The text comes from `common/disclaimer`, which is also what the About panel's
- * disclaimer section renders. One array, so what a user agreed to and what they
- * can go back and re-read cannot drift apart. Untranslated, for the reason
- * given in that module and in the About panel: a mistranslated legal statement
- * still looks authoritative.
+ * The keys come from `common/disclaimer`, which is also what the About panel's
+ * disclaimer section renders, and both go through the same `t`. One list and
+ * one locale, so what a user agreed to and what they can go back and re-read
+ * cannot drift apart — and cannot turn out to be in a different language than
+ * the one they accepted it in.
+ *
+ * Translated, unlike the rest of the About panel. That panel's rule holds for
+ * what is in it: a licence name and an attribution are identifiers, and
+ * translating one changes what it names. This is a notice a consumer has to
+ * read and accept, and a term somebody cannot read is one that in much of the
+ * world does not bind them. `common/disclaimer` has the long version.
  *
  * ## What is recorded
  *
- * The wording's version, the app version that displayed it, and an ISO
- * timestamp — not a boolean. A boolean would stop the dialog reappearing and be
- * worth nothing afterwards; those three fields say which text was shown, by
- * which build, and when.
+ * The wording's version, the language it was read in, the app version that
+ * displayed it, and an ISO timestamp — not a boolean. A boolean would stop the
+ * dialog reappearing and be worth nothing afterwards; those four say which text
+ * was shown, in which words, by which build, and when.
  *
  * Keyed on the wording's version so that changing what is being agreed to
  * asks again, and shipping an ordinary release does not.
@@ -82,6 +90,7 @@ import '../styles/OverlayCard.scss';
  * lock is paid once.
  */
 const DisclaimerGate = () => {
+  const { t, locale } = useTranslation();
   const dialogRef = useRef<HTMLDivElement>(null);
   const [isAccepted, setIsAccepted] = useState(() => {
     try {
@@ -106,7 +115,9 @@ const DisclaimerGate = () => {
     try {
       window.localStorage.setItem(
         DISCLAIMER_ACCEPTED_KEY,
-        JSON.stringify(buildAcceptance(PRODUCT_VERSION)),
+        // The locale goes in with it. Now that the text is translated, the
+        // version alone no longer identifies the words that were on screen.
+        JSON.stringify(buildAcceptance(PRODUCT_VERSION, locale)),
       );
     } catch {
       // Recorded nowhere, so the next launch will ask again. Refusing to let
@@ -146,13 +157,17 @@ const DisclaimerGate = () => {
         aria-describedby="disclaimer-body"
       >
         <div className="overlay-card__header">
-          <h2 id="disclaimer-title">{DISCLAIMER_HEADING}</h2>
+          <h2 id="disclaimer-title">{t(DISCLAIMER_HEADING_KEY)}</h2>
         </div>
 
         <div className="overlay-card__body" id="disclaimer-body">
-          {DISCLAIMER_PARAGRAPHS.map((paragraph) => (
-            <p key={paragraph.slice(0, 40)}>{paragraph}</p>
+          {DISCLAIMER_PARAGRAPH_KEYS.map((key) => (
+            <p key={key}>{t(key, { author: AUTHOR_NAME })}</p>
           ))}
+          {/* Which text is the original, at the end and set quietly. It is a
+              note about the notice rather than part of what is being
+              acknowledged. */}
+          <p className="overlay-card__aside">{t(DISCLAIMER_LANGUAGE_KEY)}</p>
         </div>
 
         <div className="overlay-card__footer">
@@ -161,14 +176,14 @@ const DisclaimerGate = () => {
             className="overlay-card__button overlay-card__button--quiet"
             onClick={handleDecline}
           >
-            {DISCLAIMER_DECLINE_LABEL}
+            {t(DISCLAIMER_DECLINE_KEY)}
           </button>
           <button
             type="button"
             className="overlay-card__button"
             onClick={handleAccept}
           >
-            {DISCLAIMER_ACCEPT_LABEL}
+            {t(DISCLAIMER_ACCEPT_KEY)}
           </button>
         </div>
       </div>
