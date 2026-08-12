@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import manifest from '../../../../package.json';
 import en, { TranslationKey } from '../../../common/i18n/en';
 import {
   DEFAULT_LOCALE,
@@ -77,6 +78,26 @@ describe('i18n', () => {
     expect(translate('en', 'eq.layers.remove', { other: 'x' })).toContain(
       '{layer}',
     );
+  });
+
+  it('offers the same languages in the installer as in the app', () => {
+    // The installer picks its language before the app has ever run, so a
+    // language missing here is one a user never sees offered — they are handed
+    // English, decide the program is not for them, and never get as far as the
+    // menu that would have told them otherwise. Hindi was absent for exactly
+    // that reason: it was added to the app and nobody thought about the setup.
+    //
+    // Matched on the language part alone. The installer needs a region NSIS
+    // knows (`pt_BR`, not `pt`) and the app deliberately does not have one, so
+    // demanding the codes be equal would be demanding the wrong thing.
+    const offered = manifest.build.nsis.installerLanguages.map(
+      (code: string) => code.split('_')[0],
+    );
+    LOCALES.forEach(({ code, name }) => {
+      expect(`${name} in the installer: ${offered.includes(code)}`).toBe(
+        `${name} in the installer: true`,
+      );
+    });
   });
 
   it('keeps every placeholder a translation was given', () => {
