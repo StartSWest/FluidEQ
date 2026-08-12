@@ -14,12 +14,24 @@
  *
  * Licensing: Equalizer APO is GPL-2.0-or-later by Jonas Thedering, so it is
  * compatible with FluidEQ's GPL-3.0 and may be redistributed — provided the
- * corresponding source goes with it. That is not optional and it is not
- * satisfied by a link to somebody else's server: `pnpm fetch-apo:source`
- * fetches the archive matching the version pinned below, and it has to be
- * published alongside the installer wherever that installer is offered, to the
- * same people and at no extra charge. Bumping the version here moves the hash,
- * the byte count and the source archive together.
+ * corresponding source goes with it. That is not optional. `pnpm
+ * fetch-apo:source` fetches the archive matching the version pinned below, and
+ * it is published alongside the installer wherever that installer is offered,
+ * to the same people and at no extra charge. Bumping the version here moves
+ * the hash, the byte count and the source archive together.
+ *
+ * A link to somebody else's server is not, strictly, forbidden. Because APO is
+ * "or later" it can be conveyed under GPLv3, and section 6(d) does allow the
+ * corresponding source to live on a third party's server. What that clause
+ * does not do is hand over the responsibility: it leaves you obligated to keep
+ * the source available for as long as it is needed, and SourceForge's file
+ * list is not ours to guarantee. If 1.4.2 were ever pruned while installers
+ * were still going out, there would be no fallback and the first sign of it
+ * would be somebody else's bug report.
+ *
+ * So upstream is cited as the origin and our own copy is what actually
+ * discharges the obligation. It is 36 MB next to a ~110 MB installer, which is
+ * not a cost worth the argument.
  */
 
 import { createHash } from 'crypto';

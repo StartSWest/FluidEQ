@@ -16,9 +16,9 @@
  * Read this before expecting the warning to disappear, because it will not.
  *
  * Microsoft removed EV certificates' automatic reputation in 2024. Today a
- * signed file — OV, EV or Trusted Signing alike — still has to *earn*
- * reputation through downloads that run without incident. No certificate at any
- * price buys silence on day one.
+ * signed file — OV, EV or cloud-signed alike — still has to *earn* reputation
+ * through downloads that run without incident. No certificate at any price
+ * buys silence on day one.
  *
  * What signing buys is worth having anyway:
  *
@@ -28,24 +28,16 @@
  *     it accumulates across releases instead of resetting at every version.
  *     Unsigned, 0.8.0 inherits nothing from 0.7.0.
  *
- * ## Setting it up
+ * ## Configuration
  *
- * Azure Artifact Signing, formerly Trusted Signing: about ten dollars a month,
- * no hardware token. Self-employed individuals in the USA and Canada have been
- * eligible without a business-history requirement since April 2026.
+ * Seven environment variables: four that name the signing account and three
+ * that are credentials. Their names are in SETTINGS and CREDENTIALS below,
+ * which is the only place this file needs them written down.
  *
- * Four settings describe the account. None are secret:
- *
- *   FLUIDEQ_SIGN_ENDPOINT   e.g. https://eus.codesigning.azure.net
- *   FLUIDEQ_SIGN_ACCOUNT    the Trusted Signing account name
- *   FLUIDEQ_SIGN_PROFILE    the certificate profile name
- *   FLUIDEQ_SIGN_PUBLISHER  exactly as it appears in the certificate
- *
- * Three are credentials and belong nowhere near the repository:
- *
- *   AZURE_TENANT_ID
- *   AZURE_CLIENT_ID
- *   AZURE_CLIENT_SECRET
+ * Which provider issues them, what an account costs and how to obtain one are
+ * deliberately not here. This repository is public and that is the recipe for
+ * producing the signed build that is sold, so it lives in the project's
+ * private notes instead.
  *
  * `FLUIDEQ_SIGN_PUBLISHER` must match the certificate subject exactly. If it
  * does not, the build signs happily and the auto-updater then refuses every
@@ -55,6 +47,8 @@
  */
 
 import { spawn } from 'child_process';
+
+import { fetchEqualizerApoSource } from './fetch-equalizer-apo';
 
 interface ISigningSettings {
   endpoint: string;
@@ -128,10 +122,37 @@ if (require.main === module) {
     process.exit(1);
   }
 
-  console.log(`Signing as: ${settings.publisherName}`);
-  const child = spawn('pnpm', ['package', ...toBuilderArgs(settings)], {
-    stdio: 'inherit',
-    shell: true,
-  });
-  child.on('exit', (code) => process.exit(code ?? 1));
+  const signing = settings;
+
+  // The APO source archive is fetched here rather than in `pnpm package`.
+  //
+  // `package` builds the unsigned installer used for checking a change on a
+  // real machine; that build is not conveyed to anyone, so it owes nobody a
+  // source archive and should not pay for a download it will not use. This
+  // script builds the installer that ships, and shipping it conveys Equalizer
+  // APO's binary — at which point the corresponding source has to go out with
+  // it. Fetching it here means the artefact that needs the archive is the one
+  // that cannot be produced without it, instead of it being something to
+  // remember at release time.
+  //
+  // The fetch is cached, so this costs nothing after the first run per version.
+  (async () => {
+    let apoSource: string;
+    try {
+      apoSource = await fetchEqualizerApoSource();
+    } catch (error) {
+      console.error((error as Error).message);
+      process.exit(1);
+      return;
+    }
+
+    console.log(`Signing as: ${signing.publisherName}`);
+    console.log(`Publish this alongside the installer: ${apoSource}`);
+
+    const child = spawn('pnpm', ['package', ...toBuilderArgs(signing)], {
+      stdio: 'inherit',
+      shell: true,
+    });
+    child.on('exit', (code) => process.exit(code ?? 1));
+  })();
 }
