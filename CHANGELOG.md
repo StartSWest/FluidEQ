@@ -83,6 +83,29 @@ auto-normalise takes back a decision from 1.0.0 that you will hear.
   wrote it, but nothing on screen says the two have stopped agreeing.
 - **The AutoEQ and convolution searches remember what you looked for**, the way
   the player's search box already did, with one press to forget all of it.
+- **The warranty disclaimer is something you can read, in your own language.**
+  Sections 15 and 16 of the GPL have always been in `LICENSE`, in every file
+  header and on the installer's licence page — in all three in the register of a
+  licence rather than of a sentence, which is a way of being present without
+  being read. The same terms are now put in front of you once, on first run, in
+  all ten languages: no warranty, and no liability for damage to hearing, to
+  equipment, or to data. Nothing in it is a new term. It says that some countries
+  do not allow those exclusions and that where that is so, the law wins and the
+  notice takes away none of the rights it gives you. There is a Quit button
+  beside Accept, because a notice you can only agree to is not a notice, and the
+  same text stays in the About panel to be re-read. What is stored is the version
+  of the notice, the version of the app and a timestamp — anything FluidEQ cannot
+  read back is shown again rather than assumed accepted.
+- **A release can say that it must not keep running.** If a version ever ships a
+  fault bad enough that carrying on with it is the wrong thing, the release that
+  fixes it can be marked as such, and installs from 1.2.0 onward will say so
+  rather than waiting to be noticed. It asks rather than blocks: the notice
+  closes, says plainly that closing it means later and not no, and returns every
+  fifteen minutes until the update is in. The download runs while it sits there,
+  and if the download or the install fails it says which of the two and gives you
+  the release page as a link and as text. It is not a kill switch — Equalizer APO
+  applies its files whether FluidEQ is running or not, so nothing here can take
+  your audio away.
 
 ### Changed
 
@@ -125,6 +148,20 @@ auto-normalise takes back a decision from 1.0.0 that you will hear.
 - **The Video tab is called Media**, in all ten languages, and **Config sits at
   the far edge of the tab strip**, away from the tabs that change the sound.
 - **Euphoria mode is called Rainbow mode.**
+- **What's new opens on the version you just installed.** After an update the
+  dialog is answering "what changed", so it shows that one section and stops.
+  Opened from the actions menu it is answering "what happened", and the whole
+  history is there as before.
+- **The installer offers Hindi.** The app has shipped ten languages and the setup
+  offered nine, and the setup is the one place a missing language cannot be put
+  right afterwards: it picks its language before the app has ever run, so
+  somebody handed English there never reaches the menu that would have told them
+  otherwise.
+- **The Support panel says what is actually sold.** It told you that nothing was
+  behind a paywall, which stopped being true the moment a signed build went on
+  sale. It now says the arrangement as it stands: the source is public and you
+  can always build it yourself for nothing, and what is sold is the signed,
+  ready-to-run build. Nothing is tracked, and that has not changed.
 
 ### Fixed
 
@@ -134,6 +171,22 @@ auto-normalise takes back a decision from 1.0.0 that you will hear.
 - **A dropdown you can search puts the cursor in its search box.** The list is
   drawn outside the control it belongs to, and the field was being looked for
   inside it, so opening one and typing went nowhere.
+- **The release notes fill the width they are given.** Every line of this file
+  was drawn as a paragraph of its own, so its eighty-column wrapping became the
+  layout: the prose broke two thirds of the way across a wide window, and the gap
+  between two paragraphs looked no different from the gap between two lines of
+  one. Lines join until the next blank one now, the way list items always did.
+- **A button near the top of a dialog takes a press.** The titlebar's drag region
+  runs the full width of the window, and a dialog painted over it changes what is
+  drawn rather than what the mouse hits — so About, Support, the bug report, the
+  audio troubleshooter and the score card all had a dead band across the top,
+  their close buttons included.
+- **The band sliders ask for a length the card can give them.** With the graph
+  switched off the track was measured against 330px of surrounding chrome where
+  there are really 544px, so every window between the 620px minimum and roughly
+  950px promised the row about 214px more than it had: the panel scrolled, the
+  captions bunched at the top and the lower arrows went off the bottom edge.
+  Above 950px the arithmetic came right on its own, which is how it survived.
 
 ---
 
