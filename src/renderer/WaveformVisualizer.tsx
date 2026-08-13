@@ -765,13 +765,15 @@ const WaveformVisualizer = () => {
         <div className="waveform-visualizer__meta">
           <span className="waveform-visualizer__signal">
             <span className="waveform-visualizer__signal-dot" />
-            {isActive ? 'LIVE OUTPUT' : 'AUDIO SIGNAL'}
+            {t(isActive ? 'waveform.live' : 'waveform.signal')}
           </span>
           <span className="waveform-visualizer__readout">
             {/* Clipping outranks the number: once it is lit, the number is the
               least interesting thing on the pane. */}
             {isClipping && (
-              <span className="waveform-visualizer__clip">CLIP</span>
+              <span className="waveform-visualizer__clip">
+                {t('waveform.clip')}
+              </span>
             )}
             <span className="waveform-visualizer__peak">
               {heldPeak === undefined ? '—' : `${heldPeak.toFixed(1)} dB`}

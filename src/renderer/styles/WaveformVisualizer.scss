@@ -188,3 +188,15 @@ it under the terms of the GNU General Public License version 3 or later.
     display: none;
   }
 }
+
+@media (max-width: 760px) {
+  .waveform-visualizer__meta {
+    gap: 4px;
+    font-size: 0.44rem;
+    letter-spacing: 0.1em;
+  }
+
+  .waveform-visualizer__signal {
+    gap: 4px;
+  }
+}

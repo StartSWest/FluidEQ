@@ -17,8 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ReactNode, useCallback, useEffect, useMemo, useState } from 'react';
+import { TranslationKey } from 'common/i18n';
 import {
-  GRAPH_STYLE_LABELS,
   GraphPalette,
   MAX_GRAPH_COLUMNS,
   MIN_GRAPH_COLUMNS,
@@ -58,6 +58,7 @@ import {
 } from 'common/customLooks';
 import { BAND_SPECTRUM_HEX } from '../utils/bandColors';
 import { useIsRootEuphoric } from '../utils/euphoriaMode';
+import { useTranslation } from '../utils/I18nContext';
 import {
   clearLookDraft,
   deleteCustomLook,
@@ -89,24 +90,27 @@ import '../styles/LookDesigner.scss';
  * the frequency axis and one up the decibel axis, and from a still picture of a
  * loud frame they can look much the same.
  */
-const PALETTE_CHOICES: { value: GraphPalette; label: string; hint: string }[] =
-  [
-    {
-      value: 'signal',
-      label: 'Flat',
-      hint: 'One colour for the whole figure',
-    },
-    {
-      value: 'rainbow',
-      label: 'Frequency',
-      hint: 'Colour runs across the axis: it says where in the range a bar sits, and never changes as the music does',
-    },
-    {
-      value: 'level',
-      label: 'Level',
-      hint: 'Colour runs up the axis: it says how loud a bar is, so it reddens as it grows',
-    },
-  ];
+const PALETTE_CHOICES: {
+  value: GraphPalette;
+  label: TranslationKey;
+  hint: TranslationKey;
+}[] = [
+  {
+    value: 'signal',
+    label: 'look.palette.flat',
+    hint: 'look.palette.flatHint',
+  },
+  {
+    value: 'rainbow',
+    label: 'look.palette.frequency',
+    hint: 'look.palette.frequencyHint',
+  },
+  {
+    value: 'level',
+    label: 'look.palette.level',
+    hint: 'look.palette.levelHint',
+  },
+];
 
 /**
  * Where a palette's colours start when somebody decides to change them.
@@ -174,6 +178,7 @@ const StopPicker = ({
   onChange,
   onRemove,
 }: IStopPickerProps) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
 
   // Anywhere else closes it. Pointer-down rather than click, so the grid is
@@ -198,7 +203,7 @@ const StopPicker = ({
         type="button"
         className="look-designer__swatch-face"
         style={{ background: colour }}
-        aria-label={`Colour ${index + 1}: ${colour}`}
+        aria-label={t('look.colourValue', { number: index + 1, colour })}
         aria-expanded={isOpen}
         title={colour}
         onClick={() => setIsOpen((open) => !open)}
@@ -207,7 +212,7 @@ const StopPicker = ({
         <button
           type="button"
           className="look-designer__swatch-drop"
-          aria-label={`Remove colour ${index + 1}`}
+          aria-label={t('look.removeColour', { number: index + 1 })}
           onClick={onRemove}
         >
           ✕
@@ -234,14 +239,14 @@ const StopPicker = ({
           <label
             className="look-designer__swatch-custom"
             htmlFor={`look-designer-custom-${index}`}
-            title="Any other colour"
+            title={t('look.customColour')}
           >
-            Custom
+            {t('look.custom')}
             <input
               id={`look-designer-custom-${index}`}
               type="color"
               value={colour}
-              aria-label="Any other colour"
+              aria-label={t('look.customColour')}
               onChange={(event) => onChange(event.target.value)}
             />
           </label>
@@ -348,6 +353,7 @@ interface ILookDesignerProps {
  * smaller, less honest picture.
  */
 const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
+  const { t } = useTranslation();
   // Where this panel started, worked out once.
   //
   // Opening it on a look the user made edits that look; opening it on one of
@@ -470,11 +476,12 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
   const { tuning, style } = draft;
   const isDiscrete = isDiscreteGraphStyle(style);
   const canAccent = hasGraphAccent(style);
-  const fallbackName = GRAPH_STYLE_LABELS[style];
+  const fallbackName = t(`graph.styleName.${style}` as TranslationKey);
   const isFull = !origin.isEditing && isCustomLookListFull();
-  const paletteHint =
-    PALETTE_CHOICES.find((choice) => choice.value === draft.palette)?.hint ??
-    '';
+  const paletteHintKey = PALETTE_CHOICES.find(
+    (choice) => choice.value === draft.palette,
+  )?.hint;
+  const paletteHint = paletteHintKey ? t(paletteHintKey) : '';
 
   /**
    * The ramp as a CSS gradient, running the way the graph will run it.
@@ -553,7 +560,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
         if (!looks.length) {
           // Says nothing was found rather than nothing at all. The likeliest
           // reason is that this is not a look file, and silence reads as a bug.
-          setImportError('No looks in that file.');
+          setImportError(t('look.error.emptyFile'));
           return false;
         }
         // Same id means the same look, so importing an updated copy replaces
@@ -564,23 +571,23 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
         onClose();
         return true;
       })
-      .catch(() => setImportError('Could not read that file.'));
+      .catch(() => setImportError(t('look.error.readFile')));
   };
 
   return (
     <div
       className={`look-designer${isClosing ? ' is-closing' : ''}`}
       role="dialog"
-      aria-label={origin.isEditing ? 'Edit look' : 'Create look'}
+      aria-label={t(origin.isEditing ? 'look.edit' : 'look.create')}
     >
       <div className="look-designer__header">
-        <h2>{origin.isEditing ? 'Edit look' : 'New look'}</h2>
+        <h2>{t(origin.isEditing ? 'look.edit' : 'look.new')}</h2>
         <button
           type="button"
           className="look-designer__close"
           onClick={onClose}
-          aria-label="Close the look designer"
-          title="Close without saving (Esc)"
+          aria-label={t('look.close')}
+          title={t('look.closeHint')}
         >
           ✕
         </button>
@@ -593,19 +600,17 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           the header is the better of the two anyway: it is searchable, it has
           arrows either side, and Space and the click on the plot already walk
           it. So the panel follows it instead. */}
-      <p className="look-designer__pick">
-        Pick the form with the picker above, or press Space.
-      </p>
+      <p className="look-designer__pick">{t('look.pickForm')}</p>
 
       <div className="look-designer__body">
         <div className="look-designer__row">
           <span className="look-designer__caption">
-            <span>Colour by</span>
+            <span>{t('look.colourBy')}</span>
           </span>
           <div
             className="look-designer__choice"
             role="group"
-            aria-label="Colour by"
+            aria-label={t('look.colourBy')}
           >
             {PALETTE_CHOICES.map((choice) => (
               <button
@@ -615,7 +620,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
                   draft.palette === choice.value ? ' is-on' : ''
                 }`}
                 aria-pressed={draft.palette === choice.value}
-                title={choice.hint}
+                title={t(choice.hint)}
                 onClick={() =>
                   // The stops belong to the palette and do not survive it — see
                   // `recolourDraftLook` — and the new palette's are filled in
@@ -628,7 +633,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
                   })
                 }
               >
-                {choice.label}
+                {t(choice.label)}
               </button>
             ))}
           </div>
@@ -637,7 +642,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
 
         <div className="look-designer__row">
           <span className="look-designer__caption">
-            <span>Colours</span>
+            <span>{t('look.colours')}</span>
             <button
               type="button"
               className="look-designer__reset"
@@ -648,7 +653,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
                 }))
               }
             >
-              Reset
+              {t('look.reset')}
             </button>
           </span>
           <div className="look-designer__swatches">
@@ -671,8 +676,8 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
               <button
                 type="button"
                 className="look-designer__swatch-add"
-                aria-label="Add a colour"
-                title="Add a colour to the end of the ramp"
+                aria-label={t('look.addColour')}
+                title={t('look.addColourHint')}
                 onClick={addColour}
               >
                 +
@@ -690,14 +695,10 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
 
         <SettingRow
           id="look-designer-columns"
-          label="Pieces"
+          label={t('look.pieces')}
           value={isDiscrete ? String(tuning.columns) : '—'}
           isDisabled={!isDiscrete}
-          hint={
-            isDiscrete
-              ? undefined
-              : 'This form is drawn as one continuous figure'
-          }
+          hint={isDiscrete ? undefined : t('look.continuous')}
         >
           <SettingSlider
             id="look-designer-columns"
@@ -711,7 +712,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
 
         <SettingRow
           id="look-designer-attack"
-          label="Attack"
+          label={t('look.attack')}
           value={`${tuning.attackMs} ms`}
         >
           <SettingSlider
@@ -734,9 +735,9 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
 
         <SettingRow
           id="look-designer-release"
-          label="Release"
+          label={t('look.release')}
           value={`${tuning.releaseMs} ms`}
-          hint="How long a peak hangs before it falls away"
+          hint={t('look.releaseHint')}
         >
           <SettingSlider
             id="look-designer-release"
@@ -751,12 +752,12 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
 
         <div className="look-designer__row">
           <span className="look-designer__caption">
-            <span>Drawn as</span>
+            <span>{t('look.drawnAs')}</span>
           </span>
           <div
             className="look-designer__choice"
             role="group"
-            aria-label="Drawn as"
+            aria-label={t('look.drawnAs')}
           >
             <button
               type="button"
@@ -764,7 +765,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
               aria-pressed={tuning.filled}
               onClick={() => tune({ filled: true })}
             >
-              Filled
+              {t('look.filled')}
             </button>
             <button
               type="button"
@@ -772,7 +773,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
               aria-pressed={!tuning.filled}
               onClick={() => tune({ filled: false })}
             >
-              Stroked
+              {t('look.stroked')}
             </button>
           </div>
         </div>
@@ -784,7 +785,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
         {tuning.filled ? (
           <SettingRow
             id="look-designer-fill"
-            label="Fill"
+            label={t('look.fill')}
             value={`${Math.round(tuning.fillOpacity * 100)}%`}
           >
             <SettingSlider
@@ -799,7 +800,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
         ) : (
           <SettingRow
             id="look-designer-width"
-            label="Weight"
+            label={t('look.weight')}
             value={`${tuning.strokeWidth} px`}
           >
             <SettingSlider
@@ -823,18 +824,18 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             that vanishes takes its explanation with it — "why is there no glow
             setting" is a worse question than "why is this one disabled", and
             the second answers itself in the hint underneath. */}
-        <p className="look-designer__group">Rainbow</p>
+        <p className="look-designer__group">{t('look.rainbow')}</p>
 
         <SettingRow
           id="look-designer-glow"
-          label="Glow"
-          value={tuning.glow > 0 ? `${Math.round(tuning.glow * 100)}%` : 'Off'}
-          isDisabled={!isEuphoric}
-          hint={
-            isEuphoric
-              ? 'How hard the figure swells and brightens on a beat.'
-              : 'Needs Rainbow mode. The glow is what that mode does to this figure — with it off, nothing here changes the drawing.'
+          label={t('look.glow')}
+          value={
+            tuning.glow > 0
+              ? `${Math.round(tuning.glow * 100)}%`
+              : t('look.off')
           }
+          isDisabled={!isEuphoric}
+          hint={isEuphoric ? t('look.glowHint') : t('look.glowNeedsRainbow')}
         >
           <SettingSlider
             id="look-designer-glow"
@@ -856,7 +857,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             className="look-designer__caption"
             htmlFor="look-designer-border"
           >
-            <span>Rainbow border</span>
+            <span>{t('look.rainbowBorder')}</span>
             <input
               id="look-designer-border"
               type="checkbox"
@@ -867,15 +868,13 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             />
           </label>
           <span className="look-designer__hint">
-            {isEuphoric
-              ? 'Rings the graph in a colour that travels the whole wheel. Decoration rather than a reading — right on a visualiser, noise on a measurement.'
-              : 'Needs Rainbow mode.'}
+            {isEuphoric ? t('look.rainbowBorderHint') : t('look.needsRainbow')}
           </span>
         </div>
 
         <SettingRow
           id="look-designer-border-width"
-          label="Border weight"
+          label={t('look.borderWeight')}
           value={`${tuning.borderWidth} px`}
           isDisabled={!isEuphoric || !tuning.border}
         >
@@ -900,7 +899,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             className="look-designer__caption"
             htmlFor="look-designer-accents"
           >
-            <span>Lit peaks</span>
+            <span>{t('look.litPeaks')}</span>
             <input
               id="look-designer-accents"
               type="checkbox"
@@ -911,16 +910,14 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             />
           </label>
           {!canAccent && (
-            <span className="look-designer__hint">
-              This form has no lit tips to show
-            </span>
+            <span className="look-designer__hint">{t('look.noLitPeaks')}</span>
           )}
         </div>
 
         {/* The label is the row, so the field it names is inside it. */}
         <label className="look-designer__row" htmlFor="look-designer-name">
           <span className="look-designer__caption">
-            <span>Name</span>
+            <span>{t('look.name')}</span>
           </span>
           <input
             id="look-designer-name"
@@ -954,8 +951,8 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           type="button"
           className="look-designer__icon"
           onClick={() => tune(getDefaultTuning(style))}
-          aria-label="Reset every setting"
-          title="Put every setting back to how this form ships"
+          aria-label={t('look.resetAll')}
+          title={t('look.resetAllHint')}
         >
           <svg viewBox="0 0 16 16" aria-hidden>
             <path d="M13 8a5 5 0 1 1-1.6-3.7M13 2v3h-3" />
@@ -965,8 +962,8 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           type="button"
           className="look-designer__icon"
           onClick={handleExport}
-          aria-label="Export this look to a file"
-          title="Write this look to a file you can send to somebody"
+          aria-label={t('look.export')}
+          title={t('look.exportHint')}
         >
           <svg viewBox="0 0 16 16" aria-hidden>
             <path d="M8 10V2M5 5l3-3 3 3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" />
@@ -975,7 +972,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
         <label
           className="look-designer__icon"
           htmlFor="look-designer-import"
-          title="Add a look from a file"
+          title={t('look.import')}
         >
           <svg viewBox="0 0 16 16" aria-hidden>
             <path d="M8 2v8M5 7l3 3 3-3M3 11v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2" />
@@ -984,7 +981,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             id="look-designer-import"
             type="file"
             accept="application/json,.json"
-            aria-label="Import a look from a file"
+            aria-label={t('look.import')}
             onChange={(event) => {
               const [file] = Array.from(event.target.files ?? []);
               // Cleared, or choosing the same file twice in a row does nothing
@@ -1000,8 +997,8 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             type="button"
             className="look-designer__icon look-designer__icon--danger"
             onClick={handleDelete}
-            aria-label="Delete this look"
-            title="Delete this look"
+            aria-label={t('look.delete')}
+            title={t('look.delete')}
           >
             <svg viewBox="0 0 16 16" aria-hidden>
               <path d="M3 4h10M6.5 4V2.5h3V4M4.5 4l.5 9h6l.5-9M6.5 6.5v4M9.5 6.5v4" />
@@ -1013,13 +1010,9 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
           className="look-designer__button look-designer__button--primary"
           onClick={handleSave}
           disabled={isFull}
-          title={
-            isFull
-              ? 'The list is full — delete a look to make room'
-              : 'Save this look and select it'
-          }
+          title={isFull ? t('look.full') : t('look.saveHint')}
         >
-          Save
+          {t('look.save')}
         </button>
       </div>
     </div>

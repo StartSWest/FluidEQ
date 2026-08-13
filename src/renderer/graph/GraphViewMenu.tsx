@@ -17,8 +17,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { ReactNode, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { TranslationKey } from '../../common/i18n';
+import { useTranslation } from '../utils/I18nContext';
 import {
-  GRAPH_CONTENTS_LABEL,
   TGraphContents,
   TGraphCurve,
   TGraphView,
@@ -92,17 +93,25 @@ interface IGraphViewMenuProps {
 }
 
 /** Names the state the next press moves to, since three states cycle. */
-const ORIENTATION_LABEL: Record<TWaveOrientation, string> = {
-  up: 'Hang the wave down',
-  down: 'Mirror the wave',
-  mirrored: 'Mirror from the centre',
-  centred: 'Stand the wave up',
+const ORIENTATION_LABEL: Record<TWaveOrientation, TranslationKey> = {
+  up: 'graph.orientation.down',
+  down: 'graph.orientation.mirror',
+  mirrored: 'graph.orientation.centre',
+  centred: 'graph.orientation.up',
 };
 
-const VIEW_LABEL: Record<TGraphView, string> = {
-  normal: 'View',
-  expanded: 'Expanded',
-  fullscreen: 'Full screen',
+const VIEW_LABEL: Record<TGraphView, TranslationKey> = {
+  normal: 'graph.view.normal',
+  expanded: 'graph.view.expanded',
+  fullscreen: 'graph.view.fullscreen',
+};
+
+const CONTENT_LABEL: Record<TGraphContents, TranslationKey> = {
+  everything: 'graph.contents.everything',
+  layers: 'graph.contents.layers',
+  curves: 'graph.contents.curves',
+  clean: 'graph.contents.clean',
+  wave: 'graph.contents.wave',
 };
 
 /**
@@ -171,6 +180,7 @@ const GraphViewMenu = ({
   hasTopBar,
   onToggleTopBar,
 }: IGraphViewMenuProps) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [placement, setPlacement] = useState<IPlacement>({
     isAbove: false,
@@ -249,9 +259,9 @@ const GraphViewMenu = ({
         aria-haspopup="menu"
         aria-expanded={isOpen}
         onClick={() => setIsOpen((open) => !open)}
-        title="How much of the screen the graph gets"
+        title={t('graph.view.title')}
       >
-        {VIEW_LABEL[view]}
+        {t(VIEW_LABEL[view])}
         <svg className="arrow" viewBox="0 0 10 6" aria-hidden>
           <path d="M1 1l4 4 4-4" />
         </svg>
@@ -283,7 +293,7 @@ const GraphViewMenu = ({
               <path d="M2.5 4.5h11v7h-11z" />
               <path d="M5.5 7.2L3.6 8l1.9.8M10.5 7.2L12.4 8l-1.9.8" />
             </Icon>
-            <span>Expand view</span>
+            <span>{t('graph.view.expand')}</span>
             <kbd>Ctrl+S</kbd>
           </button>
           <button
@@ -298,7 +308,7 @@ const GraphViewMenu = ({
             <Icon>
               <path d="M2.5 6V2.5H6M10 2.5h3.5V6M13.5 10v3.5H10M6 13.5H2.5V10" />
             </Icon>
-            <span>Full screen</span>
+            <span>{t('graph.view.fullscreen')}</span>
             <kbd>Ctrl+F</kbd>
           </button>
 
@@ -328,7 +338,9 @@ const GraphViewMenu = ({
               <path d="M13.5 6.5A5.5 5.5 0 1 0 14 9" />
               <path d="M13.8 2.6v4h-4" />
             </Icon>
-            <span>Showing: {GRAPH_CONTENTS_LABEL[contents]}</span>
+            <span>
+              {t('graph.showing', { content: t(CONTENT_LABEL[contents]) })}
+            </span>
             <kbd>Ctrl+W</kbd>
           </button>
 
@@ -348,7 +360,9 @@ const GraphViewMenu = ({
                 <Icon>
                   <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
                 </Icon>
-                <span>{isHidden ? `Show ${label}` : `Hide ${label}`}</span>
+                <span>
+                  {t(isHidden ? 'graph.show' : 'graph.hide', { item: label })}
+                </span>
               </button>
             );
           })}
@@ -375,7 +389,11 @@ const GraphViewMenu = ({
             <Icon>
               <path d="M1.5 8c1.6 0 1.6-4 3.2-4s1.6 8 3.2 8 1.6-8 3.2-8 1.6 4 3.2 4" />
             </Icon>
-            <span>{isWaveHidden ? 'Show the wave' : 'Hide the wave'}</span>
+            <span>
+              {t(isWaveHidden ? 'graph.show' : 'graph.hide', {
+                item: t('graph.item.wave'),
+              })}
+            </span>
           </button>
 
           <button
@@ -388,7 +406,9 @@ const GraphViewMenu = ({
               <path d="M1.5 8h2l2-4 2 8 2-6 1.5 2h2" />
             </Icon>
             <span>
-              {isTitlebarWaveHidden ? 'Show top wave' : 'Hide top wave'}
+              {t(isTitlebarWaveHidden ? 'graph.show' : 'graph.hide', {
+                item: t('graph.item.topWave'),
+              })}
             </span>
           </button>
 
@@ -406,7 +426,11 @@ const GraphViewMenu = ({
               <path d="M2.5 2.5h11v11h-11z" />
               <path d="M6.2 2.5v11M9.8 2.5v11M2.5 6.2h11M2.5 9.8h11" />
             </Icon>
-            <span>{isGridHidden ? 'Show grid' : 'Hide grid'}</span>
+            <span>
+              {t(isGridHidden ? 'graph.show' : 'graph.hide', {
+                item: t('graph.item.grid'),
+              })}
+            </span>
             <kbd>Ctrl+G</kbd>
           </button>
 
@@ -437,9 +461,9 @@ const GraphViewMenu = ({
               <path d="M2.5 3.5h3v9h-3zM6.5 3.5h3v9h-3zM10.5 3.5h3v9h-3z" />
             </Icon>
             <span>
-              {isCoverageHidden
-                ? 'Show listening bands'
-                : 'Hide listening bands'}
+              {t(isCoverageHidden ? 'graph.show' : 'graph.hide', {
+                item: t('graph.item.bands'),
+              })}
             </span>
           </button>
 
@@ -460,7 +484,9 @@ const GraphViewMenu = ({
               <path d="M5 3.5h2v9H5zM9 3.5h2v9H9z" />
             </Icon>
             <span>
-              {isMeterHidden ? 'Show level meter' : 'Hide level meter'}
+              {t(isMeterHidden ? 'graph.show' : 'graph.hide', {
+                item: t('graph.item.meter'),
+              })}
             </span>
           </button>
 
@@ -473,7 +499,7 @@ const GraphViewMenu = ({
             <Icon>
               <path d="M8 2.5v11M5.4 5.1L8 2.5l2.6 2.6M5.4 10.9L8 13.5l2.6-2.6" />
             </Icon>
-            <span>{isStretched ? 'Fit the graph' : 'Stretch to fill'}</span>
+            <span>{t(isStretched ? 'graph.fit' : 'graph.stretch')}</span>
             <kbd>Ctrl+B</kbd>
           </button>
 
@@ -493,7 +519,7 @@ const GraphViewMenu = ({
             <Icon>
               <path d="M2 8h12M5 5l-3 3 3 3M11 5l3 3-3 3" />
             </Icon>
-            <span>{ORIENTATION_LABEL[waveOrientation]}</span>
+            <span>{t(ORIENTATION_LABEL[waveOrientation])}</span>
             <kbd>Ctrl+I</kbd>
           </button>
 
@@ -509,7 +535,7 @@ const GraphViewMenu = ({
             <Icon>
               <path d="M6 3.5l4 4.5-4 4.5" />
             </Icon>
-            <span>Next style</span>
+            <span>{t('graph.style.next')}</span>
             <kbd>Space</kbd>
           </button>
           <button
@@ -521,7 +547,7 @@ const GraphViewMenu = ({
             <Icon>
               <path d="M10 3.5l-4 4.5 4 4.5" />
             </Icon>
-            <span>Previous style</span>
+            <span>{t('graph.style.previous')}</span>
             <kbd>Ctrl+Space</kbd>
           </button>
 
@@ -573,7 +599,9 @@ const GraphViewMenu = ({
                     <path d="M2.5 6h11" />
                   </Icon>
                   <span>
-                    {hasTopBar ? 'Hide the top bar' : 'Show the top bar'}
+                    {t(hasTopBar ? 'graph.hide' : 'graph.show', {
+                      item: t('graph.item.topBar'),
+                    })}
                   </span>
                 </button>
               )}
@@ -581,13 +609,13 @@ const GraphViewMenu = ({
               <label
                 className="graph-view-menu__slider"
                 htmlFor="graph-see-through"
-                title="How much of the page shows through the graph"
+                title={t('graph.seeThroughHint')}
               >
                 <Icon>
                   <path d="M8 3.5c3 0 5 2.3 5.5 4.5-.5 2.2-2.5 4.5-5.5 4.5S3 10.2 2.5 8C3 5.8 5 3.5 8 3.5z" />
                   <path d="M8 6.2a1.8 1.8 0 100 3.6 1.8 1.8 0 100-3.6z" />
                 </Icon>
-                <span>See through</span>
+                <span>{t('graph.seeThrough')}</span>
                 <input
                   id="graph-see-through"
                   type="range"
@@ -606,12 +634,12 @@ const GraphViewMenu = ({
               <label
                 className="graph-view-menu__slider"
                 htmlFor="graph-see-through-blur"
-                title="Blur what shows through, so it reads as light rather than as a second picture"
+                title={t('graph.blurHint')}
               >
                 <Icon>
                   <path d="M8 2.5C5.5 5.4 4 7.3 4 9a4 4 0 008 0c0-1.7-1.5-3.6-4-6.5z" />
                 </Icon>
-                <span>Blur</span>
+                <span>{t('graph.blur')}</span>
                 <input
                   id="graph-see-through-blur"
                   type="range"

@@ -536,6 +536,21 @@ export const groupKaraokePitchWords = (
   return words;
 };
 
+/** Progressive lyric fill shared by the word label and its timing underline. */
+export const karaokePitchWordProgress = (
+  startMs: number,
+  endMs: number,
+  playheadMs: number,
+): number => {
+  if (playheadMs <= startMs) {
+    return 0;
+  }
+  if (playheadMs >= endMs || endMs <= startMs) {
+    return 1;
+  }
+  return clamp((playheadMs - startMs) / (endMs - startMs), 0, 1);
+};
+
 const roundedRectPath = (
   context: CanvasRenderingContext2D,
   x: number,
@@ -762,6 +777,12 @@ const KaraokePitchLane = ({
         const isCurrent =
           word.startMs <= synchronizedPlayheadMs &&
           word.endMs >= synchronizedPlayheadMs;
+        const isComplete = synchronizedPlayheadMs > word.endMs;
+        const wordProgress = karaokePitchWordProgress(
+          word.startMs,
+          word.endMs,
+          synchronizedPlayheadMs,
+        );
         context.save();
         context.beginPath();
         context.rect(PLOT_LEFT, 0, plotWidth, PLOT_TOP - 3);
@@ -787,25 +808,56 @@ const KaraokePitchLane = ({
           PLOT_LEFT + plotWidth - textWidth / 2 - 3,
         );
         const labelY = 10 + lane * 13;
-        context.fillStyle = isCurrent
-          ? 'rgba(107, 233, 242, 1)'
-          : 'rgba(205, 216, 237, 0.78)';
-        context.shadowColor = isCurrent
-          ? 'rgba(48, 145, 255, 0.62)'
-          : 'transparent';
-        context.shadowBlur = isCurrent ? 8 : 0;
+        const textLeft = labelX - textWidth / 2;
+        context.fillStyle = isComplete
+          ? 'rgba(151, 247, 238, .88)'
+          : 'rgba(205, 216, 237, 0.72)';
+        context.shadowColor = 'transparent';
+        context.shadowBlur = 0;
         context.fillText(word.text, labelX, labelY);
+        if (wordProgress > 0 && !isComplete) {
+          context.save();
+          context.beginPath();
+          context.rect(
+            textLeft,
+            labelY - labelFontSize,
+            textWidth * wordProgress,
+            labelFontSize * 2,
+          );
+          context.clip();
+          context.fillStyle = '#73fff3';
+          context.shadowColor = 'rgba(33, 232, 214, .78)';
+          context.shadowBlur = isCurrent ? 9 : 4;
+          context.fillText(word.text, labelX, labelY);
+          context.restore();
+        }
         context.restore();
 
-        context.strokeStyle = isCurrent
-          ? 'rgba(48, 145, 255, 1)'
-          : 'rgba(34, 224, 214, 0.34)';
-        context.lineWidth = 2;
+        context.strokeStyle = 'rgba(34, 224, 214, 0.25)';
+        context.lineWidth = 1.4;
         context.lineCap = 'round';
         context.beginPath();
         context.moveTo(noteLeft, PLOT_TOP - 6);
         context.lineTo(Math.max(noteLeft + 1, noteRight), PLOT_TOP - 6);
         context.stroke();
+        if (wordProgress > 0) {
+          const progressRight =
+            noteLeft + Math.max(1, noteRight - noteLeft) * wordProgress;
+          context.save();
+          context.strokeStyle = isComplete
+            ? 'rgba(91, 237, 224, .7)'
+            : '#49f2e3';
+          context.lineWidth = isCurrent ? 2.6 : 2;
+          context.shadowColor = isCurrent
+            ? 'rgba(39, 235, 219, .7)'
+            : 'transparent';
+          context.shadowBlur = isCurrent ? 7 : 0;
+          context.beginPath();
+          context.moveTo(noteLeft, PLOT_TOP - 6);
+          context.lineTo(Math.max(noteLeft + 1, progressRight), PLOT_TOP - 6);
+          context.stroke();
+          context.restore();
+        }
       });
 
       context.font = '600 9px Arial, sans-serif';

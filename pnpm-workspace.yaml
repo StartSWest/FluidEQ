@@ -12,7 +12,9 @@ allowBuilds:
   electron-winstaller: true
   geckodriver: true
   lzma-native: true
+  onnxruntime-node: false
   protobufjs: true
+  sharp: false
   unrs-resolver: true
 
 overrides:

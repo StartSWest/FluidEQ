@@ -30,6 +30,7 @@ import {
   TApoLayer,
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
+import { TranslationKey } from 'common/i18n';
 import {
   CSSProperties,
   useCallback,
@@ -44,12 +45,7 @@ import {
   FilterActionEnum,
   useFluidEqContext,
 } from 'renderer/utils/FluidEqContext';
-import {
-  setFrequency,
-  setGain,
-  setMainPreAmp,
-  setQuality,
-} from 'renderer/utils/equalizerApi';
+import { setFrequency, setGain, setQuality } from 'renderer/utils/equalizerApi';
 import { useThrottleAndExecuteLatest } from 'renderer/utils/utils';
 import Chart, { ChartDimensions } from './Chart';
 import {
@@ -116,6 +112,7 @@ import {
   useOverlayOpacity,
 } from '../utils/graphOverlay';
 import { useCustomLooks } from '../utils/customLooks';
+import { useTranslation } from '../utils/I18nContext';
 import LookDesigner from '../components/LookDesigner';
 import Dropdown from '../widgets/Dropdown';
 import GraphViewMenu from './GraphViewMenu';
@@ -243,6 +240,7 @@ const CurveLegend = ({
   curve: TGraphCurve;
   label: string;
 }) => {
+  const { t } = useTranslation();
   const hiddenCurves = useHiddenCurves();
   const isHidden = hiddenCurves.includes(curve);
   return (
@@ -252,7 +250,7 @@ const CurveLegend = ({
         isHidden ? ' is-hidden' : ''
       }`}
       aria-pressed={!isHidden}
-      title={isHidden ? `Show ${label}` : `Hide ${label}`}
+      title={t(isHidden ? 'graph.show' : 'graph.hide', { item: label })}
       onClick={() => toggleGraphCurve(curve)}
     >
       {label}
@@ -278,6 +276,7 @@ interface ICurveChip {
  * that reimplemented them would be a menu that drifts.
  */
 const CurveLegendMenu = ({ chips }: { chips: ICurveChip[] }) => {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const holder = useRef<HTMLSpanElement>(null);
 
@@ -309,13 +308,13 @@ const CurveLegendMenu = ({ chips }: { chips: ICurveChip[] }) => {
         type="button"
         className={`graph-legend-menu__trigger${isOpen ? ' is-on' : ''}`}
         aria-expanded={isOpen}
-        title="Which curves are drawn"
+        title={t('graph.curvesHint')}
         onClick={() => setIsOpen((wasOpen) => !wasOpen)}
       >
         <svg viewBox="0 0 16 16" aria-hidden>
           <path d="M1.5 11c2.2 0 3-6 5.2-6s3 6 5.2 6 2.6-3 2.6-3" />
         </svg>
-        Curves
+        {t('graph.curves')}
       </button>
       {isOpen && (
         <span className="graph-legend-menu__list">
@@ -341,10 +340,11 @@ const CurveLegendMenu = ({ chips }: { chips: ICurveChip[] }) => {
  * do with it.
  */
 const LiveClipWarning = () => {
+  const { t } = useTranslation();
   const { isClipping } = useLiveAudioFrame();
   return isClipping ? (
     <span className="graph-clip-warning" role="status">
-      CLIPPING - reduce preamp
+      {t('graph.clip')}
     </span>
   ) : null;
 };
@@ -421,6 +421,7 @@ interface IFrequencyResponseChartProps {
 const FrequencyResponseChart = ({
   isVisible,
 }: IFrequencyResponseChartProps) => {
+  const { t } = useTranslation();
   // The selection, not the resolved look: while the designer is open the chart
   // is drawing an unsaved draft whose id is in no list, and a picker handed
   // that id would show nothing.
@@ -509,28 +510,44 @@ const FrequencyResponseChart = ({
    */
   const graphLookOptions = useMemo(
     () =>
-      getSelectableLooks(customLooks).map((look) => ({
-        value: look.id,
-        label: look.label,
-        // The name is wrapped rather than handed over as a bare string, because
-        // the dropdown renders `display` straight into the trigger — a loose
-        // text node with nothing to hang a rule on. Styling the closed control
-        // needs an element.
-        //
-        // A look the user made is marked on the row rather than in the label,
-        // so the search still matches the name they typed instead of the word
-        // "custom".
-        display: (
-          <span
-            className={`graph-look-name${
-              look.isCustom ? ' graph-look-name--custom' : ''
-            }`}
-          >
-            {look.label}
-          </span>
-        ),
-      })),
-    [customLooks],
+      getSelectableLooks(customLooks).map((look) => {
+        const builtInLabel = look.isCustom
+          ? look.label
+          : [
+              t(`graph.styleName.${look.style}` as TranslationKey),
+              look.palette === 'signal'
+                ? ''
+                : t(
+                    `look.palette.${
+                      look.palette === 'rainbow' ? 'frequency' : 'level'
+                    }` as TranslationKey,
+                  ),
+            ]
+              .filter(Boolean)
+              .join(' · ');
+        return {
+          value: look.id,
+          label: builtInLabel,
+          // The name is wrapped rather than handed over as a bare string, because
+          // the dropdown renders `display` straight into the trigger — a loose
+          // text node with nothing to hang a rule on. Styling the closed control
+          // needs an element.
+          //
+          // A look the user made is marked on the row rather than in the label,
+          // so the search still matches the name they typed instead of the word
+          // "custom".
+          display: (
+            <span
+              className={`graph-look-name${
+                look.isCustom ? ' graph-look-name--custom' : ''
+              }`}
+            >
+              {builtInLabel}
+            </span>
+          ),
+        };
+      }),
+    [customLooks, t],
   );
   const isFullScreen = useGraphFullScreen();
   const isChromeIdle = useIsChromeIdle();
@@ -588,10 +605,13 @@ const FrequencyResponseChart = ({
   const curveChips: ICurveChip[] = [];
   if (!isSolo) {
     if (hasConvolution) {
-      curveChips.push({ curve: 'convolution', label: 'Headset convolution' });
+      curveChips.push({
+        curve: 'convolution',
+        label: t('graph.curve.convolution'),
+      });
     }
     if (driver?.profileId && !isBypassed('driver')) {
-      curveChips.push({ curve: 'driver', label: 'Driver' });
+      curveChips.push({ curve: 'driver', label: t('graph.curve.driver') });
     }
     // Beside the driver, because it is written beside it and because it is the
     // same kind of thing: a correction for the hardware rather than for taste.
@@ -602,19 +622,22 @@ const FrequencyResponseChart = ({
     // output` are all English in the source, and one translated chip among six
     // would be the odd one rather than the start of anything.
     if (hasHeadphoneLayer(headphone) && !isBypassed('headphone')) {
-      curveChips.push({ curve: 'headphone', label: 'Headphone' });
+      curveChips.push({
+        curve: 'headphone',
+        label: t('graph.curve.headphone'),
+      });
     }
     if (!isBypassed('eq')) {
-      curveChips.push({ curve: 'eq', label: 'EQ response' });
+      curveChips.push({ curve: 'eq', label: t('graph.curve.eq') });
     }
     if (voicing?.profileId && !isBypassed('voicing')) {
-      curveChips.push({ curve: 'voicing', label: 'Voicing' });
+      curveChips.push({ curve: 'voicing', label: t('graph.curve.voicing') });
     }
     if (hasSmartEqLayer(smartEq) && !isBypassed('smart')) {
-      curveChips.push({ curve: 'smart', label: 'Smart EQ' });
+      curveChips.push({ curve: 'smart', label: t('graph.curve.smart') });
     }
     if (customFx && !isBypassed('custom') && hasCustomFxCurve(customFx)) {
-      curveChips.push({ curve: 'custom', label: 'Custom FX' });
+      curveChips.push({ curve: 'custom', label: t('graph.curve.custom') });
     }
     // The output curve is drawn whenever there is more than one layer to add
     // up, switched on or not — see the note by `hasExtraLayers` — so its chip
@@ -629,7 +652,7 @@ const FrequencyResponseChart = ({
       hasSmartEqLayer(smartEq) ||
       hasCustomFxCurve(customFx)
     ) {
-      curveChips.push({ curve: 'total', label: 'Final output' });
+      curveChips.push({ curve: 'total', label: t('graph.curve.total') });
     }
   }
 
@@ -1175,7 +1198,7 @@ const FrequencyResponseChart = ({
     // It used to spell out its own ingredients — "EQ + voicing + Smart EQ" —
     // which is the longest chip in the legend and still does not say the thing
     // that matters, which is that this line is the one you are listening to.
-    const totalCurveName = 'Final output';
+    const totalCurveName = t('graph.curve.total');
     const sortedFilters = Object.values(filters).sort(
       (a, b) => a.frequency - b.frequency,
     );
@@ -1338,7 +1361,7 @@ const FrequencyResponseChart = ({
           ? [
               {
                 id: 'Voicing',
-                name: 'Voicing layer',
+                name: t('graph.curve.voicing'),
                 line: {
                   color: ColorEnum.TRIADIC1,
                   strokeWidth: 2,
@@ -1355,7 +1378,7 @@ const FrequencyResponseChart = ({
           ? [
               {
                 id: 'Driver',
-                name: 'Driver compensation',
+                name: t('graph.curve.driver'),
                 line: {
                   color: ColorEnum.DRIVER,
                   strokeWidth: 2,
@@ -1373,7 +1396,7 @@ const FrequencyResponseChart = ({
           ? [
               {
                 id: 'Headphone Correction',
-                name: 'Headphone correction',
+                name: t('graph.curve.headphone'),
                 line: {
                   color: ColorEnum.HEADPHONE,
                   strokeWidth: 2,
@@ -1391,7 +1414,7 @@ const FrequencyResponseChart = ({
           ? [
               {
                 id: 'Smart EQ',
-                name: 'Smart EQ correction',
+                name: t('graph.curve.smart'),
                 line: {
                   color: ColorEnum.SMART,
                   strokeWidth: 2,
@@ -1405,7 +1428,7 @@ const FrequencyResponseChart = ({
           ? [
               {
                 id: 'Custom FX',
-                name: `Custom FX · ${customFx?.fileName ?? 'custom file'}`,
+                name: `${t('graph.curve.custom')} · ${customFx?.fileName ?? ''}`,
                 line: {
                   color: ColorEnum.CUSTOM,
                   strokeWidth: 2,
@@ -1442,7 +1465,7 @@ const FrequencyResponseChart = ({
           ? [
               {
                 id: 'EQ Response',
-                name: 'EQ response',
+                name: t('graph.curve.eq'),
                 line: isEqQuiet
                   ? {
                       color: SecondaryColorEnum.DEFAULT,
@@ -1480,33 +1503,26 @@ const FrequencyResponseChart = ({
     preAmp,
     smartEq,
     customFx,
+    t,
     voicing,
   ]);
 
   useEffect(() => {
-    // Auto normalize writes Equalizer APO's Preamp headroom value. When it is
-    // disabled, keep the current manual preamp untouched.
+    // The config writer owns automatic gain staging. Every edit that changes a
+    // layer already ends in a flush, and flush.ts derives the final-chain
+    // Preamp from the exact commands it is about to write. Sending this value
+    // back through SET_PREAMP used to start a second full profile save and APO
+    // flush for the same edit, whose writer then calculated the same value
+    // again. During a quick drag those redundant async writes could also finish
+    // against different revisions of the chain, making the displayed level
+    // appear to keep walking down.
+    //
+    // The renderer has one job here: mirror the derived value into the disabled
+    // slider and the final-output curve. It must not feed an automatic result
+    // back into the state that produced it. When automatic mode is disabled the
+    // user's manual preamp remains untouched.
     if (isAutoPreAmpOn && !isLoading && !globalError) {
-      setMainPreAmp(autoPreAmpValue)
-        .then(() => setPreAmp(autoPreAmpValue))
-        .catch(() => {
-          // Deliberately not raised to the workspace, and this is the one place
-          // where that rule is not a judgement call.
-          //
-          // This runs from an effect on mount, off a value derived from the
-          // whole chain. Raising here took a number that had drifted out of
-          // range — one clamp missing, five layers deep — and turned it into the
-          // error boundary over the entire app: no graph, no bands, no way to
-          // undo whatever caused it, and the same failure again on restart,
-          // because the chain that produced it is on disk. An unrecoverable
-          // blank screen for a headroom value.
-          //
-          // Nothing here needs a person. The preamp is derived, so the next
-          // render recomputes it from scratch; if it lands in range it is
-          // written and the app never mentions it. Missing it means the loudest
-          // peaks may clip, which is a thing somebody can hear and act on, and
-          // is not worth the app for.
-        });
+      setPreAmp(autoPreAmpValue);
     }
   }, [autoPreAmpValue, globalError, isAutoPreAmpOn, isLoading, setPreAmp]);
 
@@ -1983,7 +1999,9 @@ const FrequencyResponseChart = ({
               type="button"
               className="graph-legend__label"
               aria-pressed={!isWaveHidden}
-              title={isWaveHidden ? 'Show the wave' : 'Hide the wave'}
+              title={t(isWaveHidden ? 'graph.show' : 'graph.hide', {
+                item: t('graph.item.wave'),
+              })}
               onClick={toggleGraphWave}
             >
               <svg
@@ -1993,7 +2011,7 @@ const FrequencyResponseChart = ({
               >
                 <path d="M1 6c1.4 0 1.4-4 2.8-4s1.4 8 2.8 8 1.4-8 2.8-8 1.4 4 2.8 4" />
               </svg>
-              Live output
+              {t('graph.liveOutput')}
             </button>
             {/* Arrows either side of the name, so walking the looks never
                 depends on where the keyboard is pointing.
@@ -2007,8 +2025,8 @@ const FrequencyResponseChart = ({
             <button
               type="button"
               className="graph-look-step"
-              aria-label="Previous style"
-              title="Previous style (Ctrl+Space)"
+              aria-label={t('graph.style.previous')}
+              title={`${t('graph.style.previous')} (Ctrl+Space)`}
               disabled={isWaveHidden}
               onClick={() => cycleGraphLook(-1)}
             >
@@ -2026,15 +2044,15 @@ const FrequencyResponseChart = ({
               value={selectedLookId}
               isDisabled={isWaveHidden}
               isFilterable
-              filterPlaceholder="Search styles"
+              filterPlaceholder={t('graph.style.search')}
               placement="down"
               handleChange={setGraphLook}
             />
             <button
               type="button"
               className="graph-look-step"
-              aria-label="Next style"
-              title="Next style (Space)"
+              aria-label={t('graph.style.next')}
+              title={`${t('graph.style.next')} (Space)`}
               disabled={isWaveHidden}
               onClick={() => cycleGraphLook(1)}
             >
@@ -2062,20 +2080,20 @@ const FrequencyResponseChart = ({
               aria-pressed={isDesignerOpen}
               title={(() => {
                 if (isWaveHidden) {
-                  return 'Show the wave first — there is nothing to design against';
+                  return t('graph.design.showWave');
                 }
                 return isDesignerOpen
-                  ? 'Close the look designer (Esc)'
-                  : 'Build a look of your own from this one';
+                  ? t('graph.design.closeHint')
+                  : t('graph.design.createHint');
               })()}
             >
               {(() => {
                 if (isDesignerOpen) {
-                  return 'Close';
+                  return t('graph.design.close');
                 }
                 return customLooks.some((look) => look.id === selectedLookId)
-                  ? 'Edit look'
-                  : 'New look';
+                  ? t('graph.design.edit')
+                  : t('graph.design.new');
               })()}
             </button>
             {/* Solo — the wave with every curve dropped — had a button here and

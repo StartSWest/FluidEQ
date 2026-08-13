@@ -19,6 +19,27 @@ and `pnpm fetch-apo:source` retrieves the same archive from upstream.
 AutoEq provides the headphone measurements behind the correction layer.
 
 
+Karaoke Maker analysis components (Apache-2.0)
+------------------------------------------------
+@spotify/basic-pitch 1.0.1 and its bundled model
+Copyright 2022 Spotify AB
+https://github.com/spotify/basic-pitch-ts
+
+@huggingface/transformers 3.7.6
+Copyright Hugging Face and contributors
+https://github.com/huggingface/transformers.js
+
+onnx-community/whisper-tiny (downloaded only after explicit user consent)
+Derived from openai/whisper-tiny
+https://huggingface.co/onnx-community/whisper-tiny
+https://huggingface.co/openai/whisper-tiny
+
+These components and model weights are licensed under the Apache License,
+Version 2.0. The full licence is included as Apache-2.0-LICENSE.txt beside this
+notice. Karaoke media and lyrics imported by a user are not supplied by these
+projects and remain subject to their respective copyright holders' terms.
+
+
 Electron
 --------
 Copyright (c) Electron contributors

@@ -355,7 +355,9 @@ const AppContent = () => {
       }
       if (
         wantsExit &&
-        (document.querySelector('[role="dialog"], .dropdown--open') ||
+        (document.querySelector(
+          '[role="dialog"]:not(.karaoke-maker), .dropdown--open',
+        ) ||
           (event.target as HTMLElement | null)?.closest?.(
             'input, textarea, [contenteditable]',
           ))
@@ -840,7 +842,7 @@ const AppContent = () => {
                     <span className="status-dot error" />
                     <span>{connectionStatus}</span>
                     <span className="workspace-header__menu-status-hint">
-                      Fix this
+                      {t('app.menu.fix')}
                     </span>
                   </button>
                 ) : (
@@ -918,7 +920,7 @@ const AppContent = () => {
                           }}
                         >
                           <MenuIcon name="info" />
-                          Report a problem
+                          {t('app.menu.reportProblem')}
                         </button>
                         {/* Beside the release notes rather than at the bottom
                             of the column: both answer "what is this copy of
@@ -933,7 +935,7 @@ const AppContent = () => {
                           }}
                         >
                           <MenuIcon name="info" />
-                          About {PRODUCT_NAME}…
+                          {t('app.menu.about', { product: PRODUCT_NAME })}
                         </button>
                         <button
                           type="button"
@@ -948,7 +950,9 @@ const AppContent = () => {
                           }}
                         >
                           <MenuIcon name="restart" />
-                          Reinstall {PRODUCT_NAME}…
+                          {t('app.menu.reinstallApp', {
+                            product: PRODUCT_NAME,
+                          })}
                         </button>
                       </div>
 
@@ -995,7 +999,7 @@ const AppContent = () => {
                           }}
                         >
                           <MenuIcon name="configure" />
-                          Fix audio problems…
+                          {t('app.menu.fixAudio')}
                         </button>
 
                         {/* Repairing, rather than configuring. APO can be
@@ -1023,7 +1027,7 @@ const AppContent = () => {
                           }}
                         >
                           <MenuIcon name="settings" />
-                          Reinstall Equalizer APO…
+                          {t('app.menu.reinstallApo')}
                         </button>
                       </div>
                     </div>

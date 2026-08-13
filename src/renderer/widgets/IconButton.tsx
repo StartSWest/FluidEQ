@@ -21,6 +21,8 @@ import DeleteIcon from 'renderer/icons/DeleteIcon';
 import EditIcon from 'renderer/icons/EditIcon';
 import TrashIcon from 'renderer/icons/TrashIcon';
 import ConfirmIcon from 'renderer/icons/ConfirmIcon';
+import { TranslationKey } from 'common/i18n';
+import { useTranslation } from '../utils/I18nContext';
 
 export enum IconName {
   EDIT = 'Edit Icon',
@@ -43,6 +45,7 @@ const IconButton = ({
   className,
   handleClick,
 }: IIconButtonProps) => {
+  const { t } = useTranslation();
   // `aria-disabled` is advisory: without this guard a disabled icon still
   // fired its action on click.
   const activate = (e?: MouseEvent) => {
@@ -79,7 +82,15 @@ const IconButton = ({
   return (
     <div
       role="button"
-      aria-label={icon}
+      aria-label={t(
+        {
+          [IconName.EDIT]: 'common.icon.edit',
+          [IconName.DELETE]: 'common.icon.delete',
+          [IconName.TRASH]: 'common.icon.trash',
+          [IconName.ACCEPT]: 'common.icon.accept',
+          [IconName.CANCEL]: 'common.icon.cancel',
+        }[icon] as TranslationKey,
+      )}
       className={`iconButton center ${className || ''}`}
       onKeyUp={onKeyUp}
       onClick={activate}

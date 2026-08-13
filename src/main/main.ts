@@ -49,6 +49,7 @@ import {
   checkConfigFile,
   stateToString,
   stateToApoFiles,
+  getResolvedPreAmp,
   fetchSettings,
   save,
   updateConfig,
@@ -182,6 +183,12 @@ import {
   saveKaraokeSession,
 } from './karaokeSession';
 import { IKaraokeSessionSnapshot } from '../common/karaoke/sessionPersistence';
+import {
+  deleteKaraokeMakerDraft,
+  loadKaraokeMakerDraft,
+  normalizeKaraokeMakerExport,
+  saveKaraokeMakerDraft,
+} from './karaokeMakerStorage';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -1314,6 +1321,13 @@ const handleUpdateHelperCore = async <T>(
     startApoConfigWatcher();
     if (!checkConfigFile(configPath)) {
       updateConfig(configPath);
+    }
+    // Keep the root state, the disabled slider and the generated APO line on
+    // the same automatic value. The writer derives this independently as its
+    // final safety check; synchronizing here prevents the stored manual preamp
+    // from surviving underneath an enabled Auto normalize switch.
+    if (state.isAutoPreAmpOn) {
+      state.preAmp = getResolvedPreAmp(state);
     }
     const shouldPersistProfile = syncActiveProfile || useActiveSessionOverride;
     let assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
@@ -3106,7 +3120,20 @@ ipcMain.on(ChannelEnum.SET_ENABLE, async (event, arg) => {
 ipcMain.on(ChannelEnum.SET_AUTO_PREAMP, async (event, arg) => {
   // eslint-disable-next-line prefer-destructuring
   state.isAutoPreAmpOn = arg[0];
-  await handleUpdate(event, ChannelEnum.SET_AUTO_PREAMP);
+  if (state.isAutoPreAmpOn) {
+    state.preAmp = getResolvedPreAmp(state);
+  }
+  // This is device-profile state, just like its manual preamp. Without the
+  // active-session path the flag changed in memory, then the flush rebuilt APO
+  // from the attached profile where Auto normalize was still off — so enabling
+  // it after setting -5 dB produced the exact same -5 dB output.
+  await handleUpdateHelper<number>(
+    event,
+    ChannelEnum.SET_AUTO_PREAMP,
+    state.preAmp,
+    false,
+    true,
+  );
 });
 
 ipcMain.on(ChannelEnum.SET_GRAPH_VIEW, async (event, arg) => {
@@ -3923,6 +3950,38 @@ ipcMain.handle('karaoke-session-read-file', (_event, token: unknown) =>
 
 ipcMain.handle('karaoke-session-clear', () => {
   clearKaraokeSession(userDataDir);
+});
+
+ipcMain.handle('karaoke-maker-draft-save', (_event, project: unknown) => {
+  saveKaraokeMakerDraft(userDataDir, project);
+});
+
+ipcMain.handle('karaoke-maker-draft-load', (_event, projectId: unknown) =>
+  loadKaraokeMakerDraft(userDataDir, projectId),
+);
+
+ipcMain.handle('karaoke-maker-draft-delete', (_event, projectId: unknown) => {
+  deleteKaraokeMakerDraft(userDataDir, projectId);
+});
+
+ipcMain.handle('karaoke-maker-export', async (_event, request: unknown) => {
+  const output = normalizeKaraokeMakerExport(request);
+  const options = {
+    title: 'Export karaoke',
+    defaultPath: output.fileName,
+    filters: [
+      { name: output.formatName, extensions: output.extensions },
+      { name: 'All files', extensions: ['*'] },
+    ],
+  };
+  const target = mainWindow
+    ? await dialog.showSaveDialog(mainWindow, options)
+    : await dialog.showSaveDialog(options);
+  if (target.canceled || !target.filePath) {
+    return { canceled: true };
+  }
+  fs.writeFileSync(target.filePath, output.contents, 'utf8');
+  return { canceled: false, filePath: target.filePath };
 });
 
 if (process.env.NODE_ENV === 'production') {

@@ -25,6 +25,11 @@ import type {
   IKaraokeRestoredSession,
   IKaraokeSessionSnapshot,
 } from '../common/karaoke/sessionPersistence';
+import type {
+  IKaraokeMakerExportRequest,
+  IKaraokeMakerExportResult,
+} from '../common/karaoke/makerPersistence';
+import type { IKaraokeMakerProject } from '../common/karaoke/makerProject';
 
 export type Channels = string;
 
@@ -139,6 +144,23 @@ const readKaraokeSessionFile = (token: string) =>
 const clearKaraokeSession = () =>
   ipcRenderer.invoke('karaoke-session-clear') as Promise<void>;
 
+const saveKaraokeMakerDraft = (project: IKaraokeMakerProject) =>
+  ipcRenderer.invoke('karaoke-maker-draft-save', project) as Promise<void>;
+
+const loadKaraokeMakerDraft = (projectId: string) =>
+  ipcRenderer.invoke('karaoke-maker-draft-load', projectId) as Promise<
+    IKaraokeMakerProject | undefined
+  >;
+
+const deleteKaraokeMakerDraft = (projectId: string) =>
+  ipcRenderer.invoke('karaoke-maker-draft-delete', projectId) as Promise<void>;
+
+const exportKaraokeMakerFile = (request: IKaraokeMakerExportRequest) =>
+  ipcRenderer.invoke(
+    'karaoke-maker-export',
+    request,
+  ) as Promise<IKaraokeMakerExportResult>;
+
 export default {
   /**
    * What this build is running on, read once while the preload has a `process`.
@@ -169,5 +191,9 @@ export default {
     restoreKaraokeSession,
     readKaraokeSessionFile,
     clearKaraokeSession,
+    saveKaraokeMakerDraft,
+    loadKaraokeMakerDraft,
+    deleteKaraokeMakerDraft,
+    exportKaraokeMakerFile,
   },
 };

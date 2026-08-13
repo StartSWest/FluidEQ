@@ -62,7 +62,12 @@ export default function AutoPreAmpEnablerSwitch({
         await setMainPreAmp(manual);
         setPreAmp(manual);
       } else {
-        await enableAutoPreAmp();
+        // Main returns the value derived from the final chain it just wrote.
+        // Do not depend on the response graph to calculate it: the graph is not
+        // mounted in every workspace, which left the root slider showing the
+        // old manual value and made this switch appear to do nothing.
+        const automatic = await enableAutoPreAmp();
+        setPreAmp(automatic);
       }
       setAutoPreAmpOn(!isAutoPreAmpOn);
     } catch (e) {

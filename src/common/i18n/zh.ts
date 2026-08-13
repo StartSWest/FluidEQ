@@ -87,6 +87,8 @@ const zh: Partial<Dictionary> = {
     '无法解析，因此音频仍可在没有同步歌词的情况下播放。',
   'karaoke.song.unknownArtist': '本地歌曲',
   'karaoke.playlist.title': '播放列表',
+  'karaoke.playlist.groupFolders': '按文件夹分组',
+  'karaoke.playlist.looseFiles': '未分组文件',
   'karaoke.playlist.select': '选择 {title}',
   'karaoke.playlist.moveUp': '上移 {title}',
   'karaoke.playlist.moveDown': '下移 {title}',

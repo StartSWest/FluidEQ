@@ -20,6 +20,9 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { IKaraokeSong } from '../../common/karaoke/types';
 import KaraokeLyrics, {
+  groupKaraokeTokensIntoWords,
+  karaokeLyricEntranceOpacity,
+  karaokeTokenDisplayText,
   lyricHitRegionContains,
 } from '../../renderer/karaoke/KaraokeLyrics';
 
@@ -61,6 +64,57 @@ describe('KaraokeLyrics motion', () => {
     expect(container.querySelectorAll('canvas')).toHaveLength(1);
     expect(container.querySelector('.karaoke-lyrics > li')).toBeNull();
     expect(container.querySelector('.karaoke-lyrics__token')).toBeNull();
+  });
+
+  it('prepares the first lyric before its timing and eases it into view', () => {
+    const delayedSong = {
+      ...song,
+      lines: song.lines.map((line) => ({
+        ...line,
+        startMs: (line.startMs ?? 0) + 1_000,
+        endMs: (line.endMs ?? 0) + 1_000,
+      })),
+    };
+
+    render(
+      <KaraokeLyrics song={delayedSong} playheadMs={0} onSeek={jest.fn()} />,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Lyric line 1' }),
+    ).toHaveAttribute('aria-current', 'true');
+    expect(karaokeLyricEntranceOpacity(0)).toBe(0);
+    expect(karaokeLyricEntranceOpacity(280)).toBeCloseTo(0.875);
+    expect(karaokeLyricEntranceOpacity(560)).toBe(1);
+  });
+
+  it('restores word spacing without separating joined syllables', () => {
+    const first = { text: 'to', startsWord: true };
+    expect(
+      karaokeTokenDisplayText({ text: 'gether', startsWord: false }, 1, first),
+    ).toBe('gether');
+    expect(
+      karaokeTokenDisplayText({ text: 'again', startsWord: true }, 1, first),
+    ).toBe(' again');
+    expect(
+      karaokeTokenDisplayText({ text: 'again', startsWord: true }, 1, {
+        text: 'to ',
+      }),
+    ).toBe('again');
+  });
+
+  it('groups timed syllables into indivisible visual words', () => {
+    const words = groupKaraokeTokensIntoWords([
+      { text: 'to', startsWord: true, startMs: 0, endMs: 200 },
+      { text: 'geth', startsWord: false, startMs: 200, endMs: 400 },
+      { text: 'er', startsWord: false, startMs: 400, endMs: 600 },
+      { text: ' again', startsWord: true, startMs: 600, endMs: 900 },
+      { text: '', startsWord: false, startMs: 900, endMs: 1_000 },
+    ]);
+
+    expect(words.map((word) => word.text)).toEqual(['together', ' again']);
+    expect(words[0].tokens).toHaveLength(3);
+    expect(words[1].tokens).toHaveLength(2);
   });
 
   it('only treats the painted lyric rectangle as clickable', () => {
@@ -122,6 +176,24 @@ describe('KaraokeLyrics motion', () => {
     ).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Lyric line 5' })).toBeVisible();
     expect(onSeek).not.toHaveBeenCalled();
+  });
+
+  it('can hide the local follow action for an embedded preview', () => {
+    render(
+      <KaraokeLyrics
+        song={song}
+        playheadMs={3_200}
+        onSeek={jest.fn()}
+        showFollowButton={false}
+      />,
+    );
+    fireEvent.wheel(screen.getByRole('button', { name: 'Lyric line 4' }), {
+      deltaY: -120,
+    });
+
+    expect(
+      screen.queryByRole('button', { name: 'Follow lyrics' }),
+    ).not.toBeInTheDocument();
   });
 
   it('supports keyboard browsing, seeking, and automatic-follow recovery', () => {

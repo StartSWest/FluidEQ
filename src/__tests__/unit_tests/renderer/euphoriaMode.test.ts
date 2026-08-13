@@ -110,13 +110,20 @@ describe('euphoria unlock', () => {
     expect(resolve(atCeiling)).toBe(false);
   });
 
-  it('does not remember being switched on', () => {
-    // Reaching the ceiling is an achievement and outlives the app; leaving the
-    // rainbow on is a mood. An equaliser that reopens in full spectrum every
-    // morning because of one click last week is the wrong default.
+  it('remembers being switched on across restarts', () => {
     const first = load();
     first.winEuphoria();
     first.setEuphoriaEnabled(true);
+
+    const second = load();
+    expect(second.isEuphoriaAchieved()).toBe(true);
+    expect(second.isEuphoriaEnabled()).toBe(true);
+  });
+
+  it('remembers being switched off across restarts', () => {
+    const first = load();
+    first.winEuphoria();
+    first.setEuphoriaEnabled(false);
 
     const second = load();
     expect(second.isEuphoriaAchieved()).toBe(true);

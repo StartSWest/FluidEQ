@@ -427,6 +427,29 @@ const isConvolutionApplied = (state: IState, convolutionFileName?: string) =>
   !(state.bypassed ?? []).includes('convolution');
 
 /**
+ * The effective root preamp for the final generated chain.
+ *
+ * Exported for main-process state synchronization. The APO writer has always
+ * derived this value at the last possible moment, but keeping it private meant
+ * `state.preAmp` could still hold the manual value after automatic mode was
+ * enabled. The sound and the slider then described different roots, and an
+ * attached profile could be saved with the stale manual number.
+ */
+export const getResolvedPreAmp = (
+  state: IState,
+  convolutionFileName = state.convolution
+    ? (state.convolution.fileName ?? 'generated-convolution.wav')
+    : undefined,
+) =>
+  clampGain(
+    resolvePreAmp(
+      state,
+      buildLayers(state),
+      isConvolutionApplied(state, convolutionFileName),
+    ),
+  );
+
+/**
  * A whole chain as one block of config text.
  *
  * The flat form: everything for one device between its `Device:` line and its

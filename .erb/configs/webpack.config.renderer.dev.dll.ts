@@ -13,6 +13,14 @@ import checkNodeEnv from '../scripts/check-node-env';
 checkNodeEnv('development');
 
 const dist = webpackPaths.dllPath;
+// These editor-only packages are lazy web modules. Prebundling them in the
+// legacy Electron DLL selects their Node/native export conditions and pulls
+// platform binaries into the renderer. Leaving them to the real renderer
+// build selects the intended browser/WASM implementation instead.
+const lazyWebDependencies = new Set([
+  '@huggingface/transformers',
+  '@spotify/basic-pitch',
+]);
 
 const configuration: webpack.Configuration = {
   context: webpackPaths.rootPath,
@@ -31,7 +39,9 @@ const configuration: webpack.Configuration = {
   module: require('./webpack.config.renderer.dev').default.module,
 
   entry: {
-    renderer: Object.keys(dependencies || {}),
+    renderer: Object.keys(dependencies || {}).filter(
+      (dependency) => !lazyWebDependencies.has(dependency),
+    ),
   },
 
   output: {

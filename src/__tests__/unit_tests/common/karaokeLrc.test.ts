@@ -39,9 +39,24 @@ describe('LRC parser', () => {
       1_900, 3_900, 11_900,
     ]);
     expect(parsed.lines[0].tokens).toEqual([
-      { text: 'Clock', startMs: 1_900, endMs: 2_400 },
-      { text: 'work ', startMs: 2_400, endMs: 2_900 },
-      { text: 'lights', startMs: 2_900, endMs: 3_900 },
+      {
+        text: 'Clock',
+        startsWord: true,
+        startMs: 1_900,
+        endMs: 2_400,
+      },
+      {
+        text: 'work ',
+        startsWord: false,
+        startMs: 2_400,
+        endMs: 2_900,
+      },
+      {
+        text: 'lights',
+        startsWord: true,
+        startMs: 2_900,
+        endMs: 3_900,
+      },
     ]);
   });
 
@@ -49,6 +64,18 @@ describe('LRC parser', () => {
     const parsed = parseLrc('[offset:-2000]\n[00:03.00]Later\n[00:01]First');
     expect(parsed.lines.map((line) => line.startMs)).toEqual([-1_000, 1_000]);
     expect(parsed.lines[0].endMs).toBe(1_000);
+  });
+
+  it('keeps common timed section markers separate from sung lyrics', () => {
+    const parsed = parseLrc(
+      '[00:01.00][Intro]\n[00:03.00]First line\n[00:06.00][Chorus 2]',
+    );
+    expect(parsed.lines.map((line) => line.kind)).toEqual([
+      'section',
+      'lyrics',
+      'section',
+    ]);
+    expect(parsed.lines[0].tokens[0].text).toBe('[Intro]');
   });
 
   it.each(['', '[ar:Nobody]\nNo timestamps'])(

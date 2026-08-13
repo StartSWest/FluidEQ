@@ -39,6 +39,7 @@ describe('KaraokePlaylist', () => {
       <KaraokePlaylist
         items={items}
         selectedId={items[0].id}
+        onToggleFolderGrouping={jest.fn()}
         onSelect={onSelect}
         onMove={onMove}
         onRemove={onRemove}
@@ -64,5 +65,46 @@ describe('KaraokePlaylist', () => {
     expect(onMove).toHaveBeenCalledWith('first', 'second');
     fireEvent.click(screen.getByRole('button', { name: 'Remove Second' }));
     expect(onRemove).toHaveBeenCalledWith('second');
+  });
+
+  it('groups the view by containing folder only when requested', () => {
+    const loose = item('Loose');
+    const first = { ...item('First'), relativePath: 'Artist/Album/First.mp3' };
+    const second = {
+      ...item('Second'),
+      relativePath: 'Artist/Album/Second.mp3',
+    };
+    const live = {
+      ...item('Concert'),
+      relativePath: 'Artist/Live/Concert.mp3',
+    };
+    const items = [first, loose, live, second];
+    const onToggleFolderGrouping = jest.fn();
+    const onSelect = jest.fn();
+    const onMove = jest.fn();
+    const onRemove = jest.fn();
+    const onCollapse = jest.fn();
+    const playlist = (groupByFolder = false) => (
+      <KaraokePlaylist
+        items={items}
+        selectedId={first.id}
+        groupByFolder={groupByFolder}
+        onToggleFolderGrouping={onToggleFolderGrouping}
+        onSelect={onSelect}
+        onMove={onMove}
+        onRemove={onRemove}
+        onCollapse={onCollapse}
+      />
+    );
+    const { rerender } = render(playlist());
+
+    expect(screen.queryByText('Artist')).not.toBeInTheDocument();
+
+    rerender(playlist(true));
+
+    expect(screen.getByText('Artist')).toBeVisible();
+    expect(screen.getByText('Album')).toBeVisible();
+    expect(screen.getByText('Live')).toBeVisible();
+    expect(screen.getByText('Loose files')).toBeVisible();
   });
 });

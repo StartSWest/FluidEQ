@@ -34,7 +34,7 @@ interface IKaraokeTransportProps {
   onVolume: (volume: number) => void;
 }
 
-type TKaraokeTransportIcon =
+export type TKaraokeTransportIcon =
   'restart' | 'previous' | 'play' | 'pause' | 'next' | 'volume';
 
 /**
@@ -42,7 +42,11 @@ type TKaraokeTransportIcon =
  * stroked menu language, while play/skip controls need solid, balanced shapes
  * that remain obvious inside a 34px circular button.
  */
-const KaraokeTransportIcon = ({ name }: { name: TKaraokeTransportIcon }) => {
+export const KaraokeTransportIcon = ({
+  name,
+}: {
+  name: TKaraokeTransportIcon;
+}) => {
   let drawing = (
     <path
       className="karaoke-transport__icon-stroke"

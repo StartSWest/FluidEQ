@@ -92,6 +92,8 @@ const it: Partial<Dictionary> = {
     'non è stato interpretato; l’audio resta disponibile senza testo sincronizzato.',
   'karaoke.song.unknownArtist': 'Brano locale',
   'karaoke.playlist.title': 'Scaletta',
+  'karaoke.playlist.groupFolders': 'Raggruppa per cartella',
+  'karaoke.playlist.looseFiles': 'File non raggruppati',
   'karaoke.playlist.select': 'Seleziona {title}',
   'karaoke.playlist.moveUp': 'Sposta {title} in alto',
   'karaoke.playlist.moveDown': 'Sposta {title} in basso',

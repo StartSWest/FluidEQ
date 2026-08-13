@@ -43,6 +43,7 @@ import {
   IKaraokeSessionFileReference,
 } from '../../common/karaoke/sessionPersistence';
 import { karaokeProviderDisplayName } from '../../common/karaoke/provider';
+import { karaokeMakerProjectToSong } from '../../common/karaoke/makerProject';
 import { useTranslation } from '../utils/I18nContext';
 import { revealChromeNow, setChromeHeld } from '../utils/idleChrome';
 import MenuIcon from '../icons/MenuIcon';
@@ -59,6 +60,14 @@ import KaraokeTransport from './KaraokeTransport';
 import KaraokePitchLane, { IKaraokePitchIssue } from './KaraokePitchLane';
 import KaraokePlaylist, { KARAOKE_PLAYLIST_DRAG_MIME } from './KaraokePlaylist';
 import KaraokePaneSplitter from './KaraokePaneSplitter';
+import KaraokeMaker from './KaraokeMaker';
+import {
+  clearKaraokeProgress,
+  readKaraokeMakerOpen,
+  readKaraokeProgress,
+  writeKaraokeMakerOpen,
+  writeKaraokeProgress,
+} from './karaokeEditorPersistence';
 import collectKaraokeDropFiles from './droppedFiles';
 import {
   clampKaraokePitchShare,
@@ -100,6 +109,23 @@ const SOURCE_KEYS: Record<string, TranslationKey> = {
 };
 
 const STAGE_PITCH_MEDIA_QUERY = '(min-width: 1120px)';
+const PLAYLIST_FOLDER_GROUPING_KEY = 'fluideq-karaoke-playlist-group-by-folder';
+
+export const readKaraokePlaylistFolderGrouping = (): boolean => {
+  try {
+    return window.localStorage.getItem(PLAYLIST_FOLDER_GROUPING_KEY) === 'true';
+  } catch {
+    return false;
+  }
+};
+
+export const writeKaraokePlaylistFolderGrouping = (enabled: boolean): void => {
+  try {
+    window.localStorage.setItem(PLAYLIST_FOLDER_GROUPING_KEY, String(enabled));
+  } catch {
+    // Keep the live preference when storage is unavailable.
+  }
+};
 
 type TKaraokeLayoutStyle = CSSProperties & {
   '--karaoke-pitch-size'?: string;
@@ -168,11 +194,15 @@ const KaraokeWorkspace = ({
   const libraryFilesRef = useRef<File[]>([]);
   const [isDragging, setIsDragging] = useState(false);
   const [isMicrophoneMenuOpen, setIsMicrophoneMenuOpen] = useState(false);
+  const [isMakerOpen, setIsMakerOpen] = useState(readKaraokeMakerOpen);
   const [countInCue, setCountInCue] = useState<string>();
   const [countInLabel, setCountInLabel] = useState<string>();
   const [lyricsFollowRequestKey, setLyricsFollowRequestKey] = useState(0);
   const [lyricTextSize, setLyricTextSize] = useState(readLyricTextSize);
   const [playlist, setPlaylist] = useState<IKaraokePlaylistItem[]>([]);
+  const [groupPlaylistByFolder, setGroupPlaylistByFolder] = useState(
+    readKaraokePlaylistFolderGrouping,
+  );
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>();
   const [useStagePitch, setUseStagePitch] = useState(initiallyUseStagePitch);
   const layoutMode: TKaraokeLayoutMode = isFullScreen ? 'fullscreen' : 'normal';
@@ -193,7 +223,7 @@ const KaraokeWorkspace = ({
   const { song, status, error, warning, seek } = session;
   const songId = song?.id;
   const melodyTone = useKaraokeMelodyTone({
-    isActive: !isHidden,
+    isActive: !isHidden && !isMakerOpen,
     isPlaying: status === 'playing',
     target: song?.pitch,
     playheadMs: session.playheadMs,
@@ -449,6 +479,31 @@ const KaraokeWorkspace = ({
     playheadRef.current = session.playheadMs;
   }, [session.playheadMs]);
 
+  useEffect(() => {
+    writeKaraokeMakerOpen(isMakerOpen);
+  }, [isMakerOpen]);
+
+  const persistCurrentProgress = useCallback(() => {
+    if (!persistenceReadyRef.current) {
+      return;
+    }
+    writeKaraokeProgress(selectedPlaylistIdRef.current, playheadRef.current);
+  }, []);
+
+  useEffect(() => {
+    const timeout = window.setTimeout(persistCurrentProgress, 250);
+    return () => window.clearTimeout(timeout);
+  }, [persistCurrentProgress, selectedPlaylistId, session.playheadMs]);
+
+  useEffect(() => {
+    const persistNow = () => persistCurrentProgress();
+    window.addEventListener('pagehide', persistNow);
+    return () => {
+      window.removeEventListener('pagehide', persistNow);
+      persistNow();
+    };
+  }, [persistCurrentProgress]);
+
   const persistedFileReference = useCallback(
     (file: File): IKaraokeSessionFileReference | undefined => {
       const token = karaokeRestoredFileToken(file);
@@ -517,7 +572,11 @@ const KaraokeWorkspace = ({
         libraryFilesRef.current = files;
         playlistRef.current = ordered;
         setPlaylist(ordered);
+        const preciseProgress = readKaraokeProgress();
         const selected =
+          ordered.find(
+            (item) => item.id === preciseProgress?.selectedPlaylistId,
+          ) ??
           ordered.find((item) => item.id === restored.selectedPlaylistId) ??
           ordered[0];
         selectedPlaylistIdRef.current = selected.id;
@@ -526,8 +585,12 @@ const KaraokeWorkspace = ({
           selected.audio,
           ...(selected.lyrics ? [selected.lyrics] : []),
         ]);
-        if (!cancelled && loaded && restored.playheadMs > 0) {
-          sessionRef.current.seek(restored.playheadMs);
+        const restoredPlayheadMs =
+          preciseProgress?.selectedPlaylistId === selected.id
+            ? preciseProgress.playheadMs
+            : restored.playheadMs;
+        if (!cancelled && loaded && restoredPlayheadMs > 0) {
+          sessionRef.current.seek(restoredPlayheadMs);
         }
         return loaded;
       })
@@ -602,6 +665,7 @@ const KaraokeWorkspace = ({
   const loadPlaylistItem = useCallback(
     async (item: IKaraokePlaylistItem, autoplay = false) => {
       autoplayAfterLoadRef.current = autoplay;
+      playheadRef.current = 0;
       setSelectedPlaylistId(item.id);
       const loaded = await session.loadFiles([
         item.audio,
@@ -691,6 +755,8 @@ const KaraokeWorkspace = ({
     libraryFilesRef.current = [];
     setPlaylist([]);
     setSelectedPlaylistId(undefined);
+    setIsMakerOpen(false);
+    clearKaraokeProgress();
     session.clear();
     window.electron?.ipcRenderer.clearKaraokeSession?.().catch(() => undefined);
   };
@@ -828,6 +894,27 @@ const KaraokeWorkspace = ({
         <MenuIcon name="folder" className="karaoke-button__icon" />
         <span>{t('karaoke.import.folder')}</span>
       </button>
+      {song && (
+        <button
+          type="button"
+          className="button small subtle karaoke-workspace__action karaoke-workspace__maker-action"
+          onClick={() => {
+            cancelCountIn();
+            session.pause();
+            setIsMakerOpen(true);
+          }}
+          title={t('karaoke.maker.openTitle')}
+        >
+          <svg
+            className="karaoke-button__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path d="m4 17-.8 3.8L7 20l10.8-10.8-3-3L4 17Zm9.5-9.5 3 3M13 20h8" />
+          </svg>
+          <span>{t('karaoke.maker.open')}</span>
+        </button>
+      )}
       <button
         type="button"
         className="button small karaoke-workspace__action karaoke-workspace__open"
@@ -988,8 +1075,7 @@ const KaraokeWorkspace = ({
       )}
       {warning && (
         <div className="karaoke-workspace__notice is-warning" role="status">
-          <strong>{warning.fileName}</strong> {t('karaoke.warning.lyrics')}{' '}
-          <span>{warning.detail}</span>
+          <strong>{warning.fileName}</strong> {t('karaoke.warning.lyrics')}
         </div>
       )}
 
@@ -1008,6 +1094,14 @@ const KaraokeWorkspace = ({
           <KaraokePlaylist
             items={playlist}
             selectedId={selectedPlaylistId}
+            groupByFolder={groupPlaylistByFolder}
+            onToggleFolderGrouping={() => {
+              setGroupPlaylistByFolder((current) => {
+                const next = !current;
+                writeKaraokePlaylistFolderGrouping(next);
+                return next;
+              });
+            }}
             onSelect={selectPlaylistItem}
             onMove={movePlaylistItem}
             onRemove={removePlaylistItem}
@@ -1262,6 +1356,43 @@ const KaraokeWorkspace = ({
           </div>
         </>
       )}
+      {isMakerOpen &&
+        song &&
+        song.assets.find((asset) => asset.role === 'audio') && (
+          <KaraokeMaker
+            // Apply replaces only this song's in-memory normalized timing, so
+            // it deliberately keeps the same editor. A different audio item
+            // gets a fresh Maker instance and restores its own saved draft.
+            key={importedFileIdentity(
+              song.assets.find((asset) => asset.role === 'audio')!.file,
+            )}
+            song={song}
+            audioFile={
+              song.assets.find((asset) => asset.role === 'audio')!.file
+            }
+            playheadMs={session.playheadMs}
+            durationMs={session.durationMs}
+            isPlaying={status === 'playing'}
+            readPlayheadMs={session.readPlayheadMs}
+            onSeek={session.seek}
+            onPlay={session.play}
+            onPause={session.pause}
+            onApply={(project) => {
+              const audioAsset = song.assets.find(
+                (asset) => asset.role === 'audio',
+              );
+              if (audioAsset) {
+                session.applySong(
+                  karaokeMakerProjectToSong(project, audioAsset, song.assets),
+                );
+                setLyricsFollowRequestKey((request) => request + 1);
+              }
+            }}
+            onClose={() => setIsMakerOpen(false)}
+            isFullScreen={isFullScreen}
+            onToggleFullScreen={onToggleFullScreen}
+          />
+        )}
     </section>
   );
 };

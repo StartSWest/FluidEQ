@@ -325,6 +325,14 @@ it under the terms of the GNU General Public License version 3 or later.
   // colour, so it matches by construction rather than by two lists agreeing.
 }
 
+// Minimum-width window chrome has less vertical and horizontal room. Rainbow
+// keeps its colour and motion there, but not the expanded meter dimensions.
+@media (max-width: 760px) {
+  .is-euphoric .waveform-visualizer {
+    height: 46px;
+  }
+}
+
 // The moment it lands.
 //
 // Fired once, by a key change on the element, and it removes itself when the

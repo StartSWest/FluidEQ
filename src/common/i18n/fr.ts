@@ -93,6 +93,8 @@ const fr: Partial<Dictionary> = {
     'n’a pas pu être interprété ; l’audio reste disponible sans paroles synchronisées.',
   'karaoke.song.unknownArtist': 'Chanson locale',
   'karaoke.playlist.title': 'Liste de lecture',
+  'karaoke.playlist.groupFolders': 'Regrouper par dossier',
+  'karaoke.playlist.looseFiles': 'Fichiers non classés',
   'karaoke.playlist.select': 'Sélectionner {title}',
   'karaoke.playlist.moveUp': 'Monter {title}',
   'karaoke.playlist.moveDown': 'Descendre {title}',

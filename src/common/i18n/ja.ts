@@ -90,6 +90,8 @@ const ja: Partial<Dictionary> = {
     'を解析できなかったため、音声のみを歌詞なしで利用できます。',
   'karaoke.song.unknownArtist': 'ローカル曲',
   'karaoke.playlist.title': 'プレイリスト',
+  'karaoke.playlist.groupFolders': 'フォルダーごとにグループ化',
+  'karaoke.playlist.looseFiles': '未分類のファイル',
   'karaoke.playlist.select': '{title} を選択',
   'karaoke.playlist.moveUp': '{title} を上へ移動',
   'karaoke.playlist.moveDown': '{title} を下へ移動',

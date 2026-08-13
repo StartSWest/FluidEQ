@@ -34,3 +34,23 @@ declare module '*.worklet' {
   const url: string;
   export default url;
 }
+
+declare module '*.json?url' {
+  const url: string;
+  export default url;
+}
+
+declare module '*.bin?url' {
+  const url: string;
+  export default url;
+}
+
+declare module '*.wasm?url' {
+  const url: string;
+  export default url;
+}
+
+declare module '@fluideq/whisper-wasm' {
+  const url: string;
+  export default url;
+}

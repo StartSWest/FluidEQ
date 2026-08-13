@@ -304,7 +304,7 @@ describe('Dropdown', () => {
     );
 
     await user.click(screen.getByLabelText(name));
-    const search = screen.getByLabelText('Filter audio devices');
+    const search = screen.getByLabelText('Filter options');
     expect(search).toHaveFocus();
     await user.type(search, 'pro KRAKEN');
 
@@ -334,7 +334,7 @@ describe('Dropdown', () => {
     );
 
     await user.click(screen.getByLabelText(name));
-    await user.type(screen.getByLabelText('Filter audio devices'), 'krak');
+    await user.type(screen.getByLabelText('Filter options'), 'krak');
 
     expect(screen.getByLabelText('Razer Kraken Ultimate')).toBeInTheDocument();
   });

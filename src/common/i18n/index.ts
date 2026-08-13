@@ -47,6 +47,17 @@ import ru from './ru';
 import zh from './zh';
 import ja from './ja';
 import hi from './hi';
+import {
+  makerDe,
+  makerFr,
+  makerHi,
+  makerIt,
+  makerJa,
+  makerPt,
+  makerRu,
+  makerZh,
+} from './makerLocales';
+import { uiDe, uiFr, uiHi, uiIt, uiJa, uiPt, uiRu, uiZh } from './uiLocales';
 
 export type { Dictionary, TranslationKey };
 
@@ -92,14 +103,14 @@ export const DEFAULT_LOCALE: LocaleCode = 'en';
 const DICTIONARIES: Record<LocaleCode, Partial<Dictionary>> = {
   en,
   es,
-  pt,
-  fr,
-  de,
-  it,
-  ru,
-  zh,
-  ja,
-  hi,
+  pt: { ...pt, ...makerPt, ...uiPt },
+  fr: { ...fr, ...makerFr, ...uiFr },
+  de: { ...de, ...makerDe, ...uiDe },
+  it: { ...it, ...makerIt, ...uiIt },
+  ru: { ...ru, ...makerRu, ...uiRu },
+  zh: { ...zh, ...makerZh, ...uiZh },
+  ja: { ...ja, ...makerJa, ...uiJa },
+  hi: { ...hi, ...makerHi, ...uiHi },
 };
 
 /**
