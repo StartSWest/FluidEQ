@@ -33,6 +33,16 @@ const configuration: webpack.Configuration = {
   },
 
   plugins: [
+    /**
+     * Keep the last working bridge when a watched source update is momentarily
+     * incomplete. Git updates and multi-file saves can make `api.ts` visible a
+     * few milliseconds before a newly imported module; webpack otherwise emits
+     * a bundle containing `webpackMissingModule()`, and the next Electron reload
+     * loses `window.electron` entirely. The compile error still stays visible in
+     * the terminal, but it can no longer replace a usable preload on disk.
+     */
+    new webpack.NoEmitOnErrorsPlugin(),
+
     new BundleAnalyzerPlugin({
       analyzerMode: process.env.ANALYZE === 'true' ? 'server' : 'disabled',
     }),
