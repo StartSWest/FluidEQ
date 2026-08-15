@@ -30,8 +30,9 @@ const PATHS = {
     'M4.2 8.1C3.4 9.1 3 10.2 3 12c0 0 3.4 6 9 6 1.5 0 2.8-.4 4-1M7.4 6.6A10 10 0 0 1 12 6c5.6 0 9 6 9 6a10 10 0 0 1-1.4 2.2M9.9 9.9A3 3 0 0 0 14.1 14M4 4l16 16',
   back: 'M19 12H5m0 0 6-6m-6 6 6 6',
   undo: 'M9 7H4v-5M4.5 7.5A8 8 0 1 1 5 17',
-  // Undo's arc, wound the whole way back to the start rather than one step.
-  restore: 'M8 6H3V1M3.5 6.5A9 9 0 1 1 3 12M12 8v4.5l3 2',
+  // Undo's arrow exactly, around a clock face: the same gesture as Undo, but
+  // going back to a point in time rather than by a step.
+  restore: 'M9 7H4v-5M4.5 7.5A8 8 0 1 1 5 17M12 8v4.5l3 2',
   redo: 'M15 7h5v-5m-.5 5.5A8 8 0 1 0 19 17',
   apply: 'M5 12.5l4.2 4.2L19 7',
   fullscreen: 'M9 4H4v5m11-5h5v5M9 20H4v-5m11 5h5v-5',

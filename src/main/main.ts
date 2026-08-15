@@ -3096,25 +3096,34 @@ ipcMain.on(ChannelEnum.SET_ENABLE, async (event, arg) => {
 });
 
 ipcMain.on(ChannelEnum.SET_AUTO_PREAMP, async (event, arg) => {
-  // Switching the reserve off hands its value over rather than dropping it.
+  // Whichever way the switch moves, the number that comes out of it is the one
+  // auto-normalize computes for the chain as it stands. On, it goes on deriving
+  // it; off, that same value becomes the manual one to adjust from. The switch
+  // changes who is in charge of the level, never the level itself.
   //
-  // The flag used to be flipped and `preAmp` left alone, which sounds harmless
-  // and is not: while auto is on, the number on screen is computed at flush
-  // time and `preAmp` underneath it can be anything — 0 on a profile that never
-  // set one by hand. Turning auto off then published that 0, so a chain
-  // reserving 11 dB got 11 dB louder on one click of a switch whose whole job
-  // is to stop the chain clipping. The one gesture most likely to be made by
-  // somebody who thinks it is too quiet was also the one that clipped.
+  // Which is why the resolver is asked with the flag forced on rather than with
+  // whatever it is about to become. `resolvePreAmp` branches on that flag and
+  // returns the stored manual value when it is off, so reading it around the
+  // assignment gets one of the two directions wrong every time:
   //
-  // It is computed *before* the flag changes, because the resolver branches on
-  // it: read it after and it answers with the manual value being replaced.
+  //  - Read before the flip, switching OFF is right (it captures the automatic
+  //    reserve) and switching ON is wrong — it answers with the manual value,
+  //    which is then published as though it were the newly computed one. That
+  //    is the bug where enabling Auto normalize left the old number on screen.
+  //    It only looked correct on tabs that mount the response graph, because
+  //    the graph recomputed and overwrote the display a moment later; on the
+  //    Karaoke tab, which mounts no graph, the stale number simply stayed.
+  //  - Read after the flip, switching ON is right and switching OFF drops back
+  //    to the stored manual value — 0 on a profile that never set one by hand,
+  //    so a chain reserving 11 dB got 11 dB louder from the click of a switch
+  //    whose whole job is to stop it clipping.
+  //
+  // Forcing it on answers the question actually being asked, in both
+  // directions. The copy is shallow and read-only; nothing here mutates state.
   const isAutoPreAmpOn = Boolean(arg[0]);
-  const resolved = getResolvedPreAmp(state);
+  const automatic = getResolvedPreAmp({ ...state, isAutoPreAmpOn: true });
   state.isAutoPreAmpOn = isAutoPreAmpOn;
-  // Either direction, the audible level is what auto-normalize had worked out.
-  // On, it keeps deriving it; off, that value becomes the manual one to adjust
-  // from, so the switch changes who is in charge and not how loud it is.
-  state.preAmp = resolved;
+  state.preAmp = automatic;
   // This is device-profile state, just like its manual preamp. Without the
   // active-session path the flag changed in memory, then the flush rebuilt APO
   // from the attached profile where Auto normalize was still off — so enabling

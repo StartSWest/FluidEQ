@@ -18,12 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ErrorDescription } from 'common/errors';
 import { useCallback } from 'react';
-import {
-  disableAutoPreAmp,
-  enableAutoPreAmp,
-  setMainPreAmp,
-} from '../utils/equalizerApi';
-import { getManualPreAmp } from '../utils/manualPreAmp';
+import { disableAutoPreAmp, enableAutoPreAmp } from '../utils/equalizerApi';
 import { useFluidEqContext } from '../utils/FluidEqContext';
 import Switch from '../widgets/Switch';
 
@@ -47,28 +42,23 @@ export default function AutoPreAmpEnablerSwitch({
 
   const handleToggle = useCallback(async () => {
     try {
-      if (isAutoPreAmpOn) {
-        await disableAutoPreAmp();
-        // Hand the preamp back rather than abandoning it wherever the last
-        // automatic value happened to leave it.
-        //
-        // Switching this off used to mean keeping a number nobody chose: the
-        // slider and the headroom effect both wrote the same field, so somebody
-        // who had deliberately set -3 dB, tried auto-normalize and turned it
-        // off again was left on -7.4 dB with nothing to say what their own
-        // figure had been. Zero when there has never been one, which is where
-        // the app starts.
-        const manual = getManualPreAmp();
-        await setMainPreAmp(manual);
-        setPreAmp(manual);
-      } else {
-        // Main returns the value derived from the final chain it just wrote.
-        // Do not depend on the response graph to calculate it: the graph is not
-        // mounted in every workspace, which left the root slider showing the
-        // old manual value and made this switch appear to do nothing.
-        const automatic = await enableAutoPreAmp();
-        setPreAmp(automatic);
-      }
+      // Both directions answer with the value main derived from the chain it
+      // just wrote, and the switch shows that and nothing else.
+      //
+      // Turning it off used to put back a preamp remembered from the last time
+      // a slider was moved. That is gone: nothing records a "user value" any
+      // more, so switching off keeps the level auto-normalize had arrived at
+      // and hands control of it over. Restoring an older number meant the one
+      // click most likely to be made by somebody who thinks it is too quiet
+      // could also make it clip.
+      //
+      // Do not depend on the response graph to compute the displayed value: the
+      // graph is not mounted in every workspace, and where it is missing — the
+      // Karaoke tab — nothing corrects a wrong number afterwards.
+      const applied = isAutoPreAmpOn
+        ? await disableAutoPreAmp()
+        : await enableAutoPreAmp();
+      setPreAmp(applied);
       setAutoPreAmpOn(!isAutoPreAmpOn);
     } catch (e) {
       setGlobalError(e as ErrorDescription);

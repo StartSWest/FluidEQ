@@ -20,7 +20,6 @@ import { ErrorDescription } from 'common/errors';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
 import { useCallback } from 'react';
 import { setMainPreAmp } from './utils/equalizerApi';
-import { rememberManualPreAmp } from './utils/manualPreAmp';
 import EqualizerEnablerSwitch from './components/EqualizerEnablerSwitch';
 import AutoPreAmpEnablerSwitch from './components/AutoPreAmpEnablerSwitch';
 import Slider from './components/Slider';
@@ -51,11 +50,6 @@ const SideBar = ({
       try {
         await setMainPreAmp(newValue);
         setPreAmp(newValue);
-        // The only place a deliberate preamp is recorded. The slider is locked
-        // while auto-normalize is on, so everything reaching here is somebody
-        // moving a control — which is exactly what the switch gives back when
-        // it is turned off again.
-        rememberManualPreAmp(newValue);
       } catch (e) {
         setGlobalError(e as ErrorDescription);
       }

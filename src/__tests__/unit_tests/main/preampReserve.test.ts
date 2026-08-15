@@ -114,9 +114,8 @@ describe('preamp headroom', () => {
   });
 
   it('hands the reserve over when automatic mode is switched off', () => {
-    // What the SET_AUTO_PREAMP handler does, in the order it does it: read the
-    // resolved value while the flag is still on, then flip it and keep that
-    // number as the manual one.
+    // What the SET_AUTO_PREAMP handler does: ask the resolver with the flag
+    // forced on, then flip the flag and publish that number either way.
     //
     // The failure this pins is a level jump, not a wrong number. A profile that
     // never set a preamp by hand carries 0 underneath an automatic value of
@@ -127,7 +126,7 @@ describe('preamp headroom', () => {
     state.isAutoPreAmpOn = true;
     state.preAmp = 0;
 
-    const held = getResolvedPreAmp(state);
+    const held = getResolvedPreAmp({ ...state, isAutoPreAmpOn: true });
     expect(held).toBeLessThan(-1);
 
     state.isAutoPreAmpOn = false;
@@ -135,6 +134,34 @@ describe('preamp headroom', () => {
 
     expect(getResolvedPreAmp(state)).toBe(held);
     expect(getResolvedPreAmp(state)).not.toBe(0);
+  });
+
+  it('publishes the newly computed reserve when automatic mode is switched on', () => {
+    // The other direction of the same trap. `resolvePreAmp` returns the stored
+    // manual value while the flag is off, so a handler that reads it before
+    // flipping answers with the very number it is supposed to be replacing —
+    // and that number is what the switch then puts on screen.
+    //
+    // It looked correct anywhere the response graph was mounted, because the
+    // graph recomputed and overwrote the display straight afterwards. On the
+    // Karaoke tab, which mounts no graph, the stale manual value just stayed.
+    const state = withBands();
+    state.isAutoPreAmpOn = false;
+    state.preAmp = -3;
+
+    // Read with the flag as it stands, this is the manual value and nothing
+    // else — which is exactly why the handler does not ask it that way.
+    expect(getResolvedPreAmp(state)).toBe(-3);
+
+    const automatic = getResolvedPreAmp({ ...state, isAutoPreAmpOn: true });
+    expect(automatic).not.toBe(-3);
+
+    state.isAutoPreAmpOn = true;
+    state.preAmp = automatic;
+
+    // And it settles there: automatic mode derives from the chain, so storing
+    // its own answer back does not attenuate a second time.
+    expect(getResolvedPreAmp(state)).toBe(automatic);
   });
 
   it('replaces a manual root value when automatic mode is enabled', () => {
