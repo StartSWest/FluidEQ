@@ -8,9 +8,10 @@ actions menu opens it again any time.
 
 ## 1.3.1
 
-Three small things that were each a little wrong: the preamp switch changed how
-loud everything was, the Karaoke Maker had no way back to the song you started
-from, and these release notes had no obvious way out.
+Mostly the Auto normalize switch, which was getting the level wrong in three
+different ways and showing the wrong number in a fourth. Also: the Karaoke Maker
+had no way back to the song you started from, and these release notes had no
+obvious way out.
 
 ### New
 
@@ -22,6 +23,12 @@ from, and these release notes had no obvious way out.
 
 ### Changed
 
+- **Turning Auto normalize off no longer puts back an older preamp.** It used to
+  restore whatever the slider was last moved to, which meant switching off could
+  jump the level to a number from some earlier session. Nothing is remembered
+  now: switching off keeps the level Auto normalize had arrived at and hands the
+  slider control of it, so the switch decides who is in charge of the volume and
+  never the volume itself.
 - **The release notes have an OK button.** The corner ✕ is what you reach for to
   escape something, not what you press when you have finished reading. OK sits
   at the bottom right, outside the part that scrolls, so a long changelog never
@@ -29,11 +36,15 @@ from, and these release notes had no obvious way out.
 
 ### Fixed
 
+- **Turning Auto normalize on shows the reserve it just worked out.** On the
+  Karaoke tab the preamp stayed on the old manual number, so the switch looked
+  like it had done nothing. The sound was always right; the display was not, and
+  only on tabs without the response graph — everywhere else the graph quietly
+  corrected it a moment later.
 - **Turning Auto normalize off no longer makes everything louder.** It published
   0 dB instead of the reserve that was actually in force, so a chain holding
   back 11 dB got 11 dB louder from one click of the switch whose whole job is to
-  stop it clipping. The switch now changes who decides the number, not the
-  number.
+  stop it clipping.
 - **`Preamp: -19` is read as -19.** A preamp line without the unit was read as 0
   and still reported as a successful import, so the file loaded and played at
   the wrong level with nothing to say so. The unit is optional now, like every
