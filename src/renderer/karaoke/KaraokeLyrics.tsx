@@ -200,6 +200,13 @@ interface IKaraokeLyricsProps {
   followRequestKey?: number;
   showFollowButton?: boolean;
   textSize?: number;
+  /** Keep a chosen line centered while its existing timing is being repaired. */
+  centerLineId?: string;
+  /** Paint timing progress on a chosen line during guided capture. */
+  activeLineId?: string;
+  /** Current macro-capture line and its explicit START/END state. */
+  captureLineId?: string;
+  captureLineState?: 'pending' | 'started' | 'complete';
 }
 
 export interface ILyricHitRegion {
@@ -266,6 +273,10 @@ const KaraokeLyrics = ({
   followRequestKey = 0,
   showFollowButton = true,
   textSize = DEFAULT_LYRIC_TEXT_SIZE,
+  centerLineId,
+  activeLineId,
+  captureLineId,
+  captureLineState,
 }: IKaraokeLyricsProps) => {
   const { t } = useTranslation();
   const [isFollowing, setIsFollowing] = useState(true);
@@ -288,18 +299,56 @@ const KaraokeLyrics = ({
   }
   const textSizeRef = useRef(textSize);
   textSizeRef.current = textSize;
-  const activeIndex = findActiveKaraokeLine(song.lines, playheadMs);
+  const detectedActiveIndex = findActiveKaraokeLine(song.lines, playheadMs);
+  const requestedActiveIndex = activeLineId
+    ? song.lines.findIndex((line) => line.id === activeLineId)
+    : -1;
+  const activeIndex =
+    requestedActiveIndex >= 0 ? requestedActiveIndex : detectedActiveIndex;
   const activeLine = activeIndex >= 0 ? song.lines[activeIndex] : undefined;
+  const nextLyricIndex = song.lines.findIndex(
+    (line, index) => index > detectedActiveIndex && line.kind !== 'section',
+  );
+  const nextLyric =
+    nextLyricIndex >= 0 ? song.lines[nextLyricIndex] : undefined;
+  const sectionBeforeNextLyric =
+    nextLyricIndex > 0 && song.lines[nextLyricIndex - 1]?.kind === 'section';
+  const shouldPreReadSectionLyric =
+    requestedActiveIndex < 0 &&
+    sectionBeforeNextLyric &&
+    nextLyric?.startMs !== undefined &&
+    playheadMs >= nextLyric.startMs - 2_000;
+  const firstLyricAfterSectionIndex =
+    activeLine?.kind === 'section'
+      ? song.lines.findIndex(
+          (line, index) => index > activeIndex && line.kind !== 'section',
+        )
+      : -1;
   const shouldPrepareNext =
+    requestedActiveIndex < 0 &&
     activeLine?.endMs !== undefined &&
     playheadMs >= activeLine.endMs &&
     activeIndex + 1 < song.lines.length;
-  const playbackCenterIndex = shouldPrepareNext
-    ? activeIndex + 1
-    : Math.max(0, activeIndex);
-  const centerIndex = isFollowing
-    ? playbackCenterIndex
-    : clamp(manualCenterIndex, 0, Math.max(0, song.lines.length - 1));
+  const requestedCenterIndex = centerLineId
+    ? song.lines.findIndex((line) => line.id === centerLineId)
+    : -1;
+  let playbackCenterIndex = Math.max(0, activeIndex);
+  if (firstLyricAfterSectionIndex >= 0) {
+    // A section marker remains visible in the row above while its first real
+    // lyric owns the readable center. Markers never consume the singing lane.
+    playbackCenterIndex = firstLyricAfterSectionIndex;
+  } else if (shouldPreReadSectionLyric && nextLyricIndex >= 0) {
+    playbackCenterIndex = nextLyricIndex;
+  } else if (shouldPrepareNext) {
+    playbackCenterIndex = activeIndex + 1;
+  }
+  if (requestedCenterIndex >= 0) {
+    playbackCenterIndex = requestedCenterIndex;
+  }
+  const centerIndex =
+    requestedCenterIndex >= 0 || isFollowing
+      ? playbackCenterIndex
+      : clamp(manualCenterIndex, 0, Math.max(0, song.lines.length - 1));
   const drawStateRef = useRef<ILyricDrawState>({
     song,
     playheadMs,
@@ -448,6 +497,13 @@ const KaraokeLyrics = ({
       for (let index = first; index <= last; index += 1) {
         const line = currentSong.lines[index];
         const isSection = line.kind === 'section';
+        const isCaptureLine = line.id === captureLineId;
+        const isCapturePending =
+          isCaptureLine && captureLineState === 'pending';
+        const isCaptureStarted =
+          isCaptureLine && captureLineState === 'started';
+        const isCaptureComplete =
+          isCaptureLine && captureLineState === 'complete';
         const offset = index - animatedCenter;
         const motion = lyricLineMotion(offset);
         const y = centerY + offset * rowSpacing;
@@ -460,7 +516,11 @@ const KaraokeLyrics = ({
         // focused font immediately would make the incoming line pop before it
         // actually reaches the center.
         const focusAmount = clamp(1 - Math.abs(offset), 0, 1);
-        const isTimingActive = index === currentActiveIndex && !isSection;
+        const isTimingActive =
+          index === currentActiveIndex &&
+          !isSection &&
+          !isCapturePending &&
+          !isCaptureStarted;
         const restingFontSize = isSection
           ? clamp(width * 0.012, 11, 15)
           : clamp(width * 0.0155, 13, 18.5);
@@ -517,7 +577,10 @@ const KaraokeLyrics = ({
 
         const alpha = motion.opacity * viewportFade * songEntranceOpacity;
         const textLeft = (width - textWidth) * 0.5;
-        const hasEuphoriaText = isEuphoric && focusAmount > 0.08;
+        const hasEuphoriaText =
+          isEuphoric &&
+          focusAmount > 0.08 &&
+          (!isCaptureLine || isCaptureComplete);
         const euphoriaFill = hasEuphoriaText
           ? context.createLinearGradient(
               textLeft,
@@ -544,9 +607,17 @@ const KaraokeLyrics = ({
         context.globalAlpha = alpha;
         context.textAlign = 'left';
         context.textBaseline = 'middle';
-        context.shadowColor = hasEuphoriaText
-          ? `hsla(${euphoriaHue}, 96%, 64%, ${0.32 * focusAmount})`
-          : `rgba(34, 224, 214, ${0.13 * focusAmount})`;
+        let shadowColor = `rgba(34, 224, 214, ${0.13 * focusAmount})`;
+        if (hasEuphoriaText) {
+          shadowColor = `hsla(${euphoriaHue}, 96%, 64%, ${0.32 * focusAmount})`;
+        } else if (isCapturePending) {
+          shadowColor = 'rgba(0, 0, 0, 0)';
+        } else if (isCaptureStarted) {
+          shadowColor = `rgba(34, 224, 214, ${0.3 * focusAmount})`;
+        } else if (isCaptureComplete) {
+          shadowColor = `rgba(112, 255, 246, ${0.42 * focusAmount})`;
+        }
+        context.shadowColor = shadowColor;
         context.shadowBlur = hasEuphoriaText
           ? 18 * focusAmount
           : 28 * focusAmount;
@@ -563,9 +634,18 @@ const KaraokeLyrics = ({
             visualWords[wordIndex - 1],
           );
           const wordWidth = context.measureText(displayText).width;
-          const red = isSection ? 96 : Math.round(225 + 17 * focusAmount);
-          const green = isSection ? 232 : Math.round(231 + 15 * focusAmount);
-          const blue = isSection ? 219 : Math.round(244 + 11 * focusAmount);
+          let red = isSection ? 96 : Math.round(225 + 17 * focusAmount);
+          let green = isSection ? 232 : Math.round(231 + 15 * focusAmount);
+          let blue = isSection ? 219 : Math.round(244 + 11 * focusAmount);
+          if (isCaptureStarted) {
+            red = 70;
+            green = 220;
+            blue = 214;
+          } else if (isCaptureComplete && !isEuphoric) {
+            red = 132;
+            green = 255;
+            blue = 247;
+          }
           const textAlpha = 0.42 + 0.56 * focusAmount;
 
           if (hasEuphoriaText) {
@@ -610,7 +690,11 @@ const KaraokeLyrics = ({
                 fontSize * 1.44,
               );
               context.clip();
-              context.fillStyle = euphoriaFill ?? 'rgb(103, 241, 232)';
+              context.fillStyle =
+                euphoriaFill ??
+                (isCaptureComplete
+                  ? 'rgb(208, 255, 251)'
+                  : 'rgb(103, 241, 232)');
               if (euphoriaFill) {
                 context.shadowColor = `hsla(${euphoriaHue}, 98%, 65%, 0.5)`;
                 context.shadowBlur = 13 * focusAmount;
@@ -659,7 +743,7 @@ const KaraokeLyrics = ({
       observer.disconnect();
       hitRegions.length = 0;
     };
-  }, [song.lines.length]);
+  }, [captureLineId, captureLineState, song.lines.length]);
 
   const browseLyrics = (direction: -1 | 1) => {
     setManualCenterIndex((current) =>

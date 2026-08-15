@@ -15,6 +15,61 @@ export interface IKaraokeMakerPlacedLyricLabel extends IKaraokeMakerLyricLabel {
   left: number;
 }
 
+export interface IKaraokeMakerSectionMarker {
+  id: string;
+  text: string;
+  startMs: number;
+}
+
+export interface IKaraokeMakerSectionGroup extends IKaraokeMakerSectionMarker {
+  endMs: number;
+}
+
+/**
+ * Turn section markers into non-overlapping timeline groups. The marker owns
+ * everything up to the next marker, so the editor can render structure in one
+ * dedicated row instead of spending lyric lanes on labels such as [CHORUS].
+ */
+export const karaokeMakerSectionGroups = (
+  markers: readonly IKaraokeMakerSectionMarker[],
+  durationMs: number,
+): IKaraokeMakerSectionGroup[] => {
+  const ordered = [...markers]
+    .filter((marker) => Number.isFinite(marker.startMs))
+    .sort(
+      (left, right) =>
+        left.startMs - right.startMs || left.id.localeCompare(right.id),
+    );
+  return ordered.map((marker, index) => ({
+    ...marker,
+    endMs: Math.max(
+      marker.startMs,
+      ordered[index + 1]?.startMs ?? Math.max(marker.startMs, durationMs),
+    ),
+  }));
+};
+
+/**
+ * Preserve provider-authored syllable boundaries while exposing the readable
+ * words they form. A token with `startsWord: false` continues the preceding
+ * token, matching the grouping used by the tuning guide.
+ */
+export const groupKaraokeMakerWordSyllables = <
+  T extends { startsWord: boolean },
+>(
+  tokens: readonly T[],
+): T[][] => {
+  const groups: T[][] = [];
+  tokens.forEach((token) => {
+    if (!groups.length || token.startsWord !== false) {
+      groups.push([token]);
+      return;
+    }
+    groups[groups.length - 1].push(token);
+  });
+  return groups;
+};
+
 /**
  * Keep lyric labels on their exact timeline X coordinate. At wide zoom levels
  * there is not enough room for every word; culling lower-priority labels is
@@ -26,6 +81,7 @@ export const layoutKaraokeMakerAnchoredLyricLabels = (
   plotRight: number,
   laneCount = KARAOKE_MAKER_LYRIC_LANE_COUNT,
   gap = 12,
+  strictPreferredLane = false,
 ): IKaraokeMakerPlacedLyricLabel[] => {
   const safeLaneCount = Math.max(1, Math.round(laneCount));
   const occupied: Array<Array<{ left: number; right: number }>> = Array.from(
@@ -50,13 +106,15 @@ export const layoutKaraokeMakerAnchoredLyricLabels = (
     }
     const preferred =
       ((label.preferredLane % safeLaneCount) + safeLaneCount) % safeLaneCount;
-    const lanes = [
-      preferred,
-      ...new Array(safeLaneCount)
-        .fill(undefined)
-        .map((_value, lane) => lane)
-        .filter((lane) => lane !== preferred),
-    ];
+    const lanes = strictPreferredLane
+      ? [preferred]
+      : [
+          preferred,
+          ...new Array(safeLaneCount)
+            .fill(undefined)
+            .map((_value, lane) => lane)
+            .filter((lane) => lane !== preferred),
+        ];
     const lane = lanes.find((candidate) =>
       occupied[candidate].every(
         (interval) =>
@@ -103,6 +161,7 @@ export const karaokeMakerFittedLyricViewport = (
   minimumViewportMs: number,
   laneCount = KARAOKE_MAKER_LYRIC_LANE_COUNT,
   gap = 12,
+  strictPreferredLane = false,
 ): IKaraokeMakerFittedViewport => {
   const safeSongDurationMs = Math.max(1, songDurationMs);
   const safeMinimumMs = Math.min(
@@ -150,6 +209,7 @@ export const karaokeMakerFittedLyricViewport = (
       safePlotWidth,
       laneCount,
       gap,
+      strictPreferredLane,
     );
     return packed.length === visible.length;
   };

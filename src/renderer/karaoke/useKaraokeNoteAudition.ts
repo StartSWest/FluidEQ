@@ -22,9 +22,10 @@ const audioContextConstructor = () =>
   ).webkitAudioContext;
 
 /**
- * A short, local reference tone for editing melody notes. Re-triggering it
- * releases the old voice first, which makes vertical note dragging sound like
- * one changing guide rather than a pile of overlapping beeps.
+ * A local reference tone for editing melody notes. A held note may use its
+ * complete authored duration; re-triggering still releases the old voice
+ * first, so vertical dragging sounds like one changing guide instead of a
+ * pile of overlapping tones.
  */
 const useKaraokeNoteAudition = () => {
   const contextRef = useRef<AudioContext | undefined>(undefined);
@@ -74,7 +75,10 @@ const useKaraokeNoteAudition = () => {
       const output = context.createGain();
       const frequency = midiToFrequency(midi);
       const now = context.currentTime;
-      const end = now + Math.max(90, Math.min(1_500, durationMs)) / 1_000;
+      const authoredDurationMs = Number.isFinite(durationMs)
+        ? Math.max(36, durationMs)
+        : 420;
+      const end = now + authoredDurationMs / 1_000;
 
       fundamental.type = 'triangle';
       overtone.type = 'sine';

@@ -23,6 +23,10 @@ interface IKaraokeMakerPreviewProps {
   hideLabel: string;
   resizeLabel: string;
   textSizeLabel: string;
+  centerLineId?: string;
+  activeLineId?: string;
+  captureState?: 'armed' | 'ready';
+  captureLineState?: 'pending' | 'started' | 'complete';
   onTextSize: (textSize: number) => void;
   onHeight: (height: number) => void;
   onSeek: (timeMs: number) => void;
@@ -157,6 +161,10 @@ const KaraokeMakerPreview = ({
   hideLabel,
   resizeLabel,
   textSizeLabel,
+  centerLineId,
+  activeLineId,
+  captureState,
+  captureLineState,
   onTextSize,
   onHeight,
   onSeek,
@@ -271,7 +279,11 @@ const KaraokeMakerPreview = ({
         </div>
       </header>
       {open && (
-        <div className="karaoke-maker-preview__stage">
+        <div
+          className={`karaoke-maker-preview__stage${
+            captureState ? ` is-capture-${captureState}` : ''
+          }`}
+        >
           <div className="karaoke-maker-preview__meta">
             {song.artist && <span>{song.artist}</span>}
             <strong>{song.title}</strong>
@@ -283,6 +295,10 @@ const KaraokeMakerPreview = ({
             followRequestKey={followRequestKey}
             showFollowButton={false}
             textSize={textSize}
+            centerLineId={centerLineId}
+            activeLineId={activeLineId}
+            captureLineId={captureLineState ? centerLineId : undefined}
+            captureLineState={captureLineState}
           />
           <KaraokeMakerPreviewNotes song={song} playheadMs={playheadMs} />
         </div>

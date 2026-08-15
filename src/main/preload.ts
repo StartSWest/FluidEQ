@@ -19,4 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { contextBridge } from 'electron';
 import api from './api';
 
+// Keep exposure after the API import: if that dependency graph cannot load,
+// there is no partial bridge for the renderer to mistake for a usable one.
 contextBridge.exposeInMainWorld('electron', api);

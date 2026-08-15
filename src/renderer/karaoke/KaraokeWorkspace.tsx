@@ -25,6 +25,7 @@ import {
   useId,
   useRef,
   useState,
+  useSyncExternalStore,
 } from 'react';
 import karaokeMicrophoneImage from '../../../assets/karaoke-microphone.png';
 import { TranslationKey } from '../../common/i18n';
@@ -81,6 +82,13 @@ import { useKaraokeMicrophone } from './useKaraokeMicrophone';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeChordAnalysis } from './useKaraokeChordAnalysis';
 import { TKaraokeSessionError, useKaraokeSession } from './useKaraokeSession';
+import {
+  KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
+  getKaraokeWhisperSessionSnapshot,
+  keepKaraokeWhisperModelForNow,
+  releaseKaraokeWhisperModel,
+  subscribeKaraokeWhisperSession,
+} from './makerAi';
 import '../styles/Karaoke.scss';
 
 interface IKaraokeWorkspaceProps {
@@ -195,6 +203,13 @@ const KaraokeWorkspace = ({
   const [isDragging, setIsDragging] = useState(false);
   const [isMicrophoneMenuOpen, setIsMicrophoneMenuOpen] = useState(false);
   const [isMakerOpen, setIsMakerOpen] = useState(readKaraokeMakerOpen);
+  const [restoreMakerDraft, setRestoreMakerDraft] =
+    useState(readKaraokeMakerOpen);
+  const whisperSession = useSyncExternalStore(
+    subscribeKaraokeWhisperSession,
+    getKaraokeWhisperSessionSnapshot,
+    getKaraokeWhisperSessionSnapshot,
+  );
   const [countInCue, setCountInCue] = useState<string>();
   const [countInLabel, setCountInLabel] = useState<string>();
   const [lyricsFollowRequestKey, setLyricsFollowRequestKey] = useState(0);
@@ -345,6 +360,30 @@ const KaraokeWorkspace = ({
     }
     sessionRef.current.play().catch(() => undefined);
   }, [cancelCountIn, countInCue, startSongPlayback, status]);
+
+  // Maker playback is editing transport, so it starts immediately rather
+  // than going through the singer-facing 1, 2, 3 count-in. The header button
+  // and Space shortcut share these callbacks so they cannot drift apart.
+  const handleEditorPlay = useCallback(() => {
+    cancelCountIn();
+    if (status === 'ended') {
+      sessionRef.current.seek(0);
+    }
+    sessionRef.current.play().catch(() => undefined);
+  }, [cancelCountIn, status]);
+
+  const handleEditorPause = useCallback(() => {
+    cancelCountIn();
+    sessionRef.current.pause();
+  }, [cancelCountIn]);
+
+  const handleEditorTogglePlayback = useCallback(() => {
+    if (status === 'playing') {
+      handleEditorPause();
+    } else {
+      handleEditorPlay();
+    }
+  }, [handleEditorPause, handleEditorPlay, status]);
 
   const handleRestart = useCallback(() => {
     startSongPlayback(true);
@@ -756,6 +795,7 @@ const KaraokeWorkspace = ({
     setPlaylist([]);
     setSelectedPlaylistId(undefined);
     setIsMakerOpen(false);
+    setRestoreMakerDraft(false);
     clearKaraokeProgress();
     session.clear();
     window.electron?.ipcRenderer.clearKaraokeSession?.().catch(() => undefined);
@@ -836,17 +876,51 @@ const KaraokeWorkspace = ({
       return undefined;
     }
     const onKeyDown = (event: globalThis.KeyboardEvent) => {
-      const target = event.target as HTMLElement;
+      if (event.defaultPrevented || event.repeat) {
+        return;
+      }
+      let target: HTMLElement | undefined;
+      if (event.target instanceof HTMLElement) {
+        target = event.target;
+      } else if (document.activeElement instanceof HTMLElement) {
+        target = document.activeElement;
+      }
+      const isMakerTypingTarget = Boolean(
+        target?.isContentEditable ||
+        target?.closest('input, textarea, select, [contenteditable]'),
+      );
+      const isBlockedControl = Boolean(
+        target?.closest(
+          '[role="menu"], [role="menuitem"], [role="separator"]',
+        ) ||
+        (!isMakerOpen && target?.closest('button')),
+      );
       if (
-        target.closest(
-          'button, input, [role="menu"], [role="separator"], [contenteditable="true"]',
+        isMakerTypingTarget ||
+        isBlockedControl ||
+        document.querySelector(
+          '.karaoke-maker__modal-backdrop, .dropdown--open',
         )
       ) {
         return;
       }
-      if (event.code === 'Space') {
+      if (
+        event.code === 'Space' &&
+        !event.altKey &&
+        !event.ctrlKey &&
+        !event.metaKey &&
+        song
+      ) {
         event.preventDefault();
-        handleTogglePlayback();
+        // The response graph also has a Space shortcut. Karaoke owns the key
+        // while this tab is visible, so do not let a single press perform two
+        // unrelated actions on the same window.
+        event.stopImmediatePropagation();
+        if (isMakerOpen) {
+          handleEditorTogglePlayback();
+        } else {
+          handleTogglePlayback();
+        }
       } else if (event.key === 'ArrowLeft') {
         event.preventDefault();
         handleSeek(playheadRef.current - 5_000);
@@ -860,7 +934,15 @@ const KaraokeWorkspace = ({
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
-  }, [handleRestart, handleSeek, handleTogglePlayback, isHidden]);
+  }, [
+    handleEditorTogglePlayback,
+    handleRestart,
+    handleSeek,
+    handleTogglePlayback,
+    isHidden,
+    isMakerOpen,
+    song,
+  ]);
 
   // Full screen gives the vertical space to the lyrics instead of keeping the
   // workspace introduction above them. The same controls move into a compact
@@ -901,6 +983,9 @@ const KaraokeWorkspace = ({
           onClick={() => {
             cancelCountIn();
             session.pause();
+            // An explicit Make action edits exactly what the player currently
+            // shows. Restart recovery still restores an unfinished draft.
+            setRestoreMakerDraft(false);
             setIsMakerOpen(true);
           }}
           title={t('karaoke.maker.openTitle')}
@@ -1073,6 +1158,32 @@ const KaraokeWorkspace = ({
           {t(ERROR_KEYS[error])}
         </div>
       )}
+      {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED &&
+        whisperSession.releasePrompt && (
+          <div
+            className="karaoke-maker__memory-prompt"
+            role="dialog"
+            aria-label={t('karaoke.maker.memoryPromptTitle')}
+          >
+            <MenuIcon name="microphone" />
+            <div>
+              <strong>{t('karaoke.maker.memoryPromptTitle')}</strong>
+              <span>{t('karaoke.maker.memoryPromptBody')}</span>
+            </div>
+            <button type="button" onClick={keepKaraokeWhisperModelForNow}>
+              {t('karaoke.maker.keepLoaded')}
+            </button>
+            <button
+              type="button"
+              className="is-primary"
+              onClick={() =>
+                releaseKaraokeWhisperModel().catch(() => undefined)
+              }
+            >
+              {t('karaoke.maker.freeMemory')}
+            </button>
+          </div>
+        )}
       {warning && (
         <div className="karaoke-workspace__notice is-warning" role="status">
           <strong>{warning.fileName}</strong> {t('karaoke.warning.lyrics')}
@@ -1373,10 +1484,11 @@ const KaraokeWorkspace = ({
             playheadMs={session.playheadMs}
             durationMs={session.durationMs}
             isPlaying={status === 'playing'}
+            restoreSavedDraft={restoreMakerDraft}
             readPlayheadMs={session.readPlayheadMs}
             onSeek={session.seek}
-            onPlay={session.play}
-            onPause={session.pause}
+            onPlay={handleEditorPlay}
+            onPause={handleEditorPause}
             onApply={(project) => {
               const audioAsset = song.assets.find(
                 (asset) => asset.role === 'audio',

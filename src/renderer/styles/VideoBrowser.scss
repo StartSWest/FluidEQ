@@ -618,6 +618,164 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 100%;
 }
 
+// *** Explicit web downloads ************************************************
+
+.video-browser__download {
+  position: absolute;
+  z-index: 3;
+  top: 12px;
+  right: 12px;
+  left: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 54px;
+  padding: 10px 12px;
+  border: 1px solid rgba($secondary-light, 0.42);
+  border-radius: $radius-m;
+  background:
+    radial-gradient(
+      circle at 8% 0%,
+      rgba($secondary-light, 0.12),
+      transparent 42%
+    ),
+    linear-gradient(145deg, rgba(#0d2029, 0.98), rgba(#09161d, 0.98));
+  box-shadow: 0 16px 42px rgba($black, 0.5);
+
+  &.is-completed {
+    border-color: rgba(#55f2bd, 0.52);
+  }
+
+  &.is-failed {
+    border-color: rgba(#ff7386, 0.58);
+  }
+}
+
+.video-browser__download-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgba($secondary-light, 0.42);
+  border-radius: 11px;
+  background: rgba($secondary-light, 0.1);
+  color: $secondary-light;
+
+  svg {
+    width: 19px;
+    height: 19px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+  }
+}
+
+.video-browser__download-copy {
+  display: grid;
+  min-width: 0;
+  flex: 1 1 auto;
+  gap: 3px;
+
+  strong {
+    overflow: hidden;
+    color: $primary-lighter;
+    font-size: 0.75rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  > span,
+  > small {
+    overflow: hidden;
+    color: rgba($primary-lighter, 0.7);
+    font-size: 0.65rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+.video-browser__download-progress {
+  position: relative;
+  height: 4px;
+  margin-top: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba($primary-lighter, 0.14);
+
+  > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    border-radius: inherit;
+    background: linear-gradient(90deg, $secondary-light, #55f2bd);
+    box-shadow: 0 0 12px rgba($secondary-light, 0.55);
+    transition: width 150ms ease-out;
+  }
+}
+
+.video-browser__download-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+
+  button {
+    padding: 6px 9px;
+    border: 1px solid rgba($secondary-light, 0.46);
+    border-radius: $radius-s;
+    background: rgba($secondary-light, 0.12);
+    color: $secondary-light;
+    font-size: 0.67rem;
+    cursor: pointer;
+
+    &:hover {
+      background: rgba($secondary-light, 0.22);
+      box-shadow: 0 0 14px rgba($secondary-light, 0.12);
+    }
+  }
+}
+
+.video-browser__download-dismiss {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  padding: 0;
+  place-items: center;
+  border: 1px solid rgba($primary-lighter, 0.18);
+  border-radius: 8px;
+  background: transparent;
+  color: rgba($primary-lighter, 0.72);
+  cursor: pointer;
+
+  &:hover {
+    border-color: rgba($secondary-light, 0.42);
+    color: $secondary-light;
+  }
+
+  svg {
+    width: 10px;
+    height: 10px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.6;
+  }
+}
+
+@media (max-width: 680px) {
+  .video-browser__download {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .video-browser__download-actions {
+    width: 100%;
+    padding-left: 44px;
+  }
+}
+
 // A drag over the divider is a drag over the page as far as Chromium is
 // concerned, and the guest swallows every pointer event that reaches it — the
 // pointer capture on the handle cannot see them. Taking the page out of

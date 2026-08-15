@@ -22,6 +22,7 @@ import {
   karaokeMelodyToneMidiAtTime,
   useKaraokeMelodyTone,
 } from '../../renderer/karaoke/useKaraokeMelodyTone';
+import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticulation';
 
 describe('karaoke melody guide tone', () => {
   const notes = [
@@ -35,6 +36,38 @@ describe('karaoke melody guide tone', () => {
     expect(karaokeMelodyToneMidiAtTime(notes, 500)).toBe(72);
     expect(karaokeMelodyToneMidiAtTime(notes, 1_000)).toBeUndefined();
     expect(karaokeMelodyToneMidiAtTime(notes, 1_200)).toBe(67);
+  });
+
+  it('articulates a lead cue without changing the authored lyric range', () => {
+    const authored = {
+      text: 'long',
+      startMs: 2_000,
+      endMs: 4_400,
+      targetMidi: 69,
+      kind: 'normal' as const,
+    };
+    const articulated = karaokeLeadNoteArticulation(authored);
+
+    expect(articulated.startMs).toBe(authored.startMs);
+    expect(articulated.endMs).toBeLessThan(authored.endMs);
+    expect(articulated.durationMs).toBeLessThanOrEqual(1_450);
+    expect(karaokeMelodyToneMidiAtTime([authored], 2_100)).toBe(69);
+    expect(karaokeMelodyToneMidiAtTime([authored], 4_300)).toBeUndefined();
+  });
+
+  it('uses deterministic rhythmic variation for equal authored durations', () => {
+    const first = karaokeLeadNoteArticulation({
+      startMs: 0,
+      endMs: 500,
+      targetMidi: 60,
+    });
+    const second = karaokeLeadNoteArticulation({
+      startMs: 500,
+      endMs: 1_000,
+      targetMidi: 64,
+    });
+
+    expect(first.durationMs).not.toBe(second.durationMs);
   });
 
   it('converts canonical MIDI notes to the audible guide frequency', () => {

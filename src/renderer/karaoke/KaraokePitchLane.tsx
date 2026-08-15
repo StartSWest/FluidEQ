@@ -28,6 +28,7 @@ import {
 } from 'react';
 import { TranslationKey } from '../../common/i18n';
 import { formatKaraokeTime } from '../../common/karaoke/clock';
+import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticulation';
 import {
   easeKaraokePitchViewport,
   IKaraokePitchViewport,
@@ -188,10 +189,13 @@ const targetAtTime = (
   notes: readonly IKaraokeToken[],
   timeMs: number,
 ): number | undefined =>
-  notes.find(
-    (note) =>
-      isTimedTarget(note) && note.startMs <= timeMs && note.endMs >= timeMs,
-  )?.targetMidi;
+  notes.find((note) => {
+    if (!isTimedTarget(note)) {
+      return false;
+    }
+    const articulation = karaokeLeadNoteArticulation(note);
+    return articulation.startMs <= timeMs && articulation.endMs >= timeMs;
+  })?.targetMidi;
 
 const smoothStep = (value: number): number => {
   const clamped = Math.max(0, Math.min(1, value));
@@ -293,12 +297,23 @@ export const buildKaraokeMelodyGuide = (
   const connects = (
     left: (typeof timedNotes)[number] | undefined,
     right: (typeof timedNotes)[number] | undefined,
-  ) =>
-    left !== undefined &&
-    right !== undefined &&
-    left.kind !== 'free' &&
-    right.kind !== 'free' &&
-    right.startMs - left.endMs <= MELODY_GUIDE_MAX_GAP_MS;
+  ) => {
+    if (
+      left === undefined ||
+      right === undefined ||
+      left.kind === 'free' ||
+      right.kind === 'free'
+    ) {
+      return false;
+    }
+    const authoredGapMs = right.startMs - left.endMs;
+    const articulatedGapMs =
+      right.startMs - karaokeLeadNoteArticulation(left).endMs;
+    const continuesSameWord = right.startsWord === false;
+    return continuesSameWord
+      ? authoredGapMs <= MELODY_GUIDE_MAX_GAP_MS
+      : articulatedGapMs <= 18;
+  };
 
   timedNotes.forEach((note, noteIndex) => {
     if (note.kind === 'free') {
@@ -308,17 +323,19 @@ export const buildKaraokeMelodyGuide = (
     const next = timedNotes[noteIndex + 1];
     const connectsPrevious = connects(previous, note);
     const connectsNext = connects(note, next);
-    const duration = Math.max(1, note.endMs - note.startMs);
+    const articulation = karaokeLeadNoteArticulation(note);
+    const noteEndMs = articulation.endMs;
+    const duration = articulation.durationMs;
     const transitionMs = Math.min(MELODY_GUIDE_TRANSITION_MS, duration * 0.36);
     const sampleTimes: number[] = [note.startMs];
     for (
       let timeMs = note.startMs + MELODY_GUIDE_SAMPLE_MS;
-      timeMs < note.endMs;
+      timeMs < noteEndMs;
       timeMs += MELODY_GUIDE_SAMPLE_MS
     ) {
       sampleTimes.push(timeMs);
     }
-    sampleTimes.push(note.endMs);
+    sampleTimes.push(noteEndMs);
 
     sampleTimes.forEach((songTimeMs, sampleIndex) => {
       let midi = note.targetMidi;
@@ -336,10 +353,10 @@ export const buildKaraokeMelodyGuide = (
       } else if (
         connectsNext &&
         next &&
-        songTimeMs >= note.endMs - transitionMs
+        songTimeMs >= noteEndMs - transitionMs
       ) {
         const progress = smoothStep(
-          (songTimeMs - (note.endMs - transitionMs)) / (transitionMs * 2),
+          (songTimeMs - (noteEndMs - transitionMs)) / (transitionMs * 2),
         );
         midi = note.targetMidi + (next.targetMidi - note.targetMidi) * progress;
       }
@@ -992,7 +1009,12 @@ const KaraokePitchLane = ({
       const floatingLabelRightByPitch = new Map<number, number>();
       visibleNotes.forEach((note) => {
         const startMs = note.startMs as number;
-        const endMs = note.endMs as number;
+        const { endMs } = karaokeLeadNoteArticulation({
+          startMs,
+          endMs: note.endMs as number,
+          targetMidi: note.targetMidi,
+          kind: note.kind,
+        });
         const midi = note.targetMidi as number;
         const x = xForSongTime(startMs);
         const noteWidth = Math.max(3, xForSongTime(endMs) - x);

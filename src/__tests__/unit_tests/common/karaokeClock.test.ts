@@ -57,4 +57,15 @@ describe('Karaoke track clock', () => {
     expect(findActiveKaraokeLine(lines, 2_000)).toBe(1);
     expect(formatKaraokeTime(65_999)).toBe('1:05');
   });
+
+  it('continues past an untimed detector hole to a later timed lyric', () => {
+    const lines = [
+      { id: 'first', startMs: 1_000, tokens: [{ text: 'First' }] },
+      { id: 'missing', tokens: [{ text: 'Missing reference line' }] },
+      { id: 'later', startMs: 5_000, tokens: [{ text: 'Later' }] },
+    ];
+
+    expect(findActiveKaraokeLine(lines, 2_000)).toBe(0);
+    expect(findActiveKaraokeLine(lines, 5_000)).toBe(2);
+  });
 });

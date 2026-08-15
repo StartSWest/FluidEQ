@@ -33,6 +33,11 @@ import {
   isNavigableVideoUrl,
 } from 'common/videoSites';
 import {
+  IVideoDownloadUpdate,
+  VIDEO_DOWNLOAD_CHANGED,
+  isVideoDownloadUpdate,
+} from 'common/videoDownloads';
+import {
   TPlaybackMarks,
   buildResumeSeekScript,
   parsePlaybackMarks,
@@ -437,6 +442,13 @@ const VIDEO_WEB_PREFERENCES =
 /** How long "Signed out" stays up before the button goes back to offering it. */
 const SIGN_OUT_NOTICE_MS = 4000;
 
+const formatDownloadBytes = (bytes: number) => {
+  if (bytes < 1024 * 1024) {
+    return `${Math.max(0, bytes / 1024).toFixed(1)} KB`;
+  }
+  return `${Math.max(0, bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 const HOME_SITE: IVideoSite = VIDEO_SITES[0];
 
 /**
@@ -544,6 +556,8 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   const [canGoForward, setCanGoForward] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [blockedUrl, setBlockedUrl] = useState('');
+  const [downloadUpdate, setDownloadUpdate] = useState<IVideoDownloadUpdate>();
+  const [downloadPathCopied, setDownloadPathCopied] = useState(false);
   // Whether the guest has a document to be asked anything about. Nothing may
   // call into it before `dom-ready`.
   const [isGuestReady, setIsGuestReady] = useState(false);
@@ -830,6 +844,35 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       off();
     };
   }, []);
+
+  useEffect(() => {
+    const off = window.electron.ipcRenderer.on(
+      VIDEO_DOWNLOAD_CHANGED,
+      (...args: unknown[]) => {
+        const [update] = args;
+        if (!isVideoDownloadUpdate(update)) {
+          return;
+        }
+        setDownloadPathCopied(false);
+        setDownloadUpdate(update.phase === 'cancelled' ? undefined : update);
+      },
+    );
+    return () => {
+      off();
+    };
+  }, []);
+
+  const copyDownloadPath = useCallback(async () => {
+    if (!downloadUpdate?.filePath) {
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(downloadUpdate.filePath);
+      setDownloadPathCopied(true);
+    } catch {
+      setDownloadPathCopied(false);
+    }
+  }, [downloadUpdate]);
 
   // What the blocker actually runs on. A switch nobody has found cannot be on,
   // whatever a stored value left by another build might say — the interface
@@ -1301,6 +1344,98 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
           allowpopups="true"
           webpreferences={VIDEO_WEB_PREFERENCES}
         />
+        {downloadUpdate && (
+          <div
+            className={`video-browser__download is-${downloadUpdate.phase}`}
+            role={downloadUpdate.phase === 'failed' ? 'alert' : 'status'}
+            aria-live="polite"
+          >
+            <div className="video-browser__download-icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20">
+                <path d="M10 2v10m0 0 4-4m-4 4L6 8M3 15.5h14" />
+              </svg>
+            </div>
+            <div className="video-browser__download-copy">
+              <strong>
+                {downloadUpdate.phase === 'choosing' &&
+                  t('video.downloadChoosing')}
+                {downloadUpdate.phase === 'downloading' &&
+                  t('video.downloadSaving', {
+                    file: downloadUpdate.fileName,
+                  })}
+                {downloadUpdate.phase === 'completed' &&
+                  t('video.downloadComplete')}
+                {downloadUpdate.phase === 'failed' && t('video.downloadFailed')}
+              </strong>
+              <span title={downloadUpdate.filePath ?? downloadUpdate.fileName}>
+                {downloadUpdate.filePath ?? downloadUpdate.fileName}
+              </span>
+              {(downloadUpdate.phase === 'choosing' ||
+                downloadUpdate.phase === 'downloading') && (
+                <>
+                  <div
+                    className="video-browser__download-progress"
+                    role="progressbar"
+                    aria-label={t('video.downloadProgress')}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
+                    aria-valuenow={
+                      downloadUpdate.percent !== undefined
+                        ? Math.round(downloadUpdate.percent)
+                        : undefined
+                    }
+                  >
+                    <span
+                      style={{
+                        width: `${downloadUpdate.percent ?? 0}%`,
+                      }}
+                    />
+                  </div>
+                  <small>
+                    {formatDownloadBytes(downloadUpdate.receivedBytes)}
+                    {downloadUpdate.totalBytes !== undefined &&
+                      ` / ${formatDownloadBytes(downloadUpdate.totalBytes)}`}
+                    {downloadUpdate.percent !== undefined &&
+                      ` · ${Math.round(downloadUpdate.percent)}%`}
+                  </small>
+                </>
+              )}
+            </div>
+            {downloadUpdate.phase === 'completed' &&
+              downloadUpdate.filePath && (
+                <div className="video-browser__download-actions">
+                  <button type="button" onClick={copyDownloadPath}>
+                    {downloadPathCopied
+                      ? t('video.downloadCopied')
+                      : t('video.downloadCopyPath')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      window.electron.ipcRenderer
+                        .revealVideoDownload(downloadUpdate.filePath as string)
+                        .catch(() => undefined);
+                    }}
+                  >
+                    {t('video.downloadShowFolder')}
+                  </button>
+                </div>
+              )}
+            {(downloadUpdate.phase === 'completed' ||
+              downloadUpdate.phase === 'failed') && (
+              <button
+                type="button"
+                aria-label={t('app.dismiss')}
+                className="video-browser__download-dismiss"
+                onClick={() => setDownloadUpdate(undefined)}
+              >
+                <svg viewBox="0 0 12 12" aria-hidden="true">
+                  <path d="M3 3l6 6M9 3l-6 6" />
+                </svg>
+              </button>
+            )}
+          </div>
+        )}
         {blockedUrl && (
           <div className="video-browser__blocked" role="alert">
             <div>

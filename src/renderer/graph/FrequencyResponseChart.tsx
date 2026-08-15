@@ -1697,6 +1697,16 @@ const FrequencyResponseChart = ({
       if (event.code !== 'Space' || event.altKey || event.repeat) {
         return;
       }
+      // Karaoke uses Space for its transport, including inside the Maker.
+      // The response graph can remain visible below that tab, but it is not
+      // the active keyboard context and must not cycle looks behind playback.
+      if (
+        document.querySelector(
+          '.karaoke-workspace:not(.is-hidden):not([aria-hidden="true"])',
+        )
+      ) {
+        return;
+      }
       const target = event.target as HTMLElement | null;
       if (
         target?.isContentEditable ||

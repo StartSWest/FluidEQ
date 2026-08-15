@@ -210,6 +210,38 @@ describe('sign-in', () => {
     expect(isNavigableVideoUrl('https://cdn1.suno.ai/track.mp3')).toBe(true);
   });
 
+  it('lets supported sites reach each external identity provider they offer', () => {
+    expect(
+      isNavigableVideoUrl('https://appleid.apple.com/auth/authorize'),
+    ).toBe(true);
+    expect(
+      isNavigableVideoUrl('https://discord.com/api/oauth2/authorize'),
+    ).toBe(true);
+    expect(
+      isNavigableVideoUrl('https://www.facebook.com/v24.0/dialog/oauth'),
+    ).toBe(true);
+    expect(
+      isNavigableVideoUrl(
+        'https://login.microsoftonline.com/common/oauth2/v2.0/authorize',
+      ),
+    ).toBe(true);
+    expect(
+      isNavigableVideoUrl('https://login.live.com/oauth20_authorize.srf'),
+    ).toBe(true);
+    expect(isNavigableVideoUrl('https://www.amazon.com/ap/oa')).toBe(true);
+  });
+
+  it('limits external identity providers to their authorization hosts', () => {
+    expect(isNavigableVideoUrl('https://www.apple.com/store')).toBe(false);
+    expect(isNavigableVideoUrl('https://support.discord.com/')).toBe(false);
+    expect(isNavigableVideoUrl('https://developers.facebook.com/')).toBe(false);
+    expect(isNavigableVideoUrl('https://www.microsoft.com/')).toBe(false);
+    expect(isNavigableVideoUrl('https://account.live.com/')).toBe(false);
+    expect(isNavigableVideoUrl('https://sellercentral.amazon.com/')).toBe(
+      false,
+    );
+  });
+
   it('still allows every site it puts a button on', () => {
     VIDEO_SITES.forEach((site) => {
       expect(`${site.name} home: ${isNavigableVideoUrl(site.home)}`).toBe(

@@ -125,6 +125,21 @@ html[data-cleartube-block-video-ads="true"] ytd-popup-container:has(ytd-enforcem
 }
 `;
 
+/**
+ * Apple paints dark form text but leaves the page canvas transparent in this
+ * embedded Chromium path. A normal browser supplies a white canvas; FluidEQ's
+ * transparent webview instead showed the app's navy surface through it and
+ * made the form nearly unreadable. This runs in the preload for both the player
+ * and its sign-in popup, before first paint, and is deliberately scoped to the
+ * one document that needs the browser-like fallback.
+ */
+const APPLE_AUTH_BACKGROUND_CSS = `
+html,
+body {
+  background-color: #ffffff !important;
+}
+`;
+
 const SKIP_BUTTON_SELECTORS = [
   '.ytp-ad-skip-button',
   '.ytp-ad-skip-button-modern',
@@ -447,6 +462,10 @@ ipcRenderer.on(VIDEO_AD_BLOCK_CHANGED, (_event, enabled: boolean) => {
 // late, but CSS that lands after first paint is a visible flash of the ad slot
 // it was supposed to hide.
 webFrame.insertCSS(AD_BLOCK_CSS);
+
+if (window.location.hostname.toLowerCase() === 'appleid.apple.com') {
+  webFrame.insertCSS(APPLE_AUTH_BACKGROUND_CSS);
+}
 
 if (document.documentElement) {
   start();

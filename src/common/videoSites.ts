@@ -23,8 +23,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * difference is this file: there is no address bar, and a page can only send
  * the view somewhere on this list. That is what keeps an embedded Chromium
  * inside an audio utility from being a general-purpose window onto the web,
- * with everything — phishing, downloads, arbitrary permission prompts — that
- * would then have to be defended against.
+ * with everything — phishing, silent downloads, arbitrary permission prompts
+ * — that would then have to be defended against. Downloads use an explicit OS
+ * Save As dialog and never open automatically.
  *
  * One list, read by both ends. The renderer builds its buttons from it and the
  * main process enforces it on every navigation, so a site that appears in the
@@ -216,6 +217,33 @@ const ALLOWED_HOSTS: string[] = [
 ];
 
 /**
+ * Authentication pages a supported site deliberately hands the top-level view
+ * to.
+ *
+ * These stay separate from `ALLOWED_HOSTS` because those entries are domains:
+ * each one also admits all of its subdomains for media and regional hosts. An
+ * identity provider only needs its named authorization front door. Keeping an
+ * exact-host list lets Apple, Amazon, Discord, Facebook and Microsoft complete
+ * the same redirect flow that already works for Google without also turning
+ * the player into a browser for the rest of those providers' sites.
+ *
+ * `login.live.com` is Microsoft's personal-account hop. Suno starts at
+ * `login.microsoftonline.com`, but that service can hand a personal Microsoft
+ * account to the Live identity endpoint before returning to Suno.
+ *
+ * `www.amazon.com` is Twitch's "Continue with Amazon" endpoint. It starts at
+ * `/ap/oa` and keeps the sign-in on that same host.
+ */
+const ALLOWED_AUTH_HOSTS = new Set([
+  'appleid.apple.com',
+  'discord.com',
+  'www.facebook.com',
+  'login.microsoftonline.com',
+  'login.live.com',
+  'www.amazon.com',
+]);
+
+/**
  * The sign-in refusal is gone, and what replaced it is worth stating.
  *
  * There used to be a second list here — sign-in hosts and sign-in paths — and a
@@ -293,6 +321,7 @@ export const isAllowedVideoUrl = (url: string): boolean => {
 
   return (
     GOOGLE_ACCOUNTS_HOST.test(host) ||
+    ALLOWED_AUTH_HOSTS.has(host) ||
     ALLOWED_HOSTS.some(
       (allowed) => host === allowed || host.endsWith(`.${allowed}`),
     )

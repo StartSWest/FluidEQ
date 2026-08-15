@@ -23,8 +23,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * the size of the web, and none of the things a real browser has grown to
  * defend it — no omnibox showing where you actually are, no Safe Browsing, no
  * separate process boundary the user understands. So the player is not given
- * the web: it is given six sites, no downloads, no permissions worth having,
- * and a page that tries to leave simply does not.
+ * the web: it is given six sites, no silent downloads, no permissions worth
+ * having, and a page that tries to leave simply does not. A download only
+ * proceeds through the OS Save As dialog and is reported back to FluidEQ.
  *
  * Every one of these is enforced here, in the main process. The renderer half
  * of the player checks the same list, but only so it can say something useful
@@ -32,8 +33,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * this file is what makes that not matter.
  */
 
-import { app, ipcMain, session, shell, WebContents } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  ipcMain,
+  session,
+  shell,
+  WebContents,
+} from 'electron';
 import log from 'electron-log';
+import fs from 'fs';
 import path from 'path';
 import {
   VIDEO_BROWSER_PARTITION,
@@ -46,6 +55,53 @@ import {
   VIDEO_AD_BLOCK_DEFAULT,
   VIDEO_AD_BLOCK_REQUEST,
 } from '../common/videoAdBlock';
+import {
+  IVideoDownloadUpdate,
+  TVideoDownloadPhase,
+  VIDEO_DOWNLOAD_CHANGED,
+  VIDEO_DOWNLOAD_REVEAL,
+} from '../common/videoDownloads';
+
+const completedVideoDownloads = new Set<string>();
+let nextVideoDownloadId = 0;
+
+const sendVideoDownloadUpdate = (
+  source: WebContents,
+  update: IVideoDownloadUpdate,
+) => {
+  const host = source.hostWebContents;
+  if (host && !host.isDestroyed()) {
+    host.send(VIDEO_DOWNLOAD_CHANGED, update);
+    return;
+  }
+  BrowserWindow.getAllWindows().forEach((window) => {
+    if (!window.isDestroyed()) {
+      window.webContents.send(VIDEO_DOWNLOAD_CHANGED, update);
+    }
+  });
+};
+
+const rememberCompletedVideoDownload = (filePath: string) => {
+  completedVideoDownloads.add(path.resolve(filePath));
+  if (completedVideoDownloads.size > 100) {
+    const oldest = completedVideoDownloads.values().next().value;
+    if (typeof oldest === 'string') {
+      completedVideoDownloads.delete(oldest);
+    }
+  }
+};
+
+const revealVideoDownload = (candidate: unknown) => {
+  if (typeof candidate !== 'string') {
+    return false;
+  }
+  const resolved = path.resolve(candidate);
+  if (!completedVideoDownloads.has(resolved) || !fs.existsSync(resolved)) {
+    return false;
+  }
+  shell.showItemInFolder(resolved);
+  return true;
+};
 
 /**
  * What a page in the player may ask for and be given.
@@ -135,6 +191,10 @@ const POPUP_WINDOW_OPTIONS = {
   width: 520,
   height: 720,
   autoHideMenuBar: true,
+  // Identity pages commonly leave their root canvas transparent while their
+  // own stylesheet arrives. Without a light fallback that exposes FluidEQ's
+  // navy window behind dark form text; Apple is the visible example.
+  backgroundColor: '#ffffff',
 };
 
 /** Where a player is sent when it has to be pulled back from somewhere else. */
@@ -334,11 +394,57 @@ const lockDownSession = () => {
     callback({});
   });
 
-  // A download started by a web page is a file arriving on someone's disk
-  // because of markup they did not read. There is no download UI here, no
-  // scanning and no way to show where it went, so the answer is no.
-  videoSession.on('will-download', (event) => {
-    event.preventDefault();
+  // Every download needs an explicit destination chosen in the OS dialog.
+  // FluidEQ never opens the downloaded file; it only reports progress and can
+  // reveal the completed file in Explorer after the user asks.
+  videoSession.on('will-download', (_event, item, source) => {
+    nextVideoDownloadId += 1;
+    const id = `video-download-${Date.now()}-${nextVideoDownloadId}`;
+    const fileName = path.basename(item.getFilename() || 'download');
+    const update = (phase: TVideoDownloadPhase) => {
+      const receivedBytes = Math.max(0, item.getReceivedBytes());
+      const rawTotalBytes = item.getTotalBytes();
+      const totalBytes = rawTotalBytes > 0 ? rawTotalBytes : undefined;
+      const savePath = item.getSavePath();
+      sendVideoDownloadUpdate(source, {
+        id,
+        phase,
+        fileName,
+        filePath: savePath || undefined,
+        receivedBytes,
+        totalBytes,
+        percent:
+          totalBytes !== undefined
+            ? Math.max(0, Math.min(100, (receivedBytes / totalBytes) * 100))
+            : undefined,
+      });
+    };
+
+    item.setSaveDialogOptions({
+      title: 'Save download to your computer',
+      defaultPath: path.join(app.getPath('downloads'), fileName),
+      buttonLabel: 'Save',
+    });
+    update('choosing');
+
+    item.on('updated', (_downloadEvent, state) => {
+      update(state === 'interrupted' ? 'failed' : 'downloading');
+    });
+    item.once('done', (_downloadEvent, state) => {
+      if (state === 'completed') {
+        const savePath = item.getSavePath();
+        if (savePath) {
+          rememberCompletedVideoDownload(savePath);
+          log.info(`Video download saved to ${savePath}`);
+        }
+        update('completed');
+      } else if (state === 'cancelled') {
+        update('cancelled');
+      } else {
+        log.warn(`Video download failed: ${fileName} (${state})`);
+        update('failed');
+      }
+    });
   });
 };
 
@@ -807,6 +913,9 @@ export const setUpVideoBrowser = () => {
   // Asked by each player as it loads, so a reload or a new page starts in
   // whatever state the switch is actually in.
   ipcMain.handle(VIDEO_AD_BLOCK_REQUEST, () => isAdBlockEnabled);
+  ipcMain.handle(VIDEO_DOWNLOAD_REVEAL, (_event, filePath: unknown) =>
+    revealVideoDownload(filePath),
+  );
 };
 
 /** Called from the window's IPC handler when the switch moves. */

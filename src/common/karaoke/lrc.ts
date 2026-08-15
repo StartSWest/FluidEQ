@@ -27,7 +27,7 @@ const LINE_TIMESTAMP = /\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g;
 const WORD_TIMESTAMP = /<(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?>/g;
 const META_TAG = /^\[([a-z]+):([^\]]*)\]\s*$/i;
 const SECTION_MARKER =
-  /^\s*\[\s*(intro|verse(?:\s+\d+)?|pre[\s-]?chorus|chorus(?:\s+\d+)?|bridge|break|instrumental|interlude|solo|outro|hook|refrain|ending)\s*\]\s*$/iu;
+  /^\s*\[\s*(intro|verse(?:\s+\d+)?|pre[\s-]?chorus|post[\s-]?chorus|chorus(?:\s+\d+)?|bridge|break|instrumental|interlude|solo|outro|hook|refrain|ending)\s*\]\s*$/iu;
 
 const fractionToMs = (fraction = ''): number => {
   if (!fraction) {

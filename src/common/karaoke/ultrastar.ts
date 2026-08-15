@@ -81,6 +81,7 @@ export const parseUltraStar = (contents: string): IKaraokeParsedLyrics => {
 
   const gapCandidate = parseDecimal(metadata.get('GAP') ?? '0');
   const gapMs = Number.isFinite(gapCandidate) ? gapCandidate : 0;
+  const language = metadata.get('LANGUAGE')?.trim() || undefined;
   const relative = /^(yes|true|1)$/i.test(metadata.get('RELATIVE') ?? '');
   const providerClock = {
     unit: 'ticks' as const,
@@ -205,6 +206,7 @@ export const parseUltraStar = (contents: string): IKaraokeParsedLyrics => {
     },
     gapMs,
     bpm,
+    language,
     sourceFormat: 'ultrastar',
   };
 };

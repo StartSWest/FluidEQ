@@ -110,17 +110,16 @@ interface IKaraokeMakerVocalPhrase {
   notes: IKaraokeMakerAnalysisNote[];
 }
 
-/** Keep every automatic timing source on the offset the editor currently shows. */
+/**
+ * Audio analysis already uses the complete decoded file, so its timestamps are
+ * absolute song time. UltraStar/LRC importers have already applied provider
+ * offsets to their canonical tokens; adding GAP here a second time moves every
+ * detected vocal into a later instrumental section.
+ */
 export const karaokeMakerAnalysisOffsetMs = (
-  project: IKaraokeMakerProject,
-  earliestStartMs: number,
-): number =>
-  Math.round(
-    Math.max(
-      Number.isFinite(project.meta.gapMs) ? project.meta.gapMs : 0,
-      -Math.max(0, earliestStartMs),
-    ),
-  );
+  _project: IKaraokeMakerProject,
+  _earliestStartMs: number,
+): number => 0;
 
 interface IKaraokeMakerWorkerMessage {
   id: string;
@@ -152,25 +151,12 @@ const downsample = (
   return target;
 };
 
-const mixAnalysisChannel = (
-  buffer: AudioBuffer,
-  vocalFocus: boolean,
-): Float32Array => {
+const mixAnalysisChannel = (buffer: AudioBuffer): Float32Array => {
   const mixed = new Float32Array(buffer.length);
-  if (vocalFocus && buffer.numberOfChannels >= 2) {
-    const left = buffer.getChannelData(0);
-    const right = buffer.getChannelData(1);
+  for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
+    const samples = buffer.getChannelData(channel);
     for (let index = 0; index < mixed.length; index += 1) {
-      // Lead vocals are normally in the mid channel. This is deliberately
-      // called a focus rather than separation: centred instruments remain.
-      mixed[index] = (left[index] + right[index]) * 0.5;
-    }
-  } else {
-    for (let channel = 0; channel < buffer.numberOfChannels; channel += 1) {
-      const samples = buffer.getChannelData(channel);
-      for (let index = 0; index < mixed.length; index += 1) {
-        mixed[index] += samples[index] / buffer.numberOfChannels;
-      }
+      mixed[index] += samples[index] / buffer.numberOfChannels;
     }
   }
   // One-pole high-pass removes rumble that otherwise wins autocorrelation.
@@ -192,7 +178,6 @@ const mixAnalysisChannel = (
 
 export const decodeKaraokeMakerAudio = async (
   file: File,
-  vocalFocus: boolean,
 ): Promise<{
   samples: Float32Array;
   sampleRate: number;
@@ -205,7 +190,7 @@ export const decodeKaraokeMakerAudio = async (
     validateAnalysisDuration(buffer.duration);
     return {
       samples: downsample(
-        mixAnalysisChannel(buffer, vocalFocus),
+        mixAnalysisChannel(buffer),
         buffer.sampleRate,
         ANALYSIS_SAMPLE_RATE,
       ),
@@ -219,7 +204,6 @@ export const decodeKaraokeMakerAudio = async (
 
 export const analyzeKaraokeMakerAudio = async (
   file: File,
-  vocalFocus: boolean,
   onProgress: (progress: number) => void,
   signal?: AbortSignal,
 ): Promise<IKaraokeMakerAnalysisResult & { durationMs: number }> => {
@@ -227,7 +211,7 @@ export const analyzeKaraokeMakerAudio = async (
     throw new DOMException('Analysis cancelled.', 'AbortError');
   }
   onProgress(0.01);
-  const decoded = await decodeKaraokeMakerAudio(file, vocalFocus);
+  const decoded = await decodeKaraokeMakerAudio(file);
   if (signal?.aborted) {
     throw new DOMException('Analysis cancelled.', 'AbortError');
   }
@@ -677,18 +661,133 @@ export const autoAlignKaraokeMakerProject = (
   );
 };
 
+/**
+ * Whisper sometimes collapses a repeated line even though the pitch detector
+ * still sees the second vocal phrase. Re-time only low-confidence Whisper
+ * estimates against those vocal regions; recognized and manually edited words
+ * are temporary anchors and are restored byte-for-byte afterwards.
+ */
+export const repairEstimatedWhisperTimingWithMelody = (
+  project: IKaraokeMakerProject,
+  incomingNotes: readonly IKaraokeMakerAnalysisNote[],
+): IKaraokeMakerProject => {
+  const repairableIds = new Set(
+    project.lyrics.lines.flatMap((line) =>
+      karaokeMakerLineIsSection(line)
+        ? []
+        : line.tokens.flatMap((token) =>
+            !token.timingLocked &&
+            token.source === 'whisper' &&
+            (token.confidence ?? 0) < 0.7
+              ? [token.id]
+              : [],
+          ),
+    ),
+  );
+  if (!repairableIds.size || !incomingNotes.length) {
+    return project;
+  }
+  const anchoredProject: IKaraokeMakerProject = {
+    ...project,
+    lyrics: {
+      ...project.lyrics,
+      lines: project.lyrics.lines.map((line) => ({
+        ...line,
+        tokens: line.tokens.map((token) => {
+          if (repairableIds.has(token.id)) {
+            return { ...token, startMs: undefined, endMs: undefined };
+          }
+          if (token.startMs !== undefined && token.endMs !== undefined) {
+            return { ...token, timingLocked: true };
+          }
+          return token;
+        }),
+      })),
+    },
+    melody: {
+      ...project.melody,
+      notes: project.melody.notes.filter((note) => note.source === 'manual'),
+    },
+  };
+  const repaired = autoAlignKaraokeMakerProject(anchoredProject, incomingNotes);
+  const repairedTokens = new Map(
+    repaired.lyrics.lines.flatMap((line) =>
+      line.tokens.map((token) => [token.id, token] as const),
+    ),
+  );
+  const orderedTokens = project.lyrics.lines.flatMap((line) =>
+    karaokeMakerLineIsSection(line) ? [] : line.tokens,
+  );
+  const safeRepairBounds = new Map<
+    string,
+    { lowerBoundMs: number; upperBoundMs: number }
+  >();
+  orderedTokens.forEach((token, tokenIndex) => {
+    if (!repairableIds.has(token.id)) {
+      return;
+    }
+    const previous = [...orderedTokens.slice(0, tokenIndex)]
+      .reverse()
+      .find(
+        (candidate) =>
+          !repairableIds.has(candidate.id) && candidate.endMs !== undefined,
+      );
+    const next = orderedTokens
+      .slice(tokenIndex + 1)
+      .find(
+        (candidate) =>
+          !repairableIds.has(candidate.id) && candidate.startMs !== undefined,
+      );
+    safeRepairBounds.set(token.id, {
+      lowerBoundMs: previous?.endMs ?? 0,
+      upperBoundMs:
+        next?.startMs ?? project.audio.durationMs ?? Number.MAX_SAFE_INTEGER,
+    });
+  });
+  return {
+    ...project,
+    lyrics: {
+      ...project.lyrics,
+      lines: project.lyrics.lines.map((line) => ({
+        ...line,
+        tokens: line.tokens.map((token) => {
+          if (!repairableIds.has(token.id)) {
+            return token;
+          }
+          const repairedToken = repairedTokens.get(token.id);
+          const bounds = safeRepairBounds.get(token.id);
+          return repairedToken?.startMs !== undefined &&
+            repairedToken.endMs !== undefined &&
+            bounds !== undefined &&
+            repairedToken.startMs >= bounds.lowerBoundMs &&
+            repairedToken.endMs <= bounds.upperBoundMs
+            ? {
+                ...token,
+                startMs: repairedToken.startMs,
+                endMs: repairedToken.endMs,
+                confidence: Math.max(
+                  token.confidence ?? 0,
+                  repairedToken.confidence ?? 0,
+                ),
+                source: 'auto-align' as const,
+              }
+            : token;
+        }),
+      })),
+    },
+  };
+};
+
 /** Convert already-positioned editor notes back to analysis-space timing. */
 export const karaokeMakerAnalysisNotesFromMelody = (
   project: IKaraokeMakerProject,
-): IKaraokeMakerAnalysisNote[] => {
-  const offsetMs = Number.isFinite(project.meta.gapMs) ? project.meta.gapMs : 0;
-  return project.melody.notes.map((note) => ({
-    startMs: note.startMs - offsetMs,
-    endMs: note.endMs - offsetMs,
+): IKaraokeMakerAnalysisNote[] =>
+  project.melody.notes.map((note) => ({
+    startMs: note.startMs,
+    endMs: note.endMs,
     targetMidi: note.targetMidi,
     confidence: note.confidence ?? 1,
   }));
-};
 
 /**
  * Align newly replaced lyrics while preserving the user's existing melody.
