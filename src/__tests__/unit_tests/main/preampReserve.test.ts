@@ -113,6 +113,30 @@ describe('preamp headroom', () => {
     expect(preampValue(state)).toBe(resolved);
   });
 
+  it('hands the reserve over when automatic mode is switched off', () => {
+    // What the SET_AUTO_PREAMP handler does, in the order it does it: read the
+    // resolved value while the flag is still on, then flip it and keep that
+    // number as the manual one.
+    //
+    // The failure this pins is a level jump, not a wrong number. A profile that
+    // never set a preamp by hand carries 0 underneath an automatic value of
+    // -11, so publishing that 0 on the way out made a chain reserving 11 dB
+    // eleven decibels louder — from the switch whose entire purpose is to stop
+    // it clipping.
+    const state = withBands();
+    state.isAutoPreAmpOn = true;
+    state.preAmp = 0;
+
+    const held = getResolvedPreAmp(state);
+    expect(held).toBeLessThan(-1);
+
+    state.isAutoPreAmpOn = false;
+    state.preAmp = held;
+
+    expect(getResolvedPreAmp(state)).toBe(held);
+    expect(getResolvedPreAmp(state)).not.toBe(0);
+  });
+
   it('replaces a manual root value when automatic mode is enabled', () => {
     const state = withBands();
     state.preAmp = -5;

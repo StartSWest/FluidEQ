@@ -2711,6 +2711,16 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_TEXT, async (event, arg) => {
 
     clearCurrentLayoutSettings();
     state.preAmp = parsed.preAmp;
+    // A preamp in the file is a decision, and automatic normalization would
+    // quietly overrule it: the value lands in `preAmp`, the flush recomputes
+    // from the chain, and what plays is FluidEQ's number rather than the one in
+    // the export. Nothing said so. Whoever pasted a text that opens with
+    // `Preamp: -19 dB` asked for -19, so automatic mode steps aside and the
+    // import result says it did. Turning it back on is one click and now keeps
+    // its value on the way out.
+    if (parsed.hasPreAmp) {
+      state.isAutoPreAmpOn = false;
+    }
     state.filters = shieldReferenceBands(parsed.filters);
     state.eqFormat = parsed.eqFormat;
     state.graphicEq = parsed.graphicEq;
@@ -2731,9 +2741,19 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_TEXT, async (event, arg) => {
     await handleUpdateHelper<string>(
       event,
       channel,
-      parsed.unsupported > 0
-        ? `Imported ${Object.keys(parsed.filters).length} bands from the Squiglink export. ${parsed.unsupported} band(s) could not be edited in ${PRODUCT_NAME} and were skipped.`
-        : `Imported ${Object.keys(parsed.filters).length} bands from the Squiglink export.`,
+      [
+        `Imported ${Object.keys(parsed.filters).length} bands from the Squiglink export.`,
+        parsed.unsupported > 0
+          ? `${parsed.unsupported} band(s) could not be edited in ${PRODUCT_NAME} and were skipped.`
+          : '',
+        // Said out loud, because a switch changing itself is worse than a
+        // switch that did not, unless it tells you.
+        parsed.hasPreAmp
+          ? `Its ${parsed.preAmp} dB preamp was kept, so Auto normalize is off.`
+          : '',
+      ]
+        .filter(Boolean)
+        .join(' '),
       false,
       true,
     );
@@ -3076,11 +3096,25 @@ ipcMain.on(ChannelEnum.SET_ENABLE, async (event, arg) => {
 });
 
 ipcMain.on(ChannelEnum.SET_AUTO_PREAMP, async (event, arg) => {
-  // eslint-disable-next-line prefer-destructuring
-  state.isAutoPreAmpOn = arg[0];
-  if (state.isAutoPreAmpOn) {
-    state.preAmp = getResolvedPreAmp(state);
-  }
+  // Switching the reserve off hands its value over rather than dropping it.
+  //
+  // The flag used to be flipped and `preAmp` left alone, which sounds harmless
+  // and is not: while auto is on, the number on screen is computed at flush
+  // time and `preAmp` underneath it can be anything — 0 on a profile that never
+  // set one by hand. Turning auto off then published that 0, so a chain
+  // reserving 11 dB got 11 dB louder on one click of a switch whose whole job
+  // is to stop the chain clipping. The one gesture most likely to be made by
+  // somebody who thinks it is too quiet was also the one that clipped.
+  //
+  // It is computed *before* the flag changes, because the resolver branches on
+  // it: read it after and it answers with the manual value being replaced.
+  const isAutoPreAmpOn = Boolean(arg[0]);
+  const resolved = getResolvedPreAmp(state);
+  state.isAutoPreAmpOn = isAutoPreAmpOn;
+  // Either direction, the audible level is what auto-normalize had worked out.
+  // On, it keeps deriving it; off, that value becomes the manual one to adjust
+  // from, so the switch changes who is in charge and not how loud it is.
+  state.preAmp = resolved;
   // This is device-profile state, just like its manual preamp. Without the
   // active-session path the flag changed in memory, then the flush rebuilt APO
   // from the attached profile where Auto normalize was still off — so enabling

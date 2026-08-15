@@ -56,7 +56,12 @@ import {
 const FILTER_LINE =
   /^Filter\s+\d+\s*:\s*(ON|OFF)\s+([A-Z]+)\s+Fc\s+(-?[\d.]+)\s*Hz(?:\s+Gain\s+(-?[\d.]+)\s*dB)?(?:\s+(?:Q\s+([\d.]+)|BW\s+Oct\s+([\d.]+)))?\s*$/i;
 
-const PREAMP_LINE = /^Preamp\s*:\s*(-?[\d.]+)\s*dB\s*$/i;
+// The unit is optional. Equalizer APO writes `Preamp: -6.5 dB` and so does
+// every exporter that copied it, but a bare number is a preamp line that a
+// person plainly meant — and requiring `dB` did not reject it, it silently read
+// 0 and reported a successful import. Losing 19 dB of attenuation without a
+// word is the worst of the three possible outcomes.
+const PREAMP_LINE = /^Preamp\s*:\s*(-?[\d.]+)\s*(?:dB)?\s*$/i;
 const GRAPHIC_LINE = /^GraphicEQ\s*:\s*(.+)$/i;
 const GRAPHIC_POINT = /^([\d.]+)\s+(-?[\d.]+)$/;
 const CONVOLUTION_LINE = /^Convolution\s*:\s*(.+?)\s*$/i;
@@ -105,6 +110,15 @@ const bandwidthToQ = (octaves: number) => {
 
 export interface IParsedEqText {
   preAmp: number;
+  /**
+   * Whether the text carried a `Preamp:` line of its own.
+   *
+   * Distinct from `preAmp` being 0, which is also what a file without one
+   * yields. The importer needs the difference: a preamp somebody exported on
+   * purpose should survive the import, and it cannot if automatic
+   * normalization is left switched on to recompute over the top of it.
+   */
+  hasPreAmp: boolean;
   filters: IFiltersMap;
   eqFormat: AutoEqFormat;
   /** Present only when the file was a GraphicEQ one. */
@@ -237,6 +251,7 @@ export const parseEqText = (text: string): IParsedEqText => {
 
   return {
     preAmp,
+    hasPreAmp,
     filters,
     eqFormat,
     ...(eqFormat === AutoEqFormat.GRAPHIC ? { graphicEq } : {}),

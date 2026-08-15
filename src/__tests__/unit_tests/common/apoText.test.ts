@@ -34,6 +34,29 @@ const bands = (text: string) =>
   );
 
 describe('parseEqText', () => {
+  it('reads a preamp whether or not the unit is written', () => {
+    // Requiring `dB` did not reject a bare number, which would at least have
+    // been visible. It read 0 and reported a successful import, so a -19 dB
+    // export arrived 19 dB too loud with nothing said.
+    const band = 'Filter 1: ON PK Fc 60 Hz Gain 2.5 dB Q 2.5';
+
+    expect(parseEqText(`Preamp: -19 dB\n${band}`).preAmp).toBe(-19);
+    expect(parseEqText(`Preamp: -19.0 dB\n${band}`).preAmp).toBe(-19);
+    expect(parseEqText(`Preamp: -19\n${band}`).preAmp).toBe(-19);
+    expect(parseEqText(`Preamp:-19dB\n${band}`).preAmp).toBe(-19);
+  });
+
+  it('distinguishes a preamp of zero from no preamp at all', () => {
+    // Both leave `preAmp` at 0, and the importer has to tell them apart: one is
+    // a decision to keep, the other is a file that said nothing and should let
+    // automatic normalization carry on.
+    const band = 'Filter 1: ON PK Fc 60 Hz Gain 2.5 dB Q 2.5';
+
+    expect(parseEqText(`Preamp: 0 dB\n${band}`).hasPreAmp).toBe(true);
+    expect(parseEqText(band).hasPreAmp).toBe(false);
+    expect(parseEqText(`Preamp: -19 dB\n${band}`).hasPreAmp).toBe(true);
+  });
+
   it('reads the shapes AutoEQ writes', () => {
     const result = parseEqText(
       [
