@@ -19,6 +19,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import fs from 'fs';
 import path from 'path';
+import log from 'electron-log';
 import {
   AutoEqFormat,
   FilterTypeEnum,
@@ -560,6 +561,54 @@ export const addFileToPath = (pathPrefix: string, fileName: string) => {
   return path.join(pathPrefix, fileName);
 };
 
+/**
+ * A profile name is a filename, and it comes from the user.
+ *
+ * It arrives as `arg[0]` on four IPC channels and is joined straight onto a
+ * directory, so without this every one of those channels is an invitation to
+ * write, read, rename or delete somewhere else entirely. Refused rather than
+ * sanitised: a name that has to be rewritten to be safe is not the name anybody
+ * asked for, and quietly saving to a different file than the one requested is
+ * its own kind of wrong.
+ *
+ * The separator tests are spelled out rather than left to `basename`, which is
+ * platform-specific — a backslash is a legal filename character on POSIX, so a
+ * test run anywhere but Windows would otherwise be checking a weaker rule than
+ * the one that ships. `.` and `..` are named because they are the two values
+ * that need no separator to escape.
+ *
+ * This lived here already, guarding the baselines directory alone under the
+ * name `safeBaselineName`. The presets half — the one reachable from IPC — was
+ * the half it never covered.
+ */
+const safePresetFileName = (presetName: string): string | undefined =>
+  presetName &&
+  !presetName.includes('/') &&
+  !presetName.includes('\\') &&
+  presetName === path.basename(presetName) &&
+  presetName !== '.' &&
+  presetName !== '..'
+    ? presetName
+    : undefined;
+
+/**
+ * The path a profile is allowed to occupy, or an exception.
+ *
+ * Throwing is the point. Every caller already sits inside a `try` that reports
+ * a preset file error, so a refused name surfaces to the user as a save that
+ * did not happen — which is the truth — instead of a save that landed somewhere
+ * they will never find it.
+ */
+const presetFilePath = (presetsDir: string, presetName: string) => {
+  const safeName = safePresetFileName(presetName);
+  if (!safeName) {
+    throw new Error(
+      `Refused a profile name that is not a plain file name: ${presetName}`,
+    );
+  }
+  return path.join(presetsDir, safeName);
+};
+
 const isObject = (value: unknown): value is Record<string, unknown> =>
   value !== null && typeof value === 'object' && !Array.isArray(value);
 
@@ -818,7 +867,7 @@ export const fetchSettings = (settingsDir: string) => {
     } as IState;
   } catch (ex) {
     if ((ex as NodeJS.ErrnoException).code !== 'ENOENT') {
-      console.error(
+      log.error(
         `Unable to load saved ${PRODUCT_NAME} state; using defaults.`,
         ex,
       );
@@ -835,14 +884,14 @@ export const save = (state: IState, settingsDir: string) => {
       encoding: 'utf8',
     });
   } catch (ex) {
-    console.log(`Failed to save to ${settingsPath}`);
+    log.error(`Failed to save to ${settingsPath}`);
     throw ex;
   }
 };
 
 export const fetchPreset = (presetName: string, presetsDir: string) => {
   try {
-    const presetPath = path.join(presetsDir, presetName);
+    const presetPath = presetFilePath(presetsDir, presetName);
     const content = fs.readFileSync(presetPath, {
       encoding: 'utf8',
     });
@@ -883,8 +932,8 @@ export const fetchPreset = (presetName: string, presetsDir: string) => {
       ...('bypassed' in preset ? { bypassed } : {}),
     };
   } catch (ex) {
-    console.log('Failed to get presets!!');
-    console.log(ex);
+    log.error('Failed to get presets!!');
+    log.error(ex);
     throw ex;
   }
 };
@@ -907,7 +956,7 @@ const logPresetWrite = (presetName: string) => {
     return;
   }
   lastPresetLogAt.set(presetName, now);
-  console.log(`Wrote preset for: ${presetName}`);
+  log.info(`Wrote preset for: ${presetName}`);
 };
 
 export const savePreset = (
@@ -916,12 +965,12 @@ export const savePreset = (
   presetsDir: string,
 ) => {
   try {
-    const presetPath = path.join(presetsDir, presetName);
+    const presetPath = presetFilePath(presetsDir, presetName);
     fs.writeFileSync(presetPath, serializePreset(presetInfo), {
       encoding: 'utf8',
     });
   } catch (ex) {
-    console.log('Failed to save to preset %d', presetName);
+    log.error('Failed to save to preset %d', presetName);
     throw ex;
   }
   logPresetWrite(presetName);
@@ -937,24 +986,12 @@ export const savePreset = (
  */
 export const PRESET_BASELINES_DIR = 'preset-baselines';
 
-/**
- * Profile names come from user input and are used as filenames. A name that
- * escapes its directory is refused rather than sanitised, so a rejected write
- * can never land somewhere unexpected.
- */
-const safeBaselineName = (presetName: string) =>
-  presetName &&
-  presetName === path.basename(presetName) &&
-  !presetName.includes('..')
-    ? presetName
-    : undefined;
-
 export const savePresetBaseline = (
   presetName: string,
   presetInfo: IPresetV2,
   baselineDir: string,
 ) => {
-  const safeName = safeBaselineName(presetName);
+  const safeName = safePresetFileName(presetName);
   if (!safeName) {
     return;
   }
@@ -968,7 +1005,7 @@ export const savePresetBaseline = (
   } catch (ex) {
     // A missing baseline costs the user an undo, not their tuning. Never let
     // it fail the save that triggered it.
-    console.log(`Failed to write the baseline for ${presetName}`);
+    log.error(`Failed to write the baseline for ${presetName}`);
   }
 };
 
@@ -977,7 +1014,7 @@ export const fetchPresetBaseline = (
   presetName: string,
   baselineDir: string,
 ): IPresetV2 | undefined => {
-  const safeName = safeBaselineName(presetName);
+  const safeName = safePresetFileName(presetName);
   if (!safeName) {
     return undefined;
   }
@@ -1002,7 +1039,7 @@ export const fetchPresetBaseline = (
 };
 
 export const hasPresetBaseline = (presetName: string, baselineDir: string) => {
-  const safeName = safeBaselineName(presetName);
+  const safeName = safePresetFileName(presetName);
   return safeName ? fs.existsSync(path.join(baselineDir, safeName)) : false;
 };
 
@@ -1010,7 +1047,7 @@ export const deletePresetBaseline = (
   presetName: string,
   baselineDir: string,
 ) => {
-  const safeName = safeBaselineName(presetName);
+  const safeName = safePresetFileName(presetName);
   if (!safeName) {
     return;
   }
@@ -1026,8 +1063,8 @@ export const renamePresetBaseline = (
   newName: string,
   baselineDir: string,
 ) => {
-  const safeOld = safeBaselineName(oldName);
-  const safeNew = safeBaselineName(newName);
+  const safeOld = safePresetFileName(oldName);
+  const safeNew = safePresetFileName(newName);
   if (!safeOld || !safeNew) {
     return;
   }
@@ -1105,21 +1142,28 @@ export const repairUnusedPreamps = (presetsDir: string): string[] => {
 
 export const deletePreset = (presetName: string, presetsDir: string) => {
   try {
-    const presetPath = path.join(presetsDir, presetName);
+    const presetPath = presetFilePath(presetsDir, presetName);
     fs.unlinkSync(presetPath);
   } catch (ex) {
-    console.log('Failed to delete preset');
+    log.error('Failed to delete preset');
     throw ex;
   }
-  console.log(`Deleted preset: ${presetName}`);
+  log.info(`Deleted preset: ${presetName}`);
 };
 
 export const doesPresetExist = (presetName: string, presetsDir: string) => {
-  const testPath = addFileToPath(presetsDir, presetName);
+  // The one that answers rather than throws. A name that cannot name a profile
+  // is a name no profile is stored under, and the callers are asking whether it
+  // is taken — "no" is both true and the answer that keeps them working.
+  const safeName = safePresetFileName(presetName);
+  if (!safeName) {
+    return false;
+  }
+  const testPath = addFileToPath(presetsDir, safeName);
   try {
     return fs.existsSync(testPath);
   } catch (ex) {
-    console.log('Failed to check whether preset %d exists', presetName);
+    log.error('Failed to check whether preset %d exists', presetName);
     throw ex;
   }
 };
@@ -1129,12 +1173,14 @@ export const renamePreset = (
   newName: string,
   presetsDir: string,
 ) => {
-  const oldPath = addFileToPath(presetsDir, oldName);
-  const newPath = addFileToPath(presetsDir, newName);
+  // Both ends checked. A rename is a read and a write, and the destination is
+  // the one an attacker would choose.
+  const oldPath = presetFilePath(presetsDir, oldName);
+  const newPath = presetFilePath(presetsDir, newName);
   try {
     fs.renameSync(oldPath, newPath);
   } catch (ex) {
-    console.log('Failed to rename preset %d to preset %d', oldName, newName);
+    log.error('Failed to rename preset %d to preset %d', oldName, newName);
     throw ex;
   }
 };

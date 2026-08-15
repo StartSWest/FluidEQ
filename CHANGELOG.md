@@ -53,6 +53,16 @@ obvious way out.
   normalization recomputed over the value the file asked for, so what played was
   our number rather than the exported one. A file that carries a preamp line now
   switches automatic mode off, and the import result says that it did.
+- **Profile names can no longer reach outside the profiles folder.** A saved
+  profile is stored under the name you give it, and that name was being used to
+  build the file path without checking it stayed where it belonged. Loading,
+  saving, renaming and deleting all check now, and a name that would land
+  somewhere else is refused rather than quietly rewritten.
+- **Links only open in a browser if they are browser links.** Anything the app
+  offered to open externally was handed to Windows as-is, which is not the same
+  thing as opening a web page. Only `http` and `https` are passed on — the
+  Remote Media player already worked this way, and now the rest of the app does
+  too.
 - **Rainbow mode switches off properly the first time you win it.** Turning it
   off in the session it was earned in left most of the colour on screen —
   parts of the app went back to normal and the rest kept celebrating. It looked

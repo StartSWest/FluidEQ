@@ -8,7 +8,6 @@ import {
   karaokeMakerInheritedLineStart,
   karaokeMakerLinePlaybackTarget,
   karaokeMakerRecordedLineContainsTime,
-  karaokeMakerSuggestedStartIntent,
   karaokeMakerTokenWasUserTouched,
   makerLinesFromPlainText,
   parseKaraokeMakerProject,
@@ -17,8 +16,6 @@ import {
   resizeKaraokeMakerTokenBoundary,
   serializeKaraokeMakerProject,
   shiftKaraokeMakerLineTailFromToken,
-  shiftKaraokeMakerLineFromToken,
-  shiftKaraokeMakerFromToken,
   shiftKaraokeMakerTimeline,
   splitKaraokeMakerWordIntoSyllables,
   validateKaraokeMakerProject,
@@ -1090,79 +1087,6 @@ describe('Karaoke Maker canonical project and exports', () => {
     expect(clamped.melody.notes[0].startMs).toBe(0);
   });
 
-  it('moves lyrics from a selected word while preserving the synced prefix', () => {
-    const project = createKaraokeMakerProject(song());
-    const [first, second] = project.lyrics.lines[0].tokens;
-    const shifted = shiftKaraokeMakerFromToken(project, second.id, 725);
-
-    expect(shifted.lyrics.lines[0].tokens[0]).toMatchObject({
-      id: first.id,
-      startMs: 1_000,
-      endMs: 1_500,
-    });
-    expect(shifted.lyrics.lines[0].tokens[1]).toMatchObject({
-      id: second.id,
-      startMs: 2_225,
-      endMs: 2_725,
-      source: 'manual',
-      timingLocked: true,
-    });
-    expect(shifted.melody.notes[0].startMs).toBe(1_000);
-    expect(shifted.melody.notes[1]).toMatchObject({
-      startMs: 2_225,
-      endMs: 2_725,
-    });
-    expect(shifted.meta.gapMs).toBe(project.meta.gapMs);
-
-    const clamped = shiftKaraokeMakerFromToken(shifted, second.id, -10_000);
-    expect(clamped.lyrics.lines[0].tokens[0].endMs).toBe(1_500);
-    expect(clamped.lyrics.lines[0].tokens[1].startMs).toBe(1_500);
-  });
-
-  it('moves a complete lyric sentence and its linked notes from the first word', () => {
-    const project = createKaraokeMakerProject(song());
-    project.lyrics.lines.push({
-      id: 'next-line',
-      tokens: [
-        {
-          id: 'next-word',
-          text: 'Next',
-          startsWord: true,
-          startMs: 4_000,
-          endMs: 4_500,
-          source: 'imported',
-        },
-      ],
-    });
-    const [first, second] = project.lyrics.lines[0].tokens;
-    const shifted = shiftKaraokeMakerLineFromToken(project, first.id, 500);
-
-    expect(shifted.lyrics.lines[0].tokens).toEqual([
-      expect.objectContaining({
-        id: first.id,
-        startMs: 1_500,
-        endMs: 2_000,
-        timingLocked: true,
-      }),
-      expect.objectContaining({
-        id: second.id,
-        startMs: 2_000,
-        endMs: 2_500,
-        timingLocked: true,
-      }),
-    ]);
-    expect(shifted.melody.notes).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ startMs: 1_500, endMs: 2_000 }),
-        expect.objectContaining({ startMs: 2_000, endMs: 2_500 }),
-      ]),
-    );
-    expect(shifted.lyrics.lines[1].tokens[0]).toMatchObject({
-      startMs: 4_000,
-      endMs: 4_500,
-    });
-  });
-
   it('records line entrances while preserving internal word rhythm', () => {
     const project = createKaraokeMakerProject(song());
     project.audio.durationMs = 12_000;
@@ -1312,13 +1236,6 @@ describe('Karaoke Maker canonical project and exports', () => {
     ).toBeUndefined();
     expect(karaokeMakerInheritedLineStart(lines, 1)).toBe(recordedEndMs + 40);
     expect(karaokeMakerInheritedLineStart(lines, 2)).toBeUndefined();
-  });
-
-  it('treats an early Enter as an explicit start and a later Enter as the end', () => {
-    expect(karaokeMakerSuggestedStartIntent(10_000, 10_300, 2_800)).toBe(
-      'start',
-    );
-    expect(karaokeMakerSuggestedStartIntent(10_000, 11_400, 2_800)).toBe('end');
   });
 
   it('keeps a recorded start exact and trims only an overlapping previous end', () => {

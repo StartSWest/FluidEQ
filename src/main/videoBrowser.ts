@@ -44,6 +44,7 @@ import {
 import log from 'electron-log';
 import fs from 'fs';
 import path from 'path';
+import { openExternalIfSafe } from './safeExternal';
 import {
   VIDEO_BROWSER_PARTITION,
   VIDEO_LINK_BLOCKED,
@@ -964,24 +965,11 @@ export const clearVideoSession = async () => {
  *
  * Reached only from the notice the player shows after refusing to navigate,
  * which prints the address first and needs a press to go anywhere. The scheme
- * is checked again here rather than trusted: this is an IPC endpoint, so what
- * arrives is whatever the renderer sent, and `shell.openExternal` hands its
- * argument to the OS — which will happily act on `file:` or on any custom
- * protocol some other installed application has registered.
+ * is checked rather than trusted: this is an IPC endpoint, so what arrives is
+ * whatever the renderer sent. That check now lives in `safeExternal.ts`, which
+ * is where the main window's window-open handler reads it from too — it was
+ * passing its URL through unchecked while this half was careful.
  */
 export const openVideoLinkExternally = (url: string) => {
-  let protocol: string;
-  try {
-    protocol = new URL(url).protocol;
-  } catch {
-    return;
-  }
-
-  if (protocol !== 'https:' && protocol !== 'http:') {
-    return;
-  }
-
-  shell.openExternal(url).catch(() => {
-    // The OS refused to open it; there is nothing useful to say about that.
-  });
+  openExternalIfSafe(url);
 };

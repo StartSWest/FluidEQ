@@ -42,7 +42,7 @@ import type { NsisUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
-import { exec, execFile } from 'child_process';
+import { execFile } from 'child_process';
 import { createHash } from 'crypto';
 import { redact } from '../common/bugReport';
 import {
@@ -155,6 +155,7 @@ import {
   setUpVideoBrowser,
   setVideoAdBlockEnabled,
 } from './videoBrowser';
+import { openExternalIfSafe } from './safeExternal';
 import { adoptBlock, hasChainDrifted } from '../common/apoSync';
 import {
   adoptApoFeatureText,
@@ -606,7 +607,7 @@ const saveWindowState = () => {
     );
   } catch (error) {
     // Losing the window position is not worth an error on screen.
-    console.warn('Unable to save the window position', error);
+    log.warn('Unable to save the window position', error);
   }
 };
 
@@ -636,10 +637,7 @@ const syncDatabasesOnStartup = async () => {
     .catch((reason) => ({ status: 'rejected' as const, reason }));
 
   if (autoeqResult.status === 'rejected') {
-    console.warn(
-      'Unable to synchronize the AutoEq database',
-      autoeqResult.reason,
-    );
+    log.warn('Unable to synchronize the AutoEq database', autoeqResult.reason);
   }
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
@@ -764,7 +762,7 @@ const hydrateActiveConvolution = () => {
       return true;
     }
   } catch (error) {
-    console.warn('Unable to analyze the active convolution WAV', error);
+    log.warn('Unable to analyze the active convolution WAV', error);
   }
   return false;
 };
@@ -802,7 +800,7 @@ const loadLayoutSettings = (): ILayoutSettingsFile => {
 // no reason, which is not something a user would ever notice as a setting.
 const repairedProfiles = repairUnusedPreamps(presetPath);
 if (repairedProfiles.length > 0) {
-  console.log(
+  log.info(
     `Cleared unused preamp on ${repairedProfiles.length} automatic profile(s):`,
     repairedProfiles.join(', '),
   );
@@ -818,7 +816,7 @@ const saveLayoutSettings = () => {
       'utf8',
     );
   } catch (error) {
-    console.warn('Unable to save per-layout frequencies', error);
+    log.warn('Unable to save per-layout frequencies', error);
   }
 };
 
@@ -1162,21 +1160,27 @@ try {
     fs.mkdirSync(presetPath, { recursive: true });
   }
 } catch (e) {
-  console.error('Failed to make presets directory!!');
-  console.error(e);
+  log.error('Failed to make presets directory!!');
+  log.error(e);
   throw e;
 }
 
 // spawn child process to update presets folder so that it can support case-sensitive files
 if (process.platform === 'win32') {
-  exec(
-    `fsutil.exe file SetCaseSensitiveInfo "${presetPath}"`,
+  // `execFile`, not `exec`: the path goes across as an argument rather than
+  // being pasted into a command line for a shell to re-parse. It comes from
+  // `app.getPath('userData')` so there is nothing hostile in it today, but the
+  // quoting was the only thing standing between that and a shell, and this
+  // needs no shell at all.
+  execFile(
+    'fsutil.exe',
+    ['file', 'SetCaseSensitiveInfo', presetPath],
     (err, stdout, stderr) => {
       // Error handling should occur in this callback function
       if (err) {
-        console.error(err.message.trim());
-        console.error(stdout.trim());
-        console.error(stderr.trim());
+        log.error(err.message.trim());
+        log.error(stdout.trim());
+        log.error(stderr.trim());
         return;
       }
 
@@ -1235,7 +1239,7 @@ const handleError = (
     ...(detail ? { detail } : {}),
     ...(action ? { action } : {}),
   };
-  console.log(channel);
+  log.info(channel);
   event.reply(channel, reply);
 };
 
@@ -1492,7 +1496,7 @@ const adoptBypassFromConfig = (
   if (JSON.stringify(next) === JSON.stringify(state.bypassed)) {
     return false;
   }
-  console.log(
+  log.info(
     `Adopting the switched-off layers from the Equalizer APO config: ${
       next?.join(', ') || 'none'
     }.`,
@@ -1594,7 +1598,7 @@ const adoptExistingApoConfig = () => {
         Object.values(parseEqText(features.smart).filters),
       );
       if (recovered) {
-        console.log(
+        log.info(
           'Restoring the Smart EQ correction from the Equalizer APO config.',
         );
         state.smartEq = recovered;
@@ -1653,7 +1657,7 @@ const adoptExistingApoConfig = () => {
       return;
     }
 
-    console.log(
+    log.info(
       `Adopting the Equalizer APO config for ${chain.devicePattern}: it no longer matches the stored state.`,
     );
     state.preAmp = adopted.preAmp;
@@ -1700,7 +1704,7 @@ const adoptExistingApoConfig = () => {
   } catch (error) {
     // A config we cannot read is not a reason to refuse to start. FluidEQ will
     // simply write its own over the top, which is the old behaviour.
-    console.warn('Unable to read the existing Equalizer APO config', error);
+    log.warn('Unable to read the existing Equalizer APO config', error);
   }
 };
 
@@ -1772,14 +1776,14 @@ const syncActiveApoFilesFromDisk = async () => {
       const adoption = adoptApoFeatureText(state, feature, actual);
       if (adoption.unsupported) {
         containsUnsupportedCommands = true;
-        console.warn(
+        log.warn(
           `Not adopting ${feature}: its generated APO file contains ${adoption.unsupported} unsupported command(s).`,
         );
         return;
       }
       generatedChanged = generatedChanged || adoption.changed;
       if (adoption.changed) {
-        console.log(
+        log.info(
           `Adopted an external Equalizer APO edit for the ${feature} layer.`,
         );
       }
@@ -1821,7 +1825,7 @@ const queueApoDiskSync = () => {
     apoSyncQueue = apoSyncQueue
       .then(syncActiveApoFilesFromDisk)
       .catch((error) =>
-        console.warn('Unable to synchronize Equalizer APO file edits', error),
+        log.warn('Unable to synchronize Equalizer APO file edits', error),
       );
   }, APO_WATCH_DEBOUNCE_MS);
 };
@@ -1848,7 +1852,7 @@ function startApoConfigWatcher() {
       },
     );
     apoConfigWatcher.on('error', (error) => {
-      console.warn('Equalizer APO config watcher stopped', error);
+      log.warn('Equalizer APO config watcher stopped', error);
       apoConfigWatcher?.close();
       apoConfigWatcher = undefined;
       watchedApoConfigPath = '';
@@ -1856,7 +1860,7 @@ function startApoConfigWatcher() {
   } catch (error) {
     apoConfigWatcher = undefined;
     watchedApoConfigPath = '';
-    console.warn('Unable to watch the Equalizer APO config directory', error);
+    log.warn('Unable to watch the Equalizer APO config directory', error);
   }
 }
 
@@ -1924,7 +1928,7 @@ ipcMain.on(ChannelEnum.HEALTH_CHECK, async (event) => {
 ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
   const channel = ChannelEnum.LOAD_PRESET;
   const presetName = arg[0];
-  console.log(`Loading preset: ${presetName}`);
+  log.info(`Loading preset: ${presetName}`);
 
   try {
     const presetSettings: IPresetV2 = fetchPreset(presetName, presetPath);
@@ -1952,8 +1956,8 @@ ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     attachPresetToActiveDevice(presetName);
     await handleUpdate(event, channel, true);
   } catch (ex) {
-    console.log('Failed to read preset: ', presetName);
-    console.log(ex);
+    log.info('Failed to read preset: ', presetName);
+    log.info(ex);
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
   }
 });
@@ -2000,7 +2004,7 @@ ipcMain.on(ChannelEnum.RESTORE_PRESET_BASELINE, async (event, arg) => {
     attachPresetToActiveDevice(presetName);
     await handleUpdate(event, channel, true);
   } catch (e) {
-    console.log('Failed to restore the saved copy of: ', presetName);
+    log.info('Failed to restore the saved copy of: ', presetName);
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
   }
 });
@@ -2067,7 +2071,7 @@ ipcMain.on(ChannelEnum.DELETE_PRESET, async (event, arg) => {
   const presetName = arg[0];
   await runProfileMutation(async () => {
     const pathToDelete = path.join(presetPath, presetName);
-    console.log(`Deleting preset: ${presetName} at location ${pathToDelete}`);
+    log.info(`Deleting preset: ${presetName} at location ${pathToDelete}`);
     try {
       const wasAttachedHere =
         deviceProfileSettings.assignments[activeAudioDeviceId]?.presetName ===
@@ -2148,12 +2152,12 @@ ipcMain.on(ChannelEnum.GET_PRESET_FILE_LIST, async (event) => {
     const fileNames: string[] = fs
       .readdirSync(presetPath)
       .filter((fileName) => !isAutomaticPresetName(fileName));
-    console.log(`Fetched ${fileNames.length} files`);
+    log.info(`Fetched ${fileNames.length} files`);
     const reply: TSuccess<string[]> = { result: fileNames };
     event.reply(channel, reply);
   } catch (e) {
-    console.error('Failed to get filenames');
-    console.error(e);
+    log.error('Failed to get filenames');
+    log.error(e);
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
   }
 });
@@ -2357,10 +2361,7 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
           );
         });
       } catch (error) {
-        console.error(
-          'Failed to flush the profile for the active output',
-          error,
-        );
+        log.error('Failed to flush the profile for the active output', error);
       }
 
       // Last, and outside the try: the config write can fail without making the
@@ -2371,7 +2372,7 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
     const reply: TSuccess<IAudioDevice[]> = { result: devices };
     event.reply(channel, reply);
   } catch (e) {
-    console.error('Failed to enumerate Windows audio endpoints', e);
+    log.error('Failed to enumerate Windows audio endpoints', e);
     handleError(event, channel, ErrorCode.FAILURE);
   }
 });
@@ -2383,7 +2384,7 @@ ipcMain.on(ChannelEnum.SET_DEFAULT_AUDIO_DEVICE, async (event, arg) => {
     const reply: TSuccess<void> = { result: undefined };
     event.reply(channel, reply);
   } catch (e) {
-    console.error('Failed to change the Windows audio output', e);
+    log.error('Failed to change the Windows audio output', e);
     handleError(event, channel, ErrorCode.FAILURE);
   }
 });
@@ -2422,7 +2423,7 @@ ipcMain.on(ChannelEnum.ASSIGN_DEVICE_PROFILE, async (event, arg) => {
     saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
     await handleUpdate(event, channel);
   } catch (e) {
-    console.error('Failed to assign device profile', e);
+    log.error('Failed to assign device profile', e);
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
   }
 });
@@ -2436,16 +2437,16 @@ ipcMain.on(ChannelEnum.REMOVE_DEVICE_PROFILE, async (event, arg) => {
 
 ipcMain.on(ChannelEnum.GET_AUTO_EQ_DEVICE_LIST, async (event) => {
   const channel = ChannelEnum.GET_AUTO_EQ_DEVICE_LIST;
-  console.log(`Getting AutoEQ Device List`);
+  log.info(`Getting AutoEQ Device List`);
 
   try {
     const fileNames: string[] = getAutoEqDeviceList();
-    console.log(`Fetched ${fileNames.length} files`);
+    log.info(`Fetched ${fileNames.length} files`);
     const reply: TSuccess<string[]> = { result: fileNames };
     event.reply(channel, reply);
   } catch (e) {
-    console.error('Failed to get devices');
-    console.error(e);
+    log.error('Failed to get devices');
+    log.error(e);
     handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
   }
 });
@@ -2453,16 +2454,16 @@ ipcMain.on(ChannelEnum.GET_AUTO_EQ_DEVICE_LIST, async (event) => {
 ipcMain.on(ChannelEnum.GET_AUTO_EQ_RESPONSE_LIST, async (event, arg) => {
   const channel = ChannelEnum.GET_AUTO_EQ_RESPONSE_LIST;
   const deviceName: string = arg[0];
-  console.log(`Getting AutoEQ supported response list for ${deviceName}`);
+  log.info(`Getting AutoEQ supported response list for ${deviceName}`);
 
   try {
     const fileNames: string[] = getAutoEqResponseList(deviceName);
-    console.log(`Fetched ${fileNames.length} files`);
+    log.info(`Fetched ${fileNames.length} files`);
     const reply: TSuccess<string[]> = { result: fileNames };
     event.reply(channel, reply);
   } catch (e) {
-    console.error(`Failed to get supported responses for ${deviceName}`);
-    console.error(e);
+    log.error(`Failed to get supported responses for ${deviceName}`);
+    log.error(e);
     handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
   }
 });
@@ -2523,10 +2524,10 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     applyingLayer('headphone');
     await handleUpdate(event, channel, false, true);
   } catch (ex) {
-    console.log(
+    log.info(
       `Failed to load autoeq preset from ${deviceName} to ${responseName}`,
     );
-    console.log(ex);
+    log.info(ex);
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
   }
 });
@@ -2540,7 +2541,7 @@ ipcMain.on(ChannelEnum.GET_CONVOLUTION_CATALOG, async (event, arg) => {
     };
     event.reply(channel, reply);
   } catch (error) {
-    console.error('Failed to get convolution catalogue', error);
+    log.error('Failed to get convolution catalogue', error);
     handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
   }
 });
@@ -2560,7 +2561,7 @@ ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
     state.convolution = await downloadConvolution(entryId, configPath);
     await handleUpdate(event, channel, false, true);
   } catch (error) {
-    console.error('Failed to download convolution profile', error);
+    log.error('Failed to download convolution profile', error);
     handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
   }
 });
@@ -2679,7 +2680,7 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
       true,
     );
   } catch (error) {
-    console.error('Failed to import EQ settings', error);
+    log.error('Failed to import EQ settings', error);
     handleError(
       event,
       channel,
@@ -2758,7 +2759,7 @@ ipcMain.on(ChannelEnum.IMPORT_EQ_TEXT, async (event, arg) => {
       true,
     );
   } catch (error) {
-    console.error('Failed to import Squiglink EQ text', error);
+    log.error('Failed to import Squiglink EQ text', error);
     handleError(
       event,
       channel,
@@ -2793,7 +2794,7 @@ ipcMain.on(ChannelEnum.IMPORT_CONVOLUTION_FILE, async (event) => {
       true,
     );
   } catch (error) {
-    console.error('Failed to import a convolution file', error);
+    log.error('Failed to import a convolution file', error);
     handleError(
       event,
       channel,
@@ -3048,7 +3049,7 @@ ipcMain.on(ChannelEnum.CHECK_AUTO_EQ_UPDATE, async (event) => {
     };
     event.reply(channel, reply);
   } catch (error) {
-    console.warn('Unable to check for an AutoEq database update', error);
+    log.warn('Unable to check for an AutoEq database update', error);
     handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
   }
 });
@@ -3061,7 +3062,7 @@ ipcMain.on(ChannelEnum.UPDATE_AUTO_EQ_DATABASE, async (event) => {
     };
     event.reply(channel, reply);
   } catch (error) {
-    console.error('Unable to update the AutoEq database', error);
+    log.error('Unable to update the AutoEq database', error);
     handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
   }
 });
@@ -4090,7 +4091,7 @@ const installExtensions = async () => {
       extensions.map((name) => installer[name]),
       forceDownload,
     )
-    .catch(console.log);
+    .catch(log.error);
 };
 
 const createMainWindow = async () => {
@@ -4319,7 +4320,7 @@ const createMainWindow = async () => {
   // webpack-dev-middleware was perfectly willing to hold the request until the
   // bundle finished. Load either way and let that happen.
   await waitForRenderer(rendererUrl).catch((error) => {
-    console.warn(
+    log.warn(
       'Renderer was not ready in time; loading anyway and letting the dev server finish.',
       error,
     );
@@ -4334,15 +4335,22 @@ const createMainWindow = async () => {
   // paint. The renderer receives an event when the background sync finishes
   // and refreshes whichever source is currently selected.
   syncDatabasesOnStartup().catch((error) => {
-    console.warn('Database startup synchronization failed', error);
+    log.warn('Database startup synchronization failed', error);
   });
 
   const menuBuilder = new MenuBuilder(mainWindow);
   menuBuilder.buildMenu();
 
-  // Open urls in the user's browser
+  // Open urls in the user's browser, if they are urls for a browser.
+  //
+  // `edata.url` is whatever asked for the window — a `target="_blank"` link, a
+  // `window.open`. Plenty of what this renderer draws did not originate here:
+  // lyrics, profile names, changelog text, rows from a synced measurement
+  // database. Handing any of that to the OS unchecked is how `file:` and every
+  // registered custom protocol become reachable, so the scheme is checked the
+  // same way the Remote Media player has always checked it.
   mainWindow.webContents.setWindowOpenHandler((edata) => {
-    shell.openExternal(edata.url);
+    openExternalIfSafe(edata.url);
     return { action: 'deny' };
   });
 
@@ -4452,16 +4460,16 @@ app
     // contents run under are in place by the time one can be attached.
     setUpVideoBrowser();
     createMainWindow().catch((error) => {
-      console.error(`Failed to create the ${PRODUCT_NAME} window`, error);
+      log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
     });
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) {
         createMainWindow().catch((error) => {
-          console.error(`Failed to create the ${PRODUCT_NAME} window`, error);
+          log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
         });
       }
     });
   })
-  .catch(console.log);
+  .catch(log.error);
