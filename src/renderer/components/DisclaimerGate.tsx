@@ -27,7 +27,12 @@ import {
   buildAcceptance,
   readAcceptance,
 } from 'common/disclaimer';
-import { AUTHOR_NAME, PRODUCT_VERSION } from 'common/branding';
+import {
+  AUTHOR_NAME,
+  OFFICIAL_SITE_URL,
+  PRODUCT_VERSION,
+  REPOSITORY_URL,
+} from 'common/branding';
 import { useTranslation } from '../utils/I18nContext';
 import { useFocusLock } from '../utils/useFocusLock';
 import '../styles/OverlayCard.scss';
@@ -164,6 +169,21 @@ const DisclaimerGate = () => {
           {DISCLAIMER_PARAGRAPH_KEYS.map((key) => (
             <p key={key}>{t(key, { author: AUTHOR_NAME })}</p>
           ))}
+          <section
+            className="overlay-card__provenance"
+            aria-labelledby="provenance-title"
+          >
+            <h3 id="provenance-title">{t('provenance.heading')}</h3>
+            <p>{t('provenance.body')}</p>
+            <p className="overlay-card__provenance-links">
+              <a href={OFFICIAL_SITE_URL} target="_blank" rel="noreferrer">
+                {t('provenance.site')}
+              </a>
+              <a href={REPOSITORY_URL} target="_blank" rel="noreferrer">
+                {t('provenance.repository')}
+              </a>
+            </p>
+          </section>
           {/* Which text is the original, at the end and set quietly. It is a
               note about the notice rather than part of what is being
               acknowledged. */}

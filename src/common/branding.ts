@@ -84,6 +84,7 @@ export const COPYRIGHT = `Copyright © 2026 ${AUTHOR_NAME}`;
 export const REPOSITORY_URL = 'https://github.com/StartSWest/FluidEQ';
 export const ISSUES_URL = `${REPOSITORY_URL}/issues`;
 export const LATEST_RELEASE_URL = `${REPOSITORY_URL}/releases/latest`;
+export const OFFICIAL_SITE_URL = 'https://fluideq.com';
 
 /**
  * The brand mark, as geometry rather than as a component.

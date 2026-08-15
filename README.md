@@ -324,6 +324,10 @@ pnpm package
 `pnpm package` builds an installer into `release/build`, which is what you want
 for checking a change end to end on a real machine.
 
+Official signed builds use `pnpm package:signed`; the trust boundary, required
+release variables, and private Vercel-feed contract are documented in
+[`docs/signed-updates.md`](docs/signed-updates.md).
+
 The version lives in both `package.json` and `release/app/package.json` and the
 two must agree, or the artifact is named after the wrong one.
 

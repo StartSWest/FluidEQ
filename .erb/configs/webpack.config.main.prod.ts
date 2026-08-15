@@ -95,6 +95,12 @@ const configuration: webpack.Configuration = {
       NODE_ENV: 'production',
       DEBUG_PROD: false,
       START_MINIMIZED: false,
+      // Public trust pins, set only by `pnpm package:signed`. They are compiled
+      // into main so a third-party package cannot enable updates merely by
+      // replacing app-update.yml. Azure credentials remain packaging-process
+      // variables and must never be added here.
+      FLUIDEQ_SIGN_PUBLISHER: '',
+      FLUIDEQ_UPDATE_URL: '',
       // The same public values the renderer gets, because `src/common` is read
       // by both and a constant that resolves in one process and comes back
       // empty in the other is a fault nothing reports. PRODUCT_VERSION was

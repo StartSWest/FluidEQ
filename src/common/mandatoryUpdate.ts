@@ -36,13 +36,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * untouched. So any key placed under `releaseInfo` arrives intact at the event.
  *
  * `vendor` is the key used, and specifically not `releaseName` or
- * `releaseNotes`. Those two reach `latest.yml` as well, but electron-updater's
- * GitHub provider *fills them in from the GitHub release itself* when the file
- * leaves them empty — the release title becomes `releaseName`, the release body
- * becomes `releaseNotes`. Carrying the signal in either would mean that prose
- * typed into a GitHub release form was one unlucky sentence away from blocking
+ * `releaseNotes`. Those two are user-facing release prose and publishing tools
+ * are allowed to fill or transform them. Carrying the signal in either would
+ * mean a release title or note was one unlucky sentence away from blocking
  * every installation. `vendor` exists in electron-builder's own `ReleaseInfo`
- * type for exactly this purpose and no code in the updater ever writes to it.
+ * type for metadata of this kind and no code in the updater ever writes to it.
  *
  * ## Why the value is that particular string
  *

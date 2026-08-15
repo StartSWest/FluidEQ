@@ -326,12 +326,7 @@
           "version.txt"
         ]
       }
-    ],
-    "publish": {
-      "provider": "github",
-      "owner": "StartSWest",
-      "repo": "FluidEQ"
-    }
+    ]
   },
   "devEngines": {
     "node": ">=22.x",

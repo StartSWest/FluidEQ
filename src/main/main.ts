@@ -38,7 +38,7 @@ import {
   shell,
 } from 'electron';
 import log from 'electron-log';
-import { autoUpdater } from 'electron-updater';
+import type { NsisUpdater } from 'electron-updater';
 import path from 'path';
 import fs from 'fs';
 import os from 'os';
@@ -103,7 +103,6 @@ import {
   WINDOW_HEIGHT_EXPANDED,
   WINDOW_MIN_HEIGHT,
   WINDOW_MIN_WIDTH,
-  WINDOW_WIDTH,
   getDefaultFilterWithId,
   FixedBandSizeEnum,
   getDefaultFilters,
@@ -114,7 +113,6 @@ import {
   IAutoEqUpdateStatus,
   AUTOMATIC_PRESET_PREFIX,
   APP_UPDATE_EVENT,
-  IAppUpdateStatus,
   RENDERER_READY_EVENT,
   OUTPUT_STATE_CHANGED_EVENT,
   AUTOEQ_SOURCE_ID,
@@ -124,7 +122,6 @@ import {
   TApoLayer,
   describeBandShape,
 } from '../common/constants';
-import { isMandatoryUpdate } from '../common/mandatoryUpdate';
 import { ErrorCode } from '../common/errors';
 import {
   isFixedBandSizeEnumValue,
@@ -207,39 +204,24 @@ import {
 import { sendMediaTransportKey } from './mediaKeys';
 import { POWERSHELL_PATH } from './powershell';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
+import {
+  IAuthorizedAutoUpdater,
+  setUpReleaseAutoUpdates,
+} from './signedAutoUpdates';
 
 /**
- * Check GitHub for a newer FluidEQ and tell the user about it in the app.
+ * The updater exists only after Windows verifies which release channel this
+ * process belongs to. An unsigned package uses GitHub Releases; an official
+ * signed package uses its pinned HTTPS feed. A source build, differently signed
+ * fork, incomplete release configuration, or verification failure leaves this
+ * unset, which also closes the install IPC path below.
  *
- * electron-updater fetches one small file — `latest.yml`, generated next to the
- * installer — and compares its version with the running one. Everything else
- * here is about saying so.
- *
- * The stock behaviour is `checkForUpdatesAndNotify()`, which downloads in
- * silence and then raises an OS toast. That is the wrong shape for this app:
- * the toast is easy to miss, it says nothing about what changed, and it appears
- * with no explanation of why the app was using the network. So the events are
- * forwarded to the renderer, which owns the message.
- *
- * Being offline is not an error worth showing. A laptop that opens FluidEQ on a
- * train has nothing to fix, and a red banner saying an update check failed
- * would be pure noise — it is logged and dropped.
+ * Type-only import above is deliberate. The runtime module is required inside
+ * `loadUpdater`, after verification, because reading electron-updater's
+ * singleton export constructs the platform updater.
  */
-/**
- * Whether the update listeners and the hourly check are already installed.
- *
- * This runs at the end of `createMainWindow`, and a window can be created more
- * than once — `activate` rebuilds one after the last was closed. Every call
- * added another four `autoUpdater` listeners and another hourly interval, so
- * the app would have checked for updates N times an hour and sent every update
- * event to the renderer N times over.
- *
- * The listeners belong to the module rather than to a window, which is why the
- * guard is here rather than a teardown somewhere: there is nothing to tear
- * down, only something that must happen exactly once. `send` already handles
- * the window being gone or replaced.
- */
-let hasSetUpAutoUpdates = false;
+let activeAutoUpdater: IAuthorizedAutoUpdater | undefined;
+let hasAttemptedAutoUpdates = false;
 
 /**
  * Which process is which, and how big each one is getting. Development only.
@@ -498,111 +480,30 @@ const setUpMemoryTraceTrigger = () => {
   log.info(`[trace] drop trace.start / trace.stop in ${logsDir}`);
 };
 
-const setUpAutoUpdates = () => {
-  if (hasSetUpAutoUpdates) {
+const setUpAutoUpdates = async () => {
+  if (hasAttemptedAutoUpdates) {
     return;
   }
-  hasSetUpAutoUpdates = true;
+  hasAttemptedAutoUpdates = true;
   log.transports.file.level = 'info';
-  autoUpdater.logger = log;
 
-  const send = (payload: IAppUpdateStatus) => {
-    if (!mainWindow || mainWindow.isDestroyed()) {
-      return;
-    }
-    mainWindow.webContents.send(APP_UPDATE_EVENT, payload);
-  };
-
-  /**
-   * Whether the release we are heading towards said it must be taken.
-   *
-   * Latched for the life of the process, and held nowhere else. Latched,
-   * because once an update has said this the hourly re-check must not undo it
-   * the first time a train goes through a tunnel. In memory only, because a
-   * flag written to disk is one a bug could leave behind forever — a restart
-   * clears this, and a release that really is mandatory simply says so again
-   * on the next successful check.
-   */
-  let isMandatoryPending = false;
-
-  /**
-   * Whether the bytes are already on disk.
-   *
-   * Only used to tell the two failures apart in the message: before this, an
-   * error means the update could not be fetched; after it, it means the
-   * installer would not run. They read differently and lead somewhere
-   * different, so the modal is told which one it is.
-   */
-  let hasDownloaded = false;
-
-  autoUpdater.on('update-available', (info) => {
-    // `info` is typed, but it is a YAML document off the internet. The parse
-    // is written to answer `false` to anything it does not recognise.
-    if (isMandatoryUpdate(info)) {
-      isMandatoryPending = true;
-      log.info(`Update ${info.version} is marked mandatory`);
-    }
-    send({
-      phase: 'available',
-      version: info.version,
-      ...(isMandatoryPending ? { isMandatory: true } : {}),
-    });
-  });
-
-  autoUpdater.on('download-progress', (progress) => {
-    send({
-      phase: 'downloading',
-      percent: Math.round(progress.percent),
-      ...(isMandatoryPending ? { isMandatory: true } : {}),
-    });
-  });
-
-  autoUpdater.on('update-downloaded', (info) => {
-    hasDownloaded = true;
-    send({
-      phase: 'ready',
-      version: info.version,
-      ...(isMandatoryPending ? { isMandatory: true } : {}),
-    });
-  });
-
-  autoUpdater.on('error', (error) => {
-    // Almost always "no network" or "GitHub is having a moment". Neither is
-    // something the user can act on, and neither should interrupt them.
-    log.info('Update check failed', error);
-    // Unless a mandatory update has not arrived yet, in which case saying
-    // nothing leaves a notice that cannot explain itself. Nobody else hears
-    // about it, so the ordinary case is untouched.
-    //
-    // ONLY BEFORE THE BYTES LAND. This handler hears every updater error,
-    // including the hourly re-check, and once the download is on disk those
-    // errors say nothing about it: the file is still there and Install still
-    // works. Reporting one as a failure moved the notice off `ready`, which
-    // greyed out the only Install button in the app — the mandatory notice
-    // stands `UpdateNotice` down — and told the user their installer was
-    // damaged because their laptop had gone through a tunnel.
-    //
-    // A real install failure is detected where the install is started, in the
-    // renderer: `installUpdate()` rejecting, or the timeout for the case where
-    // it neither rejects nor quits. Main cannot tell those from a failed poll
-    // and should not guess.
-    if (isMandatoryPending && !hasDownloaded) {
-      send({ phase: 'failed', isMandatory: true, failure: 'download' });
-    }
-  });
-
-  autoUpdater.checkForUpdates().catch((error) => {
-    log.info('Update check could not start', error);
-  });
-
-  // Once an hour, so a machine left running for a week still finds out. Cheap:
-  // it is a few hundred bytes of YAML unless something has actually changed.
-  setInterval(
-    () => {
-      autoUpdater.checkForUpdates().catch(() => undefined);
+  activeAutoUpdater = await setUpReleaseAutoUpdates({
+    executablePath: process.execPath,
+    isPackaged: app.isPackaged,
+    platform: process.platform,
+    publisherName: process.env.FLUIDEQ_SIGN_PUBLISHER || '',
+    updateUrl: process.env.FLUIDEQ_UPDATE_URL || '',
+    logger: log,
+    loadUpdater: () =>
+      // eslint-disable-next-line global-require
+      require('electron-updater').autoUpdater as NsisUpdater,
+    sendStatus: (payload) => {
+      if (!mainWindow || mainWindow.isDestroyed()) {
+        return;
+      }
+      mainWindow.webContents.send(APP_UPDATE_EVENT, payload);
     },
-    60 * 60 * 1000,
-  );
+  });
 };
 
 let mainWindow: BrowserWindow | null = null;
@@ -755,15 +656,72 @@ if (process.platform !== 'win32') {
   fs.mkdirSync(app.getPath('userData'), { recursive: true });
 }
 
+/** How much of the screen the window takes when nothing is remembered. */
+const FIRST_RUN_SCREEN_FRACTION = 0.9;
+
+/**
+ * Under this, a first run opens maximised instead of at 90%.
+ *
+ * Nine tenths of a small screen is not a comfortable window, it is a cramped
+ * one with a frame of wasted desktop around it — this app puts a band editor, a
+ * response graph and a profile column side by side, and below 2K something has
+ * to give. The test is against the display's **resolution**, not its work area:
+ * a 2560x1440 screen reports 2560x1392 once the taskbar is subtracted, so
+ * measuring the work area against 1440 would maximise on exactly the screens
+ * meant to get the 90% window.
+ */
+const MAXIMIZE_BELOW_WIDTH = 2560;
+const MAXIMIZE_BELOW_HEIGHT = 1440;
+
+/**
+ * Where and how big to open when nothing is remembered.
+ *
+ * A fixed 1428x625 was a guess at somebody else's monitor, and it was made
+ * worse by the graph-view expansion below: the window was centred as a 625-tall
+ * one and then grown to 1036 from the same top-left, so it reached 411px
+ * further down than the position it had been given. On a 1080p display that put
+ * the bottom edge under the taskbar on the very first launch.
+ *
+ * Nine tenths of the work area is the same proportion of whatever screen it
+ * lands on, and — because it is applied when the window is built rather than
+ * after — `center: true` centres the size the user actually gets. The size is
+ * computed even when the window will be maximised, because it is what the
+ * window returns to the first time somebody restores it down.
+ */
+const firstRunPlacement = () => {
+  const display = screen.getPrimaryDisplay();
+  const { width, height } = display.workAreaSize;
+  return {
+    maximize:
+      display.bounds.width < MAXIMIZE_BELOW_WIDTH ||
+      display.bounds.height < MAXIMIZE_BELOW_HEIGHT,
+    width: Math.max(
+      WINDOW_MIN_WIDTH,
+      Math.round(width * FIRST_RUN_SCREEN_FRACTION),
+    ),
+    height: Math.max(
+      WINDOW_MIN_HEIGHT,
+      Math.round(height * FIRST_RUN_SCREEN_FRACTION),
+    ),
+  };
+};
+
 const setWindowDimension = (isExpanded: boolean) => {
   if (mainWindow) {
     const currWidth = mainWindow.getSize()[0];
     const currHeight = mainWindow.getSize()[1];
     if (isExpanded) {
       mainWindow.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT);
+      // Never taller than the screen it is on. Growing to a fixed 1036 is fine
+      // on a large monitor and runs off the bottom of a small one, and the
+      // window keeps its top-left when it grows, so the part that disappears is
+      // the part with the graph in it.
       mainWindow.setSize(
         currWidth,
-        Math.max(currHeight, WINDOW_HEIGHT_EXPANDED),
+        Math.min(
+          Math.max(currHeight, WINDOW_HEIGHT_EXPANDED),
+          screen.getPrimaryDisplay().workAreaSize.height,
+        ),
       );
     } else {
       mainWindow.setMinimumSize(WINDOW_MIN_WIDTH, WINDOW_MIN_HEIGHT);
@@ -3761,6 +3719,9 @@ ipcMain.handle('get-changelog', (_event, scope: 'latest' | 'all') => {
  * the time this runs there is definitely something to install.
  */
 ipcMain.handle('install-update', () => {
+  if (!activeAutoUpdater) {
+    throw new Error('Updates are disabled for this build.');
+  }
   // `false` for isSilent: the NSIS installer shows its progress, which is the
   // honest thing when the app the user was using has just vanished.
   //
@@ -3769,7 +3730,7 @@ ipcMain.handle('install-update', () => {
   // it to reach the manual-install instructions — a blocking window whose only
   // button silently does nothing is the exact failure this must not have.
   try {
-    autoUpdater.quitAndInstall(false, true);
+    activeAutoUpdater.quitAndInstall(false, true);
   } catch (error) {
     log.info('Update install could not start', error);
     throw error;
@@ -4105,12 +4066,14 @@ const createMainWindow = async () => {
   };
 
   const restored = loadWindowState();
+  const isFirstRun = restored.width === undefined;
+  const firstRun = firstRunPlacement();
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: restored.width ?? WINDOW_WIDTH,
+    width: restored.width ?? firstRun.width,
     minWidth: WINDOW_MIN_WIDTH,
-    height: restored.height ?? WINDOW_HEIGHT,
+    height: restored.height ?? firstRun.height,
     minHeight: WINDOW_MIN_HEIGHT,
     // A saved position if there is one and a screen still covers it —
     // otherwise the middle of the display.
@@ -4233,13 +4196,12 @@ const createMainWindow = async () => {
     provideLoopbackSource();
   });
 
-  // Only when there is nothing remembered. The saved size is a decision the
-  // user made; forcing the graph-view height over the top of it would undo that
-  // on every launch, which is exactly what restoring the window is meant to
-  // stop. Toggling the graph in-session still resizes.
-  if (restored.width === undefined) {
-    setWindowDimension(state.isGraphViewOn);
-  }
+  // Nothing to do on a first run any more. This used to force the graph-view
+  // height when there was no saved size, which is what pushed the window off
+  // the bottom of the screen; the first-run size is now nine tenths of the work
+  // area, which has room for the graph without being told. A saved size is a
+  // decision the user made and was never overridden here. Toggling the graph
+  // in-session still resizes.
 
   let hasRevealedMainWindow = false;
   const revealMainWindow = () => {
@@ -4252,8 +4214,9 @@ const createMainWindow = async () => {
       mainWindow.minimize();
     } else {
       // Maximize before showing, so the window does not appear at its restored
-      // size and then visibly snap outward.
-      if (restored.isMaximized) {
+      // size and then visibly snap outward. A first run on a screen below 2K
+      // takes the same path, for the same reason.
+      if (restored.isMaximized || (isFirstRun && firstRun.maximize)) {
         mainWindow.maximize();
       }
       mainWindow.show();
@@ -4340,7 +4303,12 @@ const createMainWindow = async () => {
     return { action: 'deny' };
   });
 
-  setUpAutoUpdates();
+  setUpAutoUpdates().catch((error) => {
+    // A setup failure is still a disabled updater. Never recover by loading it
+    // without the signature and feed checks that just failed.
+    activeAutoUpdater = undefined;
+    log.warn('Updates disabled: updater setup failed closed.', error);
+  });
   startMemoryProbe();
   setUpMemoryTraceTrigger();
 };

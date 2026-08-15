@@ -19,17 +19,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   readSigningSettings,
   toBuilderArgs,
+  verifyUpdateConfig,
 } from '../../../../.erb/scripts/package-signed';
+import manifest from '../../../../package.json';
 
 const COMPLETE = {
   FLUIDEQ_SIGN_ENDPOINT: 'https://eus.codesigning.azure.net',
   FLUIDEQ_SIGN_ACCOUNT: 'fluideq-signing',
   FLUIDEQ_SIGN_PROFILE: 'fluideq-profile',
   FLUIDEQ_SIGN_PUBLISHER: 'Ivan Carmenates Garcia',
+  FLUIDEQ_UPDATE_URL: 'https://updates.example.com/fluideq/',
   AZURE_TENANT_ID: 'tenant',
   AZURE_CLIENT_ID: 'client',
   AZURE_CLIENT_SECRET: 'secret',
 };
+
+const SETTINGS = readSigningSettings(COMPLETE)!;
 
 describe('reading the signing configuration', () => {
   it('says nothing is configured when nothing is', () => {
@@ -40,10 +45,13 @@ describe('reading the signing configuration', () => {
 
   it('reads a complete configuration', () => {
     expect(readSigningSettings(COMPLETE)).toEqual({
-      endpoint: 'https://eus.codesigning.azure.net',
-      codeSigningAccountName: 'fluideq-signing',
-      certificateProfileName: 'fluideq-profile',
-      publisherName: 'Ivan Carmenates Garcia',
+      signing: {
+        endpoint: 'https://eus.codesigning.azure.net',
+        codeSigningAccountName: 'fluideq-signing',
+        certificateProfileName: 'fluideq-profile',
+        publisherName: 'Ivan Carmenates Garcia',
+      },
+      updateUrl: 'https://updates.example.com/fluideq/',
     });
   });
 
@@ -63,17 +71,107 @@ describe('reading the signing configuration', () => {
     ).toThrow(/AZURE_CLIENT_SECRET/);
   });
 
+  it.each([
+    'http://updates.example.com/fluideq/',
+    'https://user:password@updates.example.com/fluideq/',
+    'not a URL',
+  ])('refuses the unsafe update URL %s', (updateUrl) => {
+    expect(() =>
+      readSigningSettings({ ...COMPLETE, FLUIDEQ_UPDATE_URL: updateUrl }),
+    ).toThrow(/HTTPS URL/);
+  });
+
   it('builds the overrides electron-builder expects', () => {
     // Passed on the command line rather than written into package.json,
     // because config sitting in the manifest would make every unsigned build
     // attempt to sign and fail.
-    const args = toBuilderArgs(readSigningSettings(COMPLETE)!);
+    const args = toBuilderArgs(SETTINGS);
     expect(args).toContain(
       '--config.win.azureSignOptions.publisherName=Ivan Carmenates Garcia',
     );
-    expect(args).toHaveLength(4);
-    args.forEach((arg) =>
-      expect(arg.startsWith('--config.win.azureSignOptions.')).toBe(true),
+    expect(
+      args.filter((arg) => arg.startsWith('--config.win.azureSignOptions.')),
+    ).toHaveLength(4);
+  });
+
+  it('adds the generic feed only for the signed build', () => {
+    // The base manifest has no provider at all. The signing script must add the
+    // generic feed explicitly rather than letting an ordinary package inherit
+    // any update capability.
+    const args = toBuilderArgs(SETTINGS);
+    expect(args).toContain('--config.publish.provider=generic');
+    expect(args).toContain(
+      '--config.publish.url=https://updates.example.com/fluideq/',
     );
+  });
+});
+
+describe('checking what the built app will do when it updates', () => {
+  const good = [
+    'provider: generic',
+    'url: https://updates.example.com/fluideq/',
+    'publisherName: Ivan Carmenates Garcia',
+    'updaterCacheDirName: fluideq-app-updater',
+  ].join('\n');
+
+  it('passes a correctly configured build', () => {
+    expect(verifyUpdateConfig(good, SETTINGS)).toEqual([]);
+  });
+
+  it('fails a build whose updater verifies nothing', () => {
+    // No publisherName means NsisUpdater.verifySignature returns early without
+    // checking anything, and an unsigned installer would be accepted. The
+    // installer looks perfect; only a user finds out, much later.
+    const yaml = good.replace(/^publisherName:.*$/m, '');
+    expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([
+      expect.stringContaining('no publisherName'),
+    ]);
+  });
+
+  it('fails a build signed as somebody else', () => {
+    const yaml = good.replace(
+      'publisherName: Ivan Carmenates Garcia',
+      'publisherName: Ivan Carmenates',
+    );
+    expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([
+      expect.stringContaining('would be rejected'),
+    ]);
+  });
+
+  it('fails a signed build still pointed at GitHub', () => {
+    const yaml = good.replace('provider: generic', 'provider: github');
+    expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([
+      expect.stringContaining('must'),
+    ]);
+  });
+
+  it('reads a publisher name the writer quoted', () => {
+    // electron-builder quotes values that need it, and a name with a comma in
+    // it — which a certificate subject may well have — comes back quoted.
+    const yaml = good.replace(
+      'publisherName: Ivan Carmenates Garcia',
+      'publisherName: "Ivan Carmenates Garcia"',
+    );
+    expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([]);
+  });
+
+  it('fails a build pointed at a different generic feed', () => {
+    const yaml = good.replace(
+      'url: https://updates.example.com/fluideq/',
+      'url: https://somewhere-else.example.com/',
+    );
+    expect(verifyUpdateConfig(yaml, SETTINGS)).toEqual([
+      expect.stringContaining('somewhere-else.example.com'),
+    ]);
+  });
+});
+
+describe('the unsigned package manifest', () => {
+  it('contains no GitHub or other update provider', () => {
+    const build = manifest.build as typeof manifest.build & {
+      publish?: { provider?: string };
+    };
+    expect(build.publish).toBeUndefined();
+    expect(JSON.stringify(build)).not.toContain('"provider":"github"');
   });
 });

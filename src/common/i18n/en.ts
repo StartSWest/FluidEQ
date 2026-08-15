@@ -1111,6 +1111,11 @@ const en = {
     'This notice was written in English. If a translation differs from the English text, the English text is the one that applies.',
   'disclaimer.accept': 'I understand and accept',
   'disclaimer.decline': 'Quit',
+  'provenance.heading': 'Check where this copy came from',
+  'provenance.body':
+    "FluidEQ's official signed installer is delivered only through fluideq.com. Source builds should come from the official repository. The GPL permits third parties to copy, modify, rebuild, and sell FluidEQ, but their builds are not automatically signed, reviewed, supported, or endorsed by FluidEQ. If a download claims to be official and has no valid Windows digital signature, close it and report it.",
+  'provenance.site': 'Official site: fluideq.com',
+  'provenance.repository': 'Official source: github.com/StartSWest/FluidEQ',
 
   // *** Language ************************************************************
   'language.title': 'Language',

@@ -11,10 +11,10 @@
  * request, nothing to remember to upload alongside the installer.
  *
  * `vendor` and not `releaseName` or `releaseNotes`, even though both of those
- * also reach `latest.yml`: electron-updater's GitHub provider *fills those two
- * in from the GitHub release itself* when the file leaves them empty. Carrying
- * the signal in either would mean prose typed into a release form was one
- * unlucky sentence away from blocking every installation.
+ * also reach `latest.yml`: those fields are user-facing release prose and may
+ * be filled or transformed by publishing tooling. Carrying the signal in
+ * either would mean a release title or note was one unlucky sentence away from
+ * blocking every installation.
  *
  * ## Why it is a separate module from the signing settings
  *

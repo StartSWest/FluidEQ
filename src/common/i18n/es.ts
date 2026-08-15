@@ -1021,6 +1021,11 @@ const es: Partial<Dictionary> = {
     'Este aviso se redactó en inglés. Si una traducción difiere del texto en inglés, prevalece el texto en inglés.',
   'disclaimer.accept': 'Lo entiendo y lo acepto',
   'disclaimer.decline': 'Salir',
+  'provenance.heading': 'Comprueba de d\u00f3nde proviene esta copia',
+  'provenance.body':
+    'El instalador oficial firmado de FluidEQ se entrega \u00fanicamente a trav\u00e9s de fluideq.com. Las compilaciones desde el c\u00f3digo fuente deben partir del repositorio oficial. La GPL permite que terceros copien, modifiquen, recompilen y vendan FluidEQ, pero sus versiones no est\u00e1n autom\u00e1ticamente firmadas, revisadas, respaldadas ni aprobadas por FluidEQ. Si una descarga afirma ser oficial y no tiene una firma digital de Windows v\u00e1lida, ci\u00e9rrala e informa de ella.',
+  'provenance.site': 'Sitio oficial: fluideq.com',
+  'provenance.repository': 'C\u00f3digo oficial: github.com/StartSWest/FluidEQ',
 
   'language.title': 'Idioma',
   'language.aria': 'Idioma de la interfaz',

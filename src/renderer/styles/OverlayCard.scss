@@ -180,6 +180,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: 0.72rem;
 }
 
+.overlay-card__provenance {
+  margin-top: $spacing-m;
+  padding: $spacing-s 12px;
+  border: 1px solid rgba($secondary-light, 0.22);
+  border-left-width: 3px;
+  border-radius: $radius-xs;
+  background: rgba($secondary-default, 0.06);
+
+  h3 {
+    margin: 0 0 6px;
+    color: rgba($white, 0.92);
+    font-size: 0.8rem;
+  }
+}
+
+.overlay-card__provenance-links {
+  display: grid;
+  gap: 4px;
+}
+
 // The sentence that says closing this is a postponement rather than a
 // decision. Set apart because it is the one line whose absence would make the
 // whole dialog read as an ordinary update notice.
