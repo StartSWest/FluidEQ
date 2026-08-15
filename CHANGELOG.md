@@ -53,6 +53,11 @@ obvious way out.
   normalization recomputed over the value the file asked for, so what played was
   our number rather than the exported one. A file that carries a preamp line now
   switches automatic mode off, and the import result says that it did.
+- **Rainbow mode switches off properly the first time you win it.** Turning it
+  off in the session it was earned in left most of the colour on screen —
+  parts of the app went back to normal and the rest kept celebrating. It looked
+  fixed after a restart, which is why it was easy to miss. Off means off now,
+  whenever you ask for it.
 
 ---
 

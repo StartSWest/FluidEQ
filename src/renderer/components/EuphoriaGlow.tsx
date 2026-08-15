@@ -408,12 +408,27 @@ const EuphoriaGlow = () => {
     return () => window.clearTimeout(timer);
   }, [burst]);
 
+  // The class follows `isEuphoric`, and the variable follows `joy`. They are
+  // two different questions and deriving both from `joy` got one of them wrong.
+  //
+  // `isOn` used to be `joy >= EUPHORIA_AT`, and `joy` falls back to `earnedJoy`
+  // whenever the switch is off — so with the switch off and the streak still at
+  // the ceiling, the class stayed on. That is not a corner: it is the state the
+  // app is in for the whole of the first session, because winning is what turns
+  // the mode on for the first time and a streak does not reset when somebody
+  // stops playing. Turning it off then cleared everything gated on `isEuphoric`
+  // in React and nothing at all gated on `.is-euphoric` in the stylesheets —
+  // half a rainbow — and it came right after a restart only because the run
+  // lives in memory, so the streak was gone and the two agreed again.
+  //
+  // `useIsEuphoric` is the single answer for whether the app is in euphoria.
+  // Asking it directly is the fix; `joy` stays the creature's own 0-to-1
+  // intensity, which is about the run and legitimately outlives the switch.
   useEffect(() => {
     const root = document.documentElement;
-    const isOn = joy >= EUPHORIA_AT;
     root.style.setProperty('--pet-joy', String(joy));
-    root.classList.toggle('is-euphoric', isOn);
-  }, [joy]);
+    root.classList.toggle('is-euphoric', isEuphoric);
+  }, [isEuphoric, joy]);
 
   useEffect(
     () => () => {

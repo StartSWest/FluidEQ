@@ -119,10 +119,12 @@
     },
     "testPathIgnorePatterns": [
       "release/app/dist",
-      "<rootDir>/.claude/"
+      "<rootDir>/.claude/",
+      "<rootDir>/.gigaide/"
     ],
     "modulePathIgnorePatterns": [
-      "<rootDir>/.claude/"
+      "<rootDir>/.claude/",
+      "<rootDir>/.gigaide/"
     ],
     "transform": {
       "\\.(ts|tsx|js|jsx)$": "ts-jest"
