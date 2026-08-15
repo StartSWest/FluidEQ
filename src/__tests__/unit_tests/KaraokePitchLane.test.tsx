@@ -82,9 +82,27 @@ describe('KaraokePitchLane', () => {
 
   it('builds a smooth lead-melody guide and preserves real phrase gaps', () => {
     const guide = buildKaraokeMelodyGuide([
-      { text: 'one', startMs: 0, endMs: 200, targetMidi: 60 },
-      { text: 'two', startMs: 200, endMs: 400, targetMidi: 64 },
-      { text: 'three', startMs: 600, endMs: 800, targetMidi: 67 },
+      {
+        text: 'sing',
+        startsWord: true,
+        startMs: 0,
+        endMs: 200,
+        targetMidi: 60,
+      },
+      {
+        text: 'ing',
+        startsWord: false,
+        startMs: 200,
+        endMs: 400,
+        targetMidi: 64,
+      },
+      {
+        text: 'three',
+        startsWord: true,
+        startMs: 600,
+        endMs: 800,
+        targetMidi: 67,
+      },
     ]);
 
     const joinedBoundary = guide.filter((point) => point.songTimeMs === 200);

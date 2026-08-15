@@ -57,6 +57,26 @@ import {
   makerRu,
   makerZh,
 } from './makerLocales';
+import {
+  makerWorkflowDe,
+  makerWorkflowFr,
+  makerWorkflowHi,
+  makerWorkflowIt,
+  makerWorkflowJa,
+  makerWorkflowPt,
+  makerWorkflowRu,
+  makerWorkflowZh,
+} from './makerWorkflowLocales';
+import {
+  recentDe,
+  recentFr,
+  recentHi,
+  recentIt,
+  recentJa,
+  recentPt,
+  recentRu,
+  recentZh,
+} from './recentLocales';
 import { uiDe, uiFr, uiHi, uiIt, uiJa, uiPt, uiRu, uiZh } from './uiLocales';
 
 export type { Dictionary, TranslationKey };
@@ -103,14 +123,14 @@ export const DEFAULT_LOCALE: LocaleCode = 'en';
 const DICTIONARIES: Record<LocaleCode, Partial<Dictionary>> = {
   en,
   es,
-  pt: { ...pt, ...makerPt, ...uiPt },
-  fr: { ...fr, ...makerFr, ...uiFr },
-  de: { ...de, ...makerDe, ...uiDe },
-  it: { ...it, ...makerIt, ...uiIt },
-  ru: { ...ru, ...makerRu, ...uiRu },
-  zh: { ...zh, ...makerZh, ...uiZh },
-  ja: { ...ja, ...makerJa, ...uiJa },
-  hi: { ...hi, ...makerHi, ...uiHi },
+  pt: { ...pt, ...makerPt, ...makerWorkflowPt, ...uiPt, ...recentPt },
+  fr: { ...fr, ...makerFr, ...makerWorkflowFr, ...uiFr, ...recentFr },
+  de: { ...de, ...makerDe, ...makerWorkflowDe, ...uiDe, ...recentDe },
+  it: { ...it, ...makerIt, ...makerWorkflowIt, ...uiIt, ...recentIt },
+  ru: { ...ru, ...makerRu, ...makerWorkflowRu, ...uiRu, ...recentRu },
+  zh: { ...zh, ...makerZh, ...makerWorkflowZh, ...uiZh, ...recentZh },
+  ja: { ...ja, ...makerJa, ...makerWorkflowJa, ...uiJa, ...recentJa },
+  hi: { ...hi, ...makerHi, ...makerWorkflowHi, ...uiHi, ...recentHi },
 };
 
 /**

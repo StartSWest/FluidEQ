@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticulation';
 import { midiToFrequency } from '../../common/karaoke/pitch';
 import { IKaraokeToken, TKaraokePitchTarget } from '../../common/karaoke/types';
 
@@ -94,10 +95,13 @@ export const karaokeMelodyToneMidiAtTime = (
 ): number | undefined => {
   let activeMidi: number | undefined;
   notes.forEach((note) => {
+    const articulation = isTimedToneNote(note)
+      ? karaokeLeadNoteArticulation(note)
+      : undefined;
     if (
-      isTimedToneNote(note) &&
-      note.startMs <= timeMs &&
-      note.endMs >= timeMs
+      articulation &&
+      articulation.startMs <= timeMs &&
+      articulation.endMs >= timeMs
     ) {
       // At a shared boundary, the later note wins instead of holding the note
       // that has just ended for one visual/audio frame.

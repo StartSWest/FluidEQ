@@ -73,6 +73,7 @@ export interface IKaraokeSong {
     sourceFormat: string;
     gapMs: number;
     bpm?: number;
+    language?: string;
   };
 }
 
@@ -85,6 +86,7 @@ export interface IKaraokeParsedLyrics {
   pitch: TKaraokePitchTarget;
   gapMs: number;
   bpm?: number;
+  language?: string;
   /** Open provider id produced by the import adapter. */
   sourceFormat: string;
 }

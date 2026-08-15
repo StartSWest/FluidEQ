@@ -49,12 +49,18 @@ const configuration: webpack.Configuration = {
     },
   },
 
-  entry: [path.join(webpackPaths.srcRendererPath, 'index.tsx')],
+  entry: {
+    renderer: path.join(webpackPaths.srcRendererPath, 'index.tsx'),
+    'karaoke-whisper-worker': path.join(
+      webpackPaths.srcRendererPath,
+      'karaoke/whisper.worker.ts',
+    ),
+  },
 
   output: {
     path: webpackPaths.distRendererPath,
     publicPath: './',
-    filename: 'renderer.js',
+    filename: '[name].js',
     library: {
       type: 'umd',
     },
@@ -181,6 +187,7 @@ const configuration: webpack.Configuration = {
       },
       isBrowser: false,
       isDevelopment: process.env.NODE_ENV !== 'production',
+      chunks: ['renderer'],
     }),
   ],
 };

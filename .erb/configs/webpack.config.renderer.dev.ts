@@ -73,16 +73,22 @@ const configuration: webpack.Configuration = {
     },
   },
 
-  entry: [
-    `webpack-dev-server/client?http://localhost:${port}/dist`,
-    'webpack/hot/only-dev-server',
-    path.join(webpackPaths.srcRendererPath, 'index.tsx'),
-  ],
+  entry: {
+    renderer: [
+      `webpack-dev-server/client?http://localhost:${port}/dist`,
+      'webpack/hot/only-dev-server',
+      path.join(webpackPaths.srcRendererPath, 'index.tsx'),
+    ],
+    'karaoke-whisper-worker': path.join(
+      webpackPaths.srcRendererPath,
+      'karaoke/whisper.worker.ts',
+    ),
+  },
 
   output: {
     path: webpackPaths.distRendererPath,
     publicPath: '/',
-    filename: 'renderer.dev.js',
+    filename: '[name].dev.js',
     library: {
       type: 'umd',
     },
@@ -191,6 +197,7 @@ const configuration: webpack.Configuration = {
       env: process.env.NODE_ENV,
       isDevelopment: process.env.NODE_ENV !== 'production',
       nodeModules: webpackPaths.appNodeModulesPath,
+      chunks: ['renderer'],
     }),
   ],
 

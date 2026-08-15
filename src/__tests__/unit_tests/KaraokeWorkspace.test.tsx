@@ -17,8 +17,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { setKaraokeRelativePath } from '../../common/karaoke/files';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
+import {
+  karaokeFileBaseName,
+  setKaraokeRelativePath,
+} from '../../common/karaoke/files';
+import { createKaraokeMakerProject } from '../../common/karaoke/makerProject';
+import { parseUltraStar } from '../../common/karaoke/ultrastar';
 import KaraokeWorkspace from '../../renderer/karaoke/KaraokeWorkspace';
 import { karaokeLayoutStorageKey } from '../../renderer/karaoke/karaokeLayout';
 
@@ -27,12 +38,13 @@ const fireTestPointer = (
   type: string,
   pointerId: number,
   clientX: number,
+  clientY = 0,
 ) => {
   const event = new Event(type, { bubbles: true, cancelable: true });
   Object.defineProperties(event, {
     button: { value: 0 },
     clientX: { value: clientX },
-    clientY: { value: 0 },
+    clientY: { value: clientY },
     pointerId: { value: pointerId },
   });
   fireEvent(target, event);
@@ -267,29 +279,347 @@ describe('KaraokeWorkspace', () => {
     expect(
       screen.queryByRole('button', { name: 'Preview · 1, 2, 3' }),
     ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Tap words' }),
+    ).not.toBeInTheDocument();
+    expect(
+      maker.querySelector('button[aria-label="Prepare karaoke"]'),
+    ).not.toBeInTheDocument();
+    expect(
+      maker.querySelector('button[aria-label="Repair tools"]'),
+    ).not.toBeInTheDocument();
     fireEvent.click(
-      maker.querySelector(
-        'button[aria-label="Prepare karaoke"]',
+      maker.querySelector('button[aria-label="Lyrics"]') as HTMLButtonElement,
+    );
+    const lyricsDialog = await screen.findByRole('dialog', {
+      name: 'Paste or edit one lyric line per row',
+    });
+    fireEvent.change(lyricsDialog.querySelector('textarea') as HTMLElement, {
+      target: { value: 'First complete lyric line\nSecond lyric line' },
+    });
+    fireEvent.click(
+      screen.getByRole('button', {
+        name: 'Accept and record timing',
+      }),
+    );
+    expect(screen.getByText('Ready to record the lyric timing?')).toBeVisible();
+    const captureCoach = container.querySelector(
+      '.karaoke-maker__capture-coach',
+    ) as HTMLElement;
+    expect(captureCoach.parentElement).toBe(maker);
+    expect(screen.getByRole('button', { name: 'Cancel' })).toBeVisible();
+    expect(screen.getByText(/Press Enter when the line starts/)).toBeVisible();
+    expect(screen.getByText('mark the next word')).toBeVisible();
+    expect(
+      screen.queryByRole('button', { name: 'Mark line start' }),
+    ).not.toBeInTheDocument();
+    jest.useFakeTimers();
+    play.mockClear();
+    const guidedAudio = container.querySelector('audio') as HTMLAudioElement;
+    guidedAudio.currentTime = 18;
+    expect(
+      screen.getByRole('button', { name: 'Start recording' }),
+    ).toHaveAttribute('aria-keyshortcuts', 'Enter');
+    fireEvent.keyDown(window, { key: 'Enter', code: 'Enter' });
+    expect(guidedAudio.currentTime).toBe(0);
+    const captureCue = () =>
+      container.querySelector(
+        '.karaoke-maker__capture-coach-countdown strong',
+      ) as HTMLElement;
+    expect(captureCue()).toHaveTextContent('1');
+    act(() => jest.advanceTimersByTime(650));
+    expect(captureCue()).toHaveTextContent('2');
+    act(() => jest.advanceTimersByTime(650));
+    expect(captureCue()).toHaveTextContent('3');
+    act(() => jest.advanceTimersByTime(650));
+    expect(captureCue()).toHaveTextContent('GO');
+    expect(play).toHaveBeenCalledTimes(1);
+    act(() => jest.advanceTimersByTime(550));
+    jest.useRealTimers();
+    guidedAudio.currentTime = 5;
+    fireEvent.keyDown(window, {
+      key: 'ArrowLeft',
+      code: 'ArrowLeft',
+      shiftKey: true,
+    });
+    expect(guidedAudio.currentTime).toBe(4);
+    fireEvent.keyDown(window, {
+      key: 'ArrowRight',
+      code: 'ArrowRight',
+      shiftKey: true,
+    });
+    expect(guidedAudio.currentTime).toBe(5);
+    guidedAudio.currentTime = 1;
+    fireEvent.keyDown(window, { key: 'Enter', code: 'Enter' });
+    expect(captureCoach).toHaveTextContent('2 · END');
+    expect(screen.getByRole('button', { name: /Next word/ })).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: 'Stop recording' }),
+    ).toBeVisible();
+    guidedAudio.currentTime = 1.4;
+    fireEvent.keyDown(window, { key: 'Tab', code: 'Tab' });
+    guidedAudio.currentTime = 1.8;
+    fireEvent.keyDown(window, { key: 'Tab', code: 'Tab' });
+    guidedAudio.currentTime = 2.2;
+    fireEvent.keyDown(window, { key: 'Tab', code: 'Tab' });
+    expect(
+      screen.queryByRole('button', { name: /Next word/ }),
+    ).not.toBeInTheDocument();
+    guidedAudio.currentTime = 3;
+    fireEvent.keyDown(window, { key: 'Enter', code: 'Enter' });
+    fireEvent.keyDown(window, { key: 'ArrowUp', code: 'ArrowUp' });
+    // This lies inside the old recorded range. It used to be misread as END,
+    // which advanced to the next lyric instead of replacing START.
+    guidedAudio.currentTime = 2.4;
+    fireEvent.keyDown(window, { key: 'Enter', code: 'Enter' });
+    expect(captureCoach).toHaveTextContent('2 · END');
+    expect(maker).toHaveTextContent('First complete lyric line');
+    fireEvent.click(screen.getByRole('button', { name: 'Ignore line' }));
+    expect(captureCoach).toHaveTextContent('1 · START');
+    expect(maker).toHaveTextContent('Second lyric line');
+    guidedAudio.currentTime = 4;
+    fireEvent.keyDown(window, { key: 'Enter', code: 'Enter' });
+    guidedAudio.currentTime = 5;
+    fireEvent.keyDown(window, { key: 'Enter', code: 'Enter' });
+    expect(
+      await screen.findByText(
+        'Line timing complete. Ready to review and use in the player.',
+      ),
+    ).toBeVisible();
+    play.mockClear();
+    fireEvent.click(screen.getByRole('button', { name: 'Play word' }));
+    expect(play).toHaveBeenCalledTimes(1);
+    fireEvent.click(
+      maker.querySelector('button[aria-label="Lyrics"]') as HTMLButtonElement,
+    );
+    const reviewLyricsDialog = await screen.findByRole('dialog', {
+      name: 'Paste or edit one lyric line per row',
+    });
+    const timedWord = Array.from(
+      reviewLyricsDialog.querySelectorAll<HTMLButtonElement>(
+        '.karaoke-maker__lyrics-token-line button',
+      ),
+    ).find((button) => button.textContent === 'First') as HTMLButtonElement;
+    fireEvent.click(timedWord);
+    expect(play).toHaveBeenCalledTimes(2);
+    expect(guidedAudio.currentTime).toBeGreaterThan(0);
+    fireEvent.click(
+      reviewLyricsDialog.querySelector(
+        '.karaoke-maker__lyrics-modal-close',
       ) as HTMLButtonElement,
     );
+    const wordTimingSliders = maker.querySelectorAll<HTMLInputElement>(
+      '.karaoke-maker__selection-coach .karaoke-maker__word-timing-sliders input[type="range"]',
+    );
+    expect(wordTimingSliders).toHaveLength(2);
+    expect(wordTimingSliders[0]).toBeEnabled();
+    expect(wordTimingSliders[1]).toBeEnabled();
+    const availableLongerDuration = Math.min(
+      Number(wordTimingSliders[1].max),
+      Number(wordTimingSliders[1].value) + 50,
+    );
+    fireEvent.change(wordTimingSliders[1], {
+      target: { value: availableLongerDuration },
+    });
+    expect(Number(wordTimingSliders[1].value)).toBe(availableLongerDuration);
+
+    play.mockClear();
+    pause.mockClear();
+    fireEvent.keyDown(window, { key: 'Control', code: 'ControlLeft' });
+    const sentenceStartMs = guidedAudio.currentTime;
+    expect(sentenceStartMs).toBeGreaterThan(0);
+    expect(play).toHaveBeenCalledTimes(1);
+    guidedAudio.currentTime = sentenceStartMs + 0.7;
+    const pauseCallsBeforeRelease = pause.mock.calls.length;
+    fireEvent.keyUp(window, { key: 'Control', code: 'ControlLeft' });
+    expect(pause).toHaveBeenCalledTimes(pauseCallsBeforeRelease + 1);
+    expect(guidedAudio.currentTime).toBeCloseTo(sentenceStartMs, 3);
+
+    const previewSelectionCoach = maker.querySelector(
+      '.karaoke-maker__selection-coach',
+    ) as HTMLElement;
+    fireEvent.keyDown(window, { key: 'ArrowDown', code: 'ArrowDown' });
+    expect(previewSelectionCoach).toHaveTextContent('Second');
+    fireEvent.keyDown(window, { key: 'ArrowUp', code: 'ArrowUp' });
+    expect(previewSelectionCoach).toHaveTextContent('First');
+
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Split word into syllables' }),
+    );
+    expect(screen.getByText('Split “First”')).toBeVisible();
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Toggle split after “F”' }),
+    );
     expect(
-      screen.getByRole('dialog', { name: 'Download Whisper Tiny?' }),
-    ).toBeVisible();
-    fireEvent.click(screen.getByRole('button', { name: 'Not now' }));
+      screen.getByRole('button', { name: 'Apply syllable split' }),
+    ).toBeEnabled();
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+
     const hand = maker.querySelector(
       'button[aria-label="Hand · pan timeline"]',
     ) as HTMLButtonElement;
-    const addNote = maker.querySelector(
-      'button[aria-label="Note"]',
+    const paintNotes = maker.querySelector(
+      'button[aria-label="Paint notes"]',
     ) as HTMLButtonElement;
     const deleteSelection = maker.querySelector(
       'button[aria-label="Delete"]',
     ) as HTMLButtonElement;
+    const editorPlay = maker.querySelector(
+      'button[aria-label="Play"]',
+    ) as HTMLButtonElement;
+    expect(editorPlay).toHaveAttribute('aria-keyshortcuts', 'Space');
+    expect(editorPlay).toHaveAttribute('data-tooltip', 'Play · Space');
+
+    play.mockClear();
+    paintNotes.focus();
+    fireEvent.keyDown(paintNotes, { key: ' ', code: 'Space' });
+    expect(play).toHaveBeenCalledTimes(1);
+
+    const songTitle = screen.getByRole('textbox', { name: 'Song title' });
+    songTitle.focus();
+    fireEvent.keyDown(songTitle, { key: ' ', code: 'Space' });
+    expect(play).toHaveBeenCalledTimes(1);
+
+    play.mockClear();
+    fireEvent.keyDown(maker, { key: ' ', code: 'Space' });
+    expect(play).toHaveBeenCalledTimes(1);
+    play.mockClear();
+    const bpm = screen.getByRole('spinbutton', { name: 'BPM' });
+    bpm.focus();
+    fireEvent.keyDown(bpm, { key: ' ', code: 'Space' });
+    expect(play).toHaveBeenCalledTimes(1);
+
+    const editorCanvas = maker.querySelector(
+      '.karaoke-maker__canvas',
+    ) as HTMLCanvasElement;
+    const audio = container.querySelector('audio') as HTMLAudioElement;
+    Object.defineProperty(audio, 'duration', {
+      configurable: true,
+      value: 12,
+    });
+    jest.spyOn(editorCanvas, 'getBoundingClientRect').mockReturnValue({
+      bottom: 420,
+      height: 400,
+      left: 0,
+      right: 1000,
+      top: 20,
+      width: 1000,
+      x: 0,
+      y: 20,
+      toJSON: () => ({}),
+    });
+    Object.defineProperties(editorCanvas, {
+      setPointerCapture: { configurable: true, value: jest.fn() },
+      hasPointerCapture: {
+        configurable: true,
+        value: jest.fn(() => true),
+      },
+      releasePointerCapture: { configurable: true, value: jest.fn() },
+    });
+    fireTestPointer(editorCanvas, 'pointerdown', 17, 300);
+    expect(editorCanvas).toHaveClass('is-scrubbing');
+    fireTestPointer(editorCanvas, 'pointermove', 17, 700);
+    expect(audio.currentTime).toBeGreaterThan(7);
+    fireTestPointer(editorCanvas, 'pointerup', 17, 700);
+    expect(editorCanvas).not.toHaveClass('is-scrubbing');
+
+    fireEvent.click(screen.getByRole('button', { name: 'Jump to song start' }));
+    expect(audio.currentTime).toBe(0);
+    fireEvent.click(screen.getByRole('button', { name: 'Jump to song end' }));
+    expect(audio.currentTime).toBe(12);
+
     expect(deleteSelection).toBeDisabled();
-    fireEvent.click(addNote);
+    fireEvent.click(paintNotes);
+    fireTestPointer(editorCanvas, 'pointerdown', 18, 300, 300);
+    fireTestPointer(editorCanvas, 'pointerup', 18, 380, 300);
     expect(deleteSelection).toBeEnabled();
+    const selectionCoach = maker.querySelector(
+      '.karaoke-maker__selection-coach',
+    ) as HTMLElement;
+    expect(selectionCoach).toBeVisible();
+    expect(selectionCoach.parentElement).toBe(maker);
+    expect(
+      screen.getByRole('button', { name: 'Close selection tools' }),
+    ).toBeVisible();
+    jest.spyOn(maker, 'getBoundingClientRect').mockReturnValue({
+      bottom: 800,
+      height: 800,
+      left: 0,
+      right: 1000,
+      top: 0,
+      width: 1000,
+      x: 0,
+      y: 0,
+      toJSON: () => ({}),
+    });
+    jest.spyOn(selectionCoach, 'getBoundingClientRect').mockReturnValue({
+      bottom: 500,
+      height: 110,
+      left: 200,
+      right: 800,
+      top: 390,
+      width: 600,
+      x: 200,
+      y: 390,
+      toJSON: () => ({}),
+    });
+    const selectionDragHandle = screen.getByRole('button', {
+      name: /Drag to move the selection tools/,
+    });
+    const selectionLeftBeforeDrag = selectionCoach.style.left;
+    fireTestPointer(selectionDragHandle, 'pointerdown', 28, 400, 420);
+    fireTestPointer(selectionDragHandle, 'pointermove', 28, 470, 450);
+    fireTestPointer(selectionDragHandle, 'pointerup', 28, 470, 450);
+    expect(selectionCoach.style.left).not.toBe(selectionLeftBeforeDrag);
+    expect(
+      maker.querySelector(
+        '.karaoke-maker__inspector .karaoke-maker__selection-info',
+      ),
+    ).not.toBeInTheDocument();
+    const copyNotes = screen.getByRole('button', {
+      name: 'Copy selected notes',
+    });
+    const pasteNotes = screen.getByRole('button', {
+      name: 'Paste notes at playhead',
+    });
+    expect(copyNotes).toBeEnabled();
+    expect(pasteNotes).toBeDisabled();
+    fireEvent.click(copyNotes);
+    expect(pasteNotes).toBeEnabled();
+    audio.currentTime = 6;
+    fireEvent.click(pasteNotes);
+    expect(screen.getByText('Note pasted at the playhead.')).toBeVisible();
     fireEvent.keyDown(window, { key: 'Delete', code: 'Delete' });
     expect(deleteSelection).toBeDisabled();
+    expect(
+      maker.querySelector('.karaoke-maker__selection-coach'),
+    ).not.toBeInTheDocument();
+    fireTestPointer(editorCanvas, 'pointerdown', 19, 420, 300);
+    fireTestPointer(editorCanvas, 'pointerup', 19, 500, 300);
+    const clearNotes = screen.getByRole('button', { name: 'Clear notes' });
+    expect(clearNotes).toBeEnabled();
+    fireEvent.click(clearNotes);
+    expect(
+      screen.getByRole('alertdialog', { name: 'Clear notes' }),
+    ).toHaveTextContent('keeping all lyrics and word timing');
+    fireEvent.click(
+      screen
+        .getByRole('alertdialog', { name: 'Clear notes' })
+        .querySelector('button.is-danger') as HTMLButtonElement,
+    );
+    expect(clearNotes).toBeDisabled();
+    const clearLyrics = screen.getByRole('button', { name: 'Clear lyrics' });
+    expect(clearLyrics).toBeEnabled();
+    fireEvent.click(clearLyrics);
+    expect(
+      screen.getByRole('alertdialog', { name: 'Clear lyrics' }),
+    ).toHaveTextContent('Melody notes remain');
+    fireEvent.click(
+      screen
+        .getByRole('alertdialog', { name: 'Clear lyrics' })
+        .querySelector('button.is-danger') as HTMLButtonElement,
+    );
+    expect(clearLyrics).toBeDisabled();
     fireEvent.click(hand);
     expect(hand).toHaveAttribute('aria-pressed', 'true');
     expect(maker.querySelector('.karaoke-maker__canvas')).toHaveClass(
@@ -329,6 +659,219 @@ describe('KaraokeWorkspace', () => {
     expect(
       fullscreenMakerHeader?.querySelector('button[aria-label="Play"]'),
     ).toBeInTheDocument();
+    canvasContext.mockRestore();
+  });
+
+  it('keeps automatic detector controls out of the Maker UI', async () => {
+    const canvasContext = jest
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue(null);
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    const input = container.querySelector(
+      'input[type="file"]',
+    ) as HTMLInputElement;
+    fireEvent.change(input, {
+      target: {
+        files: [new File(['audio'], 'Manual maker.mp3')],
+      },
+    });
+    await screen.findByRole('heading', { name: 'Manual maker' });
+    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    const maker = await waitFor(() => {
+      const element = container.querySelector('.karaoke-maker');
+      expect(element).toBeInTheDocument();
+      return element as HTMLElement;
+    });
+    expect(
+      maker.querySelector('button[aria-label="Prepare karaoke"]'),
+    ).not.toBeInTheDocument();
+    expect(
+      maker.querySelector('button[aria-label="Repair tools"]'),
+    ).not.toBeInTheDocument();
+    fireEvent.click(
+      maker.querySelector('button[aria-label="Lyrics"]') as HTMLButtonElement,
+    );
+    const lyricsDialog = await screen.findByRole('dialog', {
+      name: 'Paste or edit one lyric line per row',
+    });
+    expect(
+      screen.queryByRole('button', { name: 'Detect timing and melody' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('dialog', { name: 'Download the speech model?' }),
+    ).not.toBeInTheDocument();
+    expect(
+      lyricsDialog.querySelector('.karaoke-maker__lyrics-progress'),
+    ).not.toBeInTheDocument();
+    expect(lyricsDialog.querySelector('textarea')).toBeEnabled();
+    expect(screen.getByRole('button', { name: 'Accept lyrics' })).toBeVisible();
+    expect(
+      screen.getByRole('button', { name: 'Accept and record timing' }),
+    ).toBeVisible();
+    expect(
+      container.querySelector('.karaoke-maker__memory-prompt'),
+    ).not.toBeInTheDocument();
+    expect(
+      maker.querySelector('.karaoke-maker__analysis-progress'),
+    ).not.toBeInTheDocument();
+    canvasContext.mockRestore();
+  });
+
+  it('opens an existing karaoke with the current player timing instead of a shifted saved draft', async () => {
+    const canvasContext = jest
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue(null);
+    const audio = new File(['audio'], 'Existing karaoke.mp3', {
+      type: 'audio/mpeg',
+      lastModified: 123,
+    });
+    const lyricText =
+      '#TITLE:Existing karaoke\n#ARTIST:Timing test\n#BPM:120\n#GAP:1000\n: 0 4 0 Hello\nE';
+    const lyrics = new File([lyricText], 'Existing karaoke.txt', {
+      type: 'text/plain',
+      lastModified: 123,
+    });
+    const parsed = parseUltraStar(lyricText);
+    const songId = `${karaokeFileBaseName(audio.name)}-${audio.size}-${audio.lastModified}`;
+    const saved = createKaraokeMakerProject({
+      id: songId,
+      title: parsed.title ?? 'Existing karaoke',
+      artist: parsed.artist,
+      assets: [
+        {
+          id: `${songId}-audio`,
+          role: 'audio',
+          file: audio,
+          extension: 'mp3',
+        },
+      ],
+      timingPrecision: parsed.timingPrecision,
+      lines: parsed.lines,
+      pitch: parsed.pitch,
+      meta: {
+        sourceFormat: parsed.sourceFormat,
+        gapMs: parsed.gapMs,
+        bpm: parsed.bpm,
+      },
+    });
+    saved.meta.gapMs = 9_000;
+    saved.updatedAt = new Date(Date.now() + 1_000).toISOString();
+    saved.lyrics.lines.forEach((line) => {
+      line.tokens.forEach((token) => {
+        if (token.startMs !== undefined) {
+          token.startMs += 8_000;
+        }
+        if (token.endMs !== undefined) {
+          token.endMs += 8_000;
+        }
+      });
+    });
+    saved.melody.notes.forEach((note) => {
+      note.startMs += 8_000;
+      note.endMs += 8_000;
+    });
+    loadKaraokeMakerDraft.mockResolvedValue(saved);
+
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      { target: { files: [audio, lyrics] } },
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'Existing karaoke' }),
+    ).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+
+    expect(
+      await screen.findByText(
+        'Using the current player timing. Undo restores your saved draft.',
+      ),
+    ).toBeVisible();
+    const timingButton = screen.getByRole('button', {
+      name: 'Lyrics timing',
+    });
+    fireEvent.click(timingButton);
+    expect(
+      screen.getByRole('dialog', { name: 'Lyrics timing' }),
+    ).toHaveTextContent('1000 ms');
+    expect(screen.getByRole('button', { name: 'Undo' })).toBeEnabled();
+    expect(screen.queryByText('Draft restored')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+    if (!screen.queryByRole('dialog', { name: 'Lyrics timing' })) {
+      fireEvent.click(timingButton);
+    }
+    expect(
+      screen.getByRole('dialog', { name: 'Lyrics timing' }),
+    ).toHaveTextContent('9000 ms');
+    canvasContext.mockRestore();
+  });
+
+  it('moves the editor playhead silently while it is dragged', async () => {
+    const canvasContext = jest
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue(null);
+    const audioFile = new File(['audio'], 'Audible scrub.mp3', {
+      type: 'audio/mpeg',
+    });
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      { target: { files: [audioFile] } },
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'Audible scrub' }),
+    ).toBeVisible();
+    const audio = container.querySelector('audio') as HTMLAudioElement;
+    Object.defineProperty(audio, 'duration', {
+      configurable: true,
+      value: 12,
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+    const maker = await waitFor(() => {
+      const element = container.querySelector('.karaoke-maker');
+      expect(element).toBeInTheDocument();
+      return element as HTMLElement;
+    });
+    const editorCanvas = maker.querySelector(
+      '.karaoke-maker__canvas',
+    ) as HTMLCanvasElement;
+    jest.spyOn(editorCanvas, 'getBoundingClientRect').mockReturnValue({
+      bottom: 420,
+      height: 400,
+      left: 0,
+      right: 1000,
+      top: 20,
+      width: 1000,
+      x: 0,
+      y: 20,
+      toJSON: () => ({}),
+    });
+    Object.defineProperties(editorCanvas, {
+      setPointerCapture: { configurable: true, value: jest.fn() },
+      hasPointerCapture: {
+        configurable: true,
+        value: jest.fn(() => true),
+      },
+      releasePointerCapture: { configurable: true, value: jest.fn() },
+    });
+
+    play.mockClear();
+    pause.mockClear();
+    fireTestPointer(editorCanvas, 'pointerdown', 23, 300);
+    const heldTime = audio.currentTime;
+
+    expect(heldTime).toBeGreaterThan(2);
+    expect(play).not.toHaveBeenCalled();
+    expect(pause).toHaveBeenCalledTimes(1);
+
+    fireTestPointer(editorCanvas, 'pointermove', 23, 600);
+    const movedTime = audio.currentTime;
+    expect(movedTime).toBeGreaterThan(heldTime);
+    expect(play).not.toHaveBeenCalled();
+    fireTestPointer(editorCanvas, 'pointerup', 23, 600);
+    expect(audio.currentTime).toBeCloseTo(movedTime, 3);
+    expect(pause).toHaveBeenCalledTimes(1);
     canvasContext.mockRestore();
   });
 

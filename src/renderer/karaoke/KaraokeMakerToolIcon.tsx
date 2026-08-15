@@ -5,11 +5,15 @@ const PATHS = {
   lyrics: 'M6 3.5h8l4 4V20H6V3.5zM14 3.5v4h4M9 11h6M9 15h6',
   timing: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 7v5l3.5 2M4 12H2m20 0h-2',
   hand: 'M8 11V7a1.5 1.5 0 0 1 3 0v4-1.5M11 10V5.5a1.5 1.5 0 0 1 3 0V11m0-3.5a1.5 1.5 0 0 1 3 0V12m0-2a1.5 1.5 0 0 1 3 0v4c0 4-3 7-7 7h-1c-3 0-5-1.5-6.5-4L3 13.5a1.5 1.5 0 0 1 2.4-1.8L8 14',
-  tap: 'M9 11V5a1.5 1.5 0 0 1 3 0v5-1.5M12 9V4a1.5 1.5 0 0 1 3 0v7M15 9V6a1.5 1.5 0 0 1 3 0v7c0 5-3 7-6 7h-1c-2 0-3.5-1-4.5-3L4 13a1.5 1.5 0 0 1 2.3-1.9L9 13',
+  select: 'M4 8V4h4M16 4h4v4M20 16v4h-4M8 20H4v-4M8 9h8v6H8z',
   noteAdd:
     'M6 18V7l10-2v10M6 7l10-2M6 18a2.5 2 0 1 1-5 0 2.5 2 0 0 1 5 0zm10-3a2.5 2 0 1 1-5 0 2.5 2 0 0 1 5 0zM20 4v6m-3-3h6',
   split: 'M7 5v5m0 4v5M17 5v5m0 4v5M4 12h16M10 9l4 3-4 3',
   remove: 'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5',
+  clearLyrics:
+    'M6 3.5h8l4 4V20H6V3.5zM14 3.5v4h4M9 11h5M9 15h3M15.5 13.5l4 4m0-4-4 4',
+  clearNotes:
+    'M5 18V7l10-2v10M5 7l10-2M5 18a2.5 2 0 1 1-5 0 2.5 2 0 0 1 5 0zm10-3a2.5 2 0 1 1-5 0 2.5 2 0 0 1 5 0zM18 5l4 4m0-4-4 4',
   analyze: 'M3 13h3l2-6 3 11 3-13 3 8h4',
   align: 'M4 7h9M4 12h16M4 17h11M16 5l4 3-4 3',
   melody:
@@ -30,6 +34,13 @@ const PATHS = {
   apply: 'M5 12.5l4.2 4.2L19 7',
   fullscreen: 'M9 4H4v5m11-5h5v5M9 20H4v-5m11 5h5v-5',
   fullscreenExit: 'M9 9H4V4m11 5h5V4M9 15H4v5m11-5h5v5',
+  close: 'M6 6l12 12M18 6L6 18',
+  previous: 'M15 5l-7 7 7 7',
+  next: 'M9 5l7 7-7 7',
+  copy: 'M8 8h11v11H8V8zM5 16H4V5h11v1',
+  paste: 'M9 5h6M9 4v3h6V4M7 6H5v14h14V6h-2M10 11h4m-2-2v4',
+  detach:
+    'M9.5 14.5l-1 1a3 3 0 0 1-4.2-4.2l2.8-2.8a3 3 0 0 1 4.2 0M14.5 9.5l1-1a3 3 0 0 1 4.2 4.2l-2.8 2.8a3 3 0 0 1-4.2 0M9 15l6-6M4 4l16 16',
 } as const;
 
 export type TKaraokeMakerToolIcon = keyof typeof PATHS;

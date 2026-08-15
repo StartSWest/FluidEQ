@@ -205,7 +205,13 @@ const KaraokeTransport = ({
           aria-label={t(
             isPlaying ? 'karaoke.transport.pause' : 'karaoke.transport.play',
           )}
+          aria-keyshortcuts="Space"
           aria-pressed={isPlaying}
+          data-tooltip={t('karaoke.transport.spaceShortcut', {
+            action: t(
+              isPlaying ? 'karaoke.transport.pause' : 'karaoke.transport.play',
+            ),
+          })}
         >
           <KaraokeTransportIcon name={isPlaying ? 'pause' : 'play'} />
         </button>

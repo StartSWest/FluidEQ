@@ -122,6 +122,7 @@ const ja: Partial<Dictionary> = {
   'karaoke.transport.restart': '曲を最初から再生',
   'karaoke.transport.play': '再生',
   'karaoke.transport.pause': '一時停止',
+  'karaoke.transport.spaceShortcut': '{action} · スペース',
   'karaoke.transport.seek': '曲の位置',
   'karaoke.transport.volume': '音量',
   'karaoke.mic.title': 'マイク',

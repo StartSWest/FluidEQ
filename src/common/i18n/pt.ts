@@ -127,6 +127,7 @@ const pt: Partial<Dictionary> = {
   'karaoke.transport.restart': 'Reiniciar música',
   'karaoke.transport.play': 'Reproduzir',
   'karaoke.transport.pause': 'Pausar',
+  'karaoke.transport.spaceShortcut': '{action} · Espaço',
   'karaoke.transport.seek': 'Posição da música',
   'karaoke.transport.volume': 'Volume',
   'karaoke.mic.title': 'Microfone',

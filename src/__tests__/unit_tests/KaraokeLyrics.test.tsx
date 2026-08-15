@@ -66,6 +66,22 @@ describe('KaraokeLyrics motion', () => {
     expect(container.querySelector('.karaoke-lyrics__token')).toBeNull();
   });
 
+  it('keeps a macro-recording target centered despite incorrect old timing', () => {
+    render(
+      <KaraokeLyrics
+        song={song}
+        playheadMs={1_200}
+        onSeek={jest.fn()}
+        centerLineId="line-5"
+        showFollowButton={false}
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Lyric line 6' }),
+    ).toHaveAttribute('aria-current', 'true');
+  });
+
   it('prepares the first lyric before its timing and eases it into view', () => {
     const delayedSong = {
       ...song,
@@ -86,6 +102,39 @@ describe('KaraokeLyrics motion', () => {
     expect(karaokeLyricEntranceOpacity(0)).toBe(0);
     expect(karaokeLyricEntranceOpacity(280)).toBeCloseTo(0.875);
     expect(karaokeLyricEntranceOpacity(560)).toBe(1);
+  });
+
+  it('shows a section marker with its first lyric two seconds early', () => {
+    const sectionSong: IKaraokeSong = {
+      ...song,
+      lines: [
+        {
+          id: 'intro-marker',
+          kind: 'section',
+          startMs: 3_000,
+          endMs: 5_000,
+          tokens: [{ text: '[Intro]' }],
+        },
+        {
+          id: 'intro-lyric',
+          startMs: 5_000,
+          endMs: 7_000,
+          tokens: [{ text: 'The real first line' }],
+        },
+      ],
+    };
+
+    render(
+      <KaraokeLyrics
+        song={sectionSong}
+        playheadMs={3_000}
+        onSeek={jest.fn()}
+      />,
+    );
+
+    expect(
+      screen.getByRole('button', { name: 'Lyric line 2' }),
+    ).toHaveAttribute('aria-current', 'true');
   });
 
   it('restores word spacing without separating joined syllables', () => {

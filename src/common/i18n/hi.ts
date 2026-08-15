@@ -127,6 +127,7 @@ const hi: Partial<Dictionary> = {
   'karaoke.transport.restart': 'गाना फिर शुरू करें',
   'karaoke.transport.play': 'चलाएँ',
   'karaoke.transport.pause': 'रोकें',
+  'karaoke.transport.spaceShortcut': '{action} · स्पेस',
   'karaoke.transport.seek': 'गाने की स्थिति',
   'karaoke.transport.volume': 'आवाज़',
   'karaoke.mic.title': 'माइक्रोफ़ोन',

@@ -92,11 +92,16 @@ export const findActiveKaraokeLine = (
   nowMs: number,
 ): number => {
   let active = -1;
+  let latestStartMs = Number.NEGATIVE_INFINITY;
   for (let index = 0; index < lines.length; index += 1) {
-    if ((lines[index].startMs ?? Infinity) <= nowMs) {
+    const { startMs } = lines[index];
+    // Maker projects deliberately retain unmatched reference lines without
+    // inventing timestamps. Skip those holes so one missing Whisper sentence
+    // cannot prevent every later, correctly detected line from reaching the
+    // live preview.
+    if (startMs !== undefined && startMs <= nowMs && startMs >= latestStartMs) {
+      latestStartMs = startMs;
       active = index;
-    } else {
-      break;
     }
   }
   return active;

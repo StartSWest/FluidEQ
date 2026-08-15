@@ -214,6 +214,7 @@ export const useKaraokeSession = (isActive: boolean) => {
             sourceFormat: parsed?.sourceFormat ?? 'audio-only',
             gapMs: parsed?.gapMs ?? 0,
             bpm: parsed?.bpm,
+            language: parsed?.language,
           },
         });
         setPlayheadMs(0);

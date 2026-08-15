@@ -124,6 +124,7 @@ const ru: Partial<Dictionary> = {
   'karaoke.transport.restart': 'Начать песню заново',
   'karaoke.transport.play': 'Воспроизвести',
   'karaoke.transport.pause': 'Пауза',
+  'karaoke.transport.spaceShortcut': '{action} · Пробел',
   'karaoke.transport.seek': 'Позиция песни',
   'karaoke.transport.volume': 'Громкость',
   'karaoke.mic.title': 'Микрофон',

@@ -30,6 +30,7 @@ import type {
   IKaraokeMakerExportResult,
 } from '../common/karaoke/makerPersistence';
 import type { IKaraokeMakerProject } from '../common/karaoke/makerProject';
+import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
 
 export type Channels = string;
 
@@ -161,6 +162,9 @@ const exportKaraokeMakerFile = (request: IKaraokeMakerExportRequest) =>
     request,
   ) as Promise<IKaraokeMakerExportResult>;
 
+const revealVideoDownload = (filePath: string) =>
+  ipcRenderer.invoke(VIDEO_DOWNLOAD_REVEAL, filePath) as Promise<boolean>;
+
 export default {
   /**
    * What this build is running on, read once while the preload has a `process`.
@@ -195,5 +199,6 @@ export default {
     loadKaraokeMakerDraft,
     deleteKaraokeMakerDraft,
     exportKaraokeMakerFile,
+    revealVideoDownload,
   },
 };

@@ -75,6 +75,8 @@ export const makerPt: MakerDictionary = {
   'karaoke.maker.noteGolden': 'Dourada',
   'karaoke.maker.noteFree': 'Livre',
   'karaoke.maker.untimed': 'Sem tempo',
+  'karaoke.maker.applyUntimed':
+    'Ainda há {count} palavras da letra sem tempo de voz verificado. Detecte ou posicione-as antes de usar este karaokê no player.',
   'karaoke.maker.selectHint':
     'Selecione uma palavra ou nota melódica para inspecionar.',
   'karaoke.maker.rights':
@@ -87,9 +89,9 @@ export const makerPt: MakerDictionary = {
     'Substituir o texto remove os vínculos para que as palavras possam ser marcadas ou alinhadas com segurança.',
   'karaoke.maker.replaceLyrics': 'Substituir letra',
   'karaoke.maker.transcriptionEyebrow': 'TRANSCRIÇÃO LOCAL OPCIONAL',
-  'karaoke.maker.transcriptionTitle': 'Baixar Whisper Tiny?',
+  'karaoke.maker.transcriptionTitle': 'Baixar o modelo de voz local?',
   'karaoke.maker.transcriptionBody':
-    'O FluidEQ baixará do Hugging Face o modelo Apache-2.0 {model} e o armazenará neste PC. Seu áudio permanece no FluidEQ e é processado localmente. A primeira execução pode demorar e usar bastante memória.',
+    'O FluidEQ baixará do Hugging Face o modelo {model}, sob licença MIT, e o armazenará neste PC. Seu áudio permanece no FluidEQ e é processado localmente. A primeira execução pode demorar e usar bastante memória.',
   'karaoke.maker.transcriptionReview':
     'O reconhecimento é apenas um ponto de partida. O FluidEQ mantém a grafia da sua letra ao comparar texto e todos os tempos continuam editáveis.',
   'karaoke.maker.notNow': 'Agora não',
@@ -99,11 +101,15 @@ export const makerPt: MakerDictionary = {
   'karaoke.maker.rightsRequired':
     'Confirme que você tem os direitos do áudio e da letra antes de publicar uma exportação.',
   'karaoke.maker.draftRestored': 'Rascunho restaurado',
+  'karaoke.maker.playerTimingLoaded':
+    'Usando o tempo atual do player. Desfazer restaura o rascunho salvo.',
   'karaoke.maker.applyHint':
     'Use estas edições no player. O arquivo original não muda; Exportar cria um novo arquivo.',
   'karaoke.maker.panView': 'Mão · mover linha do tempo',
   'karaoke.maker.panHint':
     'Ferramenta mão: arraste no canvas para percorrer a música sem editar.',
+  'karaoke.maker.scrubHint':
+    'Clique ou arraste o cursor de reprodução para percorrer a música.',
   'karaoke.maker.wordStateLegend': 'Status do tempo da letra',
   'karaoke.maker.userAdjustedWords': '{count} ajustadas',
   'karaoke.maker.pendingWords': '{count} pendentes',
@@ -134,6 +140,8 @@ export const makerPt: MakerDictionary = {
   'karaoke.maker.previewResize': 'Redimensionar a prévia ao vivo',
   'karaoke.maker.seekBack': 'Voltar {seconds} segundos',
   'karaoke.maker.seekForward': 'Avançar {seconds} segundos',
+  'karaoke.maker.jumpToStart': 'Ir para o início da música',
+  'karaoke.maker.jumpToEnd': 'Ir para o fim da música',
   'karaoke.maker.errorAudioLimits':
     'A análise local aceita áudios de até 1 GB e gravações com menos de 30 minutos.',
   'karaoke.maker.errorComponentUnavailable':
@@ -227,6 +235,8 @@ export const makerFr: MakerDictionary = {
   'karaoke.maker.noteGolden': 'Dorée',
   'karaoke.maker.noteFree': 'Libre',
   'karaoke.maker.untimed': 'Non calé',
+  'karaoke.maker.applyUntimed':
+    '{count} mots des paroles n’ont toujours pas de timing vocal vérifié. Détectez-les ou placez-les avant d’utiliser ce karaoké dans le lecteur.',
   'karaoke.maker.selectHint':
     'Sélectionnez une parole ou une note pour l’inspecter.',
   'karaoke.maker.rights':
@@ -240,9 +250,9 @@ export const makerFr: MakerDictionary = {
     'Remplacer le texte efface les liens de mots afin de pouvoir les recaler en toute sécurité.',
   'karaoke.maker.replaceLyrics': 'Remplacer les paroles',
   'karaoke.maker.transcriptionEyebrow': 'TRANSCRIPTION LOCALE FACULTATIVE',
-  'karaoke.maker.transcriptionTitle': 'Télécharger Whisper Tiny ?',
+  'karaoke.maker.transcriptionTitle': 'Télécharger le modèle vocal local ?',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ téléchargera depuis Hugging Face le modèle Apache-2.0 {model} et le mettra en cache sur ce PC. Votre son reste dans FluidEQ et est traité localement. Le premier lancement peut être long et gourmand en mémoire.',
+    'FluidEQ téléchargera depuis Hugging Face le modèle {model} sous licence MIT et le mettra en cache sur ce PC. Votre son reste dans FluidEQ et est traité localement. Le premier lancement peut être long et gourmand en mémoire.',
   'karaoke.maker.transcriptionReview':
     'La reconnaissance n’est qu’un point de départ. FluidEQ conserve l’orthographe de vos paroles lors de la correspondance et tous les temps restent modifiables.',
   'karaoke.maker.notNow': 'Pas maintenant',
@@ -252,11 +262,15 @@ export const makerFr: MakerDictionary = {
   'karaoke.maker.rightsRequired':
     'Confirmez que vous détenez les droits sur le son et les paroles avant de publier un export.',
   'karaoke.maker.draftRestored': 'Brouillon restauré',
+  'karaoke.maker.playerTimingLoaded':
+    'Le minutage actuel du lecteur est utilisé. Annuler restaure le brouillon enregistré.',
   'karaoke.maker.applyHint':
     'Utilisez ces modifications dans le lecteur. Le fichier original reste inchangé ; Exporter crée un nouveau fichier.',
   'karaoke.maker.panView': 'Main · déplacer la timeline',
   'karaoke.maker.panHint':
     'Outil main : faites glisser le canevas pour parcourir le morceau sans modifier.',
+  'karaoke.maker.scrubHint':
+    'Cliquez ou faites glisser la tête de lecture pour parcourir le morceau.',
   'karaoke.maker.wordStateLegend': 'État du minutage des paroles',
   'karaoke.maker.userAdjustedWords': '{count} ajustés',
   'karaoke.maker.pendingWords': '{count} en attente',
@@ -286,6 +300,8 @@ export const makerFr: MakerDictionary = {
   'karaoke.maker.previewResize': 'Redimensionner l’aperçu en direct',
   'karaoke.maker.seekBack': 'Reculer de {seconds} secondes',
   'karaoke.maker.seekForward': 'Avancer de {seconds} secondes',
+  'karaoke.maker.jumpToStart': 'Aller au début du morceau',
+  'karaoke.maker.jumpToEnd': 'Aller à la fin du morceau',
   'karaoke.maker.errorAudioLimits':
     'L’analyse locale accepte les fichiers audio jusqu’à 1 Go et les enregistrements de moins de 30 minutes.',
   'karaoke.maker.errorComponentUnavailable':
@@ -379,6 +395,8 @@ export const makerDe: MakerDictionary = {
   'karaoke.maker.noteGolden': 'Gold',
   'karaoke.maker.noteFree': 'Frei',
   'karaoke.maker.untimed': 'Ohne Zeit',
+  'karaoke.maker.applyUntimed':
+    '{count} Liedtextwörter haben noch kein bestätigtes Sprach-Timing. Erkennen oder platzieren Sie sie, bevor Sie dieses Karaoke im Player verwenden.',
   'karaoke.maker.selectHint':
     'Wählen Sie ein Wort oder eine Melodienote zum Prüfen.',
   'karaoke.maker.rights':
@@ -392,9 +410,9 @@ export const makerDe: MakerDictionary = {
     'Beim Ersetzen werden Wortverknüpfungen gelöscht, damit die Wörter sicher neu getaktet werden können.',
   'karaoke.maker.replaceLyrics': 'Liedtext ersetzen',
   'karaoke.maker.transcriptionEyebrow': 'OPTIONALE LOKALE TRANSKRIPTION',
-  'karaoke.maker.transcriptionTitle': 'Whisper Tiny herunterladen?',
+  'karaoke.maker.transcriptionTitle': 'Lokales Sprachmodell herunterladen?',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ lädt das Apache-2.0-Modell {model} von Hugging Face herunter und speichert es auf diesem PC. Ihr Audio bleibt in FluidEQ und wird lokal verarbeitet. Der erste Lauf kann dauern und viel Speicher benötigen.',
+    'FluidEQ lädt das MIT-lizenzierte Modell {model} von Hugging Face herunter und speichert es auf diesem PC. Ihr Audio bleibt in FluidEQ und wird lokal verarbeitet. Der erste Lauf kann dauern und viel Speicher benötigen.',
   'karaoke.maker.transcriptionReview':
     'Die Erkennung ist nur ein Ausgangspunkt. FluidEQ behält beim Abgleich Ihre Schreibweise bei und alle Zeiten bleiben bearbeitbar.',
   'karaoke.maker.notNow': 'Nicht jetzt',
@@ -404,11 +422,15 @@ export const makerDe: MakerDictionary = {
   'karaoke.maker.rightsRequired':
     'Bestätigen Sie vor dem Veröffentlichen die Rechte an Audio und Liedtext.',
   'karaoke.maker.draftRestored': 'Entwurf wiederhergestellt',
+  'karaoke.maker.playerTimingLoaded':
+    'Die aktuelle Player-Zeitsetzung wird verwendet. Rückgängig stellt den gespeicherten Entwurf wieder her.',
   'karaoke.maker.applyHint':
     'Diese Änderungen im Player verwenden. Die Originaldatei bleibt unverändert; Export erstellt eine neue Datei.',
   'karaoke.maker.panView': 'Hand · Zeitleiste verschieben',
   'karaoke.maker.panHint':
     'Handwerkzeug: Ziehen Sie auf der Fläche, um ohne Bearbeitung durch den Song zu navigieren.',
+  'karaoke.maker.scrubHint':
+    'Klicken oder ziehen Sie den Abspielkopf, um durch den Song zu navigieren.',
   'karaoke.maker.wordStateLegend': 'Status der Liedtext-Zeitsetzung',
   'karaoke.maker.userAdjustedWords': '{count} angepasst',
   'karaoke.maker.pendingWords': '{count} ausstehend',
@@ -440,6 +462,8 @@ export const makerDe: MakerDictionary = {
   'karaoke.maker.previewResize': 'Live-Vorschau skalieren',
   'karaoke.maker.seekBack': '{seconds} Sekunden zurück',
   'karaoke.maker.seekForward': '{seconds} Sekunden vor',
+  'karaoke.maker.jumpToStart': 'Zum Songanfang springen',
+  'karaoke.maker.jumpToEnd': 'Zum Songende springen',
   'karaoke.maker.errorAudioLimits':
     'Die lokale Analyse unterstützt Audiodateien bis 1 GB und Aufnahmen unter 30 Minuten.',
   'karaoke.maker.errorComponentUnavailable':
@@ -534,6 +558,8 @@ export const makerIt: MakerDictionary = {
   'karaoke.maker.noteGolden': 'Dorata',
   'karaoke.maker.noteFree': 'Libera',
   'karaoke.maker.untimed': 'Senza tempo',
+  'karaoke.maker.applyUntimed':
+    '{count} parole del testo non hanno ancora un tempo vocale verificato. Rilevale o posizionale prima di usare questo karaoke nel lettore.',
   'karaoke.maker.selectHint':
     'Seleziona una parola o una nota melodica da esaminare.',
   'karaoke.maker.rights':
@@ -546,9 +572,9 @@ export const makerIt: MakerDictionary = {
     'La sostituzione cancella i collegamenti per consentire una nuova sincronizzazione sicura.',
   'karaoke.maker.replaceLyrics': 'Sostituisci testo',
   'karaoke.maker.transcriptionEyebrow': 'TRASCRIZIONE LOCALE OPZIONALE',
-  'karaoke.maker.transcriptionTitle': 'Scaricare Whisper Tiny?',
+  'karaoke.maker.transcriptionTitle': 'Scaricare il modello vocale locale?',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ scaricherà da Hugging Face il modello Apache-2.0 {model} e lo salverà su questo PC. L’audio rimane in FluidEQ e viene elaborato localmente. Il primo avvio può richiedere tempo e molta memoria.',
+    'FluidEQ scaricherà da Hugging Face il modello {model} con licenza MIT e lo salverà su questo PC. L’audio rimane in FluidEQ e viene elaborato localmente. Il primo avvio può richiedere tempo e molta memoria.',
   'karaoke.maker.transcriptionReview':
     'Il riconoscimento è solo un punto di partenza. FluidEQ conserva l’ortografia del tuo testo durante l’abbinamento e tutti i tempi restano modificabili.',
   'karaoke.maker.notNow': 'Non ora',
@@ -558,11 +584,15 @@ export const makerIt: MakerDictionary = {
   'karaoke.maker.rightsRequired':
     'Conferma di avere i diritti su audio e testo prima di pubblicare un’esportazione.',
   'karaoke.maker.draftRestored': 'Bozza ripristinata',
+  'karaoke.maker.playerTimingLoaded':
+    'Uso della temporizzazione attuale del lettore. Annulla ripristina la bozza salvata.',
   'karaoke.maker.applyHint':
     'Usa queste modifiche nel lettore. Il file originale resta invariato; Esporta crea un nuovo file.',
   'karaoke.maker.panView': 'Mano · sposta timeline',
   'karaoke.maker.panHint':
     'Strumento mano: trascina sul canvas per scorrere il brano senza modificare.',
+  'karaoke.maker.scrubHint':
+    'Fai clic o trascina la testina di riproduzione per scorrere il brano.',
   'karaoke.maker.wordStateLegend': 'Stato della temporizzazione del testo',
   'karaoke.maker.userAdjustedWords': '{count} regolate',
   'karaoke.maker.pendingWords': '{count} in sospeso',
@@ -594,6 +624,8 @@ export const makerIt: MakerDictionary = {
   'karaoke.maker.previewResize': 'Ridimensiona l’anteprima dal vivo',
   'karaoke.maker.seekBack': 'Indietro di {seconds} secondi',
   'karaoke.maker.seekForward': 'Avanti di {seconds} secondi',
+  'karaoke.maker.jumpToStart': 'Vai all’inizio del brano',
+  'karaoke.maker.jumpToEnd': 'Vai alla fine del brano',
   'karaoke.maker.errorAudioLimits':
     'L’analisi locale supporta file audio fino a 1 GB e registrazioni inferiori a 30 minuti.',
   'karaoke.maker.errorComponentUnavailable':
@@ -688,6 +720,8 @@ export const makerRu: MakerDictionary = {
   'karaoke.maker.noteGolden': 'Золотая',
   'karaoke.maker.noteFree': 'Свободная',
   'karaoke.maker.untimed': 'Без времени',
+  'karaoke.maker.applyUntimed':
+    'У {count} слов текста ещё нет подтверждённого времени голоса. Определите или разместите их перед использованием караоке в плеере.',
   'karaoke.maker.selectHint': 'Выберите слово или ноту мелодии для просмотра.',
   'karaoke.maker.rights':
     'У меня есть разрешение использовать и экспортировать это аудио и текст.',
@@ -701,9 +735,9 @@ export const makerRu: MakerDictionary = {
   'karaoke.maker.replaceLyrics': 'Заменить текст',
   'karaoke.maker.transcriptionEyebrow':
     'НЕОБЯЗАТЕЛЬНОЕ ЛОКАЛЬНОЕ РАСПОЗНАВАНИЕ',
-  'karaoke.maker.transcriptionTitle': 'Скачать Whisper Tiny?',
+  'karaoke.maker.transcriptionTitle': 'Скачать локальную модель речи?',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ скачает с Hugging Face модель {model} под Apache-2.0 и сохранит её на этом ПК. Аудио остаётся в FluidEQ и обрабатывается локально. Первый запуск может занять время и много памяти.',
+    'FluidEQ скачает с Hugging Face модель {model} под лицензией MIT и сохранит её на этом ПК. Аудио остаётся в FluidEQ и обрабатывается локально. Первый запуск может занять время и много памяти.',
   'karaoke.maker.transcriptionReview':
     'Распознавание — лишь начало. FluidEQ сохраняет написание вашего текста при сопоставлении, а все времена можно редактировать.',
   'karaoke.maker.notNow': 'Не сейчас',
@@ -713,11 +747,15 @@ export const makerRu: MakerDictionary = {
   'karaoke.maker.rightsRequired':
     'Перед публикацией экспорта подтвердите права на аудио и текст.',
   'karaoke.maker.draftRestored': 'Черновик восстановлен',
+  'karaoke.maker.playerTimingLoaded':
+    'Используется синхронизация из проигрывателя. Отмена восстановит сохранённый черновик.',
   'karaoke.maker.applyHint':
     'Использовать эти изменения в проигрывателе. Исходный файл не изменится; экспорт создаст новый файл.',
   'karaoke.maker.panView': 'Рука · перемещение шкалы',
   'karaoke.maker.panHint':
     'Инструмент «Рука»: перетаскивайте холст для навигации по песне без редактирования.',
+  'karaoke.maker.scrubHint':
+    'Щёлкните или перетащите указатель воспроизведения для навигации по песне.',
   'karaoke.maker.wordStateLegend': 'Состояние синхронизации текста',
   'karaoke.maker.userAdjustedWords': 'Исправлено: {count}',
   'karaoke.maker.pendingWords': 'Ожидает: {count}',
@@ -747,6 +785,8 @@ export const makerRu: MakerDictionary = {
   'karaoke.maker.previewResize': 'Изменить размер предпросмотра',
   'karaoke.maker.seekBack': 'Назад на {seconds} с',
   'karaoke.maker.seekForward': 'Вперёд на {seconds} с',
+  'karaoke.maker.jumpToStart': 'Перейти к началу песни',
+  'karaoke.maker.jumpToEnd': 'Перейти к концу песни',
   'karaoke.maker.errorAudioLimits':
     'Локальный анализ поддерживает аудиофайлы до 1 ГБ и записи короче 30 минут.',
   'karaoke.maker.errorComponentUnavailable':
@@ -802,6 +842,7 @@ export const makerZh: MakerDictionary = {
   'karaoke.maker.panView': '手形工具 · 平移时间线',
   'karaoke.maker.panHint':
     '手形工具：在画布任意位置拖动以浏览歌曲，不会编辑内容。',
+  'karaoke.maker.scrubHint': '点击或拖动播放指针以浏览歌曲。',
   'karaoke.maker.addNote': '音符',
   'karaoke.maker.hearNote': '试听音符',
   'karaoke.maker.split': '拆分',
@@ -843,6 +884,8 @@ export const makerZh: MakerDictionary = {
   'karaoke.maker.noteGolden': '金色',
   'karaoke.maker.noteFree': '自由',
   'karaoke.maker.untimed': '未定时',
+  'karaoke.maker.applyUntimed':
+    '仍有 {count} 个歌词词语没有经过验证的人声时间。请先检测或放置它们，再在播放器中使用此卡拉 OK。',
   'karaoke.maker.selectHint': '请选择歌词或旋律音符进行检查。',
   'karaoke.maker.rights': '我有权使用并导出此音频和歌词。',
   'karaoke.maker.cancel': '取消',
@@ -870,6 +913,8 @@ export const makerZh: MakerDictionary = {
   'karaoke.maker.previewResize': '调整实时预览大小',
   'karaoke.maker.seekBack': '后退 {seconds} 秒',
   'karaoke.maker.seekForward': '前进 {seconds} 秒',
+  'karaoke.maker.jumpToStart': '跳到歌曲开头',
+  'karaoke.maker.jumpToEnd': '跳到歌曲结尾',
   'karaoke.maker.errorAudioLimits':
     '本地分析支持最大 1 GB 的音频文件和少于 30 分钟的录音。',
   'karaoke.maker.errorComponentUnavailable':
@@ -894,9 +939,9 @@ export const makerZh: MakerDictionary = {
   'karaoke.maker.replaceLyrics': '替换歌词',
   'karaoke.maker.lyricsAutoAligned': '新歌词已应用并与可用旋律自动对齐。',
   'karaoke.maker.transcriptionEyebrow': '可选本地转写',
-  'karaoke.maker.transcriptionTitle': '下载 Whisper Tiny？',
+  'karaoke.maker.transcriptionTitle': '下载本地语音模型？',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ 将从 Hugging Face 下载采用 Apache-2.0 许可的 {model} 模型并缓存在此电脑。音频始终留在 FluidEQ 中并在本地处理。首次运行可能较慢并占用较多内存。',
+    'FluidEQ 将从 Hugging Face 下载采用 MIT 许可的 {model} 模型并缓存在此电脑。音频始终留在 FluidEQ 中并在本地处理。首次运行可能较慢并占用较多内存。',
   'karaoke.maker.transcriptionReview':
     '识别结果仅是起点。匹配现有文字时 FluidEQ 会保留原歌词拼写，所有时间仍可编辑。',
   'karaoke.maker.notNow': '暂不',
@@ -905,6 +950,8 @@ export const makerZh: MakerDictionary = {
   'karaoke.maker.rightsRequired':
     '发布导出文件前，请确认您拥有音频和歌词的权利。',
   'karaoke.maker.draftRestored': '草稿已恢复',
+  'karaoke.maker.playerTimingLoaded':
+    '正在使用播放器的当前时间。撤销可恢复已保存的草稿。',
 };
 
 export const makerJa: MakerDictionary = {
@@ -977,6 +1024,8 @@ export const makerJa: MakerDictionary = {
   'karaoke.maker.noteGolden': 'ゴールデン',
   'karaoke.maker.noteFree': 'フリー',
   'karaoke.maker.untimed': 'タイミングなし',
+  'karaoke.maker.applyUntimed':
+    '{count} 個の歌詞単語に、検証済みの音声タイミングがまだありません。プレーヤーで使用する前に検出または配置してください。',
   'karaoke.maker.selectHint':
     '歌詞またはメロディーノートを選択して確認します。',
   'karaoke.maker.rights': 'この音声と歌詞を使用・書き出す許可を持っています。',
@@ -988,9 +1037,10 @@ export const makerJa: MakerDictionary = {
     'テキストを置き換えると、安全に再同期できるよう単語リンクが消去されます。',
   'karaoke.maker.replaceLyrics': '歌詞を置き換える',
   'karaoke.maker.transcriptionEyebrow': '任意のローカル文字起こし',
-  'karaoke.maker.transcriptionTitle': 'Whisper Tiny をダウンロードしますか？',
+  'karaoke.maker.transcriptionTitle':
+    'ローカル音声モデルをダウンロードしますか？',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ は Apache-2.0 の {model} モデルを Hugging Face からダウンロードしてこの PC にキャッシュします。音声は FluidEQ 内に留まりローカルで処理されます。初回は時間と多くのメモリを使う場合があります。',
+    'FluidEQ は MIT ライセンスの {model} モデルを Hugging Face からダウンロードしてこの PC にキャッシュします。音声は FluidEQ 内に留まりローカルで処理されます。初回は時間と多くのメモリを使う場合があります。',
   'karaoke.maker.transcriptionReview':
     '認識結果は出発点です。既存歌詞との照合では元の表記を保持し、すべての時刻を編集できます。',
   'karaoke.maker.notNow': '今はしない',
@@ -1000,11 +1050,15 @@ export const makerJa: MakerDictionary = {
   'karaoke.maker.rightsRequired':
     '書き出しを公開する前に音声と歌詞の権利を確認してください。',
   'karaoke.maker.draftRestored': '下書きを復元しました',
+  'karaoke.maker.playerTimingLoaded':
+    'プレイヤーの現在のタイミングを使用しています。元に戻すと保存済みの下書きを復元します。',
   'karaoke.maker.applyHint':
     'この編集をプレイヤーで使用します。元のカラオケファイルは変更されず、エクスポートで新しいファイルを作成します。',
   'karaoke.maker.panView': '手のひら · タイムライン移動',
   'karaoke.maker.panHint':
     '手のひらツール：キャンバスをドラッグして、編集せずに曲内を移動します。',
+  'karaoke.maker.scrubHint':
+    '再生ヘッドをクリックまたはドラッグして曲内を移動します。',
   'karaoke.maker.wordStateLegend': '歌詞タイミングの作業状況',
   'karaoke.maker.userAdjustedWords': '{count} 語を調整済み',
   'karaoke.maker.pendingWords': '{count} 語が未処理',
@@ -1035,6 +1089,8 @@ export const makerJa: MakerDictionary = {
   'karaoke.maker.previewResize': 'ライブプレビューのサイズを変更',
   'karaoke.maker.seekBack': '{seconds} 秒戻る',
   'karaoke.maker.seekForward': '{seconds} 秒進む',
+  'karaoke.maker.jumpToStart': '曲の先頭へ移動',
+  'karaoke.maker.jumpToEnd': '曲の末尾へ移動',
   'karaoke.maker.errorAudioLimits':
     'ローカル解析は 1 GB 以下の音声ファイルと 30 分未満の録音に対応しています。',
   'karaoke.maker.errorComponentUnavailable':
@@ -1127,6 +1183,8 @@ export const makerHi: MakerDictionary = {
   'karaoke.maker.noteGolden': 'गोल्डन',
   'karaoke.maker.noteFree': 'मुक्त',
   'karaoke.maker.untimed': 'बिना समय',
+  'karaoke.maker.applyUntimed':
+    '{count} बोल शब्दों का सत्यापित आवाज़ समय अभी नहीं है। इस कराओके को प्लेयर में उपयोग करने से पहले उन्हें पहचानें या रखें।',
   'karaoke.maker.selectHint': 'जाँचने के लिए कोई बोल या धुन का स्वर चुनें।',
   'karaoke.maker.rights':
     'मुझे इस ऑडियो और बोल का उपयोग और निर्यात करने की अनुमति है।',
@@ -1139,9 +1197,9 @@ export const makerHi: MakerDictionary = {
     'टेक्स्ट बदलने पर शब्द लिंक मिटते हैं ताकि उन्हें सुरक्षित रूप से फिर टैप या मिलाया जा सके।',
   'karaoke.maker.replaceLyrics': 'बोल बदलें',
   'karaoke.maker.transcriptionEyebrow': 'वैकल्पिक स्थानीय लिप्यंतरण',
-  'karaoke.maker.transcriptionTitle': 'Whisper Tiny डाउनलोड करें?',
+  'karaoke.maker.transcriptionTitle': 'स्थानीय वॉइस मॉडल डाउनलोड करें?',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ Apache-2.0 {model} मॉडल को Hugging Face से डाउनलोड कर इस PC पर कैश करेगा। आपका ऑडियो FluidEQ में ही रहता है और स्थानीय रूप से संसाधित होता है। पहली बार समय और अधिक मेमोरी लग सकती है।',
+    'FluidEQ MIT लाइसेंस वाले {model} मॉडल को Hugging Face से डाउनलोड कर इस PC पर कैश करेगा। आपका ऑडियो FluidEQ में ही रहता है और स्थानीय रूप से संसाधित होता है। पहली बार समय और अधिक मेमोरी लग सकती है।',
   'karaoke.maker.transcriptionReview':
     'पहचान केवल शुरुआती बिंदु है। मौजूदा बोल मिलाते समय FluidEQ आपकी वर्तनी रखता है और सभी समय संपादन योग्य रहते हैं।',
   'karaoke.maker.notNow': 'अभी नहीं',
@@ -1151,11 +1209,15 @@ export const makerHi: MakerDictionary = {
   'karaoke.maker.rightsRequired':
     'निर्यात प्रकाशित करने से पहले ऑडियो और बोल के अधिकारों की पुष्टि करें।',
   'karaoke.maker.draftRestored': 'ड्राफ़्ट बहाल हुआ',
+  'karaoke.maker.playerTimingLoaded':
+    'प्लेयर का मौजूदा समय उपयोग हो रहा है। पूर्ववत करने पर सहेजा ड्राफ़्ट वापस आएगा।',
   'karaoke.maker.applyHint':
     'इन बदलावों को प्लेयर में उपयोग करें। मूल कराओके फ़ाइल नहीं बदलेगी; निर्यात नई फ़ाइल बनाएगा।',
   'karaoke.maker.panView': 'हाथ · टाइमलाइन खिसकाएँ',
   'karaoke.maker.panHint':
     'हाथ टूल: बिना संपादन किए गीत में घूमने के लिए कैनवास पर खींचें।',
+  'karaoke.maker.scrubHint':
+    'गीत में जाने के लिए प्लेहेड पर क्लिक करें या उसे खींचें।',
   'karaoke.maker.wordStateLegend': 'गीत समय-निर्धारण की स्थिति',
   'karaoke.maker.userAdjustedWords': '{count} समायोजित',
   'karaoke.maker.pendingWords': '{count} लंबित',
@@ -1185,6 +1247,8 @@ export const makerHi: MakerDictionary = {
   'karaoke.maker.previewResize': 'लाइव पूर्वावलोकन का आकार बदलें',
   'karaoke.maker.seekBack': '{seconds} सेकंड पीछे जाएँ',
   'karaoke.maker.seekForward': '{seconds} सेकंड आगे जाएँ',
+  'karaoke.maker.jumpToStart': 'गीत की शुरुआत पर जाएँ',
+  'karaoke.maker.jumpToEnd': 'गीत के अंत पर जाएँ',
   'karaoke.maker.errorAudioLimits':
     'स्थानीय विश्लेषण 1 GB तक की ऑडियो फ़ाइल और 30 मिनट से छोटी रिकॉर्डिंग समर्थित करता है।',
   'karaoke.maker.errorComponentUnavailable':

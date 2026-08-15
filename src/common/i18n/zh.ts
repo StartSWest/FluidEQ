@@ -118,6 +118,7 @@ const zh: Partial<Dictionary> = {
   'karaoke.transport.restart': '重新开始歌曲',
   'karaoke.transport.play': '播放',
   'karaoke.transport.pause': '暂停',
+  'karaoke.transport.spaceShortcut': '{action} · 空格键',
   'karaoke.transport.seek': '歌曲位置',
   'karaoke.transport.volume': '音量',
   'karaoke.mic.title': '麦克风',
