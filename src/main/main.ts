@@ -73,13 +73,7 @@ import { getConfigPath, isEqualizerAPOInstalled } from './registry';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
 import { gatherBugReportFacts } from './bugReportFacts';
 import ChannelEnum from '../common/channels';
-import { getVoicingProfile } from '../common/voicing';
-import { getDriverProfile } from '../common/driver';
-import {
-  hasSmartEqLayer,
-  sanitizeSmartEqSettings,
-  smartEqFromFilters,
-} from '../common/smartEq';
+import { hasSmartEqLayer, smartEqFromFilters } from '../common/smartEq';
 import { parseEqText } from '../common/apoText';
 import { parseCustomFx } from '../common/customFx';
 import { compressChainToLimit } from '../common/response';
@@ -89,21 +83,11 @@ import {
   IState,
   ICustomFxSettings,
   IPresetV2,
-  IFilter,
-  IFilterEdit,
-  MAX_FREQUENCY,
   MAX_GAIN,
-  MAX_NUM_FILTERS,
-  MAX_QUALITY,
-  MIN_FREQUENCY,
-  MIN_GAIN,
-  MIN_NUM_FILTERS,
-  MIN_QUALITY,
   WINDOW_HEIGHT,
   WINDOW_HEIGHT_EXPANDED,
   WINDOW_MIN_HEIGHT,
   WINDOW_MIN_WIDTH,
-  getDefaultFilterWithId,
   FixedBandSizeEnum,
   getDefaultFilters,
   IFiltersMap,
@@ -116,19 +100,14 @@ import {
   RENDERER_READY_EVENT,
   OUTPUT_STATE_CHANGED_EVENT,
   AUTOEQ_SOURCE_ID,
-  APO_LAYERS,
   APO_FEATURES,
   TApoFeature,
   TApoLayer,
   describeBandShape,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
+import { isRestrictedPresetName } from '../common/utils';
 import {
-  isFixedBandSizeEnumValue,
-  isRestrictedPresetName,
-} from '../common/utils';
-import {
-  adaptLayoutToFixedFrequencies,
   getFixedBandSizeForCount,
   ILayoutSnapshot,
   snapshotFilters,
@@ -149,13 +128,14 @@ import {
   getConvolutionCatalog,
 } from './convolutionCatalog';
 import { importConvolutionFile, importEqFile } from './importSettings';
-import {
-  clearVideoSession,
-  openVideoLinkExternally,
-  setUpVideoBrowser,
-  setVideoAdBlockEnabled,
-} from './videoBrowser';
+import { setUpVideoBrowser } from './videoBrowser';
 import { openExternalIfSafe } from './safeExternal';
+import { registerKaraokeIpc } from './ipc/karaoke';
+import { registerWindowIpc } from './ipc/window';
+import { registerFiltersIpc } from './ipc/filters';
+import { registerLayersIpc } from './ipc/layers';
+import { registerPreampIpc } from './ipc/preamp';
+import { registerVideoIpc } from './ipc/video';
 import { adoptBlock, hasChainDrifted } from '../common/apoSync';
 import {
   adoptApoFeatureText,
@@ -174,19 +154,6 @@ import { readApoConfigTree, readApoDeviceChain } from './apoConfigReader';
 import { IApoConfigLayer, IApoConfigTree } from '../common/apoConfig';
 import { APP_ID, PRODUCT_NAME } from '../common/branding';
 import { latestReleaseNotes } from '../common/changelog';
-import {
-  clearKaraokeSession,
-  readRestoredKaraokeFile,
-  restoreKaraokeSession,
-  saveKaraokeSession,
-} from './karaokeSession';
-import { IKaraokeSessionSnapshot } from '../common/karaoke/sessionPersistence';
-import {
-  deleteKaraokeMakerDraft,
-  loadKaraokeMakerDraft,
-  normalizeKaraokeMakerExport,
-  saveKaraokeMakerDraft,
-} from './karaokeMakerStorage';
 import {
   assignDeviceProfile,
   discoverAudioDevices,
@@ -3096,617 +3063,43 @@ ipcMain.on(ChannelEnum.SET_ENABLE, async (event, arg) => {
   await handleUpdate(event, ChannelEnum.SET_ENABLE);
 });
 
-ipcMain.on(ChannelEnum.SET_AUTO_PREAMP, async (event, arg) => {
-  // Whichever way the switch moves, the number that comes out of it is the one
-  // auto-normalize computes for the chain as it stands. On, it goes on deriving
-  // it; off, that same value becomes the manual one to adjust from. The switch
-  // changes who is in charge of the level, never the level itself.
-  //
-  // Which is why the resolver is asked with the flag forced on rather than with
-  // whatever it is about to become. `resolvePreAmp` branches on that flag and
-  // returns the stored manual value when it is off, so reading it around the
-  // assignment gets one of the two directions wrong every time:
-  //
-  //  - Read before the flip, switching OFF is right (it captures the automatic
-  //    reserve) and switching ON is wrong — it answers with the manual value,
-  //    which is then published as though it were the newly computed one. That
-  //    is the bug where enabling Auto normalize left the old number on screen.
-  //    It only looked correct on tabs that mount the response graph, because
-  //    the graph recomputed and overwrote the display a moment later; on the
-  //    Karaoke tab, which mounts no graph, the stale number simply stayed.
-  //  - Read after the flip, switching ON is right and switching OFF drops back
-  //    to the stored manual value — 0 on a profile that never set one by hand,
-  //    so a chain reserving 11 dB got 11 dB louder from the click of a switch
-  //    whose whole job is to stop it clipping.
-  //
-  // Forcing it on answers the question actually being asked, in both
-  // directions. The copy is shallow and read-only; nothing here mutates state.
-  const isAutoPreAmpOn = Boolean(arg[0]);
-  const automatic = getResolvedPreAmp({ ...state, isAutoPreAmpOn: true });
-  state.isAutoPreAmpOn = isAutoPreAmpOn;
-  state.preAmp = automatic;
-  // This is device-profile state, just like its manual preamp. Without the
-  // active-session path the flag changed in memory, then the flush rebuilt APO
-  // from the attached profile where Auto normalize was still off — so enabling
-  // it after setting -5 dB produced the exact same -5 dB output.
-  await handleUpdateHelper<number>(
-    event,
-    ChannelEnum.SET_AUTO_PREAMP,
-    state.preAmp,
-    false,
-    true,
-  );
-});
-
 ipcMain.on(ChannelEnum.SET_GRAPH_VIEW, async (event, arg) => {
   // eslint-disable-next-line prefer-destructuring
   state.isGraphViewOn = arg[0];
   await handleUpdate(event, ChannelEnum.SET_GRAPH_VIEW);
 });
 
-ipcMain.on(ChannelEnum.SET_VIDEO_AD_BLOCK, (_event, arg) => {
-  setVideoAdBlockEnabled(Boolean(arg[0]));
+registerPreampIpc({
+  state,
+  handleUpdate,
+  handleUpdateHelper,
+  handleError,
 });
 
-ipcMain.on(ChannelEnum.OPEN_VIDEO_LINK_EXTERNALLY, (_event, arg) => {
-  openVideoLinkExternally(String(arg[0] ?? ''));
+registerVideoIpc();
+
+// The EQ chain, in two files rather than five hundred lines of this one.
+//
+// What each list names is what that half of the chain is able to reach. The
+// bands need the layout machinery because changing the band count has to
+// remember where the old ones were; the layers do not, and now cannot.
+registerFiltersIpc({
+  state,
+  handleUpdate,
+  handleUpdateHelper,
+  handleError,
+  doesFilterIdExist,
+  captureCurrentLayout,
+  getStoredLayout,
+  resetEqToDefaults,
+  switchToParametricEditing,
 });
 
-/**
- * Sign out of everything in the player.
- *
- * It replies even when the clear fails, and that is deliberate: the button is a
- * privacy control, so a silent failure would leave somebody believing they had
- * signed out of five accounts when they had not. The reply carries whether it
- * worked, and the renderer says which.
- */
-ipcMain.on(ChannelEnum.CLEAR_VIDEO_SESSION, async (event) => {
-  try {
-    await clearVideoSession();
-    event.reply(ChannelEnum.CLEAR_VIDEO_SESSION, { result: true });
-  } catch (ex) {
-    log.error(`Failed to clear the video session: ${ex}`);
-    event.reply(ChannelEnum.CLEAR_VIDEO_SESSION, { result: false });
-  }
-});
-
-ipcMain.on(ChannelEnum.GET_PREAMP, async (event) => {
-  const reply: TSuccess<number> = { result: state.preAmp || 0 };
-  event.reply(ChannelEnum.GET_PREAMP, reply);
-});
-
-ipcMain.on(ChannelEnum.SET_PREAMP, async (event, arg) => {
-  const channel = ChannelEnum.SET_PREAMP;
-  const gain = parseFloat(arg[0]) || 0;
-
-  if (gain < MIN_GAIN || gain > MAX_GAIN) {
-    handleError(
-      event,
-      channel,
-      ErrorCode.INVALID_PARAMETER,
-      `The preamp goes from ${MIN_GAIN} dB to ${MAX_GAIN} dB.`,
-      'The preamp was left where it was.',
-    );
-    return;
-  }
-
-  state.preAmp = gain;
-  await handleUpdate(event, channel, false, true);
-});
-
-ipcMain.on(ChannelEnum.GET_FILTER_GAIN, async (event, arg) => {
-  const channel = ChannelEnum.GET_FILTER_GAIN;
-  const filterId = arg[0];
-
-  // Filter id must exist
-  if (!doesFilterIdExist(event, channel, filterId)) {
-    return;
-  }
-
-  const reply: TSuccess<number> = {
-    result: state.filters[filterId].gain || 0,
-  };
-  event.reply(channel + filterId, reply);
-});
-
-ipcMain.on(ChannelEnum.SET_FILTER_GAIN, async (event, arg) => {
-  const channel = ChannelEnum.SET_FILTER_GAIN;
-  const filterId = arg[0];
-  const gain = parseFloat(arg[1]) || 0;
-
-  // Filter id must exist
-  if (!doesFilterIdExist(event, channel, filterId)) {
-    return;
-  }
-
-  if (gain < MIN_GAIN || gain > MAX_GAIN) {
-    handleError(event, channel + filterId, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  switchToParametricEditing();
-  state.filters[filterId].gain = gain;
-  state.isFlat = false;
-  await handleUpdate(event, channel + filterId, false, true);
-});
-
-ipcMain.on(ChannelEnum.GET_FILTER_FREQUENCY, async (event, arg) => {
-  const channel = ChannelEnum.GET_FILTER_FREQUENCY;
-  const filterId = arg[0];
-
-  // Filter id must exist
-  if (!doesFilterIdExist(event, channel, filterId)) {
-    return;
-  }
-
-  const reply: TSuccess<number> = {
-    result: state.filters[filterId].frequency || 10,
-  };
-  event.reply(channel + filterId, reply);
-});
-
-ipcMain.on(ChannelEnum.SET_FILTER_FREQUENCY, async (event, arg) => {
-  const channel = ChannelEnum.SET_FILTER_FREQUENCY;
-  const filterId = arg[0];
-  const frequency = parseInt(arg[1], 10) || 0;
-
-  // Filter id must exist
-  if (!doesFilterIdExist(event, channel, filterId)) {
-    return;
-  }
-
-  if (frequency < MIN_FREQUENCY || frequency > MAX_FREQUENCY) {
-    handleError(event, channel + filterId, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  switchToParametricEditing();
-  state.filters[filterId].frequency = frequency;
-  state.isFlat = false;
-  await handleUpdate(event, channel + filterId, false, true);
-});
-
-ipcMain.on(ChannelEnum.GET_FILTER_QUALITY, async (event, arg) => {
-  const channel = ChannelEnum.GET_FILTER_QUALITY;
-  const filterId = arg[0];
-
-  // Filter id must exist
-  if (!doesFilterIdExist(event, channel, filterId)) {
-    return;
-  }
-
-  const reply: TSuccess<number> = {
-    result: state.filters[filterId].quality || 10,
-  };
-  event.reply(channel + filterId, reply);
-});
-
-ipcMain.on(ChannelEnum.SET_FILTER_QUALITY, async (event, arg) => {
-  const channel = ChannelEnum.SET_FILTER_QUALITY;
-  const filterId = arg[0];
-  const quality = parseFloat(arg[1]) || 0;
-
-  // Filter id must exist
-  if (!doesFilterIdExist(event, channel, filterId)) {
-    return;
-  }
-
-  if (quality < MIN_QUALITY || quality > MAX_QUALITY) {
-    handleError(event, channel + filterId, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  switchToParametricEditing();
-  state.filters[filterId].quality = quality;
-  state.isFlat = false;
-  await handleUpdate(event, channel + filterId, false, true);
-});
-
-ipcMain.on(ChannelEnum.GET_FILTER_TYPE, async (event, arg) => {
-  const channel = ChannelEnum.GET_FILTER_TYPE;
-  const filterId = arg[0];
-
-  // Filter id must exist
-  if (!doesFilterIdExist(event, channel, filterId)) {
-    return;
-  }
-
-  const reply: TSuccess<string> = {
-    result: state.filters[filterId].type,
-  };
-  event.reply(channel + filterId, reply);
-});
-
-ipcMain.on(ChannelEnum.SET_FILTER_TYPE, async (event, arg) => {
-  const channel = ChannelEnum.SET_FILTER_TYPE;
-  const filterId = arg[0];
-  const filterType = arg[1];
-
-  // Filter id must exist
-  if (!doesFilterIdExist(event, channel, filterId)) {
-    return;
-  }
-
-  if (!Object.values(FilterTypeEnum).includes(filterType)) {
-    handleError(event, channel + filterId, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  switchToParametricEditing();
-  state.filters[filterId].type = filterType as FilterTypeEnum;
-  state.isFlat = false;
-  await handleUpdate(event, channel + filterId, false, true);
-});
-
-/**
- * Apply a whole group edit, then flush once.
- *
- * The single-band setters above are unchanged and still the right thing for a
- * single band. This exists because the flush is the expensive half: sending it
- * per band made a ten-band selection ten installation checks, ten retried
- * config writes and ten preset saves for one movement of one control.
- *
- * All-or-nothing on validation. A batch that names a band that no longer
- * exists, or carries a value out of range, is rejected before anything is
- * written — half an edit reaching Equalizer APO would leave the config and the
- * window disagreeing about what is playing, with nothing to say which bands
- * made it.
- */
-ipcMain.on(ChannelEnum.SET_FILTER_VALUES, async (event, arg) => {
-  const channel = ChannelEnum.SET_FILTER_VALUES;
-  const edits: IFilterEdit[] = Array.isArray(arg?.[0]) ? arg[0] : [];
-
-  if (edits.length === 0) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  const isInRange = (value: number | undefined, min: number, max: number) =>
-    value === undefined ||
-    (Number.isFinite(value) && value >= min && value <= max);
-
-  const isValid = edits.every(
-    (edit) =>
-      typeof edit?.id === 'string' &&
-      edit.id in state.filters &&
-      isInRange(edit.gain, MIN_GAIN, MAX_GAIN) &&
-      isInRange(edit.frequency, MIN_FREQUENCY, MAX_FREQUENCY) &&
-      isInRange(edit.quality, MIN_QUALITY, MAX_QUALITY) &&
-      (edit.type === undefined ||
-        Object.values(FilterTypeEnum).includes(edit.type)),
-  );
-
-  if (!isValid) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  switchToParametricEditing();
-  edits.forEach((edit) => {
-    const filter = state.filters[edit.id];
-    if (edit.frequency !== undefined) {
-      filter.frequency = edit.frequency;
-    }
-    if (edit.gain !== undefined) {
-      filter.gain = edit.gain;
-    }
-    if (edit.quality !== undefined) {
-      filter.quality = edit.quality;
-    }
-    if (edit.type !== undefined) {
-      filter.type = edit.type;
-    }
-  });
-  state.isFlat = false;
-  await handleUpdate(event, channel, false, true);
-});
-
-ipcMain.on(ChannelEnum.GET_FILTER_COUNT, async (event) => {
-  const reply: TSuccess<number> = {
-    result: Object.keys(state.filters).length,
-  };
-  event.reply(ChannelEnum.GET_FILTER_COUNT, reply);
-});
-
-ipcMain.on(ChannelEnum.ADD_FILTER, async (event, arg) => {
-  const channel = ChannelEnum.ADD_FILTER;
-  const frequency: number = arg[0];
-
-  // Two different refusals, and they were reported as the same "Internal
-  // Error: Invalid parameter — please reach out to the developers". Neither is
-  // an internal error and neither needs a developer: one is a documented limit
-  // and the other is a number outside the audible range.
-  if (Object.keys(state.filters).length >= MAX_NUM_FILTERS) {
-    handleError(
-      event,
-      channel,
-      ErrorCode.INVALID_PARAMETER,
-      `You already have the most bands ${PRODUCT_NAME} can apply (${MAX_NUM_FILTERS}).`,
-      'Remove a band before adding another, or adjust one you already have.',
-    );
-    return;
-  }
-  if (frequency < MIN_FREQUENCY || frequency > MAX_FREQUENCY) {
-    handleError(
-      event,
-      channel,
-      ErrorCode.INVALID_PARAMETER,
-      `A band has to sit between ${MIN_FREQUENCY} Hz and ${MAX_FREQUENCY} Hz.`,
-      'Nothing was added. Pick a frequency inside that range.',
-    );
-    return;
-  }
-
-  switchToParametricEditing();
-  const newFilter: IFilter = { ...getDefaultFilterWithId(), frequency };
-  state.filters[newFilter.id] = newFilter;
-  state.isFlat = false;
-  await handleUpdateHelper(event, channel, newFilter.id, false, true);
-});
-
-ipcMain.on(ChannelEnum.REMOVE_FILTER, async (event, arg) => {
-  const channel = ChannelEnum.REMOVE_FILTER;
-  const filterId: string = arg[0];
-
-  // Cannot fall below the minimum number of filters
-  if (Object.keys(state.filters).length <= MIN_NUM_FILTERS) {
-    handleError(
-      event,
-      channel,
-      ErrorCode.INVALID_PARAMETER,
-      MIN_NUM_FILTERS === 1
-        ? 'An equalizer needs at least one band.'
-        : `An equalizer needs at least ${MIN_NUM_FILTERS} bands.`,
-      'Set its gain to 0 dB instead — that leaves the sound untouched.',
-    );
-    return;
-  }
-
-  // Filter id must exist
-  if (!doesFilterIdExist(event, channel, filterId)) {
-    return;
-  }
-
-  switchToParametricEditing();
-  // delete does not throw exception even if the filterId does not exist
-  delete state.filters[filterId];
-  state.isFlat = false;
-  await handleUpdate(event, channel, false, true);
-});
-
-ipcMain.on(ChannelEnum.CLEAR_GAINS, async (event) => {
-  const channel = ChannelEnum.CLEAR_GAINS;
-
-  resetEqToDefaults();
-
-  // EQ reset is independent from convolution. Persist the resulting state
-  // (including any active convolution) to the device profile so APO keeps the
-  // impulse response enabled after the EQ bands are cleared.
-  await handleUpdateHelper<IFiltersMap>(
-    event,
-    channel,
-    state.filters,
-    false,
-    true,
-  );
-});
-
-ipcMain.on(ChannelEnum.SET_FIXED_BAND, async (event, arg) => {
-  const channel = ChannelEnum.SET_FIXED_BAND;
-  const size: FixedBandSizeEnum = arg[0];
-  if (!isFixedBandSizeEnumValue(size)) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  // Capture the high-resolution layout before replacing it. The snapshot is
-  // device-scoped and survives app restarts, so returning to a previous band
-  // count restores its original frequencies and tuning.
-  captureCurrentLayout();
-  const sourceSnapshot = snapshotFilters(state.filters);
-  switchToParametricEditing();
-  const storedSnapshot = getStoredLayout(size);
-  const targetSnapshot =
-    storedSnapshot || adaptLayoutToFixedFrequencies(sourceSnapshot, size);
-  const nextFilters = getDefaultFilters(size);
-  Object.values(nextFilters)
-    .sort((left, right) => left.frequency - right.frequency)
-    .forEach((filter, index) => {
-      const savedBand = targetSnapshot[index];
-      if (!savedBand) {
-        return;
-      }
-      filter.frequency = savedBand.frequency;
-      filter.gain = savedBand.gain;
-      filter.quality = savedBand.quality;
-      filter.type = savedBand.type;
-    });
-  state.filters = nextFilters;
-  state.isFlat = false;
-
-  await handleUpdateHelper<IFiltersMap>(
-    event,
-    channel,
-    state.filters,
-    false,
-    true,
-  );
-});
-
-ipcMain.on(ChannelEnum.SET_VOICING, async (event, arg) => {
-  const channel = ChannelEnum.SET_VOICING;
-  const profileId: string = arg[0];
-  const intensity: number = arg[1];
-
-  const isExistingApoOverride =
-    state.voicing?.profileId === profileId &&
-    Boolean(state.voicing.apoOverride);
-  if (
-    typeof profileId !== 'string' ||
-    (profileId !== '' &&
-      !getVoicingProfile(profileId) &&
-      !isExistingApoOverride) ||
-    !Number.isFinite(intensity)
-  ) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  applyingLayer('voicing');
-  // The voicing is a layer of its own, so this never touches state.filters.
-  state.voicing = {
-    profileId,
-    intensity: Math.min(1, Math.max(0, intensity)),
-    ...(isExistingApoOverride
-      ? { apoOverride: state.voicing?.apoOverride }
-      : {}),
-  };
-
-  await handleUpdate(event, channel, false, true);
-});
-
-/*
- * How much of the published correction to apply, and whether to keep it.
- *
- * Only the strength travels, never the filters: those arrive once when a
- * measurement is applied and are not something the renderer should be able to
- * rewrite. Undefined clears the layer outright, which is what the chip's X
- * means — and unlike the old behaviour it takes nothing of the user's with it.
- */
-ipcMain.on(ChannelEnum.SET_HEADPHONE, async (event, arg) => {
-  const channel = ChannelEnum.SET_HEADPHONE;
-  const intensity: unknown = arg?.[0];
-
-  if (intensity === undefined || intensity === null) {
-    applyingLayer('headphone');
-    state.headphone = undefined;
-    state.headset = undefined;
-    state.headsetTarget = undefined;
-    state.headsetSource = undefined;
-    state.headsetSignature = undefined;
-    await handleUpdate(event, channel, false, true);
-    return;
-  }
-
-  if (typeof intensity !== 'number' || !Number.isFinite(intensity)) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-  if (!state.headphone) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  applyingLayer('headphone');
-  state.headphone = {
-    ...state.headphone,
-    intensity: Math.min(1, Math.max(0, intensity)),
-  };
-
-  await handleUpdate(event, channel, false, true);
-});
-
-ipcMain.on(ChannelEnum.SET_DRIVER, async (event, arg) => {
-  const channel = ChannelEnum.SET_DRIVER;
-  const profileId: string = arg[0];
-  const intensity: number = arg[1];
-
-  const isExistingApoOverride =
-    state.driver?.profileId === profileId && Boolean(state.driver.apoOverride);
-  if (
-    typeof profileId !== 'string' ||
-    (profileId !== '' &&
-      !getDriverProfile(profileId) &&
-      !isExistingApoOverride) ||
-    !Number.isFinite(intensity)
-  ) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  applyingLayer('driver');
-  // Its own layer, like the voicing: never touches state.filters, so the
-  // user's bands survive switching driver types and switching back.
-  state.driver = {
-    profileId,
-    intensity: Math.min(1, Math.max(0, intensity)),
-    ...(isExistingApoOverride
-      ? { apoOverride: state.driver?.apoOverride }
-      : {}),
-  };
-
-  await handleUpdate(event, channel, false, true);
-});
-
-/**
- * Store what Smart EQ measured, as a layer of its own.
- *
- * Same contract as the voicing and the driver: this never touches
- * state.filters. Smart EQ used to write its answer straight into the user's
- * bands, which meant a measurement silently overwrote a tuning somebody had
- * built by hand and there was no way to undo one without losing the other. As a
- * layer the two are independent in both directions — clearing the reference
- * leaves the correction standing, and clearing the correction leaves the bands
- * and the reference alone.
- *
- * An empty or unusable payload removes the layer, which is how the "Also
- * applied" chip clears it.
- */
-ipcMain.on(ChannelEnum.SET_SMART_EQ, async (event, arg) => {
-  const channel = ChannelEnum.SET_SMART_EQ;
-  const settings = arg?.[0];
-
-  if (
-    settings !== undefined &&
-    settings !== null &&
-    typeof settings !== 'object'
-  ) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  applyingLayer('smart');
-  state.smartEq = sanitizeSmartEqSettings(settings);
-  await handleUpdate(event, channel, false, true);
-});
-
-/**
- * Take a layer out of the config, or put it back, without touching its
- * settings.
- *
- * The whole of it is a list of feature names the writer skips. There is nothing
- * to stash and nothing to reconstruct, so there is no half-applied state to
- * land in — which is exactly what went wrong when the bands were switched off
- * by clearing them one at a time and restoring them one at a time.
- *
- * The preamp follows for free: it is measured over what was actually written,
- * so switching a boosting layer off gives its headroom straight back.
- */
-ipcMain.on(ChannelEnum.SET_LAYER_BYPASS, async (event, arg) => {
-  const channel = ChannelEnum.SET_LAYER_BYPASS;
-  const feature = arg?.[0];
-  const isBypassed = arg?.[1];
-
-  if (
-    !APO_LAYERS.includes(feature as TApoLayer) ||
-    typeof isBypassed !== 'boolean'
-  ) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  // Rebuilt from APO_FEATURES rather than pushed onto, so the list keeps one
-  // order and cannot collect duplicates however often the switch is pressed.
-  const wanted = new Set(state.bypassed ?? []);
-  if (isBypassed) {
-    wanted.add(feature as TApoLayer);
-  } else {
-    wanted.delete(feature as TApoLayer);
-  }
-  const bypassed = APO_LAYERS.filter((entry) => wanted.has(entry));
-  state.bypassed = bypassed.length ? [...bypassed] : undefined;
-
-  await handleUpdate(event, channel, false, true);
+registerLayersIpc({
+  state,
+  handleUpdate,
+  handleError,
+  applyingLayer,
 });
 
 ipcMain.on(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
@@ -3890,103 +3283,20 @@ const sendWindowState = () => {
   });
 };
 
-ipcMain.handle('window-minimize', () => {
-  mainWindow?.minimize();
+// Handlers that own a subject rather than a slice of this file's scope.
+//
+// Everything each one can reach is in its `register` argument, so the answer to
+// "what does the Karaoke tab touch in the main process" is a type signature
+// instead of a reading of four thousand lines. `mainWindow` goes across as a
+// getter because it is replaced over the life of the process.
+registerWindowIpc({
+  getMainWindow: () => mainWindow,
+  sendWindowState,
 });
 
-ipcMain.handle('window-toggle-maximize', () => {
-  if (!mainWindow) {
-    return false;
-  }
-  if (mainWindow.isMaximized()) {
-    mainWindow.unmaximize();
-  } else {
-    mainWindow.maximize();
-  }
-  sendWindowState();
-  return mainWindow.isMaximized();
-});
-
-ipcMain.handle('window-close', () => {
-  mainWindow?.close();
-});
-
-ipcMain.handle('window-is-maximized', () => mainWindow?.isMaximized() ?? false);
-
-/**
- * Real fullscreen — the OS kind, with the taskbar gone.
- *
- * Has to happen here: a renderer can ask for the Fullscreen API, but that
- * fullscreens an element within the window rather than the window itself, so
- * the taskbar and the window frame stay. The graph's fullscreen mode is for
- * watching something, and a strip of Windows chrome along the bottom of it is
- * the difference between a mode and a bigger panel.
- *
- * The window state is pushed afterwards because the titlebar's own buttons read
- * it, and a maximise button that still says "restore" while the window has no
- * frame at all is a control describing something that is not on screen.
- */
-ipcMain.handle('window-set-full-screen', (_event, next: boolean) => {
-  if (!mainWindow) {
-    return false;
-  }
-  mainWindow.setFullScreen(!!next);
-  sendWindowState();
-  return mainWindow.isFullScreen();
-});
-
-ipcMain.handle(
-  'karaoke-session-save',
-  (_event, snapshot: IKaraokeSessionSnapshot) => {
-    if (snapshot?.version !== 1 || !Array.isArray(snapshot.files)) {
-      return;
-    }
-    saveKaraokeSession(userDataDir, snapshot);
-  },
-);
-
-ipcMain.handle('karaoke-session-restore', () =>
-  restoreKaraokeSession(userDataDir),
-);
-
-ipcMain.handle('karaoke-session-read-file', (_event, token: unknown) =>
-  typeof token === 'string' ? readRestoredKaraokeFile(token) : undefined,
-);
-
-ipcMain.handle('karaoke-session-clear', () => {
-  clearKaraokeSession(userDataDir);
-});
-
-ipcMain.handle('karaoke-maker-draft-save', (_event, project: unknown) => {
-  saveKaraokeMakerDraft(userDataDir, project);
-});
-
-ipcMain.handle('karaoke-maker-draft-load', (_event, projectId: unknown) =>
-  loadKaraokeMakerDraft(userDataDir, projectId),
-);
-
-ipcMain.handle('karaoke-maker-draft-delete', (_event, projectId: unknown) => {
-  deleteKaraokeMakerDraft(userDataDir, projectId);
-});
-
-ipcMain.handle('karaoke-maker-export', async (_event, request: unknown) => {
-  const output = normalizeKaraokeMakerExport(request);
-  const options = {
-    title: 'Export karaoke',
-    defaultPath: output.fileName,
-    filters: [
-      { name: output.formatName, extensions: output.extensions },
-      { name: 'All files', extensions: ['*'] },
-    ],
-  };
-  const target = mainWindow
-    ? await dialog.showSaveDialog(mainWindow, options)
-    : await dialog.showSaveDialog(options);
-  if (target.canceled || !target.filePath) {
-    return { canceled: true };
-  }
-  fs.writeFileSync(target.filePath, output.contents, 'utf8');
-  return { canceled: false, filePath: target.filePath };
+registerKaraokeIpc({
+  userDataDir,
+  getMainWindow: () => mainWindow,
 });
 
 if (process.env.NODE_ENV === 'production') {
