@@ -644,6 +644,11 @@ const zh: Partial<Dictionary> = {
     '本声明以英文写成。若译文与英文文本有出入，以英文文本为准。',
   'disclaimer.accept': '我已理解并接受',
   'disclaimer.decline': '退出',
+  'provenance.heading': '确认这份副本的来源',
+  'provenance.body':
+    'FluidEQ 的官方签名安装程序仅通过 fluideq.com 提供。源码构建应来自官方仓库。GPL 允许第三方复制、修改、重新构建并出售 FluidEQ，但他们的构建不会自动获得 FluidEQ 的签名、审核、支持或认可。如果某个下载自称是官方版本却没有有效的 Windows 数字签名，请关闭它并举报。',
+  'provenance.site': '官方网站: fluideq.com',
+  'provenance.repository': '官方源码: github.com/StartSWest/FluidEQ',
 
   'language.title': '语言',
   'language.aria': '界面语言',

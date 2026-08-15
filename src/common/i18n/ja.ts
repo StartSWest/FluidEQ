@@ -683,6 +683,11 @@ const ja: Partial<Dictionary> = {
     'この通知は英語で書かれています。翻訳が英語の本文と異なる場合は、英語の本文が優先します。',
   'disclaimer.accept': '理解して同意します',
   'disclaimer.decline': '終了',
+  'provenance.heading': 'このコピーの入手元を確認してください',
+  'provenance.body':
+    'FluidEQ の公式な署名済みインストーラーは fluideq.com からのみ配布されます。ソースからのビルドは公式リポジトリを使用してください。GPL は第三者が FluidEQ を複製、改変、再ビルド、販売することを認めていますが、それらのビルドが FluidEQ によって自動的に署名、検査、サポート、承認されるわけではありません。公式を名乗るダウンロードに有効な Windows のデジタル署名がない場合は、閉じて報告してください。',
+  'provenance.site': '公式サイト: fluideq.com',
+  'provenance.repository': '公式ソース: github.com/StartSWest/FluidEQ',
 
   'language.title': '言語',
   'language.aria': '表示言語',

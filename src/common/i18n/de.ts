@@ -701,6 +701,12 @@ const de: Partial<Dictionary> = {
     'Dieser Hinweis wurde auf Englisch verfasst. Weicht eine Übersetzung vom englischen Text ab, gilt der englische Text.',
   'disclaimer.accept': 'Verstanden und akzeptiert',
   'disclaimer.decline': 'Beenden',
+  'provenance.heading': 'Prüfen Sie, woher diese Kopie stammt',
+  'provenance.body':
+    'Das offizielle signierte Installationsprogramm von FluidEQ wird ausschließlich über fluideq.com bereitgestellt. Builds aus dem Quellcode sollten aus dem offiziellen Repository stammen. Die GPL erlaubt es Dritten, FluidEQ zu kopieren, zu verändern, neu zu erstellen und zu verkaufen, aber deren Builds sind nicht automatisch von FluidEQ signiert, geprüft, unterstützt oder gebilligt. Wenn ein Download vorgibt, offiziell zu sein, und keine gültige digitale Windows-Signatur besitzt, schließen Sie ihn und melden Sie ihn.',
+  'provenance.site': 'Offizielle Website: fluideq.com',
+  'provenance.repository':
+    'Offizieller Quellcode: github.com/StartSWest/FluidEQ',
 
   'language.title': 'Sprache',
   'language.aria': 'Sprache der Oberfläche',

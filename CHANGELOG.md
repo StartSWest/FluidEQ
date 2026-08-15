@@ -6,6 +6,72 @@ actions menu opens it again any time.
 
 ---
 
+## 1.3.0
+
+1.2.0 could play a karaoke file. This one can make you one, out of a song and
+nothing else: the words come out of the audio, the timing comes from you tapping
+along, and the melody is read off the recording. What comes out is a file the
+Karaoke tab plays like any other.
+
+The rest is about trust. A copy of FluidEQ can now tell you where it came from,
+and updates arrive only from the place the build in front of you was actually
+published.
+
+### New
+
+- **A Karaoke Maker.** Open a song and it walks the whole way to a finished
+  karaoke file. The lyrics can be transcribed from the audio, or pasted and kept.
+  Timing is recorded by ear — play the track, mark each line as it starts and
+  ends, then go back and mark individual words where a line needs the detail;
+  every mark can be nudged earlier or later rather than redone. The melody is
+  analysed off the recording into notes you can hear, split, delete, retune or
+  add to by hand. There is a count-in preview, undo and redo throughout, and the
+  result goes straight to the player or saves as a project to come back to.
+- **The lyric transcription downloads a model the first time you use it.** It is
+  a speech-recognition model fetched from Hugging Face, and it is the one thing
+  in FluidEQ that reaches the network for something other than an update. It
+  happens on your press, not on launch, and every other part of the Maker — the
+  timing, the melody analysis, the audio itself — runs on your machine. If you
+  would rather nothing was fetched, paste the words in instead and the rest of
+  the Maker works exactly the same.
+- **A copy of FluidEQ will tell you where it should have come from.** The licence
+  lets anybody copy, change, rebuild and sell this program, which is as it should
+  be — but it also means somebody can hand you a build and call it ours. There is
+  now a panel naming the official site and the official repository, and saying
+  plainly that a download claiming to be official without a valid Windows
+  signature is neither.
+
+### Changed
+
+- **Updates come only from where your build was published.** The build from
+  GitHub updates from GitHub, exactly as it always has. The signed build updates
+  only from its own address and never from the public repository, because signed
+  installers are not published there. Which one a copy is was decided when it was
+  built and is compiled into it, so it cannot be changed by editing a file in an
+  installed copy. Each side checks what it downloaded before running it — the
+  signed one that the signature is ours, the GitHub one that there is no
+  signature at all — so an installer that ended up in the wrong place is refused
+  rather than installed. Development builds do not update at all.
+- **The window opens at nine tenths of your screen, centred**, or maximised on
+  anything below 2K. It used to open at a fixed 1428×625, centre itself for that
+  height and then grow to 1036 from the same corner — which, on a 1080p screen,
+  put its bottom edge under the taskbar on the very first launch.
+
+### Fixed
+
+- **Signing in works in the Media tab.** Sites that hand their sign-in to
+  somebody else — Suno through Microsoft, Twitch through Amazon, and the Apple,
+  Discord and Facebook buttons wherever they appear — used to reach a page the
+  player refused, which looked like a broken login. Each of those sign-in hosts
+  is now named, one at a time and never as a wildcard, because a page here can
+  hold a live login and the list is the whole boundary. Google is listed too, but
+  decides for itself whether to allow an embedded sign-in and often will not;
+  that one is not ours to fix.
+- **Suno's old address resolves.** `suno.ai` still answers and redirects to
+  `suno.com`, and a redirect the player would not follow was a dead link.
+
+---
+
 ## 1.2.0
 
 FluidEQ has a Karaoke tab: songs you already own, with the words, your pitch

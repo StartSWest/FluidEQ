@@ -95,8 +95,13 @@ label, hint, error and tooltip is translated, and a test fails the build if a
 locale falls behind English. Right-to-left languages are deliberately absent:
 the layout has never been mirrored, and a broken Arabic is worse than none.
 
-**Updates itself.** FluidEQ checks GitHub for a new version, downloads it in
-the background and offers to restart. Being offline is not an error and says
+**Updates itself, from wherever it came from.** The build published here checks
+GitHub for a new version, downloads it in the background and offers to restart.
+A signed build checks its own address instead and never this repository, since
+signed installers are not published here. Whichever it is was decided when the
+build was made and is compiled into it, and each verifies what it downloaded —
+so an installer that ended up on the wrong side is refused rather than run. A
+build you made yourself does not update. Being offline is not an error and says
 nothing. After updating, a **What's new** dialog shows what changed; it is in
 the actions menu any time.
 
@@ -141,10 +146,24 @@ anywhere, and no music ships with it — an instrumental is something you bring,
 because Karaoke does not strip a vocal out of a recording or separate it into
 stems.
 
+**And make the file when the song does not have one.** The **Karaoke Maker**
+builds one out of a song and nothing else. The words can be transcribed from the
+audio or pasted in and kept. The timing is recorded by ear — play the track, mark
+each line as it begins and ends, then mark individual words where a line needs
+that detail, nudging any mark earlier or later instead of doing it again. The
+melody is read off the recording into notes you can hear, split, delete, retune
+or add to by hand. There is a counted-in preview, undo and redo throughout, and
+what comes out either goes straight to the player or saves as a project to
+return to.
+
 ![The Karaoke tab mid-song: a playlist of twenty-four files down the left, the current line of the lyric large and lit in the middle of the stage with the lines before and after it dimmed above and below, and the estimated chord and the next one in the top right corner. Below the lyric, a pitch lane draws the song's target notes as blue blocks with their syllables labelled above them, the live microphone pitch running over the top in orange and green as it goes sharp or flat, and a performance-review strip marking every place that went high, low or missing. A transport bar with the playhead and a volume control sits at the bottom.](docs/screenshot8.png)
 
 **Local and account-free.** No cloud, no telemetry, no proprietary driver, no
-virtual audio device.
+virtual audio device. There is one download and it is worth naming: asking the
+Karaoke Maker to transcribe lyrics fetches a speech-recognition model the first
+time you use it, on your press rather than at launch. Your audio is not part of
+that request — the transcription, the timing and the melody analysis all run on
+your machine — and pasting the words in instead skips it entirely.
 
 ## The config is the source of truth
 
@@ -324,9 +343,9 @@ pnpm package
 `pnpm package` builds an installer into `release/build`, which is what you want
 for checking a change end to end on a real machine.
 
-Official signed builds use `pnpm package:signed`; the trust boundary, required
-release variables, and private Vercel-feed contract are documented in
-[`docs/signed-updates.md`](docs/signed-updates.md).
+`pnpm package:signed` builds the signed installer instead. It refuses to run
+unless its whole configuration is present, so it cannot quietly produce an
+unsigned one.
 
 The version lives in both `package.json` and `release/app/package.json` and the
 two must agree, or the artifact is named after the wrong one.
