@@ -6,6 +6,45 @@ actions menu opens it again any time.
 
 ---
 
+## 1.3.1
+
+Three small things that were each a little wrong: the preamp switch changed how
+loud everything was, the Karaoke Maker had no way back to the song you started
+from, and these release notes had no obvious way out.
+
+### New
+
+- **Restore original, in the Karaoke Maker.** Next to Undo and Redo. It throws
+  away the whole session and rebuilds the karaoke exactly as it was imported,
+  saved draft included — for when an edit went wrong several steps ago and
+  undoing one at a time is not the way back. It is itself undoable, so pressing
+  it by mistake costs nothing.
+
+### Changed
+
+- **The release notes have an OK button.** The corner ✕ is what you reach for to
+  escape something, not what you press when you have finished reading. OK sits
+  at the bottom right, outside the part that scrolls, so a long changelog never
+  hides it — and it holds the focus, so Enter closes the notes.
+
+### Fixed
+
+- **Turning Auto normalize off no longer makes everything louder.** It published
+  0 dB instead of the reserve that was actually in force, so a chain holding
+  back 11 dB got 11 dB louder from one click of the switch whose whole job is to
+  stop it clipping. The switch now changes who decides the number, not the
+  number.
+- **`Preamp: -19` is read as -19.** A preamp line without the unit was read as 0
+  and still reported as a successful import, so the file loaded and played at
+  the wrong level with nothing to say so. The unit is optional now, like every
+  other tolerant field in that parser.
+- **An imported preamp is no longer overruled without a word.** Automatic
+  normalization recomputed over the value the file asked for, so what played was
+  our number rather than the exported one. A file that carries a preamp line now
+  switches automatic mode off, and the import result says that it did.
+
+---
+
 ## 1.3.0
 
 1.2.0 could play a karaoke file. This one can make you one, out of a song and

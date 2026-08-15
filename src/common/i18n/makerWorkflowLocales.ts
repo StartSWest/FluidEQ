@@ -122,6 +122,11 @@ export const makerWorkflowPt: MakerWorkflowDictionary = {
   'karaoke.maker.memoryPromptBody':
     'O modelo de voz local está ocioso. Liberá-lo economiza RAM; seus arquivos continuam em cache para recarregar mais rápido.',
   'karaoke.maker.keepLoaded': 'Manter carregado',
+  'karaoke.maker.restore': 'Restaurar original',
+  'karaoke.maker.restoreTitle': 'Restaurar o karaokê original?',
+  'karaoke.maker.restoreBody':
+    'Isso descarta todas as edições desta sessão e reconstrói o karaokê como foi importado, incluindo seu rascunho salvo. É possível desfazer depois de restaurar.',
+  'karaoke.maker.restored': 'O original importado foi restaurado.',
 };
 
 export const makerWorkflowFr: MakerWorkflowDictionary = {
@@ -243,6 +248,11 @@ export const makerWorkflowFr: MakerWorkflowDictionary = {
   'karaoke.maker.memoryPromptBody':
     'Le modèle vocal local est inactif. Le libérer économise la mémoire vive ; ses fichiers restent en cache pour un rechargement plus rapide.',
   'karaoke.maker.keepLoaded': 'Garder chargé',
+  'karaoke.maker.restore': 'Restaurer l’original',
+  'karaoke.maker.restoreTitle': 'Restaurer le karaoké d’origine ?',
+  'karaoke.maker.restoreBody':
+    'Cela abandonne toutes les modifications de cette session et reconstruit le karaoké tel qu’il a été importé, y compris son brouillon enregistré. Vous pourrez annuler après la restauration.',
+  'karaoke.maker.restored': 'L’original importé a été restauré.',
 };
 
 export const makerWorkflowDe: MakerWorkflowDictionary = {
@@ -365,6 +375,11 @@ export const makerWorkflowDe: MakerWorkflowDictionary = {
   'karaoke.maker.memoryPromptBody':
     'Das lokale Sprachmodell ist inaktiv. Das Freigeben spart Arbeitsspeicher; seine Dateien bleiben für ein schnelleres Neuladen zwischengespeichert.',
   'karaoke.maker.keepLoaded': 'Geladen lassen',
+  'karaoke.maker.restore': 'Original wiederherstellen',
+  'karaoke.maker.restoreTitle': 'Das ursprüngliche Karaoke wiederherstellen?',
+  'karaoke.maker.restoreBody':
+    'Damit werden alle Änderungen dieser Sitzung verworfen und das Karaoke wird so aufgebaut, wie es importiert wurde — einschließlich seines gespeicherten Entwurfs. Nach dem Wiederherstellen ist Rückgängig verfügbar.',
+  'karaoke.maker.restored': 'Das importierte Original wurde wiederhergestellt.',
 };
 
 export const makerWorkflowIt: MakerWorkflowDictionary = {
@@ -487,6 +502,11 @@ export const makerWorkflowIt: MakerWorkflowDictionary = {
   'karaoke.maker.memoryPromptBody':
     'Il modello vocale locale è inattivo. Liberarlo consente di risparmiare RAM; i suoi file restano in cache per un caricamento più rapido.',
   'karaoke.maker.keepLoaded': 'Mantieni caricato',
+  'karaoke.maker.restore': 'Ripristina originale',
+  'karaoke.maker.restoreTitle': 'Ripristinare il karaoke originale?',
+  'karaoke.maker.restoreBody':
+    'Questa operazione scarta tutte le modifiche di questa sessione e ricostruisce il karaoke come è stato importato, bozza salvata compresa. Dopo il ripristino è possibile annullare.',
+  'karaoke.maker.restored': 'L’originale importato è stato ripristinato.',
 };
 
 export const makerWorkflowRu: MakerWorkflowDictionary = {
@@ -607,6 +627,11 @@ export const makerWorkflowRu: MakerWorkflowDictionary = {
   'karaoke.maker.memoryPromptBody':
     'Локальная речевая модель не используется. Её выгрузка освободит ОЗУ; файлы останутся в кэше для быстрой повторной загрузки.',
   'karaoke.maker.keepLoaded': 'Оставить загруженной',
+  'karaoke.maker.restore': 'Восстановить оригинал',
+  'karaoke.maker.restoreTitle': 'Восстановить исходное караоке?',
+  'karaoke.maker.restoreBody':
+    'Все правки этого сеанса будут отброшены, а караоке будет собрано заново в том виде, в каком оно было импортировано, включая сохранённый черновик. После восстановления доступна отмена.',
+  'karaoke.maker.restored': 'Импортированный оригинал восстановлен.',
 };
 
 export const makerWorkflowZh: MakerWorkflowDictionary = {
@@ -721,6 +746,11 @@ export const makerWorkflowZh: MakerWorkflowDictionary = {
   'karaoke.maker.memoryPromptBody':
     '本地语音模型处于空闲状态。释放它可以节省内存；文件仍会缓存，以便更快重新加载。',
   'karaoke.maker.keepLoaded': '保持加载',
+  'karaoke.maker.restore': '还原原始版本',
+  'karaoke.maker.restoreTitle': '要还原原始卡拉OK吗？',
+  'karaoke.maker.restoreBody':
+    '这会放弃本次会话的所有编辑，并按导入时的状态重建卡拉OK，包括已保存的草稿。还原后可以撤销。',
+  'karaoke.maker.restored': '已还原导入的原始版本。',
 };
 
 export const makerWorkflowJa: MakerWorkflowDictionary = {
@@ -839,6 +869,11 @@ export const makerWorkflowJa: MakerWorkflowDictionary = {
   'karaoke.maker.memoryPromptBody':
     'ローカル音声モデルはアイドル状態です。解放すると RAM を節約でき、ファイルは高速な再読み込みのためキャッシュに残ります。',
   'karaoke.maker.keepLoaded': '読み込み状態を維持',
+  'karaoke.maker.restore': '元に復元',
+  'karaoke.maker.restoreTitle': '元のカラオケに復元しますか？',
+  'karaoke.maker.restoreBody':
+    'このセッションの編集をすべて破棄し、保存された下書きも含めて、読み込んだときの状態にカラオケを組み直します。復元後も元に戻せます。',
+  'karaoke.maker.restored': '読み込んだ元の状態に復元しました。',
 };
 
 export const makerWorkflowHi: MakerWorkflowDictionary = {
@@ -956,4 +991,9 @@ export const makerWorkflowHi: MakerWorkflowDictionary = {
   'karaoke.maker.memoryPromptBody':
     'स्थानीय वाणी मॉडल निष्क्रिय है। उसे हटाने से RAM बचती है; तेज़ पुनः लोड के लिए फ़ाइलें कैश में रहती हैं।',
   'karaoke.maker.keepLoaded': 'लोड रखें',
+  'karaoke.maker.restore': 'मूल पुनर्स्थापित करें',
+  'karaoke.maker.restoreTitle': 'मूल कराओके पुनर्स्थापित करें?',
+  'karaoke.maker.restoreBody':
+    'इससे इस सत्र के सभी संपादन हट जाते हैं और कराओके वैसा ही बन जाता है जैसा आयात किया गया था, इसके सहेजे गए ड्राफ़्ट सहित। पुनर्स्थापित करने के बाद पूर्ववत करना उपलब्ध है।',
+  'karaoke.maker.restored': 'आयात किया गया मूल पुनर्स्थापित कर दिया गया।',
 };

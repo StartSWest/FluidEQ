@@ -27,6 +27,7 @@ const de: Partial<Dictionary> = {
   'whatsNew.loading': 'Versionshinweise werden geladen…',
   'whatsNew.missing':
     'Die Versionshinweise sind in diesem Build nicht zu finden. Sie stehen auch auf GitHub.',
+  'whatsNew.ok': 'OK',
   'app.menu.whatsNew': 'Neuerungen',
   'app.menu.language': 'Sprache',
   'app.window.minimize': 'Minimieren',

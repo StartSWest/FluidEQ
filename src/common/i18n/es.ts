@@ -33,6 +33,7 @@ const es: Partial<Dictionary> = {
   'whatsNew.loading': 'Cargando las notas de la versión…',
   'whatsNew.missing':
     'No se han encontrado las notas de la versión en esta compilación. También están en GitHub.',
+  'whatsNew.ok': 'Aceptar',
   'app.menu.whatsNew': 'Novedades',
   'app.menu.language': 'Idioma',
   'app.window.minimize': 'Minimizar',
@@ -418,6 +419,11 @@ const es: Partial<Dictionary> = {
   'karaoke.maker.notesCleared': 'Se borraron todas las notas melódicas.',
   'karaoke.maker.lyricsCleared':
     'Se borró toda la letra. Las notas existentes se conservaron sin enlaces a palabras.',
+  'karaoke.maker.restore': 'Restaurar original',
+  'karaoke.maker.restoreTitle': '¿Restaurar el karaoke original?',
+  'karaoke.maker.restoreBody':
+    'Esto descarta todas las ediciones de esta sesión y reconstruye el karaoke tal como se importó, incluido su borrador guardado. Se puede deshacer después de restaurar.',
+  'karaoke.maker.restored': 'Se restauró el original importado.',
   'karaoke.maker.replaceLyricsWarning':
     'Las palabras cambiaron. Al reemplazarlas se reconstruyen sus identificadores y tiempos automáticos; las correcciones manuales existentes no se pueden transferir de forma fiable. Las notas permanecen y se volverán a enlazar.',
   'karaoke.maker.replaceAndDetect': 'Reemplazar y detectar',

@@ -27,6 +27,7 @@ const ja: Partial<Dictionary> = {
   'whatsNew.loading': 'リリースノートを読み込んでいます…',
   'whatsNew.missing':
     'このビルドにリリースノートが見つかりませんでした。GitHub にもあります。',
+  'whatsNew.ok': 'OK',
   'app.menu.whatsNew': '新機能',
   'app.menu.language': '言語',
   'app.window.minimize': '最小化',

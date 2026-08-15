@@ -58,6 +58,7 @@ const en = {
   'whatsNew.loading': 'Loading the release notes…',
   'whatsNew.missing':
     'The release notes could not be found in this build. They are also on GitHub.',
+  'whatsNew.ok': 'OK',
   'app.menu.whatsNew': "What's new",
   'app.menu.language': 'Language',
   'app.window.minimize': 'Minimize',
@@ -444,6 +445,11 @@ const en = {
   'karaoke.maker.notesCleared': 'All melody notes were cleared.',
   'karaoke.maker.lyricsCleared':
     'All lyrics were cleared. Existing notes were kept without word links.',
+  'karaoke.maker.restore': 'Restore original',
+  'karaoke.maker.restoreTitle': 'Restore the original karaoke?',
+  'karaoke.maker.restoreBody':
+    'This discards every edit in this session and rebuilds the karaoke as it was imported, including its saved draft. Undo is available after restoring.',
+  'karaoke.maker.restored': 'The imported original was restored.',
   'karaoke.maker.replaceLyricsWarning':
     'The words changed. Replacing them rebuilds word IDs and automatic timing; existing manual word corrections cannot be transferred reliably. Melody notes remain and will be relinked.',
   'karaoke.maker.replaceAndDetect': 'Replace and detect',

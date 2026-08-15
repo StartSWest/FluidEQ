@@ -158,10 +158,13 @@ export default function WhatsNewDialog({
 }: IWhatsNewDialogProps) {
   const { t } = useTranslation();
   const [markdown, setMarkdown] = useState<string>();
-  const closeRef = useRef<HTMLButtonElement>(null);
+  // Focus lands on OK rather than the corner ✕: both close the dialog, but OK
+  // is the one a reader is looking at when they have finished reading, and it
+  // makes Enter dismiss the notes without hunting for anything.
+  const confirmRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    closeRef.current?.focus();
+    confirmRef.current?.focus();
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         onClose();
@@ -200,7 +203,6 @@ export default function WhatsNewDialog({
             <h2 id="whats-new-title">{t('whatsNew.title')}</h2>
           </div>
           <button
-            ref={closeRef}
             type="button"
             className="whats-new__close"
             aria-label={t('support.close')}
@@ -216,6 +218,17 @@ export default function WhatsNewDialog({
           {markdown === undefined && <p>{t('whatsNew.loading')}</p>}
           {markdown === '' && <p>{t('whatsNew.missing')}</p>}
           {markdown ? renderChangelog(markdown) : null}
+        </div>
+
+        <div className="whats-new__footer">
+          <button
+            ref={confirmRef}
+            type="button"
+            className="whats-new__ok"
+            onClick={onClose}
+          >
+            {t('whatsNew.ok')}
+          </button>
         </div>
       </div>
     </div>

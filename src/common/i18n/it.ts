@@ -27,6 +27,7 @@ const it: Partial<Dictionary> = {
   'whatsNew.loading': 'Caricamento delle note di rilascio…',
   'whatsNew.missing':
     'Le note di rilascio non si trovano in questa build. Sono anche su GitHub.',
+  'whatsNew.ok': 'OK',
   'app.menu.whatsNew': 'Novità',
   'app.menu.language': 'Lingua',
   'app.window.minimize': 'Riduci a icona',

@@ -53,6 +53,7 @@ import {
 import { splitKaraokeWordSyllables } from '../../common/karaoke/syllables';
 import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticulation';
 import { IKaraokeSong } from '../../common/karaoke/types';
+import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
@@ -140,7 +141,43 @@ interface IGuidedLineCapture {
   wordBoundariesMs?: number[];
   automaticStart?: boolean;
 }
-type TDestructiveMakerAction = 'notes' | 'lyrics' | 'replace-lyrics';
+type TDestructiveMakerAction =
+  'notes' | 'lyrics' | 'restore' | 'replace-lyrics';
+
+/**
+ * What the confirmation modal says, per action.
+ *
+ * `replace-lyrics` is absent on purpose: it is asked inside the lyrics editor,
+ * next to the text it is about to replace, rather than in this modal.
+ */
+const DESTRUCTIVE_CONFIRMATIONS: Record<
+  Exclude<TDestructiveMakerAction, 'replace-lyrics'>,
+  {
+    icon: TKaraokeMakerToolIcon;
+    title: TranslationKey;
+    body: TranslationKey;
+    confirm: TranslationKey;
+  }
+> = {
+  notes: {
+    icon: 'clearNotes',
+    title: 'karaoke.maker.clearNotesTitle',
+    body: 'karaoke.maker.clearNotesBody',
+    confirm: 'karaoke.maker.clearNotes',
+  },
+  lyrics: {
+    icon: 'clearLyrics',
+    title: 'karaoke.maker.clearLyricsTitle',
+    body: 'karaoke.maker.clearLyricsBody',
+    confirm: 'karaoke.maker.clearLyrics',
+  },
+  restore: {
+    icon: 'restore',
+    title: 'karaoke.maker.restoreTitle',
+    body: 'karaoke.maker.restoreBody',
+    confirm: 'karaoke.maker.restore',
+  },
+};
 
 interface ISyllableSplitDraft {
   tokenId: string;
@@ -3845,6 +3882,38 @@ const KaraokeMaker = ({
     setNotice(t('karaoke.maker.lyricsCleared'));
   };
 
+  /**
+   * Throw the editing away and rebuild the project the import produced.
+   *
+   * Undoable like the other destructive actions: `commit` leaves the discarded
+   * work one Undo away, which is what the confirmation promises.
+   *
+   * The saved draft is deleted rather than left for autosave to overwrite.
+   * Autosave does write the pristine project a moment later, but a user who
+   * closes the Maker inside that moment would otherwise reopen onto the very
+   * work they just discarded.
+   */
+  const restoreOriginal = () => {
+    const original = createKaraokeMakerProject(song);
+    commit((current) => ({
+      ...original,
+      // The waveform describes the audio file, not the editing being thrown
+      // away. Carrying it over keeps Restore instant instead of blanking the
+      // timeline while the same track is decoded a second time.
+      audio: { ...original.audio, durationMs: current.audio.durationMs },
+      analysis: { ...original.analysis, waveform: current.analysis.waveform },
+    }));
+    window.electron.ipcRenderer
+      .deleteKaraokeMakerDraft(original.id)
+      .catch(() => undefined);
+    setLyricsDraft(plainLyrics(original));
+    setLyricsFileName(undefined);
+    setSelection(undefined);
+    setSelectedNoteIds(new Set());
+    setDestructiveAction(undefined);
+    setNotice(t('karaoke.maker.restored'));
+  };
+
   const selectLyricsFile = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     event.target.value = '';
@@ -6365,6 +6434,15 @@ const KaraokeMaker = ({
             <KaraokeMakerToolIcon name="redo" />
           </button>
           <button
+            className="karaoke-maker__header-icon"
+            type="button"
+            onClick={() => setDestructiveAction('restore')}
+            aria-label={t('karaoke.maker.restore')}
+            data-tooltip={t('karaoke.maker.restore')}
+          >
+            <KaraokeMakerToolIcon name="restore" />
+          </button>
+          <button
             className="is-primary karaoke-maker__header-action"
             type="button"
             aria-label={t('karaoke.maker.applyHint')}
@@ -7104,32 +7182,14 @@ const KaraokeMaker = ({
           <div
             className="karaoke-maker__confirm-modal"
             role="alertdialog"
-            aria-label={t(
-              destructiveAction === 'notes'
-                ? 'karaoke.maker.clearNotes'
-                : 'karaoke.maker.clearLyrics',
-            )}
+            aria-label={t(DESTRUCTIVE_CONFIRMATIONS[destructiveAction].confirm)}
           >
             <KaraokeMakerToolIcon
-              name={
-                destructiveAction === 'notes' ? 'clearNotes' : 'clearLyrics'
-              }
+              name={DESTRUCTIVE_CONFIRMATIONS[destructiveAction].icon}
             />
             <div>
-              <h2>
-                {t(
-                  destructiveAction === 'notes'
-                    ? 'karaoke.maker.clearNotesTitle'
-                    : 'karaoke.maker.clearLyricsTitle',
-                )}
-              </h2>
-              <p>
-                {t(
-                  destructiveAction === 'notes'
-                    ? 'karaoke.maker.clearNotesBody'
-                    : 'karaoke.maker.clearLyricsBody',
-                )}
-              </p>
+              <h2>{t(DESTRUCTIVE_CONFIRMATIONS[destructiveAction].title)}</h2>
+              <p>{t(DESTRUCTIVE_CONFIRMATIONS[destructiveAction].body)}</p>
             </div>
             <div className="karaoke-maker__modal-actions">
               <button
@@ -7141,15 +7201,17 @@ const KaraokeMaker = ({
               <button
                 className="is-danger"
                 type="button"
-                onClick={
-                  destructiveAction === 'notes' ? clearNotes : clearLyrics
-                }
+                onClick={() => {
+                  if (destructiveAction === 'notes') {
+                    clearNotes();
+                  } else if (destructiveAction === 'lyrics') {
+                    clearLyrics();
+                  } else {
+                    restoreOriginal();
+                  }
+                }}
               >
-                {t(
-                  destructiveAction === 'notes'
-                    ? 'karaoke.maker.clearNotes'
-                    : 'karaoke.maker.clearLyrics',
-                )}
+                {t(DESTRUCTIVE_CONFIRMATIONS[destructiveAction].confirm)}
               </button>
             </div>
           </div>

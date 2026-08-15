@@ -23,6 +23,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import {
   karaokeFileBaseName,
@@ -64,6 +65,7 @@ describe('KaraokeWorkspace', () => {
   const clearKaraokeSession = jest.fn().mockResolvedValue(undefined);
   const loadKaraokeMakerDraft = jest.fn().mockResolvedValue(undefined);
   const saveKaraokeMakerDraft = jest.fn().mockResolvedValue(undefined);
+  const deleteKaraokeMakerDraft = jest.fn().mockResolvedValue(undefined);
 
   beforeAll(() => {
     Object.defineProperty(URL, 'createObjectURL', {
@@ -101,6 +103,7 @@ describe('KaraokeWorkspace', () => {
     clearKaraokeSession.mockReset().mockResolvedValue(undefined);
     loadKaraokeMakerDraft.mockReset().mockResolvedValue(undefined);
     saveKaraokeMakerDraft.mockReset().mockResolvedValue(undefined);
+    deleteKaraokeMakerDraft.mockReset().mockResolvedValue(undefined);
     Object.defineProperty(window, 'electron', {
       configurable: true,
       value: {
@@ -113,6 +116,7 @@ describe('KaraokeWorkspace', () => {
           clearKaraokeSession,
           loadKaraokeMakerDraft,
           saveKaraokeMakerDraft,
+          deleteKaraokeMakerDraft,
         },
       },
     });
@@ -243,6 +247,95 @@ describe('KaraokeWorkspace', () => {
       name: 'Karaoke actions',
     });
     expect(lyricToolbar.parentElement).toHaveClass('karaoke-workspace__stage');
+  });
+
+  it('rebuilds the imported original when the Maker is restored', async () => {
+    // The imported original of a bare audio file has no lyrics at all, so
+    // typing some and then restoring has an unambiguous right answer: they go
+    // away again, and the saved draft that held them is deleted rather than
+    // left to be handed back the next time the Maker opens.
+    const canvasContext = jest
+      .spyOn(HTMLCanvasElement.prototype, 'getContext')
+      .mockReturnValue(null);
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'Restore me.mp3', { type: 'audio/mpeg' }),
+          ],
+        },
+      },
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'Restore me' }),
+    ).toBeVisible();
+    fireEvent.click(screen.getByRole('button', { name: 'Make' }));
+
+    const maker = await waitFor(() => {
+      const element = container.querySelector('.karaoke-maker');
+      expect(element).toBeInTheDocument();
+      return element as HTMLElement;
+    });
+    // The timeline draws its words onto a canvas, so the lyrics editor is what
+    // can actually be read back — and it re-seeds itself from the project each
+    // time it opens, which makes it a faithful view of what the project holds.
+    const openLyrics = async () => {
+      fireEvent.click(
+        maker.querySelector('button[aria-label="Lyrics"]') as HTMLButtonElement,
+      );
+      return screen.findByRole('dialog', {
+        name: 'Paste or edit one lyric line per row',
+      });
+    };
+    const closeLyrics = (dialog: HTMLElement) =>
+      fireEvent.click(
+        dialog.querySelector(
+          '.karaoke-maker__lyrics-modal-close',
+        ) as HTMLButtonElement,
+      );
+
+    const lyricsDialog = await openLyrics();
+    fireEvent.change(lyricsDialog.querySelector('textarea') as HTMLElement, {
+      target: { value: 'A line that restore should discard' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Accept lyrics' }));
+    await waitFor(() => expect(maker).toHaveTextContent('6 words'));
+
+    fireEvent.click(
+      maker.querySelector(
+        'button[aria-label="Restore original"]',
+      ) as HTMLButtonElement,
+    );
+    const confirm = await screen.findByRole('alertdialog', {
+      name: 'Restore original',
+    });
+    expect(confirm).toHaveTextContent('Restore the original karaoke?');
+    fireEvent.click(
+      within(confirm).getByRole('button', { name: 'Restore original' }),
+    );
+
+    expect(
+      await screen.findByText('The imported original was restored.'),
+    ).toBeVisible();
+    expect(deleteKaraokeMakerDraft).toHaveBeenCalledTimes(1);
+    const afterRestore = await openLyrics();
+    expect(afterRestore.querySelector('textarea')).toHaveValue('');
+    closeLyrics(afterRestore);
+
+    // Restore is destructive, so its confirmation promises an Undo in the same
+    // words the other two destructive actions use. That promise has to hold.
+    fireEvent.click(
+      maker.querySelector('button[aria-label="Undo"]') as HTMLButtonElement,
+    );
+    const afterUndo = await openLyrics();
+    await waitFor(() =>
+      expect(afterUndo.querySelector('textarea')).toHaveValue(
+        'A line that restore should discard',
+      ),
+    );
+    canvasContext.mockRestore();
   });
 
   it('lets the Maker enter and exit the Karaoke full-screen surface', async () => {

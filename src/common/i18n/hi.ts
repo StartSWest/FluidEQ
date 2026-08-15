@@ -33,6 +33,7 @@ const hi: Partial<Dictionary> = {
   'whatsNew.loading': 'रिलीज़ नोट्स लोड हो रहे हैं…',
   'whatsNew.missing':
     'इस बिल्ड में रिलीज़ नोट्स नहीं मिले। ये GitHub पर भी हैं।',
+  'whatsNew.ok': 'ठीक है',
   'app.menu.whatsNew': 'नया क्या है',
   'app.menu.language': 'भाषा',
   'app.window.minimize': 'छोटा करें',

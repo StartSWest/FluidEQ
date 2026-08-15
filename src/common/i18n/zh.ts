@@ -26,6 +26,7 @@ const zh: Partial<Dictionary> = {
   'whatsNew.title': 'FluidEQ 有什么新变化',
   'whatsNew.loading': '正在加载更新说明…',
   'whatsNew.missing': '这个版本里找不到更新说明。GitHub 上也有一份。',
+  'whatsNew.ok': '确定',
   'app.menu.whatsNew': '更新说明',
   'app.menu.language': '语言',
   'app.window.minimize': '最小化',

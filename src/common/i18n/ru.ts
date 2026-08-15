@@ -27,6 +27,7 @@ const ru: Partial<Dictionary> = {
   'whatsNew.loading': 'Загрузка заметок о выпуске…',
   'whatsNew.missing':
     'Заметки о выпуске не найдены в этой сборке. Они также есть на GitHub.',
+  'whatsNew.ok': 'ОК',
   'app.menu.whatsNew': 'Что нового',
   'app.menu.language': 'Язык',
   'app.window.minimize': 'Свернуть',

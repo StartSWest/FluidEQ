@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import WhatsNewDialog from 'renderer/components/WhatsNewDialog';
 import { I18nProvider } from 'renderer/utils/I18nContext';
 
@@ -39,7 +39,11 @@ const NOTES = [
 /** What the main process was asked for, so the two entry points can be told apart. */
 let requestedScope: string | undefined;
 
-const showNotes = (markdown: string, scope: 'latest' | 'all' = 'latest') => {
+const showNotes = (
+  markdown: string,
+  scope: 'latest' | 'all' = 'latest',
+  onClose: () => void = () => {},
+) => {
   requestedScope = undefined;
   window.electron = {
     ipcRenderer: {
@@ -51,7 +55,7 @@ const showNotes = (markdown: string, scope: 'latest' | 'all' = 'latest') => {
   } as unknown as typeof window.electron;
   return render(
     <I18nProvider>
-      <WhatsNewDialog scope={scope} onClose={() => {}} />
+      <WhatsNewDialog scope={scope} onClose={onClose} />
     </I18nProvider>,
   );
 };
@@ -113,5 +117,35 @@ describe('the release notes the dialog draws', () => {
     const { container } = showNotes(NOTES, 'all');
     await waitFor(() => expect(container.querySelector('li')).toBeTruthy());
     expect(requestedScope).toBe('all');
+  });
+});
+
+describe('the way out of the release notes', () => {
+  it('offers an OK button that closes the dialog', async () => {
+    // The corner ✕ was the only way out other than Escape, which reads as a
+    // panel that appeared uninvited rather than one you have finished with.
+    const onClose = jest.fn();
+    showNotes(NOTES, 'latest', onClose);
+    fireEvent.click(await screen.findByRole('button', { name: 'OK' }));
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('puts the focus on OK, so Enter dismisses the notes', async () => {
+    showNotes(NOTES, 'latest');
+    const ok = await screen.findByRole('button', { name: 'OK' });
+    await waitFor(() => expect(document.activeElement).toBe(ok));
+  });
+
+  it('keeps OK outside the part that scrolls', async () => {
+    // A long changelog inside a short dialog would otherwise hide the button
+    // that dismisses it below several versions of history.
+    const { container } = showNotes(NOTES);
+    await waitFor(() => expect(container.querySelector('li')).toBeTruthy());
+    expect(
+      container.querySelector('.whats-new__body .whats-new__ok'),
+    ).toBeNull();
+    expect(
+      container.querySelector('.whats-new__footer .whats-new__ok'),
+    ).toBeTruthy();
   });
 });
