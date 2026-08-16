@@ -1,12 +1,15 @@
 # FluidEQ
 
-> Your sound. Every device. Automatically.
+> Equalizer APO, made beautiful. And much more.
 
-FluidEQ is a free, open-source system-wide parametric equalizer for Windows.
-It puts a modern workflow on top of
-[Equalizer APO](https://sourceforge.net/projects/equalizerapo/): tune once per
-output, and the right sound follows the right device without you touching
-anything again.
+**[fluideq.com](https://fluideq.com)** · [Download](https://github.com/StartSWest/FluidEQ/releases)
+· [What's new](CHANGELOG.md) · [Report a bug](https://github.com/StartSWest/FluidEQ/issues)
+
+FluidEQ is a free, open-source graphical interface for
+[Equalizer APO](https://sourceforge.net/projects/equalizerapo/) — a system-wide
+parametric equalizer for Windows 10 and 11. It puts a modern workflow on top of
+the engine: tune once per output, and the right sound follows the right device
+without you touching anything again.
 
 ![The FluidEQ EQ page: a ten-band quick layout above the response graph, and under it a row of chips naming everything else that is applied — a bio-cellulose driver correction at 60%, ten EQ bands, the Music voicing and Smart EQ — each with its own switch and strength slider. The live spectrum moves behind the layer curves in the graph below. Down the left are the preamp, auto-normalize and a stereo level meter; down the right, the output column with the device picker, the second output, the driver-type panel and the named profiles for this device. Media transport buttons sit in the title bar beside the level meter.](docs/screenshot.png)
 
