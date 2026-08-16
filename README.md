@@ -1,6 +1,6 @@
 # FluidEQ
 
-> Equalizer APO, made beautiful. And much more.
+> Your sound, finally worth watching.
 
 **[fluideq.com](https://fluideq.com)** · [Download](https://github.com/StartSWest/FluidEQ/releases)
 · [What's new](CHANGELOG.md) · [Report a bug](https://github.com/StartSWest/FluidEQ/issues)
