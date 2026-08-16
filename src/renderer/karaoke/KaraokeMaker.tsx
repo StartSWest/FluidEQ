@@ -58,6 +58,12 @@ import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import {
+  DEFAULT_PREVIEW_HEIGHT,
+  DEFAULT_VIEW_MS,
+  initialPreviewOpen,
+  useKaraokeMakerEditorView,
+} from './useKaraokeMakerEditorView';
+import {
   IKaraokeMakerAnalysisResult,
   analyzeKaraokeMakerAudio,
   autoAlignNewKaraokeMakerLyrics,
@@ -104,11 +110,7 @@ import {
   layoutKaraokeMakerAnchoredLyricLabels,
 } from './makerCanvasLayout';
 import { KaraokeTransportIcon } from './KaraokeTransport';
-import {
-  IKaraokeMakerEditorView,
-  readKaraokeMakerEditorView,
-  writeKaraokeMakerEditorView,
-} from './karaokeEditorPersistence';
+import { readKaraokeMakerEditorView } from './karaokeEditorPersistence';
 
 interface IKaraokeMakerProps {
   song: IKaraokeSong;
@@ -130,7 +132,6 @@ interface IKaraokeMakerProps {
 type TSelection =
   { kind: 'word'; id: string } | { kind: 'note'; id: string } | undefined;
 
-type TTimingScope = 'all' | 'from-word';
 type TLineEntrySession = 'setup' | 'countdown' | 'active';
 
 interface IGuidedLineCapture {
@@ -280,8 +281,6 @@ interface ISentenceAuditionState {
 const MIN_VIEW_MS = 650;
 // Twelve seconds keeps authored lyrics readable on first open; the overview
 // handles still expose the entire song and let the user zoom further out.
-const DEFAULT_VIEW_MS = 12_000;
-const DEFAULT_PREVIEW_HEIGHT = 150;
 const WAVEFORM_TOP = 9;
 const WAVEFORM_HEIGHT = 27;
 const SECTION_GROUP_TOP = 43;
@@ -291,15 +290,6 @@ const LYRIC_LANE_HEIGHT = 34;
 const LYRIC_SECTION_HEIGHT = KARAOKE_MAKER_LYRIC_LANE_COUNT * LYRIC_LANE_HEIGHT;
 const MIN_NOTE_MIDI = 24;
 const MAX_NOTE_MIDI = 96;
-const MAKER_PREVIEW_OPEN_KEY = 'fluideq.karaoke.maker-preview-open';
-
-const initialPreviewOpen = (): boolean => {
-  try {
-    return window.localStorage.getItem(MAKER_PREVIEW_OPEN_KEY) !== 'false';
-  } catch {
-    return true;
-  }
-};
 
 const flattenTokens = (project: IKaraokeMakerProject) =>
   project.lyrics.lines
@@ -583,6 +573,9 @@ const KaraokeMaker = ({
     playheadMs,
     readPlayheadMs,
   });
+  // Read once, here, because two things seed from it: the selection below and
+  // the view state the hook owns. Two reads that have to agree is one more than
+  // is needed.
   const [initialEditorView] = useState(() =>
     readKaraokeMakerEditorView(project.id),
   );
@@ -594,31 +587,30 @@ const KaraokeMaker = ({
       ? new Set([initialEditorView.selection.id])
       : new Set(),
   );
+  // Where the editor was looking, and how big the preview was. Seven values
+  // that are written together, read together and persisted together.
+  const {
+    editorViewRef,
+    editorProjectIdRef,
+    viewStartMs,
+    setViewStartMs,
+    viewDurationMs,
+    setViewDurationMs,
+    followViewport,
+    setFollowViewport,
+    timingScope,
+    setTimingScope,
+    previewOpen,
+    setPreviewOpen,
+    previewTextSize,
+    setPreviewTextSize,
+    previewHeight,
+    setPreviewHeight,
+  } = useKaraokeMakerEditorView(project.id, selection, initialEditorView);
   const [copiedNotes, setCopiedNotes] = useState<IKaraokeMakerNote[]>([]);
   const [controlLinkMode, setControlLinkMode] = useState(false);
-  const [viewStartMs, setViewStartMs] = useState(
-    initialEditorView?.viewStartMs ?? 0,
-  );
-  const [viewDurationMs, setViewDurationMs] = useState(
-    initialEditorView?.viewDurationMs ?? DEFAULT_VIEW_MS,
-  );
-  const [followViewport, setFollowViewport] = useState(
-    initialEditorView?.followViewport ?? true,
-  );
   const [lyricFollowRequestKey, setLyricFollowRequestKey] = useState(0);
-  const [timingScope, setTimingScope] = useState<TTimingScope>(
-    initialEditorView?.timingScope ?? 'all',
-  );
   const [wordShiftMs, setWordShiftMs] = useState(0);
-  const [previewOpen, setPreviewOpen] = useState(
-    initialEditorView?.previewOpen ?? initialPreviewOpen,
-  );
-  const [previewTextSize, setPreviewTextSize] = useState(
-    initialEditorView?.previewTextSize ?? 100,
-  );
-  const [previewHeight, setPreviewHeight] = useState(
-    initialEditorView?.previewHeight ?? DEFAULT_PREVIEW_HEIGHT,
-  );
   const [lyricsOpen, setLyricsOpen] = useState(false);
   const [lyricsDraft, setLyricsDraft] = useState(() => plainLyrics(project));
   const [lyricsFileName, setLyricsFileName] = useState<string>();
@@ -714,8 +706,6 @@ const KaraokeMaker = ({
   const analysisAbortRef = useRef<AbortController | undefined>(undefined);
   const prepareAfterWhisperRef = useRef(false);
   const lyricsWorkflowActiveRef = useRef(false);
-  const editorViewRef = useRef<IKaraokeMakerEditorView | undefined>(undefined);
-  const editorProjectIdRef = useRef(project.id);
   const playheadMsRef = useRef(playheadMs);
   playheadMsRef.current = playheadMs;
   const wordFocusAnimationRef = useRef<{
@@ -822,6 +812,7 @@ const KaraokeMaker = ({
       lineEntryCountdownTimersRef.current = [];
     });
   }, [
+    setViewStartMs,
     cancelAudibleInteractions,
     clearLineEntryCountdown,
     isPlaying,
@@ -1239,7 +1230,7 @@ const KaraokeMaker = ({
     if (timingScope === 'from-word' && !canShiftFromWord) {
       setTimingScope('all');
     }
-  }, [canShiftFromWord, timingScope]);
+  }, [canShiftFromWord, setTimingScope, timingScope]);
 
   useEffect(() => {
     const togglePlaybackWithSpace = (event: KeyboardEvent) => {
@@ -1425,45 +1416,6 @@ const KaraokeMaker = ({
   }, [selection?.kind]);
 
   useEffect(() => {
-    try {
-      window.localStorage.setItem(MAKER_PREVIEW_OPEN_KEY, String(previewOpen));
-    } catch {
-      // A blocked storage partition should not disable the editor preview.
-    }
-  }, [previewOpen]);
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => {
-      if (editorViewRef.current) {
-        writeKaraokeMakerEditorView(project.id, editorViewRef.current);
-      }
-    }, 150);
-    return () => window.clearTimeout(timeout);
-  }, [
-    followViewport,
-    previewOpen,
-    previewHeight,
-    previewTextSize,
-    project.id,
-    selection,
-    timingScope,
-    viewDurationMs,
-    viewStartMs,
-  ]);
-
-  useEffect(
-    () => () => {
-      if (editorViewRef.current) {
-        writeKaraokeMakerEditorView(
-          editorProjectIdRef.current,
-          editorViewRef.current,
-        );
-      }
-    },
-    [],
-  );
-
-  useEffect(() => {
     if (!noticeEntry || analysisProgress !== undefined || analysisError) {
       return undefined;
     }
@@ -1558,7 +1510,13 @@ const KaraokeMaker = ({
       setViewDurationMs(visibleViewDurationMs);
     }
     setViewStartMs((current) => Math.min(maximumViewStartMs, current));
-  }, [maximumViewStartMs, viewDurationMs, visibleViewDurationMs]);
+  }, [
+    maximumViewStartMs,
+    setViewDurationMs,
+    setViewStartMs,
+    viewDurationMs,
+    visibleViewDurationMs,
+  ]);
 
   useEffect(() => {
     if (!isPlaying || !followViewport) {
@@ -1574,6 +1532,7 @@ const KaraokeMaker = ({
       );
     }
   }, [
+    setViewStartMs,
     effectiveDurationMs,
     followViewport,
     isPlaying,
@@ -2828,6 +2787,9 @@ const KaraokeMaker = ({
     setViewStartMs(fitted.startMs);
     setViewDurationMs(fitted.durationMs);
   }, [
+    setFollowViewport,
+    setViewDurationMs,
+    setViewStartMs,
     activeLyricWordId,
     canvasLyricWords,
     effectiveDurationMs,
@@ -3807,7 +3769,14 @@ const KaraokeMaker = ({
         ),
       );
     },
-    [effectiveDurationMs, maximumViewStartMs, onSeek, visibleViewDurationMs],
+    [
+      effectiveDurationMs,
+      maximumViewStartMs,
+      onSeek,
+      setFollowViewport,
+      setViewStartMs,
+      visibleViewDurationMs,
+    ],
   );
 
   const selectGuidedLine = useCallback(
@@ -3908,6 +3877,8 @@ const KaraokeMaker = ({
       ),
     );
   }, [
+    setFollowViewport,
+    setViewStartMs,
     commit,
     effectiveDurationMs,
     lineEntryIndex,
@@ -3977,7 +3948,7 @@ const KaraokeMaker = ({
     setSelection({ kind: 'word', id: nextLine.tokens[0].id });
     setFollowViewport(true);
     setLyricFollowRequestKey((key) => key + 1);
-  }, [lineEntryIndex, lyricLines, setNotice, t]);
+  }, [lineEntryIndex, lyricLines, setFollowViewport, setNotice, t]);
 
   useEffect(() => {
     if (!lineEntryMode) {
@@ -4169,6 +4140,7 @@ const KaraokeMaker = ({
     return () =>
       window.removeEventListener('keydown', navigatePreviewLyrics, true);
   }, [
+    setPreviewOpen,
     lineEntryMode,
     lyricLines,
     playheadMs,
