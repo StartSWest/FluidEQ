@@ -195,7 +195,7 @@ describe('App', () => {
   it('keeps response graph visibility independent for every workspace tab', async () => {
     window.localStorage.setItem(
       'fluideq.graphVisibilityByTab',
-      JSON.stringify({ eq: false, autoeq: false, karaoke: true }),
+      JSON.stringify({ eq: false, presets: false, karaoke: true }),
     );
     const { container } = render(<App />);
     await act(async () => Promise.resolve());
@@ -205,7 +205,7 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('tab', { name: 'Karaoke' }));
     expect(container.querySelector('.graph-wrapper')).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('tab', { name: 'AutoEQ' }));
+    fireEvent.click(screen.getByRole('tab', { name: 'EQ Presets' }));
     expect(container.querySelector('.graph-wrapper')).toBeNull();
 
     fireEvent.click(screen.getByRole('tab', { name: 'EQ' }));

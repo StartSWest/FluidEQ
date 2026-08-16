@@ -1,0 +1,41 @@
+{
+  "products": [
+    {
+      "id": "testbrand::model_one",
+      "vendor": "TestBrand",
+      "name": "Model One",
+      "subtype": "over_the_ear",
+      "curves": [
+        {
+          "id": "testbrand:model_one::oratory1990",
+          "author": "oratory1990",
+          "details": "Harman Target",
+          "link": "https://example.invalid/measurement"
+        },
+        {
+          "id": "testbrand:model_one::autoeq_crinacle",
+          "author": "AutoEQ",
+          "details": "Measured by crinacle"
+        },
+        {
+          "id": "testbrand:model_one::edge_cases",
+          "author": "AutoEQ",
+          "details": "Measured at the edges"
+        }
+      ]
+    },
+    {
+      "id": "otherbrand::model_two",
+      "vendor": "OtherBrand",
+      "name": "Model Two",
+      "subtype": "in_ear",
+      "curves": [
+        {
+          "id": "otherbrand:model_two::autoeq_rtings",
+          "author": "Rtings/AutoEQ",
+          "details": "Measured by Rtings"
+        }
+      ]
+    }
+  ]
+}

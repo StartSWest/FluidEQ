@@ -49,11 +49,20 @@ Existing source-file notices and the repository's Git history are intentionally
 preserved. FluidEQ is not presented as an official continuation endorsed by the
 original AQUA maintainers.
 
-The bundled AutoEQ-derived preset data remains attributable to its respective
-authors and source projects. The current library was generated from the
-official AutoEq results at commit 7ae0f56d53074872b028649617a22bbb4232feb7.
-AutoEq is Copyright (c) 2018-2022 Jaakko Pasanen and distributed under the MIT
-License; its full license text is included in assets/licenses.
+The bundled preset data remains attributable to its respective authors and
+source projects. The headphone correction library is the OPRA dataset
+(https://github.com/opra-project/OPRA), licensed under Creative Commons
+Attribution-ShareAlike 4.0 International. What ships here is adapted material
+under those terms — the published dataset reshaped for the application to read,
+with no curve altered — and it is licensed under CC BY-SA 4.0 in turn. Each
+curve carries the name of its author, and FluidEQ credits both OPRA and that
+author in the application. See assets/licenses/OPRA-ATTRIBUTION.txt and
+assets/licenses/CC-BY-SA-4.0-LICENSE.txt.
+
+The convolution catalogue is AutoEq, Copyright (c) 2018-2022 Jaakko Pasanen and
+distributed under the MIT License; its full license text is included in
+assets/licenses. AutoEq is also the origin of much of the data OPRA
+redistributes.
 
 ## The FluidEQ name and logo
 

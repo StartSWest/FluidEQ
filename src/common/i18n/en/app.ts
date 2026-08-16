@@ -72,7 +72,7 @@ const app = {
   'common.icon.cancel': 'Cancel',
   'tabs.aria': 'Sound workspace',
   'tabs.eq': 'EQ',
-  'tabs.autoeq': 'AutoEQ',
+  'tabs.presets': 'EQ Presets',
   'tabs.voicing': 'Voicing',
   'tabs.convolution': 'Convolution',
   'tabs.config': 'Config',

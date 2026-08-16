@@ -87,12 +87,13 @@ import {
   IFiltersMap,
   IAudioDevice,
   IDeviceProfileAssignment,
-  IAutoEqUpdateStatus,
+  IOpraUpdateStatus,
+  IOpraProduct,
   AUTOMATIC_PRESET_PREFIX,
   APP_UPDATE_EVENT,
   RENDERER_READY_EVENT,
   OUTPUT_STATE_CHANGED_EVENT,
-  AUTOEQ_SOURCE_ID,
+  OPRA_SOURCE_ID,
   APO_FEATURES,
   TApoFeature,
   TApoLayer,
@@ -105,16 +106,12 @@ import {
   snapshotFilters,
 } from '../common/layouts';
 import { TSuccess, TError } from '../renderer/utils/equalizerApi';
+import { getOpraPreset, getOpraProductList } from './opra';
 import {
-  getAutoEqDeviceList,
-  getAutoEqPreset,
-  getAutoEqResponseList,
-} from './autoeq';
-import {
-  checkAutoEqUpdate,
-  syncAutoEqDatabase,
-  updateAutoEqDatabase,
-} from './autoeqUpdater';
+  checkOpraUpdate,
+  syncOpraDatabase,
+  updateOpraDatabase,
+} from './opraUpdater';
 import {
   downloadConvolution,
   getConvolutionCatalog,
@@ -586,20 +583,19 @@ const notifyOutputStateChanged = () => {
 };
 
 const syncDatabasesOnStartup = async () => {
-  const autoeqResult = await Promise.resolve(syncAutoEqDatabase())
+  const opraResult = await Promise.resolve(syncOpraDatabase())
     .then((value) => ({ status: 'fulfilled' as const, value }))
     .catch((reason) => ({ status: 'rejected' as const, reason }));
 
-  if (autoeqResult.status === 'rejected') {
-    log.warn('Unable to synchronize the AutoEq database', autoeqResult.reason);
+  if (opraResult.status === 'rejected') {
+    log.warn('Unable to synchronize the OPRA database', opraResult.reason);
   }
   if (!mainWindow || mainWindow.isDestroyed()) {
     return;
   }
 
   mainWindow.webContents.send(DATABASES_SYNCED_EVENT, {
-    autoeq:
-      autoeqResult.status === 'fulfilled' ? autoeqResult.value : undefined,
+    opra: opraResult.status === 'fulfilled' ? opraResult.value : undefined,
   });
 };
 
@@ -2209,45 +2205,28 @@ ipcMain.on(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
   }
 });
 
-ipcMain.on(ChannelEnum.GET_AUTO_EQ_DEVICE_LIST, async (event) => {
-  const channel = ChannelEnum.GET_AUTO_EQ_DEVICE_LIST;
-  log.info(`Getting AutoEQ Device List`);
+ipcMain.on(ChannelEnum.GET_OPRA_PRODUCT_LIST, async (event) => {
+  const channel = ChannelEnum.GET_OPRA_PRODUCT_LIST;
+  log.info(`Getting OPRA product list`);
 
   try {
-    const fileNames: string[] = getAutoEqDeviceList();
-    log.info(`Fetched ${fileNames.length} files`);
-    const reply: TSuccess<string[]> = { result: fileNames };
+    const products: IOpraProduct[] = getOpraProductList();
+    log.info(`Fetched ${products.length} products`);
+    const reply: TSuccess<IOpraProduct[]> = { result: products };
     event.reply(channel, reply);
   } catch (e) {
-    log.error('Failed to get devices');
+    log.error('Failed to get products');
     log.error(e);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
+    handleError(event, channel, ErrorCode.OPRA_READ_ERROR);
   }
 });
 
-ipcMain.on(ChannelEnum.GET_AUTO_EQ_RESPONSE_LIST, async (event, arg) => {
-  const channel = ChannelEnum.GET_AUTO_EQ_RESPONSE_LIST;
-  const deviceName: string = arg[0];
-  log.info(`Getting AutoEQ supported response list for ${deviceName}`);
+ipcMain.on(ChannelEnum.LOAD_OPRA_PRESET, async (event, arg) => {
+  const channel = ChannelEnum.LOAD_OPRA_PRESET;
+  const [productId, curveId] = arg as [string, string, string?];
 
   try {
-    const fileNames: string[] = getAutoEqResponseList(deviceName);
-    log.info(`Fetched ${fileNames.length} files`);
-    const reply: TSuccess<string[]> = { result: fileNames };
-    event.reply(channel, reply);
-  } catch (e) {
-    log.error(`Failed to get supported responses for ${deviceName}`);
-    log.error(e);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
-  const channel = ChannelEnum.LOAD_AUTO_EQ_PRESET;
-  const [deviceName, responseName] = arg as [string, string, string?];
-
-  try {
-    const presetSettings: IPresetV2 = getAutoEqPreset(deviceName, responseName);
+    const presetSettings: IPresetV2 = getOpraPreset(productId, curveId);
     /*
      * INTO ITS OWN LAYER, NOT INTO THE USER'S BANDS.
      *
@@ -2263,19 +2242,14 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     state.headphone = {
       filters: shieldReferenceBands(presetSettings.filters),
       /*
-       * The curve as published, when it was published as one.
+       * No published curve here is a list of points.
        *
-       * A GraphicEQ profile is a list of points, and Equalizer APO renders
-       * those natively. The parser fits peaking filters to them as well so the
-       * graph has a shape and the bands have values — but that fit is an
-       * approximation, and applying it instead of the curve quietly gave the
-       * listener a smoothed version of the measurement they asked for. Both are
-       * kept; the writer prefers this one.
+       * The GraphicEQ path is not gone — Squiglink exports and pasted APO text
+       * still arrive that way, and the writer still prefers the curve to a fit
+       * of it. OPRA simply does not publish one: every curve in the library is
+       * parametric, so there is never anything to carry.
        */
-      graphicEq:
-        presetSettings.eqFormat === AutoEqFormat.GRAPHIC
-          ? presetSettings.graphicEq
-          : undefined,
+      graphicEq: undefined,
       // Full strength on arrival. Somebody who wants half of a published
       // correction can say so; somebody who applied one and got half of it
       // would reasonably think it had not worked.
@@ -2285,22 +2259,26 @@ ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
     // belongs to is the one being applied. Everything else about the user's
     // stage is left alone.
     state.preAmp = presetSettings.preAmp;
-    // Which model these bands came from, and out of which database. Not
-    // recoverable from the bands, and the difference between a curve you can
-    // reason about and a set of numbers. The source is recorded because the
-    // same model name exists in several databases with unrelated measurements
-    // behind it, so the name alone cannot lead back to this measurement.
-    state.headset = deviceName;
-    state.headsetTarget = responseName;
-    state.headsetSource = AUTOEQ_SOURCE_ID;
+    /*
+     * Which curve these bands came from, and out of which database. Not
+     * recoverable from the bands, and the difference between a curve you can
+     * reason about and a set of numbers.
+     *
+     * Ids rather than the names shown on screen, because the names do not
+     * identify anything: fifty-six products share a display name with another
+     * product, and thirty-nine products have two curves whose descriptions read
+     * identically. The picker resolves these back into names through the index
+     * it already holds.
+     */
+    state.headset = productId;
+    state.headsetTarget = curveId;
+    state.headsetSource = OPRA_SOURCE_ID;
     state.headsetSignature = describeBandShape(state.headphone.filters);
     state.eqImport = undefined;
     applyingLayer('headphone');
     await handleUpdate(event, channel, false, true);
   } catch (ex) {
-    log.info(
-      `Failed to load autoeq preset from ${deviceName} to ${responseName}`,
-    );
+    log.info(`Failed to load OPRA curve ${curveId} for ${productId}`);
     log.info(ex);
     handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
   }
@@ -2316,7 +2294,7 @@ ipcMain.on(ChannelEnum.GET_CONVOLUTION_CATALOG, async (event, arg) => {
     event.reply(channel, reply);
   } catch (error) {
     log.error('Failed to get convolution catalogue', error);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
+    handleError(event, channel, ErrorCode.CONVOLUTION_CATALOG_ERROR);
   }
 });
 
@@ -2336,7 +2314,7 @@ ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
     await handleUpdate(event, channel, false, true);
   } catch (error) {
     log.error('Failed to download convolution profile', error);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
+    handleError(event, channel, ErrorCode.CONVOLUTION_CATALOG_ERROR);
   }
 });
 
@@ -2821,29 +2799,29 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
   }
 });
 
-ipcMain.on(ChannelEnum.CHECK_AUTO_EQ_UPDATE, async (event) => {
-  const channel = ChannelEnum.CHECK_AUTO_EQ_UPDATE;
+ipcMain.on(ChannelEnum.CHECK_OPRA_UPDATE, async (event) => {
+  const channel = ChannelEnum.CHECK_OPRA_UPDATE;
   try {
-    const reply: TSuccess<IAutoEqUpdateStatus> = {
-      result: await checkAutoEqUpdate(),
+    const reply: TSuccess<IOpraUpdateStatus> = {
+      result: await checkOpraUpdate(),
     };
     event.reply(channel, reply);
   } catch (error) {
-    log.warn('Unable to check for an AutoEq database update', error);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
+    log.warn('Unable to check for an OPRA database update', error);
+    handleError(event, channel, ErrorCode.OPRA_READ_ERROR);
   }
 });
 
-ipcMain.on(ChannelEnum.UPDATE_AUTO_EQ_DATABASE, async (event) => {
-  const channel = ChannelEnum.UPDATE_AUTO_EQ_DATABASE;
+ipcMain.on(ChannelEnum.UPDATE_OPRA_DATABASE, async (event) => {
+  const channel = ChannelEnum.UPDATE_OPRA_DATABASE;
   try {
-    const reply: TSuccess<IAutoEqUpdateStatus> = {
-      result: await updateAutoEqDatabase(),
+    const reply: TSuccess<IOpraUpdateStatus> = {
+      result: await updateOpraDatabase(),
     };
     event.reply(channel, reply);
   } catch (error) {
-    log.error('Unable to update the AutoEq database', error);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
+    log.error('Unable to update the OPRA database', error);
+    handleError(event, channel, ErrorCode.OPRA_READ_ERROR);
   }
 });
 

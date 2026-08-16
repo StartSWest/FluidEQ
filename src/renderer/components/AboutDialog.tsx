@@ -232,12 +232,28 @@ export default function AboutDialog({ onClose }: IAboutDialogProps) {
           <section className="about__section">
             <h3>Bundled data</h3>
             <p>
-              The headphone correction library is generated from AutoEq,
-              copyright © 2018–2022 Jaakko Pasanen, under the MIT License. Its
-              licence text ships as{' '}
-              <code>{LICENSE_DIR}/AutoEq-LICENSE.txt</code>. Measurements
-              Squiglink exports are imported only when a user provides them and
-              are never redistributed here.
+              The headphone correction library is{' '}
+              <a
+                href="https://github.com/opra-project/OPRA"
+                target="_blank"
+                rel="noreferrer"
+              >
+                OPRA
+              </a>
+              , an open, community-maintained directory of product information
+              and EQ compensation curves, published under CC BY-SA 4.0. What
+              ships here is that dataset reshaped for the application to read,
+              under the same terms; the licence and the attribution travel with
+              it as <code>{LICENSE_DIR}/CC-BY-SA-4.0-LICENSE.txt</code> and{' '}
+              <code>{LICENSE_DIR}/OPRA-ATTRIBUTION.txt</code>. Each curve names
+              its author, and {PRODUCT_NAME} credits them where it is applied.
+            </p>
+            <p>
+              The convolution catalogue is AutoEq, copyright © 2018–2022 Jaakko
+              Pasanen, under the MIT License, whose text ships as{' '}
+              <code>{LICENSE_DIR}/AutoEq-LICENSE.txt</code>. Squiglink exports
+              are imported only when a user provides them and are never
+              redistributed here.
             </p>
           </section>
 

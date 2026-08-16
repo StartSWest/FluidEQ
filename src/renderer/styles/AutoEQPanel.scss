@@ -115,18 +115,20 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 0 11px 8px;
 }
 
-// Whose measurements these are, back in the flow.
+// Whose measurements these are, with room to say it.
 //
-// In the sidebar it was lifted into the section header's empty corner, where it
-// cost no height. There is no such corner here — the header is gone — and the
-// page has height to spare, so it goes back to being a line: a credit above the
-// source it belongs to, aligned with the update status at the other end of the
-// card.
-.autoeq-panel__picker .sidebar-section .autoeq-attribution {
-  position: static;
-  max-width: 100%;
-  margin-bottom: 2px;
-  font-size: 0.66rem;
+// The page has height the sidebar did not, and the credit has more to carry
+// than it used to — a mark, a description and a link, which is what OPRA's
+// licence asks of anything that browses the database. Given a little more air
+// here than it gets in the pane.
+.autoeq-panel__picker .sidebar-section .opra-credit {
+  max-width: 62ch;
+  padding-bottom: 12px;
+  gap: 10px;
+}
+
+.autoeq-panel__picker .sidebar-section .opra-credit__logo {
+  height: 22px;
 }
 
 // *** The pickers themselves *************************************************

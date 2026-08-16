@@ -26,7 +26,8 @@ export enum ErrorCode {
   FAILURE,
   PRESET_FILE_ERROR,
   INVALID_PRESET_NAME,
-  AUTO_EQ_READ_ERROR,
+  OPRA_READ_ERROR,
+  CONVOLUTION_CATALOG_ERROR,
   IMPORT_ERROR,
 }
 
@@ -95,10 +96,19 @@ export const errors: Record<ErrorCode, ErrorDescription> = {
       'Please provide a different preset name. If the error persists, try reaching out to the developers to resolve the issue.',
     code: ErrorCode.INVALID_PRESET_NAME,
   },
-  [ErrorCode.AUTO_EQ_READ_ERROR]: {
-    shortError: 'Internal Error: Failed to get supported AutoEQ devices.',
+  [ErrorCode.OPRA_READ_ERROR]: {
+    shortError: 'Internal Error: Failed to read the headphone preset library.',
     action: 'Please reach out to the developers to resolve the issue.',
-    code: ErrorCode.AUTO_EQ_READ_ERROR,
+    code: ErrorCode.OPRA_READ_ERROR,
+  },
+  // The impulse-response catalogue is fetched from AutoEq over the network,
+  // which is a different thing failing for different reasons than the bundled
+  // preset library — and it used to borrow that library's message, which read
+  // as though the headphone list had broken when the network had.
+  [ErrorCode.CONVOLUTION_CATALOG_ERROR]: {
+    shortError: 'The convolution catalogue could not be reached.',
+    action: 'Please check your connection and try again.',
+    code: ErrorCode.CONVOLUTION_CATALOG_ERROR,
   },
   // The fallback only. An import failure is almost always about the file the
   // user chose, so the thrower sends a `detail` saying which part of it was

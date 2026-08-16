@@ -1,0 +1,28 @@
+{
+  "model_one": {
+    "testbrand:model_one::oratory1990": {
+      "gainDb": -6.7,
+      "bands": [
+        { "type": "low_shelf", "frequency": 200, "gain_db": 8.8, "q": 0.7 },
+        { "type": "peak_dip", "frequency": 1000, "gain_db": -3.2, "q": 1.41 },
+        { "type": "high_shelf", "frequency": 10000, "gain_db": 2.5, "q": 0.7 },
+        { "type": "low_pass", "frequency": 18000, "slope": 12 }
+      ]
+    },
+    "testbrand:model_one::autoeq_crinacle": {
+      "gainDb": -4,
+      "bands": [
+        { "type": "peak_dip", "frequency": 105, "gain_db": -1.4, "q": 0.7 }
+      ]
+    },
+    "testbrand:model_one::edge_cases": {
+      "gainDb": -1.5,
+      "bands": [
+        { "type": "peak_dip", "frequency": 8.5, "gain_db": -20, "q": 0.7 },
+        { "type": "peak_dip", "frequency": 500, "gain_db": 18, "q": 1 },
+        { "type": "peak_dip", "frequency": 2000, "gain_db": 3 },
+        { "type": "shelf_from_the_future", "frequency": 4000, "gain_db": 2, "q": 1 }
+      ]
+    }
+  }
+}

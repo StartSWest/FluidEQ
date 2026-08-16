@@ -48,8 +48,8 @@ export type { IDriverSettings };
  *   tuning. These entries are therefore the gentlest of the three.
  *
  * In every case this is a family tendency, not a measurement of the user's
- * unit. Where a measured profile exists for their exact model in the AutoEQ
- * database, that is strictly better and the UI says so.
+ * unit. Where a measured profile exists for their exact model in the preset
+ * library, that is strictly better and the UI says so.
  *
  * Gains are deliberately small throughout. If the guess is wrong for a
  * particular unit the result should be a mild colouration the user can dial
@@ -230,7 +230,7 @@ export const DRIVER_PROFILES: IDriverProfile[] = [
         'A wide, shallow dip through the region a sealed in-ear fit makes peaky, kept broad because where it lands depends on your ears and tips',
       ),
     ],
-    note: 'The treble dip is broad because that peak is your ear canal, not the driver, and it moves by most of an octave between people, tips and insertion depth. Change tips first if it sounds wrong. If your model is in the AutoEQ database, use that — for this type especially, a measurement beats a family guess by a wide margin.',
+    note: 'The treble dip is broad because that peak is your ear canal, not the driver, and it moves by most of an octave between people, tips and insertion depth. Change tips first if it sounds wrong. If your model is in the EQ Presets library, use that — for this type especially, a measurement beats a family guess by a wide margin.',
   },
   {
     id: 'balanced-armature-iem',

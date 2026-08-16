@@ -6,9 +6,11 @@ see LICENSE.txt. It is built on the work below, which is not, and which carries
 its own terms. Each of these licences requires that its copyright notice travel
 with the software, which is what this file is for.
 
-Two larger components have their own files beside this one:
+Three larger components have their own files beside this one:
 
   Equalizer APO   GPL-2.0-or-later   EqualizerAPO-LICENSE.txt
+  OPRA            CC-BY-SA-4.0       CC-BY-SA-4.0-LICENSE.txt
+                                     OPRA-ATTRIBUTION.txt
   AutoEq          MIT                AutoEq-LICENSE.txt
 
 Equalizer APO is the audio engine; FluidEQ writes its configuration. Its
@@ -16,7 +18,15 @@ installer ships with FluidEQ, unmodified. The corresponding source for the
 version bundled here is published alongside the FluidEQ release it shipped in,
 and `pnpm fetch-apo:source` retrieves the same archive from upstream.
 
-AutoEq provides the headphone measurements behind the correction layer.
+OPRA provides the headphone measurements behind the correction layer. Its data
+is CC BY-SA 4.0, which asks for more than a notice in a file: the application
+credits OPRA where the library is browsed, and names the author and measurement
+behind whichever curve is applied. What FluidEQ ships is adapted material — the
+published dataset reshaped for the application to read — and it stays under
+CC BY-SA 4.0. OPRA-ATTRIBUTION.txt records what was adapted and how.
+
+AutoEq provides the impulse responses behind the convolution layer, and is the
+origin of much of the data OPRA redistributes.
 
 
 Karaoke Maker analysis components (Apache-2.0)

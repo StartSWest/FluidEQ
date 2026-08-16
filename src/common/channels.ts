@@ -62,9 +62,11 @@ enum ChannelEnum {
   GET_PRESET_FILE_LIST = 'getPresetFileList',
   RESTORE_PRESET_BASELINE = 'restorePresetBaseline',
   GET_PRESET_BASELINE_NAMES = 'getPresetBaselineNames',
-  GET_AUTO_EQ_DEVICE_LIST = 'getAutoEqDeviceList',
-  GET_AUTO_EQ_RESPONSE_LIST = 'getAutoEqResponseList',
-  LOAD_AUTO_EQ_PRESET = 'loadAutoEqPreset',
+  // One call, not two: the index carries each product's curves with it, so a
+  // separate per-product curve channel would only be re-sending what the
+  // renderer already had.
+  GET_OPRA_PRODUCT_LIST = 'getOpraProductList',
+  LOAD_OPRA_PRESET = 'loadOpraPreset',
   GET_CONVOLUTION_CATALOG = 'getConvolutionCatalog',
   DOWNLOAD_CONVOLUTION = 'downloadConvolution',
   CLEAR_CONVOLUTION = 'clearConvolution',
@@ -73,8 +75,8 @@ enum ChannelEnum {
   IMPORT_EQ_FILE = 'importEqFile',
   IMPORT_EQ_TEXT = 'importEqText',
   IMPORT_CONVOLUTION_FILE = 'importConvolutionFile',
-  CHECK_AUTO_EQ_UPDATE = 'checkAutoEqUpdate',
-  UPDATE_AUTO_EQ_DATABASE = 'updateAutoEqDatabase',
+  CHECK_OPRA_UPDATE = 'checkOpraUpdate',
+  UPDATE_OPRA_DATABASE = 'updateOpraDatabase',
   CLEAR_GAINS = 'clearGains',
   SET_FIXED_BAND = 'setFixedBand',
   SET_VOICING = 'setVoicing',

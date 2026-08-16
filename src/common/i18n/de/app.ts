@@ -75,7 +75,7 @@ const app: Partial<Dictionary> = {
   'common.icon.cancel': 'Abbrechen',
   'tabs.aria': 'Klang-Arbeitsbereich',
   'tabs.eq': 'EQ',
-  'tabs.autoeq': 'AutoEQ',
+  'tabs.presets': 'EQ-Presets',
   'tabs.voicing': 'Klangcharakter',
   'tabs.convolution': 'Faltung',
   'tabs.config': 'Config',

@@ -46,13 +46,15 @@ mystery — you can see what put it there and remove it in one click.
 
 ![The Voicing tab, one layer with a page of its own: thirteen target curves as cards, five by purpose across the top — Music, Movies, Games, Speech, Late night — and eight by genre below them, each with a line saying what it does to the sound. Music is selected. Underneath, a strength slider marked Off, 50% and Full sits at 100%, beside the three bands this curve actually adds — 105 Hz +3.5 dB, 300 Hz −1.5 dB, 10 kHz +2 dB — each with a sentence explaining it, and a note that the +3.5 dB is already reserved by auto-normalize.](docs/screenshot4.png)
 
-**Start from a measurement.** 6,028 headphone models and 8,850 responses ship
-offline from the official AutoEq results. For other measurements, the AutoEQ
-tab links to Squiglink so you can export its EQ text and import it
-locally. Official headphone corrections remain their own layer; an external
-export becomes editable EQ bands with a visible source and curve preview.
+**Start from a measurement.** 6,229 headphones and 12,594 published curves ship
+offline from [OPRA](https://github.com/opra-project/OPRA), the community
+directory of headphone EQ profiles, grouped by brand and credited to whoever
+measured them. For anything not in it, the EQ Presets tab links to Squiglink so
+you can export its EQ text and import it locally. Published corrections remain
+their own layer; an external export becomes editable EQ bands with a visible
+source and curve preview.
 
-![The AutoEQ tab: at the top, the headphone-correction picker — a model list, a measurement and target beside it, and a line saying the official database holds 6,028 models — with nothing applied to this output yet. Below it, the guided Squiglink import in three numbered steps: the EQ text exported from Squiglink pasted into the left pane as ParametricEQ filter lines with a preamp and per-filter frequency, gain and Q, and on the right the curve those ten bands produce, drawn before anything is applied and with a link to remove the import again.](docs/screenshot3.png)
+![The EQ Presets tab: at the top, the headphone-correction picker — a brand-grouped model list, a measurement and target beside it, and a line saying the OPRA library holds 6,229 models — with nothing applied to this output yet. Below it, the guided Squiglink import in three numbered steps: the EQ text exported from Squiglink pasted into the left pane as ParametricEQ filter lines with a preamp and per-filter frequency, gain and Q, and on the right the curve those ten bands produce, drawn before anything is applied and with a link to remove the import again.](docs/screenshot3.png)
 
 **Smart EQ.** Measures what is actually coming out of your output and flattens
 what it hears, rather than assuming a target. It subtracts the rest of the chain
@@ -451,12 +453,18 @@ Parts of FluidEQ derive from [AQUA](https://github.com/h39s/AQUA), © 2023 AQUA
 Dev Team, used under the GPL. Full notices, and what was changed, are in
 [NOTICE.md](NOTICE.md).
 
-AutoEq data and targets are credited to
-[Jaakko Pasanen](https://github.com/jaakkopasanen/AutoEq). The bundled library is
-the official AutoEq results snapshot at commit
-`7ae0f56d53074872b028649617a22bbb4232feb7`; maintainers can refresh it with
-`pnpm autoeq:update` and validate every generated filter with
-`pnpm test:autoeq`.
+The headphone correction library is [OPRA](https://github.com/opra-project/OPRA)
+(Open Profiles for Revealing Audio), a project of Roon Labs, used under
+[CC BY-SA 4.0](assets/licenses/CC-BY-SA-4.0-LICENSE.txt). What ships here is
+that dataset reshaped for the application to read, under the same licence and
+with no curve altered; individual curves are credited to their authors —
+oratory1990, the AutoEq project and Rtings — both in the application and in
+[OPRA-ATTRIBUTION.txt](assets/licenses/OPRA-ATTRIBUTION.txt). Maintainers can
+refresh it with `pnpm opra:update` and validate the result with `pnpm test:opra`.
+
+Convolution impulse responses are AutoEq's, credited to
+[Jaakko Pasanen](https://github.com/jaakkopasanen/AutoEq) and used under the MIT
+licence. AutoEq is also the origin of much of the data OPRA redistributes.
 
 Squiglink is linked as an external calculator, not bundled as a database. Users
 can export the EQ text there and paste it into FluidEQ; the

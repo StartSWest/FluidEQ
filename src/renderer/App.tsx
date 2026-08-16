@@ -72,7 +72,7 @@ import {
 } from './utils/paneSizes';
 import FrequencyResponseChart from './graph/FrequencyResponseChart';
 import PresetsBar from './PresetsBar';
-import AutoEQPanel from './AutoEQPanel';
+import EqPresetsPanel from './EqPresetsPanel';
 import DeviceProfiles from './DeviceProfiles';
 import ExtraOutputs from './ExtraOutputs';
 import DriverPicker from './components/DriverPicker';
@@ -123,7 +123,19 @@ const WORKSPACE_TAB_KEY = 'fluideq.workspaceTab';
 const GRAPH_VISIBILITY_BY_TAB_KEY = 'fluideq.graphVisibilityByTab';
 
 type TWorkspaceTab =
-  'eq' | 'autoeq' | 'voicing' | 'convolution' | 'video' | 'karaoke' | 'config';
+  'eq' | 'presets' | 'voicing' | 'convolution' | 'video' | 'karaoke' | 'config';
+
+/**
+ * Tab names this build no longer uses, and what they became.
+ *
+ * Both of the things remembered about a tab — which one you were on, and
+ * whether its graph was showing — are keyed by name, so a rename is a silent
+ * data loss unless the old name still resolves. `autoeq` became `presets` when
+ * the library behind it stopped being AutoEq's.
+ */
+const LEGACY_WORKSPACE_TABS: Record<string, TWorkspaceTab> = {
+  autoeq: 'presets',
+};
 
 /**
  * The tab strip, in the order it is drawn.
@@ -140,13 +152,20 @@ type TWorkspaceTab =
  */
 const WORKSPACE_TABS: TWorkspaceTab[] = [
   'eq',
-  'autoeq',
+  'presets',
   'voicing',
   'convolution',
   'video',
   'karaoke',
   'config',
 ];
+
+/** A stored tab name, under whatever name that tab had when it was written. */
+const resolveWorkspaceTab = (stored: unknown): TWorkspaceTab | undefined =>
+  typeof stored === 'string'
+    ? (WORKSPACE_TABS.find((tab) => tab === stored) ??
+      LEGACY_WORKSPACE_TABS[stored])
+    : undefined;
 
 type TWorkspaceGraphVisibility = Partial<Record<TWorkspaceTab, boolean>>;
 
@@ -158,15 +177,19 @@ const readWorkspaceGraphVisibility = ():
       return undefined;
     }
     const parsed = JSON.parse(stored) as Record<string, unknown>;
-    const visibility = WORKSPACE_TABS.reduce<TWorkspaceGraphVisibility>(
-      (result, tab) => {
-        if (typeof parsed?.[tab] === 'boolean') {
-          result[tab] = parsed[tab] as boolean;
-        }
-        return result;
-      },
-      {},
-    );
+    const visibility: TWorkspaceGraphVisibility = {};
+    // Retired names first and current names second, so that if a profile holds
+    // both, what was written under today's name wins regardless of key order.
+    Object.entries(LEGACY_WORKSPACE_TABS).forEach(([legacy, tab]) => {
+      if (typeof parsed?.[legacy] === 'boolean') {
+        visibility[tab] = parsed[legacy] as boolean;
+      }
+    });
+    WORKSPACE_TABS.forEach((tab) => {
+      if (typeof parsed?.[tab] === 'boolean') {
+        visibility[tab] = parsed[tab] as boolean;
+      }
+    });
     return Object.keys(visibility).length ? visibility : undefined;
   } catch {
     return undefined;
@@ -193,7 +216,7 @@ const readWorkspaceGraphVisibility = ():
 const readWorkspaceTab = (): TWorkspaceTab => {
   try {
     const stored = window.localStorage.getItem(WORKSPACE_TAB_KEY);
-    return WORKSPACE_TABS.find((tab) => tab === stored) ?? 'eq';
+    return resolveWorkspaceTab(stored) ?? 'eq';
   } catch {
     // Storage can be unavailable, and the EQ is the right place to land.
     return 'eq';
@@ -1205,13 +1228,13 @@ const AppContent = () => {
               <button
                 type="button"
                 role="tab"
-                aria-selected={activeWorkspaceTab === 'autoeq'}
+                aria-selected={activeWorkspaceTab === 'presets'}
                 className={`workspace-tab${
-                  activeWorkspaceTab === 'autoeq' ? ' is-active' : ''
+                  activeWorkspaceTab === 'presets' ? ' is-active' : ''
                 }`}
-                onClick={() => setActiveWorkspaceTab('autoeq')}
+                onClick={() => setActiveWorkspaceTab('presets')}
               >
-                {t('tabs.autoeq')}
+                {t('tabs.presets')}
               </button>
               <button
                 type="button"
@@ -1293,15 +1316,15 @@ const AppContent = () => {
                 the one thing there that is not a band, so it took a row of the
                 editor's height from everybody — including everybody who does
                 not own a measured headphone. */}
-            {activeWorkspaceTab === 'autoeq' && (
+            {activeWorkspaceTab === 'presets' && (
               <div
                 key={activeWorkspaceTab}
-                className={`workspace-tab-panel workspace-tab-panel--autoeq${
+                className={`workspace-tab-panel workspace-tab-panel--presets${
                   !isEngineUsable ? ' is-engine-disabled' : ''
                 }`}
                 aria-disabled={!isEngineUsable}
               >
-                <AutoEQPanel />
+                <EqPresetsPanel />
               </div>
             )}
             {(activeWorkspaceTab === 'voicing' ||

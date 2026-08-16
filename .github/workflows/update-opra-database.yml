@@ -1,0 +1,63 @@
+name: Update OPRA database
+
+on:
+  workflow_dispatch:
+  # OPRA re-imports its sources once a month, so checking weekly would mostly
+  # be asking a question whose answer has not changed.
+  schedule:
+    - cron: '23 6 5 * *'
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/update-opra-database.yml'
+      - 'scripts/build-opra-database.ts'
+
+permissions:
+  contents: write
+
+jobs:
+  publish-database:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out FluidEQ
+        uses: actions/checkout@v4
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Fetched from OPRA's own repository rather than from the CDN Roon runs:
+      # that endpoint is offered for non-commercial and open-source use, and
+      # FluidEQ is sold. Mirroring it ourselves is what they ask commercial
+      # consumers to do.
+      - name: Build the bundled library from OPRA
+        run: pnpm opra:update
+
+      - name: Validate what was built
+        run: pnpm test:opra
+
+      # OPRA's data is CC BY-SA 4.0, and the reshaping above makes what we ship
+      # adapted material. The archive is downloaded and unpacked on its own,
+      # away from the repository the rest of the notices live in, so attribution
+      # and the licence are only carried if they are inside the archive.
+      - name: Package database
+        run: |
+          zip -qr opra-database.zip opra assets/opra-version.json \
+            assets/licenses/CC-BY-SA-4.0-LICENSE.txt \
+            assets/licenses/OPRA-ATTRIBUTION.txt
+
+      - name: Publish update assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view opra-database >/dev/null 2>&1 || \
+            gh release create opra-database --title "FluidEQ OPRA database" --notes "Automatically generated from the OPRA project dataset. Data is CC BY-SA 4.0; see the licence and attribution inside the archive."
+          gh release upload opra-database opra-database.zip assets/opra-version.json --clobber

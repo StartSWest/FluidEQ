@@ -366,8 +366,8 @@ export interface IState {
    * Not a layer — applying a reference writes into the bands themselves — but
    * knowing which model a curve came from is the difference between a set of
    * numbers and a tuning you can reason about, and it is not recoverable from
-   * the bands afterwards. The AutoEQ panel reads all three of these back to put
-   * its pickers where the user left them after a remount or a restart.
+   * the bands afterwards. The EQ Presets panel reads all three of these back to
+   * put its pickers where the user left them after a remount or a restart.
    */
   headset?: string;
   /**
@@ -725,26 +725,72 @@ export interface IDeviceProfileSettings {
   assignments: Record<string, IDeviceProfileAssignment>;
 }
 
-export interface IAutoEqDatabaseManifest {
+/** One published correction curve, with the credit it has to carry. */
+export interface IOpraCurve {
+  id: string;
+  /** Who produced the curve — "AutoEQ", "oratory1990", "Rtings/AutoEQ". */
+  author: string;
+  /** Who measured it, e.g. "Measured by crinacle" or "Harman Target". */
+  details: string;
+  /** Present on about a twelfth of them; rendered only when it is there. */
+  link?: string;
+}
+
+/** One headphone, as OPRA models it: a vendor, a name and its curves. */
+export interface IOpraProduct {
+  /** `vendor::slug`, unique, and safe to use as a path. */
+  id: string;
+  /** Display name of the vendor, for grouping the picker. */
+  vendor: string;
+  name: string;
+  /** `over_the_ear` | `on_ear` | `in_ear` | `earbuds`. */
+  subtype: string;
+  curves: IOpraCurve[];
+}
+
+/**
+ * Which snapshot of the library is installed.
+ *
+ * Keyed on a hash of the upstream dataset, and deliberately not on an upstream
+ * revision id. The AutoEq library this replaces compared the upstream commit,
+ * which stopped moving in July 2025 — so the check could only ever answer "up
+ * to date", and the published newer database could never reach anybody. A
+ * content hash cannot go stale that way: if the data differs, the hash differs.
+ */
+export interface IOpraDatabaseManifest {
   version: 1;
-  sourceCommit: string;
-  modelCount: number;
-  profileCount: number;
+  contentHash: string;
+  vendorCount: number;
+  productCount: number;
+  curveCount: number;
   generatedAt: string;
 }
 
-export interface IAutoEqUpdateStatus {
-  current: IAutoEqDatabaseManifest;
-  latest?: IAutoEqDatabaseManifest;
+export interface IOpraUpdateStatus {
+  current: IOpraDatabaseManifest;
+  latest?: IOpraDatabaseManifest;
   updateAvailable: boolean;
 }
 
 /**
- * The bundled AutoEq database, as a source id.
+ * The bundled OPRA database, as a source id.
  *
  * The id is written once and shared by the main and renderer processes. It is
  * persisted into headsetSource so a restored selection can be matched without
  * guessing which catalogue supplied it.
+ */
+export const OPRA_SOURCE_ID = 'opra';
+
+/**
+ * The catalogue that used to supply corrections, and still supplies impulse
+ * responses.
+ *
+ * Kept for two reasons. The convolution catalogue is still AutoEq's — OPRA
+ * publishes no impulse responses — and it tags its entries with this id. And
+ * presets saved before the switch carry `headsetSource: 'autoeq'`; their bands
+ * are stored with them so they still apply, and the picker uses this to
+ * recognise such a selection as one it cannot re-highlight rather than as a
+ * corrupt one.
  */
 export const AUTOEQ_SOURCE_ID = 'autoeq';
 

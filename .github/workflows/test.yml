@@ -31,5 +31,5 @@ jobs:
       - name: Run unit tests
         run: pnpm test:unit --runInBand
 
-      - name: Validate bundled AutoEq profiles
-        run: pnpm test:autoeq
+      - name: Validate the bundled OPRA library
+        run: pnpm test:opra

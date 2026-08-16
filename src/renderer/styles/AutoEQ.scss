@@ -115,32 +115,56 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   // Whose measurements these are.
   //
-  // Lifted out of the flow and into the section's top-right corner. As a row of
-  // its own it cost a full line of the workspace's height to say four words,
-  // and this pane is the one competing with the graph for room — the corner is
-  // dead space that was already there.
+  // This used to be four words tucked into the section's top-right corner,
+  // where it cost no height. It is a row of its own again because the licence
+  // asks for more than a link: OPRA's data is CC BY-SA 4.0, and anything
+  // browsing the database has to show the mark, say what the project is, and
+  // link to it. That does not fit in a corner, and shrinking it until it did
+  // would be meeting the letter of the requirement while dodging the point.
   //
-  // Still inside the fold, so it goes away with the rest of the section: it
-  // matters while you are choosing a measurement and not at all once the
-  // section is closed. `right` clears the collapse chevron, which owns the
-  // corner above it.
-  .autoeq-attribution {
-    @include truncate;
-    position: absolute;
-    z-index: 1;
-    top: -26px;
-    right: 46px;
-    max-width: 40%;
-    color: $text-muted;
-    font-size: 0.68rem;
-    text-align: right;
+  // Still inside the fold, so it goes away with the rest of the section.
+  .opra-credit {
+    display: grid;
+    padding: 2px 0 8px;
+    gap: 8px;
+    grid-template-columns: max-content 1fr;
+    align-items: center;
+
+    p {
+      margin: 0;
+      color: $text-muted;
+      font-size: 0.68rem;
+      line-height: 1.35;
+    }
 
     a {
       color: $secondary-light;
     }
   }
 
-  // The corner the attribution is positioned against.
+  // Sized by height so the wordmark sits on the text's line rather than
+  // dominating it. The asset is a wide landscape lockup, so the width follows.
+  .opra-credit__logo {
+    width: auto;
+    height: 18px;
+    opacity: 0.85;
+  }
+
+  // Who made the curve that is actually applied — the other half of what the
+  // licence asks for, and the half that has to name a person rather than a
+  // project. Sits under the pickers, next to the thing it is crediting.
+  .opra-curve-credit {
+    margin: 0;
+    padding: 2px 0 0;
+    color: $text-muted;
+    font-size: 0.66rem;
+
+    a {
+      color: $secondary-light;
+    }
+  }
+
+  // The corner the collapse chevron owns.
   .sidebar-section__body {
     position: relative;
   }

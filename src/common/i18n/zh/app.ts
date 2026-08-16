@@ -73,7 +73,7 @@ const app: Partial<Dictionary> = {
   'common.icon.cancel': '取消',
   'tabs.aria': '声音工作区',
   'tabs.eq': '均衡器',
-  'tabs.autoeq': 'AutoEQ',
+  'tabs.presets': 'EQ 预设',
   'tabs.voicing': '声音风格',
   'tabs.convolution': '卷积',
   'tabs.config': 'Config',

@@ -1,0 +1,40 @@
+OPRA — Open Profiles for Revealing Audio
+========================================
+
+FluidEQ's headphone correction library is the OPRA dataset.
+
+  Project     OPRA (Open Profiles for Revealing Audio), a project of Roon Labs
+  Source      https://github.com/opra-project/OPRA
+  Data        Creative Commons Attribution-ShareAlike 4.0 International
+              (CC BY-SA 4.0) — see CC-BY-SA-4.0-LICENSE.txt beside this file
+  Tooling     MIT
+
+OPRA is an open, community-maintained directory of product information and EQ
+compensation curves that optimize a wide range of headphone models.
+
+What is shipped here is adapted material under the terms of CC BY-SA 4.0: the
+published dataset is a single JSONL file, and it is reshaped at build time into
+an index and one file of curve data per vendor so the application can list six
+thousand headphones without reading all of them. No curve is altered by that
+process — the frequency, gain, Q and slope of every band are the published
+values. Gains are bounded when a curve is applied, which is a property of how
+FluidEQ renders a correction and not a change to the data on disk.
+
+The adapted database is licensed under CC BY-SA 4.0, the same terms it arrived
+under. This file and the licence beside it travel inside the database archive
+itself, so that they remain with the data wherever it is downloaded or copied.
+
+Attribution for individual curves
+---------------------------------
+Each curve names its author and the measurement behind it, and FluidEQ shows
+both next to the curve it has applied — for example "Preset created by
+oratory1990" alongside "Harman Target", or "Measured by crinacle". The authors
+represented in the current dataset are oratory1990, the AutoEq project, and
+Rtings. Credit for a curve belongs to the person or project named on it.
+
+A note on AutoEq
+----------------
+Much of OPRA's data originates from the AutoEq project by Jaakko Pasanen, which
+OPRA ingested and redistributes under CC BY-SA 4.0. AutoEq remains FluidEQ's
+source for convolution impulse responses, separately and under its own MIT
+licence — see AutoEq-LICENSE.txt.

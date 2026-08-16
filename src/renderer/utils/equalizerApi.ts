@@ -33,7 +33,9 @@ import {
   IAudioDevice,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
-  IAutoEqUpdateStatus,
+  IOpraUpdateStatus,
+  IOpraProduct,
+  IOpraCurve,
   MAX_FREQUENCY,
   MAX_QUALITY,
   MIN_FREQUENCY,
@@ -167,7 +169,9 @@ const buildResponseHandler = <
     | string[]
     | IAudioDevice[]
     | IDeviceProfileSettings
-    | IAutoEqUpdateStatus
+    | IOpraUpdateStatus
+    | IOpraProduct[]
+    | IOpraCurve[]
     | IConvolutionCatalogEntry[]
     | IConvolutionProfile
     | IGatheredFacts
@@ -212,7 +216,9 @@ const simpleResponseHandler = <
     | string[]
     | IAudioDevice[]
     | IDeviceProfileSettings
-    | IAutoEqUpdateStatus
+    | IOpraUpdateStatus
+    | IOpraProduct[]
+    | IOpraCurve[]
     | IConvolutionCatalogEntry[]
     | IConvolutionProfile
     | IGatheredFacts
@@ -469,43 +475,30 @@ export const removeDeviceProfile = (deviceId: string): Promise<void> => {
 };
 
 /**
- * Get a list of supported auto eq device names
- * @returns { Promise<string[]> } exception if failed.
+ * Get every headphone in the bundled OPRA library, with its curve metadata.
+ * @returns { Promise<IOpraProduct[]> } exception if failed.
  */
-export const getAutoEqDeviceList = (): Promise<string[]> => {
-  const channel = ChannelEnum.GET_AUTO_EQ_DEVICE_LIST;
+export const getOpraProductList = (): Promise<IOpraProduct[]> => {
+  const channel = ChannelEnum.GET_OPRA_PRODUCT_LIST;
   window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<string[]>(), channel);
+  return promisifyResult(simpleResponseHandler<IOpraProduct[]>(), channel);
 };
 
 /**
- * Get a list of supported auto eq responses for the given device
- * @param {string} deviceName - device to search auto eq presets under
- * @returns { Promise<string[]> } exception if failed.
- */
-export const getAutoEqResponseList = (
-  deviceName: string,
-): Promise<string[]> => {
-  const channel = ChannelEnum.GET_AUTO_EQ_RESPONSE_LIST;
-  window.electron.ipcRenderer.sendMessage(channel, [deviceName]);
-  return promisifyResult(simpleResponseHandler<string[]>(), channel);
-};
-
-/**
- * Load autoeq preset for given device name and response into the backend state
- * @param {string} deviceName - device to search auto eq presets under
- * @param {string} responseName - response to load
+ * Load one OPRA curve into the backend state as the headphone layer.
+ * @param {string} productId - OPRA product id, `vendor::slug`
+ * @param {string} curveId - which of that product's curves to apply
  * @returns { Promise<void> } exception if failed
  */
-export const loadAutoEqPreset = (
-  deviceName: string,
-  responseName: string,
+export const loadOpraPreset = (
+  productId: string,
+  curveId: string,
   profileName?: string,
 ): Promise<void> => {
-  const channel = ChannelEnum.LOAD_AUTO_EQ_PRESET;
+  const channel = ChannelEnum.LOAD_OPRA_PRESET;
   window.electron.ipcRenderer.sendMessage(channel, [
-    deviceName,
-    responseName,
+    productId,
+    curveId,
     profileName,
   ]);
   return promisifyResult(setterResponseHandler, channel);
@@ -594,17 +587,17 @@ export const importConvolutionFile = (): Promise<string> => {
   );
 };
 
-export const checkAutoEqUpdate = (): Promise<IAutoEqUpdateStatus> => {
-  const channel = ChannelEnum.CHECK_AUTO_EQ_UPDATE;
+export const checkOpraUpdate = (): Promise<IOpraUpdateStatus> => {
+  const channel = ChannelEnum.CHECK_OPRA_UPDATE;
   window.electron.ipcRenderer.sendMessage(channel, []);
-  return promisifyResult(simpleResponseHandler<IAutoEqUpdateStatus>(), channel);
+  return promisifyResult(simpleResponseHandler<IOpraUpdateStatus>(), channel);
 };
 
-export const updateAutoEqDatabase = (): Promise<IAutoEqUpdateStatus> => {
-  const channel = ChannelEnum.UPDATE_AUTO_EQ_DATABASE;
+export const updateOpraDatabase = (): Promise<IOpraUpdateStatus> => {
+  const channel = ChannelEnum.UPDATE_OPRA_DATABASE;
   window.electron.ipcRenderer.sendMessage(channel, []);
   return promisifyResult(
-    simpleResponseHandler<IAutoEqUpdateStatus>(),
+    simpleResponseHandler<IOpraUpdateStatus>(),
     channel,
     5 * 60 * 1000,
   );

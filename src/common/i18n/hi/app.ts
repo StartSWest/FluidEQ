@@ -74,7 +74,7 @@ const app: Partial<Dictionary> = {
   'common.icon.cancel': 'रद्द करें',
   'tabs.aria': 'साउंड वर्कस्पेस',
   'tabs.eq': 'EQ',
-  'tabs.autoeq': 'AutoEQ',
+  'tabs.presets': 'EQ प्रीसेट',
   'tabs.voicing': 'ध्वनि रंग',
   'tabs.convolution': 'कन्वॉल्यूशन',
   'tabs.config': 'Config',
