@@ -129,6 +129,7 @@ import { registerLayersIpc } from './ipc/layers';
 import { registerPreampIpc } from './ipc/preamp';
 import { registerVideoIpc } from './ipc/video';
 import { registerProfilesIpc } from './ipc/profiles';
+import { registerUpdatesIpc } from './ipc/updates';
 import { adoptBlock, hasChainDrifted } from '../common/apoSync';
 import {
   adoptApoFeatureText,
@@ -146,7 +147,6 @@ import {
 import { readApoConfigTree, readApoDeviceChain } from './apoConfigReader';
 import { IApoConfigLayer, IApoConfigTree } from '../common/apoConfig';
 import { APP_ID, PRODUCT_NAME } from '../common/branding';
-import { latestReleaseNotes } from '../common/changelog';
 import {
   assignDeviceProfile,
   flushDeviceProfiles,
@@ -2821,65 +2821,10 @@ ipcMain.on('quit-app', () => {
   app.quit();
 });
 
-/**
- * The release notes for this version, read from the file that ships with the app.
- *
- * A file rather than a string baked into the bundle, so writing an entry is
- * editing CHANGELOG.md and nothing else — no constant to update, no chance of
- * the two drifting apart. It is also the same file people read on GitHub.
- *
- * The dialog opens two ways and they are not the same question. After an update
- * it opens by itself, and there "what's new" means the version just installed —
- * everything below it is by definition not new. Opened deliberately, from the
- * actions menu or from the support panel, it is somebody asking to read, and
- * the whole history is a fair answer.
- *
- * So the caller says which it wants, and the slicing happens here rather than
- * in the renderer because this is where the file is read.
- */
-ipcMain.handle('get-changelog', (_event, scope: 'latest' | 'all') => {
-  const candidates = [
-    path.join(process.resourcesPath, 'CHANGELOG.md'),
-    path.join(__dirname, '../../CHANGELOG.md'),
-    path.join(app.getAppPath(), 'CHANGELOG.md'),
-  ];
-  const found = candidates.find((candidate) => fs.existsSync(candidate));
-  if (!found) {
-    return '';
-  }
-  try {
-    const markdown = fs.readFileSync(found, 'utf8');
-    return scope === 'all' ? markdown : latestReleaseNotes(markdown);
-  } catch {
-    return '';
-  }
-});
-
-/**
- * Close FluidEQ and run the downloaded installer.
- *
- * Only ever reached from the "restart to update" button, which the renderer
- * only shows once electron-updater has reported the download finished — so by
- * the time this runs there is definitely something to install.
- */
-ipcMain.handle('install-update', () => {
-  if (!activeAutoUpdater) {
-    throw new Error('Updates are disabled for this build.');
-  }
-  // `false` for isSilent: the NSIS installer shows its progress, which is the
-  // honest thing when the app the user was using has just vanished.
-  //
-  // Rethrown rather than swallowed. The ordinary update banner already treats
-  // a rejection as "put the button back", and the mandatory-update modal needs
-  // it to reach the manual-install instructions — a blocking window whose only
-  // button silently does nothing is the exact failure this must not have.
-  try {
-    activeAutoUpdater.quitAndInstall(false, true);
-  } catch (error) {
-    log.info('Update install could not start', error);
-    throw error;
-  }
-});
+// What changed, and installing it. The updater goes across as a getter: it is
+// built asynchronously at startup and stays unset when its signature or feed
+// checks fail, so a reference captured here would be undefined forever.
+registerUpdatesIpc({ getActiveAutoUpdater: () => activeAutoUpdater });
 
 ipcMain.handle('open-equalizer-apo-configurator', async () => {
   try {
