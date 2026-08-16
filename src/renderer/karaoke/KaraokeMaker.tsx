@@ -52,11 +52,13 @@ import {
 import { splitKaraokeWordSyllables } from '../../common/karaoke/syllables';
 import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticulation';
 import { IKaraokeSong } from '../../common/karaoke/types';
-import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
+import KaraokeMakerConfirmDialog, {
+  TDestructiveMakerAction,
+} from './KaraokeMakerConfirmDialog';
 import {
   DEFAULT_PREVIEW_HEIGHT,
   DEFAULT_VIEW_MS,
@@ -141,43 +143,6 @@ interface IGuidedLineCapture {
   wordBoundariesMs?: number[];
   automaticStart?: boolean;
 }
-type TDestructiveMakerAction =
-  'notes' | 'lyrics' | 'restore' | 'replace-lyrics';
-
-/**
- * What the confirmation modal says, per action.
- *
- * `replace-lyrics` is absent on purpose: it is asked inside the lyrics editor,
- * next to the text it is about to replace, rather than in this modal.
- */
-const DESTRUCTIVE_CONFIRMATIONS: Record<
-  Exclude<TDestructiveMakerAction, 'replace-lyrics'>,
-  {
-    icon: TKaraokeMakerToolIcon;
-    title: TranslationKey;
-    body: TranslationKey;
-    confirm: TranslationKey;
-  }
-> = {
-  notes: {
-    icon: 'clearNotes',
-    title: 'karaoke.maker.clearNotesTitle',
-    body: 'karaoke.maker.clearNotesBody',
-    confirm: 'karaoke.maker.clearNotes',
-  },
-  lyrics: {
-    icon: 'clearLyrics',
-    title: 'karaoke.maker.clearLyricsTitle',
-    body: 'karaoke.maker.clearLyricsBody',
-    confirm: 'karaoke.maker.clearLyrics',
-  },
-  restore: {
-    icon: 'restore',
-    title: 'karaoke.maker.restoreTitle',
-    body: 'karaoke.maker.restoreBody',
-    confirm: 'karaoke.maker.restore',
-  },
-};
 
 interface ISyllableSplitDraft {
   tokenId: string;
@@ -6990,46 +6955,19 @@ const KaraokeMaker = ({
         </div>
       )}
 
-      {destructiveAction && destructiveAction !== 'replace-lyrics' && (
-        <div className="karaoke-maker__modal-backdrop" role="presentation">
-          <div
-            className="karaoke-maker__confirm-modal"
-            role="alertdialog"
-            aria-label={t(DESTRUCTIVE_CONFIRMATIONS[destructiveAction].confirm)}
-          >
-            <KaraokeMakerToolIcon
-              name={DESTRUCTIVE_CONFIRMATIONS[destructiveAction].icon}
-            />
-            <div>
-              <h2>{t(DESTRUCTIVE_CONFIRMATIONS[destructiveAction].title)}</h2>
-              <p>{t(DESTRUCTIVE_CONFIRMATIONS[destructiveAction].body)}</p>
-            </div>
-            <div className="karaoke-maker__modal-actions">
-              <button
-                type="button"
-                onClick={() => setDestructiveAction(undefined)}
-              >
-                {t('karaoke.maker.cancel')}
-              </button>
-              <button
-                className="is-danger"
-                type="button"
-                onClick={() => {
-                  if (destructiveAction === 'notes') {
-                    clearNotes();
-                  } else if (destructiveAction === 'lyrics') {
-                    clearLyrics();
-                  } else {
-                    restoreOriginal();
-                  }
-                }}
-              >
-                {t(DESTRUCTIVE_CONFIRMATIONS[destructiveAction].confirm)}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <KaraokeMakerConfirmDialog
+        action={destructiveAction}
+        onCancel={() => setDestructiveAction(undefined)}
+        onConfirm={() => {
+          if (destructiveAction === 'notes') {
+            clearNotes();
+          } else if (destructiveAction === 'lyrics') {
+            clearLyrics();
+          } else {
+            restoreOriginal();
+          }
+        }}
+      />
 
       {lyricsOpen && (
         <div
