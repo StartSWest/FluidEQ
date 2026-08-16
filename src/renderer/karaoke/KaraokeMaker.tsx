@@ -57,6 +57,10 @@ import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import {
+  formatMegabytes,
+  karaokeMakerAnalysisProgress,
+} from './makerAnalysisProgress';
+import {
   normalizedLyricsText,
   plainLyrics,
   useKaraokeMakerLyricsDraft,
@@ -278,18 +282,6 @@ const formatClock = (valueMs: number): string => {
   const tenths = Math.floor((safe % 1_000) / 100);
   return `${minutes}:${String(seconds).padStart(2, '0')}.${tenths}`;
 };
-
-const formatMegabytes = (bytes: number): string => {
-  const megabytes = Math.max(0, bytes) / (1024 * 1024);
-  return megabytes >= 100 ? megabytes.toFixed(0) : megabytes.toFixed(1);
-};
-
-const WHISPER_STAGE_ORDER: Exclude<TKaraokeMakerWhisperStage, 'complete'>[] = [
-  'decode',
-  'download',
-  'load',
-  'transcribe',
-];
 
 interface IWhisperRunProfile {
   needsDownload: boolean;
@@ -5698,32 +5690,17 @@ const KaraokeMaker = ({
     captureGuideInstruction = t('karaoke.maker.captureReplaceStart');
   }
 
-  const whisperDownloadFraction =
-    whisperStage === 'download' && downloadProgress?.progress !== undefined
-      ? downloadProgress.progress
-      : undefined;
-  const displayedAnalysisProgress =
-    whisperDownloadFraction ?? analysisProgress ?? 0;
-  const analysisProgressIsIndeterminate =
-    whisperStage === 'load' ||
-    (whisperStage === 'download' && whisperDownloadFraction === undefined);
-  let lyricsDownloadRate = '— MB/s';
-  if (
-    downloadProgress &&
-    downloadProgress.fileCount > 0 &&
-    downloadProgress.completeFiles === downloadProgress.fileCount
-  ) {
-    lyricsDownloadRate = '✓';
-  } else if (downloadProgress?.bytesPerSecond !== undefined) {
-    lyricsDownloadRate = `${formatMegabytes(
-      downloadProgress.bytesPerSecond,
-    )} MB/s`;
-  }
-  const visibleWhisperStages = WHISPER_STAGE_ORDER.filter(
-    (stage) =>
-      (stage !== 'download' || whisperRunProfile.needsDownload) &&
-      (stage !== 'load' || whisperRunProfile.needsLoad),
-  );
+  // Pure derivation, so it lives outside the run that produces it.
+  const analysisView = karaokeMakerAnalysisProgress({
+    analysisProgress,
+    whisperStage,
+    downloadProgress,
+    runProfile: whisperRunProfile,
+  });
+  const displayedAnalysisProgress = analysisView.fraction;
+  const analysisProgressIsIndeterminate = analysisView.isIndeterminate;
+  const lyricsDownloadRate = analysisView.downloadRate;
+  const visibleWhisperStages = analysisView.stages;
   const lyricsProcessing =
     KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED &&
     (lyricsWorkflowActive || analysisProgress !== undefined);
