@@ -85,7 +85,7 @@ describe('reading the Equalizer APO config back', () => {
   });
 
   it('follows the includes and says which feature wrote what', () => {
-    flushDeviceProfiles(settings, presetsDir, configDir);
+    flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const chain = readApoDeviceChain(configDir, GUID);
 
@@ -108,7 +108,7 @@ describe('reading the Equalizer APO config back', () => {
   });
 
   it('keeps the preamp with the device, not with a feature', () => {
-    flushDeviceProfiles(settings, presetsDir, configDir);
+    flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const chain = readApoDeviceChain(configDir, GUID);
 
@@ -146,7 +146,7 @@ describe('reading the Equalizer APO config back', () => {
           },
         },
       },
-      presetsDir,
+      () => presetsDir,
       configDir,
     );
 

@@ -54,6 +54,7 @@ import {
   renameAssignedPreset,
   saveDeviceProfileSettings,
   setDefaultAudioDevice,
+  TPresetDirForDevice,
 } from '../deviceProfiles';
 import { getConfigPath } from '../registry';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
@@ -75,7 +76,23 @@ import { TSuccess } from '../../renderer/utils/equalizerApi';
 export interface IProfilesIpcDeps {
   state: IState;
   userDataDir: string;
-  presetPath: string;
+  /**
+   * Where any one output's profiles live.
+   *
+   * Needed as well as the active folder below because several handlers work on
+   * an output that is not the current one — flushing every output's config,
+   * reading the state of the device being switched to — and an assignment
+   * carries the device id that picks the right folder.
+   */
+  presetDirForDevice: TPresetDirForDevice;
+  /**
+   * The current output's folder, read per call rather than captured.
+   *
+   * A directory resolved once at registration would pin every profile handler
+   * to whichever output happened to be default at startup, so saving after a
+   * device switch would write into the old output's folder.
+   */
+  activePresetDir: () => string;
   baselinePath: string;
   deviceProfileSettings: IDeviceProfileSettings;
   /**
@@ -122,7 +139,7 @@ export interface IProfilesIpcDeps {
   getCurrentPreset: () => IPresetV2;
   hydrateActiveConvolution: () => void;
   isAutomaticPresetName: (presetName: string) => boolean;
-  reservePresetNameForActiveDevice: (presetName: string) => string;
+  availableProfileNameForActiveDevice: (presetName: string) => string;
   resetStateToDefaults: () => void;
   /** Re-read APO's config after this process wrote it, so the two agree. */
   adoptExistingApoConfig: () => void;
@@ -145,7 +162,8 @@ export interface IProfilesIpcDeps {
 export const registerProfilesIpc = ({
   state,
   userDataDir,
-  presetPath,
+  presetDirForDevice,
+  activePresetDir,
   baselinePath,
   deviceProfileSettings,
   session,
@@ -159,7 +177,7 @@ export const registerProfilesIpc = ({
   getCurrentPreset,
   hydrateActiveConvolution,
   isAutomaticPresetName,
-  reservePresetNameForActiveDevice,
+  availableProfileNameForActiveDevice,
   resetStateToDefaults,
   adoptExistingApoConfig,
   applyDeviceState,
@@ -173,7 +191,10 @@ export const registerProfilesIpc = ({
     log.info(`Loading preset: ${presetName}`);
 
     try {
-      const presetSettings: IPresetV2 = fetchPreset(presetName, presetPath);
+      const presetSettings: IPresetV2 = fetchPreset(
+        presetName,
+        activePresetDir(),
+      );
       clearCurrentLayoutSettings();
       state.preAmp = presetSettings.preAmp;
       state.filters = presetSettings.filters;
@@ -242,7 +263,7 @@ export const registerProfilesIpc = ({
       // Restoring writes the profile back to the baseline, but deliberately does
       // NOT rewrite the baseline itself — restoring twice in a row is a no-op
       // rather than a way to lose the copy.
-      savePreset(presetName, getCurrentPreset(), presetPath);
+      savePreset(presetName, getCurrentPreset(), activePresetDir());
       attachPresetToActiveDevice(presetName);
       await handleUpdate(event, channel, true);
     } catch (e) {
@@ -258,9 +279,9 @@ export const registerProfilesIpc = ({
       const names = Object.values(deviceProfileSettings.assignments)
         .map((assignment) => assignment.presetName)
         .concat(
-          fs.existsSync(presetPath)
+          fs.existsSync(activePresetDir())
             ? fs
-                .readdirSync(presetPath)
+                .readdirSync(activePresetDir())
                 .filter((n) => !isAutomaticPresetName(n))
             : [],
         )
@@ -294,10 +315,10 @@ export const registerProfilesIpc = ({
         // Never over the top of a profile another output is using. Saving on the
         // speakers must not overwrite what the headphones are playing, however
         // similar the two names are.
-        const targetName = reservePresetNameForActiveDevice(presetName);
+        const targetName = availableProfileNameForActiveDevice(presetName);
 
         const preset = getCurrentPreset();
-        savePreset(targetName, preset, presetPath);
+        savePreset(targetName, preset, activePresetDir());
         // This is the copy the user chose to keep. Later edits auto-save over the
         // profile itself, so this is the only thing left to restore from.
         savePresetBaseline(targetName, preset, baselinePath);
@@ -327,7 +348,7 @@ export const registerProfilesIpc = ({
           deviceProfileSettings.assignments[session.activeAudioDeviceId]
             ?.presetName === presetName;
 
-        deletePreset(presetName, presetPath);
+        deletePreset(presetName, activePresetDir());
         deletePresetBaseline(presetName, baselinePath);
         removeAssignmentsForPreset(deviceProfileSettings, presetName);
         saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
@@ -376,7 +397,7 @@ export const registerProfilesIpc = ({
          */
         if (
           isRestrictedPresetName(newName) ||
-          (doesPresetExist(newName, presetPath) &&
+          (doesPresetExist(newName, activePresetDir()) &&
             (state.isCaseSensitiveFs ||
               oldName.toLocaleLowerCase() !== newName.toLocaleLowerCase()))
         ) {
@@ -384,7 +405,7 @@ export const registerProfilesIpc = ({
           return;
         }
 
-        renamePreset(oldName, newName, presetPath);
+        renamePreset(oldName, newName, activePresetDir());
         renamePresetBaseline(oldName, newName, baselinePath);
         renameAssignedPreset(deviceProfileSettings, oldName, newName);
         saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
@@ -400,7 +421,7 @@ export const registerProfilesIpc = ({
 
     try {
       const fileNames: string[] = fs
-        .readdirSync(presetPath)
+        .readdirSync(activePresetDir())
         .filter((fileName) => !isAutomaticPresetName(fileName));
       log.info(`Fetched ${fileNames.length} files`);
       const reply: TSuccess<string[]> = { result: fileNames };
@@ -427,7 +448,7 @@ export const registerProfilesIpc = ({
           getStateForAudioDevice(
             deviceProfileSettings,
             activeDevice.id,
-            presetPath,
+            presetDirForDevice,
           ),
         );
         // Every output keeps at least one named profile, so there is always
@@ -459,7 +480,7 @@ export const registerProfilesIpc = ({
           await retryHelper(5, () => {
             flushDeviceProfiles(
               deviceProfileSettings,
-              presetPath,
+              presetDirForDevice,
               session.configPath,
               undefined,
               state.isEnabled,
@@ -499,7 +520,7 @@ export const registerProfilesIpc = ({
     const nextState = getStateForAudioDevice(
       deviceProfileSettings,
       arg[0] as string,
-      presetPath,
+      presetDirForDevice,
     );
     session.activeAudioDeviceId = arg[0] as string;
     clearCurrentLayoutSettings();
@@ -523,7 +544,10 @@ export const registerProfilesIpc = ({
     const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
     const assignment = arg[0] as IDeviceProfileAssignment;
     try {
-      fetchPreset(assignment.presetName, presetPath);
+      fetchPreset(
+        assignment.presetName,
+        presetDirForDevice(assignment.deviceId),
+      );
       assignDeviceProfile(deviceProfileSettings, assignment);
       saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
       await handleUpdate(event, channel);

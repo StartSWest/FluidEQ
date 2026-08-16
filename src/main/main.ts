@@ -781,17 +781,8 @@ const loadLayoutSettings = (): ILayoutSettingsFile => {
   }
 };
 
-// One-time repair on startup. Automatic profiles that carry makeup gain but no
-// EQ to make up for are leftovers from when switching outputs copied the
-// previous device's state across; the effect is an output several dB down for
-// no reason, which is not something a user would ever notice as a setting.
-const repairedProfiles = repairUnusedPreamps(presetPath);
-if (repairedProfiles.length > 0) {
-  log.info(
-    `Cleared unused preamp on ${repairedProfiles.length} automatic profile(s):`,
-    repairedProfiles.join(', '),
-  );
-}
+// Deferred until after the per-output folders exist, since that is where the
+// profiles it repairs now live. See runStartupProfileMaintenance.
 
 const layoutSettings = loadLayoutSettings();
 
@@ -861,6 +852,109 @@ const getAutomaticPresetName = (deviceId: string) =>
 
 const isAutomaticPresetName = (presetName: string) =>
   presetName.startsWith(AUTOMATIC_PRESET_PREFIX);
+
+/**
+ * Where one output's profiles live.
+ *
+ * Profiles belong to an output, not to the app. A pair of headphones and a set
+ * of speakers want different tunings, and the name the user picks for one has
+ * nothing to say about the other — "Bass boost" on the headphones and "Bass
+ * boost" on the speakers are two different profiles that happen to share a
+ * word.
+ *
+ * A folder each is what makes that true on disk. They used to share one flat
+ * directory, where a profile *was* its filename, so two outputs could not both
+ * hold a "Bass boost" and saving on one silently overwrote the other. The old
+ * defence was to rename the second one "Bass boost 2" — a name the user never
+ * typed, attached to an output they were not looking at.
+ *
+ * The directory is named by hashing the device id rather than using it: device
+ * ids are long, contain characters Windows will not accept in a path, and are
+ * not something anybody should have to look at. The same hash already names
+ * the automatic profile, so both agree on what identifies an output.
+ */
+const presetDirForDevice = (deviceId: string) => {
+  const dir = path.join(
+    presetPath,
+    createHash('sha1').update(deviceId).digest('hex').slice(0, 12),
+  );
+  if (!fs.existsSync(dir)) {
+    fs.mkdirSync(dir, { recursive: true });
+  }
+  return dir;
+};
+
+/** The folder for whichever output is playing now. */
+const activePresetDir = () => presetDirForDevice(session.activeAudioDeviceId);
+
+/**
+ * Move profiles saved before outputs owned them into the folder of the output
+ * that was using them.
+ *
+ * An assignment is the only record of who a profile belonged to, so it is the
+ * only thing that can answer the question. A profile no assignment mentions has
+ * no owner to deduce and is left exactly where it is — not deleted, not guessed
+ * at, still readable on disk if it turns out to matter. It stops appearing in
+ * the list, which is the point: an unowned profile has no output to appear
+ * under.
+ *
+ * Runs once per profile by construction — the second run finds the file gone
+ * from the root and does nothing.
+ */
+const migrateProfilesToPerOutputFolders = () => {
+  Object.values(deviceProfileSettings.assignments).forEach((assignment) => {
+    const from = path.join(presetPath, assignment.presetName);
+    // Directories are the new layout; only a file at the root is unmigrated.
+    if (!fs.existsSync(from) || !fs.statSync(from).isFile()) {
+      return;
+    }
+    const to = path.join(
+      presetDirForDevice(assignment.deviceId),
+      assignment.presetName,
+    );
+    // Never clobber a profile the new layout already holds.
+    if (fs.existsSync(to)) {
+      return;
+    }
+    try {
+      fs.renameSync(from, to);
+      log.info(
+        `Moved profile "${assignment.presetName}" to its output's folder`,
+      );
+    } catch (e) {
+      // A profile that will not move stays where it is and stays readable.
+      log.error(`Could not move profile "${assignment.presetName}"`);
+      log.error(e);
+    }
+  });
+};
+
+/**
+ * Put the profile store in order before anything reads from it.
+ *
+ * The move has to come first: the repair looks inside each output's folder, and
+ * before the move there are no folders to look in. Running them the other way
+ * round would quietly skip every profile that still needed repairing.
+ *
+ * Automatic profiles that carry makeup gain but no EQ to make up for are
+ * leftovers from when switching outputs copied the previous device's state
+ * across; the effect is an output several dB down for no reason, which is not
+ * something a user would ever notice as a setting.
+ */
+const runStartupProfileMaintenance = () => {
+  migrateProfilesToPerOutputFolders();
+
+  const repaired = Object.values(deviceProfileSettings.assignments).flatMap(
+    (assignment) =>
+      repairUnusedPreamps(presetDirForDevice(assignment.deviceId)),
+  );
+  if (repaired.length > 0) {
+    log.info(
+      `Cleared unused preamp on ${repaired.length} automatic profile(s):`,
+      repaired.join(', '),
+    );
+  }
+};
 
 /**
  * Adopt a device's EQ state without touching app-wide preferences.
@@ -960,30 +1054,22 @@ const switchToParametricEditing = () => {
  * exactly the sort of name two outputs both end up with.
  *
  * The rule: you may write to a name that is free, or one this output already
- * owns. A name owned by a different output gets a number, the same way a file
- * manager does it, and the caller attaches to that instead.
+ * owns. Only this output's own folder is consulted, because that is the only
+ * place the name can collide — what the speakers call their profiles has no
+ * bearing on what the headphones may call theirs.
  *
- * Deliberately not a hidden per-device filename. The name is what the user
- * sees in the list and types into the box, and a profile whose real identity
- * was invisible would make renaming and deleting inexplicable.
+ * A number is still appended when the name is taken *here*, the way a file
+ * manager does it, because two profiles on one output really would be the same
+ * file. That is the user's own duplicate, though, not one invented by another
+ * output they were not looking at.
  */
-const reservePresetNameForActiveDevice = (requestedName: string) => {
-  const ownedByAnotherOutput = (candidate: string) =>
-    Object.values(deviceProfileSettings.assignments).some(
-      (assignment) =>
-        assignment.presetName === candidate &&
-        assignment.deviceId !== session.activeAudioDeviceId,
-    );
-
-  if (!ownedByAnotherOutput(requestedName)) {
+const availableProfileNameForActiveDevice = (requestedName: string) => {
+  const dir = activePresetDir();
+  if (!doesPresetExist(requestedName, dir)) {
     return requestedName;
   }
-
   let index = 2;
-  while (
-    ownedByAnotherOutput(`${requestedName} ${index}`) ||
-    doesPresetExist(`${requestedName} ${index}`, presetPath)
-  ) {
+  while (doesPresetExist(`${requestedName} ${index}`, dir)) {
     index += 1;
   }
   return `${requestedName} ${index}`;
@@ -1071,9 +1157,10 @@ const resetStateToDefaults = () => {
  * Give the active output an empty named profile.
  *
  * Every output keeps at least one, so there is always somewhere for an edit to
- * land and always something in the list to select. The number comes from the
- * whole catalogue rather than from this output's share of it, because two
- * outputs cannot own the same name — see reservePresetNameForActiveDevice.
+ * land and always something in the list to select. The number counts only this
+ * output's own profiles, so each output starts again at "Untitled profile 1" —
+ * a second output has no reason to open on "Untitled profile 4" because three
+ * unrelated ones exist on the speakers.
  */
 const UNTITLED_PROFILE_PREFIX = 'Untitled profile';
 
@@ -1115,12 +1202,13 @@ const createEmptyProfileForActiveDevice = () => {
   if (!session.activeAudioDeviceId) {
     return;
   }
+  const dir = activePresetDir();
   let index = 1;
-  while (doesPresetExist(`${UNTITLED_PROFILE_PREFIX} ${index}`, presetPath)) {
+  while (doesPresetExist(`${UNTITLED_PROFILE_PREFIX} ${index}`, dir)) {
     index += 1;
   }
   const name = `${UNTITLED_PROFILE_PREFIX} ${index}`;
-  savePreset(name, getCurrentPreset(), presetPath);
+  savePreset(name, getCurrentPreset(), dir);
   attachPresetToActiveDevice(name);
 };
 
@@ -1151,6 +1239,9 @@ try {
   log.error(e);
   throw e;
 }
+
+// Only once the root exists, since every output's folder is made inside it.
+runStartupProfileMaintenance();
 
 // spawn child process to update presets folder so that it can support case-sensitive files
 if (process.platform === 'win32') {
@@ -1294,7 +1385,11 @@ const handleUpdateHelperCore = async <T>(
       // user's manually saved copy is kept separately (see savePresetBaseline
       // in the SAVE_PRESET handler), so auto-saving here can always be undone
       // and never costs them the version they chose to keep.
-      savePreset(assignment.presetName, getCurrentPreset(), presetPath);
+      savePreset(
+        assignment.presetName,
+        getCurrentPreset(),
+        presetDirForDevice(assignment.deviceId),
+      );
       session.hasActiveSessionOverride = false;
     } else if (
       shouldPersistProfile &&
@@ -1332,7 +1427,7 @@ const handleUpdateHelperCore = async <T>(
     await retryHelper(5, () => {
       flushDeviceProfiles(
         deviceProfileSettings,
-        presetPath,
+        presetDirForDevice,
         session.configPath,
         activeOverride,
         state.isEnabled,
@@ -1732,7 +1827,11 @@ const persistExternallyAdoptedState = () => {
   const assignment =
     deviceProfileSettings.assignments[session.activeAudioDeviceId];
   if (assignment) {
-    savePreset(assignment.presetName, getCurrentPreset(), presetPath);
+    savePreset(
+      assignment.presetName,
+      getCurrentPreset(),
+      presetDirForDevice(assignment.deviceId),
+    );
   }
 };
 
@@ -1810,7 +1909,7 @@ const syncActiveApoFilesFromDisk = async () => {
     await retryHelper(5, () => {
       flushDeviceProfiles(
         deviceProfileSettings,
-        presetPath,
+        presetDirForDevice,
         session.configPath,
         undefined,
         state.isEnabled,
@@ -1938,7 +2037,6 @@ ipcMain.on(ChannelEnum.HEALTH_CHECK, async (event) => {
 registerProfilesIpc({
   state,
   userDataDir,
-  presetPath,
   baselinePath,
   deviceProfileSettings,
   session,
@@ -1952,7 +2050,9 @@ registerProfilesIpc({
   getCurrentPreset,
   hydrateActiveConvolution,
   isAutomaticPresetName,
-  reservePresetNameForActiveDevice,
+  availableProfileNameForActiveDevice,
+  presetDirForDevice,
+  activePresetDir,
   resetStateToDefaults,
   adoptExistingApoConfig,
   applyDeviceState,
@@ -2032,7 +2132,10 @@ const describeDeviceLayers = (
 ): IApoConfigLayer[] | undefined => {
   let preset: IPresetV2;
   try {
-    preset = fetchPreset(assignment.presetName, presetPath);
+    preset = fetchPreset(
+      assignment.presetName,
+      presetDirForDevice(assignment.deviceId),
+    );
   } catch {
     return undefined;
   }
@@ -2507,7 +2610,10 @@ ipcMain.on(ChannelEnum.EXPORT_DEVICE_CHAIN, async (event, arg) => {
       return;
     }
 
-    const preset = fetchPreset(assignment.presetName, presetPath);
+    const preset = fetchPreset(
+      assignment.presetName,
+      presetDirForDevice(assignment.deviceId),
+    );
     let custom: string | undefined;
     try {
       if (!session.configPath) {
@@ -2612,10 +2718,10 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
 
     // Named for where it is going rather than where it came from, because the
     // profile list is indexed by that and it is what the user will look for.
-    const name = reservePresetNameForActiveDevice(
+    const name = availableProfileNameForActiveDevice(
       session.activeAudioDevice?.name || session.activeAudioDeviceId,
     );
-    savePreset(name, bundle.preset, presetPath);
+    savePreset(name, bundle.preset, activePresetDir());
     savePresetBaseline(name, bundle.preset, baselinePath);
     attachPresetToActiveDevice(name);
 

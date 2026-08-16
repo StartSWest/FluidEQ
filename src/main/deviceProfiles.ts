@@ -341,9 +341,23 @@ const chainToFiles = (
  */
 export type TApoConfigFiles = Map<string, string>;
 
+/**
+ * Where to find one output's profiles.
+ *
+ * Passed in rather than computed here, because the answer is a directory this
+ * module has no business knowing how to build — it needs the app's user-data
+ * path and the hash that names an output's folder, and both belong to main.
+ *
+ * A function rather than a directory because profiles are per output: there is
+ * no single folder these functions can read, and every assignment carries the
+ * device id that picks one. Handing over a flat path is what made two outputs
+ * share a namespace in the first place.
+ */
+export type TPresetDirForDevice = (deviceId: string) => string;
+
 export const deviceProfilesToFiles = (
   settings: IDeviceProfileSettings,
-  presetsDir: string,
+  presetDirForDevice: TPresetDirForDevice,
   configDirPath?: string,
   activeOverride?: IActiveStateOverride,
   isEnabled = true,
@@ -399,7 +413,8 @@ export const deviceProfilesToFiles = (
     .filter((assignment) => !isOverriddenDevice(assignment))
     .forEach((assignment) => {
       try {
-        const preset = fetchPreset(assignment.presetName, presetsDir);
+        const dir = presetDirForDevice(assignment.deviceId);
+        const preset = fetchPreset(assignment.presetName, dir);
         if (configDirPath && preset.convolution?.fileName) {
           try {
             const hydrated = hydrateConvolutionAnalysis(
@@ -408,7 +423,7 @@ export const deviceProfilesToFiles = (
             );
             if (hydrated !== preset.convolution) {
               preset.convolution = hydrated;
-              savePreset(assignment.presetName, preset, presetsDir);
+              savePreset(assignment.presetName, preset, dir);
             }
           } catch {
             // Keep the profile usable if a legacy WAV cannot be analyzed. APO
@@ -533,7 +548,7 @@ export const deviceProfilesToFiles = (
 export const getStateForAudioDevice = (
   settings: IDeviceProfileSettings,
   deviceId: string,
-  presetsDir: string,
+  presetDirForDevice: TPresetDirForDevice,
 ): IState => {
   const defaultState = getDefaultState();
   const assignment = settings.assignments[deviceId];
@@ -541,7 +556,10 @@ export const getStateForAudioDevice = (
   let preset: IPresetV2 | undefined;
   if (assignment) {
     try {
-      preset = fetchPreset(assignment.presetName, presetsDir);
+      preset = fetchPreset(
+        assignment.presetName,
+        presetDirForDevice(assignment.deviceId),
+      );
     } catch {
       preset = undefined;
     }
@@ -790,14 +808,14 @@ const ensureCustomFiles = (configDirPath: string, slugs: ReadonlySet<string>) =>
 
 export const flushDeviceProfiles = (
   settings: IDeviceProfileSettings,
-  presetsDir: string,
+  presetDirForDevice: TPresetDirForDevice,
   configDirPath: string,
   activeOverride?: IActiveStateOverride,
   isEnabled = true,
 ) => {
   const files = deviceProfilesToFiles(
     settings,
-    presetsDir,
+    presetDirForDevice,
     configDirPath,
     activeOverride,
     isEnabled,

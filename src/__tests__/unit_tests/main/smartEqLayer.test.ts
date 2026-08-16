@@ -279,7 +279,7 @@ describe('the Smart EQ layer and the profile it belongs to', () => {
     };
 
     expect(
-      expandApoConfig(deviceProfilesToFiles(settings, presetsDir)),
+      expandApoConfig(deviceProfilesToFiles(settings, () => presetsDir)),
     ).toContain('Fc 1000 Hz Gain 3 dB Q 1.4');
   });
 
@@ -316,18 +316,21 @@ describe('the Smart EQ layer and the profile it belongs to', () => {
       },
     };
 
-    const bare = getStateForAudioDevice(settings, 'bare', presetsDir);
+    const bare = getStateForAudioDevice(settings, 'bare', () => presetsDir);
     expect(Object.prototype.hasOwnProperty.call(bare, 'smartEq')).toBe(true);
     expect(bare.smartEq).toBeUndefined();
 
     const live = getDefaultState();
     Object.assign(
       live,
-      getStateForAudioDevice(settings, 'measured', presetsDir),
+      getStateForAudioDevice(settings, 'measured', () => presetsDir),
     );
     expect(hasSmartEqLayer(live.smartEq)).toBe(true);
 
-    Object.assign(live, getStateForAudioDevice(settings, 'bare', presetsDir));
+    Object.assign(
+      live,
+      getStateForAudioDevice(settings, 'bare', () => presetsDir),
+    );
     expect(live.smartEq).toBeUndefined();
   });
 });

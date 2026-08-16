@@ -174,7 +174,7 @@ describe('switching a layer out of the config', () => {
       },
     };
 
-    flushDeviceProfiles(settings, presetsDir, configDir);
+    flushDeviceProfiles(settings, () => presetsDir, configDir);
     const chain = readApoDeviceChain(configDir, GUID);
 
     // The bands are there, the voicing is not, and the reader can say so.

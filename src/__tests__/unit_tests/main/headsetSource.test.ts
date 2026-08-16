@@ -147,10 +147,16 @@ describe('the source of an applied reference', () => {
     };
 
     const live = getDefaultState();
-    Object.assign(live, getStateForAudioDevice(settings, 'headphones', dir));
+    Object.assign(
+      live,
+      getStateForAudioDevice(settings, 'headphones', () => dir),
+    );
     expect(live.headsetSource).toBe(SQUIG_SOURCE_ID);
 
-    Object.assign(live, getStateForAudioDevice(settings, 'speakers', dir));
+    Object.assign(
+      live,
+      getStateForAudioDevice(settings, 'speakers', () => dir),
+    );
     expect(live.headset).toBeUndefined();
     expect(live.headsetTarget).toBeUndefined();
     expect(live.headsetSource).toBeUndefined();

@@ -89,7 +89,7 @@ describe('reading the whole config as a tree', () => {
   });
 
   it('gives every output its own branch, in the order the config lists them', () => {
-    flushDeviceProfiles(settings, presetsDir, configDir);
+    flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const tree = readApoConfigTree(configDir);
 
@@ -103,7 +103,7 @@ describe('reading the whole config as a tree', () => {
   });
 
   it('carries the label, the preamp and the filter count for a device', () => {
-    flushDeviceProfiles(settings, presetsDir, configDir);
+    flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const tree = readApoConfigTree(configDir);
     const kraken = tree?.devices.find((d) => d.devicePattern === KRAKEN);
@@ -115,7 +115,7 @@ describe('reading the whole config as a tree', () => {
   });
 
   it('keeps the include structure rather than flattening it', () => {
-    flushDeviceProfiles(settings, presetsDir, configDir);
+    flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const tree = readApoConfigTree(configDir);
     const kraken = tree?.devices.find((d) => d.devicePattern === KRAKEN);
@@ -140,7 +140,7 @@ describe('reading the whole config as a tree', () => {
   });
 
   it('says so when an output applies nothing at all', () => {
-    flushDeviceProfiles(settings, presetsDir, configDir);
+    flushDeviceProfiles(settings, () => presetsDir, configDir);
 
     const tree = readApoConfigTree(configDir);
     const speakers = tree?.devices.find((d) => d.devicePattern === SPEAKERS);
@@ -180,18 +180,24 @@ describe('reading the whole config as a tree', () => {
   // Three ways to be silent, and only one of them is a chain that happens to
   // be flat. A tree of files looks identical in all three.
   it('says whether any of it is being applied', () => {
-    flushDeviceProfiles(settings, presetsDir, configDir);
+    flushDeviceProfiles(settings, () => presetsDir, configDir);
     expect(readApoConfigTree(configDir)?.isApplied).toBe(true);
 
     // The engine switch: a config that names no output at all.
-    flushDeviceProfiles(settings, presetsDir, configDir, undefined, false);
+    flushDeviceProfiles(
+      settings,
+      () => presetsDir,
+      configDir,
+      undefined,
+      false,
+    );
     expect(readApoConfigTree(configDir)?.isApplied).toBe(false);
   });
 
   // Everything below is inert if Equalizer APO is not reading the root file,
   // and that is APO's own config.txt — anything can have rewritten it.
   it('says whether Equalizer APO is including the config at all', () => {
-    flushDeviceProfiles(settings, presetsDir, configDir);
+    flushDeviceProfiles(settings, () => presetsDir, configDir);
     expect(readApoConfigTree(configDir)?.isIncludedByApo).toBe(false);
 
     fs.writeFileSync(

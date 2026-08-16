@@ -107,7 +107,7 @@ describe('device profiles with an active session override', () => {
   };
 
   it('names the overridden device exactly once', () => {
-    const output = configFor(settings, presetsDir, undefined, {
+    const output = configFor(settings, () => presetsDir, undefined, {
       deviceId: 'kraken',
       devicePattern: KRAKEN_GUID,
       state: clearedState(),
@@ -118,7 +118,7 @@ describe('device profiles with an active session override', () => {
   });
 
   it('drops the assigned preset once the EQ is cleared', () => {
-    const output = configFor(settings, presetsDir, undefined, {
+    const output = configFor(settings, () => presetsDir, undefined, {
       deviceId: 'kraken',
       devicePattern: KRAKEN_GUID,
       state: clearedState(),
@@ -130,7 +130,7 @@ describe('device profiles with an active session override', () => {
   });
 
   it('leaves every other device on its own profile', () => {
-    const output = configFor(settings, presetsDir, undefined, {
+    const output = configFor(settings, () => presetsDir, undefined, {
       deviceId: 'kraken',
       devicePattern: KRAKEN_GUID,
       state: clearedState(),
@@ -141,7 +141,7 @@ describe('device profiles with an active session override', () => {
   });
 
   it('matches the overridden device by pattern when there is no id', () => {
-    const output = configFor(settings, presetsDir, undefined, {
+    const output = configFor(settings, () => presetsDir, undefined, {
       devicePattern: KRAKEN_GUID,
       state: clearedState(),
     });
@@ -151,7 +151,7 @@ describe('device profiles with an active session override', () => {
   });
 
   it('keeps every profile when nothing is overriding them', () => {
-    const output = configFor(settings, presetsDir);
+    const output = configFor(settings, () => presetsDir);
 
     expect(output).toContain(`Device: ${KRAKEN_GUID}`);
     expect(output).toContain(`Device: ${LEVIATHAN_GUID}`);
@@ -173,7 +173,7 @@ describe('device profiles with an active session override', () => {
       },
     };
 
-    const output = configFor(settings, presetsDir, undefined, {
+    const output = configFor(settings, () => presetsDir, undefined, {
       deviceId: 'kraken',
       devicePattern: KRAKEN_GUID,
       state: tuned,

@@ -153,12 +153,12 @@ describe('per-device state isolation', () => {
    */
   const switchTo = (live: ReturnType<typeof getDefaultState>, id: string) => {
     const { isEnabled, isGraphViewOn, isCaseSensitiveFs, ...deviceState } =
-      getStateForAudioDevice(settings, id, presetsDir);
+      getStateForAudioDevice(settings, id, () => presetsDir);
     Object.assign(live, deviceState);
   };
 
   it('states every optional field so an assign can clear it', () => {
-    const bare = getStateForAudioDevice(settings, 'bare', presetsDir);
+    const bare = getStateForAudioDevice(settings, 'bare', () => presetsDir);
 
     // Present as own keys, holding undefined — absence is what caused the leak.
     [
@@ -180,13 +180,19 @@ describe('per-device state isolation', () => {
   it('clears the previous device layers when the next one has none', () => {
     // Simulate the real flow: adopt the loaded device, then the bare one.
     const live = getDefaultState();
-    Object.assign(live, getStateForAudioDevice(settings, 'full', presetsDir));
+    Object.assign(
+      live,
+      getStateForAudioDevice(settings, 'full', () => presetsDir),
+    );
 
     expect(live.voicing?.profileId).toBe('music');
     expect(live.driver?.profileId).toBe('balanced-armature-iem');
     expect(live.preAmp).toBe(-6);
 
-    Object.assign(live, getStateForAudioDevice(settings, 'bare', presetsDir));
+    Object.assign(
+      live,
+      getStateForAudioDevice(settings, 'bare', () => presetsDir),
+    );
 
     expect(live.voicing).toBeUndefined();
     expect(live.driver).toBeUndefined();
@@ -260,7 +266,7 @@ describe('per-device state isolation', () => {
   });
 
   it('falls back cleanly for a device with no profile at all', () => {
-    const none = getStateForAudioDevice(settings, 'unknown', presetsDir);
+    const none = getStateForAudioDevice(settings, 'unknown', () => presetsDir);
 
     expect(none.voicing).toBeUndefined();
     expect(none.driver).toBeUndefined();
@@ -270,7 +276,9 @@ describe('per-device state isolation', () => {
   it('writes each device only what its own profile carries', () => {
     // Every Include followed, so a leak into another device's feature file is
     // just as visible as one into its block.
-    const config = expandApoConfig(deviceProfilesToFiles(settings, presetsDir));
+    const config = expandApoConfig(
+      deviceProfilesToFiles(settings, () => presetsDir),
+    );
     const blockFor = (guid: string) => {
       const start = config.indexOf(`Device: ${guid}`);
       const next = config.indexOf('Device: ', start + 1);

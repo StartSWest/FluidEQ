@@ -77,7 +77,7 @@ describe('device profile configuration', () => {
       presetName: 'Studio',
     };
 
-    const files = deviceProfilesToFiles(settings, presetsDir);
+    const files = deviceProfilesToFiles(settings, () => presetsDir);
     const root = files.get(FLUIDEQ_CONFIG_FILENAME) ?? '';
     const output = expandApoConfig(files);
 
@@ -126,7 +126,7 @@ describe('device profile configuration', () => {
       presetName: 'Layered',
     };
 
-    const files = deviceProfilesToFiles(settings, presetsDir);
+    const files = deviceProfilesToFiles(settings, () => presetsDir);
     const deviceFile = deviceFileFor(files, '{1234-ABCD}');
     const includes = deviceFile
       .split(/\r?\n/)
@@ -175,7 +175,7 @@ describe('device profile configuration', () => {
       presetName: 'Studio',
     };
 
-    const files = deviceProfilesToFiles(settings, presetsDir);
+    const files = deviceProfilesToFiles(settings, () => presetsDir);
     const deviceFile = deviceFileFor(files, '{1234-ABCD}');
     const lines = deviceFile.split(/\r?\n/);
 
@@ -205,7 +205,7 @@ describe('device profile configuration', () => {
       presetName: 'Studio',
     };
 
-    const files = deviceProfilesToFiles(settings, presetsDir);
+    const files = deviceProfilesToFiles(settings, () => presetsDir);
     const root = files.get(FLUIDEQ_CONFIG_FILENAME) ?? '';
 
     expect(root).toContain('Device: {1234-ABCD}');
@@ -229,7 +229,7 @@ describe('device profile configuration', () => {
 
     const files = deviceProfilesToFiles(
       settings,
-      presetsDir,
+      () => presetsDir,
       undefined,
       undefined,
       false,
@@ -284,7 +284,7 @@ describe('device profile configuration', () => {
       presetName: 'Headset',
     };
 
-    const files = deviceProfilesToFiles(settings, presetsDir, configDir);
+    const files = deviceProfilesToFiles(settings, () => presetsDir, configDir);
     const output = expandApoConfig(files);
     expect(output.indexOf('Convolution: fluideq-convolution-')).toBeGreaterThan(
       -1,
@@ -315,7 +315,11 @@ describe('device profile configuration', () => {
       presetName: 'Studio',
     };
 
-    const state = getStateForAudioDevice(settings, 'endpoint', presetsDir);
+    const state = getStateForAudioDevice(
+      settings,
+      'endpoint',
+      () => presetsDir,
+    );
 
     expect(state.preAmp).toBe(-4);
     expect(state.filters.bass.gain).toBe(3);
@@ -323,7 +327,11 @@ describe('device profile configuration', () => {
 
   it('uses a clean default state for an endpoint without a profile', () => {
     const settings = getDefaultDeviceProfileSettings();
-    const state = getStateForAudioDevice(settings, 'unassigned', presetsDir);
+    const state = getStateForAudioDevice(
+      settings,
+      'unassigned',
+      () => presetsDir,
+    );
     const defaults = getDefaultState();
 
     expect(state).toMatchObject({
@@ -353,7 +361,7 @@ describe('device profile configuration', () => {
     firstFilter.gain = 6;
 
     const output = expandApoConfig(
-      deviceProfilesToFiles(settings, presetsDir, undefined, {
+      deviceProfilesToFiles(settings, () => presetsDir, undefined, {
         devicePattern: '{ACTIVE-ENDPOINT}',
         state,
       }),
@@ -373,7 +381,7 @@ describe('device profile configuration', () => {
       presetName: 'Missing',
     };
 
-    const files = deviceProfilesToFiles(settings, presetsDir);
+    const files = deviceProfilesToFiles(settings, () => presetsDir);
 
     expect(expandApoConfig(files)).not.toContain('Device: {1234-ABCD}');
     // And no orphan files for a device that never made it into the root.
@@ -420,5 +428,136 @@ describe('device profile configuration', () => {
     ]);
 
     expect(devices.map(({ id }) => id)).toEqual(['headphones', 'default']);
+  });
+});
+
+/**
+ * Profiles belong to an output, so a name means nothing on its own.
+ *
+ * This is the whole point of resolving a directory per device rather than
+ * taking one for all of them. Under a single flat folder these tests cannot
+ * even be written: there is one file called "Bass boost" and both outputs get
+ * whatever it holds.
+ */
+describe('profiles scoped to one output', () => {
+  let root: string;
+
+  /**
+   * A profile in one output's folder, identified by its band gain.
+   *
+   * The gain rather than the preamp, because the preamp written to the config
+   * is recalculated from the bands rather than copied from the profile — two
+   * profiles differing only in preamp would come out identical and prove
+   * nothing about which folder they were read from.
+   */
+  const writeProfile = (deviceId: string, name: string, gain: number) => {
+    const dir = path.join(root, deviceId);
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(
+      path.join(dir, name),
+      JSON.stringify({
+        preAmp: 0,
+        filters: {
+          bass: {
+            id: 'bass',
+            frequency: 80,
+            gain,
+            quality: 0.8,
+            type: FilterTypeEnum.PK,
+          },
+        },
+      }),
+    );
+  };
+
+  /** The bands an output actually got, following its `Include:` one more hop. */
+  const bandsFor = (files: TApoConfigFiles, devicePattern: string) => {
+    const include = deviceFileFor(files, devicePattern)
+      .split(/\r?\n/)
+      .find((line) => line.endsWith('-eq.txt'));
+    return files.get(include?.replace('Include: ', '') ?? '') ?? '';
+  };
+
+  const dirFor = (deviceId: string) => path.join(root, deviceId);
+
+  beforeEach(() => {
+    root = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-per-output-'));
+  });
+
+  afterEach(() => {
+    fs.rmSync(root, { recursive: true, force: true });
+  });
+
+  it('keeps two outputs’ same-named profiles apart', () => {
+    // The case that used to be impossible: the speakers and the headphones
+    // both have a "Bass boost", and they are different tunings. One flat
+    // folder made the second save overwrite the first.
+    writeProfile('headphones', 'Bass boost', 6);
+    writeProfile('speakers', 'Bass boost', 2);
+
+    const settings = getDefaultDeviceProfileSettings();
+    settings.assignments.headphones = {
+      deviceId: 'headphones',
+      deviceName: 'Headphones',
+      deviceGuid: '{HP}',
+      presetName: 'Bass boost',
+    };
+    settings.assignments.speakers = {
+      deviceId: 'speakers',
+      deviceName: 'Speakers',
+      deviceGuid: '{SP}',
+      presetName: 'Bass boost',
+    };
+
+    const files = deviceProfilesToFiles(settings, dirFor);
+
+    expect(bandsFor(files, '{HP}')).toContain('Gain 6 dB');
+    expect(bandsFor(files, '{SP}')).toContain('Gain 2 dB');
+  });
+
+  it('reads each output’s own copy into the live state', () => {
+    writeProfile('headphones', 'Bass boost', 6);
+    writeProfile('speakers', 'Bass boost', 2);
+
+    const settings = getDefaultDeviceProfileSettings();
+    settings.assignments.headphones = {
+      deviceId: 'headphones',
+      deviceName: 'Headphones',
+      deviceGuid: '{HP}',
+      presetName: 'Bass boost',
+    };
+    settings.assignments.speakers = {
+      deviceId: 'speakers',
+      deviceName: 'Speakers',
+      deviceGuid: '{SP}',
+      presetName: 'Bass boost',
+    };
+
+    expect(
+      getStateForAudioDevice(settings, 'headphones', dirFor).filters.bass.gain,
+    ).toBe(6);
+    expect(
+      getStateForAudioDevice(settings, 'speakers', dirFor).filters.bass.gain,
+    ).toBe(2);
+  });
+
+  it('does not find another output’s profile', () => {
+    // "pepe" exists, but not for the speakers, and there is no fallback that
+    // would quietly hand them somebody else's tuning.
+    writeProfile('headphones', 'pepe', 9);
+    fs.mkdirSync(path.join(root, 'speakers'), { recursive: true });
+
+    const settings = getDefaultDeviceProfileSettings();
+    settings.assignments.speakers = {
+      deviceId: 'speakers',
+      deviceName: 'Speakers',
+      deviceGuid: '{SP}',
+      presetName: 'pepe',
+    };
+
+    // The default preamp, not the -9 stored under the headphones.
+    expect(getStateForAudioDevice(settings, 'speakers', dirFor).preAmp).toBe(
+      getDefaultState().preAmp,
+    );
   });
 });
