@@ -57,6 +57,7 @@ import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import KaraokeMakerHeaderActions from './KaraokeMakerHeaderActions';
+import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
 import KaraokeMakerConfirmDialog, {
   TDestructiveMakerAction,
 } from './KaraokeMakerConfirmDialog';
@@ -6249,94 +6250,17 @@ const KaraokeMaker = ({
               onClick={() => toggleToolPanel('timing')}
             />
             {toolPanel === 'timing' && (
-              <div
-                className="karaoke-maker__tool-popover karaoke-maker__timing-popover"
-                role="dialog"
-                aria-label={t('karaoke.maker.lyricsTiming')}
-              >
-                <div className="karaoke-maker__popover-heading">
-                  <KaraokeMakerToolIcon name="timing" />
-                  <span>{t('karaoke.maker.lyricsTiming')}</span>
-                  <output>
-                    {Math.round(
-                      timingScope === 'all' ? project.meta.gapMs : wordShiftMs,
-                    )}{' '}
-                    ms
-                  </output>
-                  <button
-                    type="button"
-                    className="karaoke-maker__popover-close"
-                    onClick={() => setToolPanel(undefined)}
-                    aria-label={t('karaoke.maker.close')}
-                  >
-                    ×
-                  </button>
-                </div>
-                <div className="karaoke-maker__timing-scope" role="group">
-                  <button
-                    type="button"
-                    className={timingScope === 'all' ? 'is-active' : ''}
-                    onClick={() => setTimingScope('all')}
-                  >
-                    {t('karaoke.maker.timingAll')}
-                  </button>
-                  <button
-                    type="button"
-                    className={timingScope === 'from-word' ? 'is-active' : ''}
-                    disabled={!canShiftFromWord}
-                    onClick={() => setTimingScope('from-word')}
-                  >
-                    {t('karaoke.maker.timingFromWord')}
-                  </button>
-                </div>
-                <p className="karaoke-maker__timing-hint">
-                  {timingScope === 'from-word' && selectedToken
-                    ? t('karaoke.maker.timingFromWordHint', {
-                        word: selectedToken.text,
-                      })
-                    : t('karaoke.maker.timingAllHint')}
-                </p>
-                <div className="karaoke-maker__timing-shift">
-                  <button
-                    type="button"
-                    onClick={() => shiftTimeline(-100)}
-                    aria-label={t('karaoke.maker.earlier')}
-                  >
-                    −100
-                  </button>
-                  <input
-                    type="range"
-                    min={Math.min(
-                      -30_000,
-                      timingScope === 'all' ? project.meta.gapMs : wordShiftMs,
-                    )}
-                    max={Math.max(
-                      60_000,
-                      timingScope === 'all' ? project.meta.gapMs : wordShiftMs,
-                    )}
-                    step={25}
-                    value={
-                      timingScope === 'all' ? project.meta.gapMs : wordShiftMs
-                    }
-                    onChange={(event) =>
-                      shiftTimeline(
-                        Number(event.target.value) -
-                          (timingScope === 'all'
-                            ? project.meta.gapMs
-                            : wordShiftMs),
-                      )
-                    }
-                    aria-label={t('karaoke.maker.lyricsTiming')}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => shiftTimeline(100)}
-                    aria-label={t('karaoke.maker.later')}
-                  >
-                    +100
-                  </button>
-                </div>
-              </div>
+              <KaraokeMakerTimingPopover
+                scope={timingScope}
+                onScopeChange={setTimingScope}
+                canShiftFromWord={canShiftFromWord}
+                shiftMs={
+                  timingScope === 'all' ? project.meta.gapMs : wordShiftMs
+                }
+                selectedWord={selectedToken?.text}
+                onShift={shiftTimeline}
+                onClose={() => setToolPanel(undefined)}
+              />
             )}
           </div>
           <KaraokeMakerToolbarButton
