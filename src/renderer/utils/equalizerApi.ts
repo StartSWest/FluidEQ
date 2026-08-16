@@ -49,6 +49,15 @@ import { IChainImport } from 'common/chainBundle';
 
 const TIMEOUT = 10000;
 
+/**
+ * How much longer than the timeout the wall clock must have moved before the
+ * wait is treated as suspended rather than slow.
+ *
+ * Twice over is comfortably outside anything scheduling jitter or a busy main
+ * process produces, and comfortably inside the shortest sleep anybody takes.
+ */
+const SLEEP_ELAPSED_FACTOR = 2;
+
 export interface TSuccess<Type> {
   result: Type;
 }
@@ -109,10 +118,41 @@ const promisifyResult = <Type>(
     // channel and answer it with the wrong result.
     const unsubscribe = window.electron.ipcRenderer.once(channel, handler);
 
-    timer = setTimeout(() => {
-      unsubscribe();
-      reject(toError(getErrorDescription(ErrorCode.TIMEOUT)));
-    }, timeout);
+    /**
+     * A timeout has to survive the machine going to sleep.
+     *
+     * `setTimeout` is a deadline in wall-clock time, and Chromium fires timers
+     * whose deadline passed while the computer was suspended the moment it
+     * wakes. So a request in flight when the lid closed used to reject the
+     * instant you came back — "Timeout waiting for a response" for a main
+     * process that was never asked to answer anything, because nothing ran at
+     * all in between.
+     *
+     * The tell is the clock itself. Ten seconds of waiting cannot take an hour
+     * of wall-clock time unless the wait was suspended, so an elapsed time far
+     * beyond the timeout is evidence of sleep rather than of a slow reply. In
+     * that case the request is given its full window again, once. A second
+     * overrun is a real timeout: after a resume the process is awake, and a
+     * reply that still has not arrived is genuinely missing.
+     */
+    let startedAt = Date.now();
+    let allowedSleepRecovery = true;
+
+    const arm = () => {
+      timer = setTimeout(() => {
+        const elapsed = Date.now() - startedAt;
+        if (allowedSleepRecovery && elapsed > timeout * SLEEP_ELAPSED_FACTOR) {
+          allowedSleepRecovery = false;
+          startedAt = Date.now();
+          arm();
+          return;
+        }
+        unsubscribe();
+        reject(toError(getErrorDescription(ErrorCode.TIMEOUT)));
+      }, timeout);
+    };
+
+    arm();
   });
 };
 
