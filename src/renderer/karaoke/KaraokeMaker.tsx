@@ -57,6 +57,14 @@ import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { formatClock } from './makerFormat';
 import {
+  ICanvasLyricToken,
+  ICanvasLyricWord,
+  ICanvasSelectionBox,
+  IDragState,
+  INoteLinkDragState,
+  INotePaintDraft,
+} from './makerCanvasTypes';
+import {
   BASE_LYRIC_SECTION_TOP,
   IHitRegion,
   LYRIC_LANE_HEIGHT,
@@ -177,71 +185,6 @@ interface ISyllableSplitDraft {
   tokenId: string;
   word: string;
   cutPoints: number[];
-}
-
-interface ICanvasLyricToken {
-  token: IKaraokeMakerToken;
-  tokenIndex: number;
-  lineIndex: number;
-  lineStartMs: number;
-  lineEndMs: number;
-  isSection: boolean;
-}
-
-interface ICanvasLyricWord {
-  id: string;
-  text: string;
-  syllables: ICanvasLyricToken[];
-  lineIndex: number;
-  wordIndex: number;
-  lineStartMs: number;
-  lineEndMs: number;
-  startMs: number;
-  endMs: number;
-  isSection: boolean;
-}
-
-interface IDragState {
-  selection: Exclude<TSelection, undefined>;
-  behavior: 'move' | 'resize-start' | 'resize-end';
-  pointerX: number;
-  pointerY: number;
-  base: IKaraokeMakerProject;
-  noteIds?: string[];
-  audioAnchorMs?: number;
-  auditionStartMs?: number;
-  auditionEndMs?: number;
-  auditionStarted?: boolean;
-  auditionTimerId?: number;
-  finalAuditionMidi?: number;
-  finalAuditionDurationMs?: number;
-}
-
-interface ICanvasSelectionBox {
-  pointerId: number;
-  startX: number;
-  startY: number;
-  currentX: number;
-  currentY: number;
-  additive: boolean;
-  initialNoteIds: Set<string>;
-}
-
-interface INotePaintDraft {
-  pointerId: number;
-  startX: number;
-  currentX: number;
-  y: number;
-}
-
-interface INoteLinkDragState {
-  pointerId: number;
-  noteId: string;
-  startX: number;
-  startY: number;
-  currentX: number;
-  currentY: number;
-  initialNoteIds: Set<string>;
 }
 
 interface ICanvasPanState {
