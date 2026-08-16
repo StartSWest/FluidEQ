@@ -56,10 +56,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
-import {
-  formatMegabytes,
-  karaokeMakerAnalysisProgress,
-} from './makerAnalysisProgress';
+import { karaokeMakerAnalysisProgress } from './makerAnalysisProgress';
 import {
   normalizedLyricsText,
   plainLyrics,
@@ -70,6 +67,7 @@ import {
   useKaraokeMakerSelection,
 } from './useKaraokeMakerSelection';
 import KaraokeMakerHeaderActions from './KaraokeMakerHeaderActions';
+import KaraokeMakerDownloadDetails from './KaraokeMakerDownloadDetails';
 import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
 import KaraokeMakerToolbarButton from './KaraokeMakerToolbarButton';
 import KaraokeMakerEditTools from './KaraokeMakerEditTools';
@@ -287,11 +285,6 @@ interface IWhisperRunProfile {
   needsDownload: boolean;
   needsLoad: boolean;
 }
-
-const whisperDownloadFileName = (file?: string): string | undefined => {
-  const parts = file?.split(/[\\/]/).filter(Boolean);
-  return parts?.[parts.length - 1];
-};
 
 const midiName = (midi: number): string => {
   const names = [
@@ -5704,97 +5697,13 @@ const KaraokeMaker = ({
   const lyricsProcessing =
     KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED &&
     (lyricsWorkflowActive || analysisProgress !== undefined);
-  const renderWhisperDownloadDetails = () => {
-    if (whisperStage !== 'download' || !downloadProgress) {
-      return null;
-    }
-    return (
-      <div className="karaoke-maker__download-details">
-        <div className="karaoke-maker__download-overall">
-          <strong>{t('karaoke.maker.downloadOverall')}</strong>
-          <span>
-            {t('karaoke.maker.downloadFiles', {
-              complete: downloadProgress.completeFiles,
-              total: downloadProgress.fileCount,
-            })}
-          </span>
-          <span>
-            {formatMegabytes(downloadProgress.loadedBytes)} MB
-            {downloadProgress.totalBytes !== undefined &&
-              ` / ${formatMegabytes(downloadProgress.totalBytes)} MB`}
-          </span>
-          <span>{lyricsDownloadRate}</span>
-        </div>
-        <div className="karaoke-maker__download-files">
-          {downloadProgress.files.map((entry) => {
-            const fileProgress =
-              entry.totalBytes !== undefined && entry.totalBytes > 0
-                ? Math.min(1, entry.loadedBytes / entry.totalBytes)
-                : undefined;
-            const fileName = whisperDownloadFileName(entry.file) ?? entry.file;
-            let fileProgressLabel = '…';
-            let fileProgressValue: number | undefined;
-            if (entry.complete) {
-              fileProgressLabel = '✓';
-              fileProgressValue = 100;
-            } else if (fileProgress !== undefined) {
-              fileProgressValue = Math.round(fileProgress * 100);
-              fileProgressLabel = `${fileProgressValue}%`;
-            }
-            return (
-              <div
-                className="karaoke-maker__download-file-row"
-                key={entry.file}
-              >
-                <div className="karaoke-maker__download-stats">
-                  <span
-                    className="karaoke-maker__download-file"
-                    title={entry.file}
-                  >
-                    {fileName}
-                  </span>
-                  <span>
-                    {formatMegabytes(entry.loadedBytes)} MB
-                    {entry.totalBytes !== undefined &&
-                      ` / ${formatMegabytes(entry.totalBytes)} MB`}
-                  </span>
-                  <span
-                    className={
-                      entry.complete
-                        ? 'karaoke-maker__download-complete'
-                        : undefined
-                    }
-                  >
-                    {fileProgressLabel}
-                  </span>
-                </div>
-                <div
-                  className={`karaoke-maker__download-file-progress${
-                    fileProgress === undefined && !entry.complete
-                      ? ' is-indeterminate'
-                      : ''
-                  }`}
-                  role="progressbar"
-                  aria-label={fileName}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={fileProgressValue}
-                >
-                  <span
-                    style={
-                      fileProgress === undefined
-                        ? undefined
-                        : { width: `${fileProgress * 100}%` }
-                    }
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
+  const renderWhisperDownloadDetails = () =>
+    whisperStage === 'download' && downloadProgress ? (
+      <KaraokeMakerDownloadDetails
+        progress={downloadProgress}
+        rate={lyricsDownloadRate}
+      />
+    ) : null;
 
   let canvasInteractionHint = `${t('karaoke.maker.panHint')} ${t(
     'karaoke.maker.scrubHint',
