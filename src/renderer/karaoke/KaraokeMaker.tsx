@@ -55,6 +55,7 @@ import { IKaraokeSong } from '../../common/karaoke/types';
 import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
+import { formatClock } from './makerFormat';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import { karaokeMakerAnalysisProgress } from './makerAnalysisProgress';
 import {
@@ -68,6 +69,7 @@ import {
 } from './useKaraokeMakerSelection';
 import KaraokeMakerHeaderActions from './KaraokeMakerHeaderActions';
 import KaraokeMakerDownloadDetails from './KaraokeMakerDownloadDetails';
+import KaraokeMakerWordInspector from './KaraokeMakerWordInspector';
 import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
 import KaraokeMakerToolbarButton from './KaraokeMakerToolbarButton';
 import KaraokeMakerEditTools from './KaraokeMakerEditTools';
@@ -272,14 +274,6 @@ const flattenTokens = (project: IKaraokeMakerProject) =>
   project.lyrics.lines
     .filter((line) => !karaokeMakerLineIsSection(line))
     .flatMap((line) => line.tokens);
-
-const formatClock = (valueMs: number): string => {
-  const safe = Math.max(0, valueMs);
-  const minutes = Math.floor(safe / 60_000);
-  const seconds = Math.floor((safe % 60_000) / 1_000);
-  const tenths = Math.floor((safe % 1_000) / 100);
-  return `${minutes}:${String(seconds).padStart(2, '0')}.${tenths}`;
-};
 
 interface IWhisperRunProfile {
   needsDownload: boolean;
@@ -5094,105 +5088,20 @@ const KaraokeMaker = ({
     );
   };
 
-  const renderLyricsModalWordInspector = () => {
-    if (!selectedToken) {
-      return (
-        <div className="karaoke-maker__lyrics-word-empty">
-          <KaraokeMakerToolIcon name="lyrics" />
-          <span>{t('karaoke.maker.lyricsSelectWord')}</span>
-        </div>
-      );
-    }
-    const selectedIndex = tokens.findIndex(
-      (token) => token.id === selectedToken.id,
-    );
-    return (
-      <div className="karaoke-maker__lyrics-word-editor">
-        <div className="karaoke-maker__lyrics-word-editor-head">
-          <div>
-            <span>{t('karaoke.maker.lyricsSelectedWord')}</span>
-            <strong>{selectedToken.text}</strong>
-          </div>
-          <nav aria-label={t('karaoke.maker.lyricsWordNavigation')}>
-            <button
-              type="button"
-              disabled={selectedIndex <= 0}
-              onClick={() => moveLyricsEditorSelection(-1)}
-              aria-label={t('karaoke.maker.previousWord')}
-            >
-              <KaraokeMakerToolIcon name="previous" />
-            </button>
-            <output>
-              {selectedIndex + 1} / {tokens.length}
-            </output>
-            <button
-              type="button"
-              disabled={selectedIndex < 0 || selectedIndex >= tokens.length - 1}
-              onClick={() => moveLyricsEditorSelection(1)}
-              aria-label={t('karaoke.maker.nextWord')}
-            >
-              <KaraokeMakerToolIcon name="next" />
-            </button>
-          </nav>
-        </div>
-        <div className="karaoke-maker__lyrics-word-fields">
-          <label htmlFor={`${controlId}-lyrics-word-text`}>
-            <span>{t('karaoke.maker.wordText')}</span>
-            <input
-              id={`${controlId}-lyrics-word-text`}
-              key={`${selectedToken.id}-modal-text`}
-              defaultValue={selectedToken.text}
-              onBlur={(event) => {
-                if (event.target.value.trim() !== selectedToken.text) {
-                  updateSelectedTokenTiming({ text: event.target.value });
-                }
-              }}
-            />
-          </label>
-        </div>
-        {renderSelectedWordTimingSliders(
-          `${controlId}-lyrics-word-${selectedToken.id}`,
-        )}
-        <div className="karaoke-maker__lyrics-word-actions">
-          <button
-            type="button"
-            disabled={selectedToken.startMs === undefined}
-            onClick={() => auditionLyricsToken(selectedToken)}
-          >
-            <KaraokeMakerToolIcon name="preview" />
-            {t('karaoke.maker.playWord')}
-          </button>
-          <button
-            type="button"
-            onClick={() => updateSelectedTokenTiming({ startMs: playheadMs })}
-          >
-            <KaraokeMakerToolIcon name="timing" />
-            {t('karaoke.maker.usePlayhead')}
-          </button>
-          <button
-            type="button"
-            className="is-primary"
-            disabled={lyricsProcessing}
-            onClick={() => startLineEntrySync(selectedToken.id)}
-          >
-            <KaraokeMakerToolIcon name="align" />
-            {t('karaoke.maker.syncLinesFromHere')}
-          </button>
-          <span
-            className={
-              selectedToken.startMs === undefined ? 'is-untimed' : undefined
-            }
-          >
-            {selectedToken.startMs === undefined
-              ? t('karaoke.maker.untimed')
-              : `${formatClock(selectedToken.startMs)} → ${formatClock(
-                  selectedToken.endMs ?? selectedToken.startMs,
-                )}`}
-          </span>
-        </div>
-      </div>
-    );
-  };
+  const renderLyricsModalWordInspector = () => (
+    <KaraokeMakerWordInspector
+      selectedToken={selectedToken}
+      tokens={tokens}
+      playheadMs={playheadMs}
+      isProcessing={lyricsProcessing}
+      controlId={controlId}
+      onMoveSelection={moveLyricsEditorSelection}
+      onAudition={auditionLyricsToken}
+      onStartLineEntry={startLineEntrySync}
+      onTimingChange={updateSelectedTokenTiming}
+      renderTimingSliders={renderSelectedWordTimingSliders}
+    />
+  );
 
   const renderSelectionInfo = () => {
     if (syllableSplitDraft) {
