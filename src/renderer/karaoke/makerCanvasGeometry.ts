@@ -16,6 +16,23 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+/**
+ * The bands stacked above the pitch grid, in pixels from the canvas top.
+ *
+ * A layout in numbers rather than in CSS, because the whole header is drawn
+ * into the same canvas as the grid — there are no elements here to lay out.
+ * They were loose constants beside the component's unrelated ones; the paint
+ * and the hit-testing both measure against them, so they belong with the rest
+ * of the geometry.
+ */
+export const WAVEFORM_TOP = 9;
+export const WAVEFORM_HEIGHT = 27;
+export const SECTION_GROUP_TOP = 43;
+export const SECTION_GROUP_HEIGHT = 30;
+/** Where the lyric lanes start before any section groups push them down. */
+export const BASE_LYRIC_SECTION_TOP = 43;
+export const LYRIC_LANE_HEIGHT = 34;
+
 /** Room for the piano keys down the left edge. */
 const PLOT_LEFT = 54;
 
@@ -28,6 +45,10 @@ const PLOT_BOTTOM_INSET = 28;
 /** The pitch range the grid covers, in MIDI note numbers. */
 export const MIN_NOTE_MIDI = 24;
 export const MAX_NOTE_MIDI = 96;
+
+/** How tall the lyric band is, given how many lanes the format allows. */
+export const lyricSectionHeight = (laneCount: number) =>
+  laneCount * LYRIC_LANE_HEIGHT;
 
 export interface IMakerPlotInput {
   width: number;

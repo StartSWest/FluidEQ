@@ -56,7 +56,18 @@ import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { formatClock } from './makerFormat';
-import { MAX_NOTE_MIDI, MIN_NOTE_MIDI, makerPlot } from './makerCanvasGeometry';
+import {
+  BASE_LYRIC_SECTION_TOP,
+  LYRIC_LANE_HEIGHT,
+  MAX_NOTE_MIDI,
+  MIN_NOTE_MIDI,
+  SECTION_GROUP_HEIGHT,
+  SECTION_GROUP_TOP,
+  WAVEFORM_HEIGHT,
+  WAVEFORM_TOP,
+  lyricSectionHeight,
+  makerPlot,
+} from './makerCanvasGeometry';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import { karaokeMakerAnalysisProgress } from './makerAnalysisProgress';
 import {
@@ -261,13 +272,7 @@ interface ISentenceAuditionState {
 const MIN_VIEW_MS = 650;
 // Twelve seconds keeps authored lyrics readable on first open; the overview
 // handles still expose the entire song and let the user zoom further out.
-const WAVEFORM_TOP = 9;
-const WAVEFORM_HEIGHT = 27;
-const SECTION_GROUP_TOP = 43;
-const SECTION_GROUP_HEIGHT = 30;
-const BASE_LYRIC_SECTION_TOP = 43;
-const LYRIC_LANE_HEIGHT = 34;
-const LYRIC_SECTION_HEIGHT = KARAOKE_MAKER_LYRIC_LANE_COUNT * LYRIC_LANE_HEIGHT;
+const LYRIC_SECTION_HEIGHT = lyricSectionHeight(KARAOKE_MAKER_LYRIC_LANE_COUNT);
 
 const flattenTokens = (project: IKaraokeMakerProject) =>
   project.lyrics.lines
