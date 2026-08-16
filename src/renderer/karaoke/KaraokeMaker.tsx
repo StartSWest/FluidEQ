@@ -56,6 +56,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
+import KaraokeMakerHeaderActions from './KaraokeMakerHeaderActions';
 import KaraokeMakerConfirmDialog, {
   TDestructiveMakerAction,
 } from './KaraokeMakerConfirmDialog';
@@ -6190,81 +6191,28 @@ const KaraokeMaker = ({
             )}
           </div>
         </div>
-        <div className="karaoke-maker__header-actions">
-          <button
-            className="karaoke-maker__header-icon"
-            type="button"
-            onClick={undo}
-            disabled={!canUndo}
-            aria-label={t('karaoke.maker.undo')}
-            data-tooltip={t('karaoke.maker.undo')}
-          >
-            <KaraokeMakerToolIcon name="undo" />
-          </button>
-          <button
-            className="karaoke-maker__header-icon"
-            type="button"
-            onClick={redo}
-            disabled={!canRedo}
-            aria-label={t('karaoke.maker.redo')}
-            data-tooltip={t('karaoke.maker.redo')}
-          >
-            <KaraokeMakerToolIcon name="redo" />
-          </button>
-          <button
-            className="karaoke-maker__header-icon"
-            type="button"
-            onClick={() => setDestructiveAction('restore')}
-            aria-label={t('karaoke.maker.restore')}
-            data-tooltip={t('karaoke.maker.restore')}
-          >
-            <KaraokeMakerToolIcon name="restore" />
-          </button>
-          <button
-            className="is-primary karaoke-maker__header-action"
-            type="button"
-            aria-label={t('karaoke.maker.applyHint')}
-            data-tooltip={t('karaoke.maker.applyHint')}
-            onClick={() => {
-              const untimedCount = issues.filter(
-                (issue) => issue.code === 'untimed-word',
-              ).length;
-              if (untimedCount > 0) {
-                setNotice(
-                  t('karaoke.maker.applyUntimed', { count: untimedCount }),
-                );
-                return;
-              }
-              onApply(project);
-              onClose();
-            }}
-          >
-            <KaraokeMakerToolIcon name="apply" />
-            <span>{t('karaoke.maker.apply')}</span>
-          </button>
-          <button
-            className={`karaoke-maker__header-icon${
-              isFullScreen ? ' karaoke-maker__fullscreen-exit' : ''
-            }`}
-            type="button"
-            aria-label={t(
-              isFullScreen
-                ? 'karaoke.fullscreen.exit'
-                : 'karaoke.fullscreen.enter',
-            )}
-            aria-pressed={isFullScreen}
-            data-tooltip={`${t(
-              isFullScreen
-                ? 'karaoke.fullscreen.exit'
-                : 'karaoke.fullscreen.enter',
-            )} (Ctrl+F)`}
-            onClick={onToggleFullScreen}
-          >
-            <KaraokeMakerToolIcon
-              name={isFullScreen ? 'fullscreenExit' : 'fullscreen'}
-            />
-          </button>
-        </div>
+        <KaraokeMakerHeaderActions
+          onUndo={undo}
+          canUndo={canUndo}
+          onRedo={redo}
+          canRedo={canRedo}
+          onRestore={() => setDestructiveAction('restore')}
+          onApply={() => {
+            const untimedCount = issues.filter(
+              (issue) => issue.code === 'untimed-word',
+            ).length;
+            if (untimedCount > 0) {
+              setNotice(
+                t('karaoke.maker.applyUntimed', { count: untimedCount }),
+              );
+              return;
+            }
+            onApply(project);
+            onClose();
+          }}
+          isFullScreen={isFullScreen}
+          onToggleFullScreen={onToggleFullScreen}
+        />
       </header>
 
       <div ref={toolsRef} className="karaoke-maker__tools">
