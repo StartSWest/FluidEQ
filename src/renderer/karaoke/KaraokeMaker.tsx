@@ -56,6 +56,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { formatClock } from './makerFormat';
+import { MAX_NOTE_MIDI, MIN_NOTE_MIDI, makerPlot } from './makerCanvasGeometry';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import { karaokeMakerAnalysisProgress } from './makerAnalysisProgress';
 import {
@@ -267,8 +268,6 @@ const SECTION_GROUP_HEIGHT = 30;
 const BASE_LYRIC_SECTION_TOP = 43;
 const LYRIC_LANE_HEIGHT = 34;
 const LYRIC_SECTION_HEIGHT = KARAOKE_MAKER_LYRIC_LANE_COUNT * LYRIC_LANE_HEIGHT;
-const MIN_NOTE_MIDI = 24;
-const MAX_NOTE_MIDI = 96;
 
 const flattenTokens = (project: IKaraokeMakerProject) =>
   project.lyrics.lines
@@ -1421,17 +1420,23 @@ const KaraokeMaker = ({
     }
     context.setTransform(ratio, 0, 0, ratio, 0, 0);
     context.clearRect(0, 0, width, height);
-    const plotLeft = 54;
-    const plotRight = width - 18;
-    const plotWidth = Math.max(1, plotRight - plotLeft);
-    const plotTop = headerHeight;
-    const plotBottom = height - 28;
-    const plotHeight = Math.max(1, plotBottom - plotTop);
-    const timeX = (timeMs: number) =>
-      plotLeft + ((timeMs - viewStartMs) / visibleViewDurationMs) * plotWidth;
-    const noteY = (midi: number) =>
-      plotTop +
-      ((MAX_NOTE_MIDI - midi) / (MAX_NOTE_MIDI - MIN_NOTE_MIDI)) * plotHeight;
+    const plot = makerPlot({
+      width,
+      height,
+      headerHeight,
+      viewStartMs,
+      visibleViewDurationMs,
+    });
+    const {
+      left: plotLeft,
+      right: plotRight,
+      width: plotWidth,
+      top: plotTop,
+      bottom: plotBottom,
+      height: plotHeight,
+      timeX,
+      noteY,
+    } = plot;
     const regions: IHitRegion[] = [];
     const wordBoundaryRegions: IHitRegion[] = [];
 
