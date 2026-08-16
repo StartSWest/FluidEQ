@@ -21,7 +21,6 @@ import {
   IKaraokeMakerNote,
   IKaraokeMakerProject,
   IKaraokeMakerToken,
-  createKaraokeMakerProject,
   importLyricsIntoKaraokeMakerProject,
   karaokeMakerId,
   karaokeMakerProjectToSong,
@@ -57,11 +56,11 @@ import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
+import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import {
   IKaraokeMakerAnalysisResult,
   analyzeKaraokeMakerAudio,
   autoAlignNewKaraokeMakerLyrics,
-  extractKaraokeMakerWaveform,
   karaokeMakerAnalysisNotesFromMelody,
 } from './makerAnalysis';
 import {
@@ -524,7 +523,32 @@ const KaraokeMaker = ({
   const { t } = useTranslation();
   const noteAudition = useKaraokeNoteAudition();
   const controlId = useId();
-  const [project, setProject] = useState(() => createKaraokeMakerProject(song));
+  // The project, its undo history and its draft on disk. One owner for all
+  // three — see the note on the hook for why they had to stop being three.
+  const {
+    project,
+    setProject,
+    projectRef,
+    commit,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    pushHistory,
+    clearHistory,
+    restoreOriginal: restoreOriginalProject,
+    draftReady,
+    restoreToast,
+  } = useKaraokeMakerProject({
+    song,
+    audioFile,
+    restoreSavedDraft,
+    t,
+    // A project that arrived from disk rather than from an edit: re-seed the
+    // lyric editor's text from it, which is the one piece of view state derived
+    // from the project rather than owned alongside it.
+    onProjectAdopted: (saved) => setLyricsDraft(plainLyrics(saved)),
+  });
   const makerMelodyTarget = useMemo(() => {
     if (!project.melody.notes.length) {
       return undefined;
@@ -562,8 +586,6 @@ const KaraokeMaker = ({
   const [initialEditorView] = useState(() =>
     readKaraokeMakerEditorView(project.id),
   );
-  const [past, setPast] = useState<IKaraokeMakerProject[]>([]);
-  const [future, setFuture] = useState<IKaraokeMakerProject[]>([]);
   const [selection, setSelection] = useState<TSelection>(
     initialEditorView?.selection,
   );
@@ -658,8 +680,6 @@ const KaraokeMaker = ({
       message ? { id: (noticeSequenceRef.current += 1), message } : undefined,
     );
   }, []);
-  const [restoreToast, setRestoreToast] = useState<string>();
-  const [draftReady, setDraftReady] = useState(false);
   const [whisperConsentOpen, setWhisperConsentOpen] = useState(false);
   const whisperSession = useSyncExternalStore(
     subscribeKaraokeWhisperSession,
@@ -696,11 +716,8 @@ const KaraokeMaker = ({
   const lyricsWorkflowActiveRef = useRef(false);
   const editorViewRef = useRef<IKaraokeMakerEditorView | undefined>(undefined);
   const editorProjectIdRef = useRef(project.id);
-  const projectRef = useRef(project);
   const playheadMsRef = useRef(playheadMs);
   playheadMsRef.current = playheadMs;
-  const draftDecisionReadyRef = useRef(false);
-  const persistedDraftUpdatedAtRef = useRef<string | undefined>(undefined);
   const wordFocusAnimationRef = useRef<{
     tokenId?: string;
     startedAt: number;
@@ -811,6 +828,7 @@ const KaraokeMaker = ({
     onPause,
     onPlay,
     onSeek,
+    projectRef,
   ]);
 
   useEffect(
@@ -1151,7 +1169,6 @@ const KaraokeMaker = ({
       : song;
   }, [previewProject, song]);
   editorProjectIdRef.current = project.id;
-  projectRef.current = project;
   editorViewRef.current = {
     viewStartMs,
     viewDurationMs: visibleViewDurationMs,
@@ -1162,18 +1179,6 @@ const KaraokeMaker = ({
     timingScope,
     selection,
   };
-
-  const commit = useCallback(
-    (edit: (current: IKaraokeMakerProject) => IKaraokeMakerProject) => {
-      setProject((current) => {
-        const next = touchKaraokeMakerProject(edit(current));
-        setPast((history) => [...history.slice(-79), current]);
-        setFuture([]);
-        return next;
-      });
-    },
-    [],
-  );
 
   const shiftTimeline = useCallback(
     (deltaMs: number) => {
@@ -1389,6 +1394,7 @@ const KaraokeMaker = ({
     onPause,
     onPlay,
     onSeek,
+    projectRef,
     readPlayheadMs,
     selection,
   ]);
@@ -1417,34 +1423,6 @@ const KaraokeMaker = ({
       window.removeEventListener('blur', clearControlIndicator);
     };
   }, [selection?.kind]);
-
-  const undo = useCallback(() => {
-    setPast((history) => {
-      const previous = history[history.length - 1];
-      if (!previous) {
-        return history;
-      }
-      setProject((current) => {
-        setFuture((redoHistory) => [current, ...redoHistory].slice(0, 80));
-        return previous;
-      });
-      return history.slice(0, -1);
-    });
-  }, []);
-
-  const redo = useCallback(() => {
-    setFuture((history) => {
-      const next = history[0];
-      if (!next) {
-        return history;
-      }
-      setProject((current) => {
-        setPast((undoHistory) => [...undoHistory.slice(-79), current]);
-        return next;
-      });
-      return history.slice(1);
-    });
-  }, []);
 
   useEffect(() => {
     try {
@@ -1481,111 +1459,9 @@ const KaraokeMaker = ({
           editorViewRef.current,
         );
       }
-      const latest = projectRef.current;
-      if (
-        draftDecisionReadyRef.current &&
-        latest.updatedAt !== persistedDraftUpdatedAtRef.current
-      ) {
-        // A playlist can advance during the autosave debounce. Flush genuine
-        // edits, but do not overwrite a recoverable draft merely because the
-        // user explicitly opened the current player source.
-        window.electron.ipcRenderer
-          .saveKaraokeMakerDraft(latest)
-          .then(() => {
-            persistedDraftUpdatedAtRef.current = latest.updatedAt;
-            return undefined;
-          })
-          .catch(() => undefined);
-      }
     },
     [],
   );
-
-  useEffect(() => {
-    if (project.analysis.waveform?.length) {
-      return undefined;
-    }
-    let active = true;
-    extractKaraokeMakerWaveform(audioFile)
-      .then(({ waveform, durationMs: decodedDurationMs }) => {
-        if (!active) {
-          return undefined;
-        }
-        setProject((current) => {
-          if (current.analysis.waveform?.length) {
-            return current;
-          }
-          return {
-            ...current,
-            audio: { ...current.audio, durationMs: decodedDurationMs },
-            analysis: { ...current.analysis, waveform },
-          };
-        });
-        return waveform;
-      })
-      .catch(() => undefined);
-    return () => {
-      active = false;
-    };
-  }, [audioFile, project.analysis.waveform?.length]);
-
-  useEffect(() => {
-    let active = true;
-    window.electron.ipcRenderer
-      .loadKaraokeMakerDraft(project.id)
-      .then((saved) => {
-        if (!active || !saved) {
-          return undefined;
-        }
-        const sameAudio =
-          saved.id === project.id &&
-          saved.audio.name.toLocaleLowerCase() ===
-            audioFile.name.toLocaleLowerCase() &&
-          (!saved.audio.size ||
-            !audioFile.size ||
-            saved.audio.size === audioFile.size) &&
-          (!saved.audio.lastModified ||
-            !audioFile.lastModified ||
-            saved.audio.lastModified === audioFile.lastModified);
-        if (!sameAudio) {
-          return undefined;
-        }
-        if (restoreSavedDraft) {
-          persistedDraftUpdatedAtRef.current = saved.updatedAt;
-          setProject(saved);
-          setLyricsDraft(plainLyrics(saved));
-          setRestoreToast(t('karaoke.maker.draftRestored'));
-        } else {
-          // Keep the saved work one Undo away, but use the player's normalized
-          // timing now. This prevents a stale shifted draft from making an
-          // existing karaoke look out of sync only inside the Maker.
-          persistedDraftUpdatedAtRef.current = projectRef.current.updatedAt;
-          setPast([saved]);
-          setRestoreToast(t('karaoke.maker.playerTimingLoaded'));
-        }
-        return saved;
-      })
-      .catch(() => undefined)
-      .finally(() => {
-        if (active) {
-          draftDecisionReadyRef.current = true;
-          setDraftReady(true);
-        }
-      });
-    return () => {
-      active = false;
-    };
-    // The project identity and entry mode are immutable for this keyed editor.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  useEffect(() => {
-    if (!restoreToast) {
-      return undefined;
-    }
-    const timeout = window.setTimeout(() => setRestoreToast(undefined), 2_600);
-    return () => window.clearTimeout(timeout);
-  }, [restoreToast]);
 
   useEffect(() => {
     if (!noticeEntry || analysisProgress !== undefined || analysisError) {
@@ -1634,26 +1510,6 @@ const KaraokeMaker = ({
         : next;
     });
   }, [project.melody.notes, selectedNoteIds.size, selection]);
-
-  useEffect(() => {
-    if (
-      !draftReady ||
-      project.updatedAt === persistedDraftUpdatedAtRef.current
-    ) {
-      return undefined;
-    }
-    const snapshot = project;
-    const timeout = window.setTimeout(() => {
-      window.electron.ipcRenderer
-        .saveKaraokeMakerDraft(snapshot)
-        .then(() => {
-          persistedDraftUpdatedAtRef.current = snapshot.updatedAt;
-          return undefined;
-        })
-        .catch(() => undefined);
-    }, 450);
-    return () => window.clearTimeout(timeout);
-  }, [draftReady, project]);
 
   useEffect(
     () => () => {
@@ -3641,8 +3497,7 @@ const KaraokeMaker = ({
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
-    setPast((history) => [...history.slice(-79), drag.base]);
-    setFuture([]);
+    pushHistory(drag.base);
     setProject((current) => touchKaraokeMakerProject(current));
     if (
       !wasCancelled &&
@@ -3808,8 +3663,7 @@ const KaraokeMaker = ({
         : withNewLyrics,
     );
     projectRef.current = next;
-    setPast((history) => [...history.slice(-79), current]);
-    setFuture([]);
+    pushHistory(current);
     setProject(next);
     if (detectTimingAndMelody) {
       setAnalysisResult(undefined);
@@ -3893,19 +3747,10 @@ const KaraokeMaker = ({
    * closes the Maker inside that moment would otherwise reopen onto the very
    * work they just discarded.
    */
+  // The project half of Restore is the hook's; what is left here is the view
+  // state that has to follow it back.
   const restoreOriginal = () => {
-    const original = createKaraokeMakerProject(song);
-    commit((current) => ({
-      ...original,
-      // The waveform describes the audio file, not the editing being thrown
-      // away. Carrying it over keeps Restore instant instead of blanking the
-      // timeline while the same track is decoded a second time.
-      audio: { ...original.audio, durationMs: current.audio.durationMs },
-      analysis: { ...original.analysis, waveform: current.analysis.waveform },
-    }));
-    window.electron.ipcRenderer
-      .deleteKaraokeMakerDraft(original.id)
-      .catch(() => undefined);
+    const original = restoreOriginalProject();
     setLyricsDraft(plainLyrics(original));
     setLyricsFileName(undefined);
     setSelection(undefined);
@@ -4698,8 +4543,7 @@ const KaraokeMaker = ({
           applyBasicPitchMelody(publishBase, notes),
         );
         projectRef.current = next;
-        setPast((history) => [...history.slice(-79), publishBase]);
-        setFuture([]);
+        pushHistory(publishBase);
         setProject(next);
         const generatedNoteCount = next.melody.notes.filter(
           (note) => note.source !== 'manual',
@@ -4750,8 +4594,7 @@ const KaraokeMaker = ({
           ),
         );
         projectRef.current = next;
-        setPast((history) => [...history.slice(-79), publishBase]);
-        setFuture([]);
+        pushHistory(publishBase);
         setProject(next);
         const generatedNoteCount = next.melody.notes.filter(
           (note) => note.source !== 'manual',
@@ -5017,8 +4860,7 @@ const KaraokeMaker = ({
         }
       }
       projectRef.current = completedProject;
-      setPast((history) => [...history.slice(-79), beforeTranscript]);
-      setFuture([]);
+      pushHistory(beforeTranscript);
       setLyricsDraft(plainLyrics(completedProject));
       setProject(completedProject);
       if (melodyError) {
@@ -5150,8 +4992,7 @@ const KaraokeMaker = ({
         );
       }
       setProject(imported);
-      setPast([]);
-      setFuture([]);
+      clearHistory();
       const importedView = readKaraokeMakerEditorView(imported.id);
       setSelection(importedView?.selection);
       setViewStartMs(importedView?.viewStartMs ?? 0);
@@ -6417,7 +6258,7 @@ const KaraokeMaker = ({
             className="karaoke-maker__header-icon"
             type="button"
             onClick={undo}
-            disabled={!past.length}
+            disabled={!canUndo}
             aria-label={t('karaoke.maker.undo')}
             data-tooltip={t('karaoke.maker.undo')}
           >
@@ -6427,7 +6268,7 @@ const KaraokeMaker = ({
             className="karaoke-maker__header-icon"
             type="button"
             onClick={redo}
-            disabled={!future.length}
+            disabled={!canRedo}
             aria-label={t('karaoke.maker.redo')}
             data-tooltip={t('karaoke.maker.redo')}
           >
@@ -6886,7 +6727,7 @@ const KaraokeMaker = ({
                 ignoreLabel: t('karaoke.maker.ignoreLine'),
                 stopLabel: t('karaoke.maker.stopRecording'),
                 cancelLabel: t('karaoke.maker.cancel'),
-                canUndo: past.length > 0,
+                canUndo,
                 canMarkWord:
                   captureGuidePhase === 'end' &&
                   (lineEntryCapture?.wordBoundariesMs?.length ?? 0) <
