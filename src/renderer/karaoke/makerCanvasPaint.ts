@@ -24,10 +24,7 @@ import {
 } from './makerCanvasLayout';
 import {
   IHitRegion,
-  MAX_NOTE_MIDI,
-  MIN_NOTE_MIDI,
   TMakerDragBehavior,
-  drawRoundedRect,
   makerPlot,
 } from './makerCanvasGeometry';
 import {
@@ -40,6 +37,7 @@ import { TSelection } from './useKaraokeMakerSelection';
 import { paintBackdrop } from './makerCanvas/paintBackdrop';
 import { paintLyrics } from './makerCanvas/paintLyrics';
 import { paintNotes } from './makerCanvas/paintNotes';
+import { paintOverlays } from './makerCanvas/paintOverlays';
 
 /**
  * Everything the timeline needs to draw one frame.
@@ -136,14 +134,6 @@ export const paintMakerCanvas = ({
     viewStartMs,
     visibleViewDurationMs,
   });
-  const {
-    left: plotLeft,
-    right: plotRight,
-    top: plotTop,
-    bottom: plotBottom,
-    height: plotHeight,
-    timeX,
-  } = plot;
   const regions: IHitRegion[] = [];
 
   // The stage first: ground, section bands, ruler, pitch labels, waveform.
@@ -202,146 +192,17 @@ export const paintMakerCanvas = ({
     }),
   );
 
-  const notePaintDraft = notePaintDraftRef.current;
-  if (notePaintDraft) {
-    const left = Math.max(
-      plotLeft,
-      Math.min(notePaintDraft.startX, notePaintDraft.currentX),
-    );
-    const right = Math.min(
-      plotRight,
-      Math.max(notePaintDraft.startX + 5, notePaintDraft.currentX),
-    );
-    const centerY = Math.max(plotTop, Math.min(plotBottom, notePaintDraft.y));
-    const noteHeight = Math.max(
-      8,
-      (plotHeight / (MAX_NOTE_MIDI - MIN_NOTE_MIDI)) * 0.8,
-    );
-    context.save();
-    context.fillStyle = 'rgba(58, 242, 222, .34)';
-    context.strokeStyle = '#a2fff7';
-    context.lineWidth = 1.5;
-    context.shadowColor = '#20e6d4';
-    context.shadowBlur = 12;
-    drawRoundedRect(
-      context,
-      left,
-      centerY - noteHeight / 2,
-      Math.max(5, right - left),
-      noteHeight,
-      noteHeight / 2,
-    );
-    context.fill();
-    context.stroke();
-    context.restore();
-  }
+  // Last, and on top: the gesture in flight and the playhead. None of it is
+  // part of the project, and none of it is grabbable — it reads the regions
+  // the layers above produced rather than adding to them.
+  paintOverlays(context, {
+    plot,
+    visualPlayheadMs,
+    regions,
+    notePaintDraftRef,
+    selectionBoxRef,
+    noteLinkDragRef,
+  });
 
-  const selectionBox = selectionBoxRef.current;
-  if (selectionBox) {
-    const left = Math.max(
-      plotLeft,
-      Math.min(selectionBox.startX, selectionBox.currentX),
-    );
-    const right = Math.min(
-      plotRight,
-      Math.max(selectionBox.startX, selectionBox.currentX),
-    );
-    const top = Math.max(
-      plotTop,
-      Math.min(selectionBox.startY, selectionBox.currentY),
-    );
-    const bottom = Math.min(
-      plotBottom,
-      Math.max(selectionBox.startY, selectionBox.currentY),
-    );
-    context.save();
-    context.fillStyle = 'rgba(31, 226, 208, .09)';
-    context.strokeStyle = 'rgba(126, 255, 244, .88)';
-    context.lineWidth = 1.25;
-    context.setLineDash([6, 4]);
-    context.shadowColor = 'rgba(31, 226, 208, .55)';
-    context.shadowBlur = 8;
-    context.fillRect(
-      left,
-      top,
-      Math.max(0, right - left),
-      Math.max(0, bottom - top),
-    );
-    context.strokeRect(
-      left + 0.5,
-      top + 0.5,
-      Math.max(0, right - left - 1),
-      Math.max(0, bottom - top - 1),
-    );
-    context.restore();
-  }
-
-  const noteLinkDrag = noteLinkDragRef.current;
-  if (noteLinkDrag) {
-    const targetWord = [...regions]
-      .reverse()
-      .find(
-        (region) =>
-          region.kind === 'word' &&
-          region.behavior === undefined &&
-          noteLinkDrag.currentX >= region.left &&
-          noteLinkDrag.currentX <= region.right &&
-          noteLinkDrag.currentY >= region.top &&
-          noteLinkDrag.currentY <= region.bottom,
-      );
-    context.save();
-    context.strokeStyle = targetWord ? '#b8fff8' : 'rgba(104, 241, 231, .8)';
-    context.lineWidth = targetWord ? 2.2 : 1.5;
-    context.setLineDash(targetWord ? [] : [7, 5]);
-    context.shadowColor = '#20e6d4';
-    context.shadowBlur = targetWord ? 14 : 8;
-    context.beginPath();
-    context.moveTo(noteLinkDrag.startX, noteLinkDrag.startY);
-    context.lineTo(noteLinkDrag.currentX, noteLinkDrag.currentY);
-    context.stroke();
-    context.setLineDash([]);
-    context.fillStyle = targetWord ? '#eafffd' : '#74eee4';
-    context.beginPath();
-    context.arc(
-      noteLinkDrag.currentX,
-      noteLinkDrag.currentY,
-      targetWord ? 5 : 3.5,
-      0,
-      Math.PI * 2,
-    );
-    context.fill();
-    if (targetWord) {
-      context.strokeStyle = 'rgba(139, 255, 247, .9)';
-      context.lineWidth = 1.4;
-      drawRoundedRect(
-        context,
-        targetWord.left - 3,
-        targetWord.top - 3,
-        targetWord.right - targetWord.left + 6,
-        targetWord.bottom - targetWord.top + 6,
-        7,
-      );
-      context.stroke();
-    }
-    context.restore();
-  }
-
-  const playheadX = timeX(visualPlayheadMs);
-  if (playheadX >= plotLeft && playheadX <= plotRight) {
-    context.save();
-    context.strokeStyle = '#19e8d6';
-    context.lineWidth = 1.5;
-    context.shadowColor = '#1ee7d6';
-    context.shadowBlur = 8;
-    context.beginPath();
-    context.moveTo(playheadX, 4);
-    context.lineTo(playheadX, plotBottom);
-    context.stroke();
-    context.fillStyle = '#76fff4';
-    context.beginPath();
-    context.arc(playheadX, plotTop - 4, 4, 0, Math.PI * 2);
-    context.fill();
-    context.restore();
-  }
   hitRegionsRef.current = regions;
 };
