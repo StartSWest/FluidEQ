@@ -20,6 +20,8 @@ import { ipcMain } from 'electron';
 import log from 'electron-log';
 import fs from 'fs';
 import {
+  IAudioDevice,
+  IDeviceProfileAssignment,
   IDeviceProfileSettings,
   IPresetV2,
   IState,
@@ -36,39 +38,62 @@ import {
   hasPresetBaseline,
   renamePreset,
   renamePresetBaseline,
+  save,
   savePreset,
   savePresetBaseline,
+  checkConfigFile,
+  updateConfig,
 } from '../flush';
 import {
+  assignDeviceProfile,
+  discoverAudioDevices,
+  flushDeviceProfiles,
+  getStateForAudioDevice,
   removeAssignmentsForPreset,
+  removeDeviceProfile,
   renameAssignedPreset,
   saveDeviceProfileSettings,
+  setDefaultAudioDevice,
 } from '../deviceProfiles';
+import { getConfigPath } from '../registry';
 import { TSuccess } from '../../renderer/utils/equalizerApi';
 
 /**
- * The longest list in this directory, and the length is the finding.
+ * Everything the profile handlers may touch, stated rather than implied.
  *
- * Every other module here needed two or four things. Profiles need fifteen,
- * and most of them are about audio devices rather than about files — attaching,
- * reserving a name for the active output, rebuilding an empty profile when the
- * attached one is deleted. That is not an accident of how this was extracted:
- * in FluidEQ a profile only means anything relative to the output it is
- * attached to, so "presets" and "devices" are one subject wearing two names.
+ * This list is the argument for the module's shape. Extracted alone, presets
+ * needed fifteen things and most of them were about audio devices — attaching a
+ * profile to the active output, reserving a name against it, rebuilding an
+ * empty profile when the attached one is deleted. Not an artefact of the cut:
+ * in FluidEQ a profile only means something relative to the output it plays
+ * through, so presets and devices were one subject under two names. They are
+ * one module now, and the list stopped growing when they joined.
  *
- * Left as one list rather than hidden behind a convenience object, because a
- * long parameter list that is honest is worth more than a short one that is
- * not. If these two ever merge into a `profiles` module, this is the evidence
- * for it.
+ * Kept as one list rather than hidden behind a convenience object. A long
+ * parameter list that is honest is worth more than a short one that is not.
  */
-export interface IPresetsIpcDeps {
+export interface IProfilesIpcDeps {
   state: IState;
   userDataDir: string;
   presetPath: string;
   baselinePath: string;
   deviceProfileSettings: IDeviceProfileSettings;
-  /** Reassigned as the user switches output, so it is read per call. */
-  getActiveAudioDeviceId: () => string;
+  /**
+   * What the process currently has open, passed whole and mutated in place.
+   *
+   * These four were module-level `let`s in main.ts, and that is what kept this
+   * merge impossible: the device handlers reassign `configPath` nine times and
+   * `hasActiveSessionOverride` six, and a reassignment cannot cross a function
+   * boundary. Passing four setters so this file could rewrite another file's
+   * variables would have been worse than leaving the code where it was. As
+   * fields the reassignment travels with the object.
+   */
+  session: {
+    configPath: string;
+    activeAudioDeviceId: string;
+    activeAudioDevice: IAudioDevice | undefined;
+    hasActiveSessionOverride: boolean;
+  };
   handleUpdate: (
     event: Electron.IpcMainEvent,
     channel: ChannelEnum | string,
@@ -99,16 +124,31 @@ export interface IPresetsIpcDeps {
   isAutomaticPresetName: (presetName: string) => boolean;
   reservePresetNameForActiveDevice: (presetName: string) => string;
   resetStateToDefaults: () => void;
+  /** Re-read APO's config after this process wrote it, so the two agree. */
+  adoptExistingApoConfig: () => void;
+  /** Adopt a device's stored chain into the live state, minus app-wide flags. */
+  applyDeviceState: (next: IState) => void;
+  captureCurrentLayout: () => void;
+  /** Tell the renderer which output is live now. */
+  notifyOutputStateChanged: () => void;
+  /** Device enumeration is racy just after a driver change; this retries it. */
+  retryHelper: (attempts: number, work: () => unknown) => Promise<unknown>;
 }
 
-/** Load, save, rename, delete, and the manually saved copy each can go back to. */
-export const registerPresetsIpc = ({
+/**
+ * Profiles: the files, and the outputs they are attached to.
+ *
+ * Loading, saving, renaming and deleting a profile, plus enumerating audio
+ * devices and deciding which profile each one plays through. Splitting those
+ * was tried and produced two modules that each reached into the other.
+ */
+export const registerProfilesIpc = ({
   state,
   userDataDir,
   presetPath,
   baselinePath,
   deviceProfileSettings,
-  getActiveAudioDeviceId,
+  session,
   handleUpdate,
   handleUpdateHelper,
   handleError,
@@ -121,7 +161,12 @@ export const registerPresetsIpc = ({
   isAutomaticPresetName,
   reservePresetNameForActiveDevice,
   resetStateToDefaults,
-}: IPresetsIpcDeps) => {
+  adoptExistingApoConfig,
+  applyDeviceState,
+  captureCurrentLayout,
+  notifyOutputStateChanged,
+  retryHelper,
+}: IProfilesIpcDeps) => {
   ipcMain.on(ChannelEnum.LOAD_PRESET, async (event, arg) => {
     const channel = ChannelEnum.LOAD_PRESET;
     const presetName = arg[0];
@@ -279,7 +324,7 @@ export const registerPresetsIpc = ({
       log.info(`Deleting preset: ${presetName}`);
       try {
         const wasAttachedHere =
-          deviceProfileSettings.assignments[getActiveAudioDeviceId()]
+          deviceProfileSettings.assignments[session.activeAudioDeviceId]
             ?.presetName === presetName;
 
         deletePreset(presetName, presetPath);
@@ -365,5 +410,133 @@ export const registerPresetsIpc = ({
       log.error(e);
       handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
     }
+  });
+
+  ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
+    const channel = ChannelEnum.GET_AUDIO_DEVICES;
+    try {
+      const devices = await discoverAudioDevices();
+      const activeDevice = devices.find((device) => device.isDefault);
+      if (activeDevice && activeDevice.id !== session.activeAudioDeviceId) {
+        session.activeAudioDeviceId = activeDevice.id;
+        session.activeAudioDevice = activeDevice;
+        // A device switch always starts from that device's attached profile or
+        // a clean neutral state. Never carry a previous output's transient EQ.
+        session.hasActiveSessionOverride = false;
+        applyDeviceState(
+          getStateForAudioDevice(
+            deviceProfileSettings,
+            activeDevice.id,
+            presetPath,
+          ),
+        );
+        // Every output keeps at least one named profile, so there is always
+        // somewhere for an edit to land and always something in the list to
+        // select. Only for outputs the user actually lands on — creating one
+        // eagerly for every endpoint Windows reports would fill the list with
+        // profiles for devices nobody has used.
+        if (!deviceProfileSettings.assignments[activeDevice.id]) {
+          createEmptyProfileForActiveDevice();
+        }
+        // The first moment the config can be read back: there is now an endpoint
+        // to look up, and the state beside it is that endpoint's. It has to
+        // happen before the save and the flush below, both of which write this
+        // state over whatever the file was saying.
+        adoptExistingApoConfig();
+        save(state, userDataDir);
+        captureCurrentLayout();
+
+        // A Windows output change must immediately replace the APO rules. This
+        // prevents the previous device's profile from remaining active until a
+        // later EQ edit is made in FluidEQ.
+        try {
+          if (!session.configPath) {
+            session.configPath = await getConfigPath();
+          }
+          if (!checkConfigFile(session.configPath)) {
+            updateConfig(session.configPath);
+          }
+          await retryHelper(5, () => {
+            flushDeviceProfiles(
+              deviceProfileSettings,
+              presetPath,
+              session.configPath,
+              undefined,
+              state.isEnabled,
+            );
+          });
+        } catch (error) {
+          log.error('Failed to flush the profile for the active output', error);
+        }
+
+        // Last, and outside the try: the config write can fail without making the
+        // swap any less real, and the panels must never be left describing the
+        // output the user just moved away from.
+        notifyOutputStateChanged();
+      }
+      const reply: TSuccess<IAudioDevice[]> = { result: devices };
+      event.reply(channel, reply);
+    } catch (e) {
+      log.error('Failed to enumerate Windows audio endpoints', e);
+      handleError(event, channel, ErrorCode.FAILURE);
+    }
+  });
+
+  ipcMain.on(ChannelEnum.SET_DEFAULT_AUDIO_DEVICE, async (event, arg) => {
+    const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
+    try {
+      await setDefaultAudioDevice(arg[0] as string);
+      const reply: TSuccess<void> = { result: undefined };
+      event.reply(channel, reply);
+    } catch (e) {
+      log.error('Failed to change the Windows audio output', e);
+      handleError(event, channel, ErrorCode.FAILURE);
+    }
+  });
+
+  ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
+    const channel = ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE;
+    const nextState = getStateForAudioDevice(
+      deviceProfileSettings,
+      arg[0] as string,
+      presetPath,
+    );
+    session.activeAudioDeviceId = arg[0] as string;
+    clearCurrentLayoutSettings();
+    session.hasActiveSessionOverride = false;
+    applyDeviceState(nextState);
+    if (!deviceProfileSettings.assignments[session.activeAudioDeviceId]) {
+      createEmptyProfileForActiveDevice();
+    }
+    await handleUpdate(event, channel);
+    notifyOutputStateChanged();
+  });
+
+  ipcMain.on(ChannelEnum.GET_DEVICE_PROFILE_SETTINGS, async (event) => {
+    const reply: TSuccess<IDeviceProfileSettings> = {
+      result: deviceProfileSettings,
+    };
+    event.reply(ChannelEnum.GET_DEVICE_PROFILE_SETTINGS, reply);
+  });
+
+  ipcMain.on(ChannelEnum.ASSIGN_DEVICE_PROFILE, async (event, arg) => {
+    const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
+    const assignment = arg[0] as IDeviceProfileAssignment;
+    try {
+      fetchPreset(assignment.presetName, presetPath);
+      assignDeviceProfile(deviceProfileSettings, assignment);
+      saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+      await handleUpdate(event, channel);
+    } catch (e) {
+      log.error('Failed to assign device profile', e);
+      handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
+    }
+  });
+
+  ipcMain.on(ChannelEnum.REMOVE_DEVICE_PROFILE, async (event, arg) => {
+    const channel = ChannelEnum.REMOVE_DEVICE_PROFILE;
+    removeDeviceProfile(deviceProfileSettings, arg[0]);
+    saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
+    await handleUpdate(event, channel);
   });
 };

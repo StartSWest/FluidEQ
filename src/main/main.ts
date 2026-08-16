@@ -87,7 +87,6 @@ import {
   IFiltersMap,
   IAudioDevice,
   IDeviceProfileAssignment,
-  IDeviceProfileSettings,
   IAutoEqUpdateStatus,
   AUTOMATIC_PRESET_PREFIX,
   APP_UPDATE_EVENT,
@@ -129,7 +128,7 @@ import { registerFiltersIpc } from './ipc/filters';
 import { registerLayersIpc } from './ipc/layers';
 import { registerPreampIpc } from './ipc/preamp';
 import { registerVideoIpc } from './ipc/video';
-import { registerPresetsIpc } from './ipc/presets';
+import { registerProfilesIpc } from './ipc/profiles';
 import { adoptBlock, hasChainDrifted } from '../common/apoSync';
 import {
   adoptApoFeatureText,
@@ -150,16 +149,12 @@ import { APP_ID, PRODUCT_NAME } from '../common/branding';
 import { latestReleaseNotes } from '../common/changelog';
 import {
   assignDeviceProfile,
-  discoverAudioDevices,
   flushDeviceProfiles,
-  getStateForAudioDevice,
   IActiveStateOverride,
   getCustomFileNameForDevice,
   isGeneratedConfigFile,
   loadDeviceProfileSettings,
-  removeDeviceProfile,
   saveDeviceProfileSettings,
-  setDefaultAudioDevice,
 } from './deviceProfiles';
 import { sendMediaTransportKey } from './mediaKeys';
 import { POWERSHELL_PATH } from './powershell';
@@ -1940,13 +1935,13 @@ ipcMain.on(ChannelEnum.HEALTH_CHECK, async (event) => {
 // anything relative to the output it is attached to, so this and the device
 // handlers are one subject with two names — which the extraction made visible
 // rather than fixed.
-registerPresetsIpc({
+registerProfilesIpc({
   state,
   userDataDir,
   presetPath,
   baselinePath,
   deviceProfileSettings,
-  getActiveAudioDeviceId: () => session.activeAudioDeviceId,
+  session,
   handleUpdate,
   handleUpdateHelper,
   handleError,
@@ -1959,6 +1954,11 @@ registerPresetsIpc({
   isAutomaticPresetName,
   reservePresetNameForActiveDevice,
   resetStateToDefaults,
+  adoptExistingApoConfig,
+  applyDeviceState,
+  captureCurrentLayout,
+  notifyOutputStateChanged,
+  retryHelper,
 });
 
 /**
@@ -2104,134 +2104,6 @@ ipcMain.on(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
   } catch (e) {
     handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
   }
-});
-
-ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
-  const channel = ChannelEnum.GET_AUDIO_DEVICES;
-  try {
-    const devices = await discoverAudioDevices();
-    const activeDevice = devices.find((device) => device.isDefault);
-    if (activeDevice && activeDevice.id !== session.activeAudioDeviceId) {
-      session.activeAudioDeviceId = activeDevice.id;
-      session.activeAudioDevice = activeDevice;
-      // A device switch always starts from that device's attached profile or
-      // a clean neutral state. Never carry a previous output's transient EQ.
-      session.hasActiveSessionOverride = false;
-      applyDeviceState(
-        getStateForAudioDevice(
-          deviceProfileSettings,
-          activeDevice.id,
-          presetPath,
-        ),
-      );
-      // Every output keeps at least one named profile, so there is always
-      // somewhere for an edit to land and always something in the list to
-      // select. Only for outputs the user actually lands on — creating one
-      // eagerly for every endpoint Windows reports would fill the list with
-      // profiles for devices nobody has used.
-      if (!deviceProfileSettings.assignments[activeDevice.id]) {
-        createEmptyProfileForActiveDevice();
-      }
-      // The first moment the config can be read back: there is now an endpoint
-      // to look up, and the state beside it is that endpoint's. It has to
-      // happen before the save and the flush below, both of which write this
-      // state over whatever the file was saying.
-      adoptExistingApoConfig();
-      save(state, userDataDir);
-      captureCurrentLayout();
-
-      // A Windows output change must immediately replace the APO rules. This
-      // prevents the previous device's profile from remaining active until a
-      // later EQ edit is made in FluidEQ.
-      try {
-        if (!session.configPath) {
-          session.configPath = await getConfigPath();
-        }
-        if (!checkConfigFile(session.configPath)) {
-          updateConfig(session.configPath);
-        }
-        await retryHelper(5, () => {
-          flushDeviceProfiles(
-            deviceProfileSettings,
-            presetPath,
-            session.configPath,
-            undefined,
-            state.isEnabled,
-          );
-        });
-      } catch (error) {
-        log.error('Failed to flush the profile for the active output', error);
-      }
-
-      // Last, and outside the try: the config write can fail without making the
-      // swap any less real, and the panels must never be left describing the
-      // output the user just moved away from.
-      notifyOutputStateChanged();
-    }
-    const reply: TSuccess<IAudioDevice[]> = { result: devices };
-    event.reply(channel, reply);
-  } catch (e) {
-    log.error('Failed to enumerate Windows audio endpoints', e);
-    handleError(event, channel, ErrorCode.FAILURE);
-  }
-});
-
-ipcMain.on(ChannelEnum.SET_DEFAULT_AUDIO_DEVICE, async (event, arg) => {
-  const channel = ChannelEnum.SET_DEFAULT_AUDIO_DEVICE;
-  try {
-    await setDefaultAudioDevice(arg[0] as string);
-    const reply: TSuccess<void> = { result: undefined };
-    event.reply(channel, reply);
-  } catch (e) {
-    log.error('Failed to change the Windows audio output', e);
-    handleError(event, channel, ErrorCode.FAILURE);
-  }
-});
-
-ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
-  const channel = ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE;
-  const nextState = getStateForAudioDevice(
-    deviceProfileSettings,
-    arg[0] as string,
-    presetPath,
-  );
-  session.activeAudioDeviceId = arg[0] as string;
-  clearCurrentLayoutSettings();
-  session.hasActiveSessionOverride = false;
-  applyDeviceState(nextState);
-  if (!deviceProfileSettings.assignments[session.activeAudioDeviceId]) {
-    createEmptyProfileForActiveDevice();
-  }
-  await handleUpdate(event, channel);
-  notifyOutputStateChanged();
-});
-
-ipcMain.on(ChannelEnum.GET_DEVICE_PROFILE_SETTINGS, async (event) => {
-  const reply: TSuccess<IDeviceProfileSettings> = {
-    result: deviceProfileSettings,
-  };
-  event.reply(ChannelEnum.GET_DEVICE_PROFILE_SETTINGS, reply);
-});
-
-ipcMain.on(ChannelEnum.ASSIGN_DEVICE_PROFILE, async (event, arg) => {
-  const channel = ChannelEnum.ASSIGN_DEVICE_PROFILE;
-  const assignment = arg[0] as IDeviceProfileAssignment;
-  try {
-    fetchPreset(assignment.presetName, presetPath);
-    assignDeviceProfile(deviceProfileSettings, assignment);
-    saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
-    await handleUpdate(event, channel);
-  } catch (e) {
-    log.error('Failed to assign device profile', e);
-    handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.REMOVE_DEVICE_PROFILE, async (event, arg) => {
-  const channel = ChannelEnum.REMOVE_DEVICE_PROFILE;
-  removeDeviceProfile(deviceProfileSettings, arg[0]);
-  saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
-  await handleUpdate(event, channel);
 });
 
 ipcMain.on(ChannelEnum.GET_AUTO_EQ_DEVICE_LIST, async (event) => {
