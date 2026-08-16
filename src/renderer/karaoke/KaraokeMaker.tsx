@@ -58,6 +58,8 @@ import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import KaraokeMakerHeaderActions from './KaraokeMakerHeaderActions';
 import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
+import KaraokeMakerToolbarButton from './KaraokeMakerToolbarButton';
+import KaraokeMakerEditTools from './KaraokeMakerEditTools';
 import KaraokeMakerConfirmDialog, {
   TDestructiveMakerAction,
 } from './KaraokeMakerConfirmDialog';
@@ -94,9 +96,7 @@ import {
   writeKaraokeWhisperMemorySettings,
 } from './makerAi';
 import useKaraokeNoteAudition from './useKaraokeNoteAudition';
-import KaraokeMakerToolIcon, {
-  TKaraokeMakerToolIcon,
-} from './KaraokeMakerToolIcon';
+import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 import KaraokeMakerNavigator from './KaraokeMakerNavigator';
 import KaraokeMakerCaptureCoach from './KaraokeMakerCaptureCoach';
 import KaraokeMakerFloatingPanel from './KaraokeMakerFloatingPanel';
@@ -378,39 +378,6 @@ const drawRoundedRect = (
   context.beginPath();
   context.roundRect(x, y, width, height, radius);
 };
-
-interface IKaraokeMakerToolbarButtonProps {
-  icon: TKaraokeMakerToolIcon;
-  label: string;
-  onClick: () => void;
-  active?: boolean;
-  disabled?: boolean;
-  danger?: boolean;
-}
-
-const KaraokeMakerToolbarButton = ({
-  icon,
-  label,
-  onClick,
-  active = false,
-  disabled = false,
-  danger = false,
-}: IKaraokeMakerToolbarButtonProps) => (
-  <button
-    type="button"
-    className={`karaoke-maker__tool-button${active ? ' is-active' : ''}${
-      danger ? ' is-danger' : ''
-    }`}
-    onClick={onClick}
-    disabled={disabled}
-    aria-label={label}
-    aria-pressed={active || undefined}
-    data-tooltip={label}
-  >
-    <KaraokeMakerToolIcon name={icon} />
-    <span className="karaoke-maker__tool-label">{label}</span>
-  </button>
-);
 
 const karaokeMakerWordTokensFor = (
   project: IKaraokeMakerProject,
@@ -5671,51 +5638,21 @@ const KaraokeMaker = ({
     setToolPanel(undefined);
   };
 
-  const renderEditTools = () => (
-    <>
-      <KaraokeMakerToolbarButton
-        icon="align"
-        label={t('karaoke.maker.recordLines')}
-        active={lineEntryMode}
-        onClick={toggleLineEntryMode}
-      />
-      <KaraokeMakerToolbarButton
-        icon="select"
-        label={t('karaoke.maker.selectNotes')}
-        active={noteEditMode === 'select'}
-        onClick={() => toggleNoteEditMode('select')}
-      />
-      <KaraokeMakerToolbarButton
-        icon="noteAdd"
-        label={t('karaoke.maker.paintNotes')}
-        active={noteEditMode === 'paint'}
-        onClick={() => toggleNoteEditMode('paint')}
-      />
-      <KaraokeMakerToolbarButton
-        icon="copy"
-        label={t('karaoke.maker.copyNotes')}
-        disabled={selection?.kind !== 'note'}
-        onClick={copySelectedNotes}
-      />
-      <KaraokeMakerToolbarButton
-        icon="paste"
-        label={t('karaoke.maker.pasteNotes')}
-        disabled={!copiedNotes.length}
-        onClick={pasteCopiedNotes}
-      />
-      <KaraokeMakerToolbarButton
-        icon="split"
-        label={t('karaoke.maker.split')}
-        disabled={!selectedNote}
-        onClick={splitNote}
-      />
-      <KaraokeMakerToolbarButton
-        icon="remove"
-        label={t('karaoke.maker.delete')}
-        disabled={!selection}
-        onClick={deleteSelection}
-      />
-    </>
+  const editTools = (
+    <KaraokeMakerEditTools
+      isRecordingLines={lineEntryMode}
+      onToggleRecordLines={toggleLineEntryMode}
+      noteEditMode={noteEditMode}
+      onToggleNoteEditMode={toggleNoteEditMode}
+      canCopyNotes={selection?.kind === 'note'}
+      onCopyNotes={copySelectedNotes}
+      canPasteNotes={copiedNotes.length > 0}
+      onPasteNotes={pasteCopiedNotes}
+      canSplitNote={Boolean(selectedNote)}
+      onSplitNote={splitNote}
+      canDelete={Boolean(selection)}
+      onDelete={deleteSelection}
+    />
   );
 
   const speechMemoryStatusKey = (() => {
@@ -6272,7 +6209,7 @@ const KaraokeMaker = ({
         </div>
 
         <div className="karaoke-maker__tool-group karaoke-maker__wide-edit-tools">
-          {renderEditTools()}
+          {editTools}
         </div>
         <div className="karaoke-maker__tool-cluster karaoke-maker__compact-edit-tools">
           <KaraokeMakerToolbarButton
@@ -6283,7 +6220,7 @@ const KaraokeMaker = ({
           />
           {toolPanel === 'edit' && (
             <div className="karaoke-maker__tool-popover karaoke-maker__action-popover">
-              {renderEditTools()}
+              {editTools}
             </div>
           )}
         </div>
