@@ -20,6 +20,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { PointerEvent, useMemo, useRef, useState } from 'react';
 import type { AxisScale, NumberValue } from 'd3';
 import { MAX_GAIN, MIN_GAIN } from 'common/constants';
+import { balanceRangeName } from '../utils/autoBalanceNarration';
 import Axis from './Axis';
 import GridLine from './GridLine';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
@@ -46,7 +47,6 @@ import {
   setPresenceLine,
   usePresenceLines,
 } from '../utils/presenceThreshold';
-import { balanceRangeName } from '../utils/autoBalance';
 import {
   DISAGREEMENT_DEADBAND_DB,
   getSmartEqQuietUntil,

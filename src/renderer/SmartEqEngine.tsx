@@ -31,6 +31,13 @@ import { getReferenceShape } from 'common/referenceCurve';
 import { getVoicingFilters } from 'common/voicing';
 import { getDriverFilters } from 'common/driver';
 import { getHeadphoneFilters } from 'common/headphone';
+import {
+  describeBalanceProgress,
+  describeBalanceResult,
+  describeContinuousProgress,
+  describeCorrectionNeed,
+  describeCorrectionShape,
+} from './utils/autoBalanceNarration';
 import { getPresenceLine, presenceAllowance } from './utils/presenceThreshold';
 import { getCorrectionLimit } from './utils/correctionLimit';
 import { useFluidEqContext } from './utils/FluidEqContext';
@@ -44,11 +51,6 @@ import {
   IBalanceRegionReport,
   IBalanceReport,
   buildBalancedGains,
-  describeBalanceProgress,
-  describeContinuousProgress,
-  describeBalanceResult,
-  describeCorrectionNeed,
-  describeCorrectionShape,
 } from './utils/autoBalance';
 import { flashCorrection } from './utils/correctionFlash';
 import {

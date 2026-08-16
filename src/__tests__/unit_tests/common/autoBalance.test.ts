@@ -16,11 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { FilterTypeEnum, IFilter } from 'common/constants';
 import {
   MAX_NAMED_RANGES,
-  buildBalancedGains,
   describeCorrectionShape,
+} from 'renderer/utils/autoBalanceNarration';
+
+import { FilterTypeEnum, IFilter } from 'common/constants';
+import {
+  buildBalancedGains,
   fitSpectralTilt,
   sampleSpectrumAt,
   tiltLevelAt,

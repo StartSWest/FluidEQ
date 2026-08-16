@@ -17,6 +17,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
+  describeBalanceProgress,
+  describeBalanceResult,
+  formatBalanceFrequency,
+} from 'renderer/utils/autoBalanceNarration';
+
+import {
   FIXED_BAND_FREQUENCIES,
   FilterTypeEnum,
   FixedBandSizeEnum,
@@ -37,11 +43,8 @@ import {
   createAxisCells,
   createBalanceCaptureState,
   createBalanceRegions,
-  describeBalanceProgress,
-  describeBalanceResult,
   evaluateBalanceCapture,
   filterShapeAt,
-  formatBalanceFrequency,
   isBalanceCheckDue,
   readAbsoluteLevels,
   resetBalanceRegion,
