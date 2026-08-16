@@ -74,7 +74,9 @@ describe('PresetListItem', () => {
     expect(screen.getByLabelText(editIconLabel)).toBeInTheDocument();
   });
 
-  it('should handle delete', async () => {
+  it('asks before deleting rather than deleting', async () => {
+    // The bin sits next to the pencil, and a profile can be an evening of
+    // tuning by ear. A misclick used to be the whole of the interaction.
     const testValue = 'Standard';
     const { user } = setup(
       <PresetListItem
@@ -85,10 +87,49 @@ describe('PresetListItem', () => {
         validate={validate}
       />,
     );
-    const deleteIcon = screen.getByLabelText(deleteIconLabel);
-    await user.click(deleteIcon);
+    await user.click(screen.getByLabelText(deleteIconLabel));
+
+    expect(handleDelete).not.toHaveBeenCalled();
+    expect(screen.getByText('Delete?')).toBeInTheDocument();
+    // The name stays visible: the question is about a specific profile.
+    expect(screen.getByText(testValue)).toBeInTheDocument();
+  });
+
+  it('deletes once the question is answered', async () => {
+    const testValue = 'Standard';
+    const { user } = setup(
+      <PresetListItem
+        value={testValue}
+        handleRename={handleRename}
+        handleDelete={handleDelete}
+        isDisabled={false}
+        validate={validate}
+      />,
+    );
+    await user.click(screen.getByLabelText(deleteIconLabel));
+    await user.click(screen.getByLabelText('Accept'));
 
     expect(handleDelete).toHaveBeenCalledTimes(1);
+  });
+
+  it('deletes nothing when the question is declined', async () => {
+    const testValue = 'Standard';
+    const { user } = setup(
+      <PresetListItem
+        value={testValue}
+        handleRename={handleRename}
+        handleDelete={handleDelete}
+        isDisabled={false}
+        validate={validate}
+      />,
+    );
+    await user.click(screen.getByLabelText(deleteIconLabel));
+    await user.click(screen.getByLabelText('Cancel'));
+
+    expect(handleDelete).not.toHaveBeenCalled();
+    // Back to the ordinary row, ready to be asked again.
+    expect(screen.getByLabelText(deleteIconLabel)).toBeInTheDocument();
+    expect(screen.queryByText('Delete?')).not.toBeInTheDocument();
   });
 
   it('should handle change', async () => {

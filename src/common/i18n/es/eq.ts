@@ -179,6 +179,7 @@ const eq: Partial<Dictionary> = {
     'Restaurar la última versión guardada manualmente de este perfil',
   'profiles.attached': 'ACT',
   'profiles.attachedTitle': 'Sonando en esta salida',
+  'profiles.confirmDelete': '¿Eliminar?',
   'profiles.detecting': 'Detectando tu salida…',
   'profiles.empty': 'Aún no hay perfiles. Crea tu primer sonido.',
   'profiles.error.empty': 'El nombre del perfil no puede estar vacío.',

@@ -46,7 +46,10 @@ const PresetListItem = ({
   // outside the input, and with the field alone as the anchor that dismissed
   // the rename before the button's own handler ever ran.
   const editRowRef = useRef<HTMLDivElement>(null);
+  // Anchors the same outside-click dismissal the rename row uses.
+  const confirmRowRef = useRef<HTMLDivElement>(null);
   const [isEditMode, setIsEditMode] = useState<boolean>(false);
+  const [isConfirmingDelete, setIsConfirmingDelete] = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string>('');
   const handleEditClicked = () => {
     setIsEditMode(true);
@@ -55,6 +58,19 @@ const PresetListItem = ({
   const handleDeleteClicked = (e?: MouseEvent) => {
     // Prevent list item from receiving the click event when the delete icon is clicked
     e?.stopPropagation();
+    // Asks rather than deletes. A profile can be minutes of tuning by ear and
+    // the bin is next to the pencil, so the click that meant "rename" used to
+    // destroy it with nothing in between.
+    setIsConfirmingDelete(true);
+  };
+
+  const handleCancelDelete = () => {
+    setIsConfirmingDelete(false);
+  };
+
+  const handleConfirmDelete = (e?: MouseEvent) => {
+    e?.stopPropagation();
+    setIsConfirmingDelete(false);
     handleDelete();
   };
 
@@ -76,6 +92,36 @@ const PresetListItem = ({
 
   // Close edit mode if the user clicks outside the rename row.
   useMouseDownOutside<HTMLDivElement>(editRowRef, handleEscape);
+  // Clicking away is an answer too, and the safe one.
+  useMouseDownOutside<HTMLDivElement>(confirmRowRef, handleCancelDelete);
+
+  if (isConfirmingDelete) {
+    return (
+      <div className="preset-confirm-delete" ref={confirmRowRef}>
+        {/* The name stays on screen. "Delete this profile?" over a row that has
+            replaced the only copy of the name is a question about something the
+            user can no longer see. */}
+        <div className="preset-name">
+          <span>{value}</span>
+          <span className="preset-confirm-prompt">
+            {t('profiles.confirmDelete')}
+          </span>
+        </div>
+        <div className="row icons">
+          <IconButton
+            icon={IconName.ACCEPT}
+            handleClick={handleConfirmDelete}
+            isDisabled={isDisabled}
+          />
+          <IconButton
+            icon={IconName.CANCEL}
+            handleClick={handleCancelDelete}
+            isDisabled={false}
+          />
+        </div>
+      </div>
+    );
+  }
 
   if (isEditMode) {
     return (

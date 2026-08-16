@@ -177,6 +177,7 @@ const eq: Partial<Dictionary> = {
     'Ripristina l’ultima versione salvata a mano di questo profilo',
   'profiles.attached': 'ATT',
   'profiles.attachedTitle': 'In riproduzione su questa uscita',
+  'profiles.confirmDelete': 'Eliminare?',
   'profiles.detecting': 'Rilevamento dell’uscita…',
   'profiles.empty': 'Ancora nessun profilo. Crea il tuo primo suono.',
   'profiles.error.empty': 'Il nome del profilo non può essere vuoto.',

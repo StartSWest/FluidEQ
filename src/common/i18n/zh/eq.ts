@@ -173,6 +173,7 @@ const eq: Partial<Dictionary> = {
   'profiles.restoreAria': '还原这个配置最后一次手动保存的版本',
   'profiles.attached': '在用',
   'profiles.attachedTitle': '正在这个输出上播放',
+  'profiles.confirmDelete': '删除？',
   'profiles.detecting': '正在检测你的输出…',
   'profiles.empty': '还没有配置，先做一套自己的声音吧。',
   'profiles.error.empty': '配置名称不能为空。',

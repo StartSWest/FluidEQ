@@ -177,6 +177,7 @@ const eq: Partial<Dictionary> = {
     'Die zuletzt von Hand gespeicherte Fassung dieses Profils wiederherstellen',
   'profiles.attached': 'AKT',
   'profiles.attachedTitle': 'Läuft auf diesem Ausgang',
+  'profiles.confirmDelete': 'Löschen?',
   'profiles.detecting': 'Ausgang wird erkannt…',
   'profiles.empty': 'Noch keine Profile. Legen Sie Ihren ersten Klang an.',
   'profiles.error.empty': 'Der Profilname darf nicht leer sein.',
