@@ -57,6 +57,11 @@ import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import {
+  normalizedLyricsText,
+  plainLyrics,
+  useKaraokeMakerLyricsDraft,
+} from './useKaraokeMakerLyricsDraft';
+import {
   TSelection,
   useKaraokeMakerSelection,
 } from './useKaraokeMakerSelection';
@@ -265,26 +270,6 @@ const flattenTokens = (project: IKaraokeMakerProject) =>
   project.lyrics.lines
     .filter((line) => !karaokeMakerLineIsSection(line))
     .flatMap((line) => line.tokens);
-
-const plainLyrics = (project: IKaraokeMakerProject): string =>
-  project.lyrics.lines
-    .map((line) =>
-      line.tokens.reduce(
-        (text, token) =>
-          `${text}${text && token.startsWord !== false ? ' ' : ''}${token.text.trim()}`,
-        '',
-      ),
-    )
-    .join('\n');
-
-const normalizedLyricsText = (value: string): string =>
-  value
-    .replace(/^\uFEFF/, '')
-    .replace(/\r\n?/g, '\n')
-    .split('\n')
-    .map((line) => line.trim().replace(/\s+/g, ' '))
-    .filter(Boolean)
-    .join('\n');
 
 const formatClock = (valueMs: number): string => {
   const safe = Math.max(0, valueMs);
@@ -555,12 +540,24 @@ const KaraokeMaker = ({
     previewHeight,
     setPreviewHeight,
   } = useKaraokeMakerEditorView(project.id, selection, initialEditorView);
+  // The lyric editor's text and whether it still matches the project. Kept
+  // apart from the detection it triggers: that is a long asynchronous job, this
+  // is a textarea and two derived numbers.
+  const {
+    isOpen: lyricsOpen,
+    setOpen: setLyricsOpen,
+    draft: lyricsDraft,
+    setDraft: setLyricsDraft,
+    fileName: lyricsFileName,
+    setFileName: setLyricsFileName,
+    workflowActive: lyricsWorkflowActive,
+    setWorkflowActive: setLyricsWorkflowActive,
+    draftWordCount: draftLyricsWordCount,
+    draftChanged: lyricsDraftChanged,
+    openEditor: openLyricsDraft,
+  } = useKaraokeMakerLyricsDraft(project);
   const [lyricFollowRequestKey, setLyricFollowRequestKey] = useState(0);
   const [wordShiftMs, setWordShiftMs] = useState(0);
-  const [lyricsOpen, setLyricsOpen] = useState(false);
-  const [lyricsDraft, setLyricsDraft] = useState(() => plainLyrics(project));
-  const [lyricsFileName, setLyricsFileName] = useState<string>();
-  const [lyricsWorkflowActive, setLyricsWorkflowActive] = useState(false);
   const [destructiveAction, setDestructiveAction] =
     useState<TDestructiveMakerAction>();
   const [lineEntryMode, setLineEntryMode] = useState(false);
@@ -847,16 +844,6 @@ const KaraokeMaker = ({
       line.tokens.some((token) => token.id === selection.id),
     )?.id;
   }, [lyricLines, selection]);
-  const draftLyricsWordCount = useMemo(
-    () =>
-      makerLinesFromPlainText(lyricsDraft)
-        .filter((line) => !karaokeMakerLineIsSection(line))
-        .reduce((count, line) => count + line.tokens.length, 0),
-    [lyricsDraft],
-  );
-  const lyricsDraftChanged =
-    normalizedLyricsText(lyricsDraft) !==
-    normalizedLyricsText(plainLyrics(project));
   const userTouchedWordCount = useMemo(
     () => tokens.filter(karaokeMakerTokenWasUserTouched).length,
     [tokens],
@@ -3536,9 +3523,11 @@ const KaraokeMaker = ({
     }
   };
 
+  // Seeding and opening the editor is the hook's; landing the caret on the word
+  // the user was last looking at is this component's, because the selection and
+  // the lyric focus are not the draft's business.
   const openLyricsEditor = () => {
-    setLyricsDraft(plainLyrics(projectRef.current));
-    setLyricsFileName(undefined);
+    openLyricsDraft(projectRef.current);
     setDestructiveAction(undefined);
     const preferredToken =
       tokens.find((token) => token.id === activeLyricFocus?.tokenId) ??
@@ -3546,7 +3535,6 @@ const KaraokeMaker = ({
     if (preferredToken) {
       setSelection({ kind: 'word', id: preferredToken.id });
     }
-    setLyricsOpen(true);
   };
 
   const clearNotes = () => {
