@@ -586,7 +586,7 @@ const notifyOutputStateChanged = () => {
     return;
   }
   mainWindow.webContents.send(OUTPUT_STATE_CHANGED_EVENT, {
-    deviceId: activeAudioDeviceId,
+    deviceId: session.activeAudioDeviceId,
   });
 };
 
@@ -695,10 +695,40 @@ const presetPath = path.join(userDataDir, PRESETS_DIR);
 const baselinePath = path.join(userDataDir, PRESET_BASELINES_DIR);
 const state: IState = fetchSettings(userDataDir);
 const deviceProfileSettings = loadDeviceProfileSettings(userDataDir);
-let configPath = '';
-let activeAudioDeviceId = '';
-let activeAudioDevice: IAudioDevice | undefined;
-let hasActiveSessionOverride = false;
+
+/**
+ * What the process currently has open, in one place a module can be handed.
+ *
+ * These four were module-level `let`s, and being `let`s is exactly what kept
+ * the IPC handlers that reassign them stuck in this file: a reassignment
+ * cannot travel across a function boundary. Extracting the device handlers
+ * would have meant passing four setters so a module could reach back and
+ * rewrite this file's variables — which is harder to follow than leaving them
+ * inline, and is why `presets` and `devices` could not be merged even though
+ * they are plainly one subject.
+ *
+ * As fields on an object the reassignment goes with the object, so a module
+ * receives `session` and mutates it directly. The mutability is unchanged and
+ * deliberately so; what changes is that it now has a name and a place, and a
+ * handler's access to it is visible in a signature.
+ *
+ * Deliberately not `state`. That is the audio chain — the filters, the preamp,
+ * the layers — and is persisted. This is which output is selected and where
+ * the config lives, none of which outlives the process.
+ */
+const session: {
+  /** Equalizer APO's config directory, resolved once and cached. */
+  configPath: string;
+  activeAudioDeviceId: string;
+  activeAudioDevice: IAudioDevice | undefined;
+  /** The user opened a device explicitly, so its profile wins over the default. */
+  hasActiveSessionOverride: boolean;
+} = {
+  configPath: '',
+  activeAudioDeviceId: '',
+  activeAudioDevice: undefined,
+  hasActiveSessionOverride: false,
+};
 // The live APO reader must never observe the half-state between an app edit
 // mutating memory and that edit reaching the generated files. Otherwise it can
 // read the old file back as an external change and undo actions such as Clear
@@ -711,11 +741,14 @@ let apoSyncDeferredByAppWrite = false;
  * repeated state reads do not repeat the FFT.
  */
 const hydrateActiveConvolution = () => {
-  if (!configPath || !state.convolution?.fileName) {
+  if (!session.configPath || !state.convolution?.fileName) {
     return false;
   }
   try {
-    const hydrated = hydrateConvolutionAnalysis(state.convolution, configPath);
+    const hydrated = hydrateConvolutionAnalysis(
+      state.convolution,
+      session.configPath,
+    );
     if (hydrated !== state.convolution) {
       state.convolution = hydrated;
       return true;
@@ -779,7 +812,7 @@ const saveLayoutSettings = () => {
   }
 };
 
-const getLayoutDeviceKey = () => activeAudioDeviceId || 'global';
+const getLayoutDeviceKey = () => session.activeAudioDeviceId || 'global';
 
 const getCurrentLayoutSize = () =>
   getFixedBandSizeForCount(Object.keys(state.filters).length);
@@ -944,7 +977,7 @@ const reservePresetNameForActiveDevice = (requestedName: string) => {
     Object.values(deviceProfileSettings.assignments).some(
       (assignment) =>
         assignment.presetName === candidate &&
-        assignment.deviceId !== activeAudioDeviceId,
+        assignment.deviceId !== session.activeAudioDeviceId,
     );
 
   if (!ownedByAnotherOutput(requestedName)) {
@@ -1084,7 +1117,7 @@ const runProfileMutation = (work: () => Promise<void>): Promise<void> => {
 };
 
 const createEmptyProfileForActiveDevice = () => {
-  if (!activeAudioDeviceId) {
+  if (!session.activeAudioDeviceId) {
     return;
   }
   let index = 1;
@@ -1097,19 +1130,19 @@ const createEmptyProfileForActiveDevice = () => {
 };
 
 const attachPresetToActiveDevice = (presetName: string) => {
-  if (!activeAudioDeviceId) {
+  if (!session.activeAudioDeviceId) {
     return false;
   }
 
-  const device = activeAudioDevice;
+  const device = session.activeAudioDevice;
   assignDeviceProfile(deviceProfileSettings, {
-    deviceId: activeAudioDeviceId,
-    deviceName: device?.name || activeAudioDeviceId,
-    deviceGuid: device?.guid || activeAudioDeviceId,
+    deviceId: session.activeAudioDeviceId,
+    deviceName: device?.name || session.activeAudioDeviceId,
+    deviceGuid: device?.guid || session.activeAudioDeviceId,
     presetName,
   });
   saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
-  hasActiveSessionOverride = false;
+  session.hasActiveSessionOverride = false;
   return true;
 };
 
@@ -1207,11 +1240,11 @@ const updateConfigPath = async (
   channel: ChannelEnum | string,
 ) => {
   try {
-    // Retrive configPath assuming EqualizerAPO is installed
-    configPath = await getConfigPath();
+    // Retrive session.configPath assuming EqualizerAPO is installed
+    session.configPath = await getConfigPath();
     // Overwrite the config file if necessary
-    if (!checkConfigFile(configPath)) {
-      updateConfig(configPath);
+    if (!checkConfigFile(session.configPath)) {
+      updateConfig(session.configPath);
     }
     startApoConfigWatcher();
   } catch (e) {
@@ -1236,12 +1269,12 @@ const handleUpdateHelperCore = async <T>(
   }
 
   try {
-    if (!configPath) {
-      configPath = await getConfigPath();
+    if (!session.configPath) {
+      session.configPath = await getConfigPath();
     }
     startApoConfigWatcher();
-    if (!checkConfigFile(configPath)) {
-      updateConfig(configPath);
+    if (!checkConfigFile(session.configPath)) {
+      updateConfig(session.configPath);
     }
     // Keep the root state, the disabled slider and the generated APO line on
     // the same automatic value. The writer derives this independently as its
@@ -1251,11 +1284,15 @@ const handleUpdateHelperCore = async <T>(
       state.preAmp = getResolvedPreAmp(state);
     }
     const shouldPersistProfile = syncActiveProfile || useActiveSessionOverride;
-    let assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
-    if (shouldPersistProfile && !assignment && activeAudioDeviceId) {
-      const automaticPresetName = getAutomaticPresetName(activeAudioDeviceId);
+    let assignment =
+      deviceProfileSettings.assignments[session.activeAudioDeviceId];
+    if (shouldPersistProfile && !assignment && session.activeAudioDeviceId) {
+      const automaticPresetName = getAutomaticPresetName(
+        session.activeAudioDeviceId,
+      );
       attachPresetToActiveDevice(automaticPresetName);
-      assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
+      assignment =
+        deviceProfileSettings.assignments[session.activeAudioDeviceId];
     }
     if (shouldPersistProfile && assignment) {
       // Every edit lands in the attached profile, named or automatic. The
@@ -1263,28 +1300,35 @@ const handleUpdateHelperCore = async <T>(
       // in the SAVE_PRESET handler), so auto-saving here can always be undone
       // and never costs them the version they chose to keep.
       savePreset(assignment.presetName, getCurrentPreset(), presetPath);
-      hasActiveSessionOverride = false;
-    } else if (shouldPersistProfile && !assignment && activeAudioDeviceId) {
+      session.hasActiveSessionOverride = false;
+    } else if (
+      shouldPersistProfile &&
+      !assignment &&
+      session.activeAudioDeviceId
+    ) {
       // An output without a profile still needs edits applied immediately.
       // Keep this override scoped to the current endpoint until it gets
       // assigned by explicit profile load or manual save.
-      hasActiveSessionOverride = true;
-      assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
+      session.hasActiveSessionOverride = true;
+      assignment =
+        deviceProfileSettings.assignments[session.activeAudioDeviceId];
     }
     if (assignment) {
       // A loaded/saved profile clears the temporary override. A subsequent
       // edit recreates it and remains live-only until the user saves.
       if (syncActiveProfile) {
-        hasActiveSessionOverride = false;
+        session.hasActiveSessionOverride = false;
       }
     }
     const activeDevicePattern =
-      activeAudioDevice?.guid || activeAudioDevice?.name || activeAudioDeviceId;
+      session.activeAudioDevice?.guid ||
+      session.activeAudioDevice?.name ||
+      session.activeAudioDeviceId;
     const activeOverride: IActiveStateOverride | undefined =
-      hasActiveSessionOverride && activeDevicePattern
+      session.hasActiveSessionOverride && activeDevicePattern
         ? {
-            deviceId: activeAudioDeviceId,
-            deviceName: activeAudioDevice?.name,
+            deviceId: session.activeAudioDeviceId,
+            deviceName: session.activeAudioDevice?.name,
             devicePattern: activeDevicePattern,
             state,
           }
@@ -1294,7 +1338,7 @@ const handleUpdateHelperCore = async <T>(
       flushDeviceProfiles(
         deviceProfileSettings,
         presetPath,
-        configPath,
+        session.configPath,
         activeOverride,
         state.isEnabled,
       );
@@ -1476,12 +1520,15 @@ const adoptBypassFromConfig = (
 const readCustomFxForDevice = (
   deviceId: string,
 ): ICustomFxSettings | undefined => {
-  if (!configPath || !deviceId) {
+  if (!session.configPath || !deviceId) {
     return undefined;
   }
   const fileName = getCustomFileNameForDevice(deviceId);
   try {
-    const contents = fs.readFileSync(path.join(configPath, fileName), 'utf8');
+    const contents = fs.readFileSync(
+      path.join(session.configPath, fileName),
+      'utf8',
+    );
     return parseCustomFx(fileName, contents);
   } catch {
     return undefined;
@@ -1489,7 +1536,7 @@ const readCustomFxForDevice = (
 };
 
 const readCustomFxForActiveDevice = (): ICustomFxSettings | undefined =>
-  readCustomFxForDevice(activeAudioDeviceId);
+  readCustomFxForDevice(session.activeAudioDeviceId);
 
 /** Refresh the renderer-facing description of the user-owned custom file. */
 const syncCustomFxFromConfig = (): boolean => {
@@ -1502,7 +1549,7 @@ const syncCustomFxFromConfig = (): boolean => {
 };
 
 const adoptExistingApoConfig = () => {
-  if (hasAdoptedExistingConfig || !configPath) {
+  if (hasAdoptedExistingConfig || !session.configPath) {
     return;
   }
 
@@ -1514,7 +1561,8 @@ const adoptExistingApoConfig = () => {
   // nothing. So the whole of this ran, found an empty block, and marked itself
   // done. Deferring costs a few hundred milliseconds and is the difference
   // between a config that is read back and one that never is.
-  const devicePattern = activeAudioDevice?.guid || activeAudioDevice?.name;
+  const devicePattern =
+    session.activeAudioDevice?.guid || session.activeAudioDevice?.name;
   if (!devicePattern) {
     return;
   }
@@ -1524,7 +1572,7 @@ const adoptExistingApoConfig = () => {
     // This is independent of the generated feature files. It must be read
     // before any early return below, including a bypassed custom Include.
     syncCustomFxFromConfig();
-    const chain = readApoDeviceChain(configPath, devicePattern);
+    const chain = readApoDeviceChain(session.configPath, devicePattern);
     if (!chain) {
       return;
     }
@@ -1686,7 +1734,8 @@ let apoSyncQueue: Promise<void> = Promise.resolve();
 
 const persistExternallyAdoptedState = () => {
   save(state, userDataDir);
-  const assignment = deviceProfileSettings.assignments[activeAudioDeviceId];
+  const assignment =
+    deviceProfileSettings.assignments[session.activeAudioDeviceId];
   if (assignment) {
     savePreset(assignment.presetName, getCurrentPreset(), presetPath);
   }
@@ -1697,12 +1746,14 @@ const syncActiveApoFilesFromDisk = async () => {
     apoSyncDeferredByAppWrite = true;
     return;
   }
-  if (!configPath || !activeAudioDeviceId) {
+  if (!session.configPath || !session.activeAudioDeviceId) {
     return;
   }
   const devicePattern =
-    activeAudioDevice?.guid || activeAudioDevice?.name || activeAudioDeviceId;
-  const chain = readApoDeviceChain(configPath, devicePattern);
+    session.activeAudioDevice?.guid ||
+    session.activeAudioDevice?.name ||
+    session.activeAudioDeviceId;
+  const chain = readApoDeviceChain(session.configPath, devicePattern);
   let changed = syncCustomFxFromConfig();
   let generatedChanged = false;
   let containsUnsupportedCommands = false;
@@ -1765,7 +1816,7 @@ const syncActiveApoFilesFromDisk = async () => {
       flushDeviceProfiles(
         deviceProfileSettings,
         presetPath,
-        configPath,
+        session.configPath,
         undefined,
         state.isEnabled,
       );
@@ -1790,14 +1841,14 @@ const queueApoDiskSync = () => {
 };
 
 function startApoConfigWatcher() {
-  if (!configPath || watchedApoConfigPath === configPath) {
+  if (!session.configPath || watchedApoConfigPath === session.configPath) {
     return;
   }
   apoConfigWatcher?.close();
-  watchedApoConfigPath = configPath;
+  watchedApoConfigPath = session.configPath;
   try {
     apoConfigWatcher = fs.watch(
-      configPath,
+      session.configPath,
       { persistent: false },
       (_eventType, fileName) => {
         if (
@@ -1895,7 +1946,7 @@ registerPresetsIpc({
   presetPath,
   baselinePath,
   deviceProfileSettings,
-  getActiveAudioDeviceId: () => activeAudioDeviceId,
+  getActiveAudioDeviceId: () => session.activeAudioDeviceId,
   handleUpdate,
   handleUpdateHelper,
   handleError,
@@ -1941,10 +1992,10 @@ ipcMain.on(ChannelEnum.WRITE_APO_CONFIG_FILE, async (event, arg) => {
   }
 
   try {
-    if (!configPath) {
-      configPath = await getConfigPath();
+    if (!session.configPath) {
+      session.configPath = await getConfigPath();
     }
-    fs.writeFileSync(path.join(configPath, fileName), contents, 'utf8');
+    fs.writeFileSync(path.join(session.configPath, fileName), contents, 'utf8');
     const reply: TSuccess<void> = { result: undefined };
     event.reply(channel, reply);
   } catch (e) {
@@ -2027,10 +2078,10 @@ const describeDeviceLayers = (
 ipcMain.on(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
   const channel = ChannelEnum.GET_APO_CONFIG_TREE;
   try {
-    if (!configPath) {
-      configPath = await getConfigPath();
+    if (!session.configPath) {
+      session.configPath = await getConfigPath();
     }
-    const tree = readApoConfigTree(configPath);
+    const tree = readApoConfigTree(session.configPath);
     const reply: TSuccess<IApoConfigTree | undefined> = {
       result: tree && {
         ...tree,
@@ -2060,12 +2111,12 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
   try {
     const devices = await discoverAudioDevices();
     const activeDevice = devices.find((device) => device.isDefault);
-    if (activeDevice && activeDevice.id !== activeAudioDeviceId) {
-      activeAudioDeviceId = activeDevice.id;
-      activeAudioDevice = activeDevice;
+    if (activeDevice && activeDevice.id !== session.activeAudioDeviceId) {
+      session.activeAudioDeviceId = activeDevice.id;
+      session.activeAudioDevice = activeDevice;
       // A device switch always starts from that device's attached profile or
       // a clean neutral state. Never carry a previous output's transient EQ.
-      hasActiveSessionOverride = false;
+      session.hasActiveSessionOverride = false;
       applyDeviceState(
         getStateForAudioDevice(
           deviceProfileSettings,
@@ -2093,17 +2144,17 @@ ipcMain.on(ChannelEnum.GET_AUDIO_DEVICES, async (event) => {
       // prevents the previous device's profile from remaining active until a
       // later EQ edit is made in FluidEQ.
       try {
-        if (!configPath) {
-          configPath = await getConfigPath();
+        if (!session.configPath) {
+          session.configPath = await getConfigPath();
         }
-        if (!checkConfigFile(configPath)) {
-          updateConfig(configPath);
+        if (!checkConfigFile(session.configPath)) {
+          updateConfig(session.configPath);
         }
         await retryHelper(5, () => {
           flushDeviceProfiles(
             deviceProfileSettings,
             presetPath,
-            configPath,
+            session.configPath,
             undefined,
             state.isEnabled,
           );
@@ -2144,11 +2195,11 @@ ipcMain.on(ChannelEnum.ACTIVATE_AUDIO_DEVICE_PROFILE, async (event, arg) => {
     arg[0] as string,
     presetPath,
   );
-  activeAudioDeviceId = arg[0] as string;
+  session.activeAudioDeviceId = arg[0] as string;
   clearCurrentLayoutSettings();
-  hasActiveSessionOverride = false;
+  session.hasActiveSessionOverride = false;
   applyDeviceState(nextState);
-  if (!deviceProfileSettings.assignments[activeAudioDeviceId]) {
+  if (!deviceProfileSettings.assignments[session.activeAudioDeviceId]) {
     createEmptyProfileForActiveDevice();
   }
   await handleUpdate(event, channel);
@@ -2302,11 +2353,11 @@ ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
     return;
   }
   try {
-    if (!configPath) {
-      configPath = await getConfigPath();
+    if (!session.configPath) {
+      session.configPath = await getConfigPath();
     }
     applyingLayer('convolution');
-    state.convolution = await downloadConvolution(entryId, configPath);
+    state.convolution = await downloadConvolution(entryId, session.configPath);
     await handleUpdate(event, channel, false, true);
   } catch (error) {
     log.error('Failed to download convolution profile', error);
@@ -2529,11 +2580,11 @@ ipcMain.on(ChannelEnum.IMPORT_CONVOLUTION_FILE, async (event) => {
       return;
     }
 
-    if (!configPath) {
-      configPath = await getConfigPath();
+    if (!session.configPath) {
+      session.configPath = await getConfigPath();
     }
     applyingLayer('convolution');
-    state.convolution = importConvolutionFile(sourcePath, configPath);
+    state.convolution = importConvolutionFile(sourcePath, session.configPath);
     await handleUpdateHelper<string>(
       event,
       channel,
@@ -2587,11 +2638,14 @@ ipcMain.on(ChannelEnum.EXPORT_DEVICE_CHAIN, async (event, arg) => {
     const preset = fetchPreset(assignment.presetName, presetPath);
     let custom: string | undefined;
     try {
-      if (!configPath) {
-        configPath = await getConfigPath();
+      if (!session.configPath) {
+        session.configPath = await getConfigPath();
       }
       custom = fs.readFileSync(
-        path.join(configPath, getCustomFileNameForDevice(assignment.deviceId)),
+        path.join(
+          session.configPath,
+          getCustomFileNameForDevice(assignment.deviceId),
+        ),
         'utf8',
       );
     } catch {
@@ -2649,7 +2703,7 @@ ipcMain.on(ChannelEnum.EXPORT_DEVICE_CHAIN, async (event, arg) => {
 ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
   const channel = ChannelEnum.IMPORT_DEVICE_CHAIN;
   try {
-    if (!activeAudioDeviceId) {
+    if (!session.activeAudioDeviceId) {
       handleError(
         event,
         channel,
@@ -2687,7 +2741,7 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
     // Named for where it is going rather than where it came from, because the
     // profile list is indexed by that and it is what the user will look for.
     const name = reservePresetNameForActiveDevice(
-      activeAudioDevice?.name || activeAudioDeviceId,
+      session.activeAudioDevice?.name || session.activeAudioDeviceId,
     );
     savePreset(name, bundle.preset, presetPath);
     savePresetBaseline(name, bundle.preset, baselinePath);
@@ -2700,8 +2754,8 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
     let isCustomSkipped = false;
     if (bundle.custom !== undefined) {
       if (isSafeImportedCustomBlock(bundle.custom)) {
-        if (!configPath) {
-          configPath = await getConfigPath();
+        if (!session.configPath) {
+          session.configPath = await getConfigPath();
         }
         // Over the top of this output's own custom file, which is the only part
         // of an import that destroys something written by hand. It is also the
@@ -2710,8 +2764,8 @@ ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
         // thing neither of you has ever heard.
         fs.writeFileSync(
           path.join(
-            configPath,
-            getCustomFileNameForDevice(activeAudioDeviceId),
+            session.configPath,
+            getCustomFileNameForDevice(session.activeAudioDeviceId),
           ),
           bundle.custom,
           'utf8',
