@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { ipcMain } from 'electron';
 import log from 'electron-log';
 import fs from 'fs';
-import path from 'path';
 import {
   IDeviceProfileSettings,
   IPresetV2,
@@ -271,8 +270,13 @@ export const registerPresetsIpc = ({
     const channel = ChannelEnum.DELETE_PRESET;
     const presetName = arg[0];
     await runProfileMutation(async () => {
-      const pathToDelete = path.join(presetPath, presetName);
-      log.info(`Deleting preset: ${presetName} at location ${pathToDelete}`);
+      // The name only. This used to log `path.join(presetPath, presetName)`,
+      // which was an unvalidated join built purely to be printed — it looked
+      // like the file being deleted and was not. The real path is resolved
+      // inside `deletePreset`, which refuses anything that leaves the
+      // directory; printing a second, unguarded one here invited a reader to
+      // believe the check happened at the call site.
+      log.info(`Deleting preset: ${presetName}`);
       try {
         const wasAttachedHere =
           deviceProfileSettings.assignments[getActiveAudioDeviceId()]

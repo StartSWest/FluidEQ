@@ -47,7 +47,7 @@ import {
  * columns, and a test asserts on them. Translating them at the source would
  * turn every one of those into something that changes with the menu.
  */
-export const BALANCE_REGION_KEYS: Record<string, TranslationKey> = {
+const BALANCE_REGION_KEYS: Record<string, TranslationKey> = {
   'deep bass': 'eq.smart.range.deepBass',
   bass: 'eq.smart.range.bass',
   'low mids': 'eq.smart.range.lowMids',
@@ -172,7 +172,7 @@ export const describeBalanceProgress = (
  * it would turn a description into a readout — nine ranges all reporting a
  * fraction, none of it audible, changing every time it is looked at.
  */
-export const NAMEABLE_CORRECTION_DB = 0.8;
+const NAMEABLE_CORRECTION_DB = 0.8;
 
 /** At most this many, biggest first. A list of nine is not a description. */
 export const MAX_NAMED_RANGES = 3;

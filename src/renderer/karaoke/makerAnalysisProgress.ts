@@ -22,10 +22,12 @@ import {
 } from './makerAi';
 
 /** The stages a run passes through, in the order the panel lists them. */
-export const WHISPER_STAGE_ORDER: Exclude<
-  TKaraokeMakerWhisperStage,
-  'complete'
->[] = ['decode', 'download', 'load', 'transcribe'];
+const WHISPER_STAGE_ORDER: Exclude<TKaraokeMakerWhisperStage, 'complete'>[] = [
+  'decode',
+  'download',
+  'load',
+  'transcribe',
+];
 
 /** Drops to whole megabytes past 100, where a decimal place is noise. */
 export const formatMegabytes = (bytes: number): string => {
