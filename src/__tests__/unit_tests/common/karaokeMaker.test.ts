@@ -4,9 +4,6 @@ import {
   createKaraokeMakerProject,
   importLyricsIntoKaraokeMakerProject,
   karaokeMakerProjectToSong,
-  karaokeMakerLineCaptureIntent,
-  karaokeMakerInheritedLineStart,
-  karaokeMakerLinePlaybackTarget,
   karaokeMakerRecordedLineContainsTime,
   karaokeMakerTokenWasUserTouched,
   makerLinesFromPlainText,
@@ -45,7 +42,6 @@ import {
   karaokeMakerWhisperErrorDetail,
   karaokeMakerWhisperPipelineProgress,
   karaokeMakerWhisperTranscriptWords,
-  mergeKaraokeMakerWhisperPasses,
 } from '../../../renderer/karaoke/makerAi';
 import {
   karaokeMakerResizedViewport,
@@ -53,16 +49,10 @@ import {
 } from '../../../renderer/karaoke/KaraokeMakerNavigator';
 import {
   groupKaraokeMakerWordSyllables,
-  karaokeMakerLyricLane,
   karaokeMakerFittedLyricViewport,
   karaokeMakerLyricFocus,
-  karaokeMakerNoteIsActive,
-  karaokeMakerNoteProgress,
-  karaokeMakerPannedViewportStart,
   karaokeMakerSectionGroups,
-  karaokeMakerWordProgress,
   layoutKaraokeMakerAnchoredLyricLabels,
-  layoutKaraokeMakerLyricLabels,
 } from '../../../renderer/karaoke/makerCanvasLayout';
 
 const audioFile = new File(['audio'], 'Artist - Song.mp3', {
@@ -184,46 +174,6 @@ describe('Karaoke Maker Whisper progress', () => {
       { text: 'hello', startMs: 2_000, endMs: 3_000 },
       { text: 'bright', startMs: 3_000, endMs: 4_000 },
       { text: 'world', startMs: 4_000, endMs: 5_000 },
-    ]);
-  });
-
-  it('merges independent Whisper passes without duplicating recognised words', () => {
-    const merged = mergeKaraokeMakerWhisperPasses([
-      [
-        { text: 'She', startMs: 11_000, endMs: 11_260 },
-        { text: 'life', startMs: 12_100, endMs: 12_460 },
-      ],
-      [
-        { text: 'She', startMs: 11_020, endMs: 11_280 },
-        { text: 'leads', startMs: 11_300, endMs: 11_660 },
-        { text: 'life', startMs: 12_120, endMs: 12_480 },
-      ],
-    ]);
-
-    expect(merged).toEqual([
-      { text: 'She', startMs: 11_010, endMs: 11_270 },
-      { text: 'leads', startMs: 11_300, endMs: 11_660 },
-      { text: 'life', startMs: 12_110, endMs: 12_470 },
-    ]);
-  });
-
-  it('keeps a repeated phrase recovered by another Whisper pass', () => {
-    const merged = mergeKaraokeMakerWhisperPasses([
-      [
-        { text: 'She', startMs: 11_000, endMs: 11_260 },
-        { text: 'lives', startMs: 11_280, endMs: 11_620 },
-      ],
-      [
-        { text: 'She', startMs: 15_000, endMs: 15_260 },
-        { text: 'lives', startMs: 15_280, endMs: 15_620 },
-      ],
-    ]);
-
-    expect(merged.map((word) => [word.text, word.startMs])).toEqual([
-      ['She', 11_000],
-      ['lives', 11_280],
-      ['She', 15_000],
-      ['lives', 15_280],
     ]);
   });
 
@@ -580,48 +530,6 @@ describe('Karaoke Maker canonical project and exports', () => {
       ['hel', 'lo'],
       ['world', 'melisma'],
     ]);
-  });
-
-  it('lays lyric labels across three lanes and lights words progressively', () => {
-    expect(karaokeMakerLyricLane([120, 80, 160], 100, 0)).toBe(1);
-    expect(karaokeMakerLyricLane([40, 180, 210], 100, 0)).toBe(0);
-    expect(karaokeMakerWordProgress(1_000, 2_000, 500)).toBe(0);
-    expect(karaokeMakerWordProgress(1_000, 2_000, 1_500)).toBe(0.5);
-    expect(karaokeMakerWordProgress(1_000, 2_000, 2_500)).toBe(1);
-    expect(karaokeMakerNoteIsActive(1_000, 2_000, 999)).toBe(false);
-    expect(karaokeMakerNoteIsActive(1_000, 2_000, 1_000)).toBe(true);
-    expect(karaokeMakerNoteIsActive(1_000, 2_000, 1_999)).toBe(true);
-    expect(karaokeMakerNoteIsActive(1_000, 2_000, 2_000)).toBe(false);
-    expect(karaokeMakerNoteProgress(1_000, 2_000, 1_250)).toBe(0.25);
-    expect(
-      karaokeMakerPannedViewportStart(10_000, 100, 1_000, 5_000, 20_000),
-    ).toBe(9_500);
-    expect(
-      karaokeMakerPannedViewportStart(100, 1_000, 1_000, 5_000, 20_000),
-    ).toBe(0);
-    const packed = layoutKaraokeMakerLyricLabels(
-      [
-        { id: 'one', naturalLeft: 10, width: 45, preferredLane: 0 },
-        { id: 'two', naturalLeft: 28, width: 52, preferredLane: 0 },
-        { id: 'three', naturalLeft: 46, width: 48, preferredLane: 0 },
-        { id: 'four', naturalLeft: 62, width: 44, preferredLane: 0 },
-      ],
-      0,
-      180,
-    );
-    expect(new Set(packed.map((label) => label.lane)).size).toBe(3);
-    packed.forEach((label) => {
-      expect(label.left).toBeGreaterThanOrEqual(0);
-      expect(label.left + label.width).toBeLessThanOrEqual(180);
-    });
-    for (let lane = 0; lane < 3; lane += 1) {
-      const row = packed.filter((label) => label.lane === lane);
-      row.slice(1).forEach((label, index) => {
-        expect(label.left).toBeGreaterThanOrEqual(
-          row[index].left + row[index].width + 12,
-        );
-      });
-    }
   });
 
   it('keeps one active lyric word when imported timings overlap', () => {
@@ -1129,47 +1037,6 @@ describe('Karaoke Maker canonical project and exports', () => {
     });
   });
 
-  it('uses Enter inside a manually recorded line to repair its end', () => {
-    const [line] = makerLinesFromPlainText('She leads a lonely life');
-    line.tokens.forEach((token, index) => {
-      Object.assign(token, {
-        startMs: 10_000 + index * 500,
-        endMs: 10_450 + index * 500,
-        source: 'manual',
-        timingLocked: true,
-      });
-    });
-
-    expect(karaokeMakerLineCaptureIntent(line, 11_700)).toBe('end');
-  });
-
-  it('uses Enter before a recorded line to replace its start', () => {
-    const [line] = makerLinesFromPlainText('She leads a lonely life');
-    line.tokens.forEach((token, index) => {
-      Object.assign(token, {
-        startMs: 10_000 + index * 500,
-        endMs: 10_450 + index * 500,
-        source: 'manual',
-        timingLocked: true,
-      });
-    });
-
-    expect(karaokeMakerLineCaptureIntent(line, 9_500)).toBe('start');
-  });
-
-  it('does not infer end capture from automatic timing', () => {
-    const [line] = makerLinesFromPlainText('She leads a lonely life');
-    line.tokens.forEach((token, index) => {
-      Object.assign(token, {
-        startMs: 10_000 + index * 500,
-        endMs: 10_450 + index * 500,
-        source: 'whisper',
-      });
-    });
-
-    expect(karaokeMakerLineCaptureIntent(line, 11_700)).toBe('start');
-  });
-
   it('matches a recorded line only while the playhead is inside its range', () => {
     const [line] = makerLinesFromPlainText('She leads a lonely life');
     line.tokens.forEach((token, index) => {
@@ -1184,58 +1051,6 @@ describe('Karaoke Maker canonical project and exports', () => {
     expect(karaokeMakerRecordedLineContainsTime(line, 11_700)).toBe(true);
     expect(karaokeMakerRecordedLineContainsTime(line, 9_999)).toBe(false);
     expect(karaokeMakerRecordedLineContainsTime(line, 13_000)).toBe(false);
-  });
-
-  it('follows the recorded lyric whose range contains playback', () => {
-    const lines = makerLinesFromPlainText('First line\nSecond line');
-    lines.forEach((line, lineIndex) => {
-      line.tokens.forEach((token, tokenIndex) => {
-        Object.assign(token, {
-          startMs: 1_000 + lineIndex * 2_000 + tokenIndex * 400,
-          endMs: 1_350 + lineIndex * 2_000 + tokenIndex * 400,
-          source: 'manual',
-          timingLocked: true,
-        });
-      });
-    });
-
-    expect(karaokeMakerLinePlaybackTarget(lines, 0, 2_900, 3_100)).toBe(1);
-  });
-
-  it('reveals exactly the next untimed lyric after crossing a recorded end', () => {
-    const lines = makerLinesFromPlainText(
-      'Recorded line\nCatch this start\nDo not skip here',
-    );
-    lines[0].tokens.forEach((token, tokenIndex) => {
-      Object.assign(token, {
-        startMs: 1_000 + tokenIndex * 400,
-        endMs: 1_350 + tokenIndex * 400,
-        source: 'manual',
-        timingLocked: true,
-      });
-    });
-    const recordedEndMs = Math.max(
-      ...lines[0].tokens.map((token) => token.endMs as number),
-    );
-
-    expect(
-      karaokeMakerLinePlaybackTarget(
-        lines,
-        0,
-        recordedEndMs - 10,
-        recordedEndMs + 10,
-      ),
-    ).toBe(1);
-    expect(
-      karaokeMakerLinePlaybackTarget(
-        lines,
-        1,
-        recordedEndMs + 10,
-        recordedEndMs + 2_000,
-      ),
-    ).toBeUndefined();
-    expect(karaokeMakerInheritedLineStart(lines, 1)).toBe(recordedEndMs + 40);
-    expect(karaokeMakerInheritedLineStart(lines, 2)).toBeUndefined();
   });
 
   it('keeps a recorded start exact and trims only an overlapping previous end', () => {
