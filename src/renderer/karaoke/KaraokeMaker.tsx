@@ -58,16 +58,18 @@ import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { formatClock } from './makerFormat';
 import { paintMakerCanvas } from './makerCanvasPaint';
 import {
+  ICanvasScrubState,
+  useMakerCanvasGesture,
+} from './useMakerCanvasGesture';
+import {
   ICanvasLyricToken,
   ICanvasLyricWord,
   ICanvasSelectionBox,
   IDragState,
-  INoteLinkDragState,
   INotePaintDraft,
 } from './makerCanvasTypes';
 import {
   BASE_LYRIC_SECTION_TOP,
-  IHitRegion,
   MAX_NOTE_MIDI,
   MIN_NOTE_MIDI,
   SECTION_GROUP_HEIGHT,
@@ -176,18 +178,6 @@ interface ISyllableSplitDraft {
   tokenId: string;
   word: string;
   cutPoints: number[];
-}
-
-interface ICanvasPanState {
-  pointerX: number;
-  viewStartMs: number;
-}
-
-interface ICanvasScrubState {
-  pointerId?: number;
-  anchorMs: number;
-  auditionWordGrain: boolean;
-  grainTimerId?: number;
 }
 
 interface ISentenceAuditionState {
@@ -514,17 +504,10 @@ const KaraokeMaker = ({
   const projectInputRef = useRef<HTMLInputElement>(null);
   const lyricsInputRef = useRef<HTMLInputElement>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
-  const hitRegionsRef = useRef<IHitRegion[]>([]);
-  const dragRef = useRef<IDragState | undefined>(undefined);
-  const panRef = useRef<ICanvasPanState | undefined>(undefined);
-  const scrubRef = useRef<ICanvasScrubState | undefined>(undefined);
+  const gesture = useMakerCanvasGesture();
   const sentenceAuditionRef = useRef<ISentenceAuditionState | undefined>(
     undefined,
   );
-  const selectionBoxRef = useRef<ICanvasSelectionBox | undefined>(undefined);
-  const notePaintDraftRef = useRef<INotePaintDraft | undefined>(undefined);
-  const noteLinkDragRef = useRef<INoteLinkDragState | undefined>(undefined);
-  const lastDragAuditionMidiRef = useRef<number | undefined>(undefined);
   const analysisAbortRef = useRef<AbortController | undefined>(undefined);
   const prepareAfterWhisperRef = useRef(false);
   const lyricsWorkflowActiveRef = useRef(false);
@@ -540,7 +523,7 @@ const KaraokeMaker = ({
 
   const cancelAudibleInteractions = useCallback(
     (pause = true) => {
-      const scrub = scrubRef.current;
+      const scrub = gesture.scrub.current;
       const sentenceAudition = sentenceAuditionRef.current;
       if (scrub?.grainTimerId !== undefined) {
         window.clearTimeout(scrub.grainTimerId);
@@ -551,7 +534,7 @@ const KaraokeMaker = ({
       if (wordAuditionTimerRef.current !== undefined) {
         window.clearTimeout(wordAuditionTimerRef.current);
       }
-      const drag = dragRef.current;
+      const drag = gesture.drag.current;
       if (drag?.auditionTimerId !== undefined) {
         window.clearTimeout(drag.auditionTimerId);
       }
@@ -561,7 +544,7 @@ const KaraokeMaker = ({
         drag?.auditionStarted === true ||
         wordAuditionTimerRef.current !== undefined;
       wordAuditionTimerRef.current = undefined;
-      scrubRef.current = undefined;
+      gesture.scrub.current = undefined;
       sentenceAuditionRef.current = undefined;
       setScrubAuditionAnchorMs(undefined);
       if (drag) {
@@ -580,7 +563,7 @@ const KaraokeMaker = ({
         }
       }
     },
-    [onPause, onSeek],
+    [gesture.drag, gesture.scrub, onPause, onSeek],
   );
 
   const clearLineEntryCountdown = useCallback(() => {
@@ -1243,9 +1226,9 @@ const KaraokeMaker = ({
         setIsCanvasScrubbing(false);
         setSelection(undefined);
         cancelAudibleInteractions();
-        dragRef.current = undefined;
-        panRef.current = undefined;
-        lastDragAuditionMidiRef.current = undefined;
+        gesture.drag.current = undefined;
+        gesture.pan.current = undefined;
+        gesture.lastDragAuditionMidi.current = undefined;
       }
     };
     window.addEventListener('pointerdown', closeFloatingTools);
@@ -1255,7 +1238,13 @@ const KaraokeMaker = ({
       window.removeEventListener('keydown', closeOnEscape);
       cancelAudibleInteractions();
     };
-  }, [cancelAudibleInteractions, setSelection]);
+  }, [
+    cancelAudibleInteractions,
+    gesture.drag,
+    gesture.lastDragAuditionMidi,
+    gesture.pan,
+    setSelection,
+  ]);
 
   useEffect(() => {
     if (viewDurationMs !== visibleViewDurationMs) {
@@ -1339,13 +1328,17 @@ const KaraokeMaker = ({
       visibleViewDurationMs,
       visualPlayheadMs,
       effectiveDurationMs,
-      hitRegionsRef,
-      selectionBoxRef,
-      notePaintDraftRef,
-      noteLinkDragRef,
+      hitRegionsRef: gesture.hitRegions,
+      selectionBoxRef: gesture.selectionBox,
+      notePaintDraftRef: gesture.notePaintDraft,
+      noteLinkDragRef: gesture.noteLinkDrag,
       wordFocusAnimationRef,
     });
   }, [
+    gesture.hitRegions,
+    gesture.noteLinkDrag,
+    gesture.notePaintDraft,
+    gesture.selectionBox,
     activeLyricFocus,
     activeLyricWordId,
     canvasSectionGroups,
@@ -1449,7 +1442,7 @@ const KaraokeMaker = ({
     }
     const playCurrentRange = () => {
       if (
-        dragRef.current !== drag ||
+        gesture.drag.current !== drag ||
         drag.auditionStartMs === undefined ||
         drag.auditionEndMs === undefined
       ) {
@@ -1482,7 +1475,7 @@ const KaraokeMaker = ({
     onSeek(scrub.anchorMs);
     Promise.resolve(onPlay()).catch(() => undefined);
     scrub.grainTimerId = window.setTimeout(() => {
-      if (scrubRef.current !== scrub) {
+      if (gesture.scrub.current !== scrub) {
         return;
       }
       onPause();
@@ -1596,7 +1589,7 @@ const KaraokeMaker = ({
     const playheadX =
       54 + ((playheadMs - viewStartMs) / visibleViewDurationMs) * plotWidth;
     const grabbedPlayhead = Math.abs(point.x - playheadX) <= 9;
-    const hit = [...hitRegionsRef.current]
+    const hit = [...gesture.hitRegions.current]
       .reverse()
       .find(
         (region) =>
@@ -1608,7 +1601,7 @@ const KaraokeMaker = ({
     if (handPanMode && hit?.kind !== 'note') {
       event.preventDefault();
       event.currentTarget.setPointerCapture(event.pointerId);
-      panRef.current = {
+      gesture.pan.current = {
         pointerX: point.x,
         viewStartMs,
       };
@@ -1631,7 +1624,7 @@ const KaraokeMaker = ({
         currentX: point.x,
         y: point.y,
       };
-      notePaintDraftRef.current = draft;
+      gesture.notePaintDraft.current = draft;
       renderCanvasRef.current();
       return;
     }
@@ -1654,7 +1647,7 @@ const KaraokeMaker = ({
         additive,
         initialNoteIds: additive ? new Set(selectedNoteIds) : new Set<string>(),
       };
-      selectionBoxRef.current = box;
+      gesture.selectionBox.current = box;
       renderCanvasRef.current();
       if (!additive) {
         setSelection(undefined);
@@ -1665,7 +1658,7 @@ const KaraokeMaker = ({
     if (!hit && !grabbedPlayhead && !lineEntryMode && point.y >= headerHeight) {
       event.preventDefault();
       event.currentTarget.setPointerCapture(event.pointerId);
-      panRef.current = {
+      gesture.pan.current = {
         pointerX: point.x,
         viewStartMs,
       };
@@ -1685,7 +1678,7 @@ const KaraokeMaker = ({
         anchorMs,
         auditionWordGrain: hit?.kind === 'word',
       };
-      scrubRef.current = scrub;
+      gesture.scrub.current = scrub;
       setIsCanvasScrubbing(true);
       setScrubAuditionAnchorMs(anchorMs);
       auditionWordScrubGrain(scrub);
@@ -1720,7 +1713,7 @@ const KaraokeMaker = ({
     if (hit.kind === 'note' && (event.ctrlKey || event.metaKey)) {
       event.preventDefault();
       event.currentTarget.setPointerCapture(event.pointerId);
-      noteLinkDragRef.current = {
+      gesture.noteLinkDrag.current = {
         pointerId: event.pointerId,
         noteId: hit.id,
         startX: (hit.left + hit.right) / 2,
@@ -1775,7 +1768,7 @@ const KaraokeMaker = ({
     if (hit.kind === 'note' && dragBehavior === 'move') {
       const note = project.melody.notes.find((item) => item.id === hit.id);
       if (note) {
-        lastDragAuditionMidiRef.current = Math.round(note.targetMidi);
+        gesture.lastDragAuditionMidi.current = Math.round(note.targetMidi);
         noteAudition.play(
           note.targetMidi,
           karaokeLeadNoteArticulation(note).durationMs,
@@ -1785,7 +1778,7 @@ const KaraokeMaker = ({
       noteAudition.stop();
     }
     event.currentTarget.setPointerCapture(event.pointerId);
-    dragRef.current = {
+    gesture.drag.current = {
       selection: nextSelection,
       behavior: dragBehavior,
       pointerX: point.x,
@@ -1800,7 +1793,7 @@ const KaraokeMaker = ({
   };
 
   const onCanvasPointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
-    const noteLinkDrag = noteLinkDragRef.current;
+    const noteLinkDrag = gesture.noteLinkDrag.current;
     if (noteLinkDrag?.pointerId === event.pointerId) {
       const point = canvasPoint(event);
       noteLinkDrag.currentX = point.x;
@@ -1808,15 +1801,15 @@ const KaraokeMaker = ({
       renderCanvasRef.current();
       return;
     }
-    const paintDraft = notePaintDraftRef.current;
+    const paintDraft = gesture.notePaintDraft.current;
     if (paintDraft?.pointerId === event.pointerId) {
       const point = canvasPoint(event);
       const next = { ...paintDraft, currentX: point.x };
-      notePaintDraftRef.current = next;
+      gesture.notePaintDraft.current = next;
       renderCanvasRef.current();
       return;
     }
-    const activeSelectionBox = selectionBoxRef.current;
+    const activeSelectionBox = gesture.selectionBox.current;
     if (activeSelectionBox?.pointerId === event.pointerId) {
       const point = canvasPoint(event);
       const next = {
@@ -1824,14 +1817,14 @@ const KaraokeMaker = ({
         currentX: point.x,
         currentY: point.y,
       };
-      selectionBoxRef.current = next;
+      gesture.selectionBox.current = next;
       renderCanvasRef.current();
       const left = Math.min(next.startX, next.currentX);
       const right = Math.max(next.startX, next.currentX);
       const top = Math.min(next.startY, next.currentY);
       const bottom = Math.max(next.startY, next.currentY);
       const nextIds = new Set(next.initialNoteIds);
-      hitRegionsRef.current.forEach((region) => {
+      gesture.hitRegions.current.forEach((region) => {
         if (
           region.kind === 'note' &&
           region.right >= left &&
@@ -1852,7 +1845,7 @@ const KaraokeMaker = ({
       });
       return;
     }
-    const pan = panRef.current;
+    const pan = gesture.pan.current;
     if (pan) {
       const point = canvasPoint(event);
       const plotWidth = Math.max(1, point.width - 72);
@@ -1867,11 +1860,11 @@ const KaraokeMaker = ({
       );
       return;
     }
-    if (scrubRef.current?.pointerId === event.pointerId) {
-      const scrub = scrubRef.current;
+    if (gesture.scrub.current?.pointerId === event.pointerId) {
+      const scrub = gesture.scrub.current;
       const scrubPoint = canvasPoint(event);
       scrub.anchorMs = seekCanvasPoint(scrubPoint);
-      scrub.auditionWordGrain = hitRegionsRef.current.some(
+      scrub.auditionWordGrain = gesture.hitRegions.current.some(
         (region) =>
           region.kind === 'word' &&
           region.behavior === undefined &&
@@ -1884,10 +1877,10 @@ const KaraokeMaker = ({
       auditionWordScrubGrain(scrub);
       return;
     }
-    const drag = dragRef.current;
+    const drag = gesture.drag.current;
     const point = canvasPoint(event);
     if (!drag) {
-      const hovered = [...hitRegionsRef.current]
+      const hovered = [...gesture.hitRegions.current]
         .reverse()
         .find(
           (region) =>
@@ -1987,8 +1980,8 @@ const KaraokeMaker = ({
             drag.finalAuditionMidi = auditionMidi;
             drag.finalAuditionDurationMs =
               karaokeLeadNoteArticulation(baseNote).durationMs;
-            if (lastDragAuditionMidiRef.current !== auditionMidi) {
-              lastDragAuditionMidiRef.current = auditionMidi;
+            if (gesture.lastDragAuditionMidi.current !== auditionMidi) {
+              gesture.lastDragAuditionMidi.current = auditionMidi;
               noteAudition.play(auditionMidi, 190);
             }
           }
@@ -2072,12 +2065,12 @@ const KaraokeMaker = ({
 
   const onCanvasPointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
     const wasCancelled = event.type === 'pointercancel';
-    const noteLinkDrag = noteLinkDragRef.current;
+    const noteLinkDrag = gesture.noteLinkDrag.current;
     if (noteLinkDrag?.pointerId === event.pointerId) {
       const point = canvasPoint(event);
       const targetWord = wasCancelled
         ? undefined
-        : [...hitRegionsRef.current]
+        : [...gesture.hitRegions.current]
             .reverse()
             .find(
               (region) =>
@@ -2137,17 +2130,17 @@ const KaraokeMaker = ({
           firstSelectedId ? { kind: 'note', id: firstSelectedId } : undefined,
         );
       }
-      noteLinkDragRef.current = undefined;
+      gesture.noteLinkDrag.current = undefined;
       renderCanvasRef.current();
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
       return;
     }
-    const paintDraft = notePaintDraftRef.current;
+    const paintDraft = gesture.notePaintDraft.current;
     if (paintDraft?.pointerId === event.pointerId) {
       if (wasCancelled) {
-        notePaintDraftRef.current = undefined;
+        gesture.notePaintDraft.current = undefined;
         renderCanvasRef.current();
         if (event.currentTarget.hasPointerCapture(event.pointerId)) {
           event.currentTarget.releasePointerCapture(event.pointerId);
@@ -2180,7 +2173,7 @@ const KaraokeMaker = ({
         kind: 'normal',
         source: 'manual',
       };
-      notePaintDraftRef.current = undefined;
+      gesture.notePaintDraft.current = undefined;
       renderCanvasRef.current();
       commit((current) => ({
         ...current,
@@ -2200,24 +2193,24 @@ const KaraokeMaker = ({
       }
       return;
     }
-    if (selectionBoxRef.current?.pointerId === event.pointerId) {
-      selectionBoxRef.current = undefined;
+    if (gesture.selectionBox.current?.pointerId === event.pointerId) {
+      gesture.selectionBox.current = undefined;
       renderCanvasRef.current();
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
       return;
     }
-    if (panRef.current) {
-      panRef.current = undefined;
+    if (gesture.pan.current) {
+      gesture.pan.current = undefined;
       setIsCanvasPanning(false);
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
         event.currentTarget.releasePointerCapture(event.pointerId);
       }
       return;
     }
-    if (scrubRef.current?.pointerId === event.pointerId) {
-      const scrub = scrubRef.current;
+    if (gesture.scrub.current?.pointerId === event.pointerId) {
+      const scrub = gesture.scrub.current;
       if (scrub.grainTimerId !== undefined) {
         window.clearTimeout(scrub.grainTimerId);
       }
@@ -2225,7 +2218,7 @@ const KaraokeMaker = ({
         onPause();
         onSeek(scrub.anchorMs);
       }
-      scrubRef.current = undefined;
+      gesture.scrub.current = undefined;
       setIsCanvasScrubbing(false);
       setScrubAuditionAnchorMs(undefined);
       if (event.currentTarget.hasPointerCapture(event.pointerId)) {
@@ -2233,7 +2226,7 @@ const KaraokeMaker = ({
       }
       return;
     }
-    const drag = dragRef.current;
+    const drag = gesture.drag.current;
     if (!drag) {
       return;
     }
@@ -2245,8 +2238,8 @@ const KaraokeMaker = ({
       onSeek(drag.audioAnchorMs);
       setScrubAuditionAnchorMs(undefined);
     }
-    dragRef.current = undefined;
-    lastDragAuditionMidiRef.current = undefined;
+    gesture.drag.current = undefined;
+    gesture.lastDragAuditionMidi.current = undefined;
     noteAudition.stop();
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
@@ -2330,8 +2323,8 @@ const KaraokeMaker = ({
     setHandPanMode(false);
     setIsCanvasPanning(false);
     setIsCanvasScrubbing(false);
-    panRef.current = undefined;
-    noteLinkDragRef.current = undefined;
+    gesture.pan.current = undefined;
+    gesture.noteLinkDrag.current = undefined;
     cancelAudibleInteractions();
     setPreviewOpen(true);
     setFollowViewport(true);
@@ -4359,7 +4352,7 @@ const KaraokeMaker = ({
     setHandPanMode(false);
     setIsCanvasPanning(false);
     setIsCanvasScrubbing(false);
-    panRef.current = undefined;
+    gesture.pan.current = undefined;
     cancelAudibleInteractions();
     setPreviewOpen(true);
     setFollowViewport(true);
@@ -4399,17 +4392,17 @@ const KaraokeMaker = ({
   const toggleHandPanMode = () => {
     setHandPanMode((active) => !active);
     setNoteEditMode(undefined);
-    selectionBoxRef.current = undefined;
-    notePaintDraftRef.current = undefined;
-    noteLinkDragRef.current = undefined;
+    gesture.selectionBox.current = undefined;
+    gesture.notePaintDraft.current = undefined;
+    gesture.noteLinkDrag.current = undefined;
     setLineEntryMode(false);
     clearLineEntryCountdown();
     setLineEntryCapture(undefined);
     setIsCanvasPanning(false);
     setIsCanvasScrubbing(false);
-    panRef.current = undefined;
+    gesture.pan.current = undefined;
     cancelAudibleInteractions();
-    dragRef.current = undefined;
+    gesture.drag.current = undefined;
     setToolPanel(undefined);
   };
 
@@ -4421,12 +4414,12 @@ const KaraokeMaker = ({
     setLineEntryCapture(undefined);
     setIsCanvasPanning(false);
     setIsCanvasScrubbing(false);
-    panRef.current = undefined;
-    scrubRef.current = undefined;
-    dragRef.current = undefined;
-    selectionBoxRef.current = undefined;
-    notePaintDraftRef.current = undefined;
-    noteLinkDragRef.current = undefined;
+    gesture.pan.current = undefined;
+    gesture.scrub.current = undefined;
+    gesture.drag.current = undefined;
+    gesture.selectionBox.current = undefined;
+    gesture.notePaintDraft.current = undefined;
+    gesture.noteLinkDrag.current = undefined;
     cancelAudibleInteractions();
     setToolPanel(undefined);
   };
@@ -4991,7 +4984,7 @@ const KaraokeMaker = ({
           onPointerUp={onCanvasPointerUp}
           onPointerCancel={onCanvasPointerUp}
           onPointerLeave={() => {
-            if (!dragRef.current) {
+            if (!gesture.drag.current) {
               setHoveredEditHandle(undefined);
               setIsPitchPanReady(false);
             }
