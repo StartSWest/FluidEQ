@@ -301,18 +301,32 @@ const PresetsBar = ({
     setGlobalError,
   ]);
 
-  // Loading audio settings from an existing preset
-  const handleLoadPreset = async (presetToLoad = presetName) => {
-    if (presetToLoad && visiblePresetNames.includes(presetToLoad)) {
-      try {
-        await loadPreset(presetToLoad);
-        await refreshOutputProfiles();
-        performHealthCheck();
-      } catch (e) {
-        setGlobalError(e as ErrorDescription);
+  // Loading audio settings from an existing preset.
+  //
+  // Memoised because deleting a profile calls it to attach whichever one the
+  // selection lands on, and an identity that changed every render would rebuild
+  // that handler — and every row's delete button with it — on each keystroke.
+  const handleLoadPreset = useCallback(
+    async (presetToLoad = presetName) => {
+      if (presetToLoad && visiblePresetNames.includes(presetToLoad)) {
+        try {
+          await loadPreset(presetToLoad);
+          await refreshOutputProfiles();
+          performHealthCheck();
+        } catch (e) {
+          setGlobalError(e as ErrorDescription);
+        }
       }
-    }
-  };
+    },
+    [
+      presetName,
+      visiblePresetNames,
+      loadPreset,
+      refreshOutputProfiles,
+      performHealthCheck,
+      setGlobalError,
+    ],
+  );
 
   // Validating a new preset name
   const validatePresetName = useCallback((newValue: string) => {
@@ -387,6 +401,17 @@ const PresetsBar = ({
   // Deleting a preset
   const handleDeletePreset = useCallback(
     (deletedValue: string) => async () => {
+      // Worked out before the delete, while the list still holds it: which
+      // profile the selection should land on is a question about where this one
+      // sat among the others, and afterwards there is no answer to read.
+      const wasSelected = deletedValue === presetName;
+      const remaining = presetNames.filter((n) => n !== deletedValue);
+      const deletedAt = presetNames.indexOf(deletedValue);
+      // The one that moves up into the gap, or the one above if this was last.
+      // Landing on nothing would leave the output with no profile selected
+      // while it is still playing one.
+      const successor = remaining[deletedAt] ?? remaining[deletedAt - 1];
+
       try {
         await deletePreset(deletedValue);
         dispatchPresetNames({
@@ -395,13 +420,31 @@ const PresetsBar = ({
         });
         await refreshOutputProfiles();
 
-        // Deselect preset name info since the preset no longer exists
-        setPresetName('');
+        // Only the selection that just stopped existing is disturbed. Clearing
+        // it unconditionally meant deleting any other row dropped the profile
+        // you were working in, which read as the app forgetting what was
+        // playing.
+        if (wasSelected) {
+          if (successor) {
+            setPresetName(successor);
+            // Attaching too, not just selecting: the output has to be playing
+            // through something, and the row marked ON must be the truth.
+            handleLoadPreset(successor);
+          } else {
+            setPresetName('');
+          }
+        }
       } catch (e) {
         // continue to run, the worst case is that the file still exists and that's all.
       }
     },
-    [deletePreset, refreshOutputProfiles],
+    [
+      deletePreset,
+      refreshOutputProfiles,
+      presetName,
+      presetNames,
+      handleLoadPreset,
+    ],
   );
 
   // Renaming an existing preset
