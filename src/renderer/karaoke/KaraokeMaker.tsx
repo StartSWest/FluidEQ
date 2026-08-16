@@ -58,6 +58,7 @@ import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { formatClock } from './makerFormat';
 import {
   BASE_LYRIC_SECTION_TOP,
+  IHitRegion,
   LYRIC_LANE_HEIGHT,
   MAX_NOTE_MIDI,
   MIN_NOTE_MIDI,
@@ -65,8 +66,10 @@ import {
   SECTION_GROUP_TOP,
   WAVEFORM_HEIGHT,
   WAVEFORM_TOP,
+  drawRoundedRect,
   lyricSectionHeight,
   makerPlot,
+  midiName,
 } from './makerCanvasGeometry';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import { karaokeMakerAnalysisProgress } from './makerAnalysisProgress';
@@ -176,16 +179,6 @@ interface ISyllableSplitDraft {
   cutPoints: number[];
 }
 
-interface IHitRegion {
-  kind: 'word' | 'note';
-  id: string;
-  behavior?: IDragState['behavior'];
-  left: number;
-  right: number;
-  top: number;
-  bottom: number;
-}
-
 interface ICanvasLyricToken {
   token: IKaraokeMakerToken;
   tokenIndex: number;
@@ -284,25 +277,6 @@ interface IWhisperRunProfile {
   needsLoad: boolean;
 }
 
-const midiName = (midi: number): string => {
-  const names = [
-    'C',
-    'C♯',
-    'D',
-    'D♯',
-    'E',
-    'F',
-    'F♯',
-    'G',
-    'G♯',
-    'A',
-    'A♯',
-    'B',
-  ];
-  const rounded = Math.round(midi);
-  return `${names[((rounded % 12) + 12) % 12]}${Math.floor(rounded / 12) - 1}`;
-};
-
 const replaceNote = (
   project: IKaraokeMakerProject,
   id: string,
@@ -337,18 +311,6 @@ const replaceToken = (
     })),
   },
 });
-
-const drawRoundedRect = (
-  context: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  width: number,
-  height: number,
-  radius: number,
-) => {
-  context.beginPath();
-  context.roundRect(x, y, width, height, radius);
-};
 
 const karaokeMakerWordTokensFor = (
   project: IKaraokeMakerProject,

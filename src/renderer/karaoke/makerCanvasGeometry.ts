@@ -50,6 +50,76 @@ export const MAX_NOTE_MIDI = 96;
 export const lyricSectionHeight = (laneCount: number) =>
   laneCount * LYRIC_LANE_HEIGHT;
 
+/** What a drag against a hit region is trying to do. */
+export type TMakerDragBehavior = 'move' | 'resize-start' | 'resize-end';
+
+/**
+ * A rectangle the pointer can land on, published by the paint.
+ *
+ * The painting is the only thing that knows where anything ended up, so it
+ * records these as it goes and the pointer handlers read them back. Which is
+ * why the type belongs with the geometry rather than with either half: it is
+ * the contract between them.
+ */
+export interface IHitRegion {
+  kind: 'word' | 'note';
+  id: string;
+  behavior?: TMakerDragBehavior;
+  left: number;
+  right: number;
+  top: number;
+  bottom: number;
+}
+
+/**
+ * Begin a rounded rectangle path. The caller fills or strokes it.
+ *
+ * Separated from filling because most of the editor's shapes are drawn twice —
+ * once filled, once stroked — and building the path once is the point.
+ */
+export const drawRoundedRect = (
+  context: CanvasRenderingContext2D,
+  x: number,
+  y: number,
+  width: number,
+  height: number,
+  radius: number,
+) => {
+  context.beginPath();
+  context.roundRect(x, y, width, height, radius);
+};
+
+const NOTE_NAMES = [
+  'C',
+  'C♯',
+  'D',
+  'D♯',
+  'E',
+  'F',
+  'F♯',
+  'G',
+  'G♯',
+  'A',
+  'A♯',
+  'B',
+];
+
+/**
+ * A MIDI note number as a name: 60 is `C4`.
+ *
+ * Sharps only, never flats. The grid has one row per semitone, so a row can
+ * carry one name — offering `A♯`/`B♭` would need two labels for one line.
+ *
+ * The modulo is written twice on purpose: `%` keeps the sign in JavaScript, so
+ * a negative note number would index off the front of the array.
+ */
+export const midiName = (midi: number): string => {
+  const rounded = Math.round(midi);
+  return `${NOTE_NAMES[((rounded % 12) + 12) % 12]}${
+    Math.floor(rounded / 12) - 1
+  }`;
+};
+
 export interface IMakerPlotInput {
   width: number;
   height: number;
