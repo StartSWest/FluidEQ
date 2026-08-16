@@ -56,6 +56,10 @@ import { useTranslation } from '../utils/I18nContext';
 import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
+import {
+  TSelection,
+  useKaraokeMakerSelection,
+} from './useKaraokeMakerSelection';
 import KaraokeMakerHeaderActions from './KaraokeMakerHeaderActions';
 import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
 import KaraokeMakerToolbarButton from './KaraokeMakerToolbarButton';
@@ -134,9 +138,6 @@ interface IKaraokeMakerProps {
   isFullScreen: boolean;
   onToggleFullScreen: () => void;
 }
-
-type TSelection =
-  { kind: 'word'; id: string } | { kind: 'note'; id: string } | undefined;
 
 type TLineEntrySession = 'setup' | 'countdown' | 'active';
 
@@ -515,14 +516,25 @@ const KaraokeMaker = ({
   const [initialEditorView] = useState(() =>
     readKaraokeMakerEditorView(project.id),
   );
-  const [selection, setSelection] = useState<TSelection>(
-    initialEditorView?.selection,
-  );
-  const [selectedNoteIds, setSelectedNoteIds] = useState<Set<string>>(() =>
-    initialEditorView?.selection?.kind === 'note'
-      ? new Set([initialEditorView.selection.id])
-      : new Set(),
-  );
+  // Hoisted above the selection hook, which needs it to notice a selection
+  // whose word no longer exists. Derived from the project and nothing else.
+  const tokens = useMemo(() => flattenTokens(project), [project]);
+  // What is selected, plus the three rules that keep it honest.
+  const {
+    selection,
+    setSelection,
+    selectedNoteIds,
+    setSelectedNoteIds,
+    copiedNotes,
+    setCopiedNotes,
+    controlLinkMode,
+  } = useKaraokeMakerSelection({
+    initialEditorView,
+    tokens,
+    notes: project.melody.notes,
+    draftReady,
+  });
+
   // Where the editor was looking, and how big the preview was. Seven values
   // that are written together, read together and persisted together.
   const {
@@ -543,8 +555,6 @@ const KaraokeMaker = ({
     previewHeight,
     setPreviewHeight,
   } = useKaraokeMakerEditorView(project.id, selection, initialEditorView);
-  const [copiedNotes, setCopiedNotes] = useState<IKaraokeMakerNote[]>([]);
-  const [controlLinkMode, setControlLinkMode] = useState(false);
   const [lyricFollowRequestKey, setLyricFollowRequestKey] = useState(0);
   const [wordShiftMs, setWordShiftMs] = useState(0);
   const [lyricsOpen, setLyricsOpen] = useState(false);
@@ -748,14 +758,15 @@ const KaraokeMaker = ({
       lineEntryCountdownTimersRef.current = [];
     });
   }, [
-    setViewStartMs,
-    cancelAudibleInteractions,
     clearLineEntryCountdown,
+    cancelAudibleInteractions,
     isPlaying,
-    onPause,
-    onPlay,
-    onSeek,
     projectRef,
+    onPause,
+    onSeek,
+    setViewStartMs,
+    setSelection,
+    onPlay,
   ]);
 
   useEffect(
@@ -821,7 +832,6 @@ const KaraokeMaker = ({
     BASE_LYRIC_SECTION_TOP +
     (canvasSectionGroups.length ? SECTION_GROUP_HEIGHT : 0);
   const headerHeight = lyricSectionTop + LYRIC_SECTION_HEIGHT + 10;
-  const tokens = useMemo(() => flattenTokens(project), [project]);
   const lyricLines = useMemo(
     () =>
       project.lyrics.lines.filter(
@@ -1327,31 +1337,6 @@ const KaraokeMaker = ({
   ]);
 
   useEffect(() => {
-    if (selection?.kind !== 'note') {
-      setControlLinkMode(false);
-      return undefined;
-    }
-    const setControlIndicator = (event: KeyboardEvent) => {
-      if (
-        event.code === 'ControlLeft' ||
-        event.code === 'ControlRight' ||
-        event.key === 'Control'
-      ) {
-        setControlLinkMode(event.type === 'keydown');
-      }
-    };
-    const clearControlIndicator = () => setControlLinkMode(false);
-    window.addEventListener('keydown', setControlIndicator, true);
-    window.addEventListener('keyup', setControlIndicator, true);
-    window.addEventListener('blur', clearControlIndicator);
-    return () => {
-      window.removeEventListener('keydown', setControlIndicator, true);
-      window.removeEventListener('keyup', setControlIndicator, true);
-      window.removeEventListener('blur', clearControlIndicator);
-    };
-  }, [selection?.kind]);
-
-  useEffect(() => {
     if (!noticeEntry || analysisProgress !== undefined || analysisError) {
       return undefined;
     }
@@ -1363,41 +1348,6 @@ const KaraokeMaker = ({
     }, 5_000);
     return () => window.clearTimeout(timeout);
   }, [analysisError, analysisProgress, noticeEntry]);
-
-  useEffect(() => {
-    if (!draftReady || !selection) {
-      return;
-    }
-    const selectionExists =
-      selection.kind === 'word'
-        ? tokens.some((token) => token.id === selection.id)
-        : project.melody.notes.some((note) => note.id === selection.id);
-    if (!selectionExists) {
-      setSelection(undefined);
-    }
-  }, [draftReady, project.melody.notes, selection, tokens]);
-
-  useEffect(() => {
-    if (selection?.kind !== 'note') {
-      if (selectedNoteIds.size) {
-        setSelectedNoteIds(new Set());
-      }
-      return;
-    }
-    const existingIds = new Set(project.melody.notes.map((note) => note.id));
-    setSelectedNoteIds((current) => {
-      const next = new Set(
-        [...current].filter((noteId) => existingIds.has(noteId)),
-      );
-      if (existingIds.has(selection.id)) {
-        next.add(selection.id);
-      }
-      return next.size === current.size &&
-        [...next].every((noteId) => current.has(noteId))
-        ? current
-        : next;
-    });
-  }, [project.melody.notes, selectedNoteIds.size, selection]);
 
   useEffect(
     () => () => {
@@ -1439,7 +1389,7 @@ const KaraokeMaker = ({
       window.removeEventListener('keydown', closeOnEscape);
       cancelAudibleInteractions();
     };
-  }, [cancelAudibleInteractions]);
+  }, [cancelAudibleInteractions, setSelection]);
 
   useEffect(() => {
     if (viewDurationMs !== visibleViewDurationMs) {
@@ -3728,7 +3678,7 @@ const KaraokeMaker = ({
       setSelection({ kind: 'word', id: line.tokens[0].id });
       setLyricFollowRequestKey((key) => key + 1);
     },
-    [lyricLines],
+    [lyricLines, setSelection],
   );
 
   const recordLineEntry = useCallback(() => {
@@ -3813,20 +3763,21 @@ const KaraokeMaker = ({
       ),
     );
   }, [
+    lineEntrySession,
+    lyricLines,
+    lineEntryIndex,
+    readPlayheadMs,
+    playheadMs,
+    lineEntryCapture,
+    commit,
+    setSelection,
     setFollowViewport,
     setViewStartMs,
-    commit,
-    effectiveDurationMs,
-    lineEntryIndex,
-    lineEntryCapture,
-    lyricLines,
     maximumViewStartMs,
-    playheadMs,
-    readPlayheadMs,
+    visibleViewDurationMs,
     setNotice,
     t,
-    lineEntrySession,
-    visibleViewDurationMs,
+    effectiveDurationMs,
   ]);
 
   const markNextGuidedWord = useCallback(() => {
@@ -3868,6 +3819,7 @@ const KaraokeMaker = ({
     lyricLines,
     playheadMs,
     readPlayheadMs,
+    setSelection,
   ]);
 
   const ignoreGuidedLine = useCallback(() => {
@@ -3884,7 +3836,14 @@ const KaraokeMaker = ({
     setSelection({ kind: 'word', id: nextLine.tokens[0].id });
     setFollowViewport(true);
     setLyricFollowRequestKey((key) => key + 1);
-  }, [lineEntryIndex, lyricLines, setFollowViewport, setNotice, t]);
+  }, [
+    lineEntryIndex,
+    lyricLines,
+    setFollowViewport,
+    setNotice,
+    setSelection,
+    t,
+  ]);
 
   useEffect(() => {
     if (!lineEntryMode) {
@@ -4082,6 +4041,8 @@ const KaraokeMaker = ({
     playheadMs,
     readPlayheadMs,
     selectedLyricLineId,
+    setSelection,
+    setSelectedNoteIds,
   ]);
 
   const splitSelectedLyricsWord = () => {
@@ -4232,7 +4193,7 @@ const KaraokeMaker = ({
     }
     setSelection(undefined);
     setSelectedNoteIds(new Set());
-  }, [commit, selectedNoteIds, selection]);
+  }, [commit, selectedNoteIds, selection, setSelectedNoteIds, setSelection]);
 
   const detachSelectedNotes = useCallback(() => {
     const noteIds = new Set(selectedNoteIds);
@@ -4270,7 +4231,13 @@ const KaraokeMaker = ({
         .sort((left, right) => left.startMs - right.startMs)
         .map((note) => ({ ...note })),
     );
-  }, [project.melody.notes, selectedNoteIds, selection]);
+  }, [
+    project.melody.notes,
+    selectedNoteIds,
+    selection?.id,
+    selection?.kind,
+    setCopiedNotes,
+  ]);
 
   const pasteCopiedNotes = useCallback(() => {
     if (!copiedNotes.length) {
@@ -4330,6 +4297,8 @@ const KaraokeMaker = ({
     playheadMs,
     readPlayheadMs,
     setNotice,
+    setSelectedNoteIds,
+    setSelection,
     t,
   ]);
 
