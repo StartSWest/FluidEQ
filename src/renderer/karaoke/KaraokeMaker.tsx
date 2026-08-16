@@ -60,6 +60,8 @@ import KaraokeMakerHeaderActions from './KaraokeMakerHeaderActions';
 import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
 import KaraokeMakerToolbarButton from './KaraokeMakerToolbarButton';
 import KaraokeMakerEditTools from './KaraokeMakerEditTools';
+import KaraokeMakerSpeechMemoryPanel from './KaraokeMakerSpeechMemoryPanel';
+import KaraokeMakerAnalysisTools from './KaraokeMakerAnalysisTools';
 import KaraokeMakerConfirmDialog, {
   TDestructiveMakerAction,
 } from './KaraokeMakerConfirmDialog';
@@ -5664,100 +5666,22 @@ const KaraokeMaker = ({
       : 'karaoke.maker.speechMemoryMissing';
   })();
 
-  const renderAdvancedAnalysisTools = () => (
+  const advancedAnalysisTools = (
     <>
-      <KaraokeMakerToolbarButton
-        icon="transcribe"
-        label={t('karaoke.maker.repairLyrics')}
-        onClick={() => requestWhisper(false).catch(() => undefined)}
-        disabled={analysisProgress !== undefined}
+      <KaraokeMakerAnalysisTools
+        isAnalysing={analysisProgress !== undefined}
+        onDetectLyrics={() => requestWhisper(false).catch(() => undefined)}
+        onDetectMelody={() => runBasicPitch().catch(() => undefined)}
+        onRebuild={() => requestWhisper(true).catch(() => undefined)}
+        isUsingSongAudio={analysisFile === audioFile}
+        onChooseVocalStem={() => vocalStemInputRef.current?.click()}
       />
-      <KaraokeMakerToolbarButton
-        icon="melody"
-        label={t('karaoke.maker.repairMelody')}
-        onClick={() => runBasicPitch().catch(() => undefined)}
-        disabled={analysisProgress !== undefined}
+      <KaraokeMakerSpeechMemoryPanel
+        session={whisperSession}
+        statusKey={speechMemoryStatusKey}
+        onRelease={() => releaseWhisperNow().catch(() => undefined)}
+        onSettingsChange={writeKaraokeWhisperMemorySettings}
       />
-      <KaraokeMakerToolbarButton
-        icon="analyze"
-        label={t('karaoke.maker.rebuildKaraoke')}
-        onClick={() => requestWhisper(true).catch(() => undefined)}
-        disabled={analysisProgress !== undefined}
-      />
-      <KaraokeMakerToolbarButton
-        icon="stem"
-        label={t(
-          analysisFile === audioFile
-            ? 'karaoke.maker.vocalStem'
-            : 'karaoke.maker.vocalStemLoaded',
-        )}
-        onClick={() => vocalStemInputRef.current?.click()}
-      />
-      <section className="karaoke-maker__memory-panel">
-        <div className="karaoke-maker__memory-heading">
-          <span
-            className={whisperSession.inMemory ? 'is-ready' : undefined}
-            aria-hidden="true"
-          />
-          <strong>{t('karaoke.maker.speechMemory')}</strong>
-          <em>{t(speechMemoryStatusKey)}</em>
-          {whisperSession.inMemory && (
-            <button
-              type="button"
-              disabled={whisperSession.busy}
-              onClick={() => releaseWhisperNow().catch(() => undefined)}
-            >
-              {t('karaoke.maker.freeMemory')}
-            </button>
-          )}
-        </div>
-        <span className="karaoke-maker__memory-label">
-          {t('karaoke.maker.memoryAfterUse')}
-        </span>
-        <div className="karaoke-maker__memory-options" role="group">
-          {(['ask', 'auto', 'keep'] as const).map((policy) => (
-            <button
-              key={policy}
-              type="button"
-              className={
-                whisperSession.settings.policy === policy ? 'is-active' : ''
-              }
-              onClick={() =>
-                writeKaraokeWhisperMemorySettings({
-                  ...whisperSession.settings,
-                  policy,
-                })
-              }
-            >
-              {t(`karaoke.maker.memoryPolicy.${policy}`)}
-            </button>
-          ))}
-        </div>
-        {whisperSession.settings.policy !== 'keep' && (
-          <div className="karaoke-maker__memory-delay" role="group">
-            <span>{t('karaoke.maker.memoryAfter')}</span>
-            {([5, 10, 30] as const).map((idleMinutes) => (
-              <button
-                key={idleMinutes}
-                type="button"
-                className={
-                  whisperSession.settings.idleMinutes === idleMinutes
-                    ? 'is-active'
-                    : ''
-                }
-                onClick={() =>
-                  writeKaraokeWhisperMemorySettings({
-                    ...whisperSession.settings,
-                    idleMinutes,
-                  })
-                }
-              >
-                {t('karaoke.maker.memoryMinutes', { count: idleMinutes })}
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
     </>
   );
 
@@ -6242,7 +6166,7 @@ const KaraokeMaker = ({
               />
               {toolPanel === 'analysis' && (
                 <div className="karaoke-maker__tool-popover karaoke-maker__action-popover karaoke-maker__analysis-popover">
-                  {renderAdvancedAnalysisTools()}
+                  {advancedAnalysisTools}
                 </div>
               )}
             </div>
@@ -6264,7 +6188,7 @@ const KaraokeMaker = ({
             />
             {toolPanel === 'analysis' && (
               <div className="karaoke-maker__tool-popover karaoke-maker__action-popover karaoke-maker__analysis-popover">
-                {renderAdvancedAnalysisTools()}
+                {advancedAnalysisTools}
               </div>
             )}
           </div>
