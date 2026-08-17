@@ -58,7 +58,8 @@ import KaraokeLyrics, {
   writeLyricTextSize,
 } from './KaraokeLyrics';
 import KaraokeTransport from './KaraokeTransport';
-import KaraokePitchLane, { IKaraokePitchIssue } from './KaraokePitchLane';
+import KaraokePitchLane from './KaraokePitchLane';
+import { IKaraokePitchIssue } from './karaokePitchGeometry';
 import KaraokePlaylist, { KARAOKE_PLAYLIST_DRAG_MIME } from './KaraokePlaylist';
 import KaraokePaneSplitter from './KaraokePaneSplitter';
 import KaraokeMaker from './KaraokeMaker';
