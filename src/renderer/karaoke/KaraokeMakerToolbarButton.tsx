@@ -27,6 +27,8 @@ interface IKaraokeMakerToolbarButtonProps {
   active?: boolean;
   disabled?: boolean;
   danger?: boolean;
+  /** Why this button is unavailable, or what it will do that is not obvious. */
+  hint?: string;
 }
 
 /**
@@ -39,6 +41,12 @@ interface IKaraokeMakerToolbarButtonProps {
  * The label does triple duty as the visible text, the accessible name and the
  * tooltip, so a button cannot end up saying one thing to the eye and another to
  * a screen reader.
+ *
+ * `hint` extends the last two without touching the first. A disabled button
+ * that explains nothing reads as a bug rather than as a step in an order, and
+ * the reason is usually a sentence — too long to sit under an icon, and exactly
+ * right in a tooltip. The accessible name still begins with the visible label,
+ * so the two continue to agree.
  */
 const KaraokeMakerToolbarButton = ({
   icon,
@@ -47,6 +55,7 @@ const KaraokeMakerToolbarButton = ({
   active = false,
   disabled = false,
   danger = false,
+  hint,
 }: IKaraokeMakerToolbarButtonProps) => (
   <button
     type="button"
@@ -55,9 +64,9 @@ const KaraokeMakerToolbarButton = ({
     }`}
     onClick={onClick}
     disabled={disabled}
-    aria-label={label}
+    aria-label={hint ? `${label} — ${hint}` : label}
     aria-pressed={active || undefined}
-    data-tooltip={label}
+    data-tooltip={hint ? `${label} — ${hint}` : label}
   >
     <KaraokeMakerToolIcon name={icon} />
     <span className="karaoke-maker__tool-label">{label}</span>

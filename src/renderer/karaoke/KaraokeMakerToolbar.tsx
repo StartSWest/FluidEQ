@@ -62,6 +62,14 @@ export interface IKaraokeMakerToolbarProps {
   exportOpen: boolean;
   setExportOpen: Dispatch<SetStateAction<boolean>>;
   exportProject: (format: TKaraokeMakerExportFormat) => Promise<void>;
+  /**
+   * Save the backing track, once separation has produced one.
+   *
+   * Undefined until then, and the entry is simply absent rather than disabled:
+   * an export list is a list of things that exist, and a permanently greyed
+   * row in it invites the question of what is broken.
+   */
+  onSaveInstrumental?: () => void;
   openLyricsEditor: () => void;
   prepareKaraoke: () => void;
   setDestructiveAction: Dispatch<
@@ -78,6 +86,7 @@ const KaraokeMakerToolbar = ({
   editTools,
   exportOpen,
   exportProject,
+  onSaveInstrumental,
   handPanMode,
   openLyricsEditor,
   prepareKaraoke,
@@ -250,6 +259,11 @@ const KaraokeMakerToolbar = ({
             >
               {t('karaoke.maker.exportElrc')}
             </button>
+            {onSaveInstrumental && (
+              <button type="button" onClick={onSaveInstrumental}>
+                {t('karaoke.maker.exportInstrumental')}
+              </button>
+            )}
           </div>
         )}
       </div>

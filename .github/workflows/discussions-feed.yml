@@ -50,7 +50,7 @@ jobs:
                   totalCount
                   nodes {
                     number title bodyText createdAt updatedAt upvoteCount url
-                    category { name slug emoji }
+                    category { name slug emoji emojiHTML }
                     author { login avatarUrl url }
                     answer { id }
                     comments(first: 50) {
@@ -106,7 +106,9 @@ jobs:
               url: node.url,
               category: node.category?.name ?? 'General',
               categorySlug: node.category?.slug ?? 'general',
-              emoji: node.category?.emoji ?? '',
+              // GitHub returns the shortcode (":pray:") in `emoji`; the real character
+              // is inside emojiHTML. The site renders text, so take the character.
+              emoji: (node.category?.emojiHTML ?? '').replace(/<[^>]*>/g, '').trim(),
               answered: Boolean(node.answer),
               replies: node.comments?.totalCount ?? 0,
               author: person(node.author),

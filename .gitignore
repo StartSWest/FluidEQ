@@ -48,3 +48,14 @@ presets/**
 
 # Local launch config for Claude Code; not part of the build.
 .claude/
+
+# Audio dropped in the working tree while testing the Karaoke Maker. These are
+# commercial recordings used to check separation and lyric timing against a
+# real mix, and they are megabytes each — they belong on the machine doing the
+# testing, never in the history of a public repository.
+/*.mp3
+/*.Mp3
+/*.MP3
+/*.wav
+/*.flac
+/*.m4a

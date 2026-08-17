@@ -70,16 +70,46 @@ describe('the app window content security policy', () => {
     expect(directives(false)['script-src']).not.toContain("'unsafe-eval'");
   });
 
-  it('lets the speech model be fetched', () => {
-    // Whisper downloads from huggingface, from inside the worker. Without this
-    // the Karaoke transcription fails with a network error that looks like a
-    // broken connection and is a policy refusal.
-    ['https://huggingface.co', 'https://cdn-lfs.huggingface.co'].forEach(
-      (host) => {
-        expect(directives(false)['connect-src']).toContain(host);
-        expect(directives(true)['connect-src']).toContain(host);
-      },
-    );
+  it('lets the speech and separation models be fetched', () => {
+    // Both models download from huggingface, from inside their workers.
+    // Without this the Karaoke features fail with a network error that looks
+    // like a broken connection and is a policy refusal.
+    ['https://huggingface.co'].forEach((host) => {
+      expect(directives(false)['connect-src']).toContain(host);
+      expect(directives(true)['connect-src']).toContain(host);
+    });
+  });
+
+  it('allows the large-file hosts the model downloads redirect to', () => {
+    // The failure this prevents is the nastiest of the set: a request to
+    // huggingface.co is permitted, answered with a redirect to a CDN host, and
+    // the redirect is refused. The download starts, shows progress, and dies —
+    // which reads as a flaky mirror rather than as policy. The separation
+    // model is ~700MB, so it is always served this way.
+    const sources = directives(false)['connect-src'];
+    // Named hosts were tried and shipped broken: the policy listed
+    // `cdn-lfs-us-1.hf.co` while the redirect actually landed on
+    // `us.aws.cdn.hf.co`, so the download began and was then refused. The
+    // hosts are per-region and per-provider and Hugging Face adds them as it
+    // likes, so the assertion is that the wildcard is there — an enumeration
+    // passing this test would mean nothing.
+    expect(sources).toContain('https://*.hf.co');
+    expect(sources).toContain('https://*.huggingface.co');
+    // A representative sample of the hosts seen in the wild, all of which the
+    // wildcards must admit.
+    const matches = (host: string) =>
+      sources.some((source) => {
+        const pattern = source.replace('https://', '');
+        return pattern.startsWith('*.')
+          ? host.endsWith(pattern.slice(1))
+          : host === pattern;
+      });
+    [
+      'us.aws.cdn.hf.co',
+      'cdn-lfs-us-1.hf.co',
+      'cas-bridge.xethub.hf.co',
+      'huggingface.co',
+    ].forEach((host) => expect(matches(host)).toBe(true));
   });
 
   it('lets the dev server talk to its own hot reload', () => {

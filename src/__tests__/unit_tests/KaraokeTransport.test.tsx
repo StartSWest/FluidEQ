@@ -70,4 +70,79 @@ describe('KaraokeTransport', () => {
     expect(onSeek).toHaveBeenCalledWith(25_000);
     expect(onVolume).toHaveBeenCalledWith(0.4);
   });
+
+  /**
+   * The guide-vocal fader, which exists only for a song that has been
+   * separated into a backing track and an isolated voice.
+   */
+  describe('the guide vocal fader', () => {
+    const transport = (vocalLevel?: number) => {
+      const onVocalLevel = jest.fn();
+      render(
+        <KaraokeTransport
+          status="paused"
+          playheadMs={0}
+          durationMs={60_000}
+          volume={0.7}
+          onTogglePlayback={() => {}}
+          onRestart={() => {}}
+          onSeek={() => {}}
+          onSeekLyric={() => {}}
+          onVolume={() => {}}
+          vocalLevel={vocalLevel}
+          onVocalLevel={onVocalLevel}
+        />,
+      );
+      return { onVocalLevel };
+    };
+
+    it('stays hidden for a song that was never separated', () => {
+      // Nothing to blend, so the control would be a slider that does nothing.
+      render(
+        <KaraokeTransport
+          status="paused"
+          playheadMs={0}
+          durationMs={60_000}
+          volume={0.7}
+          onTogglePlayback={() => {}}
+          onRestart={() => {}}
+          onSeek={() => {}}
+          onSeekLyric={() => {}}
+          onVolume={() => {}}
+        />,
+      );
+      expect(screen.queryByLabelText('Guide vocal')).not.toBeInTheDocument();
+    });
+
+    it('appears once a song has an isolated voice to blend', () => {
+      transport(0);
+      expect(screen.getByLabelText('Guide vocal')).toBeInTheDocument();
+    });
+
+    it('reports the level as a fraction, like the volume beside it', () => {
+      const { onVocalLevel } = transport(0.25);
+      fireEvent.change(screen.getByLabelText('Guide vocal'), {
+        target: { value: '0.6' },
+      });
+      expect(onVocalLevel).toHaveBeenCalledWith(0.6);
+    });
+
+    it('names silence rather than showing a bare zero', () => {
+      // "0%" invites the reading that something is broken. The bottom of this
+      // fader is a working state with a name: the backing track on its own.
+      transport(0);
+      expect(screen.getByLabelText('Guide vocal')).toHaveAttribute(
+        'aria-valuetext',
+        'Backing only',
+      );
+    });
+
+    it('is a control separate from the song volume', () => {
+      // Folding the two together would mean turning the guide vocal down also
+      // quietened the backing track, which is not what anyone means by it.
+      transport(0.5);
+      expect(screen.getByLabelText('Guide vocal')).toBeInTheDocument();
+      expect(screen.getByLabelText('Volume')).toBeInTheDocument();
+    });
+  });
 });

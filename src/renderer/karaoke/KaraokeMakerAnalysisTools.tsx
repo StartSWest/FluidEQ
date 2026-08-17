@@ -30,6 +30,8 @@ interface IKaraokeMakerAnalysisToolsProps {
   /** False once a separate vocal stem has been loaded in place of the mix. */
   isUsingSongAudio: boolean;
   onChooseVocalStem: () => void;
+  /** Split the mix here, rather than making the user supply a stem. */
+  onRemoveBackground: () => void;
 }
 
 /**
@@ -48,52 +50,107 @@ const KaraokeMakerAnalysisTools = ({
   onRebuild,
   isUsingSongAudio,
   onChooseVocalStem,
+  onRemoveBackground,
 }: IKaraokeMakerAnalysisToolsProps) => {
   const { t } = useTranslation();
 
-  const tools: {
+  interface ITool {
     icon: TKaraokeMakerToolIcon;
     label: TranslationKey;
+    hint?: TranslationKey;
     disabled?: boolean;
     onClick: () => void;
-  }[] = [
+  }
+
+  /**
+   * Two groups, because these are two different jobs that happen to share a
+   * popover — and the second cannot start until the first has finished.
+   *
+   * Flat, the list read as five interchangeable actions, three of which were
+   * mysteriously disabled. Split and titled, the order is the instruction:
+   * deal with the audio, then deal with the words.
+   */
+  const groups: { title: TranslationKey; tools: ITool[] }[] = [
     {
-      icon: 'transcribe',
-      label: 'karaoke.maker.repairLyrics',
-      disabled: isAnalysing,
-      onClick: onDetectLyrics,
+      title: 'karaoke.maker.groupVoice',
+      tools: [
+        {
+          icon: 'stem',
+          label: isUsingSongAudio
+            ? 'karaoke.maker.removeBackground'
+            : 'karaoke.maker.removeBackgroundDone',
+          disabled: isAnalysing || !isUsingSongAudio,
+          onClick: onRemoveBackground,
+        },
+        {
+          // The manual way in, for someone who already has a stem from another
+          // tool. Never blocked by a run: choosing a cleaner recording is
+          // preparation for the next detection, not a competing one.
+          icon: 'vocal',
+          label: 'karaoke.maker.vocalStem',
+          onClick: onChooseVocalStem,
+        },
+      ],
     },
     {
-      icon: 'melody',
-      label: 'karaoke.maker.repairMelody',
-      disabled: isAnalysing,
-      onClick: onDetectMelody,
-    },
-    {
-      icon: 'analyze',
-      label: 'karaoke.maker.rebuildKaraoke',
-      disabled: isAnalysing,
-      onClick: onRebuild,
-    },
-    {
-      icon: 'stem',
-      label: isUsingSongAudio
-        ? 'karaoke.maker.vocalStem'
-        : 'karaoke.maker.vocalStemLoaded',
-      onClick: onChooseVocalStem,
+      title: 'karaoke.maker.groupLyrics',
+      tools: [
+        {
+          icon: 'transcribe',
+          label: 'karaoke.maker.repairLyrics',
+          // Whisper transcribes an isolated voice far more reliably than a
+          // voice buried in a mix, so this waits for a stem rather than
+          // running badly. The hint says why, because a button that is simply
+          // dead teaches the user nothing and reads as a bug.
+          disabled: isAnalysing || isUsingSongAudio,
+          hint: isUsingSongAudio
+            ? 'karaoke.maker.separationRequired'
+            : undefined,
+          onClick: onDetectLyrics,
+        },
+        {
+          icon: 'melody',
+          label: 'karaoke.maker.repairMelody',
+          // Pitch detection is polyphonic and still produces something usable
+          // from a full mix — worse, but not wrong — so it stays available.
+          disabled: isAnalysing,
+          onClick: onDetectMelody,
+        },
+        {
+          icon: 'analyze',
+          label: 'karaoke.maker.rebuildKaraoke',
+          disabled: isAnalysing || isUsingSongAudio,
+          hint: isUsingSongAudio
+            ? 'karaoke.maker.separationRequired'
+            : undefined,
+          onClick: onRebuild,
+        },
+      ],
     },
   ];
 
   return (
     <>
-      {tools.map((tool) => (
-        <KaraokeMakerToolbarButton
-          key={tool.icon}
-          icon={tool.icon}
-          label={t(tool.label)}
-          disabled={tool.disabled}
-          onClick={tool.onClick}
-        />
+      {groups.map((group) => (
+        <section
+          key={group.title}
+          className="karaoke-maker__tool-group-titled"
+          aria-label={t(group.title)}
+        >
+          <h3 className="karaoke-maker__tool-group-title">{t(group.title)}</h3>
+          <div className="karaoke-maker__tool-group-items">
+            {group.tools.map((tool) => (
+              <KaraokeMakerToolbarButton
+                key={tool.icon}
+                icon={tool.icon}
+                label={t(tool.label)}
+                hint={tool.hint ? t(tool.hint) : undefined}
+                disabled={tool.disabled}
+                onClick={tool.onClick}
+              />
+            ))}
+          </div>
+        </section>
       ))}
     </>
   );

@@ -195,6 +195,35 @@ export const karaokeMakerLineIsSection = (
       .trim(),
   );
 
+/**
+ * Whether this project is already a finished karaoke.
+ *
+ * The question the Maker asks when a song is opened: is there anything here to
+ * detect, or has the work already been done? "Finished" means every sung word
+ * has a start and an end — lyrics with no timings are a lyric sheet, and
+ * lyrics where only some lines are timed are a job someone abandoned halfway,
+ * which is exactly the case worth offering to finish.
+ *
+ * Section markers are excluded because they are labels rather than singing, and
+ * they never carry timings. Counting them would make every project look
+ * unfinished and re-run detection over work the user had already done.
+ */
+export const karaokeMakerHasCompleteTiming = (
+  lines: readonly IKaraokeMakerLine[],
+): boolean => {
+  const sung = lines.filter((line) => !karaokeMakerLineIsSection(line));
+  const tokens = sung.flatMap((line) => line.tokens);
+  if (!tokens.length) {
+    return false;
+  }
+  return tokens.every(
+    (token) =>
+      token.startMs !== undefined &&
+      token.endMs !== undefined &&
+      token.endMs > token.startMs,
+  );
+};
+
 const lineTiming = (
   line: IKaraokeMakerLine,
 ): { startMs?: number; endMs?: number } => {

@@ -54,7 +54,13 @@ export type TKaraokePitchTarget =
 
 export interface IKaraokeAsset {
   id: string;
-  role: 'audio' | 'video' | 'lyrics' | 'cdg' | 'midi' | 'soundfont';
+  /**
+   * `vocals` is the isolated voice produced by separating the song, and it is
+   * a companion to `audio` rather than a replacement: the player keeps playing
+   * the backing track and blends this back in at whatever level the singer
+   * asks for. A song either has both or neither.
+   */
+  role: 'audio' | 'vocals' | 'video' | 'lyrics' | 'cdg' | 'midi' | 'soundfont';
   file: File;
   extension: string;
 }

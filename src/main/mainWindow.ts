@@ -196,10 +196,20 @@ export const createMainWindowFactory = ({
     // getUserMedia handshake instead of depending on Electron's implicit
     // permission default. Remote Media pages use a different, locked-down
     // session in videoBrowser.ts, so this grant cannot leak into web content.
+    // `created?.webContents` throws once the window has been destroyed —
+    // Electron's accessors on a dead BrowserWindow raise "Object has been
+    // destroyed" rather than returning undefined. The session outlives the
+    // window, so these handlers keep firing during teardown and on a dev
+    // reload, and an uncaught throw here takes the whole main process with it.
     const isOwnMainFrame = (
       contents: Electron.WebContents | null,
       details: { isMainFrame: boolean },
-    ) => contents === created?.webContents && details.isMainFrame;
+    ) => {
+      if (!created || created.isDestroyed()) {
+        return false;
+      }
+      return contents === created.webContents && details.isMainFrame;
+    };
     appSession.setPermissionRequestHandler(
       (contents, _permission, callback, details) => {
         callback(isOwnMainFrame(contents, details));

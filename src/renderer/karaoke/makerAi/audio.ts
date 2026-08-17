@@ -17,15 +17,36 @@ const MAX_AI_FILE_BYTES = 1024 * 1024 * 1024;
 export const WHISPER_MODEL = 'onnx-community/whisper-base_timestamped';
 
 /**
- * Temporary product gate for automatic lyric timing and melody detection.
+ * Product gate for automatic lyric timing and melody detection.
  *
- * The implementation stays in the repository for further experiments, but it
- * must not be exposed or started from the shipped Maker UI until repeated
- * lyrics, section coverage, word boundaries, and syllable-to-note alignment
- * are reliable on a representative karaoke corpus. Manual line recording,
- * lyric editing, note painting, and imported provider timing remain supported.
+ * Off since the detector was written, for a specific reason: repeated lyrics,
+ * section coverage and word boundaries were unreliable, because Whisper was
+ * being asked to transcribe a voice buried under a full mix. Vocal separation
+ * addresses exactly that — the transcriber now reads an isolated voice — so
+ * the gate is open for development.
+ *
+ * **What is proven, and what is not.** The separation is verified on a real
+ * commercial mix: an isolated vocal at -18 dB RMS carrying voice in 40 of 41
+ * five-second windows, with silence only where the song ends. The transform
+ * round-trips to the double-precision floor.
+ *
+ * The vocal-free null case is also verified — fed an instrumental it extracts
+ * nothing — but it is worth recording that this test alone was actively
+ * misleading. It cannot separate a working pipeline from one that returns zero
+ * for every input, and for a while this code was the latter: a transposed
+ * tensor packing scored 52 dB on the null case, better than the correct
+ * packing's 4 dB, while in truth separating nothing at all. One real song
+ * exposed it immediately. A null result needs a positive control beside it.
+ *
+ * What has *not* been measured is how much the alignment improves once the
+ * transcriber is given that stem. That needs transcriptions of real songs.
+ *
+ * **So this must be re-examined before a release, not before a merge.** These
+ * changes sit on master unreleased by design. If the alignment quality does not
+ * hold up on a representative karaoke corpus, turn this back off — it is one
+ * line, and every path behind it is inert when it is false.
  */
-export const KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED = false;
+export const KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED = true;
 
 export const BASIC_PITCH_PROVENANCE: IKaraokeMakerLicenseRecord = {
   component: '@spotify/basic-pitch model and runtime',

@@ -2175,6 +2175,25 @@ if (isDebug && process.getuid?.() === 0) {
   app.commandLine.appendSwitch('disable-setuid-sandbox');
 }
 
+/**
+ * A DevTools protocol port while developing, and only while developing.
+ *
+ * Without it the running window can only be inspected by a person looking at
+ * it: tests say the markup is right and the stylesheet says the rules
+ * compiled, but neither can see a control that renders invisibly or a panel
+ * that collapses. Several defects shipped that way — an icon with no size that
+ * filled the tab, buttons with no class, two sections that sat side by side.
+ * Every one passed the whole suite.
+ *
+ * Bound to the loopback address on purpose, and gated on `isDebug` so it can
+ * never reach a packaged build — an open protocol port is remote control of
+ * the browser, not merely a diagnostic.
+ */
+if (process.env.NODE_ENV === 'development') {
+  app.commandLine.appendSwitch('remote-debugging-port', '9222');
+  app.commandLine.appendSwitch('remote-debugging-address', '127.0.0.1');
+}
+
 /*
  * WINDOWS' OWN DRM WAS TRIED HERE AND DOES NOT WORK. DO NOT TRY IT AGAIN.
  *

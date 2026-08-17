@@ -83,6 +83,10 @@ const configuration: webpack.Configuration = {
       webpackPaths.srcRendererPath,
       'karaoke/whisper.worker.ts',
     ),
+    'karaoke-separation-worker': path.join(
+      webpackPaths.srcRendererPath,
+      'karaoke/separation.worker.ts',
+    ),
   },
 
   output: {
@@ -142,7 +146,18 @@ const configuration: webpack.Configuration = {
       },
       {
         // ONNX Runtime dynamically imports the JS bootstrap before it opens
-        // the WASM binary. They must be emitted together under stable names.
+        // the WASM binary. They must be emitted together under stable names,
+        // so these cannot be content-hashed.
+        //
+        // Both Karaoke workers land here — the speech model reaches ONNX
+        // through @huggingface/transformers, the separation worker imports
+        // onnxruntime-web directly — and that is only safe because the two
+        // resolve to one version. `onnxruntime-web` is pinned in package.json
+        // to the exact build transformers depends on, rather than to a range.
+        // Two versions ship these same basenames with different content, and
+        // webpack fails the build outright: "Multiple chunks emit assets to
+        // the same filename". One copy also keeps a second ORT runtime out of
+        // the bundle.
         test: /ort-wasm-simd-threaded\.jsep\.(?:mjs|wasm)$/i,
         type: 'asset/resource',
         generator: { filename: 'karaoke-models/whisper/[name][ext]' },

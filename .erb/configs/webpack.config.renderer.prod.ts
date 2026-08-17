@@ -55,6 +55,10 @@ const configuration: webpack.Configuration = {
       webpackPaths.srcRendererPath,
       'karaoke/whisper.worker.ts',
     ),
+    'karaoke-separation-worker': path.join(
+      webpackPaths.srcRendererPath,
+      'karaoke/separation.worker.ts',
+    ),
   },
 
   output: {
@@ -136,6 +140,10 @@ const configuration: webpack.Configuration = {
       {
         // ONNX Runtime dynamically imports this MJS bootstrap and then loads
         // the matching WASM binary. A packaged build needs both local files.
+        // Both Karaoke workers land here, which is only safe because
+        // `onnxruntime-web` is pinned in package.json to the exact build
+        // @huggingface/transformers depends on. Two versions ship these same
+        // basenames with different content and webpack fails outright.
         test: /ort-wasm-simd-threaded\.jsep\.(?:mjs|wasm)$/i,
         type: 'asset/resource',
         generator: { filename: 'karaoke-models/whisper/[name][ext]' },

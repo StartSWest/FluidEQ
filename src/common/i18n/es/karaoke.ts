@@ -85,6 +85,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.transport.spaceShortcut': '{action} · Espacio',
   'karaoke.transport.seek': 'Posición de la canción',
   'karaoke.transport.volume': 'Volumen',
+  'karaoke.transport.vocalLevel': 'Voz guía',
+  'karaoke.transport.vocalOff': 'Solo base',
+  'karaoke.transport.vocalFull': 'Original',
   'karaoke.mic.title': 'Micrófono',
   'karaoke.mic.settings': 'Ajustes del micrófono',
   'karaoke.mic.off': 'Apagado',
@@ -286,12 +289,40 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcribe': 'Transcribir',
   'karaoke.maker.vocalStem': 'Cargar pista solo de voz',
   'karaoke.maker.vocalStemLoaded': 'Pista solo de voz cargada',
+  'karaoke.maker.groupVoice': 'Voz y música',
+  'karaoke.maker.stemsTitle': 'Pistas separadas',
+  'karaoke.maker.stemBacking': 'Pista base',
+  'karaoke.maker.stemVoice': 'Voz',
+  'karaoke.maker.stemSave': 'Guardar',
+  'karaoke.maker.groupLyrics': 'Letra y sincronización',
+  'karaoke.maker.removeBackground': 'Separar la voz de la música',
+  'karaoke.maker.removeBackgroundDone': 'Voz ya separada',
+  'karaoke.maker.separationDownloading':
+    'Descargando el modelo de separación ({percent}%) · una sola vez, unos 700 MB',
+  'karaoke.maker.separationReading': 'Leyendo la canción',
+  'karaoke.maker.separating': 'Separando la voz de la música',
+  'karaoke.maker.separationDone':
+    'Voz separada. La detección de letra está lista.',
+  'karaoke.maker.separationSlow':
+    'Sin aceleración gráfica en este equipo, así que tardará unos minutos en vez de menos de uno.',
+  'karaoke.maker.separationRequired':
+    'Separa primero la voz: la detección de letra lee la pista vocal aislada.',
+  'karaoke.maker.wizardTitle': 'Preparar esta canción automáticamente',
+  'karaoke.maker.wizardIntro':
+    'Esta canción aún no tiene tiempos de letra. FluidEQ puede separar la voz de la música y leer de ella las palabras y sus tiempos. Todo se ejecuta en este ordenador.',
+  'karaoke.maker.wizardStepSeparate': 'Separar la voz',
+  'karaoke.maker.wizardStepTranscribe': 'Leer las palabras y los tiempos',
+  'karaoke.maker.wizardStart': 'Preparar automáticamente',
+  'karaoke.maker.wizardSkip': 'Lo haré yo',
+  'karaoke.maker.wizardCancel': 'Detener',
+  'karaoke.maker.wizardCancelled': 'Detenido. Se ha conservado lo terminado.',
   'karaoke.maker.vocalFocus': 'Enfocar voz central',
   'karaoke.maker.export': 'Exportar',
   'karaoke.maker.exportProject': 'Proyecto de FluidEQ',
   'karaoke.maker.exportUltraStar': 'TXT de UltraStar',
   'karaoke.maker.exportLrc': 'LRC',
   'karaoke.maker.exportElrc': 'LRC mejorado',
+  'karaoke.maker.exportInstrumental': 'Pista base (sin voz)',
   'karaoke.maker.tapHint':
     'ESPACIO o ENTER marca «{word}» · ←/→ ajusta 25 ms · ↑/↓ cambia palabra · Retroceso deshace',
   'karaoke.maker.editHint':
@@ -391,7 +422,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcriptionEyebrow': 'MODELO LOCAL DE UNA SOLA DESCARGA',
   'karaoke.maker.transcriptionTitle': '¿Descargar el modelo de voz?',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ descargará de Hugging Face el modelo {model} con licencia MIT y lo guardará en este equipo. El audio permanece en FluidEQ y se procesa localmente. La primera ejecución puede tardar y usar bastante memoria.',
+    'FluidEQ descargará el modelo {model} con licencia MIT desde Hugging Face y lo guardará en este PC: unos 700 MB para separar la voz, una sola vez. Tu audio nunca sale de este ordenador. La primera vez tarda unos minutos y usa bastante memoria.',
   'karaoke.maker.transcriptionReview':
     'El reconocimiento es solo un punto de partida. FluidEQ conserva la ortografía de tu letra al comparar el texto y todos los tiempos siguen siendo editables.',
   'karaoke.maker.notNow': 'Ahora no',

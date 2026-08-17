@@ -83,6 +83,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.transport.spaceShortcut': '{action} · スペース',
   'karaoke.transport.seek': '曲の位置',
   'karaoke.transport.volume': '音量',
+  'karaoke.transport.vocalLevel': 'ガイドボーカル',
+  'karaoke.transport.vocalOff': '伴奏のみ',
+  'karaoke.transport.vocalFull': '原曲',
   'karaoke.mic.title': 'マイク',
   'karaoke.mic.settings': 'マイク設定',
   'karaoke.mic.off': 'オフ',
@@ -282,12 +285,40 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcribe': '文字起こし',
   'karaoke.maker.vocalStem': 'ボーカルステムを使用',
   'karaoke.maker.vocalStemLoaded': 'ボーカルステム読み込み済み',
+  'karaoke.maker.groupVoice': '歌声と伴奏',
+  'karaoke.maker.stemsTitle': '分離したトラック',
+  'karaoke.maker.stemBacking': '伴奏',
+  'karaoke.maker.stemVoice': '歌声',
+  'karaoke.maker.stemSave': '保存',
+  'karaoke.maker.groupLyrics': '歌詞とタイミング',
+  'karaoke.maker.removeBackground': '歌声と伴奏を分離',
+  'karaoke.maker.removeBackgroundDone': '歌声は分離済み',
+  'karaoke.maker.separationDownloading':
+    '分離モデルをダウンロード中（{percent}%）· 初回のみ、約700MB',
+  'karaoke.maker.separationReading': '曲を読み込み中',
+  'karaoke.maker.separating': '歌声と伴奏を分離しています',
+  'karaoke.maker.separationDone': '歌声を分離しました。歌詞検出が使えます。',
+  'karaoke.maker.separationSlow':
+    'このパソコンにはグラフィック処理の高速化がないため、1分未満ではなく数分かかります。',
+  'karaoke.maker.separationRequired':
+    '先に歌声を分離してください。歌詞検出は分離したボーカルを読み取ります。',
+  'karaoke.maker.wizardTitle': 'この曲を自動で準備する',
+  'karaoke.maker.wizardIntro':
+    'この曲にはまだ歌詞のタイミングがありません。FluidEQ は歌声を伴奏から分離し、そこから歌詞とタイミングを読み取れます。すべてこのパソコン上で実行されます。',
+  'karaoke.maker.wizardStepSeparate': '歌声を分離',
+  'karaoke.maker.wizardStepTranscribe': '歌詞とタイミングを読み取り',
+  'karaoke.maker.wizardStart': '自動で準備',
+  'karaoke.maker.wizardSkip': '自分で行う',
+  'karaoke.maker.wizardCancel': '停止',
+  'karaoke.maker.wizardCancelled':
+    '停止しました。完了した分は保持されています。',
   'karaoke.maker.vocalFocus': '中央ボーカルを強調',
   'karaoke.maker.export': '書き出す',
   'karaoke.maker.exportProject': 'FluidEQ プロジェクト',
   'karaoke.maker.exportUltraStar': 'UltraStar TXT',
   'karaoke.maker.exportLrc': 'LRC',
   'karaoke.maker.exportElrc': '拡張 LRC',
+  'karaoke.maker.exportInstrumental': '伴奏トラック（歌声なし）',
   'karaoke.maker.tapHint':
     '「{word}」でスペースまたは Enter · Backspace で元に戻す',
   'karaoke.maker.editHint':
@@ -387,7 +418,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcriptionTitle':
     'ローカル音声モデルをダウンロードしますか？',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ は MIT ライセンスの {model} モデルを Hugging Face からダウンロードしてこの PC にキャッシュします。音声は FluidEQ 内に留まりローカルで処理されます。初回は時間と多くのメモリを使う場合があります。',
+    'FluidEQ は MIT ライセンスの {model} モデルを Hugging Face からダウンロードしてこの PC に保存します（歌声分離用に約 700 MB、初回のみ）。音声がこのパソコンから出ることはありません。初回は数分かかり、メモリを多く使います。',
   'karaoke.maker.transcriptionReview':
     '認識結果は出発点です。既存歌詞との照合では元の表記を保持し、すべての時刻を編集できます。',
   'karaoke.maker.notNow': '今はしない',

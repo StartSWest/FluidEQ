@@ -83,6 +83,7 @@ import {
 import { useKaraokeMicrophone } from './useKaraokeMicrophone';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { useKaraokeChordAnalysis } from './useKaraokeChordAnalysis';
+import { useKaraokeVocalMix } from './useKaraokeVocalMix';
 import { TKaraokeSessionError, useKaraokeSession } from './useKaraokeSession';
 import {
   KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
@@ -247,6 +248,13 @@ const KaraokeWorkspace = ({
     readPlayheadMs: session.readPlayheadMs,
   });
   const chordAnalysis = useKaraokeChordAnalysis(song, !isHidden);
+  // Present only for a song that has been separated. Everything downstream is
+  // guarded on it, so an ordinary song shows no fader at all rather than a
+  // control that does nothing.
+  const { vocalLevel, setVocalLevel, canMixVocals } = useKaraokeVocalMix({
+    audioRef: session.audioRef,
+    vocals: song?.assets.find((asset) => asset.role === 'vocals')?.file,
+  });
   const isLoading = status === 'loading';
   const playheadRef = useRef(session.playheadMs);
   const sessionRef = useRef(session);
@@ -1365,6 +1373,8 @@ const KaraokeWorkspace = ({
                 playheadMs={session.playheadMs}
                 durationMs={session.durationMs}
                 volume={session.volume}
+                vocalLevel={canMixVocals ? vocalLevel : undefined}
+                onVocalLevel={canMixVocals ? setVocalLevel : undefined}
                 onTogglePlayback={handleTogglePlayback}
                 onRestart={handleRestart}
                 onSeek={handleSeek}
@@ -1488,6 +1498,8 @@ const KaraokeWorkspace = ({
             isPlaying={status === 'playing'}
             restoreSavedDraft={restoreMakerDraft}
             readPlayheadMs={session.readPlayheadMs}
+            vocalLevel={canMixVocals ? vocalLevel : undefined}
+            onVocalLevel={canMixVocals ? setVocalLevel : undefined}
             onSeek={session.seek}
             onPlay={handleEditorPlay}
             onPause={handleEditorPause}

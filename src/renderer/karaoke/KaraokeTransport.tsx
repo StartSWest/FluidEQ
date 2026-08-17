@@ -27,6 +27,17 @@ interface IKaraokeTransportProps {
   playheadMs: number;
   durationMs: number;
   volume: number;
+  /**
+   * How much of the original singer to blend back in, or undefined when this
+   * song has not been separated and there is nothing to blend.
+   *
+   * Separate from `volume` because they do different jobs: volume is how loud
+   * the whole thing is, this is how much help the singer wants. Folding the
+   * two into one control would make turning the guide vocal down also quieten
+   * the backing track.
+   */
+  vocalLevel?: number;
+  onVocalLevel?: (level: number) => void;
   onTogglePlayback: () => void;
   onRestart: () => void;
   onSeek: (timeMs: number) => void;
@@ -147,6 +158,8 @@ const KaraokeTransport = ({
   playheadMs,
   durationMs,
   volume,
+  vocalLevel,
+  onVocalLevel,
   onTogglePlayback,
   onRestart,
   onSeek,
@@ -165,6 +178,11 @@ const KaraokeTransport = ({
   const volumeStyle = {
     '--karaoke-range-progress': `${volumePercent}%`,
   } as CSSProperties;
+  const vocalPercent = Math.round((vocalLevel ?? 0) * 100);
+  const vocalStyle = {
+    '--karaoke-range-progress': `${vocalPercent}%`,
+  } as CSSProperties;
+  const showVocalMix = vocalLevel !== undefined && onVocalLevel !== undefined;
   return (
     <div
       className="karaoke-transport"
@@ -280,6 +298,43 @@ const KaraokeTransport = ({
           {volumePercent}%
         </span>
       </label>
+      {showVocalMix && (
+        <label
+          className="karaoke-transport__volume karaoke-transport__vocal-mix"
+          htmlFor="karaoke-vocal-level"
+        >
+          <span className="karaoke-transport__volume-icon" aria-hidden="true">
+            <KaraokeTransportIcon name="volume" />
+          </span>
+          <span className="karaoke-transport__sr-label">
+            {t('karaoke.transport.vocalLevel')}
+          </span>
+          <input
+            id="karaoke-vocal-level"
+            aria-label={t('karaoke.transport.vocalLevel')}
+            // The ends are the two things people actually reach for, so they
+            // are named rather than left as bare numbers: all the way down is
+            // a clean backing track, all the way up is the record as released.
+            aria-valuetext={
+              vocalPercent === 0
+                ? t('karaoke.transport.vocalOff')
+                : `${vocalPercent}%`
+            }
+            type="range"
+            min={0}
+            max={1}
+            step={0.01}
+            value={vocalLevel}
+            style={vocalStyle}
+            onChange={(event) => onVocalLevel(Number(event.target.value))}
+          />
+          <span className="karaoke-transport__volume-value" aria-hidden="true">
+            {vocalPercent === 0
+              ? t('karaoke.transport.vocalOff')
+              : `${vocalPercent}%`}
+          </span>
+        </label>
+      )}
     </div>
   );
 };

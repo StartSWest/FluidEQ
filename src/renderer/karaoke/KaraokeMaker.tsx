@@ -12,8 +12,11 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  type WheelEvent as ReactWheelEvent,
 } from 'react';
 import {
+  IKaraokeMakerLicenseRecord,
+  karaokeMakerHasCompleteTiming,
   IKaraokeMakerProject,
   karaokeMakerProjectToSong,
   karaokeMakerRecordedLineRange,
@@ -45,6 +48,7 @@ import KaraokeMakerWordInspector from './KaraokeMakerWordInspector';
 import KaraokeMakerEditTools from './KaraokeMakerEditTools';
 import KaraokeMakerSpeechMemoryPanel from './KaraokeMakerSpeechMemoryPanel';
 import KaraokeMakerAnalysisTools from './KaraokeMakerAnalysisTools';
+import KaraokeMakerStems from './KaraokeMakerStems';
 import KaraokeMakerConfirmDialog, {
   TDestructiveMakerAction,
 } from './KaraokeMakerConfirmDialog';
@@ -58,6 +62,7 @@ import {
   KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
   IKaraokeMakerDownloadSummary,
   TKaraokeMakerWhisperStage,
+  upsertProvenance,
   getKaraokeWhisperSessionSnapshot,
   refreshKaraokeWhisperDownloaded,
   subscribeKaraokeWhisperSession,
@@ -77,6 +82,10 @@ import KaraokeMakerAnalysisPanels from './KaraokeMakerAnalysisPanels';
 import KaraokeMakerWhisperConsent from './KaraokeMakerWhisperConsent';
 import KaraokeMakerInspector from './KaraokeMakerInspector';
 import { useMakerProjectFiles } from './useMakerProjectFiles';
+import { useMakerSeparation } from './useMakerSeparation';
+import KaraokeMakerWizard, {
+  TKaraokeMakerWizardStep,
+} from './KaraokeMakerWizard';
 import { useMakerLyricsActions } from './useMakerLyricsActions';
 import { useMakerToolModes } from './useMakerToolModes';
 import KaraokeMakerTimingSliders from './KaraokeMakerTimingSliders';
@@ -106,6 +115,15 @@ interface IKaraokeMakerProps {
   isPlaying: boolean;
   restoreSavedDraft: boolean;
   readPlayheadMs?: () => number;
+  /**
+   * The player's guide-vocal level, passed down rather than duplicated.
+   *
+   * The Maker previews through the same audio element the player uses, so a
+   * second level here would be a slider that moved nothing. One value, two
+   * places to reach it.
+   */
+  vocalLevel?: number;
+  onVocalLevel?: (level: number) => void;
   onSeek: (timeMs: number) => void;
   onPlay: () => Promise<void> | void;
   onPause: () => void;
@@ -123,6 +141,8 @@ const KaraokeMaker = ({
   isPlaying,
   restoreSavedDraft,
   readPlayheadMs,
+  vocalLevel,
+  onVocalLevel,
   onSeek,
   onPlay,
   onPause,
@@ -1126,6 +1146,105 @@ const KaraokeMaker = ({
     t,
   });
 
+  const recordSeparationProvenance = useCallback(
+    (records: readonly IKaraokeMakerLicenseRecord[]) => {
+      setProject((current) => ({
+        ...current,
+        provenance: records.reduce(upsertProvenance, current.provenance),
+      }));
+    },
+    [setProject],
+  );
+
+  /**
+   * Zooming needs a non-passive wheel listener, attached by hand.
+   *
+   * React registers `wheel` as passive, so `preventDefault` inside an
+   * `onWheel` prop is refused — Chromium logs "Unable to preventDefault inside
+   * passive event listener invocation" on every notch of a Ctrl-scroll zoom,
+   * and the page scrolls underneath the editor while it zooms. The only way to
+   * cancel a wheel event is to register the listener yourself with
+   * `passive: false`.
+   */
+  // Through a ref, because `onCanvasWheel` is rebuilt on every render. Listing
+  // it as a dependency would detach and reattach the listener on every frame
+  // of a zoom, which is both wasteful and a good way to drop the event that
+  // arrives mid-swap. The ref keeps one listener for the life of the canvas
+  // while always calling the current handler.
+  const canvasWheelRef = useRef(onCanvasWheel);
+  canvasWheelRef.current = onCanvasWheel;
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) {
+      return undefined;
+    }
+    const onWheel = (event: WheelEvent) =>
+      canvasWheelRef.current(
+        event as unknown as ReactWheelEvent<HTMLCanvasElement>,
+      );
+    canvas.addEventListener('wheel', onWheel, { passive: false });
+    return () => canvas.removeEventListener('wheel', onWheel);
+  }, [canvasRef]);
+
+  /** Hand a stem to the user as a file. Both are already Files in memory. */
+  const saveStem = useCallback((file: File) => {
+    const url = URL.createObjectURL(file);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = file.name;
+    link.click();
+    URL.revokeObjectURL(url);
+  }, []);
+
+  const { removeBackground, cancelSeparation, isSeparating, instrumental } =
+    useMakerSeparation({
+      audioFile,
+      localizeMakerError,
+      recordProvenance: recordSeparationProvenance,
+      setAnalysisFile,
+      setAnalysisMessage,
+      setAnalysisProgress,
+      setNotice,
+      t,
+    });
+
+  // Offered once per opening, and only for a song with nothing timed yet. The
+  // ref stops a re-render from re-opening a dialog the user has dismissed.
+  const wizardOfferedRef = useRef(false);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const [wizardStep, setWizardStep] = useState<TKaraokeMakerWizardStep>();
+  const [wizardDone, setWizardDone] = useState<TKaraokeMakerWizardStep[]>([]);
+
+  useEffect(() => {
+    if (
+      !KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED ||
+      wizardOfferedRef.current ||
+      karaokeMakerHasCompleteTiming(project.lyrics.lines)
+    ) {
+      return;
+    }
+    wizardOfferedRef.current = true;
+    setWizardOpen(true);
+  }, [project.lyrics.lines]);
+
+  const runWizard = async () => {
+    setWizardStep('separate');
+    setWizardDone([]);
+    const separated = await removeBackground();
+    if (!separated) {
+      // Cancelled or failed. The dialog closes rather than stalling on a step
+      // that is not running; whatever finished has already been kept.
+      setWizardStep(undefined);
+      setWizardOpen(false);
+      return;
+    }
+    setWizardDone(['separate']);
+    setWizardStep('transcribe');
+    await requestWhisper(true);
+    setWizardStep(undefined);
+    setWizardOpen(false);
+  };
+
   const { exportProject, openProject, selectVocalStem } = useMakerProjectFiles({
     clearHistory,
     localizeMakerError,
@@ -1322,13 +1441,26 @@ const KaraokeMaker = ({
 
   const advancedAnalysisTools = (
     <>
+      <KaraokeMakerStems
+        instrumental={instrumental}
+        vocals={analysisFile === audioFile ? undefined : analysisFile}
+        vocalLevel={vocalLevel}
+        onVocalLevel={onVocalLevel}
+        onSave={saveStem}
+        isSeparating={isSeparating}
+        progress={analysisProgress}
+        message={analysisMessage}
+      />
       <KaraokeMakerAnalysisTools
-        isAnalysing={analysisProgress !== undefined}
+        isAnalysing={analysisProgress !== undefined || isSeparating}
         onDetectLyrics={() => requestWhisper(false).catch(() => undefined)}
         onDetectMelody={() => runBasicPitch().catch(() => undefined)}
         onRebuild={() => requestWhisper(true).catch(() => undefined)}
         isUsingSongAudio={analysisFile === audioFile}
         onChooseVocalStem={() => vocalStemInputRef.current?.click()}
+        onRemoveBackground={() => {
+          removeBackground().catch(() => undefined);
+        }}
       />
       <KaraokeMakerSpeechMemoryPanel
         session={whisperSession}
@@ -1434,6 +1566,22 @@ const KaraokeMaker = ({
       role="dialog"
       aria-label={t('karaoke.maker.dialog')}
     >
+      {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && wizardOpen && (
+        <KaraokeMakerWizard
+          activeStep={wizardStep}
+          doneSteps={wizardDone}
+          progress={analysisProgress}
+          message={analysisMessage}
+          onStart={() => {
+            runWizard().catch(() => undefined);
+          }}
+          onSkip={() => setWizardOpen(false)}
+          onCancel={() => {
+            cancelSeparation();
+            cancelAnalysis();
+          }}
+        />
+      )}
       <input
         ref={vocalStemInputRef}
         hidden
@@ -1490,6 +1638,21 @@ const KaraokeMaker = ({
         editTools={editTools}
         exportOpen={exportOpen}
         exportProject={exportProject}
+        onSaveInstrumental={
+          instrumental
+            ? () => {
+                // A plain object-URL download. The stem is already a File in
+                // memory, so there is nothing to re-encode and nothing to ask
+                // the main process for.
+                const url = URL.createObjectURL(instrumental);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = instrumental.name;
+                link.click();
+                URL.revokeObjectURL(url);
+              }
+            : undefined
+        }
         handPanMode={handPanMode}
         openLyricsEditor={openLyricsEditor}
         prepareKaraoke={prepareKaraoke}
@@ -1577,7 +1740,6 @@ const KaraokeMaker = ({
               setIsPitchPanReady(false);
             }
           }}
-          onWheel={onCanvasWheel}
         />
         <KaraokeMakerNavigator
           durationMs={effectiveDurationMs}

@@ -1433,7 +1433,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       z-index: 30;
       padding: 6px 8px;
       color: #dcfffb;
-      font-size: 9px;
+      font-size: 0.8rem;
       font-weight: 750;
       line-height: 1;
       white-space: nowrap;
@@ -2842,7 +2842,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   button {
     min-height: 23px;
     padding: 0 6px;
-    font-size: 8px;
+    font-size: 0.76rem;
     border-radius: 6px;
   }
 }
@@ -2861,7 +2861,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__eyebrow {
   color: #2fe4d2;
-  font-size: 8px;
+  font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.14em;
 }
@@ -2960,7 +2960,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 13px;
     place-items: center;
     color: #bafff7;
-    font-size: 7px;
+    font-size: 0.72rem;
     font-weight: 850;
     line-height: 1;
     background: #0a3846;
@@ -2986,7 +2986,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     z-index: 45;
     padding: 6px 8px;
     color: #dcfffb;
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 750;
     line-height: 1;
     white-space: nowrap;
@@ -3028,7 +3028,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   time {
     color: rgba(177, 216, 226, 0.66);
-    font-size: 9px;
+    font-size: 0.8rem;
     font-variant-numeric: tabular-nums;
 
     &:first-child {
@@ -3135,7 +3135,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     z-index: 40;
     padding: 5px 7px;
     color: #e4fffc;
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 700;
     white-space: nowrap;
     pointer-events: none;
@@ -3199,7 +3199,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__header-action {
   min-height: 32px !important;
   padding-inline: 10px !important;
-  font-size: 9px;
+  font-size: 0.8rem;
 }
 
 .karaoke-maker__tools {
@@ -3310,7 +3310,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     max-width: 210px;
     padding: 6px 8px;
     color: #dffcfb;
-    font-size: 9px;
+    font-size: 0.8rem;
     font-weight: 700;
     line-height: 1.2;
     white-space: nowrap;
@@ -3401,7 +3401,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     overflow: visible;
     clip: auto;
     color: inherit;
-    font-size: 9px;
+    font-size: 0.8rem;
     white-space: nowrap;
   }
 }
@@ -3457,13 +3457,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     color: #e3fcfa;
-    font-size: 9px;
+    font-size: 0.86rem;
   }
 
   em {
     grid-column: 2;
-    color: rgba(151, 197, 207, 0.62);
-    font-size: 7px;
+    color: rgba(151, 197, 207, 0.72);
+    font-size: 0.76rem;
     font-style: normal;
   }
 
@@ -3473,7 +3473,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     grid-column: 3;
     padding: 0 8px;
     color: #89f5e8;
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 800;
     background: rgba(24, 96, 103, 0.24);
     border: 1px solid rgba(64, 219, 205, 0.26);
@@ -3488,7 +3488,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 5px;
     padding: 0 8px;
     color: #aef8f1;
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 760;
     background: rgba(15, 65, 77, 0.55);
     border: 1px solid rgba(67, 194, 190, 0.27);
@@ -3518,16 +3518,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
   max-width: 150px;
   color: rgba(167, 239, 233, 0.72);
-  font-size: 8px;
+  font-size: 0.76rem;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
+// 7px was unreadable. These are uppercase tracked labels, which lose legibility
+// faster than body text as they shrink, so they sit at the same size as the
+// group headings above them rather than half of it.
 .karaoke-maker__memory-label,
 .karaoke-maker__memory-delay > span {
-  color: rgba(156, 193, 204, 0.58);
-  font-size: 7px;
-  font-weight: 750;
+  color: rgba(156, 193, 204, 0.72);
+  font-size: 0.72rem;
+  font-weight: 700;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -3539,12 +3542,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 4px;
 
   button {
-    min-height: 24px;
+    min-height: 28px;
     flex: 1;
-    padding: 0 7px;
-    color: rgba(185, 220, 226, 0.66);
-    font-size: 7px;
-    font-weight: 750;
+    padding: 0 9px;
+    color: rgba(185, 220, 226, 0.78);
+    font-size: 0.76rem;
+    font-weight: 650;
     background: rgba(4, 23, 36, 0.55);
     border: 1px solid rgba(97, 157, 174, 0.16);
     border-radius: 7px;
@@ -3594,7 +3597,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 7px;
   padding: 1px 3px;
   color: rgba(210, 234, 240, 0.8);
-  font-size: 10px;
+  font-size: 0.84rem;
   font-weight: 800;
 
   svg {
@@ -3659,7 +3662,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 38px;
   height: 23px;
   padding: 0 5px;
-  font-size: 9px;
+  font-size: 0.8rem;
   border-radius: 6px;
 }
 
@@ -3680,7 +3683,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   button {
     min-height: 27px;
-    font-size: 9px;
+    font-size: 0.8rem;
     border-radius: 7px;
   }
 }
@@ -3705,7 +3708,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 7px;
   color: rgba(195, 216, 226, 0.74);
-  font-size: 10px;
+  font-size: 0.84rem;
 
   input {
     accent-color: #20ddcc;
@@ -3743,7 +3746,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 16px;
   padding: 5px 15px;
   color: rgba(167, 193, 208, 0.62);
-  font-size: 9px;
+  font-size: 0.8rem;
   background: rgba(4, 18, 30, 0.48);
 
   .is-live {
@@ -3816,7 +3819,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     .is-touched::after,
     .is-pending::after {
-      font-size: 8px;
+      font-size: 0.76rem;
       content: attr(data-count);
     }
   }
@@ -3831,7 +3834,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 21px;
     padding: 0 7px;
     color: #90fff5;
-    font-size: 8px;
+    font-size: 0.76rem;
     background: rgba(24, 102, 110, 0.2);
     border-color: rgba(69, 229, 214, 0.3);
     border-radius: 6px;
@@ -3947,7 +3950,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   span {
     color: rgba(135, 178, 195, 0.54);
-    font-size: 7px;
+    font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.11em;
     text-transform: uppercase;
@@ -3956,7 +3959,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   strong {
     margin-top: 2px;
     color: rgba(210, 238, 242, 0.82);
-    font-size: 9px;
+    font-size: 0.8rem;
     font-variant-numeric: tabular-nums;
   }
 }
@@ -3983,7 +3986,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     z-index: 20;
     padding: 5px 7px;
     color: #dffcfb;
-    font-size: 8px;
+    font-size: 0.76rem;
     white-space: nowrap;
     pointer-events: none;
     visibility: hidden;
@@ -4073,7 +4076,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 5px;
   min-width: max-content;
   color: #d9fffb !important;
-  font-size: 8px;
+  font-size: 0.76rem;
   font-weight: 760;
   text-shadow: 0 0 9px rgba($secondary-default, 0.22);
 
@@ -4142,7 +4145,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 31px;
     padding: 3px 5px 3px 10px;
     color: rgba(204, 235, 241, 0.82);
-    font-size: 9px;
+    font-size: 0.8rem;
     font-weight: 760;
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -4169,7 +4172,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     > button {
       min-height: 24px;
       padding: 0 8px;
-      font-size: 8px;
+      font-size: 0.76rem;
       letter-spacing: 0;
       text-transform: none;
     }
@@ -4257,7 +4260,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 6px;
   padding: 0 9px !important;
   color: rgba($secondary-light, 0.84) !important;
-  font-size: 8px !important;
+  font-size: 0.76rem !important;
   font-weight: 730;
   letter-spacing: 0 !important;
   text-transform: none;
@@ -4471,7 +4474,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > span {
     color: rgba($secondary-light, 0.65);
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 900;
     letter-spacing: 0.1em;
     text-transform: uppercase;
@@ -4503,7 +4506,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > em {
     color: rgba($primary-lighter, 0.47);
-    font-size: 9px;
+    font-size: 0.8rem;
     font-style: normal;
   }
 }
@@ -4516,7 +4519,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span {
     padding: 5px 8px;
     color: rgba($primary-lighter, 0.42);
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 900;
     letter-spacing: 0.07em;
     background: rgba(#031522, 0.68);
@@ -4540,7 +4543,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > i {
     color: rgba($secondary-light, 0.45);
-    font-size: 9px;
+    font-size: 0.8rem;
     font-style: normal;
   }
 }
@@ -4561,7 +4564,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     gap: 4px;
     color: rgba($primary-lighter, 0.72);
-    font-size: 9px;
+    font-size: 0.8rem;
     font-weight: 760;
     white-space: nowrap;
   }
@@ -4575,7 +4578,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding: 0 4px;
     color: rgba($primary-lighter, 0.82);
     font-family: inherit;
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 900;
     background: rgba(#051a2a, 0.88);
     border: 1px solid rgba($secondary-light, 0.2);
@@ -4647,7 +4650,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > span {
     color: rgba($secondary-light, 0.7);
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 900;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -4662,7 +4665,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > p {
     margin: 3px 0 0;
     color: rgba($primary-lighter, 0.68);
-    font-size: 10px;
+    font-size: 0.84rem;
     line-height: 1.35;
   }
 
@@ -4795,7 +4798,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 5px;
 
     > span {
-      font-size: 8px;
+      font-size: 0.76rem;
     }
   }
 
@@ -5005,7 +5008,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 6px;
     padding: 0 10px;
     color: #b9fbf5;
-    font-size: 10px;
+    font-size: 0.84rem;
     font-weight: 760;
     background: linear-gradient(
       180deg,
@@ -5050,7 +5053,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > span {
     color: rgba($secondary-light, 0.74);
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 950;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -5067,7 +5070,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > p {
     margin: 2px 0 0;
     color: rgba($primary-lighter, 0.62);
-    font-size: 10px;
+    font-size: 0.84rem;
     line-height: 1.35;
   }
 }
@@ -5140,7 +5143,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span {
     flex: 0 0 auto;
     color: rgba($primary-lighter, 0.52);
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 850;
     text-transform: uppercase;
   }
@@ -5204,7 +5207,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > span {
     color: rgba(180, 211, 222, 0.66);
-    font-size: 9px;
+    font-size: 0.8rem;
     white-space: nowrap;
   }
 
@@ -5244,14 +5247,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .karaoke-maker__note-link {
     flex: 1 1 auto;
-    font-size: 9px;
+    font-size: 0.8rem;
   }
 
   .karaoke-maker__note-link-help {
     flex: 1 1 260px;
     max-width: 430px;
     color: rgba(177, 211, 221, 0.72);
-    font-size: 9px;
+    font-size: 0.8rem;
     line-height: 1.35;
   }
 }
@@ -5278,7 +5281,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     flex: 1 1 300px;
     max-width: 470px;
     color: rgba(177, 211, 221, 0.72);
-    font-size: 9px;
+    font-size: 0.8rem;
     line-height: 1.35;
     white-space: normal;
   }
@@ -5313,7 +5316,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   > span {
     color: rgba($secondary-light, 0.78);
-    font-size: 10px;
+    font-size: 0.84rem;
     font-weight: 950;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -5398,7 +5401,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding-inline: 7px;
     color: rgba(#032a27, 0.86);
     font-family: inherit;
-    font-size: 9px;
+    font-size: 0.8rem;
     font-weight: 950;
     background: rgba($white, 0.28);
     border: 1px solid rgba(#064d47, 0.22);
@@ -5467,7 +5470,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       padding-inline: 6px;
       color: rgba($white, 0.88);
       font-family: inherit;
-      font-size: 9px;
+      font-size: 0.8rem;
       background: rgba(#031522, 0.74);
       border: 1px solid rgba($secondary-light, 0.28);
       border-radius: 7px;
@@ -5526,7 +5529,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     > small {
       overflow: hidden;
       color: rgba($primary-lighter, 0.72);
-      font-size: 9px;
+      font-size: 0.8rem;
       font-weight: 780;
       line-height: 1.2;
       text-overflow: ellipsis;
@@ -5541,7 +5544,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     padding-inline: 6px;
     color: $white;
     font-family: inherit;
-    font-size: 10px;
+    font-size: 0.84rem;
     font-weight: 950;
     background: linear-gradient(
       180deg,
@@ -5567,7 +5570,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span {
     padding: 7px 10px;
     color: rgba($primary-lighter, 0.48);
-    font-size: 9px;
+    font-size: 0.8rem;
     font-weight: 950;
     letter-spacing: 0.07em;
     background: rgba(#031522, 0.68);
@@ -5788,7 +5791,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     align-items: center;
     gap: 6px;
     color: rgba(170, 196, 209, 0.65);
-    font-size: 9px;
+    font-size: 0.8rem;
   }
 
   input:not([type='range']) {
@@ -5826,7 +5829,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     > span {
       color: rgba($secondary-light, 0.68);
-      font-size: 8px;
+      font-size: 0.76rem;
       font-weight: 900;
       letter-spacing: 0.08em;
       text-transform: uppercase;
@@ -5859,7 +5862,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-maker__word-inspector-identity output {
     flex: 0 0 auto;
     color: rgba(185, 225, 231, 0.66);
-    font-size: 9px;
+    font-size: 0.8rem;
     font-variant-numeric: tabular-nums;
     white-space: nowrap;
   }
@@ -5870,7 +5873,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     > span {
       color: rgba(169, 203, 215, 0.58);
-      font-size: 7px;
+      font-size: 0.72rem;
       font-weight: 800;
       letter-spacing: 0.05em;
       text-transform: uppercase;
@@ -5882,7 +5885,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 29px;
     padding: 0 9px;
     color: #dbfbf7;
-    font-size: 10px;
+    font-size: 0.84rem;
     background: rgba(5, 27, 42, 0.9);
     border: 1px solid rgba(70, 174, 187, 0.27);
     border-radius: 8px;
@@ -5900,7 +5903,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 5px;
     padding: 0 10px;
     color: #aef8f1;
-    font-size: 9px;
+    font-size: 0.8rem;
     background: rgba(15, 65, 77, 0.55);
     border: 1px solid rgba(67, 194, 190, 0.27);
     border-radius: 8px;
@@ -6019,7 +6022,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 37px;
   padding: 7px 10px;
   color: #d8f8f5;
-  font-size: 10px;
+  font-size: 0.84rem;
   background: rgba(9, 40, 54, 0.96);
   border: 1px solid rgba(45, 215, 200, 0.38);
   border-radius: 11px;
@@ -6067,12 +6070,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 2px;
 
     strong {
-      font-size: 9px;
+      font-size: 0.8rem;
     }
 
     span {
       color: rgba(174, 211, 218, 0.68);
-      font-size: 8px;
+      font-size: 0.76rem;
       line-height: 1.35;
     }
   }
@@ -6081,7 +6084,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 30px;
     padding: 0 10px;
     color: #c8eeec;
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 800;
     background: rgba(20, 71, 85, 0.36);
     border: 1px solid rgba(103, 177, 189, 0.25);
@@ -6106,6 +6109,287 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     inset 0 1px rgba($white, 0.055);
   backdrop-filter: blur(18px);
 }
+
+// The advanced-tools popover, split into "voice and music" and "lyrics and
+// timing". Flat, its five buttons read as interchangeable and the disabled
+// ones looked broken; grouped, the order is the instruction.
+.karaoke-maker__tool-group-titled {
+  display: grid;
+  gap: 8px;
+  // The popover lays its children out in columns. Without this the two groups
+  // sat side by side with their headings at different heights, reading as two
+  // unrelated menus rather than as one ordered pair of steps.
+  grid-column: 1 / -1;
+
+  + .karaoke-maker__tool-group-titled {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba($secondary-light, 0.17);
+  }
+}
+
+.karaoke-maker__tool-group-title {
+  margin: 0;
+  color: rgba(223, 252, 249, 0.72);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+// The two tracks a split produces. Shown because separation is otherwise
+// invisible work — the detectors quietly start reading a different file and
+// nothing on screen says so.
+.karaoke-maker__stems {
+  display: grid;
+  gap: 7px;
+  padding-bottom: 11px;
+  margin-bottom: 11px;
+  border-bottom: 1px solid rgba($secondary-light, 0.17);
+}
+
+.karaoke-maker__stem-progress {
+  display: grid;
+  gap: 7px;
+
+  > progress {
+    width: 100%;
+    height: 6px;
+  }
+
+  > p {
+    margin: 0;
+    color: rgba(223, 252, 249, 0.82);
+    font-size: 0.82rem;
+  }
+}
+
+.karaoke-maker__stem-list {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 5px;
+  list-style: none;
+}
+
+.karaoke-maker__stem {
+  display: grid;
+  align-items: center;
+  gap: 9px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 7px 10px;
+  font-size: 0.86rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba($secondary-light, 0.2);
+  border-radius: 10px;
+
+  svg {
+    width: 17px;
+    height: 17px;
+    flex: none;
+  }
+}
+
+.karaoke-maker__stem-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.karaoke-maker__stem-level {
+  display: grid;
+  align-items: center;
+  gap: 9px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  font-size: 0.8rem;
+  color: rgba(223, 252, 249, 0.72);
+}
+
+.karaoke-maker__stem-level-value {
+  min-width: 74px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+// One action per row. These labels are sentences, not icon captions —
+// "Separate voice from music" does not survive a half-width column, and the
+// two-column version put the icons on a ragged left edge.
+.karaoke-maker__tool-group-items {
+  display: grid;
+  gap: 5px;
+  grid-template-columns: minmax(0, 1fr);
+
+  .karaoke-maker__tool-button {
+    justify-content: flex-start;
+    width: 100%;
+    gap: 10px;
+    text-align: left;
+  }
+
+  .karaoke-maker__tool-label {
+    font-size: 0.86rem;
+    white-space: normal;
+  }
+}
+
+@keyframes karaoke-wizard-sweep {
+  from {
+    background-position: -45% 0;
+  }
+
+  to {
+    background-position: 145% 0;
+  }
+}
+
+// The automatic set-up offer, shown over the Maker for a song with no timing.
+//
+// The icons here are the Maker's toolbar SVGs, which carry no intrinsic size —
+// they are drawn at whatever their container gives them. Every other user of
+// them sits inside a sized button, so this is the first place that had to say
+// it out loud; without the rule below a single note filled the whole tab.
+.karaoke-maker__wizard {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  inset: 0;
+  padding: 24px;
+  place-items: center;
+  background: rgba(3, 15, 24, 0.82);
+  backdrop-filter: blur(3px);
+}
+
+.karaoke-maker__wizard-panel {
+  display: grid;
+  width: min(520px, 100%);
+  max-height: 100%;
+  gap: 14px;
+  padding: 22px 24px;
+  overflow-y: auto;
+  color: #dffcf9;
+  background:
+    radial-gradient(circle at 12% 0, rgba(30, 215, 199, 0.13), transparent 58%),
+    rgba(5, 27, 41, 0.98);
+  border: 1px solid rgba($secondary-light, 0.34);
+  border-radius: 15px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.46);
+}
+
+.karaoke-maker__wizard-title {
+  margin: 0;
+  font-size: 1.12rem;
+}
+
+.karaoke-maker__wizard-intro {
+  margin: 0;
+  color: rgba(223, 252, 249, 0.78);
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+.karaoke-maker__wizard-steps {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  gap: 8px;
+  list-style: none;
+}
+
+.karaoke-maker__wizard-step {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  padding: 9px 11px;
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba($secondary-light, 0.2);
+  border-radius: 11px;
+
+  // The size the toolbar buttons would otherwise have supplied.
+  svg {
+    width: 19px;
+    height: 19px;
+    flex: none;
+  }
+
+  &.is-active {
+    border-color: rgba($secondary-light, 0.62);
+    background: rgba(30, 215, 199, 0.12);
+  }
+
+  &.is-done {
+    color: rgba(223, 252, 249, 0.62);
+  }
+}
+
+.karaoke-maker__wizard-progress {
+  display: grid;
+  gap: 7px;
+
+  // Nothing else in the app uses a native <progress>, so it arrives with the
+  // platform's own light-grey chrome and looks like a foreign control dropped
+  // into a dark panel. Both pseudo-elements are needed: the bar is the track
+  // and the value is the fill, and styling only one leaves the other default.
+  > progress {
+    width: 100%;
+    height: 6px;
+    appearance: none;
+    border: 0;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.09);
+
+    &::-webkit-progress-bar {
+      background: rgba(255, 255, 255, 0.09);
+      border-radius: 999px;
+    }
+
+    &::-webkit-progress-value {
+      background: linear-gradient(
+        90deg,
+        rgba(30, 215, 199, 0.85),
+        $secondary-light
+      );
+      border-radius: 999px;
+      transition: width 140ms ease-out;
+    }
+
+    // No value at all: a step has begun but reported nothing yet. A bar frozen
+    // at zero reads as stalled, so it sweeps instead.
+    &:not([value]) {
+      background: linear-gradient(
+          90deg,
+          transparent 0%,
+          rgba(30, 215, 199, 0.7) 50%,
+          transparent 100%
+        )
+        rgba(255, 255, 255, 0.09);
+      background-size: 40% 100%;
+      background-repeat: no-repeat;
+      animation: karaoke-wizard-sweep 1.15s ease-in-out infinite;
+    }
+  }
+
+  > p {
+    margin: 0;
+    color: rgba(223, 252, 249, 0.76);
+    font-size: 0.83rem;
+  }
+}
+
+.karaoke-maker__wizard-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+// No bespoke primary style here on purpose. `button small` is already this
+// app's emphasised button and `button small subtle` its quiet one, so the
+// wizard uses both and defines neither. The custom gradient that used to sit
+// here was invented rather than reused, and it lost to `.button`'s own colour
+// on specificity — pale text on a pale fill, readable in neither theme.
 
 .karaoke-maker__analysis-progress {
   display: grid;
@@ -6141,7 +6425,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: 8px;
   color: rgba(190, 229, 234, 0.76);
-  font-size: 8px;
+  font-size: 0.76rem;
   font-variant-numeric: tabular-nums;
 
   strong {
@@ -6243,14 +6527,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     overflow: hidden;
-    font-size: 10px;
+    font-size: 0.84rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   span {
     color: $secondary-light;
-    font-size: 10px;
+    font-size: 0.84rem;
     font-weight: 800;
     font-variant-numeric: tabular-nums;
   }
@@ -6269,7 +6553,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto auto;
   color: rgba(174, 220, 228, 0.7);
-  font-size: 8px;
+  font-size: 0.76rem;
   font-variant-numeric: tabular-nums;
 
   span {
@@ -6339,7 +6623,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       flex: 0 0 auto;
       place-items: center;
       color: rgba(178, 213, 222, 0.55);
-      font-size: 8px;
+      font-size: 0.76rem;
       font-weight: 850;
       background: rgba(92, 139, 158, 0.11);
       border: 1px solid rgba(112, 166, 183, 0.2);
@@ -6348,7 +6632,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     em {
       overflow: hidden;
-      font-size: 8px;
+      font-size: 0.76rem;
       font-style: normal;
       font-weight: 700;
       text-overflow: ellipsis;
@@ -6428,12 +6712,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     color: #fff5f6;
-    font-size: 10px;
+    font-size: 0.84rem;
   }
 
   span {
     color: rgba(255, 220, 225, 0.8);
-    font-size: 9px;
+    font-size: 0.8rem;
     line-height: 1.42;
   }
 }
@@ -6514,7 +6798,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   max-width: min(360px, calc(100% - 32px));
   padding: 7px 11px;
   color: rgba($white, 0.92);
-  font-size: 9px;
+  font-size: 0.8rem;
   font-weight: 680;
   pointer-events: none;
   background: rgba(5, 31, 44, 0.92);
@@ -6695,7 +6979,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong {
     color: #e6fffc;
-    font-size: 10px;
+    font-size: 0.84rem;
     letter-spacing: 0.035em;
     text-transform: uppercase;
   }
@@ -6703,7 +6987,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   span {
     overflow: hidden;
     color: rgba(169, 204, 216, 0.58);
-    font-size: 8px;
+    font-size: 0.76rem;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
@@ -6728,7 +7012,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 6px;
     padding: 0 8px;
     color: #b9f8f2;
-    font-size: 8px;
+    font-size: 0.76rem;
     font-weight: 800;
     background: rgba(14, 61, 76, 0.62);
     border: 1px solid rgba(62, 213, 199, 0.3);
@@ -6762,7 +7046,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     min-height: 24px;
     padding: 0 8px;
     color: rgba(215, 237, 242, 0.78);
-    font-size: 10px;
+    font-size: 0.84rem;
     background: rgba(10, 39, 53, 0.72);
     border: 1px solid transparent;
     border-radius: 7px;
@@ -6805,7 +7089,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.is-section {
     min-height: 27px;
     color: #7cebe1;
-    font-size: 9px;
+    font-size: 0.8rem;
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
@@ -6843,7 +7127,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   span {
     max-width: 340px;
     margin: 5px 0 0;
-    font-size: 9px;
+    font-size: 0.8rem;
     line-height: 1.45;
   }
 }
@@ -6870,7 +7154,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     span {
       color: rgba(169, 203, 215, 0.58);
-      font-size: 9px;
+      font-size: 0.8rem;
       font-weight: 800;
       letter-spacing: 0.07em;
       text-transform: uppercase;
@@ -6912,7 +7196,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     output {
       min-width: 62px;
       color: rgba(210, 235, 240, 0.82);
-      font-size: 10px;
+      font-size: 0.84rem;
       font-weight: 750;
       text-align: center;
     }
@@ -6930,7 +7214,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     span {
       color: rgba(169, 203, 215, 0.58);
-      font-size: 9px;
+      font-size: 0.8rem;
       font-weight: 800;
       text-transform: uppercase;
     }
@@ -6967,7 +7251,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 6px;
     padding: 0 11px;
     color: #acf9f2;
-    font-size: 10px;
+    font-size: 0.84rem;
     font-weight: 750;
     background: rgba(14, 67, 76, 0.66);
     border: 1px solid rgba(56, 199, 189, 0.26);
@@ -6990,7 +7274,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   > span {
     margin-left: auto;
     color: rgba(181, 216, 225, 0.65);
-    font-size: 10px;
+    font-size: 0.84rem;
     font-weight: 700;
 
     &.is-untimed {
@@ -7012,7 +7296,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   strong,
   span {
-    font-size: 10px;
+    font-size: 0.84rem;
   }
 
   .karaoke-maker__analysis-progress-bar {
@@ -7113,7 +7397,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   p {
     margin: 0;
     color: rgba(203, 221, 229, 0.72);
-    font-size: 10px;
+    font-size: 0.84rem;
     line-height: 1.55;
   }
 
@@ -7126,7 +7410,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   margin: 0 auto 0 0;
   padding: 8px 10px;
   color: #ffd2d9;
-  font-size: 9px;
+  font-size: 0.8rem;
   line-height: 1.4;
   background: rgba(91, 24, 42, 0.3);
   border: 1px solid rgba(255, 103, 128, 0.24);
@@ -7355,7 +7639,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     .is-touched::after,
     .is-pending::after {
-      font-size: 8px;
+      font-size: 0.76rem;
       content: attr(data-count);
     }
   }
@@ -7472,7 +7756,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       justify-content: space-between;
       gap: 8px;
       color: rgba(171, 211, 220, 0.68);
-      font-size: 8px;
+      font-size: 0.76rem;
       font-weight: 850;
       letter-spacing: 0.05em;
       text-transform: uppercase;
@@ -7480,7 +7764,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
     output {
       color: #9dfff7;
-      font-size: 9px;
+      font-size: 0.8rem;
       font-variant-numeric: tabular-nums;
       letter-spacing: 0;
       text-transform: none;
@@ -7511,7 +7795,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   small {
     grid-column: 1 / -1;
     color: rgba(160, 197, 210, 0.48);
-    font-size: 8px;
+    font-size: 0.76rem;
     line-height: 1.3;
   }
 

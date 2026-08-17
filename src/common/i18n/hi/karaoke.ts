@@ -82,6 +82,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.transport.spaceShortcut': '{action} · स्पेस',
   'karaoke.transport.seek': 'गाने की स्थिति',
   'karaoke.transport.volume': 'आवाज़',
+  'karaoke.transport.vocalLevel': 'गाइड वोकल',
+  'karaoke.transport.vocalOff': 'केवल बैकिंग',
+  'karaoke.transport.vocalFull': 'मूल',
   'karaoke.mic.title': 'माइक्रोफ़ोन',
   'karaoke.mic.settings': 'माइक्रोफ़ोन सेटिंग्स',
   'karaoke.mic.off': 'बंद',
@@ -275,12 +278,39 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcribe': 'लिप्यंतरण',
   'karaoke.maker.vocalStem': 'वोकल स्टेम उपयोग करें',
   'karaoke.maker.vocalStemLoaded': 'वोकल स्टेम लोड हुआ',
+  'karaoke.maker.groupVoice': 'आवाज़ और संगीत',
+  'karaoke.maker.stemsTitle': 'अलग किए गए ट्रैक',
+  'karaoke.maker.stemBacking': 'बैकिंग ट्रैक',
+  'karaoke.maker.stemVoice': 'आवाज़',
+  'karaoke.maker.stemSave': 'सहेजें',
+  'karaoke.maker.groupLyrics': 'बोल और टाइमिंग',
+  'karaoke.maker.removeBackground': 'आवाज़ को संगीत से अलग करें',
+  'karaoke.maker.removeBackgroundDone': 'आवाज़ पहले ही अलग हो चुकी है',
+  'karaoke.maker.separationDownloading':
+    'सेपरेशन मॉडल डाउनलोड हो रहा है ({percent}%) · एक बार, लगभग 700 MB',
+  'karaoke.maker.separationReading': 'गाना पढ़ा जा रहा है',
+  'karaoke.maker.separating': 'आवाज़ को संगीत से अलग किया जा रहा है',
+  'karaoke.maker.separationDone': 'आवाज़ अलग हो गई। लिरिक पहचान तैयार है।',
+  'karaoke.maker.separationSlow':
+    'इस मशीन पर ग्राफ़िक्स एक्सेलेरेशन नहीं है, इसलिए इसमें एक मिनट से कम के बजाय कुछ मिनट लगेंगे।',
+  'karaoke.maker.separationRequired':
+    'पहले आवाज़ अलग करें — लिरिक पहचान अलग की गई आवाज़ को पढ़ती है।',
+  'karaoke.maker.wizardTitle': 'इस गाने को अपने आप तैयार करें',
+  'karaoke.maker.wizardIntro':
+    'इस गाने में अभी लिरिक टाइमिंग नहीं है। FluidEQ आवाज़ को संगीत से अलग कर सकता है, फिर उसमें से शब्द और उनकी टाइमिंग पढ़ सकता है। सब कुछ इसी कंप्यूटर पर चलता है।',
+  'karaoke.maker.wizardStepSeparate': 'आवाज़ अलग करें',
+  'karaoke.maker.wizardStepTranscribe': 'शब्द और टाइमिंग पढ़ें',
+  'karaoke.maker.wizardStart': 'अपने आप तैयार करें',
+  'karaoke.maker.wizardSkip': 'मैं खुद करूँगा',
+  'karaoke.maker.wizardCancel': 'रोकें',
+  'karaoke.maker.wizardCancelled': 'रोक दिया गया। जो पूरा हुआ वह रखा गया है।',
   'karaoke.maker.vocalFocus': 'केंद्रीय आवाज़ पर ध्यान',
   'karaoke.maker.export': 'निर्यात',
   'karaoke.maker.exportProject': 'FluidEQ प्रोजेक्ट',
   'karaoke.maker.exportUltraStar': 'UltraStar TXT',
   'karaoke.maker.exportLrc': 'LRC',
   'karaoke.maker.exportElrc': 'उन्नत LRC',
+  'karaoke.maker.exportInstrumental': 'बैकिंग ट्रैक (बिना आवाज़)',
   'karaoke.maker.tapHint':
     '“{word}” के लिए SPACE या ENTER दबाएँ · Backspace पूर्ववत करता है',
   'karaoke.maker.editHint':
@@ -379,7 +409,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcriptionEyebrow': 'वैकल्पिक स्थानीय लिप्यंतरण',
   'karaoke.maker.transcriptionTitle': 'स्थानीय वॉइस मॉडल डाउनलोड करें?',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ MIT लाइसेंस वाले {model} मॉडल को Hugging Face से डाउनलोड कर इस PC पर कैश करेगा। आपका ऑडियो FluidEQ में ही रहता है और स्थानीय रूप से संसाधित होता है। पहली बार समय और अधिक मेमोरी लग सकती है।',
+    'FluidEQ, Hugging Face से MIT-लाइसेंस वाला {model} मॉडल डाउनलोड करके इसी PC पर रखेगा — आवाज़ अलग करने के लिए लगभग 700 MB, एक बार। आपका ऑडियो कभी इस कंप्यूटर से बाहर नहीं जाता। पहली बार कुछ मिनट लगते हैं और काफ़ी मेमोरी लगती है।',
   'karaoke.maker.transcriptionReview':
     'पहचान केवल शुरुआती बिंदु है। मौजूदा बोल मिलाते समय FluidEQ आपकी वर्तनी रखता है और सभी समय संपादन योग्य रहते हैं।',
   'karaoke.maker.notNow': 'अभी नहीं',

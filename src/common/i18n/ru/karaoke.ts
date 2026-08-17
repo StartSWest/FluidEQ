@@ -83,6 +83,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.transport.spaceShortcut': '{action} · Пробел',
   'karaoke.transport.seek': 'Позиция песни',
   'karaoke.transport.volume': 'Громкость',
+  'karaoke.transport.vocalLevel': 'Направляющий вокал',
+  'karaoke.transport.vocalOff': 'Только минус',
+  'karaoke.transport.vocalFull': 'Оригинал',
   'karaoke.mic.title': 'Микрофон',
   'karaoke.mic.settings': 'Настройки микрофона',
   'karaoke.mic.off': 'Выкл.',
@@ -285,12 +288,39 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcribe': 'Распознать',
   'karaoke.maker.vocalStem': 'Использовать вокальную дорожку',
   'karaoke.maker.vocalStemLoaded': 'Вокальная дорожка загружена',
+  'karaoke.maker.groupVoice': 'Голос и музыка',
+  'karaoke.maker.stemsTitle': 'Разделённые дорожки',
+  'karaoke.maker.stemBacking': 'Минусовка',
+  'karaoke.maker.stemVoice': 'Голос',
+  'karaoke.maker.stemSave': 'Сохранить',
+  'karaoke.maker.groupLyrics': 'Текст и тайминг',
+  'karaoke.maker.removeBackground': 'Отделить голос от музыки',
+  'karaoke.maker.removeBackgroundDone': 'Голос уже отделён',
+  'karaoke.maker.separationDownloading':
+    'Загрузка модели разделения ({percent}%) · один раз, около 700 МБ',
+  'karaoke.maker.separationReading': 'Чтение песни',
+  'karaoke.maker.separating': 'Отделение голоса от музыки',
+  'karaoke.maker.separationDone': 'Голос отделён. Распознавание текста готово.',
+  'karaoke.maker.separationSlow':
+    'На этом компьютере нет графического ускорения, поэтому это займёт несколько минут вместо менее чем одной.',
+  'karaoke.maker.separationRequired':
+    'Сначала отделите голос — распознавание текста читает изолированный вокал.',
+  'karaoke.maker.wizardTitle': 'Настроить эту песню автоматически',
+  'karaoke.maker.wizardIntro':
+    'У этой песни ещё нет тайминга текста. FluidEQ может отделить голос от музыки, а затем прочитать по нему слова и их тайминг. Всё выполняется на этом компьютере.',
+  'karaoke.maker.wizardStepSeparate': 'Отделить голос',
+  'karaoke.maker.wizardStepTranscribe': 'Прочитать слова и тайминг',
+  'karaoke.maker.wizardStart': 'Настроить автоматически',
+  'karaoke.maker.wizardSkip': 'Я сделаю сам',
+  'karaoke.maker.wizardCancel': 'Остановить',
+  'karaoke.maker.wizardCancelled': 'Остановлено. Готовое сохранено.',
   'karaoke.maker.vocalFocus': 'Фокус на центральном вокале',
   'karaoke.maker.export': 'Экспорт',
   'karaoke.maker.exportProject': 'Проект FluidEQ',
   'karaoke.maker.exportUltraStar': 'UltraStar TXT',
   'karaoke.maker.exportLrc': 'LRC',
   'karaoke.maker.exportElrc': 'Расширенный LRC',
+  'karaoke.maker.exportInstrumental': 'Минусовка (без голоса)',
   'karaoke.maker.tapHint':
     'Нажмите ПРОБЕЛ или ENTER для «{word}» · Backspace отменяет',
   'karaoke.maker.editHint':
@@ -390,7 +420,7 @@ const karaoke: Partial<Dictionary> = {
     'НЕОБЯЗАТЕЛЬНОЕ ЛОКАЛЬНОЕ РАСПОЗНАВАНИЕ',
   'karaoke.maker.transcriptionTitle': 'Скачать локальную модель речи?',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ скачает с Hugging Face модель {model} под лицензией MIT и сохранит её на этом ПК. Аудио остаётся в FluidEQ и обрабатывается локально. Первый запуск может занять время и много памяти.',
+    'FluidEQ загрузит модель {model} под лицензией MIT с Hugging Face и сохранит её на этом ПК — около 700 МБ для разделения голоса, один раз. Ваше аудио никогда не покидает компьютер. Первый запуск занимает несколько минут и требует много памяти.',
   'karaoke.maker.transcriptionReview':
     'Распознавание — лишь начало. FluidEQ сохраняет написание вашего текста при сопоставлении, а все времена можно редактировать.',
   'karaoke.maker.notNow': 'Не сейчас',

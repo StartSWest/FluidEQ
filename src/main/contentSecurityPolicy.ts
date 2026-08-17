@@ -16,8 +16,30 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-/** Where the speech model is fetched from, by the worker, on demand. */
-const WHISPER_HOSTS = 'https://huggingface.co https://cdn-lfs.huggingface.co';
+/**
+ * Where the on-demand models are fetched from, by their workers.
+ *
+ * Two models now: the speech model for lyric timing and the vocal separation
+ * model that feeds it a clean voice. Both are hosted on huggingface, and both
+ * are served the same way — a request to `huggingface.co` answers with a
+ * redirect to a large-file host, so allowing only the first one produces a
+ * download that begins and then fails. The CDN hostnames have moved over time
+ * (`cdn-lfs.huggingface.co`, then the `hf.co` variants, then the Xet bridge),
+ * so all of them are listed rather than the one that happens to answer today.
+ */
+const MODEL_HOSTS = [
+  'https://huggingface.co',
+  'https://*.huggingface.co',
+  // Wildcards rather than a list, and that is a correction rather than
+  // laziness. The list was tried first and shipped broken: it named
+  // `cdn-lfs-us-1.hf.co` and the Xet bridge, and the download was refused
+  // because the redirect actually landed on `us.aws.cdn.hf.co`. Hugging Face
+  // routes large files through per-region, per-provider hosts it invents as it
+  // needs them, so any enumeration is a guess that fails on somebody else's
+  // machine — the one place it is most expensive to discover.
+  'https://*.hf.co',
+  'https://*.xethub.hf.co',
+].join(' ');
 
 /**
  * The Content-Security-Policy for FluidEQ's own window.
@@ -55,8 +77,9 @@ const WHISPER_HOSTS = 'https://huggingface.co https://cdn-lfs.huggingface.co';
  *  - `blob:` for workers, media and images. The Whisper worker, the analysis
  *    worker, every audio file the user opens and the look designer's previews
  *    are all object URLs.
- *  - the Whisper hosts in connect-src, because that is where the speech model
- *    comes from.
+ *  - the model hosts in connect-src, because that is where the speech and
+ *    vocal separation models come from, including the redirect targets their
+ *    large files are actually served by.
  */
 export const contentSecurityPolicy = (isDebug: boolean): string =>
   [
@@ -68,8 +91,8 @@ export const contentSecurityPolicy = (isDebug: boolean): string =>
     "font-src 'self' data:",
     "worker-src 'self' blob:",
     isDebug
-      ? `connect-src 'self' ws: http://localhost:1212 ${WHISPER_HOSTS}`
-      : `connect-src 'self' ${WHISPER_HOSTS}`,
+      ? `connect-src 'self' ws: http://localhost:1212 ${MODEL_HOSTS}`
+      : `connect-src 'self' ${MODEL_HOSTS}`,
     "object-src 'none'",
     "base-uri 'self'",
     "form-action 'none'",

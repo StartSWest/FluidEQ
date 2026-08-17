@@ -244,6 +244,7 @@ describe('the Maker analysis tools', () => {
       onRebuild: jest.fn(),
       isUsingSongAudio: true,
       onChooseVocalStem: jest.fn(),
+      onRemoveBackground: jest.fn(),
       ...over,
     };
     show(
@@ -254,6 +255,7 @@ describe('the Maker analysis tools', () => {
         onRebuild={props.onRebuild}
         isUsingSongAudio={props.isUsingSongAudio}
         onChooseVocalStem={props.onChooseVocalStem}
+        onRemoveBackground={props.onRemoveBackground}
       />,
     );
     return props;
@@ -261,9 +263,10 @@ describe('the Maker analysis tools', () => {
 
   it('blocks every re-run while one is already going', () => {
     // Three detections against one audio file at once would be three answers
-    // for the same question.
-    analysis({ isAnalysing: true });
-    ['Re-detect lyric timing', 'Re-detect melody notes'].forEach((label) => {
+    // for the same question. Run with a stem already in place, so that what is
+    // being measured is the run in progress and not the separation gate.
+    analysis({ isAnalysing: true, isUsingSongAudio: false });
+    [/Re-detect lyric timing/, /Re-detect melody notes/].forEach((label) => {
       expect(screen.getByRole('button', { name: label })).toBeDisabled();
     });
   });
@@ -272,29 +275,74 @@ describe('the Maker analysis tools', () => {
     // Choosing a cleaner recording is preparation for the next run, not a
     // fourth run competing with this one.
     analysis({ isAnalysing: true });
-    expect(screen.getByRole('button', { name: /vocal/i })).toBeEnabled();
+    expect(
+      screen.getByRole('button', { name: /Load vocal-only track/ }),
+    ).toBeEnabled();
   });
 
-  it('says whether a separate stem is already loaded', () => {
-    const { unmount } = show(
-      <KaraokeMakerAnalysisTools
-        isAnalysing={false}
-        onDetectLyrics={() => {}}
-        onDetectMelody={() => {}}
-        onRebuild={() => {}}
-        isUsingSongAudio
-        onChooseVocalStem={() => {}}
-      />,
-    );
-    const usingSong = screen.getByRole('button', {
-      name: /vocal/i,
-    }).textContent;
-    unmount();
+  it('holds lyric detection back until the voice has been separated', () => {
+    // The dependency the whole feature rests on. Whisper transcribes an
+    // isolated voice far more reliably than a voice buried under a drum kit,
+    // so running it on the mix produces a worse transcript that then has to be
+    // corrected by hand — which is the work the detector exists to avoid.
+    analysis({ isUsingSongAudio: true });
+    expect(
+      screen.getByRole('button', { name: /Re-detect lyric timing/ }),
+    ).toBeDisabled();
+  });
 
+  it('releases lyric detection once a stem is in place', () => {
+    // However the stem arrived — separated here or loaded by the user — the
+    // gate is the same question: is the analysis audio still the full mix?
     analysis({ isUsingSongAudio: false });
-    expect(screen.getByRole('button', { name: /vocal/i }).textContent).not.toBe(
-      usingSong,
+    expect(
+      screen.getByRole('button', { name: /Re-detect lyric timing/ }),
+    ).toBeEnabled();
+  });
+
+  it('says why lyric detection is unavailable rather than just dimming it', () => {
+    // A disabled control that explains nothing reads as a bug rather than as a
+    // step in an order. The reason rides on the accessible name, so it reaches
+    // a screen reader and the tooltip alike.
+    analysis({ isUsingSongAudio: true });
+    // The visible label is unchanged — the reason rides behind it, so the
+    // toolbar keeps its short captions and the explanation still arrives.
+    const button = screen.getByRole('button', {
+      name: /^Re-detect lyric timing — /,
+    });
+    expect(button).toHaveAccessibleName(/Separate the voice first/);
+    expect(button).toHaveAttribute(
+      'data-tooltip',
+      expect.stringContaining('Separate the voice first'),
     );
+  });
+
+  it('keeps melody detection available on the full mix', () => {
+    // Deliberately not gated. Pitch detection is polyphonic, so a mix gives it
+    // a worse answer rather than no answer, and blocking it would take away a
+    // tool that does still work.
+    analysis({ isUsingSongAudio: true });
+    expect(
+      screen.getByRole('button', { name: /Re-detect melody notes/ }),
+    ).toBeEnabled();
+  });
+
+  it('offers the separation once, and reports when it is already done', () => {
+    const { onRemoveBackground } = analysis({ isUsingSongAudio: true });
+    const button = screen.getByRole('button', {
+      name: /Separate voice from music/,
+    });
+    expect(button).toBeEnabled();
+    fireEvent.click(button);
+    expect(onRemoveBackground).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not offer to separate a stem that is already separated', () => {
+    // Running it on its own output would strip the voice from the voice.
+    analysis({ isUsingSongAudio: false });
+    expect(
+      screen.getByRole('button', { name: /Voice already separated/ }),
+    ).toBeDisabled();
   });
 });
 

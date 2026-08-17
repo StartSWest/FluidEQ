@@ -377,10 +377,7 @@ describe('KaraokeWorkspace', () => {
     ).not.toBeInTheDocument();
     expect(
       maker.querySelector('button[aria-label="Prepare karaoke"]'),
-    ).not.toBeInTheDocument();
-    expect(
-      maker.querySelector('button[aria-label="Repair tools"]'),
-    ).not.toBeInTheDocument();
+    ).toBeInTheDocument();
     fireEvent.click(
       maker.querySelector('button[aria-label="Lyrics"]') as HTMLButtonElement,
     );
@@ -755,7 +752,7 @@ describe('KaraokeWorkspace', () => {
     canvasContext.mockRestore();
   });
 
-  it('keeps automatic detector controls out of the Maker UI', async () => {
+  it('offers the detector without taking the manual paths away', async () => {
     const canvasContext = jest
       .spyOn(HTMLCanvasElement.prototype, 'getContext')
       .mockReturnValue(null);
@@ -777,19 +774,21 @@ describe('KaraokeWorkspace', () => {
     });
     expect(
       maker.querySelector('button[aria-label="Prepare karaoke"]'),
-    ).not.toBeInTheDocument();
-    expect(
-      maker.querySelector('button[aria-label="Repair tools"]'),
-    ).not.toBeInTheDocument();
+    ).toBeInTheDocument();
     fireEvent.click(
       maker.querySelector('button[aria-label="Lyrics"]') as HTMLButtonElement,
     );
     const lyricsDialog = await screen.findByRole('dialog', {
       name: 'Paste or edit one lyric line per row',
     });
+    // Offered, but not armed: there are no lyrics in this dialog yet, so the
+    // detector has nothing to align against.
     expect(
-      screen.queryByRole('button', { name: 'Detect timing and melody' }),
-    ).not.toBeInTheDocument();
+      screen.getByRole('button', { name: 'Detect timing and melody' }),
+    ).toBeDisabled();
+    // And nothing has been downloaded behind the user's back. The consent
+    // dialog appears when they ask for the detector, not when they open the
+    // lyric editor.
     expect(
       screen.queryByRole('dialog', { name: 'Download the speech model?' }),
     ).not.toBeInTheDocument();
