@@ -26,11 +26,8 @@ import {
   IFiltersMap,
   ISmartEqSettings,
 } from 'common/constants';
-import {
-  buildSmartEqSettings,
-  describeSmartEqLayer,
-  getSmartEqLayout,
-} from 'common/smartEq';
+import { describeSmartEqLayer, getSmartEqLayout } from 'common/smartEq';
+import { buildSmartEqSettings } from 'common/smartEqContinuous';
 import { ISpectrumSample } from 'renderer/utils/autoBalance';
 import { IBalanceResult } from 'renderer/utils/autoBalanceCapture';
 

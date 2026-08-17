@@ -23,22 +23,9 @@ import {
   getTFCoefficients,
 } from 'common/response';
 import {
-  CONTINUOUS_MAX_STEP_DB,
-  SMART_EQ_MAX_BOOST_DB,
-  CONTINUOUS_MEMORY,
-  CONTINUOUS_RESET_DB,
-  CONTINUOUS_RESET_HOLDS,
-  CONTINUOUS_SETTLE_DB,
-  CONTINUOUS_STEP_DB,
-  CONTINUOUS_STEP_FRACTION,
-  CONTINUOUS_TRIGGER_DB,
-  blendSmartEqTarget,
   SMART_EQ_MAX_FREQUENCY,
   SMART_EQ_MIN_FREQUENCY,
   SMART_EQ_QUALITY,
-  buildSmartEqSettings,
-  confineSmartEqResponse,
-  stepSmartEqGains,
   describeSmartEqLayer,
   getSmartEqBands,
   getSmartEqFilters,
@@ -47,6 +34,21 @@ import {
   hasSmartEqLayer,
   sanitizeSmartEqSettings,
 } from 'common/smartEq';
+import {
+  CONTINUOUS_MAX_STEP_DB,
+  CONTINUOUS_MEMORY,
+  CONTINUOUS_RESET_DB,
+  CONTINUOUS_RESET_HOLDS,
+  CONTINUOUS_SETTLE_DB,
+  CONTINUOUS_STEP_DB,
+  CONTINUOUS_STEP_FRACTION,
+  CONTINUOUS_TRIGGER_DB,
+  SMART_EQ_MAX_BOOST_DB,
+  blendSmartEqTarget,
+  buildSmartEqSettings,
+  confineSmartEqResponse,
+  stepSmartEqGains,
+} from 'common/smartEqContinuous';
 import { buildBalancedGains } from 'renderer/utils/autoBalance';
 
 const layerOf = (gainsByFrequency: Record<number, number>) =>

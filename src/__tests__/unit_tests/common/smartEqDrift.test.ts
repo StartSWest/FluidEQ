@@ -19,11 +19,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { IFilter, MIN_GAIN } from 'common/constants';
 import { gainAtFrequency, getTFCoefficients } from 'common/response';
 import { getReferenceShape } from 'common/referenceCurve';
+import { getSmartEqBands } from 'common/smartEq';
 import {
   SMART_EQ_MAX_BOOST_DB,
   SMART_EQ_MAX_CUT_DB,
-  getSmartEqBands,
-} from 'common/smartEq';
+} from 'common/smartEqContinuous';
 import { buildBalancedGains } from 'renderer/utils/autoBalance';
 
 /**

@@ -19,10 +19,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import { FilterTypeEnum, IFilter, IFiltersMap } from 'common/constants';
 import {
   ISmartEqSettings,
-  buildSmartEqSettings,
   getSmartEqBands,
   getSmartEqFilters,
 } from 'common/smartEq';
+import { buildSmartEqSettings } from 'common/smartEqContinuous';
 import { IVoicingSettings, getVoicingFilters } from 'common/voicing';
 import { IDriverSettings, getDriverFilters } from 'common/driver';
 import {

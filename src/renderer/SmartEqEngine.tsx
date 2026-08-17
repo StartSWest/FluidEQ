@@ -17,16 +17,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useEffect, useRef } from 'react';
+import { describeSmartEqLayer, getSmartEqBands } from 'common/smartEq';
 import {
+  CONTINUOUS_SETTLE_DB,
   TSmartEqDrift,
   blendSmartEqTarget,
   buildSmartEqSettings,
   confineSmartEqResponse,
-  describeSmartEqLayer,
-  getSmartEqBands,
   stepSmartEqGains,
-  CONTINUOUS_SETTLE_DB,
-} from 'common/smartEq';
+} from 'common/smartEqContinuous';
 import { getReferenceShape } from 'common/referenceCurve';
 import { getVoicingFilters } from 'common/voicing';
 import { getDriverFilters } from 'common/driver';
