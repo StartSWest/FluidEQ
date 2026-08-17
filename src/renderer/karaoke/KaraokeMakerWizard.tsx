@@ -131,7 +131,11 @@ const KaraokeMakerWizard = ({
                 stays, with its own cancel, so dismissing this window is never
                 mistaken for stopping the run.
               */}
-              <button type="button" className="button small" onClick={onHide}>
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={onHide}
+              >
                 {t('karaoke.maker.wizardHide')}
               </button>
               <button
@@ -145,25 +149,21 @@ const KaraokeMakerWizard = ({
           ) : (
             <>
               {/*
-                `subtle` on the recommended action and plain on the decline,
-                which is the opposite of how the names read.
-
-                Measured in the running window: `.button.small.subtle` renders
-                with a tinted fill and bright cyan text, while plain
-                `.button.small` is transparent with dimmer text. So `subtle` is
-                this app's emphasised variant and the bare class is its quiet
-                one. Naming it the other way round put the wrong button
-                forward, and no test could see it — both have a role, a label
-                and a click handler either way.
+                Measured in the running window rather than assumed from the
+                names: plain `.button.small` is the solid accent fill
+                (rgb(0,229,207)) and `subtle` is a 7% tint. So the recommended
+                action wears the plain class and the decline wears `subtle` —
+                this dialog shipped once the other way round, with the loud
+                button saying "I will do it myself", and no test could see it.
               */}
-              <button type="button" className="button small" onClick={onSkip}>
-                {t('karaoke.maker.wizardSkip')}
-              </button>
               <button
                 type="button"
                 className="button small subtle"
-                onClick={onStart}
+                onClick={onSkip}
               >
+                {t('karaoke.maker.wizardSkip')}
+              </button>
+              <button type="button" className="button small" onClick={onStart}>
                 {t('karaoke.maker.wizardStart')}
               </button>
             </>

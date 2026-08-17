@@ -1,5 +1,67 @@
 # Working on FluidEQ
 
+## Response format
+
+- Yes/no question → the direct answer in the FIRST sentence.
+- Simple fix → 1–3 sentences. Complex task → short bullets.
+- Never re-explain what Ivan just said, never enumerate options when one is
+  clearly best — recommend it in one sentence.
+- Final line of every response is a verdict, nothing after it:
+  - `Status: DONE`
+  - `Status: IN PROGRESS — <what remains>`
+  - `Status: BLOCKED — <what is needed>`
+
+## UI work — the rules the tests cannot enforce
+
+Every UI defect that shipped this project passed the whole test suite: an
+unsized SVG that filled the tab, buttons with no class, a panel buried in a
+closed popover, three waveforms crushed into a 27px strip, the loud style on
+the decline button. Tests query by role; they cannot see size, colour,
+placement or taste. Therefore:
+
+- **Verify visually before claiming done.** In dev the app exposes DevTools on
+  `127.0.0.1:9222`; probe the DOM, computed styles and canvas pixels of the
+  running window. "Compiles and tests pass" is not a UI verdict.
+- **Reuse the app's existing classes; never invent a style.** `button small` is
+  the filled accent, `button small subtle` the quiet outline — measured, not
+  assumed: when a style misbehaves, read `getComputedStyle` in the live window
+  instead of reasoning about the cascade.
+- **Results and controls live on the surface where the work happens.** A stems
+  panel inside a closed popover, a fader hidden behind a menu — each read as
+  "the feature did nothing". If it is the product of a long-running action, it
+  must be visible when the action completes.
+- **Any long-running action shows progress from its first second**, is
+  cancellable, and can be sent to the background; a click that visibly does
+  nothing is a bug regardless of what runs underneath.
+- **Emphasis follows recommendation**: the suggested action wears the loud
+  style, the decline wears the quiet one.
+
+## Verification discipline
+
+- A null test needs a positive control beside it, or "found nothing" is
+  indistinguishable from "removed everything". The separation packing bug
+  passed a perfect-looking null test by returning zero for every input.
+- When a runtime fails opaquely and a proven alternative exists, switch —
+  three instrumented attempts on onnxruntime-web lost to onnxruntime-node,
+  which a bench had already validated on this machine.
+- Model/weight licences are verified at the author's own repository, never a
+  mirror's tag. Undocumented is not permissive; this app is sold.
+
+## Coding standards (the generic core)
+
+- Strict TS: no `any` (use `unknown` + guards), no `!` non-null, no
+  `@ts-ignore`, no `==`, no `var`, no empty `catch`, no dead code, no
+  `console.log` left in source (the one exception: context-rich
+  `console.error` before an error is flattened for the user).
+- No `eslint-disable` without an inline justification.
+- Files stay under 500 lines unless there is genuinely no seam.
+- Comments state what the code cannot: constraints, measured numbers, the
+  failure the code prevents — never what the next line does.
+- Reusable, but never flag-driven: a component that needs mode flags to behave
+  two ways is two components.
+- Every user-facing string goes through i18n, all ten locales in the same
+  commit.
+
 ## Never read the built binaries
 
 Do not `Read` any `.exe`, `.dll`, `.asar`, or anything else in
@@ -23,6 +85,11 @@ Everything worth knowing about them is available through commands:
   and must never rename the file: Electron decides `app.isPackaged` from the
   basename, so a renamed binary puts development into packaged mode and the
   window stops opening.
+- **Scripted edits through `node -e` inside Bash mangle `$` too** — template
+  literals in generated code (`` `${x}` ``) come out as empty holes and the
+  file is silently corrupted mid-expression. Same rule as below: anything
+  containing `$`, a backslash or a template literal goes through the Write and
+  Edit tools, never through a shell-quoted script.
 - **Shell mangles `$` _and_ `\` in scripted edits.** Writing Sass through
   `node -e` with `$primary-lighter` in the string silently corrupts it, and so
   does a Windows path — `resources\equalizer-apo` came out as

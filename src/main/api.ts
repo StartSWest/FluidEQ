@@ -182,6 +182,26 @@ const separateKaraokeVocals = (left: Float32Array, right: Float32Array) =>
     backend: string;
   }>;
 
+const saveKaraokeStems = (
+  key: string,
+  vocals: ArrayBuffer,
+  instrumental: ArrayBuffer,
+) =>
+  ipcRenderer.invoke('karaoke-stems-save', {
+    key,
+    vocals,
+    instrumental,
+  }) as Promise<void>;
+
+const loadKaraokeStems = (key: string) =>
+  ipcRenderer.invoke('karaoke-stems-load', key) as Promise<{
+    vocals: Uint8Array;
+    instrumental: Uint8Array;
+  } | null>;
+
+const releaseKaraokeSeparationModel = () =>
+  ipcRenderer.send('karaoke-separate-release', []);
+
 const cancelKaraokeSeparation = () =>
   ipcRenderer.send('karaoke-separate-cancel', []);
 
@@ -233,6 +253,9 @@ export default {
     deleteKaraokeMakerDraft,
     separateKaraokeVocals,
     cancelKaraokeSeparation,
+    releaseKaraokeSeparationModel,
+    saveKaraokeStems,
+    loadKaraokeStems,
     onKaraokeSeparationProgress,
     exportKaraokeMakerFile,
     revealVideoDownload,

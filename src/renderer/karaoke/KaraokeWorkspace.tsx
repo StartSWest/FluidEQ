@@ -255,6 +255,78 @@ const KaraokeWorkspace = ({
     audioRef: session.audioRef,
     vocals: song?.assets.find((asset) => asset.role === 'vocals')?.file,
   });
+  /** File both stems on the song; the element swaps to the backing track. */
+  const applyStemsToSong = useCallback(
+    (target: typeof song, vocals: File, instrumental: File) => {
+      if (!target) {
+        return;
+      }
+      session.applySong({
+        ...target,
+        assets: [
+          ...target.assets.filter(
+            (asset) => asset.role !== 'instrumental' && asset.role !== 'vocals',
+          ),
+          {
+            id: `${target.id}-instrumental`,
+            role: 'instrumental',
+            file: instrumental,
+            extension: 'wav',
+          },
+          {
+            id: `${target.id}-vocals`,
+            role: 'vocals',
+            file: vocals,
+            extension: 'wav',
+          },
+        ],
+      });
+    },
+    [session],
+  );
+
+  // A song whose stems were made on an earlier run gets them back from disk,
+  // so a refresh does not cost the split again. Fires once per song: as soon
+  // as the assets carry stems the condition goes false.
+  useEffect(() => {
+    if (!song || song.assets.some((asset) => asset.role === 'vocals')) {
+      return;
+    }
+    window.electron.ipcRenderer
+      .loadKaraokeStems(song.id)
+      .then((stems) => {
+        if (stems) {
+          applyStemsToSong(
+            song,
+            new File([stems.vocals as BlobPart], `${song.title} (vocals).wav`, {
+              type: 'audio/wav',
+            }),
+            new File(
+              [stems.instrumental as BlobPart],
+              `${song.title} (instrumental).wav`,
+              { type: 'audio/wav' },
+            ),
+          );
+        }
+        return null;
+      })
+      .catch(() => undefined);
+  }, [song, applyStemsToSong]);
+
+  // Leaving the tab discharges both AI models after the memory panel's idle
+  // delay — the whisper worker and the separation session in main together
+  // hold well over a gigabyte. Staying on the tab never discharges anything;
+  // coming back cancels the countdown. 'keep' in the panel means keep.
+  useEffect(() => {
+    if (!isHidden || whisperSession.settings.policy === 'keep') {
+      return undefined;
+    }
+    const timer = window.setTimeout(() => {
+      window.electron.ipcRenderer.releaseKaraokeSeparationModel();
+      releaseKaraokeWhisperModel().catch(() => undefined);
+    }, whisperSession.settings.idleMinutes * 60_000);
+    return () => window.clearTimeout(timer);
+  }, [isHidden, whisperSession.settings]);
   const isLoading = status === 'loading';
   const playheadRef = useRef(session.playheadMs);
   const sessionRef = useRef(session);
@@ -1504,35 +1576,20 @@ const KaraokeWorkspace = ({
             onPlay={handleEditorPlay}
             onPause={handleEditorPause}
             onStems={({ vocals, instrumental }) => {
-              // Both stems join the song as their own roles; `audio` is left
-              // exactly as imported. That is not tidiness — the Maker is keyed
-              // on the audio asset's identity, and an earlier version of this
-              // handler swapped it for the instrumental, which silently
-              // remounted the open editor and re-ran the wizard over itself.
-              // The session plays the instrumental (applySong swaps the
-              // element's source, keeping the playhead) and the fader blends
-              // the voice back in over it.
-              session.applySong({
-                ...song,
-                assets: [
-                  ...song.assets.filter(
-                    (asset) =>
-                      asset.role !== 'instrumental' && asset.role !== 'vocals',
+              // Both stems join the song as their own roles; the audio asset
+              // stays exactly as imported — the Maker is keyed on it, and an
+              // earlier version that swapped it remounted the open editor.
+              applyStemsToSong(song, vocals, instrumental);
+              // And onto disk, so a refresh recovers them with the workspace.
+              Promise.all([vocals.arrayBuffer(), instrumental.arrayBuffer()])
+                .then(([vocalBytes, instrumentalBytes]) =>
+                  window.electron.ipcRenderer.saveKaraokeStems(
+                    song.id,
+                    vocalBytes,
+                    instrumentalBytes,
                   ),
-                  {
-                    id: `${song.id}-instrumental`,
-                    role: 'instrumental',
-                    file: instrumental,
-                    extension: 'wav',
-                  },
-                  {
-                    id: `${song.id}-vocals`,
-                    role: 'vocals',
-                    file: vocals,
-                    extension: 'wav',
-                  },
-                ],
-              });
+                )
+                .catch(() => undefined);
             }}
             onApply={(project) => {
               const audioAsset = song.assets.find(

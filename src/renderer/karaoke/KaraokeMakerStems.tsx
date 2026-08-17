@@ -7,6 +7,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import { useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
+import { KaraokeTransportIcon } from './KaraokeTransport';
 
 /**
  * One stem drawn as a waveform.
@@ -16,32 +17,32 @@ import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
  * track shows the song's whole shape. Two named rows with Save buttons say a
  * split happened; two visibly different waveforms say what it did.
  */
-const StemWave = ({ file }: { file: File }) => {
+const StemWave = ({
+  file,
+  playheadFraction,
+  onSeekFraction,
+}: {
+  file: File;
+  /** 0..1 through the song, so every wave tracks the one transport. */
+  playheadFraction: number;
+  onSeekFraction?: (fraction: number) => void;
+}) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const peaksRef = useRef<Float32Array | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
+    peaksRef.current = undefined;
     (async () => {
-      const canvas = canvasRef.current;
-      if (!canvas) {
-        return;
-      }
       const context = new OfflineAudioContext(1, 1, 44_100);
       const decoded = await context.decodeAudioData(await file.arrayBuffer());
       if (cancelled) {
         return;
       }
       const samples = decoded.getChannelData(0);
-      const { width } = canvas;
-      const { height } = canvas;
-      const paint = canvas.getContext('2d');
-      if (!paint) {
-        return;
-      }
-      paint.clearRect(0, 0, width, height);
-      paint.fillStyle = 'rgba(30, 215, 199, 0.75)';
+      const width = canvasRef.current?.width ?? 560;
+      const peaks = new Float32Array(width);
       const bucket = Math.max(1, Math.floor(samples.length / width));
-      const middle = height / 2;
       for (let x = 0; x < width; x += 1) {
         let peak = 0;
         const start = x * bucket;
@@ -52,9 +53,10 @@ const StemWave = ({ file }: { file: File }) => {
             peak = magnitude;
           }
         }
-        const half = Math.max(1, peak * middle);
-        paint.fillRect(x, middle - half, 1, half * 2);
+        peaks[x] = peak;
       }
+      peaksRef.current = peaks;
+      draw();
     })().catch(() => {
       // A stem that cannot be decoded simply has no picture; the row, its
       // name and its Save button still work.
@@ -62,7 +64,32 @@ const StemWave = ({ file }: { file: File }) => {
     return () => {
       cancelled = true;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [file]);
+
+  const draw = () => {
+    const canvas = canvasRef.current;
+    const peaks = peaksRef.current;
+    const paint = canvas?.getContext('2d');
+    if (!canvas || !peaks || !paint) {
+      return;
+    }
+    const { width, height } = canvas;
+    const middle = height / 2;
+    paint.clearRect(0, 0, width, height);
+    const playedX = Math.round(playheadFraction * width);
+    for (let x = 0; x < width; x += 1) {
+      // Two colours, split at the playhead, so the wave itself is the
+      // progress bar — the same reading the main transport teaches.
+      paint.fillStyle =
+        x <= playedX ? 'rgba(30, 215, 199, 0.9)' : 'rgba(30, 215, 199, 0.42)';
+      const half = Math.max(1, peaks[x] * middle);
+      paint.fillRect(x, middle - half, 1, half * 2);
+    }
+    paint.fillStyle = 'rgba(255, 255, 255, 0.85)';
+    paint.fillRect(playedX, 0, 1, height);
+  };
+  useEffect(draw);
 
   return (
     <canvas
@@ -71,6 +98,16 @@ const StemWave = ({ file }: { file: File }) => {
       width={560}
       height={36}
       aria-hidden="true"
+      style={onSeekFraction ? { cursor: 'pointer' } : undefined}
+      onClick={(event) => {
+        if (!onSeekFraction) {
+          return;
+        }
+        const rect = event.currentTarget.getBoundingClientRect();
+        onSeekFraction(
+          Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width)),
+        );
+      }}
     />
   );
 };
@@ -90,6 +127,13 @@ interface IKaraokeMakerStemsProps {
   onVocalLevel?: (level: number) => void;
   onSave: (file: File) => void;
   /** True while a split is running, which is the only time this panel talks. */
+  /** Playhead and duration of the one transport all waves follow. */
+  playheadMs?: number;
+  durationMs?: number;
+  onSeek?: (positionMs: number) => void;
+  isPlaying?: boolean;
+  onPlay?: () => void;
+  onPause?: () => void;
   isSeparating?: boolean;
   /** 0..1, or undefined while a stage has begun but reported nothing yet. */
   progress?: number;
@@ -116,6 +160,12 @@ const KaraokeMakerStems = ({
   vocalLevel,
   onVocalLevel,
   onSave,
+  playheadMs = 0,
+  durationMs = 0,
+  onSeek,
+  isPlaying = false,
+  onPlay,
+  onPause,
   isSeparating = false,
   progress,
   message,
@@ -170,6 +220,28 @@ const KaraokeMakerStems = ({
             <li key={track.icon} className="karaoke-maker__stem">
               <KaraokeMakerToolIcon name={track.icon} />
               <span className="karaoke-maker__stem-name">{track.label}</span>
+              {/*
+                The one global transport, not a private player: pressing play
+                here plays the song from the shared playhead, exactly like the
+                header button — and the guide-vocal fader decides how much of
+                each stem is heard. A second audition player drifted from the
+                transport and answered to neither seek nor pause.
+              */}
+              {onPlay && onPause && (
+                <button
+                  type="button"
+                  className="button small subtle"
+                  onClick={() => (isPlaying ? onPause() : onPlay())}
+                  aria-pressed={isPlaying}
+                  aria-label={t(
+                    isPlaying
+                      ? 'karaoke.transport.pause'
+                      : 'karaoke.transport.play',
+                  )}
+                >
+                  <KaraokeTransportIcon name={isPlaying ? 'pause' : 'play'} />
+                </button>
+              )}
               <button
                 type="button"
                 // Quiet: saving a stem is an escape hatch, not the thing this
@@ -179,7 +251,15 @@ const KaraokeMakerStems = ({
               >
                 {t('karaoke.maker.stemSave')}
               </button>
-              <StemWave file={track.file as File} />
+              <StemWave
+                file={track.file as File}
+                playheadFraction={durationMs > 0 ? playheadMs / durationMs : 0}
+                onSeekFraction={
+                  onSeek && durationMs > 0
+                    ? (fraction) => onSeek(fraction * durationMs)
+                    : undefined
+                }
+              />
             </li>
           ))}
       </ul>

@@ -112,11 +112,22 @@ export const useKaraokeVocalMix = ({
     source.connect(gain);
     source.playbackRate.value = element.playbackRate;
     if (!element.paused) {
-      source.start(0, Math.min(element.currentTime, buffer.duration));
+      // Start the buffer AHEAD of the element by the audio pipeline's own
+      // latency. A buffer started at `currentTime` is sampled correctly but
+      // heard late — the graph adds base plus output latency before anything
+      // reaches the speaker — and the ear reads that constant lag as the
+      // voice dragging behind the band. Skipping that many milliseconds in
+      // means both arrive at the speaker together.
+      const latency =
+        context.baseLatency +
+        ((context as AudioContext & { outputLatency?: number }).outputLatency ??
+          0);
+      const offset = Math.min(element.currentTime + latency, buffer.duration);
+      source.start(0, offset);
       // Where both clocks stood at the start, so drift is measurable later.
       startRef.current = {
         contextTime: context.currentTime,
-        mediaTime: element.currentTime,
+        mediaTime: offset,
         rate: element.playbackRate,
       };
     }
@@ -146,7 +157,7 @@ export const useKaraokeVocalMix = ({
       const expected =
         started.mediaTime +
         (context.currentTime - started.contextTime) * started.rate;
-      if (Math.abs(expected - element.currentTime) > 0.06) {
+      if (Math.abs(expected - element.currentTime) > 0.045) {
         sync();
       }
     };

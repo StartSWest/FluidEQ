@@ -6134,6 +6134,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The advanced-tools popover, split into "voice and music" and "lyrics and
 // timing". Flat, its five buttons read as interchangeable and the disabled
 // ones looked broken; grouped, the order is the instruction.
+.karaoke-maker__analysis-popover {
+  min-width: min(430px, 78vw);
+  padding: 14px 16px;
+}
+
 .karaoke-maker__tool-group-titled {
   display: grid;
   gap: 8px;
@@ -6163,6 +6168,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // nothing on screen says so.
 .karaoke-maker__stems {
   display: grid;
+  grid-column: 1 / -1;
   gap: 7px;
   padding-bottom: 11px;
   margin-bottom: 11px;
@@ -6197,7 +6203,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   align-items: center;
   gap: 9px;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   padding: 7px 10px;
   font-size: 0.86rem;
   background: rgba(255, 255, 255, 0.04);
@@ -6413,6 +6419,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   justify-content: flex-end;
   gap: 9px;
+
+  // The recommended action, stated completely rather than inherited, because
+  // this button has been restyled by cascade surprises three times today.
+  // Rest: solid accent, dark label. Hover: brighter fill, same dark label, a
+  // glow — readable in both states, nothing left to the panel's light text.
+  .button:not(.subtle) {
+    color: #03110f;
+    border-color: transparent;
+    background: $secondary-default;
+
+    &:hover:not([aria-disabled='true']) {
+      color: #02231f;
+      background: $secondary-light;
+      box-shadow:
+        0 0 22px rgba($secondary-default, 0.35),
+        inset 0 1px 0 rgba($white, 0.4);
+      transform: translateY(-1px);
+    }
+  }
 }
 
 // No bespoke primary style here on purpose. `button small` is already this

@@ -26,11 +26,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * of the geometry.
  */
 export const WAVEFORM_TOP = 9;
-export const WAVEFORM_HEIGHT = 27;
-export const SECTION_GROUP_TOP = 43;
+/**
+ * Tall enough for three readable rows — the mix, the backing track and the
+ * voice a separation produces — at ~25 px each. It was 27 px, sized for one
+ * overview wave, and three waves crammed into it were unreadable ribbons.
+ * A song without stems draws its single wave across the full height, which
+ * is strictly an upgrade. Everything below derives from these constants, so
+ * the section band, lyric lanes, plot and hit-testing all move together.
+ */
+export const WAVEFORM_HEIGHT = 81;
+export const SECTION_GROUP_TOP = 97;
 export const SECTION_GROUP_HEIGHT = 30;
 /** Where the lyric lanes start before any section groups push them down. */
-export const BASE_LYRIC_SECTION_TOP = 43;
+export const BASE_LYRIC_SECTION_TOP = 97;
 export const LYRIC_LANE_HEIGHT = 34;
 
 /** Room for the piano keys down the left edge. */

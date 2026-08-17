@@ -71,17 +71,14 @@ export interface IKaraokeMakerToolbarProps {
    */
   onSaveInstrumental?: () => void;
   openLyricsEditor: () => void;
-  prepareKaraoke: () => void;
   setDestructiveAction: Dispatch<
     SetStateAction<TDestructiveMakerAction | undefined>
   >;
   /** Hidden while a run is going, so a second one cannot be started. */
-  analysisProgress: number | undefined;
 }
 
 const KaraokeMakerToolbar = ({
   advancedAnalysisTools,
-  analysisProgress,
   canShiftFromWord,
   editTools,
   exportOpen,
@@ -89,7 +86,6 @@ const KaraokeMakerToolbar = ({
   onSaveInstrumental,
   handPanMode,
   openLyricsEditor,
-  prepareKaraoke,
   project,
   projectInputRef,
   selectedToken,
@@ -180,12 +176,6 @@ const KaraokeMakerToolbar = ({
 
       {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && (
         <div className="karaoke-maker__tool-group karaoke-maker__wide-analysis-tools">
-          <KaraokeMakerToolbarButton
-            icon="analyze"
-            label={t('karaoke.maker.prepare')}
-            onClick={prepareKaraoke}
-            disabled={analysisProgress !== undefined}
-          />
           <div className="karaoke-maker__tool-cluster">
             <KaraokeMakerToolbarButton
               icon="melody"
@@ -203,12 +193,6 @@ const KaraokeMakerToolbar = ({
       )}
       {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && (
         <div className="karaoke-maker__tool-cluster karaoke-maker__compact-analysis-tools">
-          <KaraokeMakerToolbarButton
-            icon="analyze"
-            label={t('karaoke.maker.prepare')}
-            onClick={prepareKaraoke}
-            disabled={analysisProgress !== undefined}
-          />
           <KaraokeMakerToolbarButton
             icon="melody"
             label={t('karaoke.maker.advanced')}

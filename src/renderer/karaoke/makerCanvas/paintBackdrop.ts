@@ -298,52 +298,46 @@ export const paintBackdrop = (
     // track, then the voice. Alignment is the entire point — the reader's eye
     // drops straight down from a bump in the mix to which stem owns it, which
     // is how lyric timing gets checked against singing rather than sound.
-    // Overlaid at full height, not stacked. The strip is sized for one wave;
-    // slicing it into thirds shrank every shape into an unreadable ribbon.
-    // Layered, each wave keeps the whole strip's amplitude resolution and the
-    // eye separates them by colour: the mix as a dim context shape behind,
-    // the backing track over it, the voice brightest and on top — the one
-    // being checked against the lyrics is the one that reads first.
-    paintWaveLane(
-      waveform,
-      WAVEFORM_TOP,
-      WAVEFORM_HEIGHT,
-      'rgba(22, 211, 198, .1)',
-      'rgba(72, 246, 230, .18)',
-    );
-    paintWaveLane(
-      stemWaveforms.instrumental,
-      WAVEFORM_TOP,
-      WAVEFORM_HEIGHT,
-      'rgba(94, 158, 255, .16)',
-      'rgba(126, 180, 255, 0)',
-    );
-    paintWaveLane(
-      stemWaveforms.vocals,
-      WAVEFORM_TOP,
-      WAVEFORM_HEIGHT,
-      'rgba(255, 176, 92, .38)',
-      'rgba(255, 200, 128, 0)',
-    );
-    // One legend line, each word in its wave's colour.
-    context.save();
-    context.font = '700 9px Inter, system-ui, sans-serif';
-    context.textAlign = 'left';
-    context.textBaseline = 'top';
-    let legendX = plotLeft + 6;
-    (
-      [
-        [stemWaveforms.labels.mix, 'rgba(111, 255, 243, .75)'],
-        [stemWaveforms.labels.backing, 'rgba(158, 199, 255, .8)'],
-        [stemWaveforms.labels.voice, 'rgba(255, 210, 150, .9)'],
-      ] as const
-    ).forEach(([text, color]) => {
-      context.fillStyle = color;
-      const label = text.toUpperCase();
-      context.fillText(label, legendX, WAVEFORM_TOP + 2);
-      legendX += context.measureText(label).width + 14;
+    // Three rows, each tall enough to read. The strip's height is sized for
+    // exactly this (see WAVEFORM_HEIGHT): the mix on top for context, the
+    // backing track under it, the voice at the bottom — all on one time axis,
+    // so a bump in the mix resolves by eye to whichever stem owns it.
+    const laneGap = 3;
+    const laneHeight = (WAVEFORM_HEIGHT - laneGap * 2) / 3;
+    const lanes = [
+      {
+        peaks: waveform,
+        label: stemWaveforms.labels.mix,
+        fill: 'rgba(22, 211, 198, .16)',
+        stroke: 'rgba(72, 246, 230, .26)',
+        text: 'rgba(111, 255, 243, .7)',
+      },
+      {
+        peaks: stemWaveforms.instrumental,
+        label: stemWaveforms.labels.backing,
+        fill: 'rgba(94, 158, 255, .2)',
+        stroke: 'rgba(126, 180, 255, .28)',
+        text: 'rgba(158, 199, 255, .75)',
+      },
+      {
+        peaks: stemWaveforms.vocals,
+        label: stemWaveforms.labels.voice,
+        fill: 'rgba(255, 176, 92, .3)',
+        stroke: 'rgba(255, 200, 128, .3)',
+        text: 'rgba(255, 210, 150, .85)',
+      },
+    ];
+    lanes.forEach((lane, index) => {
+      const laneTop = WAVEFORM_TOP + index * (laneHeight + laneGap);
+      paintWaveLane(lane.peaks, laneTop, laneHeight, lane.fill, lane.stroke);
+      context.save();
+      context.font = '700 9px Inter, system-ui, sans-serif';
+      context.textAlign = 'left';
+      context.textBaseline = 'top';
+      context.fillStyle = lane.text;
+      context.fillText(lane.label.toUpperCase(), plotLeft + 5, laneTop + 2);
+      context.restore();
     });
-    context.restore();
   } else if (waveform?.length) {
     paintWaveLane(
       waveform,

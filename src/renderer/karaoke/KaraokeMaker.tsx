@@ -1279,6 +1279,18 @@ const KaraokeMaker = ({
   }, [project.lyrics.lines]);
 
   const runWizard = async () => {
+    // Lyrics are asked for before any work starts, never as a surprise after
+    // the split: the transcribe step aligns against the reference text, and
+    // the dialog it needs should only otherwise appear at the end, showing
+    // the detected words and timing. wizardOffered resets so accepting the
+    // lyrics brings the offer straight back.
+    if (!tokens.length) {
+      setWizardOpen(false);
+      wizardOfferedRef.current = false;
+      openLyricsEditor();
+      setNotice(t('karaoke.maker.lyricsRequired'));
+      return;
+    }
     setWizardStep('separate');
     setWizardDone([]);
     const separated = await removeBackground();
@@ -1429,7 +1441,6 @@ const KaraokeMaker = ({
 
   const {
     cancelAnalysis,
-    prepareKaraoke,
     releaseWhisperNow,
     requestWhisper,
     runBasicPitch,
@@ -1500,6 +1511,12 @@ const KaraokeMaker = ({
       <KaraokeMakerStems
         instrumental={instrumental}
         vocals={stemVocalsFile}
+        playheadMs={playheadMs}
+        durationMs={effectiveDurationMs}
+        onSeek={onSeek}
+        isPlaying={isPlaying}
+        onPlay={onPlay}
+        onPause={onPause}
         vocalLevel={vocalLevel}
         onVocalLevel={onVocalLevel}
         onSave={saveStem}
@@ -1689,7 +1706,6 @@ const KaraokeMaker = ({
 
       <KaraokeMakerToolbar
         advancedAnalysisTools={advancedAnalysisTools}
-        analysisProgress={analysisProgress}
         canShiftFromWord={canShiftFromWord}
         editTools={editTools}
         exportOpen={exportOpen}
@@ -1711,7 +1727,6 @@ const KaraokeMaker = ({
         }
         handPanMode={handPanMode}
         openLyricsEditor={openLyricsEditor}
-        prepareKaraoke={prepareKaraoke}
         project={project}
         projectInputRef={projectInputRef}
         selectedToken={selectedToken}

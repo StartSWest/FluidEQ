@@ -49,6 +49,7 @@ const WEIGHTS_FILE = `${MODEL_FILE}.data`;
 const modelDir = () => path.join(app.getPath('userData'), 'karaoke-models');
 
 type TOnnxSession = {
+  release?: () => Promise<void> | void;
   run: (
     feeds: Record<string, unknown>,
   ) => Promise<Record<string, { data: Float32Array }>>;
@@ -57,6 +58,7 @@ type TOnnxSession = {
 let session: TOnnxSession | undefined;
 let sessionBackend = '';
 let cancelRequested = false;
+const running = false;
 
 /**
  * Fetch one model file to disk if it is not already there.
@@ -295,5 +297,54 @@ export const registerKaraokeSeparation = () => {
   );
   ipcMain.on('karaoke-separate-cancel', () => {
     cancelRequested = true;
+  });
+  // The model holds GPU memory worth reclaiming once the user has moved on.
+  // Releasing is cheap to undo — the files stay on disk and a fresh session
+  // loads in seconds — so the renderer may call this freely; a run in flight
+  // is the one thing that must never be pulled out from under itself.
+  // The stems a split produces are kept on disk and handed back on the next
+  // launch, so a refresh does not cost forty seconds of GPU work the machine
+  // already did. Keyed by the song's stable id; two small WAVs per song.
+  ipcMain.handle(
+    'karaoke-stems-save',
+    (
+      _event,
+      request: { key: string; vocals: ArrayBuffer; instrumental: ArrayBuffer },
+    ) => {
+      const dir = path.join(app.getPath('userData'), 'karaoke-stems');
+      fs.mkdirSync(dir, { recursive: true });
+      const safe = request.key.replace(/[^a-z0-9-]/gi, '_').slice(0, 80);
+      fs.writeFileSync(
+        path.join(dir, `${safe}-vocals.wav`),
+        Buffer.from(request.vocals),
+      );
+      fs.writeFileSync(
+        path.join(dir, `${safe}-instrumental.wav`),
+        Buffer.from(request.instrumental),
+      );
+    },
+  );
+  ipcMain.handle('karaoke-stems-load', (_event, key: string) => {
+    const dir = path.join(app.getPath('userData'), 'karaoke-stems');
+    const safe = String(key)
+      .replace(/[^a-z0-9-]/gi, '_')
+      .slice(0, 80);
+    const vocalsPath = path.join(dir, `${safe}-vocals.wav`);
+    const instrumentalPath = path.join(dir, `${safe}-instrumental.wav`);
+    if (!fs.existsSync(vocalsPath) || !fs.existsSync(instrumentalPath)) {
+      return null;
+    }
+    return {
+      vocals: fs.readFileSync(vocalsPath),
+      instrumental: fs.readFileSync(instrumentalPath),
+    };
+  });
+  ipcMain.on('karaoke-separate-release', () => {
+    if (running || !session) {
+      return;
+    }
+    Promise.resolve(session.release?.()).catch(() => undefined);
+    session = undefined;
+    log.info('[karaoke][separation] session released');
   });
 };

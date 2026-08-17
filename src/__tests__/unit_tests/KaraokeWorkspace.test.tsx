@@ -117,6 +117,14 @@ describe('KaraokeWorkspace', () => {
           loadKaraokeMakerDraft,
           saveKaraokeMakerDraft,
           deleteKaraokeMakerDraft,
+          // The separation surface. Stems resolve to "none on disk" so the
+          // restore effect stays quiet unless a test says otherwise.
+          loadKaraokeStems: jest.fn().mockResolvedValue(null),
+          saveKaraokeStems: jest.fn().mockResolvedValue(undefined),
+          releaseKaraokeSeparationModel: jest.fn(),
+          cancelKaraokeSeparation: jest.fn(),
+          separateKaraokeVocals: jest.fn(),
+          onKaraokeSeparationProgress: jest.fn().mockReturnValue(() => {}),
         },
       },
     });
@@ -377,7 +385,7 @@ describe('KaraokeWorkspace', () => {
     ).not.toBeInTheDocument();
     expect(
       maker.querySelector('button[aria-label="Prepare karaoke"]'),
-    ).toBeInTheDocument();
+    ).not.toBeInTheDocument();
     fireEvent.click(
       maker.querySelector('button[aria-label="Lyrics"]') as HTMLButtonElement,
     );
@@ -774,7 +782,7 @@ describe('KaraokeWorkspace', () => {
     });
     expect(
       maker.querySelector('button[aria-label="Prepare karaoke"]'),
-    ).toBeInTheDocument();
+    ).not.toBeInTheDocument();
     fireEvent.click(
       maker.querySelector('button[aria-label="Lyrics"]') as HTMLButtonElement,
     );
