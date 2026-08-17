@@ -49,7 +49,7 @@ jobs:
                 discussions(first: 50, orderBy: { field: UPDATED_AT, direction: DESC }) {
                   totalCount
                   nodes {
-                    number title bodyText createdAt updatedAt upvoteCount url
+                    number title bodyText bodyHTML createdAt updatedAt upvoteCount url
                     category { name slug emoji emojiHTML }
                     author { login avatarUrl url }
                     answer { id }
@@ -99,6 +99,10 @@ jobs:
               number: node.number,
               title: node.title,
               body: node.bodyText ?? '',
+              // GitHub's own rendering of the markdown, sanitized by GitHub
+              // before it ever leaves their API. The site runs its own
+              // allowlist over it again before it touches the page.
+              bodyHtml: node.bodyHTML ?? '',
               excerpt: (node.bodyText ?? '').replace(/\s+/g, ' ').slice(0, 220),
               createdAt: node.createdAt,
               updatedAt: node.updatedAt,
