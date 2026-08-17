@@ -1,0 +1,144 @@
+# Publishes the repository's Discussions as a plain JSON file that fluideq.com
+# reads directly.
+#
+# Why this exists rather than a server calling GitHub's API: Discussions live
+# only in the GraphQL API, and that API demands a token even for data anybody
+# can read on the website. A token would have to be created by hand, stored as
+# a deployment secret, and rotated. This needs none of that — GitHub hands a
+# workflow a scoped token automatically, and the result is a public file on a
+# branch of its own, so the site fetches it with no credential at all.
+#
+# The branch is orphaned and force-pushed, so this never adds a commit to main.
+
+name: Publish discussions feed
+
+on:
+  discussion:
+    types: [created, edited, deleted, answered, unanswered, category_changed]
+  discussion_comment:
+    types: [created, edited, deleted]
+  # A backstop, in case an event is ever missed.
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+
+# Only what the job needs: read the discussions, write the data branch.
+permissions:
+  contents: write
+  discussions: read
+
+# A burst of comments should not race two publishes against each other.
+concurrency:
+  group: discussions-feed
+  cancel-in-progress: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Read the discussions
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OWNER: ${{ github.repository_owner }}
+          NAME: ${{ github.event.repository.name }}
+        run: |
+          gh api graphql -F owner="$OWNER" -F name="$NAME" -f query='
+            query ($owner: String!, $name: String!) {
+              repository(owner: $owner, name: $name) {
+                discussions(first: 50, orderBy: { field: UPDATED_AT, direction: DESC }) {
+                  totalCount
+                  nodes {
+                    number title bodyText createdAt updatedAt upvoteCount url
+                    category { name slug emoji }
+                    author { login avatarUrl url }
+                    answer { id }
+                    comments(first: 50) {
+                      totalCount
+                      nodes {
+                        id bodyText createdAt url isAnswer
+                        author { login avatarUrl url }
+                        replies(first: 20) {
+                          nodes { id bodyText createdAt url author { login avatarUrl url } }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }' > raw.json
+
+      - name: Shape it into what the site renders
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const raw = JSON.parse(fs.readFileSync('raw.json', 'utf8'));
+          const repo = raw.data.repository.discussions;
+
+          // Only the fields the page draws. Bodies stay as plain text: the site
+          // escapes them before rendering, and shipping GitHub's HTML would put
+          // markup from strangers into the page.
+          const person = (a) => ({
+            login: a?.login ?? 'ghost',
+            avatarUrl: a?.avatarUrl ?? null,
+            url: a?.url ?? null,
+          });
+
+          const reply = (r) => ({
+            id: r.id,
+            body: r.bodyText ?? '',
+            createdAt: r.createdAt,
+            url: r.url,
+            author: person(r.author),
+          });
+
+          const feed = {
+            generatedAt: new Date().toISOString(),
+            total: repo.totalCount,
+            topics: repo.nodes.map((node) => ({
+              number: node.number,
+              title: node.title,
+              body: node.bodyText ?? '',
+              excerpt: (node.bodyText ?? '').replace(/\s+/g, ' ').slice(0, 220),
+              createdAt: node.createdAt,
+              updatedAt: node.updatedAt,
+              upvotes: node.upvoteCount,
+              url: node.url,
+              category: node.category?.name ?? 'General',
+              categorySlug: node.category?.slug ?? 'general',
+              emoji: node.category?.emoji ?? '',
+              answered: Boolean(node.answer),
+              replies: node.comments?.totalCount ?? 0,
+              author: person(node.author),
+              comments: (node.comments?.nodes ?? []).map((c) => ({
+                id: c.id,
+                body: c.bodyText ?? '',
+                createdAt: c.createdAt,
+                url: c.url,
+                isAnswer: Boolean(c.isAnswer),
+                author: person(c.author),
+                replies: (c.replies?.nodes ?? []).map(reply),
+              })),
+            })),
+          };
+
+          fs.mkdirSync('out', { recursive: true });
+          fs.writeFileSync('out/discussions.json', JSON.stringify(feed));
+          console.log(`${feed.topics.length} topic(s), ${JSON.stringify(feed).length} bytes`);
+          NODE
+
+      - name: Publish it to its own branch
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          cd out
+          git init -q
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -q -b discussions-data
+          git add discussions.json
+          git commit -q -m "Publish discussions feed"
+          # Force-pushed on purpose: this branch is a file, not a history.
+          git push -q --force \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            discussions-data
