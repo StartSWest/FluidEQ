@@ -31,7 +31,6 @@ import {
   app,
   BrowserWindow,
   contentTracing,
-  desktopCapturer,
   dialog,
   ipcMain,
   screen,
@@ -61,8 +60,6 @@ import {
   savePresetBaseline,
   repairUnusedPreamps,
 } from './flush';
-import MenuBuilder from './menu';
-import { resolveHtmlPath, waitForRenderer } from './util';
 import { getConfigPath, isEqualizerAPOInstalled } from './registry';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
 import { gatherBugReportFacts } from './bugReportFacts';
@@ -90,7 +87,6 @@ import {
   IAutoEqUpdateStatus,
   AUTOMATIC_PRESET_PREFIX,
   APP_UPDATE_EVENT,
-  RENDERER_READY_EVENT,
   OUTPUT_STATE_CHANGED_EVENT,
   AUTOEQ_SOURCE_ID,
   APO_FEATURES,
@@ -121,7 +117,7 @@ import {
 } from './convolutionCatalog';
 import { importConvolutionFile, importEqFile } from './importSettings';
 import { setUpVideoBrowser } from './videoBrowser';
-import { openExternalIfSafe } from './safeExternal';
+import { createMainWindowFactory } from './mainWindow';
 import { registerKaraokeIpc } from './ipc/karaoke';
 import { registerWindowIpc } from './ipc/window';
 import { registerFiltersIpc } from './ipc/filters';
@@ -472,8 +468,6 @@ const WINDOW_STATE_FILENAME = 'window-state.json';
  * never reports still produces a window rather than an app that appears not to
  * have started.
  */
-const RENDERER_PAINT_GRACE_MS = 1500;
-
 interface IWindowState {
   width?: number;
   height?: number;
@@ -3149,288 +3143,23 @@ if (isDebug) {
   require('electron-debug').default({ showDevTools: false });
 }
 
-const installExtensions = async () => {
-  const installer = require('electron-devtools-installer');
-  const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
-  const extensions = ['REACT_DEVELOPER_TOOLS'];
-
-  return installer
-    .default(
-      extensions.map((name) => installer[name]),
-      forceDownload,
-    )
-    .catch(log.error);
-};
-
-const createMainWindow = async () => {
-  // React DevTools are optional. Keeping them opt-in avoids invoking the
-  // installer's legacy session APIs on every development launch.
-  if (isDebug && process.env.INSTALL_EXTENSIONS === 'true') {
-    await installExtensions();
-  }
-
-  const RESOURCES_PATH = app.isPackaged
-    ? path.join(process.resourcesPath, 'assets')
-    : path.join(__dirname, '../../assets');
-
-  const getAssetPath = (...paths: string[]): string => {
-    return path.join(RESOURCES_PATH, ...paths);
-  };
-
-  const restored = loadWindowState();
-  const isFirstRun = restored.width === undefined;
-  const firstRun = firstRunPlacement();
-
-  mainWindow = new BrowserWindow({
-    show: false,
-    width: restored.width ?? firstRun.width,
-    minWidth: WINDOW_MIN_WIDTH,
-    height: restored.height ?? firstRun.height,
-    minHeight: WINDOW_MIN_HEIGHT,
-    // A saved position if there is one and a screen still covers it —
-    // otherwise the middle of the display.
-    //
-    // Omitting both leaves the placement to Chromium, which offsets each new
-    // window down and right from the last one. On a first run that put FluidEQ
-    // somewhere off-centre and slightly high for no reason anybody could see,
-    // and it is the very first impression the app makes. `center` is ignored
-    // when x and y are given, so the two cannot fight.
-    ...(restored.x !== undefined && restored.y !== undefined
-      ? { x: restored.x, y: restored.y }
-      : { center: true }),
-    // .ico carries every size Windows asks for — taskbar, alt-tab and the
-    // window corner each want a different one, and scaling a single png for
-    // all three is what makes it look soft.
-    icon: getAssetPath(process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
-    resizable: true,
-    frame: false,
-    // Chromium paints white until the first frame of the page arrives. On a
-    // frameless dark window that is a full-size white flash, and it happens
-    // before any CSS has loaded, so no stylesheet can prevent it. Matching the
-    // shell's own background means the gap is invisible.
-    backgroundColor: '#04090f',
-    webPreferences: {
-      preload: app.isPackaged
-        ? path.join(__dirname, 'preload.js')
-        : path.join(__dirname, '../../.erb/dll/preload.js'),
-      // Chromium fetches a hunspell dictionary the first time a spellchecked
-      // field is focused and then keeps it resident. The only text anyone
-      // types here is a preset name, so it buys nothing and costs a download
-      // and a couple of megabytes for the life of the process.
-      spellcheck: false,
-      // What lets the Video tab exist at all. Off by default in Electron, and
-      // only half the story: the tag is enabled here, and every attachment it
-      // makes is stripped and re-specified in videoBrowser.ts, which is where
-      // the player's actual privileges are decided.
-      webviewTag: true,
-      // The default, stated rather than assumed because it is load-bearing:
-      // minimised or fully occluded, Chromium drops timers and animation
-      // frames to roughly one a second. The meter, the creature and the whole
-      // of euphoria mode are driven by animation frames, so leaving this on is
-      // what stops a window nobody is looking at from animating at full rate.
-      backgroundThrottling: true,
-    },
-  });
-
-  const rendererUrl = resolveHtmlPath('index.html');
-  const appSession = mainWindow.webContents.session;
-
-  // Permission requests from FluidEQ's own renderer are deliberate UI
-  // actions. In particular, Karaoke's mic switch must be able to complete the
-  // getUserMedia handshake instead of depending on Electron's implicit
-  // permission default. Remote Media pages use a different, locked-down
-  // session in videoBrowser.ts, so this grant cannot leak into web content.
-  const isOwnMainFrame = (
-    contents: Electron.WebContents | null,
-    details: { isMainFrame: boolean },
-  ) => contents === mainWindow?.webContents && details.isMainFrame;
-  appSession.setPermissionRequestHandler(
-    (contents, _permission, callback, details) => {
-      callback(isOwnMainFrame(contents, details));
-    },
-  );
-  appSession.setPermissionCheckHandler(
-    (contents, _permission, _origin, details) =>
-      isOwnMainFrame(contents, details),
-  );
-
-  // Keep the app session's normal Electron media handling. Chromium reports
-  // the analyser's display-loopback handshake as a mixed media request even
-  // though FluidEQ immediately discards its required video track. Applying an
-  // audio-only policy to this session therefore disables the live spectrum.
-  // Remote Media pages remain isolated in VIDEO_BROWSER_PARTITION, whose
-  // permission and display-capture handlers are default-deny (videoBrowser.ts).
-  appSession.setDisplayMediaRequestHandler((request, callback) => {
-    if (
-      !mainWindow ||
-      request.frame !== mainWindow.webContents.mainFrame ||
-      !request.audioRequested
-    ) {
-      callback({});
-      return;
-    }
-
-    // Chromium still requires a video source for getDisplayMedia even when
-    // the renderer only consumes the audio track. Use the FluidEQ window as
-    // that source instead of a monitor: monitor capture is what triggers
-    // WGC's CreateForMonitor/E_ACCESSDENIED failures on some Windows setups.
-    // The loopback audio stream remains system-wide and is independent of
-    // the video source.
-    const provideLoopbackSource = async () => {
-      try {
-        const sources = await desktopCapturer.getSources({
-          types: ['window'],
-          thumbnailSize: { width: 0, height: 0 },
-          fetchWindowIcons: false,
-        });
-        const windowSourceId = mainWindow?.getMediaSourceId();
-        const source =
-          sources.find((candidate) => candidate.id === windowSourceId) ||
-          sources.find((candidate) =>
-            // The window title, which is the product name. Derived from it
-            // rather than spelled out, so a rename does not silently lose
-            // the fallback and start capturing an arbitrary window.
-            candidate.name.toLowerCase().includes(PRODUCT_NAME.toLowerCase()),
-          ) ||
-          sources[0];
-
-        if (source) {
-          callback({ video: source, audio: 'loopback' });
-        } else {
-          // A frame source is a valid final fallback if Windows does not
-          // expose any capturable windows (for example while minimized).
-          callback({ video: request.frame || undefined, audio: 'loopback' });
-        }
-      } catch {
-        callback({ video: request.frame || undefined, audio: 'loopback' });
-      }
-    };
-    provideLoopbackSource();
-  });
-
-  // Nothing to do on a first run any more. This used to force the graph-view
-  // height when there was no saved size, which is what pushed the window off
-  // the bottom of the screen; the first-run size is now nine tenths of the work
-  // area, which has room for the graph without being told. A saved size is a
-  // decision the user made and was never overridden here. Toggling the graph
-  // in-session still resizes.
-
-  let hasRevealedMainWindow = false;
-  const revealMainWindow = () => {
-    if (!mainWindow || hasRevealedMainWindow) {
-      return;
-    }
-    hasRevealedMainWindow = true;
-
-    if (process.env.START_MINIMIZED) {
-      mainWindow.minimize();
-    } else {
-      // Maximize before showing, so the window does not appear at its restored
-      // size and then visibly snap outward. A first run on a screen below 2K
-      // takes the same path, for the same reason.
-      if (restored.isMaximized || (isFirstRun && firstRun.maximize)) {
-        mainWindow.maximize();
-      }
-      mainWindow.show();
-    }
-
-    if (isDebug) {
-      // When in debug mode, show dev tools after the app loads.
-      mainWindow.webContents.openDevTools();
-    }
-  };
-
-  // `ready-to-show` fires when Chromium has a first frame, which for a React
-  // app is an empty <div id="root"> — the window would appear, sit blank, and
-  // then fill in. The renderer says when it has actually painted something
-  // (see RENDERER_READY_EVENT); this is only the fallback for a renderer that
-  // never gets that far, so a crashed bundle still shows a window with an
-  // error in it rather than nothing at all.
-  mainWindow.once('ready-to-show', () => {
-    setTimeout(revealMainWindow, RENDERER_PAINT_GRACE_MS);
-  });
-  ipcMain.once(RENDERER_READY_EVENT, revealMainWindow);
-  mainWindow.on('maximize', sendWindowState);
-  mainWindow.on('unmaximize', sendWindowState);
-  mainWindow.on('enter-full-screen', sendWindowState);
-  mainWindow.on('leave-full-screen', sendWindowState);
-  // Debounced: dragging a window fires 'resize' continuously, and writing a
-  // file on every frame of that would be absurd. 400ms after the user stops.
-  let saveTimer: NodeJS.Timeout | undefined;
-  const scheduleSave = () => {
-    if (saveTimer) {
-      clearTimeout(saveTimer);
-    }
-    saveTimer = setTimeout(saveWindowState, 400);
-  };
-  mainWindow.on('resize', scheduleSave);
-  mainWindow.on('move', scheduleSave);
-  mainWindow.on('maximize', scheduleSave);
-  mainWindow.on('unmaximize', scheduleSave);
-
-  mainWindow.on('close', () => {
-    // Synchronously, before the window goes: a pending debounce would never
-    // fire, so closing right after a resize would lose that resize.
-    if (saveTimer) {
-      clearTimeout(saveTimer);
-    }
-    saveWindowState();
-  });
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-
-  mainWindow.webContents.on('did-finish-load', sendWindowState);
-  // Polling for the dev server is an optimisation, not a gate. Giving up used
-  // to throw out of createMainWindow with nothing to catch it, so a slow bundle
-  // produced an unhandled rejection and no window at all — while
-  // webpack-dev-middleware was perfectly willing to hold the request until the
-  // bundle finished. Load either way and let that happen.
-  await waitForRenderer(rendererUrl).catch((error) => {
-    log.warn(
-      'Renderer was not ready in time; loading anyway and letting the dev server finish.',
-      error,
-    );
-  });
-  await mainWindow.loadURL(rendererUrl);
-
-  // If ready-to-show was skipped by a fast dev-server response, reveal the
-  // already-loaded window instead of leaving an invisible Electron process.
-  revealMainWindow();
-
-  // Keep both public measurement databases current without blocking the first
-  // paint. The renderer receives an event when the background sync finishes
-  // and refreshes whichever source is currently selected.
-  syncDatabasesOnStartup().catch((error) => {
-    log.warn('Database startup synchronization failed', error);
-  });
-
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
-
-  // Open urls in the user's browser, if they are urls for a browser.
-  //
-  // `edata.url` is whatever asked for the window — a `target="_blank"` link, a
-  // `window.open`. Plenty of what this renderer draws did not originate here:
-  // lyrics, profile names, changelog text, rows from a synced measurement
-  // database. Handing any of that to the OS unchecked is how `file:` and every
-  // registered custom protocol become reachable, so the scheme is checked the
-  // same way the Remote Media player has always checked it.
-  mainWindow.webContents.setWindowOpenHandler((edata) => {
-    openExternalIfSafe(edata.url);
-    return { action: 'deny' };
-  });
-
-  setUpAutoUpdates().catch((error) => {
-    // A setup failure is still a disabled updater. Never recover by loading it
-    // without the signature and feed checks that just failed.
-    activeAutoUpdater = undefined;
-    log.warn('Updates disabled: updater setup failed closed.', error);
-  });
-  startMemoryProbe();
-  setUpMemoryTraceTrigger();
-};
+const createMainWindow = createMainWindowFactory({
+  firstRunPlacement,
+  isDebug,
+  loadWindowState,
+  saveWindowState,
+  sendWindowState,
+  setActiveAutoUpdater: (next) => {
+    activeAutoUpdater = next;
+  },
+  setMainWindow: (next) => {
+    mainWindow = next;
+  },
+  setUpAutoUpdates,
+  setUpMemoryTraceTrigger,
+  startMemoryProbe,
+  syncDatabasesOnStartup,
+});
 
 /**
  * Write down what killed it, before it dies.
