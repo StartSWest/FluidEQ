@@ -67,8 +67,6 @@ import {
 import { useKaraokeMakerSelection } from './useKaraokeMakerSelection';
 import KaraokeMakerDownloadDetails from './KaraokeMakerDownloadDetails';
 import KaraokeMakerWordInspector from './KaraokeMakerWordInspector';
-import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
-import KaraokeMakerToolbarButton from './KaraokeMakerToolbarButton';
 import KaraokeMakerEditTools from './KaraokeMakerEditTools';
 import KaraokeMakerSpeechMemoryPanel from './KaraokeMakerSpeechMemoryPanel';
 import KaraokeMakerAnalysisTools from './KaraokeMakerAnalysisTools';
@@ -105,6 +103,7 @@ import KaraokeMakerPreview from './KaraokeMakerPreview';
 import KaraokeMakerSelectionInfo from './KaraokeMakerSelectionInfo';
 import KaraokeMakerLyricsDialog from './KaraokeMakerLyricsDialog';
 import KaraokeMakerHeader from './KaraokeMakerHeader';
+import KaraokeMakerToolbar from './KaraokeMakerToolbar';
 import { useMakerLyricsEditing } from './useMakerLyricsEditing';
 import { flattenTokens } from './makerProjectEdits';
 import {
@@ -2187,165 +2186,32 @@ const KaraokeMaker = ({
         visualPlayheadMs={visualPlayheadMs}
       />
 
-      <div ref={toolsRef} className="karaoke-maker__tools">
-        <div className="karaoke-maker__tool-group">
-          <KaraokeMakerToolbarButton
-            icon="project"
-            label={t('karaoke.maker.openProject')}
-            onClick={() => projectInputRef.current?.click()}
-          />
-          <KaraokeMakerToolbarButton
-            icon="lyrics"
-            label={t('karaoke.maker.lyrics')}
-            onClick={openLyricsEditor}
-          />
-          <KaraokeMakerToolbarButton
-            icon="clearLyrics"
-            label={t('karaoke.maker.clearLyrics')}
-            danger
-            disabled={!tokens.length}
-            onClick={() => setDestructiveAction('lyrics')}
-          />
-          <KaraokeMakerToolbarButton
-            icon="clearNotes"
-            label={t('karaoke.maker.clearNotes')}
-            danger
-            disabled={!project.melody.notes.length}
-            onClick={() => setDestructiveAction('notes')}
-          />
-          <div className="karaoke-maker__tool-cluster">
-            <KaraokeMakerToolbarButton
-              icon="timing"
-              label={t('karaoke.maker.lyricsTiming')}
-              active={toolPanel === 'timing'}
-              onClick={() => toggleToolPanel('timing')}
-            />
-            {toolPanel === 'timing' && (
-              <KaraokeMakerTimingPopover
-                scope={timingScope}
-                onScopeChange={setTimingScope}
-                canShiftFromWord={canShiftFromWord}
-                shiftMs={
-                  timingScope === 'all' ? project.meta.gapMs : wordShiftMs
-                }
-                selectedWord={selectedToken?.text}
-                onShift={shiftTimeline}
-                onClose={() => setToolPanel(undefined)}
-              />
-            )}
-          </div>
-          <KaraokeMakerToolbarButton
-            icon="hand"
-            label={t('karaoke.maker.panView')}
-            active={handPanMode}
-            onClick={toggleHandPanMode}
-          />
-        </div>
-
-        <div className="karaoke-maker__tool-group karaoke-maker__wide-edit-tools">
-          {editTools}
-        </div>
-        <div className="karaoke-maker__tool-cluster karaoke-maker__compact-edit-tools">
-          <KaraokeMakerToolbarButton
-            icon="edit"
-            label={t('karaoke.maker.toolsEdit')}
-            active={toolPanel === 'edit'}
-            onClick={() => toggleToolPanel('edit')}
-          />
-          {toolPanel === 'edit' && (
-            <div className="karaoke-maker__tool-popover karaoke-maker__action-popover">
-              {editTools}
-            </div>
-          )}
-        </div>
-
-        {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && (
-          <div className="karaoke-maker__tool-group karaoke-maker__wide-analysis-tools">
-            <KaraokeMakerToolbarButton
-              icon="analyze"
-              label={t('karaoke.maker.prepare')}
-              onClick={prepareKaraoke}
-              disabled={analysisProgress !== undefined}
-            />
-            <div className="karaoke-maker__tool-cluster">
-              <KaraokeMakerToolbarButton
-                icon="melody"
-                label={t('karaoke.maker.advanced')}
-                active={toolPanel === 'analysis'}
-                onClick={() => toggleToolPanel('analysis')}
-              />
-              {toolPanel === 'analysis' && (
-                <div className="karaoke-maker__tool-popover karaoke-maker__action-popover karaoke-maker__analysis-popover">
-                  {advancedAnalysisTools}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && (
-          <div className="karaoke-maker__tool-cluster karaoke-maker__compact-analysis-tools">
-            <KaraokeMakerToolbarButton
-              icon="analyze"
-              label={t('karaoke.maker.prepare')}
-              onClick={prepareKaraoke}
-              disabled={analysisProgress !== undefined}
-            />
-            <KaraokeMakerToolbarButton
-              icon="melody"
-              label={t('karaoke.maker.advanced')}
-              active={toolPanel === 'analysis'}
-              onClick={() => toggleToolPanel('analysis')}
-            />
-            {toolPanel === 'analysis' && (
-              <div className="karaoke-maker__tool-popover karaoke-maker__action-popover karaoke-maker__analysis-popover">
-                {advancedAnalysisTools}
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="karaoke-maker__export-wrap">
-          <KaraokeMakerToolbarButton
-            icon="export"
-            label={t('karaoke.maker.export')}
-            active={exportOpen}
-            onClick={() => {
-              setToolPanel(undefined);
-              setExportOpen((open) => !open);
-            }}
-          />
-          {exportOpen && (
-            <div className="karaoke-maker__export-menu">
-              <button
-                type="button"
-                onClick={() => exportProject('project').catch(() => undefined)}
-              >
-                {t('karaoke.maker.exportProject')}
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  exportProject('ultrastar').catch(() => undefined)
-                }
-              >
-                {t('karaoke.maker.exportUltraStar')}
-              </button>
-              <button
-                type="button"
-                onClick={() => exportProject('lrc').catch(() => undefined)}
-              >
-                {t('karaoke.maker.exportLrc')}
-              </button>
-              <button
-                type="button"
-                onClick={() => exportProject('elrc').catch(() => undefined)}
-              >
-                {t('karaoke.maker.exportElrc')}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      <KaraokeMakerToolbar
+        advancedAnalysisTools={advancedAnalysisTools}
+        analysisProgress={analysisProgress}
+        canShiftFromWord={canShiftFromWord}
+        editTools={editTools}
+        exportOpen={exportOpen}
+        exportProject={exportProject}
+        handPanMode={handPanMode}
+        openLyricsEditor={openLyricsEditor}
+        prepareKaraoke={prepareKaraoke}
+        project={project}
+        projectInputRef={projectInputRef}
+        selectedToken={selectedToken}
+        setDestructiveAction={setDestructiveAction}
+        setExportOpen={setExportOpen}
+        setTimingScope={setTimingScope}
+        setToolPanel={setToolPanel}
+        shiftTimeline={shiftTimeline}
+        timingScope={timingScope}
+        toggleHandPanMode={toggleHandPanMode}
+        toggleToolPanel={toggleToolPanel}
+        tokens={tokens}
+        toolPanel={toolPanel}
+        toolsRef={toolsRef}
+        wordShiftMs={wordShiftMs}
+      />
 
       <div
         className={`karaoke-maker__status-row${
