@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, MutableRefObject, SetStateAction } from 'react';
 import {
   IKaraokeMakerLine,
   IKaraokeMakerToken,
@@ -48,6 +48,8 @@ export interface IMakerToolModesParams {
   setLineEntrySession: Dispatch<SetStateAction<TLineEntrySession>>;
   setLineEntryCapture: Dispatch<SetStateAction<IGuidedLineCapture | undefined>>;
   setLineEntryIndex: Dispatch<SetStateAction<number>>;
+  /** The index a callback reads, written directly so it is never a step behind. */
+  lineEntryIndexRef: MutableRefObject<number>;
   setHandPanMode: Dispatch<SetStateAction<boolean>>;
   setNoteEditMode: Dispatch<SetStateAction<'select' | 'paint' | undefined>>;
 
@@ -68,6 +70,7 @@ export const useMakerToolModes = ({
   clearLineEntryCountdown,
   gesture,
   lineEntryMode,
+  lineEntryIndexRef,
   lyricLines,
   maximumViewStartMs,
   onPause,
@@ -97,6 +100,89 @@ export const useMakerToolModes = ({
     setToolPanel((current) => (current === panel ? undefined : panel));
   };
 
+  /**
+   * Put every mode and every half-finished gesture away.
+   *
+   * This list was written out four times and no two copies agreed. Switching to
+   * the hand tool left a scrub in progress behind, because that copy cleared
+   * six of the seven gesture refs; starting a capture from the toolbar left
+   * paint mode armed and a note link half-dragged, because that copy cleared
+   * different ones again. Each was correct about what it meant and wrong about
+   * what it did.
+   *
+   * One list, so entering any mode leaves the editor in the same known state.
+   */
+  const resetModes = () => {
+    clearLineEntryCountdown();
+    setLineEntryMode(false);
+    setLineEntryCapture(undefined);
+    setIsCanvasPanning(false);
+    setIsCanvasScrubbing(false);
+    gesture.pan.current = undefined;
+    gesture.scrub.current = undefined;
+    gesture.drag.current = undefined;
+    gesture.selectionBox.current = undefined;
+    gesture.notePaintDraft.current = undefined;
+    gesture.noteLinkDrag.current = undefined;
+    cancelAudibleInteractions();
+    setToolPanel(undefined);
+  };
+
+  /**
+   * Arm a guided capture on one line, wherever the caller found it.
+   *
+   * The two ways in differ only in which line they pick and where the playhead
+   * starts: the toolbar resumes at the first untimed word, and a fresh set of
+   * lyrics starts at the top. Everything after that decision was written out
+   * twice — once here and once in the component — and the two had already
+   * drifted apart in three places.
+   */
+  const beginLineCapture = ({
+    lineIndex,
+    tokenId,
+    seekMs,
+    viewStartMs,
+  }: {
+    lineIndex: number;
+    tokenId: string;
+    /**
+     * Where to start playing, when there is somewhere to start.
+     *
+     * Omitted for a line that has never been timed: there is no position to
+     * seek to, and moving the playhead or the view on the way in would throw
+     * away wherever the user had got to.
+     */
+    seekMs?: number;
+    viewStartMs?: number;
+  }) => {
+    // A focused input would otherwise swallow the keys the capture listens for.
+    if (document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur();
+    }
+    setLyricsOpen(false);
+    resetModes();
+    setHandPanMode(false);
+    setNoteEditMode(undefined);
+    // After the reset, which switches capture off along with everything else.
+    setLineEntryMode(true);
+    setLineEntrySession('setup');
+    setLineEntryIndex(lineIndex);
+    // Written directly as well as through state: the first keystroke can land
+    // before the re-render that syncs the ref, and stepping from a stale index
+    // repeats or skips a line.
+    lineEntryIndexRef.current = lineIndex;
+    setSelection({ kind: 'word', id: tokenId });
+    setPreviewOpen(true);
+    setFollowViewport(true);
+    setLyricFollowRequestKey((key) => key + 1);
+    if (seekMs !== undefined) {
+      onSeek(seekMs);
+    }
+    if (viewStartMs !== undefined) {
+      setViewStartMs(viewStartMs);
+    }
+  };
+
   const startLineEntrySync = (preferredTokenId = selectedToken?.id) => {
     if (!tokens.length) {
       return;
@@ -123,38 +209,26 @@ export const useMakerToolModes = ({
     if (!target) {
       return;
     }
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-    setLyricsOpen(false);
-    setLineEntryMode(true);
-    clearLineEntryCountdown();
-    setLineEntrySession('setup');
-    setLineEntryCapture(undefined);
-    setLineEntryIndex(lineIndex);
-    setSelection({ kind: 'word', id: target.id });
-    setHandPanMode(false);
-    setIsCanvasPanning(false);
-    setIsCanvasScrubbing(false);
-    gesture.pan.current = undefined;
-    cancelAudibleInteractions();
-    setPreviewOpen(true);
-    setFollowViewport(true);
-    setLyricFollowRequestKey((key) => key + 1);
-    if (target.startMs !== undefined) {
-      const preRollMs = Math.max(0, target.startMs - 1_000);
-      onSeek(preRollMs);
-      setViewStartMs(
-        Math.max(
-          0,
-          Math.min(
-            maximumViewStartMs,
-            target.startMs - visibleViewDurationMs * 0.3,
-          ),
-        ),
-      );
-    }
-    setToolPanel(undefined);
+    // A second of run-up, so the user hears the bar before the one they are
+    // about to tap in rather than starting cold on the beat.
+    beginLineCapture({
+      lineIndex,
+      tokenId: target.id,
+      seekMs:
+        target.startMs === undefined
+          ? undefined
+          : Math.max(0, target.startMs - 1_000),
+      viewStartMs:
+        target.startMs === undefined
+          ? undefined
+          : Math.max(
+              0,
+              Math.min(
+                maximumViewStartMs,
+                target.startMs - visibleViewDurationMs * 0.3,
+              ),
+            ),
+    });
   };
 
   const stopLineEntryRecording = () => {
@@ -176,39 +250,18 @@ export const useMakerToolModes = ({
   const toggleHandPanMode = () => {
     setHandPanMode((active) => !active);
     setNoteEditMode(undefined);
-    gesture.selectionBox.current = undefined;
-    gesture.notePaintDraft.current = undefined;
-    gesture.noteLinkDrag.current = undefined;
-    setLineEntryMode(false);
-    clearLineEntryCountdown();
-    setLineEntryCapture(undefined);
-    setIsCanvasPanning(false);
-    setIsCanvasScrubbing(false);
-    gesture.pan.current = undefined;
-    cancelAudibleInteractions();
-    gesture.drag.current = undefined;
-    setToolPanel(undefined);
+    resetModes();
   };
 
   const toggleNoteEditMode = (mode: 'select' | 'paint') => {
     setNoteEditMode((current) => (current === mode ? undefined : mode));
     setHandPanMode(false);
-    setLineEntryMode(false);
-    clearLineEntryCountdown();
-    setLineEntryCapture(undefined);
-    setIsCanvasPanning(false);
-    setIsCanvasScrubbing(false);
-    gesture.pan.current = undefined;
-    gesture.scrub.current = undefined;
-    gesture.drag.current = undefined;
-    gesture.selectionBox.current = undefined;
-    gesture.notePaintDraft.current = undefined;
-    gesture.noteLinkDrag.current = undefined;
-    cancelAudibleInteractions();
-    setToolPanel(undefined);
+    resetModes();
   };
 
   return {
+    beginLineCapture,
+    resetModes,
     startLineEntrySync,
     stopLineEntryRecording,
     toggleHandPanMode,

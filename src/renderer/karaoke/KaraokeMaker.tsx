@@ -919,30 +919,15 @@ const KaraokeMaker = ({
     if (!targetLine) {
       return;
     }
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-    setLyricsOpen(false);
-    setLineEntryMode(true);
-    setNoteEditMode(undefined);
-    clearLineEntryCountdown();
-    setLineEntrySession('setup');
-    setLineEntryCapture(undefined);
-    lineEntryIndexRef.current = 0;
-    setLineEntryIndex(0);
-    setSelection({ kind: 'word', id: targetLine.tokens[0].id });
-    setHandPanMode(false);
-    setIsCanvasPanning(false);
-    setIsCanvasScrubbing(false);
-    gesture.pan.current = undefined;
-    gesture.noteLinkDrag.current = undefined;
-    cancelAudibleInteractions();
-    setPreviewOpen(true);
-    setFollowViewport(true);
-    setLyricFollowRequestKey((key) => key + 1);
-    onSeek(0);
-    setViewStartMs(0);
-    setToolPanel(undefined);
+    // From the top, because these lyrics have never been timed: there is no
+    // partly-finished pass to resume, so the first line is the only sensible
+    // place to start.
+    beginLineCapture({
+      lineIndex: 0,
+      tokenId: targetLine.tokens[0].id,
+      seekMs: 0,
+      viewStartMs: 0,
+    });
   };
 
   const replaceLyrics = (
@@ -1234,6 +1219,7 @@ const KaraokeMaker = ({
   );
 
   const {
+    beginLineCapture,
     startLineEntrySync,
     stopLineEntryRecording,
     toggleHandPanMode,
@@ -1245,6 +1231,7 @@ const KaraokeMaker = ({
     clearLineEntryCountdown,
     gesture,
     lineEntryMode,
+    lineEntryIndexRef,
     lyricLines,
     maximumViewStartMs,
     onPause,
