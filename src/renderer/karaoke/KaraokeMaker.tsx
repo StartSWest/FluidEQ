@@ -1226,17 +1226,34 @@ const KaraokeMaker = ({
       t,
     });
 
+  // Stems restored from disk arrive on the song, not in this editor's state.
+  // Without adopting them the Maker reopens with `analysisFile` back at the
+  // full mix: lyric detection sits disabled behind "separate first" for a song
+  // that was separated yesterday — which is indistinguishable from broken.
+  const restoredVocals = song.assets.find(
+    (asset) => asset.role === 'vocals',
+  )?.file;
+  const restoredInstrumental = song.assets.find(
+    (asset) => asset.role === 'instrumental',
+  )?.file;
+  useEffect(() => {
+    if (restoredVocals && analysisFile === audioFile) {
+      setAnalysisFile(restoredVocals);
+    }
+  }, [restoredVocals, analysisFile, audioFile]);
+  const effectiveInstrumental = instrumental ?? restoredInstrumental;
+
   const stemVocalsFile = analysisFile === audioFile ? undefined : analysisFile;
   useEffect(() => {
     let cancelled = false;
-    if (!instrumental || !stemVocalsFile) {
+    if (!effectiveInstrumental || !stemVocalsFile) {
       setStemWaveforms(undefined);
       return undefined;
     }
     (async () => {
       const [vocalsWave, instrumentalWave] = await Promise.all([
         extractKaraokeMakerWaveform(stemVocalsFile),
-        extractKaraokeMakerWaveform(instrumental),
+        extractKaraokeMakerWaveform(effectiveInstrumental),
       ]);
       if (!cancelled) {
         setStemWaveforms({
@@ -1257,7 +1274,7 @@ const KaraokeMaker = ({
     return () => {
       cancelled = true;
     };
-  }, [instrumental, stemVocalsFile, t]);
+  }, [effectiveInstrumental, stemVocalsFile, t]);
 
   // Offered once per opening, and only for a song with nothing timed yet. The
   // ref stops a re-render from re-opening a dialog the user has dismissed.
@@ -1267,21 +1284,28 @@ const KaraokeMaker = ({
   const [wizardDone, setWizardDone] = useState<TKaraokeMakerWizardStep[]>([]);
 
   useEffect(() => {
+    // A song whose stems were restored from disk has already been set up
+    // once. Re-offering because the *transcription* half is unfinished read
+    // as the app forgetting the split it just recovered — and because the
+    // restore is asynchronous, the offer can already be on screen when the
+    // stems arrive, so an open idle wizard is withdrawn rather than left up.
+    if (song.assets.some((asset) => asset.role === 'vocals')) {
+      if (wizardStep === undefined) {
+        setWizardOpen(false);
+      }
+      wizardOfferedRef.current = true;
+      return;
+    }
     if (
       !KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED ||
       wizardOfferedRef.current ||
-      karaokeMakerHasCompleteTiming(project.lyrics.lines) ||
-      // A song whose stems were restored from disk has already been set up
-      // once. Re-offering because the *transcription* half is unfinished read
-      // as the app forgetting the split it just recovered; the remaining work
-      // is reachable through Repair tools without a dialog on every open.
-      song.assets.some((asset) => asset.role === 'vocals')
+      karaokeMakerHasCompleteTiming(project.lyrics.lines)
     ) {
       return;
     }
     wizardOfferedRef.current = true;
     setWizardOpen(true);
-  }, [project.lyrics.lines, song.assets]);
+  }, [project.lyrics.lines, song.assets, wizardStep]);
 
   const runWizard = async () => {
     // Lyrics are asked for before any work starts, never as a surprise after
@@ -1514,7 +1538,7 @@ const KaraokeMaker = ({
         the guide-vocal level.
       */}
       <KaraokeMakerStems
-        instrumental={instrumental}
+        instrumental={effectiveInstrumental}
         vocals={stemVocalsFile}
         playheadMs={playheadMs}
         durationMs={effectiveDurationMs}
@@ -1716,15 +1740,15 @@ const KaraokeMaker = ({
         exportOpen={exportOpen}
         exportProject={exportProject}
         onSaveInstrumental={
-          instrumental
+          effectiveInstrumental
             ? () => {
                 // A plain object-URL download. The stem is already a File in
                 // memory, so there is nothing to re-encode and nothing to ask
                 // the main process for.
-                const url = URL.createObjectURL(instrumental);
+                const url = URL.createObjectURL(effectiveInstrumental);
                 const link = document.createElement('a');
                 link.href = url;
-                link.download = instrumental.name;
+                link.download = effectiveInstrumental.name;
                 link.click();
                 URL.revokeObjectURL(url);
               }
