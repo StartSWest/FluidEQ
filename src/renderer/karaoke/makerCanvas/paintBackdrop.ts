@@ -45,7 +45,12 @@ export interface IPaintBackdropInput {
   lyricSectionTop: number;
   project: IKaraokeMakerProject;
   canvasSectionGroups: IKaraokeMakerSectionGroup[];
-  stemWaveforms?: { vocals: number[]; instrumental: number[] };
+  stemWaveforms?: {
+    vocals: number[];
+    instrumental: number[];
+    /** Localized lane names, drawn at each lane edge so the order needs no manual. */
+    labels: { mix: string; backing: string; voice: string };
+  };
   viewStartMs: number;
   visibleViewDurationMs: number;
   effectiveDurationMs: number;
@@ -293,29 +298,52 @@ export const paintBackdrop = (
     // track, then the voice. Alignment is the entire point — the reader's eye
     // drops straight down from a bump in the mix to which stem owns it, which
     // is how lyric timing gets checked against singing rather than sound.
-    const laneGap = 2;
-    const laneHeight = (WAVEFORM_HEIGHT - laneGap * 2) / 3;
+    // Overlaid at full height, not stacked. The strip is sized for one wave;
+    // slicing it into thirds shrank every shape into an unreadable ribbon.
+    // Layered, each wave keeps the whole strip's amplitude resolution and the
+    // eye separates them by colour: the mix as a dim context shape behind,
+    // the backing track over it, the voice brightest and on top — the one
+    // being checked against the lyrics is the one that reads first.
     paintWaveLane(
       waveform,
       WAVEFORM_TOP,
-      laneHeight,
-      'rgba(22, 211, 198, .18)',
-      'rgba(72, 246, 230, .32)',
+      WAVEFORM_HEIGHT,
+      'rgba(22, 211, 198, .1)',
+      'rgba(72, 246, 230, .18)',
     );
     paintWaveLane(
       stemWaveforms.instrumental,
-      WAVEFORM_TOP + laneHeight + laneGap,
-      laneHeight,
-      'rgba(94, 158, 255, .2)',
-      'rgba(126, 180, 255, .3)',
+      WAVEFORM_TOP,
+      WAVEFORM_HEIGHT,
+      'rgba(94, 158, 255, .16)',
+      'rgba(126, 180, 255, 0)',
     );
     paintWaveLane(
       stemWaveforms.vocals,
-      WAVEFORM_TOP + (laneHeight + laneGap) * 2,
-      laneHeight,
-      'rgba(255, 176, 92, .24)',
-      'rgba(255, 200, 128, .34)',
+      WAVEFORM_TOP,
+      WAVEFORM_HEIGHT,
+      'rgba(255, 176, 92, .38)',
+      'rgba(255, 200, 128, 0)',
     );
+    // One legend line, each word in its wave's colour.
+    context.save();
+    context.font = '700 9px Inter, system-ui, sans-serif';
+    context.textAlign = 'left';
+    context.textBaseline = 'top';
+    let legendX = plotLeft + 6;
+    (
+      [
+        [stemWaveforms.labels.mix, 'rgba(111, 255, 243, .75)'],
+        [stemWaveforms.labels.backing, 'rgba(158, 199, 255, .8)'],
+        [stemWaveforms.labels.voice, 'rgba(255, 210, 150, .9)'],
+      ] as const
+    ).forEach(([text, color]) => {
+      context.fillStyle = color;
+      const label = text.toUpperCase();
+      context.fillText(label, legendX, WAVEFORM_TOP + 2);
+      legendX += context.measureText(label).width + 14;
+    });
+    context.restore();
   } else if (waveform?.length) {
     paintWaveLane(
       waveform,

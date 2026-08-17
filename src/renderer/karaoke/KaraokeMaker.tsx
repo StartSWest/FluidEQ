@@ -868,6 +868,7 @@ const KaraokeMaker = ({
   const [stemWaveforms, setStemWaveforms] = useState<{
     vocals: number[];
     instrumental: number[];
+    labels: { mix: string; backing: string; voice: string };
   }>();
 
   useMakerCanvasRender({
@@ -1241,6 +1242,13 @@ const KaraokeMaker = ({
         setStemWaveforms({
           vocals: vocalsWave.waveform,
           instrumental: instrumentalWave.waveform,
+          // Reusing the names the rest of the app already localizes: the
+          // fader's "Original" endpoint and the stem rows' track names.
+          labels: {
+            mix: t('karaoke.transport.vocalFull'),
+            backing: t('karaoke.maker.stemBacking'),
+            voice: t('karaoke.maker.stemVoice'),
+          },
         });
       }
     })().catch(() => {
@@ -1249,7 +1257,7 @@ const KaraokeMaker = ({
     return () => {
       cancelled = true;
     };
-  }, [instrumental, stemVocalsFile]);
+  }, [instrumental, stemVocalsFile, t]);
 
   // Offered once per opening, and only for a song with nothing timed yet. The
   // ref stops a re-render from re-opening a dialog the user has dismissed.

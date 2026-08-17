@@ -67,7 +67,12 @@ export interface IMakerCanvasPaint {
   selectedNoteIds: Set<string>;
   canvasLyricWords: ICanvasLyricWord[];
   canvasSectionGroups: ReturnType<typeof karaokeMakerSectionGroups>;
-  stemWaveforms?: { vocals: number[]; instrumental: number[] };
+  stemWaveforms?: {
+    vocals: number[];
+    instrumental: number[];
+    /** Localized lane names, drawn at each lane edge so the order needs no manual. */
+    labels: { mix: string; backing: string; voice: string };
+  };
   activeLyricFocus: ReturnType<typeof karaokeMakerLyricFocus>;
   activeLyricWordId?: string;
   hoveredEditHandle?: {
