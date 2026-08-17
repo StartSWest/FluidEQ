@@ -621,8 +621,14 @@ it under the terms of the GNU General Public License version 3 or later.
   // longest of the forty ("Mirrored ridge · Rainbow") is a good deal longer
   // than the shortest. Sized to the long one so the label never ellipsises and
   // the legends to its right never shuffle sideways when the look changes.
+  //
+  // It moved when the glyph arrived, and had to. The name has `overflow:
+  // visible` below, so it does not ellipsise when it runs out of room — it
+  // simply makes the pill wider, and a pill that is wider for some looks than
+  // others is the shuffling this floor exists to prevent. The extra is the
+  // icon and its gap, nothing more.
   .dropdown {
-    min-width: 172px;
+    min-width: 194px;
   }
 
   // Everything the pill itself is comes from the shared rule further down,
@@ -647,6 +653,15 @@ it under the terms of the GNU General Public License version 3 or later.
       color: inherit;
       text-overflow: clip;
       white-space: nowrap;
+    }
+
+    // A shade smaller in the closed pill than in the list. The pill is 22px
+    // tall and the row is 34, so the same glyph that sits comfortably in a row
+    // fills the trigger to its edges — and a control whose contents touch its
+    // border reads as overflowing rather than as full.
+    .graph-look-option__icon {
+      width: 14px;
+      height: 14px;
     }
 
     svg.arrow {
@@ -698,6 +713,40 @@ it under the terms of the GNU General Public License version 3 or later.
 
 .graph-look-menu li {
   font-size: 0.72rem;
+}
+
+// A look's name with its own drawing in front of it.
+//
+// One class for both places the picker renders an entry — every row of the open
+// list and the closed trigger — because the dropdown hands the same `display`
+// node to each, and two rules would be two chances for the row and the pill to
+// disagree about a look that is supposed to be the same look.
+//
+// Top level rather than under `.graph-legend--picker`: the menu is portalled to
+// the body, so the strip is not one of its ancestors and a scoped rule would
+// style the trigger and nothing else.
+.graph-look-option {
+  display: inline-flex;
+  min-width: 0;
+  align-items: center;
+  gap: 7px;
+}
+
+// The glyph never shrinks and never grows.
+//
+// `flex: 0 0 auto` because a long name in a 268px menu would otherwise squeeze
+// the drawing rather than wrap, and a bar chart three pixels wide is a smudge
+// — which is precisely the failure the icon exists to prevent.
+//
+// Nothing sets a colour here. A flat look's glyph is painted in
+// `currentColor` so it takes the row's own state — dim at rest, white on hover,
+// the selection colour when selected — while the two gradient palettes carry
+// their own ramp and ignore it, which is the difference the icon is there to
+// show.
+.graph-look-option__icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
 }
 
 // No surface of its own. The legends and the controls read directly on the
@@ -781,6 +830,36 @@ it under the terms of the GNU General Public License version 3 or later.
   &:hover {
     border: none;
     background: none;
+    color: $white;
+  }
+}
+
+// The two that switch something rather than stepping through it.
+//
+// Same family as the look arrows, and deliberately the same width — this row
+// is the first thing to run out of room, which is why they carry no label. But
+// an arrow always does the same thing and these have a state, so they have to
+// say which one they are in: lit when the wash is on the plot, dimmed when it
+// is not. Slightly larger glyphs than an arrow because a grid and a row of
+// columns have interior detail that a chevron does not.
+.live-output-controls .graph-look-step--toggle {
+  width: 18px;
+
+  svg {
+    width: 11px;
+    height: 11px;
+  }
+
+  &[aria-pressed='false'] {
+    color: rgba($primary-lighter, 0.28);
+  }
+
+  &[aria-pressed='true'] {
+    color: rgba($secondary-light, 0.95);
+  }
+
+  &[aria-pressed='true']:hover,
+  &[aria-pressed='false']:hover {
     color: $white;
   }
 }

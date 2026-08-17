@@ -41,6 +41,7 @@ import {
   useState,
 } from 'react';
 import Spinner from 'renderer/icons/Spinner';
+import LookIcon from 'renderer/icons/LookIcon';
 import {
   FilterActionEnum,
   useFluidEqContext,
@@ -546,13 +547,28 @@ const FrequencyResponseChart = ({
           // A look the user made is marked on the row rather than in the label,
           // so the search still matches the name they typed instead of the word
           // "custom".
+          //
+          // The glyph goes in front of it, in both places `display` is used —
+          // every row of the open list and the closed trigger. A hundred and
+          // thirty-eight rows of "Terrace", "Crown" and "Truss" say nothing
+          // about what any of them draws, and the only way to find out was to
+          // select one and look; the icon answers the shape and the colouring at
+          // once, since it is painted by the same resolver as the trace itself.
           display: (
-            <span
-              className={`graph-look-name${
-                look.isCustom ? ' graph-look-name--custom' : ''
-              }`}
-            >
-              {builtInLabel}
+            <span className="graph-look-option">
+              <LookIcon
+                className="graph-look-option__icon"
+                style={look.style}
+                palette={look.palette}
+                colours={look.colours}
+              />
+              <span
+                className={`graph-look-name${
+                  look.isCustom ? ' graph-look-name--custom' : ''
+                }`}
+              >
+                {builtInLabel}
+              </span>
             </span>
           ),
         };
@@ -2134,6 +2150,52 @@ const FrequencyResponseChart = ({
               screen, they are the widest things the row ever held, and the row
               is right-aligned, so arriving in the mode shoved everything else
               left and on a narrow window pushed it under the waveform. */}
+            {/* The two washes over the plot, switchable without opening the
+              menu — the same pair of questions as the wave chip at the other
+              end of the row, and asked just as often while watching.
+
+              Icon only, and deliberately. The notes above record that this row
+              is the first thing to run out of width and that the sliders were
+              moved into the menu for exactly that reason; two more labelled
+              pills would be the same mistake with different words. The drawing
+              is the label: columns for the listening bands, because they are
+              blocks standing on the axis rather than a line, and a ruled square
+              for the grid.
+
+              They stay in the menu as well. This is a shortcut to the two that
+              change what the plot looks like most, not a move. */}
+            <button
+              type="button"
+              className="graph-look-step graph-look-step--toggle"
+              aria-pressed={!isCoverageHidden}
+              aria-label={t(isCoverageHidden ? 'graph.show' : 'graph.hide', {
+                item: t('graph.item.bands'),
+              })}
+              title={t(isCoverageHidden ? 'graph.show' : 'graph.hide', {
+                item: t('graph.item.bands'),
+              })}
+              onClick={toggleGraphCoverage}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <path d="M3 13V8.5M6.3 13V5M9.7 13V6.8M13 13V3.5" />
+              </svg>
+            </button>
+            <button
+              type="button"
+              className="graph-look-step graph-look-step--toggle"
+              aria-pressed={!isGridHidden}
+              aria-label={t(isGridHidden ? 'graph.show' : 'graph.hide', {
+                item: t('graph.item.grid'),
+              })}
+              title={t(isGridHidden ? 'graph.show' : 'graph.hide', {
+                item: t('graph.item.grid'),
+              })}
+              onClick={toggleGraphGrid}
+            >
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <path d="M2.5 2.5h11v11h-11zM2.5 6.2h11M2.5 9.8h11M6.2 2.5v11M9.8 2.5v11" />
+              </svg>
+            </button>
             {/* Last, at the right-hand end of the row, in every mode. Both sizes
               live here, and every shortcut that reaches them; Escape gets back
               from either. */}
