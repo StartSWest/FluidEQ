@@ -49,6 +49,7 @@ import {
   NO_LEVELS,
   NO_POINTS,
   NO_WAVEFORM,
+  OUTPUT_SWITCH_SETTLE_MS,
   SILENCE_ABORT_MS,
   SILENCE_HINT_MS,
   START_RETRY_MS,
@@ -1020,6 +1021,52 @@ const useLiveOutputSpectrum = () => {
     return () =>
       document.removeEventListener('visibilitychange', trackVisibility);
   }, []);
+
+  /**
+   * Follow the output, because the capture cannot notice that it moved.
+   *
+   * What is captured is a loopback of one Windows endpoint, fixed at the moment
+   * the stream was granted. Switching output leaves that stream bound to the
+   * old one — still live, still granted, and from now on delivering silence,
+   * because nothing is being played through it any more.
+   *
+   * None of the existing recovery covers this. `ended` needs the track to stop
+   * and it does not; `mute` needs Windows to invalidate the endpoint and it has
+   * not, since the device is still perfectly valid. The result was a waveform
+   * that simply stopped moving with nothing on screen to say why, and no way
+   * back short of reopening the app.
+   *
+   * So the switch itself is the signal: tear the capture down and take a new
+   * one, which arrives bound to whatever the output is now.
+   */
+  useEffect(() => {
+    let settleTimer: ReturnType<typeof setTimeout> | undefined;
+    const rebind = () => {
+      // Nothing running is nothing to move. A capture that was never started,
+      // or that gave up, is not restarted by somebody changing device.
+      if (!streamRef.current) {
+        return;
+      }
+      stop();
+      // A fresh endpoint deserves a fresh set of attempts: the count that was
+      // spent failing against the previous device says nothing about this one.
+      retriesRef.current = 0;
+      if (settleTimer !== undefined) {
+        clearTimeout(settleTimer);
+      }
+      settleTimer = setTimeout(
+        () => scheduleStartRef.current(),
+        OUTPUT_SWITCH_SETTLE_MS,
+      );
+    };
+    window.addEventListener('fluideq-output-changed', rebind);
+    return () => {
+      window.removeEventListener('fluideq-output-changed', rebind);
+      if (settleTimer !== undefined) {
+        clearTimeout(settleTimer);
+      }
+    };
+  }, [stop]);
 
   useEffect(() => {
     autoStartRef.current = true;

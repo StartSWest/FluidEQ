@@ -60,6 +60,24 @@ const BLUR_KEY = 'fluideq.graphOverlayBlur';
  * looking for, not the thing you are given and have to undo.
  */
 const DEFAULT_OPACITY = 1;
+
+/**
+ * Mostly glass in the two modes that are laid over something.
+ *
+ * Solid everywhere was the old answer, on the reasoning that seeing through the
+ * graph is a thing you go looking for rather than a thing you are given. That
+ * holds for the graph in a pane, where there is nothing behind it to see and
+ * transparency buys nothing. It is the wrong way round for the other two: you
+ * go to expanded or full screen *because* something is playing underneath, and
+ * a solid card over your own video is a default that has to be undone before
+ * the mode is any use — which meant discovering a slider first.
+ *
+ * 0.2 rather than 0, which is the slider at 80 rather than at 100. The card
+ * keeps just enough ground to sit on that the curve and the labels stay
+ * readable over a bright picture, while four fifths of what is behind it comes
+ * through.
+ */
+const DEFAULT_OVERLAID_OPACITY = 0.2;
 const DEFAULT_BLUR = 0;
 
 /**
@@ -101,7 +119,11 @@ const serializeNumber = (value: number) => String(value);
 
 const opacitySetting = createPerViewSetting(
   OPACITY_KEY,
-  DEFAULT_OPACITY,
+  {
+    normal: DEFAULT_OPACITY,
+    expanded: DEFAULT_OVERLAID_OPACITY,
+    fullscreen: DEFAULT_OVERLAID_OPACITY,
+  },
   parseNumber(DEFAULT_OPACITY, MIN_OVERLAY_OPACITY, 1),
   serializeNumber,
 );

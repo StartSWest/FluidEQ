@@ -126,18 +126,26 @@ describe('one set of view settings per mode', () => {
   it('hides the grid in one mode and leaves the other two alone', () => {
     const { style } = load();
 
+    // Full screen starts without a grid and the other two start with one:
+    // full screen is where the graph stops being a measurement, which is the
+    // same argument that made this per-mode in the first place.
     style.setGraphView('fullscreen');
+    expect(style.getGraphGridHidden()).toBe(true);
+    style.setGraphView('normal');
+    expect(style.getGraphGridHidden()).toBe(false);
+
+    style.setGraphView('expanded');
     style.toggleGraphGrid();
     expect(style.getGraphGridHidden()).toBe(true);
 
     style.setGraphView('normal');
     expect(style.getGraphGridHidden()).toBe(false);
-    style.setGraphView('expanded');
-    expect(style.getGraphGridHidden()).toBe(false);
+    style.setGraphView('fullscreen');
+    expect(style.getGraphGridHidden()).toBe(true);
 
     // And back, to be sure the mode that was set still has it rather than the
     // getter simply answering with whatever was last written anywhere.
-    style.setGraphView('fullscreen');
+    style.setGraphView('expanded');
     expect(style.getGraphGridHidden()).toBe(true);
   });
 
@@ -629,7 +637,11 @@ describe('carrying an older install across', () => {
     expect(second.getGraphStretched()).toBe(true);
     expect(second.getGraphGridHidden()).toBe(false);
     second.setGraphView('fullscreen');
-    expect(second.getGraphGridHidden()).toBe(true);
+    // Full screen hides the grid by default, so the toggle above turned it back
+    // ON — and that is what has to survive. A default that came back after a
+    // restart would look identical to a value that was remembered, which is
+    // exactly the bug this test exists to catch.
+    expect(second.getGraphGridHidden()).toBe(false);
     expect(second.getGraphStretched()).toBe(false);
   });
 });

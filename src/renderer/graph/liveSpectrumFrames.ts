@@ -206,6 +206,21 @@ export const MAX_START_RETRIES = 6;
  */
 export const DEVICE_LOST_GRACE_MS = 2500;
 
+/**
+ * How long to let an output switch settle before grabbing the loopback again.
+ *
+ * Main says the endpoint changed as soon as it has loaded that output's
+ * profile, which is earlier than Windows finishes handing the endpoint over.
+ * Re-grabbing immediately can bind the new capture to the device being left —
+ * the same race the start retry exists for, except that this one *succeeds*,
+ * so nothing retries and the trace sits flat on an output nobody is listening
+ * to any more.
+ *
+ * Short enough not to be seen as a gap, long enough to be on the other side of
+ * the switch.
+ */
+export const OUTPUT_SWITCH_SETTLE_MS = 450;
+
 /** Log-spaced analysis frequencies. Constant for a given sample rate. */
 export const createFrequencyAxis = (sampleRate: number): number[] => {
   const logMin = Math.log10(MIN_FREQUENCY);

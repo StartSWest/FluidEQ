@@ -122,11 +122,29 @@ export interface IPerViewSetting<T> {
 export const createPerViewSetting = <T>(
   /** The old flat key, now the stem that the three real keys hang off. */
   stem: string,
-  fallback: T,
+  /**
+   * One value for every mode, or one per mode where they genuinely differ.
+   *
+   * Most of these want the same answer everywhere and say so with a single
+   * value. A few do not: full screen is the mode somebody is in to *watch*
+   * something, so the graph arrives there already out of the way — see through
+   * and without its grid — while the same graph in a pane is a measurement and
+   * starts solid and ruled. Expressing that as a default beats shipping a
+   * default nobody wants and expecting them to find the menu.
+   */
+  fallback: T | Record<TGraphView, T>,
   parse: (raw: string) => T,
   serialize: (value: T) => string,
 ): IPerViewSetting<T> => {
   const keyFor = (mode: TGraphView) => `${stem}.${mode}`;
+  const isPerMode = (
+    value: T | Record<TGraphView, T>,
+  ): value is Record<TGraphView, T> =>
+    typeof value === 'object' &&
+    value !== null &&
+    GRAPH_VIEWS.every((mode) => mode in (value as Record<string, unknown>));
+  const fallbackFor = (mode: TGraphView): T =>
+    isPerMode(fallback) ? fallback[mode] : fallback;
 
   /**
    * What somebody already had, carried across — once, on the first read after
@@ -158,9 +176,9 @@ export const createPerViewSetting = <T>(
   // fourth mode is a compiler error here rather than a mode that quietly reads
   // `undefined` and draws whatever that coerces to.
   const values: Record<TGraphView, T> = {
-    normal: fallback,
-    expanded: fallback,
-    fullscreen: fallback,
+    normal: fallbackFor('normal'),
+    expanded: fallbackFor('expanded'),
+    fullscreen: fallbackFor('fullscreen'),
   };
   GRAPH_VIEWS.forEach((mode) => {
     const raw = readStored(keyFor(mode));
@@ -679,8 +697,33 @@ function setWaveHidden(next: boolean) {
  * state with the wave off and the curves on, so asking for the wave to go can no
  * longer also take the curves with it.
  */
-export const toggleGraphWave = () =>
-  setGraphContents(waveSetting.get() ? 'everything' : 'curves');
+/**
+ * Take the wave off the plot, or put it back. Nothing else moves.
+ *
+ * It used to name a state — `curves` on the way out, `everything` on the way
+ * back — which meant it was never only about the wave. Hiding the wave from
+ * `clean` put the coverage wash back; from `layers` it un-quieted the EQ curve;
+ * and showing it again restored both, whatever they had been set to. Somebody
+ * pressing a switch labelled with the wave got two or three other changes with
+ * it and no way to tell which control had done it.
+ *
+ * So it moves one flag, exactly like `toggleGraphCoverage` — the other switch
+ * that names no state and is reversible for that reason.
+ *
+ * The one thing it cannot do is empty the plot. On `wave` the curves are gone
+ * and the wave is all that is left, so hiding it would leave nothing at all;
+ * there, and only there, the curves come back — to `curves`, which is the wave
+ * hidden with something behind it, and not to `everything`, which would put
+ * back the very thing the press asked to remove. That is the same invariant
+ * `setLiveOutputSolo` states from the other side.
+ */
+export const toggleGraphWave = () => {
+  if (!waveSetting.get() && soloSetting.get()) {
+    setGraphContents('curves');
+    return;
+  }
+  setWaveHidden(!waveSetting.get());
+};
 
 /**
  * The same answer outside a render. See `getGraphGridHidden`.
@@ -1025,9 +1068,19 @@ export const useGraphFullScreen = () => useGraphView() !== 'normal';
  * describes full screen and nothing else, and the same person editing bands in
  * the normal view wants every label they can get.
  */
+/*
+ * Hidden in full screen out of the box, drawn everywhere else.
+ *
+ * The paragraph above already argues that hiding the grid is what somebody does
+ * on the way into full screen and undoes on the way out. If that is the move
+ * almost everyone makes, making them find the menu to make it is a default
+ * chosen the wrong way round — so full screen simply starts without it, and the
+ * pane and the expanded card, where the graph is still a measurement, keep
+ * every label they can get.
+ */
 const gridSetting = createPerViewSetting(
   VIEW_KEYS.grid,
-  false,
+  { normal: false, expanded: false, fullscreen: true },
   parseFlag,
   serializeFlag,
 );
