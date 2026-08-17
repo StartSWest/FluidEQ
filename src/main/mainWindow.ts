@@ -28,6 +28,7 @@ import {
 } from '../common/constants';
 import { resolveHtmlPath, waitForRenderer } from './util';
 import { openExternalIfSafe } from './safeExternal';
+import { contentSecurityPolicy } from './contentSecurityPolicy';
 import MenuBuilder from './menu';
 import { IAuthorizedAutoUpdater } from './signedAutoUpdates';
 
@@ -209,63 +210,9 @@ export const createMainWindowFactory = ({
         isOwnMainFrame(contents, details),
     );
 
-    /**
-     * A Content-Security-Policy for FluidEQ's own window.
-     *
-     * Deliberately not the strictest policy that can be written, because a
-     * policy that breaks the app gets deleted by the next person who needs the
-     * app to work. This is the strictest one that leaves every existing feature
-     * running, and each loosening below says which feature needs it.
-     *
-     * What it does buy, and these are the ones worth having:
-     *
-     *  - `object-src 'none'` — no plugins, ever. Nothing here uses them and it
-     *    closes the oldest hole in the list.
-     *  - `base-uri 'self'` — an injected `<base>` cannot re-point every
-     *    relative URL in the document at somewhere else.
-     *  - `form-action 'none'` — nothing in this app submits a form, so nothing
-     *    injected into it should be able to either.
-     *  - `frame-src 'none'` — the video browser is a `<webview>` on its own
-     *    locked-down session, not a frame in this one.
-     *  - script-src without `'unsafe-inline'` — an injected `<script>` tag does
-     *    not run.
-     *
-     * What it deliberately allows:
-     *
-     *  - `'unsafe-eval'` in development only. Webpack's hot reload compiles
-     *    modules with eval; the packaged build has no dev server and no reason
-     *    to permit it.
-     *  - `style-src 'unsafe-inline'` — React style props are inline styles, and
-     *    a dozen components use them.
-     *  - `blob:` for workers, media and images. The Whisper worker, the
-     *    analysis worker, every audio file the user opens and the look
-     *    designer's previews are all object URLs.
-     *  - `https://huggingface.co` in connect-src. That is where the speech
-     *    model is fetched from, by the worker, on the user's own machine.
-     *
-     * Set as a response header rather than a meta tag so it also covers the
-     * dev-server document, which FluidEQ does not author.
-     */
-    const scriptSrc = isDebug
-      ? "script-src 'self' 'unsafe-eval'"
-      : "script-src 'self'";
-    const connectSrc = isDebug
-      ? "connect-src 'self' ws: http://localhost:1212 https://huggingface.co https://cdn-lfs.huggingface.co"
-      : "connect-src 'self' https://huggingface.co https://cdn-lfs.huggingface.co";
-    const policy = [
-      "default-src 'self'",
-      scriptSrc,
-      "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: blob:",
-      "media-src 'self' blob: data: file:",
-      "font-src 'self' data:",
-      "worker-src 'self' blob:",
-      connectSrc,
-      "object-src 'none'",
-      "base-uri 'self'",
-      "form-action 'none'",
-      "frame-src 'none'",
-    ].join('; ');
+    // The policy itself, and the reasoning behind every directive in it,
+    // are in ./contentSecurityPolicy — where they can be tested.
+    const policy = contentSecurityPolicy(isDebug);
 
     appSession.webRequest.onHeadersReceived((details, callback) => {
       // Only this window's own documents. The webview's session is separate, so
