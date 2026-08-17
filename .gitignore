@@ -45,3 +45,6 @@ presets/**
 
 # Clyvor metadata
 .gigaide/
+
+# Local launch config for Claude Code; not part of the build.
+.claude/
