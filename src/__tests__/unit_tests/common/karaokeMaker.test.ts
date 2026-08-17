@@ -29,7 +29,7 @@ import {
   autoAlignKaraokeMakerProject,
   autoAlignNewKaraokeMakerLyrics,
   karaokeMakerAnalysisNotesFromMelody,
-} from '../../../renderer/karaoke/makerAnalysis';
+} from '../../../renderer/karaoke/makerAlignment';
 import {
   accumulateKaraokeMakerDownloadProgress,
   applyBasicPitchMelody,

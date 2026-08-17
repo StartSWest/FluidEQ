@@ -49,11 +49,11 @@ import KaraokeMakerConfirmDialog, {
   TDestructiveMakerAction,
 } from './KaraokeMakerConfirmDialog';
 import { useKaraokeMakerEditorView } from './useKaraokeMakerEditorView';
+import { IKaraokeMakerAnalysisResult } from './makerAnalysis';
 import {
-  IKaraokeMakerAnalysisResult,
   autoAlignNewKaraokeMakerLyrics,
   karaokeMakerAnalysisNotesFromMelody,
-} from './makerAnalysis';
+} from './makerAlignment';
 import {
   KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
   IKaraokeMakerDownloadSummary,

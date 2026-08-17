@@ -7,8 +7,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 import {
   IKaraokeMakerAnalysisNote,
   karaokeMakerAnalysisOffsetMs,
-  repairEstimatedWhisperTimingWithMelody,
 } from '../makerAnalysis';
+import { repairEstimatedWhisperTimingWithMelody } from '../makerAlignment';
 import {
   IKaraokeMakerProject,
   KARAOKE_MAKER_WHISPER_ALIGNMENT_VERSION,
