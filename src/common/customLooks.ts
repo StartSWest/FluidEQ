@@ -28,9 +28,9 @@ import {
   clampGraphColumns,
   getGraphBallistics,
   getGraphColumnCount,
-  hasGraphAccent,
   isFilledGraphStyle,
 } from './graphStyles';
+import { hasGraphAccent } from './graphShapes';
 import { PRODUCT_NAME } from './branding';
 
 /**
