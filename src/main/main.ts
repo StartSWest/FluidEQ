@@ -77,15 +77,12 @@ import {
   IFiltersMap,
   IAudioDevice,
   IDeviceProfileAssignment,
-  IAutoEqUpdateStatus,
   AUTOMATIC_PRESET_PREFIX,
   APP_UPDATE_EVENT,
   OUTPUT_STATE_CHANGED_EVENT,
-  AUTOEQ_SOURCE_ID,
   APO_FEATURES,
   TApoFeature,
   TApoLayer,
-  describeBandShape,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
 import {
@@ -94,24 +91,12 @@ import {
   snapshotFilters,
 } from '../common/layouts';
 import { TSuccess, TError } from '../renderer/utils/equalizerApi';
-import {
-  getAutoEqDeviceList,
-  getAutoEqPreset,
-  getAutoEqResponseList,
-} from './autoeq';
-import {
-  checkAutoEqUpdate,
-  syncAutoEqDatabase,
-  updateAutoEqDatabase,
-} from './autoeqUpdater';
-import {
-  downloadConvolution,
-  getConvolutionCatalog,
-} from './convolutionCatalog';
+import { syncAutoEqDatabase } from './autoeqUpdater';
 import { setUpVideoBrowser } from './videoBrowser';
 import { createMainWindowFactory } from './mainWindow';
 import { createApoAdoption } from './apoAdopt';
 import { registerTransferIpc } from './ipc/transfer';
+import { registerReferencesIpc } from './ipc/references';
 import { registerKaraokeIpc } from './ipc/karaoke';
 import { registerWindowIpc } from './ipc/window';
 import { registerFiltersIpc } from './ipc/filters';
@@ -1913,189 +1898,14 @@ ipcMain.on(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
   }
 });
 
-ipcMain.on(ChannelEnum.GET_AUTO_EQ_DEVICE_LIST, async (event) => {
-  const channel = ChannelEnum.GET_AUTO_EQ_DEVICE_LIST;
-  log.info(`Getting AutoEQ Device List`);
-
-  try {
-    const fileNames: string[] = getAutoEqDeviceList();
-    log.info(`Fetched ${fileNames.length} files`);
-    const reply: TSuccess<string[]> = { result: fileNames };
-    event.reply(channel, reply);
-  } catch (e) {
-    log.error('Failed to get devices');
-    log.error(e);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.GET_AUTO_EQ_RESPONSE_LIST, async (event, arg) => {
-  const channel = ChannelEnum.GET_AUTO_EQ_RESPONSE_LIST;
-  const deviceName: string = arg[0];
-  log.info(`Getting AutoEQ supported response list for ${deviceName}`);
-
-  try {
-    const fileNames: string[] = getAutoEqResponseList(deviceName);
-    log.info(`Fetched ${fileNames.length} files`);
-    const reply: TSuccess<string[]> = { result: fileNames };
-    event.reply(channel, reply);
-  } catch (e) {
-    log.error(`Failed to get supported responses for ${deviceName}`);
-    log.error(e);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.LOAD_AUTO_EQ_PRESET, async (event, arg) => {
-  const channel = ChannelEnum.LOAD_AUTO_EQ_PRESET;
-  const [deviceName, responseName] = arg as [string, string, string?];
-
-  try {
-    const presetSettings: IPresetV2 = getAutoEqPreset(deviceName, responseName);
-    /*
-     * INTO ITS OWN LAYER, NOT INTO THE USER'S BANDS.
-     *
-     * This used to replace `state.filters` outright, which meant applying a
-     * headphone reference threw away whatever tuning was there, clearing the EQ
-     * threw the reference away in turn, and Smart EQ -- which measures the
-     * output and cannot hear a transducer -- read the correction as error and
-     * flattened it over a few passes. Three problems with one cause.
-     *
-     * As a layer it survives a clear, it is handed to the solver as something
-     * not to correct, and the bands stay whatever the person made them.
-     */
-    state.headphone = {
-      filters: shieldReferenceBands(presetSettings.filters),
-      /*
-       * The curve as published, when it was published as one.
-       *
-       * A GraphicEQ profile is a list of points, and Equalizer APO renders
-       * those natively. The parser fits peaking filters to them as well so the
-       * graph has a shape and the bands have values — but that fit is an
-       * approximation, and applying it instead of the curve quietly gave the
-       * listener a smoothed version of the measurement they asked for. Both are
-       * kept; the writer prefers this one.
-       */
-      graphicEq:
-        presetSettings.eqFormat === AutoEqFormat.GRAPHIC
-          ? presetSettings.graphicEq
-          : undefined,
-      // Full strength on arrival. Somebody who wants half of a published
-      // correction can say so; somebody who applied one and got half of it
-      // would reasonably think it had not worked.
-      intensity: 1,
-    };
-    // The preamp still comes from the measurement, because the correction it
-    // belongs to is the one being applied. Everything else about the user's
-    // stage is left alone.
-    state.preAmp = presetSettings.preAmp;
-    // Which model these bands came from, and out of which database. Not
-    // recoverable from the bands, and the difference between a curve you can
-    // reason about and a set of numbers. The source is recorded because the
-    // same model name exists in several databases with unrelated measurements
-    // behind it, so the name alone cannot lead back to this measurement.
-    state.headset = deviceName;
-    state.headsetTarget = responseName;
-    state.headsetSource = AUTOEQ_SOURCE_ID;
-    state.headsetSignature = describeBandShape(state.headphone.filters);
-    state.eqImport = undefined;
-    applyingLayer('headphone');
-    await handleUpdate(event, channel, false, true);
-  } catch (ex) {
-    log.info(
-      `Failed to load autoeq preset from ${deviceName} to ${responseName}`,
-    );
-    log.info(ex);
-    handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.GET_CONVOLUTION_CATALOG, async (event, arg) => {
-  const channel = ChannelEnum.GET_CONVOLUTION_CATALOG;
-  try {
-    const query = typeof arg?.[0] === 'string' ? arg[0] : '';
-    const reply: TSuccess<Awaited<ReturnType<typeof getConvolutionCatalog>>> = {
-      result: await getConvolutionCatalog(query),
-    };
-    event.reply(channel, reply);
-  } catch (error) {
-    log.error('Failed to get convolution catalogue', error);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
-  const channel = ChannelEnum.DOWNLOAD_CONVOLUTION;
-  const entryId = arg?.[0];
-  if (typeof entryId !== 'string' || !entryId) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-  try {
-    if (!session.configPath) {
-      session.configPath = await getConfigPath();
-    }
-    applyingLayer('convolution');
-    state.convolution = await downloadConvolution(entryId, session.configPath);
-    await handleUpdate(event, channel, false, true);
-  } catch (error) {
-    log.error('Failed to download convolution profile', error);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
-  }
-});
-
-/**
- * Drop the reference, and with it the bands it produced.
- *
- * Applying a reference writes the measurement straight into the bands, so the
- * model is not a label sitting beside them — it is where every one of those
- * numbers came from. Keeping them after disclaiming their origin leaves a curve
- * nobody, the app included, can account for: not the user's tuning, not any
- * model's, just leftovers. A flat EQ is somewhere to start from; that is not.
- *
- * Deliberately the same reset as Clear EQ, down to leaving the voicing, the
- * driver correction, the measured Smart EQ curve and the convolution alone —
- * those were arrived at separately and the reference never spoke for them.
- */
-ipcMain.on(ChannelEnum.CLEAR_HEADSET, async (event) => {
-  const channel = ChannelEnum.CLEAR_HEADSET;
-  /*
-   * CLEARS THE CORRECTION, NOT THE PERSON'S BANDS.
-   *
-   * It called `resetEqToDefaults`, which was right while a reference WAS the
-   * bands: clearing one meant flattening them. Now that the correction is a
-   * layer of its own the two have swapped places, and left alone this did
-   * exactly the wrong thing in both directions at once — wiped a tuning it no
-   * longer owns, and left the correction playing with nothing on screen naming
-   * it.
-   *
-   * Found by the agent moving this button to its new page rather than by
-   * anything here, which is worth recording: splitting a layer out leaves every
-   * "clear it" path pointing at the old address.
-   */
-  applyingLayer('headphone');
-  state.headphone = undefined;
-  state.headset = undefined;
-  state.headsetTarget = undefined;
-  state.headsetSource = undefined;
-  state.headsetSignature = undefined;
-  // Replies with the new bands, the same as Clear EQ, so a caller that is not
-  // about to re-read the whole state can adopt them: getDefaultFilters mints
-  // fresh ids, and every id the renderer still holds has just stopped existing.
-  await handleUpdateHelper<IFiltersMap>(
-    event,
-    channel,
-    state.filters,
-    false,
-    true,
-  );
-});
-
-ipcMain.on(ChannelEnum.CLEAR_CONVOLUTION, async (event) => {
-  const channel = ChannelEnum.CLEAR_CONVOLUTION;
-  applyingLayer('convolution');
-  state.convolution = undefined;
-  await handleUpdate(event, channel, false, true);
+registerReferencesIpc({
+  applyingLayer,
+  handleError,
+  handleUpdate,
+  handleUpdateHelper,
+  session,
+  shieldReferenceBands,
+  state,
 });
 
 registerTransferIpc({
@@ -2114,32 +1924,6 @@ registerTransferIpc({
   session,
   shieldReferenceBands,
   state,
-});
-
-ipcMain.on(ChannelEnum.CHECK_AUTO_EQ_UPDATE, async (event) => {
-  const channel = ChannelEnum.CHECK_AUTO_EQ_UPDATE;
-  try {
-    const reply: TSuccess<IAutoEqUpdateStatus> = {
-      result: await checkAutoEqUpdate(),
-    };
-    event.reply(channel, reply);
-  } catch (error) {
-    log.warn('Unable to check for an AutoEq database update', error);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.UPDATE_AUTO_EQ_DATABASE, async (event) => {
-  const channel = ChannelEnum.UPDATE_AUTO_EQ_DATABASE;
-  try {
-    const reply: TSuccess<IAutoEqUpdateStatus> = {
-      result: await updateAutoEqDatabase(),
-    };
-    event.reply(channel, reply);
-  } catch (error) {
-    log.error('Unable to update the AutoEq database', error);
-    handleError(event, channel, ErrorCode.AUTO_EQ_READ_ERROR);
-  }
 });
 
 ipcMain.on(ChannelEnum.GET_STATE, async (event) => {
