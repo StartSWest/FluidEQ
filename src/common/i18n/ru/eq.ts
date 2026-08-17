@@ -42,6 +42,7 @@ const eq: Partial<Dictionary> = {
   'graph.item.topBar': 'верхнюю панель',
   'graph.fit': 'Вместить график',
   'graph.stretch': 'Растянуть на всю область',
+  'graph.compact': 'Уменьшить волну к краю',
   'graph.orientation.down': 'Опустить волну вниз',
   'graph.orientation.mirror': 'Отразить волну',
   'graph.orientation.centre': 'Отразить от центра',

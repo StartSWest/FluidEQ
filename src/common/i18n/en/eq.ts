@@ -40,6 +40,7 @@ const eq = {
   'graph.item.topBar': 'the top bar',
   'graph.fit': 'Fit the graph',
   'graph.stretch': 'Stretch to fill',
+  'graph.compact': 'Shrink the wave to the edge',
   'graph.orientation.down': 'Hang the wave down',
   'graph.orientation.mirror': 'Mirror the wave',
   'graph.orientation.centre': 'Mirror from the centre',

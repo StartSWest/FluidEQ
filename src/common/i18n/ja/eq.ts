@@ -42,6 +42,7 @@ const eq: Partial<Dictionary> = {
   'graph.item.topBar': '上部バー',
   'graph.fit': 'グラフを合わせる',
   'graph.stretch': '全体に引き伸ばす',
+  'graph.compact': '波形を端に縮める',
   'graph.orientation.down': '波形を下向きにする',
   'graph.orientation.mirror': '波形を反転',
   'graph.orientation.centre': '中央から反転',

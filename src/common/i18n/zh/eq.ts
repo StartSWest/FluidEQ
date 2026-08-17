@@ -42,6 +42,7 @@ const eq: Partial<Dictionary> = {
   'graph.item.topBar': '顶部栏',
   'graph.fit': '适应图表',
   'graph.stretch': '拉伸填满',
+  'graph.compact': '把波形缩到边缘',
   'graph.orientation.down': '波形向下悬挂',
   'graph.orientation.mirror': '镜像波形',
   'graph.orientation.centre': '从中心镜像',

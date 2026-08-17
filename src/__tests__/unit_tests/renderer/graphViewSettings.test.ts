@@ -155,7 +155,7 @@ describe('one set of view settings per mode', () => {
     expect(stored(GRID_STEM)).toBeNull();
   });
 
-  it('keeps a stretch per mode', () => {
+  it('keeps a wave size per mode', () => {
     const { style } = load();
 
     style.setGraphView('expanded');
@@ -164,11 +164,37 @@ describe('one set of view settings per mode', () => {
     style.toggleGraphStretch();
     style.toggleGraphStretch();
 
-    expect(stored(`${STRETCH_STEM}.expanded`)).toBe('true');
-    expect(stored(`${STRETCH_STEM}.fullscreen`)).toBe('false');
+    // Three sizes on one control, so it cycles rather than toggling: the
+    // second press in full screen lands on compact instead of coming back.
+    expect(stored(`${STRETCH_STEM}.expanded`)).toBe('stretched');
+    expect(stored(`${STRETCH_STEM}.fullscreen`)).toBe('compact');
+
     style.setGraphView('expanded');
     expect(style.getGraphStretched()).toBe(true);
+    style.setGraphView('fullscreen');
+    // Compact keeps the edge-to-edge layout and only shortens the wave, so
+    // everything asking about margins still gets the same answer.
+    expect(style.getGraphStretched()).toBe(true);
+    expect(style.getGraphWaveSize()).toBe('compact');
+
     style.setGraphView('normal');
+    expect(style.getGraphStretched()).toBe(false);
+    expect(style.getGraphWaveSize()).toBe('normal');
+  });
+
+  it('reads a size stored as the old boolean', () => {
+    // Written by any build from while there were two sizes. Whatever it says is
+    // still true; it just has a different name now.
+    window.localStorage.setItem(`${STRETCH_STEM}.fullscreen`, 'true');
+    window.localStorage.setItem(`${STRETCH_STEM}.expanded`, 'false');
+
+    const { style } = load();
+    style.setGraphView('fullscreen');
+    expect(style.getGraphWaveSize()).toBe('stretched');
+    expect(style.getGraphStretched()).toBe(true);
+
+    style.setGraphView('expanded');
+    expect(style.getGraphWaveSize()).toBe('normal');
     expect(style.getGraphStretched()).toBe(false);
   });
 

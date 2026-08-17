@@ -42,6 +42,7 @@ const eq: Partial<Dictionary> = {
   'graph.item.topBar': 'la barra superior',
   'graph.fit': 'Ajustar la gráfica',
   'graph.stretch': 'Estirar para llenar',
+  'graph.compact': 'Encoger la onda al borde',
   'graph.orientation.down': 'Colgar la onda hacia abajo',
   'graph.orientation.mirror': 'Reflejar la onda',
   'graph.orientation.centre': 'Reflejar desde el centro',

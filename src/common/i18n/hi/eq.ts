@@ -42,6 +42,7 @@ const eq: Partial<Dictionary> = {
   'graph.item.topBar': 'ऊपरी पट्टी',
   'graph.fit': 'ग्राफ़ को समायोजित करें',
   'graph.stretch': 'भरने के लिए फैलाएँ',
+  'graph.compact': 'तरंग को किनारे तक छोटा करें',
   'graph.orientation.down': 'तरंग को नीचे लटकाएँ',
   'graph.orientation.mirror': 'तरंग पलटें',
   'graph.orientation.centre': 'केंद्र से पलटें',

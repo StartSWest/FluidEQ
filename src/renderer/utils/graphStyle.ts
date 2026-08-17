@@ -1512,24 +1512,74 @@ export const useTitlebarWaveHidden = () =>
  * So it is a switch rather than a decision made here, and it sits beside the
  * others in the view menu — one per mode, because reading and watching are
  * usually done in different ones.
+ *
+ * Three sizes rather than two, because "fills the card" and "how tall the wave
+ * itself is drawn" turned out to be different questions.
+ *
+ *  - `normal` — the plot keeps its share of the card, as it always has.
+ *  - `stretched` — the drawing takes every pixel, top to bottom.
+ *  - `compact` — the same edge-to-edge layout, with the wave drawn at half
+ *    amplitude so it sits along the very edge of the screen rather than filling
+ *    it. Which edge is the orientation's business, not this one's: upright puts
+ *    it along the bottom, hanging puts it along the top, and the two-copy
+ *    orientations put a smaller one at each.
+ *
+ * `compact` keeps `stretched`'s margins deliberately. A half-height wave inside
+ * the normal margins would sit in the middle of the card with a band of nothing
+ * under it, which is not what "along the bottom of the screen" means.
  */
-const stretchSetting = createPerViewSetting(
-  VIEW_KEYS.stretch,
-  false,
-  parseFlag,
-  serializeFlag,
-);
+export type TGraphWaveSize = 'normal' | 'stretched' | 'compact';
 
-export const toggleGraphStretch = () => {
-  stretchSetting.set(!stretchSetting.get());
+const WAVE_SIZES: TGraphWaveSize[] = ['normal', 'stretched', 'compact'];
+
+/**
+ * Read the old boolean as well as the new name.
+ *
+ * This was `parseFlag` over `'true'`/`'false'` for as long as there were two
+ * sizes. Anything already in storage is one of those two strings, and it means
+ * exactly what it always did.
+ */
+const parseWaveSize = (raw: string): TGraphWaveSize => {
+  if (raw === 'true') {
+    return 'stretched';
+  }
+  if (raw === 'false') {
+    return 'normal';
+  }
+  return WAVE_SIZES.find((size) => size === raw) ?? 'normal';
 };
 
-/** Outside a render. See `getGraphGridHidden`. */
-export const getGraphStretched = () => stretchSetting.get();
+const stretchSetting = createPerViewSetting<TGraphWaveSize>(
+  VIEW_KEYS.stretch,
+  'normal',
+  parseWaveSize,
+  (size) => size,
+);
+
+/** Cycles, because three states on one control is a cycle. */
+export const toggleGraphStretch = () => {
+  const at = WAVE_SIZES.indexOf(stretchSetting.get());
+  stretchSetting.set(WAVE_SIZES[(at + 1) % WAVE_SIZES.length]);
+};
+
+export const getGraphWaveSize = () => stretchSetting.get();
+
+/**
+ * Both of the larger sizes lay the drawing out edge to edge; only the amplitude
+ * differs. Everything that asks this question is asking about the margins.
+ */
+export const getGraphStretched = () => stretchSetting.get() !== 'normal';
+
+export const useGraphWaveSize = () =>
+  useSyncExternalStore(
+    stretchSetting.subscribe,
+    stretchSetting.get,
+    () => 'normal' as TGraphWaveSize,
+  );
 
 export const useGraphStretched = () =>
   useSyncExternalStore(
     stretchSetting.subscribe,
-    stretchSetting.get,
+    getGraphStretched,
     () => false,
   );

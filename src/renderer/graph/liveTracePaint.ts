@@ -320,28 +320,54 @@ export interface IWaveTransform {
 }
 
 export const getWaveTransform = (
-  curve: Pick<ILiveCurveData, 'isFlipped' | 'isHalfHeight' | 'isFromCentre'>,
+  curve: Pick<
+    ILiveCurveData,
+    'isFlipped' | 'isHalfHeight' | 'isFromCentre' | 'heightScale'
+  >,
   plotHeight: number,
 ): IWaveTransform => {
+  /**
+   * How much of its available depth the wave actually uses.
+   *
+   * Every case below is written as "scale about the row this orientation is
+   * anchored to", which is what lets the compact size shorten the drawing
+   * without moving the edge it stands on. At 1 each expression reduces to the
+   * transform it had before this existed.
+   */
+  const scale = curve.heightScale ?? 1;
+
   if (!curve.isFlipped && !curve.isHalfHeight) {
-    return { translateY: 0, scaleY: 1 };
+    // Standing on the bottom: scaled about the bottom.
+    return { translateY: plotHeight * (1 - scale), scaleY: scale };
   }
   if (!curve.isHalfHeight) {
-    return { translateY: plotHeight, scaleY: -1 };
+    // Hanging from the top: scaled about the top.
+    return { translateY: plotHeight * scale, scaleY: -scale };
   }
   if (curve.isFromCentre) {
     // Baseline at the middle, peaks reaching the edges. The upper copy is a
     // plain half-scale — its baseline already lands on the centre line — and
-    // the lower one is that reflected about the bottom.
+    // the lower one is that reflected about the bottom. Both scale about the
+    // centre, which is the row they share.
     return curve.isFlipped
-      ? { translateY: 0, scaleY: 0.5 }
-      : { translateY: plotHeight, scaleY: -0.5 };
+      ? {
+          translateY: (plotHeight * (1 - scale)) / 2,
+          scaleY: 0.5 * scale,
+        }
+      : {
+          translateY: (plotHeight * (1 + scale)) / 2,
+          scaleY: -0.5 * scale,
+        };
   }
-  // Baseline at the edges, peaks meeting in the middle.
-  return {
-    translateY: plotHeight / 2,
-    scaleY: curve.isFlipped ? -0.5 : 0.5,
-  };
+  // Baseline at the edges, peaks meeting in the middle. Each copy scales about
+  // its own edge, so shortening them opens a gap in the middle rather than
+  // sliding both drawings inward.
+  return curve.isFlipped
+    ? { translateY: (plotHeight * scale) / 2, scaleY: -0.5 * scale }
+    : {
+        translateY: plotHeight * (1 - scale / 2),
+        scaleY: 0.5 * scale,
+      };
 };
 
 /**

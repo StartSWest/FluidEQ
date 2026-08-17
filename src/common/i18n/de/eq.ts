@@ -42,6 +42,7 @@ const eq: Partial<Dictionary> = {
   'graph.item.topBar': 'obere Leiste',
   'graph.fit': 'Diagramm einpassen',
   'graph.stretch': 'Auf volle Größe strecken',
+  'graph.compact': 'Welle auf den Rand verkleinern',
   'graph.orientation.down': 'Welle nach unten hängen',
   'graph.orientation.mirror': 'Welle spiegeln',
   'graph.orientation.centre': 'Von der Mitte spiegeln',

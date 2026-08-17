@@ -96,6 +96,7 @@ import {
   TGraphCurve,
   toggleGraphWave,
   useGraphStretched,
+  useGraphWaveSize,
   useWaveOrientation,
   useGraphView,
   useFullScreenTopBar,
@@ -164,6 +165,14 @@ type PendingPointEdit = Partial<
  * no obvious answer in it.
  */
 const SUPPORTING_CURVE_OPACITY = 0.5;
+
+/**
+ * How tall the compact size draws the wave, as a fraction of its full depth.
+ *
+ * Half, so it reads as the same drawing along the edge of the screen rather
+ * than as a different one. The orientation still decides which edge.
+ */
+const COMPACT_WAVE_SCALE = 0.5;
 
 /**
  * How long silence has to last before the graph believes the music stopped.
@@ -494,6 +503,7 @@ const FrequencyResponseChart = ({
   const areHandlesHidden = hiddenCurves.includes('eq') || isEqQuiet;
 
   const isStretched = useGraphStretched();
+  const waveSize = useGraphWaveSize();
   const waveOrientation = useWaveOrientation();
 
   /**
@@ -1809,6 +1819,11 @@ const FrequencyResponseChart = ({
     const opacity = isSolo ? 1 : SUPPORTING_CURVE_OPACITY;
     const isHalfHeight =
       waveOrientation === 'mirrored' || waveOrientation === 'centred';
+    // The compact size draws the wave at half its amplitude against whichever
+    // edge the orientation anchors it to — along the bottom of the screen
+    // upright, along the top hanging, and a smaller pair at both edges for the
+    // two-copy orientations.
+    const heightScale = waveSize === 'compact' ? COMPACT_WAVE_SCALE : 1;
     return [
       // Hanging from the top, or mirrored below as well. Drawn first so the
       // upright copy lands over it.
@@ -1818,6 +1833,7 @@ const FrequencyResponseChart = ({
               isFlipped: true,
               isHalfHeight: true,
               isFromCentre: waveOrientation === 'centred',
+              heightScale,
               colour: ColorEnum.ANALOGOUS2,
               opacity,
             },
@@ -1827,11 +1843,12 @@ const FrequencyResponseChart = ({
         isFlipped: waveOrientation === 'down',
         isHalfHeight,
         isFromCentre: waveOrientation === 'centred',
+        heightScale,
         colour: ColorEnum.ANALOGOUS2,
         opacity,
       },
     ];
-  }, [isSolo, isWaveHidden, waveOrientation]);
+  }, [isSolo, isWaveHidden, waveOrientation, waveSize]);
 
   const editablePoints: IEditableChartPoint[] = useMemo(() => {
     // Sliders are ordered by frequency, so use the exact same ordering when
@@ -2139,7 +2156,7 @@ const FrequencyResponseChart = ({
               onToggleMeter={toggleGraphMeter}
               isTitlebarWaveHidden={isTitlebarWaveHidden}
               onToggleTitlebarWave={toggleTitlebarWave}
-              isStretched={isStretched}
+              waveSize={waveSize}
               onToggleStretch={toggleGraphStretch}
               waveOrientation={waveOrientation}
               onCycleOrientation={cycleWaveOrientation}

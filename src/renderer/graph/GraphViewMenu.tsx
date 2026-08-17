@@ -23,6 +23,7 @@ import {
   TGraphContents,
   TGraphCurve,
   TGraphView,
+  TGraphWaveSize,
   TWaveOrientation,
 } from '../utils/graphStyle';
 
@@ -73,7 +74,7 @@ interface IGraphViewMenuProps {
   onToggleMeter: () => void;
   isTitlebarWaveHidden: boolean;
   onToggleTitlebarWave: () => void;
-  isStretched: boolean;
+  waveSize: TGraphWaveSize;
   onToggleStretch: () => void;
   waveOrientation: TWaveOrientation;
   onCycleOrientation: () => void;
@@ -91,6 +92,13 @@ interface IGraphViewMenuProps {
   hasTopBar: boolean;
   onToggleTopBar: () => void;
 }
+
+/** Names the size the next press moves to, not the one you are in. */
+const WAVE_SIZE_LABEL: Record<TGraphWaveSize, TranslationKey> = {
+  normal: 'graph.stretch',
+  stretched: 'graph.compact',
+  compact: 'graph.fit',
+};
 
 /** Names the state the next press moves to, since three states cycle. */
 const ORIENTATION_LABEL: Record<TWaveOrientation, TranslationKey> = {
@@ -167,7 +175,7 @@ const GraphViewMenu = ({
   onToggleMeter,
   isTitlebarWaveHidden,
   onToggleTitlebarWave,
-  isStretched,
+  waveSize,
   onToggleStretch,
   waveOrientation,
   onCycleOrientation,
@@ -490,16 +498,19 @@ const GraphViewMenu = ({
             </span>
           </button>
 
+          {/* Three sizes, so it cycles and names the one the next press goes
+              to, exactly like the orientation row below. As a checkbox it could
+              only ever say "stretched or not", which is now two thirds of the
+              answer. */}
           <button
             type="button"
-            role="menuitemcheckbox"
-            aria-checked={isStretched}
+            role="menuitem"
             onClick={choose(onToggleStretch)}
           >
             <Icon>
               <path d="M8 2.5v11M5.4 5.1L8 2.5l2.6 2.6M5.4 10.9L8 13.5l2.6-2.6" />
             </Icon>
-            <span>{t(isStretched ? 'graph.fit' : 'graph.stretch')}</span>
+            <span>{t(WAVE_SIZE_LABEL[waveSize])}</span>
             <kbd>Ctrl+B</kbd>
           </button>
 

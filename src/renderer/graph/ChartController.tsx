@@ -127,6 +127,16 @@ export interface ILiveCurveData {
    * analysers facing each other, which is what growing inward looks like.
    */
   isFromCentre?: boolean;
+  /**
+   * How much of its available depth this copy uses. 1 by default.
+   *
+   * Separate from `isHalfHeight`, which is about how two copies *share* the
+   * plot. This is about how tall the wave is drawn inside whatever share it
+   * has, and it scales about the edge the orientation anchors to — so at 0.5 an
+   * upright wave runs along the bottom of the screen at half its height rather
+   * than moving to the middle.
+   */
+  heightScale?: number;
   /** What to paint with when the look brings no colours of its own. */
   colour: Color;
   /**
