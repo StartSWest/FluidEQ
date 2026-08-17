@@ -128,6 +128,9 @@ jobs:
               // is inside emojiHTML. The site renders text, so take the character.
               emoji: (node.category?.emojiHTML ?? '').replace(/<[^>]*>/g, '').trim(),
               answered: Boolean(node.answer),
+              // Created through the site: its opening post lives in the widget,
+              // so the page must not render it a second time above it.
+              viaSite: Boolean(opening),
               replies: Math.max(0, (node.comments?.totalCount ?? 0) - (opening ? 1 : 0)),
               author: person(opening ? opening.author : node.author),
               comments: rest.map((c) => ({
