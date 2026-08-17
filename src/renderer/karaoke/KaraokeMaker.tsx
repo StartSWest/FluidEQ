@@ -32,7 +32,6 @@ import { IKaraokeSong } from '../../common/karaoke/types';
 import { useTranslation } from '../utils/I18nContext';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { formatClock } from './makerFormat';
-import { paintMakerCanvas } from './makerCanvasPaint';
 import { useMakerCanvasGesture } from './useMakerCanvasGesture';
 import {
   ICanvasLyricToken,
@@ -95,6 +94,7 @@ import { useMakerProjectFiles } from './useMakerProjectFiles';
 import { useMakerLyricsActions } from './useMakerLyricsActions';
 import { useMakerToolModes } from './useMakerToolModes';
 import KaraokeMakerTimingSliders from './KaraokeMakerTimingSliders';
+import { useMakerCanvasRender } from './useMakerCanvasRender';
 import { useMakerLyricsEditing } from './useMakerLyricsEditing';
 import { flattenTokens } from './makerProjectEdits';
 import {
@@ -1133,107 +1133,28 @@ const KaraokeMaker = ({
     viewStartMs,
   ]);
 
-  const renderCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    const host = canvasHostRef.current;
-    if (!canvas || !host) {
-      return;
-    }
-    // CSS owns the visible canvas size. Writing the measured size back as an
-    // inline width trapped the editor at its pre-fullscreen width, because the
-    // next ResizeObserver pass could only measure that same locked width.
-    // Measure the host instead and resize only the backing bitmap.
-    canvas.style.removeProperty('width');
-    canvas.style.removeProperty('height');
-    const width = Math.max(320, host.clientWidth);
-    const height = Math.max(260, canvas.clientHeight);
-    const ratio = Math.min(2, window.devicePixelRatio || 1);
-    if (
-      canvas.width !== Math.round(width * ratio) ||
-      canvas.height !== Math.round(height * ratio)
-    ) {
-      canvas.width = Math.round(width * ratio);
-      canvas.height = Math.round(height * ratio);
-    }
-    const context = canvas.getContext('2d');
-    if (!context) {
-      return;
-    }
-    paintMakerCanvas({
-      context,
-      ratio,
-      width,
-      height,
-      headerHeight,
-      lyricSectionTop,
-      project,
-      selection,
-      selectedNoteIds,
-      canvasLyricWords,
-      canvasSectionGroups,
-      activeLyricFocus,
-      activeLyricWordId,
-      hoveredEditHandle,
-      controlLinkMode,
-      viewStartMs,
-      visibleViewDurationMs,
-      visualPlayheadMs,
-      effectiveDurationMs,
-      hitRegionsRef: gesture.hitRegions,
-      selectionBoxRef: gesture.selectionBox,
-      notePaintDraftRef: gesture.notePaintDraft,
-      noteLinkDragRef: gesture.noteLinkDrag,
-      wordFocusAnimationRef,
-    });
-  }, [
-    gesture.hitRegions,
-    gesture.noteLinkDrag,
-    gesture.notePaintDraft,
-    gesture.selectionBox,
+  useMakerCanvasRender({
     activeLyricFocus,
     activeLyricWordId,
-    canvasSectionGroups,
+    canvasHostRef,
     canvasLyricWords,
+    canvasRef,
+    canvasSectionGroups,
     controlLinkMode,
     effectiveDurationMs,
+    gesture,
     headerHeight,
-    lyricSectionTop,
-    visualPlayheadMs,
-    project,
     hoveredEditHandle,
-    selection,
+    lyricSectionTop,
+    project,
+    renderCanvasRef,
     selectedNoteIds,
-    visibleViewDurationMs,
+    selection,
     viewStartMs,
-  ]);
-
-  renderCanvasRef.current = renderCanvas;
-
-  useEffect(() => {
-    if (!activeLyricWordId) {
-      return undefined;
-    }
-    let animationFrame = 0;
-    const animateFocus = (now: number) => {
-      renderCanvasRef.current();
-      if (now - wordFocusAnimationRef.current.startedAt < 180) {
-        animationFrame = window.requestAnimationFrame(animateFocus);
-      }
-    };
-    animationFrame = window.requestAnimationFrame(animateFocus);
-    return () => window.cancelAnimationFrame(animationFrame);
-  }, [activeLyricWordId]);
-
-  useEffect(() => {
-    renderCanvas();
-    const host = canvasHostRef.current;
-    if (!host || typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
-    const observer = new ResizeObserver(renderCanvas);
-    observer.observe(host);
-    return () => observer.disconnect();
-  }, [renderCanvas]);
+    visibleViewDurationMs,
+    visualPlayheadMs,
+    wordFocusAnimationRef,
+  });
 
   const {
     followPlayhead,
