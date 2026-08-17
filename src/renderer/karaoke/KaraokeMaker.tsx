@@ -20,7 +20,6 @@ import {
   karaokeMakerTimedLineRange,
   karaokeMakerLineIsSection,
   karaokeMakerTokenBoundaryLimits,
-  karaokeMakerTokenWasUserTouched,
   makerLinesFromPlainText,
   recordKaraokeMakerLineRange,
   shiftKaraokeMakerLineTailFromToken,
@@ -33,16 +32,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { formatClock } from './makerFormat';
 import { useMakerCanvasGesture } from './useMakerCanvasGesture';
-import {
-  ICanvasLyricToken,
-  ICanvasLyricWord,
-  IDragState,
-} from './makerCanvasTypes';
-import {
-  BASE_LYRIC_SECTION_TOP,
-  SECTION_GROUP_HEIGHT,
-  lyricSectionHeight,
-} from './makerCanvasGeometry';
+import { IDragState } from './makerCanvasTypes';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import { karaokeMakerAnalysisProgress } from './makerAnalysisProgress';
 import {
@@ -59,10 +49,7 @@ import KaraokeMakerAnalysisTools from './KaraokeMakerAnalysisTools';
 import KaraokeMakerConfirmDialog, {
   TDestructiveMakerAction,
 } from './KaraokeMakerConfirmDialog';
-import {
-  DEFAULT_VIEW_MS,
-  useKaraokeMakerEditorView,
-} from './useKaraokeMakerEditorView';
+import { useKaraokeMakerEditorView } from './useKaraokeMakerEditorView';
 import {
   IKaraokeMakerAnalysisResult,
   autoAlignNewKaraokeMakerLyrics,
@@ -95,6 +82,7 @@ import { useMakerLyricsActions } from './useMakerLyricsActions';
 import { useMakerToolModes } from './useMakerToolModes';
 import KaraokeMakerTimingSliders from './KaraokeMakerTimingSliders';
 import { useMakerCanvasRender } from './useMakerCanvasRender';
+import { useMakerCanvasModel } from './useMakerCanvasModel';
 import { useMakerLyricsEditing } from './useMakerLyricsEditing';
 import { flattenTokens } from './makerProjectEdits';
 import {
@@ -108,12 +96,6 @@ import {
   useMakerLineCapture,
 } from './useMakerLineCapture';
 import { IWhisperRunProfile, useMakerAnalysisRun } from './useMakerAnalysisRun';
-import {
-  KARAOKE_MAKER_LYRIC_LANE_COUNT,
-  groupKaraokeMakerWordSyllables,
-  karaokeMakerLyricFocus,
-  karaokeMakerSectionGroups,
-} from './makerCanvasLayout';
 import { readKaraokeMakerEditorView } from './karaokeEditorPersistence';
 
 interface IKaraokeMakerProps {
@@ -138,11 +120,6 @@ interface ISentenceAuditionState {
   endMs: number;
   timerId: number;
 }
-
-const MIN_VIEW_MS = 650;
-// Twelve seconds keeps authored lyrics readable on first open; the overview
-// handles still expose the entire song and let the user zoom further out.
-const LYRIC_SECTION_HEIGHT = lyricSectionHeight(KARAOKE_MAKER_LYRIC_LANE_COUNT);
 
 const KaraokeMaker = ({
   song,
@@ -500,201 +477,31 @@ const KaraokeMaker = ({
     refreshKaraokeWhisperDownloaded().catch(() => undefined);
   }, []);
 
-  const effectiveDurationMs = Math.max(
-    1_000,
-    durationMs || project.audio.durationMs || DEFAULT_VIEW_MS,
-  );
-  const minimumViewDurationMs = Math.min(MIN_VIEW_MS, effectiveDurationMs);
-  const maximumViewDurationMs = Math.max(
-    minimumViewDurationMs,
+  const {
+    activeLyricFocus,
+    activeLyricWordId,
+    canvasLyricWords,
+    canvasSectionGroups,
     effectiveDurationMs,
-  );
-  const visibleViewDurationMs = Math.max(
+    headerHeight,
+    lyricLines,
+    lyricSectionTop,
+    maximumViewDurationMs,
+    maximumViewStartMs,
     minimumViewDurationMs,
-    Math.min(maximumViewDurationMs, viewDurationMs),
-  );
-  const maximumViewStartMs = Math.max(
-    0,
-    effectiveDurationMs - visibleViewDurationMs,
-  );
-  const canvasSectionGroups = useMemo(
-    () =>
-      karaokeMakerSectionGroups(
-        project.lyrics.lines.flatMap((line) =>
-          karaokeMakerLineIsSection(line) && line.startMs !== undefined
-            ? [
-                {
-                  id: line.id,
-                  text: line.tokens
-                    .map((token) => token.text.trim())
-                    .filter(Boolean)
-                    .join(' '),
-                  startMs: line.startMs,
-                },
-              ]
-            : [],
-        ),
-        effectiveDurationMs,
-      ),
-    [effectiveDurationMs, project.lyrics.lines],
-  );
-  const lyricSectionTop =
-    BASE_LYRIC_SECTION_TOP +
-    (canvasSectionGroups.length ? SECTION_GROUP_HEIGHT : 0);
-  const headerHeight = lyricSectionTop + LYRIC_SECTION_HEIGHT + 10;
-  const lyricLines = useMemo(
-    () =>
-      project.lyrics.lines.filter(
-        (line) => !karaokeMakerLineIsSection(line) && line.tokens.length > 0,
-      ),
-    [project.lyrics.lines],
-  );
-  const selectedLyricLineId = useMemo(() => {
-    if (selection?.kind !== 'word') {
-      return undefined;
-    }
-    return lyricLines.find((line) =>
-      line.tokens.some((token) => token.id === selection.id),
-    )?.id;
-  }, [lyricLines, selection]);
-  const userTouchedWordCount = useMemo(
-    () => tokens.filter(karaokeMakerTokenWasUserTouched).length,
-    [tokens],
-  );
-  const canvasLyricTokens = useMemo(
-    () =>
-      project.lyrics.lines
-        .flatMap((line, lineIndex): ICanvasLyricToken[] => {
-          const isSection = karaokeMakerLineIsSection(line);
-          if (isSection) {
-            return [];
-          }
-          const timedTokens = line.tokens.filter(
-            (token) => token.startMs !== undefined && token.endMs !== undefined,
-          );
-          const lineStartMs = timedTokens.length
-            ? Math.min(...timedTokens.map((token) => token.startMs as number))
-            : (line.startMs ?? Number.POSITIVE_INFINITY);
-          const lineEndMs = timedTokens.length
-            ? Math.max(...timedTokens.map((token) => token.endMs as number))
-            : (line.endMs ?? line.startMs ?? Number.NEGATIVE_INFINITY);
-          return line.tokens.map((originalToken, tokenIndex) => ({
-            token: originalToken,
-            lineIndex,
-            tokenIndex,
-            lineStartMs,
-            lineEndMs,
-            isSection,
-          }));
-        })
-        .sort(
-          (left, right) =>
-            (left.token.startMs ?? Number.POSITIVE_INFINITY) -
-            (right.token.startMs ?? Number.POSITIVE_INFINITY),
-        ),
-    [project.lyrics.lines],
-  );
-  const canvasLyricWords = useMemo(() => {
-    const tokensByLine = new Map<number, ICanvasLyricToken[]>();
-    canvasLyricTokens.forEach((entry) => {
-      const lineTokens = tokensByLine.get(entry.lineIndex) ?? [];
-      lineTokens.push(entry);
-      tokensByLine.set(entry.lineIndex, lineTokens);
-    });
-    return [...tokensByLine.values()]
-      .flatMap((lineTokens): ICanvasLyricWord[] => {
-        if (!lineTokens.length) {
-          return [];
-        }
-        const orderedLineTokens = [...lineTokens].sort(
-          (left, right) => left.tokenIndex - right.tokenIndex,
-        );
-        const [{ isSection }] = orderedLineTokens;
-        const groups: ICanvasLyricToken[][] = groupKaraokeMakerWordSyllables(
-          orderedLineTokens
-            .filter(
-              ({ token }) =>
-                token.startMs !== undefined && token.endMs !== undefined,
-            )
-            .map((entry) => ({
-              ...entry,
-              startsWord: entry.token.startsWord,
-            })),
-        );
-        return groups.flatMap((syllables, wordIndex): ICanvasLyricWord[] => {
-          const timed = syllables.filter(
-            ({ token }) =>
-              token.startMs !== undefined && token.endMs !== undefined,
-          );
-          if (!timed.length) {
-            return [];
-          }
-          return [
-            {
-              id: timed[0].token.id,
-              text: timed.map(({ token }) => token.text.trim()).join(''),
-              syllables: timed,
-              lineIndex: timed[0].lineIndex,
-              wordIndex,
-              lineStartMs: timed[0].lineStartMs,
-              lineEndMs: timed[0].lineEndMs,
-              startMs: Math.min(
-                ...timed.map(({ token }) => token.startMs as number),
-              ),
-              endMs: Math.max(
-                ...timed.map(({ token }) => token.endMs as number),
-              ),
-              isSection,
-            },
-          ];
-        });
-      })
-      .sort(
-        (left, right) =>
-          left.startMs - right.startMs || left.lineIndex - right.lineIndex,
-      );
-  }, [canvasLyricTokens]);
-  const activeLyricFocus = useMemo(
-    () =>
-      karaokeMakerLyricFocus(
-        canvasLyricTokens.flatMap(
-          ({ token, lineIndex, lineStartMs, lineEndMs, isSection }) =>
-            isSection ||
-            token.startMs === undefined ||
-            token.endMs === undefined
-              ? []
-              : [
-                  {
-                    id: token.id,
-                    lineIndex,
-                    lineStartMs,
-                    lineEndMs,
-                    startMs: token.startMs,
-                    endMs: token.endMs,
-                  },
-                ],
-        ),
-        visualPlayheadMs,
-      ),
-    [canvasLyricTokens, visualPlayheadMs],
-  );
-  const activeLyricWordId = useMemo(
-    () =>
-      activeLyricFocus?.tokenId
-        ? canvasLyricWords.find((word) =>
-            word.syllables.some(
-              ({ token }) => token.id === activeLyricFocus.tokenId,
-            ),
-          )?.id
-        : undefined,
-    [activeLyricFocus?.tokenId, canvasLyricWords],
-  );
-  if (wordFocusAnimationRef.current.tokenId !== activeLyricWordId) {
-    wordFocusAnimationRef.current = {
-      tokenId: activeLyricWordId,
-      startedAt: performance.now(),
-    };
-  }
+    selectedLyricLineId,
+    userTouchedWordCount,
+    visibleViewDurationMs,
+  } = useMakerCanvasModel({
+    durationMs,
+    project,
+    selection,
+    tokens,
+    viewDurationMs,
+    visualPlayheadMs,
+    wordFocusAnimationRef,
+  });
+
   const issues = useMemo(() => validateKaraokeMakerProject(project), [project]);
   const localizeMakerError = (
     error: unknown,
