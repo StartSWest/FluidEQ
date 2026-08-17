@@ -20,7 +20,6 @@ import {
   IKaraokeMakerProject,
   IKaraokeMakerToken,
   importLyricsIntoKaraokeMakerProject,
-  karaokeMakerId,
   karaokeMakerProjectToSong,
   karaokeMakerRecordedLineRange,
   karaokeMakerTimedLineRange,
@@ -33,7 +32,6 @@ import {
   resizeKaraokeMakerTokenBoundary,
   shiftKaraokeMakerLineTailFromToken,
   shiftKaraokeMakerTimeline,
-  splitKaraokeMakerWordIntoSyllables,
   touchKaraokeMakerProject,
   validateKaraokeMakerProject,
 } from '../../common/karaoke/makerProject';
@@ -47,7 +45,6 @@ import {
   parseKaraokeText,
   readKaraokeTextFile,
 } from '../../common/karaoke/files';
-import { splitKaraokeWordSyllables } from '../../common/karaoke/syllables';
 import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticulation';
 import { IKaraokeSong } from '../../common/karaoke/types';
 import { useTranslation } from '../utils/I18nContext';
@@ -112,7 +109,16 @@ import KaraokeMakerNavigator from './KaraokeMakerNavigator';
 import KaraokeMakerCaptureCoach from './KaraokeMakerCaptureCoach';
 import KaraokeMakerFloatingPanel from './KaraokeMakerFloatingPanel';
 import KaraokeMakerPreview from './KaraokeMakerPreview';
-import { flattenTokens, replaceNote, replaceToken } from './makerProjectEdits';
+import {
+  flattenTokens,
+  replaceNote,
+  replaceToken,
+  syllablesAtCutPoints,
+} from './makerProjectEdits';
+import {
+  ISyllableSplitDraft,
+  useMakerNoteEditing,
+} from './useMakerNoteEditing';
 import { useMakerCanvasPointer } from './useMakerCanvasPointer';
 import {
   IGuidedLineCapture,
@@ -146,12 +152,6 @@ interface IKaraokeMakerProps {
   onToggleFullScreen: () => void;
 }
 
-interface ISyllableSplitDraft {
-  tokenId: string;
-  word: string;
-  cutPoints: number[];
-}
-
 interface ISentenceAuditionState {
   startMs: number;
   endMs: number;
@@ -162,55 +162,6 @@ const MIN_VIEW_MS = 650;
 // Twelve seconds keeps authored lyrics readable on first open; the overview
 // handles still expose the entire song and let the user zoom further out.
 const LYRIC_SECTION_HEIGHT = lyricSectionHeight(KARAOKE_MAKER_LYRIC_LANE_COUNT);
-
-const karaokeMakerWordTokensFor = (
-  project: IKaraokeMakerProject,
-  tokenId: string,
-): IKaraokeMakerToken[] => {
-  const line = project.lyrics.lines.find((candidate) =>
-    candidate.tokens.some((token) => token.id === tokenId),
-  );
-  if (!line) {
-    return [];
-  }
-  const selectedIndex = line.tokens.findIndex((token) => token.id === tokenId);
-  const precedingWordOffset = line.tokens
-    .slice(0, selectedIndex + 1)
-    .reverse()
-    .findIndex((token) => token.startsWord !== false);
-  const firstIndex =
-    precedingWordOffset < 0
-      ? 0
-      : Math.max(0, selectedIndex - precedingWordOffset);
-  const followingWordOffset = line.tokens
-    .slice(firstIndex + 1)
-    .findIndex((token) => token.startsWord !== false);
-  const lastIndex =
-    followingWordOffset < 0
-      ? line.tokens.length
-      : firstIndex + followingWordOffset + 1;
-  return line.tokens.slice(firstIndex, lastIndex);
-};
-
-const syllablesAtCutPoints = (
-  word: string,
-  cutPoints: readonly number[],
-): string[] => {
-  const characters = Array.from(word);
-  const boundaries = [
-    0,
-    ...[...new Set(cutPoints)]
-      .filter((point) => point > 0 && point < characters.length)
-      .sort((left, right) => left - right),
-    characters.length,
-  ];
-  return boundaries
-    .slice(0, -1)
-    .map((start, index) =>
-      characters.slice(start, boundaries[index + 1]).join(''),
-    )
-    .filter(Boolean);
-};
 
 const KaraokeMaker = ({
   song,
@@ -1638,318 +1589,35 @@ const KaraokeMaker = ({
     visibleViewDurationMs,
   });
 
-  const splitSelectedLyricsWord = () => {
-    const tokenId = selectedToken?.id ?? selectedNote?.tokenId;
-    if (!tokenId) {
-      return;
-    }
-    const wordTokens = karaokeMakerWordTokensFor(project, tokenId);
-    const word = wordTokens.map((token) => token.text).join('');
-    const characters = Array.from(word);
-    if (characters.length < 2) {
-      return;
-    }
-    const existingCutPoints = wordTokens
-      .slice(0, -1)
-      .reduce<number[]>((points, token) => {
-        const previous = points[points.length - 1] ?? 0;
-        points.push(previous + Array.from(token.text).length);
-        return points;
-      }, []);
-    const suggestedSyllables = splitKaraokeWordSyllables(
-      word,
-      project.lyrics.language ?? 'en',
-    );
-    const suggestedCutPoints = suggestedSyllables
-      .slice(0, -1)
-      .reduce<number[]>((points, syllable) => {
-        const previous = points[points.length - 1] ?? 0;
-        points.push(previous + Array.from(syllable).length);
-        return points;
-      }, []);
-    setSyllableSplitDraft({
-      tokenId: wordTokens[0].id,
-      word,
-      cutPoints:
-        existingCutPoints.length > 0 ? existingCutPoints : suggestedCutPoints,
-    });
-  };
-
-  const toggleSyllableCutPoint = (cutPoint: number) => {
-    setSyllableSplitDraft((current) => {
-      if (!current) {
-        return current;
-      }
-      const next = new Set(current.cutPoints);
-      if (next.has(cutPoint)) {
-        next.delete(cutPoint);
-      } else {
-        next.add(cutPoint);
-      }
-      return { ...current, cutPoints: [...next].sort((a, b) => a - b) };
-    });
-  };
-
-  const applySyllableSplit = () => {
-    if (!syllableSplitDraft) {
-      return;
-    }
-    const syllables = syllablesAtCutPoints(
-      syllableSplitDraft.word,
-      syllableSplitDraft.cutPoints,
-    );
-    if (syllables.length < 2) {
-      return;
-    }
-    commit((current) =>
-      splitKaraokeMakerWordIntoSyllables(
-        current,
-        syllableSplitDraft.tokenId,
-        current.lyrics.language ?? 'en',
-        syllables,
-      ),
-    );
-    setSelection({ kind: 'word', id: syllableSplitDraft.tokenId });
-    setSyllableSplitDraft(undefined);
-  };
-
-  const splitNote = () => {
-    if (!selectedNote) {
-      return;
-    }
-    const splitAt =
-      playheadMs > selectedNote.startMs + 40 &&
-      playheadMs < selectedNote.endMs - 40
-        ? playheadMs
-        : (selectedNote.startMs + selectedNote.endMs) / 2;
-    const second: IKaraokeMakerNote = {
-      ...selectedNote,
-      id: karaokeMakerId('note'),
-      startMs: splitAt,
-      source: 'manual',
-    };
-    commit((current) => {
-      const first = replaceNote(current, selectedNote.id, (note) => ({
-        ...note,
-        endMs: splitAt,
-        source: 'manual',
-      }));
-      return {
-        ...first,
-        melody: {
-          ...first.melody,
-          source: 'manual',
-          notes: [...first.melody.notes, second],
-        },
-      };
-    });
-    setSelection({ kind: 'note', id: second.id });
-  };
-
-  const deleteSelection = useCallback(() => {
-    if (!selection) {
-      return;
-    }
-    if (selection.kind === 'note') {
-      const noteIds = selectedNoteIds.size
-        ? selectedNoteIds
-        : new Set([selection.id]);
-      commit((current) => ({
-        ...current,
-        melody: {
-          ...current.melody,
-          source: 'manual',
-          notes: current.melody.notes.filter((note) => !noteIds.has(note.id)),
-        },
-      }));
-    } else {
-      commit((current) => ({
-        ...current,
-        lyrics: {
-          ...current.lyrics,
-          lines: current.lyrics.lines
-            .map((line) => ({
-              ...line,
-              tokens: line.tokens.filter((token) => token.id !== selection.id),
-            }))
-            .filter((line) => line.tokens.length),
-        },
-        melody: {
-          ...current.melody,
-          notes: current.melody.notes.map((note) =>
-            note.tokenId === selection.id
-              ? { ...note, tokenId: undefined }
-              : note,
-          ),
-        },
-      }));
-    }
-    setSelection(undefined);
-    setSelectedNoteIds(new Set());
-  }, [commit, selectedNoteIds, selection, setSelectedNoteIds, setSelection]);
-
-  const detachSelectedNotes = useCallback(() => {
-    const noteIds = new Set(selectedNoteIds);
-    if (!noteIds.size && selection?.kind === 'note') {
-      noteIds.add(selection.id);
-    }
-    if (!noteIds.size) {
-      return;
-    }
-    commit((current) => ({
-      ...current,
-      melody: {
-        ...current.melody,
-        source: 'manual',
-        notes: current.melody.notes.map((note) =>
-          noteIds.has(note.id)
-            ? { ...note, tokenId: undefined, source: 'manual' as const }
-            : note,
-        ),
-      },
-    }));
-  }, [commit, selectedNoteIds, selection]);
-
-  const copySelectedNotes = useCallback(() => {
-    const noteIds = new Set(selectedNoteIds);
-    if (!noteIds.size && selection?.kind === 'note') {
-      noteIds.add(selection.id);
-    }
-    if (!noteIds.size) {
-      return;
-    }
-    setCopiedNotes(
-      project.melody.notes
-        .filter((note) => noteIds.has(note.id))
-        .sort((left, right) => left.startMs - right.startMs)
-        .map((note) => ({ ...note })),
-    );
-  }, [
-    project.melody.notes,
-    selectedNoteIds,
-    selection?.id,
-    selection?.kind,
-    setCopiedNotes,
-  ]);
-
-  const pasteCopiedNotes = useCallback(() => {
-    if (!copiedNotes.length) {
-      return;
-    }
-    const anchorMs = Math.max(
-      0,
-      Math.min(effectiveDurationMs, readPlayheadMs?.() ?? playheadMs),
-    );
-    const sourceStartMs = Math.min(...copiedNotes.map((note) => note.startMs));
-    const pastedNotes = copiedNotes.flatMap((note) => {
-      const startMs = anchorMs + (note.startMs - sourceStartMs);
-      if (startMs >= effectiveDurationMs) {
-        return [];
-      }
-      const endMs = Math.min(
-        effectiveDurationMs,
-        Math.max(startMs + 1, startMs + (note.endMs - note.startMs)),
-      );
-      return [
-        {
-          ...note,
-          id: karaokeMakerId('note'),
-          tokenId: undefined,
-          startMs,
-          endMs,
-          source: 'manual' as const,
-        },
-      ];
-    });
-    if (!pastedNotes.length) {
-      return;
-    }
-    commit((current) => {
-      return {
-        ...current,
-        melody: {
-          ...current.melody,
-          source: 'manual',
-          notes: [...current.melody.notes, ...pastedNotes].sort(
-            (left, right) => left.startMs - right.startMs,
-          ),
-        },
-      };
-    });
-    setSelectedNoteIds(new Set(pastedNotes.map((note) => note.id)));
-    setSelection({ kind: 'note', id: pastedNotes[0].id });
-    setNotice(
-      pastedNotes.length === 1
-        ? t('karaoke.maker.notePasted')
-        : t('karaoke.maker.notesPasted', { count: pastedNotes.length }),
-    );
-  }, [
+  const {
+    applySyllableSplit,
+    copySelectedNotes,
+    deleteSelection,
+    detachSelectedNotes,
+    pasteCopiedNotes,
+    splitNote,
+    splitSelectedLyricsWord,
+    toggleSyllableCutPoint,
+  } = useMakerNoteEditing({
     commit,
     copiedNotes,
     effectiveDurationMs,
+    lineEntryMode,
     playheadMs,
+    project,
     readPlayheadMs,
+    selectedNote,
+    selectedNoteIds,
+    selectedToken,
+    selection,
+    setCopiedNotes,
     setNotice,
     setSelectedNoteIds,
     setSelection,
+    setSyllableSplitDraft,
+    syllableSplitDraft,
     t,
-  ]);
-
-  useEffect(() => {
-    const copyOrPasteNotes = (event: KeyboardEvent) => {
-      if (
-        lineEntryMode ||
-        (!event.ctrlKey && !event.metaKey) ||
-        event.altKey ||
-        (event.target instanceof HTMLElement &&
-          event.target.matches(
-            'input, textarea, select, [contenteditable="true"]',
-          ))
-      ) {
-        return;
-      }
-      const key = event.key.toLowerCase();
-      if (key === 'c' && selection?.kind === 'note') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        copySelectedNotes();
-      } else if (key === 'v' && copiedNotes.length) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        pasteCopiedNotes();
-      }
-    };
-    window.addEventListener('keydown', copyOrPasteNotes, true);
-    return () => window.removeEventListener('keydown', copyOrPasteNotes, true);
-  }, [
-    copiedNotes.length,
-    copySelectedNotes,
-    lineEntryMode,
-    pasteCopiedNotes,
-    selection?.kind,
-  ]);
-
-  useEffect(() => {
-    const deleteSelectedNotes = (event: KeyboardEvent) => {
-      if (
-        lineEntryMode ||
-        selection?.kind !== 'note' ||
-        (event.key !== 'Delete' && event.key !== 'Backspace') ||
-        (event.target instanceof HTMLElement &&
-          event.target.matches(
-            'button, input, textarea, select, [contenteditable="true"]',
-          ))
-      ) {
-        return;
-      }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      deleteSelection();
-    };
-    window.addEventListener('keydown', deleteSelectedNotes, true);
-    return () =>
-      window.removeEventListener('keydown', deleteSelectedNotes, true);
-  }, [deleteSelection, lineEntryMode, selection?.kind]);
+  });
 
   const exportProject = async (format: TKaraokeMakerExportFormat) => {
     setExportOpen(false);

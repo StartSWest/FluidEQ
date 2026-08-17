@@ -62,3 +62,52 @@ export const replaceToken = (
     })),
   },
 });
+
+export const karaokeMakerWordTokensFor = (
+  project: IKaraokeMakerProject,
+  tokenId: string,
+): IKaraokeMakerToken[] => {
+  const line = project.lyrics.lines.find((candidate) =>
+    candidate.tokens.some((token) => token.id === tokenId),
+  );
+  if (!line) {
+    return [];
+  }
+  const selectedIndex = line.tokens.findIndex((token) => token.id === tokenId);
+  const precedingWordOffset = line.tokens
+    .slice(0, selectedIndex + 1)
+    .reverse()
+    .findIndex((token) => token.startsWord !== false);
+  const firstIndex =
+    precedingWordOffset < 0
+      ? 0
+      : Math.max(0, selectedIndex - precedingWordOffset);
+  const followingWordOffset = line.tokens
+    .slice(firstIndex + 1)
+    .findIndex((token) => token.startsWord !== false);
+  const lastIndex =
+    followingWordOffset < 0
+      ? line.tokens.length
+      : firstIndex + followingWordOffset + 1;
+  return line.tokens.slice(firstIndex, lastIndex);
+};
+
+export const syllablesAtCutPoints = (
+  word: string,
+  cutPoints: readonly number[],
+): string[] => {
+  const characters = Array.from(word);
+  const boundaries = [
+    0,
+    ...[...new Set(cutPoints)]
+      .filter((point) => point > 0 && point < characters.length)
+      .sort((left, right) => left - right),
+    characters.length,
+  ];
+  return boundaries
+    .slice(0, -1)
+    .map((start, index) =>
+      characters.slice(start, boundaries[index + 1]).join(''),
+    )
+    .filter(Boolean);
+};
