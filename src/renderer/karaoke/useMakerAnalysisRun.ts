@@ -27,6 +27,7 @@ import {
   analyzeKaraokeWithBasicPitch,
   applyBasicPitchMelody,
   applyDetectedPitchMelody,
+  applyTranscriptAsLyrics,
   applyWhisperTranscript,
   formatKaraokeMakerWhisperLog,
   getKaraokeWhisperSessionSnapshot,
@@ -321,15 +322,10 @@ export const useMakerAnalysisRun = ({
     if (!KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED) {
       return;
     }
-    const referenceTokens = flattenTokens(projectRef.current);
-    if (!referenceTokens.length) {
-      lyricsWorkflowActiveRef.current = false;
-      setLyricsWorkflowActive(false);
-      setLyricsDraft(plainLyrics(projectRef.current));
-      setLyricsOpen(true);
-      setNotice(t('karaoke.maker.lyricsRequired'));
-      return;
-    }
+    // No reference lyrics is no longer a refusal: with nothing to align
+    // against, the transcript itself becomes the editable lyric sheet, timed
+    // word by word. Reference text still gives the better result — alignment
+    // cannot hallucinate — so it remains the preferred path when present.
     prepareAfterWhisperRef.current = continueWithMelody;
     setToolPanel(undefined);
     const downloaded =
@@ -504,10 +500,9 @@ export const useMakerAnalysisRun = ({
         projectRef.current.lyrics.language,
       );
       const beforeTranscript = projectRef.current;
-      let completedProject = applyWhisperTranscript(
-        beforeTranscript,
-        transcript,
-      );
+      let completedProject = flattenTokens(beforeTranscript).length
+        ? applyWhisperTranscript(beforeTranscript, transcript)
+        : applyTranscriptAsLyrics(beforeTranscript, transcript);
       let generatedNoteCount: number | undefined;
       let melodyError: unknown;
       if (includeMelody) {

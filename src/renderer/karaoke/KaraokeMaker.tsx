@@ -1308,18 +1308,9 @@ const KaraokeMaker = ({
   }, [project.lyrics.lines, song.assets, wizardStep]);
 
   const runWizard = async () => {
-    // Lyrics are asked for before any work starts, never as a surprise after
-    // the split: the transcribe step aligns against the reference text, and
-    // the dialog it needs should only otherwise appear at the end, showing
-    // the detected words and timing. wizardOffered resets so accepting the
-    // lyrics brings the offer straight back.
-    if (!tokens.length) {
-      setWizardOpen(false);
-      wizardOfferedRef.current = false;
-      openLyricsEditor();
-      setNotice(t('karaoke.maker.lyricsRequired'));
-      return;
-    }
+    // No lyrics needed up front any more: with nothing to align against,
+    // the transcription step authors the lyric sheet itself, timed word by
+    // word, and the editor opens on a result to correct.
     setWizardStep('separate');
     setWizardDone([]);
     const separated = await removeBackground();

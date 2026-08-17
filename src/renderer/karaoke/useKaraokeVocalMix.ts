@@ -44,6 +44,7 @@ export const useKaraokeVocalMix = ({
   const bufferRef = useRef<AudioBuffer | undefined>(undefined);
   const sourceRef = useRef<AudioBufferSourceNode | undefined>(undefined);
   const gainRef = useRef<GainNode | undefined>(undefined);
+  const fadeRef = useRef<GainNode | undefined>(undefined);
   const startRef = useRef<
     { contextTime: number; mediaTime: number; rate: number } | undefined
   >(undefined);
@@ -79,14 +80,30 @@ export const useKaraokeVocalMix = ({
   }, [vocals]);
 
   const stop = useCallback(() => {
-    try {
-      sourceRef.current?.stop();
-    } catch {
-      // Already stopped; a source node is single-use and this is the cheapest
-      // way to say "stop if you have not".
-    }
-    sourceRef.current?.disconnect();
+    const source = sourceRef.current;
+    const fade = fadeRef.current;
     sourceRef.current = undefined;
+    fadeRef.current = undefined;
+    if (!source) {
+      return;
+    }
+    // A source cut at full level is a click; a 10 ms ramp to zero is not.
+    // The node is stopped shortly after the ramp lands, from a timeout —
+    // stopping it inside the same tick would cut the ramp short.
+    const context = contextRef.current;
+    if (fade && context) {
+      fade.gain.setTargetAtTime(0, context.currentTime, 0.004);
+    }
+    window.setTimeout(() => {
+      try {
+        source.stop();
+      } catch {
+        // Already stopped; a source node is single-use and this is the
+        // cheapest way to say "stop if you have not".
+      }
+      source.disconnect();
+      fade?.disconnect();
+    }, 30);
   }, []);
 
   /**
@@ -109,7 +126,12 @@ export const useKaraokeVocalMix = ({
     gain.connect(context.destination);
     const source = context.createBufferSource();
     source.buffer = buffer;
-    source.connect(gain);
+    const fade = context.createGain();
+    fade.gain.value = 0;
+    fade.gain.setTargetAtTime(1, context.currentTime, 0.004);
+    source.connect(fade);
+    fade.connect(gain);
+    fadeRef.current = fade;
     source.playbackRate.value = element.playbackRate;
     if (!element.paused) {
       // Start the buffer AHEAD of the element by the audio pipeline's own
@@ -157,7 +179,7 @@ export const useKaraokeVocalMix = ({
       const expected =
         started.mediaTime +
         (context.currentTime - started.contextTime) * started.rate;
-      if (Math.abs(expected - element.currentTime) > 0.045) {
+      if (Math.abs(expected - element.currentTime) > 0.12) {
         sync();
       }
     };

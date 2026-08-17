@@ -25,7 +25,7 @@ export interface IKaraokeWhisperSessionSnapshot {
 }
 
 const WHISPER_DOWNLOADED_KEY =
-  'fluideq.karaoke.whisperDownloaded.v2.base-timestamped';
+  'fluideq.karaoke.whisperDownloaded.v3.small-timestamped';
 const WHISPER_MEMORY_SETTINGS_KEY = 'fluideq.karaoke.whisperMemory.v1';
 const DEFAULT_WHISPER_MEMORY_SETTINGS: IKaraokeWhisperMemorySettings = {
   policy: 'ask',

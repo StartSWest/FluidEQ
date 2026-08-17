@@ -10,11 +10,13 @@ export const BASIC_PITCH_SAMPLE_RATE = 22_050;
 export const WHISPER_SAMPLE_RATE = 16_000;
 const MAX_AI_DURATION_SECONDS = 30 * 60;
 const MAX_AI_FILE_BYTES = 1024 * 1024 * 1024;
-// `tiny` was fast, but its singing-word recall was not reliable enough for a
-// creator: repeated lines were frequently omitted and the reference matcher
-// then had no acoustic anchor. Base is still practical in local q8 WASM while
-// providing a materially stronger transcript for forced lyric alignment.
-export const WHISPER_MODEL = 'onnx-community/whisper-base_timestamped';
+// Small, not base. Base was chosen when the detector read the full mix and
+// speed mattered more than recall it could not reach anyway; now that it
+// reads an isolated vocal stem, the model is the bottleneck again. Small
+// (~250MB in q8, one-time download) has materially better word recall on
+// singing, and since the transcript can now BE the lyrics when none were
+// supplied, recall is the product rather than a hint for the aligner.
+export const WHISPER_MODEL = 'onnx-community/whisper-small_timestamped';
 
 /**
  * Product gate for automatic lyric timing and melody detection.

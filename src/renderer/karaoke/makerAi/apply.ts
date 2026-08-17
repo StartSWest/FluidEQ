@@ -11,6 +11,7 @@ import {
 import { repairEstimatedWhisperTimingWithMelody } from '../makerAlignment';
 import {
   IKaraokeMakerProject,
+  makerLinesFromPlainText,
   KARAOKE_MAKER_WHISPER_ALIGNMENT_VERSION,
   karaokeMakerLineIsSection,
   karaokeMakerWordDurationIsPlausible,
@@ -37,6 +38,70 @@ import {
   autoAlignNotesOnly,
   karaokeMakerMelodyNotesForLyrics,
 } from './guideNotes';
+
+/**
+ * Turn a transcript into the lyrics themselves, for a song that has none.
+ *
+ * The alignment path below deliberately treats Whisper as evidence for timing
+ * and never as the lyric author. This is the sanctioned exception: when the
+ * project has no reference text at all, requiring the user to type the song
+ * out before detection could run made the detector useless on exactly the
+ * songs it exists for. The transcript becomes editable lyric lines — grouped
+ * where the singer breathes — and every word carries its detected timing, so
+ * the result lands ready to correct rather than ready to start.
+ */
+export const applyTranscriptAsLyrics = (
+  project: IKaraokeMakerProject,
+  transcript: readonly IKaraokeMakerTranscriptWord[],
+): IKaraokeMakerProject => {
+  const words = constrainTranscriptWords(
+    [...transcript].sort((left, right) => left.startMs - right.startMs),
+  ).filter((word) => word.text.trim().length > 0);
+  if (!words.length) {
+    return project;
+  }
+  // A line break where the voice rests, or when a line grows past what a
+  // karaoke screen comfortably holds. 700 ms is roughly a sung breath.
+  const lines: IKaraokeMakerTranscriptWord[][] = [[]];
+  words.forEach((word, index) => {
+    const current = lines[lines.length - 1];
+    const previous = index > 0 ? words[index - 1] : undefined;
+    const gap = previous ? word.startMs - previous.endMs : 0;
+    if (current.length && (gap > 700 || current.length >= 9)) {
+      lines.push([word]);
+    } else {
+      current.push(word);
+    }
+  });
+  const text = lines
+    .map((line) => line.map((word) => word.text.trim()).join(' '))
+    .join('\n');
+  const built = makerLinesFromPlainText(text, 'whisper');
+  // The lines were built from the words in order, so walking both in step
+  // reattaches each detected timing to the token it produced.
+  const flatWords = lines.flat();
+  let wordIndex = 0;
+  const timedLines = built.map((line) => ({
+    ...line,
+    tokens: line.tokens.map((token) => {
+      const word = flatWords[wordIndex];
+      wordIndex += 1;
+      return word
+        ? { ...token, startMs: word.startMs, endMs: word.endMs }
+        : token;
+    }),
+  }));
+  return touchKaraokeMakerProject({
+    ...project,
+    lyrics: { ...project.lyrics, lines: timedLines },
+    provenance: upsertProvenance(project.provenance, WHISPER_PROVENANCE),
+    analysis: {
+      ...project.analysis,
+      whisperPasses: (project.analysis.whisperPasses ?? 0) + 1,
+      whisperAlignmentVersion: KARAOKE_MAKER_WHISPER_ALIGNMENT_VERSION,
+    },
+  });
+};
 
 export const applyWhisperTranscript = (
   project: IKaraokeMakerProject,
