@@ -1270,13 +1270,18 @@ const KaraokeMaker = ({
     if (
       !KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED ||
       wizardOfferedRef.current ||
-      karaokeMakerHasCompleteTiming(project.lyrics.lines)
+      karaokeMakerHasCompleteTiming(project.lyrics.lines) ||
+      // A song whose stems were restored from disk has already been set up
+      // once. Re-offering because the *transcription* half is unfinished read
+      // as the app forgetting the split it just recovered; the remaining work
+      // is reachable through Repair tools without a dialog on every open.
+      song.assets.some((asset) => asset.role === 'vocals')
     ) {
       return;
     }
     wizardOfferedRef.current = true;
     setWizardOpen(true);
-  }, [project.lyrics.lines]);
+  }, [project.lyrics.lines, song.assets]);
 
   const runWizard = async () => {
     // Lyrics are asked for before any work starts, never as a surprise after
