@@ -117,7 +117,7 @@ jobs:
               // before it ever leaves their API. The site runs its own
               // allowlist over it again before it touches the page.
               bodyHtml: (opening ? opening.bodyHTML : node.bodyHTML) ?? '',
-              excerpt: (node.bodyText ?? '').replace(/\s+/g, ' ').slice(0, 220),
+              excerpt: ((opening ? opening.bodyText : node.bodyText) ?? '').replace(/\s+/g, ' ').slice(0, 220),
               createdAt: node.createdAt,
               updatedAt: node.updatedAt,
               upvotes: node.upvoteCount,
