@@ -15,9 +15,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import {
-  IKaraokeMakerNote,
   IKaraokeMakerProject,
-  IKaraokeMakerToken,
   importLyricsIntoKaraokeMakerProject,
   karaokeMakerProjectToSong,
   karaokeMakerRecordedLineRange,
@@ -28,7 +26,6 @@ import {
   makerLinesFromPlainText,
   parseKaraokeMakerProject,
   recordKaraokeMakerLineRange,
-  resizeKaraokeMakerTokenBoundary,
   shiftKaraokeMakerLineTailFromToken,
   shiftKaraokeMakerTimeline,
   touchKaraokeMakerProject,
@@ -107,7 +104,8 @@ import KaraokeMakerCaptureCoach from './KaraokeMakerCaptureCoach';
 import KaraokeMakerFloatingPanel from './KaraokeMakerFloatingPanel';
 import KaraokeMakerPreview from './KaraokeMakerPreview';
 import KaraokeMakerSelectionInfo from './KaraokeMakerSelectionInfo';
-import { flattenTokens, replaceToken } from './makerProjectEdits';
+import { useMakerLyricsEditing } from './useMakerLyricsEditing';
+import { flattenTokens } from './makerProjectEdits';
 import {
   ISyllableSplitDraft,
   useMakerNoteEditing,
@@ -1710,163 +1708,29 @@ const KaraokeMaker = ({
     }
   };
 
-  const noteKindLabel = (kind: IKaraokeMakerNote['kind']): string => {
-    if (kind === 'normal') {
-      return t('karaoke.maker.noteNormal');
-    }
-    if (kind === 'golden') {
-      return t('karaoke.maker.noteGolden');
-    }
-    return t('karaoke.maker.noteFree');
-  };
-
-  const updateSelectedTokenTiming = (update: {
-    text?: string;
-    startMs?: number;
-    durationMs?: number;
-  }) => {
-    if (!selectedToken) {
-      return;
-    }
-    commit((current) => {
-      let nextProject = current;
-      if (update.text !== undefined && update.text.trim()) {
-        nextProject = replaceToken(nextProject, selectedToken.id, (token) => ({
-          ...token,
-          text: update.text?.trim().slice(0, 2_000) ?? token.text,
-          source: 'manual',
-        }));
-      }
-      let currentToken = flattenTokens(nextProject).find(
-        (token) => token.id === selectedToken.id,
-      );
-      if (
-        currentToken?.startMs !== undefined &&
-        currentToken.endMs !== undefined
-      ) {
-        if (Number.isFinite(update.startMs)) {
-          nextProject = resizeKaraokeMakerTokenBoundary(
-            nextProject,
-            currentToken.id,
-            'start',
-            update.startMs as number,
-          );
-          currentToken = flattenTokens(nextProject).find(
-            (token) => token.id === selectedToken.id,
-          );
-        }
-        if (
-          Number.isFinite(update.durationMs) &&
-          currentToken?.startMs !== undefined
-        ) {
-          nextProject = resizeKaraokeMakerTokenBoundary(
-            nextProject,
-            currentToken.id,
-            'end',
-            currentToken.startMs + (update.durationMs as number),
-          );
-        }
-        return nextProject;
-      }
-
-      const line = nextProject.lyrics.lines.find((candidate) =>
-        candidate.tokens.some((token) => token.id === selectedToken.id),
-      );
-      const tokenIndex =
-        line?.tokens.findIndex((token) => token.id === selectedToken.id) ?? -1;
-      const previousToken =
-        tokenIndex > 0 ? line?.tokens[tokenIndex - 1] : undefined;
-      const nextToken =
-        line && tokenIndex >= 0 && tokenIndex + 1 < line.tokens.length
-          ? line.tokens[tokenIndex + 1]
-          : undefined;
-      const lineRange = line ? karaokeMakerTimedLineRange(line) : undefined;
-      return replaceToken(nextProject, selectedToken.id, (token) => {
-        const currentStart = token.startMs ?? Math.max(0, playheadMs);
-        const currentEnd = token.endMs ?? currentStart + 400;
-        const requestedStart = Number.isFinite(update.startMs)
-          ? update.startMs
-          : currentStart;
-        const requestedDuration = Number.isFinite(update.durationMs)
-          ? update.durationMs
-          : currentEnd - currentStart;
-        const minimumStart = Math.max(
-          lineRange?.startMs ?? 0,
-          previousToken?.endMs ?? previousToken?.startMs ?? 0,
-        );
-        const maximumEnd = Math.min(
-          lineRange?.endMs ?? effectiveDurationMs,
-          nextToken?.startMs ?? nextToken?.endMs ?? effectiveDurationMs,
-        );
-        const nextStart = Math.max(
-          minimumStart,
-          Math.min(maximumEnd - 20, requestedStart ?? currentStart),
-        );
-        const nextDuration = Math.min(
-          Math.max(20, maximumEnd - nextStart),
-          Math.max(20, requestedDuration ?? currentEnd - currentStart),
-        );
-        return {
-          ...token,
-          startMs: nextStart,
-          endMs: Math.min(maximumEnd, nextStart + nextDuration),
-          source: 'manual',
-          timingLocked: true,
-        };
-      });
-    });
-  };
-
-  const auditionLyricsToken = useCallback(
-    (token: IKaraokeMakerToken) => {
-      if (token.startMs === undefined) {
-        return;
-      }
-      cancelAudibleInteractions();
-      const startMs = Math.max(0, Math.min(effectiveDurationMs, token.startMs));
-      const endMs = Math.max(
-        startMs + 20,
-        Math.min(effectiveDurationMs, token.endMs ?? startMs + 400),
-      );
-      onSeek(startMs);
-      Promise.resolve(onPlay()).catch(() => undefined);
-      wordAuditionTimerRef.current = window.setTimeout(() => {
-        wordAuditionTimerRef.current = undefined;
-        onPause();
-      }, endMs - startMs);
-    },
-    [cancelAudibleInteractions, effectiveDurationMs, onPause, onPlay, onSeek],
-  );
-
-  const selectLyricsEditorToken = (token: IKaraokeMakerToken) => {
-    setSelection({ kind: 'word', id: token.id });
-    if (token.startMs !== undefined) {
-      setViewStartMs(
-        Math.max(
-          0,
-          Math.min(
-            maximumViewStartMs,
-            token.startMs - visibleViewDurationMs * 0.3,
-          ),
-        ),
-      );
-      auditionLyricsToken(token);
-    }
-  };
-
-  const moveLyricsEditorSelection = (direction: -1 | 1) => {
-    const currentIndex = selectedToken
-      ? tokens.findIndex((token) => token.id === selectedToken.id)
-      : -1;
-    const nextIndex = Math.max(
-      0,
-      Math.min(tokens.length - 1, currentIndex + direction),
-    );
-    const nextToken = tokens[nextIndex];
-    if (nextToken) {
-      selectLyricsEditorToken(nextToken);
-    }
-  };
+  const {
+    auditionLyricsToken,
+    moveLyricsEditorSelection,
+    noteKindLabel,
+    selectLyricsEditorToken,
+    updateSelectedTokenTiming,
+  } = useMakerLyricsEditing({
+    cancelAudibleInteractions,
+    commit,
+    effectiveDurationMs,
+    maximumViewStartMs,
+    onPause,
+    onPlay,
+    onSeek,
+    playheadMs,
+    selectedToken,
+    setSelection,
+    setViewStartMs,
+    t,
+    tokens,
+    visibleViewDurationMs,
+    wordAuditionTimerRef,
+  });
 
   const renderSelectedWordTimingSliders = (idPrefix: string) => {
     if (!selectedTokenTimingControls) {
