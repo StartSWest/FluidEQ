@@ -25,173 +25,21 @@ import {
   useState,
 } from 'react';
 import { findActiveKaraokeLine } from '../../common/karaoke/clock';
-import { IKaraokeSong, IKaraokeToken } from '../../common/karaoke/types';
+import { IKaraokeSong } from '../../common/karaoke/types';
 import MenuIcon from '../icons/MenuIcon';
 import { useTranslation } from '../utils/I18nContext';
-
-const WHEEL_STEP_THRESHOLD = 24;
-const LYRIC_MOTION_TIME_MS = 105;
-const SONG_LYRIC_ENTRANCE_TIME_MS = 560;
-const EUPHORIA_SWEEP_TIME_MS = 3_600;
-const LYRIC_FONT_FAMILY = 'Inter, system-ui, -apple-system, sans-serif';
-const LYRIC_TEXT_SIZE_KEY = 'fluideq-karaoke-lyric-text-size';
-export const DEFAULT_LYRIC_TEXT_SIZE = 100;
-export const MIN_LYRIC_TEXT_SIZE = 75;
-export const MAX_LYRIC_TEXT_SIZE = 300;
-
-const clamp = (value: number, minimum: number, maximum: number) =>
-  Math.min(maximum, Math.max(minimum, value));
-
-/** A soft ease-out used only when a different song enters the player. */
-export const karaokeLyricEntranceOpacity = (elapsedMs: number): number => {
-  const progress = clamp(elapsedMs / SONG_LYRIC_ENTRANCE_TIME_MS, 0, 1);
-  return 1 - (1 - progress) ** 3;
-};
-
-export const readLyricTextSize = (): number => {
-  try {
-    const stored = Number(window.localStorage.getItem(LYRIC_TEXT_SIZE_KEY));
-    return Number.isFinite(stored) && stored > 0
-      ? clamp(stored, MIN_LYRIC_TEXT_SIZE, MAX_LYRIC_TEXT_SIZE)
-      : DEFAULT_LYRIC_TEXT_SIZE;
-  } catch {
-    return DEFAULT_LYRIC_TEXT_SIZE;
-  }
-};
-
-export const writeLyricTextSize = (textSize: number): void => {
-  try {
-    window.localStorage.setItem(LYRIC_TEXT_SIZE_KEY, String(textSize));
-  } catch {
-    // The live setting still works when storage is unavailable.
-  }
-};
-
-const timingProgress = (
-  startMs: number | undefined,
-  endMs: number | undefined,
-  playheadMs: number,
-): number => {
-  if (startMs === undefined) {
-    return 0;
-  }
-  if (playheadMs <= startMs) {
-    return 0;
-  }
-  if (endMs === undefined || endMs <= startMs) {
-    return 1;
-  }
-  return clamp((playheadMs - startMs) / (endMs - startMs), 0, 1);
-};
-
-/** Preserve provider word boundaries after Maker normalization trims tokens. */
-export const karaokeTokenDisplayText = (
-  token: IKaraokeToken,
-  tokenIndex: number,
-  previousToken?: IKaraokeToken,
-): string =>
-  tokenIndex > 0 &&
-  token.startsWord === true &&
-  !/^\s/u.test(token.text) &&
-  !/\s$/u.test(previousToken?.text ?? '')
-    ? ` ${token.text}`
-    : token.text;
-
-export interface IKaraokeVisualWord {
-  /** Provider syllables that must be painted as one indivisible word. */
-  tokens: IKaraokeToken[];
-  text: string;
-}
-
-const karaokeVisualWordCache = new WeakMap<
-  readonly IKaraokeToken[],
-  IKaraokeVisualWord[]
->();
-
-/**
- * Providers such as UltraStar time syllables independently. Keep those
- * timings, but combine continuation tokens before measuring or painting so a
- * glyph run can never acquire a seam in the middle of a word.
- */
-export const groupKaraokeTokensIntoWords = (
-  tokens: readonly IKaraokeToken[],
-): IKaraokeVisualWord[] => {
-  const cached = karaokeVisualWordCache.get(tokens);
-  if (cached) {
-    return cached;
-  }
-  const words: IKaraokeVisualWord[] = [];
-  tokens.forEach((token) => {
-    const current = words[words.length - 1];
-    if (!current || token.startsWord !== false) {
-      words.push({ tokens: [token], text: token.text });
-      return;
-    }
-    current.tokens.push(token);
-    current.text += token.text;
-  });
-  karaokeVisualWordCache.set(tokens, words);
-  return words;
-};
-
-const karaokeVisualWordDisplayText = (
-  word: IKaraokeVisualWord,
-  wordIndex: number,
-  previousWord?: IKaraokeVisualWord,
-): string =>
-  wordIndex > 0 &&
-  word.tokens[0]?.startsWord === true &&
-  !/^\s/u.test(word.text) &&
-  !/\s$/u.test(previousWord?.text ?? '')
-    ? ` ${word.text}`
-    : word.text;
-
-const karaokeVisualWordProgressWidth = (
-  context: CanvasRenderingContext2D,
-  word: IKaraokeVisualWord,
-  displayText: string,
-  playheadMs: number,
-): number => {
-  const leadingText = displayText.slice(
-    0,
-    displayText.length - word.text.length,
-  );
-  let precedingText = leadingText;
-  let paintedWidth = 0;
-
-  word.tokens.forEach((token, tokenIndex) => {
-    if (!token.text) {
-      return;
-    }
-    const segmentStart = context.measureText(precedingText).width;
-    precedingText += token.text;
-    const segmentEnd = context.measureText(precedingText).width;
-    let effectiveEndMs = token.endMs;
-    // Empty following tokens are sustained melody notes for this same
-    // syllable. Include them in its sweep instead of completing the word at
-    // the first note boundary.
-    for (
-      let nextIndex = tokenIndex + 1;
-      nextIndex < word.tokens.length && !word.tokens[nextIndex].text;
-      nextIndex += 1
-    ) {
-      const continuation = word.tokens[nextIndex];
-      effectiveEndMs = Math.max(
-        effectiveEndMs ?? continuation.endMs ?? 0,
-        continuation.endMs ?? continuation.startMs ?? 0,
-      );
-    }
-    const progress = timingProgress(token.startMs, effectiveEndMs, playheadMs);
-    if (progress > 0) {
-      paintedWidth = Math.max(
-        paintedWidth,
-        segmentStart + (segmentEnd - segmentStart) * progress,
-      );
-    }
-  });
-
-  return paintedWidth;
-};
+import {
+  DEFAULT_LYRIC_TEXT_SIZE,
+  EUPHORIA_SWEEP_TIME_MS,
+  LYRIC_FONT_FAMILY,
+  LYRIC_MOTION_TIME_MS,
+  WHEEL_STEP_THRESHOLD,
+  clamp,
+  groupKaraokeTokensIntoWords,
+  karaokeLyricEntranceOpacity,
+  karaokeVisualWordDisplayText,
+  karaokeVisualWordProgressWidth,
+} from './karaokeLyricText';
 
 interface IKaraokeLyricsProps {
   song: IKaraokeSong;
