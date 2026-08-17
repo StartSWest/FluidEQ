@@ -44,6 +44,9 @@ export const useKaraokeVocalMix = ({
   const bufferRef = useRef<AudioBuffer | undefined>(undefined);
   const sourceRef = useRef<AudioBufferSourceNode | undefined>(undefined);
   const gainRef = useRef<GainNode | undefined>(undefined);
+  const startRef = useRef<
+    { contextTime: number; mediaTime: number; rate: number } | undefined
+  >(undefined);
   const [level, setLevel] = useState(DEFAULT_VOCAL_LEVEL);
   const [isReady, setIsReady] = useState(false);
 
@@ -110,6 +113,12 @@ export const useKaraokeVocalMix = ({
     source.playbackRate.value = element.playbackRate;
     if (!element.paused) {
       source.start(0, Math.min(element.currentTime, buffer.duration));
+      // Where both clocks stood at the start, so drift is measurable later.
+      startRef.current = {
+        contextTime: context.currentTime,
+        mediaTime: element.currentTime,
+        rate: element.playbackRate,
+      };
     }
     sourceRef.current = source;
   }, [audioRef, level, stop]);
@@ -123,10 +132,29 @@ export const useKaraokeVocalMix = ({
     }
     const onPlay = () => sync();
     const onPause = () => stop();
+    // The element and the AudioContext run on different clocks, and neither
+    // owes the other accuracy: over minutes they drift apart, and a late guide
+    // vocal is exactly the flanging this design exists to avoid. `timeupdate`
+    // arrives a few times a second; whenever the voice is more than 60 ms from
+    // where the element says it should be, it is restarted at the right spot.
+    const onTimeUpdate = () => {
+      const context = contextRef.current;
+      const started = startRef.current;
+      if (!context || !started || !sourceRef.current || element.paused) {
+        return;
+      }
+      const expected =
+        started.mediaTime +
+        (context.currentTime - started.contextTime) * started.rate;
+      if (Math.abs(expected - element.currentTime) > 0.06) {
+        sync();
+      }
+    };
     element.addEventListener('play', onPlay);
     element.addEventListener('seeked', onPlay);
     element.addEventListener('pause', onPause);
     element.addEventListener('ended', onPause);
+    element.addEventListener('timeupdate', onTimeUpdate);
     if (!element.paused) {
       sync();
     }
@@ -135,6 +163,7 @@ export const useKaraokeVocalMix = ({
       element.removeEventListener('seeked', onPlay);
       element.removeEventListener('pause', onPause);
       element.removeEventListener('ended', onPause);
+      element.removeEventListener('timeupdate', onTimeUpdate);
       stop();
     };
   }, [audioRef, isReady, stop, sync]);

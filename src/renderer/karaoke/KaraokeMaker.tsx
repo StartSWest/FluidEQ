@@ -1658,6 +1658,8 @@ const KaraokeMaker = ({
         onChange={selectLyricsFile}
       />
       <KaraokeMakerHeader
+        vocalLevel={stemWaveforms ? vocalLevel : undefined}
+        onVocalLevel={onVocalLevel}
         canRedo={canRedo}
         canUndo={canUndo}
         commit={commit}
@@ -1981,6 +1983,12 @@ const KaraokeMaker = ({
         which read as "it did nothing", the exact impression the whole panel
         exists to prevent. It floats where the analysis progress does, so the
         work and its result appear in the same place.
+      */}
+      {/*
+        The guide-vocal fader, on the editor surface whenever a split exists.
+        It lived only inside the Repair-tools popover first — the same
+        discoverability mistake the stems panel made: the one control that
+        makes the orange wave audible was behind a closed menu.
       */}
       <KaraokeMakerAnalysisPanels
         analysisError={analysisError}

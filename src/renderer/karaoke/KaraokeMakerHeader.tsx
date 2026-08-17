@@ -4,7 +4,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import { Dispatch, SetStateAction } from 'react';
+import { Dispatch, SetStateAction, useRef } from 'react';
 import {
   IKaraokeMakerProject,
   validateKaraokeMakerProject,
@@ -57,6 +57,13 @@ export interface IKaraokeMakerHeaderProps extends Pick<
 
   issues: ReturnType<typeof validateKaraokeMakerProject>;
   melodyTone: ReturnType<typeof useKaraokeMelodyTone>;
+  /**
+   * The guide-vocal level for a separated song, 0..1, next to the tone volume
+   * because both answer the same question: how much help while singing.
+   * Undefined until a split exists, and the control simply is not there.
+   */
+  vocalLevel?: number;
+  onVocalLevel?: (level: number) => void;
   /** What the melody preview plays against, if the song has a melody. */
   makerMelodyTarget: TKaraokePitchTarget | undefined;
 
@@ -82,6 +89,7 @@ const KaraokeMakerHeader = ({
   melodyTone,
   onApply,
   onClose,
+  onVocalLevel,
   onPause,
   onPlay,
   onSeek,
@@ -95,8 +103,13 @@ const KaraokeMakerHeader = ({
   setViewStartMs,
   undo,
   visualPlayheadMs,
+  vocalLevel,
 }: IKaraokeMakerHeaderProps) => {
   const { t } = useTranslation();
+  const lastVocalLevelRef = useRef(0.6);
+  if (vocalLevel !== undefined && vocalLevel > 0) {
+    lastVocalLevelRef.current = vocalLevel;
+  }
   return (
     <header className="karaoke-maker__header">
       <div className="karaoke-maker__identity">
@@ -248,6 +261,46 @@ const KaraokeMakerHeader = ({
             />
           )}
         </div>
+        {vocalLevel !== undefined && onVocalLevel && (
+          <div className="karaoke-maker__tone-guide is-enabled">
+            {/*
+              The guide-vocal fader, beside the tone volume because both
+              answer the same question — how much help while singing. A
+              click on the icon mutes the voice and restores it, the way
+              every volume icon behaves.
+            */}
+            <button
+              type="button"
+              className="karaoke-maker__transport-control"
+              onClick={() =>
+                onVocalLevel(vocalLevel > 0 ? 0 : lastVocalLevelRef.current)
+              }
+              aria-pressed={vocalLevel > 0}
+              aria-label={t('karaoke.transport.vocalLevel')}
+              data-tooltip={`${t('karaoke.transport.vocalLevel')} · ${
+                vocalLevel === 0
+                  ? t('karaoke.transport.vocalOff')
+                  : `${Math.round(vocalLevel * 100)}%`
+              }`}
+            >
+              <KaraokeTransportIcon name="volume" />
+            </button>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={vocalLevel}
+              aria-label={t('karaoke.transport.vocalLevel')}
+              aria-valuetext={
+                vocalLevel === 0
+                  ? t('karaoke.transport.vocalOff')
+                  : `${Math.round(vocalLevel * 100)}%`
+              }
+              onChange={(event) => onVocalLevel(Number(event.target.value))}
+            />
+          </div>
+        )}
       </div>
       <KaraokeMakerHeaderActions
         onUndo={undo}
