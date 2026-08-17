@@ -5,7 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
-  ChangeEvent,
   useCallback,
   useEffect,
   useId,
@@ -29,10 +28,6 @@ import {
   touchKaraokeMakerProject,
   validateKaraokeMakerProject,
 } from '../../common/karaoke/makerProject';
-import {
-  parseKaraokeText,
-  readKaraokeTextFile,
-} from '../../common/karaoke/files';
 import { IKaraokeSong } from '../../common/karaoke/types';
 import { useTranslation } from '../utils/I18nContext';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
@@ -97,6 +92,7 @@ import KaraokeMakerAnalysisPanels from './KaraokeMakerAnalysisPanels';
 import KaraokeMakerWhisperConsent from './KaraokeMakerWhisperConsent';
 import KaraokeMakerInspector from './KaraokeMakerInspector';
 import { useMakerProjectFiles } from './useMakerProjectFiles';
+import { useMakerLyricsActions } from './useMakerLyricsActions';
 import { useMakerLyricsEditing } from './useMakerLyricsEditing';
 import { flattenTokens } from './makerProjectEdits';
 import {
@@ -1428,110 +1424,28 @@ const KaraokeMaker = ({
   // Seeding and opening the editor is the hook's; landing the caret on the word
   // the user was last looking at is this component's, because the selection and
   // the lyric focus are not the draft's business.
-  const openLyricsEditor = () => {
-    openLyricsDraft(projectRef.current);
-    setDestructiveAction(undefined);
-    const preferredToken =
-      tokens.find((token) => token.id === activeLyricFocus?.tokenId) ??
-      tokens[0];
-    if (preferredToken) {
-      setSelection({ kind: 'word', id: preferredToken.id });
-    }
-  };
-
-  const clearNotes = () => {
-    commit((current) => ({
-      ...current,
-      melody: { ...current.melody, source: 'manual', notes: [] },
-    }));
-    setSelection(undefined);
-    setSelectedNoteIds(new Set());
-    setDestructiveAction(undefined);
-    setNotice(t('karaoke.maker.notesCleared'));
-  };
-
-  const clearLyrics = () => {
-    commit((current) => ({
-      ...current,
-      lyrics: { ...current.lyrics, source: 'manual', lines: [] },
-      analysis: {
-        ...current.analysis,
-        whisperPasses: 0,
-        whisperAlignmentVersion: undefined,
-      },
-      melody: {
-        ...current.melody,
-        notes: current.melody.notes.map((note) => ({
-          ...note,
-          tokenId: undefined,
-        })),
-      },
-    }));
-    setLyricsDraft('');
-    setLyricsFileName(undefined);
-    setSelection(undefined);
-    setDestructiveAction(undefined);
-    setNotice(t('karaoke.maker.lyricsCleared'));
-  };
-
-  /**
-   * Throw the editing away and rebuild the project the import produced.
-   *
-   * Undoable like the other destructive actions: `commit` leaves the discarded
-   * work one Undo away, which is what the confirmation promises.
-   *
-   * The saved draft is deleted rather than left for autosave to overwrite.
-   * Autosave does write the pristine project a moment later, but a user who
-   * closes the Maker inside that moment would otherwise reopen onto the very
-   * work they just discarded.
-   */
-  // The project half of Restore is the hook's; what is left here is the view
-  // state that has to follow it back.
-  const restoreOriginal = () => {
-    const original = restoreOriginalProject();
-    setLyricsDraft(plainLyrics(original));
-    setLyricsFileName(undefined);
-    setSelection(undefined);
-    setSelectedNoteIds(new Set());
-    setDestructiveAction(undefined);
-    setNotice(t('karaoke.maker.restored'));
-  };
-
-  const selectLyricsFile = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) {
-      return;
-    }
-    try {
-      const contents = await readKaraokeTextFile(file);
-      let text = contents;
-      try {
-        const parsed = parseKaraokeText(file.name, contents);
-        text = parsed.lines
-          .map((line) =>
-            line.tokens
-              .reduce(
-                (lineText, token) =>
-                  `${lineText}${
-                    lineText && token.startsWord !== false ? ' ' : ''
-                  }${token.text}`,
-                '',
-              )
-              .trim(),
-          )
-          .filter(Boolean)
-          .join('\n');
-      } catch {
-        // Plain unsynchronised text is already a valid lyric reference.
-      }
-      setLyricsDraft(text);
-      setLyricsFileName(file.name);
-      setNotice(t('karaoke.maker.lyricsFileLoaded', { file: file.name }));
-    } catch (error) {
-      setNotice(localizeMakerError(error, 'import'));
-    }
-  };
+  const {
+    clearLyrics,
+    clearNotes,
+    openLyricsEditor,
+    restoreOriginal,
+    selectLyricsFile,
+  } = useMakerLyricsActions({
+    activeLyricFocus,
+    commit,
+    localizeMakerError,
+    openLyricsDraft,
+    projectRef,
+    restoreOriginalProject,
+    setDestructiveAction,
+    setLyricsDraft,
+    setLyricsFileName,
+    setNotice,
+    setSelectedNoteIds,
+    setSelection,
+    t,
+    tokens,
+  });
 
   const {
     ignoreGuidedLine,
