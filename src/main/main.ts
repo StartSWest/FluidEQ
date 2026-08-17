@@ -1118,9 +1118,19 @@ const resetEqToDefaults = () => {
   state.filters = getDefaultFilters();
   state.preAmp = 0;
   state.isFlat = true;
-  state.headset = undefined;
-  state.headsetTarget = undefined;
-  state.headsetSource = undefined;
+  /*
+   * THE REFERENCE IS NOT CLEARED HERE, BECAUSE THESE ARE NOT ITS BANDS.
+   *
+   * The other half of the swap recorded on CLEAR_HEADSET. Clearing the bands
+   * used to mean clearing the reference, because the reference WAS the bands;
+   * now it is a layer of its own and survives this untouched. What did not
+   * survive was its name: `state.headphone` stayed applied and audible while
+   * `headset` went to undefined, so the picker said "No reference applied" over
+   * a correction that was still playing — and the only way back was to clear a
+   * reference the screen insisted was not there.
+   *
+   * `eqImport` still goes, because that one really does describe these bands.
+   */
   state.eqImport = undefined;
   // The bands are gone, so the switch that was holding them out of the config
   // has nothing left to hold. Without this, clearing a bypassed EQ takes the
