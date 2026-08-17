@@ -34,10 +34,9 @@ import { Translate, TranslationKey } from '../../common/i18n';
 import {
   BALANCE_REGION_EDGES,
   BALANCE_REGION_LABELS,
-  IBalanceProgress,
-  IBalanceResult,
   REGION_ACTIVE_WEIGHT,
 } from './autoBalance';
+import { IBalanceProgress, IBalanceResult } from './autoBalanceCapture';
 
 /**
  * The translation key for a region, from the label the capture carries.

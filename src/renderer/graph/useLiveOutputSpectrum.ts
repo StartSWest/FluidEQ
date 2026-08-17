@@ -18,7 +18,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  IAxisCell,
   IBalanceCaptureState,
   IBalanceListenBounds,
   IBalanceProgress,
@@ -29,13 +28,14 @@ import {
   buildBalanceResult,
   createAxisCells,
   CONTINUOUS_HALF_LIFE_MS,
+  IAxisCell,
   createBalanceCaptureState,
   evaluateBalanceCapture,
   isBalanceCheckDue,
   readAbsoluteLevels,
   resetBalanceRegion,
   shouldFinishBalanceCapture,
-} from '../utils/autoBalance';
+} from '../utils/autoBalanceCapture';
 import { getPresenceLine, presenceAllowance } from '../utils/presenceThreshold';
 import { useTranslation } from '../utils/I18nContext';
 import { IChartPointData } from './ChartController';

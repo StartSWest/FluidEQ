@@ -31,7 +31,9 @@ import {
   describeSmartEqLayer,
   getSmartEqLayout,
 } from 'common/smartEq';
-import { IBalanceResult, ISpectrumSample } from 'renderer/utils/autoBalance';
+import { ISpectrumSample } from 'renderer/utils/autoBalance';
+import { IBalanceResult } from 'renderer/utils/autoBalanceCapture';
+
 import MainContent from 'renderer/MainContent';
 import SmartEqEngine from 'renderer/SmartEqEngine';
 import { setSmartEqMode } from 'renderer/utils/smartEqMode';

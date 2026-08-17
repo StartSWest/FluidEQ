@@ -47,11 +47,11 @@ import { setSmartEq as setSmartEqApi } from './utils/equalizerApi';
 import { useLiveAudioControl } from './audio/LiveAudioContext';
 import { useContinuousEq } from './utils/continuousEq';
 import { isContinuousMode, useSmartEqMode } from './utils/smartEqMode';
+import { buildBalancedGains } from './utils/autoBalance';
 import {
   IBalanceRegionReport,
   IBalanceReport,
-  buildBalancedGains,
-} from './utils/autoBalance';
+} from './utils/autoBalanceCapture';
 import { flashCorrection } from './utils/correctionFlash';
 import {
   setSmartEqDisagreement,
