@@ -17,7 +17,6 @@ import {
   IKaraokeMakerProject,
   karaokeMakerProjectToSong,
   karaokeMakerRecordedLineRange,
-  karaokeMakerTimedLineRange,
   karaokeMakerLineIsSection,
   karaokeMakerTokenBoundaryLimits,
   makerLinesFromPlainText,
@@ -83,6 +82,7 @@ import { useMakerToolModes } from './useMakerToolModes';
 import KaraokeMakerTimingSliders from './KaraokeMakerTimingSliders';
 import { useMakerCanvasRender } from './useMakerCanvasRender';
 import { useMakerCanvasModel } from './useMakerCanvasModel';
+import { ISentenceAuditionState, useMakerKeyboard } from './useMakerKeyboard';
 import { useMakerLyricsEditing } from './useMakerLyricsEditing';
 import { flattenTokens } from './makerProjectEdits';
 import {
@@ -113,12 +113,6 @@ interface IKaraokeMakerProps {
   onClose: () => void;
   isFullScreen: boolean;
   onToggleFullScreen: () => void;
-}
-
-interface ISentenceAuditionState {
-  startMs: number;
-  endMs: number;
-  timerId: number;
 }
 
 const KaraokeMaker = ({
@@ -731,117 +725,18 @@ const KaraokeMaker = ({
       window.removeEventListener('keydown', togglePlaybackWithSpace, true);
   }, [isPlaying, lineEntryMode, onPause, onPlay]);
 
-  useEffect(() => {
-    const stopSentenceAudition = () => {
-      const audition = sentenceAuditionRef.current;
-      if (!audition) {
-        return;
-      }
-      window.clearInterval(audition.timerId);
-      sentenceAuditionRef.current = undefined;
-      onPause();
-      onSeek(audition.startMs);
-    };
-    const startSentenceAudition = (event: KeyboardEvent) => {
-      const isControl =
-        event.code === 'ControlLeft' ||
-        event.code === 'ControlRight' ||
-        event.key === 'Control';
-      if (
-        !isControl ||
-        event.repeat ||
-        event.defaultPrevented ||
-        lineEntryMode ||
-        sentenceAuditionRef.current ||
-        selection?.kind === 'note' ||
-        document.querySelector(
-          '.karaoke-maker__modal-backdrop, .dropdown--open',
-        )
-      ) {
-        return;
-      }
-      const { target } = event;
-      if (
-        target instanceof HTMLElement &&
-        target.matches('input, textarea, select, [contenteditable="true"]')
-      ) {
-        return;
-      }
-      const contentLines = projectRef.current.lyrics.lines.filter(
-        (line) => !karaokeMakerLineIsSection(line) && line.tokens.length > 0,
-      );
-      const selectedLine =
-        selection?.kind === 'word'
-          ? contentLines.find((line) =>
-              line.tokens.some((token) => token.id === selection.id),
-            )
-          : undefined;
-      const now = Math.max(0, readPlayheadMs?.() ?? playheadMsRef.current);
-      const playheadLine = contentLines.find((line) => {
-        const range = karaokeMakerTimedLineRange(line);
-        return range && now >= range.startMs && now <= range.endMs;
-      });
-      const auditionLine = selectedLine ?? playheadLine;
-      if (!auditionLine) {
-        return;
-      }
-      const range = karaokeMakerTimedLineRange(auditionLine);
-      if (!range) {
-        return;
-      }
-      event.preventDefault();
-      cancelAudibleInteractions();
-      onSeek(range.startMs);
-      Promise.resolve(onPlay()).catch(() => undefined);
-      const timerId = window.setInterval(() => {
-        const audition = sentenceAuditionRef.current;
-        if (!audition) {
-          return;
-        }
-        const currentMs = readPlayheadMs?.() ?? playheadMsRef.current;
-        if (currentMs >= audition.endMs || currentMs < audition.startMs) {
-          onSeek(audition.startMs);
-          Promise.resolve(onPlay()).catch(() => undefined);
-        }
-      }, 25);
-      sentenceAuditionRef.current = {
-        startMs: range.startMs,
-        endMs: range.endMs,
-        timerId,
-      };
-    };
-    const stopSentenceAuditionOnControlUp = (event: KeyboardEvent) => {
-      if (
-        event.code === 'ControlLeft' ||
-        event.code === 'ControlRight' ||
-        event.key === 'Control'
-      ) {
-        stopSentenceAudition();
-      }
-    };
-    window.addEventListener('keydown', startSentenceAudition, true);
-    window.addEventListener('keyup', stopSentenceAuditionOnControlUp, true);
-    window.addEventListener('blur', stopSentenceAudition);
-    return () => {
-      window.removeEventListener('keydown', startSentenceAudition, true);
-      window.removeEventListener(
-        'keyup',
-        stopSentenceAuditionOnControlUp,
-        true,
-      );
-      window.removeEventListener('blur', stopSentenceAudition);
-      stopSentenceAudition();
-    };
-  }, [
+  useMakerKeyboard({
     cancelAudibleInteractions,
     lineEntryMode,
     onPause,
     onPlay,
     onSeek,
+    playheadMsRef,
     projectRef,
     readPlayheadMs,
     selection,
-  ]);
+    sentenceAuditionRef,
+  });
 
   useEffect(() => {
     if (!noticeEntry || analysisProgress !== undefined || analysisError) {
