@@ -65,7 +65,6 @@ import {
   useKaraokeMakerLyricsDraft,
 } from './useKaraokeMakerLyricsDraft';
 import { useKaraokeMakerSelection } from './useKaraokeMakerSelection';
-import KaraokeMakerHeaderActions from './KaraokeMakerHeaderActions';
 import KaraokeMakerDownloadDetails from './KaraokeMakerDownloadDetails';
 import KaraokeMakerWordInspector from './KaraokeMakerWordInspector';
 import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
@@ -105,6 +104,7 @@ import KaraokeMakerFloatingPanel from './KaraokeMakerFloatingPanel';
 import KaraokeMakerPreview from './KaraokeMakerPreview';
 import KaraokeMakerSelectionInfo from './KaraokeMakerSelectionInfo';
 import KaraokeMakerLyricsDialog from './KaraokeMakerLyricsDialog';
+import KaraokeMakerHeader from './KaraokeMakerHeader';
 import { useMakerLyricsEditing } from './useMakerLyricsEditing';
 import { flattenTokens } from './makerProjectEdits';
 import {
@@ -124,7 +124,6 @@ import {
   karaokeMakerLyricFocus,
   karaokeMakerSectionGroups,
 } from './makerCanvasLayout';
-import { KaraokeTransportIcon } from './KaraokeTransport';
 import { readKaraokeMakerEditorView } from './karaokeEditorPersistence';
 
 interface IKaraokeMakerProps {
@@ -2160,182 +2159,33 @@ const KaraokeMaker = ({
         accept=".lrc,.elrc,.txt,text/plain"
         onChange={selectLyricsFile}
       />
-      <header className="karaoke-maker__header">
-        <div className="karaoke-maker__identity">
-          <button
-            className="karaoke-maker__header-icon karaoke-maker__header-back"
-            type="button"
-            onClick={onClose}
-            aria-label={t('karaoke.maker.close')}
-            data-tooltip={t('karaoke.maker.close')}
-          >
-            <KaraokeMakerToolIcon name="back" />
-          </button>
-          <div>
-            <span className="karaoke-maker__eyebrow">
-              {t('karaoke.maker.eyebrow')}
-            </span>
-            <input
-              className="karaoke-maker__title-input"
-              value={project.title}
-              aria-label={t('karaoke.maker.songTitle')}
-              onChange={(event) =>
-                commit((current) => ({
-                  ...current,
-                  title: event.target.value.slice(0, 2_000),
-                }))
-              }
-            />
-          </div>
-        </div>
-        <div
-          className="karaoke-maker__transport"
-          role="group"
-          aria-label={t('karaoke.transport.title')}
-        >
-          <div className="karaoke-maker__transport-buttons">
-            <button
-              className="karaoke-maker__transport-control"
-              type="button"
-              onClick={() => {
-                onSeek(0);
-                setViewStartMs(0);
-                setFollowViewport(true);
-              }}
-              aria-label={t('karaoke.maker.jumpToStart')}
-              data-tooltip={t('karaoke.maker.jumpToStart')}
-            >
-              <KaraokeTransportIcon name="previous" />
-            </button>
-            <button
-              className="karaoke-maker__transport-control"
-              type="button"
-              onClick={() => onSeek(Math.max(0, playheadMs - 5_000))}
-              aria-label={t('karaoke.maker.seekBack', { seconds: 5 })}
-              data-tooltip={t('karaoke.maker.seekBack', { seconds: 5 })}
-            >
-              <KaraokeTransportIcon name="previous" />
-              <small>5</small>
-            </button>
-            <button
-              className={`karaoke-maker__transport-control karaoke-maker__play${
-                isPlaying ? ' is-playing' : ''
-              }`}
-              type="button"
-              onClick={() => {
-                if (isPlaying) {
-                  onPause();
-                } else {
-                  Promise.resolve(onPlay()).catch(() => undefined);
-                }
-              }}
-              aria-label={t(
-                isPlaying
-                  ? 'karaoke.transport.pause'
-                  : 'karaoke.transport.play',
-              )}
-              aria-keyshortcuts="Space"
-              aria-pressed={isPlaying}
-              data-tooltip={t('karaoke.transport.spaceShortcut', {
-                action: t(
-                  isPlaying
-                    ? 'karaoke.transport.pause'
-                    : 'karaoke.transport.play',
-                ),
-              })}
-            >
-              <KaraokeTransportIcon name={isPlaying ? 'pause' : 'play'} />
-            </button>
-            <button
-              className="karaoke-maker__transport-control"
-              type="button"
-              onClick={() =>
-                onSeek(Math.min(effectiveDurationMs, playheadMs + 5_000))
-              }
-              aria-label={t('karaoke.maker.seekForward', { seconds: 5 })}
-              data-tooltip={t('karaoke.maker.seekForward', { seconds: 5 })}
-            >
-              <KaraokeTransportIcon name="next" />
-              <small>5</small>
-            </button>
-            <button
-              className="karaoke-maker__transport-control"
-              type="button"
-              onClick={() => {
-                onSeek(effectiveDurationMs);
-                setViewStartMs(maximumViewStartMs);
-                setFollowViewport(true);
-              }}
-              aria-label={t('karaoke.maker.jumpToEnd')}
-              data-tooltip={t('karaoke.maker.jumpToEnd')}
-            >
-              <KaraokeTransportIcon name="next" />
-            </button>
-          </div>
-          <div className="karaoke-maker__transport-time">
-            <time>{formatClock(visualPlayheadMs)}</time>
-            <span aria-hidden="true" />
-            <time>{formatClock(effectiveDurationMs)}</time>
-          </div>
-          <div
-            className={`karaoke-maker__tone-guide${
-              melodyTone.enabled ? ' is-enabled' : ''
-            }`}
-          >
-            <button
-              type="button"
-              className="karaoke-maker__transport-control"
-              disabled={!makerMelodyTarget || !melodyTone.isAvailable}
-              onClick={() => melodyTone.toggle().catch(() => undefined)}
-              aria-pressed={melodyTone.enabled}
-              aria-label={t(
-                melodyTone.enabled
-                  ? 'karaoke.pitch.toneDisable'
-                  : 'karaoke.pitch.toneEnable',
-              )}
-              data-tooltip={t('karaoke.pitch.toneGuide')}
-            >
-              <KaraokeTransportIcon name="volume" />
-            </button>
-            {melodyTone.enabled && (
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={melodyTone.volume}
-                aria-label={t('karaoke.pitch.toneVolume')}
-                aria-valuetext={`${Math.round(melodyTone.volume * 100)}%`}
-                onChange={(event) =>
-                  melodyTone.setVolume(Number(event.target.value))
-                }
-              />
-            )}
-          </div>
-        </div>
-        <KaraokeMakerHeaderActions
-          onUndo={undo}
-          canUndo={canUndo}
-          onRedo={redo}
-          canRedo={canRedo}
-          onRestore={() => setDestructiveAction('restore')}
-          onApply={() => {
-            const untimedCount = issues.filter(
-              (issue) => issue.code === 'untimed-word',
-            ).length;
-            if (untimedCount > 0) {
-              setNotice(
-                t('karaoke.maker.applyUntimed', { count: untimedCount }),
-              );
-              return;
-            }
-            onApply(project);
-            onClose();
-          }}
-          isFullScreen={isFullScreen}
-          onToggleFullScreen={onToggleFullScreen}
-        />
-      </header>
+      <KaraokeMakerHeader
+        canRedo={canRedo}
+        canUndo={canUndo}
+        commit={commit}
+        effectiveDurationMs={effectiveDurationMs}
+        isFullScreen={isFullScreen}
+        isPlaying={isPlaying}
+        issues={issues}
+        makerMelodyTarget={makerMelodyTarget}
+        maximumViewStartMs={maximumViewStartMs}
+        melodyTone={melodyTone}
+        onApply={onApply}
+        onClose={onClose}
+        onPause={onPause}
+        onPlay={onPlay}
+        onSeek={onSeek}
+        onToggleFullScreen={onToggleFullScreen}
+        playheadMs={playheadMs}
+        project={project}
+        redo={redo}
+        setDestructiveAction={setDestructiveAction}
+        setFollowViewport={setFollowViewport}
+        setNotice={setNotice}
+        setViewStartMs={setViewStartMs}
+        undo={undo}
+        visualPlayheadMs={visualPlayheadMs}
+      />
 
       <div ref={toolsRef} className="karaoke-maker__tools">
         <div className="karaoke-maker__tool-group">
