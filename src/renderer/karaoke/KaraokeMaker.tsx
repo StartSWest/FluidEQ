@@ -94,6 +94,7 @@ import KaraokeMakerInspector from './KaraokeMakerInspector';
 import { useMakerProjectFiles } from './useMakerProjectFiles';
 import { useMakerLyricsActions } from './useMakerLyricsActions';
 import { useMakerToolModes } from './useMakerToolModes';
+import KaraokeMakerTimingSliders from './KaraokeMakerTimingSliders';
 import { useMakerLyricsEditing } from './useMakerLyricsEditing';
 import { flattenTokens } from './makerProjectEdits';
 import {
@@ -1561,78 +1562,13 @@ const KaraokeMaker = ({
     wordAuditionTimerRef,
   });
 
-  const renderSelectedWordTimingSliders = (idPrefix: string) => {
-    if (!selectedTokenTimingControls) {
-      return (
-        <div className="karaoke-maker__word-timing-sliders is-disabled">
-          <span>{t('karaoke.maker.untimed')}</span>
-          <small>{t('karaoke.maker.wordTimingSliderHint')}</small>
-        </div>
-      );
-    }
-    const positionMinimum = Math.round(
-      selectedTokenTimingControls.minimumStartMs,
-    );
-    const positionMaximum = Math.max(
-      positionMinimum,
-      Math.round(selectedTokenTimingControls.maximumStartMs),
-    );
-    const durationMaximum = Math.max(
-      selectedTokenTimingControls.minimumDurationMs,
-      Math.round(selectedTokenTimingControls.maximumDurationMs),
-    );
-    return (
-      <div className="karaoke-maker__word-timing-sliders">
-        <label htmlFor={`${idPrefix}-position`}>
-          <span>
-            {t('karaoke.maker.wordPosition')}
-            <output>{formatClock(selectedTokenTimingControls.startMs)}</output>
-          </span>
-          <input
-            id={`${idPrefix}-position`}
-            type="range"
-            min={positionMinimum}
-            max={positionMaximum}
-            step={10}
-            value={Math.round(selectedTokenTimingControls.startMs)}
-            disabled={!selectedTokenTimingControls.canResizeStart}
-            onChange={(event) =>
-              updateSelectedTokenTiming({ startMs: Number(event.target.value) })
-            }
-          />
-        </label>
-        <label htmlFor={`${idPrefix}-length`}>
-          <span>
-            {t('karaoke.maker.wordDuration')}
-            <output>
-              {Math.round(selectedTokenTimingControls.durationMs)} ms
-            </output>
-          </span>
-          <input
-            id={`${idPrefix}-length`}
-            type="range"
-            min={selectedTokenTimingControls.minimumDurationMs}
-            max={durationMaximum}
-            step={10}
-            value={Math.max(
-              selectedTokenTimingControls.minimumDurationMs,
-              Math.min(
-                durationMaximum,
-                Math.round(selectedTokenTimingControls.durationMs),
-              ),
-            )}
-            disabled={!selectedTokenTimingControls.canResizeEnd}
-            onChange={(event) =>
-              updateSelectedTokenTiming({
-                durationMs: Number(event.target.value),
-              })
-            }
-          />
-        </label>
-        <small>{t('karaoke.maker.wordTimingSliderHint')}</small>
-      </div>
-    );
-  };
+  const renderSelectedWordTimingSliders = (idPrefix: string) => (
+    <KaraokeMakerTimingSliders
+      idPrefix={idPrefix}
+      selectedTokenTimingControls={selectedTokenTimingControls}
+      updateSelectedTokenTiming={updateSelectedTokenTiming}
+    />
+  );
 
   const renderLyricsModalWordInspector = () => (
     <KaraokeMakerWordInspector
