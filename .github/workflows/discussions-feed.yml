@@ -56,7 +56,7 @@ jobs:
                     comments(first: 50) {
                       totalCount
                       nodes {
-                        id bodyText createdAt url isAnswer
+                        id bodyText bodyHTML createdAt url isAnswer
                         author { login avatarUrl url }
                         replies(first: 20) {
                           nodes { id bodyText createdAt url author { login avatarUrl url } }
@@ -92,17 +92,31 @@ jobs:
             author: person(r.author),
           });
 
+          // A topic created through the site arrives here authored by the
+          // giscus bot: the bot opens the container, and the person's post is
+          // its first comment. The person is the author the page should show,
+          // and their comment is the real opening post.
+          const promoteGiscus = (node) => {
+            const comments = node.comments?.nodes ?? [];
+            if ((node.author?.login ?? '') !== 'giscus' || !comments.length) {
+              return { node, opening: null, rest: comments };
+            }
+            return { node, opening: comments[0], rest: comments.slice(1) };
+          };
+
           const feed = {
             generatedAt: new Date().toISOString(),
             total: repo.totalCount,
-            topics: repo.nodes.map((node) => ({
+            topics: repo.nodes.map((rawNode) => {
+              const { node, opening, rest } = promoteGiscus(rawNode);
+              return {
               number: node.number,
               title: node.title,
-              body: node.bodyText ?? '',
+              body: (opening ? opening.bodyText : node.bodyText) ?? '',
               // GitHub's own rendering of the markdown, sanitized by GitHub
               // before it ever leaves their API. The site runs its own
               // allowlist over it again before it touches the page.
-              bodyHtml: node.bodyHTML ?? '',
+              bodyHtml: (opening ? opening.bodyHTML : node.bodyHTML) ?? '',
               excerpt: (node.bodyText ?? '').replace(/\s+/g, ' ').slice(0, 220),
               createdAt: node.createdAt,
               updatedAt: node.updatedAt,
@@ -114,9 +128,9 @@ jobs:
               // is inside emojiHTML. The site renders text, so take the character.
               emoji: (node.category?.emojiHTML ?? '').replace(/<[^>]*>/g, '').trim(),
               answered: Boolean(node.answer),
-              replies: node.comments?.totalCount ?? 0,
-              author: person(node.author),
-              comments: (node.comments?.nodes ?? []).map((c) => ({
+              replies: Math.max(0, (node.comments?.totalCount ?? 0) - (opening ? 1 : 0)),
+              author: person(opening ? opening.author : node.author),
+              comments: rest.map((c) => ({
                 id: c.id,
                 body: c.bodyText ?? '',
                 createdAt: c.createdAt,
@@ -125,7 +139,8 @@ jobs:
                 author: person(c.author),
                 replies: (c.replies?.nodes ?? []).map(reply),
               })),
-            })),
+              };
+            }),
           };
 
           fs.mkdirSync('out', { recursive: true });
