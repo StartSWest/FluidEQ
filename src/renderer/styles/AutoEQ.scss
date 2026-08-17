@@ -123,10 +123,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // would be meeting the letter of the requirement while dodging the point.
   //
   // Still inside the fold, so it goes away with the rest of the section.
+  // A footer, so it is ruled off from the controls above rather than sitting
+  // among them.
   .opra-credit {
     display: grid;
-    padding: 2px 0 8px;
-    gap: 8px;
+    padding: 10px 0 2px;
+    border-top: 1px solid rgba($primary-lighter, 0.09);
+    margin-top: 4px;
+    gap: 10px;
     grid-template-columns: max-content 1fr;
     align-items: center;
 
@@ -144,10 +148,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   // Sized by height so the wordmark sits on the text's line rather than
   // dominating it. The asset is a wide landscape lockup, so the width follows.
+  // The mark is near-black on transparent, and this interface is dark, so on
+  // its own it is an invisible rectangle. It gets a plate to sit on rather than
+  // being inverted or recoloured: what the licence asks us to show is the OPRA
+  // logo, and a logo in colours its owner never published is a different mark.
+  // The padding is the plate's quiet zone, not decoration.
   .opra-credit__logo {
     width: auto;
-    height: 18px;
-    opacity: 0.85;
+    height: 22px;
+    padding: 7px 12px;
+    border-radius: 7px;
+    background: $white;
   }
 
   // Who made the curve that is actually applied — the other half of what the

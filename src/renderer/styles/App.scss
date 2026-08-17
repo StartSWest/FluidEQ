@@ -1328,7 +1328,7 @@ $tab-border: rgba($secondary-light, 0.2);
 }
 
 .workspace-tab-panel--eq,
-.workspace-tab-panel--autoeq,
+.workspace-tab-panel--presets,
 .workspace-tab-panel--convolution,
 .workspace-tab-panel--config,
 .workspace-tab-panel--video,
@@ -1431,7 +1431,7 @@ $tab-border: rgba($secondary-light, 0.2);
 // tabs on one behaviour, and the gutter is what stops the content shifting
 // sideways as the bar appears.
 .workspace-tab-panel--convolution,
-.workspace-tab-panel--autoeq,
+.workspace-tab-panel--presets,
 .workspace-tab-panel--config {
   min-height: 0;
   flex: 1 1 auto;

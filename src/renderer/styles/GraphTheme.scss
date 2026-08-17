@@ -350,7 +350,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // installed at all. Keep everything visible and readable for context, but make
 // both workspaces unmistakably idle.
 .workspace-tab-panel--eq.is-engine-disabled,
-.workspace-tab-panel--autoeq.is-engine-disabled,
+.workspace-tab-panel--presets.is-engine-disabled,
 .workspace-tab-panel--convolution.is-engine-disabled {
   opacity: 0.46;
   filter: saturate(0.35);
@@ -374,7 +374,7 @@ it under the terms of the GNU General Public License version 3 or later.
 .workspace-tab-panel--eq.is-engine-disabled > .main-content,
 // AutoEQ, voicing and convolution each own their whole panel, so the whole
 // panel is what goes inert.
-.workspace-tab-panel--autoeq.is-engine-disabled > .autoeq-panel,
+.workspace-tab-panel--presets.is-engine-disabled > .autoeq-panel,
 .workspace-tab-panel--convolution.is-engine-disabled > .voicing-panel,
 .workspace-tab-panel--convolution.is-engine-disabled > .convolution-panel,
 // A descendant, not a child.

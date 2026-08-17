@@ -122,13 +122,18 @@ it under the terms of the GNU General Public License version 3 or later.
 // licence asks of anything that browses the database. Given a little more air
 // here than it gets in the pane.
 .autoeq-panel__picker .sidebar-section .opra-credit {
-  max-width: 62ch;
-  padding-bottom: 12px;
-  gap: 10px;
+  max-width: 78ch;
+  padding: 12px 0 4px;
+  gap: 14px;
 }
 
+// Bigger here than in the pane, plate and quiet zone scaling with it. The tab
+// has the width to carry it, and this is the surface the licence is actually
+// asking about — the one where somebody browses the database.
 .autoeq-panel__picker .sidebar-section .opra-credit__logo {
-  height: 22px;
+  height: 34px;
+  padding: 9px 16px;
+  border-radius: 9px;
 }
 
 // *** The pickers themselves *************************************************
@@ -176,11 +181,16 @@ it under the terms of the GNU General Public License version 3 or later.
   grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
 }
 
+// Two hints, not two cards.
+//
+// They were recessed wells, which gave a sentence of help the same visual
+// weight as the picker it explains — two more boxes on a page that already has
+// the picker card and the Squiglink card. Sitting directly under the controls
+// they annotate, they need no container of their own to be found.
 .autoeq-guide {
-  @include inset-surface;
   display: grid;
   min-width: 0;
-  padding: 12px 14px 13px;
+  padding: 0 2px;
   gap: 3px 9px;
   grid-template-columns: auto minmax(0, 1fr);
 

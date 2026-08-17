@@ -333,21 +333,6 @@ const OpraPicker = () => {
         </div>
       }
     >
-      {/*
-        Required, not decorative. OPRA's data is CC BY-SA 4.0 and the licence
-        asks anything that browses the database to show the mark, say what the
-        project is, and link to it. The per-curve credit under each target does
-        the other half.
-      */}
-      <div className="opra-credit">
-        <img src={opraLogo} alt="OPRA" className="opra-credit__logo" />
-        <p>
-          {t('opra.about')}{' '}
-          <a href={OPRA_URL} target="_blank" rel="noreferrer">
-            {t('opra.seeHere')}
-          </a>
-        </p>
-      </div>
       <div className="auto-eq">
         <div className="autoeq-field autoeq-field--model">
           <span className="autoeq-field__title">{t('autoeq.model')}</span>
@@ -434,6 +419,27 @@ const OpraPicker = () => {
             {isUpdating ? t('autoeq.updating') : t('autoeq.update')}
           </Button>
         )}
+      </div>
+      {/*
+        Required, not decorative. OPRA's data is CC BY-SA 4.0 and the licence
+        asks anything that browses the database to show the mark, say what the
+        project is, and link to it. The per-curve credit above does the other
+        half, naming whoever made the curve that is actually applied.
+
+        At the foot of the card rather than the head of it. The requirement is
+        that this is on the surface where the database is browsed, not that it
+        is the first thing on it — and above the pickers a mark, three lines of
+        description and a link pushed the two controls somebody came here to use
+        most of the way down the card.
+      */}
+      <div className="opra-credit">
+        <img src={opraLogo} alt="OPRA" className="opra-credit__logo" />
+        <p>
+          {t('opra.about')}{' '}
+          <a href={OPRA_URL} target="_blank" rel="noreferrer">
+            {t('opra.seeHere')}
+          </a>
+        </p>
       </div>
     </SidebarSection>
   );

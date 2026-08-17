@@ -40,7 +40,11 @@ const GUIDE: { title: TranslationKey; hint: TranslationKey }[] = [
  * tab of its own can only empty the page.
  *
  * The two sections are the two ways a curve gets here: OPRA's bundled library
- * above, and a Squiglink export somebody pasted in below.
+ * above, and a Squiglink export somebody pasted in below. The numbered guide
+ * belongs to the first of them and sits directly under it, because it names
+ * that section's two controls — "Headphone model" and "Measurement / target".
+ * Below the Squiglink card it read as Squiglink's own steps, which is a set of
+ * instructions for the wrong feature.
  */
 const EqPresetsPanel = () => {
   const { t } = useTranslation();
@@ -57,8 +61,6 @@ const EqPresetsPanel = () => {
         <OpraPicker />
       </div>
 
-      <SquiglinkImport />
-
       <div className="autoeq-panel__guide">
         {GUIDE.map((step, index) => (
           <article className="autoeq-guide" key={step.title}>
@@ -73,6 +75,8 @@ const EqPresetsPanel = () => {
           </article>
         ))}
       </div>
+
+      <SquiglinkImport />
     </section>
   );
 };
