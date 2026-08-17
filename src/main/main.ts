@@ -840,6 +840,21 @@ const presetDirForDevice = (deviceId: string) => {
     presetPath,
     createHash('sha1').update(deviceId).digest('hex').slice(0, 12),
   );
+  // No output, no folder.
+  //
+  // The renderer asks for the profile list as it mounts, which is before any
+  // device has been resolved, so this ran with an empty id — and hashing the
+  // empty string is a perfectly good hash. Every install ended up with a
+  // `da39a3ee5e6b` directory that could never hold a profile, because no output
+  // will ever have that id. Found by looking in a real profile directory.
+  //
+  // The path is still returned rather than thrown, because the caller asking is
+  // a list that should come back empty, not an error: reading a directory that
+  // is not there fails the same way as reading an empty one, and the profiles
+  // bar already draws nothing until an output is known.
+  if (!deviceId) {
+    return dir;
+  }
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
