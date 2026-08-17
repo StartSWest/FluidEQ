@@ -93,6 +93,7 @@ import KaraokeMakerWhisperConsent from './KaraokeMakerWhisperConsent';
 import KaraokeMakerInspector from './KaraokeMakerInspector';
 import { useMakerProjectFiles } from './useMakerProjectFiles';
 import { useMakerLyricsActions } from './useMakerLyricsActions';
+import { useMakerToolModes } from './useMakerToolModes';
 import { useMakerLyricsEditing } from './useMakerLyricsEditing';
 import { flattenTokens } from './makerProjectEdits';
 import {
@@ -1673,70 +1674,42 @@ const KaraokeMaker = ({
     />
   );
 
-  const toggleToolPanel = (panel: 'timing' | 'edit' | 'analysis') => {
-    setExportOpen(false);
-    setToolPanel((current) => (current === panel ? undefined : panel));
-  };
-
-  const startLineEntrySync = (preferredTokenId = selectedToken?.id) => {
-    if (!tokens.length) {
-      return;
-    }
-    const preferredWordIndex = preferredTokenId
-      ? tokens.findIndex((token) => token.id === preferredTokenId)
-      : -1;
-    const firstUntimed = tokens.findIndex(
-      (token) => token.startMs === undefined,
-    );
-    let wordIndex = 0;
-    if (preferredWordIndex >= 0) {
-      wordIndex = preferredWordIndex;
-    } else if (firstUntimed >= 0) {
-      wordIndex = firstUntimed;
-    }
-    const lineIndex = Math.max(
-      0,
-      lyricLines.findIndex((line) =>
-        line.tokens.some((token) => token.id === tokens[wordIndex]?.id),
-      ),
-    );
-    const target = lyricLines[lineIndex]?.tokens[0];
-    if (!target) {
-      return;
-    }
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-    setLyricsOpen(false);
-    setLineEntryMode(true);
-    clearLineEntryCountdown();
-    setLineEntrySession('setup');
-    setLineEntryCapture(undefined);
-    setLineEntryIndex(lineIndex);
-    setSelection({ kind: 'word', id: target.id });
-    setHandPanMode(false);
-    setIsCanvasPanning(false);
-    setIsCanvasScrubbing(false);
-    gesture.pan.current = undefined;
-    cancelAudibleInteractions();
-    setPreviewOpen(true);
-    setFollowViewport(true);
-    setLyricFollowRequestKey((key) => key + 1);
-    if (target.startMs !== undefined) {
-      const preRollMs = Math.max(0, target.startMs - 1_000);
-      onSeek(preRollMs);
-      setViewStartMs(
-        Math.max(
-          0,
-          Math.min(
-            maximumViewStartMs,
-            target.startMs - visibleViewDurationMs * 0.3,
-          ),
-        ),
-      );
-    }
-    setToolPanel(undefined);
-  };
+  const {
+    startLineEntrySync,
+    stopLineEntryRecording,
+    toggleHandPanMode,
+    toggleLineEntryMode,
+    toggleNoteEditMode,
+    toggleToolPanel,
+  } = useMakerToolModes({
+    cancelAudibleInteractions,
+    clearLineEntryCountdown,
+    gesture,
+    lineEntryMode,
+    lyricLines,
+    maximumViewStartMs,
+    onPause,
+    onSeek,
+    selectedToken,
+    setExportOpen,
+    setFollowViewport,
+    setHandPanMode,
+    setIsCanvasPanning,
+    setIsCanvasScrubbing,
+    setLineEntryCapture,
+    setLineEntryIndex,
+    setLineEntryMode,
+    setLineEntrySession,
+    setLyricFollowRequestKey,
+    setLyricsOpen,
+    setNoteEditMode,
+    setPreviewOpen,
+    setSelection,
+    setToolPanel,
+    setViewStartMs,
+    tokens,
+    visibleViewDurationMs,
+  });
 
   const {
     cancelAnalysis,
@@ -1774,57 +1747,6 @@ const KaraokeMaker = ({
     t,
     tokens,
   });
-
-  const stopLineEntryRecording = () => {
-    onPause();
-    clearLineEntryCountdown();
-    setLineEntryCapture(undefined);
-    setLineEntrySession('setup');
-    setLineEntryMode(false);
-  };
-
-  const toggleLineEntryMode = () => {
-    if (lineEntryMode) {
-      stopLineEntryRecording();
-      return;
-    }
-    startLineEntrySync();
-  };
-
-  const toggleHandPanMode = () => {
-    setHandPanMode((active) => !active);
-    setNoteEditMode(undefined);
-    gesture.selectionBox.current = undefined;
-    gesture.notePaintDraft.current = undefined;
-    gesture.noteLinkDrag.current = undefined;
-    setLineEntryMode(false);
-    clearLineEntryCountdown();
-    setLineEntryCapture(undefined);
-    setIsCanvasPanning(false);
-    setIsCanvasScrubbing(false);
-    gesture.pan.current = undefined;
-    cancelAudibleInteractions();
-    gesture.drag.current = undefined;
-    setToolPanel(undefined);
-  };
-
-  const toggleNoteEditMode = (mode: 'select' | 'paint') => {
-    setNoteEditMode((current) => (current === mode ? undefined : mode));
-    setHandPanMode(false);
-    setLineEntryMode(false);
-    clearLineEntryCountdown();
-    setLineEntryCapture(undefined);
-    setIsCanvasPanning(false);
-    setIsCanvasScrubbing(false);
-    gesture.pan.current = undefined;
-    gesture.scrub.current = undefined;
-    gesture.drag.current = undefined;
-    gesture.selectionBox.current = undefined;
-    gesture.notePaintDraft.current = undefined;
-    gesture.noteLinkDrag.current = undefined;
-    cancelAudibleInteractions();
-    setToolPanel(undefined);
-  };
 
   const editTools = (
     <KaraokeMakerEditTools
