@@ -67,6 +67,7 @@ import {
 import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
 import { useGraphLook, useLiveOutputSolo } from 'renderer/utils/graphStyle';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
+import { useLookPreviewPoints } from './lookPreview';
 import { IChartPointData, ILiveCurveData } from './ChartController';
 import {
   ACCENT_CORE_OPACITY,
@@ -230,7 +231,7 @@ const LiveTraceCanvas = ({
 }: ILiveTraceCanvasProps) => {
   // The measurement, straight from the analyser. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
-  const { points } = useLiveAudioFrame();
+  const { points: livePoints } = useLiveAudioFrame();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // Held rather than fetched per frame: the computed style is a live object
@@ -252,6 +253,13 @@ const LiveTraceCanvas = ({
   const isSolo = useLiveOutputSolo();
   const isSoloRef = useRef(isSolo);
   isSoloRef.current = isSolo;
+
+  // Picking a look against silence shows nothing, so changing one plays a
+  // single frame of spectrum and then lets go. Placed here rather than at the
+  // source because it is a property of the drawing, not of the measurement:
+  // nothing else reading the analyser — the meter, the Smart EQ solver, the
+  // rhythm game — should ever see an invented frame.
+  const points = useLookPreviewPoints(livePoints, look.id);
 
   // The points, eased toward each new measurement between measurements.
   //
