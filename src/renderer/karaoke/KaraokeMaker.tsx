@@ -86,7 +86,6 @@ import {
 } from './makerAnalysis';
 import {
   KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
-  WHISPER_MODEL,
   IKaraokeMakerDownloadSummary,
   TKaraokeMakerWhisperStage,
   getKaraokeWhisperSessionSnapshot,
@@ -104,6 +103,9 @@ import KaraokeMakerSelectionInfo from './KaraokeMakerSelectionInfo';
 import KaraokeMakerLyricsDialog from './KaraokeMakerLyricsDialog';
 import KaraokeMakerHeader from './KaraokeMakerHeader';
 import KaraokeMakerToolbar from './KaraokeMakerToolbar';
+import KaraokeMakerAnalysisPanels from './KaraokeMakerAnalysisPanels';
+import KaraokeMakerWhisperConsent from './KaraokeMakerWhisperConsent';
+import KaraokeMakerInspector from './KaraokeMakerInspector';
 import { useMakerLyricsEditing } from './useMakerLyricsEditing';
 import { flattenTokens } from './makerProjectEdits';
 import {
@@ -2455,203 +2457,28 @@ const KaraokeMaker = ({
         onToggle={() => setPreviewOpen((current) => !current)}
       />
 
-      <footer className="karaoke-maker__inspector">
-        <div className="karaoke-maker__fields">
-          <label htmlFor={`${controlId}-artist`}>
-            {t('karaoke.maker.artist')}
-            <input
-              id={`${controlId}-artist`}
-              value={project.artist ?? ''}
-              onChange={(event) =>
-                commit((current) => ({
-                  ...current,
-                  artist: event.target.value.slice(0, 2_000) || undefined,
-                }))
-              }
-            />
-          </label>
-          <label htmlFor={`${controlId}-bpm`}>
-            {t('karaoke.maker.bpm')}
-            <input
-              id={`${controlId}-bpm`}
-              type="number"
-              min="20"
-              max="400"
-              value={project.meta.bpm ?? ''}
-              onChange={(event) =>
-                commit((current) => ({
-                  ...current,
-                  meta: {
-                    ...current.meta,
-                    bpm: event.target.value
-                      ? Number(event.target.value)
-                      : undefined,
-                  },
-                }))
-              }
-            />
-          </label>
-        </div>
-        <label
-          className="karaoke-maker__rights"
-          htmlFor={`${controlId}-rights`}
-        >
-          <input
-            id={`${controlId}-rights`}
-            type="checkbox"
-            checked={project.meta.rightsConfirmed}
-            onChange={(event) =>
-              commit((current) => ({
-                ...current,
-                meta: {
-                  ...current.meta,
-                  rightsConfirmed: event.target.checked,
-                },
-              }))
-            }
-          />
-          {t('karaoke.maker.rights')}
-        </label>
-      </footer>
+      <KaraokeMakerInspector
+        commit={commit}
+        controlId={controlId}
+        project={project}
+      />
 
-      {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED &&
-        analysisProgress !== undefined &&
-        !lyricsOpen && (
-          <div className="karaoke-maker__analysis-progress" role="status">
-            <div className="karaoke-maker__analysis-progress-copy">
-              <KaraokeMakerToolIcon name="transcribe" />
-              <div>
-                <div className="karaoke-maker__analysis-progress-heading">
-                  <strong>
-                    {analysisMessage ?? t('karaoke.maker.localAnalysis')}
-                  </strong>
-                  {analysisProgressIsIndeterminate ? (
-                    <span
-                      className="karaoke-maker__analysis-activity"
-                      aria-hidden="true"
-                    >
-                      <i />
-                      <i />
-                      <i />
-                    </span>
-                  ) : (
-                    <span>{Math.round(displayedAnalysisProgress * 100)}%</span>
-                  )}
-                </div>
-              </div>
-            </div>
-            {renderWhisperDownloadDetails()}
-            {whisperStage && (
-              <ol
-                className="karaoke-maker__whisper-stages"
-                aria-label={t('karaoke.maker.whisperPreparing')}
-              >
-                {visibleWhisperStages.map((stageName, index) => {
-                  const activeIndex =
-                    whisperStage === 'complete'
-                      ? visibleWhisperStages.length
-                      : visibleWhisperStages.indexOf(whisperStage);
-                  const complete = index < activeIndex;
-                  const active = index === activeIndex;
-                  let label = t('karaoke.maker.whisperTranscribing');
-                  if (stageName === 'decode') {
-                    label = t('karaoke.maker.whisperDecoding');
-                  } else if (stageName === 'download') {
-                    label = t('karaoke.maker.downloadingWhisper');
-                  } else if (stageName === 'load') {
-                    label = t('karaoke.maker.loadingWhisper');
-                  }
-                  return (
-                    <li
-                      key={stageName}
-                      className={`${complete ? 'is-complete' : ''} ${
-                        active ? 'is-active' : ''
-                      }`}
-                    >
-                      <span aria-hidden="true">
-                        {complete ? '✓' : index + 1}
-                      </span>
-                      <em>{label}</em>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-            <div
-              className={`karaoke-maker__analysis-progress-bar ${
-                analysisProgressIsIndeterminate ? 'is-indeterminate' : ''
-              }`}
-              role="progressbar"
-              aria-label={
-                analysisMessage ?? t('karaoke.maker.whisperPreparing')
-              }
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={
-                analysisProgressIsIndeterminate
-                  ? undefined
-                  : Math.round(displayedAnalysisProgress * 100)
-              }
-            >
-              <span
-                style={
-                  analysisProgressIsIndeterminate
-                    ? undefined
-                    : { width: `${displayedAnalysisProgress * 100}%` }
-                }
-              />
-            </div>
-            <button type="button" onClick={cancelAnalysis}>
-              {t('karaoke.maker.cancel')}
-            </button>
-          </div>
-        )}
-      {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED &&
-        analysisProgress === undefined &&
-        analysisError && (
-          <div
-            className="karaoke-maker__analysis-error"
-            role="alert"
-            aria-live="assertive"
-          >
-            <div
-              className="karaoke-maker__analysis-error-icon"
-              aria-hidden="true"
-            >
-              !
-            </div>
-            <div>
-              <strong>
-                {analysisRetry === 'whisper'
-                  ? t('karaoke.maker.downloadFailed')
-                  : t('karaoke.maker.localAnalysisFailed')}
-              </strong>
-              <span>{analysisError}</span>
-            </div>
-            <div className="karaoke-maker__analysis-error-actions">
-              {analysisRetry !== undefined && (
-                <button
-                  type="button"
-                  className="karaoke-maker__analysis-error-retry"
-                  onClick={() => runWhisper().catch(() => undefined)}
-                >
-                  {t('karaoke.maker.tryAgain')}
-                </button>
-              )}
-              <button
-                type="button"
-                className="karaoke-maker__analysis-error-close"
-                onClick={() => {
-                  setAnalysisError(undefined);
-                  setAnalysisRetry(undefined);
-                }}
-                aria-label={t('karaoke.maker.dismiss')}
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        )}
+      <KaraokeMakerAnalysisPanels
+        analysisError={analysisError}
+        analysisMessage={analysisMessage}
+        analysisProgress={analysisProgress}
+        analysisProgressIsIndeterminate={analysisProgressIsIndeterminate}
+        analysisRetry={analysisRetry}
+        cancelAnalysis={cancelAnalysis}
+        displayedAnalysisProgress={displayedAnalysisProgress}
+        lyricsOpen={lyricsOpen}
+        renderWhisperDownloadDetails={renderWhisperDownloadDetails}
+        runWhisper={runWhisper}
+        setAnalysisError={setAnalysisError}
+        setAnalysisRetry={setAnalysisRetry}
+        visibleWhisperStages={visibleWhisperStages}
+        whisperStage={whisperStage}
+      />
       {analysisProgress === undefined && !analysisError && notice && (
         <div className="karaoke-maker__notice" role="status" aria-live="polite">
           <span>{notice}</span>
@@ -2705,44 +2532,13 @@ const KaraokeMaker = ({
         />
       )}
       {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && whisperConsentOpen && (
-        <div className="karaoke-maker__modal-backdrop" role="presentation">
-          <div
-            className="karaoke-maker__consent-modal"
-            role="dialog"
-            aria-label={t('karaoke.maker.transcriptionTitle')}
-          >
-            <span className="karaoke-maker__eyebrow">
-              {t('karaoke.maker.transcriptionEyebrow')}
-            </span>
-            <h2>{t('karaoke.maker.transcriptionTitle')}</h2>
-            <p>
-              {t('karaoke.maker.transcriptionBody', {
-                model: WHISPER_MODEL,
-              })}
-            </p>
-            <p>{t('karaoke.maker.transcriptionReview')}</p>
-            <div className="karaoke-maker__modal-actions">
-              <button
-                type="button"
-                onClick={() => {
-                  prepareAfterWhisperRef.current = false;
-                  lyricsWorkflowActiveRef.current = false;
-                  setLyricsWorkflowActive(false);
-                  setWhisperConsentOpen(false);
-                }}
-              >
-                {t('karaoke.maker.notNow')}
-              </button>
-              <button
-                className="is-primary"
-                type="button"
-                onClick={() => runWhisper().catch(() => undefined)}
-              >
-                {t('karaoke.maker.downloadPrepare')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <KaraokeMakerWhisperConsent
+          lyricsWorkflowActiveRef={lyricsWorkflowActiveRef}
+          prepareAfterWhisperRef={prepareAfterWhisperRef}
+          runWhisper={runWhisper}
+          setLyricsWorkflowActive={setLyricsWorkflowActive}
+          setWhisperConsentOpen={setWhisperConsentOpen}
+        />
       )}
     </div>
   );
