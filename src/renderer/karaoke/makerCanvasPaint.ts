@@ -67,6 +67,7 @@ export interface IMakerCanvasPaint {
   selectedNoteIds: Set<string>;
   canvasLyricWords: ICanvasLyricWord[];
   canvasSectionGroups: ReturnType<typeof karaokeMakerSectionGroups>;
+  stemWaveforms?: { vocals: number[]; instrumental: number[] };
   activeLyricFocus: ReturnType<typeof karaokeMakerLyricFocus>;
   activeLyricWordId?: string;
   hoveredEditHandle?: {
@@ -111,6 +112,7 @@ export const paintMakerCanvas = ({
   selectedNoteIds,
   canvasLyricWords,
   canvasSectionGroups,
+  stemWaveforms,
   activeLyricFocus,
   activeLyricWordId,
   hoveredEditHandle,
@@ -147,6 +149,7 @@ export const paintMakerCanvas = ({
     lyricSectionTop,
     project,
     canvasSectionGroups,
+    stemWaveforms,
     viewStartMs,
     visibleViewDurationMs,
     effectiveDurationMs,

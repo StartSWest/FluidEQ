@@ -32,6 +32,15 @@ interface IUseMakerSeparationOptions {
    * way it already does for Whisper and Basic Pitch.
    */
   recordProvenance: (records: readonly IKaraokeMakerLicenseRecord[]) => void;
+  /**
+   * Both stems, the moment a split succeeds.
+   *
+   * This is how the stems leave the Maker: the workspace swaps the playing
+   * song's audio for the instrumental and files the voice beside it as a
+   * `vocals` asset — the pair the player's guide-vocal fader is built on.
+   * Without this call the split would exist only inside the editor.
+   */
+  onStems?: (stems: { vocals: File; instrumental: File }) => void;
 }
 
 const STAGE_MESSAGE: Record<TSeparationStage, TranslationKey> = {
@@ -64,6 +73,7 @@ export const useMakerSeparation = ({
   localizeMakerError,
   t,
   recordProvenance,
+  onStems,
 }: IUseMakerSeparationOptions) => {
   const abortRef = useRef<AbortController | undefined>(undefined);
   const [isSeparating, setIsSeparating] = useState(false);
@@ -108,6 +118,7 @@ export const useMakerSeparation = ({
         SEPARATION_MODEL_PROVENANCE,
         SEPARATION_RUNTIME_PROVENANCE,
       ]);
+      onStems?.({ vocals: result.vocals, instrumental: result.instrumental });
       setNotice(t('karaoke.maker.separationDone'));
       return result;
     } catch (error) {
@@ -136,6 +147,7 @@ export const useMakerSeparation = ({
   }, [
     audioFile,
     localizeMakerError,
+    onStems,
     recordProvenance,
     setAnalysisFile,
     setAnalysisMessage,

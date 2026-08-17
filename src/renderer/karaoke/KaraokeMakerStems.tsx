@@ -4,8 +4,76 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
+import { useEffect, useRef } from 'react';
 import { useTranslation } from '../utils/I18nContext';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
+
+/**
+ * One stem drawn as a waveform.
+ *
+ * This is the proof a split worked, in the only language that needs no
+ * reading: the voice shows phrases with silence between them, the backing
+ * track shows the song's whole shape. Two named rows with Save buttons say a
+ * split happened; two visibly different waveforms say what it did.
+ */
+const StemWave = ({ file }: { file: File }) => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const canvas = canvasRef.current;
+      if (!canvas) {
+        return;
+      }
+      const context = new OfflineAudioContext(1, 1, 44_100);
+      const decoded = await context.decodeAudioData(await file.arrayBuffer());
+      if (cancelled) {
+        return;
+      }
+      const samples = decoded.getChannelData(0);
+      const { width } = canvas;
+      const { height } = canvas;
+      const paint = canvas.getContext('2d');
+      if (!paint) {
+        return;
+      }
+      paint.clearRect(0, 0, width, height);
+      paint.fillStyle = 'rgba(30, 215, 199, 0.75)';
+      const bucket = Math.max(1, Math.floor(samples.length / width));
+      const middle = height / 2;
+      for (let x = 0; x < width; x += 1) {
+        let peak = 0;
+        const start = x * bucket;
+        // Every 16th sample is plenty for a thumbnail and 16x cheaper.
+        for (let i = start; i < start + bucket && i < samples.length; i += 16) {
+          const magnitude = Math.abs(samples[i]);
+          if (magnitude > peak) {
+            peak = magnitude;
+          }
+        }
+        const half = Math.max(1, peak * middle);
+        paint.fillRect(x, middle - half, 1, half * 2);
+      }
+    })().catch(() => {
+      // A stem that cannot be decoded simply has no picture; the row, its
+      // name and its Save button still work.
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [file]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="karaoke-maker__stem-wave"
+      width={560}
+      height={36}
+      aria-hidden="true"
+    />
+  );
+};
 
 interface IKaraokeMakerStemsProps {
   /** The backing track, once a song has been split. */
@@ -111,6 +179,7 @@ const KaraokeMakerStems = ({
               >
                 {t('karaoke.maker.stemSave')}
               </button>
+              <StemWave file={track.file as File} />
             </li>
           ))}
       </ul>

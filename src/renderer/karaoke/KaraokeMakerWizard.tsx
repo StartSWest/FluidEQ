@@ -20,6 +20,8 @@ interface IKaraokeMakerWizardProps {
   onStart: () => void;
   onSkip: () => void;
   onCancel: () => void;
+  /** Close the dialog and let the run carry on under the progress card. */
+  onHide: () => void;
 }
 
 /**
@@ -42,6 +44,7 @@ const KaraokeMakerWizard = ({
   onStart,
   onSkip,
   onCancel,
+  onHide,
 }: IKaraokeMakerWizardProps) => {
   const { t } = useTranslation();
   const running = activeStep !== undefined;
@@ -121,13 +124,24 @@ const KaraokeMakerWizard = ({
         */}
         <div className="karaoke-maker__wizard-actions">
           {running ? (
-            <button
-              type="button"
-              className="button small subtle"
-              onClick={onCancel}
-            >
-              {t('karaoke.maker.wizardCancel')}
-            </button>
+            <>
+              {/*
+                The same escape the lyric detection has: the dialog goes away,
+                the work does not. The floating progress card in the corner
+                stays, with its own cancel, so dismissing this window is never
+                mistaken for stopping the run.
+              */}
+              <button type="button" className="button small" onClick={onHide}>
+                {t('karaoke.maker.wizardHide')}
+              </button>
+              <button
+                type="button"
+                className="button small subtle"
+                onClick={onCancel}
+              >
+                {t('karaoke.maker.wizardCancel')}
+              </button>
+            </>
           ) : (
             <>
               {/*

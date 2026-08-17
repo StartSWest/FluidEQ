@@ -6110,6 +6110,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   backdrop-filter: blur(18px);
 }
 
+// The stems panel floats where the analysis progress does — the work and its
+// result appear in the same corner — but lower, so the two can coexist while
+// the transcription step runs over a finished split.
+.karaoke-maker__stems-float {
+  position: absolute;
+  z-index: 21;
+  top: 124px;
+  right: 18px;
+  width: min(430px, calc(100% - 36px));
+  padding: 13px 14px;
+  background:
+    radial-gradient(circle at 15% 0, rgba(30, 215, 199, 0.12), transparent 55%),
+    rgba(5, 27, 41, 0.96);
+  border: 1px solid rgba($secondary-light, 0.31);
+  border-radius: 13px;
+  box-shadow:
+    0 18px 48px rgba($black, 0.42),
+    inset 0 1px rgba($white, 0.055);
+  backdrop-filter: blur(18px);
+}
+
 // The advanced-tools popover, split into "voice and music" and "lyrics and
 // timing". Flat, its five buttons read as interchangeable and the disabled
 // ones looked broken; grouped, the order is the instruction.
@@ -6188,6 +6209,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     height: 17px;
     flex: none;
   }
+}
+
+// The waveform spans its own row under the icon, name and Save button.
+.karaoke-maker__stem-wave {
+  grid-column: 1 / -1;
+  width: 100%;
+  height: 36px;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.25);
 }
 
 .karaoke-maker__stem-name {

@@ -313,6 +313,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.wizardStart': 'Настроить автоматически',
   'karaoke.maker.wizardSkip': 'Я сделаю сам',
   'karaoke.maker.wizardCancel': 'Остановить',
+  'karaoke.maker.wizardHide': 'Продолжить в фоне',
   'karaoke.maker.wizardCancelled': 'Остановлено. Готовое сохранено.',
   'karaoke.maker.vocalFocus': 'Фокус на центральном вокале',
   'karaoke.maker.export': 'Экспорт',

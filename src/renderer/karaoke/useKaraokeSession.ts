@@ -94,6 +94,8 @@ const materializeRestoredAudio = async (file: File): Promise<File> => {
 export const useKaraokeSession = (isActive: boolean) => {
   const audioRef = useRef<HTMLAudioElement>(null);
   const objectUrlRef = useRef<string | undefined>(undefined);
+  /** The backing track's URL once a song is separated; the element plays it. */
+  const instrumentalUrlRef = useRef<string | undefined>(undefined);
   const importRequestRef = useRef(0);
   const [song, setSong] = useState<IKaraokeSong>();
   const [status, setStatus] = useState<TKaraokePlaybackStatus>('empty');
@@ -116,6 +118,10 @@ export const useKaraokeSession = (isActive: boolean) => {
       URL.revokeObjectURL(objectUrlRef.current);
       objectUrlRef.current = undefined;
     }
+    if (instrumentalUrlRef.current) {
+      URL.revokeObjectURL(instrumentalUrlRef.current);
+      instrumentalUrlRef.current = undefined;
+    }
   }, []);
 
   const clear = useCallback(() => {
@@ -137,6 +143,34 @@ export const useKaraokeSession = (isActive: boolean) => {
 
   /** Replace only the parsed karaoke metadata while keeping the loaded audio alive. */
   const applySong = useCallback((nextSong: IKaraokeSong) => {
+    // A song that has been separated plays its backing track, not the mix.
+    // The swap happens here, in place, keeping the playhead and the playing
+    // state — the original `audio` asset is deliberately left alone, both as
+    // the imported file's identity and because the guide-vocal fader adds the
+    // voice back on top of whatever the element plays: over the instrumental
+    // that reconstructs the song, over the mix it would double the singer.
+    const instrumental = nextSong.assets.find(
+      (asset) => asset.role === 'instrumental',
+    );
+    const element = audioRef.current;
+    if (instrumental && element) {
+      const alreadySwapped =
+        instrumentalUrlRef.current !== undefined &&
+        element.src === instrumentalUrlRef.current;
+      if (!alreadySwapped) {
+        const wasPlaying = !element.paused;
+        const position = element.currentTime;
+        if (instrumentalUrlRef.current) {
+          URL.revokeObjectURL(instrumentalUrlRef.current);
+        }
+        instrumentalUrlRef.current = URL.createObjectURL(instrumental.file);
+        element.src = instrumentalUrlRef.current;
+        element.currentTime = position;
+        if (wasPlaying) {
+          element.play().catch(() => undefined);
+        }
+      }
+    }
     setSong(nextSong);
     setError(undefined);
     setWarning(undefined);

@@ -53,7 +53,10 @@ import KaraokeMakerConfirmDialog, {
   TDestructiveMakerAction,
 } from './KaraokeMakerConfirmDialog';
 import { useKaraokeMakerEditorView } from './useKaraokeMakerEditorView';
-import { IKaraokeMakerAnalysisResult } from './makerAnalysis';
+import {
+  extractKaraokeMakerWaveform,
+  IKaraokeMakerAnalysisResult,
+} from './makerAnalysis';
 import {
   autoAlignNewKaraokeMakerLyrics,
   karaokeMakerAnalysisNotesFromMelody,
@@ -124,6 +127,8 @@ interface IKaraokeMakerProps {
    */
   vocalLevel?: number;
   onVocalLevel?: (level: number) => void;
+  /** Receives both stems when a split succeeds, so the player can use them. */
+  onStems?: (stems: { vocals: File; instrumental: File }) => void;
   onSeek: (timeMs: number) => void;
   onPlay: () => Promise<void> | void;
   onPause: () => void;
@@ -143,6 +148,7 @@ const KaraokeMaker = ({
   readPlayheadMs,
   vocalLevel,
   onVocalLevel,
+  onStems,
   onSeek,
   onPlay,
   onPause,
@@ -855,6 +861,15 @@ const KaraokeMaker = ({
     viewStartMs,
   ]);
 
+  // Overview waves for the two stems, at the original's resolution, so the
+  // canvas can lay all three on one time axis. Declared before the render
+  // hook that consumes them; filled by an effect further down, where the
+  // separation state lives.
+  const [stemWaveforms, setStemWaveforms] = useState<{
+    vocals: number[];
+    instrumental: number[];
+  }>();
+
   useMakerCanvasRender({
     activeLyricFocus,
     activeLyricWordId,
@@ -862,6 +877,7 @@ const KaraokeMaker = ({
     canvasLyricWords,
     canvasRef,
     canvasSectionGroups,
+    stemWaveforms,
     controlLinkMode,
     effectiveDurationMs,
     gesture,
@@ -1200,6 +1216,7 @@ const KaraokeMaker = ({
     useMakerSeparation({
       audioFile,
       localizeMakerError,
+      onStems,
       recordProvenance: recordSeparationProvenance,
       setAnalysisFile,
       setAnalysisMessage,
@@ -1207,6 +1224,32 @@ const KaraokeMaker = ({
       setNotice,
       t,
     });
+
+  const stemVocalsFile = analysisFile === audioFile ? undefined : analysisFile;
+  useEffect(() => {
+    let cancelled = false;
+    if (!instrumental || !stemVocalsFile) {
+      setStemWaveforms(undefined);
+      return undefined;
+    }
+    (async () => {
+      const [vocalsWave, instrumentalWave] = await Promise.all([
+        extractKaraokeMakerWaveform(stemVocalsFile),
+        extractKaraokeMakerWaveform(instrumental),
+      ]);
+      if (!cancelled) {
+        setStemWaveforms({
+          vocals: vocalsWave.waveform,
+          instrumental: instrumentalWave.waveform,
+        });
+      }
+    })().catch(() => {
+      // No lanes rather than a broken canvas; the editor works without them.
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [instrumental, stemVocalsFile]);
 
   // Offered once per opening, and only for a song with nothing timed yet. The
   // ref stops a re-render from re-opening a dialog the user has dismissed.
@@ -1441,15 +1484,17 @@ const KaraokeMaker = ({
 
   const advancedAnalysisTools = (
     <>
+      {/*
+        The waves themselves live in the editor's timeline, on the shared time
+        axis; this popover keeps the housekeeping — saving a stem to disk and
+        the guide-vocal level.
+      */}
       <KaraokeMakerStems
         instrumental={instrumental}
-        vocals={analysisFile === audioFile ? undefined : analysisFile}
+        vocals={stemVocalsFile}
         vocalLevel={vocalLevel}
         onVocalLevel={onVocalLevel}
         onSave={saveStem}
-        isSeparating={isSeparating}
-        progress={analysisProgress}
-        message={analysisMessage}
       />
       <KaraokeMakerAnalysisTools
         isAnalysing={analysisProgress !== undefined || isSeparating}
@@ -1576,6 +1621,7 @@ const KaraokeMaker = ({
             runWizard().catch(() => undefined);
           }}
           onSkip={() => setWizardOpen(false)}
+          onHide={() => setWizardOpen(false)}
           onCancel={() => {
             cancelSeparation();
             cancelAnalysis();
@@ -1920,6 +1966,14 @@ const KaraokeMaker = ({
         project={project}
       />
 
+      {/*
+        On the editor surface, not in the Repair-tools popover. It lived there
+        first, and the wizard's finale was invisible: separation completed,
+        the dialog closed, and the stems it produced sat behind a closed menu —
+        which read as "it did nothing", the exact impression the whole panel
+        exists to prevent. It floats where the analysis progress does, so the
+        work and its result appear in the same place.
+      */}
       <KaraokeMakerAnalysisPanels
         analysisError={analysisError}
         analysisMessage={analysisMessage}

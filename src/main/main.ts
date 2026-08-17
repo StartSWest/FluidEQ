@@ -103,6 +103,7 @@ import { registerFiltersIpc } from './ipc/filters';
 import { registerLayersIpc } from './ipc/layers';
 import { registerPreampIpc } from './ipc/preamp';
 import { registerVideoIpc } from './ipc/video';
+import { registerKaraokeSeparation } from './karaokeSeparation';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerUpdatesIpc } from './ipc/updates';
 import {
@@ -1993,6 +1994,7 @@ registerPreampIpc({
 });
 
 registerVideoIpc();
+registerKaraokeSeparation();
 
 // The EQ chain, in two files rather than five hundred lines of this one.
 //

@@ -12,5 +12,7 @@
     "postinstall": "pnpm electron-rebuild && pnpm link-modules",
     "link-modules": "node -r ts-node/register ../../.erb/scripts/link-modules.ts"
   },
-  "dependencies": {}
+  "dependencies": {
+    "onnxruntime-node": "1.27.0"
+  }
 }

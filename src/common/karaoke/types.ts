@@ -55,12 +55,23 @@ export type TKaraokePitchTarget =
 export interface IKaraokeAsset {
   id: string;
   /**
-   * `vocals` is the isolated voice produced by separating the song, and it is
-   * a companion to `audio` rather than a replacement: the player keeps playing
-   * the backing track and blends this back in at whatever level the singer
-   * asks for. A song either has both or neither.
+   * `vocals` and `instrumental` are the two halves a separation produces, and
+   * they are companions to `audio` rather than replacements — `audio` keeps
+   * its identity as the file the user imported, which matters because the
+   * Maker is keyed on it and a swapped audio asset silently remounted the
+   * editor mid-session. When an instrumental is present the player's element
+   * plays it instead of the mix, and the voice is blended back in at whatever
+   * level the singer asks for. A song has both stems or neither.
    */
-  role: 'audio' | 'vocals' | 'video' | 'lyrics' | 'cdg' | 'midi' | 'soundfont';
+  role:
+    | 'audio'
+    | 'vocals'
+    | 'instrumental'
+    | 'video'
+    | 'lyrics'
+    | 'cdg'
+    | 'midi'
+    | 'soundfont';
   file: File;
   extension: string;
 }

@@ -83,10 +83,6 @@ const configuration: webpack.Configuration = {
       webpackPaths.srcRendererPath,
       'karaoke/whisper.worker.ts',
     ),
-    'karaoke-separation-worker': path.join(
-      webpackPaths.srcRendererPath,
-      'karaoke/separation.worker.ts',
-    ),
   },
 
   output: {

@@ -310,6 +310,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.wizardStart': '自動で準備',
   'karaoke.maker.wizardSkip': '自分で行う',
   'karaoke.maker.wizardCancel': '停止',
+  'karaoke.maker.wizardHide': 'バックグラウンドで続行',
   'karaoke.maker.wizardCancelled':
     '停止しました。完了した分は保持されています。',
   'karaoke.maker.vocalFocus': '中央ボーカルを強調',

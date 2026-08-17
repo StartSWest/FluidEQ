@@ -26,6 +26,7 @@ const wizard = (over: Record<string, unknown> = {}) => {
     onStart: jest.fn(),
     onSkip: jest.fn(),
     onCancel: jest.fn(),
+    onHide: jest.fn(),
     ...over,
   };
   show(
@@ -37,6 +38,7 @@ const wizard = (over: Record<string, unknown> = {}) => {
       onStart={props.onStart}
       onSkip={props.onSkip}
       onCancel={props.onCancel}
+      onHide={props.onHide}
     />,
   );
   return props;
@@ -206,5 +208,16 @@ describe('the Maker setup wizard', () => {
       'button',
       'small',
     );
+  });
+  it('can be dismissed while running without stopping the run', () => {
+    // The same escape the lyric detection has. Cancel means stop the work;
+    // this means only close the window — conflating them cost a user a
+    // finished 700 MB download once.
+    const { onHide, onCancel } = wizard({ activeStep: 'separate' });
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Continue in background' }),
+    );
+    expect(onHide).toHaveBeenCalledTimes(1);
+    expect(onCancel).not.toHaveBeenCalled();
   });
 });

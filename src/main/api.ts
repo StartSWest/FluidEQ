@@ -165,6 +165,39 @@ const exportKaraokeMakerFile = (request: IKaraokeMakerExportRequest) =>
 const revealVideoDownload = (filePath: string) =>
   ipcRenderer.invoke(VIDEO_DOWNLOAD_REVEAL, filePath) as Promise<boolean>;
 
+/**
+ * Split a decoded song into a vocal and an instrumental stem.
+ *
+ * Inference runs in the main process on the native ONNX runtime — the
+ * renderer decodes and draws, main computes. Four channels of Float32 samples
+ * cross this boundary each way; progress arrives separately through
+ * {@link onKaraokeSeparationProgress} because `invoke` has exactly one reply.
+ */
+const separateKaraokeVocals = (left: Float32Array, right: Float32Array) =>
+  ipcRenderer.invoke('karaoke-separate', { left, right }) as Promise<{
+    vocalsLeft: Float32Array;
+    vocalsRight: Float32Array;
+    musicLeft: Float32Array;
+    musicRight: Float32Array;
+    backend: string;
+  }>;
+
+const cancelKaraokeSeparation = () =>
+  ipcRenderer.send('karaoke-separate-cancel', []);
+
+const onKaraokeSeparationProgress = (
+  listener: (progress: { stage: string; fraction: number }) => void,
+) => {
+  const wrapped = (
+    _event: IpcRendererEvent,
+    progress: { stage: string; fraction: number },
+  ) => listener(progress);
+  ipcRenderer.on('karaoke-separate-progress', wrapped);
+  return () => {
+    ipcRenderer.removeListener('karaoke-separate-progress', wrapped);
+  };
+};
+
 export default {
   /**
    * What this build is running on, read once while the preload has a `process`.
@@ -198,6 +231,9 @@ export default {
     saveKaraokeMakerDraft,
     loadKaraokeMakerDraft,
     deleteKaraokeMakerDraft,
+    separateKaraokeVocals,
+    cancelKaraokeSeparation,
+    onKaraokeSeparationProgress,
     exportKaraokeMakerFile,
     revealVideoDownload,
   },

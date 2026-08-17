@@ -6,12 +6,8 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { SEPARATION_SAMPLE_RATE } from '../../../common/karaoke/separationDsp';
 import {
-  SEPARATION_CACHE,
-  SEPARATION_MODEL_URL,
-  SEPARATION_WEIGHTS_URL,
   emitSeparationSession,
   markSeparationDownloaded,
-  separationHasGpu,
 } from './separationModel';
 
 export interface ISeparationResult {
@@ -63,63 +59,6 @@ const decodeStereo = async (file: File) => {
   };
 };
 
-/**
- * Fetch one model file, reporting progress, and keep it in the cache.
- *
- * Read whole rather than streamed into place. Streaming a download through
- * `pipeline` crashes inside Node's HTTP parser when the disk is slower than
- * the socket, and while this is the renderer rather than main, the same shape
- * of bug is not worth courting for a file this size — every byte has to arrive
- * before the session can be created regardless.
- */
-const fetchModelFile = async (
-  url: string,
-  onBytes: (received: number, total: number) => void,
-  signal?: AbortSignal,
-): Promise<ArrayBuffer> => {
-  const cache =
-    typeof caches !== 'undefined'
-      ? await caches.open(SEPARATION_CACHE)
-      : undefined;
-  const cached = await cache?.match(url);
-  if (cached) {
-    return cached.arrayBuffer();
-  }
-  const response = await fetch(url, { signal });
-  if (!response.ok) {
-    throw new Error(
-      `The separation model could not be downloaded (${response.status}).`,
-    );
-  }
-  const total = Number(response.headers.get('content-length') ?? 0);
-  const reader = response.body?.getReader();
-  if (!reader) {
-    const buffer = await response.arrayBuffer();
-    await cache?.put(url, new Response(buffer));
-    return buffer;
-  }
-  const parts: Uint8Array[] = [];
-  let received = 0;
-  for (;;) {
-    // eslint-disable-next-line no-await-in-loop
-    const { done, value } = await reader.read();
-    if (done) {
-      break;
-    }
-    parts.push(value);
-    received += value.length;
-    onBytes(received, total);
-  }
-  const buffer = new Uint8Array(received);
-  let offset = 0;
-  parts.forEach((part) => {
-    buffer.set(part, offset);
-    offset += part.length;
-  });
-  await cache?.put(url, new Response(buffer));
-  return buffer.buffer;
-};
-
 /** Encode two channels as a 16-bit PCM WAV, which every decoder here accepts. */
 const encodeWav = (
   left: Float32Array,
@@ -156,142 +95,89 @@ const encodeWav = (
   return new File([buffer], name, { type: 'audio/wav' });
 };
 
-let worker: Worker | undefined;
-
-const separationWorker = (): Worker => {
-  if (!worker) {
-    worker = new Worker(
-      new URL(
-        process.env.NODE_ENV === 'production'
-          ? './karaoke-separation-worker.js'
-          : '/karaoke-separation-worker.dev.js',
-        window.location.href,
-      ),
-    );
-  }
-  return worker;
-};
-
 /**
  * Split a song into a vocal stem and a backing track, entirely on this machine.
  *
- * The vocal stem is the point for the Maker: Whisper transcribes a clean voice
- * far more reliably than a voice buried in a mix, and pitch detection stops
- * reporting the bassline as melody. The instrumental falls out of the same
- * pass because the two stems sum back to the original.
+ * The renderer decodes and draws; the main process runs the model on the
+ * native ONNX runtime and reports progress back over IPC. Inference lived in a
+ * renderer worker on onnxruntime-web first and died there with a bare
+ * Emscripten abort — a number, no message, identical on every backend — while
+ * the native runtime had already run this exact model cleanly in a bench. The
+ * opaque runtime lost.
  */
 export const separateVocals = async (
   file: File,
   onProgress: TSeparationProgress,
   signal?: AbortSignal,
 ): Promise<ISeparationResult> => {
-  emitSeparationSession({ status: 'downloading' });
-  onProgress(0.01, 'Preparing the separation model', 'download');
-  const weightShare = 0.35;
-  const graph = await fetchModelFile(
-    SEPARATION_MODEL_URL,
-    () => undefined,
-    signal,
-  );
-  const weights = await fetchModelFile(
-    SEPARATION_WEIGHTS_URL,
-    (received, total) => {
-      if (total > 0) {
+  emitSeparationSession({ status: 'loading' });
+  onProgress(0.02, 'Reading the song', 'decode');
+  const { left, right } = await decodeStereo(file);
+  if (signal?.aborted) {
+    emitSeparationSession({ status: 'unloaded' });
+    throw new DOMException('Separation cancelled.', 'AbortError');
+  }
+
+  emitSeparationSession({ status: 'working', inMemory: true });
+  const onAbort = () => window.electron.ipcRenderer.cancelKaraokeSeparation();
+  signal?.addEventListener('abort', onAbort, { once: true });
+  // The download happens in main on first use, so its share of the bar is
+  // reported from there; afterwards the same events carry inference progress.
+  const unsubscribe = window.electron.ipcRenderer.onKaraokeSeparationProgress(
+    ({ stage, fraction }) => {
+      if (stage === 'download') {
         onProgress(
-          0.01 + (received / total) * weightShare,
+          0.02 + fraction * 0.38,
           'Downloading the separation model',
           'download',
         );
-      }
-    },
-    signal,
-  );
-  markSeparationDownloaded();
-
-  emitSeparationSession({ status: 'loading' });
-  onProgress(weightShare + 0.02, 'Reading the song', 'decode');
-  const { left, right } = await decodeStereo(file);
-
-  const preferGpu = await separationHasGpu();
-  emitSeparationSession({ status: 'working', inMemory: true });
-
-  return new Promise<ISeparationResult>((resolve, reject) => {
-    const id = `separate-${Date.now()}`;
-    const active = separationWorker();
-    const onAbort = () => {
-      active.terminate();
-      worker = undefined;
-      emitSeparationSession({ status: 'unloaded', inMemory: false });
-      reject(new DOMException('Separation cancelled.', 'AbortError'));
-    };
-    signal?.addEventListener('abort', onAbort, { once: true });
-
-    const finish = (handler: () => void) => {
-      signal?.removeEventListener('abort', onAbort);
-      active.removeEventListener('message', onMessage);
-      handler();
-    };
-
-    function onMessage(event: MessageEvent<Record<string, unknown>>) {
-      const message = event.data;
-      if (message.id !== id) {
-        return;
-      }
-      if (message.type === 'progress') {
-        const fraction = Number(message.progress ?? 0);
+      } else {
         onProgress(
-          weightShare + 0.05 + fraction * (0.95 - weightShare - 0.05),
+          0.42 + fraction * 0.56,
           'Separating the voice from the music',
           'separate',
         );
-        return;
       }
-      if (message.type === 'error') {
-        emitSeparationSession({ status: 'error', inMemory: false });
-        finish(() => reject(new Error(String(message.error))));
-        return;
-      }
-      if (message.type === 'complete') {
-        emitSeparationSession({ status: 'ready' });
-        const base = file.name.replace(/\.[^.]+$/, '');
-        finish(() =>
-          resolve({
-            vocals: encodeWav(
-              message.vocalsLeft as Float32Array,
-              message.vocalsRight as Float32Array,
-              `${base} (vocals).wav`,
-            ),
-            instrumental: encodeWav(
-              message.musicLeft as Float32Array,
-              message.musicRight as Float32Array,
-              `${base} (instrumental).wav`,
-            ),
-            backend: String(message.backend ?? ''),
-          }),
-        );
-      }
-    }
-
-    active.addEventListener('message', onMessage);
-    active.postMessage({
-      id,
-      type: 'separate',
+    },
+  );
+  try {
+    const result = await window.electron.ipcRenderer.separateKaraokeVocals(
       left,
       right,
-      graph,
-      weights,
-      preferGpu,
-    });
-  });
+    );
+    markSeparationDownloaded();
+    emitSeparationSession({ status: 'ready' });
+    const base = file.name.replace(/\.[^.]+$/, '');
+    return {
+      vocals: encodeWav(
+        result.vocalsLeft,
+        result.vocalsRight,
+        `${base} (vocals).wav`,
+      ),
+      instrumental: encodeWav(
+        result.musicLeft,
+        result.musicRight,
+        `${base} (instrumental).wav`,
+      ),
+      backend: result.backend,
+    };
+  } catch (error) {
+    if (signal?.aborted || /cancelled/i.test(String(error))) {
+      emitSeparationSession({ status: 'unloaded', inMemory: false });
+      throw new DOMException('Separation cancelled.', 'AbortError');
+    }
+    emitSeparationSession({ status: 'error', inMemory: false });
+    throw error;
+  } finally {
+    unsubscribe();
+    signal?.removeEventListener('abort', onAbort);
+  }
 };
 
-/** Drop the model from memory; the cached download is untouched. */
+/**
+ * Kept for callers; the session lives in the main process now and stays warm
+ * for the next song, which is the behaviour a session cache exists to buy.
+ */
 export const releaseSeparationModel = async (): Promise<void> => {
-  if (!worker) {
-    return;
-  }
-  worker.postMessage({ id: 'release', type: 'release' });
-  worker.terminate();
-  worker = undefined;
   emitSeparationSession({ status: 'unloaded', inMemory: false });
 };

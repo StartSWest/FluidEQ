@@ -1503,6 +1503,37 @@ const KaraokeWorkspace = ({
             onSeek={session.seek}
             onPlay={handleEditorPlay}
             onPause={handleEditorPause}
+            onStems={({ vocals, instrumental }) => {
+              // Both stems join the song as their own roles; `audio` is left
+              // exactly as imported. That is not tidiness — the Maker is keyed
+              // on the audio asset's identity, and an earlier version of this
+              // handler swapped it for the instrumental, which silently
+              // remounted the open editor and re-ran the wizard over itself.
+              // The session plays the instrumental (applySong swaps the
+              // element's source, keeping the playhead) and the fader blends
+              // the voice back in over it.
+              session.applySong({
+                ...song,
+                assets: [
+                  ...song.assets.filter(
+                    (asset) =>
+                      asset.role !== 'instrumental' && asset.role !== 'vocals',
+                  ),
+                  {
+                    id: `${song.id}-instrumental`,
+                    role: 'instrumental',
+                    file: instrumental,
+                    extension: 'wav',
+                  },
+                  {
+                    id: `${song.id}-vocals`,
+                    role: 'vocals',
+                    file: vocals,
+                    extension: 'wav',
+                  },
+                ],
+              });
+            }}
             onApply={(project) => {
               const audioAsset = song.assets.find(
                 (asset) => asset.role === 'audio',

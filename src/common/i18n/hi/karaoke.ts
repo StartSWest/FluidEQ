@@ -303,6 +303,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.wizardStart': 'अपने आप तैयार करें',
   'karaoke.maker.wizardSkip': 'मैं खुद करूँगा',
   'karaoke.maker.wizardCancel': 'रोकें',
+  'karaoke.maker.wizardHide': 'बैकग्राउंड में जारी रखें',
   'karaoke.maker.wizardCancelled': 'रोक दिया गया। जो पूरा हुआ वह रखा गया है।',
   'karaoke.maker.vocalFocus': 'केंद्रीय आवाज़ पर ध्यान',
   'karaoke.maker.export': 'निर्यात',

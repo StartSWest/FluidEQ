@@ -45,6 +45,7 @@ export interface IPaintBackdropInput {
   lyricSectionTop: number;
   project: IKaraokeMakerProject;
   canvasSectionGroups: IKaraokeMakerSectionGroup[];
+  stemWaveforms?: { vocals: number[]; instrumental: number[] };
   viewStartMs: number;
   visibleViewDurationMs: number;
   effectiveDurationMs: number;
@@ -76,6 +77,7 @@ export const paintBackdrop = (
     lyricSectionTop,
     project,
     canvasSectionGroups,
+    stemWaveforms,
     viewStartMs,
     visibleViewDurationMs,
     effectiveDurationMs,
@@ -238,43 +240,89 @@ export const paintBackdrop = (
     }
   }
 
-  const { waveform } = project.analysis;
-  if (waveform?.length) {
+  /** One wave lane: peaks mirrored around the lane's own centre line. */
+  const paintWaveLane = (
+    peaks: readonly number[],
+    laneTop: number,
+    laneHeight: number,
+    fill: string,
+    stroke: string,
+  ) => {
     context.save();
     context.beginPath();
-    context.rect(plotLeft, WAVEFORM_TOP, plotWidth, WAVEFORM_HEIGHT);
+    context.rect(plotLeft, laneTop, plotWidth, laneHeight);
     context.clip();
-    context.fillStyle = 'rgba(22, 211, 198, .18)';
+    context.fillStyle = fill;
     context.beginPath();
     const startIndex = Math.floor(
-      (viewStartMs / effectiveDurationMs) * waveform.length,
+      (viewStartMs / effectiveDurationMs) * peaks.length,
     );
     const endIndex = Math.ceil(
       ((viewStartMs + visibleViewDurationMs) / effectiveDurationMs) *
-        waveform.length,
+        peaks.length,
     );
     for (let xIndex = 0; xIndex < Math.ceil(plotWidth); xIndex += 1) {
       const progress = xIndex / plotWidth;
       const index = Math.max(
         0,
         Math.min(
-          waveform.length - 1,
+          peaks.length - 1,
           Math.round(startIndex + (endIndex - startIndex) * progress),
         ),
       );
-      const amplitude = waveform[index] ?? 0;
+      const amplitude = peaks[index] ?? 0;
       const x = plotLeft + xIndex;
-      const centerY = WAVEFORM_TOP + WAVEFORM_HEIGHT / 2;
-      const halfHeight = Math.max(0.6, amplitude * (WAVEFORM_HEIGHT / 2 - 2));
+      const centerY = laneTop + laneHeight / 2;
+      const halfHeight = Math.max(0.6, amplitude * (laneHeight / 2 - 1));
       context.rect(x, centerY - halfHeight, 1, halfHeight * 2);
     }
     context.fill();
-    context.strokeStyle = 'rgba(72, 246, 230, .32)';
+    context.strokeStyle = stroke;
     context.lineWidth = 1;
     context.beginPath();
-    context.moveTo(plotLeft, WAVEFORM_TOP + WAVEFORM_HEIGHT / 2);
-    context.lineTo(plotRight, WAVEFORM_TOP + WAVEFORM_HEIGHT / 2);
+    context.moveTo(plotLeft, laneTop + laneHeight / 2);
+    context.lineTo(plotRight, laneTop + laneHeight / 2);
     context.stroke();
     context.restore();
+  };
+
+  const { waveform } = project.analysis;
+  if (waveform?.length && stemWaveforms) {
+    // A separated song shows all three shapes in the strip the original had
+    // to itself, on one shared time axis: the mix on top, then the backing
+    // track, then the voice. Alignment is the entire point — the reader's eye
+    // drops straight down from a bump in the mix to which stem owns it, which
+    // is how lyric timing gets checked against singing rather than sound.
+    const laneGap = 2;
+    const laneHeight = (WAVEFORM_HEIGHT - laneGap * 2) / 3;
+    paintWaveLane(
+      waveform,
+      WAVEFORM_TOP,
+      laneHeight,
+      'rgba(22, 211, 198, .18)',
+      'rgba(72, 246, 230, .32)',
+    );
+    paintWaveLane(
+      stemWaveforms.instrumental,
+      WAVEFORM_TOP + laneHeight + laneGap,
+      laneHeight,
+      'rgba(94, 158, 255, .2)',
+      'rgba(126, 180, 255, .3)',
+    );
+    paintWaveLane(
+      stemWaveforms.vocals,
+      WAVEFORM_TOP + (laneHeight + laneGap) * 2,
+      laneHeight,
+      'rgba(255, 176, 92, .24)',
+      'rgba(255, 200, 128, .34)',
+    );
+  } else if (waveform?.length) {
+    paintWaveLane(
+      waveform,
+      WAVEFORM_TOP,
+      WAVEFORM_HEIGHT,
+      'rgba(22, 211, 198, .18)',
+      'rgba(72, 246, 230, .32)',
+    );
   }
 };

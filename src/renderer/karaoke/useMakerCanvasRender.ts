@@ -39,6 +39,8 @@ export interface IMakerCanvasRenderParams {
   /** What the painter draws: the words, the sections, and what is picked out. */
   canvasLyricWords: ICanvasLyricWord[];
   canvasSectionGroups: ReturnType<typeof karaokeMakerSectionGroups>;
+  /** Stem overview waves, drawn as two aligned lanes under the original. */
+  stemWaveforms?: { vocals: number[]; instrumental: number[] };
   activeLyricFocus: ReturnType<typeof karaokeMakerLyricFocus>;
   activeLyricWordId: string | undefined;
   selection: TSelection;
@@ -77,6 +79,7 @@ export const useMakerCanvasRender = ({
   canvasLyricWords,
   canvasRef,
   canvasSectionGroups,
+  stemWaveforms,
   controlLinkMode,
   effectiveDurationMs,
   gesture,
@@ -130,6 +133,7 @@ export const useMakerCanvasRender = ({
       selectedNoteIds,
       canvasLyricWords,
       canvasSectionGroups,
+      stemWaveforms,
       activeLyricFocus,
       activeLyricWordId,
       hoveredEditHandle,
@@ -147,6 +151,7 @@ export const useMakerCanvasRender = ({
   }, [
     canvasHostRef,
     canvasRef,
+    stemWaveforms,
     wordFocusAnimationRef,
     gesture.hitRegions,
     gesture.noteLinkDrag,

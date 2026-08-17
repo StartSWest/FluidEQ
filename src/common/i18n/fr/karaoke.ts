@@ -318,6 +318,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.wizardStart': 'Préparer automatiquement',
   'karaoke.maker.wizardSkip': 'Je le ferai moi-même',
   'karaoke.maker.wizardCancel': 'Arrêter',
+  'karaoke.maker.wizardHide': 'Continuer en arrière-plan',
   'karaoke.maker.wizardCancelled': 'Arrêté. Ce qui est terminé a été conservé.',
   'karaoke.maker.vocalFocus': 'Centrer sur la voix',
   'karaoke.maker.export': 'Exporter',
