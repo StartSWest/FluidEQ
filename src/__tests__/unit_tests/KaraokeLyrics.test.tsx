@@ -20,11 +20,13 @@ import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
 import { IKaraokeSong } from '../../common/karaoke/types';
 import KaraokeLyrics, {
+  lyricHitRegionContains,
+} from '../../renderer/karaoke/KaraokeLyrics';
+import {
   groupKaraokeTokensIntoWords,
   karaokeLyricEntranceOpacity,
   karaokeTokenDisplayText,
-  lyricHitRegionContains,
-} from '../../renderer/karaoke/KaraokeLyrics';
+} from '../../renderer/karaoke/karaokeLyricText';
 
 const song: IKaraokeSong = {
   id: 'motion-song',

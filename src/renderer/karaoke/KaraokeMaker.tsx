@@ -5,10 +5,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
-  ChangeEvent,
-  Fragment,
-  PointerEvent as ReactPointerEvent,
-  WheelEvent as ReactWheelEvent,
   useCallback,
   useEffect,
   useId,
@@ -18,62 +14,24 @@ import {
   useSyncExternalStore,
 } from 'react';
 import {
-  IKaraokeMakerNote,
   IKaraokeMakerProject,
-  IKaraokeMakerToken,
-  importLyricsIntoKaraokeMakerProject,
-  karaokeMakerId,
   karaokeMakerProjectToSong,
   karaokeMakerRecordedLineRange,
-  karaokeMakerTimedLineRange,
   karaokeMakerLineIsSection,
   karaokeMakerTokenBoundaryLimits,
-  karaokeMakerTokenWasUserTouched,
   makerLinesFromPlainText,
-  parseKaraokeMakerProject,
   recordKaraokeMakerLineRange,
-  resizeKaraokeMakerTokenBoundary,
   shiftKaraokeMakerLineTailFromToken,
   shiftKaraokeMakerTimeline,
-  splitKaraokeMakerWordIntoSyllables,
   touchKaraokeMakerProject,
   validateKaraokeMakerProject,
 } from '../../common/karaoke/makerProject';
-import {
-  TKaraokeMakerExportFormat,
-  exportKaraokeMaker,
-  karaokeMakerExportFileName,
-} from '../../common/karaoke/makerExport';
-import {
-  karaokeFileExtension,
-  parseKaraokeText,
-  readKaraokeTextFile,
-} from '../../common/karaoke/files';
-import { splitKaraokeWordSyllables } from '../../common/karaoke/syllables';
-import { karaokeLeadNoteArticulation } from '../../common/karaoke/melodyArticulation';
 import { IKaraokeSong } from '../../common/karaoke/types';
 import { useTranslation } from '../utils/I18nContext';
-import { reportError, reportInfo } from '../utils/logger';
 import { useKaraokeMelodyTone } from './useKaraokeMelodyTone';
 import { formatClock } from './makerFormat';
-import { paintMakerCanvas } from './makerCanvasPaint';
-import {
-  ICanvasLyricToken,
-  ICanvasLyricWord,
-  ICanvasSelectionBox,
-  IDragState,
-  INoteLinkDragState,
-  INotePaintDraft,
-} from './makerCanvasTypes';
-import {
-  BASE_LYRIC_SECTION_TOP,
-  IHitRegion,
-  MAX_NOTE_MIDI,
-  MIN_NOTE_MIDI,
-  SECTION_GROUP_HEIGHT,
-  lyricSectionHeight,
-  midiName,
-} from './makerCanvasGeometry';
+import { useMakerCanvasGesture } from './useMakerCanvasGesture';
+import { IDragState } from './makerCanvasTypes';
 import { useKaraokeMakerProject } from './useKaraokeMakerProject';
 import { karaokeMakerAnalysisProgress } from './makerAnalysisProgress';
 import {
@@ -81,51 +39,28 @@ import {
   plainLyrics,
   useKaraokeMakerLyricsDraft,
 } from './useKaraokeMakerLyricsDraft';
-import {
-  TSelection,
-  useKaraokeMakerSelection,
-} from './useKaraokeMakerSelection';
-import KaraokeMakerHeaderActions from './KaraokeMakerHeaderActions';
+import { useKaraokeMakerSelection } from './useKaraokeMakerSelection';
 import KaraokeMakerDownloadDetails from './KaraokeMakerDownloadDetails';
 import KaraokeMakerWordInspector from './KaraokeMakerWordInspector';
-import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
-import KaraokeMakerToolbarButton from './KaraokeMakerToolbarButton';
 import KaraokeMakerEditTools from './KaraokeMakerEditTools';
 import KaraokeMakerSpeechMemoryPanel from './KaraokeMakerSpeechMemoryPanel';
 import KaraokeMakerAnalysisTools from './KaraokeMakerAnalysisTools';
 import KaraokeMakerConfirmDialog, {
   TDestructiveMakerAction,
 } from './KaraokeMakerConfirmDialog';
+import { useKaraokeMakerEditorView } from './useKaraokeMakerEditorView';
+import { IKaraokeMakerAnalysisResult } from './makerAnalysis';
 import {
-  DEFAULT_PREVIEW_HEIGHT,
-  DEFAULT_VIEW_MS,
-  initialPreviewOpen,
-  useKaraokeMakerEditorView,
-} from './useKaraokeMakerEditorView';
-import {
-  IKaraokeMakerAnalysisResult,
-  analyzeKaraokeMakerAudio,
   autoAlignNewKaraokeMakerLyrics,
   karaokeMakerAnalysisNotesFromMelody,
-} from './makerAnalysis';
+} from './makerAlignment';
 import {
   KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
-  WHISPER_MODEL,
   IKaraokeMakerDownloadSummary,
-  IKaraokeMakerWhisperLogEntry,
-  IKaraokeMakerWhisperTranscribeProgress,
   TKaraokeMakerWhisperStage,
-  analyzeKaraokeWithBasicPitch,
-  applyBasicPitchMelody,
-  applyDetectedPitchMelody,
-  applyWhisperTranscript,
-  formatKaraokeMakerWhisperLog,
   getKaraokeWhisperSessionSnapshot,
-  karaokeMakerVocalAnalysisWindows,
   refreshKaraokeWhisperDownloaded,
-  releaseKaraokeWhisperModel,
   subscribeKaraokeWhisperSession,
-  transcribeKaraokeWithWhisper,
   writeKaraokeWhisperMemorySettings,
 } from './makerAi';
 import useKaraokeNoteAudition from './useKaraokeNoteAudition';
@@ -134,15 +69,33 @@ import KaraokeMakerNavigator from './KaraokeMakerNavigator';
 import KaraokeMakerCaptureCoach from './KaraokeMakerCaptureCoach';
 import KaraokeMakerFloatingPanel from './KaraokeMakerFloatingPanel';
 import KaraokeMakerPreview from './KaraokeMakerPreview';
+import KaraokeMakerSelectionInfo from './KaraokeMakerSelectionInfo';
+import KaraokeMakerLyricsDialog from './KaraokeMakerLyricsDialog';
+import KaraokeMakerHeader from './KaraokeMakerHeader';
+import KaraokeMakerToolbar from './KaraokeMakerToolbar';
+import KaraokeMakerAnalysisPanels from './KaraokeMakerAnalysisPanels';
+import KaraokeMakerWhisperConsent from './KaraokeMakerWhisperConsent';
+import KaraokeMakerInspector from './KaraokeMakerInspector';
+import { useMakerProjectFiles } from './useMakerProjectFiles';
+import { useMakerLyricsActions } from './useMakerLyricsActions';
+import { useMakerToolModes } from './useMakerToolModes';
+import KaraokeMakerTimingSliders from './KaraokeMakerTimingSliders';
+import { useMakerCanvasRender } from './useMakerCanvasRender';
+import { useMakerCanvasModel } from './useMakerCanvasModel';
+import { ISentenceAuditionState, useMakerKeyboard } from './useMakerKeyboard';
+import { useMakerLyricsEditing } from './useMakerLyricsEditing';
+import { flattenTokens } from './makerProjectEdits';
 import {
-  KARAOKE_MAKER_LYRIC_LANE_COUNT,
-  groupKaraokeMakerWordSyllables,
-  karaokeMakerLyricFocus,
-  karaokeMakerFittedLyricViewport,
-  karaokeMakerPannedViewportStart,
-  karaokeMakerSectionGroups,
-} from './makerCanvasLayout';
-import { KaraokeTransportIcon } from './KaraokeTransport';
+  ISyllableSplitDraft,
+  useMakerNoteEditing,
+} from './useMakerNoteEditing';
+import { useMakerCanvasPointer } from './useMakerCanvasPointer';
+import {
+  IGuidedLineCapture,
+  TLineEntrySession,
+  useMakerLineCapture,
+} from './useMakerLineCapture';
+import { IWhisperRunProfile, useMakerAnalysisRun } from './useMakerAnalysisRun';
 import { readKaraokeMakerEditorView } from './karaokeEditorPersistence';
 
 interface IKaraokeMakerProps {
@@ -161,139 +114,6 @@ interface IKaraokeMakerProps {
   isFullScreen: boolean;
   onToggleFullScreen: () => void;
 }
-
-type TLineEntrySession = 'setup' | 'countdown' | 'active';
-
-interface IGuidedLineCapture {
-  lineId: string;
-  startMs: number;
-  estimatedEndMs: number;
-  wordBoundariesMs?: number[];
-  automaticStart?: boolean;
-}
-
-interface ISyllableSplitDraft {
-  tokenId: string;
-  word: string;
-  cutPoints: number[];
-}
-
-interface ICanvasPanState {
-  pointerX: number;
-  viewStartMs: number;
-}
-
-interface ICanvasScrubState {
-  pointerId?: number;
-  anchorMs: number;
-  auditionWordGrain: boolean;
-  grainTimerId?: number;
-}
-
-interface ISentenceAuditionState {
-  startMs: number;
-  endMs: number;
-  timerId: number;
-}
-
-const MIN_VIEW_MS = 650;
-// Twelve seconds keeps authored lyrics readable on first open; the overview
-// handles still expose the entire song and let the user zoom further out.
-const LYRIC_SECTION_HEIGHT = lyricSectionHeight(KARAOKE_MAKER_LYRIC_LANE_COUNT);
-
-const flattenTokens = (project: IKaraokeMakerProject) =>
-  project.lyrics.lines
-    .filter((line) => !karaokeMakerLineIsSection(line))
-    .flatMap((line) => line.tokens);
-
-interface IWhisperRunProfile {
-  needsDownload: boolean;
-  needsLoad: boolean;
-}
-
-const replaceNote = (
-  project: IKaraokeMakerProject,
-  id: string,
-  edit: (note: IKaraokeMakerNote) => IKaraokeMakerNote,
-): IKaraokeMakerProject => ({
-  ...project,
-  melody: {
-    ...project.melody,
-    source: 'manual',
-    notes: project.melody.notes.map((note) =>
-      note.id === id ? { ...edit(note), source: 'manual' } : note,
-    ),
-  },
-});
-
-const replaceToken = (
-  project: IKaraokeMakerProject,
-  id: string,
-  edit: (token: IKaraokeMakerToken) => IKaraokeMakerToken,
-): IKaraokeMakerProject => ({
-  ...project,
-  lyrics: {
-    ...project.lyrics,
-    source: 'manual',
-    lines: project.lyrics.lines.map((line) => ({
-      ...line,
-      tokens: line.tokens.map((token) =>
-        token.id === id
-          ? { ...edit(token), source: 'manual', timingLocked: true }
-          : token,
-      ),
-    })),
-  },
-});
-
-const karaokeMakerWordTokensFor = (
-  project: IKaraokeMakerProject,
-  tokenId: string,
-): IKaraokeMakerToken[] => {
-  const line = project.lyrics.lines.find((candidate) =>
-    candidate.tokens.some((token) => token.id === tokenId),
-  );
-  if (!line) {
-    return [];
-  }
-  const selectedIndex = line.tokens.findIndex((token) => token.id === tokenId);
-  const precedingWordOffset = line.tokens
-    .slice(0, selectedIndex + 1)
-    .reverse()
-    .findIndex((token) => token.startsWord !== false);
-  const firstIndex =
-    precedingWordOffset < 0
-      ? 0
-      : Math.max(0, selectedIndex - precedingWordOffset);
-  const followingWordOffset = line.tokens
-    .slice(firstIndex + 1)
-    .findIndex((token) => token.startsWord !== false);
-  const lastIndex =
-    followingWordOffset < 0
-      ? line.tokens.length
-      : firstIndex + followingWordOffset + 1;
-  return line.tokens.slice(firstIndex, lastIndex);
-};
-
-const syllablesAtCutPoints = (
-  word: string,
-  cutPoints: readonly number[],
-): string[] => {
-  const characters = Array.from(word);
-  const boundaries = [
-    0,
-    ...[...new Set(cutPoints)]
-      .filter((point) => point > 0 && point < characters.length)
-      .sort((left, right) => left - right),
-    characters.length,
-  ];
-  return boundaries
-    .slice(0, -1)
-    .map((start, index) =>
-      characters.slice(start, boundaries[index + 1]).join(''),
-    )
-    .filter(Boolean);
-};
 
 const KaraokeMaker = ({
   song,
@@ -501,30 +321,15 @@ const KaraokeMaker = ({
     getKaraokeWhisperSessionSnapshot,
   );
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const downloadSampleRef = useRef<
-    | {
-        loadedBytes: number;
-        sampledAt: number;
-        bytesPerSecond?: number;
-      }
-    | undefined
-  >(undefined);
   const canvasHostRef = useRef<HTMLDivElement>(null);
   const vocalStemInputRef = useRef<HTMLInputElement>(null);
   const projectInputRef = useRef<HTMLInputElement>(null);
   const lyricsInputRef = useRef<HTMLInputElement>(null);
   const toolsRef = useRef<HTMLDivElement>(null);
-  const hitRegionsRef = useRef<IHitRegion[]>([]);
-  const dragRef = useRef<IDragState | undefined>(undefined);
-  const panRef = useRef<ICanvasPanState | undefined>(undefined);
-  const scrubRef = useRef<ICanvasScrubState | undefined>(undefined);
+  const gesture = useMakerCanvasGesture();
   const sentenceAuditionRef = useRef<ISentenceAuditionState | undefined>(
     undefined,
   );
-  const selectionBoxRef = useRef<ICanvasSelectionBox | undefined>(undefined);
-  const notePaintDraftRef = useRef<INotePaintDraft | undefined>(undefined);
-  const noteLinkDragRef = useRef<INoteLinkDragState | undefined>(undefined);
-  const lastDragAuditionMidiRef = useRef<number | undefined>(undefined);
   const analysisAbortRef = useRef<AbortController | undefined>(undefined);
   const prepareAfterWhisperRef = useRef(false);
   const lyricsWorkflowActiveRef = useRef(false);
@@ -540,7 +345,7 @@ const KaraokeMaker = ({
 
   const cancelAudibleInteractions = useCallback(
     (pause = true) => {
-      const scrub = scrubRef.current;
+      const scrub = gesture.scrub.current;
       const sentenceAudition = sentenceAuditionRef.current;
       if (scrub?.grainTimerId !== undefined) {
         window.clearTimeout(scrub.grainTimerId);
@@ -551,7 +356,7 @@ const KaraokeMaker = ({
       if (wordAuditionTimerRef.current !== undefined) {
         window.clearTimeout(wordAuditionTimerRef.current);
       }
-      const drag = dragRef.current;
+      const drag = gesture.drag.current;
       if (drag?.auditionTimerId !== undefined) {
         window.clearTimeout(drag.auditionTimerId);
       }
@@ -561,7 +366,7 @@ const KaraokeMaker = ({
         drag?.auditionStarted === true ||
         wordAuditionTimerRef.current !== undefined;
       wordAuditionTimerRef.current = undefined;
-      scrubRef.current = undefined;
+      gesture.scrub.current = undefined;
       sentenceAuditionRef.current = undefined;
       setScrubAuditionAnchorMs(undefined);
       if (drag) {
@@ -580,7 +385,7 @@ const KaraokeMaker = ({
         }
       }
     },
-    [onPause, onSeek],
+    [gesture.drag, gesture.scrub, onPause, onSeek],
   );
 
   const clearLineEntryCountdown = useCallback(() => {
@@ -666,201 +471,31 @@ const KaraokeMaker = ({
     refreshKaraokeWhisperDownloaded().catch(() => undefined);
   }, []);
 
-  const effectiveDurationMs = Math.max(
-    1_000,
-    durationMs || project.audio.durationMs || DEFAULT_VIEW_MS,
-  );
-  const minimumViewDurationMs = Math.min(MIN_VIEW_MS, effectiveDurationMs);
-  const maximumViewDurationMs = Math.max(
-    minimumViewDurationMs,
+  const {
+    activeLyricFocus,
+    activeLyricWordId,
+    canvasLyricWords,
+    canvasSectionGroups,
     effectiveDurationMs,
-  );
-  const visibleViewDurationMs = Math.max(
+    headerHeight,
+    lyricLines,
+    lyricSectionTop,
+    maximumViewDurationMs,
+    maximumViewStartMs,
     minimumViewDurationMs,
-    Math.min(maximumViewDurationMs, viewDurationMs),
-  );
-  const maximumViewStartMs = Math.max(
-    0,
-    effectiveDurationMs - visibleViewDurationMs,
-  );
-  const canvasSectionGroups = useMemo(
-    () =>
-      karaokeMakerSectionGroups(
-        project.lyrics.lines.flatMap((line) =>
-          karaokeMakerLineIsSection(line) && line.startMs !== undefined
-            ? [
-                {
-                  id: line.id,
-                  text: line.tokens
-                    .map((token) => token.text.trim())
-                    .filter(Boolean)
-                    .join(' '),
-                  startMs: line.startMs,
-                },
-              ]
-            : [],
-        ),
-        effectiveDurationMs,
-      ),
-    [effectiveDurationMs, project.lyrics.lines],
-  );
-  const lyricSectionTop =
-    BASE_LYRIC_SECTION_TOP +
-    (canvasSectionGroups.length ? SECTION_GROUP_HEIGHT : 0);
-  const headerHeight = lyricSectionTop + LYRIC_SECTION_HEIGHT + 10;
-  const lyricLines = useMemo(
-    () =>
-      project.lyrics.lines.filter(
-        (line) => !karaokeMakerLineIsSection(line) && line.tokens.length > 0,
-      ),
-    [project.lyrics.lines],
-  );
-  const selectedLyricLineId = useMemo(() => {
-    if (selection?.kind !== 'word') {
-      return undefined;
-    }
-    return lyricLines.find((line) =>
-      line.tokens.some((token) => token.id === selection.id),
-    )?.id;
-  }, [lyricLines, selection]);
-  const userTouchedWordCount = useMemo(
-    () => tokens.filter(karaokeMakerTokenWasUserTouched).length,
-    [tokens],
-  );
-  const canvasLyricTokens = useMemo(
-    () =>
-      project.lyrics.lines
-        .flatMap((line, lineIndex): ICanvasLyricToken[] => {
-          const isSection = karaokeMakerLineIsSection(line);
-          if (isSection) {
-            return [];
-          }
-          const timedTokens = line.tokens.filter(
-            (token) => token.startMs !== undefined && token.endMs !== undefined,
-          );
-          const lineStartMs = timedTokens.length
-            ? Math.min(...timedTokens.map((token) => token.startMs as number))
-            : (line.startMs ?? Number.POSITIVE_INFINITY);
-          const lineEndMs = timedTokens.length
-            ? Math.max(...timedTokens.map((token) => token.endMs as number))
-            : (line.endMs ?? line.startMs ?? Number.NEGATIVE_INFINITY);
-          return line.tokens.map((originalToken, tokenIndex) => ({
-            token: originalToken,
-            lineIndex,
-            tokenIndex,
-            lineStartMs,
-            lineEndMs,
-            isSection,
-          }));
-        })
-        .sort(
-          (left, right) =>
-            (left.token.startMs ?? Number.POSITIVE_INFINITY) -
-            (right.token.startMs ?? Number.POSITIVE_INFINITY),
-        ),
-    [project.lyrics.lines],
-  );
-  const canvasLyricWords = useMemo(() => {
-    const tokensByLine = new Map<number, ICanvasLyricToken[]>();
-    canvasLyricTokens.forEach((entry) => {
-      const lineTokens = tokensByLine.get(entry.lineIndex) ?? [];
-      lineTokens.push(entry);
-      tokensByLine.set(entry.lineIndex, lineTokens);
-    });
-    return [...tokensByLine.values()]
-      .flatMap((lineTokens): ICanvasLyricWord[] => {
-        if (!lineTokens.length) {
-          return [];
-        }
-        const orderedLineTokens = [...lineTokens].sort(
-          (left, right) => left.tokenIndex - right.tokenIndex,
-        );
-        const [{ isSection }] = orderedLineTokens;
-        const groups: ICanvasLyricToken[][] = groupKaraokeMakerWordSyllables(
-          orderedLineTokens
-            .filter(
-              ({ token }) =>
-                token.startMs !== undefined && token.endMs !== undefined,
-            )
-            .map((entry) => ({
-              ...entry,
-              startsWord: entry.token.startsWord,
-            })),
-        );
-        return groups.flatMap((syllables, wordIndex): ICanvasLyricWord[] => {
-          const timed = syllables.filter(
-            ({ token }) =>
-              token.startMs !== undefined && token.endMs !== undefined,
-          );
-          if (!timed.length) {
-            return [];
-          }
-          return [
-            {
-              id: timed[0].token.id,
-              text: timed.map(({ token }) => token.text.trim()).join(''),
-              syllables: timed,
-              lineIndex: timed[0].lineIndex,
-              wordIndex,
-              lineStartMs: timed[0].lineStartMs,
-              lineEndMs: timed[0].lineEndMs,
-              startMs: Math.min(
-                ...timed.map(({ token }) => token.startMs as number),
-              ),
-              endMs: Math.max(
-                ...timed.map(({ token }) => token.endMs as number),
-              ),
-              isSection,
-            },
-          ];
-        });
-      })
-      .sort(
-        (left, right) =>
-          left.startMs - right.startMs || left.lineIndex - right.lineIndex,
-      );
-  }, [canvasLyricTokens]);
-  const activeLyricFocus = useMemo(
-    () =>
-      karaokeMakerLyricFocus(
-        canvasLyricTokens.flatMap(
-          ({ token, lineIndex, lineStartMs, lineEndMs, isSection }) =>
-            isSection ||
-            token.startMs === undefined ||
-            token.endMs === undefined
-              ? []
-              : [
-                  {
-                    id: token.id,
-                    lineIndex,
-                    lineStartMs,
-                    lineEndMs,
-                    startMs: token.startMs,
-                    endMs: token.endMs,
-                  },
-                ],
-        ),
-        visualPlayheadMs,
-      ),
-    [canvasLyricTokens, visualPlayheadMs],
-  );
-  const activeLyricWordId = useMemo(
-    () =>
-      activeLyricFocus?.tokenId
-        ? canvasLyricWords.find((word) =>
-            word.syllables.some(
-              ({ token }) => token.id === activeLyricFocus.tokenId,
-            ),
-          )?.id
-        : undefined,
-    [activeLyricFocus?.tokenId, canvasLyricWords],
-  );
-  if (wordFocusAnimationRef.current.tokenId !== activeLyricWordId) {
-    wordFocusAnimationRef.current = {
-      tokenId: activeLyricWordId,
-      startedAt: performance.now(),
-    };
-  }
+    selectedLyricLineId,
+    userTouchedWordCount,
+    visibleViewDurationMs,
+  } = useMakerCanvasModel({
+    durationMs,
+    project,
+    selection,
+    tokens,
+    viewDurationMs,
+    visualPlayheadMs,
+    wordFocusAnimationRef,
+  });
+
   const issues = useMemo(() => validateKaraokeMakerProject(project), [project]);
   const localizeMakerError = (
     error: unknown,
@@ -1090,117 +725,18 @@ const KaraokeMaker = ({
       window.removeEventListener('keydown', togglePlaybackWithSpace, true);
   }, [isPlaying, lineEntryMode, onPause, onPlay]);
 
-  useEffect(() => {
-    const stopSentenceAudition = () => {
-      const audition = sentenceAuditionRef.current;
-      if (!audition) {
-        return;
-      }
-      window.clearInterval(audition.timerId);
-      sentenceAuditionRef.current = undefined;
-      onPause();
-      onSeek(audition.startMs);
-    };
-    const startSentenceAudition = (event: KeyboardEvent) => {
-      const isControl =
-        event.code === 'ControlLeft' ||
-        event.code === 'ControlRight' ||
-        event.key === 'Control';
-      if (
-        !isControl ||
-        event.repeat ||
-        event.defaultPrevented ||
-        lineEntryMode ||
-        sentenceAuditionRef.current ||
-        selection?.kind === 'note' ||
-        document.querySelector(
-          '.karaoke-maker__modal-backdrop, .dropdown--open',
-        )
-      ) {
-        return;
-      }
-      const { target } = event;
-      if (
-        target instanceof HTMLElement &&
-        target.matches('input, textarea, select, [contenteditable="true"]')
-      ) {
-        return;
-      }
-      const contentLines = projectRef.current.lyrics.lines.filter(
-        (line) => !karaokeMakerLineIsSection(line) && line.tokens.length > 0,
-      );
-      const selectedLine =
-        selection?.kind === 'word'
-          ? contentLines.find((line) =>
-              line.tokens.some((token) => token.id === selection.id),
-            )
-          : undefined;
-      const now = Math.max(0, readPlayheadMs?.() ?? playheadMsRef.current);
-      const playheadLine = contentLines.find((line) => {
-        const range = karaokeMakerTimedLineRange(line);
-        return range && now >= range.startMs && now <= range.endMs;
-      });
-      const auditionLine = selectedLine ?? playheadLine;
-      if (!auditionLine) {
-        return;
-      }
-      const range = karaokeMakerTimedLineRange(auditionLine);
-      if (!range) {
-        return;
-      }
-      event.preventDefault();
-      cancelAudibleInteractions();
-      onSeek(range.startMs);
-      Promise.resolve(onPlay()).catch(() => undefined);
-      const timerId = window.setInterval(() => {
-        const audition = sentenceAuditionRef.current;
-        if (!audition) {
-          return;
-        }
-        const currentMs = readPlayheadMs?.() ?? playheadMsRef.current;
-        if (currentMs >= audition.endMs || currentMs < audition.startMs) {
-          onSeek(audition.startMs);
-          Promise.resolve(onPlay()).catch(() => undefined);
-        }
-      }, 25);
-      sentenceAuditionRef.current = {
-        startMs: range.startMs,
-        endMs: range.endMs,
-        timerId,
-      };
-    };
-    const stopSentenceAuditionOnControlUp = (event: KeyboardEvent) => {
-      if (
-        event.code === 'ControlLeft' ||
-        event.code === 'ControlRight' ||
-        event.key === 'Control'
-      ) {
-        stopSentenceAudition();
-      }
-    };
-    window.addEventListener('keydown', startSentenceAudition, true);
-    window.addEventListener('keyup', stopSentenceAuditionOnControlUp, true);
-    window.addEventListener('blur', stopSentenceAudition);
-    return () => {
-      window.removeEventListener('keydown', startSentenceAudition, true);
-      window.removeEventListener(
-        'keyup',
-        stopSentenceAuditionOnControlUp,
-        true,
-      );
-      window.removeEventListener('blur', stopSentenceAudition);
-      stopSentenceAudition();
-    };
-  }, [
+  useMakerKeyboard({
     cancelAudibleInteractions,
     lineEntryMode,
     onPause,
     onPlay,
     onSeek,
+    playheadMsRef,
     projectRef,
     readPlayheadMs,
     selection,
-  ]);
+    sentenceAuditionRef,
+  });
 
   useEffect(() => {
     if (!noticeEntry || analysisProgress !== undefined || analysisError) {
@@ -1243,9 +779,9 @@ const KaraokeMaker = ({
         setIsCanvasScrubbing(false);
         setSelection(undefined);
         cancelAudibleInteractions();
-        dragRef.current = undefined;
-        panRef.current = undefined;
-        lastDragAuditionMidiRef.current = undefined;
+        gesture.drag.current = undefined;
+        gesture.pan.current = undefined;
+        gesture.lastDragAuditionMidi.current = undefined;
       }
     };
     window.addEventListener('pointerdown', closeFloatingTools);
@@ -1255,7 +791,13 @@ const KaraokeMaker = ({
       window.removeEventListener('keydown', closeOnEscape);
       cancelAudibleInteractions();
     };
-  }, [cancelAudibleInteractions, setSelection]);
+  }, [
+    cancelAudibleInteractions,
+    gesture.drag,
+    gesture.lastDragAuditionMidi,
+    gesture.pan,
+    setSelection,
+  ]);
 
   useEffect(() => {
     if (viewDurationMs !== visibleViewDurationMs) {
@@ -1293,1019 +835,81 @@ const KaraokeMaker = ({
     viewStartMs,
   ]);
 
-  const renderCanvas = useCallback(() => {
-    const canvas = canvasRef.current;
-    const host = canvasHostRef.current;
-    if (!canvas || !host) {
-      return;
-    }
-    // CSS owns the visible canvas size. Writing the measured size back as an
-    // inline width trapped the editor at its pre-fullscreen width, because the
-    // next ResizeObserver pass could only measure that same locked width.
-    // Measure the host instead and resize only the backing bitmap.
-    canvas.style.removeProperty('width');
-    canvas.style.removeProperty('height');
-    const width = Math.max(320, host.clientWidth);
-    const height = Math.max(260, canvas.clientHeight);
-    const ratio = Math.min(2, window.devicePixelRatio || 1);
-    if (
-      canvas.width !== Math.round(width * ratio) ||
-      canvas.height !== Math.round(height * ratio)
-    ) {
-      canvas.width = Math.round(width * ratio);
-      canvas.height = Math.round(height * ratio);
-    }
-    const context = canvas.getContext('2d');
-    if (!context) {
-      return;
-    }
-    paintMakerCanvas({
-      context,
-      ratio,
-      width,
-      height,
-      headerHeight,
-      lyricSectionTop,
-      project,
-      selection,
-      selectedNoteIds,
-      canvasLyricWords,
-      canvasSectionGroups,
-      activeLyricFocus,
-      activeLyricWordId,
-      hoveredEditHandle,
-      controlLinkMode,
-      viewStartMs,
-      visibleViewDurationMs,
-      visualPlayheadMs,
-      effectiveDurationMs,
-      hitRegionsRef,
-      selectionBoxRef,
-      notePaintDraftRef,
-      noteLinkDragRef,
-      wordFocusAnimationRef,
-    });
-  }, [
+  useMakerCanvasRender({
     activeLyricFocus,
     activeLyricWordId,
-    canvasSectionGroups,
+    canvasHostRef,
     canvasLyricWords,
+    canvasRef,
+    canvasSectionGroups,
     controlLinkMode,
     effectiveDurationMs,
+    gesture,
     headerHeight,
-    lyricSectionTop,
-    visualPlayheadMs,
-    project,
     hoveredEditHandle,
-    selection,
+    lyricSectionTop,
+    project,
+    renderCanvasRef,
     selectedNoteIds,
-    visibleViewDurationMs,
+    selection,
     viewStartMs,
-  ]);
+    visibleViewDurationMs,
+    visualPlayheadMs,
+    wordFocusAnimationRef,
+  });
 
-  renderCanvasRef.current = renderCanvas;
-
-  useEffect(() => {
-    if (!activeLyricWordId) {
-      return undefined;
-    }
-    let animationFrame = 0;
-    const animateFocus = (now: number) => {
-      renderCanvasRef.current();
-      if (now - wordFocusAnimationRef.current.startedAt < 180) {
-        animationFrame = window.requestAnimationFrame(animateFocus);
-      }
-    };
-    animationFrame = window.requestAnimationFrame(animateFocus);
-    return () => window.cancelAnimationFrame(animationFrame);
-  }, [activeLyricWordId]);
-
-  useEffect(() => {
-    renderCanvas();
-    const host = canvasHostRef.current;
-    if (!host || typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
-    const observer = new ResizeObserver(renderCanvas);
-    observer.observe(host);
-    return () => observer.disconnect();
-  }, [renderCanvas]);
-
-  const canvasPoint = (event: ReactPointerEvent<HTMLCanvasElement>) => {
-    const rect = event.currentTarget.getBoundingClientRect();
-    return {
-      x: event.clientX - rect.left,
-      y: event.clientY - rect.top,
-      width: rect.width,
-      height: rect.height,
-    };
-  };
-
-  const canvasTimeAtX = (x: number, width: number): number => {
-    const plotWidth = Math.max(1, width - 72);
-    return Math.max(
-      0,
-      Math.min(
-        effectiveDurationMs,
-        viewStartMs + ((x - 54) / plotWidth) * visibleViewDurationMs,
-      ),
-    );
-  };
-
-  const canvasMidiAtY = (y: number, height: number): number => {
-    const plotHeight = Math.max(1, height - headerHeight - 28);
-    return Math.max(
-      MIN_NOTE_MIDI,
-      Math.min(
-        MAX_NOTE_MIDI,
-        Math.round(
-          MAX_NOTE_MIDI -
-            ((y - headerHeight) / plotHeight) * (MAX_NOTE_MIDI - MIN_NOTE_MIDI),
-        ),
-      ),
-    );
-  };
-
-  const seekCanvasPoint = (point: ReturnType<typeof canvasPoint>): number => {
-    const nextTimeMs = canvasTimeAtX(point.x, point.width);
-    setFollowViewport(false);
-    onSeek(nextTimeMs);
-    return nextTimeMs;
-  };
-
-  const auditionDraggedWord = (
-    drag: IDragState,
-    startMs: number,
-    endMs: number,
-  ) => {
-    if (drag.audioAnchorMs === undefined) {
-      return;
-    }
-    drag.auditionStartMs = Math.max(0, startMs);
-    drag.auditionEndMs = Math.max(drag.auditionStartMs + 20, endMs);
-    setScrubAuditionAnchorMs(drag.audioAnchorMs);
-    if (drag.auditionTimerId !== undefined) {
-      return;
-    }
-    const playCurrentRange = () => {
-      if (
-        dragRef.current !== drag ||
-        drag.auditionStartMs === undefined ||
-        drag.auditionEndMs === undefined
-      ) {
-        return;
-      }
-      drag.auditionStarted = true;
-      onSeek(drag.auditionStartMs);
-      Promise.resolve(onPlay()).catch(() => undefined);
-      drag.auditionTimerId = window.setTimeout(
-        playCurrentRange,
-        Math.max(20, drag.auditionEndMs - drag.auditionStartMs),
-      );
-    };
-    playCurrentRange();
-  };
-
-  const auditionWordScrubGrain = (scrub: ICanvasScrubState) => {
-    if (!scrub.auditionWordGrain) {
-      if (scrub.grainTimerId !== undefined) {
-        window.clearTimeout(scrub.grainTimerId);
-        scrub.grainTimerId = undefined;
-        onPause();
-        onSeek(scrub.anchorMs);
-      }
-      return;
-    }
-    if (scrub.grainTimerId !== undefined) {
-      window.clearTimeout(scrub.grainTimerId);
-    }
-    onSeek(scrub.anchorMs);
-    Promise.resolve(onPlay()).catch(() => undefined);
-    scrub.grainTimerId = window.setTimeout(() => {
-      if (scrubRef.current !== scrub) {
-        return;
-      }
-      onPause();
-      onSeek(scrub.anchorMs);
-      scrub.grainTimerId = undefined;
-    }, 90);
-  };
-
-  const moveViewport = (requestedStartMs: number) => {
-    setFollowViewport(false);
-    setViewStartMs(Math.max(0, Math.min(maximumViewStartMs, requestedStartMs)));
-  };
-
-  const resizeViewport = (
-    requestedStartMs: number,
-    requestedDurationMs: number,
-  ) => {
-    const nextDurationMs = Math.max(
-      minimumViewDurationMs,
-      Math.min(maximumViewDurationMs, requestedDurationMs),
-    );
-    setFollowViewport(false);
-    setViewDurationMs(nextDurationMs);
-    setViewStartMs(
-      Math.max(
-        0,
-        Math.min(
-          Math.max(0, effectiveDurationMs - nextDurationMs),
-          requestedStartMs,
-        ),
-      ),
-    );
-  };
-
-  const followPlayhead = () => {
-    setFollowViewport(true);
-    setLyricFollowRequestKey((key) => key + 1);
-    setViewStartMs(
-      Math.max(
-        0,
-        Math.min(maximumViewStartMs, playheadMs - visibleViewDurationMs * 0.2),
-      ),
-    );
-  };
-
-  const resetLyricZoom = useCallback(() => {
-    const canvas = canvasRef.current;
-    const context = canvas?.getContext('2d');
-    const plotWidth = Math.max(1, (canvas?.clientWidth ?? 392) - 72);
-    const selected =
-      selection?.kind === 'word'
-        ? canvasLyricWords.find((word) =>
-            word.syllables.some(({ token }) => token.id === selection.id),
-          )
-        : undefined;
-    const focusMs =
-      selected !== undefined
-        ? (selected.startMs + selected.endMs) / 2
-        : playheadMs;
-    if (context) {
-      context.font = '650 13px Inter, system-ui, sans-serif';
-    }
-    const priorityForWord = (word: ICanvasLyricWord) => {
-      if (word.id === activeLyricWordId) {
-        return 100;
-      }
-      if (word.id === selected?.id) {
-        return 80;
-      }
-      return 0;
-    };
-    const fitted = karaokeMakerFittedLyricViewport(
-      canvasLyricWords.map((word) => ({
-        id: word.id,
-        startMs: word.startMs,
-        endMs: word.endMs,
-        width: Math.max(
-          34,
-          (context?.measureText(word.text).width ?? word.text.length * 7.2) +
-            18,
-        ),
-        preferredLane: word.wordIndex % 3,
-        priority: priorityForWord(word),
-      })),
-      focusMs,
-      plotWidth,
-      effectiveDurationMs,
-      minimumViewDurationMs,
-      3,
-      12,
-      true,
-    );
-    setFollowViewport(false);
-    setViewStartMs(fitted.startMs);
-    setViewDurationMs(fitted.durationMs);
-  }, [
+  const {
+    followPlayhead,
+    moveViewport,
+    onCanvasPointerDown,
+    onCanvasPointerMove,
+    onCanvasPointerUp,
+    onCanvasWheel,
+    resetLyricZoom,
+    resizeViewport,
+  } = useMakerCanvasPointer({
+    activeLyricWordId,
+    cancelAudibleInteractions,
+    canvasLyricWords,
+    canvasRef,
+    commit,
+    effectiveDurationMs,
+    gesture,
+    handPanMode,
+    headerHeight,
+    lineEntryMode,
+    maximumViewDurationMs,
+    maximumViewStartMs,
+    minimumViewDurationMs,
+    noteAudition,
+    noteEditMode,
+    onPause,
+    onPlay,
+    onSeek,
+    playheadMs,
+    project,
+    projectRef,
+    pushHistory,
+    readPlayheadMs,
+    renderCanvasRef,
+    selectedNote,
+    selectedNoteIds,
+    selection,
     setFollowViewport,
+    setHoveredEditHandle,
+    setIsCanvasPanning,
+    setIsCanvasScrubbing,
+    setIsPitchPanReady,
+    setLyricFollowRequestKey,
+    setProject,
+    setScrubAuditionAnchorMs,
+    setSelectedNoteIds,
+    setSelection,
     setViewDurationMs,
     setViewStartMs,
-    activeLyricWordId,
-    canvasLyricWords,
-    effectiveDurationMs,
-    minimumViewDurationMs,
-    playheadMs,
-    selection,
-  ]);
-
-  const onCanvasPointerDown = (event: ReactPointerEvent<HTMLCanvasElement>) => {
-    const point = canvasPoint(event);
-    const plotWidth = Math.max(1, point.width - 72);
-    const playheadX =
-      54 + ((playheadMs - viewStartMs) / visibleViewDurationMs) * plotWidth;
-    const grabbedPlayhead = Math.abs(point.x - playheadX) <= 9;
-    const hit = [...hitRegionsRef.current]
-      .reverse()
-      .find(
-        (region) =>
-          point.x >= region.left - 5 &&
-          point.x <= region.right + 5 &&
-          point.y >= region.top &&
-          point.y <= region.bottom,
-      );
-    if (handPanMode && hit?.kind !== 'note') {
-      event.preventDefault();
-      event.currentTarget.setPointerCapture(event.pointerId);
-      panRef.current = {
-        pointerX: point.x,
-        viewStartMs,
-      };
-      setFollowViewport(false);
-      setIsPitchPanReady(false);
-      setIsCanvasPanning(true);
-      return;
-    }
-    if (
-      noteEditMode === 'paint' &&
-      !lineEntryMode &&
-      !hit &&
-      point.y >= headerHeight
-    ) {
-      event.preventDefault();
-      event.currentTarget.setPointerCapture(event.pointerId);
-      const draft: INotePaintDraft = {
-        pointerId: event.pointerId,
-        startX: point.x,
-        currentX: point.x,
-        y: point.y,
-      };
-      notePaintDraftRef.current = draft;
-      renderCanvasRef.current();
-      return;
-    }
-    if (
-      noteEditMode === 'select' &&
-      !hit &&
-      !grabbedPlayhead &&
-      !lineEntryMode &&
-      point.y >= headerHeight
-    ) {
-      event.preventDefault();
-      event.currentTarget.setPointerCapture(event.pointerId);
-      const additive = event.ctrlKey || event.metaKey || event.shiftKey;
-      const box: ICanvasSelectionBox = {
-        pointerId: event.pointerId,
-        startX: point.x,
-        startY: point.y,
-        currentX: point.x,
-        currentY: point.y,
-        additive,
-        initialNoteIds: additive ? new Set(selectedNoteIds) : new Set<string>(),
-      };
-      selectionBoxRef.current = box;
-      renderCanvasRef.current();
-      if (!additive) {
-        setSelection(undefined);
-        setSelectedNoteIds(new Set());
-      }
-      return;
-    }
-    if (!hit && !grabbedPlayhead && !lineEntryMode && point.y >= headerHeight) {
-      event.preventDefault();
-      event.currentTarget.setPointerCapture(event.pointerId);
-      panRef.current = {
-        pointerX: point.x,
-        viewStartMs,
-      };
-      setFollowViewport(false);
-      setIsPitchPanReady(false);
-      setIsCanvasPanning(true);
-      return;
-    }
-    if (!hit || (grabbedPlayhead && hit?.kind !== 'note') || lineEntryMode) {
-      event.preventDefault();
-      cancelAudibleInteractions(false);
-      onPause();
-      event.currentTarget.setPointerCapture(event.pointerId);
-      const anchorMs = seekCanvasPoint(point);
-      const scrub: ICanvasScrubState = {
-        pointerId: event.pointerId,
-        anchorMs,
-        auditionWordGrain: hit?.kind === 'word',
-      };
-      scrubRef.current = scrub;
-      setIsCanvasScrubbing(true);
-      setScrubAuditionAnchorMs(anchorMs);
-      auditionWordScrubGrain(scrub);
-      setSelection(undefined);
-      setSelectedNoteIds(new Set());
-      return;
-    }
-    const edgeDistance = Math.min(
-      Math.abs(point.x - hit.left),
-      Math.abs(point.x - hit.right),
-    );
-    let behavior: IDragState['behavior'] = hit.behavior ?? 'move';
-    const hitNote =
-      hit.kind === 'note'
-        ? project.melody.notes.find((note) => note.id === hit.id)
-        : undefined;
-    if (
-      !hit.behavior &&
-      hit.kind === 'note' &&
-      !hitNote?.tokenId &&
-      edgeDistance <= 8
-    ) {
-      behavior =
-        Math.abs(point.x - hit.left) < Math.abs(point.x - hit.right)
-          ? 'resize-start'
-          : 'resize-end';
-    }
-    const nextSelection = { kind: hit.kind, id: hit.id } as Exclude<
-      TSelection,
-      undefined
-    >;
-    if (hit.kind === 'note' && (event.ctrlKey || event.metaKey)) {
-      event.preventDefault();
-      event.currentTarget.setPointerCapture(event.pointerId);
-      noteLinkDragRef.current = {
-        pointerId: event.pointerId,
-        noteId: hit.id,
-        startX: (hit.left + hit.right) / 2,
-        startY: (hit.top + hit.bottom) / 2,
-        currentX: point.x,
-        currentY: point.y,
-        initialNoteIds: new Set(selectedNoteIds),
-      };
-      setSelection(nextSelection);
-      setSelectedNoteIds(new Set([hit.id]));
-      renderCanvasRef.current();
-      return;
-    }
-    if (hit.kind === 'note' && event.shiftKey && selectedNote) {
-      event.preventDefault();
-      const orderedNotes = [...project.melody.notes].sort(
-        (left, right) => left.startMs - right.startMs,
-      );
-      const anchorIndex = orderedNotes.findIndex(
-        (note) => note.id === selectedNote.id,
-      );
-      const hitIndex = orderedNotes.findIndex((note) => note.id === hit.id);
-      if (anchorIndex >= 0 && hitIndex >= 0) {
-        const rangeStart = Math.min(anchorIndex, hitIndex);
-        const rangeEnd = Math.max(anchorIndex, hitIndex);
-        setSelectedNoteIds(
-          new Set(
-            orderedNotes.slice(rangeStart, rangeEnd + 1).map((note) => note.id),
-          ),
-        );
-        setSelection(nextSelection);
-        return;
-      }
-    }
-    let activeNoteIds = new Set<string>();
-    if (hit.kind === 'note') {
-      activeNoteIds = selectedNoteIds.has(hit.id)
-        ? new Set(selectedNoteIds)
-        : new Set([hit.id]);
-    }
-    setSelection(nextSelection);
-    setSelectedNoteIds(activeNoteIds);
-    // A lyric-linked note takes its complete timing and pitch identity from the
-    // attached word/syllable. Select it normally, but require an explicit
-    // detach before any direct note movement (including vertical pitch edits).
-    if (hit.kind === 'note' && hitNote?.tokenId) {
-      noteAudition.stop();
-      return;
-    }
-    const dragBehavior =
-      hit.kind === 'note' && activeNoteIds.size > 1 ? 'move' : behavior;
-    if (hit.kind === 'note' && dragBehavior === 'move') {
-      const note = project.melody.notes.find((item) => item.id === hit.id);
-      if (note) {
-        lastDragAuditionMidiRef.current = Math.round(note.targetMidi);
-        noteAudition.play(
-          note.targetMidi,
-          karaokeLeadNoteArticulation(note).durationMs,
-        );
-      }
-    } else if (hit.kind === 'note') {
-      noteAudition.stop();
-    }
-    event.currentTarget.setPointerCapture(event.pointerId);
-    dragRef.current = {
-      selection: nextSelection,
-      behavior: dragBehavior,
-      pointerX: point.x,
-      pointerY: point.y,
-      base: project,
-      noteIds: hit.kind === 'note' ? [...activeNoteIds] : undefined,
-      audioAnchorMs:
-        hit.kind === 'word'
-          ? Math.max(0, readPlayheadMs?.() ?? playheadMs)
-          : undefined,
-    };
-  };
-
-  const onCanvasPointerMove = (event: ReactPointerEvent<HTMLCanvasElement>) => {
-    const noteLinkDrag = noteLinkDragRef.current;
-    if (noteLinkDrag?.pointerId === event.pointerId) {
-      const point = canvasPoint(event);
-      noteLinkDrag.currentX = point.x;
-      noteLinkDrag.currentY = point.y;
-      renderCanvasRef.current();
-      return;
-    }
-    const paintDraft = notePaintDraftRef.current;
-    if (paintDraft?.pointerId === event.pointerId) {
-      const point = canvasPoint(event);
-      const next = { ...paintDraft, currentX: point.x };
-      notePaintDraftRef.current = next;
-      renderCanvasRef.current();
-      return;
-    }
-    const activeSelectionBox = selectionBoxRef.current;
-    if (activeSelectionBox?.pointerId === event.pointerId) {
-      const point = canvasPoint(event);
-      const next = {
-        ...activeSelectionBox,
-        currentX: point.x,
-        currentY: point.y,
-      };
-      selectionBoxRef.current = next;
-      renderCanvasRef.current();
-      const left = Math.min(next.startX, next.currentX);
-      const right = Math.max(next.startX, next.currentX);
-      const top = Math.min(next.startY, next.currentY);
-      const bottom = Math.max(next.startY, next.currentY);
-      const nextIds = new Set(next.initialNoteIds);
-      hitRegionsRef.current.forEach((region) => {
-        if (
-          region.kind === 'note' &&
-          region.right >= left &&
-          region.left <= right &&
-          region.bottom >= top &&
-          region.top <= bottom
-        ) {
-          nextIds.add(region.id);
-        }
-      });
-      setSelectedNoteIds(nextIds);
-      setSelection((current) => {
-        if (current?.kind === 'note' && nextIds.has(current.id)) {
-          return current;
-        }
-        const firstId = nextIds.values().next().value as string | undefined;
-        return firstId ? { kind: 'note', id: firstId } : undefined;
-      });
-      return;
-    }
-    const pan = panRef.current;
-    if (pan) {
-      const point = canvasPoint(event);
-      const plotWidth = Math.max(1, point.width - 72);
-      setViewStartMs(
-        karaokeMakerPannedViewportStart(
-          pan.viewStartMs,
-          point.x - pan.pointerX,
-          plotWidth,
-          visibleViewDurationMs,
-          maximumViewStartMs,
-        ),
-      );
-      return;
-    }
-    if (scrubRef.current?.pointerId === event.pointerId) {
-      const scrub = scrubRef.current;
-      const scrubPoint = canvasPoint(event);
-      scrub.anchorMs = seekCanvasPoint(scrubPoint);
-      scrub.auditionWordGrain = hitRegionsRef.current.some(
-        (region) =>
-          region.kind === 'word' &&
-          region.behavior === undefined &&
-          scrubPoint.x >= region.left &&
-          scrubPoint.x <= region.right &&
-          scrubPoint.y >= region.top &&
-          scrubPoint.y <= region.bottom,
-      );
-      setScrubAuditionAnchorMs(scrub.anchorMs);
-      auditionWordScrubGrain(scrub);
-      return;
-    }
-    const drag = dragRef.current;
-    const point = canvasPoint(event);
-    if (!drag) {
-      const hovered = [...hitRegionsRef.current]
-        .reverse()
-        .find(
-          (region) =>
-            (region.kind === 'note' || region.behavior !== undefined) &&
-            point.x >= region.left - 5 &&
-            point.x <= region.right + 5 &&
-            point.y >= region.top &&
-            point.y <= region.bottom,
-        );
-      setIsPitchPanReady(
-        !hovered &&
-          !handPanMode &&
-          noteEditMode === undefined &&
-          !lineEntryMode &&
-          point.y >= headerHeight,
-      );
-      if (!hovered) {
-        setHoveredEditHandle(undefined);
-        return;
-      }
-      const leftDistance = Math.abs(point.x - hovered.left);
-      const rightDistance = Math.abs(point.x - hovered.right);
-      let behavior: IDragState['behavior'] = hovered.behavior ?? 'move';
-      const attachedNote =
-        hovered.kind === 'note'
-          ? project.melody.notes.find((note) => note.id === hovered.id)
-          : undefined;
-      if (attachedNote?.tokenId) {
-        setHoveredEditHandle(undefined);
-        return;
-      }
-      if (!hovered.behavior && Math.min(leftDistance, rightDistance) <= 8) {
-        behavior = leftDistance < rightDistance ? 'resize-start' : 'resize-end';
-      }
-      setHoveredEditHandle((current) =>
-        current?.kind === hovered.kind &&
-        current.id === hovered.id &&
-        current.behavior === behavior
-          ? current
-          : { kind: hovered.kind, id: hovered.id, behavior },
-      );
-      return;
-    }
-    setIsPitchPanReady(false);
-    setHoveredEditHandle(undefined);
-    const timeDelta =
-      ((point.x - drag.pointerX) / Math.max(1, point.width - 72)) *
-      visibleViewDurationMs;
-    const semitoneDelta = Math.round(
-      (-(point.y - drag.pointerY) /
-        Math.max(1, event.currentTarget.clientHeight - headerHeight - 28)) *
-        (MAX_NOTE_MIDI - MIN_NOTE_MIDI),
-    );
-    if (drag.selection.kind === 'note') {
-      const movingNoteIds = new Set(
-        drag.noteIds?.length ? drag.noteIds : [drag.selection.id],
-      );
-      const movingNotes = drag.base.melody.notes.filter((note) =>
-        movingNoteIds.has(note.id),
-      );
-      if (drag.behavior === 'move') {
-        const baseNote = drag.base.melody.notes.find(
-          (note) => note.id === drag.selection.id,
-        );
-        if (movingNotes.length) {
-          const movableNotes = movingNotes.filter((note) => !note.tokenId);
-          const minimumStartMs = movableNotes.length
-            ? Math.min(...movableNotes.map((note) => note.startMs))
-            : 0;
-          const maximumEndMs = movableNotes.length
-            ? Math.max(...movableNotes.map((note) => note.endMs))
-            : effectiveDurationMs;
-          const minimumMidi = movableNotes.length
-            ? Math.min(...movableNotes.map((note) => note.targetMidi))
-            : MIN_NOTE_MIDI;
-          const maximumMidi = movableNotes.length
-            ? Math.max(...movableNotes.map((note) => note.targetMidi))
-            : MAX_NOTE_MIDI;
-          const clampedTimeDelta = movableNotes.length
-            ? Math.max(
-                -minimumStartMs,
-                Math.min(effectiveDurationMs - maximumEndMs, timeDelta),
-              )
-            : 0;
-          const clampedSemitoneDelta = movableNotes.length
-            ? Math.max(
-                MIN_NOTE_MIDI - minimumMidi,
-                Math.min(MAX_NOTE_MIDI - maximumMidi, semitoneDelta),
-              )
-            : 0;
-          if (
-            baseNote &&
-            !baseNote.tokenId &&
-            (Math.abs(clampedTimeDelta) > 0.5 || clampedSemitoneDelta !== 0)
-          ) {
-            const auditionMidi = baseNote.targetMidi + clampedSemitoneDelta;
-            drag.finalAuditionMidi = auditionMidi;
-            drag.finalAuditionDurationMs =
-              karaokeLeadNoteArticulation(baseNote).durationMs;
-            if (lastDragAuditionMidiRef.current !== auditionMidi) {
-              lastDragAuditionMidiRef.current = auditionMidi;
-              noteAudition.play(auditionMidi, 190);
-            }
-          }
-          setProject({
-            ...drag.base,
-            melody: {
-              ...drag.base.melody,
-              source: 'manual',
-              notes: drag.base.melody.notes.map((note) =>
-                movingNoteIds.has(note.id) && !note.tokenId
-                  ? {
-                      ...note,
-                      startMs: note.startMs + clampedTimeDelta,
-                      endMs: note.endMs + clampedTimeDelta,
-                      targetMidi: note.targetMidi + clampedSemitoneDelta,
-                      source: 'manual' as const,
-                    }
-                  : note,
-              ),
-            },
-          });
-        }
-        return;
-      }
-      setProject(
-        replaceNote(drag.base, drag.selection.id, (note) => {
-          if (note.tokenId) {
-            return note;
-          }
-          if (drag.behavior === 'resize-start') {
-            return {
-              ...note,
-              startMs: Math.max(
-                0,
-                Math.min(note.endMs - 40, note.startMs + timeDelta),
-              ),
-              source: 'manual',
-            };
-          }
-          return {
-            ...note,
-            endMs: Math.min(
-              effectiveDurationMs,
-              Math.max(note.startMs + 40, note.endMs + timeDelta),
-            ),
-            source: 'manual',
-          };
-        }),
-      );
-      return;
-    }
-    const baseToken = flattenTokens(drag.base).find(
-      (token) => token.id === drag.selection.id,
-    );
-    if (
-      !baseToken ||
-      baseToken.startMs === undefined ||
-      baseToken.endMs === undefined
-    ) {
-      return;
-    }
-    const shifted =
-      drag.behavior === 'move'
-        ? shiftKaraokeMakerLineTailFromToken(drag.base, baseToken.id, timeDelta)
-        : resizeKaraokeMakerTokenBoundary(
-            drag.base,
-            baseToken.id,
-            drag.behavior === 'resize-start' ? 'start' : 'end',
-            (drag.behavior === 'resize-start'
-              ? baseToken.startMs
-              : baseToken.endMs) + timeDelta,
-          );
-    const movedToken = flattenTokens(shifted).find(
-      (token) => token.id === baseToken.id,
-    );
-    if (movedToken?.startMs !== undefined && movedToken.endMs !== undefined) {
-      auditionDraggedWord(drag, movedToken.startMs, movedToken.endMs);
-    }
-    setProject(shifted);
-  };
-
-  const onCanvasPointerUp = (event: ReactPointerEvent<HTMLCanvasElement>) => {
-    const wasCancelled = event.type === 'pointercancel';
-    const noteLinkDrag = noteLinkDragRef.current;
-    if (noteLinkDrag?.pointerId === event.pointerId) {
-      const point = canvasPoint(event);
-      const targetWord = wasCancelled
-        ? undefined
-        : [...hitRegionsRef.current]
-            .reverse()
-            .find(
-              (region) =>
-                region.kind === 'word' &&
-                region.behavior === undefined &&
-                point.x >= region.left &&
-                point.x <= region.right &&
-                point.y >= region.top &&
-                point.y <= region.bottom,
-            );
-      const targetToken = targetWord
-        ? flattenTokens(projectRef.current).find(
-            (token) => token.id === targetWord.id,
-          )
-        : undefined;
-      if (
-        targetToken?.startMs !== undefined &&
-        targetToken.endMs !== undefined
-      ) {
-        commit((current) => ({
-          ...current,
-          melody: {
-            ...current.melody,
-            source: 'manual',
-            notes: current.melody.notes.map((note) =>
-              note.id === noteLinkDrag.noteId
-                ? {
-                    ...note,
-                    tokenId: targetToken.id,
-                    startMs: targetToken.startMs as number,
-                    endMs: targetToken.endMs as number,
-                    source: 'manual' as const,
-                  }
-                : note,
-            ),
-          },
-        }));
-        setSelection({ kind: 'note', id: noteLinkDrag.noteId });
-        setSelectedNoteIds(new Set([noteLinkDrag.noteId]));
-      } else {
-        const movedDistance = Math.hypot(
-          point.x - noteLinkDrag.startX,
-          point.y - noteLinkDrag.startY,
-        );
-        const nextNoteIds = new Set(noteLinkDrag.initialNoteIds);
-        if (!wasCancelled && movedDistance < 5) {
-          if (nextNoteIds.has(noteLinkDrag.noteId)) {
-            nextNoteIds.delete(noteLinkDrag.noteId);
-          } else {
-            nextNoteIds.add(noteLinkDrag.noteId);
-          }
-        }
-        setSelectedNoteIds(nextNoteIds);
-        const firstSelectedId = nextNoteIds.values().next().value as
-          string | undefined;
-        setSelection(
-          firstSelectedId ? { kind: 'note', id: firstSelectedId } : undefined,
-        );
-      }
-      noteLinkDragRef.current = undefined;
-      renderCanvasRef.current();
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      }
-      return;
-    }
-    const paintDraft = notePaintDraftRef.current;
-    if (paintDraft?.pointerId === event.pointerId) {
-      if (wasCancelled) {
-        notePaintDraftRef.current = undefined;
-        renderCanvasRef.current();
-        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-          event.currentTarget.releasePointerCapture(event.pointerId);
-        }
-        return;
-      }
-      const point = canvasPoint(event);
-      const requestedStartTime = canvasTimeAtX(
-        Math.min(paintDraft.startX, paintDraft.currentX),
-        point.width,
-      );
-      const startTime = Math.min(
-        Math.max(0, effectiveDurationMs - 40),
-        requestedStartTime,
-      );
-      const draggedEndTime = canvasTimeAtX(
-        Math.max(paintDraft.startX, paintDraft.currentX),
-        point.width,
-      );
-      const endTime =
-        Math.abs(paintDraft.currentX - paintDraft.startX) < 4
-          ? Math.min(effectiveDurationMs, startTime + 500)
-          : Math.max(startTime + 40, draggedEndTime);
-      const targetMidi = canvasMidiAtY(paintDraft.y, point.height);
-      const note: IKaraokeMakerNote = {
-        id: karaokeMakerId('note'),
-        startMs: startTime,
-        endMs: endTime,
-        targetMidi,
-        kind: 'normal',
-        source: 'manual',
-      };
-      notePaintDraftRef.current = undefined;
-      renderCanvasRef.current();
-      commit((current) => ({
-        ...current,
-        melody: {
-          ...current.melody,
-          source: 'manual',
-          notes: [...current.melody.notes, note].sort(
-            (left, right) => left.startMs - right.startMs,
-          ),
-        },
-      }));
-      setSelection({ kind: 'note', id: note.id });
-      setSelectedNoteIds(new Set([note.id]));
-      noteAudition.play(note.targetMidi, 240);
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      }
-      return;
-    }
-    if (selectionBoxRef.current?.pointerId === event.pointerId) {
-      selectionBoxRef.current = undefined;
-      renderCanvasRef.current();
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      }
-      return;
-    }
-    if (panRef.current) {
-      panRef.current = undefined;
-      setIsCanvasPanning(false);
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      }
-      return;
-    }
-    if (scrubRef.current?.pointerId === event.pointerId) {
-      const scrub = scrubRef.current;
-      if (scrub.grainTimerId !== undefined) {
-        window.clearTimeout(scrub.grainTimerId);
-      }
-      if (scrub.auditionWordGrain) {
-        onPause();
-        onSeek(scrub.anchorMs);
-      }
-      scrubRef.current = undefined;
-      setIsCanvasScrubbing(false);
-      setScrubAuditionAnchorMs(undefined);
-      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-        event.currentTarget.releasePointerCapture(event.pointerId);
-      }
-      return;
-    }
-    const drag = dragRef.current;
-    if (!drag) {
-      return;
-    }
-    if (drag.auditionTimerId !== undefined) {
-      window.clearTimeout(drag.auditionTimerId);
-    }
-    if (drag.auditionStarted && drag.audioAnchorMs !== undefined) {
-      onPause();
-      onSeek(drag.audioAnchorMs);
-      setScrubAuditionAnchorMs(undefined);
-    }
-    dragRef.current = undefined;
-    lastDragAuditionMidiRef.current = undefined;
-    noteAudition.stop();
-    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-      event.currentTarget.releasePointerCapture(event.pointerId);
-    }
-    pushHistory(drag.base);
-    setProject((current) => touchKaraokeMakerProject(current));
-    if (
-      !wasCancelled &&
-      drag.behavior === 'move' &&
-      drag.finalAuditionMidi !== undefined &&
-      drag.finalAuditionDurationMs !== undefined
-    ) {
-      noteAudition.play(drag.finalAuditionMidi, drag.finalAuditionDurationMs);
-    }
-  };
-
-  const onCanvasWheel = (event: ReactWheelEvent<HTMLCanvasElement>) => {
-    event.preventDefault();
-    setFollowViewport(false);
-    if (event.ctrlKey || event.metaKey) {
-      const rect = event.currentTarget.getBoundingClientRect();
-      const cursorProgress = Math.max(
-        0,
-        Math.min(
-          1,
-          (event.clientX - rect.left - 54) / Math.max(1, rect.width - 72),
-        ),
-      );
-      const cursorTime = viewStartMs + cursorProgress * visibleViewDurationMs;
-      const nextDuration = Math.max(
-        minimumViewDurationMs,
-        Math.min(
-          maximumViewDurationMs,
-          visibleViewDurationMs * Math.exp(event.deltaY * 0.002),
-        ),
-      );
-      setViewDurationMs(nextDuration);
-      setViewStartMs(
-        Math.max(
-          0,
-          Math.min(
-            effectiveDurationMs - nextDuration,
-            cursorTime - cursorProgress * nextDuration,
-          ),
-        ),
-      );
-      return;
-    }
-    setViewStartMs((start) =>
-      Math.max(
-        0,
-        Math.min(
-          maximumViewStartMs,
-          start +
-            (event.deltaX + event.deltaY) * (visibleViewDurationMs / 2_000),
-        ),
-      ),
-    );
-  };
+    viewStartMs,
+    visibleViewDurationMs,
+  });
 
   const startLineRecordingForProject = (nextProject: IKaraokeMakerProject) => {
     const nextLyricLines = nextProject.lyrics.lines.filter(
@@ -2315,30 +919,15 @@ const KaraokeMaker = ({
     if (!targetLine) {
       return;
     }
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-    setLyricsOpen(false);
-    setLineEntryMode(true);
-    setNoteEditMode(undefined);
-    clearLineEntryCountdown();
-    setLineEntrySession('setup');
-    setLineEntryCapture(undefined);
-    lineEntryIndexRef.current = 0;
-    setLineEntryIndex(0);
-    setSelection({ kind: 'word', id: targetLine.tokens[0].id });
-    setHandPanMode(false);
-    setIsCanvasPanning(false);
-    setIsCanvasScrubbing(false);
-    panRef.current = undefined;
-    noteLinkDragRef.current = undefined;
-    cancelAudibleInteractions();
-    setPreviewOpen(true);
-    setFollowViewport(true);
-    setLyricFollowRequestKey((key) => key + 1);
-    onSeek(0);
-    setViewStartMs(0);
-    setToolPanel(undefined);
+    // From the top, because these lyrics have never been timed: there is no
+    // partly-finished pass to resume, so the first line is the only sensible
+    // place to start.
+    beginLineCapture({
+      lineIndex: 0,
+      tokenId: targetLine.tokens[0].id,
+      seekMs: 0,
+      viewStartMs: 0,
+    });
   };
 
   const replaceLyrics = (
@@ -2445,1588 +1034,149 @@ const KaraokeMaker = ({
   // Seeding and opening the editor is the hook's; landing the caret on the word
   // the user was last looking at is this component's, because the selection and
   // the lyric focus are not the draft's business.
-  const openLyricsEditor = () => {
-    openLyricsDraft(projectRef.current);
-    setDestructiveAction(undefined);
-    const preferredToken =
-      tokens.find((token) => token.id === activeLyricFocus?.tokenId) ??
-      tokens[0];
-    if (preferredToken) {
-      setSelection({ kind: 'word', id: preferredToken.id });
-    }
-  };
-
-  const clearNotes = () => {
-    commit((current) => ({
-      ...current,
-      melody: { ...current.melody, source: 'manual', notes: [] },
-    }));
-    setSelection(undefined);
-    setSelectedNoteIds(new Set());
-    setDestructiveAction(undefined);
-    setNotice(t('karaoke.maker.notesCleared'));
-  };
-
-  const clearLyrics = () => {
-    commit((current) => ({
-      ...current,
-      lyrics: { ...current.lyrics, source: 'manual', lines: [] },
-      analysis: {
-        ...current.analysis,
-        whisperPasses: 0,
-        whisperAlignmentVersion: undefined,
-      },
-      melody: {
-        ...current.melody,
-        notes: current.melody.notes.map((note) => ({
-          ...note,
-          tokenId: undefined,
-        })),
-      },
-    }));
-    setLyricsDraft('');
-    setLyricsFileName(undefined);
-    setSelection(undefined);
-    setDestructiveAction(undefined);
-    setNotice(t('karaoke.maker.lyricsCleared'));
-  };
-
-  /**
-   * Throw the editing away and rebuild the project the import produced.
-   *
-   * Undoable like the other destructive actions: `commit` leaves the discarded
-   * work one Undo away, which is what the confirmation promises.
-   *
-   * The saved draft is deleted rather than left for autosave to overwrite.
-   * Autosave does write the pristine project a moment later, but a user who
-   * closes the Maker inside that moment would otherwise reopen onto the very
-   * work they just discarded.
-   */
-  // The project half of Restore is the hook's; what is left here is the view
-  // state that has to follow it back.
-  const restoreOriginal = () => {
-    const original = restoreOriginalProject();
-    setLyricsDraft(plainLyrics(original));
-    setLyricsFileName(undefined);
-    setSelection(undefined);
-    setSelectedNoteIds(new Set());
-    setDestructiveAction(undefined);
-    setNotice(t('karaoke.maker.restored'));
-  };
-
-  const selectLyricsFile = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) {
-      return;
-    }
-    try {
-      const contents = await readKaraokeTextFile(file);
-      let text = contents;
-      try {
-        const parsed = parseKaraokeText(file.name, contents);
-        text = parsed.lines
-          .map((line) =>
-            line.tokens
-              .reduce(
-                (lineText, token) =>
-                  `${lineText}${
-                    lineText && token.startsWord !== false ? ' ' : ''
-                  }${token.text}`,
-                '',
-              )
-              .trim(),
-          )
-          .filter(Boolean)
-          .join('\n');
-      } catch {
-        // Plain unsynchronised text is already a valid lyric reference.
-      }
-      setLyricsDraft(text);
-      setLyricsFileName(file.name);
-      setNotice(t('karaoke.maker.lyricsFileLoaded', { file: file.name }));
-    } catch (error) {
-      setNotice(localizeMakerError(error, 'import'));
-    }
-  };
-
-  const seekGuidedTimeline = useCallback(
-    (requestedMs: number) => {
-      const nextMs = Math.max(0, Math.min(effectiveDurationMs, requestedMs));
-      onSeek(nextMs);
-      setFollowViewport(true);
-      setViewStartMs(
-        Math.max(
-          0,
-          Math.min(maximumViewStartMs, nextMs - visibleViewDurationMs * 0.3),
-        ),
-      );
-    },
-    [
-      effectiveDurationMs,
-      maximumViewStartMs,
-      onSeek,
-      setFollowViewport,
-      setViewStartMs,
-      visibleViewDurationMs,
-    ],
-  );
-
-  const selectGuidedLine = useCallback(
-    (index: number) => {
-      const nextIndex = Math.max(0, Math.min(lyricLines.length - 1, index));
-      const line = lyricLines[nextIndex];
-      if (!line) {
-        return;
-      }
-      setLineEntryCapture(undefined);
-      lineEntryIndexRef.current = nextIndex;
-      setLineEntryIndex(nextIndex);
-      setSelection({ kind: 'word', id: line.tokens[0].id });
-      setLyricFollowRequestKey((key) => key + 1);
-    },
-    [lyricLines, setSelection],
-  );
-
-  const recordLineEntry = useCallback(() => {
-    if (lineEntrySession !== 'active') {
-      return;
-    }
-    const line = lyricLines[lineEntryIndex];
-    if (!line) {
-      setLineEntryMode(false);
-      setNotice(t('karaoke.maker.lineTimingComplete'));
-      return;
-    }
-    const now = Math.max(0, readPlayheadMs?.() ?? playheadMs);
-    const timedTokens = line.tokens.filter(
-      (token) => token.startMs !== undefined && token.endMs !== undefined,
-    );
-    const detectedStartMs = timedTokens.length
-      ? Math.min(...timedTokens.map((token) => token.startMs as number))
-      : undefined;
-    const detectedEndMs = timedTokens.length
-      ? Math.max(...timedTokens.map((token) => token.endMs as number))
-      : undefined;
-    const captureStartMs = lineEntryCapture?.startMs;
-    if (!lineEntryCapture || lineEntryCapture.lineId !== line.id) {
-      const estimatedSpanMs =
-        detectedStartMs !== undefined && detectedEndMs !== undefined
-          ? Math.max(600, detectedEndMs - detectedStartMs)
-          : Math.min(8_000, Math.max(1_200, line.tokens.length * 420));
-      setLineEntryCapture({
-        lineId: line.id,
-        startMs: now,
-        estimatedEndMs: Math.min(effectiveDurationMs, now + estimatedSpanMs),
-        wordBoundariesMs: [],
-      });
-      setFollowViewport(true);
-      return;
-    }
-    if (captureStartMs === undefined) {
-      return;
-    }
-    const minimumCaptureMs = Math.max(
-      160,
-      Math.min(700, line.tokens.length * 55),
-    );
-    if (now - captureStartMs < minimumCaptureMs) {
-      return;
-    }
-    const previousLine = lyricLines[lineEntryIndex - 1];
-    commit((current) =>
-      recordKaraokeMakerLineRange(
-        current,
-        line.id,
-        captureStartMs,
-        now,
-        previousLine?.id,
-        lineEntryCapture.wordBoundariesMs,
-      ),
-    );
-    const nextIndex = lineEntryIndex + 1;
-    const nextLine = lyricLines[nextIndex];
-    if (!nextLine) {
-      setLineEntryCapture(undefined);
-      setSelection({ kind: 'word', id: line.tokens[0].id });
-      setLineEntryMode(false);
-      setNotice(t('karaoke.maker.lineTimingComplete'));
-      return;
-    }
-    // Merely revealing the next sentence must never invent its START. A pause
-    // between phrases is meaningful karaoke timing, so the next Enter records
-    // the exact playhead position and only a later Enter records its END.
-    setLineEntryCapture(undefined);
-    setLineEntryIndex(nextIndex);
-    // Completing a line always previews the following sentence. Playback can
-    // keep painting recorded timing progress, but must not steal this focus.
-    setSelection({ kind: 'word', id: nextLine.tokens[0].id });
-    setFollowViewport(true);
-    setLyricFollowRequestKey((key) => key + 1);
-    setViewStartMs(
-      Math.max(
-        0,
-        Math.min(maximumViewStartMs, now - visibleViewDurationMs * 0.3),
-      ),
-    );
-  }, [
-    lineEntrySession,
-    lyricLines,
-    lineEntryIndex,
-    readPlayheadMs,
-    playheadMs,
-    lineEntryCapture,
+  const {
+    clearLyrics,
+    clearNotes,
+    openLyricsEditor,
+    restoreOriginal,
+    selectLyricsFile,
+  } = useMakerLyricsActions({
+    activeLyricFocus,
     commit,
-    setSelection,
-    setFollowViewport,
-    setViewStartMs,
-    maximumViewStartMs,
-    visibleViewDurationMs,
+    localizeMakerError,
+    openLyricsDraft,
+    projectRef,
+    restoreOriginalProject,
+    setDestructiveAction,
+    setLyricsDraft,
+    setLyricsFileName,
     setNotice,
+    setSelectedNoteIds,
+    setSelection,
     t,
-    effectiveDurationMs,
-  ]);
+    tokens,
+  });
 
-  const markNextGuidedWord = useCallback(() => {
-    const line = lyricLines[lineEntryIndex];
-    if (
-      lineEntrySession !== 'active' ||
-      !line ||
-      !lineEntryCapture ||
-      lineEntryCapture.lineId !== line.id
-    ) {
-      return;
-    }
-    const boundaries = lineEntryCapture.wordBoundariesMs ?? [];
-    if (boundaries.length >= line.tokens.length - 1) {
-      return;
-    }
-    const now = Math.max(0, readPlayheadMs?.() ?? playheadMs);
-    const previousBoundaryMs = boundaries[boundaries.length - 1];
-    if (
-      now <= lineEntryCapture.startMs + 20 ||
-      (previousBoundaryMs !== undefined && now <= previousBoundaryMs + 20)
-    ) {
-      return;
-    }
-    const nextBoundaries = [...boundaries, now];
-    setLineEntryCapture({
-      ...lineEntryCapture,
-      wordBoundariesMs: nextBoundaries,
-    });
-    const nextToken = line.tokens[nextBoundaries.length];
-    if (nextToken) {
-      setSelection({ kind: 'word', id: nextToken.id });
-      setLyricFollowRequestKey((key) => key + 1);
-    }
-  }, [
+  const {
+    ignoreGuidedLine,
+    markNextGuidedWord,
+    recordLineEntry,
+    selectGuidedLine,
+  } = useMakerLineCapture({
+    clearLineEntryCountdown,
+    commit,
+    effectiveDurationMs,
+    isPlaying,
     lineEntryCapture,
     lineEntryIndex,
-    lineEntrySession,
-    lyricLines,
-    playheadMs,
-    readPlayheadMs,
-    setSelection,
-  ]);
-
-  const ignoreGuidedLine = useCallback(() => {
-    const nextIndex = lineEntryIndex + 1;
-    const nextLine = lyricLines[nextIndex];
-    setLineEntryCapture(undefined);
-    if (!nextLine) {
-      setLineEntryMode(false);
-      setNotice(t('karaoke.maker.lineTimingComplete'));
-      return;
-    }
-    lineEntryIndexRef.current = nextIndex;
-    setLineEntryIndex(nextIndex);
-    setSelection({ kind: 'word', id: nextLine.tokens[0].id });
-    setFollowViewport(true);
-    setLyricFollowRequestKey((key) => key + 1);
-  }, [
-    lineEntryIndex,
-    lyricLines,
-    setFollowViewport,
-    setNotice,
-    setSelection,
-    t,
-  ]);
-
-  useEffect(() => {
-    if (!lineEntryMode) {
-      return undefined;
-    }
-    const onKeyDown = (event: KeyboardEvent) => {
-      const repeatsLineNavigation =
-        event.code === 'ArrowUp' || event.code === 'ArrowDown';
-      if (event.repeat && !repeatsLineNavigation) {
-        return;
-      }
-      const target =
-        event.target instanceof HTMLElement ? event.target : undefined;
-      if (
-        target?.matches('input, textarea, select, [contenteditable="true"]')
-      ) {
-        return;
-      }
-      if (target?.closest('button') && event.code === 'Enter') {
-        return;
-      }
-      if (lineEntrySession !== 'active') {
-        if (lineEntrySession === 'setup' && event.code === 'Enter') {
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          startLineEntryCountdown();
-          return;
-        }
-        if (event.code === 'Escape') {
-          setLineEntryMode(false);
-          clearLineEntryCountdown();
-          setLineEntryCapture(undefined);
-          return;
-        }
-        if (
-          event.code === 'Enter' ||
-          event.code === 'Space' ||
-          event.code === 'Backspace' ||
-          event.code.startsWith('Arrow')
-        ) {
-          event.preventDefault();
-          event.stopImmediatePropagation();
-        }
-        return;
-      }
-      if (event.code === 'Enter') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        recordLineEntry();
-      } else if (event.code === 'Tab') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        markNextGuidedWord();
-      } else if (event.code === 'ArrowUp' || event.code === 'ArrowDown') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        const direction = event.code === 'ArrowUp' ? -1 : 1;
-        const currentIndex = lineEntryIndexRef.current;
-        const nextIndex = Math.max(
-          0,
-          Math.min(lyricLines.length - 1, currentIndex + direction),
-        );
-        if (nextIndex === currentIndex) {
-          return;
-        }
-        const nextLine = lyricLines[nextIndex];
-        selectGuidedLine(nextIndex);
-        if (event.code === 'ArrowUp' && nextLine) {
-          const recordedRange = karaokeMakerRecordedLineRange(nextLine);
-          if (recordedRange) {
-            seekGuidedTimeline(recordedRange.startMs);
-          }
-        }
-      } else if (event.code === 'ArrowLeft' || event.code === 'ArrowRight') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        const now = readPlayheadMs?.() ?? playheadMs;
-        const seekStepMs = event.shiftKey ? 1_000 : 2_000;
-        const nextMs = Math.max(
-          0,
-          Math.min(
-            effectiveDurationMs,
-            now + (event.code === 'ArrowLeft' ? -seekStepMs : seekStepMs),
-          ),
-        );
-        seekGuidedTimeline(nextMs);
-      } else if (event.code === 'Space') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        if (isPlaying) {
-          onPause();
-        } else {
-          Promise.resolve(onPlay()).catch(() => undefined);
-        }
-      } else if (event.code === 'Backspace') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        undo();
-        selectGuidedLine(lineEntryIndexRef.current - 1);
-      } else if (event.code === 'Escape') {
-        setLineEntryMode(false);
-        setLineEntryCapture(undefined);
-      }
-    };
-    window.addEventListener('keydown', onKeyDown, true);
-    return () => window.removeEventListener('keydown', onKeyDown, true);
-  }, [
-    effectiveDurationMs,
-    clearLineEntryCountdown,
-    isPlaying,
+    lineEntryIndexRef,
     lineEntryMode,
     lineEntrySession,
     lyricLines,
-    markNextGuidedWord,
+    maximumViewStartMs,
     onPause,
     onPlay,
-    playheadMs,
-    readPlayheadMs,
-    recordLineEntry,
-    seekGuidedTimeline,
-    selectGuidedLine,
-    startLineEntryCountdown,
-    undo,
-  ]);
-
-  useEffect(() => {
-    if (lineEntryMode) {
-      return undefined;
-    }
-    const navigatePreviewLyrics = (event: KeyboardEvent) => {
-      if (
-        (event.code !== 'ArrowUp' && event.code !== 'ArrowDown') ||
-        event.altKey ||
-        event.ctrlKey ||
-        event.metaKey ||
-        document.querySelector(
-          '.karaoke-maker__modal-backdrop, .dropdown--open',
-        )
-      ) {
-        return;
-      }
-      const target =
-        event.target instanceof HTMLElement ? event.target : undefined;
-      if (
-        target?.matches('input, textarea, select, [contenteditable="true"]') ||
-        target?.closest('button')
-      ) {
-        return;
-      }
-      let currentIndex = selectedLyricLineId
-        ? lyricLines.findIndex((line) => line.id === selectedLyricLineId)
-        : -1;
-      if (currentIndex < 0) {
-        const now = Math.max(0, readPlayheadMs?.() ?? playheadMs);
-        currentIndex = lyricLines.findIndex((line) => {
-          const range = karaokeMakerTimedLineRange(line);
-          return range && now >= range.startMs && now <= range.endMs;
-        });
-        if (currentIndex < 0) {
-          const nextTimedIndex = lyricLines.findIndex((line) => {
-            const range = karaokeMakerTimedLineRange(line);
-            return range !== undefined && range.startMs >= now;
-          });
-          if (event.code === 'ArrowDown') {
-            currentIndex = Math.max(-1, nextTimedIndex - 1);
-          } else {
-            currentIndex =
-              nextTimedIndex >= 0 ? nextTimedIndex : lyricLines.length;
-          }
-        }
-      }
-      const direction = event.code === 'ArrowUp' ? -1 : 1;
-      const nextIndex = Math.max(
-        0,
-        Math.min(lyricLines.length - 1, currentIndex + direction),
-      );
-      const nextLine = lyricLines[nextIndex];
-      if (!nextLine || nextIndex === currentIndex) {
-        return;
-      }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      setSelection({ kind: 'word', id: nextLine.tokens[0].id });
-      setSelectedNoteIds(new Set());
-      setPreviewOpen(true);
-      setLyricFollowRequestKey((key) => key + 1);
-    };
-    window.addEventListener('keydown', navigatePreviewLyrics, true);
-    return () =>
-      window.removeEventListener('keydown', navigatePreviewLyrics, true);
-  }, [
-    setPreviewOpen,
-    lineEntryMode,
-    lyricLines,
+    onSeek,
     playheadMs,
     readPlayheadMs,
     selectedLyricLineId,
-    setSelection,
+    setFollowViewport,
+    setLineEntryCapture,
+    setLineEntryIndex,
+    setLineEntryMode,
+    setLyricFollowRequestKey,
+    setNotice,
+    setPreviewOpen,
     setSelectedNoteIds,
-  ]);
+    setSelection,
+    setViewStartMs,
+    startLineEntryCountdown,
+    t,
+    undo,
+    visibleViewDurationMs,
+  });
 
-  const splitSelectedLyricsWord = () => {
-    const tokenId = selectedToken?.id ?? selectedNote?.tokenId;
-    if (!tokenId) {
-      return;
-    }
-    const wordTokens = karaokeMakerWordTokensFor(project, tokenId);
-    const word = wordTokens.map((token) => token.text).join('');
-    const characters = Array.from(word);
-    if (characters.length < 2) {
-      return;
-    }
-    const existingCutPoints = wordTokens
-      .slice(0, -1)
-      .reduce<number[]>((points, token) => {
-        const previous = points[points.length - 1] ?? 0;
-        points.push(previous + Array.from(token.text).length);
-        return points;
-      }, []);
-    const suggestedSyllables = splitKaraokeWordSyllables(
-      word,
-      project.lyrics.language ?? 'en',
-    );
-    const suggestedCutPoints = suggestedSyllables
-      .slice(0, -1)
-      .reduce<number[]>((points, syllable) => {
-        const previous = points[points.length - 1] ?? 0;
-        points.push(previous + Array.from(syllable).length);
-        return points;
-      }, []);
-    setSyllableSplitDraft({
-      tokenId: wordTokens[0].id,
-      word,
-      cutPoints:
-        existingCutPoints.length > 0 ? existingCutPoints : suggestedCutPoints,
-    });
-  };
-
-  const toggleSyllableCutPoint = (cutPoint: number) => {
-    setSyllableSplitDraft((current) => {
-      if (!current) {
-        return current;
-      }
-      const next = new Set(current.cutPoints);
-      if (next.has(cutPoint)) {
-        next.delete(cutPoint);
-      } else {
-        next.add(cutPoint);
-      }
-      return { ...current, cutPoints: [...next].sort((a, b) => a - b) };
-    });
-  };
-
-  const applySyllableSplit = () => {
-    if (!syllableSplitDraft) {
-      return;
-    }
-    const syllables = syllablesAtCutPoints(
-      syllableSplitDraft.word,
-      syllableSplitDraft.cutPoints,
-    );
-    if (syllables.length < 2) {
-      return;
-    }
-    commit((current) =>
-      splitKaraokeMakerWordIntoSyllables(
-        current,
-        syllableSplitDraft.tokenId,
-        current.lyrics.language ?? 'en',
-        syllables,
-      ),
-    );
-    setSelection({ kind: 'word', id: syllableSplitDraft.tokenId });
-    setSyllableSplitDraft(undefined);
-  };
-
-  const splitNote = () => {
-    if (!selectedNote) {
-      return;
-    }
-    const splitAt =
-      playheadMs > selectedNote.startMs + 40 &&
-      playheadMs < selectedNote.endMs - 40
-        ? playheadMs
-        : (selectedNote.startMs + selectedNote.endMs) / 2;
-    const second: IKaraokeMakerNote = {
-      ...selectedNote,
-      id: karaokeMakerId('note'),
-      startMs: splitAt,
-      source: 'manual',
-    };
-    commit((current) => {
-      const first = replaceNote(current, selectedNote.id, (note) => ({
-        ...note,
-        endMs: splitAt,
-        source: 'manual',
-      }));
-      return {
-        ...first,
-        melody: {
-          ...first.melody,
-          source: 'manual',
-          notes: [...first.melody.notes, second],
-        },
-      };
-    });
-    setSelection({ kind: 'note', id: second.id });
-  };
-
-  const deleteSelection = useCallback(() => {
-    if (!selection) {
-      return;
-    }
-    if (selection.kind === 'note') {
-      const noteIds = selectedNoteIds.size
-        ? selectedNoteIds
-        : new Set([selection.id]);
-      commit((current) => ({
-        ...current,
-        melody: {
-          ...current.melody,
-          source: 'manual',
-          notes: current.melody.notes.filter((note) => !noteIds.has(note.id)),
-        },
-      }));
-    } else {
-      commit((current) => ({
-        ...current,
-        lyrics: {
-          ...current.lyrics,
-          lines: current.lyrics.lines
-            .map((line) => ({
-              ...line,
-              tokens: line.tokens.filter((token) => token.id !== selection.id),
-            }))
-            .filter((line) => line.tokens.length),
-        },
-        melody: {
-          ...current.melody,
-          notes: current.melody.notes.map((note) =>
-            note.tokenId === selection.id
-              ? { ...note, tokenId: undefined }
-              : note,
-          ),
-        },
-      }));
-    }
-    setSelection(undefined);
-    setSelectedNoteIds(new Set());
-  }, [commit, selectedNoteIds, selection, setSelectedNoteIds, setSelection]);
-
-  const detachSelectedNotes = useCallback(() => {
-    const noteIds = new Set(selectedNoteIds);
-    if (!noteIds.size && selection?.kind === 'note') {
-      noteIds.add(selection.id);
-    }
-    if (!noteIds.size) {
-      return;
-    }
-    commit((current) => ({
-      ...current,
-      melody: {
-        ...current.melody,
-        source: 'manual',
-        notes: current.melody.notes.map((note) =>
-          noteIds.has(note.id)
-            ? { ...note, tokenId: undefined, source: 'manual' as const }
-            : note,
-        ),
-      },
-    }));
-  }, [commit, selectedNoteIds, selection]);
-
-  const copySelectedNotes = useCallback(() => {
-    const noteIds = new Set(selectedNoteIds);
-    if (!noteIds.size && selection?.kind === 'note') {
-      noteIds.add(selection.id);
-    }
-    if (!noteIds.size) {
-      return;
-    }
-    setCopiedNotes(
-      project.melody.notes
-        .filter((note) => noteIds.has(note.id))
-        .sort((left, right) => left.startMs - right.startMs)
-        .map((note) => ({ ...note })),
-    );
-  }, [
-    project.melody.notes,
-    selectedNoteIds,
-    selection?.id,
-    selection?.kind,
-    setCopiedNotes,
-  ]);
-
-  const pasteCopiedNotes = useCallback(() => {
-    if (!copiedNotes.length) {
-      return;
-    }
-    const anchorMs = Math.max(
-      0,
-      Math.min(effectiveDurationMs, readPlayheadMs?.() ?? playheadMs),
-    );
-    const sourceStartMs = Math.min(...copiedNotes.map((note) => note.startMs));
-    const pastedNotes = copiedNotes.flatMap((note) => {
-      const startMs = anchorMs + (note.startMs - sourceStartMs);
-      if (startMs >= effectiveDurationMs) {
-        return [];
-      }
-      const endMs = Math.min(
-        effectiveDurationMs,
-        Math.max(startMs + 1, startMs + (note.endMs - note.startMs)),
-      );
-      return [
-        {
-          ...note,
-          id: karaokeMakerId('note'),
-          tokenId: undefined,
-          startMs,
-          endMs,
-          source: 'manual' as const,
-        },
-      ];
-    });
-    if (!pastedNotes.length) {
-      return;
-    }
-    commit((current) => {
-      return {
-        ...current,
-        melody: {
-          ...current.melody,
-          source: 'manual',
-          notes: [...current.melody.notes, ...pastedNotes].sort(
-            (left, right) => left.startMs - right.startMs,
-          ),
-        },
-      };
-    });
-    setSelectedNoteIds(new Set(pastedNotes.map((note) => note.id)));
-    setSelection({ kind: 'note', id: pastedNotes[0].id });
-    setNotice(
-      pastedNotes.length === 1
-        ? t('karaoke.maker.notePasted')
-        : t('karaoke.maker.notesPasted', { count: pastedNotes.length }),
-    );
-  }, [
+  const {
+    applySyllableSplit,
+    copySelectedNotes,
+    deleteSelection,
+    detachSelectedNotes,
+    pasteCopiedNotes,
+    splitNote,
+    splitSelectedLyricsWord,
+    toggleSyllableCutPoint,
+  } = useMakerNoteEditing({
     commit,
     copiedNotes,
     effectiveDurationMs,
+    lineEntryMode,
     playheadMs,
+    project,
     readPlayheadMs,
+    selectedNote,
+    selectedNoteIds,
+    selectedToken,
+    selection,
+    setCopiedNotes,
     setNotice,
     setSelectedNoteIds,
     setSelection,
+    setSyllableSplitDraft,
+    syllableSplitDraft,
     t,
-  ]);
+  });
 
-  useEffect(() => {
-    const copyOrPasteNotes = (event: KeyboardEvent) => {
-      if (
-        lineEntryMode ||
-        (!event.ctrlKey && !event.metaKey) ||
-        event.altKey ||
-        (event.target instanceof HTMLElement &&
-          event.target.matches(
-            'input, textarea, select, [contenteditable="true"]',
-          ))
-      ) {
-        return;
-      }
-      const key = event.key.toLowerCase();
-      if (key === 'c' && selection?.kind === 'note') {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        copySelectedNotes();
-      } else if (key === 'v' && copiedNotes.length) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        pasteCopiedNotes();
-      }
-    };
-    window.addEventListener('keydown', copyOrPasteNotes, true);
-    return () => window.removeEventListener('keydown', copyOrPasteNotes, true);
-  }, [
-    copiedNotes.length,
-    copySelectedNotes,
-    lineEntryMode,
-    pasteCopiedNotes,
-    selection?.kind,
-  ]);
+  const { exportProject, openProject, selectVocalStem } = useMakerProjectFiles({
+    clearHistory,
+    localizeMakerError,
+    project,
+    setAnalysisFile,
+    setExportOpen,
+    setFollowViewport,
+    setLyricsDraft,
+    setNotice,
+    setPreviewHeight,
+    setPreviewOpen,
+    setPreviewTextSize,
+    setProject,
+    setSelection,
+    setTimingScope,
+    setViewDurationMs,
+    setViewStartMs,
+    t,
+  });
 
-  useEffect(() => {
-    const deleteSelectedNotes = (event: KeyboardEvent) => {
-      if (
-        lineEntryMode ||
-        selection?.kind !== 'note' ||
-        (event.key !== 'Delete' && event.key !== 'Backspace') ||
-        (event.target instanceof HTMLElement &&
-          event.target.matches(
-            'button, input, textarea, select, [contenteditable="true"]',
-          ))
-      ) {
-        return;
-      }
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      deleteSelection();
-    };
-    window.addEventListener('keydown', deleteSelectedNotes, true);
-    return () =>
-      window.removeEventListener('keydown', deleteSelectedNotes, true);
-  }, [deleteSelection, lineEntryMode, selection?.kind]);
+  const {
+    auditionLyricsToken,
+    moveLyricsEditorSelection,
+    noteKindLabel,
+    selectLyricsEditorToken,
+    updateSelectedTokenTiming,
+  } = useMakerLyricsEditing({
+    cancelAudibleInteractions,
+    commit,
+    effectiveDurationMs,
+    maximumViewStartMs,
+    onPause,
+    onPlay,
+    onSeek,
+    playheadMs,
+    selectedToken,
+    setSelection,
+    setViewStartMs,
+    t,
+    tokens,
+    visibleViewDurationMs,
+    wordAuditionTimerRef,
+  });
 
-  const cancelAnalysis = () => {
-    const controller = analysisAbortRef.current;
-    if (!controller) {
-      return;
-    }
-    controller.abort();
-    analysisAbortRef.current = undefined;
-    setAnalysisProgress(undefined);
-    setAnalysisMessage(undefined);
-    setWhisperStage(undefined);
-    setDownloadProgress(undefined);
-    downloadSampleRef.current = undefined;
-    if (lyricsWorkflowActiveRef.current) {
-      lyricsWorkflowActiveRef.current = false;
-      setLyricsWorkflowActive(false);
-    }
-  };
-
-  const receiveWhisperLog = (entry: IKaraokeMakerWhisperLogEntry) => {
-    const formatted = formatKaraokeMakerWhisperLog(entry);
-    if (entry.level === 'error') {
-      reportError(`[karaoke][whisper] ${entry.event}`, formatted);
-      return;
-    }
-    // eslint-disable-next-line no-console
-    console.info('[karaoke][whisper]', entry.event, entry);
-    reportInfo(`[karaoke][whisper] ${formatted}`);
-  };
-
-  const runBasicPitch = async (
-    baseProject?: IKaraokeMakerProject,
-    preserveTranscriptSuccess = false,
-  ) => {
-    analysisAbortRef.current?.abort();
-    const controller = new AbortController();
-    analysisAbortRef.current = controller;
-    setAnalysisProgress(0);
-    setAnalysisMessage(t('karaoke.maker.basicPitchRunning'));
-    setAnalysisError(undefined);
-    setAnalysisRetry(undefined);
-    if (!preserveTranscriptSuccess) {
-      setNotice(undefined);
-    }
-    setWhisperStage(undefined);
-    setDownloadProgress(undefined);
-    downloadSampleRef.current = undefined;
-    try {
-      reportInfo(
-        `[karaoke][melody] basic-pitch.start file=${analysisFile.name} bytes=${analysisFile.size}`,
-      );
-      try {
-        const notes = await analyzeKaraokeWithBasicPitch(
-          analysisFile,
-          setAnalysisProgress,
-          controller.signal,
-          karaokeMakerVocalAnalysisWindows(baseProject ?? projectRef.current),
-        );
-        const publishBase = baseProject ?? projectRef.current;
-        const next = touchKaraokeMakerProject(
-          applyBasicPitchMelody(publishBase, notes),
-        );
-        projectRef.current = next;
-        pushHistory(publishBase);
-        setProject(next);
-        const generatedNoteCount = next.melody.notes.filter(
-          (note) => note.source !== 'manual',
-        ).length;
-        reportInfo(
-          `[karaoke][melody] basic-pitch.complete candidates=${notes.length} guideNotes=${generatedNoteCount}`,
-        );
-        setNotice(
-          t('karaoke.maker.basicPitchFound', { count: generatedNoteCount }),
-        );
-        if (lyricsWorkflowActiveRef.current) {
-          lyricsWorkflowActiveRef.current = false;
-          setLyricsWorkflowActive(false);
-          setLyricsOpen(false);
-        }
-      } catch (basicPitchError) {
-        if ((basicPitchError as Error).name === 'AbortError') {
-          throw basicPitchError;
-        }
-        reportError(
-          '[karaoke][melody] basic-pitch.failed; using local detector',
-          basicPitchError,
-        );
-        setAnalysisMessage(t('karaoke.maker.analysisRunning'));
-        setAnalysisProgress(0);
-        reportInfo(
-          `[karaoke][melody] local-fallback.start file=${analysisFile.name} bytes=${analysisFile.size}`,
-        );
-        const fallback = await analyzeKaraokeMakerAudio(
-          analysisFile,
-          setAnalysisProgress,
-          controller.signal,
-        );
-        setAnalysisResult(fallback);
-        const publishBase = baseProject ?? projectRef.current;
-        const next = touchKaraokeMakerProject(
-          applyDetectedPitchMelody(
-            {
-              ...publishBase,
-              audio: { ...publishBase.audio, durationMs: fallback.durationMs },
-              analysis: {
-                ...publishBase.analysis,
-                waveform: fallback.waveform,
-                lastRunAt: new Date().toISOString(),
-              },
-            },
-            fallback.notes,
-          ),
-        );
-        projectRef.current = next;
-        pushHistory(publishBase);
-        setProject(next);
-        const generatedNoteCount = next.melody.notes.filter(
-          (note) => note.source !== 'manual',
-        ).length;
-        reportInfo(
-          `[karaoke][melody] local-fallback.complete candidates=${fallback.notes.length} guideNotes=${generatedNoteCount}`,
-        );
-        setNotice(
-          t('karaoke.maker.analysisFound', { count: generatedNoteCount }),
-        );
-        if (lyricsWorkflowActiveRef.current) {
-          lyricsWorkflowActiveRef.current = false;
-          setLyricsWorkflowActive(false);
-          setLyricsOpen(false);
-        }
-      }
-    } catch (error) {
-      if ((error as Error).name !== 'AbortError') {
-        reportError('[karaoke][melody] analysis.failed', error);
-        if (!preserveTranscriptSuccess || lyricsWorkflowActiveRef.current) {
-          setAnalysisError(localizeMakerError(error, 'analysis'));
-        }
-      }
-      if (lyricsWorkflowActiveRef.current) {
-        lyricsWorkflowActiveRef.current = false;
-        setLyricsWorkflowActive(false);
-      }
-    } finally {
-      if (analysisAbortRef.current === controller) {
-        setAnalysisProgress(undefined);
-        setAnalysisMessage(undefined);
-        analysisAbortRef.current = undefined;
-      }
-    }
-  };
-
-  const requestWhisper = async (continueWithMelody: boolean) => {
-    // This guard is intentionally redundant with the hidden controls. It keeps
-    // stale callbacks, restored UI state, or future callers from launching the
-    // disabled detector while its alignment quality is under review.
-    if (!KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED) {
-      return;
-    }
-    const referenceTokens = flattenTokens(projectRef.current);
-    if (!referenceTokens.length) {
-      lyricsWorkflowActiveRef.current = false;
-      setLyricsWorkflowActive(false);
-      setLyricsDraft(plainLyrics(projectRef.current));
-      setLyricsOpen(true);
-      setNotice(t('karaoke.maker.lyricsRequired'));
-      return;
-    }
-    prepareAfterWhisperRef.current = continueWithMelody;
-    setToolPanel(undefined);
-    const downloaded =
-      getKaraokeWhisperSessionSnapshot().downloaded ||
-      (await refreshKaraokeWhisperDownloaded());
-    if (downloaded) {
-      await runWhisper();
-      return;
-    }
-    if (lyricsWorkflowActiveRef.current) {
-      setLyricsOpen(false);
-    }
-    setWhisperConsentOpen(true);
-  };
-
-  const prepareKaraoke = () => {
-    const needsWordTiming =
-      !tokens.length ||
-      tokens.some(
-        (token) => token.startMs === undefined || token.endMs === undefined,
-      );
-    if (needsWordTiming) {
-      if (!tokens.length) {
-        openLyricsEditor();
-        setNotice(t('karaoke.maker.lyricsRequired'));
-      } else {
-        startLineEntrySync();
-      }
-      return;
-    }
-    if (project.melody.notes.length) {
-      setNotice(t('karaoke.maker.prepared'));
-      setToolPanel(undefined);
-      return;
-    }
-    setToolPanel(undefined);
-    runBasicPitch().catch(() => undefined);
-  };
-
-  const releaseWhisperNow = async () => {
-    const released = await releaseKaraokeWhisperModel();
-    setNotice(
-      t(
-        released
-          ? 'karaoke.maker.memoryReleased'
-          : 'karaoke.maker.memoryReleaseBusy',
-      ),
-    );
-  };
-
-  async function runWhisper() {
-    setWhisperConsentOpen(false);
-    if (lyricsWorkflowActiveRef.current) {
-      setLyricsOpen(true);
-    }
-    analysisAbortRef.current?.abort();
-    const controller = new AbortController();
-    analysisAbortRef.current = controller;
-    setAnalysisProgress(0);
-    setAnalysisMessage(t('karaoke.maker.whisperPreparing'));
-    setWhisperStage('decode');
-    const sessionAtStart = getKaraokeWhisperSessionSnapshot();
-    setWhisperRunProfile({
-      needsDownload: !sessionAtStart.downloaded,
-      needsLoad: !sessionAtStart.inMemory,
-    });
-    setDownloadProgress(undefined);
-    downloadSampleRef.current = undefined;
-    setAnalysisError(undefined);
-    setAnalysisRetry(undefined);
-    setNotice(undefined);
-    const includeMelody = prepareAfterWhisperRef.current;
-    const whisperProgressShare = includeMelody ? 0.72 : 1;
-    try {
-      const transcript = await transcribeKaraokeWithWhisper(
-        analysisFile,
-        (
-          progress,
-          message,
-          download,
-          stage,
-          transcription?: IKaraokeMakerWhisperTranscribeProgress,
-        ) => {
-          setAnalysisProgress(progress * whisperProgressShare);
-          if (download?.summary) {
-            const { summary } = download;
-            const complete =
-              summary.fileCount > 0 &&
-              summary.completeFiles === summary.fileCount;
-            const sampledAt = performance.now();
-            const previous = downloadSampleRef.current;
-            const elapsedSeconds = previous
-              ? (sampledAt - previous.sampledAt) / 1_000
-              : 0;
-            const instantaneousSpeed =
-              previous && elapsedSeconds > 0.12
-                ? Math.max(
-                    0,
-                    (summary.loadedBytes - previous.loadedBytes) /
-                      elapsedSeconds,
-                  )
-                : undefined;
-            let bytesPerSecond = complete
-              ? undefined
-              : previous?.bytesPerSecond;
-            if (!complete && instantaneousSpeed !== undefined) {
-              bytesPerSecond =
-                previous?.bytesPerSecond === undefined
-                  ? instantaneousSpeed
-                  : previous.bytesPerSecond * 0.72 + instantaneousSpeed * 0.28;
-            }
-            if (!previous || elapsedSeconds > 0.12 || complete) {
-              downloadSampleRef.current = {
-                loadedBytes: summary.loadedBytes,
-                sampledAt,
-                bytesPerSecond,
-              };
-            }
-            setDownloadProgress({
-              ...summary,
-              bytesPerSecond,
-            });
-          }
-          if (stage) {
-            setWhisperStage(stage);
-            let localizedMessage = t('karaoke.maker.whisperComplete');
-            if (stage === 'decode') {
-              localizedMessage = t('karaoke.maker.whisperDecoding');
-            } else if (stage === 'download') {
-              localizedMessage = t('karaoke.maker.downloadingWhisper');
-            } else if (stage === 'load') {
-              localizedMessage = t('karaoke.maker.loadingWhisper');
-            } else if (stage === 'transcribe') {
-              localizedMessage = transcription
-                ? t('karaoke.maker.whisperTranscribingProgress', {
-                    pass: transcription.pass,
-                    passes: transcription.totalPasses,
-                    chunk: transcription.completedChunks,
-                    chunks: transcription.totalChunks,
-                  })
-                : t('karaoke.maker.whisperTranscribing');
-            }
-            setAnalysisMessage(localizedMessage);
-          } else if (message) {
-            const status = message.trim().toLowerCase();
-            let localizedMessage =
-              progress < 0.42
-                ? t('karaoke.maker.downloadingWhisper')
-                : t('karaoke.maker.whisperTranscribing');
-            if (
-              ['progress', 'download', 'downloading', 'initiate'].includes(
-                status,
-              )
-            ) {
-              localizedMessage = t('karaoke.maker.downloadingWhisper');
-            } else if (['done', 'ready'].includes(status)) {
-              localizedMessage = t('karaoke.maker.loadingWhisper');
-            } else if (status === 'decoding audio') {
-              localizedMessage = t('karaoke.maker.whisperDecoding');
-            } else if (status === 'loading the opt-in whisper model') {
-              localizedMessage = t('karaoke.maker.loadingWhisper');
-            } else if (status === 'transcribing locally') {
-              localizedMessage = t('karaoke.maker.whisperTranscribing');
-            } else if (status === 'transcription complete') {
-              localizedMessage = t('karaoke.maker.whisperComplete');
-            }
-            setAnalysisMessage(localizedMessage);
-          }
-        },
-        controller.signal,
-        receiveWhisperLog,
-        projectRef.current.lyrics.language,
-      );
-      const beforeTranscript = projectRef.current;
-      let completedProject = applyWhisperTranscript(
-        beforeTranscript,
-        transcript,
-      );
-      let generatedNoteCount: number | undefined;
-      let melodyError: unknown;
-      if (includeMelody) {
-        prepareAfterWhisperRef.current = false;
-        setWhisperStage(undefined);
-        setAnalysisMessage(t('karaoke.maker.basicPitchRunning'));
-        reportInfo(
-          `[karaoke][melody] lyric-guided.start file=${analysisFile.name} bytes=${analysisFile.size}`,
-        );
-        try {
-          const windows = karaokeMakerVocalAnalysisWindows(completedProject);
-          const notes = await analyzeKaraokeWithBasicPitch(
-            analysisFile,
-            (progress) => setAnalysisProgress(0.72 + progress * 0.28),
-            controller.signal,
-            windows,
-          );
-          completedProject = touchKaraokeMakerProject(
-            applyBasicPitchMelody(completedProject, notes),
-          );
-          generatedNoteCount = completedProject.melody.notes.filter(
-            (note) => note.source !== 'manual',
-          ).length;
-          reportInfo(
-            `[karaoke][melody] lyric-guided.complete windows=${windows.length} candidates=${notes.length} guideNotes=${generatedNoteCount}`,
-          );
-        } catch (error) {
-          if ((error as Error).name === 'AbortError') {
-            throw error;
-          }
-          melodyError = error;
-          reportError('[karaoke][melody] lyric-guided.failed', error);
-        }
-      }
-      projectRef.current = completedProject;
-      pushHistory(beforeTranscript);
-      setLyricsDraft(plainLyrics(completedProject));
-      setProject(completedProject);
-      if (melodyError) {
-        setAnalysisError(localizeMakerError(melodyError, 'analysis'));
-      }
-      if (generatedNoteCount !== undefined) {
-        setNotice(
-          t('karaoke.maker.basicPitchFound', { count: generatedNoteCount }),
-        );
-      } else {
-        setNotice(
-          t('karaoke.maker.whisperMatched', {
-            count: completedProject.lyrics.lines
-              .filter((line) => line.kind !== 'section')
-              .flatMap((line) => line.tokens)
-              .filter(
-                (token) =>
-                  token.startMs !== undefined && token.endMs !== undefined,
-              ).length,
-          }),
-        );
-      }
-      if (lyricsWorkflowActiveRef.current) {
-        lyricsWorkflowActiveRef.current = false;
-        setLyricsWorkflowActive(false);
-        setLyricsOpen(false);
-      }
-    } catch (error) {
-      if ((error as Error).name !== 'AbortError') {
-        reportError('[karaoke][whisper] run.failed', error);
-        setAnalysisError(localizeMakerError(error, 'whisper'));
-        const detail = error instanceof Error ? error.message : String(error);
-        setAnalysisRetry(
-          /Local Whisper WASM runtime failed/i.test(detail)
-            ? 'whisper-runtime'
-            : 'whisper',
-        );
-      }
-      if (lyricsWorkflowActiveRef.current) {
-        lyricsWorkflowActiveRef.current = false;
-        setLyricsWorkflowActive(false);
-      }
-    } finally {
-      if (analysisAbortRef.current === controller) {
-        setAnalysisProgress(undefined);
-        setAnalysisMessage(undefined);
-        setWhisperStage(undefined);
-        setDownloadProgress(undefined);
-        downloadSampleRef.current = undefined;
-        analysisAbortRef.current = undefined;
-      }
-    }
-  }
-
-  const exportProject = async (format: TKaraokeMakerExportFormat) => {
-    setExportOpen(false);
-    if (format !== 'project' && !project.meta.rightsConfirmed) {
-      setNotice(t('karaoke.maker.rightsRequired'));
-      return;
-    }
-    try {
-      const output = exportKaraokeMaker(project, format);
-      let formatName = t('karaoke.maker.exportLrc');
-      if (format === 'project') {
-        formatName = t('karaoke.maker.exportProject');
-      } else if (format === 'ultrastar') {
-        formatName = t('karaoke.maker.exportUltraStar');
-      } else if (format === 'elrc') {
-        formatName = t('karaoke.maker.exportElrc');
-      }
-      const result = await window.electron.ipcRenderer.exportKaraokeMakerFile({
-        fileName: karaokeMakerExportFileName(project, format),
-        contents: output.contents,
-        formatName,
-        extensions: [output.extension],
-      });
-      if (!result.canceled) {
-        setNotice(
-          t('karaoke.maker.exported', {
-            file: result.filePath ?? t('karaoke.maker.exportFallback'),
-          }),
-        );
-      }
-    } catch (error) {
-      setNotice(localizeMakerError(error, 'export'));
-    }
-  };
-
-  const selectVocalStem = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) {
-      return;
-    }
-    setAnalysisFile(file);
-    setNotice(t('karaoke.maker.analysisSource', { file: file.name }));
-  };
-
-  const openProject = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) {
-      return;
-    }
-    try {
-      if (file.size > 16 * 1024 * 1024) {
-        setNotice(t('karaoke.maker.projectTooLarge'));
-        return;
-      }
-      const contents = await readKaraokeTextFile(file);
-      const extension = karaokeFileExtension(file.name);
-      const isProjectFile =
-        extension === 'json' || contents.trimStart().startsWith('{');
-      let imported: IKaraokeMakerProject;
-      if (isProjectFile) {
-        const restored = parseKaraokeMakerProject(contents);
-        imported = {
-          ...restored,
-          title:
-            restored.title === 'Untitled karaoke'
-              ? t('karaoke.maker.untitled')
-              : restored.title,
-          audio: { ...restored.audio, ...project.audio },
-        };
-      } else {
-        imported = importLyricsIntoKaraokeMakerProject(
-          project,
-          parseKaraokeText(file.name, contents),
-        );
-      }
-      setProject(imported);
-      clearHistory();
-      const importedView = readKaraokeMakerEditorView(imported.id);
-      setSelection(importedView?.selection);
-      setViewStartMs(importedView?.viewStartMs ?? 0);
-      setViewDurationMs(importedView?.viewDurationMs ?? DEFAULT_VIEW_MS);
-      setFollowViewport(importedView?.followViewport ?? true);
-      setPreviewOpen(importedView?.previewOpen ?? initialPreviewOpen());
-      setPreviewTextSize(importedView?.previewTextSize ?? 100);
-      setPreviewHeight(importedView?.previewHeight ?? DEFAULT_PREVIEW_HEIGHT);
-      setTimingScope(importedView?.timingScope ?? 'all');
-      setLyricsDraft(plainLyrics(imported));
-      setNotice(
-        isProjectFile
-          ? t('karaoke.maker.projectLoaded')
-          : t('karaoke.maker.karaokeImported'),
-      );
-    } catch (error) {
-      setNotice(localizeMakerError(error, 'import'));
-    }
-  };
-
-  const noteKindLabel = (kind: IKaraokeMakerNote['kind']): string => {
-    if (kind === 'normal') {
-      return t('karaoke.maker.noteNormal');
-    }
-    if (kind === 'golden') {
-      return t('karaoke.maker.noteGolden');
-    }
-    return t('karaoke.maker.noteFree');
-  };
-
-  const updateSelectedTokenTiming = (update: {
-    text?: string;
-    startMs?: number;
-    durationMs?: number;
-  }) => {
-    if (!selectedToken) {
-      return;
-    }
-    commit((current) => {
-      let nextProject = current;
-      if (update.text !== undefined && update.text.trim()) {
-        nextProject = replaceToken(nextProject, selectedToken.id, (token) => ({
-          ...token,
-          text: update.text?.trim().slice(0, 2_000) ?? token.text,
-          source: 'manual',
-        }));
-      }
-      let currentToken = flattenTokens(nextProject).find(
-        (token) => token.id === selectedToken.id,
-      );
-      if (
-        currentToken?.startMs !== undefined &&
-        currentToken.endMs !== undefined
-      ) {
-        if (Number.isFinite(update.startMs)) {
-          nextProject = resizeKaraokeMakerTokenBoundary(
-            nextProject,
-            currentToken.id,
-            'start',
-            update.startMs as number,
-          );
-          currentToken = flattenTokens(nextProject).find(
-            (token) => token.id === selectedToken.id,
-          );
-        }
-        if (
-          Number.isFinite(update.durationMs) &&
-          currentToken?.startMs !== undefined
-        ) {
-          nextProject = resizeKaraokeMakerTokenBoundary(
-            nextProject,
-            currentToken.id,
-            'end',
-            currentToken.startMs + (update.durationMs as number),
-          );
-        }
-        return nextProject;
-      }
-
-      const line = nextProject.lyrics.lines.find((candidate) =>
-        candidate.tokens.some((token) => token.id === selectedToken.id),
-      );
-      const tokenIndex =
-        line?.tokens.findIndex((token) => token.id === selectedToken.id) ?? -1;
-      const previousToken =
-        tokenIndex > 0 ? line?.tokens[tokenIndex - 1] : undefined;
-      const nextToken =
-        line && tokenIndex >= 0 && tokenIndex + 1 < line.tokens.length
-          ? line.tokens[tokenIndex + 1]
-          : undefined;
-      const lineRange = line ? karaokeMakerTimedLineRange(line) : undefined;
-      return replaceToken(nextProject, selectedToken.id, (token) => {
-        const currentStart = token.startMs ?? Math.max(0, playheadMs);
-        const currentEnd = token.endMs ?? currentStart + 400;
-        const requestedStart = Number.isFinite(update.startMs)
-          ? update.startMs
-          : currentStart;
-        const requestedDuration = Number.isFinite(update.durationMs)
-          ? update.durationMs
-          : currentEnd - currentStart;
-        const minimumStart = Math.max(
-          lineRange?.startMs ?? 0,
-          previousToken?.endMs ?? previousToken?.startMs ?? 0,
-        );
-        const maximumEnd = Math.min(
-          lineRange?.endMs ?? effectiveDurationMs,
-          nextToken?.startMs ?? nextToken?.endMs ?? effectiveDurationMs,
-        );
-        const nextStart = Math.max(
-          minimumStart,
-          Math.min(maximumEnd - 20, requestedStart ?? currentStart),
-        );
-        const nextDuration = Math.min(
-          Math.max(20, maximumEnd - nextStart),
-          Math.max(20, requestedDuration ?? currentEnd - currentStart),
-        );
-        return {
-          ...token,
-          startMs: nextStart,
-          endMs: Math.min(maximumEnd, nextStart + nextDuration),
-          source: 'manual',
-          timingLocked: true,
-        };
-      });
-    });
-  };
-
-  const auditionLyricsToken = useCallback(
-    (token: IKaraokeMakerToken) => {
-      if (token.startMs === undefined) {
-        return;
-      }
-      cancelAudibleInteractions();
-      const startMs = Math.max(0, Math.min(effectiveDurationMs, token.startMs));
-      const endMs = Math.max(
-        startMs + 20,
-        Math.min(effectiveDurationMs, token.endMs ?? startMs + 400),
-      );
-      onSeek(startMs);
-      Promise.resolve(onPlay()).catch(() => undefined);
-      wordAuditionTimerRef.current = window.setTimeout(() => {
-        wordAuditionTimerRef.current = undefined;
-        onPause();
-      }, endMs - startMs);
-    },
-    [cancelAudibleInteractions, effectiveDurationMs, onPause, onPlay, onSeek],
+  const renderSelectedWordTimingSliders = (idPrefix: string) => (
+    <KaraokeMakerTimingSliders
+      idPrefix={idPrefix}
+      selectedTokenTimingControls={selectedTokenTimingControls}
+      updateSelectedTokenTiming={updateSelectedTokenTiming}
+    />
   );
-
-  const selectLyricsEditorToken = (token: IKaraokeMakerToken) => {
-    setSelection({ kind: 'word', id: token.id });
-    if (token.startMs !== undefined) {
-      setViewStartMs(
-        Math.max(
-          0,
-          Math.min(
-            maximumViewStartMs,
-            token.startMs - visibleViewDurationMs * 0.3,
-          ),
-        ),
-      );
-      auditionLyricsToken(token);
-    }
-  };
-
-  const moveLyricsEditorSelection = (direction: -1 | 1) => {
-    const currentIndex = selectedToken
-      ? tokens.findIndex((token) => token.id === selectedToken.id)
-      : -1;
-    const nextIndex = Math.max(
-      0,
-      Math.min(tokens.length - 1, currentIndex + direction),
-    );
-    const nextToken = tokens[nextIndex];
-    if (nextToken) {
-      selectLyricsEditorToken(nextToken);
-    }
-  };
-
-  const renderSelectedWordTimingSliders = (idPrefix: string) => {
-    if (!selectedTokenTimingControls) {
-      return (
-        <div className="karaoke-maker__word-timing-sliders is-disabled">
-          <span>{t('karaoke.maker.untimed')}</span>
-          <small>{t('karaoke.maker.wordTimingSliderHint')}</small>
-        </div>
-      );
-    }
-    const positionMinimum = Math.round(
-      selectedTokenTimingControls.minimumStartMs,
-    );
-    const positionMaximum = Math.max(
-      positionMinimum,
-      Math.round(selectedTokenTimingControls.maximumStartMs),
-    );
-    const durationMaximum = Math.max(
-      selectedTokenTimingControls.minimumDurationMs,
-      Math.round(selectedTokenTimingControls.maximumDurationMs),
-    );
-    return (
-      <div className="karaoke-maker__word-timing-sliders">
-        <label htmlFor={`${idPrefix}-position`}>
-          <span>
-            {t('karaoke.maker.wordPosition')}
-            <output>{formatClock(selectedTokenTimingControls.startMs)}</output>
-          </span>
-          <input
-            id={`${idPrefix}-position`}
-            type="range"
-            min={positionMinimum}
-            max={positionMaximum}
-            step={10}
-            value={Math.round(selectedTokenTimingControls.startMs)}
-            disabled={!selectedTokenTimingControls.canResizeStart}
-            onChange={(event) =>
-              updateSelectedTokenTiming({ startMs: Number(event.target.value) })
-            }
-          />
-        </label>
-        <label htmlFor={`${idPrefix}-length`}>
-          <span>
-            {t('karaoke.maker.wordDuration')}
-            <output>
-              {Math.round(selectedTokenTimingControls.durationMs)} ms
-            </output>
-          </span>
-          <input
-            id={`${idPrefix}-length`}
-            type="range"
-            min={selectedTokenTimingControls.minimumDurationMs}
-            max={durationMaximum}
-            step={10}
-            value={Math.max(
-              selectedTokenTimingControls.minimumDurationMs,
-              Math.min(
-                durationMaximum,
-                Math.round(selectedTokenTimingControls.durationMs),
-              ),
-            )}
-            disabled={!selectedTokenTimingControls.canResizeEnd}
-            onChange={(event) =>
-              updateSelectedTokenTiming({
-                durationMs: Number(event.target.value),
-              })
-            }
-          />
-        </label>
-        <small>{t('karaoke.maker.wordTimingSliderHint')}</small>
-      </div>
-    );
-  };
 
   const renderLyricsModalWordInspector = () => (
     <KaraokeMakerWordInspector
@@ -4043,393 +1193,106 @@ const KaraokeMaker = ({
     />
   );
 
-  const renderSelectionInfo = () => {
-    if (syllableSplitDraft) {
-      const characters = Array.from(syllableSplitDraft.word);
-      const syllables = syllablesAtCutPoints(
-        syllableSplitDraft.word,
-        syllableSplitDraft.cutPoints,
-      );
-      const characterEntries = characters.reduce<
-        Array<{ character: string; cutPoint: number; key: string }>
-      >((entries, character) => {
-        const cutPoint = entries.length + 1;
-        return [
-          ...entries,
-          {
-            character,
-            cutPoint,
-            key: `${characters.slice(0, cutPoint).join('')}|${characters
-              .slice(cutPoint)
-              .join('')}`,
-          },
-        ];
-      }, []);
-      const syllableEntries = syllables.reduce<
-        Array<{ key: string; syllable: string; showDivider: boolean }>
-      >(
-        (entries, syllable) => [
-          ...entries,
-          {
-            key: `${entries.map((entry) => entry.syllable).join('')}|${syllable}`,
-            syllable,
-            showDivider: entries.length > 0,
-          },
-        ],
-        [],
-      );
-      return (
-        <div className="karaoke-maker__syllable-editor">
-          <div className="karaoke-maker__syllable-editor-copy">
-            <span>{t('karaoke.maker.syllableEditorEyebrow')}</span>
-            <strong>
-              {t('karaoke.maker.syllableEditorTitle', {
-                word: syllableSplitDraft.word,
-              })}
-            </strong>
-            <p>{t('karaoke.maker.syllableEditorHint')}</p>
-          </div>
-          <div
-            className="karaoke-maker__syllable-cuts"
-            aria-label={t('karaoke.maker.syllableEditorTitle', {
-              word: syllableSplitDraft.word,
-            })}
-          >
-            {characterEntries.map(({ character, cutPoint, key }) => (
-              <Fragment key={key}>
-                <span>{character}</span>
-                {cutPoint < characters.length && (
-                  <button
-                    type="button"
-                    className={
-                      syllableSplitDraft.cutPoints.includes(cutPoint)
-                        ? 'is-cut'
-                        : undefined
-                    }
-                    aria-pressed={syllableSplitDraft.cutPoints.includes(
-                      cutPoint,
-                    )}
-                    aria-label={t('karaoke.maker.syllableSplitPoint', {
-                      text: characters.slice(0, cutPoint).join(''),
-                    })}
-                    onClick={() => toggleSyllableCutPoint(cutPoint)}
-                  >
-                    <span />
-                  </button>
-                )}
-              </Fragment>
-            ))}
-          </div>
-          <div className="karaoke-maker__syllable-preview">
-            <span>{t('karaoke.maker.syllableEditorPreview')}</span>
-            <output>
-              {syllableEntries.map(({ key, syllable, showDivider }) => (
-                <Fragment key={key}>
-                  {showDivider && <i aria-hidden="true">·</i>}
-                  <strong>{syllable}</strong>
-                </Fragment>
-              ))}
-            </output>
-          </div>
-          <div className="karaoke-maker__syllable-actions">
-            <button
-              type="button"
-              onClick={() => setSyllableSplitDraft(undefined)}
-            >
-              {t('karaoke.maker.cancel')}
-            </button>
-            <button
-              type="button"
-              className="is-primary"
-              disabled={syllables.length < 2}
-              onClick={applySyllableSplit}
-            >
-              <KaraokeMakerToolIcon name="split" />
-              {t('karaoke.maker.applySyllableSplit')}
-            </button>
-          </div>
-        </div>
-      );
-    }
-    if (selectedNoteIds.size > 1) {
-      const selectedNotes = project.melody.notes.filter((note) =>
-        selectedNoteIds.has(note.id),
-      );
-      const hasAttachedNotes = selectedNotes.some((note) => note.tokenId);
-      return (
-        <div className="karaoke-maker__note-selection-inspector">
-          <span>
-            <strong>{selectedNoteIds.size}</strong>
-            {t('karaoke.maker.notesSelected')}
-          </span>
-          {hasAttachedNotes && (
-            <button type="button" onClick={detachSelectedNotes}>
-              <KaraokeMakerToolIcon name="detach" />
-              {t('karaoke.maker.detachNotes')}
-            </button>
-          )}
-          <button type="button" onClick={deleteSelection}>
-            <KaraokeMakerToolIcon name="remove" />
-            {t('karaoke.maker.delete')}
-          </button>
-          <span className="karaoke-maker__note-link-help">
-            {t('karaoke.maker.noteAttachHelp')}{' '}
-            {t('karaoke.maker.noteCopyHelp')}
-          </span>
-        </div>
-      );
-    }
-    if (selectedNote) {
-      return (
-        <div className="karaoke-maker__note-inspector">
-          <div className="karaoke-maker__note-inspector-summary">
-            <strong>{midiName(selectedNote.targetMidi)}</strong>
-            <span>
-              {formatClock(selectedNote.startMs)} →{' '}
-              {formatClock(selectedNote.endMs)}
-            </span>
-            <button
-              type="button"
-              className="karaoke-maker__audition"
-              onPointerDown={() =>
-                noteAudition.play(
-                  selectedNote.targetMidi,
-                  karaokeLeadNoteArticulation(selectedNote).durationMs,
-                )
-              }
-              onPointerUp={() => noteAudition.stop()}
-              onPointerCancel={() => noteAudition.stop()}
-              onPointerLeave={() => noteAudition.stop()}
-              title={t('karaoke.maker.hearNote')}
-            >
-              ◖)) {t('karaoke.maker.hearNote')}
-            </button>
-          </div>
-          <div
-            className="karaoke-maker__kind-picker"
-            aria-label={t('karaoke.maker.addNote')}
-          >
-            {(['normal', 'golden', 'free'] as const).map((kind) => (
-              <button
-                key={kind}
-                type="button"
-                className={selectedNote.kind === kind ? 'is-active' : undefined}
-                aria-pressed={selectedNote.kind === kind}
-                onClick={() =>
-                  commit((current) =>
-                    replaceNote(current, selectedNote.id, (note) => ({
-                      ...note,
-                      kind,
-                    })),
-                  )
-                }
-              >
-                {noteKindLabel(kind)}
-              </button>
-            ))}
-          </div>
-          <div className="karaoke-maker__note-inspector-link">
-            <span className="karaoke-maker__note-link">
-              {selectedNoteToken
-                ? t('karaoke.maker.attachedTo', {
-                    word: selectedNoteToken.text,
-                  })
-                : t('karaoke.maker.noteUnattached')}
-            </span>
-            {selectedNoteToken && (
-              <button type="button" onClick={detachSelectedNotes}>
-                <KaraokeMakerToolIcon name="detach" />
-                {t('karaoke.maker.detachNotes')}
-              </button>
-            )}
-            {selectedNoteToken && (
-              <button type="button" onClick={splitSelectedLyricsWord}>
-                <KaraokeMakerToolIcon name="split" />
-                {t('karaoke.maker.splitWordSyllables')}
-              </button>
-            )}
-            <span className="karaoke-maker__note-link-help">
-              {t('karaoke.maker.noteAttachHelp')}{' '}
-              {t('karaoke.maker.noteCopyHelp')}
-            </span>
-          </div>
-        </div>
-      );
-    }
-    if (selectedToken) {
-      const timing =
-        selectedToken.startMs === undefined
-          ? t('karaoke.maker.untimed')
-          : `${formatClock(selectedToken.startMs)} → ${formatClock(selectedToken.endMs ?? selectedToken.startMs)}`;
-      return (
-        <div className="karaoke-maker__word-inspector">
-          <div className="karaoke-maker__word-inspector-identity">
-            <span>{t('karaoke.maker.lyricsSelectedWord')}</span>
-            <div>
-              <strong className="karaoke-maker__word-inspector-title">
-                {selectedToken.text}
-              </strong>
-              <output>{timing}</output>
-            </div>
-            <label htmlFor={`${controlId}-selected-word`}>
-              <span>{t('karaoke.maker.wordText')}</span>
-              <input
-                id={`${controlId}-selected-word`}
-                key={selectedToken.id}
-                defaultValue={selectedToken.text}
-                onBlur={(event) => {
-                  if (event.target.value.trim() !== selectedToken.text) {
-                    updateSelectedTokenTiming({ text: event.target.value });
-                  }
-                }}
-              />
-            </label>
-          </div>
-          {renderSelectedWordTimingSliders(
-            `${controlId}-selected-word-${selectedToken.id}`,
-          )}
-          <div className="karaoke-maker__word-inspector-actions">
-            <button
-              type="button"
-              onClick={() => updateSelectedTokenTiming({ startMs: playheadMs })}
-            >
-              <KaraokeMakerToolIcon name="timing" />
-              {t('karaoke.maker.usePlayhead')}
-            </button>
-            <button
-              type="button"
-              disabled={selectedToken.startMs === undefined}
-              onClick={() => auditionLyricsToken(selectedToken)}
-            >
-              <KaraokeMakerToolIcon name="preview" />
-              {t('karaoke.maker.playWord')}
-            </button>
-            <button type="button" onClick={splitSelectedLyricsWord}>
-              <KaraokeMakerToolIcon name="split" />
-              {t('karaoke.maker.splitWordSyllables')}
-            </button>
-          </div>
-        </div>
-      );
-    }
-    return <span>{t('karaoke.maker.selectHint')}</span>;
-  };
+  const selectionInfo = (
+    <KaraokeMakerSelectionInfo
+      applySyllableSplit={applySyllableSplit}
+      auditionLyricsToken={auditionLyricsToken}
+      commit={commit}
+      controlId={controlId}
+      deleteSelection={deleteSelection}
+      detachSelectedNotes={detachSelectedNotes}
+      noteAudition={noteAudition}
+      noteKindLabel={noteKindLabel}
+      playheadMs={playheadMs}
+      project={project}
+      renderTimingSliders={renderSelectedWordTimingSliders}
+      selectedNote={selectedNote}
+      selectedNoteIds={selectedNoteIds}
+      selectedNoteToken={selectedNoteToken}
+      selectedToken={selectedToken}
+      setSyllableSplitDraft={setSyllableSplitDraft}
+      splitSelectedLyricsWord={splitSelectedLyricsWord}
+      syllableSplitDraft={syllableSplitDraft}
+      toggleSyllableCutPoint={toggleSyllableCutPoint}
+      updateSelectedTokenTiming={updateSelectedTokenTiming}
+    />
+  );
 
-  const toggleToolPanel = (panel: 'timing' | 'edit' | 'analysis') => {
-    setExportOpen(false);
-    setToolPanel((current) => (current === panel ? undefined : panel));
-  };
+  const {
+    beginLineCapture,
+    startLineEntrySync,
+    stopLineEntryRecording,
+    toggleHandPanMode,
+    toggleLineEntryMode,
+    toggleNoteEditMode,
+    toggleToolPanel,
+  } = useMakerToolModes({
+    cancelAudibleInteractions,
+    clearLineEntryCountdown,
+    gesture,
+    lineEntryMode,
+    lineEntryIndexRef,
+    lyricLines,
+    maximumViewStartMs,
+    onPause,
+    onSeek,
+    selectedToken,
+    setExportOpen,
+    setFollowViewport,
+    setHandPanMode,
+    setIsCanvasPanning,
+    setIsCanvasScrubbing,
+    setLineEntryCapture,
+    setLineEntryIndex,
+    setLineEntryMode,
+    setLineEntrySession,
+    setLyricFollowRequestKey,
+    setLyricsOpen,
+    setNoteEditMode,
+    setPreviewOpen,
+    setSelection,
+    setToolPanel,
+    setViewStartMs,
+    tokens,
+    visibleViewDurationMs,
+  });
 
-  const startLineEntrySync = (preferredTokenId = selectedToken?.id) => {
-    if (!tokens.length) {
-      return;
-    }
-    const preferredWordIndex = preferredTokenId
-      ? tokens.findIndex((token) => token.id === preferredTokenId)
-      : -1;
-    const firstUntimed = tokens.findIndex(
-      (token) => token.startMs === undefined,
-    );
-    let wordIndex = 0;
-    if (preferredWordIndex >= 0) {
-      wordIndex = preferredWordIndex;
-    } else if (firstUntimed >= 0) {
-      wordIndex = firstUntimed;
-    }
-    const lineIndex = Math.max(
-      0,
-      lyricLines.findIndex((line) =>
-        line.tokens.some((token) => token.id === tokens[wordIndex]?.id),
-      ),
-    );
-    const target = lyricLines[lineIndex]?.tokens[0];
-    if (!target) {
-      return;
-    }
-    if (document.activeElement instanceof HTMLElement) {
-      document.activeElement.blur();
-    }
-    setLyricsOpen(false);
-    setLineEntryMode(true);
-    clearLineEntryCountdown();
-    setLineEntrySession('setup');
-    setLineEntryCapture(undefined);
-    setLineEntryIndex(lineIndex);
-    setSelection({ kind: 'word', id: target.id });
-    setHandPanMode(false);
-    setIsCanvasPanning(false);
-    setIsCanvasScrubbing(false);
-    panRef.current = undefined;
-    cancelAudibleInteractions();
-    setPreviewOpen(true);
-    setFollowViewport(true);
-    setLyricFollowRequestKey((key) => key + 1);
-    if (target.startMs !== undefined) {
-      const preRollMs = Math.max(0, target.startMs - 1_000);
-      onSeek(preRollMs);
-      setViewStartMs(
-        Math.max(
-          0,
-          Math.min(
-            maximumViewStartMs,
-            target.startMs - visibleViewDurationMs * 0.3,
-          ),
-        ),
-      );
-    }
-    setToolPanel(undefined);
-  };
-
-  const stopLineEntryRecording = () => {
-    onPause();
-    clearLineEntryCountdown();
-    setLineEntryCapture(undefined);
-    setLineEntrySession('setup');
-    setLineEntryMode(false);
-  };
-
-  const toggleLineEntryMode = () => {
-    if (lineEntryMode) {
-      stopLineEntryRecording();
-      return;
-    }
-    startLineEntrySync();
-  };
-
-  const toggleHandPanMode = () => {
-    setHandPanMode((active) => !active);
-    setNoteEditMode(undefined);
-    selectionBoxRef.current = undefined;
-    notePaintDraftRef.current = undefined;
-    noteLinkDragRef.current = undefined;
-    setLineEntryMode(false);
-    clearLineEntryCountdown();
-    setLineEntryCapture(undefined);
-    setIsCanvasPanning(false);
-    setIsCanvasScrubbing(false);
-    panRef.current = undefined;
-    cancelAudibleInteractions();
-    dragRef.current = undefined;
-    setToolPanel(undefined);
-  };
-
-  const toggleNoteEditMode = (mode: 'select' | 'paint') => {
-    setNoteEditMode((current) => (current === mode ? undefined : mode));
-    setHandPanMode(false);
-    setLineEntryMode(false);
-    clearLineEntryCountdown();
-    setLineEntryCapture(undefined);
-    setIsCanvasPanning(false);
-    setIsCanvasScrubbing(false);
-    panRef.current = undefined;
-    scrubRef.current = undefined;
-    dragRef.current = undefined;
-    selectionBoxRef.current = undefined;
-    notePaintDraftRef.current = undefined;
-    noteLinkDragRef.current = undefined;
-    cancelAudibleInteractions();
-    setToolPanel(undefined);
-  };
+  const {
+    cancelAnalysis,
+    prepareKaraoke,
+    releaseWhisperNow,
+    requestWhisper,
+    runBasicPitch,
+    runWhisper,
+  } = useMakerAnalysisRun({
+    analysisAbortRef,
+    analysisFile,
+    localizeMakerError,
+    lyricsWorkflowActiveRef,
+    openLyricsEditor,
+    prepareAfterWhisperRef,
+    project,
+    projectRef,
+    pushHistory,
+    setAnalysisError,
+    setAnalysisMessage,
+    setAnalysisProgress,
+    setAnalysisResult,
+    setAnalysisRetry,
+    setDownloadProgress,
+    setLyricsDraft,
+    setLyricsOpen,
+    setLyricsWorkflowActive,
+    setNotice,
+    setProject,
+    setToolPanel,
+    setWhisperConsentOpen,
+    setWhisperRunProfile,
+    setWhisperStage,
+    startLineEntrySync,
+    t,
+    tokens,
+  });
 
   const editTools = (
     <KaraokeMakerEditTools
@@ -4592,342 +1455,60 @@ const KaraokeMaker = ({
         accept=".lrc,.elrc,.txt,text/plain"
         onChange={selectLyricsFile}
       />
-      <header className="karaoke-maker__header">
-        <div className="karaoke-maker__identity">
-          <button
-            className="karaoke-maker__header-icon karaoke-maker__header-back"
-            type="button"
-            onClick={onClose}
-            aria-label={t('karaoke.maker.close')}
-            data-tooltip={t('karaoke.maker.close')}
-          >
-            <KaraokeMakerToolIcon name="back" />
-          </button>
-          <div>
-            <span className="karaoke-maker__eyebrow">
-              {t('karaoke.maker.eyebrow')}
-            </span>
-            <input
-              className="karaoke-maker__title-input"
-              value={project.title}
-              aria-label={t('karaoke.maker.songTitle')}
-              onChange={(event) =>
-                commit((current) => ({
-                  ...current,
-                  title: event.target.value.slice(0, 2_000),
-                }))
-              }
-            />
-          </div>
-        </div>
-        <div
-          className="karaoke-maker__transport"
-          role="group"
-          aria-label={t('karaoke.transport.title')}
-        >
-          <div className="karaoke-maker__transport-buttons">
-            <button
-              className="karaoke-maker__transport-control"
-              type="button"
-              onClick={() => {
-                onSeek(0);
-                setViewStartMs(0);
-                setFollowViewport(true);
-              }}
-              aria-label={t('karaoke.maker.jumpToStart')}
-              data-tooltip={t('karaoke.maker.jumpToStart')}
-            >
-              <KaraokeTransportIcon name="previous" />
-            </button>
-            <button
-              className="karaoke-maker__transport-control"
-              type="button"
-              onClick={() => onSeek(Math.max(0, playheadMs - 5_000))}
-              aria-label={t('karaoke.maker.seekBack', { seconds: 5 })}
-              data-tooltip={t('karaoke.maker.seekBack', { seconds: 5 })}
-            >
-              <KaraokeTransportIcon name="previous" />
-              <small>5</small>
-            </button>
-            <button
-              className={`karaoke-maker__transport-control karaoke-maker__play${
-                isPlaying ? ' is-playing' : ''
-              }`}
-              type="button"
-              onClick={() => {
-                if (isPlaying) {
-                  onPause();
-                } else {
-                  Promise.resolve(onPlay()).catch(() => undefined);
-                }
-              }}
-              aria-label={t(
-                isPlaying
-                  ? 'karaoke.transport.pause'
-                  : 'karaoke.transport.play',
-              )}
-              aria-keyshortcuts="Space"
-              aria-pressed={isPlaying}
-              data-tooltip={t('karaoke.transport.spaceShortcut', {
-                action: t(
-                  isPlaying
-                    ? 'karaoke.transport.pause'
-                    : 'karaoke.transport.play',
-                ),
-              })}
-            >
-              <KaraokeTransportIcon name={isPlaying ? 'pause' : 'play'} />
-            </button>
-            <button
-              className="karaoke-maker__transport-control"
-              type="button"
-              onClick={() =>
-                onSeek(Math.min(effectiveDurationMs, playheadMs + 5_000))
-              }
-              aria-label={t('karaoke.maker.seekForward', { seconds: 5 })}
-              data-tooltip={t('karaoke.maker.seekForward', { seconds: 5 })}
-            >
-              <KaraokeTransportIcon name="next" />
-              <small>5</small>
-            </button>
-            <button
-              className="karaoke-maker__transport-control"
-              type="button"
-              onClick={() => {
-                onSeek(effectiveDurationMs);
-                setViewStartMs(maximumViewStartMs);
-                setFollowViewport(true);
-              }}
-              aria-label={t('karaoke.maker.jumpToEnd')}
-              data-tooltip={t('karaoke.maker.jumpToEnd')}
-            >
-              <KaraokeTransportIcon name="next" />
-            </button>
-          </div>
-          <div className="karaoke-maker__transport-time">
-            <time>{formatClock(visualPlayheadMs)}</time>
-            <span aria-hidden="true" />
-            <time>{formatClock(effectiveDurationMs)}</time>
-          </div>
-          <div
-            className={`karaoke-maker__tone-guide${
-              melodyTone.enabled ? ' is-enabled' : ''
-            }`}
-          >
-            <button
-              type="button"
-              className="karaoke-maker__transport-control"
-              disabled={!makerMelodyTarget || !melodyTone.isAvailable}
-              onClick={() => melodyTone.toggle().catch(() => undefined)}
-              aria-pressed={melodyTone.enabled}
-              aria-label={t(
-                melodyTone.enabled
-                  ? 'karaoke.pitch.toneDisable'
-                  : 'karaoke.pitch.toneEnable',
-              )}
-              data-tooltip={t('karaoke.pitch.toneGuide')}
-            >
-              <KaraokeTransportIcon name="volume" />
-            </button>
-            {melodyTone.enabled && (
-              <input
-                type="range"
-                min={0}
-                max={1}
-                step={0.01}
-                value={melodyTone.volume}
-                aria-label={t('karaoke.pitch.toneVolume')}
-                aria-valuetext={`${Math.round(melodyTone.volume * 100)}%`}
-                onChange={(event) =>
-                  melodyTone.setVolume(Number(event.target.value))
-                }
-              />
-            )}
-          </div>
-        </div>
-        <KaraokeMakerHeaderActions
-          onUndo={undo}
-          canUndo={canUndo}
-          onRedo={redo}
-          canRedo={canRedo}
-          onRestore={() => setDestructiveAction('restore')}
-          onApply={() => {
-            const untimedCount = issues.filter(
-              (issue) => issue.code === 'untimed-word',
-            ).length;
-            if (untimedCount > 0) {
-              setNotice(
-                t('karaoke.maker.applyUntimed', { count: untimedCount }),
-              );
-              return;
-            }
-            onApply(project);
-            onClose();
-          }}
-          isFullScreen={isFullScreen}
-          onToggleFullScreen={onToggleFullScreen}
-        />
-      </header>
+      <KaraokeMakerHeader
+        canRedo={canRedo}
+        canUndo={canUndo}
+        commit={commit}
+        effectiveDurationMs={effectiveDurationMs}
+        isFullScreen={isFullScreen}
+        isPlaying={isPlaying}
+        issues={issues}
+        makerMelodyTarget={makerMelodyTarget}
+        maximumViewStartMs={maximumViewStartMs}
+        melodyTone={melodyTone}
+        onApply={onApply}
+        onClose={onClose}
+        onPause={onPause}
+        onPlay={onPlay}
+        onSeek={onSeek}
+        onToggleFullScreen={onToggleFullScreen}
+        playheadMs={playheadMs}
+        project={project}
+        redo={redo}
+        setDestructiveAction={setDestructiveAction}
+        setFollowViewport={setFollowViewport}
+        setNotice={setNotice}
+        setViewStartMs={setViewStartMs}
+        undo={undo}
+        visualPlayheadMs={visualPlayheadMs}
+      />
 
-      <div ref={toolsRef} className="karaoke-maker__tools">
-        <div className="karaoke-maker__tool-group">
-          <KaraokeMakerToolbarButton
-            icon="project"
-            label={t('karaoke.maker.openProject')}
-            onClick={() => projectInputRef.current?.click()}
-          />
-          <KaraokeMakerToolbarButton
-            icon="lyrics"
-            label={t('karaoke.maker.lyrics')}
-            onClick={openLyricsEditor}
-          />
-          <KaraokeMakerToolbarButton
-            icon="clearLyrics"
-            label={t('karaoke.maker.clearLyrics')}
-            danger
-            disabled={!tokens.length}
-            onClick={() => setDestructiveAction('lyrics')}
-          />
-          <KaraokeMakerToolbarButton
-            icon="clearNotes"
-            label={t('karaoke.maker.clearNotes')}
-            danger
-            disabled={!project.melody.notes.length}
-            onClick={() => setDestructiveAction('notes')}
-          />
-          <div className="karaoke-maker__tool-cluster">
-            <KaraokeMakerToolbarButton
-              icon="timing"
-              label={t('karaoke.maker.lyricsTiming')}
-              active={toolPanel === 'timing'}
-              onClick={() => toggleToolPanel('timing')}
-            />
-            {toolPanel === 'timing' && (
-              <KaraokeMakerTimingPopover
-                scope={timingScope}
-                onScopeChange={setTimingScope}
-                canShiftFromWord={canShiftFromWord}
-                shiftMs={
-                  timingScope === 'all' ? project.meta.gapMs : wordShiftMs
-                }
-                selectedWord={selectedToken?.text}
-                onShift={shiftTimeline}
-                onClose={() => setToolPanel(undefined)}
-              />
-            )}
-          </div>
-          <KaraokeMakerToolbarButton
-            icon="hand"
-            label={t('karaoke.maker.panView')}
-            active={handPanMode}
-            onClick={toggleHandPanMode}
-          />
-        </div>
-
-        <div className="karaoke-maker__tool-group karaoke-maker__wide-edit-tools">
-          {editTools}
-        </div>
-        <div className="karaoke-maker__tool-cluster karaoke-maker__compact-edit-tools">
-          <KaraokeMakerToolbarButton
-            icon="edit"
-            label={t('karaoke.maker.toolsEdit')}
-            active={toolPanel === 'edit'}
-            onClick={() => toggleToolPanel('edit')}
-          />
-          {toolPanel === 'edit' && (
-            <div className="karaoke-maker__tool-popover karaoke-maker__action-popover">
-              {editTools}
-            </div>
-          )}
-        </div>
-
-        {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && (
-          <div className="karaoke-maker__tool-group karaoke-maker__wide-analysis-tools">
-            <KaraokeMakerToolbarButton
-              icon="analyze"
-              label={t('karaoke.maker.prepare')}
-              onClick={prepareKaraoke}
-              disabled={analysisProgress !== undefined}
-            />
-            <div className="karaoke-maker__tool-cluster">
-              <KaraokeMakerToolbarButton
-                icon="melody"
-                label={t('karaoke.maker.advanced')}
-                active={toolPanel === 'analysis'}
-                onClick={() => toggleToolPanel('analysis')}
-              />
-              {toolPanel === 'analysis' && (
-                <div className="karaoke-maker__tool-popover karaoke-maker__action-popover karaoke-maker__analysis-popover">
-                  {advancedAnalysisTools}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && (
-          <div className="karaoke-maker__tool-cluster karaoke-maker__compact-analysis-tools">
-            <KaraokeMakerToolbarButton
-              icon="analyze"
-              label={t('karaoke.maker.prepare')}
-              onClick={prepareKaraoke}
-              disabled={analysisProgress !== undefined}
-            />
-            <KaraokeMakerToolbarButton
-              icon="melody"
-              label={t('karaoke.maker.advanced')}
-              active={toolPanel === 'analysis'}
-              onClick={() => toggleToolPanel('analysis')}
-            />
-            {toolPanel === 'analysis' && (
-              <div className="karaoke-maker__tool-popover karaoke-maker__action-popover karaoke-maker__analysis-popover">
-                {advancedAnalysisTools}
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="karaoke-maker__export-wrap">
-          <KaraokeMakerToolbarButton
-            icon="export"
-            label={t('karaoke.maker.export')}
-            active={exportOpen}
-            onClick={() => {
-              setToolPanel(undefined);
-              setExportOpen((open) => !open);
-            }}
-          />
-          {exportOpen && (
-            <div className="karaoke-maker__export-menu">
-              <button
-                type="button"
-                onClick={() => exportProject('project').catch(() => undefined)}
-              >
-                {t('karaoke.maker.exportProject')}
-              </button>
-              <button
-                type="button"
-                onClick={() =>
-                  exportProject('ultrastar').catch(() => undefined)
-                }
-              >
-                {t('karaoke.maker.exportUltraStar')}
-              </button>
-              <button
-                type="button"
-                onClick={() => exportProject('lrc').catch(() => undefined)}
-              >
-                {t('karaoke.maker.exportLrc')}
-              </button>
-              <button
-                type="button"
-                onClick={() => exportProject('elrc').catch(() => undefined)}
-              >
-                {t('karaoke.maker.exportElrc')}
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
+      <KaraokeMakerToolbar
+        advancedAnalysisTools={advancedAnalysisTools}
+        analysisProgress={analysisProgress}
+        canShiftFromWord={canShiftFromWord}
+        editTools={editTools}
+        exportOpen={exportOpen}
+        exportProject={exportProject}
+        handPanMode={handPanMode}
+        openLyricsEditor={openLyricsEditor}
+        prepareKaraoke={prepareKaraoke}
+        project={project}
+        projectInputRef={projectInputRef}
+        selectedToken={selectedToken}
+        setDestructiveAction={setDestructiveAction}
+        setExportOpen={setExportOpen}
+        setTimingScope={setTimingScope}
+        setToolPanel={setToolPanel}
+        shiftTimeline={shiftTimeline}
+        timingScope={timingScope}
+        toggleHandPanMode={toggleHandPanMode}
+        toggleToolPanel={toggleToolPanel}
+        tokens={tokens}
+        toolPanel={toolPanel}
+        toolsRef={toolsRef}
+        wordShiftMs={wordShiftMs}
+      />
 
       <div
         className={`karaoke-maker__status-row${
@@ -4991,7 +1572,7 @@ const KaraokeMaker = ({
           onPointerUp={onCanvasPointerUp}
           onPointerCancel={onCanvasPointerUp}
           onPointerLeave={() => {
-            if (!dragRef.current) {
+            if (!gesture.drag.current) {
               setHoveredEditHandle(undefined);
               setIsPitchPanReady(false);
             }
@@ -5134,7 +1715,7 @@ const KaraokeMaker = ({
           }}
         >
           <div className="karaoke-maker__selection-coach-content">
-            {renderSelectionInfo()}
+            {selectionInfo}
           </div>
         </KaraokeMakerFloatingPanel>
       )}
@@ -5171,203 +1752,28 @@ const KaraokeMaker = ({
         onToggle={() => setPreviewOpen((current) => !current)}
       />
 
-      <footer className="karaoke-maker__inspector">
-        <div className="karaoke-maker__fields">
-          <label htmlFor={`${controlId}-artist`}>
-            {t('karaoke.maker.artist')}
-            <input
-              id={`${controlId}-artist`}
-              value={project.artist ?? ''}
-              onChange={(event) =>
-                commit((current) => ({
-                  ...current,
-                  artist: event.target.value.slice(0, 2_000) || undefined,
-                }))
-              }
-            />
-          </label>
-          <label htmlFor={`${controlId}-bpm`}>
-            {t('karaoke.maker.bpm')}
-            <input
-              id={`${controlId}-bpm`}
-              type="number"
-              min="20"
-              max="400"
-              value={project.meta.bpm ?? ''}
-              onChange={(event) =>
-                commit((current) => ({
-                  ...current,
-                  meta: {
-                    ...current.meta,
-                    bpm: event.target.value
-                      ? Number(event.target.value)
-                      : undefined,
-                  },
-                }))
-              }
-            />
-          </label>
-        </div>
-        <label
-          className="karaoke-maker__rights"
-          htmlFor={`${controlId}-rights`}
-        >
-          <input
-            id={`${controlId}-rights`}
-            type="checkbox"
-            checked={project.meta.rightsConfirmed}
-            onChange={(event) =>
-              commit((current) => ({
-                ...current,
-                meta: {
-                  ...current.meta,
-                  rightsConfirmed: event.target.checked,
-                },
-              }))
-            }
-          />
-          {t('karaoke.maker.rights')}
-        </label>
-      </footer>
+      <KaraokeMakerInspector
+        commit={commit}
+        controlId={controlId}
+        project={project}
+      />
 
-      {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED &&
-        analysisProgress !== undefined &&
-        !lyricsOpen && (
-          <div className="karaoke-maker__analysis-progress" role="status">
-            <div className="karaoke-maker__analysis-progress-copy">
-              <KaraokeMakerToolIcon name="transcribe" />
-              <div>
-                <div className="karaoke-maker__analysis-progress-heading">
-                  <strong>
-                    {analysisMessage ?? t('karaoke.maker.localAnalysis')}
-                  </strong>
-                  {analysisProgressIsIndeterminate ? (
-                    <span
-                      className="karaoke-maker__analysis-activity"
-                      aria-hidden="true"
-                    >
-                      <i />
-                      <i />
-                      <i />
-                    </span>
-                  ) : (
-                    <span>{Math.round(displayedAnalysisProgress * 100)}%</span>
-                  )}
-                </div>
-              </div>
-            </div>
-            {renderWhisperDownloadDetails()}
-            {whisperStage && (
-              <ol
-                className="karaoke-maker__whisper-stages"
-                aria-label={t('karaoke.maker.whisperPreparing')}
-              >
-                {visibleWhisperStages.map((stageName, index) => {
-                  const activeIndex =
-                    whisperStage === 'complete'
-                      ? visibleWhisperStages.length
-                      : visibleWhisperStages.indexOf(whisperStage);
-                  const complete = index < activeIndex;
-                  const active = index === activeIndex;
-                  let label = t('karaoke.maker.whisperTranscribing');
-                  if (stageName === 'decode') {
-                    label = t('karaoke.maker.whisperDecoding');
-                  } else if (stageName === 'download') {
-                    label = t('karaoke.maker.downloadingWhisper');
-                  } else if (stageName === 'load') {
-                    label = t('karaoke.maker.loadingWhisper');
-                  }
-                  return (
-                    <li
-                      key={stageName}
-                      className={`${complete ? 'is-complete' : ''} ${
-                        active ? 'is-active' : ''
-                      }`}
-                    >
-                      <span aria-hidden="true">
-                        {complete ? '✓' : index + 1}
-                      </span>
-                      <em>{label}</em>
-                    </li>
-                  );
-                })}
-              </ol>
-            )}
-            <div
-              className={`karaoke-maker__analysis-progress-bar ${
-                analysisProgressIsIndeterminate ? 'is-indeterminate' : ''
-              }`}
-              role="progressbar"
-              aria-label={
-                analysisMessage ?? t('karaoke.maker.whisperPreparing')
-              }
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={
-                analysisProgressIsIndeterminate
-                  ? undefined
-                  : Math.round(displayedAnalysisProgress * 100)
-              }
-            >
-              <span
-                style={
-                  analysisProgressIsIndeterminate
-                    ? undefined
-                    : { width: `${displayedAnalysisProgress * 100}%` }
-                }
-              />
-            </div>
-            <button type="button" onClick={cancelAnalysis}>
-              {t('karaoke.maker.cancel')}
-            </button>
-          </div>
-        )}
-      {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED &&
-        analysisProgress === undefined &&
-        analysisError && (
-          <div
-            className="karaoke-maker__analysis-error"
-            role="alert"
-            aria-live="assertive"
-          >
-            <div
-              className="karaoke-maker__analysis-error-icon"
-              aria-hidden="true"
-            >
-              !
-            </div>
-            <div>
-              <strong>
-                {analysisRetry === 'whisper'
-                  ? t('karaoke.maker.downloadFailed')
-                  : t('karaoke.maker.localAnalysisFailed')}
-              </strong>
-              <span>{analysisError}</span>
-            </div>
-            <div className="karaoke-maker__analysis-error-actions">
-              {analysisRetry !== undefined && (
-                <button
-                  type="button"
-                  className="karaoke-maker__analysis-error-retry"
-                  onClick={() => runWhisper().catch(() => undefined)}
-                >
-                  {t('karaoke.maker.tryAgain')}
-                </button>
-              )}
-              <button
-                type="button"
-                className="karaoke-maker__analysis-error-close"
-                onClick={() => {
-                  setAnalysisError(undefined);
-                  setAnalysisRetry(undefined);
-                }}
-                aria-label={t('karaoke.maker.dismiss')}
-              >
-                ×
-              </button>
-            </div>
-          </div>
-        )}
+      <KaraokeMakerAnalysisPanels
+        analysisError={analysisError}
+        analysisMessage={analysisMessage}
+        analysisProgress={analysisProgress}
+        analysisProgressIsIndeterminate={analysisProgressIsIndeterminate}
+        analysisRetry={analysisRetry}
+        cancelAnalysis={cancelAnalysis}
+        displayedAnalysisProgress={displayedAnalysisProgress}
+        lyricsOpen={lyricsOpen}
+        renderWhisperDownloadDetails={renderWhisperDownloadDetails}
+        runWhisper={runWhisper}
+        setAnalysisError={setAnalysisError}
+        setAnalysisRetry={setAnalysisRetry}
+        visibleWhisperStages={visibleWhisperStages}
+        whisperStage={whisperStage}
+      />
       {analysisProgress === undefined && !analysisError && notice && (
         <div className="karaoke-maker__notice" role="status" aria-live="polite">
           <span>{notice}</span>
@@ -5395,291 +1801,39 @@ const KaraokeMaker = ({
       />
 
       {lyricsOpen && (
-        <div
-          className={`karaoke-maker__modal-backdrop${
-            lyricsProcessing ? ' is-processing' : ''
-          }`}
-          role="presentation"
-        >
-          <div
-            className={`karaoke-maker__lyrics-modal${
-              lyricsProcessing ? ' is-processing' : ''
-            }`}
-            role="dialog"
-            aria-label={t('karaoke.maker.lyricsTitle')}
-          >
-            <header className="karaoke-maker__lyrics-modal-head">
-              <div>
-                <span className="karaoke-maker__eyebrow">
-                  {t('karaoke.maker.lyricsEyebrow')}
-                </span>
-                <h2>{t('karaoke.maker.lyricsTitle')}</h2>
-                <p>{t('karaoke.maker.lyricsReferenceHint')}</p>
-              </div>
-            </header>
-            <button
-              className="karaoke-maker__lyrics-modal-close"
-              type="button"
-              aria-label={t('karaoke.maker.cancel')}
-              data-tooltip={t('karaoke.maker.cancel')}
-              onClick={() => setLyricsOpen(false)}
-            >
-              <KaraokeMakerToolIcon name="close" />
-            </button>
-            <div className="karaoke-maker__lyrics-editor-body">
-              <section className="karaoke-maker__lyrics-source">
-                <div className="karaoke-maker__lyrics-section-head">
-                  <strong>{t('karaoke.maker.referenceLyrics')}</strong>
-                  <div className="karaoke-maker__lyrics-source-actions">
-                    <span title={lyricsFileName}>
-                      {lyricsFileName ??
-                        t('karaoke.maker.lyricsWordCount', {
-                          count: draftLyricsWordCount,
-                        })}
-                    </span>
-                    <button
-                      type="button"
-                      disabled={lyricsProcessing}
-                      onClick={() => lyricsInputRef.current?.click()}
-                    >
-                      <KaraokeMakerToolIcon name="project" />
-                      <span>{t('karaoke.maker.loadLyricsFile')}</span>
-                    </button>
-                  </div>
-                </div>
-                <textarea
-                  value={lyricsDraft}
-                  disabled={lyricsProcessing}
-                  onChange={(event) => setLyricsDraft(event.target.value)}
-                  placeholder={t('karaoke.maker.lyricsPlaceholder')}
-                  spellCheck
-                />
-              </section>
-              <section className="karaoke-maker__lyrics-timing-editor">
-                <div className="karaoke-maker__lyrics-section-head">
-                  <strong>{t('karaoke.maker.wordTiming')}</strong>
-                  <span>
-                    {t('karaoke.maker.lyricsTimedCount', {
-                      timed: tokens.filter(
-                        (token) => token.startMs !== undefined,
-                      ).length,
-                      total: tokens.length,
-                    })}
-                  </span>
-                </div>
-                {lyricsDraftChanged || !tokens.length ? (
-                  <div className="karaoke-maker__lyrics-timing-placeholder">
-                    <KaraokeMakerToolIcon name="timing" />
-                    <strong>
-                      {t(
-                        lyricsDraftChanged
-                          ? 'karaoke.maker.lyricsApplyBeforeTiming'
-                          : 'karaoke.maker.lyricsNoTimedWords',
-                      )}
-                    </strong>
-                    <p>{t('karaoke.maker.lyricsTimingEditorHint')}</p>
-                  </div>
-                ) : (
-                  <div className="karaoke-maker__lyrics-token-scroll">
-                    {project.lyrics.lines.map((line) => {
-                      const isSection = karaokeMakerLineIsSection(line);
-                      return (
-                        <div
-                          key={line.id}
-                          className={`karaoke-maker__lyrics-token-line${
-                            isSection ? ' is-section' : ''
-                          }`}
-                        >
-                          {line.tokens.map((token) =>
-                            isSection ? (
-                              <span key={token.id}>{token.text}</span>
-                            ) : (
-                              <button
-                                key={token.id}
-                                type="button"
-                                className={`${
-                                  selection?.kind === 'word' &&
-                                  selection.id === token.id
-                                    ? 'is-selected '
-                                    : ''
-                                }${
-                                  token.id === activeLyricFocus?.tokenId
-                                    ? 'is-current '
-                                    : ''
-                                }${
-                                  token.startMs === undefined
-                                    ? 'is-untimed '
-                                    : ''
-                                }${
-                                  karaokeMakerTokenWasUserTouched(token)
-                                    ? 'is-adjusted'
-                                    : ''
-                                }`}
-                                onClick={() => selectLyricsEditorToken(token)}
-                                title={
-                                  token.startMs === undefined
-                                    ? t('karaoke.maker.untimed')
-                                    : `${formatClock(token.startMs)} → ${formatClock(
-                                        token.endMs ?? token.startMs,
-                                      )}`
-                                }
-                              >
-                                {token.text}
-                              </button>
-                            ),
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-                {!lyricsDraftChanged &&
-                  tokens.length > 0 &&
-                  renderLyricsModalWordInspector()}
-              </section>
-            </div>
-            {analysisProgress !== undefined && (
-              <div
-                className="karaoke-maker__lyrics-progress"
-                role="status"
-                aria-live="polite"
-              >
-                <div className="karaoke-maker__analysis-progress-heading">
-                  <strong>
-                    {analysisMessage ?? t('karaoke.maker.whisperPreparing')}
-                  </strong>
-                  {!analysisProgressIsIndeterminate && (
-                    <span>{Math.round(displayedAnalysisProgress * 100)}%</span>
-                  )}
-                </div>
-                {renderWhisperDownloadDetails()}
-                <div
-                  className={`karaoke-maker__analysis-progress-bar${
-                    analysisProgressIsIndeterminate ? ' is-indeterminate' : ''
-                  }`}
-                  role="progressbar"
-                  aria-label={
-                    analysisMessage ?? t('karaoke.maker.whisperPreparing')
-                  }
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-valuenow={
-                    analysisProgressIsIndeterminate
-                      ? undefined
-                      : Math.round(displayedAnalysisProgress * 100)
-                  }
-                >
-                  <span
-                    style={
-                      analysisProgressIsIndeterminate
-                        ? undefined
-                        : { width: `${displayedAnalysisProgress * 100}%` }
-                    }
-                  />
-                </div>
-              </div>
-            )}
-            <div className="karaoke-maker__modal-actions karaoke-maker__lyrics-actions">
-              {destructiveAction === 'replace-lyrics' && (
-                <p className="karaoke-maker__replace-warning" role="alert">
-                  {t('karaoke.maker.replaceLyricsWarning')}
-                </p>
-              )}
-              {lyricsProcessing ? (
-                <>
-                  <button type="button" onClick={cancelAnalysis}>
-                    {t('karaoke.maker.cancel')}
-                  </button>
-                  <button
-                    className="is-primary"
-                    type="button"
-                    onClick={() => setLyricsOpen(false)}
-                  >
-                    {t('karaoke.maker.continueInBackground')}
-                  </button>
-                </>
-              ) : (
-                <>
-                  <button
-                    type="button"
-                    disabled={!lyricsDraft.trim()}
-                    onClick={() => replaceLyrics(false)}
-                  >
-                    <KaraokeMakerToolIcon name="apply" />
-                    {t(
-                      destructiveAction === 'replace-lyrics'
-                        ? 'karaoke.maker.replaceLyrics'
-                        : 'karaoke.maker.acceptLyrics',
-                    )}
-                  </button>
-                  <button
-                    type="button"
-                    disabled={!lyricsDraft.trim()}
-                    onClick={() => replaceLyrics(false, true)}
-                  >
-                    <KaraokeMakerToolIcon name="timing" />
-                    {t('karaoke.maker.acceptAndRecordLines')}
-                  </button>
-                  {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && (
-                    <button
-                      className="is-primary"
-                      type="button"
-                      disabled={!lyricsDraft.trim()}
-                      onClick={() => replaceLyrics(true)}
-                    >
-                      <KaraokeMakerToolIcon name="analyze" />
-                      {t(
-                        destructiveAction === 'replace-lyrics'
-                          ? 'karaoke.maker.replaceAndDetect'
-                          : 'karaoke.maker.detectTimingMelody',
-                      )}
-                    </button>
-                  )}
-                </>
-              )}
-            </div>
-          </div>
-        </div>
+        <KaraokeMakerLyricsDialog
+          activeLyricFocus={activeLyricFocus}
+          analysisMessage={analysisMessage}
+          analysisProgress={analysisProgress}
+          analysisProgressIsIndeterminate={analysisProgressIsIndeterminate}
+          cancelAnalysis={cancelAnalysis}
+          destructiveAction={destructiveAction}
+          displayedAnalysisProgress={displayedAnalysisProgress}
+          draftLyricsWordCount={draftLyricsWordCount}
+          lyricsDraft={lyricsDraft}
+          lyricsDraftChanged={lyricsDraftChanged}
+          lyricsFileName={lyricsFileName}
+          lyricsInputRef={lyricsInputRef}
+          lyricsProcessing={lyricsProcessing}
+          project={project}
+          renderLyricsModalWordInspector={renderLyricsModalWordInspector}
+          renderWhisperDownloadDetails={renderWhisperDownloadDetails}
+          replaceLyrics={replaceLyrics}
+          selectLyricsEditorToken={selectLyricsEditorToken}
+          selection={selection}
+          setLyricsDraft={setLyricsDraft}
+          setLyricsOpen={setLyricsOpen}
+          tokens={tokens}
+        />
       )}
       {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED && whisperConsentOpen && (
-        <div className="karaoke-maker__modal-backdrop" role="presentation">
-          <div
-            className="karaoke-maker__consent-modal"
-            role="dialog"
-            aria-label={t('karaoke.maker.transcriptionTitle')}
-          >
-            <span className="karaoke-maker__eyebrow">
-              {t('karaoke.maker.transcriptionEyebrow')}
-            </span>
-            <h2>{t('karaoke.maker.transcriptionTitle')}</h2>
-            <p>
-              {t('karaoke.maker.transcriptionBody', {
-                model: WHISPER_MODEL,
-              })}
-            </p>
-            <p>{t('karaoke.maker.transcriptionReview')}</p>
-            <div className="karaoke-maker__modal-actions">
-              <button
-                type="button"
-                onClick={() => {
-                  prepareAfterWhisperRef.current = false;
-                  lyricsWorkflowActiveRef.current = false;
-                  setLyricsWorkflowActive(false);
-                  setWhisperConsentOpen(false);
-                }}
-              >
-                {t('karaoke.maker.notNow')}
-              </button>
-              <button
-                className="is-primary"
-                type="button"
-                onClick={() => runWhisper().catch(() => undefined)}
-              >
-                {t('karaoke.maker.downloadPrepare')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <KaraokeMakerWhisperConsent
+          lyricsWorkflowActiveRef={lyricsWorkflowActiveRef}
+          prepareAfterWhisperRef={prepareAfterWhisperRef}
+          runWhisper={runWhisper}
+          setLyricsWorkflowActive={setLyricsWorkflowActive}
+          setWhisperConsentOpen={setWhisperConsentOpen}
+        />
       )}
     </div>
   );

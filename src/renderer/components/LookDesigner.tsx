@@ -23,9 +23,9 @@ import {
   MAX_GRAPH_COLUMNS,
   MIN_GRAPH_COLUMNS,
   getGraphLook,
-  hasGraphAccent,
   isDiscreteGraphStyle,
 } from 'common/graphStyles';
+import { hasGraphAccent } from 'common/graphShapes';
 import {
   DEFAULT_LEVEL_COLOURS,
   DEFAULT_SIGNAL_COLOUR,

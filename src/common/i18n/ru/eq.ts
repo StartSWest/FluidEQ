@@ -178,6 +178,7 @@ const eq: Partial<Dictionary> = {
     'Восстановить последнюю версию профиля, сохранённую вручную',
   'profiles.attached': 'ВКЛ',
   'profiles.attachedTitle': 'Звучит на этом выходе',
+  'profiles.confirmDelete': 'Удалить?',
   'profiles.detecting': 'Определяем ваш выход…',
   'profiles.empty': 'Профилей пока нет. Создайте свой первый звук.',
   'profiles.error.empty': 'Имя профиля не может быть пустым.',

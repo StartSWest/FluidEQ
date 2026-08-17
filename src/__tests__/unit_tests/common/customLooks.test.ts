@@ -24,9 +24,9 @@ import {
   MIN_GRAPH_COLUMNS,
   getGraphBallistics,
   getGraphColumnCount,
-  hasGraphAccent,
   isFilledGraphStyle,
 } from 'common/graphStyles';
+import { hasGraphAccent } from 'common/graphShapes';
 import {
   CUSTOM_LOOK_PREFIX,
   DEFAULT_BORDER_WIDTH,

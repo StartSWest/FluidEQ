@@ -176,6 +176,7 @@ const eq = {
     'Restore the last manually saved version of this profile',
   'profiles.attached': 'ON',
   'profiles.attachedTitle': 'Playing on this output',
+  'profiles.confirmDelete': 'Delete?',
   'profiles.detecting': 'Detecting your output…',
   'profiles.empty': 'No profiles yet. Create your first sound.',
   'profiles.error.empty': 'Preset name cannot be empty.',

@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'react';
-import { CONTINUOUS_SETTLE_DB } from 'common/smartEq';
+import { CONTINUOUS_SETTLE_DB } from 'common/smartEqContinuous';
 
 /**
  * How far each range currently disagrees with where it is being steered, in dB.

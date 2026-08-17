@@ -6,14 +6,11 @@ This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License version 3 or later.
 */
 
-import { execFile } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
-import { promisify } from 'util';
 import {
   APO_FEATURES,
-  IAudioDevice,
   ICustomFxSettings,
   IDeviceProfileAssignment,
   IDeviceProfileSettings,
@@ -32,7 +29,6 @@ import {
 } from './flush';
 import { parseCustomFx } from '../common/customFx';
 import { writeConvolutionWav } from './convolution';
-import { POWERSHELL_PATH } from './powershell';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 
 export interface IActiveStateOverride {
@@ -75,21 +71,7 @@ const isSafeConvolutionFileName = (fileName: string) =>
   // eslint-disable-next-line no-control-regex -- the characters are the point
   !/[\u0000-\u001f\u007f]/.test(fileName);
 
-const execFileAsync = promisify(execFile);
 const SETTINGS_FILENAME = 'device-profiles.json';
-
-const getAudioDeviceScriptPath = () => {
-  const scriptPath = path.join(
-    process.resourcesPath,
-    'assets',
-    'windows-audio-devices.ps1',
-  );
-  const developmentScriptPath = path.join(
-    __dirname,
-    '../../assets/windows-audio-devices.ps1',
-  );
-  return fs.existsSync(scriptPath) ? scriptPath : developmentScriptPath;
-};
 
 export const getDefaultDeviceProfileSettings = (): IDeviceProfileSettings => ({
   version: 1,
@@ -598,99 +580,6 @@ export const getStateForAudioDevice = (
   };
 };
 
-export const filterVisibleAudioDevices = (
-  devices: IAudioDevice[],
-): IAudioDevice[] => {
-  const visibleByName = new Map<string, IAudioDevice>();
-
-  devices
-    .filter((device) => device.isActive && device.name.trim())
-    .sort((left, right) => Number(right.isDefault) - Number(left.isDefault))
-    .forEach((device) => {
-      const normalizedName = device.name.trim().toLocaleLowerCase();
-      if (!visibleByName.has(normalizedName)) {
-        visibleByName.set(normalizedName, {
-          ...device,
-          name: device.name.trim(),
-        });
-      }
-    });
-
-  return [...visibleByName.values()].sort((left, right) => {
-    return left.name.localeCompare(right.name);
-  });
-};
-
-export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
-  if (process.platform !== 'win32') {
-    return [
-      {
-        id: 'demo-speakers',
-        name: 'Demo Speakers (Windows discovery runs on Windows)',
-        guid: '{DEMO-SPEAKERS}',
-        isDefault: true,
-        isActive: true,
-      },
-      {
-        id: 'demo-headphones',
-        name: 'Demo Headphones',
-        guid: '{DEMO-HEADPHONES}',
-        isDefault: false,
-        isActive: true,
-      },
-    ];
-  }
-
-  const { stdout } = await execFileAsync(
-    // Absolute, never a bare name: libuv searches the current directory before
-    // PATH, and a shortcut-launched Electron app has its install directory as
-    // the current directory. See the comment on the constant.
-    POWERSHELL_PATH,
-    [
-      '-NoLogo',
-      '-NoProfile',
-      '-NonInteractive',
-      '-ExecutionPolicy',
-      'Bypass',
-      '-File',
-      getAudioDeviceScriptPath(),
-    ],
-    { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
-  );
-  const parsed = JSON.parse(stdout.trim() || '[]');
-  return filterVisibleAudioDevices(
-    (Array.isArray(parsed) ? parsed : [parsed]) as IAudioDevice[],
-  );
-};
-
-export const setDefaultAudioDevice = async (deviceId: string) => {
-  if (process.platform !== 'win32') {
-    return;
-  }
-
-  const devices = await discoverAudioDevices();
-  if (!devices.some((device) => device.id === deviceId)) {
-    throw new Error('The selected audio output is no longer available.');
-  }
-
-  await execFileAsync(
-    // Absolute, for the same reason as the discovery call above.
-    POWERSHELL_PATH,
-    [
-      '-NoLogo',
-      '-NoProfile',
-      '-NonInteractive',
-      '-ExecutionPolicy',
-      'Bypass',
-      '-File',
-      getAudioDeviceScriptPath(),
-      '-SetDefaultDeviceId',
-      deviceId,
-    ],
-    { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
-  );
-};
-
 /**
  * Write a file only when its contents actually changed.
  *
@@ -852,3 +741,5 @@ export const flushDeviceProfiles = (
     new Set([...files.keys(), ...[...liveSlugs].map(customFileName)]),
   );
 };
+
+export * from './audioDevices';

@@ -63,7 +63,7 @@ import {
   createGraphAccent,
   createGraphShape,
   getGlowStyle,
-} from 'common/graphStyles';
+} from 'common/graphShapes';
 import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
 import { useGraphLook, useLiveOutputSolo } from 'renderer/utils/graphStyle';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';

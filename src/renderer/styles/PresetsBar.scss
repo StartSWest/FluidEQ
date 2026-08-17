@@ -75,7 +75,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // The rename row: field, then accept and cancel. The buttons keep their own
 // column so a long name shortens the field rather than pushing them off.
-.preset-rename {
+//
+// The delete confirmation is the same row in a different mood — name in place
+// of the field, same two buttons in the same column — so it shares the layout
+// rather than restating it. Only the colours below differ, because there
+// accepting is the destructive answer.
+.preset-rename,
+.preset-confirm-delete {
   display: grid;
   width: 100%;
   min-width: 0;
@@ -121,6 +127,54 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       &:focus-visible {
         color: $white;
         background: rgba($red, 0.24);
+        outline: none;
+      }
+    }
+  }
+}
+
+// Here the two answers swap weight. Confirming destroys a profile, so it reads
+// red rather than cyan, and backing out is the neutral one — the reverse of the
+// rename row, where accepting is what the user came to do.
+.preset-confirm-delete {
+  .preset-name {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    gap: $spacing-xs;
+
+    span:first-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .preset-confirm-prompt {
+    flex: none;
+    color: $red;
+    font-weight: 600;
+  }
+
+  .icons {
+    .iconButton:first-child {
+      color: $red;
+
+      &:hover,
+      &:focus-visible {
+        color: $white;
+        background: rgba($red, 0.24);
+        outline: none;
+      }
+    }
+
+    .iconButton:last-child {
+      color: rgba($primary-lighter, 0.7);
+
+      &:hover,
+      &:focus-visible {
+        color: $white;
+        background: rgba($primary-lighter, 0.18);
         outline: none;
       }
     }

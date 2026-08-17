@@ -179,6 +179,7 @@ const eq: Partial<Dictionary> = {
     'Restaurer la dernière version enregistrée à la main pour ce profil',
   'profiles.attached': 'ACT',
   'profiles.attachedTitle': 'En cours sur cette sortie',
+  'profiles.confirmDelete': 'Supprimer ?',
   'profiles.detecting': 'Détection de votre sortie…',
   'profiles.empty': 'Aucun profil pour l’instant. Créez votre premier son.',
   'profiles.error.empty': 'Le nom du profil ne peut pas être vide.',

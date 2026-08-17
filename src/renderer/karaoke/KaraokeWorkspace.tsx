@@ -51,14 +51,16 @@ import MenuIcon from '../icons/MenuIcon';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { KaraokeMicrophoneSettings } from './KaraokeMicrophone';
 import KaraokeChordGuide from './KaraokeChordGuide';
-import KaraokeLyrics, {
+import KaraokeLyrics from './KaraokeLyrics';
+import {
   MAX_LYRIC_TEXT_SIZE,
   MIN_LYRIC_TEXT_SIZE,
   readLyricTextSize,
   writeLyricTextSize,
-} from './KaraokeLyrics';
+} from './karaokeLyricText';
 import KaraokeTransport from './KaraokeTransport';
-import KaraokePitchLane, { IKaraokePitchIssue } from './KaraokePitchLane';
+import KaraokePitchLane from './KaraokePitchLane';
+import { IKaraokePitchIssue } from './karaokePitchGeometry';
 import KaraokePlaylist, { KARAOKE_PLAYLIST_DRAG_MIME } from './KaraokePlaylist';
 import KaraokePaneSplitter from './KaraokePaneSplitter';
 import KaraokeMaker from './KaraokeMaker';

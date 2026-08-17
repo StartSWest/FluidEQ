@@ -1,0 +1,135 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License version 3 or later.
+*/
+
+import { execFile } from 'child_process';
+import { promisify } from 'util';
+import path from 'path';
+import fs from 'fs';
+import { IAudioDevice } from '../common/constants';
+import { POWERSHELL_PATH } from './powershell';
+
+const execFileAsync = promisify(execFile);
+
+/**
+ * Asking Windows which outputs exist, and telling it which to use.
+ *
+ * Ninety lines that leave the process: a PowerShell script enumerates the audio
+ * endpoints and a second call sets the default. Everything else in
+ * deviceProfiles.ts is text going into a config file — this is the only part
+ * that talks to the operating system, and the only part that can fail because
+ * something outside FluidEQ said no.
+ *
+ * The script is a file on disk rather than a string argument, and stays that
+ * way: a device name can contain a quote, and building a command line out of
+ * one is how that becomes an injection.
+ */
+const getAudioDeviceScriptPath = () => {
+  const scriptPath = path.join(
+    process.resourcesPath,
+    'assets',
+    'windows-audio-devices.ps1',
+  );
+  const developmentScriptPath = path.join(
+    __dirname,
+    '../../assets/windows-audio-devices.ps1',
+  );
+  return fs.existsSync(scriptPath) ? scriptPath : developmentScriptPath;
+};
+
+export const filterVisibleAudioDevices = (
+  devices: IAudioDevice[],
+): IAudioDevice[] => {
+  const visibleByName = new Map<string, IAudioDevice>();
+
+  devices
+    .filter((device) => device.isActive && device.name.trim())
+    .sort((left, right) => Number(right.isDefault) - Number(left.isDefault))
+    .forEach((device) => {
+      const normalizedName = device.name.trim().toLocaleLowerCase();
+      if (!visibleByName.has(normalizedName)) {
+        visibleByName.set(normalizedName, {
+          ...device,
+          name: device.name.trim(),
+        });
+      }
+    });
+
+  return [...visibleByName.values()].sort((left, right) => {
+    return left.name.localeCompare(right.name);
+  });
+};
+
+export const discoverAudioDevices = async (): Promise<IAudioDevice[]> => {
+  if (process.platform !== 'win32') {
+    return [
+      {
+        id: 'demo-speakers',
+        name: 'Demo Speakers (Windows discovery runs on Windows)',
+        guid: '{DEMO-SPEAKERS}',
+        isDefault: true,
+        isActive: true,
+      },
+      {
+        id: 'demo-headphones',
+        name: 'Demo Headphones',
+        guid: '{DEMO-HEADPHONES}',
+        isDefault: false,
+        isActive: true,
+      },
+    ];
+  }
+
+  const { stdout } = await execFileAsync(
+    // Absolute, never a bare name: libuv searches the current directory before
+    // PATH, and a shortcut-launched Electron app has its install directory as
+    // the current directory. See the comment on the constant.
+    POWERSHELL_PATH,
+    [
+      '-NoLogo',
+      '-NoProfile',
+      '-NonInteractive',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-File',
+      getAudioDeviceScriptPath(),
+    ],
+    { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
+  );
+  const parsed = JSON.parse(stdout.trim() || '[]');
+  return filterVisibleAudioDevices(
+    (Array.isArray(parsed) ? parsed : [parsed]) as IAudioDevice[],
+  );
+};
+
+export const setDefaultAudioDevice = async (deviceId: string) => {
+  if (process.platform !== 'win32') {
+    return;
+  }
+
+  const devices = await discoverAudioDevices();
+  if (!devices.some((device) => device.id === deviceId)) {
+    throw new Error('The selected audio output is no longer available.');
+  }
+
+  await execFileAsync(
+    // Absolute, for the same reason as the discovery call above.
+    POWERSHELL_PATH,
+    [
+      '-NoLogo',
+      '-NoProfile',
+      '-NonInteractive',
+      '-ExecutionPolicy',
+      'Bypass',
+      '-File',
+      getAudioDeviceScriptPath(),
+      '-SetDefaultDeviceId',
+      deviceId,
+    ],
+    { windowsHide: true, timeout: 10000, maxBuffer: 1024 * 1024 },
+  );
+};

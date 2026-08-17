@@ -18,7 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useSyncExternalStore } from 'react';
 import { MAX_GAIN } from 'common/constants';
-import { SMART_EQ_MAX_BOOST_DB } from 'common/smartEq';
+import { SMART_EQ_MAX_BOOST_DB } from 'common/smartEqContinuous';
 
 /**
  * How far Smart EQ may move any band, in either direction.

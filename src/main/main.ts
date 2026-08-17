@@ -31,8 +31,6 @@ import {
   app,
   BrowserWindow,
   contentTracing,
-  desktopCapturer,
-  dialog,
   ipcMain,
   screen,
   shell,
@@ -47,7 +45,6 @@ import { createHash } from 'crypto';
 import { redact } from '../common/bugReport';
 import {
   checkConfigFile,
-  stateToString,
   stateToApoFiles,
   getResolvedPreAmp,
   fetchSettings,
@@ -58,24 +55,17 @@ import {
   doesPresetExist,
   PRESETS_DIR,
   PRESET_BASELINES_DIR,
-  savePresetBaseline,
   repairUnusedPreamps,
 } from './flush';
-import MenuBuilder from './menu';
-import { resolveHtmlPath, waitForRenderer } from './util';
 import { getConfigPath, isEqualizerAPOInstalled } from './registry';
 import { runEqualizerApoSetup } from './equalizerApoSetup';
 import { gatherBugReportFacts } from './bugReportFacts';
 import ChannelEnum from '../common/channels';
-import { hasSmartEqLayer, smartEqFromFilters } from '../common/smartEq';
-import { parseEqText } from '../common/apoText';
-import { parseCustomFx } from '../common/customFx';
 import { compressChainToLimit } from '../common/response';
 import {
   AutoEqFormat,
   FilterTypeEnum,
   IState,
-  ICustomFxSettings,
   IPresetV2,
   MAX_GAIN,
   WINDOW_HEIGHT,
@@ -87,17 +77,12 @@ import {
   IFiltersMap,
   IAudioDevice,
   IDeviceProfileAssignment,
-  IOpraUpdateStatus,
-  IOpraProduct,
   AUTOMATIC_PRESET_PREFIX,
   APP_UPDATE_EVENT,
-  RENDERER_READY_EVENT,
   OUTPUT_STATE_CHANGED_EVENT,
-  OPRA_SOURCE_ID,
   APO_FEATURES,
   TApoFeature,
   TApoLayer,
-  describeBandShape,
 } from '../common/constants';
 import { ErrorCode } from '../common/errors';
 import {
@@ -106,19 +91,12 @@ import {
   snapshotFilters,
 } from '../common/layouts';
 import { TSuccess, TError } from '../renderer/utils/equalizerApi';
-import { getOpraPreset, getOpraProductList } from './opra';
-import {
-  checkOpraUpdate,
-  syncOpraDatabase,
-  updateOpraDatabase,
-} from './opraUpdater';
-import {
-  downloadConvolution,
-  getConvolutionCatalog,
-} from './convolutionCatalog';
-import { importConvolutionFile, importEqFile } from './importSettings';
+import { syncOpraDatabase } from './opraUpdater';
 import { setUpVideoBrowser } from './videoBrowser';
-import { openExternalIfSafe } from './safeExternal';
+import { createMainWindowFactory } from './mainWindow';
+import { createApoAdoption } from './apoAdopt';
+import { registerTransferIpc } from './ipc/transfer';
+import { registerReferencesIpc } from './ipc/references';
 import { registerKaraokeIpc } from './ipc/karaoke';
 import { registerWindowIpc } from './ipc/window';
 import { registerFiltersIpc } from './ipc/filters';
@@ -127,20 +105,10 @@ import { registerPreampIpc } from './ipc/preamp';
 import { registerVideoIpc } from './ipc/video';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerUpdatesIpc } from './ipc/updates';
-import { adoptBlock, hasChainDrifted } from '../common/apoSync';
 import {
   adoptApoFeatureText,
   describeApoFeatureText,
 } from '../common/apoFeatureSync';
-import {
-  CHAIN_BUNDLE_EXTENSION,
-  IChainBundle,
-  IChainImport,
-  chainBundleFileName,
-  isSafeImportedCustomBlock,
-  parseChainBundle,
-  serializeChainBundle,
-} from '../common/chainBundle';
 import { readApoConfigTree, readApoDeviceChain } from './apoConfigReader';
 import { IApoConfigLayer, IApoConfigTree } from '../common/apoConfig';
 import { APP_ID, PRODUCT_NAME } from '../common/branding';
@@ -148,7 +116,6 @@ import {
   assignDeviceProfile,
   flushDeviceProfiles,
   IActiveStateOverride,
-  getCustomFileNameForDevice,
   isGeneratedConfigFile,
   loadDeviceProfileSettings,
   saveDeviceProfileSettings,
@@ -469,8 +436,6 @@ const WINDOW_STATE_FILENAME = 'window-state.json';
  * never reports still produces a window rather than an app that appears not to
  * have started.
  */
-const RENDERER_PAINT_GRACE_MS = 1500;
-
 interface IWindowState {
   width?: number;
   height?: number;
@@ -874,6 +839,21 @@ const presetDirForDevice = (deviceId: string) => {
     presetPath,
     createHash('sha1').update(deviceId).digest('hex').slice(0, 12),
   );
+  // No output, no folder.
+  //
+  // The renderer asks for the profile list as it mounts, which is before any
+  // device has been resolved, so this ran with an empty id — and hashing the
+  // empty string is a perfectly good hash. Every install ended up with a
+  // `da39a3ee5e6b` directory that could never hold a profile, because no output
+  // will ever have that id. Found by looking in a real profile directory.
+  //
+  // The path is still returned rather than thrown, because the caller asking is
+  // a list that should come back empty, not an error: reading a directory that
+  // is not there fails the same way as reading an empty one, and the profiles
+  // bar already draws nothing until an output is known.
+  if (!deviceId) {
+    return dir;
+  }
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
   }
@@ -1526,290 +1506,17 @@ const doesFilterIdExist = (
  * — an older FluidEQ's, a hand-written one, another tool's — says nothing about
  * where a `Filter N:` line came from, and there the old caution still holds.
  */
-let hasAdoptedExistingConfig = false;
-
-/**
- * What we would write for the bands alone, in the shape the reader returns.
- *
- * The comparison has to be like for like. The reader hands back the device's
- * own lines plus the EQ file, so this is the same slice of what the writer
- * would produce — the convolution, the bands, and the whole-chain preamp that
- * sits in the device file beside them. Comparing the state's own fields instead
- * would report drift on FluidEQ's own output every launch, because the preamp
- * is derived, inert bands are dropped and everything is clamped on the way out.
- */
-const expectedBandChain = (devicePattern: string) => {
-  const files = stateToApoFiles(state, state.convolution?.fileName);
-  if (!files) {
-    return '';
-  }
-  return [
-    `Device: ${devicePattern}`,
-    'Channel: all',
-    ...(files.convolution ? [files.convolution] : []),
-    ...(files.features.find(({ feature }) => feature === 'eq')?.lines ?? []),
-    files.preAmp,
-  ].join('\n');
-};
-
-/**
- * Believe the config about which layers are switched off.
- *
- * A bypassed layer is one whose settings are all still there and whose
- * `Include:` is simply not written, so the config states it as plainly as it
- * states anything else: this is a feature that would be written, and it is not
- * in the file. That is what lets an A/B comparison survive a restart, which the
- * old session-only stash could not — it had to be session-only precisely
- * because a stash and a config would have been two places disagreeing about
- * what was applied.
- *
- * Compared against what would be written with nothing bypassed, because the
- * question is which of the layers this profile actually has are missing from
- * the file. A feature with nothing to say is absent from both sides and is not
- * switched off, it is empty.
- */
-const adoptBypassFromConfig = (
-  features: Partial<Record<TApoFeature, string>>,
-  shared: string,
-): boolean => {
-  const wouldWrite = stateToApoFiles(
-    { ...state, bypassed: undefined },
-    state.convolution?.fileName,
-  );
-  if (!wouldWrite) {
-    return false;
-  }
-  const bypassed: TApoLayer[] = wouldWrite.features
-    .map(({ feature }) => feature)
-    .filter((feature) => features[feature] === undefined);
-
-  // The impulse is read the same way, from the one place it can be: it has no
-  // file of its own, so what says it is applied is a Convolution line sitting
-  // in the device file among the includes.
-  if (wouldWrite.convolution && !/^\s*Convolution\s*:/im.test(shared)) {
-    bypassed.push('convolution');
-  }
-
-  const next = bypassed.length ? bypassed : undefined;
-
-  if (JSON.stringify(next) === JSON.stringify(state.bypassed)) {
-    return false;
-  }
-  log.info(
-    `Adopting the switched-off layers from the Equalizer APO config: ${
-      next?.join(', ') || 'none'
-    }.`,
-  );
-  state.bypassed = next;
-  save(state, userDataDir);
-  return true;
-};
-
-/**
- * Read the active output's user-owned custom file without modifying it.
- *
- * The custom Include can be bypassed, so reading only the expanded chain would
- * make the layer disappear and remove the very switch that could bring it
- * back. The file name is deterministic from the endpoint id; reading it
- * directly keeps the layer available in both states.
- */
-const readCustomFxForDevice = (
-  deviceId: string,
-): ICustomFxSettings | undefined => {
-  if (!session.configPath || !deviceId) {
-    return undefined;
-  }
-  const fileName = getCustomFileNameForDevice(deviceId);
-  try {
-    const contents = fs.readFileSync(
-      path.join(session.configPath, fileName),
-      'utf8',
-    );
-    return parseCustomFx(fileName, contents);
-  } catch {
-    return undefined;
-  }
-};
-
-const readCustomFxForActiveDevice = (): ICustomFxSettings | undefined =>
-  readCustomFxForDevice(session.activeAudioDeviceId);
-
-/** Refresh the renderer-facing description of the user-owned custom file. */
-const syncCustomFxFromConfig = (): boolean => {
-  const next = readCustomFxForActiveDevice();
-  if (JSON.stringify(next) === JSON.stringify(state.customFx)) {
-    return false;
-  }
-  state.customFx = next;
-  return true;
-};
-
-const adoptExistingApoConfig = () => {
-  if (hasAdoptedExistingConfig || !session.configPath) {
-    return;
-  }
-
-  // Nothing to read until it is known which output this is about.
-  //
-  // The health check runs first and used to spend the one attempt here, at the
-  // moment the answer was still "no endpoint yet" — which resolved to the
-  // neutral `Device: all` block, the one FluidEQ writes precisely to say
-  // nothing. So the whole of this ran, found an empty block, and marked itself
-  // done. Deferring costs a few hundred milliseconds and is the difference
-  // between a config that is read back and one that never is.
-  const devicePattern =
-    session.activeAudioDevice?.guid || session.activeAudioDevice?.name;
-  if (!devicePattern) {
-    return;
-  }
-  hasAdoptedExistingConfig = true;
-
-  try {
-    // This is independent of the generated feature files. It must be read
-    // before any early return below, including a bypassed custom Include.
-    syncCustomFxFromConfig();
-    const chain = readApoDeviceChain(session.configPath, devicePattern);
-    if (!chain) {
-      return;
-    }
-
-    // With the features in files of their own, the bands are read on their own:
-    // the device's convolution and preamp, plus the EQ file, and none of the
-    // layers. Without that attribution the whole block is all there is.
-    const { features } = chain;
-
-    // First, and before any of the guards below can return: a bypassed EQ is
-    // one with no file at all, so the very case this has to recognise is the
-    // one the "no bands, nothing to adopt" check bows out of.
-    if (features) {
-      adoptBypassFromConfig(features, chain.shared ?? '');
-    }
-
-    // The measurement, if the state has lost it and the config still has it.
-    //
-    // Alone among the layers, Smart EQ can be read back in full: its file is
-    // the correction rather than a rendering of settings that produced it. So
-    // it is the one place the config-as-truth rule can protect a layer instead
-    // of only describing it — whatever it was that made a measurement go
-    // missing, it is still in the config and comes back here.
-    //
-    // Only when there is nothing to lose. A layer already in the state is the
-    // newer of the two, and an absent file is not silence: it is how a
-    // switched-off layer is written, which the line above has just read.
-    if (features?.smart && !hasSmartEqLayer(state.smartEq)) {
-      const recovered = smartEqFromFilters(
-        Object.values(parseEqText(features.smart).filters),
-      );
-      if (recovered) {
-        log.info(
-          'Restoring the Smart EQ correction from the Equalizer APO config.',
-        );
-        state.smartEq = recovered;
-        save(state, userDataDir);
-      }
-    }
-
-    const adopted = adoptBlock({
-      devicePattern: chain.devicePattern,
-      text: features
-        ? [chain.shared ?? '', features.eq ?? ''].join('\n')
-        : chain.text,
-    });
-    if (!adopted) {
-      return;
-    }
-
-    // Two things make a block unsafe to adopt, and both were found the hard way
-    // by this wiping a live EQ off the screen.
-    //
-    // 1. A block with a preamp but no filters is not "the user cleared their
-    //    bands". It is what FluidEQ writes for a flat EQ, or for one whose only
-    //    audible content is a voicing or a convolution. Adopting it emptied the
-    //    band editor completely — no sliders at all, which is not a state the
-    //    editor is even supposed to be able to reach.
-    //
-    // 2. In a flat config the voicing, driver and Smart EQ layers are written
-    //    into the same numbered `Filter N:` sequence as the user's own bands,
-    //    with nothing distinguishing them. If any of them is active, there is
-    //    no way to tell which lines came from where, and adopting would pull
-    //    the layers into the band editor as ordinary bands — where the next
-    //    flush would then write the layers on top of them again. Smart EQ is
-    //    the worst case: it is roughly two dozen bands, so adopting past it
-    //    would double a whole measured correction rather than one small curve.
-    //    This is the refusal the split exists to lift, and it now applies only
-    //    where it still has to.
-    const hasBands =
-      Object.keys(adopted.filters).length > 0 ||
-      (adopted.graphicEq?.length ?? 0) > 0;
-    const hasIndistinguishableLayers =
-      !features &&
-      (!!state.voicing?.profileId ||
-        !!state.driver?.profileId ||
-        hasSmartEqLayer(state.smartEq));
-
-    if (!hasBands || hasIndistinguishableLayers) {
-      return;
-    }
-
-    const expected = features
-      ? expectedBandChain(chain.devicePattern)
-      : stateToString(state, state.convolution?.fileName, chain.devicePattern);
-    if (!hasChainDrifted(expected, adopted)) {
-      // The file says what we would have written. Nothing happened while we
-      // were away.
-      return;
-    }
-
-    log.info(
-      `Adopting the Equalizer APO config for ${chain.devicePattern}: it no longer matches the stored state.`,
-    );
-    state.preAmp = adopted.preAmp;
-    state.filters = adopted.filters;
-    state.eqFormat = adopted.eqFormat;
-    state.graphicEq = adopted.graphicEq;
-    // Bands exist, so the chain is not flat whatever the stored flag said.
-    state.isFlat = Object.keys(adopted.filters).length === 0;
-    // The attribution described bands that are no longer these bands.
-    state.headset = undefined;
-    state.headsetTarget = undefined;
-    state.headsetSource = undefined;
-    state.eqImport = undefined;
-
-    if (adopted.convolutionFileName) {
-      // The WAV is still next to the config and still what APO is applying, so
-      // keep it applied. Its catalogue name is not recoverable from the config,
-      // so it is described by the only thing the file actually states.
-      state.convolution = {
-        name:
-          state.convolution?.fileName === adopted.convolutionFileName
-            ? state.convolution.name
-            : adopted.convolutionFileName,
-        filters: state.convolution?.filters ?? {},
-        fileName: adopted.convolutionFileName,
-        response:
-          state.convolution?.fileName === adopted.convolutionFileName
-            ? state.convolution.response
-            : undefined,
-        peakGainDb:
-          state.convolution?.fileName === adopted.convolutionFileName
-            ? state.convolution.peakGainDb
-            : undefined,
-        sourceId: state.convolution?.sourceId,
-        sourceUrl: state.convolution?.sourceUrl,
-      };
-    } else {
-      state.convolution = undefined;
-    }
-
-    hydrateActiveConvolution();
-
-    save(state, userDataDir);
-  } catch (error) {
-    // A config we cannot read is not a reason to refuse to start. FluidEQ will
-    // simply write its own over the top, which is the old behaviour.
-    log.warn('Unable to read the existing Equalizer APO config', error);
-  }
-};
+const {
+  adoptBypassFromConfig,
+  adoptExistingApoConfig,
+  readCustomFxForDevice,
+  syncCustomFxFromConfig,
+} = createApoAdoption({
+  hydrateActiveConvolution,
+  session,
+  state,
+  userDataDir,
+});
 
 /**
  * Live two-way synchronization with the generated Equalizer APO files.
@@ -2215,624 +1922,32 @@ ipcMain.on(ChannelEnum.GET_APO_CONFIG_TREE, async (event) => {
   }
 });
 
-ipcMain.on(ChannelEnum.GET_OPRA_PRODUCT_LIST, async (event) => {
-  const channel = ChannelEnum.GET_OPRA_PRODUCT_LIST;
-  log.info(`Getting OPRA product list`);
-
-  try {
-    const products: IOpraProduct[] = getOpraProductList();
-    log.info(`Fetched ${products.length} products`);
-    const reply: TSuccess<IOpraProduct[]> = { result: products };
-    event.reply(channel, reply);
-  } catch (e) {
-    log.error('Failed to get products');
-    log.error(e);
-    handleError(event, channel, ErrorCode.OPRA_READ_ERROR);
-  }
+registerReferencesIpc({
+  applyingLayer,
+  handleError,
+  handleUpdate,
+  handleUpdateHelper,
+  session,
+  shieldReferenceBands,
+  state,
 });
 
-ipcMain.on(ChannelEnum.LOAD_OPRA_PRESET, async (event, arg) => {
-  const channel = ChannelEnum.LOAD_OPRA_PRESET;
-  const [productId, curveId] = arg as [string, string, string?];
-
-  try {
-    const presetSettings: IPresetV2 = getOpraPreset(productId, curveId);
-    /*
-     * INTO ITS OWN LAYER, NOT INTO THE USER'S BANDS.
-     *
-     * This used to replace `state.filters` outright, which meant applying a
-     * headphone reference threw away whatever tuning was there, clearing the EQ
-     * threw the reference away in turn, and Smart EQ -- which measures the
-     * output and cannot hear a transducer -- read the correction as error and
-     * flattened it over a few passes. Three problems with one cause.
-     *
-     * As a layer it survives a clear, it is handed to the solver as something
-     * not to correct, and the bands stay whatever the person made them.
-     */
-    state.headphone = {
-      filters: shieldReferenceBands(presetSettings.filters),
-      /*
-       * No published curve here is a list of points.
-       *
-       * The GraphicEQ path is not gone — Squiglink exports and pasted APO text
-       * still arrive that way, and the writer still prefers the curve to a fit
-       * of it. OPRA simply does not publish one: every curve in the library is
-       * parametric, so there is never anything to carry.
-       */
-      graphicEq: undefined,
-      // Full strength on arrival. Somebody who wants half of a published
-      // correction can say so; somebody who applied one and got half of it
-      // would reasonably think it had not worked.
-      intensity: 1,
-    };
-    // The preamp still comes from the measurement, because the correction it
-    // belongs to is the one being applied. Everything else about the user's
-    // stage is left alone.
-    state.preAmp = presetSettings.preAmp;
-    /*
-     * Which curve these bands came from, and out of which database. Not
-     * recoverable from the bands, and the difference between a curve you can
-     * reason about and a set of numbers.
-     *
-     * Ids rather than the names shown on screen, because the names do not
-     * identify anything: fifty-six products share a display name with another
-     * product, and thirty-nine products have two curves whose descriptions read
-     * identically. The picker resolves these back into names through the index
-     * it already holds.
-     */
-    state.headset = productId;
-    state.headsetTarget = curveId;
-    state.headsetSource = OPRA_SOURCE_ID;
-    state.headsetSignature = describeBandShape(state.headphone.filters);
-    state.eqImport = undefined;
-    applyingLayer('headphone');
-    await handleUpdate(event, channel, false, true);
-  } catch (ex) {
-    log.info(`Failed to load OPRA curve ${curveId} for ${productId}`);
-    log.info(ex);
-    handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.GET_CONVOLUTION_CATALOG, async (event, arg) => {
-  const channel = ChannelEnum.GET_CONVOLUTION_CATALOG;
-  try {
-    const query = typeof arg?.[0] === 'string' ? arg[0] : '';
-    const reply: TSuccess<Awaited<ReturnType<typeof getConvolutionCatalog>>> = {
-      result: await getConvolutionCatalog(query),
-    };
-    event.reply(channel, reply);
-  } catch (error) {
-    log.error('Failed to get convolution catalogue', error);
-    handleError(event, channel, ErrorCode.CONVOLUTION_CATALOG_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.DOWNLOAD_CONVOLUTION, async (event, arg) => {
-  const channel = ChannelEnum.DOWNLOAD_CONVOLUTION;
-  const entryId = arg?.[0];
-  if (typeof entryId !== 'string' || !entryId) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-  try {
-    if (!session.configPath) {
-      session.configPath = await getConfigPath();
-    }
-    applyingLayer('convolution');
-    state.convolution = await downloadConvolution(entryId, session.configPath);
-    await handleUpdate(event, channel, false, true);
-  } catch (error) {
-    log.error('Failed to download convolution profile', error);
-    handleError(event, channel, ErrorCode.CONVOLUTION_CATALOG_ERROR);
-  }
-});
-
-/**
- * Drop the reference, and with it the bands it produced.
- *
- * Applying a reference writes the measurement straight into the bands, so the
- * model is not a label sitting beside them — it is where every one of those
- * numbers came from. Keeping them after disclaiming their origin leaves a curve
- * nobody, the app included, can account for: not the user's tuning, not any
- * model's, just leftovers. A flat EQ is somewhere to start from; that is not.
- *
- * Deliberately the same reset as Clear EQ, down to leaving the voicing, the
- * driver correction, the measured Smart EQ curve and the convolution alone —
- * those were arrived at separately and the reference never spoke for them.
- */
-ipcMain.on(ChannelEnum.CLEAR_HEADSET, async (event) => {
-  const channel = ChannelEnum.CLEAR_HEADSET;
-  /*
-   * CLEARS THE CORRECTION, NOT THE PERSON'S BANDS.
-   *
-   * It called `resetEqToDefaults`, which was right while a reference WAS the
-   * bands: clearing one meant flattening them. Now that the correction is a
-   * layer of its own the two have swapped places, and left alone this did
-   * exactly the wrong thing in both directions at once — wiped a tuning it no
-   * longer owns, and left the correction playing with nothing on screen naming
-   * it.
-   *
-   * Found by the agent moving this button to its new page rather than by
-   * anything here, which is worth recording: splitting a layer out leaves every
-   * "clear it" path pointing at the old address.
-   */
-  applyingLayer('headphone');
-  state.headphone = undefined;
-  state.headset = undefined;
-  state.headsetTarget = undefined;
-  state.headsetSource = undefined;
-  state.headsetSignature = undefined;
-  // Replies with the new bands, the same as Clear EQ, so a caller that is not
-  // about to re-read the whole state can adopt them: getDefaultFilters mints
-  // fresh ids, and every id the renderer still holds has just stopped existing.
-  await handleUpdateHelper<IFiltersMap>(
-    event,
-    channel,
-    state.filters,
-    false,
-    true,
-  );
-});
-
-ipcMain.on(ChannelEnum.CLEAR_CONVOLUTION, async (event) => {
-  const channel = ChannelEnum.CLEAR_CONVOLUTION;
-  applyingLayer('convolution');
-  state.convolution = undefined;
-  await handleUpdate(event, channel, false, true);
-});
-
-/**
- * Pick a file the user already has and apply it.
- *
- * The dialog lives here rather than in the renderer because the renderer never
- * gets to see a filesystem path — it asks for an import and is told what was
- * applied. Cancelling is a normal outcome, not an error: it replies with an
- * empty description and nothing changes.
- */
-const showImportDialog = async (
-  title: string,
-  filters: Electron.FileFilter[],
-) => {
-  const result = mainWindow
-    ? await dialog.showOpenDialog(mainWindow, {
-        title,
-        filters,
-        properties: ['openFile'],
-      })
-    : await dialog.showOpenDialog({ title, filters, properties: ['openFile'] });
-  return result.canceled ? undefined : result.filePaths[0];
-};
-
-ipcMain.on(ChannelEnum.IMPORT_EQ_FILE, async (event) => {
-  const channel = ChannelEnum.IMPORT_EQ_FILE;
-  try {
-    const sourcePath = await showImportDialog('Import EQ settings', [
-      { name: 'EQ settings', extensions: ['txt', 'json'] },
-      { name: 'All files', extensions: ['*'] },
-    ]);
-    if (!sourcePath) {
-      const reply: TSuccess<string> = { result: '' };
-      event.reply(channel, reply);
-      return;
-    }
-
-    const imported = importEqFile(sourcePath);
-    clearCurrentLayoutSettings();
-    state.preAmp = imported.preAmp;
-    state.filters = shieldReferenceBands(imported.filters);
-    state.eqFormat = imported.eqFormat;
-    state.graphicEq = imported.graphicEq;
-    applyingLayer('eq');
-    // These bands came from a file, not from a measured model.
-    state.headset = undefined;
-    state.headsetTarget = undefined;
-    state.headsetSource = undefined;
-    state.eqImport = undefined;
-    // An imported EQ is a tuning, so the flat flag has to come off or the
-    // bands would be parsed, stored, and then not written.
-    state.isFlat = false;
-    await handleUpdateHelper<string>(
-      event,
-      channel,
-      imported.unsupported > 0
-        ? `Imported ${Object.keys(imported.filters).length} bands from the ${imported.sourceLabel}. ${imported.unsupported} band(s) used a filter type ${PRODUCT_NAME} cannot edit and were skipped.`
-        : `Imported ${Object.keys(imported.filters).length} bands from the ${imported.sourceLabel}.`,
-      false,
-      true,
-    );
-  } catch (error) {
-    log.error('Failed to import EQ settings', error);
-    handleError(
-      event,
-      channel,
-      ErrorCode.IMPORT_ERROR,
-      error instanceof Error ? error.message : undefined,
-    );
-  }
-});
-
-ipcMain.on(ChannelEnum.IMPORT_EQ_TEXT, async (event, arg) => {
-  const channel = ChannelEnum.IMPORT_EQ_TEXT;
-  try {
-    const text = arg?.[0];
-    const label =
-      typeof arg?.[1] === 'string' ? arg[1].trim().slice(0, 240) : '';
-    if (typeof text !== 'string' || !text.trim()) {
-      throw new Error('Paste a Squiglink EQ export before importing it.');
-    }
-    if (Buffer.byteLength(text, 'utf8') > 4 * 1024 * 1024) {
-      throw new Error('That EQ export is too large to import.');
-    }
-
-    const parsed = parseEqText(text);
-    if (parsed.isEmpty) {
-      throw new Error(
-        'No Equalizer APO filters were found. Copy the exported ParametricEQ or GraphicEQ text from Squiglink.',
-      );
-    }
-
-    clearCurrentLayoutSettings();
-    state.preAmp = parsed.preAmp;
-    // A preamp in the file is a decision, and automatic normalization would
-    // quietly overrule it: the value lands in `preAmp`, the flush recomputes
-    // from the chain, and what plays is FluidEQ's number rather than the one in
-    // the export. Nothing said so. Whoever pasted a text that opens with
-    // `Preamp: -19 dB` asked for -19, so automatic mode steps aside and the
-    // import result says it did. Turning it back on is one click and now keeps
-    // its value on the way out.
-    if (parsed.hasPreAmp) {
-      state.isAutoPreAmpOn = false;
-    }
-    state.filters = shieldReferenceBands(parsed.filters);
-    state.eqFormat = parsed.eqFormat;
-    state.graphicEq = parsed.graphicEq;
-    state.isFlat = false;
-    state.headset = undefined;
-    state.headsetTarget = undefined;
-    state.headsetSource = undefined;
-    state.eqImport = {
-      source: 'squiglink',
-      sourceUrl: 'https://squig.link/',
-      label: label || 'Squiglink export',
-      eqFormat: parsed.eqFormat,
-      filterCount: Object.keys(parsed.filters).length,
-      text,
-    };
-    applyingLayer('eq');
-
-    await handleUpdateHelper<string>(
-      event,
-      channel,
-      [
-        `Imported ${Object.keys(parsed.filters).length} bands from the Squiglink export.`,
-        parsed.unsupported > 0
-          ? `${parsed.unsupported} band(s) could not be edited in ${PRODUCT_NAME} and were skipped.`
-          : '',
-        // Said out loud, because a switch changing itself is worse than a
-        // switch that did not, unless it tells you.
-        parsed.hasPreAmp
-          ? `Its ${parsed.preAmp} dB preamp was kept, so Auto normalize is off.`
-          : '',
-      ]
-        .filter(Boolean)
-        .join(' '),
-      false,
-      true,
-    );
-  } catch (error) {
-    log.error('Failed to import Squiglink EQ text', error);
-    handleError(
-      event,
-      channel,
-      ErrorCode.IMPORT_ERROR,
-      error instanceof Error ? error.message : undefined,
-    );
-  }
-});
-
-ipcMain.on(ChannelEnum.IMPORT_CONVOLUTION_FILE, async (event) => {
-  const channel = ChannelEnum.IMPORT_CONVOLUTION_FILE;
-  try {
-    const sourcePath = await showImportDialog('Import an impulse response', [
-      { name: 'WAV impulse response', extensions: ['wav'] },
-    ]);
-    if (!sourcePath) {
-      const reply: TSuccess<string> = { result: '' };
-      event.reply(channel, reply);
-      return;
-    }
-
-    if (!session.configPath) {
-      session.configPath = await getConfigPath();
-    }
-    applyingLayer('convolution');
-    state.convolution = importConvolutionFile(sourcePath, session.configPath);
-    await handleUpdateHelper<string>(
-      event,
-      channel,
-      `Applied ${state.convolution.name}.`,
-      false,
-      true,
-    );
-  } catch (error) {
-    log.error('Failed to import a convolution file', error);
-    handleError(
-      event,
-      channel,
-      ErrorCode.IMPORT_ERROR,
-      error instanceof Error ? error.message : undefined,
-    );
-  }
-});
-
-/**
- * One output's whole chain, out to a file somebody can send to somebody else.
- *
- * The profile rather than the generated files — see `common/chainBundle` for
- * why moving the files themselves cannot work. The custom file travels
- * literally, because it is the only part of a chain FluidEQ does not generate
- * and so the only part that cannot be rebuilt at the other end.
- *
- * Named by `devicePattern` rather than by endpoint id, because that is what the
- * config panel has to offer: it reads the config off disk, and what a `Device:`
- * line carries is a GUID or a name, never the id Windows uses internally. Same
- * match the tree handler makes.
- */
-ipcMain.on(ChannelEnum.EXPORT_DEVICE_CHAIN, async (event, arg) => {
-  const channel = ChannelEnum.EXPORT_DEVICE_CHAIN;
-  const devicePattern = arg?.[0];
-  if (typeof devicePattern !== 'string' || !devicePattern) {
-    handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-    return;
-  }
-
-  try {
-    const assignment = Object.values(deviceProfileSettings.assignments).find(
-      (entry) =>
-        (entry.deviceGuid || entry.deviceName).toLowerCase() ===
-        devicePattern.toLowerCase(),
-    );
-    if (!assignment) {
-      handleError(event, channel, ErrorCode.INVALID_PARAMETER);
-      return;
-    }
-
-    const preset = fetchPreset(
-      assignment.presetName,
-      presetDirForDevice(assignment.deviceId),
-    );
-    let custom: string | undefined;
-    try {
-      if (!session.configPath) {
-        session.configPath = await getConfigPath();
-      }
-      custom = fs.readFileSync(
-        path.join(
-          session.configPath,
-          getCustomFileNameForDevice(assignment.deviceId),
-        ),
-        'utf8',
-      );
-    } catch {
-      // An output that has never had one simply exports without it.
-    }
-
-    const bundle: IChainBundle = {
-      version: 1,
-      exportedFrom: assignment.deviceName,
-      exportedAt: new Date().toISOString(),
-      preset,
-      custom,
-    };
-
-    const saveOptions = {
-      title: 'Export this chain',
-      defaultPath: chainBundleFileName(assignment.deviceName),
-      filters: [
-        { name: `${PRODUCT_NAME} chain`, extensions: [CHAIN_BUNDLE_EXTENSION] },
-      ],
-    };
-    const target = mainWindow
-      ? await dialog.showSaveDialog(mainWindow, saveOptions)
-      : await dialog.showSaveDialog(saveOptions);
-
-    if (target.canceled || !target.filePath) {
-      // Cancelling is a normal outcome rather than a failure.
-      const reply: TSuccess<string> = { result: '' };
-      event.reply(channel, reply);
-      return;
-    }
-
-    fs.writeFileSync(target.filePath, serializeChainBundle(bundle), 'utf8');
-    const reply: TSuccess<string> = {
-      result: `Exported the chain for ${assignment.deviceName}.`,
-    };
-    event.reply(channel, reply);
-  } catch (e) {
-    handleError(event, channel, ErrorCode.FAILURE, (e as Error).message);
-  }
-});
-
-/**
- * A chain from a file, onto the output being listened on.
- *
- * Onto the ACTIVE output deliberately, rather than onto whichever card was
- * clicked. Importing is the one direction that changes what is heard, and
- * "apply this to what I am listening to" is a sentence somebody can check
- * against their own ears at the moment they say it. Writing a chain onto an
- * output that is not playing is a change nobody can verify.
- *
- * The bundle's own `exportedFrom` is never consulted for this: a chain exported
- * from one person's headphones is meant to be usable on another's.
- */
-ipcMain.on(ChannelEnum.IMPORT_DEVICE_CHAIN, async (event) => {
-  const channel = ChannelEnum.IMPORT_DEVICE_CHAIN;
-  try {
-    if (!session.activeAudioDeviceId) {
-      handleError(
-        event,
-        channel,
-        ErrorCode.FAILURE,
-        'No output is active, so there is nothing to import onto.',
-      );
-      return;
-    }
-
-    const sourcePath = await showImportDialog('Import a chain', [
-      { name: `${PRODUCT_NAME} chain`, extensions: [CHAIN_BUNDLE_EXTENSION] },
-      { name: 'All files', extensions: ['*'] },
-    ]);
-    if (!sourcePath) {
-      const reply: TSuccess<IChainImport> = {
-        result: { note: '', isCustomSkipped: false },
-      };
-      event.reply(channel, reply);
-      return;
-    }
-
-    const bundle = parseChainBundle(
-      JSON.parse(fs.readFileSync(sourcePath, 'utf8')),
-    );
-    if (!bundle) {
-      handleError(
-        event,
-        channel,
-        ErrorCode.IMPORT_ERROR,
-        `That file is not a ${PRODUCT_NAME} chain.`,
-      );
-      return;
-    }
-
-    // Named for where it is going rather than where it came from, because the
-    // profile list is indexed by that and it is what the user will look for.
-    const name = availableProfileNameForActiveDevice(
-      session.activeAudioDevice?.name || session.activeAudioDeviceId,
-    );
-    savePreset(name, bundle.preset, activePresetDir());
-    savePresetBaseline(name, bundle.preset, baselinePath);
-    attachPresetToActiveDevice(name);
-
-    // The one part of a bundle that is not a tuning but a program. Everything
-    // else here has been through the preset schema; this is text on its way to
-    // a file Equalizer APO includes, so it is asked first — see
-    // `isSafeImportedCustomBlock` for what is refused and why.
-    let isCustomSkipped = false;
-    if (bundle.custom !== undefined) {
-      if (isSafeImportedCustomBlock(bundle.custom)) {
-        if (!session.configPath) {
-          session.configPath = await getConfigPath();
-        }
-        // Over the top of this output's own custom file, which is the only part
-        // of an import that destroys something written by hand. It is also the
-        // only honest reading of "import this chain": leaving the old one would
-        // apply somebody else's chain plus your own additions, which is a third
-        // thing neither of you has ever heard.
-        fs.writeFileSync(
-          path.join(
-            session.configPath,
-            getCustomFileNameForDevice(session.activeAudioDeviceId),
-          ),
-          bundle.custom,
-          'utf8',
-        );
-      } else {
-        // And a refused block does NOT clear the file it was going to replace.
-        // Overwriting is what an accepted import earns; doing it for a refused
-        // one would hand a stranger a way to wipe somebody's hand-written file
-        // by sending a bundle that was never going to be applied. The chain is
-        // a hybrid afterwards — theirs, plus your own last line — and the note
-        // below says so, which is better than silently deleting your work.
-        isCustomSkipped = true;
-      }
-    }
-
-    // Field by field, like loading a profile, because `state` is the live one
-    // rather than a value to swap: every reader here holds the same object.
-    clearCurrentLayoutSettings();
-    state.preAmp = bundle.preset.preAmp;
-    state.filters = bundle.preset.filters;
-    state.eqFormat = bundle.preset.eqFormat;
-    state.graphicEq = bundle.preset.graphicEq;
-    state.convolution = bundle.preset.convolution;
-    hydrateActiveConvolution();
-    state.isFlat = bundle.preset.isFlat;
-    state.voicing = bundle.preset.voicing;
-    state.driver = bundle.preset.driver;
-    state.smartEq = bundle.preset.smartEq;
-    state.headset = bundle.preset.headset;
-    state.headsetTarget = bundle.preset.headsetTarget;
-    state.headsetSource = bundle.preset.headsetSource;
-    state.headsetSignature = bundle.preset.headsetSignature;
-    state.eqImport = bundle.preset.eqImport;
-    /*
-     * The headphone layer, which this list forgot when the layer was added.
-     *
-     * Three other sites copy a preset onto the live state and all three carry
-     * it; only this one did not, so importing a chain silently dropped the
-     * correction it was carrying. Worse than dropped: `headsetSignature` two
-     * lines up WAS copied, so the layers strip then described a correction
-     * against bands that had never produced it.
-     *
-     * And it did not stop at this run. `handleUpdateHelper` re-saves the
-     * profile from `getCurrentPreset()`, which reads the live state — so the
-     * correct file this import had just written to disk was immediately
-     * overwritten from a state still holding the PREVIOUS output's correction.
-     * The imported profile was destroyed by the act of importing it.
-     *
-     * The comment above this block names the invariant it broke, and the one on
-     * `getCurrentPreset` says a miss of exactly this kind "was missed for
-     * months". Both were right and neither was enough; a test is, so there is
-     * one now.
-     */
-    state.headphone = bundle.preset.headphone;
-    state.bypassed = bundle.preset.bypassed;
-
-    await handleUpdateHelper<IChainImport>(
-      event,
-      channel,
-      {
-        note: `Imported the chain${
-          bundle.exportedFrom ? ` from ${bundle.exportedFrom}` : ''
-        }.`,
-        isCustomSkipped,
-      },
-      true,
-    );
-  } catch (e) {
-    handleError(
-      event,
-      channel,
-      ErrorCode.IMPORT_ERROR,
-      e instanceof Error ? e.message : undefined,
-    );
-  }
-});
-
-ipcMain.on(ChannelEnum.CHECK_OPRA_UPDATE, async (event) => {
-  const channel = ChannelEnum.CHECK_OPRA_UPDATE;
-  try {
-    const reply: TSuccess<IOpraUpdateStatus> = {
-      result: await checkOpraUpdate(),
-    };
-    event.reply(channel, reply);
-  } catch (error) {
-    log.warn('Unable to check for an OPRA database update', error);
-    handleError(event, channel, ErrorCode.OPRA_READ_ERROR);
-  }
-});
-
-ipcMain.on(ChannelEnum.UPDATE_OPRA_DATABASE, async (event) => {
-  const channel = ChannelEnum.UPDATE_OPRA_DATABASE;
-  try {
-    const reply: TSuccess<IOpraUpdateStatus> = {
-      result: await updateOpraDatabase(),
-    };
-    event.reply(channel, reply);
-  } catch (error) {
-    log.error('Unable to update the OPRA database', error);
-    handleError(event, channel, ErrorCode.OPRA_READ_ERROR);
-  }
+registerTransferIpc({
+  activePresetDir,
+  applyingLayer,
+  attachPresetToActiveDevice,
+  availableProfileNameForActiveDevice,
+  baselinePath,
+  clearCurrentLayoutSettings,
+  deviceProfileSettings,
+  getMainWindow: () => mainWindow,
+  handleError,
+  handleUpdateHelper,
+  hydrateActiveConvolution,
+  presetDirForDevice,
+  session,
+  shieldReferenceBands,
+  state,
 });
 
 ipcMain.on(ChannelEnum.GET_STATE, async (event) => {
@@ -3137,288 +2252,23 @@ if (isDebug) {
   require('electron-debug').default({ showDevTools: false });
 }
 
-const installExtensions = async () => {
-  const installer = require('electron-devtools-installer');
-  const forceDownload = !!process.env.UPGRADE_EXTENSIONS;
-  const extensions = ['REACT_DEVELOPER_TOOLS'];
-
-  return installer
-    .default(
-      extensions.map((name) => installer[name]),
-      forceDownload,
-    )
-    .catch(log.error);
-};
-
-const createMainWindow = async () => {
-  // React DevTools are optional. Keeping them opt-in avoids invoking the
-  // installer's legacy session APIs on every development launch.
-  if (isDebug && process.env.INSTALL_EXTENSIONS === 'true') {
-    await installExtensions();
-  }
-
-  const RESOURCES_PATH = app.isPackaged
-    ? path.join(process.resourcesPath, 'assets')
-    : path.join(__dirname, '../../assets');
-
-  const getAssetPath = (...paths: string[]): string => {
-    return path.join(RESOURCES_PATH, ...paths);
-  };
-
-  const restored = loadWindowState();
-  const isFirstRun = restored.width === undefined;
-  const firstRun = firstRunPlacement();
-
-  mainWindow = new BrowserWindow({
-    show: false,
-    width: restored.width ?? firstRun.width,
-    minWidth: WINDOW_MIN_WIDTH,
-    height: restored.height ?? firstRun.height,
-    minHeight: WINDOW_MIN_HEIGHT,
-    // A saved position if there is one and a screen still covers it —
-    // otherwise the middle of the display.
-    //
-    // Omitting both leaves the placement to Chromium, which offsets each new
-    // window down and right from the last one. On a first run that put FluidEQ
-    // somewhere off-centre and slightly high for no reason anybody could see,
-    // and it is the very first impression the app makes. `center` is ignored
-    // when x and y are given, so the two cannot fight.
-    ...(restored.x !== undefined && restored.y !== undefined
-      ? { x: restored.x, y: restored.y }
-      : { center: true }),
-    // .ico carries every size Windows asks for — taskbar, alt-tab and the
-    // window corner each want a different one, and scaling a single png for
-    // all three is what makes it look soft.
-    icon: getAssetPath(process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
-    resizable: true,
-    frame: false,
-    // Chromium paints white until the first frame of the page arrives. On a
-    // frameless dark window that is a full-size white flash, and it happens
-    // before any CSS has loaded, so no stylesheet can prevent it. Matching the
-    // shell's own background means the gap is invisible.
-    backgroundColor: '#04090f',
-    webPreferences: {
-      preload: app.isPackaged
-        ? path.join(__dirname, 'preload.js')
-        : path.join(__dirname, '../../.erb/dll/preload.js'),
-      // Chromium fetches a hunspell dictionary the first time a spellchecked
-      // field is focused and then keeps it resident. The only text anyone
-      // types here is a preset name, so it buys nothing and costs a download
-      // and a couple of megabytes for the life of the process.
-      spellcheck: false,
-      // What lets the Video tab exist at all. Off by default in Electron, and
-      // only half the story: the tag is enabled here, and every attachment it
-      // makes is stripped and re-specified in videoBrowser.ts, which is where
-      // the player's actual privileges are decided.
-      webviewTag: true,
-      // The default, stated rather than assumed because it is load-bearing:
-      // minimised or fully occluded, Chromium drops timers and animation
-      // frames to roughly one a second. The meter, the creature and the whole
-      // of euphoria mode are driven by animation frames, so leaving this on is
-      // what stops a window nobody is looking at from animating at full rate.
-      backgroundThrottling: true,
-    },
-  });
-
-  const rendererUrl = resolveHtmlPath('index.html');
-  const appSession = mainWindow.webContents.session;
-
-  // Permission requests from FluidEQ's own renderer are deliberate UI
-  // actions. In particular, Karaoke's mic switch must be able to complete the
-  // getUserMedia handshake instead of depending on Electron's implicit
-  // permission default. Remote Media pages use a different, locked-down
-  // session in videoBrowser.ts, so this grant cannot leak into web content.
-  const isOwnMainFrame = (
-    contents: Electron.WebContents | null,
-    details: { isMainFrame: boolean },
-  ) => contents === mainWindow?.webContents && details.isMainFrame;
-  appSession.setPermissionRequestHandler(
-    (contents, _permission, callback, details) => {
-      callback(isOwnMainFrame(contents, details));
-    },
-  );
-  appSession.setPermissionCheckHandler(
-    (contents, _permission, _origin, details) =>
-      isOwnMainFrame(contents, details),
-  );
-
-  // Keep the app session's normal Electron media handling. Chromium reports
-  // the analyser's display-loopback handshake as a mixed media request even
-  // though FluidEQ immediately discards its required video track. Applying an
-  // audio-only policy to this session therefore disables the live spectrum.
-  // Remote Media pages remain isolated in VIDEO_BROWSER_PARTITION, whose
-  // permission and display-capture handlers are default-deny (videoBrowser.ts).
-  appSession.setDisplayMediaRequestHandler((request, callback) => {
-    if (
-      !mainWindow ||
-      request.frame !== mainWindow.webContents.mainFrame ||
-      !request.audioRequested
-    ) {
-      callback({});
-      return;
-    }
-
-    // Chromium still requires a video source for getDisplayMedia even when
-    // the renderer only consumes the audio track. Use the FluidEQ window as
-    // that source instead of a monitor: monitor capture is what triggers
-    // WGC's CreateForMonitor/E_ACCESSDENIED failures on some Windows setups.
-    // The loopback audio stream remains system-wide and is independent of
-    // the video source.
-    const provideLoopbackSource = async () => {
-      try {
-        const sources = await desktopCapturer.getSources({
-          types: ['window'],
-          thumbnailSize: { width: 0, height: 0 },
-          fetchWindowIcons: false,
-        });
-        const windowSourceId = mainWindow?.getMediaSourceId();
-        const source =
-          sources.find((candidate) => candidate.id === windowSourceId) ||
-          sources.find((candidate) =>
-            // The window title, which is the product name. Derived from it
-            // rather than spelled out, so a rename does not silently lose
-            // the fallback and start capturing an arbitrary window.
-            candidate.name.toLowerCase().includes(PRODUCT_NAME.toLowerCase()),
-          ) ||
-          sources[0];
-
-        if (source) {
-          callback({ video: source, audio: 'loopback' });
-        } else {
-          // A frame source is a valid final fallback if Windows does not
-          // expose any capturable windows (for example while minimized).
-          callback({ video: request.frame || undefined, audio: 'loopback' });
-        }
-      } catch {
-        callback({ video: request.frame || undefined, audio: 'loopback' });
-      }
-    };
-    provideLoopbackSource();
-  });
-
-  // Nothing to do on a first run any more. This used to force the graph-view
-  // height when there was no saved size, which is what pushed the window off
-  // the bottom of the screen; the first-run size is now nine tenths of the work
-  // area, which has room for the graph without being told. A saved size is a
-  // decision the user made and was never overridden here. Toggling the graph
-  // in-session still resizes.
-
-  let hasRevealedMainWindow = false;
-  const revealMainWindow = () => {
-    if (!mainWindow || hasRevealedMainWindow) {
-      return;
-    }
-    hasRevealedMainWindow = true;
-
-    if (process.env.START_MINIMIZED) {
-      mainWindow.minimize();
-    } else {
-      // Maximize before showing, so the window does not appear at its restored
-      // size and then visibly snap outward. A first run on a screen below 2K
-      // takes the same path, for the same reason.
-      if (restored.isMaximized || (isFirstRun && firstRun.maximize)) {
-        mainWindow.maximize();
-      }
-      mainWindow.show();
-    }
-
-    if (isDebug) {
-      // When in debug mode, show dev tools after the app loads.
-      mainWindow.webContents.openDevTools();
-    }
-  };
-
-  // `ready-to-show` fires when Chromium has a first frame, which for a React
-  // app is an empty <div id="root"> — the window would appear, sit blank, and
-  // then fill in. The renderer says when it has actually painted something
-  // (see RENDERER_READY_EVENT); this is only the fallback for a renderer that
-  // never gets that far, so a crashed bundle still shows a window with an
-  // error in it rather than nothing at all.
-  mainWindow.once('ready-to-show', () => {
-    setTimeout(revealMainWindow, RENDERER_PAINT_GRACE_MS);
-  });
-  ipcMain.once(RENDERER_READY_EVENT, revealMainWindow);
-  mainWindow.on('maximize', sendWindowState);
-  mainWindow.on('unmaximize', sendWindowState);
-  mainWindow.on('enter-full-screen', sendWindowState);
-  mainWindow.on('leave-full-screen', sendWindowState);
-  // Debounced: dragging a window fires 'resize' continuously, and writing a
-  // file on every frame of that would be absurd. 400ms after the user stops.
-  let saveTimer: NodeJS.Timeout | undefined;
-  const scheduleSave = () => {
-    if (saveTimer) {
-      clearTimeout(saveTimer);
-    }
-    saveTimer = setTimeout(saveWindowState, 400);
-  };
-  mainWindow.on('resize', scheduleSave);
-  mainWindow.on('move', scheduleSave);
-  mainWindow.on('maximize', scheduleSave);
-  mainWindow.on('unmaximize', scheduleSave);
-
-  mainWindow.on('close', () => {
-    // Synchronously, before the window goes: a pending debounce would never
-    // fire, so closing right after a resize would lose that resize.
-    if (saveTimer) {
-      clearTimeout(saveTimer);
-    }
-    saveWindowState();
-  });
-
-  mainWindow.on('closed', () => {
-    mainWindow = null;
-  });
-
-  mainWindow.webContents.on('did-finish-load', sendWindowState);
-  // Polling for the dev server is an optimisation, not a gate. Giving up used
-  // to throw out of createMainWindow with nothing to catch it, so a slow bundle
-  // produced an unhandled rejection and no window at all — while
-  // webpack-dev-middleware was perfectly willing to hold the request until the
-  // bundle finished. Load either way and let that happen.
-  await waitForRenderer(rendererUrl).catch((error) => {
-    log.warn(
-      'Renderer was not ready in time; loading anyway and letting the dev server finish.',
-      error,
-    );
-  });
-  await mainWindow.loadURL(rendererUrl);
-
-  // If ready-to-show was skipped by a fast dev-server response, reveal the
-  // already-loaded window instead of leaving an invisible Electron process.
-  revealMainWindow();
-
-  // Keep both public measurement databases current without blocking the first
-  // paint. The renderer receives an event when the background sync finishes
-  // and refreshes whichever source is currently selected.
-  syncDatabasesOnStartup().catch((error) => {
-    log.warn('Database startup synchronization failed', error);
-  });
-
-  const menuBuilder = new MenuBuilder(mainWindow);
-  menuBuilder.buildMenu();
-
-  // Open urls in the user's browser, if they are urls for a browser.
-  //
-  // `edata.url` is whatever asked for the window — a `target="_blank"` link, a
-  // `window.open`. Plenty of what this renderer draws did not originate here:
-  // lyrics, profile names, changelog text, rows from a synced measurement
-  // database. Handing any of that to the OS unchecked is how `file:` and every
-  // registered custom protocol become reachable, so the scheme is checked the
-  // same way the Remote Media player has always checked it.
-  mainWindow.webContents.setWindowOpenHandler((edata) => {
-    openExternalIfSafe(edata.url);
-    return { action: 'deny' };
-  });
-
-  setUpAutoUpdates().catch((error) => {
-    // A setup failure is still a disabled updater. Never recover by loading it
-    // without the signature and feed checks that just failed.
-    activeAutoUpdater = undefined;
-    log.warn('Updates disabled: updater setup failed closed.', error);
-  });
-  startMemoryProbe();
-  setUpMemoryTraceTrigger();
-};
+const createMainWindow = createMainWindowFactory({
+  firstRunPlacement,
+  isDebug,
+  loadWindowState,
+  saveWindowState,
+  sendWindowState,
+  setActiveAutoUpdater: (next) => {
+    activeAutoUpdater = next;
+  },
+  setMainWindow: (next) => {
+    mainWindow = next;
+  },
+  setUpAutoUpdates,
+  setUpMemoryTraceTrigger,
+  startMemoryProbe,
+  syncDatabasesOnStartup,
+});
 
 /**
  * Write down what killed it, before it dies.

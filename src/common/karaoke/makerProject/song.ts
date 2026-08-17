@@ -1,0 +1,308 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+*/
+
+/**
+ * Turning an editable project into something playable, and checking it first.
+ *
+ * One direction only. A project holds things a song has no use for — capture
+ * intent, per-token sources, unlinked notes — and rebuilding one from a song
+ * would be inventing the parts that were dropped.
+ */
+import {
+  IKaraokeAsset,
+  IKaraokeLine,
+  IKaraokeSong,
+  IKaraokeToken,
+} from '../types';
+import {
+  IKaraokeMakerLine,
+  IKaraokeMakerProject,
+  IKaraokeMakerValidationIssue,
+  karaokeMakerLineIsSection,
+  karaokeMakerWordDurationIsPlausible,
+} from './model';
+
+const playableWordWeight = (word: string): number =>
+  Math.max(
+    1,
+    Array.from(word).filter((character) => /[\p{L}\p{N}]/u.test(character))
+      .length,
+  );
+
+/**
+ * Close only bounded detector holes for playback. A complete unmatched line
+ * remains untimed, but a dropped short word between two real Whisper anchors
+ * receives its share of that same vocal window. This keeps preview progress
+ * continuous without painting supplied lyrics over instrumental sections.
+ */
+const makePlayableLyricTokens = (line: IKaraokeMakerLine): IKaraokeToken[] => {
+  const tokens: IKaraokeToken[] = line.tokens.map((word) => ({
+    text: word.text,
+    startsWord: word.startsWord,
+    startMs: word.startMs,
+    endMs: word.endMs,
+  }));
+  if (karaokeMakerLineIsSection(line)) {
+    return tokens;
+  }
+  const timedWordCount = tokens.filter(
+    (token) =>
+      token.startMs !== undefined &&
+      token.endMs !== undefined &&
+      token.endMs > token.startMs,
+  ).length;
+  const hasStrongLineEvidence =
+    timedWordCount >= Math.max(2, Math.ceil(tokens.length * 0.55));
+
+  let missingStart = -1;
+  for (let index = 0; index <= tokens.length; index += 1) {
+    const token = tokens[index];
+    const isTimed =
+      token?.startMs !== undefined &&
+      token.endMs !== undefined &&
+      token.endMs > token.startMs;
+    if (!isTimed && index < tokens.length) {
+      missingStart = missingStart < 0 ? index : missingStart;
+    } else if (missingStart >= 0) {
+      const missingEnd = index;
+      const left = tokens[missingStart - 1];
+      const right = tokens[missingEnd];
+      if (
+        hasStrongLineEvidence &&
+        left?.endMs !== undefined &&
+        right?.startMs !== undefined &&
+        right.startMs > left.endMs
+      ) {
+        const missing = tokens.slice(missingStart, missingEnd);
+        const availableMs = right.startMs - left.endMs;
+        const maximumSafeMs = Math.max(2_500, missing.length * 1_200);
+        if (
+          availableMs >= missing.length * 20 &&
+          availableMs <= maximumSafeMs
+        ) {
+          const weights = missing.map((word) => playableWordWeight(word.text));
+          const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+          let consumedWeight = 0;
+          missing.forEach((word, missingIndex) => {
+            const startMs =
+              (left.endMs as number) +
+              (availableMs * consumedWeight) / totalWeight;
+            consumedWeight += weights[missingIndex];
+            const endMs =
+              (left.endMs as number) +
+              (availableMs * consumedWeight) / totalWeight;
+            Object.assign(word, {
+              startMs: Math.round(startMs),
+              endMs: Math.max(Math.round(startMs) + 1, Math.round(endMs)),
+            });
+          });
+        }
+      }
+      missingStart = -1;
+    }
+  }
+
+  // The detector already rejects crossed evidence. Keep the preview robust to
+  // an older draft by trimming only automatic-looking overlap in this copy.
+  let previousEndMs: number | undefined;
+  tokens.forEach((token) => {
+    if (token.startMs === undefined || token.endMs === undefined) {
+      return;
+    }
+    const startMs = Math.max(previousEndMs ?? 0, token.startMs);
+    if (token.endMs <= startMs) {
+      token.startMs = undefined;
+      token.endMs = undefined;
+      return;
+    }
+    token.startMs = startMs;
+    previousEndMs = token.endMs;
+  });
+  return tokens;
+};
+
+const makePlayableLines = (project: IKaraokeMakerProject): IKaraokeLine[] =>
+  project.lyrics.lines.flatMap((line): IKaraokeLine[] => {
+    // Lyric progress must always use the repaired word timestamps. Melody
+    // notes have their own pitch track and may cover only part of a word.
+    // Replacing lyric tokens with those notes made the editor and preview show
+    // different starts, endings and gaps for the exact same project.
+    const tokens = makePlayableLyricTokens(line);
+    if (!tokens.length) {
+      return [];
+    }
+    const timed = tokens.filter((token) => token.startMs !== undefined);
+    return [
+      {
+        id: line.id,
+        kind: karaokeMakerLineIsSection(line) ? 'section' : 'lyrics',
+        startMs: timed.length
+          ? Math.min(...timed.map((token) => token.startMs as number))
+          : line.startMs,
+        endMs: timed.length
+          ? Math.max(...timed.map((token) => token.endMs ?? token.startMs ?? 0))
+          : line.endMs,
+        tokens,
+      },
+    ];
+  });
+
+const makePlayablePitchNotes = (
+  project: IKaraokeMakerProject,
+): IKaraokeToken[] => {
+  const wordsById = new Map(
+    project.lyrics.lines.flatMap((line) =>
+      line.tokens.map((token) => [token.id, token] as const),
+    ),
+  );
+  const seenTokenIds = new Set<string>();
+  return [...project.melody.notes]
+    .filter((note) => note.tokenId && wordsById.has(note.tokenId))
+    .sort((left, right) => left.startMs - right.startMs)
+    .map((note) => {
+      const word = note.tokenId ? wordsById.get(note.tokenId) : undefined;
+      const beginsWord = Boolean(
+        word && note.tokenId && !seenTokenIds.has(note.tokenId),
+      );
+      if (note.tokenId) {
+        seenTokenIds.add(note.tokenId);
+      }
+      return {
+        text: beginsWord ? (word?.text ?? '') : '',
+        startsWord: beginsWord ? word?.startsWord : false,
+        startMs: note.startMs,
+        endMs: note.endMs,
+        targetMidi: note.targetMidi,
+        kind: note.kind,
+      };
+    });
+};
+
+export const karaokeMakerProjectToSong = (
+  project: IKaraokeMakerProject,
+  audioAsset: IKaraokeAsset,
+  sourceAssets: readonly IKaraokeAsset[] = [audioAsset],
+): IKaraokeSong => {
+  const lines = makePlayableLines(project);
+  const notes = makePlayablePitchNotes(project);
+  const assets = sourceAssets.some((asset) => asset.role === 'audio')
+    ? Array.from(sourceAssets)
+    : [audioAsset, ...sourceAssets];
+  return {
+    id: project.id,
+    title: project.title,
+    artist: project.artist,
+    durationMs: project.audio.durationMs,
+    // Applying a draft changes only the normalized in-memory timing. Keep the
+    // original lyrics/CDG/MIDI assets attached so the source remains available
+    // for re-import, session restore, and explicit export. No source file is
+    // written by this operation.
+    assets,
+    timingPrecision: notes.length ? 'syllable' : 'word',
+    lines,
+    pitch: notes.length
+      ? {
+          kind: 'notes',
+          source: 'fluideq-maker',
+          coordinateSystem: 'midi-semitones',
+          octavePolicy: project.melody.octavePolicy,
+          notes,
+        }
+      : { kind: 'none', reason: 'missing' },
+    meta: {
+      sourceFormat: 'fluideq-maker',
+      gapMs: project.meta.gapMs,
+      bpm: project.meta.bpm,
+      language: project.lyrics.language,
+    },
+  };
+};
+
+export const validateKaraokeMakerProject = (
+  project: IKaraokeMakerProject,
+): IKaraokeMakerValidationIssue[] => {
+  const issues: IKaraokeMakerValidationIssue[] = [];
+  const tokens = project.lyrics.lines
+    .filter((line) => !karaokeMakerLineIsSection(line))
+    .flatMap((line) => line.tokens);
+  if (!tokens.length) {
+    issues.push({
+      severity: 'error',
+      code: 'empty-lyrics',
+      message: 'Add or import lyrics before exporting.',
+    });
+  }
+  tokens.forEach((token) => {
+    if (token.startMs === undefined || token.endMs === undefined) {
+      issues.push({
+        severity: 'warning',
+        code: 'untimed-word',
+        targetId: token.id,
+        message: `“${token.text}” has no timing yet.`,
+      });
+    } else if (token.startMs < 0 || token.endMs <= token.startMs) {
+      issues.push({
+        severity: 'error',
+        code: 'invalid-word-time',
+        targetId: token.id,
+        message: `“${token.text}” has an invalid time range.`,
+      });
+    } else if (
+      !karaokeMakerWordDurationIsPlausible(
+        token.text,
+        token.endMs - token.startMs,
+        token.source,
+      )
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'invalid-word-time',
+        targetId: token.id,
+        message: `“${token.text}” lasts implausibly long and must be realigned.`,
+      });
+    }
+  });
+  const tokenIds = new Set(tokens.map((token) => token.id));
+  const notes = [...project.melody.notes].sort(
+    (left, right) => left.startMs - right.startMs,
+  );
+  notes.forEach((note, index) => {
+    if (
+      note.startMs < 0 ||
+      note.endMs <= note.startMs ||
+      !Number.isFinite(note.targetMidi)
+    ) {
+      issues.push({
+        severity: 'error',
+        code: 'invalid-note-time',
+        targetId: note.id,
+        message: 'A melody note has an invalid pitch or time range.',
+      });
+    }
+    if (note.tokenId && !tokenIds.has(note.tokenId)) {
+      issues.push({
+        severity: 'warning',
+        code: 'orphan-note',
+        targetId: note.id,
+        message: 'A melody note is not connected to a lyric.',
+      });
+    }
+    const previous = notes[index - 1];
+    if (previous && note.startMs < previous.endMs) {
+      issues.push({
+        severity: 'warning',
+        code: 'overlapping-notes',
+        targetId: note.id,
+        message: 'Two melody notes overlap.',
+      });
+    }
+  });
+  return issues;
+};

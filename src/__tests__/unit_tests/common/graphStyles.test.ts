@@ -17,12 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  GLOW_COMPLEXITY_LIMIT,
   GRAPH_LOOKS,
   GRAPH_PALETTES,
   GRAPH_STYLES,
   GRAPH_STYLE_LABELS,
-  getGlowStyle,
   MAX_GRAPH_COLUMNS,
   MIN_GRAPH_COLUMNS,
   clampGraphColumns,
@@ -31,12 +29,16 @@ import {
   getGraphLook,
   GraphStyle,
   Projected,
-  createGraphAccent,
-  createGraphShape,
   isDiscreteGraphStyle,
   isFilledGraphStyle,
   nextGraphStyle,
 } from 'common/graphStyles';
+import {
+  GLOW_COMPLEXITY_LIMIT,
+  getGlowStyle,
+  createGraphAccent,
+  createGraphShape,
+} from 'common/graphShapes';
 
 const BASELINE = 300;
 

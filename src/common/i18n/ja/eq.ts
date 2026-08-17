@@ -175,6 +175,7 @@ const eq: Partial<Dictionary> = {
   'profiles.restoreAria': 'このプロファイルを手動保存した最後の状態に戻す',
   'profiles.attached': '再生中',
   'profiles.attachedTitle': 'この出力で再生中',
+  'profiles.confirmDelete': '削除しますか？',
   'profiles.detecting': '出力を検出しています…',
   'profiles.empty': 'まだプロファイルがありません。最初の音を作りましょう。',
   'profiles.error.empty': 'プロファイル名は空にできません。',

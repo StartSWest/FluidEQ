@@ -178,6 +178,7 @@ const eq: Partial<Dictionary> = {
     'इस प्रोफ़ाइल का आख़िरी बार हाथ से सहेजा गया रूप वापस लाएँ',
   'profiles.attached': 'चालू',
   'profiles.attachedTitle': 'इसी आउटपुट पर बज रहा है',
+  'profiles.confirmDelete': 'मिटाएँ?',
   'profiles.detecting': 'आपका आउटपुट पहचाना जा रहा है…',
   'profiles.empty': 'अभी कोई प्रोफ़ाइल नहीं है। अपनी पहली आवाज़ बनाइए।',
   'profiles.error.empty': 'प्रोफ़ाइल का नाम खाली नहीं हो सकता।',

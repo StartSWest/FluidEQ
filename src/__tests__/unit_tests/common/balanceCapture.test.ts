@@ -31,25 +31,27 @@ import {
 import {
   BALANCE_FRAME_INTERVAL_MS,
   CONVERGENCE_CHECK_MS,
+  MAX_LISTEN_MS,
+  MIN_LISTEN_MS,
+  buildBalancedGains,
+  filterShapeAt,
+} from 'renderer/utils/autoBalance';
+import {
   IBalanceFrame,
   IBalanceListenBounds,
   IBalanceReport,
-  MAX_LISTEN_MS,
-  MIN_LISTEN_MS,
   accumulateBalanceFrame,
   buildBalanceProgress,
   buildBalanceResult,
-  buildBalancedGains,
   createAxisCells,
   createBalanceCaptureState,
   createBalanceRegions,
   evaluateBalanceCapture,
-  filterShapeAt,
   isBalanceCheckDue,
   readAbsoluteLevels,
   resetBalanceRegion,
   shouldFinishBalanceCapture,
-} from 'renderer/utils/autoBalance';
+} from 'renderer/utils/autoBalanceCapture';
 import { Translate, translate } from 'common/i18n';
 
 /* --- harness ----------------------------------------------------------- */

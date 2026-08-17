@@ -18,7 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import '@testing-library/jest-dom';
 import { fireEvent, render, screen } from '@testing-library/react';
-import KaraokePitchLane, {
+import KaraokePitchLane from '../../renderer/karaoke/KaraokePitchLane';
+import {
   buildKaraokeMelodyGuide,
   easeKaraokeSingerTrace,
   findKaraokePitchIssues,
@@ -27,7 +28,7 @@ import KaraokePitchLane, {
   karaokeNoteTimingState,
   karaokePitchWordProgress,
   karaokePitchScrubTime,
-} from '../../renderer/karaoke/KaraokePitchLane';
+} from '../../renderer/karaoke/karaokePitchGeometry';
 
 const fireTestPointer = (
   target: Element,
