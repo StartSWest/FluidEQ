@@ -16,7 +16,6 @@ import {
 } from 'react';
 import {
   IKaraokeMakerProject,
-  importLyricsIntoKaraokeMakerProject,
   karaokeMakerProjectToSong,
   karaokeMakerRecordedLineRange,
   karaokeMakerTimedLineRange,
@@ -24,7 +23,6 @@ import {
   karaokeMakerTokenBoundaryLimits,
   karaokeMakerTokenWasUserTouched,
   makerLinesFromPlainText,
-  parseKaraokeMakerProject,
   recordKaraokeMakerLineRange,
   shiftKaraokeMakerLineTailFromToken,
   shiftKaraokeMakerTimeline,
@@ -32,12 +30,6 @@ import {
   validateKaraokeMakerProject,
 } from '../../common/karaoke/makerProject';
 import {
-  TKaraokeMakerExportFormat,
-  exportKaraokeMaker,
-  karaokeMakerExportFileName,
-} from '../../common/karaoke/makerExport';
-import {
-  karaokeFileExtension,
   parseKaraokeText,
   readKaraokeTextFile,
 } from '../../common/karaoke/files';
@@ -74,9 +66,7 @@ import KaraokeMakerConfirmDialog, {
   TDestructiveMakerAction,
 } from './KaraokeMakerConfirmDialog';
 import {
-  DEFAULT_PREVIEW_HEIGHT,
   DEFAULT_VIEW_MS,
-  initialPreviewOpen,
   useKaraokeMakerEditorView,
 } from './useKaraokeMakerEditorView';
 import {
@@ -106,6 +96,7 @@ import KaraokeMakerToolbar from './KaraokeMakerToolbar';
 import KaraokeMakerAnalysisPanels from './KaraokeMakerAnalysisPanels';
 import KaraokeMakerWhisperConsent from './KaraokeMakerWhisperConsent';
 import KaraokeMakerInspector from './KaraokeMakerInspector';
+import { useMakerProjectFiles } from './useMakerProjectFiles';
 import { useMakerLyricsEditing } from './useMakerLyricsEditing';
 import { flattenTokens } from './makerProjectEdits';
 import {
@@ -1611,103 +1602,25 @@ const KaraokeMaker = ({
     t,
   });
 
-  const exportProject = async (format: TKaraokeMakerExportFormat) => {
-    setExportOpen(false);
-    if (format !== 'project' && !project.meta.rightsConfirmed) {
-      setNotice(t('karaoke.maker.rightsRequired'));
-      return;
-    }
-    try {
-      const output = exportKaraokeMaker(project, format);
-      let formatName = t('karaoke.maker.exportLrc');
-      if (format === 'project') {
-        formatName = t('karaoke.maker.exportProject');
-      } else if (format === 'ultrastar') {
-        formatName = t('karaoke.maker.exportUltraStar');
-      } else if (format === 'elrc') {
-        formatName = t('karaoke.maker.exportElrc');
-      }
-      const result = await window.electron.ipcRenderer.exportKaraokeMakerFile({
-        fileName: karaokeMakerExportFileName(project, format),
-        contents: output.contents,
-        formatName,
-        extensions: [output.extension],
-      });
-      if (!result.canceled) {
-        setNotice(
-          t('karaoke.maker.exported', {
-            file: result.filePath ?? t('karaoke.maker.exportFallback'),
-          }),
-        );
-      }
-    } catch (error) {
-      setNotice(localizeMakerError(error, 'export'));
-    }
-  };
-
-  const selectVocalStem = (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) {
-      return;
-    }
-    setAnalysisFile(file);
-    setNotice(t('karaoke.maker.analysisSource', { file: file.name }));
-  };
-
-  const openProject = async (event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-    if (!file) {
-      return;
-    }
-    try {
-      if (file.size > 16 * 1024 * 1024) {
-        setNotice(t('karaoke.maker.projectTooLarge'));
-        return;
-      }
-      const contents = await readKaraokeTextFile(file);
-      const extension = karaokeFileExtension(file.name);
-      const isProjectFile =
-        extension === 'json' || contents.trimStart().startsWith('{');
-      let imported: IKaraokeMakerProject;
-      if (isProjectFile) {
-        const restored = parseKaraokeMakerProject(contents);
-        imported = {
-          ...restored,
-          title:
-            restored.title === 'Untitled karaoke'
-              ? t('karaoke.maker.untitled')
-              : restored.title,
-          audio: { ...restored.audio, ...project.audio },
-        };
-      } else {
-        imported = importLyricsIntoKaraokeMakerProject(
-          project,
-          parseKaraokeText(file.name, contents),
-        );
-      }
-      setProject(imported);
-      clearHistory();
-      const importedView = readKaraokeMakerEditorView(imported.id);
-      setSelection(importedView?.selection);
-      setViewStartMs(importedView?.viewStartMs ?? 0);
-      setViewDurationMs(importedView?.viewDurationMs ?? DEFAULT_VIEW_MS);
-      setFollowViewport(importedView?.followViewport ?? true);
-      setPreviewOpen(importedView?.previewOpen ?? initialPreviewOpen());
-      setPreviewTextSize(importedView?.previewTextSize ?? 100);
-      setPreviewHeight(importedView?.previewHeight ?? DEFAULT_PREVIEW_HEIGHT);
-      setTimingScope(importedView?.timingScope ?? 'all');
-      setLyricsDraft(plainLyrics(imported));
-      setNotice(
-        isProjectFile
-          ? t('karaoke.maker.projectLoaded')
-          : t('karaoke.maker.karaokeImported'),
-      );
-    } catch (error) {
-      setNotice(localizeMakerError(error, 'import'));
-    }
-  };
+  const { exportProject, openProject, selectVocalStem } = useMakerProjectFiles({
+    clearHistory,
+    localizeMakerError,
+    project,
+    setAnalysisFile,
+    setExportOpen,
+    setFollowViewport,
+    setLyricsDraft,
+    setNotice,
+    setPreviewHeight,
+    setPreviewOpen,
+    setPreviewTextSize,
+    setProject,
+    setSelection,
+    setTimingScope,
+    setViewDurationMs,
+    setViewStartMs,
+    t,
+  });
 
   const {
     auditionLyricsToken,
