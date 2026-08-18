@@ -87,74 +87,161 @@ export const analyzeKaraokeWithSwiftF0 = async (
       (window_) => timeMs >= window_.startMs && timeMs <= window_.endMs,
     );
 
-  const notes: IKaraokeMakerAnalysisNote[] = [];
-  let segment:
-    { startFrame: number; midis: number[]; confidences: number[] } | undefined;
+  // The tracker's contour is excellent; the notes are only as good as this
+  // segmentation. The first version split on any single frame that strayed —
+  // and singing strays constantly. One octave blip became a note, vibrato
+  // shattered sustains, a breath flicker chattered on and off. Each stage
+  // below removes one of those failure modes, in order.
 
-  const flush = (endFrame: number) => {
-    if (!segment) {
-      return;
+  // 1. Median-filter the pitch track (5 frames). A lone octave error or
+  //    tracker glitch cannot survive a median; real note changes can.
+  const frameCount = pitchHz.length;
+  const midiTrack = new Float32Array(frameCount);
+  for (let frame = 0; frame < frameCount; frame += 1) {
+    midiTrack[frame] = pitchHz[frame] > 0 ? hzToMidi(pitchHz[frame]) : NaN;
+  }
+  const smoothed = new Float32Array(frameCount);
+  for (let frame = 0; frame < frameCount; frame += 1) {
+    const window: number[] = [];
+    for (
+      let i = Math.max(0, frame - 2);
+      i <= Math.min(frameCount - 1, frame + 2);
+      i += 1
+    ) {
+      if (!Number.isNaN(midiTrack[i])) {
+        window.push(midiTrack[i]);
+      }
     }
-    const { startFrame, midis, confidences } = segment;
-    segment = undefined;
-    const startMs = startFrame * hopMs;
-    const endMs = endFrame * hopMs;
-    if (endMs - startMs < MINIMUM_NOTE_MS) {
-      return;
-    }
-    const sorted = [...midis].sort((left, right) => left - right);
-    const median = sorted[Math.floor(sorted.length / 2)];
-    notes.push({
-      startMs,
-      endMs,
-      targetMidi: Math.round(median),
-      confidence:
-        confidences.reduce((sum, value) => sum + value, 0) / confidences.length,
-    });
-  };
+    smoothed[frame] = window.length
+      ? window.sort((a, b) => a - b)[Math.floor(window.length / 2)]
+      : NaN;
+  }
 
-  for (let frame = 0; frame < pitchHz.length; frame += 1) {
-    const timeMs = frame * hopMs;
-    const voiced =
-      confidence[frame] >= voicedThreshold &&
-      pitchHz[frame] > 0 &&
-      inWindow(timeMs);
-    if (!voiced) {
-      flush(frame);
-    } else if (!segment) {
-      segment = {
+  // 2. Voicing with hysteresis and gap-bridging: enter at the model's own
+  //    threshold, leave only when confidence truly collapses, and ride over
+  //    unvoiced flickers up to 3 frames (~30-50ms) inside a note.
+  const exitThreshold = voicedThreshold * 0.7;
+  const voiced = new Uint8Array(frameCount);
+  let inVoice = false;
+  for (let frame = 0; frame < frameCount; frame += 1) {
+    const usable = !Number.isNaN(smoothed[frame]) && inWindow(frame * hopMs);
+    const level = confidence[frame];
+    if (!usable) {
+      inVoice = false;
+    } else if (inVoice) {
+      inVoice = level >= exitThreshold;
+    } else {
+      inVoice = level >= voicedThreshold;
+    }
+    voiced[frame] = inVoice ? 1 : 0;
+  }
+  for (let frame = 1; frame < frameCount - 1; frame += 1) {
+    if (!voiced[frame]) {
+      let gap = 0;
+      while (frame + gap < frameCount && !voiced[frame + gap]) {
+        gap += 1;
+      }
+      if (gap <= 3 && voiced[frame - 1] && voiced[frame + gap]) {
+        for (let i = 0; i < gap; i += 1) {
+          voiced[frame + i] = 1;
+        }
+      }
+      frame += gap;
+    }
+  }
+
+  // 3. Segment: split only on SUSTAINED deviation — three consecutive frames
+  //    away from the note's running median — so vibrato and scoops stay part
+  //    of their note and a genuine step to a new pitch still cuts cleanly.
+  interface ISegment {
+    startFrame: number;
+    endFrame: number;
+    midis: number[];
+    confidences: number[];
+  }
+  const segments: ISegment[] = [];
+  let current: ISegment | undefined;
+  let strayRun = 0;
+  for (let frame = 0; frame < frameCount; frame += 1) {
+    if (!voiced[frame]) {
+      if (current) {
+        segments.push(current);
+        current = undefined;
+      }
+      strayRun = 0;
+    } else if (!current) {
+      current = {
         startFrame: frame,
-        midis: [hzToMidi(pitchHz[frame])],
+        endFrame: frame + 1,
+        midis: [smoothed[frame]],
         confidences: [confidence[frame]],
       };
     } else {
-      segmentStep(frame);
+      const sorted = [...current.midis].sort((a, b) => a - b);
+      const median = sorted[Math.floor(sorted.length / 2)];
+      if (Math.abs(smoothed[frame] - median) > SPLIT_SEMITONES) {
+        strayRun += 1;
+        if (strayRun >= 3) {
+          // The voice settled somewhere new three frames ago; the note ends
+          // where the stray began, and the new one starts there.
+          const splitAt = frame - strayRun + 1;
+          current.endFrame = splitAt;
+          segments.push(current);
+          current = {
+            startFrame: splitAt,
+            endFrame: frame + 1,
+            midis: Array.from(smoothed.subarray(splitAt, frame + 1)),
+            confidences: Array.from(confidence.subarray(splitAt, frame + 1)),
+          };
+          strayRun = 0;
+        }
+      } else {
+        strayRun = 0;
+        current.midis.push(smoothed[frame]);
+        current.confidences.push(confidence[frame]);
+        current.endFrame = frame + 1;
+      }
     }
   }
-  flush(pitchHz.length);
+  if (current) {
+    segments.push(current);
+  }
+
+  // 4. A note's pitch comes from its interior — the attack scoops and the
+  //    release falls, and neither is the note. Then neighbours on the same
+  //    MIDI with a hair's gap merge back into one sustain, and only after
+  //    that are the too-short fragments dropped.
+  const rawNotes = segments.map((segment) => {
+    const inner =
+      segment.midis.length > 6 ? segment.midis.slice(2, -2) : segment.midis;
+    const sorted = [...inner].sort((a, b) => a - b);
+    return {
+      startMs: segment.startFrame * hopMs,
+      endMs: segment.endFrame * hopMs,
+      targetMidi: Math.round(sorted[Math.floor(sorted.length / 2)]),
+      confidence:
+        segment.confidences.reduce((sum, value) => sum + value, 0) /
+        segment.confidences.length,
+    };
+  });
+  const merged: IKaraokeMakerAnalysisNote[] = [];
+  rawNotes.forEach((note) => {
+    const previous = merged[merged.length - 1];
+    if (
+      previous &&
+      previous.targetMidi === note.targetMidi &&
+      note.startMs - previous.endMs < 80
+    ) {
+      previous.endMs = note.endMs;
+      previous.confidence = Math.max(previous.confidence, note.confidence);
+    } else {
+      merged.push({ ...note });
+    }
+  });
+  const notes = merged.filter(
+    (note) => note.endMs - note.startMs >= MINIMUM_NOTE_MS,
+  );
+
   onProgress(1);
   return notes;
-
-  function segmentStep(frame: number) {
-    if (!segment) {
-      return;
-    }
-    const midi = hzToMidi(pitchHz[frame]);
-    const sorted = [...segment.midis].sort((left, right) => left - right);
-    const median = sorted[Math.floor(sorted.length / 2)];
-    if (Math.abs(midi - median) > SPLIT_SEMITONES) {
-      // The voice has settled somewhere new: close the note here and open
-      // the next one on this frame, so a legato line becomes adjacent notes
-      // rather than one smeared average.
-      flush(frame);
-      segment = {
-        startFrame: frame,
-        midis: [midi],
-        confidences: [confidence[frame]],
-      };
-    } else {
-      segment.midis.push(midi);
-      segment.confidences.push(confidence[frame]);
-    }
-  }
 };
