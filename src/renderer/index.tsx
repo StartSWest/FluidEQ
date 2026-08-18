@@ -37,6 +37,22 @@ document.title = PRODUCT_NAME;
 // most of what actually goes wrong at runtime.
 installGlobalErrorHandlers();
 
+// Ctrl+wheel is Chromium's page zoom, and in a desktop app that reads as a
+// malfunction: the entire UI scales, nothing announces why, and undoing it is
+// not obvious. The Maker's canvas has its own Ctrl+wheel timeline zoom and
+// preventDefault of its own; everywhere else the browser default is refused.
+// Capture-phase and non-passive, because that is the only registration
+// Chromium lets cancel a wheel.
+window.addEventListener(
+  'wheel',
+  (event) => {
+    if (event.ctrlKey) {
+      event.preventDefault();
+    }
+  },
+  { capture: true, passive: false },
+);
+
 const container = document.getElementById('root') as HTMLElement;
 const root = createRoot(container);
 // Outermost on purpose. React tears down the whole tree when a render throws,
