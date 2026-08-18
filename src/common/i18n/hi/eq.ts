@@ -163,6 +163,7 @@ const eq: Partial<Dictionary> = {
   'driver.strength': 'मात्रा',
   'driver.range': '±1.5 dB',
   'profiles.eyebrow': 'आपकी आवाज़',
+  'app.soundPanel': 'साउंड पैनल',
   'profiles.title': 'सहेजी गई प्रोफ़ाइलें',
   'profiles.name': 'प्रोफ़ाइल का नाम',
   'profiles.nameAria': 'प्रोफ़ाइल का नाम',

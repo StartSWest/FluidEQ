@@ -161,6 +161,7 @@ const eq = {
   'driver.strength': 'Strength',
   'driver.range': '±1.5 dB',
   'profiles.eyebrow': 'YOUR SOUND',
+  'app.soundPanel': 'Sound panel',
   'profiles.title': 'Named profiles',
   'profiles.name': 'Profile name',
   'profiles.nameAria': 'Preset Name',

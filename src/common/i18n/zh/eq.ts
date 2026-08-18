@@ -160,6 +160,7 @@ const eq: Partial<Dictionary> = {
   'driver.strength': '强度',
   'driver.range': '±1.5 dB',
   'profiles.eyebrow': '你的声音',
+  'app.soundPanel': '声音面板',
   'profiles.title': '已命名的配置',
   'profiles.name': '配置名称',
   'profiles.nameAria': '配置名称',

@@ -165,6 +165,7 @@ const eq: Partial<Dictionary> = {
   'driver.strength': 'Intensidad',
   'driver.range': '±1,5 dB',
   'profiles.eyebrow': 'TU SONIDO',
+  'app.soundPanel': 'Panel de sonido',
   'profiles.title': 'Perfiles guardados',
   'profiles.name': 'Nombre del perfil',
   'profiles.nameAria': 'Nombre del perfil',

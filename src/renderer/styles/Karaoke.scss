@@ -7578,12 +7578,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@media (max-width: 1780px) {
-  // Below this the transport with three faders cannot share a row with both
-  // sides. The header becomes two rows: identity + actions above, the whole
-  // transport on its own line, nothing clipped.
+@media (max-width: 1500px) {
+  // Below this the transport with three faders genuinely cannot share a row
+  // with both sides (measured: ~1450px of content at minimum slider widths).
+  // The first cut was 1780 and it wasted a full row on an ordinary 1600px
+  // fullscreen — a breakpoint is a measurement, not a guess. Two rows,
+  // compact, nothing clipped.
   .karaoke-maker__header {
     grid-template-columns: minmax(150px, 1fr) auto;
+    min-height: 0;
+    padding: 5px 10px;
   }
 
   .karaoke-maker__transport {
@@ -7591,6 +7595,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     grid-row: 2;
     justify-self: center;
     max-width: 100%;
+    min-height: 42px;
     overflow-x: auto;
   }
 }

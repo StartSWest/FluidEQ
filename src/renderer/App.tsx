@@ -235,6 +235,8 @@ const AppContent = () => {
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
+  // The sound panel drawer, meaningful only under the three-column breakpoint.
+  const [rightPaneOpen, setRightPaneOpen] = useState(false);
   const [activeWorkspaceTab, setActiveWorkspaceTab] =
     useState<TWorkspaceTab>(readWorkspaceTab);
   const [graphVisibilityByTab, setGraphVisibilityByTab] = useState<
@@ -1402,7 +1404,31 @@ const AppContent = () => {
           )}
           {showsGraph ? <FrequencyResponseChart isVisible /> : null}
         </div>
-        <div className="right-content">
+        {/*
+          Below the three-column breakpoint the sound panel is a slide-over
+          drawer instead of a band squashed under the workspace: the same
+          content, floated, with an edge tab to summon it. Above the
+          breakpoint the tab and backdrop are display:none and this class
+          does nothing.
+        */}
+        <button
+          type="button"
+          className="right-content-toggle"
+          aria-expanded={rightPaneOpen}
+          aria-label={t('app.soundPanel')}
+          onClick={() => setRightPaneOpen((open) => !open)}
+        >
+          <MenuIcon name="settings" />
+        </button>
+        {rightPaneOpen && (
+          <button
+            type="button"
+            className="right-content-backdrop"
+            aria-label={t('app.soundPanel')}
+            onClick={() => setRightPaneOpen(false)}
+          />
+        )}
+        <div className={`right-content${rightPaneOpen ? ' is-open' : ''}`}>
           <DeviceProfiles />
           {/* Directly under the output picker: it is the same question asked
               twice over — that one chooses where the sound goes, this one

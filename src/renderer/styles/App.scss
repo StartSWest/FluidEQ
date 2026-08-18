@@ -1463,6 +1463,45 @@ $tab-border: rgba($secondary-light, 0.2);
 // positioned against the window, so there is nothing left to escape from — see
 // the head of Dropdown.tsx.
 
+// The drawer's summon tab and backdrop. Both exist only below the
+// three-column breakpoint; wide layouts show the column in the grid and
+// these render as nothing at all.
+.right-content-toggle {
+  position: fixed;
+  z-index: 59;
+  top: 50%;
+  right: 0;
+  display: none;
+  place-items: center;
+  width: 30px;
+  height: 56px;
+  padding: 0;
+  color: #bfeef2;
+  background: rgba(9, 30, 44, 0.94);
+  border: 1px solid rgba(63, 149, 173, 0.35);
+  border-right: 0;
+  border-radius: 10px 0 0 10px;
+  box-shadow: -8px 0 22px rgba(0, 0, 0, 0.3);
+  transform: translateY(-50%);
+  cursor: pointer;
+
+  svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.right-content-backdrop {
+  position: fixed;
+  z-index: 58;
+  inset: 0;
+  display: none;
+  padding: 0;
+  background: rgba(2, 8, 14, 0.45);
+  border: 0;
+  cursor: pointer;
+}
+
 // *** Right column ***********************************************************
 
 .right-content {
@@ -1927,17 +1966,43 @@ button.graph-legend {
 @media (max-width: $bp-three-column) {
   .app-workspace {
     padding: 12px 12px 14px;
-    grid-template-areas:
-      'side-bar center-workspace'
-      'right-content right-content';
+    // Two columns only: the sound panel leaves the grid entirely below this
+    // breakpoint. Its old fate was a band squashed under the workspace —
+    // two panels wide, half of it below the fold — which read as clutter,
+    // not as settings. It floats now.
+    grid-template-areas: 'side-bar center-workspace';
     grid-template-columns: 150px minmax(0, 1fr);
-    grid-template-rows: minmax(0, 1fr) max-content;
+    grid-template-rows: minmax(0, 1fr);
   }
 
+  // The same panel as a slide-over drawer: summoned from the edge tab,
+  // dismissed by its backdrop, scrolling on its own.
   .right-content {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: max-content;
-    align-items: start;
+    position: fixed;
+    z-index: 60;
+    top: 44px;
+    right: 0;
+    bottom: 0;
+    width: min(340px, 90vw);
+    padding: 14px;
+    overflow-y: auto;
+    background: rgba(6, 20, 33, 0.97);
+    border-left: 1px solid rgba(63, 149, 173, 0.3);
+    box-shadow: -18px 0 48px rgba(0, 0, 0, 0.45);
+    transform: translateX(105%);
+    transition: transform 180ms ease-out;
+
+    &.is-open {
+      transform: translateX(0);
+    }
+  }
+
+  .right-content-toggle {
+    display: grid;
+  }
+
+  .right-content-backdrop {
+    display: block;
   }
 
   .workspace-header__tagline {
