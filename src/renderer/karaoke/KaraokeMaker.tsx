@@ -127,6 +127,10 @@ interface IKaraokeMakerProps {
    */
   vocalLevel?: number;
   onVocalLevel?: (level: number) => void;
+  stemFocus?: 'backing' | 'voice';
+  onFocusStem?: (row: 'backing' | 'voice') => void;
+  backingBlend?: number;
+  onBackingBlend?: (blend: number) => void;
   /** Receives both stems when a split succeeds, so the player can use them. */
   onStems?: (stems: { vocals: File; instrumental: File }) => void;
   onSeek: (timeMs: number) => void;
@@ -149,6 +153,10 @@ const KaraokeMaker = ({
   vocalLevel,
   onVocalLevel,
   onStems,
+  stemFocus,
+  onFocusStem,
+  backingBlend,
+  onBackingBlend,
   onSeek,
   onPlay,
   onPause,
@@ -1537,6 +1545,10 @@ const KaraokeMaker = ({
         isPlaying={isPlaying}
         onPlay={onPlay}
         onPause={onPause}
+        stemFocus={stemFocus}
+        onFocusStem={onFocusStem}
+        backingBlend={backingBlend}
+        onBackingBlend={onBackingBlend}
         vocalLevel={vocalLevel}
         onVocalLevel={onVocalLevel}
         onSave={saveStem}

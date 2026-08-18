@@ -255,6 +255,40 @@ const KaraokeWorkspace = ({
     audioRef: session.audioRef,
     vocals: song?.assets.find((asset) => asset.role === 'vocals')?.file,
   });
+  // Which stem the stems-panel is listening to. 'backing' is normal play —
+  // the fader blends the voice over the backing track. 'voice' inverts it:
+  // the voice at full level, the slider now the amount of backing underneath,
+  // starting at none. The models never see any of this; they read files.
+  const [stemFocus, setStemFocus] = useState<'backing' | 'voice'>('backing');
+  const [backingBlend, setBackingBlend] = useState(0);
+  const vocalBeforeSoloRef = useRef(0);
+  const focusStem = useCallback(
+    (row: 'backing' | 'voice') => {
+      setStemFocus((current) => {
+        if (row === current) {
+          return current;
+        }
+        if (row === 'voice') {
+          vocalBeforeSoloRef.current = vocalLevel;
+          setVocalLevel(1);
+          session.setBackingScale(backingBlend);
+        } else {
+          setVocalLevel(vocalBeforeSoloRef.current);
+          session.setBackingScale(1);
+        }
+        return row;
+      });
+    },
+    [vocalLevel, setVocalLevel, session, backingBlend],
+  );
+  const changeBackingBlend = useCallback(
+    (blend: number) => {
+      setBackingBlend(blend);
+      session.setBackingScale(blend);
+    },
+    [session],
+  );
+
   /** File both stems on the song; the element swaps to the backing track. */
   const applyStemsToSong = useCallback(
     (target: typeof song, vocals: File, instrumental: File) => {
@@ -1572,6 +1606,10 @@ const KaraokeWorkspace = ({
             readPlayheadMs={session.readPlayheadMs}
             vocalLevel={canMixVocals ? vocalLevel : undefined}
             onVocalLevel={canMixVocals ? setVocalLevel : undefined}
+            stemFocus={stemFocus}
+            onFocusStem={focusStem}
+            backingBlend={backingBlend}
+            onBackingBlend={changeBackingBlend}
             onSeek={session.seek}
             onPlay={handleEditorPlay}
             onPause={handleEditorPause}

@@ -6320,8 +6320,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-maker__wizard-title {
+  display: flex;
+  align-items: center;
+  gap: 11px;
   margin: 0;
   font-size: 1.12rem;
+}
+
+// The badge gives the dialog a face; the icon alone was invisibly small.
+.karaoke-maker__wizard-title-badge {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: none;
+  color: #04222f;
+  background: linear-gradient(135deg, #64fff0, #10d7c7 72%);
+  border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(16, 215, 199, 0.35);
+
+  svg {
+    width: 19px;
+    height: 19px;
+  }
 }
 
 .karaoke-maker__wizard-intro {
@@ -6343,8 +6364,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: grid;
   align-items: center;
   gap: 10px;
-  grid-template-columns: auto minmax(0, 1fr);
-  padding: 9px 11px;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 10px 12px;
   font-size: 0.9rem;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba($secondary-light, 0.2);
@@ -6364,6 +6385,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.is-done {
     color: rgba(223, 252, 249, 0.62);
+  }
+}
+
+// The running phase spins at its row's end; a finished one shows its check.
+.karaoke-maker__wizard-step-loader {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba($secondary-light, 0.25);
+  border-top-color: $secondary-light;
+  border-radius: 50%;
+  animation: karaoke-wizard-spin 0.8s linear infinite;
+}
+
+.karaoke-maker__wizard-step-done {
+  color: $secondary-light;
+  font-weight: 700;
+}
+
+@keyframes karaoke-wizard-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

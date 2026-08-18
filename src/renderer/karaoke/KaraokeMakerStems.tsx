@@ -134,6 +134,12 @@ interface IKaraokeMakerStemsProps {
   isPlaying?: boolean;
   onPlay?: () => void;
   onPause?: () => void;
+  /** Which stem play focuses; the slider below follows the choice. */
+  stemFocus?: 'backing' | 'voice';
+  onFocusStem?: (row: 'backing' | 'voice') => void;
+  /** Backing level under a soloed voice, 0..1. */
+  backingBlend?: number;
+  onBackingBlend?: (blend: number) => void;
   isSeparating?: boolean;
   /** 0..1, or undefined while a stage has begun but reported nothing yet. */
   progress?: number;
@@ -166,6 +172,10 @@ const KaraokeMakerStems = ({
   isPlaying = false,
   onPlay,
   onPause,
+  stemFocus = 'backing',
+  onFocusStem,
+  backingBlend = 0,
+  onBackingBlend,
   isSeparating = false,
   progress,
   message,
@@ -196,6 +206,15 @@ const KaraokeMakerStems = ({
   }
   const percent = Math.round((vocalLevel ?? 0) * 100);
   const canMix = vocalLevel !== undefined && onVocalLevel !== undefined;
+  // What the slider reads as, in whichever of its two modes it is in. Silence
+  // gets its name only in guide-vocal mode, where 0 is a state ("backing
+  // only") rather than merely a low number.
+  let levelText = `${percent}%`;
+  if (stemFocus === 'voice') {
+    levelText = `${Math.round(backingBlend * 100)}%`;
+  } else if (percent === 0) {
+    levelText = t('karaoke.transport.vocalOff');
+  }
   const tracks: { icon: 'stem' | 'vocal'; label: string; file?: File }[] = [
     {
       icon: 'stem',
@@ -231,8 +250,21 @@ const KaraokeMakerStems = ({
                 <button
                   type="button"
                   className="button small subtle"
-                  onClick={() => (isPlaying ? onPause() : onPlay())}
-                  aria-pressed={isPlaying}
+                  onClick={() => {
+                    const row = track.icon === 'vocal' ? 'voice' : 'backing';
+                    if (isPlaying && stemFocus === row) {
+                      onPause();
+                      return;
+                    }
+                    onFocusStem?.(row);
+                    if (!isPlaying) {
+                      onPlay();
+                    }
+                  }}
+                  aria-pressed={
+                    isPlaying &&
+                    stemFocus === (track.icon === 'vocal' ? 'voice' : 'backing')
+                  }
                   aria-label={t(
                     isPlaying
                       ? 'karaoke.transport.pause'
@@ -268,23 +300,37 @@ const KaraokeMakerStems = ({
           className="karaoke-maker__stem-level"
           htmlFor="karaoke-maker-vocal-level"
         >
-          <span>{t('karaoke.transport.vocalLevel')}</span>
+          {/*
+            One slider, two meanings, switched by which stem was played last:
+            under the backing track it raises the guide vocal; under a soloed
+            voice it raises the backing underneath. Both read as "how much of
+            the other one", the only question this slider answers.
+          */}
+          <span>
+            {stemFocus === 'voice'
+              ? t('karaoke.maker.stemBacking')
+              : t('karaoke.transport.vocalLevel')}
+          </span>
           <input
             id="karaoke-maker-vocal-level"
-            aria-label={t('karaoke.transport.vocalLevel')}
-            aria-valuetext={
-              percent === 0 ? t('karaoke.transport.vocalOff') : `${percent}%`
+            aria-label={
+              stemFocus === 'voice'
+                ? t('karaoke.maker.stemBacking')
+                : t('karaoke.transport.vocalLevel')
             }
+            aria-valuetext={levelText}
             type="range"
             min={0}
             max={1}
             step={0.01}
-            value={vocalLevel}
-            onChange={(event) => onVocalLevel(Number(event.target.value))}
+            value={stemFocus === 'voice' ? backingBlend : vocalLevel}
+            onChange={(event) =>
+              stemFocus === 'voice'
+                ? onBackingBlend?.(Number(event.target.value))
+                : onVocalLevel(Number(event.target.value))
+            }
           />
-          <span className="karaoke-maker__stem-level-value">
-            {percent === 0 ? t('karaoke.transport.vocalOff') : `${percent}%`}
-          </span>
+          <span className="karaoke-maker__stem-level-value">{levelText}</span>
         </label>
       )}
     </section>

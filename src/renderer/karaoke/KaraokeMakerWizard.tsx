@@ -5,6 +5,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import { useTranslation } from '../utils/I18nContext';
+import Dropdown from '../widgets/Dropdown';
 import KaraokeMakerToolIcon from './KaraokeMakerToolIcon';
 
 export type TKaraokeMakerWizardStep = 'separate' | 'transcribe';
@@ -34,19 +35,22 @@ interface IKaraokeMakerWizardProps {
   onLanguage: (language: string | undefined) => void;
 }
 
-/** The choices offered; Whisper accepts far more, these are the app's own. */
+/**
+ * Every language Whisper large-v3 was trained on, the app's ten first.
+ *
+ * The model's own set rather than a curation: offering fewer than the model
+ * supports would be the dropdown lying about the detector. Labels come from
+ * Intl.DisplayNames, so each language names itself in the UI's own words.
+ */
 const WIZARD_LANGUAGES = [
-  'es',
-  'en',
-  'de',
-  'fr',
-  'it',
-  'pt',
-  'ru',
-  'ja',
-  'zh',
-  'hi',
-] as const;
+  ...['es', 'en', 'de', 'fr', 'it', 'pt', 'ru', 'ja', 'zh', 'hi'],
+  ...(
+    'af am ar as az ba be bg bn bo br bs ca cs cy da el et eu fa fi fo gl ' +
+    'gu ha haw he hr ht hu hy id is jw ka kk km kn ko la lb ln lo lt lv mg ' +
+    'mi mk ml mn mr ms mt my ne nl nn no oc pa pl ps ro sa sd si sk sl sn ' +
+    'so sq sr su sv sw ta te tg th tk tl tr tt uk ur uz vi yi yo yue'
+  ).split(' '),
+];
 
 /**
  * The offer to set a song up automatically, and the progress once it is running.
@@ -106,6 +110,12 @@ const KaraokeMakerWizard = ({
     >
       <div className="karaoke-maker__wizard-panel">
         <h2 className="karaoke-maker__wizard-title">
+          <span
+            className="karaoke-maker__wizard-title-badge"
+            aria-hidden="true"
+          >
+            <KaraokeMakerToolIcon name="analyze" />
+          </span>
           {t('karaoke.maker.wizardTitle')}
         </h2>
         <p className="karaoke-maker__wizard-intro">
@@ -128,38 +138,55 @@ const KaraokeMakerWizard = ({
               >
                 <KaraokeMakerToolIcon name={step.icon} />
                 <span>{t(step.label)}</span>
+                {/*
+                  The running phase carries its own spinner at the row's end,
+                  and a finished one its check — the list itself says where
+                  the run stands without reading the progress bar below.
+                */}
+                {active && (
+                  <span
+                    className="karaoke-maker__wizard-step-loader"
+                    aria-hidden="true"
+                  />
+                )}
+                {done && (
+                  <span
+                    className="karaoke-maker__wizard-step-done"
+                    aria-hidden="true"
+                  >
+                    ✓
+                  </span>
+                )}
               </li>
             );
           })}
         </ol>
 
         {!running && (
-          <label
-            className="karaoke-maker__wizard-language"
-            htmlFor="karaoke-wizard-language"
-          >
+          <div className="karaoke-maker__wizard-language">
             <span>{t('karaoke.maker.wizardLanguage')}</span>
-            <select
-              id="karaoke-wizard-language"
+            <Dropdown
+              name={t('karaoke.maker.wizardLanguage')}
+              options={[
+                {
+                  value: 'auto',
+                  label: t('karaoke.maker.wizardLanguageAuto'),
+                  display: t('karaoke.maker.wizardLanguageAuto'),
+                },
+                ...WIZARD_LANGUAGES.map((code) => {
+                  const label = languageNames?.of(code) ?? code;
+                  return { value: code, label, display: label };
+                }),
+              ]}
               value={language ?? 'auto'}
-              onChange={(event) =>
-                onLanguage(
-                  event.target.value === 'auto'
-                    ? undefined
-                    : event.target.value,
-                )
+              handleChange={(value: string) =>
+                onLanguage(value === 'auto' ? undefined : value)
               }
-            >
-              <option value="auto">
-                {t('karaoke.maker.wizardLanguageAuto')}
-              </option>
-              {WIZARD_LANGUAGES.map((code) => (
-                <option key={code} value={code}>
-                  {languageNames?.of(code) ?? code}
-                </option>
-              ))}
-            </select>
-          </label>
+              isDisabled={false}
+              isFilterable
+              placement="down"
+            />
+          </div>
         )}
 
         {running && (
