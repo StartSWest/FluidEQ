@@ -41,27 +41,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   scrollbar-gutter: auto;
 }
 
-// Player and Maker are two views of the same song, so the handoff should feel
-// like one surface changing purpose rather than one window abruptly replacing
-// another. Only opacity and transform move; both stay on the compositor and do
-// not make the canvas, lyrics or transport recalculate their layout.
-.karaoke-workspace:not(.is-hidden):not(:has(> .karaoke-maker)) {
-  animation: karaoke-player-surface-enter 190ms cubic-bezier(0.2, 0.8, 0.2, 1)
-    both;
-}
-
-@keyframes karaoke-player-surface-enter {
-  from {
-    opacity: 0.88;
-    transform: translateY(-3px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 @keyframes karaoke-maker-surface-enter {
   from {
     opacity: 0;
@@ -2945,7 +2924,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .karaoke-workspace:not(.is-hidden):not(:has(> .karaoke-maker)),
   .karaoke-maker {
     animation: none !important;
   }
