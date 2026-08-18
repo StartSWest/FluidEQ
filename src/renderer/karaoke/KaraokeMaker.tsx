@@ -1903,7 +1903,16 @@ const KaraokeMaker = ({
               ? ' is-note-resize-ready'
               : ''
           }`}
-          title={canvasInteractionHint}
+          // NO NATIVE TOOLTIP ON THE EDITING SURFACE.
+          //
+          // A `title` on the canvas means the browser pops a yellow box under
+          // the pointer after a second of stillness — over the one element
+          // somebody rests the pointer on constantly while deciding where to
+          // drag a note. It covered the notes it was describing, and it could
+          // not be styled or placed. The instruction is still on screen: it is
+          // rendered as the status line under the canvas, which is where the
+          // mode already says what the current tool does.
+          aria-label={canvasInteractionHint}
           onPointerDown={onCanvasPointerDown}
           onPointerMove={onCanvasPointerMove}
           onPointerUp={onCanvasPointerUp}

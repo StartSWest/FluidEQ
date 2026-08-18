@@ -2432,18 +2432,31 @@ app
       // written once, in branding.
       app.setAppUserModelId(APP_ID);
     }
-    // Before the window, because the window's `close` handler asks the tray
-    // whether a quit is under way from the first close it ever sees — and
-    // because a tray that failed to appear reports "always quitting", which is
-    // the answer that keeps the close button working when there is nowhere to
-    // hide the window.
-    setUpTray({ getMainWindow: () => mainWindow });
     // Before any window exists, so the player's session and the rules its web
     // contents run under are in place by the time one can be attached.
     setUpVideoBrowser();
-    createMainWindow().catch((error) => {
-      log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
-    });
+    createMainWindow()
+      .then(() => {
+        // AFTER THE WINDOW, NOT BEFORE IT.
+        //
+        // This used to run first, so that the window's `close` handler could
+        // ask the tray about a quit from the very first close it saw. That
+        // ordering put a native shell call ahead of everything the app is for:
+        // when tray creation failed hard — not by throwing, which is caught,
+        // but by taking the process down — the app exited before a window ever
+        // appeared, and the only trace was four log lines and no error. An
+        // app that cannot open because its notification icon is unhappy has
+        // its priorities backwards.
+        //
+        // Nothing is lost by waiting. `isAppQuitting` reports false until a
+        // quit is armed, which is the correct answer for every close that can
+        // happen in the milliseconds before this runs.
+        setUpTray({ getMainWindow: () => mainWindow });
+        return undefined;
+      })
+      .catch((error) => {
+        log.error(`Failed to create the ${PRODUCT_NAME} window`, error);
+      });
     app.on('activate', () => {
       // On macOS it's common to re-create a window in the app when the
       // dock icon is clicked and there are no other windows open.

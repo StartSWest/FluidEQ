@@ -38,6 +38,77 @@ const MINIMUM_NOTE_MS = 60;
 const hzToMidi = (hz: number) => 69 + 12 * Math.log2(hz / 440);
 
 /**
+ * How far from an exact octave still counts as an octave error.
+ *
+ * The tracker locks onto a harmonic or a subharmonic, so the wrong answer sits
+ * almost exactly 12 semitones out — the state grid is integer semitones, so in
+ * practice it is exact. One semitone of slack catches the case where the note
+ * either side was itself rounded a step away, and refuses everything that is
+ * merely a wide interval somebody actually sang.
+ */
+const OCTAVE_SLACK_SEMITONES = 1;
+
+/**
+ * The longest note that may be dismissed as a tracking error.
+ *
+ * A held octave leap is singing; a brief one in the middle of a phrase is the
+ * tracker slipping. 320ms is above a fast passing note and well under anything
+ * anybody would call a sustained interval, so the repair reaches the slips and
+ * leaves real leaps alone.
+ */
+const OCTAVE_REPAIR_MAX_MS = 320;
+
+/**
+ * Fold isolated octave jumps back to where the phrase was.
+ *
+ * WHAT THIS FIXES, AND WHY THE MEDIAN CANNOT. Pitch trackers periodically lock
+ * onto the first harmonic or the subharmonic instead of the fundamental. When
+ * that happens it is not jitter — every frame of the note agrees, so the
+ * per-note median that removes ordinary wobble reports the wrong octave with
+ * total confidence, and the Viterbi path has no reason to prefer otherwise
+ * because a consistent wrong state is cheap.
+ *
+ * It shows up as one note sitting an octave off its neighbours in the middle
+ * of an otherwise level phrase, which is exactly what this looks for: both
+ * sides present, both agreeing with each other, the note between them an
+ * octave away and short enough to be a slip rather than a leap. Where all of
+ * that holds, the octave is moved to the neighbours' and nothing else changes
+ * — not the timing, not the confidence, not the note count.
+ *
+ * Deliberately conservative. A singer really does jump an octave, and doing it
+ * on purpose is a moment worth keeping; every condition here exists to leave
+ * that alone. The cost of being too eager is silently flattening the most
+ * expressive bar in a song, which is far worse than leaving a stray note for
+ * somebody to drag.
+ *
+ * Mutates in place: the caller owns the array and nothing else has seen it.
+ */
+const repairOctaveJumps = (notes: IKaraokeMakerAnalysisNote[]): void => {
+  for (let i = 1; i < notes.length - 1; i += 1) {
+    const previous = notes[i - 1];
+    const note = notes[i];
+    const next = notes[i + 1];
+    // The phrase either side has to agree before it can be evidence. Two
+    // neighbours a fifth apart say the melody is moving, and a note between
+    // them is then doing something real whatever octave it is in.
+    const isSlip =
+      note.endMs - note.startMs <= OCTAVE_REPAIR_MAX_MS &&
+      Math.abs(previous.targetMidi - next.targetMidi) <= 2;
+    if (isSlip) {
+      const anchor = Math.round((previous.targetMidi + next.targetMidi) / 2);
+      const offset = note.targetMidi - anchor;
+      const octaves = Math.round(offset / 12);
+      if (
+        octaves !== 0 &&
+        Math.abs(offset - octaves * 12) <= OCTAVE_SLACK_SEMITONES
+      ) {
+        note.targetMidi -= octaves * 12;
+      }
+    }
+  }
+};
+
+/**
  * Detect the sung melody with SwiftF0, one note at a time.
  *
  * Basic Pitch answered "which notes are sounding" — a polyphonic question the
@@ -305,6 +376,7 @@ export const analyzeKaraokeWithSwiftF0 = async (
     }
   }
 
+  repairOctaveJumps(notes);
   onProgress(1);
   return notes;
 };
