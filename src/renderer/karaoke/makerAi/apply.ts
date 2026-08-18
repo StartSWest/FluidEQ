@@ -11,6 +11,7 @@ import {
 import { repairEstimatedWhisperTimingWithMelody } from '../makerAlignment';
 import {
   IKaraokeMakerProject,
+  karaokeMakerId,
   makerLinesFromPlainText,
   KARAOKE_MAKER_WHISPER_ALIGNMENT_VERSION,
   karaokeMakerLineIsSection,
@@ -322,11 +323,38 @@ export const applyBasicPitchMelody = (
   const repairedProject = repairWordTiming
     ? repairEstimatedWhisperTimingWithMelody(project, notes)
     : project;
-  const aligned = autoAlignNotesOnly(
-    repairedProject,
-    karaokeMakerMelodyNotesForLyrics(repairedProject, notes),
-    'basic-pitch',
-  );
+  const forLyrics = karaokeMakerMelodyNotesForLyrics(repairedProject, notes);
+  // A project with no timed lyrics gives the aligner nothing to attach notes
+  // to, and "re-detect melody" silently produced zero from four hundred good
+  // candidates — a working detector reported as broken. Detected notes stand
+  // on their own as free notes in that case; they attach to words later, when
+  // there are words to attach to.
+  if (!forLyrics.length && notes.length) {
+    return touchKaraokeMakerProject(
+      synchronizeKaraokeMakerSections({
+        ...repairedProject,
+        melody: {
+          ...repairedProject.melody,
+          notes: [
+            ...repairedProject.melody.notes.filter(
+              (note) => note.source === 'manual',
+            ),
+            ...notes.map((note) => ({
+              id: karaokeMakerId('note'),
+              startMs: Math.round(note.startMs),
+              endMs: Math.round(note.endMs),
+              targetMidi: note.targetMidi,
+              kind: 'free' as const,
+              confidence: note.confidence,
+              source: 'basic-pitch' as const,
+            })),
+          ],
+        },
+        provenance: upsertProvenance(repairedProject.provenance, provenance),
+      }),
+    );
+  }
+  const aligned = autoAlignNotesOnly(repairedProject, forLyrics, 'basic-pitch');
   return touchKaraokeMakerProject(
     synchronizeKaraokeMakerSections({
       ...aligned,
