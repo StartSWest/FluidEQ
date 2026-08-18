@@ -61,7 +61,6 @@ let cancelRequested = false;
 
 /** Whether the separation network is resident right now. */
 export const isSeparationLoaded = () => session !== undefined;
-const running = false;
 
 /**
  * Fetch one model file to disk if it is not already there.
