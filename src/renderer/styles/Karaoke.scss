@@ -41,6 +41,39 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   scrollbar-gutter: auto;
 }
 
+// Player and Maker are two views of the same song, so the handoff should feel
+// like one surface changing purpose rather than one window abruptly replacing
+// another. Only opacity and transform move; both stay on the compositor and do
+// not make the canvas, lyrics or transport recalculate their layout.
+.karaoke-workspace:not(.is-hidden):not(:has(> .karaoke-maker)) {
+  animation: karaoke-player-surface-enter 190ms cubic-bezier(0.2, 0.8, 0.2, 1)
+    both;
+}
+
+@keyframes karaoke-player-surface-enter {
+  from {
+    opacity: 0.88;
+    transform: translateY(-3px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes karaoke-maker-surface-enter {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.997);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
 .karaoke-workspace__header {
   display: flex;
   flex: 0 0 auto;
@@ -118,6 +151,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     color: $secondary-light;
     border-color: rgba($secondary-default, 0.7);
     box-shadow: 0 0 16px rgba($secondary-default, 0.18);
+  }
+
+  .karaoke-workspace__pitch-toggle[aria-pressed='true'] {
+    color: $primary-dark;
+    border-color: rgba($secondary-light, 0.94);
+    background: linear-gradient(145deg, $secondary-light, $secondary-default);
+    box-shadow:
+      0 0 0 1px rgba($secondary-default, 0.2),
+      0 0 20px rgba($secondary-default, 0.24),
+      inset 0 1px rgba($white, 0.42);
+
+    &:hover:not(:disabled),
+    &:focus-visible {
+      color: $primary-dark;
+      border-color: rgba($white, 0.96);
+      background: linear-gradient(145deg, $white, $secondary-light);
+      box-shadow:
+        0 0 0 2px rgba($secondary-default, 0.2),
+        0 0 24px rgba($secondary-default, 0.32),
+        inset 0 1px rgba($white, 0.56);
+    }
   }
 }
 
@@ -258,6 +312,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-workspace__stage.has-song
   .karaoke-song__heading {
   padding-top: 42px;
+}
+
+// Normal mode gets this breathing room from the workspace panel's 12px outer
+// padding. Fullscreen removes that card padding to give the stage the screen,
+// but the floating transport still needs the same visual inset from the edge.
+.karaoke-workspace.is-fullscreen > .karaoke-transport {
+  margin-bottom: 12px;
 }
 
 .karaoke-workspace__notice {
@@ -781,6 +842,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-workspace__stage {
   @include inset-surface;
   position: relative;
+  isolation: isolate;
   display: grid;
   min-height: 0;
   flex: 1 1 auto;
@@ -828,7 +890,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.has-song {
     min-height: 0;
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(52px, 1fr) auto;
+    grid-template-rows: auto minmax(52px, 1fr);
     align-items: stretch;
     gap: clamp(10px, 1vh, 14px);
     padding: clamp(14px, 1.7vh, 20px);
@@ -836,10 +898,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &.has-song.has-stage-pitch {
     min-height: 0;
+    // The guide is user-resizable, but the heading, lyrics and shared
+    // transport still need guaranteed room in the surrounding workspace.
+    // Without this cap, a persisted 62% guide could consume the whole stage.
     grid-template-rows:
-      auto minmax(52px, 1fr) 0
-      minmax(104px, var(--karaoke-pitch-size, 34%))
-      auto;
+      auto minmax(52px, 1fr) 12px
+      minmax(104px, min(var(--karaoke-pitch-size, 34%), calc(100% - 220px)));
   }
 
   > .karaoke-pane-splitter.is-horizontal {
@@ -1318,11 +1382,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: relative;
   z-index: 4;
   isolation: isolate;
+  container-name: karaoke-transport;
+  container-type: inline-size;
   display: grid;
-  width: min(100%, 1080px);
+  width: min(100%, 1280px);
   min-width: 0;
-  grid-template-columns: auto minmax(220px, 1fr) minmax(150px, 0.28fr);
+  grid-template-columns: auto minmax(220px, 1fr);
+  grid-auto-columns: minmax(190px, 0.36fr);
+  grid-auto-flow: column;
   align-items: center;
+  align-self: center;
   justify-self: center;
   gap: clamp(10px, 1.2vw, 18px);
   margin-top: -2px;
@@ -1424,6 +1493,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
       background: transparent !important;
       box-shadow: none !important;
       opacity: 0.7;
+    }
+
+    small {
+      position: absolute;
+      right: 1px;
+      bottom: 0;
+      display: grid;
+      width: 13px;
+      height: 13px;
+      place-items: center;
+      color: #bafff7;
+      font-size: 0.72rem;
+      font-weight: 850;
+      line-height: 1;
+      background: #0a3846;
+      border: 1px solid rgba(105, 246, 233, 0.38);
+      border-radius: 50%;
     }
 
     &[data-tooltip]::after {
@@ -1549,7 +1635,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-transport__volume {
-  grid-template-columns: 28px minmax(70px, 1fr) 34px;
+  min-width: 0;
+  grid-template-columns: 26px minmax(56px, 1fr) minmax(42px, 78px);
   padding: 4px 7px 4px 4px;
   border: 1px solid rgba($secondary-light, 0.08);
   border-radius: $radius-pill;
@@ -1557,22 +1644,163 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: inset 0 1px 2px rgba($black, 0.24);
 
   .karaoke-transport__volume-value {
+    min-width: 0;
+    overflow: hidden;
     color: rgba($primary-lighter, 0.72);
     font-size: 0.56rem;
     font-variant-numeric: tabular-nums;
-    text-align: right;
+    text-align: left;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 
 .karaoke-transport__volume-icon {
   display: grid;
-  width: 27px;
-  height: 27px;
+  width: 26px;
+  height: 26px;
   place-items: center;
   color: rgba($secondary-light, 0.76);
   border: 1px solid rgba($secondary-light, 0.1);
   border-radius: 50%;
   background: rgba($secondary-default, 0.07);
+
+  // Maker icons do not carry intrinsic dimensions because toolbar buttons
+  // size them. Inside the shared transport they must stay compact, otherwise
+  // the browser falls back to the SVG default and the glyph spills out of the
+  // channel control.
+  > svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 15px;
+    overflow: visible;
+  }
+}
+
+.karaoke-transport button.karaoke-transport__volume-toggle,
+.karaoke-transport__mix-popover button.karaoke-transport__volume-toggle {
+  min-width: 26px;
+  min-height: 26px;
+  padding: 0;
+  color: rgba($secondary-light, 0.76);
+  border: 1px solid rgba($secondary-light, 0.1);
+  border-radius: 50%;
+  background: rgba($secondary-default, 0.07);
+  box-shadow: none;
+  cursor: pointer;
+
+  &:hover:not(:disabled),
+  &:focus-visible,
+  &[aria-pressed='true'] {
+    color: $white;
+    border-color: rgba($secondary-light, 0.45);
+    background: rgba($secondary-default, 0.14);
+    box-shadow: 0 0 14px rgba($secondary-default, 0.16);
+  }
+}
+
+.karaoke-transport__mix-buttons {
+  display: none;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba($secondary-light, 0.08);
+  border-radius: $radius-pill;
+  background: rgba(#020a12, 0.25);
+  box-shadow: inset 0 1px 2px rgba($black, 0.24);
+}
+
+.karaoke-transport button.karaoke-transport__mix-trigger {
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  padding: 0;
+  color: rgba($secondary-light, 0.76);
+  border-radius: 50%;
+
+  > svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  &[data-enabled='true'] {
+    color: $white;
+    border-color: rgba($secondary-light, 0.36);
+    background: rgba($secondary-default, 0.12);
+  }
+
+  &[aria-expanded='true'] {
+    color: $primary-dark;
+    border-color: rgba($secondary-light, 0.7);
+    background: $secondary-default;
+    box-shadow: 0 0 15px rgba($secondary-default, 0.24);
+  }
+
+  &[data-unavailable='true'] {
+    opacity: 0.35;
+  }
+}
+
+.karaoke-transport__mix-popover {
+  @include menu-surface;
+  z-index: 1400;
+  display: grid;
+  width: min(320px, calc(100vw - 16px));
+  gap: 9px;
+  padding: 11px;
+  overflow-y: auto;
+}
+
+.karaoke-transport__mix-title {
+  color: $text-primary;
+  font-size: 0.7rem;
+  font-weight: 850;
+  letter-spacing: 0.02em;
+}
+
+.karaoke-transport__mix-levels {
+  display: grid;
+  gap: 7px;
+}
+
+.karaoke-transport__volume.is-in-mix-menu {
+  grid-template-columns: 26px minmax(0, 1fr) auto;
+  grid-template-rows: 26px 18px;
+  gap: 6px 8px;
+  padding: 7px 8px 8px;
+  border-radius: 12px;
+
+  .karaoke-transport__volume-icon {
+    grid-row: 1;
+    grid-column: 1;
+  }
+
+  .karaoke-transport__mix-label {
+    min-width: 0;
+    grid-row: 1;
+    grid-column: 2;
+    align-self: center;
+    overflow: hidden;
+    color: $text-muted;
+    font-size: 0.62rem;
+    font-weight: 760;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  input {
+    grid-row: 2;
+    grid-column: 1 / -1;
+  }
+
+  .karaoke-transport__volume-value {
+    grid-row: 1;
+    grid-column: 3;
+    align-self: center;
+  }
 }
 
 .karaoke-transport__sr-label {
@@ -1607,7 +1835,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   stroke-linejoin: round;
 }
 
-.karaoke-transport input[type='range'] {
+.karaoke-transport input[type='range'],
+.karaoke-transport__mix-popover input[type='range'] {
   appearance: none;
   width: 100%;
   height: 16px;
@@ -1671,6 +1900,39 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:disabled {
     cursor: default;
     opacity: 0.35;
+  }
+}
+
+// Volume faders collapse only when their actual content count no longer fits.
+// The channel icons remain visible and open the same complete mix dialog, so
+// compact mode does not remove a setting or turn the transport into a scroller.
+@container karaoke-transport (max-width: 1120px) {
+  .karaoke-transport[data-level-count='3'] > .karaoke-transport__volume {
+    display: none;
+  }
+
+  .karaoke-transport[data-level-count='3'] > .karaoke-transport__mix-buttons {
+    display: flex;
+  }
+}
+
+@container karaoke-transport (max-width: 880px) {
+  .karaoke-transport[data-level-count='2'] > .karaoke-transport__volume {
+    display: none;
+  }
+
+  .karaoke-transport[data-level-count='2'] > .karaoke-transport__mix-buttons {
+    display: flex;
+  }
+}
+
+@container karaoke-transport (max-width: 680px) {
+  .karaoke-transport[data-level-count='1'] > .karaoke-transport__volume {
+    display: none;
+  }
+
+  .karaoke-transport[data-level-count='1'] > .karaoke-transport__mix-buttons {
+    display: flex;
   }
 }
 
@@ -1757,8 +2019,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-workspace__readiness.is-resizable {
-  max-height: 62%;
-  flex: 0 0 var(--karaoke-pitch-size, 34%);
+  // Keep enough of the workspace for song metadata, lyrics and transport.
+  // flex-shrink must remain enabled so a restored guide size cannot force the
+  // player above it when the window or breakpoint changes.
+  max-height: min(52%, calc(100% - 340px));
+  flex: 0 1 var(--karaoke-pitch-size, 34%);
 }
 
 .karaoke-workspace > .karaoke-pane-splitter.is-horizontal {
@@ -1780,6 +2045,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-pitch__canvas {
     min-height: 0;
   }
+}
+
+// The detached guide uses the same compressible graph behavior. Its default
+// 210px target floor otherwise survives after the outer pane has shrunk and
+// visually runs underneath the player's bottom controller.
+.karaoke-workspace__readiness > .karaoke-pitch,
+.karaoke-workspace__readiness > .karaoke-pitch.has-targets {
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+}
+
+.karaoke-workspace__readiness .karaoke-pitch__canvas {
+  min-height: 0;
 }
 
 .karaoke-microphone-popover {
@@ -2115,115 +2393,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 9px;
 }
 
-.karaoke-pitch__tone-guide {
-  display: flex;
-  min-width: 0;
-  min-height: 28px;
-  flex: 0 0 auto;
-  align-items: center;
-  overflow: hidden;
-  border: 1px solid rgba(#8fc8ff, 0.2);
-  border-radius: $radius-pill;
-  background:
-    linear-gradient(180deg, rgba(#173047, 0.58), rgba(#06111e, 0.72)),
-    rgba($surface-base, 0.52);
-  box-shadow: inset 0 1px 0 rgba($white, 0.045);
-  transition:
-    border-color 180ms ease,
-    background 180ms ease,
-    box-shadow 180ms ease;
-
-  &.is-enabled {
-    border-color: rgba(#8fc8ff, 0.5);
-    background:
-      linear-gradient(180deg, rgba(#174866, 0.66), rgba(#07182a, 0.8)),
-      rgba(#3091ff, 0.1);
-    box-shadow:
-      0 0 18px rgba(#3091ff, 0.12),
-      inset 0 1px 0 rgba($white, 0.075);
-  }
-}
-
-.karaoke-pitch__tone-toggle {
-  min-height: 26px !important;
-  gap: 5px;
-  padding: 4px 8px !important;
-  color: rgba($primary-lighter, 0.76) !important;
-  border: 0 !important;
-  border-radius: $radius-pill !important;
-  background: transparent !important;
-  box-shadow: none !important;
-  font-size: 0.58rem !important;
-  font-weight: 780 !important;
-  white-space: nowrap;
-
-  .karaoke-button__icon {
-    color: #8fc8ff;
-  }
-
-  .is-enabled & {
-    color: #d8efff !important;
-
-    .karaoke-button__icon {
-      filter: drop-shadow(0 0 5px rgba(#8fc8ff, 0.6));
-    }
-  }
-
-  &.button:hover:not(:disabled),
-  &.button:focus-visible,
-  &.button:active:not(:disabled) {
-    color: $white !important;
-    background: rgba(#3091ff, 0.1) !important;
-    transform: none;
-  }
-}
-
-.karaoke-pitch__tone-volume {
-  display: flex;
-  width: 70px;
-  min-width: 0;
-  height: 20px;
-  align-items: center;
-  box-sizing: border-box;
-  padding: 0 8px 0 5px;
-  border-left: 1px solid rgba(#8fc8ff, 0.15);
-
-  input[type='range'] {
-    width: 100%;
-    min-width: 0;
-    height: 3px;
-    margin: 0;
-    appearance: none;
-    border: 0;
-    border-radius: $radius-pill;
-    outline: none;
-    background: linear-gradient(
-      90deg,
-      #8fc8ff 0 var(--karaoke-tone-volume),
-      rgba($primary-lighter, 0.16) var(--karaoke-tone-volume) 100%
-    );
-    cursor: pointer;
-
-    &::-webkit-slider-thumb {
-      width: 11px;
-      height: 11px;
-      appearance: none;
-      border: 2px solid #091827;
-      border-radius: 50%;
-      background: #c8ecff;
-      box-shadow:
-        0 0 0 1px rgba(#8fc8ff, 0.48),
-        0 0 8px rgba(#3091ff, 0.42);
-    }
-
-    &:focus-visible::-webkit-slider-thumb {
-      box-shadow:
-        0 0 0 3px rgba(#3091ff, 0.2),
-        0 0 10px rgba(#3091ff, 0.58);
-    }
-  }
-}
-
 .karaoke-pitch__mic-toggle {
   min-height: 28px !important;
   gap: 5px;
@@ -2521,19 +2690,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .karaoke-song__utility {
     width: clamp(168px, 25vw, 200px);
   }
-
-  .karaoke-pitch__tone-toggle {
-    padding-inline: 7px !important;
-
-    > span {
-      display: none;
-    }
-  }
-
-  .karaoke-pitch__tone-volume {
-    width: 52px;
-    padding-inline: 4px 7px;
-  }
 }
 
 @container autoeq-workspace (max-width: 660px) {
@@ -2551,7 +2707,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .karaoke-transport {
     width: 100%;
-    grid-template-columns: auto minmax(90px, 1fr);
+    grid-template-columns: auto minmax(90px, 1fr) auto;
     gap: 8px;
     border-radius: 16px;
   }
@@ -2685,14 +2841,121 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// A short laptop window needs a vertical layout of its own. Width-only
+// breakpoints previously stacked the playlist and then kept 280-360px minimum
+// tracks, so the pitch guide and bottom transport were pushed through one
+// another. These floors preserve every band while letting the graph contract
+// before controls overlap.
+@media (max-height: 760px) {
+  .karaoke-workspace {
+    gap: 8px;
+  }
+
+  .karaoke-workspace__header {
+    gap: 8px;
+    padding-top: 2px;
+
+    h2 {
+      margin-block: 0 2px;
+    }
+  }
+
+  .karaoke-workspace__intro {
+    display: none;
+  }
+
+  .karaoke-workspace__stage.has-song {
+    grid-template-rows: auto minmax(36px, 1fr);
+    gap: 6px;
+    padding: 8px;
+  }
+
+  .karaoke-workspace__stage.has-song.has-stage-pitch {
+    grid-template-rows:
+      auto minmax(36px, 1fr) 8px
+      minmax(64px, min(var(--karaoke-pitch-size, 28%), 28%));
+  }
+
+  .karaoke-workspace__stage > .karaoke-pane-splitter.is-horizontal,
+  .karaoke-workspace > .karaoke-pane-splitter.is-horizontal {
+    height: 8px;
+  }
+
+  .karaoke-workspace__readiness,
+  .karaoke-workspace__readiness.is-resizable {
+    min-height: 88px;
+    max-height: min(42%, 170px);
+    flex: 0 1 min(var(--karaoke-pitch-size, 28%), 170px);
+  }
+
+  .karaoke-workspace__readiness .karaoke-pitch,
+  .karaoke-workspace__readiness .karaoke-pitch.has-targets {
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    padding: 7px 9px 6px !important;
+  }
+
+  .karaoke-workspace__readiness .karaoke-pitch__canvas {
+    min-height: 0;
+  }
+
+  .karaoke-transport {
+    padding-block: 6px;
+  }
+
+  @container autoeq-workspace (max-width: 760px) {
+    .karaoke-workspace__player.has-playlist:not(.is-playlist-collapsed) {
+      grid-template-rows: minmax(56px, 0.16fr) minmax(0, 1fr);
+
+      > .karaoke-playlist {
+        max-height: 88px;
+      }
+    }
+  }
+}
+
+@media (max-width: 720px) and (max-height: 760px) {
+  .karaoke-workspace__stage {
+    min-height: 0;
+  }
+}
+
+@media (max-height: 620px) {
+  .karaoke-workspace__stage.has-song {
+    grid-template-rows: auto minmax(28px, 1fr);
+    padding: 6px;
+  }
+
+  .karaoke-workspace__stage.has-song.has-stage-pitch {
+    grid-template-rows:
+      auto minmax(28px, 1fr) 6px
+      minmax(54px, min(var(--karaoke-pitch-size, 25%), 25%));
+  }
+
+  .karaoke-workspace__readiness,
+  .karaoke-workspace__readiness.is-resizable {
+    min-height: 76px;
+    max-height: min(38%, 138px);
+    flex-basis: min(var(--karaoke-pitch-size, 25%), 138px);
+  }
+
+  .karaoke-workspace .karaoke-pitch__footer {
+    display: none;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
+  .karaoke-workspace:not(.is-hidden):not(:has(> .karaoke-maker)),
+  .karaoke-maker {
+    animation: none !important;
+  }
+
   .karaoke-pane-splitter__handle > span,
   .karaoke-playlist__collapse,
   .karaoke-playlist__expand,
   .karaoke-song__text-size,
   .karaoke-song__text-size input[type='range']::-webkit-slider-thumb,
   .karaoke-workspace__actions.is-stage-toolbar,
-  .karaoke-pitch__tone-guide,
   .karaoke-transport,
   .karaoke-transport__control,
   .karaoke-transport input[type='range']::-webkit-slider-thumb,
@@ -2714,13 +2977,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // deliberately limited to stable controls and inspectors; notes, words,
 // waveform, playhead and the time/pitch grids are all drawn in one canvas.
 .karaoke-maker {
+  --karaoke-maker-dock-height: 156px;
+  --karaoke-maker-header-height: 55px;
   position: absolute;
   inset: 0;
   z-index: 70;
+  container-name: karaoke-maker;
+  container-type: inline-size;
   display: grid;
-  grid-template-rows: auto auto auto minmax(260px, 1fr) auto auto;
+  // Header, editing surface, lyric preview, command dock. Every band owns its
+  // space; no row is pulled over another one with negative margins.
+  grid-template-rows: auto minmax(260px, 1fr) auto auto;
   min-width: 0;
   min-height: 0;
+  animation: karaoke-maker-surface-enter 190ms cubic-bezier(0.2, 0.8, 0.2, 1)
+    both;
   overflow: hidden;
   color: #eafcff;
   background:
@@ -2819,12 +3090,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: relative;
   z-index: 11;
   display: grid;
-  // Sides sized to content, not equalized: 1fr flanks split the free space
-  // evenly, and since the actions cluster needs ~380px while the title needs
-  // ~200, the equal split starved the actions and wrapped the transport a
-  // full screen-width early. auto/1fr/auto lets each side take what it is
-  // and centers the transport in whatever remains.
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  // Equal flexible flanks keep the Maker tools centered in the whole header,
+  // not merely in the gap between an unequal title and action cluster.
+  grid-template-areas: 'identity tools actions';
+  grid-template-columns: minmax(300px, 1fr) auto minmax(300px, 1fr);
   align-items: center;
   flex-wrap: wrap;
   gap: 8px 14px;
@@ -2836,8 +3105,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   backdrop-filter: blur(18px);
 }
 
+.karaoke-maker__header-tools {
+  position: relative;
+  z-index: 12;
+  display: flex;
+  width: 100%;
+  min-width: 0;
+  grid-area: tools;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+
+  > .karaoke-maker__tools {
+    min-height: 42px;
+    padding: 0;
+  }
+}
+
 .karaoke-maker__identity,
-.karaoke-maker__transport,
 .karaoke-maker__header-actions,
 .karaoke-maker__tool-group,
 .karaoke-maker__fields {
@@ -2861,9 +3146,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .karaoke-maker__identity {
+  grid-area: identity;
   min-width: 0;
   overflow: hidden;
-  min-width: 0;
   gap: 9px;
 
   > div {
@@ -2897,230 +3182,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.karaoke-maker__transport {
-  position: relative;
-  isolation: isolate;
-  justify-self: center;
-  max-width: 100%;
-  gap: 8px;
-  min-height: 44px;
-  padding: 4px 8px;
-  white-space: nowrap;
-  background:
-    linear-gradient(180deg, rgba(22, 48, 71, 0.78), rgba(5, 22, 36, 0.9)),
-    rgba(5, 23, 37, 0.82);
-  border: 1px solid rgba(106, 217, 219, 0.2);
-  border-radius: 18px;
-  box-shadow:
-    0 12px 30px rgba(0, 0, 0, 0.28),
-    0 0 24px rgba(26, 220, 205, 0.05),
-    inset 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 -1px rgba(0, 0, 0, 0.3);
-  backdrop-filter: blur(16px) saturate(1.2);
-
-  &::before {
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    right: 14%;
-    left: 14%;
-    height: 1px;
-    background: linear-gradient(
-      90deg,
-      transparent,
-      rgba(103, 255, 241, 0.48),
-      transparent
-    );
-    content: '';
-  }
-}
-
-.karaoke-maker__transport-buttons {
-  display: flex;
-  align-items: center;
-  gap: 3px;
-  padding: 3px;
-  background: rgba(1, 10, 18, 0.42);
-  border: 1px solid rgba(97, 224, 218, 0.09);
-  border-radius: 999px;
-  box-shadow:
-    0 5px 16px rgba(0, 0, 0, 0.24),
-    inset 0 1px rgba(255, 255, 255, 0.035);
-}
-
-.karaoke-maker__transport-control {
-  position: relative;
-  display: grid;
-  width: 34px;
-  min-width: 34px !important;
-  height: 34px;
-  min-height: 34px !important;
-  place-items: center;
-  padding: 0 !important;
-  color: rgba(127, 242, 232, 0.82) !important;
-  background: transparent !important;
-  border-color: transparent !important;
-  border-radius: 50% !important;
-  box-shadow: none !important;
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  small {
-    position: absolute;
-    right: 2px;
-    bottom: 0;
-    display: grid;
-    width: 13px;
-    height: 13px;
-    place-items: center;
-    color: #bafff7;
-    font-size: 0.72rem;
-    font-weight: 850;
-    line-height: 1;
-    background: #0a3846;
-    border: 1px solid rgba(105, 246, 233, 0.38);
-    border-radius: 50%;
-  }
-
-  &:hover:not(:disabled) {
-    color: #fff !important;
-    background: rgba(29, 216, 200, 0.14) !important;
-    box-shadow: 0 0 16px rgba(27, 222, 206, 0.13) !important;
-  }
-
-  &:active:not(:disabled) {
-    background: rgba(29, 216, 200, 0.22) !important;
-    transform: scale(0.94);
-  }
-
-  &[data-tooltip]::after {
-    position: absolute;
-    top: calc(100% + 9px);
-    left: 50%;
-    z-index: 45;
-    padding: 6px 8px;
-    color: #dcfffb;
-    font-size: 0.76rem;
-    font-weight: 750;
-    line-height: 1;
-    white-space: nowrap;
-    pointer-events: none;
-    visibility: hidden;
-    background: rgba(4, 22, 35, 0.98);
-    border: 1px solid rgba(76, 225, 214, 0.34);
-    border-radius: 7px;
-    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.42);
-    opacity: 0;
-    transform: translate(-50%, -3px);
-    transition:
-      opacity 120ms ease,
-      transform 120ms ease,
-      visibility 120ms;
-    content: attr(data-tooltip);
-  }
-
-  &[data-tooltip]:hover::after,
-  &[data-tooltip]:focus-visible::after {
-    visibility: visible;
-    opacity: 1;
-    transform: translate(-50%, 0);
-    transition-delay: 280ms;
-  }
-}
-
-.karaoke-maker__transport-time {
-  display: grid;
-  min-width: 128px;
-  grid-template-columns: 42px minmax(30px, 1fr) 42px;
-  align-items: center;
-  gap: 7px;
-  padding: 5px 9px;
-  background: rgba(1, 10, 18, 0.28);
-  border: 1px solid rgba(93, 205, 207, 0.07);
-  border-radius: 999px;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.25);
-
-  time {
-    color: rgba(177, 216, 226, 0.66);
-    font-size: 0.8rem;
-    font-variant-numeric: tabular-nums;
-
-    &:first-child {
-      color: rgba(160, 255, 246, 0.88);
-      text-align: right;
-    }
-  }
-
-  > span {
-    height: 3px;
-    background: linear-gradient(90deg, #28dfcf, rgba(61, 150, 172, 0.22));
-    border-radius: 999px;
-    box-shadow: 0 0 8px rgba(35, 222, 207, 0.18);
-  }
-}
-
-.karaoke-maker__tone-guide {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  padding: 2px;
-  background: rgba(1, 10, 18, 0.34);
-  border: 1px solid rgba(93, 205, 207, 0.08);
-  border-radius: 999px;
-
-  &.is-enabled {
-    border-color: rgba(87, 241, 225, 0.28);
-    box-shadow: 0 0 14px rgba(30, 224, 206, 0.1);
-  }
-
-  input[type='range'] {
-    // Clamped, not fixed: with three faders in the transport the old fixed
-    // 58px each was the difference between fitting and shoving the header's
-    // actions off the right edge of a 2000px window.
-    width: clamp(38px, 4.5vw, 84px);
-    margin-right: 5px;
-    accent-color: #24dfcf;
-  }
-}
-
-.karaoke-maker__play {
-  width: 44px !important;
-  min-width: 44px !important;
-  height: 44px !important;
-  min-height: 44px !important;
-  margin: -5px 1px;
-  color: #031411 !important;
-  background: linear-gradient(145deg, #8ffff4, #16dcca) !important;
-  border-color: rgba(255, 255, 255, 0.34) !important;
-  border-radius: 50% !important;
-  box-shadow:
-    0 8px 20px rgba(0, 0, 0, 0.34),
-    0 0 23px rgba(24, 222, 205, 0.32),
-    inset 0 1px rgba(255, 255, 255, 0.48) !important;
-
-  svg {
-    width: 18px;
-    height: 18px;
-  }
-
-  &:hover:not(:disabled) {
-    color: #031411 !important;
-    background: linear-gradient(145deg, #fff, #8ffff4) !important;
-    box-shadow:
-      0 10px 25px rgba(0, 0, 0, 0.38),
-      0 0 31px rgba(24, 222, 205, 0.48),
-      inset 0 1px rgba(255, 255, 255, 0.6) !important;
-  }
-
-  &.is-playing {
-    animation: karaoke-transport-breathe 2.8s ease-in-out infinite;
-  }
-}
-
 .karaoke-maker__header-actions {
+  grid-area: actions;
   position: relative;
   width: max-content;
   max-width: 100%;
@@ -3181,6 +3244,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// The Apply explanation is sentence-length. Anchor the last two header
+// tooltips to the right edge and allow wrapping so they never leave a laptop
+// viewport or cover the transport from edge to edge.
+.karaoke-maker__header-actions > :nth-last-child(-n + 2)::after {
+  right: 0;
+  left: auto;
+  width: max-content;
+  max-width: min(310px, calc(100vw - 24px));
+  line-height: 1.35;
+  white-space: normal;
+  transform: translateY(-3px);
+}
+
+.karaoke-maker__header-actions > :nth-last-child(-n + 2):hover::after,
+.karaoke-maker__header-actions > :nth-last-child(-n + 2):focus-visible::after {
+  transform: translateY(0);
+}
+
 .karaoke-maker__header-icon {
   width: 32px;
   min-width: 32px !important;
@@ -3227,18 +3308,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   z-index: 9;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 6px;
   min-width: 0;
   min-height: 42px;
   padding: 4px 10px;
   overflow: visible;
-  background:
-    linear-gradient(90deg, transparent, rgba(28, 111, 126, 0.07), transparent),
-    rgba(7, 25, 41, 0.78);
-  border-bottom: 1px solid rgba(64, 129, 153, 0.15);
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.12);
-  backdrop-filter: blur(16px);
+  background: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
 .karaoke-maker__tool-group {
@@ -3767,7 +3845,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 3px 15px;
   color: rgba(167, 193, 208, 0.62);
   font-size: 0.8rem;
-  background: rgba(4, 18, 30, 0.48);
+  min-width: 0;
+  background: transparent;
 
   .is-live {
     color: #6bfff0;
@@ -3784,6 +3863,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__status-end {
   min-width: 0;
+  justify-content: flex-end;
   gap: 12px;
 }
 
@@ -3876,7 +3956,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-rows: minmax(0, 1fr) auto;
   min-width: 0;
   min-height: 0;
-  margin: 0 10px;
+  margin: 8px 10px 0;
   overflow: hidden;
   background: #071727;
   border: 1px solid rgba(65, 147, 172, 0.22);
@@ -5796,11 +5876,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   grid-template-columns: minmax(240px, 1fr) auto;
   align-items: center;
   gap: 15px;
-  min-height: 49px;
-  padding: 6px 13px;
-  background: rgba(5, 19, 31, 0.86);
+  min-height: 44px;
+  padding: 5px 13px;
+  background: rgba(4, 17, 29, 0.74);
   border-top: 1px solid rgba(65, 148, 172, 0.19);
-  backdrop-filter: blur(16px);
+}
+
+.karaoke-maker__command-dock {
+  position: relative;
+  z-index: 12;
+  display: grid;
+  min-width: 0;
+  background:
+    linear-gradient(90deg, rgba(25, 105, 119, 0.07), transparent 42%),
+    rgba(5, 19, 31, 0.94);
+  border-top: 1px solid rgba(72, 161, 180, 0.22);
+  box-shadow:
+    0 -14px 36px rgba(0, 0, 0, 0.24),
+    inset 0 1px rgba(255, 255, 255, 0.025);
+  backdrop-filter: blur(18px);
+
+  > .karaoke-transport {
+    // Match the player's 12px workspace inset exactly, so switching into the
+    // absolutely positioned Maker does not make the shared bar jump.
+    width: min(calc(100% - 24px), 1280px);
+    margin: 7px 12px 12px;
+  }
+}
+
+.karaoke-maker__command-primary {
+  display: block;
+  min-width: 0;
+  border-bottom: 1px solid rgba(64, 129, 153, 0.13);
+
+  > .karaoke-maker__status-row {
+    min-height: 28px;
+    align-items: center;
+    padding-inline: 12px 14px;
+  }
 }
 
 .karaoke-maker__fields {
@@ -6033,7 +6146,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__notice {
   position: absolute;
   right: 16px;
-  bottom: 59px;
+  bottom: calc(var(--karaoke-maker-dock-height) + 10px);
   z-index: 7;
   display: flex;
   align-items: center;
@@ -6063,7 +6176,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: absolute;
   z-index: 23;
   right: 18px;
-  bottom: 62px;
+  bottom: calc(var(--karaoke-maker-dock-height) + 12px);
   display: grid;
   width: min(500px, calc(100% - 36px));
   grid-template-columns: auto minmax(0, 1fr) auto auto;
@@ -6122,7 +6235,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__analysis-error {
   position: absolute;
   z-index: 22;
-  top: 124px;
+  top: calc(var(--karaoke-maker-header-height) + 12px);
   right: 18px;
   box-shadow:
     0 18px 48px rgba($black, 0.42),
@@ -6136,7 +6249,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__stems-float {
   position: absolute;
   z-index: 21;
-  top: 124px;
+  top: calc(var(--karaoke-maker-header-height) + 12px);
   right: 18px;
   width: min(430px, calc(100% - 36px));
   padding: 13px 14px;
@@ -6149,30 +6262,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     0 18px 48px rgba($black, 0.42),
     inset 0 1px rgba($white, 0.055);
   backdrop-filter: blur(18px);
-}
-
-// On wide screens the status row climbs into the toolbar's empty flanks —
-// the tool groups sit centered with dead space either side, while the hint
-// and the word-state legend each burned a whole band below. One band gone.
-// pointer-events stays off for the row so the toolbar's popovers keep their
-// clicks; the legend opts back in.
-@media (min-width: 1280px) {
-  // Quiet states only: a guided-capture message needs its own band back,
-  // or it prints through the toolbar buttons.
-  .karaoke-maker__status-row:not(.has-message) {
-    z-index: 10;
-    min-height: 42px;
-    margin-top: -42px;
-    padding: 0 14px;
-    align-items: center;
-    background: transparent;
-    border: 0;
-    pointer-events: none;
-  }
-
-  .karaoke-maker__status-row:not(.has-message) .karaoke-maker__status-end {
-    pointer-events: auto;
-  }
 }
 
 // The advanced-tools popover, split into "voice and music" and "lyrics and
@@ -6948,7 +7037,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__toast {
   position: absolute;
   z-index: 20;
-  top: 124px;
+  top: calc(var(--karaoke-maker-header-height) + 12px);
   right: 16px;
   display: flex;
   min-height: 34px;
@@ -7608,30 +7697,52 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 @media (max-width: 1580px) {
-  // Below this the transport genuinely cannot share the first line with the
-  // title and the actions. 1280 was optimism that a slimmer transport had
-  // bought 300px it had not — at a 1500px window the transport printed
-  // through the actions cluster, since a grid overflows rather than wraps.
-  // Measured content: title ~260 + transport ~900 + actions ~390 + gaps.
+  .karaoke-maker {
+    --karaoke-maker-header-height: 101px;
+  }
+
   .karaoke-maker__header {
+    grid-template-areas:
+      'identity actions'
+      'tools tools';
     grid-template-columns: minmax(150px, 1fr) auto;
+    grid-template-rows: 42px 42px;
     min-height: 0;
+    gap: 4px 12px;
+    padding: 5px 10px;
+  }
+}
+
+// The editor can be narrow inside a wide app window. Respond to the Maker
+// surface itself so a side pane cannot leave the tools and actions fighting
+// for the same one-line header.
+@container karaoke-maker (max-width: 1500px) {
+  .karaoke-maker__header {
+    grid-template-areas:
+      'identity actions'
+      'tools tools';
+    grid-template-columns: minmax(150px, 1fr) auto;
+    grid-template-rows: 42px 42px;
+    min-height: 0;
+    gap: 4px 12px;
     padding: 5px 10px;
   }
 
-  .karaoke-maker__transport {
-    grid-column: 1 / -1;
-    grid-row: 2;
-    justify-self: center;
-    max-width: 100%;
-    min-height: 42px;
-    overflow-x: auto;
+  .karaoke-maker__analysis-progress,
+  .karaoke-maker__analysis-error,
+  .karaoke-maker__stems-float,
+  .karaoke-maker__toast {
+    --karaoke-maker-header-height: 101px;
   }
 }
 
 @media (max-width: 1120px) {
   .karaoke-maker__header {
     grid-template-columns: minmax(220px, 1fr) auto;
+  }
+
+  .karaoke-maker__command-primary > .karaoke-maker__status-row {
+    padding-block: 3px;
   }
 
   .karaoke-maker__modal-backdrop {
@@ -7661,13 +7772,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .karaoke-maker__lyrics-word-fields {
     grid-template-columns: minmax(110px, 1fr);
-  }
-
-  .karaoke-maker__transport {
-    order: 3;
-    grid-column: 1 / -1;
-    justify-self: center;
-    margin-top: -2px;
   }
 
   .karaoke-maker__tool-group,
@@ -7743,7 +7847,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 @media (max-width: 760px) {
   .karaoke-maker {
-    grid-template-rows: auto auto auto minmax(300px, 1fr) auto auto;
+    --karaoke-maker-dock-height: 151px;
+    grid-template-rows: auto minmax(300px, 1fr) auto auto;
   }
 
   .karaoke-maker__header {
@@ -7774,22 +7879,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     }
   }
 
-  .karaoke-maker__transport {
-    max-width: 100%;
-    gap: 6px;
-  }
-
-  .karaoke-maker__transport-time {
-    min-width: 104px;
-    grid-template-columns: 36px minmax(22px, 1fr) 36px;
-    gap: 5px;
-    padding-inline: 6px;
-  }
-
   .karaoke-maker__tools {
+    width: 100%;
     justify-content: flex-start;
     gap: 4px;
     padding-inline: 7px;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .karaoke-maker__status-row {
@@ -7993,22 +8093,120 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// At phone-width windows, giving the identity and the action cluster separate
-// rows prevents the right-side controls from reducing the editable song title
-// to only a few words. The transport already owns its own row at this width.
+// The compact action cluster still fits beside the identity at phone widths.
+// Keeping those two together leaves the tools as the sole second row and
+// prevents a third header row from overflowing a short editor.
 @media (max-width: 520px) {
+  .karaoke-maker {
+    --karaoke-maker-header-height: 101px;
+  }
+
   .karaoke-maker__header {
-    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'identity actions'
+      'tools tools';
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-rows: 42px 42px;
   }
 
   .karaoke-maker__identity,
-  .karaoke-maker__header-actions,
-  .karaoke-maker__transport {
-    grid-column: 1;
+  .karaoke-maker__header-actions {
+    justify-self: stretch;
   }
 
   .karaoke-maker__header-actions {
     justify-self: end;
+  }
+}
+
+// The Maker uses the same bottom transport, but its canvas, preview and command
+// dock are separate grid rows. On a 13-inch laptop those rows must share the
+// available height instead of retaining desktop-sized 260-300px floors.
+@media (max-height: 760px) {
+  .karaoke-maker {
+    --karaoke-maker-dock-height: 120px;
+    grid-template-rows: auto minmax(132px, 1fr) auto auto;
+  }
+
+  .karaoke-maker__header {
+    min-height: 0;
+    padding-block: 4px;
+  }
+
+  .karaoke-maker__canvas-host {
+    margin-top: 5px;
+  }
+
+  .karaoke-maker-nav {
+    min-height: 46px;
+    padding-block: 3px;
+  }
+
+  .karaoke-maker-nav__overview {
+    height: 36px;
+  }
+
+  .karaoke-maker-preview {
+    margin-block: 4px;
+
+    > header {
+      min-height: 28px;
+      padding-block: 2px;
+    }
+  }
+
+  .karaoke-maker-preview__stage {
+    height: clamp(64px, var(--karaoke-maker-preview-height, 120px), 22dvh);
+  }
+
+  .karaoke-maker__command-primary > .karaoke-maker__status-row {
+    min-height: 0;
+    padding-block: 2px;
+  }
+
+  .karaoke-maker__status-end {
+    display: none;
+  }
+
+  .karaoke-maker__tools {
+    min-height: 38px;
+    padding-block: 3px;
+  }
+
+  .karaoke-maker__header-tools > .karaoke-maker__tools {
+    min-height: 38px;
+  }
+
+  .karaoke-maker__command-dock > .karaoke-transport {
+    margin-block: 5px 12px;
+  }
+}
+
+@media (max-height: 620px) {
+  .karaoke-maker {
+    --karaoke-maker-dock-height: 120px;
+    grid-template-rows: auto minmax(104px, 1fr) auto auto;
+  }
+
+  .karaoke-maker-preview__stage {
+    height: clamp(56px, var(--karaoke-maker-preview-height, 92px), 18dvh);
+  }
+
+  .karaoke-maker-preview__zoom {
+    display: none;
+  }
+}
+
+// Wide, short windows still use the single-row header. Narrow windows keep
+// their dedicated tools row even when height is scarce; collapsing that row
+// is what previously made the tools cover the editor.
+@media (min-width: 1581px) and (max-height: 760px) {
+  .karaoke-maker {
+    --karaoke-maker-header-height: 47px;
+  }
+
+  .karaoke-maker__header {
+    grid-template-rows: 38px;
   }
 }
 

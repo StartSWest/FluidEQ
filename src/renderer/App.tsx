@@ -1456,12 +1456,16 @@ const AppContent = () => {
             in rather than imported there, so there is one definition of what
             "reinstall Equalizer APO" does — including the confirmation and the
             restart advice that follows it. */}
-        {/* The creature remains over the full-screen graph, where the corner
-            is otherwise empty. Karaoke uses that same corner for its playlist
-            control and song metadata, so hiding the header also removes the
-            pet instead of laying an 80px decoration over the singer's UI. */}
+        {/* The creature remains over a full-screen graph. When Karaoke is the
+            surface beneath that graph, the overlay class moves it into the
+            lower dock so it cannot cover the playlist or song metadata. A
+            native Karaoke full screen keeps the creature out entirely. */}
         {isChromeHidden && !isKaraokeFullScreen && (
-          <div className={`fullscreen-chrome${isChromeIdle ? ' is-idle' : ''}`}>
+          <div
+            className={`fullscreen-chrome${
+              isKaraokeTab ? ' is-karaoke-overlay' : ''
+            }${isChromeIdle ? ' is-idle' : ''}`}
+          >
             <SupportPet
               hasContributed={hasContributed}
               onOpen={() => setShowSupportDialog(true)}

@@ -18,7 +18,7 @@ import KaraokeMakerToolbarButton from './KaraokeMakerToolbarButton';
 import KaraokeMakerTimingPopover from './KaraokeMakerTimingPopover';
 
 /**
- * The tool strip under the header: what the next click will do.
+ * The tool strip in the header: what the next click will do.
  *
  * A hundred and fifty-nine lines of the return, and the one part of the editor
  * that is purely modal — every control here arms something rather than doing

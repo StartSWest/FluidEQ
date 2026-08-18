@@ -17,33 +17,43 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import '@testing-library/jest-dom';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import KaraokeTransport from '../../renderer/karaoke/KaraokeTransport';
 
 describe('KaraokeTransport', () => {
   it('uses app-style icon controls and keeps every transport action wired', () => {
     const onTogglePlayback = jest.fn();
-    const onRestart = jest.fn();
+    const onJumpToStart = jest.fn();
+    const onJumpToEnd = jest.fn();
     const onSeek = jest.fn();
-    const onSeekLyric = jest.fn();
     const onVolume = jest.fn();
     const { container } = render(
       <KaraokeTransport
         status="paused"
         playheadMs={12_000}
         durationMs={60_000}
-        volume={0.7}
+        levels={[
+          {
+            id: 'volume',
+            label: 'Volume',
+            value: 0.7,
+            onChange: onVolume,
+          },
+        ]}
         onTogglePlayback={onTogglePlayback}
-        onRestart={onRestart}
+        onJumpToStart={onJumpToStart}
+        onJumpToEnd={onJumpToEnd}
         onSeek={onSeek}
-        onSeekLyric={onSeekLyric}
-        onVolume={onVolume}
       />,
     );
 
     const play = screen.getByRole('button', { name: 'Play' });
     expect(play).toHaveClass('button', 'small');
-    expect(container.querySelectorAll('.karaoke-button__icon')).toHaveLength(5);
+    expect(
+      container.querySelectorAll(
+        '.karaoke-transport__buttons .karaoke-button__icon',
+      ),
+    ).toHaveLength(5);
     expect(screen.getByLabelText('Song position')).toHaveStyle(
       '--karaoke-range-progress: 20%',
     );
@@ -52,10 +62,13 @@ describe('KaraokeTransport', () => {
     );
     expect(screen.getByText('70%')).toBeVisible();
 
-    fireEvent.click(screen.getByRole('button', { name: 'Restart song' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Previous lyric' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Jump to song start' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Go back 5 seconds' }));
     fireEvent.click(play);
-    fireEvent.click(screen.getByRole('button', { name: 'Next lyric' }));
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Go forward 5 seconds' }),
+    );
+    fireEvent.click(screen.getByRole('button', { name: 'Jump to song end' }));
     fireEvent.change(screen.getByLabelText('Song position'), {
       target: { value: '25000' },
     });
@@ -63,12 +76,85 @@ describe('KaraokeTransport', () => {
       target: { value: '0.4' },
     });
 
-    expect(onRestart).toHaveBeenCalledTimes(1);
-    expect(onSeekLyric).toHaveBeenNthCalledWith(1, -1);
-    expect(onSeekLyric).toHaveBeenNthCalledWith(2, 1);
+    expect(onJumpToStart).toHaveBeenCalledTimes(1);
+    expect(onJumpToEnd).toHaveBeenCalledTimes(1);
+    expect(onSeek).toHaveBeenNthCalledWith(1, 7_000);
+    expect(onSeek).toHaveBeenNthCalledWith(2, 17_000);
     expect(onTogglePlayback).toHaveBeenCalledTimes(1);
-    expect(onSeek).toHaveBeenCalledWith(25_000);
+    expect(onSeek).toHaveBeenNthCalledWith(3, 25_000);
     expect(onVolume).toHaveBeenCalledWith(0.4);
+  });
+
+  it('opens all hidden channel faders from the compact icon group', () => {
+    const onMelodyToggle = jest.fn();
+    const onBackingLevel = jest.fn();
+    const { container } = render(
+      <KaraokeTransport
+        status="paused"
+        playheadMs={12_000}
+        durationMs={60_000}
+        levels={[
+          {
+            id: 'melody',
+            label: 'Melody tone',
+            value: 0.5,
+            channel: 'melody',
+            pressed: true,
+            onToggle: onMelodyToggle,
+            onChange: () => {},
+          },
+          {
+            id: 'backing',
+            label: 'Backing',
+            value: 0.7,
+            channel: 'backing',
+            onChange: onBackingLevel,
+          },
+          {
+            id: 'vocal',
+            label: 'Guide vocal',
+            value: 0.3,
+            channel: 'vocal',
+            onChange: () => {},
+          },
+        ]}
+        onTogglePlayback={() => {}}
+        onJumpToStart={() => {}}
+        onJumpToEnd={() => {}}
+        onSeek={() => {}}
+      />,
+    );
+
+    expect(container.querySelector('.karaoke-transport')).toHaveAttribute(
+      'data-level-count',
+      '3',
+    );
+    const mixButtons = screen.getByRole('group', { name: 'Mix settings' });
+    expect(within(mixButtons).getAllByRole('button')).toHaveLength(3);
+
+    const backingTrigger = within(mixButtons).getByRole('button', {
+      name: 'Open mix settings for Backing',
+    });
+    fireEvent.click(backingTrigger);
+
+    expect(backingTrigger).toHaveAttribute('aria-expanded', 'true');
+    const dialog = screen.getByRole('dialog', { name: 'Mix settings' });
+    expect(within(dialog).getAllByRole('slider')).toHaveLength(3);
+    fireEvent.change(within(dialog).getByRole('slider', { name: 'Backing' }), {
+      target: { value: '0.42' },
+    });
+    fireEvent.click(
+      within(dialog).getByRole('button', { name: 'Melody tone' }),
+    );
+
+    expect(onBackingLevel).toHaveBeenCalledWith(0.42);
+    expect(onMelodyToggle).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(window, { key: 'Escape' });
+    expect(
+      screen.queryByRole('dialog', { name: 'Mix settings' }),
+    ).not.toBeInTheDocument();
+    expect(backingTrigger).toHaveFocus();
   });
 
   /**
@@ -78,19 +164,38 @@ describe('KaraokeTransport', () => {
   describe('the guide vocal fader', () => {
     const transport = (vocalLevel?: number) => {
       const onVocalLevel = jest.fn();
+      const levels = [
+        {
+          id: 'volume',
+          label: 'Volume',
+          value: 0.7,
+          onChange: () => {},
+        },
+        ...(vocalLevel === undefined
+          ? []
+          : [
+              {
+                id: 'vocal',
+                label: 'Guide vocal',
+                value: vocalLevel,
+                valueText:
+                  vocalLevel === 0
+                    ? 'Backing only'
+                    : `${Math.round(vocalLevel * 100)}%`,
+                onChange: onVocalLevel,
+              },
+            ]),
+      ];
       render(
         <KaraokeTransport
           status="paused"
           playheadMs={0}
           durationMs={60_000}
-          volume={0.7}
+          levels={levels}
           onTogglePlayback={() => {}}
-          onRestart={() => {}}
+          onJumpToStart={() => {}}
+          onJumpToEnd={() => {}}
           onSeek={() => {}}
-          onSeekLyric={() => {}}
-          onVolume={() => {}}
-          vocalLevel={vocalLevel}
-          onVocalLevel={onVocalLevel}
         />,
       );
       return { onVocalLevel };
@@ -103,12 +208,18 @@ describe('KaraokeTransport', () => {
           status="paused"
           playheadMs={0}
           durationMs={60_000}
-          volume={0.7}
+          levels={[
+            {
+              id: 'volume',
+              label: 'Volume',
+              value: 0.7,
+              onChange: () => {},
+            },
+          ]}
           onTogglePlayback={() => {}}
-          onRestart={() => {}}
+          onJumpToStart={() => {}}
+          onJumpToEnd={() => {}}
           onSeek={() => {}}
-          onSeekLyric={() => {}}
-          onVolume={() => {}}
         />,
       );
       expect(screen.queryByLabelText('Guide vocal')).not.toBeInTheDocument();

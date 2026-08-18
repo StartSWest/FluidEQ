@@ -424,9 +424,7 @@ describe('KaraokePitchLane', () => {
     );
   });
 
-  it('offers a melody-tone mode with its own volume control', () => {
-    const onToggleMelodyTone = jest.fn();
-    const onMelodyToneVolume = jest.fn();
+  it('keeps the melody-tone controls in the shared transport', () => {
     const target = {
       kind: 'notes' as const,
       source: 'ultrastar',
@@ -441,49 +439,21 @@ describe('KaraokePitchLane', () => {
         },
       ],
     };
-    const { container, rerender } = render(
+    render(
       <KaraokePitchLane
         isActive
         analysisStatus="idle"
         playheadMs={1_000}
         target={target}
-        onToggleMelodyTone={onToggleMelodyTone}
-        onMelodyToneVolume={onMelodyToneVolume}
-      />,
-    );
-
-    const enableTone = screen.getByRole('button', {
-      name: 'Play melody guide tone',
-    });
-    expect(enableTone).toHaveAttribute('aria-pressed', 'false');
-    fireEvent.click(enableTone);
-    expect(onToggleMelodyTone).toHaveBeenCalledTimes(1);
-
-    rerender(
-      <KaraokePitchLane
-        isActive
-        analysisStatus="idle"
-        playheadMs={1_000}
-        target={target}
-        melodyToneEnabled
-        melodyToneVolume={0.34}
-        onToggleMelodyTone={onToggleMelodyTone}
-        onMelodyToneVolume={onMelodyToneVolume}
       />,
     );
 
     expect(
-      screen.getByRole('button', { name: 'Stop melody guide tone' }),
-    ).toHaveAttribute('aria-pressed', 'true');
-    const volume = screen.getByRole('slider', {
-      name: 'Melody tone volume',
-    });
-    expect(volume).toHaveValue('0.34');
-    fireEvent.change(volume, { target: { value: '0.5' } });
-    expect(onMelodyToneVolume).toHaveBeenCalledWith(0.5);
-    expect(container.querySelector('.karaoke-pitch')).toHaveClass(
-      'is-melody-tone-enabled',
-    );
+      screen.queryByRole('button', { name: 'Play melody guide tone' }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('slider', { name: 'Melody tone volume' }),
+    ).not.toBeInTheDocument();
   });
 
   it('uses one combined song-note and live singer-pitch view', () => {

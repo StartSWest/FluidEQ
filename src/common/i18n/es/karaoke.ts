@@ -88,6 +88,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.transport.vocalLevel': 'Voz guía',
   'karaoke.transport.vocalOff': 'Solo base',
   'karaoke.transport.vocalFull': 'Original',
+  'karaoke.transport.mixSettings': 'Ajustes de mezcla',
+  'karaoke.transport.openMixSettings':
+    'Abrir los ajustes de mezcla de {channel}',
   'karaoke.mic.title': 'Micrófono',
   'karaoke.mic.settings': 'Ajustes del micrófono',
   'karaoke.mic.off': 'Apagado',
@@ -112,6 +115,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.mic.volumeValue': 'Volumen del micrófono: {percent}%',
   'karaoke.pitch.title': 'Guía de afinación',
   'karaoke.pitch.resize': 'Cambiar el tamaño de la guía de afinación',
+  'karaoke.pitch.show': 'Mostrar la guía de afinación',
+  'karaoke.pitch.hide': 'Ocultar la guía de afinación',
   'karaoke.pitch.guide': 'Guía melódica',
   'karaoke.pitch.toneGuide': 'Tono guía',
   'karaoke.pitch.toneEnable': 'Reproducir el tono de la melodía',

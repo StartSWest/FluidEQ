@@ -211,6 +211,79 @@ describe('KaraokeWorkspace', () => {
     ).not.toHaveLength(0);
   });
 
+  it('lets the pitch guide be hidden and restored independently of the mic', () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+
+    const hideGuide = screen.getByRole('button', {
+      name: 'Hide pitch guide',
+    });
+    expect(hideGuide).toHaveAttribute('aria-pressed', 'true');
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Pitch lane' }),
+    ).toBeVisible();
+
+    fireEvent.click(hideGuide);
+
+    expect(
+      screen.queryByRole('heading', { level: 3, name: 'Pitch lane' }),
+    ).not.toBeInTheDocument();
+    expect(
+      container.querySelector('.karaoke-workspace__readiness'),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole('separator', { name: 'Resize pitch lane' }),
+    ).not.toBeInTheDocument();
+    expect(
+      window.localStorage.getItem('fluideq-karaoke-pitch-guide-visible'),
+    ).toBe('false');
+
+    const showGuide = screen.getByRole('button', {
+      name: 'Show pitch guide',
+    });
+    expect(showGuide).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(showGuide);
+
+    expect(
+      screen.getByRole('heading', { level: 3, name: 'Pitch lane' }),
+    ).toBeVisible();
+    expect(
+      window.localStorage.getItem('fluideq-karaoke-pitch-guide-visible'),
+    ).toBe('true');
+  });
+
+  it('toggles full screen from the Karaoke surface without hijacking controls', () => {
+    const toggleFullScreen = jest.fn();
+    const { container, rerender } = render(
+      <KaraokeWorkspace
+        isHidden={false}
+        onToggleFullScreen={toggleFullScreen}
+      />,
+    );
+    const stage = container.querySelector(
+      '.karaoke-workspace__stage',
+    ) as HTMLElement;
+
+    fireEvent.doubleClick(stage);
+    expect(toggleFullScreen).toHaveBeenCalledTimes(1);
+
+    rerender(
+      <KaraokeWorkspace
+        isHidden={false}
+        isFullScreen
+        onToggleFullScreen={toggleFullScreen}
+      />,
+    );
+    fireEvent.doubleClick(
+      container.querySelector('.karaoke-workspace__stage') as HTMLElement,
+    );
+    expect(toggleFullScreen).toHaveBeenCalledTimes(2);
+
+    fireEvent.doubleClick(
+      screen.getByRole('button', { name: 'Exit full screen' }),
+    );
+    expect(toggleFullScreen).toHaveBeenCalledTimes(2);
+  });
+
   it('moves the actions into the lyric surface in full screen', async () => {
     const toggleTopBar = jest.fn();
     const { container } = render(
@@ -377,6 +450,30 @@ describe('KaraokeWorkspace', () => {
       expect(element).toBeInTheDocument();
       return element as HTMLElement;
     });
+    const commandDock = maker.querySelector(
+      '.karaoke-maker__command-dock',
+    ) as HTMLElement;
+    const makerHeader = maker.querySelector(
+      '.karaoke-maker__header',
+    ) as HTMLElement;
+    expect(makerHeader).toContainElement(
+      maker.querySelector('.karaoke-maker__header-tools'),
+    );
+    expect(makerHeader).toContainElement(
+      maker.querySelector('.karaoke-maker__tools'),
+    );
+    expect(commandDock).not.toContainElement(
+      maker.querySelector('.karaoke-maker__tools'),
+    );
+    expect(commandDock).toContainElement(
+      maker.querySelector('.karaoke-maker__status-row'),
+    );
+    expect(commandDock).toContainElement(
+      maker.querySelector('.karaoke-maker__inspector'),
+    );
+    expect(commandDock.previousElementSibling).toHaveClass(
+      'karaoke-maker-preview',
+    );
     expect(
       screen.queryByRole('button', { name: 'Preview · 1, 2, 3' }),
     ).not.toBeInTheDocument();
@@ -621,9 +718,17 @@ describe('KaraokeWorkspace', () => {
     fireTestPointer(editorCanvas, 'pointerup', 17, 700);
     expect(editorCanvas).not.toHaveClass('is-scrubbing');
 
-    fireEvent.click(screen.getByRole('button', { name: 'Jump to song start' }));
+    fireEvent.click(
+      maker.querySelector(
+        'button[aria-label="Jump to song start"]',
+      ) as HTMLButtonElement,
+    );
     expect(audio.currentTime).toBe(0);
-    fireEvent.click(screen.getByRole('button', { name: 'Jump to song end' }));
+    fireEvent.click(
+      maker.querySelector(
+        'button[aria-label="Jump to song end"]',
+      ) as HTMLButtonElement,
+    );
     expect(audio.currentTime).toBe(12);
 
     expect(deleteSelection).toBeDisabled();
@@ -756,7 +861,20 @@ describe('KaraokeWorkspace', () => {
     ).toHaveValue('Maker screen');
     expect(
       fullscreenMakerHeader?.querySelector('button[aria-label="Play"]'),
+    ).not.toBeInTheDocument();
+    const fullscreenMakerDock = container.querySelector(
+      '.karaoke-maker.is-fullscreen > .karaoke-maker__command-dock',
+    );
+    const fullscreenMakerTransport = fullscreenMakerDock?.querySelector(
+      ':scope > .karaoke-transport',
+    );
+    expect(fullscreenMakerTransport).toBeInTheDocument();
+    expect(
+      fullscreenMakerTransport?.querySelector('button[aria-label="Play"]'),
     ).toBeInTheDocument();
+    expect(fullscreenMakerDock?.lastElementChild).toBe(
+      fullscreenMakerTransport,
+    );
     canvasContext.mockRestore();
   });
 
@@ -1202,6 +1320,17 @@ describe('KaraokeWorkspace', () => {
     expect(
       container.querySelector('.karaoke-workspace__stage .karaoke-pitch'),
     ).toBeVisible();
+    const workspace = container.querySelector(
+      '.karaoke-workspace',
+    ) as HTMLElement;
+    const player = container.querySelector(
+      '.karaoke-workspace__player',
+    ) as HTMLElement;
+    const transport = container.querySelector(
+      '.karaoke-transport',
+    ) as HTMLElement;
+    expect(transport.parentElement).toBe(workspace);
+    expect(player.nextElementSibling).toBe(transport);
     expect(
       screen.queryByRole('separator', {
         name: 'Resize microphone and pitch panels',
@@ -1291,6 +1420,16 @@ describe('KaraokeWorkspace', () => {
     expect(
       container.querySelector('.karaoke-workspace__stage'),
     ).not.toHaveClass('has-stage-pitch');
+    const readiness = container.querySelector(
+      '.karaoke-workspace__readiness',
+    ) as HTMLElement;
+    const transport = container.querySelector(
+      '.karaoke-transport',
+    ) as HTMLElement;
+    expect(readiness.nextElementSibling).toBe(transport);
+    expect(
+      container.querySelector('.karaoke-workspace__stage .karaoke-transport'),
+    ).not.toBeInTheDocument();
   });
 
   it('keeps audio usable when a malformed lyric file is selected', async () => {

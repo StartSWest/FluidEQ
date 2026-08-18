@@ -95,18 +95,21 @@ interface ILyricEntranceState {
 const lyricLineMotion = (offset: number) => {
   const distance = Math.abs(offset);
   if (distance < 1) {
-    const directionOpacity = offset >= 0 ? 0.76 : 0.42;
-    const directionScale = offset >= 0 ? 0.94 : 0.9;
+    // The next phrase remains readable for preparation; the phrase already
+    // sung recedes quickly. Both step down clearly in size so the active line
+    // owns the stage instead of sitting in a wall of equally large text.
+    const directionOpacity = offset >= 0 ? 0.62 : 0.3;
+    const directionScale = offset >= 0 ? 0.84 : 0.78;
     return {
       opacity: 1 + (directionOpacity - 1) * distance,
       scale: 1 + (directionScale - 1) * distance,
     };
   }
   const isUpcoming = offset > 0;
-  const nearOpacity = isUpcoming ? 0.76 : 0.42;
-  const farOpacity = isUpcoming ? 0.3 : 0.16;
-  const nearScale = isUpcoming ? 0.94 : 0.9;
-  const farScale = 0.82;
+  const nearOpacity = isUpcoming ? 0.62 : 0.3;
+  const farOpacity = isUpcoming ? 0.12 : 0.05;
+  const nearScale = isUpcoming ? 0.84 : 0.78;
+  const farScale = 0.68;
   const fade = clamp(distance - 1, 0, 1);
   return {
     opacity: nearOpacity + (farOpacity - nearOpacity) * fade,
@@ -318,7 +321,18 @@ const KaraokeLyrics = ({
         centerY,
         Math.max(1, width * 0.43),
       );
-      focusGradient.addColorStop(0, 'rgba(34, 224, 214, 0.065)');
+      focusGradient.addColorStop(
+        0,
+        isEuphoric
+          ? `hsla(${(euphoriaHue + 18) % 360}, 96%, 64%, 0.105)`
+          : 'rgba(34, 224, 214, 0.09)',
+      );
+      focusGradient.addColorStop(
+        0.62,
+        isEuphoric
+          ? `hsla(${(euphoriaHue + 82) % 360}, 96%, 64%, 0.035)`
+          : 'rgba(34, 224, 214, 0.025)',
+      );
       focusGradient.addColorStop(1, 'rgba(34, 224, 214, 0)');
       context.fillStyle = focusGradient;
       context.fillRect(
@@ -336,10 +350,10 @@ const KaraokeLyrics = ({
       context.lineTo(focusRight, centerY + focusHeight * 0.5);
       context.stroke();
 
-      const first = Math.max(0, Math.floor(animatedCenter) - 4);
+      const first = Math.max(0, Math.floor(animatedCenter) - 3);
       const last = Math.min(
         currentSong.lines.length - 1,
-        Math.ceil(animatedCenter) + 4,
+        Math.ceil(animatedCenter) + 3,
       );
       let hitRegionCount = 0;
       for (let index = first; index <= last; index += 1) {
@@ -370,11 +384,11 @@ const KaraokeLyrics = ({
           !isCapturePending &&
           !isCaptureStarted;
         const restingFontSize = isSection
-          ? clamp(width * 0.012, 11, 15)
-          : clamp(width * 0.0155, 13, 18.5);
+          ? clamp(width * 0.011, 10.5, 14)
+          : clamp(width * 0.0145, 12, 17);
         const focusedFontSize = isSection
-          ? clamp(width * 0.017, 15, 22)
-          : clamp(width * 0.028, 20, 32);
+          ? clamp(width * 0.017, 15, 23)
+          : clamp(width * 0.032, 22, 38);
         let fontSize =
           restingFontSize + (focusedFontSize - restingFontSize) * focusAmount;
         fontSize *= motion.scale * textScale;
@@ -455,7 +469,7 @@ const KaraokeLyrics = ({
         context.globalAlpha = alpha;
         context.textAlign = 'left';
         context.textBaseline = 'middle';
-        let shadowColor = `rgba(34, 224, 214, ${0.13 * focusAmount})`;
+        let shadowColor = `rgba(34, 224, 214, ${0.2 * focusAmount})`;
         if (hasEuphoriaText) {
           shadowColor = `hsla(${euphoriaHue}, 96%, 64%, ${0.32 * focusAmount})`;
         } else if (isCapturePending) {
@@ -468,7 +482,7 @@ const KaraokeLyrics = ({
         context.shadowColor = shadowColor;
         context.shadowBlur = hasEuphoriaText
           ? 18 * focusAmount
-          : 28 * focusAmount;
+          : 20 * focusAmount;
         let wordX = textLeft;
         for (
           let wordIndex = 0;
@@ -514,6 +528,17 @@ const KaraokeLyrics = ({
               0.4 * focusAmount
             })`;
             context.shadowBlur = 10 * focusAmount;
+            context.strokeText(displayText, wordX, y);
+            context.restore();
+          } else if (focusAmount > 0.55 && !isSection && !isCapturePending) {
+            // A compact dark key gives the focused phrase the crisp television
+            // karaoke silhouette that glow alone cannot provide. It appears
+            // only near the centre, so surrounding lyrics stay soft and quiet.
+            context.save();
+            context.lineJoin = 'round';
+            context.shadowBlur = 0;
+            context.lineWidth = 2.4 * focusAmount;
+            context.strokeStyle = `rgba(2, 8, 15, ${0.64 * focusAmount})`;
             context.strokeText(displayText, wordX, y);
             context.restore();
           }

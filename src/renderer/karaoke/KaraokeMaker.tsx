@@ -84,6 +84,7 @@ import KaraokeMakerToolbar from './KaraokeMakerToolbar';
 import KaraokeMakerAnalysisPanels from './KaraokeMakerAnalysisPanels';
 import KaraokeMakerWhisperConsent from './KaraokeMakerWhisperConsent';
 import KaraokeMakerInspector from './KaraokeMakerInspector';
+import KaraokeTransport from './KaraokeTransport';
 import { useMakerProjectFiles } from './useMakerProjectFiles';
 import { useMakerSeparation } from './useMakerSeparation';
 import KaraokeMakerWizard, {
@@ -233,6 +234,12 @@ const KaraokeMaker = ({
     playheadMs,
     readPlayheadMs,
   });
+  const lastVocalLevelRef = useRef(
+    vocalLevel !== undefined && vocalLevel > 0 ? vocalLevel : 0.6,
+  );
+  const lastBackingLevelRef = useRef(
+    backingLevel !== undefined && backingLevel > 0 ? backingLevel : 1,
+  );
   // Read once, here, because two things seed from it: the selection below and
   // the view state the hook owns. Two reads that have to agree is one more than
   // is needed.
@@ -1672,6 +1679,48 @@ const KaraokeMaker = ({
     canvasInteractionHint = t('karaoke.maker.paintNotesHint');
   }
 
+  const makerToolbar = (
+    <KaraokeMakerToolbar
+      advancedAnalysisTools={advancedAnalysisTools}
+      canShiftFromWord={canShiftFromWord}
+      editTools={editTools}
+      exportOpen={exportOpen}
+      exportProject={exportProject}
+      onSaveInstrumental={
+        effectiveInstrumental
+          ? () => {
+              // A plain object-URL download. The stem is already a File in
+              // memory, so there is nothing to re-encode or ask the main
+              // process for.
+              const url = URL.createObjectURL(effectiveInstrumental);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = effectiveInstrumental.name;
+              link.click();
+              URL.revokeObjectURL(url);
+            }
+          : undefined
+      }
+      handPanMode={handPanMode}
+      openLyricsEditor={openLyricsEditor}
+      project={project}
+      projectInputRef={projectInputRef}
+      selectedToken={selectedToken}
+      setDestructiveAction={setDestructiveAction}
+      setExportOpen={setExportOpen}
+      setTimingScope={setTimingScope}
+      setToolPanel={setToolPanel}
+      shiftTimeline={shiftTimeline}
+      timingScope={timingScope}
+      toggleHandPanMode={toggleHandPanMode}
+      toggleToolPanel={toggleToolPanel}
+      tokens={tokens}
+      toolPanel={toolPanel}
+      toolsRef={toolsRef}
+      wordShiftMs={wordShiftMs}
+    />
+  );
+
   return (
     <div
       className={`karaoke-maker${isFullScreen ? ' is-fullscreen' : ''}`}
@@ -1724,113 +1773,21 @@ const KaraokeMaker = ({
         onChange={selectLyricsFile}
       />
       <KaraokeMakerHeader
-        vocalLevel={stemWaveforms ? vocalLevel : undefined}
-        onVocalLevel={onVocalLevel}
-        backingLevel={stemWaveforms ? backingLevel : undefined}
-        onBackingLevel={onBackingLevel}
         canRedo={canRedo}
         canUndo={canUndo}
         commit={commit}
-        effectiveDurationMs={effectiveDurationMs}
         isFullScreen={isFullScreen}
-        isPlaying={isPlaying}
         issues={issues}
-        makerMelodyTarget={makerMelodyTarget}
-        maximumViewStartMs={maximumViewStartMs}
-        melodyTone={melodyTone}
         onApply={onApply}
         onClose={onClose}
-        onPause={onPause}
-        onPlay={onPlay}
-        onSeek={onSeek}
         onToggleFullScreen={onToggleFullScreen}
-        playheadMs={playheadMs}
         project={project}
         redo={redo}
         setDestructiveAction={setDestructiveAction}
-        setFollowViewport={setFollowViewport}
         setNotice={setNotice}
-        setViewStartMs={setViewStartMs}
+        tools={makerToolbar}
         undo={undo}
-        visualPlayheadMs={visualPlayheadMs}
       />
-
-      <KaraokeMakerToolbar
-        advancedAnalysisTools={advancedAnalysisTools}
-        canShiftFromWord={canShiftFromWord}
-        editTools={editTools}
-        exportOpen={exportOpen}
-        exportProject={exportProject}
-        onSaveInstrumental={
-          effectiveInstrumental
-            ? () => {
-                // A plain object-URL download. The stem is already a File in
-                // memory, so there is nothing to re-encode and nothing to ask
-                // the main process for.
-                const url = URL.createObjectURL(effectiveInstrumental);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = effectiveInstrumental.name;
-                link.click();
-                URL.revokeObjectURL(url);
-              }
-            : undefined
-        }
-        handPanMode={handPanMode}
-        openLyricsEditor={openLyricsEditor}
-        project={project}
-        projectInputRef={projectInputRef}
-        selectedToken={selectedToken}
-        setDestructiveAction={setDestructiveAction}
-        setExportOpen={setExportOpen}
-        setTimingScope={setTimingScope}
-        setToolPanel={setToolPanel}
-        shiftTimeline={shiftTimeline}
-        timingScope={timingScope}
-        toggleHandPanMode={toggleHandPanMode}
-        toggleToolPanel={toggleToolPanel}
-        tokens={tokens}
-        toolPanel={toolPanel}
-        toolsRef={toolsRef}
-        wordShiftMs={wordShiftMs}
-      />
-
-      <div
-        className={`karaoke-maker__status-row${
-          lineEntryMode ? ' is-guided' : ''
-        }${handPanMode || lineEntryMode ? ' has-message' : ''}`}
-      >
-        {renderEditStatus()}
-        <div className="karaoke-maker__status-end">
-          <div
-            className="karaoke-maker__word-state-legend"
-            aria-label={t('karaoke.maker.wordStateLegend')}
-          >
-            <span className="is-touched" data-count={userTouchedWordCount}>
-              <i aria-hidden="true" />
-              {t('karaoke.maker.userAdjustedWords', {
-                count: userTouchedWordCount,
-              })}
-            </span>
-            <span
-              className="is-pending"
-              data-count={Math.max(0, tokens.length - userTouchedWordCount)}
-            >
-              <i aria-hidden="true" />
-              {t('karaoke.maker.pendingWords', {
-                count: Math.max(0, tokens.length - userTouchedWordCount),
-              })}
-            </span>
-          </div>
-          <span>
-            {t('karaoke.maker.stats', {
-              notes: project.melody.notes.length,
-              words: tokens.length,
-              checks: issues.length,
-            })}
-          </span>
-        </div>
-      </div>
 
       <div ref={canvasHostRef} className="karaoke-maker__canvas-host">
         <canvas
@@ -2036,11 +1993,148 @@ const KaraokeMaker = ({
         onToggle={() => setPreviewOpen((current) => !current)}
       />
 
-      <KaraokeMakerInspector
-        commit={commit}
-        controlId={controlId}
-        project={project}
-      />
+      <div className="karaoke-maker__command-dock">
+        <div className="karaoke-maker__command-primary">
+          <div
+            className={`karaoke-maker__status-row${
+              lineEntryMode ? ' is-guided' : ''
+            }${handPanMode || lineEntryMode ? ' has-message' : ''}`}
+          >
+            {renderEditStatus()}
+            <div className="karaoke-maker__status-end">
+              <div
+                className="karaoke-maker__word-state-legend"
+                aria-label={t('karaoke.maker.wordStateLegend')}
+              >
+                <span className="is-touched" data-count={userTouchedWordCount}>
+                  <i aria-hidden="true" />
+                  {t('karaoke.maker.userAdjustedWords', {
+                    count: userTouchedWordCount,
+                  })}
+                </span>
+                <span
+                  className="is-pending"
+                  data-count={Math.max(0, tokens.length - userTouchedWordCount)}
+                >
+                  <i aria-hidden="true" />
+                  {t('karaoke.maker.pendingWords', {
+                    count: Math.max(0, tokens.length - userTouchedWordCount),
+                  })}
+                </span>
+              </div>
+              <span>
+                {t('karaoke.maker.stats', {
+                  notes: project.melody.notes.length,
+                  words: tokens.length,
+                  checks: issues.length,
+                })}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <KaraokeMakerInspector
+          commit={commit}
+          controlId={controlId}
+          project={project}
+        />
+
+        <KaraokeTransport
+          status={isPlaying ? 'playing' : 'paused'}
+          playheadMs={visualPlayheadMs}
+          durationMs={effectiveDurationMs}
+          levels={[
+            {
+              id: 'melody',
+              label: t('karaoke.pitch.toneVolume'),
+              value: melodyTone.volume,
+              valueText: `${Math.round(melodyTone.volume * 100)}%`,
+              channel: 'melody',
+              disabled:
+                !makerMelodyTarget ||
+                !melodyTone.isAvailable ||
+                !melodyTone.enabled,
+              toggleDisabled: !makerMelodyTarget || !melodyTone.isAvailable,
+              pressed: melodyTone.enabled,
+              onToggle: () => melodyTone.toggle().catch(() => undefined),
+              onChange: melodyTone.setVolume,
+            },
+            ...(stemWaveforms &&
+            backingLevel !== undefined &&
+            onBackingLevel &&
+            vocalLevel !== undefined &&
+            onVocalLevel
+              ? [
+                  {
+                    id: 'backing',
+                    label: t('karaoke.maker.stemBacking'),
+                    value: backingLevel,
+                    valueText: `${Math.round(backingLevel * 100)}%`,
+                    channel: 'backing' as const,
+                    pressed: backingLevel > 0,
+                    onToggle: () => {
+                      if (backingLevel > 0) {
+                        lastBackingLevelRef.current = backingLevel;
+                        onBackingLevel(0);
+                        return;
+                      }
+                      onBackingLevel(lastBackingLevelRef.current);
+                    },
+                    onChange: (level: number) => {
+                      if (level > 0) {
+                        lastBackingLevelRef.current = level;
+                      }
+                      onBackingLevel(level);
+                    },
+                  },
+                  {
+                    id: 'vocal',
+                    label: t('karaoke.transport.vocalLevel'),
+                    value: vocalLevel,
+                    valueText:
+                      vocalLevel === 0
+                        ? t('karaoke.transport.vocalOff')
+                        : `${Math.round(vocalLevel * 100)}%`,
+                    channel: 'vocal' as const,
+                    pressed: vocalLevel > 0,
+                    onToggle: () => {
+                      if (vocalLevel > 0) {
+                        lastVocalLevelRef.current = vocalLevel;
+                        onVocalLevel(0);
+                        return;
+                      }
+                      onVocalLevel(lastVocalLevelRef.current);
+                    },
+                    onChange: (level: number) => {
+                      if (level > 0) {
+                        lastVocalLevelRef.current = level;
+                      }
+                      onVocalLevel(level);
+                    },
+                  },
+                ]
+              : []),
+          ]}
+          onTogglePlayback={() => {
+            if (isPlaying) {
+              onPause();
+            } else {
+              Promise.resolve(onPlay()).catch(() => undefined);
+            }
+          }}
+          onJumpToStart={() => {
+            onSeek(0);
+            setViewStartMs(0);
+            setFollowViewport(true);
+          }}
+          onJumpToEnd={() => {
+            onSeek(effectiveDurationMs);
+            setViewStartMs(maximumViewStartMs);
+            setFollowViewport(true);
+          }}
+          onSeek={onSeek}
+        />
+      </div>
 
       {/*
         On the editor surface, not in the Repair-tools popover. It lived there

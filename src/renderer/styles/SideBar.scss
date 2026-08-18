@@ -83,17 +83,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * decibel, and it fills what was otherwise a dead half-column under the
  * switch.
  *
- * `min-height: 0` because a flex item's default floor is its content size,
- * which would let the meter refuse to shrink on a short window and push the
- * column past the shell.
+ * The pane itself scrolls, so this card must keep enough height for its label,
+ * switch and minimum meter. Letting it collapse to zero made those children
+ * overflow upward through Auto normalize before the scrollbar could help.
  */
 // Selected through the parent, because `.side-bar > div` sets `flex: 0 0 auto`
 // on every card and one class alone loses to a class plus an element. The rule
 // was there and simply never applied, which is the least visible way for CSS to
 // be wrong.
 .side-bar > .side-bar__response {
-  min-height: 0;
-  flex: 1 1 auto;
+  min-height: 158px;
+  flex: 1 0 158px;
   align-self: stretch;
 }
 
@@ -210,6 +210,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .side-bar__response {
     grid-area: response;
+  }
+
+  // The compact shell is a two-row grid and intentionally hides the meter.
+  // Its response chip therefore does not need the vertical pane's meter floor.
+  .side-bar > .side-bar__response {
+    min-height: 0;
   }
 
   /*

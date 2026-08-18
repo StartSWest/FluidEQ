@@ -6,6 +6,106 @@ actions menu opens it again any time.
 
 ---
 
+## 1.4.0
+
+FluidEQ 1.4 turns the Karaoke Maker into a complete local production studio.
+It can split a song into voice and backing tracks, transcribe the words, follow
+the sung melody and carry the result all the way into the player. The Maker and
+player were also rebuilt around the same transport, so moving between them now
+feels like two views of the same song instead of two different tools.
+
+### New
+
+- **Separate a song into voice and backing tracks, entirely on your PC.** The
+  Karaoke Maker can now prepare both stems from an ordinary song, keep them with
+  the saved draft and restore them when the project comes back. Each stem can be
+  heard alone, and voice, backing and melody guide each have their own level in
+  the shared transport.
+- **A stronger local lyric and melody pipeline.** Transcription now uses
+  Whisper large-v3-turbo and asks for the song's language instead of guessing;
+  every language the model supports is available. Melody detection uses RMVPE
+  with SwiftF0 as a fallback, follows phrase attacks and singing contours more
+  naturally, and decodes stable notes with a Viterbi pass. Downloaded models,
+  decoded audio and GPU memory are managed explicitly, with a visible way to
+  release the memory when the work is finished.
+- **The response graph can live over the Karaoke player.** Double-click or use
+  the expanded/fullscreen graph view while Karaoke is playing and the graph is
+  drawn over the stage, with its own visibility and blur controls. Karaoke
+  remains sharp, and the graph menu and pet make room for the song controls.
+- **Double-click the Karaoke stage to enter or leave fullscreen.** Buttons,
+  sliders and other interactive controls are protected, so an ordinary control
+  click never changes the window mode.
+- **The OPRA headphone-correction library replaces the retired AutoEq data.**
+  It brings a current catalogue of more than 6,200 products and 12,000 curves,
+  keeps the measurement author and source attached to each correction, and can
+  update independently with the database carried on every version release.
+
+### Changed
+
+- **The Karaoke player and Maker now use one transport.** Play, seek, skip,
+  backing, voice and melody-guide controls have the same icons, proportions and
+  bottom position in both views. At narrower widths the large level sliders
+  become compact buttons whose menus hold the same settings instead of forcing
+  the bar to overflow.
+- **The Karaoke Maker has a responsive, two-level header.** Editing tools sit in
+  the header rather than stealing a row below the preview; they stay centred
+  when there is room and wrap onto their own header line when there is not.
+  Playback stays in the bottom transport, and the entire editor contracts for a
+  13-inch screen without hiding tools or stacking them over the title.
+- **Karaoke lyrics focus more like a stage display.** The current line is larger
+  and brighter, the surrounding lines fade with distance instead of disappearing
+  into a dark wall, and switching between player and Maker uses a short,
+  low-cost transition without moving the bottom controls.
+- **Responsive workspaces use the whole window.** Media and Karaoke now fill the
+  available height on tall, narrow windows; the side controls scroll instead of
+  overlapping; the titlebar waveform gives up width before transport buttons do;
+  and graph, player and Maker panes keep bounded heights at the mobile breakpoint.
+- **Profiles belong to their output device.** Each device now has its own profile
+  folder, deleting a profile asks first, and removing some other profile no
+  longer changes the current selection.
+- **Visualizer choices show what they look like before playback starts.** The
+  look picker renders a representative frame, and the live-output strip has a
+  compact wave size available from the existing size shortcut.
+- **EQ Presets received a layout and interaction polish.** Clearing the editable
+  bands no longer makes the selected reference correction lose its name.
+
+### Fixed
+
+- **The titlebar waveform now follows the sound the meters are showing.** It
+  reads the left and right channel analyzers directly, so opposite-polarity
+  stereo can no longer cancel into a flat trace while both meters are active.
+- **The mobile response graph no longer grows the page forever.** Its narrow
+  layout has a bounded viewport-relative height and cannot use its own new size
+  as the next flex measurement. Media and Karaoke no longer stop halfway down
+  the same narrow window either.
+- **Karaoke controls no longer collide in expanded graph or fullscreen views.**
+  The graph options, titlebar, pet, chords, lyric-size control, playlist button
+  and bottom transport all reserve the space they need, whether the top bar is
+  shown or hidden.
+- **The Karaoke transport no longer drifts between player and Maker.** Both
+  surfaces use the same bottom inset and padding, percentage labels no longer
+  squeeze into neighbouring controls, and the backing-only label remains inside
+  its own menu at small widths.
+- **The Maker's header and tools no longer overlap.** Long titles truncate,
+  action groups shrink before they collide, and tool buttons keep a consistent
+  icon size instead of expanding with the row.
+- **Core tab changes no longer flash through a dark frame.** EQ, EQ Presets,
+  Voicing and Convolution remain opaque while their content changes, matching
+  the already-stable Media and Karaoke tabs.
+- **Saved Karaoke stems and guide vocals recover cleanly.** Restored stems are
+  adopted instead of separated again, the guide vocal can rebuild itself after
+  an interrupted render, solos stay contained, and drafts follow the source
+  content rather than a temporary filename.
+- **The embedded Media browser and app window have an explicit content security
+  policy.** External navigation is constrained to the intended browser flow,
+  and Chromium page zoom cannot accidentally resize the whole interface while
+  the timeline keeps its own wheel gestures.
+- **Output and profile state no longer invents folders for missing devices.**
+  Windows output discovery is kept separate from profile writes, and an absent
+  output cannot leave behind a phantom profile location.
+
+---
+
 ## 1.3.1
 
 Mostly the Auto normalize switch, which was getting the level wrong in three

@@ -1295,11 +1295,11 @@ $tab-border: rgba($secondary-light, 0.2);
 }
 
 .workspace-tab-panel {
-  // Replayed on every tab change: App.tsx keys the panel by the active tab, so
-  // React remounts it and the animation runs again. Without the key, switching
-  // between two tabs that share this element would swap the contents with no
-  // transition at all.
-  @include animate(rise-in, $motion-base);
+  // Core tab pages replace one another in the same slot. Fading a newly
+  // mounted panel from transparent exposed the workspace's near-black base for
+  // one frame on every EQ / Presets / Voicing / Convolution switch. Keep the
+  // continuous panel surface opaque; the selected tab already supplies enough
+  // spatial feedback without flashing the whole editor dark.
   position: relative;
   z-index: 1;
   min-width: 0;
@@ -1980,7 +1980,9 @@ button.graph-legend {
   .right-content {
     position: fixed;
     z-index: 60;
-    top: 44px;
+    // Fixed positioning ignores #root's titlebar padding. Start at the real
+    // titlebar edge so its first section is never painted underneath chrome.
+    top: $title-bar-height;
     right: 0;
     bottom: 0;
     width: min(340px, 90vw);
@@ -2019,7 +2021,12 @@ button.graph-legend {
       'center-workspace'
       'right-content';
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: repeat(3, max-content);
+    // The compact sidebar takes what it needs; the active workspace receives
+    // the rest of the viewport and may grow past it when its content genuinely
+    // needs a scrolling page. With three max-content rows, Media and Karaoke
+    // stopped at their intrinsic content height and left the lower half of a
+    // tall narrow window empty.
+    grid-template-rows: max-content minmax(0, 1fr) max-content;
   }
 
   .right-content {
@@ -2040,15 +2047,44 @@ button.graph-legend {
   .app-workspace {
     height: auto;
     min-height: 100%;
-    grid-template-rows: repeat(3, max-content);
+    grid-template-rows: max-content minmax(0, 1fr) max-content;
     overflow: visible;
   }
 
   .side-bar,
-  .center-workspace,
-  .right-content {
+  .center-workspace {
     min-height: 0;
     overflow: visible;
+  }
+
+  // A stacked page has no finite flex row for the divider to apportion. Keep
+  // the editor at its natural content height and give the graph one bounded
+  // viewport-sized slice instead. Leaving the desktop `flex: 1` here creates
+  // a feedback loop: the graph enlarges the page, then flexes into that new
+  // page height, enlarging it again on every ResizeObserver pass.
+  .center-workspace > .middle-content {
+    height: auto;
+    flex: 0 0 auto;
+  }
+
+  .center-workspace > .pane-resizer {
+    display: none;
+  }
+
+  .center-workspace > .graph-wrapper {
+    height: clamp(420px, calc(100dvh - #{$title-bar-height} - 32px), 720px);
+    min-height: 420px;
+    max-height: 720px;
+    flex: 0 0 clamp(420px, calc(100dvh - #{$title-bar-height} - 32px), 720px);
+  }
+
+  // The right column is still a fixed slide-over at this breakpoint, not part
+  // of the scrolling document. Preserve its own remaining-viewport scroller.
+  .right-content {
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
   }
 
   // Back to growing the page rather than scrolling inside a fixed column —
@@ -2079,11 +2115,30 @@ button.graph-legend {
   }
 }
 
+// A 13-inch laptop or a side-by-side desktop window still has room for the
+// complete titlebar, but not for the waveform's full 420px presentation or
+// equal outer tracks. Size those tracks from their contents and cap the middle
+// pane before either control cluster can intrude into it.
+@media (max-width: 1280px) {
+  .window-titlebar {
+    // The controls can be wider than their equal outer track at this size.
+    // Let both outer tracks follow their contents and give the waveform the
+    // true remainder, capped below so it cannot reclaim all of that space.
+    grid-template-columns: auto minmax(180px, 1fr) auto;
+  }
+
+  .window-titlebar > .waveform-visualizer-shell {
+    width: 100%;
+    max-width: 320px;
+    justify-self: center;
+  }
+}
+
 @media (max-width: 1080px) {
   .window-titlebar {
-    // The right cluster has several fixed-size controls. Equal outer tracks
-    // made that cluster overflow left over the waveform as the window became
-    // narrow. Content-sized outer columns give the trace the actual remainder.
+    // The content-sized columns already protect the control clusters. At this
+    // point the remaining middle track and the spaces around it can contract
+    // further without changing that layout model again.
     grid-template-columns: auto minmax(100px, 1fr) auto;
     gap: 8px;
     padding-inline: 12px;

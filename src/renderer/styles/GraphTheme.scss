@@ -1420,7 +1420,10 @@ it under the terms of the GNU General Public License version 3 or later.
 // reasoning is overruled is the player's tab, where the space the boxes keep is
 // a band the picture cannot reach — see the chrome rule further down.
 .center-workspace.is-graph-full:not(
-    :has(.workspace-tab-panel--video:not(.is-hidden))
+    :has(
+      .workspace-tab-panel--video:not(.is-hidden),
+      .workspace-tab-panel--karaoke:not(.is-hidden)
+    )
   ) {
   // The panel and the tab strip together — `.middle-content` is both. Neither
   // is reachable while the card covers the column, so there is nothing lost.
@@ -1710,6 +1713,14 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 0;
   }
 
+  // The Karaoke stage becomes the full-screen backdrop under the graph. Its
+  // ordinary card rounding would otherwise cut four dark notches into the
+  // display after the surrounding workspace has gone edge to edge.
+  .workspace-tab-panel--karaoke,
+  .karaoke-workspace__stage {
+    border-radius: 0;
+  }
+
   // Every box the picture is inside, not just the stage.
   //
   // The radius is set on the stage and then inherited or restated down through
@@ -1777,6 +1788,28 @@ it under the terms of the GNU General Public License version 3 or later.
 // moving it down by the title bar pushed exactly that much of it off the end.
 .app-workspace.is-app-full.has-top-bar .look-designer {
   max-height: calc(100vh - #{$title-bar-height} - 24px);
+}
+
+// Karaoke remains the full-bleed picture under a full-screen graph, but its
+// song controls are real UI rather than scenery. When the shared titlebar is
+// kept, reserve that floating bar inside the player content so the song,
+// chords, text-size control and playlist controls begin below it. The stage
+// background still reaches the glass; only its inner content moves.
+.app-workspace.is-app-full.has-top-bar
+  .center-workspace.is-graph-full:has(
+    .workspace-tab-panel--karaoke:not(.is-hidden)
+  ) {
+  .karaoke-workspace__stage.has-song {
+    padding-top: calc(#{$title-bar-height} + clamp(14px, 1.7vh, 20px));
+  }
+
+  .karaoke-playlist {
+    padding-top: calc(#{$title-bar-height} + 10px);
+  }
+
+  .karaoke-playlist__expand {
+    top: calc(#{$title-bar-height} + 12px);
+  }
 }
 
 // The graph with the workspace to itself.
@@ -1848,6 +1881,53 @@ it under the terms of the GNU General Public License version 3 or later.
     .workspace-tabs,
     .video-browser__bar {
       display: none;
+    }
+  }
+
+  // Karaoke is a picture-led player too. Keep its stage behind the graph just
+  // as Media keeps the video, while removing only the editor chrome that would
+  // become unreadable and unreachable through the overlay.
+  &:has(.workspace-tab-panel--karaoke:not(.is-hidden)) {
+    .workspace-tabs,
+    .karaoke-workspace__header,
+    .karaoke-workspace > .karaoke-transport {
+      display: none;
+    }
+
+    .workspace-tab-panel--karaoke {
+      padding: 0;
+      border: none;
+      background: none;
+      box-shadow: none;
+    }
+
+    // Karaoke is the subject, not a backdrop to be frosted. In this mode the
+    // two View sliders act on the graph drawing itself: See through lowers the
+    // wave/axes opacity and Blur softens that drawing, while the lyrics remain
+    // crisp and at their original brightness underneath.
+    > .graph-wrapper {
+      backdrop-filter: none;
+
+      &::before {
+        opacity: 0;
+      }
+
+      > .graph-plot {
+        opacity: var(--graph-overlay-opacity, 1);
+        filter: var(--graph-overlay-filter, none);
+      }
+
+      // Karaoke already owns both top corners: song/playlist identity on the
+      // left and chord/pitch controls on the right. The graph toolbar uses the
+      // free lower edge, where the hidden transport normally lives, and keeps
+      // a small left lane for the pet in real fullscreen.
+      > .live-output-controls {
+        top: auto;
+        right: 12px;
+        bottom: 12px;
+        left: 76px;
+        justify-content: flex-end;
+      }
     }
   }
 
@@ -1992,5 +2072,22 @@ it under the terms of the GNU General Public License version 3 or later.
   // worth looking at, and a visualiser wants every pixel there is.
   > .graph-wrapper.is-stretched > .graph-plot {
     flex: 1 1 auto;
+  }
+}
+
+// Fullscreen graph over Karaoke: join the pet to the lower overlay dock rather
+// than covering the song title at the top-left. It remains a separate hit
+// target, but shares the dock's baseline and auto-hide timing.
+.fullscreen-chrome.is-karaoke-overlay {
+  top: auto;
+  right: auto;
+  bottom: 14px;
+  left: 14px;
+  width: 50px;
+  padding: 0;
+
+  > .support-pet {
+    transform: scale(1.25);
+    transform-origin: left bottom;
   }
 }

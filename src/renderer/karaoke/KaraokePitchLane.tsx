@@ -17,12 +17,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import {
-  CSSProperties,
   KeyboardEvent as ReactKeyboardEvent,
   MouseEvent as ReactMouseEvent,
   PointerEvent as ReactPointerEvent,
   useEffect,
-  useId,
   useRef,
   useState,
 } from 'react';
@@ -91,11 +89,6 @@ interface IKaraokePitchLaneProps {
   microphoneStatus?: TKaraokeMicrophoneStatus;
   onToggleMicrophone?: () => void;
   onPracticeIssue?: (issue: IKaraokePitchIssue) => void;
-  melodyToneEnabled?: boolean;
-  melodyToneAvailable?: boolean;
-  melodyToneVolume?: number;
-  onToggleMelodyTone?: () => void;
-  onMelodyToneVolume?: (volume: number) => void;
   onScrubStart?: () => void;
   onScrub?: (timeMs: number) => void;
   onScrubEnd?: (timeMs: number) => void;
@@ -134,17 +127,11 @@ const KaraokePitchLane = ({
   microphoneStatus = 'off',
   onToggleMicrophone,
   onPracticeIssue,
-  melodyToneEnabled = false,
-  melodyToneAvailable = true,
-  melodyToneVolume = 0.34,
-  onToggleMelodyTone,
-  onMelodyToneVolume,
   onScrubStart,
   onScrub,
   onScrubEnd,
 }: IKaraokePitchLaneProps) => {
   const { t } = useTranslation();
-  const melodyToneVolumeId = useId();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const issueHitRegionsRef = useRef<IKaraokeIssueHitRegion[]>([]);
   const hoveredIssueIdRef = useRef<string | undefined>(undefined);
@@ -1319,7 +1306,7 @@ const KaraokePitchLane = ({
     <article
       className={`karaoke-pitch is-curve${hasTargets ? ' has-targets' : ''}${
         isMicrophoneLive ? ' is-microphone-live' : ''
-      }${melodyToneEnabled ? ' is-melody-tone-enabled' : ''}`}
+      }`}
       aria-labelledby="karaoke-pitch-title"
     >
       <header className="karaoke-pitch__header">
@@ -1328,67 +1315,6 @@ const KaraokePitchLane = ({
           {target?.kind === 'notes' && <span>{target.source}</span>}
         </div>
         <div className="karaoke-pitch__header-actions">
-          {hasTargets && onToggleMelodyTone && (
-            <div
-              className={`karaoke-pitch__tone-guide${
-                melodyToneEnabled ? ' is-enabled' : ''
-              }`}
-              role="group"
-              aria-label={t('karaoke.pitch.toneGuide')}
-            >
-              <button
-                type="button"
-                className="button small subtle karaoke-pitch__tone-toggle"
-                onClick={onToggleMelodyTone}
-                disabled={!melodyToneAvailable}
-                aria-disabled={!melodyToneAvailable}
-                aria-pressed={melodyToneEnabled}
-                aria-label={t(
-                  melodyToneEnabled
-                    ? 'karaoke.pitch.toneDisable'
-                    : 'karaoke.pitch.toneEnable',
-                )}
-                title={t(
-                  melodyToneEnabled
-                    ? 'karaoke.pitch.toneDisable'
-                    : 'karaoke.pitch.toneEnable',
-                )}
-              >
-                <MenuIcon name="waveform" className="karaoke-button__icon" />
-                <span>{t('karaoke.pitch.toneGuide')}</span>
-              </button>
-              {melodyToneEnabled && onMelodyToneVolume && (
-                <label
-                  className="karaoke-pitch__tone-volume"
-                  htmlFor={melodyToneVolumeId}
-                  title={`${t('karaoke.pitch.toneVolume')} · ${Math.round(
-                    melodyToneVolume * 100,
-                  )}%`}
-                >
-                  <input
-                    id={melodyToneVolumeId}
-                    type="range"
-                    min={0}
-                    max={1}
-                    step={0.01}
-                    value={melodyToneVolume}
-                    aria-label={t('karaoke.pitch.toneVolume')}
-                    aria-valuetext={`${Math.round(melodyToneVolume * 100)}%`}
-                    style={
-                      {
-                        '--karaoke-tone-volume': `${Math.round(
-                          melodyToneVolume * 100,
-                        )}%`,
-                      } as CSSProperties
-                    }
-                    onChange={(event) =>
-                      onMelodyToneVolume(Number(event.target.value))
-                    }
-                  />
-                </label>
-              )}
-            </div>
-          )}
           <div className="karaoke-pitch__readout" aria-live="polite">
             {pitch && analysisStatus === 'ready' ? (
               <>

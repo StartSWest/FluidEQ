@@ -314,6 +314,45 @@ export const writeWaveformPoints = (
   return target;
 };
 
+/**
+ * Build the titlebar waveform from the same discrete channel samples as the
+ * L/R output meter.
+ *
+ * The spectrum analyser above receives Chromium's stereo fold-down. That is
+ * correct for a frequency response, but it is not a reliable waveform source:
+ * correlated channels with opposite polarity can nearly cancel in the fold
+ * even while both output meters are loud. Taking the strongest absolute sample
+ * from the real channel analysers keeps the compact waveform honest without
+ * inventing gain or changing its dB readout.
+ */
+export const writeChannelWaveformPoints = (
+  target: number[],
+  channelSamples: readonly Float32Array[],
+): number[] => {
+  const sampleCount = channelSamples.reduce(
+    (shortest, channel) => Math.min(shortest, channel.length),
+    Number.POSITIVE_INFINITY,
+  );
+  if (!Number.isFinite(sampleCount) || sampleCount <= 0) {
+    target.fill(0);
+    return target;
+  }
+
+  const bucketSize = sampleCount / target.length;
+  for (let index = 0; index < target.length; index += 1) {
+    const start = Math.floor(index * bucketSize);
+    const end = Math.max(start + 1, Math.floor((index + 1) * bucketSize));
+    let peak = 0;
+    for (let sampleIndex = start; sampleIndex < end; sampleIndex += 1) {
+      for (let channel = 0; channel < channelSamples.length; channel += 1) {
+        peak = Math.max(peak, Math.abs(channelSamples[channel][sampleIndex]));
+      }
+    }
+    target[index] = peak;
+  }
+  return target;
+};
+
 // Handed a translator rather than reaching for one: this is a plain async
 // function outside the component, so it cannot call a hook.
 export const captureSystemOutput = async (

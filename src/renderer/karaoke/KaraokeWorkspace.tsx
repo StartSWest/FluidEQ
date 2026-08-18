@@ -121,6 +121,7 @@ const SOURCE_KEYS: Record<string, TranslationKey> = {
 
 const STAGE_PITCH_MEDIA_QUERY = '(min-width: 1120px)';
 const PLAYLIST_FOLDER_GROUPING_KEY = 'fluideq-karaoke-playlist-group-by-folder';
+const PITCH_GUIDE_VISIBILITY_KEY = 'fluideq-karaoke-pitch-guide-visible';
 
 export const readKaraokePlaylistFolderGrouping = (): boolean => {
   try {
@@ -133,6 +134,22 @@ export const readKaraokePlaylistFolderGrouping = (): boolean => {
 export const writeKaraokePlaylistFolderGrouping = (enabled: boolean): void => {
   try {
     window.localStorage.setItem(PLAYLIST_FOLDER_GROUPING_KEY, String(enabled));
+  } catch {
+    // Keep the live preference when storage is unavailable.
+  }
+};
+
+const readPitchGuideVisibility = (): boolean => {
+  try {
+    return window.localStorage.getItem(PITCH_GUIDE_VISIBILITY_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+};
+
+const writePitchGuideVisibility = (visible: boolean): void => {
+  try {
+    window.localStorage.setItem(PITCH_GUIDE_VISIBILITY_KEY, String(visible));
   } catch {
     // Keep the live preference when storage is unavailable.
   }
@@ -223,6 +240,9 @@ const KaraokeWorkspace = ({
   );
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>();
   const [useStagePitch, setUseStagePitch] = useState(initiallyUseStagePitch);
+  const [isPitchGuideVisible, setIsPitchGuideVisible] = useState(
+    readPitchGuideVisibility,
+  );
   const layoutMode: TKaraokeLayoutMode = isFullScreen ? 'fullscreen' : 'normal';
   const [layouts, setLayouts] = useState<
     Record<TKaraokeLayoutMode, IKaraokeLayoutSettings>
@@ -535,15 +555,6 @@ const KaraokeWorkspace = ({
       });
     },
     [startCountIn, t],
-  );
-
-  const handleSeekLyric = useCallback(
-    (direction: -1 | 1) => {
-      cancelCountIn();
-      resumeWithCountInAfterScrubRef.current = false;
-      sessionRef.current.seekLyric(direction);
-    },
-    [cancelCountIn],
   );
 
   const handlePitchScrubStart = useCallback(() => {
@@ -1148,6 +1159,26 @@ const KaraokeWorkspace = ({
         </span>
       </button>
       <button
+        type="button"
+        className="button small subtle karaoke-workspace__icon-action karaoke-workspace__pitch-toggle"
+        aria-label={t(
+          isPitchGuideVisible ? 'karaoke.pitch.hide' : 'karaoke.pitch.show',
+        )}
+        title={t(
+          isPitchGuideVisible ? 'karaoke.pitch.hide' : 'karaoke.pitch.show',
+        )}
+        aria-pressed={isPitchGuideVisible}
+        onClick={() => {
+          setIsPitchGuideVisible((visible) => {
+            const next = !visible;
+            writePitchGuideVisibility(next);
+            return next;
+          });
+        }}
+      >
+        <MenuIcon name="graph" className="karaoke-button__icon" />
+      </button>
+      <button
         ref={microphoneMenuButtonRef}
         type="button"
         className={`button small subtle karaoke-workspace__icon-action karaoke-workspace__settings${
@@ -1234,6 +1265,20 @@ const KaraokeWorkspace = ({
         if (isFullScreen) {
           revealChromeNow();
         }
+      }}
+      onDoubleClick={(event) => {
+        const target = event.target as Element;
+        // The stage itself is the fullscreen target. Controls keep their own
+        // double-click behaviour, and the Maker is a separate editing surface
+        // where an accidental window-mode change would be especially costly.
+        if (
+          target.closest(
+            'button, input, select, textarea, a, [role="dialog"], [role="menu"], .karaoke-maker',
+          )
+        ) {
+          return;
+        }
+        onToggleFullScreen();
       }}
       // A labelled region is also the deliberate whole-surface drop target.
       // eslint-disable-next-line jsx-a11y/no-noninteractive-element-interactions
@@ -1367,7 +1412,9 @@ const KaraokeWorkspace = ({
         <div
           ref={stageRef}
           className={`karaoke-workspace__stage${song ? ' has-song' : ''}${
-            song && useStagePitch ? ' has-stage-pitch' : ''
+            isPitchGuideVisible && song && useStagePitch
+              ? ' has-stage-pitch'
+              : ''
           }${
             playlist.length > 0 && layout.playlistCollapsed
               ? ' has-collapsed-playlist'
@@ -1460,7 +1507,7 @@ const KaraokeWorkspace = ({
                 followRequestKey={lyricsFollowRequestKey}
                 textSize={lyricTextSize}
               />
-              {useStagePitch && (
+              {isPitchGuideVisible && useStagePitch && (
                 <>
                   <KaraokePaneSplitter
                     orientation="horizontal"
@@ -1482,30 +1529,12 @@ const KaraokeWorkspace = ({
                     durationMs={session.durationMs}
                     readPlayheadMs={session.readPlayheadMs}
                     onPracticeIssue={practicePitchIssue}
-                    melodyToneEnabled={melodyTone.enabled}
-                    melodyToneAvailable={melodyTone.isAvailable}
-                    melodyToneVolume={melodyTone.volume}
-                    onToggleMelodyTone={melodyTone.toggle}
-                    onMelodyToneVolume={melodyTone.setVolume}
                     onScrubStart={handlePitchScrubStart}
                     onScrub={handlePitchScrub}
                     onScrubEnd={handlePitchScrubEnd}
                   />
                 </>
               )}
-              <KaraokeTransport
-                status={status}
-                playheadMs={session.playheadMs}
-                durationMs={session.durationMs}
-                volume={session.volume}
-                vocalLevel={canMixVocals ? vocalLevel : undefined}
-                onVocalLevel={canMixVocals ? setVocalLevel : undefined}
-                onTogglePlayback={handleTogglePlayback}
-                onRestart={handleRestart}
-                onSeek={handleSeek}
-                onSeekLyric={handleSeekLyric}
-                onVolume={session.setVolume}
-              />
               {countInCue && (
                 <div
                   className="karaoke-count-in"
@@ -1566,7 +1595,7 @@ const KaraokeWorkspace = ({
         </div>
       </div>
 
-      {(!song || !useStagePitch) && (
+      {isPitchGuideVisible && (!song || !useStagePitch) && (
         <>
           <KaraokePaneSplitter
             orientation="horizontal"
@@ -1592,17 +1621,58 @@ const KaraokeWorkspace = ({
               durationMs={session.durationMs}
               readPlayheadMs={session.readPlayheadMs}
               onPracticeIssue={practicePitchIssue}
-              melodyToneEnabled={melodyTone.enabled}
-              melodyToneAvailable={melodyTone.isAvailable}
-              melodyToneVolume={melodyTone.volume}
-              onToggleMelodyTone={melodyTone.toggle}
-              onMelodyToneVolume={melodyTone.setVolume}
               onScrubStart={handlePitchScrubStart}
               onScrub={handlePitchScrub}
               onScrubEnd={handlePitchScrubEnd}
             />
           </div>
         </>
+      )}
+      {song && (
+        <KaraokeTransport
+          status={status}
+          playheadMs={session.playheadMs}
+          durationMs={session.durationMs}
+          levels={[
+            {
+              id: 'melody',
+              label: t('karaoke.pitch.toneVolume'),
+              value: melodyTone.volume,
+              channel: 'melody',
+              disabled: !melodyTone.isAvailable || !melodyTone.enabled,
+              toggleDisabled: !melodyTone.isAvailable,
+              pressed: melodyTone.enabled,
+              onToggle: () => melodyTone.toggle().catch(() => undefined),
+              onChange: melodyTone.setVolume,
+            },
+            {
+              id: 'backing',
+              label: t('karaoke.maker.stemBacking'),
+              value: backingLevel,
+              channel: 'backing',
+              onChange: changeBackingLevel,
+            },
+            ...(canMixVocals
+              ? [
+                  {
+                    id: 'vocal',
+                    label: t('karaoke.transport.vocalLevel'),
+                    value: vocalLevel,
+                    valueText:
+                      vocalLevel === 0
+                        ? t('karaoke.transport.vocalOff')
+                        : `${Math.round(vocalLevel * 100)}%`,
+                    channel: 'vocal' as const,
+                    onChange: setVocalLevel,
+                  },
+                ]
+              : []),
+          ]}
+          onTogglePlayback={handleTogglePlayback}
+          onJumpToStart={() => handleSeek(0)}
+          onJumpToEnd={() => handleSeek(session.durationMs)}
+          onSeek={handleSeek}
+        />
       )}
       {isMakerOpen &&
         song &&

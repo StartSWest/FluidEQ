@@ -16,33 +16,48 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties } from 'react';
+import { CSSProperties, ReactNode, useEffect, useId, useState } from 'react';
 import { formatKaraokeTime } from '../../common/karaoke/clock';
 import { useTranslation } from '../utils/I18nContext';
+import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import { TKaraokePlaybackStatus } from './useKaraokeSession';
+import KaraokeMakerToolIcon, {
+  TKaraokeMakerToolIcon,
+} from './KaraokeMakerToolIcon';
 import '../styles/Button.scss';
+
+export type TKaraokeTransportChannel = 'melody' | 'backing' | 'vocal';
+
+const CHANNEL_ICONS: Record<TKaraokeTransportChannel, TKaraokeMakerToolIcon> = {
+  melody: 'melody',
+  backing: 'stem',
+  vocal: 'vocal',
+};
+
+export interface IKaraokeTransportLevel {
+  id: string;
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+  channel?: TKaraokeTransportChannel;
+  icon?: ReactNode;
+  valueText?: string;
+  disabled?: boolean;
+  toggleDisabled?: boolean;
+  pressed?: boolean;
+  onToggle?: () => void;
+}
 
 interface IKaraokeTransportProps {
   status: TKaraokePlaybackStatus;
   playheadMs: number;
   durationMs: number;
-  volume: number;
-  /**
-   * How much of the original singer to blend back in, or undefined when this
-   * song has not been separated and there is nothing to blend.
-   *
-   * Separate from `volume` because they do different jobs: volume is how loud
-   * the whole thing is, this is how much help the singer wants. Folding the
-   * two into one control would make turning the guide vocal down also quieten
-   * the backing track.
-   */
-  vocalLevel?: number;
-  onVocalLevel?: (level: number) => void;
+  levels: readonly IKaraokeTransportLevel[];
   onTogglePlayback: () => void;
-  onRestart: () => void;
+  onJumpToStart: () => void;
+  onJumpToEnd: () => void;
   onSeek: (timeMs: number) => void;
-  onSeekLyric: (direction: -1 | 1) => void;
-  onVolume: (volume: number) => void;
+  seekStepMs?: number;
 }
 
 export type TKaraokeTransportIcon =
@@ -153,64 +168,177 @@ export const KaraokeTransportIcon = ({
   );
 };
 
+const transportLevelIcon = (level: IKaraokeTransportLevel) =>
+  level.icon ??
+  (level.channel ? (
+    <KaraokeMakerToolIcon name={CHANNEL_ICONS[level.channel]} />
+  ) : (
+    <KaraokeTransportIcon name="volume" />
+  ));
+
+const KaraokeTransportLevel = ({
+  level,
+  inputId,
+  isInMenu = false,
+}: {
+  level: IKaraokeTransportLevel;
+  inputId: string;
+  isInMenu?: boolean;
+}) => {
+  const percent = Math.round(level.value * 100);
+  const valueText = level.valueText ?? `${percent}%`;
+  const levelStyle = {
+    '--karaoke-range-progress': `${percent}%`,
+  } as CSSProperties;
+  const icon = transportLevelIcon(level);
+
+  return (
+    <div
+      className={`karaoke-transport__volume${
+        isInMenu ? ' is-in-mix-menu' : ''
+      }`}
+      data-channel={level.channel}
+    >
+      {level.onToggle ? (
+        <button
+          type="button"
+          className="karaoke-transport__volume-icon karaoke-transport__volume-toggle"
+          onClick={level.onToggle}
+          disabled={level.toggleDisabled ?? level.disabled}
+          aria-label={level.label}
+          aria-pressed={level.pressed}
+          title={level.label}
+        >
+          {icon}
+        </button>
+      ) : (
+        <span className="karaoke-transport__volume-icon" aria-hidden="true">
+          {icon}
+        </span>
+      )}
+      <label
+        className={
+          isInMenu
+            ? 'karaoke-transport__mix-label'
+            : 'karaoke-transport__sr-label'
+        }
+        htmlFor={inputId}
+      >
+        {level.label}
+      </label>
+      <input
+        id={inputId}
+        aria-label={level.label}
+        aria-valuetext={valueText}
+        type="range"
+        min={0}
+        max={1}
+        step={0.01}
+        value={level.value}
+        style={levelStyle}
+        disabled={level.disabled}
+        onChange={(event) => level.onChange(Number(event.target.value))}
+      />
+      <span className="karaoke-transport__volume-value" aria-hidden="true">
+        {valueText}
+      </span>
+    </div>
+  );
+};
+
 const KaraokeTransport = ({
   status,
   playheadMs,
   durationMs,
-  volume,
-  vocalLevel,
-  onVocalLevel,
+  levels,
   onTogglePlayback,
-  onRestart,
+  onJumpToStart,
+  onJumpToEnd,
   onSeek,
-  onSeekLyric,
-  onVolume,
+  seekStepMs = 5_000,
 }: IKaraokeTransportProps) => {
   const { t } = useTranslation();
+  const controlId = useId();
+  const [mixMenuAnchor, setMixMenuAnchor] = useState<HTMLElement | null>(null);
   const isPlaying = status === 'playing';
   const canPlay = !['empty', 'loading'].includes(status);
   const progress =
     durationMs > 0 ? Math.min(100, (playheadMs / durationMs) * 100) : 0;
-  const volumePercent = Math.round(volume * 100);
   const progressStyle = {
     '--karaoke-range-progress': `${progress}%`,
   } as CSSProperties;
-  const volumeStyle = {
-    '--karaoke-range-progress': `${volumePercent}%`,
-  } as CSSProperties;
-  const vocalPercent = Math.round((vocalLevel ?? 0) * 100);
-  const vocalStyle = {
-    '--karaoke-range-progress': `${vocalPercent}%`,
-  } as CSSProperties;
-  const showVocalMix = vocalLevel !== undefined && onVocalLevel !== undefined;
+
+  useEffect(() => {
+    if (!mixMenuAnchor) {
+      return undefined;
+    }
+    const closeOnOutsidePress = (event: PointerEvent) => {
+      const target = event.target as Node | null;
+      if (
+        mixMenuAnchor.contains(target) ||
+        isInsideAnchoredMenu(event.target)
+      ) {
+        return;
+      }
+      setMixMenuAnchor(null);
+    };
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setMixMenuAnchor(null);
+        mixMenuAnchor.focus();
+      }
+    };
+    const closeOnResize = () => setMixMenuAnchor(null);
+    window.addEventListener('pointerdown', closeOnOutsidePress);
+    window.addEventListener('keydown', closeOnEscape);
+    window.addEventListener('resize', closeOnResize);
+    return () => {
+      window.removeEventListener('pointerdown', closeOnOutsidePress);
+      window.removeEventListener('keydown', closeOnEscape);
+      window.removeEventListener('resize', closeOnResize);
+    };
+  }, [mixMenuAnchor]);
+
+  useEffect(() => {
+    if (mixMenuAnchor && !mixMenuAnchor.isConnected) {
+      setMixMenuAnchor(null);
+    }
+  }, [levels.length, mixMenuAnchor]);
+
   return (
     <div
       className="karaoke-transport"
       role="group"
       aria-label={t('karaoke.transport.title')}
+      data-level-count={levels.length}
     >
       <div className="karaoke-transport__buttons">
         <button
           type="button"
           className="button small subtle karaoke-transport__control"
-          onClick={onRestart}
+          onClick={onJumpToStart}
           disabled={!canPlay}
           aria-disabled={!canPlay}
-          aria-label={t('karaoke.transport.restart')}
-          title={t('karaoke.transport.restart')}
+          aria-label={t('karaoke.maker.jumpToStart')}
+          title={t('karaoke.maker.jumpToStart')}
         >
-          <KaraokeTransportIcon name="restart" />
+          <KaraokeTransportIcon name="previous" />
         </button>
         <button
           type="button"
           className="button small subtle karaoke-transport__control"
-          onClick={() => onSeekLyric(-1)}
+          onClick={() => onSeek(Math.max(0, playheadMs - seekStepMs))}
           disabled={!canPlay}
           aria-disabled={!canPlay}
-          aria-label={t('karaoke.lyrics.previous')}
-          title={t('karaoke.lyrics.previous')}
+          aria-label={t('karaoke.maker.seekBack', {
+            seconds: seekStepMs / 1_000,
+          })}
+          title={t('karaoke.maker.seekBack', {
+            seconds: seekStepMs / 1_000,
+          })}
         >
           <KaraokeTransportIcon name="previous" />
+          <small>{seekStepMs / 1_000}</small>
         </button>
         <button
           type="button"
@@ -236,11 +364,27 @@ const KaraokeTransport = ({
         <button
           type="button"
           className="button small subtle karaoke-transport__control"
-          onClick={() => onSeekLyric(1)}
+          onClick={() => onSeek(Math.min(durationMs, playheadMs + seekStepMs))}
           disabled={!canPlay}
           aria-disabled={!canPlay}
-          aria-label={t('karaoke.lyrics.next')}
-          title={t('karaoke.lyrics.next')}
+          aria-label={t('karaoke.maker.seekForward', {
+            seconds: seekStepMs / 1_000,
+          })}
+          title={t('karaoke.maker.seekForward', {
+            seconds: seekStepMs / 1_000,
+          })}
+        >
+          <KaraokeTransportIcon name="next" />
+          <small>{seekStepMs / 1_000}</small>
+        </button>
+        <button
+          type="button"
+          className="button small subtle karaoke-transport__control"
+          onClick={onJumpToEnd}
+          disabled={!canPlay}
+          aria-disabled={!canPlay}
+          aria-label={t('karaoke.maker.jumpToEnd')}
+          title={t('karaoke.maker.jumpToEnd')}
         >
           <KaraokeTransportIcon name="next" />
         </button>
@@ -252,13 +396,13 @@ const KaraokeTransport = ({
         </time>
         <label
           className="karaoke-transport__timeline"
-          htmlFor="karaoke-song-position"
+          htmlFor={`${controlId}-position`}
         >
           <span className="karaoke-transport__sr-label">
             {t('karaoke.transport.seek')}
           </span>
           <input
-            id="karaoke-song-position"
+            id={`${controlId}-position`}
             type="range"
             min={0}
             max={Math.max(1, durationMs)}
@@ -273,68 +417,70 @@ const KaraokeTransport = ({
           -{formatKaraokeTime(Math.max(0, durationMs - playheadMs))}
         </time>
       </div>
-      <label
-        className="karaoke-transport__volume"
-        htmlFor="karaoke-song-volume"
-      >
-        <span className="karaoke-transport__volume-icon" aria-hidden="true">
-          <KaraokeTransportIcon name="volume" />
-        </span>
-        <span className="karaoke-transport__sr-label">
-          {t('karaoke.transport.volume')}
-        </span>
-        <input
-          id="karaoke-song-volume"
-          aria-label={t('karaoke.transport.volume')}
-          type="range"
-          min={0}
-          max={1}
-          step={0.01}
-          value={volume}
-          style={volumeStyle}
-          onChange={(event) => onVolume(Number(event.target.value))}
+      {levels.map((level) => (
+        <KaraokeTransportLevel
+          key={level.id}
+          level={level}
+          inputId={`${controlId}-${level.id}`}
         />
-        <span className="karaoke-transport__volume-value" aria-hidden="true">
-          {volumePercent}%
-        </span>
-      </label>
-      {showVocalMix && (
-        <label
-          className="karaoke-transport__volume karaoke-transport__vocal-mix"
-          htmlFor="karaoke-vocal-level"
+      ))}
+      {levels.length > 0 && (
+        <div
+          className="karaoke-transport__mix-buttons"
+          role="group"
+          aria-label={t('karaoke.transport.mixSettings')}
         >
-          <span className="karaoke-transport__volume-icon" aria-hidden="true">
-            <KaraokeTransportIcon name="volume" />
-          </span>
-          <span className="karaoke-transport__sr-label">
-            {t('karaoke.transport.vocalLevel')}
-          </span>
-          <input
-            id="karaoke-vocal-level"
-            aria-label={t('karaoke.transport.vocalLevel')}
-            // The ends are the two things people actually reach for, so they
-            // are named rather than left as bare numbers: all the way down is
-            // a clean backing track, all the way up is the record as released.
-            aria-valuetext={
-              vocalPercent === 0
-                ? t('karaoke.transport.vocalOff')
-                : `${vocalPercent}%`
-            }
-            type="range"
-            min={0}
-            max={1}
-            step={0.01}
-            value={vocalLevel}
-            style={vocalStyle}
-            onChange={(event) => onVocalLevel(Number(event.target.value))}
-          />
-          <span className="karaoke-transport__volume-value" aria-hidden="true">
-            {vocalPercent === 0
-              ? t('karaoke.transport.vocalOff')
-              : `${vocalPercent}%`}
-          </span>
-        </label>
+          {levels.map((level) => (
+            <button
+              type="button"
+              className="button small subtle karaoke-transport__mix-trigger"
+              key={level.id}
+              aria-label={t('karaoke.transport.openMixSettings', {
+                channel: level.label,
+              })}
+              aria-haspopup="dialog"
+              aria-expanded={mixMenuAnchor?.dataset.levelId === level.id}
+              data-level-id={level.id}
+              data-enabled={level.pressed || undefined}
+              data-unavailable={
+                (level.toggleDisabled ?? false) && level.disabled
+                  ? true
+                  : undefined
+              }
+              title={level.label}
+              onClick={(event) => {
+                const trigger = event.currentTarget;
+                setMixMenuAnchor((current) =>
+                  current === trigger ? null : trigger,
+                );
+              }}
+            >
+              {transportLevelIcon(level)}
+            </button>
+          ))}
+        </div>
       )}
+      <AnchoredMenu
+        anchor={mixMenuAnchor}
+        isOpen={Boolean(mixMenuAnchor)}
+        className="karaoke-transport__mix-popover"
+        role="dialog"
+        ariaLabel={t('karaoke.transport.mixSettings')}
+      >
+        <strong className="karaoke-transport__mix-title">
+          {t('karaoke.transport.mixSettings')}
+        </strong>
+        <div className="karaoke-transport__mix-levels">
+          {levels.map((level) => (
+            <KaraokeTransportLevel
+              key={level.id}
+              level={level}
+              inputId={`${controlId}-${level.id}-menu`}
+              isInMenu
+            />
+          ))}
+        </div>
+      </AnchoredMenu>
     </div>
   );
 };

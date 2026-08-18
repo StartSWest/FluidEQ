@@ -61,8 +61,8 @@ import {
   createFrequencyAxis,
   detectClipping,
   getPeakLevel,
+  writeChannelWaveformPoints,
   writeFrequencyPoints,
-  writeWaveformPoints,
 } from './liveSpectrumFrames';
 import {
   ILevelFollower,
@@ -600,7 +600,9 @@ const useLiveOutputSpectrum = () => {
 
       // One block of samples, read into again per channel per tick, and the
       // ballistics that carry each channel's two readings between ticks.
-      const meterSamples = new Float32Array(LEVEL_FFT_SIZE);
+      const meterSamples = meterAnalysers.map(
+        () => new Float32Array(LEVEL_FFT_SIZE),
+      );
       const meterFollowers: ILevelFollower[] = meterAnalysers.map(() =>
         createLevelFollower(),
       );
@@ -681,10 +683,6 @@ const useLiveOutputSpectrum = () => {
             );
             setPoints(pointsRef.current);
           }
-          setWaveform(
-            writeWaveformPoints(buffers.waveform[bufferSlot], timeDomainData),
-          );
-
           // Held briefly so a single clipped frame is actually seen: at 45 ms a
           // flash would be gone before the eye registers it.
           if (detectClipping(timeDomainData)) {
@@ -718,15 +716,22 @@ const useLiveOutputSpectrum = () => {
           lastMeterMs = meterNowMs;
           const meterFrame = meterFrames[bufferSlot];
           for (let channel = 0; channel < meterAnalysers.length; channel += 1) {
-            meterAnalysers[channel].getFloatTimeDomainData(meterSamples);
+            const channelSamples = meterSamples[channel];
+            meterAnalysers[channel].getFloatTimeDomainData(channelSamples);
             const follower = advanceLevel(
               meterFollowers[channel],
-              amplitudeToDb(readPeakAmplitude(meterSamples)),
+              amplitudeToDb(readPeakAmplitude(channelSamples)),
               meterDeltaMs,
             );
             meterFrame[channel].levelDb = follower.levelDb;
             meterFrame[channel].peakDb = follower.peakDb;
           }
+          setWaveform(
+            writeChannelWaveformPoints(
+              buffers.waveform[bufferSlot],
+              meterSamples,
+            ),
+          );
           setOutputLevels(meterFrame);
         }
 
