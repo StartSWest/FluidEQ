@@ -54,10 +54,14 @@ jobs:
             assets/licenses/CC-BY-SA-4.0-LICENSE.txt \
             assets/licenses/OPRA-ATTRIBUTION.txt
 
+      # The assets go onto the current version release rather than a release of
+      # their own. A standalone data release is the newest release the moment it
+      # is published, which makes it what GitHub answers /releases/latest with —
+      # and that is where the app's GitHub update feed goes looking for
+      # latest.yml. It found a database archive instead.
       - name: Publish update assets
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release view opra-database >/dev/null 2>&1 || \
-            gh release create opra-database --title "FluidEQ OPRA database" --notes "Automatically generated from the OPRA project dataset. Data is CC BY-SA 4.0; see the licence and attribution inside the archive."
-          gh release upload opra-database opra-database.zip assets/opra-version.json --clobber
+          latest=$(gh release view --json tagName --jq .tagName)
+          gh release upload "$latest" opra-database.zip assets/opra-version.json --clobber

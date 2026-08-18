@@ -19,11 +19,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 /**
  * Keep the bundled OPRA library current.
  *
- * The database is republished as an asset on a fixed release tag of our own
- * repository, and downloaded from there rather than from OPRA directly. Two
- * reasons: the archive carries our own layout, not OPRA's JSONL; and OPRA asks
- * commercial consumers to mirror the dataset instead of leaning on the CDN they
- * run as a courtesy for open-source projects. FluidEQ is sold, so we mirror.
+ * The database is republished as an asset on our own version releases, and
+ * downloaded from there rather than from OPRA directly. Two reasons: the
+ * archive carries our own layout, not OPRA's JSONL; and OPRA asks commercial
+ * consumers to mirror the dataset instead of leaning on the CDN they run as a
+ * courtesy for open-source projects. FluidEQ is sold, so we mirror.
+ *
+ * It rides on the version releases rather than a release of its own, so the
+ * newest release is not necessarily the one carrying it: a version ships the
+ * moment it is built, while the archive is only attached the next time the
+ * database job runs. Hence the search back through recent releases for the
+ * newest one that actually holds both assets.
  *
  * The version check compares a hash of the upstream dataset. Its predecessor
  * compared AutoEq's upstream commit id, which had not moved since July 2025 and
@@ -41,8 +47,8 @@ import { IOpraDatabaseManifest, IOpraUpdateStatus } from '../common/constants';
 import { forgetOpraIndex } from './opra';
 
 const execFileAsync = promisify(execFile);
-const RELEASE_API =
-  'https://api.github.com/repos/StartSWest/FluidEQ/releases/tags/opra-database';
+const RELEASES_API =
+  'https://api.github.com/repos/StartSWest/FluidEQ/releases?per_page=20';
 const MANIFEST_NAME = 'opra-version.json';
 const ARCHIVE_NAME = 'opra-database.zip';
 
@@ -86,14 +92,24 @@ const fetchJson = async <Type>(url: string): Promise<Type> => {
   return (await response.json()) as Type;
 };
 
-const getReleaseAssets = async () => {
-  const release = await fetchJson<IReleaseResponse>(RELEASE_API);
+const databaseAssets = (release: IReleaseResponse) => {
   const manifest = release.assets.find((asset) => asset.name === MANIFEST_NAME);
   const archive = release.assets.find((asset) => asset.name === ARCHIVE_NAME);
-  if (!manifest || !archive) {
+  // A release carrying only one of the two is a half-finished upload, not a
+  // source: pairing them here keeps a manifest from being read against an
+  // archive published beside a different one.
+  return manifest && archive ? { manifest, archive } : undefined;
+};
+
+const getReleaseAssets = async () => {
+  const releases = await fetchJson<IReleaseResponse[]>(RELEASES_API);
+  const assets = releases
+    .map(databaseAssets)
+    .find((pair) => pair !== undefined);
+  if (!assets) {
     throw new Error('OPRA database assets are missing.');
   }
-  return { manifest, archive };
+  return assets;
 };
 
 export const checkOpraUpdate = async (): Promise<IOpraUpdateStatus> => {
