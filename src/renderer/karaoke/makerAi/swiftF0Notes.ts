@@ -26,9 +26,6 @@ export const SWIFT_F0_PROVENANCE: IKaraokeMakerLicenseRecord = {
 /** A note shorter than this is a glide the singer passed through, not a note. */
 const MINIMUM_NOTE_MS = 90;
 
-/** Split a segment when the voice strays this far from the note it was on. */
-const SPLIT_SEMITONES = 0.8;
-
 const hzToMidi = (hz: number) => 69 + 12 * Math.log2(hz / 440);
 
 /**
@@ -150,97 +147,125 @@ export const analyzeKaraokeWithSwiftF0 = async (
     }
   }
 
-  // 3. Segment: split only on SUSTAINED deviation — three consecutive frames
-  //    away from the note's running median — so vibrato and scoops stay part
-  //    of their note and a genuine step to a new pitch still cuts cleanly.
-  interface ISegment {
-    startFrame: number;
-    endFrame: number;
-    midis: number[];
-    confidences: number[];
+  // 3. Notes by Viterbi over a note HMM — the pYIN/Tony method, which is the
+  //    published model for singing-to-notes (Mauch et al.; Tony is the
+  //    academic tool built on it). There is no downloadable network that does
+  //    this better: Hugging Face has no singing-note-transcription model at
+  //    all (searched, empty), so the state of the art is exactly this — a
+  //    strong contour tracker feeding a principled decoder. States are
+  //    silence plus one state per MIDI note; each frame's evidence prefers
+  //    the note nearest the smoothed pitch, weighted by the tracker's
+  //    confidence; transitions price staying, moving by an interval, and
+  //    entering or leaving silence. The best path through the whole song is
+  //    the note chart — boundaries fall where the evidence globally says,
+  //    not where a local heuristic flinched.
+  const LOW_MIDI = 36;
+  const HIGH_MIDI = 84;
+  const noteStates = HIGH_MIDI - LOW_MIDI + 1;
+  const states = noteStates + 1; // last index is silence
+  const SILENCE = noteStates;
+  const STAY = Math.log(0.96);
+  const ENTER_SILENCE = Math.log(0.012);
+  const STAY_SILENCE = Math.log(0.97);
+  const LEAVE_SILENCE = Math.log(0.03 / noteStates);
+  /** Moving between notes: priced by interval so runs prefer real steps. */
+  const moveCost = (from: number, to: number) =>
+    Math.log(0.028) - Math.abs(from - to) * 0.18;
+
+  const emission = (frame: number, state: number): number => {
+    const level = confidence[frame];
+    if (state === SILENCE) {
+      return Math.log(Math.max(1e-6, 1 - level));
+    }
+    if (Number.isNaN(smoothed[frame]) || !voiced[frame]) {
+      return Math.log(1e-6);
+    }
+    const distance = Math.abs(smoothed[frame] - (LOW_MIDI + state));
+    return Math.log(Math.max(1e-6, level)) - (distance * distance) / 0.5;
+  };
+
+  const previousScore = new Float64Array(states).fill(-1e9);
+  const currentScore = new Float64Array(states);
+  const backPointer = new Int16Array(states * frameCount);
+  for (let state = 0; state < states; state += 1) {
+    previousScore[state] = emission(0, state);
   }
-  const segments: ISegment[] = [];
-  let current: ISegment | undefined;
-  let strayRun = 0;
-  for (let frame = 0; frame < frameCount; frame += 1) {
-    if (!voiced[frame]) {
-      if (current) {
-        segments.push(current);
-        current = undefined;
-      }
-      strayRun = 0;
-    } else if (!current) {
-      current = {
-        startFrame: frame,
-        endFrame: frame + 1,
-        midis: [smoothed[frame]],
-        confidences: [confidence[frame]],
-      };
-    } else {
-      const sorted = [...current.midis].sort((a, b) => a - b);
-      const median = sorted[Math.floor(sorted.length / 2)];
-      if (Math.abs(smoothed[frame] - median) > SPLIT_SEMITONES) {
-        strayRun += 1;
-        if (strayRun >= 3) {
-          // The voice settled somewhere new three frames ago; the note ends
-          // where the stray began, and the new one starts there.
-          const splitAt = frame - strayRun + 1;
-          current.endFrame = splitAt;
-          segments.push(current);
-          current = {
-            startFrame: splitAt,
-            endFrame: frame + 1,
-            midis: Array.from(smoothed.subarray(splitAt, frame + 1)),
-            confidences: Array.from(confidence.subarray(splitAt, frame + 1)),
-          };
-          strayRun = 0;
-        }
-      } else {
-        strayRun = 0;
-        current.midis.push(smoothed[frame]);
-        current.confidences.push(confidence[frame]);
-        current.endFrame = frame + 1;
+  for (let frame = 1; frame < frameCount; frame += 1) {
+    // The best predecessor for a note is overwhelmingly itself, silence, or a
+    // nearby note; scanning all pairs is affordable and exact.
+    let bestSilenceSource = SILENCE;
+    let bestSilenceScore = previousScore[SILENCE] + STAY_SILENCE;
+    for (let from = 0; from < noteStates; from += 1) {
+      const score = previousScore[from] + ENTER_SILENCE;
+      if (score > bestSilenceScore) {
+        bestSilenceScore = score;
+        bestSilenceSource = from;
       }
     }
-  }
-  if (current) {
-    segments.push(current);
+    currentScore[SILENCE] = bestSilenceScore + emission(frame, SILENCE);
+    backPointer[frame * states + SILENCE] = bestSilenceSource;
+    for (let to = 0; to < noteStates; to += 1) {
+      let bestSource = to;
+      let bestScore = previousScore[to] + STAY;
+      const fromSilence = previousScore[SILENCE] + LEAVE_SILENCE;
+      if (fromSilence > bestScore) {
+        bestScore = fromSilence;
+        bestSource = SILENCE;
+      }
+      for (let from = 0; from < noteStates; from += 1) {
+        if (from !== to) {
+          const score = previousScore[from] + moveCost(from, to);
+          if (score > bestScore) {
+            bestScore = score;
+            bestSource = from;
+          }
+        }
+      }
+      currentScore[to] = bestScore + emission(frame, to);
+      backPointer[frame * states + to] = bestSource;
+    }
+    previousScore.set(currentScore);
   }
 
-  // 4. A note's pitch comes from its interior — the attack scoops and the
-  //    release falls, and neither is the note. Then neighbours on the same
-  //    MIDI with a hair's gap merge back into one sustain, and only after
-  //    that are the too-short fragments dropped.
-  const rawNotes = segments.map((segment) => {
-    const inner =
-      segment.midis.length > 6 ? segment.midis.slice(2, -2) : segment.midis;
-    const sorted = [...inner].sort((a, b) => a - b);
-    return {
-      startMs: segment.startFrame * hopMs,
-      endMs: segment.endFrame * hopMs,
-      targetMidi: Math.round(sorted[Math.floor(sorted.length / 2)]),
-      confidence:
-        segment.confidences.reduce((sum, value) => sum + value, 0) /
-        segment.confidences.length,
-    };
-  });
-  const merged: IKaraokeMakerAnalysisNote[] = [];
-  rawNotes.forEach((note) => {
-    const previous = merged[merged.length - 1];
-    if (
-      previous &&
-      previous.targetMidi === note.targetMidi &&
-      note.startMs - previous.endMs < 80
-    ) {
-      previous.endMs = note.endMs;
-      previous.confidence = Math.max(previous.confidence, note.confidence);
-    } else {
-      merged.push({ ...note });
+  let state = 0;
+  for (let candidate = 1; candidate < states; candidate += 1) {
+    if (previousScore[candidate] > previousScore[state]) {
+      state = candidate;
     }
-  });
-  const notes = merged.filter(
-    (note) => note.endMs - note.startMs >= MINIMUM_NOTE_MS,
-  );
+  }
+  const path = new Int16Array(frameCount);
+  for (let frame = frameCount - 1; frame >= 0; frame -= 1) {
+    path[frame] = state;
+    state = backPointer[frame * states + state];
+  }
+
+  // 4. The path is already the note chart: contiguous same-state stretches
+  //    become notes, silence becomes rests, and only fragments too short to
+  //    sing are dropped.
+  const notes: IKaraokeMakerAnalysisNote[] = [];
+  let runStart = 0;
+  for (let frame = 1; frame <= frameCount; frame += 1) {
+    if (frame === frameCount || path[frame] !== path[runStart]) {
+      const runState = path[runStart];
+      if (runState !== SILENCE) {
+        const startMs = runStart * hopMs;
+        const endMs = frame * hopMs;
+        if (endMs - startMs >= MINIMUM_NOTE_MS) {
+          let sum = 0;
+          for (let i = runStart; i < frame; i += 1) {
+            sum += confidence[i];
+          }
+          notes.push({
+            startMs,
+            endMs,
+            targetMidi: LOW_MIDI + runState,
+            confidence: sum / (frame - runStart),
+          });
+        }
+      }
+      runStart = frame;
+    }
+  }
 
   onProgress(1);
   return notes;

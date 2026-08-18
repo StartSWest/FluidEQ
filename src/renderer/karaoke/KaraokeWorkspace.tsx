@@ -1099,9 +1099,18 @@ const KaraokeWorkspace = ({
           onClick={() => {
             cancelCountIn();
             session.pause();
-            // An explicit Make action edits exactly what the player currently
-            // shows. Restart recovery still restores an unfinished draft.
-            setRestoreMakerDraft(false);
+            // Which takes precedence, the saved draft or the player's own
+            // timing, depends on what the song is. An existing karaoke — the
+            // song itself carries word timing — opens on the player's
+            // normalized truth, with the draft one Undo away, so a stale
+            // shifted draft cannot make a finished song look out of sync.
+            // A song with no timing of its own has all its work in the
+            // draft: detected lyrics vanished on reopen until it restored.
+            setRestoreMakerDraft(
+              !song.lines.some((line) =>
+                line.tokens.some((token) => token.startMs !== undefined),
+              ),
+            );
             setIsMakerOpen(true);
           }}
           title={t('karaoke.maker.openTitle')}
@@ -1640,7 +1649,13 @@ const KaraokeWorkspace = ({
                 setLyricsFollowRequestKey((request) => request + 1);
               }
             }}
-            onClose={() => setIsMakerOpen(false)}
+            onClose={() => {
+              // Solo listening must not outlive the editor: leaving with the
+              // voice soloed kept the backing scaled to its blend — often
+              // zero — and the player looked broken at any master volume.
+              focusStem('backing');
+              setIsMakerOpen(false);
+            }}
             isFullScreen={isFullScreen}
             onToggleFullScreen={onToggleFullScreen}
           />
