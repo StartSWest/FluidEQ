@@ -172,8 +172,25 @@ export const useKaraokeVocalMix = ({
     // where the element says it should be, it is restarted at the right spot.
     const onTimeUpdate = () => {
       const context = contextRef.current;
+      if (!context || element.paused) {
+        return;
+      }
+      // Self-healing, because a silent guide vocal mid-song is the failure
+      // users reported and every cause has the same cure. The context can be
+      // suspended by the platform behind our back; the source can be missing
+      // after any race between fader, seek and pause. Whatever the reason,
+      // the element is playing and the voice should be too — make it so.
+      if (context.state === 'suspended') {
+        context.resume().catch(() => undefined);
+      }
+      if (!sourceRef.current) {
+        if (level >= SILENT) {
+          sync();
+        }
+        return;
+      }
       const started = startRef.current;
-      if (!context || !started || !sourceRef.current || element.paused) {
+      if (!started) {
         return;
       }
       const expected =
@@ -199,7 +216,7 @@ export const useKaraokeVocalMix = ({
       element.removeEventListener('timeupdate', onTimeUpdate);
       stop();
     };
-  }, [audioRef, isReady, stop, sync]);
+  }, [audioRef, isReady, level, stop, sync]);
 
   // A level change while playing should be heard immediately, not at the next
   // seek, so the gain is adjusted in place rather than restarting the source.

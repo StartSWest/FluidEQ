@@ -65,7 +65,11 @@ import {
   getGlowStyle,
 } from 'common/graphShapes';
 import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
-import { useGraphLook, useLiveOutputSolo } from 'renderer/utils/graphStyle';
+import {
+  useGraphGridHidden,
+  useGraphLook,
+  useLiveOutputSolo,
+} from 'renderer/utils/graphStyle';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import { useLookPreviewPoints } from './lookPreview';
 import { IChartPointData, ILiveCurveData } from './ChartController';
@@ -254,6 +258,14 @@ const LiveTraceCanvas = ({
   const isSoloRef = useRef(isSolo);
   isSoloRef.current = isSolo;
 
+  // Whether there is a frequency axis left for the trace to be honest about.
+  // Read here rather than derived from the props, because the margins the chart
+  // drops when the grid goes are not the same question as whether anything on
+  // the plot is still measured against 16Hz — see the stretch in the frame loop.
+  const isGridHidden = useGraphGridHidden();
+  const isGridHiddenRef = useRef(isGridHidden);
+  isGridHiddenRef.current = isGridHidden;
+
   // Picking a look against silence shows nothing, so changing one plays a
   // single frame of spectrum and then lets go. Placed here rather than at the
   // source because it is a property of the drawing, not of the measurement:
@@ -335,18 +347,6 @@ const LiveTraceCanvas = ({
         }
       }
 
-      // Projected into pixels first: the axes are logarithmic in frequency and
-      // decibel in level, so building bars or steps in data space and scaling
-      // afterwards would put every edge in the wrong place.
-      if (projectedRef.current.length !== eased.length) {
-        projectedRef.current = eased.map(() => [0, 0] as [number, number]);
-      }
-      const projected = projectedRef.current;
-      for (let index = 0; index < eased.length; index += 1) {
-        projected[index][0] = Number(xScale(eased[index].x)) || 0;
-        projected[index][1] = Number(yScale(eased[index].y)) || 0;
-      }
-
       // The plot's own edges, taken from the scales rather than from props, so
       // everything measured against them follows a resize without being told.
       const xRange = xScale.range?.();
@@ -357,6 +357,59 @@ const LiveTraceCanvas = ({
         top: yRange ? Math.min(yRange[0], yRange[1]) : 0,
         bottom: yRange ? Math.max(yRange[0], yRange[1]) : 0,
       };
+
+      /**
+       * Edge to edge, but only when there is nothing left to lie to.
+       *
+       * The axis runs 16Hz to 25kHz and the analyser only reaches 20Hz to
+       * 20kHz — a matched pair chosen so the audible marks are not sitting on
+       * the frame, which costs the trace about 3% of the plot at each end. On a
+       * ruled graph that gap is correct and is the whole point. Expanded or
+       * full screen, with the grid off and the wave on its own, it is a strip
+       * of empty card down both sides of a drawing that is supposed to fill the
+       * screen — sixty pixels at each end of a two-thousand pixel plot,
+       * measured — and there is no label, no curve and no handle left anywhere
+       * on the plot for it to be measured against.
+       *
+       * Not gated on the mode, though those are the two it is wanted in. Both
+       * flags it reads are per view already, so a pane between the sliders and
+       * the editor only reaches this if somebody asked for a gridless wave
+       * there too, which is the same request and deserves the same answer.
+       *
+       * BOTH CONDITIONS, and neither is decoration. Soloed but ruled, the
+       * frequency labels underneath would name the wrong columns. Gridless with
+       * the curves still up, the trace would cross an EQ response drawn on the
+       * real axis and the two would disagree about where 1kHz is. Only "wave
+       * only" plus no grid leaves the drawing alone on the card, and only then
+       * is stretching it free.
+       *
+       * Measured from the data's own ends rather than from the analyser's
+       * constants: the top of the axis is `min(20kHz, nyquist)`, so an endpoint
+       * running below 40kHz reaches less far and would keep a gap that the
+       * constants say is not there.
+       */
+      const firstX = Number(xScale(eased[0].x)) || 0;
+      const lastX = Number(xScale(eased[eased.length - 1].x)) || 0;
+      const dataSpan = lastX - firstX;
+      const stretch =
+        isSoloRef.current && isGridHiddenRef.current && dataSpan > 0
+          ? (plot.right - plot.left) / dataSpan
+          : 1;
+
+      // Projected into pixels first: the axes are logarithmic in frequency and
+      // decibel in level, so building bars or steps in data space and scaling
+      // afterwards would put every edge in the wrong place.
+      if (projectedRef.current.length !== eased.length) {
+        projectedRef.current = eased.map(() => [0, 0] as [number, number]);
+      }
+      const projected = projectedRef.current;
+      for (let index = 0; index < eased.length; index += 1) {
+        const x = Number(xScale(eased[index].x)) || 0;
+        projected[index][0] =
+          stretch === 1 ? x : plot.left + (x - firstX) * stretch;
+        projected[index][1] = Number(yScale(eased[index].y)) || 0;
+      }
+
       // The pixel row the filled styles stand on — the bottom of the plot, and
       // the row every orientation below is measured from.
       const baseline = plot.bottom;
@@ -708,10 +761,14 @@ const LiveTraceCanvas = ({
       easedRef.current = points.map((point) => ({ ...point }));
     }
     kickFrames();
-    // `look` is in here so that changing it redraws, and so are solo and the
-    // box. Solo has to be named even though the curves are rebuilt when it
-    // changes: what it moves is the weight, which is eased over several frames,
-    // and the loop cannot ease anything it was not started for.
+    // `look` is in here so that changing it redraws, and so are solo, the grid
+    // and the box. Solo has to be named even though the curves are rebuilt when
+    // it changes: what it moves is the weight, which is eased over several
+    // frames, and the loop cannot ease anything it was not started for. The
+    // grid is here for a blunter reason — it is half of the test that stretches
+    // the trace across the card, and nothing else in this list moves when it is
+    // switched, so without it the wave would keep its gutters until the music
+    // next happened to move.
     //
     // The frame loop stops once the curve has settled, which through a pause or
     // a silent passage is immediately — and then nothing would repaint until
@@ -720,7 +777,7 @@ const LiveTraceCanvas = ({
     // the figure does, it would make the whole panel appear dead. A resize is
     // the same argument with a worse symptom: resizing the backing store clears
     // it, so a settled trace would simply vanish rather than merely go stale.
-  }, [curves, height, isSolo, kickFrames, look, points, width]);
+  }, [curves, height, isGridHidden, isSolo, kickFrames, look, points, width]);
 
   // Silence takes the canvas out of the document rather than leaving an empty
   // one behind it. An element that is drawing nothing still costs something to
