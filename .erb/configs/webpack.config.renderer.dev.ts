@@ -54,7 +54,11 @@ const configuration: webpack.Configuration = {
   // renderer then receives a single HMR update instead of several reloads.
   watchOptions: {
     aggregateTimeout: 250,
-    ignored: /node_modules/,
+    // Also every embedded worktree: Claude sessions and the IDE both park
+    // whole checkouts (with their own node_modules) inside the repo, and a
+    // stale one with a locked file once killed the entire dev process with
+    // an unhandled EPERM from the watcher's scan.
+    ignored: /node_modules|[\\/]\.claude[\\/]|[\\/]\.gigaide[\\/]/,
   },
 
   target: ['web', 'electron-renderer'],
