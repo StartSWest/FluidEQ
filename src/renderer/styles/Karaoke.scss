@@ -2862,6 +2862,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .karaoke-maker__identity {
   min-width: 0;
+  overflow: hidden;
+  min-width: 0;
   gap: 9px;
 
   > div {
@@ -2900,9 +2902,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   isolation: isolate;
   justify-self: center;
   max-width: 100%;
-  gap: 10px;
-  min-height: 48px;
-  padding: 5px 8px;
+  gap: 8px;
+  min-height: 44px;
+  padding: 4px 8px;
   white-space: nowrap;
   background:
     linear-gradient(180deg, rgba(22, 48, 71, 0.78), rgba(5, 22, 36, 0.9)),
@@ -6154,7 +6156,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // and the word-state legend each burned a whole band below. One band gone.
 // pointer-events stays off for the row so the toolbar's popovers keep their
 // clicks; the legend opts back in.
-@media (min-width: 1500px) {
+@media (min-width: 1280px) {
   .karaoke-maker__status-row {
     z-index: 10;
     min-height: 42px;
@@ -7603,12 +7605,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@media (max-width: 1500px) {
-  // Below this the transport with three faders genuinely cannot share a row
-  // with both sides (measured: ~1450px of content at minimum slider widths).
-  // The first cut was 1780 and it wasted a full row on an ordinary 1600px
-  // fullscreen — a breakpoint is a measurement, not a guess. Two rows,
-  // compact, nothing clipped.
+@media (max-width: 1280px) {
+  // Below this the transport genuinely cannot share the first line with the
+  // title and the actions (content-priced flanks bought the room down from
+  // 1500). The two-line design is the contract from here up; under it the
+  // transport takes line two and the toolbar line three.
   .karaoke-maker__header {
     grid-template-columns: minmax(150px, 1fr) auto;
     min-height: 0;
