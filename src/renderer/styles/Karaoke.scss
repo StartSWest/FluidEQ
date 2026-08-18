@@ -2819,11 +2819,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: relative;
   z-index: 11;
   display: grid;
-  // The sides yield before the transport does: identity and actions may
-  // shrink to their content, and everything is allowed to wrap onto a second
-  // row rather than push the actions cluster off-screen — which is what a
-  // rigid three-column grid did the moment the transport grew three faders.
-  grid-template-columns: minmax(150px, 1fr) auto minmax(150px, 1fr);
+  // Sides sized to content, not equalized: 1fr flanks split the free space
+  // evenly, and since the actions cluster needs ~380px while the title needs
+  // ~200, the equal split starved the actions and wrapped the transport a
+  // full screen-width early. auto/1fr/auto lets each side take what it is
+  // and centers the transport in whatever remains.
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
   flex-wrap: wrap;
   gap: 8px 14px;
@@ -2897,6 +2898,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-maker__transport {
   position: relative;
   isolation: isolate;
+  justify-self: center;
+  max-width: 100%;
   gap: 10px;
   min-height: 48px;
   padding: 5px 8px;
