@@ -280,7 +280,13 @@ const KaraokeMakerSelectionInfo = ({
           ))}
         </div>
         <div className="karaoke-maker__note-inspector-link">
-          <span className="karaoke-maker__note-link">
+          {/* Titled as well as written, because this is the one string here
+              that carries somebody else's content: a long word truncates, and
+              the tooltip is then the only way to read which one it is. */}
+          <span
+            className="karaoke-maker__note-link"
+            title={selectedNoteToken?.text}
+          >
             {selectedNoteToken
               ? t('karaoke.maker.attachedTo', {
                   word: selectedNoteToken.text,
@@ -299,11 +305,18 @@ const KaraokeMakerSelectionInfo = ({
               {t('karaoke.maker.splitWordSyllables')}
             </button>
           )}
-          <span className="karaoke-maker__note-link-help">
-            {t('karaoke.maker.noteAttachHelp')}{' '}
-            {t('karaoke.maker.noteCopyHelp')}
-          </span>
         </div>
+        {/* ON ITS OWN ROW, NOT IN THE ROW OF CONTROLS.
+            Three sentences of instruction used to be a flex item beside the
+            two buttons, so a paragraph and a pair of controls competed for the
+            same track: the paragraph took a 430px column and stacked four
+            lines deep, the buttons were squeezed until both broke across two
+            lines, and "Attached to <word>" collapsed to its ellipsis. Given
+            the full width underneath, the same text is two quiet lines and
+            nothing above it has to wrap at all. */}
+        <p className="karaoke-maker__note-link-help">
+          {t('karaoke.maker.noteAttachHelp')} {t('karaoke.maker.noteCopyHelp')}
+        </p>
       </div>
     );
   }

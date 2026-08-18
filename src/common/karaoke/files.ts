@@ -59,6 +59,62 @@ export const KARAOKE_LYRIC_EXTENSIONS: readonly string[] = Array.from(
   new Set(KARAOKE_TEXT_ADAPTERS.flatMap((adapter) => adapter.extensions)),
 );
 
+/** Cover and background artwork, in the formats a song folder actually uses. */
+export const KARAOKE_IMAGE_EXTENSIONS = [
+  'jpg',
+  'jpeg',
+  'png',
+  'webp',
+  'gif',
+  'avif',
+] as const;
+
+/**
+ * Every video container a song folder is likely to hold — not every one this
+ * app can play.
+ *
+ * The two lists are deliberately different. Recognising a file is how the
+ * player gets to say "there is a video here and I cannot decode it", which is
+ * a far better answer than pretending the song has no video at all. See
+ * `isKaraokePlayableVideoFile` for the half that Chromium will actually open.
+ */
+export const KARAOKE_VIDEO_EXTENSIONS = [
+  'mp4',
+  'webm',
+  'm4v',
+  'mov',
+  'ogv',
+  'avi',
+  'flv',
+  'mkv',
+  'wmv',
+  'mpg',
+  'mpeg',
+  'divx',
+] as const;
+
+/**
+ * The containers Chromium will actually decode, which is the shorter list.
+ *
+ * Electron ships Chromium's media stack and nothing else: MP4 and WebM, plus
+ * QuickTime because it is demuxed by the same code as MP4. AVI, FLV, MKV, WMV
+ * and the MPEG program streams have no demuxer in the build at all, so a
+ * `<video>` pointed at one fires `error` and shows black — it does not fail
+ * loudly enough for anybody to guess why.
+ *
+ * This matters for real libraries rather than in theory: UltraStar packs from
+ * the 2000s are full of `[VD#0].avi`, and a player that shows a black rectangle
+ * for them looks broken in a way that a plain "this format cannot be played
+ * here" never does.
+ */
+export const KARAOKE_PLAYABLE_VIDEO_EXTENSIONS = [
+  'mp4',
+  'webm',
+  'm4v',
+  'mov',
+  'ogv',
+] as const;
+
 export const KARAOKE_FILE_PICKER_ACCEPT = [
   ...KARAOKE_AUDIO_EXTENSIONS,
   ...KARAOKE_LYRIC_EXTENSIONS,
@@ -133,6 +189,110 @@ export const isKaraokeAudioFile = (file: File): boolean =>
 export const isKaraokeLyricFile = (file: File): boolean =>
   KARAOKE_LYRIC_EXTENSIONS.includes(karaokeFileExtension(file.name));
 
+export const isKaraokeImageFile = (file: File): boolean =>
+  KARAOKE_IMAGE_EXTENSIONS.includes(
+    karaokeFileExtension(
+      file.name,
+    ) as (typeof KARAOKE_IMAGE_EXTENSIONS)[number],
+  );
+
+export const isKaraokeVideoFile = (file: File): boolean =>
+  KARAOKE_VIDEO_EXTENSIONS.includes(
+    karaokeFileExtension(
+      file.name,
+    ) as (typeof KARAOKE_VIDEO_EXTENSIONS)[number],
+  );
+
+/** Whether this build can decode it, as opposed to merely recognising it. */
+export const isKaraokePlayableVideoFile = (file: File): boolean =>
+  KARAOKE_PLAYABLE_VIDEO_EXTENSIONS.includes(
+    karaokeFileExtension(
+      file.name,
+    ) as (typeof KARAOKE_PLAYABLE_VIDEO_EXTENSIONS)[number],
+  );
+
+export interface IKaraokeStageMedia {
+  cover?: File;
+  background?: File;
+  video?: File;
+}
+
+/**
+ * The pictures and video that belong to one song.
+ *
+ * TWO WAYS OF ASKING, IN ORDER. A format that names its own media is believed
+ * first — UltraStar writes `#COVER`, `#BACKGROUND` and `#VIDEO`, and a song
+ * that says which file it wants should get that file even in a folder holding
+ * several. Everything else falls back to the same rule the lyric pairing
+ * already uses: same directory, same base name as the audio, which is what
+ * makes this work for LRC and for a bare MP3 with a picture beside it.
+ *
+ * The last fallback is looser on purpose. Folders that name their art after
+ * the folder rather than the track are common enough — `cover.jpg`,
+ * `folder.jpg` — that ignoring them would mean showing nothing for a lot of
+ * real libraries. It only applies when the directory holds exactly one
+ * candidate, so it can never pick the wrong song's artwork out of a pile.
+ */
+export const selectKaraokeStageMedia = (
+  audio: File,
+  files: readonly File[],
+  named?: {
+    coverFileName?: string;
+    backgroundFileName?: string;
+    videoFileName?: string;
+  },
+): IKaraokeStageMedia => {
+  const directory = karaokeFileDirectory(audio);
+  const siblings = files.filter(
+    (file) => karaokeFileDirectory(file) === directory,
+  );
+  const byName = (declared?: string): File | undefined => {
+    if (!declared) {
+      return undefined;
+    }
+    // Compared on the base name alone: the header may write a path with a
+    // separator this platform does not use, and the file was imported with a
+    // relative path of its own that need not match it character for character.
+    const wanted = declared.replace(/\\/g, '/').split('/').pop()?.toLowerCase();
+    return wanted
+      ? siblings.find((file) => file.name.toLowerCase() === wanted)
+      : undefined;
+  };
+  const audioBase = karaokeFileBaseName(audio.name);
+  const pick = (
+    declared: string | undefined,
+    matches: (file: File) => boolean,
+  ): File | undefined => {
+    const declaredFile = byName(declared);
+    if (declaredFile && matches(declaredFile)) {
+      return declaredFile;
+    }
+    const candidates = siblings.filter(matches);
+    return (
+      candidates.find((file) => karaokeFileBaseName(file.name) === audioBase) ??
+      (candidates.length === 1 ? candidates[0] : undefined)
+    );
+  };
+
+  const cover = pick(named?.coverFileName, isKaraokeImageFile);
+  // The background must not silently become the cover again. A folder with one
+  // picture has a cover and no scenery, which is the honest reading — the
+  // player stretches the cover behind the words only because it was asked to.
+  const background = (() => {
+    const declared = byName(named?.backgroundFileName);
+    if (declared && isKaraokeImageFile(declared)) {
+      return declared;
+    }
+    const images = siblings.filter(isKaraokeImageFile);
+    return images.find((file) => file !== cover && images.length > 1);
+  })();
+  return {
+    cover,
+    background,
+    video: pick(named?.videoFileName, isKaraokeVideoFile),
+  };
+};
+
 export type TKaraokeFileSelection =
   | { kind: 'ready'; audio: File; lyrics?: File; ignored: File[] }
   | { kind: 'missing-audio'; lyrics: File[]; ignored: File[] }
@@ -145,6 +305,20 @@ export interface IKaraokePlaylistItem {
   lyrics?: File;
   title: string;
   relativePath: string;
+  /**
+   * The pictures and video sitting in this song's own directory.
+   *
+   * Carried unresolved rather than picked here, because choosing between them
+   * needs the lyric file parsed — UltraStar names its cover, background and
+   * video in the header, and only the session has read that by the time it
+   * matters. This is the shortlist; `selectKaraokeStageMedia` makes the call.
+   *
+   * It has to travel on the item at all because loading a playlist entry hands
+   * the session that entry's files and nothing else. Without this the folder
+   * import — which is how a real library arrives — dropped every cover on the
+   * floor while a two-file drag-and-drop kept its own.
+   */
+  media: File[];
 }
 
 export interface IKaraokePlaylistSelection {
@@ -204,6 +378,11 @@ export const selectKaraokePlaylist = (
         .replace(/\s+/g, ' ')
         .trim(),
       relativePath: karaokeFileRelativePath(audio),
+      media: files.filter(
+        (file) =>
+          karaokeFileDirectory(file) === karaokeFileDirectory(audio) &&
+          (isKaraokeImageFile(file) || isKaraokeVideoFile(file)),
+      ),
     };
   });
   return {

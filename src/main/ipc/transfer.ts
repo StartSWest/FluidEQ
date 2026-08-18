@@ -171,10 +171,9 @@ export const registerTransferIpc = ({
       state.eqFormat = imported.eqFormat;
       state.graphicEq = imported.graphicEq;
       applyingLayer('eq');
-      // These bands came from a file, not from a measured model.
-      state.headset = undefined;
-      state.headsetTarget = undefined;
-      state.headsetSource = undefined;
+      // These bands came from a file, so whatever the last import was named,
+      // that is not where they came from. The headphone correction is a
+      // separate layer and stays exactly as it was.
       state.eqImport = undefined;
       // An imported EQ is a tuning, so the flat flag has to come off or the
       // bands would be parsed, stored, and then not written.
@@ -235,9 +234,15 @@ export const registerTransferIpc = ({
       state.eqFormat = parsed.eqFormat;
       state.graphicEq = parsed.graphicEq;
       state.isFlat = false;
-      state.headset = undefined;
-      state.headsetTarget = undefined;
-      state.headsetSource = undefined;
+      /*
+       * The headphone correction is left alone.
+       *
+       * `headset` and its two companions name `state.headphone`, a layer this
+       * handler never touches — an import replaces the user's bands and nothing
+       * else. Clearing them here blanked the OPRA picker while the correction it
+       * described was still applied and still audible, which is the same fault
+       * `clearGains` was fixed for in main.ts.
+       */
       state.eqImport = {
         source: 'squiglink',
         sourceUrl: 'https://squig.link/',

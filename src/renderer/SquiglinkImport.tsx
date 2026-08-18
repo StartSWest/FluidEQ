@@ -9,12 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 */
 
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  AutoEqFormat,
-  IFiltersMap,
-  IGraphicEqPoint,
-  ICustomFxSettings,
-} from 'common/constants';
+import { AutoEqFormat, ICustomFxSettings } from 'common/constants';
 import { parseEqText } from 'common/apoText';
 import { ErrorDescription } from 'common/errors';
 import { useFluidEqContext } from './utils/FluidEqContext';
@@ -28,15 +23,19 @@ import {
   getGraphicEqLineData,
 } from './graph/utils';
 import { IChartPointData } from './graph/ChartController';
+import EqCurveChart from './graph/EqCurveChart';
+import {
+  ICurvePath,
+  PREVIEW_BOX,
+  makeCurve,
+  makePath,
+} from './graph/curvePreview';
 import { hasCustomFxCurve } from '../common/customFx';
 import { ColorEnum } from './styles/color';
 import './styles/SquiglinkImport.scss';
 
 const SQUIGLINK_URL = 'https://squig.link/';
 const SQUIGLINK_TEXT_STORAGE_KEY = 'fluideq.squiglink-import.text';
-const GRAPH_WIDTH = 640;
-const GRAPH_HEIGHT = 164;
-const GRAPH_PADDING = { top: 12, right: 12, bottom: 24, left: 30 };
 
 const formatName = (format?: AutoEqFormat) => {
   if (format === AutoEqFormat.GRAPHIC) {
@@ -48,83 +47,6 @@ const formatName = (format?: AutoEqFormat) => {
   return 'Parametric EQ';
 };
 
-interface ICurvePath {
-  path: string;
-  min: number;
-  max: number;
-  points: IChartPointData[];
-}
-
-const makePath = (
-  points: IChartPointData[],
-  bounds?: { min: number; max: number },
-): ICurvePath => {
-  if (points.length === 0) {
-    return { path: '', min: -12, max: 12, points };
-  }
-
-  const minValue = Math.min(...points.map((point) => point.y));
-  const maxValue = Math.max(...points.map((point) => point.y));
-  const min = bounds?.min ?? Math.min(-12, Math.floor(minValue / 3) * 3);
-  const max = bounds?.max ?? Math.max(12, Math.ceil(maxValue / 3) * 3);
-  const innerWidth = GRAPH_WIDTH - GRAPH_PADDING.left - GRAPH_PADDING.right;
-  const innerHeight = GRAPH_HEIGHT - GRAPH_PADDING.top - GRAPH_PADDING.bottom;
-  const logStart = Math.log10(20);
-  const logEnd = Math.log10(20000);
-  const x = (frequency: number) =>
-    GRAPH_PADDING.left +
-    ((Math.log10(frequency) - logStart) / (logEnd - logStart)) * innerWidth;
-  const y = (gain: number) =>
-    GRAPH_PADDING.top + ((max - gain) / (max - min)) * innerHeight;
-
-  const stride = Math.max(1, Math.ceil(points.length / 180));
-  const drawn = points.filter((_point, index) => index % stride === 0);
-  const last = points[points.length - 1];
-  if (drawn[drawn.length - 1] !== last) {
-    drawn.push(last);
-  }
-
-  return {
-    min,
-    max,
-    points,
-    path: drawn
-      .map(
-        (point, index) =>
-          `${index === 0 ? 'M' : 'L'}${x(point.x).toFixed(2)},${y(point.y).toFixed(2)}`,
-      )
-      .join(' '),
-  };
-};
-
-const getCurvePoints = (
-  preAmp: number,
-  eqFormat: AutoEqFormat | undefined,
-  graphicEq: IGraphicEqPoint[] | undefined,
-  filters: IFiltersMap,
-) => {
-  if (eqFormat === AutoEqFormat.GRAPHIC && graphicEq?.length) {
-    return getGraphicEqLineData(graphicEq).map((point) => ({
-      x: point.x,
-      y: point.y + preAmp,
-    }));
-  }
-  const filterLines = Object.fromEntries(
-    Object.values(filters).map((filter) => [
-      filter.id,
-      getFilterLineData(filter),
-    ]),
-  );
-  return getCombinedLineData(preAmp, filterLines);
-};
-
-const makeCurve = (
-  preAmp: number,
-  eqFormat: AutoEqFormat | undefined,
-  graphicEq: IGraphicEqPoint[] | undefined,
-  filters: IFiltersMap,
-) => makePath(getCurvePoints(preAmp, eqFormat, graphicEq, filters));
-
 const makeCustomCurve = (customFx: ICustomFxSettings): ICurvePath => {
   const lines: Record<string, IChartPointData[]> = {};
   if (customFx.graphicEq?.length) {
@@ -133,7 +55,7 @@ const makeCustomCurve = (customFx: ICustomFxSettings): ICurvePath => {
   Object.values(customFx.filters).forEach((filter) => {
     lines[filter.id] = getFilterLineData(filter);
   });
-  return makePath(getCombinedLineData(customFx.preAmp, lines));
+  return makePath(getCombinedLineData(customFx.preAmp, lines), PREVIEW_BOX);
 };
 
 const readStoredEqText = (): string | undefined => {
@@ -222,7 +144,7 @@ const SquiglinkImport = () => {
 
   const curve = useMemo(() => {
     if (showFlatCurve) {
-      return makeCurve(0, AutoEqFormat.PARAMETRIC, undefined, {});
+      return makeCurve(0, AutoEqFormat.PARAMETRIC, undefined, {}, PREVIEW_BOX);
     }
     if (livePreview) {
       return makeCurve(
@@ -230,12 +152,13 @@ const SquiglinkImport = () => {
         livePreview.eqFormat,
         livePreview.graphicEq,
         livePreview.filters,
+        PREVIEW_BOX,
       );
     }
     if (hasText || !eqImport) {
       return { path: '', min: -12, max: 12, points: [] };
     }
-    return makeCurve(preAmp, eqFormat, graphicEq, filters);
+    return makeCurve(preAmp, eqFormat, graphicEq, filters, PREVIEW_BOX);
   }, [
     eqFormat,
     eqImport,
@@ -257,11 +180,14 @@ const SquiglinkImport = () => {
     [curve.max, curve.min, customCurve?.max, customCurve?.min],
   );
   const plottedCurve = useMemo(
-    () => makePath(curve.points, chartBounds),
+    () => makePath(curve.points, PREVIEW_BOX, chartBounds),
     [chartBounds, curve.points],
   );
   const plottedCustomCurve = useMemo(
-    () => (customCurve ? makePath(customCurve.points, chartBounds) : undefined),
+    () =>
+      customCurve
+        ? makePath(customCurve.points, PREVIEW_BOX, chartBounds)
+        : undefined,
     [chartBounds, customCurve],
   );
 
@@ -348,23 +274,6 @@ const SquiglinkImport = () => {
     }
   };
 
-  const frequencyLabels = [
-    { value: 20, label: '20' },
-    { value: 100, label: '100' },
-    { value: 1000, label: '1k' },
-    { value: 10000, label: '10k' },
-    { value: 20000, label: '20k' },
-  ];
-  const mapX = (frequency: number) =>
-    GRAPH_PADDING.left +
-    ((Math.log10(frequency) - Math.log10(20)) /
-      (Math.log10(20000) - Math.log10(20))) *
-      (GRAPH_WIDTH - GRAPH_PADDING.left - GRAPH_PADDING.right);
-  const mapY = (gain: number) =>
-    GRAPH_PADDING.top +
-    ((chartBounds.max - gain) / (chartBounds.max - chartBounds.min)) *
-      (GRAPH_HEIGHT - GRAPH_PADDING.top - GRAPH_PADDING.bottom);
-
   return (
     <section className="squig-import" aria-labelledby="squig-import-title">
       <div className="squig-import__heading">
@@ -373,21 +282,24 @@ const SquiglinkImport = () => {
           <h3 id="squig-import-title">{t('squigImport.title')}</h3>
           <p>{t('squigImport.intro')}</p>
         </div>
-        <a
-          className="squig-import__visit"
-          href={SQUIGLINK_URL}
-          target="_blank"
-          rel="noreferrer"
-        >
-          <MenuIcon name="external" />
-          <span>{t('squigImport.open')}</span>
-        </a>
       </div>
 
+      {/* The link sits in step one rather than in the corner of the card. It is
+          the first thing the instructions tell you to do, and a button filed
+          away from the sentence that asks for it reads as decoration. */}
       <div className="squig-import__steps">
         <span>
           <b>1</b>
           {t('squigImport.stepOne')}
+          <a
+            className="squig-import__visit"
+            href={SQUIGLINK_URL}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <MenuIcon name="external" />
+            <span>{t('squigImport.open')}</span>
+          </a>
         </span>
         <span>
           <b>2</b>
@@ -477,59 +389,42 @@ const SquiglinkImport = () => {
                   </button>
                 )}
               </div>
-              <svg
+              <EqCurveChart
                 className="squig-import__chart"
-                viewBox={`0 0 ${GRAPH_WIDTH} ${GRAPH_HEIGHT}`}
-                role="img"
-                aria-label={t('squigImport.chartAria')}
-              >
-                <defs>
+                box={PREVIEW_BOX}
+                bounds={chartBounds}
+                ariaLabel={t('squigImport.chartAria')}
+                defs={
                   <linearGradient id="squig-import-line" x1="0" x2="1">
                     <stop offset="0" stopColor="#8ce2ff" />
                     <stop offset="0.55" stopColor="#b9a7ff" />
                     <stop offset="1" stopColor="#f3a8d7" />
                   </linearGradient>
-                </defs>
-                {[chartBounds.min, 0, chartBounds.max].map((gain) => (
-                  <line
-                    key={gain}
-                    x1={GRAPH_PADDING.left}
-                    x2={GRAPH_WIDTH - GRAPH_PADDING.right}
-                    y1={mapY(gain)}
-                    y2={mapY(gain)}
-                    className="squig-import__grid"
-                  />
-                ))}
-                <path
-                  d={plottedCurve.path}
-                  className={`squig-import__curve${
-                    isPendingImportPreview
-                      ? ' squig-import__curve--pending'
-                      : ''
-                  }`}
-                  fill="none"
-                  stroke="url(#squig-import-line)"
-                />
-                {plottedCustomCurve && (
-                  <path
-                    d={plottedCustomCurve.path}
-                    className="squig-import__curve squig-import__curve--custom"
-                    fill="none"
-                    stroke={ColorEnum.CUSTOM}
-                  />
-                )}
-                {frequencyLabels.map((entry) => (
-                  <text
-                    key={entry.value}
-                    x={mapX(entry.value)}
-                    y={GRAPH_HEIGHT - 6}
-                    className="squig-import__axis"
-                    textAnchor="middle"
-                  >
-                    {entry.label}
-                  </text>
-                ))}
-              </svg>
+                }
+                lines={[
+                  {
+                    id: 'import',
+                    path: plottedCurve.path,
+                    className: `squig-import__curve${
+                      isPendingImportPreview
+                        ? ' squig-import__curve--pending'
+                        : ''
+                    }`,
+                    stroke: 'url(#squig-import-line)',
+                  },
+                  ...(plottedCustomCurve
+                    ? [
+                        {
+                          id: 'custom',
+                          path: plottedCustomCurve.path,
+                          className:
+                            'squig-import__curve squig-import__curve--custom',
+                          stroke: ColorEnum.CUSTOM,
+                        },
+                      ]
+                    : []),
+                ]}
+              />
               {plottedCustomCurve && (
                 <div className="squig-import__curve-key">
                   {plottedCurve.path && (
@@ -553,6 +448,22 @@ const SquiglinkImport = () => {
             </div>
           )}
         </div>
+      </div>
+
+      {/* The same footing the OPRA card has: whose data this is, said on the
+          surface that browses it. An app icon rather than Squiglink's own mark,
+          which is not ours to ship — drop the real one in `assets` and swap the
+          glyph for an <img> if that changes. */}
+      <div className="squig-import__credit">
+        <span className="squig-import__credit-mark" aria-hidden="true">
+          <MenuIcon name="graph" />
+        </span>
+        <p>
+          {t('squigImport.about')}{' '}
+          <a href={SQUIGLINK_URL} target="_blank" rel="noreferrer">
+            {t('squigImport.open')}
+          </a>
+        </p>
       </div>
     </section>
   );

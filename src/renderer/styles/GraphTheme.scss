@@ -1571,15 +1571,11 @@ it under the terms of the GNU General Public License version 3 or later.
 // their own pane now — see `.graph-legend-group` — and keeping both gave full
 // screen a card inside a card, with two borders a few pixels apart.
 //
-// The positioning is the part worth keeping: `left: auto` lets the strip
-// shrink to what is in it rather than spanning the screen, which is what makes
-// it read as a small panel hugging its contents instead of a row of labels
-// lying across a picture.
-.app-workspace.is-app-full .live-output-controls {
-  left: auto;
-  width: auto;
-  max-width: calc(100% - 20px);
-}
+// The positioning that used to live here has gone with the absolute layout.
+// `left: auto` existed to let a strip pinned to both edges shrink back to its
+// contents in full screen; a flex row in normal flow already sizes to what is
+// in it, and `justify-content: flex-end` keeps it against the same edge in
+// every mode. One rule instead of two that had to agree.
 
 // Not scoped to a mode, because there is no longer a mode to scope to.
 //
@@ -1592,7 +1588,17 @@ it under the terms of the GNU General Public License version 3 or later.
 // Whether it may fade at all is the store's question, not the cascade's —
 // `is-idle` is only ever applied while it is watching. Two things deciding the
 // same question is how they come to disagree, and here they did.
-.live-output-controls,
+// THE GRAPH TOOLBAR NO LONGER FADES, and its own move is the reason.
+//
+// It hid itself because it lay across the top of the plot, which is where the
+// peaks go — a row of controls you reach for occasionally, parked over the
+// picture you look at for minutes. It is a row of its own above the plot now
+// and covers nothing, so there is nothing left for hiding to buy, and a
+// toolbar that disappears while you are reading it costs more than it saves.
+// The Video tab's bar has always stayed put for exactly this reason.
+//
+// `.fullscreen-chrome` still fades: that one really is an overlay on top of a
+// full-screen picture, which is the case this behaviour was written for.
 .fullscreen-chrome {
   // Slower out than in. Coming back should feel immediate — the pointer has
   // just moved and something is being reached for — while leaving should not
@@ -1600,7 +1606,6 @@ it under the terms of the GNU General Public License version 3 or later.
   transition: opacity 320ms ease;
 }
 
-.live-output-controls.is-idle,
 .fullscreen-chrome.is-idle {
   opacity: 0;
   // Nothing invisible takes a click. Without this the strip is still there to
@@ -1776,7 +1781,11 @@ it under the terms of the GNU General Public License version 3 or later.
 // The strip normally starts 8px from the top of the card, and the card now
 // starts at the top of the display — so without this the controls sit behind
 // the title bar, which is a toolbar you can see and cannot press.
-.app-workspace.is-app-full.has-top-bar .live-output-controls,
+// Only the designer needs this now. The toolbar used to be listed here too,
+// because an absolutely positioned strip measuring from a card that starts at
+// the top of the display ends up behind the title bar — a toolbar you can see
+// and cannot press. In normal flow it is laid out after whatever comes above
+// it, so it cannot land under anything and has nothing to be nudged past.
 .app-workspace.is-app-full.has-top-bar .look-designer {
   top: calc(#{$title-bar-height} + 8px);
 }
@@ -1917,15 +1926,22 @@ it under the terms of the GNU General Public License version 3 or later.
         filter: var(--graph-overlay-filter, none);
       }
 
-      // Karaoke already owns both top corners: song/playlist identity on the
-      // left and chord/pitch controls on the right. The graph toolbar uses the
-      // free lower edge, where the hidden transport normally lives, and keeps
-      // a small left lane for the pet in real fullscreen.
+      // THIS IS WHAT PUT THE TOOLBAR ALONG THE BOTTOM OF THE WINDOW.
+      //
+      // While it was absolutely positioned, pinning it to `bottom: 12px` was a
+      // reasonable way to keep it off Karaoke's two occupied top corners. It is
+      // a row in the graph's own column now, so pushing it to the bottom edge
+      // would mean offsetting a laid-out element away from where it was placed
+      // — `position: relative` honours these offsets and moves it visually
+      // while leaving its gap behind, which is how a toolbar ends up detached
+      // from the pane it belongs to.
+      //
+      // It sits at the top of the graph pane in every mode now, which is the
+      // same place the Media tab's bar sits and the reason it is worth having
+      // one answer instead of a per-tab one. Karaoke's corners are no longer a
+      // problem to route around because the row is inside the graph rather
+      // than floating over the player.
       > .live-output-controls {
-        top: auto;
-        right: 12px;
-        bottom: 12px;
-        left: 76px;
         justify-content: flex-end;
       }
     }

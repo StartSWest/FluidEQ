@@ -31,7 +31,7 @@ import {
 } from '../../common/constants';
 import { ErrorCode } from '../../common/errors';
 import ChannelEnum from '../../common/channels';
-import { getOpraPreset, getOpraProductList } from '../opra';
+import { getOpraLabel, getOpraPreset, getOpraProductList } from '../opra';
 import { checkOpraUpdate, updateOpraDatabase } from '../opraUpdater';
 import {
   downloadConvolution,
@@ -106,6 +106,25 @@ export const registerReferencesIpc = ({
     }
   });
 
+  ipcMain.on(ChannelEnum.GET_OPRA_LABEL, async (event, arg) => {
+    const channel = ChannelEnum.GET_OPRA_LABEL;
+    const [productId, curveId] = arg as [string, string?];
+
+    try {
+      const reply: TSuccess<string> = {
+        // Empty for an id this library does not know, which the caller shows as
+        // whatever it was showing before. Not an error: a selection saved
+        // against the old AutoEq database is still applied and still audible.
+        result:
+          typeof productId === 'string' ? getOpraLabel(productId, curveId) : '',
+      };
+      event.reply(channel, reply);
+    } catch (error) {
+      log.warn(`Unable to name OPRA product ${productId}`, error);
+      handleError(event, channel, ErrorCode.OPRA_READ_ERROR);
+    }
+  });
+
   ipcMain.on(ChannelEnum.LOAD_OPRA_PRESET, async (event, arg) => {
     const channel = ChannelEnum.LOAD_OPRA_PRESET;
     const [productId, curveId] = arg as [string, string, string?];
@@ -159,7 +178,16 @@ export const registerReferencesIpc = ({
       state.headsetTarget = curveId;
       state.headsetSource = OPRA_SOURCE_ID;
       state.headsetSignature = describeBandShape(state.headphone.filters);
-      state.eqImport = undefined;
+      /*
+       * `eqImport` is NOT cleared here.
+       *
+       * It names where the user's bands came from, and this handler does not
+       * touch a band — the correction goes into `state.headphone`. Clearing it
+       * was left over from when applying a reference replaced the bands, and it
+       * made two independent layers look like one: applying a headphone
+       * correction blanked the Squiglink card below, which was still applied and
+       * still audible.
+       */
       applyingLayer('headphone');
       await handleUpdate(event, channel, false, true);
     } catch (ex) {

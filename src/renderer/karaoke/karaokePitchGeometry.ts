@@ -150,6 +150,68 @@ const smoothStep = (value: number): number => {
 };
 
 /**
+ * How far off the note the singer can be before the curve stops moving away.
+ *
+ * Two semitones is a whole tone — comfortably past "slightly flat" and into
+ * "singing a different note". There is nothing useful left to show beyond it:
+ * whether somebody is two semitones or nine semitones out, the answer is the
+ * same and it is not on this note.
+ */
+const ATTACH_VISIBLE_SEMITONES = 2;
+
+/**
+ * The furthest the curve is ever drawn from the note's own line.
+ *
+ * A shade over one semitone, which is a little more than the height of a note
+ * block. That is the whole point: however wrong the singing, the line stays
+ * beside the note it belongs to instead of wandering into open lane, so it
+ * always reads as "above this note", "below this note" or "on it".
+ */
+const ATTACH_MAX_OFFSET_SEMITONES = 1.1;
+
+/**
+ * Draw the singer against the note rather than against the whole octave.
+ *
+ * THE CURVE USED TO BE PLOTTED AT ABSOLUTE PITCH, which is honest and reads
+ * badly. A singer a tone under the melody produced a line drifting somewhere
+ * between two note blocks, belonging to neither, and the eye had to measure a
+ * gap to work out what was wrong. What a singer needs from this lane is one
+ * fact — am I on the note, over it, or under it — and that fact is a position
+ * relative to the note, not a position in the octave.
+ *
+ * COMPRESSED, NOT SNAPPED, and the difference is the whole design. Snapping to
+ * the nearest note would make being a quarter-tone flat look identical to
+ * being perfect, which throws away the only thing the lane is for. Instead the
+ * error is squashed through `smoothStep` and capped: small errors stay small
+ * and near the middle of the note, a full semitone shows as roughly half a
+ * semitone of visible offset, and anything past a whole tone pins just outside
+ * the block. The tune is still legible — sharp still looks sharp — but it is
+ * legible *at* the note.
+ *
+ * The easing pass runs after this one, which is what makes the handover at a
+ * note boundary a curve rather than a step: nothing here has to blend, because
+ * `easeKaraokeSingerTrace` is already smoothing the series it produces.
+ *
+ * With no note sounding there is nothing to attach to, so the raw pitch is
+ * returned and the line floats — which is correct between phrases, where there
+ * is no right answer to be near.
+ */
+export const attachKaraokePitchToNote = (
+  singerMidi: number,
+  targetMidi: number | undefined,
+): number => {
+  if (targetMidi === undefined || !Number.isFinite(singerMidi)) {
+    return singerMidi;
+  }
+  const deviation = singerMidi - targetMidi;
+  const magnitude = Math.abs(deviation);
+  const eased = smoothStep(magnitude / ATTACH_VISIBLE_SEMITONES);
+  return (
+    targetMidi + Math.sign(deviation) * ATTACH_MAX_OFFSET_SEMITONES * eased
+  );
+};
+
+/**
  * Ease only the curve the singer sees.
  *
  * Pitch detection naturally produces small frame-to-frame wobble and the

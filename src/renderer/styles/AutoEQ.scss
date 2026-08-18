@@ -161,6 +161,122 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: $white;
   }
 
+  // What the applied correction does, on the surface where it was chosen. Its
+  // own box because it is its own layer: the import panel below draws its own
+  // curve and neither belongs on the other's axis.
+  // Controls on the left, the curve they produce on the right — the same two
+  // halves as the Squiglink card below it.
+  // Deliberately the same columns and gap as `.squig-import__workspace`, and
+  // the card's padding is matched to the Squiglink card's in AutoEQPanel.scss:
+  // the two graphs sit one above the other, and a split that lands 20px apart
+  // in two stacked cards reads as a mistake rather than as two panels.
+  .autoeq-split {
+    display: grid;
+    align-items: stretch;
+    gap: 12px;
+    grid-template-columns: minmax(0, 1.08fr) minmax(250px, 0.92fr);
+  }
+
+  .autoeq-split__controls {
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  // Stacked, not side by side — the placement itself is in AutoEQPanel.scss,
+  // which owns how this card sits on its page. Here only what the stack needs
+  // whatever page it is on: fields that fill their column rather than sitting
+  // on one baseline.
+  .autoeq-split__controls .auto-eq {
+    align-items: stretch;
+  }
+
+  // Same well, same minimum height as the import preview below it.
+  .autoeq-curve {
+    display: flex;
+    min-width: 0;
+    min-height: 194px;
+    padding: 16px 14px 10px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 12px;
+    border: 1px solid rgba($white, 0.075);
+    border-radius: $radius-s;
+    background: rgba($black, 0.14);
+  }
+
+  .autoeq-curve--empty {
+    display: grid;
+    min-height: 194px;
+    align-content: center;
+    justify-items: center;
+    gap: 6px;
+    text-align: center;
+
+    .menu-icon {
+      width: 22px;
+      height: 22px;
+      color: rgba($secondary-light, 0.5);
+    }
+
+    strong {
+      color: rgba($white, 0.82);
+      font-size: 0.74rem;
+    }
+
+    p {
+      max-width: 260px;
+      margin: 0;
+      color: $text-muted;
+      font-size: 0.66rem;
+      line-height: 1.45;
+    }
+  }
+
+  .autoeq-curve__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 8px 10px;
+  }
+
+  .autoeq-curve__title {
+    display: flex;
+    min-width: 0;
+    align-items: baseline;
+    gap: 7px;
+
+    strong {
+      color: rgba($white, 0.9);
+      font-size: 0.72rem;
+    }
+
+    small {
+      color: $text-muted;
+      font-size: 0.64rem;
+    }
+  }
+
+  // Named where the curve is, not in the card header: this is the label for
+  // what the line beneath it is.
+  .autoeq-curve__applied {
+    min-width: 0;
+    max-width: 100%;
+    justify-content: flex-end;
+    font-size: 0.66rem;
+
+    .menu-icon {
+      width: 13px;
+      height: 13px;
+    }
+  }
+
+  .autoeq-curve__chart {
+    min-height: 140px;
+  }
+
   // Who made the curve that is actually applied — the other half of what the
   // licence asks for, and the half that has to name a person rather than a
   // project. Sits under the pickers, next to the thing it is crediting.
@@ -215,6 +331,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     font-weight: 650;
     letter-spacing: 0.02em;
     line-height: 18px;
+  }
+
+  // What to put in this control, under this control. It was a separate row of
+  // hint cards between the two sections, which repeated both labels verbatim
+  // and left the reader to work out which card they belonged to.
+  &__hint {
+    margin: 0;
+    color: rgba($primary-lighter, 0.62);
+    font-size: 0.67rem;
+    line-height: 1.4;
   }
 }
 
@@ -299,25 +425,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // *** Responsive *************************************************************
 
-@container autoeq-workspace (max-width: 900px) {
-  .auto-eq {
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-
-    > .button {
-      grid-column: 2;
-      justify-self: end;
-    }
+// Two dropdowns and a button do not fit beside a graph much under this, and a
+// squeezed picker costs more than a stacked one.
+// `.autoeq-section` is repeated here on purpose. The two-column rule above is
+// nested inside it, so a bare `.autoeq-split` in this query loses the cascade to
+// it and the card stayed side-by-side at every width while the Squiglink card
+// below stacked — a graph squeezed into a 280px column beside two dropdowns.
+@container autoeq-workspace (max-width: 1080px) {
+  .autoeq-section .autoeq-split {
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
 @container autoeq-workspace (max-width: 520px) {
-  .auto-eq {
-    grid-template-columns: minmax(0, 1fr);
-
-    > .button {
-      grid-column: 1;
-      width: 100%;
-    }
+  .auto-eq > .button {
+    width: 100%;
   }
 }
 

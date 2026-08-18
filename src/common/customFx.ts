@@ -38,7 +38,7 @@ export const parseCustomFx = (
   // intentionally contains both forms so auto-normalize protects both.
   const hasFilterCommand = contents.split(/\r?\n/).some((rawLine) => {
     const line = rawLine.split('#')[0].trim();
-    return /^Filter\s+\d+\s*:/i.test(line);
+    return /^Filter(?:\s+\d+)?\s*:/i.test(line);
   });
   const filters =
     parsed.graphicEq?.length && !hasFilterCommand ? {} : parsed.filters;

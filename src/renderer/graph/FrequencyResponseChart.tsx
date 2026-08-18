@@ -95,7 +95,7 @@ import {
   useLiveOutputSolo,
   useSelectedLookId,
 } from '../utils/graphStyle';
-import { setChromeHeld, useIsChromeIdle } from '../utils/idleChrome';
+import { setChromeHeld } from '../utils/idleChrome';
 import {
   MAX_OVERLAY_BLUR,
   MIN_OVERLAY_OPACITY,
@@ -542,7 +542,6 @@ const FrequencyResponseChart = ({
     [customLooks, t],
   );
   const isFullScreen = useGraphFullScreen();
-  const isChromeIdle = useIsChromeIdle();
   const hasTopBar = useFullScreenTopBar();
   const overlayOpacity = useOverlayOpacity();
   const overlayBlur = useOverlayBlur();
@@ -1374,7 +1373,11 @@ const FrequencyResponseChart = ({
           elsewhere. Kept unconditional here rather than gated on the mode as
           well, because two things deciding the same question is how they come
           to disagree. */}
-      <div className={`live-output-controls${isChromeIdle ? ' is-idle' : ''}`}>
+      {/* No idle class any more. The toolbar is a row above the plot rather
+          than a strip lying across it, so it covers nothing and has no reason
+          to hide — see the note beside `.fullscreen-chrome` in GraphTheme.scss
+          for why that overlay still does. */}
+      <div className="live-output-controls">
         {/* One pane for the whole right-hand cluster.
 
             The card used to be on the style picker alone, which left the

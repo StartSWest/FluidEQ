@@ -305,6 +305,21 @@ export const getOpraProductList = (): Promise<IOpraProduct[]> => {
 };
 
 /**
+ * What to call an OPRA product on screen, resolved from its id.
+ * @param {string} productId - OPRA product id, `vendor::slug`
+ * @param {string} curveId - append the measurement's name when given
+ * @returns { Promise<string> } empty when this library does not know the id
+ */
+export const getOpraLabel = (
+  productId: string,
+  curveId?: string,
+): Promise<string> => {
+  const channel = ChannelEnum.GET_OPRA_LABEL;
+  window.electron.ipcRenderer.sendMessage(channel, [productId, curveId]);
+  return promisifyResult(simpleResponseHandler<string>(), channel);
+};
+
+/**
  * Load one OPRA curve into the backend state as the headphone layer.
  * @param {string} productId - OPRA product id, `vendor::slug`
  * @param {string} curveId - which of that product's curves to apply

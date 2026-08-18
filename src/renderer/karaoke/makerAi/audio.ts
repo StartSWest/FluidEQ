@@ -6,7 +6,6 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { IKaraokeMakerLicenseRecord } from '../../../common/karaoke/makerProject';
 
-export const BASIC_PITCH_SAMPLE_RATE = 22_050;
 export const WHISPER_SAMPLE_RATE = 16_000;
 const MAX_AI_DURATION_SECONDS = 30 * 60;
 const MAX_AI_FILE_BYTES = 1024 * 1024 * 1024;
@@ -51,12 +50,12 @@ export const WHISPER_MODEL =
  */
 export const KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED = true;
 
-export const BASIC_PITCH_PROVENANCE: IKaraokeMakerLicenseRecord = {
-  component: '@spotify/basic-pitch model and runtime',
-  version: '1.0.1',
-  license: 'Apache-2.0',
-  sourceUrl: 'https://github.com/spotify/basic-pitch-ts',
-};
+// Basic Pitch's provenance record lived here. The model and its runtime are
+// gone — nothing called them, and their weights were shipping inside the
+// installer for a code path with no callers — so the record had to go with
+// them. A provenance list is a statement about what this build contains, and
+// leaving an entry for a model that is no longer in it makes the list a lie
+// rather than merely stale. SwiftF0 signs the notes now; see swiftF0Notes.ts.
 
 export const WHISPER_PROVENANCE: IKaraokeMakerLicenseRecord = {
   component: WHISPER_MODEL,

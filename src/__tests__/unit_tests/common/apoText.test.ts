@@ -119,6 +119,37 @@ describe('parseEqText', () => {
     ]);
   });
 
+  it('reads a filter line whether or not it carries an index', () => {
+    // OPRA writes `Filter: ON PK …` where Squig.link writes `Filter 2: ON PK …`
+    // — APO ignores the index, so both are the same file. Requiring it dropped
+    // every band of an OPRA paste while the preamp still parsed, so the import
+    // reported success and drew a flat curve.
+    const numbered = [
+      'Preamp: -6 dB',
+      'Filter 1: ON PK Fc 200 Hz Gain -1.4 dB Q 0.6',
+      'Filter 2: ON PK Fc 4424 Hz Gain -1 dB Q 6',
+    ].join('\n');
+    const unnumbered = [
+      'Preamp: -6 dB',
+      'Filter: ON PK Fc 200 Hz Gain -1.4 dB Q 0.6',
+      'Filter: ON PK Fc 4424 Hz Gain -1 dB Q 6',
+    ].join('\n');
+
+    const shape = (text: string) =>
+      bands(text).map((band) => [
+        band.type,
+        band.frequency,
+        band.gain,
+        band.quality,
+      ]);
+
+    expect(shape(unnumbered)).toEqual([
+      [FilterTypeEnum.PK, 200, -1.4, 0.6],
+      [FilterTypeEnum.PK, 4424, -1, 6],
+    ]);
+    expect(shape(unnumbered)).toEqual(shape(numbered));
+  });
+
   it('converts bandwidth in octaves to Q', () => {
     // One octave is Q ≈ 1.41. Reading the 1 as a Q directly would be a
     // noticeably wider band than the file asked for.

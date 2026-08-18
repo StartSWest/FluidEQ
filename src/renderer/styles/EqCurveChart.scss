@@ -1,0 +1,28 @@
+@use 'color' as *;
+
+// The shared response preview. Panels set their own height and colours; what
+// lives here is only what has to look the same everywhere a curve is drawn
+// small — the grid, the decade labels and the weight of a line.
+
+.eq-curve-chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.eq-curve-chart__grid {
+  stroke: rgba($white, 0.1);
+  stroke-dasharray: 2 4;
+  stroke-width: 1;
+}
+
+.eq-curve-chart__line {
+  stroke-linecap: round;
+  stroke-width: 2.6;
+}
+
+.eq-curve-chart__axis {
+  fill: rgba($primary-lighter, 0.5);
+  font-size: 9px;
+}

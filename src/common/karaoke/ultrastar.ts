@@ -82,6 +82,19 @@ export const parseUltraStar = (contents: string): IKaraokeParsedLyrics => {
   const gapCandidate = parseDecimal(metadata.get('GAP') ?? '0');
   const gapMs = Number.isFinite(gapCandidate) ? gapCandidate : 0;
   const language = metadata.get('LANGUAGE')?.trim() || undefined;
+  // The stage media, named by the song rather than guessed from the folder.
+  // A trimmed empty tag is treated as absent: `#COVER:` with nothing after it
+  // appears in real files and must not become a lookup for the empty name.
+  const coverFileName = metadata.get('COVER')?.trim() || undefined;
+  const backgroundFileName = metadata.get('BACKGROUND')?.trim() || undefined;
+  const videoFileName = metadata.get('VIDEO')?.trim() || undefined;
+  // Seconds in the file, milliseconds everywhere in this codebase. Decimal
+  // because `#VIDEOGAP:4.5` is legal, and the same comma-or-point tolerance
+  // the other numbers here get — these files come from every locale in Europe.
+  const videoGapCandidate = parseDecimal(metadata.get('VIDEOGAP') ?? '');
+  const videoGapMs = Number.isFinite(videoGapCandidate)
+    ? videoGapCandidate * 1000
+    : undefined;
   const relative = /^(yes|true|1)$/i.test(metadata.get('RELATIVE') ?? '');
   const providerClock = {
     unit: 'ticks' as const,
@@ -207,6 +220,10 @@ export const parseUltraStar = (contents: string): IKaraokeParsedLyrics => {
     gapMs,
     bpm,
     language,
+    coverFileName,
+    backgroundFileName,
+    videoFileName,
+    videoGapMs,
     sourceFormat: 'ultrastar',
   };
 };

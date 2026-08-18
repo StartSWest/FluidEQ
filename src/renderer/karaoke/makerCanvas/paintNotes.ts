@@ -78,6 +78,8 @@ export const paintNotes = (
   const {
     left: plotLeft,
     right: plotRight,
+    top: plotTop,
+    bottom: plotBottom,
     height: plotHeight,
     timeX,
     noteY,
@@ -142,10 +144,34 @@ export const paintNotes = (
       plotRight,
       Math.max(left + 5, timeX(articulation.endMs)),
     );
-    const centerY = noteY(note.targetMidi);
     const noteHeight = Math.max(
       8,
       (plotHeight / (MAX_NOTE_MIDI - MIN_NOTE_MIDI)) * 0.8,
+    );
+    /*
+     * A NOTE IS DRAWN INSIDE THE PITCH GRID OR NOT AT ALL.
+     *
+     * This was the one coordinate in the editor with no bound on it. The two
+     * horizontal edges have always been clamped to the plot a few lines up,
+     * and the draft note in paintOverlays.ts clamps its centre to
+     * `[plotTop, plotBottom]` — but the real notes layer took `noteY` raw, and
+     * `noteY` is a linear map with nothing stopping it: a note above
+     * MAX_NOTE_MIDI returns a y above `plot.top`, one below MIN_NOTE_MIDI
+     * returns one past `plot.bottom`. There is no grid there. Above the plot
+     * are the lyric lanes, the section band and the three waveform rows, so a
+     * single out-of-range note is painted across the song overview at a
+     * position that means nothing, and it moves with the horizontal scroll
+     * like everything else — which is what "floating" looks like.
+     *
+     * Clamped to half a note-height inside each edge, so a pinned note reads
+     * as sitting ON the grid's limit rather than half-swallowed by it. It
+     * keeps its real label: pinning is how the editor says "this one is off
+     * the top", and replacing the name with the limit's name would hide the
+     * very thing the user has to fix.
+     */
+    const centerY = Math.max(
+      plotTop + noteHeight / 2,
+      Math.min(plotBottom - noteHeight / 2, noteY(note.targetMidi)),
     );
     const selected = selectedNoteIds.has(note.id);
     const active = karaokeMakerNoteIsActive(

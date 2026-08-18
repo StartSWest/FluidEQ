@@ -65,8 +65,13 @@ it under the terms of the GNU General Public License version 3 or later.
 // across, so without this the two are stacked on top of each other and the one
 // thing that says which look is selected disappears behind the thing editing
 // it.
+// Padding rather than an offset, now that the row is laid out instead of
+// floating. `right: 272px` moved a positioned strip out from under the panel;
+// on an element in normal flow it would slide the whole row bodily to the
+// left and leave its own space empty behind it. Reserving the width inside
+// the row keeps the controls clear of the panel and the row where it belongs.
 .graph-wrapper.is-designing .live-output-controls {
-  right: 272px;
+  padding-right: 272px;
 }
 
 .look-designer__header {
@@ -581,6 +586,6 @@ it under the terms of the GNU General Public License version 3 or later.
 
   // Nothing to make room for once the panel spans the card.
   .graph-wrapper.is-designing .live-output-controls {
-    right: 10px;
+    padding-right: 10px;
   }
 }

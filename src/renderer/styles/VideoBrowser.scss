@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -106,6 +107,38 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-wrap: wrap;
   align-items: center;
   gap: $spacing-s;
+}
+
+// The toolbar sweeps in left to right — nav buttons, then the site chips, then
+// the search field. Everything below it is the guest page, which is a native
+// surface with somebody else's video in it and is not ours to animate.
+//
+// KEYED OFF `.is-hidden`, unlike every other tab. This panel is mounted once
+// and then hidden rather than destroyed, so that leaving the tab does not stop
+// the music — which means the elements are never new and a plain entrance
+// would play once, on the first visit of the session, and never again. The
+// selector only matches while the tab is showing, so removing the class starts
+// the animation and adding it back arms it for next time. Same mechanism the
+// panel's own surface transition uses in App.scss.
+//
+// Deliberately quicker than the pages that remount: this is a toolbar somebody
+// flicks back to with a video already playing behind it, so the whole sweep is
+// over in about a third of a second.
+.video-browser:not(.is-hidden) .video-browser__nav-button {
+  @include stagger-in($count: 3, $step: 26ms, $duration: $motion-fast);
+}
+
+.video-browser:not(.is-hidden) .video-browser__site {
+  @include stagger-in(
+    $count: 5,
+    $step: 26ms,
+    $offset: 78ms,
+    $duration: $motion-fast
+  );
+}
+
+.video-browser:not(.is-hidden) .video-browser__search {
+  @include animate(rise-in, $motion-fast, $ease-out, 208ms);
 }
 
 // *** Back, forward, reload **************************************************

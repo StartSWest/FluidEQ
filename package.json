@@ -103,7 +103,6 @@
     ],
     "moduleNameMapper": {
       "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga|worklet)$": "<rootDir>/.erb/mocks/fileMock.js",
-      "^@spotify/basic-pitch/model/.*\\?url$": "<rootDir>/.erb/mocks/fileMock.js",
       "^@fluideq/whisper-wasm$": "<rootDir>/.erb/mocks/fileMock.js",
       "^@fluideq/whisper-runtime$": "<rootDir>/.erb/mocks/fileMock.js",
       "\\.(css|less|sass|scss)$": "identity-obj-proxy",
@@ -138,8 +137,8 @@
     ]
   },
   "dependencies": {
+    "@breezystack/lamejs": "^1.2.7",
     "@huggingface/transformers": "3.7.6",
-    "@spotify/basic-pitch": "1.0.1",
     "ajv": "^8.20.0",
     "d3": "^7.9.0",
     "electron-debug": "^4.1.0",
@@ -342,8 +341,7 @@
     "patterns": [
       "!**/**",
       "src/main/**",
-      "src/common/**",
-      "!src/common/i18n/**"
+      "src/common/**"
     ],
     "logLevel": "quiet"
   }

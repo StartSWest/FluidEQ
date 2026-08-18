@@ -59,6 +59,7 @@ import {
   writeLyricTextSize,
 } from './karaokeLyricText';
 import KaraokeTransport from './KaraokeTransport';
+import KaraokeStageMedia from './KaraokeStageMedia';
 import KaraokePitchLane from './KaraokePitchLane';
 import { IKaraokePitchIssue } from './karaokePitchGeometry';
 import KaraokePlaylist, { KARAOKE_PLAYLIST_DRAG_MIME } from './KaraokePlaylist';
@@ -102,6 +103,14 @@ interface IKaraokeWorkspaceProps {
   hasFullScreenTopBar?: boolean;
   onToggleFullScreenTopBar?: () => void;
   onToggleFullScreen?: () => void;
+  /**
+   * Whether the Maker is the surface on screen.
+   *
+   * Reported outward because the response graph's full-screen mode is decided
+   * in App.tsx, several levels up, and it must not take the window while an
+   * editing surface is open. See the guard there.
+   */
+  onMakerOpenChange?: (open: boolean) => void;
 }
 
 const ERROR_KEYS: Record<TKaraokeSessionError, TranslationKey> = {
@@ -210,6 +219,7 @@ const KaraokeWorkspace = ({
   hasFullScreenTopBar = true,
   onToggleFullScreenTopBar = () => undefined,
   onToggleFullScreen = () => undefined,
+  onMakerOpenChange,
 }: IKaraokeWorkspaceProps) => {
   const { t } = useTranslation();
   const lyricTextSizeId = useId();
@@ -657,7 +667,8 @@ const KaraokeWorkspace = ({
 
   useEffect(() => {
     writeKaraokeMakerOpen(isMakerOpen);
-  }, [isMakerOpen]);
+    onMakerOpenChange?.(isMakerOpen);
+  }, [isMakerOpen, onMakerOpenChange]);
 
   const persistCurrentProgress = useCallback(() => {
     if (!persistenceReadyRef.current) {
@@ -843,9 +854,14 @@ const KaraokeWorkspace = ({
       autoplayAfterLoadRef.current = autoplay;
       playheadRef.current = 0;
       setSelectedPlaylistId(item.id);
+      // The artwork and video travel with the pair. `loadFiles` picks the
+      // audio and the lyrics out by extension and hands the rest to the stage,
+      // so passing the whole folder's media here costs nothing and is the only
+      // way a playlist entry keeps its cover — see IKaraokePlaylistItem.media.
       const loaded = await session.loadFiles([
         item.audio,
         ...(item.lyrics ? [item.lyrics] : []),
+        ...item.media,
       ]);
       if (!loaded) {
         autoplayAfterLoadRef.current = false;
@@ -1026,11 +1042,27 @@ const KaraokeWorkspace = ({
         target?.isContentEditable ||
         target?.closest('input, textarea, select, [contenteditable]'),
       );
+      /*
+       * SPACE BELONGS TO THE TRANSPORT, NOT TO WHICHEVER BUTTON WAS CLICKED
+       * LAST.
+       *
+       * A focused button used to block this handler on the player, which left
+       * the keypress to the browser — and the browser's answer to Space on a
+       * focused button is to press it again. The transport's buttons sit in a
+       * row, so after clicking "Jump to song start" (immediately beside play)
+       * every Space restarted the song instead of stopping it. Nothing looked
+       * broken; the key was simply reaching a different control than the one
+       * the singer meant.
+       *
+       * Space is now the transport's, the way it is in every media player,
+       * and buttons keep Enter — which is the other key that activates them
+       * and the one no player has ever claimed.
+       *
+       * Menus are still excluded: a Space inside an open menu is choosing the
+       * highlighted item, and that menu is the thing the user is looking at.
+       */
       const isBlockedControl = Boolean(
-        target?.closest(
-          '[role="menu"], [role="menuitem"], [role="separator"]',
-        ) ||
-        (!isMakerOpen && target?.closest('button')),
+        target?.closest('[role="menu"], [role="menuitem"], [role="separator"]'),
       );
       if (
         isMakerTypingTarget ||
@@ -1439,6 +1471,14 @@ const KaraokeWorkspace = ({
           )}
           {song ? (
             <>
+              {/* First, so it is behind everything the stage draws. It is
+                  absolutely positioned and takes no row of its own — the
+                  heading, lyrics and pitch guide keep the grid they had. */}
+              <KaraokeStageMedia
+                song={song}
+                playheadMs={session.playheadMs}
+                isPlaying={status === 'playing'}
+              />
               <div className="karaoke-song__heading">
                 <div>
                   <p>{song.artist || t('karaoke.song.unknownArtist')}</p>

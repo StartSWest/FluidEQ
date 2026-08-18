@@ -16,9 +16,9 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
-import { TApoLayer } from 'common/constants';
+import { OPRA_SOURCE_ID, TApoLayer } from 'common/constants';
 import { getVoicingProfile, isVoicingActive } from 'common/voicing';
 import { getDriverProfile } from 'common/driver';
 import { hasSmartEqCorrection } from 'common/smartEq';
@@ -29,6 +29,7 @@ import { useTranslation } from '../utils/I18nContext';
 import {
   clearConvolution,
   clearGains,
+  getOpraLabel,
   setDriver as setDriverApi,
   setHeadphone as setHeadphoneApi,
   setLayerBypass,
@@ -69,6 +70,7 @@ const ActiveLayers = () => {
     smartEq,
     customFx,
     headset,
+    headsetSource,
     isFlat,
     isEnabled,
     isBlockingError,
@@ -82,6 +84,35 @@ const ActiveLayers = () => {
     setGlobalError,
   } = useFluidEqContext();
   const { t } = useTranslation();
+  /*
+   * The model's name, asked for by id.
+   *
+   * The chip used to print `headset` straight out, which is an OPRA id —
+   * `razer::kraken_v3_pro` on a chip in the middle of the window. The index that
+   * turns it into "Razer Kraken V3 Pro" is two megabytes and lives in the main
+   * process, so this asks for the one string rather than the library. Falls back
+   * to the id, which is what a selection from the retired AutoEq database still
+   * resolves to.
+   */
+  const [headsetName, setHeadsetName] = useState<string>();
+  useEffect(() => {
+    if (!headset || headsetSource !== OPRA_SOURCE_ID) {
+      setHeadsetName(undefined);
+      return undefined;
+    }
+    let isCurrent = true;
+    getOpraLabel(headset)
+      .then((name) => {
+        if (isCurrent) {
+          setHeadsetName(name || undefined);
+        }
+        return name;
+      })
+      .catch(() => setHeadsetName(undefined));
+    return () => {
+      isCurrent = false;
+    };
+  }, [headset, headsetSource]);
   const isContinuousOn = useContinuousEq();
   const smartEqMode = useSmartEqMode();
   /** Which of the four wrote this layer, in the words the picker uses. */
@@ -320,7 +351,7 @@ const ActiveLayers = () => {
       key: 'headphone',
       icon: 'waveform',
       label: t('eq.layers.headphone'),
-      name: headset ?? t('eq.layers.headphone'),
+      name: headsetName ?? headset ?? t('eq.layers.headphone'),
       percent: Math.round((headphone?.intensity ?? 0) * 100),
       strength: headphone?.intensity ?? 0,
       isInactive: (headphone?.intensity ?? 0) <= 0,

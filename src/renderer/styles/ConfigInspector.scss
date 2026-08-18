@@ -15,6 +15,7 @@ it under the terms of the GNU General Public License version 3 or later.
 
 @use 'color' as *;
 @use 'constant' as *;
+@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -50,6 +51,43 @@ $name-column: 34ch;
   min-height: 0;
   flex-direction: column;
   gap: $spacing-m;
+}
+
+// THE PAGE ARRIVES IN THE ORDER IT HAS TO BE READ IN, which on this tab is not
+// a decorative claim: what is above tells you whether anything below is even
+// reaching the sound card. Header, then the one line saying whether the chain
+// is live, then the outputs to choose between, then the chosen one, then the
+// directory it all came off.
+//
+// Written flat, as one sequence of `$offset`s over the leaf elements, rather
+// than as a cascade of blocks with cascades inside them — the card row and the
+// device section are groups in the sequence, not containers with an entrance
+// of their own. See `stagger-in` for why a nested entrance is the wrong shape.
+.config-inspector__bar {
+  @include animate(rise-in);
+}
+
+.config-inspector__note,
+.config-status {
+  @include animate(rise-in, $motion-base, $ease-out, 55ms);
+}
+
+// Eight, because six was not enough: the machine this was written on lists
+// seven playback endpoints, so the last two arrived together while every other
+// card had a beat of its own. A ninth still simply lands with the eighth.
+.config-card {
+  @include stagger-in($count: 8, $step: 30ms, $offset: 110ms);
+}
+
+// The selected output's own panel: its heading, its facts, the transfer row and
+// the file tree, in that order. Five covers every arrangement the panel has —
+// with no config file it is a single line of prose instead of a tree.
+.config-device > * {
+  @include stagger-in($count: 5, $step: 30ms, $offset: 230ms);
+}
+
+.config-inspector__path {
+  @include animate(rise-in, $motion-base, $ease-out, 380ms);
 }
 
 .config-inspector__bar {

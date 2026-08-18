@@ -244,7 +244,7 @@ const readConfigFile = (
 
 /** Every `Filter:` line in a file and everything under it. */
 const countFilters = (file: IApoConfigFile): number =>
-  file.lines.filter((line) => /^Filter\s+\d+\s*:/i.test(line)).length +
+  file.lines.filter((line) => /^Filter(?:\s+\d+)?\s*:/i.test(line)).length +
   file.includes.reduce((total, child) => total + countFilters(child), 0);
 
 /** The first line of a file matching a command, searched depth-first. */

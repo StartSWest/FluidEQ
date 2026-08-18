@@ -78,6 +78,23 @@ export const I18nProvider = ({ children }: { children: ReactNode }) => {
     document.documentElement.lang = locale;
   }, [locale]);
 
+  // The tray menu is the one piece of interface the main process writes by
+  // itself, and the chosen language lives here rather than there. Pushed on
+  // mount as well as on every change, because the main process starts with no
+  // idea which of the ten this window settled on.
+  useEffect(() => {
+    // Optional all the way down, including the call itself. The bridge is
+    // typed from the preload module, so TypeScript believes this method is
+    // always there — but the object on `window` is whatever was actually
+    // exposed, and under test that is a hand-written stub carrying only the
+    // handful of methods a given suite needs. Calling straight through threw
+    // for every one of them, and a language preference is not worth taking a
+    // render down for even when the bridge is genuinely absent.
+    window.electron?.ipcRenderer
+      ?.setAppLocale?.(locale)
+      ?.catch(() => undefined);
+  }, [locale]);
+
   const setLocale = useCallback((next: LocaleCode) => {
     setLocaleState(next);
     try {

@@ -1612,35 +1612,40 @@ $tab-border: rgba($secondary-light, 0.2);
   overflow: hidden;
 }
 
-// Legend strip floating over the top of the chart. It has no surface of its
-// own: it reads directly on the graph card.
+// The graph's toolbar — a row of its own above the plot, not a strip floating
+// over it.
+//
+// IT USED TO BE ABSOLUTE, pinned 8px down from the top of the card and lying
+// across the drawing. Everything awkward about it followed from that: it
+// covered the part of the plot the peaks reach, so it had to fade itself out
+// after a few idle seconds; it needed a text shadow under every glyph to stay
+// readable against whatever was moving underneath; and in full screen it had
+// to be pushed down by the title bar's height by hand, because it was
+// measuring from a card that now started at the top of the display.
+//
+// In normal flow it is the Video tab's toolbar instead — `.graph-wrapper` is
+// already a flex column whose plot takes the remaining height, so a static
+// child simply becomes the row above it and the plot shrinks by exactly that
+// much. Nothing is covered, so nothing has to hide, glow or be nudged.
 .live-output-controls {
-  position: absolute;
-  // Above the plot, and stated rather than left to document order.
-  //
-  // It was 1, which already beat the plot's `auto` — but only because nothing
-  // in the drawing had ever claimed a layer of its own, and the strip has no
-  // surface behind it, so a wave crossing the row read as being in front
-  // whether it was or not. With the band gone the peaks come all the way up
-  // here, so this is worth being explicit about.
+  position: relative;
+  // Still above the plot: the two menus in this row open downward over the
+  // chart, and a sibling that comes earlier in the document does not win that
+  // on its own.
   z-index: 3;
-  top: 8px;
-  right: 10px;
-  left: 10px;
   display: flex;
+  // Its own height and no more. Without this the row would share the column's
+  // spare space with the plot and grow every time the pane did.
+  flex: 0 0 auto;
+  min-width: 0;
+  // The card pads the top; this pads the sides, so the toolbar is inset while
+  // the picture below it is not — the same arrangement the player uses.
+  padding: 8px 10px 0;
   flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: $spacing-s;
   font-size: 0.65rem;
-  // Enough dark behind each glyph to hold it apart from whatever is moving
-  // underneath, and nothing that draws a box. A band across the top was the
-  // other answer and it cost the whole edge of the picture; this costs the
-  // width of the letters.
-  text-shadow:
-    0 1px 2px rgba($black, 0.75),
-    0 0 6px rgba($black, 0.55);
-  pointer-events: none;
 
   > * {
     pointer-events: auto;

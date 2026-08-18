@@ -6,7 +6,7 @@ SPDX-License-Identifier: GPL-3.0-or-later
 
 import { IKaraokeMakerToken } from '../../../common/karaoke/makerProject';
 import { IKaraokeMakerTranscriptWord } from './whisperProgress';
-import { maximumAutomaticWordDurationMs } from './basicPitch';
+import { maximumAutomaticWordDurationMs } from './analysisWindows';
 
 export const normalizedWord = (value: string): string =>
   value

@@ -181,6 +181,34 @@ export const getOpraProductList = (
   opraDir: string = getOpraDir(),
 ): IOpraProduct[] => readIndex(opraDir);
 
+/**
+ * What to call a product id on screen: `Razer Kraken V3 Pro`.
+ *
+ * The state stores ids because names do not identify anything — fifty-six
+ * products share a display name with another product — but a layer chip reading
+ * `razer::kraken_v3_pro` is showing somebody our filing system. Resolved here
+ * rather than in the renderer because the index is two megabytes and already
+ * cached in this process; the answer is one short string.
+ *
+ * Empty when the id is not in this library, which is what a selection saved
+ * against the old AutoEq database looks like. The caller keeps its own fallback.
+ */
+export const getOpraLabel = (
+  productId: string,
+  curveId?: string,
+  opraDir: string = getOpraDir(),
+): string => {
+  const product = readIndex(opraDir).find((entry) => entry.id === productId);
+  if (!product) {
+    return '';
+  }
+  const name = `${product.vendor} ${product.name}`;
+  const curve = curveId
+    ? product.curves.find((entry) => entry.id === curveId)
+    : undefined;
+  return curve ? `${name} · ${curve.details}` : name;
+};
+
 /** `vendor::slug`, which is also where the bands live. */
 const splitProductId = (productId: string) => {
   const parts = productId.split('::');

@@ -50,10 +50,12 @@ describe('the Maker separated tracks panel', () => {
     expect(screen.getByText('Voice')).toBeInTheDocument();
   });
 
-  it('hands back the track whose button was pressed', () => {
-    // Two rows, two identically-labelled buttons. Getting this wrong saves the
-    // backing track as the voice, and the file is named so the mistake is only
-    // obvious after opening it.
+  it('hands back the track and the format whose button was pressed', () => {
+    // Four buttons now, across two rows, and both halves of each one matter.
+    // Getting the track wrong saves the backing track as the voice, and the
+    // file is named so the mistake is only obvious after opening it. Getting
+    // the format wrong spends several seconds encoding an MP3 for somebody who
+    // asked for the lossless file, or hands a DAW a lossy one.
     const onSave = jest.fn();
     const instrumental = audio('song (instrumental).wav');
     const vocals = audio('song (vocals).wav');
@@ -66,13 +68,18 @@ describe('the Maker separated tracks panel', () => {
         onSave={onSave}
       />,
     );
-    const [saveBacking, saveVoice] = screen.getAllByRole('button', {
-      name: 'Save',
-    });
-    fireEvent.click(saveBacking);
-    expect(onSave).toHaveBeenLastCalledWith(instrumental);
-    fireEvent.click(saveVoice);
-    expect(onSave).toHaveBeenLastCalledWith(vocals);
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save Backing track as WAV' }),
+    );
+    expect(onSave).toHaveBeenLastCalledWith(instrumental, 'wav');
+    fireEvent.click(
+      screen.getByRole('button', { name: 'Save Backing track as MP3' }),
+    );
+    expect(onSave).toHaveBeenLastCalledWith(instrumental, 'mp3');
+    fireEvent.click(screen.getByRole('button', { name: 'Save Voice as WAV' }));
+    expect(onSave).toHaveBeenLastCalledWith(vocals, 'wav');
+    fireEvent.click(screen.getByRole('button', { name: 'Save Voice as MP3' }));
+    expect(onSave).toHaveBeenLastCalledWith(vocals, 'mp3');
   });
 
   it('reports the guide vocal level as a fraction', () => {

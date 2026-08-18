@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'spacing' as *;
 @use 'theme' as *;
 
@@ -39,6 +40,108 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .karaoke-workspace.workspace-tab-panel--karaoke {
   overflow: hidden;
   scrollbar-gutter: auto;
+}
+
+// *** The player assembling **************************************************
+//
+// KEYED OFF `.is-hidden`, like the Media tab and for the same reason: this
+// workspace is mounted once and then hidden rather than destroyed, so leaving
+// the tab does not stop the song. Its elements are therefore never new, and a
+// plain entrance would play on the first visit of the session and never again.
+// The selector matches only while the tab is showing, so removing the class
+// starts the animation and putting it back arms it for the next visit.
+//
+// The frames hold still and their contents arrive into them — the stage keeps
+// its well and its grid, the playlist keeps its panel. That is what makes the
+// tab read as filling in rather than as being rebuilt, and it is also what
+// keeps this flat: one sequence of delays over leaf elements, never a cascade
+// nested inside a container that is itself animating. See `stagger-in`.
+.karaoke-workspace:not(.is-hidden) .karaoke-workspace__header {
+  @include animate(rise-in);
+}
+
+.karaoke-workspace:not(.is-hidden) .karaoke-playlist__heading {
+  @include animate(rise-in, $motion-base, $ease-out, 55ms);
+}
+
+// Ten covers a full pane; a longer playlist scrolls, and rows below the fold
+// take the tail delay rather than arriving ahead of the rows above them.
+//
+// Safe to animate despite the rows being reorderable, because the reorder is
+// native HTML drag-and-drop rather than a transform: nothing here fights the
+// browser for the same property, and the drag image is a snapshot taken from
+// an element that settled long before anyone could reach for it.
+.karaoke-workspace:not(.is-hidden) .karaoke-playlist__item {
+  @include stagger-in($count: 10, $step: 26ms, $offset: 90ms);
+}
+
+// The stage's own contents, which is the one cascade here that earns its keep
+// twice. It replays on returning to the tab, and it replays when a song loads
+// — the empty state and the loaded player are two different sets of children
+// in the same box, so React builds new elements and the row of them assembles
+// itself: heading, lyrics, then the pitch guide.
+//
+// Six is a ceiling for both arrangements. The drop overlay is excluded because
+// it is absolutely positioned feedback that appears mid-drag, and sliding it
+// into place would answer a drag that has already happened.
+.karaoke-workspace:not(.is-hidden)
+  .karaoke-workspace__stage
+  > *:not(.karaoke-workspace__drop-overlay):not(.karaoke-stage-media) {
+  @include stagger-in($count: 6, $step: 45ms, $offset: 90ms);
+}
+
+// *** The picture behind the words *******************************************
+//
+// Fills the stage and takes no row of its own: it is absolutely positioned
+// inside the stage's own stacking context, so the grid above it is untouched
+// and the heading, lyrics and pitch guide keep the layout they had.
+//
+// Excluded from the cascade above on purpose. Everything else on this stage
+// arrives with an 8px rise, which is right for content and wrong for scenery —
+// a backdrop that slides is a backdrop you look at instead of through.
+.karaoke-stage-media {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.karaoke-stage-media__still,
+.karaoke-stage-media__video {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  inset: 0;
+  // Cover rather than contain: this is scenery for a stage of any shape, and
+  // letterboxing it would draw two black bars the design never asked for.
+  object-fit: cover;
+  // DIM, AND NOT NEGOTIABLE. Lyrics are the reason this screen exists and they
+  // are white text with no plate behind them; a photograph at full strength
+  // under them is unreadable within one line. This is the level at which the
+  // picture still reads as a picture and the words still win.
+  opacity: 0.32;
+}
+
+// Held under the video as its poster, so a clip that has not decoded its first
+// frame yet shows the song's artwork instead of a black hole.
+.karaoke-stage-media__still.is-behind-video {
+  opacity: 0.22;
+}
+
+.karaoke-stage-media__unsupported {
+  position: absolute;
+  right: 12px;
+  bottom: 10px;
+  margin: 0;
+  color: rgba($primary-lighter, 0.62);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+}
+
+.karaoke-workspace:not(.is-hidden) .karaoke-transport {
+  @include animate(rise-in, $motion-base, $ease-out, 310ms);
 }
 
 @keyframes karaoke-maker-surface-enter {
@@ -224,8 +327,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: absolute;
   z-index: 9;
   top: 9px;
-  right: 10px;
-  left: auto;
+  // Centred on the stage rather than pinned to its right corner. In full
+  // screen the stage is the whole window and the lyrics are centred in it, so
+  // a dock hugging the right edge sat a long way from the only thing anybody
+  // is looking at — and on a wide monitor it read as belonging to the window
+  // rather than to the song.
+  //
+  // `translateX(-50%)` is the centring, which means every other rule here that
+  // touches `transform` has to carry it too; see the idle state at the foot of
+  // this block. A bare `translateY` there would snap the bar back to the left.
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
   width: auto;
   max-width: calc(100% - 20px);
   gap: 5px;
@@ -241,7 +354,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     inset 0 1px 0 rgba($white, 0.07);
   backdrop-filter: blur(16px) saturate(1.18);
   opacity: 0.82;
-  transform: none;
   transition:
     opacity 180ms ease,
     transform 220ms ease,
@@ -279,7 +391,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &.is-idle {
     opacity: 0;
     pointer-events: none;
-    transform: translateY(-7px);
+    // Carries the centring as well as the lift. `transform` is one property,
+    // so naming only the translateY here would drop the -50% and send the bar
+    // sliding to the left as it faded out.
+    transform: translate(-50%, -7px);
     transition-duration: 480ms;
   }
 }
@@ -3064,9 +3179,56 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// *** The Maker assembling ***************************************************
+//
+// Its four bands in the order the grid stacks them: the header, the editing
+// surface, the lyric preview, the command dock.
+//
+// EVERY DELAY HERE STARTS AT 190ms, WHICH IS WHERE THE SURFACE ENTRANCE ABOVE
+// ENDS. That is the whole trick: the bands are a sequence *after* the surface,
+// not a cascade nested inside it. By the time the first one moves the Maker is
+// already at full opacity and back at rest, so nothing multiplies its fade or
+// adds to its travel — the failure that `stagger-in` describes and that any
+// entrance placed inside another animating box walks straight into.
+//
+// Addressed by class rather than as `> *`, because the Maker's children are
+// not only these four: three hidden file inputs sit ahead of the header, and
+// the wizard is a conditional overlay in front of them. A positional cascade
+// would spend its first beats on inputs nobody can see and hand the header
+// whichever delay was left over.
+//
+// The canvas host is on this list and the canvas inside it is not. Fading a
+// band that contains a canvas costs one composite of an already-painted layer;
+// touching the canvas itself would mean asking the editor to repaint the
+// project mid-entrance.
+.karaoke-maker__header {
+  @include animate(rise-in, $motion-base, $ease-out, 190ms);
+}
+
+.karaoke-maker__canvas-host {
+  @include animate(rise-in, $motion-base, $ease-out, 235ms);
+}
+
+.karaoke-maker-preview {
+  @include animate(rise-in, $motion-base, $ease-out, 280ms);
+}
+
+.karaoke-maker__command-dock {
+  @include animate(rise-in, $motion-base, $ease-out, 325ms);
+}
+
 .karaoke-maker__header {
   position: relative;
-  z-index: 11;
+  // ABOVE THE COMMAND DOCK, WHICH IS 12. Every one of the Maker's menus hangs
+  // out of this bar — the tool popovers, the export list — and `z-index` on a
+  // positioned element opens a stacking context, so the 20 those popovers ask
+  // for is 20 *within the header*, not within the editor. Against a dock that
+  // outranked the header they were painted underneath it no matter what they
+  // asked for, and the Advanced popover, which is the tall one, was cut off
+  // along the top edge of the transport with the rest of its contents
+  // unreachable. Nothing else here overlaps the dock, so this only ever
+  // decides which of the two wins where a menu is already hanging over it.
+  z-index: 13;
   display: grid;
   // Equal flexible flanks keep the Maker tools centered in the whole header,
   // not merely in the gap between an unequal title and action cluster.
@@ -3441,6 +3603,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   left: 50%;
   z-index: 20;
   padding: 7px;
+  // The second half of the clipping fix above. Out-ranking the dock lets a
+  // popover hang over the whole editor; this is what happens when one is
+  // taller than the editor itself, which the Advanced panel becomes as soon as
+  // a song has been split — two waveforms, a fader and five actions. The
+  // Maker's own `overflow: hidden` would otherwise cut it at the bottom of the
+  // window with no way to reach the rest, and a menu whose last item cannot be
+  // clicked is the same bug in a different place.
+  max-height: calc(100dvh - var(--karaoke-maker-header-height, 56px) - 34px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   background:
     radial-gradient(circle at 30% 0, rgba(42, 128, 135, 0.16), transparent 52%),
     rgba(5, 24, 39, 0.985);
@@ -3449,6 +3622,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: 0 22px 48px rgba(0, 0, 0, 0.48);
   transform: translateX(-50%);
   backdrop-filter: blur(18px);
+  @include slim-scrollbar;
 }
 
 .karaoke-maker__action-popover {
@@ -5260,12 +5434,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// Two rows: the controls, and a quiet line of instruction under all of them.
+//
+// One row was the bug. The help text was a fourth flex item in the third
+// column, which made a paragraph compete with a label and two buttons for one
+// track — see the note in KaraokeMakerSelectionInfo.tsx for what that did to
+// each of them. Prose and controls want different widths, so they get
+// different rows.
 .karaoke-maker__note-inspector {
   display: grid;
   min-width: 0;
   grid-template-columns: auto auto minmax(190px, 1fr);
   align-items: center;
   gap: 10px 14px;
+
+  > .karaoke-maker__note-link-help {
+    // Full width, which is what turns four cramped lines into two easy ones.
+    margin: 0;
+    grid-column: 1 / -1;
+    color: rgba(177, 211, 221, 0.62);
+    font-size: 0.76rem;
+    line-height: 1.4;
+  }
 }
 
 .karaoke-maker__note-inspector-summary {
@@ -5323,17 +5513,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: flex-end;
   gap: 7px;
 
+  // The label gives ground; the buttons never do. It is the only part of this
+  // row that can be shortened without costing a control, and with the help
+  // text gone from the row there is enough width that it rarely has to.
   .karaoke-maker__note-link {
+    @include truncate;
     flex: 1 1 auto;
     font-size: 0.8rem;
   }
 
-  .karaoke-maker__note-link-help {
-    flex: 1 1 260px;
-    max-width: 430px;
-    color: rgba(177, 211, 221, 0.72);
-    font-size: 0.8rem;
-    line-height: 1.35;
+  // TWO WORDS, ONE LINE. "Detach from lyrics" and "Split word into syllables"
+  // were breaking mid-label into two-line buttons of different heights, which
+  // is what made this row look broken rather than merely tight. A button is a
+  // target, and a target that changes height as the panel resizes is one that
+  // moves under the pointer.
+  > button {
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
 }
 
@@ -6286,28 +6482,25 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border-bottom: 1px solid rgba($secondary-light, 0.17);
 }
 
-.karaoke-maker__stem-progress {
-  display: grid;
-  gap: 7px;
-
-  > progress {
-    width: 100%;
-    height: 6px;
-  }
-
-  > p {
-    margin: 0;
-    color: rgba(223, 252, 249, 0.82);
-    font-size: 0.82rem;
-  }
-}
-
 .karaoke-maker__stem-list {
   display: grid;
   margin: 0;
   padding: 0;
   gap: 5px;
   list-style: none;
+}
+
+// "Save" and the two formats it offers, as one group in the row's last column.
+// The word is a label rather than a button — pressing it would have no meaning
+// now that the format is the choice — so it is hidden from screen readers and
+// each button carries the whole instruction in its own label instead.
+.karaoke-maker__stem-save {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: $text-faint;
+  font-size: 0.66rem;
+  white-space: nowrap;
 }
 
 .karaoke-maker__stem {
@@ -6751,11 +6944,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     gap: 3px;
   }
 
+  // WRAPS RATHER THAN TRUNCATES, because one of these messages is not a label.
+  //
+  // This was `nowrap` with an ellipsis, which is right for the transcription
+  // stages — "Reading the song", "Loading the model" — and wrong for the one
+  // line the user most needs to finish reading: "Downloading the separation
+  // model (42%) · one time, about 700 MB". Cut at the panel's edge it became
+  // "Downloading the separation model (42%) · one…", which loses both facts
+  // that make a several-minute wait make sense — that it is a one-off, and how
+  // large it is. Somebody watching that has no idea whether to wait.
+  //
+  // Nothing needed protecting here in the first place: this is a whole
+  // sentence in a 460px panel, not a file name, so wrapping costs a second
+  // line and the percentage beside it keeps its corner on the first baseline.
+  // `anywhere` is only the backstop for a language whose words do not break
+  // where English's do.
   strong {
-    overflow: hidden;
     font-size: 0.84rem;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   span {

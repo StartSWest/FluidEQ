@@ -68,6 +68,17 @@ export interface IKaraokeAsset {
     | 'vocals'
     | 'instrumental'
     | 'video'
+    /**
+     * The two pictures a song folder carries, and they are not interchangeable.
+     * A cover is artwork meant to be looked at whole — square, centred, the
+     * thing a library grid shows. A background is scenery meant to sit behind
+     * the words at whatever size the stage happens to be, so it is cropped
+     * without apology. UltraStar names them separately for that reason and so
+     * does this; showing a cover stretched across a widescreen stage is how
+     * the distinction gets lost.
+     */
+    | 'cover'
+    | 'background'
     | 'lyrics'
     | 'cdg'
     | 'midi'
@@ -91,6 +102,14 @@ export interface IKaraokeSong {
     gapMs: number;
     bpm?: number;
     language?: string;
+    /**
+     * How far the stage video runs ahead of or behind the audio, in ms.
+     *
+     * Separate from `gapMs`, which is when the singing starts. This one is a
+     * property of the picture alone — a clip that opens with four seconds of
+     * label before the song does.
+     */
+    videoGapMs?: number;
   };
 }
 
@@ -104,6 +123,27 @@ export interface IKaraokeParsedLyrics {
   gapMs: number;
   bpm?: number;
   language?: string;
+  /**
+   * The stage media a format can name for itself, by file name only.
+   *
+   * Names rather than files, because parsing happens on text and knows
+   * nothing about what else was imported alongside it. The session resolves
+   * each name against the song's own directory, and falls back to matching by
+   * base name for the formats that cannot say — LRC has no header for any of
+   * this, so a picture sitting next to the audio is the only signal there is.
+   */
+  coverFileName?: string;
+  backgroundFileName?: string;
+  videoFileName?: string;
+  /**
+   * How far the video is offset from the audio, in milliseconds.
+   *
+   * UltraStar writes `#VIDEOGAP` in seconds and positive means the video
+   * starts that much later than the song. Kept in milliseconds here like
+   * every other time in this file, so nothing downstream has to remember
+   * which unit this one arrived in.
+   */
+  videoGapMs?: number;
   /** Open provider id produced by the import adapter. */
   sourceFormat: string;
 }

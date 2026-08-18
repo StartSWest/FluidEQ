@@ -98,6 +98,16 @@ const toggleMaximizeWindow = () =>
 const closeWindow = () => ipcRenderer.invoke('window-close') as Promise<void>;
 
 /**
+ * Tell the main process which language the window is in.
+ *
+ * Only the tray menu needs it — everything else the main process says reaches
+ * the user through the renderer, which already knows. The preference lives in
+ * the renderer's local storage, so this is the only way it gets across.
+ */
+const setAppLocale = (locale: string) =>
+  ipcRenderer.invoke('window-set-locale', locale) as Promise<void>;
+
+/**
  * The release notes that shipped with this build.
  *
  * `latest` is the version just installed and nothing else; `all` is the whole
@@ -202,7 +212,14 @@ const detectKaraokePitch = (samples: Float32Array) =>
   }>;
 
 const onKaraokePitchProgress = (
-  listener: (progress: { stage: string; fraction: number }) => void,
+  listener: (progress: {
+    stage: string;
+    fraction: number;
+    /** Present only while downloading; see karaokePitch.ts. */
+    loadedBytes?: number;
+    totalBytes?: number;
+    file?: string;
+  }) => void,
 ) => {
   const wrapped = (
     _event: IpcRendererEvent,
@@ -270,6 +287,7 @@ export default {
     minimizeWindow,
     toggleMaximizeWindow,
     closeWindow,
+    setAppLocale,
     getChangelog,
     installUpdate,
     isWindowMaximized,

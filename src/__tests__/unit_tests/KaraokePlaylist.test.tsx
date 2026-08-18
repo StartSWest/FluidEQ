@@ -26,6 +26,8 @@ const item = (title: string): IKaraokePlaylistItem => ({
   title,
   relativePath: `${title}.mp3`,
   audio: new File(['audio'], `${title}.mp3`),
+  // A song with no artwork beside it, which is what these rows are about.
+  media: [],
 });
 
 describe('KaraokePlaylist', () => {

@@ -54,13 +54,15 @@
   }
 }
 
+// Inside step one, so it is sized to a line of that row rather than to the
+// card heading it used to sit in.
 .squig-import__visit {
   display: inline-flex;
   flex: 0 0 auto;
   align-items: center;
-  gap: 6px;
-  min-height: 31px;
-  padding: 0 10px;
+  gap: 5px;
+  min-height: 24px;
+  padding: 0 9px;
   color: $secondary-light;
   border: 1px solid rgba($secondary-light, 0.36);
   border-radius: $radius-pill;
@@ -81,38 +83,48 @@
   }
 
   .menu-icon {
-    width: 14px;
-    height: 14px;
+    width: 12px;
+    height: 12px;
   }
 }
 
+// Three steps, each on its own surface.
+//
+// They were bare text in a three-column grid, which at this size read as one
+// wrapped sentence with numbers loose in it — the reason to number something is
+// to say where one instruction stops and the next begins, and nothing here did.
 .squig-import__steps {
   display: grid;
-  gap: 7px;
+  gap: 8px;
   margin: 15px 0 14px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
 
-  span {
+  > span {
     display: flex;
     min-width: 0;
     align-items: center;
-    gap: 7px;
-    color: rgba($primary-lighter, 0.68);
-    font-size: 0.67rem;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 9px 11px;
+    color: rgba($primary-lighter, 0.78);
+    border: 1px solid rgba($white, 0.06);
+    border-radius: $radius-s;
+    background: rgba($black, 0.16);
+    font-size: 0.68rem;
     line-height: 1.35;
   }
 
   b {
     display: grid;
-    width: 20px;
-    height: 20px;
+    width: 19px;
+    height: 19px;
     flex: 0 0 auto;
     place-items: center;
-    color: $secondary-light;
-    border: 1px solid rgba($secondary-light, 0.32);
+    color: $primary-default;
     border-radius: $radius-pill;
-    background: rgba($secondary-default, 0.12);
-    font-size: 0.62rem;
+    background: $secondary-light;
+    font-size: 0.61rem;
+    font-weight: 800;
   }
 }
 
@@ -125,7 +137,9 @@
 .squig-import__input,
 .squig-import__preview {
   min-width: 0;
-  padding: 12px;
+  // Matches the headphone curve's well above it, top padding included: the two
+  // charts sit one under the other and their headings have to start level.
+  padding: 16px 14px 10px;
   border: 1px solid rgba($white, 0.075);
   border-radius: $radius-s;
   background: rgba($black, 0.14);
@@ -133,6 +147,10 @@
 
 .squig-import__input {
   display: flex;
+  // The preview beside it is the taller column, so this one is stretched to
+  // match and the textarea has to take the slack — left at its min-height it
+  // sat in the top third of a card that was mostly empty.
+  min-height: 0;
   flex-direction: column;
   gap: 8px;
 
@@ -145,6 +163,7 @@
   textarea {
     width: 100%;
     min-height: 126px;
+    flex: 1 1 auto;
     resize: vertical;
     padding: 10px;
     color: rgba($white, 0.88);
@@ -300,23 +319,11 @@
   }
 }
 
+// Grid, axis labels and the base line weight live in EqCurveChart.scss, which
+// the chart component brings with it. What is left here is what this panel
+// asks of it.
 .squig-import__chart {
-  display: block;
-  width: 100%;
-  height: auto;
   min-height: 140px;
-  overflow: visible;
-}
-
-.squig-import__grid {
-  stroke: rgba($white, 0.1);
-  stroke-dasharray: 2 4;
-  stroke-width: 1;
-}
-
-.squig-import__curve {
-  stroke-linecap: round;
-  stroke-width: 2.6;
 }
 
 .squig-import__curve--pending {
@@ -361,9 +368,44 @@
   background: transparent;
 }
 
-.squig-import__axis {
-  fill: rgba($primary-lighter, 0.5);
-  font-size: 9px;
+// Whose curves these are, on the surface that fetches them — the shape the
+// OPRA card's credit strip set at the foot of the card above.
+.squig-import__credit {
+  display: grid;
+  align-items: center;
+  margin-top: 14px;
+  padding: 12px 0 2px;
+  gap: 12px;
+  border-top: 1px solid rgba($primary-lighter, 0.09);
+  grid-template-columns: max-content 1fr;
+
+  p {
+    max-width: 78ch;
+    margin: 0;
+    color: $text-muted;
+    font-size: 0.68rem;
+    line-height: 1.35;
+  }
+
+  a {
+    color: $secondary-light;
+  }
+}
+
+.squig-import__credit-mark {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  color: $secondary-light;
+  border: 1px solid rgba($secondary-light, 0.3);
+  border-radius: $radius-s;
+  background: rgba($secondary-default, 0.1);
+
+  .menu-icon {
+    width: 18px;
+    height: 18px;
+  }
 }
 
 .squig-import__empty {
@@ -396,13 +438,8 @@
 }
 
 @container autoeq-workspace (max-width: 760px) {
-  .squig-import__heading {
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  .squig-import__visit {
-    align-self: flex-start;
+  .squig-import__steps {
+    grid-template-columns: minmax(0, 1fr);
   }
 
   .squig-import__workspace {
@@ -413,10 +450,6 @@
 @container autoeq-workspace (max-width: 520px) {
   .squig-import {
     padding: 14px;
-  }
-
-  .squig-import__steps {
-    grid-template-columns: minmax(0, 1fr);
   }
 
   .squig-import__actions {

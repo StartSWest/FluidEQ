@@ -23,7 +23,9 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
  *
  * Pitch:
  *
- * - `basicPitch`  the model, and the windows it is asked about
+ * - `analysisWindows` the vocal phrases a detector is asked about, merged out
+ *                     of timed lyric words. It was `basicPitch`, and held that
+ *                     model too; the model is gone and the windows outlived it
  * - `pitchRuns`   a continuous pitch trace, cut into runs
  * - `guideNotes`  those runs turned into notes a singer can follow
  *
@@ -34,7 +36,7 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
  * - `apply`  writing either model's answer back into the project
  */
 export * from './audio';
-export * from './basicPitch';
+export * from './analysisWindows';
 export * from './whisperSession';
 export * from './whisperProgress';
 export * from './whisperTranscribe';

@@ -63,6 +63,7 @@ import {
   easeKaraokeSingerTrace,
   findKaraokePitchIssues,
   groupKaraokePitchWords,
+  attachKaraokePitchToNote,
   karaokeNoteTimingState,
   karaokePitchScrubTime,
   karaokePitchWordProgress,
@@ -433,7 +434,13 @@ const KaraokePitchLane = ({
         );
       }
 
-      if (isMicrophoneLive && now - lastTraceSampleRef.current >= 45) {
+      // 30ms, down from 45. The curve is drawn through the points this
+      // produces, so the sampling interval is the resolution of the line
+      // itself — at 45ms it was twenty-two points a second and a fast run
+      // between notes came out as visible corners no amount of easing could
+      // round off. The detector already publishes faster than either rate, so
+      // this is throwing away less rather than asking for more.
+      if (isMicrophoneLive && now - lastTraceSampleRef.current >= 30) {
         const lastVoiced = [...traceRef.current]
           .reverse()
           .find((point) => point.voiced);
@@ -452,7 +459,12 @@ const KaraokePitchLane = ({
         traceRef.current.push(sample);
         traceRef.current = traceRef.current
           .filter((point) => now - point.wallTimeMs <= LIVE_WINDOW_MS + 1_000)
-          .slice(-180);
+          // Sized from the window above rather than left at a round number.
+          // It was 180, which held nine seconds at the old 45ms interval and
+          // only five and a half at 30ms — the cap, not the time filter beside
+          // it, would have decided how much trace survived, and the tail of
+          // the curve would have started disappearing while still on screen.
+          .slice(-Math.ceil((LIVE_WINDOW_MS + 1_000) / 30));
         if (isPlaying && target?.kind === 'notes') {
           // One latest sample per song-time bucket. Re-singing after a rewind
           // naturally replaces the previous attempt over that same range.
@@ -727,22 +739,36 @@ const KaraokePitchLane = ({
             (1 - (now - point.wallTimeMs) / LIVE_WINDOW_MS) * plotWidth
           );
         };
-        const visualPitchSamples = trace.map((point) => ({
-          // Providers already use canonical semitones. Their declared octave
-          // policy decides whether a physical singer octave is projected onto
-          // the target while preserving every real semitone error.
-          midi: point.voiced
-            ? projectSingerPitchToTarget(
-                point.midi,
-                target?.kind === 'notes'
-                  ? (targetAtTime(target.notes, point.songTimeMs) ?? centerMidi)
-                  : centerMidi,
-                octavePolicy,
-              )
-            : centerMidi,
-          timeMs: hasTargets ? point.songTimeMs : point.wallTimeMs,
-          voiced: point.voiced,
-        }));
+        const visualPitchSamples = trace.map((point) => {
+          const noteMidi =
+            target?.kind === 'notes'
+              ? targetAtTime(target.notes, point.songTimeMs)
+              : undefined;
+          return {
+            // Three steps, in this order, and each undoes a different kind of
+            // wrongness. The octave projection decides whether a bass singing
+            // an octave down counts as the same note. The attachment draws the
+            // remaining error against that note instead of against the whole
+            // lane — see `attachKaraokePitchToNote` for why compressing beats
+            // snapping. The easing, further down, calms the detector.
+            //
+            // Only the picture is touched. Scoring and the performance review
+            // read the raw samples, so a curve that sits on the note does not
+            // quietly award marks the singing did not earn.
+            midi: point.voiced
+              ? attachKaraokePitchToNote(
+                  projectSingerPitchToTarget(
+                    point.midi,
+                    noteMidi ?? centerMidi,
+                    octavePolicy,
+                  ),
+                  noteMidi,
+                )
+              : centerMidi,
+            timeMs: hasTargets ? point.songTimeMs : point.wallTimeMs,
+            voiced: point.voiced,
+          };
+        });
         const easedMidis = easeKaraokeSingerTrace(
           visualPitchSamples,
           centerMidi,

@@ -46,7 +46,15 @@ import {
 } from './constants';
 
 /**
- * `Filter n: ON TYPE Fc x Hz [Gain y dB] [Q z]`.
+ * `Filter [n]: ON TYPE Fc x Hz [Gain y dB] [Q z]`.
+ *
+ * The index is optional because APO's own parser discards it — everything
+ * before the colon is a label — and OPRA emits `Filter: ON PK …` with no number
+ * at all where Squig.link emits `Filter 2: ON PK …`. Requiring it made every
+ * OPRA-shaped paste import as a preamp and no bands: `hasPreAmp` kept `isEmpty`
+ * false, so the import reported success and drew a flat curve. Order here comes
+ * from the order the lines arrive, never from the number, so nothing downstream
+ * misses it.
  *
  * Gain and Q are both optional because APO's grammar makes them so: the pass
  * and notch forms have no Gain token at all, and a fixed-band file may omit Q.
@@ -54,7 +62,7 @@ import {
  * outright — the bandwidth is converted below.
  */
 const FILTER_LINE =
-  /^Filter\s+\d+\s*:\s*(ON|OFF)\s+([A-Z]+)\s+Fc\s+(-?[\d.]+)\s*Hz(?:\s+Gain\s+(-?[\d.]+)\s*dB)?(?:\s+(?:Q\s+([\d.]+)|BW\s+Oct\s+([\d.]+)))?\s*$/i;
+  /^Filter(?:\s+\d+)?\s*:\s*(ON|OFF)\s+([A-Z]+)\s+Fc\s+(-?[\d.]+)\s*Hz(?:\s+Gain\s+(-?[\d.]+)\s*dB)?(?:\s+(?:Q\s+([\d.]+)|BW\s+Oct\s+([\d.]+)))?\s*$/i;
 
 // The unit is optional. Equalizer APO writes `Preamp: -6.5 dB` and so does
 // every exporter that copied it, but a bare number is a preamp line that a

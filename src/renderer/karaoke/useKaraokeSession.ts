@@ -24,6 +24,7 @@ import {
   karaokeRestoredFileToken,
   parseKaraokeLyricFile,
   selectKaraokeFiles,
+  selectKaraokeStageMedia,
   setKaraokeRelativePath,
   setKaraokeRestoredFileToken,
 } from '../../common/karaoke/files';
@@ -224,6 +225,30 @@ export const useKaraokeSession = (isActive: boolean) => {
         objectUrlRef.current = nextUrl;
 
         const id = sessionIdForFile(audioFile);
+        // Resolved here rather than at import, because only now is the lyric
+        // file parsed — UltraStar names its own cover, background and video,
+        // and a folder holding several songs' artwork needs that header to
+        // pick the right one. Formats with no header fall back to matching by
+        // base name, which is all an LRC or a bare MP3 can offer.
+        const stageMedia = selectKaraokeStageMedia(selection.audio, files, {
+          coverFileName: parsed?.coverFileName,
+          backgroundFileName: parsed?.backgroundFileName,
+          videoFileName: parsed?.videoFileName,
+        });
+        const mediaAsset = (
+          role: 'cover' | 'background' | 'video',
+          file: File | undefined,
+        ) =>
+          file
+            ? [
+                {
+                  id: `${id}-${role}`,
+                  role,
+                  file,
+                  extension: karaokeFileExtension(file.name),
+                },
+              ]
+            : [];
         setSong({
           id,
           title: parsed?.title || displayTitleFromFile(audioFile),
@@ -235,6 +260,9 @@ export const useKaraokeSession = (isActive: boolean) => {
               file: audioFile,
               extension: karaokeFileExtension(audioFile.name),
             },
+            ...mediaAsset('cover', stageMedia.cover),
+            ...mediaAsset('background', stageMedia.background),
+            ...mediaAsset('video', stageMedia.video),
             ...(selection.lyrics
               ? [
                   {
@@ -252,6 +280,7 @@ export const useKaraokeSession = (isActive: boolean) => {
           meta: {
             sourceFormat: parsed?.sourceFormat ?? 'audio-only',
             gapMs: parsed?.gapMs ?? 0,
+            videoGapMs: parsed?.videoGapMs,
             bpm: parsed?.bpm,
             language: parsed?.language,
           },

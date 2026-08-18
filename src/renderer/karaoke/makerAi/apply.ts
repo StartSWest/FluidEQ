@@ -19,11 +19,8 @@ import {
   synchronizeKaraokeMakerSections,
   touchKaraokeMakerProject,
 } from '../../../common/karaoke/makerProject';
-import {
-  BASIC_PITCH_PROVENANCE,
-  upsertProvenance,
-  WHISPER_PROVENANCE,
-} from './audio';
+import { upsertProvenance, WHISPER_PROVENANCE } from './audio';
+import { SWIFT_F0_PROVENANCE } from './swiftF0Notes';
 import { IKaraokeMakerTranscriptWord } from './whisperProgress';
 import type { IKaraokeMakerLicenseRecord } from '../../../common/karaoke/makerProject';
 import {
@@ -322,9 +319,11 @@ export const applyBasicPitchMelody = (
   project: IKaraokeMakerProject,
   notes: readonly IKaraokeMakerAnalysisNote[],
   repairWordTiming = false,
-  // Whichever model produced the notes signs the project; SwiftF0 is the
-  // detector now, Basic Pitch the name this function keeps for its history.
-  provenance: IKaraokeMakerLicenseRecord = BASIC_PITCH_PROVENANCE,
+  // Whichever model produced the notes signs the project. SwiftF0 is the only
+  // detector left — Basic Pitch is gone, and this function keeps its name
+  // solely because `source: 'basic-pitch'` is written into saved projects and
+  // renaming the value would orphan every note in every file on disk.
+  provenance: IKaraokeMakerLicenseRecord = SWIFT_F0_PROVENANCE,
 ): IKaraokeMakerProject => {
   const repairedProject = repairWordTiming
     ? repairEstimatedWhisperTimingWithMelody(project, notes)

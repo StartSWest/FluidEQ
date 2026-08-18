@@ -31,6 +31,7 @@ import { openExternalIfSafe } from './safeExternal';
 import { contentSecurityPolicy } from './contentSecurityPolicy';
 import MenuBuilder from './menu';
 import { IAuthorizedAutoUpdater } from './signedAutoUpdates';
+import { isAppQuitting } from './tray';
 
 /**
  * How long a renderer gets to paint before the window is shown anyway.
@@ -350,13 +351,27 @@ export const createMainWindowFactory = ({
     created.on('maximize', scheduleSave);
     created.on('unmaximize', scheduleSave);
 
-    created.on('close', () => {
+    created.on('close', (event) => {
       // Synchronously, before the window goes: a pending debounce would never
       // fire, so closing right after a resize would lose that resize.
+      //
+      // Runs on both paths on purpose. Hiding into the tray is where the
+      // window stops being looked at, so it is exactly as good a moment to
+      // write down its size and position as a real close is — and if the
+      // process is later ended without another close, this is the only chance
+      // there was.
       if (saveTimer) {
         clearTimeout(saveTimer);
       }
       saveWindowState();
+
+      // THE CLOSE BUTTON HIDES; IT DOES NOT QUIT. See tray.ts for why, and for
+      // what sets the flag — every genuine quit arms it first, so this cancels
+      // only the ones that came from somebody pressing the X.
+      if (!isAppQuitting()) {
+        event.preventDefault();
+        created.hide();
+      }
     });
 
     created.on('closed', () => {

@@ -245,6 +245,13 @@ const AppContent = () => {
   const isVideoTab = activeWorkspaceTab === 'video';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
   const [isKaraokeFullScreen, setIsKaraokeFullScreen] = useState(false);
+  /**
+   * Whether Karaoke is showing its editor rather than its player.
+   *
+   * Reported up from the workspace purely so the response graph can refuse to
+   * take the screen over the top of it — see `isGraphAppFullScreen`.
+   */
+  const [isKaraokeMakerOpen, setIsKaraokeMakerOpen] = useState(false);
   const karaokeFullScreenRequestedRef = useRef(false);
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
@@ -300,9 +307,27 @@ const AppContent = () => {
     },
     [activeWorkspaceTab],
   );
+  /**
+   * The response graph is not allowed to cover the Karaoke editor.
+   *
+   * The player is a thing you watch, so a graph over the top of it is a choice
+   * between two pictures and the user is welcome to make it. The Maker is a
+   * thing you work in — a canvas, a toolbar, a lyric preview and a command
+   * dock, all of which have to stay reachable — and a full-screen graph laid
+   * over that is not a second view of the song, it is the editor gone.
+   *
+   * Suppressed rather than switched off, exactly like `isKaraokeFullScreen`
+   * beside it: the graph keeps whatever mode it was in and takes it up again
+   * when the editor closes, so leaving the Maker does not also cost the view
+   * that was set before entering it.
+   */
+  const isGraphOverEditor = isKaraokeTab && isKaraokeMakerOpen;
   /** The window itself is full screen, so the titlebar is not on screen. */
   const isGraphAppFullScreen =
-    graphView === 'fullscreen' && showsGraph && !isKaraokeFullScreen;
+    graphView === 'fullscreen' &&
+    showsGraph &&
+    !isKaraokeFullScreen &&
+    !isGraphOverEditor;
   // Full screen with the top bar kept. Everything below reads this rather than
   // the mode alone, so "full screen" and "full screen with the bar" cannot end
   // up disagreeing about which pieces are on screen.
@@ -1188,7 +1213,10 @@ const AppContent = () => {
         />
         <div
           className={`center-workspace${
-            isGraphFullScreen && showsGraph && !isKaraokeFullScreen
+            isGraphFullScreen &&
+            showsGraph &&
+            !isKaraokeFullScreen &&
+            !isGraphOverEditor
               ? ' is-graph-full'
               : ''
           }${isResizingPanes ? ' is-resizing' : ''}`}
@@ -1380,6 +1408,7 @@ const AppContent = () => {
                 onToggleFullScreen={() =>
                   applyKaraokeFullScreen(!isKaraokeFullScreen)
                 }
+                onMakerOpenChange={setIsKaraokeMakerOpen}
               />
             )}
             {/* Outside the tab switch for the same class of reason, and more

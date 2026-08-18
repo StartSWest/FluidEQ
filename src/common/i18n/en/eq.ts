@@ -219,16 +219,22 @@ const eq = {
   'opra.createdBy': 'Preset created by {author}',
   'opra.distributedBy': 'Distributed by OPRA by Roon',
   'opra.source': 'Source',
+  'autoeq.curveTitle': 'Applied correction',
+  'autoeq.curveEmptyHint':
+    'Pick a headphone and a target, then apply — the correction it makes is drawn here.',
+  'autoeq.curveAria': 'Response of the applied headphone correction',
   'opra.curveCount': '{count} curves',
   'squigImport.eyebrow': 'BRING YOUR CURVE WITH YOU',
   'squigImport.title': 'Import a Squiglink EQ',
   'squigImport.intro':
     'Use Squiglink’s calculator for the headphone and target you want, then bring its exported EQ here. FluidEQ keeps the imported curve visible and ready to edit.',
   'squigImport.open': 'Open Squiglink',
-  'squigImport.stepOne': 'Choose a headset and target',
-  'squigImport.stepTwo': 'Export the EQ text',
-  'squigImport.stepThree': 'Paste it here and apply',
-  'squigImport.pasteLabel': 'EQ export',
+  'squigImport.stepOne': 'On Squiglink, pick your headphone and a target',
+  'squigImport.stepTwo': 'Open its EQ panel and copy the ParametricEQ export',
+  'squigImport.stepThree': 'Paste it in the box below, then Apply imported EQ',
+  'squigImport.pasteLabel': 'EQ import',
+  'squigImport.about':
+    'Squiglink hosts measurement databases from independent reviewers, each with a calculator that fits an EQ to the target you choose.',
   'squigImport.placeholder':
     'Paste the ParametricEQ or GraphicEQ text from Squiglink here…',
   'squigImport.fileAria': 'Choose an EQ export text file',

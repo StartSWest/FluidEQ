@@ -93,6 +93,7 @@ import {
 import { TSuccess, TError } from '../renderer/utils/equalizerApi';
 import { syncOpraDatabase } from './opraUpdater';
 import { setUpVideoBrowser } from './videoBrowser';
+import { beginQuit, destroyTray, setUpTray } from './tray';
 import { createMainWindowFactory } from './mainWindow';
 import { createApoAdoption } from './apoAdopt';
 import { registerTransferIpc } from './ipc/transfer';
@@ -2031,6 +2032,9 @@ ipcMain.on(ChannelEnum.SET_WINDOW_SIZE, async (event, arg) => {
 });
 
 ipcMain.on('quit-app', () => {
+  // Declining the disclaimer means the app should not run, so this is one of
+  // the paths that genuinely ends the process rather than hiding the window.
+  beginQuit();
   app.quit();
 });
 
@@ -2347,12 +2351,25 @@ setUpCrashLogging();
 app.on('window-all-closed', () => {
   // Respect the OSX convention of having the application in memory even
   // after all windows have been closed
+  //
+  // Reached far less often than it used to be: the close button hides the
+  // window rather than closing it, so on the ordinary path there is still a
+  // window and this never fires. What is left is the real closes — the tray's
+  // Quit, the disclaimer gate, an installer replacing the app — and for those
+  // quitting is the right answer, which is why the branch is unchanged.
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
 app.on('before-quit', () => {
+  // The backstop for every quit that did not come from inside the app: an
+  // installer, a session logout, Task Manager. Each of those reaches the
+  // window's `close` handler, which cancels anything it is not told is a real
+  // quit — so without this line a Windows shutdown would be refused by a
+  // window trying to hide itself into the tray.
+  beginQuit();
+  destroyTray();
   if (apoWatchTimer !== undefined) {
     clearTimeout(apoWatchTimer);
     apoWatchTimer = undefined;
@@ -2360,6 +2377,36 @@ app.on('before-quit', () => {
   apoConfigWatcher?.close();
   apoConfigWatcher = undefined;
 });
+
+/**
+ * ONE COPY, WHICH THE TRAY MADE NECESSARY.
+ *
+ * A window that hides instead of closing looks to the user exactly like an app
+ * that is not running, so the next thing they do is open it from the Start
+ * menu or the desktop shortcut — and without this that starts a second
+ * process. Two copies of FluidEQ is not a cosmetic problem: both write the
+ * same Equalizer APO config and both watch it for outside edits, so they
+ * spend their time overwriting each other and reporting the result as somebody
+ * else changing the file.
+ *
+ * The second copy exits immediately and hands its launch to the first, which
+ * brings the hidden window back — which is what the person wanted when they
+ * clicked the shortcut.
+ */
+if (!app.requestSingleInstanceLock()) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+      return;
+    }
+    if (mainWindow.isMinimized()) {
+      mainWindow.restore();
+    }
+    mainWindow.show();
+    mainWindow.focus();
+  });
+}
 
 app
   .whenReady()
@@ -2385,6 +2432,12 @@ app
       // written once, in branding.
       app.setAppUserModelId(APP_ID);
     }
+    // Before the window, because the window's `close` handler asks the tray
+    // whether a quit is under way from the first close it ever sees — and
+    // because a tray that failed to appear reports "always quitting", which is
+    // the answer that keeps the close button working when there is nowhere to
+    // hide the window.
+    setUpTray({ getMainWindow: () => mainWindow });
     // Before any window exists, so the player's session and the rules its web
     // contents run under are in place by the time one can be attached.
     setUpVideoBrowser();

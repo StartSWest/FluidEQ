@@ -10,20 +10,16 @@ the Free Software Foundation, either version 3 of the License, or
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ErrorDescription } from 'common/errors';
-import {
-  IOpraCurve,
-  IOpraProduct,
-  IOpraUpdateStatus,
-  OPRA_SOURCE_ID,
-} from 'common/constants';
+import { IOpraCurve, IOpraProduct, OPRA_SOURCE_ID } from 'common/constants';
 import { useFluidEqContext } from './utils/FluidEqContext';
-import MenuIcon from './icons/MenuIcon';
 import { useTranslation } from './utils/I18nContext';
 import {
   addOpraSearchToHistory,
   clearOpraSearchHistory,
   useOpraSearchHistory,
 } from './utils/opraSearchHistory';
+import HeadphoneCurvePreview from './components/HeadphoneCurvePreview';
+import { OPRA_UPDATED_EVENT } from './components/OpraLibraryStatus';
 import SidebarSection from './components/SidebarSection';
 import { formatPresetName } from './utils/utils';
 import Button from './widgets/Button';
@@ -34,9 +30,7 @@ import './styles/AutoEQ.scss';
 import {
   getOpraProductList,
   loadOpraPreset,
-  checkOpraUpdate,
   clearHeadset,
-  updateOpraDatabase,
 } from './utils/equalizerApi';
 
 const OPRA_URL = 'https://github.com/opra-project/OPRA';
@@ -48,6 +42,7 @@ const productLabel = (product: IOpraProduct) =>
 const OpraPicker = () => {
   const CLEAR_SELECTION_EVENT = 'fluideq-clear-autoeq-selection';
   const {
+    headphone,
     headset,
     headsetTarget,
     headsetSource,
@@ -60,9 +55,6 @@ const OpraPicker = () => {
   const [products, setProducts] = useState<IOpraProduct[]>([]);
   const [currentProduct, setCurrentProduct] = useState('');
   const [currentCurve, setCurrentCurve] = useState('');
-  const [updateStatus, setUpdateStatus] = useState<IOpraUpdateStatus>();
-  const [isCheckingUpdate, setIsCheckingUpdate] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
   const [isApplying, setIsApplying] = useState(false);
   const applyRunRef = useRef(0);
   const fetchRunRef = useRef(0);
@@ -135,22 +127,22 @@ const OpraPicker = () => {
     }
   }, [setGlobalError]);
 
+  // The status line lives in the page heading now, and replacing the library on
+  // disk is its button. This is how the picker hears that it did.
   useEffect(() => {
-    checkOpraUpdate()
-      .then(setUpdateStatus)
-      .catch(() => setUpdateStatus(undefined))
-      .finally(() => setIsCheckingUpdate(false));
+    const reread = () => {
+      fetchProducts();
+    };
+    window.addEventListener(OPRA_UPDATED_EVENT, reread);
+    return () => window.removeEventListener(OPRA_UPDATED_EVENT, reread);
   }, [fetchProducts]);
 
+  // A background sync replaces the library on disk, so the list in hand is
+  // stale. The status line in the page heading reports the same event.
   useEffect(() => {
     const unsubscribe = window.electron.ipcRenderer.on(
       'databases-synced',
-      (...args: unknown[]) => {
-        const result = args[0] as { opra?: IOpraUpdateStatus } | undefined;
-        if (result?.opra) {
-          setUpdateStatus(result.opra);
-          setIsCheckingUpdate(false);
-        }
+      () => {
         fetchProducts();
       },
     );
@@ -209,18 +201,6 @@ const OpraPicker = () => {
       if (applyRunRef.current === runId) {
         setIsApplying(false);
       }
-    }
-  };
-
-  const updateDatabase = async () => {
-    setIsUpdating(true);
-    try {
-      setUpdateStatus(await updateOpraDatabase());
-      await fetchProducts();
-    } catch (error) {
-      setGlobalError(error as ErrorDescription);
-    } finally {
-      setIsUpdating(false);
     }
   };
 
@@ -305,120 +285,94 @@ const OpraPicker = () => {
       className="autoeq-section"
       eyebrow={t('autoeq.eyebrow')}
       title={t('autoeq.title')}
-      summary={
-        <div className="autoeq-applied">
-          <MenuIcon name="model" />
-          <span>
-            {appliedLabel
-              ? t('autoeq.applied', { name: appliedLabel })
-              : t('autoeq.notApplied')}
-          </span>
-          {headset && (
-            <button
-              type="button"
-              className="autoeq-applied__clear"
-              title={t('eq.layers.clearReference')}
-              aria-label={t('eq.layers.clearReference')}
-              disabled={isBlockingError}
-              onClick={(event) => {
-                event.stopPropagation();
-                clearHeadset()
-                  .then(() => refreshState())
-                  .catch((error) => setGlobalError(error as ErrorDescription));
-              }}
-            >
-              <MenuIcon name="clear" />
-            </button>
-          )}
-        </div>
-      }
     >
-      <div className="auto-eq">
-        <div className="autoeq-field autoeq-field--model">
-          <span className="autoeq-field__title">{t('autoeq.model')}</span>
-          <Dropdown
-            name={t('autoeq.deviceAria')}
-            menuClassName="auto-eq-menu"
-            options={productOptions}
-            value={currentProduct}
-            handleChange={handleProductChange}
-            isDisabled={isBlockingError}
-            noSelectionPlaceholder={t('autoeq.pickDevice')}
-            emptyOptionsPlaceholder={t('autoeq.noModel')}
-            filterPlaceholder={t('autoeq.searchModels')}
-            searchHistory={searchHistory}
-            searchHistoryLabel={t('video.searchRecent')}
-            clearSearchHistoryLabel={t('video.searchForgetAll')}
-            onSearchCommit={addOpraSearchToHistory}
-            onClearSearchHistory={clearOpraSearchHistory}
-            isFilterable
-          />
-        </div>
-        <div className="autoeq-field autoeq-field--target">
-          <span className="autoeq-field__title">{t('autoeq.target')}</span>
-          <Dropdown
-            name={t('autoeq.targetAria')}
-            menuClassName="auto-eq-menu"
-            options={curveOptions}
-            value={currentCurve}
-            handleChange={(newValue) => setCurrentCurve(newValue)}
-            isDisabled={isBlockingError || curveOptions.length === 0}
-            emptyOptionsPlaceholder={t('autoeq.noResponses')}
-            noSelectionPlaceholder={t('autoeq.pickResponse')}
-          />
-        </div>
-        <Button
-          className={isApplied ? 'small is-applied' : 'small'}
-          ariaLabel={t('autoeq.applyAria')}
-          isDisabled={
-            isBlockingError || currentProduct === '' || currentCurve === ''
-          }
-          handleChange={applyOpra}
-        >
-          {applyLabel}
-        </Button>
-      </div>
-      {selectedCurve && (
-        <p className="opra-curve-credit">
-          {t('opra.createdBy', { author: selectedCurve.author })}
-          {' · '}
-          {t('opra.distributedBy')}
-          {selectedCurve.link && (
-            <>
+      {/* Controls left, curve right — the same halves the Squiglink card below
+          uses, so the two ways of getting a curve read as the same shape of
+          thing. What is applied is named in the corner of the curve it drew,
+          which is where somebody looks to check it. */}
+      <div className="autoeq-split">
+        <div className="autoeq-split__controls">
+          <div className="auto-eq">
+            <div className="autoeq-field autoeq-field--model">
+              <span className="autoeq-field__title">{t('autoeq.model')}</span>
+              <Dropdown
+                name={t('autoeq.deviceAria')}
+                menuClassName="auto-eq-menu"
+                options={productOptions}
+                value={currentProduct}
+                handleChange={handleProductChange}
+                isDisabled={isBlockingError}
+                noSelectionPlaceholder={t('autoeq.pickDevice')}
+                emptyOptionsPlaceholder={t('autoeq.noModel')}
+                filterPlaceholder={t('autoeq.searchModels')}
+                searchHistory={searchHistory}
+                searchHistoryLabel={t('video.searchRecent')}
+                clearSearchHistoryLabel={t('video.searchForgetAll')}
+                onSearchCommit={addOpraSearchToHistory}
+                onClearSearchHistory={clearOpraSearchHistory}
+                isFilterable
+              />
+              <p className="autoeq-field__hint">{t('autoeq.model.hint')}</p>
+            </div>
+            <div className="autoeq-field autoeq-field--target">
+              <span className="autoeq-field__title">{t('autoeq.target')}</span>
+              <Dropdown
+                name={t('autoeq.targetAria')}
+                menuClassName="auto-eq-menu"
+                options={curveOptions}
+                value={currentCurve}
+                handleChange={(newValue) => setCurrentCurve(newValue)}
+                isDisabled={isBlockingError || curveOptions.length === 0}
+                emptyOptionsPlaceholder={t('autoeq.noResponses')}
+                noSelectionPlaceholder={t('autoeq.pickResponse')}
+              />
+              <p className="autoeq-field__hint">{t('autoeq.target.hint')}</p>
+            </div>
+            <Button
+              className={isApplied ? 'small is-applied' : 'small'}
+              ariaLabel={t('autoeq.applyAria')}
+              isDisabled={
+                isBlockingError || currentProduct === '' || currentCurve === ''
+              }
+              handleChange={applyOpra}
+            >
+              {applyLabel}
+            </Button>
+          </div>
+          {selectedCurve && (
+            <p className="opra-curve-credit">
+              {t('opra.createdBy', { author: selectedCurve.author })}
               {' · '}
-              <a href={selectedCurve.link} target="_blank" rel="noreferrer">
-                {t('opra.source')}
-              </a>
-            </>
+              {t('opra.distributedBy')}
+              {selectedCurve.link && (
+                <>
+                  {' · '}
+                  <a href={selectedCurve.link} target="_blank" rel="noreferrer">
+                    {t('opra.source')}
+                  </a>
+                </>
+              )}
+            </p>
           )}
-        </p>
-      )}
-      <div className="autoeq-update">
-        <span>
-          {isCheckingUpdate && t('autoeq.checking')}
-          {!isCheckingUpdate &&
-            updateStatus?.updateAvailable &&
-            t('autoeq.updateAvailable', {
-              count: updateStatus.latest?.productCount.toLocaleString() ?? '',
-            })}
-          {!isCheckingUpdate &&
-            updateStatus &&
-            !updateStatus.updateAvailable &&
-            t('autoeq.upToDate', {
-              count: updateStatus.current.productCount.toLocaleString(),
-            })}
-          {!isCheckingUpdate && !updateStatus && t('autoeq.updateUnknown')}
-        </span>
-        {updateStatus?.updateAvailable && (
-          <Button
-            className="small"
-            ariaLabel={t('autoeq.updateAria')}
-            isDisabled={isUpdating}
-            handleChange={updateDatabase}
-          >
-            {isUpdating ? t('autoeq.updating') : t('autoeq.update')}
-          </Button>
-        )}
+        </div>
+        <HeadphoneCurvePreview
+          headphone={headphone}
+          appliedLabel={
+            appliedLabel ? t('autoeq.applied', { name: appliedLabel }) : ''
+          }
+          isClearDisabled={isBlockingError}
+          onClear={
+            headset
+              ? () => {
+                  clearHeadset()
+                    .then(() => refreshState())
+                    .catch((error) =>
+                      setGlobalError(error as ErrorDescription),
+                    );
+                }
+              : undefined
+          }
+        />
       </div>
       {/*
         Required, not decorative. OPRA's data is CC BY-SA 4.0 and the licence

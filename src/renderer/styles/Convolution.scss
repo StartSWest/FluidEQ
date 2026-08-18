@@ -233,6 +233,18 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 .convolution-result {
+  // Fills in top to bottom, so a set of results reads as a list being written
+  // out rather than as a block that was already there.
+  //
+  // Ten deep, which is about what the scroller shows at once — past that the
+  // cascade would only be running where nobody is looking, and every extra
+  // step is time the tenth row spends still not readable. Rows below the fold
+  // take the tail delay from the mixin, never a shorter one.
+  //
+  // Replays on each new search and not on anything else: React keys these by
+  // entry id, so a new result set is new elements, while applying one of them
+  // re-renders the same nodes and leaves their finished animations alone.
+  @include stagger-in($count: 10);
   display: grid;
   min-width: 0;
   padding: 10px 11px;

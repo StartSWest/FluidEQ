@@ -125,8 +125,8 @@ interface IKaraokeMakerStemsProps {
    */
   vocalLevel?: number;
   onVocalLevel?: (level: number) => void;
-  onSave: (file: File) => void;
-  /** True while a split is running, which is the only time this panel talks. */
+  /** The chosen format travels with the file; the panel does not encode. */
+  onSave: (file: File, format: 'wav' | 'mp3') => void;
   /** Playhead and duration of the one transport all waves follow. */
   playheadMs?: number;
   durationMs?: number;
@@ -140,10 +140,6 @@ interface IKaraokeMakerStemsProps {
   /** Backing level under a soloed voice, 0..1. */
   backingBlend?: number;
   onBackingBlend?: (blend: number) => void;
-  isSeparating?: boolean;
-  /** 0..1, or undefined while a stage has begun but reported nothing yet. */
-  progress?: number;
-  message?: string;
 }
 
 /**
@@ -176,31 +172,15 @@ const KaraokeMakerStems = ({
   onFocusStem,
   backingBlend = 0,
   onBackingBlend,
-  isSeparating = false,
-  progress,
-  message,
 }: IKaraokeMakerStemsProps) => {
   const { t } = useTranslation();
-  // While a split runs this panel is the only thing on screen that says so.
-  // The shared analysis panel is shaped around Whisper's stages and shows
-  // nothing for separation, so a click on "Separate voice from music" appeared
-  // to do nothing at all while a 700 MB download ran behind it.
-  if (isSeparating) {
-    return (
-      <section
-        className="karaoke-maker__stems"
-        aria-label={t('karaoke.maker.stemsTitle')}
-      >
-        <h3 className="karaoke-maker__tool-group-title">
-          {t('karaoke.maker.stemsTitle')}
-        </h3>
-        <div className="karaoke-maker__stem-progress" role="status">
-          <progress max={1} value={progress} />
-          <p>{message ?? t('karaoke.maker.separating')}</p>
-        </div>
-      </section>
-    );
-  }
+  // Shows the RESULT of a split and never its progress. This panel is rendered
+  // inside the Advanced popover, which is shut unless somebody opened it, so a
+  // progress bar here would be hidden for the whole of the one job in the app
+  // long enough to need one. Running separation reports through
+  // `analysisProgress` instead, which the editor surface draws in
+  // KaraokeMakerAnalysisPanels — always visible, and where the cancel button
+  // that aborts the split lives.
   if (!instrumental && !vocals) {
     return null;
   }
@@ -274,15 +254,36 @@ const KaraokeMakerStems = ({
                   <KaraokeTransportIcon name={isPlaying ? 'pause' : 'play'} />
                 </button>
               )}
-              <button
-                type="button"
-                // Quiet: saving a stem is an escape hatch, not the thing this
-                // panel is for.
-                className="button small subtle"
-                onClick={() => onSave(track.file as File)}
+              {/* TWO BUTTONS, NOT ONE THAT WRITES TWO FILES.
+                  The format is the user's choice: a WAV goes into a DAW and an
+                  MP3 goes on a phone, and which one somebody wants is a thing
+                  only they know. Saving both on every press hands over a file
+                  nobody asked for and spends several seconds encoding it. */}
+              <span
+                className="karaoke-maker__stem-save"
+                role="group"
+                aria-label={t('karaoke.maker.stemSaveAs', {
+                  name: track.label,
+                })}
               >
-                {t('karaoke.maker.stemSave')}
-              </button>
+                <span aria-hidden="true">{t('karaoke.maker.stemSave')}</span>
+                {(['wav', 'mp3'] as const).map((format) => (
+                  <button
+                    key={format}
+                    type="button"
+                    // Quiet: saving a stem is an escape hatch, not the thing
+                    // this panel is for.
+                    className="button small subtle"
+                    aria-label={t('karaoke.maker.stemSaveFormat', {
+                      name: track.label,
+                      format: format.toUpperCase(),
+                    })}
+                    onClick={() => onSave(track.file as File, format)}
+                  >
+                    {format.toUpperCase()}
+                  </button>
+                ))}
+              </span>
               <StemWave
                 file={track.file as File}
                 playheadFraction={durationMs > 0 ? playheadMs / durationMs : 0}

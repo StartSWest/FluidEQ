@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 // Does not scroll itself: the workspace panel around it does, the same way
@@ -56,6 +57,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 0 0 auto;
   gap: 10px;
   grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+}
+
+// The whole page fills in as one sweep across the grid, in reading order: the
+// none card, then each group's heading and the cards under it.
+//
+// `> *` rather than `.voicing-card`, because the two group headings are grid
+// items as well. Animating only the cards left the headings sitting there
+// already finished while the cascade travelled around them, which reads as two
+// holes moving through the sweep rather than as one page arriving.
+//
+// Sixteen covers the lot — one none card, two headings, thirteen profiles — so
+// every tile gets its own beat and the cap never comes into play. A fourteenth
+// profile would simply land with the thirteenth.
+.voicing-grid > * {
+  @include stagger-in($count: 16, $step: 22ms);
 }
 
 // A heading inside an auto-fit grid, which needs saying explicitly: without the
@@ -228,6 +244,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // loose rows of the panel, so that on a wide panel it can be laid out as
 // columns instead of as a stack — see the responsive section.
 .voicing-result {
+  // Arrives last, once the grid above it has finished its sweep — 330ms is the
+  // tail of that cascade. This is the readout for whichever card is selected,
+  // so behind the cards is the order it should be read in.
+  //
+  // Only ever plays on first appearance: choosing a different profile updates
+  // this box rather than remounting it, so it does not flicker on every pick.
+  @include animate(rise-in, $motion-base, $ease-out, 330ms);
   display: grid;
   // Does not give ground. The workspace squeezes this panel to the height of
   // the pane it is in, and the filter list was the one child that could shrink:

@@ -289,14 +289,33 @@ const runSwift = async (samples: Float32Array) => {
 
 export const registerKaraokePitch = () => {
   ipcMain.handle('karaoke-pitch-f0', async (event, samples: Float32Array) => {
-    const report = (stage: string, fraction: number) => {
+    // The byte counts travel with the fraction rather than being thrown away
+    // here. `ensureRmvpe` has always measured them — it needs them to compute
+    // the fraction at all — but only the fraction crossed the IPC boundary, so
+    // the renderer could draw a bar and could not say what was being fetched
+    // or how big it is. That is 361MB of silence on the slowest thing the app
+    // ever does. See KaraokeMakerDownloadDetails for what the other side
+    // builds out of them.
+    const report = (
+      stage: string,
+      fraction: number,
+      bytes?: { loadedBytes: number; totalBytes: number; file: string },
+    ) => {
       if (!event.sender.isDestroyed()) {
-        event.sender.send('karaoke-pitch-progress', { stage, fraction });
+        event.sender.send('karaoke-pitch-progress', {
+          stage,
+          fraction,
+          ...bytes,
+        });
       }
     };
     try {
       await ensureRmvpe((received, total) =>
-        report('download', total > 0 ? received / total : 0),
+        report('download', total > 0 ? received / total : 0, {
+          loadedBytes: received,
+          totalBytes: total,
+          file: 'rmvpe.onnx',
+        }),
       );
       return await runRmvpe(samples, (fraction) => report('detect', fraction));
     } catch (error) {

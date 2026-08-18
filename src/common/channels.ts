@@ -66,6 +66,10 @@ enum ChannelEnum {
   // separate per-product curve channel would only be re-sending what the
   // renderer already had.
   GET_OPRA_PRODUCT_LIST = 'getOpraProductList',
+  // One id in, one display name out. The layer chip needs a name for whatever
+  // is applied and has no business pulling two megabytes of index across the
+  // bridge to find it.
+  GET_OPRA_LABEL = 'getOpraLabel',
   LOAD_OPRA_PRESET = 'loadOpraPreset',
   GET_CONVOLUTION_CATALOG = 'getConvolutionCatalog',
   DOWNLOAD_CONVOLUTION = 'downloadConvolution',

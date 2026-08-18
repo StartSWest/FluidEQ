@@ -17,6 +17,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { BrowserWindow, ipcMain } from 'electron';
+import { resolveLocale } from '../../common/i18n';
+import { setTrayLocale } from '../tray';
 
 export interface IWindowIpcDeps {
   /** Resolved per call — the window outlives none of these handlers. */
@@ -61,7 +63,27 @@ export const registerWindowIpc = ({
   });
 
   ipcMain.handle('window-close', () => {
+    // Still `close()`, and still the same event the OS sends. What it does now
+    // depends on whether a quit has been armed — see mainWindow.ts and tray.ts.
+    // Deliberately not `hide()` here: routing the button straight to hide would
+    // leave the two ways of closing a window behaving differently, and the one
+    // that skipped `close` would also skip saving where the window was.
     getMainWindow()?.close();
+  });
+
+  /**
+   * The language the window is showing, pushed across for the tray's menu.
+   *
+   * The choice lives in the renderer's local storage, which the main process
+   * cannot read, so the renderer states it on startup and again whenever the
+   * picker changes it. Re-resolved here rather than trusted: this arrives over
+   * IPC as a string, and `resolveLocale` is what turns anything at all into
+   * one of the ten shipped codes.
+   */
+  ipcMain.handle('window-set-locale', (_event, next: unknown) => {
+    setTrayLocale(resolveLocale(typeof next === 'string' ? next : null), {
+      getMainWindow,
+    });
   });
 
   ipcMain.handle(

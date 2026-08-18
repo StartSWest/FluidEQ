@@ -227,6 +227,7 @@ export const useMakerAnalysisRun = ({
           setAnalysisProgress,
           controller.signal,
           karaokeMakerVocalAnalysisWindows(baseProject ?? projectRef.current),
+          setDownloadProgress,
         );
         const publishBase = baseProject ?? projectRef.current;
         const next = touchKaraokeMakerProject(
@@ -525,6 +526,7 @@ export const useMakerAnalysisRun = ({
             (progress) => setAnalysisProgress(0.72 + progress * 0.28),
             controller.signal,
             windows,
+            setDownloadProgress,
           );
           completedProject = touchKaraokeMakerProject(
             applyBasicPitchMelody(

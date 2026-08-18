@@ -57,6 +57,8 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.warning.lyrics':
     'n’a pas pu être interprété ; l’audio reste disponible sans paroles synchronisées.',
   'karaoke.song.unknownArtist': 'Chanson locale',
+  'karaoke.stage.videoUnsupported':
+    'Les vidéos {format} ne peuvent pas être lues ici',
   'karaoke.playlist.title': 'Liste de lecture',
   'karaoke.playlist.groupFolders': 'Regrouper par dossier',
   'karaoke.playlist.looseFiles': 'Fichiers non classés',
@@ -300,6 +302,11 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.groupVoice': 'Voix et musique',
   'karaoke.maker.stemsTitle': 'Pistes séparées',
   'karaoke.maker.stemBacking': 'Instrumental',
+  'karaoke.maker.stemSaveAs': 'Enregistrer {name} en',
+  'karaoke.maker.stemSaveFormat': 'Enregistrer {name} en {format}',
+  'karaoke.maker.stemMp3Encoding': 'Encodage du MP3…',
+  'karaoke.maker.stemMp3Saved': 'MP3 enregistré.',
+  'karaoke.maker.stemMp3Failed': 'Le MP3 n’a pas pu être encodé.',
   'karaoke.maker.stemVoice': 'Voix',
   'karaoke.maker.stemSave': 'Enregistrer',
   'karaoke.maker.groupLyrics': 'Paroles et minutage',

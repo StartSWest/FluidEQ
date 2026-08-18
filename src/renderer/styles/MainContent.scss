@@ -643,6 +643,25 @@ $eq-caret-width: 24px;
   // `.main-content::before`.
 }
 
+// The row sweeps in low to high, one band shortly after the last, so the
+// entrance runs the same direction the spectrum on screen does — left to right
+// is the only reading of this row that means anything.
+//
+// Thirty-one is the largest band count the app offers, so every band gets its
+// own beat at every density and the cap is never reached. Ten milliseconds a
+// step rather than the mixin's default: at thirty-one bands the default would
+// spend the better part of a second filling one row, and this is the tab the
+// app opens on.
+//
+// `.bands` also holds the drag-selection box, which is rendered before the
+// bands and would shift every index by one. It exists only during a drag, long
+// after these animations have finished — a delay changing on a finished
+// animation moves nothing — and never at the moment the panel mounts, which is
+// the only moment the cascade is on screen.
+.bands > .bandWrapper {
+  @include stagger-in($count: 31, $step: 10ms);
+}
+
 // Small layouts read better as a centred group; past ten bands use the full
 // width so the controls stay comfortably wide.
 .bands--centered {

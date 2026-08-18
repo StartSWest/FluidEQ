@@ -164,6 +164,46 @@ $motion-slow: 300ms;
 }
 
 /**
+ * One arrival, run across a set of siblings, each starting a little after the
+ * one before it.
+ *
+ * Addressed by position, so nothing has to publish an index into the DOM. A
+ * sibling appearing or disappearing afterwards only shifts a delay on an
+ * animation that finished seconds ago, which changes nothing on screen — the
+ * element is long past the end of its active period either way.
+ *
+ * The cascade stops growing at `$count`, and everything past that point
+ * inherits the *tail* delay rather than none. A plain `nth-child` loop with no
+ * floor hands item 40 a delay of zero, so on a list long enough to scroll the
+ * rows below the fold land before the rows above them — the one arrangement
+ * that reads as a glitch instead of a sweep. Choose `$count` to cover what can
+ * be on screen at once; a long list only has to look right down to the fold.
+ *
+ * `$offset` starts the cascade partway through a page's arrival, which is how
+ * a page made of several groups is written as one sequence rather than as
+ * several that all begin at once. Sequencing groups this way instead of
+ * nesting a cascade inside an animated container is deliberate: two entrances
+ * on the same element multiply their opacities and add their travel, so the
+ * inner one arrives from sixteen pixels away on a curve neither of them
+ * describes — twice the distance this file says anything here may move.
+ */
+@mixin stagger-in(
+  $count: 12,
+  $step: 26ms,
+  $offset: 0ms,
+  $name: rise-in,
+  $duration: $motion-base
+) {
+  @include animate($name, $duration, $ease-out, $offset + ($count - 1) * $step);
+
+  @for $i from 1 through $count {
+    &:nth-child(#{$i}) {
+      animation-delay: $offset + ($i - 1) * $step;
+    }
+  }
+}
+
+/**
  * A paper-fold entrance, hinged on the edge it grows out of.
  *
  * Sets the origin as well as the animation, because the two are one decision:

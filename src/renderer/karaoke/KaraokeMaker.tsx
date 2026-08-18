@@ -49,6 +49,7 @@ import KaraokeMakerEditTools from './KaraokeMakerEditTools';
 import KaraokeMakerSpeechMemoryPanel from './KaraokeMakerSpeechMemoryPanel';
 import KaraokeMakerAnalysisTools from './KaraokeMakerAnalysisTools';
 import KaraokeMakerStems from './KaraokeMakerStems';
+import { encodeFileAsMp3 } from './makerSeparation/encodeMp3';
 import KaraokeMakerConfirmDialog, {
   TDestructiveMakerAction,
 } from './KaraokeMakerConfirmDialog';
@@ -1223,15 +1224,77 @@ const KaraokeMaker = ({
     return () => canvas.removeEventListener('wheel', onWheel);
   }, [canvasRef]);
 
-  /** Hand a stem to the user as a file. Both are already Files in memory. */
-  const saveStem = useCallback((file: File) => {
+  const downloadFile = (file: File) => {
     const url = URL.createObjectURL(file);
     const link = document.createElement('a');
     link.href = url;
     link.download = file.name;
     link.click();
     URL.revokeObjectURL(url);
-  }, []);
+  };
+
+  /**
+   * Hand a stem to the user in the format they asked for, and only that one.
+   *
+   * THE CHOICE IS THE POINT. A WAV goes into a DAW — lossless, already in
+   * memory, written instantly. An MP3 goes on a phone or into a message — a
+   * fifth of the size, and several seconds of encoding to produce. Which of
+   * those somebody wants is a thing only they know, so the panel asks instead
+   * of writing both and making the answer their problem.
+   */
+  const saveStem = useCallback(
+    (file: File, format: 'wav' | 'mp3') => {
+      if (format === 'wav') {
+        downloadFile(file);
+        return;
+      }
+      const mp3Name = `${file.name.replace(/\.[^.]+$/, '')}.mp3`;
+      /*
+       * Reported through the same panel a model download uses, deliberately.
+       *
+       * Encoding a full song takes several seconds — long enough that a click
+       * with no visible answer reads as a broken button. `analysisProgress`
+       * and `analysisMessage` are what the shared progress panel draws, and
+       * that panel already has the cancel button and the bar; giving MP3 its
+       * own would be a second dialect for the same sentence.
+       *
+       * The controller is the analysis one, so the cancel already wired to
+       * that panel aborts this too. Nothing else can be running underneath
+       * it: encoding is started from a button in a panel that only exists
+       * once a split has finished.
+       */
+      const controller = new AbortController();
+      analysisAbortRef.current = controller;
+      setAnalysisProgress(0);
+      setAnalysisMessage(t('karaoke.maker.stemMp3Encoding'));
+      encodeFileAsMp3(file, mp3Name, {
+        onProgress: setAnalysisProgress,
+        signal: controller.signal,
+      })
+        .then((mp3) => {
+          downloadFile(mp3);
+          setNotice(t('karaoke.maker.stemMp3Saved'));
+          return undefined;
+        })
+        .catch((error) => {
+          if ((error as Error).name === 'AbortError') {
+            setNotice(t('karaoke.maker.wizardCancelled'));
+            return;
+          }
+          // eslint-disable-next-line no-console
+          console.error('[karaoke][stems] mp3 encode failed', error);
+          setNotice(t('karaoke.maker.stemMp3Failed'));
+        })
+        .finally(() => {
+          if (analysisAbortRef.current === controller) {
+            analysisAbortRef.current = undefined;
+          }
+          setAnalysisProgress(undefined);
+          setAnalysisMessage(undefined);
+        });
+    },
+    [analysisAbortRef, setAnalysisMessage, setAnalysisProgress, setNotice, t],
+  );
 
   const { removeBackground, cancelSeparation, isSeparating, instrumental } =
     useMakerSeparation({
@@ -1515,6 +1578,28 @@ const KaraokeMaker = ({
     tokens,
   });
 
+  /**
+   * Stop whichever long job is running, without asking which one it is.
+   *
+   * THE CANCEL BUTTON USED TO CANCEL THE WRONG THING. Separation and
+   * transcription both report through `analysisProgress`, so both are shown by
+   * the same progress panel — but that panel's button called `cancelAnalysis`,
+   * which returns immediately when there is no transcription controller. Start
+   * a split from "Separate voice from music" and the only control on screen
+   * did nothing at all, for the longest wait in the app: a 700 MB model
+   * download followed by minutes of compute on a machine with no GPU.
+   *
+   * Both are safe to call when idle — each is a no-op without its controller —
+   * so this needs no flag saying which is running, and cannot go stale if a
+   * third job ever reports through the same bar. The wizard has always called
+   * the pair together for exactly this reason; this is that, everywhere a
+   * cancel is offered.
+   */
+  const cancelCurrentWork = () => {
+    cancelSeparation();
+    cancelAnalysis();
+  };
+
   const editTools = (
     <KaraokeMakerEditTools
       isRecordingLines={lineEntryMode}
@@ -1660,8 +1745,21 @@ const KaraokeMaker = ({
   const lyricsProcessing =
     KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED &&
     (lyricsWorkflowActive || analysisProgress !== undefined);
+  /*
+   * THE GATE WAS WHISPER-ONLY, AND THAT WAS THE BUG.
+   *
+   * `whisperStage === 'download'` is true for exactly one of the three models
+   * this app fetches, so the file-by-file panel — the one whose own comment
+   * says a single bar is indistinguishable from a hang — appeared only for the
+   * speech model, and never for the two much larger downloads where somebody
+   * actually sits and waits.
+   *
+   * `downloadProgress` is now the whole condition. It is set only while a
+   * download is running and cleared when one ends, whichever model set it, so
+   * it already answers the question the stage was being used to approximate.
+   */
   const renderWhisperDownloadDetails = () =>
-    whisperStage === 'download' && downloadProgress ? (
+    downloadProgress ? (
       <KaraokeMakerDownloadDetails
         progress={downloadProgress}
         rate={lyricsDownloadRate}
@@ -1745,10 +1843,7 @@ const KaraokeMaker = ({
               lyrics: { ...current.lyrics, language },
             }))
           }
-          onCancel={() => {
-            cancelSeparation();
-            cancelAnalysis();
-          }}
+          onCancel={cancelCurrentWork}
         />
       )}
       <input
@@ -2156,7 +2251,8 @@ const KaraokeMaker = ({
         analysisProgress={analysisProgress}
         analysisProgressIsIndeterminate={analysisProgressIsIndeterminate}
         analysisRetry={analysisRetry}
-        cancelAnalysis={cancelAnalysis}
+        // Both jobs report through this panel, so its button has to stop both.
+        cancelAnalysis={cancelCurrentWork}
         displayedAnalysisProgress={displayedAnalysisProgress}
         lyricsOpen={lyricsOpen}
         renderWhisperDownloadDetails={renderWhisperDownloadDetails}
@@ -2198,7 +2294,9 @@ const KaraokeMaker = ({
           analysisMessage={analysisMessage}
           analysisProgress={analysisProgress}
           analysisProgressIsIndeterminate={analysisProgressIsIndeterminate}
-          cancelAnalysis={cancelAnalysis}
+          // The lyrics workflow can run a split before it transcribes, so the
+          // dialog's cancel reaches the same pair as the panel's.
+          cancelAnalysis={cancelCurrentWork}
           destructiveAction={destructiveAction}
           displayedAnalysisProgress={displayedAnalysisProgress}
           draftLyricsWordCount={draftLyricsWordCount}

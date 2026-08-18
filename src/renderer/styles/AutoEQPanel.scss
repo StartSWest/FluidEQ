@@ -7,6 +7,7 @@ it under the terms of the GNU General Public License version 3 or later.
 */
 
 @use 'color' as *;
+@use 'motion' as *;
 @use 'theme' as *;
 
 // The AutoEQ tab.
@@ -32,8 +33,34 @@ it under the terms of the GNU General Public License version 3 or later.
   gap: 14px;
 }
 
+// Four beats down the page: the heading, the picker it introduces, the guide
+// that annotates the picker, then the Squiglink card.
+//
+// The blocks rather than the guide's two steps, which is the opposite of the
+// choice the voicing grid makes. There are only two of them and they sit side
+// by side in one grid row, so a cascade across them is a 45ms difference
+// between two neighbours — not enough to read as a sequence, and enough to
+// look like one of them was late.
+.autoeq-panel > * {
+  @include stagger-in($count: 4, $step: 55ms);
+}
+
+// The heading and, on the same line, how current the library behind it is.
 .autoeq-panel__intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
   flex: 0 0 auto;
+
+  > div {
+    min-width: 0;
+  }
+
+  .autoeq-update {
+    margin: 2px 0 0;
+    flex: 0 0 auto;
+  }
 
   h2 {
     margin: 1px 0 4px;
@@ -111,8 +138,13 @@ it under the terms of the GNU General Public License version 3 or later.
   padding: 10px 11px 10px;
 }
 
+// 4px of card padding plus 14px on each side is the Squiglink card's 18px,
+// which is how the two split columns below line up with each other down the
+// page. The top is the same 18px: with the section header hidden the graph well
+// began 7px under the card's own edge, and a bordered box that close to a
+// bordered card reads as a rendering fault rather than as a panel.
 .autoeq-panel__picker .sidebar-section.is-open .sidebar-section__body {
-  padding: 0 11px 8px;
+  padding: 16px 14px 16px;
 }
 
 // Whose measurements these are, with room to say it.
@@ -138,22 +170,23 @@ it under the terms of the GNU General Public License version 3 or later.
 
 // *** The pickers themselves *************************************************
 
-// Two fields across the page, and the apply button on the same row.
+// One field under the other, and the apply button under both.
 //
-// Squeezed into the EQ card all four shared one row, which is as much as that
-// width could carry: the model picker is where a name like "Sennheiser HD 600 ·
-// AutoEq official" has to fit, and it was the narrowest it has ever been. The
-// tab is wider than the row needs and the extra is worth more to the fields
-// than to a button that was already big enough.
+// They were three across the page, which was right while the card owned the
+// full width. It shares that width with the curve now, and two dropdowns in
+// half of it are back to being the narrowest they have ever been — the model
+// picker is where a name like "Sennheiser HD 600 · AutoEq official" has to fit.
+// Stacked they are as wide as the column, and the height they take is height
+// the column had spare.
 .autoeq-panel__picker .auto-eq {
   padding: 2px 0 0;
-  gap: 16px;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) max-content;
+  gap: 14px;
+  grid-template-columns: minmax(0, 1fr);
 
   > .button {
-    min-width: 172px;
-    grid-column: 3;
-    justify-self: end;
+    min-width: 150px;
+    grid-column: 1;
+    justify-self: start;
   }
 }
 
@@ -164,90 +197,14 @@ it under the terms of the GNU General Public License version 3 or later.
   font-size: 0.7rem;
 }
 
-// Already inside the card's padding.
-.autoeq-panel__picker .autoeq-update {
-  margin: 6px 0 0;
-}
-
-// *** What goes in each picker ***********************************************
-
-// The same two, in the same order, with the sentence each needed and never
-// had room for. They are notes and not steps you tick off, so they sit under
-// the controls rather than in front of them.
-.autoeq-panel__guide {
-  display: grid;
-  flex: 0 0 auto;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-}
-
-// Two hints, not two cards.
-//
-// They were recessed wells, which gave a sentence of help the same visual
-// weight as the picker it explains — two more boxes on a page that already has
-// the picker card and the Squiglink card. Sitting directly under the controls
-// they annotate, they need no container of their own to be found.
-.autoeq-guide {
-  display: grid;
-  min-width: 0;
-  padding: 0 2px;
-  gap: 3px 9px;
-  grid-template-columns: auto minmax(0, 1fr);
-
-  strong {
-    align-self: center;
-    color: rgba($white, 0.92);
-    font-size: 0.78rem;
-  }
-
-  p {
-    margin: 0;
-    color: rgba($primary-lighter, 0.66);
-    font-size: 0.7rem;
-    grid-column: 2;
-    line-height: 1.45;
-  }
-}
-
-.autoeq-guide__step {
-  display: grid;
-  width: 21px;
-  height: 21px;
-  place-items: center;
-  color: $secondary-light;
-  border: 1px solid rgba($secondary-light, 0.32);
-  border-radius: $radius-pill;
-  background: rgba($secondary-default, 0.12);
-  font-size: 0.63rem;
-  font-weight: 800;
-}
-
 // *** Responsive *************************************************************
 
-// The panel is the box these have to fit inside, not the window — the two
-// sidebars take several hundred pixels of it. Same container the strip measured
-// against, declared once on `.workspace-tab-panel` in App.scss.
-//
-// Restated rather than inherited: the rules above beat AutoEQ.scss's own
-// container queries on specificity, so without these the columns would stay
-// wide all the way down.
-@container autoeq-workspace (max-width: 900px) {
-  .autoeq-panel__picker .auto-eq {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-
-    > .button {
-      grid-column: 2;
-    }
-  }
-}
-
+// The pickers stack at every width on this page — see `.autoeq-split__controls
+// .auto-eq` in AutoEQ.scss, which puts them one under the other beside the
+// curve — so there is nothing left here to reflow. The hints they used to need
+// a row of their own for now sit under the control each describes.
 @container autoeq-workspace (max-width: 520px) {
-  .autoeq-panel__picker .auto-eq {
-    grid-template-columns: minmax(0, 1fr);
-
-    > .button {
-      width: 100%;
-      grid-column: 1;
-    }
+  .autoeq-panel__picker .sidebar-section.is-open .sidebar-section__body {
+    padding: 4px 10px 10px;
   }
 }
