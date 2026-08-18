@@ -158,8 +158,13 @@ export const decodeMono = (
     decodedCache.set(file, byRate);
   }
   const cached = byRate.get(sampleRate);
+  // Every caller gets its own copy; the cached master never leaves this
+  // module. The Whisper worker transfers its buffer away for speed
+  // (postMessage with a transfer list), and before the copy, that transfer
+  // neutered the shared cache entry: the next consumer received a detached
+  // array and the whole melody pass died as "An object could not be cloned".
   if (cached) {
-    return cached;
+    return cached.then((samples) => samples.slice());
   }
   const task = (async () => {
     const decoded = await decodeSourceMono(file);
@@ -168,5 +173,5 @@ export const decodeMono = (
   // A failed decode is not a result; the next attempt should try again.
   task.catch(() => byRate.delete(sampleRate));
   byRate.set(sampleRate, task);
-  return task;
+  return task.then((samples) => samples.slice());
 };

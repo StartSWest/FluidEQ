@@ -9,15 +9,19 @@ import { IKaraokeMakerLicenseRecord } from '../../../common/karaoke/makerProject
 import { decodeMono } from './audio';
 import { IKaraokeMakerAnalysisWindow } from './basicPitch';
 
+export const RMVPE_PROVENANCE: IKaraokeMakerLicenseRecord = {
+  component: 'RMVPE vocal pitch model',
+  version: 'lj1995/VoiceConversionWebUI (downloaded on demand)',
+  license: 'MIT',
+  sourceUrl: 'https://huggingface.co/lj1995/VoiceConversionWebUI',
+};
+
 export const SWIFT_F0_PROVENANCE: IKaraokeMakerLicenseRecord = {
   component: 'SwiftF0 vocal pitch model',
   version: 'lars76/swift-f0 (bundled)',
   license: 'MIT',
   sourceUrl: 'https://github.com/lars76/swift-f0',
 };
-
-/** Frames below this confidence are silence as far as notes are concerned. */
-const VOICED_CONFIDENCE = 0.9;
 
 /** A note shorter than this is a glide the singer passed through, not a note. */
 const MINIMUM_NOTE_MS = 90;
@@ -54,8 +58,23 @@ export const analyzeKaraokeWithSwiftF0 = async (
     throw new DOMException('Analysis cancelled.', 'AbortError');
   }
   onProgress(0.2);
-  const { pitchHz, confidence, hopSeconds } =
-    await window.electron.ipcRenderer.detectKaraokePitch(samples);
+  // The one-time RMVPE download reports through here; detection after it is
+  // seconds. Which model answered decides the voiced threshold and the
+  // provenance the caller records.
+  const unsubscribe = window.electron.ipcRenderer.onKaraokePitchProgress(
+    ({ stage, fraction }) => {
+      onProgress(
+        stage === 'download' ? 0.2 + fraction * 0.4 : 0.6 + fraction * 0.3,
+      );
+    },
+  );
+  let reply;
+  try {
+    reply = await window.electron.ipcRenderer.detectKaraokePitch(samples);
+  } finally {
+    unsubscribe();
+  }
+  const { pitchHz, confidence, hopSeconds, voicedThreshold } = reply;
   if (signal?.aborted) {
     throw new DOMException('Analysis cancelled.', 'AbortError');
   }
@@ -97,7 +116,7 @@ export const analyzeKaraokeWithSwiftF0 = async (
   for (let frame = 0; frame < pitchHz.length; frame += 1) {
     const timeMs = frame * hopMs;
     const voiced =
-      confidence[frame] >= VOICED_CONFIDENCE &&
+      confidence[frame] >= voicedThreshold &&
       pitchHz[frame] > 0 &&
       inWindow(timeMs);
     if (!voiced) {

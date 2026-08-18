@@ -190,7 +190,23 @@ const detectKaraokePitch = (samples: Float32Array) =>
     pitchHz: Float32Array;
     confidence: Float32Array;
     hopSeconds: number;
+    /** What counts as a voiced frame differs per model; main says which. */
+    voicedThreshold: number;
+    model: 'rmvpe' | 'swift-f0';
   }>;
+
+const onKaraokePitchProgress = (
+  listener: (progress: { stage: string; fraction: number }) => void,
+) => {
+  const wrapped = (
+    _event: IpcRendererEvent,
+    progress: { stage: string; fraction: number },
+  ) => listener(progress);
+  ipcRenderer.on('karaoke-pitch-progress', wrapped);
+  return () => {
+    ipcRenderer.removeListener('karaoke-pitch-progress', wrapped);
+  };
+};
 
 const saveKaraokeStems = (
   key: string,
@@ -266,6 +282,7 @@ export default {
     releaseKaraokeSeparationModel,
     saveKaraokeStems,
     detectKaraokePitch,
+    onKaraokePitchProgress,
     releaseKaraokePitchModel,
     loadKaraokeStems,
     onKaraokeSeparationProgress,
