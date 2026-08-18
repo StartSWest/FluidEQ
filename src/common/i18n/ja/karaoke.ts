@@ -449,7 +449,7 @@ const karaoke: Partial<Dictionary> = {
     'Whisper が認識した {count} 語を対応付けました。エクスポート前に編集可能なタイミングを確認してください。',
   'karaoke.maker.autoAlignComplete':
     '未編集の歌詞を検出されたメロディーに合わせました。手動タイミングは保持されています。',
-  'karaoke.maker.speechMemory': '音声モデルのメモリ',
+  'karaoke.maker.speechMemory': 'AIモデルのメモリ',
   'karaoke.maker.speechMemoryReady': 'RAM で準備完了',
   'karaoke.maker.speechMemoryCached': 'ディスクにキャッシュ済み',
   'karaoke.maker.speechMemoryMissing': '未ダウンロード',

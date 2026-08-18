@@ -24,7 +24,6 @@ import {
   IKaraokeMakerWhisperTranscribeProgress,
   KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
   TKaraokeMakerWhisperStage,
-  analyzeKaraokeWithBasicPitch,
   applyBasicPitchMelody,
   applyDetectedPitchMelody,
   applyTranscriptAsLyrics,
@@ -37,6 +36,10 @@ import {
   transcribeKaraokeWithWhisper,
 } from './makerAi';
 import { plainLyrics } from './useKaraokeMakerLyricsDraft';
+import {
+  analyzeKaraokeWithSwiftF0,
+  SWIFT_F0_PROVENANCE,
+} from './makerAi/swiftF0Notes';
 
 /** Whether this Whisper run has to fetch the model, load it, or neither. */
 export interface IWhisperRunProfile {
@@ -213,10 +216,13 @@ export const useMakerAnalysisRun = ({
     downloadSampleRef.current = undefined;
     try {
       reportInfo(
-        `[karaoke][melody] basic-pitch.start file=${analysisFile.name} bytes=${analysisFile.size}`,
+        `[karaoke][melody] swift-f0.start file=${analysisFile.name} bytes=${analysisFile.size}`,
       );
       try {
-        const notes = await analyzeKaraokeWithBasicPitch(
+        // SwiftF0 asks the monophonic question the Maker actually has —
+        // where is THE voice — where Basic Pitch transcribed harmonics and
+        // breath as extra notes. Basic Pitch remains the fallback below.
+        const notes = await analyzeKaraokeWithSwiftF0(
           analysisFile,
           setAnalysisProgress,
           controller.signal,
@@ -224,7 +230,7 @@ export const useMakerAnalysisRun = ({
         );
         const publishBase = baseProject ?? projectRef.current;
         const next = touchKaraokeMakerProject(
-          applyBasicPitchMelody(publishBase, notes),
+          applyBasicPitchMelody(publishBase, notes, false, SWIFT_F0_PROVENANCE),
         );
         projectRef.current = next;
         pushHistory(publishBase);
@@ -514,14 +520,19 @@ export const useMakerAnalysisRun = ({
         );
         try {
           const windows = karaokeMakerVocalAnalysisWindows(completedProject);
-          const notes = await analyzeKaraokeWithBasicPitch(
+          const notes = await analyzeKaraokeWithSwiftF0(
             analysisFile,
             (progress) => setAnalysisProgress(0.72 + progress * 0.28),
             controller.signal,
             windows,
           );
           completedProject = touchKaraokeMakerProject(
-            applyBasicPitchMelody(completedProject, notes),
+            applyBasicPitchMelody(
+              completedProject,
+              notes,
+              false,
+              SWIFT_F0_PROVENANCE,
+            ),
           );
           generatedNoteCount = completedProject.melody.notes.filter(
             (note) => note.source !== 'manual',

@@ -182,6 +182,16 @@ const separateKaraokeVocals = (left: Float32Array, right: Float32Array) =>
     backend: string;
   }>;
 
+const releaseKaraokePitchModel = () =>
+  ipcRenderer.send('karaoke-pitch-release', []);
+
+const detectKaraokePitch = (samples: Float32Array) =>
+  ipcRenderer.invoke('karaoke-pitch-f0', samples) as Promise<{
+    pitchHz: Float32Array;
+    confidence: Float32Array;
+    hopSeconds: number;
+  }>;
+
 const saveKaraokeStems = (
   key: string,
   vocals: ArrayBuffer,
@@ -255,6 +265,8 @@ export default {
     cancelKaraokeSeparation,
     releaseKaraokeSeparationModel,
     saveKaraokeStems,
+    detectKaraokePitch,
+    releaseKaraokePitchModel,
     loadKaraokeStems,
     onKaraokeSeparationProgress,
     exportKaraokeMakerFile,

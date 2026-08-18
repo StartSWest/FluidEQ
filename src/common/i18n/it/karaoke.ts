@@ -457,7 +457,7 @@ const karaoke: Partial<Dictionary> = {
     'Whisper ha associato {count} parole riconosciute. Controlla i tempi modificabili prima dell’esportazione.',
   'karaoke.maker.autoAlignComplete':
     'Il testo non modificato è stato allineato alla melodia rilevata. I tempi manuali sono stati conservati.',
-  'karaoke.maker.speechMemory': 'Memoria del modello vocale',
+  'karaoke.maker.speechMemory': 'Memoria dei modelli IA',
   'karaoke.maker.speechMemoryReady': 'Pronto nella RAM',
   'karaoke.maker.speechMemoryCached': 'In cache sul disco',
   'karaoke.maker.speechMemoryMissing': 'Non scaricato',

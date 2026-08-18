@@ -440,7 +440,7 @@ const karaoke = {
     'Whisper matched {count} recognized words. Review their editable timing before export.',
   'karaoke.maker.autoAlignComplete':
     'Untouched lyrics aligned to the detected melody. Manual timing was preserved.',
-  'karaoke.maker.speechMemory': 'Speech model memory',
+  'karaoke.maker.speechMemory': 'AI model memory',
   'karaoke.maker.speechMemoryReady': 'Ready in RAM',
   'karaoke.maker.speechMemoryCached': 'Cached on disk',
   'karaoke.maker.speechMemoryMissing': 'Not downloaded',

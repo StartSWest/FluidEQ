@@ -419,7 +419,7 @@ const karaoke: Partial<Dictionary> = {
     'Whisper 匹配了 {count} 个识别词。导出前请检查可编辑时间。',
   'karaoke.maker.autoAlignComplete':
     '未编辑歌词已与检测到的旋律对齐，并保留手动时间。',
-  'karaoke.maker.speechMemory': '语音模型内存',
+  'karaoke.maker.speechMemory': 'AI 模型内存',
   'karaoke.maker.speechMemoryReady': '已在内存中就绪',
   'karaoke.maker.speechMemoryCached': '已缓存到磁盘',
   'karaoke.maker.speechMemoryMissing': '尚未下载',

@@ -105,6 +105,11 @@ export const useKaraokeSession = (isActive: boolean) => {
   const playheadMsRef = useRef(0);
   const [durationMs, setDurationMs] = useState(0);
   const [volume, setVolumeState] = useState(persistedVolume);
+  // Solo listening scales the backing track under the master volume; 1 is
+  // normal playback, 0 is voice alone. A ref, because the element must be
+  // retuned inside callbacks that never re-render.
+  const backingScaleRef = useRef(1);
+  const volumeRef = useRef(persistedVolume());
   playheadMsRef.current = playheadMs;
 
   /** Read the media element directly for frame-accurate visual synchronization. */
@@ -255,7 +260,7 @@ export const useKaraokeSession = (isActive: boolean) => {
         setDurationMs(0);
         setStatus('ready');
         audio.src = nextUrl;
-        audio.volume = volume;
+        audio.volume = volume * backingScaleRef.current;
         audio.load();
         return true;
       } catch {
@@ -325,11 +330,19 @@ export const useKaraokeSession = (isActive: boolean) => {
     [playheadMs, seek, song],
   );
 
+  const setBackingScale = useCallback((scale: number) => {
+    backingScaleRef.current = Math.min(1, Math.max(0, scale));
+    if (audioRef.current) {
+      audioRef.current.volume = volumeRef.current * backingScaleRef.current;
+    }
+  }, []);
+
   const setVolume = useCallback((nextVolume: number) => {
     const normalized = Math.min(1, Math.max(0, nextVolume));
     setVolumeState(normalized);
+    volumeRef.current = normalized;
     if (audioRef.current) {
-      audioRef.current.volume = normalized;
+      audioRef.current.volume = normalized * backingScaleRef.current;
     }
     try {
       window.localStorage.setItem(KARAOKE_VOLUME_KEY, String(normalized));
@@ -446,5 +459,6 @@ export const useKaraokeSession = (isActive: boolean) => {
     restart,
     seekLyric,
     setVolume,
+    setBackingScale,
   };
 };

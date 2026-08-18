@@ -104,6 +104,7 @@ import { registerLayersIpc } from './ipc/layers';
 import { registerPreampIpc } from './ipc/preamp';
 import { registerVideoIpc } from './ipc/video';
 import { registerKaraokeSeparation } from './karaokeSeparation';
+import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerUpdatesIpc } from './ipc/updates';
 import {
@@ -1995,6 +1996,7 @@ registerPreampIpc({
 
 registerVideoIpc();
 registerKaraokeSeparation();
+registerKaraokePitch();
 
 // The EQ chain, in two files rather than five hundred lines of this one.
 //

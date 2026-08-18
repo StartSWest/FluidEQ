@@ -457,7 +457,7 @@ const karaoke: Partial<Dictionary> = {
     'Whisper a associé {count} mots reconnus. Vérifiez leur minutage modifiable avant l’exportation.',
   'karaoke.maker.autoAlignComplete':
     'Les paroles non modifiées ont été alignées avec la mélodie détectée. Le minutage manuel a été conservé.',
-  'karaoke.maker.speechMemory': 'Mémoire du modèle vocal',
+  'karaoke.maker.speechMemory': 'Mémoire des modèles IA',
   'karaoke.maker.speechMemoryReady': 'Prêt en mémoire vive',
   'karaoke.maker.speechMemoryCached': 'En cache sur le disque',
   'karaoke.maker.speechMemoryMissing': 'Non téléchargé',

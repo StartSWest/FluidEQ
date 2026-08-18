@@ -24,6 +24,7 @@ import {
   WHISPER_PROVENANCE,
 } from './audio';
 import { IKaraokeMakerTranscriptWord } from './whisperProgress';
+import type { IKaraokeMakerLicenseRecord } from '../../../common/karaoke/makerProject';
 import {
   constrainAutomaticWordTiming,
   constrainTranscriptWords,
@@ -314,6 +315,9 @@ export const applyBasicPitchMelody = (
   project: IKaraokeMakerProject,
   notes: readonly IKaraokeMakerAnalysisNote[],
   repairWordTiming = false,
+  // Whichever model produced the notes signs the project; SwiftF0 is the
+  // detector now, Basic Pitch the name this function keeps for its history.
+  provenance: IKaraokeMakerLicenseRecord = BASIC_PITCH_PROVENANCE,
 ): IKaraokeMakerProject => {
   const repairedProject = repairWordTiming
     ? repairEstimatedWhisperTimingWithMelody(project, notes)
@@ -326,7 +330,7 @@ export const applyBasicPitchMelody = (
   return touchKaraokeMakerProject(
     synchronizeKaraokeMakerSections({
       ...aligned,
-      provenance: upsertProvenance(aligned.provenance, BASIC_PITCH_PROVENANCE),
+      provenance: upsertProvenance(aligned.provenance, provenance),
     }),
   );
 };

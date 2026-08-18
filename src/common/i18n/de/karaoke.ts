@@ -456,7 +456,7 @@ const karaoke: Partial<Dictionary> = {
     'Whisper hat {count} erkannte Wörter zugeordnet. Prüfen Sie vor dem Export die bearbeitbaren Zeitangaben.',
   'karaoke.maker.autoAlignComplete':
     'Unbearbeiteter Liedtext wurde an die erkannte Melodie angepasst. Manuelle Zeitangaben blieben erhalten.',
-  'karaoke.maker.speechMemory': 'Speicher des Sprachmodells',
+  'karaoke.maker.speechMemory': 'KI-Modellspeicher',
   'karaoke.maker.speechMemoryReady': 'Im Arbeitsspeicher bereit',
   'karaoke.maker.speechMemoryCached': 'Auf Datenträger zwischengespeichert',
   'karaoke.maker.speechMemoryMissing': 'Nicht heruntergeladen',

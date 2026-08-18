@@ -439,7 +439,7 @@ const karaoke: Partial<Dictionary> = {
     'Whisper ने {count} पहचाने शब्द मिलाए। निर्यात से पहले उनके संपादन योग्य समय की जाँच करें।',
   'karaoke.maker.autoAlignComplete':
     'बिना बदले बोल पहचानी गई धुन से मिलाए गए। मैन्युअल समय सुरक्षित रखा गया।',
-  'karaoke.maker.speechMemory': 'वाणी मॉडल मेमोरी',
+  'karaoke.maker.speechMemory': 'AI मॉडल मेमोरी',
   'karaoke.maker.speechMemoryReady': 'RAM में तैयार',
   'karaoke.maker.speechMemoryCached': 'डिस्क पर कैश',
   'karaoke.maker.speechMemoryMissing': 'डाउनलोड नहीं हुआ',
