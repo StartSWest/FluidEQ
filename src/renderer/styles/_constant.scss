@@ -23,7 +23,10 @@ $title-bar-height: 78px;
 // Widths at which the workspace shell changes shape. The Electron window
 // cannot go below WINDOW_MIN_WIDTH (720px), so the three-column layout only
 // has to survive down to the two-column switch.
-$bp-three-column: 1180px;
+// 1560, up from 1180: at a windowed ~1500px the fixed right column starved
+// the Maker into overlapping its own header. Below this the sound panel is
+// the slide-over drawer; a 1600px fullscreen keeps the column.
+$bp-three-column: 1560px;
 $bp-two-column: 940px;
 
 $band-width: 64px;

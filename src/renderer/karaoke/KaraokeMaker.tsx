@@ -1592,7 +1592,12 @@ const KaraokeMaker = ({
     if (lineEntryMode) {
       return <span>{captureGuideInstruction}</span>;
     }
-    return <span>{t('karaoke.maker.editHint')}</span>;
+    // Nothing in the default state. A permanent three-line manual under the
+    // toolbar was chrome pretending to be help — and once the status row
+    // overlaid the toolbar's flanks it ran straight through the buttons. The
+    // gestures live in tooltips now; this row speaks only when a mode needs
+    // guiding.
+    return null;
   };
 
   let lineCaptureState: 'armed' | 'ready' | undefined;
@@ -1793,7 +1798,7 @@ const KaraokeMaker = ({
       <div
         className={`karaoke-maker__status-row${
           lineEntryMode ? ' is-guided' : ''
-        }`}
+        }${handPanMode || lineEntryMode ? ' has-message' : ''}`}
       >
         {renderEditStatus()}
         <div className="karaoke-maker__status-end">

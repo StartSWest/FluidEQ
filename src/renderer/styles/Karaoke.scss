@@ -6157,7 +6157,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // pointer-events stays off for the row so the toolbar's popovers keep their
 // clicks; the legend opts back in.
 @media (min-width: 1280px) {
-  .karaoke-maker__status-row {
+  // Quiet states only: a guided-capture message needs its own band back,
+  // or it prints through the toolbar buttons.
+  .karaoke-maker__status-row:not(.has-message) {
     z-index: 10;
     min-height: 42px;
     margin-top: -42px;
@@ -6168,7 +6170,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     pointer-events: none;
   }
 
-  .karaoke-maker__status-row .karaoke-maker__status-end {
+  .karaoke-maker__status-row:not(.has-message) .karaoke-maker__status-end {
     pointer-events: auto;
   }
 }
@@ -7605,11 +7607,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-@media (max-width: 1280px) {
+@media (max-width: 1580px) {
   // Below this the transport genuinely cannot share the first line with the
-  // title and the actions (content-priced flanks bought the room down from
-  // 1500). The two-line design is the contract from here up; under it the
-  // transport takes line two and the toolbar line three.
+  // title and the actions. 1280 was optimism that a slimmer transport had
+  // bought 300px it had not — at a 1500px window the transport printed
+  // through the actions cluster, since a grid overflows rather than wraps.
+  // Measured content: title ~260 + transport ~900 + actions ~390 + gaps.
   .karaoke-maker__header {
     grid-template-columns: minmax(150px, 1fr) auto;
     min-height: 0;
