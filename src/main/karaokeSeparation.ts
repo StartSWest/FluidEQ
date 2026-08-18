@@ -61,6 +61,9 @@ let cancelRequested = false;
 
 /** Whether the separation network is resident right now. */
 export const isSeparationLoaded = () => session !== undefined;
+// True while a separation is in flight, so a release request cannot pull the
+// session out from under a run. Written by the separate handler only.
+let running = false;
 
 /**
  * Fetch one model file to disk if it is not already there.
@@ -286,6 +289,7 @@ export const registerKaraokeSeparation = () => {
         report('download', totalBytes > 0 ? received / totalBytes : 0),
       );
       report('separate', 0);
+      running = true;
       try {
         const result = await separate(request, (fraction) =>
           report('separate', fraction),
@@ -294,6 +298,8 @@ export const registerKaraokeSeparation = () => {
       } catch (error) {
         log.error('[karaoke][separation] failed', error);
         throw error;
+      } finally {
+        running = false;
       }
     },
   );
