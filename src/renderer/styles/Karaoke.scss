@@ -2827,8 +2827,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   flex-wrap: wrap;
   gap: 8px 14px;
-  min-height: 62px;
-  padding: 7px 12px;
+  min-height: 54px;
+  padding: 5px 12px;
   background: rgba(5, 18, 31, 0.78);
   border-bottom: 1px solid rgba(63, 149, 173, 0.22);
   box-shadow: 0 12px 35px rgba(0, 0, 0, 0.14);
@@ -3225,8 +3225,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   justify-content: center;
   gap: 6px;
   min-width: 0;
-  min-height: 48px;
-  padding: 7px 10px;
+  min-height: 42px;
+  padding: 4px 10px;
   overflow: visible;
   background:
     linear-gradient(90deg, transparent, rgba(28, 111, 126, 0.07), transparent),
@@ -3759,7 +3759,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   justify-content: space-between;
   gap: 16px;
-  padding: 5px 15px;
+  padding: 3px 15px;
   color: rgba(167, 193, 208, 0.62);
   font-size: 0.8rem;
   background: rgba(4, 18, 30, 0.48);
@@ -6144,6 +6144,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     0 18px 48px rgba($black, 0.42),
     inset 0 1px rgba($white, 0.055);
   backdrop-filter: blur(18px);
+}
+
+// On wide screens the status row climbs into the toolbar's empty flanks —
+// the tool groups sit centered with dead space either side, while the hint
+// and the word-state legend each burned a whole band below. One band gone.
+// pointer-events stays off for the row so the toolbar's popovers keep their
+// clicks; the legend opts back in.
+@media (min-width: 1500px) {
+  .karaoke-maker__status-row {
+    z-index: 10;
+    min-height: 42px;
+    margin-top: -42px;
+    padding: 0 14px;
+    align-items: center;
+    background: transparent;
+    border: 0;
+    pointer-events: none;
+  }
+
+  .karaoke-maker__status-row .karaoke-maker__status-end {
+    pointer-events: auto;
+  }
 }
 
 // The advanced-tools popover, split into "voice and music" and "lyrics and
