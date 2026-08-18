@@ -1667,6 +1667,13 @@ const KaraokeMaker = ({
           }}
           onSkip={() => setWizardOpen(false)}
           onHide={() => setWizardOpen(false)}
+          language={project.lyrics.language}
+          onLanguage={(language) =>
+            commit((current) => ({
+              ...current,
+              lyrics: { ...current.lyrics, language },
+            }))
+          }
           onCancel={() => {
             cancelSeparation();
             cancelAnalysis();

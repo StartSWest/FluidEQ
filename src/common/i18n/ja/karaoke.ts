@@ -307,6 +307,8 @@ const karaoke: Partial<Dictionary> = {
     'この曲にはまだ歌詞のタイミングがありません。FluidEQ は歌声を伴奏から分離し、そこから歌詞とタイミングを読み取れます。すべてこのパソコン上で実行されます。',
   'karaoke.maker.wizardStepSeparate': '歌声を分離',
   'karaoke.maker.wizardStepTranscribe': '歌詞とタイミングを読み取り',
+  'karaoke.maker.wizardLanguage': '歌詞の言語',
+  'karaoke.maker.wizardLanguageAuto': '自動判定',
   'karaoke.maker.wizardStart': '自動で準備',
   'karaoke.maker.wizardSkip': '自分で行う',
   'karaoke.maker.wizardCancel': '停止',

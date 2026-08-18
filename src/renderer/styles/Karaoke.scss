@@ -6360,6 +6360,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+.karaoke-maker__wizard-language {
+  display: grid;
+  align-items: center;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+  font-size: 0.84rem;
+  color: rgba(223, 252, 249, 0.8);
+
+  > select {
+    min-height: 30px;
+    padding: 4px 8px;
+    color: #dffcf9;
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba($secondary-light, 0.28);
+    border-radius: 8px;
+  }
+}
+
 .karaoke-maker__wizard-progress {
   display: grid;
   gap: 7px;

@@ -27,6 +27,8 @@ const wizard = (over: Record<string, unknown> = {}) => {
     onSkip: jest.fn(),
     onCancel: jest.fn(),
     onHide: jest.fn(),
+    language: undefined as string | undefined,
+    onLanguage: jest.fn(),
     ...over,
   };
   show(
@@ -39,6 +41,8 @@ const wizard = (over: Record<string, unknown> = {}) => {
       onSkip={props.onSkip}
       onCancel={props.onCancel}
       onHide={props.onHide}
+      language={props.language}
+      onLanguage={props.onLanguage}
     />,
   );
   return props;

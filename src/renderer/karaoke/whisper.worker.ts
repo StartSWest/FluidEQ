@@ -4,7 +4,10 @@ import wasmUrl from '@fluideq/whisper-wasm';
 import runtimeUrl from '@fluideq/whisper-runtime';
 import { env, pipeline } from '@huggingface/transformers';
 
-const MODEL = 'onnx-community/whisper-base_timestamped';
+// One name, imported — this worker carried its own hardcoded copy once, and a
+// model upgrade in audio.ts silently did nothing: the app checked caches and
+// wrote provenance for a model the worker never loaded.
+import { WHISPER_MODEL as MODEL } from './makerAi/audio';
 
 interface IWhisperChunk {
   text?: string;
@@ -114,17 +117,31 @@ const loadRecognizer = async (
   }
   configureRuntime();
   if (!recognizerTask) {
+    const progressCallback = (event: unknown) => {
+      send(id, 'model-progress', {
+        event,
+        downloadedAtStart,
+      });
+    };
+    // WebGPU first: turbo on a GPU transcribes minutes of audio in seconds,
+    // and this machine class is why the model could grow at all. WASM q8
+    // remains the everywhere-fallback — slow is a mode, broken is not.
     recognizerTask = (
-      pipeline('automatic-speech-recognition', MODEL, {
-        dtype: 'q8',
-        device: 'wasm',
-        progress_callback: (event: unknown) => {
-          send(id, 'model-progress', {
-            event,
-            downloadedAtStart,
+      (async () => {
+        try {
+          return await pipeline('automatic-speech-recognition', MODEL, {
+            dtype: 'q4f16',
+            device: 'webgpu',
+            progress_callback: progressCallback,
           });
-        },
-      }) as unknown as Promise<IRecognizer>
+        } catch {
+          return pipeline('automatic-speech-recognition', MODEL, {
+            dtype: 'q8',
+            device: 'wasm',
+            progress_callback: progressCallback,
+          });
+        }
+      })() as unknown as Promise<IRecognizer>
     )
       .then((loaded) => {
         recognizer = loaded;

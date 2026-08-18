@@ -315,6 +315,8 @@ const karaoke: Partial<Dictionary> = {
     'Ce morceau n’a pas encore de minutage. FluidEQ peut séparer la voix de la musique, puis en lire les mots et leur minutage. Tout s’exécute sur cet ordinateur.',
   'karaoke.maker.wizardStepSeparate': 'Séparer la voix',
   'karaoke.maker.wizardStepTranscribe': 'Lire les mots et le minutage',
+  'karaoke.maker.wizardLanguage': 'Langue des paroles',
+  'karaoke.maker.wizardLanguageAuto': 'Détection automatique',
   'karaoke.maker.wizardStart': 'Préparer automatiquement',
   'karaoke.maker.wizardSkip': 'Je le ferai moi-même',
   'karaoke.maker.wizardCancel': 'Arrêter',

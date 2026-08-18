@@ -22,7 +22,31 @@ interface IKaraokeMakerWizardProps {
   onCancel: () => void;
   /** Close the dialog and let the run carry on under the progress card. */
   onHide: () => void;
+  /**
+   * BCP-47 code of the lyrics' language, or undefined for auto-detection.
+   *
+   * Asked here, before the run, because auto-detection over singing is the
+   * silent failure mode: a Spanish song mis-detected as English transcribes
+   * into fluent nonsense with no error anywhere. One explicit choice removes
+   * the whole class.
+   */
+  language?: string;
+  onLanguage: (language: string | undefined) => void;
 }
+
+/** The choices offered; Whisper accepts far more, these are the app's own. */
+const WIZARD_LANGUAGES = [
+  'es',
+  'en',
+  'de',
+  'fr',
+  'it',
+  'pt',
+  'ru',
+  'ja',
+  'zh',
+  'hi',
+] as const;
 
 /**
  * The offer to set a song up automatically, and the progress once it is running.
@@ -45,9 +69,15 @@ const KaraokeMakerWizard = ({
   onSkip,
   onCancel,
   onHide,
+  language,
+  onLanguage,
 }: IKaraokeMakerWizardProps) => {
   const { t } = useTranslation();
   const running = activeStep !== undefined;
+  const languageNames =
+    typeof Intl.DisplayNames === 'function'
+      ? new Intl.DisplayNames([language ?? 'en'], { type: 'language' })
+      : undefined;
 
   const steps: {
     id: TKaraokeMakerWizardStep;
@@ -102,6 +132,35 @@ const KaraokeMakerWizard = ({
             );
           })}
         </ol>
+
+        {!running && (
+          <label
+            className="karaoke-maker__wizard-language"
+            htmlFor="karaoke-wizard-language"
+          >
+            <span>{t('karaoke.maker.wizardLanguage')}</span>
+            <select
+              id="karaoke-wizard-language"
+              value={language ?? 'auto'}
+              onChange={(event) =>
+                onLanguage(
+                  event.target.value === 'auto'
+                    ? undefined
+                    : event.target.value,
+                )
+              }
+            >
+              <option value="auto">
+                {t('karaoke.maker.wizardLanguageAuto')}
+              </option>
+              {WIZARD_LANGUAGES.map((code) => (
+                <option key={code} value={code}>
+                  {languageNames?.of(code) ?? code}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
 
         {running && (
           <div className="karaoke-maker__wizard-progress" role="status">

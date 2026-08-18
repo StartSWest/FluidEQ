@@ -302,6 +302,8 @@ const karaoke = {
     'This song has no lyric timing yet. FluidEQ can separate the voice from the music, then read the words and their timing from it. Everything runs on this computer.',
   'karaoke.maker.wizardStepSeparate': 'Separate the voice',
   'karaoke.maker.wizardStepTranscribe': 'Read the words and timing',
+  'karaoke.maker.wizardLanguage': 'Language of the lyrics',
+  'karaoke.maker.wizardLanguageAuto': 'Detect automatically',
   'karaoke.maker.wizardStart': 'Set up automatically',
   'karaoke.maker.wizardSkip': 'I will do it myself',
   'karaoke.maker.wizardCancel': 'Stop',

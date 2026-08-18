@@ -287,6 +287,8 @@ const karaoke: Partial<Dictionary> = {
     '这首歌还没有歌词时间轴。FluidEQ 可以先把人声从伴奏中分离出来，再从中读取歌词及其时间。全部在本机运行。',
   'karaoke.maker.wizardStepSeparate': '分离人声',
   'karaoke.maker.wizardStepTranscribe': '读取歌词与时间',
+  'karaoke.maker.wizardLanguage': '歌词语言',
+  'karaoke.maker.wizardLanguageAuto': '自动检测',
   'karaoke.maker.wizardStart': '自动准备',
   'karaoke.maker.wizardSkip': '我自己来',
   'karaoke.maker.wizardCancel': '停止',

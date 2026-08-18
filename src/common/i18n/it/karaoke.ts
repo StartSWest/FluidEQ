@@ -313,6 +313,8 @@ const karaoke: Partial<Dictionary> = {
     'Questo brano non ha ancora la sincronizzazione del testo. FluidEQ può separare la voce dalla musica e leggerne le parole e i tempi. Tutto viene eseguito su questo computer.',
   'karaoke.maker.wizardStepSeparate': 'Separa la voce',
   'karaoke.maker.wizardStepTranscribe': 'Leggi parole e tempi',
+  'karaoke.maker.wizardLanguage': 'Lingua del testo',
+  'karaoke.maker.wizardLanguageAuto': 'Rilevamento automatico',
   'karaoke.maker.wizardStart': 'Prepara automaticamente',
   'karaoke.maker.wizardSkip': 'Lo faccio io',
   'karaoke.maker.wizardCancel': 'Ferma',

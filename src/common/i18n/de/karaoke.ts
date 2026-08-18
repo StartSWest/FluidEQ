@@ -313,6 +313,8 @@ const karaoke: Partial<Dictionary> = {
     'Dieser Song hat noch kein Texttiming. FluidEQ kann die Stimme von der Musik trennen und daraus die Wörter und ihr Timing lesen. Alles läuft auf diesem Computer.',
   'karaoke.maker.wizardStepSeparate': 'Stimme trennen',
   'karaoke.maker.wizardStepTranscribe': 'Wörter und Timing lesen',
+  'karaoke.maker.wizardLanguage': 'Sprache des Textes',
+  'karaoke.maker.wizardLanguageAuto': 'Automatisch erkennen',
   'karaoke.maker.wizardStart': 'Automatisch einrichten',
   'karaoke.maker.wizardSkip': 'Ich mache es selbst',
   'karaoke.maker.wizardCancel': 'Stopp',

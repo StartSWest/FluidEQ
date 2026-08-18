@@ -300,6 +300,8 @@ const karaoke: Partial<Dictionary> = {
     'इस गाने में अभी लिरिक टाइमिंग नहीं है। FluidEQ आवाज़ को संगीत से अलग कर सकता है, फिर उसमें से शब्द और उनकी टाइमिंग पढ़ सकता है। सब कुछ इसी कंप्यूटर पर चलता है।',
   'karaoke.maker.wizardStepSeparate': 'आवाज़ अलग करें',
   'karaoke.maker.wizardStepTranscribe': 'शब्द और टाइमिंग पढ़ें',
+  'karaoke.maker.wizardLanguage': 'बोल की भाषा',
+  'karaoke.maker.wizardLanguageAuto': 'अपने आप पहचानें',
   'karaoke.maker.wizardStart': 'अपने आप तैयार करें',
   'karaoke.maker.wizardSkip': 'मैं खुद करूँगा',
   'karaoke.maker.wizardCancel': 'रोकें',

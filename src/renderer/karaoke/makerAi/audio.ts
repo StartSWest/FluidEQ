@@ -10,13 +10,14 @@ export const BASIC_PITCH_SAMPLE_RATE = 22_050;
 export const WHISPER_SAMPLE_RATE = 16_000;
 const MAX_AI_DURATION_SECONDS = 30 * 60;
 const MAX_AI_FILE_BYTES = 1024 * 1024 * 1024;
-// Small, not base. Base was chosen when the detector read the full mix and
-// speed mattered more than recall it could not reach anyway; now that it
-// reads an isolated vocal stem, the model is the bottleneck again. Small
-// (~250MB in q8, one-time download) has materially better word recall on
-// singing, and since the transcript can now BE the lyrics when none were
-// supplied, recall is the product rather than a hint for the aligner.
-export const WHISPER_MODEL = 'onnx-community/whisper-small_timestamped';
+// Large-v3-turbo, because recall is now the product: with no reference text
+// the transcript IS the lyric sheet, and Spanish singing through a small
+// model came back as soup. Turbo is large-v3's accuracy at a quarter of the
+// decoder, multilingual across ~100 languages — Spanish and English very much
+// included — and it loads on WebGPU (q4f16) where this is seconds per song,
+// with WASM q8 as the everywhere-fallback.
+export const WHISPER_MODEL =
+  'onnx-community/whisper-large-v3-turbo_timestamped';
 
 /**
  * Product gate for automatic lyric timing and melody detection.

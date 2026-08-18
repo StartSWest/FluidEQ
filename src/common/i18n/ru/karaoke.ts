@@ -310,6 +310,8 @@ const karaoke: Partial<Dictionary> = {
     'У этой песни ещё нет тайминга текста. FluidEQ может отделить голос от музыки, а затем прочитать по нему слова и их тайминг. Всё выполняется на этом компьютере.',
   'karaoke.maker.wizardStepSeparate': 'Отделить голос',
   'karaoke.maker.wizardStepTranscribe': 'Прочитать слова и тайминг',
+  'karaoke.maker.wizardLanguage': 'Язык текста',
+  'karaoke.maker.wizardLanguageAuto': 'Определить автоматически',
   'karaoke.maker.wizardStart': 'Настроить автоматически',
   'karaoke.maker.wizardSkip': 'Я сделаю сам',
   'karaoke.maker.wizardCancel': 'Остановить',
