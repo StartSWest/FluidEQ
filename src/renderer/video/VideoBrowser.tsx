@@ -693,8 +693,25 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       // left is ordinary page full screen.
       exitGraphFullScreen();
       setIsPageFullScreen(true);
+      // THE WINDOW GOES WITH IT.
+      //
+      // A guest asking for full screen only ever filled the webview's own box
+      // inside our window, so the picture stopped at our chrome and the
+      // taskbar stayed on screen — the player believed it was full screen and
+      // laid its controls out for a display it did not have. Real full screen
+      // is the OS window's to give, and only the main process can ask.
+      window.electron.ipcRenderer
+        .setWindowFullScreen(true)
+        .catch(() => undefined);
     };
-    const handleLeaveFullScreen = () => setIsPageFullScreen(false);
+    const handleLeaveFullScreen = () => {
+      setIsPageFullScreen(false);
+      // Given back the same way it was taken, so leaving the player's full
+      // screen does not strand the window without its titlebar.
+      window.electron.ipcRenderer
+        .setWindowFullScreen(false)
+        .catch(() => undefined);
+    };
 
     // Nothing may be asked of the guest before this.
     //
