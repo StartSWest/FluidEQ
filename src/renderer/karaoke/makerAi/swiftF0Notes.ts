@@ -23,8 +23,16 @@ export const SWIFT_F0_PROVENANCE: IKaraokeMakerLicenseRecord = {
   sourceUrl: 'https://github.com/lars76/swift-f0',
 };
 
-/** A note shorter than this is a glide the singer passed through, not a note. */
-const MINIMUM_NOTE_MS = 90;
+/**
+ * A note shorter than this is a glide the singer passed through, not a note.
+ *
+ * 60, down from 90, measured on a real song: eleven lane notes sat a fifth
+ * or more from the sung pitch, all at phrase attacks, because the aligner
+ * found no candidate overlapping a short first syllable and borrowed the
+ * neighbouring note's pitch instead. Shorter minimums give it real material
+ * exactly where singers start phrases fast.
+ */
+const MINIMUM_NOTE_MS = 60;
 
 const hzToMidi = (hz: number) => 69 + 12 * Math.log2(hz / 440);
 
