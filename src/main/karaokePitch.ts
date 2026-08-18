@@ -213,10 +213,27 @@ const runRmvpe = async (
   // eslint-disable-next-line global-require
   const ort = require('onnxruntime-node');
   if (!rmvpeSession) {
-    rmvpeSession = (await ort.InferenceSession.create(rmvpePath(), {
-      executionProviders: ['cpu'],
-    })) as TOnnxSession;
-    log.info('[karaoke][pitch] RMVPE session ready');
+    // The same backend ladder separation climbs: WebGPU carried that model
+    // fourteen times faster than CPU on this machine, and RMVPE is the same
+    // kind of network. Whichever rung loads is logged, so a slow run says
+    // why it is slow.
+    const backends = ['webgpu', 'dml', 'cpu'];
+    let lastError: unknown;
+    for (let index = 0; index < backends.length; index += 1) {
+      try {
+        // eslint-disable-next-line no-await-in-loop
+        rmvpeSession = (await ort.InferenceSession.create(rmvpePath(), {
+          executionProviders: [backends[index]],
+        })) as TOnnxSession;
+        log.info(`[karaoke][pitch] RMVPE session on ${backends[index]}`);
+        break;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+    if (!rmvpeSession) {
+      throw lastError;
+    }
   }
   const { mel, frames } = melSpectrogram(samples);
   const f0 = new Float32Array(frames);
