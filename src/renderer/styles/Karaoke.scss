@@ -2782,6 +2782,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // Bright primary actions need dark ink in every interaction state. The
     // generic hover selector above is more specific than `.is-primary` and was
     // turning "Use in player" white against the pale teal surface.
+    &.is-primary {
+      // One line always: at narrow widths this wrapped to "Use in /
+      // player", the most prominent button in the editor torn in half.
+      white-space: nowrap;
+      flex: none;
+    }
+
     &.is-primary:hover:not(:disabled),
     &.is-primary:focus-visible {
       color: #03191d;

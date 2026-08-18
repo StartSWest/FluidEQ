@@ -136,10 +136,37 @@ const decodeSourceMono = (file: File): Promise<IDecodedMonoAudio> => {
   return task;
 };
 
-export const decodeMono = async (
+/**
+ * Decoded audio, kept per file so a second detection does not pay for the
+ * first one's decode again.
+ *
+ * Every run used to re-decode from scratch — several seconds of
+ * "Decoding audio locally" before any recognition, repeated identically for
+ * a file that had not changed. Keyed weakly on the File object: the stems and
+ * the imported song keep their identity for a whole session, and when the
+ * File goes, its samples go with it.
+ */
+const decodedCache = new WeakMap<File, Map<number, Promise<Float32Array>>>();
+
+export const decodeMono = (
   file: File,
   sampleRate: number,
 ): Promise<Float32Array> => {
-  const decoded = await decodeSourceMono(file);
-  return resampleLinear(decoded.samples, decoded.sampleRate, sampleRate);
+  let byRate = decodedCache.get(file);
+  if (!byRate) {
+    byRate = new Map();
+    decodedCache.set(file, byRate);
+  }
+  const cached = byRate.get(sampleRate);
+  if (cached) {
+    return cached;
+  }
+  const task = (async () => {
+    const decoded = await decodeSourceMono(file);
+    return resampleLinear(decoded.samples, decoded.sampleRate, sampleRate);
+  })();
+  // A failed decode is not a result; the next attempt should try again.
+  task.catch(() => byRate.delete(sampleRate));
+  byRate.set(sampleRate, task);
+  return task;
 };

@@ -39,7 +39,9 @@ export const SECTION_GROUP_TOP = 97;
 export const SECTION_GROUP_HEIGHT = 30;
 /** Where the lyric lanes start before any section groups push them down. */
 export const BASE_LYRIC_SECTION_TOP = 97;
-export const LYRIC_LANE_HEIGHT = 34;
+// 26, down from 34: with the wave strip grown to three rows, the lyric band
+// was the tallest thing on the stage while holding one line of text per lane.
+export const LYRIC_LANE_HEIGHT = 26;
 
 /** Room for the piano keys down the left edge. */
 const PLOT_LEFT = 54;
