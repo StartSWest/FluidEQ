@@ -140,12 +140,19 @@ const handleActivity = (event?: Event) => {
   if (event?.type === 'keydown' && isQuietKey(event as KeyboardEvent)) {
     return;
   }
-  // Nothing wakes a toolbar that was dismissed on purpose. Only the click
-  // asking for it back does, and that comes in through `toggleChromeNow`
-  // without an event.
-  if (isDismissed && event) {
-    return;
-  }
+  // MOVING THE POINTER WAKES IT, DISMISSED OR NOT.
+  //
+  // This used to return here, so a toolbar put away by a click on the drawing
+  // stayed away until another click asked for it back. The intent was that a
+  // deliberate dismissal should outlast an accidental twitch of the mouse —
+  // but a click on the plot is also how you drag a band, so the controls
+  // vanished during ordinary editing and then ignored every attempt to bring
+  // them back by reaching for them. A toolbar that cannot be summoned by
+  // moving towards it reads as broken, whatever the reason.
+  //
+  // Dismissal now only wins until the pointer next moves, which is the same
+  // rule every other auto-hiding control on the screen follows.
+  isDismissed = false;
   // Held open: present, and no clock running to take it away again.
   if (isHeld) {
     setIdle(false);

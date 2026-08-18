@@ -797,6 +797,32 @@ it under the terms of the GNU General Public License version 3 or later.
 // in the strip. What they are is the shortcut, for when the shortcut cannot
 // reach — click the video and focus is in the guest, so Space belongs to the
 // page from then on.
+// Scoped under the strip for the same reason as the stepper below: the
+// `.live-output-controls button` rule hands every button here a ghost pill,
+// and a back arrow wants to be a glyph rather than a labelled control.
+.live-output-controls .graph-fullscreen-exit {
+  display: inline-flex;
+  width: 30px;
+  min-width: 0;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  // First in the row, and the row is right-aligned — so without this it would
+  // sit against the other controls instead of holding the far edge a back
+  // control is looked for on.
+  margin-right: auto;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
+
 // Scoped under the strip, and not for tidiness: `.live-output-controls button`
 // gives every button in here the ghost surface and a 28px minimum height, and
 // that outranks a lone class. Unqualified, these came out as two empty pills
@@ -1419,11 +1445,18 @@ it under the terms of the GNU General Public License version 3 or later.
 // panel loses its scroll position for having been away. The one place that
 // reasoning is overruled is the player's tab, where the space the boxes keep is
 // a band the picture cannot reach — see the chrome rule further down.
+// MEDIA IS THE ONLY TAB THE GRAPH IS DRAWN THROUGH.
+//
+// Karaoke used to be exempt here as well, on the theory that a lyric stage is
+// a picture worth seeing behind a translucent graph. In practice it was two
+// interfaces competing for the same pixels — and in the editor it was worse
+// still, leaving the Maker mounted under the graph so the two shared the
+// column as a half-empty docked pane. Karaoke now takes this path, which is
+// the ordinary one: the graph fills the screen and shows nothing through it,
+// exactly as on the EQ tab. A video is the one surface where the overlay
+// still earns itself.
 .center-workspace.is-graph-full:not(
-    :has(
-      .workspace-tab-panel--video:not(.is-hidden),
-      .workspace-tab-panel--karaoke:not(.is-hidden)
-    )
+    :has(.workspace-tab-panel--video:not(.is-hidden))
   ) {
   // The panel and the tab strip together — `.middle-content` is both. Neither
   // is reachable while the card covers the column, so there is nothing lost.
@@ -1588,17 +1621,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // Whether it may fade at all is the store's question, not the cascade's —
 // `is-idle` is only ever applied while it is watching. Two things deciding the
 // same question is how they come to disagree, and here they did.
-// THE GRAPH TOOLBAR NO LONGER FADES, and its own move is the reason.
-//
-// It hid itself because it lay across the top of the plot, which is where the
-// peaks go — a row of controls you reach for occasionally, parked over the
-// picture you look at for minutes. It is a row of its own above the plot now
-// and covers nothing, so there is nothing left for hiding to buy, and a
-// toolbar that disappears while you are reading it costs more than it saves.
-// The Video tab's bar has always stayed put for exactly this reason.
-//
-// `.fullscreen-chrome` still fades: that one really is an overlay on top of a
-// full-screen picture, which is the case this behaviour was written for.
+.live-output-controls,
 .fullscreen-chrome {
   // Slower out than in. Coming back should feel immediate — the pointer has
   // just moved and something is being reached for — while leaving should not
@@ -1606,6 +1629,7 @@ it under the terms of the GNU General Public License version 3 or later.
   transition: opacity 320ms ease;
 }
 
+.live-output-controls.is-idle,
 .fullscreen-chrome.is-idle {
   opacity: 0;
   // Nothing invisible takes a click. Without this the strip is still there to
@@ -1718,14 +1742,6 @@ it under the terms of the GNU General Public License version 3 or later.
     padding: 0;
   }
 
-  // The Karaoke stage becomes the full-screen backdrop under the graph. Its
-  // ordinary card rounding would otherwise cut four dark notches into the
-  // display after the surrounding workspace has gone edge to edge.
-  .workspace-tab-panel--karaoke,
-  .karaoke-workspace__stage {
-    border-radius: 0;
-  }
-
   // Every box the picture is inside, not just the stage.
   //
   // The radius is set on the stage and then inherited or restated down through
@@ -1781,11 +1797,7 @@ it under the terms of the GNU General Public License version 3 or later.
 // The strip normally starts 8px from the top of the card, and the card now
 // starts at the top of the display — so without this the controls sit behind
 // the title bar, which is a toolbar you can see and cannot press.
-// Only the designer needs this now. The toolbar used to be listed here too,
-// because an absolutely positioned strip measuring from a card that starts at
-// the top of the display ends up behind the title bar — a toolbar you can see
-// and cannot press. In normal flow it is laid out after whatever comes above
-// it, so it cannot land under anything and has nothing to be nudged past.
+.app-workspace.is-app-full.has-top-bar .live-output-controls,
 .app-workspace.is-app-full.has-top-bar .look-designer {
   top: calc(#{$title-bar-height} + 8px);
 }
@@ -1797,28 +1809,6 @@ it under the terms of the GNU General Public License version 3 or later.
 // moving it down by the title bar pushed exactly that much of it off the end.
 .app-workspace.is-app-full.has-top-bar .look-designer {
   max-height: calc(100vh - #{$title-bar-height} - 24px);
-}
-
-// Karaoke remains the full-bleed picture under a full-screen graph, but its
-// song controls are real UI rather than scenery. When the shared titlebar is
-// kept, reserve that floating bar inside the player content so the song,
-// chords, text-size control and playlist controls begin below it. The stage
-// background still reaches the glass; only its inner content moves.
-.app-workspace.is-app-full.has-top-bar
-  .center-workspace.is-graph-full:has(
-    .workspace-tab-panel--karaoke:not(.is-hidden)
-  ) {
-  .karaoke-workspace__stage.has-song {
-    padding-top: calc(#{$title-bar-height} + clamp(14px, 1.7vh, 20px));
-  }
-
-  .karaoke-playlist {
-    padding-top: calc(#{$title-bar-height} + 10px);
-  }
-
-  .karaoke-playlist__expand {
-    top: calc(#{$title-bar-height} + 12px);
-  }
 }
 
 // The graph with the workspace to itself.
@@ -1891,59 +1881,28 @@ it under the terms of the GNU General Public License version 3 or later.
     .video-browser__bar {
       display: none;
     }
-  }
 
-  // Karaoke is a picture-led player too. Keep its stage behind the graph just
-  // as Media keeps the video, while removing only the editor chrome that would
-  // become unreadable and unreachable through the overlay.
-  &:has(.workspace-tab-panel--karaoke:not(.is-hidden)) {
-    .workspace-tabs,
-    .karaoke-workspace__header,
-    .karaoke-workspace > .karaoke-transport {
-      display: none;
-    }
-
-    .workspace-tab-panel--karaoke {
-      padding: 0;
-      border: none;
-      background: none;
-      box-shadow: none;
-    }
-
-    // Karaoke is the subject, not a backdrop to be frosted. In this mode the
-    // two View sliders act on the graph drawing itself: See through lowers the
-    // wave/axes opacity and Blur softens that drawing, while the lyrics remain
-    // crisp and at their original brightness underneath.
+    // THE PICTURE UNDERNEATH STAYS CLICKABLE.
+    //
+    // This is the one mode where the graph is scenery rather than the subject:
+    // it is drawn over a running video, and the thing somebody wants to press
+    // — play, seek, a link on the page — is behind it. The plot was taking
+    // every one of those clicks and doing nothing with them, which makes a
+    // player that is plainly visible feel dead.
+    //
+    // THE WRAPPER, NOT JUST THE PLOT. Making only `.graph-plot` transparent
+    // was measured and did nothing: the card around it covers the same screen
+    // and was still taking every click itself. The whole graph goes
+    // through-clickable, and the toolbar inside it comes back on its own —
+    // `.live-output-controls` is already `pointer-events: none` with
+    // `auto` on each child, so its buttons keep working while the card and the
+    // drawing behind them do not.
     > .graph-wrapper {
-      backdrop-filter: none;
+      pointer-events: none;
+    }
 
-      &::before {
-        opacity: 0;
-      }
-
-      > .graph-plot {
-        opacity: var(--graph-overlay-opacity, 1);
-        filter: var(--graph-overlay-filter, none);
-      }
-
-      // THIS IS WHAT PUT THE TOOLBAR ALONG THE BOTTOM OF THE WINDOW.
-      //
-      // While it was absolutely positioned, pinning it to `bottom: 12px` was a
-      // reasonable way to keep it off Karaoke's two occupied top corners. It is
-      // a row in the graph's own column now, so pushing it to the bottom edge
-      // would mean offsetting a laid-out element away from where it was placed
-      // — `position: relative` honours these offsets and moves it visually
-      // while leaving its gap behind, which is how a toolbar ends up detached
-      // from the pane it belongs to.
-      //
-      // It sits at the top of the graph pane in every mode now, which is the
-      // same place the Media tab's bar sits and the reason it is worth having
-      // one answer instead of a per-tab one. Karaoke's corners are no longer a
-      // problem to route around because the row is inside the graph rather
-      // than floating over the player.
-      > .live-output-controls {
-        justify-content: flex-end;
-      }
+    > .graph-wrapper .live-output-controls > * {
+      pointer-events: auto;
     }
   }
 

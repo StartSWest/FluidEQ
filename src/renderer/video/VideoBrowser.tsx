@@ -50,6 +50,7 @@ import Switch from '../widgets/Switch';
 import { useTranslation } from '../utils/I18nContext';
 import { useIsAdBlockRevealed } from '../utils/adBlockReveal';
 import { useGraphView } from '../utils/graphStyle';
+import { exitGraphFullScreen } from '../utils/graphViewSettings';
 import VideoSearch from './VideoSearch';
 import VideoSiteIcon from './VideoSiteIcon';
 import '../styles/VideoBrowser.scss';
@@ -677,7 +678,22 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       }
     };
 
-    const handleEnterFullScreen = () => setIsPageFullScreen(true);
+    const handleEnterFullScreen = () => {
+      // THE THIRD FULL-SCREEN STATE, COLLAPSED BACK INTO TWO.
+      //
+      // Letting clicks through to the page — which is what makes a video under
+      // a full-screen graph usable at all — also lets a double-click reach the
+      // player and ask for the page's own HTML full screen. That is a third
+      // mode nothing here manages: the guest covers the graph, the graph is
+      // still mounted and drawing underneath, and two compositing surfaces
+      // fight over the same screen, which is what the stutter is.
+      //
+      // Whichever the user asked for last wins, and here that is the video. So
+      // the graph's mode is dropped rather than layered under it, and what is
+      // left is ordinary page full screen.
+      exitGraphFullScreen();
+      setIsPageFullScreen(true);
+    };
     const handleLeaveFullScreen = () => setIsPageFullScreen(false);
 
     // Nothing may be asked of the guest before this.

@@ -25,6 +25,7 @@ const eq: Partial<Dictionary> = {
   'graph.view.normal': 'Vista',
   'graph.view.expanded': 'Ampliada',
   'graph.view.fullscreen': 'Pantalla completa',
+  'graph.view.exitFullscreen': 'Salir de pantalla completa',
   'graph.view.expand': 'Ampliar vista',
   'graph.showing': 'Mostrando: {content}',
   'graph.contents.everything': 'Todo',

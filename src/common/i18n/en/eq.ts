@@ -23,6 +23,7 @@ const eq = {
   'graph.view.normal': 'View',
   'graph.view.expanded': 'Expanded',
   'graph.view.fullscreen': 'Full screen',
+  'graph.view.exitFullscreen': 'Exit full screen',
   'graph.view.expand': 'Expand view',
   'graph.showing': 'Showing: {content}',
   'graph.contents.everything': 'Everything',

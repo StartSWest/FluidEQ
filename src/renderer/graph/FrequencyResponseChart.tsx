@@ -95,7 +95,7 @@ import {
   useLiveOutputSolo,
   useSelectedLookId,
 } from '../utils/graphStyle';
-import { setChromeHeld } from '../utils/idleChrome';
+import { setChromeHeld, useIsChromeIdle } from '../utils/idleChrome';
 import {
   MAX_OVERLAY_BLUR,
   MIN_OVERLAY_OPACITY,
@@ -542,6 +542,7 @@ const FrequencyResponseChart = ({
     [customLooks, t],
   );
   const isFullScreen = useGraphFullScreen();
+  const isChromeIdle = useIsChromeIdle();
   const hasTopBar = useFullScreenTopBar();
   const overlayOpacity = useOverlayOpacity();
   const overlayBlur = useOverlayBlur();
@@ -1373,11 +1374,7 @@ const FrequencyResponseChart = ({
           elsewhere. Kept unconditional here rather than gated on the mode as
           well, because two things deciding the same question is how they come
           to disagree. */}
-      {/* No idle class any more. The toolbar is a row above the plot rather
-          than a strip lying across it, so it covers nothing and has no reason
-          to hide — see the note beside `.fullscreen-chrome` in GraphTheme.scss
-          for why that overlay still does. */}
-      <div className="live-output-controls">
+      <div className={`live-output-controls${isChromeIdle ? ' is-idle' : ''}`}>
         {/* One pane for the whole right-hand cluster.
 
             The card used to be on the style picker alone, which left the
@@ -1385,6 +1382,24 @@ const FrequencyResponseChart = ({
             on the grid beside it, so half the row had a surface and half did
             not. They belong together: they are all captions and controls for
             the same drawing. */}
+        {/* THE WAY OUT, ON SCREEN RATHER THAN ONLY ON A KEY.
+            Escape has always left this mode and still does, but a full-screen
+            graph over a video hides every other exit — the tab strip is gone
+            and the View menu is a dropdown somebody has to open to discover
+            what it does. First in the row, where a back control belongs. */}
+        {isFullScreen && (
+          <button
+            type="button"
+            className="graph-fullscreen-exit"
+            onClick={exitGraphFullScreen}
+            title={t('graph.view.exitFullscreen')}
+            aria-label={t('graph.view.exitFullscreen')}
+          >
+            <svg viewBox="0 0 16 16" aria-hidden="true">
+              <path d="M10 3.5 5.5 8l4.5 4.5" />
+            </svg>
+          </button>
+        )}
         <span className="graph-legend-group" ref={legendGroup}>
           {/* First in the cluster rather than alone at the left of the strip.
 

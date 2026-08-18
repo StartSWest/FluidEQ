@@ -25,6 +25,7 @@ const eq: Partial<Dictionary> = {
   'graph.view.normal': '视图',
   'graph.view.expanded': '展开',
   'graph.view.fullscreen': '全屏',
+  'graph.view.exitFullscreen': '退出全屏',
   'graph.view.expand': '展开视图',
   'graph.showing': '当前显示：{content}',
   'graph.contents.everything': '全部',

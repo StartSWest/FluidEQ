@@ -308,26 +308,24 @@ const AppContent = () => {
     [activeWorkspaceTab],
   );
   /**
-   * The response graph is not allowed to cover the Karaoke editor.
+   * FULL SCREEN IS FULL SCREEN, ON EVERY TAB INCLUDING THE MAKER.
    *
-   * The player is a thing you watch, so a graph over the top of it is a choice
-   * between two pictures and the user is welcome to make it. The Maker is a
-   * thing you work in — a canvas, a toolbar, a lyric preview and a command
-   * dock, all of which have to stay reachable — and a full-screen graph laid
-   * over that is not a second view of the song, it is the editor gone.
+   * This briefly refused to go full screen at all while the editor was open,
+   * which is the wrong half of the choice: the graph stayed docked under the
+   * Maker as a half-empty pane taking a third of the window, which is worse
+   * than either answer. What is special about the editor is not whether the
+   * graph may fill the screen — it is whether the graph is drawn *through*,
+   * with the surface behind it left visible.
    *
-   * Suppressed rather than switched off, exactly like `isKaraokeFullScreen`
-   * beside it: the graph keeps whatever mode it was in and takes it up again
-   * when the editor closes, so leaving the Maker does not also cost the view
-   * that was set before entering it.
+   * That overlay belongs to the two picture-led tabs, the Karaoke player and
+   * Media, where a translucent graph over a video or a lyric stage is a second
+   * view of the same thing. Over an editor it is two interfaces fighting for
+   * the same pixels. So the overlay is scoped in GraphTheme.scss to exclude a
+   * Maker, and full screen here stays exactly what it is everywhere else.
    */
-  const isGraphOverEditor = isKaraokeTab && isKaraokeMakerOpen;
   /** The window itself is full screen, so the titlebar is not on screen. */
   const isGraphAppFullScreen =
-    graphView === 'fullscreen' &&
-    showsGraph &&
-    !isKaraokeFullScreen &&
-    !isGraphOverEditor;
+    graphView === 'fullscreen' && showsGraph && !isKaraokeFullScreen;
   // Full screen with the top bar kept. Everything below reads this rather than
   // the mode alone, so "full screen" and "full screen with the bar" cannot end
   // up disagreeing about which pieces are on screen.
@@ -1213,10 +1211,7 @@ const AppContent = () => {
         />
         <div
           className={`center-workspace${
-            isGraphFullScreen &&
-            showsGraph &&
-            !isKaraokeFullScreen &&
-            !isGraphOverEditor
+            isGraphFullScreen && showsGraph && !isKaraokeFullScreen
               ? ' is-graph-full'
               : ''
           }${isResizingPanes ? ' is-resizing' : ''}`}
