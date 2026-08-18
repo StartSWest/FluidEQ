@@ -427,9 +427,9 @@ const karaoke = {
   'karaoke.maker.analysisAligned':
     'Aligned untouched words from {count} detected note regions. Manual timing was preserved.',
   'karaoke.maker.analysisFound': 'Analysis found {count} note regions.',
-  'karaoke.maker.basicPitchRunning': 'Running bundled Basic Pitch model',
+  'karaoke.maker.basicPitchRunning': 'Detecting the melody notes',
   'karaoke.maker.basicPitchFound':
-    'Basic Pitch found {count} editable melody notes. A vocal stem gives the cleanest result.',
+    'Found {count} editable melody notes from the voice.',
   'karaoke.maker.whisperPreparing': 'Preparing lyric timing',
   'karaoke.maker.whisperDecoding': 'Decoding audio locally',
   'karaoke.maker.whisperTranscribing': 'Detecting lyric timing',

@@ -440,9 +440,9 @@ const karaoke: Partial<Dictionary> = {
     '{count} regiões de notas detectadas foram alinhadas às palavras não editadas. O tempo manual foi preservado.',
   'karaoke.maker.analysisFound':
     'A análise encontrou {count} regiões de notas.',
-  'karaoke.maker.basicPitchRunning': 'Executando o modelo Basic Pitch incluído',
+  'karaoke.maker.basicPitchRunning': 'Detectando as notas da melodia',
   'karaoke.maker.basicPitchFound':
-    'O Basic Pitch encontrou {count} notas de melodia editáveis. Uma faixa vocal limpa produz o melhor resultado.',
+    '{count} notas de melodia editáveis encontradas a partir da voz.',
   'karaoke.maker.whisperPreparing': 'Preparando o Whisper',
   'karaoke.maker.whisperDecoding': 'Decodificando o áudio localmente',
   'karaoke.maker.whisperTranscribing': 'Transcrevendo localmente',

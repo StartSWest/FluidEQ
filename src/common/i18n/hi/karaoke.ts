@@ -426,9 +426,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.analysisAligned':
     'बिना बदले शब्दों को मिले {count} स्वर क्षेत्रों से मिलाया गया। मैन्युअल समय सुरक्षित रखा गया।',
   'karaoke.maker.analysisFound': 'विश्लेषण में {count} स्वर क्षेत्र मिले।',
-  'karaoke.maker.basicPitchRunning': 'साथ दिया गया Basic Pitch मॉडल चल रहा है',
+  'karaoke.maker.basicPitchRunning': 'मेलोडी नोट्स का पता लगाया जा रहा है',
   'karaoke.maker.basicPitchFound':
-    'Basic Pitch को {count} संपादन योग्य धुन के स्वर मिले। साफ़ वोकल ट्रैक सबसे अच्छा परिणाम देता है।',
+    'आवाज़ से {count} संपादन-योग्य मेलोडी नोट्स मिले।',
   'karaoke.maker.whisperPreparing': 'Whisper तैयार हो रहा है',
   'karaoke.maker.whisperDecoding': 'ऑडियो स्थानीय रूप से डिकोड हो रहा है',
   'karaoke.maker.whisperTranscribing': 'स्थानीय लिप्यंतरण हो रहा है',

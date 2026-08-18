@@ -239,7 +239,7 @@ export const useMakerAnalysisRun = ({
           (note) => note.source !== 'manual',
         ).length;
         reportInfo(
-          `[karaoke][melody] basic-pitch.complete candidates=${notes.length} guideNotes=${generatedNoteCount}`,
+          `[karaoke][melody] melody.complete candidates=${notes.length} guideNotes=${generatedNoteCount}`,
         );
         setNotice(
           t('karaoke.maker.basicPitchFound', { count: generatedNoteCount }),
@@ -254,7 +254,7 @@ export const useMakerAnalysisRun = ({
           throw basicPitchError;
         }
         reportError(
-          '[karaoke][melody] basic-pitch.failed; using local detector',
+          '[karaoke][melody] melody.failed; using local detector',
           basicPitchError,
         );
         setAnalysisMessage(t('karaoke.maker.analysisRunning'));

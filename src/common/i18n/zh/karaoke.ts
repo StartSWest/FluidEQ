@@ -406,9 +406,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.analysisAligned':
     '已将未编辑歌词与 {count} 个检测到的音符区域对齐，并保留手动时间。',
   'karaoke.maker.analysisFound': '分析找到 {count} 个音符区域。',
-  'karaoke.maker.basicPitchRunning': '正在运行内置 Basic Pitch 模型',
+  'karaoke.maker.basicPitchRunning': '正在检测旋律音符',
   'karaoke.maker.basicPitchFound':
-    'Basic Pitch 找到 {count} 个可编辑旋律音符。干净的人声轨可获得最佳结果。',
+    '从人声中检测到 {count} 个可编辑的旋律音符。',
   'karaoke.maker.whisperPreparing': '正在准备 Whisper',
   'karaoke.maker.whisperDecoding': '正在本地解码音频',
   'karaoke.maker.whisperTranscribing': '正在本地转写',

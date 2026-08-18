@@ -436,9 +436,9 @@ const karaoke: Partial<Dictionary> = {
     '未編集の歌詞を検出された {count} 個の音符領域に合わせました。手動タイミングは保持されています。',
   'karaoke.maker.analysisFound':
     '解析で {count} 個の音符領域が見つかりました。',
-  'karaoke.maker.basicPitchRunning': '内蔵 Basic Pitch モデルを実行中',
+  'karaoke.maker.basicPitchRunning': 'メロディーの音符を検出中',
   'karaoke.maker.basicPitchFound':
-    'Basic Pitch が編集可能なメロディー音符を {count} 個検出しました。クリーンなボーカルトラックが最適です。',
+    '歌声から編集可能な音符を{count}個検出しました。',
   'karaoke.maker.whisperPreparing': 'Whisper を準備中',
   'karaoke.maker.whisperDecoding': '音声をローカルでデコード中',
   'karaoke.maker.whisperTranscribing': 'ローカルで文字起こし中',

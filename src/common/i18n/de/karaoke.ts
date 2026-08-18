@@ -445,7 +445,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.basicPitchRunning':
     'Integriertes Basic-Pitch-Modell wird ausgeführt',
   'karaoke.maker.basicPitchFound':
-    'Basic Pitch hat {count} bearbeitbare Melodienoten gefunden. Eine saubere Gesangsspur liefert das beste Ergebnis.',
+    '{count} bearbeitbare Melodienoten aus der Stimme erkannt.',
   'karaoke.maker.whisperPreparing': 'Whisper wird vorbereitet',
   'karaoke.maker.whisperDecoding': 'Audio wird lokal dekodiert',
   'karaoke.maker.whisperTranscribing': 'Lokale Transkription läuft',

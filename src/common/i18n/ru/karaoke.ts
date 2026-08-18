@@ -437,9 +437,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.analysisAligned':
     'Неизменённые слова выровнены по {count} найденным участкам нот. Ручная синхронизация сохранена.',
   'karaoke.maker.analysisFound': 'Анализ обнаружил участки нот: {count}.',
-  'karaoke.maker.basicPitchRunning': 'Запуск встроенной модели Basic Pitch',
+  'karaoke.maker.basicPitchRunning': 'Распознавание нот мелодии',
   'karaoke.maker.basicPitchFound':
-    'Basic Pitch обнаружил редактируемые ноты мелодии: {count}. Чистая вокальная дорожка даёт лучший результат.',
+    'Найдено {count} редактируемых нот мелодии по голосу.',
   'karaoke.maker.whisperPreparing': 'Подготовка Whisper',
   'karaoke.maker.whisperDecoding': 'Локальное декодирование аудио',
   'karaoke.maker.whisperTranscribing': 'Локальное распознавание',
