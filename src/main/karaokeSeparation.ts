@@ -58,6 +58,9 @@ type TOnnxSession = {
 let session: TOnnxSession | undefined;
 let sessionBackend = '';
 let cancelRequested = false;
+
+/** Whether the separation network is resident right now. */
+export const isSeparationLoaded = () => session !== undefined;
 const running = false;
 
 /**

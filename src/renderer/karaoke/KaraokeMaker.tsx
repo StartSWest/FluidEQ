@@ -127,6 +127,9 @@ interface IKaraokeMakerProps {
    */
   vocalLevel?: number;
   onVocalLevel?: (level: number) => void;
+  /** The backing track's own level, master times this. */
+  backingLevel?: number;
+  onBackingLevel?: (level: number) => void;
   stemFocus?: 'backing' | 'voice';
   onFocusStem?: (row: 'backing' | 'voice') => void;
   backingBlend?: number;
@@ -153,6 +156,8 @@ const KaraokeMaker = ({
   vocalLevel,
   onVocalLevel,
   onStems,
+  backingLevel,
+  onBackingLevel,
   stemFocus,
   onFocusStem,
   backingBlend,
@@ -1716,6 +1721,8 @@ const KaraokeMaker = ({
       <KaraokeMakerHeader
         vocalLevel={stemWaveforms ? vocalLevel : undefined}
         onVocalLevel={onVocalLevel}
+        backingLevel={stemWaveforms ? backingLevel : undefined}
+        onBackingLevel={onBackingLevel}
         canRedo={canRedo}
         canUndo={canUndo}
         commit={commit}

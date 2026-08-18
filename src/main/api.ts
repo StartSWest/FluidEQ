@@ -182,6 +182,12 @@ const separateKaraokeVocals = (left: Float32Array, right: Float32Array) =>
     backend: string;
   }>;
 
+const getKaraokeModelStatus = () =>
+  ipcRenderer.invoke('karaoke-models-status') as Promise<{
+    separation: boolean;
+    pitch: boolean;
+  }>;
+
 const releaseKaraokePitchModel = () =>
   ipcRenderer.send('karaoke-pitch-release', []);
 
@@ -284,6 +290,7 @@ export default {
     detectKaraokePitch,
     onKaraokePitchProgress,
     releaseKaraokePitchModel,
+    getKaraokeModelStatus,
     loadKaraokeStems,
     onKaraokeSeparationProgress,
     exportKaraokeMakerFile,

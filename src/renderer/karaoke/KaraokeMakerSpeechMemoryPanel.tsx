@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { useEffect, useState } from 'react';
 import { TranslationKey } from '../../common/i18n';
 import { useTranslation } from '../utils/I18nContext';
 import {
@@ -57,6 +58,36 @@ const KaraokeMakerSpeechMemoryPanel = ({
   onSettingsChange,
 }: IKaraokeMakerSpeechMemoryPanelProps) => {
   const { t } = useTranslation();
+  // Main's sessions are invisible from here, so the panel asks — on mount and
+  // every few seconds while open — and offers one release for everything
+  // resident: the whisper worker plus whatever main is holding.
+  const [nativeInMemory, setNativeInMemory] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    const poll = () => {
+      window.electron?.ipcRenderer
+        .getKaraokeModelStatus?.()
+        .then((status) => {
+          if (!cancelled) {
+            setNativeInMemory(status.separation || status.pitch);
+          }
+          return null;
+        })
+        .catch(() => undefined);
+    };
+    poll();
+    const timer = window.setInterval(poll, 4_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, []);
+  const releaseEverything = () => {
+    window.electron?.ipcRenderer.releaseKaraokeSeparationModel?.();
+    window.electron?.ipcRenderer.releaseKaraokePitchModel?.();
+    setNativeInMemory(false);
+    onRelease();
+  };
 
   return (
     <section className="karaoke-maker__memory-panel">
@@ -67,8 +98,12 @@ const KaraokeMakerSpeechMemoryPanel = ({
         />
         <strong>{t('karaoke.maker.speechMemory')}</strong>
         <em>{t(statusKey)}</em>
-        {session.inMemory && (
-          <button type="button" disabled={session.busy} onClick={onRelease}>
+        {(session.inMemory || nativeInMemory) && (
+          <button
+            type="button"
+            disabled={session.busy}
+            onClick={releaseEverything}
+          >
             {t('karaoke.maker.freeMemory')}
           </button>
         )}

@@ -64,6 +64,9 @@ export interface IKaraokeMakerHeaderProps extends Pick<
    */
   vocalLevel?: number;
   onVocalLevel?: (level: number) => void;
+  /** Backing-track fader beside it; the master volume stays the player's. */
+  backingLevel?: number;
+  onBackingLevel?: (level: number) => void;
   /** What the melody preview plays against, if the song has a melody. */
   makerMelodyTarget: TKaraokePitchTarget | undefined;
 
@@ -88,6 +91,7 @@ const KaraokeMakerHeader = ({
   maximumViewStartMs,
   melodyTone,
   onApply,
+  onBackingLevel,
   onClose,
   onVocalLevel,
   onPause,
@@ -101,14 +105,19 @@ const KaraokeMakerHeader = ({
   setFollowViewport,
   setNotice,
   setViewStartMs,
+  backingLevel,
   undo,
   visualPlayheadMs,
   vocalLevel,
 }: IKaraokeMakerHeaderProps) => {
   const { t } = useTranslation();
   const lastVocalLevelRef = useRef(0.6);
+  const lastBackingLevelRef = useRef(1);
   if (vocalLevel !== undefined && vocalLevel > 0) {
     lastVocalLevelRef.current = vocalLevel;
+  }
+  if (backingLevel !== undefined && backingLevel > 0) {
+    lastBackingLevelRef.current = backingLevel;
   }
   return (
     <header className="karaoke-maker__header">
@@ -261,6 +270,37 @@ const KaraokeMakerHeader = ({
             />
           )}
         </div>
+        {backingLevel !== undefined && onBackingLevel && (
+          <div className="karaoke-maker__tone-guide is-enabled">
+            {/* The backing track's own fader; master stays the player's. */}
+            <button
+              type="button"
+              className="karaoke-maker__transport-control"
+              onClick={() =>
+                onBackingLevel(
+                  backingLevel > 0 ? 0 : lastBackingLevelRef.current,
+                )
+              }
+              aria-pressed={backingLevel > 0}
+              aria-label={t('karaoke.maker.stemBacking')}
+              data-tooltip={`${t('karaoke.maker.stemBacking')} · ${Math.round(
+                backingLevel * 100,
+              )}%`}
+            >
+              <KaraokeMakerToolIcon name="stem" />
+            </button>
+            <input
+              type="range"
+              min={0}
+              max={1}
+              step={0.01}
+              value={backingLevel}
+              aria-label={t('karaoke.maker.stemBacking')}
+              aria-valuetext={`${Math.round(backingLevel * 100)}%`}
+              onChange={(event) => onBackingLevel(Number(event.target.value))}
+            />
+          </div>
+        )}
         {vocalLevel !== undefined && onVocalLevel && (
           <div className="karaoke-maker__tone-guide is-enabled">
             {/*

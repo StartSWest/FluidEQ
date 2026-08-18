@@ -261,6 +261,9 @@ const KaraokeWorkspace = ({
   // starting at none. The models never see any of this; they read files.
   const [stemFocus, setStemFocus] = useState<'backing' | 'voice'>('backing');
   const [backingBlend, setBackingBlend] = useState(0);
+  // The backing track's own fader, master times this. Solo drives it too:
+  // voice solo pulls it to the blend, returning to backing restores it.
+  const [backingLevel, setBackingLevel] = useState(1);
   const vocalBeforeSoloRef = useRef(0);
   const focusStem = useCallback(
     (row: 'backing' | 'voice') => {
@@ -274,17 +277,24 @@ const KaraokeWorkspace = ({
           session.setBackingScale(backingBlend);
         } else {
           setVocalLevel(vocalBeforeSoloRef.current);
-          session.setBackingScale(1);
+          session.setBackingScale(backingLevel);
         }
         return row;
       });
     },
-    [vocalLevel, setVocalLevel, session, backingBlend],
+    [vocalLevel, setVocalLevel, session, backingBlend, backingLevel],
   );
   const changeBackingBlend = useCallback(
     (blend: number) => {
       setBackingBlend(blend);
       session.setBackingScale(blend);
+    },
+    [session],
+  );
+  const changeBackingLevel = useCallback(
+    (level: number) => {
+      setBackingLevel(level);
+      session.setBackingScale(level);
     },
     [session],
   );
@@ -1615,6 +1625,8 @@ const KaraokeWorkspace = ({
             readPlayheadMs={session.readPlayheadMs}
             vocalLevel={canMixVocals ? vocalLevel : undefined}
             onVocalLevel={canMixVocals ? setVocalLevel : undefined}
+            backingLevel={backingLevel}
+            onBackingLevel={changeBackingLevel}
             stemFocus={stemFocus}
             onFocusStem={focusStem}
             backingBlend={backingBlend}

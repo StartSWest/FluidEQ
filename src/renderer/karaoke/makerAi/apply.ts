@@ -69,7 +69,13 @@ export const applyTranscriptAsLyrics = (
     const current = lines[lines.length - 1];
     const previous = index > 0 ? words[index - 1] : undefined;
     const gap = previous ? word.startMs - previous.endMs : 0;
-    if (current.length && (gap > 700 || current.length >= 9)) {
+    // A sentence end is a line end even when the singer barrels straight
+    // into the next phrase: grouping by silence alone kept stealing the next
+    // line's first word onto the previous one's tail.
+    const sentenceEnded = previous
+      ? /[.!?…。？！]$/u.test(previous.text.trim())
+      : false;
+    if (current.length && (sentenceEnded || gap > 700 || current.length >= 9)) {
       lines.push([word]);
     } else {
       current.push(word);

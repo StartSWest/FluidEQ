@@ -9,6 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
 import { separationFft } from '../common/karaoke/separationDsp';
+import { isSeparationLoaded } from './karaokeSeparation';
 
 /**
  * Vocal pitch detection in the main process: RMVPE first, SwiftF0 always.
@@ -287,6 +288,12 @@ export const registerKaraokePitch = () => {
       return runSwift(samples);
     }
   });
+  // What is actually sitting in RAM right now, for the memory panel's
+  // release affordance — the renderer cannot see main's sessions otherwise.
+  ipcMain.handle('karaoke-models-status', () => ({
+    separation: isSeparationLoaded(),
+    pitch: rmvpeSession !== undefined || swiftSession !== undefined,
+  }));
   ipcMain.on('karaoke-pitch-release', () => {
     rmvpeSession = undefined;
     swiftSession = undefined;
