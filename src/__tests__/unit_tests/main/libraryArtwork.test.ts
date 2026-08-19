@@ -56,10 +56,12 @@ describe('caching a cover', () => {
     );
   });
 
-  it('leaves no file at the final path when encoding fails partway', async () => {
-    // A kill or a full disk mid-write must not leave a truncated JPEG sitting
-    // at the exact path every future call treats as "already cached" — that
-    // album's cover would stay broken forever, with nothing to repair it.
+  it('returns undefined and leaves no file when the encoder throws', async () => {
+    // Error-path coverage only: the encoder throws before any write is
+    // attempted, so this cannot tell a temp-then-rename write apart from a
+    // direct one that never got the chance to run. That distinction is
+    // 'writes through a temporary file, never straight to the cached path',
+    // below.
     const dir = tempDir();
     const bytes = new Uint8Array([4, 4, 4]);
     resize.mockImplementationOnce(() => ({
@@ -74,5 +76,32 @@ describe('caching a cover', () => {
       throw new Error('expected artworkPath to resolve for a valid hex id');
     }
     expect(fs.existsSync(target)).toBe(false);
+  });
+
+  it('writes through a temporary file, never straight to the cached path', async () => {
+    // This is the actual atomicity guarantee: a kill or a full disk mid-write
+    // must land its damage on a `.tmp` file nothing looks at, never on the
+    // path every future call trusts as "already cached". Asserting the
+    // mechanism — what path writeFileSync received, what rename moved where
+    // — is what catches a regression to a direct write; asserting only the
+    // end state does not, because a direct write that fully succeeds looks
+    // identical to a safe one that renamed into place.
+    const dir = tempDir();
+    const bytes = new Uint8Array([5, 5, 5]);
+    const writeFileSyncSpy = jest.spyOn(fs, 'writeFileSync');
+    const renameSyncSpy = jest.spyOn(fs, 'renameSync');
+    const id = await storeArtwork(dir, bytes);
+    expect(id).toBeDefined();
+    const target = artworkPath(dir, artworkId(bytes));
+    if (target === undefined) {
+      throw new Error('expected artworkPath to resolve for a valid hex id');
+    }
+    const temporary = `${target}.tmp`;
+    expect(writeFileSyncSpy).toHaveBeenCalledTimes(1);
+    expect(writeFileSyncSpy.mock.calls[0]?.[0]).toBe(temporary);
+    expect(writeFileSyncSpy.mock.calls[0]?.[0]).not.toBe(target);
+    expect(renameSyncSpy).toHaveBeenCalledWith(temporary, target);
+    writeFileSyncSpy.mockRestore();
+    renameSyncSpy.mockRestore();
   });
 });
