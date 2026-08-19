@@ -174,15 +174,16 @@ return to.
 **Local and account-free.** No cloud, no telemetry, no proprietary driver, no
 virtual audio device. Three downloads are worth naming, because being caught out
 by one of them later is worse than the download itself: asking the Karaoke Maker
-to transcribe lyrics fetches a speech-recognition model of around a gigabyte and
-a half, asking it to read a melody fetches a 361 MB pitch model, and asking it
-to split a song into voice and backing fetches a 746 MB separation model. Each
-comes down once, on your press rather than at launch, and the Maker lists what
-is on disk and what is in memory with a button to give the memory back. Your
-audio is not part of any of those requests — the separation, the transcription,
-the timing and the melody analysis all run on your machine. Pasting the words in
-skips the first, bringing your own instrumental skips the last, and a song you
-time by ear fetches nothing at all.
+to transcribe lyrics fetches a speech-recognition model (about 570 MB where your
+graphics card can run it, about 1.1 GB where it cannot), asking it to read a
+melody fetches a 361 MB pitch model, and asking it to split a song into voice
+and backing fetches a 700 MB separation model. Each comes down once, on your
+press rather than at launch, and the Maker lists what is on disk and what is in
+memory with a button to give the memory back. Your audio is not part of any of
+those requests — the separation, the transcription, the timing and the melody
+analysis all run on your machine. Pasting the words in skips the first, bringing
+your own instrumental skips the last, and a song you time by ear fetches nothing
+at all.
 
 ## The config is the source of truth
 
