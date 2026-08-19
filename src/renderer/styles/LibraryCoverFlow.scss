@@ -96,6 +96,7 @@ $library-coverflow-cover: 160px;
 }
 
 .library-coverflow__art {
+  position: relative;
   display: block;
   width: 100%;
   // Chromium's own reflection, not a second rendered copy: the compositor

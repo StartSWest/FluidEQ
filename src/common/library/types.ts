@@ -61,11 +61,20 @@ export interface ILibraryTrack {
   addedAt: number;
   /** Tags could not be read; the row still exists and still plays. */
   hasMetadataError?: boolean;
+  /** This file has been found by a directory walk but its tags have not been
+   * read yet -- `title` is a cleaned file name rather than a tag, `album` (if
+   * set at all) is a folder-name guess rather than a fact, and every other
+   * tag field is genuinely unknown, not blank. Cleared the moment a scan's
+   * second phase resolves this same id, whether or not it finds real tags --
+   * never set back to `true` once cleared, since that would mean an already
+   * -read file forgot what it learned. */
+  isPending?: boolean;
 }
 
 export type TLibraryBrowseMode = 'album' | 'artist' | 'song' | 'video';
 export type TLibraryViewMode = 'list' | 'grid' | 'coverflow';
 export type TLibrarySort = 'title' | 'artist' | 'album' | 'year' | 'added';
+export type TLibrarySortDirection = 'asc' | 'desc';
 
 export interface ILibraryScanProgress {
   rootId: string;

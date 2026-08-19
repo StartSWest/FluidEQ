@@ -22,7 +22,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * artwork -- just directory listings, name filtering, and the karaoke `.txt`
  * content check, which needs directory context anyway and is one small text
  * read per distinct sibling name rather than per file. Cheap next to what
- * `libraryScanParse.ts` does with each candidate.
+ * `libraryScanParse.ts` does with each candidate. The one exception is
+ * `buildProvisionalTrack`'s own `stat` call, made only for a file this walk
+ * is about to publish as provisional -- still nowhere near a tag or an
+ * artwork read.
  *
  * This is what makes phase two's progress honest: by the time `parseCandidates`
  * starts, `IDiscoverState.seen` is `candidates.length` and will never move
@@ -30,6 +33,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * moving target. See `libraryScanner.ts` for how the two phases are joined.
  */
 
+import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import {
@@ -37,9 +41,11 @@ import {
   ILibraryTrack,
 } from '../../common/library/types';
 import {
+  isLibraryPlayable,
   isUltraStarText,
   karaokeLyricCandidates,
   libraryFileKind,
+  libraryTitleFromFileName,
 } from '../../common/library/files';
 
 /** Everything a directory walk shares between discovery and parsing. */
@@ -48,8 +54,11 @@ export interface IWalkContext {
   userDataDir: string;
   knownByPath: Map<string, ILibraryTrack>;
   onProgress: (progress: ILibraryScanProgress) => void;
-  /** Phase two only -- see `parseCandidates`' batching in libraryScanParse.ts.
-   * Undefined for a caller that only wants the final result. */
+  /** Called by both phases: discovery publishes provisional rows for newly
+   * found files (see `discoverDirectory`'s own comment), and phase two
+   * republishes the same ids once resolved (`parseCandidates`' batching in
+   * `libraryScanParse.ts`). Undefined for a caller that only wants the final
+   * result. */
   onTracks?: (tracks: readonly ILibraryTrack[]) => void;
   isCancelled: () => boolean;
 }
@@ -151,6 +160,69 @@ export interface IDiscoverState {
   cancelled: boolean;
 }
 
+/** Sha1 of the lowercased absolute path, truncated to 16 hex characters.
+ * Lives here, not in `libraryScanParse.ts`, so both phases can use the same
+ * id without either importing the other -- phase two already imports from
+ * this file, and a track's identity is really a phase-one fact (it only ever
+ * needs the path) rather than something parsing itself decides. */
+export const trackIdForPath = (filePath: string): string =>
+  crypto
+    .createHash('sha1')
+    .update(filePath.toLowerCase())
+    .digest('hex')
+    .slice(0, 16);
+
+/**
+ * A stand-in for a file discovery has found but parsing has not reached yet
+ * -- real identity and filesystem facts, no tags, no duration, no `artId`;
+ * see `ILibraryTrack.isPending`'s own doc for exactly what the flag promises.
+ *
+ * Stats the file itself, which is otherwise the one thing this module never
+ * does -- the rest of phase one is directory listings, name filtering and the
+ * karaoke text check, all cheaper than opening a media file's own bytes. A
+ * stat is a single cheap syscall next to that, and `sizeBytes`/`mtimeMs` are
+ * what a row needs to show at all before phase two ever reaches it.
+ *
+ * `album` is read from the file's immediate parent folder name -- the one
+ * honest signal available before a single tag has been read, and how music
+ * is actually organised on disk (see `discoverDirectory`'s own comment on
+ * why this is expected to reshuffle once real tags arrive).
+ *
+ * Returns `undefined` if the file cannot be stat'd -- the same tolerance
+ * `parseCandidate` in `libraryScanParse.ts` already has for a file that
+ * vanishes between one pass over the tree and the next, so a file gone before
+ * parsing even started never produces a phantom row.
+ */
+export const buildProvisionalTrack = async (
+  candidate: ICandidateFile,
+  rootId: string,
+): Promise<ILibraryTrack | undefined> => {
+  let stats: fs.Stats;
+  try {
+    stats = await fs.promises.stat(candidate.filePath);
+  } catch (error) {
+    // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+    console.error(
+      `Could not stat ${candidate.filePath} for a provisional row`,
+      error,
+    );
+    return undefined;
+  }
+  return {
+    id: trackIdForPath(candidate.filePath),
+    rootId,
+    path: candidate.filePath,
+    kind: candidate.kind,
+    isPlayable: isLibraryPlayable(candidate.name),
+    title: libraryTitleFromFileName(candidate.name),
+    album: path.basename(candidate.dir) || undefined,
+    sizeBytes: stats.size,
+    mtimeMs: stats.mtimeMs,
+    addedAt: Date.now(),
+    isPending: true,
+  };
+};
+
 interface IListedDirectory {
   subdirectories: string[];
   fileEntries: fs.Dirent[];
@@ -242,6 +314,7 @@ export const discoverDirectory = async (
     fileNames,
     textCache: new Map<string, boolean>(),
   };
+  const candidatesBeforeThisDirectory = state.candidates.length;
 
   for (let index = 0; index < fileEntries.length; index += 1) {
     const entry = fileEntries[index];
@@ -273,6 +346,45 @@ export const discoverDirectory = async (
         { seen: state.seen, parsed: 0, karaokeSkipped: state.karaokeSkipped },
         path.basename(dir),
       );
+    }
+  }
+
+  // Phase one's own contribution to what the renderer shows before phase two
+  // ever runs: every real file this directory just proved exists, published
+  // once this directory's own listing is done rather than held back until
+  // the whole tree has been walked. Flushed per directory rather than per
+  // file (one IPC message per candidate, on top of phase two's own batches,
+  // would flood the channel exactly as that module's own comment already
+  // explains) and rather than once for the whole walk (which would mean
+  // waiting for a multi-hour scan before anything provisional ever appears,
+  // defeating the point of publishing early at all). A directory is also the
+  // natural unit an album lives in on disk, so one flush reads as a whole
+  // provisional album arriving at once instead of trickling in file by file.
+  //
+  // A candidate whose path is already known is left out on purpose: a
+  // rescan's `known` list already holds whatever that path last resolved to
+  // -- parsed, or still pending from a previous scan that never got back to
+  // it -- and publishing a fresh provisional over an already-established
+  // track would flip it back to dimmed on every ordinary rescan, which is
+  // exactly the flicker this feature must not cause. `scanOneRoot`'s
+  // incremental merge (`src/main/ipc/library.ts`) only ever replaces a track
+  // that appears in an incoming batch, so a known track this batch never
+  // mentions is simply left exactly as it already was.
+  if (context.onTracks) {
+    const newCandidates = state.candidates
+      .slice(candidatesBeforeThisDirectory)
+      .filter((candidate) => !context.knownByPath.has(candidate.filePath));
+    if (newCandidates.length > 0) {
+      const provisional = (
+        await Promise.all(
+          newCandidates.map((candidate) =>
+            buildProvisionalTrack(candidate, context.rootId),
+          ),
+        )
+      ).filter((track): track is ILibraryTrack => track !== undefined);
+      if (provisional.length > 0) {
+        context.onTracks(provisional);
+      }
     }
   }
 

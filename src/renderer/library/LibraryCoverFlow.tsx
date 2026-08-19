@@ -31,6 +31,7 @@ import {
 } from '../../common/library/grouping';
 import { ILibraryTrack, TLibraryBrowseMode } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
+import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
 import '../styles/LibraryCoverFlow.scss';
 
@@ -116,6 +117,10 @@ interface ICoverFlowItem {
   title: string;
   artistName: string;
   albumCount?: number;
+  /** A song cover: the track itself. An album or artist cover: true only
+   * while every track currently grouped into it is still unread — see
+   * `groupIntoAlbums`'/`groupIntoArtists`' own comments. */
+  isPending: boolean;
 }
 
 const clampIndex = (index: number, length: number): number => {
@@ -169,6 +174,7 @@ const LibraryCoverFlow = ({
         artId: album.artId,
         title: album.title,
         artistName: album.artist,
+        isPending: album.isPending,
       }));
     }
     if (browseMode === 'artist') {
@@ -178,6 +184,7 @@ const LibraryCoverFlow = ({
         title: artist.name,
         artistName: '',
         albumCount: artist.albumCount,
+        isPending: artist.isPending,
       }));
     }
     // 'song', and any browse mode this view does not know about yet — the
@@ -187,6 +194,7 @@ const LibraryCoverFlow = ({
       artId: track.artId,
       title: track.title,
       artistName: track.artist ?? '',
+      isPending: track.isPending === true,
     }));
   }, [tracks, browseMode]);
 
@@ -426,7 +434,7 @@ const LibraryCoverFlow = ({
                 id={optionId(item.id)}
                 role="option"
                 aria-selected={isCentre}
-                className={`library-coverflow__cover${isCentre ? ' is-centre' : ''}`}
+                className={`library-coverflow__cover${isCentre ? ' is-centre' : ''}${item.isPending ? ' library-coverflow__cover--pending' : ''}`}
                 style={{ transform: coverFlowTransform(index - currentIndex) }}
                 onClick={() => onCoverClick(index)}
               >
@@ -436,6 +444,20 @@ const LibraryCoverFlow = ({
                     label={title}
                     size="cover"
                   />
+                  {/* Same restraint as `LibraryListView`'s pending badge:
+                      information, not a problem, so it draws quiet rather
+                      than alarmed. */}
+                  {item.isPending && (
+                    <span
+                      className="library-grid__badge--pending"
+                      title={t('library.pending')}
+                    >
+                      <MenuIcon
+                        name="pending"
+                        className="library-list__badge-icon"
+                      />
+                    </span>
+                  )}
                 </span>
                 <span className="library-coverflow__title">{title}</span>
                 <small className="library-coverflow__subtitle">

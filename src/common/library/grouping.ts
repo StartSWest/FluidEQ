@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { ILibraryTrack, TLibrarySort } from './types';
+import { ILibraryTrack, TLibrarySort, TLibrarySortDirection } from './types';
 
 export interface ILibraryAlbum {
   id: string;
@@ -27,6 +27,12 @@ export interface ILibraryAlbum {
   /** In disc, then track, then title order. */
   trackIds: string[];
   durationMs: number;
+  /** True only while every track in this grouping is still `isPending` — the
+   * whole album is a folder-name guess with not one tagged track in it yet.
+   * The moment a single member resolves, the group stops being provisional
+   * even though other members may not have caught up; it already has a real
+   * fact in it, which a folder guess alone never did. */
+  isPending: boolean;
 }
 
 export interface ILibraryArtist {
@@ -35,6 +41,9 @@ export interface ILibraryArtist {
   albumCount: number;
   trackCount: number;
   artId?: string;
+  /** Same rule as `ILibraryAlbum.isPending`: true only while every track
+   * grouped under this artist is still unread. */
+  isPending: boolean;
 }
 
 // Combining Diacritical Marks block: every accent `NFKD` can split a base
@@ -119,6 +128,7 @@ export const groupIntoAlbums = (
         (total, entry) => total + (entry.durationMs ?? 0),
         0,
       ),
+      isPending: ordered.every((entry) => entry.isPending === true),
     };
   });
 };
@@ -128,7 +138,13 @@ export const groupIntoArtists = (
 ): ILibraryArtist[] => {
   const grouped = new Map<
     string,
-    { name: string; albums: Set<string>; tracks: number; artId?: string }
+    {
+      name: string;
+      albums: Set<string>;
+      tracks: number;
+      artId?: string;
+      isPending: boolean;
+    }
   >();
   tracks.forEach((track) => {
     const name = track.albumArtist ?? track.artist ?? '';
@@ -138,12 +154,14 @@ export const groupIntoArtists = (
       existing.albums.add(normalizeForSearch(album(track)));
       existing.tracks += 1;
       existing.artId = existing.artId ?? track.artId;
+      existing.isPending = existing.isPending && track.isPending === true;
     } else {
       grouped.set(id, {
         name,
         albums: new Set([normalizeForSearch(album(track))]),
         tracks: 1,
         artId: track.artId,
+        isPending: track.isPending === true,
       });
     }
   });
@@ -152,6 +170,7 @@ export const groupIntoArtists = (
     name: entry.name,
     albumCount: entry.albums.size,
     trackCount: entry.tracks,
+    isPending: entry.isPending,
     artId: entry.artId,
   }));
 };
@@ -173,9 +192,19 @@ export const searchTracks = (
   );
 };
 
+/**
+ * Ascending unless asked otherwise.
+ *
+ * `'added'` reads newest-first when ascending, because "recently added" is the
+ * only sort whose plain-language name already implies its direction — asking
+ * for it and getting the oldest file first would be the surprising answer.
+ * Reversing it therefore gives oldest-first, which is what a second click on
+ * that column should do.
+ */
 export const sortTracks = (
   tracks: readonly ILibraryTrack[],
   sort: TLibrarySort,
+  direction: TLibrarySortDirection = 'asc',
 ): ILibraryTrack[] => {
   const compare = (left: ILibraryTrack, right: ILibraryTrack): number => {
     if (sort === 'artist') {
@@ -198,5 +227,6 @@ export const sortTracks = (
     }
     return left.title.localeCompare(right.title);
   };
-  return [...tracks].sort(compare);
+  const sorted = [...tracks].sort(compare);
+  return direction === 'desc' ? sorted.reverse() : sorted;
 };

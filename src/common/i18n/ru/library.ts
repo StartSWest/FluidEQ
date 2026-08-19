@@ -79,6 +79,7 @@ const library: Partial<Dictionary> = {
 
   'library.unplayable': 'FluidEQ не может воспроизвести этот формат',
   'library.metadataError': 'FluidEQ не смог прочитать теги этого файла.',
+  'library.pending': 'Этот файл найден, и его данные ещё считываются.',
   'library.indexReset':
     'Индекс библиотеки не удалось прочитать, и он был перестроен.',
 

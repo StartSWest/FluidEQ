@@ -21,15 +21,22 @@ import {
   ILibraryTrack,
 } from '../../common/library/types';
 import {
+  buildProvisionalTrack,
   discoverDirectory,
   IDiscoverState,
   IWalkContext,
 } from './libraryScanDiscovery';
-import { IParseState, parseCandidates } from './libraryScanParse';
+import {
+  IParseOutcome,
+  IParseState,
+  parseCandidates,
+} from './libraryScanParse';
 
 // Re-exported so nothing downstream has to know the scan is split across
-// three files -- `shouldReparse` and `trackIdForPath` are actually defined
-// in `libraryScanParse.ts`, next to the only code that uses them.
+// three files -- `shouldReparse` is defined in `libraryScanParse.ts`, next to
+// the only code that uses it; `trackIdForPath` is defined in
+// `libraryScanDiscovery.ts` (see that file's own comment on why) and
+// re-exported through `libraryScanParse.ts` in turn.
 export { shouldReparse, trackIdForPath } from './libraryScanParse';
 
 export interface IScanOptions {
@@ -38,12 +45,17 @@ export interface IScanOptions {
   userDataDir: string;
   known: readonly ILibraryTrack[];
   onProgress: (progress: ILibraryScanProgress) => void;
-  /** Called during phase two with a batch of newly-resolved tracks -- both
-   * freshly parsed ones and known ones carried forward unchanged -- so a
-   * caller can publish partial results while the walk is still running. See
-   * `parseCandidates` in libraryScanParse.ts for the batching rule. A batch
-   * is never a duplicate of one already sent for this call: each candidate
-   * contributes to at most one batch. */
+  /** Called by both phases with a batch of tracks, so a caller can publish
+   * partial results while the walk is still running: phase one
+   * (`discoverDirectory` in libraryScanDiscovery.ts) with provisional rows
+   * for newly found files, `isPending: true`, flushed once per directory;
+   * phase two (`parseCandidates` in libraryScanParse.ts) with the same ids
+   * once resolved -- freshly parsed tracks and known ones carried forward
+   * unchanged alike, `isPending` unset either way -- batched by size or time,
+   * whichever comes first. A caller that upserts by id, as `scanOneRoot` in
+   * `src/main/ipc/library.ts` does, sees a provisional row replaced in place
+   * by its resolved self; nothing here sends the same id twice within one
+   * phase. */
   onTracks?: (tracks: readonly ILibraryTrack[]) => void;
   isCancelled: () => boolean;
 }
@@ -80,12 +92,18 @@ export interface IScanResult {
  * already covers.
  *
  * A candidate discovery found but parsing never reached, with no known track
- * behind it, is correctly absent either way: it is a new file the scan did
- * not get to, and the next scan will find it. Without this, `scanOneRoot` in
- * `src/main/ipc/library.ts` -- which replaces a root's tracks with this
- * result wholesale rather than merging it -- would read a cancelled rescan
- * as "these are the only tracks left" and delete everything this run had not
- * yet revisited, even files that had not changed at all.
+ * behind it, is a genuinely new file -- one this run itself proved exists,
+ * even though it never got as far as reading its tags. It is not dropped:
+ * carried into the result as the same provisional shape
+ * `discoverDirectory`'s own per-directory publish already showed the
+ * renderer live during the walk (see `buildProvisionalTrack` in
+ * `libraryScanDiscovery.ts`), so a cancel never contradicts what was already
+ * on screen a moment before Stop was pressed. Without either half of this --
+ * the known tracks kept above, or the provisional ones kept here --
+ * `scanOneRoot` in `src/main/ipc/library.ts`, which replaces a root's tracks
+ * with this result wholesale rather than merging it, would read a cancelled
+ * rescan as "these are the only tracks left" and delete everything this run
+ * had not yet revisited or confirmed, even files that had not changed at all.
  */
 export const scanLibraryRoot = async (
   options: IScanOptions,
@@ -111,10 +129,15 @@ export const scanLibraryRoot = async (
   await discoverDirectory(options.rootPath, context, discovered);
 
   const parseState: IParseState = { tracks: [], parsed: 0 };
-  const cancelledDuringParse = discovered.cancelled
-    ? false
+  // Discovery cancelling before parsing ever starts is the same "reached
+  // nothing" outcome parseCandidates itself reports when it is asked to stop
+  // before its own first iteration -- stated as a literal here rather than a
+  // call, since parseCandidates cannot run at all once there is no walk left
+  // to hand it.
+  const parseOutcome: IParseOutcome = discovered.cancelled
+    ? { wasCancelled: false, reachedCount: 0 }
     : await parseCandidates(context, discovered, parseState);
-  const wasCancelled = discovered.cancelled || cancelledDuringParse;
+  const wasCancelled = discovered.cancelled || parseOutcome.wasCancelled;
 
   options.onProgress({
     rootId: options.rootId,
@@ -128,7 +151,38 @@ export const scanLibraryRoot = async (
   const unconfirmedKnown = wasCancelled
     ? options.known.filter((track) => !parsedPaths.has(track.path))
     : [];
-  const tracks = [...parseState.tracks, ...unconfirmedKnown];
+
+  // A cancel can also stop before parsing ever reached a file discovery had
+  // already found and published nothing about before -- a genuinely new file,
+  // not one of the previously-known paths `unconfirmedKnown` above already
+  // carries forward. Dropping it here would lose the one fact this run
+  // actually established: the file exists. Rebuilt straight from
+  // `discovered.candidates` -- the same source `discoverDirectory`'s own
+  // per-directory publish reads from -- rather than trusted to whatever
+  // `onTracks` batches happened to reach the renderer, since a directory's
+  // batch is only sent once that whole directory's listing finishes and a
+  // cancel can land inside one. Filtered by `knownByPath` for the same reason
+  // `discoverDirectory`'s own publish is: a path already known is already
+  // covered by `unconfirmedKnown`, in full, and must not gain a second,
+  // lesser entry beside it.
+  const unreachedNewCandidates = wasCancelled
+    ? discovered.candidates
+        .slice(parseOutcome.reachedCount)
+        .filter((candidate) => !knownByPath.has(candidate.filePath))
+    : [];
+  const provisionalCarriedForward = (
+    await Promise.all(
+      unreachedNewCandidates.map((candidate) =>
+        buildProvisionalTrack(candidate, options.rootId),
+      ),
+    )
+  ).filter((track): track is ILibraryTrack => track !== undefined);
+
+  const tracks = [
+    ...parseState.tracks,
+    ...unconfirmedKnown,
+    ...provisionalCarriedForward,
+  ];
 
   return {
     tracks,

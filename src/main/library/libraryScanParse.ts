@@ -24,7 +24,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * final candidate, with no clamp needed to keep it from moving backwards.
  */
 
-import crypto from 'crypto';
 import fs from 'fs';
 import path from 'path';
 import { ILibraryTrack } from '../../common/library/types';
@@ -39,15 +38,14 @@ import {
   IDiscoverState,
   IWalkContext,
   reportProgress,
+  trackIdForPath,
 } from './libraryScanDiscovery';
 
-/** Sha1 of the lowercased absolute path, truncated to 16 hex characters. */
-export const trackIdForPath = (filePath: string): string =>
-  crypto
-    .createHash('sha1')
-    .update(filePath.toLowerCase())
-    .digest('hex')
-    .slice(0, 16);
+// Defined in `libraryScanDiscovery.ts`, re-exported from here so nothing
+// downstream (`libraryScanner.ts`'s own re-export, every test that imports
+// it) has to know it moved -- see that module's own comment for why a
+// track's id lives with phase one rather than with parsing.
+export { trackIdForPath };
 
 /**
  * The whole of the incremental rescan: a file is re-read only when its size
@@ -230,6 +228,19 @@ const parseCandidate = async (
   state.parsed += 1;
 };
 
+export interface IParseOutcome {
+  wasCancelled: boolean;
+  /** How many of `discovered.candidates`, in order, this call actually got
+   * to -- "got to" meaning `parseCandidate` ran for it, successfully or not,
+   * never that every one of them produced a track (a stat failure reaches a
+   * candidate and still adds nothing; see `parseCandidate`'s own comment).
+   * Equal to `discovered.candidates.length` on a normal finish. `scanLibraryRoot`
+   * uses this to know which trailing candidates a cancel left completely
+   * untouched -- see its own comment on why that matters for a provisional
+   * row. */
+  reachedCount: number;
+}
+
 /**
  * Parses every candidate discovery collected, in the order they were found.
  *
@@ -241,14 +252,12 @@ const parseCandidate = async (
  * comes first, and whatever remains unpublished is flushed once more before
  * this returns -- on a normal finish, on cancellation, or if a scan turns
  * out to have no candidates at all.
- *
- * Returns whether a cancellation was seen partway through.
  */
 export const parseCandidates = async (
   context: IWalkContext,
   discovered: IDiscoverState,
   state: IParseState,
-): Promise<boolean> => {
+): Promise<IParseOutcome> => {
   const folderArtByDir = new Map<string, IFolderArtCache>();
   let pendingBatch: ILibraryTrack[] = [];
   let batchStartedAt = Date.now();
@@ -263,7 +272,7 @@ export const parseCandidates = async (
   for (let index = 0; index < discovered.candidates.length; index += 1) {
     if (context.isCancelled()) {
       flushBatch();
-      return true;
+      return { wasCancelled: true, reachedCount: index };
     }
     const candidate = discovered.candidates[index];
     const tracksBefore = state.tracks.length;
@@ -291,5 +300,5 @@ export const parseCandidates = async (
     );
   }
   flushBatch();
-  return false;
+  return { wasCancelled: false, reachedCount: discovered.candidates.length };
 };

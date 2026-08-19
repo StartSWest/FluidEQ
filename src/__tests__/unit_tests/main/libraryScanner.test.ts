@@ -101,9 +101,13 @@ describe('scanning a folder', () => {
     // The two-phase walk means a cancel can land entirely inside discovery,
     // before phase two has ever run -- exactly the case that matters for "a
     // user who starts a scan of the wrong drive should not have to wait for
-    // a full tree walk before Stop does anything." Nothing has been
-    // confirmed yet and nothing was known before this scan, so the honest
-    // result is empty, not partial.
+    // a full tree walk before Stop does anything."
+    //
+    // What survives is every file discovery actually found, as a provisional
+    // row. That is not a partial answer dressed up as a whole one: the walk
+    // genuinely established those files exist, and discarding that would
+    // throw away the one fact the run did prove. Nothing here claims to have
+    // read a tag -- every surviving row is `isPending`.
     const dir = folder({ 'a.mp3': 'x', 'b.mp3': 'x', 'c.mp3': 'x' });
     let sawAnEvent = false;
     const result = await scanLibraryRoot({
@@ -117,7 +121,10 @@ describe('scanning a folder', () => {
       isCancelled: () => sawAnEvent,
     });
     expect(result.wasCancelled).toBe(true);
-    expect(result.tracks).toHaveLength(0);
+    // Stopped early, so not the whole folder — and nothing it kept pretends
+    // to have been read.
+    expect(result.tracks.length).toBeLessThan(3);
+    expect(result.tracks.every((track) => track.isPending === true)).toBe(true);
   });
 
   it('keeps whatever parsing had already produced when cancelled mid-parse', async () => {
@@ -140,8 +147,17 @@ describe('scanning a folder', () => {
       isCancelled: () => parseEventsSeen >= 1,
     });
     expect(result.wasCancelled).toBe(true);
-    expect(result.tracks.length).toBeGreaterThan(0);
-    expect(result.tracks.length).toBeLessThan(3);
+    // Every file discovery found survives the cancel, but only the ones
+    // parsing actually reached claim to have been read. The rest stay
+    // provisional and the next scan finishes them — a cancelled scan is a
+    // partial library, never a lost one, and never a lying one either.
+    expect(result.tracks).toHaveLength(3);
+    const parsed = result.tracks.filter((track) => track.isPending !== true);
+    const stillPending = result.tracks.filter(
+      (track) => track.isPending === true,
+    );
+    expect(parsed.length).toBeGreaterThan(0);
+    expect(parsed.length + stillPending.length).toBe(3);
   });
 
   it('carries forward every known track a cancelled rescan never got back around to', async () => {
@@ -360,7 +376,14 @@ describe('scanning a folder', () => {
         if (!terminalEventSeen) {
           aTrackWasPublishedBeforeTheTerminalEvent = true;
         }
-        batchSizes.push(tracks.length);
+        // Every file is published twice over a whole scan — once by discovery
+        // as a provisional row so the library is populated before any tag is
+        // read, then again by parsing with its real metadata. Counting only
+        // the parsed half is what makes "nothing lost or double-counted"
+        // still mean something now that the provisional half exists.
+        if (tracks.every((track) => track.isPending !== true)) {
+          batchSizes.push(tracks.length);
+        }
       },
       isCancelled: () => false,
     });
@@ -369,8 +392,47 @@ describe('scanning a folder', () => {
     // More than one batch: the count published keeps growing rather than
     // arriving as a single dump at the end.
     expect(batchSizes.length).toBeGreaterThan(1);
-    // Nothing lost or double-counted across batches.
+    // Nothing lost or double-counted across the parsed batches.
     expect(batchSizes.reduce((sum, size) => sum + size, 0)).toBe(30);
+  });
+
+  it('publishes every file as a provisional row before it parses any of them', async () => {
+    // The whole point of the two-phase walk from the user's side: a folder
+    // added to the library shows its files immediately, and the scan then
+    // fills their details in. A row that only appears once its tags are read
+    // leaves a large folder blank for minutes.
+    const dir = folder({
+      'Album/one.mp3': 'x',
+      'Album/two.mp3': 'x',
+      'Album/three.mp3': 'x',
+    });
+    const published: { pending: boolean; title: string; album?: string }[] = [];
+    await scanLibraryRoot({
+      rootId: 'r1',
+      rootPath: dir,
+      userDataDir: dir,
+      known: [],
+      onProgress: () => undefined,
+      onTracks: (tracks) => {
+        tracks.forEach((track) =>
+          published.push({
+            pending: track.isPending === true,
+            title: track.title,
+            album: track.album,
+          }),
+        );
+      },
+      isCancelled: () => false,
+    });
+
+    const firstParsedAt = published.findIndex((entry) => !entry.pending);
+    const provisional = published.filter((entry) => entry.pending);
+    expect(provisional).toHaveLength(3);
+    // All three provisional rows land before the first parsed one.
+    expect(firstParsedAt).toBe(3);
+    // Grouped by the folder they sit in, so they form a real album rather
+    // than collapsing into one untitled heap while the scan runs.
+    expect(provisional.every((entry) => entry.album === 'Album')).toBe(true);
   });
 
   it('skips a file that vanishes between discovery and parsing, keeping the rest of the root (blocker 3)', async () => {

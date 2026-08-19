@@ -77,6 +77,8 @@ const library = {
 
   'library.unplayable': 'FluidEQ cannot play this format',
   'library.metadataError': "FluidEQ could not read this file's tags.",
+  'library.pending':
+    'This file has been found and its details are still being read.',
   'library.indexReset':
     'The library index could not be read and has been rebuilt.',
 

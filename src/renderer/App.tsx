@@ -346,11 +346,17 @@ const AppContent = () => {
   // it because the tab is a surface for looking at album art, not at a
   // spectrum; every other workspace inherits the legacy graph preference until
   // the user chooses differently.
+  // Library is the one tab that refuses the graph outright rather than merely
+  // defaulting away from it. The graph brings a toolbar with it — the drag
+  // hint, the four curve legends, the view picker — and on a tab whose whole
+  // job is showing album art above its own transport bar, that row is chrome
+  // for a feature the surface does not use. A stored `true` from an earlier
+  // session must not be able to bring it back.
   const showsGraph =
-    graphVisibilityByTab?.[activeWorkspaceTab] ??
-    (activeWorkspaceTab === 'karaoke' || activeWorkspaceTab === 'library'
+    activeWorkspaceTab === 'library'
       ? false
-      : isGraphViewOn);
+      : (graphVisibilityByTab?.[activeWorkspaceTab] ??
+        (activeWorkspaceTab === 'karaoke' ? false : isGraphViewOn));
   const setActiveTabGraphVisibility = useCallback(
     (next: boolean) => {
       setGraphVisibilityByTab((current) => ({

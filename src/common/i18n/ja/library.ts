@@ -80,6 +80,8 @@ const library: Partial<Dictionary> = {
   'library.unplayable': 'FluidEQ はこの形式を再生できません',
   'library.metadataError':
     'FluidEQ はこのファイルのタグを読み取れませんでした。',
+  'library.pending':
+    'このファイルは見つかりましたが、詳細情報はまだ読み込み中です。',
   'library.indexReset':
     'ライブラリの索引を読み込めなかったため、再構築しました。',
 

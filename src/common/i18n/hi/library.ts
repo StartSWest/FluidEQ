@@ -79,6 +79,7 @@ const library: Partial<Dictionary> = {
 
   'library.unplayable': 'FluidEQ यह प्रारूप नहीं चला सकता',
   'library.metadataError': 'FluidEQ इस फ़ाइल के टैग नहीं पढ़ सका।',
+  'library.pending': 'यह फ़ाइल मिल गई है और उसका विवरण अभी भी पढ़ा जा रहा है।',
   'library.indexReset':
     'लाइब्रेरी इंडेक्स पढ़ा नहीं जा सका और उसे फिर से बनाया गया है।',
 

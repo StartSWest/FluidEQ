@@ -23,6 +23,7 @@ import {
 } from '../../common/library/grouping';
 import { ILibraryTrack, TLibraryBrowseMode } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
+import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
 
 interface ILibraryGridViewProps {
@@ -58,6 +59,10 @@ interface IGridItem {
   /** Only ever set for a song tile — an album or artist has no single root
    * of its own to dim by. */
   rootId?: string;
+  /** A song tile: the track itself. An album or artist tile: true only
+   * while every track currently grouped into it is still unread — see
+   * `groupIntoAlbums`'/`groupIntoArtists`' own comments. */
+  isPending: boolean;
 }
 
 /**
@@ -98,6 +103,7 @@ const LibraryGridView = ({
         artId: album.artId,
         title: album.title,
         artistName: album.artist,
+        isPending: album.isPending,
       }));
     }
     if (browseMode === 'artist') {
@@ -107,6 +113,7 @@ const LibraryGridView = ({
         title: artist.name,
         artistName: '',
         albumCount: artist.albumCount,
+        isPending: artist.isPending,
       }));
     }
     // 'song', and any browse mode this view does not know about yet — the
@@ -118,6 +125,7 @@ const LibraryGridView = ({
       title: track.title,
       artistName: track.artist ?? '',
       rootId: track.rootId,
+      isPending: track.isPending === true,
     }));
   }, [tracks, browseMode]);
 
@@ -172,15 +180,38 @@ const LibraryGridView = ({
         const isOffline = Boolean(
           item.rootId && offlineRootIds.has(item.rootId),
         );
+        const tileClassName = [
+          'library-grid__tile',
+          isOffline ? 'library-grid__tile--offline' : '',
+          item.isPending ? 'library-grid__tile--pending' : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
         return (
           <button
             key={item.id}
             type="button"
-            className={`library-grid__tile${isOffline ? ' library-grid__tile--offline' : ''}`}
+            className={tileClassName}
             title={isOffline ? t('library.root.offline') : undefined}
             onClick={() => openItem(item.id)}
           >
-            <LibraryCoverArt artId={item.artId} label={title} size="tile" />
+            <span className="library-grid__art">
+              <LibraryCoverArt artId={item.artId} label={title} size="tile" />
+              {/* Same restraint as `LibraryListView`'s pending badge: this is
+                  information, not a problem, so it gets the quiet mark
+                  rather than the unplayable one's red. */}
+              {item.isPending && (
+                <span
+                  className="library-grid__badge--pending"
+                  title={t('library.pending')}
+                >
+                  <MenuIcon
+                    name="pending"
+                    className="library-list__badge-icon"
+                  />
+                </span>
+              )}
+            </span>
             <span className="library-grid__title">{title}</span>
             <small className="library-grid__subtitle">{subtitle}</small>
           </button>

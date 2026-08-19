@@ -559,6 +559,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &--offline {
     opacity: 0.5;
   }
+
+  // Same opacity as offline above — one dimmed look reused, not a second one
+  // invented — but a different reason, carried by the badge's own tooltip
+  // rather than a second one on the row: offline says a file cannot be
+  // reached right now, pending says it is fine and simply has not been read
+  // yet. Still fully clickable, same as offline: the file plays exactly as
+  // well before its tags arrive as after.
+  &--pending {
+    opacity: 0.5;
+  }
 }
 
 .library-list__col {
@@ -628,6 +638,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // is information, not something the loud unplayable mark's colour would
 // wrongly suggest needs acting on.
 .library-list__badge--metadata {
+  color: $text-faint;
+}
+
+// Same quiet colour as the metadata badge above, same reasoning: a file
+// still waiting for its tags is information, not a problem, and should never
+// read as one at a glance.
+.library-list__badge--pending {
   color: $text-faint;
 }
 
@@ -725,6 +742,42 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &--offline {
     opacity: 0.5;
   }
+
+  // Same dimming as offline above, same reasoning as `.library-list__row
+  // --pending`: one dimmed look reused rather than a second one invented,
+  // distinguished by the corner badge below instead of a second opacity
+  // value.
+  &--pending {
+    opacity: 0.5;
+  }
+}
+
+// The art plus its corner badge, shared by a song tile here and by
+// `LibraryVideoSection`'s own tiles, which draw the same badge on the same
+// wrapper for the same reason: a grid tile has no title cell to carry a mark
+// inline the way `.library-list__badge` does in a row, so the one spot left
+// is the corner of the art itself.
+.library-grid__art {
+  position: relative;
+  display: block;
+}
+
+// Same shape, size and quiet colour as `.library-list__badge--pending`,
+// pinned to the corner the way `.library-video-section__unplayable` pins its
+// own mark — sized and ringed like `.karaoke-playlist__count`, tinted like
+// `.library-workspace__notice`'s status-coloured border.
+.library-grid__badge--pending {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: $text-faint;
+  border: 1px solid rgba($primary-lighter, 0.28);
+  border-radius: $radius-pill;
+  background: rgba(5, 27, 41, 0.96);
 }
 
 .library-grid__title {
@@ -824,6 +877,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   place-items: center;
   color: $red;
   border: 1px solid rgba($red, 0.28);
+  border-radius: $radius-pill;
+  background: rgba(5, 27, 41, 0.96);
+}
+
+// Same size, shape and quiet colour as `.library-grid__badge--pending`, but
+// pinned to the opposite corner: an unreadable container is knowable from its
+// extension alone, so a video can be both unplayable and still pending at
+// once, and the two marks must never sit on top of each other.
+.library-video-section__pending {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: $text-faint;
+  border: 1px solid rgba($primary-lighter, 0.28);
   border-radius: $radius-pill;
   background: rgba(5, 27, 41, 0.96);
 }

@@ -146,11 +146,18 @@ const LibraryVideoSection = ({
               // tracks are "kept and dimmed — never deleted", not silently
               // unplayable.
               const isOffline = offlineRootIds.has(track.rootId);
+              const tileClassName = [
+                'library-grid__tile',
+                isOffline ? 'library-grid__tile--offline' : '',
+                track.isPending ? 'library-grid__tile--pending' : '',
+              ]
+                .filter(Boolean)
+                .join(' ');
               return (
                 <button
                   key={track.id}
                   type="button"
-                  className={`library-grid__tile${isOffline ? ' library-grid__tile--offline' : ''}`}
+                  className={tileClassName}
                   title={isOffline ? t('library.root.offline') : undefined}
                   onClick={() => onPlayTrack(track.id)}
                 >
@@ -171,6 +178,23 @@ const LibraryVideoSection = ({
                       >
                         <MenuIcon
                           name="clear"
+                          className="library-list__badge-icon"
+                        />
+                      </span>
+                    )}
+                    {/* Opposite corner from the unplayable mark above -- an
+                        unreadable container is knowable from its extension
+                        alone, so a video can genuinely be both unplayable
+                        and still pending at once, and each needs its own
+                        spot rather than one overwriting the other. Same
+                        quiet restraint as `LibraryListView`'s pending badge. */}
+                    {track.isPending && (
+                      <span
+                        className="library-video-section__pending"
+                        title={t('library.pending')}
+                      >
+                        <MenuIcon
+                          name="pending"
                           className="library-list__badge-icon"
                         />
                       </span>

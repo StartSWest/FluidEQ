@@ -57,6 +57,10 @@ const PATHS: Record<string, string> = {
   layout: 'M6 6v12M10 9v9M14 5v13M18 8v10',
   // Circled i.
   info: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 11v5M12 8h0',
+  // Clock face, hands short of noon: a file found but not yet read, distinct
+  // from the circled-i `info` glyph so "still being read" never looks like
+  // "something went wrong reading it".
+  pending: 'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 7.5V12l3 2',
   // A globe: meridians and one parallel. Enough at 16px to read as 'world'.
   language:
     'M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM4 12h16M12 4c2.2 2.2 3.3 5 3.3 8s-1.1 5.8-3.3 8c-2.2-2.2-3.3-5-3.3-8s1.1-5.8 3.3-8z',

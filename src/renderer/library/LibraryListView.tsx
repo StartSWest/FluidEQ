@@ -236,7 +236,7 @@ const LibraryListView = ({
             key={album.id}
             role="row"
             tabIndex={0}
-            className="library-list__row"
+            className={`library-list__row${album.isPending ? ' library-list__row--pending' : ''}`}
             onClick={activate}
             onKeyDown={(event) => onActivateKeyDown(event, activate)}
           >
@@ -252,6 +252,20 @@ const LibraryListView = ({
             >
               <span className="library-list__title-text">
                 <span className="library-list__title-label">{title}</span>
+                {/* Every track this folder-derived album currently has is
+                    still unread -- see `groupIntoAlbums`' own comment on why
+                    one resolved member is enough to clear this. */}
+                {album.isPending && (
+                  <span
+                    className="library-list__badge library-list__badge--pending"
+                    title={t('library.pending')}
+                  >
+                    <MenuIcon
+                      name="pending"
+                      className="library-list__badge-icon"
+                    />
+                  </span>
+                )}
               </span>
               <small className="library-list__subtitle">
                 {t('library.trackCount', { count: album.trackIds.length })}
@@ -292,7 +306,7 @@ const LibraryListView = ({
             key={artist.id}
             role="row"
             tabIndex={0}
-            className="library-list__row"
+            className={`library-list__row${artist.isPending ? ' library-list__row--pending' : ''}`}
             onClick={activate}
             onKeyDown={(event) => onActivateKeyDown(event, activate)}
           >
@@ -308,6 +322,19 @@ const LibraryListView = ({
             >
               <span className="library-list__title-text">
                 <span className="library-list__title-label">{name}</span>
+                {/* Same rule as the album row above: every track grouped
+                    under this artist right now is still unread. */}
+                {artist.isPending && (
+                  <span
+                    className="library-list__badge library-list__badge--pending"
+                    title={t('library.pending')}
+                  >
+                    <MenuIcon
+                      name="pending"
+                      className="library-list__badge-icon"
+                    />
+                  </span>
+                )}
               </span>
               <small className="library-list__subtitle">
                 {`${t('library.albumCount', { count: artist.albumCount })} · ${t(
@@ -347,12 +374,25 @@ const LibraryListView = ({
       // Spec §10: a root missing at rescan is marked offline and its tracks
       // are "kept and dimmed — never deleted", not silently unplayable.
       const isOffline = offlineRootIds.has(track.rootId);
+      // Same dimming as offline on purpose (reused visual language, not a
+      // second dimmed look), but with its own badge below rather than
+      // offline's row-level tooltip alone: offline says a file cannot be
+      // reached right now, pending says a file is fine and just has not been
+      // read yet — different enough that a hover on the badge itself, not
+      // just the row, should say which one this is.
+      const rowClassName = [
+        'library-list__row',
+        isOffline ? 'library-list__row--offline' : '',
+        track.isPending ? 'library-list__row--pending' : '',
+      ]
+        .filter(Boolean)
+        .join(' ');
       return (
         <div
           key={track.id}
           role="row"
           tabIndex={0}
-          className={`library-list__row${isOffline ? ' library-list__row--offline' : ''}`}
+          className={rowClassName}
           title={isOffline ? t('library.root.offline') : undefined}
           onDoubleClick={activate}
           onKeyDown={(event) => onTrackRowKeyDown(event, track)}
@@ -397,6 +437,22 @@ const LibraryListView = ({
                   title={t('library.metadataError')}
                 >
                   <MenuIcon name="info" className="library-list__badge-icon" />
+                </span>
+              )}
+              {/* Same restraint as the metadata-error badge above: this is
+                  information, not a problem, so it gets the same quiet
+                  treatment rather than the unplayable badge's red. Never set
+                  alongside `hasMetadataError` -- a pending track has not been
+                  through a tag read yet, successful or failed. */}
+              {track.isPending && (
+                <span
+                  className="library-list__badge library-list__badge--pending"
+                  title={t('library.pending')}
+                >
+                  <MenuIcon
+                    name="pending"
+                    className="library-list__badge-icon"
+                  />
                 </span>
               )}
             </span>
