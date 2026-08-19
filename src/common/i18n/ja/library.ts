@@ -77,6 +77,8 @@ const library: Partial<Dictionary> = {
   'library.reveal': 'エクスプローラーで表示',
 
   'library.unplayable': 'FluidEQ はこの形式を再生できません',
+  'library.metadataError':
+    'FluidEQ はこのファイルのタグを読み取れませんでした。',
   'library.indexReset':
     'ライブラリの索引を読み込めなかったため、再構築しました。',
 

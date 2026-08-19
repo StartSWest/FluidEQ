@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { KeyboardEvent, MouseEvent, useEffect, useState } from 'react';
+import { KeyboardEvent, ReactNode, useEffect, useState } from 'react';
 import {
   groupIntoAlbums,
   groupIntoArtists,
@@ -89,9 +89,10 @@ const LibraryListView = ({
   onPlayTrack,
 }: ILibraryListViewProps) => {
   const { t } = useTranslation();
-  // The row a right click landed on, and the element the menu hangs off —
-  // the row itself, since a context menu has no persistent trigger button
-  // the way `AnchoredMenu`'s other users do.
+  // The row a right click or a keyboard context-menu request landed on, and
+  // the element the menu hangs off — the row itself, since a context menu
+  // has no persistent trigger button the way `AnchoredMenu`'s other users
+  // do.
   const [trackMenu, setTrackMenu] = useState<
     { trackId: string; anchor: HTMLElement } | undefined
   >(undefined);
@@ -122,12 +123,10 @@ const LibraryListView = ({
     };
   }, [trackMenu]);
 
-  const openTrackMenu = (
-    event: MouseEvent<HTMLDivElement>,
-    trackId: string,
-  ) => {
-    event.preventDefault();
-    setTrackMenu({ trackId, anchor: event.currentTarget });
+  /** Shared by the right-click handler and the keyboard one below — both
+   * just need an element to anchor the menu to and the row's track id. */
+  const openTrackMenu = (anchor: HTMLElement, trackId: string) => {
+    setTrackMenu({ trackId, anchor });
   };
 
   const reveal = (trackId: string) => {
@@ -149,157 +148,61 @@ const LibraryListView = ({
     }
   };
 
+  /** A track row's own key handler: Enter plays it, and the two Windows
+   * conventions for "open the context menu here" — the dedicated Context
+   * Menu key and Shift+F10 — open the same menu a right click does.
+   * Without this, "Show in Explorer" would be the one action in this view a
+   * keyboard user could never reach at all. */
+  const onTrackRowKeyDown = (
+    event: KeyboardEvent<HTMLDivElement>,
+    track: ILibraryTrack,
+  ) => {
+    if (event.key === 'Enter') {
+      onPlayTrack(track.id);
+      return;
+    }
+    if (
+      event.key === 'ContextMenu' ||
+      (event.shiftKey && event.key === 'F10')
+    ) {
+      event.preventDefault();
+      openTrackMenu(event.currentTarget, track.id);
+    }
+  };
+
   const columnHeader = (column: TListColumn) => t(COLUMN_LABEL_KEYS[column]);
 
-  if (browseMode === 'album') {
-    const albums = groupIntoAlbums(tracks);
-    return (
-      <div className="library-list" role="table" aria-label={t('tabs.library')}>
-        <div className="library-list__header" role="row">
-          <span
-            className="library-list__col library-list__col--art"
-            aria-hidden="true"
-          />
-          <span role="columnheader" className="library-list__col">
-            {columnHeader('title')}
-          </span>
-          <span role="columnheader" className="library-list__col">
-            {columnHeader('artist')}
-          </span>
-          <span role="columnheader" className="library-list__col">
-            {columnHeader('year')}
-          </span>
-          <span
-            role="columnheader"
-            className="library-list__col library-list__col--length"
-          >
-            {columnHeader('length')}
-          </span>
-        </div>
-        <div className="library-list__body" role="rowgroup">
-          {albums.map((album) => {
-            const activate = () => onOpenAlbum(album.id);
-            const title = album.title || t('library.unknownAlbum');
-            return (
-              <div
-                key={album.id}
-                role="row"
-                tabIndex={0}
-                className="library-list__row"
-                onClick={activate}
-                onKeyDown={(event) => onActivateKeyDown(event, activate)}
-              >
-                <span
-                  role="cell"
-                  className="library-list__col library-list__col--art"
-                >
-                  <LibraryCoverArt
-                    artId={album.artId}
-                    label={title}
-                    size="row"
-                  />
-                </span>
-                <span
-                  role="cell"
-                  className="library-list__col library-list__col--title"
-                >
-                  <span className="library-list__title-text">
-                    <span className="library-list__title-label">{title}</span>
-                  </span>
-                  <small className="library-list__subtitle">
-                    {t('library.trackCount', { count: album.trackIds.length })}
-                  </small>
-                </span>
-                <span role="cell" className="library-list__col">
-                  {album.artist || t('library.unknownArtist')}
-                </span>
-                <span role="cell" className="library-list__col">
-                  {album.year ?? ''}
-                </span>
-                <span
-                  role="cell"
-                  className="library-list__col library-list__col--length"
-                >
-                  {formatDuration(album.durationMs)}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-
-  if (browseMode === 'artist') {
-    const artists = groupIntoArtists(tracks);
-    return (
-      <div className="library-list" role="table" aria-label={t('tabs.library')}>
-        <div className="library-list__header" role="row">
-          <span
-            className="library-list__col library-list__col--art"
-            aria-hidden="true"
-          />
-          <span
-            role="columnheader"
-            className="library-list__col library-list__col--span"
-          >
-            {columnHeader('title')}
-          </span>
-        </div>
-        <div className="library-list__body" role="rowgroup">
-          {artists.map((artist) => {
-            const activate = () => onOpenArtist(artist.id);
-            const name = artist.name || t('library.unknownArtist');
-            return (
-              <div
-                key={artist.id}
-                role="row"
-                tabIndex={0}
-                className="library-list__row"
-                onClick={activate}
-                onKeyDown={(event) => onActivateKeyDown(event, activate)}
-              >
-                <span
-                  role="cell"
-                  className="library-list__col library-list__col--art"
-                >
-                  <LibraryCoverArt
-                    artId={artist.artId}
-                    label={name}
-                    size="row"
-                  />
-                </span>
-                <span
-                  role="cell"
-                  className="library-list__col library-list__col--title library-list__col--span"
-                >
-                  <span className="library-list__title-text">
-                    <span className="library-list__title-label">{name}</span>
-                  </span>
-                  <small className="library-list__subtitle">
-                    {`${t('library.albumCount', { count: artist.albumCount })} · ${t(
-                      'library.trackCount',
-                      { count: artist.trackCount },
-                    )}`}
-                  </small>
-                </span>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-    );
-  }
-
-  // 'song', and any browse mode this component does not know about yet — see
-  // the doc comment above for why that fallback is deliberate.
-  return (
+  /** The `role="table"` shell every branch below shares: the leading,
+   * unlabelled art column, the header row, the rowgroup, and — for the
+   * track branch only — the context menu portalled beside it. Pulled out
+   * once the three branches turned out to repeat this exact wrapper rather
+   * than differ in it; what differs is only the header cells and the rows
+   * themselves, both still supplied by the branch that knows what it is
+   * listing. */
+  const renderTable = (
+    headerCells: ReactNode,
+    rows: ReactNode,
+    menu?: ReactNode,
+  ) => (
     <div className="library-list" role="table" aria-label={t('tabs.library')}>
       <div className="library-list__header" role="row">
         <span
           className="library-list__col library-list__col--art"
           aria-hidden="true"
         />
+        {headerCells}
+      </div>
+      <div className="library-list__body" role="rowgroup">
+        {rows}
+      </div>
+      {menu}
+    </div>
+  );
+
+  if (browseMode === 'album') {
+    const albums = groupIntoAlbums(tracks);
+    return renderTable(
+      <>
         <span role="columnheader" className="library-list__col">
           {columnHeader('title')}
         </span>
@@ -307,7 +210,7 @@ const LibraryListView = ({
           {columnHeader('artist')}
         </span>
         <span role="columnheader" className="library-list__col">
-          {columnHeader('album')}
+          {columnHeader('year')}
         </span>
         <span
           role="columnheader"
@@ -315,107 +218,209 @@ const LibraryListView = ({
         >
           {columnHeader('length')}
         </span>
-      </div>
-      <div className="library-list__body" role="rowgroup">
-        {tracks.map((track) => {
-          const activate = () => onPlayTrack(track.id);
-          return (
-            <div
-              key={track.id}
-              role="row"
-              tabIndex={0}
-              className="library-list__row"
-              onDoubleClick={activate}
-              onKeyDown={(event) => onActivateKeyDown(event, activate)}
-              onContextMenu={(event) => openTrackMenu(event, track.id)}
+      </>,
+      albums.map((album) => {
+        const activate = () => onOpenAlbum(album.id);
+        const title = album.title || t('library.unknownAlbum');
+        return (
+          <div
+            key={album.id}
+            role="row"
+            tabIndex={0}
+            className="library-list__row"
+            onClick={activate}
+            onKeyDown={(event) => onActivateKeyDown(event, activate)}
+          >
+            <span
+              role="cell"
+              className="library-list__col library-list__col--art"
             >
-              <span
-                role="cell"
-                className="library-list__col library-list__col--art"
-              >
-                <LibraryCoverArt
-                  artId={track.artId}
-                  label={track.title}
-                  size="row"
-                />
+              <LibraryCoverArt artId={album.artId} label={title} size="row" />
+            </span>
+            <span
+              role="cell"
+              className="library-list__col library-list__col--title"
+            >
+              <span className="library-list__title-text">
+                <span className="library-list__title-label">{title}</span>
               </span>
-              <span
-                role="cell"
-                className="library-list__col library-list__col--title"
-              >
-                <span className="library-list__title-text">
-                  <span className="library-list__title-label">
-                    {track.title}
-                  </span>
-                  {/* Chromium has no decoder for this container — marked, not
-                      silently broken. */}
-                  {!track.isPlayable && (
-                    <span
-                      className="library-list__badge library-list__badge--unplayable"
-                      title={t('library.unplayable')}
-                    >
-                      <MenuIcon
-                        name="clear"
-                        className="library-list__badge-icon"
-                      />
-                    </span>
-                  )}
-                  {/* The title above is already the cleaned filename, not a
-                      tag — this says why: the file's own tags could not be
-                      read, not that FluidEQ failed to read them. Quiet on
-                      purpose: this is information, not something to act on.
-                      No i18n key names this case yet (see the task report);
-                      `karaoke.error.read` is the closest existing string
-                      that says "could not read a file" without claiming
-                      anything English of its own. */}
-                  {track.hasMetadataError && (
-                    <span
-                      className="library-list__badge library-list__badge--metadata"
-                      title={t('karaoke.error.read')}
-                    >
-                      <MenuIcon
-                        name="info"
-                        className="library-list__badge-icon"
-                      />
-                    </span>
-                  )}
-                </span>
-              </span>
-              <span role="cell" className="library-list__col">
-                {track.artist ?? ''}
-              </span>
-              <span role="cell" className="library-list__col">
-                {track.album ?? ''}
-              </span>
-              <span
-                role="cell"
-                className="library-list__col library-list__col--length"
-              >
-                {formatDuration(track.durationMs)}
-              </span>
-            </div>
-          );
-        })}
-      </div>
-      <AnchoredMenu
-        anchor={trackMenu?.anchor ?? null}
-        isOpen={Boolean(trackMenu)}
-        className="library-list__menu"
-        ariaLabel={t('library.reveal')}
+              <small className="library-list__subtitle">
+                {t('library.trackCount', { count: album.trackIds.length })}
+              </small>
+            </span>
+            <span role="cell" className="library-list__col">
+              {album.artist || t('library.unknownArtist')}
+            </span>
+            <span role="cell" className="library-list__col">
+              {album.year ?? ''}
+            </span>
+            <span
+              role="cell"
+              className="library-list__col library-list__col--length"
+            >
+              {formatDuration(album.durationMs)}
+            </span>
+          </div>
+        );
+      }),
+    );
+  }
+
+  if (browseMode === 'artist') {
+    const artists = groupIntoArtists(tracks);
+    return renderTable(
+      <span
+        role="columnheader"
+        className="library-list__col library-list__col--span"
       >
-        <button
-          type="button"
-          onClick={() => {
-            if (trackMenu) {
-              reveal(trackMenu.trackId);
-            }
+        {columnHeader('title')}
+      </span>,
+      artists.map((artist) => {
+        const activate = () => onOpenArtist(artist.id);
+        const name = artist.name || t('library.unknownArtist');
+        return (
+          <div
+            key={artist.id}
+            role="row"
+            tabIndex={0}
+            className="library-list__row"
+            onClick={activate}
+            onKeyDown={(event) => onActivateKeyDown(event, activate)}
+          >
+            <span
+              role="cell"
+              className="library-list__col library-list__col--art"
+            >
+              <LibraryCoverArt artId={artist.artId} label={name} size="row" />
+            </span>
+            <span
+              role="cell"
+              className="library-list__col library-list__col--title library-list__col--span"
+            >
+              <span className="library-list__title-text">
+                <span className="library-list__title-label">{name}</span>
+              </span>
+              <small className="library-list__subtitle">
+                {`${t('library.albumCount', { count: artist.albumCount })} · ${t(
+                  'library.trackCount',
+                  { count: artist.trackCount },
+                )}`}
+              </small>
+            </span>
+          </div>
+        );
+      }),
+    );
+  }
+
+  // 'song', and any browse mode this component does not know about yet — see
+  // the doc comment above for why that fallback is deliberate.
+  return renderTable(
+    <>
+      <span role="columnheader" className="library-list__col">
+        {columnHeader('title')}
+      </span>
+      <span role="columnheader" className="library-list__col">
+        {columnHeader('artist')}
+      </span>
+      <span role="columnheader" className="library-list__col">
+        {columnHeader('album')}
+      </span>
+      <span
+        role="columnheader"
+        className="library-list__col library-list__col--length"
+      >
+        {columnHeader('length')}
+      </span>
+    </>,
+    tracks.map((track) => {
+      const activate = () => onPlayTrack(track.id);
+      return (
+        <div
+          key={track.id}
+          role="row"
+          tabIndex={0}
+          className="library-list__row"
+          onDoubleClick={activate}
+          onKeyDown={(event) => onTrackRowKeyDown(event, track)}
+          onContextMenu={(event) => {
+            event.preventDefault();
+            openTrackMenu(event.currentTarget, track.id);
           }}
         >
-          <MenuIcon name="external" className="library-list__menu-icon" />
-          <span>{t('library.reveal')}</span>
-        </button>
-      </AnchoredMenu>
-    </div>
+          <span
+            role="cell"
+            className="library-list__col library-list__col--art"
+          >
+            <LibraryCoverArt
+              artId={track.artId}
+              label={track.title}
+              size="row"
+            />
+          </span>
+          <span
+            role="cell"
+            className="library-list__col library-list__col--title"
+          >
+            <span className="library-list__title-text">
+              <span className="library-list__title-label">{track.title}</span>
+              {/* Chromium has no decoder for this container — marked, not
+                  silently broken. */}
+              {!track.isPlayable && (
+                <span
+                  className="library-list__badge library-list__badge--unplayable"
+                  title={t('library.unplayable')}
+                >
+                  <MenuIcon name="clear" className="library-list__badge-icon" />
+                </span>
+              )}
+              {/* The title above is already the cleaned filename, not a tag
+                  — this says why: the file's own tags could not be read,
+                  not that FluidEQ failed to read them. Quiet on purpose:
+                  this is information, not something to act on. */}
+              {track.hasMetadataError && (
+                <span
+                  className="library-list__badge library-list__badge--metadata"
+                  title={t('library.metadataError')}
+                >
+                  <MenuIcon name="info" className="library-list__badge-icon" />
+                </span>
+              )}
+            </span>
+          </span>
+          <span role="cell" className="library-list__col">
+            {track.artist ?? ''}
+          </span>
+          <span role="cell" className="library-list__col">
+            {track.album ?? ''}
+          </span>
+          <span
+            role="cell"
+            className="library-list__col library-list__col--length"
+          >
+            {formatDuration(track.durationMs)}
+          </span>
+        </div>
+      );
+    }),
+    <AnchoredMenu
+      anchor={trackMenu?.anchor ?? null}
+      isOpen={Boolean(trackMenu)}
+      className="library-list__menu"
+      ariaLabel={t('library.reveal')}
+    >
+      <button
+        type="button"
+        onClick={() => {
+          if (trackMenu) {
+            reveal(trackMenu.trackId);
+          }
+        }}
+      >
+        <MenuIcon name="external" className="library-list__menu-icon" />
+        <span>{t('library.reveal')}</span>
+      </button>
+    </AnchoredMenu>,
   );
 };
 

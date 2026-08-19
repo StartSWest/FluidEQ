@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { DragEvent, useEffect, useState } from 'react';
+import { DragEvent, useEffect, useMemo, useState } from 'react';
 import { searchTracks, sortTracks } from '../../common/library/grouping';
 import type {
   TLibraryBrowseMode,
@@ -142,8 +142,17 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
   // What `LibraryListView` (and, later, the grid and Cover Flow) actually
   // draw: the toolbar's own query and sort applied once here, so every view
   // is handed the same already-filtered, already-ordered tracks rather than
-  // repeating the search/sort logic per view.
-  const visibleTracks = sortTracks(searchTracks(index.tracks, query), sort);
+  // repeating the search/sort logic per view. Memoised because both steps
+  // scan and copy every track — `searchTracks` normalises and tests each
+  // one, `sortTracks` copies the array and runs `localeCompare` per
+  // comparison — and without this, a large library redoes that work on
+  // every render this component has, including ones the search box and the
+  // sort dropdown had nothing to do with (a drag-over toggle, a scan
+  // progress tick).
+  const visibleTracks = useMemo(
+    () => sortTracks(searchTracks(index.tracks, query), sort),
+    [index.tracks, query, sort],
+  );
 
   // Opening an album or artist has no destination yet — that needs a
   // drill-in state this component does not hold. A real handler lands once

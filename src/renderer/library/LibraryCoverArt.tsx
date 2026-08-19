@@ -50,8 +50,11 @@ const libraryTileBackground = (label: string): string => {
  * One component, three sizes — every view that shows a track, an album or an
  * artist reuses this rather than drawing its own cover.
  *
- * `alt=""`: the label this stands for is always set beside it in text
- * already, so a screen reader reading the same album name twice is worse
+ * `alt=""` on the image and `aria-hidden="true"` on the generated tile are
+ * the same decision applied to both branches: the label this stands for is
+ * always set beside it in text already, so a screen reader reading the
+ * album name a second time — or reading out one or two bare initials on a
+ * freshly scanned library, where most rows have no cover yet — is worse
  * than not reading the image at all.
  */
 const LibraryCoverArt = ({ artId, label, size }: ILibraryCoverArtProps) => (
@@ -67,6 +70,7 @@ const LibraryCoverArt = ({ artId, label, size }: ILibraryCoverArtProps) => (
       <span
         className="library-cover-art__tile"
         style={{ background: libraryTileBackground(label) }}
+        aria-hidden="true"
       >
         {libraryTileInitials(label)}
       </span>

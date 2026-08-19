@@ -77,6 +77,7 @@ const library: Partial<Dictionary> = {
   'library.reveal': 'एक्सप्लोरर में दिखाएँ',
 
   'library.unplayable': 'FluidEQ यह प्रारूप नहीं चला सकता',
+  'library.metadataError': 'FluidEQ इस फ़ाइल के टैग नहीं पढ़ सका।',
   'library.indexReset':
     'लाइब्रेरी इंडेक्स पढ़ा नहीं जा सका और उसे फिर से बनाया गया है।',
 

@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 import { ILibraryTrack } from '../../common/library/types';
@@ -72,6 +72,40 @@ describe('the library as a list', () => {
     expect(
       screen.getByTitle('FluidEQ cannot play this format'),
     ).toBeInTheDocument();
+  });
+
+  it('marks a file whose tags could not be read, with its own key', () => {
+    // Guards against reaching for the nearest existing string instead of a
+    // real one — this exact borrowed-string mistake shipped once already.
+    wrap(
+      <LibraryListView
+        tracks={[track({ title: 'Untagged', hasMetadataError: true })]}
+        browseMode="song"
+        onOpenAlbum={jest.fn()}
+        onOpenArtist={jest.fn()}
+        onPlayTrack={jest.fn()}
+      />,
+    );
+    expect(
+      screen.getByTitle("FluidEQ could not read this file's tags."),
+    ).toBeInTheDocument();
+  });
+
+  it('opens the reveal menu from the keyboard, not just a right click', () => {
+    wrap(
+      <LibraryListView
+        tracks={[track({ title: 'Blue' })]}
+        browseMode="song"
+        onOpenAlbum={jest.fn()}
+        onOpenArtist={jest.fn()}
+        onPlayTrack={jest.fn()}
+      />,
+    );
+    const row = screen.getByText('Blue').closest('[role="row"]');
+    expect(row).not.toBeNull();
+    // The dedicated Context Menu key — Shift+F10 reaches the same handler.
+    fireEvent.keyDown(row as Element, { key: 'ContextMenu' });
+    expect(screen.getByText('Show in Explorer')).toBeInTheDocument();
   });
 
   it('lists albums when that is what is being browsed', () => {

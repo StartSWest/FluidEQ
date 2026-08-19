@@ -76,6 +76,7 @@ const library: Partial<Dictionary> = {
   'library.reveal': '在资源管理器中显示',
 
   'library.unplayable': 'FluidEQ 无法播放此格式',
+  'library.metadataError': 'FluidEQ 无法读取此文件的标签。',
   'library.indexReset': '媒体库索引无法读取，已重新建立。',
 
   'library.play': '播放',

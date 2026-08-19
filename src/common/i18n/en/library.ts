@@ -75,6 +75,7 @@ const library = {
   'library.reveal': 'Show in Explorer',
 
   'library.unplayable': 'FluidEQ cannot play this format',
+  'library.metadataError': "FluidEQ could not read this file's tags.",
   'library.indexReset':
     'The library index could not be read and has been rebuilt.',
 
