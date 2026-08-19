@@ -447,6 +447,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperTranscribing': 'स्थानीय लिप्यंतरण हो रहा है',
   'karaoke.maker.whisperTranscribingProgress':
     'बोल का समय पहचाना जा रहा है · चरण {pass}/{passes} · खंड {chunk}/{chunks}',
+  'karaoke.maker.whisperAligning': 'गीत को गायन से मिलाया जा रहा है',
   'karaoke.maker.whisperComplete': 'लिप्यंतरण पूरा हुआ',
   'karaoke.maker.whisperMatched':
     'Whisper ने {count} पहचाने शब्द मिलाए। निर्यात से पहले उनके संपादन योग्य समय की जाँच करें।',

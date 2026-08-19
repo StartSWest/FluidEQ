@@ -261,6 +261,13 @@ export const pruneWeakDirectMappings = (
         pair.word.startMs - previousTranscript.endMs <= 2_500) ||
       (nextTranscript !== undefined &&
         nextTranscript.startMs - pair.word.endMs <= 2_500);
+    // A one-word line skips this guard, which lets a lone ad-lib "yeah" be
+    // pinned to an isolated fragment in an intro. Applying it to those lines
+    // too was tried and reverted: a song whose lyrics are a single word has no
+    // neighbours by construction, so the guard rejected the only correct match
+    // there is and three tested cases went untimed. The real distinction is
+    // between a short line inside a song and a song that is short, and this
+    // clause cannot see which it has.
     if (
       (lyrics.length > 1 &&
         !isProviderSyllableGroup &&

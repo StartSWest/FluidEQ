@@ -4,15 +4,28 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-/** Bracket pairs a lyrics provider might wrap a structure label in. */
+/**
+ * Bracket pairs a lyrics provider wraps a structure label in — square and its
+ * CJK equivalents, and deliberately not round ones.
+ *
+ * Providers distinguish the two: "[Chorus]" marks structure, "(oh yeah)" is a
+ * backing vocal somebody sings. Accepting both classified "(Oh yeah)", "(hey)"
+ * and "(I love you)" as labels, which drops them from the karaoke entirely —
+ * `karaokeMakerAlignmentWords` never offers a section line as a candidate, so
+ * the singer loses a line that is right there in the audio. The English word
+ * list this replaced could not make that mistake, because none of those is the
+ * word "chorus"; the shape test could, and did.
+ */
 const BRACKET_PAIRS: readonly (readonly [string, string])[] = [
   ['[', ']'],
-  ['(', ')'],
   ['{', '}'],
   ['【', '】'],
-  ['（', '）'],
   ['〔', '〕'],
   ['［', '］'],
+  // Fullwidth parentheses stay, unlike ASCII ones: a Japanese or Chinese sheet
+  // writes （間奏） for a section where an English one writes [Instrumental],
+  // and nothing sings a fullwidth aside.
+  ['（', '）'],
 ];
 
 /**

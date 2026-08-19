@@ -544,6 +544,11 @@ export const useMakerAnalysisRun = ({
           reportInfo(`[karaoke][whisper] vocal.rests.failed ${String(error)}`);
         }
       }
+      // Fitting the transcript onto the lyrics is work, and it used to happen
+      // after the bar had already reached the end of its transcription share
+      // and said so. On an ordinary song it is imperceptible; on one that
+      // repeats a line a hundred times it was the only thing still running.
+      setAnalysisMessage(t('karaoke.maker.whisperAligning'));
       let completedProject = flattenTokens(beforeTranscript).length
         ? applyWhisperTranscript(beforeTranscript, transcript)
         : applyTranscriptAsLyrics(

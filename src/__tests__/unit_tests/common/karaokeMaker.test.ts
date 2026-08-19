@@ -8,6 +8,7 @@ import {
   karaokeMakerRecordedLineContainsTime,
   karaokeMakerTokenWasUserTouched,
   karaokeMakerLineLooksLikeLabel,
+  karaokeMakerWordDurationIsPlausible,
   karaokeMakerMaximumAutomaticWordDurationMs,
   makerLinesFromPlainText,
   parseKaraokeMakerProject,
@@ -4008,5 +4009,37 @@ describe('Karaoke Maker monotonic route', () => {
       limitRouteCandidates(candidates, 4).map(({ startMs }) => startMs),
     ).toEqual([2_000, 5_000, 8_000, 11_000]);
     expect(limitRouteCandidates(candidates, 12)).toBe(candidates);
+  });
+});
+
+describe('Karaoke Maker sung asides are not section labels', () => {
+  it('keeps a parenthesised backing vocal as a lyric line', () => {
+    // Providers mark structure with square brackets and sing what is in round
+    // ones. Treating both as labels dropped "(Oh yeah)" from the karaoke
+    // entirely — worse than the English word list it replaced, which could
+    // never match those words at all.
+    ['(Oh yeah)', '(hey)', '(Ooh ooh ooh)', '(I love you)'].forEach((line) => {
+      expect(karaokeMakerLineLooksLikeLabel(line)).toBe(false);
+    });
+  });
+
+  it('still recognises a bracketed structure label', () => {
+    // Positive control: the fix must not become "nothing is ever a label".
+    ['[Chorus]', '[Verse 2]', '[Estribillo]', '【サビ】'].forEach((line) => {
+      expect(karaokeMakerLineLooksLikeLabel(line)).toBe(true);
+    });
+  });
+
+  it('caps a held one-syllable note, knowingly, to keep the gap guard', () => {
+    // Raising this floor to 6 s so a phrase-final "Ohhh" is not truncated was
+    // tried and reverted: the same number decides whether a span is a held
+    // note or a fabricated one, and at 6 s a word can be parked anywhere in an
+    // instrumental gap. The truncation is a known, visible cost.
+    expect(karaokeMakerMaximumAutomaticWordDurationMs('Ohhh')).toBe(2_500);
+    expect(karaokeMakerMaximumAutomaticWordDurationMs('you')).toBe(2_500);
+    // Positive control: the chunk-sized timestamp it exists to reject.
+    expect(karaokeMakerWordDurationIsPlausible('Ohhh', 24_000, 'whisper')).toBe(
+      false,
+    );
   });
 });

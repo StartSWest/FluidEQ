@@ -448,6 +448,7 @@ const karaoke = {
   'karaoke.maker.whisperTranscribing': 'Detecting lyric timing',
   'karaoke.maker.whisperTranscribingProgress':
     'Detecting lyric timing · pass {pass}/{passes} · block {chunk}/{chunks}',
+  'karaoke.maker.whisperAligning': 'Fitting the lyrics to the singing',
   'karaoke.maker.whisperComplete': 'Lyric timing detected',
   'karaoke.maker.whisperMatched':
     'Whisper matched {count} recognized words. Review their editable timing before export.',

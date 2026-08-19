@@ -465,6 +465,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperTranscribing': 'Lokale Transkription läuft',
   'karaoke.maker.whisperTranscribingProgress':
     'Timing wird erkannt · Durchlauf {pass}/{passes} · Block {chunk}/{chunks}',
+  'karaoke.maker.whisperAligning': 'Liedtext wird auf den Gesang gelegt',
   'karaoke.maker.whisperComplete': 'Transkription abgeschlossen',
   'karaoke.maker.whisperMatched':
     'Whisper hat {count} erkannte Wörter zugeordnet. Prüfen Sie vor dem Export die bearbeitbaren Zeitangaben.',

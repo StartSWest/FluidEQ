@@ -150,6 +150,18 @@ export const SECTION_MARKER = {
  * Syllables are what a singer holds, so they set the ceiling. The number this
  * exists to reject is a chunk-sized timestamp of twenty to thirty seconds, and
  * nine seconds still refuses those while leaving room for a real held note.
+ *
+ * The 2 500 ms floor truncates a phrase-final "Ohhh" and that is a real cost,
+ * knowingly paid. Raising it to six seconds was tried and reverted: this same
+ * number decides whether a span is a held note or a fabricated one, and at six
+ * seconds the guard that keeps a word out of an instrumental gap stops firing
+ * — measured, three words on one song sat exactly at this cap, each of them
+ * Whisper reporting a position it did not have. A held note truncated is
+ * visible and fixable; a word parked in silence looks detected.
+ *
+ * The way out is not a different constant. It is to allow the long span only
+ * when nothing competes for that time — when the next word is further away
+ * than the cap — so the two cases stop sharing one number.
  */
 export const karaokeMakerMaximumAutomaticWordDurationMs = (
   text: string,
