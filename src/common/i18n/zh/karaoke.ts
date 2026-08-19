@@ -443,6 +443,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperTranscribing': '正在本地转写',
   'karaoke.maker.whisperTranscribingProgress':
     '正在检测歌词时间 · 第 {pass}/{passes} 遍 · 区块 {chunk}/{chunks}',
+  'karaoke.maker.whisperAligning': '正在将歌词对齐到演唱',
   'karaoke.maker.whisperComplete': '转写完成',
   'karaoke.maker.whisperMatched':
     'Whisper 匹配了 {count} 个识别词。导出前请检查可编辑时间。',

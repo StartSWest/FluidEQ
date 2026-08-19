@@ -8,12 +8,63 @@ import { IKaraokeMakerToken } from '../../../common/karaoke/makerProject';
 import { IKaraokeMakerTranscriptWord } from './whisperProgress';
 import { maximumAutomaticWordDurationMs } from './analysisWindows';
 
-export const normalizedWord = (value: string): string =>
-  value
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLocaleLowerCase()
-    .replace(/[^\p{L}\p{N}]+/gu, '');
+/**
+ * Katakana and hiragana write the same sounds, and a lyric sheet and a
+ * transcript disagree about which to use constantly. Measured: "\u30a2\u30a4" against
+ * "\u3042\u3044" scored an edit ratio of 1.0 against a 0.34 bar and never matched.
+ * U+30A1..U+30F6 have hiragana counterparts exactly 0x60 below; the four
+ * without one and the shared long-vowel mark are left alone.
+ */
+const foldKatakanaToHiragana = (value: string): string =>
+  Array.from(value)
+    .map((character) => {
+      const code = character.codePointAt(0) ?? 0;
+      return code >= 0x30a1 && code <= 0x30f6
+        ? String.fromCodePoint(code - 0x60)
+        : character;
+    })
+    .join('');
+
+/**
+ * The closing NFC undoes something NFKD did that nothing here wanted.
+ *
+ * NFKD decomposes a Hangul syllable into its jamo, so "\ud55c" was three code
+ * points and "\ud558" two \u2014 one insertion out of three is a ratio of 0.333, inside
+ * the 0.34 that counts as a match. Two different Korean syllables matched each
+ * other. Recomposed they are one code point each and do not.
+ */
+/**
+ * Answers already given, because a song asks the same few questions millions
+ * of times.
+ *
+ * The sentence router normalises every transcript word once per lyric anchor
+ * of every line: measured on a song repeating one three-word line four hundred
+ * times, 26.6 million calls for three distinct strings, and half the cost of
+ * building candidates. Nothing here depends on when the call happens, only on
+ * the string, so the answer keeps. The bound guards a pathological vocabulary
+ * rather than sizing a working set \u2014 a song's is a few thousand words.
+ */
+const normalizedWords = new Map<string, string>();
+
+export const normalizedWord = (value: string): string => {
+  const remembered = normalizedWords.get(value);
+  if (remembered !== undefined) {
+    return remembered;
+  }
+  const normalized = foldKatakanaToHiragana(
+    value
+      .normalize('NFKD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLocaleLowerCase()
+      .replace(/[^\p{L}\p{N}]+/gu, '')
+      .normalize('NFC'),
+  );
+  if (normalizedWords.size >= 20_000) {
+    normalizedWords.clear();
+  }
+  normalizedWords.set(value, normalized);
+  return normalized;
+};
 
 export const normalizedWordDistance = (left: string, right: string): number => {
   if (left === right) {
@@ -210,6 +261,13 @@ export const pruneWeakDirectMappings = (
         pair.word.startMs - previousTranscript.endMs <= 2_500) ||
       (nextTranscript !== undefined &&
         nextTranscript.startMs - pair.word.endMs <= 2_500);
+    // A one-word line skips this guard, which lets a lone ad-lib "yeah" be
+    // pinned to an isolated fragment in an intro. Applying it to those lines
+    // too was tried and reverted: a song whose lyrics are a single word has no
+    // neighbours by construction, so the guard rejected the only correct match
+    // there is and three tested cases went untimed. The real distinction is
+    // between a short line inside a song and a song that is short, and this
+    // clause cannot see which it has.
     if (
       (lyrics.length > 1 &&
         !isProviderSyllableGroup &&
@@ -298,9 +356,16 @@ const stackedTranscriptWords = (
     byStart.set(word.startMs, shared);
   });
   return new Set(
-    [...byStart.values()].flatMap((shared) =>
-      shared.length > 1 || shared[0].endMs <= shared[0].startMs ? shared : [],
-    ),
+    [...byStart.values()].flatMap((shared) => {
+      if (shared.every((word) => word.endMs <= word.startMs)) {
+        return shared;
+      }
+      // Whisper quantises to 20 ms, so two fast-sung words can honestly tie on
+      // one bin — "gotta go" at 24.50 s with spans of 60 ms and 150 ms is two
+      // real words, and dropping both loses highlight sync in exactly the
+      // passages that need it. Three or more on one instant is not singing.
+      return shared.length >= 3 ? shared : [];
+    }),
   );
 };
 
@@ -360,10 +425,14 @@ export const placeTranscriptWords = (
       word.endMs - word.startMs <= maximumAutomaticWordDurationMs(word.text) &&
       (durationMs <= 0 || word.startMs < durationMs),
   );
+  // A word that cannot keep a span a syllable could occupy was not placed,
+  // whatever produced it. Letting two words honestly share a timestamp bin
+  // brought this back: the pair is packed one after the other and the first
+  // can be left holding a millisecond, which reads as detected and is not.
   const timings = new Map(
-    constrainTranscriptWords(placeable).map(
-      (timing, index) => [placeable[index], timing] as const,
-    ),
+    constrainTranscriptWords(placeable)
+      .map((timing, index) => [placeable[index], timing] as const)
+      .filter(([, timing]) => timing.endMs - timing.startMs >= 40),
   );
   return words.map((word) => {
     const timing = timings.get(word);

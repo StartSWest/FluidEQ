@@ -24,3 +24,5 @@ overrides:
 
 storeDir: .pnpm-store
 confirmModulesPurge: false
+patchedDependencies:
+  '@huggingface/transformers@3.7.6': patches/@huggingface__transformers@3.7.6.patch

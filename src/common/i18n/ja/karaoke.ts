@@ -477,6 +477,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperTranscribing': 'ローカルで文字起こし中',
   'karaoke.maker.whisperTranscribingProgress':
     '歌詞タイミングを検出中 · パス {pass}/{passes} · ブロック {chunk}/{chunks}',
+  'karaoke.maker.whisperAligning': '歌詞を歌唱に合わせています',
   'karaoke.maker.whisperComplete': '文字起こし完了',
   'karaoke.maker.whisperMatched':
     'Whisper が認識した {count} 語を対応付けました。エクスポート前に編集可能なタイミングを確認してください。',

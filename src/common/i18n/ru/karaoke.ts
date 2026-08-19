@@ -479,6 +479,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperTranscribing': 'Локальное распознавание',
   'karaoke.maker.whisperTranscribingProgress':
     'Определение тайминга · проход {pass}/{passes} · блок {chunk}/{chunks}',
+  'karaoke.maker.whisperAligning': 'Совмещение текста с пением',
   'karaoke.maker.whisperComplete': 'Распознавание завершено',
   'karaoke.maker.whisperMatched':
     'Whisper сопоставил распознанные слова: {count}. Проверьте редактируемую синхронизацию перед экспортом.',

@@ -104,6 +104,28 @@ const SECTION_WORDS = [
 ] as const;
 
 /**
+ * The brackets a heading is written in, as pairs so `[サビ）` cannot match.
+ *
+ * ASCII round brackets are deliberately absent: providers distinguish them,
+ * writing `[Chorus]` for structure and `(Oh yeah)` for a backing vocal that
+ * somebody sings. Their fullwidth cousins are not the same character and are
+ * not used that way — a Japanese sheet writes `（間奏）` for the section an
+ * English one calls `[Instrumental]`.
+ *
+ * The bracket set and the vocabulary answer different halves of the question,
+ * which is why both are needed: `（Ooh ooh ooh）` is still not a heading here,
+ * because "ooh" is not one of the words.
+ */
+const SECTION_BRACKETS: readonly (readonly [string, string])[] = [
+  ['\\[', '\\]'],
+  ['\\{', '\\}'],
+  ['【', '】'],
+  ['〔', '〕'],
+  ['［', '］'],
+  ['（', '）'],
+];
+
+/**
  * One heading, with the decorations real files put on it.
  *
  * A trailing number (`Verse 2`), an ordinal word before it (`2nd Chorus`) and
@@ -111,10 +133,14 @@ const SECTION_WORDS = [
  * site writes it) are all the same heading. The colon clause was the common
  * case the old list could not match at all.
  */
+const SECTION_BODY = `\\s*(?:\\d+\\s*[.)-]?\\s*)?(?:${SECTION_WORDS.join(
+  '|',
+)})(?:\\s*\\d+)?(?:\\s*[:\\-–]\\s*[^\\]\\}】〕］）]*)?\\s*`;
+
 const SECTION_TEXT = new RegExp(
-  `^\\s*\\[\\s*(?:\\d+\\s*[.)-]?\\s*)?(?:${SECTION_WORDS.join(
-    '|',
-  )})(?:\\s*\\d+)?(?:\\s*[:\\-–]\\s*[^\\]]*)?\\s*\\]\\s*$`,
+  `^\\s*(?:${SECTION_BRACKETS.map(
+    ([open, close]) => `${open}${SECTION_BODY}${close}`,
+  ).join('|')})\\s*$`,
   'iu',
 );
 
