@@ -25,6 +25,7 @@ import type {
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibrary } from './LibraryContext';
+import LibraryCoverFlow from './LibraryCoverFlow';
 import LibraryDetail from './LibraryDetail';
 import LibraryEmptyState from './LibraryEmptyState';
 import LibraryFolderActions from './LibraryFolderActions';
@@ -293,11 +294,11 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
           onAddFolder={handleAddFolder}
         />
       )}
-      {/* The drill-in behind whichever tile or row was opened, in place of
-          the browse view below rather than over it — search and sort still
-          apply to what got you here, but the album or artist itself is
-          shown whole, not narrowed further by a query that was for finding
-          it in the first place. Cover Flow is its own later view. */}
+      {/* The drill-in behind whichever tile, row or cover was opened, in
+          place of the browse view below rather than over it — search and
+          sort still apply to what got you here, but the album or artist
+          itself is shown whole, not narrowed further by a query that was
+          for finding it in the first place. */}
       {index.tracks.length > 0 && (openAlbumId || openArtistId) && (
         <LibraryDetail
           tracks={index.tracks}
@@ -329,6 +330,17 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
             onPlayTrack={handlePlayTrack}
+          />
+        )}
+      {index.tracks.length > 0 &&
+        !openAlbumId &&
+        !openArtistId &&
+        viewMode === 'coverflow' && (
+          <LibraryCoverFlow
+            tracks={visibleTracks}
+            browseMode={browseMode}
+            onOpenAlbum={handleOpenAlbum}
+            onOpenArtist={handleOpenArtist}
           />
         )}
     </section>
