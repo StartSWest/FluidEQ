@@ -26,10 +26,12 @@ import {
   WheelEvent,
 } from 'react';
 import {
+  artistKey,
   groupIntoAlbums,
   groupIntoArtists,
   sortAlbums,
   sortArtists,
+  sortTracks,
 } from '../../common/library/grouping';
 import {
   ILibraryTrack,
@@ -40,6 +42,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
+import LibraryListView from './LibraryListView';
 import '../styles/LibraryCoverFlow.scss';
 
 /** Covers kept mounted either side of the centre. Past this, nothing renders
@@ -137,8 +140,10 @@ export const coverFlowTransform = (offset: number): string => {
 interface ILibraryCoverFlowProps {
   tracks: readonly ILibraryTrack[];
   browseMode: TLibraryBrowseMode;
-  onOpenAlbum: (albumId: string) => void;
-  onOpenArtist: (artistId: string) => void;
+  // No `onOpenAlbum`/`onOpenArtist`. This view does not navigate: pressing a
+  // cover opens its songs underneath the row it is standing in — see
+  // `activateCurrent`. The drill-in page is what the list and grid do, and
+  // reaching it from here meant losing the carousel and your place in it.
   /** Song mode's own primary action — optional the same way `NowPlayingBar`'s
    * `volume` is: real usage (`LibraryWorkspace`) always supplies it, and none
    * of this view's other tests — geometry, browsing, identity tracking — need
@@ -194,8 +199,6 @@ const clampIndex = (index: number, length: number): number => {
 const LibraryCoverFlow = ({
   tracks,
   browseMode,
-  onOpenAlbum,
-  onOpenArtist,
   onPlayTrack,
   sort = 'title',
   sortDirection = 'asc',
@@ -207,6 +210,9 @@ const LibraryCoverFlow = ({
   // see the reconciling effect below, and `setCentre`, which is the only
   // place this is written.
   const centredId = useRef<string | undefined>(undefined);
+  /** The album or artist whose songs are showing under the row, if any — see
+   * `activateCurrent`. Never a song: a track has nothing to expand into. */
+  const [expandedId, setExpandedId] = useState<string | undefined>(undefined);
 
   // Same memo shape as `LibraryGridView`: keyed only on the two inputs that
   // actually change what is grouped, not on the callbacks `LibraryWorkspace`
@@ -256,6 +262,14 @@ const LibraryCoverFlow = ({
     const clamped = clampIndex(index, items.length);
     centredId.current = items[clamped]?.id;
     setCurrentIndex(clamped);
+    // Turning the row closes whatever was open under it. Leaving one album's
+    // songs on screen while a different album is centred is the kind of
+    // quietly wrong state nobody notices until they play the wrong track.
+    setExpandedId((current) =>
+      current !== undefined && current !== items[clamped]?.id
+        ? undefined
+        : current,
+    );
   };
 
   // `items` changing shape — a rescan that inserts albums ahead of the one
@@ -286,6 +300,37 @@ const LibraryCoverFlow = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
+  /**
+   * The songs behind the open cover, in the order that cover implies.
+   *
+   * An album's are already in disc/track order inside `groupIntoAlbums`, so
+   * that ordering is reused rather than recomputed; an artist has no such
+   * order of its own and is grouped by album, exactly as `LibraryDetail`
+   * does it — the two have to agree, or the same album opened two ways plays
+   * its tracks in two different orders.
+   */
+  const expandedTracks = useMemo(() => {
+    if (expandedId === undefined) {
+      return [];
+    }
+    if (browseMode === 'album') {
+      const byId = new Map(tracks.map((track) => [track.id, track]));
+      const album = groupIntoAlbums(tracks).find(
+        (entry) => entry.id === expandedId,
+      );
+      return (album?.trackIds ?? [])
+        .map((id) => byId.get(id))
+        .filter((track): track is ILibraryTrack => track !== undefined);
+    }
+    if (browseMode === 'artist') {
+      return sortTracks(
+        tracks.filter((track) => artistKey(track) === expandedId),
+        'album',
+      );
+    }
+    return [];
+  }, [tracks, browseMode, expandedId]);
+
   const tileSubtitle = (item: ICoverFlowItem): string => {
     if (browseMode === 'artist') {
       return t('library.albumCount', { count: item.albumCount ?? 0 });
@@ -306,23 +351,25 @@ const LibraryCoverFlow = ({
     return item.title;
   };
 
-  /** The centre's own primary action: opens the drill-in for an album or
-   * artist, plays the track for a song — the same three-way split
-   * `LibraryGridView.openItem` and `LibraryListView`'s row handlers make,
-   * so this is the one browse mode Cover Flow used to leave the whole
-   * screen inert for (Enter or a click on the centre cover did nothing —
-   * one full cell of the view/browse matrix). */
+  /**
+   * The centre's own primary action.
+   *
+   * For an album or an artist this opens the songs *underneath the carousel*
+   * rather than replacing it with the drill-in page. Cover Flow's whole point
+   * is the row: leaving it to see a track list, and having to come back and
+   * find your place again, threw away the one thing this view has that the
+   * other two do not. The row stays, shrinks, and moves up; the songs slide
+   * in below it. Pressing the same cover again puts it back.
+   *
+   * A song still just plays — there is nothing under a track to expand into.
+   */
   const activateCurrent = () => {
     const item = items[currentIndex];
     if (!item) {
       return;
     }
-    if (browseMode === 'album') {
-      onOpenAlbum(item.id);
-      return;
-    }
-    if (browseMode === 'artist') {
-      onOpenArtist(item.id);
+    if (browseMode === 'album' || browseMode === 'artist') {
+      setExpandedId((current) => (current === item.id ? undefined : item.id));
       return;
     }
     onPlayTrack?.(item.id);
@@ -449,9 +496,13 @@ const LibraryCoverFlow = ({
 
   const centreItem = items[currentIndex];
   const optionId = (id: string) => `library-coverflow-option-${id}`;
+  // Both conditions, not just `expandedId`: an id left over from an item a
+  // rescan removed would otherwise open an empty panel under a row showing
+  // something else entirely.
+  const isExpanded = expandedId !== undefined && centreItem?.id === expandedId;
 
   return (
-    <div className="library-coverflow">
+    <div className={`library-coverflow${isExpanded ? ' is-expanded' : ''}`}>
       <div
         className="library-coverflow__stage"
         role="listbox"
@@ -521,6 +572,44 @@ const LibraryCoverFlow = ({
           })}
         </div>
       </div>
+      {/* The songs behind the open cover, under the row rather than instead
+          of it. Mounted only while something is open, so the list costs
+          nothing on a view nobody has expanded; the panel's own entrance
+          animation is what covers the mount. */}
+      {isExpanded && centreItem && (
+        <section
+          className="library-coverflow__panel"
+          aria-label={tileTitle(centreItem)}
+        >
+          <header className="library-coverflow__panel-head">
+            <div className="library-coverflow__panel-titles">
+              <h3 className="library-coverflow__panel-title">
+                {tileTitle(centreItem)}
+              </h3>
+              <p className="library-coverflow__panel-subtitle">
+                {`${tileSubtitle(centreItem)} · ${t('library.trackCount', {
+                  count: expandedTracks.length,
+                })}`}
+              </p>
+            </div>
+            <button
+              type="button"
+              className="library-toolbar__chip"
+              onClick={() => setExpandedId(undefined)}
+            >
+              {t('library.coverflow.collapse')}
+            </button>
+          </header>
+          <LibraryListView
+            tracks={expandedTracks}
+            browseMode="song"
+            onOpenAlbum={() => undefined}
+            onOpenArtist={() => undefined}
+            onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
+            resetKey={`coverflow|${expandedId ?? ''}`}
+          />
+        </section>
+      )}
     </div>
   );
 };

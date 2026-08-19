@@ -39,6 +39,7 @@ const library: Partial<Dictionary> = {
   'library.browse.artist': '歌手',
   'library.browse.song': '歌曲',
   'library.browse.folder': '文件夹',
+  'library.coverflow.collapse': '关闭',
   'library.folderCount': '{count} 个文件夹',
   'library.groupByFolder': '按文件夹分组',
   'library.view.list': '列表',

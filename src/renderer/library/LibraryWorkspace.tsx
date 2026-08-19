@@ -612,8 +612,6 @@ const LibraryWorkspace = ({
           <LibraryCoverFlow
             tracks={visibleTracks}
             browseMode={browseMode}
-            onOpenAlbum={handleOpenAlbum}
-            onOpenArtist={handleOpenArtist}
             onPlayTrack={handlePlayTrack}
             sort={sort}
             sortDirection={sortDirection}

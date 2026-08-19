@@ -38,6 +38,7 @@ const library = {
   'library.browse.artist': 'Artists',
   'library.browse.song': 'Songs',
   'library.browse.folder': 'Folders',
+  'library.coverflow.collapse': 'Close',
   'library.folderCount': '{count} folders',
   'library.groupByFolder': 'Group by folder',
   'library.view.list': 'List',

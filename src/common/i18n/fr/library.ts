@@ -40,6 +40,7 @@ const library: Partial<Dictionary> = {
   'library.browse.artist': 'Artistes',
   'library.browse.song': 'Chansons',
   'library.browse.folder': 'Dossiers',
+  'library.coverflow.collapse': 'Fermer',
   'library.folderCount': '{count} dossiers',
   'library.groupByFolder': 'Grouper par dossier',
   'library.view.list': 'Liste',

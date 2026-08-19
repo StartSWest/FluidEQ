@@ -101,12 +101,7 @@ describe('cover flow', () => {
     // rendered at all.
     render(
       <I18nProvider>
-        <LibraryCoverFlow
-          tracks={albumTracks(400)}
-          browseMode="album"
-          onOpenAlbum={jest.fn()}
-          onOpenArtist={jest.fn()}
-        />
+        <LibraryCoverFlow tracks={albumTracks(400)} browseMode="album" />
       </I18nProvider>,
     );
     expect(screen.getAllByRole('option').length).toBeLessThanOrEqual(
@@ -117,12 +112,7 @@ describe('cover flow', () => {
   it('moves with the arrow keys', async () => {
     render(
       <I18nProvider>
-        <LibraryCoverFlow
-          tracks={albumTracks(5)}
-          browseMode="album"
-          onOpenAlbum={jest.fn()}
-          onOpenArtist={jest.fn()}
-        />
+        <LibraryCoverFlow tracks={albumTracks(5)} browseMode="album" />
       </I18nProvider>,
     );
     const stage = screen.getByRole('listbox');
@@ -133,21 +123,64 @@ describe('cover flow', () => {
     );
   });
 
-  it('opens the centre cover on Enter', async () => {
-    const onOpenAlbum = jest.fn();
+  it('opens the centred album under the row instead of navigating away', async () => {
+    // The row is the whole reason to be in this view, so pressing a cover
+    // shows its songs beneath the carousel and the carousel stays. Asserted
+    // on the right songs being on screen AND the listbox still being there:
+    // either alone would pass a version that swapped one for the other.
+    const [extra] = albumTracks(1);
+    render(
+      <I18nProvider>
+        <LibraryCoverFlow
+          tracks={[
+            ...albumTracks(3),
+            { ...extra, id: 'extra', title: 'Second Track' },
+          ]}
+          browseMode="album"
+          onPlayTrack={jest.fn()}
+        />
+      </I18nProvider>,
+    );
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+
+    screen.getByRole('listbox').focus();
+    await userEvent.keyboard('{Enter}');
+
+    const shown = screen
+      .getAllByRole('row')
+      .map((row) => row.textContent ?? '');
+    expect(shown.some((text) => text.includes('Song 0'))).toBe(true);
+    expect(shown.some((text) => text.includes('Second Track'))).toBe(true);
+    // Album 1's track belongs to a different cover and must not be listed.
+    expect(shown.some((text) => text.includes('Song 1'))).toBe(false);
+    expect(screen.getByRole('listbox')).toBeInTheDocument();
+  });
+
+  it('closes the panel on a second Enter, and when the row is turned', async () => {
+    // The control the test above needs: proof the panel is driven by the
+    // press rather than appearing once and staying. Turning the row must
+    // close it too — one album's songs left under a different centred album
+    // is the quietly wrong state that gets the wrong track played.
     render(
       <I18nProvider>
         <LibraryCoverFlow
           tracks={albumTracks(5)}
           browseMode="album"
-          onOpenAlbum={onOpenAlbum}
-          onOpenArtist={jest.fn()}
+          onPlayTrack={jest.fn()}
         />
       </I18nProvider>,
     );
     screen.getByRole('listbox').focus();
+
     await userEvent.keyboard('{Enter}');
-    expect(onOpenAlbum).toHaveBeenCalled();
+    expect(screen.getByRole('table')).toBeInTheDocument();
+    await userEvent.keyboard('{Enter}');
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+
+    await userEvent.keyboard('{Enter}');
+    expect(screen.getByRole('table')).toBeInTheDocument();
+    await userEvent.keyboard('{ArrowRight}');
+    expect(screen.queryByRole('table')).not.toBeInTheDocument();
   });
 
   it('plays the centred song on Enter in song mode (blocker 5)', async () => {
@@ -161,8 +194,6 @@ describe('cover flow', () => {
         <LibraryCoverFlow
           tracks={albumTracks(5)}
           browseMode="song"
-          onOpenAlbum={jest.fn()}
-          onOpenArtist={jest.fn()}
           onPlayTrack={onPlayTrack}
         />
       </I18nProvider>,
@@ -178,12 +209,7 @@ describe('cover flow', () => {
     // than something that would throw if a future caller forgot it.
     render(
       <I18nProvider>
-        <LibraryCoverFlow
-          tracks={albumTracks(5)}
-          browseMode="song"
-          onOpenAlbum={jest.fn()}
-          onOpenArtist={jest.fn()}
-        />
+        <LibraryCoverFlow tracks={albumTracks(5)} browseMode="song" />
       </I18nProvider>,
     );
     screen.getByRole('listbox').focus();
@@ -207,12 +233,7 @@ describe('cover flow', () => {
     // overlap.
     const { rerender } = render(
       <I18nProvider>
-        <LibraryCoverFlow
-          tracks={albumTracks(5)}
-          browseMode="album"
-          onOpenAlbum={jest.fn()}
-          onOpenArtist={jest.fn()}
-        />
+        <LibraryCoverFlow tracks={albumTracks(5)} browseMode="album" />
       </I18nProvider>,
     );
     const stage = screen.getByRole('listbox');
@@ -227,8 +248,6 @@ describe('cover flow', () => {
         <LibraryCoverFlow
           tracks={[...prependedAlbumTracks(3), ...albumTracks(5)]}
           browseMode="album"
-          onOpenAlbum={jest.fn()}
-          onOpenArtist={jest.fn()}
         />
       </I18nProvider>,
     );

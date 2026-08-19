@@ -34,7 +34,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: flex;
   min-height: 0;
   flex: 1 1 auto;
+  flex-direction: column;
   overflow: hidden;
+}
+
+// *** Expanded: the songs under the row ****************************************
+//
+// Pressing the centre cover opens its tracks below the carousel rather than
+// replacing it. The row is the whole reason to be in this view; leaving it to
+// read a track list, then having to come back and find your place again, threw
+// away the only thing Cover Flow has that the list and grid do not.
+//
+// The row keeps its own box and simply gets less of the column. Because the
+// stage is a size container and `--cover-flow-size` is quoted in `cqh`, the
+// covers shrink themselves as it does — the transition on `flex-basis` is the
+// only thing declared, and the whole carousel resizes and re-fans off the back
+// of it. Nothing measures anything.
+.library-coverflow__stage,
+.library-coverflow__panel {
+  transition: flex-basis 340ms cubic-bezier(0.22, 0.9, 0.24, 1);
+}
+
+.library-coverflow__stage {
+  flex: 1 1 100%;
+}
+
+.library-coverflow.is-expanded .library-coverflow__stage {
+  // Enough of the column to keep the fan legible and its centre cover
+  // recognisable; the rest belongs to the songs, which is what the reader
+  // just asked to see.
+  flex: 0 0 44%;
 }
 
 .library-coverflow__stage {
@@ -265,6 +294,73 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   text-align: center;
 }
 
+// *** The expanded panel ******************************************************
+
+.library-coverflow__panel {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-s;
+  padding: $spacing-s $spacing-s 0;
+  border-top: 1px solid rgba($primary-lighter, 0.1);
+  // Rises out of the seam it opens along, rather than appearing whole. The
+  // stage above is still shrinking on its own 340ms as this arrives, so the
+  // two read as one movement: the row lifts and the songs come up behind it.
+  animation: coverflow-panel-in 340ms cubic-bezier(0.22, 0.9, 0.24, 1) both;
+
+  .library-list {
+    // The panel already draws the surface and the seam; a second inset box
+    // inside it is a card in a card.
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+}
+
+@keyframes coverflow-panel-in {
+  from {
+    opacity: 0;
+    translate: 0 18px;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+.library-coverflow__panel-head {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-m;
+  padding-inline: 2px;
+}
+
+.library-coverflow__panel-titles {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.library-coverflow__panel-title {
+  @include truncate;
+  margin: 0;
+  color: $text-primary;
+  font-size: 0.92rem;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.library-coverflow__panel-subtitle {
+  @include truncate;
+  margin: 0;
+  color: $text-faint;
+  font-size: 0.68rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   // The layout stays — covers still move to a new centre on every input —
   // only the sweep between positions is gone, same convention as
@@ -279,5 +375,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   .library-coverflow__label {
     translate: none;
     transition: visibility 0s;
+  }
+
+  // The panel still opens and the row still gives up its share of the column
+  // — that is layout, not decoration. Only the travel and the fade go.
+  .library-coverflow__panel {
+    animation: none;
+  }
+
+  .library-coverflow__stage,
+  .library-coverflow__panel {
+    transition: none;
   }
 }
