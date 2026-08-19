@@ -46,6 +46,7 @@ export * from './vocalRests';
 export * from './voiceOnsets';
 export * from './lyricRepetition';
 export * from './repeatConsistency';
+export * from './pitchContourNotes';
 export * from './sentenceAlignment';
 export * from './apply';
 export * from './applyMelody';
