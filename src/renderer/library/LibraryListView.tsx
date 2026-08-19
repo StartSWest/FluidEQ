@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { KeyboardEvent, ReactNode, useEffect, useRef, useState } from 'react';
+import {
+  KeyboardEvent,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 import {
   groupIntoAlbums,
   groupIntoArtists,
@@ -31,6 +38,7 @@ import { useTranslation } from '../utils/I18nContext';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
+import LibraryTrackRow from './LibraryTrackRow';
 
 interface ILibraryListViewProps {
   tracks: readonly ILibraryTrack[];
@@ -61,6 +69,12 @@ interface ILibraryListViewProps {
    * browsed by album has no use for it, and a folder heading above every row
    * would be noise rather than structure. */
   groupByFolder?: boolean;
+  /** Changes when the list means something different — a new browse mode,
+   * search or sort — and only then. Scroll position and how far the list has
+   * been paged reset on this and nothing else; the `tracks` array itself is
+   * replaced on every scan batch and is not a signal that the user is now
+   * looking at a different list. */
+  resetKey?: string;
 }
 
 const NO_OFFLINE_ROOTS: ReadonlySet<string> = new Set();
@@ -171,15 +185,21 @@ const LibraryListView = ({
   onSort,
   folderOnlyIds = NO_FOLDER_ONLY,
   groupByFolder = false,
+  resetKey = '',
 }: ILibraryListViewProps) => {
   const { t } = useTranslation();
   const bodyRef = useRef<HTMLDivElement | null>(null);
   const [shownCount, setShownCount] = useState(PAGE_SIZE);
 
-  // A new list starts at the top, showing one page again: keeping the old
-  // offset after a search or a sort would land the user in the middle of
-  // results they have not seen, and keeping the old count would make a
-  // one-result search mount everything the last one had grown to.
+  // A genuinely different list starts at the top, showing one page again:
+  // keeping the old offset after a search or a sort would land the user in
+  // the middle of results they have not seen.
+  //
+  // Keyed on what the list MEANS, never on the `tracks` array itself. That
+  // array gets a new identity on every scan batch — the index is re-sent
+  // whole and re-sorted — so keying on it snapped the scroll back to the top
+  // and shrank the list to one page several times a second for the whole of
+  // a scan. Scrolling down simply undid itself.
   useEffect(() => {
     setShownCount(PAGE_SIZE);
     // `scrollTop` rather than `scrollTo`, which jsdom does not implement —
@@ -188,7 +208,7 @@ const LibraryListView = ({
     if (element) {
       element.scrollTop = 0;
     }
-  }, [browseMode, tracks]);
+  }, [resetKey]);
   // The row a right click or a keyboard context-menu request landed on, and
   // the element the menu hangs off — the row itself, since a context menu
   // has no persistent trigger button the way `AnchoredMenu`'s other users
@@ -225,9 +245,11 @@ const LibraryListView = ({
 
   /** Shared by the right-click handler and the keyboard one below — both
    * just need an element to anchor the menu to and the row's track id. */
-  const openTrackMenu = (anchor: HTMLElement, trackId: string) => {
+  // Stable, like the row's other callbacks: a fresh identity here would make
+  // every memoised row re-render on any state change this view has.
+  const openTrackMenu = useCallback((anchor: HTMLElement, trackId: string) => {
     setTrackMenu({ trackId, anchor });
-  };
+  }, []);
 
   const reveal = (trackId: string) => {
     window.electron.ipcRenderer
@@ -253,22 +275,22 @@ const LibraryListView = ({
    * Menu key and Shift+F10 — open the same menu a right click does.
    * Without this, "Show in Explorer" would be the one action in this view a
    * keyboard user could never reach at all. */
-  const onTrackRowKeyDown = (
-    event: KeyboardEvent<HTMLDivElement>,
-    track: ILibraryTrack,
-  ) => {
-    if (event.key === 'Enter') {
-      onPlayTrack(track.id);
-      return;
-    }
-    if (
-      event.key === 'ContextMenu' ||
-      (event.shiftKey && event.key === 'F10')
-    ) {
-      event.preventDefault();
-      openTrackMenu(event.currentTarget, track.id);
-    }
-  };
+  const onTrackRowKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLDivElement>, track: ILibraryTrack) => {
+      if (event.key === 'Enter') {
+        onPlayTrack(track.id);
+        return;
+      }
+      if (
+        event.key === 'ContextMenu' ||
+        (event.shiftKey && event.key === 'F10')
+      ) {
+        event.preventDefault();
+        setTrackMenu({ trackId: track.id, anchor: event.currentTarget });
+      }
+    },
+    [onPlayTrack],
+  );
 
   const columnHeader = (column: TListColumn) => t(COLUMN_LABEL_KEYS[column]);
 
@@ -546,139 +568,17 @@ const LibraryListView = ({
             </span>
           </div>
         ) : undefined;
-      const activate = () => onPlayTrack(track.id);
-      // Spec §10: a root missing at rescan is marked offline and its tracks
-      // are "kept and dimmed — never deleted", not silently unplayable.
-      const isOffline = offlineRootIds.has(track.rootId);
-      // Same dimming as offline on purpose (reused visual language, not a
-      // second dimmed look), but with its own badge below rather than
-      // offline's row-level tooltip alone: offline says a file cannot be
-      // reached right now, pending says a file is fine and just has not been
-      // read yet — different enough that a hover on the badge itself, not
-      // just the row, should say which one this is.
-      const rowClassName = [
-        'library-list__row',
-        isOffline ? 'library-list__row--offline' : '',
-        track.isPending ? 'library-list__row--pending' : '',
-      ]
-        .filter(Boolean)
-        .join(' ');
       const row = (
-        <div
+        <LibraryTrackRow
           key={track.id}
-          role="row"
-          tabIndex={0}
-          className={rowClassName}
-          title={isOffline ? t('library.root.offline') : undefined}
-          onDoubleClick={activate}
-          onKeyDown={(event) => onTrackRowKeyDown(event, track)}
-          onContextMenu={(event) => {
-            event.preventDefault();
-            openTrackMenu(event.currentTarget, track.id);
-          }}
-        >
-          {/* The artwork doubles as the row's play button. A separate control
-              would need a column of its own across every row for something
-              that is only wanted on the one row the pointer is over, and the
-              cover is already exactly where the eye goes to identify a track.
-              Double-click on the row still works and is unchanged. */}
-          <span
-            role="cell"
-            className="library-list__col library-list__col--art"
-          >
-            <button
-              type="button"
-              className="library-list__art-play"
-              aria-label={`${t('library.play')} — ${track.title}`}
-              disabled={!track.isPlayable}
-              onClick={(event) => {
-                event.stopPropagation();
-                activate();
-              }}
-            >
-              <LibraryCoverArt
-                artId={track.artId}
-                label={track.title}
-                size="row"
-              />
-              <span className="library-list__art-play-glyph" aria-hidden="true">
-                <MenuIcon name="play" className="library-list__badge-icon" />
-              </span>
-            </button>
-          </span>
-          <span
-            role="cell"
-            className="library-list__col library-list__col--title"
-          >
-            <span className="library-list__title-text">
-              <span className="library-list__title-label">{track.title}</span>
-              {/* Chromium has no decoder for this container — marked, not
-                  silently broken. */}
-              {!track.isPlayable && (
-                <span
-                  className="library-list__badge library-list__badge--unplayable"
-                  title={t('library.unplayable')}
-                >
-                  <MenuIcon name="clear" className="library-list__badge-icon" />
-                </span>
-              )}
-              {/* The title above is already the cleaned filename, not a tag
-                  — this says why: the file's own tags could not be read,
-                  not that FluidEQ failed to read them. Quiet on purpose:
-                  this is information, not something to act on. */}
-              {track.hasMetadataError && (
-                <span
-                  className="library-list__badge library-list__badge--metadata"
-                  title={t('library.metadataError')}
-                >
-                  <MenuIcon name="info" className="library-list__badge-icon" />
-                </span>
-              )}
-              {/* Same restraint as the metadata-error badge above: this is
-                  information, not a problem, so it gets the same quiet
-                  treatment rather than the unplayable badge's red. Never set
-                  alongside `hasMetadataError` -- a pending track has not been
-                  through a tag read yet, successful or failed. */}
-              {track.isPending && (
-                <span
-                  className="library-list__badge library-list__badge--pending"
-                  title={t('library.pending')}
-                >
-                  <MenuIcon
-                    name="pending"
-                    className="library-list__badge-icon"
-                  />
-                </span>
-              )}
-              {/* Shares the open album's folder but is not part of the
-                  album. Marked rather than separated out, so the list stays
-                  one list and the distinction is still visible. */}
-              {folderOnlyIds.has(track.id) && (
-                <span
-                  className="library-list__badge library-list__badge--folder"
-                  title={t('library.alsoInFolder')}
-                >
-                  <MenuIcon
-                    name="folder"
-                    className="library-list__badge-icon"
-                  />
-                </span>
-              )}
-            </span>
-          </span>
-          <span role="cell" className="library-list__col">
-            {track.artist ?? ''}
-          </span>
-          <span role="cell" className="library-list__col">
-            {track.album ?? ''}
-          </span>
-          <span
-            role="cell"
-            className="library-list__col library-list__col--length"
-          >
-            {formatDuration(track.durationMs)}
-          </span>
-        </div>
+          track={track}
+          isOffline={offlineRootIds.has(track.rootId)}
+          isFolderOnly={folderOnlyIds.has(track.id)}
+          duration={formatDuration(track.durationMs)}
+          onPlay={onPlayTrack}
+          onKeyDown={onTrackRowKeyDown}
+          onContextMenu={openTrackMenu}
+        />
       );
       return folderHeading ? [folderHeading, row] : [row];
     }),

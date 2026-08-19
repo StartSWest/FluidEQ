@@ -1,0 +1,164 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+import { KeyboardEvent, memo } from 'react';
+import { ILibraryTrack } from '../../common/library/types';
+import { useTranslation } from '../utils/I18nContext';
+import MenuIcon from '../icons/MenuIcon';
+import LibraryCoverArt from './LibraryCoverArt';
+
+interface ILibraryTrackRowProps {
+  track: ILibraryTrack;
+  isOffline: boolean;
+  isFolderOnly: boolean;
+  duration: string;
+  onPlay: (trackId: string) => void;
+  onKeyDown: (
+    event: KeyboardEvent<HTMLDivElement>,
+    track: ILibraryTrack,
+  ) => void;
+  onContextMenu: (anchor: HTMLElement, trackId: string) => void;
+}
+
+/**
+ * One song row, memoised.
+ *
+ * The reason it is its own component at all: `LibraryWorkspace` re-renders
+ * several times a second while a scan runs, and inline rows meant every
+ * mounted row re-rendered with it — a hundred rows' worth of work for a
+ * progress counter none of them display. Memoised, a row only re-renders when
+ * something it actually shows has changed.
+ *
+ * Every prop is therefore either a primitive or a stable callback. The two
+ * booleans are resolved by the parent rather than passed as the sets they came
+ * from, because a `Set` is a new object on every render and would defeat the
+ * memo exactly as thoroughly as the closures did.
+ */
+const LibraryTrackRow = ({
+  track,
+  isOffline,
+  isFolderOnly,
+  duration,
+  onPlay,
+  onKeyDown,
+  onContextMenu,
+}: ILibraryTrackRowProps) => {
+  const { t } = useTranslation();
+  const activate = () => onPlay(track.id);
+  const className = [
+    'library-list__row',
+    isOffline ? 'library-list__row--offline' : '',
+    track.isPending ? 'library-list__row--pending' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  return (
+    <div
+      role="row"
+      tabIndex={0}
+      className={className}
+      title={isOffline ? t('library.root.offline') : undefined}
+      onDoubleClick={activate}
+      onKeyDown={(event) => onKeyDown(event, track)}
+      onContextMenu={(event) => {
+        event.preventDefault();
+        onContextMenu(event.currentTarget, track.id);
+      }}
+    >
+      {/* The artwork doubles as the row's play button. A separate control
+          would need a column of its own across every row for something only
+          ever wanted on the row under the pointer, and the cover is already
+          where the eye goes to identify a track. Double-click still works. */}
+      <span role="cell" className="library-list__col library-list__col--art">
+        <button
+          type="button"
+          className="library-list__art-play"
+          aria-label={`${t('library.play')} — ${track.title}`}
+          disabled={!track.isPlayable}
+          onClick={(event) => {
+            event.stopPropagation();
+            activate();
+          }}
+        >
+          <LibraryCoverArt artId={track.artId} label={track.title} size="row" />
+          <span className="library-list__art-play-glyph" aria-hidden="true">
+            <MenuIcon name="play" className="library-list__badge-icon" />
+          </span>
+        </button>
+      </span>
+      <span role="cell" className="library-list__col library-list__col--title">
+        <span className="library-list__title-text">
+          <span className="library-list__title-label">{track.title}</span>
+          {/* Chromium has no decoder for this container — marked, not
+              silently broken. */}
+          {!track.isPlayable && (
+            <span
+              className="library-list__badge library-list__badge--unplayable"
+              title={t('library.unplayable')}
+            >
+              <MenuIcon name="clear" className="library-list__badge-icon" />
+            </span>
+          )}
+          {/* The title is already the cleaned filename rather than a tag —
+              this says why, and says it is the file's tags that could not be
+              read rather than FluidEQ failing to read them. */}
+          {track.hasMetadataError && (
+            <span
+              className="library-list__badge library-list__badge--metadata"
+              title={t('library.metadataError')}
+            >
+              <MenuIcon name="info" className="library-list__badge-icon" />
+            </span>
+          )}
+          {/* Found, not yet read. Never set alongside `hasMetadataError` — a
+              pending track has not been through a tag read at all. */}
+          {track.isPending && (
+            <span
+              className="library-list__badge library-list__badge--pending"
+              title={t('library.pending')}
+            >
+              <MenuIcon name="pending" className="library-list__badge-icon" />
+            </span>
+          )}
+          {/* Shares the open album's folder without being part of the album.
+              Marked rather than separated out, so the list stays one list. */}
+          {isFolderOnly && (
+            <span
+              className="library-list__badge library-list__badge--folder"
+              title={t('library.alsoInFolder')}
+            >
+              <MenuIcon name="folder" className="library-list__badge-icon" />
+            </span>
+          )}
+        </span>
+      </span>
+      <span role="cell" className="library-list__col">
+        {track.artist ?? ''}
+      </span>
+      <span role="cell" className="library-list__col">
+        {track.album ?? ''}
+      </span>
+      <span role="cell" className="library-list__col library-list__col--length">
+        {duration}
+      </span>
+    </div>
+  );
+};
+
+export default memo(LibraryTrackRow);

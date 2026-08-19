@@ -96,15 +96,61 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   useEffect(() => {
+    // Progress arrives once per file — fifty a second on a warm cache — and
+    // every one of them re-renders this provider and everything under it,
+    // rows included. A strip that says "6,712 of 14,077" does not need
+    // fifty updates a second to be read, so they are coalesced onto animation
+    // frames: the newest is kept, the rest are dropped, and the browser
+    // decides the rate. This was the whole of the list's stutter during a
+    // scan; the list itself was never the problem.
+    //
+    // The terminal event is exempt. It is the one the renderer derives "still
+    // scanning" from, and dropping it — or delivering it after a frame that
+    // never comes because the tab is hidden — would pin the strip on forever.
+    let queued: ILibraryScanProgress | undefined;
+    let frame = 0;
+    let isRunning = false;
+    const flush = () => {
+      frame = 0;
+      if (queued) {
+        setProgress(queued);
+        setIsScanning(!queued.isDone);
+        queued = undefined;
+      }
+    };
+    const deliverNow = (next: ILibraryScanProgress) => {
+      if (frame) {
+        cancelAnimationFrame(frame);
+        frame = 0;
+      }
+      queued = undefined;
+      setProgress(next);
+      setIsScanning(!next.isDone);
+    };
     const unsubscribeProgress =
       window.electron.ipcRenderer.onLibraryScanProgress((next) => {
-        setProgress(next);
-        setIsScanning(!next.isDone);
+        // The first event of a scan and the last one both go straight
+        // through. The first is what puts the pane on screen at all — a long
+        // action has to show progress from its first second, not from its
+        // first animation frame — and the last is what the renderer derives
+        // "still scanning" from, so deferring it risks pinning the pane on.
+        if (next.isDone || !isRunning) {
+          isRunning = !next.isDone;
+          deliverNow(next);
+          return;
+        }
+        queued = next;
+        if (!frame) {
+          frame = requestAnimationFrame(flush);
+        }
       });
     const unsubscribeIndex = window.electron.ipcRenderer.onLibraryIndexChanged(
       (next) => setIndex(next),
     );
     return () => {
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
       unsubscribeProgress();
       unsubscribeIndex();
     };

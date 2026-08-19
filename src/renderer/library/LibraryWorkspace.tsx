@@ -267,6 +267,12 @@ const LibraryWorkspace = ({
     [index.tracks, query, sort, sortDirection],
   );
 
+  // What makes the list a DIFFERENT list, as opposed to the same list with
+  // more in it. A scan republishes the whole index every batch, so the track
+  // array's identity changes constantly and means nothing to the reader —
+  // only these four do.
+  const listResetKey = `${browseMode}|${query}|${sort}|${sortDirection}`;
+
   /**
    * A column header was pressed.
    *
@@ -285,18 +291,22 @@ const LibraryWorkspace = ({
   }, []);
 
   // Opening one closes the other — only one drill-in is ever on screen.
-  const handleOpenAlbum = (albumId: string) => {
+  // Stable identities, all three. A fresh closure each render is a changed
+  // prop, a changed prop defeats the rows' own `memo`, and every row in the
+  // list then re-renders for a state change none of them care about — which
+  // during a scan is several times a second.
+  const handleOpenAlbum = useCallback((albumId: string) => {
     setOpenArtistId(undefined);
     setOpenAlbumId(albumId);
-  };
-  const handleOpenArtist = (artistId: string) => {
+  }, []);
+  const handleOpenArtist = useCallback((artistId: string) => {
     setOpenAlbumId(undefined);
     setOpenArtistId(artistId);
-  };
-  const handleBack = () => {
+  }, []);
+  const handleBack = useCallback(() => {
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
-  };
+  }, []);
   // The queue a click hands to `playTracks`: whatever list the surface the
   // click came from is actually showing, so the order the bar plays through
   // matches the order on screen — mirroring `LibraryDetail`'s own
@@ -526,6 +536,7 @@ const LibraryWorkspace = ({
             sortDirection={sortDirection}
             onSort={handleSort}
             groupByFolder={groupByFolder}
+            resetKey={listResetKey}
           />
         )}
       {index.tracks.length > 0 &&
