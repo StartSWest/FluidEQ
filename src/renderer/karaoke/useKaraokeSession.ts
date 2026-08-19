@@ -29,7 +29,11 @@ import {
   setKaraokeRestoredFileToken,
 } from '../../common/karaoke/files';
 import { findActiveKaraokeLine, TrackClock } from '../../common/karaoke/clock';
-import { IKaraokeSong } from '../../common/karaoke/types';
+import {
+  IKaraokeSong,
+  KaraokeParseError,
+  TKaraokeParseErrorCode,
+} from '../../common/karaoke/types';
 
 const KARAOKE_VOLUME_KEY = 'fluideq.karaoke.volume';
 const PLAYHEAD_RENDER_INTERVAL_MS = 50;
@@ -43,7 +47,22 @@ export type TKaraokeSessionError =
 export interface IKaraokeSessionWarning {
   kind: 'lyrics';
   fileName: string;
+  /**
+   * Why the parse failed, when the parser said so.
+   *
+   * Absent for anything that is not a `KaraokeParseError` — a read that fell
+   * over, an extension no adapter claimed — and the workspace falls back to
+   * the one generic sentence for those. The code travels rather than the
+   * message because the messages thrown in `src/common` are English
+   * diagnostics; only the UI knows which of ten languages to say them in.
+   */
+  code?: TKaraokeParseErrorCode;
+  /** 1-based, and only for the codes whose parser could point at a row. */
+  line?: number;
 }
+
+const asKaraokeParseError = (error: unknown): KaraokeParseError | undefined =>
+  error instanceof KaraokeParseError ? error : undefined;
 
 const persistedVolume = (): number => {
   try {
@@ -224,10 +243,13 @@ export const useKaraokeSession = (isActive: boolean) => {
       if (selection.lyrics) {
         try {
           parsed = await parseKaraokeLyricFile(selection.lyrics);
-        } catch {
+        } catch (error) {
+          const parseError = asKaraokeParseError(error);
           setWarning({
             kind: 'lyrics',
             fileName: selection.lyrics.name,
+            code: parseError?.code,
+            line: parseError?.line,
           });
         }
       }

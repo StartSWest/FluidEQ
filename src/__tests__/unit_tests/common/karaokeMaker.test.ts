@@ -947,7 +947,8 @@ describe('Karaoke Maker canonical project and exports', () => {
     expect(lrc).toContain('[ti:Song]');
     expect(lrc).toContain('<00:01.000>Hel');
     expect(ultrastar).toContain('#CREATOR:FluidEQ Karaoke Maker');
-    expect(ultrastar).toContain('#BPM:120');
+    // The exported BPM is a 5 ms timing grid, not the project's tempo.
+    expect(ultrastar).toContain('#BPM:3000');
     expect(ultrastar.trimEnd()).toMatch(/\nE$/);
     expect(karaokeMakerExportFileName(project, 'project')).toBe(
       'Artist - Song.fluideq-karaoke.json',

@@ -140,6 +140,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   letter-spacing: 0.04em;
 }
 
+// The same sentence with nothing underneath it, which is a different job.
+//
+// The caption above is sized to sit over artwork; alone on the stage it was a
+// watermark, because a corner label is read as a caption on the picture even
+// when there is no picture. The first attempt at this modifier moved it from
+// 0.62rem to 0.72rem — 9.9px to 11.5px, under two pixels — and claimed to have
+// sized it to be read. 0.9rem is 14.4px: a third larger than the workspace's
+// own notice strip at 0.68rem, which is the right relationship when this
+// sentence is the ENTIRE contents of the stage rather than one row among six.
+//
+// It stays in the corner and does not move to the middle:
+// `.karaoke-lyrics-shell` is z-index 1 above this whole layer, so a centred
+// notice would be drawn behind the words. What it gets instead of the middle
+// is a plate in the warning colour the notice strip already uses, and enough
+// width for the sentence to break once rather than four times.
+.karaoke-stage-media__unsupported.is-alone {
+  max-width: min(420px, 74%);
+  padding: 9px 13px;
+  color: rgba($primary-lighter, 0.92);
+  border: 1px solid rgba($neon-yellow, 0.28);
+  border-radius: $radius-s;
+  background: rgba($surface-field, 0.62);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
 .karaoke-workspace:not(.is-hidden) .karaoke-transport {
   @include animate(rise-in, $motion-base, $ease-out, 310ms);
 }

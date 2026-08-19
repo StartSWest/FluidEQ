@@ -41,22 +41,44 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.import.clear': 'Entfernen',
   'karaoke.import.loading': 'Song wird vorbereitet…',
   'karaoke.import.formats':
-    'Audio: MP3, WAV, OGG, FLAC oder M4A · Text: LRC, eLRC oder UltraStar-TXT',
+    'Audio: MP3, WAV, OGG, Opus, FLAC, M4A oder AAC · Text: LRC, eLRC oder UltraStar-TXT · Cover und Video kannst du mitgeben',
   'karaoke.import.drop': 'Songs, Texte oder Ordner hier ablegen',
   'karaoke.error.missingAudio':
     'Füge zusammen mit dieser Textdatei eine Audiodatei hinzu.',
   'karaoke.error.ambiguous':
     'Mehrere Zuordnungen sind möglich. Wähle eine Audiodatei und optional eine Textdatei.',
   'karaoke.error.unsupported':
-    'Keine dieser Dateien ist bereits ein unterstütztes Karaoke-Audio- oder Textformat.',
+    'Keine dieser Dateien ist bereits ein unterstütztes Karaoke-Audio- oder Textformat. Cover und Video brauchen einen Song daneben.',
   'karaoke.error.read': 'FluidEQ konnte die ausgewählten Dateien nicht lesen.',
   'karaoke.error.playback':
     'Diese Chromium-Version konnte die Audiodatei oder den Codec nicht wiedergeben.',
-  'karaoke.warning.lyrics':
-    'konnte nicht gelesen werden; das Audio bleibt ohne synchronisierten Text verfügbar.',
+  'karaoke.warning.lyrics': 'konnte nicht gelesen werden.',
+  'karaoke.warning.lyricsEmpty': 'ist leer.',
+  'karaoke.warning.lyricsMissingTiming':
+    'enthält keine Zeitangaben, die FluidEQ lesen kann.',
+  'karaoke.warning.lyricsMissingBpm':
+    'gibt kein BPM an, das eine UltraStar-Datei braucht.',
+  'karaoke.warning.lyricsInvalidBpm':
+    'gibt ein BPM an, das keine brauchbare Zahl ist.',
+  'karaoke.warning.lyricsMalformedNote':
+    'enthält eine Notenzeile, die FluidEQ nicht lesen konnte.',
+  'karaoke.warning.lyricsUnsupportedVariant':
+    'nutzt eine Karaoke-Variante, die FluidEQ noch nicht singen kann, etwa ein Duett.',
+  'karaoke.warning.lyricsAtLine': 'Zeile {line}.',
+  'karaoke.warning.lyricsAudioIntact':
+    'Das Audio bleibt ohne synchronisierten Text verfügbar.',
+  'karaoke.warning.setAside':
+    'FluidEQ kann diese Dateien noch nicht als Karaoke lesen und hat sie deshalb beiseitegelegt: {formats}.',
+  'karaoke.warning.unpairedLyrics':
+    'Zu diesen Textdateien passt keine Audiodatei, deshalb wurden sie nicht verwendet: {files}.',
+  'karaoke.warning.ambiguousLyrics':
+    'Zwei Textdateien passten zum selben Song, deshalb wurde keine verwendet: {files}.',
+  'karaoke.warning.andMore': 'und {count} weitere',
   'karaoke.song.unknownArtist': 'Lokaler Song',
   'karaoke.stage.videoUnsupported':
     '{format}-Videos können hier nicht abgespielt werden',
+  'karaoke.stage.videoFailed':
+    '{format}-Video konnte hier nicht dekodiert werden',
   'karaoke.stage.hideArt': 'Cover ausblenden',
   'karaoke.stage.showArt': 'Cover einblenden',
   'karaoke.stage.noArt': 'Dieser Titel hat kein Cover',
@@ -441,7 +463,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcriptionEyebrow': 'OPTIONALE LOKALE TRANSKRIPTION',
   'karaoke.maker.transcriptionTitle': 'Lokales Sprachmodell herunterladen?',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ lädt das MIT-lizenzierte Modell {model} von Hugging Face und legt es auf diesem PC ab — etwa 700 MB für die Stimmtrennung, einmalig. Dein Audio verlässt diesen Computer nie. Der erste Lauf dauert einige Minuten und braucht viel Speicher.',
+    'FluidEQ lädt das MIT-lizenzierte Modell {model} von Hugging Face und legt es auf diesem PC ab — einmalig, etwa 570 MB mit Grafikbeschleunigung und etwa 1,1 GB ohne sie. Dein Audio verlässt diesen Computer nie. Der erste Lauf dauert einige Minuten und braucht viel Speicher.',
   'karaoke.maker.transcriptionReview':
     'Die Erkennung ist nur ein Ausgangspunkt. FluidEQ behält beim Abgleich Ihre Schreibweise bei und alle Zeiten bleiben bearbeitbar.',
   'karaoke.maker.notNow': 'Nicht jetzt',
@@ -493,6 +515,10 @@ const karaoke: Partial<Dictionary> = {
     'Das lokale Sprachmodell ist inaktiv. Das Freigeben spart Arbeitsspeicher; seine Dateien bleiben für ein schnelleres Neuladen zwischengespeichert.',
   'karaoke.maker.keepLoaded': 'Geladen lassen',
   'karaoke.maker.exported': '{file} wurde exportiert',
+  'karaoke.maker.exportedPartialLrc':
+    '{file} wurde exportiert, ohne {lines} Liedtextzeilen: LRC braucht ein Timing auf der Zeile oder auf einem ihrer Wörter, und diese haben beides nicht. Timen Sie sie im Maker und exportieren Sie erneut für eine vollständige Datei.',
+  'karaoke.maker.exportedPartialUltraStar':
+    '{file} wurde exportiert, ohne {words} Liedtextwörter: UltraStar übernimmt ein Wort nur dort, wo die Melodie eine Note hat, und diese haben keine. Erkennen oder zeichnen Sie ihre Noten und exportieren Sie erneut für eine vollständige Datei.',
   'karaoke.maker.exportFallback': 'Karaoke-Datei',
   'karaoke.maker.projectTooLarge': 'Das Projekt ist größer als 16 MB.',
   'karaoke.maker.previewResize': 'Live-Vorschau skalieren',

@@ -59,3 +59,12 @@ presets/**
 /*.wav
 /*.flac
 /*.m4a
+
+# The karaoke files exported beside them, for the same reason and one more: a
+# timed lyric sheet is somebody else's words whether or not the audio ever left
+# the machine. Two exports of a commercial single sat at this root for months,
+# committed by a change that had nothing to do with karaoke, which is exactly
+# how a file nobody meant to publish gets published.
+/*.txt
+/*.lrc
+/*.elrc

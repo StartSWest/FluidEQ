@@ -28,6 +28,45 @@ const parseDecimal = (value: string): number =>
   Number(value.trim().replace(',', '.'));
 
 /**
+ * The player row, in every spelling and for every voice.
+ *
+ * USDX reads the digit from position 2 or 3 depending on whether a space
+ * follows the `P`, so `P1` and `P 1` are the same row, and the format defines
+ * `#P1` through `#P9`. Matching only `P1`/`P2` meant a modern duet fell
+ * through to the note regex and was reported as a malformed file, and a
+ * three-voice song merged all three singers into one track in silence.
+ */
+const DUET_PLAYER_ROW = /^P\s*[1-9]\s*$/i;
+const DUET_SINGER_HEADER = /^P[1-9]$/;
+
+/**
+ * `note-type = %x21-22 / %x24-7E` — any visible ASCII but space and `#`.
+ *
+ * Deliberately the whole class rather than the five types this app models.
+ * The format says an implementation MAY substitute freestyle for a type it
+ * does not know and MUST NOT invent semantics for one; it does not permit
+ * dropping the syllable, which is what a narrower class here did — a note
+ * marked with an unmodelled type vanished, lyric and all, with no error.
+ */
+const NOTE_ROW = /^([!-"$-~])\s+(-?\d+)\s+(\d+)\s+(-?\d+)(?:\s(.*))?$/;
+
+/** The two types this app scores against a pitch; everything else sings free. */
+const PITCHED_NOTE_TYPES = new Set([':', '*']);
+
+/**
+ * A row that opens like a note and then is not one.
+ *
+ * The distinction decides whether a file is rejected or a line is skipped:
+ * prose and ripper credits are ignored the way UltraStar Deluxe ignores them,
+ * but a marker followed by numbers that do not parse is a genuine defect
+ * worth naming with its line number.
+ */
+const NOTE_SHAPED_ROW = /^[!-"$-~]\s+-?\d/;
+
+/** `B <beat> <bpm>`, the variable-tempo row USDX warns about and ignores. */
+const VARIABLE_BPM_ROW = /^B\s+-?[\d.,]+\s+[\d.,]+\s*$/i;
+
+/**
  * Parse the text UltraStar format used by UltraStar Deluxe/Performous.
  *
  * Timing positions are quarter-beats. In RELATIVE songs, the value on a line
@@ -54,9 +93,15 @@ export const parseUltraStar = (contents: string): IKaraokeParsedLyrics => {
     }
   });
   if (
+    // `#DUETSINGERP1` is the deprecated spelling; `#P1`/`#P2` is what current
+    // files carry. Reading only the old pair meant a modern duet reached the
+    // note loop and died as `malformed-note`, which blames the file for
+    // something the parser simply had not been taught to recognise.
     metadata.has('DUETSINGERP1') ||
     metadata.has('DUETSINGERP2') ||
-    rows.some((row) => /^P[12]\s*$/i.test(row.trim()))
+    Array.from(metadata.keys()).filter((key) => DUET_SINGER_HEADER.test(key))
+      .length >= 2 ||
+    rows.some((row) => DUET_PLAYER_ROW.test(row.trim()))
   ) {
     throw new KaraokeParseError(
       'unsupported-variant',
@@ -91,7 +136,13 @@ export const parseUltraStar = (contents: string): IKaraokeParsedLyrics => {
   // Seconds in the file, milliseconds everywhere in this codebase. Decimal
   // because `#VIDEOGAP:4.5` is legal, and the same comma-or-point tolerance
   // the other numbers here get — these files come from every locale in Europe.
-  const videoGapCandidate = parseDecimal(metadata.get('VIDEOGAP') ?? '');
+  // Tested before parsing rather than after: `Number('')` is 0, not NaN, so
+  // asking `Number.isFinite` about an absent tag answered yes and every song
+  // reported a declared video gap of zero.
+  const videoGapField = metadata.get('VIDEOGAP')?.trim();
+  const videoGapCandidate = videoGapField
+    ? parseDecimal(videoGapField)
+    : Number.NaN;
   const videoGapMs = Number.isFinite(videoGapCandidate)
     ? videoGapCandidate * 1000
     : undefined;
@@ -129,71 +180,90 @@ export const parseUltraStar = (contents: string): IKaraokeParsedLyrics => {
     pendingTokens = [];
   };
 
-  rows.forEach((rawRow, rowIndex) => {
-    const row = rawRow.trimEnd();
-    if (!row || row.startsWith('#')) {
-      return;
-    }
+  // A plain loop rather than `forEach`, because `E` has to stop the parse and
+  // not merely skip its own row: the format says everything after a trailing
+  // `E` MUST be ignored, and real packs put ripper credits down there.
+  for (let rowIndex = 0; rowIndex < rows.length; rowIndex += 1) {
+    const row = rows[rowIndex].trimEnd();
     if (/^E\s*$/i.test(row)) {
-      flushLine();
-      return;
+      break;
     }
-    if (row.startsWith('-')) {
-      flushLine();
-      if (relative) {
-        const [, originField] = row.trim().split(/\s+/);
-        const nextOrigin = Number(originField);
-        if (Number.isFinite(nextOrigin)) {
-          lineOriginBeat = nextOrigin;
+    // Skipped rather than fatal: a blank line, a header, and — the reason this
+    // is not an error — the prose and ripper credits twenty-year-old packs
+    // carry between their notes, which UltraStar Deluxe also walks past.
+    if (row && !row.startsWith('#')) {
+      if (row.startsWith('-')) {
+        flushLine();
+        if (relative) {
+          const [, endField, nextStartField] = row.trim().split(/\s+/);
+          // UltraStar Deluxe ADDS the second number to a running origin
+          // (`Rel := Rel + Param2`); it does not assign it. Assigning meant
+          // the origin never advanced, so from the second line break onward
+          // every line landed on top of the one before it — at 120 BPM with
+          // 20-beat breaks the tenth line was twenty seconds early. Files
+          // carrying only one number end and restart on the same beat.
+          const advance = Number(nextStartField ?? endField);
+          if (Number.isFinite(advance)) {
+            lineOriginBeat += advance;
+          }
+        }
+      } else {
+        const note = row.match(NOTE_ROW);
+        // Only a row that announces itself as a note and then fails to parse
+        // is worth naming; `B <beat> <bpm>` is a tempo row USDX warns about
+        // and ignores, and anything else was never claiming to be a note.
+        if (!note) {
+          if (!VARIABLE_BPM_ROW.test(row) && NOTE_SHAPED_ROW.test(row)) {
+            throw new KaraokeParseError(
+              'malformed-note',
+              `Invalid UltraStar note on line ${rowIndex + 1}.`,
+              rowIndex + 1,
+            );
+          }
+        } else {
+          const startBeat = Number(note[2]) + (relative ? lineOriginBeat : 0);
+          const durationBeats = Number(note[3]);
+          const pitch = Number(note[4]);
+          const marker = note[1].toUpperCase();
+          let kind: IKaraokeToken['kind'] = 'normal';
+          if (marker === '*') {
+            kind = 'golden';
+          } else if (!PITCHED_NOTE_TYPES.has(marker)) {
+            // Rap notes have no pitch to hit — UltraStar scores them on noise,
+            // not tone — and a type this app has never heard of has no meaning
+            // it is allowed to invent. Both become freestyle, the substitution
+            // the format sanctions. Before this, one rap syllable made a
+            // three-hundred-note song fail to open at all.
+            kind = 'free';
+          }
+          if (durationBeats === 0) {
+            // A zero-length note cannot be sung, let alone hit. UltraStar
+            // Deluxe rewrites it as freestyle rather than leaving an
+            // unreachable target dragging a score down.
+            kind = 'free';
+          }
+          const rawText = note[5] ?? '';
+          pendingTokens.push(
+            normalizeKaraokeProviderToken(
+              {
+                // UltraStar uses a leading space for a new word and `~` as a
+                // syllable/melisma join marker. The first token after a line
+                // break is also necessarily a new word without a leading space.
+                text: rawText.replace(/~/g, ''),
+                startsWord: pendingTokens.length === 0 || /^\s/.test(rawText),
+                start: startBeat,
+                duration: durationBeats,
+                pitch,
+                kind,
+              },
+              providerClock,
+              providerPitch,
+            ),
+          );
         }
       }
-      return;
     }
-    if (/^P[12]\s*$/i.test(row.trim())) {
-      throw new KaraokeParseError(
-        'unsupported-variant',
-        'UltraStar duet files are not supported yet.',
-        rowIndex + 1,
-      );
-    }
-
-    const note = row.match(/^([:*F])\s+(-?\d+)\s+(\d+)\s+(-?\d+)(?:\s(.*))?$/i);
-    if (!note) {
-      throw new KaraokeParseError(
-        'malformed-note',
-        `Invalid UltraStar note on line ${rowIndex + 1}.`,
-        rowIndex + 1,
-      );
-    }
-    const startBeat = Number(note[2]) + (relative ? lineOriginBeat : 0);
-    const durationBeats = Number(note[3]);
-    const pitch = Number(note[4]);
-    const marker = note[1].toUpperCase();
-    let kind: IKaraokeToken['kind'] = 'normal';
-    if (marker === '*') {
-      kind = 'golden';
-    } else if (marker === 'F') {
-      kind = 'free';
-    }
-    const rawText = note[5] ?? '';
-    pendingTokens.push(
-      normalizeKaraokeProviderToken(
-        {
-          // UltraStar uses a leading space for a new word and `~` as a
-          // syllable/melisma join marker. The first token after a line break
-          // is also necessarily a new word without a leading space.
-          text: rawText.replace(/~/g, ''),
-          startsWord: pendingTokens.length === 0 || /^\s/.test(rawText),
-          start: startBeat,
-          duration: durationBeats,
-          pitch,
-          kind,
-        },
-        providerClock,
-        providerPitch,
-      ),
-    );
-  });
+  }
   flushLine();
 
   if (!lines.length) {
@@ -206,8 +276,13 @@ export const parseUltraStar = (contents: string): IKaraokeParsedLyrics => {
   return {
     title: metadata.get('TITLE'),
     artist: metadata.get('ARTIST'),
-    audioFileName:
-      metadata.get('MP3') ?? metadata.get('AUDIO') ?? metadata.get('VIDEO'),
+    // `#AUDIO` supersedes `#MP3`: the format says an implementation SHOULD
+    // disregard `#MP3` when `#AUDIO` is present, even when the named file is
+    // missing, because `#MP3` is the deprecated tag kept for old players and
+    // is where a stale filename survives. `#VIDEO` was a fallback here and is
+    // not one — pointing the audio element at an AVI names a file this build
+    // cannot decode.
+    audioFileName: metadata.get('AUDIO') ?? metadata.get('MP3'),
     timingPrecision: 'syllable',
     lines,
     pitch: {

@@ -5,12 +5,19 @@ SPDX-License-Identifier: GPL-3.0-or-later
 */
 
 import {
-  IKaraokeMakerNote,
+  IKaraokeMakerLine,
   IKaraokeMakerProject,
   KARAOKE_MAKER_EXTENSION,
   karaokeMakerLineIsSection,
   serializeKaraokeMakerProject,
 } from './makerProject';
+import { IWrittenKaraokeFile, countWords } from './makerExportText';
+import {
+  exportKaraokeMakerUltraStar,
+  writeUltraStar,
+} from './makerExportUltraStar';
+
+export { exportKaraokeMakerUltraStar };
 
 export type TKaraokeMakerExportFormat =
   'project' | 'ultrastar' | 'lrc' | 'elrc';
@@ -20,13 +27,52 @@ export interface IKaraokeMakerExport {
   extension: string;
   mimeType: string;
   contents: string;
+  /**
+   * What the written file does not contain. LRC cannot carry a line with no
+   * time on it at all and UltraStar cannot carry a word with no melody note,
+   * and the Maker reported every export as a plain success — a half-empty file
+   * and a complete one looked identical to the user.
+   *
+   * The two numbers mean different things per format, which is why the notice
+   * that reports them is chosen by format rather than shared: LRC drops whole
+   * lines, so `droppedLines` is the unit there and `droppedWords` only ever
+   * counts what was inside them; UltraStar drops individual words, so
+   * `droppedWords` is the unit and a line is only counted once every word in
+   * it has gone.
+   */
+  droppedLines: number;
+  droppedWords: number;
 }
 
+/**
+ * Fold the accents an ASCII filename cannot keep, without eating letters that
+ * are not accents. NFKD splits `й` into `и` + U+0306 exactly as it splits `é`,
+ * so a blanket strip of U+0300–U+036F turned `Виктор Цой` into `Виктор Цои`
+ * and `ёлка` into `елка`. A mark is dropped only where its base letter is
+ * ASCII; everything else is put back together by NFC, which also recomposes
+ * the Hangul syllables NFKD had taken apart.
+ */
+const foldLatinDiacritics = (value: string): string => {
+  const folded: string[] = [];
+  let baseIsAscii = false;
+  Array.from(value.normalize('NFKD')).forEach((character) => {
+    const code = character.codePointAt(0) ?? 0;
+    if (code >= 0x0300 && code <= 0x036f) {
+      if (!baseIsAscii) {
+        folded.push(character);
+      }
+      return;
+    }
+    baseIsAscii = code < 0x80;
+    folded.push(character);
+  });
+  return folded.join('').normalize('NFC');
+};
+
 const safeFileStem = (value: string): string =>
-  Array.from(value.normalize('NFKD'))
-    .filter((character) => character.charCodeAt(0) >= 32)
+  Array.from(foldLatinDiacritics(value))
+    .filter((character) => (character.codePointAt(0) ?? 0) >= 32)
     .join('')
-    .replace(/[\u0300-\u036f]/g, '')
     .replace(/[<>:"/\\|?*]/g, '')
     .replace(/\s+/g, ' ')
     .trim()
@@ -61,143 +107,109 @@ const lrcTimestamp = (timeMs: number, enhanced = false): string => {
   )}.${fraction}`;
 };
 
-const lyricTokenSuffix = (
-  project: IKaraokeMakerProject,
-  lineIndex: number,
+/**
+ * A metadata tag ends at the first `]` — our own reader matches `[^\]]*` — so
+ * a bracket inside the value deleted the whole `[ti:]` or `[ar:]` line rather
+ * than truncating it.
+ */
+const lrcMetadataValue = (value: string): string =>
+  value.replace(/\[/g, '(').replace(/\]/g, ')').trim();
+
+/** LRC writes a word boundary as a space; UltraStar writes it as a marker. */
+const tokenSuffix = (line: IKaraokeMakerLine, tokenIndex: number): string =>
+  line.tokens[tokenIndex + 1]?.startsWord ? ' ' : '';
+
+const nextTimedStartMs = (
+  line: IKaraokeMakerLine,
   tokenIndex: number,
-): string => {
-  const next = project.lyrics.lines[lineIndex]?.tokens[tokenIndex + 1];
-  return next?.startsWord ? ' ' : '';
+): number | undefined =>
+  line.tokens.slice(tokenIndex + 1).find((token) => token.startMs !== undefined)
+    ?.startMs;
+
+const plainLineText = (line: IKaraokeMakerLine): string =>
+  line.tokens
+    .map((token, tokenIndex) => `${token.text}${tokenSuffix(line, tokenIndex)}`)
+    .join('');
+
+/**
+ * Enhanced LRC has no duration field: a reader ends each word where the next
+ * one starts. Without a closing stamp a word sung 1000–1200 before an 800 ms
+ * rest reads back as 1000–2000, and the last word of the last line never ends
+ * at all. One is written wherever the word ends before the next one begins,
+ * and always on the last timed word of a line.
+ */
+const enhancedLineText = (line: IKaraokeMakerLine): string =>
+  line.tokens
+    .map((token, tokenIndex) => {
+      const suffix = tokenSuffix(line, tokenIndex);
+      const { startMs, endMs } = token;
+      if (startMs === undefined) {
+        return `${token.text}${suffix}`;
+      }
+      const nextStartMs = nextTimedStartMs(line, tokenIndex);
+      const close =
+        endMs !== undefined &&
+        (nextStartMs === undefined || nextStartMs > endMs)
+          ? `<${lrcTimestamp(endMs, true)}>`
+          : '';
+      return `<${lrcTimestamp(startMs, true)}>${token.text}${close}${suffix}`;
+    })
+    .join('');
+
+const writeLrc = (
+  project: IKaraokeMakerProject,
+  enhanced: boolean,
+): IWrittenKaraokeFile => {
+  const rows = [
+    `[ti:${lrcMetadataValue(project.title)}]`,
+    ...(project.artist ? [`[ar:${lrcMetadataValue(project.artist)}]`] : []),
+    '[by:FluidEQ Karaoke Maker]',
+  ];
+  let droppedLines = 0;
+  let droppedWords = 0;
+  project.lyrics.lines.forEach((line) => {
+    if (karaokeMakerLineIsSection(line)) {
+      if (line.startMs === undefined) {
+        droppedLines += 1;
+        return;
+      }
+      rows.push(
+        `[${lrcTimestamp(line.startMs)}]${line.tokens
+          .map((token) => token.text)
+          .join(' ')}`,
+      );
+      return;
+    }
+    const timedStarts = line.tokens.flatMap((token) =>
+      token.startMs === undefined ? [] : [token.startMs],
+    );
+    // The line's own stamp is the fallback `lyricLineStarts` has always given
+    // the UltraStar path, and requiring a timed *word* here threw away the
+    // commonest LRC there is: `[00:20.00]words here` imported and exported
+    // straight back out came out holding its section headings and none of its
+    // lyrics, because no token in a line-timed file carries a time.
+    const startMs = timedStarts.length
+      ? Math.min(...timedStarts)
+      : line.startMs;
+    if (startMs === undefined) {
+      // A line with no tokens has no lyrics to lose, and counting it would
+      // raise the partial-export notice over a blank.
+      if (line.tokens.length) {
+        droppedLines += 1;
+        droppedWords += countWords(line.tokens);
+      }
+      return;
+    }
+    const text = enhanced ? enhancedLineText(line) : plainLineText(line);
+    rows.push(`[${lrcTimestamp(startMs)}]${text}`);
+  });
+  return { contents: `${rows.join('\n')}\n`, droppedLines, droppedWords };
 };
 
 export const exportKaraokeMakerLrc = (
   project: IKaraokeMakerProject,
   enhanced: boolean,
-): string => {
-  const rows = [
-    `[ti:${project.title}]`,
-    ...(project.artist ? [`[ar:${project.artist}]`] : []),
-    '[by:FluidEQ Karaoke Maker]',
-  ];
-  project.lyrics.lines.forEach((line, lineIndex) => {
-    if (karaokeMakerLineIsSection(line)) {
-      if (line.startMs !== undefined) {
-        rows.push(
-          `[${lrcTimestamp(line.startMs)}]${line.tokens
-            .map((token) => token.text)
-            .join(' ')}`,
-        );
-      }
-      return;
-    }
-    const timed = line.tokens.filter((token) => token.startMs !== undefined);
-    if (!timed.length) {
-      return;
-    }
-    const lineStart = Math.min(
-      ...timed.map((token) => token.startMs as number),
-    );
-    let text = line.tokens
-      .map(
-        (token, tokenIndex) =>
-          `${token.text}${lyricTokenSuffix(project, lineIndex, tokenIndex)}`,
-      )
-      .join('');
-    if (enhanced) {
-      text = line.tokens
-        .map((token, tokenIndex) => {
-          const suffix = lyricTokenSuffix(project, lineIndex, tokenIndex);
-          if (token.startMs === undefined) {
-            return `${token.text}${suffix}`;
-          }
-          return `<${lrcTimestamp(token.startMs, true)}>${token.text}${suffix}`;
-        })
-        .join('');
-    }
-    rows.push(`[${lrcTimestamp(lineStart)}]${text}`);
-  });
-  return `${rows.join('\n')}\n`;
-};
-
-const noteTick = (timeMs: number, bpm: number, gapMs: number): number =>
-  Math.max(0, Math.round(((timeMs - gapMs) * bpm * 4) / 60_000));
-
-const noteRows = (
-  project: IKaraokeMakerProject,
-  notes: readonly IKaraokeMakerNote[],
-  bpm: number,
-): string[] => {
-  const tokens = new Map(
-    project.lyrics.lines.flatMap((line) =>
-      line.tokens.map((token) => [token.id, token] as const),
-    ),
-  );
-  const lineByToken = new Map(
-    project.lyrics.lines.flatMap((line, lineIndex) =>
-      line.tokens.map((token) => [token.id, lineIndex] as const),
-    ),
-  );
-  const firstNoteByToken = new Set<string>();
-  const rows: string[] = [];
-  let previousLineIndex: number | undefined;
-  notes.forEach((note) => {
-    const start = noteTick(note.startMs, bpm, project.meta.gapMs);
-    const end = noteTick(note.endMs, bpm, project.meta.gapMs);
-    const duration = Math.max(1, end - start);
-    let marker = ':';
-    if (note.kind === 'golden') {
-      marker = '*';
-    } else if (note.kind === 'free') {
-      marker = 'F';
-    }
-    const token = note.tokenId ? tokens.get(note.tokenId) : undefined;
-    const isFirst = Boolean(
-      note.tokenId && !firstNoteByToken.has(note.tokenId),
-    );
-    if (note.tokenId) {
-      firstNoteByToken.add(note.tokenId);
-    }
-    const lineIndex = note.tokenId ? lineByToken.get(note.tokenId) : undefined;
-    if (
-      lineIndex !== undefined &&
-      previousLineIndex !== undefined &&
-      lineIndex !== previousLineIndex
-    ) {
-      rows.push('-');
-    }
-    if (lineIndex !== undefined) {
-      previousLineIndex = lineIndex;
-    }
-    const lyric =
-      token && isFirst ? `${token.startsWord ? ' ' : ''}${token.text}` : '~';
-    const relativePitch = Math.round(note.targetMidi - 60);
-    rows.push(`${marker} ${start} ${duration} ${relativePitch} ${lyric}`);
-  });
-  return rows;
-};
-
-export const exportKaraokeMakerUltraStar = (
-  project: IKaraokeMakerProject,
-): string => {
-  if (!project.melody.notes.length) {
-    throw new Error('UltraStar export needs at least one melody note.');
-  }
-  const bpm = project.meta.bpm && project.meta.bpm > 0 ? project.meta.bpm : 120;
-  const notes = [...project.melody.notes].sort(
-    (left, right) => left.startMs - right.startMs,
-  );
-  const rows = [
-    `#TITLE:${project.title}`,
-    ...(project.artist ? [`#ARTIST:${project.artist}`] : []),
-    `#MP3:${project.audio.name}`,
-    `#BPM:${bpm}`,
-    `#GAP:${Math.round(project.meta.gapMs)}`,
-    '#CREATOR:FluidEQ Karaoke Maker',
-    ...noteRows(project, notes, bpm),
-    'E',
-  ];
-  return `${rows.join('\n')}\n`;
-};
+): string => writeLrc(project, enhanced).contents;
 
 export const exportKaraokeMaker = (
   project: IKaraokeMakerProject,
@@ -209,6 +221,8 @@ export const exportKaraokeMaker = (
       extension: KARAOKE_MAKER_EXTENSION,
       mimeType: 'application/json',
       contents: serializeKaraokeMakerProject(project),
+      droppedLines: 0,
+      droppedWords: 0,
     };
   }
   if (format === 'ultrastar') {
@@ -216,13 +230,13 @@ export const exportKaraokeMaker = (
       format,
       extension: 'txt',
       mimeType: 'text/plain',
-      contents: exportKaraokeMakerUltraStar(project),
+      ...writeUltraStar(project),
     };
   }
   return {
     format,
     extension: format,
     mimeType: 'text/plain',
-    contents: exportKaraokeMakerLrc(project, format === 'elrc'),
+    ...writeLrc(project, format === 'elrc'),
   };
 };

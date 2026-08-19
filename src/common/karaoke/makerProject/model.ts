@@ -21,6 +21,8 @@ the Free Software Foundation, either version 3 of the License, or
  * is the same job wherever it happens, and duplicating it is how two readers of
  * the same file end up disagreeing about what a missing field means.
  */
+import { isKaraokeSectionText } from '../sections';
+
 export const KARAOKE_MAKER_PROJECT_VERSION = 1 as const;
 export const KARAOKE_MAKER_EXTENSION = 'fluideq-karaoke.json';
 /**
@@ -123,9 +125,6 @@ export const karaokeMakerRecordedLineContainsTime = (
   );
 };
 
-export const SECTION_MARKER =
-  /^\[\s*(intro|verse(?:\s+\d+)?|pre[\s-]?chorus|post[\s-]?chorus|chorus(?:\s+\d+)?|bridge|break|instrumental|interlude|solo|outro|hook|refrain|ending)\s*\]$/iu;
-
 export const karaokeMakerMaximumAutomaticWordDurationMs = (
   text: string,
 ): number => {
@@ -174,7 +173,7 @@ const lyricsWithoutRecommendationBlocks = (text: string): string[] => {
       skippingRecommendations = true;
       return;
     }
-    if (skippingRecommendations && SECTION_MARKER.test(line)) {
+    if (skippingRecommendations && isKaraokeSectionText(line)) {
       skippingRecommendations = false;
     }
     if (!skippingRecommendations && !/^\d*\s*embed$/iu.test(line)) {
@@ -188,7 +187,7 @@ export const karaokeMakerLineIsSection = (
   line: Pick<IKaraokeMakerLine, 'kind' | 'tokens'>,
 ): boolean =>
   line.kind === 'section' ||
-  SECTION_MARKER.test(
+  isKaraokeSectionText(
     line.tokens
       .map((token) => token.text)
       .join(' ')
@@ -384,7 +383,7 @@ export const makerLinesFromPlainText = (
   lyricsWithoutRecommendationBlocks(text)
     .slice(0, 5_000)
     .map((line) => {
-      const isSection = SECTION_MARKER.test(line);
+      const isSection = isKaraokeSectionText(line);
       return {
         id: karaokeMakerId('line'),
         kind: isSection ? ('section' as const) : ('lyrics' as const),

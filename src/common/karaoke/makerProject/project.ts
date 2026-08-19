@@ -32,14 +32,14 @@ import {
   karaokeMakerWordDurationIsPlausible,
   safeDate,
   safeSource,
-  SECTION_MARKER,
 } from './model';
+import { isKaraokeSectionText } from '../sections';
 
 const makerLinesFromSong = (song: IKaraokeSong): IKaraokeMakerLine[] =>
   song.lines.map((line) => {
     const isSection =
       line.kind === 'section' ||
-      SECTION_MARKER.test(
+      isKaraokeSectionText(
         line.tokens
           .map((token) => token.text)
           .join(' ')
@@ -229,7 +229,7 @@ export const parseKaraokeMakerProject = (
       skippingRecommendations = true;
       return false;
     }
-    if (skippingRecommendations && SECTION_MARKER.test(text)) {
+    if (skippingRecommendations && isKaraokeSectionText(text)) {
       skippingRecommendations = false;
     }
     return !skippingRecommendations && !/^\d*\s*embed$/iu.test(text);
@@ -242,7 +242,7 @@ export const parseKaraokeMakerProject = (
         : `line-${lineIndex}`,
     kind:
       line?.kind === 'section' ||
-      SECTION_MARKER.test(
+      isKaraokeSectionText(
         (Array.isArray(line?.tokens) ? line.tokens : [])
           .map((token) => String(token?.text ?? ''))
           .join(' ')

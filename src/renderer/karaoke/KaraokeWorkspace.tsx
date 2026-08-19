@@ -66,6 +66,12 @@ import KaraokePlaylist, { KARAOKE_PLAYLIST_DRAG_MIME } from './KaraokePlaylist';
 import KaraokePaneSplitter from './KaraokePaneSplitter';
 import KaraokeMaker from './KaraokeMaker';
 import {
+  IKaraokeSetAsideFiles,
+  karaokeLyricWarningSentence,
+  karaokeSetAsideFiles,
+  karaokeSetAsideSentences,
+} from './karaokeImportNotices';
+import {
   clearKaraokeProgress,
   readKaraokeMakerOpen,
   readKaraokeProgress,
@@ -255,6 +261,7 @@ const KaraokeWorkspace = ({
     readKaraokePlaylistFolderGrouping,
   );
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>();
+  const [setAsideFiles, setSetAsideFiles] = useState<IKaraokeSetAsideFiles>();
   const [useStagePitch, setUseStagePitch] = useState(initiallyUseStagePitch);
   const [isPitchGuideVisible, setIsPitchGuideVisible] = useState(
     readPitchGuideVisibility,
@@ -897,6 +904,12 @@ const KaraokeWorkspace = ({
       files.forEach((file) => merged.set(importedFileIdentity(file), file));
       libraryFilesRef.current = Array.from(merged.values());
       const selection = selectKaraokePlaylist(libraryFilesRef.current);
+      // Judged against the whole library, not this drop alone: a lyric file
+      // dropped on its own pairs with audio that arrived earlier, and asking
+      // its own drop would report it unpaired at the moment it succeeded.
+      // The restore path deliberately does not do this — re-announcing the
+      // same set-aside files at every launch is noise, not news.
+      setSetAsideFiles(karaokeSetAsideFiles(selection));
       if (!selection.items.length) {
         session.loadFiles(files);
         return;
@@ -960,6 +973,7 @@ const KaraokeWorkspace = ({
     libraryFilesRef.current = [];
     setPlaylist([]);
     setSelectedPlaylistId(undefined);
+    setSetAsideFiles(undefined);
     setIsMakerOpen(false);
     setRestoreMakerDraft(false);
     clearKaraokeProgress();
@@ -999,6 +1013,19 @@ const KaraokeWorkspace = ({
     const removedFiles = new Set([removed.audio, removed.lyrics]);
     libraryFilesRef.current = libraryFilesRef.current.filter(
       (file) => !removedFiles.has(file),
+    );
+    // The library just changed, so a notice naming files that are no longer in
+    // it is a lie the user cannot dismiss: remove the song whose `.srt` was
+    // reported unpaired and the sentence stayed on screen naming a file that
+    // had left with it.
+    //
+    // Recomputed only while a notice is already showing. Raising one here
+    // would be announcing set-aside files at a moment the user imported
+    // nothing — the same noise the restore path deliberately avoids.
+    setSetAsideFiles((current) =>
+      current
+        ? karaokeSetAsideFiles(selectKaraokePlaylist(libraryFilesRef.current))
+        : current,
     );
     const remaining = playlist.filter((item) => item.id !== id);
     setPlaylist(remaining);
@@ -1125,6 +1152,10 @@ const KaraokeWorkspace = ({
     isMakerOpen,
     song,
   ]);
+
+  const lyricWarningSentence = warning
+    ? karaokeLyricWarningSentence(warning, t)
+    : '';
 
   const hasStageArt = song ? hasKaraokeStageArt(song) : false;
   const stageArtActionKey = (() => {
@@ -1428,7 +1459,13 @@ const KaraokeWorkspace = ({
           being looked at, so `SpeechMemoryNotice` asks it from the app root. */}
       {warning && (
         <div className="karaoke-workspace__notice is-warning" role="status">
-          <strong>{warning.fileName}</strong> {t('karaoke.warning.lyrics')}
+          <strong>{warning.fileName}</strong> {lyricWarningSentence}{' '}
+          <span>{t('karaoke.warning.lyricsAudioIntact')}</span>
+        </div>
+      )}
+      {setAsideFiles && (
+        <div className="karaoke-workspace__notice is-warning" role="status">
+          {karaokeSetAsideSentences(setAsideFiles, t).join(' ')}
         </div>
       )}
 
