@@ -161,6 +161,24 @@ const PAGE_SIZE = 100;
  * that it is their scroll doing the asking rather than a stray wheel tick. */
 const NEXT_PAGE_THRESHOLD_PX = 96;
 
+/**
+ * Where each list was left, keyed by what that list was showing.
+ *
+ * Module-level and deliberately not React state: opening an album unmounts
+ * this whole view — the drill-in replaces it rather than covering it — so
+ * anything held inside the component is gone by the time the reader presses
+ * Back. Keeping it here is what lets them return to the row they came from
+ * instead of the top of a list they had scrolled a thousand rows into.
+ *
+ * Bounded by the number of distinct browse/search/sort combinations one
+ * session produces, each entry two numbers — small enough that it is never
+ * worth evicting from, and cleared with the window.
+ */
+const rememberedListState = new Map<
+  string,
+  { scrollTop: number; shownCount: number }
+>();
+
 /** What a screen reader is told about a column: only the one actually driving
  * the order claims a direction. */
 const activeSortLabel = (
@@ -189,25 +207,54 @@ const LibraryListView = ({
 }: ILibraryListViewProps) => {
   const { t } = useTranslation();
   const bodyRef = useRef<HTMLDivElement | null>(null);
-  const [shownCount, setShownCount] = useState(PAGE_SIZE);
+  const [shownCount, setShownCount] = useState(
+    () => rememberedListState.get(resetKey)?.shownCount ?? PAGE_SIZE,
+  );
 
-  // A genuinely different list starts at the top, showing one page again:
-  // keeping the old offset after a search or a sort would land the user in
-  // the middle of results they have not seen.
-  //
-  // Keyed on what the list MEANS, never on the `tracks` array itself. That
-  // array gets a new identity on every scan batch — the index is re-sent
-  // whole and re-sorted — so keying on it snapped the scroll back to the top
-  // and shrank the list to one page several times a second for the whole of
-  // a scan. Scrolling down simply undid itself.
+  // Keep a ref in step with the count so the cleanup below saves what is on
+  // screen now, not what was there when the effect was created.
+  const shownCountRef = useRef(shownCount);
+  shownCountRef.current = shownCount;
+
+  /**
+   * Where the reader was, and how far the list had been paged.
+   *
+   * One effect, because there is one decision: a list this reader has been in
+   * before goes back to where they left it, and a list they have not goes to
+   * the top showing one page. Two effects on the same key fought over the
+   * scroll position and whichever ran last won.
+   *
+   * Opening an album unmounts this view entirely — the drill-in replaces it
+   * rather than covering it — so the position has to survive outside the
+   * component. Hence a module-level map: there is no component left to hold
+   * it. Keyed on what the list MEANS, never on the `tracks` array, which gets
+   * a new identity on every scan batch and would otherwise reset the reader's
+   * place several times a second for the whole of a scan.
+   */
   useEffect(() => {
-    setShownCount(PAGE_SIZE);
-    // `scrollTop` rather than `scrollTo`, which jsdom does not implement —
-    // and which would need mocking in every test that renders this view.
     const element = bodyRef.current;
-    if (element) {
-      element.scrollTop = 0;
+    const remembered = rememberedListState.get(resetKey);
+    if (remembered) {
+      setShownCount(remembered.shownCount);
+      if (element) {
+        // `scrollTop` rather than `scrollTo`, which jsdom does not implement
+        // and would need mocking in every test that renders this view.
+        element.scrollTop = remembered.scrollTop;
+      }
+    } else {
+      setShownCount(PAGE_SIZE);
+      if (element) {
+        element.scrollTop = 0;
+      }
     }
+    return () => {
+      if (element) {
+        rememberedListState.set(resetKey, {
+          scrollTop: element.scrollTop,
+          shownCount: shownCountRef.current,
+        });
+      }
+    };
   }, [resetKey]);
   // The row a right click or a keyboard context-menu request landed on, and
   // the element the menu hangs off — the row itself, since a context menu

@@ -1212,3 +1212,87 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-grid__tile {
   @include stagger-in($count: 12, $step: 18ms);
 }
+
+// *** The search capsule *******************************************************
+//
+// The Media tab's own field, reused rather than redrawn — see
+// `.video-search__field` in VideoBrowser.scss for the reasoning behind the
+// capsule radius and the focus treatment. Kept under this file's own class
+// names so the two can diverge later without one silently restyling the
+// other.
+
+.library-search__field {
+  display: flex;
+  height: $control-height-sm;
+  align-items: center;
+  gap: 6px;
+  padding: 0 3px 0 9px;
+  border: 1px solid rgba($primary-lighter, 0.14);
+  border-radius: $radius-pill;
+  background: rgba($white, 0.03);
+  transition:
+    border-color 140ms ease,
+    background 140ms ease;
+
+  &:focus-within {
+    border-color: rgba($secondary-light, 0.55);
+    background: rgba($secondary-light, 0.08);
+  }
+}
+
+.library-search__icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  fill: none;
+  stroke: rgba($primary-lighter, 0.55);
+  stroke-linecap: round;
+  stroke-width: 1.6;
+}
+
+// Two classes deep for the same reason `.video-search .video-search__input`
+// is: App.scss gives every `input` the shared field surface, which inside
+// this capsule draws a second rounded box within the first.
+.library-search__field .library-search__input {
+  min-width: 0;
+  height: 100%;
+  flex: 1 1 auto;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: none;
+  box-shadow: none;
+  color: $primary-lighter;
+  font-size: 0.7rem;
+
+  &::placeholder {
+    color: rgba($primary-lighter, 0.4);
+  }
+}
+
+.library-search__clear {
+  display: grid;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: rgba($primary-lighter, 0.6);
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    color: $secondary-light;
+    background: rgba($secondary-default, 0.16);
+    outline: none;
+  }
+}
+
+.library-search__clear-icon {
+  width: 10px;
+  height: 10px;
+}

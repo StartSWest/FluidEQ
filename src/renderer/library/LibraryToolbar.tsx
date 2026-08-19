@@ -23,6 +23,7 @@ import type {
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
+import MenuIcon from '../icons/MenuIcon';
 import { IOptionEntry } from '../widgets/List';
 
 interface ILibraryToolbarProps {
@@ -155,15 +156,42 @@ const LibraryToolbar = ({
           }}
         />
       </div>
+      {/* The Media tab's capsule, reused rather than redrawn: the magnifier
+          inside the field, the whole thing lighting on focus, and a clear
+          button that appears only once there is something to clear.
+          `type="text"` rather than `"search"` — Chromium draws its own clear
+          glyph on a search input, which sits badly on a dark capsule and
+          cannot be styled. */}
       <div className="library-toolbar__search">
-        <input
-          type="search"
-          className="library-toolbar__search-input"
-          value={query}
-          aria-label={t('library.search')}
-          placeholder={t('library.searchPlaceholder')}
-          onChange={(event) => onQuery(event.target.value)}
-        />
+        <div className="library-search__field">
+          <svg className="library-search__icon" viewBox="0 0 16 16" aria-hidden>
+            <circle cx="7" cy="7" r="4.4" />
+            <path d="M10.4 10.4L14 14" />
+          </svg>
+          <input
+            type="text"
+            // Stated because the type no longer implies it. `type="search"`
+            // carries this role natively, and it is the honest one for a
+            // field that filters a list — dropping it to control Chromium's
+            // clear glyph would have traded the semantics for the styling.
+            role="searchbox"
+            className="library-search__input"
+            value={query}
+            aria-label={t('library.search')}
+            placeholder={t('library.searchPlaceholder')}
+            onChange={(event) => onQuery(event.target.value)}
+          />
+          {query.length > 0 && (
+            <button
+              type="button"
+              className="library-search__clear"
+              aria-label={t('app.dismiss')}
+              onClick={() => onQuery('')}
+            >
+              <MenuIcon name="clear" className="library-search__clear-icon" />
+            </button>
+          )}
+        </div>
       </div>
     </div>
   );
