@@ -17,7 +17,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { parseEqText } from '../../../common/apoText';
-import { AutoEqFormat, FilterTypeEnum } from '../../../common/constants';
+import {
+  AutoEqFormat,
+  FILTER_LINE_PREFIX_REGEX,
+  FilterTypeEnum,
+} from '../../../common/constants';
 
 /**
  * Bands in frequency order.
@@ -205,5 +209,41 @@ describe('parseEqText', () => {
 
     expect(Object.keys(result.filters)).toHaveLength(1);
     expect(result.unsupported).toBe(2);
+  });
+});
+
+describe('FILTER_LINE_PREFIX_REGEX', () => {
+  it('counts a band whether or not the line carries an index', () => {
+    // The config inspector kept its own copy of this and still demanded the
+    // index, so an OPRA-shaped or hand-written file showed as holding zero
+    // bands in the tree while APO was applying every one of them.
+    const lines = [
+      'Filter: ON LS Fc 105.0 Hz Gain -2.8 dB Q 0.70',
+      'Filter 1: ON PK Fc 20 Hz Gain -2.5 dB Q 0.700',
+      'Filter  7 : ON HS Fc 10000 Hz Gain -5.3 dB Q 0.70',
+      'filter: ON PK Fc 63.00 Hz Gain 0.4 dB Q 1.75',
+    ];
+
+    expect(lines.filter((line) => FILTER_LINE_PREFIX_REGEX.test(line))).toEqual(
+      lines,
+    );
+  });
+
+  it('does not count the other commands a config carries', () => {
+    // A null test on its own cannot tell "matches nothing" from "matches
+    // everything", so it sits beside the positive case above.
+    const lines = [
+      'Preamp: -5.4 dB',
+      'Device: Speakers',
+      'Include: eq.txt',
+      'Convolution: room.wav',
+      'GraphicEQ: 20 -2; 200 1',
+      'Channel: L R',
+      '# Filter: ON PK Fc 100 Hz Gain 1 dB Q 1',
+    ];
+
+    expect(lines.filter((line) => FILTER_LINE_PREFIX_REGEX.test(line))).toEqual(
+      [],
+    );
   });
 });
