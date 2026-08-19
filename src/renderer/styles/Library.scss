@@ -420,3 +420,244 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: 0.62rem;
   line-height: 1.5;
 }
+
+// *** The cover art ************************************************************
+//
+// One component, three sizes — `LibraryCoverArt` is reused by every view that
+// shows a track, an album or an artist rather than each drawing its own.
+
+.library-cover-art {
+  display: block;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: $radius-xs;
+
+  // The row list's leading column: the same height as the small buttons
+  // beside it (`$control-height-sm`), so a row of covers lines up with the
+  // rest of the toolbar's controls instead of picking its own scale.
+  &--row {
+    width: $control-height-sm;
+    height: $control-height-sm;
+  }
+
+  // Fills whatever cell the grid view gives it — `LibraryGridView` sizes the
+  // tile itself with `grid-template-columns: repeat(auto-fill, ...)`.
+  &--tile {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: $radius-s;
+  }
+
+  // The drill-in header's large cover.
+  &--cover {
+    width: 160px;
+    height: 160px;
+    border-radius: $radius-l;
+  }
+}
+
+.library-cover-art__image,
+.library-cover-art__tile {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+// The generated tile drawn when a track has no cover — `libraryTileInitials`
+// over an `libraryTileHue`-derived gradient, set inline per item in the
+// component itself.
+.library-cover-art__tile {
+  display: grid;
+  place-items: center;
+  color: $text-primary;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+
+  .library-cover-art--row & {
+    font-size: 0.56rem;
+  }
+
+  .library-cover-art--tile & {
+    font-size: 1.4rem;
+  }
+
+  .library-cover-art--cover & {
+    font-size: 2.4rem;
+  }
+}
+
+// *** The list view *************************************************************
+//
+// A `role="table"` built from styled `div`s rather than `<table>` — the same
+// choice `AnchoredMenu`'s menus make — so the row can be a single flex/grid
+// container instead of fighting table layout for the cover art and the
+// title-plus-subtitle stack in the same cell.
+
+.library-list {
+  @include inset-surface;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.library-list__header,
+.library-list__row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns:
+    $control-height-sm minmax(0, 1.8fr) minmax(0, 1fr) minmax(0, 1fr)
+    64px;
+  align-items: center;
+  column-gap: $spacing-s;
+  padding: 7px $spacing-s;
+}
+
+.library-list__header {
+  flex: 0 0 auto;
+  border-bottom: 1px solid rgba($secondary-light, 0.16);
+  color: $text-faint;
+  font-size: 0.6rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.library-list__body {
+  @include slim-scrollbar;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+// A row is a button in every way that matters — it opens or plays something
+// — without being one, since it also has to carry a nested cover image and a
+// two-line title cell that a real `<button>` cannot lay out as a grid.
+.library-list__row {
+  color: $text-muted;
+  border-radius: $radius-xs;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    background: rgba($secondary-default, 0.12);
+    outline: none;
+  }
+}
+
+.library-list__col {
+  @include truncate;
+  font-size: 0.7rem;
+
+  &--art {
+    display: flex;
+    align-items: center;
+  }
+
+  &--title {
+    display: grid;
+    gap: 1px;
+  }
+
+  // The artist row's only data column — spans past the three tracks a song
+  // or album row fills with Artist/Album/Length, so the name reads at full
+  // width instead of leaving three empty cells trailing it.
+  &--span {
+    grid-column: 2 / -1;
+  }
+
+  &--length {
+    color: $text-faint;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+}
+
+.library-list__title-text {
+  @include truncate;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: $text-primary;
+  font-weight: 700;
+}
+
+.library-list__title-label {
+  @include truncate;
+}
+
+.library-list__subtitle {
+  @include truncate;
+  color: $text-faint;
+  font-size: 0.62rem;
+}
+
+.library-list__badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.library-list__badge-icon {
+  width: 13px;
+  height: 13px;
+}
+
+// A format Chromium cannot decode — marked, not silently broken.
+.library-list__badge--unplayable {
+  color: $red;
+}
+
+// Quiet on purpose: this says the file's own tags could not be read, which
+// is information, not something the loud unplayable mark's colour would
+// wrongly suggest needs acting on.
+.library-list__badge--metadata {
+  color: $text-faint;
+}
+
+// The "Show in Explorer" menu — same button recipe as `.eq-mode__menu` in
+// MainContent.scss, without that menu's two-line name-and-note layout since
+// this one only ever holds a single entry.
+.library-list__menu {
+  @include menu-surface;
+  z-index: 1000;
+  display: grid;
+  width: 190px;
+  padding: 5px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: $radius-xs;
+    background: none;
+    color: $secondary-light;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover,
+    &:focus-visible {
+      color: $white;
+      background: rgba($secondary-default, 0.18);
+      outline: none;
+    }
+  }
+}
+
+.library-list__menu-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}

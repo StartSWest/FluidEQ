@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { DragEvent, useEffect, useState } from 'react';
+import { searchTracks, sortTracks } from '../../common/library/grouping';
 import type {
   TLibraryBrowseMode,
   TLibrarySort,
@@ -26,6 +27,7 @@ import { useTranslation } from '../utils/I18nContext';
 import { useLibrary } from './LibraryContext';
 import LibraryEmptyState from './LibraryEmptyState';
 import LibraryFolderActions from './LibraryFolderActions';
+import LibraryListView from './LibraryListView';
 import LibraryScanProgress from './LibraryScanProgress';
 import LibraryToolbar from './LibraryToolbar';
 import '../styles/Library.scss';
@@ -137,6 +139,21 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
     0,
   );
 
+  // What `LibraryListView` (and, later, the grid and Cover Flow) actually
+  // draw: the toolbar's own query and sort applied once here, so every view
+  // is handed the same already-filtered, already-ordered tracks rather than
+  // repeating the search/sort logic per view.
+  const visibleTracks = sortTracks(searchTracks(index.tracks, query), sort);
+
+  // Opening an album or artist has no destination yet — that needs a
+  // drill-in state this component does not hold. A real handler lands once
+  // it does; until then the click is inert rather than routed nowhere.
+  const handleOpenAlbum = () => undefined;
+  const handleOpenArtist = () => undefined;
+  // Same reasoning: nothing here owns a queue or a player to hand a track to
+  // yet.
+  const handlePlayTrack = () => undefined;
+
   const handleAddFolder = () => {
     addFolder().catch(() => undefined);
   };
@@ -239,6 +256,18 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
         <LibraryEmptyState
           karaokeSkippedCount={karaokeSkippedCount}
           onAddFolder={handleAddFolder}
+        />
+      )}
+      {/* Grid and Cover Flow are their own later views; List is the only one
+          that exists yet, so this is the only `viewMode` that draws anything
+          below the toolbar for now. */}
+      {index.tracks.length > 0 && viewMode === 'list' && (
+        <LibraryListView
+          tracks={visibleTracks}
+          browseMode={browseMode}
+          onOpenAlbum={handleOpenAlbum}
+          onOpenArtist={handleOpenArtist}
+          onPlayTrack={handlePlayTrack}
         />
       )}
     </section>
