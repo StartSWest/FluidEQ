@@ -84,6 +84,14 @@ describe('edges the brief names but does not spell out', () => {
     expect(currentTrackId(queue)).toBeUndefined();
     expect(() => advanceQueue(queue, 1)).not.toThrow();
     expect(currentTrackId(advanceQueue(queue, 1))).toBeUndefined();
+    // Pinned separately from the `currentTrackId` check above: that helper
+    // reports `undefined` for *any* out-of-range `position`, so it cannot
+    // tell -1 apart from the 0 an empty `order` is supposed to hold `position`
+    // at. Without the `order.length === 0` guard in `advanceQueue`, this path
+    // — reachable only by advancing a queue built from an empty list, never
+    // through `removeFromQueue` — lands `position` at -1, breaking the
+    // documented invariant that `position` always indexes `order`.
+    expect(advanceQueue(queue, 1).position).toBe(0);
   });
 
   it('falls back to the first track when startTrackId is not in the list', () => {

@@ -63,6 +63,11 @@ import { reportError } from './utils/logger';
 import VideoBrowser from './video/VideoBrowser';
 import LibraryWorkspace from './library/LibraryWorkspace';
 import { LibraryProvider } from './library/LibraryContext';
+import {
+  LibraryPlayerProvider,
+  useLibraryPlayer,
+} from './library/player/LibraryPlayerContext';
+import NowPlayingBar from './library/player/NowPlayingBar';
 import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
 import PaneResizer from './components/PaneResizer';
 import {
@@ -231,6 +236,38 @@ const readWorkspaceTab = (): TWorkspaceTab => {
     // Storage can be unavailable, and the EQ is the right place to land.
     return 'eq';
   }
+};
+
+/**
+ * The one place `NowPlayingBar` is wired to something real.
+ *
+ * `NowPlayingBar` itself stays a pure, prop-driven view — see its own doc
+ * comment — so this is the seam: read `LibraryPlayerContext`, hand its values
+ * down as props. Shuffle and repeat are exposed as toggles rather than
+ * setters (`onShuffle`/`onRepeat`, not `onSetShuffle`), matching every other
+ * button on the bar, so the flip from the current value to the next one
+ * happens here rather than inside the view.
+ */
+const ConnectedNowPlayingBar = () => {
+  const player = useLibraryPlayer();
+  return (
+    <NowPlayingBar
+      track={player.track}
+      isPlaying={player.isPlaying}
+      positionMs={player.positionMs}
+      durationMs={player.durationMs}
+      repeat={player.repeat}
+      isShuffled={player.isShuffled}
+      volume={player.volume}
+      isUnplayable={player.isUnplayable}
+      onToggle={player.toggle}
+      onSkip={player.skip}
+      onSeek={player.seek}
+      onShuffle={() => player.setShuffle(!player.isShuffled)}
+      onRepeat={player.cycleRepeat}
+      onVolume={player.setVolume}
+    />
+  );
 };
 
 const AppContent = () => {
@@ -798,6 +835,13 @@ const AppContent = () => {
    * key and Windows tells nobody which application answered it — so there is no
    * playing/paused state to hold here, and the play button is one glyph that
    * means "toggle" rather than a light that could be wrong.
+   *
+   * NOT wired to `LibraryPlayerContext`, on purpose, even though the Library
+   * tab now has its own real play/pause. Routing the Library player's toggle
+   * through this same channel would make one press of this button act on two
+   * players — this one AND whatever external application last grabbed the
+   * key — when only one was ever intended. `NowPlayingBar` calls
+   * `useLibraryPlayer().toggle` directly instead.
    */
   const handleMediaTransport = (action: TMediaTransportAction) => {
     window.electron.ipcRenderer
@@ -1428,10 +1472,20 @@ const AppContent = () => {
             {hasOpenedVideo && <VideoBrowser isHidden={!isVideoTab} />}
             {/* Same lifetime rule as the player above: mounted once a scan
                 could be running here, then hidden rather than destroyed so
-                switching tabs cannot cancel it. */}
+                switching tabs cannot cancel it. `LibraryPlayerProvider`
+                nests inside `LibraryProvider` — it resolves a track id
+                against the library index to draw a title and an artist, and
+                that index is what `LibraryProvider` holds — and, once
+                mounted, is never re-created by anything a tab does for
+                exactly the same reason: `hasOpenedLibrary` only ever goes
+                from false to true. The audio element it owns lives inside a
+                ref, never rendered, so nothing here can remount it either. */}
             {hasOpenedLibrary && (
               <LibraryProvider>
-                <LibraryWorkspace isHidden={!isLibraryTab} />
+                <LibraryPlayerProvider>
+                  <LibraryWorkspace isHidden={!isLibraryTab} />
+                  <ConnectedNowPlayingBar />
+                </LibraryPlayerProvider>
               </LibraryProvider>
             )}
             {/* Mounted on first visit and then hidden instead of destroyed.

@@ -16,8 +16,13 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { DragEvent, useEffect, useMemo, useState } from 'react';
-import { searchTracks, sortTracks } from '../../common/library/grouping';
+import { DragEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  groupIntoAlbums,
+  normalizeForSearch,
+  searchTracks,
+  sortTracks,
+} from '../../common/library/grouping';
 import type {
   TLibraryBrowseMode,
   TLibrarySort,
@@ -25,6 +30,8 @@ import type {
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibrary } from './LibraryContext';
+import { useLibraryPlayer } from './player/LibraryPlayerContext';
+import LibraryVideoStage from './player/LibraryVideoStage';
 import LibraryCoverFlow from './LibraryCoverFlow';
 import LibraryDetail from './LibraryDetail';
 import LibraryEmptyState from './LibraryEmptyState';
@@ -33,7 +40,7 @@ import LibraryGridView from './LibraryGridView';
 import LibraryListView from './LibraryListView';
 import LibraryScanProgress from './LibraryScanProgress';
 import LibraryToolbar from './LibraryToolbar';
-import LibraryVideoSection from './LibraryVideoSection';
+import LibraryVideoSection, { videoFolderGroups } from './LibraryVideoSection';
 import '../styles/Library.scss';
 
 const BROWSE_MODE_KEY = 'fluideq.library.browseMode';
@@ -119,6 +126,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
     cancelScan,
     removeRoot,
   } = useLibrary();
+  const { playTracks, videoTrackId } = useLibraryPlayer();
   const [isDragOver, setIsDragOver] = useState(false);
   const [isResetNoticeDismissed, setIsResetNoticeDismissed] = useState(false);
 
@@ -191,10 +199,55 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
   };
-  // Nothing here owns a queue or a player to hand a track to yet — a real
-  // handler lands once it does; until then the click is inert rather than
-  // routed nowhere.
-  const handlePlayTrack = () => undefined;
+  // The queue a click hands to `playTracks`: whatever list the surface the
+  // click came from is actually showing, so the order the bar plays through
+  // matches the order on screen — mirroring `LibraryDetail`'s own
+  // `detailTracks` (the *whole* album or artist, never narrowed by the
+  // search box that got you there — see its own comment) and
+  // `LibraryVideoSection`'s own folder groups exactly, rather than always
+  // falling back to the flat browse list. Walks the whole library the same
+  // way those two already do, so it is memoised the same way: on the track
+  // list and the id actually open, not on every render this workspace has.
+  const queueTrackIds = useMemo(() => {
+    if (openAlbumId) {
+      return (
+        groupIntoAlbums(index.tracks).find((album) => album.id === openAlbumId)
+          ?.trackIds ?? []
+      );
+    }
+    if (openArtistId) {
+      return sortTracks(
+        index.tracks.filter(
+          (track) =>
+            normalizeForSearch(track.albumArtist ?? track.artist ?? '') ===
+            openArtistId,
+        ),
+        'album',
+      ).map((track) => track.id);
+    }
+    if (browseMode === 'video') {
+      return videoFolderGroups(visibleTracks).flatMap((group) =>
+        group.tracks.map((track) => track.id),
+      );
+    }
+    return visibleTracks.map((track) => track.id);
+  }, [index.tracks, openAlbumId, openArtistId, browseMode, visibleTracks]);
+
+  // The one real destination every view's click hands off to. A track this
+  // build cannot decode (`isPlayable === false`) is still handed to
+  // `playTracks` rather than swallowed here — `LibraryPlayerContext` loads it,
+  // marks it unplayable and `NowPlayingBar` says so with a disabled Play
+  // button, which is the honest answer to a click that cannot do anything:
+  // visible feedback, not a silent no-op.
+  const handlePlayTrack = useCallback(
+    (trackId: string) => {
+      playTracks(
+        queueTrackIds.includes(trackId) ? queueTrackIds : [trackId],
+        trackId,
+      );
+    },
+    [queueTrackIds, playTracks],
+  );
 
   const handleAddFolder = () => {
     addFolder().catch(() => undefined);
@@ -300,12 +353,19 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
           onAddFolder={handleAddFolder}
         />
       )}
+      {/* Takes the whole body the moment the queue's current track is a
+          video, regardless of which browse mode the toolbar is sitting on —
+          the stage answers "what is loaded", not "what is browsed". Every
+          view below is gated on its absence for exactly that reason: the two
+          are never shown at once, the same way the drill-in below replaces
+          the browse views rather than sitting over them. */}
+      {index.tracks.length > 0 && videoTrackId && <LibraryVideoStage />}
       {/* Videos have no album or artist to drill into — routed here on its
           own rather than through the three views below, which never see
           `browseMode === 'video'` at all. The view-mode toggle (list/grid/
           Cover Flow) has nothing to say about a shelf grouped by folder, so
           it is ignored while this is what is browsed. */}
-      {index.tracks.length > 0 && browseMode === 'video' && (
+      {index.tracks.length > 0 && !videoTrackId && browseMode === 'video' && (
         <LibraryVideoSection
           tracks={visibleTracks}
           onPlayTrack={handlePlayTrack}
@@ -317,6 +377,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
           itself is shown whole, not narrowed further by a query that was
           for finding it in the first place. */}
       {index.tracks.length > 0 &&
+        !videoTrackId &&
         browseMode !== 'video' &&
         (openAlbumId || openArtistId) && (
           <LibraryDetail
@@ -328,6 +389,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
           />
         )}
       {index.tracks.length > 0 &&
+        !videoTrackId &&
         browseMode !== 'video' &&
         !openAlbumId &&
         !openArtistId &&
@@ -341,6 +403,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
           />
         )}
       {index.tracks.length > 0 &&
+        !videoTrackId &&
         browseMode !== 'video' &&
         !openAlbumId &&
         !openArtistId &&
@@ -354,6 +417,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
           />
         )}
       {index.tracks.length > 0 &&
+        !videoTrackId &&
         browseMode !== 'video' &&
         !openAlbumId &&
         !openArtistId &&

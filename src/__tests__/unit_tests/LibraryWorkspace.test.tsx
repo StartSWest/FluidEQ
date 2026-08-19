@@ -26,6 +26,7 @@ import type {
 } from '../../common/library/types';
 import LibraryWorkspace from '../../renderer/library/LibraryWorkspace';
 import { LibraryProvider } from '../../renderer/library/LibraryContext';
+import { LibraryPlayerProvider } from '../../renderer/library/player/LibraryPlayerContext';
 import { I18nProvider } from '../../renderer/utils/I18nContext';
 
 const track = (over: Partial<ILibraryTrack>): ILibraryTrack => ({
@@ -40,6 +41,15 @@ const track = (over: Partial<ILibraryTrack>): ILibraryTrack => ({
   addedAt: 1,
   ...over,
 });
+
+// jsdom's own `HTMLMediaElement.prototype.play` returns `undefined` rather
+// than the Promise every real engine (including Electron's Chromium) hands
+// back — `KaraokeWorkspace.test.tsx` stubs the same three methods for the
+// same reason. Needed here only once a test actually reaches
+// `LibraryPlayerContext`/`LibraryVideoStage`'s real `element.play().catch(...)`
+// calls, which nothing in this file did before Task 19 wired `playTracks` in.
+const mediaPlay = jest.fn().mockResolvedValue(undefined);
+const mediaPause = jest.fn();
 
 const addLibraryRoot = jest.fn(() =>
   Promise.resolve({ version: 1, roots: [], tracks: [] }),
@@ -58,9 +68,22 @@ let indexListener: ((index: ILibraryIndex) => void) | undefined;
 // other test in this file still gets by not touching it.
 let initialIndex: ILibraryIndex = { version: 1, roots: [], tracks: [] };
 
+beforeAll(() => {
+  Object.defineProperty(HTMLMediaElement.prototype, 'play', {
+    configurable: true,
+    value: mediaPlay,
+  });
+  Object.defineProperty(HTMLMediaElement.prototype, 'pause', {
+    configurable: true,
+    value: mediaPause,
+  });
+});
+
 beforeEach(() => {
   addLibraryRoot.mockClear();
   cancelLibraryScan.mockClear();
+  mediaPlay.mockClear();
+  mediaPause.mockClear();
   progressListener = undefined;
   indexListener = undefined;
   initialIndex = { version: 1, roots: [], tracks: [] };
@@ -92,6 +115,10 @@ beforeEach(() => {
           indexListener = undefined;
         };
       },
+      // `LibraryVideoStage` (Task 19) listens for 'window-state-changed' the
+      // moment a video track opens the stage — same shape App.test.tsx's own
+      // mock already uses for the same preload method.
+      on: (_channel: string, _func: (...args: unknown[]) => void) => () => {},
     },
   } as unknown as typeof window.electron;
 });
@@ -100,7 +127,14 @@ const renderWorkspace = () =>
   render(
     <I18nProvider>
       <LibraryProvider>
-        <LibraryWorkspace isHidden={false} />
+        {/* `LibraryWorkspace` now calls `useLibraryPlayer` itself (Task 19) to
+            hand every view's click a real `playTracks` — nested inside
+            `LibraryProvider` the same way `App.tsx` nests the two, since
+            `LibraryPlayerProvider` resolves a track id against the index
+            `LibraryProvider` holds. */}
+        <LibraryPlayerProvider>
+          <LibraryWorkspace isHidden={false} />
+        </LibraryPlayerProvider>
       </LibraryProvider>
     </I18nProvider>,
   );
@@ -263,5 +297,87 @@ describe('a browse mode remembered from last time', () => {
       'Older',
       'Newer',
     ]);
+  });
+});
+
+describe('handing a click off to the player (Task 19)', () => {
+  it('loads a clicked video track into the stage, replacing the shelf it was clicked from', async () => {
+    window.localStorage.setItem('fluideq.library.browseMode', 'video');
+    initialIndex = {
+      version: 1,
+      roots: [
+        {
+          id: 'r1',
+          path: 'C:\\Videos',
+          addedAt: 1,
+          trackCount: 1,
+          karaokeSkipped: 0,
+        },
+      ],
+      tracks: [
+        track({
+          id: 'v1',
+          title: 'Live at the Roxy',
+          kind: 'video',
+          path: 'C:\\Videos\\Live\\show.mp4',
+        }),
+      ],
+    };
+    renderWorkspace();
+
+    await userEvent.click(await screen.findByText('Live at the Roxy'));
+
+    // The stage's own fullscreen control is the only thing here with this
+    // label, so its presence is proof `handlePlayTrack` actually reached
+    // `playTracks` rather than staying the inert stub it was before this
+    // task.
+    expect(
+      await screen.findByRole('button', { name: 'Full screen' }),
+    ).toBeInTheDocument();
+    // Replaced, not layered underneath — see the `!videoTrackId` guard on
+    // `LibraryVideoSection` in `LibraryWorkspace`.
+    expect(screen.queryByText('Live at the Roxy')).not.toBeInTheDocument();
+  });
+
+  it('leaves the shelf in place for a video FluidEQ cannot decode, instead of opening a broken stage', async () => {
+    // The exact gap Task 19 closed in `LibraryPlayerContext`: `videoTrackId`
+    // used to key on `kind === 'video'` alone, so an unplayable container
+    // still opened `LibraryVideoStage` and asked a `<video>` to load a file
+    // Chromium has no demuxer for. Gating it on `isPlayable` too keeps the
+    // stage closed here, the same as it would for any other unplayable
+    // click.
+    window.localStorage.setItem('fluideq.library.browseMode', 'video');
+    initialIndex = {
+      version: 1,
+      roots: [
+        {
+          id: 'r1',
+          path: 'C:\\Videos',
+          addedAt: 1,
+          trackCount: 1,
+          karaokeSkipped: 0,
+        },
+      ],
+      tracks: [
+        track({
+          id: 'v1',
+          title: 'Old Camcorder Tape',
+          kind: 'video',
+          isPlayable: false,
+          path: 'C:\\Videos\\Live\\tape.avi',
+        }),
+      ],
+    };
+    renderWorkspace();
+
+    await userEvent.click(await screen.findByText('Old Camcorder Tape'));
+
+    expect(
+      screen.queryByRole('button', { name: 'Full screen' }),
+    ).not.toBeInTheDocument();
+    // The shelf is still the thing on screen -- a click on an unplayable
+    // track is not a silent no-op, it just does not open a stage that would
+    // only ever show a black box.
+    expect(screen.getByText('Old Camcorder Tape')).toBeInTheDocument();
   });
 });

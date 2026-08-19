@@ -1,0 +1,432 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// *** The now-playing bar ****************************************************
+//
+// Fixed to the foot of the window rather than a row inside `.app-workspace`'s
+// grid, the same way `.update-notice` floats over everything else — it has to
+// stay visible while any tab is showing, and every tab lives in a different
+// branch of that grid. `App.scss`'s `.has-now-playing` reserves the strip of
+// window this occupies so it never sits over the last row of content instead
+// of beside it.
+//
+// The glass-panel recipe below — the two-stop gradient, the inset highlight,
+// the blur — is `.karaoke-transport`'s own, reused rather than redrawn for a
+// second floating transport bar.
+
+.now-playing-bar {
+  position: fixed;
+  z-index: 1100;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(320px, 2fr) minmax(
+      200px,
+      1fr
+    );
+  align-items: center;
+  gap: $spacing-l;
+  padding: 9px $spacing-l;
+  border-top: 1px solid rgba($secondary-light, 0.18);
+  background: linear-gradient(180deg, rgba(#163047, 0.94), rgba(#07131f, 0.98));
+  box-shadow:
+    0 -16px 42px rgba($black, 0.4),
+    inset 0 1px 0 rgba($white, 0.07);
+  backdrop-filter: blur(18px) saturate(1.25);
+}
+
+.now-playing-bar__track {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+.now-playing-bar__meta {
+  display: grid;
+  min-width: 0;
+  gap: 1px;
+}
+
+.now-playing-bar__title {
+  @include truncate;
+  color: $text-primary;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.now-playing-bar__artist {
+  @include truncate;
+  color: $text-faint;
+  font-size: 0.66rem;
+}
+
+.now-playing-bar__unplayable {
+  flex: 0 0 auto;
+  color: $red;
+  font-size: 0.6rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+// *** Transport: previous / play / next, and the seek line *******************
+
+.now-playing-bar__transport {
+  display: grid;
+  min-width: 0;
+  justify-items: center;
+  gap: 6px;
+}
+
+.now-playing-bar__buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border: 1px solid rgba($secondary-light, 0.1);
+  border-radius: $radius-pill;
+  background: rgba(#020a12, 0.38);
+  box-shadow:
+    0 5px 16px rgba($black, 0.22),
+    inset 0 1px 0 rgba($white, 0.035);
+}
+
+.now-playing-bar__control {
+  display: grid;
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  min-height: 34px;
+  place-items: center;
+  padding: 0;
+  color: rgba($secondary-light, 0.82);
+  border-color: transparent;
+  border-radius: 50%;
+  background: transparent;
+  box-shadow: none;
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    box-shadow 180ms ease;
+
+  &:hover:not(:disabled) {
+    color: $white;
+    background: rgba($secondary-default, 0.14);
+    box-shadow: 0 0 16px rgba($secondary-default, 0.13);
+  }
+
+  &:active:not(:disabled) {
+    color: $white;
+    background: rgba($secondary-default, 0.22);
+  }
+
+  &:disabled {
+    color: rgba($primary-lighter, 0.3);
+    opacity: 0.7;
+    cursor: default;
+  }
+}
+
+.now-playing-bar__play {
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  margin: -4px 1px;
+  color: #031411;
+  border: 1px solid rgba($white, 0.32);
+  border-radius: 50%;
+  background: linear-gradient(145deg, $secondary-light, $secondary-default);
+  box-shadow:
+    0 8px 20px rgba($black, 0.34),
+    0 0 22px rgba($secondary-default, 0.3),
+    inset 0 1px 0 rgba($white, 0.42);
+
+  &:hover:not(:disabled) {
+    color: #031411;
+    background: linear-gradient(145deg, $white, $secondary-light);
+  }
+
+  &:disabled {
+    color: rgba($primary-lighter, 0.4);
+    background: rgba(#1a2b38, 0.6);
+    box-shadow: none;
+  }
+}
+
+.now-playing-bar__position {
+  display: grid;
+  width: 100%;
+  max-width: 560px;
+  grid-template-columns: auto minmax(100px, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.now-playing-bar__time {
+  min-width: 30px;
+  color: $text-faint;
+  font-size: 0.6rem;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  white-space: nowrap;
+}
+
+// *** Shuffle, repeat, volume *************************************************
+
+.now-playing-bar__secondary {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.now-playing-bar__toggle {
+  position: relative;
+  display: grid;
+  width: 30px;
+  min-width: 30px;
+  height: 30px;
+  min-height: 30px;
+  place-items: center;
+  padding: 0;
+  color: rgba($secondary-light, 0.76);
+  border: 1px solid rgba($secondary-light, 0.1);
+  border-radius: 50%;
+  background: rgba($secondary-default, 0.07);
+  box-shadow: none;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.45);
+    background: rgba($secondary-default, 0.14);
+    outline: none;
+  }
+
+  // Lit while shuffle is on, or while repeat is anything other than off — the
+  // same "switched-on" glow `.button.is-running`'s neighbours use elsewhere.
+  &[aria-pressed='true'] {
+    color: $primary-dark;
+    border-color: rgba($secondary-light, 0.7);
+    background: $secondary-default;
+    box-shadow: 0 0 15px rgba($secondary-default, 0.24);
+  }
+
+  small {
+    position: absolute;
+    right: -2px;
+    bottom: -2px;
+    display: grid;
+    width: 13px;
+    height: 13px;
+    place-items: center;
+    color: #bafff7;
+    font-size: 0.62rem;
+    font-weight: 850;
+    line-height: 1;
+    background: #0a3846;
+    border: 1px solid rgba(105, 246, 233, 0.38);
+    border-radius: 50%;
+  }
+}
+
+.now-playing-bar__volume {
+  display: flex;
+  width: 120px;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+}
+
+.now-playing-bar__volume-icon {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  place-items: center;
+  color: rgba($secondary-light, 0.76);
+  border: 1px solid rgba($secondary-light, 0.1);
+  border-radius: 50%;
+  background: rgba($secondary-default, 0.07);
+}
+
+// *** The icon glyphs *********************************************************
+//
+// Same three-class split as `.karaoke-transport__icon`/`__icon-fill`/
+// `__icon-stroke`, so a filled shape and a stroked one can share one 24x24
+// glyph without either fighting the other's paint.
+
+.now-playing-bar__icon {
+  width: 15px;
+  height: 15px;
+  overflow: visible;
+  color: currentcolor;
+}
+
+.now-playing-bar__icon-fill {
+  fill: currentcolor;
+  stroke: none;
+}
+
+.now-playing-bar__icon-stroke {
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.75;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.now-playing-bar__play .now-playing-bar__icon {
+  width: 18px;
+  height: 18px;
+}
+
+// *** The range inputs *********************************************************
+//
+// Same recipe as `.karaoke-transport input[type='range']`, renamed to its own
+// custom property so the two bars never fight over which one last set
+// `--karaoke-range-progress`.
+
+.now-playing-bar__seek,
+.now-playing-bar__volume-slider {
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  margin: 0;
+  background: transparent;
+  cursor: pointer;
+
+  &::-webkit-slider-runnable-track {
+    height: 5px;
+    border-radius: $radius-pill;
+    background: linear-gradient(
+      90deg,
+      $secondary-light 0,
+      $secondary-default var(--now-playing-progress),
+      rgba($primary-lighter, 0.12) var(--now-playing-progress),
+      rgba($primary-lighter, 0.12) 100%
+    );
+    box-shadow: inset 0 1px 2px rgba($black, 0.68);
+  }
+
+  &::-webkit-slider-thumb {
+    appearance: none;
+    width: 13px;
+    height: 13px;
+    margin-top: -4px;
+    border: 2px solid rgba(#dffffb, 0.92);
+    border-radius: 50%;
+    background: $secondary-default;
+    box-shadow: 0 0 12px rgba($secondary-default, 0.45);
+  }
+
+  &:focus-visible {
+    outline: none;
+  }
+
+  &:focus-visible::-webkit-slider-thumb {
+    box-shadow:
+      0 0 0 3px rgba($surface-base, 0.95),
+      0 0 0 5px rgba($secondary-light, 0.72);
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.35;
+  }
+}
+
+// *** The video stage **********************************************************
+//
+// Sits inside `LibraryWorkspace` the way `.video-browser__stage` sits inside
+// `VideoBrowser` — no frame of its own, filling whatever room the tab gives
+// it. Full screen fills the pane itself rather than the whole grid, matching
+// `VideoBrowser.scss`'s own reasoning for why the rest of the workspace stays
+// exactly where it was: the window goes borderless through the same
+// `setWindowFullScreen` call, and what expands into the space that frees up
+// is this one pane.
+
+.library-video-stage {
+  position: relative;
+  width: 100%;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+  border-radius: $radius-m $radius-m $radius-xl $radius-xl;
+  background: $black;
+
+  &.is-fullscreen {
+    position: fixed;
+    z-index: 1150;
+    inset: 0;
+    border-radius: 0;
+  }
+}
+
+.library-video-stage__video {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: $black;
+  cursor: pointer;
+}
+
+.library-video-stage__fullscreen {
+  position: absolute;
+  right: $spacing-s;
+  bottom: $spacing-s;
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  padding: 0;
+  color: rgba($white, 0.88);
+  border: 1px solid rgba($primary-lighter, 0.18);
+  border-radius: $radius-s;
+  background: rgba(4, 16, 26, 0.72);
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-light, 0.5);
+    background: rgba(4, 16, 26, 0.9);
+    outline: none;
+  }
+}
