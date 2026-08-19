@@ -317,6 +317,56 @@ describe('loading a track', () => {
   });
 });
 
+describe('the length of the playing track', () => {
+  it('is learned once and never unlearned', async () => {
+    // `durationchange` does not fire only with the answer: it fires again
+    // mid-playback and Chromium reports `Infinity` on some of those. Writing
+    // that through as zero collapsed the seek bar in the middle of a song —
+    // `NowPlayingBar` clamps both its value and its `max` to
+    // `max(1, durationMs)`, so at zero the thumb lands on the far left and
+    // the control disables itself. That is what "it goes back to the start
+    // when I try to seek" was.
+    renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      latestPlayer?.playTracks([videoTrack.id], videoTrack.id);
+    });
+    const element = document.querySelector('video');
+    expect(element).not.toBeNull();
+
+    const setDuration = (value: number) => {
+      Object.defineProperty(element as HTMLVideoElement, 'duration', {
+        configurable: true,
+        get: () => value,
+      });
+    };
+
+    setDuration(212.5);
+    act(() => {
+      element?.dispatchEvent(new Event('durationchange'));
+    });
+    expect(latestPlayer?.durationMs).toBeCloseTo(212_500);
+
+    // The one that used to wipe it.
+    setDuration(Number.POSITIVE_INFINITY);
+    act(() => {
+      element?.dispatchEvent(new Event('durationchange'));
+    });
+    expect(latestPlayer?.durationMs).toBeCloseTo(212_500);
+
+    // The control: a real, different length still gets through, so this is
+    // "ignores nonsense" rather than "ignores everything after the first".
+    setDuration(180);
+    act(() => {
+      element?.dispatchEvent(new Event('durationchange'));
+    });
+    expect(latestPlayer?.durationMs).toBeCloseTo(180_000);
+  });
+});
+
 describe('a track whose file will not load (blocker 4)', () => {
   it('surfaces the same unplayable message the codec-unplayable path uses', async () => {
     renderHarness();

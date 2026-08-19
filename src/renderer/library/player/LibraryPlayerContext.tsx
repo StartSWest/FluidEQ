@@ -359,6 +359,12 @@ export const LibraryPlayerProvider = ({
       // a number that changes once a second on screen, and no reason to add
       // a `requestAnimationFrame` loop on top of it.
       const onTimeUpdate = () => setPositionMs(element.currentTime * 1000);
+      // `seeked` as well, exactly as `useKaraokeSession` does it: the element
+      // is the authority on where it actually landed, and `timeupdate` can
+      // still report the old position for a tick or two after a seek is
+      // asked for. Without this the thumb was dragged, released, and then
+      // pulled back by a stale tick before the next one caught up.
+      const onSeeked = () => setPositionMs(element.currentTime * 1000);
       // `durationchange` as well as `loadedmetadata`, and it is the one that
       // matters. A resource the element cannot seek in reports its duration
       // as `Infinity` at metadata time — which this correctly refuses, and
@@ -370,9 +376,21 @@ export const LibraryPlayerProvider = ({
       // (see `libraryProtocol`); this is what stops the same symptom from
       // surviving anything else that makes a first read look unbounded.
       const onDuration = () => {
-        setDurationMs(
-          Number.isFinite(element.duration) ? element.duration * 1000 : 0,
-        );
+        // A length is only ever learned, never unlearned.
+        //
+        // `durationchange` does not only fire once with the answer: it fires
+        // again mid-playback, and Chromium reports `Infinity` on some of
+        // those. Writing that through as `0` — which is what "not finite, so
+        // zero" did — collapsed the bar in the middle of a song, because
+        // `NowPlayingBar` clamps its value to `max(1, durationMs)` and its
+        // `max` to the same: at zero both become 1 and the thumb jumps to the
+        // far left. That is the "it goes back to the start when I try to
+        // seek" this was reported as, and the disabled seek bar beside it.
+        // The per-track reset belongs to the loader, which sets the tag's own
+        // duration when the source changes; nothing here needs to zero it.
+        if (Number.isFinite(element.duration) && element.duration > 0) {
+          setDurationMs(element.duration * 1000);
+        }
         // The one safe moment to put the playhead back where the last session
         // left it: the ranges are known now, so the seek lands instead of
         // being silently dropped.
@@ -401,6 +419,7 @@ export const LibraryPlayerProvider = ({
         setIsPlaying(false);
       };
       element.addEventListener('timeupdate', onTimeUpdate);
+      element.addEventListener('seeked', onSeeked);
       element.addEventListener('loadedmetadata', onDuration);
       element.addEventListener('durationchange', onDuration);
       element.addEventListener('play', onPlay);
@@ -409,6 +428,7 @@ export const LibraryPlayerProvider = ({
       element.addEventListener('error', onError);
       return () => {
         element.removeEventListener('timeupdate', onTimeUpdate);
+        element.removeEventListener('seeked', onSeeked);
         element.removeEventListener('loadedmetadata', onDuration);
         element.removeEventListener('durationchange', onDuration);
         element.removeEventListener('play', onPlay);
@@ -614,10 +634,16 @@ export const LibraryPlayerProvider = ({
     (nextPositionMs: number) => {
       const element = activeElement();
       const clamped = Math.max(0, nextPositionMs);
-      if (element) {
-        element.currentTime = clamped / 1000;
+      if (!element) {
+        setPositionMs(clamped);
+        return;
       }
-      setPositionMs(clamped);
+      element.currentTime = clamped / 1000;
+      // Read back rather than trusting the request, the way
+      // `useKaraokeSession.seek` does: the element clamps to its own seekable
+      // range and can refuse outright, and a bar showing a position the audio
+      // never went to is worse than one that admits it did not move.
+      setPositionMs(element.currentTime * 1000);
     },
     [activeElement],
   );
