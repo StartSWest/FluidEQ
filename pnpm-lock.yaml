@@ -9,6 +9,9 @@ overrides:
   eslint: 8.57.1
   typescript: 6.0.3
 
+patchedDependencies:
+  '@huggingface/transformers@3.7.6': 4ba113edbe267abe76a580169922d01d263fff5f3c0651caaafb85a481399275
+
 importers:
 
   .:
@@ -18,7 +21,7 @@ importers:
         version: 1.2.7
       '@huggingface/transformers':
         specifier: 3.7.6
-        version: 3.7.6
+        version: 3.7.6(patch_hash=4ba113edbe267abe76a580169922d01d263fff5f3c0651caaafb85a481399275)
       ajv:
         specifier: ^8.20.0
         version: 8.20.0
@@ -7599,7 +7602,7 @@ snapshots:
 
   '@huggingface/jinja@0.5.9': {}
 
-  '@huggingface/transformers@3.7.6':
+  '@huggingface/transformers@3.7.6(patch_hash=4ba113edbe267abe76a580169922d01d263fff5f3c0651caaafb85a481399275)':
     dependencies:
       '@huggingface/jinja': 0.5.9
       onnxruntime-node: 1.21.0

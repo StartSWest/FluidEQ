@@ -26,21 +26,76 @@ import {
   IKaraokeSessionFileReference,
   IKaraokeSessionSnapshot,
 } from '../common/karaoke/sessionPersistence';
+import {
+  KARAOKE_AUDIO_EXTENSIONS,
+  KARAOKE_IMAGE_EXTENSIONS,
+  KARAOKE_LYRIC_EXTENSIONS,
+  KARAOKE_VIDEO_EXTENSIONS,
+} from '../common/karaoke/files';
+import { decodeKaraokeText } from '../common/karaoke/textEncoding';
 
 const SESSION_FILENAME = 'karaoke-session.json';
 const MAX_FILES = 5_000;
 const MAX_LYRICS_BYTES = 4 * 1024 * 1024;
-const AUDIO_EXTENSIONS = new Set(['mp3', 'wav', 'ogg', 'flac', 'm4a']);
-const LYRIC_EXTENSIONS = new Set(['lrc', 'elrc', 'txt']);
+/**
+ * Taken from the renderer's own list, not copied. A second copy that fell
+ * behind would drop a whole format on restart without saying so — a widened
+ * picker would accept an `.opus` song that the next launch quietly refused to
+ * restore, which is the same failure the media set below already guards.
+ */
+const AUDIO_EXTENSIONS = new Set<string>(KARAOKE_AUDIO_EXTENSIONS);
+/**
+ * Derived like the two sets around it, and for the same reason: this one was
+ * still a hand-written copy, so a new lyric adapter would have been offered by
+ * the picker and accepted by the importer while the next launch refused to
+ * restore it — silently, since a session that comes back without its lyrics
+ * looks exactly like a song that never had any.
+ */
+const LYRIC_EXTENSIONS = new Set<string>(KARAOKE_LYRIC_EXTENSIONS);
+/**
+ * The stage's pictures and video, taken from the renderer's own lists rather
+ * than copied. A second copy that fell behind would not fail loudly: it would
+ * quietly drop one format's artwork on restart, which is the exact bug this
+ * set exists to fix.
+ */
+const MEDIA_EXTENSIONS = new Set<string>([
+  ...KARAOKE_IMAGE_EXTENSIONS,
+  ...KARAOKE_VIDEO_EXTENSIONS,
+]);
 const MIME_TYPES: Record<string, string> = {
   mp3: 'audio/mpeg',
   wav: 'audio/wav',
   ogg: 'audio/ogg',
+  opus: 'audio/ogg',
   flac: 'audio/flac',
   m4a: 'audio/mp4',
+  aac: 'audio/aac',
   lrc: 'text/plain',
   elrc: 'text/plain',
   txt: 'text/plain',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  jfif: 'image/jpeg',
+  png: 'image/png',
+  apng: 'image/apng',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  avif: 'image/avif',
+  bmp: 'image/bmp',
+  ico: 'image/x-icon',
+  svg: 'image/svg+xml',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  ogv: 'video/ogg',
+  mov: 'video/quicktime',
+  m4v: 'video/mp4',
+  avi: 'video/x-msvideo',
+  mpg: 'video/mpeg',
+  mpeg: 'video/mpeg',
+  flv: 'video/x-flv',
+  wmv: 'video/x-ms-wmv',
+  mkv: 'video/x-matroska',
+  divx: 'video/x-msvideo',
 };
 
 interface IKaraokeStoredFile {
@@ -70,6 +125,9 @@ const roleForPath = (
   }
   if (LYRIC_EXTENSIONS.has(extension)) {
     return 'lyrics';
+  }
+  if (MEDIA_EXTENSIONS.has(extension)) {
+    return 'media';
   }
   return undefined;
 };
@@ -233,8 +291,11 @@ export const restoreKaraokeSession = (
         type: MIME_TYPES[extension] ?? '',
         lastModified: stats.mtimeMs,
         role,
+        // Bytes, then the renderer's own decoder: `'utf8'` here made a restored
+        // CP1252 or UTF-16 file read differently from the same file freshly
+        // opened, so a song that imported correctly came back mangled.
         ...(role === 'lyrics'
-          ? { text: fs.readFileSync(file.localPath, 'utf8') }
+          ? { text: decodeKaraokeText(fs.readFileSync(file.localPath)) }
           : {}),
       },
     ];
@@ -254,7 +315,11 @@ export const readRestoredKaraokeFile = (
   token: string,
 ): Promise<IKaraokeRestoredFileBytes | undefined> => {
   const localPath = tokenPaths.get(token);
-  if (!localPath || roleForPath(localPath) !== 'audio') {
+  const role = localPath ? roleForPath(localPath) : undefined;
+  // Lyrics are excluded because they already arrived as text with the session;
+  // serving them here would be a second, byte-for-byte copy of what the
+  // renderer holds.
+  if (!localPath || (role !== 'audio' && role !== 'media')) {
     return Promise.resolve(undefined);
   }
   return Promise.all([

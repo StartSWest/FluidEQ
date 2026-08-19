@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent,
-  WheelEvent as ReactWheelEvent,
   useEffect,
   useRef,
   useState,
@@ -134,6 +133,10 @@ const KaraokeLyrics = ({
   const [manualCenterIndex, setManualCenterIndex] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wheelDeltaRef = useRef(0);
+  // Held as state, not a ref: the component returns an empty shell before
+  // any lyrics exist, so a ref read once at mount is null and the wheel
+  // listener never attaches. State re-runs the effect when the node appears.
+  const [shell, setShell] = useState<HTMLDivElement | null>(null);
   const lineHitRegionsRef = useRef<ILyricHitRegion[]>([]);
   const motionStateRef = useRef<ILyricMotionState | undefined>(undefined);
   const entranceStateRef = useRef<ILyricEntranceState>({
@@ -306,49 +309,10 @@ const KaraokeLyrics = ({
         38,
         96,
       );
-      const focusHeight = clamp(
-        Math.max(height * 0.22, 44) * textScale,
-        44,
-        124,
-      );
-      const focusLeft = width * 0.07;
-      const focusRight = width * 0.93;
-      const focusGradient = context.createRadialGradient(
-        width * 0.5,
-        centerY,
-        0,
-        width * 0.5,
-        centerY,
-        Math.max(1, width * 0.43),
-      );
-      focusGradient.addColorStop(
-        0,
-        isEuphoric
-          ? `hsla(${(euphoriaHue + 18) % 360}, 96%, 64%, 0.105)`
-          : 'rgba(34, 224, 214, 0.09)',
-      );
-      focusGradient.addColorStop(
-        0.62,
-        isEuphoric
-          ? `hsla(${(euphoriaHue + 82) % 360}, 96%, 64%, 0.035)`
-          : 'rgba(34, 224, 214, 0.025)',
-      );
-      focusGradient.addColorStop(1, 'rgba(34, 224, 214, 0)');
-      context.fillStyle = focusGradient;
-      context.fillRect(
-        focusLeft,
-        centerY - focusHeight * 0.5,
-        focusRight - focusLeft,
-        focusHeight,
-      );
-      context.strokeStyle = 'rgba(34, 224, 214, 0.055)';
-      context.lineWidth = 1;
-      context.beginPath();
-      context.moveTo(focusLeft, centerY - focusHeight * 0.5);
-      context.lineTo(focusRight, centerY - focusHeight * 0.5);
-      context.moveTo(focusLeft, centerY + focusHeight * 0.5);
-      context.lineTo(focusRight, centerY + focusHeight * 0.5);
-      context.stroke();
+      // No band behind the lead line. The teal wash and its two hairlines
+      // drew a visible box across the stage, which fought the artwork behind
+      // it and framed a line that already stands out by being the only bright
+      // one. Emphasis here is the lyric's own colour and glow, not a plate.
 
       const first = Math.max(0, Math.floor(animatedCenter) - 3);
       const last = Math.min(
@@ -629,19 +593,42 @@ const KaraokeLyrics = ({
     setIsFollowing(false);
   };
 
-  const onWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
-    if (!event.deltaY) {
-      return;
+  // The wheel listener is attached once and must not be torn down on every
+  // render, so it reaches the current browse through a ref rather than closing
+  // over the render that created it.
+  const browseLyricsRef = useRef(browseLyrics);
+  browseLyricsRef.current = browseLyrics;
+
+  /**
+   * Wheel browsing, attached by hand because React will not do it.
+   *
+   * React registers `onWheel` at the root as a passive listener, so the
+   * `preventDefault` this needs was silently refused on every tick — the
+   * console filled with "Unable to preventDefault inside passive event
+   * listener invocation" and the page kept scrolling underneath the lyrics
+   * anyway. A listener this component owns can say `passive: false` and mean
+   * it.
+   */
+  useEffect(() => {
+    if (!shell) {
+      return undefined;
     }
-    event.preventDefault();
-    event.stopPropagation();
-    wheelDeltaRef.current += event.deltaY;
-    if (Math.abs(wheelDeltaRef.current) < WHEEL_STEP_THRESHOLD) {
-      return;
-    }
-    browseLyrics(wheelDeltaRef.current > 0 ? 1 : -1);
-    wheelDeltaRef.current = 0;
-  };
+    const onWheel = (event: WheelEvent) => {
+      if (!event.deltaY) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      wheelDeltaRef.current += event.deltaY;
+      if (Math.abs(wheelDeltaRef.current) < WHEEL_STEP_THRESHOLD) {
+        return;
+      }
+      browseLyricsRef.current(wheelDeltaRef.current > 0 ? 1 : -1);
+      wheelDeltaRef.current = 0;
+    };
+    shell.addEventListener('wheel', onWheel, { passive: false });
+    return () => shell.removeEventListener('wheel', onWheel);
+  }, [shell]);
 
   const resumeFollowing = () => {
     wheelDeltaRef.current = 0;
@@ -708,7 +695,7 @@ const KaraokeLyrics = ({
   return (
     <div
       className={`karaoke-lyrics-shell${isFollowing ? '' : ' is-browsing'}`}
-      onWheel={onWheel}
+      ref={setShell}
     >
       <canvas
         ref={canvasRef}

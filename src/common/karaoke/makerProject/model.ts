@@ -8,6 +8,9 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 */
 
+import { karaokeMakerLineTokens } from './lineTokens';
+import { splitKaraokeWordSyllables } from '../syllables';
+
 /**
  * What a Maker project is made of, and the arithmetic everything else asks.
  *
@@ -21,6 +24,8 @@ the Free Software Foundation, either version 3 of the License, or
  * is the same job wherever it happens, and duplicating it is how two readers of
  * the same file end up disagreeing about what a missing field means.
  */
+import { isKaraokeSectionText } from '../sections';
+
 export const KARAOKE_MAKER_PROJECT_VERSION = 1 as const;
 export const KARAOKE_MAKER_EXTENSION = 'fluideq-karaoke.json';
 /**
@@ -123,25 +128,38 @@ export const karaokeMakerRecordedLineContainsTime = (
   );
 };
 
-export const SECTION_MARKER =
-  /^\[\s*(intro|verse(?:\s+\d+)?|pre[\s-]?chorus|post[\s-]?chorus|chorus(?:\s+\d+)?|bridge|break|instrumental|interlude|solo|outro|hook|refrain|ending)\s*\]$/iu;
-
+/**
+ * The longest a sung word may plausibly last.
+ *
+ * This counted letters, which is a fact about spelling rather than about
+ * singing, and it punished exactly the voices worth detecting: a phrase-final
+ * "Ohhh" held six seconds was capped at 1.8 s, "I" at 1.2 s, and because one
+ * Han or Kana character is one word, *every* sustained CJK syllable was capped
+ * at 1.2 s as well. Depending on the path that either truncated the highlight
+ * — leaving the line dead for the rest of the note — or discarded the word's
+ * timing outright.
+ *
+ * Syllables are what a singer holds, so they set the ceiling. The number this
+ * exists to reject is a chunk-sized timestamp of twenty to thirty seconds, and
+ * nine seconds still refuses those while leaving room for a real held note.
+ *
+ * The 2 500 ms floor truncates a phrase-final "Ohhh" and that is a real cost,
+ * knowingly paid. Raising it to six seconds was tried and reverted: this same
+ * number decides whether a span is a held note or a fabricated one, and at six
+ * seconds the guard that keeps a word out of an instrumental gap stops firing
+ * — measured, three words on one song sat exactly at this cap, each of them
+ * Whisper reporting a position it did not have. A held note truncated is
+ * visible and fixable; a word parked in silence looks detected.
+ *
+ * The way out is not a different constant. It is to allow the long span only
+ * when nothing competes for that time — when the next word is further away
+ * than the cap — so the two cases stop sharing one number.
+ */
 export const karaokeMakerMaximumAutomaticWordDurationMs = (
   text: string,
 ): number => {
-  const letterCount = Math.max(
-    1,
-    Array.from(text.normalize('NFKD')).filter((character) =>
-      /[\p{L}\p{N}]/u.test(character),
-    ).length,
-  );
-  if (letterCount === 1) {
-    return 1_200;
-  }
-  if (letterCount === 2) {
-    return 1_800;
-  }
-  return Math.min(6_000, 1_700 + Math.min(16, letterCount) * 240);
+  const syllableCount = Math.max(1, splitKaraokeWordSyllables(text).length);
+  return Math.min(9_000, Math.max(2_500, syllableCount * 1_800));
 };
 
 export const karaokeMakerSourceIsAutomatic = (
@@ -174,7 +192,7 @@ const lyricsWithoutRecommendationBlocks = (text: string): string[] => {
       skippingRecommendations = true;
       return;
     }
-    if (skippingRecommendations && SECTION_MARKER.test(line)) {
+    if (skippingRecommendations && isKaraokeSectionText(line)) {
       skippingRecommendations = false;
     }
     if (!skippingRecommendations && !/^\d*\s*embed$/iu.test(line)) {
@@ -188,7 +206,7 @@ export const karaokeMakerLineIsSection = (
   line: Pick<IKaraokeMakerLine, 'kind' | 'tokens'>,
 ): boolean =>
   line.kind === 'section' ||
-  SECTION_MARKER.test(
+  isKaraokeSectionText(
     line.tokens
       .map((token) => token.text)
       .join(' ')
@@ -246,6 +264,31 @@ const lineTiming = (
 export const synchronizeKaraokeMakerSections = (
   project: IKaraokeMakerProject,
 ): IKaraokeMakerProject => {
+  // Where each heading sits inside its own run of consecutive headings.
+  //
+  // Every heading looks past its neighbouring headings for the sung lines
+  // either side of it, so two written together — "[Bridge]" then "[Chorus]",
+  // which is how a sheet marks a bridge that runs straight into one — found
+  // the same previous line and the same next line and were handed byte
+  // identical ranges. Two labels on one instant: the second is drawn on top of
+  // the first, and the run reads as a single heading with the wrong name.
+  const runs = new Map<number, { length: number; position: number }>();
+  project.lyrics.lines.forEach((line, index) => {
+    if (!karaokeMakerLineIsSection(line)) {
+      return;
+    }
+    const previous = runs.get(index - 1);
+    const position = previous ? previous.position + 1 : 0;
+    runs.set(index, { length: position + 1, position });
+    // The run's length is only known at its end, so every member is corrected
+    // backwards once the last one is seen.
+    for (let at = index - position; at <= index; at += 1) {
+      const member = runs.get(at);
+      if (member) {
+        runs.set(at, { ...member, length: position + 1 });
+      }
+    }
+  });
   const lines = project.lyrics.lines.map((line, index) => {
     if (!karaokeMakerLineIsSection(line)) {
       return line;
@@ -267,6 +310,22 @@ export const synchronizeKaraokeMakerSections = (
       return { ...line, kind: 'section' as const };
     }
     const startMs = Math.max(0, preferredStartMs);
+    const run = runs.get(index);
+    if (run && run.length > 1) {
+      // The window the whole run has to share, cut into equal slices in the
+      // order the headings are written. 200 ms is the floor a single heading
+      // already had; below it a run simply runs on past the next sung line,
+      // which is visible and in order rather than invisible and stacked.
+      const windowEndMs = nextStartMs ?? startMs + 1_200 * run.length;
+      const sliceMs = Math.max(200, (windowEndMs - startMs) / run.length);
+      const slotStartMs = startMs + run.position * sliceMs;
+      return {
+        ...line,
+        kind: 'section' as const,
+        startMs: slotStartMs,
+        endMs: slotStartMs + sliceMs,
+      };
+    }
     const endMs = Math.max(
       startMs + 200,
       Math.min(line.endMs ?? startMs + 1_200, nextStartMs ?? startMs + 1_200),
@@ -384,13 +443,16 @@ export const makerLinesFromPlainText = (
   lyricsWithoutRecommendationBlocks(text)
     .slice(0, 5_000)
     .map((line) => {
-      const isSection = SECTION_MARKER.test(line);
+      const isSection = isKaraokeSectionText(line);
       return {
         id: karaokeMakerId('line'),
         kind: isSection ? ('section' as const) : ('lyrics' as const),
-        tokens: (isSection ? [line] : line.split(/\s+/u))
+        tokens: (isSection ? [line] : karaokeMakerLineTokens(line))
           .filter(Boolean)
-          .slice(0, 2_000)
+          // A Japanese line is one token per character, so a cap sized for
+          // spaced words truncates real lyrics. Raised to sit above any sung
+          // line while still refusing a pasted document.
+          .slice(0, 4_000)
           .map((word) => ({
             id: karaokeMakerId('word'),
             text: word,

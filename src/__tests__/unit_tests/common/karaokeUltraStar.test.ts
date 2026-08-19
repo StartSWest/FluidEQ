@@ -69,6 +69,107 @@ describe('UltraStar parser', () => {
     expect(parsed.lines.map((line) => line.startMs)).toEqual([0, 2_500]);
   });
 
+  // Two breaks, both in the two-number form real relative files use. The
+  // single-break test above passes whether the origin is assigned or added,
+  // which is exactly why it never caught the origin failing to advance: every
+  // line after the second used to land on top of the one before it.
+  it('accumulates the relative origin across several line breaks', () => {
+    const parsed = parseUltraStar(
+      [
+        '#TITLE:Relative',
+        '#BPM:120',
+        '#RELATIVE:YES',
+        ': 0 4 0 One',
+        '- 20 20',
+        ': 0 4 0 Two',
+        '- 20 20',
+        ': 0 4 0 Three',
+        'E',
+      ].join('\n'),
+    );
+    expect(parsed.lines.map((line) => line.startMs)).toEqual([0, 2_500, 5_000]);
+  });
+
+  it('reads rap notes instead of failing the whole song', () => {
+    const parsed = parseUltraStar(
+      '#BPM:120\n: 0 4 0 Sing\nR 4 4 0  rap\nG 8 4 0  gold\nE',
+    );
+    expect(parsed.lines.flatMap((line) => line.tokens)).toEqual([
+      expect.objectContaining({ text: 'Sing', kind: 'normal' }),
+      expect.objectContaining({ text: ' rap', kind: 'free' }),
+      expect.objectContaining({ text: ' gold', kind: 'free' }),
+    ]);
+  });
+
+  it('treats a zero-length note as freestyle rather than an unhittable target', () => {
+    const parsed = parseUltraStar('#BPM:120\n: 0 0 4 Blip\n: 4 4 4 Real\nE');
+    expect(parsed.lines[0].tokens.map((token) => token.kind)).toEqual([
+      'free',
+      'normal',
+    ]);
+  });
+
+  it('skips lines it does not recognise and stops at the end marker', () => {
+    const parsed = parseUltraStar(
+      [
+        '#BPM:120',
+        ': 0 4 0 One',
+        'B 8 140',
+        'ripped by someone, 2004',
+        ': 4 4 0  two',
+        'E',
+        'trailing credits nobody should read',
+      ].join('\n'),
+    );
+    expect(parsed.lines.flatMap((line) => line.tokens)).toHaveLength(2);
+  });
+
+  // The format defines the note type as any visible ASCII but space and `#`,
+  // and says an implementation MAY substitute freestyle for one it does not
+  // model. It does not say drop the syllable — which is what a narrower
+  // marker class did, losing the word with no error and no count.
+  it('keeps the lyric of a note type it does not model', () => {
+    const parsed = parseUltraStar(
+      '#BPM:120\n: 0 4 0 keep\nX 4 4 0  strange\n: 8 4 0  keep2\nE',
+    );
+    expect(parsed.lines.flatMap((line) => line.tokens)).toEqual([
+      expect.objectContaining({ text: 'keep', kind: 'normal' }),
+      expect.objectContaining({ text: ' strange', kind: 'free' }),
+      expect.objectContaining({ text: ' keep2', kind: 'normal' }),
+    ]);
+  });
+
+  it('still names a row that claims to be a note and is not', () => {
+    let thrown: unknown;
+    try {
+      parseUltraStar('#BPM:120\n: 0 four 0 One\nE');
+    } catch (error) {
+      thrown = error;
+    }
+    expect((thrown as KaraokeParseError).code).toBe('malformed-note');
+    expect((thrown as KaraokeParseError).line).toBe(2);
+  });
+
+  it('prefers #AUDIO over the deprecated #MP3 and never falls back to #VIDEO', () => {
+    expect(
+      parseUltraStar(
+        '#BPM:120\n#MP3:legacy.mp3\n#AUDIO:current.ogg\n: 0 4 0 One\nE',
+      ).audioFileName,
+    ).toBe('current.ogg');
+    expect(
+      parseUltraStar('#BPM:120\n#VIDEO:clip.avi\n: 0 4 0 One\nE').audioFileName,
+    ).toBeUndefined();
+  });
+
+  it('reports no video gap when the song does not declare one', () => {
+    expect(
+      parseUltraStar('#BPM:120\n: 0 4 0 One\nE').videoGapMs,
+    ).toBeUndefined();
+    expect(
+      parseUltraStar('#BPM:120\n#VIDEOGAP:4,5\n: 0 4 0 One\nE').videoGapMs,
+    ).toBe(4_500);
+  });
+
   it('preserves word boundaries and melisma duration across lyric lines', () => {
     const parsed = parseUltraStar(
       '#TITLE:Words\n#BPM:120\n: 0 2 4 rou\n: 2 2 4 ~nd\n-\n: 8 2 5 A\n: 10 2 5 bout\n: 12 2 5 ~\nE',
@@ -111,7 +212,14 @@ describe('UltraStar parser', () => {
   it.each([
     ['#TITLE:No BPM\n: 0 4 0 Text\nE', 'missing-bpm'],
     ['#BPM:120\nP1\n: 0 4 0 Text\nE', 'unsupported-variant'],
-    ['#BPM:120\nR 0 4 0 Rap\nE', 'malformed-note'],
+    // The duet spellings current files actually use: `#P1`/`#P2` headers and
+    // the spaced player row. Recognising only `#DUETSINGERP1` meant a modern
+    // duet was reported as a broken file rather than an unsupported one.
+    ['#BPM:120\n#P1:Ann\n#P2:Bob\n: 0 4 0 Text\nE', 'unsupported-variant'],
+    ['#BPM:120\nP 1\n: 0 4 0 Text\nE', 'unsupported-variant'],
+    // Three voices, not two: the format goes to `#P9`, and merging a third
+    // singer into one track in silence is the failure this guards.
+    ['#BPM:120\nP3\n: 0 4 0 Alice\nP4\n: 4 4 0 Bob\nE', 'unsupported-variant'],
   ])('rejects malformed or unsupported variants', (contents, code) => {
     let thrown: unknown;
     try {

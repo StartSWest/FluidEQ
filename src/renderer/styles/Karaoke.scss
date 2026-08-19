@@ -140,6 +140,33 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   letter-spacing: 0.04em;
 }
 
+// The same sentence with nothing underneath it, which is a different job.
+//
+// The caption above is sized to sit over artwork; alone on the stage it was a
+// watermark, because a corner label is read as a caption on the picture even
+// when there is no picture. The first attempt at this modifier moved it from
+// 0.62rem to 0.72rem — 9.9px to 11.5px, under two pixels — and claimed to have
+// sized it to be read. 0.9rem is 14.4px: a third larger than the workspace's
+// own notice strip at 0.68rem, which is the right relationship when this
+// sentence is the ENTIRE contents of the stage rather than one row among six.
+//
+// It stays in the corner and does not move to the middle:
+// `.karaoke-lyrics-shell` is z-index 1 above this whole layer, so a centred
+// notice would be drawn behind the words. What it gets instead of the middle
+// is a plate in the warning colour the notice strip already uses, and enough
+// width for the sentence to break once rather than four times.
+.karaoke-stage-media__unsupported.is-alone {
+  max-width: min(420px, 74%);
+  padding: 9px 13px;
+  color: rgba($primary-lighter, 0.92);
+  border: 1px solid rgba($neon-yellow, 0.28);
+  border-radius: $radius-s;
+  background: rgba($surface-field, 0.62);
+  font-size: 0.9rem;
+  line-height: 1.4;
+  letter-spacing: 0.01em;
+}
+
 .karaoke-workspace:not(.is-hidden) .karaoke-transport {
   @include animate(rise-in, $motion-base, $ease-out, 310ms);
 }
@@ -235,7 +262,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow: 0 0 16px rgba($secondary-default, 0.18);
   }
 
-  .karaoke-workspace__pitch-toggle[aria-pressed='true'] {
+  // The stage-art toggle wears the same lit state as the pitch guide: they are
+  // the same kind of control and reading one as "on" while the other only dims
+  // would make the pair look like different mechanisms. `:not(:disabled)`
+  // because a song with no artwork still carries the preference — lighting up
+  // a button that cannot act is the one case where the highlight would lie.
+  .karaoke-workspace__pitch-toggle[aria-pressed='true'],
+  .karaoke-workspace__stage-art-toggle[aria-pressed='true']:not(:disabled) {
     color: $primary-dark;
     border-color: rgba($secondary-light, 0.94);
     background: linear-gradient(145deg, $secondary-light, $secondary-default);
@@ -378,10 +411,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow: 0 0 14px rgba($secondary-default, 0.1);
   }
 
+  // Fades in place. The 7px lift that used to come with it meant the bar slid
+  // down the screen on every pointer move after a pause, which reads as the
+  // toolbar wandering rather than as it coming back.
   &.is-idle {
     opacity: 0;
     pointer-events: none;
-    transform: translateY(-7px);
     transition-duration: 480ms;
   }
 }
@@ -3163,44 +3198,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     position: fixed;
     z-index: 96;
     border-radius: 0;
-    // A DIFFERENT NAME FROM THE ENTRANCE ABOVE, WHICH IS THE WHOLE MECHANISM.
+    // NOTHING HERE MAY TOUCH `animation`, AND THAT IS THE FIX.
     //
-    // Toggling full screen swaps this element between `absolute` and `fixed`,
-    // so it changes containing block, size and corner radius in one frame —
-    // and the canvas inside re-renders against new bounds. That reads as a
-    // flash because nothing covers the moment between the old layout and the
-    // new one.
+    // This surface is the only opaque thing between the editor and the player:
+    // the stage, the lyrics and the transport are its siblings, sitting
+    // directly underneath it at a lower z-index. So any fade *of this element*
+    // is not a curtain over the mode change — it is the curtain being pulled
+    // open. An earlier attempt gave the two modes different animation names
+    // precisely so the fade would restart on every toggle, and measured in the
+    // running window it took the editor to opacity 0 in both directions and
+    // held the player fully visible through it for a quarter of a second.
     //
-    // A transition cannot help: `position` is not animatable and the jump is
-    // the point. What can is restarting an animation, and an animation only
-    // restarts when its *name* changes. Giving the two modes different names
-    // means entering fades in on this one and leaving fades in on the other,
-    // so the swap happens behind a curtain in both directions.
+    // The name has to stay identical across both modes, because an animation
+    // restarts exactly when its name changes. Leaving `animation` undeclared
+    // here means the entrance above keeps running its course once, on mount,
+    // and a mode change cannot rewind it. The box jumps — `position` is not
+    // animatable and the window is going full screen underneath it anyway —
+    // but it jumps opaque, so nothing behind it is ever on screen.
     //
-    // Opacity alone, deliberately. The surface is already changing size; a
-    // translate on top of that would be two movements disagreeing about where
-    // the editor is going.
-    //
-    // 260ms, and the length is load-bearing rather than taste. The canvas is
-    // resized by a ResizeObserver, which fires *after* the layout it is
-    // observing has already been laid out — so the editor's own repaint lands
-    // a frame or two behind the mode change. A fade shorter than that finishes
-    // while the canvas is still blank and puts the flash back on screen at
-    // full opacity. This has to outlast the repaint, not merely start with it.
-    animation: karaoke-maker-mode-enter 260ms cubic-bezier(0.2, 0.8, 0.2, 1)
-      both;
-
-    // The canvas fades on its own as well as inside the surface.
-    //
-    // The assembly cascade gives this band `rise-in` at a 235ms delay, which is
-    // right when the Maker is being built and wrong here: on a mode change it
-    // would hold the editing surface invisible for most of the fade above and
-    // then slide it, so the one thing somebody is looking at arrives last and
-    // moving. A plain fade on the same clock replaces it while full screen.
-    .karaoke-maker__canvas-host {
-      animation: karaoke-maker-mode-enter 260ms cubic-bezier(0.2, 0.8, 0.2, 1)
-        both;
-    }
+    // What still needs covering is the canvas, which is a bitmap and cannot
+    // reflow; that is handled on the canvas itself, further down.
   }
 }
 
@@ -3240,20 +3257,65 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(rise-in, $motion-base, $ease-out, 190ms);
 }
 
-// A fade rather than a delayed rise, and short rather than staged.
-//
-// This carried the assembly cascade's 235ms delay, which is right for a Maker
-// being built and wrong for one changing mode — and the same rule serves both,
-// because CSS cannot tell "just opened" from "just left full screen". On the
-// exit from full screen it held the editing surface blank for a quarter of a
-// second and then slid it in, which is the flash the fade above was added to
-// remove, arriving from the other direction.
-//
-// 260ms matches the full-screen side exactly, so the two directions are the
-// same length and the canvas is covered while its ResizeObserver catches up
-// either way. The band still arrives after the header, just by less.
+// A fade rather than a delayed rise, and short rather than staged. The band
+// still arrives after the header, just by less.
 .karaoke-maker__canvas-host {
   @include animate(karaoke-maker-mode-enter, 260ms, $ease-out, 60ms);
+}
+
+// *** The one thing a mode change really does have to cover *******************
+//
+// The editor's frame is DOM and reflows cleanly at any size. The drawing is
+// not: it is a bitmap of fixed pixel dimensions, resized by a ResizeObserver
+// that fires *after* the layout it observes has been laid out. So for the
+// frame or two between the box changing size and the repaint landing, the old
+// bitmap is stretched to the new box — notes at the wrong width, the playhead
+// in the wrong place. That is the only genuine artefact in the swap.
+//
+// Fading the canvas alone covers it, and covers it *inside* the editor: the
+// host keeps its own opaque `#071727`, its border and its radius, so the band
+// holds its shape and only the drawing dissolves and comes back. The surface
+// above stays at full opacity throughout, which is what keeps the player out
+// of sight — see the note on `.is-fullscreen`.
+//
+// Two keyframes with one body, and they must stay twins. An animation only
+// restarts when its *name* changes, so the docked mode and the full-screen
+// mode each need their own name for the fade to play in both directions.
+// Collapsing them into one name is the bug this pair exists to prevent: the
+// canvas would then settle on mount and never again.
+//
+// 260ms is measured rather than chosen. The repaint lands a frame or two
+// behind the mode change, and a fade shorter than that finishes while the
+// canvas is still showing the stale bitmap — putting the artefact back on
+// screen at full opacity. It has to outlast the repaint, not merely start
+// with it.
+.karaoke-maker__canvas {
+  @include animate(karaoke-maker-canvas-settle, 260ms, $ease-out);
+}
+
+.karaoke-maker.is-fullscreen .karaoke-maker__canvas {
+  @include animate(karaoke-maker-canvas-resettle, 260ms, $ease-out);
+}
+
+@keyframes karaoke-maker-canvas-settle {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// The twin of the above. See the comment there before changing either.
+@keyframes karaoke-maker-canvas-resettle {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .karaoke-maker-preview {
@@ -3723,6 +3785,65 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba(76, 185, 193, 0.2);
   border-radius: 10px;
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
+// One row per model the Maker can load. The same dot, name and state as the
+// heading above, plus the size, so the three read as one list rather than as
+// a heading with three unrelated lines under it.
+.karaoke-maker__memory-models {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 9px 0 2px;
+  padding: 8px 9px;
+  list-style: none;
+  background: rgba(9, 26, 34, 0.42);
+  border: 1px solid rgba(93, 240, 181, 0.11);
+  border-radius: 7px;
+
+  li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 7px;
+  }
+
+  > li > span:first-child {
+    width: 6px;
+    height: 6px;
+    background: rgba(139, 168, 179, 0.42);
+    border-radius: 50%;
+
+    &.is-ready {
+      background: #5df0b5;
+      box-shadow: 0 0 8px rgba(77, 241, 181, 0.55);
+    }
+  }
+
+  strong {
+    min-width: 0;
+    overflow: hidden;
+    color: #dcf4f2;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  em {
+    color: rgba(151, 197, 207, 0.66);
+    font-size: 0.7rem;
+    font-style: normal;
+    white-space: nowrap;
+  }
+}
+
+.karaoke-maker__memory-bytes {
+  min-width: 58px;
+  color: rgba(190, 231, 240, 0.86);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
 }
 
 .karaoke-maker__memory-heading {
@@ -6393,64 +6514,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.karaoke-maker__memory-prompt {
-  position: absolute;
-  z-index: 23;
-  right: 18px;
-  bottom: calc(var(--karaoke-maker-dock-height) + 12px);
-  display: grid;
-  width: min(500px, calc(100% - 36px));
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 12px;
-  color: #ddf9f6;
-  background:
-    radial-gradient(circle at 10% 0, rgba(37, 216, 199, 0.14), transparent 54%),
-    rgba(5, 27, 41, 0.97);
-  border: 1px solid rgba(74, 212, 202, 0.36);
-  border-radius: 13px;
-  box-shadow: 0 18px 48px rgba($black, 0.42);
-  backdrop-filter: blur(18px);
-
-  > svg {
-    width: 19px;
-    height: 19px;
-    color: $secondary-light;
-  }
-
-  > div {
-    display: grid;
-    gap: 2px;
-
-    strong {
-      font-size: 0.8rem;
-    }
-
-    span {
-      color: rgba(174, 211, 218, 0.68);
-      font-size: 0.76rem;
-      line-height: 1.35;
-    }
-  }
-
-  > button {
-    min-height: 30px;
-    padding: 0 10px;
-    color: #c8eeec;
-    font-size: 0.76rem;
-    font-weight: 800;
-    background: rgba(20, 71, 85, 0.36);
-    border: 1px solid rgba(103, 177, 189, 0.25);
-    border-radius: 9px;
-
-    &.is-primary {
-      color: #062a30;
-      background: linear-gradient(135deg, #63f3e5, #26d5c6);
-      border-color: transparent;
-    }
-  }
-}
+// The idle-release prompt used to live here, pinned above the Maker's dock.
+// It is `.speech-memory-notice` now, at the app root: the question outlives
+// this tab being on screen, and its buttons were a bespoke pair that `.button
+// small` and `.button small subtle` already provide.
 
 .karaoke-maker__analysis-progress,
 .karaoke-maker__analysis-error {

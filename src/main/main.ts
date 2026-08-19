@@ -126,9 +126,11 @@ import {
   IActiveStateOverride,
   isGeneratedConfigFile,
   loadDeviceProfileSettings,
+  migrateNamedFilesToOutputFolders,
   saveDeviceProfileSettings,
 } from './deviceProfiles';
 import { sendMediaTransportKey } from './mediaKeys';
+import { claimInstance, isAnotherInstanceLive } from './singleInstance';
 import { POWERSHELL_PATH } from './powershell';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 import {
@@ -855,11 +857,11 @@ const isAutomaticPresetName = (presetName: string) =>
  * not something anybody should have to look at. The same hash already names
  * the automatic profile, so both agree on what identifies an output.
  */
+const outputSlug = (deviceId: string) =>
+  createHash('sha1').update(deviceId).digest('hex').slice(0, 12);
+
 const presetDirForDevice = (deviceId: string) => {
-  const dir = path.join(
-    presetPath,
-    createHash('sha1').update(deviceId).digest('hex').slice(0, 12),
-  );
+  const dir = path.join(presetPath, outputSlug(deviceId));
   // No output, no folder.
   //
   // The renderer asks for the profile list as it mounts, which is before any
@@ -885,46 +887,27 @@ const presetDirForDevice = (deviceId: string) => {
 const activePresetDir = () => presetDirForDevice(session.activeAudioDeviceId);
 
 /**
- * Move profiles saved before outputs owned them into the folder of the output
- * that was using them.
+ * Where one output's hand-saved copies live — the same split, for the same
+ * reason.
  *
- * An assignment is the only record of who a profile belonged to, so it is the
- * only thing that can answer the question. A profile no assignment mentions has
- * no owner to deduce and is left exactly where it is — not deleted, not guessed
- * at, still readable on disk if it turns out to matter. It stops appearing in
- * the list, which is the point: an unowned profile has no output to appear
- * under.
+ * A baseline is the profile as it stood at the last explicit Save, and it is
+ * the only thing Restore can put back. These sat in one flat directory keyed by
+ * name alone long after profiles stopped doing so, which made them collide
+ * exactly the way profiles used to: five outputs attached to "Untitled profile
+ * 1" shared one file, so saving on any of them overwrote the undo point of the
+ * other four, and renaming on one took the file away from all of them.
  *
- * Runs once per profile by construction — the second run finds the file gone
- * from the root and does nothing.
+ * Deliberately does not create the directory. `savePresetBaseline` makes it
+ * when there is finally something to put in it, and every reader here treats a
+ * missing folder as "no saved copy", which is the truth for an output nobody
+ * has pressed Save on.
  */
-const migrateProfilesToPerOutputFolders = () => {
-  Object.values(deviceProfileSettings.assignments).forEach((assignment) => {
-    const from = path.join(presetPath, assignment.presetName);
-    // Directories are the new layout; only a file at the root is unmigrated.
-    if (!fs.existsSync(from) || !fs.statSync(from).isFile()) {
-      return;
-    }
-    const to = path.join(
-      presetDirForDevice(assignment.deviceId),
-      assignment.presetName,
-    );
-    // Never clobber a profile the new layout already holds.
-    if (fs.existsSync(to)) {
-      return;
-    }
-    try {
-      fs.renameSync(from, to);
-      log.info(
-        `Moved profile "${assignment.presetName}" to its output's folder`,
-      );
-    } catch (e) {
-      // A profile that will not move stays where it is and stays readable.
-      log.error(`Could not move profile "${assignment.presetName}"`);
-      log.error(e);
-    }
-  });
-};
+const baselineDirForDevice = (deviceId: string) =>
+  path.join(baselinePath, outputSlug(deviceId));
+
+/** The saved-copy folder for whichever output is playing now. */
+const activeBaselineDir = () =>
+  baselineDirForDevice(session.activeAudioDeviceId);
 
 /**
  * Put the profile store in order before anything reads from it.
@@ -939,7 +922,20 @@ const migrateProfilesToPerOutputFolders = () => {
  * something a user would ever notice as a setting.
  */
 const runStartupProfileMaintenance = () => {
-  migrateProfilesToPerOutputFolders();
+  migrateNamedFilesToOutputFolders(
+    deviceProfileSettings,
+    presetPath,
+    presetDirForDevice,
+    'profile',
+  );
+  // The saved copies were left flat by the first split and are being caught up
+  // now. Same move, one release later.
+  migrateNamedFilesToOutputFolders(
+    deviceProfileSettings,
+    baselinePath,
+    baselineDirForDevice,
+    'saved copy',
+  );
 
   const repaired = Object.values(deviceProfileSettings.assignments).flatMap(
     (assignment) =>
@@ -1184,7 +1180,7 @@ const UNTITLED_PROFILE_PREFIX = 'Untitled profile';
  * playing each reach `createEmptyProfileForActiveDevice`, and each counts the
  * catalogue *before* the other has written to it, so both pick the same number
  * and one silently loses. Meanwhile both are part-way through
- * `removeAssignmentsForPreset` on the same object and both call `handleUpdate`,
+ * `removeAssignmentForPreset` on the same object and both call `handleUpdate`,
  * so the config is rewritten from a state that is halfway between two edits.
  * Nothing throws. The list simply comes back wrong.
  *
@@ -1771,7 +1767,7 @@ ipcMain.on(ChannelEnum.HEALTH_CHECK, async (event) => {
 registerProfilesIpc({
   state,
   userDataDir,
-  baselinePath,
+  activeBaselineDir,
   deviceProfileSettings,
   session,
   handleUpdate,
@@ -1958,7 +1954,7 @@ registerTransferIpc({
   applyingLayer,
   attachPresetToActiveDevice,
   availableProfileNameForActiveDevice,
-  baselinePath,
+  activeBaselineDir,
   clearCurrentLayoutSettings,
   deviceProfileSettings,
   getMainWindow: () => mainWindow,
@@ -2416,9 +2412,30 @@ app.on('before-quit', () => {
  * brings the hidden window back — which is what the person wanted when they
  * clicked the shortcut.
  */
+/**
+ * Beside both data directories rather than inside either, because the whole
+ * point is that development and the installed build do not share one.
+ */
+const INSTANCE_MARKER_PATH = path.join(
+  app.getPath('appData'),
+  'fluideq-running.json',
+);
+
+let releaseInstanceMarker: (() => void) | undefined;
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
+} else if (isAnotherInstanceLive(INSTANCE_MARKER_PATH)) {
+  // Electron's lock did not catch this one, so it is the other build: dev
+  // started while the installed copy is running, or the other way round. Said
+  // out loud rather than quitting blankly — a window that never appears is the
+  // sort of thing somebody spends an evening on.
+  log.warn(
+    'Another copy of FluidEQ is already running; this one is quitting so the two do not fight over the Equalizer APO config.',
+  );
+  app.quit();
 } else {
+  releaseInstanceMarker = claimInstance(INSTANCE_MARKER_PATH);
   app.on('second-instance', () => {
     if (!mainWindow || mainWindow.isDestroyed()) {
       return;
@@ -2430,6 +2447,10 @@ if (!app.requestSingleInstanceLock()) {
     mainWindow.focus();
   });
 }
+
+app.on('will-quit', () => {
+  releaseInstanceMarker?.();
+});
 
 app
   .whenReady()

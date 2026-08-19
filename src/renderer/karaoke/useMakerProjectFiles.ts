@@ -11,10 +11,12 @@ import {
   parseKaraokeMakerProject,
 } from '../../common/karaoke/makerProject';
 import {
+  IKaraokeMakerExport,
   TKaraokeMakerExportFormat,
   exportKaraokeMaker,
   karaokeMakerExportFileName,
 } from '../../common/karaoke/makerExport';
+import { Translate } from '../../common/i18n';
 import {
   karaokeFileExtension,
   parseKaraokeText,
@@ -76,6 +78,37 @@ export interface IMakerProjectFilesParams extends Pick<
   >;
 }
 
+/**
+ * The sentence an export ends on.
+ *
+ * `exportKaraokeMaker` has counted what the written file does not contain
+ * since those counters were added, and nothing read them: a file missing half
+ * its lyrics and a complete one both reported `Exported <path>`. The two
+ * formats lose different things — LRC drops a line it cannot time at all,
+ * UltraStar drops a word with no melody note — so each gets its own sentence
+ * naming the unit it actually lost, rather than one shared line vague enough
+ * to be true of both.
+ */
+export const karaokeExportNotice = (
+  output: IKaraokeMakerExport,
+  file: string,
+  t: Translate,
+): string => {
+  if (output.droppedLines === 0 && output.droppedWords === 0) {
+    return t('karaoke.maker.exported', { file });
+  }
+  if (output.format === 'ultrastar') {
+    return t('karaoke.maker.exportedPartialUltraStar', {
+      file,
+      words: output.droppedWords,
+    });
+  }
+  return t('karaoke.maker.exportedPartialLrc', {
+    file,
+    lines: output.droppedLines,
+  });
+};
+
 export const useMakerProjectFiles = ({
   clearHistory,
   localizeMakerError,
@@ -119,9 +152,11 @@ export const useMakerProjectFiles = ({
       });
       if (!result.canceled) {
         setNotice(
-          t('karaoke.maker.exported', {
-            file: result.filePath ?? t('karaoke.maker.exportFallback'),
-          }),
+          karaokeExportNotice(
+            output,
+            result.filePath ?? t('karaoke.maker.exportFallback'),
+            t,
+          ),
         );
       }
     } catch (error) {

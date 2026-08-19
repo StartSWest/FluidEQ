@@ -27,6 +27,10 @@ import {
   applyBasicPitchMelody,
   applyDetectedPitchMelody,
   applyTranscriptAsLyrics,
+  decodeMono,
+  IKaraokeMakerVocalRest,
+  karaokeMakerVocalRests,
+  karaokeMakerVoiceOnsets,
   applyWhisperTranscript,
   formatKaraokeMakerWhisperLog,
   getKaraokeWhisperSessionSnapshot,
@@ -231,7 +235,7 @@ export const useMakerAnalysisRun = ({
         );
         const publishBase = baseProject ?? projectRef.current;
         const next = touchKaraokeMakerProject(
-          applyBasicPitchMelody(publishBase, notes, false, SWIFT_F0_PROVENANCE),
+          applyBasicPitchMelody(publishBase, notes, true, SWIFT_F0_PROVENANCE),
         );
         projectRef.current = next;
         pushHistory(publishBase);
@@ -282,6 +286,7 @@ export const useMakerAnalysisRun = ({
               },
             },
             fallback.notes,
+            true,
           ),
         );
         projectRef.current = next;
@@ -457,6 +462,14 @@ export const useMakerAnalysisRun = ({
             });
           }
           if (stage) {
+            // The file list belongs to the download and to nothing after it.
+            // It used to be set and never cleared, so seven completed rows sat
+            // over the transcription for the rest of the run, still claiming
+            // to be the thing in progress.
+            if (stage !== 'download') {
+              setDownloadProgress(undefined);
+              downloadSampleRef.current = undefined;
+            }
             setWhisperStage(stage);
             let localizedMessage = t('karaoke.maker.whisperComplete');
             if (stage === 'decode') {
@@ -505,11 +518,49 @@ export const useMakerAnalysisRun = ({
         controller.signal,
         receiveWhisperLog,
         projectRef.current.lyrics.language,
+        // Only the authoring path chooses line breaks, so only it pays for the
+        // second decode that reveals them.
+        !flattenTokens(projectRef.current).length,
       );
       const beforeTranscript = projectRef.current;
+      // Where the singer actually stops, read from the isolated voice. The
+      // decode is the one Whisper already paid for — `decodeMono` caches per
+      // file — so this costs a pass over the samples and nothing else.
+      let vocalRests: IKaraokeMakerVocalRest[] = [];
+      let voiceOnsets: number[] = [];
+      try {
+        const voice = await decodeMono(analysisFile, 16_000);
+        vocalRests = karaokeMakerVocalRests(voice, 16_000);
+        // Where each sound begins, which is where a word begins. The stem is
+        // sample-aligned with the song, so an instant found here is that
+        // instant in the song — no timestamp is involved.
+        voiceOnsets = karaokeMakerVoiceOnsets(voice, 16_000);
+        reportInfo(
+          `[karaoke][whisper] vocal.rests count=${vocalRests.length} onsets=${voiceOnsets.length}`,
+        );
+      } catch (error) {
+        // Line breaks fall back to Whisper's own gaps and punctuation.
+        reportInfo(`[karaoke][whisper] vocal.rests.failed ${String(error)}`);
+      }
+      // Fitting the transcript onto the lyrics is work, and it used to happen
+      // after the bar had already reached the end of its transcription share
+      // and said so. On an ordinary song it is imperceptible; on one that
+      // repeats a line a hundred times it was the only thing still running.
+      setAnalysisMessage(t('karaoke.maker.whisperAligning'));
       let completedProject = flattenTokens(beforeTranscript).length
-        ? applyWhisperTranscript(beforeTranscript, transcript)
-        : applyTranscriptAsLyrics(beforeTranscript, transcript);
+        ? applyWhisperTranscript(
+            beforeTranscript,
+            transcript,
+            vocalRests,
+            voiceOnsets,
+          )
+        : applyTranscriptAsLyrics(
+            beforeTranscript,
+            transcript,
+            vocalRests,
+            transcript.segments ?? [],
+            voiceOnsets,
+          );
       let generatedNoteCount: number | undefined;
       let melodyError: unknown;
       if (includeMelody) {
@@ -528,11 +579,15 @@ export const useMakerAnalysisRun = ({
             windows,
             setDownloadProgress,
           );
+          // The notes were detected from this same take, so a word Whisper
+          // left unplaced can be put on the pitch that was actually sung
+          // rather than left for the user to drag. Words Whisper did place
+          // are above the doubt threshold and are locked out of the repair.
           completedProject = touchKaraokeMakerProject(
             applyBasicPitchMelody(
               completedProject,
               notes,
-              false,
+              true,
               SWIFT_F0_PROVENANCE,
             ),
           );

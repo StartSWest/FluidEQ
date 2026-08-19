@@ -41,19 +41,38 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.import.clear': '移除',
   'karaoke.import.loading': '正在准备歌曲…',
   'karaoke.import.formats':
-    '音频：MP3、WAV、OGG、FLAC 或 M4A · 歌词：LRC、eLRC 或 UltraStar TXT',
+    '音频：MP3、WAV、OGG、Opus、FLAC、M4A 或 AAC · 歌词：LRC、eLRC 或 UltraStar TXT · 封面和视频也可一并添加',
   'karaoke.import.drop': '将歌曲、歌词或文件夹拖放到这里',
   'karaoke.error.missingAudio': '请将音频文件与该歌词文件一起添加。',
   'karaoke.error.ambiguous':
     '存在多种配对方式。请选择一个音频文件，并可选择一个歌词文件。',
   'karaoke.error.unsupported':
-    '这些文件中暂时没有受支持的 Karaoke 音频或歌词文件。',
+    '这些文件中暂时没有受支持的 Karaoke 音频或歌词文件。封面和视频需要与歌曲一起添加。',
   'karaoke.error.read': 'FluidEQ 无法读取所选的本地文件。',
   'karaoke.error.playback': '此 Chromium 版本无法播放该音频文件或编解码器。',
-  'karaoke.warning.lyrics':
-    '无法解析，因此音频仍可在没有同步歌词的情况下播放。',
+  'karaoke.warning.lyrics': '无法解析。',
+  'karaoke.warning.lyricsEmpty': '是空文件。',
+  'karaoke.warning.lyricsMissingTiming': '不含 FluidEQ 能读取的时间轴。',
+  'karaoke.warning.lyricsMissingBpm': '未声明 UltraStar 文件所需的 BPM。',
+  'karaoke.warning.lyricsInvalidBpm': '声明的 BPM 不是可用的数字。',
+  'karaoke.warning.lyricsMalformedNote': '含有 FluidEQ 无法读取的音符行。',
+  'karaoke.warning.lyricsUnsupportedVariant':
+    '使用了 FluidEQ 尚不能演唱的卡拉OK变体，例如对唱。',
+  'karaoke.warning.lyricsAtLine': '第 {line} 行。',
+  'karaoke.warning.lyricsAudioIntact': '音频仍可在没有同步歌词的情况下播放。',
+  'karaoke.warning.setAside':
+    'FluidEQ 还无法将这些文件作为卡拉OK读取，因此已将它们搁置：{formats}。',
+  'karaoke.warning.unpairedLyrics':
+    '没有音频文件与这些歌词文件匹配，因此未使用它们：{files}。',
+  'karaoke.warning.ambiguousLyrics':
+    '两个歌词文件匹配同一首歌，因此都未使用：{files}。',
+  'karaoke.warning.andMore': '以及其他 {count} 个',
   'karaoke.song.unknownArtist': '本地歌曲',
   'karaoke.stage.videoUnsupported': '此处无法播放 {format} 视频',
+  'karaoke.stage.videoFailed': '此处无法解码 {format} 视频',
+  'karaoke.stage.hideArt': '隐藏封面',
+  'karaoke.stage.showArt': '显示封面',
+  'karaoke.stage.noArt': '这首歌没有封面',
   'karaoke.playlist.title': '播放列表',
   'karaoke.playlist.groupFolders': '按文件夹分组',
   'karaoke.playlist.looseFiles': '未分组文件',
@@ -292,6 +311,8 @@ const karaoke: Partial<Dictionary> = {
     '此电脑没有图形加速，因此需要几分钟而不是一分钟以内。',
   'karaoke.maker.separationRequired':
     '请先分离人声——歌词检测读取的是分离出的人声。',
+  'karaoke.maker.separationRequiredMelody':
+    '请先分离人声——音符检测只跟随单一声部，在混音中跟到的通常是乐器。',
   'karaoke.maker.wizardTitle': '自动准备这首歌',
   'karaoke.maker.wizardIntro':
     '这首歌还没有歌词时间轴。FluidEQ 可以先把人声从伴奏中分离出来，再从中读取歌词及其时间。全部在本机运行。',
@@ -402,7 +423,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcriptionEyebrow': '可选本地转写',
   'karaoke.maker.transcriptionTitle': '下载本地语音模型？',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ 会从 Hugging Face 下载 MIT 许可的 {model} 模型并缓存在本机——人声分离约需 700 MB，仅一次。你的音频不会离开这台电脑。首次运行需要几分钟并占用较多内存。',
+    'FluidEQ 会从 Hugging Face 下载 MIT 许可的 {model} 模型并缓存在本机——仅一次，有图形加速时约 570 MB，没有则约 1.1 GB。你的音频不会离开这台电脑。首次运行需要几分钟并占用较多内存。',
   'karaoke.maker.transcriptionReview':
     '识别结果仅是起点。匹配现有文字时 FluidEQ 会保留原歌词拼写，所有时间仍可编辑。',
   'karaoke.maker.notNow': '暂不',
@@ -424,6 +445,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperTranscribing': '正在本地转写',
   'karaoke.maker.whisperTranscribingProgress':
     '正在检测歌词时间 · 第 {pass}/{passes} 遍 · 区块 {chunk}/{chunks}',
+  'karaoke.maker.whisperAligning': '正在将歌词对齐到演唱',
   'karaoke.maker.whisperComplete': '转写完成',
   'karaoke.maker.whisperMatched':
     'Whisper 匹配了 {count} 个识别词。导出前请检查可编辑时间。',
@@ -433,6 +455,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.speechMemoryReady': '已在内存中就绪',
   'karaoke.maker.speechMemoryCached': '已缓存到磁盘',
   'karaoke.maker.speechMemoryMissing': '尚未下载',
+  'karaoke.maker.modelWhisper': '语音 (Whisper)',
+  'karaoke.maker.modelPitch': '音高 (RMVPE)',
+  'karaoke.maker.modelSeparation': '分离 (RoFormer)',
   'karaoke.maker.freeMemory': '立即释放内存',
   'karaoke.maker.memoryReleased':
     '语音模型已从内存释放。下载文件仍保留在缓存中。',
@@ -448,6 +473,10 @@ const karaoke: Partial<Dictionary> = {
     '本地语音模型处于空闲状态。释放它可以节省内存；文件仍会缓存，以便更快重新加载。',
   'karaoke.maker.keepLoaded': '保持加载',
   'karaoke.maker.exported': '已导出 {file}',
+  'karaoke.maker.exportedPartialLrc':
+    '已导出 {file}，但其中缺少 {lines} 行歌词：LRC 需要该行或行内某个词带有时间，而这些行两者都没有。请在制作器中为它们设定时间，然后重新导出以获得完整文件。',
+  'karaoke.maker.exportedPartialUltraStar':
+    '已导出 {file}，但其中缺少 {words} 个歌词词语：UltraStar 只会收录旋律上有音符的词语，而这些词语没有音符。请检测或绘制它们的音符，然后重新导出以获得完整文件。',
   'karaoke.maker.exportFallback': '卡拉 OK 文件',
   'karaoke.maker.projectTooLarge': '项目超过 16 MB。',
   'karaoke.maker.previewResize': '调整实时预览大小',

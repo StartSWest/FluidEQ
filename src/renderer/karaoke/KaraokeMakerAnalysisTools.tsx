@@ -111,9 +111,22 @@ const KaraokeMakerAnalysisTools = ({
         {
           icon: 'melody',
           label: 'karaoke.maker.repairMelody',
-          // Pitch detection is polyphonic and still produces something usable
-          // from a full mix — worse, but not wrong — so it stays available.
-          disabled: isAnalysing,
+          // This waited for no stem, on the grounds that pitch detection is
+          // polyphonic and a full mix gives something worse but not wrong.
+          // That was true of Basic Pitch and Basic Pitch is gone. SwiftF0 is
+          // monophonic by design — it answers "where is THE voice", returning
+          // one f0 per 16 ms frame — so on a mix it tracks whichever periodic
+          // component dominates, which in produced music is usually the bass
+          // or the lead instrument. The result is not a blurred vocal line, it
+          // is a confident transcription of the wrong one, and the singer is
+          // handed it as the note to hit.
+          disabled: isAnalysing || isUsingSongAudio,
+          // Its own reason rather than the lyric one: this button is blocked
+          // because notes follow a single voice, not because a transcript
+          // needs a clean vocal.
+          hint: isUsingSongAudio
+            ? 'karaoke.maker.separationRequiredMelody'
+            : undefined,
           onClick: onDetectMelody,
         },
         {

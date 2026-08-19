@@ -193,9 +193,12 @@ describe('KaraokeWorkspace', () => {
     ).toBeVisible();
 
     const input = container.querySelector('input[type="file"]');
-    expect(input).toHaveAttribute(
-      'accept',
-      '.mp3,.wav,.ogg,.flac,.m4a,.lrc,.elrc,.txt,audio/*',
+    // Named members rather than the whole string: the accept list grows every
+    // time a format lands, and a test that fails because the picker started
+    // offering one more extension is testing the list, not the picker.
+    const accept = (input?.getAttribute('accept') ?? '').split(',');
+    ['.mp3', '.wav', '.ogg', '.flac', '.m4a', '.lrc', '.elrc', '.txt'].forEach(
+      (extension) => expect(accept).toContain(extension),
     );
     fireEvent.click(
       screen.getByRole('button', { name: 'Microphone settings' }),
@@ -248,6 +251,71 @@ describe('KaraokeWorkspace', () => {
     ).toBeVisible();
     expect(
       window.localStorage.getItem('fluideq-karaoke-pitch-guide-visible'),
+    ).toBe('true');
+  });
+
+  // The positive control for the test below: without it, "no toggle did
+  // anything" and "the stage never had artwork" look identical.
+  it('offers the cover art toggle disabled when the song has no artwork', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [new File(['audio'], 'bare-song.mp3', { type: 'audio/mpeg' })],
+        },
+      },
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'bare song' }),
+    ).toBeVisible();
+
+    expect(
+      screen.getByRole('button', { name: 'This song has no cover art' }),
+    ).toBeDisabled();
+    expect(
+      container.querySelector('.karaoke-stage-media'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('hides and restores cover art, and remembers which', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'painted-song.mp3', { type: 'audio/mpeg' }),
+            new File(['image'], 'painted-song.jpg', { type: 'image/jpeg' }),
+          ],
+        },
+      },
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'painted song' }),
+    ).toBeVisible();
+    expect(container.querySelector('.karaoke-stage-media')).toBeInTheDocument();
+
+    const hideArt = screen.getByRole('button', { name: 'Hide cover art' });
+    expect(hideArt).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(hideArt);
+
+    expect(
+      container.querySelector('.karaoke-stage-media'),
+    ).not.toBeInTheDocument();
+    expect(
+      window.localStorage.getItem('fluideq-karaoke-stage-art-visible'),
+    ).toBe('false');
+
+    const showArt = screen.getByRole('button', { name: 'Show cover art' });
+    expect(showArt).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(showArt);
+
+    expect(container.querySelector('.karaoke-stage-media')).toBeInTheDocument();
+    expect(
+      window.localStorage.getItem('fluideq-karaoke-stage-art-visible'),
     ).toBe('true');
   });
 
@@ -927,9 +995,6 @@ describe('KaraokeWorkspace', () => {
       screen.getByRole('button', { name: 'Accept and record timing' }),
     ).toBeVisible();
     expect(
-      container.querySelector('.karaoke-maker__memory-prompt'),
-    ).not.toBeInTheDocument();
-    expect(
       maker.querySelector('.karaoke-maker__analysis-progress'),
     ).not.toBeInTheDocument();
     canvasContext.mockRestore();
@@ -1447,8 +1512,265 @@ describe('KaraokeWorkspace', () => {
     });
 
     expect(await screen.findByText('Audio only')).toBeVisible();
-    expect(screen.getByRole('status')).toHaveTextContent('could not be parsed');
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'voice.lrc carries no timings FluidEQ could read. The audio remains available without timed lyrics.',
+    );
     expect(screen.getByRole('button', { name: 'Play' })).toBeEnabled();
+  });
+
+  // Every lyric failure used to reach the user as the same sentence, so a
+  // duet, a mis-encoded pack and a plain untimed sheet were indistinguishable.
+  // `KaraokeParseError` has carried the reason the whole time.
+  it('names the BPM an UltraStar file never declared', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'beatless.mp3', { type: 'audio/mpeg' }),
+            new File(
+              ['#TITLE:Beatless\n#GAP:0\n: 0 4 0 Hello\nE'],
+              'beatless.txt',
+              { type: 'text/plain' },
+            ),
+          ],
+        },
+      },
+    );
+
+    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'beatless.txt declares no BPM, which an UltraStar file needs. The audio remains available without timed lyrics.',
+    );
+  });
+
+  it('points at the row a malformed UltraStar note sits on', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'broken.mp3', { type: 'audio/mpeg' }),
+            new File(
+              [
+                // A row that announces itself as a note and then carries two
+                // numbers where four belong: skipped prose would not be worth
+                // rejecting a file over, this is.
+                '#TITLE:Broken Row\n#ARTIST:Test\n#BPM:120\n#GAP:0\n: 0 4 0 Hello\n: 1 2\nE',
+              ],
+              'broken.txt',
+              { type: 'text/plain' },
+            ),
+          ],
+        },
+      },
+    );
+
+    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'broken.txt has a note row FluidEQ could not read. Line 6. The audio remains available without timed lyrics.',
+    );
+  });
+
+  // `selectKaraokePlaylist` has computed `ignored` since it was written and
+  // nothing read it: `Song.mp3` beside `Song.srt` played with no lyrics and no
+  // explanation, which is what a broken feature looks like.
+  it('names the formats an import set aside instead of dropping them silently', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'Sing Along.mp3', { type: 'audio/mpeg' }),
+            new File(['subtitles'], 'Sing Along.srt', { type: 'text/plain' }),
+            new File(['graphics'], 'Sing Along.cdg'),
+          ],
+        },
+      },
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Sing Along' }),
+    ).toBeVisible();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'FluidEQ has no karaoke reader for these files yet, so they were set aside: CDG, SRT.',
+    );
+  });
+
+  it('says two lyric files matched one song, so neither was used', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'Twin.mp3', { type: 'audio/mpeg' }),
+            new File(['[00:01.00]Hello'], 'Twin.lrc', { type: 'text/plain' }),
+            new File(
+              ['#TITLE:Twin\n#BPM:120\n#GAP:0\n: 0 4 0 Hello\nE'],
+              'Twin.txt',
+              { type: 'text/plain' },
+            ),
+          ],
+        },
+      },
+    );
+
+    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Two lyric files matched the same song, so neither was used: Twin.lrc, Twin.txt.',
+    );
+  });
+
+  it('stops claiming two lyric files matched a song that has been removed', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'Twin.mp3', { type: 'audio/mpeg' }),
+            new File(['[00:01.00]Hello'], 'Twin.lrc', { type: 'text/plain' }),
+            new File(
+              ['#TITLE:Twin\n#BPM:120\n#GAP:0\n: 0 4 0 Hello\nE'],
+              'Twin.txt',
+              { type: 'text/plain' },
+            ),
+          ],
+        },
+      },
+    );
+
+    expect(await screen.findByText('Audio only')).toBeVisible();
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Two lyric files matched the same song, so neither was used: Twin.lrc, Twin.txt.',
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Remove Twin' }));
+
+    // The song those two files were competing over has gone, so the sentence
+    // that named it is no longer true. It used to survive the removal word for
+    // word, naming a match against a library entry that no longer existed.
+    expect(
+      screen
+        .queryAllByRole('status')
+        .map((node) => node.textContent ?? '')
+        .join(' '),
+    ).not.toContain('Two lyric files matched the same song');
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'No audio file matches these lyric files, so they were not used: Twin.lrc, Twin.txt.',
+    );
+  });
+
+  // The 2000s UltraStar pack the stage's own comments are written about: one
+  // AVI, no artwork. The stage drew nothing at all while the art toggle stayed
+  // enabled over it.
+  it('draws the unplayable-video notice when it is all the stage has', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'Retro Pack.mp3', { type: 'audio/mpeg' }),
+            new File(['video'], 'Retro Pack [VD#0].avi', {
+              type: 'video/x-msvideo',
+            }),
+          ],
+        },
+      },
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Retro Pack' }),
+    ).toBeVisible();
+    const notice = container.querySelector(
+      '.karaoke-stage-media__unsupported',
+    ) as HTMLElement;
+    expect(notice).toHaveTextContent('AVI video cannot be played here');
+    expect(notice).toHaveClass('is-alone');
+    // Role queries skip anything under `aria-hidden`, which the whole media
+    // layer used to be — the sighted user read the notice and a screen reader
+    // was told the stage was empty.
+    expect(
+      screen.getAllByRole('status').map((node) => node.textContent),
+    ).toContain('AVI video cannot be played here');
+    expect(container.querySelector('video')).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: 'Hide cover art' }),
+    ).toBeEnabled();
+  });
+
+  it('lets a picture that will not decode step aside for the gradient', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'Broken Art.mp3', { type: 'audio/mpeg' }),
+            new File(['not really an image'], 'Broken Art.jpg', {
+              type: 'image/jpeg',
+            }),
+          ],
+        },
+      },
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Broken Art' }),
+    ).toBeVisible();
+    const still = container.querySelector(
+      '.karaoke-stage-media__still',
+    ) as HTMLImageElement;
+    expect(still).toBeInTheDocument();
+
+    fireEvent.error(still);
+
+    // Gone rather than showing the browser's broken-image frame across the
+    // whole stage, which is what a truncated or mislabelled picture drew.
+    expect(
+      container.querySelector('.karaoke-stage-media__still'),
+    ).not.toBeInTheDocument();
+    // And silently: artwork is scenery at 0.32 opacity behind the words, so
+    // the stage now looks exactly like an audio-only song's. A caption over a
+    // stage that looks correct is noise the video notice is not.
+    expect(
+      container.querySelector('.karaoke-stage-media__unsupported'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('says a supported container failed to decode rather than falling back mutely', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'Modern.mp3', { type: 'audio/mpeg' }),
+            new File(['video'], 'Modern.mp4', { type: 'video/mp4' }),
+          ],
+        },
+      },
+    );
+
+    expect(
+      await screen.findByRole('heading', { name: 'Modern' }),
+    ).toBeVisible();
+    // The extension says playable, so nothing is said until the decoder
+    // disagrees — an HEVC or AC-3 MP4 gets this far and then errors.
+    expect(
+      container.querySelector('.karaoke-stage-media__unsupported'),
+    ).not.toBeInTheDocument();
+
+    fireEvent.error(container.querySelector('video') as HTMLVideoElement);
+
+    expect(
+      container.querySelector('.karaoke-stage-media__unsupported'),
+    ).toHaveTextContent('MP4 video could not be decoded here');
   });
 
   it('imports a whole folder as a paired, selectable playlist', async () => {

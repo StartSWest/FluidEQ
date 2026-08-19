@@ -31,6 +31,37 @@ export interface IKaraokeStageMediaProps {
 }
 
 /**
+ * Whether this song brings anything for the stage to show.
+ *
+ * The stage-art toggle in the workspace is offered only when the answer is
+ * yes: a control that visibly does nothing reads as broken, and an audio-only
+ * song has nothing behind the words either way. Undecodable video counts —
+ * the stage still puts up the artwork that replaced it, and the notice saying
+ * why, both of which the toggle is entitled to remove.
+ *
+ * That last clause is only honest because the notice now renders with no
+ * artwork under it. While the component returned `null` for a video-only pack
+ * this function answered yes for a stage that drew nothing, and the toggle was
+ * enabled over an empty layer — exactly the broken-looking control it exists
+ * to avoid.
+ *
+ * One case it still cannot answer: a cover this build cannot decode. Whether a
+ * file decodes is known only after `<img>` has tried, which is a render later
+ * and inside the component, so a song whose only stage asset is a truncated
+ * JPEG leaves the toggle enabled over the gradient. That is the smaller of the
+ * two defects — the alternative was drawing the browser's broken-image frame
+ * across the stage — and closing it would mean this answer changing after the
+ * fact, which is a different shape of surprise.
+ */
+export const hasKaraokeStageArt = (song: IKaraokeSong): boolean =>
+  song.assets.some(
+    (asset) =>
+      asset.role === 'video' ||
+      asset.role === 'background' ||
+      asset.role === 'cover',
+  );
+
+/**
  * The picture behind the words: a song's own video, or its artwork.
  *
  * WHY THE AUDIO STAYS IN CHARGE. The `<audio>` element is the song — it is
@@ -54,6 +85,7 @@ const KaraokeStageMedia = ({
   const { t } = useTranslation();
   const videoRef = useRef<HTMLVideoElement>(null);
   const [hasVideoFailed, setHasVideoFailed] = useState(false);
+  const [hasStillFailed, setHasStillFailed] = useState(false);
 
   const cover = song.assets.find((asset) => asset.role === 'cover');
   const background = song.assets.find((asset) => asset.role === 'background');
@@ -67,6 +99,44 @@ const KaraokeStageMedia = ({
   );
   const showsVideo = isVideoPlayable && !hasVideoFailed;
   const still = background ?? cover;
+
+  /*
+   * A picture that will not decode steps aside, and says nothing.
+   *
+   * The file picker now accepts `.svg .avif .ico .apng .jfif .bmp`, none of
+   * which Chromium is guaranteed to decode from an arbitrary UltraStar pack,
+   * and a truncated or mislabelled JPEG is commoner still. Handing `<img>` one
+   * of those draws the browser's broken-image frame across the whole stage —
+   * `fileTypes.ts` argues that is worse than the gradient, and it is right.
+   *
+   * NO NOTICE HERE, deliberately, where the video gets two. The video IS the
+   * stage: a pack chosen for its clip that shows nothing needs to be told why,
+   * and that sentence is the only content in this layer. Artwork is scenery at
+   * 0.32 opacity behind the words and has never carried information — when it
+   * fails the stage falls back to exactly what an audio-only song shows, which
+   * is a normal state and not a broken one. A caption over a stage that looks
+   * correct is noise competing with the lyrics.
+   */
+  const showsStill = Boolean(still) && !hasStillFailed;
+
+  /*
+   * The notice answers failure, not file extension.
+   *
+   * An `.mp4` carrying HEVC or AC-3 passes `isKaraokePlayableVideoFile` and
+   * then fires the element's `error` event, so gating the sentence on the
+   * extension alone left that song falling back to a still picture — or to an
+   * empty stage — with nothing anywhere saying why. The two cases get
+   * different wording because they are different answers: one is "this app
+   * never opens this container", the other is "this file did not decode".
+   */
+  const hasVideoNotice = Boolean(video) && (!isVideoPlayable || hasVideoFailed);
+  const videoNoticeKey = hasVideoFailed
+    ? 'karaoke.stage.videoFailed'
+    : 'karaoke.stage.videoUnsupported';
+  // Nothing behind it and nothing beside it: an UltraStar pack whose only
+  // stage asset is `[VD#0].avi`. The notice then IS the stage art the toggle
+  // offers, so it has to be drawn and has to be legible on its own.
+  const isNoticeAlone = !showsVideo && !showsStill;
 
   /*
    * One object URL per file, revoked when the file changes or the player goes.
@@ -105,6 +175,7 @@ const KaraokeStageMedia = ({
   // A new file gets a fresh chance to decode; otherwise one bad video would
   // keep this component in its failed state for every song after it.
   useEffect(() => setHasVideoFailed(false), [video]);
+  useEffect(() => setHasStillFailed(false), [still]);
 
   /*
    * Follow the song, and only correct when the drift is worth a seek.
@@ -147,19 +218,25 @@ const KaraokeStageMedia = ({
     }
   }, [isPlaying, showsVideo]);
 
-  if (!showsVideo && !stillUrl) {
+  if (!showsVideo && !showsStill && !hasVideoNotice) {
     return null;
   }
 
+  // `aria-hidden` sits on the pictures rather than on the box that holds them.
+  // On the box it also hid the notice, which is the one thing in this layer
+  // that is content and not decoration — a screen reader was told the stage
+  // was empty while the sighted user was reading why the video would not play.
   return (
-    <div className="karaoke-stage-media" aria-hidden="true">
-      {stillUrl && (
+    <div className="karaoke-stage-media">
+      {showsStill && stillUrl && (
         <img
           className={`karaoke-stage-media__still${
             showsVideo ? ' is-behind-video' : ''
           }`}
           src={stillUrl}
           alt=""
+          aria-hidden="true"
+          onError={() => setHasStillFailed(true)}
         />
       )}
       {showsVideo && videoUrl && (
@@ -167,6 +244,7 @@ const KaraokeStageMedia = ({
           ref={videoRef}
           className="karaoke-stage-media__video"
           src={videoUrl}
+          aria-hidden="true"
           // Muted and silent by contract, not by preference — see the note at
           // the top about there being one clock in this player.
           muted
@@ -177,12 +255,19 @@ const KaraokeStageMedia = ({
           onError={() => setHasVideoFailed(true)}
         />
       )}
-      {/* Said quietly, once, and only when there is genuinely a video that
-          this build cannot open. It sits over the artwork that took its place
-          so the fallback does not look like the song simply having no video. */}
-      {video && !isVideoPlayable && (
-        <p className="karaoke-stage-media__unsupported">
-          {t('karaoke.stage.videoUnsupported', {
+      {/* Said once, and only when there is genuinely a video this build could
+          not put on the stage. Over artwork it is a caption on the picture
+          that took the video's place; with no artwork under it, it is the
+          whole of what this layer has to say and `is-alone` sizes it to be
+          read rather than glimpsed. */}
+      {video && hasVideoNotice && (
+        <p
+          className={`karaoke-stage-media__unsupported${
+            isNoticeAlone ? ' is-alone' : ''
+          }`}
+          role="status"
+        >
+          {t(videoNoticeKey, {
             format: video.extension.toUpperCase(),
           })}
         </p>

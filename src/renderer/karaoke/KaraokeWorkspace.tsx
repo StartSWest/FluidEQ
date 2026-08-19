@@ -59,12 +59,18 @@ import {
   writeLyricTextSize,
 } from './karaokeLyricText';
 import KaraokeTransport from './KaraokeTransport';
-import KaraokeStageMedia from './KaraokeStageMedia';
+import KaraokeStageMedia, { hasKaraokeStageArt } from './KaraokeStageMedia';
 import KaraokePitchLane from './KaraokePitchLane';
 import { IKaraokePitchIssue } from './karaokePitchGeometry';
 import KaraokePlaylist, { KARAOKE_PLAYLIST_DRAG_MIME } from './KaraokePlaylist';
 import KaraokePaneSplitter from './KaraokePaneSplitter';
 import KaraokeMaker from './KaraokeMaker';
+import {
+  IKaraokeSetAsideFiles,
+  karaokeLyricWarningSentence,
+  karaokeSetAsideFiles,
+  karaokeSetAsideSentences,
+} from './karaokeImportNotices';
 import {
   clearKaraokeProgress,
   readKaraokeMakerOpen,
@@ -87,9 +93,7 @@ import { useKaraokeChordAnalysis } from './useKaraokeChordAnalysis';
 import { useKaraokeVocalMix } from './useKaraokeVocalMix';
 import { TKaraokeSessionError, useKaraokeSession } from './useKaraokeSession';
 import {
-  KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
   getKaraokeWhisperSessionSnapshot,
-  keepKaraokeWhisperModelForNow,
   releaseKaraokeWhisperModel,
   subscribeKaraokeWhisperSession,
 } from './makerAi';
@@ -103,14 +107,6 @@ interface IKaraokeWorkspaceProps {
   hasFullScreenTopBar?: boolean;
   onToggleFullScreenTopBar?: () => void;
   onToggleFullScreen?: () => void;
-  /**
-   * Whether the Maker is the surface on screen.
-   *
-   * Reported outward because the response graph's full-screen mode is decided
-   * in App.tsx, several levels up, and it must not take the window while an
-   * editing surface is open. See the guard there.
-   */
-  onMakerOpenChange?: (open: boolean) => void;
 }
 
 const ERROR_KEYS: Record<TKaraokeSessionError, TranslationKey> = {
@@ -131,6 +127,7 @@ const SOURCE_KEYS: Record<string, TranslationKey> = {
 const STAGE_PITCH_MEDIA_QUERY = '(min-width: 1120px)';
 const PLAYLIST_FOLDER_GROUPING_KEY = 'fluideq-karaoke-playlist-group-by-folder';
 const PITCH_GUIDE_VISIBILITY_KEY = 'fluideq-karaoke-pitch-guide-visible';
+const STAGE_ART_VISIBILITY_KEY = 'fluideq-karaoke-stage-art-visible';
 
 export const readKaraokePlaylistFolderGrouping = (): boolean => {
   try {
@@ -159,6 +156,22 @@ const readPitchGuideVisibility = (): boolean => {
 const writePitchGuideVisibility = (visible: boolean): void => {
   try {
     window.localStorage.setItem(PITCH_GUIDE_VISIBILITY_KEY, String(visible));
+  } catch {
+    // Keep the live preference when storage is unavailable.
+  }
+};
+
+const readStageArtVisibility = (): boolean => {
+  try {
+    return window.localStorage.getItem(STAGE_ART_VISIBILITY_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+};
+
+const writeStageArtVisibility = (visible: boolean): void => {
+  try {
+    window.localStorage.setItem(STAGE_ART_VISIBILITY_KEY, String(visible));
   } catch {
     // Keep the live preference when storage is unavailable.
   }
@@ -219,7 +232,6 @@ const KaraokeWorkspace = ({
   hasFullScreenTopBar = true,
   onToggleFullScreenTopBar = () => undefined,
   onToggleFullScreen = () => undefined,
-  onMakerOpenChange,
 }: IKaraokeWorkspaceProps) => {
   const { t } = useTranslation();
   const lyricTextSizeId = useId();
@@ -249,9 +261,13 @@ const KaraokeWorkspace = ({
     readKaraokePlaylistFolderGrouping,
   );
   const [selectedPlaylistId, setSelectedPlaylistId] = useState<string>();
+  const [setAsideFiles, setSetAsideFiles] = useState<IKaraokeSetAsideFiles>();
   const [useStagePitch, setUseStagePitch] = useState(initiallyUseStagePitch);
   const [isPitchGuideVisible, setIsPitchGuideVisible] = useState(
     readPitchGuideVisibility,
+  );
+  const [isStageArtVisible, setIsStageArtVisible] = useState(
+    readStageArtVisibility,
   );
   const layoutMode: TKaraokeLayoutMode = isFullScreen ? 'fullscreen' : 'normal';
   const [layouts, setLayouts] = useState<
@@ -667,8 +683,7 @@ const KaraokeWorkspace = ({
 
   useEffect(() => {
     writeKaraokeMakerOpen(isMakerOpen);
-    onMakerOpenChange?.(isMakerOpen);
-  }, [isMakerOpen, onMakerOpenChange]);
+  }, [isMakerOpen]);
 
   const persistCurrentProgress = useCallback(() => {
     if (!persistenceReadyRef.current) {
@@ -768,9 +783,14 @@ const KaraokeWorkspace = ({
           ordered[0];
         selectedPlaylistIdRef.current = selected.id;
         setSelectedPlaylistId(selected.id);
+        // The media travels here too. Restoring passed only the pair, so the
+        // song the app opened on lost the cover, background and video that
+        // the very same song got back the moment it was clicked in the
+        // playlist — see the note on the select path below.
         const loaded = await sessionRef.current.loadFiles([
           selected.audio,
           ...(selected.lyrics ? [selected.lyrics] : []),
+          ...selected.media,
         ]);
         const restoredPlayheadMs =
           preciseProgress?.selectedPlaylistId === selected.id
@@ -884,6 +904,12 @@ const KaraokeWorkspace = ({
       files.forEach((file) => merged.set(importedFileIdentity(file), file));
       libraryFilesRef.current = Array.from(merged.values());
       const selection = selectKaraokePlaylist(libraryFilesRef.current);
+      // Judged against the whole library, not this drop alone: a lyric file
+      // dropped on its own pairs with audio that arrived earlier, and asking
+      // its own drop would report it unpaired at the moment it succeeded.
+      // The restore path deliberately does not do this — re-announcing the
+      // same set-aside files at every launch is noise, not news.
+      setSetAsideFiles(karaokeSetAsideFiles(selection));
       if (!selection.items.length) {
         session.loadFiles(files);
         return;
@@ -947,6 +973,7 @@ const KaraokeWorkspace = ({
     libraryFilesRef.current = [];
     setPlaylist([]);
     setSelectedPlaylistId(undefined);
+    setSetAsideFiles(undefined);
     setIsMakerOpen(false);
     setRestoreMakerDraft(false);
     clearKaraokeProgress();
@@ -986,6 +1013,19 @@ const KaraokeWorkspace = ({
     const removedFiles = new Set([removed.audio, removed.lyrics]);
     libraryFilesRef.current = libraryFilesRef.current.filter(
       (file) => !removedFiles.has(file),
+    );
+    // The library just changed, so a notice naming files that are no longer in
+    // it is a lie the user cannot dismiss: remove the song whose `.srt` was
+    // reported unpaired and the sentence stayed on screen naming a file that
+    // had left with it.
+    //
+    // Recomputed only while a notice is already showing. Raising one here
+    // would be announcing set-aside files at a moment the user imported
+    // nothing — the same noise the restore path deliberately avoids.
+    setSetAsideFiles((current) =>
+      current
+        ? karaokeSetAsideFiles(selectKaraokePlaylist(libraryFilesRef.current))
+        : current,
     );
     const remaining = playlist.filter((item) => item.id !== id);
     setPlaylist(remaining);
@@ -1113,6 +1153,20 @@ const KaraokeWorkspace = ({
     song,
   ]);
 
+  const lyricWarningSentence = warning
+    ? karaokeLyricWarningSentence(warning, t)
+    : '';
+
+  const hasStageArt = song ? hasKaraokeStageArt(song) : false;
+  const stageArtActionKey = (() => {
+    if (!hasStageArt) {
+      return 'karaoke.stage.noArt';
+    }
+    return isStageArtVisible
+      ? 'karaoke.stage.hideArt'
+      : 'karaoke.stage.showArt';
+  })();
+
   // Full screen gives the vertical space to the lyrics instead of keeping the
   // workspace introduction above them. The same controls move into a compact
   // glass dock inside the lyric surface, so importing or changing the mic does
@@ -1210,6 +1264,37 @@ const KaraokeWorkspace = ({
       >
         <MenuIcon name="graph" className="karaoke-button__icon" />
       </button>
+      {/* Present for every song, disabled for the ones with nothing behind
+          the words. Hiding it instead was worse: a library of bare UltraStar
+          text files never showed the control at all, so the setting looked
+          like it did not exist. Disabled and labelled says which of the two
+          it is. */}
+      {song && (
+        <button
+          type="button"
+          className="button small subtle karaoke-workspace__icon-action karaoke-workspace__stage-art-toggle"
+          aria-label={t(stageArtActionKey)}
+          title={t(stageArtActionKey)}
+          aria-pressed={isStageArtVisible}
+          disabled={!hasStageArt}
+          aria-disabled={!hasStageArt}
+          onClick={() => {
+            setIsStageArtVisible((visible) => {
+              const next = !visible;
+              writeStageArtVisibility(next);
+              return next;
+            });
+          }}
+        >
+          <svg
+            className="karaoke-button__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path d="M4 5.5h16v13H4zM4 15.5l4.5-4.5 3 3 3.5-3.5 5 5M14.6 9.6a1.15 1.15 0 1 0 2.3 0 1.15 1.15 0 1 0-2.3 0" />
+          </svg>
+        </button>
+      )}
       <button
         ref={microphoneMenuButtonRef}
         type="button"
@@ -1370,35 +1455,17 @@ const KaraokeWorkspace = ({
           {t(ERROR_KEYS[error])}
         </div>
       )}
-      {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED &&
-        whisperSession.releasePrompt && (
-          <div
-            className="karaoke-maker__memory-prompt"
-            role="dialog"
-            aria-label={t('karaoke.maker.memoryPromptTitle')}
-          >
-            <MenuIcon name="microphone" />
-            <div>
-              <strong>{t('karaoke.maker.memoryPromptTitle')}</strong>
-              <span>{t('karaoke.maker.memoryPromptBody')}</span>
-            </div>
-            <button type="button" onClick={keepKaraokeWhisperModelForNow}>
-              {t('karaoke.maker.keepLoaded')}
-            </button>
-            <button
-              type="button"
-              className="is-primary"
-              onClick={() =>
-                releaseKaraokeWhisperModel().catch(() => undefined)
-              }
-            >
-              {t('karaoke.maker.freeMemory')}
-            </button>
-          </div>
-        )}
+      {/* The idle-release question is not drawn here. It outlives this tab
+          being looked at, so `SpeechMemoryNotice` asks it from the app root. */}
       {warning && (
         <div className="karaoke-workspace__notice is-warning" role="status">
-          <strong>{warning.fileName}</strong> {t('karaoke.warning.lyrics')}
+          <strong>{warning.fileName}</strong> {lyricWarningSentence}{' '}
+          <span>{t('karaoke.warning.lyricsAudioIntact')}</span>
+        </div>
+      )}
+      {setAsideFiles && (
+        <div className="karaoke-workspace__notice is-warning" role="status">
+          {karaokeSetAsideSentences(setAsideFiles, t).join(' ')}
         </div>
       )}
 
@@ -1473,12 +1540,16 @@ const KaraokeWorkspace = ({
             <>
               {/* First, so it is behind everything the stage draws. It is
                   absolutely positioned and takes no row of its own — the
-                  heading, lyrics and pitch guide keep the grid they had. */}
-              <KaraokeStageMedia
-                song={song}
-                playheadMs={session.playheadMs}
-                isPlaying={status === 'playing'}
-              />
+                  heading, lyrics and pitch guide keep the grid they had.
+                  Unmounted rather than hidden when the art is switched off, so
+                  a video stops decoding instead of playing to nobody. */}
+              {isStageArtVisible && (
+                <KaraokeStageMedia
+                  song={song}
+                  playheadMs={session.playheadMs}
+                  isPlaying={status === 'playing'}
+                />
+              )}
               <div className="karaoke-song__heading">
                 <div>
                   <p>{song.artist || t('karaoke.song.unknownArtist')}</p>

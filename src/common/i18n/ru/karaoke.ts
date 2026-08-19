@@ -41,21 +41,45 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.import.clear': 'Убрать',
   'karaoke.import.loading': 'Подготовка песни…',
   'karaoke.import.formats':
-    'Аудио: MP3, WAV, OGG, FLAC или M4A · Текст: LRC, eLRC или UltraStar TXT',
+    'Аудио: MP3, WAV, OGG, Opus, FLAC, M4A или AAC · Текст: LRC, eLRC или UltraStar TXT · Обложку и видео тоже можно добавить',
   'karaoke.import.drop': 'Перетащите сюда песни, тексты или папки',
   'karaoke.error.missingAudio':
     'Добавьте аудиофайл вместе с этим файлом текста.',
   'karaoke.error.ambiguous':
     'Возможно несколько сочетаний. Выберите один аудиофайл и, при желании, один файл текста.',
   'karaoke.error.unsupported':
-    'Среди этих файлов пока нет поддерживаемого аудио или текста Karaoke.',
+    'Среди этих файлов пока нет поддерживаемого аудио или текста Karaoke. Обложке и видео нужна песня рядом с ними.',
   'karaoke.error.read': 'FluidEQ не смог прочитать выбранные локальные файлы.',
   'karaoke.error.playback':
     'Эта сборка Chromium не смогла воспроизвести аудиофайл или кодек.',
-  'karaoke.warning.lyrics':
-    'не удалось разобрать; аудио останется доступно без синхронного текста.',
+  'karaoke.warning.lyrics': 'не удалось разобрать.',
+  'karaoke.warning.lyricsEmpty': 'пуст.',
+  'karaoke.warning.lyricsMissingTiming':
+    'не содержит таймингов, которые FluidEQ смог бы прочитать.',
+  'karaoke.warning.lyricsMissingBpm':
+    'не указывает BPM, который нужен файлу UltraStar.',
+  'karaoke.warning.lyricsInvalidBpm':
+    'указывает BPM, который не является пригодным числом.',
+  'karaoke.warning.lyricsMalformedNote':
+    'содержит строку ноты, которую FluidEQ не смог прочитать.',
+  'karaoke.warning.lyricsUnsupportedVariant':
+    'использует вариант караоке, который FluidEQ пока не умеет петь, например дуэт.',
+  'karaoke.warning.lyricsAtLine': 'Строка {line}.',
+  'karaoke.warning.lyricsAudioIntact':
+    'Аудио останется доступно без синхронного текста.',
+  'karaoke.warning.setAside':
+    'FluidEQ пока не умеет читать эти файлы как караоке, поэтому отложил их: {formats}.',
+  'karaoke.warning.unpairedLyrics':
+    'Ни один аудиофайл не подходит к этим файлам с текстом, поэтому они не использованы: {files}.',
+  'karaoke.warning.ambiguousLyrics':
+    'Два файла с текстом подошли к одной песне, поэтому не использован ни один: {files}.',
+  'karaoke.warning.andMore': 'и ещё {count}',
   'karaoke.song.unknownArtist': 'Локальная песня',
   'karaoke.stage.videoUnsupported': 'Видео {format} здесь воспроизвести нельзя',
+  'karaoke.stage.videoFailed': 'Видео {format} здесь не удалось декодировать',
+  'karaoke.stage.hideArt': 'Скрыть обложку',
+  'karaoke.stage.showArt': 'Показать обложку',
+  'karaoke.stage.noArt': 'У этой песни нет обложки',
   'karaoke.playlist.title': 'Плейлист',
   'karaoke.playlist.groupFolders': 'Группировать по папкам',
   'karaoke.playlist.looseFiles': 'Файлы без папки',
@@ -315,6 +339,8 @@ const karaoke: Partial<Dictionary> = {
     'На этом компьютере нет графического ускорения, поэтому это займёт несколько минут вместо менее чем одной.',
   'karaoke.maker.separationRequired':
     'Сначала отделите голос — распознавание текста читает изолированный вокал.',
+  'karaoke.maker.separationRequiredMelody':
+    'Сначала отделите голос — определение нот следует за одним голосом, а в миксе это обычно инструмент.',
   'karaoke.maker.wizardTitle': 'Настроить эту песню автоматически',
   'karaoke.maker.wizardIntro':
     'У этой песни ещё нет тайминга текста. FluidEQ может отделить голос от музыки, а затем прочитать по нему слова и их тайминг. Всё выполняется на этом компьютере.',
@@ -433,7 +459,7 @@ const karaoke: Partial<Dictionary> = {
     'НЕОБЯЗАТЕЛЬНОЕ ЛОКАЛЬНОЕ РАСПОЗНАВАНИЕ',
   'karaoke.maker.transcriptionTitle': 'Скачать локальную модель речи?',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ загрузит модель {model} под лицензией MIT с Hugging Face и сохранит её на этом ПК — около 700 МБ для разделения голоса, один раз. Ваше аудио никогда не покидает компьютер. Первый запуск занимает несколько минут и требует много памяти.',
+    'FluidEQ загрузит модель {model} под лицензией MIT с Hugging Face и сохранит её на этом ПК — один раз, около 570 МБ с графическим ускорением и около 1,1 ГБ без него. Ваше аудио никогда не покидает компьютер. Первый запуск занимает несколько минут и требует много памяти.',
   'karaoke.maker.transcriptionReview':
     'Распознавание — лишь начало. FluidEQ сохраняет написание вашего текста при сопоставлении, а все времена можно редактировать.',
   'karaoke.maker.notNow': 'Не сейчас',
@@ -455,6 +481,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.whisperTranscribing': 'Локальное распознавание',
   'karaoke.maker.whisperTranscribingProgress':
     'Определение тайминга · проход {pass}/{passes} · блок {chunk}/{chunks}',
+  'karaoke.maker.whisperAligning': 'Совмещение текста с пением',
   'karaoke.maker.whisperComplete': 'Распознавание завершено',
   'karaoke.maker.whisperMatched':
     'Whisper сопоставил распознанные слова: {count}. Проверьте редактируемую синхронизацию перед экспортом.',
@@ -464,6 +491,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.speechMemoryReady': 'Готова в ОЗУ',
   'karaoke.maker.speechMemoryCached': 'Сохранена на диске',
   'karaoke.maker.speechMemoryMissing': 'Не загружена',
+  'karaoke.maker.modelWhisper': 'Речь (Whisper)',
+  'karaoke.maker.modelPitch': 'Высота тона (RMVPE)',
+  'karaoke.maker.modelSeparation': 'Разделение (RoFormer)',
   'karaoke.maker.freeMemory': 'Освободить ОЗУ сейчас',
   'karaoke.maker.memoryReleased':
     'Речевая модель удалена из ОЗУ. Загруженные файлы остались в кэше.',
@@ -480,6 +510,10 @@ const karaoke: Partial<Dictionary> = {
     'Локальная речевая модель не используется. Её выгрузка освободит ОЗУ; файлы останутся в кэше для быстрой повторной загрузки.',
   'karaoke.maker.keepLoaded': 'Оставить загруженной',
   'karaoke.maker.exported': 'Экспортировано: {file}',
+  'karaoke.maker.exportedPartialLrc':
+    'Экспортировано: {file} — без строк текста в количестве {lines}: LRC нужно время на строке или на одном из её слов, а у этих строк нет ни того ни другого. Задайте им время в Редакторе и экспортируйте снова, чтобы получить полный файл.',
+  'karaoke.maker.exportedPartialUltraStar':
+    'Экспортировано: {file} — без слов текста в количестве {words}: UltraStar переносит слово только там, где у мелодии есть нота, а у этих слов её нет. Определите или нарисуйте их ноты и экспортируйте снова, чтобы получить полный файл.',
   'karaoke.maker.exportFallback': 'файл караоке',
   'karaoke.maker.projectTooLarge': 'Размер проекта превышает 16 МБ.',
   'karaoke.maker.previewResize': 'Изменить размер предпросмотра',

@@ -29,7 +29,11 @@ import {
   setKaraokeRestoredFileToken,
 } from '../../common/karaoke/files';
 import { findActiveKaraokeLine, TrackClock } from '../../common/karaoke/clock';
-import { IKaraokeSong } from '../../common/karaoke/types';
+import {
+  IKaraokeSong,
+  KaraokeParseError,
+  TKaraokeParseErrorCode,
+} from '../../common/karaoke/types';
 
 const KARAOKE_VOLUME_KEY = 'fluideq.karaoke.volume';
 const PLAYHEAD_RENDER_INTERVAL_MS = 50;
@@ -43,7 +47,22 @@ export type TKaraokeSessionError =
 export interface IKaraokeSessionWarning {
   kind: 'lyrics';
   fileName: string;
+  /**
+   * Why the parse failed, when the parser said so.
+   *
+   * Absent for anything that is not a `KaraokeParseError` — a read that fell
+   * over, an extension no adapter claimed — and the workspace falls back to
+   * the one generic sentence for those. The code travels rather than the
+   * message because the messages thrown in `src/common` are English
+   * diagnostics; only the UI knows which of ten languages to say them in.
+   */
+  code?: TKaraokeParseErrorCode;
+  /** 1-based, and only for the codes whose parser could point at a row. */
+  line?: number;
 }
+
+const asKaraokeParseError = (error: unknown): KaraokeParseError | undefined =>
+  error instanceof KaraokeParseError ? error : undefined;
 
 const persistedVolume = (): number => {
   try {
@@ -89,6 +108,29 @@ const materializeRestoredAudio = async (file: File): Promise<File> => {
   setKaraokeRelativePath(materialized, karaokeFileRelativePath(file));
   setKaraokeRestoredFileToken(materialized, token);
   return materialized;
+};
+
+/**
+ * The same fetch for artwork, but never fatal.
+ *
+ * A restored session hands back picture and video files as empty shells with a
+ * token; the bytes only arrive when asked for. Without this the stage got a
+ * zero-length blob and drew a broken image, which is worse than the gradient
+ * it replaced. And unlike the audio, a cover that has been moved or deleted
+ * since the session was saved is not a reason to fail the song — it is a
+ * reason to have no cover.
+ */
+const materializeRestoredMedia = async (
+  file: File | undefined,
+): Promise<File | undefined> => {
+  if (!file) {
+    return undefined;
+  }
+  try {
+    return await materializeRestoredAudio(file);
+  } catch {
+    return undefined;
+  }
 };
 
 /** Owns one local song session; no selected file or path leaves the renderer. */
@@ -201,10 +243,13 @@ export const useKaraokeSession = (isActive: boolean) => {
       if (selection.lyrics) {
         try {
           parsed = await parseKaraokeLyricFile(selection.lyrics);
-        } catch {
+        } catch (error) {
+          const parseError = asKaraokeParseError(error);
           setWarning({
             kind: 'lyrics',
             fileName: selection.lyrics.name,
+            code: parseError?.code,
+            line: parseError?.line,
           });
         }
       }
@@ -230,11 +275,20 @@ export const useKaraokeSession = (isActive: boolean) => {
         // and a folder holding several songs' artwork needs that header to
         // pick the right one. Formats with no header fall back to matching by
         // base name, which is all an LRC or a bare MP3 can offer.
-        const stageMedia = selectKaraokeStageMedia(selection.audio, files, {
+        const chosenMedia = selectKaraokeStageMedia(selection.audio, files, {
           coverFileName: parsed?.coverFileName,
           backgroundFileName: parsed?.backgroundFileName,
           videoFileName: parsed?.videoFileName,
         });
+        // Only the three that won are read off disk. Fetching every picture in
+        // the folder would mean loading the losing candidates too, and a song
+        // folder can hold a 60MB video that the stage never shows.
+        const [cover, background, video] = await Promise.all([
+          materializeRestoredMedia(chosenMedia.cover),
+          materializeRestoredMedia(chosenMedia.background),
+          materializeRestoredMedia(chosenMedia.video),
+        ]);
+        const stageMedia = { cover, background, video };
         const mediaAsset = (
           role: 'cover' | 'background' | 'video',
           file: File | undefined,

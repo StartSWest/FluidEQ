@@ -20,6 +20,7 @@ import {
   IKaraokeMakerDownloadProgress,
   IKaraokeMakerDownloadSummary,
   IKaraokeMakerWhisperTranscribeProgress,
+  IKaraokeMakerWhisperSegment,
   IKaraokeMakerWhisperTranscript,
   IWhisperOutput,
   IWhisperPipelineProgressEvent,
@@ -44,6 +45,7 @@ export const transcribeKaraokeWithWhisper = async (
   signal?: AbortSignal,
   onLog?: TKaraokeMakerWhisperLogger,
   language?: string,
+  wantSegments = false,
 ): Promise<IKaraokeMakerWhisperTranscript> => {
   const startedAt = performance.now();
   const logWhisper = (
@@ -170,6 +172,19 @@ export const transcribeKaraokeWithWhisper = async (
   }
   const requestId = `whisper-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   let downloadSummary: IKaraokeMakerDownloadSummary | undefined;
+  /**
+   * Whether this run is fetching the model or reading one already on disk.
+   *
+   * `downloadedAtStart` is checked against the cache itself, not against a
+   * remembered flag, so it can be believed. Bytes are not the discriminator:
+   * the pipeline reports byte progress while reading a cached file too, so
+   * treating any arriving bytes as a download put the seven-file list in front
+   * of the user on every single run.
+   */
+  const isFetchingModel = !downloadedAtStart;
+  // Arrives on its own message before `complete`, because the segment decode
+  // is a separate pass over the same audio.
+  let whisperSegments: IKaraokeMakerWhisperSegment[] = [];
   emitWhisperSession({
     status: workerWasReady ? 'working' : 'loading',
     busy: true,
@@ -202,7 +217,7 @@ export const transcribeKaraokeWithWhisper = async (
           const progressEvent = event.data
             .event as IWhisperPipelineProgressEvent;
           const baseUpdate = karaokeMakerWhisperPipelineProgress(progressEvent);
-          if (!downloadedAtStart && baseUpdate.download) {
+          if (isFetchingModel && baseUpdate.download) {
             downloadSummary = accumulateKaraokeMakerDownloadProgress(
               downloadSummary,
               baseUpdate.download,
@@ -212,20 +227,20 @@ export const transcribeKaraokeWithWhisper = async (
             'info',
             `model.asset.${progressEvent.status ?? 'unknown'}`,
             'Speech-model worker lifecycle event.',
-            downloadedAtStart ? 'load' : 'download',
+            isFetchingModel ? 'download' : 'load',
             event.data,
           );
           onProgress(
-            !downloadedAtStart && downloadSummary?.progress !== undefined
+            isFetchingModel && downloadSummary?.progress !== undefined
               ? 0.04 + downloadSummary.progress * 0.36
               : baseUpdate.progress,
-            downloadedAtStart
-              ? 'Loading cached speech model'
-              : baseUpdate.message,
-            downloadedAtStart || !baseUpdate.download
-              ? undefined
-              : { ...baseUpdate.download, summary: downloadSummary },
-            downloadedAtStart ? 'load' : baseUpdate.stage,
+            isFetchingModel
+              ? baseUpdate.message
+              : 'Loading cached speech model',
+            isFetchingModel && baseUpdate.download
+              ? { ...baseUpdate.download, summary: downloadSummary }
+              : undefined,
+            isFetchingModel ? baseUpdate.stage : 'load',
           );
         } else if (event.data.type === 'ready') {
           markWhisperDownloaded();
@@ -248,6 +263,36 @@ export const transcribeKaraokeWithWhisper = async (
             undefined,
             event.data.stage as TKaraokeMakerWhisperStage,
             transcription,
+          );
+        } else if (event.data.type === 'segments') {
+          const received = event.data.segments;
+          whisperSegments = Array.isArray(received)
+            ? (received as IKaraokeMakerWhisperSegment[])
+            : [];
+          logWhisper(
+            whisperSegments.length ? 'info' : 'warning',
+            'transcription.segments',
+            'Phrase boundaries as the model itself divided the audio.',
+            'transcribe',
+            { segments: whisperSegments.length, error: event.data.error },
+          );
+        } else if (event.data.type === 'timestamp-health') {
+          const words = Number(event.data.words) || 0;
+          const terminal = Number(event.data.terminal) || 0;
+          const pastEnd = Number(event.data.pastEnd) || 0;
+          const stacked = Number(event.data.stacked) || 0;
+          logWhisper(
+            terminal + pastEnd + stacked > 0 ? 'warning' : 'info',
+            'transcription.word-timestamps.health',
+            'Which shapes of unplaced word the timestamp head produced.',
+            'transcribe',
+            {
+              words,
+              terminal,
+              pastEnd,
+              stacked,
+              at: event.data.at,
+            },
           );
         } else if (event.data.type === 'timestamp-fallback') {
           logWhisper(
@@ -303,6 +348,7 @@ export const transcribeKaraokeWithWhisper = async (
           samples,
           downloadedAtStart,
           language: language?.trim() || undefined,
+          wantSegments,
         },
         [samples.buffer],
       );
@@ -329,6 +375,9 @@ export const transcribeKaraokeWithWhisper = async (
       .sort((left, right) => right.length - left.length)[0]
       ?.map((word) => ({ ...word })) ?? []) as IKaraokeMakerWhisperTranscript;
     words.passes = passWords.map((pass) => pass.map((word) => ({ ...word })));
+    if (whisperSegments.length) {
+      words.segments = whisperSegments;
+    }
     const usedApproximateTimestamps = result.results.some(
       (entry) => entry.approximateSegmentWords,
     );

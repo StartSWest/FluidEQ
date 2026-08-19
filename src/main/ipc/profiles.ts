@@ -35,7 +35,6 @@ import {
   doesPresetExist,
   fetchPreset,
   fetchPresetBaseline,
-  hasPresetBaseline,
   renamePreset,
   renamePresetBaseline,
   save,
@@ -49,7 +48,7 @@ import {
   discoverAudioDevices,
   flushDeviceProfiles,
   getStateForAudioDevice,
-  removeAssignmentsForPreset,
+  removeAssignmentForPreset,
   removeDeviceProfile,
   renameAssignedPreset,
   saveDeviceProfileSettings,
@@ -93,7 +92,15 @@ export interface IProfilesIpcDeps {
    * device switch would write into the old output's folder.
    */
   activePresetDir: () => string;
-  baselinePath: string;
+  /**
+   * The current output's hand-saved copies, read per call for the same reason
+   * as the folder above.
+   *
+   * A baseline belongs to an output exactly as much as the profile it backs
+   * up: the copies used to sit in one flat directory keyed by name, so five
+   * outputs attached to "Untitled profile 1" shared a single undo point.
+   */
+  activeBaselineDir: () => string;
   deviceProfileSettings: IDeviceProfileSettings;
   /**
    * What the process currently has open, passed whole and mutated in place.
@@ -164,7 +171,7 @@ export const registerProfilesIpc = ({
   userDataDir,
   presetDirForDevice,
   activePresetDir,
-  baselinePath,
+  activeBaselineDir,
   deviceProfileSettings,
   session,
   handleUpdate,
@@ -237,7 +244,7 @@ export const registerProfilesIpc = ({
     const channel = ChannelEnum.RESTORE_PRESET_BASELINE;
     const presetName = arg[0] as string;
     try {
-      const baseline = fetchPresetBaseline(presetName, baselinePath);
+      const baseline = fetchPresetBaseline(presetName, activeBaselineDir());
       if (!baseline) {
         handleError(event, channel, ErrorCode.PRESET_FILE_ERROR);
         return;
@@ -272,24 +279,27 @@ export const registerProfilesIpc = ({
     }
   });
 
-  /** Which profiles have a manually saved copy to go back to. */
+  /**
+   * Which of this output's profiles have a manually saved copy to go back to.
+   *
+   * The folder is the answer now that there is one per output — everything in
+   * it is a copy of one of this output's profiles, so listing it says the same
+   * thing the old cross-referencing did and cannot disagree with itself. What
+   * it used to do was collect every name in the catalogue and ask a shared
+   * directory whether any of them had a baseline, which reported another
+   * output's saved copy as this one's and lit a Restore button that would have
+   * handed back somebody else's tuning.
+   *
+   * A folder that is not there is an output nobody has pressed Save on, which
+   * is an empty list rather than an error.
+   */
   ipcMain.on(ChannelEnum.GET_PRESET_BASELINE_NAMES, async (event) => {
     const channel = ChannelEnum.GET_PRESET_BASELINE_NAMES;
     try {
-      const names = Object.values(deviceProfileSettings.assignments)
-        .map((assignment) => assignment.presetName)
-        .concat(
-          fs.existsSync(activePresetDir())
-            ? fs
-                .readdirSync(activePresetDir())
-                .filter((n) => !isAutomaticPresetName(n))
-            : [],
-        )
-        .filter(
-          (name, index, all) =>
-            all.indexOf(name) === index &&
-            hasPresetBaseline(name, baselinePath),
-        );
+      const dir = activeBaselineDir();
+      const names = fs.existsSync(dir)
+        ? fs.readdirSync(dir).filter((name) => !isAutomaticPresetName(name))
+        : [];
       const reply: TSuccess<string[]> = { result: names };
       event.reply(channel, reply);
     } catch (e) {
@@ -321,7 +331,7 @@ export const registerProfilesIpc = ({
         savePreset(targetName, preset, activePresetDir());
         // This is the copy the user chose to keep. Later edits auto-save over the
         // profile itself, so this is the only thing left to restore from.
-        savePresetBaseline(targetName, preset, baselinePath);
+        savePresetBaseline(targetName, preset, activeBaselineDir());
         attachPresetToActiveDevice(targetName);
         await handleUpdateHelper<string>(event, channel, targetName, true);
       } catch (e) {
@@ -349,8 +359,12 @@ export const registerProfilesIpc = ({
             ?.presetName === presetName;
 
         deletePreset(presetName, activePresetDir());
-        deletePresetBaseline(presetName, baselinePath);
-        removeAssignmentsForPreset(deviceProfileSettings, presetName);
+        deletePresetBaseline(presetName, activeBaselineDir());
+        removeAssignmentForPreset(
+          deviceProfileSettings,
+          session.activeAudioDeviceId,
+          presetName,
+        );
         saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
 
         // Deleting what this output was playing through leaves it with nothing.
@@ -376,9 +390,14 @@ export const registerProfilesIpc = ({
     const [oldName, newName]: string[] = arg;
 
     // No name change - the UI should handle this scenario and should not reach the BE
+    //
+    // Returns rather than falling through, which it did not: the handler went
+    // on to run the whole mutation and replied a second time on a channel the
+    // renderer had already resolved.
     if (oldName === newName) {
       const reply: TSuccess<void> = { result: undefined };
       event.reply(channel, reply);
+      return;
     }
 
     await runProfileMutation(async () => {
@@ -406,8 +425,13 @@ export const registerProfilesIpc = ({
         }
 
         renamePreset(oldName, newName, activePresetDir());
-        renamePresetBaseline(oldName, newName, baselinePath);
-        renameAssignedPreset(deviceProfileSettings, oldName, newName);
+        renamePresetBaseline(oldName, newName, activeBaselineDir());
+        renameAssignedPreset(
+          deviceProfileSettings,
+          session.activeAudioDeviceId,
+          oldName,
+          newName,
+        );
         saveDeviceProfileSettings(deviceProfileSettings, userDataDir);
         await handleUpdate(event, channel);
       } catch (e) {

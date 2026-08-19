@@ -401,7 +401,19 @@ export const repairEstimatedWhisperTimingWithMelody = (
     project.lyrics.lines.flatMap((line) =>
       karaokeMakerLineIsSection(line)
         ? []
-        : line.tokens.flatMap((token) =>
+        : // Notes cannot be the primary source of a word's position, however
+          // much the ordering argument recommends them. Measured on one song:
+          // 379 detected notes covered 37% of the voiced audio, leaving 63% of
+          // the singing with no note at all, because the pitch tracker fires
+          // on pitched content and a consonant, a breathy attack or a rapped
+          // line is not pitched. A word landing in that 63% would be assigned
+          // to whichever note happened to be nearest, which is worse than
+          // leaving it alone.
+          //
+          // So this stays what it is: help for a word nothing else could
+          // place. The signal that does cover the voice is its own energy,
+          // which is 80% of the song and includes every unpitched sound.
+          line.tokens.flatMap((token) =>
             !token.timingLocked &&
             token.source === 'whisper' &&
             (token.confidence ?? 0) < 0.7

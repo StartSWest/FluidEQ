@@ -10,6 +10,7 @@ import {
   karaokeMakerLineIsSection,
   karaokeMakerWordDurationIsPlausible,
 } from '../../../common/karaoke/makerProject';
+import { limitRouteCandidates, solveMonotonicRoute } from './monotonicRoute';
 import { IKaraokeMakerTranscriptWord } from './whisperProgress';
 import {
   alignWordSequenceAtOccurrence,
@@ -214,10 +215,15 @@ const sentenceCandidatesForPass = (
 
   for (let anchorIndex = 0; anchorIndex < anchorCount; anchorIndex += 1) {
     const anchor = normalizedWord(lyrics[anchorIndex].text);
-    if (!anchor) {
-      return candidates;
-    }
+    // A token that normalises to nothing — a dash, an ellipsis, a lone "♪" —
+    // is not an anchor, but it is also not a reason to stop looking. This
+    // abandoned the whole line on the first such token, so a sheet written
+    // with dialogue dashes ("— I never told you") produced no candidates for
+    // any line beginning with one, and no timing at all.
     transcript.forEach((word, transcriptIndex) => {
+      if (!anchor) {
+        return;
+      }
       const anchorDistance = normalizedWordDistance(
         anchor,
         normalizedWord(word.text),
@@ -296,6 +302,20 @@ const sentenceCandidatesForPass = (
       const edgeSupport =
         Number(first.lyricIndex === 0) +
         Number(last.lyricIndex === lyrics.length - 1);
+      // This bonus is large enough to beat two correctly matched words — on a
+      // four-word line it reaches 2 600 against the 1 000 a word is worth — and
+      // that is deliberate, though it reads like a bug. It is what stops a line
+      // being finished by a matching phrase half a minute away: with the bonus
+      // scaled down to 400, "She lives a lonely life" abandons its own opening
+      // at 11 s to take "a lonely life" from 45 s, because three late words
+      // outscore two early ones.
+      //
+      // The cost is real too: a candidate mapping a line's first two words
+      // outranks one mapping its last three. Both failures come from scoring
+      // candidates independently, and the fix for both is to compare the
+      // performances of a repeated line against each other — a line sung four
+      // times should not have one performance a third the length of its
+      // siblings. Until that exists, keep the protection that is tested.
       const sentenceStartSupport =
         first.lyricIndex === 0 ? Math.max(1_500, lyrics.length * 650) : 0;
       candidates.push({
@@ -346,47 +366,27 @@ export const alignLyricsBySentence = (
     lineGroups.set(group.lineIndex, values);
   });
   const lines = [...lineGroups.values()];
-  interface IRouteNode {
-    candidate: IKaraokeMakerSentenceCandidate;
-    coveredLines: number;
-    lineIndex: number;
-    previous?: IRouteNode;
-    score: number;
-  }
-  const compareRoutes = (left: IRouteNode, right: IRouteNode): number =>
-    right.coveredLines - left.coveredLines ||
-    right.score - left.score ||
-    left.candidate.startMs - right.candidate.startMs;
-  const priorNodes: IRouteNode[] = [];
-  lines.forEach((line, lineIndex) => {
-    const candidates = transcripts.flatMap((transcript) =>
-      sentenceCandidatesForPass(line, transcript),
-    );
-    candidates.forEach((candidate) => {
-      const previous = priorNodes
-        .filter(
-          (node) =>
-            node.lineIndex < lineIndex &&
-            node.candidate.endMs <= candidate.startMs + 40,
-        )
-        .sort(compareRoutes)[0];
-      priorNodes.push({
-        candidate,
-        coveredLines: (previous?.coveredLines ?? 0) + 1,
-        lineIndex,
-        previous,
-        score: candidate.score + (previous?.score ?? 0),
-      });
-    });
-  });
+  // A candidate is anchored on a transcript word and deduplicated by its start
+  // and end bucket, so a line cannot offer more of them than the pass has
+  // words — measured, exactly that many for a one-word line and a tenth as
+  // many for a ten-word one. Capping there bounds what a degenerate song can
+  // demand without the limit ever binding on a measured input.
+  const route = solveMonotonicRoute(
+    lines.map((line) =>
+      transcripts.flatMap((transcript) =>
+        limitRouteCandidates(
+          sentenceCandidatesForPass(line, transcript),
+          transcript.length,
+        ),
+      ),
+    ),
+  );
   const mapping = new Map<string, IKaraokeMakerTranscriptWord>();
-  let node: IRouteNode | undefined = priorNodes.sort(compareRoutes)[0];
-  while (node) {
-    node.candidate.mapping.forEach((timing, tokenId) =>
+  route.forEach((candidate) =>
+    candidate.mapping.forEach((timing, tokenId) =>
       mapping.set(tokenId, timing),
-    );
-    node = node.previous;
-  }
+    ),
+  );
   return mapping;
 };
 

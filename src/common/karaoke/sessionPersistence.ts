@@ -38,8 +38,15 @@ export interface IKaraokeRestoredFile {
   relativePath: string;
   type: string;
   lastModified: number;
-  role: 'audio' | 'lyrics';
-  /** Lyrics are small and arrive eagerly; audio remains lazy. */
+  /**
+   * `media` is the stage's artwork and video.
+   *
+   * It has to survive a restart for the same reason the audio does: a library
+   * imported once and reopened every day afterwards otherwise loses every
+   * cover the moment the app is closed, and looks like it never had one.
+   */
+  role: 'audio' | 'lyrics' | 'media';
+  /** Lyrics are small and arrive eagerly; audio and media remain lazy. */
   text?: string;
 }
 

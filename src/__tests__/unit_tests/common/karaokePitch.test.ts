@@ -86,6 +86,12 @@ describe('Karaoke pitch detector', () => {
     expect(providerPitchToCanonicalMidi(0, 'relative-semitones')).toBe(60);
     expect(providerPitchToCanonicalMidi(2, 'relative-semitones', 57)).toBe(59);
     expect(providerPitchToCanonicalMidi(900, 'relative-cents', 60)).toBe(69);
+    // A file naming a pitch off the end of MIDI used to reach the stage
+    // intact: the lane rescaled to it, and the guide tone was synthesised
+    // above Nyquist. The ordinary values above are the control that proves
+    // the clamp is not simply flattening everything.
+    expect(providerPitchToCanonicalMidi(78, 'relative-semitones')).toBe(127);
+    expect(providerPitchToCanonicalMidi(-200, 'relative-semitones')).toBe(0);
   });
 
   it('provides stable median smoothing while ignoring rejected values', () => {

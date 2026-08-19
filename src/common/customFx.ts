@@ -9,7 +9,7 @@ the Free Software Foundation, either version 3 of the License, or
 */
 
 import { parseEqText } from './apoText';
-import { ICustomFxSettings } from './constants';
+import { FILTER_LINE_PREFIX_REGEX, ICustomFxSettings } from './constants';
 
 /**
  * Read the useful description of a user-owned custom APO file.
@@ -38,7 +38,7 @@ export const parseCustomFx = (
   // intentionally contains both forms so auto-normalize protects both.
   const hasFilterCommand = contents.split(/\r?\n/).some((rawLine) => {
     const line = rawLine.split('#')[0].trim();
-    return /^Filter(?:\s+\d+)?\s*:/i.test(line);
+    return FILTER_LINE_PREFIX_REGEX.test(line);
   });
   const filters =
     parsed.graphicEq?.length && !hasFilterCommand ? {} : parsed.filters;

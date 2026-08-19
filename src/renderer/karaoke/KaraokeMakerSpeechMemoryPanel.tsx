@@ -22,6 +22,7 @@ import { useTranslation } from '../utils/I18nContext';
 import {
   IKaraokeWhisperMemorySettings,
   IKaraokeWhisperSessionSnapshot,
+  karaokeWhisperCachedBytes,
 } from './makerAi';
 
 /** The three answers to "what should happen to the model when idle". */
@@ -29,6 +30,44 @@ const POLICIES = ['ask', 'auto', 'keep'] as const;
 
 /** How long "idle" is allowed to mean, in minutes. */
 const IDLE_CHOICES = [5, 10, 30] as const;
+
+interface INativeModelStatus {
+  separation: { loaded: boolean; bytes: number };
+  pitch: { loaded: boolean; bytes: number; downloadedBytes: number };
+}
+
+interface IModelRow {
+  nameKey: TranslationKey;
+  inMemory: boolean;
+  bytes: number;
+}
+
+/**
+ * Bytes as the user's file manager writes them, so the row can be checked
+ * against the folder it came from rather than taken on trust.
+ */
+const formatBytes = (bytes: number): string => {
+  if (bytes >= 1_000_000_000) {
+    return `${(bytes / 1_000_000_000).toFixed(2)} GB`;
+  }
+  return `${Math.round(bytes / 1_000_000)} MB`;
+};
+
+/**
+ * Resident, on disk, or absent — the three answers the row can give.
+ *
+ * Cached is not the same as loaded and neither is the same as downloaded: the
+ * release button only wins back the first, and a row that conflated them would
+ * offer to free a model that was never in RAM.
+ */
+const modelStatusKey = (model: IModelRow): TranslationKey => {
+  if (model.inMemory) {
+    return 'karaoke.maker.speechMemoryReady';
+  }
+  return model.bytes > 0
+    ? 'karaoke.maker.speechMemoryCached'
+    : 'karaoke.maker.speechMemoryMissing';
+};
 
 interface IKaraokeMakerSpeechMemoryPanelProps {
   session: IKaraokeWhisperSessionSnapshot;
@@ -61,7 +100,8 @@ const KaraokeMakerSpeechMemoryPanel = ({
   // Main's sessions are invisible from here, so the panel asks — on mount and
   // every few seconds while open — and offers one release for everything
   // resident: the whisper worker plus whatever main is holding.
-  const [nativeInMemory, setNativeInMemory] = useState(false);
+  const [native, setNative] = useState<INativeModelStatus>();
+  const [whisperBytes, setWhisperBytes] = useState(0);
   useEffect(() => {
     let cancelled = false;
     const poll = () => {
@@ -69,7 +109,15 @@ const KaraokeMakerSpeechMemoryPanel = ({
         .getKaraokeModelStatus?.()
         .then((status) => {
           if (!cancelled) {
-            setNativeInMemory(status.separation || status.pitch);
+            setNative(status);
+          }
+          return null;
+        })
+        .catch(() => undefined);
+      karaokeWhisperCachedBytes()
+        .then((bytes) => {
+          if (!cancelled) {
+            setWhisperBytes(bytes);
           }
           return null;
         })
@@ -82,10 +130,40 @@ const KaraokeMakerSpeechMemoryPanel = ({
       window.clearInterval(timer);
     };
   }, []);
+  const nativeInMemory = Boolean(
+    native?.separation.loaded || native?.pitch.loaded,
+  );
+  const models: IModelRow[] = [
+    {
+      nameKey: 'karaoke.maker.modelWhisper',
+      inMemory: session.inMemory,
+      bytes: whisperBytes,
+    },
+    {
+      nameKey: 'karaoke.maker.modelPitch',
+      inMemory: native?.pitch.loaded ?? false,
+      bytes: native?.pitch.loaded
+        ? native.pitch.bytes
+        : (native?.pitch.downloadedBytes ?? 0),
+    },
+    {
+      nameKey: 'karaoke.maker.modelSeparation',
+      inMemory: native?.separation.loaded ?? false,
+      bytes: native?.separation.bytes ?? 0,
+    },
+  ];
   const releaseEverything = () => {
     window.electron?.ipcRenderer.releaseKaraokeSeparationModel?.();
     window.electron?.ipcRenderer.releaseKaraokePitchModel?.();
-    setNativeInMemory(false);
+    // The weights stay on disk, so the sizes stand; only residency changes.
+    setNative((previous) =>
+      previous
+        ? {
+            separation: { ...previous.separation, loaded: false },
+            pitch: { ...previous.pitch, loaded: false },
+          }
+        : previous,
+    );
     onRelease();
   };
 
@@ -108,6 +186,24 @@ const KaraokeMakerSpeechMemoryPanel = ({
           </button>
         )}
       </div>
+      {/* Every model the Maker can load, whether or not it is loaded now —
+          a row that disappears when idle cannot answer "what is holding my
+          RAM", which is the question this panel exists for. */}
+      <ul className="karaoke-maker__memory-models">
+        {models.map((model) => (
+          <li key={model.nameKey}>
+            <span
+              className={model.inMemory ? 'is-ready' : undefined}
+              aria-hidden="true"
+            />
+            <strong>{t(model.nameKey)}</strong>
+            <em>{t(modelStatusKey(model))}</em>
+            <span className="karaoke-maker__memory-bytes">
+              {model.bytes > 0 ? formatBytes(model.bytes) : '—'}
+            </span>
+          </li>
+        ))}
+      </ul>
       <span className="karaoke-maker__memory-label">
         {t('karaoke.maker.memoryAfterUse')}
       </span>

@@ -295,6 +295,16 @@ export const PREAMP_REGEX = /^Preamp: (-?\d+(?:\.\d+)?) dB$/;
 export const FILTER_REGEX =
   /^Filter(?: [1-9]\d*)?: ON (PK|LSC?|HSC?) Fc ([1-9]\d*(?:\.\d+)?) Hz Gain (-?\d+(?:\.\d+)?) dB Q (\d+(?:\.\d+)?)$/;
 
+/**
+ * A line that is a band, without reading what the band says.
+ *
+ * Three places only ever needed to count bands and each grew its own copy of
+ * this. One of them kept demanding the index, so the config inspector reported
+ * a hand-written or OPRA-shaped `Filter: ON …` file as holding zero bands
+ * while APO was applying every one of them.
+ */
+export const FILTER_LINE_PREFIX_REGEX = /^Filter(?:\s+\d+)?\s*:/i;
+
 /** ----- Application Interfaces ----- */
 
 export interface IFiltersMap {

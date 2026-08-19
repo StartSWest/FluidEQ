@@ -24,9 +24,20 @@ export interface IKaraokeMakerTranscriptWord {
   inferred?: boolean;
 }
 
+/** One phrase as Whisper itself divided the audio, in absolute song time. */
+export interface IKaraokeMakerWhisperSegment {
+  startMs: number;
+  endMs: number;
+}
+
 export interface IKaraokeMakerWhisperTranscript extends Array<IKaraokeMakerTranscriptWord> {
   /** Independent complete decodes. Never interleave these word streams. */
   passes?: IKaraokeMakerTranscriptWord[][];
+  /**
+   * Where the model ended each utterance. Present only when the transcript is
+   * about to become the lyrics, since only that path chooses line breaks.
+   */
+  segments?: IKaraokeMakerWhisperSegment[];
 }
 
 export interface IKaraokeMakerDownloadProgress {

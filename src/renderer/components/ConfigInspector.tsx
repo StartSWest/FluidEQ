@@ -23,7 +23,7 @@ import {
   IApoConfigLayer,
   IApoConfigTree,
 } from 'common/apoConfig';
-import { APO_FEATURES } from 'common/constants';
+import { APO_FEATURES, FILTER_LINE_PREFIX_REGEX } from 'common/constants';
 import {
   exportDeviceChain,
   getApoConfigTree,
@@ -255,7 +255,7 @@ const ConfigFileNode = ({
   const [draft, setDraft] = useState<string | undefined>(undefined);
   const [saveError, setSaveError] = useState('');
   const filterCount = file.lines.filter((line) =>
-    /^Filter\s+\d+\s*:/i.test(line),
+    FILTER_LINE_PREFIX_REGEX.test(line),
   ).length;
   const isCustom = isCustomFile(file.fileName);
   const hasCustomCommands =

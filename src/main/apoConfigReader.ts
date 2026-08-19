@@ -46,7 +46,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import path from 'path';
 import { findBlockForDevice, splitConfigBlocks } from '../common/apoSync';
-import { APO_FEATURES, TApoFeature } from '../common/constants';
+import {
+  APO_FEATURES,
+  FILTER_LINE_PREFIX_REGEX,
+  TApoFeature,
+} from '../common/constants';
 import {
   IApoConfigDevice,
   IApoConfigFile,
@@ -244,7 +248,7 @@ const readConfigFile = (
 
 /** Every `Filter:` line in a file and everything under it. */
 const countFilters = (file: IApoConfigFile): number =>
-  file.lines.filter((line) => /^Filter(?:\s+\d+)?\s*:/i.test(line)).length +
+  file.lines.filter((line) => FILTER_LINE_PREFIX_REGEX.test(line)).length +
   file.includes.reduce((total, child) => total + countFilters(child), 0);
 
 /** The first line of a file matching a command, searched depth-first. */

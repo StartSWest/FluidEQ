@@ -9,6 +9,7 @@ it under the terms of the GNU General Public License version 3 or later.
 import fs from 'fs';
 import path from 'path';
 import { createHash } from 'crypto';
+import log from 'electron-log';
 import {
   APO_FEATURES,
   ICustomFxSettings,
@@ -24,6 +25,7 @@ import {
   FLUIDEQ_CONFIG_FILENAME,
   fetchPreset,
   IApoChainFiles,
+  safePresetFileName,
   savePreset,
   stateToApoFiles,
 } from './flush';
@@ -118,25 +120,115 @@ export const removeDeviceProfile = (
   delete settings.assignments[deviceId];
 };
 
+/**
+ * ONE OUTPUT, BECAUSE A PROFILE NAME ONLY MEANS ANYTHING NEXT TO ONE.
+ *
+ * Profiles have lived in a folder per output since `presetDirForDevice`, so
+ * `Untitled profile 1` is five separate profiles on a machine with five
+ * outputs, and renaming one moves exactly one file. These two used to rewrite
+ * every assignment that happened to share the name, which repointed the other
+ * four outputs at a file that exists only in somebody else's folder.
+ *
+ * The failure was silent where it started and loud somewhere else.
+ * `flushDeviceProfiles` swallows a profile it cannot read, so those outputs
+ * dropped out of the Equalizer APO config without a word and simply stopped
+ * being equalised; the error only appeared later, when something read one of
+ * them by name — switching to that output, loading it, restoring its saved
+ * copy — as a preset file error blaming a directory that was never at fault.
+ *
+ * The caller passes the output whose folder it just wrote in, which is always
+ * `session.activeAudioDeviceId`: `renamePreset` and `deletePreset` are given
+ * `activePresetDir()`, and that is the same output by construction.
+ */
 export const renameAssignedPreset = (
   settings: IDeviceProfileSettings,
+  deviceId: string,
   oldName: string,
   newName: string,
 ) => {
-  Object.values(settings.assignments).forEach((assignment) => {
-    if (assignment.presetName === oldName) {
-      assignment.presetName = newName;
-    }
-  });
+  const assignment = settings.assignments[deviceId];
+  if (assignment?.presetName === oldName) {
+    assignment.presetName = newName;
+  }
 };
 
-export const removeAssignmentsForPreset = (
+/**
+ * Detach one output from a profile whose file has just been deleted.
+ *
+ * Still checks the name: the assignment may have moved on between the delete
+ * being queued and this running, and an output attached to something else must
+ * not be detached from it.
+ */
+export const removeAssignmentForPreset = (
   settings: IDeviceProfileSettings,
+  deviceId: string,
   presetName: string,
 ) => {
-  Object.entries(settings.assignments).forEach(([deviceId, assignment]) => {
-    if (assignment.presetName === presetName) {
-      delete settings.assignments[deviceId];
+  if (settings.assignments[deviceId]?.presetName === presetName) {
+    delete settings.assignments[deviceId];
+  }
+};
+
+/**
+ * Move files saved flat, back when a name identified a profile on its own, into
+ * the folder of the output that was using them.
+ *
+ * Two stores were laid out that way and both had to be split: the profiles
+ * themselves, and the hand-saved copies behind them. One function because it is
+ * one move — the only thing that differs is which directory it runs over and
+ * what it calls the thing in the log.
+ *
+ * An assignment is the only record of who a file belonged to, so it is the only
+ * thing that can answer the question. A name no assignment mentions has no
+ * owner to deduce and is left exactly where it is: not deleted, not guessed at,
+ * still readable on disk if it turns out to matter.
+ *
+ * LOSSY WHERE THE OLD LAYOUT WAS AMBIGUOUS, AND NO ARRANGEMENT IS NOT. Five
+ * outputs attached to "Untitled profile 1" shared one file, and nothing on disk
+ * says which of them wrote it. The first assignment to claim it gets it and the
+ * rest find nothing — which is what they effectively had, since every save on
+ * any of them had been overwriting the same file. Nothing is destroyed; the
+ * copy survives under one owner.
+ *
+ * Runs once per file by construction: the second run finds the root empty of it
+ * and does nothing.
+ */
+export const migrateNamedFilesToOutputFolders = (
+  settings: IDeviceProfileSettings,
+  rootDir: string,
+  dirForDevice: (deviceId: string) => string,
+  /** What to call the moved thing in the log — "profile", "saved copy". */
+  description: string,
+) => {
+  Object.values(settings.assignments).forEach((assignment) => {
+    // The name comes out of a file on disk, so it is asked the same question
+    // every other path built from a profile name is asked before it is joined.
+    const safeName = safePresetFileName(assignment.presetName);
+    if (!safeName) {
+      return;
+    }
+    const from = path.join(rootDir, safeName);
+    // Directories are the new layout; only a file at the root is unmigrated.
+    if (!fs.existsSync(from) || !fs.statSync(from).isFile()) {
+      return;
+    }
+    const dir = dirForDevice(assignment.deviceId);
+    const to = path.join(dir, safeName);
+    // Never clobber what the new layout already holds.
+    if (fs.existsSync(to)) {
+      return;
+    }
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      fs.renameSync(from, to);
+      log.info(
+        `Moved the ${description} "${assignment.presetName}" to its output's folder`,
+      );
+    } catch (e) {
+      // What will not move stays where it is and stays readable. For a profile
+      // that means the tuning is still there; for a saved copy it costs an undo.
+      log.error(`Could not move the ${description} "${assignment.presetName}"`);
+      log.error(e);
     }
   });
 };
@@ -437,8 +529,23 @@ export const deviceProfilesToFiles = (
           assignment.deviceGuid || assignment.deviceName,
           assignment.deviceId,
         );
-      } catch {
-        // A profile we cannot read is one this device simply does not get.
+      } catch (e) {
+        // A profile we cannot read is one this device simply does not get —
+        // the config is still written for every other output rather than one
+        // bad file taking the whole chain down.
+        //
+        // SAID OUT LOUD, WHICH IT WAS NOT. Dropping an output here means it
+        // stops being equalised entirely, and the bare catch made that the
+        // quietest possible failure: no line in the log, no error in the
+        // window, just an endpoint missing from a config nobody reads. That is
+        // what hid the rename bug — a rename repointed four other outputs at a
+        // file that was not in their folder, and all four vanished from the
+        // chain without a word until something later tried to load one by name
+        // and blamed the preset directory.
+        log.error(
+          `Output "${assignment.deviceName}" was left out of the config: its profile "${assignment.presetName}" could not be read`,
+        );
+        log.error(e);
       }
     });
 

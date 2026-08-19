@@ -61,6 +61,22 @@ let cancelRequested = false;
 
 /** Whether the separation network is resident right now. */
 export const isSeparationLoaded = () => session !== undefined;
+
+/**
+ * The two files this network is made of, measured on disk.
+ *
+ * Both, always: the graph without its external weights is a 5MB file that
+ * fails at session creation, so reporting the graph alone would describe a
+ * five-megabyte model that is in fact seven hundred.
+ */
+export const separationWeightBytes = (): number =>
+  [MODEL_FILE, WEIGHTS_FILE].reduce((total, name) => {
+    try {
+      return total + fs.statSync(path.join(modelDir(), name)).size;
+    } catch {
+      return total;
+    }
+  }, 0);
 // True while a separation is in flight, so a release request cannot pull the
 // session out from under a run. Written by the separate handler only.
 let running = false;

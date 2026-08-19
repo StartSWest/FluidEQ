@@ -91,6 +91,7 @@ import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
 import LanguagePicker from './components/LanguagePicker';
 import UpdateNotice from './components/UpdateNotice';
+import SpeechMemoryNotice from './components/SpeechMemoryNotice';
 import MandatoryUpdateModal from './components/MandatoryUpdateModal';
 import DisclaimerGate from './components/DisclaimerGate';
 import WhatsNewDialog from './components/WhatsNewDialog';
@@ -302,13 +303,6 @@ const AppContent = () => {
   const isLibraryTab = activeWorkspaceTab === 'library';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
   const [isKaraokeFullScreen, setIsKaraokeFullScreen] = useState(false);
-  /**
-   * Whether Karaoke is showing its editor rather than its player.
-   *
-   * Reported up from the workspace purely so the response graph can refuse to
-   * take the screen over the top of it — see `isGraphAppFullScreen`.
-   */
-  const [isKaraokeMakerOpen, setIsKaraokeMakerOpen] = useState(false);
   const karaokeFullScreenRequestedRef = useRef(false);
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
@@ -1532,7 +1526,6 @@ const AppContent = () => {
                 onToggleFullScreen={() =>
                   applyKaraokeFullScreen(!isKaraokeFullScreen)
                 }
-                onMakerOpenChange={setIsKaraokeMakerOpen}
               />
             )}
             {/* Outside the tab switch for the same class of reason, and more
@@ -1680,6 +1673,11 @@ const AppContent = () => {
         {/* Bottom left, opposite the failure notices, so two things arriving
             at once do not land on top of each other. */}
         <UpdateNotice />
+        {/* Here rather than in the Karaoke tab that owns the model: the idle
+            timer that raises it runs for as long as the model is loaded, and
+            asking inside a tab nobody is looking at held the RAM until the
+            user happened to come back. */}
+        <SpeechMemoryNotice />
         {whatsNewScope && (
           <WhatsNewDialog
             scope={whatsNewScope}

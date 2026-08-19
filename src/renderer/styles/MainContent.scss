@@ -732,17 +732,36 @@ $eq-caret-width: 24px;
 // proportionate to the narrower columns, which is a rule about width applied to
 // a height — a dense layout does not need a stubbier slider, and giving it one
 // only made the drag less precise exactly where the bands are hardest to hit.
+//
+// MEASURED AGAINST THE PANE, NOT THE WINDOW. `--editor-height` is what the
+// divider writes on `.middle-content`, so it is the only number on the page
+// that knows how much of the column the EQ has been given. `100vh` did not:
+// dragging the handle down bought the bands three hundred more pixels and
+// every track stayed exactly as short, while a window height the bands do not
+// own decided their length by itself. Measured in the live window at 1392px
+// tall: the pane was 1042px, its content ran out 491px above its own bottom
+// edge, and the tracks were still stopped at 132px — which is the contraction
+// this is fixing.
+//
+// 440px is everything inside that pane which is not track, taken off the same
+// measurement: the tab strip, the panel's padding, the three heading rows, the
+// selected-band editor below the bands, the caption, arrows and gain readout
+// each band carries around its own track, and a little air so the editor does
+// not end up against the divider. A wrapped toolbar adds a row to the heading
+// and pushes past it, at which point the panel scrolls — which is what it does
+// everywhere else.
+//
+// The ceiling is the one the graph-hidden case below already settled on, for
+// the reason given there: past 264px a longer track is not a finer drag, it is
+// a longer reach for the same gesture. Whatever is left over on a tall pane
+// stays at the foot of the card rather than being poured into the tracks.
 .bandWrapper .range {
-  --range-length: clamp(72px, calc(100vh - 620px), 132px);
+  --range-length: clamp(72px, calc(var(--editor-height, 100vh) - 440px), 264px);
 }
 
 // The reference picker used to sit above the bands and folding it stretched the
 // sliders into the room it gave back. It has a tab of its own now, so the EQ
 // panel is bands and nothing else and there is no fold to react to.
-//
-// What that room goes to instead is the graph, which is the pane that gets
-// better the more of it there is — a taller slider track is a slightly finer
-// drag, whereas a taller graph is more of the curve you are actually reading.
 
 // With the response graph hidden (App.tsx marks the root `minimized`) the EQ
 // owns the whole workspace column, so the tracks are longer than they are while
@@ -767,11 +786,13 @@ $eq-caret-width: 24px;
 // for "no graph and no reference picker either", and with the picker gone from
 // this tab that is simply what no graph means — so it was the largest number
 // two rounds of merging could produce and nobody had since asked what a track
-// is actually for. Twice the graph-on length above is what it is worth:
-// 132px is what this file calls a full-length slider when the graph is up,
-// hiding the graph gives the editor about half as much column again, and past
-// that a longer track is not a finer drag — it is a longer reach for the same
-// gesture, and precision goes through the number field either way.
+// is actually for. 264px is what it is worth, and it is now the ceiling on both
+// sides of the graph switch: past that a longer track is not a finer drag — it
+// is a longer reach for the same gesture, and precision goes through the number
+// field either way. What differs between the two rules is which box is measured
+// — the pane above, the window here, since with no graph there is no split to
+// read — and the floor, because a column with nothing else in it always has
+// room for a full-length track.
 //
 // Whatever is left over on a tall window stays at the foot of the card, where
 // every other tab leaves its spare room. Pouring it into the tracks is the bug
