@@ -84,7 +84,7 @@ const library = {
 
   'library.back': 'Back',
 
-  'library.alsoInFolder': 'Also in this folder ({count})',
+  'library.alsoInFolder': 'In this folder, not in this album',
   'library.play': 'Play',
   'library.pause': 'Pause',
   'library.stop': 'Stop',

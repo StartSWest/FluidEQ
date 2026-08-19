@@ -55,6 +55,7 @@ const BROWSE_MODE_KEY = 'fluideq.library.browseMode';
 const VIEW_MODE_KEY = 'fluideq.library.viewMode';
 const SORT_KEY = 'fluideq.library.sort';
 const SORT_DIRECTION_KEY = 'fluideq.library.sortDirection';
+const GROUP_BY_FOLDER_KEY = 'fluideq.library.groupByFolder';
 
 const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
   'album',
@@ -161,6 +162,15 @@ const LibraryWorkspace = ({
   );
   const [sortDirection, setSortDirection] = useState<TLibrarySortDirection>(
     () => readPersistedMode(SORT_DIRECTION_KEY, SORT_DIRECTIONS, 'asc'),
+  );
+  // Labels each run of rows with the folder it came from. Off by default:
+  // most browsing is by album, where the folder is noise.
+  const [groupByFolder, setGroupByFolder] = useState<boolean>(
+    () => readPersistedMode(GROUP_BY_FOLDER_KEY, ['on', 'off'], 'off') === 'on',
+  );
+  useEffect(
+    () => writePersistedMode(GROUP_BY_FOLDER_KEY, groupByFolder ? 'on' : 'off'),
+    [groupByFolder],
   );
   const [sort, setSort] = useState<TLibrarySort>(() =>
     readPersistedMode(SORT_KEY, SORTS, 'title'),
@@ -494,6 +504,7 @@ const LibraryWorkspace = ({
             sort={sort}
             sortDirection={sortDirection}
             onSort={handleSort}
+            groupByFolder={groupByFolder}
           />
         )}
       {index.tracks.length > 0 &&

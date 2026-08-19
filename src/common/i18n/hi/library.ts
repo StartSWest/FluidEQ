@@ -85,7 +85,7 @@ const library: Partial<Dictionary> = {
 
   'library.back': 'वापस',
 
-  'library.alsoInFolder': 'इसी फ़ोल्डर में अन्य ({count})',
+  'library.alsoInFolder': 'इसी फ़ोल्डर में है, इस एल्बम में नहीं',
   'library.play': 'चलाएँ',
   'library.pause': 'रोकें',
   'library.stop': 'बंद करें',

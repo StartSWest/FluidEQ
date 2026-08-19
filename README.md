@@ -135,6 +135,26 @@ They are opened as they are, in an ordinary Chromium window; the app neither
 hosts, stores, copies nor redistributes anything from them. Whoever uses it is
 responsible for keeping to each site's own terms of service.
 
+**Play what is already on the machine.** A **Library** tab reads the folders you
+add — MP3, WAV, OGG, FLAC, M4A, Opus, AAC and more, plus video — and browses them
+by album, artist, song or video, as a dense sortable list, a grid of covers, or a
+Cover Flow you sweep through. Everything in a folder appears the moment you add
+it, titled from the filename and grouped by the folder it sits in; the scan then
+fills in the real tags, cover art and durations behind it, so a large library is
+usable while it is still being read rather than blank until it finishes.
+
+Cover art comes from the file's own tags, or a `cover.jpg` beside it, or a tile
+drawn from the album's name — nothing is fetched from the internet, and no album
+name leaves the machine. A track in a format Chromium cannot decode says so
+rather than failing silently; a folder on a drive that is not plugged in keeps
+its songs and dims them rather than losing them; and an album that does not
+account for every file in its folder lists the rest underneath it instead of
+hiding them.
+
+Playback carries on while you look at any other tab, with a transport at the
+foot of the window. Songs that come with their own lyrics are left out of the
+library on purpose — they belong to the Karaoke tab below.
+
 **Sing over what you already own.** A **Karaoke** tab turns your own files into
 a stage. Open a song or add a folder — MP3, WAV, OGG, FLAC or M4A, with lyrics
 from an `.lrc`, an enhanced `.lrc` for word timing, or an UltraStar `.txt` for

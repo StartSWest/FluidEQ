@@ -152,6 +152,29 @@ export const LibraryPlayerProvider = ({
   // the current track is a video.
   const videoElementRef = useRef<HTMLVideoElement | null>(null);
 
+  // Silence the element if this provider ever goes away.
+  //
+  // It is a bare `new Audio()` in a ref, deliberately never rendered, which
+  // means React tears down nothing for it: unmount the provider and the sound
+  // simply carries on, reachable by nothing, until the window closes. Mount a
+  // second provider — which a hot reload does on every save — and its own
+  // fresh element starts a second song over the top of the orphan. Two tracks
+  // at once, and no control on screen governs either.
+  //
+  // `hasOpenedLibrary` in `App.tsx` is one-way, so this should not fire in a
+  // packaged build; it fires constantly in development, which is where the
+  // overlap was found.
+  useEffect(() => {
+    const audio = audioElementRef.current;
+    return () => {
+      if (audio) {
+        audio.pause();
+        audio.removeAttribute('src');
+        audio.load();
+      }
+    };
+  }, []);
+
   const [queue, setQueue] = useState<ILibraryQueue | undefined>(undefined);
   const [isPlaying, setIsPlaying] = useState(false);
   const [positionMs, setPositionMs] = useState(0);

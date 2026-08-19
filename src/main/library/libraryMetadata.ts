@@ -107,11 +107,41 @@ const finiteOrUndefined = (
  * can set `hasMetadataError` on the track for a real failure without
  * guessing one onto a file that simply has no tags to read.
  */
+/**
+ * Read a file, and if its trailing tags defeat the parser, read it again
+ * without them.
+ *
+ * `music-metadata` looks for APEv2 and ID3v1 at the END of a file, after it
+ * has read what is at the front. On real chart-rip MP3s that trailer is often
+ * junk, and the APEv2 parser turns it into a negative length that reaches
+ * `FileHandle.read` as `RangeError: The value of "length" is out of range ...
+ * Received -1162229480`. That is an upstream crash on ordinary data, not a
+ * broken file: the ID3v2 tags at the front had already been read by then and
+ * are the ones that matter, so a second pass with `skipPostHeaders` recovers
+ * the whole track.
+ *
+ * Only on failure, never by default — APEv2 and ID3v1 are genuine fallbacks
+ * for files carrying no ID3v2 at all, and skipping them always would lose
+ * every tag those files have.
+ */
+const parseWithTrailerFallback = async (filePath: string) => {
+  try {
+    return await parseFile(filePath);
+  } catch (error) {
+    // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+    console.error(
+      `Trailing tags defeated the parser for ${filePath}; retrying without them`,
+      error,
+    );
+    return parseFile(filePath, { skipPostHeaders: true });
+  }
+};
+
 export const readLibraryTags = async (
   filePath: string,
 ): Promise<ILibraryFileFacts> => {
   try {
-    const { common, format } = await parseFile(filePath);
+    const { common, format } = await parseWithTrailerFallback(filePath);
     const picture = common.picture?.[0];
     return {
       title: sanitizeText(common.title),

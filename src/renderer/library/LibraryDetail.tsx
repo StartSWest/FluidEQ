@@ -135,7 +135,12 @@ const LibraryDetail = ({
    * fewer songs than they know are there, with nothing saying why. Showing
    * them merged into the album would be the opposite lie.
    *
-   * So they are listed below, in the same place, under their own heading.
+   * So they sit at the end of the same list, each row tagged as belonging to
+   * the folder rather than to the album. A second table under its own heading
+   * was tried first and read as two unrelated screens stacked up; one list
+   * with a mark on the rows that are not part of the album says the same
+   * thing without splitting the page in half.
+   *
    * Only for an album drill-in: an artist is not a folder, and the same
    * question does not arise.
    */
@@ -155,6 +160,16 @@ const LibraryDetail = ({
       'title',
     );
   }, [tracks, detailTracks, albumId]);
+
+  // One list: the album's own tracks, then its folder-mates behind them.
+  const listTracks = useMemo(
+    () => [...detailTracks, ...strayTracks],
+    [detailTracks, strayTracks],
+  );
+  const folderOnlyIds = useMemo(
+    () => new Set(strayTracks.map((track) => track.id)),
+    [strayTracks],
+  );
 
   // Nothing to draw once the effect above has asked to leave — one render
   // of "Unknown album" and a dead Play button is exactly the flash this
@@ -217,28 +232,14 @@ const LibraryDetail = ({
         </div>
       </div>
       <LibraryListView
-        tracks={detailTracks}
+        tracks={listTracks}
         browseMode="song"
         onOpenAlbum={() => undefined}
         onOpenArtist={() => undefined}
         onPlayTrack={onPlayTrack}
         offlineRootIds={offlineRootIds}
+        folderOnlyIds={folderOnlyIds}
       />
-      {strayTracks.length > 0 && (
-        <div className="library-detail__strays">
-          <h3 className="library-detail__strays-heading">
-            {t('library.alsoInFolder', { count: strayTracks.length })}
-          </h3>
-          <LibraryListView
-            tracks={strayTracks}
-            browseMode="song"
-            onOpenAlbum={() => undefined}
-            onOpenArtist={() => undefined}
-            onPlayTrack={onPlayTrack}
-            offlineRootIds={offlineRootIds}
-          />
-        </div>
-      )}
     </div>
   );
 };

@@ -6,6 +6,52 @@ actions menu opens it again any time.
 
 ---
 
+## 1.5.0
+
+FluidEQ 1.5 adds a music and video library. The app could already shape whatever
+your PC was playing and open other people's media in the Media tab; it could not
+see the music sitting on your own drives. Now it can.
+
+### New
+
+- **A Library tab that reads your folders.** Add a folder — or drop one on the
+  tab — and FluidEQ walks it for music and video: MP3, WAV, OGG, FLAC, M4A,
+  Opus, AAC and more, alongside MP4, WebM and the rest. Tags, cover art,
+  durations and bitrates are read into an index that is remembered between runs,
+  and a rescan re-reads only what actually changed.
+- **Everything shows up immediately.** Files appear the moment the folder is
+  walked, titled from their filenames and grouped by the folder they sit in,
+  dimmed until their details arrive. The scan then fills in the real tags and
+  artwork behind them, so a large library is usable while it is still being read
+  instead of blank until it finishes.
+- **Four ways to browse, three ways to look.** Album, artist, song or video,
+  each as a dense sortable list, a grid of covers, or a Cover Flow you sweep
+  through with the wheel, a drag or the arrow keys. Click a column to sort by
+  it, click again to reverse, and both choices are remembered.
+- **A player that does not stop when you look away.** Double-click a song and
+  whatever you were looking at becomes the queue, with shuffle, repeat and a
+  transport at the foot of the window that stays there on every tab. Videos play
+  in the tab with a full-screen control of their own.
+- **Cover art without asking anyone.** The file's own embedded picture, or a
+  `cover.jpg` beside it, or a tile drawn from the album's name. Nothing is
+  fetched from the internet and no album name leaves the machine.
+
+### Fixed and honest about
+
+- A format Chromium cannot decode — MKV, AVI, WMA — is listed and marked rather
+  than playing as a black rectangle.
+- A folder on a drive that is not plugged in keeps its songs and dims them.
+  Unplugging a drive never empties a library, and neither does stopping a scan
+  part-way through.
+- An album that does not account for every file in its folder lists the rest
+  underneath it, instead of quietly leaving them out.
+- A file whose tags cannot be read still appears, under its filename, and says
+  that its tags were the problem rather than leaving you to guess.
+- Songs that come with their own lyrics stay out of the library and are counted
+  where they went: they belong to the Karaoke tab.
+
+---
+
 ## 1.4.0
 
 FluidEQ 1.4 turns the Karaoke Maker into a complete local production studio.

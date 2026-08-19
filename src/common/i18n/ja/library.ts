@@ -87,7 +87,8 @@ const library: Partial<Dictionary> = {
 
   'library.back': '戻る',
 
-  'library.alsoInFolder': 'このフォルダー内の他のファイル（{count}）',
+  'library.alsoInFolder':
+    'このフォルダー内にありますが、このアルバムには含まれません',
   'library.play': '再生',
   'library.pause': '一時停止',
   'library.stop': '停止',

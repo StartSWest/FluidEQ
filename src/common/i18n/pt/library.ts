@@ -86,7 +86,7 @@ const library: Partial<Dictionary> = {
 
   'library.back': 'Voltar',
 
-  'library.alsoInFolder': 'Também nesta pasta ({count})',
+  'library.alsoInFolder': 'Nesta pasta, não neste álbum',
   'library.play': 'Reproduzir',
   'library.pause': 'Pausar',
   'library.stop': 'Parar',

@@ -53,9 +53,27 @@ interface ILibraryListViewProps {
    * column or a reversal of the current one — this view only reports the
    * press. */
   onSort?: (key: TLibrarySort) => void;
+  /** Rows that share the open album's folder without belonging to the album.
+   * Listed in the same run rather than a table of their own, tagged so the
+   * distinction is visible without splitting the screen in two. */
+  folderOnlyIds?: ReadonlySet<string>;
+  /** Break the song list into a heading per folder. Off by default: a library
+   * browsed by album has no use for it, and a folder heading above every row
+   * would be noise rather than structure. */
+  groupByFolder?: boolean;
 }
 
 const NO_OFFLINE_ROOTS: ReadonlySet<string> = new Set();
+const NO_FOLDER_ONLY: ReadonlySet<string> = new Set();
+
+/** The directory a file sits in, by name alone — the whole path would be a
+ * heading nobody can read. Splits on both separators: a path arrives as
+ * Windows text but nothing guarantees every one was written with a backslash. */
+const folderLabel = (filePath: string): string => {
+  const normalised = filePath.replace(/\\/g, '/');
+  const parts = normalised.split('/').filter(Boolean);
+  return parts.length > 1 ? parts[parts.length - 2] : normalised;
+};
 
 /** The five column headers this view ever shows, keyed by the existing
  * `library.column.*` translation each draws from — never a computed key,
@@ -144,6 +162,8 @@ const LibraryListView = ({
   sort,
   sortDirection,
   onSort,
+  folderOnlyIds = NO_FOLDER_ONLY,
+  groupByFolder = false,
 }: ILibraryListViewProps) => {
   const { t } = useTranslation();
   const bodyRef = useRef<HTMLDivElement | null>(null);
@@ -511,7 +531,28 @@ const LibraryListView = ({
         {columnHeader('length')}
       </span>
     </>,
-    tracks.map((track) => {
+    tracks.flatMap((track, trackIndex) => {
+      // A heading whenever the folder changes, and only when asked for. The
+      // list is already in whatever order the sort chose, so this labels runs
+      // rather than reordering anything — turning it on while sorted by title
+      // gives one heading per row, which is the honest answer to a question
+      // that does not really make sense, not something to prevent.
+      const folderHeading =
+        groupByFolder &&
+        (trackIndex === 0 ||
+          folderLabel(tracks[trackIndex - 1].path) !==
+            folderLabel(track.path)) ? (
+          <div
+            key={`folder-${track.id}`}
+            role="row"
+            className="library-list__folder-heading"
+          >
+            <span role="cell">
+              <MenuIcon name="folder" className="library-list__badge-icon" />
+              <span>{folderLabel(track.path)}</span>
+            </span>
+          </div>
+        ) : undefined;
       const activate = () => onPlayTrack(track.id);
       // Spec §10: a root missing at rescan is marked offline and its tracks
       // are "kept and dimmed — never deleted", not silently unplayable.
@@ -529,7 +570,7 @@ const LibraryListView = ({
       ]
         .filter(Boolean)
         .join(' ');
-      return (
+      const row = (
         <div
           key={track.id}
           role="row"
@@ -616,6 +657,20 @@ const LibraryListView = ({
                   />
                 </span>
               )}
+              {/* Shares the open album's folder but is not part of the
+                  album. Marked rather than separated out, so the list stays
+                  one list and the distinction is still visible. */}
+              {folderOnlyIds.has(track.id) && (
+                <span
+                  className="library-list__badge library-list__badge--folder"
+                  title={t('library.alsoInFolder')}
+                >
+                  <MenuIcon
+                    name="folder"
+                    className="library-list__badge-icon"
+                  />
+                </span>
+              )}
             </span>
           </span>
           <span role="cell" className="library-list__col">
@@ -632,6 +687,7 @@ const LibraryListView = ({
           </span>
         </div>
       );
+      return folderHeading ? [folderHeading, row] : [row];
     }),
     <AnchoredMenu
       anchor={trackMenu?.anchor ?? null}

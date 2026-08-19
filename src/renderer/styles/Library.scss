@@ -1140,21 +1140,34 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // bonus disc, a stray single, a live take tagged differently. Kept visibly
 // apart rather than merged in, since merging them would be a different lie
 // from hiding them.
-.library-detail__strays {
-  display: flex;
-  min-height: 0;
-  flex: 1 1 auto;
-  flex-direction: column;
-  margin-top: $spacing-m;
-  padding-top: $spacing-s;
-  border-top: 1px dashed rgba($secondary-light, 0.22);
-}
 
-.library-detail__strays-heading {
-  margin: 0 0 $spacing-s;
+// A folder's name over the run of rows that came from it, when the list is
+// asked to group that way. Quiet: it is a label on the rows, not a control.
+.library-list__folder-heading {
+  display: flex;
+  align-items: center;
+  padding: 10px $spacing-s 4px;
   color: $text-faint;
-  font-size: 0.66rem;
+  font-size: 0.64rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
+
+  > span {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+  }
+
+  svg {
+    flex: 0 0 auto;
+  }
+}
+
+// The tag on a row that shares the open album's folder without being part of
+// the album. Same quiet treatment as the pending badge — information, not a
+// problem.
+.library-list__badge--folder {
+  color: $text-faint;
 }

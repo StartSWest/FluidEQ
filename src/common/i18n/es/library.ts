@@ -87,7 +87,7 @@ const library: Partial<Dictionary> = {
 
   'library.back': 'Atrás',
 
-  'library.alsoInFolder': 'También en esta carpeta ({count})',
+  'library.alsoInFolder': 'En esta carpeta, no en este álbum',
   'library.play': 'Reproducir',
   'library.pause': 'Pausar',
   'library.stop': 'Detener',
