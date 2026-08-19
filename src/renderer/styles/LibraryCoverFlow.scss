@@ -43,11 +43,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   outline: none;
-  // Generous next to a 160px cover ($library-coverflow-cover in the block
-  // below): close enough that the rotated sides read as turned rather than
-  // squashed flat, far enough that they do not fisheye at the row's own
-  // edges.
-  perspective: 1200px;
+  // The box every measurement below is taken from — see `--cover-flow-size`.
+  container-type: size;
+  container-name: coverflow;
+  // Proportional to the stage rather than a fixed 1200px, which was picked
+  // when a cover was always 160 wide. At three times that size a fixed
+  // perspective flattens the fan into a strip of parallelograms: the vanishing
+  // point has to recede with the covers or the illusion goes with it.
+  perspective: 240cqh;
 
   &:focus-visible {
     @include focus-ring;
@@ -64,31 +67,85 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transform-style: preserve-3d;
 }
 
-// `LibraryCoverArt`'s own `--cover` size (the drill-in header's), restated
-// here rather than a fourth size invented for this view. Nothing enforces
-// the two staying equal — `.library-cover-art--cover` in `Library.scss` is
-// its own literal 160px — so if that one ever moves, this one has to move
-// with it.
-$library-coverflow-cover: 160px;
-
+/**
+ * How wide one cover is, and the unit everything else here is expressed in.
+ *
+ * It was a flat 160px, borrowed from the drill-in header's cover, and on a
+ * 1900x1150 stage that put thirteen postage stamps in the middle of an
+ * otherwise empty page. A carousel is the one view whose whole job is to fill
+ * the space it is given.
+ *
+ * Sized off the stage: the smaller of a share of its height (the cover is
+ * square, and the reflection under it wants room too) and a share of its
+ * width (six covers either side still have to fit). Clamped at both ends —
+ * below 150 the art is unreadable, above 420 a single album takes the whole
+ * window and the fan stops being a fan.
+ *
+ * `--cover-flow-size` is also read from JavaScript's side of the geometry:
+ * `coverFlowTransform` builds its `translateZ` as a `calc()` against this, so
+ * depth stays proportional at every window size.
+ */
 .library-coverflow__cover {
+  // The width cap is not taste either: the whole fan measures about 5.2 cover
+  // widths across (measured in the running window — the perspective pulls the
+  // far ends in, so it is well under the 6.6 the raw step would give), and it
+  // has to fit a stage that is 6 to 8 covers wide. 17.5cqw keeps the row
+  // inside the frame at every window this app is usable at; at 420px it ran
+  // 111% of the stage and the ends were clipped off the sides.
+  --cover-flow-size: clamp(140px, min(36cqh, 17.5cqw), 380px);
+
   position: absolute;
   top: 50%;
   left: 50%;
   display: grid;
-  width: $library-coverflow-cover;
+  width: var(--cover-flow-size);
   // Half the art's own size, so the square itself sits centred on the
   // stage; the title and subtitle below it are allowed to hang past that
-  // centre rather than being folded into the same measurement. `calc()`
-  // rather than Sass's own `/`, which `sass` now deprecates for division.
-  margin: calc(#{$library-coverflow-cover} / -2) 0 0
-    calc(#{$library-coverflow-cover} / -2);
+  // centre rather than being folded into the same measurement.
+  margin: calc(var(--cover-flow-size) / -2) 0 0
+    calc(var(--cover-flow-size) / -2);
   justify-items: center;
-  gap: $spacing-xxs;
+  gap: $spacing-xs;
   cursor: pointer;
-  transition: transform $motion-base $ease-out;
+  // Slightly longer than `$motion-base` and on a curve with a little
+  // overshoot: this is the one motion in the app that is the feature rather
+  // than the polish on it, and a linear-feeling slide between two positions
+  // reads as a slideshow. `transform` and `translate` are listed separately
+  // because they are separate properties here — see `.is-centre`.
+  transition:
+    transform 320ms cubic-bezier(0.22, 0.9, 0.24, 1),
+    translate 320ms cubic-bezier(0.22, 0.9, 0.24, 1),
+    scale 320ms cubic-bezier(0.22, 0.9, 0.24, 1),
+    opacity 260ms $ease-out,
+    filter 260ms $ease-out;
+
+  // The row falls away towards its edges instead of running to the frame at
+  // full strength — the far covers are context, not choices. Desaturated as
+  // well as dimmed, so the centre is the only cover with its real colour.
+  &:not(.is-centre) {
+    opacity: 0.78;
+    filter: saturate(0.72) brightness(0.82);
+  }
+
+  // Pointing at a side cover previews it: it brightens and steps forward a
+  // little, which is the only affordance saying the row can be steered by
+  // clicking rather than only by scrolling.
+  &:not(.is-centre):hover {
+    opacity: 1;
+    filter: saturate(1) brightness(1);
+    translate: 0 0 calc(var(--cover-flow-size) * 0.06);
+  }
 
   &.is-centre {
+    // Composed with the inline `transform`, not part of it: `translate` and
+    // `scale` are their own properties in Chromium and are applied before it,
+    // so `coverFlowTransform` stays a pure description of position and this
+    // stays a description of emphasis. The forward lift is what guarantees
+    // the centre sleeve is in front of its neighbours' near edges no matter
+    // how the depth ratio is tuned.
+    translate: 0 0 calc(var(--cover-flow-size) * 0.08);
+    scale: 1.04;
+
     .library-coverflow__title {
       color: $text-primary;
     }
@@ -99,20 +156,104 @@ $library-coverflow-cover: 160px;
   position: relative;
   display: block;
   width: 100%;
+  // Room under the sleeve for the reflection to fall into.
+  //
+  // `-webkit-box-reflect` paints outside the element's box and takes no
+  // layout space at all, so the title underneath was being drawn straight on
+  // top of the mirrored artwork — the smeared band under the row. This
+  // reserves roughly the height the reflection actually reads at, which is
+  // where the mask below has faded out, so the label sits clear of it.
+  margin-bottom: calc(var(--cover-flow-size) * 0.26);
   // Chromium's own reflection, not a second rendered copy: the compositor
   // mirrors the pixels already on screen, so there is no extra `<img>` and
   // nothing new for the art cache to fetch. Electron ships Chromium only, so
   // the vendor prefix is not a portability risk here.
-  -webkit-box-reflect: below 4px
-    linear-gradient(to bottom, rgba($black, 0.32), transparent 60%);
+  //
+  // Weaker and much shorter than it was. At `0.32` fading to nothing at 60%
+  // it mirrored two-thirds of the sleeve at a third of full strength, which
+  // on a wall of thirteen covers is a second, upside-down wall competing
+  // with the first. A reflection is meant to say "these are standing on
+  // something", and 22% dying out by a quarter of the way down says it.
+  //
+  // The gap scales with the cover for the same reason the depth does: 4px
+  // under a 160px cover is a seam, under a 380px one it is a join.
+  -webkit-box-reflect: below calc(var(--cover-flow-size) * 0.015)
+    linear-gradient(to bottom, rgba($black, 0.22), transparent 26%);
+
+  // `LibraryCoverArt size="cover"` is a literal 160px square — the drill-in
+  // header's size, and the reason the carousel stayed small no matter what
+  // this file did to the box around it. Overridden to the cover's own width
+  // here, and only here; the drill-in header keeps its 160.
+  .library-cover-art--cover {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1;
+    border-radius: calc(var(--cover-flow-size) * 0.035);
+    // A sleeve, not a flat square: a hairline along the top-left edge for the
+    // light, a drop shadow underneath for the distance from the stage floor.
+    box-shadow:
+      0 calc(var(--cover-flow-size) * 0.06) calc(var(--cover-flow-size) * 0.13)
+        rgba($black, 0.55),
+      0 0 0 1px rgba($white, 0.07) inset;
+    transition: box-shadow 260ms $ease-out;
+  }
+
+  // The generated initials tile scales with the sleeve rather than staying at
+  // the 2.4rem the drill-in header wants.
+  .library-cover-art__tile {
+    font-size: calc(var(--cover-flow-size) * 0.26);
+  }
+}
+
+// *** The label ****************************************************************
+//
+// Only the centre cover is named.
+//
+// Every cover carried its title and artist, and at any spacing tight enough
+// to look like a carousel that meant thirteen labels drawn over one another
+// in an unreadable band beneath the row — the single worst thing about this
+// view. The sides are already identified by their artwork; the one the reader
+// has actually selected is the one that needs words. This is also what let
+// the covers spread out: the labels were the reason they could not.
+//
+// `visibility` as well as opacity, so a hidden title cannot be read out or
+// hit-tested from behind the cover in front of it.
+.library-coverflow__label {
+  display: grid;
+  max-width: calc(var(--cover-flow-size) * 1.4);
+  justify-items: center;
+  gap: 2px;
+  opacity: 0;
+  visibility: hidden;
+  // Rises into place rather than blinking on, and a beat behind the covers'
+  // own 320ms so the name arrives after the sleeve it belongs to has stopped
+  // moving — reading a title that is still sliding is what made the old
+  // version feel unsettled.
+  translate: 0 6px;
+  transition:
+    opacity 200ms $ease-out 140ms,
+    translate 200ms $ease-out 140ms,
+    visibility 0s linear 340ms;
+
+  .library-coverflow__cover.is-centre & {
+    opacity: 1;
+    visibility: visible;
+    translate: 0 0;
+    transition:
+      opacity 200ms $ease-out 140ms,
+      translate 200ms $ease-out 140ms,
+      visibility 0s linear 0s;
+  }
 }
 
 .library-coverflow__title {
   @include truncate;
   max-width: 100%;
   color: $text-muted;
-  font-size: 0.76rem;
-  font-weight: 700;
+  // Scales with the cover, within reason: a fixed 0.76rem under a 420px
+  // sleeve reads as a caption that lost its picture.
+  font-size: clamp(0.78rem, calc(var(--cover-flow-size) * 0.052), 1.15rem);
+  font-weight: 750;
   text-align: center;
 }
 
@@ -120,15 +261,23 @@ $library-coverflow-cover: 160px;
   @include truncate;
   max-width: 100%;
   color: $text-faint;
-  font-size: 0.64rem;
+  font-size: clamp(0.66rem, calc(var(--cover-flow-size) * 0.04), 0.9rem);
   text-align: center;
 }
 
 @media (prefers-reduced-motion: reduce) {
   // The layout stays — covers still move to a new centre on every input —
   // only the sweep between positions is gone, same convention as
-  // `SidebarSection.scss` and `VideoBrowser.scss`.
-  .library-coverflow__cover {
+  // `SidebarSection.scss` and `VideoBrowser.scss`. The label keeps its
+  // `visibility` switch, which is not motion: without it the hidden titles
+  // would come back and the band of overlapping text with them.
+  .library-coverflow__cover,
+  .library-coverflow__art .library-cover-art--cover {
     transition: none;
+  }
+
+  .library-coverflow__label {
+    translate: none;
+    transition: visibility 0s;
   }
 }

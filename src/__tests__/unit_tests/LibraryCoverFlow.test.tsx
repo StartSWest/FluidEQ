@@ -74,9 +74,24 @@ describe('the cover flow geometry', () => {
     expect(coverFlowTransform(1)).toContain('rotateY(60deg)');
   });
 
-  it('pushes distant covers back rather than only sideways', () => {
-    // Without translateZ the row is a flat fan. The depth is the effect.
-    expect(coverFlowTransform(2)).toMatch(/translateZ\(-\d/);
+  it('pushes distant covers back, further the further out they are', () => {
+    // Without translateZ the row is a flat fan; without the depth GROWING
+    // with distance every side cover sits on one plane, which is a different
+    // flat fan. The depth is a `calc()` against `--cover-flow-size` because
+    // the cover sizes itself off the stage — see `coverFlowTransform`.
+    const depthOf = (offset: number): number => {
+      const match =
+        /translateZ\(calc\(var\(--cover-flow-size\) \* -([\d.]+)\)\)/.exec(
+          coverFlowTransform(offset),
+        );
+      return match ? Number(match[1]) : Number.NaN;
+    };
+    expect(depthOf(1)).toBeGreaterThan(0);
+    expect(depthOf(3)).toBeGreaterThan(depthOf(1));
+    // Both sides recede. A sign that leaked into the depth would pull the
+    // left half of the row towards the viewer instead.
+    expect(depthOf(-3)).toBe(depthOf(3));
+    expect(coverFlowTransform(0)).toContain('translateZ(0)');
   });
 });
 

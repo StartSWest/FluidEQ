@@ -48,10 +48,35 @@ import '../styles/LibraryCoverFlow.scss';
 export const COVER_FLOW_NEIGHBOURS = 6;
 /** Degrees a side cover is turned towards the middle. */
 const COVER_FLOW_ANGLE = 60;
-/** Horizontal step, in cover widths, between neighbours. */
-const COVER_FLOW_STEP = 0.42;
-/** How far back each step pushes a cover, in pixels. */
-const COVER_FLOW_DEPTH = 60;
+/**
+ * Horizontal step, in cover widths, between neighbours.
+ *
+ * Widened from 0.42 once only the centre cover keeps its label: at the old
+ * spacing thirteen titles were drawn on top of one another in a band under
+ * the row, and tightening the covers was the only thing holding that band
+ * together. With the sides silent the row can breathe, and the fan reaches
+ * the edges of a stage it used to leave three-quarters empty.
+ */
+const COVER_FLOW_STEP = 0.55;
+/**
+ * How far back each step pushes a cover, as a fraction of the cover's own
+ * width — not a pixel count.
+ *
+ * Pixels were wrong the moment the cover started sizing itself off the stage:
+ * a fixed 60px behind a 160px cover is a deep row, and behind a 420px one it
+ * is a flat wall. Expressed against the cover, the perspective holds at every
+ * window size.
+ *
+ * The value has a floor that geometry, not taste, decides. A cover of width
+ * `W` turned `COVER_FLOW_ANGLE` about its own centre puts its near edge at
+ * `+(W/2)·sin(60°) = 0.433W` in front of wherever that centre sits. So a
+ * first neighbour parked at `-0.42W` has its leading edge at `+0.013W` —
+ * in front of the centre cover's own plane, which is why the sides were seen
+ * slicing through the middle of the centre sleeve as two vertical seams.
+ * Anything above `0.433` clears it; `0.62` clears it with room, and reads as
+ * a deeper row into the bargain.
+ */
+const COVER_FLOW_DEPTH_RATIO = 0.62;
 
 /** Wheel distance, in the units a mouse notch reports, that moves the centre
  * by one cover. A trackpad's much smaller per-frame deltas simply accumulate
@@ -77,11 +102,17 @@ const COVER_FLOW_DRAG_CLICK_TOLERANCE = 6;
  * facing the viewer square-on by a sign error's worth of nothing — better to
  * say plainly that it isn't turned at all.
  *
+ * The depth is a `calc()` against `--cover-flow-size`, the custom property
+ * `LibraryCoverFlow.scss` sizes the covers from. It has to be: the cover is
+ * sized in container units now, so its width is not known until layout, and
+ * a depth in fixed pixels would read as a deep row on a small window and a
+ * flat wall on a large one.
+ *
  * `rotateY(direction * COVER_FLOW_ANGLE)`, not the negation, is what curls
  * the row inward rather than peeling it outward. CSS's Y-rotation matrix
  * sends a point at local `(x, 0, 0)` to `(x·cosθ, 0, −x·sinθ)`, and positive
- * z is toward the viewer (the same convention `COVER_FLOW_DEPTH` uses:
- * `translateZ` goes *negative* to push a cover *away*). A cover to the right
+ * z is toward the viewer (the same convention the depth uses: `translateZ`
+ * goes *negative* to push a cover *away*). A cover to the right
  * of centre (`direction = 1`) has its centre-facing edge on its own local
  * left, `x = −1`; at `θ = +60deg` that edge maps to `z = −(−1)·sin60° > 0` —
  * toward the viewer — while its outer right edge recedes, which is the row
@@ -95,9 +126,10 @@ export const coverFlowTransform = (offset: number): string => {
   }
   const direction = offset > 0 ? 1 : -1;
   const distance = Math.abs(offset);
+  const depth = (distance * COVER_FLOW_DEPTH_RATIO).toFixed(2);
   return [
     `translateX(${offset * COVER_FLOW_STEP * 100}%)`,
-    `translateZ(-${distance * COVER_FLOW_DEPTH}px)`,
+    `translateZ(calc(var(--cover-flow-size) * -${depth}))`,
     `rotateY(${direction * COVER_FLOW_ANGLE}deg)`,
   ].join(' ');
 };
@@ -476,10 +508,14 @@ const LibraryCoverFlow = ({
                     </span>
                   )}
                 </span>
-                <span className="library-coverflow__title">{title}</span>
-                <small className="library-coverflow__subtitle">
-                  {subtitle}
-                </small>
+                {/* Wrapped so the pair can be hidden together on every cover
+                    but the centre one — see `.library-coverflow__label`. */}
+                <span className="library-coverflow__label">
+                  <span className="library-coverflow__title">{title}</span>
+                  <small className="library-coverflow__subtitle">
+                    {subtitle}
+                  </small>
+                </span>
               </div>
             );
           })}
