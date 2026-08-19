@@ -32,6 +32,7 @@ const library: Partial<Dictionary> = {
 
   'library.add': 'フォルダーを追加',
   'library.rescan': '再スキャン',
+  'library.rescan.force': '強制的に再スキャン',
   'library.search': 'ライブラリを検索',
   'library.searchPlaceholder': '曲、アーティスト、アルバムを検索',
 
@@ -86,6 +87,7 @@ const library: Partial<Dictionary> = {
 
   'library.play': '再生',
   'library.pause': '一時停止',
+  'library.stop': '停止',
   'library.previous': '前の曲',
   'library.next': '次の曲',
   'library.shuffle': 'シャッフル',

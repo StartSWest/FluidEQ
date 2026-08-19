@@ -32,6 +32,7 @@ const library: Partial<Dictionary> = {
 
   'library.add': 'फ़ोल्डर जोड़ें',
   'library.rescan': 'फिर से स्कैन करें',
+  'library.rescan.force': 'पुनः स्कैन करने के लिए बाध्य करें',
   'library.search': 'लाइब्रेरी में खोजें',
   'library.searchPlaceholder': 'गाने, कलाकार, एल्बम खोजें',
 
@@ -85,6 +86,7 @@ const library: Partial<Dictionary> = {
 
   'library.play': 'चलाएँ',
   'library.pause': 'रोकें',
+  'library.stop': 'बंद करें',
   'library.previous': 'पिछला',
   'library.next': 'अगला',
   'library.shuffle': 'शफ़ल',

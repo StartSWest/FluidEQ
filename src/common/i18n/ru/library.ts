@@ -32,6 +32,7 @@ const library: Partial<Dictionary> = {
 
   'library.add': 'Добавить папку',
   'library.rescan': 'Пересканировать',
+  'library.rescan.force': 'Принудительное сканирование',
   'library.search': 'Поиск по библиотеке',
   'library.searchPlaceholder': 'Поиск песен, исполнителей, альбомов',
 
@@ -85,6 +86,7 @@ const library: Partial<Dictionary> = {
 
   'library.play': 'Воспроизвести',
   'library.pause': 'Пауза',
+  'library.stop': 'Стоп',
   'library.previous': 'Предыдущий',
   'library.next': 'Следующий',
   'library.shuffle': 'Перемешать',

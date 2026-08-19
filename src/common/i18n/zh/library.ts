@@ -31,6 +31,7 @@ const library: Partial<Dictionary> = {
 
   'library.add': '添加文件夹',
   'library.rescan': '重新扫描',
+  'library.rescan.force': '强制重新扫描',
   'library.search': '搜索媒体库',
   'library.searchPlaceholder': '搜索歌曲、歌手、专辑',
 
@@ -83,6 +84,7 @@ const library: Partial<Dictionary> = {
 
   'library.play': '播放',
   'library.pause': '暂停',
+  'library.stop': '停止',
   'library.previous': '上一首',
   'library.next': '下一首',
   'library.shuffle': '随机播放',

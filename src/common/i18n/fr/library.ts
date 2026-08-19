@@ -32,6 +32,7 @@ const library: Partial<Dictionary> = {
 
   'library.add': 'Ajouter un dossier',
   'library.rescan': 'Analyser à nouveau',
+  'library.rescan.force': 'Forcer une nouvelle analyse',
   'library.search': 'Rechercher dans la bibliothèque',
   'library.searchPlaceholder': 'Rechercher des chansons, artistes, albums',
 
@@ -86,6 +87,7 @@ const library: Partial<Dictionary> = {
 
   'library.play': 'Lire',
   'library.pause': 'Pause',
+  'library.stop': 'Arrêter',
   'library.previous': 'Précédent',
   'library.next': 'Suivant',
   'library.shuffle': 'Aléatoire',

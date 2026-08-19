@@ -30,6 +30,7 @@ const library = {
 
   'library.add': 'Add folder',
   'library.rescan': 'Rescan',
+  'library.rescan.force': 'Force rescan',
   'library.search': 'Search the library',
   'library.searchPlaceholder': 'Search songs, artists, albums',
 
@@ -83,6 +84,7 @@ const library = {
 
   'library.play': 'Play',
   'library.pause': 'Pause',
+  'library.stop': 'Stop',
   'library.previous': 'Previous',
   'library.next': 'Next',
   'library.shuffle': 'Shuffle',
