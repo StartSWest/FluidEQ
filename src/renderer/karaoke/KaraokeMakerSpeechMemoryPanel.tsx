@@ -152,6 +152,14 @@ const KaraokeMakerSpeechMemoryPanel = ({
       bytes: native?.separation.bytes ?? 0,
     },
   ];
+  // Answered here rather than waited for. Main is told to let the weights go
+  // and says nothing back; the only thing that would notice is the next poll,
+  // up to four seconds later, and until it lands the release button is still
+  // on screen offering to free what was just freed.
+  //
+  // Residency is all that is cleared. The weights stay on disk, so the byte
+  // figures are still true and the rows drop from resident to cached rather
+  // than to missing — wiping the sizes would claim the release deleted files.
   const releaseEverything = () => {
     window.electron?.ipcRenderer.releaseKaraokeSeparationModel?.();
     window.electron?.ipcRenderer.releaseKaraokePitchModel?.();
