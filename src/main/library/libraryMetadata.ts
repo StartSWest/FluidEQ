@@ -16,8 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import fs from 'fs';
-import { parseBuffer } from 'music-metadata';
+import { parseFile } from 'music-metadata';
 import { ILibraryTrack } from '../../common/library/types';
 import {
   libraryBaseName,
@@ -91,11 +90,18 @@ const finiteOrUndefined = (
  * Reads the tags and stream facts off a single media file.
  *
  * Never throws: a scan walks thousands of files, and one that will not parse
- * must not end it. The read is not streamed — `fs.promises.readFile` loads
- * the whole file before handing it to `parseBuffer` — because this project
- * has a documented crash from `fetch` plus `pipeline` in Node's HTTP parser,
- * and nothing a music library holds is large enough for streaming to pay for
- * the risk.
+ * must not end it. Reads through `parseFile`, whose `strtok3` tokenizer seeks
+ * and reads only the byte ranges a format's tags actually live in, rather
+ * than loading the whole file into memory first — this library indexes video
+ * beside audio, and a 2-4GB film read wholesale was a 2-4GB allocation per
+ * file, with anything past Node's buffer ceiling throwing and landing as
+ * `hasMetadataError` with no duration and no art. (An earlier version of this
+ * function read the whole file with `fs.promises.readFile` and cited this
+ * project's documented `fetch`-plus-`pipeline` crash as the reason not to
+ * stream it — that rule is about backpressure in Node's HTTP parser and has
+ * nothing to do with `parseFile`'s synchronous, local, random-access reads;
+ * the citation was a misapplied rule, not a real constraint on this
+ * function.)
  *
  * `readFailed` comes back true only through the catch below, so the scanner
  * can set `hasMetadataError` on the track for a real failure without
@@ -105,8 +111,7 @@ export const readLibraryTags = async (
   filePath: string,
 ): Promise<ILibraryFileFacts> => {
   try {
-    const buffer = await fs.promises.readFile(filePath);
-    const { common, format } = await parseBuffer(buffer, { path: filePath });
+    const { common, format } = await parseFile(filePath);
     const picture = common.picture?.[0];
     return {
       title: sanitizeText(common.title),
