@@ -3171,44 +3171,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     position: fixed;
     z-index: 96;
     border-radius: 0;
-    // A DIFFERENT NAME FROM THE ENTRANCE ABOVE, WHICH IS THE WHOLE MECHANISM.
+    // NOTHING HERE MAY TOUCH `animation`, AND THAT IS THE FIX.
     //
-    // Toggling full screen swaps this element between `absolute` and `fixed`,
-    // so it changes containing block, size and corner radius in one frame —
-    // and the canvas inside re-renders against new bounds. That reads as a
-    // flash because nothing covers the moment between the old layout and the
-    // new one.
+    // This surface is the only opaque thing between the editor and the player:
+    // the stage, the lyrics and the transport are its siblings, sitting
+    // directly underneath it at a lower z-index. So any fade *of this element*
+    // is not a curtain over the mode change — it is the curtain being pulled
+    // open. An earlier attempt gave the two modes different animation names
+    // precisely so the fade would restart on every toggle, and measured in the
+    // running window it took the editor to opacity 0 in both directions and
+    // held the player fully visible through it for a quarter of a second.
     //
-    // A transition cannot help: `position` is not animatable and the jump is
-    // the point. What can is restarting an animation, and an animation only
-    // restarts when its *name* changes. Giving the two modes different names
-    // means entering fades in on this one and leaving fades in on the other,
-    // so the swap happens behind a curtain in both directions.
+    // The name has to stay identical across both modes, because an animation
+    // restarts exactly when its name changes. Leaving `animation` undeclared
+    // here means the entrance above keeps running its course once, on mount,
+    // and a mode change cannot rewind it. The box jumps — `position` is not
+    // animatable and the window is going full screen underneath it anyway —
+    // but it jumps opaque, so nothing behind it is ever on screen.
     //
-    // Opacity alone, deliberately. The surface is already changing size; a
-    // translate on top of that would be two movements disagreeing about where
-    // the editor is going.
-    //
-    // 260ms, and the length is load-bearing rather than taste. The canvas is
-    // resized by a ResizeObserver, which fires *after* the layout it is
-    // observing has already been laid out — so the editor's own repaint lands
-    // a frame or two behind the mode change. A fade shorter than that finishes
-    // while the canvas is still blank and puts the flash back on screen at
-    // full opacity. This has to outlast the repaint, not merely start with it.
-    animation: karaoke-maker-mode-enter 260ms cubic-bezier(0.2, 0.8, 0.2, 1)
-      both;
-
-    // The canvas fades on its own as well as inside the surface.
-    //
-    // The assembly cascade gives this band `rise-in` at a 235ms delay, which is
-    // right when the Maker is being built and wrong here: on a mode change it
-    // would hold the editing surface invisible for most of the fade above and
-    // then slide it, so the one thing somebody is looking at arrives last and
-    // moving. A plain fade on the same clock replaces it while full screen.
-    .karaoke-maker__canvas-host {
-      animation: karaoke-maker-mode-enter 260ms cubic-bezier(0.2, 0.8, 0.2, 1)
-        both;
-    }
+    // What still needs covering is the canvas, which is a bitmap and cannot
+    // reflow; that is handled on the canvas itself, further down.
   }
 }
 
@@ -3248,20 +3230,65 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   @include animate(rise-in, $motion-base, $ease-out, 190ms);
 }
 
-// A fade rather than a delayed rise, and short rather than staged.
-//
-// This carried the assembly cascade's 235ms delay, which is right for a Maker
-// being built and wrong for one changing mode — and the same rule serves both,
-// because CSS cannot tell "just opened" from "just left full screen". On the
-// exit from full screen it held the editing surface blank for a quarter of a
-// second and then slid it in, which is the flash the fade above was added to
-// remove, arriving from the other direction.
-//
-// 260ms matches the full-screen side exactly, so the two directions are the
-// same length and the canvas is covered while its ResizeObserver catches up
-// either way. The band still arrives after the header, just by less.
+// A fade rather than a delayed rise, and short rather than staged. The band
+// still arrives after the header, just by less.
 .karaoke-maker__canvas-host {
   @include animate(karaoke-maker-mode-enter, 260ms, $ease-out, 60ms);
+}
+
+// *** The one thing a mode change really does have to cover *******************
+//
+// The editor's frame is DOM and reflows cleanly at any size. The drawing is
+// not: it is a bitmap of fixed pixel dimensions, resized by a ResizeObserver
+// that fires *after* the layout it observes has been laid out. So for the
+// frame or two between the box changing size and the repaint landing, the old
+// bitmap is stretched to the new box — notes at the wrong width, the playhead
+// in the wrong place. That is the only genuine artefact in the swap.
+//
+// Fading the canvas alone covers it, and covers it *inside* the editor: the
+// host keeps its own opaque `#071727`, its border and its radius, so the band
+// holds its shape and only the drawing dissolves and comes back. The surface
+// above stays at full opacity throughout, which is what keeps the player out
+// of sight — see the note on `.is-fullscreen`.
+//
+// Two keyframes with one body, and they must stay twins. An animation only
+// restarts when its *name* changes, so the docked mode and the full-screen
+// mode each need their own name for the fade to play in both directions.
+// Collapsing them into one name is the bug this pair exists to prevent: the
+// canvas would then settle on mount and never again.
+//
+// 260ms is measured rather than chosen. The repaint lands a frame or two
+// behind the mode change, and a fade shorter than that finishes while the
+// canvas is still showing the stale bitmap — putting the artefact back on
+// screen at full opacity. It has to outlast the repaint, not merely start
+// with it.
+.karaoke-maker__canvas {
+  @include animate(karaoke-maker-canvas-settle, 260ms, $ease-out);
+}
+
+.karaoke-maker.is-fullscreen .karaoke-maker__canvas {
+  @include animate(karaoke-maker-canvas-resettle, 260ms, $ease-out);
+}
+
+@keyframes karaoke-maker-canvas-settle {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+// The twin of the above. See the comment there before changing either.
+@keyframes karaoke-maker-canvas-resettle {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .karaoke-maker-preview {
