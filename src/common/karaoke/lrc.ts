@@ -16,6 +16,8 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { karaokeMakerLineLooksLikeLabel } from './makerProject/sectionLabels';
+
 import {
   IKaraokeLine,
   IKaraokeParsedLyrics,
@@ -26,8 +28,6 @@ import {
 const LINE_TIMESTAMP = /\[(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?\]/g;
 const WORD_TIMESTAMP = /<(\d{1,3}):(\d{1,2})(?:[.:](\d{1,3}))?>/g;
 const META_TAG = /^\[([a-z]+):([^\]]*)\]\s*$/i;
-const SECTION_MARKER =
-  /^\s*\[\s*(intro|verse(?:\s+\d+)?|pre[\s-]?chorus|post[\s-]?chorus|chorus(?:\s+\d+)?|bridge|break|instrumental|interlude|solo|outro|hook|refrain|ending)\s*\]\s*$/iu;
 
 const fractionToMs = (fraction = ''): number => {
   if (!fraction) {
@@ -130,7 +130,7 @@ export const parseLrc = (contents: string): IKaraokeParsedLyrics => {
       const startMs = timestampToMs(stamp[1], stamp[2], stamp[3]) + offsetMs;
       lines.push({
         id: `lrc-${sourceIndex}-${stampIndex}-${startMs}`,
-        kind: SECTION_MARKER.test(lyricText) ? 'section' : 'lyrics',
+        kind: karaokeMakerLineLooksLikeLabel(lyricText) ? 'section' : 'lyrics',
         startMs,
         tokens: enhanced
           ? parseEnhancedTokens(lyricText, offsetMs)

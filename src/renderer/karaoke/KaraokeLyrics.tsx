@@ -19,7 +19,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import {
   KeyboardEvent as ReactKeyboardEvent,
   PointerEvent as ReactPointerEvent,
-  WheelEvent as ReactWheelEvent,
   useEffect,
   useRef,
   useState,
@@ -134,6 +133,10 @@ const KaraokeLyrics = ({
   const [manualCenterIndex, setManualCenterIndex] = useState(0);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const wheelDeltaRef = useRef(0);
+  // Held as state, not a ref: the component returns an empty shell before
+  // any lyrics exist, so a ref read once at mount is null and the wheel
+  // listener never attaches. State re-runs the effect when the node appears.
+  const [shell, setShell] = useState<HTMLDivElement | null>(null);
   const lineHitRegionsRef = useRef<ILyricHitRegion[]>([]);
   const motionStateRef = useRef<ILyricMotionState | undefined>(undefined);
   const entranceStateRef = useRef<ILyricEntranceState>({
@@ -590,19 +593,42 @@ const KaraokeLyrics = ({
     setIsFollowing(false);
   };
 
-  const onWheel = (event: ReactWheelEvent<HTMLDivElement>) => {
-    if (!event.deltaY) {
-      return;
+  // The wheel listener is attached once and must not be torn down on every
+  // render, so it reaches the current browse through a ref rather than closing
+  // over the render that created it.
+  const browseLyricsRef = useRef(browseLyrics);
+  browseLyricsRef.current = browseLyrics;
+
+  /**
+   * Wheel browsing, attached by hand because React will not do it.
+   *
+   * React registers `onWheel` at the root as a passive listener, so the
+   * `preventDefault` this needs was silently refused on every tick — the
+   * console filled with "Unable to preventDefault inside passive event
+   * listener invocation" and the page kept scrolling underneath the lyrics
+   * anyway. A listener this component owns can say `passive: false` and mean
+   * it.
+   */
+  useEffect(() => {
+    if (!shell) {
+      return undefined;
     }
-    event.preventDefault();
-    event.stopPropagation();
-    wheelDeltaRef.current += event.deltaY;
-    if (Math.abs(wheelDeltaRef.current) < WHEEL_STEP_THRESHOLD) {
-      return;
-    }
-    browseLyrics(wheelDeltaRef.current > 0 ? 1 : -1);
-    wheelDeltaRef.current = 0;
-  };
+    const onWheel = (event: WheelEvent) => {
+      if (!event.deltaY) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      wheelDeltaRef.current += event.deltaY;
+      if (Math.abs(wheelDeltaRef.current) < WHEEL_STEP_THRESHOLD) {
+        return;
+      }
+      browseLyricsRef.current(wheelDeltaRef.current > 0 ? 1 : -1);
+      wheelDeltaRef.current = 0;
+    };
+    shell.addEventListener('wheel', onWheel, { passive: false });
+    return () => shell.removeEventListener('wheel', onWheel);
+  }, [shell]);
 
   const resumeFollowing = () => {
     wheelDeltaRef.current = 0;
@@ -669,7 +695,7 @@ const KaraokeLyrics = ({
   return (
     <div
       className={`karaoke-lyrics-shell${isFollowing ? '' : ' is-browsing'}`}
-      onWheel={onWheel}
+      ref={setShell}
     >
       <canvas
         ref={canvasRef}

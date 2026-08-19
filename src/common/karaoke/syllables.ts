@@ -2,8 +2,11 @@
 
 const LATIN_VOWEL = /[aeiouà-åè-ïò-öù-üýÿāăąēĕėęěīĭįıōŏőūŭůűų]/iu;
 const CYRILLIC_VOWEL = /[аеёиоуыэюяіїє]/iu;
+// Script_Extensions, so the long-vowel mark `ー` (U+30FC) counts as kana. It
+// is Script=Common, and under `\p{Script=Katakana}` a word containing one was
+// not recognised as CJK at all.
 const CJK_OR_HANGUL =
-  /[\p{Script=Han}\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Hangul}]/u;
+  /[\p{scx=Han}\p{scx=Hiragana}\p{scx=Katakana}\p{scx=Hangul}]/u;
 const LETTER_OR_NUMBER = /[\p{L}\p{N}]/u;
 const ENGLISH_ONSET_CLUSTERS = new Set([
   'bl',

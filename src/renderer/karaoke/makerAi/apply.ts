@@ -21,7 +21,10 @@ import {
 } from '../../../common/karaoke/makerProject';
 import { upsertProvenance, WHISPER_PROVENANCE } from './audio';
 import { SWIFT_F0_PROVENANCE } from './swiftF0Notes';
-import { IKaraokeMakerTranscriptWord } from './whisperProgress';
+import {
+  IKaraokeMakerTranscriptWord,
+  IKaraokeMakerWhisperSegment,
+} from './whisperProgress';
 import type { IKaraokeMakerLicenseRecord } from '../../../common/karaoke/makerProject';
 import {
   constrainAutomaticWordTiming,
@@ -29,6 +32,16 @@ import {
   IKaraokeMakerTranscriptPlacement,
   placeTranscriptWords,
 } from './wordMatching';
+import { karaokeMakerSnapWordsToOnsets } from './voiceOnsets';
+import {
+  IKaraokeMakerVocalRest,
+  karaokeMakerLineBreaks,
+  karaokeMakerWordsInsideRests,
+} from './vocalRests';
+import {
+  karaokeMakerRepeatEdgeBreaks,
+  karaokeMakerRepeatedRuns,
+} from './lyricRepetition';
 import {
   alignLyricsBySentence,
   distributeAlignmentWordTiming,
@@ -48,6 +61,42 @@ import {
 const DIRECT_WHISPER_CONFIDENCE = 0.82;
 
 /**
+ * One transcript entry, one lyric token.
+ *
+ * The lines built below are re-tokenised from text on whitespace and then
+ * walked in step with the transcript, which silently assumes each entry holds
+ * exactly one word. Whisper does not promise that — a chunk can come back as
+ * "thank you" — and when it happens the walk shifts by one and every remaining
+ * word in the song wears its neighbour's timing. Splitting here keeps the
+ * invariant true instead of hoping for it, sharing the entry's span by letter
+ * count the way a syllable group already divides one word's.
+ */
+const splitTranscriptWordOnWhitespace = (
+  word: IKaraokeMakerTranscriptWord,
+): IKaraokeMakerTranscriptWord[] => {
+  const parts = word.text.trim().split(/\s+/u).filter(Boolean);
+  if (parts.length <= 1) {
+    return [word];
+  }
+  const weights = parts.map((part) =>
+    Math.max(1, Array.from(part.replace(/[^\p{L}\p{N}]+/gu, '')).length),
+  );
+  const total = weights.reduce((sum, weight) => sum + weight, 0);
+  const durationMs = Math.max(0, word.endMs - word.startMs);
+  let consumed = 0;
+  return parts.map((text, index) => {
+    const startMs = word.startMs + (durationMs * consumed) / total;
+    consumed += weights[index];
+    return {
+      ...word,
+      text,
+      startMs,
+      endMs: word.startMs + (durationMs * consumed) / total,
+    };
+  });
+};
+
+/**
  * Turn a transcript into the lyrics themselves, for a song that has none.
  *
  * The alignment path below deliberately treats Whisper as evidence for timing
@@ -61,10 +110,17 @@ const DIRECT_WHISPER_CONFIDENCE = 0.82;
 export const applyTranscriptAsLyrics = (
   project: IKaraokeMakerProject,
   transcript: readonly IKaraokeMakerTranscriptWord[],
+  rests: readonly IKaraokeMakerVocalRest[] = [],
+  segments: readonly IKaraokeMakerWhisperSegment[] = [],
+  onsets: readonly number[] = [],
 ): IKaraokeMakerProject => {
-  const heard = [...transcript]
-    .sort((left, right) => left.startMs - right.startMs)
-    .filter((word) => word.text.trim().length > 0);
+  const heard = karaokeMakerWordsInsideRests(
+    [...transcript]
+      .sort((left, right) => left.startMs - right.startMs)
+      .filter((word) => word.text.trim().length > 0)
+      .flatMap(splitTranscriptWordOnWhitespace),
+    rests,
+  );
   if (!heard.length) {
     return project;
   }
@@ -73,27 +129,59 @@ export const applyTranscriptAsLyrics = (
   // roughly where Whisper heard the phrase, which is all a line break asks of
   // it. Reading breaths from the placed words alone merged everything the
   // placement rejected into its neighbour — one line of forty words.
-  const words = placeTranscriptWords(heard, project.audio.durationMs ?? 0);
-  // A line breaks where the singer stops, and nowhere else. 700 ms is roughly
-  // a sung breath.
+  // Whisper says which word and roughly when; the voice says exactly when.
+  // A word is moved only to an onset it can reach without overtaking its
+  // predecessor, so one that has no sound near it keeps what it had.
+  const words = karaokeMakerSnapWordsToOnsets(
+    placeTranscriptWords(heard, project.audio.durationMs ?? 0),
+    onsets,
+  );
+  // A line breaks where the singer stops, and the isolated voice is what says
+  // where that is. 700 ms between two of Whisper's own timestamps is a breath
+  // it noticed; a rest measured in the vocal stem is a breath that happened.
   //
-  // There was a third rule here, cutting a new line every nine words. Nine is
-  // not a musical quantity, so the cut landed wherever it landed: the preview
-  // read "…gotta leave some behind We all got", carrying the opening words of
-  // the next sentence because the counter ran out mid-phrase. A line that runs
-  // long is the performance being long, which is the singer's business.
+  // Both, because neither is enough alone. Whisper's gaps disappear exactly
+  // when its timestamps collapse — measured on one song, 39 words across 14.2
+  // seconds with all 38 gaps at zero and no punctuation, which is a timestamp
+  // head that stopped reporting rather than a singer who never breathed. The
+  // stem knows better and does not care what Whisper thought.
+  //
+  // A word count used to stand in for all of this, breaking every ninth word
+  // wherever the counter ran out: the preview read "…gotta leave some behind
+  // We all got", carrying the next sentence's opening words. Counting is not
+  // evidence, and there is no count here.
+  // Whisper's own utterance ends carry no dependence on the word timings — the
+  // model divided this audio itself — and a phrase the singer performs twice
+  // has edges by construction. That last one is what a song with no silence
+  // has left: a stem voiced 80% of the time, backing harmony over every gap.
+  //
+  // Every source goes through one decision. Sentence ends and audible gaps
+  // used to be tested here in the loop instead, so they escaped the merge that
+  // collapses neighbouring claims: a corroborated boundary at one word and a
+  // full stop at the next still cut twice and left a one-word line between
+  // them. Fourteen of forty-six lines came back that way.
+  const fromWords = new Set(
+    heard.flatMap((word, index) => {
+      if (index === 0) {
+        return [];
+      }
+      const previous = heard[index - 1];
+      const sentenceEnded = /[.!?…。？！]$/u.test(previous.text.trim());
+      const gap = word.startMs - previous.endMs;
+      return sentenceEnded || gap > 700 ? [index] : [];
+    }),
+  );
+  const breaks = karaokeMakerLineBreaks(
+    heard,
+    rests,
+    segments.map((segment) => segment.endMs),
+    karaokeMakerRepeatEdgeBreaks(karaokeMakerRepeatedRuns(heard), heard.length),
+    fromWords,
+  );
   const lines: IKaraokeMakerTranscriptPlacement[][] = [[]];
   words.forEach((word, index) => {
     const current = lines[lines.length - 1];
-    const previous = index > 0 ? words[index - 1] : undefined;
-    const gap = index > 0 ? heard[index].startMs - heard[index - 1].endMs : 0;
-    // A sentence end is a line end even when the singer barrels straight
-    // into the next phrase: grouping by silence alone kept stealing the next
-    // line's first word onto the previous one's tail.
-    const sentenceEnded = previous
-      ? /[.!?…。？！]$/u.test(previous.text.trim())
-      : false;
-    if (current.length && (sentenceEnded || gap > 700)) {
+    if (current.length && breaks.has(index)) {
       lines.push([word]);
     } else {
       current.push(word);

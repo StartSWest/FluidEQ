@@ -8,6 +8,10 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 */
 
+import { karaokeMakerLineLooksLikeLabel } from './sectionLabels';
+import { karaokeMakerLineTokens } from './lineTokens';
+import { splitKaraokeWordSyllables } from '../syllables';
+
 /**
  * What a Maker project is made of, and the arithmetic everything else asks.
  *
@@ -123,25 +127,35 @@ export const karaokeMakerRecordedLineContainsTime = (
   );
 };
 
-export const SECTION_MARKER =
-  /^\[\s*(intro|verse(?:\s+\d+)?|pre[\s-]?chorus|post[\s-]?chorus|chorus(?:\s+\d+)?|bridge|break|instrumental|interlude|solo|outro|hook|refrain|ending)\s*\]$/iu;
+/**
+ * Kept as a named predicate rather than a regex because it no longer is one.
+ * Callers only ever ask "is this line a label", and the answer is now a matter
+ * of shape in any language instead of a list of English section names.
+ */
+export const SECTION_MARKER = {
+  test: (text: string): boolean => karaokeMakerLineLooksLikeLabel(text),
+};
 
+/**
+ * The longest a sung word may plausibly last.
+ *
+ * This counted letters, which is a fact about spelling rather than about
+ * singing, and it punished exactly the voices worth detecting: a phrase-final
+ * "Ohhh" held six seconds was capped at 1.8 s, "I" at 1.2 s, and because one
+ * Han or Kana character is one word, *every* sustained CJK syllable was capped
+ * at 1.2 s as well. Depending on the path that either truncated the highlight
+ * — leaving the line dead for the rest of the note — or discarded the word's
+ * timing outright.
+ *
+ * Syllables are what a singer holds, so they set the ceiling. The number this
+ * exists to reject is a chunk-sized timestamp of twenty to thirty seconds, and
+ * nine seconds still refuses those while leaving room for a real held note.
+ */
 export const karaokeMakerMaximumAutomaticWordDurationMs = (
   text: string,
 ): number => {
-  const letterCount = Math.max(
-    1,
-    Array.from(text.normalize('NFKD')).filter((character) =>
-      /[\p{L}\p{N}]/u.test(character),
-    ).length,
-  );
-  if (letterCount === 1) {
-    return 1_200;
-  }
-  if (letterCount === 2) {
-    return 1_800;
-  }
-  return Math.min(6_000, 1_700 + Math.min(16, letterCount) * 240);
+  const syllableCount = Math.max(1, splitKaraokeWordSyllables(text).length);
+  return Math.min(9_000, Math.max(2_500, syllableCount * 1_800));
 };
 
 export const karaokeMakerSourceIsAutomatic = (
@@ -388,9 +402,12 @@ export const makerLinesFromPlainText = (
       return {
         id: karaokeMakerId('line'),
         kind: isSection ? ('section' as const) : ('lyrics' as const),
-        tokens: (isSection ? [line] : line.split(/\s+/u))
+        tokens: (isSection ? [line] : karaokeMakerLineTokens(line))
           .filter(Boolean)
-          .slice(0, 2_000)
+          // A Japanese line is one token per character, so a cap sized for
+          // spaced words truncates real lyrics. Raised to sit above any sung
+          // line while still refusing a pasted document.
+          .slice(0, 4_000)
           .map((word) => ({
             id: karaokeMakerId('word'),
             text: word,

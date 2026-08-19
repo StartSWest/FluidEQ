@@ -214,10 +214,15 @@ const sentenceCandidatesForPass = (
 
   for (let anchorIndex = 0; anchorIndex < anchorCount; anchorIndex += 1) {
     const anchor = normalizedWord(lyrics[anchorIndex].text);
-    if (!anchor) {
-      return candidates;
-    }
+    // A token that normalises to nothing — a dash, an ellipsis, a lone "♪" —
+    // is not an anchor, but it is also not a reason to stop looking. This
+    // abandoned the whole line on the first such token, so a sheet written
+    // with dialogue dashes ("— I never told you") produced no candidates for
+    // any line beginning with one, and no timing at all.
     transcript.forEach((word, transcriptIndex) => {
+      if (!anchor) {
+        return;
+      }
       const anchorDistance = normalizedWordDistance(
         anchor,
         normalizedWord(word.text),
@@ -296,6 +301,20 @@ const sentenceCandidatesForPass = (
       const edgeSupport =
         Number(first.lyricIndex === 0) +
         Number(last.lyricIndex === lyrics.length - 1);
+      // This bonus is large enough to beat two correctly matched words — on a
+      // four-word line it reaches 2 600 against the 1 000 a word is worth — and
+      // that is deliberate, though it reads like a bug. It is what stops a line
+      // being finished by a matching phrase half a minute away: with the bonus
+      // scaled down to 400, "She lives a lonely life" abandons its own opening
+      // at 11 s to take "a lonely life" from 45 s, because three late words
+      // outscore two early ones.
+      //
+      // The cost is real too: a candidate mapping a line's first two words
+      // outranks one mapping its last three. Both failures come from scoring
+      // candidates independently, and the fix for both is to compare the
+      // performances of a repeated line against each other — a line sung four
+      // times should not have one performance a third the length of its
+      // siblings. Until that exists, keep the protection that is tested.
       const sentenceStartSupport =
         first.lyricIndex === 0 ? Math.max(1_500, lyrics.length * 650) : 0;
       candidates.push({
@@ -358,26 +377,63 @@ export const alignLyricsBySentence = (
     right.score - left.score ||
     left.candidate.startMs - right.candidate.startMs;
   const priorNodes: IRouteNode[] = [];
+  /**
+   * Nodes from lines already solved, kept sorted by the time they end.
+   *
+   * The predecessor search used to filter and sort every node accumulated so
+   * far, for every candidate of every line. On an ordinary forty-line song
+   * that is a thousand nodes and finishes instantly, which is why it was never
+   * noticed; on a song that repeats one short line a hundred times each line
+   * produces hundreds of candidates, the total passes sixty thousand nodes,
+   * and the work becomes quadratic — several seconds to minutes, synchronously
+   * on the renderer thread, after the progress bar has already said complete.
+   * Sorted once per line and searched by bisection, the same answer costs a
+   * logarithmic lookup.
+   */
+  const settled: IRouteNode[] = [];
+  /** Best route among all settled nodes ending at or before each position. */
+  const bestUpTo: IRouteNode[] = [];
+  const settle = (nodes: readonly IRouteNode[]) => {
+    settled.push(...nodes);
+    settled.sort((left, right) => left.candidate.endMs - right.candidate.endMs);
+    bestUpTo.length = 0;
+    settled.forEach((node, index) => {
+      const carried = bestUpTo[index - 1];
+      bestUpTo.push(
+        carried && compareRoutes(carried, node) <= 0 ? carried : node,
+      );
+    });
+  };
   lines.forEach((line, lineIndex) => {
     const candidates = transcripts.flatMap((transcript) =>
       sentenceCandidatesForPass(line, transcript),
     );
-    candidates.forEach((candidate) => {
-      const previous = priorNodes
-        .filter(
-          (node) =>
-            node.lineIndex < lineIndex &&
-            node.candidate.endMs <= candidate.startMs + 40,
-        )
-        .sort(compareRoutes)[0];
-      priorNodes.push({
+    const added = candidates.map((candidate) => {
+      // Rightmost settled node ending no later than this candidate starts.
+      const limit = candidate.startMs + 40;
+      let low = 0;
+      let high = settled.length - 1;
+      let found = -1;
+      while (low <= high) {
+        const middle = Math.floor((low + high) / 2);
+        if (settled[middle].candidate.endMs <= limit) {
+          found = middle;
+          low = middle + 1;
+        } else {
+          high = middle - 1;
+        }
+      }
+      const previous = found >= 0 ? bestUpTo[found] : undefined;
+      return {
         candidate,
         coveredLines: (previous?.coveredLines ?? 0) + 1,
         lineIndex,
         previous,
         score: candidate.score + (previous?.score ?? 0),
-      });
+      };
     });
+    priorNodes.push(...added);
+    settle(added);
   });
   const mapping = new Map<string, IKaraokeMakerTranscriptWord>();
   let node: IRouteNode | undefined = priorNodes.sort(compareRoutes)[0];

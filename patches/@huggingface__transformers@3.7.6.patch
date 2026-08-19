@@ -1,0 +1,39 @@
+diff --git a/dist/transformers.js b/dist/transformers.js
+index 40204e9a06d44e34aff58507e1c50bf218cd875e..fd1cb26e2a1a3d31f508c068a3d522d926252e47 100644
+--- a/dist/transformers.js
++++ b/dist/transformers.js
+@@ -28168,7 +28168,7 @@ class AutomaticSpeechRecognitionPipeline extends (/** @type {new (options: TextA
+ 
+             // Generate for each set of input features
+             for (const chunk of chunks) {
+-                generation_config.num_frames = Math.floor(chunk.stride[0] / hop_length);
++                generation_config.num_frames = Math.floor(chunk.stride[0] / hop_length / 2);
+ 
+                 // NOTE: doing sequentially for now
+                 const data = await this.model.generate({
+diff --git a/dist/transformers.web.js b/dist/transformers.web.js
+index f529afd4306dfbc81915246cd10ca5d1c748ec8d..61180db8d14badcab964c72552a5629757c86630 100644
+--- a/dist/transformers.web.js
++++ b/dist/transformers.web.js
+@@ -23562,7 +23562,7 @@ class AutomaticSpeechRecognitionPipeline extends (/** @type {new (options: TextA
+ 
+             // Generate for each set of input features
+             for (const chunk of chunks) {
+-                generation_config.num_frames = Math.floor(chunk.stride[0] / hop_length);
++                generation_config.num_frames = Math.floor(chunk.stride[0] / hop_length / 2);
+ 
+                 // NOTE: doing sequentially for now
+                 const data = await this.model.generate({
+diff --git a/src/pipelines.js b/src/pipelines.js
+index 6c84403e2e7ad38a29ae071d1ec77f425adfc7bb..1fc2352124fc210fdf2473707312443a24ef6e38 100644
+--- a/src/pipelines.js
++++ b/src/pipelines.js
+@@ -1875,7 +1875,7 @@ export class AutomaticSpeechRecognitionPipeline extends (/** @type {new (options
+ 
+             // Generate for each set of input features
+             for (const chunk of chunks) {
+-                generation_config.num_frames = Math.floor(chunk.stride[0] / hop_length);
++                generation_config.num_frames = Math.floor(chunk.stride[0] / hop_length / 2);
+ 
+                 // NOTE: doing sequentially for now
+                 const data = await this.model.generate({

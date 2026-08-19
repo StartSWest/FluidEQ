@@ -7,6 +7,8 @@ import {
   karaokeMakerProjectToSong,
   karaokeMakerRecordedLineContainsTime,
   karaokeMakerTokenWasUserTouched,
+  karaokeMakerLineLooksLikeLabel,
+  karaokeMakerMaximumAutomaticWordDurationMs,
   makerLinesFromPlainText,
   parseKaraokeMakerProject,
   recordKaraokeMakerLineEntry,
@@ -24,6 +26,7 @@ import {
   karaokeMakerExportFileName,
 } from '../../../common/karaoke/makerExport';
 import { parseKaraokeText } from '../../../common/karaoke/files';
+import { plainLyrics } from '../../../renderer/karaoke/useKaraokeMakerLyricsDraft';
 import { IKaraokeSong } from '../../../common/karaoke/types';
 import { splitKaraokeWordSyllables } from '../../../common/karaoke/syllables';
 import {
@@ -44,6 +47,14 @@ import {
   karaokeMakerWhisperErrorDetail,
   karaokeMakerWhisperPipelineProgress,
   karaokeMakerWhisperTranscriptWords,
+  karaokeMakerVocalRests,
+  karaokeMakerLineBreaks,
+  karaokeMakerVoiceOnsets,
+  normalizedWord,
+  normalizedWordDistance,
+  karaokeMakerSnapWordsToOnsets,
+  karaokeMakerRepeatedRuns,
+  karaokeMakerRepeatEdgeBreaks,
 } from '../../../renderer/karaoke/makerAi';
 import {
   karaokeMakerResizedViewport,
@@ -339,7 +350,7 @@ describe('Karaoke Maker lyric-guided melody', () => {
     ).toBe(true);
   });
 
-  it('limits pitch analysis to merged timed vocal phrases', () => {
+  it('merges timed vocal phrases and the untimed span between them', () => {
     const project = createKaraokeMakerProject(song());
     project.audio.durationMs = 30_000;
     project.lyrics.lines = makerLinesFromPlainText(
@@ -359,8 +370,33 @@ describe('Karaoke Maker lyric-guided melody', () => {
       token.endMs = 10_220 + index * 250;
     });
 
+    // The third line has no timing, so the detector is asked about the span
+    // between the words that bound it — without that it would never look
+    // where those words are waiting, and the melody repair would have no note
+    // to place them on.
     expect(karaokeMakerVocalAnalysisWindows(project)).toEqual([
-      { startMs: 780, endMs: 3_190 },
+      { startMs: 780, endMs: 10_940 },
+    ]);
+  });
+
+  it('leaves an instrumental stretch alone when no words are waiting in it', () => {
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 30_000;
+    project.lyrics.lines = makerLinesFromPlainText(
+      'First sung line\nLast distant line',
+    );
+    const [first, last] = project.lyrics.lines;
+    first.tokens.forEach((token, index) => {
+      token.startMs = 1_000 + index * 250;
+      token.endMs = 1_220 + index * 250;
+    });
+    last.tokens.forEach((token, index) => {
+      token.startMs = 10_000 + index * 250;
+      token.endMs = 10_220 + index * 250;
+    });
+
+    expect(karaokeMakerVocalAnalysisWindows(project)).toEqual([
+      { startMs: 780, endMs: 1_940 },
       { startMs: 9_780, endMs: 10_940 },
     ]);
   });
@@ -1609,9 +1645,11 @@ describe('Karaoke Maker canonical project and exports', () => {
     const article = aligned.lyrics.lines[0].tokens[1];
 
     expect(article.startMs).toBe(45_320);
+    // A 29.68 s span is still refused. The ceiling is a syllable count now, so
+    // one syllable may last 2.5 s — a held note, not a verse.
     expect(
       (article.endMs as number) - (article.startMs as number),
-    ).toBeLessThanOrEqual(1_200);
+    ).toBeLessThanOrEqual(2_500);
   });
 
   it('does not fill a long instrumental gap with an unmatched lyric block', () => {
@@ -2993,5 +3031,886 @@ describe('Karaoke Maker melody repair boundaries', () => {
         (token) => token.startMs === undefined && token.endMs === undefined,
       ),
     ).toBe(true);
+  });
+});
+
+describe('Karaoke Maker analysis windows over missing timing', () => {
+  it('asks the detector about the stretch where words have no timing', () => {
+    // Measured: 50 words with no timing, the repair reached 1 of them, and the
+    // 81-second hole they sat in had never been handed to the detector — notes
+    // only existed where words were already timed.
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 120_000;
+    project.lyrics.lines = makerLinesFromPlainText(
+      'she sings here\nnobody timed this verse\nvoices return now',
+    );
+    const [first, , last] = project.lyrics.lines;
+    first.tokens.forEach((token, index) => {
+      Object.assign(token, {
+        startMs: 10_000 + index * 400,
+        endMs: 10_300 + index * 400,
+      });
+    });
+    last.tokens.forEach((token, index) => {
+      Object.assign(token, {
+        startMs: 90_000 + index * 400,
+        endMs: 90_300 + index * 400,
+      });
+    });
+
+    const windows = karaokeMakerVocalAnalysisWindows(project);
+    const coversTheHole = windows.some(
+      (window) => window.startMs <= 11_500 && window.endMs >= 89_500,
+    );
+
+    expect(coversTheHole).toBe(true);
+  });
+
+  it('still asks about the whole song when nothing is timed at all', () => {
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 120_000;
+    project.lyrics.lines = makerLinesFromPlainText('nothing here is timed');
+
+    expect(karaokeMakerVocalAnalysisWindows(project)).toEqual([
+      { startMs: 0, endMs: 120_000 },
+    ]);
+  });
+});
+
+describe('Karaoke Maker vocal rests', () => {
+  const tone = (
+    samples: Float32Array,
+    sampleRate: number,
+    fromMs: number,
+    toMs: number,
+  ) => {
+    const from = Math.round((fromMs / 1_000) * sampleRate);
+    const to = Math.round((toMs / 1_000) * sampleRate);
+    for (let index = from; index < to && index < samples.length; index += 1) {
+      samples[index] = Math.sin((2 * Math.PI * 220 * index) / sampleRate) * 0.5;
+    }
+  };
+
+  it('finds where the voice stops and ignores syllable gaps', () => {
+    const sampleRate = 16_000;
+    const samples = new Float32Array(sampleRate * 6);
+    // Two sung phrases with a 1 s rest, and a 120 ms consonant gap inside the
+    // first one that must not read as a breath.
+    tone(samples, sampleRate, 0, 1_400);
+    tone(samples, sampleRate, 1_520, 2_500);
+    tone(samples, sampleRate, 3_500, 6_000);
+
+    const rests = karaokeMakerVocalRests(samples, sampleRate);
+
+    expect(rests).toHaveLength(1);
+    expect(rests[0].startMs).toBeGreaterThanOrEqual(2_400);
+    expect(rests[0].endMs).toBeLessThanOrEqual(3_600);
+  });
+
+  it('reports nothing for silence and nothing for continuous singing', () => {
+    const sampleRate = 16_000;
+    const continuous = new Float32Array(sampleRate * 3);
+    tone(continuous, sampleRate, 0, 3_000);
+
+    expect(karaokeMakerVocalRests(continuous, sampleRate)).toEqual([]);
+    expect(
+      karaokeMakerVocalRests(new Float32Array(sampleRate), sampleRate),
+    ).toEqual([]);
+  });
+
+  it('breaks a line where the stem rested and Whisper reported no gap', () => {
+    // The measured failure: 39 words with every gap at zero, which the breath
+    // rule cannot see. The stem can.
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    const words = Array.from({ length: 6 }, (_, index) => ({
+      text: `word${index}`,
+      startMs: 15_000 + index * 400,
+      endMs: 15_400 + index * 400,
+    }));
+    // Boundaries sit at 15 400, 15 800, 16 200, 16 600, 17 000. This rest is
+    // centred on 16 300, so the third boundary owns it.
+    const authored = applyTranscriptAsLyrics(project, words, [
+      { startMs: 16_150, endMs: 16_450 },
+    ]);
+
+    expect(authored.lyrics.lines.map((line) => line.tokens.length)).toEqual([
+      3, 3,
+    ]);
+  });
+});
+
+describe('Karaoke Maker lyric repetition', () => {
+  const at = (text: string, seconds: number) => ({
+    text,
+    startMs: seconds * 1_000,
+    endMs: seconds * 1_000 + 300,
+  });
+
+  it('finds a chorus that returns, and where its edges are', () => {
+    // A hook sung at 20 s and again at 80 s, with a unique verse between.
+    const hook = ['break', 'the', 'silence', 'of', 'the', 'evening'];
+    const verse = [
+      'nobody',
+      'told',
+      'her',
+      'about',
+      'winter',
+      'harbours',
+      'closing',
+      'early',
+      'when',
+      'the',
+      'ferries',
+      'stopped',
+      'running',
+      'north',
+      'across',
+      'grey',
+      'water',
+      'toward',
+      'islands',
+      'nobody',
+      'names',
+      'anymore',
+      'except',
+      'sailors',
+      'counting',
+      'lights',
+      'ashore',
+    ];
+    const words = [
+      ...hook.map((text, index) => at(text, 20 + index * 0.4)),
+      ...verse.map((text, index) => at(text, 40 + index * 0.4)),
+      ...hook.map((text, index) => at(text, 80 + index * 0.4)),
+    ];
+
+    const repeats = karaokeMakerRepeatedRuns(words);
+
+    expect(repeats).toHaveLength(1);
+    expect(repeats[0]).toMatchObject({ firstIndex: 0 });
+    expect(repeats[0].length).toBe(hook.length);
+
+    const breaks = karaokeMakerRepeatEdgeBreaks(repeats, words.length);
+    // The hook's end, the second performance's start, and nothing invented.
+    expect([...breaks].sort((a, b) => a - b)).toEqual(
+      [
+        6,
+        repeats[0].secondIndex,
+        repeats[0].secondIndex + repeats[0].length,
+      ].filter((index) => index < words.length),
+    );
+  });
+
+  it('does not call a run of filler words a chorus', () => {
+    // Six "oh"s repeated say nothing in a song that is mostly "oh".
+    const filler = ['oh', 'oh', 'oh', 'oh', 'oh', 'oh'];
+    const words = [
+      ...filler.map((text, index) => at(text, 20 + index * 0.4)),
+      ...filler.map((text, index) => at(text, 40 + index * 0.4)),
+      ...filler.map((text, index) => at(text, 80 + index * 0.4)),
+    ];
+
+    expect(karaokeMakerRepeatedRuns(words)).toEqual([]);
+  });
+
+  it('ignores a phrase repeated immediately, which is a stutter', () => {
+    const hook = ['break', 'the', 'silence', 'of', 'the', 'evening'];
+    const words = [
+      ...hook.map((text, index) => at(text, 20 + index * 0.4)),
+      ...hook.map((text, index) => at(text, 23 + index * 0.4)),
+    ];
+
+    expect(karaokeMakerRepeatedRuns(words)).toEqual([]);
+  });
+
+  it('reports a song with no repetition at all as having none', () => {
+    // Two of the fourteen saved projects genuinely never repeat a line.
+    const words = [
+      'she',
+      'walked',
+      'past',
+      'the',
+      'harbour',
+      'wall',
+      'counting',
+      'every',
+      'window',
+      'lit',
+      'against',
+      'the',
+      'weather',
+    ].map((text, index) => at(text, 20 + index * 0.4));
+
+    expect(karaokeMakerRepeatedRuns(words)).toEqual([]);
+  });
+});
+
+describe('Karaoke Maker detector hardening', () => {
+  const authoringProject = () => {
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    return project;
+  };
+
+  it('keeps two fast words that honestly tie on one timestamp bin', () => {
+    // Whisper quantises to 20 ms, so a tie is real singing when the spans
+    // differ and are plausible. Three or more on one instant is the collapse.
+    const authored = applyTranscriptAsLyrics(authoringProject(), [
+      { text: 'gotta', startMs: 24_500, endMs: 24_560 },
+      { text: 'go', startMs: 24_500, endMs: 24_650 },
+      { text: 'now', startMs: 24_700, endMs: 25_000 },
+    ]);
+    const tokens = authored.lyrics.lines.flatMap((line) => line.tokens);
+
+    expect(tokens).toHaveLength(3);
+    expect(tokens.every((token) => token.startMs !== undefined)).toBe(true);
+  });
+
+  it('still drops three or more words stacked on one instant', () => {
+    const authored = applyTranscriptAsLyrics(authoringProject(), [
+      { text: 'first', startMs: 20_000, endMs: 20_300 },
+      { text: 'one', startMs: 169_980, endMs: 170_100 },
+      { text: 'two', startMs: 169_980, endMs: 170_200 },
+      { text: 'three', startMs: 169_980, endMs: 170_300 },
+    ]);
+    const tokens = authored.lyrics.lines.flatMap((line) => line.tokens);
+
+    expect(tokens).toHaveLength(4);
+    expect(tokens[0].startMs).toBe(20_000);
+    expect(tokens.slice(1).every((token) => token.startMs === undefined)).toBe(
+      true,
+    );
+  });
+
+  it('never lets one transcript entry become two lyric tokens', () => {
+    // A chunk can come back as "thank you". Walking tokens against transcript
+    // entries then shifts by one for the rest of the song.
+    const authored = applyTranscriptAsLyrics(authoringProject(), [
+      { text: 'thank you', startMs: 1_000, endMs: 1_500 },
+      { text: 'friend', startMs: 1_600, endMs: 2_000 },
+    ]);
+    const tokens = authored.lyrics.lines.flatMap((line) => line.tokens);
+
+    expect(tokens.map((token) => token.text)).toEqual([
+      'thank',
+      'you',
+      'friend',
+    ]);
+    expect(tokens[2]).toMatchObject({ startMs: 1_600, endMs: 2_000 });
+    expect(tokens[0].startMs).toBe(1_000);
+    expect(tokens[1].endMs).toBe(1_500);
+  });
+});
+
+describe('Karaoke Maker hairline timings', () => {
+  it('does not place a word left holding a millisecond after packing', () => {
+    // Two words may honestly share a 20 ms timestamp bin, but packing them in
+    // order can leave the first with a span no syllable could occupy.
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    const authored = applyTranscriptAsLyrics(project, [
+      { text: 'before', startMs: 20_000, endMs: 20_400 },
+      { text: 'gotta', startMs: 24_500, endMs: 24_505 },
+      { text: 'go', startMs: 24_500, endMs: 24_900 },
+      { text: 'after', startMs: 25_000, endMs: 25_400 },
+    ]);
+    const tokens = authored.lyrics.lines.flatMap((line) => line.tokens);
+    const hairline = tokens.filter(
+      (token) =>
+        token.startMs !== undefined &&
+        token.endMs !== undefined &&
+        token.endMs - token.startMs <= 2,
+    );
+
+    expect(tokens).toHaveLength(4);
+    expect(hairline).toHaveLength(0);
+    expect(tokens[0]).toMatchObject({ startMs: 20_000 });
+    expect(tokens[3]).toMatchObject({ startMs: 25_000 });
+  });
+});
+
+describe('Karaoke Maker line breaks from Whisper segments', () => {
+  it('ends a line where the model ended its own utterance', () => {
+    // The only line signal that does not have to be placed through the word
+    // timings: the model divided this audio itself. Silence finds 2-9 breaks
+    // a minute against the 18-21 human karaoke uses, and note gaps land
+    // wherever the timings put them.
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    const words = Array.from({ length: 6 }, (_, index) => ({
+      text: `word${index}`,
+      startMs: 15_000 + index * 400,
+      endMs: 15_400 + index * 400,
+    }));
+
+    const authored = applyTranscriptAsLyrics(
+      project,
+      words,
+      [],
+      [
+        { startMs: 15_000, endMs: 16_200 },
+        { startMs: 16_200, endMs: 17_400 },
+      ],
+    );
+
+    expect(authored.lyrics.lines.map((line) => line.tokens.length)).toEqual([
+      3, 3,
+    ]);
+  });
+
+  it('groups by what the words show when no segments arrive', () => {
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    const authored = applyTranscriptAsLyrics(project, [
+      { text: 'we', startMs: 20_000, endMs: 20_300 },
+      { text: 'carry', startMs: 20_320, endMs: 20_700 },
+      { text: 'the', startMs: 22_100, endMs: 22_400 },
+    ]);
+
+    expect(authored.lyrics.lines.map((line) => line.tokens.length)).toEqual([
+      2, 1,
+    ]);
+  });
+});
+
+describe('Karaoke Maker structure-aware line breaks', () => {
+  const blind = () => {
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    return project;
+  };
+
+  it('breaks at a repeated phrase edge when nothing else can', () => {
+    // The case that defeated silence and note gaps: continuous delivery, no
+    // punctuation, no rests, no segments. A phrase performed twice still has
+    // edges, because the singer started and finished it twice.
+    const hook = ['break', 'the', 'silence', 'of', 'the', 'evening'];
+    const verse = [
+      'nobody',
+      'told',
+      'her',
+      'about',
+      'winter',
+      'harbours',
+      'closing',
+      'early',
+      'when',
+      'the',
+      'ferries',
+      'stopped',
+      'running',
+      'north',
+      'across',
+      'grey',
+      'water',
+      'toward',
+      'islands',
+      'nobody',
+      'names',
+      'anymore',
+      'except',
+      'sailors',
+      'counting',
+      'lights',
+      'ashore',
+    ];
+    const words = [...hook, ...verse, ...hook].map((text, index) => ({
+      text,
+      // 300 ms apart with no gap anywhere: no breath rule can fire.
+      startMs: 20_000 + index * 300,
+      endMs: 20_280 + index * 300,
+    }));
+
+    const authored = applyTranscriptAsLyrics(blind(), words);
+    const lengths = authored.lyrics.lines.map((line) => line.tokens.length);
+
+    // Positive control: the repetition must actually produce breaks, or a
+    // detector returning nothing would pass the null test below unnoticed.
+    expect(authored.lyrics.lines.length).toBeGreaterThan(1);
+    expect(Math.max(...lengths)).toBeLessThan(words.length);
+    expect(lengths.reduce((total, length) => total + length, 0)).toBe(
+      words.length,
+    );
+  });
+
+  it('adds nothing when the song never repeats a phrase', () => {
+    const words = [
+      'she',
+      'walked',
+      'past',
+      'the',
+      'harbour',
+      'wall',
+      'counting',
+      'every',
+      'window',
+      'lit',
+      'against',
+      'the',
+      'weather',
+    ].map((text, index) => ({
+      text,
+      startMs: 20_000 + index * 300,
+      endMs: 20_280 + index * 300,
+    }));
+
+    const authored = applyTranscriptAsLyrics(blind(), words);
+
+    expect(authored.lyrics.lines).toHaveLength(1);
+  });
+});
+
+describe('Karaoke Maker anchors that normalise to nothing', () => {
+  it('times a line that opens with a dialogue dash', () => {
+    // The dash normalises to empty. Aborting the anchor search there left
+    // every such line with no candidates and no timing at all.
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 90_000;
+    project.lyrics.lines = makerLinesFromPlainText('— I never told you');
+    const aligned = applyWhisperTranscript(project, [
+      { text: 'I', startMs: 20_000, endMs: 20_200 },
+      { text: 'never', startMs: 20_220, endMs: 20_600 },
+      { text: 'told', startMs: 20_620, endMs: 20_900 },
+      { text: 'you', startMs: 20_920, endMs: 21_200 },
+    ]);
+    const timed = aligned.lyrics.lines[0].tokens.filter(
+      (token) => token.startMs !== undefined,
+    );
+
+    expect(timed.length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+describe('Karaoke Maker section labels in any language', () => {
+  const labels = [
+    '[Intro]',
+    '[Verse 2]',
+    '[Pre-Chorus]',
+    '[Estribillo]',
+    '[Verso 1]',
+    '[Puente]',
+    '[Refrão]',
+    '[Refrain]',
+    '[Strophe]',
+    '[Ritornello]',
+    '[Припев]',
+    '[Куплет 2]',
+    '【サビ】',
+    '（間奏）',
+    '[副歌]',
+    '[मुखड़ा]',
+  ];
+
+  it('recognises a structure label in every locale the app ships', () => {
+    // The old test was a list of English words, so nine of the ten shipped
+    // locales failed it: a Spanish sheet's "[Estribillo]" became a one-token
+    // lyric line that no singer ever sings and nothing could ever time.
+    labels.forEach((label) => {
+      expect(karaokeMakerLineLooksLikeLabel(label)).toBe(true);
+    });
+  });
+
+  it('still recognises everything the English list used to', () => {
+    // Regression oracle: the retired vocabulary, kept here and nowhere else.
+    const retired = [
+      'intro',
+      'verse 1',
+      'pre-chorus',
+      'post-chorus',
+      'chorus 2',
+      'bridge',
+      'break',
+      'instrumental',
+      'interlude',
+      'solo',
+      'outro',
+      'hook',
+      'refrain',
+      'ending',
+    ];
+    retired.forEach((name) => {
+      expect(karaokeMakerLineLooksLikeLabel(`[${name}]`)).toBe(true);
+    });
+  });
+
+  it('does not mistake a sung line for a label', () => {
+    [
+      'Break the silence of the evening',
+      '(I know, I know)',
+      '[I never said that I would stay forever]',
+      'Verse two of the story',
+      '',
+      '[]',
+      'and (then) she left',
+    ].forEach((line) => {
+      expect(karaokeMakerLineLooksLikeLabel(line)).toBe(false);
+    });
+  });
+});
+
+describe('Karaoke Maker lyrics in unspaced scripts', () => {
+  it('cuts a Japanese line into the units a karaoke highlights', () => {
+    // Splitting on whitespace made the whole line one token, and one sung
+    // character against a ten-character token is an edit ratio of 0.9 — far
+    // past the 0.34 that counts as a match, so nothing could ever be timed.
+    const lines = makerLinesFromPlainText('きみのことがすきだから');
+
+    expect(lines).toHaveLength(1);
+    expect(lines[0].tokens.length).toBeGreaterThan(5);
+    expect(lines[0].tokens.map((token) => token.text).join('')).toBe(
+      'きみのことがすきだから',
+    );
+  });
+
+  it('keeps spacing for a line that uses it', () => {
+    const lines = makerLinesFromPlainText('she walked past the harbour');
+
+    expect(lines[0].tokens.map((token) => token.text)).toEqual([
+      'she',
+      'walked',
+      'past',
+      'the',
+      'harbour',
+    ]);
+  });
+
+  it('writes an unspaced line back without inventing spaces', () => {
+    const project = createKaraokeMakerProject(song());
+    project.lyrics.lines = makerLinesFromPlainText('きみのことがすきだから');
+
+    expect(plainLyrics(project)).toBe('きみのことがすきだから');
+  });
+
+  it('still spaces a line that mixes scripts', () => {
+    const project = createKaraokeMakerProject(song());
+    project.lyrics.lines = makerLinesFromPlainText('hello きみ world');
+
+    expect(plainLyrics(project)).toBe('hello きみ world');
+  });
+});
+
+describe('Karaoke Maker alignment on a heavily repeated song', () => {
+  it('solves a hundred performances of one line without hanging', () => {
+    // Measured shape of the hang: every candidate rescanned every node
+    // accumulated so far, so a song repeating one short line reached tens of
+    // thousands of nodes and quadratic work — synchronously, on the renderer
+    // thread, after the progress bar had already said complete.
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 600_000;
+    project.lyrics.lines = makerLinesFromPlainText(
+      Array.from({ length: 100 }, () => 'around the world').join('\n'),
+    );
+    const transcript = Array.from({ length: 300 }, (_, index) => {
+      const words = ['around', 'the', 'world'];
+      return {
+        text: words[index % 3],
+        startMs: 1_000 + index * 600,
+        endMs: 1_400 + index * 600,
+      };
+    });
+
+    const startedAt = Date.now();
+    const aligned = applyWhisperTranscript(project, transcript);
+    const elapsedMs = Date.now() - startedAt;
+
+    expect(aligned.lyrics.lines).toHaveLength(100);
+    // Positive control: it must actually time the song, or a function that
+    // returned immediately with nothing would pass the time bound alone.
+    const timed = aligned.lyrics.lines
+      .flatMap((line) => line.tokens)
+      .filter((token) => token.startMs !== undefined);
+    expect(timed.length).toBeGreaterThan(50);
+    expect(elapsedMs).toBeLessThan(20_000);
+  });
+});
+
+describe('Karaoke Maker hallucinations over instrumental audio', () => {
+  it('drops a word the model reported where the voice is silent', () => {
+    // Over an intro or a break, Whisper is handed the separation residue and
+    // answers with its idle-loop phrases. On this path they become real lyric
+    // lines with real timings, and nothing downstream can tell them apart.
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    const authored = applyTranscriptAsLyrics(
+      project,
+      [
+        { text: 'Thank', startMs: 3_000, endMs: 3_400 },
+        { text: 'you.', startMs: 3_420, endMs: 3_800 },
+        { text: 'Storm', startMs: 20_000, endMs: 20_400 },
+        { text: 'over', startMs: 20_420, endMs: 20_800 },
+      ],
+      // The stem is silent for the whole intro and sings from 19 s.
+      [{ startMs: 0, endMs: 19_000 }],
+    );
+    const texts = authored.lyrics.lines.flatMap((line) =>
+      line.tokens.map((token) => token.text),
+    );
+
+    expect(texts).toEqual(['Storm', 'over']);
+  });
+
+  it('keeps every word when the stem was never measured', () => {
+    // Positive control: with no rests the filter must change nothing, or a
+    // filter that dropped everything would pass the test above.
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    const authored = applyTranscriptAsLyrics(project, [
+      { text: 'Thank', startMs: 3_000, endMs: 3_400 },
+      { text: 'you.', startMs: 3_420, endMs: 3_800 },
+      { text: 'Storm', startMs: 20_000, endMs: 20_400 },
+    ]);
+
+    expect(authored.lyrics.lines.flatMap((line) => line.tokens).length).toBe(3);
+  });
+
+  it('keeps a word that only touches the edge of a rest', () => {
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    const authored = applyTranscriptAsLyrics(
+      project,
+      [
+        { text: 'Storm', startMs: 18_500, endMs: 19_400 },
+        { text: 'over', startMs: 19_420, endMs: 19_800 },
+      ],
+      [{ startMs: 0, endMs: 19_000 }],
+    );
+
+    expect(authored.lyrics.lines.flatMap((line) => line.tokens).length).toBe(2);
+  });
+});
+
+describe('Karaoke Maker held notes', () => {
+  it('lets a singer hold one syllable without truncating it', () => {
+    expect(karaokeMakerMaximumAutomaticWordDurationMs('I')).toBeGreaterThan(
+      2_000,
+    );
+    expect(karaokeMakerMaximumAutomaticWordDurationMs('Ohhh')).toBeGreaterThan(
+      2_000,
+    );
+    // One Han character is one word, and was capped at 1.2 s.
+    expect(karaokeMakerMaximumAutomaticWordDurationMs('愛')).toBeGreaterThan(
+      2_000,
+    );
+    // A long word still gets room for its syllables.
+    expect(
+      karaokeMakerMaximumAutomaticWordDurationMs('hallelujah'),
+    ).toBeGreaterThan(4_000);
+    // And a chunk-sized timestamp is still refused.
+    expect(
+      karaokeMakerMaximumAutomaticWordDurationMs('hallelujah'),
+    ).toBeLessThan(20_000);
+  });
+});
+
+describe('Karaoke Maker line break corroboration', () => {
+  it('treats adjacent claims as one boundary, not several', () => {
+    // A segment end, a stem rest and a repeat edge land within a word of each
+    // other. Counting each as its own break is what produced 31 one- and
+    // two-word lines out of 54 against the 6-8 human karaoke uses.
+    const words = Array.from({ length: 12 }, (_, index) => ({
+      startMs: 20_000 + index * 400,
+      endMs: 20_300 + index * 400,
+    }));
+
+    const breaks = karaokeMakerLineBreaks(
+      words,
+      // A rest whose centre sits on the boundary before word 6.
+      [{ startMs: 22_300, endMs: 22_500 }],
+      // A segment ending a word later.
+      [22_760],
+      // And a repeated run claiming the word after that.
+      new Set([8]),
+      new Set(),
+    );
+
+    // The rest and the segment are one word apart and collapse; the repeat
+    // edge two words later stands, because a two-word line is something the
+    // human-authored files do and a one-word line is not.
+    expect([...breaks].sort((a, b) => a - b)).toEqual([6, 8]);
+  });
+
+  it('keeps boundaries that are genuinely apart', () => {
+    // Positive control: corroboration must not swallow real separate phrases,
+    // or a function returning a single break would pass the test above.
+    const words = Array.from({ length: 12 }, (_, index) => ({
+      startMs: 20_000 + index * 400,
+      endMs: 20_300 + index * 400,
+    }));
+
+    const breaks = karaokeMakerLineBreaks(
+      words,
+      [],
+      [],
+      new Set([3, 7, 10]),
+      new Set(),
+    );
+
+    expect([...breaks].sort((a, b) => a - b)).toEqual([3, 7, 10]);
+  });
+});
+
+describe('Karaoke Maker voice onsets', () => {
+  const sampleRate = 16_000;
+  const burst = (
+    samples: Float32Array,
+    fromMs: number,
+    toMs: number,
+    gain = 0.5,
+  ) => {
+    const from = Math.round((fromMs / 1_000) * sampleRate);
+    const to = Math.round((toMs / 1_000) * sampleRate);
+    for (let i = from; i < to && i < samples.length; i += 1) {
+      samples[i] = Math.sin((2 * Math.PI * 220 * i) / sampleRate) * gain;
+    }
+  };
+
+  it('finds where each sound starts, pitched or not', () => {
+    const samples = new Float32Array(sampleRate * 4);
+    burst(samples, 500, 800);
+    burst(samples, 1_200, 1_500);
+    burst(samples, 2_400, 2_900);
+
+    const onsets = karaokeMakerVoiceOnsets(samples, sampleRate);
+
+    expect(onsets.length).toBeGreaterThanOrEqual(3);
+    [500, 1_200, 2_400].forEach((expected) => {
+      expect(onsets.some((onset) => Math.abs(onset - expected) <= 60)).toBe(
+        true,
+      );
+    });
+  });
+
+  it('reports nothing for silence', () => {
+    expect(
+      karaokeMakerVoiceOnsets(new Float32Array(sampleRate), sampleRate),
+    ).toEqual([]);
+  });
+
+  it('moves a word onto the sound and keeps the order', () => {
+    const words = [
+      { startMs: 520, endMs: 800 },
+      { startMs: 1_150, endMs: 1_400 },
+      { startMs: 2_500, endMs: 2_900 },
+    ];
+
+    const snapped = karaokeMakerSnapWordsToOnsets(words, [500, 1_200, 2_400]);
+
+    expect(snapped.map((word) => word.startMs)).toEqual([500, 1_200, 2_400]);
+    // Each word keeps the length it was measured to have.
+    expect(snapped[0].endMs - snapped[0].startMs).toBe(280);
+  });
+
+  it('leaves a word alone when no onset is near it', () => {
+    const words = [{ startMs: 9_000, endMs: 9_300 }];
+
+    expect(karaokeMakerSnapWordsToOnsets(words, [500, 1_200])[0].startMs).toBe(
+      9_000,
+    );
+  });
+
+  it('never lets a snapped word overtake the one before it', () => {
+    const words = [
+      { startMs: 1_150, endMs: 1_400 },
+      { startMs: 1_210, endMs: 1_500 },
+    ];
+
+    const snapped = karaokeMakerSnapWordsToOnsets(words, [1_200]);
+
+    expect(snapped[0].startMs).toBe(1_200);
+    expect(snapped[1].startMs).toBeGreaterThan(snapped[0].startMs);
+  });
+});
+
+describe('Karaoke Maker onset snapping keeps the song in order', () => {
+  it('finds an exact onset inside a dense cluster', () => {
+    // Attacks 80 ms apart, which the detector's own minimum gap allows.
+    // Advancing the cursor to the furthest onset still in reach put the exact
+    // match four places behind the search window and snapped 240 ms away.
+    const onsets = [1_000, 1_080, 1_160, 1_240, 1_320, 1_400, 1_480];
+
+    const snapped = karaokeMakerSnapWordsToOnsets(
+      [{ startMs: 1_000, endMs: 1_300 }],
+      onsets,
+    );
+
+    expect(snapped[0].startMs).toBe(1_000);
+  });
+
+  it('never reorders the words it was given', () => {
+    // The word before is pulled forward onto a late onset; the word after has
+    // its own onset behind that. Snapping must not leave them crossed.
+    const words = [
+      { startMs: 19_900, endMs: 20_000 },
+      { startMs: 20_050, endMs: 20_150 },
+    ];
+
+    const snapped = karaokeMakerSnapWordsToOnsets(words, [20_100, 20_300]);
+    const starts = snapped.map((word) => word.startMs as number);
+
+    expect(starts[1]).toBeGreaterThan(starts[0]);
+  });
+
+  it('still snaps a whole phrase forward when the order allows it', () => {
+    // Positive control: the guard must not become "never snap anything".
+    const words = [
+      { startMs: 1_020, endMs: 1_200 },
+      { startMs: 2_020, endMs: 2_200 },
+      { startMs: 3_020, endMs: 3_200 },
+    ];
+
+    const snapped = karaokeMakerSnapWordsToOnsets(words, [1_000, 2_000, 3_000]);
+
+    expect(snapped.map((word) => word.startMs)).toEqual([1_000, 2_000, 3_000]);
+  });
+});
+
+describe('Karaoke Maker word matching across scripts', () => {
+  it('cuts a Japanese line that holds a long-vowel mark', () => {
+    // U+30FC is Script=Common, so `\p{Script=Katakana}` read false for it and
+    // any line containing one — ubiquitous in J-pop — fell back to whitespace
+    // splitting and became a single token again.
+    const lines = makerLinesFromPlainText('コーヒーをのむ');
+
+    expect(lines[0].tokens.length).toBeGreaterThan(1);
+    expect(lines[0].tokens.map((token) => token.text).join('')).toBe(
+      'コーヒーをのむ',
+    );
+  });
+
+  it('reads katakana and hiragana as the same word', () => {
+    expect(normalizedWord('アイ')).toBe(normalizedWord('あい'));
+    // Control: folding the scripts together must not fold sounds together.
+    expect(normalizedWord('アイ')).not.toBe(normalizedWord('アオ'));
+  });
+
+  it('stops two different Hangul syllables matching each other', () => {
+    // NFKD split a syllable into jamo, so one insertion out of three scored
+    // 0.333 — inside the 0.34 that counts as a match.
+    expect(
+      normalizedWordDistance(normalizedWord('하'), normalizedWord('한')),
+    ).toBe(4);
+    // Positive control: recomposition must not break real equality.
+    expect(
+      normalizedWordDistance(normalizedWord('한'), normalizedWord('한')),
+    ).toBe(0);
+  });
+
+  it('leaves a spaced language exactly as it was', () => {
+    // Positive control for all of the above: none of this may be visible to a
+    // language that already worked.
+    expect(normalizedWord('Harbour')).toBe('harbour');
+    expect(
+      makerLinesFromPlainText('she walked past')[0].tokens.map((t) => t.text),
+    ).toEqual(['she', 'walked', 'past']);
   });
 });

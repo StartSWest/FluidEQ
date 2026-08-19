@@ -20,6 +20,7 @@ import { useMemo, useState } from 'react';
 import {
   IKaraokeMakerProject,
   karaokeMakerLineIsSection,
+  karaokeMakerNeedsSpaceBetween,
   makerLinesFromPlainText,
 } from '../../common/karaoke/makerProject';
 
@@ -33,11 +34,13 @@ import {
 export const plainLyrics = (project: IKaraokeMakerProject): string =>
   project.lyrics.lines
     .map((line) =>
-      line.tokens.reduce(
-        (text, token) =>
-          `${text}${text && token.startsWord !== false ? ' ' : ''}${token.text.trim()}`,
-        '',
-      ),
+      line.tokens.reduce((text, token) => {
+        const spaced =
+          text !== '' &&
+          token.startsWord !== false &&
+          karaokeMakerNeedsSpaceBetween(text, token.text);
+        return `${text}${spaced ? ' ' : ''}${token.text.trim()}`;
+      }, ''),
     )
     .join('\n');
 

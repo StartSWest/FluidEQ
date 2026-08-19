@@ -39,6 +39,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * - `project`    creating, importing, serialising and parsing
  * - `song`       turning a project into something playable
  */
+export * from './sectionLabels';
+export * from './lineTokens';
 export * from './model';
 export * from './syllables';
 export * from './timeline';
