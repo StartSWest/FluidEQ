@@ -36,7 +36,12 @@ interface ILibraryToolbarProps {
   onQuery: (query: string) => void;
 }
 
-const BROWSE_MODES: readonly TLibraryBrowseMode[] = ['album', 'artist', 'song'];
+const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
+  'album',
+  'artist',
+  'song',
+  'video',
+];
 const VIEW_MODES: readonly TLibraryViewMode[] = ['list', 'grid', 'coverflow'];
 const SORTS: readonly TLibrarySort[] = [
   'title',
@@ -50,6 +55,7 @@ const BROWSE_LABEL_KEYS = {
   album: 'library.browse.album',
   artist: 'library.browse.artist',
   song: 'library.browse.song',
+  video: 'library.videos',
 } as const;
 
 const VIEW_LABEL_KEYS = {

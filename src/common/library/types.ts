@@ -63,7 +63,7 @@ export interface ILibraryTrack {
   hasMetadataError?: boolean;
 }
 
-export type TLibraryBrowseMode = 'album' | 'artist' | 'song';
+export type TLibraryBrowseMode = 'album' | 'artist' | 'song' | 'video';
 export type TLibraryViewMode = 'list' | 'grid' | 'coverflow';
 export type TLibrarySort = 'title' | 'artist' | 'album' | 'year' | 'added';
 

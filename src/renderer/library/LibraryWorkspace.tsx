@@ -33,13 +33,19 @@ import LibraryGridView from './LibraryGridView';
 import LibraryListView from './LibraryListView';
 import LibraryScanProgress from './LibraryScanProgress';
 import LibraryToolbar from './LibraryToolbar';
+import LibraryVideoSection from './LibraryVideoSection';
 import '../styles/Library.scss';
 
 const BROWSE_MODE_KEY = 'fluideq.library.browseMode';
 const VIEW_MODE_KEY = 'fluideq.library.viewMode';
 const SORT_KEY = 'fluideq.library.sort';
 
-const BROWSE_MODES: readonly TLibraryBrowseMode[] = ['album', 'artist', 'song'];
+const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
+  'album',
+  'artist',
+  'song',
+  'video',
+];
 const VIEW_MODES: readonly TLibraryViewMode[] = ['list', 'grid', 'coverflow'];
 const SORTS: readonly TLibrarySort[] = [
   'title',
@@ -294,21 +300,35 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
           onAddFolder={handleAddFolder}
         />
       )}
+      {/* Videos have no album or artist to drill into — routed here on its
+          own rather than through the three views below, which never see
+          `browseMode === 'video'` at all. The view-mode toggle (list/grid/
+          Cover Flow) has nothing to say about a shelf grouped by folder, so
+          it is ignored while this is what is browsed. */}
+      {index.tracks.length > 0 && browseMode === 'video' && (
+        <LibraryVideoSection
+          tracks={visibleTracks}
+          onPlayTrack={handlePlayTrack}
+        />
+      )}
       {/* The drill-in behind whichever tile, row or cover was opened, in
           place of the browse view below rather than over it — search and
           sort still apply to what got you here, but the album or artist
           itself is shown whole, not narrowed further by a query that was
           for finding it in the first place. */}
-      {index.tracks.length > 0 && (openAlbumId || openArtistId) && (
-        <LibraryDetail
-          tracks={index.tracks}
-          albumId={openAlbumId}
-          artistId={openArtistId}
-          onBack={handleBack}
-          onPlayTrack={handlePlayTrack}
-        />
-      )}
       {index.tracks.length > 0 &&
+        browseMode !== 'video' &&
+        (openAlbumId || openArtistId) && (
+          <LibraryDetail
+            tracks={index.tracks}
+            albumId={openAlbumId}
+            artistId={openArtistId}
+            onBack={handleBack}
+            onPlayTrack={handlePlayTrack}
+          />
+        )}
+      {index.tracks.length > 0 &&
+        browseMode !== 'video' &&
         !openAlbumId &&
         !openArtistId &&
         viewMode === 'list' && (
@@ -321,6 +341,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
           />
         )}
       {index.tracks.length > 0 &&
+        browseMode !== 'video' &&
         !openAlbumId &&
         !openArtistId &&
         viewMode === 'grid' && (
@@ -333,6 +354,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
           />
         )}
       {index.tracks.length > 0 &&
+        browseMode !== 'video' &&
         !openAlbumId &&
         !openArtistId &&
         viewMode === 'coverflow' && (

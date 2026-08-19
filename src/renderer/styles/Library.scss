@@ -724,6 +724,93 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: 0.64rem;
 }
 
+// *** The video section **************************************************
+//
+// Videos have no album tag to group by, so this groups by the folder they
+// live in instead: one heading per folder, `.library-grid__tile` reused
+// beneath it rather than a second tile recipe — the same cover-plus-title
+// card `LibraryGridView` draws for a song, just laid out under a folder
+// heading instead of a flat grid.
+
+.library-video-section {
+  @include inset-surface;
+  @include slim-scrollbar;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-l;
+  padding: $spacing-m;
+  overflow-y: auto;
+
+  // No folders to show a heading for — the same centred, single-message
+  // treatment `.library-empty` gives the library as a whole, minus its card
+  // and its "Add folder" button: a root already exists, so that is the
+  // wrong next step from in here.
+  &.is-empty {
+    display: grid;
+    place-items: center;
+  }
+}
+
+.library-video-section__empty {
+  max-width: 320px;
+  margin: 0;
+  color: $text-faint;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.library-video-section__folder {
+  display: grid;
+  gap: $spacing-s;
+}
+
+// Same heading recipe as `.karaoke-playlist__heading h3`: uppercase, the
+// same size and letter-spacing, sat on the same faint rule.
+.library-video-section__folder-title {
+  margin: 0;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba($primary-lighter, 0.09);
+  color: $text-primary;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+// Same `auto-fill` recipe as `.library-grid`: the column count is whatever
+// the panel's width allows, never chosen up front.
+.library-video-section__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: $spacing-m;
+}
+
+.library-video-section__art {
+  position: relative;
+  display: block;
+}
+
+// A grid tile has no title cell to carry the "cannot play" mark inline the
+// way `.library-list__badge` does in a row (`LibraryListView`) — same icon
+// and the same red, pinned to the corner of the art instead, since that is
+// the one spot a tile has. Sized and ringed like `.karaoke-playlist__count`;
+// tinted like `.library-workspace__notice`'s own status-coloured border.
+.library-video-section__unplayable {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: $red;
+  border: 1px solid rgba($red, 0.28);
+  border-radius: $radius-pill;
+  background: rgba(5, 27, 41, 0.96);
+}
+
 // *** The drill-in *****************************************************
 //
 // Opened from a grid tile or a list row: a header for the one album or
