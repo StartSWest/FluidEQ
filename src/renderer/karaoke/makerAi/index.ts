@@ -48,5 +48,6 @@ export * from './lyricRepetition';
 export * from './repeatConsistency';
 export * from './sentenceAlignment';
 export * from './apply';
+export * from './applyMelody';
 export * from './pitchRuns';
 export * from './guideNotes';

@@ -4,14 +4,9 @@ Copyright (C) <2026>  <Ivan Carmenates Garcia>
 SPDX-License-Identifier: GPL-3.0-or-later
 */
 
-import {
-  IKaraokeMakerAnalysisNote,
-  karaokeMakerAnalysisOffsetMs,
-} from '../makerAnalysis';
-import { repairEstimatedWhisperTimingWithMelody } from '../makerAlignment';
+import { karaokeMakerAnalysisOffsetMs } from '../makerAnalysis';
 import {
   IKaraokeMakerProject,
-  karaokeMakerId,
   makerLinesFromPlainText,
   KARAOKE_MAKER_WHISPER_ALIGNMENT_VERSION,
   karaokeMakerLineIsSection,
@@ -20,12 +15,10 @@ import {
   touchKaraokeMakerProject,
 } from '../../../common/karaoke/makerProject';
 import { upsertProvenance, WHISPER_PROVENANCE } from './audio';
-import { SWIFT_F0_PROVENANCE } from './swiftF0Notes';
 import {
   IKaraokeMakerTranscriptWord,
   IKaraokeMakerWhisperSegment,
 } from './whisperProgress';
-import type { IKaraokeMakerLicenseRecord } from '../../../common/karaoke/makerProject';
 import {
   constrainAutomaticWordTiming,
   constrainTranscriptWords,
@@ -49,10 +42,6 @@ import {
   karaokeMakerAlignmentWords,
   mergeTranscriptFragmentsForLyrics,
 } from './sentenceAlignment';
-import {
-  autoAlignNotesOnly,
-  karaokeMakerMelodyNotesForLyrics,
-} from './guideNotes';
 
 /**
  * What a word timed straight from Whisper's own timestamp is worth. Above the
@@ -473,78 +462,5 @@ export const applyWhisperTranscript = (
         whisperAlignmentVersion: KARAOKE_MAKER_WHISPER_ALIGNMENT_VERSION,
       },
     }),
-  );
-};
-
-export const applyBasicPitchMelody = (
-  project: IKaraokeMakerProject,
-  notes: readonly IKaraokeMakerAnalysisNote[],
-  repairWordTiming = false,
-  // Whichever model produced the notes signs the project. SwiftF0 is the only
-  // detector left — Basic Pitch is gone, and this function keeps its name
-  // solely because `source: 'basic-pitch'` is written into saved projects and
-  // renaming the value would orphan every note in every file on disk.
-  provenance: IKaraokeMakerLicenseRecord = SWIFT_F0_PROVENANCE,
-): IKaraokeMakerProject => {
-  const repairedProject = repairWordTiming
-    ? repairEstimatedWhisperTimingWithMelody(project, notes)
-    : project;
-  const forLyrics = karaokeMakerMelodyNotesForLyrics(repairedProject, notes);
-  // A project with no timed lyrics gives the aligner nothing to attach notes
-  // to, and "re-detect melody" silently produced zero from four hundred good
-  // candidates — a working detector reported as broken. Detected notes stand
-  // on their own as free notes in that case; they attach to words later, when
-  // there are words to attach to.
-  if (!forLyrics.length && notes.length) {
-    return touchKaraokeMakerProject(
-      synchronizeKaraokeMakerSections({
-        ...repairedProject,
-        melody: {
-          ...repairedProject.melody,
-          notes: [
-            ...repairedProject.melody.notes.filter(
-              (note) => note.source === 'manual',
-            ),
-            ...notes.map((note) => ({
-              id: karaokeMakerId('note'),
-              startMs: Math.round(note.startMs),
-              endMs: Math.round(note.endMs),
-              targetMidi: note.targetMidi,
-              kind: 'free' as const,
-              confidence: note.confidence,
-              source: 'basic-pitch' as const,
-            })),
-          ],
-        },
-        provenance: upsertProvenance(repairedProject.provenance, provenance),
-      }),
-    );
-  }
-  const aligned = autoAlignNotesOnly(repairedProject, forLyrics, 'basic-pitch');
-  return touchKaraokeMakerProject(
-    synchronizeKaraokeMakerSections({
-      ...aligned,
-      provenance: upsertProvenance(aligned.provenance, provenance),
-    }),
-  );
-};
-
-/** Apply the lightweight local detector without relabelling it as Basic Pitch. */
-export const applyDetectedPitchMelody = (
-  project: IKaraokeMakerProject,
-  notes: readonly IKaraokeMakerAnalysisNote[],
-  repairWordTiming = false,
-): IKaraokeMakerProject => {
-  const repairedProject = repairWordTiming
-    ? repairEstimatedWhisperTimingWithMelody(project, notes)
-    : project;
-  return touchKaraokeMakerProject(
-    synchronizeKaraokeMakerSections(
-      autoAlignNotesOnly(
-        repairedProject,
-        karaokeMakerMelodyNotesForLyrics(repairedProject, notes),
-        'pitch-analysis',
-      ),
-    ),
   );
 };
