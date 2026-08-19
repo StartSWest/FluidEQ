@@ -149,7 +149,7 @@ const LibraryWorkspace = ({
     cancelScan,
     removeRoot,
   } = useLibrary();
-  const { playTracks, videoTrackId } = useLibraryPlayer();
+  const { playTracks, videoTrackId, track: playingTrack } = useLibraryPlayer();
   const [isDragOver, setIsDragOver] = useState(false);
   const [isResetNoticeDismissed, setIsResetNoticeDismissed] = useState(false);
 
@@ -315,6 +315,20 @@ const LibraryWorkspace = ({
     setOpenArtistId(undefined);
     setOpenFolderPath(folderPath);
   }, []);
+
+  /** Cover Flow opened or closed its own panel. The drill-in is one piece of
+   * state shared by all three views, so changing view keeps whatever was open
+   * instead of each view remembering something different. */
+  const handleCoverFlowOpen = useCallback(
+    (openId: string | undefined) => {
+      if (browseMode === 'artist') {
+        setOpenArtistId(openId);
+        return;
+      }
+      setOpenAlbumId(openId);
+    },
+    [browseMode],
+  );
 
   /** A drill-in is open, so the list the toolbar steers is not the thing on
    * screen. */
@@ -551,9 +565,14 @@ const LibraryWorkspace = ({
           sort still apply to what got you here, but the album or artist
           itself is shown whole, not narrowed further by a query that was
           for finding it in the first place. */}
+      {/* Not in Cover Flow: that view renders this very component itself,
+          underneath its row, from the same `openAlbumId`. Rendering it here
+          as well put the same album on the screen twice, one above the
+          carousel and one below it. */}
       {index.tracks.length > 0 &&
         !videoTrackId &&
         browseMode !== 'video' &&
+        viewMode !== 'coverflow' &&
         isDrilledIn && (
           <LibraryDetail
             tracks={index.tracks}
@@ -564,6 +583,7 @@ const LibraryWorkspace = ({
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
             viewMode={viewMode}
+            playingTrackId={playingTrack?.id}
           />
         )}
       {index.tracks.length > 0 &&
@@ -583,6 +603,7 @@ const LibraryWorkspace = ({
             sortDirection={sortDirection}
             onSort={handleSort}
             groupByFolder={groupByFolder}
+            playingTrackId={playingTrack?.id}
             resetKey={listResetKey}
           />
         )}
@@ -604,10 +625,14 @@ const LibraryWorkspace = ({
             resetKey={listResetKey}
           />
         )}
+      {/* Not gated on `isDrilledIn` like the other two: this view shows the
+          drill-in itself, under its own row. Switching to it from an open
+          album carries that album across -- `openId` centres it and opens it
+          -- rather than dropping the reader at the top of an unrelated
+          carousel with what they were reading closed. */}
       {index.tracks.length > 0 &&
         !videoTrackId &&
         browseMode !== 'video' &&
-        !isDrilledIn &&
         viewMode === 'coverflow' && (
           <LibraryCoverFlow
             tracks={visibleTracks}
@@ -615,6 +640,9 @@ const LibraryWorkspace = ({
             onPlayTrack={handlePlayTrack}
             sort={sort}
             sortDirection={sortDirection}
+            playingTrackId={playingTrack?.id}
+            openId={openAlbumId ?? openArtistId}
+            onOpenChange={handleCoverFlowOpen}
           />
         )}
     </section>

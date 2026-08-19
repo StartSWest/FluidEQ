@@ -56,6 +56,8 @@ interface ILibraryDetailProps {
    * carousel of the twelve tracks on one album is a worse table, not a
    * better one. */
   viewMode?: TLibraryViewMode;
+  /** The track the player is on, forwarded to the table below. */
+  playingTrackId?: string;
 }
 
 /**
@@ -87,6 +89,7 @@ const LibraryDetail = ({
   onPlayTrack,
   offlineRootIds,
   viewMode = 'list',
+  playingTrackId,
 }: ILibraryDetailProps) => {
   const { t } = useTranslation();
 
@@ -326,6 +329,7 @@ const LibraryDetail = ({
           onPlayTrack={onPlayTrack}
           offlineRootIds={offlineRootIds}
           folderOnlyIds={folderOnlyIds}
+          playingTrackId={playingTrackId}
           sort={sort}
           sortDirection={sortDirection}
           onSort={handleSort}

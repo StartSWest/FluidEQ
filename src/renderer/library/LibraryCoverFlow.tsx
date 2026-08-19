@@ -27,6 +27,8 @@ import {
   WheelEvent,
 } from 'react';
 import {
+  albumKey,
+  artistKey,
   groupIntoAlbums,
   groupIntoArtists,
   normalizeForSearch,
@@ -153,6 +155,16 @@ interface ILibraryCoverFlowProps {
    * covers arrive already sorted, groupings do not. */
   sort?: TLibrarySort;
   sortDirection?: TLibrarySortDirection;
+  /** An album or artist the workspace already has open — from the list or
+   * the grid, before the reader switched to this view. The row centres on it
+   * and opens it, so changing view carries you to the same place rather than
+   * dropping you at the top of an unrelated carousel. */
+  openId?: string;
+  /** Reports what this view now has open, so the drill-in is one piece of
+   * state shared by all three views rather than three that disagree. */
+  onOpenChange?: (openId: string | undefined) => void;
+  /** The track the player is on, forwarded to the detail this opens. */
+  playingTrackId?: string;
 }
 
 /** One cover's worth of what this view draws — the same split
@@ -215,6 +227,9 @@ const LibraryCoverFlow = ({
   onPlayTrack,
   sort = 'title',
   sortDirection = 'asc',
+  openId,
+  onOpenChange,
+  playingTrackId,
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -223,6 +238,9 @@ const LibraryCoverFlow = ({
   // see the reconciling effect below, and `setCentre`, which is the only
   // place this is written.
   const centredId = useRef<string | undefined>(undefined);
+  /** The `openId` this view has already centred on — see the effect that
+   * reads it for why once per id, not once per `items`. */
+  const appliedOpenId = useRef<string | undefined>(undefined);
   /**
    * The album or artist the drill-in below the row is showing, if any.
    *
@@ -234,7 +252,16 @@ const LibraryCoverFlow = ({
    *
    * Never set in song mode: a track has nothing to expand into.
    */
-  const [expandedId, setExpandedId] = useState<string | undefined>(undefined);
+  const [expandedId, setExpandedId] = useState<string | undefined>(openId);
+
+  /** Every path that opens or closes the panel goes through this, so the
+   * workspace hears about it and the other two views agree. Reporting from
+   * here rather than from an effect on `expandedId` is what keeps the sync
+   * with `openId` below from feeding back on itself. */
+  const openPanel = (next: string | undefined) => {
+    setExpandedId(next);
+    onOpenChange?.(next);
+  };
   /** The covers' shared parent, measured on every press — see
    * `coverIndexAt`, which has to work out for itself what was pressed. */
   const trackRef = useRef<HTMLDivElement | null>(null);
@@ -327,6 +354,73 @@ const LibraryCoverFlow = ({
   }, [items]);
 
   /**
+   * The workspace already had something open when this view was chosen, so
+   * go to it: centre that cover and show its detail underneath.
+   *
+   * Without this, switching to Cover Flow from an open album dropped the
+   * reader at the top of an unrelated carousel and closed what they were
+   * looking at — the view change threw away the only thing they had said.
+   *
+   * Depends on `items` as well as `openId`: a scan still running can produce
+   * the album a moment after the switch, and the row should go to it when it
+   * arrives rather than only if it happened to exist already.
+   */
+  useEffect(() => {
+    if (openId === undefined) {
+      appliedOpenId.current = undefined;
+      return;
+    }
+    // Once per id, not once per render of `items`.
+    //
+    // `items` gets a new identity on every scan batch — several times a
+    // second while one runs — so an effect that centred on `openId` every
+    // time it changed dragged the row back to that album the instant the
+    // reader scrolled away from it. Recording which id has already been
+    // honoured is what makes this a hand-off rather than a leash.
+    if (appliedOpenId.current === openId) {
+      return;
+    }
+    const index = items.findIndex((item) => item.id === openId);
+    if (index < 0) {
+      // Not in the row yet. Deliberately not marked as applied: a scan still
+      // running can produce this album a moment from now, and the hand-off
+      // should still happen when it does.
+      return;
+    }
+    appliedOpenId.current = openId;
+    centredId.current = openId;
+    setCurrentIndex(index);
+    setExpandedId(openId);
+  }, [openId, items]);
+
+  /**
+   * The cover the playing track belongs to.
+   *
+   * Marking the song in the table below was not enough: the row is what the
+   * reader is looking at in this view, and with only the list marked the
+   * carousel gave no sign at all of where the music was coming from. Keyed
+   * the same way the covers themselves are grouped — `albumKey` for an album
+   * cover, `artistKey` for an artist one, the track's own id for a song —
+   * so a cover and its songs can never disagree about which is playing.
+   */
+  const playingItemId = useMemo(() => {
+    if (playingTrackId === undefined) {
+      return undefined;
+    }
+    const playing = tracks.find((track) => track.id === playingTrackId);
+    if (!playing) {
+      return undefined;
+    }
+    if (browseMode === 'album') {
+      return albumKey(playing);
+    }
+    if (browseMode === 'artist') {
+      return artistKey(playing);
+    }
+    return playing.id;
+  }, [tracks, playingTrackId, browseMode]);
+
+  /**
    * The first cover under each letter of the rail.
    *
    * Built from `items` in their current order, so it follows whatever sort is
@@ -387,7 +481,7 @@ const LibraryCoverFlow = ({
       return;
     }
     if (browseMode === 'album' || browseMode === 'artist') {
-      setExpandedId((current) => (current === item.id ? undefined : item.id));
+      openPanel(expandedId === item.id ? undefined : item.id);
       return;
     }
     onPlayTrack?.(item.id);
@@ -533,11 +627,9 @@ const LibraryCoverFlow = ({
     // A click is a choice, so it moves the panel with it — but only if one is
     // already open. Turning the row by any other means leaves the panel
     // showing what it was showing; see `expandedId`.
-    setExpandedId((current) =>
-      current === undefined
-        ? undefined
-        : items[clampIndex(index, items.length)]?.id,
-    );
+    if (expandedId !== undefined) {
+      openPanel(items[clampIndex(index, items.length)]?.id);
+    }
   };
 
   /**
@@ -675,7 +767,9 @@ const LibraryCoverFlow = ({
                 aria-selected={isCentre}
                 className={`library-coverflow__cover${isCentre ? ' is-centre' : ''}${
                   index === hoveredIndex && !isCentre ? ' is-hovered' : ''
-                }${item.isPending ? ' library-coverflow__cover--pending' : ''}`}
+                }${item.id === playingItemId ? ' is-playing' : ''}${
+                  item.isPending ? ' library-coverflow__cover--pending' : ''
+                }`}
                 style={{ transform: coverFlowTransform(index - currentIndex) }}
               >
                 <span className="library-coverflow__art">
@@ -726,8 +820,9 @@ const LibraryCoverFlow = ({
             tracks={tracks}
             albumId={browseMode === 'album' ? expandedId : undefined}
             artistId={browseMode === 'artist' ? expandedId : undefined}
-            onBack={() => setExpandedId(undefined)}
+            onBack={() => openPanel(undefined)}
             onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
+            playingTrackId={playingTrackId}
           />
         </div>
       )}

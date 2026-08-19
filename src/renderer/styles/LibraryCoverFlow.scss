@@ -59,32 +59,36 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex: 1 1 100%;
 }
 
-.library-coverflow.is-expanded .library-coverflow__stage {
-  // Enough of the column to keep the fan legible and its centre cover
-  // recognisable; the rest belongs to the songs, which is what the reader
-  // just asked to see.
-  flex: 0 0 38%;
-  // Pinned to the top of what it has rather than floating in the middle of
-  // it: with the detail open the row is a strip you steer, not the subject of
-  // the screen, and centred it left a band of nothing between the covers and
-  // the album below them.
-  align-items: flex-start;
-}
+.library-coverflow.is-expanded {
+  .library-coverflow__stage {
+    // Enough of the column to keep the fan legible and its centre cover
+    // recognisable; the rest belongs to the songs, which is what the reader
+    // just asked to see.
+    flex: 0 0 34%;
+  }
 
-// With the detail open the covers are the smaller thing on screen, and a
-// drop shadow at that size is a grey smudge under each sleeve rather than a
-// sense of height. The ring stays; only the cast shadow goes.
-.library-coverflow.is-expanded
-  .library-coverflow__art
-  .library-cover-art--cover {
-  box-shadow: 0 0 0 1px rgba($white, 0.07) inset;
-}
+  // With the detail open the covers are the smaller thing on screen, and a
+  // drop shadow at that size is a grey smudge under each sleeve rather than a
+  // sense of height. The ring stays; only the cast shadow goes.
+  .library-coverflow__art .library-cover-art--cover {
+    box-shadow: 0 0 0 1px rgba($white, 0.07) inset;
+  }
 
-// And no reflection either — it is the first thing to cost more than it is
-// worth once the row is a strip.
-.library-coverflow.is-expanded .library-coverflow__art {
-  margin-bottom: calc(var(--cover-flow-size) * 0.08);
-  -webkit-box-reflect: none;
+  // No reflection either — the first thing to cost more than it is worth once
+  // the row is a strip — so the label can sit right under the sleeve.
+  .library-coverflow__art {
+    -webkit-box-reflect: none;
+  }
+
+  .library-coverflow__cover {
+    --cover-flow-label-gap: 0.05;
+    // Fills the strip instead of sitting at the floor of the collapsed
+    // clamp. Measured: at `36cqh` of a 370px strip the covers came out at
+    // their 140px minimum with 112px of nothing above and below them —
+    // the whole complaint about the spacing. `74cqh` puts the sleeve and its
+    // title in the band and leaves a margin rather than a void.
+    --cover-flow-size: clamp(96px, min(74cqh, 15cqw), 260px);
+  }
 }
 
 .library-coverflow__stage {
@@ -143,19 +147,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // inside the frame at every window this app is usable at; at 420px it ran
   // 111% of the stage and the ends were clipped off the sides.
   --cover-flow-size: clamp(140px, min(36cqh, 17.5cqw), 380px);
+  // How far under the sleeve the title sits, as a fraction of the sleeve.
+  // Clear of the reflection normally; tucked right under it when the row is
+  // a strip and there is no reflection to clear.
+  --cover-flow-label-gap: 0.3;
 
   position: absolute;
   top: 50%;
   left: 50%;
-  display: grid;
+  // Exactly the sleeve, nothing more.
+  //
+  // The label used to sit in this box's flow and the reflection used to
+  // reserve room in it, which made the element half again as tall as the art
+  // — and since it is centred on the stage, that put the *artwork* well above
+  // centre with a band of nothing above it and its own label and reflection
+  // filling the space below. Anchoring the square alone is what centres what
+  // the reader is actually looking at; the label hangs off the bottom without
+  // a say in where the sleeve lands.
   width: var(--cover-flow-size);
-  // Half the art's own size, so the square itself sits centred on the
-  // stage; the title and subtitle below it are allowed to hang past that
-  // centre rather than being folded into the same measurement.
+  height: var(--cover-flow-size);
   margin: calc(var(--cover-flow-size) / -2) 0 0
     calc(var(--cover-flow-size) / -2);
-  justify-items: center;
-  gap: $spacing-xs;
   cursor: pointer;
   // Slightly longer than `$motion-base` and on a curve with a little
   // overshoot: this is the one motion in the app that is the feature rather
@@ -192,6 +204,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     translate: 0 0 calc(var(--cover-flow-size) * 0.06);
   }
 
+  // The cover the music is actually coming from, wherever it has got to in
+  // the row. A ring rather than a fill or a lift: the centre already owns
+  // the scale and the forward step, and a second cover competing for those
+  // would read as two centres.
+  &.is-playing {
+    opacity: 1;
+    filter: none;
+
+    .library-cover-art--cover {
+      box-shadow:
+        0 0 0 2px rgba($secondary-light, 0.85) inset,
+        0 calc(var(--cover-flow-size) * 0.06)
+          calc(var(--cover-flow-size) * 0.13) rgba($black, 0.55);
+    }
+  }
+
   &.is-centre {
     // Composed with the inline `transform`, not part of it: `translate` and
     // `scale` are their own properties in Chromium and are applied before it,
@@ -212,14 +240,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: relative;
   display: block;
   width: 100%;
-  // Room under the sleeve for the reflection to fall into.
-  //
-  // `-webkit-box-reflect` paints outside the element's box and takes no
-  // layout space at all, so the title underneath was being drawn straight on
-  // top of the mirrored artwork — the smeared band under the row. This
-  // reserves roughly the height the reflection actually reads at, which is
-  // where the mask below has faded out, so the label sits clear of it.
-  margin-bottom: calc(var(--cover-flow-size) * 0.26);
   // Chromium's own reflection, not a second rendered copy: the compositor
   // mirrors the pixels already on screen, so there is no extra `<img>` and
   // nothing new for the art cache to fetch. Electron ships Chromium only, so
@@ -275,8 +295,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // `visibility` as well as opacity, so a hidden title cannot be read out or
 // hit-tested from behind the cover in front of it.
 .library-coverflow__label {
+  // Hung off the bottom of the sleeve rather than laid out under it — see
+  // `.library-coverflow__cover`, which is now exactly the sleeve and nothing
+  // else so that the artwork is what gets centred on the stage. Wider than
+  // the sleeve on purpose: an album title is longer than a cover is wide.
+  position: absolute;
+  top: 100%;
+  right: -20%;
+  left: -20%;
   display: grid;
-  max-width: calc(var(--cover-flow-size) * 1.4);
+  margin-top: calc(var(--cover-flow-size) * var(--cover-flow-label-gap));
   justify-items: center;
   gap: 2px;
   opacity: 0;
@@ -376,7 +404,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   justify-content: center;
   gap: 2px;
-  padding-bottom: $spacing-xs;
+  // Padded off the card's top edge, not flush against it, and only just clear
+  // of the row below — the rail belongs to the covers it steers.
+  padding: $spacing-s 0 2px;
 }
 
 .library-coverflow__jump {

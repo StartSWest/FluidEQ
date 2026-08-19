@@ -30,6 +30,10 @@ interface ILibraryTrackRowProps {
    * id, for the reason the two booleans above are: the parent resolves it so
    * the memo still holds for every row that did not change. */
   isSelected: boolean;
+  /** This row is the track the player is on. A primitive for the same reason
+   * the flags above are: resolved by the parent so the memo holds for the
+   * ninety-nine rows that are not playing. */
+  isPlaying: boolean;
   duration: string;
   onPlay: (trackId: string) => void;
   /** Marks the row as the one the reader is on. Called alongside `onPlay`,
@@ -61,6 +65,7 @@ const LibraryTrackRow = ({
   isOffline,
   isFolderOnly,
   isSelected,
+  isPlaying,
   duration,
   onPlay,
   onSelect,
@@ -74,6 +79,7 @@ const LibraryTrackRow = ({
     isOffline ? 'library-list__row--offline' : '',
     track.isPending ? 'library-list__row--pending' : '',
     isSelected ? 'library-list__row--selected' : '',
+    isPlaying ? 'library-list__row--playing' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -127,6 +133,22 @@ const LibraryTrackRow = ({
       </span>
       <span role="cell" className="library-list__col library-list__col--title">
         <span className="library-list__title-text">
+          {/* Three bars in front of the title of whatever the player is on.
+              Colour alone would not do it: the row is already tinted when it
+              is the selected one, and a reader scrolling a thousand rows
+              needs a mark they can find, not a shade they have to compare
+              against its neighbours. */}
+          {isPlaying && (
+            <span
+              className="library-list__playing-mark"
+              title={t('library.nowPlaying')}
+              aria-label={t('library.nowPlaying')}
+            >
+              <i />
+              <i />
+              <i />
+            </span>
+          )}
           <span className="library-list__title-label">{track.title}</span>
           {/* Chromium has no decoder for this container — marked, not
               silently broken. */}

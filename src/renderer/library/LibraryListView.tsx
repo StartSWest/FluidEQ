@@ -70,6 +70,10 @@ interface ILibraryListViewProps {
    * column or a reversal of the current one — this view only reports the
    * press. */
   onSort?: (key: TLibrarySort) => void;
+  /** The track the player is on, so the row for it can say so. Optional the
+   * same way the other display-only props here are: no test of this view's
+   * behaviour needs a player to exercise what it covers. */
+  playingTrackId?: string;
   /** Rows that share the open album's folder without belonging to the album.
    * Listed in the same run rather than a table of their own, tagged so the
    * distinction is visible without splitting the screen in two. */
@@ -216,6 +220,7 @@ const LibraryListView = ({
   sort,
   sortDirection,
   onSort,
+  playingTrackId,
   folderOnlyIds = NO_FOLDER_ONLY,
   groupByFolder = false,
   resetKey = '',
@@ -796,6 +801,7 @@ const LibraryListView = ({
           isOffline={offlineRootIds.has(track.rootId)}
           isFolderOnly={folderOnlyIds.has(track.id)}
           isSelected={activeId === track.id}
+          isPlaying={playingTrackId === track.id}
           duration={formatDuration(track.durationMs)}
           onPlay={onPlayTrack}
           onSelect={rememberActive}

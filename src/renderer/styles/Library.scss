@@ -640,6 +640,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   display: block;
   width: 100%;
   height: 100%;
+  // The wrapper clips, so this is belt and braces — but a clip alone leaves a
+  // hairline of square corner on a scaled display, and a matching radius on
+  // the thing being clipped does not.
+  border-radius: inherit;
   object-fit: cover;
 }
 
@@ -743,12 +747,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // The cover art doubles as the row's play button: the glyph fades up over it
 // on hover or focus rather than occupying a column of its own on every row
 // for something only ever wanted on the row under the pointer.
+// One radius through the whole stack — button, artwork and hover glyph.
+//
+// The button and the glyph were `$radius-xs` while the art under them is
+// `$radius-s`, so the two layers over a rounded thumbnail had squarer corners
+// than it did and showed as hard edges poking out past the picture. `inherit`
+// rather than another literal, so this cannot drift again the next time the
+// cover's own radius moves.
 .library-list__art-play {
   position: relative;
   display: block;
+  overflow: hidden;
   padding: 0;
   border: 0;
-  border-radius: $radius-xs;
+  border-radius: $radius-s;
   background: none;
   cursor: pointer;
 
@@ -761,7 +773,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   position: absolute;
   display: grid;
   place-items: center;
-  border-radius: $radius-xs;
+  border-radius: inherit;
   background: rgba(#020a12, 0.62);
   color: $secondary-light;
   opacity: 0;
@@ -833,6 +845,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     opacity: 0.5;
   }
 
+  // Whatever the player is on, wherever it appears — the album's own table,
+  // a search result, the folder view. Colour as well as the mark beside the
+  // title, because the mark alone is small and the tint alone is a shade you
+  // would have to compare against neighbours to be sure of.
+  &--playing {
+    color: $text-primary;
+    opacity: 1;
+
+    .library-list__title-label {
+      color: $secondary-light;
+    }
+  }
+
   // The row the reader last opened, still marked when they come back out of
   // it. A left edge rather than a fill: the fill is what hover uses, and a
   // permanently filled row under a moving pointer reads as two things
@@ -892,6 +917,57 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 5px;
   color: $text-primary;
   font-weight: 700;
+}
+
+// Three bars in front of the playing track's title, rising and falling.
+//
+// Its own mark rather than a play triangle: a triangle is the control that
+// starts something, and putting one on the row that is already going says the
+// opposite of what it means. Bars that move say "sound is coming out of this
+// one" without a word, and stand still under prefers-reduced-motion.
+.library-list__playing-mark {
+  display: inline-flex;
+  height: 11px;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  gap: 2px;
+
+  i {
+    width: 2px;
+    height: 100%;
+    border-radius: 1px;
+    background: $secondary-light;
+    animation: library-playing-bar 900ms ease-in-out infinite;
+    transform-origin: bottom;
+  }
+
+  // Offset so the three are never in step — in step they read as one wide
+  // bar pulsing rather than as a meter.
+  i:nth-child(2) {
+    animation-delay: 180ms;
+  }
+
+  i:nth-child(3) {
+    animation-delay: 360ms;
+  }
+}
+
+@keyframes library-playing-bar {
+  0%,
+  100% {
+    scale: 1 0.35;
+  }
+
+  50% {
+    scale: 1 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-list__playing-mark i {
+    animation: none;
+    scale: 1 0.7;
+  }
 }
 
 .library-list__title-label {
