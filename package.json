@@ -106,7 +106,9 @@
       "^@fluideq/whisper-wasm$": "<rootDir>/.erb/mocks/fileMock.js",
       "^@fluideq/whisper-runtime$": "<rootDir>/.erb/mocks/fileMock.js",
       "\\.(css|less|sass|scss)$": "identity-obj-proxy",
-      "d3": "<rootDir>/node_modules/d3/dist/d3.min.js"
+      "^d3$": "<rootDir>/node_modules/d3/dist/d3.min.js",
+      "^music-metadata$": "<rootDir>/node_modules/.pnpm/music-metadata@11.14.0/node_modules/music-metadata/lib/index.js",
+      "^file-type$": "<rootDir>/node_modules/.pnpm/file-type@21.3.4/node_modules/file-type/index.js"
     },
     "setupFiles": [
       "./.erb/scripts/check-build-exists.ts",
@@ -132,7 +134,7 @@
       "**/__tests__/unit_tests/**/*.ts?(x)"
     ],
     "transformIgnorePatterns": [
-      "/node_modules/(?!(uuid)/)",
+      "/node_modules/(?!.*(uuid|music-metadata|file-type|strtok3|token-types|media-typer|uint8array-extras|win-guid|@borewit|@tokenizer))",
       "\\.pnp\\.[^\\/]+$"
     ]
   },
