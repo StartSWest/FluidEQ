@@ -31,7 +31,7 @@ const library: Partial<Dictionary> = {
     '{count} músicas de karaokê ignoradas — abra-as na aba Karaokê',
 
   'library.add': 'Adicionar pasta',
-  'library.rescan': 'Verificar novamente',
+  'library.rescan': 'Escanear novamente',
   'library.search': 'Pesquisar na biblioteca',
   'library.searchPlaceholder': 'Pesquisar músicas, artistas, álbuns',
 

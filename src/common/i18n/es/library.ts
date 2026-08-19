@@ -31,7 +31,7 @@ const library: Partial<Dictionary> = {
     '{count} canciones de karaoke omitidas — ábrelas en la pestaña Karaoke',
 
   'library.add': 'Añadir carpeta',
-  'library.rescan': 'Volver a explorar',
+  'library.rescan': 'Volver a escanear',
   'library.search': 'Buscar en la biblioteca',
   'library.searchPlaceholder': 'Buscar canciones, artistas, álbumes',
 
