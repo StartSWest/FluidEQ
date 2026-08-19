@@ -40,16 +40,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // No surface of its own. A card here was tried and it made the header look
   // like a separate panel sitting on the EQ rather than the top of it; the
   // rows hold together well enough on spacing alone.
+  //
+  // No inner padding either — the workspace panel around every tab pads to
+  // 12px on all sides, and adding another 8px here put the EQ heading further
+  // from the card edge than the headings on Presets, Voicing and Convolution.
+  // One inset for every page.
   gap: 11px;
   margin: 2px 0 0;
-  padding: 0 8px;
+  padding: 0;
 
   > div:first-child {
     min-width: 0;
   }
 
-  h4 {
-    margin: 2px 0 0;
+  // Matches the intro `h2` sizing on every other tab (Presets, Voicing,
+  // Convolution, Karaoke), so switching tabs does not resize the page title.
+  h2 {
+    margin: 1px 0 4px;
+    font-size: 1.22rem;
   }
 }
 

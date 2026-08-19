@@ -700,7 +700,7 @@ const MainContent = () => {
       <div className="main-content-title">
         <div>
           <span className="eyebrow">{t('eq.eyebrow')}</span>
-          <h4>{t('eq.title')}</h4>
+          <h2>{t('eq.title')}</h2>
         </div>
         <div className="eq-toolbar">
           <VoicingQuickPick />

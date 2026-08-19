@@ -1442,7 +1442,7 @@ const KaraokeWorkspace = ({
       {!isFullScreen && (
         <header className="karaoke-workspace__header">
           <div>
-            <p className="karaoke-workspace__eyebrow">{t('karaoke.eyebrow')}</p>
+            <p className="eyebrow">{t('karaoke.eyebrow')}</p>
             <h2 id="karaoke-workspace-title">{t('karaoke.title')}</h2>
             <p className="karaoke-workspace__intro">{t('karaoke.intro')}</p>
           </div>

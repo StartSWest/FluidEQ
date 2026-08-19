@@ -189,13 +189,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: flex-start;
   justify-content: space-between;
   gap: $spacing-l;
-  padding: 4px 4px 0;
+  // No inset of its own. The workspace tab panel already pads to 12px on
+  // every side and the other tabs' headings sit flush against that inset —
+  // the 4px this used to add put the Karaoke title further in than the EQ,
+  // Presets, Voicing and Convolution titles beside it.
+  padding: 0;
 
+  // 1.22rem matches the intro `h2` on Presets, Voicing and Convolution, so
+  // the page title is the same size on every tab. Held at the same line
+  // height it had before so the eyebrow above it does not shift.
   h2 {
-    margin: 2px 0 5px;
+    margin: 1px 0 4px;
     color: $text-primary;
-    font-size: clamp(1.18rem, 1.8vw, 1.55rem);
-    line-height: 1.15;
+    font-size: 1.22rem;
+    line-height: 1.2;
   }
 }
 
@@ -466,15 +473,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.karaoke-workspace__eyebrow {
-  margin: 0;
-  color: $secondary-default;
-  font-size: 0.65rem;
-  font-weight: 900;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
+// The Karaoke eyebrow is the shared `.eyebrow` class now — see the header
+// markup in KaraokeWorkspace.tsx. It was a hand-mixed cyan a shade brighter
+// than the rest, at 0.65rem and weight 900, which made it read as a heavier
+// and different label from the identical row on every other tab. One cyan,
+// one weight, one size across the app.
 .karaoke-workspace__intro {
   max-width: 650px;
   margin: 0;
