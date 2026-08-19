@@ -145,18 +145,6 @@ const handleActivity = (event?: Event) => {
 };
 
 /**
- * Put the chrome away now, or bring it back — whichever it is not.
- *
- * Bound to a click on the drawing, and a toggle rather than a hide because a
- * control that only works in one direction is one somebody presses twice and
- * then stops trusting. Waiting out the timer is the right answer for a person
- * who has simply stopped moving, and a strange thing to ask of one who has just
- * said what they want.
- *
- * Showing restarts the clock, so a click to look at something is followed by
- * the same fade as any other reveal.
- */
-/**
  * Keep the chrome on screen regardless, while something needs it there.
  *
  * Releasing restarts the clock as though the pointer had just moved, so the
@@ -177,6 +165,18 @@ export const setChromeHeld = (next: boolean) => {
   handleActivity();
 };
 
+/**
+ * Put the chrome away now, or bring it back — whichever it is not.
+ *
+ * Bound to a click on the drawing, and a toggle rather than a hide because a
+ * control that only works in one direction is one somebody presses twice and
+ * then stops trusting. Waiting out the timer is the right answer for a person
+ * who has simply stopped moving, and a strange thing to ask of one who has just
+ * said what they want.
+ *
+ * Showing restarts the clock, so a click to look at something is followed by
+ * the same fade as any other reveal.
+ */
 export const toggleChromeNow = () => {
   if (!isWatching || isHeld) {
     return;
