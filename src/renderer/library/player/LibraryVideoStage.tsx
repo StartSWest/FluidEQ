@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { useTranslation } from '../../utils/I18nContext';
 import { useLibraryPlayer } from './LibraryPlayerContext';
@@ -45,18 +45,35 @@ const LibraryVideoStage = () => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
 
-  // Registration is once-per-element, not once-per-track: the same `<video>`
-  // DOM node is reused across a run of consecutive video tracks (React never
-  // remounts it, since the condition that renders it — `videoTrackId` being
-  // set — stays true the whole time), so only the mount/unmount of the
-  // element itself should re-run this.
-  useEffect(() => {
-    const element = videoRef.current;
-    if (!element) {
-      return undefined;
-    }
-    return registerVideoElement(element);
-  }, [registerVideoElement]);
+  /**
+   * Registration, keyed on the DOM node itself rather than on a `useEffect`.
+   *
+   * A `useEffect(() => registerVideoElement(videoRef.current), [registerVideoElement])`
+   * was here first, and it never actually registered anything: `videoRef`
+   * is a plain ref, not a dependency React can see, and `registerVideoElement`
+   * is stable across renders (it is `useCallback`-memoised in
+   * `LibraryPlayerContext` on deps that never change), so that effect ran
+   * exactly once — at this component's first mount, while `videoTrackId` was
+   * still unset and `videoRef.current` was still `null` because the `<video>`
+   * below had not rendered yet. It never ran again, so `toggle`/`seek`/volume
+   * never reached a real element and the pause-on-leave fix in
+   * `registerVideoElement`'s own cleanup never ran either — a test built to
+   * exercise it caught this instead.
+   *
+   * React 19's callback refs fire on the DOM node's own attach and detach —
+   * exactly the event this needs — and can return their own cleanup
+   * directly, which is exactly `registerVideoElement`'s shape already
+   * (`(element) => () => void`). `videoRef` still exists for the effect
+   * below, which needs to read the element back out on its own schedule
+   * rather than being handed it once.
+   */
+  const setVideoRef = useCallback(
+    (element: HTMLVideoElement | null) => {
+      videoRef.current = element;
+      return registerVideoElement(element);
+    },
+    [registerVideoElement],
+  );
 
   // Keeps the element's own transport state following the shared `isPlaying`
   // flag — including right after `src` changes to the next video, which the
@@ -122,7 +139,7 @@ const LibraryVideoStage = () => {
           library file carries no caption track to offer; there is nothing to
           associate one with. */}
       <video
-        ref={videoRef}
+        ref={setVideoRef}
         className="library-video-stage__video"
         src={libraryMediaUrl('track', videoTrackId)}
         onClick={toggle}

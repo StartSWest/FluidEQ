@@ -349,7 +349,14 @@ const NowPlayingBar = ({
               } as CSSProperties
             }
             aria-label={t('library.position')}
-            disabled={durationMs <= 0}
+            // `durationMs` alone leaves this draggable for an unplayable
+            // track: `LibraryPlayerContext` sets it from the tag before it
+            // even checks `isPlayable`, so a file with real metadata but no
+            // demuxer still reports a real length here. Harmless in itself —
+            // `seek()` only ever touches a srcless element — but a live
+            // slider next to a disabled Play button and a "cannot play this
+            // format" message reads as broken.
+            disabled={durationMs <= 0 || isUnplayable}
             onChange={(event) => onSeek(Number(event.target.value))}
           />
           <time className="now-playing-bar__time">

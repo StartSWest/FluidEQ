@@ -266,6 +266,22 @@ export const LibraryPlayerProvider = ({
       const unbind = bindMediaEvents(element);
       return () => {
         unbind();
+        // `LibraryVideoStage` unmounts the instant `videoTrackId` goes
+        // undefined — the queue moved to an audio track, or off the end —
+        // and this cleanup is what runs at that exact moment. It has to stop
+        // the video itself rather than trust the unmount to: React tears
+        // this element out of the DOM, but nothing about removing a node
+        // stops whatever it was doing, and the `[trackId]` effect below
+        // starts `audio.play()` in the very same commit. `pause()` is
+        // synchronous and this cleanup is guaranteed to run before any new
+        // effect fires this commit (React runs every destroy function across
+        // the tree before any create function), so the two can never
+        // overlap. `removeAttribute('src')` on top of `pause()` — matching
+        // exactly how the audio element itself is released a few lines
+        // down — because a paused-but-loaded video keeps its buffer and its
+        // decoder alive; only clearing the source lets both go.
+        element.pause();
+        element.removeAttribute('src');
         if (videoElementRef.current === element) {
           videoElementRef.current = null;
         }
