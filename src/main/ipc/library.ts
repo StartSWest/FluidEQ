@@ -79,6 +79,19 @@ let indexWasReset = false;
 let isScanning = false;
 let cancelRequested = false;
 
+/**
+ * Roots that asked to be scanned while a walk was already running.
+ *
+ * `requestScan` is what fills this in, for every caller that must not lose a
+ * request just because it lost the race for `isScanning` -- adding a root
+ * from the dialog or a drop. `library-scan-start` and the launch rescan
+ * deliberately do not go through `requestScan`: the brief calls for those to
+ * be dropped, not queued, when a scan is already running. `performScan`
+ * drains this set itself once the walk it is already doing finishes; nothing
+ * else ever starts a scan on the strength of this set being non-empty.
+ */
+const pendingRescanRootIds = new Set<string>();
+
 /** Read by `handleLibraryMedia` to resolve a `fluideq-media://track/<id>` request. */
 export const libraryIndexSnapshot = (): ILibraryIndex => currentIndex;
 
@@ -172,6 +185,17 @@ const scanOneRoot = async (
  * Walks every root named in `rootIds`, one at a time, then saves and
  * broadcasts the result. A second call while one is already running is a
  * no-op -- see the module comment on `isScanning`.
+ *
+ * Before returning, it drains `pendingRescanRootIds`: a root queued by
+ * `requestScan` while this walk was already under way is picked up as a
+ * further batch of the same walk instead of being left to wait for the next
+ * explicit rescan, or for a launch rescan that only ever runs once. Written
+ * as a loop over batches, all under one `isScanning = true`, rather than as
+ * this function calling itself once it is done -- a batch that queues yet
+ * another root while it is draining is caught by the loop condition on its
+ * next pass, with no repeated call into this function and no gap where
+ * `isScanning` is briefly false and a second, truly concurrent walk could
+ * start.
  */
 const performScan = async (
   deps: ILibraryIpcDeps,
@@ -183,17 +207,25 @@ const performScan = async (
   isScanning = true;
   cancelRequested = false;
   try {
-    for (let index = 0; index < rootIds.length; index += 1) {
-      if (cancelRequested) {
+    let batch: string[] = [...rootIds];
+    while (batch.length > 0) {
+      for (let index = 0; index < batch.length; index += 1) {
+        if (cancelRequested) {
+          break;
+        }
+        // eslint-disable-next-line no-await-in-loop -- one root walked at a time by design; see the module comment on isScanning.
+        await scanOneRoot(deps, batch[index]);
+      }
+      saveLibraryIndex(deps.userDataDir, currentIndex);
+      deps
+        .getMainWindow()
+        ?.webContents.send('library-index-changed', currentIndex);
+      if (cancelRequested || pendingRescanRootIds.size === 0) {
         break;
       }
-      // eslint-disable-next-line no-await-in-loop -- one root walked at a time by design; see the module comment on isScanning.
-      await scanOneRoot(deps, rootIds[index]);
+      batch = Array.from(pendingRescanRootIds);
+      pendingRescanRootIds.clear();
     }
-    saveLibraryIndex(deps.userDataDir, currentIndex);
-    deps
-      .getMainWindow()
-      ?.webContents.send('library-index-changed', currentIndex);
   } finally {
     isScanning = false;
     cancelRequested = false;
@@ -218,6 +250,29 @@ const runScanInBackground = (
 };
 
 /**
+ * Starts a scan, or -- if one is already running -- queues these roots to be
+ * picked up by `performScan`'s own drain once it finishes, rather than
+ * dropping the request. Used by every caller that must not silently lose a
+ * newly added root: `library-root-add` and `library-root-add-paths`.
+ * `library-scan-start` and the launch rescan call `runScanInBackground`
+ * directly instead, on purpose -- the brief calls for a second explicit
+ * rescan request to be ignored, not queued, while one is already running.
+ */
+const requestScan = (
+  deps: ILibraryIpcDeps,
+  rootIds: readonly string[],
+): void => {
+  if (rootIds.length === 0) {
+    return;
+  }
+  if (isScanning) {
+    rootIds.forEach((rootId) => pendingRescanRootIds.add(rootId));
+    return;
+  }
+  runScanInBackground(deps, rootIds);
+};
+
+/**
  * Adds each path as a new root and starts scanning them, without waiting for
  * the scan to finish.
  *
@@ -225,7 +280,10 @@ const runScanInBackground = (
  * for as long as a large library takes to read would be exactly the silent,
  * unresponsive click the project's UI rules forbid. The caller gets the new
  * roots back immediately, at `trackCount: 0`; `library-scan-progress` and
- * `library-index-changed` carry the rest.
+ * `library-index-changed` carry the rest. Goes through `requestScan`, not
+ * `runScanInBackground`, so a root dropped while another is already scanning
+ * is queued rather than left at `trackCount: 0` with nothing left to pick it
+ * back up -- see `requestScan`.
  */
 const addRootsAndScan = (
   deps: ILibraryIpcDeps,
@@ -240,7 +298,7 @@ const addRootsAndScan = (
     roots: [...currentIndex.roots, ...newRoots],
   };
   saveLibraryIndex(deps.userDataDir, currentIndex);
-  runScanInBackground(
+  requestScan(
     deps,
     newRoots.map((root) => root.id),
   );
