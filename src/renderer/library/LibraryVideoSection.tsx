@@ -80,7 +80,13 @@ export const videoFolderGroups = (
 interface ILibraryVideoSectionProps {
   tracks: readonly ILibraryTrack[];
   onPlayTrack: (trackId: string) => void;
+  /** Root ids currently marked `isOffline` — spec §10: kept, never deleted,
+   * and dimmed. Optional for the same reason `LibraryListView`'s own prop of
+   * the same name is: real usage always supplies it. */
+  offlineRootIds?: ReadonlySet<string>;
 }
+
+const NO_OFFLINE_ROOTS: ReadonlySet<string> = new Set();
 
 /**
  * The video section: a shelf of its own rather than folded into the album,
@@ -104,6 +110,7 @@ interface ILibraryVideoSectionProps {
 const LibraryVideoSection = ({
   tracks,
   onPlayTrack,
+  offlineRootIds = NO_OFFLINE_ROOTS,
 }: ILibraryVideoSectionProps) => {
   const { t } = useTranslation();
 
@@ -134,38 +141,45 @@ const LibraryVideoSection = ({
             {group.folder}
           </h3>
           <div className="library-video-section__grid">
-            {group.tracks.map((track) => (
-              <button
-                key={track.id}
-                type="button"
-                className="library-grid__tile"
-                onClick={() => onPlayTrack(track.id)}
-              >
-                <span className="library-video-section__art">
-                  <LibraryCoverArt
-                    artId={track.artId}
-                    label={track.title}
-                    size="tile"
-                  />
-                  {/* Chromium has no demuxer for this container — marked on
-                      the art itself, the one place a grid tile has to put
-                      it. See `LibraryListView`'s inline badge for the row
-                      equivalent of this same mark. */}
-                  {!track.isPlayable && (
-                    <span
-                      className="library-video-section__unplayable"
-                      title={t('library.unplayable')}
-                    >
-                      <MenuIcon
-                        name="clear"
-                        className="library-list__badge-icon"
-                      />
-                    </span>
-                  )}
-                </span>
-                <span className="library-grid__title">{track.title}</span>
-              </button>
-            ))}
+            {group.tracks.map((track) => {
+              // Spec §10: a root missing at rescan is marked offline and its
+              // tracks are "kept and dimmed — never deleted", not silently
+              // unplayable.
+              const isOffline = offlineRootIds.has(track.rootId);
+              return (
+                <button
+                  key={track.id}
+                  type="button"
+                  className={`library-grid__tile${isOffline ? ' library-grid__tile--offline' : ''}`}
+                  title={isOffline ? t('library.root.offline') : undefined}
+                  onClick={() => onPlayTrack(track.id)}
+                >
+                  <span className="library-video-section__art">
+                    <LibraryCoverArt
+                      artId={track.artId}
+                      label={track.title}
+                      size="tile"
+                    />
+                    {/* Chromium has no demuxer for this container — marked
+                        on the art itself, the one place a grid tile has to
+                        put it. See `LibraryListView`'s inline badge for the
+                        row equivalent of this same mark. */}
+                    {!track.isPlayable && (
+                      <span
+                        className="library-video-section__unplayable"
+                        title={t('library.unplayable')}
+                      >
+                        <MenuIcon
+                          name="clear"
+                          className="library-list__badge-icon"
+                        />
+                      </span>
+                    )}
+                  </span>
+                  <span className="library-grid__title">{track.title}</span>
+                </button>
+              );
+            })}
           </div>
         </div>
       ))}

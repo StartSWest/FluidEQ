@@ -70,6 +70,8 @@ export const handleLibraryMedia = (deps: {
   protocol.handle(LIBRARY_MEDIA_SCHEME, async (request) => {
     const parsed = parseLibraryMediaUrl(request.url);
     if (!parsed) {
+      // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+      console.error(`Could not parse library media request ${request.url}`);
       return new Response(undefined, { status: 404 });
     }
     const resolved =
@@ -77,6 +79,15 @@ export const handleLibraryMedia = (deps: {
         ? trackPathById(deps.getIndex(), parsed.id)
         : artworkPath(deps.userDataDir, parsed.id);
     if (!resolved) {
+      // A click that loads the bar and then does nothing, ever, used to
+      // leave no trace anywhere -- this is the one line that turns it into
+      // a bug report: which id was asked for, and what it resolved to
+      // (nothing, here) -- a track whose root was removed, an artwork id the
+      // cache never wrote, or an id this build never minted at all.
+      // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+      console.error(
+        `Library media not found: ${parsed.kind} ${parsed.id} resolved to ${resolved}`,
+      );
       return new Response(undefined, { status: 404 });
     }
     return net.fetch(pathToFileURL(resolved).toString());

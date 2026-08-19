@@ -549,6 +549,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     background: rgba($secondary-default, 0.12);
     outline: none;
   }
+
+  // Spec §10: a root missing at rescan keeps its tracks, dimmed rather than
+  // hidden or removed — this is the one place that promise is actually kept.
+  // Still fully clickable: the file may come back the moment its drive is
+  // plugged back in, and a click on a genuinely gone one already gets the
+  // real "cannot play" answer from the `error` listener in
+  // `LibraryPlayerContext`, not a dead row.
+  &--offline {
+    opacity: 0.5;
+  }
 }
 
 .library-list__col {
@@ -707,6 +717,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:focus-visible {
     @include focus-ring;
+  }
+
+  // Same dimming, and the same reasoning, as `.library-list__row--offline` —
+  // shared by `LibraryVideoSection`'s tiles too, since both reuse this exact
+  // class rather than drawing their own.
+  &--offline {
+    opacity: 0.5;
   }
 }
 

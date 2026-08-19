@@ -91,6 +91,44 @@ describe('the library as a list', () => {
     ).toBeInTheDocument();
   });
 
+  it('dims a track whose root is offline instead of leaving it looking identical (blocker 4)', () => {
+    // Spec §10 promises an offline root's tracks are "kept and dimmed" — a
+    // comment in `LibraryFolderActions.tsx` asserted this already happened
+    // "elsewhere in the library" with nothing anywhere actually reading
+    // `isOffline` outside that menu. A row-count or text assertion would
+    // pass whether or not this dimming exists at all; only the class itself
+    // proves it.
+    wrap(
+      <LibraryListView
+        tracks={[track({ title: 'Ghost', rootId: 'offline-root' })]}
+        browseMode="song"
+        onOpenAlbum={jest.fn()}
+        onOpenArtist={jest.fn()}
+        onPlayTrack={jest.fn()}
+        offlineRootIds={new Set(['offline-root'])}
+      />,
+    );
+    const row = screen.getByText('Ghost').closest('[role="row"]');
+    expect(row).toHaveClass('library-list__row--offline');
+  });
+
+  it('leaves a track on a root that is not offline undimmed, right beside it', () => {
+    // The positive control the test above needs: proof the class is really
+    // conditional on `offlineRootIds`, not applied to every row regardless.
+    wrap(
+      <LibraryListView
+        tracks={[track({ title: 'Live', rootId: 'online-root' })]}
+        browseMode="song"
+        onOpenAlbum={jest.fn()}
+        onOpenArtist={jest.fn()}
+        onPlayTrack={jest.fn()}
+        offlineRootIds={new Set(['offline-root'])}
+      />,
+    );
+    const row = screen.getByText('Live').closest('[role="row"]');
+    expect(row).not.toHaveClass('library-list__row--offline');
+  });
+
   it('opens the reveal menu from the keyboard, not just a right click', () => {
     wrap(
       <LibraryListView

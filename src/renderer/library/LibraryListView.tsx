@@ -33,7 +33,15 @@ interface ILibraryListViewProps {
   onOpenAlbum: (albumId: string) => void;
   onOpenArtist: (artistId: string) => void;
   onPlayTrack: (trackId: string) => void;
+  /** Root ids currently marked `isOffline` — spec §10: kept, never deleted,
+   * and dimmed. Optional, matching `NowPlayingBar`'s own `volume` prop: real
+   * usage always supplies it (`LibraryWorkspace` derives it from `index.roots`),
+   * and no test of this view's other behaviours needs a real one to exercise
+   * them. */
+  offlineRootIds?: ReadonlySet<string>;
 }
+
+const NO_OFFLINE_ROOTS: ReadonlySet<string> = new Set();
 
 /** The five column headers this view ever shows, keyed by the existing
  * `library.column.*` translation each draws from — never a computed key,
@@ -87,6 +95,7 @@ const LibraryListView = ({
   onOpenAlbum,
   onOpenArtist,
   onPlayTrack,
+  offlineRootIds = NO_OFFLINE_ROOTS,
 }: ILibraryListViewProps) => {
   const { t } = useTranslation();
   // The row a right click or a keyboard context-menu request landed on, and
@@ -335,12 +344,16 @@ const LibraryListView = ({
     </>,
     tracks.map((track) => {
       const activate = () => onPlayTrack(track.id);
+      // Spec §10: a root missing at rescan is marked offline and its tracks
+      // are "kept and dimmed — never deleted", not silently unplayable.
+      const isOffline = offlineRootIds.has(track.rootId);
       return (
         <div
           key={track.id}
           role="row"
           tabIndex={0}
-          className="library-list__row"
+          className={`library-list__row${isOffline ? ' library-list__row--offline' : ''}`}
+          title={isOffline ? t('library.root.offline') : undefined}
           onDoubleClick={activate}
           onKeyDown={(event) => onTrackRowKeyDown(event, track)}
           onContextMenu={(event) => {

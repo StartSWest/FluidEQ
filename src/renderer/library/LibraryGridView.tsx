@@ -31,7 +31,13 @@ interface ILibraryGridViewProps {
   onOpenAlbum: (albumId: string) => void;
   onOpenArtist: (artistId: string) => void;
   onPlayTrack: (trackId: string) => void;
+  /** Root ids currently marked `isOffline` — spec §10: kept, never deleted,
+   * and dimmed. Optional for the same reason `LibraryListView`'s own prop of
+   * the same name is: real usage always supplies it. */
+  offlineRootIds?: ReadonlySet<string>;
 }
+
+const NO_OFFLINE_ROOTS: ReadonlySet<string> = new Set();
 
 /**
  * One tile's worth of what `LibraryGridView` draws — deliberately the raw
@@ -49,6 +55,9 @@ interface IGridItem {
   title: string;
   artistName: string;
   albumCount?: number;
+  /** Only ever set for a song tile — an album or artist has no single root
+   * of its own to dim by. */
+  rootId?: string;
 }
 
 /**
@@ -67,6 +76,7 @@ const LibraryGridView = ({
   onOpenAlbum,
   onOpenArtist,
   onPlayTrack,
+  offlineRootIds = NO_OFFLINE_ROOTS,
 }: ILibraryGridViewProps) => {
   const { t } = useTranslation();
 
@@ -107,6 +117,7 @@ const LibraryGridView = ({
       artId: track.artId,
       title: track.title,
       artistName: track.artist ?? '',
+      rootId: track.rootId,
     }));
   }, [tracks, browseMode]);
 
@@ -154,11 +165,19 @@ const LibraryGridView = ({
       {items.map((item) => {
         const title = tileTitle(item);
         const subtitle = tileSubtitle(item);
+        // Spec §10: a root missing at rescan is marked offline and its
+        // tracks are "kept and dimmed — never deleted", not silently
+        // unplayable. Only ever true for a song tile — `rootId` is unset
+        // for an album or artist grouping.
+        const isOffline = Boolean(
+          item.rootId && offlineRootIds.has(item.rootId),
+        );
         return (
           <button
             key={item.id}
             type="button"
-            className="library-grid__tile"
+            className={`library-grid__tile${isOffline ? ' library-grid__tile--offline' : ''}`}
+            title={isOffline ? t('library.root.offline') : undefined}
             onClick={() => openItem(item.id)}
           >
             <LibraryCoverArt artId={item.artId} label={title} size="tile" />
