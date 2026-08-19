@@ -41,6 +41,7 @@ export * from './whisperSession';
 export * from './whisperProgress';
 export * from './whisperTranscribe';
 export * from './wordMatching';
+export * from './monotonicRoute';
 export * from './vocalRests';
 export * from './voiceOnsets';
 export * from './lyricRepetition';

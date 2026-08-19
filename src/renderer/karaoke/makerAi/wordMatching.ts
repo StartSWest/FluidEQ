@@ -33,8 +33,25 @@ const foldKatakanaToHiragana = (value: string): string =>
  * the 0.34 that counts as a match. Two different Korean syllables matched each
  * other. Recomposed they are one code point each and do not.
  */
-export const normalizedWord = (value: string): string =>
-  foldKatakanaToHiragana(
+/**
+ * Answers already given, because a song asks the same few questions millions
+ * of times.
+ *
+ * The sentence router normalises every transcript word once per lyric anchor
+ * of every line: measured on a song repeating one three-word line four hundred
+ * times, 26.6 million calls for three distinct strings, and half the cost of
+ * building candidates. Nothing here depends on when the call happens, only on
+ * the string, so the answer keeps. The bound guards a pathological vocabulary
+ * rather than sizing a working set \u2014 a song's is a few thousand words.
+ */
+const normalizedWords = new Map<string, string>();
+
+export const normalizedWord = (value: string): string => {
+  const remembered = normalizedWords.get(value);
+  if (remembered !== undefined) {
+    return remembered;
+  }
+  const normalized = foldKatakanaToHiragana(
     value
       .normalize('NFKD')
       .replace(/[\u0300-\u036f]/g, '')
@@ -42,6 +59,12 @@ export const normalizedWord = (value: string): string =>
       .replace(/[^\p{L}\p{N}]+/gu, '')
       .normalize('NFC'),
   );
+  if (normalizedWords.size >= 20_000) {
+    normalizedWords.clear();
+  }
+  normalizedWords.set(value, normalized);
+  return normalized;
+};
 
 export const normalizedWordDistance = (left: string, right: string): number => {
   if (left === right) {

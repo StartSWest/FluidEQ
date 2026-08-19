@@ -52,6 +52,8 @@ import {
   karaokeMakerVoiceOnsets,
   normalizedWord,
   normalizedWordDistance,
+  solveMonotonicRoute,
+  limitRouteCandidates,
   karaokeMakerSnapWordsToOnsets,
   karaokeMakerRepeatedRuns,
   karaokeMakerRepeatEdgeBreaks,
@@ -3597,7 +3599,7 @@ describe('Karaoke Maker lyrics in unspaced scripts', () => {
 });
 
 describe('Karaoke Maker alignment on a heavily repeated song', () => {
-  it('solves a hundred performances of one line without hanging', () => {
+  it('solves a hundred and forty performances of one line without hanging', () => {
     // Measured shape of the hang: every candidate rescanned every node
     // accumulated so far, so a song repeating one short line reached tens of
     // thousands of nodes and quadratic work — synchronously, on the renderer
@@ -3605,9 +3607,9 @@ describe('Karaoke Maker alignment on a heavily repeated song', () => {
     const project = createKaraokeMakerProject(song());
     project.audio.durationMs = 600_000;
     project.lyrics.lines = makerLinesFromPlainText(
-      Array.from({ length: 100 }, () => 'around the world').join('\n'),
+      Array.from({ length: 144 }, () => 'around the world').join('\n'),
     );
-    const transcript = Array.from({ length: 300 }, (_, index) => {
+    const transcript = Array.from({ length: 576 }, (_, index) => {
       const words = ['around', 'the', 'world'];
       return {
         text: words[index % 3],
@@ -3620,13 +3622,21 @@ describe('Karaoke Maker alignment on a heavily repeated song', () => {
     const aligned = applyWhisperTranscript(project, transcript);
     const elapsedMs = Date.now() - startedAt;
 
-    expect(aligned.lyrics.lines).toHaveLength(100);
-    // Positive control: it must actually time the song, or a function that
-    // returned immediately with nothing would pass the time bound alone.
-    const timed = aligned.lyrics.lines
-      .flatMap((line) => line.tokens)
-      .filter((token) => token.startMs !== undefined);
-    expect(timed.length).toBeGreaterThan(50);
+    // Positive control first, and it has to be the whole song: a route that
+    // covered a sixth of the lines is also fast, and so is one that returns
+    // nothing at all. Every line takes its own performance, in order.
+    const lyricLines = aligned.lyrics.lines.filter(
+      (line) => line.kind !== 'section',
+    );
+    expect(lyricLines).toHaveLength(144);
+    const starts = lyricLines.map((line) => line.tokens[0].startMs);
+    expect(starts.every((startMs) => startMs !== undefined)).toBe(true);
+    expect(
+      starts.every(
+        (startMs, index) =>
+          index === 0 || Number(startMs) > Number(starts[index - 1]),
+      ),
+    ).toBe(true);
     expect(elapsedMs).toBeLessThan(20_000);
   });
 });
@@ -3912,5 +3922,91 @@ describe('Karaoke Maker word matching across scripts', () => {
     expect(
       makerLinesFromPlainText('she walked past')[0].tokens.map((t) => t.text),
     ).toEqual(['she', 'walked', 'past']);
+  });
+});
+
+describe('Karaoke Maker monotonic route', () => {
+  const candidate = (startMs: number, endMs: number, score: number) => ({
+    endMs,
+    score,
+    startMs,
+  });
+
+  it('chains onto a line that finished and refuses one still sounding', () => {
+    const route = solveMonotonicRoute([
+      [candidate(0, 1_000, 10)],
+      [candidate(1_030, 2_000, 10)],
+      [candidate(1_500, 3_000, 10)],
+    ]);
+
+    // 1 030 begins 30 ms before the first line ends, which is a shared
+    // consonant; 1 500 begins half a second inside it and is a second voice.
+    expect(route.map(({ startMs }) => startMs)).toEqual([1_030, 0]);
+  });
+
+  it('covers more lines rather than scoring higher on fewer', () => {
+    const route = solveMonotonicRoute([
+      [candidate(0, 100, 1)],
+      [candidate(200, 300, 1)],
+      [candidate(0, 5_000, 900)],
+    ]);
+
+    expect(route.map(({ startMs }) => startMs)).toEqual([200, 0]);
+  });
+
+  it('settles a dead-level tie by the order the lines offered it', () => {
+    // Two predecessors level on covered lines, score and start; the one
+    // offered first ends later, so insertion order and end order disagree.
+    // Deciding by end time instead re-routed 225 of 4,000 random songs away
+    // from the answer the rest of this suite was written for.
+    const route = solveMonotonicRoute([
+      [candidate(0, 200, 10), candidate(0, 100, 10)],
+      [candidate(300, 400, 5)],
+    ]);
+
+    expect(route.map(({ endMs }) => endMs)).toEqual([400, 200]);
+  });
+
+  it('routes a song of nothing but repeats without hanging', () => {
+    const size = 400;
+    const lines = Array.from({ length: size }, () =>
+      Array.from({ length: size }, (_unused, index) =>
+        candidate(index * 1_000, index * 1_000 + 800, 1_000),
+      ),
+    );
+
+    const startedAt = Date.now();
+    const route = solveMonotonicRoute(lines);
+    const elapsedMs = Date.now() - startedAt;
+
+    // Positive control: covering nothing is also fast. Every line has to take
+    // its own performance, running backwards through the song.
+    expect(route).toHaveLength(size);
+    expect(route.map(({ startMs }) => startMs)).toEqual(
+      Array.from(
+        { length: size },
+        (_unused, index) => (size - 1 - index) * 1_000,
+      ),
+    );
+    expect(elapsedMs).toBeLessThan(2_000);
+  });
+
+  it('returns nothing when there is nothing to route', () => {
+    expect(solveMonotonicRoute([])).toEqual([]);
+    expect(solveMonotonicRoute([[], [], []])).toEqual([]);
+  });
+
+  it('thins a line by time so every part of the song keeps one', () => {
+    // A top-K by score is the obvious thinning and is backwards here: on a
+    // song of identical lines every performance scores the same, so it keeps
+    // K from one stretch and leaves the rest with none.
+    const candidates = Array.from({ length: 12 }, (_unused, index) =>
+      candidate(index * 1_000, index * 1_000 + 500, index % 3),
+    );
+
+    expect(
+      limitRouteCandidates(candidates, 4).map(({ startMs }) => startMs),
+    ).toEqual([2_000, 5_000, 8_000, 11_000]);
+    expect(limitRouteCandidates(candidates, 12)).toBe(candidates);
   });
 });
