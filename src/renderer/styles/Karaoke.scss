@@ -6393,64 +6393,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.karaoke-maker__memory-prompt {
-  position: absolute;
-  z-index: 23;
-  right: 18px;
-  bottom: calc(var(--karaoke-maker-dock-height) + 12px);
-  display: grid;
-  width: min(500px, calc(100% - 36px));
-  grid-template-columns: auto minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 10px;
-  padding: 11px 12px;
-  color: #ddf9f6;
-  background:
-    radial-gradient(circle at 10% 0, rgba(37, 216, 199, 0.14), transparent 54%),
-    rgba(5, 27, 41, 0.97);
-  border: 1px solid rgba(74, 212, 202, 0.36);
-  border-radius: 13px;
-  box-shadow: 0 18px 48px rgba($black, 0.42);
-  backdrop-filter: blur(18px);
-
-  > svg {
-    width: 19px;
-    height: 19px;
-    color: $secondary-light;
-  }
-
-  > div {
-    display: grid;
-    gap: 2px;
-
-    strong {
-      font-size: 0.8rem;
-    }
-
-    span {
-      color: rgba(174, 211, 218, 0.68);
-      font-size: 0.76rem;
-      line-height: 1.35;
-    }
-  }
-
-  > button {
-    min-height: 30px;
-    padding: 0 10px;
-    color: #c8eeec;
-    font-size: 0.76rem;
-    font-weight: 800;
-    background: rgba(20, 71, 85, 0.36);
-    border: 1px solid rgba(103, 177, 189, 0.25);
-    border-radius: 9px;
-
-    &.is-primary {
-      color: #062a30;
-      background: linear-gradient(135deg, #63f3e5, #26d5c6);
-      border-color: transparent;
-    }
-  }
-}
+// The idle-release prompt used to live here, pinned above the Maker's dock.
+// It is `.speech-memory-notice` now, at the app root: the question outlives
+// this tab being on screen, and its buttons were a bespoke pair that `.button
+// small` and `.button small subtle` already provide.
 
 .karaoke-maker__analysis-progress,
 .karaoke-maker__analysis-error {

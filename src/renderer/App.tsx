@@ -82,6 +82,7 @@ import VoicingPanel from './VoicingPanel';
 import MenuIcon from './icons/MenuIcon';
 import LanguagePicker from './components/LanguagePicker';
 import UpdateNotice from './components/UpdateNotice';
+import SpeechMemoryNotice from './components/SpeechMemoryNotice';
 import MandatoryUpdateModal from './components/MandatoryUpdateModal';
 import DisclaimerGate from './components/DisclaimerGate';
 import WhatsNewDialog from './components/WhatsNewDialog';
@@ -1551,6 +1552,11 @@ const AppContent = () => {
         {/* Bottom left, opposite the failure notices, so two things arriving
             at once do not land on top of each other. */}
         <UpdateNotice />
+        {/* Here rather than in the Karaoke tab that owns the model: the idle
+            timer that raises it runs for as long as the model is loaded, and
+            asking inside a tab nobody is looking at held the RAM until the
+            user happened to come back. */}
+        <SpeechMemoryNotice />
         {whatsNewScope && (
           <WhatsNewDialog
             scope={whatsNewScope}

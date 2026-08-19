@@ -176,6 +176,7 @@ const Dropdown = ({
   // click on an option would read as a click elsewhere and close the menu
   // before the option's own handler ran.
   const menuRef = useRef<HTMLDivElement>(null);
+  const filterInputRef = useRef<HTMLInputElement>(null);
 
   const [searchString, setSearchString] = useState<string>('');
   const deferredSearchString = useDeferredValue(searchString);
@@ -369,9 +370,10 @@ const Dropdown = ({
   useEffect(() => {
     if (isOpen && isFilterable) {
       // Filterable menus are portalled to document.body, so the search field
-      // is outside the trigger's subtree. Focus the menu itself after it has
-      // mounted; querying dropdownRef here silently misses the input.
-      menuRef.current?.querySelector<HTMLInputElement>('input')?.focus();
+      // is outside the trigger's subtree — querying dropdownRef here silently
+      // misses the input. The ref is attached before effects run, so it is
+      // already pointing at the freshly mounted field by now.
+      filterInputRef.current?.focus();
     }
   }, [isFilterable, isOpen]);
 
@@ -550,15 +552,40 @@ const Dropdown = ({
         startingItem={
           isFilterable ? (
             <div className="dropdown-filter-tools">
-              <TextInput
-                value={searchString}
-                ariaLabel={t('common.filterOptions')}
-                isDisabled={isDisabled}
-                errorMessage=""
-                placeholder={resolvedFilterPlaceholder}
-                handleChange={(newValue) => setSearchString(newValue)}
-                handleSubmit={(query) => onSearchCommit?.(query)}
-              />
+              <div className="dropdown-filter-field">
+                <TextInput
+                  ref={filterInputRef}
+                  value={searchString}
+                  ariaLabel={t('common.filterOptions')}
+                  isDisabled={isDisabled}
+                  errorMessage=""
+                  placeholder={resolvedFilterPlaceholder}
+                  handleChange={(newValue) => setSearchString(newValue)}
+                  handleSubmit={(query) => onSearchCommit?.(query)}
+                />
+                {searchString.length > 0 && (
+                  <button
+                    type="button"
+                    className="dropdown-filter-field__clear"
+                    aria-label={t('common.clearSearch')}
+                    title={t('common.clearSearch')}
+                    // Pressing a button focuses it, and this one unmounts on
+                    // the very next render — so without this the caret would
+                    // end up on the body and the next keystroke would go
+                    // nowhere. Kept alongside the explicit refocus below
+                    // because it avoids the round trip rather than undoing it.
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => {
+                      setSearchString('');
+                      filterInputRef.current?.focus();
+                    }}
+                  >
+                    <svg viewBox="0 0 12 12" aria-hidden>
+                      <path d="M3 3l6 6M9 3l-6 6" />
+                    </svg>
+                  </button>
+                )}
+              </div>
               {searchSuggestions.length > 0 && (
                 <div className="dropdown-search-history">
                   <div className="dropdown-search-history__head">

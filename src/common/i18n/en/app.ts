@@ -65,6 +65,7 @@ const app = {
   'common.search': 'Search…',
   'common.recentSearches': 'Recent searches',
   'common.clearRecentSearches': 'Clear recent searches',
+  'common.clearSearch': 'Clear search',
   'common.filterOptions': 'Filter options',
   'common.increase': 'Increase {item}',
   'common.decrease': 'Decrease {item}',

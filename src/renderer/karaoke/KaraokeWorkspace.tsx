@@ -87,9 +87,7 @@ import { useKaraokeChordAnalysis } from './useKaraokeChordAnalysis';
 import { useKaraokeVocalMix } from './useKaraokeVocalMix';
 import { TKaraokeSessionError, useKaraokeSession } from './useKaraokeSession';
 import {
-  KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED,
   getKaraokeWhisperSessionSnapshot,
-  keepKaraokeWhisperModelForNow,
   releaseKaraokeWhisperModel,
   subscribeKaraokeWhisperSession,
 } from './makerAi';
@@ -1370,32 +1368,8 @@ const KaraokeWorkspace = ({
           {t(ERROR_KEYS[error])}
         </div>
       )}
-      {KARAOKE_AUTOMATIC_DETECTOR_UI_ENABLED &&
-        whisperSession.releasePrompt && (
-          <div
-            className="karaoke-maker__memory-prompt"
-            role="dialog"
-            aria-label={t('karaoke.maker.memoryPromptTitle')}
-          >
-            <MenuIcon name="microphone" />
-            <div>
-              <strong>{t('karaoke.maker.memoryPromptTitle')}</strong>
-              <span>{t('karaoke.maker.memoryPromptBody')}</span>
-            </div>
-            <button type="button" onClick={keepKaraokeWhisperModelForNow}>
-              {t('karaoke.maker.keepLoaded')}
-            </button>
-            <button
-              type="button"
-              className="is-primary"
-              onClick={() =>
-                releaseKaraokeWhisperModel().catch(() => undefined)
-              }
-            >
-              {t('karaoke.maker.freeMemory')}
-            </button>
-          </div>
-        )}
+      {/* The idle-release question is not drawn here. It outlives this tab
+          being looked at, so `SpeechMemoryNotice` asks it from the app root. */}
       {warning && (
         <div className="karaoke-workspace__notice is-warning" role="status">
           <strong>{warning.fileName}</strong> {t('karaoke.warning.lyrics')}

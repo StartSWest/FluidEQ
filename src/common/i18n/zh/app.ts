@@ -66,6 +66,7 @@ const app: Partial<Dictionary> = {
   'common.search': '搜索…',
   'common.recentSearches': '最近搜索',
   'common.clearRecentSearches': '清除最近搜索',
+  'common.clearSearch': '清除搜索',
   'common.filterOptions': '筛选选项',
   'common.increase': '增大{item}',
   'common.decrease': '减小{item}',

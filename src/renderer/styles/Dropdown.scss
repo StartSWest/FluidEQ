@@ -148,6 +148,53 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: 7px;
 }
 
+// The clear button sits inside the field rather than beside it, so the input
+// needs right padding wide enough to keep a long query from running under the
+// cross — 30px is the 18px button plus its two 6px margins.
+.dropdown-filter-field {
+  position: relative;
+  display: flex;
+  min-width: 0;
+
+  input[type='text'] {
+    padding-right: 30px;
+  }
+}
+
+.dropdown-filter-field__clear {
+  position: absolute;
+  top: 50%;
+  right: 6px;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  padding: 0;
+  color: rgba($primary-lighter, 0.55);
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: $transition-control;
+
+  svg {
+    width: 9px;
+    height: 9px;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $secondary-light;
+    background: rgba($secondary-default, 0.18);
+    outline: none;
+  }
+}
+
 .dropdown-search-history {
   display: grid;
   min-width: 0;

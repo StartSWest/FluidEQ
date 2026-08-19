@@ -927,9 +927,6 @@ describe('KaraokeWorkspace', () => {
       screen.getByRole('button', { name: 'Accept and record timing' }),
     ).toBeVisible();
     expect(
-      container.querySelector('.karaoke-maker__memory-prompt'),
-    ).not.toBeInTheDocument();
-    expect(
       maker.querySelector('.karaoke-maker__analysis-progress'),
     ).not.toBeInTheDocument();
     canvasContext.mockRestore();
