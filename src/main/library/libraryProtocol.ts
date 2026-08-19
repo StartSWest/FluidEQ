@@ -90,6 +90,16 @@ export const handleLibraryMedia = (deps: {
       );
       return new Response(undefined, { status: 404 });
     }
-    return net.fetch(pathToFileURL(resolved).toString());
+    // The incoming headers are forwarded, and the Range header is the whole
+    // reason. Dropping them made every seek restart the track: Chromium asks
+    // for `bytes=N-`, a bare `net.fetch` asks the file loader for the file,
+    // and a 200 with the whole body where a 206 was expected tells the media
+    // element it is holding a different resource — so it starts over at zero.
+    // `stream: true` on the scheme is only half of Range support; this is the
+    // other half.
+    return net.fetch(pathToFileURL(resolved).toString(), {
+      method: request.method,
+      headers: request.headers,
+    });
   });
 };

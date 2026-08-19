@@ -34,10 +34,12 @@ describe('the library toolbar', () => {
         browseMode="album"
         viewMode="grid"
         sort="title"
+        sortDirection="asc"
         query=""
         onBrowseMode={onBrowseMode}
         onViewMode={jest.fn()}
         onSort={jest.fn()}
+        onSortDirection={jest.fn()}
         onQuery={jest.fn()}
       />,
     );
@@ -56,15 +58,25 @@ describe('the library toolbar', () => {
         browseMode="album"
         viewMode="grid"
         sort="title"
+        sortDirection="asc"
         query=""
         onBrowseMode={onBrowseMode}
         onViewMode={jest.fn()}
         onSort={jest.fn()}
+        onSortDirection={jest.fn()}
         onQuery={jest.fn()}
       />,
     );
-    // Four tabs, not three -- album/artist/song plus the one this task adds.
-    expect(screen.getAllByRole('tab')).toHaveLength(4);
+    // Album, Artist, Song, Folder, Video — every browse mode the library has,
+    // named rather than counted, so this says which one went missing rather
+    // than only that the count moved.
+    expect(screen.getAllByRole('tab').map((tab) => tab.textContent)).toEqual([
+      'Albums',
+      'Artists',
+      'Songs',
+      'Folders',
+      'Videos',
+    ]);
     const videos = screen.getByRole('tab', { name: 'Videos' });
     expect(videos).toHaveAttribute('aria-selected', 'false');
     await userEvent.click(videos);
@@ -78,10 +90,12 @@ describe('the library toolbar', () => {
         browseMode="song"
         viewMode="list"
         sort="title"
+        sortDirection="asc"
         query=""
         onBrowseMode={jest.fn()}
         onViewMode={jest.fn()}
         onSort={jest.fn()}
+        onSortDirection={jest.fn()}
         onQuery={onQuery}
       />,
     );

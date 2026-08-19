@@ -256,7 +256,17 @@ export const LibraryPlayerProvider = ({
       // a number that changes once a second on screen, and no reason to add
       // a `requestAnimationFrame` loop on top of it.
       const onTimeUpdate = () => setPositionMs(element.currentTime * 1000);
-      const onLoadedMetadata = () =>
+      // `durationchange` as well as `loadedmetadata`, and it is the one that
+      // matters. A resource the element cannot seek in reports its duration
+      // as `Infinity` at metadata time — which this correctly refuses, and
+      // which left the seek bar disabled with no total length beside it for
+      // the whole of a track that was playing perfectly well. The real number
+      // arrives later, on `durationchange`, and nothing was listening for it.
+      //
+      // The underlying cause was the media protocol dropping Range headers
+      // (see `libraryProtocol`); this is what stops the same symptom from
+      // surviving anything else that makes a first read look unbounded.
+      const onDuration = () =>
         setDurationMs(
           Number.isFinite(element.duration) ? element.duration * 1000 : 0,
         );
@@ -278,14 +288,16 @@ export const LibraryPlayerProvider = ({
         setIsPlaying(false);
       };
       element.addEventListener('timeupdate', onTimeUpdate);
-      element.addEventListener('loadedmetadata', onLoadedMetadata);
+      element.addEventListener('loadedmetadata', onDuration);
+      element.addEventListener('durationchange', onDuration);
       element.addEventListener('play', onPlay);
       element.addEventListener('pause', onPause);
       element.addEventListener('ended', onEnded);
       element.addEventListener('error', onError);
       return () => {
         element.removeEventListener('timeupdate', onTimeUpdate);
-        element.removeEventListener('loadedmetadata', onLoadedMetadata);
+        element.removeEventListener('loadedmetadata', onDuration);
+        element.removeEventListener('durationchange', onDuration);
         element.removeEventListener('play', onPlay);
         element.removeEventListener('pause', onPause);
         element.removeEventListener('ended', onEnded);

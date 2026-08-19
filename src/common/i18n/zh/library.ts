@@ -38,6 +38,8 @@ const library: Partial<Dictionary> = {
   'library.browse.album': '专辑',
   'library.browse.artist': '歌手',
   'library.browse.song': '歌曲',
+  'library.browse.folder': '文件夹',
+  'library.folderCount': '{count} 个文件夹',
   'library.groupByFolder': '按文件夹分组',
   'library.view.list': '列表',
   'library.view.grid': '网格',
@@ -46,6 +48,8 @@ const library: Partial<Dictionary> = {
   'library.browse.aria': '媒体库正在显示的内容',
 
   'library.sort': '排序',
+  'library.sortBy': '排序：{value}',
+  'library.sort.direction': '排序方向',
   'library.sort.title': '标题',
   'library.sort.artist': '歌手',
   'library.sort.album': '专辑',

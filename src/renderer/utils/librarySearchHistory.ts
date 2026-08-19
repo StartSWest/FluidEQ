@@ -18,11 +18,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { createSearchHistoryStore } from './searchHistoryStore';
 
-/** What has been searched for on the Media tab — see `searchHistoryStore` for
- * why this is a module store and why the Library keeps a separate one. */
-const store = createSearchHistoryStore('fluideq.videoSearchHistory');
-
-export const addSearchToHistory = store.add;
-export const removeSearchFromHistory = store.remove;
-export const clearSearchHistory = store.clear;
-export const useSearchHistory = store.use;
+/**
+ * What has been searched for in the Library.
+ *
+ * Its own key, not the Media tab's: the two are different lists about
+ * different things, and suggesting somebody's web searches inside their own
+ * music collection — or the reverse — would be a small but real leak between
+ * two unrelated features. See `searchHistoryStore` for the rest.
+ */
+export const librarySearchHistory = createSearchHistoryStore(
+  'fluideq.librarySearchHistory',
+);

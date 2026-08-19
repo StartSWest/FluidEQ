@@ -37,6 +37,8 @@ const library = {
   'library.browse.album': 'Albums',
   'library.browse.artist': 'Artists',
   'library.browse.song': 'Songs',
+  'library.browse.folder': 'Folders',
+  'library.folderCount': '{count} folders',
   'library.groupByFolder': 'Group by folder',
   'library.view.list': 'List',
   'library.view.grid': 'Grid',
@@ -45,6 +47,8 @@ const library = {
   'library.browse.aria': 'What the library is showing',
 
   'library.sort': 'Sort',
+  'library.sortBy': 'Sort: {value}',
+  'library.sort.direction': 'Sort direction',
   'library.sort.title': 'Title',
   'library.sort.artist': 'Artist',
   'library.sort.album': 'Album',

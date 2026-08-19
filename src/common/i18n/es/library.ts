@@ -39,6 +39,8 @@ const library: Partial<Dictionary> = {
   'library.browse.album': 'Álbumes',
   'library.browse.artist': 'Artistas',
   'library.browse.song': 'Canciones',
+  'library.browse.folder': 'Carpetas',
+  'library.folderCount': '{count} carpetas',
   'library.groupByFolder': 'Agrupar por carpeta',
   'library.view.list': 'Lista',
   'library.view.grid': 'Cuadrícula',
@@ -47,6 +49,8 @@ const library: Partial<Dictionary> = {
   'library.browse.aria': 'Qué está mostrando la biblioteca',
 
   'library.sort': 'Ordenar',
+  'library.sortBy': 'Ordenar: {value}',
+  'library.sort.direction': 'Dirección de ordenación',
   'library.sort.title': 'Título',
   'library.sort.artist': 'Artista',
   'library.sort.album': 'Álbum',

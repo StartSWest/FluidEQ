@@ -29,7 +29,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: $spacing-m;
+  // `$spacing-s`, the gap `.video-browser__bar` uses between its own controls
+  // and the stage below them. At `$spacing-m` the toolbar floated well clear
+  // of the list it steers while the Media tab's sat right on top of its own
+  // content — the same two rows, spaced two different ways.
+  gap: $spacing-s;
   overflow: hidden;
 
   &.is-hidden {
@@ -105,13 +109,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // state's own Add folder button, not a row of browse/view/sort controls with
 // nothing yet to act on.
 
+// The Media tab's bar, spacing included — see `.video-browser__bar`.
+//
+// No `padding-inline` of its own, which the Media tab needs only because its
+// panel pads the top and nothing else. This panel already pads all four sides
+// by the same 12, so adding it again put the toolbar on a different left rule
+// from the Back button and the list underneath it — one page with two left
+// edges. `$spacing-s` between everything, not a `$spacing-l` gutter down the
+// middle: the wide gap was there to shove the folder actions to the far
+// right, which left the row reading as two clusters at opposite ends of an
+// empty strip rather than one toolbar.
 .library-toolbar-row {
   display: flex;
   flex: 0 0 auto;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: $spacing-s $spacing-l;
+  gap: $spacing-s;
 }
 
 .library-toolbar {
@@ -124,37 +137,189 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // The browse-mode and view-mode rows. Both are a `role="tab"`/`aria-pressed`
-// choice among a few mutually exclusive options, so both get the same look:
-// the `.quick-layouts` recipe from `MainContent.scss` — a row of choices sunk
-// into the panel, which is what a segmented control looks like everywhere
-// else in this app. `.workspace-tab` was tried for the browse-mode row first
-// and dropped: that class is square-bottomed on purpose, drawn to sit flush
-// against `.workspace-tabs`' own `border-bottom` seam, which this toolbar row
-// does not have -- without it, `.workspace-tab` renders as a flat-bottomed
-// rectangle with nothing to look attached to.
+// choice among a few mutually exclusive options, and both are drawn as the
+// Media tab draws its site chips — see `.video-browser__sites`. The capsule
+// of filled `.button small`s this used to be was the loudest thing on the
+// screen for a control nobody looks at twice; the chip states what is chosen
+// without shouting it, and makes this row read as the same toolbar the Media
+// tab has.
 .library-toolbar__browse-modes,
 .library-toolbar__view-modes {
-  @include inset-surface;
   display: flex;
-  flex: 0 0 auto;
-  gap: 4px;
-  padding: 3px;
-  border-radius: $radius-pill;
+  min-width: 0;
+  // Content width, not grown: the slack in this row belongs to the search
+  // box, which can use it. Same reasoning as `.video-browser__sites`.
+  flex: 0 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-xs;
+}
 
-  .button {
-    min-height: $control-height-sm;
+// `.video-browser__site`'s pill, under this file's own name so the two can
+// diverge later without one silently restyling the other.
+.library-toolbar__chip {
+  display: inline-flex;
+  align-items: center;
+  // `.video-browser__site`'s own padding, to the pixel.
+  padding: 4px 9px;
+  gap: 5px;
+  border: 1px solid rgba($primary-lighter, 0.14);
+  border-radius: $radius-pill;
+  background: rgba($white, 0.03);
+  color: rgba($primary-lighter, 0.8);
+  font-size: 0.68rem;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 140ms ease,
+    color 140ms ease,
+    border-color 140ms ease;
+
+  &:hover {
+    border-color: rgba($secondary-light, 0.45);
+    color: $secondary-light;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+
+  &.is-active {
+    border-color: rgba($secondary-light, 0.7);
+    background: rgba($secondary-light, 0.16);
+    color: $secondary-light;
+  }
+
+  // The recommended action in the row — one of them, never two. Reads as the
+  // active state without claiming to be a current selection, which is what
+  // `is-active` means everywhere else on this class.
+  &--accent {
+    border-color: rgba($secondary-light, 0.6);
+    background: rgba($secondary-light, 0.14);
+    color: $secondary-light;
+  }
+
+  // Square, for a chip carrying a glyph and no words. The pill's side padding
+  // around a lone icon leaves it swimming in an oval.
+  //
+  // Sized by the same padding the text chips use rather than by
+  // `$control-height-sm`, which measured 32px against their 23 in the running
+  // window — a row of pills with two taller boxes wedged into it. Four above,
+  // four below and a 13px glyph is exactly the box a 13px line of text makes.
+  &--icon {
+    justify-content: center;
+    padding: 4px;
+    flex: 0 0 auto;
+    border-radius: $radius-xs;
+
+    .library-toolbar__action-icon {
+      width: 13px;
+      height: 13px;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: default;
+
+    &:hover {
+      border-color: rgba($primary-lighter, 0.14);
+      color: rgba($primary-lighter, 0.8);
+    }
+  }
+}
+
+// Sized and coloured like `.video-browser__site-icon`: `currentColor`, so a
+// glyph takes the same hover and active colour as the label beside it rather
+// than fighting it, and a shade behind the text so the word leads.
+.library-toolbar__action-icon {
+  width: 12px;
+  height: 12px;
+  flex: 0 0 auto;
+  stroke: currentcolor;
+  opacity: 0.8;
+
+  .library-toolbar__chip:hover &,
+  .library-toolbar__chip.is-active &,
+  .library-toolbar__chip--accent & {
+    opacity: 1;
   }
 }
 
 .library-toolbar__sort {
+  display: flex;
   flex: 0 0 auto;
-  min-width: 140px;
+  align-items: center;
+  gap: $spacing-xs;
+  min-width: 168px;
+
+  // The trigger wears the chip, not `field-surface`. Left alone it drew the
+  // app's form-field box — square-ish, a different border, `$control-height`
+  // tall — beside a row of 23px pills, which is the one control on this bar
+  // that did not look like the bar. The menu it opens is untouched: that is a
+  // portalled list and is meant to look like every other portalled list.
+  .dropdown > [role='menu'] {
+    min-height: 0;
+    padding: 4px 9px;
+    border: 1px solid rgba($primary-lighter, 0.14);
+    border-radius: $radius-pill;
+    background: rgba($white, 0.03);
+    box-shadow: none;
+    color: rgba($primary-lighter, 0.8);
+    font-size: 0.68rem;
+    line-height: 13px;
+    gap: 6px;
+
+    &:hover:not([aria-disabled='true']) {
+      border-color: rgba($secondary-light, 0.45);
+      color: $secondary-light;
+    }
+  }
+
+  .dropdown .arrow {
+    flex: 0 0 auto;
+    opacity: 0.7;
+  }
+}
+
+// Square rather than pill-wide: it carries one glyph, and a pill around a
+// single arrow reads as an empty button with something stuck in it. Sized by
+// the same 4px padding over a 13px line box every other chip uses — measured
+// in the running window, where `$control-height-sm` had made this one 32px
+// against its neighbours' 23.
+.library-toolbar__sort-direction {
+  justify-content: center;
+  padding: 4px 8px;
+  flex: 0 0 auto;
+  border-radius: $radius-xs;
+  font-size: 0.72rem;
+  line-height: 13px;
+}
+
+// The same left-to-right sweep the Media tab's own bar plays, and for the
+// same reason: the row reads as one thing arriving rather than four controls
+// appearing at once. Quick — this is a toolbar, not the content.
+.library-toolbar__browse-modes .library-toolbar__chip {
+  @include stagger-in($count: 4, $step: 26ms, $duration: $motion-fast);
+}
+
+.library-toolbar__view-modes .library-toolbar__chip {
+  @include stagger-in(
+    $count: 3,
+    $step: 26ms,
+    $offset: 78ms,
+    $duration: $motion-fast
+  );
 }
 
 // Same width budget as `.video-browser__search`: wide enough to read a
 // query, capped so it does not out-grow the row it shares with everything
 // else that steers the library.
 .library-toolbar__search {
+  @include animate(rise-in, $motion-fast, $ease-out, 182ms);
+  // The frame the recent-searches list positions itself against.
+  position: relative;
   min-width: 180px;
   flex: 1 1 240px;
   max-width: 460px;
@@ -175,12 +340,6 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow: none;
     cursor: not-allowed;
   }
-}
-
-.library-toolbar__action-icon {
-  width: 16px;
-  height: 16px;
-  flex: 0 0 auto;
 }
 
 // *** The folders menu *********************************************************
@@ -442,11 +601,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // One component, three sizes — `LibraryCoverArt` is reused by every view that
 // shows a track, an album or an artist rather than each drawing its own.
 
+// Rounded at every size, never square. A cover is the one picture on the row
+// and a hard 8px corner on a 32px square reads as a sharp-edged sticker
+// against a page whose every other surface is a pill or a card.
 .library-cover-art {
   display: block;
   flex: 0 0 auto;
   overflow: hidden;
-  border-radius: $radius-xs;
+  border-radius: $radius-s;
 
   // The row list's leading column: the same height as the small buttons
   // beside it (`$control-height-sm`), so a row of covers lines up with the
@@ -454,6 +616,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &--row {
     width: $control-height-sm;
     height: $control-height-sm;
+    border-radius: $radius-s;
   }
 
   // Fills whatever cell the grid view gives it — `LibraryGridView` sizes the
@@ -461,7 +624,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &--tile {
     width: 100%;
     aspect-ratio: 1;
-    border-radius: $radius-s;
+    border-radius: $radius-m;
   }
 
   // The drill-in header's large cover.
@@ -669,6 +832,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &--pending {
     opacity: 0.5;
   }
+
+  // The row the reader last opened, still marked when they come back out of
+  // it. A left edge rather than a fill: the fill is what hover uses, and a
+  // permanently filled row under a moving pointer reads as two things
+  // hovered at once. Wins over the dimming above — an opened row is the one
+  // thing on screen the reader is looking for.
+  &--selected {
+    position: relative;
+    color: $text-primary;
+    background: rgba($secondary-default, 0.1);
+    opacity: 1;
+
+    &::before {
+      position: absolute;
+      top: 4px;
+      bottom: 4px;
+      left: 0;
+      width: 2px;
+      border-radius: $radius-pill;
+      background: $secondary-default;
+      content: '';
+    }
+  }
 }
 
 .library-list__col {
@@ -836,6 +1022,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     @include focus-ring;
   }
 
+  // The tile the reader last opened, still marked when they come back out of
+  // it. A ring rather than the hover fill, for the reason
+  // `.library-list__row--selected` states: one filled tile sitting under a
+  // moving pointer would read as two things hovered at once.
+  &--selected {
+    border-color: rgba($secondary-light, 0.55);
+    box-shadow: 0 0 0 1px rgba($secondary-light, 0.35);
+    opacity: 1;
+  }
+
   // Same dimming, and the same reasoning, as `.library-list__row--offline` —
   // shared by `LibraryVideoSection`'s tiles too, since both reuse this exact
   // class rather than drawing their own.
@@ -878,6 +1074,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   border: 1px solid rgba($primary-lighter, 0.28);
   border-radius: $radius-pill;
   background: rgba(5, 27, 41, 0.96);
+}
+
+// The tail of a paged grid: how many tiles are still below. Spans the whole
+// row rather than taking a cell of its own — a tile-shaped box with a number
+// in it would read as one more album named after a count.
+.library-grid__more {
+  padding: $spacing-m 0;
+  color: $text-faint;
+  font-size: 0.68rem;
+  grid-column: 1 / -1;
+  text-align: center;
 }
 
 .library-grid__title {
@@ -1018,12 +1225,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-detail__back {
   align-self: flex-start;
   flex: 0 0 auto;
+  // `.library-detail` clips, and this sits hard against its top-left corner:
+  // without the inset the button's own border and focus ring were shaved off
+  // by the very edge they touch. Matches the toolbar's own indent above it,
+  // so Back sits on the same left rule the browse chips do.
+  margin: 2px 0 0 2px;
 
   // Same back-chevron recipe as `.video-browser__nav-button` in
-  // VideoBrowser.scss.
+  // VideoBrowser.scss, at 13 rather than 14: the chip's box is a 13px line
+  // over 4px of padding, and a 14px glyph made this one chip a pixel taller
+  // than the twelve above it.
   svg {
-    width: 14px;
-    height: 14px;
+    width: 13px;
+    height: 13px;
     flex: 0 0 auto;
     fill: none;
     stroke: currentcolor;
@@ -1191,26 +1405,64 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   letter-spacing: 0.04em;
 }
 
-// The rows arrive top to bottom rather than all at once, the same cascade
-// `.convolution-entry` uses and for the same reasons stated there: ten deep,
-// which is about what the scroller shows, because past that the animation
-// would only be running where nobody is looking.
+// Rows and tiles rise in a wave, wherever in the list the reader happens to
+// be standing.
 //
-// React keys rows by track id, so this replays when the list becomes a
-// different list — a new search, a new sort — and leaves the existing rows
-// alone when the scan merely adds more behind them. That is the whole reason
-// it can be a per-row animation at all: without stable keys a scan batch
-// would restart the cascade several times a second.
+// This was `stagger-in`, a cascade keyed on `nth-child(1..10)`. That is right
+// for a fixed set of siblings all on screen at once and wrong for a list that
+// pages: only the first ten children carried a delay, so the wave played at
+// the top of the list — off screen for anyone who had scrolled — and every
+// row past the tenth arrived flat and simultaneous. A hundred rows appearing
+// together with no motion between them is the "not smooth" this was meant to
+// fix in the first place.
 //
-// `animate` inside the mixin restricts itself to opacity and transform, so
-// the compositor runs the whole thing without asking the main thread for a
-// frame, and drops it entirely under prefers-reduced-motion.
-.library-list__row {
-  @include stagger-in($count: 10);
+// `view()` was tried in between and is worse here for the opposite reason:
+// scroll-driven means rows already on screen have already finished, so
+// arriving at a list showed no motion at all.
+//
+// One sweep, running the whole length of the list rather than restarting.
+//
+// A repeating `nth-child(12n + i)` pattern was tried in between and was worse
+// than either: the wave began again every twelfth row, so a screenful read as
+// three or four separate blocks arriving independently — one list animating
+// as several. The delays therefore rise monotonically across a full page and
+// then stop, which is a single front travelling down the list. Whatever slice
+// of it the reader happens to be looking at shows adjacent rows a few
+// milliseconds apart, which is the effect at any scroll offset — no
+// measuring, no JavaScript, no seam.
+//
+// `$SPAN` covers a page of either view (`PAGE_SIZE` is 100 rows, 180 tiles),
+// so no item falls off the end of the ramp onto a flat delay. 4ms a step
+// keeps the whole front under a second.
+//
+// React keys rows by track id, so this plays when the list becomes a
+// different list and leaves existing rows alone when a scan merely adds more
+// behind them. Without stable keys a scan batch would restart the sweep
+// several times a second.
+//
+// Opacity and translate only, so the compositor runs it without asking the
+// main thread for a frame.
+$library-wave-span: 180;
+$library-wave-step: 4ms;
+
+.library-list__row,
+.library-grid__tile {
+  animation: rise-in $motion-fast $ease-out both;
+  will-change: opacity, transform;
+
+  @for $i from 1 through $library-wave-span {
+    &:nth-child(#{$i}) {
+      animation-delay: ($i - 1) * $library-wave-step;
+    }
+  }
 }
 
-.library-grid__tile {
-  @include stagger-in($count: 12, $step: 18ms);
+@media (prefers-reduced-motion: reduce) {
+  .library-list__row,
+  .library-grid__tile {
+    animation: none;
+    will-change: auto;
+  }
 }
 
 // *** The search capsule *******************************************************
@@ -1223,10 +1475,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 .library-search__field {
   display: flex;
-  height: $control-height-sm;
+  // 26px and 8px, both measured off `.video-search__field` in the running
+  // window rather than guessed: this capsule was 32 tall and one pixel wider
+  // on the left, which is exactly enough to read as "nearly the same" and
+  // therefore as wrong.
+  height: 26px;
   align-items: center;
   gap: 6px;
-  padding: 0 3px 0 9px;
+  padding: 0 3px 0 8px;
   border: 1px solid rgba($primary-lighter, 0.14);
   border-radius: $radius-pill;
   background: rgba($white, 0.03);
@@ -1237,6 +1493,133 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   &:focus-within {
     border-color: rgba($secondary-light, 0.55);
     background: rgba($secondary-light, 0.08);
+  }
+
+  // Squared off at the bottom while the recent-searches list hangs under it,
+  // so the two read as one control rather than a pill with a card beneath.
+  &.is-open {
+    border-bottom-right-radius: $radius-s;
+    border-bottom-left-radius: $radius-s;
+  }
+}
+
+// *** Recent searches **********************************************************
+//
+// The Media tab's list, under this file's own names — see
+// `.video-search__suggestions` in VideoBrowser.scss for the surface and the
+// mouse-down handling both share.
+
+.library-search__suggestions {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 4px);
+  right: 0;
+  left: 0;
+  overflow: hidden;
+  padding: 4px;
+  border: 1px solid rgba($secondary-light, 0.28);
+  border-radius: $radius-m;
+  background: linear-gradient(160deg, rgba(#0d2029, 0.99), rgba(#0a161d, 0.99));
+  box-shadow: 0 18px 44px rgba($black, 0.5);
+
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    border-radius: $radius-s;
+
+    &:hover {
+      background: rgba($secondary-light, 0.14);
+    }
+  }
+}
+
+.library-search__suggestions-title {
+  padding: 3px 8px 5px;
+  color: rgba($primary-lighter, 0.45);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.library-search__suggestion {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  padding: 5px 8px;
+  border: none;
+  background: none;
+  color: rgba($primary-lighter, 0.88);
+  font-size: 0.68rem;
+  gap: 7px;
+  text-align: left;
+  cursor: pointer;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: rgba($primary-lighter, 0.4);
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  span {
+    @include truncate;
+  }
+}
+
+.library-search__forget {
+  display: flex;
+  width: 20px;
+  height: 20px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: rgba($primary-lighter, 0.35);
+  cursor: pointer;
+
+  svg {
+    width: 8px;
+    height: 8px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.8;
+  }
+
+  &:hover {
+    background: rgba($white, 0.1);
+    color: $primary-lighter;
+  }
+}
+
+.library-search__forget-all {
+  width: 100%;
+  margin-top: 3px;
+  padding: 5px 8px;
+  border: none;
+  border-top: 1px solid rgba($primary-lighter, 0.08);
+  background: none;
+  color: rgba($primary-lighter, 0.5);
+  font-size: 0.62rem;
+  text-align: left;
+  cursor: pointer;
+
+  &:hover {
+    color: $primary-lighter;
   }
 }
 

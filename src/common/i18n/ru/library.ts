@@ -39,6 +39,8 @@ const library: Partial<Dictionary> = {
   'library.browse.album': 'Альбомы',
   'library.browse.artist': 'Исполнители',
   'library.browse.song': 'Песни',
+  'library.browse.folder': 'Папки',
+  'library.folderCount': 'Папок: {count}',
   'library.groupByFolder': 'Группировать по папке',
   'library.view.list': 'Список',
   'library.view.grid': 'Сетка',
@@ -47,6 +49,8 @@ const library: Partial<Dictionary> = {
   'library.browse.aria': 'Что показывает библиотека',
 
   'library.sort': 'Сортировка',
+  'library.sortBy': 'Сортировка: {value}',
+  'library.sort.direction': 'Направление сортировки',
   'library.sort.title': 'Название',
   'library.sort.artist': 'Исполнитель',
   'library.sort.album': 'Альбом',

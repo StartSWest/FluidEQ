@@ -16,28 +16,46 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   artistKey,
+  folderDisplayName,
   groupIntoAlbums,
   groupIntoArtists,
   sortTracks,
+  trackFolderPath,
 } from '../../common/library/grouping';
-import { ILibraryTrack } from '../../common/library/types';
+import {
+  ILibraryTrack,
+  TLibrarySort,
+  TLibrarySortDirection,
+  TLibraryViewMode,
+} from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
+import LibraryGridView from './LibraryGridView';
 import LibraryListView from './LibraryListView';
 
 interface ILibraryDetailProps {
   tracks: readonly ILibraryTrack[];
   albumId?: string;
   artistId?: string;
+  /** A physical directory, opened from the folder browse mode. Mutually
+   * exclusive with the other two the same way they are with each other. */
+  folderPath?: string;
   onBack: () => void;
   onPlayTrack: (trackId: string) => void;
   /** Forwarded straight to the `LibraryListView` this renders — see that
    * component's own doc comment for why it stays optional. */
   offlineRootIds?: ReadonlySet<string>;
+  /** Which of the toolbar's three views the reader chose. Honoured here as
+   * well as outside, because switching to Grid and then opening an album used
+   * to drop them back into a table — the toggle appeared to stop working the
+   * moment it had something to show. Cover Flow falls back to the list: a
+   * carousel of the twelve tracks on one album is a worse table, not a
+   * better one. */
+  viewMode?: TLibraryViewMode;
 }
 
 /**
@@ -64,11 +82,38 @@ const LibraryDetail = ({
   tracks,
   albumId,
   artistId,
+  folderPath,
   onBack,
   onPlayTrack,
   offlineRootIds,
+  viewMode = 'list',
 }: ILibraryDetailProps) => {
   const { t } = useTranslation();
+
+  /**
+   * The column this table is ordered by, or nothing at all.
+   *
+   * Its own state rather than the toolbar's, because an album's default order
+   * is not a column: it is disc-then-track, the order the record was pressed
+   * in, and inheriting "Title" from outside would silently alphabetise every
+   * album the reader opened. `undefined` means that natural order, and only a
+   * header click leaves it.
+   */
+  const [sort, setSort] = useState<TLibrarySort | undefined>(undefined);
+  const [sortDirection, setSortDirection] =
+    useState<TLibrarySortDirection>('asc');
+
+  /** Same rule as the workspace's own: the current column reverses, a
+   * different one starts ascending rather than inheriting a direction nobody
+   * asked it for. */
+  const handleSort = useCallback((key: TLibrarySort) => {
+    setSort((current) => {
+      setSortDirection((direction) =>
+        current === key && direction === 'asc' ? 'desc' : 'asc',
+      );
+      return key;
+    });
+  }, []);
 
   // `groupIntoAlbums`/`groupIntoArtists` walk every track in the library.
   // Memoised on the track list and the id actually being opened, so a
@@ -97,8 +142,21 @@ const LibraryDetail = ({
   // project's rules are written against. Closing automatically, rather than
   // showing that and waiting for the user to notice, is the only answer
   // that does not require them to.
+  /** The tracks in one physical directory, in filename order — the order the
+   * folder itself is in, which is the whole point of looking at one. */
+  const folderTracks = useMemo(() => {
+    if (!folderPath) {
+      return [];
+    }
+    return tracks
+      .filter((entry) => trackFolderPath(entry.path) === folderPath)
+      .sort((left, right) => left.path.localeCompare(right.path));
+  }, [tracks, folderPath]);
+
   const isOrphaned =
-    (Boolean(albumId) && !album) || (Boolean(artistId) && !artist);
+    (Boolean(albumId) && !album) ||
+    (Boolean(artistId) && !artist) ||
+    (Boolean(folderPath) && folderTracks.length === 0);
 
   useEffect(() => {
     if (isOrphaned) {
@@ -122,8 +180,8 @@ const LibraryDetail = ({
         'album',
       );
     }
-    return [];
-  }, [tracks, album, albumId, artistId]);
+    return folderTracks;
+  }, [tracks, album, albumId, artistId, folderTracks]);
 
   /**
    * Files sitting in the same folders as this album, that the album does not
@@ -162,10 +220,12 @@ const LibraryDetail = ({
   }, [tracks, detailTracks, albumId]);
 
   // One list: the album's own tracks, then its folder-mates behind them.
-  const listTracks = useMemo(
-    () => [...detailTracks, ...strayTracks],
-    [detailTracks, strayTracks],
-  );
+  const listTracks = useMemo(() => {
+    const combined = [...detailTracks, ...strayTracks];
+    // Untouched until a header is pressed — see `sort`'s own comment on why
+    // an album's default order is not a column.
+    return sort ? sortTracks(combined, sort, sortDirection) : combined;
+  }, [detailTracks, strayTracks, sort, sortDirection]);
   const folderOnlyIds = useMemo(
     () => new Set(strayTracks.map((track) => track.id)),
     [strayTracks],
@@ -179,16 +239,29 @@ const LibraryDetail = ({
   }
 
   const isAlbum = Boolean(albumId);
-  const title = isAlbum
-    ? album?.title || t('library.unknownAlbum')
-    : artist?.name || t('library.unknownArtist');
-  const subtitle = isAlbum ? album?.artist || t('library.unknownArtist') : '';
-  const counts = isAlbum
-    ? t('library.trackCount', { count: detailTracks.length })
-    : `${t('library.albumCount', { count: artist?.albumCount ?? 0 })} · ${t(
-        'library.trackCount',
-        { count: artist?.trackCount ?? detailTracks.length },
-      )}`;
+  const isFolder = Boolean(folderPath);
+  const folderName = folderPath ? folderDisplayName(folderPath) : '';
+  let title = artist?.name || t('library.unknownArtist');
+  if (isAlbum) {
+    title = album?.title || t('library.unknownAlbum');
+  } else if (isFolder) {
+    title = folderName;
+  }
+  // The full path under a folder's name: its last segment is what the reader
+  // recognises, but "CD1" on its own says nothing about which CD1.
+  let subtitle = '';
+  if (isAlbum) {
+    subtitle = album?.artist || t('library.unknownArtist');
+  } else if (isFolder) {
+    subtitle = folderPath ?? '';
+  }
+  let counts = `${t('library.albumCount', { count: artist?.albumCount ?? 0 })} · ${t(
+    'library.trackCount',
+    { count: artist?.trackCount ?? detailTracks.length },
+  )}`;
+  if (isAlbum || isFolder) {
+    counts = t('library.trackCount', { count: detailTracks.length });
+  }
 
   const handlePlay = () => {
     const first = detailTracks[0];
@@ -201,7 +274,7 @@ const LibraryDetail = ({
     <div className="library-detail">
       <button
         type="button"
-        className="button small subtle library-detail__back"
+        className="library-toolbar__chip library-detail__back"
         onClick={onBack}
       >
         <svg viewBox="0 0 16 16" aria-hidden="true">
@@ -211,7 +284,10 @@ const LibraryDetail = ({
       </button>
       <div className="library-detail__header">
         <LibraryCoverArt
-          artId={isAlbum ? album?.artId : artist?.artId}
+          artId={
+            (isAlbum || isFolder ? album?.artId : artist?.artId) ??
+            detailTracks.find((entry) => entry.artId !== undefined)?.artId
+          }
           label={title}
           size="cover"
         />
@@ -231,15 +307,31 @@ const LibraryDetail = ({
           </button>
         </div>
       </div>
-      <LibraryListView
-        tracks={listTracks}
-        browseMode="song"
-        onOpenAlbum={() => undefined}
-        onOpenArtist={() => undefined}
-        onPlayTrack={onPlayTrack}
-        offlineRootIds={offlineRootIds}
-        folderOnlyIds={folderOnlyIds}
-      />
+      {viewMode === 'grid' ? (
+        <LibraryGridView
+          tracks={listTracks}
+          browseMode="song"
+          onOpenAlbum={() => undefined}
+          onOpenArtist={() => undefined}
+          onPlayTrack={onPlayTrack}
+          offlineRootIds={offlineRootIds}
+          resetKey={`detail|${albumId ?? artistId ?? ''}`}
+        />
+      ) : (
+        <LibraryListView
+          tracks={listTracks}
+          browseMode="song"
+          onOpenAlbum={() => undefined}
+          onOpenArtist={() => undefined}
+          onPlayTrack={onPlayTrack}
+          offlineRootIds={offlineRootIds}
+          folderOnlyIds={folderOnlyIds}
+          sort={sort}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          resetKey={`detail|${albumId ?? artistId ?? ''}|${sort ?? ''}|${sortDirection}`}
+        />
+      )}
     </div>
   );
 };

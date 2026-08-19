@@ -62,6 +62,7 @@ const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
   'album',
   'artist',
   'song',
+  'folder',
   'video',
 ];
 const VIEW_MODES: readonly TLibraryViewMode[] = ['list', 'grid', 'coverflow'];
@@ -181,6 +182,9 @@ const LibraryWorkspace = ({
   // The drill-in behind a grid tile or a list row. Not persisted: an album
   // id from a previous launch means nothing once the library has been
   // rescanned, so this always starts closed.
+  const [openFolderPath, setOpenFolderPath] = useState<string | undefined>(
+    undefined,
+  );
   const [openAlbumId, setOpenAlbumId] = useState<string | undefined>(undefined);
   const [openArtistId, setOpenArtistId] = useState<string | undefined>(
     undefined,
@@ -233,6 +237,7 @@ const LibraryWorkspace = ({
     }
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
+    setOpenFolderPath(undefined);
   }, [browseMode]);
 
   const karaokeSkippedCount = index.roots.reduce(
@@ -290,6 +295,38 @@ const LibraryWorkspace = ({
     });
   }, []);
 
+  /**
+   * A browse chip was pressed.
+   *
+   * Closing the drill-in is the whole point. Pressing "Songs" from inside an
+   * album used to set the mode behind a detail view that stayed on screen, so
+   * the chip lit up and nothing happened — the control looked broken from the
+   * one place a reader is most likely to want out of.
+   */
+  const handleBrowseMode = useCallback((mode: TLibraryBrowseMode) => {
+    setOpenAlbumId(undefined);
+    setOpenArtistId(undefined);
+    setOpenFolderPath(undefined);
+    setBrowseMode(mode);
+  }, []);
+
+  const handleOpenFolder = useCallback((folderPath: string) => {
+    setOpenAlbumId(undefined);
+    setOpenArtistId(undefined);
+    setOpenFolderPath(folderPath);
+  }, []);
+
+  /** A drill-in is open, so the list the toolbar steers is not the thing on
+   * screen. */
+  const isDrilledIn = Boolean(openAlbumId || openArtistId || openFolderPath);
+
+  /** The toolbar's arrow: reverses whatever column is already chosen. The
+   * dropdown beside it picks the column and leaves the direction alone, so
+   * the two together say the same thing a header click says in one press. */
+  const handleSortDirection = useCallback(() => {
+    setSortDirection((current) => (current === 'asc' ? 'desc' : 'asc'));
+  }, []);
+
   // Opening one closes the other — only one drill-in is ever on screen.
   // Stable identities, all three. A fresh closure each render is a changed
   // prop, a changed prop defeats the rows' own `memo`, and every row in the
@@ -306,6 +343,7 @@ const LibraryWorkspace = ({
   const handleBack = useCallback(() => {
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
+    setOpenFolderPath(undefined);
   }, []);
   // The queue a click hands to `playTracks`: whatever list the surface the
   // click came from is actually showing, so the order the bar plays through
@@ -434,10 +472,15 @@ const LibraryWorkspace = ({
             browseMode={browseMode}
             viewMode={viewMode}
             sort={sort}
+            sortDirection={sortDirection}
             query={query}
-            onBrowseMode={setBrowseMode}
+            onBrowseMode={handleBrowseMode}
             onViewMode={setViewMode}
-            onSort={setSort}
+            // Withheld while a drill-in is open — see the toolbar's own prop
+            // comment. Inside an album the order is that table's, not this
+            // bar's.
+            onSort={isDrilledIn ? undefined : setSort}
+            onSortDirection={isDrilledIn ? undefined : handleSortDirection}
             onQuery={setQuery}
           />
           {/* Only meaningful for a flat run of songs — album and artist rows
@@ -448,7 +491,9 @@ const LibraryWorkspace = ({
           {viewMode === 'list' && browseMode === 'song' && (
             <button
               type="button"
-              className={`button small${groupByFolder ? '' : ' subtle'}`}
+              className={`library-toolbar__chip${
+                groupByFolder ? ' is-active' : ''
+              }`}
               aria-pressed={groupByFolder}
               title={t('library.groupByFolder')}
               onClick={() => setGroupByFolder((current) => !current)}
@@ -509,27 +554,29 @@ const LibraryWorkspace = ({
       {index.tracks.length > 0 &&
         !videoTrackId &&
         browseMode !== 'video' &&
-        (openAlbumId || openArtistId) && (
+        isDrilledIn && (
           <LibraryDetail
             tracks={index.tracks}
             albumId={openAlbumId}
             artistId={openArtistId}
+            folderPath={openFolderPath}
             onBack={handleBack}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
+            viewMode={viewMode}
           />
         )}
       {index.tracks.length > 0 &&
         !videoTrackId &&
         browseMode !== 'video' &&
-        !openAlbumId &&
-        !openArtistId &&
+        !isDrilledIn &&
         viewMode === 'list' && (
           <LibraryListView
             tracks={visibleTracks}
             browseMode={browseMode}
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
+            onOpenFolder={handleOpenFolder}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
             sort={sort}
@@ -542,23 +589,25 @@ const LibraryWorkspace = ({
       {index.tracks.length > 0 &&
         !videoTrackId &&
         browseMode !== 'video' &&
-        !openAlbumId &&
-        !openArtistId &&
+        !isDrilledIn &&
         viewMode === 'grid' && (
           <LibraryGridView
             tracks={visibleTracks}
             browseMode={browseMode}
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
+            onOpenFolder={handleOpenFolder}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
+            sort={sort}
+            sortDirection={sortDirection}
+            resetKey={listResetKey}
           />
         )}
       {index.tracks.length > 0 &&
         !videoTrackId &&
         browseMode !== 'video' &&
-        !openAlbumId &&
-        !openArtistId &&
+        !isDrilledIn &&
         viewMode === 'coverflow' && (
           <LibraryCoverFlow
             tracks={visibleTracks}
@@ -566,6 +615,8 @@ const LibraryWorkspace = ({
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
             onPlayTrack={handlePlayTrack}
+            sort={sort}
+            sortDirection={sortDirection}
           />
         )}
     </section>

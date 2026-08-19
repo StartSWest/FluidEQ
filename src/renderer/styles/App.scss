@@ -1399,7 +1399,15 @@ $tab-border: rgba($secondary-light, 0.2);
   background-size: 100% 100vh;
   display: flex;
   flex-direction: column;
-  padding: 12px;
+  // One padding for every tab, taken from the Media tab: 10px above the first
+  // control, 12px at the sides and below. It was 12 all round, which put the
+  // Library's toolbar two pixels lower than the Media tab's identical toolbar
+  // — near enough to look like a mistake rather than a choice. The Media
+  // panel keeps its own zero-side override below, because its content is a
+  // picture and every pixel of margin around a video is a pixel the video
+  // does not get; its bar re-adds the same 12 inline, so the two toolbars sit
+  // on the same rule.
+  padding: 10px 12px 12px;
   border-top-color: $tab-border;
 }
 

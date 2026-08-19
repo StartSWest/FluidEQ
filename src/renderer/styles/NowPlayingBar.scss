@@ -62,6 +62,54 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: $spacing-s;
 }
 
+// The cover and the two lines beside it, as one press-target.
+//
+// This had no rule of its own at all, so App.scss's shared `button` surface
+// claimed it: a bordered, padded, centre-aligned box with the artwork and the
+// text stacked inside it — which is what put the title over the corner of the
+// cover instead of next to it. Stated here as what it actually is: a row of
+// two things, with no chrome until it is pointed at.
+.now-playing-bar__reveal {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  align-items: center;
+  gap: $spacing-s;
+  padding: 3px;
+  border: 1px solid transparent;
+  border-radius: $radius-s;
+  background: none;
+  box-shadow: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover {
+    border-color: rgba($secondary-light, 0.3);
+    background: rgba($secondary-default, 0.1);
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+
+  // Larger than the list rows' own leading column. That one is sized to line
+  // up with a table of 32px controls; this is the single picture of what is
+  // playing, on a bar with the height to spend, and at 32 it read as a stray
+  // icon rather than a cover.
+  .library-cover-art--row {
+    width: 40px;
+    height: 40px;
+    border-radius: $radius-s;
+  }
+
+  .library-cover-art__tile {
+    font-size: 0.72rem;
+  }
+}
+
 .now-playing-bar__meta {
   display: grid;
   min-width: 0;

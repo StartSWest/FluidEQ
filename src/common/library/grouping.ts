@@ -27,6 +27,9 @@ export interface ILibraryAlbum {
   /** In disc, then track, then title order. */
   trackIds: string[];
   durationMs: number;
+  /** The newest `addedAt` among its tracks — an album counts as recently
+   * added when the latest thing in it is, not the earliest. */
+  addedAt: number;
   /** True only while every track in this grouping is still `isPending` — the
    * whole album is a folder-name guess with not one tagged track in it yet.
    * The moment a single member resolves, the group stops being provisional
@@ -41,6 +44,9 @@ export interface ILibraryArtist {
   albumCount: number;
   trackCount: number;
   artId?: string;
+  /** The newest `addedAt` among their tracks, for the same reason an album
+   * carries one. */
+  addedAt: number;
   /** Same rule as `ILibraryAlbum.isPending`: true only while every track
    * grouped under this artist is still unread. */
   isPending: boolean;
@@ -128,6 +134,10 @@ export const groupIntoAlbums = (
         (total, entry) => total + (entry.durationMs ?? 0),
         0,
       ),
+      addedAt: ordered.reduce(
+        (newest, entry) => Math.max(newest, entry.addedAt),
+        0,
+      ),
       isPending: ordered.every((entry) => entry.isPending === true),
     };
   });
@@ -143,6 +153,7 @@ export const groupIntoArtists = (
       albums: Set<string>;
       tracks: number;
       artId?: string;
+      addedAt: number;
       isPending: boolean;
     }
   >();
@@ -154,6 +165,7 @@ export const groupIntoArtists = (
       existing.albums.add(normalizeForSearch(album(track)));
       existing.tracks += 1;
       existing.artId = existing.artId ?? track.artId;
+      existing.addedAt = Math.max(existing.addedAt, track.addedAt);
       existing.isPending = existing.isPending && track.isPending === true;
     } else {
       grouped.set(id, {
@@ -161,6 +173,7 @@ export const groupIntoArtists = (
         albums: new Set([normalizeForSearch(album(track))]),
         tracks: 1,
         artId: track.artId,
+        addedAt: track.addedAt,
         isPending: track.isPending === true,
       });
     }
@@ -170,9 +183,101 @@ export const groupIntoArtists = (
     name: entry.name,
     albumCount: entry.albums.size,
     trackCount: entry.tracks,
+    addedAt: entry.addedAt,
     isPending: entry.isPending,
     artId: entry.artId,
   }));
+};
+
+export interface ILibraryFolder {
+  /** The directory itself, exactly as it appears in the tracks' paths — the
+   * id and the thing to open, both. */
+  id: string;
+  /** Its last segment, which is what a reader recognises. */
+  name: string;
+  trackCount: number;
+  artId?: string;
+  addedAt: number;
+  isPending: boolean;
+}
+
+/** The directory a file sits in, separator-agnostic. A path arrives as
+ * Windows text but nothing guarantees every one was written with a
+ * backslash — an index carried over from another machine, or a root added by
+ * hand, can hold either. */
+export const trackFolderPath = (filePath: string): string => {
+  const normalised = filePath.replace(/\\/g, '/');
+  const cut = normalised.lastIndexOf('/');
+  return cut > 0 ? normalised.slice(0, cut) : normalised;
+};
+
+/** Its last segment — the folder's own name, without the tree above it. */
+export const folderDisplayName = (folderPath: string): string => {
+  const parts = folderPath.split('/').filter(Boolean);
+  return parts.length > 0 ? parts[parts.length - 1] : folderPath;
+};
+
+/**
+ * The library as it actually sits on disk.
+ *
+ * The one view that owes nothing to a tag: a folder is a folder whether or
+ * not a single file in it has been read yet, which makes this the honest way
+ * to look at a library mid-scan — and the way to find the album whose tags
+ * all say "Unknown".
+ */
+export const groupIntoFolders = (
+  tracks: readonly ILibraryTrack[],
+): ILibraryFolder[] => {
+  const grouped = new Map<
+    string,
+    { count: number; artId?: string; addedAt: number; isPending: boolean }
+  >();
+  tracks.forEach((track) => {
+    const id = trackFolderPath(track.path);
+    const existing = grouped.get(id);
+    if (existing) {
+      existing.count += 1;
+      existing.artId = existing.artId ?? track.artId;
+      existing.addedAt = Math.max(existing.addedAt, track.addedAt);
+      existing.isPending = existing.isPending && track.isPending === true;
+    } else {
+      grouped.set(id, {
+        count: 1,
+        artId: track.artId,
+        addedAt: track.addedAt,
+        isPending: track.isPending === true,
+      });
+    }
+  });
+  return Array.from(grouped.entries()).map(([id, entry]) => ({
+    id,
+    name: folderDisplayName(id),
+    trackCount: entry.count,
+    artId: entry.artId,
+    addedAt: entry.addedAt,
+    isPending: entry.isPending,
+  }));
+};
+
+export const sortFolders = (
+  folders: readonly ILibraryFolder[],
+  sort: TLibrarySort,
+  direction: TLibrarySortDirection = 'asc',
+): ILibraryFolder[] => {
+  const compare = (left: ILibraryFolder, right: ILibraryFolder): number => {
+    if (sort === 'added') {
+      return right.addedAt - left.addedAt;
+    }
+    if (sort === 'year') {
+      // A folder has no year. How much is in it is the next most useful
+      // order, and is at least a real answer — same choice `sortArtists`
+      // makes for the same reason.
+      return right.trackCount - left.trackCount;
+    }
+    return left.name.localeCompare(right.name);
+  };
+  const sorted = [...folders].sort(compare);
+  return direction === 'desc' ? sorted.reverse() : sorted;
 };
 
 export const searchTracks = (
@@ -228,5 +333,65 @@ export const sortTracks = (
     return left.title.localeCompare(right.title);
   };
   const sorted = [...tracks].sort(compare);
+  return direction === 'desc' ? sorted.reverse() : sorted;
+};
+
+/**
+ * The same sort, applied to what a grouping actually has.
+ *
+ * Sorting the tracks was never enough: `groupIntoAlbums` and
+ * `groupIntoArtists` hand back their groups in the order the Map happened to
+ * build them, so choosing "Year" while browsing Albums reordered nothing a
+ * reader could see. These put the choice back where it was made.
+ *
+ * A grouping has no title/artist/album/year/added the way a track does, so the
+ * mapping is deliberate rather than mechanical: an album sorts by its own
+ * title, by its artist, by its year, or by how recently anything in it was
+ * added; an artist has only a name and a size, so anything that is not a count
+ * falls to the name. Asking for something a group does not have should give
+ * its most obvious order, not an arbitrary one.
+ */
+export const sortAlbums = (
+  albums: readonly ILibraryAlbum[],
+  sort: TLibrarySort,
+  direction: TLibrarySortDirection = 'asc',
+): ILibraryAlbum[] => {
+  const compare = (left: ILibraryAlbum, right: ILibraryAlbum): number => {
+    if (sort === 'artist') {
+      return (
+        left.artist.localeCompare(right.artist) ||
+        left.title.localeCompare(right.title)
+      );
+    }
+    if (sort === 'year') {
+      return (left.year ?? 0) - (right.year ?? 0);
+    }
+    if (sort === 'added') {
+      return right.addedAt - left.addedAt;
+    }
+    // 'title' and 'album' are the same question for an album.
+    return left.title.localeCompare(right.title);
+  };
+  const sorted = [...albums].sort(compare);
+  return direction === 'desc' ? sorted.reverse() : sorted;
+};
+
+export const sortArtists = (
+  artists: readonly ILibraryArtist[],
+  sort: TLibrarySort,
+  direction: TLibrarySortDirection = 'asc',
+): ILibraryArtist[] => {
+  const compare = (left: ILibraryArtist, right: ILibraryArtist): number => {
+    if (sort === 'added') {
+      return right.addedAt - left.addedAt;
+    }
+    if (sort === 'year') {
+      // Nothing else an artist carries is a year; how much of them there is
+      // is the next most useful order, and is at least a real answer.
+      return right.trackCount - left.trackCount;
+    }
+    return left.name.localeCompare(right.name);
+  };
+  const sorted = [...artists].sort(compare);
   return direction === 'desc' ? sorted.reverse() : sorted;
 };

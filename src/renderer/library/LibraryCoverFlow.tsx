@@ -28,8 +28,15 @@ import {
 import {
   groupIntoAlbums,
   groupIntoArtists,
+  sortAlbums,
+  sortArtists,
 } from '../../common/library/grouping';
-import { ILibraryTrack, TLibraryBrowseMode } from '../../common/library/types';
+import {
+  ILibraryTrack,
+  TLibraryBrowseMode,
+  TLibrarySort,
+  TLibrarySortDirection,
+} from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
@@ -105,6 +112,10 @@ interface ILibraryCoverFlowProps {
    * of this view's other tests — geometry, browsing, identity tracking — need
    * a working one to exercise what they cover. */
   onPlayTrack?: (trackId: string) => void;
+  /** The active order, for the same reason `LibraryGridView` takes it: song
+   * covers arrive already sorted, groupings do not. */
+  sort?: TLibrarySort;
+  sortDirection?: TLibrarySortDirection;
 }
 
 /** One cover's worth of what this view draws — the same split
@@ -154,6 +165,8 @@ const LibraryCoverFlow = ({
   onOpenAlbum,
   onOpenArtist,
   onPlayTrack,
+  sort = 'title',
+  sortDirection = 'asc',
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -169,23 +182,27 @@ const LibraryCoverFlow = ({
   // for the scan-tick re-render this avoids repeating.
   const items: ICoverFlowItem[] = useMemo(() => {
     if (browseMode === 'album') {
-      return groupIntoAlbums(tracks).map((album) => ({
-        id: album.id,
-        artId: album.artId,
-        title: album.title,
-        artistName: album.artist,
-        isPending: album.isPending,
-      }));
+      return sortAlbums(groupIntoAlbums(tracks), sort, sortDirection).map(
+        (album) => ({
+          id: album.id,
+          artId: album.artId,
+          title: album.title,
+          artistName: album.artist,
+          isPending: album.isPending,
+        }),
+      );
     }
     if (browseMode === 'artist') {
-      return groupIntoArtists(tracks).map((artist) => ({
-        id: artist.id,
-        artId: artist.artId,
-        title: artist.name,
-        artistName: '',
-        albumCount: artist.albumCount,
-        isPending: artist.isPending,
-      }));
+      return sortArtists(groupIntoArtists(tracks), sort, sortDirection).map(
+        (artist) => ({
+          id: artist.id,
+          artId: artist.artId,
+          title: artist.name,
+          artistName: '',
+          albumCount: artist.albumCount,
+          isPending: artist.isPending,
+        }),
+      );
     }
     // 'song', and any browse mode this view does not know about yet — the
     // same fallback `LibraryGridView` and `LibraryListView` make.
@@ -196,7 +213,7 @@ const LibraryCoverFlow = ({
       artistName: track.artist ?? '',
       isPending: track.isPending === true,
     }));
-  }, [tracks, browseMode]);
+  }, [tracks, browseMode, sort, sortDirection]);
 
   /** Moves the centre to `index`, clamped to the live `items` array, and
    * records what is now centred. Every path that changes the centre —

@@ -106,20 +106,26 @@ export const scanLibraryRootOffThread = (
     }
 
     // The worker cannot be asked to stop through a return value, so the
-    // caller's own `isCancelled` is polled here and forwarded as a message.
-    const cancelPoll = setInterval(() => {
-      if (options.isCancelled()) {
-        const cancel: IScanWorkerRequest = { type: 'cancel' };
-        child.postMessage(cancel);
+    // caller's own `isCancelled` is forwarded as a message. Checked against
+    // the worker's own traffic rather than on a timer: it reports every file
+    // it touches, so the cancel goes out on the next one — and a scan that
+    // has stopped reporting has nothing left to cancel.
+    let cancelSent = false;
+    const forwardCancel = () => {
+      if (cancelSent || !options.isCancelled()) {
+        return;
       }
-    }, 150);
+      cancelSent = true;
+      const cancel: IScanWorkerRequest = { type: 'cancel' };
+      child.postMessage(cancel);
+    };
 
     const stop = () => {
-      clearInterval(cancelPoll);
       child.kill();
     };
 
     child.on('message', (raw: unknown) => {
+      forwardCancel();
       if (typeof raw !== 'object' || raw === null || !('type' in raw)) {
         return;
       }
@@ -156,7 +162,6 @@ export const scanLibraryRootOffThread = (
     // pending forever — the renderer derives `isScanning` from the terminal
     // progress event, so a promise that never settles pins the strip on.
     child.on('exit', () => {
-      clearInterval(cancelPoll);
       finish({
         tracks: options.known.slice(),
         karaokeSkipped: 0,

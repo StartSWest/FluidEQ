@@ -1,5 +1,24 @@
 # Working on FluidEQ
 
+## Every request gets attempted, in the order it was asked
+
+Ivan interrupts mid-task with new requests. None of them are cancellations of
+what is already running, and none of them are optional.
+
+- **Acknowledge immediately, in one line.** "Copied — finishing X first." He is
+  not asking for a status report, he is checking the request landed. Silence
+  reads as ignored.
+- **Then finish the thing already in hand** before starting the new one, unless
+  he says he wants it now — in which case the new one goes first and the
+  interrupted one goes back on the list.
+- **Keep the list.** Every outstanding request stays on it until it is done or
+  he drops it. Do not silently reorder it, do not quietly narrow it, and never
+  end a turn having done four of the six things without saying which two are
+  still open and why.
+- Ending on the easy half and calling it done is the failure this rule exists
+  to prevent. It has happened repeatedly and it is what he asks for by name:
+  _"attempt all my requests"_.
+
 ## Response format
 
 - Yes/no question → the direct answer in the FIRST sentence.

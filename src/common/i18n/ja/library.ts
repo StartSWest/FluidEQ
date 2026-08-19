@@ -39,6 +39,8 @@ const library: Partial<Dictionary> = {
   'library.browse.album': 'アルバム',
   'library.browse.artist': 'アーティスト',
   'library.browse.song': '曲',
+  'library.browse.folder': 'フォルダ',
+  'library.folderCount': '{count} 個のフォルダ',
   'library.groupByFolder': 'フォルダーごとにグループ化',
   'library.view.list': 'リスト',
   'library.view.grid': 'グリッド',
@@ -47,6 +49,8 @@ const library: Partial<Dictionary> = {
   'library.browse.aria': 'ライブラリに表示している内容',
 
   'library.sort': '並べ替え',
+  'library.sortBy': '並べ替え: {value}',
+  'library.sort.direction': '並べ替えの方向',
   'library.sort.title': '曲名',
   'library.sort.artist': 'アーティスト',
   'library.sort.album': 'アルバム',

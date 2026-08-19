@@ -71,7 +71,8 @@ export interface ILibraryTrack {
   isPending?: boolean;
 }
 
-export type TLibraryBrowseMode = 'album' | 'artist' | 'song' | 'video';
+export type TLibraryBrowseMode =
+  'album' | 'artist' | 'song' | 'folder' | 'video';
 export type TLibraryViewMode = 'list' | 'grid' | 'coverflow';
 export type TLibrarySort = 'title' | 'artist' | 'album' | 'year' | 'added';
 export type TLibrarySortDirection = 'asc' | 'desc';

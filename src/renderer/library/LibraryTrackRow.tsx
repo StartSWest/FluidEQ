@@ -26,8 +26,15 @@ interface ILibraryTrackRowProps {
   track: ILibraryTrack;
   isOffline: boolean;
   isFolderOnly: boolean;
+  /** The row the reader last clicked. A primitive rather than the selected
+   * id, for the reason the two booleans above are: the parent resolves it so
+   * the memo still holds for every row that did not change. */
+  isSelected: boolean;
   duration: string;
   onPlay: (trackId: string) => void;
+  /** A plain click. Selects, never plays — playing is a double click or the
+   * cover's own button, the two Explorer and iTunes both use. */
+  onSelect: (trackId: string) => void;
   onKeyDown: (
     event: KeyboardEvent<HTMLDivElement>,
     track: ILibraryTrack,
@@ -53,8 +60,10 @@ const LibraryTrackRow = ({
   track,
   isOffline,
   isFolderOnly,
+  isSelected,
   duration,
   onPlay,
+  onSelect,
   onKeyDown,
   onContextMenu,
 }: ILibraryTrackRowProps) => {
@@ -64,6 +73,7 @@ const LibraryTrackRow = ({
     'library-list__row',
     isOffline ? 'library-list__row--offline' : '',
     track.isPending ? 'library-list__row--pending' : '',
+    isSelected ? 'library-list__row--selected' : '',
   ]
     .filter(Boolean)
     .join(' ');
@@ -72,8 +82,10 @@ const LibraryTrackRow = ({
     <div
       role="row"
       tabIndex={0}
+      aria-selected={isSelected}
       className={className}
       title={isOffline ? t('library.root.offline') : undefined}
+      onClick={() => onSelect(track.id)}
       onDoubleClick={activate}
       onKeyDown={(event) => onKeyDown(event, track)}
       onContextMenu={(event) => {

@@ -23,6 +23,8 @@ import {
   groupIntoArtists,
   normalizeForSearch,
   searchTracks,
+  sortAlbums,
+  sortArtists,
   sortTracks,
 } from '../../../common/library/grouping';
 
@@ -181,5 +183,92 @@ describe('sorting', () => {
     const tracks = [track({ title: 'B' }), track({ title: 'A' })];
     sortTracks(tracks, 'title');
     expect(tracks.map((entry) => entry.title)).toEqual(['B', 'A']);
+  });
+});
+
+describe('sorting what a grouping shows', () => {
+  // Sorting the tracks was never enough. `groupIntoAlbums` returns its groups
+  // in the order the Map happened to build them, so every sort control was
+  // dead in the album and artist browse modes: the order out was the order
+  // in, whatever was asked for.
+  const zebra = track({
+    title: 'Z',
+    album: 'Zebra',
+    artist: 'Aaron',
+    year: 1999,
+    addedAt: 10,
+  });
+  const apple = track({
+    title: 'A',
+    album: 'Apple',
+    artist: 'Zoe',
+    year: 2020,
+    addedAt: 50,
+  });
+
+  it('orders albums by whichever field was asked for, not by insertion', () => {
+    const albums = groupIntoAlbums([zebra, apple]);
+    // The control: as grouped, Zebra comes first purely because it was first
+    // in. Every expectation below is a departure from this order or from its
+    // reverse, so none of them can pass by accident.
+    expect(albums.map((entry) => entry.title)).toEqual(['Zebra', 'Apple']);
+
+    expect(sortAlbums(albums, 'title').map((entry) => entry.title)).toEqual([
+      'Apple',
+      'Zebra',
+    ]);
+    // By artist the answer flips back to Zebra first — Aaron before Zoe — so
+    // this is not the title sort under another name.
+    expect(sortAlbums(albums, 'artist').map((entry) => entry.title)).toEqual([
+      'Zebra',
+      'Apple',
+    ]);
+    expect(sortAlbums(albums, 'year').map((entry) => entry.year)).toEqual([
+      1999, 2020,
+    ]);
+    // 'added' reads newest first, which is the only sort whose name already
+    // implies its direction.
+    expect(sortAlbums(albums, 'added').map((entry) => entry.title)).toEqual([
+      'Apple',
+      'Zebra',
+    ]);
+    expect(
+      sortAlbums(albums, 'title', 'desc').map((entry) => entry.title),
+    ).toEqual(['Zebra', 'Apple']);
+  });
+
+  it('carries an album its newest addedAt, not its oldest', () => {
+    // An album counts as recently added when the latest thing in it is.
+    const albums = groupIntoAlbums([
+      track({ title: 'old', album: 'Mixed', artist: 'X', addedAt: 5 }),
+      track({ title: 'new', album: 'Mixed', artist: 'X', addedAt: 900 }),
+    ]);
+    expect(albums[0].addedAt).toBe(900);
+  });
+
+  it('orders artists by name or by how much of them there is', () => {
+    const artists = groupIntoArtists([zebra, apple, apple]);
+    expect(artists.map((entry) => entry.name)).toEqual(['Aaron', 'Zoe']);
+
+    expect(sortArtists(artists, 'title').map((entry) => entry.name)).toEqual([
+      'Aaron',
+      'Zoe',
+    ]);
+    // Nothing an artist carries is a year, so 'year' falls to the count —
+    // Zoe has two tracks to Aaron's one, and leads.
+    expect(sortArtists(artists, 'year').map((entry) => entry.name)).toEqual([
+      'Zoe',
+      'Aaron',
+    ]);
+    expect(sortArtists(artists, 'added').map((entry) => entry.name)).toEqual([
+      'Zoe',
+      'Aaron',
+    ]);
+  });
+
+  it('does not mutate the array it was handed', () => {
+    const albums = groupIntoAlbums([zebra, apple]);
+    sortAlbums(albums, 'title');
+    expect(albums.map((entry) => entry.title)).toEqual(['Zebra', 'Apple']);
   });
 });

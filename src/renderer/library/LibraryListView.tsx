@@ -21,12 +21,17 @@ import {
   ReactNode,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
 } from 'react';
 import {
   groupIntoAlbums,
   groupIntoArtists,
+  groupIntoFolders,
+  sortAlbums,
+  sortArtists,
+  sortFolders,
 } from '../../common/library/grouping';
 import {
   ILibraryTrack,
@@ -45,6 +50,10 @@ interface ILibraryListViewProps {
   browseMode: TLibraryBrowseMode;
   onOpenAlbum: (albumId: string) => void;
   onOpenArtist: (artistId: string) => void;
+  /** Only the folder browse mode can ever call this, so it is optional the
+   * same way the sort handler is: a caller that never shows folders has
+   * nothing to supply. */
+  onOpenFolder?: (folderPath: string) => void;
   onPlayTrack: (trackId: string) => void;
   /** Root ids currently marked `isOffline` — spec §10: kept, never deleted,
    * and dimmed. Optional, matching `NowPlayingBar`'s own `volume` prop: real
@@ -176,8 +185,13 @@ const NEXT_PAGE_THRESHOLD_PX = 96;
  */
 const rememberedListState = new Map<
   string,
-  { scrollTop: number; shownCount: number }
+  { scrollTop: number; shownCount: number; activeId?: string }
 >();
+
+/** How many frames a restore keeps retrying before giving up. Generous: the
+ * cost of one more assignment is nothing, and the cost of stopping a frame
+ * too early is the reader losing their place. */
+const RESTORE_ATTEMPTS = 20;
 
 /** What a screen reader is told about a column: only the one actually driving
  * the order claims a direction. */
@@ -196,6 +210,7 @@ const LibraryListView = ({
   browseMode,
   onOpenAlbum,
   onOpenArtist,
+  onOpenFolder,
   onPlayTrack,
   offlineRootIds = NO_OFFLINE_ROOTS,
   sort,
@@ -216,43 +231,125 @@ const LibraryListView = ({
   const shownCountRef = useRef(shownCount);
   shownCountRef.current = shownCount;
 
+  /** True while the restore below is still assigning, so the scroll events
+   * that assignment itself fires do not write the half-restored value back
+   * over the one being restored. */
+  const isRestoringRef = useRef(false);
+
   /**
-   * Where the reader was, and how far the list had been paged.
+   * Where the reader is, recorded as they go.
    *
-   * One effect, because there is one decision: a list this reader has been in
-   * before goes back to where they left it, and a list they have not goes to
-   * the top showing one page. Two effects on the same key fought over the
-   * scroll position and whichever ran last won.
-   *
-   * Opening an album unmounts this view entirely — the drill-in replaces it
-   * rather than covering it — so the position has to survive outside the
-   * component. Hence a module-level map: there is no component left to hold
-   * it. Keyed on what the list MEANS, never on the `tracks` array, which gets
-   * a new identity on every scan batch and would otherwise reset the reader's
-   * place several times a second for the whole of a scan.
+   * Written on every scroll rather than once at unmount, which is what had
+   * this returning to the top no matter how carefully the restore was
+   * written: a cleanup reads `scrollTop` off an element that is already
+   * being torn down, and any ancestor that has collapsed — `display: none`
+   * on the workspace, a detached subtree, a parent that has lost its height
+   * for one frame — has silently zeroed it first. Saving zero looks exactly
+   * like never having scrolled. Recording it while the element is
+   * demonstrably on screen and demonstrably scrolled cannot be wrong in that
+   * way.
    */
-  useEffect(() => {
+  const remember = useCallback(
+    (element: HTMLDivElement) => {
+      if (isRestoringRef.current) {
+        return;
+      }
+      rememberedListState.set(resetKey, {
+        scrollTop: element.scrollTop,
+        shownCount: shownCountRef.current,
+        activeId: rememberedListState.get(resetKey)?.activeId,
+      });
+    },
+    [resetKey],
+  );
+
+  /** Which row the reader last opened, so coming back out of the drill-in
+   * shows them the one they went into rather than a list of identical rows
+   * they have to find their place in again. Held here as well as in the map
+   * because the map is what survives the unmount and this is what renders. */
+  const [activeId, setActiveId] = useState<string | undefined>(
+    () => rememberedListState.get(resetKey)?.activeId,
+  );
+
+  /** Records the row being opened before the view is torn down for the
+   * drill-in — the scroll position alone puts the reader back on the right
+   * screen, not back on the right row. */
+  const rememberActive = useCallback(
+    (id: string) => {
+      setActiveId(id);
+      const element = bodyRef.current;
+      rememberedListState.set(resetKey, {
+        scrollTop:
+          element?.scrollTop ??
+          rememberedListState.get(resetKey)?.scrollTop ??
+          0,
+        shownCount: shownCountRef.current,
+        activeId: id,
+      });
+    },
+    [resetKey],
+  );
+
+  /**
+   * Back to where they left it, or to the top if they have not been here.
+   *
+   * One effect, because there is one decision. Two effects on the same key
+   * fought over the scroll position and whichever ran last won.
+   *
+   * `useLayoutEffect`, not `useEffect`: opening an album unmounts this view
+   * entirely — the drill-in replaces it rather than covering it — so coming
+   * back is a fresh mount, and restoring after paint shows one frame of the
+   * top of the list before it jumps. Keyed on what the list MEANS, never on
+   * the `tracks` array, which gets a new identity on every scan batch and
+   * would otherwise reset the reader's place several times a second for the
+   * whole of a scan.
+   */
+  useLayoutEffect(() => {
     const element = bodyRef.current;
     const remembered = rememberedListState.get(resetKey);
-    if (remembered) {
-      setShownCount(remembered.shownCount);
-      if (element) {
-        // `scrollTop` rather than `scrollTo`, which jsdom does not implement
-        // and would need mocking in every test that renders this view.
-        element.scrollTop = remembered.scrollTop;
-      }
-    } else {
+    let frame = 0;
+    if (!remembered) {
       setShownCount(PAGE_SIZE);
+      setActiveId(undefined);
       if (element) {
         element.scrollTop = 0;
       }
+      return undefined;
     }
+    setShownCount(remembered.shownCount);
+    setActiveId(remembered.activeId);
+    // Assigning once is not enough. `scrollTop` is clamped to the content's
+    // current height, and the page this restore needs has only just been
+    // asked for — until React has rendered those rows the maximum is one
+    // page tall and the assignment quietly becomes that instead. Retried on
+    // following frames until the value survives being read back.
+    //
+    // `scrollTop` rather than `scrollTo`, which jsdom does not implement and
+    // would need mocking in every test that renders this view.
+    isRestoringRef.current = true;
+    let attempts = 0;
+    const restore = () => {
+      frame = 0;
+      if (!element) {
+        isRestoringRef.current = false;
+        return;
+      }
+      element.scrollTop = remembered.scrollTop;
+      attempts += 1;
+      if (
+        Math.abs(element.scrollTop - remembered.scrollTop) > 1 &&
+        attempts < RESTORE_ATTEMPTS
+      ) {
+        frame = requestAnimationFrame(restore);
+        return;
+      }
+      isRestoringRef.current = false;
+    };
+    restore();
     return () => {
-      if (element) {
-        rememberedListState.set(resetKey, {
-          scrollTop: element.scrollTop,
-          shownCount: shownCountRef.current,
-        });
+      isRestoringRef.current = false;
+      if (frame) {
+        cancelAnimationFrame(frame);
       }
     };
   }, [resetKey]);
@@ -342,14 +439,19 @@ const LibraryListView = ({
   const columnHeader = (column: TListColumn) => t(COLUMN_LABEL_KEYS[column]);
 
   /**
-   * A sortable header cell, for the branches whose rows are tracks.
+   * A sortable header cell.
    *
-   * Album and artist rows are groupings rather than tracks, and `sortTracks`
-   * has nothing to say about them — sorting those by "length" would mean
-   * something different again. So only the song branch gets these; the other
-   * two keep plain labels rather than offering a control that would lie.
+   * Every branch gets these now: `sortAlbums` and `sortArtists` answer for
+   * groupings what `sortTracks` answers for tracks, so a header that offers
+   * a column is a header that can deliver it. The one column still left
+   * plain everywhere is `length` — no comparator sorts by duration yet, and
+   * a control that does nothing is worse than no control.
    */
-  const sortableHeader = (column: TListColumn, key: TLibrarySort) => {
+  const sortableHeader = (
+    column: TListColumn,
+    key: TLibrarySort,
+    extraClass = '',
+  ) => {
     const isActive = onSort !== undefined && sort === key;
     return (
       <span
@@ -357,7 +459,7 @@ const LibraryListView = ({
         aria-sort={activeSortLabel(isActive, sortDirection)}
         className={`library-list__col${
           column === 'length' ? ' library-list__col--length' : ''
-        }`}
+        }${extraClass ? ` ${extraClass}` : ''}`}
       >
         {onSort ? (
           <button
@@ -410,15 +512,21 @@ const LibraryListView = ({
           role="rowgroup"
           ref={bodyRef}
           onScroll={(event) => {
-            if (remaining <= 0) {
-              return;
-            }
             const element = event.currentTarget;
-            const distanceToBottom =
-              element.scrollHeight - element.scrollTop - element.clientHeight;
-            if (distanceToBottom <= NEXT_PAGE_THRESHOLD_PX) {
-              setShownCount((current) => current + PAGE_SIZE);
+            if (remaining > 0) {
+              const distanceToBottom =
+                element.scrollHeight - element.scrollTop - element.clientHeight;
+              if (distanceToBottom <= NEXT_PAGE_THRESHOLD_PX) {
+                // The ref, not just the state: `remember` right below reads
+                // it this same tick, and a `setShownCount` has not landed by
+                // then — remembering the count from before the page was
+                // added would restore a list too short to hold the position
+                // remembered beside it.
+                shownCountRef.current += PAGE_SIZE;
+                setShownCount(shownCountRef.current);
+              }
             }
+            remember(element);
           }}
         >
           {rows.slice(0, shown)}
@@ -436,18 +544,16 @@ const LibraryListView = ({
   };
 
   if (browseMode === 'album') {
-    const albums = groupIntoAlbums(tracks);
+    const albums = sortAlbums(
+      groupIntoAlbums(tracks),
+      sort ?? 'title',
+      sortDirection,
+    );
     return renderTable(
       <>
-        <span role="columnheader" className="library-list__col">
-          {columnHeader('title')}
-        </span>
-        <span role="columnheader" className="library-list__col">
-          {columnHeader('artist')}
-        </span>
-        <span role="columnheader" className="library-list__col">
-          {columnHeader('year')}
-        </span>
+        {sortableHeader('title', 'title')}
+        {sortableHeader('artist', 'artist')}
+        {sortableHeader('year', 'year')}
         <span
           role="columnheader"
           className="library-list__col library-list__col--length"
@@ -456,14 +562,21 @@ const LibraryListView = ({
         </span>
       </>,
       albums.map((album) => {
-        const activate = () => onOpenAlbum(album.id);
+        const activate = () => {
+          rememberActive(album.id);
+          onOpenAlbum(album.id);
+        };
         const title = album.title || t('library.unknownAlbum');
+        const isSelected = activeId === album.id;
         return (
           <div
             key={album.id}
             role="row"
             tabIndex={0}
-            className={`library-list__row${album.isPending ? ' library-list__row--pending' : ''}`}
+            aria-selected={isSelected}
+            className={`library-list__row${album.isPending ? ' library-list__row--pending' : ''}${
+              isSelected ? ' library-list__row--selected' : ''
+            }`}
             onClick={activate}
             onKeyDown={(event) => onActivateKeyDown(event, activate)}
           >
@@ -516,24 +629,86 @@ const LibraryListView = ({
     );
   }
 
-  if (browseMode === 'artist') {
-    const artists = groupIntoArtists(tracks);
+  if (browseMode === 'folder') {
+    const folders = sortFolders(
+      groupIntoFolders(tracks),
+      sort ?? 'title',
+      sortDirection,
+    );
     return renderTable(
-      <span
-        role="columnheader"
-        className="library-list__col library-list__col--span"
-      >
-        {columnHeader('title')}
-      </span>,
+      sortableHeader('title', 'title', 'library-list__col--span'),
+      folders.map((folder) => {
+        const activate = () => {
+          rememberActive(folder.id);
+          onOpenFolder?.(folder.id);
+        };
+        const isSelected = activeId === folder.id;
+        return (
+          <div
+            key={folder.id}
+            role="row"
+            tabIndex={0}
+            aria-selected={isSelected}
+            className={`library-list__row${folder.isPending ? ' library-list__row--pending' : ''}${
+              isSelected ? ' library-list__row--selected' : ''
+            }`}
+            onClick={activate}
+            onKeyDown={(event) => onActivateKeyDown(event, activate)}
+          >
+            <span
+              role="cell"
+              className="library-list__col library-list__col--art"
+            >
+              <LibraryCoverArt
+                artId={folder.artId}
+                label={folder.name}
+                size="row"
+              />
+            </span>
+            <span
+              role="cell"
+              className="library-list__col library-list__col--title library-list__col--span"
+            >
+              <span className="library-list__title-text">
+                <span className="library-list__title-label">{folder.name}</span>
+              </span>
+              {/* The path, not the name again: two folders called "CD1" are
+                  the normal case, and the only thing that tells them apart is
+                  where they live. */}
+              <small className="library-list__subtitle">
+                {`${t('library.trackCount', { count: folder.trackCount })} · ${folder.id}`}
+              </small>
+            </span>
+          </div>
+        );
+      }),
+    );
+  }
+
+  if (browseMode === 'artist') {
+    const artists = sortArtists(
+      groupIntoArtists(tracks),
+      sort ?? 'title',
+      sortDirection,
+    );
+    return renderTable(
+      sortableHeader('title', 'title', 'library-list__col--span'),
       artists.map((artist) => {
-        const activate = () => onOpenArtist(artist.id);
+        const activate = () => {
+          rememberActive(artist.id);
+          onOpenArtist(artist.id);
+        };
         const name = artist.name || t('library.unknownArtist');
+        const isSelected = activeId === artist.id;
         return (
           <div
             key={artist.id}
             role="row"
             tabIndex={0}
-            className={`library-list__row${artist.isPending ? ' library-list__row--pending' : ''}`}
+            aria-selected={isSelected}
+            className={`library-list__row${artist.isPending ? ' library-list__row--pending' : ''}${
+              isSelected ? ' library-list__row--selected' : ''
+            }`}
             onClick={activate}
             onKeyDown={(event) => onActivateKeyDown(event, activate)}
           >
@@ -621,8 +796,10 @@ const LibraryListView = ({
           track={track}
           isOffline={offlineRootIds.has(track.rootId)}
           isFolderOnly={folderOnlyIds.has(track.id)}
+          isSelected={activeId === track.id}
           duration={formatDuration(track.durationMs)}
           onPlay={onPlayTrack}
+          onSelect={rememberActive}
           onKeyDown={onTrackRowKeyDown}
           onContextMenu={openTrackMenu}
         />

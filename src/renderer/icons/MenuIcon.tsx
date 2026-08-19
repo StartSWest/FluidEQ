@@ -27,6 +27,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 const PATHS: Record<string, string> = {
   // Circular arrow around a dot: restart the thing that is running.
   restart: 'M20 12a8 8 0 1 1-2.3-5.6M20 3v4h-4',
+  // The same arrow with a second one closing the loop the other way: not
+  // "run it again" but "run it again from nothing", which is what separates a
+  // forced rescan from the cheap incremental one it sits beside.
+  restartAll:
+    'M20 12a8 8 0 0 1-13.7 5.6M20 4v4h-4M4 12a8 8 0 0 1 13.7-5.6M4 20v-4h4',
   // Sliders: the configurator is where the wiring is set.
   configure: 'M5 7h9M17 7h2M5 12h2M10 12h9M5 17h11M19 17h0M14 4.5v5M7 9.5v5',
   // Cog, drawn as an octagon rather than a toothed wheel — teeth vanish at

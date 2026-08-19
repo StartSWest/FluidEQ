@@ -128,4 +128,52 @@ describe('answering a fluideq-media request for an id the index no longer knows 
     expect(response?.status).toBe(200);
     expect(netFetch).toHaveBeenCalledTimes(1);
   });
+
+  it('carries the Range header through to net.fetch, which is what makes a seek a seek', async () => {
+    // Without this, every seek restarted the track: Chromium asks for
+    // `bytes=N-`, a bare `net.fetch` fetches the whole file, and a 200 where
+    // a 206 was expected tells the media element it is holding a different
+    // resource, so it starts over at zero. Asserted on the header the handler
+    // actually passes on, not on `net.fetch` merely having been called — that
+    // much was already true for the whole time seeking was broken.
+    const trackPath = 'C:\\Music\\seekable.mp3';
+    const id = trackIdForPath(trackPath);
+    const index: ILibraryIndex = {
+      version: 1,
+      roots: [],
+      tracks: [
+        {
+          id,
+          rootId: 'r1',
+          path: trackPath,
+          kind: 'audio',
+          isPlayable: true,
+          title: 'Seekable',
+          sizeBytes: 1,
+          mtimeMs: 1,
+          addedAt: 1,
+        },
+      ],
+    };
+    handleLibraryMedia({ userDataDir: 'C:\\unused', getIndex: () => index });
+    const handler = handlers.get(LIBRARY_MEDIA_SCHEME);
+
+    await handler?.(
+      new Request(libraryMediaUrl('track', id), {
+        headers: { Range: 'bytes=4096-' },
+      }),
+    );
+
+    const ranged = netFetch.mock.calls[0][1] as { headers: Headers };
+    expect(ranged.headers.get('range')).toBe('bytes=4096-');
+
+    // The other half of the discrimination: a request with no Range must not
+    // acquire one. A handler that hardcoded a range would satisfy the
+    // assertion above and break every first load.
+    netFetch.mockClear();
+    await handler?.(new Request(libraryMediaUrl('track', id)));
+
+    const plain = netFetch.mock.calls[0][1] as { headers: Headers };
+    expect(plain.headers.get('range')).toBeNull();
+  });
 });

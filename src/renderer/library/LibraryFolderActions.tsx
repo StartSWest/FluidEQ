@@ -94,16 +94,21 @@ const LibraryFolderActions = ({
 
   return (
     <div className="library-toolbar__actions">
-      {/* Emphasis follows recommendation: adding music is the
-          recommendation, rescanning what is already there is the
-          fallback. */}
-      <button type="button" className="button small" onClick={onAddFolder}>
+      {/* The Media tab's chips, same as the browse and view rows — see
+          `.library-toolbar__chip`. Emphasis still follows recommendation:
+          adding music is the recommendation and wears the accent, rescanning
+          what is already there is the fallback and wears the plain chip. */}
+      <button
+        type="button"
+        className="library-toolbar__chip library-toolbar__chip--accent"
+        onClick={onAddFolder}
+      >
         <MenuIcon name="folder" className="library-toolbar__action-icon" />
         <span>{t('library.add')}</span>
       </button>
       <button
         type="button"
-        className="button small subtle"
+        className="library-toolbar__chip"
         disabled={isScanning}
         onClick={onRescan}
       >
@@ -111,16 +116,18 @@ const LibraryFolderActions = ({
         <span>{t('library.rescan')}</span>
       </button>
       {/* Rare enough to sit quietly beside Rescan rather than replace it —
-          most rescans should stay the cheap, incremental kind. */}
+          most rescans should stay the cheap, incremental kind. Icon only:
+          two chips a word apart both reading "rescan" is a row nobody can
+          scan, and the distinction lives in the tooltip either way. */}
       <button
         type="button"
-        className="button small subtle"
+        className="library-toolbar__chip library-toolbar__chip--icon"
         disabled={isScanning}
+        aria-label={t('library.rescan.force')}
         title={t('library.rescan.force')}
         onClick={onForceRescan}
       >
-        <MenuIcon name="restart" className="library-toolbar__action-icon" />
-        <span>{t('library.rescan.force')}</span>
+        <MenuIcon name="restartAll" className="library-toolbar__action-icon" />
       </button>
       {/* The only place the roots are manageable. Nothing to manage with
           zero of them, so the control does not appear until there is. */}
@@ -129,7 +136,9 @@ const LibraryFolderActions = ({
           <button
             type="button"
             ref={foldersMenuAnchorRef}
-            className="button small subtle"
+            className={`library-toolbar__chip${
+              isFoldersMenuOpen ? ' is-active' : ''
+            }`}
             aria-expanded={isFoldersMenuOpen}
             onClick={() => setIsFoldersMenuOpen((open) => !open)}
           >

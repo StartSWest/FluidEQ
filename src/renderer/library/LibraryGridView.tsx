@@ -16,12 +16,21 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useMemo } from 'react';
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
   groupIntoAlbums,
   groupIntoArtists,
+  groupIntoFolders,
+  sortAlbums,
+  sortArtists,
+  sortFolders,
 } from '../../common/library/grouping';
-import { ILibraryTrack, TLibraryBrowseMode } from '../../common/library/types';
+import {
+  ILibraryTrack,
+  TLibraryBrowseMode,
+  TLibrarySort,
+  TLibrarySortDirection,
+} from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
@@ -31,14 +40,46 @@ interface ILibraryGridViewProps {
   browseMode: TLibraryBrowseMode;
   onOpenAlbum: (albumId: string) => void;
   onOpenArtist: (artistId: string) => void;
+  /** Only the folder browse mode can call this — optional for the same
+   * reason `LibraryListView`'s own is. */
+  onOpenFolder?: (folderPath: string) => void;
   onPlayTrack: (trackId: string) => void;
   /** Root ids currently marked `isOffline` — spec §10: kept, never deleted,
    * and dimmed. Optional for the same reason `LibraryListView`'s own prop of
    * the same name is: real usage always supplies it. */
   offlineRootIds?: ReadonlySet<string>;
+  /** The active order. Song tiles arrive already sorted — the workspace sorts
+   * the track list itself — but albums and artists come out of their grouping
+   * in whatever order the Map built them, so this view has to apply it. */
+  sort?: TLibrarySort;
+  sortDirection?: TLibrarySortDirection;
+  /** Changes when the grid means something different — a new browse mode,
+   * search or sort. How far the grid has been paged resets on this and
+   * nothing else; `tracks` is replaced on every scan batch, which is not a
+   * reason to throw away tiles the reader has already scrolled to. */
+  resetKey?: string;
 }
 
 const NO_OFFLINE_ROOTS: ReadonlySet<string> = new Set();
+
+/** Tiles per page, and how close to the bottom asks for the next one. Larger
+ * than the list's hundred rows because a tile is a fraction of a row's height
+ * and four to eight sit side by side: a hundred would be barely two screens. */
+const PAGE_SIZE = 180;
+const NEXT_PAGE_THRESHOLD_PX = 320;
+
+/** Where each grid was left and which tile was opened out of it, keyed by
+ * what the grid was showing. Module-level for the reason `LibraryListView`'s
+ * equivalent is: opening an album unmounts this view, so nothing held inside
+ * the component survives to put the reader back where they were. */
+const rememberedGridState = new Map<
+  string,
+  { scrollTop: number; shownCount: number; activeId?: string }
+>();
+
+/** Frames a restore keeps retrying before giving up — see the list view's
+ * own constant for why one assignment is not enough. */
+const RESTORE_ATTEMPTS = 20;
 
 /**
  * One tile's worth of what `LibraryGridView` draws — deliberately the raw
@@ -80,10 +121,102 @@ const LibraryGridView = ({
   browseMode,
   onOpenAlbum,
   onOpenArtist,
+  onOpenFolder,
   onPlayTrack,
   offlineRootIds = NO_OFFLINE_ROOTS,
+  sort = 'title',
+  sortDirection = 'asc',
+  resetKey = '',
 }: ILibraryGridViewProps) => {
   const { t } = useTranslation();
+  const gridRef = useRef<HTMLDivElement | null>(null);
+  const isRestoringRef = useRef(false);
+  const [shownCount, setShownCount] = useState(
+    () => rememberedGridState.get(resetKey)?.shownCount ?? PAGE_SIZE,
+  );
+  const shownCountRef = useRef(shownCount);
+  shownCountRef.current = shownCount;
+  const [activeId, setActiveId] = useState<string | undefined>(
+    () => rememberedGridState.get(resetKey)?.activeId,
+  );
+
+  /** Same contract as `LibraryListView`'s own `remember`, and written for the
+   * same reason: recorded as the reader scrolls, never off an element that is
+   * already being torn down. */
+  const remember = useCallback(
+    (element: HTMLDivElement) => {
+      if (isRestoringRef.current) {
+        return;
+      }
+      rememberedGridState.set(resetKey, {
+        scrollTop: element.scrollTop,
+        shownCount: shownCountRef.current,
+        activeId: rememberedGridState.get(resetKey)?.activeId,
+      });
+    },
+    [resetKey],
+  );
+
+  const rememberActive = useCallback(
+    (id: string) => {
+      setActiveId(id);
+      rememberedGridState.set(resetKey, {
+        scrollTop:
+          gridRef.current?.scrollTop ??
+          rememberedGridState.get(resetKey)?.scrollTop ??
+          0,
+        shownCount: shownCountRef.current,
+        activeId: id,
+      });
+    },
+    [resetKey],
+  );
+
+  // Back to where the reader left this grid, or to the first page if they
+  // have not been in it. Keyed on `resetKey` rather than on `items`, which
+  // gets a new identity on every scan batch — resetting on that would yank
+  // them to the top several times a second while a scan runs.
+  useLayoutEffect(() => {
+    const element = gridRef.current;
+    const remembered = rememberedGridState.get(resetKey);
+    let frame = 0;
+    if (!remembered) {
+      setShownCount(PAGE_SIZE);
+      setActiveId(undefined);
+      if (element) {
+        element.scrollTop = 0;
+      }
+      return undefined;
+    }
+    setShownCount(remembered.shownCount);
+    setActiveId(remembered.activeId);
+    isRestoringRef.current = true;
+    let attempts = 0;
+    const restore = () => {
+      frame = 0;
+      if (!element) {
+        isRestoringRef.current = false;
+        return;
+      }
+      element.scrollTop = remembered.scrollTop;
+      attempts += 1;
+      if (
+        Math.abs(element.scrollTop - remembered.scrollTop) > 1 &&
+        attempts < RESTORE_ATTEMPTS
+      ) {
+        frame = requestAnimationFrame(restore);
+        return;
+      }
+      isRestoringRef.current = false;
+    };
+    restore();
+    return () => {
+      isRestoringRef.current = false;
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
+    };
+  }, [resetKey]);
 
   // `groupIntoAlbums`/`groupIntoArtists` walk every track in the library.
   // Memoised on the track list and the mode actually being shown, so a
@@ -98,23 +231,40 @@ const LibraryGridView = ({
   // memoised lookups and its render-time `t(...)` calls.
   const items: IGridItem[] = useMemo(() => {
     if (browseMode === 'album') {
-      return groupIntoAlbums(tracks).map((album) => ({
-        id: album.id,
-        artId: album.artId,
-        title: album.title,
-        artistName: album.artist,
-        isPending: album.isPending,
-      }));
+      return sortAlbums(groupIntoAlbums(tracks), sort, sortDirection).map(
+        (album) => ({
+          id: album.id,
+          artId: album.artId,
+          title: album.title,
+          artistName: album.artist,
+          isPending: album.isPending,
+        }),
+      );
+    }
+    if (browseMode === 'folder') {
+      return sortFolders(groupIntoFolders(tracks), sort, sortDirection).map(
+        (folder) => ({
+          id: folder.id,
+          artId: folder.artId,
+          title: folder.name,
+          // The path under the name — two folders called "CD1" are the normal
+          // case and only their location tells them apart.
+          artistName: folder.id,
+          isPending: folder.isPending,
+        }),
+      );
     }
     if (browseMode === 'artist') {
-      return groupIntoArtists(tracks).map((artist) => ({
-        id: artist.id,
-        artId: artist.artId,
-        title: artist.name,
-        artistName: '',
-        albumCount: artist.albumCount,
-        isPending: artist.isPending,
-      }));
+      return sortArtists(groupIntoArtists(tracks), sort, sortDirection).map(
+        (artist) => ({
+          id: artist.id,
+          artId: artist.artId,
+          title: artist.name,
+          artistName: '',
+          albumCount: artist.albumCount,
+          isPending: artist.isPending,
+        }),
+      );
     }
     // 'song', and any browse mode this view does not know about yet — the
     // same fallback `LibraryListView` makes: anything that is not 'album'
@@ -127,17 +277,24 @@ const LibraryGridView = ({
       rootId: track.rootId,
       isPending: track.isPending === true,
     }));
-  }, [tracks, browseMode]);
+  }, [tracks, browseMode, sort, sortDirection]);
 
   /** The row's primary action, resolved from the always-current callback
    * props rather than baked into the memoised `items` above. */
   const openItem = (id: string) => {
     if (browseMode === 'album') {
+      rememberActive(id);
       onOpenAlbum(id);
       return;
     }
     if (browseMode === 'artist') {
+      rememberActive(id);
       onOpenArtist(id);
+      return;
+    }
+    if (browseMode === 'folder') {
+      rememberActive(id);
+      onOpenFolder?.(id);
       return;
     }
     onPlayTrack(id);
@@ -168,9 +325,34 @@ const LibraryGridView = ({
     return item.title;
   };
 
+  // A page at a time, growing as the bottom comes into reach — the same rule
+  // `LibraryListView` follows, and for the same reason: nothing stands in for
+  // what is not rendered, so the scrollbar measures exactly the tiles that
+  // exist and cannot move under the pointer.
+  const shown = Math.min(items.length, shownCount);
+  const remaining = items.length - shown;
+
   return (
-    <div className="library-grid" aria-label={t('tabs.library')}>
-      {items.map((item) => {
+    <div
+      className="library-grid"
+      aria-label={t('tabs.library')}
+      ref={gridRef}
+      onScroll={(event) => {
+        const element = event.currentTarget;
+        if (remaining > 0) {
+          const distanceToBottom =
+            element.scrollHeight - element.scrollTop - element.clientHeight;
+          if (distanceToBottom <= NEXT_PAGE_THRESHOLD_PX) {
+            // The ref as well as the state — `remember` below reads it this
+            // same tick, before a `setShownCount` has landed.
+            shownCountRef.current += PAGE_SIZE;
+            setShownCount(shownCountRef.current);
+          }
+        }
+        remember(element);
+      }}
+    >
+      {items.slice(0, shown).map((item) => {
         const title = tileTitle(item);
         const subtitle = tileSubtitle(item);
         // Spec §10: a root missing at rescan is marked offline and its
@@ -180,10 +362,12 @@ const LibraryGridView = ({
         const isOffline = Boolean(
           item.rootId && offlineRootIds.has(item.rootId),
         );
+        const isSelected = activeId === item.id;
         const tileClassName = [
           'library-grid__tile',
           isOffline ? 'library-grid__tile--offline' : '',
           item.isPending ? 'library-grid__tile--pending' : '',
+          isSelected ? 'library-grid__tile--selected' : '',
         ]
           .filter(Boolean)
           .join(' ');
@@ -191,6 +375,7 @@ const LibraryGridView = ({
           <button
             key={item.id}
             type="button"
+            aria-current={isSelected ? 'true' : undefined}
             className={tileClassName}
             title={isOffline ? t('library.root.offline') : undefined}
             onClick={() => openItem(item.id)}
@@ -217,6 +402,11 @@ const LibraryGridView = ({
           </button>
         );
       })}
+      {remaining > 0 && (
+        <div className="library-grid__more">
+          {t('library.trackCount', { count: remaining })}
+        </div>
+      )}
     </div>
   );
 };
