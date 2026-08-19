@@ -69,7 +69,10 @@ export type TLibrarySort = 'title' | 'artist' | 'album' | 'year' | 'added';
 
 export interface ILibraryScanProgress {
   rootId: string;
-  /** Files walked so far. Not a total — the walk and the parse interleave. */
+  /** A real total once discovery finishes — the walk and the parse are two
+   * separate phases, not interleaved; see `libraryScanDiscovery.ts`'s module
+   * comment. `parsed` climbs against this fixed number, never against one
+   * still moving underneath it. */
   seen: number;
   parsed: number;
   karaokeSkipped: number;
