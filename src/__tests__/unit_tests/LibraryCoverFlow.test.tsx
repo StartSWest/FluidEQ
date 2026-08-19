@@ -135,6 +135,46 @@ describe('cover flow', () => {
     expect(onOpenAlbum).toHaveBeenCalled();
   });
 
+  it('plays the centred song on Enter in song mode (blocker 5)', async () => {
+    // Before this fix, `activateCurrent` handled 'album' and 'artist' with
+    // no `else` and the component had no `onPlayTrack` prop at all — Enter
+    // or a click on the centre cover was silently inert for every track in
+    // song mode, the one cell of the view/browse matrix Cover Flow left dead.
+    const onPlayTrack = jest.fn();
+    render(
+      <I18nProvider>
+        <LibraryCoverFlow
+          tracks={albumTracks(5)}
+          browseMode="song"
+          onOpenAlbum={jest.fn()}
+          onOpenArtist={jest.fn()}
+          onPlayTrack={onPlayTrack}
+        />
+      </I18nProvider>,
+    );
+    screen.getByRole('listbox').focus();
+    await userEvent.keyboard('{Enter}');
+    expect(onPlayTrack).toHaveBeenCalledWith('t0');
+  });
+
+  it('does nothing when song mode is shown with no onPlayTrack at all, right beside it', async () => {
+    // The positive control: proof the optional prop is genuinely optional
+    // (no test of the other browse modes accidentally relies on it) rather
+    // than something that would throw if a future caller forgot it.
+    render(
+      <I18nProvider>
+        <LibraryCoverFlow
+          tracks={albumTracks(5)}
+          browseMode="song"
+          onOpenAlbum={jest.fn()}
+          onOpenArtist={jest.fn()}
+        />
+      </I18nProvider>,
+    );
+    screen.getByRole('listbox').focus();
+    await expect(userEvent.keyboard('{Enter}')).resolves.not.toThrow();
+  });
+
   it('keeps the same album centred when new albums are inserted ahead of it', async () => {
     // A rescan finding new albums does not append — `groupIntoAlbums` keeps
     // whatever order the tracks arrived in, so an album discovered in a

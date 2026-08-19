@@ -99,6 +99,11 @@ interface ILibraryCoverFlowProps {
   browseMode: TLibraryBrowseMode;
   onOpenAlbum: (albumId: string) => void;
   onOpenArtist: (artistId: string) => void;
+  /** Song mode's own primary action — optional the same way `NowPlayingBar`'s
+   * `volume` is: real usage (`LibraryWorkspace`) always supplies it, and none
+   * of this view's other tests — geometry, browsing, identity tracking — need
+   * a working one to exercise what they cover. */
+  onPlayTrack?: (trackId: string) => void;
 }
 
 /** One cover's worth of what this view draws — the same split
@@ -143,6 +148,7 @@ const LibraryCoverFlow = ({
   browseMode,
   onOpenAlbum,
   onOpenArtist,
+  onPlayTrack,
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -243,10 +249,12 @@ const LibraryCoverFlow = ({
     return item.title;
   };
 
-  /** The centre's own primary action. Song mode has no callback to reach for
-   * yet — `LibraryWorkspace`'s own play handler is still a no-op today — so
-   * Enter or a click on the centre cover is inert there, same as a song row
-   * in the other two views before a queue exists. */
+  /** The centre's own primary action: opens the drill-in for an album or
+   * artist, plays the track for a song — the same three-way split
+   * `LibraryGridView.openItem` and `LibraryListView`'s row handlers make,
+   * so this is the one browse mode Cover Flow used to leave the whole
+   * screen inert for (Enter or a click on the centre cover did nothing —
+   * one full cell of the view/browse matrix). */
   const activateCurrent = () => {
     const item = items[currentIndex];
     if (!item) {
@@ -258,7 +266,9 @@ const LibraryCoverFlow = ({
     }
     if (browseMode === 'artist') {
       onOpenArtist(item.id);
+      return;
     }
+    onPlayTrack?.(item.id);
   };
 
   const moveBy = (delta: number) => {
