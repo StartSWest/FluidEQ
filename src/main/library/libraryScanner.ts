@@ -253,7 +253,10 @@ const processFile = async (
   dirCtx: IDirectoryContext,
   state: IWalkState,
 ): Promise<void> => {
-  state.seen += 1;
+  // `seen` is bumped for the whole directory in `processFiles`, before any of
+  // its candidates reach here -- not per file the way `parsed` is below. See
+  // that function for why: incrementing both counters in lockstep, one file
+  // at a time, is what previously pinned every live progress event at 100%.
   const filePath = path.join(dirCtx.dir, entry.name);
   const isKaraoke = await resolveKaraokeSkip(entry.name, dirCtx);
   if (isKaraoke) {
@@ -283,10 +286,24 @@ const processFile = async (
   reportProgress(context, state, entry.name);
 };
 
+interface IMediaCandidate {
+  entry: fs.Dirent;
+  kind: 'audio' | 'video';
+}
+
 /**
  * Walks the media-kind files of one directory, in place against `state`.
  * Non-media files never reach `processFile` at all; `walkDirectory` only
  * decides which files and folders reach this point.
+ *
+ * `seen` counts every candidate in this directory the moment it has been
+ * listed and filtered -- before any of them is read -- while `parsed` only
+ * grows one file at a time as each finishes below. That gap is what makes a
+ * live progress event honest: with both counters moving together per file
+ * (the previous shape), `seen` and `parsed` were always equal by the time
+ * anyone outside this module saw them, and the determinate bar was pinned at
+ * 100% for the length of every scan. A directory with more than one file now
+ * reports `seen` ahead of `parsed` for every file but its last.
  */
 const processFiles = async (
   fileEntries: readonly fs.Dirent[],
@@ -294,17 +311,23 @@ const processFiles = async (
   dirCtx: IDirectoryContext,
   state: IWalkState,
 ): Promise<void> => {
-  for (let index = 0; index < fileEntries.length; index += 1) {
-    const entry = fileEntries[index];
+  const candidates: IMediaCandidate[] = [];
+  fileEntries.forEach((entry) => {
     const kind = libraryFileKind(entry.name);
     if (kind) {
-      if (context.isCancelled()) {
-        state.cancelled = true;
-        return;
-      }
-      // eslint-disable-next-line no-await-in-loop -- one directory at a time by design; see the module comment.
-      await processFile(entry, kind, context, dirCtx, state);
+      candidates.push({ entry, kind });
     }
+  });
+  state.seen += candidates.length;
+
+  for (let index = 0; index < candidates.length; index += 1) {
+    const { entry, kind } = candidates[index];
+    if (context.isCancelled()) {
+      state.cancelled = true;
+      return;
+    }
+    // eslint-disable-next-line no-await-in-loop -- one directory at a time by design; see the module comment.
+    await processFile(entry, kind, context, dirCtx, state);
   }
 };
 

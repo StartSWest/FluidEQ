@@ -106,6 +106,28 @@ describe('scanning a folder', () => {
     expect(result.tracks.length).toBeGreaterThan(0);
   });
 
+  it('reports seen ahead of parsed while a directory is still being worked through', async () => {
+    // The regression this guards: `seen` and `parsed` used to be incremented
+    // together for the same file, so every live progress event had
+    // `seen === parsed` and a determinate bar read 100% for the whole scan.
+    // A directory of several files is what would have caught it -- `seen` is
+    // counted for the whole directory before any of its files are read, so
+    // every event but the last for that directory should be ahead of
+    // `parsed`.
+    const dir = folder({ 'a.mp3': 'x', 'b.mp3': 'x', 'c.mp3': 'x' });
+    const events: { seen: number; parsed: number }[] = [];
+    await scanLibraryRoot({
+      rootId: 'r1',
+      rootPath: dir,
+      userDataDir: dir,
+      known: [],
+      onProgress: (progress) =>
+        events.push({ seen: progress.seen, parsed: progress.parsed }),
+      isCancelled: () => false,
+    });
+    expect(events.some((event) => event.seen > event.parsed)).toBe(true);
+  });
+
   it('keeps a known addedAt through a re-parse, but stamps a new file fresh', async () => {
     // The Recently Added sort reads this field; getting it wrong is a silent,
     // wrong-direction bug rather than a crash -- an edited file would jump to
