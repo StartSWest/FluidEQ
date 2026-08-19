@@ -76,12 +76,21 @@ describe('reading tags off a file', () => {
     });
   });
 
-  it('answers with an empty set of facts rather than throwing', async () => {
-    // One unreadable file must not end a scan of four thousand.
+  it('answers with empty facts and readFailed rather than throwing', async () => {
+    // music-metadata is lenient about content it cannot recognise at all --
+    // arbitrary bytes in a .mp3 just come back with no tags, no throw. What
+    // it does reject is content that contradicts the extension's promise:
+    // an Ogg stream (magic "OggS") saved with a .flac name is asked for by
+    // the FLAC demuxer specifically and its preamble check fails outright.
+    // That contradiction is what a genuinely corrupt file looks like, and
+    // one must not end a scan of four thousand -- but the scanner still
+    // needs to know a real failure happened here, so it can set
+    // hasMetadataError on the track instead of just showing a filename with
+    // no explanation.
     const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-tags-'));
-    const file = path.join(dir, 'broken.mp3');
-    fs.writeFileSync(file, Buffer.from('not audio at all'));
-    await expect(readLibraryTags(file)).resolves.toEqual({});
+    const file = path.join(dir, 'broken.flac');
+    fs.writeFileSync(file, Buffer.from('OggSnot really a flac file at all'));
+    await expect(readLibraryTags(file)).resolves.toEqual({ readFailed: true });
   });
 
   it('strips an embedded NUL from a tag string', async () => {
@@ -136,6 +145,10 @@ describe('reading tags off a file', () => {
       (value): value is number => typeof value === 'number',
     );
     numericValues.forEach((value) => expect(Number.isFinite(value)).toBe(true));
+    // Positive control for the broken.mp3 case above: a header this odd
+    // still parses without throwing, so it must not be marked as a metadata
+    // error just for having little left to report.
+    expect(facts.readFailed).toBeUndefined();
   });
 });
 

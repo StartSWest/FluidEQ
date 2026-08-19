@@ -7,6 +7,7 @@ import {
   shouldReparse,
   trackIdForPath,
 } from '../../../main/library/libraryScanner';
+import { readLibraryTags } from '../../../main/library/libraryMetadata';
 
 jest.mock('../../../main/library/libraryMetadata', () => ({
   readLibraryTags: jest.fn(() => Promise.resolve({ title: 'Tagged' })),
@@ -15,6 +16,8 @@ jest.mock('../../../main/library/libraryMetadata', () => ({
 jest.mock('../../../main/library/libraryArtwork', () => ({
   storeArtwork: () => Promise.resolve(undefined),
 }));
+
+const mockedReadLibraryTags = readLibraryTags as jest.Mock;
 
 const folder = (files: Record<string, string>): string => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'fluideq-scan-'));
@@ -101,6 +104,45 @@ describe('scanning a folder', () => {
     expect(result.wasCancelled).toBe(true);
     // A cancelled scan is a partial library, never a lost one.
     expect(result.tracks.length).toBeGreaterThan(0);
+  });
+
+  it('keeps a known addedAt through a re-parse, but stamps a new file fresh', async () => {
+    // The Recently Added sort reads this field; getting it wrong is a silent,
+    // wrong-direction bug rather than a crash -- an edited file would jump to
+    // the top of the list as if it had just been added.
+    const dir = folder({ 'known.mp3': 'x', 'new.mp3': 'y' });
+    const knownPath = path.join(dir, 'known.mp3');
+    const stats = fs.statSync(knownPath);
+    const knownAddedAt = 12345;
+    const known: ILibraryTrack[] = [
+      {
+        id: trackIdForPath(knownPath),
+        rootId: 'r1',
+        path: knownPath,
+        kind: 'audio',
+        isPlayable: true,
+        title: 'Old title',
+        // Mismatched size forces shouldReparse to trigger a rebuild.
+        sizeBytes: stats.size + 1,
+        mtimeMs: stats.mtimeMs,
+        addedAt: knownAddedAt,
+      },
+    ];
+    const before = Date.now();
+    const result = await scan(dir, known);
+    const reparsed = result.tracks.find((entry) => entry.path === knownPath);
+    const fresh = result.tracks.find(
+      (entry) => path.basename(entry.path) === 'new.mp3',
+    );
+    expect(reparsed?.addedAt).toBe(knownAddedAt);
+    expect(fresh?.addedAt).toBeGreaterThanOrEqual(before);
+  });
+
+  it('sets hasMetadataError only when the tag read itself failed', async () => {
+    mockedReadLibraryTags.mockResolvedValueOnce({ readFailed: true });
+    const dir = folder({ 'broken.mp3': 'x' });
+    const result = await scan(dir);
+    expect(result.tracks[0]).toMatchObject({ hasMetadataError: true });
   });
 });
 

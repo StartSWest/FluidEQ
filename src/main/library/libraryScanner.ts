@@ -236,6 +236,9 @@ const buildTrack = async (
     sizeBytes: stat.size,
     mtimeMs: stat.mtimeMs,
     addedAt,
+    // Only a real thrown failure in readLibraryTags sets this -- never
+    // guessed from an empty tag set, which a plain untagged file has too.
+    hasMetadataError: facts.readFailed,
   };
 };
 
@@ -308,19 +311,28 @@ const processFiles = async (
 /**
  * Walks one directory and recurses into its subdirectories.
  *
- * A directory symlink is never followed: `fs.Dirent`'s type reflects the
- * entry itself, never the target it points at, so a symlinked directory
- * already fails `isDirectory()` below without a separate `lstat`. That is
- * what keeps a shortcut back up the tree, or one aimed at the whole of
- * `C:\`, from turning a single added folder into an infinite or unbounded
- * walk -- the index this feeds has no size ceiling of its own.
+ * A directory symlink nested inside the walk is never followed: `fs.Dirent`'s
+ * type reflects the entry itself, never the target it points at, so a
+ * symlinked subdirectory already fails `isDirectory()` below without a
+ * separate `lstat`. A root that is itself a symlink or a Windows junction is
+ * unaffected -- `readdir` resolves the path it is given before listing, so
+ * "this root is really on a second drive" scans exactly as a real directory
+ * would. What this guards against is a folder cross-linked *into* the tree
+ * partway down -- an album symlinked into two genre folders, say -- which
+ * would otherwise recurse into a loop or, aimed far enough, walk the whole
+ * of `C:\`; the index this feeds has no size ceiling of its own. Every other
+ * skip in this module logs what it dropped, so this one does too.
  */
 const walkDirectory = async (
   dir: string,
   context: IWalkContext,
   state: IWalkState,
 ): Promise<void> => {
-  if (state.cancelled) {
+  if (state.cancelled || context.isCancelled()) {
+    // Polled here too, not just per media file below: a subtree with no
+    // music between a Stop click and the next candidate file must still
+    // notice it was asked to stop before walking the whole thing.
+    state.cancelled = true;
     return;
   }
   let entries: fs.Dirent[];
@@ -338,6 +350,12 @@ const walkDirectory = async (
   const fileEntries: fs.Dirent[] = [];
   entries.forEach((entry) => {
     if (entry.isSymbolicLink()) {
+      // See the module comment above: never followed, and unlike a root
+      // that happens to be a junction, this is a link found partway down a
+      // walk -- worth a line, since it would otherwise vanish with no sign
+      // anything was skipped at all.
+      // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+      console.error(`Skipped symlinked entry ${path.join(dir, entry.name)}`);
       return;
     }
     if (entry.isDirectory()) {

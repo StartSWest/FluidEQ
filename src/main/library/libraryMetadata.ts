@@ -43,6 +43,14 @@ export type ILibraryFileFacts = Partial<
   >
 > & {
   picture?: { data: Uint8Array; format: string };
+  /**
+   * True only when the file itself would not parse — set exclusively in the
+   * catch below. A file that parses fine but genuinely carries no tags (a
+   * plain WAV with no ID3 chunk, say) returns the same empty fields with
+   * this left unset; the two are indistinguishable from the fields alone,
+   * and only this module still knows which one happened.
+   */
+  readFailed?: boolean;
 };
 
 const NUL = String.fromCharCode(0);
@@ -88,6 +96,10 @@ const finiteOrUndefined = (
  * has a documented crash from `fetch` plus `pipeline` in Node's HTTP parser,
  * and nothing a music library holds is large enough for streaming to pay for
  * the risk.
+ *
+ * `readFailed` comes back true only through the catch below, so the scanner
+ * can set `hasMetadataError` on the track for a real failure without
+ * guessing one onto a file that simply has no tags to read.
  */
 export const readLibraryTags = async (
   filePath: string,
@@ -123,7 +135,7 @@ export const readLibraryTags = async (
     // report about a missing album.
     // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
     console.error(`Could not read tags from ${filePath}`, error);
-    return {};
+    return { readFailed: true };
   }
 };
 
