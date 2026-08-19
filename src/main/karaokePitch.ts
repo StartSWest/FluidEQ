@@ -9,7 +9,7 @@ import fs from 'fs';
 import path from 'path';
 import log from 'electron-log';
 import { separationFft } from '../common/karaoke/separationDsp';
-import { isSeparationLoaded } from './karaokeSeparation';
+import { isSeparationLoaded, separationWeightBytes } from './karaokeSeparation';
 
 /**
  * Vocal pitch detection in the main process: RMVPE first, SwiftF0 always.
@@ -35,6 +35,16 @@ const RMVPE_URL =
 
 const modelDir = () => path.join(app.getPath('userData'), 'karaoke-models');
 const rmvpePath = () => path.join(modelDir(), 'rmvpe.onnx');
+
+/** Size of a weight file, or 0 when it is not on disk. */
+export const fileBytes = (target: string): number => {
+  try {
+    return fs.statSync(target).size;
+  } catch {
+    return 0;
+  }
+};
+
 const swiftPath = () =>
   path.join(
     app.isPackaged
@@ -326,9 +336,23 @@ export const registerKaraokePitch = () => {
   });
   // What is actually sitting in RAM right now, for the memory panel's
   // release affordance — the renderer cannot see main's sessions otherwise.
+  //
+  // The byte counts are the weight files these sessions were created from,
+  // measured on disk rather than guessed at: an ONNX session's resident cost
+  // is dominated by its weights, and no runtime here will report its own
+  // footprint. A file that is missing reports nothing instead of zero.
   ipcMain.handle('karaoke-models-status', () => ({
-    separation: isSeparationLoaded(),
-    pitch: rmvpeSession !== undefined || swiftSession !== undefined,
+    separation: {
+      loaded: isSeparationLoaded(),
+      bytes: separationWeightBytes(),
+    },
+    pitch: {
+      loaded: rmvpeSession !== undefined || swiftSession !== undefined,
+      bytes:
+        (rmvpeSession ? fileBytes(rmvpePath()) : 0) +
+        (swiftSession ? fileBytes(swiftPath()) : 0),
+      downloadedBytes: fileBytes(rmvpePath()),
+    },
   }));
   ipcMain.on('karaoke-pitch-release', () => {
     rmvpeSession = undefined;

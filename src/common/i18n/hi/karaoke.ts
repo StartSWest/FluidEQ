@@ -456,6 +456,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.speechMemoryReady': 'RAM में तैयार',
   'karaoke.maker.speechMemoryCached': 'डिस्क पर कैश',
   'karaoke.maker.speechMemoryMissing': 'डाउनलोड नहीं हुआ',
+  'karaoke.maker.modelWhisper': 'वाणी (Whisper)',
+  'karaoke.maker.modelPitch': 'स्वरमान (RMVPE)',
+  'karaoke.maker.modelSeparation': 'पृथक्करण (RoFormer)',
   'karaoke.maker.freeMemory': 'अभी RAM खाली करें',
   'karaoke.maker.memoryReleased':
     'वाणी मॉडल RAM से हटा दिया गया। डाउनलोड फ़ाइलें कैश में रहती हैं।',

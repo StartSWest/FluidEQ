@@ -62,8 +62,14 @@ export const applyTranscriptAsLyrics = (
   if (!words.length) {
     return project;
   }
-  // A line break where the voice rests, or when a line grows past what a
-  // karaoke screen comfortably holds. 700 ms is roughly a sung breath.
+  // A line breaks where the singer stops, and nowhere else. 700 ms is roughly
+  // a sung breath.
+  //
+  // There was a third rule here, cutting a new line every nine words. Nine is
+  // not a musical quantity, so the cut landed wherever it landed: the preview
+  // read "…gotta leave some behind We all got", carrying the opening words of
+  // the next sentence because the counter ran out mid-phrase. A line that runs
+  // long is the performance being long, which is the singer's business.
   const lines: IKaraokeMakerTranscriptPlacement[][] = [[]];
   words.forEach((word, index) => {
     const current = lines[lines.length - 1];
@@ -81,7 +87,7 @@ export const applyTranscriptAsLyrics = (
     const sentenceEnded = previous
       ? /[.!?…。？！]$/u.test(previous.text.trim())
       : false;
-    if (current.length && (sentenceEnded || gap > 700 || current.length >= 9)) {
+    if (current.length && (sentenceEnded || gap > 700)) {
       lines.push([word]);
     } else {
       current.push(word);

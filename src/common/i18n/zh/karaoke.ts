@@ -436,6 +436,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.speechMemoryReady': '已在内存中就绪',
   'karaoke.maker.speechMemoryCached': '已缓存到磁盘',
   'karaoke.maker.speechMemoryMissing': '尚未下载',
+  'karaoke.maker.modelWhisper': '语音 (Whisper)',
+  'karaoke.maker.modelPitch': '音高 (RMVPE)',
+  'karaoke.maker.modelSeparation': '分离 (RoFormer)',
   'karaoke.maker.freeMemory': '立即释放内存',
   'karaoke.maker.memoryReleased':
     '语音模型已从内存释放。下载文件仍保留在缓存中。',

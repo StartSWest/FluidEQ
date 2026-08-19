@@ -466,6 +466,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.speechMemoryReady': 'RAM で準備完了',
   'karaoke.maker.speechMemoryCached': 'ディスクにキャッシュ済み',
   'karaoke.maker.speechMemoryMissing': '未ダウンロード',
+  'karaoke.maker.modelWhisper': '音声 (Whisper)',
+  'karaoke.maker.modelPitch': 'ピッチ (RMVPE)',
+  'karaoke.maker.modelSeparation': '分離 (RoFormer)',
   'karaoke.maker.freeMemory': '今すぐ RAM を解放',
   'karaoke.maker.memoryReleased':
     '音声モデルを RAM から解放しました。ダウンロード済みファイルはキャッシュに残ります。',

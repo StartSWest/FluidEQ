@@ -2752,3 +2752,62 @@ describe('Karaoke Maker transcript-authored lyrics', () => {
     expect(late?.startMs).toBeUndefined();
   });
 });
+
+describe('Karaoke Maker transcript line breaks', () => {
+  const authoringProject = () => {
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    return project;
+  };
+
+  it('breaks a line where the singer stops and not on a word count', () => {
+    // Eleven words sung straight through with no rest and no sentence end.
+    // A fixed nine-word cut used to end the line inside the phrase, carrying
+    // the next sentence's opening words into the same preview line.
+    const sung = [
+      'we',
+      'gotta',
+      'leave',
+      'some',
+      'of',
+      'it',
+      'behind',
+      'and',
+      'carry',
+      'the',
+      'rest',
+    ];
+    const authored = applyTranscriptAsLyrics(
+      authoringProject(),
+      sung.map((text, index) => ({
+        text,
+        startMs: 20_000 + index * 400,
+        endMs: 20_300 + index * 400,
+      })),
+    );
+
+    expect(authored.lyrics.lines).toHaveLength(1);
+    expect(authored.lyrics.lines[0].tokens.map((token) => token.text)).toEqual(
+      sung,
+    );
+  });
+
+  it('starts a new line at a breath and at a finished sentence', () => {
+    const authored = applyTranscriptAsLyrics(authoringProject(), [
+      { text: 'we', startMs: 20_000, endMs: 20_300 },
+      { text: 'carry', startMs: 20_320, endMs: 20_700 },
+      // A breath: 1.4 s of rest.
+      { text: 'the', startMs: 22_100, endMs: 22_400 },
+      { text: 'rest.', startMs: 22_420, endMs: 22_800 },
+      // No rest at all, but the sentence finished on the word before.
+      { text: 'why', startMs: 22_820, endMs: 23_100 },
+    ]);
+
+    expect(
+      authored.lyrics.lines.map((line) =>
+        line.tokens.map((token) => token.text).join(' '),
+      ),
+    ).toEqual(['we carry', 'the rest.', 'why']);
+  });
+});

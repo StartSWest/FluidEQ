@@ -457,6 +457,9 @@ const karaoke = {
   'karaoke.maker.speechMemoryReady': 'Ready in RAM',
   'karaoke.maker.speechMemoryCached': 'Cached on disk',
   'karaoke.maker.speechMemoryMissing': 'Not downloaded',
+  'karaoke.maker.modelWhisper': 'Speech (Whisper)',
+  'karaoke.maker.modelPitch': 'Pitch (RMVPE)',
+  'karaoke.maker.modelSeparation': 'Separation (RoFormer)',
   'karaoke.maker.freeMemory': 'Free RAM now',
   'karaoke.maker.memoryReleased':
     'Speech model removed from RAM. Its downloaded files remain cached.',

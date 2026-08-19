@@ -467,6 +467,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.speechMemoryReady': 'Готова в ОЗУ',
   'karaoke.maker.speechMemoryCached': 'Сохранена на диске',
   'karaoke.maker.speechMemoryMissing': 'Не загружена',
+  'karaoke.maker.modelWhisper': 'Речь (Whisper)',
+  'karaoke.maker.modelPitch': 'Высота тона (RMVPE)',
+  'karaoke.maker.modelSeparation': 'Разделение (RoFormer)',
   'karaoke.maker.freeMemory': 'Освободить ОЗУ сейчас',
   'karaoke.maker.memoryReleased':
     'Речевая модель удалена из ОЗУ. Загруженные файлы остались в кэше.',

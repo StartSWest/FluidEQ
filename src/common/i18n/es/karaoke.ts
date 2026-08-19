@@ -473,6 +473,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.speechMemoryReady': 'Listo en RAM',
   'karaoke.maker.speechMemoryCached': 'Guardado en disco',
   'karaoke.maker.speechMemoryMissing': 'Sin descargar',
+  'karaoke.maker.modelWhisper': 'Voz (Whisper)',
+  'karaoke.maker.modelPitch': 'Tono (RMVPE)',
+  'karaoke.maker.modelSeparation': 'Separación (RoFormer)',
   'karaoke.maker.freeMemory': 'Liberar RAM ahora',
   'karaoke.maker.memoryReleased':
     'El modelo de voz salió de la RAM. Sus archivos descargados siguen guardados.',

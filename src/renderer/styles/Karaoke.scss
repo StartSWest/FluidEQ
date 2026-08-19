@@ -3733,6 +3733,65 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
 }
 
+// One row per model the Maker can load. The same dot, name and state as the
+// heading above, plus the size, so the three read as one list rather than as
+// a heading with three unrelated lines under it.
+.karaoke-maker__memory-models {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 9px 0 2px;
+  padding: 8px 9px;
+  list-style: none;
+  background: rgba(9, 26, 34, 0.42);
+  border: 1px solid rgba(93, 240, 181, 0.11);
+  border-radius: 7px;
+
+  li {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 7px;
+  }
+
+  > li > span:first-child {
+    width: 6px;
+    height: 6px;
+    background: rgba(139, 168, 179, 0.42);
+    border-radius: 50%;
+
+    &.is-ready {
+      background: #5df0b5;
+      box-shadow: 0 0 8px rgba(77, 241, 181, 0.55);
+    }
+  }
+
+  strong {
+    min-width: 0;
+    overflow: hidden;
+    color: #dcf4f2;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  em {
+    color: rgba(151, 197, 207, 0.66);
+    font-size: 0.7rem;
+    font-style: normal;
+    white-space: nowrap;
+  }
+}
+
+.karaoke-maker__memory-bytes {
+  min-width: 58px;
+  color: rgba(190, 231, 240, 0.86);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 .karaoke-maker__memory-heading {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;

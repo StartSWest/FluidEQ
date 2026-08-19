@@ -170,6 +170,11 @@ export const transcribeKaraokeWithWhisper = async (
   }
   const requestId = `whisper-${Date.now()}-${Math.random().toString(36).slice(2)}`;
   let downloadSummary: IKaraokeMakerDownloadSummary | undefined;
+  // Whether this run is fetching the model or reading it back. The stored flag
+  // is only the opening guess: bytes arriving over the wire settle it. Trusting
+  // the flag alone is what hid the per-file list behind "Loading cached speech
+  // model" while the model was in fact downloading.
+  let isFetchingModel = !downloadedAtStart;
   emitWhisperSession({
     status: workerWasReady ? 'working' : 'loading',
     busy: true,
@@ -202,7 +207,11 @@ export const transcribeKaraokeWithWhisper = async (
           const progressEvent = event.data
             .event as IWhisperPipelineProgressEvent;
           const baseUpdate = karaokeMakerWhisperPipelineProgress(progressEvent);
-          if (!downloadedAtStart && baseUpdate.download) {
+          // Bytes on the wire. Nothing else proves a download is happening.
+          if (baseUpdate.download?.loadedBytes !== undefined) {
+            isFetchingModel = true;
+          }
+          if (isFetchingModel && baseUpdate.download) {
             downloadSummary = accumulateKaraokeMakerDownloadProgress(
               downloadSummary,
               baseUpdate.download,
@@ -212,20 +221,20 @@ export const transcribeKaraokeWithWhisper = async (
             'info',
             `model.asset.${progressEvent.status ?? 'unknown'}`,
             'Speech-model worker lifecycle event.',
-            downloadedAtStart ? 'load' : 'download',
+            isFetchingModel ? 'download' : 'load',
             event.data,
           );
           onProgress(
-            !downloadedAtStart && downloadSummary?.progress !== undefined
+            isFetchingModel && downloadSummary?.progress !== undefined
               ? 0.04 + downloadSummary.progress * 0.36
               : baseUpdate.progress,
-            downloadedAtStart
-              ? 'Loading cached speech model'
-              : baseUpdate.message,
-            downloadedAtStart || !baseUpdate.download
-              ? undefined
-              : { ...baseUpdate.download, summary: downloadSummary },
-            downloadedAtStart ? 'load' : baseUpdate.stage,
+            isFetchingModel
+              ? baseUpdate.message
+              : 'Loading cached speech model',
+            isFetchingModel && baseUpdate.download
+              ? { ...baseUpdate.download, summary: downloadSummary }
+              : undefined,
+            isFetchingModel ? baseUpdate.stage : 'load',
           );
         } else if (event.data.type === 'ready') {
           markWhisperDownloaded();
