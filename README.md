@@ -147,12 +147,20 @@ against nothing invented where it does not. It names the chord under the
 playhead and the one coming next, collects the places you sang high, low or
 missed so you can jump back to one and be counted in, and goes full screen with
 the controls fading out of the way. Nothing is recorded, nothing is sent
-anywhere, and no music ships with it — an instrumental is something you bring,
-because Karaoke does not strip a vocal out of a recording or separate it into
-stems.
+anywhere, and no music ships with it — the songs are your own, and the
+instrumental is either one you already have or one the Karaoke Maker splits out
+of the song itself.
 
 **And make the file when the song does not have one.** The **Karaoke Maker**
-builds one out of a song and nothing else. The words can be transcribed from the
+builds one out of a song and nothing else. It can split that song into two
+tracks first, here on your machine with no service involved: the backing track
+is the instrumental to sing over, and the isolated voice is what the transcriber
+and the melody detector read instead of a full mix — reading the words off the
+audio requires it. Both stems follow the same transport with a level each, save
+as WAV or MP3, and are kept with the project. It is a model listening to a
+finished mix rather than the studio's own multitrack, so it gives you a good
+separation and not a clean one; it takes well under a minute on a machine with a
+usable GPU, and about six without. The words can be transcribed from the
 audio or pasted in and kept. The timing is recorded by ear — play the track, mark
 each line as it begins and ends, then mark individual words where a line needs
 that detail, nudging any mark earlier or later instead of doing it again. The
@@ -164,11 +172,17 @@ return to.
 ![The Karaoke tab mid-song: a playlist of twenty-four files down the left, the current line of the lyric large and lit in the middle of the stage with the lines before and after it dimmed above and below, and the estimated chord and the next one in the top right corner. Below the lyric, a pitch lane draws the song's target notes as blue blocks with their syllables labelled above them, the live microphone pitch running over the top in orange and green as it goes sharp or flat, and a performance-review strip marking every place that went high, low or missing. A transport bar with the playhead and a volume control sits at the bottom.](docs/screenshot8.png)
 
 **Local and account-free.** No cloud, no telemetry, no proprietary driver, no
-virtual audio device. There is one download and it is worth naming: asking the
-Karaoke Maker to transcribe lyrics fetches a speech-recognition model the first
-time you use it, on your press rather than at launch. Your audio is not part of
-that request — the transcription, the timing and the melody analysis all run on
-your machine — and pasting the words in instead skips it entirely.
+virtual audio device. Three downloads are worth naming, because being caught out
+by one of them later is worse than the download itself: asking the Karaoke Maker
+to transcribe lyrics fetches a speech-recognition model of around a gigabyte and
+a half, asking it to read a melody fetches a 361 MB pitch model, and asking it
+to split a song into voice and backing fetches a 746 MB separation model. Each
+comes down once, on your press rather than at launch, and the Maker lists what
+is on disk and what is in memory with a button to give the memory back. Your
+audio is not part of any of those requests — the separation, the transcription,
+the timing and the melody analysis all run on your machine. Pasting the words in
+skips the first, bringing your own instrumental skips the last, and a song you
+time by ear fetches nothing at all.
 
 ## The config is the source of truth
 

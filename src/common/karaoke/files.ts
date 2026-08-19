@@ -17,8 +17,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { IKaraokeParsedLyrics } from './types';
-import { parseLrc } from './lrc';
+import { LINE_TIMESTAMP, parseLrc } from './lrc';
 import { parseUltraStar } from './ultrastar';
+import { decodeKaraokeText } from './textEncoding';
+import {
+  KARAOKE_AUDIO_EXTENSIONS,
+  KARAOKE_IMAGE_EXTENSIONS,
+  KARAOKE_PLAYABLE_VIDEO_EXTENSIONS,
+  isKaraokeAudioFile,
+  isKaraokeImageFile,
+  isKaraokeVideoFile,
+  karaokeFileDirectory,
+  karaokeFileExtension,
+  karaokeFileNamesMatch,
+  karaokeFileRelativePath,
+} from './fileTypes';
+
+export * from './fileTypes';
+export * from './stageMedia';
 
 export interface IKaraokeTextAdapter {
   /** Stable provider/format id used in diagnostics and song metadata. */
@@ -34,8 +50,16 @@ export const KARAOKE_TEXT_ADAPTERS: readonly IKaraokeTextAdapter[] = [
   {
     id: 'lrc',
     extensions: ['lrc', 'elrc'],
-    canParse: (contents) =>
-      /\[\d{1,3}:\d{1,2}(?:[.:]\d{1,3})?\]/.test(contents),
+    canParse: (contents) => {
+      // Reset on both sides: `.test()` on a global regex leaves `lastIndex`
+      // wherever it matched, and `matchAll` copies that offset into the clone
+      // it iterates with — so a dirty index here would make the next reader of
+      // this shared pattern skip the start of its file rather than fail.
+      LINE_TIMESTAMP.lastIndex = 0;
+      const matches = LINE_TIMESTAMP.test(contents);
+      LINE_TIMESTAMP.lastIndex = 0;
+      return matches;
+    },
     parse: parseLrc,
   },
   {
@@ -43,270 +67,45 @@ export const KARAOKE_TEXT_ADAPTERS: readonly IKaraokeTextAdapter[] = [
     extensions: ['txt'],
     canParse: (contents) =>
       /^#(?:BPM|TITLE|ARTIST|GAP):/im.test(contents) &&
-      /^[*:F]\s+-?\d+\s+\d+\s+-?\d+/im.test(contents),
+      // Any visible ASCII but space and `#` is a legal note type, so a
+      // rap-only song has no `:` line anywhere in it. Naming three markers
+      // here made a whole legal file undetectable whenever its extension did
+      // not already say what it was.
+      /^[!-"$-,.-~]\s+-?\d+\s+\d+\s+-?\d+/m.test(contents),
     parse: parseUltraStar,
   },
 ];
 
-export const KARAOKE_AUDIO_EXTENSIONS = [
-  'mp3',
-  'wav',
-  'ogg',
-  'flac',
-  'm4a',
-] as const;
 export const KARAOKE_LYRIC_EXTENSIONS: readonly string[] = Array.from(
   new Set(KARAOKE_TEXT_ADAPTERS.flatMap((adapter) => adapter.extensions)),
 );
 
 /**
- * Cover and background artwork — every still format Chromium will decode.
+ * What the "Add files" dialog offers, which must be what the import accepts.
  *
- * Deliberately the whole list rather than the three a UltraStar pack usually
- * ships, because the cost of a missing entry is silent: the picture is simply
- * never offered to the stage and the song looks like it has no artwork.
+ * Artwork is on the list because a folder add was previously the only way to
+ * get a cover in at all: picking a song and its `cover.jpg` together simply
+ * dropped the picture. The `audio/*` wildcard that used to be here is gone —
+ * it let the dialog offer `.wma`, which `isKaraokeAudioFile` then refused with
+ * "none of those files is supported", blaming the user for a file the app had
+ * just invited them to choose.
  *
- * TIFF, HEIC and RAW are absent because Electron cannot display them, not
- * because they are rare. Listing one would mean handing `<img>` a file it
- * renders as a broken frame, which is worse than the gradient.
+ * Video is the playable list rather than the recognised one: a format the
+ * dialog offers is a format this build promises to open. The wider list still
+ * applies to folder imports, where an `[VD#0].avi` gets a named refusal
+ * instead of a black rectangle.
  */
-export const KARAOKE_IMAGE_EXTENSIONS = [
-  'jpg',
-  'jpeg',
-  'jfif',
-  'png',
-  'apng',
-  'webp',
-  'gif',
-  'avif',
-  'bmp',
-  'ico',
-  'svg',
-] as const;
-
-/**
- * Every video container a song folder is likely to hold — not every one this
- * app can play.
- *
- * The two lists are deliberately different. Recognising a file is how the
- * player gets to say "there is a video here and I cannot decode it", which is
- * a far better answer than pretending the song has no video at all. See
- * `isKaraokePlayableVideoFile` for the half that Chromium will actually open.
- */
-export const KARAOKE_VIDEO_EXTENSIONS = [
-  'mp4',
-  'webm',
-  'm4v',
-  'mov',
-  'ogv',
-  'avi',
-  'flv',
-  'mkv',
-  'wmv',
-  'mpg',
-  'mpeg',
-  'divx',
-] as const;
-
-/**
- * The containers Chromium will actually decode, which is the shorter list.
- *
- * Electron ships Chromium's media stack and nothing else: MP4 and WebM, plus
- * QuickTime because it is demuxed by the same code as MP4. AVI, FLV, MKV, WMV
- * and the MPEG program streams have no demuxer in the build at all, so a
- * `<video>` pointed at one fires `error` and shows black — it does not fail
- * loudly enough for anybody to guess why.
- *
- * This matters for real libraries rather than in theory: UltraStar packs from
- * the 2000s are full of `[VD#0].avi`, and a player that shows a black rectangle
- * for them looks broken in a way that a plain "this format cannot be played
- * here" never does.
- */
-export const KARAOKE_PLAYABLE_VIDEO_EXTENSIONS = [
-  'mp4',
-  'webm',
-  'm4v',
-  'mov',
-  'ogv',
-] as const;
-
 export const KARAOKE_FILE_PICKER_ACCEPT = [
   ...KARAOKE_AUDIO_EXTENSIONS,
   ...KARAOKE_LYRIC_EXTENSIONS,
+  ...KARAOKE_IMAGE_EXTENSIONS,
+  ...KARAOKE_PLAYABLE_VIDEO_EXTENSIONS,
 ]
   .map((extension) => `.${extension}`)
-  .concat('audio/*')
   .join(',');
-
-export const karaokeFileExtension = (name: string): string => {
-  const lastDot = name.lastIndexOf('.');
-  return lastDot >= 0 ? name.slice(lastDot + 1).toLowerCase() : '';
-};
-
-export const karaokeFileBaseName = (name: string): string => {
-  const extension = karaokeFileExtension(name);
-  const withoutExtension = extension
-    ? name.slice(0, -(extension.length + 1))
-    : name;
-  return withoutExtension
-    .normalize('NFKD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
-};
-
-const DRAGGED_RELATIVE_PATH = Symbol('karaokeRelativePath');
-const RESTORED_FILE_TOKEN = Symbol('karaokeRestoredFileToken');
-
-type TKaraokePathFile = File & {
-  readonly webkitRelativePath?: string;
-  [DRAGGED_RELATIVE_PATH]?: string;
-  [RESTORED_FILE_TOKEN]?: string;
-};
-
-/** Preserve a folder drop's relative path without copying its file bytes. */
-export const setKaraokeRelativePath = (file: File, path: string): File => {
-  (file as TKaraokePathFile)[DRAGGED_RELATIVE_PATH] = path;
-  return file;
-};
-
-export const karaokeFileRelativePath = (file: File): string =>
-  (file as TKaraokePathFile)[DRAGGED_RELATIVE_PATH] ||
-  (file as TKaraokePathFile).webkitRelativePath ||
-  file.name;
-
-/** Attach the opaque main-process capability used to reopen a restored file. */
-export const setKaraokeRestoredFileToken = (
-  file: File,
-  token: string,
-): File => {
-  (file as TKaraokePathFile)[RESTORED_FILE_TOKEN] = token;
-  return file;
-};
-
-export const karaokeRestoredFileToken = (file: File): string | undefined =>
-  (file as TKaraokePathFile)[RESTORED_FILE_TOKEN];
-
-const karaokeFileDirectory = (file: File): string => {
-  const path = karaokeFileRelativePath(file).replace(/\\/g, '/');
-  const lastSlash = path.lastIndexOf('/');
-  return lastSlash < 0 ? '' : path.slice(0, lastSlash).toLowerCase();
-};
-
-export const isKaraokeAudioFile = (file: File): boolean =>
-  KARAOKE_AUDIO_EXTENSIONS.includes(
-    karaokeFileExtension(
-      file.name,
-    ) as (typeof KARAOKE_AUDIO_EXTENSIONS)[number],
-  );
 
 export const isKaraokeLyricFile = (file: File): boolean =>
   KARAOKE_LYRIC_EXTENSIONS.includes(karaokeFileExtension(file.name));
-
-export const isKaraokeImageFile = (file: File): boolean =>
-  KARAOKE_IMAGE_EXTENSIONS.includes(
-    karaokeFileExtension(
-      file.name,
-    ) as (typeof KARAOKE_IMAGE_EXTENSIONS)[number],
-  );
-
-export const isKaraokeVideoFile = (file: File): boolean =>
-  KARAOKE_VIDEO_EXTENSIONS.includes(
-    karaokeFileExtension(
-      file.name,
-    ) as (typeof KARAOKE_VIDEO_EXTENSIONS)[number],
-  );
-
-/** Whether this build can decode it, as opposed to merely recognising it. */
-export const isKaraokePlayableVideoFile = (file: File): boolean =>
-  KARAOKE_PLAYABLE_VIDEO_EXTENSIONS.includes(
-    karaokeFileExtension(
-      file.name,
-    ) as (typeof KARAOKE_PLAYABLE_VIDEO_EXTENSIONS)[number],
-  );
-
-export interface IKaraokeStageMedia {
-  cover?: File;
-  background?: File;
-  video?: File;
-}
-
-/**
- * The pictures and video that belong to one song.
- *
- * TWO WAYS OF ASKING, IN ORDER. A format that names its own media is believed
- * first — UltraStar writes `#COVER`, `#BACKGROUND` and `#VIDEO`, and a song
- * that says which file it wants should get that file even in a folder holding
- * several. Everything else falls back to the same rule the lyric pairing
- * already uses: same directory, same base name as the audio, which is what
- * makes this work for LRC and for a bare MP3 with a picture beside it.
- *
- * The last fallback is looser on purpose. Folders that name their art after
- * the folder rather than the track are common enough — `cover.jpg`,
- * `folder.jpg` — that ignoring them would mean showing nothing for a lot of
- * real libraries. It only applies when the directory holds exactly one
- * candidate, so it can never pick the wrong song's artwork out of a pile.
- */
-export const selectKaraokeStageMedia = (
-  audio: File,
-  files: readonly File[],
-  named?: {
-    coverFileName?: string;
-    backgroundFileName?: string;
-    videoFileName?: string;
-  },
-): IKaraokeStageMedia => {
-  const directory = karaokeFileDirectory(audio);
-  const siblings = files.filter(
-    (file) => karaokeFileDirectory(file) === directory,
-  );
-  const byName = (declared?: string): File | undefined => {
-    if (!declared) {
-      return undefined;
-    }
-    // Compared on the base name alone: the header may write a path with a
-    // separator this platform does not use, and the file was imported with a
-    // relative path of its own that need not match it character for character.
-    const wanted = declared.replace(/\\/g, '/').split('/').pop()?.toLowerCase();
-    return wanted
-      ? siblings.find((file) => file.name.toLowerCase() === wanted)
-      : undefined;
-  };
-  const audioBase = karaokeFileBaseName(audio.name);
-  const pick = (
-    declared: string | undefined,
-    matches: (file: File) => boolean,
-  ): File | undefined => {
-    const declaredFile = byName(declared);
-    if (declaredFile && matches(declaredFile)) {
-      return declaredFile;
-    }
-    const candidates = siblings.filter(matches);
-    return (
-      candidates.find((file) => karaokeFileBaseName(file.name) === audioBase) ??
-      (candidates.length === 1 ? candidates[0] : undefined)
-    );
-  };
-
-  const cover = pick(named?.coverFileName, isKaraokeImageFile);
-  // The background must not silently become the cover again. A folder with one
-  // picture has a cover and no scenery, which is the honest reading — the
-  // player stretches the cover behind the words only because it was asked to.
-  const background = (() => {
-    const declared = byName(named?.backgroundFileName);
-    if (declared && isKaraokeImageFile(declared)) {
-      return declared;
-    }
-    const images = siblings.filter(isKaraokeImageFile);
-    return images.find((file) => file !== cover && images.length > 1);
-  })();
-  return {
-    cover,
-    background,
-    video: pick(named?.videoFileName, isKaraokeVideoFile),
-  };
-};
 
 export type TKaraokeFileSelection =
   | { kind: 'ready'; audio: File; lyrics?: File; ignored: File[] }
@@ -372,7 +171,7 @@ export const selectKaraokePlaylist = (
     const matchingLyrics = lyricFiles.filter(
       (lyrics) =>
         karaokeFileDirectory(lyrics) === karaokeFileDirectory(audio) &&
-        karaokeFileBaseName(lyrics.name) === karaokeFileBaseName(audio.name),
+        karaokeFileNamesMatch(lyrics.name, audio.name),
     );
     const lyrics = matchingLyrics.length === 1 ? matchingLyrics[0] : undefined;
     if (lyrics) {
@@ -434,10 +233,8 @@ export const selectKaraokeFiles = (
 
   const pairs = audio.flatMap((audioFile) =>
     lyrics
-      .filter(
-        (lyricFile) =>
-          karaokeFileBaseName(lyricFile.name) ===
-          karaokeFileBaseName(audioFile.name),
+      .filter((lyricFile) =>
+        karaokeFileNamesMatch(lyricFile.name, audioFile.name),
       )
       .map((lyricFile) => ({ audio: audioFile, lyrics: lyricFile })),
   );
@@ -450,17 +247,39 @@ export const selectKaraokeFiles = (
   return { kind: 'ambiguous', audio, lyrics, ignored };
 };
 
-const readWithFileReader = (file: File): Promise<string> =>
+/** The bytes path for environments whose File has no `arrayBuffer`. */
+const readWithFileReader = (file: File): Promise<Uint8Array> =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = () => reject(reader.error ?? new Error('Read failed'));
-    reader.onload = () => resolve(String(reader.result ?? ''));
-    reader.readAsText(file);
+    reader.onload = () => {
+      const { result } = reader;
+      resolve(
+        result instanceof ArrayBuffer
+          ? new Uint8Array(result)
+          : new Uint8Array(),
+      );
+    };
+    reader.readAsArrayBuffer(file);
   });
 
-export const readKaraokeTextFile = (file: File): Promise<string> => {
-  const modernFile = file as File & { text?: () => Promise<string> };
-  return modernFile.text ? modernFile.text() : readWithFileReader(file);
+/**
+ * Read a lyric file as the text its author wrote, whatever encoding that was.
+ *
+ * Bytes rather than `File.text()`, which is UTF-8 by specification: a CP1252
+ * `.lrc` came through as `Canci�n` with the timings intact and nothing
+ * warning anybody. `readAsText` has the same defect, so the FileReader
+ * fallback reads bytes too and both paths land in the same decoder — a
+ * restored session must read a file exactly as a freshly opened one does.
+ */
+export const readKaraokeTextFile = async (file: File): Promise<string> => {
+  const modernFile = file as File & {
+    arrayBuffer?: () => Promise<ArrayBuffer>;
+  };
+  const bytes = modernFile.arrayBuffer
+    ? new Uint8Array(await modernFile.arrayBuffer())
+    : await readWithFileReader(file);
+  return decodeKaraokeText(bytes);
 };
 
 export const parseKaraokeText = (
@@ -501,18 +320,3 @@ export const parseKaraokeLyricFile = async (
   file: File,
 ): Promise<IKaraokeParsedLyrics> =>
   parseKaraokeText(file.name, await readKaraokeTextFile(file));
-
-export const karaokeAudioMimeType = (file: File): string => {
-  if (file.type) {
-    return file.type;
-  }
-  return (
-    {
-      mp3: 'audio/mpeg',
-      wav: 'audio/wav',
-      ogg: 'audio/ogg',
-      flac: 'audio/flac',
-      m4a: 'audio/mp4',
-    }[karaokeFileExtension(file.name)] ?? ''
-  );
-};

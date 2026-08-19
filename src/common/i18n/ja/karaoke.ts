@@ -41,21 +41,41 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.import.clear': '削除',
   'karaoke.import.loading': '曲を準備しています…',
   'karaoke.import.formats':
-    '音声: MP3、WAV、OGG、FLAC、M4A · 歌詞: LRC、eLRC、UltraStar TXT',
+    '音声: MP3、WAV、OGG、Opus、FLAC、M4A、AAC · 歌詞: LRC、eLRC、UltraStar TXT · カバー画像や動画も一緒に追加できます',
   'karaoke.import.drop': '曲、歌詞、フォルダーをここにドロップ',
   'karaoke.error.missingAudio':
     'その歌詞ファイルと一緒に音声ファイルを追加してください。',
   'karaoke.error.ambiguous':
     '複数の組み合わせが考えられます。音声を1つ、必要なら歌詞を1つ選択してください。',
   'karaoke.error.unsupported':
-    '選択したファイルには、現在対応している Karaoke の音声または歌詞がありません。',
+    '選択したファイルには、現在対応している Karaoke の音声または歌詞がありません。カバー画像や動画は曲と一緒に追加してください。',
   'karaoke.error.read': '選択したローカルファイルを読み込めませんでした。',
   'karaoke.error.playback':
     'この Chromium ビルドでは、その音声ファイルまたはコーデックを再生できません。',
-  'karaoke.warning.lyrics':
-    'を解析できなかったため、音声のみを歌詞なしで利用できます。',
+  'karaoke.warning.lyrics': 'を解析できませんでした。',
+  'karaoke.warning.lyricsEmpty': 'は空です。',
+  'karaoke.warning.lyricsMissingTiming':
+    'には FluidEQ が読み取れるタイミングがありません。',
+  'karaoke.warning.lyricsMissingBpm':
+    'には UltraStar ファイルに必要な BPM がありません。',
+  'karaoke.warning.lyricsInvalidBpm': 'の BPM は使用できる数値ではありません。',
+  'karaoke.warning.lyricsMalformedNote':
+    'には FluidEQ が読み取れないノート行があります。',
+  'karaoke.warning.lyricsUnsupportedVariant':
+    'はデュエットなど、FluidEQ がまだ歌えないカラオケ形式です。',
+  'karaoke.warning.lyricsAtLine': '{line} 行目。',
+  'karaoke.warning.lyricsAudioIntact':
+    '音声は歌詞の同期なしで引き続き利用できます。',
+  'karaoke.warning.setAside':
+    'FluidEQ はこれらのファイルをまだカラオケとして読めないため、除外しました: {formats}。',
+  'karaoke.warning.unpairedLyrics':
+    'これらの歌詞ファイルに一致する音声ファイルがないため、使用しませんでした: {files}。',
+  'karaoke.warning.ambiguousLyrics':
+    '2 つの歌詞ファイルが同じ曲に一致したため、どちらも使用しませんでした: {files}。',
+  'karaoke.warning.andMore': 'ほか {count} 件',
   'karaoke.song.unknownArtist': 'ローカル曲',
   'karaoke.stage.videoUnsupported': '{format} 動画はここでは再生できません',
+  'karaoke.stage.videoFailed': '{format} 動画をここでデコードできませんでした',
   'karaoke.stage.hideArt': 'カバーアートを非表示',
   'karaoke.stage.showArt': 'カバーアートを表示',
   'karaoke.stage.noArt': 'この曲にはカバーアートがありません',
@@ -434,7 +454,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcriptionTitle':
     'ローカル音声モデルをダウンロードしますか？',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ は MIT ライセンスの {model} モデルを Hugging Face からダウンロードしてこの PC に保存します（歌声分離用に約 700 MB、初回のみ）。音声がこのパソコンから出ることはありません。初回は数分かかり、メモリを多く使います。',
+    'FluidEQ は MIT ライセンスの {model} モデルを Hugging Face からダウンロードしてこの PC に保存します（初回のみ、グラフィック処理の高速化があれば約 570 MB、なければ約 1.1 GB）。音声がこのパソコンから出ることはありません。初回は数分かかり、メモリを多く使います。',
   'karaoke.maker.transcriptionReview':
     '認識結果は出発点です。既存歌詞との照合では元の表記を保持し、すべての時刻を編集できます。',
   'karaoke.maker.notNow': '今はしない',
@@ -485,6 +505,10 @@ const karaoke: Partial<Dictionary> = {
     'ローカル音声モデルはアイドル状態です。解放すると RAM を節約でき、ファイルは高速な再読み込みのためキャッシュに残ります。',
   'karaoke.maker.keepLoaded': '読み込み状態を維持',
   'karaoke.maker.exported': '{file} をエクスポートしました',
+  'karaoke.maker.exportedPartialLrc':
+    '{file} をエクスポートしました。歌詞 {lines} 行は含まれていません。LRC は行または行内のいずれかの単語にタイミングが必要ですが、これらにはどちらもありません。メーカーでタイミングを付けてから、もう一度エクスポートすると完全なファイルになります。',
+  'karaoke.maker.exportedPartialUltraStar':
+    '{file} をエクスポートしました。歌詞 {words} 単語は含まれていません。UltraStar はメロディーに音符がある単語だけを収録しますが、これらには音符がありません。音符を検出または描画してから、もう一度エクスポートすると完全なファイルになります。',
   'karaoke.maker.exportFallback': 'カラオケファイル',
   'karaoke.maker.projectTooLarge': 'プロジェクトが 16 MB を超えています。',
   'karaoke.maker.previewResize': 'ライブプレビューのサイズを変更',

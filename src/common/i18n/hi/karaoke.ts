@@ -41,20 +41,41 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.import.clear': 'हटाएँ',
   'karaoke.import.loading': 'गाना तैयार हो रहा है…',
   'karaoke.import.formats':
-    'ऑडियो: MP3, WAV, OGG, FLAC या M4A · बोल: LRC, eLRC या UltraStar TXT',
+    'ऑडियो: MP3, WAV, OGG, Opus, FLAC, M4A या AAC · बोल: LRC, eLRC या UltraStar TXT · कवर आर्ट और वीडियो भी जोड़ें',
   'karaoke.import.drop': 'गाने, बोल या फ़ोल्डर यहाँ छोड़ें',
   'karaoke.error.missingAudio': 'इस बोल फ़ाइल के साथ एक ऑडियो फ़ाइल भी जोड़ें।',
   'karaoke.error.ambiguous':
     'एक से अधिक जोड़ियाँ संभव हैं। एक ऑडियो और वैकल्पिक रूप से एक बोल फ़ाइल चुनें।',
   'karaoke.error.unsupported':
-    'इनमें से कोई फ़ाइल अभी समर्थित Karaoke ऑडियो या बोल फ़ाइल नहीं है।',
+    'इनमें से कोई फ़ाइल अभी समर्थित Karaoke ऑडियो या बोल फ़ाइल नहीं है। कवर आर्ट और वीडियो के साथ एक गाना भी चाहिए।',
   'karaoke.error.read': 'FluidEQ चुनी गई स्थानीय फ़ाइलें नहीं पढ़ सका।',
   'karaoke.error.playback':
     'यह Chromium संस्करण उस ऑडियो फ़ाइल या कोडेक को नहीं चला सका।',
-  'karaoke.warning.lyrics':
-    'को पढ़ा नहीं जा सका; ऑडियो समयबद्ध बोल के बिना उपलब्ध रहेगा।',
+  'karaoke.warning.lyrics': 'को पढ़ा नहीं जा सका।',
+  'karaoke.warning.lyricsEmpty': 'खाली है।',
+  'karaoke.warning.lyricsMissingTiming':
+    'में ऐसा कोई समय नहीं है जिसे FluidEQ पढ़ सके।',
+  'karaoke.warning.lyricsMissingBpm':
+    'में BPM घोषित नहीं है, जो UltraStar फ़ाइल के लिए ज़रूरी है।',
+  'karaoke.warning.lyricsInvalidBpm':
+    'में घोषित BPM उपयोग योग्य संख्या नहीं है।',
+  'karaoke.warning.lyricsMalformedNote':
+    'में एक नोट पंक्ति है जिसे FluidEQ पढ़ नहीं सका।',
+  'karaoke.warning.lyricsUnsupportedVariant':
+    'ऐसा कराओके रूप उपयोग करती है जिसे FluidEQ अभी नहीं गा सकता, जैसे युगल गीत।',
+  'karaoke.warning.lyricsAtLine': 'पंक्ति {line}।',
+  'karaoke.warning.lyricsAudioIntact':
+    'ऑडियो समयबद्ध बोल के बिना उपलब्ध रहेगा।',
+  'karaoke.warning.setAside':
+    'FluidEQ इन फ़ाइलों को अभी कराओके के रूप में नहीं पढ़ सकता, इसलिए उन्हें अलग रखा गया: {formats}।',
+  'karaoke.warning.unpairedLyrics':
+    'इन बोल फ़ाइलों से कोई ऑडियो फ़ाइल मेल नहीं खाती, इसलिए उनका उपयोग नहीं हुआ: {files}।',
+  'karaoke.warning.ambiguousLyrics':
+    'दो बोल फ़ाइलें एक ही गाने से मेल खाईं, इसलिए किसी का उपयोग नहीं हुआ: {files}।',
+  'karaoke.warning.andMore': 'और {count} अन्य',
   'karaoke.song.unknownArtist': 'स्थानीय गाना',
   'karaoke.stage.videoUnsupported': '{format} वीडियो यहाँ नहीं चल सकता',
+  'karaoke.stage.videoFailed': '{format} वीडियो यहाँ डिकोड नहीं हो सका',
   'karaoke.stage.hideArt': 'कवर आर्ट छिपाएँ',
   'karaoke.stage.showArt': 'कवर आर्ट दिखाएँ',
   'karaoke.stage.noArt': 'इस गाने में कवर आर्ट नहीं है',
@@ -425,7 +446,7 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.maker.transcriptionEyebrow': 'वैकल्पिक स्थानीय लिप्यंतरण',
   'karaoke.maker.transcriptionTitle': 'स्थानीय वॉइस मॉडल डाउनलोड करें?',
   'karaoke.maker.transcriptionBody':
-    'FluidEQ, Hugging Face से MIT-लाइसेंस वाला {model} मॉडल डाउनलोड करके इसी PC पर रखेगा — आवाज़ अलग करने के लिए लगभग 700 MB, एक बार। आपका ऑडियो कभी इस कंप्यूटर से बाहर नहीं जाता। पहली बार कुछ मिनट लगते हैं और काफ़ी मेमोरी लगती है।',
+    'FluidEQ, Hugging Face से MIT-लाइसेंस वाला {model} मॉडल डाउनलोड करके इसी PC पर रखेगा — एक बार, ग्राफ़िक्स एक्सेलेरेशन के साथ लगभग 570 MB और उसके बिना लगभग 1.1 GB। आपका ऑडियो कभी इस कंप्यूटर से बाहर नहीं जाता। पहली बार कुछ मिनट लगते हैं और काफ़ी मेमोरी लगती है।',
   'karaoke.maker.transcriptionReview':
     'पहचान केवल शुरुआती बिंदु है। मौजूदा बोल मिलाते समय FluidEQ आपकी वर्तनी रखता है और सभी समय संपादन योग्य रहते हैं।',
   'karaoke.maker.notNow': 'अभी नहीं',
@@ -475,6 +496,10 @@ const karaoke: Partial<Dictionary> = {
     'स्थानीय वाणी मॉडल निष्क्रिय है। उसे हटाने से RAM बचती है; तेज़ पुनः लोड के लिए फ़ाइलें कैश में रहती हैं।',
   'karaoke.maker.keepLoaded': 'लोड रखें',
   'karaoke.maker.exported': '{file} निर्यात किया गया',
+  'karaoke.maker.exportedPartialLrc':
+    '{file} निर्यात किया गया, पर बोल की {lines} पंक्तियों के बिना: LRC को पंक्ति पर या उसके किसी शब्द पर समय चाहिए, और इनके पास दोनों में से कुछ नहीं है। उन्हें मेकर में समय दें और पूरी फ़ाइल के लिए फिर से निर्यात करें।',
+  'karaoke.maker.exportedPartialUltraStar':
+    '{file} निर्यात किया गया, पर बोल के {words} शब्दों के बिना: UltraStar किसी शब्द को तभी रखता है जब धुन में उसका स्वर हो, और इनका कोई स्वर नहीं है। उनके स्वर पहचानें या बनाएँ और पूरी फ़ाइल के लिए फिर से निर्यात करें।',
   'karaoke.maker.exportFallback': 'कराओके फ़ाइल',
   'karaoke.maker.projectTooLarge': 'प्रोजेक्ट 16 MB से बड़ा है।',
   'karaoke.maker.previewResize': 'लाइव पूर्वावलोकन का आकार बदलें',

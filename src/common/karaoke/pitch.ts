@@ -33,6 +33,21 @@ const NOTE_NAMES = [
 
 export const KARAOKE_CANONICAL_CENTER_MIDI = 60;
 
+/**
+ * The ends of MIDI itself, which a target note may not leave.
+ *
+ * A file that names a pitch outside this range fails in three quiet ways at
+ * once: the pitch lane auto-scales to the outlier and halves everybody's
+ * vertical resolution, `midiToFrequency` hands the guide tone a frequency at
+ * or above Nyquist so it is inaudible or aliased, and octave folding still
+ * scores the singer as in tune. Clamping keeps all three sane. A file needing
+ * this is already wrong — FluidEQ's own first exporter wrote raw MIDI where
+ * UltraStar wanted semitones from C4, reaching a nominal MIDI 138 — but a
+ * silently unusable stage is the worse of the two answers.
+ */
+const CANONICAL_MIDI_MIN = 0;
+const CANONICAL_MIDI_MAX = 127;
+
 export interface IKaraokePitchEstimate {
   frequencyHz: number;
   midi: number;
@@ -94,19 +109,21 @@ export const providerPitchToCanonicalMidi = (
   if (!Number.isFinite(value)) {
     return value;
   }
+  const clamp = (midi: number): number =>
+    Math.min(CANONICAL_MIDI_MAX, Math.max(CANONICAL_MIDI_MIN, midi));
   if (unit === 'frequency-hz') {
-    return frequencyToMidi(value);
+    return clamp(frequencyToMidi(value));
   }
   if (unit === 'midi-cents') {
-    return value / 100;
+    return clamp(value / 100);
   }
   if (unit === 'relative-semitones') {
-    return relativeCenterMidi + value;
+    return clamp(relativeCenterMidi + value);
   }
   if (unit === 'relative-cents') {
-    return relativeCenterMidi + value / 100;
+    return clamp(relativeCenterMidi + value / 100);
   }
-  return value;
+  return clamp(value);
 };
 
 /**

@@ -286,6 +286,12 @@ export const validateKaraokeMakerProject = (
         message: 'A melody note has an invalid pitch or time range.',
       });
     }
+    // Only a binding that points at a word which is no longer there. A note
+    // with NO binding is an ordinary state — melody detected before the words
+    // were timed, or every binding cleared by replacing the lyrics — and
+    // counting those made the Maker's own "checks" total climb to one per
+    // note during normal work. What that state really costs is words missing
+    // from an export, and the UltraStar writer now counts those itself.
     if (note.tokenId && !tokenIds.has(note.tokenId)) {
       issues.push({
         severity: 'warning',
