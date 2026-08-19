@@ -37,6 +37,7 @@ const library = {
   'library.browse.album': 'Albums',
   'library.browse.artist': 'Artists',
   'library.browse.song': 'Songs',
+  'library.groupByFolder': 'Group by folder',
   'library.view.list': 'List',
   'library.view.grid': 'Grid',
   'library.view.coverflow': 'Cover Flow',

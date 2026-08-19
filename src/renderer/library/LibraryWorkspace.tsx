@@ -47,6 +47,7 @@ import LibraryFolderActions from './LibraryFolderActions';
 import LibraryGridView from './LibraryGridView';
 import LibraryListView from './LibraryListView';
 import LibraryScanProgress from './LibraryScanProgress';
+import MenuIcon from '../icons/MenuIcon';
 import LibraryToolbar from './LibraryToolbar';
 import LibraryVideoSection, { videoFolderGroups } from './LibraryVideoSection';
 import '../styles/Library.scss';
@@ -429,6 +430,26 @@ const LibraryWorkspace = ({
             onSort={setSort}
             onQuery={setQuery}
           />
+          {/* Only meaningful for a flat run of songs — album and artist rows
+              are already groupings, and the video shelf groups by folder
+              inherently. Rendered beside the toolbar rather than inside it so
+              `LibraryToolbar` keeps the pure prop contract its own test
+              pins. */}
+          {viewMode === 'list' && browseMode === 'song' && (
+            <button
+              type="button"
+              className={`button small${groupByFolder ? '' : ' subtle'}`}
+              aria-pressed={groupByFolder}
+              title={t('library.groupByFolder')}
+              onClick={() => setGroupByFolder((current) => !current)}
+            >
+              <MenuIcon
+                name="folder"
+                className="library-toolbar__action-icon"
+              />
+              <span>{t('library.groupByFolder')}</span>
+            </button>
+          )}
           <LibraryFolderActions
             roots={index.roots}
             isScanning={isScanning}

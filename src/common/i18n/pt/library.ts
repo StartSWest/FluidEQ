@@ -39,6 +39,7 @@ const library: Partial<Dictionary> = {
   'library.browse.album': 'Álbuns',
   'library.browse.artist': 'Artistas',
   'library.browse.song': 'Músicas',
+  'library.groupByFolder': 'Agrupar por pasta',
   'library.view.list': 'Lista',
   'library.view.grid': 'Grade',
   'library.view.coverflow': 'Cover Flow',

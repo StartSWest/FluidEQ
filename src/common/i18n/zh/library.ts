@@ -38,6 +38,7 @@ const library: Partial<Dictionary> = {
   'library.browse.album': '专辑',
   'library.browse.artist': '歌手',
   'library.browse.song': '歌曲',
+  'library.groupByFolder': '按文件夹分组',
   'library.view.list': '列表',
   'library.view.grid': '网格',
   'library.view.coverflow': 'Cover Flow',

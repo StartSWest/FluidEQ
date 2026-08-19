@@ -39,6 +39,7 @@ const library: Partial<Dictionary> = {
   'library.browse.album': 'एल्बम',
   'library.browse.artist': 'कलाकार',
   'library.browse.song': 'गाने',
+  'library.groupByFolder': 'फ़ोल्डर के अनुसार समूहित करें',
   'library.view.list': 'सूची',
   'library.view.grid': 'ग्रिड',
   'library.view.coverflow': 'Cover Flow',
