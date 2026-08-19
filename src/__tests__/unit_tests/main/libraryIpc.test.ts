@@ -1,0 +1,415 @@
+const handlers = new Map<string, (...args: unknown[]) => unknown>();
+// Typed to take (...unknown[]) rather than the brief's zero-arg form: TS
+// infers a jest.fn's call signature from its implementation's own parameter
+// list, and a zero-arg implementation makes the mock's signature a strict
+// empty tuple -- which the factory below cannot spread `args` into (TS2556)
+// under this project's TypeScript version. Runtime behaviour is identical.
+const showOpenDialog = jest.fn((..._args: unknown[]) =>
+  Promise.resolve({ canceled: false, filePaths: ['C:\\Music'] }),
+);
+jest.mock('electron', () => ({
+  ipcMain: {
+    handle: (channel: string, fn: (...args: unknown[]) => unknown) =>
+      handlers.set(channel, fn),
+    on: (channel: string, fn: (...args: unknown[]) => unknown) =>
+      handlers.set(channel, fn),
+  },
+  dialog: { showOpenDialog: (...args: unknown[]) => showOpenDialog(...args) },
+  shell: { showItemInFolder: jest.fn() },
+}));
+
+// The scanner does real filesystem work `readdir`/tag-reading this suite has
+// no reason to exercise (that's `libraryScanner.test.ts`'s job); mocked here
+// so the mid-scan-add test below can control exactly when each root's walk
+// resolves, deterministically, instead of racing real disk I/O.
+const scanLibraryRoot = jest.fn<Promise<IScanResult>, [options: IScanOptions]>(
+  () => Promise.resolve({ tracks: [], karaokeSkipped: 0, wasCancelled: false }),
+);
+jest.mock('../../../main/library/libraryScanner', () => ({
+  scanLibraryRoot: (options: IScanOptions) => scanLibraryRoot(options),
+}));
+
+// eslint-disable-next-line import/first -- the mocks must be installed first
+import fs from 'fs';
+// eslint-disable-next-line import/first
+import os from 'os';
+// eslint-disable-next-line import/first
+import path from 'path';
+// eslint-disable-next-line import/first
+import type { BrowserWindow } from 'electron';
+// eslint-disable-next-line import/first
+import { registerLibraryIpc } from '../../../main/ipc/library';
+// eslint-disable-next-line import/first
+import type {
+  IScanOptions,
+  IScanResult,
+} from '../../../main/library/libraryScanner';
+
+/** A fresh, real, writable directory `saveLibraryIndex` can write into. */
+const tempDir = (prefix: string): string =>
+  fs.mkdtempSync(path.join(os.tmpdir(), prefix));
+
+/**
+ * A stand-in for the one method these handlers actually call on the window --
+ * cast rather than shaped to the full `BrowserWindow` interface, which this
+ * suite has no reason to implement.
+ */
+const silentWindow = (): BrowserWindow =>
+  ({
+    isVisible: () => true,
+    once: () => undefined,
+    webContents: { send: () => undefined },
+  }) as unknown as BrowserWindow;
+
+/**
+ * Polls `predicate` until it is true.
+ *
+ * `library-root-add-paths` returns as soon as a root is added, before its
+ * scan finishes -- that is the whole point of the fire-and-forget design (see
+ * `addRootsAndScan`'s own comment) -- so a caller cannot `await` its way to
+ * "the scan is done." This polls the one thing that is actually true only
+ * once every queued root has been drained and merged in.
+ */
+const waitFor = async (
+  predicate: () => boolean,
+  timeoutMs = 2000,
+): Promise<void> => {
+  const start = Date.now();
+  while (!predicate()) {
+    if (Date.now() - start > timeoutMs) {
+      throw new Error('Timed out waiting for the scan to settle');
+    }
+    // eslint-disable-next-line no-await-in-loop -- polling by design in a test helper.
+    await new Promise<void>((resolve) => {
+      setTimeout(resolve, 5);
+    });
+  }
+};
+
+beforeEach(() => {
+  scanLibraryRoot.mockReset();
+  scanLibraryRoot.mockImplementation(() =>
+    Promise.resolve({ tracks: [], karaokeSkipped: 0, wasCancelled: false }),
+  );
+});
+
+describe('the library channels', () => {
+  it('registers every channel the renderer will call', () => {
+    registerLibraryIpc({
+      userDataDir: tempDir('fluideq-lib-data-'),
+      getMainWindow: () => null,
+    });
+    [
+      'library-index-get',
+      'library-root-add',
+      'library-root-add-paths',
+      'library-root-remove',
+      'library-scan-start',
+      'library-scan-force',
+      'library-scan-cancel',
+      'library-reveal',
+    ].forEach((channel) => expect(handlers.has(channel)).toBe(true));
+  });
+
+  it('refuses a dropped path that is not a directory', async () => {
+    // The one channel that takes a path inwards. It may add a root and
+    // nothing else, so a file — or a path that does not exist — is refused
+    // rather than added and scanned.
+    registerLibraryIpc({
+      userDataDir: tempDir('fluideq-lib-data-'),
+      getMainWindow: () => null,
+    });
+    const handler = handlers.get('library-root-add-paths');
+    const index = await handler?.({}, ['C:\\Windows\\notepad.exe']);
+    expect(index).toMatchObject({ roots: [] });
+  });
+
+  it('accepts a real directory, right beside the refusal above', async () => {
+    // The positive control the refusal test needs: proof the same handler,
+    // given a real folder instead of a bad path, actually adds it. Without
+    // this, "refuses a bad path" would pass identically whether the handler
+    // correctly refuses only bad paths, or wrongly refuses every path.
+    const userDataDir = tempDir('fluideq-lib-data-');
+    const goodDir = tempDir('fluideq-lib-good-');
+    registerLibraryIpc({ userDataDir, getMainWindow: () => null });
+    const handler = handlers.get('library-root-add-paths');
+    const index = (await handler?.({}, [goodDir])) as {
+      roots: Array<{ path: string }>;
+    };
+    expect(index.roots).toHaveLength(1);
+    expect(index.roots[0].path).toBe(goodDir);
+  });
+});
+
+describe('a root added while another is already scanning', () => {
+  it('is queued and still ends up with its tracks, not left empty', async () => {
+    // Reproduces the bug directly: root A's walk is still in flight (held
+    // open by an unresolved mock) when root B is dropped. If B's request were
+    // silently no-op'd by the busy guard, as it was before this fix, B would
+    // settle at zero tracks with nothing left in the session to rescan it.
+    const userDataDir = tempDir('fluideq-lib-data-');
+    const dirA = tempDir('fluideq-lib-a-');
+    const dirB = tempDir('fluideq-lib-b-');
+
+    let dropSecondRootWhileFirstIsScanning:
+      (() => Promise<unknown>) | undefined;
+
+    scanLibraryRoot.mockImplementation(
+      async (options: IScanOptions): Promise<IScanResult> => {
+        if (options.rootPath === dirA && dropSecondRootWhileFirstIsScanning) {
+          // Runs synchronously inside A's still-pending scan call, before
+          // this mock returns -- i.e. while `isScanning` is still true --
+          // reproducing "drop a folder while a scan is running" exactly.
+          const drop = dropSecondRootWhileFirstIsScanning;
+          dropSecondRootWhileFirstIsScanning = undefined;
+          await drop();
+        }
+        const isA = options.rootPath === dirA;
+        return {
+          tracks: [
+            {
+              id: isA ? 'track-a' : 'track-b',
+              rootId: options.rootId,
+              path: path.join(options.rootPath, isA ? 'a.mp3' : 'b.mp3'),
+              kind: 'audio' as const,
+              isPlayable: true,
+              title: isA ? 'A' : 'B',
+              sizeBytes: 1,
+              mtimeMs: 1,
+              addedAt: 1,
+            },
+          ],
+          karaokeSkipped: 0,
+          wasCancelled: false,
+        };
+      },
+    );
+
+    registerLibraryIpc({ userDataDir, getMainWindow: silentWindow });
+    const addPaths = handlers.get('library-root-add-paths');
+    const indexGet = handlers.get('library-index-get');
+
+    const readIndex = () =>
+      indexGet?.({}) as {
+        index: { roots: Array<{ path: string; trackCount: number }> };
+      };
+
+    dropSecondRootWhileFirstIsScanning = () =>
+      Promise.resolve(addPaths?.({}, [dirB]));
+
+    // Returns as soon as A is added and its scan is started -- B gets queued
+    // moments later, from inside A's still-pending mocked scan call, not from
+    // this line.
+    const afterAddingA = await addPaths?.({}, [dirA]);
+    expect(afterAddingA).toMatchObject({
+      roots: [{ path: dirA }, { path: dirB }],
+    });
+
+    // Both scans, A's and B's queued one, are driven by the same
+    // `performScan` call and need no real I/O or timers to complete -- this
+    // just gives their microtask chain room to run rather than asserting
+    // against a fixed tick count.
+    await waitFor(() => {
+      const root = readIndex().index.roots.find((entry) => entry.path === dirB);
+      return root !== undefined && root.trackCount > 0;
+    });
+
+    const final = readIndex();
+    const rootB = final.index.roots.find((root) => root.path === dirB);
+    expect(rootB?.trackCount).toBe(1);
+    const rootA = final.index.roots.find((root) => root.path === dirA);
+    expect(rootA?.trackCount).toBe(1);
+  });
+});
+
+describe('forcing a rescan (follow-up 7)', () => {
+  it('passes no known tracks, so every candidate is re-read even though nothing changed', async () => {
+    // `artId` is trusted forever once a track carries one -- `storeArtwork`
+    // returns the cached id on a bare `existsSync`, and an unchanged track
+    // is normally carried forward wholesale without ever calling it again
+    // (see `shouldReparse`). If `userData/library-art` is ever cleared from
+    // outside the app, an ordinary rescan cannot notice or repair it; a
+    // force rescan is the only path that hands the scanner `known: []` and
+    // makes it ask again.
+    const userDataDir = tempDir('fluideq-lib-data-');
+    const dir = tempDir('fluideq-lib-force-');
+    registerLibraryIpc({ userDataDir, getMainWindow: silentWindow });
+
+    const addPaths = handlers.get('library-root-add-paths');
+    await addPaths?.({}, [dir]);
+    await waitFor(() => scanLibraryRoot.mock.calls.length >= 1);
+    expect(scanLibraryRoot.mock.calls[0][0].known).toEqual([]);
+
+    scanLibraryRoot.mockClear();
+    scanLibraryRoot.mockImplementation(async (options: IScanOptions) => ({
+      tracks: [
+        {
+          id: 'still-here',
+          rootId: options.rootId,
+          path: path.join(options.rootPath, 'a.mp3'),
+          kind: 'audio' as const,
+          isPlayable: true,
+          title: 'A',
+          sizeBytes: 1,
+          mtimeMs: 1,
+          addedAt: 1,
+        },
+      ],
+      karaokeSkipped: 0,
+      wasCancelled: false,
+    }));
+
+    const force = handlers.get('library-scan-force');
+    await force?.({});
+    await waitFor(() => scanLibraryRoot.mock.calls.length >= 1);
+
+    // An ordinary rescan would have handed the scanner the track it already
+    // found above; force rescan hands it nothing, unconditionally.
+    expect(scanLibraryRoot.mock.calls[0][0].known).toEqual([]);
+  });
+});
+
+describe('publishing tracks mid-scan', () => {
+  const trackAt = (
+    rootId: string,
+    dir: string,
+  ): IScanResult['tracks'][number] => ({
+    id: 'mid-scan-track',
+    rootId,
+    path: path.join(dir, 'a.mp3'),
+    kind: 'audio' as const,
+    isPlayable: true,
+    title: 'A',
+    sizeBytes: 1,
+    mtimeMs: 1,
+    addedAt: 1,
+  });
+
+  it('merges a batch into the index and sends library-index-changed before the walk finishes', async () => {
+    // The mocked `scanLibraryRoot` calls `onTracks` synchronously in its own
+    // body, before the async function's returned promise settles -- so any
+    // `library-index-changed` this produces is necessarily sent before
+    // `scanOneRoot`'s own end-of-walk merge has anything to write.
+    const userDataDir = tempDir('fluideq-lib-data-');
+    const dir = tempDir('fluideq-lib-mid-');
+    const indexChangedTrackIds: string[][] = [];
+    const window = {
+      isVisible: () => true,
+      once: () => undefined,
+      webContents: {
+        send: (channel: string, payload: unknown) => {
+          if (channel === 'library-index-changed') {
+            const { tracks } = payload as { tracks: Array<{ id: string }> };
+            indexChangedTrackIds.push(tracks.map((track) => track.id));
+          }
+        },
+      },
+    } as unknown as BrowserWindow;
+
+    scanLibraryRoot.mockImplementation(async (options: IScanOptions) => {
+      options.onTracks?.([trackAt(options.rootId, options.rootPath)]);
+      return {
+        tracks: [trackAt(options.rootId, options.rootPath)],
+        karaokeSkipped: 0,
+        wasCancelled: false,
+      };
+    });
+
+    registerLibraryIpc({ userDataDir, getMainWindow: () => window });
+    const addPaths = handlers.get('library-root-add-paths');
+    await addPaths?.({}, [dir]);
+    await waitFor(() => indexChangedTrackIds.length > 0);
+
+    expect(indexChangedTrackIds[0]).toEqual(['mid-scan-track']);
+  });
+
+  it('does not duplicate an existing track when a rescan republishes it mid-scan (invariant: upsert by id, not a concat)', async () => {
+    const userDataDir = tempDir('fluideq-lib-data-');
+    const dir = tempDir('fluideq-lib-dup-');
+
+    scanLibraryRoot.mockImplementation(async (options: IScanOptions) => ({
+      tracks: [trackAt(options.rootId, options.rootPath)],
+      karaokeSkipped: 0,
+      wasCancelled: false,
+    }));
+    registerLibraryIpc({ userDataDir, getMainWindow: silentWindow });
+    const addPaths = handlers.get('library-root-add-paths');
+    const indexGet = handlers.get('library-index-get');
+    await addPaths?.({}, [dir]);
+    await waitFor(() => {
+      const idx = (
+        indexGet?.({}) as {
+          index: { roots: Array<{ path: string; trackCount: number }> };
+        }
+      ).index;
+      const root = idx.roots.find((entry) => entry.path === dir);
+      return root !== undefined && root.trackCount > 0;
+    });
+    const afterFirstScan = (
+      indexGet?.({}) as { index: { tracks: Array<{ id: string }> } }
+    ).index;
+    expect(afterFirstScan.tracks).toHaveLength(1);
+
+    // A rescan republishes the SAME track mid-scan through onTracks --
+    // `currentIndex` still holds the copy from the first scan at that exact
+    // moment. Captured synchronously inside the mock, right after the
+    // onTracks call and before the mock's own promise resolves, so this is
+    // the index state produced by the incremental merge alone, not by
+    // scanOneRoot's later wholesale replace.
+    scanLibraryRoot.mockClear();
+    let midScanTrackIds: string[] | undefined;
+    scanLibraryRoot.mockImplementation(async (options: IScanOptions) => {
+      options.onTracks?.([trackAt(options.rootId, options.rootPath)]);
+      midScanTrackIds = (
+        indexGet?.({}) as { index: { tracks: Array<{ id: string }> } }
+      ).index.tracks.map((track) => track.id);
+      return {
+        tracks: [trackAt(options.rootId, options.rootPath)],
+        karaokeSkipped: 0,
+        wasCancelled: false,
+      };
+    });
+    const rescan = handlers.get('library-scan-start');
+    await rescan?.({});
+    await waitFor(() => scanLibraryRoot.mock.calls.length >= 1);
+
+    expect(midScanTrackIds).toEqual(['mid-scan-track']);
+  });
+});
+
+describe('a root scan that throws partway through (blocker 3)', () => {
+  it('still emits a terminal progress event, instead of leaving the renderer scanning forever', async () => {
+    // Reproduces the wedge directly: whatever broke `scanLibraryRoot` --
+    // originally the unguarded `fs.promises.stat` in libraryScanParse.ts,
+    // but this must hold for *any* future throw in the chain -- is caught
+    // here and only logged. `LibraryContext.tsx`'s `isScanning` is derived
+    // solely from the last `progress.isDone` it received; with no event at
+    // all for this root, it would stay "scanning" for the rest of the
+    // session: the strip pinned, Rescan disabled, Stop inert.
+    const userDataDir = tempDir('fluideq-lib-data-');
+    const dir = tempDir('fluideq-lib-throws-');
+    scanLibraryRoot.mockImplementation(() =>
+      Promise.reject(new Error('ENOENT: vanished mid-scan')),
+    );
+
+    const sentProgress: Array<{ isDone: boolean }> = [];
+    const window = {
+      isVisible: () => true,
+      once: () => undefined,
+      webContents: {
+        send: (channel: string, payload: unknown) => {
+          if (channel === 'library-scan-progress') {
+            sentProgress.push(payload as { isDone: boolean });
+          }
+        },
+      },
+    } as unknown as BrowserWindow;
+
+    registerLibraryIpc({ userDataDir, getMainWindow: () => window });
+    const addPaths = handlers.get('library-root-add-paths');
+    await addPaths?.({}, [dir]);
+
+    await waitFor(() => sentProgress.length > 0);
+    expect(sentProgress[sentProgress.length - 1].isDone).toBe(true);
+  });
+});

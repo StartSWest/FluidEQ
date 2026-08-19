@@ -88,54 +88,6 @@
       }
     ]
   },
-  "jest": {
-    "moduleDirectories": [
-      "src",
-      "node_modules",
-      "release/app/node_modules"
-    ],
-    "moduleFileExtensions": [
-      "js",
-      "jsx",
-      "ts",
-      "tsx",
-      "json"
-    ],
-    "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga|worklet)$": "<rootDir>/.erb/mocks/fileMock.js",
-      "^@fluideq/whisper-wasm$": "<rootDir>/.erb/mocks/fileMock.js",
-      "^@fluideq/whisper-runtime$": "<rootDir>/.erb/mocks/fileMock.js",
-      "\\.(css|less|sass|scss)$": "identity-obj-proxy",
-      "d3": "<rootDir>/node_modules/d3/dist/d3.min.js"
-    },
-    "setupFiles": [
-      "./.erb/scripts/check-build-exists.ts",
-      "./.erb/scripts/jest-setup.ts"
-    ],
-    "testEnvironment": "jsdom",
-    "testEnvironmentOptions": {
-      "url": "http://localhost/"
-    },
-    "testPathIgnorePatterns": [
-      "release/app/dist",
-      "<rootDir>/.claude/",
-      "<rootDir>/.gigaide/"
-    ],
-    "modulePathIgnorePatterns": [
-      "<rootDir>/.claude/",
-      "<rootDir>/.gigaide/"
-    ],
-    "transform": {
-      "\\.(ts|tsx|js|jsx)$": "ts-jest"
-    },
-    "testMatch": [
-      "**/__tests__/unit_tests/**/*.ts?(x)"
-    ],
-    "transformIgnorePatterns": [
-      "/node_modules/(?!(uuid)/)",
-      "\\.pnp\\.[^\\/]+$"
-    ]
-  },
   "dependencies": {
     "@breezystack/lamejs": "^1.2.7",
     "@huggingface/transformers": "3.7.6",
@@ -144,6 +96,7 @@
     "electron-debug": "^4.1.0",
     "electron-log": "^5.4.4",
     "electron-updater": "^6.8.9",
+    "music-metadata": "^11.14.0",
     "onnxruntime-common": "1.22.0-dev.20250409-89f8206ba4",
     "onnxruntime-node": "1.27.0",
     "onnxruntime-web": "1.22.0-dev.20250409-89f8206ba4",

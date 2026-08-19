@@ -8,6 +8,11 @@ module.exports = {
   // pre-commit hook refuses every commit made from a worktree.
   root: true,
   extends: 'erb',
+  // `erb` wires up `@typescript-eslint/parser` but never registers the
+  // plugin of the same name, so any `@typescript-eslint/*` rule added below
+  // fails to resolve without this. Confirmed with
+  // `pnpm exec eslint --print-config`, whose `plugins` array was missing it.
+  plugins: ['@typescript-eslint'],
   rules: {
     // A temporary hack related to IDE not resolving correct package.json
     'import/no-extraneous-dependencies': 'off',
@@ -56,6 +61,40 @@ module.exports = {
         'no-shadow': 'off',
         'no-use-before-define': 'off',
         'no-undef': 'off',
+      },
+    },
+    {
+      // A value import from src/main drags Node built-ins and Electron into
+      // this bundle — see src/common/library/mediaUrl.ts's own comment for
+      // the concrete incident. `allowTypeImports` leaves `import type`
+      // alone: it is erased before webpack ever sees it, so it cannot pull
+      // anything in. Scoped to the renderer only — main imports from main/
+      // constantly and legitimately.
+      files: ['src/renderer/**'],
+      rules: {
+        '@typescript-eslint/no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              {
+                group: ['**/main/**', 'main/*'],
+                allowTypeImports: true,
+                message:
+                  'A value import from src/main pulls Node built-ins (fs, path, crypto) and Electron itself into the renderer bundle, and pnpm build:renderer fails with "Can\'t resolve" errors. Move the shared code to src/common/ instead, or use `import type` if only a type is needed.',
+              },
+            ],
+          },
+        ],
+      },
+    },
+    {
+      // Ambient declaration files (preload.d.ts's `import api from
+      // 'main/api'`) are never emitted to JavaScript, so a value import here
+      // is erased at compile time same as `import type` and cannot reach the
+      // renderer bundle.
+      files: ['**/*.d.ts'],
+      rules: {
+        '@typescript-eslint/no-restricted-imports': 'off',
       },
     },
   ],

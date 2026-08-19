@@ -1,0 +1,1050 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.library-workspace {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-m;
+  overflow: hidden;
+
+  &.is-hidden {
+    display: none;
+  }
+
+  // The empty state is the one thing that advertises the drop; the whole
+  // panel is the target, so the whole panel has to answer back. Same
+  // treatment as `.karaoke-workspace__stage.is-dragging`.
+  &.is-drag-over {
+    border-color: rgba($secondary-default, 0.7);
+    box-shadow:
+      inset 0 0 0 1px rgba($secondary-default, 0.32),
+      0 0 30px rgba($secondary-default, 0.1);
+  }
+}
+
+.library-workspace__notice {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: $spacing-s;
+  padding: 9px 12px;
+  color: $text-muted;
+  border: 1px solid rgba($neon-yellow, 0.28);
+  border-radius: $radius-s;
+  background: rgba($surface-field, 0.38);
+  font-size: 0.68rem;
+  line-height: 1.45;
+
+  span {
+    flex: 1 1 auto;
+  }
+
+  button {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+    place-items: center;
+    padding: 0;
+    color: rgba($primary-lighter, 0.7);
+    border: 1px solid transparent;
+    border-radius: $radius-xs;
+    background: transparent;
+    cursor: pointer;
+    transition: $transition-control;
+
+    svg {
+      width: 11px;
+      height: 11px;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-width: 1.5;
+    }
+
+    &:hover,
+    &:focus-visible {
+      color: $secondary-light;
+      border-color: rgba($secondary-default, 0.4);
+      background: rgba($secondary-default, 0.12);
+      outline: none;
+    }
+  }
+}
+
+// *** The toolbar *************************************************************
+//
+// Steers what the library shows: which grouping, which layout, how it is
+// sorted, and what is filtered. On screen once there is at least one root —
+// an empty library has exactly one useful next step, and that is the empty
+// state's own Add folder button, not a row of browse/view/sort controls with
+// nothing yet to act on.
+
+.library-toolbar-row {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s $spacing-l;
+}
+
+.library-toolbar {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+// The browse-mode and view-mode rows. Both are a `role="tab"`/`aria-pressed`
+// choice among a few mutually exclusive options, so both get the same look:
+// the `.quick-layouts` recipe from `MainContent.scss` — a row of choices sunk
+// into the panel, which is what a segmented control looks like everywhere
+// else in this app. `.workspace-tab` was tried for the browse-mode row first
+// and dropped: that class is square-bottomed on purpose, drawn to sit flush
+// against `.workspace-tabs`' own `border-bottom` seam, which this toolbar row
+// does not have -- without it, `.workspace-tab` renders as a flat-bottomed
+// rectangle with nothing to look attached to.
+.library-toolbar__browse-modes,
+.library-toolbar__view-modes {
+  @include inset-surface;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 3px;
+  border-radius: $radius-pill;
+
+  .button {
+    min-height: $control-height-sm;
+  }
+}
+
+.library-toolbar__sort {
+  flex: 0 0 auto;
+  min-width: 140px;
+}
+
+// Same width budget as `.video-browser__search`: wide enough to read a
+// query, capped so it does not out-grow the row it shares with everything
+// else that steers the library.
+.library-toolbar__search {
+  min-width: 180px;
+  flex: 1 1 240px;
+  max-width: 460px;
+}
+
+.library-toolbar__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+
+  // Same disabled recipe as `.karaoke-workspace__actions .button:disabled`:
+  // quieter than its neighbours rather than a flat grey rectangle.
+  .button:disabled {
+    color: rgba($primary-lighter, 0.6);
+    border-color: rgba($primary-lighter, 0.08);
+    background: rgba(#1a2b38, 0.42);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+}
+
+.library-toolbar__action-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+// *** The folders menu *********************************************************
+//
+// The only place the roots are manageable. Built on `AnchoredMenu`, so it is
+// styled the way every other portalled menu in the app is — see
+// `.eq-mode__menu` in MainContent.scss for the row layout this borrows.
+
+.library-folders-menu {
+  @include menu-surface;
+  z-index: 1000;
+  display: grid;
+  width: 320px;
+  gap: 3px;
+  padding: 6px;
+}
+
+.library-folders-menu__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: $radius-xs;
+
+  &:hover {
+    background: rgba($secondary-default, 0.12);
+  }
+}
+
+.library-folders-menu__path-group {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.library-folders-menu__path {
+  @include truncate;
+  color: $text-primary;
+  font-size: 0.72rem;
+}
+
+.library-folders-menu__offline {
+  color: $text-faint;
+  font-size: 0.62rem;
+}
+
+// Same 24px/11px dismiss-icon recipe as `.library-workspace__notice button`
+// above, reused rather than redrawn for a second "take this away" control.
+.library-folders-menu__remove {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: rgba($primary-lighter, 0.7);
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $secondary-light;
+    border-color: rgba($secondary-default, 0.4);
+    background: rgba($secondary-default, 0.12);
+    outline: none;
+  }
+}
+
+// *** The scan progress strip **************************************************
+//
+// Pinned under the toolbar, never a modal: `LibraryWorkspace` mounts this
+// beside the content so the scan stays backgroundable simply by leaving the
+// tab. Background, border and radius copied from
+// `.karaoke-maker__analysis-progress` in Karaoke.scss.
+
+.library-scan-progress {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 12px;
+  row-gap: 8px;
+  padding: 11px 12px;
+  color: #dffcf9;
+  background:
+    radial-gradient(circle at 15% 0, rgba(30, 215, 199, 0.12), transparent 55%),
+    rgba(5, 27, 41, 0.96);
+  border: 1px solid rgba($secondary-light, 0.31);
+  border-radius: 13px;
+
+  > button {
+    min-height: 30px;
+  }
+}
+
+.library-scan-progress__copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+
+  strong {
+    overflow-wrap: anywhere;
+    font-size: 0.84rem;
+  }
+
+  span {
+    color: rgba(223, 252, 249, 0.76);
+    font-size: 0.76rem;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.library-scan-progress__karaoke {
+  color: $text-faint;
+}
+
+// Same bar recipe as `.karaoke-maker__analysis-progress-bar`: gradient fill,
+// pill radius, and a sweep in place of a value while there is nothing yet to
+// measure the fill against.
+.library-scan-progress__bar {
+  position: relative;
+  width: 100%;
+  height: 5px;
+  grid-column: 1 / -1;
+  overflow: hidden;
+  background: rgba(120, 166, 183, 0.17);
+  border-radius: $radius-pill;
+
+  > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: linear-gradient(90deg, #24d7c8, #7dfff3);
+    border-radius: inherit;
+    box-shadow: 0 0 12px rgba($secondary-default, 0.36);
+    transition: width 180ms ease;
+  }
+
+  &.is-indeterminate > span {
+    width: 100%;
+    transform: translateX(-72%);
+    animation: library-scan-progress-sweep 1.35s ease-in-out infinite;
+  }
+}
+
+// Values copied from `karaoke-maker-analysis-progress` in Karaoke.scss.
+@keyframes library-scan-progress-sweep {
+  0% {
+    transform: translateX(-72%);
+  }
+
+  50% {
+    transform: translateX(72%);
+  }
+
+  100% {
+    transform: translateX(-72%);
+  }
+}
+
+// *** The empty state *********************************************************
+//
+// Centred, not pinned to a corner of a large empty panel: an empty library
+// has exactly one useful next step, so the whole surface points at it.
+
+.library-empty {
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  place-items: center;
+  padding: $spacing-l;
+  overflow: auto;
+}
+
+.library-empty__card {
+  @include inset-surface;
+  display: grid;
+  width: min(420px, 100%);
+  justify-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xl $spacing-l;
+  text-align: center;
+
+  h2 {
+    margin: 0;
+    color: $text-primary;
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
+    line-height: 1.2;
+  }
+
+  p {
+    max-width: 340px;
+    margin: 0;
+    color: $text-muted;
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+}
+
+.library-empty__add {
+  margin-top: $spacing-s;
+  gap: 7px;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.library-empty__add-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.library-empty__hint {
+  display: block;
+  margin-top: $spacing-xxs;
+  color: $text-faint;
+  font-size: 0.64rem;
+  line-height: 1.5;
+}
+
+.library-empty__karaoke-note {
+  max-width: 340px;
+  margin: $spacing-s 0 0;
+  padding-top: $spacing-s;
+  border-top: 1px solid rgba($primary-lighter, 0.12);
+  color: $text-faint;
+  font-size: 0.62rem;
+  line-height: 1.5;
+}
+
+// *** The cover art ************************************************************
+//
+// One component, three sizes — `LibraryCoverArt` is reused by every view that
+// shows a track, an album or an artist rather than each drawing its own.
+
+.library-cover-art {
+  display: block;
+  flex: 0 0 auto;
+  overflow: hidden;
+  border-radius: $radius-xs;
+
+  // The row list's leading column: the same height as the small buttons
+  // beside it (`$control-height-sm`), so a row of covers lines up with the
+  // rest of the toolbar's controls instead of picking its own scale.
+  &--row {
+    width: $control-height-sm;
+    height: $control-height-sm;
+  }
+
+  // Fills whatever cell the grid view gives it — `LibraryGridView` sizes the
+  // tile itself with `grid-template-columns: repeat(auto-fill, ...)`.
+  &--tile {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: $radius-s;
+  }
+
+  // The drill-in header's large cover.
+  &--cover {
+    width: 160px;
+    height: 160px;
+    border-radius: $radius-l;
+  }
+}
+
+.library-cover-art__image,
+.library-cover-art__tile {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+// The generated tile drawn when a track has no cover — `libraryTileInitials`
+// over an `libraryTileHue`-derived gradient, set inline per item in the
+// component itself.
+.library-cover-art__tile {
+  display: grid;
+  place-items: center;
+  color: $text-primary;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+
+  .library-cover-art--row & {
+    font-size: 0.56rem;
+  }
+
+  .library-cover-art--tile & {
+    font-size: 1.4rem;
+  }
+
+  .library-cover-art--cover & {
+    font-size: 2.4rem;
+  }
+}
+
+// *** The list view *************************************************************
+//
+// A `role="table"` built from styled `div`s rather than `<table>` — the same
+// choice `AnchoredMenu`'s menus make — so the row can be a single flex/grid
+// container instead of fighting table layout for the cover art and the
+// title-plus-subtitle stack in the same cell.
+
+.library-list {
+  @include inset-surface;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.library-list__header,
+.library-list__row {
+  display: grid;
+  min-width: 0;
+  grid-template-columns:
+    $control-height-sm minmax(0, 1.8fr) minmax(0, 1fr) minmax(0, 1fr)
+    64px;
+  align-items: center;
+  column-gap: $spacing-s;
+  padding: 7px $spacing-s;
+}
+
+// A sortable column header. The arrow is present only on the column actually
+// driving the order — an arrow on every header would say all four are active.
+.library-list__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  background: none;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $secondary-light;
+  }
+
+  &.is-active {
+    color: $secondary-light;
+  }
+}
+
+.library-list__sort-arrow {
+  opacity: 0;
+  font-size: 0.7em;
+}
+
+.library-list__sort.is-active .library-list__sort-arrow {
+  opacity: 1;
+}
+
+// The cover art doubles as the row's play button: the glyph fades up over it
+// on hover or focus rather than occupying a column of its own on every row
+// for something only ever wanted on the row under the pointer.
+.library-list__art-play {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.library-list__art-play-glyph {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border-radius: $radius-xs;
+  background: rgba(#020a12, 0.62);
+  color: $secondary-light;
+  opacity: 0;
+  inset: 0;
+  transition: opacity $motion-base $ease-out;
+}
+
+.library-list__row:hover .library-list__art-play-glyph,
+.library-list__art-play:focus-visible .library-list__art-play-glyph {
+  opacity: 1;
+}
+
+.library-list__art-play:disabled .library-list__art-play-glyph {
+  display: none;
+}
+
+.library-list__header {
+  flex: 0 0 auto;
+  border-bottom: 1px solid rgba($secondary-light, 0.16);
+  color: $text-faint;
+  font-size: 0.6rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.library-list__body {
+  @include slim-scrollbar;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+// A row is a button in every way that matters — it opens or plays something
+// — without being one, since it also has to carry a nested cover image and a
+// two-line title cell that a real `<button>` cannot lay out as a grid.
+.library-list__row {
+  color: $text-muted;
+  border-radius: $radius-xs;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    color: $text-primary;
+    background: rgba($secondary-default, 0.12);
+    outline: none;
+  }
+
+  // Spec §10: a root missing at rescan keeps its tracks, dimmed rather than
+  // hidden or removed — this is the one place that promise is actually kept.
+  // Still fully clickable: the file may come back the moment its drive is
+  // plugged back in, and a click on a genuinely gone one already gets the
+  // real "cannot play" answer from the `error` listener in
+  // `LibraryPlayerContext`, not a dead row.
+  &--offline {
+    opacity: 0.5;
+  }
+
+  // Same opacity as offline above — one dimmed look reused, not a second one
+  // invented — but a different reason, carried by the badge's own tooltip
+  // rather than a second one on the row: offline says a file cannot be
+  // reached right now, pending says it is fine and simply has not been read
+  // yet. Still fully clickable, same as offline: the file plays exactly as
+  // well before its tags arrive as after.
+  &--pending {
+    opacity: 0.5;
+  }
+}
+
+.library-list__col {
+  @include truncate;
+  font-size: 0.7rem;
+
+  &--art {
+    display: flex;
+    align-items: center;
+  }
+
+  &--title {
+    display: grid;
+    gap: 1px;
+  }
+
+  // The artist row's only data column — spans past the three tracks a song
+  // or album row fills with Artist/Album/Length, so the name reads at full
+  // width instead of leaving three empty cells trailing it.
+  &--span {
+    grid-column: 2 / -1;
+  }
+
+  &--length {
+    color: $text-faint;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+}
+
+.library-list__title-text {
+  @include truncate;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: $text-primary;
+  font-weight: 700;
+}
+
+.library-list__title-label {
+  @include truncate;
+}
+
+.library-list__subtitle {
+  @include truncate;
+  color: $text-faint;
+  font-size: 0.62rem;
+}
+
+.library-list__badge {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.library-list__badge-icon {
+  width: 13px;
+  height: 13px;
+}
+
+// A format Chromium cannot decode — marked, not silently broken.
+.library-list__badge--unplayable {
+  color: $red;
+}
+
+// Quiet on purpose: this says the file's own tags could not be read, which
+// is information, not something the loud unplayable mark's colour would
+// wrongly suggest needs acting on.
+.library-list__badge--metadata {
+  color: $text-faint;
+}
+
+// Same quiet colour as the metadata badge above, same reasoning: a file
+// still waiting for its tags is information, not a problem, and should never
+// read as one at a glance.
+.library-list__badge--pending {
+  color: $text-faint;
+}
+
+// The "Show in Explorer" menu — same button recipe as `.eq-mode__menu` in
+// MainContent.scss, without that menu's two-line name-and-note layout since
+// this one only ever holds a single entry.
+.library-list__menu {
+  @include menu-surface;
+  z-index: 1000;
+  display: grid;
+  width: 190px;
+  padding: 5px;
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 0;
+    border-radius: $radius-xs;
+    background: none;
+    color: $secondary-light;
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-align: left;
+    cursor: pointer;
+    transition: $transition-control;
+
+    &:hover,
+    &:focus-visible {
+      color: $white;
+      background: rgba($secondary-default, 0.18);
+      outline: none;
+    }
+  }
+}
+
+.library-list__menu-icon {
+  width: 15px;
+  height: 15px;
+  flex: 0 0 auto;
+}
+
+// *** The grid view ***************************************************
+//
+// One tile per album, artist or song — `LibraryCoverArt size="tile"` over a
+// title and a secondary line, the card version of the row `LibraryListView`
+// draws. `auto-fill` rather than a fixed count, same reasoning as
+// `.voicing-grid` in Voicing.scss: the column count is whatever the panel's
+// width allows, never chosen up front.
+
+.library-grid {
+  @include inset-surface;
+  @include slim-scrollbar;
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  align-content: start;
+  gap: $spacing-m;
+  padding: $spacing-m;
+  overflow-y: auto;
+}
+
+// A tile is a button in every way that matters, styled like `.voicing-card`
+// in Voicing.scss: the same inset surface, the same lift-and-glow on hover,
+// laid out as a card rather than the row `.library-list__row` draws.
+.library-grid__tile {
+  @include inset-surface;
+  display: grid;
+  min-width: 0;
+  gap: $spacing-xs;
+  padding: $spacing-s;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba($secondary-light, 0.4);
+    background: rgba($secondary-default, 0.08);
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+
+  // Same dimming, and the same reasoning, as `.library-list__row--offline` —
+  // shared by `LibraryVideoSection`'s tiles too, since both reuse this exact
+  // class rather than drawing their own.
+  &--offline {
+    opacity: 0.5;
+  }
+
+  // Same dimming as offline above, same reasoning as `.library-list__row
+  // --pending`: one dimmed look reused rather than a second one invented,
+  // distinguished by the corner badge below instead of a second opacity
+  // value.
+  &--pending {
+    opacity: 0.5;
+  }
+}
+
+// The art plus its corner badge, shared by a song tile here and by
+// `LibraryVideoSection`'s own tiles, which draw the same badge on the same
+// wrapper for the same reason: a grid tile has no title cell to carry a mark
+// inline the way `.library-list__badge` does in a row, so the one spot left
+// is the corner of the art itself.
+.library-grid__art {
+  position: relative;
+  display: block;
+}
+
+// Same shape, size and quiet colour as `.library-list__badge--pending`,
+// pinned to the corner the way `.library-video-section__unplayable` pins its
+// own mark — sized and ringed like `.karaoke-playlist__count`, tinted like
+// `.library-workspace__notice`'s status-coloured border.
+.library-grid__badge--pending {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: $text-faint;
+  border: 1px solid rgba($primary-lighter, 0.28);
+  border-radius: $radius-pill;
+  background: rgba(5, 27, 41, 0.96);
+}
+
+.library-grid__title {
+  @include truncate;
+  color: $text-primary;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.library-grid__subtitle {
+  @include truncate;
+  display: block;
+  color: $text-faint;
+  font-size: 0.64rem;
+}
+
+// *** The video section **************************************************
+//
+// Videos have no album tag to group by, so this groups by the folder they
+// live in instead: one heading per folder, `.library-grid__tile` reused
+// beneath it rather than a second tile recipe — the same cover-plus-title
+// card `LibraryGridView` draws for a song, just laid out under a folder
+// heading instead of a flat grid.
+
+.library-video-section {
+  @include inset-surface;
+  @include slim-scrollbar;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-l;
+  padding: $spacing-m;
+  overflow-y: auto;
+
+  // No folders to show a heading for — the same centred, single-message
+  // treatment `.library-empty` gives the library as a whole, minus its card
+  // and its "Add folder" button: a root already exists, so that is the
+  // wrong next step from in here.
+  &.is-empty {
+    display: grid;
+    place-items: center;
+  }
+}
+
+.library-video-section__empty {
+  max-width: 320px;
+  margin: 0;
+  color: $text-faint;
+  font-size: 0.72rem;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.library-video-section__folder {
+  display: grid;
+  gap: $spacing-s;
+}
+
+// Same heading recipe as `.karaoke-playlist__heading h3`: uppercase, the
+// same size and letter-spacing, sat on the same faint rule.
+.library-video-section__folder-title {
+  margin: 0;
+  padding-bottom: 7px;
+  border-bottom: 1px solid rgba($primary-lighter, 0.09);
+  color: $text-primary;
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+// Same `auto-fill` recipe as `.library-grid`: the column count is whatever
+// the panel's width allows, never chosen up front.
+.library-video-section__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: $spacing-m;
+}
+
+.library-video-section__art {
+  position: relative;
+  display: block;
+}
+
+// A grid tile has no title cell to carry the "cannot play" mark inline the
+// way `.library-list__badge` does in a row (`LibraryListView`) — same icon
+// and the same red, pinned to the corner of the art instead, since that is
+// the one spot a tile has. Sized and ringed like `.karaoke-playlist__count`;
+// tinted like `.library-workspace__notice`'s own status-coloured border.
+.library-video-section__unplayable {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: $red;
+  border: 1px solid rgba($red, 0.28);
+  border-radius: $radius-pill;
+  background: rgba(5, 27, 41, 0.96);
+}
+
+// Same size, shape and quiet colour as `.library-grid__badge--pending`, but
+// pinned to the opposite corner: an unreadable container is knowable from its
+// extension alone, so a video can be both unplayable and still pending at
+// once, and the two marks must never sit on top of each other.
+.library-video-section__pending {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  color: $text-faint;
+  border: 1px solid rgba($primary-lighter, 0.28);
+  border-radius: $radius-pill;
+  background: rgba(5, 27, 41, 0.96);
+}
+
+// *** The drill-in *****************************************************
+//
+// Opened from a grid tile or a list row: a header for the one album or
+// artist, then its songs — `LibraryListView` in `browseMode="song"` rather
+// than a second table, so playability badges, the metadata-error badge,
+// keyboard rows and the reveal menu all keep working here too.
+
+.library-detail {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-m;
+  overflow: hidden;
+}
+
+.library-detail__back {
+  align-self: flex-start;
+  flex: 0 0 auto;
+
+  // Same back-chevron recipe as `.video-browser__nav-button` in
+  // VideoBrowser.scss.
+  svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+  }
+}
+
+.library-detail__header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  gap: $spacing-l;
+}
+
+.library-detail__info {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: $spacing-xxs;
+}
+
+// Sizing copied from `.karaoke-workspace__header h2` in Karaoke.scss.
+.library-detail__title {
+  @include truncate;
+  margin: 0;
+  color: $text-primary;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  line-height: 1.2;
+}
+
+.library-detail__subtitle {
+  @include truncate;
+  margin: 0;
+  color: $text-muted;
+  font-size: 0.78rem;
+}
+
+.library-detail__counts {
+  margin: 0 0 $spacing-s;
+  color: $text-faint;
+  font-size: 0.68rem;
+}
+
+// Emphasis follows recommendation: this is the drill-in's one filled
+// button, sized like every other `.library-toolbar__action-icon`.
+.library-detail__play-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}

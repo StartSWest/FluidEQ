@@ -61,6 +61,15 @@ import {
 import { useIsChromeIdle, watchChromeIdle } from './utils/idleChrome';
 import { reportError } from './utils/logger';
 import VideoBrowser from './video/VideoBrowser';
+import { albumKey } from '../common/library/grouping';
+import { ILibraryTrack } from '../common/library/types';
+import LibraryWorkspace from './library/LibraryWorkspace';
+import { LibraryProvider } from './library/LibraryContext';
+import {
+  LibraryPlayerProvider,
+  useLibraryPlayer,
+} from './library/player/LibraryPlayerContext';
+import NowPlayingBar from './library/player/NowPlayingBar';
 import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
 import PaneResizer from './components/PaneResizer';
 import {
@@ -124,7 +133,14 @@ const WORKSPACE_TAB_KEY = 'fluideq.workspaceTab';
 const GRAPH_VISIBILITY_BY_TAB_KEY = 'fluideq.graphVisibilityByTab';
 
 type TWorkspaceTab =
-  'eq' | 'presets' | 'voicing' | 'convolution' | 'video' | 'karaoke' | 'config';
+  | 'eq'
+  | 'presets'
+  | 'voicing'
+  | 'convolution'
+  | 'video'
+  | 'library'
+  | 'karaoke'
+  | 'config';
 
 /**
  * Tab names this build no longer uses, and what they became.
@@ -157,6 +173,7 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
   'voicing',
   'convolution',
   'video',
+  'library',
   'karaoke',
   'config',
 ];
@@ -224,6 +241,45 @@ const readWorkspaceTab = (): TWorkspaceTab => {
   }
 };
 
+/**
+ * The one place `NowPlayingBar` is wired to something real.
+ *
+ * `NowPlayingBar` itself stays a pure, prop-driven view — see its own doc
+ * comment — so this is the seam: read `LibraryPlayerContext`, hand its values
+ * down as props. Shuffle and repeat are exposed as toggles rather than
+ * setters (`onShuffle`/`onRepeat`, not `onSetShuffle`), matching every other
+ * button on the bar, so the flip from the current value to the next one
+ * happens here rather than inside the view.
+ */
+const ConnectedNowPlayingBar = ({
+  onReveal,
+}: {
+  onReveal: (track: ILibraryTrack) => void;
+}) => {
+  const player = useLibraryPlayer();
+  const { track } = player;
+  return (
+    <NowPlayingBar
+      track={player.track}
+      isPlaying={player.isPlaying}
+      positionMs={player.positionMs}
+      durationMs={player.durationMs}
+      repeat={player.repeat}
+      isShuffled={player.isShuffled}
+      volume={player.volume}
+      isUnplayable={player.isUnplayable}
+      onToggle={player.toggle}
+      onSkip={player.skip}
+      onStop={player.stop}
+      onSeek={player.seek}
+      onShuffle={() => player.setShuffle(!player.isShuffled)}
+      onRepeat={player.cycleRepeat}
+      onVolume={player.setVolume}
+      onReveal={track ? () => onReveal(track) : undefined}
+    />
+  );
+};
+
 const AppContent = () => {
   const {
     isLoading,
@@ -244,6 +300,7 @@ const AppContent = () => {
     TWorkspaceGraphVisibility | undefined
   >(readWorkspaceGraphVisibility);
   const isVideoTab = activeWorkspaceTab === 'video';
+  const isLibraryTab = activeWorkspaceTab === 'library';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
   const [isKaraokeFullScreen, setIsKaraokeFullScreen] = useState(false);
   const karaokeFullScreenRequestedRef = useRef(false);
@@ -287,11 +344,21 @@ const AppContent = () => {
   const isGraphFullScreen = useGraphFullScreen();
   const graphView = useGraphView();
   // Each workspace owns this choice. Karaoke starts without the response graph
-  // because its stage and pitch lane need the height; every other workspace
-  // inherits the legacy graph preference until the user chooses differently.
+  // because its stage and pitch lane need the height; Library starts without
+  // it because the tab is a surface for looking at album art, not at a
+  // spectrum; every other workspace inherits the legacy graph preference until
+  // the user chooses differently.
+  // Library is the one tab that refuses the graph outright rather than merely
+  // defaulting away from it. The graph brings a toolbar with it — the drag
+  // hint, the four curve legends, the view picker — and on a tab whose whole
+  // job is showing album art above its own transport bar, that row is chrome
+  // for a feature the surface does not use. A stored `true` from an earlier
+  // session must not be able to bring it back.
   const showsGraph =
-    graphVisibilityByTab?.[activeWorkspaceTab] ??
-    (activeWorkspaceTab === 'karaoke' ? false : isGraphViewOn);
+    activeWorkspaceTab === 'library'
+      ? false
+      : (graphVisibilityByTab?.[activeWorkspaceTab] ??
+        (activeWorkspaceTab === 'karaoke' ? false : isGraphViewOn));
   const setActiveTabGraphVisibility = useCallback(
     (next: boolean) => {
       setGraphVisibilityByTab((current) => ({
@@ -437,6 +504,22 @@ const AppContent = () => {
   // opens the tab, though, there is no reason to have a browser engine running
   // at all, so it does not exist.
   const [hasOpenedVideo, setHasOpenedVideo] = useState(false);
+  // Library follows the same lifetime rule: a scan started on this tab must
+  // not be abandoned by switching away from it.
+  const [hasOpenedLibrary, setHasOpenedLibrary] = useState(false);
+  // What the now-playing bar asked the Library to show. The nonce is what
+  // makes pressing it twice for the same album work: an id alone would look
+  // unchanged after the user had navigated away, and do nothing.
+  const [libraryReveal, setLibraryReveal] = useState<
+    { albumId: string; nonce: number } | undefined
+  >(undefined);
+  const revealPlayingTrack = useCallback((track: ILibraryTrack) => {
+    setActiveWorkspaceTab('library');
+    setLibraryReveal((current) => ({
+      albumId: albumKey(track),
+      nonce: (current?.nonce ?? 0) + 1,
+    }));
+  }, []);
   // Karaoke follows the same lifetime rule. Once audio and microphone capture
   // land here, leaving the tab must not tear either pipeline down.
   const [hasOpenedKaraoke, setHasOpenedKaraoke] = useState(false);
@@ -494,6 +577,15 @@ const AppContent = () => {
     setHasOpenedVideo(true);
     return undefined;
   }, [isVideoTab]);
+
+  useEffect(() => {
+    if (!isLibraryTab) {
+      return undefined;
+    }
+
+    setHasOpenedLibrary(true);
+    return undefined;
+  }, [isLibraryTab]);
 
   useEffect(() => {
     if (!isKaraokeTab) {
@@ -765,6 +857,13 @@ const AppContent = () => {
    * key and Windows tells nobody which application answered it — so there is no
    * playing/paused state to hold here, and the play button is one glyph that
    * means "toggle" rather than a light that could be wrong.
+   *
+   * NOT wired to `LibraryPlayerContext`, on purpose, even though the Library
+   * tab now has its own real play/pause. Routing the Library player's toggle
+   * through this same channel would make one press of this button act on two
+   * players — this one AND whatever external application last grabbed the
+   * key — when only one was ever intended. `NowPlayingBar` calls
+   * `useLibraryPlayer().toggle` directly instead.
    */
   const handleMediaTransport = (action: TMediaTransportAction) => {
     window.electron.ipcRenderer
@@ -1289,6 +1388,15 @@ const AppContent = () => {
               <button
                 type="button"
                 role="tab"
+                aria-selected={isLibraryTab}
+                className={`workspace-tab${isLibraryTab ? ' is-active' : ''}`}
+                onClick={() => setActiveWorkspaceTab('library')}
+              >
+                {t('tabs.library')}
+              </button>
+              <button
+                type="button"
+                role="tab"
                 aria-selected={isKaraokeTab}
                 className={`workspace-tab${isKaraokeTab ? ' is-active' : ''}`}
                 onClick={() => setActiveWorkspaceTab('karaoke')}
@@ -1384,6 +1492,27 @@ const AppContent = () => {
                 stop the music. It has no engine-disabled state either — a
                 video plays whether or not Equalizer APO is behind it. */}
             {hasOpenedVideo && <VideoBrowser isHidden={!isVideoTab} />}
+            {/* Same lifetime rule as the player above: mounted once a scan
+                could be running here, then hidden rather than destroyed so
+                switching tabs cannot cancel it. `LibraryPlayerProvider`
+                nests inside `LibraryProvider` — it resolves a track id
+                against the library index to draw a title and an artist, and
+                that index is what `LibraryProvider` holds — and, once
+                mounted, is never re-created by anything a tab does for
+                exactly the same reason: `hasOpenedLibrary` only ever goes
+                from false to true. The audio element it owns lives inside a
+                ref, never rendered, so nothing here can remount it either. */}
+            {hasOpenedLibrary && (
+              <LibraryProvider>
+                <LibraryPlayerProvider>
+                  <LibraryWorkspace
+                    isHidden={!isLibraryTab}
+                    revealRequest={libraryReveal}
+                  />
+                  <ConnectedNowPlayingBar onReveal={revealPlayingTrack} />
+                </LibraryPlayerProvider>
+              </LibraryProvider>
+            )}
             {/* Mounted on first visit and then hidden instead of destroyed.
                 The empty shell has no live resources yet, but the lifetime is
                 correct before song playback and microphone capture arrive. */}

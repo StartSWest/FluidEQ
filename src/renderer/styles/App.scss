@@ -999,6 +999,20 @@ select option {
   overflow: hidden;
 }
 
+// The now-playing bar is `position: fixed` to the window (see
+// `NowPlayingBar.scss`), which takes it out of `.app-workspace`'s grid
+// entirely — nothing in that grid shrinks on its own just because the bar
+// appeared on top of it. This is the other half: `#root`'s own content box
+// shrinks by exactly the bar's measured height (`NowPlayingBar.tsx` publishes
+// `--now-playing-bar-height` the same way `App.tsx` already publishes
+// `--editor-height` for the graph divider), so every tab's content settles
+// above the strip instead of the bar's glass panel sitting over the last row
+// of it. The fallback below only covers the one frame before that effect has
+// measured anything.
+#root.has-now-playing {
+  padding-bottom: var(--now-playing-bar-height, 86px);
+}
+
 // Where selecting text is the whole point.
 //
 // Everything the user types into, and anything they are expected to copy out
@@ -1361,7 +1375,8 @@ $tab-border: rgba($secondary-light, 0.2);
 .workspace-tab-panel--convolution,
 .workspace-tab-panel--config,
 .workspace-tab-panel--video,
-.workspace-tab-panel--karaoke {
+.workspace-tab-panel--karaoke,
+.workspace-tab-panel--library {
   @include panel-surface;
   // The ramp measured against the window, not against this panel.
   //

@@ -39,6 +39,7 @@ import eq from './eq';
 import app from './app';
 import look from './look';
 import video from './video';
+import library from './library';
 
 const en = {
   ...karaoke,
@@ -46,6 +47,7 @@ const en = {
   ...app,
   ...look,
   ...video,
+  ...library,
 };
 
 export type TranslationKey = keyof typeof en;

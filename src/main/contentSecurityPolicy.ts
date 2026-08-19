@@ -80,14 +80,18 @@ const MODEL_HOSTS = [
  *  - the model hosts in connect-src, because that is where the speech and
  *    vocal separation models come from, including the redirect targets their
  *    large files are actually served by.
+ *  - `fluideq-media:` in img-src and media-src, because the library serves
+ *    local audio, video and cached covers over its own scheme — resolved by
+ *    id against the index in Task 6 and Task 8, never by a path the document
+ *    supplies.
  */
 export const contentSecurityPolicy = (isDebug: boolean): string =>
   [
     "default-src 'self'",
     isDebug ? "script-src 'self' 'unsafe-eval'" : "script-src 'self'",
     "style-src 'self' 'unsafe-inline'",
-    "img-src 'self' data: blob:",
-    "media-src 'self' blob: data: file:",
+    "img-src 'self' data: blob: fluideq-media:",
+    "media-src 'self' blob: data: file: fluideq-media:",
     "font-src 'self' data:",
     "worker-src 'self' blob:",
     isDebug

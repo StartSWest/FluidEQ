@@ -1,0 +1,134 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+// *** Cover Flow ***************************************************************
+//
+// The third view: a row of covers in 3D, the centre one facing the viewer,
+// the rest turned away and pushed back — the geometry itself lives in
+// `LibraryCoverFlow.tsx`'s `coverFlowTransform`. This file is only the stage
+// that gives that transform somewhere to happen and the surface each cover
+// draws on.
+
+.library-coverflow {
+  @include inset-surface;
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.library-coverflow__stage {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  // Generous next to a 160px cover ($library-coverflow-cover in the block
+  // below): close enough that the rotated sides read as turned rather than
+  // squashed flat, far enough that they do not fisheye at the row's own
+  // edges.
+  perspective: 1200px;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.library-coverflow__track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  // Without this the rotated covers below flatten onto the page instead of
+  // turning in front of and behind one another — the same reason `_motion.scss`
+  // sets it on the paper-fold entrance.
+  transform-style: preserve-3d;
+}
+
+// `LibraryCoverArt`'s own `--cover` size (the drill-in header's), restated
+// here rather than a fourth size invented for this view. Nothing enforces
+// the two staying equal — `.library-cover-art--cover` in `Library.scss` is
+// its own literal 160px — so if that one ever moves, this one has to move
+// with it.
+$library-coverflow-cover: 160px;
+
+.library-coverflow__cover {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  width: $library-coverflow-cover;
+  // Half the art's own size, so the square itself sits centred on the
+  // stage; the title and subtitle below it are allowed to hang past that
+  // centre rather than being folded into the same measurement. `calc()`
+  // rather than Sass's own `/`, which `sass` now deprecates for division.
+  margin: calc(#{$library-coverflow-cover} / -2) 0 0
+    calc(#{$library-coverflow-cover} / -2);
+  justify-items: center;
+  gap: $spacing-xxs;
+  cursor: pointer;
+  transition: transform $motion-base $ease-out;
+
+  &.is-centre {
+    .library-coverflow__title {
+      color: $text-primary;
+    }
+  }
+}
+
+.library-coverflow__art {
+  position: relative;
+  display: block;
+  width: 100%;
+  // Chromium's own reflection, not a second rendered copy: the compositor
+  // mirrors the pixels already on screen, so there is no extra `<img>` and
+  // nothing new for the art cache to fetch. Electron ships Chromium only, so
+  // the vendor prefix is not a portability risk here.
+  -webkit-box-reflect: below 4px
+    linear-gradient(to bottom, rgba($black, 0.32), transparent 60%);
+}
+
+.library-coverflow__title {
+  @include truncate;
+  max-width: 100%;
+  color: $text-muted;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.library-coverflow__subtitle {
+  @include truncate;
+  max-width: 100%;
+  color: $text-faint;
+  font-size: 0.64rem;
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  // The layout stays — covers still move to a new centre on every input —
+  // only the sweep between positions is gone, same convention as
+  // `SidebarSection.scss` and `VideoBrowser.scss`.
+  .library-coverflow__cover {
+    transition: none;
+  }
+}
