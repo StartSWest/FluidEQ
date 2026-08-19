@@ -1096,8 +1096,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.library-list,
-.library-grid,
+// The list and the grid are deliberately absent: their rows and tiles cascade
+// in themselves, and animating the container as well would move everything
+// once and then move each child again over the top of it — two entrances for
+// one arrival, which reads as a stutter rather than as polish.
 .library-detail,
 .library-video-section,
 .library-coverflow {
@@ -1187,4 +1189,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   color: $text-faint;
   font-size: 0.66rem;
   letter-spacing: 0.04em;
+}
+
+// The rows arrive top to bottom rather than all at once, the same cascade
+// `.convolution-entry` uses and for the same reasons stated there: ten deep,
+// which is about what the scroller shows, because past that the animation
+// would only be running where nobody is looking.
+//
+// React keys rows by track id, so this replays when the list becomes a
+// different list — a new search, a new sort — and leaves the existing rows
+// alone when the scan merely adds more behind them. That is the whole reason
+// it can be a per-row animation at all: without stable keys a scan batch
+// would restart the cascade several times a second.
+//
+// `animate` inside the mixin restricts itself to opacity and transform, so
+// the compositor runs the whole thing without asking the main thread for a
+// frame, and drops it entirely under prefers-reduced-motion.
+.library-list__row {
+  @include stagger-in($count: 10);
+}
+
+.library-grid__tile {
+  @include stagger-in($count: 12, $step: 18ms);
 }
