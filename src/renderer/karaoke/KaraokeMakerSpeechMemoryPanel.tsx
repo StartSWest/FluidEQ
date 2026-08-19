@@ -155,7 +155,15 @@ const KaraokeMakerSpeechMemoryPanel = ({
   const releaseEverything = () => {
     window.electron?.ipcRenderer.releaseKaraokeSeparationModel?.();
     window.electron?.ipcRenderer.releaseKaraokePitchModel?.();
-    setNativeInMemory(false);
+    // The weights stay on disk, so the sizes stand; only residency changes.
+    setNative((previous) =>
+      previous
+        ? {
+            separation: { ...previous.separation, loaded: false },
+            pitch: { ...previous.pitch, loaded: false },
+          }
+        : previous,
+    );
     onRelease();
   };
 

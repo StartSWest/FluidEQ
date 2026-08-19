@@ -41,6 +41,13 @@ import {
 } from './guideNotes';
 
 /**
+ * What a word timed straight from Whisper's own timestamp is worth. Above the
+ * 0.7 the melody repair calls doubtful, below the 0.96 a word that survived
+ * several passes earns.
+ */
+const DIRECT_WHISPER_CONFIDENCE = 0.82;
+
+/**
  * Turn a transcript into the lyrics themselves, for a song that has none.
  *
  * The alignment path below deliberately treats Whisper as evidence for timing
@@ -55,13 +62,18 @@ export const applyTranscriptAsLyrics = (
   project: IKaraokeMakerProject,
   transcript: readonly IKaraokeMakerTranscriptWord[],
 ): IKaraokeMakerProject => {
-  const words = placeTranscriptWords(
-    [...transcript].sort((left, right) => left.startMs - right.startMs),
-    project.audio.durationMs ?? 0,
-  ).filter((word) => word.text.trim().length > 0);
-  if (!words.length) {
+  const heard = [...transcript]
+    .sort((left, right) => left.startMs - right.startMs)
+    .filter((word) => word.text.trim().length > 0);
+  if (!heard.length) {
     return project;
   }
+  // Grouping and placing are different questions, and only the second one
+  // needs a trustworthy timestamp. A word whose span is unusable still marks
+  // roughly where Whisper heard the phrase, which is all a line break asks of
+  // it. Reading breaths from the placed words alone merged everything the
+  // placement rejected into its neighbour — one line of forty words.
+  const words = placeTranscriptWords(heard, project.audio.durationMs ?? 0);
   // A line breaks where the singer stops, and nowhere else. 700 ms is roughly
   // a sung breath.
   //
@@ -74,13 +86,7 @@ export const applyTranscriptAsLyrics = (
   words.forEach((word, index) => {
     const current = lines[lines.length - 1];
     const previous = index > 0 ? words[index - 1] : undefined;
-    // Only a word that was actually placed says where the singer rested. An
-    // unplaced neighbour leaves the gap unknown, and an unknown gap is not a
-    // breath.
-    const gap =
-      previous?.endMs !== undefined && word.startMs !== undefined
-        ? word.startMs - previous.endMs
-        : 0;
+    const gap = index > 0 ? heard[index].startMs - heard[index - 1].endMs : 0;
     // A sentence end is a line end even when the singer barrels straight
     // into the next phrase: grouping by silence alone kept stealing the next
     // line's first word onto the previous one's tail.
@@ -106,8 +112,18 @@ export const applyTranscriptAsLyrics = (
     tokens: line.tokens.map((token) => {
       const word = flatWords[wordIndex];
       wordIndex += 1;
+      // A placed word says so. The melody repair treats anything below 0.7 as
+      // doubtful and re-derives it from the detected notes; without a
+      // confidence here every authored word looked doubtful, and turning the
+      // repair on would have thrown away each timestamp Whisper got right to
+      // replace it with a note boundary.
       return word?.startMs !== undefined && word.endMs !== undefined
-        ? { ...token, startMs: word.startMs, endMs: word.endMs }
+        ? {
+            ...token,
+            startMs: word.startMs,
+            endMs: word.endMs,
+            confidence: DIRECT_WHISPER_CONFIDENCE,
+          }
         : token;
     }),
   }));
@@ -300,7 +316,10 @@ export const applyWhisperTranscript = (
           endMs: word.endMs,
           confidence: word.inferred
             ? Math.min(0.78, 0.62 + refinementPasses * 0.04)
-            : Math.min(0.96, 0.82 + refinementPasses * 0.04),
+            : Math.min(
+                0.96,
+                DIRECT_WHISPER_CONFIDENCE + refinementPasses * 0.04,
+              ),
           source: 'whisper' as const,
         };
       }

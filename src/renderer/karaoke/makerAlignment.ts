@@ -401,7 +401,10 @@ export const repairEstimatedWhisperTimingWithMelody = (
     project.lyrics.lines.flatMap((line) =>
       karaokeMakerLineIsSection(line)
         ? []
-        : line.tokens.flatMap((token) =>
+        : // Every word Whisper places records what it is worth, so a word with
+          // no confidence is a word that was never placed — exactly the one a
+          // detected note can help.
+          line.tokens.flatMap((token) =>
             !token.timingLocked &&
             token.source === 'whisper' &&
             (token.confidence ?? 0) < 0.7

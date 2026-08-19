@@ -2811,3 +2811,187 @@ describe('Karaoke Maker transcript line breaks', () => {
     ).toEqual(['we carry', 'the rest.', 'why']);
   });
 });
+
+describe('Karaoke Maker line breaks across unusable timing', () => {
+  it('reads a breath from what Whisper heard, not from what it placed', () => {
+    // Measured on one song: 50 of 150 words had unusable spans, and reading
+    // rests only from the placed words merged the lot into a single line of
+    // forty. A word can be too vague to place and still show where the
+    // singer stopped.
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    const authored = applyTranscriptAsLyrics(project, [
+      { text: 'we', startMs: 20_000, endMs: 20_300 },
+      // Unplaceable: the span is far longer than the word can be.
+      { text: 'carry', startMs: 20_320, endMs: 26_000 },
+      // A 1.5 s rest after that word, which only the raw timing knows about.
+      { text: 'the', startMs: 27_500, endMs: 27_800 },
+      { text: 'rest', startMs: 27_820, endMs: 28_200 },
+    ]);
+    const carried = authored.lyrics.lines
+      .flatMap((line) => line.tokens)
+      .find((token) => token.text === 'carry');
+
+    expect(
+      authored.lyrics.lines.map((line) =>
+        line.tokens.map((token) => token.text).join(' '),
+      ),
+    ).toEqual(['we carry', 'the rest']);
+    expect(carried?.startMs).toBeUndefined();
+  });
+});
+
+describe('Karaoke Maker melody repair of unplaced words', () => {
+  it('places a word Whisper could not, and leaves the ones it could', () => {
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 60_000;
+    project.lyrics.lines = [];
+    const authored = applyTranscriptAsLyrics(project, [
+      { text: 'we', startMs: 20_000, endMs: 20_300 },
+      // Unplaceable: the span is far longer than the word can be.
+      { text: 'carry', startMs: 20_320, endMs: 26_000 },
+      { text: 'on', startMs: 27_500, endMs: 27_800 },
+    ]);
+    const before = authored.lyrics.lines.flatMap((line) => line.tokens);
+    expect(
+      before.find((token) => token.text === 'carry')?.startMs,
+    ).toBeUndefined();
+
+    const repaired = applyBasicPitchMelody(
+      authored,
+      [
+        { startMs: 20_000, endMs: 20_300, targetMidi: 60, confidence: 0.9 },
+        { startMs: 21_000, endMs: 21_700, targetMidi: 62, confidence: 0.9 },
+        { startMs: 27_500, endMs: 27_800, targetMidi: 64, confidence: 0.9 },
+      ],
+      true,
+    );
+    const tokens = repaired.lyrics.lines.flatMap((line) => line.tokens);
+    const carried = tokens.find((token) => token.text === 'carry');
+
+    // The word Whisper placed keeps the timestamp Whisper gave it.
+    expect(tokens.find((token) => token.text === 'we')).toMatchObject({
+      startMs: 20_000,
+      endMs: 20_300,
+    });
+    expect(tokens.find((token) => token.text === 'on')).toMatchObject({
+      startMs: 27_500,
+      endMs: 27_800,
+    });
+    // The one it could not is now on the pitch that was actually sung, and
+    // stays between the two words that bound it.
+    expect(carried?.startMs).toBeGreaterThanOrEqual(20_300);
+    expect(carried?.endMs).toBeLessThanOrEqual(27_500);
+    expect(carried?.source).toBe('auto-align');
+  });
+});
+
+describe('Karaoke Maker detection with supplied lyrics', () => {
+  it('leaves lyric words untimed when Whisper stacks its timestamps', () => {
+    // The same failure that hit the transcript-authored path reaches this one
+    // through the same transcript: a chunk's terminal timestamp carrying every
+    // remaining word. Those words used to become 1 ms lyric timings here too.
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = makerLinesFromPlainText(
+      'we carry on\nthrough the quiet water',
+    );
+    const aligned = applyWhisperTranscript(project, [
+      { text: 'we', startMs: 20_000, endMs: 20_300 },
+      { text: 'carry', startMs: 20_320, endMs: 20_700 },
+      { text: 'on', startMs: 20_720, endMs: 21_100 },
+      { text: 'through', startMs: 169_980, endMs: 169_980 },
+      { text: 'the', startMs: 169_980, endMs: 169_980 },
+      { text: 'quiet', startMs: 169_980, endMs: 169_980 },
+      { text: 'water', startMs: 169_980, endMs: 169_980 },
+    ]);
+    const [first, second] = aligned.lyrics.lines;
+
+    expect(first.tokens.every((token) => token.startMs !== undefined)).toBe(
+      true,
+    );
+    expect(
+      second.tokens.every(
+        (token) => token.startMs === undefined && token.endMs === undefined,
+      ),
+    ).toBe(true);
+  });
+
+  it('fills a word Whisper missed inside a confirmed sentence', () => {
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    // Whisper misses the third word entirely; the words around it are placed.
+    project.lyrics.lines = makerLinesFromPlainText('we carry now on');
+    const aligned = applyWhisperTranscript(project, [
+      { text: 'we', startMs: 20_000, endMs: 20_300 },
+      { text: 'carry', startMs: 20_320, endMs: 20_700 },
+      { text: 'on', startMs: 22_000, endMs: 22_400 },
+    ]);
+    // This path has its own answer for a word missed between two confirmed
+    // ones, and it does not need the melody: the word is placed inside the
+    // same continuous vocal phrase, between the words that bound it.
+    const filled = aligned.lyrics.lines[0].tokens[2];
+    expect(filled.startMs).toBeGreaterThanOrEqual(20_700);
+    expect(filled.endMs).toBeLessThanOrEqual(22_000);
+
+    // That fill is an interpolation between two anchors, and it says so with
+    // a low confidence. The melody then refines it onto the note actually
+    // sung there — evidence replacing arithmetic.
+    const repaired = applyBasicPitchMelody(
+      aligned,
+      [
+        { startMs: 20_000, endMs: 20_300, targetMidi: 60, confidence: 0.9 },
+        { startMs: 21_000, endMs: 21_500, targetMidi: 62, confidence: 0.9 },
+        { startMs: 22_000, endMs: 22_400, targetMidi: 64, confidence: 0.9 },
+      ],
+      true,
+    );
+    const now = repaired.lyrics.lines[0].tokens[2];
+
+    expect(now.startMs).toBe(21_000);
+    expect(now.endMs).toBe(21_500);
+    expect(now.source).toBe('auto-align');
+    // The words Whisper did place keep exactly what Whisper measured.
+    expect(repaired.lyrics.lines[0].tokens[0]).toMatchObject({
+      startMs: 20_000,
+      endMs: 20_300,
+    });
+  });
+});
+
+describe('Karaoke Maker melody repair boundaries', () => {
+  it('still refuses to paint an unmatched verse over instrumental music', () => {
+    // The repair places untimed words from detected notes. That must not
+    // become a way for a verse the aligner deliberately refused to time to
+    // land on whatever notes happen to exist elsewhere in the song.
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 90_000;
+    project.lyrics.lines = makerLinesFromPlainText(
+      'she sings here\nmissing verse words\nvoices return now',
+    );
+    const aligned = applyWhisperTranscript(project, [
+      { text: 'she', startMs: 10_000, endMs: 10_200 },
+      { text: 'sings', startMs: 10_220, endMs: 10_500 },
+      { text: 'here', startMs: 10_520, endMs: 10_800 },
+      { text: 'voices', startMs: 45_000, endMs: 45_300 },
+      { text: 'return', startMs: 45_320, endMs: 45_620 },
+      { text: 'now', startMs: 45_640, endMs: 45_900 },
+    ]);
+    const repaired = applyBasicPitchMelody(
+      aligned,
+      [
+        { startMs: 25_000, endMs: 25_600, targetMidi: 60, confidence: 0.9 },
+        { startMs: 26_000, endMs: 26_600, targetMidi: 62, confidence: 0.9 },
+        { startMs: 27_000, endMs: 27_600, targetMidi: 64, confidence: 0.9 },
+      ],
+      true,
+    );
+
+    expect(
+      repaired.lyrics.lines[1].tokens.every(
+        (token) => token.startMs === undefined && token.endMs === undefined,
+      ),
+    ).toBe(true);
+  });
+});

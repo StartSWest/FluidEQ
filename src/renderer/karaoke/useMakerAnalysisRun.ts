@@ -231,7 +231,7 @@ export const useMakerAnalysisRun = ({
         );
         const publishBase = baseProject ?? projectRef.current;
         const next = touchKaraokeMakerProject(
-          applyBasicPitchMelody(publishBase, notes, false, SWIFT_F0_PROVENANCE),
+          applyBasicPitchMelody(publishBase, notes, true, SWIFT_F0_PROVENANCE),
         );
         projectRef.current = next;
         pushHistory(publishBase);
@@ -282,6 +282,7 @@ export const useMakerAnalysisRun = ({
               },
             },
             fallback.notes,
+            true,
           ),
         );
         projectRef.current = next;
@@ -457,6 +458,14 @@ export const useMakerAnalysisRun = ({
             });
           }
           if (stage) {
+            // The file list belongs to the download and to nothing after it.
+            // It used to be set and never cleared, so seven completed rows sat
+            // over the transcription for the rest of the run, still claiming
+            // to be the thing in progress.
+            if (stage !== 'download') {
+              setDownloadProgress(undefined);
+              downloadSampleRef.current = undefined;
+            }
             setWhisperStage(stage);
             let localizedMessage = t('karaoke.maker.whisperComplete');
             if (stage === 'decode') {
@@ -528,11 +537,15 @@ export const useMakerAnalysisRun = ({
             windows,
             setDownloadProgress,
           );
+          // The notes were detected from this same take, so a word Whisper
+          // left unplaced can be put on the pitch that was actually sung
+          // rather than left for the user to drag. Words Whisper did place
+          // are above the doubt threshold and are locked out of the repair.
           completedProject = touchKaraokeMakerProject(
             applyBasicPitchMelody(
               completedProject,
               notes,
-              false,
+              true,
               SWIFT_F0_PROVENANCE,
             ),
           );
