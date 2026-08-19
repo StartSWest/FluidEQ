@@ -16,7 +16,14 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { DragEvent, useCallback, useEffect, useMemo, useState } from 'react';
+import {
+  DragEvent,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   artistKey,
   groupIntoAlbums,
@@ -95,6 +102,11 @@ interface ILibraryWorkspaceProps {
   /** Hidden instead of unmounted, matching KaraokeWorkspace and VideoBrowser:
    * once a track is playing here, leaving the tab must not stop it. */
   isHidden: boolean;
+  /** An album to open, asked for from outside — the now-playing bar pressing
+   * "show me what is playing". Carries a nonce rather than an id alone so that
+   * asking twice for the SAME album still reopens it after the user has
+   * navigated away; an id-only prop would look unchanged and do nothing. */
+  revealRequest?: { albumId: string; nonce: number };
 }
 
 /**
@@ -113,7 +125,10 @@ const droppedFilePath = (file: File): string => {
   }
 };
 
-const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
+const LibraryWorkspace = ({
+  isHidden,
+  revealRequest,
+}: ILibraryWorkspaceProps) => {
   const { t } = useTranslation();
   const {
     index,
@@ -160,9 +175,40 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
   useEffect(() => writePersistedMode(VIEW_MODE_KEY, viewMode), [viewMode]);
   useEffect(() => writePersistedMode(SORT_KEY, sort), [sort]);
 
+  // Set by a reveal so the browse-mode effect below can tell a mode change it
+  // caused itself from one the user made. See that effect for why.
+  const revealDrivenMode = useRef<TLibraryBrowseMode | undefined>(undefined);
+
+  // "Show me what is playing", asked for by the now-playing bar. Browsing has
+  // to move to albums first: the drill-in only exists in that mode, and the
+  // browse-mode effect below closes any open album when the mode changes, so
+  // setting both here in one pass is what makes the album survive the switch.
+  // Keyed on the nonce so pressing it twice for the same album still works.
+  const revealNonce = revealRequest?.nonce;
+  const revealAlbumId = revealRequest?.albumId;
+  useEffect(() => {
+    if (revealAlbumId === undefined) {
+      return;
+    }
+    revealDrivenMode.current = 'album';
+    setBrowseMode('album');
+    setOpenArtistId(undefined);
+    setOpenAlbumId(revealAlbumId);
+  }, [revealAlbumId, revealNonce]);
+
   // An album id means nothing while artists are listed, and the reverse —
   // switching what is being browsed closes whatever was open.
+  //
+  // Except when the switch was itself part of opening something: a reveal
+  // moves to album mode *in order to* open an album, and this effect fires on
+  // that same commit. The ref lets it recognise a mode change it caused
+  // itself and leave the drill-in alone; every other mode change still closes
+  // it. A boolean would not do — two reveals in a row must both survive.
   useEffect(() => {
+    if (revealDrivenMode.current === browseMode) {
+      revealDrivenMode.current = undefined;
+      return;
+    }
     setOpenAlbumId(undefined);
     setOpenArtistId(undefined);
   }, [browseMode]);

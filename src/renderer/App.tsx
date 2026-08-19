@@ -61,6 +61,8 @@ import {
 import { useIsChromeIdle, watchChromeIdle } from './utils/idleChrome';
 import { reportError } from './utils/logger';
 import VideoBrowser from './video/VideoBrowser';
+import { albumKey } from '../common/library/grouping';
+import { ILibraryTrack } from '../common/library/types';
 import LibraryWorkspace from './library/LibraryWorkspace';
 import { LibraryProvider } from './library/LibraryContext';
 import {
@@ -248,8 +250,13 @@ const readWorkspaceTab = (): TWorkspaceTab => {
  * button on the bar, so the flip from the current value to the next one
  * happens here rather than inside the view.
  */
-const ConnectedNowPlayingBar = () => {
+const ConnectedNowPlayingBar = ({
+  onReveal,
+}: {
+  onReveal: (track: ILibraryTrack) => void;
+}) => {
   const player = useLibraryPlayer();
+  const { track } = player;
   return (
     <NowPlayingBar
       track={player.track}
@@ -267,6 +274,7 @@ const ConnectedNowPlayingBar = () => {
       onShuffle={() => player.setShuffle(!player.isShuffled)}
       onRepeat={player.cycleRepeat}
       onVolume={player.setVolume}
+      onReveal={track ? () => onReveal(track) : undefined}
     />
   );
 };
@@ -505,6 +513,19 @@ const AppContent = () => {
   // Library follows the same lifetime rule: a scan started on this tab must
   // not be abandoned by switching away from it.
   const [hasOpenedLibrary, setHasOpenedLibrary] = useState(false);
+  // What the now-playing bar asked the Library to show. The nonce is what
+  // makes pressing it twice for the same album work: an id alone would look
+  // unchanged after the user had navigated away, and do nothing.
+  const [libraryReveal, setLibraryReveal] = useState<
+    { albumId: string; nonce: number } | undefined
+  >(undefined);
+  const revealPlayingTrack = useCallback((track: ILibraryTrack) => {
+    setActiveWorkspaceTab('library');
+    setLibraryReveal((current) => ({
+      albumId: albumKey(track),
+      nonce: (current?.nonce ?? 0) + 1,
+    }));
+  }, []);
   // Karaoke follows the same lifetime rule. Once audio and microphone capture
   // land here, leaving the tab must not tear either pipeline down.
   const [hasOpenedKaraoke, setHasOpenedKaraoke] = useState(false);
@@ -1490,8 +1511,11 @@ const AppContent = () => {
             {hasOpenedLibrary && (
               <LibraryProvider>
                 <LibraryPlayerProvider>
-                  <LibraryWorkspace isHidden={!isLibraryTab} />
-                  <ConnectedNowPlayingBar />
+                  <LibraryWorkspace
+                    isHidden={!isLibraryTab}
+                    revealRequest={libraryReveal}
+                  />
+                  <ConnectedNowPlayingBar onReveal={revealPlayingTrack} />
                 </LibraryPlayerProvider>
               </LibraryProvider>
             )}

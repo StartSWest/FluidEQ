@@ -44,6 +44,10 @@ export interface INowPlayingBarProps {
   onShuffle: () => void;
   onRepeat: () => void;
   onVolume: (value: number) => void;
+  /** Show the playing track where it lives — switches to the Library tab and
+   * opens the album it belongs to. Optional so the bar can be rendered on its
+   * own in a test without one. */
+  onReveal?: () => void;
   /** Real usage always supplies the live level; the bar's own tests never
    * need a working slider to exercise the behaviours they cover, so this
    * stays optional rather than forcing every caller to thread it through. */
@@ -243,6 +247,7 @@ const NowPlayingBar = ({
   onShuffle,
   onRepeat,
   onVolume,
+  onReveal,
   volume = 1,
   isUnplayable = false,
 }: INowPlayingBarProps) => {
@@ -322,13 +327,23 @@ const NowPlayingBar = ({
       aria-label={t('library.nowPlaying')}
     >
       <div className="now-playing-bar__track">
-        <LibraryCoverArt artId={track.artId} label={track.title} size="row" />
-        <div className="now-playing-bar__meta">
-          <span className="now-playing-bar__title">{track.title}</span>
-          <span className="now-playing-bar__artist">
-            {track.artist ?? t('library.unknownArtist')}
+        {/* The whole block is the control, not a link buried in the title:
+            it is the one thing on this bar that identifies what is playing,
+            so it is the obvious thing to press to go and find it. */}
+        <button
+          type="button"
+          className="now-playing-bar__reveal"
+          aria-label={`${t('library.reveal')} — ${track.title}`}
+          onClick={onReveal}
+        >
+          <LibraryCoverArt artId={track.artId} label={track.title} size="row" />
+          <span className="now-playing-bar__meta">
+            <span className="now-playing-bar__title">{track.title}</span>
+            <span className="now-playing-bar__artist">
+              {track.artist ?? t('library.unknownArtist')}
+            </span>
           </span>
-        </div>
+        </button>
         {isUnplayable && (
           <span className="now-playing-bar__unplayable" role="status">
             {t('library.unplayable')}
