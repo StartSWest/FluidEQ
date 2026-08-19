@@ -45,6 +45,7 @@ export * from './monotonicRoute';
 export * from './vocalRests';
 export * from './voiceOnsets';
 export * from './lyricRepetition';
+export * from './repeatConsistency';
 export * from './sentenceAlignment';
 export * from './apply';
 export * from './pitchRuns';

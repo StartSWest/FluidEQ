@@ -57,6 +57,7 @@ import {
   limitRouteCandidates,
   karaokeMakerSnapWordsToOnsets,
   karaokeMakerRepeatedRuns,
+  karaokeMakerInconsistentRepeatWords,
   karaokeMakerRepeatEdgeBreaks,
 } from '../../../renderer/karaoke/makerAi';
 import {
@@ -3764,6 +3765,76 @@ describe('Karaoke Maker hallucinations when the lyrics are supplied', () => {
     const aligned = applyWhisperTranscript(supplied(), [...invented, ...sung]);
 
     expect(firstWordStartMs(aligned)).toBe(3_000);
+  });
+});
+
+describe('Karaoke Maker repeated performances check each other', () => {
+  const HOOK = ['storm', 'over', 'water', 'tonight', 'again', 'falling'];
+  /** 28 distinct filler words, so the hook is surprising enough to count. */
+  const filler = Array.from({ length: 28 }, (_unused, index) =>
+    [
+      String.fromCharCode(97 + Math.floor(index / 5)),
+      String.fromCharCode(97 + (index % 5)),
+    ].join(''),
+  );
+  /** The hook performed evenly, six words half a second apart. */
+  const performance = (fromMs: number) =>
+    HOOK.map((text, index) => ({
+      text,
+      startMs: fromMs + index * 500,
+      endMs: fromMs + index * 500 + 400,
+    }));
+  const between = filler.map((text, index) => ({
+    text,
+    startMs: 3_000 + index * 1_200,
+    endMs: 3_000 + index * 1_200 + 400,
+  }));
+  const songOf = (
+    second: { text: string; startMs: number; endMs: number }[],
+  ) => [...performance(0), ...between, ...second];
+  const suspects = (
+    words: { text: string; startMs: number; endMs: number }[],
+  ) =>
+    karaokeMakerInconsistentRepeatWords(words, karaokeMakerRepeatedRuns(words));
+
+  it('leaves two performances that agree with each other alone', () => {
+    // Positive control, and the one that matters most: this runs on every
+    // song, and a check that flags an honest chorus would delete good timing
+    // from the songs it is meant to help.
+    expect(suspects(songOf(performance(40_000))).size).toBe(0);
+  });
+
+  it('distrusts the performance whose words collapsed onto one instant', () => {
+    // The measured failure: Whisper's timestamp head stops reporting and the
+    // whole window's words share a start, with the last one carrying the end.
+    // Each of those timings is individually plausible — inside voiced audio,
+    // no over-long span, correctly ordered — so nothing else here can see it.
+    // Put beside the other performance of the same six words, it is obvious.
+    const collapsed = HOOK.map((text, index) => ({
+      text,
+      startMs: index === HOOK.length - 1 ? 40_200 : 40_000,
+      endMs: index === HOOK.length - 1 ? 40_250 : 40_050,
+    }));
+    const flagged = suspects(songOf(collapsed));
+
+    // The second performance is words 34-39; the first is 0-5 and is sound.
+    expect([...flagged].sort((left, right) => left - right)).toEqual([
+      34, 35, 36, 37, 38, 39,
+    ]);
+  });
+
+  it('blames neither when the two are equally plausible', () => {
+    // A disagreement proves one of them is wrong, not which. Both keep what
+    // they had rather than having a coin flipped over them — 11 of the 76
+    // disagreements in the saved library land here.
+    const reshuffled = HOOK.map((text, index) => ({
+      text,
+      // Same span and same pace, a different distribution inside it.
+      startMs: 40_000 + (index < 5 ? index * 60 : 2_500),
+      endMs: 40_000 + (index < 5 ? index * 60 + 400 : 2_900),
+    }));
+
+    expect(suspects(songOf(reshuffled)).size).toBe(0);
   });
 });
 

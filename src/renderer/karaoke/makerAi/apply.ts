@@ -42,6 +42,7 @@ import {
   karaokeMakerRepeatEdgeBreaks,
   karaokeMakerRepeatedRuns,
 } from './lyricRepetition';
+import { karaokeMakerInconsistentRepeatWords } from './repeatConsistency';
 import {
   alignLyricsBySentence,
   distributeAlignmentWordTiming,
@@ -132,9 +133,21 @@ export const applyTranscriptAsLyrics = (
   // Whisper says which word and roughly when; the voice says exactly when.
   // A word is moved only to an onset it can reach without overtaking its
   // predecessor, so one that has no sound near it keeps what it had.
+  const repeats = karaokeMakerRepeatedRuns(heard);
+  // A phrase the singer performs twice is the song checking its own timing.
+  // Where the two performances disagree about the shape of the phrase, the
+  // one further from this singer's pace loses its timestamps — the word is
+  // still sung and still becomes a lyric, it just no longer claims to know
+  // when. The melody repair and the onset snap can answer that; a confidently
+  // wrong timestamp stops either of them from trying.
+  const contradicted = karaokeMakerInconsistentRepeatWords(heard, repeats);
   const words = karaokeMakerSnapWordsToOnsets(
     placeTranscriptWords(heard, project.audio.durationMs ?? 0),
     onsets,
+  ).map((word, index) =>
+    contradicted.has(index)
+      ? { ...word, startMs: undefined, endMs: undefined }
+      : word,
   );
   // A line breaks where the singer stops, and the isolated voice is what says
   // where that is. 700 ms between two of Whisper's own timestamps is a breath
@@ -175,7 +188,7 @@ export const applyTranscriptAsLyrics = (
     heard,
     rests,
     segments.map((segment) => segment.endMs),
-    karaokeMakerRepeatEdgeBreaks(karaokeMakerRepeatedRuns(heard), heard.length),
+    karaokeMakerRepeatEdgeBreaks(repeats, heard.length),
     fromWords,
   );
   const lines: IKaraokeMakerTranscriptPlacement[][] = [[]];
@@ -251,10 +264,19 @@ export const applyWhisperTranscript = (
     // supplied lyrics guarantee that whatever Whisper invented gets matched to
     // whichever line it resembles. "Thank you." over a silent intro timed the
     // song's first real "you" into the instrumental.
-    const heard = karaokeMakerSnapWordsToOnsets(
+    const snapped = karaokeMakerSnapWordsToOnsets(
       karaokeMakerWordsInsideRests(pass, rests),
       onsets,
     );
+    // On this path a contradicted word is dropped outright rather than
+    // stripped of its timing: the lyrics are already written, so the word
+    // carries no text worth keeping — only evidence, and this is evidence the
+    // song itself contradicts.
+    const contradicted = karaokeMakerInconsistentRepeatWords(
+      snapped,
+      karaokeMakerRepeatedRuns(snapped),
+    );
+    const heard = snapped.filter((_word, index) => !contradicted.has(index));
     const transcriptOffsetMs = heard.length
       ? karaokeMakerAnalysisOffsetMs(
           project,
