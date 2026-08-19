@@ -232,6 +232,8 @@ export const applyWhisperTranscript = (
   transcript: readonly IKaraokeMakerTranscriptWord[] & {
     passes?: readonly (readonly IKaraokeMakerTranscriptWord[])[];
   },
+  rests: readonly IKaraokeMakerVocalRest[] = [],
+  onsets: readonly number[] = [],
 ): IKaraokeMakerProject => {
   const alignmentGroups = karaokeMakerAlignmentWords(project);
   const existing = alignmentGroups.map(({ word }) => word);
@@ -239,14 +241,28 @@ export const applyWhisperTranscript = (
     ? transcript.passes
     : [transcript];
   const alignmentPasses = sourcePasses.map((pass) => {
-    const transcriptOffsetMs = pass.length
+    // Both of these were measured on the stem, so both belong before the
+    // project offset is applied — after it the words are in project time and
+    // the evidence is not.
+    //
+    // The authoring path had them and this one did not, which is backwards:
+    // there, an invented word becomes a visible lyric line the user can see
+    // and delete. Here it silently steals a real word's timing, because the
+    // supplied lyrics guarantee that whatever Whisper invented gets matched to
+    // whichever line it resembles. "Thank you." over a silent intro timed the
+    // song's first real "you" into the instrumental.
+    const heard = karaokeMakerSnapWordsToOnsets(
+      karaokeMakerWordsInsideRests(pass, rests),
+      onsets,
+    );
+    const transcriptOffsetMs = heard.length
       ? karaokeMakerAnalysisOffsetMs(
           project,
-          Math.min(...pass.map((word) => word.startMs)),
+          Math.min(...heard.map((word) => word.startMs)),
         )
       : 0;
     const shifted = constrainTranscriptWords(
-      pass.map((word) => ({
+      heard.map((word) => ({
         ...word,
         startMs: word.startMs + transcriptOffsetMs,
         endMs: word.endMs + transcriptOffsetMs,

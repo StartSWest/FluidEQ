@@ -528,21 +528,19 @@ export const useMakerAnalysisRun = ({
       // file — so this costs a pass over the samples and nothing else.
       let vocalRests: IKaraokeMakerVocalRest[] = [];
       let voiceOnsets: number[] = [];
-      if (!flattenTokens(beforeTranscript).length) {
-        try {
-          const voice = await decodeMono(analysisFile, 16_000);
-          vocalRests = karaokeMakerVocalRests(voice, 16_000);
-          // Where each sound begins, which is where a word begins. The stem is
-          // sample-aligned with the song, so an instant found here is that
-          // instant in the song — no timestamp is involved.
-          voiceOnsets = karaokeMakerVoiceOnsets(voice, 16_000);
-          reportInfo(
-            `[karaoke][whisper] vocal.rests count=${vocalRests.length} onsets=${voiceOnsets.length}`,
-          );
-        } catch (error) {
-          // Line breaks fall back to Whisper's own gaps and punctuation.
-          reportInfo(`[karaoke][whisper] vocal.rests.failed ${String(error)}`);
-        }
+      try {
+        const voice = await decodeMono(analysisFile, 16_000);
+        vocalRests = karaokeMakerVocalRests(voice, 16_000);
+        // Where each sound begins, which is where a word begins. The stem is
+        // sample-aligned with the song, so an instant found here is that
+        // instant in the song — no timestamp is involved.
+        voiceOnsets = karaokeMakerVoiceOnsets(voice, 16_000);
+        reportInfo(
+          `[karaoke][whisper] vocal.rests count=${vocalRests.length} onsets=${voiceOnsets.length}`,
+        );
+      } catch (error) {
+        // Line breaks fall back to Whisper's own gaps and punctuation.
+        reportInfo(`[karaoke][whisper] vocal.rests.failed ${String(error)}`);
       }
       // Fitting the transcript onto the lyrics is work, and it used to happen
       // after the bar had already reached the end of its transcription share
@@ -550,7 +548,12 @@ export const useMakerAnalysisRun = ({
       // repeats a line a hundred times it was the only thing still running.
       setAnalysisMessage(t('karaoke.maker.whisperAligning'));
       let completedProject = flattenTokens(beforeTranscript).length
-        ? applyWhisperTranscript(beforeTranscript, transcript)
+        ? applyWhisperTranscript(
+            beforeTranscript,
+            transcript,
+            vocalRests,
+            voiceOnsets,
+          )
         : applyTranscriptAsLyrics(
             beforeTranscript,
             transcript,

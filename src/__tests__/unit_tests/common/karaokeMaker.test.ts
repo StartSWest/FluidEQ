@@ -3703,6 +3703,70 @@ describe('Karaoke Maker hallucinations over instrumental audio', () => {
   });
 });
 
+describe('Karaoke Maker hallucinations when the lyrics are supplied', () => {
+  /** Words the singer performs from 20 s, over a stem silent until 19 s. */
+  const sung = [
+    { text: 'thank', startMs: 20_000, endMs: 20_400 },
+    { text: 'you', startMs: 20_420, endMs: 20_800 },
+    { text: 'for', startMs: 20_820, endMs: 21_100 },
+    { text: 'the', startMs: 21_120, endMs: 21_300 },
+    { text: 'storm', startMs: 21_320, endMs: 21_900 },
+  ];
+  /**
+   * What Whisper answers the silent intro with, over separation residue: not
+   * a stray word — an isolated fragment is already rejected for being one —
+   * but a whole plausible line, which is what the idle loop actually emits
+   * once it has the song's own words in its context.
+   */
+  const invented = [
+    { text: 'thank', startMs: 3_000, endMs: 3_400 },
+    { text: 'you', startMs: 3_420, endMs: 3_800 },
+    { text: 'for', startMs: 3_820, endMs: 4_100 },
+    { text: 'the', startMs: 4_120, endMs: 4_300 },
+    { text: 'storm', startMs: 4_320, endMs: 4_900 },
+  ];
+  const supplied = (): IKaraokeMakerProject => {
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = makerLinesFromPlainText('thank you for the storm');
+    return project;
+  };
+  const firstWordStartMs = (project: IKaraokeMakerProject) =>
+    project.lyrics.lines[0].tokens[0].startMs;
+
+  it('refuses a transcript word heard where the voice is silent', () => {
+    // The authoring path filtered these and this one did not, which is
+    // backwards: there an invented word becomes a visible line the user can
+    // delete, while here the supplied lyrics guarantee it is matched to
+    // whatever it resembles — so "Thank you." in the intro took the timing of
+    // the song's real "thank you" and dragged the line 17 seconds early.
+    const aligned = applyWhisperTranscript(
+      supplied(),
+      [...invented, ...sung],
+      [{ startMs: 0, endMs: 19_000 }],
+    );
+
+    expect(firstWordStartMs(aligned)).toBe(20_000);
+  });
+
+  it('times the song from the transcript when the stem was never measured', () => {
+    // Positive control: with no rests the filter must change nothing, or
+    // "everything was dropped" would pass the assertion above just as well.
+    const aligned = applyWhisperTranscript(supplied(), sung);
+
+    expect(firstWordStartMs(aligned)).toBe(20_000);
+  });
+
+  it('proves the intro word is what the rests removed', () => {
+    // Second control: the same transcript without the filter really does put
+    // the line in the intro, so the test above is measuring the fix and not a
+    // heuristic that was already rejecting those words for its own reasons.
+    const aligned = applyWhisperTranscript(supplied(), [...invented, ...sung]);
+
+    expect(firstWordStartMs(aligned)).toBe(3_000);
+  });
+});
+
 describe('Karaoke Maker held notes', () => {
   it('lets a singer hold one syllable without truncating it', () => {
     expect(karaokeMakerMaximumAutomaticWordDurationMs('I')).toBeGreaterThan(
