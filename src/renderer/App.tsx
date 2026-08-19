@@ -262,6 +262,7 @@ const ConnectedNowPlayingBar = () => {
       isUnplayable={player.isUnplayable}
       onToggle={player.toggle}
       onSkip={player.skip}
+      onStop={player.stop}
       onSeek={player.seek}
       onShuffle={() => player.setShuffle(!player.isShuffled)}
       onRepeat={player.cycleRepeat}

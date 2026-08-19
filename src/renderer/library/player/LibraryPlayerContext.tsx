@@ -97,6 +97,16 @@ export interface ILibraryPlayerContextValue {
    * inside an album hands the album's own track ids, a filtered search hands
    * the filtered list. */
   playTracks: (trackIds: readonly string[], startTrackId: string) => void;
+  /**
+   * Clears the queue entirely — the one control that always ends playback
+   * and returns the Library tab to browsing, wherever it currently is.
+   * Setting `queue` to `undefined` drops `trackId`/`track`/`videoTrackId`
+   * together in the same render, so `LibraryVideoStage` unmounts (its own
+   * cleanup pauses and releases the `<video>`, see `registerVideoElement`)
+   * and every browse view's `!videoTrackId` gate opens back up — the escape
+   * hatch a video queue with no next track otherwise has none of.
+   */
+  stop: () => void;
   toggle: () => void;
   skip: (direction: 1 | -1) => void;
   seek: (positionMs: number) => void;
@@ -230,17 +240,33 @@ export const LibraryPlayerProvider = ({
       const onPlay = () => setIsPlaying(true);
       const onPause = () => setIsPlaying(false);
       const onEnded = () => handleEnded(element);
+      // A track whose file the element cannot actually load — the drive it
+      // lives on unplugged after the scan that found it, a permissions
+      // error, a 404 from the protocol handler — fires `error`, never
+      // `ended`. Nothing before this listener existed answered it: the bar
+      // loaded, showed Play, and a click did nothing forever, with no
+      // message and no log line. Reuses `isUnplayable`, the same flag and
+      // the same "cannot play this format" message the `!track.isPlayable`
+      // branch below already shows for a codec Chromium has no demuxer for
+      // — from here, a missing file and an undecodable one look the same to
+      // the person looking at the bar.
+      const onError = () => {
+        setIsUnplayable(true);
+        setIsPlaying(false);
+      };
       element.addEventListener('timeupdate', onTimeUpdate);
       element.addEventListener('loadedmetadata', onLoadedMetadata);
       element.addEventListener('play', onPlay);
       element.addEventListener('pause', onPause);
       element.addEventListener('ended', onEnded);
+      element.addEventListener('error', onError);
       return () => {
         element.removeEventListener('timeupdate', onTimeUpdate);
         element.removeEventListener('loadedmetadata', onLoadedMetadata);
         element.removeEventListener('play', onPlay);
         element.removeEventListener('pause', onPause);
         element.removeEventListener('ended', onEnded);
+        element.removeEventListener('error', onError);
       };
     },
     [handleEnded],
@@ -331,6 +357,40 @@ export const LibraryPlayerProvider = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate, see the comment above this effect.
   }, [trackId]);
 
+  /**
+   * Catches the one case the effect above cannot: `trackId` staying exactly
+   * where it is while `track` disappears from under it — `library-root-remove`
+   * (`ipc/library.ts`) deletes a root's tracks outright, so `trackById.get(trackId)`
+   * starts returning `undefined` with no change to the queue that would
+   * re-run the loader effect. Left alone, the hidden `Audio()` keeps whatever
+   * `src` it already had — playing, with no bar and no controls, reachable
+   * only by quitting.
+   *
+   * Deliberately its own effect, keyed on the transition into "track missing"
+   * rather than on `track` itself: adding `track` to the effect above was
+   * rejected on purpose (its own comment explains why — a rescan refreshing
+   * this same track's tags must not restart what is already playing), and
+   * `[track === undefined]` only fires on the one edge that actually matters
+   * instead of on every `trackById` update a rescan produces.
+   */
+  useEffect(() => {
+    const audio = audioElementRef.current;
+    if (!audio || !trackId || track) {
+      return;
+    }
+    audio.pause();
+    audio.removeAttribute('src');
+    setIsPlaying(false);
+    setIsUnplayable(false);
+    setDurationMs(0);
+    setPositionMs(0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the missing-track transition only; see the comment above.
+  }, [track === undefined]);
+
+  const stop = useCallback(() => {
+    setQueue(undefined);
+  }, []);
+
   const playTracks = useCallback(
     (trackIds: readonly string[], startTrackId: string) => {
       setQueue((current) => {
@@ -406,6 +466,7 @@ export const LibraryPlayerProvider = ({
       videoTrackId,
       isUnplayable,
       playTracks,
+      stop,
       toggle,
       skip,
       seek,
@@ -424,6 +485,7 @@ export const LibraryPlayerProvider = ({
       videoTrackId,
       isUnplayable,
       playTracks,
+      stop,
       toggle,
       skip,
       seek,

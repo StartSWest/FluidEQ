@@ -31,6 +31,7 @@ const bar = (over: Partial<React.ComponentProps<typeof NowPlayingBar>> = {}) =>
         isShuffled={false}
         onToggle={jest.fn()}
         onSkip={jest.fn()}
+        onStop={jest.fn()}
         onSeek={jest.fn()}
         onShuffle={jest.fn()}
         onRepeat={jest.fn()}
@@ -82,6 +83,7 @@ describe('the now playing bar', () => {
           isShuffled={false}
           onToggle={jest.fn()}
           onSkip={jest.fn()}
+          onStop={jest.fn()}
           onSeek={jest.fn()}
           onShuffle={jest.fn()}
           onRepeat={jest.fn()}
@@ -92,5 +94,18 @@ describe('the now playing bar', () => {
     // A permanent empty strip across every tab is a worse tax than the bar is
     // a benefit. It appears with the music and leaves with it.
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('offers a Stop that clears the queue entirely (blocker 1)', async () => {
+    // The state-machine bug this guards: a video queue that reaches either
+    // end with `repeat: 'off'` has nothing that ever clears `videoTrackId`
+    // (see `LibraryWorkspace`'s gating and `advanceQueue`'s hold-at-the-edge
+    // behaviour) except this control. A happy-path render assertion would
+    // never see that — only a real click on Stop proves the bar exposes a
+    // way out at all.
+    const onStop = jest.fn();
+    bar({ onStop });
+    await userEvent.click(screen.getByRole('button', { name: 'Stop' }));
+    expect(onStop).toHaveBeenCalledTimes(1);
   });
 });

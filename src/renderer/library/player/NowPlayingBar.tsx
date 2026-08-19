@@ -33,6 +33,13 @@ export interface INowPlayingBarProps {
   isShuffled: boolean;
   onToggle: () => void;
   onSkip: (direction: 1 | -1) => void;
+  /** Clears the queue entirely — the one always-visible way out of a video
+   * that has taken over the Library tab with nothing queued after it. See
+   * `LibraryPlayerContext.stop`'s own comment for why this, and not a
+   * close button on the video stage, is the fix: this bar is mounted above
+   * every tab, so Stop works from wherever the queue was left, not only
+   * from the Library tab itself. */
+  onStop: () => void;
   onSeek: (positionMs: number) => void;
   onShuffle: () => void;
   onRepeat: () => void;
@@ -66,7 +73,14 @@ const REPEAT_LABEL_KEYS = {
 } as const;
 
 type TTransportIcon =
-  'previous' | 'play' | 'pause' | 'next' | 'shuffle' | 'repeat' | 'volume';
+  | 'previous'
+  | 'play'
+  | 'pause'
+  | 'next'
+  | 'stop'
+  | 'shuffle'
+  | 'repeat'
+  | 'volume';
 
 /**
  * Compact transport glyphs, sized for a 34px circular button — the same
@@ -139,6 +153,17 @@ const TransportIcon = ({ name }: { name: TTransportIcon }) => {
           rx="1"
         />
       </>
+    );
+  } else if (name === 'stop') {
+    drawing = (
+      <rect
+        className="now-playing-bar__icon-fill"
+        x="7"
+        y="7"
+        width="10"
+        height="10"
+        rx="1.5"
+      />
     );
   } else if (name === 'volume') {
     drawing = (
@@ -213,6 +238,7 @@ const NowPlayingBar = ({
   isShuffled,
   onToggle,
   onSkip,
+  onStop,
   onSeek,
   onShuffle,
   onRepeat,
@@ -329,6 +355,19 @@ const NowPlayingBar = ({
             onClick={() => onSkip(1)}
           >
             <TransportIcon name="next" />
+          </button>
+          {/* The one control that always ends the dead end a video with
+              nothing queued after it leaves the Library tab in — see
+              `LibraryPlayerContext.stop`'s own comment for why this bar, not
+              a close button on the video stage, is where that fix lives. */}
+          <button
+            type="button"
+            className="now-playing-bar__control"
+            aria-label={t('library.stop')}
+            title={t('library.stop')}
+            onClick={onStop}
+          >
+            <TransportIcon name="stop" />
           </button>
         </div>
 

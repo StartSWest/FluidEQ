@@ -64,6 +64,10 @@ const mediaPlay = jest.fn().mockResolvedValue(undefined);
 const mediaPause = jest.fn();
 
 let latestPlayer: ILibraryPlayerContextValue | undefined;
+/** Captured from the mocked `onLibraryIndexChanged` subscription so a test
+ * can simulate `library-index-changed` arriving mid-playback — the same
+ * event a real root removal delivers — without going through any IPC. */
+let indexChangedHandler: ((next: ILibraryIndex) => void) | undefined;
 
 /** Reads the context so the test can drive it directly, and renders the
  * stage so a real `<video>` element exists to assert on — the same pairing
@@ -87,6 +91,7 @@ beforeAll(() => {
 
 beforeEach(() => {
   latestPlayer = undefined;
+  indexChangedHandler = undefined;
   mediaPlay.mockClear();
   mediaPause.mockClear();
   const initialIndex: ILibraryIndex = {
@@ -107,7 +112,10 @@ beforeEach(() => {
       getLibraryIndex: () =>
         Promise.resolve({ index: initialIndex, wasReset: false }),
       onLibraryScanProgress: () => () => undefined,
-      onLibraryIndexChanged: () => () => undefined,
+      onLibraryIndexChanged: (handler: (next: ILibraryIndex) => void) => {
+        indexChangedHandler = handler;
+        return () => undefined;
+      },
       // `LibraryVideoStage` listens for 'window-state-changed' the moment it
       // mounts.
       on: (_channel: string, _func: (...args: unknown[]) => void) => () => {},
@@ -174,5 +182,109 @@ describe('leaving a video behind (Task 19 fix-round)', () => {
     // moved off the video rather than one stray element happening to get
     // cleaned up while another still renders.
     expect(document.querySelector('video')).toBeNull();
+  });
+});
+
+describe('the dead end a video with nothing next leaves behind (blocker 1)', () => {
+  it('lets Stop clear a video-only queue that reached its own end', async () => {
+    renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // A queue built from the video alone, exactly what the Videos shelf's
+    // own folder-grouped queue looks like once every other track in it has
+    // already played.
+    act(() => {
+      latestPlayer?.playTracks([videoTrack.id], videoTrack.id);
+    });
+    expect(document.querySelector('video')).not.toBeNull();
+
+    // `repeat` defaults to 'off' and `advanceQueue` holds position at the
+    // last track rather than clearing it -- the exact dead end blocker 1
+    // describes: every browse view stays gated on `videoTrackId` forever,
+    // with nothing in the queue itself that ever unsets it.
+    act(() => {
+      latestPlayer?.skip(1);
+    });
+    expect(latestPlayer?.videoTrackId).toBe(videoTrack.id);
+
+    act(() => {
+      latestPlayer?.stop();
+    });
+
+    expect(latestPlayer?.videoTrackId).toBeUndefined();
+    expect(latestPlayer?.track).toBeUndefined();
+    expect(latestPlayer?.queue).toBeUndefined();
+    // The stage itself unmounts along with the queue clearing -- the tab
+    // actually gets back to browsing, not just an id flipping in state.
+    expect(document.querySelector('video')).toBeNull();
+  });
+});
+
+describe('a root removed while its track is playing (blocker 2)', () => {
+  it('pauses the hidden audio element and hides the bar even though trackId never changes', async () => {
+    renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      latestPlayer?.playTracks([audioTrack.id], audioTrack.id);
+    });
+    expect(latestPlayer?.track?.id).toBe(audioTrack.id);
+    // Clears the calls the loader effect above already made on its own
+    // unconditional `audio.pause()` at the top of every track change, so
+    // the assertion below can only pass if the new, separate effect is what
+    // paused it a second time.
+    mediaPause.mockClear();
+
+    // `library-root-remove` deletes every track under the removed root and
+    // broadcasts the same `library-index-changed` event a rescan does. The
+    // queue itself is untouched -- `trackId` still names `audioTrack.id` --
+    // only what `trackById` resolves that id to has changed, which is
+    // exactly the case the `[trackId]`-keyed loader effect cannot see.
+    const emptiedIndex: ILibraryIndex = {
+      version: 1,
+      roots: [],
+      tracks: [videoTrack],
+    };
+    act(() => {
+      indexChangedHandler?.(emptiedIndex);
+    });
+
+    // The queue's own `trackIds` never moved -- confirms this really is the
+    // "trackId unchanged, track gone" case and not an incidental skip.
+    expect(latestPlayer?.queue?.trackIds).toEqual([audioTrack.id]);
+    expect(latestPlayer?.track).toBeUndefined();
+    expect(mediaPause).toHaveBeenCalled();
+  });
+});
+
+describe('a track whose file will not load (blocker 4)', () => {
+  it('surfaces the same unplayable message the codec-unplayable path uses', async () => {
+    renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      latestPlayer?.playTracks([videoTrack.id], videoTrack.id);
+    });
+    expect(latestPlayer?.isUnplayable).toBe(false);
+
+    // The hidden `Audio()` element lives in a ref, never the DOM, so a real
+    // 404 from the protocol handler cannot be dispatched at it from here --
+    // the video element `LibraryVideoStage` mounts is bound through the
+    // exact same `bindMediaEvents` call, so firing `error` on it exercises
+    // the identical listener under test.
+    const videoElement = document.querySelector('video');
+    expect(videoElement).not.toBeNull();
+    act(() => {
+      videoElement?.dispatchEvent(new Event('error'));
+    });
+
+    expect(latestPlayer?.isUnplayable).toBe(true);
+    expect(latestPlayer?.isPlaying).toBe(false);
   });
 });
