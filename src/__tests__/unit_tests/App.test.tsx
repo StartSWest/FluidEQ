@@ -162,8 +162,9 @@ describe('App', () => {
     await act(async () => Promise.resolve());
     const tabs = screen.getAllByRole('tab');
 
-    expect(tabs.slice(-3).map((tab) => tab.textContent)).toEqual([
+    expect(tabs.slice(-4).map((tab) => tab.textContent)).toEqual([
       'Media',
+      'Library',
       'Karaoke',
       'Config',
     ]);
