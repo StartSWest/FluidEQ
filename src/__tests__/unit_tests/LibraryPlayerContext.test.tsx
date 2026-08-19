@@ -63,6 +63,10 @@ const audioTrack: ILibraryTrack = {
 const mediaPlay = jest.fn().mockResolvedValue(undefined);
 const mediaPause = jest.fn();
 
+/** Every `currentTime` assignment any media element receives, in order — see
+ * the test that reads it for what an entry during the load would mean. */
+const currentTimeSets: number[] = [];
+
 let latestPlayer: ILibraryPlayerContextValue | undefined;
 /** Captured from the mocked `onLibraryIndexChanged` subscription so a test
  * can simulate `library-index-changed` arriving mid-playback — the same
@@ -87,6 +91,17 @@ beforeAll(() => {
     configurable: true,
     value: mediaPause,
   });
+  // jsdom leaves `currentTime` a plain data property, so recording it needs a
+  // real accessor rather than a spy.
+  let held = 0;
+  Object.defineProperty(HTMLMediaElement.prototype, 'currentTime', {
+    configurable: true,
+    get: () => held,
+    set: (value: number) => {
+      held = value;
+      currentTimeSets.push(value);
+    },
+  });
 });
 
 beforeEach(() => {
@@ -94,6 +109,7 @@ beforeEach(() => {
   indexChangedHandler = undefined;
   mediaPlay.mockClear();
   mediaPause.mockClear();
+  currentTimeSets.length = 0;
   const initialIndex: ILibraryIndex = {
     version: 1,
     roots: [
@@ -258,6 +274,46 @@ describe('a root removed while its track is playing (blocker 2)', () => {
     expect(latestPlayer?.queue?.trackIds).toEqual([audioTrack.id]);
     expect(latestPlayer?.track).toBeUndefined();
     expect(mediaPause).toHaveBeenCalled();
+  });
+});
+
+describe('loading a track', () => {
+  it('never assigns a position on the same tick as the source', async () => {
+    // This is what made seeking impossible, and it cost a long hunt to find
+    // because every layer above it looked right: the bar reported the correct
+    // value, `seek` was called with it, and `element.currentTime = 101.7` ran
+    // — and the element silently refused it and stayed at zero.
+    //
+    // Measured against the real thing in the running window, three elements
+    // pointed at one file:
+    //
+    //   src, currentTime = 0, play()  ->  seekable.end = 0,      seek lands at 0.87
+    //   src, play()                   ->  seekable.end = 168.88, seek lands at 100.91
+    //   src, preload = "metadata"     ->  seekable.end = 168.88, seek lands at 100
+    //
+    // A position assigned while the element is still at `HAVE_NOTHING` leaves
+    // its seekable range empty for the whole of that load, and every later
+    // seek is dropped. jsdom has no such behaviour to reproduce, so what is
+    // asserted here is the cause rather than the symptom: the loader must not
+    // touch `currentTime` at all.
+    renderHarness();
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      latestPlayer?.playTracks([audioTrack.id], audioTrack.id);
+    });
+
+    expect(currentTimeSets).toEqual([]);
+
+    // The control the assertion above needs: proof the recorder is wired to
+    // the property the loader would have used, so an empty list means "the
+    // loader did not assign one" rather than "nothing here can see it".
+    act(() => {
+      latestPlayer?.seek(101_700);
+    });
+    expect(currentTimeSets).toEqual([101.7]);
   });
 });
 

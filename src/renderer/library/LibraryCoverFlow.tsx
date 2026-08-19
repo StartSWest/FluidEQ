@@ -225,7 +225,7 @@ const LibraryCoverFlow = ({
   tracks,
   browseMode,
   onPlayTrack,
-  sort = 'title',
+  sort,
   sortDirection = 'asc',
   openId,
   onOpenChange,
@@ -279,7 +279,8 @@ const LibraryCoverFlow = ({
   // for the scan-tick re-render this avoids repeating.
   const items: ICoverFlowItem[] = useMemo(() => {
     if (browseMode === 'album') {
-      return sortAlbums(groupIntoAlbums(tracks), sort, sortDirection).map(
+      const grouped = groupIntoAlbums(tracks);
+      return (sort ? sortAlbums(grouped, sort, sortDirection) : grouped).map(
         (album) => ({
           id: album.id,
           artId: album.artId,
@@ -290,7 +291,8 @@ const LibraryCoverFlow = ({
       );
     }
     if (browseMode === 'artist') {
-      return sortArtists(groupIntoArtists(tracks), sort, sortDirection).map(
+      const grouped = groupIntoArtists(tracks);
+      return (sort ? sortArtists(grouped, sort, sortDirection) : grouped).map(
         (artist) => ({
           id: artist.id,
           artId: artist.artId,

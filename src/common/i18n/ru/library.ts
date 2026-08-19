@@ -42,6 +42,7 @@ const library: Partial<Dictionary> = {
   'library.browse.folder': 'Папки',
   'library.jumpTo': 'Перейти к букве',
   'library.folderCount': 'Папок: {count}',
+  'library.filterHere': 'Фильтр по этим песням',
   'library.groupByFolder': 'Группировать по папке',
   'library.view.list': 'Список',
   'library.view.grid': 'Сетка',

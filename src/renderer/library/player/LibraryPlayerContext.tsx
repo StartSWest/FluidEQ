@@ -59,6 +59,11 @@ import {
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
 import { ILibraryTrack } from '../../../common/library/types';
 import { useLibrary } from '../LibraryContext';
+import {
+  readPlaybackMemory,
+  restorablePositionMs,
+  writePlaybackMemory,
+} from './playbackMemory';
 
 const REPEAT_CYCLE: readonly TLibraryRepeat[] = ['off', 'all', 'one'];
 
@@ -190,6 +195,24 @@ export const LibraryPlayerProvider = ({
     queueRef.current = queue;
   }, [queue]);
 
+  /**
+   * Where the last session left off, waiting for the element to be ready for
+   * it.
+   *
+   * Applied on `loadedmetadata`, never at load time — assigning a position
+   * while the element is still at `HAVE_NOTHING` is exactly what emptied the
+   * seekable range and broke seeking for the whole of that load; see the
+   * loader's own comment. Cleared as soon as it is used, so it can only ever
+   * move the playhead once.
+   */
+  const pendingRestore = useRef<
+    { trackId: string; positionMs: number } | undefined
+  >(undefined);
+  /** True until the stored session has been read back. Nothing is written
+   * before that, or the first render's empty queue would erase the very
+   * thing being restored. */
+  const isRestoringRef = useRef(true);
+
   const volumeRef = useRef(volume);
   useEffect(() => {
     volumeRef.current = volume;
@@ -203,6 +226,86 @@ export const LibraryPlayerProvider = ({
 
   const trackId = queue ? currentTrackId(queue) : undefined;
   const track = trackId ? trackById.get(trackId) : undefined;
+
+  /**
+   * Puts the last session's queue and playhead back, once.
+   *
+   * Waits for the index, because a queue is a list of ids and every one of
+   * them has to still exist — a rescan that dropped the folder must leave
+   * the player empty rather than pointing at files that are gone. Runs while
+   * `index.tracks` is empty on the very first render and simply does nothing,
+   * then again when the index arrives.
+   */
+  useEffect(() => {
+    if (!isRestoringRef.current || index.tracks.length === 0) {
+      return;
+    }
+    isRestoringRef.current = false;
+    const memory = readPlaybackMemory();
+    if (!memory) {
+      return;
+    }
+    const survivors = memory.trackIds.filter((id) => trackById.has(id));
+    if (survivors.length !== memory.trackIds.length) {
+      // The library moved under it. Rebuilding a partial queue would silently
+      // renumber `order` and put the reader on a different song than the one
+      // they left, which is worse than starting empty.
+      return;
+    }
+    const restoreTrackId = memory.trackIds[memory.order[memory.position]];
+    const restoreMs = restorablePositionMs(
+      memory.positionMs,
+      trackById.get(restoreTrackId)?.durationMs,
+    );
+    if (restoreMs !== undefined) {
+      pendingRestore.current = {
+        trackId: restoreTrackId,
+        positionMs: restoreMs,
+      };
+      setPositionMs(restoreMs);
+    }
+    setQueue({
+      trackIds: memory.trackIds,
+      order: memory.order,
+      position: memory.position,
+      repeat: memory.repeat,
+      isShuffled: memory.isShuffled,
+    });
+  }, [index.tracks, trackById]);
+
+  /**
+   * Records what is playing and how far in.
+   *
+   * On the queue rather than on `positionMs`, which changes four times a
+   * second — the position is read at that moment through a ref, and the
+   * `pagehide` listener below catches the far more common case of the window
+   * simply going away mid-track.
+   */
+  const positionRef = useRef(positionMs);
+  positionRef.current = positionMs;
+  useEffect(() => {
+    if (isRestoringRef.current) {
+      return;
+    }
+    writePlaybackMemory(queue, positionRef.current);
+  }, [queue]);
+
+  useEffect(() => {
+    const save = () => {
+      if (!isRestoringRef.current) {
+        writePlaybackMemory(queueRef.current, positionRef.current);
+      }
+    };
+    // `pagehide` rather than `beforeunload`: it fires on the reload a hot
+    // rebuild triggers as well as on the window closing, and unlike
+    // `unload` it is not skipped when the page goes into the back/forward
+    // cache.
+    window.addEventListener('pagehide', save);
+    return () => {
+      window.removeEventListener('pagehide', save);
+      save();
+    };
+  }, []);
   // Gated on `isPlayable` too: an mkv or avi is `kind === 'video'` exactly
   // like an mp4, but Chromium has no demuxer for it. Without this check
   // `LibraryVideoStage` would still mount a `<video src=...>` for a file it
@@ -266,10 +369,20 @@ export const LibraryPlayerProvider = ({
       // The underlying cause was the media protocol dropping Range headers
       // (see `libraryProtocol`); this is what stops the same symptom from
       // surviving anything else that makes a first read look unbounded.
-      const onDuration = () =>
+      const onDuration = () => {
         setDurationMs(
           Number.isFinite(element.duration) ? element.duration * 1000 : 0,
         );
+        // The one safe moment to put the playhead back where the last session
+        // left it: the ranges are known now, so the seek lands instead of
+        // being silently dropped.
+        const restore = pendingRestore.current;
+        if (restore !== undefined) {
+          pendingRestore.current = undefined;
+          element.currentTime = restore.positionMs / 1000;
+          setPositionMs(restore.positionMs);
+        }
+      };
       const onPlay = () => setIsPlaying(true);
       const onPause = () => setIsPlaying(false);
       const onEnded = () => handleEnded(element);
@@ -387,7 +500,44 @@ export const LibraryPlayerProvider = ({
       return;
     }
     audio.src = libraryMediaUrl('track', track.id);
-    audio.currentTime = 0;
+    // No `audio.currentTime = 0` here, and this is not tidiness: assigning a
+    // position on the same tick as the source is what made seeking
+    // impossible for the whole life of that load.
+    //
+    // Measured in the running window, three elements against one file:
+    //
+    //   src, currentTime = 0, play()  ->  seekable.end = 0,      seek to 100s lands at 0.87
+    //   src, play()                   ->  seekable.end = 168.88, seek to 100s lands at 100.91
+    //   src, preload = "metadata"     ->  seekable.end = 168.88, seek to 100s lands at 100
+    //
+    // The element is at `HAVE_NOTHING` when the assignment lands, so the seek
+    // is recorded against a resource whose ranges are not known yet, and the
+    // seekable range comes back empty and stays empty — every later
+    // `currentTime` is then silently refused, which is exactly what the seek
+    // bar snapping back to nothing looked like. A freshly assigned `src`
+    // already starts at zero, so the line bought nothing to begin with.
+    //
+    // A restored session loads but does not play. Coming back to the app and
+    // having it start making noise on its own is the wrong side of the line
+    // between "where you were" and "what you asked for"; the track is cued
+    // with the playhead where it was and waits for Play.
+    //
+    // Matched against this track's own id, and cleared otherwise. Held as a
+    // bare position it survived the restore it was for and then suppressed
+    // `play()` for every track chosen afterwards — a click on a song loaded
+    // it, left it silent, and left the seek bar disabled because nothing was
+    // ever fetched to read a duration from.
+    if (pendingRestore.current?.trackId === track.id) {
+      // Without a `play()` there is nothing to make the element fetch, and
+      // `loadedmetadata` — where the restored position is applied — would
+      // never fire.
+      audio.preload = 'metadata';
+      audio.load();
+      setIsPlaying(false);
+      return;
+    }
+    pendingRestore.current = undefined;
+    audio.preload = 'auto';
     audio.play().catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate, see the comment above this effect.
   }, [trackId]);

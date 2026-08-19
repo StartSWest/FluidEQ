@@ -16,8 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useEffect, useRef, useState } from 'react';
-import { suggestSearches } from 'common/searchHistory';
 import type {
   TLibraryBrowseMode,
   TLibrarySort,
@@ -26,7 +24,7 @@ import type {
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import Dropdown from '../widgets/Dropdown';
-import MenuIcon from '../icons/MenuIcon';
+import LibrarySearchField from './LibrarySearchField';
 import { IOptionEntry } from '../widgets/List';
 import { librarySearchHistory } from '../utils/librarySearchHistory';
 
@@ -45,7 +43,11 @@ interface ILibraryToolbarProps {
    * `LibraryListView` uses for its own headers. */
   onSort?: (sort: TLibrarySort) => void;
   onSortDirection?: () => void;
-  onQuery: (query: string) => void;
+  /** Withheld while a drill-in is open, which is what takes the search box
+   * off the bar: inside an album the drill-in has its own filter, and a
+   * library-wide search there changes nothing the reader can see. Same "no
+   * handler, no control" rule the sort control follows. */
+  onQuery?: (query: string) => void;
 }
 
 const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
@@ -122,39 +124,6 @@ const LibraryToolbar = ({
   const isLibrarySort = (value: string): value is TLibrarySort =>
     (SORTS as readonly string[]).includes(value);
 
-  // Recent searches, the same list the Media tab keeps and under the same
-  // rules — see `librarySearchHistory`. The box filters live as it always
-  // did; what a term has to survive to be remembered is a pause, which is
-  // what `commit` below is called on.
-  const history = librarySearchHistory.use();
-  const suggestions = suggestSearches(history, query);
-  const [isFocused, setIsFocused] = useState(false);
-  const searchRef = useRef<HTMLDivElement | null>(null);
-  const isListShowing = isFocused && suggestions.length > 0;
-
-  // A click anywhere else closes the list. Focus alone is not enough: the
-  // suggestion buttons take mousedown without taking focus, so relying on
-  // blur would close the list before the click it was closing for landed.
-  useEffect(() => {
-    if (!isFocused) {
-      return undefined;
-    }
-    const onPointerDown = (event: MouseEvent) => {
-      if (!searchRef.current?.contains(event.target as Node)) {
-        setIsFocused(false);
-      }
-    };
-    window.addEventListener('mousedown', onPointerDown);
-    return () => window.removeEventListener('mousedown', onPointerDown);
-  }, [isFocused]);
-
-  /** Remembers what is in the box now. Called on Enter and on leaving the
-   * field, never on every keystroke — a history of every prefix somebody
-   * typed on the way to "beatles" is not a history of anything. */
-  const commit = () => {
-    librarySearchHistory.add(query.trim());
-  };
-
   return (
     <div className="library-toolbar">
       {/* The Media tab's own chips — `.video-browser__site`'s pill, reused
@@ -230,121 +199,21 @@ const LibraryToolbar = ({
           </button>
         </div>
       )}
-      {/* The Media tab's capsule, reused rather than redrawn: the magnifier
-          inside the field, the whole thing lighting on focus, and a clear
-          button that appears only once there is something to clear.
-          `type="text"` rather than `"search"` — Chromium draws its own clear
-          glyph on a search input, which sits badly on a dark capsule and
-          cannot be styled. */}
-      <div className="library-toolbar__search" ref={searchRef}>
-        <div
-          className={`library-search__field${isListShowing ? ' is-open' : ''}`}
-        >
-          <svg className="library-search__icon" viewBox="0 0 16 16" aria-hidden>
-            <circle cx="7" cy="7" r="4.4" />
-            <path d="M10.4 10.4L14 14" />
-          </svg>
-          <input
-            type="text"
-            // Stated because the type no longer implies it. `type="search"`
-            // carries this role natively, and it is the honest one for a
-            // field that filters a list — dropping it to control Chromium's
-            // clear glyph would have traded the semantics for the styling.
-            role="searchbox"
-            className="library-search__input"
+      {/* Withheld while a drill-in is open — the workspace passes no handler
+          then. Inside an album this box searched the whole library and
+          changed nothing on screen, which read as a search that had stopped
+          working; the drill-in has its own filter, and one search that does
+          what the screen it is on suggests beats two that disagree. */}
+      {onQuery && (
+        <div className="library-toolbar__search">
+          <LibrarySearchField
             value={query}
-            aria-label={t('library.search')}
-            placeholder={t('library.searchPlaceholder')}
-            autoComplete="off"
-            spellCheck={false}
-            onChange={(event) => onQuery(event.target.value)}
-            onFocus={() => setIsFocused(true)}
-            onBlur={commit}
-            onKeyDown={(event) => {
-              if (event.key === 'Enter') {
-                commit();
-                setIsFocused(false);
-              }
-              if (event.key === 'Escape') {
-                setIsFocused(false);
-              }
-            }}
+            onChange={onQuery}
+            label={t('library.searchPlaceholder')}
+            history={librarySearchHistory}
           />
-          {query.length > 0 && (
-            <button
-              type="button"
-              className="library-search__clear"
-              aria-label={t('app.dismiss')}
-              onClick={() => onQuery('')}
-            >
-              <MenuIcon name="clear" className="library-search__clear-icon" />
-            </button>
-          )}
         </div>
-        {isListShowing && (
-          <div className="library-search__suggestions">
-            <div className="library-search__suggestions-title">
-              {t('video.searchRecent')}
-            </div>
-            <ul role="listbox" aria-label={t('video.searchRecent')}>
-              {suggestions.map((term) => (
-                <li key={term} role="option" aria-selected={term === query}>
-                  {/* Mouse-down rather than click, the same reason
-                      `VideoSearch` gives: the click would land after the input
-                      had lost focus and closed the list out from under the
-                      pointer. */}
-                  <button
-                    type="button"
-                    className="library-search__suggestion"
-                    onMouseDown={(event) => {
-                      event.preventDefault();
-                      onQuery(term);
-                      librarySearchHistory.add(term);
-                      setIsFocused(false);
-                    }}
-                  >
-                    <svg viewBox="0 0 16 16" aria-hidden>
-                      <path d="M8 4v4l2.6 1.6" />
-                      <circle cx="8" cy="8" r="5.6" />
-                    </svg>
-                    <span>{term}</span>
-                  </button>
-                  <button
-                    type="button"
-                    className="library-search__forget"
-                    aria-label={t('video.searchForget', { term })}
-                    title={t('video.searchForget', { term })}
-                    onMouseDown={(event) => {
-                      // Kept off the input's blur so the box stays focused and
-                      // the list stays open — dropping four old searches
-                      // should be four clicks, not four clicks and three
-                      // re-focuses.
-                      event.preventDefault();
-                      event.stopPropagation();
-                      librarySearchHistory.remove(term);
-                    }}
-                  >
-                    <svg viewBox="0 0 12 12" aria-hidden>
-                      <path d="M3 3l6 6M9 3l-6 6" />
-                    </svg>
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <button
-              type="button"
-              className="library-search__forget-all"
-              onMouseDown={(event) => {
-                event.preventDefault();
-                librarySearchHistory.clear();
-                setIsFocused(false);
-              }}
-            >
-              {t('video.searchForgetAll')}
-            </button>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };

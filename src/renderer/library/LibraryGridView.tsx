@@ -124,7 +124,7 @@ const LibraryGridView = ({
   onOpenFolder,
   onPlayTrack,
   offlineRootIds = NO_OFFLINE_ROOTS,
-  sort = 'title',
+  sort,
   sortDirection = 'asc',
   resetKey = '',
 }: ILibraryGridViewProps) => {
@@ -231,7 +231,8 @@ const LibraryGridView = ({
   // memoised lookups and its render-time `t(...)` calls.
   const items: IGridItem[] = useMemo(() => {
     if (browseMode === 'album') {
-      return sortAlbums(groupIntoAlbums(tracks), sort, sortDirection).map(
+      const grouped = groupIntoAlbums(tracks);
+      return (sort ? sortAlbums(grouped, sort, sortDirection) : grouped).map(
         (album) => ({
           id: album.id,
           artId: album.artId,
@@ -242,7 +243,8 @@ const LibraryGridView = ({
       );
     }
     if (browseMode === 'folder') {
-      return sortFolders(groupIntoFolders(tracks), sort, sortDirection).map(
+      const grouped = groupIntoFolders(tracks);
+      return (sort ? sortFolders(grouped, sort, sortDirection) : grouped).map(
         (folder) => ({
           id: folder.id,
           artId: folder.artId,
@@ -255,7 +257,8 @@ const LibraryGridView = ({
       );
     }
     if (browseMode === 'artist') {
-      return sortArtists(groupIntoArtists(tracks), sort, sortDirection).map(
+      const grouped = groupIntoArtists(tracks);
+      return (sort ? sortArtists(grouped, sort, sortDirection) : grouped).map(
         (artist) => ({
           id: artist.id,
           artId: artist.artId,

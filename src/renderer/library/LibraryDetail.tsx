@@ -22,6 +22,7 @@ import {
   folderDisplayName,
   groupIntoAlbums,
   groupIntoArtists,
+  searchTracks,
   sortTracks,
   trackFolderPath,
 } from '../../common/library/grouping';
@@ -33,8 +34,10 @@ import {
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
+import { libraryFilterHistory } from '../utils/libraryFilterHistory';
 import LibraryCoverArt from './LibraryCoverArt';
 import LibraryGridView from './LibraryGridView';
+import LibrarySearchField from './LibrarySearchField';
 import LibraryListView from './LibraryListView';
 
 interface ILibraryDetailProps {
@@ -105,6 +108,11 @@ const LibraryDetail = ({
   const [sort, setSort] = useState<TLibrarySort | undefined>(undefined);
   const [sortDirection, setSortDirection] =
     useState<TLibrarySortDirection>('asc');
+
+  /** Narrows this table and nothing else. Its own state, cleared with the
+   * drill-in itself, because it is a question about one album rather than a
+   * standing filter the way the toolbar's search is. */
+  const [filter, setFilter] = useState('');
 
   /** Same rule as the workspace's own: the current column reverses, a
    * different one starts ascending rather than inheriting a direction nobody
@@ -224,11 +232,11 @@ const LibraryDetail = ({
 
   // One list: the album's own tracks, then its folder-mates behind them.
   const listTracks = useMemo(() => {
-    const combined = [...detailTracks, ...strayTracks];
+    const combined = searchTracks([...detailTracks, ...strayTracks], filter);
     // Untouched until a header is pressed — see `sort`'s own comment on why
     // an album's default order is not a column.
     return sort ? sortTracks(combined, sort, sortDirection) : combined;
-  }, [detailTracks, strayTracks, sort, sortDirection]);
+  }, [detailTracks, strayTracks, sort, sortDirection, filter]);
   const folderOnlyIds = useMemo(
     () => new Set(strayTracks.map((track) => track.id)),
     [strayTracks],
@@ -275,16 +283,31 @@ const LibraryDetail = ({
 
   return (
     <div className="library-detail">
-      <button
-        type="button"
-        className="library-toolbar__chip library-detail__back"
-        onClick={onBack}
-      >
-        <svg viewBox="0 0 16 16" aria-hidden="true">
-          <path d="M10 3L5 8l5 5" />
-        </svg>
-        <span>{t('library.back')}</span>
-      </button>
+      {/* Back on the left, the filter on the right, one line. The filter
+          narrows this album, folder or artist and nothing else — the
+          toolbar's own box searches the whole library and is withheld
+          entirely while a drill-in is open, so there is exactly one search on
+          screen and it does what the screen it is on suggests. */}
+      <div className="library-detail__top">
+        <button
+          type="button"
+          className="library-toolbar__chip library-detail__back"
+          onClick={onBack}
+        >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="M10 3L5 8l5 5" />
+          </svg>
+          <span>{t('library.back')}</span>
+        </button>
+        <div className="library-detail__search">
+          <LibrarySearchField
+            value={filter}
+            onChange={setFilter}
+            label={t('library.filterHere')}
+            history={libraryFilterHistory}
+          />
+        </div>
+      </div>
       <div className="library-detail__header">
         <LibraryCoverArt
           artId={

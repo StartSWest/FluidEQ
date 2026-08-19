@@ -548,11 +548,12 @@ const LibraryListView = ({
   };
 
   if (browseMode === 'album') {
-    const albums = sortAlbums(
-      groupIntoAlbums(tracks),
-      sort ?? 'title',
-      sortDirection,
-    );
+    // An unset sort means the caller has already decided the order — a
+    // search ranks its hits by relevance and re-sorting by title would throw
+    // that away. Same meaning `LibraryDetail` gives it for an album's own
+    // track listing.
+    const grouped = groupIntoAlbums(tracks);
+    const albums = sort ? sortAlbums(grouped, sort, sortDirection) : grouped;
     return renderTable(
       <>
         {sortableHeader('title', 'title')}
@@ -634,11 +635,10 @@ const LibraryListView = ({
   }
 
   if (browseMode === 'folder') {
-    const folders = sortFolders(
-      groupIntoFolders(tracks),
-      sort ?? 'title',
-      sortDirection,
-    );
+    const groupedFolders = groupIntoFolders(tracks);
+    const folders = sort
+      ? sortFolders(groupedFolders, sort, sortDirection)
+      : groupedFolders;
     return renderTable(
       sortableHeader('title', 'title', 'library-list__col--span'),
       folders.map((folder) => {
@@ -690,11 +690,10 @@ const LibraryListView = ({
   }
 
   if (browseMode === 'artist') {
-    const artists = sortArtists(
-      groupIntoArtists(tracks),
-      sort ?? 'title',
-      sortDirection,
-    );
+    const groupedArtists = groupIntoArtists(tracks);
+    const artists = sort
+      ? sortArtists(groupedArtists, sort, sortDirection)
+      : groupedArtists;
     return renderTable(
       sortableHeader('title', 'title', 'library-list__col--span'),
       artists.map((artist) => {

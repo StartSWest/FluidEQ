@@ -42,6 +42,7 @@ const library: Partial<Dictionary> = {
   'library.browse.folder': 'Ordner',
   'library.jumpTo': 'Zu einem Buchstaben springen',
   'library.folderCount': '{count} Ordner',
+  'library.filterHere': 'Diese Songs filtern',
   'library.groupByFolder': 'Nach Ordner gruppieren',
   'library.view.list': 'Liste',
   'library.view.grid': 'Raster',

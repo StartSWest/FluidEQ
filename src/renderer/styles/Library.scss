@@ -34,6 +34,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // of the list it steers while the Media tab's sat right on top of its own
   // content — the same two rows, spaced two different ways.
   gap: $spacing-s;
+  // A floor, so a short pane scrolls instead of crushing everything in here.
+  //
+  // Every box in this tab is `min-height: 0; flex: 1 1 auto`, which is what
+  // lets the list and the carousel give ground gracefully — and, with the
+  // graph dragged up to half the window, is also what let them give ground
+  // all the way to nothing: the drill-in header kept its full height and the
+  // table under it was left a single clipped row with no way to reach the
+  // rest. Refusing to go below a workable height hands the overflow to
+  // `.workspace-tab-panel`, which already scrolls.
+  min-height: 460px;
   overflow: hidden;
 
   &.is-hidden {
@@ -120,6 +130,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // right, which left the row reading as two clusters at opposite ends of an
 // empty strip rather than one toolbar.
 .library-toolbar-row {
+  // Above the content, so the recent-searches list can hang over it rather
+  // than being painted through by it — the identical note
+  // `.video-browser__bar` carries about its own suggestion list. Cover Flow
+  // is what made it necessary here: a `preserve-3d` subtree composites as one
+  // unit, so a `z-index` on the list alone was competing inside the wrong
+  // stacking context and the covers came out on top of it.
+  position: relative;
+  z-index: 5;
   display: flex;
   flex: 0 0 auto;
   flex-wrap: wrap;
@@ -1324,6 +1342,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-detail__header {
+  // The cover and the titles read left to right; the filter sits at the far
+  // right of the same line, which is where the toolbar's own search is and so
+  // the only place the eye already looks for one.
+  position: relative;
   display: flex;
   flex: 0 0 auto;
   align-items: flex-start;
@@ -1335,6 +1357,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-width: 0;
   align-content: start;
   gap: $spacing-xxs;
+}
+
+// Back on the left, the filter on the right, one line — the filter reads as
+// belonging to this screen rather than floating beside the album's title.
+.library-detail__top {
+  // Above the header, so the filter's recent-searches list hangs over the
+  // cover rather than behind it. Same note `.library-toolbar-row` carries.
+  position: relative;
+  z-index: 4;
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-m;
+}
+
+// Filters this album, folder or artist and nothing else — see the comment in
+// `LibraryDetail` on why the toolbar's own box is withheld here entirely.
+.library-detail__search {
+  position: relative;
+  width: clamp(160px, 30%, 340px);
 }
 
 // Sizing copied from `.karaoke-workspace__header h2` in Karaoke.scss.
@@ -1548,6 +1591,12 @@ $library-wave-step: 4ms;
 // capsule radius and the focus treatment. Kept under this file's own class
 // names so the two can diverge later without one silently restyling the
 // other.
+
+// The shared field wrapper — `LibrarySearchField` renders it around the
+// capsule and the recent-searches list, which positions against it.
+.library-search {
+  position: relative;
+}
 
 .library-search__field {
   display: flex;

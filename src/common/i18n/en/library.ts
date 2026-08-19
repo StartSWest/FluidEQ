@@ -40,6 +40,7 @@ const library = {
   'library.browse.folder': 'Folders',
   'library.jumpTo': 'Jump to a letter',
   'library.folderCount': '{count} folders',
+  'library.filterHere': 'Filter these songs',
   'library.groupByFolder': 'Group by folder',
   'library.view.list': 'List',
   'library.view.grid': 'Grid',

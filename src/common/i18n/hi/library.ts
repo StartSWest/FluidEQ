@@ -42,6 +42,7 @@ const library: Partial<Dictionary> = {
   'library.browse.folder': 'फ़ोल्डर',
   'library.jumpTo': 'किसी अक्षर पर जाएँ',
   'library.folderCount': '{count} फ़ोल्डर',
+  'library.filterHere': 'इन गानों को फ़िल्टर करें',
   'library.groupByFolder': 'फ़ोल्डर के अनुसार समूहित करें',
   'library.view.list': 'सूची',
   'library.view.grid': 'ग्रिड',

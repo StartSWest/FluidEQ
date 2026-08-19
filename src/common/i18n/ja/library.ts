@@ -42,6 +42,7 @@ const library: Partial<Dictionary> = {
   'library.browse.folder': 'フォルダ',
   'library.jumpTo': '頭文字へ移動',
   'library.folderCount': '{count} 個のフォルダ',
+  'library.filterHere': 'この中の曲を絞り込む',
   'library.groupByFolder': 'フォルダーごとにグループ化',
   'library.view.list': 'リスト',
   'library.view.grid': 'グリッド',

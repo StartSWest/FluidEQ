@@ -57,6 +57,9 @@ const VIEW_MODE_KEY = 'fluideq.library.viewMode';
 const SORT_KEY = 'fluideq.library.sort';
 const SORT_DIRECTION_KEY = 'fluideq.library.sortDirection';
 const GROUP_BY_FOLDER_KEY = 'fluideq.library.groupByFolder';
+const OPEN_ALBUM_KEY = 'fluideq.library.openAlbum';
+const OPEN_ARTIST_KEY = 'fluideq.library.openArtist';
+const OPEN_FOLDER_KEY = 'fluideq.library.openFolder';
 
 const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
   'album',
@@ -102,6 +105,29 @@ const writePersistedMode = (key: string, value: string): void => {
     window.localStorage.setItem(key, value);
   } catch {
     // Not worth failing a mode change over.
+  }
+};
+
+/** For the drill-in ids, which have no fixed set to validate against — an
+ * album key is derived from tags and can be any string. An empty stored value
+ * reads back as nothing rather than as an id of `''`. */
+const readPersistedText = (key: string): string | undefined => {
+  try {
+    return window.localStorage.getItem(key) || undefined;
+  } catch {
+    return undefined;
+  }
+};
+
+const writePersistedText = (key: string, value: string | undefined): void => {
+  try {
+    if (value === undefined) {
+      window.localStorage.removeItem(key);
+      return;
+    }
+    window.localStorage.setItem(key, value);
+  } catch {
+    // Same as above: not worth failing navigation over.
   }
 };
 
@@ -179,15 +205,36 @@ const LibraryWorkspace = ({
   );
   const [query, setQuery] = useState('');
 
-  // The drill-in behind a grid tile or a list row. Not persisted: an album
-  // id from a previous launch means nothing once the library has been
-  // rescanned, so this always starts closed.
-  const [openFolderPath, setOpenFolderPath] = useState<string | undefined>(
-    undefined,
+  // The drill-in behind a grid tile or a list row, kept across restarts along
+  // with the browse and view modes: coming back and finding the album you
+  // were reading closed is the same loss as finding the wrong view selected.
+  //
+  // Nothing validates these on the way in, deliberately. An id that no longer
+  // groups to anything makes `LibraryDetail` orphan itself and call `onBack`
+  // — the same path a rescan mid-session already takes — so a stale id
+  // costs one render of nothing rather than needing a check here that would
+  // have to run before the index has even arrived.
+  const [openFolderPath, setOpenFolderPath] = useState<string | undefined>(() =>
+    readPersistedText(OPEN_FOLDER_KEY),
   );
-  const [openAlbumId, setOpenAlbumId] = useState<string | undefined>(undefined);
-  const [openArtistId, setOpenArtistId] = useState<string | undefined>(
-    undefined,
+  const [openAlbumId, setOpenAlbumId] = useState<string | undefined>(() =>
+    readPersistedText(OPEN_ALBUM_KEY),
+  );
+  const [openArtistId, setOpenArtistId] = useState<string | undefined>(() =>
+    readPersistedText(OPEN_ARTIST_KEY),
+  );
+
+  useEffect(
+    () => writePersistedText(OPEN_ALBUM_KEY, openAlbumId),
+    [openAlbumId],
+  );
+  useEffect(
+    () => writePersistedText(OPEN_ARTIST_KEY, openArtistId),
+    [openArtistId],
+  );
+  useEffect(
+    () => writePersistedText(OPEN_FOLDER_KEY, openFolderPath),
+    [openFolderPath],
   );
 
   useEffect(
@@ -230,7 +277,16 @@ const LibraryWorkspace = ({
   // that same commit. The ref lets it recognise a mode change it caused
   // itself and leave the drill-in alone; every other mode change still closes
   // it. A boolean would not do — two reveals in a row must both survive.
+  // And except on the very first run, which is not a mode *change* at all —
+  // it is this effect firing once on mount, and left ungated it threw away
+  // the drill-in restored from the last session a frame after it was read
+  // back.
+  const hasSeenBrowseMode = useRef(false);
   useEffect(() => {
+    if (!hasSeenBrowseMode.current) {
+      hasSeenBrowseMode.current = true;
+      return;
+    }
     if (revealDrivenMode.current === browseMode) {
       revealDrivenMode.current = undefined;
       return;
@@ -267,10 +323,24 @@ const LibraryWorkspace = ({
   // every render this component has, including ones the search box and the
   // sort dropdown had nothing to do with (a drag-over toggle, a scan
   // progress tick).
-  const visibleTracks = useMemo(
-    () => sortTracks(searchTracks(index.tracks, query), sort, sortDirection),
-    [index.tracks, query, sort, sortDirection],
-  );
+  /**
+   * While a search is running, relevance IS the order.
+   *
+   * `searchTracks` ranks its hits — best match first — and sorting that by
+   * title afterwards throws the ranking away, which is how a search for an
+   * artist used to bury them somewhere in four thousand alphabetised results.
+   * Clearing the box puts the chosen column back.
+   */
+  const isSearching = query.trim().length > 0;
+  const visibleTracks = useMemo(() => {
+    const matches = searchTracks(index.tracks, query);
+    return isSearching ? matches : sortTracks(matches, sort, sortDirection);
+  }, [index.tracks, query, isSearching, sort, sortDirection]);
+
+  /** The order to hand the views: nothing while searching, which every one of
+   * them already reads as "leave this order alone" — the same meaning
+   * `LibraryDetail` gives an unset sort for an album's own track listing. */
+  const viewSort = isSearching ? undefined : sort;
 
   // What makes the list a DIFFERENT list, as opposed to the same list with
   // more in it. A scan republishes the whole index every batch, so the track
@@ -495,7 +565,7 @@ const LibraryWorkspace = ({
             // bar's.
             onSort={isDrilledIn ? undefined : setSort}
             onSortDirection={isDrilledIn ? undefined : handleSortDirection}
-            onQuery={setQuery}
+            onQuery={isDrilledIn ? undefined : setQuery}
           />
           {/* Only meaningful for a flat run of songs — album and artist rows
               are already groupings, and the video shelf groups by folder
@@ -599,7 +669,7 @@ const LibraryWorkspace = ({
             onOpenFolder={handleOpenFolder}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
-            sort={sort}
+            sort={viewSort}
             sortDirection={sortDirection}
             onSort={handleSort}
             groupByFolder={groupByFolder}
@@ -620,7 +690,7 @@ const LibraryWorkspace = ({
             onOpenFolder={handleOpenFolder}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
-            sort={sort}
+            sort={viewSort}
             sortDirection={sortDirection}
             resetKey={listResetKey}
           />
@@ -638,7 +708,7 @@ const LibraryWorkspace = ({
             tracks={visibleTracks}
             browseMode={browseMode}
             onPlayTrack={handlePlayTrack}
-            sort={sort}
+            sort={viewSort}
             sortDirection={sortDirection}
             playingTrackId={playingTrack?.id}
             openId={openAlbumId ?? openArtistId}

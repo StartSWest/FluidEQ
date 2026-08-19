@@ -280,6 +280,87 @@ export const sortFolders = (
   return direction === 'desc' ? sorted.reverse() : sorted;
 };
 
+/**
+ * How well one track answers a query — higher is better, zero is no match.
+ *
+ * Which field matched matters as much as whether one did. Somebody typing
+ * "leo" wants the artist Leo Dan before a track called "Leones" on somebody
+ * else's record, and a title that *starts* with what they typed before one
+ * that merely contains it. Without this every search returned its hits in
+ * whatever order the library happened to be in, which for a query that
+ * matches four thousand files is no order at all.
+ */
+const MATCH_TITLE_EXACT = 100;
+const MATCH_TITLE_PREFIX = 80;
+const MATCH_ARTIST_PREFIX = 70;
+const MATCH_ALBUM_PREFIX = 60;
+const MATCH_TITLE_ANYWHERE = 40;
+const MATCH_ARTIST_ANYWHERE = 30;
+const MATCH_ALBUM_ANYWHERE = 20;
+
+const scoreField = (
+  value: string | undefined,
+  needle: string,
+  exact: number,
+  prefix: number,
+  anywhere: number,
+): number => {
+  if (!value) {
+    return 0;
+  }
+  const folded = normalizeForSearch(value);
+  if (folded === needle) {
+    return exact;
+  }
+  if (folded.startsWith(needle)) {
+    return prefix;
+  }
+  return folded.includes(needle) ? anywhere : 0;
+};
+
+export const searchScore = (track: ILibraryTrack, needle: string): number => {
+  if (!needle) {
+    return 1;
+  }
+  return Math.max(
+    scoreField(
+      track.title,
+      needle,
+      MATCH_TITLE_EXACT,
+      MATCH_TITLE_PREFIX,
+      MATCH_TITLE_ANYWHERE,
+    ),
+    scoreField(
+      track.artist,
+      needle,
+      MATCH_ARTIST_PREFIX,
+      MATCH_ARTIST_PREFIX,
+      MATCH_ARTIST_ANYWHERE,
+    ),
+    scoreField(
+      track.albumArtist,
+      needle,
+      MATCH_ARTIST_PREFIX,
+      MATCH_ARTIST_PREFIX,
+      MATCH_ARTIST_ANYWHERE,
+    ),
+    scoreField(
+      track.album,
+      needle,
+      MATCH_ALBUM_PREFIX,
+      MATCH_ALBUM_PREFIX,
+      MATCH_ALBUM_ANYWHERE,
+    ),
+  );
+};
+
+/**
+ * The matches, best first.
+ *
+ * Ranked rather than merely filtered — see `searchScore`. Ties keep the order
+ * they arrived in, so a search inside an album still reads down the track
+ * listing rather than being reshuffled by a scoring accident.
+ */
 export const searchTracks = (
   tracks: readonly ILibraryTrack[],
   query: string,
@@ -288,13 +369,15 @@ export const searchTracks = (
   if (!needle) {
     return [...tracks];
   }
-  return tracks.filter((track) =>
-    normalizeForSearch(
-      [track.title, track.artist, track.albumArtist, track.album]
-        .filter((part): part is string => Boolean(part))
-        .join(' '),
-    ).includes(needle),
-  );
+  return tracks
+    .map((track, index) => ({
+      track,
+      index,
+      score: searchScore(track, needle),
+    }))
+    .filter((entry) => entry.score > 0)
+    .sort((left, right) => right.score - left.score || left.index - right.index)
+    .map((entry) => entry.track);
 };
 
 /**
