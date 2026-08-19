@@ -144,6 +144,7 @@
     "electron-debug": "^4.1.0",
     "electron-log": "^5.4.4",
     "electron-updater": "^6.8.9",
+    "music-metadata": "^11.14.0",
     "onnxruntime-common": "1.22.0-dev.20250409-89f8206ba4",
     "onnxruntime-node": "1.27.0",
     "onnxruntime-web": "1.22.0-dev.20250409-89f8206ba4",
