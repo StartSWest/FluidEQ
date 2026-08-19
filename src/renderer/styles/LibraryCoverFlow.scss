@@ -64,9 +64,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   transform-style: preserve-3d;
 }
 
-// The one size `LibraryCoverArt` already draws at 160px — the drill-in
-// header's `--cover` size — reused rather than a fourth size invented for
-// this view alone.
+// `LibraryCoverArt`'s own `--cover` size (the drill-in header's), restated
+// here rather than a fourth size invented for this view. Nothing enforces
+// the two staying equal — `.library-cover-art--cover` in `Library.scss` is
+// its own literal 160px — so if that one ever moves, this one has to move
+// with it.
 $library-coverflow-cover: 160px;
 
 .library-coverflow__cover {

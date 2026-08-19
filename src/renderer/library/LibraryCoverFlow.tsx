@@ -68,6 +68,18 @@ const COVER_FLOW_DRAG_CLICK_TOLERANCE = 6;
  * through the general formula would rotate a cover that is supposed to be
  * facing the viewer square-on by a sign error's worth of nothing — better to
  * say plainly that it isn't turned at all.
+ *
+ * `rotateY(direction * COVER_FLOW_ANGLE)`, not the negation, is what curls
+ * the row inward rather than peeling it outward. CSS's Y-rotation matrix
+ * sends a point at local `(x, 0, 0)` to `(x·cosθ, 0, −x·sinθ)`, and positive
+ * z is toward the viewer (the same convention `COVER_FLOW_DEPTH` uses:
+ * `translateZ` goes *negative* to push a cover *away*). A cover to the right
+ * of centre (`direction = 1`) has its centre-facing edge on its own local
+ * left, `x = −1`; at `θ = +60deg` that edge maps to `z = −(−1)·sin60° > 0` —
+ * toward the viewer — while its outer right edge recedes, which is the row
+ * curling inward. The left side is the mirror image at `θ = −60deg`. Get the
+ * sign wrong and both edges swap: the covers present their outer edges to
+ * the viewer and the row peels outward instead of curling into a carousel.
  */
 export const coverFlowTransform = (offset: number): string => {
   if (offset === 0) {
@@ -78,7 +90,7 @@ export const coverFlowTransform = (offset: number): string => {
   return [
     `translateX(${offset * COVER_FLOW_STEP * 100}%)`,
     `translateZ(-${distance * COVER_FLOW_DEPTH}px)`,
-    `rotateY(${-direction * COVER_FLOW_ANGLE}deg)`,
+    `rotateY(${direction * COVER_FLOW_ANGLE}deg)`,
   ].join(' ');
 };
 
@@ -134,6 +146,11 @@ const LibraryCoverFlow = ({
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
+  // The id of whatever is currently centred, kept beside the index itself so
+  // that a change to `items` can re-find that same album, artist or track —
+  // see the reconciling effect below, and `setCentre`, which is the only
+  // place this is written.
+  const centredId = useRef<string | undefined>(undefined);
 
   // Same memo shape as `LibraryGridView`: keyed only on the two inputs that
   // actually change what is grouped, not on the callbacks `LibraryWorkspace`
@@ -167,12 +184,44 @@ const LibraryCoverFlow = ({
     }));
   }, [tracks, browseMode]);
 
-  // A shorter `items` than the index that was centred — a rescan that lost
-  // tracks, a browse-mode switch to a smaller grouping — must not leave the
-  // centre pointing past the end of the array.
+  /** Moves the centre to `index`, clamped to the live `items` array, and
+   * records what is now centred. Every path that changes the centre —
+   * keyboard, wheel, drag, a click — goes through this rather than
+   * `setCurrentIndex` directly, so `centredId` is never out of date when
+   * `items` next changes. */
+  const setCentre = (index: number) => {
+    const clamped = clampIndex(index, items.length);
+    centredId.current = items[clamped]?.id;
+    setCurrentIndex(clamped);
+  };
+
+  // `items` changing shape — a rescan that inserts albums ahead of the one
+  // being looked at, one that finishes and removes it — must not leave the
+  // centre pointing at whatever numeric position now happens to be in
+  // range: that silently swaps what the centre is showing with no
+  // indication anything moved. `centredId` is looked up in the new `items`
+  // first, so the same album, artist or track stays centred at whatever
+  // index it now sits at; only when that id is gone entirely (or this is
+  // the first render) does the centre fall back to clamping the old index.
   useEffect(() => {
-    setCurrentIndex((index) => clampIndex(index, items.length));
-  }, [items.length]);
+    const previousId = centredId.current;
+    const foundIndex =
+      previousId === undefined
+        ? -1
+        : items.findIndex((item) => item.id === previousId);
+    const nextIndex = clampIndex(
+      foundIndex === -1 ? currentIndex : foundIndex,
+      items.length,
+    );
+    centredId.current = items[nextIndex]?.id;
+    setCurrentIndex(nextIndex);
+    // `currentIndex` is deliberately not a dependency: this effect exists to
+    // reconcile the centre against a new `items` array, and every other
+    // change to `currentIndex` already goes through `setCentre` above, which
+    // keeps `centredId` in step itself without needing this effect to run
+    // again for it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items]);
 
   const tileSubtitle = (item: ICoverFlowItem): string => {
     if (browseMode === 'artist') {
@@ -213,7 +262,7 @@ const LibraryCoverFlow = ({
   };
 
   const moveBy = (delta: number) => {
-    setCurrentIndex((index) => clampIndex(index + delta, items.length));
+    setCentre(currentIndex + delta);
   };
 
   const onStageKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
@@ -230,12 +279,12 @@ const LibraryCoverFlow = ({
     }
     if (event.key === 'Home') {
       event.preventDefault();
-      setCurrentIndex(0);
+      setCentre(0);
       return;
     }
     if (event.key === 'End') {
       event.preventDefault();
-      setCurrentIndex(clampIndex(items.length - 1, items.length));
+      setCentre(items.length - 1);
       return;
     }
     if (event.key === 'Enter') {
@@ -299,7 +348,7 @@ const LibraryCoverFlow = ({
     // into the centre — hence the subtraction rather than addition.
     const target =
       drag.startIndex - Math.round(distance / COVER_FLOW_DRAG_STEP);
-    setCurrentIndex(clampIndex(target, items.length));
+    setCentre(target);
   };
 
   const endDrag = (event: PointerEvent<HTMLDivElement>) => {
@@ -321,7 +370,7 @@ const LibraryCoverFlow = ({
       activateCurrent();
       return;
     }
-    setCurrentIndex(index);
+    setCentre(index);
   };
 
   const start = Math.max(0, currentIndex - COVER_FLOW_NEIGHBOURS);
