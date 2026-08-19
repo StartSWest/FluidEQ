@@ -7,6 +7,8 @@ import {
   karaokeMakerProjectToSong,
   karaokeMakerRecordedLineContainsTime,
   karaokeMakerTokenWasUserTouched,
+  karaokeMakerLineIsSection,
+  synchronizeKaraokeMakerSections,
   karaokeMakerWordDurationIsPlausible,
   karaokeMakerMaximumAutomaticWordDurationMs,
   makerLinesFromPlainText,
@@ -3766,6 +3768,66 @@ describe('Karaoke Maker hallucinations when the lyrics are supplied', () => {
     const aligned = applyWhisperTranscript(supplied(), [...invented, ...sung]);
 
     expect(firstWordStartMs(aligned)).toBe(3_000);
+  });
+});
+
+describe('Karaoke Maker headings written next to each other', () => {
+  /** Two sung lines with two headings between them, all four timed. */
+  const withHeadings = (headings: string) => {
+    const project = createKaraokeMakerProject(song());
+    project.lyrics.lines = makerLinesFromPlainText(
+      `first line here\n${headings}\nsecond line here`,
+    );
+    const timeLine = (index: number, fromMs: number) => {
+      project.lyrics.lines[index].tokens = project.lyrics.lines[
+        index
+      ].tokens.map((token, tokenIndex) => ({
+        ...token,
+        startMs: fromMs + tokenIndex * 400,
+        endMs: fromMs + tokenIndex * 400 + 300,
+      }));
+    };
+    timeLine(0, 10_000);
+    timeLine(project.lyrics.lines.length - 1, 30_000);
+    return synchronizeKaraokeMakerSections(project);
+  };
+
+  it('gives each of two headings its own slice of the gap', () => {
+    // Each heading looks past its neighbouring headings for the sung lines
+    // either side, so two written together found the same previous line and
+    // the same next line and were handed identical ranges — drawn on top of
+    // one another, reading as one heading with the wrong name.
+    const sections = withHeadings('[Bridge]\n[Chorus]').lyrics.lines.filter(
+      karaokeMakerLineIsSection,
+    );
+
+    expect(sections.length).toBe(2);
+    expect(sections[0].startMs).toBeLessThan(sections[1].startMs as number);
+    expect(sections[0].endMs).toBeLessThanOrEqual(
+      sections[1].startMs as number,
+    );
+  });
+
+  it('leaves a heading standing on its own exactly where it was', () => {
+    // Positive control: the run logic must not move the ordinary case, which
+    // is every heading in almost every song.
+    const sections = withHeadings('[Chorus]').lyrics.lines.filter(
+      karaokeMakerLineIsSection,
+    );
+
+    expect(sections.length).toBe(1);
+    // Two seconds ahead of the line it introduces, as it always was.
+    expect(sections[0].startMs).toBe(28_000);
+  });
+
+  it('keeps three headings in the order they were written', () => {
+    const sections = withHeadings(
+      '[Bridge]\n[Chorus]\n[Outro]',
+    ).lyrics.lines.filter(karaokeMakerLineIsSection);
+    const starts = sections.map((section) => section.startMs as number);
+
+    expect(starts).toEqual([...starts].sort((left, right) => left - right));
+    expect(new Set(starts).size).toBe(3);
   });
 });
 

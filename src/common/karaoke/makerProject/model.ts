@@ -264,6 +264,31 @@ const lineTiming = (
 export const synchronizeKaraokeMakerSections = (
   project: IKaraokeMakerProject,
 ): IKaraokeMakerProject => {
+  // Where each heading sits inside its own run of consecutive headings.
+  //
+  // Every heading looks past its neighbouring headings for the sung lines
+  // either side of it, so two written together — "[Bridge]" then "[Chorus]",
+  // which is how a sheet marks a bridge that runs straight into one — found
+  // the same previous line and the same next line and were handed byte
+  // identical ranges. Two labels on one instant: the second is drawn on top of
+  // the first, and the run reads as a single heading with the wrong name.
+  const runs = new Map<number, { length: number; position: number }>();
+  project.lyrics.lines.forEach((line, index) => {
+    if (!karaokeMakerLineIsSection(line)) {
+      return;
+    }
+    const previous = runs.get(index - 1);
+    const position = previous ? previous.position + 1 : 0;
+    runs.set(index, { length: position + 1, position });
+    // The run's length is only known at its end, so every member is corrected
+    // backwards once the last one is seen.
+    for (let at = index - position; at <= index; at += 1) {
+      const member = runs.get(at);
+      if (member) {
+        runs.set(at, { ...member, length: position + 1 });
+      }
+    }
+  });
   const lines = project.lyrics.lines.map((line, index) => {
     if (!karaokeMakerLineIsSection(line)) {
       return line;
@@ -285,6 +310,22 @@ export const synchronizeKaraokeMakerSections = (
       return { ...line, kind: 'section' as const };
     }
     const startMs = Math.max(0, preferredStartMs);
+    const run = runs.get(index);
+    if (run && run.length > 1) {
+      // The window the whole run has to share, cut into equal slices in the
+      // order the headings are written. 200 ms is the floor a single heading
+      // already had; below it a run simply runs on past the next sung line,
+      // which is visible and in order rather than invisible and stacked.
+      const windowEndMs = nextStartMs ?? startMs + 1_200 * run.length;
+      const sliceMs = Math.max(200, (windowEndMs - startMs) / run.length);
+      const slotStartMs = startMs + run.position * sliceMs;
+      return {
+        ...line,
+        kind: 'section' as const,
+        startMs: slotStartMs,
+        endMs: slotStartMs + sliceMs,
+      };
+    }
     const endMs = Math.max(
       startMs + 200,
       Math.min(line.endMs ?? startMs + 1_200, nextStartMs ?? startMs + 1_200),
