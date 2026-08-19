@@ -277,8 +277,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-scan-progress {
   position: absolute;
   z-index: 40;
-  right: $spacing-m;
-  bottom: $spacing-m;
+  // Clear of the list's own scrollbar on the right and of the now-playing
+  // bar below. A pane sitting over the scroller takes away the one control
+  // you actually need while a long scan fills the list underneath it.
+  right: $spacing-l + 12px;
+  bottom: $spacing-l;
   display: grid;
   width: min(420px, calc(100% - #{$spacing-m} * 2));
   grid-template-columns: minmax(0, 1fr) auto;

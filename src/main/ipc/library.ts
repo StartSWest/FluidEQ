@@ -43,7 +43,7 @@ import {
   saveLibraryIndex,
   trackPathById,
 } from '../library/libraryIndex';
-import { scanLibraryRoot } from '../library/libraryScanner';
+import { scanLibraryRootOffThread } from '../library/scanHost';
 
 /**
  * What these handlers need from the process around them.
@@ -158,7 +158,7 @@ const scanOneRoot = async (
     ? []
     : currentIndex.tracks.filter((track) => track.rootId === rootId);
   try {
-    const result = await scanLibraryRoot({
+    const result = await scanLibraryRootOffThread({
       rootId,
       rootPath: root.path,
       userDataDir: deps.userDataDir,

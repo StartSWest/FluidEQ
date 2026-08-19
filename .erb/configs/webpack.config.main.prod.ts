@@ -41,6 +41,13 @@ const configuration: webpack.Configuration = {
     // out of `preload` on purpose: that one is the app's own bridge, and this
     // one is loaded next to a web page.
     'video-preload': path.join(webpackPaths.srcMainPath, 'videoPreload.ts'),
+    // Runs the library scan off the main thread. Its own entry because
+    // `utilityProcess.fork` needs a real file to start, not a module main
+    // happens to have loaded.
+    'library-scan-worker': path.join(
+      webpackPaths.srcMainPath,
+      'library/scanWorker.ts',
+    ),
   },
 
   output: {

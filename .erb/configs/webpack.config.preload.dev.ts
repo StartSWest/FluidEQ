@@ -25,6 +25,10 @@ const configuration: webpack.Configuration = {
   entry: {
     preload: path.join(webpackPaths.srcMainPath, 'preload.ts'),
     'video-preload': path.join(webpackPaths.srcMainPath, 'videoPreload.ts'),
+    'library-scan-worker': path.join(
+      webpackPaths.srcMainPath,
+      'library/scanWorker.ts',
+    ),
   },
 
   output: {
