@@ -179,23 +179,13 @@ describe('live Equalizer APO feature-file adoption', () => {
     const state = getDefaultState();
     const before = state.driver;
 
-    // Butterworth, which FluidEQ still has no editor for. This used to be an
-    // all-pass; that one is a real type now, so it would be adopted rather
-    // than refused and the test would have proved the opposite of its name.
     expect(
-      adoptApoFeatureText(state, 'driver', 'Filter 1: ON BWLP Fc 1000 Hz'),
+      adoptApoFeatureText(
+        state,
+        'driver',
+        'Filter 1: ON AP Fc 1000 Hz Gain 0 dB Q 0.7',
+      ),
     ).toEqual({ changed: false, unsupported: 1 });
     expect(state.driver).toBe(before);
-  });
-
-  it('adopts an all-pass, which is no longer one of the refused ones', () => {
-    const state = getDefaultState();
-
-    expect(
-      adoptApoFeatureText(state, 'driver', 'Filter 1: ON AP Fc 1000 Hz Q 0.7'),
-    ).toEqual({ changed: true, unsupported: 0 });
-    expect(
-      Object.values(state.driver?.apoOverride?.filters ?? {})[0]?.type,
-    ).toBe(FilterTypeEnum.AP);
   });
 });

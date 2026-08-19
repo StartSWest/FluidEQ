@@ -44,10 +44,7 @@ const ICON_HEIGHT = 20;
  * Now every curve leaves and returns to the same line, so a boost is above it,
  * a cut is below it, and the two members of each family are mirror images.
  */
-const FILTER_PATHS: Record<
-  FilterTypeEnum,
-  { d: string; stroke: string; phase?: string }
-> = {
+const FILTER_PATHS: Record<FilterTypeEnum, { d: string; stroke: string }> = {
   // A bell above the line.
   [FilterTypeEnum.PK]: {
     d: 'M0 10H8C11 10 12.5 3 16 3C19.5 3 21 10 24 10H32',
@@ -83,18 +80,6 @@ const FILTER_PATHS: Record<
     d: 'M2 18.5C2 18.2 2.5 17.6 4 15.5C6 12.5 8.5 10 13.5 10H18.5C23.5 10 26 12.5 28 15.5C29.5 17.6 30 18.2 30 18.5',
     stroke: '#4FF784',
   },
-  // THE ONLY ONE THAT NEVER LEAVES THE LINE, because an all-pass never does.
-  // Its magnitude is one at every frequency, so the honest curve is the zero
-  // line itself — and drawn alone, in a picker where every other entry is a
-  // shape, that is indistinguishable from an icon that failed to load. The
-  // dashed wave beneath is what this band actually moves: the level holds and
-  // the phase turns.
-  [FilterTypeEnum.AP]: {
-    d: 'M0 10H32',
-    stroke: '#F7DB4F',
-    phase:
-      'M0 16C2 16 2 13 4 13C6 13 6 16 8 16C10 16 10 13 12 13C14 13 14 16 16 16C18 16 18 13 20 13C22 13 22 16 24 16C26 16 26 13 28 13C30 13 30 16 32 16',
-  },
 };
 
 /**
@@ -113,7 +98,6 @@ export const FILTER_TYPE_SHORT_LABELS: Record<FilterTypeEnum, string> = {
   [FilterTypeEnum.LPQ]: 'Low Pass',
   [FilterTypeEnum.HPQ]: 'High Pass',
   [FilterTypeEnum.BP]: 'Band Pass',
-  [FilterTypeEnum.AP]: 'All Pass',
 };
 
 const FilterTypeIcon = ({ type }: { type: FilterTypeEnum }) => {
@@ -141,20 +125,6 @@ const FilterTypeIcon = ({ type }: { type: FilterTypeEnum }) => {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      {shape.phase && (
-        // Quieter than the response it sits under, because it is not one: the
-        // solid line is the magnitude and this is the thing the magnitude
-        // cannot show.
-        <path
-          d={shape.phase}
-          stroke={shape.stroke}
-          strokeOpacity="0.55"
-          strokeWidth="1.5"
-          strokeDasharray="2 2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      )}
     </svg>
   );
 };

@@ -173,19 +173,6 @@ export const getTFCoefficients = (
       a0 = 1 + alpha;
       a1 = -2 * cosine;
       a2 = 1 - alpha;
-    } else if (filterType === FilterTypeEnum.AP) {
-      // The numerator is the denominator reversed, which is exactly what makes
-      // the magnitude one at every frequency: the response is flat and only the
-      // phase turns. Written out per the RBJ cookbook rather than short-circuited
-      // to a flat line, so this band runs through the same biquad as every other
-      // one — a special case here would hide a wrong Fc or Q instead of letting
-      // the sum show it.
-      b0 = 1 - alpha;
-      b1 = -2 * cosine;
-      b2 = 1 + alpha;
-      a0 = 1 + alpha;
-      a1 = -2 * cosine;
-      a2 = 1 - alpha;
     }
   }
 

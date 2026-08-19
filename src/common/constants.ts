@@ -174,12 +174,7 @@ export enum FilterTypeEnum {
   LPQ = 'LPQ', // Low Pass ["LPQ",False,True]
   HPQ = 'HPQ', // High Pass ["HPQ",False,True]
   BP = 'BP', // Band Pass ["BP",False,True]
-  // The odd one out, and the graph cannot show why. An all-pass has unity
-  // magnitude at every frequency, so its curve is a flat line at 0 dB and
-  // nothing about the response moves. What it moves is phase — the relative
-  // delay between low and high — which is what aligns a subwoofer against the
-  // drivers above it, or two drivers across a crossover.
-  AP = 'AP', // All Pass ["AP",False,True]
+  // AP = 'AP', // All Pass ["AP",False,True]
   // BWLP = 'BWLP', // Butterworth Low Pass ["BWLP",False,True]
   // BWHP = 'BWHP', // Butterworth High Pass ["BWHP",False,True]
   // LRLP = 'LRLP', // Linkwitz Riley Low Pass ["LRLP",False,True]
@@ -222,7 +217,6 @@ export const FilterTypeToLabelMap: Record<FilterTypeEnum, string> = {
   [FilterTypeEnum.LPQ]: 'Low Pass Filter',
   [FilterTypeEnum.HPQ]: 'High Pass Filter',
   [FilterTypeEnum.BP]: 'Band Pass Filter',
-  [FilterTypeEnum.AP]: 'All Pass Filter',
 };
 
 /**
@@ -287,10 +281,6 @@ export const NO_GAIN_FILTER_TYPES = [
   FilterTypeEnum.LPQ,
   FilterTypeEnum.HPQ,
   FilterTypeEnum.NO,
-  // Equalizer APO's ParametricEQ grammar gives the all-pass no Gain token
-  // either. Writing one makes APO reject the whole line, so the band would sit
-  // in the config doing nothing.
-  FilterTypeEnum.AP,
 ];
 
 export const WINDOW_WIDTH = 1428;

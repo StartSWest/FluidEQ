@@ -196,23 +196,18 @@ describe('parseEqText', () => {
   });
 
   it('counts bands it cannot represent instead of mangling them', () => {
-    // The Butterworth and Linkwitz-Riley pass forms have no FluidEQ editor.
-    // Turning one into the nearest peak band would change what the user hears
-    // without telling them.
-    //
-    // The all-pass sits here as the control, because it used to be counted
-    // among them and is now a type in its own right: a file mixing the two has
-    // to keep the bands it can represent and refuse only the rest.
+    // All-pass and the Butterworth pass forms have no FluidEQ editor. Turning
+    // one into the nearest peak band would change what the user hears without
+    // telling them.
     const result = parseEqText(
       [
         'Filter 1: ON PK Fc 1000 Hz Gain 4 dB Q 1',
         'Filter 2: ON AP Fc 500 Hz Q 1',
         'Filter 3: ON BWLP Fc 12000 Hz',
-        'Filter 4: ON LRHP Fc 80 Hz',
       ].join('\n'),
     );
 
-    expect(Object.keys(result.filters)).toHaveLength(2);
+    expect(Object.keys(result.filters)).toHaveLength(1);
     expect(result.unsupported).toBe(2);
   });
 });
