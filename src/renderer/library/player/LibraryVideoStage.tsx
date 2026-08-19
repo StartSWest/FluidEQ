@@ -40,7 +40,7 @@ import '../../styles/NowPlayingBar.scss';
  */
 const LibraryVideoStage = () => {
   const { t } = useTranslation();
-  const { videoTrackId, isPlaying, registerVideoElement, toggle } =
+  const { videoTrackId, isPlaying, registerVideoElement, toggle, stop } =
     useLibraryPlayer();
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [isFullScreen, setIsFullScreen] = useState(false);
@@ -143,7 +143,26 @@ const LibraryVideoStage = () => {
         className="library-video-stage__video"
         src={libraryMediaUrl('track', videoTrackId)}
         onClick={toggle}
+        onDoubleClick={handleToggleFullScreen}
       />
+      {/* The way out. Without it a video owned the whole tab until the queue
+          happened to move off it — and a video-only queue at its own end never
+          does, so the tab stayed that video until the app was relaunched.
+          Stopping rather than merely hiding the stage: the queue holds only
+          videos, so leaving it playing behind a closed pane would be sound
+          with no picture and no obvious way back to it. */}
+      <button
+        type="button"
+        className="library-video-stage__back"
+        aria-label={t('library.back')}
+        title={t('library.back')}
+        onClick={stop}
+      >
+        <svg viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M12 4l-6 6 6 6" />
+        </svg>
+        <span>{t('library.back')}</span>
+      </button>
       <button
         type="button"
         className="library-video-stage__fullscreen"

@@ -400,10 +400,52 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   cursor: pointer;
 }
 
+// Top corners rather than the foot: the now-playing bar already owns the
+// bottom of the window, and a control tucked under the picture reads as the
+// video's own chrome rather than the app's.
+.library-video-stage__back {
+  position: absolute;
+  z-index: 2;
+  top: $spacing-s;
+  left: $spacing-s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 12px 0 9px;
+  color: rgba($white, 0.88);
+  border: 1px solid rgba($primary-lighter, 0.18);
+  border-radius: $radius-s;
+  background: rgba(4, 16, 26, 0.72);
+  font-size: 0.7rem;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 15px;
+    height: 15px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.6;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $white;
+    border-color: rgba($secondary-default, 0.5);
+    background: rgba($secondary-default, 0.22);
+    outline: none;
+  }
+}
+
 .library-video-stage__fullscreen {
   position: absolute;
+  z-index: 2;
+  top: $spacing-s;
   right: $spacing-s;
-  bottom: $spacing-s;
   display: grid;
   width: 32px;
   height: 32px;
