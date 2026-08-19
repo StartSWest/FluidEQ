@@ -21,7 +21,12 @@ import {
   groupIntoAlbums,
   groupIntoArtists,
 } from '../../common/library/grouping';
-import { ILibraryTrack, TLibraryBrowseMode } from '../../common/library/types';
+import {
+  ILibraryTrack,
+  TLibraryBrowseMode,
+  TLibrarySort,
+  TLibrarySortDirection,
+} from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
 import MenuIcon from '../icons/MenuIcon';
@@ -39,6 +44,15 @@ interface ILibraryListViewProps {
    * and no test of this view's other behaviours needs a real one to exercise
    * them. */
   offlineRootIds?: ReadonlySet<string>;
+  /** The active sort, so a header can show which column is driving the order
+   * and which way. Optional with `onSort`: without a handler the headers stay
+   * plain labels, which is what the album and artist branches want. */
+  sort?: TLibrarySort;
+  sortDirection?: TLibrarySortDirection;
+  /** Asked for a column. The workspace decides whether that means a new
+   * column or a reversal of the current one — this view only reports the
+   * press. */
+  onSort?: (key: TLibrarySort) => void;
 }
 
 const NO_OFFLINE_ROOTS: ReadonlySet<string> = new Set();
@@ -89,6 +103,18 @@ const formatDuration = (durationMs: number | undefined): string => {
  * component, so any value that is not `'album'` or `'artist'` is treated as
  * `'song'` here.
  */
+/** What a screen reader is told about a column: only the one actually driving
+ * the order claims a direction. */
+const activeSortLabel = (
+  isActive: boolean,
+  direction: TLibrarySortDirection | undefined,
+): 'ascending' | 'descending' | 'none' => {
+  if (!isActive) {
+    return 'none';
+  }
+  return direction === 'desc' ? 'descending' : 'ascending';
+};
+
 const LibraryListView = ({
   tracks,
   browseMode,
@@ -96,6 +122,9 @@ const LibraryListView = ({
   onOpenArtist,
   onPlayTrack,
   offlineRootIds = NO_OFFLINE_ROOTS,
+  sort,
+  sortDirection,
+  onSort,
 }: ILibraryListViewProps) => {
   const { t } = useTranslation();
   // The row a right click or a keyboard context-menu request landed on, and
@@ -180,6 +209,42 @@ const LibraryListView = ({
   };
 
   const columnHeader = (column: TListColumn) => t(COLUMN_LABEL_KEYS[column]);
+
+  /**
+   * A sortable header cell, for the branches whose rows are tracks.
+   *
+   * Album and artist rows are groupings rather than tracks, and `sortTracks`
+   * has nothing to say about them — sorting those by "length" would mean
+   * something different again. So only the song branch gets these; the other
+   * two keep plain labels rather than offering a control that would lie.
+   */
+  const sortableHeader = (column: TListColumn, key: TLibrarySort) => {
+    const isActive = onSort !== undefined && sort === key;
+    return (
+      <span
+        role="columnheader"
+        aria-sort={activeSortLabel(isActive, sortDirection)}
+        className={`library-list__col${
+          column === 'length' ? ' library-list__col--length' : ''
+        }`}
+      >
+        {onSort ? (
+          <button
+            type="button"
+            className={`library-list__sort${isActive ? ' is-active' : ''}`}
+            onClick={() => onSort(key)}
+          >
+            {columnHeader(column)}
+            <span className="library-list__sort-arrow" aria-hidden="true">
+              {isActive && sortDirection === 'desc' ? '▾' : '▴'}
+            </span>
+          </button>
+        ) : (
+          columnHeader(column)
+        )}
+      </span>
+    );
+  };
 
   /** The `role="table"` shell every branch below shares: the leading,
    * unlabelled art column, the header row, the rowgroup, and — for the
@@ -353,15 +418,12 @@ const LibraryListView = ({
   // the doc comment above for why that fallback is deliberate.
   return renderTable(
     <>
-      <span role="columnheader" className="library-list__col">
-        {columnHeader('title')}
-      </span>
-      <span role="columnheader" className="library-list__col">
-        {columnHeader('artist')}
-      </span>
-      <span role="columnheader" className="library-list__col">
-        {columnHeader('album')}
-      </span>
+      {sortableHeader('title', 'title')}
+      {sortableHeader('artist', 'artist')}
+      {sortableHeader('album', 'album')}
+      {/* No `length` sort: `sortTracks` has no duration comparator, and the
+          honest options are to add one or not offer the control. Left plain
+          until a duration sort is actually wanted. */}
       <span
         role="columnheader"
         className="library-list__col library-list__col--length"

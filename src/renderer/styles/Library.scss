@@ -515,6 +515,40 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 7px $spacing-s;
 }
 
+// A sortable column header. The arrow is present only on the column actually
+// driving the order — an arrow on every header would say all four are active.
+.library-list__sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  background: none;
+  cursor: pointer;
+
+  &:hover,
+  &:focus-visible {
+    color: $secondary-light;
+  }
+
+  &.is-active {
+    color: $secondary-light;
+  }
+}
+
+.library-list__sort-arrow {
+  opacity: 0;
+  font-size: 0.7em;
+}
+
+.library-list__sort.is-active .library-list__sort-arrow {
+  opacity: 1;
+}
+
 // The cover art doubles as the row's play button: the glyph fades up over it
 // on hover or focus rather than occupying a column of its own on every row
 // for something only ever wanted on the row under the pointer.

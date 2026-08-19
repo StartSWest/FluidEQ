@@ -33,6 +33,7 @@ import {
 import type {
   TLibraryBrowseMode,
   TLibrarySort,
+  TLibrarySortDirection,
   TLibraryViewMode,
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
@@ -53,6 +54,7 @@ import '../styles/Library.scss';
 const BROWSE_MODE_KEY = 'fluideq.library.browseMode';
 const VIEW_MODE_KEY = 'fluideq.library.viewMode';
 const SORT_KEY = 'fluideq.library.sort';
+const SORT_DIRECTION_KEY = 'fluideq.library.sortDirection';
 
 const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
   'album',
@@ -61,6 +63,8 @@ const BROWSE_MODES: readonly TLibraryBrowseMode[] = [
   'video',
 ];
 const VIEW_MODES: readonly TLibraryViewMode[] = ['list', 'grid', 'coverflow'];
+const SORT_DIRECTIONS: readonly TLibrarySortDirection[] = ['asc', 'desc'];
+
 const SORTS: readonly TLibrarySort[] = [
   'title',
   'artist',
@@ -155,6 +159,9 @@ const LibraryWorkspace = ({
   const [viewMode, setViewMode] = useState<TLibraryViewMode>(() =>
     readPersistedMode(VIEW_MODE_KEY, VIEW_MODES, 'grid'),
   );
+  const [sortDirection, setSortDirection] = useState<TLibrarySortDirection>(
+    () => readPersistedMode(SORT_DIRECTION_KEY, SORT_DIRECTIONS, 'asc'),
+  );
   const [sort, setSort] = useState<TLibrarySort>(() =>
     readPersistedMode(SORT_KEY, SORTS, 'title'),
   );
@@ -174,6 +181,10 @@ const LibraryWorkspace = ({
   );
   useEffect(() => writePersistedMode(VIEW_MODE_KEY, viewMode), [viewMode]);
   useEffect(() => writePersistedMode(SORT_KEY, sort), [sort]);
+  useEffect(
+    () => writePersistedMode(SORT_DIRECTION_KEY, sortDirection),
+    [sortDirection],
+  );
 
   // Set by a reveal so the browse-mode effect below can tell a mode change it
   // caused itself from one the user made. See that effect for why.
@@ -241,9 +252,26 @@ const LibraryWorkspace = ({
   // sort dropdown had nothing to do with (a drag-over toggle, a scan
   // progress tick).
   const visibleTracks = useMemo(
-    () => sortTracks(searchTracks(index.tracks, query), sort),
-    [index.tracks, query, sort],
+    () => sortTracks(searchTracks(index.tracks, query), sort, sortDirection),
+    [index.tracks, query, sort, sortDirection],
   );
+
+  /**
+   * A column header was pressed.
+   *
+   * Pressing the column already sorting reverses it; pressing a different one
+   * moves to that column and starts ascending again, rather than inheriting
+   * the previous column's direction — carrying a descending order across to a
+   * newly chosen column gives an order nobody asked for.
+   */
+  const handleSort = useCallback((key: TLibrarySort) => {
+    setSort((currentSort) => {
+      setSortDirection((currentDirection) =>
+        currentSort === key && currentDirection === 'asc' ? 'desc' : 'asc',
+      );
+      return key;
+    });
+  }, []);
 
   // Opening one closes the other — only one drill-in is ever on screen.
   const handleOpenAlbum = (albumId: string) => {
@@ -463,6 +491,9 @@ const LibraryWorkspace = ({
             onOpenArtist={handleOpenArtist}
             onPlayTrack={handlePlayTrack}
             offlineRootIds={offlineRootIds}
+            sort={sort}
+            sortDirection={sortDirection}
+            onSort={handleSort}
           />
         )}
       {index.tracks.length > 0 &&
