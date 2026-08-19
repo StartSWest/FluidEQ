@@ -246,13 +246,6 @@ const AppContent = () => {
   const isVideoTab = activeWorkspaceTab === 'video';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
   const [isKaraokeFullScreen, setIsKaraokeFullScreen] = useState(false);
-  /**
-   * Whether Karaoke is showing its editor rather than its player.
-   *
-   * Reported up from the workspace purely so the response graph can refuse to
-   * take the screen over the top of it — see `isGraphAppFullScreen`.
-   */
-  const [isKaraokeMakerOpen, setIsKaraokeMakerOpen] = useState(false);
   const karaokeFullScreenRequestedRef = useRef(false);
   const [showAudioRestartRecommendation, setShowAudioRestartRecommendation] =
     useState(false);
@@ -1404,7 +1397,6 @@ const AppContent = () => {
                 onToggleFullScreen={() =>
                   applyKaraokeFullScreen(!isKaraokeFullScreen)
                 }
-                onMakerOpenChange={setIsKaraokeMakerOpen}
               />
             )}
             {/* Outside the tab switch for the same class of reason, and more

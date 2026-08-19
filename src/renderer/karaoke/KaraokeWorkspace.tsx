@@ -101,14 +101,6 @@ interface IKaraokeWorkspaceProps {
   hasFullScreenTopBar?: boolean;
   onToggleFullScreenTopBar?: () => void;
   onToggleFullScreen?: () => void;
-  /**
-   * Whether the Maker is the surface on screen.
-   *
-   * Reported outward because the response graph's full-screen mode is decided
-   * in App.tsx, several levels up, and it must not take the window while an
-   * editing surface is open. See the guard there.
-   */
-  onMakerOpenChange?: (open: boolean) => void;
 }
 
 const ERROR_KEYS: Record<TKaraokeSessionError, TranslationKey> = {
@@ -234,7 +226,6 @@ const KaraokeWorkspace = ({
   hasFullScreenTopBar = true,
   onToggleFullScreenTopBar = () => undefined,
   onToggleFullScreen = () => undefined,
-  onMakerOpenChange,
 }: IKaraokeWorkspaceProps) => {
   const { t } = useTranslation();
   const lyricTextSizeId = useId();
@@ -685,8 +676,7 @@ const KaraokeWorkspace = ({
 
   useEffect(() => {
     writeKaraokeMakerOpen(isMakerOpen);
-    onMakerOpenChange?.(isMakerOpen);
-  }, [isMakerOpen, onMakerOpenChange]);
+  }, [isMakerOpen]);
 
   const persistCurrentProgress = useCallback(() => {
     if (!persistenceReadyRef.current) {

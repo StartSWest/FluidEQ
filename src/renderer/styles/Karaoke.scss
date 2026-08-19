@@ -378,10 +378,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow: 0 0 14px rgba($secondary-default, 0.1);
   }
 
+  // Fades in place. The 7px lift that used to come with it meant the bar slid
+  // down the screen on every pointer move after a pause, which reads as the
+  // toolbar wandering rather than as it coming back.
   &.is-idle {
     opacity: 0;
     pointer-events: none;
-    transform: translateY(-7px);
     transition-duration: 480ms;
   }
 }

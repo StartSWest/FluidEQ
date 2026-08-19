@@ -79,23 +79,6 @@ let isWatching = false;
 let timer: number | undefined;
 
 /**
- * Put away by hand, rather than by the clock running out.
- *
- * The two are the same state on screen and must not behave the same way. Fading
- * because nobody has moved is a guess, and any movement should take it back —
- * that is the whole contract of an auto-hiding toolbar. Being dismissed with a
- * click is not a guess: somebody said to put it away, and the next twitch of
- * the mouse is not them changing their mind.
- *
- * Without this the click did work, for a few milliseconds. `pointermove` counts
- * as activity, so releasing the button, or a hand resting on the mouse, brought
- * the toolbar straight back and the click read as having done nothing at all.
- *
- * Cleared by the click that asks for the chrome back, and by leaving the mode.
- */
-let isDismissed = false;
-
-/**
  * Something on screen needs the chrome to stay put.
  *
  * The look designer is the case this exists for: it is a panel opened from the
@@ -140,19 +123,16 @@ const handleActivity = (event?: Event) => {
   if (event?.type === 'keydown' && isQuietKey(event as KeyboardEvent)) {
     return;
   }
-  // MOVING THE POINTER WAKES IT, DISMISSED OR NOT.
+  // MOVING THE POINTER WAKES IT, HOWEVER IT WENT AWAY.
   //
-  // This used to return here, so a toolbar put away by a click on the drawing
-  // stayed away until another click asked for it back. The intent was that a
-  // deliberate dismissal should outlast an accidental twitch of the mouse —
-  // but a click on the plot is also how you drag a band, so the controls
-  // vanished during ordinary editing and then ignored every attempt to bring
-  // them back by reaching for them. A toolbar that cannot be summoned by
-  // moving towards it reads as broken, whatever the reason.
+  // A dismissal used to return here, so a toolbar put away by a click on the
+  // drawing stayed away until another click asked for it back. But a click on
+  // the plot is also how you drag a band, so the controls vanished during
+  // ordinary editing and then ignored every attempt to bring them back by
+  // reaching for them. A toolbar that cannot be summoned by moving towards it
+  // reads as broken, whatever the reason — so there is no dismissed state
+  // left to consult here, only the clock.
   //
-  // Dismissal now only wins until the pointer next moves, which is the same
-  // rule every other auto-hiding control on the screen follows.
-  isDismissed = false;
   // Held open: present, and no clock running to take it away again.
   if (isHeld) {
     setIdle(false);
@@ -189,8 +169,7 @@ export const setChromeHeld = (next: boolean) => {
   }
   isHeld = next;
   if (next) {
-    // A hold outranks a dismissal: whatever was put away by hand is needed now.
-    isDismissed = false;
+    // A hold outranks the clock: whatever faded out is needed on screen now.
     clearTimer();
     setIdle(false);
     return;
@@ -203,13 +182,9 @@ export const toggleChromeNow = () => {
     return;
   }
   if (isIdle) {
-    isDismissed = false;
     handleActivity();
     return;
   }
-  // Dismissed rather than merely faded, so that moving the mouse afterwards
-  // leaves it where it was put.
-  isDismissed = true;
   clearTimer();
   setIdle(true);
 };
@@ -225,7 +200,6 @@ export const revealChromeNow = () => {
   if (!isWatching) {
     return;
   }
-  isDismissed = false;
   handleActivity();
 };
 
@@ -262,7 +236,6 @@ export const watchChromeIdle = (next: boolean) => {
   // the next time this mode opened, the toolbar was already hidden and no
   // amount of moving the mouse would explain why. A hold is dropped for the
   // same reason: whatever was asking for it is gone with the mode.
-  isDismissed = false;
   isHeld = false;
   setIdle(false);
 };
