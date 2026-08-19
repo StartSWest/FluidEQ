@@ -16,7 +16,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useRef } from 'react';
 import type { ILibraryScanProgress } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 
@@ -26,6 +25,19 @@ interface ILibraryScanProgressProps {
 }
 
 /**
+ * The percentage the bar below shows, factored out as a plain function so a
+ * test can assert its shape against a real captured progress sequence
+ * without rendering the component. `parsed > 0` rather than `seen > 0` is
+ * the gate — see the component doc below for why.
+ */
+export const libraryScanPercent = (
+  progress: Pick<ILibraryScanProgress, 'seen' | 'parsed'>,
+): number =>
+  progress.parsed > 0
+    ? Math.min(100, Math.round((progress.parsed / progress.seen) * 100))
+    : 0;
+
+/**
  * The strip pinned under the toolbar while a scan runs.
  *
  * Not a modal, on purpose: `LibraryWorkspace` mounts this beside the content
@@ -33,39 +45,24 @@ interface ILibraryScanProgressProps {
  * and leaving the tab does not stop the walk — the same "backgroundable"
  * requirement `KaraokeMakerAnalysisPanels` follows for transcription.
  *
- * `seen` is not a total; the walk and the parse interleave, so a determinate
- * bar is only honest once there is something to estimate against.
+ * `seen` and `parsed` come from a two-phase scan (see `libraryScanner.ts`):
+ * phase one discovers every candidate file and grows `seen` to a real total
+ * before phase two ever starts, and only then does `parsed` begin to climb.
+ * So the bar is indeterminate exactly while `parsed` is still zero — that
+ * covers both "nothing has happened yet" and "still discovering, `seen` is
+ * not final yet" in one honest state — and determinate from the moment
+ * parsing starts, at which point `seen` cannot move again and the ratio
+ * climbs to exactly 100% on the last file. No clamp: a clamp over a number
+ * that is now genuinely monotonic would only exist to hide a future bug.
  */
 const LibraryScanProgress = ({
   progress,
   onCancel,
 }: ILibraryScanProgressProps) => {
   const { t } = useTranslation();
-  const { seen, parsed, current, karaokeSkipped, rootId } = progress;
-  const hasEstimate = seen > 0;
-  const rawPercent = hasEstimate
-    ? Math.min(100, Math.round((parsed / seen) * 100))
-    : 0;
-
-  // `seen` grows the moment a newly discovered directory adds its files to
-  // the count, before any of them is read — see `libraryScanner.ts`. That is
-  // what makes the estimate honest, and it is also what can make it dip: a
-  // large directory found right after a small, nearly-finished one lowers the
-  // ratio even though real progress kept moving forward. A bar that visibly
-  // slides backward reads as broken regardless of why, so the displayed
-  // percentage is held at its high-water mark for as long as `rootId` stays
-  // the same — one root is `scanLibraryRoot`'s own unit of work, so that is
-  // "a single scan" here.
-  const rootIdRef = useRef(rootId);
-  const maxPercentRef = useRef(0);
-  if (rootIdRef.current !== rootId) {
-    rootIdRef.current = rootId;
-    maxPercentRef.current = 0;
-  }
-  if (hasEstimate && rawPercent > maxPercentRef.current) {
-    maxPercentRef.current = rawPercent;
-  }
-  const percent = hasEstimate ? maxPercentRef.current : 0;
+  const { seen, parsed, current, karaokeSkipped } = progress;
+  const hasEstimate = parsed > 0;
+  const percent = libraryScanPercent(progress);
 
   const runningLabel = t('library.scan.running', { name: current ?? '' });
 

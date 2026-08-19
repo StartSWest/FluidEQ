@@ -85,46 +85,30 @@ interface IWalkContext {
   isCancelled: () => boolean;
 }
 
-interface IWalkState {
-  tracks: ILibraryTrack[];
-  karaokeSkipped: number;
-  seen: number;
-  parsed: number;
-  cancelled: boolean;
-}
-
-interface IFolderArtCache {
-  computed: boolean;
-  id: string | undefined;
-}
-
-/** Everything about the directory a single file is being read out of. */
-interface IDirectoryContext {
-  rootId: string;
-  userDataDir: string;
-  dir: string;
-  fileNames: readonly string[];
-  folderArt: IFolderArtCache;
-  // A folder of three hundred UltraStar songs must not read the same .txt
-  // three hundred times; this holds one verdict per sibling name for the
-  // lifetime of a single directory's processing.
-  textCache: Map<string, boolean>;
-}
-
 const reportProgress = (
   context: IWalkContext,
-  state: IWalkState,
+  counts: { seen: number; parsed: number; karaokeSkipped: number },
   current: string,
 ): void => {
   context.onProgress({
     rootId: context.rootId,
-    seen: state.seen,
-    parsed: state.parsed,
-    karaokeSkipped: state.karaokeSkipped,
+    seen: counts.seen,
+    parsed: counts.parsed,
+    karaokeSkipped: counts.karaokeSkipped,
     current,
     isDone: false,
   });
 };
+
+/** What a karaoke check needs from the directory a candidate sits in. */
+interface IKaraokeContext {
+  dir: string;
+  fileNames: readonly string[];
+  // A folder of three hundred UltraStar songs must not read the same .txt
+  // three hundred times; this holds one verdict per sibling name for the
+  // lifetime of a single directory's discovery.
+  textCache: Map<string, boolean>;
+}
 
 /**
  * True when `name` is a karaoke song and must not enter the library — it
@@ -134,7 +118,7 @@ const reportProgress = (
  */
 const resolveKaraokeSkip = async (
   name: string,
-  ctx: IDirectoryContext,
+  ctx: IKaraokeContext,
 ): Promise<boolean> => {
   const { certain, needsContentCheck } = karaokeLyricCandidates(
     name,
@@ -168,6 +152,191 @@ const resolveKaraokeSkip = async (
   ctx.textCache.set(candidate, isChart);
   return isChart;
 };
+
+/**
+ * One media file discovery has decided is worth parsing, carried from phase
+ * one into phase two. `dirFileNames` rides along so phase two's folder-art
+ * lookup does not have to re-list a directory it has already listed once.
+ */
+interface ICandidateFile {
+  filePath: string;
+  name: string;
+  kind: 'audio' | 'video';
+  dir: string;
+  dirFileNames: readonly string[];
+}
+
+interface IDiscoverState {
+  candidates: ICandidateFile[];
+  // A real total by the time discovery finishes -- not an estimate that
+  // parsing can ever move past. This is what phase two's percentage is
+  // computed against.
+  seen: number;
+  karaokeSkipped: number;
+  cancelled: boolean;
+}
+
+interface IListedDirectory {
+  subdirectories: string[];
+  fileEntries: fs.Dirent[];
+}
+
+/**
+ * Lists one directory, splitting its entries into subdirectories worth
+ * recursing into and files worth examining. Shared by discovery only —
+ * parsing never lists a directory itself, it works from what discovery
+ * already found.
+ *
+ * A directory symlink nested inside the walk is never followed: `fs.Dirent`'s
+ * type reflects the entry itself, never the target it points at, so a
+ * symlinked subdirectory already fails `isDirectory()` below without a
+ * separate `lstat`. A root that is itself a symlink or a Windows junction is
+ * unaffected -- `readdir` resolves the path it is given before listing, so
+ * "this root is really on a second drive" scans exactly as a real directory
+ * would. What this guards against is a folder cross-linked *into* the tree
+ * partway down -- an album symlinked into two genre folders, say -- which
+ * would otherwise recurse into a loop or, aimed far enough, walk the whole
+ * of `C:\`; the index this feeds has no size ceiling of its own. Every other
+ * skip in this module logs what it dropped, so this one does too.
+ */
+const listDirectory = async (
+  dir: string,
+): Promise<IListedDirectory | undefined> => {
+  let entries: fs.Dirent[];
+  try {
+    entries = await fs.promises.readdir(dir, { withFileTypes: true });
+  } catch (error) {
+    // A folder that vanished or denies access between listing and reading it
+    // must not end a scan of everything else under the root.
+    // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+    console.error(`Could not read library folder ${dir}`, error);
+    return undefined;
+  }
+
+  const subdirectories: string[] = [];
+  const fileEntries: fs.Dirent[] = [];
+  entries.forEach((entry) => {
+    if (entry.isSymbolicLink()) {
+      // See the module comment above: never followed, and unlike a root
+      // that happens to be a junction, this is a link found partway down a
+      // walk -- worth a line, since it would otherwise vanish with no sign
+      // anything was skipped at all.
+      // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+      console.error(`Skipped symlinked entry ${path.join(dir, entry.name)}`);
+      return;
+    }
+    if (entry.isDirectory()) {
+      if (
+        entry.name.startsWith('.') ||
+        SKIPPED_DIRECTORY_NAMES.has(entry.name)
+      ) {
+        return;
+      }
+      subdirectories.push(entry.name);
+    } else if (entry.isFile()) {
+      fileEntries.push(entry);
+    }
+  });
+  return { subdirectories, fileEntries };
+};
+
+/**
+ * Phase one: walks the whole tree and decides which files are worth parsing,
+ * without reading a single tag or a single piece of artwork -- just
+ * directory listings, name filtering, and the karaoke `.txt` content check,
+ * which needs directory context anyway and is one small text read per
+ * distinct sibling name rather than per file. Cheap next to what phase two
+ * does with each candidate.
+ *
+ * This is what makes phase two's progress honest: by the time it starts,
+ * `state.seen` is `state.candidates.length` and will never move again, so
+ * `parsed / seen` is a real fraction of a real total rather than a moving
+ * target that can run backwards when a new directory turns up more files
+ * than the one just finished.
+ */
+const discoverDirectory = async (
+  dir: string,
+  context: IWalkContext,
+  state: IDiscoverState,
+): Promise<void> => {
+  if (state.cancelled || context.isCancelled()) {
+    // A user who starts a scan of the wrong drive should not have to wait
+    // for a full tree walk before Stop does anything -- checked per
+    // directory here, same as the per-file check further down.
+    state.cancelled = true;
+    return;
+  }
+  const listed = await listDirectory(dir);
+  if (!listed) {
+    return;
+  }
+  const { subdirectories, fileEntries } = listed;
+  const fileNames = fileEntries.map((entry) => entry.name);
+  const karaokeCtx: IKaraokeContext = {
+    dir,
+    fileNames,
+    textCache: new Map<string, boolean>(),
+  };
+
+  for (let index = 0; index < fileEntries.length; index += 1) {
+    const entry = fileEntries[index];
+    const kind = libraryFileKind(entry.name);
+    if (kind) {
+      if (context.isCancelled()) {
+        state.cancelled = true;
+        return;
+      }
+      // eslint-disable-next-line no-await-in-loop -- one file at a time by design; see the module comment.
+      const isKaraoke = await resolveKaraokeSkip(entry.name, karaokeCtx);
+      if (isKaraoke) {
+        state.karaokeSkipped += 1;
+      } else {
+        state.candidates.push({
+          filePath: path.join(dir, entry.name),
+          name: entry.name,
+          kind,
+          dir,
+          dirFileNames: fileNames,
+        });
+        state.seen += 1;
+      }
+      // `parsed` is always 0 here -- parsing has not started. The renderer
+      // reads that as "still discovering" and shows an indeterminate bar
+      // instead of a percentage computed against a total still climbing.
+      reportProgress(
+        context,
+        { seen: state.seen, parsed: 0, karaokeSkipped: state.karaokeSkipped },
+        path.basename(dir),
+      );
+    }
+  }
+
+  for (let index = 0; index < subdirectories.length; index += 1) {
+    if (state.cancelled) {
+      return;
+    }
+    // eslint-disable-next-line no-await-in-loop -- one directory at a time by design; see the module comment.
+    await discoverDirectory(
+      path.join(dir, subdirectories[index]),
+      context,
+      state,
+    );
+  }
+};
+
+interface IFolderArtCache {
+  computed: boolean;
+  id: string | undefined;
+}
+
+/** Everything about the directory a single file is being read out of. */
+interface IDirectoryContext {
+  rootId: string;
+  userDataDir: string;
+  dir: string;
+  fileNames: readonly string[];
+  folderArt: IFolderArtCache;
+}
 
 /**
  * Resolves the one cover image a directory contributes to every track in it,
@@ -242,184 +411,112 @@ const buildTrack = async (
   };
 };
 
-/**
- * Resolves one already-identified media file: karaoke exclusion, then either
- * carrying a known track forward or reading it fresh, then a progress tick.
- */
-const processFile = async (
-  entry: fs.Dirent,
-  kind: 'audio' | 'video',
-  context: IWalkContext,
-  dirCtx: IDirectoryContext,
-  state: IWalkState,
-): Promise<void> => {
-  // `seen` is bumped for the whole directory in `processFiles`, before any of
-  // its candidates reach here -- not per file the way `parsed` is below. See
-  // that function for why: incrementing both counters in lockstep, one file
-  // at a time, is what previously pinned every live progress event at 100%.
-  const filePath = path.join(dirCtx.dir, entry.name);
-  const isKaraoke = await resolveKaraokeSkip(entry.name, dirCtx);
-  if (isKaraoke) {
-    state.karaokeSkipped += 1;
-  } else {
-    const stats = await fs.promises.stat(filePath);
-    const statInfo = { size: stats.size, mtimeMs: stats.mtimeMs };
-    const existing = context.knownByPath.get(filePath);
-    if (existing !== undefined && !shouldReparse(existing, statInfo)) {
-      // Carrying the known track forward unchanged is what makes a rescan of
-      // an unchanged folder cost one stat per file instead of a full tag read.
-      state.tracks.push(existing);
-    } else {
-      const addedAt = existing?.addedAt ?? Date.now();
-      const track = await buildTrack(
-        filePath,
-        entry.name,
-        kind,
-        addedAt,
-        statInfo,
-        dirCtx,
-      );
-      state.tracks.push(track);
-    }
-  }
-  state.parsed += 1;
-  reportProgress(context, state, entry.name);
-};
-
-interface IMediaCandidate {
-  entry: fs.Dirent;
-  kind: 'audio' | 'video';
+interface IParseState {
+  tracks: ILibraryTrack[];
+  parsed: number;
 }
 
 /**
- * Walks the media-kind files of one directory, in place against `state`.
- * Non-media files never reach `processFile` at all; `walkDirectory` only
- * decides which files and folders reach this point.
- *
- * `seen` counts every candidate in this directory the moment it has been
- * listed and filtered -- before any of them is read -- while `parsed` only
- * grows one file at a time as each finishes below. That gap is what makes a
- * live progress event honest: with both counters moving together per file
- * (the previous shape), `seen` and `parsed` were always equal by the time
- * anyone outside this module saw them, and the determinate bar was pinned at
- * 100% for the length of every scan. A directory with more than one file now
- * reports `seen` ahead of `parsed` for every file but its last.
+ * Resolves one already-discovered candidate: either carrying a known track
+ * forward unchanged, or reading it fresh. No karaoke check here -- that
+ * question was already answered in phase one, which is why this list never
+ * contains a karaoke song to begin with.
  */
-const processFiles = async (
-  fileEntries: readonly fs.Dirent[],
+const parseCandidate = async (
+  candidate: ICandidateFile,
   context: IWalkContext,
-  dirCtx: IDirectoryContext,
-  state: IWalkState,
+  folderArtByDir: Map<string, IFolderArtCache>,
+  state: IParseState,
 ): Promise<void> => {
-  const candidates: IMediaCandidate[] = [];
-  fileEntries.forEach((entry) => {
-    const kind = libraryFileKind(entry.name);
-    if (kind) {
-      candidates.push({ entry, kind });
-    }
-  });
-  state.seen += candidates.length;
-
-  for (let index = 0; index < candidates.length; index += 1) {
-    const { entry, kind } = candidates[index];
-    if (context.isCancelled()) {
-      state.cancelled = true;
-      return;
-    }
-    // eslint-disable-next-line no-await-in-loop -- one directory at a time by design; see the module comment.
-    await processFile(entry, kind, context, dirCtx, state);
+  let folderArt = folderArtByDir.get(candidate.dir);
+  if (!folderArt) {
+    folderArt = { computed: false, id: undefined };
+    folderArtByDir.set(candidate.dir, folderArt);
   }
-};
-
-/**
- * Walks one directory and recurses into its subdirectories.
- *
- * A directory symlink nested inside the walk is never followed: `fs.Dirent`'s
- * type reflects the entry itself, never the target it points at, so a
- * symlinked subdirectory already fails `isDirectory()` below without a
- * separate `lstat`. A root that is itself a symlink or a Windows junction is
- * unaffected -- `readdir` resolves the path it is given before listing, so
- * "this root is really on a second drive" scans exactly as a real directory
- * would. What this guards against is a folder cross-linked *into* the tree
- * partway down -- an album symlinked into two genre folders, say -- which
- * would otherwise recurse into a loop or, aimed far enough, walk the whole
- * of `C:\`; the index this feeds has no size ceiling of its own. Every other
- * skip in this module logs what it dropped, so this one does too.
- */
-const walkDirectory = async (
-  dir: string,
-  context: IWalkContext,
-  state: IWalkState,
-): Promise<void> => {
-  if (state.cancelled || context.isCancelled()) {
-    // Polled here too, not just per media file below: a subtree with no
-    // music between a Stop click and the next candidate file must still
-    // notice it was asked to stop before walking the whole thing.
-    state.cancelled = true;
-    return;
-  }
-  let entries: fs.Dirent[];
-  try {
-    entries = await fs.promises.readdir(dir, { withFileTypes: true });
-  } catch (error) {
-    // A folder that vanished or denies access between listing and reading it
-    // must not end a scan of everything else under the root.
-    // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
-    console.error(`Could not read library folder ${dir}`, error);
-    return;
-  }
-
-  const subdirectories: string[] = [];
-  const fileEntries: fs.Dirent[] = [];
-  entries.forEach((entry) => {
-    if (entry.isSymbolicLink()) {
-      // See the module comment above: never followed, and unlike a root
-      // that happens to be a junction, this is a link found partway down a
-      // walk -- worth a line, since it would otherwise vanish with no sign
-      // anything was skipped at all.
-      // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
-      console.error(`Skipped symlinked entry ${path.join(dir, entry.name)}`);
-      return;
-    }
-    if (entry.isDirectory()) {
-      if (
-        entry.name.startsWith('.') ||
-        SKIPPED_DIRECTORY_NAMES.has(entry.name)
-      ) {
-        return;
-      }
-      subdirectories.push(entry.name);
-    } else if (entry.isFile()) {
-      fileEntries.push(entry);
-    }
-  });
-
   const dirCtx: IDirectoryContext = {
     rootId: context.rootId,
     userDataDir: context.userDataDir,
-    dir,
-    fileNames: fileEntries.map((entry) => entry.name),
-    folderArt: { computed: false, id: undefined },
-    textCache: new Map<string, boolean>(),
+    dir: candidate.dir,
+    fileNames: candidate.dirFileNames,
+    folderArt,
   };
-
-  await processFiles(fileEntries, context, dirCtx, state);
-
-  for (let index = 0; index < subdirectories.length; index += 1) {
-    if (state.cancelled) {
-      return;
-    }
-    // eslint-disable-next-line no-await-in-loop -- one directory at a time by design; see the module comment.
-    await walkDirectory(path.join(dir, subdirectories[index]), context, state);
+  const stats = await fs.promises.stat(candidate.filePath);
+  const statInfo = { size: stats.size, mtimeMs: stats.mtimeMs };
+  const existing = context.knownByPath.get(candidate.filePath);
+  if (existing !== undefined && !shouldReparse(existing, statInfo)) {
+    // Carrying the known track forward unchanged is what makes a rescan of
+    // an unchanged folder cost one stat per file instead of a full tag read.
+    state.tracks.push(existing);
+  } else {
+    const addedAt = existing?.addedAt ?? Date.now();
+    const track = await buildTrack(
+      candidate.filePath,
+      candidate.name,
+      candidate.kind,
+      addedAt,
+      statInfo,
+      dirCtx,
+    );
+    state.tracks.push(track);
   }
+  state.parsed += 1;
+};
+
+/**
+ * Phase two: parses every candidate phase one collected, in the order they
+ * were found. `discovered.seen` never changes here -- it is already the real
+ * total -- so `parsed / seen` grows monotonically and reaches exactly 100%
+ * on the final candidate, with no clamp needed to keep it from moving
+ * backwards.
+ *
+ * Returns whether a cancellation was seen partway through.
+ */
+const parseCandidates = async (
+  context: IWalkContext,
+  discovered: IDiscoverState,
+  state: IParseState,
+): Promise<boolean> => {
+  const folderArtByDir = new Map<string, IFolderArtCache>();
+  for (let index = 0; index < discovered.candidates.length; index += 1) {
+    if (context.isCancelled()) {
+      return true;
+    }
+    const candidate = discovered.candidates[index];
+    // eslint-disable-next-line no-await-in-loop -- one file at a time by design; see the module comment.
+    await parseCandidate(candidate, context, folderArtByDir, state);
+    reportProgress(
+      context,
+      {
+        seen: discovered.seen,
+        parsed: state.parsed,
+        karaokeSkipped: discovered.karaokeSkipped,
+      },
+      candidate.name,
+    );
+  }
+  return false;
 };
 
 /**
  * Walks `rootPath`, returning every music and video file found beneath it
  * minus the karaoke songs that belong to the Karaoke tab instead.
  *
+ * Two phases, not one interleaved pass: `discoverDirectory` walks and counts
+ * first, `parseCandidates` reads tags and builds tracks second. See
+ * `discoverDirectory`'s comment for why -- a single interleaved pass cannot
+ * report an honest percentage, because it never knows the total until the
+ * walk is over.
+ *
  * Cancellation keeps everything parsed so far: `wasCancelled: true` comes
- * back with a partial library, never a lost one.
+ * back with a partial library, never a lost one. A cancel that lands before
+ * a single candidate has been parsed -- anywhere in discovery, or on the very
+ * first candidate of parsing -- is the one case that rule cannot honour on
+ * its own: nothing new has been confirmed yet, but `options.known` already
+ * describes the library as of the last successful scan, and that is handed
+ * back rather than an empty list. Without this, cancelling a rescan early
+ * would fold back into `currentIndex` as "this root now has zero tracks" --
+ * see `scanOneRoot` in `src/main/ipc/library.ts`, which replaces a root's
+ * tracks with this result wholesale rather than merging it.
  */
 export const scanLibraryRoot = async (
   options: IScanOptions,
@@ -434,27 +531,35 @@ export const scanLibraryRoot = async (
     onProgress: options.onProgress,
     isCancelled: options.isCancelled,
   };
-  const state: IWalkState = {
-    tracks: [],
-    karaokeSkipped: 0,
+
+  const discovered: IDiscoverState = {
+    candidates: [],
     seen: 0,
-    parsed: 0,
+    karaokeSkipped: 0,
     cancelled: false,
   };
+  await discoverDirectory(options.rootPath, context, discovered);
 
-  await walkDirectory(options.rootPath, context, state);
+  const parseState: IParseState = { tracks: [], parsed: 0 };
+  const cancelledDuringParse = discovered.cancelled
+    ? false
+    : await parseCandidates(context, discovered, parseState);
+  const wasCancelled = discovered.cancelled || cancelledDuringParse;
 
   options.onProgress({
     rootId: options.rootId,
-    seen: state.seen,
-    parsed: state.parsed,
-    karaokeSkipped: state.karaokeSkipped,
+    seen: discovered.seen,
+    parsed: parseState.parsed,
+    karaokeSkipped: discovered.karaokeSkipped,
     isDone: true,
   });
 
   return {
-    tracks: state.tracks,
-    karaokeSkipped: state.karaokeSkipped,
-    wasCancelled: state.cancelled,
+    tracks:
+      wasCancelled && parseState.tracks.length === 0
+        ? [...options.known]
+        : parseState.tracks,
+    karaokeSkipped: discovered.karaokeSkipped,
+    wasCancelled,
   };
 };
