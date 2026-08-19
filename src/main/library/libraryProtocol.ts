@@ -1,0 +1,103 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+import { net, protocol } from 'electron';
+import { pathToFileURL } from 'url';
+import { ILibraryIndex } from '../../common/library/types';
+import { artworkPath } from './libraryArtwork';
+import { trackPathById } from './libraryIndex';
+
+export const LIBRARY_MEDIA_SCHEME = 'fluideq-media';
+
+export const libraryMediaUrl = (kind: 'track' | 'art', id: string): string =>
+  `${LIBRARY_MEDIA_SCHEME}://${kind}/${id}`;
+
+/**
+ * Ids only, and never a path.
+ *
+ * The host carries the kind and the single path segment carries the id, which
+ * has to survive a strict character test. A URL is the one input to this
+ * process that arrives from a document, so it gets the narrowest possible
+ * grammar rather than a sanitiser.
+ */
+export const parseLibraryMediaUrl = (
+  url: string,
+): { kind: 'track' | 'art'; id: string } | undefined => {
+  const match = /^fluideq-media:\/\/(track|art)\/([0-9a-f]{6,64})$/.exec(url);
+  if (!match) {
+    return undefined;
+  }
+  return { kind: match[1] === 'art' ? 'art' : 'track', id: match[2] };
+};
+
+/**
+ * Declares the scheme's privileges before the app is ready.
+ *
+ * `registerSchemesAsPrivileged` only has an effect when called at module
+ * scope, before `app.whenReady()` — a scheme registered afterwards looks like
+ * it worked and then silently behaves like an ordinary untrusted one.
+ * `stream: true` is what lets `protocol.handle` answer Range requests; without
+ * it, seeking inside a large video re-downloads the file from the start every
+ * time. `bypassCSP` is left `false` on purpose: this scheme is admitted by
+ * name in `img-src` and `media-src`, not exempted from the policy.
+ */
+export const registerLibraryMediaScheme = (): void => {
+  protocol.registerSchemesAsPrivileged([
+    {
+      scheme: LIBRARY_MEDIA_SCHEME,
+      privileges: {
+        standard: true,
+        secure: true,
+        supportFetchAPI: true,
+        stream: true,
+        bypassCSP: false,
+      },
+    },
+  ]);
+};
+
+/**
+ * Answers every `fluideq-media://` request the renderer makes.
+ *
+ * The id is resolved against the index (tracks) or the artwork cache (covers)
+ * — both lookups this module does not perform itself, so a track path never
+ * comes from anywhere but `trackPathById` and a cover path never comes from
+ * anywhere but `artworkPath`. `net.fetch` rather than a manual read is what
+ * lets Electron's networking stack answer Range requests for seeking.
+ * Anything that fails to parse or fails to resolve gets a 404 — nothing here
+ * guesses at what a malformed request meant.
+ */
+export const handleLibraryMedia = (deps: {
+  userDataDir: string;
+  getIndex: () => ILibraryIndex;
+}): void => {
+  protocol.handle(LIBRARY_MEDIA_SCHEME, async (request) => {
+    const parsed = parseLibraryMediaUrl(request.url);
+    if (!parsed) {
+      return new Response(undefined, { status: 404 });
+    }
+    const resolved =
+      parsed.kind === 'track'
+        ? trackPathById(deps.getIndex(), parsed.id)
+        : artworkPath(deps.userDataDir, parsed.id);
+    if (!resolved) {
+      return new Response(undefined, { status: 404 });
+    }
+    return net.fetch(pathToFileURL(resolved).toString());
+  });
+};

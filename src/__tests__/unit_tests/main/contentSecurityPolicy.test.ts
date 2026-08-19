@@ -132,6 +132,15 @@ describe('the app window content security policy', () => {
     expect(directives(false)['style-src']).toContain("'unsafe-inline'");
   });
 
+  it('lets the library serve its own media and covers', () => {
+    // Without this on img-src every cover in the library is silently blank
+    // while the rest of the app looks perfectly fine — the exact failure a
+    // policy change is most likely to cause and least likely to be blamed for.
+    expect(directives(false)['img-src']).toContain('fluideq-media:');
+    expect(directives(false)['media-src']).toContain('fluideq-media:');
+    expect(directives(true)['img-src']).toContain('fluideq-media:');
+  });
+
   it('states every directive it relies on rather than leaning on the default', () => {
     // default-src is a fallback, and a directive that is merely absent is easy
     // to believe is set. Each of these is written out.
