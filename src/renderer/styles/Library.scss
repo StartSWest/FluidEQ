@@ -1174,3 +1174,17 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-list__badge--folder {
   color: $text-faint;
 }
+
+// The tail of a list that has more to show. Not a spinner: nothing is being
+// fetched — the rows are already in memory and the next page mounts as the
+// scroll reaches here. It says how many are left, which is the only thing
+// the reader actually wants to know at the bottom of a long list.
+.library-list__more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-m 0 $spacing-l;
+  color: $text-faint;
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+}

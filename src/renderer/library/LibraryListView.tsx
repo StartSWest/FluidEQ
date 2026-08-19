@@ -121,24 +121,31 @@ const formatDuration = (durationMs: number | undefined): string => {
  * component, so any value that is not `'album'` or `'artist'` is treated as
  * `'song'` here.
  *
- * Only the rows near the viewport are mounted — see `ROW_HEIGHT_PX`.
+ * The list grows rather than windowing — see `PAGE_SIZE`.
  */
 
 /**
- * One row's height, and how many extra to keep mounted either side.
+ * How many rows are on screen to begin with, and how many more arrive each
+ * time the bottom comes into reach.
  *
- * The height is the row's own `padding: 7px` twice over plus the art column's
- * `$control-height-sm`, which is what `.library-list__row` resolves to — a
- * measured figure, not a guess, and the spacers that stand in for unmounted
- * rows depend on it being right. The overscan is what stops a fast drag of
- * the scrollbar showing blank space before React catches up.
+ * This replaced a fixed window with spacers standing in for the rows above and
+ * below. That version was correct on paper and wrong in the hand: the spacer
+ * heights come from an assumed row height, every real row that disagreed with
+ * it by a pixel moved the scrollbar under the thumb, and dragging the bar
+ * quickly outran React and showed blank bands. A list that only ever grows has
+ * no spacers to be wrong about — what is rendered is what is there, so the
+ * scrollbar cannot lie and nothing can jump.
+ *
+ * The cost is that scrolling to the end of fourteen thousand tracks eventually
+ * mounts all of them. That is the right trade for a list nobody scrolls to the
+ * end of: the first paint is a hundred rows either way, and the memory only
+ * grows for someone who actually asked to see that far.
  */
-const ROW_HEIGHT_PX = 46;
-const ROW_OVERSCAN = 8;
-/** Until the body has been measured, enough rows to fill any plausible
- * window — a first paint that renders too few would leave a short list with
- * nothing under the header. */
-const DEFAULT_VISIBLE_ROWS = 40;
+const PAGE_SIZE = 100;
+/** How close to the bottom, in pixels, counts as asking for the next page.
+ * Roughly two rows: far enough to load before the user arrives, near enough
+ * that it is their scroll doing the asking rather than a stray wheel tick. */
+const NEXT_PAGE_THRESHOLD_PX = 96;
 
 /** What a screen reader is told about a column: only the one actually driving
  * the order claims a direction. */
@@ -167,32 +174,14 @@ const LibraryListView = ({
 }: ILibraryListViewProps) => {
   const { t } = useTranslation();
   const bodyRef = useRef<HTMLDivElement | null>(null);
-  const [windowStart, setWindowStart] = useState(0);
-  const [visibleRowCount, setVisibleRowCount] = useState(DEFAULT_VISIBLE_ROWS);
+  const [shownCount, setShownCount] = useState(PAGE_SIZE);
 
-  // How many rows the body can actually show, remeasured when it resizes.
-  // `ResizeObserver` is absent under jsdom — the same guard `NowPlayingBar`
-  // uses — so tests simply keep the default, which renders more rows rather
-  // than fewer and so cannot hide one an assertion is looking for.
+  // A new list starts at the top, showing one page again: keeping the old
+  // offset after a search or a sort would land the user in the middle of
+  // results they have not seen, and keeping the old count would make a
+  // one-result search mount everything the last one had grown to.
   useEffect(() => {
-    const element = bodyRef.current;
-    if (!element || typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
-    const measure = () =>
-      setVisibleRowCount(
-        Math.max(1, Math.ceil(element.clientHeight / ROW_HEIGHT_PX)),
-      );
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
-  // A new list starts at the top: keeping the old offset after a search or a
-  // sort would land the user in the middle of results they have not seen.
-  useEffect(() => {
-    setWindowStart(0);
+    setShownCount(PAGE_SIZE);
     // `scrollTop` rather than `scrollTo`, which jsdom does not implement —
     // and which would need mocking in every test that renders this view.
     const element = bodyRef.current;
@@ -331,16 +320,13 @@ const LibraryListView = ({
     rows: ReactNode[],
     menu?: ReactNode,
   ) => {
-    // Only the rows near the viewport are mounted. A folder of several
-    // thousand tracks would otherwise put every one of them in the document
-    // — the same reasoning Cover Flow's own window follows, and the reason
-    // the spacers below are plain divs rather than styled rows: they exist to
-    // hold the scrollbar's length honest, nothing more.
+    // A page at a time, growing as the bottom comes into reach. Nothing
+    // stands in for what is not rendered, which is the point: the scrollbar
+    // measures exactly the rows that exist, so it cannot disagree with them
+    // and the thumb cannot move under the pointer.
     const total = rows.length;
-    const first = Math.max(0, windowStart - ROW_OVERSCAN);
-    const last = Math.min(total, windowStart + visibleRowCount + ROW_OVERSCAN);
-    const topSpacer = first * ROW_HEIGHT_PX;
-    const bottomSpacer = Math.max(0, (total - last) * ROW_HEIGHT_PX);
+    const shown = Math.min(total, shownCount);
+    const remaining = total - shown;
     return (
       <div className="library-list" role="table" aria-label={t('tabs.library')}>
         <div className="library-list__header" role="row">
@@ -354,18 +340,25 @@ const LibraryListView = ({
           className="library-list__body"
           role="rowgroup"
           ref={bodyRef}
-          onScroll={(event) =>
-            setWindowStart(
-              Math.floor(event.currentTarget.scrollTop / ROW_HEIGHT_PX),
-            )
-          }
+          onScroll={(event) => {
+            if (remaining <= 0) {
+              return;
+            }
+            const element = event.currentTarget;
+            const distanceToBottom =
+              element.scrollHeight - element.scrollTop - element.clientHeight;
+            if (distanceToBottom <= NEXT_PAGE_THRESHOLD_PX) {
+              setShownCount((current) => current + PAGE_SIZE);
+            }
+          }}
         >
-          {topSpacer > 0 && (
-            <div style={{ height: topSpacer }} aria-hidden="true" />
-          )}
-          {rows.slice(first, last)}
-          {bottomSpacer > 0 && (
-            <div style={{ height: bottomSpacer }} aria-hidden="true" />
+          {rows.slice(0, shown)}
+          {remaining > 0 && (
+            <div className="library-list__more" role="row">
+              <span role="cell">
+                {t('library.trackCount', { count: remaining })}
+              </span>
+            </div>
           )}
         </div>
         {menu}
