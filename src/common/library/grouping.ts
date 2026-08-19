@@ -37,9 +37,27 @@ export interface ILibraryArtist {
   artId?: string;
 }
 
+// Combining Diacritical Marks block: every accent `NFKD` can split a base
+// letter from. Built from the numeric code points through `RegExp` and
+// `String.fromCharCode` rather than a character-class escape or, worse, the
+// literal Unicode characters themselves in source: a raw combining mark
+// pasted into a source file is invisible in most editors and in a diff, and
+// this exact file has already once been silently turned into a binary
+// revision on this branch by exactly that hazard.
+const COMBINING_MARKS_FIRST = 0x0300; // COMBINING GRAVE ACCENT
+const COMBINING_MARKS_LAST = 0x036f; // COMBINING LATIN SMALL LETTER X
+const COMBINING_MARKS_PATTERN = new RegExp(
+  `[${String.fromCharCode(COMBINING_MARKS_FIRST)}-${String.fromCharCode(COMBINING_MARKS_LAST)}]`,
+  'g',
+);
+
 /** Accent-folded and lowercased, for comparison only — never for display. */
 export const normalizeForSearch = (value: string): string =>
-  value.normalize('NFKD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  value
+    .normalize('NFKD')
+    .replace(COMBINING_MARKS_PATTERN, '')
+    .toLowerCase()
+    .trim();
 
 /**
  * The album an artist made, not the album with that name.
@@ -54,6 +72,17 @@ export const albumKey = (track: ILibraryTrack): string => {
 };
 
 const album = (track: ILibraryTrack): string => track.album ?? '';
+
+/**
+ * Which artist a track belongs to, for grouping and for filtering alike —
+ * the single rule `groupIntoArtists` below, `LibraryWorkspace`'s artist
+ * queue and `LibraryDetail`'s artist drill-in all have to agree on. Three
+ * separate copies of this once meant a change to the rule here left the
+ * artist page listing the right songs while the queue it built played the
+ * wrong ones.
+ */
+export const artistKey = (track: ILibraryTrack): string =>
+  normalizeForSearch(track.albumArtist ?? track.artist ?? '');
 
 const compareTracksInAlbum = (
   left: ILibraryTrack,
@@ -103,7 +132,7 @@ export const groupIntoArtists = (
   >();
   tracks.forEach((track) => {
     const name = track.albumArtist ?? track.artist ?? '';
-    const id = normalizeForSearch(name);
+    const id = artistKey(track);
     const existing = grouped.get(id);
     if (existing) {
       existing.albums.add(normalizeForSearch(album(track)));

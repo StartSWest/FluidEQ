@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { ILibraryTrack } from '../../../common/library/types';
 import {
+  artistKey,
   groupIntoAlbums,
   groupIntoArtists,
   normalizeForSearch,
@@ -130,6 +131,29 @@ describe('searching', () => {
 
   it('normalises for comparison without destroying the display string', () => {
     expect(normalizeForSearch('Björk')).toBe('bjork');
+  });
+});
+
+describe('artistKey (follow-up 10)', () => {
+  // The one rule `groupIntoArtists`, `LibraryWorkspace`'s artist queue and
+  // `LibraryDetail`'s artist drill-in all now share instead of each keeping
+  // its own copy — a changed rule here used to leave the artist page
+  // listing the right songs while the queue it built played the wrong ones.
+  it('prefers the album artist over the track artist, matching groupIntoArtists', () => {
+    const compilationTrack = track({
+      title: 'Track',
+      artist: 'Guest Vocalist',
+      albumArtist: 'Various Artists',
+    });
+    expect(artistKey(compilationTrack)).toBe(
+      normalizeForSearch('Various Artists'),
+    );
+    const [artist] = groupIntoArtists([compilationTrack]);
+    expect(artist.id).toBe(artistKey(compilationTrack));
+  });
+
+  it('folds case and accents the same way normalizeForSearch does', () => {
+    expect(artistKey(track({ title: 'X', artist: 'Björk' }))).toBe('bjork');
   });
 });
 
