@@ -19,15 +19,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+import log from 'electron-log';
 import {
   deviceProfilesToFiles,
   getDefaultDeviceProfileSettings,
   filterVisibleAudioDevices,
   getStateForAudioDevice,
+  removeAssignmentForPreset,
+  renameAssignedPreset,
   TApoConfigFiles,
 } from '../../../main/deviceProfiles';
 import { FilterTypeEnum, getDefaultState } from '../../../common/constants';
-import { FLUIDEQ_CONFIG_FILENAME } from '../../../main/flush';
+import { FLUIDEQ_CONFIG_FILENAME, renamePreset } from '../../../main/flush';
 import { expandApoConfig } from '../../utils/apoConfig';
 
 /** The file a device's `Include:` points at, found through the root config. */
@@ -559,5 +562,121 @@ describe('profiles scoped to one output', () => {
     expect(getStateForAudioDevice(settings, 'speakers', dirFor).preAmp).toBe(
       getDefaultState().preAmp,
     );
+  });
+
+  /**
+   * Two outputs sharing a name is the normal case, not a corner one: every
+   * output FluidEQ has ever created for itself is called "Untitled profile 1".
+   */
+  const twoOutputsSharingAName = () => {
+    writeProfile('headphones', 'Untitled profile 1', 6);
+    writeProfile('speakers', 'Untitled profile 1', 2);
+
+    const settings = getDefaultDeviceProfileSettings();
+    settings.assignments.headphones = {
+      deviceId: 'headphones',
+      deviceName: 'Headphones',
+      deviceGuid: '{HP}',
+      presetName: 'Untitled profile 1',
+    };
+    settings.assignments.speakers = {
+      deviceId: 'speakers',
+      deviceName: 'Speakers',
+      deviceGuid: '{SP}',
+      presetName: 'Untitled profile 1',
+    };
+    return settings;
+  };
+
+  it('renames one output’s profile and leaves the other playing', () => {
+    const settings = twoOutputsSharingAName();
+
+    // What the IPC handler does: the file moves in one folder, so exactly one
+    // assignment may follow it.
+    renamePreset('Untitled profile 1', 'Studio', dirFor('headphones'));
+    renameAssignedPreset(
+      settings,
+      'headphones',
+      'Untitled profile 1',
+      'Studio',
+    );
+
+    // The positive control. Asserting only that the speakers were untouched
+    // would pass just as well if the rename had done nothing at all.
+    expect(settings.assignments.headphones.presetName).toBe('Studio');
+    expect(settings.assignments.speakers.presetName).toBe('Untitled profile 1');
+
+    // And the consequence that made this worth finding. `flushDeviceProfiles`
+    // swallows a profile it cannot read, so a speaker assignment dragged along
+    // to "Studio" would not throw — the output would simply vanish from the
+    // config and stop being equalised, with the error surfacing much later
+    // somewhere that looked unrelated.
+    const files = deviceProfilesToFiles(settings, dirFor);
+    expect(bandsFor(files, '{HP}')).toContain('Gain 6 dB');
+    expect(bandsFor(files, '{SP}')).toContain('Gain 2 dB');
+  });
+
+  it('leaves an output whose assignment has moved on', () => {
+    const settings = twoOutputsSharingAName();
+    settings.assignments.headphones.presetName = 'Something else';
+
+    renameAssignedPreset(
+      settings,
+      'headphones',
+      'Untitled profile 1',
+      'Studio',
+    );
+
+    expect(settings.assignments.headphones.presetName).toBe('Something else');
+  });
+
+  it('detaches only the output whose profile was deleted', () => {
+    const settings = twoOutputsSharingAName();
+
+    removeAssignmentForPreset(settings, 'headphones', 'Untitled profile 1');
+
+    expect(settings.assignments.headphones).toBeUndefined();
+    expect(settings.assignments.speakers.presetName).toBe('Untitled profile 1');
+  });
+
+  it('keeps an output attached when the deleted name is not the one it plays', () => {
+    const settings = twoOutputsSharingAName();
+    settings.assignments.headphones.presetName = 'Something else';
+
+    removeAssignmentForPreset(settings, 'headphones', 'Untitled profile 1');
+
+    expect(settings.assignments.headphones.presetName).toBe('Something else');
+  });
+
+  it('says so when an output is dropped for an unreadable profile', () => {
+    const settings = twoOutputsSharingAName();
+    // Only the speakers have a file. The headphones name one that is not there,
+    // which is exactly the state a cross-output rename used to leave behind.
+    fs.rmSync(path.join(root, 'headphones', 'Untitled profile 1'));
+    const complaints: unknown[] = [];
+    const reportedError = jest
+      .spyOn(log, 'error')
+      .mockImplementation((...args: unknown[]) => {
+        complaints.push(args[0]);
+      });
+
+    try {
+      const files = deviceProfilesToFiles(settings, dirFor);
+
+      // The output that can still be read is still served — one bad profile
+      // does not take the chain down.
+      expect(bandsFor(files, '{SP}')).toContain('Gain 2 dB');
+      // And the one that cannot is named, rather than disappearing in silence.
+      expect(
+        complaints.some(
+          (line) =>
+            typeof line === 'string' &&
+            line.includes('Headphones') &&
+            line.includes('Untitled profile 1'),
+        ),
+      ).toBe(true);
+    } finally {
+      reportedError.mockRestore();
+    }
   });
 });
