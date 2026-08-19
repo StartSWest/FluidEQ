@@ -141,6 +141,15 @@ describe('cover flow', () => {
     // folder walked first lands ahead of ones already showing. The centre
     // must follow the album it was showing, not the numeric position that
     // album used to be at.
+    //
+    // Asserted on the selected option's own `id` (`library-coverflow-option-`
+    // plus the grouped album's own key), not on visible text: a text
+    // assertion here is a substring match, and "Album 1" is a substring of
+    // "Prepended Album 1" — so a fixture that inserts differently-numbered
+    // albums ahead of the centred one would pass whether or not identity
+    // tracking actually worked. The id has no such collision, and does not
+    // depend on the two fixtures happening to be named so their titles never
+    // overlap.
     const { rerender } = render(
       <I18nProvider>
         <LibraryCoverFlow
@@ -154,9 +163,9 @@ describe('cover flow', () => {
     const stage = screen.getByRole('listbox');
     stage.focus();
     await userEvent.keyboard('{ArrowRight}');
-    expect(screen.getByRole('option', { selected: true })).toHaveTextContent(
-      'Album 1',
-    );
+    const centredOption = screen.getByRole('option', { selected: true });
+    expect(centredOption).toHaveTextContent('Album 1');
+    const centredOptionId = centredOption.id;
 
     rerender(
       <I18nProvider>
@@ -168,8 +177,8 @@ describe('cover flow', () => {
         />
       </I18nProvider>,
     );
-    expect(screen.getByRole('option', { selected: true })).toHaveTextContent(
-      'Album 1',
+    expect(screen.getByRole('option', { selected: true }).id).toBe(
+      centredOptionId,
     );
   });
 });
