@@ -26,12 +26,26 @@ import {
   IKaraokeSessionFileReference,
   IKaraokeSessionSnapshot,
 } from '../common/karaoke/sessionPersistence';
+import {
+  KARAOKE_IMAGE_EXTENSIONS,
+  KARAOKE_VIDEO_EXTENSIONS,
+} from '../common/karaoke/files';
 
 const SESSION_FILENAME = 'karaoke-session.json';
 const MAX_FILES = 5_000;
 const MAX_LYRICS_BYTES = 4 * 1024 * 1024;
 const AUDIO_EXTENSIONS = new Set(['mp3', 'wav', 'ogg', 'flac', 'm4a']);
 const LYRIC_EXTENSIONS = new Set(['lrc', 'elrc', 'txt']);
+/**
+ * The stage's pictures and video, taken from the renderer's own lists rather
+ * than copied. A second copy that fell behind would not fail loudly: it would
+ * quietly drop one format's artwork on restart, which is the exact bug this
+ * set exists to fix.
+ */
+const MEDIA_EXTENSIONS = new Set<string>([
+  ...KARAOKE_IMAGE_EXTENSIONS,
+  ...KARAOKE_VIDEO_EXTENSIONS,
+]);
 const MIME_TYPES: Record<string, string> = {
   mp3: 'audio/mpeg',
   wav: 'audio/wav',
@@ -41,6 +55,29 @@ const MIME_TYPES: Record<string, string> = {
   lrc: 'text/plain',
   elrc: 'text/plain',
   txt: 'text/plain',
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  jfif: 'image/jpeg',
+  png: 'image/png',
+  apng: 'image/apng',
+  webp: 'image/webp',
+  gif: 'image/gif',
+  avif: 'image/avif',
+  bmp: 'image/bmp',
+  ico: 'image/x-icon',
+  svg: 'image/svg+xml',
+  mp4: 'video/mp4',
+  webm: 'video/webm',
+  ogv: 'video/ogg',
+  mov: 'video/quicktime',
+  m4v: 'video/mp4',
+  avi: 'video/x-msvideo',
+  mpg: 'video/mpeg',
+  mpeg: 'video/mpeg',
+  flv: 'video/x-flv',
+  wmv: 'video/x-ms-wmv',
+  mkv: 'video/x-matroska',
+  divx: 'video/x-msvideo',
 };
 
 interface IKaraokeStoredFile {
@@ -70,6 +107,9 @@ const roleForPath = (
   }
   if (LYRIC_EXTENSIONS.has(extension)) {
     return 'lyrics';
+  }
+  if (MEDIA_EXTENSIONS.has(extension)) {
+    return 'media';
   }
   return undefined;
 };
@@ -254,7 +294,11 @@ export const readRestoredKaraokeFile = (
   token: string,
 ): Promise<IKaraokeRestoredFileBytes | undefined> => {
   const localPath = tokenPaths.get(token);
-  if (!localPath || roleForPath(localPath) !== 'audio') {
+  const role = localPath ? roleForPath(localPath) : undefined;
+  // Lyrics are excluded because they already arrived as text with the session;
+  // serving them here would be a second, byte-for-byte copy of what the
+  // renderer holds.
+  if (!localPath || (role !== 'audio' && role !== 'media')) {
     return Promise.resolve(undefined);
   }
   return Promise.all([

@@ -59,14 +59,29 @@ export const KARAOKE_LYRIC_EXTENSIONS: readonly string[] = Array.from(
   new Set(KARAOKE_TEXT_ADAPTERS.flatMap((adapter) => adapter.extensions)),
 );
 
-/** Cover and background artwork, in the formats a song folder actually uses. */
+/**
+ * Cover and background artwork — every still format Chromium will decode.
+ *
+ * Deliberately the whole list rather than the three a UltraStar pack usually
+ * ships, because the cost of a missing entry is silent: the picture is simply
+ * never offered to the stage and the song looks like it has no artwork.
+ *
+ * TIFF, HEIC and RAW are absent because Electron cannot display them, not
+ * because they are rare. Listing one would mean handing `<img>` a file it
+ * renders as a broken frame, which is worse than the gradient.
+ */
 export const KARAOKE_IMAGE_EXTENSIONS = [
   'jpg',
   'jpeg',
+  'jfif',
   'png',
+  'apng',
   'webp',
   'gif',
   'avif',
+  'bmp',
+  'ico',
+  'svg',
 ] as const;
 
 /**

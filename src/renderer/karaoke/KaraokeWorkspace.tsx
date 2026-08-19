@@ -776,9 +776,14 @@ const KaraokeWorkspace = ({
           ordered[0];
         selectedPlaylistIdRef.current = selected.id;
         setSelectedPlaylistId(selected.id);
+        // The media travels here too. Restoring passed only the pair, so the
+        // song the app opened on lost the cover, background and video that
+        // the very same song got back the moment it was clicked in the
+        // playlist — see the note on the select path below.
         const loaded = await sessionRef.current.loadFiles([
           selected.audio,
           ...(selected.lyrics ? [selected.lyrics] : []),
+          ...selected.media,
         ]);
         const restoredPlayheadMs =
           preciseProgress?.selectedPlaylistId === selected.id

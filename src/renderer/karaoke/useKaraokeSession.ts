@@ -91,6 +91,29 @@ const materializeRestoredAudio = async (file: File): Promise<File> => {
   return materialized;
 };
 
+/**
+ * The same fetch for artwork, but never fatal.
+ *
+ * A restored session hands back picture and video files as empty shells with a
+ * token; the bytes only arrive when asked for. Without this the stage got a
+ * zero-length blob and drew a broken image, which is worse than the gradient
+ * it replaced. And unlike the audio, a cover that has been moved or deleted
+ * since the session was saved is not a reason to fail the song — it is a
+ * reason to have no cover.
+ */
+const materializeRestoredMedia = async (
+  file: File | undefined,
+): Promise<File | undefined> => {
+  if (!file) {
+    return undefined;
+  }
+  try {
+    return await materializeRestoredAudio(file);
+  } catch {
+    return undefined;
+  }
+};
+
 /** Owns one local song session; no selected file or path leaves the renderer. */
 export const useKaraokeSession = (isActive: boolean) => {
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -230,11 +253,20 @@ export const useKaraokeSession = (isActive: boolean) => {
         // and a folder holding several songs' artwork needs that header to
         // pick the right one. Formats with no header fall back to matching by
         // base name, which is all an LRC or a bare MP3 can offer.
-        const stageMedia = selectKaraokeStageMedia(selection.audio, files, {
+        const chosenMedia = selectKaraokeStageMedia(selection.audio, files, {
           coverFileName: parsed?.coverFileName,
           backgroundFileName: parsed?.backgroundFileName,
           videoFileName: parsed?.videoFileName,
         });
+        // Only the three that won are read off disk. Fetching every picture in
+        // the folder would mean loading the losing candidates too, and a song
+        // folder can hold a 60MB video that the stage never shows.
+        const [cover, background, video] = await Promise.all([
+          materializeRestoredMedia(chosenMedia.cover),
+          materializeRestoredMedia(chosenMedia.background),
+          materializeRestoredMedia(chosenMedia.video),
+        ]);
+        const stageMedia = { cover, background, video };
         const mediaAsset = (
           role: 'cover' | 'background' | 'video',
           file: File | undefined,

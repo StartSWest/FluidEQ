@@ -235,7 +235,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     box-shadow: 0 0 16px rgba($secondary-default, 0.18);
   }
 
-  .karaoke-workspace__pitch-toggle[aria-pressed='true'] {
+  // The stage-art toggle wears the same lit state as the pitch guide: they are
+  // the same kind of control and reading one as "on" while the other only dims
+  // would make the pair look like different mechanisms. `:not(:disabled)`
+  // because a song with no artwork still carries the preference — lighting up
+  // a button that cannot act is the one case where the highlight would lie.
+  .karaoke-workspace__pitch-toggle[aria-pressed='true'],
+  .karaoke-workspace__stage-art-toggle[aria-pressed='true']:not(:disabled) {
     color: $primary-dark;
     border-color: rgba($secondary-light, 0.94);
     background: linear-gradient(145deg, $secondary-light, $secondary-default);
