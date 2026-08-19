@@ -144,6 +144,67 @@ describe('scanning a folder', () => {
     expect(result.tracks.length).toBeLessThan(3);
   });
 
+  it('carries forward every known track a cancelled rescan never got back around to', async () => {
+    // Reproduces the data loss directly: six known, unchanged tracks across
+    // two directories, cancelled after only two have been reached. Before
+    // this fix the result held only the two actually confirmed, and
+    // `scanOneRoot` (src/main/ipc/library.ts) replaces a root's tracks with
+    // this result wholesale -- so the other four, which had not changed at
+    // all, would simply vanish from the library the moment Stop was pressed.
+    const dir = folder({
+      'Album A/a.mp3': 'x',
+      'Album A/b.mp3': 'x',
+      'Album A/c.mp3': 'x',
+      'Album B/d.mp3': 'x',
+      'Album B/e.mp3': 'x',
+      'Album B/f.mp3': 'x',
+    });
+    const fileNames = ['a', 'b', 'c', 'd', 'e', 'f'];
+    const known: ILibraryTrack[] = fileNames.map((name) => {
+      const filePath = path.join(
+        dir,
+        name <= 'c' ? 'Album A' : 'Album B',
+        `${name}.mp3`,
+      );
+      const stats = fs.statSync(filePath);
+      return {
+        id: trackIdForPath(filePath),
+        rootId: 'r1',
+        path: filePath,
+        kind: 'audio',
+        isPlayable: true,
+        title: name.toUpperCase(),
+        sizeBytes: stats.size,
+        mtimeMs: stats.mtimeMs,
+        addedAt: 1,
+      };
+    });
+
+    let parseEventsSeen = 0;
+    const result = await scanLibraryRoot({
+      rootId: 'r1',
+      rootPath: dir,
+      userDataDir: dir,
+      known,
+      onProgress: (progress) => {
+        if (progress.parsed > 0) {
+          parseEventsSeen += 1;
+        }
+      },
+      // Cancels after the second file is confirmed -- two of six reached,
+      // four not yet revisited.
+      isCancelled: () => parseEventsSeen >= 2,
+    });
+
+    expect(result.wasCancelled).toBe(true);
+    // The count assertion the bug would have failed: the array was non-empty
+    // (2 of 6) even when broken, so "some tracks survived" was never enough.
+    expect(result.tracks).toHaveLength(6);
+    expect(result.tracks.map((track) => track.path).sort()).toEqual(
+      known.map((track) => track.path).sort(),
+    );
+  });
+
   it('reports seen ahead of parsed while a directory is still being worked through', async () => {
     // The regression this guards: `seen` and `parsed` used to be incremented
     // together for the same file, so every live progress event had
