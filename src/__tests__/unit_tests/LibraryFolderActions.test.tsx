@@ -43,6 +43,7 @@ describe('the folder actions', () => {
         isScanning
         onAddFolder={jest.fn()}
         onRescan={jest.fn()}
+        onForceRescan={jest.fn()}
         onRemoveRoot={jest.fn()}
       />,
     );
@@ -59,6 +60,7 @@ describe('the folder actions', () => {
         isScanning={false}
         onAddFolder={onAddFolder}
         onRescan={onRescan}
+        onForceRescan={jest.fn()}
         onRemoveRoot={jest.fn()}
       />,
     );
@@ -68,6 +70,23 @@ describe('the folder actions', () => {
     expect(onRescan).toHaveBeenCalled();
   });
 
+  it('offers a Force rescan beside Rescan, disabled the same way (follow-up 7)', async () => {
+    const onForceRescan = jest.fn();
+    const user = userEvent.setup();
+    wrap(
+      <LibraryFolderActions
+        roots={[]}
+        isScanning={false}
+        onAddFolder={jest.fn()}
+        onRescan={jest.fn()}
+        onForceRescan={onForceRescan}
+        onRemoveRoot={jest.fn()}
+      />,
+    );
+    await user.click(screen.getByRole('button', { name: 'Force rescan' }));
+    expect(onForceRescan).toHaveBeenCalled();
+  });
+
   it('has no Folders control at all with nothing to manage', () => {
     wrap(
       <LibraryFolderActions
@@ -75,6 +94,7 @@ describe('the folder actions', () => {
         isScanning={false}
         onAddFolder={jest.fn()}
         onRescan={jest.fn()}
+        onForceRescan={jest.fn()}
         onRemoveRoot={jest.fn()}
       />,
     );
@@ -92,6 +112,7 @@ describe('the folder actions', () => {
           isScanning={false}
           onAddFolder={jest.fn()}
           onRescan={jest.fn()}
+          onForceRescan={jest.fn()}
           onRemoveRoot={jest.fn()}
         />
         <button type="button">Outside</button>
@@ -112,6 +133,7 @@ describe('the folder actions', () => {
         isScanning={false}
         onAddFolder={jest.fn()}
         onRescan={jest.fn()}
+        onForceRescan={jest.fn()}
         onRemoveRoot={jest.fn()}
       />,
     );
@@ -130,6 +152,7 @@ describe('the folder actions', () => {
         isScanning={false}
         onAddFolder={jest.fn()}
         onRescan={jest.fn()}
+        onForceRescan={jest.fn()}
         onRemoveRoot={onRemoveRoot}
       />,
     );

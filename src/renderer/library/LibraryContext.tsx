@@ -49,6 +49,10 @@ interface ILibraryContextValue {
   addFolder: () => Promise<void>;
   addFolderPaths: (paths: string[]) => Promise<void>;
   rescan: () => Promise<void>;
+  /** Re-reads every candidate regardless of whether it changed — see
+   * `forceRescanLibrary`'s own comment for why an ordinary rescan cannot
+   * substitute for this. */
+  forceRescan: () => Promise<void>;
   cancelScan: () => void;
   removeRoot: (rootId: string) => Promise<void>;
 }
@@ -124,6 +128,10 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
     await window.electron.ipcRenderer.rescanLibrary();
   }, []);
 
+  const forceRescan = useCallback(async () => {
+    await window.electron.ipcRenderer.forceRescanLibrary();
+  }, []);
+
   const cancelScan = useCallback(() => {
     window.electron.ipcRenderer.cancelLibraryScan();
   }, []);
@@ -142,6 +150,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
       addFolder,
       addFolderPaths,
       rescan,
+      forceRescan,
       cancelScan,
       removeRoot,
     }),
@@ -153,6 +162,7 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
       addFolder,
       addFolderPaths,
       rescan,
+      forceRescan,
       cancelScan,
       removeRoot,
     ],

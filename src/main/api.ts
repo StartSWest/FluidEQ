@@ -293,6 +293,16 @@ const removeLibraryRoot = (rootId: string) =>
 const rescanLibrary = () =>
   ipcRenderer.invoke('library-scan-start') as Promise<void>;
 
+/**
+ * A rescan that hands the scanner no known tracks at all, so every candidate
+ * is re-read regardless of whether its size and modified time still match --
+ * the escape hatch for a tagger's preserve-mtime option, and for a track
+ * whose cached `artId` points at a `userData/library-art` file something
+ * outside the app deleted.
+ */
+const forceRescanLibrary = () =>
+  ipcRenderer.invoke('library-scan-force') as Promise<void>;
+
 const cancelLibraryScan = () => ipcRenderer.send('library-scan-cancel', []);
 
 const onLibraryScanProgress = (
@@ -370,6 +380,7 @@ export default {
     addLibraryRootPaths,
     removeLibraryRoot,
     rescanLibrary,
+    forceRescanLibrary,
     cancelLibraryScan,
     onLibraryScanProgress,
     onLibraryIndexChanged,

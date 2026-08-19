@@ -95,13 +95,17 @@ beforeEach(() => {
 
 describe('the library channels', () => {
   it('registers every channel the renderer will call', () => {
-    registerLibraryIpc({ userDataDir: 'C:\\Data', getMainWindow: () => null });
+    registerLibraryIpc({
+      userDataDir: tempDir('fluideq-lib-data-'),
+      getMainWindow: () => null,
+    });
     [
       'library-index-get',
       'library-root-add',
       'library-root-add-paths',
       'library-root-remove',
       'library-scan-start',
+      'library-scan-force',
       'library-scan-cancel',
       'library-reveal',
     ].forEach((channel) => expect(handlers.has(channel)).toBe(true));
@@ -111,7 +115,10 @@ describe('the library channels', () => {
     // The one channel that takes a path inwards. It may add a root and
     // nothing else, so a file — or a path that does not exist — is refused
     // rather than added and scanned.
-    registerLibraryIpc({ userDataDir: 'C:\\Data', getMainWindow: () => null });
+    registerLibraryIpc({
+      userDataDir: tempDir('fluideq-lib-data-'),
+      getMainWindow: () => null,
+    });
     const handler = handlers.get('library-root-add-paths');
     const index = await handler?.({}, ['C:\\Windows\\notepad.exe']);
     expect(index).toMatchObject({ roots: [] });
@@ -212,5 +219,89 @@ describe('a root added while another is already scanning', () => {
     expect(rootB?.trackCount).toBe(1);
     const rootA = final.index.roots.find((root) => root.path === dirA);
     expect(rootA?.trackCount).toBe(1);
+  });
+});
+
+describe('forcing a rescan (follow-up 7)', () => {
+  it('passes no known tracks, so every candidate is re-read even though nothing changed', async () => {
+    // `artId` is trusted forever once a track carries one -- `storeArtwork`
+    // returns the cached id on a bare `existsSync`, and an unchanged track
+    // is normally carried forward wholesale without ever calling it again
+    // (see `shouldReparse`). If `userData/library-art` is ever cleared from
+    // outside the app, an ordinary rescan cannot notice or repair it; a
+    // force rescan is the only path that hands the scanner `known: []` and
+    // makes it ask again.
+    const userDataDir = tempDir('fluideq-lib-data-');
+    const dir = tempDir('fluideq-lib-force-');
+    registerLibraryIpc({ userDataDir, getMainWindow: silentWindow });
+
+    const addPaths = handlers.get('library-root-add-paths');
+    await addPaths?.({}, [dir]);
+    await waitFor(() => scanLibraryRoot.mock.calls.length >= 1);
+    expect(scanLibraryRoot.mock.calls[0][0].known).toEqual([]);
+
+    scanLibraryRoot.mockClear();
+    scanLibraryRoot.mockImplementation(async (options: IScanOptions) => ({
+      tracks: [
+        {
+          id: 'still-here',
+          rootId: options.rootId,
+          path: path.join(options.rootPath, 'a.mp3'),
+          kind: 'audio' as const,
+          isPlayable: true,
+          title: 'A',
+          sizeBytes: 1,
+          mtimeMs: 1,
+          addedAt: 1,
+        },
+      ],
+      karaokeSkipped: 0,
+      wasCancelled: false,
+    }));
+
+    const force = handlers.get('library-scan-force');
+    await force?.({});
+    await waitFor(() => scanLibraryRoot.mock.calls.length >= 1);
+
+    // An ordinary rescan would have handed the scanner the track it already
+    // found above; force rescan hands it nothing, unconditionally.
+    expect(scanLibraryRoot.mock.calls[0][0].known).toEqual([]);
+  });
+});
+
+describe('a root scan that throws partway through (blocker 3)', () => {
+  it('still emits a terminal progress event, instead of leaving the renderer scanning forever', async () => {
+    // Reproduces the wedge directly: whatever broke `scanLibraryRoot` --
+    // originally the unguarded `fs.promises.stat` in libraryScanParse.ts,
+    // but this must hold for *any* future throw in the chain -- is caught
+    // here and only logged. `LibraryContext.tsx`'s `isScanning` is derived
+    // solely from the last `progress.isDone` it received; with no event at
+    // all for this root, it would stay "scanning" for the rest of the
+    // session: the strip pinned, Rescan disabled, Stop inert.
+    const userDataDir = tempDir('fluideq-lib-data-');
+    const dir = tempDir('fluideq-lib-throws-');
+    scanLibraryRoot.mockImplementation(() =>
+      Promise.reject(new Error('ENOENT: vanished mid-scan')),
+    );
+
+    const sentProgress: Array<{ isDone: boolean }> = [];
+    const window = {
+      isVisible: () => true,
+      once: () => undefined,
+      webContents: {
+        send: (channel: string, payload: unknown) => {
+          if (channel === 'library-scan-progress') {
+            sentProgress.push(payload as { isDone: boolean });
+          }
+        },
+      },
+    } as unknown as BrowserWindow;
+
+    registerLibraryIpc({ userDataDir, getMainWindow: () => window });
+    const addPaths = handlers.get('library-root-add-paths');
+    await addPaths?.({}, [dir]);
+
+    await waitFor(() => sentProgress.length > 0);
+    expect(sentProgress[sentProgress.length - 1].isDone).toBe(true);
   });
 });

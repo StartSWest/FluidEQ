@@ -27,6 +27,11 @@ interface ILibraryFolderActionsProps {
   isScanning: boolean;
   onAddFolder: () => void;
   onRescan: () => void;
+  /** Re-reads every candidate regardless of whether it changed — the escape
+   * hatch for a tagger's preserve-mtime option and for a cover whose cached
+   * `artId` outlived the file `storeArtwork` wrote it to. Rare enough that it
+   * sits beside Rescan rather than replacing it. */
+  onForceRescan: () => void;
   onRemoveRoot: (rootId: string) => void;
 }
 
@@ -52,6 +57,7 @@ const LibraryFolderActions = ({
   isScanning,
   onAddFolder,
   onRescan,
+  onForceRescan,
   onRemoveRoot,
 }: ILibraryFolderActionsProps) => {
   const { t } = useTranslation();
@@ -103,6 +109,18 @@ const LibraryFolderActions = ({
       >
         <MenuIcon name="restart" className="library-toolbar__action-icon" />
         <span>{t('library.rescan')}</span>
+      </button>
+      {/* Rare enough to sit quietly beside Rescan rather than replace it —
+          most rescans should stay the cheap, incremental kind. */}
+      <button
+        type="button"
+        className="button small subtle"
+        disabled={isScanning}
+        title={t('library.rescan.force')}
+        onClick={onForceRescan}
+      >
+        <MenuIcon name="restart" className="library-toolbar__action-icon" />
+        <span>{t('library.rescan.force')}</span>
       </button>
       {/* The only place the roots are manageable. Nothing to manage with
           zero of them, so the control does not appear until there is. */}

@@ -330,6 +330,35 @@ describe('scanning a folder', () => {
     const result = await scan(dir);
     expect(result.tracks[0]).toMatchObject({ hasMetadataError: true });
   });
+
+  it('skips a file that vanishes between discovery and parsing, keeping the rest of the root (blocker 3)', async () => {
+    // Discovery finishes the whole tree before parsing reads a single file
+    // (the two-phase design this module documents), so a file can be gone by
+    // the time its candidate reaches `fs.promises.stat` -- a download folder
+    // tidying itself, a share dropping, a permissions change. Before the fix
+    // this was the one unguarded await in the whole scan chain: it rejected
+    // `scanLibraryRoot` outright and the other two files below vanished from
+    // the result along with it, not just the one that was actually gone.
+    const dir = folder({ 'a.mp3': 'x', 'gone.mp3': 'x', 'b.mp3': 'x' });
+    const missingPath = path.join(dir, 'gone.mp3');
+    const realStat = fs.promises.stat.bind(fs.promises);
+    const statSpy = jest
+      .spyOn(fs.promises, 'stat')
+      .mockImplementation((target: Parameters<typeof fs.promises.stat>[0]) => {
+        if (target === missingPath) {
+          return Promise.reject(new Error('ENOENT: no such file or directory'));
+        }
+        return realStat(target);
+      });
+    try {
+      const result = await scan(dir);
+      expect(
+        result.tracks.map((entry) => path.basename(entry.path)).sort(),
+      ).toEqual(['a.mp3', 'b.mp3']);
+    } finally {
+      statSpy.mockRestore();
+    }
+  });
 });
 
 describe('deciding whether a file needs re-reading', () => {

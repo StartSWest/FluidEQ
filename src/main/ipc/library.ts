@@ -32,7 +32,11 @@ import fs from 'fs';
 // reaches Node's own implementation regardless of what a test replaced the
 // global with.
 import { setTimeout as scheduleTimeout } from 'timers';
-import { ILibraryIndex, ILibraryRoot } from '../../common/library/types';
+import {
+  ILibraryIndex,
+  ILibraryRoot,
+  ILibraryScanProgress,
+} from '../../common/library/types';
 import {
   emptyLibraryIndex,
   loadLibraryIndex,
@@ -125,6 +129,7 @@ const setRoot = (rootId: string, patch: Partial<ILibraryRoot>): void => {
 const scanOneRoot = async (
   deps: ILibraryIpcDeps,
   rootId: string,
+  force: boolean,
 ): Promise<void> => {
   const root = currentIndex.roots.find((candidate) => candidate.id === rootId);
   if (!root) {
@@ -141,7 +146,17 @@ const scanOneRoot = async (
     return;
   }
   setRoot(rootId, { isOffline: false });
-  const known = currentIndex.tracks.filter((track) => track.rootId === rootId);
+  // A force rescan hands the walk nothing to compare against, so every
+  // candidate is re-read regardless of whether its size and mtime still
+  // match — the escape hatch for a tagger's preserve-mtime option, and for
+  // `artId` itself: `storeArtwork` trusts a cached id forever on a bare
+  // `existsSync` (see its own comment), so if anything ever clears
+  // `userData/library-art` from outside the app, every affected cover would
+  // otherwise render blank permanently, with no ordinary rescan able to
+  // notice and re-derive it.
+  const known = force
+    ? []
+    : currentIndex.tracks.filter((track) => track.rootId === rootId);
   try {
     const result = await scanLibraryRoot({
       rootId,
@@ -178,6 +193,23 @@ const scanOneRoot = async (
     // must not vanish silently either.
     // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
     console.error(`Could not scan library root ${root.path}`, error);
+    // `LibraryContext.tsx`'s `isScanning` is derived solely from the last
+    // `progress.isDone` it received (see its own comment) -- with no event
+    // sent here, whatever throw broke `scanLibraryRoot` also leaves the
+    // renderer believing this root's walk never finished: the strip stays
+    // pinned, Rescan stays disabled, Stop stays inert, for the rest of the
+    // session. The counts are not real -- the walk stopped at an unknown
+    // point -- but `isDone: true` is what actually unwedges the UI, and
+    // nothing downstream of a scan progress event reads these counts once
+    // `isDone` is true.
+    const terminal: ILibraryScanProgress = {
+      rootId,
+      seen: 0,
+      parsed: 0,
+      karaokeSkipped: 0,
+      isDone: true,
+    };
+    deps.getMainWindow()?.webContents.send('library-scan-progress', terminal);
   }
 };
 
@@ -196,10 +228,15 @@ const scanOneRoot = async (
  * next pass, with no repeated call into this function and no gap where
  * `isScanning` is briefly false and a second, truly concurrent walk could
  * start.
+ *
+ * `force` applies to every root this call walks, including a further batch
+ * drained from `pendingRescanRootIds` before this returns -- see
+ * `scanOneRoot`'s own comment for what it changes.
  */
 const performScan = async (
   deps: ILibraryIpcDeps,
   rootIds: readonly string[],
+  force: boolean,
 ): Promise<void> => {
   if (isScanning) {
     return;
@@ -214,7 +251,7 @@ const performScan = async (
           break;
         }
         // eslint-disable-next-line no-await-in-loop -- one root walked at a time by design; see the module comment on isScanning.
-        await scanOneRoot(deps, batch[index]);
+        await scanOneRoot(deps, batch[index], force);
       }
       saveLibraryIndex(deps.userDataDir, currentIndex);
       deps
@@ -242,8 +279,9 @@ const performScan = async (
 const runScanInBackground = (
   deps: ILibraryIpcDeps,
   rootIds: readonly string[],
+  force = false,
 ): void => {
-  performScan(deps, rootIds).catch((error: unknown) => {
+  performScan(deps, rootIds, force).catch((error: unknown) => {
     // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
     console.error('Library scan failed', error);
   });
@@ -421,6 +459,20 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
     runScanInBackground(
       deps,
       currentIndex.roots.map((root) => root.id),
+    );
+  });
+
+  ipcMain.handle('library-scan-force', () => {
+    // Same one-at-a-time rule as `library-scan-start` above -- a second
+    // request while a walk is already running is ignored rather than
+    // queued, force or not.
+    if (isScanning) {
+      return;
+    }
+    runScanInBackground(
+      deps,
+      currentIndex.roots.map((root) => root.id),
+      true,
     );
   });
 

@@ -180,7 +180,25 @@ const parseCandidate = async (
     fileNames: candidate.dirFileNames,
     folderArt,
   };
-  const stats = await fs.promises.stat(candidate.filePath);
+  let stats: fs.Stats;
+  try {
+    stats = await fs.promises.stat(candidate.filePath);
+  } catch (error) {
+    // Discovery and parsing are two separate passes over the tree (see the
+    // module comment), and anything can happen to a file in between: a
+    // download folder tidying itself, a share dropping, a permissions
+    // change. Every other read in the scan chain already tolerates this --
+    // `readdir`, the karaoke sibling read, `readLibraryTags`, `storeArtwork`
+    // -- this was the one unguarded await left, and letting it reject would
+    // abort `scanLibraryRoot` for every other file the root still has.
+    // `state.parsed` still advances so `parsed / seen` keeps climbing toward
+    // 100% on the last candidate exactly as the module comment promises --
+    // one vanished file must not also stall the progress bar.
+    // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+    console.error(`Could not stat ${candidate.filePath}`, error);
+    state.parsed += 1;
+    return;
+  }
   const statInfo = { size: stats.size, mtimeMs: stats.mtimeMs };
   const existing = context.knownByPath.get(candidate.filePath);
   if (existing !== undefined && !shouldReparse(existing, statInfo)) {
