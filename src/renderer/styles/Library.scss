@@ -95,6 +95,264 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+// *** The toolbar *************************************************************
+//
+// Steers what the library shows: which grouping, which layout, how it is
+// sorted, and what is filtered. Always on screen, even over an empty library,
+// because Add folder and Rescan are exactly the two actions somebody with
+// nothing indexed yet still needs.
+
+.library-toolbar-row {
+  display: flex;
+  flex: 0 0 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: $spacing-s $spacing-l;
+}
+
+.library-toolbar {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: $spacing-s;
+}
+
+// The browse-mode row. Classes copied from `.workspace-tab` in App.scss
+// rather than a second tab look invented for a strip that is not the
+// top-level tab strip — see `LibraryToolbar.tsx`.
+.library-toolbar__browse-modes {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-end;
+  gap: 3px;
+}
+
+// Same recipe as `.quick-layouts` in MainContent.scss: a row of choices sunk
+// into the panel is what a segmented control looks like everywhere else in
+// this app, so this reuses its literals rather than inventing new ones.
+.library-toolbar__view-modes {
+  @include inset-surface;
+  display: flex;
+  flex: 0 0 auto;
+  gap: 4px;
+  padding: 3px;
+  border-radius: $radius-pill;
+
+  .button {
+    min-height: $control-height-sm;
+  }
+}
+
+.library-toolbar__sort {
+  flex: 0 0 auto;
+  min-width: 140px;
+}
+
+// Same width budget as `.video-browser__search`: wide enough to read a
+// query, capped so it does not out-grow the row it shares with everything
+// else that steers the library.
+.library-toolbar__search {
+  min-width: 180px;
+  flex: 1 1 240px;
+  max-width: 460px;
+}
+
+.library-toolbar__actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+
+  // Same disabled recipe as `.karaoke-workspace__actions .button:disabled`:
+  // quieter than its neighbours rather than a flat grey rectangle.
+  .button:disabled {
+    color: rgba($primary-lighter, 0.6);
+    border-color: rgba($primary-lighter, 0.08);
+    background: rgba(#1a2b38, 0.42);
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+}
+
+.library-toolbar__action-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+// *** The folders menu *********************************************************
+//
+// The only place the roots are manageable. Built on `AnchoredMenu`, so it is
+// styled the way every other portalled menu in the app is — see
+// `.eq-mode__menu` in MainContent.scss for the row layout this borrows.
+
+.library-folders-menu {
+  @include menu-surface;
+  z-index: 1000;
+  display: grid;
+  width: 320px;
+  gap: 3px;
+  padding: 6px;
+}
+
+.library-folders-menu__item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 9px;
+  border-radius: $radius-xs;
+
+  &:hover {
+    background: rgba($secondary-default, 0.12);
+  }
+}
+
+.library-folders-menu__path-group {
+  display: grid;
+  min-width: 0;
+  gap: 2px;
+}
+
+.library-folders-menu__path {
+  @include truncate;
+  color: $text-primary;
+  font-size: 0.72rem;
+}
+
+.library-folders-menu__offline {
+  color: $text-faint;
+  font-size: 0.62rem;
+}
+
+// Same 24px/11px dismiss-icon recipe as `.library-workspace__notice button`
+// above, reused rather than redrawn for a second "take this away" control.
+.library-folders-menu__remove {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  padding: 0;
+  color: rgba($primary-lighter, 0.7);
+  border: 1px solid transparent;
+  border-radius: $radius-xs;
+  background: transparent;
+  cursor: pointer;
+  transition: $transition-control;
+
+  svg {
+    width: 11px;
+    height: 11px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-width: 1.5;
+  }
+
+  &:hover,
+  &:focus-visible {
+    color: $secondary-light;
+    border-color: rgba($secondary-default, 0.4);
+    background: rgba($secondary-default, 0.12);
+    outline: none;
+  }
+}
+
+// *** The scan progress strip **************************************************
+//
+// Pinned under the toolbar, never a modal: `LibraryWorkspace` mounts this
+// beside the content so the scan stays backgroundable simply by leaving the
+// tab. Background, border and radius copied from
+// `.karaoke-maker__analysis-progress` in Karaoke.scss.
+
+.library-scan-progress {
+  display: grid;
+  flex: 0 0 auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  column-gap: 12px;
+  row-gap: 8px;
+  padding: 11px 12px;
+  color: #dffcf9;
+  background:
+    radial-gradient(circle at 15% 0, rgba(30, 215, 199, 0.12), transparent 55%),
+    rgba(5, 27, 41, 0.96);
+  border: 1px solid rgba($secondary-light, 0.31);
+  border-radius: 13px;
+
+  > button {
+    min-height: 30px;
+  }
+}
+
+.library-scan-progress__copy {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+
+  strong {
+    overflow-wrap: anywhere;
+    font-size: 0.84rem;
+  }
+
+  span {
+    color: rgba(223, 252, 249, 0.76);
+    font-size: 0.76rem;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.library-scan-progress__karaoke {
+  color: $text-faint;
+}
+
+// Same bar recipe as `.karaoke-maker__analysis-progress-bar`: gradient fill,
+// pill radius, and a sweep in place of a value while there is nothing yet to
+// measure the fill against.
+.library-scan-progress__bar {
+  position: relative;
+  width: 100%;
+  height: 5px;
+  grid-column: 1 / -1;
+  overflow: hidden;
+  background: rgba(120, 166, 183, 0.17);
+  border-radius: $radius-pill;
+
+  > span {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background: linear-gradient(90deg, #24d7c8, #7dfff3);
+    border-radius: inherit;
+    box-shadow: 0 0 12px rgba($secondary-default, 0.36);
+    transition: width 180ms ease;
+  }
+
+  &.is-indeterminate > span {
+    width: 100%;
+    transform: translateX(-72%);
+    animation: library-scan-progress-sweep 1.35s ease-in-out infinite;
+  }
+}
+
+// Values copied from `karaoke-maker-analysis-progress` in Karaoke.scss.
+@keyframes library-scan-progress-sweep {
+  0% {
+    transform: translateX(-72%);
+  }
+
+  50% {
+    transform: translateX(72%);
+  }
+
+  100% {
+    transform: translateX(-72%);
+  }
+}
+
 // *** The empty state *********************************************************
 //
 // Centred, not pinned to a corner of a large empty panel: an empty library
