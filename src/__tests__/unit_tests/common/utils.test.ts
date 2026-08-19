@@ -72,6 +72,42 @@ describe('utils', () => {
     it('should return false for non restricted names', () => {
       expect(isRestrictedPresetName('greatest preset of all time')).toBe(false);
     });
+
+    it('refuses characters Windows will not put in a file name', () => {
+      // These reached fs.renameSync unchecked and came back as a generic
+      // preset file error advising the user to check that their installation
+      // directory was writeable — for a problem that was in the name.
+      [
+        'Bass: boost',
+        'What?',
+        'a/b',
+        'a\\b',
+        'x*y',
+        'q"r',
+        'a<b',
+        'a>b',
+        'a|b',
+      ].forEach((name) => {
+        expect(isRestrictedPresetName(name)).toBe(true);
+      });
+    });
+
+    it('refuses a name Windows would silently shorten', () => {
+      // Stored without the trailing character, so the file on disk and the
+      // assignment naming it stop agreeing.
+      expect(isRestrictedPresetName('Bass ')).toBe(true);
+      expect(isRestrictedPresetName('Bass.')).toBe(true);
+    });
+
+    it('still allows the names people actually use', () => {
+      // The assertion that matters most here. A guard one character too wide
+      // locks everybody out of every profile FluidEQ names for itself.
+      expect(isRestrictedPresetName('Untitled profile 1')).toBe(false);
+      expect(isRestrictedPresetName('Bass boost')).toBe(false);
+      expect(isRestrictedPresetName("Ivan's mix (v2) - final!")).toBe(false);
+      expect(isRestrictedPresetName('Écoute nocturne')).toBe(false);
+      expect(isRestrictedPresetName('夜間リスニング')).toBe(false);
+    });
   });
 
   describe('cloneFilters', () => {

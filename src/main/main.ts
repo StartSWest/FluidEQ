@@ -125,6 +125,7 @@ import {
   saveDeviceProfileSettings,
 } from './deviceProfiles';
 import { sendMediaTransportKey } from './mediaKeys';
+import { claimInstance, isAnotherInstanceLive } from './singleInstance';
 import { POWERSHELL_PATH } from './powershell';
 import { hydrateConvolutionAnalysis } from './convolutionAnalysis';
 import {
@@ -2388,9 +2389,30 @@ app.on('before-quit', () => {
  * brings the hidden window back — which is what the person wanted when they
  * clicked the shortcut.
  */
+/**
+ * Beside both data directories rather than inside either, because the whole
+ * point is that development and the installed build do not share one.
+ */
+const INSTANCE_MARKER_PATH = path.join(
+  app.getPath('appData'),
+  'fluideq-running.json',
+);
+
+let releaseInstanceMarker: (() => void) | undefined;
+
 if (!app.requestSingleInstanceLock()) {
   app.quit();
+} else if (isAnotherInstanceLive(INSTANCE_MARKER_PATH)) {
+  // Electron's lock did not catch this one, so it is the other build: dev
+  // started while the installed copy is running, or the other way round. Said
+  // out loud rather than quitting blankly — a window that never appears is the
+  // sort of thing somebody spends an evening on.
+  log.warn(
+    'Another copy of FluidEQ is already running; this one is quitting so the two do not fight over the Equalizer APO config.',
+  );
+  app.quit();
 } else {
+  releaseInstanceMarker = claimInstance(INSTANCE_MARKER_PATH);
   app.on('second-instance', () => {
     if (!mainWindow || mainWindow.isDestroyed()) {
       return;
@@ -2402,6 +2424,10 @@ if (!app.requestSingleInstanceLock()) {
     mainWindow.focus();
   });
 }
+
+app.on('will-quit', () => {
+  releaseInstanceMarker?.();
+});
 
 app
   .whenReady()
