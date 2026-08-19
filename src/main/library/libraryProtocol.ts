@@ -18,32 +18,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { net, protocol } from 'electron';
 import { pathToFileURL } from 'url';
+import {
+  LIBRARY_MEDIA_SCHEME,
+  parseLibraryMediaUrl,
+} from '../../common/library/mediaUrl';
 import { ILibraryIndex } from '../../common/library/types';
 import { artworkPath } from './libraryArtwork';
 import { trackPathById } from './libraryIndex';
-
-export const LIBRARY_MEDIA_SCHEME = 'fluideq-media';
-
-export const libraryMediaUrl = (kind: 'track' | 'art', id: string): string =>
-  `${LIBRARY_MEDIA_SCHEME}://${kind}/${id}`;
-
-/**
- * Ids only, and never a path.
- *
- * The host carries the kind and the single path segment carries the id, which
- * has to survive a strict character test. A URL is the one input to this
- * process that arrives from a document, so it gets the narrowest possible
- * grammar rather than a sanitiser.
- */
-export const parseLibraryMediaUrl = (
-  url: string,
-): { kind: 'track' | 'art'; id: string } | undefined => {
-  const match = /^fluideq-media:\/\/(track|art)\/([0-9a-f]{6,64})$/.exec(url);
-  if (!match) {
-    return undefined;
-  }
-  return { kind: match[1] === 'art' ? 'art' : 'track', id: match[2] };
-};
 
 /**
  * Declares the scheme's privileges before the app is ready.

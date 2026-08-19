@@ -20,7 +20,7 @@ import {
   libraryTileHue,
   libraryTileInitials,
 } from '../../common/library/artwork';
-import { libraryMediaUrl } from '../../main/library/libraryProtocol';
+import { libraryMediaUrl } from '../../common/library/mediaUrl';
 
 export type TLibraryCoverArtSize = 'row' | 'tile' | 'cover';
 
