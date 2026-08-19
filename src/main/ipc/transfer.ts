@@ -69,7 +69,7 @@ export interface ITransferIpcDeps {
     activeAudioDevice: IAudioDevice | undefined;
     hasActiveSessionOverride: boolean;
   };
-  baselinePath: string;
+  activeBaselineDir: () => string;
 
   /**
    * The window, as a getter.
@@ -111,7 +111,7 @@ export const registerTransferIpc = ({
   applyingLayer,
   attachPresetToActiveDevice,
   availableProfileNameForActiveDevice,
-  baselinePath,
+  activeBaselineDir,
   clearCurrentLayoutSettings,
   deviceProfileSettings,
   getMainWindow,
@@ -466,7 +466,7 @@ export const registerTransferIpc = ({
         session.activeAudioDevice?.name || session.activeAudioDeviceId,
       );
       savePreset(name, bundle.preset, activePresetDir());
-      savePresetBaseline(name, bundle.preset, baselinePath);
+      savePresetBaseline(name, bundle.preset, activeBaselineDir());
       attachPresetToActiveDevice(name);
 
       // The one part of a bundle that is not a tuning but a program. Everything

@@ -81,7 +81,7 @@ export const addFileToPath = (pathPrefix: string, fileName: string) => {
  * name `safeBaselineName`. The presets half — the one reachable from IPC — was
  * the half it never covered.
  */
-const safePresetFileName = (presetName: string): string | undefined =>
+export const safePresetFileName = (presetName: string): string | undefined =>
   presetName &&
   !presetName.includes('/') &&
   !presetName.includes('\\') &&
@@ -470,7 +470,7 @@ export const savePreset = (
       encoding: 'utf8',
     });
   } catch (ex) {
-    log.error('Failed to save to preset %d', presetName);
+    log.error('Failed to save to preset %s', presetName);
     throw ex;
   }
   logPresetWrite(presetName);
@@ -663,7 +663,7 @@ export const doesPresetExist = (presetName: string, presetsDir: string) => {
   try {
     return fs.existsSync(testPath);
   } catch (ex) {
-    log.error('Failed to check whether preset %d exists', presetName);
+    log.error('Failed to check whether preset %s exists', presetName);
     throw ex;
   }
 };
@@ -680,7 +680,7 @@ export const renamePreset = (
   try {
     fs.renameSync(oldPath, newPath);
   } catch (ex) {
-    log.error('Failed to rename preset %d to preset %d', oldName, newName);
+    log.error('Failed to rename preset %s to preset %s', oldName, newName);
     throw ex;
   }
 };
