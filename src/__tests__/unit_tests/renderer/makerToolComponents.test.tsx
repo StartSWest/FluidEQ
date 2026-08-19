@@ -317,11 +317,28 @@ describe('the Maker analysis tools', () => {
     );
   });
 
-  it('keeps melody detection available on the full mix', () => {
-    // Deliberately not gated. Pitch detection is polyphonic, so a mix gives it
-    // a worse answer rather than no answer, and blocking it would take away a
-    // tool that does still work.
+  it('will not detect melody notes from the full mix', () => {
+    // This was deliberately ungated, on the grounds that pitch detection is
+    // polyphonic and a mix gives a worse answer rather than a wrong one. That
+    // was true of Basic Pitch, which is gone. SwiftF0 is monophonic by design
+    // — one f0 per 16 ms frame, answering "where is THE voice" — so on a mix
+    // it follows whichever periodic component dominates, usually the bass or
+    // the lead instrument. Not a blurred vocal line: a confident transcription
+    // of the wrong one, handed to the singer as the note to hit.
     analysis({ isUsingSongAudio: true });
+    const button = screen.getByRole('button', {
+      name: /^Re-detect melody notes — /,
+    });
+
+    expect(button).toBeDisabled();
+    expect(button).toHaveAccessibleName(/Separate the voice first/);
+  });
+
+  it('detects melody notes once a stem is in place', () => {
+    // Positive control: the gate must open, or "the button never works" would
+    // pass the assertion above just as well.
+    analysis({ isUsingSongAudio: false });
+
     expect(
       screen.getByRole('button', { name: /Re-detect melody notes/ }),
     ).toBeEnabled();

@@ -335,6 +335,8 @@ const karaoke = {
     'No graphics acceleration on this machine, so this will take a few minutes instead of under one.',
   'karaoke.maker.separationRequired':
     'Separate the voice first — lyric detection reads the isolated vocal.',
+  'karaoke.maker.separationRequiredMelody':
+    'Separate the voice first — note detection follows a single voice, and in a mix that is usually an instrument.',
   'karaoke.maker.wizardTitle': 'Set this song up automatically',
   'karaoke.maker.wizardIntro':
     'This song has no lyric timing yet. FluidEQ can separate the voice from the music, then read the words and their timing from it. Everything runs on this computer.',

@@ -311,6 +311,8 @@ const karaoke: Partial<Dictionary> = {
     '此电脑没有图形加速，因此需要几分钟而不是一分钟以内。',
   'karaoke.maker.separationRequired':
     '请先分离人声——歌词检测读取的是分离出的人声。',
+  'karaoke.maker.separationRequiredMelody':
+    '请先分离人声——音符检测只跟随单一声部，在混音中跟到的通常是乐器。',
   'karaoke.maker.wizardTitle': '自动准备这首歌',
   'karaoke.maker.wizardIntro':
     '这首歌还没有歌词时间轴。FluidEQ 可以先把人声从伴奏中分离出来，再从中读取歌词及其时间。全部在本机运行。',

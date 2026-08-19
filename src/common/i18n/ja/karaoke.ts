@@ -335,6 +335,8 @@ const karaoke: Partial<Dictionary> = {
     'このパソコンにはグラフィック処理の高速化がないため、1分未満ではなく数分かかります。',
   'karaoke.maker.separationRequired':
     '先に歌声を分離してください。歌詞検出は分離したボーカルを読み取ります。',
+  'karaoke.maker.separationRequiredMelody':
+    '先に歌声を分離してください。音符の検出は単一の声だけを追うため、ミックスでは楽器を追ってしまいます。',
   'karaoke.maker.wizardTitle': 'この曲を自動で準備する',
   'karaoke.maker.wizardIntro':
     'この曲にはまだ歌詞のタイミングがありません。FluidEQ は歌声を伴奏から分離し、そこから歌詞とタイミングを読み取れます。すべてこのパソコン上で実行されます。',

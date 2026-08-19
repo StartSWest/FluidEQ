@@ -343,6 +343,8 @@ const karaoke: Partial<Dictionary> = {
     'Sin aceleración gráfica en este equipo, así que tardará unos minutos en vez de menos de uno.',
   'karaoke.maker.separationRequired':
     'Separa primero la voz: la detección de letra lee la pista vocal aislada.',
+  'karaoke.maker.separationRequiredMelody':
+    'Separa primero la voz: la detección de notas sigue una sola voz, y en una mezcla suele ser un instrumento.',
   'karaoke.maker.wizardTitle': 'Preparar esta canción automáticamente',
   'karaoke.maker.wizardIntro':
     'Esta canción aún no tiene tiempos de letra. FluidEQ puede separar la voz de la música y leer de ella las palabras y sus tiempos. Todo se ejecuta en este ordenador.',
