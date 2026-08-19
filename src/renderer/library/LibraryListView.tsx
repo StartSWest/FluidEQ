@@ -401,15 +401,34 @@ const LibraryListView = ({
             openTrackMenu(event.currentTarget, track.id);
           }}
         >
+          {/* The artwork doubles as the row's play button. A separate control
+              would need a column of its own across every row for something
+              that is only wanted on the one row the pointer is over, and the
+              cover is already exactly where the eye goes to identify a track.
+              Double-click on the row still works and is unchanged. */}
           <span
             role="cell"
             className="library-list__col library-list__col--art"
           >
-            <LibraryCoverArt
-              artId={track.artId}
-              label={track.title}
-              size="row"
-            />
+            <button
+              type="button"
+              className="library-list__art-play"
+              aria-label={`${t('library.play')} — ${track.title}`}
+              disabled={!track.isPlayable}
+              onClick={(event) => {
+                event.stopPropagation();
+                activate();
+              }}
+            >
+              <LibraryCoverArt
+                artId={track.artId}
+                label={track.title}
+                size="row"
+              />
+              <span className="library-list__art-play-glyph" aria-hidden="true">
+                <MenuIcon name="play" className="library-list__badge-icon" />
+              </span>
+            </button>
           </span>
           <span
             role="cell"

@@ -515,6 +515,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   padding: 7px $spacing-s;
 }
 
+// The cover art doubles as the row's play button: the glyph fades up over it
+// on hover or focus rather than occupying a column of its own on every row
+// for something only ever wanted on the row under the pointer.
+.library-list__art-play {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  cursor: pointer;
+
+  &:disabled {
+    cursor: default;
+  }
+}
+
+.library-list__art-play-glyph {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  border-radius: $radius-xs;
+  background: rgba(#020a12, 0.62);
+  color: $secondary-light;
+  opacity: 0;
+  inset: 0;
+  transition: opacity $motion-base $ease-out;
+}
+
+.library-list__row:hover .library-list__art-play-glyph,
+.library-list__art-play:focus-visible .library-list__art-play-glyph {
+  opacity: 1;
+}
+
+.library-list__art-play:disabled .library-list__art-play-glyph {
+  display: none;
+}
+
 .library-list__header {
   flex: 0 0 auto;
   border-bottom: 1px solid rgba($secondary-light, 0.16);

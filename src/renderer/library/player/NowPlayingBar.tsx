@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { CSSProperties, useEffect, useRef } from 'react';
+import { CSSProperties, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ILibraryTrack } from '../../../common/library/types';
 import { TLibraryRepeat } from '../../../common/library/queue';
@@ -248,6 +248,19 @@ const NowPlayingBar = ({
 }: INowPlayingBarProps) => {
   const { t } = useTranslation();
   const barRef = useRef<HTMLDivElement | null>(null);
+  /**
+   * Where the user has dragged the seek thumb to, while they are still
+   * holding it.
+   *
+   * The slider is controlled by `positionMs`, and `positionMs` is refreshed
+   * by the media element's `timeupdate` — which fires about four times a
+   * second for the whole of playback. Without this, every one of those ticks
+   * overwrote the value mid-drag with the playhead's own position, so the
+   * thumb sprang back under the pointer and the track could not be seeked at
+   * all. While a drag is in progress this value wins; on release it is
+   * dropped and `timeupdate` takes the slider back.
+   */
+  const [scrubMs, setScrubMs] = useState<number | undefined>(undefined);
 
   // A reserved strip at the foot of the window, only while there is
   // something to reserve it for — mirrors the `.minimized` toggle `App.tsx`
@@ -290,9 +303,10 @@ const NowPlayingBar = ({
     return null;
   }
 
-  const clampedPosition = Math.min(positionMs, Math.max(1, durationMs));
+  const shownPosition = scrubMs ?? positionMs;
+  const clampedPosition = Math.min(shownPosition, Math.max(1, durationMs));
   const progressPercent =
-    durationMs > 0 ? Math.min(100, (positionMs / durationMs) * 100) : 0;
+    durationMs > 0 ? Math.min(100, (shownPosition / durationMs) * 100) : 0;
 
   // Portalled to `document.body`, the same escape `AnchoredMenu` uses and for
   // the same reason: this is fixed to the foot of the *window*, and mounting
@@ -396,7 +410,17 @@ const NowPlayingBar = ({
             // slider next to a disabled Play button and a "cannot play this
             // format" message reads as broken.
             disabled={durationMs <= 0 || isUnplayable}
-            onChange={(event) => onSeek(Number(event.target.value))}
+            onChange={(event) => {
+              // Seek live so the audio follows the thumb, and hold the value
+              // against `timeupdate` until the drag ends.
+              const next = Number(event.target.value);
+              setScrubMs(next);
+              onSeek(next);
+            }}
+            onPointerUp={() => setScrubMs(undefined)}
+            onPointerCancel={() => setScrubMs(undefined)}
+            onKeyUp={() => setScrubMs(undefined)}
+            onBlur={() => setScrubMs(undefined)}
           />
           <time className="now-playing-bar__time">
             -{formatDuration(Math.max(0, durationMs - positionMs))}
