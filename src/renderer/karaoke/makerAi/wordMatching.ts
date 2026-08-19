@@ -369,8 +369,38 @@ const stackedTranscriptWords = (
   );
 };
 
+/**
+ * The longest a word may last when the voice never stops during it.
+ *
+ * Deliberately the same nine seconds the syllable ceiling tops out at, because
+ * that number exists to refuse a chunk-sized timestamp of twenty to thirty
+ * seconds and continuous voicing is no reason to start accepting one. What
+ * changes here is only the floor: a one-syllable word was held to 2 500 ms
+ * whatever the stem said, and now reaches this when the stem agrees.
+ */
+const HELD_NOTE_CEILING_MS = 9_000;
+
+/**
+ * How long this word may last, given what the stem was doing while it sounded.
+ *
+ * A span that never crosses a silence is a note somebody is holding; one that
+ * does is a timestamp that ran past the end of the phrase. The syllable-count
+ * ceiling cannot tell those apart and so refuses both, which is why a
+ * phrase-final "Ohhh" lost its timing — a cost the comment on that ceiling
+ * calls knowingly paid. It is only unavoidable without the stem.
+ */
+const wordCeilingMs = (
+  word: IKaraokeMakerTranscriptWord,
+  rests: readonly { startMs: number; endMs: number }[],
+): number =>
+  rests.length > 0 &&
+  !rests.some((rest) => rest.startMs < word.endMs && rest.endMs > word.startMs)
+    ? HELD_NOTE_CEILING_MS
+    : maximumAutomaticWordDurationMs(word.text);
+
 export const constrainTranscriptWords = (
   words: readonly IKaraokeMakerTranscriptWord[],
+  rests: readonly { startMs: number; endMs: number }[] = [],
 ): IKaraokeMakerTranscriptWord[] => {
   const stacked = stackedTranscriptWords(words);
   const usable = words.filter((word) => !stacked.has(word));
@@ -380,7 +410,7 @@ export const constrainTranscriptWords = (
     const nextStartMs = usable[index + 1]?.startMs;
     const plausibleEndMs = Math.min(
       word.endMs,
-      startMs + maximumAutomaticWordDurationMs(word.text),
+      startMs + wordCeilingMs(word, rests),
     );
     const unclampedEndMs = Math.max(startMs + 1, plausibleEndMs);
     const endMs =
@@ -417,12 +447,13 @@ export interface IKaraokeMakerTranscriptPlacement {
 export const placeTranscriptWords = (
   words: readonly IKaraokeMakerTranscriptWord[],
   durationMs: number,
+  rests: readonly { startMs: number; endMs: number }[] = [],
 ): IKaraokeMakerTranscriptPlacement[] => {
   const stacked = stackedTranscriptWords(words);
   const placeable = words.filter(
     (word) =>
       !stacked.has(word) &&
-      word.endMs - word.startMs <= maximumAutomaticWordDurationMs(word.text) &&
+      word.endMs - word.startMs <= wordCeilingMs(word, rests) &&
       (durationMs <= 0 || word.startMs < durationMs),
   );
   // A word that cannot keep a span a syllable could occupy was not placed,
@@ -430,7 +461,7 @@ export const placeTranscriptWords = (
   // brought this back: the pair is packed one after the other and the first
   // can be left holding a millisecond, which reads as detected and is not.
   const timings = new Map(
-    constrainTranscriptWords(placeable)
+    constrainTranscriptWords(placeable, rests)
       .map((timing, index) => [placeable[index], timing] as const)
       .filter(([, timing]) => timing.endMs - timing.startMs >= 40),
   );

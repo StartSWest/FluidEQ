@@ -142,7 +142,7 @@ export const applyTranscriptAsLyrics = (
   // wrong timestamp stops either of them from trying.
   const contradicted = karaokeMakerInconsistentRepeatWords(heard, repeats);
   const words = karaokeMakerSnapWordsToOnsets(
-    placeTranscriptWords(heard, project.audio.durationMs ?? 0),
+    placeTranscriptWords(heard, project.audio.durationMs ?? 0, rests),
     onsets,
   ).map((word, index) =>
     contradicted.has(index)
@@ -283,13 +283,14 @@ export const applyWhisperTranscript = (
           Math.min(...heard.map((word) => word.startMs)),
         )
       : 0;
-    const shifted = constrainTranscriptWords(
-      heard.map((word) => ({
-        ...word,
-        startMs: word.startMs + transcriptOffsetMs,
-        endMs: word.endMs + transcriptOffsetMs,
-      })),
-    );
+    // Constrained first and shifted after, because the rests are in the stem's
+    // frame and a shifted word is not. The shift is a uniform translation, so
+    // the order costs the constraint nothing.
+    const shifted = constrainTranscriptWords(heard, rests).map((word) => ({
+      ...word,
+      startMs: word.startMs + transcriptOffsetMs,
+      endMs: word.endMs + transcriptOffsetMs,
+    }));
     return mergeTranscriptFragmentsForLyrics(existing, shifted);
   });
   const canonicalSinglePass = transcript.passes?.length === 1;

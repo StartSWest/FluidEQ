@@ -58,6 +58,7 @@ import {
   karaokeMakerSnapWordsToOnsets,
   karaokeMakerRepeatedRuns,
   karaokeMakerInconsistentRepeatWords,
+  placeTranscriptWords,
   karaokeMakerRepeatEdgeBreaks,
 } from '../../../renderer/karaoke/makerAi';
 import {
@@ -3765,6 +3766,55 @@ describe('Karaoke Maker hallucinations when the lyrics are supplied', () => {
     const aligned = applyWhisperTranscript(supplied(), [...invented, ...sung]);
 
     expect(firstWordStartMs(aligned)).toBe(3_000);
+  });
+});
+
+describe('Karaoke Maker held notes against the stem', () => {
+  const held = [
+    { text: 'Ohhh', startMs: 20_000, endMs: 26_000 },
+    { text: 'yeah', startMs: 26_100, endMs: 26_500 },
+  ];
+
+  it('keeps a six-second note the voice never stopped during', () => {
+    // The syllable ceiling holds a one-syllable word to 2 500 ms and drops
+    // anything longer, so this note lost its timing entirely. That was called
+    // a knowingly paid cost, and it was only unavoidable without the stem.
+    const placed = placeTranscriptWords(held, 253_051, [
+      { startMs: 0, endMs: 19_000 },
+      { startMs: 27_000, endMs: 40_000 },
+    ]);
+
+    expect(placed[0].startMs).toBe(20_000);
+    expect(placed[0].endMs).toBe(26_000);
+  });
+
+  it('still drops the same span when the voice stopped inside it', () => {
+    // The failure the ceiling exists for: a timestamp that ran past the end of
+    // the phrase and out over the instrumental. Identical span, identical
+    // word — only the stem tells them apart.
+    const placed = placeTranscriptWords(held, 253_051, [
+      { startMs: 21_000, endMs: 25_000 },
+    ]);
+
+    expect(placed[0].startMs).toBeUndefined();
+  });
+
+  it('still refuses a chunk-sized timestamp over continuous voice', () => {
+    // Continuous voicing is not a reason to accept twenty seconds. Without
+    // this the fix above would have traded one silent failure for a louder one.
+    const placed = placeTranscriptWords(
+      [{ text: 'Ohhh', startMs: 20_000, endMs: 45_000 }],
+      253_051,
+      [{ startMs: 0, endMs: 19_000 }],
+    );
+
+    expect(placed[0].startMs).toBeUndefined();
+  });
+
+  it('leaves the ceiling alone when the stem was never measured', () => {
+    // Positive control: with no rests nothing may change, or "everything is
+    // held" would pass the first assertion just as well.
+    expect(placeTranscriptWords(held, 253_051)[0].startMs).toBeUndefined();
   });
 });
 
