@@ -81,6 +81,8 @@ const library: Partial<Dictionary> = {
   'library.indexReset':
     'Der Bibliotheksindex konnte nicht gelesen werden und wurde neu aufgebaut.',
 
+  'library.back': 'Zurück',
+
   'library.play': 'Wiedergeben',
   'library.pause': 'Pause',
   'library.previous': 'Vorheriger Titel',

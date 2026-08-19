@@ -79,6 +79,8 @@ const library = {
   'library.indexReset':
     'The library index could not be read and has been rebuilt.',
 
+  'library.back': 'Back',
+
   'library.play': 'Play',
   'library.pause': 'Pause',
   'library.previous': 'Previous',

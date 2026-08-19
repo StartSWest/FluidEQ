@@ -81,6 +81,8 @@ const library: Partial<Dictionary> = {
   'library.indexReset':
     'लाइब्रेरी इंडेक्स पढ़ा नहीं जा सका और उसे फिर से बनाया गया है।',
 
+  'library.back': 'वापस',
+
   'library.play': 'चलाएँ',
   'library.pause': 'रोकें',
   'library.previous': 'पिछला',

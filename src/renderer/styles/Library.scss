@@ -661,3 +661,143 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   height: 15px;
   flex: 0 0 auto;
 }
+
+// *** The grid view ***************************************************
+//
+// One tile per album, artist or song — `LibraryCoverArt size="tile"` over a
+// title and a secondary line, the card version of the row `LibraryListView`
+// draws. `auto-fill` rather than a fixed count, same reasoning as
+// `.voicing-grid` in Voicing.scss: the column count is whatever the panel's
+// width allows, never chosen up front.
+
+.library-grid {
+  @include inset-surface;
+  @include slim-scrollbar;
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  align-content: start;
+  gap: $spacing-m;
+  padding: $spacing-m;
+  overflow-y: auto;
+}
+
+// A tile is a button in every way that matters, styled like `.voicing-card`
+// in Voicing.scss: the same inset surface, the same lift-and-glow on hover,
+// laid out as a card rather than the row `.library-list__row` draws.
+.library-grid__tile {
+  @include inset-surface;
+  display: grid;
+  min-width: 0;
+  gap: $spacing-xs;
+  padding: $spacing-s;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: $transition-control;
+
+  &:hover,
+  &:focus-visible {
+    border-color: rgba($secondary-light, 0.4);
+    background: rgba($secondary-default, 0.08);
+    transform: translateY(-1px);
+    outline: none;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+.library-grid__title {
+  @include truncate;
+  color: $text-primary;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.library-grid__subtitle {
+  @include truncate;
+  display: block;
+  color: $text-faint;
+  font-size: 0.64rem;
+}
+
+// *** The drill-in *****************************************************
+//
+// Opened from a grid tile or a list row: a header for the one album or
+// artist, then its songs — `LibraryListView` in `browseMode="song"` rather
+// than a second table, so playability badges, the metadata-error badge,
+// keyboard rows and the reveal menu all keep working here too.
+
+.library-detail {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-m;
+  overflow: hidden;
+}
+
+.library-detail__back {
+  align-self: flex-start;
+  flex: 0 0 auto;
+
+  // Same back-chevron recipe as `.video-browser__nav-button` in
+  // VideoBrowser.scss.
+  svg {
+    width: 14px;
+    height: 14px;
+    flex: 0 0 auto;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.7;
+  }
+}
+
+.library-detail__header {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  gap: $spacing-l;
+}
+
+.library-detail__info {
+  display: grid;
+  min-width: 0;
+  align-content: start;
+  gap: $spacing-xxs;
+}
+
+// Sizing copied from `.karaoke-workspace__header h2` in Karaoke.scss.
+.library-detail__title {
+  @include truncate;
+  margin: 0;
+  color: $text-primary;
+  font-size: clamp(1.15rem, 1.8vw, 1.5rem);
+  line-height: 1.2;
+}
+
+.library-detail__subtitle {
+  @include truncate;
+  margin: 0;
+  color: $text-muted;
+  font-size: 0.78rem;
+}
+
+.library-detail__counts {
+  margin: 0 0 $spacing-s;
+  color: $text-faint;
+  font-size: 0.68rem;
+}
+
+// Emphasis follows recommendation: this is the drill-in's one filled
+// button, sized like every other `.library-toolbar__action-icon`.
+.library-detail__play-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}

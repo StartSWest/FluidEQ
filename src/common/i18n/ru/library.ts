@@ -81,6 +81,8 @@ const library: Partial<Dictionary> = {
   'library.indexReset':
     'Индекс библиотеки не удалось прочитать, и он был перестроен.',
 
+  'library.back': 'Назад',
+
   'library.play': 'Воспроизвести',
   'library.pause': 'Пауза',
   'library.previous': 'Предыдущий',

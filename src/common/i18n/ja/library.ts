@@ -82,6 +82,8 @@ const library: Partial<Dictionary> = {
   'library.indexReset':
     'ライブラリの索引を読み込めなかったため、再構築しました。',
 
+  'library.back': '戻る',
+
   'library.play': '再生',
   'library.pause': '一時停止',
   'library.previous': '前の曲',

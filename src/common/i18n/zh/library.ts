@@ -79,6 +79,8 @@ const library: Partial<Dictionary> = {
   'library.metadataError': 'FluidEQ 无法读取此文件的标签。',
   'library.indexReset': '媒体库索引无法读取，已重新建立。',
 
+  'library.back': '返回',
+
   'library.play': '播放',
   'library.pause': '暂停',
   'library.previous': '上一首',

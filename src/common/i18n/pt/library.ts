@@ -81,6 +81,8 @@ const library: Partial<Dictionary> = {
   'library.indexReset':
     'O índice da biblioteca não pôde ser lido e foi reconstruído.',
 
+  'library.back': 'Voltar',
+
   'library.play': 'Reproduzir',
   'library.pause': 'Pausar',
   'library.previous': 'Anterior',

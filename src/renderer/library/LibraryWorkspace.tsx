@@ -25,8 +25,10 @@ import type {
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 import { useLibrary } from './LibraryContext';
+import LibraryDetail from './LibraryDetail';
 import LibraryEmptyState from './LibraryEmptyState';
 import LibraryFolderActions from './LibraryFolderActions';
+import LibraryGridView from './LibraryGridView';
 import LibraryListView from './LibraryListView';
 import LibraryScanProgress from './LibraryScanProgress';
 import LibraryToolbar from './LibraryToolbar';
@@ -127,6 +129,14 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
   );
   const [query, setQuery] = useState('');
 
+  // The drill-in behind a grid tile or a list row. Not persisted: an album
+  // id from a previous launch means nothing once the library has been
+  // rescanned, so this always starts closed.
+  const [openAlbumId, setOpenAlbumId] = useState<string | undefined>(undefined);
+  const [openArtistId, setOpenArtistId] = useState<string | undefined>(
+    undefined,
+  );
+
   useEffect(
     () => writePersistedMode(BROWSE_MODE_KEY, browseMode),
     [browseMode],
@@ -134,18 +144,25 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
   useEffect(() => writePersistedMode(VIEW_MODE_KEY, viewMode), [viewMode]);
   useEffect(() => writePersistedMode(SORT_KEY, sort), [sort]);
 
+  // An album id means nothing while artists are listed, and the reverse —
+  // switching what is being browsed closes whatever was open.
+  useEffect(() => {
+    setOpenAlbumId(undefined);
+    setOpenArtistId(undefined);
+  }, [browseMode]);
+
   const karaokeSkippedCount = index.roots.reduce(
     (total, root) => total + root.karaokeSkipped,
     0,
   );
 
-  // What `LibraryListView` (and, later, the grid and Cover Flow) actually
-  // draw: the toolbar's own query and sort applied once here, so every view
-  // is handed the same already-filtered, already-ordered tracks rather than
-  // repeating the search/sort logic per view. Memoised because both steps
-  // scan and copy every track — `searchTracks` normalises and tests each
-  // one, `sortTracks` copies the array and runs `localeCompare` per
-  // comparison — and without this, a large library redoes that work on
+  // What `LibraryListView` and `LibraryGridView` (and, later, Cover Flow)
+  // actually draw: the toolbar's own query and sort applied once here, so
+  // every view is handed the same already-filtered, already-ordered tracks
+  // rather than repeating the search/sort logic per view. Memoised because
+  // both steps scan and copy every track — `searchTracks` normalises and
+  // tests each one, `sortTracks` copies the array and runs `localeCompare`
+  // per comparison — and without this, a large library redoes that work on
   // every render this component has, including ones the search box and the
   // sort dropdown had nothing to do with (a drag-over toggle, a scan
   // progress tick).
@@ -154,13 +171,22 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
     [index.tracks, query, sort],
   );
 
-  // Opening an album or artist has no destination yet — that needs a
-  // drill-in state this component does not hold. A real handler lands once
-  // it does; until then the click is inert rather than routed nowhere.
-  const handleOpenAlbum = () => undefined;
-  const handleOpenArtist = () => undefined;
-  // Same reasoning: nothing here owns a queue or a player to hand a track to
-  // yet.
+  // Opening one closes the other — only one drill-in is ever on screen.
+  const handleOpenAlbum = (albumId: string) => {
+    setOpenArtistId(undefined);
+    setOpenAlbumId(albumId);
+  };
+  const handleOpenArtist = (artistId: string) => {
+    setOpenAlbumId(undefined);
+    setOpenArtistId(artistId);
+  };
+  const handleBack = () => {
+    setOpenAlbumId(undefined);
+    setOpenArtistId(undefined);
+  };
+  // Nothing here owns a queue or a player to hand a track to yet — a real
+  // handler lands once it does; until then the click is inert rather than
+  // routed nowhere.
   const handlePlayTrack = () => undefined;
 
   const handleAddFolder = () => {
@@ -267,18 +293,44 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
           onAddFolder={handleAddFolder}
         />
       )}
-      {/* Grid and Cover Flow are their own later views; List is the only one
-          that exists yet, so this is the only `viewMode` that draws anything
-          below the toolbar for now. */}
-      {index.tracks.length > 0 && viewMode === 'list' && (
-        <LibraryListView
-          tracks={visibleTracks}
-          browseMode={browseMode}
-          onOpenAlbum={handleOpenAlbum}
-          onOpenArtist={handleOpenArtist}
+      {/* The drill-in behind whichever tile or row was opened, in place of
+          the browse view below rather than over it — search and sort still
+          apply to what got you here, but the album or artist itself is
+          shown whole, not narrowed further by a query that was for finding
+          it in the first place. Cover Flow is its own later view. */}
+      {index.tracks.length > 0 && (openAlbumId || openArtistId) && (
+        <LibraryDetail
+          tracks={index.tracks}
+          albumId={openAlbumId}
+          artistId={openArtistId}
+          onBack={handleBack}
           onPlayTrack={handlePlayTrack}
         />
       )}
+      {index.tracks.length > 0 &&
+        !openAlbumId &&
+        !openArtistId &&
+        viewMode === 'list' && (
+          <LibraryListView
+            tracks={visibleTracks}
+            browseMode={browseMode}
+            onOpenAlbum={handleOpenAlbum}
+            onOpenArtist={handleOpenArtist}
+            onPlayTrack={handlePlayTrack}
+          />
+        )}
+      {index.tracks.length > 0 &&
+        !openAlbumId &&
+        !openArtistId &&
+        viewMode === 'grid' && (
+          <LibraryGridView
+            tracks={visibleTracks}
+            browseMode={browseMode}
+            onOpenAlbum={handleOpenAlbum}
+            onOpenArtist={handleOpenArtist}
+            onPlayTrack={handlePlayTrack}
+          />
+        )}
     </section>
   );
 };
