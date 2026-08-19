@@ -23,6 +23,7 @@ import eq from './eq';
 import app from './app';
 import look from './look';
 import video from './video';
+import library from './library';
 
 const ja: Partial<Dictionary> = {
   ...karaoke,
@@ -30,6 +31,7 @@ const ja: Partial<Dictionary> = {
   ...app,
   ...look,
   ...video,
+  ...library,
 };
 
 export default ja;
