@@ -75,13 +75,13 @@ const GRAPHIC_POINT = /^([\d.]+)\s+(-?[\d.]+)$/;
 const CONVOLUTION_LINE = /^Convolution\s*:\s*(.+?)\s*$/i;
 
 /**
- * APO filter keywords mapped onto the seven types FluidEQ can edit.
+ * APO filter keywords mapped onto the eight types FluidEQ can edit.
  *
  * The aliases matter: APO accepts LS and LSC for the same shelf, and a file
  * written by another tool will use whichever its author preferred. Anything
- * absent here (all-pass, the Butterworth and Linkwitz-Riley pass forms) is a
- * band FluidEQ has no editor for, so it is dropped rather than mangled into
- * the nearest thing — see `unsupported` in the result.
+ * absent here (the Butterworth and Linkwitz-Riley pass forms) is a band
+ * FluidEQ has no editor for, so it is dropped rather than mangled into the
+ * nearest thing — see `unsupported` in the result.
  */
 const TYPE_ALIASES: Record<string, FilterTypeEnum> = {
   PK: FilterTypeEnum.PK,
@@ -100,6 +100,7 @@ const TYPE_ALIASES: Record<string, FilterTypeEnum> = {
   BP: FilterTypeEnum.BP,
   NO: FilterTypeEnum.NO,
   NOTCH: FilterTypeEnum.NO,
+  AP: FilterTypeEnum.AP,
 };
 
 /**
