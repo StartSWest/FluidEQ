@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   groupIntoAlbums,
   groupIntoArtists,
@@ -76,6 +76,23 @@ const LibraryDetail = ({
     [tracks, artistId],
   );
 
+  // An id whose album or artist no longer exists — a rescan dropped the
+  // folder, or the root itself was removed while this was open. Left alone,
+  // the screen below would settle on "Unknown album", a generated tile, a
+  // Play button that does nothing, and no way back other than knowing the
+  // Back button is there: the blank-screen-with-no-explanation shape this
+  // project's rules are written against. Closing automatically, rather than
+  // showing that and waiting for the user to notice, is the only answer
+  // that does not require them to.
+  const isOrphaned =
+    (Boolean(albumId) && !album) || (Boolean(artistId) && !artist);
+
+  useEffect(() => {
+    if (isOrphaned) {
+      onBack();
+    }
+  }, [isOrphaned, onBack]);
+
   // The album's own `trackIds` are already in disc/track/title order; an
   // artist has no such order of its own, so its tracks are grouped by album
   // the same way `LibraryToolbar`'s "Album" sort does.
@@ -98,6 +115,13 @@ const LibraryDetail = ({
     }
     return [];
   }, [tracks, album, albumId, artistId]);
+
+  // Nothing to draw once the effect above has asked to leave — one render
+  // of "Unknown album" and a dead Play button is exactly the flash this
+  // guard exists to skip.
+  if (isOrphaned) {
+    return null;
+  }
 
   const isAlbum = Boolean(albumId);
   const title = isAlbum

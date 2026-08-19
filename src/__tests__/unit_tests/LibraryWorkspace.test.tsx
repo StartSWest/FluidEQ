@@ -19,10 +19,27 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import '@testing-library/jest-dom';
 import { act, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import type { ILibraryScanProgress } from '../../common/library/types';
+import type {
+  ILibraryIndex,
+  ILibraryScanProgress,
+  ILibraryTrack,
+} from '../../common/library/types';
 import LibraryWorkspace from '../../renderer/library/LibraryWorkspace';
 import { LibraryProvider } from '../../renderer/library/LibraryContext';
 import { I18nProvider } from '../../renderer/utils/I18nContext';
+
+const track = (over: Partial<ILibraryTrack>): ILibraryTrack => ({
+  id: over.title ?? 'id',
+  rootId: 'r1',
+  path: 'C:\\Music\\a.mp3',
+  kind: 'audio',
+  isPlayable: true,
+  title: 'Untitled',
+  sizeBytes: 1,
+  mtimeMs: 1,
+  addedAt: 1,
+  ...over,
+});
 
 const addLibraryRoot = jest.fn(() =>
   Promise.resolve({ version: 1, roots: [], tracks: [] }),
@@ -33,16 +50,25 @@ const cancelLibraryScan = jest.fn();
 // way `onLibraryIndexChanged` already is not exercised because nothing here
 // needs to.
 let progressListener: ((progress: ILibraryScanProgress) => void) | undefined;
+// Captured the same way, for the one test that simulates the index changing
+// out from under an open drill-in.
+let indexListener: ((index: ILibraryIndex) => void) | undefined;
+// Reassigned by a test before calling `renderWorkspace()`, read by the
+// `getLibraryIndex` mock at render time — the empty-library shape every
+// other test in this file still gets by not touching it.
+let initialIndex: ILibraryIndex = { version: 1, roots: [], tracks: [] };
 
 beforeEach(() => {
   addLibraryRoot.mockClear();
   cancelLibraryScan.mockClear();
   progressListener = undefined;
+  indexListener = undefined;
+  initialIndex = { version: 1, roots: [], tracks: [] };
   window.electron = {
     ipcRenderer: {
       getLibraryIndex: () =>
         Promise.resolve({
-          index: { version: 1, roots: [], tracks: [] },
+          index: initialIndex,
           wasReset: false,
         }),
       addLibraryRoot,
@@ -55,7 +81,12 @@ beforeEach(() => {
           progressListener = undefined;
         };
       },
-      onLibraryIndexChanged: () => () => undefined,
+      onLibraryIndexChanged: (callback: (index: ILibraryIndex) => void) => {
+        indexListener = callback;
+        return () => {
+          indexListener = undefined;
+        };
+      },
     },
   } as unknown as typeof window.electron;
 });
@@ -111,5 +142,49 @@ describe('a scan in progress', () => {
     });
     await userEvent.click(screen.getByRole('button', { name: 'Stop' }));
     expect(cancelLibraryScan).toHaveBeenCalled();
+  });
+});
+
+describe('a drill-in whose album disappears underneath it', () => {
+  it('closes on its own and returns to the grid, rather than sitting on a blank screen', async () => {
+    // Default browse mode is 'album', default view mode is 'grid' (both
+    // `LibraryWorkspace`'s own fallbacks), so nothing here needs to click
+    // through the toolbar first.
+    initialIndex = {
+      version: 1,
+      roots: [
+        {
+          id: 'r1',
+          path: 'C:\\Music',
+          addedAt: 1,
+          trackCount: 1,
+          karaokeSkipped: 0,
+        },
+      ],
+      tracks: [track({ title: 'Blue', album: 'Kind', artist: 'Miles' })],
+    };
+    renderWorkspace();
+
+    await userEvent.click(await screen.findByText('Kind'));
+    // The drill-in is open — its one filled button is on screen.
+    expect(screen.getByRole('button', { name: 'Play' })).toBeInTheDocument();
+
+    // The folder is removed mid-view: the same `onLibraryIndexChanged` push
+    // `LibraryContext` already subscribes to, now carrying an index with no
+    // trace of the album that was open.
+    act(() => {
+      indexListener?.({
+        version: 1,
+        roots: [],
+        tracks: [track({ title: 'Other', album: 'Bitches', artist: 'Miles' })],
+      });
+    });
+
+    // Not stuck on "Unknown album" with a dead Play button — back on the
+    // grid, which is not empty either: the surviving album's tile is shown.
+    expect(
+      screen.queryByRole('button', { name: 'Play' }),
+    ).not.toBeInTheDocument();
+    expect(await screen.findByText('Bitches')).toBeInTheDocument();
   });
 });
