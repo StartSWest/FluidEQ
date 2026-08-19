@@ -55,6 +55,7 @@ import {
   ILiveCurveData,
 } from './ChartController';
 import { getLineGainAtFrequency } from './utils';
+import { plotTopMargin } from './plotMargins';
 import { ColorEnum } from '../styles/color';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
 import { getBandColor } from '../utils/bandColors';
@@ -662,6 +663,13 @@ const FrequencyResponseChart = ({
   const legendGroup = useRef<HTMLSpanElement>(null);
   const naturalLegendWidth = useRef(0);
   const [areChipsCollapsed, setAreChipsCollapsed] = useState(false);
+  /**
+   * How tall the floating strip actually is, so the plot can keep out from
+   * under it. Measured by the observer that already watches this row, because
+   * what changes the height is the row wrapping — the case no constant could
+   * have covered.
+   */
+  const [controlsHeight, setControlsHeight] = useState(0);
   const chipKey = curveChips.map((chip) => chip.curve).join(',');
 
   useLayoutEffect(() => {
@@ -675,6 +683,7 @@ const FrequencyResponseChart = ({
         naturalLegendWidth.current = group.scrollWidth;
       }
       setAreChipsCollapsed(naturalLegendWidth.current > row.clientWidth);
+      setControlsHeight(row.offsetHeight);
     };
     measure();
     const observer = new ResizeObserver(measure);
@@ -1164,14 +1173,15 @@ const FrequencyResponseChart = ({
     width,
     height,
     margins: {
-      // Headroom above the plot, so a curve at +20 dB is not shaved off by the
-      // top of the viewport and the legend strip has something to float over.
+      // Headroom above the plot: enough that a curve at +20 dB is not shaved
+      // off, and enough that the controls strip floating over the top does not
+      // sit on the band handles.
       //
-      // Stretching gives it up. That thirty pixels is most of the gap between
-      // the top of the card and the top of the wave — which is exactly the
-      // space this mode exists to reclaim, and there is no band handle up there
-      // to clip once the drawing is the point rather than the measurement.
-      top: isStretched ? 4 : 30,
+      // It was a flat thirty pixels, and the strip is taller than that before
+      // it even wraps — so the top row of handles was underneath a row of
+      // buttons that take pointer events, present on screen and impossible to
+      // grab. See `plotTopMargin` for why this is measured rather than stated.
+      top: plotTopMargin(isStretched, controlsHeight),
       // Air at the sides, so a curve running off the edge of the plot is not
       // cut flush against the card. With the grid hidden there is nothing to
       // read at the edges and the wave is better for having them.

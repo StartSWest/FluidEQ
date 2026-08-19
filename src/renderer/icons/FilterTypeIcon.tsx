@@ -92,8 +92,12 @@ const FILTER_PATHS: Record<
   [FilterTypeEnum.AP]: {
     d: 'M0 10H32',
     stroke: '#F7DB4F',
+    // Two cycles across the width, not four. Rendered at the size it is
+    // actually used, the denser wave read as a scribble rather than as a
+    // waveform — enough amplitude to be one thing, few enough turns to be
+    // legible at 32 pixels.
     phase:
-      'M0 16C2 16 2 13 4 13C6 13 6 16 8 16C10 16 10 13 12 13C14 13 14 16 16 16C18 16 18 13 20 13C22 13 22 16 24 16C26 16 26 13 28 13C30 13 30 16 32 16',
+      'M0 17C4 17 4 12 8 12C12 12 12 17 16 17C20 17 20 12 24 12C28 12 28 17 32 17',
   },
 };
 
