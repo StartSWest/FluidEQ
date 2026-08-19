@@ -278,13 +278,41 @@ export const constrainAutomaticWordTiming = (
   return constrained;
 };
 
+/**
+ * Whisper's timestamp head fails by reporting a position it does not have, and
+ * both shapes of that were being written into projects as measurements.
+ *
+ * Measured over one 253 s song, 158 recognised words: 27 came back stacked on
+ * their chunk's terminal timestamp — 29.98 s past a chunk start, so 169.98,
+ * 189.98, 209.98 — and every one was saved as a 1 ms word, which is how the
+ * song's whole last third ended up looking detected while carrying no timing
+ * at all. A word sharing its start with its neighbour has not been placed.
+ */
+const stackedTranscriptWords = (
+  words: readonly IKaraokeMakerTranscriptWord[],
+): ReadonlySet<IKaraokeMakerTranscriptWord> => {
+  const byStart = new Map<number, IKaraokeMakerTranscriptWord[]>();
+  words.forEach((word) => {
+    const shared = byStart.get(word.startMs) ?? [];
+    shared.push(word);
+    byStart.set(word.startMs, shared);
+  });
+  return new Set(
+    [...byStart.values()].flatMap((shared) =>
+      shared.length > 1 || shared[0].endMs <= shared[0].startMs ? shared : [],
+    ),
+  );
+};
+
 export const constrainTranscriptWords = (
   words: readonly IKaraokeMakerTranscriptWord[],
 ): IKaraokeMakerTranscriptWord[] => {
+  const stacked = stackedTranscriptWords(words);
+  const usable = words.filter((word) => !stacked.has(word));
   let previousEndMs = 0;
-  return words.map((word, index) => {
+  return usable.map((word, index) => {
     const startMs = Math.max(previousEndMs, Math.max(0, word.startMs));
-    const nextStartMs = words[index + 1]?.startMs;
+    const nextStartMs = usable[index + 1]?.startMs;
     const plausibleEndMs = Math.min(
       word.endMs,
       startMs + maximumAutomaticWordDurationMs(word.text),
@@ -296,6 +324,52 @@ export const constrainTranscriptWords = (
         : unclampedEndMs;
     previousEndMs = endMs;
     return { ...word, startMs, endMs };
+  });
+};
+
+export interface IKaraokeMakerTranscriptPlacement {
+  text: string;
+  startMs?: number;
+  endMs?: number;
+}
+
+/**
+ * Place the words of a transcript that is becoming the lyrics itself.
+ *
+ * With no supplied lyrics there is nothing to corroborate a timestamp, so a
+ * span that cannot be true is not narrowed into a plausible-looking one — the
+ * word keeps its text and loses its timing. Narrowing an over-long span from
+ * its start is what put the opening word of a phrase at the tail of the
+ * previous one: Whisper starts such a span where the last phrase ended, so the
+ * shortened word lands in the instrumental gap and the phrase it opens begins
+ * without it. Measured on the same song, three words did exactly that, and one
+ * more was placed 13 s past the end of the audio.
+ *
+ * `constrainAutomaticWordTiming` narrows the same shape deliberately on the
+ * alignment path and should keep doing so: there a broken span sits between
+ * two matched lyric words that bound it, and here nothing bounds it.
+ */
+export const placeTranscriptWords = (
+  words: readonly IKaraokeMakerTranscriptWord[],
+  durationMs: number,
+): IKaraokeMakerTranscriptPlacement[] => {
+  const stacked = stackedTranscriptWords(words);
+  const placeable = words.filter(
+    (word) =>
+      !stacked.has(word) &&
+      word.endMs - word.startMs <= maximumAutomaticWordDurationMs(word.text) &&
+      (durationMs <= 0 || word.startMs < durationMs),
+  );
+  const timings = new Map(
+    constrainTranscriptWords(placeable).map(
+      (timing, index) => [placeable[index], timing] as const,
+    ),
+  );
+  return words.map((word) => {
+    const timing = timings.get(word);
+    return timing
+      ? { text: word.text, startMs: timing.startMs, endMs: timing.endMs }
+      : { text: word.text };
   });
 };
 

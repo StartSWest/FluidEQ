@@ -26,6 +26,8 @@ import type { IKaraokeMakerLicenseRecord } from '../../../common/karaoke/makerPr
 import {
   constrainAutomaticWordTiming,
   constrainTranscriptWords,
+  IKaraokeMakerTranscriptPlacement,
+  placeTranscriptWords,
 } from './wordMatching';
 import {
   alignLyricsBySentence,
@@ -53,19 +55,26 @@ export const applyTranscriptAsLyrics = (
   project: IKaraokeMakerProject,
   transcript: readonly IKaraokeMakerTranscriptWord[],
 ): IKaraokeMakerProject => {
-  const words = constrainTranscriptWords(
+  const words = placeTranscriptWords(
     [...transcript].sort((left, right) => left.startMs - right.startMs),
+    project.audio.durationMs ?? 0,
   ).filter((word) => word.text.trim().length > 0);
   if (!words.length) {
     return project;
   }
   // A line break where the voice rests, or when a line grows past what a
   // karaoke screen comfortably holds. 700 ms is roughly a sung breath.
-  const lines: IKaraokeMakerTranscriptWord[][] = [[]];
+  const lines: IKaraokeMakerTranscriptPlacement[][] = [[]];
   words.forEach((word, index) => {
     const current = lines[lines.length - 1];
     const previous = index > 0 ? words[index - 1] : undefined;
-    const gap = previous ? word.startMs - previous.endMs : 0;
+    // Only a word that was actually placed says where the singer rested. An
+    // unplaced neighbour leaves the gap unknown, and an unknown gap is not a
+    // breath.
+    const gap =
+      previous?.endMs !== undefined && word.startMs !== undefined
+        ? word.startMs - previous.endMs
+        : 0;
     // A sentence end is a line end even when the singer barrels straight
     // into the next phrase: grouping by silence alone kept stealing the next
     // line's first word onto the previous one's tail.
@@ -91,7 +100,7 @@ export const applyTranscriptAsLyrics = (
     tokens: line.tokens.map((token) => {
       const word = flatWords[wordIndex];
       wordIndex += 1;
-      return word
+      return word?.startMs !== undefined && word.endMs !== undefined
         ? { ...token, startMs: word.startMs, endMs: word.endMs }
         : token;
     }),

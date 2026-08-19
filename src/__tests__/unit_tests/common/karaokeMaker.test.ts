@@ -2,6 +2,7 @@
 
 import {
   createKaraokeMakerProject,
+  IKaraokeMakerProject,
   importLyricsIntoKaraokeMakerProject,
   karaokeMakerProjectToSong,
   karaokeMakerRecordedLineContainsTime,
@@ -34,6 +35,7 @@ import {
   accumulateKaraokeMakerDownloadProgress,
   applyBasicPitchMelody,
   applyDetectedPitchMelody,
+  applyTranscriptAsLyrics,
   applyWhisperTranscript,
   formatKaraokeMakerWhisperLog,
   karaokeMakerMelodyNotesForLyrics,
@@ -2650,5 +2652,103 @@ describe('Karaoke Maker canonical project and exports', () => {
         20_000,
       ),
     ).toEqual({ startMs: 20_000, durationMs: 10_000 });
+  });
+});
+
+describe('Karaoke Maker transcript-authored lyrics', () => {
+  const authoringProject = () => {
+    const project = createKaraokeMakerProject(song());
+    project.audio.durationMs = 253_051;
+    project.lyrics.lines = [];
+    return project;
+  };
+  const authoredTokens = (project: IKaraokeMakerProject) =>
+    project.lyrics.lines.flatMap((line) => line.tokens);
+
+  it('writes a clean transcript through as lyrics with its timing intact', () => {
+    const authored = applyTranscriptAsLyrics(authoringProject(), [
+      { text: 'Storm', startMs: 14_000, endMs: 14_480 },
+      { text: 'over', startMs: 14_500, endMs: 15_280 },
+      { text: 'water.', startMs: 15_300, endMs: 15_900 },
+      { text: 'Rowing', startMs: 22_000, endMs: 22_400 },
+      { text: 'home', startMs: 22_420, endMs: 23_000 },
+    ]);
+    const tokens = authoredTokens(authored);
+
+    expect(tokens.map((token) => token.text)).toEqual([
+      'Storm',
+      'over',
+      'water.',
+      'Rowing',
+      'home',
+    ]);
+    expect(tokens.every((token) => token.startMs !== undefined)).toBe(true);
+    expect(tokens[0]).toMatchObject({ startMs: 14_000 });
+    expect(tokens[4]).toMatchObject({ endMs: 23_000 });
+    expect(authored.lyrics.lines).toHaveLength(2);
+  });
+
+  it('does not park a runaway word span on the previous phrase', () => {
+    // Measured: Whisper reported this word starting 15.88 s, where the last
+    // phrase had just ended, and running past 22 s. Trimming that span to a
+    // plausible length kept its start, leaving the word alone in the
+    // instrumental gap while the phrase it opens begins at 22 s.
+    const authored = applyTranscriptAsLyrics(authoringProject(), [
+      { text: 'Storm', startMs: 14_000, endMs: 14_480 },
+      { text: 'water.', startMs: 14_500, endMs: 15_280 },
+      { text: 'Rowing', startMs: 15_880, endMs: 21_800 },
+      { text: 'over', startMs: 22_000, endMs: 22_400 },
+      { text: 'home', startMs: 22_420, endMs: 23_000 },
+    ]);
+    const runaway = authoredTokens(authored).find(
+      (token) => token.text === 'Rowing',
+    );
+
+    expect(runaway).toBeDefined();
+    expect(runaway?.startMs).toBeUndefined();
+    expect(runaway?.endMs).toBeUndefined();
+  });
+
+  it('leaves words untimed when Whisper stacks them on one timestamp', () => {
+    // Measured: 27 of 158 words came back on their chunk's terminal
+    // timestamp — 29.98 s past a chunk start — and were written out as 1 ms
+    // words covering the song's whole last third.
+    const authored = applyTranscriptAsLyrics(authoringProject(), [
+      { text: 'Storm', startMs: 141_000, endMs: 141_400 },
+      { text: 'over', startMs: 169_980, endMs: 169_980 },
+      { text: 'open', startMs: 169_980, endMs: 169_980 },
+      { text: 'water', startMs: 169_980, endMs: 169_980 },
+      { text: 'again', startMs: 189_980, endMs: 189_980 },
+    ]);
+    const tokens = authoredTokens(authored);
+
+    expect(tokens.map((token) => token.text)).toEqual([
+      'Storm',
+      'over',
+      'open',
+      'water',
+      'again',
+    ]);
+    expect(tokens[0]).toMatchObject({ startMs: 141_000, endMs: 141_400 });
+    expect(
+      tokens
+        .slice(1)
+        .every(
+          (token) => token.startMs === undefined && token.endMs === undefined,
+        ),
+    ).toBe(true);
+  });
+
+  it('never places a word past the end of the audio', () => {
+    // Measured: one word landed at 266.08 s in a song 253.05 s long.
+    const authored = applyTranscriptAsLyrics(authoringProject(), [
+      { text: 'Storm', startMs: 141_000, endMs: 141_400 },
+      { text: 'over', startMs: 266_080, endMs: 266_480 },
+    ]);
+    const late = authoredTokens(authored).find(
+      (token) => token.text === 'over',
+    );
+
+    expect(late?.startMs).toBeUndefined();
   });
 });
