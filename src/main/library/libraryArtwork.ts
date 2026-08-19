@@ -86,7 +86,14 @@ export const storeArtwork = async (
     const resized = image.resize({ height: ARTWORK_EDGE_PIXELS });
     const jpeg = resized.toJPEG(82);
     fs.mkdirSync(artworkCacheDir(userDataDir), { recursive: true });
-    fs.writeFileSync(target, jpeg);
+    const temporary = `${target}.tmp`;
+    // A write that dies partway through leaves the .tmp file damaged, not
+    // the path every future call treats as already cached — the same
+    // discipline saveLibraryIndex uses in libraryIndex.ts. The rename is
+    // atomic on both NTFS and the POSIX filesystems this app ships on, and
+    // overwrites an existing destination on Windows without an unlink first.
+    fs.writeFileSync(temporary, jpeg);
+    fs.renameSync(temporary, target);
     return id;
   } catch (error) {
     // A cover that will not decode or a cache directory that will not write

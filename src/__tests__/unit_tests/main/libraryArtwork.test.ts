@@ -55,4 +55,24 @@ describe('caching a cover', () => {
       path.join(dir, 'library-art', 'a1b2c3.jpg'),
     );
   });
+
+  it('leaves no file at the final path when encoding fails partway', async () => {
+    // A kill or a full disk mid-write must not leave a truncated JPEG sitting
+    // at the exact path every future call treats as "already cached" — that
+    // album's cover would stay broken forever, with nothing to repair it.
+    const dir = tempDir();
+    const bytes = new Uint8Array([4, 4, 4]);
+    resize.mockImplementationOnce(() => ({
+      toJPEG: () => {
+        throw new Error('disk full');
+      },
+    }));
+    const id = await storeArtwork(dir, bytes);
+    expect(id).toBeUndefined();
+    const target = artworkPath(dir, artworkId(bytes));
+    if (target === undefined) {
+      throw new Error('expected artworkPath to resolve for a valid hex id');
+    }
+    expect(fs.existsSync(target)).toBe(false);
+  });
 });
