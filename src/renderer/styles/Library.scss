@@ -22,6 +22,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 @use 'theme' as *;
 
 .library-workspace {
+  // The frame the floating scan pane positions itself against.
+  position: relative;
   display: flex;
   min-width: 0;
   min-height: 0;
@@ -267,15 +269,26 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // tab. Background, border and radius copied from
 // `.karaoke-maker__analysis-progress` in Karaoke.scss.
 
+// Floats over the library rather than pushing it down. A strip in the layout
+// reflowed every row the moment a scan started and again when it finished —
+// on a tab whose whole job is a grid of covers, that is the content jumping
+// under the pointer for a reason the user did not ask for. Above the rows,
+// below the now-playing bar's 1100 so the two never fight for the corner.
 .library-scan-progress {
+  position: absolute;
+  z-index: 40;
+  right: $spacing-m;
+  bottom: $spacing-m;
   display: grid;
-  flex: 0 0 auto;
+  width: min(420px, calc(100% - #{$spacing-m} * 2));
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: start;
   column-gap: 12px;
   row-gap: 8px;
   padding: 11px 12px;
   color: #dffcf9;
+  box-shadow: 0 18px 42px rgba($black, 0.46);
+  animation: library-scan-progress-in $motion-base $ease-out;
   background:
     radial-gradient(circle at 15% 0, rgba(30, 215, 199, 0.12), transparent 55%),
     rgba(5, 27, 41, 0.96);
@@ -513,6 +526,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   column-gap: $spacing-s;
   padding: 7px $spacing-s;
+}
+
+@keyframes library-scan-progress-in {
+  from {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 // A sortable column header. The arrow is present only on the column actually
@@ -1047,4 +1072,89 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   width: 16px;
   height: 16px;
   flex: 0 0 auto;
+}
+
+// *** Navigating between views *************************************************
+//
+// A grid, a list and a drill-in replace each other in the same box, so without
+// this the content simply blinks from one to the next. The entrance is short
+// and small on purpose: this fires on every browse-mode click and every album
+// opened, and anything longer turns ordinary navigation into waiting.
+
+@keyframes library-view-in {
+  from {
+    transform: translateY(6px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.library-list,
+.library-grid,
+.library-detail,
+.library-video-section,
+.library-coverflow {
+  animation: library-view-in $motion-base $ease-out;
+}
+
+// The drill-in comes from further out than a sibling view does: it is a
+// descent into something, not a swap between peers.
+@keyframes library-detail-in {
+  from {
+    transform: translateY(14px) scale(0.99);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.library-detail {
+  animation: library-detail-in $motion-slow $ease-out;
+}
+
+// Layout is kept; only the movement goes. Matches the convention in
+// SidebarSection.scss and VideoBrowser.scss.
+@media (prefers-reduced-motion: reduce) {
+  .library-list,
+  .library-grid,
+  .library-detail,
+  .library-video-section,
+  .library-coverflow,
+  .library-scan-progress {
+    animation: none;
+  }
+
+  .library-list__art-play-glyph {
+    transition: none;
+  }
+}
+
+// Files that share a folder with the open album but are not part of it — a
+// bonus disc, a stray single, a live take tagged differently. Kept visibly
+// apart rather than merged in, since merging them would be a different lie
+// from hiding them.
+.library-detail__strays {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  margin-top: $spacing-m;
+  padding-top: $spacing-s;
+  border-top: 1px dashed rgba($secondary-light, 0.22);
+}
+
+.library-detail__strays-heading {
+  margin: 0 0 $spacing-s;
+  color: $text-faint;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }

@@ -83,6 +83,7 @@ const library: Partial<Dictionary> = {
 
   'library.back': '返回',
 
+  'library.alsoInFolder': '此文件夹中的其他文件（{count}）',
   'library.play': '播放',
   'library.pause': '暂停',
   'library.stop': '停止',

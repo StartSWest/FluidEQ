@@ -84,6 +84,7 @@ const library = {
 
   'library.back': 'Back',
 
+  'library.alsoInFolder': 'Also in this folder ({count})',
   'library.play': 'Play',
   'library.pause': 'Pause',
   'library.stop': 'Stop',

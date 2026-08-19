@@ -51,6 +51,15 @@ interface ILibraryDetailProps {
  * optional here rather than a discriminated union, matching the interface
  * Task 15's brief specifies.
  */
+/** The directory a file sits in. Splits on both separators for the same
+ * reason `videoFolderGroups` does: a path arrives as Windows text but nothing
+ * guarantees every one of them was written with a backslash. */
+const trackFolder = (filePath: string): string => {
+  const normalised = filePath.replace(/\\/g, '/');
+  const cut = normalised.lastIndexOf('/');
+  return cut > 0 ? normalised.slice(0, cut) : normalised;
+};
+
 const LibraryDetail = ({
   tracks,
   albumId,
@@ -115,6 +124,37 @@ const LibraryDetail = ({
     }
     return [];
   }, [tracks, album, albumId, artistId]);
+
+  /**
+   * Files sitting in the same folders as this album, that the album does not
+   * account for.
+   *
+   * A folder is very often not one clean album: a bonus disc, a couple of
+   * loose singles, a live take tagged differently. Showing only the tagged
+   * album hides them — the user opened a folder's worth of music and got
+   * fewer songs than they know are there, with nothing saying why. Showing
+   * them merged into the album would be the opposite lie.
+   *
+   * So they are listed below, in the same place, under their own heading.
+   * Only for an album drill-in: an artist is not a folder, and the same
+   * question does not arise.
+   */
+  const strayTracks = useMemo(() => {
+    if (!albumId || detailTracks.length === 0) {
+      return [];
+    }
+    const included = new Set(detailTracks.map((track) => track.id));
+    const folders = new Set(
+      detailTracks.map((track) => trackFolder(track.path)),
+    );
+    return sortTracks(
+      tracks.filter(
+        (track) =>
+          !included.has(track.id) && folders.has(trackFolder(track.path)),
+      ),
+      'title',
+    );
+  }, [tracks, detailTracks, albumId]);
 
   // Nothing to draw once the effect above has asked to leave — one render
   // of "Unknown album" and a dead Play button is exactly the flash this
@@ -184,6 +224,21 @@ const LibraryDetail = ({
         onPlayTrack={onPlayTrack}
         offlineRootIds={offlineRootIds}
       />
+      {strayTracks.length > 0 && (
+        <div className="library-detail__strays">
+          <h3 className="library-detail__strays-heading">
+            {t('library.alsoInFolder', { count: strayTracks.length })}
+          </h3>
+          <LibraryListView
+            tracks={strayTracks}
+            browseMode="song"
+            onOpenAlbum={() => undefined}
+            onOpenArtist={() => undefined}
+            onPlayTrack={onPlayTrack}
+            offlineRootIds={offlineRootIds}
+          />
+        </div>
+      )}
     </div>
   );
 };

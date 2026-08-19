@@ -85,6 +85,7 @@ const library: Partial<Dictionary> = {
 
   'library.back': 'Назад',
 
+  'library.alsoInFolder': 'Также в этой папке ({count})',
   'library.play': 'Воспроизвести',
   'library.pause': 'Пауза',
   'library.stop': 'Стоп',
