@@ -31,6 +31,10 @@ import type {
 } from '../common/karaoke/makerPersistence';
 import type { IKaraokeMakerProject } from '../common/karaoke/makerProject';
 import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
+import type {
+  ILibraryIndex,
+  ILibraryScanProgress,
+} from '../common/library/types';
 
 export type Channels = string;
 
@@ -267,6 +271,54 @@ const onKaraokeSeparationProgress = (
   };
 };
 
+/** `wasReset` is `loadLibraryIndex`'s own answer, carried through unchanged. */
+const getLibraryIndex = () =>
+  ipcRenderer.invoke('library-index-get') as Promise<{
+    index: ILibraryIndex;
+    wasReset: boolean;
+  }>;
+
+/** Opens the OS folder picker and scans whatever the user chose. */
+const addLibraryRoot = () =>
+  ipcRenderer.invoke('library-root-add') as Promise<ILibraryIndex>;
+
+/** For a dropped folder: main decides what is really a directory. */
+const addLibraryRootPaths = (paths: string[]) =>
+  ipcRenderer.invoke('library-root-add-paths', paths) as Promise<ILibraryIndex>;
+
+const removeLibraryRoot = (rootId: string) =>
+  ipcRenderer.invoke('library-root-remove', rootId) as Promise<ILibraryIndex>;
+
+/** Kicks off a rescan of every root; progress arrives through the two listeners below. */
+const rescanLibrary = () =>
+  ipcRenderer.invoke('library-scan-start') as Promise<void>;
+
+const cancelLibraryScan = () => ipcRenderer.send('library-scan-cancel', []);
+
+const onLibraryScanProgress = (
+  listener: (progress: ILibraryScanProgress) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, progress: ILibraryScanProgress) =>
+    listener(progress);
+  ipcRenderer.on('library-scan-progress', wrapped);
+  return () => {
+    ipcRenderer.removeListener('library-scan-progress', wrapped);
+  };
+};
+
+const onLibraryIndexChanged = (listener: (index: ILibraryIndex) => void) => {
+  const wrapped = (_event: IpcRendererEvent, index: ILibraryIndex) =>
+    listener(index);
+  ipcRenderer.on('library-index-changed', wrapped);
+  return () => {
+    ipcRenderer.removeListener('library-index-changed', wrapped);
+  };
+};
+
+/** Shows the file in Explorer/Finder; an id the index no longer knows does nothing. */
+const revealLibraryTrack = (trackId: string) =>
+  ipcRenderer.invoke('library-reveal', trackId) as Promise<void>;
+
 export default {
   /**
    * What this build is running on, read once while the preload has a `process`.
@@ -313,5 +365,14 @@ export default {
     onKaraokeSeparationProgress,
     exportKaraokeMakerFile,
     revealVideoDownload,
+    getLibraryIndex,
+    addLibraryRoot,
+    addLibraryRootPaths,
+    removeLibraryRoot,
+    rescanLibrary,
+    cancelLibraryScan,
+    onLibraryScanProgress,
+    onLibraryIndexChanged,
+    revealLibraryTrack,
   },
 };

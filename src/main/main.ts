@@ -108,6 +108,11 @@ import { registerKaraokeSeparation } from './karaokeSeparation';
 import { registerKaraokePitch } from './karaokePitch';
 import { registerProfilesIpc } from './ipc/profiles';
 import { registerUpdatesIpc } from './ipc/updates';
+import { libraryIndexSnapshot, registerLibraryIpc } from './ipc/library';
+import {
+  handleLibraryMedia,
+  registerLibraryMediaScheme,
+} from './library/libraryProtocol';
 import {
   adoptApoFeatureText,
   describeApoFeatureText,
@@ -130,6 +135,19 @@ import {
   IAuthorizedAutoUpdater,
   setUpReleaseAutoUpdates,
 } from './signedAutoUpdates';
+
+/**
+ * Declares the `fluideq-media:` scheme's privileges before the app is ready.
+ *
+ * Deliberately at module scope, at the top of the file, rather than beside
+ * `registerLibraryIpc` further down or inside `whenReady` beside
+ * `handleLibraryMedia`: `registerSchemesAsPrivileged` only has an effect when
+ * called before `app.whenReady()`, and calling it after gives no error at
+ * all — the scheme looks registered and then serves every request as an
+ * ordinary untrusted one, which reads exactly like a CSP bug and nothing
+ * points back here. See the doc comment on the function itself.
+ */
+registerLibraryMediaScheme();
 
 /**
  * The updater exists only after Windows verifies which release channel this
@@ -2168,6 +2186,11 @@ registerKaraokeIpc({
   getMainWindow: () => mainWindow,
 });
 
+registerLibraryIpc({
+  userDataDir,
+  getMainWindow: () => mainWindow,
+});
+
 if (process.env.NODE_ENV === 'production') {
   const sourceMapSupport = require('source-map-support');
   sourceMapSupport.install();
@@ -2435,6 +2458,11 @@ app
     // Before any window exists, so the player's session and the rules its web
     // contents run under are in place by the time one can be attached.
     setUpVideoBrowser();
+    // Needs the session to exist, which is why this is here and not beside
+    // `registerLibraryMediaScheme` at the top of the file — that call only
+    // declares the scheme's privileges and has to run before `whenReady`;
+    // this one answers its requests and has to run after.
+    handleLibraryMedia({ userDataDir, getIndex: libraryIndexSnapshot });
     createMainWindow()
       .then(() => {
         // AFTER THE WINDOW, NOT BEFORE IT.
