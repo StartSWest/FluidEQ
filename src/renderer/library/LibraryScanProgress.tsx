@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { useRef } from 'react';
 import type { ILibraryScanProgress } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
 
@@ -40,11 +41,32 @@ const LibraryScanProgress = ({
   onCancel,
 }: ILibraryScanProgressProps) => {
   const { t } = useTranslation();
-  const { seen, parsed, current, karaokeSkipped } = progress;
+  const { seen, parsed, current, karaokeSkipped, rootId } = progress;
   const hasEstimate = seen > 0;
-  const percent = hasEstimate
+  const rawPercent = hasEstimate
     ? Math.min(100, Math.round((parsed / seen) * 100))
     : 0;
+
+  // `seen` grows the moment a newly discovered directory adds its files to
+  // the count, before any of them is read — see `libraryScanner.ts`. That is
+  // what makes the estimate honest, and it is also what can make it dip: a
+  // large directory found right after a small, nearly-finished one lowers the
+  // ratio even though real progress kept moving forward. A bar that visibly
+  // slides backward reads as broken regardless of why, so the displayed
+  // percentage is held at its high-water mark for as long as `rootId` stays
+  // the same — one root is `scanLibraryRoot`'s own unit of work, so that is
+  // "a single scan" here.
+  const rootIdRef = useRef(rootId);
+  const maxPercentRef = useRef(0);
+  if (rootIdRef.current !== rootId) {
+    rootIdRef.current = rootId;
+    maxPercentRef.current = 0;
+  }
+  if (hasEstimate && rawPercent > maxPercentRef.current) {
+    maxPercentRef.current = rawPercent;
+  }
+  const percent = hasEstimate ? maxPercentRef.current : 0;
+
   const runningLabel = t('library.scan.running', { name: current ?? '' });
 
   return (

@@ -98,9 +98,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // *** The toolbar *************************************************************
 //
 // Steers what the library shows: which grouping, which layout, how it is
-// sorted, and what is filtered. Always on screen, even over an empty library,
-// because Add folder and Rescan are exactly the two actions somebody with
-// nothing indexed yet still needs.
+// sorted, and what is filtered. On screen once there is at least one root —
+// an empty library has exactly one useful next step, and that is the empty
+// state's own Add folder button, not a row of browse/view/sort controls with
+// nothing yet to act on.
 
 .library-toolbar-row {
   display: flex;
@@ -120,19 +121,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: $spacing-s;
 }
 
-// The browse-mode row. Classes copied from `.workspace-tab` in App.scss
-// rather than a second tab look invented for a strip that is not the
-// top-level tab strip — see `LibraryToolbar.tsx`.
-.library-toolbar__browse-modes {
-  display: flex;
-  flex: 0 0 auto;
-  align-items: flex-end;
-  gap: 3px;
-}
-
-// Same recipe as `.quick-layouts` in MainContent.scss: a row of choices sunk
-// into the panel is what a segmented control looks like everywhere else in
-// this app, so this reuses its literals rather than inventing new ones.
+// The browse-mode and view-mode rows. Both are a `role="tab"`/`aria-pressed`
+// choice among a few mutually exclusive options, so both get the same look:
+// the `.quick-layouts` recipe from `MainContent.scss` — a row of choices sunk
+// into the panel, which is what a segmented control looks like everywhere
+// else in this app. `.workspace-tab` was tried for the browse-mode row first
+// and dropped: that class is square-bottomed on purpose, drawn to sit flush
+// against `.workspace-tabs`' own `border-bottom` seam, which this toolbar row
+// does not have -- without it, `.workspace-tab` renders as a flat-bottomed
+// rectangle with nothing to look attached to.
+.library-toolbar__browse-modes,
 .library-toolbar__view-modes {
   @include inset-surface;
   display: flex;

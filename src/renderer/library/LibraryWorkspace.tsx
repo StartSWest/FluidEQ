@@ -16,17 +16,16 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { DragEvent, useEffect, useRef, useState } from 'react';
+import { DragEvent, useEffect, useState } from 'react';
 import type {
   TLibraryBrowseMode,
   TLibrarySort,
   TLibraryViewMode,
 } from '../../common/library/types';
 import { useTranslation } from '../utils/I18nContext';
-import AnchoredMenu, { isInsideAnchoredMenu } from '../widgets/AnchoredMenu';
-import MenuIcon from '../icons/MenuIcon';
 import { useLibrary } from './LibraryContext';
 import LibraryEmptyState from './LibraryEmptyState';
+import LibraryFolderActions from './LibraryFolderActions';
 import LibraryScanProgress from './LibraryScanProgress';
 import LibraryToolbar from './LibraryToolbar';
 import '../styles/Library.scss';
@@ -133,37 +132,6 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
   useEffect(() => writePersistedMode(VIEW_MODE_KEY, viewMode), [viewMode]);
   useEffect(() => writePersistedMode(SORT_KEY, sort), [sort]);
 
-  const [isFoldersMenuOpen, setIsFoldersMenuOpen] = useState(false);
-  const foldersMenuAnchorRef = useRef<HTMLButtonElement>(null);
-
-  // Closes on a click elsewhere and on Escape, like every other menu built on
-  // `AnchoredMenu` — see `MainContent.tsx`'s `eq-mode__menu` for the pattern
-  // this copies, including why the portalled menu is asked about separately.
-  useEffect(() => {
-    if (!isFoldersMenuOpen) {
-      return undefined;
-    }
-    const onPointerDown = (event: MouseEvent) => {
-      if (
-        !foldersMenuAnchorRef.current?.contains(event.target as Node) &&
-        !isInsideAnchoredMenu(event.target)
-      ) {
-        setIsFoldersMenuOpen(false);
-      }
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setIsFoldersMenuOpen(false);
-      }
-    };
-    window.addEventListener('mousedown', onPointerDown);
-    window.addEventListener('keydown', onKeyDown);
-    return () => {
-      window.removeEventListener('mousedown', onPointerDown);
-      window.removeEventListener('keydown', onKeyDown);
-    };
-  }, [isFoldersMenuOpen]);
-
   const karaokeSkippedCount = index.roots.reduce(
     (total, root) => total + root.karaokeSkipped,
     0,
@@ -234,96 +202,33 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
           </button>
         </div>
       )}
-      <div className="library-toolbar-row">
-        <LibraryToolbar
-          browseMode={browseMode}
-          viewMode={viewMode}
-          sort={sort}
-          query={query}
-          onBrowseMode={setBrowseMode}
-          onViewMode={setViewMode}
-          onSort={setSort}
-          onQuery={setQuery}
-        />
-        <div className="library-toolbar__actions">
-          {/* Emphasis follows recommendation: adding music is the
-              recommendation, rescanning what is already there is the
-              fallback. */}
-          <button
-            type="button"
-            className="button small"
-            onClick={handleAddFolder}
-          >
-            <MenuIcon name="folder" className="library-toolbar__action-icon" />
-            <span>{t('library.add')}</span>
-          </button>
-          <button
-            type="button"
-            className="button small subtle"
-            disabled={isScanning}
-            onClick={handleRescan}
-          >
-            <MenuIcon name="restart" className="library-toolbar__action-icon" />
-            <span>{t('library.rescan')}</span>
-          </button>
-          {/* The only place the roots are manageable. Nothing to manage with
-              zero of them, so the control does not appear until there is. */}
-          {index.roots.length > 0 && (
-            <>
-              <button
-                type="button"
-                ref={foldersMenuAnchorRef}
-                className="button small subtle"
-                aria-expanded={isFoldersMenuOpen}
-                onClick={() => setIsFoldersMenuOpen((open) => !open)}
-              >
-                <MenuIcon
-                  name="folderTree"
-                  className="library-toolbar__action-icon"
-                />
-                <span>{t('library.roots')}</span>
-              </button>
-              <AnchoredMenu
-                anchor={foldersMenuAnchorRef.current}
-                isOpen={isFoldersMenuOpen}
-                className="library-folders-menu"
-                ariaLabel={t('library.roots')}
-              >
-                {index.roots.map((root) => (
-                  <div key={root.id} className="library-folders-menu__item">
-                    <div className="library-folders-menu__path-group">
-                      <span
-                        className="library-folders-menu__path"
-                        title={root.path}
-                      >
-                        {root.path}
-                      </span>
-                      {/* A folder on an unplugged drive keeps its tracks —
-                          they are dimmed elsewhere in the library, not gone —
-                          and this is where that gets explained. */}
-                      {root.isOffline && (
-                        <span className="library-folders-menu__offline">
-                          {t('library.root.offline')}
-                        </span>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      className="library-folders-menu__remove"
-                      aria-label={t('library.root.remove')}
-                      onClick={() => handleRemoveRoot(root.id)}
-                    >
-                      <svg viewBox="0 0 12 12" aria-hidden="true">
-                        <path d="M3 3l6 6M9 3l-6 6" />
-                      </svg>
-                    </button>
-                  </div>
-                ))}
-              </AnchoredMenu>
-            </>
-          )}
+      {/* An empty library has exactly one useful next step, and the empty
+          state below is the whole screen for it — a toolbar of browse/view/
+          sort/search controls with nothing yet to act on, beside a second
+          "Add folder" button, undercuts that. Once a root exists there is
+          something to steer and something else worth adding, so the row
+          appears from then on. */}
+      {index.roots.length > 0 && (
+        <div className="library-toolbar-row">
+          <LibraryToolbar
+            browseMode={browseMode}
+            viewMode={viewMode}
+            sort={sort}
+            query={query}
+            onBrowseMode={setBrowseMode}
+            onViewMode={setViewMode}
+            onSort={setSort}
+            onQuery={setQuery}
+          />
+          <LibraryFolderActions
+            roots={index.roots}
+            isScanning={isScanning}
+            onAddFolder={handleAddFolder}
+            onRescan={handleRescan}
+            onRemoveRoot={handleRemoveRoot}
+          />
         </div>
-      </div>
+      )}
       {/* Pinned under the toolbar rather than a modal: the scan is
           backgroundable simply by leaving the tab, which only works if
           nothing here blocks the rest of the workspace. */}

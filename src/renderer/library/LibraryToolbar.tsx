@@ -46,6 +46,26 @@ const SORTS: readonly TLibrarySort[] = [
   'added',
 ];
 
+const BROWSE_LABEL_KEYS = {
+  album: 'library.browse.album',
+  artist: 'library.browse.artist',
+  song: 'library.browse.song',
+} as const;
+
+const VIEW_LABEL_KEYS = {
+  list: 'library.view.list',
+  grid: 'library.view.grid',
+  coverflow: 'library.view.coverflow',
+} as const;
+
+const SORT_LABEL_KEYS = {
+  title: 'library.sort.title',
+  artist: 'library.sort.artist',
+  album: 'library.sort.album',
+  year: 'library.sort.year',
+  added: 'library.sort.added',
+} as const;
+
 /** Whichever `useLibrary` roots/actions this row needs live one level up, in
  * `LibraryWorkspace` — this component is a pure controlled toolbar, testable
  * without a `LibraryProvider` above it. */
@@ -61,46 +81,10 @@ const LibraryToolbar = ({
 }: ILibraryToolbarProps) => {
   const { t } = useTranslation();
 
-  const browseLabel = (mode: TLibraryBrowseMode) => {
-    if (mode === 'artist') {
-      return t('library.browse.artist');
-    }
-    if (mode === 'song') {
-      return t('library.browse.song');
-    }
-    return t('library.browse.album');
-  };
-
-  const viewLabel = (mode: TLibraryViewMode) => {
-    if (mode === 'grid') {
-      return t('library.view.grid');
-    }
-    if (mode === 'coverflow') {
-      return t('library.view.coverflow');
-    }
-    return t('library.view.list');
-  };
-
-  const sortLabel = (value: TLibrarySort) => {
-    if (value === 'artist') {
-      return t('library.sort.artist');
-    }
-    if (value === 'album') {
-      return t('library.sort.album');
-    }
-    if (value === 'year') {
-      return t('library.sort.year');
-    }
-    if (value === 'added') {
-      return t('library.sort.added');
-    }
-    return t('library.sort.title');
-  };
-
   const sortOptions: IOptionEntry[] = SORTS.map((value) => ({
     value,
-    label: sortLabel(value),
-    display: sortLabel(value),
+    label: t(SORT_LABEL_KEYS[value]),
+    display: t(SORT_LABEL_KEYS[value]),
   }));
 
   // The options above are the only source of a sort value that reaches this
@@ -112,6 +96,11 @@ const LibraryToolbar = ({
 
   return (
     <div className="library-toolbar">
+      {/* Same segmented-control look as the view modes just below it, not
+          the top-level `.workspace-tab` shape — that class is drawn to sit
+          flush against `.workspace-tabs`' own border-bottom seam, which this
+          row does not have. `role="tab"`/`aria-selected` stay: it is still a
+          tablist, only its styling moved to match its neighbour. */}
       <div
         className="library-toolbar__browse-modes"
         role="tablist"
@@ -123,12 +112,10 @@ const LibraryToolbar = ({
             type="button"
             role="tab"
             aria-selected={browseMode === mode}
-            className={`workspace-tab${
-              browseMode === mode ? ' is-active' : ''
-            }`}
+            className={`button small${browseMode === mode ? '' : ' subtle'}`}
             onClick={() => onBrowseMode(mode)}
           >
-            {browseLabel(mode)}
+            {t(BROWSE_LABEL_KEYS[mode])}
           </button>
         ))}
       </div>
@@ -145,7 +132,7 @@ const LibraryToolbar = ({
             className={`button small${viewMode === mode ? '' : ' subtle'}`}
             onClick={() => onViewMode(mode)}
           >
-            {viewLabel(mode)}
+            {t(VIEW_LABEL_KEYS[mode])}
           </button>
         ))}
       </div>
