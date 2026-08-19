@@ -18,9 +18,9 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { useEffect, useMemo } from 'react';
 import {
+  artistKey,
   groupIntoAlbums,
   groupIntoArtists,
-  normalizeForSearch,
   sortTracks,
 } from '../../common/library/grouping';
 import { ILibraryTrack } from '../../common/library/types';
@@ -35,6 +35,9 @@ interface ILibraryDetailProps {
   artistId?: string;
   onBack: () => void;
   onPlayTrack: (trackId: string) => void;
+  /** Forwarded straight to the `LibraryListView` this renders — see that
+   * component's own doc comment for why it stays optional. */
+  offlineRootIds?: ReadonlySet<string>;
 }
 
 /**
@@ -54,6 +57,7 @@ const LibraryDetail = ({
   artistId,
   onBack,
   onPlayTrack,
+  offlineRootIds,
 }: ILibraryDetailProps) => {
   const { t } = useTranslation();
 
@@ -105,11 +109,7 @@ const LibraryDetail = ({
     }
     if (artistId) {
       return sortTracks(
-        tracks.filter(
-          (track) =>
-            normalizeForSearch(track.albumArtist ?? track.artist ?? '') ===
-            artistId,
-        ),
+        tracks.filter((track) => artistKey(track) === artistId),
         'album',
       );
     }
@@ -182,6 +182,7 @@ const LibraryDetail = ({
         onOpenAlbum={() => undefined}
         onOpenArtist={() => undefined}
         onPlayTrack={onPlayTrack}
+        offlineRootIds={offlineRootIds}
       />
     </div>
   );

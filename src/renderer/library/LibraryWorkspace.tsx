@@ -18,8 +18,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import { DragEvent, useCallback, useEffect, useMemo, useState } from 'react';
 import {
+  artistKey,
   groupIntoAlbums,
-  normalizeForSearch,
   searchTracks,
   sortTracks,
 } from '../../common/library/grouping';
@@ -123,6 +123,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
     addFolder,
     addFolderPaths,
     rescan,
+    forceRescan,
     cancelScan,
     removeRoot,
   } = useLibrary();
@@ -171,6 +172,18 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
     0,
   );
 
+  // Spec §10: a root missing at rescan is marked offline and its tracks are
+  // "kept and dimmed — never deleted". Recomputed only when the roots
+  // themselves change, not on every render this workspace has (a scan tick,
+  // most of all).
+  const offlineRootIds = useMemo(
+    () =>
+      new Set(
+        index.roots.filter((root) => root.isOffline).map((root) => root.id),
+      ),
+    [index.roots],
+  );
+
   // What `LibraryListView` and `LibraryGridView` (and, later, Cover Flow)
   // actually draw: the toolbar's own query and sort applied once here, so
   // every view is handed the same already-filtered, already-ordered tracks
@@ -217,11 +230,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
     }
     if (openArtistId) {
       return sortTracks(
-        index.tracks.filter(
-          (track) =>
-            normalizeForSearch(track.albumArtist ?? track.artist ?? '') ===
-            openArtistId,
-        ),
+        index.tracks.filter((track) => artistKey(track) === openArtistId),
         'album',
       ).map((track) => track.id);
     }
@@ -255,6 +264,10 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
 
   const handleRescan = () => {
     rescan().catch(() => undefined);
+  };
+
+  const handleForceRescan = () => {
+    forceRescan().catch(() => undefined);
   };
 
   const handleRemoveRoot = (rootId: string) => {
@@ -337,6 +350,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
             isScanning={isScanning}
             onAddFolder={handleAddFolder}
             onRescan={handleRescan}
+            onForceRescan={handleForceRescan}
             onRemoveRoot={handleRemoveRoot}
           />
         </div>
@@ -369,6 +383,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
         <LibraryVideoSection
           tracks={visibleTracks}
           onPlayTrack={handlePlayTrack}
+          offlineRootIds={offlineRootIds}
         />
       )}
       {/* The drill-in behind whichever tile, row or cover was opened, in
@@ -386,6 +401,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
             artistId={openArtistId}
             onBack={handleBack}
             onPlayTrack={handlePlayTrack}
+            offlineRootIds={offlineRootIds}
           />
         )}
       {index.tracks.length > 0 &&
@@ -400,6 +416,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
             onPlayTrack={handlePlayTrack}
+            offlineRootIds={offlineRootIds}
           />
         )}
       {index.tracks.length > 0 &&
@@ -414,6 +431,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
             onPlayTrack={handlePlayTrack}
+            offlineRootIds={offlineRootIds}
           />
         )}
       {index.tracks.length > 0 &&
@@ -427,6 +445,7 @@ const LibraryWorkspace = ({ isHidden }: ILibraryWorkspaceProps) => {
             browseMode={browseMode}
             onOpenAlbum={handleOpenAlbum}
             onOpenArtist={handleOpenArtist}
+            onPlayTrack={handlePlayTrack}
           />
         )}
     </section>
