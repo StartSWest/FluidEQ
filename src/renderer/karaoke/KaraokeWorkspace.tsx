@@ -59,7 +59,7 @@ import {
   writeLyricTextSize,
 } from './karaokeLyricText';
 import KaraokeTransport from './KaraokeTransport';
-import KaraokeStageMedia from './KaraokeStageMedia';
+import KaraokeStageMedia, { hasKaraokeStageArt } from './KaraokeStageMedia';
 import KaraokePitchLane from './KaraokePitchLane';
 import { IKaraokePitchIssue } from './karaokePitchGeometry';
 import KaraokePlaylist, { KARAOKE_PLAYLIST_DRAG_MIME } from './KaraokePlaylist';
@@ -129,6 +129,7 @@ const SOURCE_KEYS: Record<string, TranslationKey> = {
 const STAGE_PITCH_MEDIA_QUERY = '(min-width: 1120px)';
 const PLAYLIST_FOLDER_GROUPING_KEY = 'fluideq-karaoke-playlist-group-by-folder';
 const PITCH_GUIDE_VISIBILITY_KEY = 'fluideq-karaoke-pitch-guide-visible';
+const STAGE_ART_VISIBILITY_KEY = 'fluideq-karaoke-stage-art-visible';
 
 export const readKaraokePlaylistFolderGrouping = (): boolean => {
   try {
@@ -157,6 +158,22 @@ const readPitchGuideVisibility = (): boolean => {
 const writePitchGuideVisibility = (visible: boolean): void => {
   try {
     window.localStorage.setItem(PITCH_GUIDE_VISIBILITY_KEY, String(visible));
+  } catch {
+    // Keep the live preference when storage is unavailable.
+  }
+};
+
+const readStageArtVisibility = (): boolean => {
+  try {
+    return window.localStorage.getItem(STAGE_ART_VISIBILITY_KEY) !== 'false';
+  } catch {
+    return true;
+  }
+};
+
+const writeStageArtVisibility = (visible: boolean): void => {
+  try {
+    window.localStorage.setItem(STAGE_ART_VISIBILITY_KEY, String(visible));
   } catch {
     // Keep the live preference when storage is unavailable.
   }
@@ -250,6 +267,9 @@ const KaraokeWorkspace = ({
   const [useStagePitch, setUseStagePitch] = useState(initiallyUseStagePitch);
   const [isPitchGuideVisible, setIsPitchGuideVisible] = useState(
     readPitchGuideVisibility,
+  );
+  const [isStageArtVisible, setIsStageArtVisible] = useState(
+    readStageArtVisibility,
   );
   const layoutMode: TKaraokeLayoutMode = isFullScreen ? 'fullscreen' : 'normal';
   const [layouts, setLayouts] = useState<
@@ -1111,6 +1131,16 @@ const KaraokeWorkspace = ({
     song,
   ]);
 
+  const hasStageArt = song ? hasKaraokeStageArt(song) : false;
+  const stageArtActionKey = (() => {
+    if (!hasStageArt) {
+      return 'karaoke.stage.noArt';
+    }
+    return isStageArtVisible
+      ? 'karaoke.stage.hideArt'
+      : 'karaoke.stage.showArt';
+  })();
+
   // Full screen gives the vertical space to the lyrics instead of keeping the
   // workspace introduction above them. The same controls move into a compact
   // glass dock inside the lyric surface, so importing or changing the mic does
@@ -1208,6 +1238,37 @@ const KaraokeWorkspace = ({
       >
         <MenuIcon name="graph" className="karaoke-button__icon" />
       </button>
+      {/* Present for every song, disabled for the ones with nothing behind
+          the words. Hiding it instead was worse: a library of bare UltraStar
+          text files never showed the control at all, so the setting looked
+          like it did not exist. Disabled and labelled says which of the two
+          it is. */}
+      {song && (
+        <button
+          type="button"
+          className="button small subtle karaoke-workspace__icon-action karaoke-workspace__stage-art-toggle"
+          aria-label={t(stageArtActionKey)}
+          title={t(stageArtActionKey)}
+          aria-pressed={isStageArtVisible}
+          disabled={!hasStageArt}
+          aria-disabled={!hasStageArt}
+          onClick={() => {
+            setIsStageArtVisible((visible) => {
+              const next = !visible;
+              writeStageArtVisibility(next);
+              return next;
+            });
+          }}
+        >
+          <svg
+            className="karaoke-button__icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+          >
+            <path d="M4 5.5h16v13H4zM4 15.5l4.5-4.5 3 3 3.5-3.5 5 5M14.6 9.6a1.15 1.15 0 1 0 2.3 0 1.15 1.15 0 1 0-2.3 0" />
+          </svg>
+        </button>
+      )}
       <button
         ref={microphoneMenuButtonRef}
         type="button"
@@ -1447,12 +1508,16 @@ const KaraokeWorkspace = ({
             <>
               {/* First, so it is behind everything the stage draws. It is
                   absolutely positioned and takes no row of its own — the
-                  heading, lyrics and pitch guide keep the grid they had. */}
-              <KaraokeStageMedia
-                song={song}
-                playheadMs={session.playheadMs}
-                isPlaying={status === 'playing'}
-              />
+                  heading, lyrics and pitch guide keep the grid they had.
+                  Unmounted rather than hidden when the art is switched off, so
+                  a video stops decoding instead of playing to nobody. */}
+              {isStageArtVisible && (
+                <KaraokeStageMedia
+                  song={song}
+                  playheadMs={session.playheadMs}
+                  isPlaying={status === 'playing'}
+                />
+              )}
               <div className="karaoke-song__heading">
                 <div>
                   <p>{song.artist || t('karaoke.song.unknownArtist')}</p>

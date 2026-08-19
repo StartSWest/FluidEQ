@@ -251,6 +251,71 @@ describe('KaraokeWorkspace', () => {
     ).toBe('true');
   });
 
+  // The positive control for the test below: without it, "no toggle did
+  // anything" and "the stage never had artwork" look identical.
+  it('offers the cover art toggle disabled when the song has no artwork', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [new File(['audio'], 'bare-song.mp3', { type: 'audio/mpeg' })],
+        },
+      },
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'bare song' }),
+    ).toBeVisible();
+
+    expect(
+      screen.getByRole('button', { name: 'This song has no cover art' }),
+    ).toBeDisabled();
+    expect(
+      container.querySelector('.karaoke-stage-media'),
+    ).not.toBeInTheDocument();
+  });
+
+  it('hides and restores cover art, and remembers which', async () => {
+    const { container } = render(<KaraokeWorkspace isHidden={false} />);
+
+    fireEvent.change(
+      container.querySelector('input[type="file"]') as HTMLInputElement,
+      {
+        target: {
+          files: [
+            new File(['audio'], 'painted-song.mp3', { type: 'audio/mpeg' }),
+            new File(['image'], 'painted-song.jpg', { type: 'image/jpeg' }),
+          ],
+        },
+      },
+    );
+    expect(
+      await screen.findByRole('heading', { name: 'painted song' }),
+    ).toBeVisible();
+    expect(container.querySelector('.karaoke-stage-media')).toBeInTheDocument();
+
+    const hideArt = screen.getByRole('button', { name: 'Hide cover art' });
+    expect(hideArt).toHaveAttribute('aria-pressed', 'true');
+    fireEvent.click(hideArt);
+
+    expect(
+      container.querySelector('.karaoke-stage-media'),
+    ).not.toBeInTheDocument();
+    expect(
+      window.localStorage.getItem('fluideq-karaoke-stage-art-visible'),
+    ).toBe('false');
+
+    const showArt = screen.getByRole('button', { name: 'Show cover art' });
+    expect(showArt).toHaveAttribute('aria-pressed', 'false');
+    fireEvent.click(showArt);
+
+    expect(container.querySelector('.karaoke-stage-media')).toBeInTheDocument();
+    expect(
+      window.localStorage.getItem('fluideq-karaoke-stage-art-visible'),
+    ).toBe('true');
+  });
+
   it('toggles full screen from the Karaoke surface without hijacking controls', () => {
     const toggleFullScreen = jest.fn();
     const { container, rerender } = render(

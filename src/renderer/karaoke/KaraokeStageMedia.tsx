@@ -31,6 +31,23 @@ export interface IKaraokeStageMediaProps {
 }
 
 /**
+ * Whether this song brings anything for the stage to show.
+ *
+ * The stage-art toggle in the workspace is offered only when the answer is
+ * yes: a control that visibly does nothing reads as broken, and an audio-only
+ * song has nothing behind the words either way. Undecodable video counts —
+ * the stage still puts up the artwork that replaced it, and the notice saying
+ * why, both of which the toggle is entitled to remove.
+ */
+export const hasKaraokeStageArt = (song: IKaraokeSong): boolean =>
+  song.assets.some(
+    (asset) =>
+      asset.role === 'video' ||
+      asset.role === 'background' ||
+      asset.role === 'cover',
+  );
+
+/**
  * The picture behind the words: a song's own video, or its artwork.
  *
  * WHY THE AUDIO STAYS IN CHARGE. The `<audio>` element is the song — it is

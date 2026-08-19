@@ -59,6 +59,9 @@ const karaoke: Partial<Dictionary> = {
   'karaoke.song.unknownArtist': 'Chanson locale',
   'karaoke.stage.videoUnsupported':
     'Les vidéos {format} ne peuvent pas être lues ici',
+  'karaoke.stage.hideArt': 'Masquer la pochette',
+  'karaoke.stage.showArt': 'Afficher la pochette',
+  'karaoke.stage.noArt': 'Ce morceau n’a pas de pochette',
   'karaoke.playlist.title': 'Liste de lecture',
   'karaoke.playlist.groupFolders': 'Regrouper par dossier',
   'karaoke.playlist.looseFiles': 'Fichiers non classés',

@@ -306,49 +306,10 @@ const KaraokeLyrics = ({
         38,
         96,
       );
-      const focusHeight = clamp(
-        Math.max(height * 0.22, 44) * textScale,
-        44,
-        124,
-      );
-      const focusLeft = width * 0.07;
-      const focusRight = width * 0.93;
-      const focusGradient = context.createRadialGradient(
-        width * 0.5,
-        centerY,
-        0,
-        width * 0.5,
-        centerY,
-        Math.max(1, width * 0.43),
-      );
-      focusGradient.addColorStop(
-        0,
-        isEuphoric
-          ? `hsla(${(euphoriaHue + 18) % 360}, 96%, 64%, 0.105)`
-          : 'rgba(34, 224, 214, 0.09)',
-      );
-      focusGradient.addColorStop(
-        0.62,
-        isEuphoric
-          ? `hsla(${(euphoriaHue + 82) % 360}, 96%, 64%, 0.035)`
-          : 'rgba(34, 224, 214, 0.025)',
-      );
-      focusGradient.addColorStop(1, 'rgba(34, 224, 214, 0)');
-      context.fillStyle = focusGradient;
-      context.fillRect(
-        focusLeft,
-        centerY - focusHeight * 0.5,
-        focusRight - focusLeft,
-        focusHeight,
-      );
-      context.strokeStyle = 'rgba(34, 224, 214, 0.055)';
-      context.lineWidth = 1;
-      context.beginPath();
-      context.moveTo(focusLeft, centerY - focusHeight * 0.5);
-      context.lineTo(focusRight, centerY - focusHeight * 0.5);
-      context.moveTo(focusLeft, centerY + focusHeight * 0.5);
-      context.lineTo(focusRight, centerY + focusHeight * 0.5);
-      context.stroke();
+      // No band behind the lead line. The teal wash and its two hairlines
+      // drew a visible box across the stage, which fought the artwork behind
+      // it and framed a line that already stands out by being the only bright
+      // one. Emphasis here is the lyric's own colour and glow, not a plate.
 
       const first = Math.max(0, Math.floor(animatedCenter) - 3);
       const last = Math.min(
