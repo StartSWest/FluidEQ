@@ -64,6 +64,11 @@ beforeEach(() => {
   progressListener = undefined;
   indexListener = undefined;
   initialIndex = { version: 1, roots: [], tracks: [] };
+  // Each persisted-mode test below writes to this directly; jsdom's
+  // localStorage otherwise survives across `it` blocks in the same file,
+  // which would leak one test's stored mode into the next one's "nothing
+  // was ever stored" assumption.
+  window.localStorage.clear();
   window.electron = {
     ipcRenderer: {
       getLibraryIndex: () =>
@@ -186,5 +191,77 @@ describe('a drill-in whose album disappears underneath it', () => {
       screen.queryByRole('button', { name: 'Play' }),
     ).not.toBeInTheDocument();
     expect(await screen.findByText('Bitches')).toBeInTheDocument();
+  });
+});
+
+describe('a browse mode remembered from last time', () => {
+  it('honours a stored "video" mode instead of falling back to the default', async () => {
+    // The exact hazard widening `TLibraryBrowseMode` created: a value that
+    // is not in `LibraryWorkspace`'s own `BROWSE_MODES` list is rejected by
+    // `readPersistedMode` and silently replaced with the 'album' fallback.
+    // If a future refactor ever drops 'video' from that list again, this is
+    // the test that has to catch it.
+    window.localStorage.setItem('fluideq.library.browseMode', 'video');
+    initialIndex = {
+      version: 1,
+      roots: [
+        {
+          id: 'r1',
+          path: 'C:\\Music',
+          addedAt: 1,
+          trackCount: 1,
+          karaokeSkipped: 0,
+        },
+      ],
+      tracks: [track({ title: 'Blue', album: 'Kind', artist: 'Miles' })],
+    };
+    renderWorkspace();
+
+    // No video tracks in this index, so the video shelf's own empty message
+    // is what proves the stored mode actually took effect -- an 'album'
+    // fallback would show the grid instead, with "Kind" as a tile.
+    expect(
+      await screen.findByText('No videos in the folders you have added.'),
+    ).toBeInTheDocument();
+    expect(screen.queryByText('Kind')).not.toBeInTheDocument();
+  });
+
+  // No persisted mode had regression coverage before this task touched the
+  // mechanism, not just browse mode -- cheap to close all three gaps in one
+  // pass rather than leave the other two exactly as uncovered as browse mode
+  // was.
+  it('honours a stored view mode and sort too', async () => {
+    window.localStorage.setItem('fluideq.library.browseMode', 'song');
+    window.localStorage.setItem('fluideq.library.viewMode', 'list');
+    window.localStorage.setItem('fluideq.library.sort', 'year');
+    initialIndex = {
+      version: 1,
+      roots: [
+        {
+          id: 'r1',
+          path: 'C:\\Music',
+          addedAt: 1,
+          trackCount: 2,
+          karaokeSkipped: 0,
+        },
+      ],
+      tracks: [
+        track({ title: 'Newer', year: 2020 }),
+        track({ title: 'Older', year: 1980 }),
+      ],
+    };
+    renderWorkspace();
+
+    // 'list', not the default 'grid' -- only `LibraryListView` draws a
+    // `role="table"`.
+    expect(await screen.findByRole('table')).toBeInTheDocument();
+    // 'year' ascending, not the default 'title' -- Older (1980) sorts ahead
+    // of Newer (2020), so it is the first of the two title matches in
+    // document order.
+    const titles = screen.getAllByText(/^(Older|Newer)$/);
+    expect(titles.map((title) => title.textContent)).toEqual([
+      'Older',
+      'Newer',
+    ]);
   });
 });

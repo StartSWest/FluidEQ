@@ -49,6 +49,28 @@ describe('the library toolbar', () => {
     expect(onBrowseMode).toHaveBeenCalledWith('artist');
   });
 
+  it('carries a fourth tab for videos, labelled and wired the same as the other three', async () => {
+    const onBrowseMode = jest.fn();
+    wrap(
+      <LibraryToolbar
+        browseMode="album"
+        viewMode="grid"
+        sort="title"
+        query=""
+        onBrowseMode={onBrowseMode}
+        onViewMode={jest.fn()}
+        onSort={jest.fn()}
+        onQuery={jest.fn()}
+      />,
+    );
+    // Four tabs, not three -- album/artist/song plus the one this task adds.
+    expect(screen.getAllByRole('tab')).toHaveLength(4);
+    const videos = screen.getByRole('tab', { name: 'Videos' });
+    expect(videos).toHaveAttribute('aria-selected', 'false');
+    await userEvent.click(videos);
+    expect(onBrowseMode).toHaveBeenCalledWith('video');
+  });
+
   it('passes what was typed straight through', async () => {
     const onQuery = jest.fn();
     wrap(
