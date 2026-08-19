@@ -63,7 +63,28 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // Enough of the column to keep the fan legible and its centre cover
   // recognisable; the rest belongs to the songs, which is what the reader
   // just asked to see.
-  flex: 0 0 44%;
+  flex: 0 0 38%;
+  // Pinned to the top of what it has rather than floating in the middle of
+  // it: with the detail open the row is a strip you steer, not the subject of
+  // the screen, and centred it left a band of nothing between the covers and
+  // the album below them.
+  align-items: flex-start;
+}
+
+// With the detail open the covers are the smaller thing on screen, and a
+// drop shadow at that size is a grey smudge under each sleeve rather than a
+// sense of height. The ring stays; only the cast shadow goes.
+.library-coverflow.is-expanded
+  .library-coverflow__art
+  .library-cover-art--cover {
+  box-shadow: 0 0 0 1px rgba($white, 0.07) inset;
+}
+
+// And no reflection either — it is the first thing to cost more than it is
+// worth once the row is a strip.
+.library-coverflow.is-expanded .library-coverflow__art {
+  margin-bottom: calc(var(--cover-flow-size) * 0.08);
+  -webkit-box-reflect: none;
 }
 
 .library-coverflow__stage {
@@ -157,9 +178,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 
   // Pointing at a side cover previews it: it brightens and steps forward a
-  // little, which is the only affordance saying the row can be steered by
-  // clicking rather than only by scrolling.
-  &:not(.is-centre):hover {
+  // little, which is the affordance saying the row can be steered by clicking
+  // rather than only by scrolling.
+  //
+  // `.is-hovered`, set from React, not `:hover`. Chromium does not deliver
+  // pointer events to these covers at all once they are rotated in 3D — the
+  // same reason the click is computed rather than received; see
+  // `coverIndexAt`. A `:hover` rule here lit the centre cover and nothing
+  // else, which is precisely the cover that does not need it.
+  &.is-hovered {
     opacity: 1;
     filter: saturate(1) brightness(1);
     translate: 0 0 calc(var(--cover-flow-size) * 0.06);
@@ -301,17 +328,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   min-height: 0;
   flex: 1 1 auto;
   flex-direction: column;
-  gap: $spacing-s;
   padding: $spacing-s $spacing-s 0;
   border-top: 1px solid rgba($primary-lighter, 0.1);
   // Rises out of the seam it opens along, rather than appearing whole. The
   // stage above is still shrinking on its own 340ms as this arrives, so the
-  // two read as one movement: the row lifts and the songs come up behind it.
+  // two read as one movement: the row lifts and the album comes up behind it.
   animation: coverflow-panel-in 340ms cubic-bezier(0.22, 0.9, 0.24, 1) both;
 
+  // `LibraryDetail` verbatim, so it brings its own card. The panel already
+  // draws the seam it hangs off; a second inset box inside it is a card in a
+  // card.
+  .library-detail {
+    min-height: 0;
+    flex: 1 1 auto;
+  }
+
   .library-list {
-    // The panel already draws the surface and the seam; a second inset box
-    // inside it is a card in a card.
     border: 0;
     background: none;
     box-shadow: none;
@@ -330,35 +362,61 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-.library-coverflow__panel-head {
+// *** The letter rail *********************************************************
+//
+// Thirteen covers of a fourteen-thousand-file library is a great deal of
+// scrolling to reach the Rs. This crosses the whole collection in one press.
+//
+// Above the row rather than beside it: the fan already uses the full width, and
+// a vertical rail down one edge would eat into it.
+.library-coverflow__jumper {
   display: flex;
   flex: 0 0 auto;
+  flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
-  gap: $spacing-m;
-  padding-inline: 2px;
+  justify-content: center;
+  gap: 2px;
+  padding-bottom: $spacing-xs;
 }
 
-.library-coverflow__panel-titles {
-  display: grid;
-  min-width: 0;
-  gap: 1px;
-}
+.library-coverflow__jump {
+  min-width: 20px;
+  padding: 2px 4px;
+  border: 0;
+  border-radius: $radius-xs;
+  background: none;
+  color: rgba($primary-lighter, 0.62);
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1.4;
+  cursor: pointer;
+  transition:
+    color 120ms ease,
+    background 120ms ease;
 
-.library-coverflow__panel-title {
-  @include truncate;
-  margin: 0;
-  color: $text-primary;
-  font-size: 0.92rem;
-  font-weight: 750;
-  line-height: 1.2;
-}
+  &:hover:not(:disabled) {
+    background: rgba($secondary-light, 0.14);
+    color: $secondary-light;
+  }
 
-.library-coverflow__panel-subtitle {
-  @include truncate;
-  margin: 0;
-  color: $text-faint;
-  font-size: 0.68rem;
+  &:focus-visible {
+    @include focus-ring;
+    outline: none;
+  }
+
+  // A letter nothing is filed under stays on the rail rather than
+  // disappearing: buttons that come and go are ones nobody can learn the
+  // position of, and the gap itself says something about the library.
+  &:disabled {
+    opacity: 0.25;
+    cursor: default;
+  }
+
+  // Where the row is standing right now.
+  &.is-current {
+    background: rgba($secondary-light, 0.18);
+    color: $secondary-light;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

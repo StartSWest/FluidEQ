@@ -26,11 +26,16 @@ import LibraryCoverFlow, {
 } from '../../renderer/library/LibraryCoverFlow';
 import { I18nProvider } from '../../renderer/utils/I18nContext';
 
+// One folder per album, which is what a real library looks like. With every
+// album in a single directory `LibraryDetail` — correctly — lists the other
+// albums' tracks underneath as "also in this folder", so a fixture that piled
+// them together could not tell "the panel shows the right album" from "the
+// panel shows everything".
 const albumTracks = (count: number): ILibraryTrack[] =>
   Array.from({ length: count }, (_, index) => ({
     id: `t${index}`,
     rootId: 'r',
-    path: `C:\\Music\\${index}.mp3`,
+    path: `C:\\Music\\album-${index}\\${index}.mp3`,
     kind: 'audio' as const,
     isPlayable: true,
     title: `Song ${index}`,
@@ -156,11 +161,14 @@ describe('cover flow', () => {
     expect(screen.getByRole('listbox')).toBeInTheDocument();
   });
 
-  it('closes the panel on a second Enter, and when the row is turned', async () => {
-    // The control the test above needs: proof the panel is driven by the
-    // press rather than appearing once and staying. Turning the row must
-    // close it too — one album's songs left under a different centred album
-    // is the quietly wrong state that gets the wrong track played.
+  it('holds its contents while the row is turned, and only Back closes it', async () => {
+    // Turning the row and choosing something are two different acts. Arrow
+    // keys move the row and must leave the panel alone — it neither closes
+    // nor follows along, because browsing the fan with one album open is the
+    // point of putting the detail here at all.
+    const shows = (title: string) =>
+      screen.getAllByRole('row').some((r) => r.textContent?.includes(title));
+
     render(
       <I18nProvider>
         <LibraryCoverFlow
@@ -173,14 +181,43 @@ describe('cover flow', () => {
     screen.getByRole('listbox').focus();
 
     await userEvent.keyboard('{Enter}');
-    expect(screen.getByRole('table')).toBeInTheDocument();
-    await userEvent.keyboard('{Enter}');
-    expect(screen.queryByRole('table')).not.toBeInTheDocument();
+    expect(shows('Song 0')).toBe(true);
 
-    await userEvent.keyboard('{Enter}');
-    expect(screen.getByRole('table')).toBeInTheDocument();
     await userEvent.keyboard('{ArrowRight}');
+    // Open, unchanged, and the row really did move underneath it.
+    expect(screen.getByRole('table')).toBeInTheDocument();
+    expect(shows('Song 0')).toBe(true);
+    expect(shows('Song 1')).toBe(false);
+    expect(screen.getByRole('option', { selected: true })).toHaveTextContent(
+      'Album 1',
+    );
+
+    // The control: it is not simply stuck. Back closes it.
+    await userEvent.click(screen.getByRole('button', { name: 'Back' }));
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
+  });
+
+  it('jumps the row to the first cover under a letter', async () => {
+    // A thirteen-cover window over thousands of albums needs a way across
+    // the whole collection that is not scrolling. Asserted on landing at the
+    // right album, and on a letter with nothing under it being disabled
+    // rather than silently doing nothing.
+    render(
+      <I18nProvider>
+        <LibraryCoverFlow
+          tracks={[
+            ...albumTracks(2),
+            { ...albumTracks(1)[0], id: 'z1', album: 'Zebra Sessions' },
+          ]}
+          browseMode="album"
+        />
+      </I18nProvider>,
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Z' }));
+    expect(screen.getByRole('option', { selected: true })).toHaveTextContent(
+      'Zebra Sessions',
+    );
+    expect(screen.getByRole('button', { name: 'Q' })).toBeDisabled();
   });
 
   it('plays the centred song on Enter in song mode (blocker 5)', async () => {

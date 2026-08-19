@@ -40,7 +40,7 @@ const library: Partial<Dictionary> = {
   'library.browse.artist': 'Исполнители',
   'library.browse.song': 'Песни',
   'library.browse.folder': 'Папки',
-  'library.coverflow.collapse': 'Закрыть',
+  'library.jumpTo': 'Перейти к букве',
   'library.folderCount': 'Папок: {count}',
   'library.groupByFolder': 'Группировать по папке',
   'library.view.list': 'Список',

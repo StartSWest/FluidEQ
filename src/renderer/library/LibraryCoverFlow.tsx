@@ -18,6 +18,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import {
   KeyboardEvent,
+  MouseEvent as ReactMouseEvent,
   PointerEvent,
   useEffect,
   useMemo,
@@ -26,12 +27,11 @@ import {
   WheelEvent,
 } from 'react';
 import {
-  artistKey,
   groupIntoAlbums,
   groupIntoArtists,
+  normalizeForSearch,
   sortAlbums,
   sortArtists,
-  sortTracks,
 } from '../../common/library/grouping';
 import {
   ILibraryTrack,
@@ -42,7 +42,7 @@ import {
 import { useTranslation } from '../utils/I18nContext';
 import MenuIcon from '../icons/MenuIcon';
 import LibraryCoverArt from './LibraryCoverArt';
-import LibraryListView from './LibraryListView';
+import LibraryDetail from './LibraryDetail';
 import '../styles/LibraryCoverFlow.scss';
 
 /** Covers kept mounted either side of the centre. Past this, nothing renders
@@ -171,6 +171,19 @@ interface ICoverFlowItem {
   isPending: boolean;
 }
 
+/** The rail's buttons, in order. `#` collects everything that does not start
+ * with a Latin letter once folded — digits, and every script this app is
+ * translated into. One bucket rather than none: a library of Japanese album
+ * titles should still have somewhere to jump to. */
+const JUMP_LETTERS = ['#', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')] as const;
+
+/** Which rail button a title belongs under. Accent-folded first, so "Ángel"
+ * files under A rather than under `#`. */
+const jumpLetterOf = (title: string): string => {
+  const first = normalizeForSearch(title).charAt(0).toUpperCase();
+  return first >= 'A' && first <= 'Z' ? first : '#';
+};
+
 const clampIndex = (index: number, length: number): number => {
   if (length <= 0) {
     return 0;
@@ -210,9 +223,28 @@ const LibraryCoverFlow = ({
   // see the reconciling effect below, and `setCentre`, which is the only
   // place this is written.
   const centredId = useRef<string | undefined>(undefined);
-  /** The album or artist whose songs are showing under the row, if any — see
-   * `activateCurrent`. Never a song: a track has nothing to expand into. */
+  /**
+   * The album or artist the drill-in below the row is showing, if any.
+   *
+   * Held as an id rather than as "whatever is centred", because turning the
+   * row and choosing something are two different acts. Arrow keys, the wheel
+   * and a drag move the row and leave the panel exactly as it was — it does
+   * not close, and it does not follow along. Only a click on a cover changes
+   * what it shows, and only Back closes it.
+   *
+   * Never set in song mode: a track has nothing to expand into.
+   */
   const [expandedId, setExpandedId] = useState<string | undefined>(undefined);
+  /** The covers' shared parent, measured on every press — see
+   * `coverIndexAt`, which has to work out for itself what was pressed. */
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  /** Which cover the pointer is over, or nothing. React state rather than a
+   * CSS `:hover` rule for the same reason the click is computed: Chromium
+   * does not deliver hover to these rotated covers either, so only the centre
+   * one ever lit up. */
+  const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(
+    undefined,
+  );
 
   // Same memo shape as `LibraryGridView`: keyed only on the two inputs that
   // actually change what is grouped, not on the callbacks `LibraryWorkspace`
@@ -262,14 +294,8 @@ const LibraryCoverFlow = ({
     const clamped = clampIndex(index, items.length);
     centredId.current = items[clamped]?.id;
     setCurrentIndex(clamped);
-    // Turning the row closes whatever was open under it. Leaving one album's
-    // songs on screen while a different album is centred is the kind of
-    // quietly wrong state nobody notices until they play the wrong track.
-    setExpandedId((current) =>
-      current !== undefined && current !== items[clamped]?.id
-        ? undefined
-        : current,
-    );
+    // Nothing here touches the panel. It follows the centre rather than
+    // belonging to one album — see `isPanelOpen`.
   };
 
   // `items` changing shape — a rescan that inserts albums ahead of the one
@@ -301,35 +327,27 @@ const LibraryCoverFlow = ({
   }, [items]);
 
   /**
-   * The songs behind the open cover, in the order that cover implies.
+   * The first cover under each letter of the rail.
    *
-   * An album's are already in disc/track order inside `groupIntoAlbums`, so
-   * that ordering is reused rather than recomputed; an artist has no such
-   * order of its own and is grouped by album, exactly as `LibraryDetail`
-   * does it — the two have to agree, or the same album opened two ways plays
-   * its tracks in two different orders.
+   * Built from `items` in their current order, so it follows whatever sort is
+   * in force rather than assuming alphabetical — a rail that jumps to "the
+   * first D" is honest under any order; one that assumed A-Z would send the
+   * reader somewhere arbitrary the moment they sorted by year.
+   *
+   * A letter with nothing under it stays on the rail and is disabled: a
+   * jumper whose buttons come and go is one nobody can build muscle memory
+   * for, and the gap itself says something about the library.
    */
-  const expandedTracks = useMemo(() => {
-    if (expandedId === undefined) {
-      return [];
-    }
-    if (browseMode === 'album') {
-      const byId = new Map(tracks.map((track) => [track.id, track]));
-      const album = groupIntoAlbums(tracks).find(
-        (entry) => entry.id === expandedId,
-      );
-      return (album?.trackIds ?? [])
-        .map((id) => byId.get(id))
-        .filter((track): track is ILibraryTrack => track !== undefined);
-    }
-    if (browseMode === 'artist') {
-      return sortTracks(
-        tracks.filter((track) => artistKey(track) === expandedId),
-        'album',
-      );
-    }
-    return [];
-  }, [tracks, browseMode, expandedId]);
+  const jumpTargets = useMemo(() => {
+    const firstIndex = new Map<string, number>();
+    items.forEach((item, index) => {
+      const letter = jumpLetterOf(item.title);
+      if (!firstIndex.has(letter)) {
+        firstIndex.set(letter, index);
+      }
+    });
+    return firstIndex;
+  }, [items]);
 
   const tileSubtitle = (item: ICoverFlowItem): string => {
     if (browseMode === 'artist') {
@@ -438,8 +456,19 @@ const LibraryCoverFlow = ({
   // over a cover does not also open or re-target it.
   const suppressNextClick = useRef(false);
 
+  /**
+   * A press begins a *possible* drag. The pointer is deliberately NOT
+   * captured here.
+   *
+   * Capturing on pointerdown retargets every following pointer event to the
+   * stage — and, per the pointer-events spec, the `click` that follows is
+   * dispatched at the capture target too. So every cover's own `onClick` was
+   * dead: pressing any cover, centre or side, did nothing at all, and the
+   * only way to move the row was the keyboard, the wheel or a drag. Capture
+   * is taken in `onStagePointerMove` instead, at the moment a drag actually
+   * becomes a drag, which is the only moment it is needed for.
+   */
   const onStagePointerDown = (event: PointerEvent<HTMLDivElement>) => {
-    event.currentTarget.setPointerCapture(event.pointerId);
     dragState.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -451,10 +480,22 @@ const LibraryCoverFlow = ({
   const onStagePointerMove = (event: PointerEvent<HTMLDivElement>) => {
     const drag = dragState.current;
     if (!drag || drag.pointerId !== event.pointerId) {
+      // Not dragging, so this is just the pointer passing over the row. Which
+      // cover it is over has to be worked out the same way a press does —
+      // see `coverIndexAt` for why a CSS `:hover` rule only ever lit the
+      // centre cover.
+      setHoveredIndex(coverIndexAt(event.clientX));
       return;
     }
     const distance = event.clientX - drag.startX;
     if (Math.abs(distance) >= COVER_FLOW_DRAG_CLICK_TOLERANCE) {
+      // Now it is a drag, and now the stage wants the pointer: the row has to
+      // keep following a pointer that leaves it, and the `click` this would
+      // otherwise end with is one the reader no longer means. Taken here
+      // rather than on pointerdown — see `onStagePointerDown`.
+      if (!drag.moved) {
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }
       drag.moved = true;
     }
     // Dragging the row left (negative distance) reveals what is further
@@ -470,7 +511,11 @@ const LibraryCoverFlow = ({
     if (!drag || drag.pointerId !== event.pointerId) {
       return;
     }
-    event.currentTarget.releasePointerCapture(event.pointerId);
+    // Only if it was ever taken — a press that never became a drag never
+    // captured, and releasing a capture that does not exist throws.
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     suppressNextClick.current = drag.moved;
     dragState.current = undefined;
   };
@@ -485,8 +530,38 @@ const LibraryCoverFlow = ({
       return;
     }
     setCentre(index);
+    // A click is a choice, so it moves the panel with it — but only if one is
+    // already open. Turning the row by any other means leaves the panel
+    // showing what it was showing; see `expandedId`.
+    setExpandedId((current) =>
+      current === undefined
+        ? undefined
+        : items[clampIndex(index, items.length)]?.id,
+    );
   };
 
+  /**
+   * Which cover the pointer is over, worked out from where the covers have
+   * actually landed on screen rather than from what the event says it hit.
+   *
+   * Chromium will not route real input to these covers. They are rotated in
+   * 3D inside a `preserve-3d` subtree, and while `elementFromPoint` happily
+   * reports the side cover under a given point, the compositor's own hit test
+   * — the one that decides what a mouse press targets — does not: every press
+   * on a side cover arrived with the track as its target, so the per-cover
+   * `onClick` never fired and only the unrotated centre cover could be
+   * pressed at all. Confirmed against the running window, not inferred: a
+   * real `Input.dispatchMouseEvent` on a side cover's artwork reported
+   * `closest('.library-coverflow__cover') === null`, at coordinates where
+   * `elementsFromPoint` listed that very cover.
+   *
+   * So the stage takes the press and answers the question itself. Each
+   * cover's projected centre is read from its own client rect — which IS
+   * accurate, and matches what is drawn — and the nearest one horizontally
+   * wins. That also makes the whole vertical strip above and below a cover
+   * live, which is the behaviour wanted anyway: pressing near a cover in a
+   * fanned row should take you to it.
+   */
   const start = Math.max(0, currentIndex - COVER_FLOW_NEIGHBOURS);
   const end = Math.min(items.length - 1, currentIndex + COVER_FLOW_NEIGHBOURS);
   const visible: { item: ICoverFlowItem; index: number }[] = [];
@@ -494,15 +569,76 @@ const LibraryCoverFlow = ({
     visible.push({ item: items[index], index });
   }
 
+  const coverIndexAt = (clientX: number): number | undefined => {
+    const track = trackRef.current;
+    if (!track) {
+      return undefined;
+    }
+    const covers = track.querySelectorAll<HTMLElement>(
+      '.library-coverflow__cover',
+    );
+    let bestIndex: number | undefined;
+    let bestDistance = Number.POSITIVE_INFINITY;
+    covers.forEach((element, offset) => {
+      const rect = element.getBoundingClientRect();
+      const distance = Math.abs(clientX - (rect.left + rect.width / 2));
+      if (distance < bestDistance) {
+        bestDistance = distance;
+        bestIndex = start + offset;
+      }
+    });
+    return bestIndex;
+  };
+
+  const onStageClick = (event: ReactMouseEvent<HTMLDivElement>) => {
+    const index = coverIndexAt(event.clientX);
+    if (index !== undefined) {
+      onCoverClick(index);
+    }
+  };
+
   const centreItem = items[currentIndex];
   const optionId = (id: string) => `library-coverflow-option-${id}`;
-  // Both conditions, not just `expandedId`: an id left over from an item a
-  // rescan removed would otherwise open an empty panel under a row showing
-  // something else entirely.
-  const isExpanded = expandedId !== undefined && centreItem?.id === expandedId;
+  // Open, and still pointing at something that exists: a rescan can remove
+  // the album out from under it, and a panel with nothing behind it is a
+  // blank page with a Back button.
+  const isExpanded =
+    expandedId !== undefined && items.some((item) => item.id === expandedId);
 
   return (
     <div className={`library-coverflow${isExpanded ? ' is-expanded' : ''}`}>
+      {/* The letter rail, above the row it steers. Thirteen covers of a
+          fourteen-thousand-file library is a lot of scrolling to reach the
+          Rs; this is the one control that crosses the whole collection in a
+          press. */}
+      <div
+        className="library-coverflow__jumper"
+        role="group"
+        aria-label={t('library.jumpTo')}
+      >
+        {JUMP_LETTERS.map((letter) => {
+          const target = jumpTargets.get(letter);
+          const isCurrent =
+            centreItem !== undefined &&
+            jumpLetterOf(centreItem.title) === letter;
+          return (
+            <button
+              key={letter}
+              type="button"
+              className={`library-coverflow__jump${isCurrent ? ' is-current' : ''}`}
+              disabled={target === undefined}
+              aria-current={isCurrent ? 'true' : undefined}
+              onClick={() => {
+                if (target !== undefined) {
+                  setCentre(target);
+                }
+              }}
+            >
+              {letter}
+            </button>
+          );
+        })}
+      </div>
       <div
         className="library-coverflow__stage"
         role="listbox"
@@ -511,12 +647,14 @@ const LibraryCoverFlow = ({
         aria-activedescendant={centreItem ? optionId(centreItem.id) : undefined}
         onKeyDown={onStageKeyDown}
         onWheel={onStageWheel}
+        onClick={onStageClick}
         onPointerDown={onStagePointerDown}
         onPointerMove={onStagePointerMove}
         onPointerUp={endDrag}
         onPointerCancel={endDrag}
+        onPointerLeave={() => setHoveredIndex(undefined)}
       >
-        <div className="library-coverflow__track">
+        <div className="library-coverflow__track" ref={trackRef}>
           {visible.map(({ item, index }) => {
             const isCentre = index === currentIndex;
             const title = tileTitle(item);
@@ -526,17 +664,19 @@ const LibraryCoverFlow = ({
               // deliberately not a tab stop and has no key handler of its
               // own — the listbox above owns every key, exactly as WAI-ARIA's
               // authoring practice describes it and as this file's own doc
-              // comment says. The two rules below assume the roving-tabindex
-              // pattern instead, which this is not.
-              // eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/interactive-supports-focus
+              // comment says. It has no click handler either: the stage owns
+              // the press and works out which cover was meant, because
+              // Chromium will not deliver input to a cover rotated in 3D.
+              // See `coverIndexAt`.
               <div
                 key={item.id}
                 id={optionId(item.id)}
                 role="option"
                 aria-selected={isCentre}
-                className={`library-coverflow__cover${isCentre ? ' is-centre' : ''}${item.isPending ? ' library-coverflow__cover--pending' : ''}`}
+                className={`library-coverflow__cover${isCentre ? ' is-centre' : ''}${
+                  index === hoveredIndex && !isCentre ? ' is-hovered' : ''
+                }${item.isPending ? ' library-coverflow__cover--pending' : ''}`}
                 style={{ transform: coverFlowTransform(index - currentIndex) }}
-                onClick={() => onCoverClick(index)}
               >
                 <span className="library-coverflow__art">
                   <LibraryCoverArt
@@ -572,43 +712,24 @@ const LibraryCoverFlow = ({
           })}
         </div>
       </div>
-      {/* The songs behind the open cover, under the row rather than instead
-          of it. Mounted only while something is open, so the list costs
-          nothing on a view nobody has expanded; the panel's own entrance
-          animation is what covers the mount. */}
-      {isExpanded && centreItem && (
-        <section
-          className="library-coverflow__panel"
-          aria-label={tileTitle(centreItem)}
-        >
-          <header className="library-coverflow__panel-head">
-            <div className="library-coverflow__panel-titles">
-              <h3 className="library-coverflow__panel-title">
-                {tileTitle(centreItem)}
-              </h3>
-              <p className="library-coverflow__panel-subtitle">
-                {`${tileSubtitle(centreItem)} · ${t('library.trackCount', {
-                  count: expandedTracks.length,
-                })}`}
-              </p>
-            </div>
-            <button
-              type="button"
-              className="library-toolbar__chip"
-              onClick={() => setExpandedId(undefined)}
-            >
-              {t('library.coverflow.collapse')}
-            </button>
-          </header>
-          <LibraryListView
-            tracks={expandedTracks}
-            browseMode="song"
-            onOpenAlbum={() => undefined}
-            onOpenArtist={() => undefined}
+      {/* The drill-in itself, under the row rather than instead of it.
+          `LibraryDetail` verbatim — the same header, the same Play button,
+          the same track table with its badges and reveal menu that the list
+          and grid open. A second, near-identical panel was written here
+          first and was exactly the kind of thing that drifts: one of the two
+          would grow a column the other never got. Its Back button collapses
+          the panel instead of navigating, which is the only difference and
+          is the whole point of this view. */}
+      {isExpanded && (
+        <div className="library-coverflow__panel">
+          <LibraryDetail
+            tracks={tracks}
+            albumId={browseMode === 'album' ? expandedId : undefined}
+            artistId={browseMode === 'artist' ? expandedId : undefined}
+            onBack={() => setExpandedId(undefined)}
             onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
-            resetKey={`coverflow|${expandedId ?? ''}`}
           />
-        </section>
+        </div>
       )}
     </div>
   );

@@ -402,9 +402,8 @@ const LibraryListView = ({
     setTrackMenu(undefined);
   };
 
-  /** Enter mirrors the row's primary action — double click for a track,
-   * single click for an album or artist — so the list is fully driveable
-   * without a mouse. */
+  /** Enter mirrors the row's primary action — a click, whatever that row
+   * does with one — so the list is fully driveable without a mouse. */
   const onActivateKeyDown = (
     event: KeyboardEvent<HTMLDivElement>,
     activate: () => void,

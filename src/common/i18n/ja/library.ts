@@ -40,7 +40,7 @@ const library: Partial<Dictionary> = {
   'library.browse.artist': 'アーティスト',
   'library.browse.song': '曲',
   'library.browse.folder': 'フォルダ',
-  'library.coverflow.collapse': '閉じる',
+  'library.jumpTo': '頭文字へ移動',
   'library.folderCount': '{count} 個のフォルダ',
   'library.groupByFolder': 'フォルダーごとにグループ化',
   'library.view.list': 'リスト',

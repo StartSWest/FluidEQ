@@ -32,8 +32,8 @@ interface ILibraryTrackRowProps {
   isSelected: boolean;
   duration: string;
   onPlay: (trackId: string) => void;
-  /** A plain click. Selects, never plays — playing is a double click or the
-   * cover's own button, the two Explorer and iTunes both use. */
+  /** Marks the row as the one the reader is on. Called alongside `onPlay`,
+   * not instead of it — see the click handler below. */
   onSelect: (trackId: string) => void;
   onKeyDown: (
     event: KeyboardEvent<HTMLDivElement>,
@@ -85,8 +85,17 @@ const LibraryTrackRow = ({
       aria-selected={isSelected}
       className={className}
       title={isOffline ? t('library.root.offline') : undefined}
-      onClick={() => onSelect(track.id)}
-      onDoubleClick={activate}
+      // One click plays it and marks it. Selection used to be all a plain
+      // click did, with playing left to a double click or the cover's own
+      // button — which meant the obvious thing to press on a track did
+      // nothing visible at all, and inside the Cover Flow panel there is
+      // nowhere else to go. A row in a track list is a thing you press to
+      // hear; `onDoubleClick` is gone with it rather than firing `onPlay`
+      // a second time on the way past.
+      onClick={() => {
+        onSelect(track.id);
+        activate();
+      }}
       onKeyDown={(event) => onKeyDown(event, track)}
       onContextMenu={(event) => {
         event.preventDefault();
@@ -96,7 +105,9 @@ const LibraryTrackRow = ({
       {/* The artwork doubles as the row's play button. A separate control
           would need a column of its own across every row for something only
           ever wanted on the row under the pointer, and the cover is already
-          where the eye goes to identify a track. Double-click still works. */}
+          where the eye goes to identify a track. It stays now that the row
+          itself plays too — it is the affordance that says so, and it is the
+          one part of the row that is disabled for an undecodable file. */}
       <span role="cell" className="library-list__col library-list__col--art">
         <button
           type="button"
