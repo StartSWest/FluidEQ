@@ -156,6 +156,16 @@ export interface IParseState {
   parsed: number;
 }
 
+// Trade-off, not a measurement: a smaller batch shows a new track to the
+// renderer sooner and re-renders the view more often; a larger one cuts the
+// number of `library-index-changed` sends at the cost of a longer wait
+// before the first tracks appear. Emitted on whichever limit is hit first,
+// so a folder with very slow tag reads (a handful of large videos) still
+// publishes on the timer instead of waiting for 25 files that may take
+// minutes to arrive.
+const TRACK_PUBLISH_BATCH_SIZE = 25;
+const TRACK_PUBLISH_INTERVAL_MS = 400;
+
 /**
  * Resolves one already-discovered candidate: either carrying a known track
  * forward unchanged, or reading it fresh. No karaoke check here -- that
@@ -223,6 +233,15 @@ const parseCandidate = async (
 /**
  * Parses every candidate discovery collected, in the order they were found.
  *
+ * Publishes newly-resolved tracks to `context.onTracks` in batches rather
+ * than one call per file -- one IPC message per track would flood the
+ * channel and re-render the whole library view on every file. A batch goes
+ * out once it reaches `TRACK_PUBLISH_BATCH_SIZE` or once
+ * `TRACK_PUBLISH_INTERVAL_MS` has elapsed since the last one, whichever
+ * comes first, and whatever remains unpublished is flushed once more before
+ * this returns -- on a normal finish, on cancellation, or if a scan turns
+ * out to have no candidates at all.
+ *
  * Returns whether a cancellation was seen partway through.
  */
 export const parseCandidates = async (
@@ -231,13 +250,36 @@ export const parseCandidates = async (
   state: IParseState,
 ): Promise<boolean> => {
   const folderArtByDir = new Map<string, IFolderArtCache>();
+  let pendingBatch: ILibraryTrack[] = [];
+  let batchStartedAt = Date.now();
+  const flushBatch = (): void => {
+    if (pendingBatch.length === 0) {
+      return;
+    }
+    context.onTracks?.(pendingBatch);
+    pendingBatch = [];
+    batchStartedAt = Date.now();
+  };
   for (let index = 0; index < discovered.candidates.length; index += 1) {
     if (context.isCancelled()) {
+      flushBatch();
       return true;
     }
     const candidate = discovered.candidates[index];
+    const tracksBefore = state.tracks.length;
     // eslint-disable-next-line no-await-in-loop -- one file at a time by design; see the module comment.
     await parseCandidate(candidate, context, folderArtByDir, state);
+    // A candidate that failed its stat (see parseCandidate's own comment)
+    // advances `state.parsed` without adding a track -- nothing to publish.
+    if (state.tracks.length > tracksBefore) {
+      pendingBatch.push(state.tracks[state.tracks.length - 1]);
+    }
+    if (
+      pendingBatch.length >= TRACK_PUBLISH_BATCH_SIZE ||
+      Date.now() - batchStartedAt >= TRACK_PUBLISH_INTERVAL_MS
+    ) {
+      flushBatch();
+    }
     reportProgress(
       context,
       {
@@ -248,5 +290,6 @@ export const parseCandidates = async (
       candidate.name,
     );
   }
+  flushBatch();
   return false;
 };

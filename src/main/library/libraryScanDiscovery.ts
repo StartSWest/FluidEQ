@@ -48,6 +48,9 @@ export interface IWalkContext {
   userDataDir: string;
   knownByPath: Map<string, ILibraryTrack>;
   onProgress: (progress: ILibraryScanProgress) => void;
+  /** Phase two only -- see `parseCandidates`' batching in libraryScanParse.ts.
+   * Undefined for a caller that only wants the final result. */
+  onTracks?: (tracks: readonly ILibraryTrack[]) => void;
   isCancelled: () => boolean;
 }
 

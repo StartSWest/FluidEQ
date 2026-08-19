@@ -38,6 +38,13 @@ export interface IScanOptions {
   userDataDir: string;
   known: readonly ILibraryTrack[];
   onProgress: (progress: ILibraryScanProgress) => void;
+  /** Called during phase two with a batch of newly-resolved tracks -- both
+   * freshly parsed ones and known ones carried forward unchanged -- so a
+   * caller can publish partial results while the walk is still running. See
+   * `parseCandidates` in libraryScanParse.ts for the batching rule. A batch
+   * is never a duplicate of one already sent for this call: each candidate
+   * contributes to at most one batch. */
+  onTracks?: (tracks: readonly ILibraryTrack[]) => void;
   isCancelled: () => boolean;
 }
 
@@ -91,6 +98,7 @@ export const scanLibraryRoot = async (
     userDataDir: options.userDataDir,
     knownByPath,
     onProgress: options.onProgress,
+    onTracks: options.onTracks,
     isCancelled: options.isCancelled,
   };
 

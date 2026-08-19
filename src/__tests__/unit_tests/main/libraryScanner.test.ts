@@ -331,6 +331,48 @@ describe('scanning a folder', () => {
     expect(result.tracks[0]).toMatchObject({ hasMetadataError: true });
   });
 
+  it('publishes parsed tracks in batches before the scan finishes, growing across batches', async () => {
+    // Enough files to cross the batch-size threshold at least once, so this
+    // proves batching (more than one onTracks call) rather than "everything
+    // published in one shot at the end" happening to satisfy a looser
+    // assertion.
+    const files: Record<string, string> = {};
+    for (let index = 0; index < 30; index += 1) {
+      files[`track-${String(index).padStart(2, '0')}.mp3`] = 'x';
+    }
+    const dir = folder(files);
+
+    let terminalEventSeen = false;
+    let aTrackWasPublishedBeforeTheTerminalEvent = false;
+    const batchSizes: number[] = [];
+
+    await scanLibraryRoot({
+      rootId: 'r1',
+      rootPath: dir,
+      userDataDir: dir,
+      known: [],
+      onProgress: (progress) => {
+        if (progress.isDone) {
+          terminalEventSeen = true;
+        }
+      },
+      onTracks: (tracks) => {
+        if (!terminalEventSeen) {
+          aTrackWasPublishedBeforeTheTerminalEvent = true;
+        }
+        batchSizes.push(tracks.length);
+      },
+      isCancelled: () => false,
+    });
+
+    expect(aTrackWasPublishedBeforeTheTerminalEvent).toBe(true);
+    // More than one batch: the count published keeps growing rather than
+    // arriving as a single dump at the end.
+    expect(batchSizes.length).toBeGreaterThan(1);
+    // Nothing lost or double-counted across batches.
+    expect(batchSizes.reduce((sum, size) => sum + size, 0)).toBe(30);
+  });
+
   it('skips a file that vanishes between discovery and parsing, keeping the rest of the root (blocker 3)', async () => {
     // Discovery finishes the whole tree before parsing reads a single file
     // (the two-phase design this module documents), so a file can be gone by

@@ -168,6 +168,32 @@ const scanOneRoot = async (
           .getMainWindow()
           ?.webContents.send('library-scan-progress', progress);
       },
+      onTracks: (tracks) => {
+        // Same guard as the final merge below: a root removed while its own
+        // walk is still in flight must not have a mid-scan batch resurrect
+        // it in the index.
+        if (!currentIndex.roots.some((candidate) => candidate.id === rootId)) {
+          return;
+        }
+        // Upsert by id, not a concat -- during a rescan `currentIndex`
+        // already holds this root's previously-known tracks, so appending
+        // a batch that reconfirms one unchanged would duplicate it in the
+        // view mid-scan. This never deletes: a track this batch does not
+        // mention (not yet reached, or on another root entirely) is left
+        // exactly as it was. Only the wholesale replace below, which runs
+        // once the whole root has been walked, is allowed to remove one.
+        const batchIds = new Set(tracks.map((track) => track.id));
+        currentIndex = {
+          ...currentIndex,
+          tracks: [
+            ...currentIndex.tracks.filter((track) => !batchIds.has(track.id)),
+            ...tracks,
+          ],
+        };
+        deps
+          .getMainWindow()
+          ?.webContents.send('library-index-changed', currentIndex);
+      },
       isCancelled: () => cancelRequested,
     });
     // The root can be removed by the user while its own walk is still in
