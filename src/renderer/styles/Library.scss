@@ -1,0 +1,166 @@
+/*
+<FluidEQ: System-wide parametric audio equalizer interface>
+Copyright (C) <2026>  <Ivan Carmenates Garcia>
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <https://www.gnu.org/licenses/>.
+*/
+
+@use 'color' as *;
+@use 'motion' as *;
+@use 'spacing' as *;
+@use 'theme' as *;
+
+.library-workspace {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: $spacing-m;
+  overflow: hidden;
+
+  &.is-hidden {
+    display: none;
+  }
+
+  // The empty state is the one thing that advertises the drop; the whole
+  // panel is the target, so the whole panel has to answer back. Same
+  // treatment as `.karaoke-workspace__stage.is-dragging`.
+  &.is-drag-over {
+    border-color: rgba($secondary-default, 0.7);
+    box-shadow:
+      inset 0 0 0 1px rgba($secondary-default, 0.32),
+      0 0 30px rgba($secondary-default, 0.1);
+  }
+}
+
+.library-workspace__notice {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: $spacing-s;
+  padding: 9px 12px;
+  color: $text-muted;
+  border: 1px solid rgba($neon-yellow, 0.28);
+  border-radius: $radius-s;
+  background: rgba($surface-field, 0.38);
+  font-size: 0.68rem;
+  line-height: 1.45;
+
+  span {
+    flex: 1 1 auto;
+  }
+
+  button {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    flex: 0 0 auto;
+    place-items: center;
+    padding: 0;
+    color: rgba($primary-lighter, 0.7);
+    border: 1px solid transparent;
+    border-radius: $radius-xs;
+    background: transparent;
+    cursor: pointer;
+    transition: $transition-control;
+
+    svg {
+      width: 11px;
+      height: 11px;
+      fill: none;
+      stroke: currentcolor;
+      stroke-linecap: round;
+      stroke-width: 1.5;
+    }
+
+    &:hover,
+    &:focus-visible {
+      color: $secondary-light;
+      border-color: rgba($secondary-default, 0.4);
+      background: rgba($secondary-default, 0.12);
+      outline: none;
+    }
+  }
+}
+
+// *** The empty state *********************************************************
+//
+// Centred, not pinned to a corner of a large empty panel: an empty library
+// has exactly one useful next step, so the whole surface points at it.
+
+.library-empty {
+  display: grid;
+  min-height: 0;
+  flex: 1 1 auto;
+  place-items: center;
+  padding: $spacing-l;
+  overflow: auto;
+}
+
+.library-empty__card {
+  @include inset-surface;
+  display: grid;
+  width: min(420px, 100%);
+  justify-items: center;
+  gap: $spacing-xs;
+  padding: $spacing-xl $spacing-l;
+  text-align: center;
+
+  h2 {
+    margin: 0;
+    color: $text-primary;
+    font-size: clamp(1.2rem, 2vw, 1.5rem);
+    line-height: 1.2;
+  }
+
+  p {
+    max-width: 340px;
+    margin: 0;
+    color: $text-muted;
+    font-size: 0.78rem;
+    line-height: 1.55;
+  }
+}
+
+.library-empty__add {
+  margin-top: $spacing-s;
+  gap: 7px;
+  font-size: 0.72rem;
+  font-weight: 850;
+}
+
+.library-empty__add-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.library-empty__hint {
+  display: block;
+  margin-top: $spacing-xxs;
+  color: $text-faint;
+  font-size: 0.64rem;
+  line-height: 1.5;
+}
+
+.library-empty__karaoke-note {
+  max-width: 340px;
+  margin: $spacing-s 0 0;
+  padding-top: $spacing-s;
+  border-top: 1px solid rgba($primary-lighter, 0.12);
+  color: $text-faint;
+  font-size: 0.62rem;
+  line-height: 1.5;
+}

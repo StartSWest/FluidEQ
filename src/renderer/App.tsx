@@ -61,6 +61,8 @@ import {
 import { useIsChromeIdle, watchChromeIdle } from './utils/idleChrome';
 import { reportError } from './utils/logger';
 import VideoBrowser from './video/VideoBrowser';
+import LibraryWorkspace from './library/LibraryWorkspace';
+import { LibraryProvider } from './library/LibraryContext';
 import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
 import PaneResizer from './components/PaneResizer';
 import {
@@ -123,7 +125,14 @@ const WORKSPACE_TAB_KEY = 'fluideq.workspaceTab';
 const GRAPH_VISIBILITY_BY_TAB_KEY = 'fluideq.graphVisibilityByTab';
 
 type TWorkspaceTab =
-  'eq' | 'presets' | 'voicing' | 'convolution' | 'video' | 'karaoke' | 'config';
+  | 'eq'
+  | 'presets'
+  | 'voicing'
+  | 'convolution'
+  | 'video'
+  | 'library'
+  | 'karaoke'
+  | 'config';
 
 /**
  * Tab names this build no longer uses, and what they became.
@@ -156,6 +165,7 @@ const WORKSPACE_TABS: TWorkspaceTab[] = [
   'voicing',
   'convolution',
   'video',
+  'library',
   'karaoke',
   'config',
 ];
@@ -243,6 +253,7 @@ const AppContent = () => {
     TWorkspaceGraphVisibility | undefined
   >(readWorkspaceGraphVisibility);
   const isVideoTab = activeWorkspaceTab === 'video';
+  const isLibraryTab = activeWorkspaceTab === 'library';
   const isKaraokeTab = activeWorkspaceTab === 'karaoke';
   const [isKaraokeFullScreen, setIsKaraokeFullScreen] = useState(false);
   /**
@@ -293,11 +304,15 @@ const AppContent = () => {
   const isGraphFullScreen = useGraphFullScreen();
   const graphView = useGraphView();
   // Each workspace owns this choice. Karaoke starts without the response graph
-  // because its stage and pitch lane need the height; every other workspace
-  // inherits the legacy graph preference until the user chooses differently.
+  // because its stage and pitch lane need the height; Library starts without
+  // it because the tab is a surface for looking at album art, not at a
+  // spectrum; every other workspace inherits the legacy graph preference until
+  // the user chooses differently.
   const showsGraph =
     graphVisibilityByTab?.[activeWorkspaceTab] ??
-    (activeWorkspaceTab === 'karaoke' ? false : isGraphViewOn);
+    (activeWorkspaceTab === 'karaoke' || activeWorkspaceTab === 'library'
+      ? false
+      : isGraphViewOn);
   const setActiveTabGraphVisibility = useCallback(
     (next: boolean) => {
       setGraphVisibilityByTab((current) => ({
@@ -443,6 +458,9 @@ const AppContent = () => {
   // opens the tab, though, there is no reason to have a browser engine running
   // at all, so it does not exist.
   const [hasOpenedVideo, setHasOpenedVideo] = useState(false);
+  // Library follows the same lifetime rule: a scan started on this tab must
+  // not be abandoned by switching away from it.
+  const [hasOpenedLibrary, setHasOpenedLibrary] = useState(false);
   // Karaoke follows the same lifetime rule. Once audio and microphone capture
   // land here, leaving the tab must not tear either pipeline down.
   const [hasOpenedKaraoke, setHasOpenedKaraoke] = useState(false);
@@ -500,6 +518,15 @@ const AppContent = () => {
     setHasOpenedVideo(true);
     return undefined;
   }, [isVideoTab]);
+
+  useEffect(() => {
+    if (!isLibraryTab) {
+      return undefined;
+    }
+
+    setHasOpenedLibrary(true);
+    return undefined;
+  }, [isLibraryTab]);
 
   useEffect(() => {
     if (!isKaraokeTab) {
@@ -1295,6 +1322,15 @@ const AppContent = () => {
               <button
                 type="button"
                 role="tab"
+                aria-selected={isLibraryTab}
+                className={`workspace-tab${isLibraryTab ? ' is-active' : ''}`}
+                onClick={() => setActiveWorkspaceTab('library')}
+              >
+                {t('tabs.library')}
+              </button>
+              <button
+                type="button"
+                role="tab"
                 aria-selected={isKaraokeTab}
                 className={`workspace-tab${isKaraokeTab ? ' is-active' : ''}`}
                 onClick={() => setActiveWorkspaceTab('karaoke')}
@@ -1390,6 +1426,14 @@ const AppContent = () => {
                 stop the music. It has no engine-disabled state either — a
                 video plays whether or not Equalizer APO is behind it. */}
             {hasOpenedVideo && <VideoBrowser isHidden={!isVideoTab} />}
+            {/* Same lifetime rule as the player above: mounted once a scan
+                could be running here, then hidden rather than destroyed so
+                switching tabs cannot cancel it. */}
+            {hasOpenedLibrary && (
+              <LibraryProvider>
+                <LibraryWorkspace isHidden={!isLibraryTab} />
+              </LibraryProvider>
+            )}
             {/* Mounted on first visit and then hidden instead of destroyed.
                 The empty shell has no live resources yet, but the lifetime is
                 correct before song playback and microphone capture arrive. */}

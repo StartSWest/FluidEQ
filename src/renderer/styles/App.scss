@@ -1361,7 +1361,8 @@ $tab-border: rgba($secondary-light, 0.2);
 .workspace-tab-panel--convolution,
 .workspace-tab-panel--config,
 .workspace-tab-panel--video,
-.workspace-tab-panel--karaoke {
+.workspace-tab-panel--karaoke,
+.workspace-tab-panel--library {
   @include panel-surface;
   // The ramp measured against the window, not against this panel.
   //
