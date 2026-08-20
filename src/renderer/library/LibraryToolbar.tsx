@@ -43,10 +43,10 @@ interface ILibraryToolbarProps {
    * `LibraryListView` uses for its own headers. */
   onSort?: (sort: TLibrarySort) => void;
   onSortDirection?: () => void;
-  /** Withheld while a drill-in is open, which is what takes the search box
-   * off the bar: inside an album the drill-in has its own filter, and a
-   * library-wide search there changes nothing the reader can see. Same "no
-   * handler, no control" rule the sort control follows. */
+  /** Always supplied by `LibraryWorkspace`, unlike the sort handlers beside
+   * it. This box was withheld inside a drill-in once and that was wrong: a
+   * search control that comes and goes is worse than a narrow one. Optional
+   * only so a test can render the bar without one. */
   onQuery?: (query: string) => void;
 }
 
@@ -199,11 +199,11 @@ const LibraryToolbar = ({
           </button>
         </div>
       )}
-      {/* Withheld while a drill-in is open — the workspace passes no handler
-          then. Inside an album this box searched the whole library and
-          changed nothing on screen, which read as a search that had stopped
-          working; the drill-in has its own filter, and one search that does
-          what the screen it is on suggests beats two that disagree. */}
+      {/* Never withheld, including inside a drill-in. It was, once, because a
+          query here narrowed a list that was not on screen and so looked
+          broken — but the answer to that is to make it count, not to take it
+          away: the drill-in applies this to its table and its own filter
+          narrows what is left. Two searches that compose. */}
       {onQuery && (
         <div className="library-toolbar__search">
           <LibrarySearchField

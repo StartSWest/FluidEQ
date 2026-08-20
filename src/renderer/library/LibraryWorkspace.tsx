@@ -682,7 +682,14 @@ const LibraryWorkspace = ({
             // bar's.
             onSort={isDrilledIn ? undefined : setSort}
             onSortDirection={isDrilledIn ? undefined : handleSortDirection}
-            onQuery={isDrilledIn ? undefined : setQuery}
+            // Never withheld. This box was taken off the bar inside a
+            // drill-in, back when a query here narrowed a list that was not
+            // on screen and so appeared to do nothing — but a search that
+            // vanishes is worse than one that is merely narrow. It stays, and
+            // it stays in force: `LibraryDetail` applies it to its table and
+            // its own filter narrows what is left. Two searches that compose,
+            // rather than one that disappears.
+            onQuery={setQuery}
           />
           {/* Only meaningful for a flat run of songs — album and artist rows
               are already groupings, and the video shelf groups by folder
@@ -772,6 +779,7 @@ const LibraryWorkspace = ({
             viewMode={viewMode}
             playingTrackId={playingTrack?.id}
             revealTrack={revealTrack}
+            query={query}
           />
         )}
       {index.tracks.length > 0 &&
@@ -833,6 +841,7 @@ const LibraryWorkspace = ({
             sortDirection={sortDirection}
             playingTrackId={playingTrack?.id}
             revealTrack={revealTrack}
+            query={query}
             openId={openAlbumId ?? openArtistId ?? openFolderPath}
             onOpenChange={handleCoverFlowOpen}
           />

@@ -171,6 +171,11 @@ interface ILibraryCoverFlowProps {
   /** A track to scroll to and select inside the panel this opens, forwarded
    * to the same-named prop on `LibraryDetail`. */
   revealTrack?: { trackId: string; nonce: number };
+  /** The toolbar's search, forwarded to the panel this opens so its table is
+   * narrowed by it — see `LibraryDetail`'s own prop of the same name. The
+   * covers themselves are already built from tracks the workspace has
+   * searched. */
+  query?: string;
 }
 
 /** One cover's worth of what this view draws — the same split
@@ -237,6 +242,7 @@ const LibraryCoverFlow = ({
   onOpenChange,
   playingTrackId,
   revealTrack,
+  query,
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
 
@@ -986,6 +992,7 @@ const LibraryCoverFlow = ({
             onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
             playingTrackId={playingTrackId}
             revealTrack={revealTrack}
+            query={query}
           />
         </div>
       )}

@@ -64,6 +64,11 @@ interface ILibraryDetailProps {
   /** A row to scroll to and mark — forwarded straight through. See
    * `LibraryListView`'s own prop of the same name. */
   revealTrack?: { trackId: string; nonce: number };
+  /** The toolbar's search, still in force in here. The panel's own filter
+   * narrows what this leaves rather than searching the library a second time
+   * — see `listTracks`. Only the table is narrowed; which album this is
+   * remains a question about the whole library. */
+  query?: string;
 }
 
 /**
@@ -97,6 +102,7 @@ const LibraryDetail = ({
   viewMode = 'list',
   playingTrackId,
   revealTrack,
+  query = '',
 }: ILibraryDetailProps) => {
   const { t } = useTranslation();
 
@@ -235,12 +241,21 @@ const LibraryDetail = ({
   }, [tracks, detailTracks, albumId]);
 
   // One list: the album's own tracks, then its folder-mates behind them.
+  //
+  // Two searches, and they compose in the order the reader typed them. The
+  // toolbar's search narrows the library; this panel's filter narrows what
+  // that left, not the library again — which is the whole point of having
+  // both. Deliberately applied to the *listing* only: `album`, `artist` and
+  // `folderTracks` above are still resolved from the full library, so a
+  // toolbar query that happens to exclude everything in here empties the
+  // table rather than orphaning the panel and throwing the reader out of it.
   const listTracks = useMemo(() => {
-    const combined = searchTracks([...detailTracks, ...strayTracks], filter);
+    const narrowed = searchTracks([...detailTracks, ...strayTracks], query);
+    const combined = searchTracks(narrowed, filter);
     // Untouched until a header is pressed — see `sort`'s own comment on why
     // an album's default order is not a column.
     return sort ? sortTracks(combined, sort, sortDirection) : combined;
-  }, [detailTracks, strayTracks, sort, sortDirection, filter]);
+  }, [detailTracks, strayTracks, sort, sortDirection, filter, query]);
   const folderOnlyIds = useMemo(
     () => new Set(strayTracks.map((track) => track.id)),
     [strayTracks],
