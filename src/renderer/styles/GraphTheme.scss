@@ -1159,172 +1159,50 @@ it under the terms of the GNU General Public License version 3 or later.
 // on this pane — the marquee, the double click that fills the screen, the click
 // that puts the chrome away — is hit-tested against the SVG underneath, and an
 // overlay that took the pointer would swallow all of them near the right edge.
+// The button wrapper that lets the pane cycle styles on click, and the
+// canvas inside it that carries all ten styles. Kept as a clean box —
+// no border, no background — so the drawing is the meter and nothing
+// around it competes with the reading. Fixed at a meter-shaped
+// proportion rather than flex-growing to the whole card: a five-hundred
+// pixel tall column made the pulse orb float alone in the middle of a
+// strip that looked broken, and no ten-styles-worth of clever shapes
+// would have read well at that height.
 .output-meter {
-  display: flex;
-  align-items: stretch;
-  pointer-events: none;
-}
-
-/*
- * The panel meter: a block in the device column, laid out like anything else
- * on the page.
- *
- * Responsive by measuring against the pane rather than the window. The column
- * is user-resizable, so a window-width breakpoint would be answering the wrong
- * question — what matters is how much room this card has, which is exactly
- * what container queries were added to CSS to ask. Height comes from the
- * viewport with a floor and a ceiling, so a short screen does not force a
- * meter taller than the pane and a tall one does not stretch it to absurdity.
- */
-/*
- * The panel meter, under the visualizer switch.
- *
- * SIZED LIKE A METER, NOT LIKE A PANEL. Stretched to the card's full width it
- * became two fat slabs that read as progress bars — a level meter is a thin
- * tall thing, and the proportion is most of what makes it recognisable at a
- * glance. So the bars keep a meter's width and the pair is centred in whatever
- * room the card has, which also means the sidebar can be resized without the
- * meter turning into something else.
- */
-.output-meter {
-  width: 100%;
-  min-height: 72px;
-  box-sizing: border-box;
-  padding-block: 6px;
-  // Air between the switch and the meter. They are two different kinds of
-  // thing sharing a card -- one is a control, the other a reading -- and
-  // without a gap the meter reads as part of the switch.
-  margin-block-start: 18px;
-  // Takes whatever the card has left rather than a height of its own. A meter
-  // is the rare control that is simply better tall: the same twenty decibels
-  // spread over more pixels is more resolution, for free.
-  flex: 1 1 auto;
-  gap: 10px;
-  justify-content: center;
-
-  .output-meter__channel {
-    width: 12px;
-  }
-}
-
-.output-meter__channel {
-  display: flex;
-  width: 7px;
-  flex-direction: column;
-  align-items: center;
-  gap: 4px;
-}
-
-// The channel letter, at the top rather than the foot: the bottom of this strip
-// is the meter's floor and sits on the frequency axis, and a caption down there
-// would be read as belonging to the scale it is standing on.
-.output-meter__name {
-  color: rgba($primary-lighter, 0.55);
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  line-height: 1;
-  // The same trick the legend strip uses: enough dark behind each glyph to hold
-  // it apart from whatever is moving underneath, without drawing a box.
-  text-shadow: 0 1px 2px rgba($black, 0.75);
-}
-
-// The zones, always visible and always in the same place, so the strip can be
-// read before anything is playing. Faint at rest — this is the part that has
-// not happened yet.
-.output-meter__track {
   position: relative;
-  overflow: hidden;
+  display: block;
   width: 100%;
+  min-height: 96px;
+  padding: 0;
+  margin-block-start: 18px;
   flex: 1 1 auto;
-  border-radius: 3px;
-  background:
-    linear-gradient(
-      to top,
-      rgba(84, 255, 138, 0.16) 0%,
-      rgba(84, 255, 138, 0.16) 80%,
-      rgba(255, 210, 74, 0.18) 80%,
-      rgba(255, 210, 74, 0.18) 95%,
-      rgba(255, 90, 110, 0.22) 95%
-    ),
-    rgba(7, 5, 18, 0.55);
-  box-shadow: inset 0 0 0 1px rgba($black, 0.45);
-  transition: box-shadow 160ms ease;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  appearance: none;
 }
 
-// THE STOPS ARE THE CONSTANTS. Green to 80% is `LEVEL_HOT_DB` (−12 dBFS) and
-// amber to 95% is `LEVEL_OVER_DB` (−3 dBFS), both measured on the −60..0 dBFS
-// strip that `levelFraction` maps onto. A unit test asserts those two fractions
-// so moving a threshold in TypeScript fails loudly rather than sliding the
-// colours away from the numbers they are named for.
-//
-// Full height and clipped from the top by the component, never resized: given a
-// height the gradient would be squashed into whatever the bar currently is, and
-// a quiet passage would paint red at the top of a bar sitting at −40 dBFS.
-.output-meter__fill {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to top,
-    #54ff8a 0%,
-    #54ff8a 80%,
-    #ffd24a 80%,
-    #ffd24a 95%,
-    #ff5a6e 95%
-  );
+.output-meter__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
 
-// The loudest thing recently, held for a second and then let go. Without it the
-// meter cannot show a transient at all: at thirty frames a second a snare is
-// one frame, gone before the eye arrives — and a transient is most of what
-// anybody looks at a meter for.
-.output-meter__peak {
-  position: absolute;
-  right: 0;
-  left: 0;
-  height: 2px;
-  margin-bottom: -1px;
-  background: rgba($white, 0.85);
-  transition: background 160ms ease;
+// The announcement pill is now painted on the canvas rather than
+// carried as a DOM overlay — see `OutputLevelMeter.tsx`, where the
+// draw loop reads the announce timestamp from a ref and paints a
+// small rounded pill in the bottom-right of the meter.
 
-  &.is-hot {
-    background: #ffd24a;
-  }
+// The old DOM-based rules (`__channel`, `__name`, `__track`, `__fill`,
+// `__peak`) are gone — the meter now draws itself on a canvas, and the
+// zone background, the fill and the peak marker are all painted there.
+// See `OutputLevelMeter.tsx` and its `drawChannel` for the ten shapes
+// the pane cycles through.
 
-  &.is-over {
-    background: #ff5a6e;
-  }
-}
-
-// No margin left. The rim lights up rather than the bar changing colour, since
-// the bar is already red up there and a second red over the top of it says
-// nothing that was not already said.
-.output-meter__channel.is-over .output-meter__track {
-  box-shadow:
-    inset 0 0 0 1px rgba(255, 90, 110, 0.75),
-    0 0 8px rgba(255, 90, 110, 0.5);
-}
-
-// Actually railed, which is the capture's own verdict taken from railed samples
-// and the only definition of clipping this app has. The zones go: at this point
-// they are no longer the story and the whole bar is.
-// Nothing listening: present so the column keeps its shape, dim so it cannot be
-// mistaken for silence. The two are different statements and the meter should
-// only ever make the true one.
+// Nothing listening: dim so it cannot be mistaken for silence.
 .output-meter.is-idle {
   opacity: 0.32;
   filter: saturate(0.4);
-}
-
-.output-meter.is-clipping .output-meter__fill {
-  background: #ff5a6e;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .output-meter__track,
-  .output-meter__peak {
-    transition: none;
-  }
 }
 
 // A look the user made, marked wherever its name appears.
