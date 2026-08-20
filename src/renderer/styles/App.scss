@@ -1456,19 +1456,19 @@ $tab-border: rgba($secondary-light, 0.2);
   container-name: autoeq-workspace eq-panel;
   container-type: inline-size;
 
-  // The bottom breathing room, as a flex item rather than as padding.
+  // The bottom breathing room lives on the content, not on this box.
   //
   // These panels are flex columns that scroll, and a scrolling flex
   // container's bottom padding is not reserved past the end of its content:
-  // scroll to the foot of Voicing or EQ Presets and the last card ends flush
+  // scroll to the foot of Voicing or EQ Presets and the last card ended flush
   // against the border, which reads as clipped rather than as finished. A
-  // real item at the end is the one thing the layout cannot ignore.
+  // margin on the last thing inside is part of the content, so it scrolls
+  // with it and is still there at the end.
   //
   // It matches the padding the other three sides keep, so nothing about the
   // spacing changes — only whether it survives being scrolled to.
-  &::after {
-    flex: 0 0 12px;
-    content: '';
+  > :last-child {
+    margin-bottom: 12px;
   }
 }
 
