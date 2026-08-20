@@ -63,6 +63,7 @@ import {
   createGraphAccent,
   createGraphShape,
   getGlowStyle,
+  isGraphAccentTrace,
 } from 'common/graphShapes';
 import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
 import {
@@ -163,6 +164,18 @@ const STROKE_WIDTH_EPSILON = 0.01;
 /** The two passes a lit tip is drawn in: wide and faint, then narrow and hot. */
 const ACCENT_HALO_WIDTH = 7;
 const ACCENT_CORE_WIDTH = 1;
+
+/**
+ * The same two passes for a trace accent, which is a different job.
+ *
+ * A lit tip is a mark on one band and wants to be small and hot. The fluid's
+ * wave line is half the form — it has to read across the whole plot, over bars
+ * that are themselves several pixels wide — so a one-pixel core disappeared
+ * into them. Fat enough to be the thing you look at, with a wide soft pass
+ * under it so the edge falls off instead of ending.
+ */
+const TRACE_HALO_WIDTH = 11;
+const TRACE_CORE_WIDTH = 3.5;
 
 interface ILiveTraceCanvasProps {
   /**
@@ -718,21 +731,45 @@ const LiveTraceCanvas = ({
           const accentStroke = paintFor(
             resolveAccentStroke(basePaint, euphoria),
           );
+          // A bead is a closed circle and has to be filled or it comes out
+          // hollow. A trace is an open curve, and filling one closes it from
+          // end to start — which turned the fluid's wave line into a slab
+          // between the curve and the middle of the plot.
+          const isTrace = isGraphAccentTrace(chosen);
+          // Round, so a curve this heavy does not show mitre spikes where it
+          // turns. A bead has no joins to round and does not care.
+          if (isTrace) {
+            context.lineJoin = 'round';
+            context.lineCap = 'round';
+          }
           setAlpha(
             context,
             isEuphoric ? ACCENT_HALO_EUPHORIC_OPACITY : ACCENT_HALO_OPACITY,
           );
           context.fillStyle = canvasPaint;
           context.strokeStyle = accentStroke;
-          context.lineWidth = ACCENT_HALO_WIDTH;
-          context.fill(accent);
+          context.lineWidth = isTrace ? TRACE_HALO_WIDTH : ACCENT_HALO_WIDTH;
+          if (!isTrace) {
+            context.fill(accent);
+          }
           context.stroke(accent);
 
           setAlpha(context, ACCENT_CORE_OPACITY);
           context.fillStyle = 'white';
-          context.strokeStyle = isEuphoric ? accentStroke : 'white';
-          context.lineWidth = ACCENT_CORE_WIDTH;
-          context.fill(accent);
+          /**
+           * The trace keeps the look's own paint, always.
+           *
+           * A lit tip goes white outside euphoria because it is a highlight
+           * and a highlight is brighter than what it sits on. This is not a
+           * highlight — it is the wave itself, and painting it white threw
+           * away the one thing the palette says. In rainbow it runs the
+           * spectrum across the plot, which is what "the rainbow line" is.
+           */
+          context.strokeStyle = isTrace || isEuphoric ? accentStroke : 'white';
+          context.lineWidth = isTrace ? TRACE_CORE_WIDTH : ACCENT_CORE_WIDTH;
+          if (!isTrace) {
+            context.fill(accent);
+          }
           context.stroke(accent);
         }
 

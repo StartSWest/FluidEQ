@@ -1405,6 +1405,21 @@ export const hasGraphAccent = (style: GraphStyle): boolean =>
   Boolean(ACCENTS[style]);
 
 /**
+ * Whether a form's accent is a figure rather than a mark.
+ *
+ * The painter fills the accent as well as stroking it, which is how a bead is
+ * drawn — a bead is a closed circle and a stroke alone would leave it hollow.
+ * An open curve filled instead closes itself from end to start, so the fluid's
+ * wave line came out as a white slab between the curve and the middle of the
+ * plot rather than as a line.
+ *
+ * Asked here rather than inferred from the path, so the painter and the table
+ * agree about what a form's accent IS instead of guessing from its shape.
+ */
+export const isGraphAccentTrace = (style: GraphStyle): boolean =>
+  ACCENTS[style] === 'trace';
+
+/**
  * How loud a peak has to be, against the loudest thing on screen, to be lit.
  *
  * Low enough that a busy mix lights several at once, high enough that quiet
