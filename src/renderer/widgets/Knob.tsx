@@ -37,6 +37,9 @@ interface IKnobProps {
   max: number;
   step: number;
   isDisabled: boolean;
+  /** The caption under the number, and what assistive tech hears before it —
+   * `Q` for a filter's width, `dB` for the preamp. */
+  unit: string;
   handleChange: (newValue: number) => Promise<void>;
 }
 
@@ -47,20 +50,33 @@ const Knob = ({
   max,
   step,
   isDisabled,
+  unit,
   handleChange,
 }: IKnobProps) => {
-  // Q is a ratio, not a distance, so the dial travels logarithmically.
-  //
-  // Mapped linearly, 0.01–33.33 puts the entire musically useful range —
-  // roughly 0.5 to 3 — inside 7% of the sweep, so a few pixels of drag threw
-  // the value across a filter's whole character. On a log sweep that same range
-  // gets about a fifth of the travel, and every pixel is the same *proportional*
-  // change wherever you are on the dial.
   const inputRef = useRef<HTMLInputElement>(null);
-  const ratio = max / min;
-  const toPosition = (input: number) =>
-    Math.log(Math.min(max, Math.max(min, input)) / min) / Math.log(ratio);
-  const toValue = (position: number) => min * ratio ** position;
+
+  /**
+   * How the sweep maps onto the range, decided by the range itself.
+   *
+   * Not a prop, because it is not a choice: a logarithmic sweep is only
+   * defined for a range that stays above zero. Q is a ratio — 0.01 to 33.33 —
+   * and mapped linearly it puts the entire musically useful part, roughly 0.5
+   * to 3, inside 7% of the travel, so a few pixels threw the value across a
+   * filter's whole character; on a log sweep that same part gets about a fifth
+   * of the dial and every pixel is the same *proportional* change wherever you
+   * are on it. The preamp is a distance in decibels that runs from -20 to +20,
+   * where a ratio has no meaning at all and the honest sweep is the even one.
+   */
+  const isProportional = min > 0;
+  const ratio = isProportional ? max / min : 1;
+  const toPosition = (input: number) => {
+    const clamped = Math.min(max, Math.max(min, input));
+    return isProportional
+      ? Math.log(clamped / min) / Math.log(ratio)
+      : (clamped - min) / (max - min);
+  };
+  const toValue = (position: number) =>
+    isProportional ? min * ratio ** position : min + position * (max - min);
 
   const position = toPosition(value);
   const clampedProgress = Math.min(100, Math.max(0, position * 100));
@@ -84,10 +100,17 @@ const Knob = ({
       return;
     }
     event.preventDefault();
-    // Proportional too: a notch is worth ~4% of the current value, so it stays
-    // usable at Q 0.3 and at Q 20 alike. Shift gives a finer ~1%.
-    const factor = event.shiftKey ? 1.01 : 1.04;
-    updateValue(event.deltaY < 0 ? value * factor : value / factor);
+    if (isProportional) {
+      // A notch is worth ~4% of the current value, so it stays usable at Q 0.3
+      // and at Q 20 alike. Shift gives a finer ~1%.
+      const factor = event.shiftKey ? 1.01 : 1.04;
+      updateValue(event.deltaY < 0 ? value * factor : value / factor);
+      return;
+    }
+    // An even range gets an even notch. Multiplying would be meaningless here
+    // and, at a value of zero, would be nothing at all: no factor moves it.
+    const notch = (max - min) / (event.shiftKey ? 200 : 50);
+    updateValue(event.deltaY < 0 ? value + notch : value - notch);
   };
 
   // Drag up to open the filter out, down to narrow it, over a travel distance
@@ -164,7 +187,7 @@ const Knob = ({
           {displayValue}
         </text>
         <text className="knob__label" x="36" y="48" textAnchor="middle">
-          Q
+          {unit}
         </text>
       </svg>
       <input
@@ -173,12 +196,13 @@ const Knob = ({
         type="range"
         name={name}
         aria-label={name}
-        // The slider carries a 0-1 position, not the Q itself. aria-* keeps
-        // reporting the real value so assistive tech announces "1.4", not "0.57".
+        // The slider carries a 0-1 position, not the value itself. aria-* keeps
+        // reporting the real one, so assistive tech announces "1.4 Q" or
+        // "-8.9 dB" rather than "0.57".
         aria-valuemin={min}
         aria-valuemax={max}
         aria-valuenow={value}
-        aria-valuetext={`Q ${displayValue}`}
+        aria-valuetext={`${displayValue} ${unit}`}
         min={0}
         max={1}
         // ~500 stops across the sweep: fine enough that dragging feels

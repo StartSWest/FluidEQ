@@ -1069,6 +1069,7 @@ const MainContent = () => {
                 max={MAX_QUALITY}
                 isDisabled={false}
                 step={0.01}
+                unit="Q"
                 handleChange={(newValue) =>
                   updateSelectedGroup('quality', newValue)
                 }

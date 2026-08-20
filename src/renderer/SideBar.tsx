@@ -22,7 +22,7 @@ import { useCallback } from 'react';
 import { setMainPreAmp } from './utils/equalizerApi';
 import EqualizerEnablerSwitch from './components/EqualizerEnablerSwitch';
 import AutoPreAmpEnablerSwitch from './components/AutoPreAmpEnablerSwitch';
-import Slider from './components/Slider';
+import Knob from './widgets/Knob';
 import './styles/SideBar.scss';
 import { useFluidEqContext } from './utils/FluidEqContext';
 import { useTranslation } from './utils/I18nContext';
@@ -57,11 +57,6 @@ const SideBar = ({
     [setGlobalError, setPreAmp],
   );
 
-  // Only the fallback. SideBar.scss owns the track length so the preamp card
-  // keeps one shape: deriving it from the active workspace tab made the whole
-  // sidebar resize whenever the user switched between EQ and Convolution.
-  const sliderHeight = '102px';
-
   return (
     <div className="col side-bar center">
       {isLoading ? (
@@ -75,18 +70,26 @@ const SideBar = ({
             <h4>{t('sidebar.systemEq')}</h4>
             <EqualizerEnablerSwitch id="equalizerEnabler" />
           </div>
+          {/* A dial rather than the fader this was.
+              The fader wanted three hundred pixels of a column that is one
+              hundred and sixty wide — a track, a ceiling caption, a floor
+              caption and a number field — which is most of the side bar spent
+              on one control. The dial says the same thing in eighty: the
+              sweep is the position, the number in the middle is the value.
+              It is the same `Knob` the band inspector uses for Q, and it
+              reads this range as an even one because a decibel scale that
+              crosses zero has no ratio to be logarithmic about. */}
           <div className="side-bar__preamp">
             <h4>{t('sidebar.preamp')}</h4>
-            <div>{MAX_GAIN > 0 ? `+${MAX_GAIN}` : MAX_GAIN} dB</div>
-            <Slider
+            <Knob
               name={t('sidebar.preampAria')}
               min={MIN_GAIN}
               max={MAX_GAIN}
               value={preAmp}
-              sliderHeight={sliderHeight}
-              setValue={setGain}
-              label={`${MIN_GAIN} dB`}
+              step={0.01}
+              unit="dB"
               isDisabled={isAutoPreAmpOn}
+              handleChange={setGain}
             />
             {isAutoPreAmpOn && (
               <p className="side-bar__preamp-note">{t('sidebar.preampAuto')}</p>
