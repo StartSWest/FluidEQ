@@ -132,15 +132,6 @@ const toColumnTroughs = (
 const WAVE_SAMPLE_COUNT = 96;
 
 /**
- * How many frequency bands the wave forms draw their bars from.
- *
- * The titlebar's own count, for the same reason as the one above: these are
- * meant to be the same figures, and a bar chart of forty-eight and one of
- * three hundred are not the same picture.
- */
-const WAVE_BAND_COUNT = 48;
-
-/**
  * The titlebar wave's ten forms, and which of its styles each one is.
  *
  * They are not reimplemented here. `createWaveformShape` already draws all
@@ -290,7 +281,24 @@ export const createGraphShape = (
        * frequency reading and they land on a frequency axis, which is more
        * correct here than drawing the spectrum as if it were a wave.
        */
-      toWaveSamples(toColumns(points, WAVE_BAND_COUNT), baseline),
+      /**
+       * At the density the look asks for, falling back to the titlebar's
+       * own band count.
+       *
+       * Hard-coded, Pieces moved the label and not the picture — and worse
+       * than that, the bars this path traces are painted at the requested
+       * count, so a border built from a fixed forty-eight sat over a
+       * different number of bars than the ones underneath it.
+       */
+      toWaveSamples(
+        toColumns(
+          points,
+          columns === undefined
+            ? getColumnCount(style)
+            : clampGraphColumns(columns),
+        ),
+        baseline,
+      ),
       { x: left, y: 0 },
     );
     if (shape.fill) {

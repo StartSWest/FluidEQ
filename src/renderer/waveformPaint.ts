@@ -250,20 +250,48 @@ const forEachSpectrumBar = (
   }
 };
 
-/** Draw them into the given box. */
+/**
+ * The hue a bar takes at each end of the box, per palette.
+ *
+ * The sweep is the form — a bar's colour comes from WHERE it sits, which is
+ * the whole reason it reads as a spectrum rather than as a bar chart — so a
+ * palette changes how far the sweep travels rather than replacing it with a
+ * flat fill. Flat is the titlebar's own 184-296, cyan through violet.
+ * Frequency opens it out to most of the wheel, which is the same idea said
+ * louder.
+ */
+export const SPECTRUM_HUE_FLAT: readonly [number, number] = [184, 296];
+export const SPECTRUM_HUE_RAINBOW: readonly [number, number] = [200, 520];
+
+/**
+ * Draw them into the given box.
+ *
+ * `paint` replaces the sweep entirely, for a palette that is not a sweep:
+ * `level` runs its ramp UP the plot, and a per-bar hue running across it
+ * would be two colour systems arguing over the same pixels.
+ */
 export const paintSpectrumBars = (
   context: CanvasRenderingContext2D,
   box: ISpectrumBox,
   bars: readonly number[],
   isRainbow: boolean,
+  hueRange: readonly [number, number],
+  paint?: string | CanvasGradient,
 ) => {
   const topAlpha = isRainbow ? 0.5 : 0.42;
+  const [fromHue, toHue] = hueRange;
   forEachSpectrumBar(box, bars, (x, y, width, height, across) => {
-    const hue = 184 + across * 112;
-    const gradient = context.createLinearGradient(0, y, 0, y + height);
-    gradient.addColorStop(0, `hsla(${hue}, 92%, 65%, ${topAlpha})`);
-    gradient.addColorStop(1, `hsla(${hue}, 92%, 58%, 0.06)`);
-    context.fillStyle = gradient;
+    if (paint === undefined) {
+      // Wrapped, so a range that runs past a full turn keeps going round the
+      // wheel instead of stopping at red.
+      const hue = (fromHue + across * (toHue - fromHue)) % 360;
+      const gradient = context.createLinearGradient(0, y, 0, y + height);
+      gradient.addColorStop(0, `hsla(${hue}, 92%, 65%, ${topAlpha})`);
+      gradient.addColorStop(1, `hsla(${hue}, 92%, 58%, 0.06)`);
+      context.fillStyle = gradient;
+    } else {
+      context.fillStyle = paint;
+    }
     context.fillRect(x, y, width, height);
   });
 };

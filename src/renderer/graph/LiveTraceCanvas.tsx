@@ -98,6 +98,8 @@ import {
   TRACE_RAINBOW_STOPS,
   SPECTRUM_BAR_ATTACK_MS,
   SPECTRUM_BAR_RELEASE_MS,
+  SPECTRUM_HUE_FLAT,
+  SPECTRUM_HUE_RAINBOW,
   advanceSpectrumBars,
   paintSpectrumBars,
   spectrumBarsPath,
@@ -796,6 +798,22 @@ const LiveTraceCanvas = ({
             },
             fluidBarsRef.current,
             isEuphoric,
+            /**
+             * Flat is the titlebar's own sweep, so the look that ships
+             * matches it; frequency opens the same sweep out across the
+             * wheel. Both are the form's idea — a bar coloured by where it
+             * sits — said at two widths.
+             */
+            lookRef.current.palette === 'rainbow'
+              ? SPECTRUM_HUE_RAINBOW
+              : SPECTRUM_HUE_FLAT,
+            /**
+             * Level is the one palette that is not a sweep. It runs its
+             * ramp UP the plot, and a per-bar hue running across it would
+             * be two colour systems arguing over the same pixels — so that
+             * one replaces the sweep rather than reshaping it.
+             */
+            lookRef.current.palette === 'level' ? canvasPaint : undefined,
           );
         } else if (tuning.filled) {
           // The fill and the stroke are composited separately here, where SVG
