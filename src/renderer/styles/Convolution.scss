@@ -220,6 +220,12 @@ it under the terms of the GNU General Public License version 3 or later.
   overflow-y: auto;
   overscroll-behavior: contain;
   scrollbar-gutter: stable;
+  // The same 12px every other tab's scroller ends on. Without it the last
+  // result sat flush against this box's bottom edge — measured, 473px of
+  // window over 14,234px of list — and a row cut off level with the border
+  // reads as content that has been clipped rather than content that carries
+  // on below.
+  padding-bottom: 12px;
   @include slim-scrollbar;
 }
 
@@ -411,15 +417,15 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
-// Stacked shell: the workspace rows are content-sized, so cap the catalogue
-// explicitly. Without this the result list would make the whole document
-// arbitrarily tall instead of scrolling in place.
-@media (max-width: 940px) {
-  .convolution-results {
-    max-height: clamp(280px, 46vh, 520px);
-  }
-}
-
+// No cap on the catalogue any more.
+//
+// It was here because the stacked shell used to be a scrolling document with
+// content-sized rows, where an uncapped list would have made the page
+// arbitrarily tall instead of scrolling in place. The shell is the size of
+// the window at every width now and this list scrolls inside its own panel,
+// so the cap only did the thing it was written to prevent: with the graph
+// hidden and a whole column of room available, the catalogue stopped at
+// 46vh and the rest of it read as cut off.
 @media (max-width: 900px) {
   .convolution-result {
     grid-template-columns: minmax(0, 1fr) max-content;
@@ -435,9 +441,7 @@ it under the terms of the GNU General Public License version 3 or later.
 }
 
 @media (max-width: 620px) {
-  .convolution-results {
-    max-height: clamp(240px, 42vh, 380px);
-  }
+  // The same cap as above, and gone for the same reason.
 
   .convolution-panel__intro {
     align-items: stretch;
