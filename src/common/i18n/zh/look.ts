@@ -34,6 +34,8 @@ const look: Partial<Dictionary> = {
   'look.palette.frequencyHint': '颜色沿坐标轴变化，显示每个条柱所在的频段。',
   'look.palette.level': '电平',
   'look.palette.levelHint': '颜色沿坐标轴向上变化，显示每个条柱的响度。',
+  'look.palette.heat': '热度',
+  'look.palette.heatHint': '颜色随音量变化，由冷色渐变到红色。',
   'look.colours': '颜色',
   'look.colourValue': '颜色 {number}：{colour}',
   'look.removeColour': '移除颜色 {number}',

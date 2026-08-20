@@ -36,6 +36,9 @@ const look: Partial<Dictionary> = {
   'look.palette.level': 'Уровень',
   'look.palette.levelHint':
     'Цвет идёт вверх по оси и показывает громкость каждой полосы.',
+  'look.palette.heat': 'Нагрев',
+  'look.palette.heatHint':
+    'Цвет следует за громкостью, от холодного к красному.',
   'look.colours': 'Цвета',
   'look.colourValue': 'Цвет {number}: {colour}',
   'look.removeColour': 'Удалить цвет {number}',

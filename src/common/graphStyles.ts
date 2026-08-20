@@ -283,15 +283,46 @@ export const isFilledGraphStyle = (style: GraphStyle): boolean =>
  * own bounding box the top of every bar would be the same red whether it was
  * the loudest thing on screen or barely off the floor.
  */
-export type GraphPalette = 'signal' | 'rainbow' | 'level';
+/**
+ * `heat` is the fourth and the only one that is not a gradient.
+ *
+ * The other three colour a figure by WHERE something is — one hue for all of
+ * it, a ramp across the axis, a ramp up it — so a given pixel keeps its
+ * colour whatever the music does. Heat colours the whole drawing by HOW LOUD
+ * it is: one colour at a time, cool through green and amber to red, moving
+ * with the level rather than with the geometry.
+ *
+ * Which makes it the only palette you can read from across the room without
+ * looking at the shape at all, and the reason `level` did not have to become
+ * it: level is still the meter ramp, and a meter ramp and a mood ring are two
+ * different instruments.
+ */
+export type GraphPalette = 'signal' | 'rainbow' | 'level' | 'heat';
 
-export const GRAPH_PALETTES: GraphPalette[] = ['signal', 'rainbow', 'level'];
+export const GRAPH_PALETTES: GraphPalette[] = [
+  'signal',
+  'rainbow',
+  'level',
+  'heat',
+];
 
 export const GRAPH_PALETTE_LABELS: Record<GraphPalette, string> = {
   signal: '',
   rainbow: 'rainbow',
   level: 'level',
+  heat: 'heat',
 };
+
+/**
+ * The colour heat shows at a given loudness, 0 at the floor to 1 at the top.
+ *
+ * The meter ramp, as a hue: cyan at rest, down through green and amber to
+ * red. Shared so the trace, the icon and the fluid's bars all read the same
+ * loudness as the same colour — three places disagreeing about that would be
+ * three different instruments wearing one name.
+ */
+export const heatHue = (level: number) =>
+  190 - Math.max(0, Math.min(1, level)) * 190;
 
 /** One selectable look: a form and how it is coloured. */
 export interface IGraphLook {

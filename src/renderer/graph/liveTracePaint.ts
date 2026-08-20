@@ -31,7 +31,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
  * a canvas or a document.
  */
 
-import { GraphPalette } from 'common/graphStyles';
+import { GraphPalette, heatHue } from 'common/graphStyles';
 import { BAND_SPECTRUM_STOPS } from '../utils/bandColors';
 import { ILiveCurveData } from './ChartController';
 
@@ -84,7 +84,31 @@ export const resolveTracePaint = (
   colours: readonly string[],
   fallback: string,
   plot: IPlotBox,
+  /**
+   * How loud the frame is, 0 at the floor and 1 at the ceiling.
+   *
+   * Only `heat` reads it, and it is the whole of that palette: the figure
+   * takes one colour and the colour is the reading. Everything else here
+   * answers with geometry, which is why this is the last argument and why a
+   * caller with no audio to hand — the picker's icons — can pass a level and
+   * get a fixed, representative colour rather than a special case.
+   */
+  level = 0,
 ): TracePaint => {
+  /**
+   * Heat is a colour, not a ramp, so it is answered before the gradients.
+   *
+   * A user-chosen ramp still wins: picking colours means picking colours,
+   * and the loudness then walks along the ramp they built instead of the
+   * cyan-to-red one below.
+   */
+  if (palette === 'heat') {
+    if (colours.length > 1) {
+      const at = Math.max(0, Math.min(1, level)) * (colours.length - 1);
+      return colours[Math.round(at)];
+    }
+    return colours[0] ?? `hsl(${heatHue(level)}, 92%, 60%)`;
+  }
   // One colour is a flat fill whatever the palette is called, and no colours at
   // all means "the ones already on screen" — neither needs a gradient built.
   if (palette !== 'signal' && colours.length > 1) {

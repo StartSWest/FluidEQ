@@ -36,6 +36,8 @@ const look: Partial<Dictionary> = {
   'look.palette.level': 'Nivel',
   'look.palette.levelHint':
     'El color sube por el eje e indica el volumen de cada barra.',
+  'look.palette.heat': 'Calor',
+  'look.palette.heatHint': 'El color sigue el volumen, de frío a rojo.',
   'look.colours': 'Colores',
   'look.colourValue': 'Color {number}: {colour}',
   'look.removeColour': 'Quitar color {number}',

@@ -36,6 +36,8 @@ const look: Partial<Dictionary> = {
   'look.palette.level': 'Pegel',
   'look.palette.levelHint':
     'Die Farbe läuft die Achse hinauf und zeigt die Lautstärke jedes Balkens.',
+  'look.palette.heat': 'Hitze',
+  'look.palette.heatHint': 'Die Farbe folgt der Lautstärke, von kühl bis rot.',
   'look.colours': 'Farben',
   'look.colourValue': 'Farbe {number}: {colour}',
   'look.removeColour': 'Farbe {number} entfernen',

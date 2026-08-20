@@ -294,7 +294,11 @@ export const SPECTRUM_HUE_LEVEL: SpectrumHue = (_across, energy) =>
 export const SPECTRUM_HUE_BY_PALETTE: Record<GraphPalette, SpectrumHue> = {
   signal: SPECTRUM_HUE_FLAT,
   rainbow: SPECTRUM_HUE_RAINBOW,
-  level: SPECTRUM_HUE_LEVEL,
+  // Level is a ramp UP the plot, which no per-bar hue can be — the caller
+  // hands the paint over instead and this entry is never reached. Named
+  // rather than left out because the table is exhaustive on purpose.
+  level: SPECTRUM_HUE_FLAT,
+  heat: SPECTRUM_HUE_LEVEL,
 };
 
 /** Draw them into the given box. */
@@ -304,14 +308,24 @@ export const paintSpectrumBars = (
   bars: readonly number[],
   isRainbow: boolean,
   hueAt: SpectrumHue,
+  /**
+   * Replaces the sweep entirely, for the one palette that is not one:
+   * `level` runs its ramp up the plot, and a per-bar hue running across it
+   * would be two colour systems arguing over the same pixels.
+   */
+  paint?: string | CanvasGradient,
 ) => {
   const topAlpha = isRainbow ? 0.5 : 0.42;
   forEachSpectrumBar(box, bars, (x, y, width, height, across, energy) => {
-    const hue = hueAt(across, energy);
-    const gradient = context.createLinearGradient(0, y, 0, y + height);
-    gradient.addColorStop(0, `hsla(${hue}, 92%, 65%, ${topAlpha})`);
-    gradient.addColorStop(1, `hsla(${hue}, 92%, 58%, 0.06)`);
-    context.fillStyle = gradient;
+    if (paint === undefined) {
+      const hue = hueAt(across, energy);
+      const gradient = context.createLinearGradient(0, y, 0, y + height);
+      gradient.addColorStop(0, `hsla(${hue}, 92%, 65%, ${topAlpha})`);
+      gradient.addColorStop(1, `hsla(${hue}, 92%, 58%, 0.06)`);
+      context.fillStyle = gradient;
+    } else {
+      context.fillStyle = paint;
+    }
     context.fillRect(x, y, width, height);
   });
 };

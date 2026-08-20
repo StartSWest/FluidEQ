@@ -573,22 +573,31 @@ const LiveTraceCanvas = ({
             : 0,
       };
 
+      /**
+       * How much of the plot the figure is filling, which is the loudness.
+       *
+       * Read from the points already projected for the drawing rather than
+       * measured again, so it is one pass over an array still in cache.
+       *
+       * Hoisted out of the euphoria branch below because two things want it
+       * now: the halo, which pumps with it, and the `heat` palette, whose
+       * entire colour IS it. Left inside, heat would have been cyan forever
+       * outside the mode — a palette that only works in euphoria is not a
+       * palette, it is part of euphoria.
+       */
+      let filled = 0;
+      for (let index = 0; index < projected.length; index += 1) {
+        filled += baseline - projected[index][1];
+      }
+      const energy = Math.max(
+        0,
+        Math.min(1, filled / (projected.length * depth)),
+      );
+
       let halo: Path2D | undefined;
       let lit = 0;
       let swell = 0;
       if (isEuphoric && tuning.glow > 0) {
-        // How much of the plot the figure is filling, which is the loudness the
-        // halo answers to. Read from the points already projected for the
-        // drawing rather than measured again, so it is one pass over an array
-        // that is still in cache.
-        let filled = 0;
-        for (let index = 0; index < projected.length; index += 1) {
-          filled += baseline - projected[index][1];
-        }
-        const energy = Math.max(
-          0,
-          Math.min(1, filled / (projected.length * depth)),
-        );
         // Snap up, sag back. See the ballistics above for why the two differ by
         // two orders of magnitude.
         const gap = energy - pumpRef.current;
@@ -768,6 +777,8 @@ const LiveTraceCanvas = ({
           lookRef.current.colours,
           curve.colour,
           plot,
+          // Only `heat` reads it, and for that one the loudness IS the colour.
+          energy,
         );
         const canvasPaint = toCanvasPaint(context, basePaint);
         const paintFor = (paint: TracePaint) =>
@@ -819,6 +830,7 @@ const LiveTraceCanvas = ({
              * this drawing.
              */
             SPECTRUM_HUE_BY_PALETTE[lookRef.current.palette],
+            lookRef.current.palette === 'level' ? canvasPaint : undefined,
           );
         } else if (tuning.filled) {
           // The fill and the stroke are composited separately here, where SVG

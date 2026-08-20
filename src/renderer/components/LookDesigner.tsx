@@ -110,6 +110,11 @@ const PALETTE_CHOICES: {
     label: 'look.palette.level',
     hint: 'look.palette.levelHint',
   },
+  {
+    value: 'heat',
+    label: 'look.palette.heat',
+    hint: 'look.palette.heatHint',
+  },
 ];
 
 /**
@@ -122,7 +127,10 @@ const PALETTE_CHOICES: {
  * so the first thing the panel shows is not a change.
  */
 const seedPaletteColours = (palette: GraphPalette): string[] => {
-  if (palette === 'level') {
+  // Heat walks a ramp with the loudness rather than painting one, so it opens
+  // on the same stops as level — the colours mean the same thing in both, and
+  // only what moves along them differs.
+  if (palette === 'level' || palette === 'heat') {
     return [...DEFAULT_LEVEL_COLOURS];
   }
   if (palette === 'rainbow') {

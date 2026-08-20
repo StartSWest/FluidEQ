@@ -154,7 +154,7 @@ export const DEFAULT_LEVEL_COLOURS = [
  * it to point at, so it carries its own.
  */
 export const getDefaultPaletteColours = (palette: GraphPalette): string[] =>
-  palette === 'level' ? [...DEFAULT_LEVEL_COLOURS] : [];
+  palette === 'level' || palette === 'heat' ? [...DEFAULT_LEVEL_COLOURS] : [];
 
 /** `#rgb` or `#rrggbb`, which is all an SVG stop needs and all a colour input emits. */
 const HEX_COLOUR = /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i;
