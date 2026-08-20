@@ -461,6 +461,9 @@ const WaveformVisualizer = () => {
         buffer,
         isEuphoricRef.current,
         SPECTRUM_HUE_FLAT,
+        // No look to tune here — the pane is what it is, so this is always
+        // the spacing the form was drawn at.
+        0,
       );
     }
 

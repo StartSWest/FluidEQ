@@ -45,6 +45,7 @@ const look: Partial<Dictionary> = {
   'look.addColour': '添加颜色',
   'look.addColourHint': '在渐变末尾添加一种颜色',
   'look.pieces': '分段',
+  'look.gap': '间隔',
   'look.continuous': '此形状绘制为连续图形',
   'look.attack': '起音',
   'look.release': '释放',

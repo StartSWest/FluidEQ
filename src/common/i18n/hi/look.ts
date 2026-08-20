@@ -47,6 +47,7 @@ const look: Partial<Dictionary> = {
   'look.addColour': 'रंग जोड़ें',
   'look.addColourHint': 'ग्रेडिएंट के अंत में रंग जोड़ें',
   'look.pieces': 'खंड',
+  'look.gap': 'अंतर',
   'look.continuous': 'यह आकार एक लगातार आकृति के रूप में बनता है',
   'look.attack': 'अटैक',
   'look.release': 'रिलीज़',

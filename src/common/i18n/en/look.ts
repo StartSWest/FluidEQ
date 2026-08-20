@@ -46,6 +46,7 @@ const look = {
   'look.addColour': 'Add a colour',
   'look.addColourHint': 'Add a colour to the end of the ramp',
   'look.pieces': 'Pieces',
+  'look.gap': 'Gap',
   'look.continuous': 'This form is drawn as one continuous figure',
   'look.attack': 'Attack',
   'look.release': 'Release',

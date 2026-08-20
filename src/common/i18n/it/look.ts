@@ -47,6 +47,7 @@ const look: Partial<Dictionary> = {
   'look.addColour': 'Aggiungi colore',
   'look.addColourHint': 'Aggiungi un colore alla fine della sfumatura',
   'look.pieces': 'Elementi',
+  'look.gap': 'Spaziatura',
   'look.continuous': 'Questa forma viene disegnata come figura continua',
   'look.attack': 'Attacco',
   'look.release': 'Rilascio',

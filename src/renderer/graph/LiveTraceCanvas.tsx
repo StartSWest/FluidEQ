@@ -542,6 +542,7 @@ const LiveTraceCanvas = ({
               height: baseline,
             },
             fluidBarsRef.current,
+            tuning.gap,
           )
         : createGraphShape(
             projected,
@@ -551,6 +552,7 @@ const LiveTraceCanvas = ({
             // Read through a ref rather than closed over: this loop runs on
             // its own frames, and the envelope arrives on the pump's.
             waveformRef.current,
+            tuning.gap,
           );
       const figure = new Path2D(shape);
 
@@ -830,6 +832,7 @@ const LiveTraceCanvas = ({
              * this drawing.
              */
             SPECTRUM_HUE_BY_PALETTE[lookRef.current.palette],
+            tuning.gap,
             // Level is a meter: the ramp is pinned to the plot and each bar
             // shows its own slice of it, so a colour is a decibel.
             lookRef.current.palette === 'level' ? canvasPaint : undefined,
