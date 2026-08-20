@@ -46,6 +46,7 @@ const look: Partial<Dictionary> = {
   'look.addColour': '色を追加',
   'look.addColourHint': 'グラデーションの末尾に色を追加',
   'look.pieces': '分割数',
+  'look.gap': '間隔',
   'look.continuous': 'この形は連続した図形として描画されます',
   'look.attack': 'アタック',
   'look.release': 'リリース',

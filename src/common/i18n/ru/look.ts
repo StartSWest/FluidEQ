@@ -48,6 +48,7 @@ const look: Partial<Dictionary> = {
   'look.addColour': 'Добавить цвет',
   'look.addColourHint': 'Добавить цвет в конец градиента',
   'look.pieces': 'Части',
+  'look.gap': 'Зазор',
   'look.continuous': 'Эта форма рисуется как единая фигура',
   'look.attack': 'Атака',
   'look.release': 'Спад',

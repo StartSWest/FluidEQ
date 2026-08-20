@@ -47,6 +47,7 @@ const look: Partial<Dictionary> = {
   'look.addColour': 'Farbe hinzufügen',
   'look.addColourHint': 'Eine Farbe am Ende des Verlaufs hinzufügen',
   'look.pieces': 'Teile',
+  'look.gap': 'Abstand',
   'look.continuous': 'Diese Form wird als durchgehende Figur gezeichnet',
   'look.attack': 'Attack',
   'look.release': 'Release',

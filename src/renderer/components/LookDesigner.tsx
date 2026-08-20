@@ -40,6 +40,8 @@ import {
   MIN_ATTACK_MS,
   MIN_BORDER_WIDTH,
   MAX_BORDER_WIDTH,
+  MIN_BAR_GAP,
+  MAX_BAR_GAP,
   MIN_ACCENT_WIDTH,
   MAX_ACCENT_WIDTH,
   MIN_FILL_OPACITY,
@@ -772,6 +774,26 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             value={tuning.columns}
             isDisabled={!isDiscrete}
             onChange={(columns) => tune({ columns })}
+          />
+        </SettingRow>
+
+        {/* Beside Pieces because it is the other half of the same question:
+            how many, and how much room each one gets. Only for the forms made
+            of columns — a curve has nothing to leave a gap between. */}
+        <SettingRow
+          id="look-designer-gap"
+          label={t('look.gap')}
+          value={isDiscrete ? `${Math.round(tuning.gap * 100)}%` : '—'}
+          isDisabled={!isDiscrete}
+        >
+          <SettingSlider
+            id="look-designer-gap"
+            min={MIN_BAR_GAP}
+            max={MAX_BAR_GAP}
+            step={0.05}
+            value={tuning.gap}
+            isDisabled={!isDiscrete}
+            onChange={(gap) => tune({ gap })}
           />
         </SettingRow>
 

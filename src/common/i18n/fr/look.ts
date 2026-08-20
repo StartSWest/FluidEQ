@@ -48,6 +48,7 @@ const look: Partial<Dictionary> = {
   'look.addColour': 'Ajouter une couleur',
   'look.addColourHint': 'Ajouter une couleur à la fin du dégradé',
   'look.pieces': 'Éléments',
+  'look.gap': 'Écart',
   'look.continuous': 'Cette forme est dessinée d’un seul tenant',
   'look.attack': 'Attaque',
   'look.release': 'Relâchement',

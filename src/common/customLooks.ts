@@ -63,6 +63,15 @@ export interface ILookTuning {
   strokeWidth: number;
   /** Fill alpha, when painted. */
   fillOpacity: number;
+  /**
+   * How much of a column is left empty between one piece and the next.
+   *
+   * Zero is the width the form was drawn at, whatever that happens to be —
+   * each of the bar forms was given its own by eye, and this scales that
+   * rather than replacing it, so the default look is untouched and turning
+   * it up thins every one of them by the same proportion.
+   */
+  gap: number;
   /** Lit tips, for the forms that have them. */
   accents: boolean;
   /**
@@ -233,6 +242,11 @@ export const DEFAULT_FILL_OPACITY = 0.55;
  * How heavy a lit tip is, as a multiple. One is what the forms were drawn
  * with, so an untouched look is exactly what it always was.
  */
+export const DEFAULT_BAR_GAP = 0;
+export const MIN_BAR_GAP = 0;
+/** Most of the column, which is a picket fence rather than a bar chart. */
+export const MAX_BAR_GAP = 0.85;
+
 export const DEFAULT_ACCENT_WIDTH = 1;
 export const MIN_ACCENT_WIDTH = 0.4;
 export const MAX_ACCENT_WIDTH = 3;
@@ -325,6 +339,7 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     filled: isFilledGraphStyle(style),
     strokeWidth: DEFAULT_STROKE_WIDTH,
     fillOpacity: getGraphFillOpacity(style, DEFAULT_FILL_OPACITY),
+    gap: DEFAULT_BAR_GAP,
     accents: hasGraphAccent(style),
     accentWidth: DEFAULT_ACCENT_WIDTH,
     glow: DEFAULT_GLOW,
@@ -395,6 +410,7 @@ export const normalizeTuning = (
     // the table only decides where the switch starts. Gating here threw away
     // a choice somebody had already made.
     accents: readBoolean(source.accents, hasGraphAccent(style)),
+    gap: readNumber(source.gap, MIN_BAR_GAP, MAX_BAR_GAP, defaults.gap),
     accentWidth: readNumber(
       source.accentWidth,
       MIN_ACCENT_WIDTH,

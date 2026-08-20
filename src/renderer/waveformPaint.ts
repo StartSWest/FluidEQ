@@ -223,6 +223,8 @@ interface ISpectrumBox {
 const forEachSpectrumBar = (
   box: ISpectrumBox,
   bars: readonly number[],
+  /** Extra column left empty, on top of the two pixels always there. */
+  gap: number,
   visit: (
     x: number,
     y: number,
@@ -237,7 +239,10 @@ const forEachSpectrumBar = (
     return;
   }
   const step = box.width / count;
-  const width = Math.max(1, step - 2);
+  const width = Math.max(
+    1,
+    (step - 2) * (1 - Math.max(0, Math.min(0.85, gap))),
+  );
   const floor = box.y + box.height;
   for (let index = 0; index < count; index += 1) {
     // Flat rather than arched — no sine envelope — so every bar measures
@@ -256,7 +261,9 @@ const forEachSpectrumBar = (
      */
     const height = Math.max(STUMP_HEIGHT, energy * box.height * 0.82);
     visit(
-      box.x + index * step + 1,
+      // Centred in its column, so widening the gap eats in from both
+      // sides rather than sliding every bar to the left.
+      box.x + index * step + (step - width) / 2,
       floor - height,
       width,
       height,
@@ -321,6 +328,7 @@ export const paintSpectrumBars = (
   bars: readonly number[],
   isRainbow: boolean,
   hueAt: SpectrumHue,
+  gap: number,
   /**
    * Replaces the sweep, for the palette that is a meter rather than a map.
    *
@@ -333,7 +341,7 @@ export const paintSpectrumBars = (
   paint?: string | CanvasGradient,
 ) => {
   const topAlpha = isRainbow ? 0.5 : 0.42;
-  forEachSpectrumBar(box, bars, (x, y, width, height, across, energy) => {
+  forEachSpectrumBar(box, bars, gap, (x, y, width, height, across, energy) => {
     if (paint === undefined) {
       const gradient = context.createLinearGradient(0, y, 0, y + height);
       const hue = hueAt(across, energy);
@@ -403,9 +411,10 @@ export const paintSpectrumBars = (
 export const spectrumBarsPath = (
   box: ISpectrumBox,
   bars: readonly number[],
+  gap: number,
 ): string => {
   let path = '';
-  forEachSpectrumBar(box, bars, (x, y, width, height) => {
+  forEachSpectrumBar(box, bars, gap, (x, y, width, height) => {
     path +=
       `M ${x.toFixed(1)},${y.toFixed(1)} h ${width.toFixed(1)} ` +
       `v ${height.toFixed(1)} h ${(-width).toFixed(1)} Z`;
