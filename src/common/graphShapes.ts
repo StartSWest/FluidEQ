@@ -1619,6 +1619,46 @@ const MAX_ACCENTS = 10;
  * Returns an empty path for every other form, which is the intended answer and
  * not a failure to draw one.
  */
+/**
+ * Where a form's drawing actually TOPS OUT, given a reading.
+ *
+ * A mark goes on the piece, and the piece is not always where the projected
+ * point is. Two families put it somewhere else entirely:
+ *
+ *  - The fluid's bars fill 82% of the pane, because that is the proportion
+ *    the titlebar draws them at. Marks taken from the raw point floated a
+ *    fifth of the plot above the bars they were marking.
+ *  - The mirrored wave forms straddle the centre line rather than standing
+ *    on the floor, so their top is half the plot up from the middle — a
+ *    completely different mapping, not a scale of the same one.
+ *
+ * A function per family rather than a fraction, because the second of those
+ * cannot be written as a fraction of anything.
+ */
+const PEAK_ROWS: Partial<
+  Record<GraphStyle, (baseline: number, energy: number) => number>
+> = {
+  fluid: (baseline, energy) => baseline - energy * baseline * 0.82,
+  // Floor-standing in the titlebar too, and at full depth rather than 82%.
+  'wave-bars': (baseline, energy) => baseline - energy * baseline,
+  'wave-blocks': (baseline, energy) => baseline - energy * baseline,
+};
+
+/** The mirrored family, whose figure grows out of the middle. */
+const MIRRORED_WAVE_FORMS: GraphStyle[] = [
+  'wave-line',
+  'wave-filled',
+  'wave-ribbon',
+  'wave-mirror',
+  'wave-dots',
+  'wave-spikes',
+  'wave-outline',
+  'wave-lattice',
+];
+MIRRORED_WAVE_FORMS.forEach((style) => {
+  PEAK_ROWS[style] = (baseline, energy) => (baseline / 2) * (1 - energy);
+});
+
 /** A peak worth marking: where it is, and how big a mark suits it. */
 export interface IGraphPeak {
   x: number;
@@ -1688,11 +1728,14 @@ export const getGraphPeaks = (
       y <= figure[index - 1][1] && y <= figure[index + 1][1] && isLoud;
     if (isLocalPeak && x - lastX >= step * 1.5) {
       lastX = x;
+      const energy = Math.max(0, Math.min(1, (baseline - y) / depth));
+      const row = PEAK_ROWS[style];
       peaks.push({
         x,
-        y,
+        // The row the DRAWING reaches, which is not always the point's own.
+        y: row ? row(baseline, energy) : y,
         size,
-        energy: Math.max(0, Math.min(1, (baseline - y) / depth)),
+        energy,
       });
     }
   }
