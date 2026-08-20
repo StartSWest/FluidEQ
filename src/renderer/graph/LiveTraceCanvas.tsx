@@ -58,6 +58,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import type { AxisScale, NumberValue } from 'd3';
 import { useCallback, useEffect, useRef } from 'react';
+import { DEFAULT_GLOW, DEFAULT_STROKE_WIDTH } from 'common/customLooks';
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import {
   createGraphAccent,
@@ -519,7 +520,19 @@ const LiveTraceCanvas = ({
        */
       const isFluidForm = chosen === 'fluid';
       if (isFluidForm) {
-        const barCount = spectrumBarCount(plot.right - plot.left);
+        /**
+         * A bar every eleven pixels, unless somebody has said otherwise.
+         *
+         * A look the user built carries a `pieces` setting and it has to
+         * mean something here too. The one that ships does not: its tuning
+         * is the defaults, and the default piece count is the catalogue's
+         * sixty-four — which is not the eleven-pixel rule this form is and
+         * would quietly re-space the bars nobody asked to change. So the
+         * built-in keeps the rule and a custom look gets its own number.
+         */
+        const barCount = lookRef.current.isCustom
+          ? tuning.columns
+          : spectrumBarCount(plot.right - plot.left);
         const bars = fluidBarsRef.current;
         if (bars.length !== barCount) {
           bars.length = barCount;
@@ -746,9 +759,10 @@ const LiveTraceCanvas = ({
         // rather than stroking it — which is a fill, not a second figure, so
         // cycling styles never changes what is drawn, only how.
         if (isFluidForm) {
-          // The titlebar's own bars, from the titlebar's own painter. Nothing
-          // about them comes from the look — the hue sweep is the form.
-          setAlpha(context, opacity);
+          // The titlebar's own bars, from the titlebar's own painter. The hue
+          // sweep is the form and does not come from the look — but how solid
+          // the bars are is a fill, and `fill` is a setting.
+          setAlpha(context, opacity * tuning.fillOpacity);
           paintSpectrumBars(
             context,
             {
@@ -864,14 +878,25 @@ const LiveTraceCanvas = ({
             context.shadowColor = isEuphoric
               ? TRACE_GLOW_RAINBOW
               : TRACE_GLOW_CYAN;
-            context.shadowBlur = isEuphoric
-              ? TRACE_BLUR_RAINBOW
-              : TRACE_BLUR_CYAN;
+            /**
+             * The look's glow and thickness, as multiples of their own
+             * defaults rather than as raw values.
+             *
+             * Both settings have to reach this line — a control that does
+             * nothing on one form is a bug — but multiplying by them
+             * directly would undo the shipped look: `thickness` defaults to
+             * 2 and would have doubled a 4.2px line into 8.4. Normalised,
+             * an untouched look is exactly the titlebar's and the sliders
+             * scale out from there.
+             */
+            context.shadowBlur =
+              (isEuphoric ? TRACE_BLUR_RAINBOW : TRACE_BLUR_CYAN) *
+              (tuning.glow / DEFAULT_GLOW);
             setAlpha(context, opacity);
             context.strokeStyle = accentStroke;
-            context.lineWidth = isEuphoric
-              ? TRACE_WIDTH_RAINBOW
-              : TRACE_WIDTH_CYAN;
+            context.lineWidth =
+              (isEuphoric ? TRACE_WIDTH_RAINBOW : TRACE_WIDTH_CYAN) *
+              (strokeWidth / DEFAULT_STROKE_WIDTH);
             context.stroke(accent);
             context.restore();
           } else {
