@@ -16,7 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { WaveformStyle } from 'common/waveformStyles';
+import { WAVEFORM_STYLES, WaveformStyle } from 'common/waveformStyles';
 
 /**
  * How the titlebar waveform is drawn, and the numbers behind it.
@@ -43,14 +43,14 @@ import { WaveformStyle } from 'common/waveformStyles';
 export const WAVEFORM_WIDTH = 420;
 export const WAVEFORM_HEIGHT = 58;
 
-/** Where the trace tops out, leaving a little air under the pane edges. */
-export const WAVEFORM_AMPLITUDE = 25;
 /**
- * Euphoria mode, where the trace nearly fills its box.
+ * Where the trace tops out: as tall as the box allows, in both modes.
  *
- * The pane also grows taller in CSS, but that alone only scales the same
- * drawing up — the wave keeps the same share of the box and looks no fuller.
- * Raising the amplitude is what actually makes it reach for the edges.
+ * There was a quieter figure beside this one that the pane used at rest,
+ * with euphoria switching to this. The pair is gone because the drawing no
+ * longer shrinks with the volume — a wave that reaches the edges in one mode
+ * and hugs the middle in the other reads as two different instruments, and
+ * the mode is carried by the palette instead.
  */
 export const WAVEFORM_AMPLITUDE_MAX = WAVEFORM_HEIGHT / 2 - 2;
 
@@ -112,23 +112,29 @@ export const normalise = (samples: number[], into: number[]): number[] => {
 };
 
 /**
- * How long the distance to the newest measurement takes to halve.
+ * How the spectrum bars breathe between FFT frames.
  *
- * A duration rather than a per-frame fraction, so the motion takes the same
- * wall-clock time whether the display runs at thirty, sixty or a hundred and
- * forty-four.
- *
- * Well under the 45ms between measurements — at 55ms it was longer than the
- * gap, so the trace never arrived before the next target replaced it and
- * lagged the audio permanently. Eighteen covers about four fifths of the
- * distance within one measurement: enough frames in between to read as motion
- * rather than steps, without the shape trailing what is playing.
- *
- * Symmetric, unlike the spectrum curve. This draws a waveform oscillating
- * about zero rather than a level, so easing the two directions differently
- * would not add punch, it would bend the wave out of shape.
+ * The FFT publishes about thirty times a second, and drawing raw points
+ * would leave a bar sitting perfectly still for two display frames and
+ * then jumping — the classic meter fault. Snap up fast and fall back
+ * quickly, so the bars track the audio's own motion rather than lagging
+ * behind it: at 220ms the release read as a hold that never quite came
+ * back to rest, and every kick left a stumps-tall row behind it. Ninety
+ * lands closer to the audio's own decay while still riding out the
+ * per-frame jitter.
  */
-export const WAVEFORM_HALF_LIFE_MS = 18;
+export const SPECTRUM_BAR_ATTACK_MS = 6;
+export const SPECTRUM_BAR_RELEASE_MS = 90;
+
+/**
+ * How much dB the spectrum bars map across, from the level floor to the
+ * top of the pane. Wider than the OutputLevelMeter's 60 dB on purpose:
+ * running loudness peaks up at 0 dBFS filled the pane and made every
+ * frame read as saturated. Eighty dB spreads the same audio over more
+ * range, so a typical track sits in the lower half and the top of the
+ * pane is reserved for genuine peaks.
+ */
+export const SPECTRUM_BAR_RANGE_DB = 80;
 /** Vertical rules behind the trace, so the pane reads as a meter. */
 export const GRID_DIVISIONS = 12;
 /** How far short of the pane's edges those rules stop. */
@@ -163,26 +169,66 @@ export const BODY_STOPS = [
 ];
 
 /**
- * The cyan-tones fallback the spectrum style uses when rainbow mode is off.
- *
- * Ported stop-for-stop from the FluidEQ site's `[data-nav-signal]` compact
- * meter, which is what "the one in the site" refers to: a horizontal cyan
- * gradient that fades to transparent at both ends, so the drawing reads as
- * something the pane cradles rather than as a strip painted flat to its
- * edges. The middle stop is the light-cyan the site uses; the two
- * quarter-way stops are its cyan and cyan-teal.
- *
- * Comma-separated rgba: a canvas gradient stop is parsed by whatever is
- * running the code (Chromium and jsdom alike), and the older comma form is
- * the one nothing argues about.
+ * The trace's colours by mode, applied globally to every style. Rainbow
+ * mode uses the site signal-deck's exact five-stop palette; the default
+ * "cyan tones" mode a three-stop cyan gradient — bright cyan at the ends
+ * fading to a light cyan at the middle. Same offsets in both, so every
+ * style lines up bar-for-bar and sample-for-sample regardless of mode.
  */
-export const SPECTRUM_CYAN_STOPS = [
-  { offset: 0, colour: 'rgba(0, 229, 255, 0)' },
-  { offset: 0.16, colour: 'rgba(0, 229, 255, 1)' },
-  { offset: 0.5, colour: 'rgba(156, 255, 244, 1)' },
-  { offset: 0.84, colour: 'rgba(0, 229, 207, 1)' },
-  { offset: 1, colour: 'rgba(0, 229, 207, 0)' },
+export const TRACE_RAINBOW_STOPS = [
+  { offset: 0, colour: '#00e5ff' },
+  { offset: 0.28, colour: '#b6ff4a' },
+  { offset: 0.52, colour: '#ffe66d' },
+  { offset: 0.76, colour: '#ff3cac' },
+  { offset: 1, colour: '#8b5cff' },
 ];
+export const TRACE_CYAN_STOPS = [
+  { offset: 0, colour: '#0077a3' }, // deep teal
+  { offset: 0.28, colour: '#00c5ff' }, // cyan
+  { offset: 0.52, colour: '#c8fff8' }, // ice white
+  { offset: 0.76, colour: '#00e5cf' }, // sea green
+  { offset: 1, colour: '#005b7f' }, // deeper teal
+];
+
+/**
+ * The styles that read the analyser's frequency bands rather than the
+ * time-domain samples.
+ *
+ * The spectrum style was the first to do it and is the reason the rest
+ * followed: a bar built from `Math.abs(sample)` is the envelope of the
+ * waveform, which wobbles with the volume and says nothing about what is
+ * actually in the sound. Given the FFT the same drawing becomes a real
+ * spectrum, and the whole family — bars, blades, ladders, bead columns,
+ * and the silhouette over them — reads as one instrument seen five ways.
+ *
+ * Every style here keeps a time-domain fallback for the case where no
+ * analyser is running, so the pane still draws with nothing captured.
+ */
+export const FFT_WAVEFORM_STYLES: ReadonlySet<WaveformStyle> = new Set([
+  'bars',
+  'mirror-bars',
+  'blocks',
+  'dots',
+  'spikes',
+  'outline',
+  'lattice',
+]);
+
+/**
+ * Every style is drawn in the spectrum's own light: a heavier stroke over
+ * a soft `shadowBlur` rather than the multi-stroke neon halo they used to
+ * wear. The halo was built for a single thin trace and, laid over a
+ * figure made of dozens of separate pieces, it fringed every one of them
+ * instead of lighting the shape.
+ *
+ * A set rather than a plain `true` because the halo is still what the
+ * clipping and paused treatments use, and because a style added later
+ * should have to opt in deliberately rather than inherit this by
+ * accident.
+ */
+export const SOFT_GLOW_WAVEFORM_STYLES: ReadonlySet<WaveformStyle> = new Set(
+  WAVEFORM_STYLES,
+);
 
 /** One pass of the bloom: how much wider than the figure, and how faint. */
 export interface IGlowLayer {
@@ -231,8 +277,8 @@ export const NO_LAYERS: readonly IGlowLayer[] = [];
  * is on and nothing at all when it is off, which is what the mounting was
  * trying to buy.
  */
-export const EUPHORIA_GLOW_WIDTH = 7;
-export const EUPHORIA_GLOW_ALPHA = 0.3;
+export const EUPHORIA_GLOW_WIDTH = 5;
+export const EUPHORIA_GLOW_ALPHA = 0.14;
 
 /** Everything the ten styles used to say about themselves in CSS. */
 export interface IStylePaint {
@@ -263,25 +309,33 @@ export const BASE_PAINT: IStylePaint = {
  */
 export const STYLE_PAINT: Partial<Record<WaveformStyle, Partial<IStylePaint>>> =
   {
-    bars: { fill: 'trace', fillAlpha: 0.85 },
-    'mirror-bars': { fill: 'trace', fillAlpha: 0.85 },
-    dots: { fill: 'trace', fillAlpha: 0.85 },
-    blocks: { fill: 'trace', fillAlpha: 0.85 },
-    spikes: { fill: 'trace', fillAlpha: 0.62 },
+    // The spectrum family, all at the same weight so cycling between
+    // them changes the shape and nothing else.
+    bars: { fill: 'trace', fillAlpha: 0.9 },
+    'mirror-bars': { fill: 'trace', fillAlpha: 0.9 },
+    dots: { fill: 'trace', fillAlpha: 0.9 },
+    blocks: { fill: 'trace', fillAlpha: 0.9 },
+    // Blades overlap at their feet, so they carry a touch less ink than
+    // the styles whose pieces stand apart.
+    spikes: { fill: 'trace', fillAlpha: 0.72 },
     // The body without an edge, so it reads as a shape rather than a trace.
     ribbon: { fill: 'trace', fillAlpha: 0.5 },
     // A comb of verticals, drawn by the line path rather than filled.
     lattice: { strokeWidth: 1.4, strokeAlpha: 0.85, lineCap: 'round' },
-    // One edge, thicker, because it is carrying the whole picture alone.
-    outline: { strokeWidth: 2.4 },
-    // Bars from the floor with a smooth wave flowing through the middle
-    // over the top of them — the FluidEQ site's compact nav-signal meter,
-    // in the titlebar. Stroke thickness matches the site's 1.65px lineWidth
-    // and the round cap keeps the curve legible where it crosses a bar.
-    spectrum: {
+    // The spectrum's silhouette: one line carrying the whole picture, so
+    // it takes the family's own stroke weight rather than a lighter one.
+    outline: { fill: 'trace', fillAlpha: 0, lineCap: 'round' },
+    // Pale bars behind, one smooth wave on top — the site's nav-signal in
+    // the titlebar. The bars are drawn imperatively (per-bar hue and
+    // vertical gradient); this entry is only for the wave stroke and its
+    // fill is unused. Stroke width, alpha and cap match the site's
+    // `lineWidth: 1.65 / lineCap: 'round'` verbatim, and the renderer
+    // swaps the multi-stroke halo out for the site's `shadowBlur: 8` glow.
+    fluid: {
       fill: 'trace',
-      fillAlpha: 0.9,
-      strokeWidth: 1.6,
+      fillAlpha: 0,
+      strokeWidth: 1.65,
+      strokeAlpha: 1,
       lineCap: 'round',
     },
   };
