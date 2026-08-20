@@ -61,7 +61,21 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-coverflow__stage {
-  flex: 1 1 100%;
+  // Only the *basis* may differ between the two states, which is why this is
+  // written out rather than set with the `flex` shorthand. `flex: 1 1 100%`
+  // here against `flex: 0 0 34%` when expanded meant closing the panel handed
+  // the stage `flex-grow: 1` in the same frame the panel unmounted — and
+  // grow, unlike basis, does not transition. So opening glided and closing
+  // snapped back in one frame, which is half an animation and reads as a
+  // glitch. With grow and shrink fixed, both directions are the same 340ms.
+  // Shrink is 0 rather than 1 for the same reason grow is: with it the
+  // panel's own `min-height` pushed the strip 35px shorter than its 34%, and
+  // the covers came back 236px instead of the 260 the strip was tuned for.
+  // Collapsed there is nothing to shrink against anyway — the stage is the
+  // only child and its basis is the whole column.
+  flex-grow: 0;
+  flex-shrink: 0;
+  flex-basis: 100%;
 }
 
 .library-coverflow.is-expanded {
@@ -76,8 +90,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     // recognisable; the rest belongs to the songs, which is what the reader
     // just asked to see. The floor stops the percentage from collapsing the
     // row to nothing in a short pane — see this block's own `min-height`.
+    // See the base rule for why grow and shrink are the same in both states
+    // and only the basis moves.
     min-height: 190px;
-    flex: 0 0 34%;
+    flex-basis: 34%;
   }
 
   // With the detail open the covers are the smaller thing on screen, and a
@@ -95,12 +111,19 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   .library-coverflow__cover {
     --cover-flow-label-gap: 0.05;
-    // Fills the strip instead of sitting at the floor of the collapsed
-    // clamp. Measured: at `36cqh` of a 370px strip the covers came out at
-    // their 140px minimum with 112px of nothing above and below them —
-    // the whole complaint about the spacing. `74cqh` puts the sleeve and its
-    // title in the band and leaves a margin rather than a void.
-    --cover-flow-size: clamp(96px, min(74cqh, 15cqw), 260px);
+    // Deliberately NOT a different `--cover-flow-anchor`. The class flips in
+    // one frame while `flex-basis` takes 340ms, so any percentage that
+    // differs between the two states resolves against a stage that has not
+    // moved yet — measured, a 6-point difference dropped the sleeve 106px on
+    // the frame the panel opened and then flew it back up as the stage
+    // shrank. One anchor for both states is what makes the opening a single
+    // motion instead of a lurch. 41% is checked against the strip too: it
+    // leaves the title clear of the panel below it.
+    //
+    // No `--cover-flow-size` here either, for exactly the same reason. The
+    // strip's own `70cqh` share of a 372px stage is the 260px this used to
+    // declare outright, so the sleeve reaches the same size by following the
+    // stage down rather than by jumping ahead of it.
   }
 }
 
@@ -250,14 +273,44 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // has to fit a stage that is 6 to 8 covers wide. 17.5cqw keeps the row
   // inside the frame at every window this app is usable at; at 420px it ran
   // 111% of the stage and the ends were clipped off the sides.
-  --cover-flow-size: clamp(140px, min(36cqh, 17.5cqw), 380px);
-  // How far under the sleeve the title sits, as a fraction of the sleeve.
-  // Clear of the reflection normally; tucked right under it when the row is
-  // a strip and there is no reflection to clear.
-  --cover-flow-label-gap: 0.3;
+  //
+  // One formula for both states, and that is the point of the `70cqh`.
+  //
+  // The strip used to declare its own — a taller share of a shorter stage —
+  // and the two disagreed at the moment the class flipped: `is-expanded`
+  // lands in one frame while `flex-basis` takes 340ms, so the strip's size
+  // was resolved against a stage still at its full height and the covers
+  // snapped from 344px to 260px before travelling anywhere. That snap is the
+  // "blink" a reader sees on opening a cover, and no transition fixes it —
+  // it is two descriptions of the same thing disagreeing, not a missing
+  // animation. With one formula the size only ever changes as the stage
+  // does, frame for frame, and the row simply glides up. Measured, the two
+  // ends land where they always did: 344px at a 1967x1066 stage (the width
+  // cap decides) and 260px at 1967x372 (the height share does).
+  --cover-flow-size: clamp(140px, min(70cqh, 17.5cqw), 380px);
+  // How far down the sleeve the reflection reaches before it is gone, as a
+  // fraction of the sleeve. Named rather than written into the gradient
+  // because the title has to clear it, and the two drifting apart is how the
+  // title ended up painted over the mirror the first time.
+  --cover-flow-reflect-reach: 0.4;
+  // How far under the sleeve the title sits, as a fraction of the sleeve —
+  // just past where the reflection dies, so it can never be read through it.
+  // The strip overrides this to a hair: there is no reflection there to
+  // clear, and the title tucks straight under the sleeve.
+  --cover-flow-label-gap: calc(var(--cover-flow-reflect-reach) + 0.04);
+  // Where the *sleeve's* centre sits down the stage.
+  //
+  // Not 50%, because only the sleeve is anchored here — the reflection and
+  // the title hang off its bottom edge and get no say (see the box comment
+  // below). Measured in the running window at a 1066px stage: dead centre
+  // put a 360px sleeve at 554, leaving 353px of nothing above the row and
+  // the mirror and title crowded into the 200px left under them. 41% lifts
+  // the whole assembly so what hangs below has the room, and the row reads
+  // as standing on something rather than floating in the middle of a void.
+  --cover-flow-anchor: 41%;
 
   position: absolute;
-  top: 50%;
+  top: var(--cover-flow-anchor);
   left: 50%;
   // Exactly the sleeve, nothing more.
   //
@@ -278,6 +331,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // than the polish on it, and a linear-feeling slide between two positions
   // reads as a slideshow. `transform` and `translate` are listed separately
   // because they are separate properties here — see `.is-centre`.
+  // Nothing about the sleeve's own box is transitioned, deliberately: its
+  // width, height and margin all read `--cover-flow-size`, which is quoted
+  // against a stage that is already animating, so the box tracks it frame for
+  // frame on its own. A transition here would be a second animation racing
+  // the first and would lag behind it — see the note on the size itself.
   transition:
     transform 320ms cubic-bezier(0.22, 0.9, 0.24, 1),
     translate 320ms cubic-bezier(0.22, 0.9, 0.24, 1),
@@ -349,16 +407,32 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   // nothing new for the art cache to fetch. Electron ships Chromium only, so
   // the vendor prefix is not a portability risk here.
   //
-  // Weaker and much shorter than it was. At `0.32` fading to nothing at 60%
-  // it mirrored two-thirds of the sleeve at a third of full strength, which
-  // on a wall of thirteen covers is a second, upside-down wall competing
-  // with the first. A reflection is meant to say "these are standing on
-  // something", and 22% dying out by a quarter of the way down says it.
+  // The gradient runs the other way round from how it reads.
+  //
+  // Chromium masks the reflection in the *reflected content's* own
+  // coordinates — before the flip — so the gradient's 0% end lands at the
+  // reflection's far edge and its 100% end lands against the sleeve. Written
+  // the obvious way (opaque first, transparent by 26%) the ink therefore
+  // landed in the wrong quarter: measured in the running window, the visible
+  // band sat 130px clear of a sleeve it was supposed to be touching, which is
+  // exactly what a detached grey smear halfway down an empty stage looks
+  // like. Proven, not deduced — the same row screenshotted with the stops
+  // reversed put the mirror hard against the artwork.
+  //
+  // So: nothing at all for the far 60%, then up through a knee to half
+  // strength at the join. A reflection is meant to say "these are standing on
+  // something"; all of that is said in the first few pixels, and anything
+  // beyond it is a second, upside-down wall competing with the first.
   //
   // The gap scales with the cover for the same reason the depth does: 4px
   // under a 160px cover is a seam, under a 380px one it is a join.
-  -webkit-box-reflect: below calc(var(--cover-flow-size) * 0.015)
-    linear-gradient(to bottom, rgba($black, 0.22), transparent 26%);
+  -webkit-box-reflect: below calc(var(--cover-flow-size) * 0.012)
+    linear-gradient(
+      to bottom,
+      transparent calc(100% - var(--cover-flow-reflect-reach) * 100%),
+      rgba($black, 0.16) calc(100% - var(--cover-flow-reflect-reach) * 45%),
+      rgba($black, 0.5)
+    );
 
   // `LibraryCoverArt size="cover"` is a literal 160px square — the drill-in
   // header's size, and the reason the carousel stayed small no matter what

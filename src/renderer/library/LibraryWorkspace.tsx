@@ -25,12 +25,15 @@ import {
   useState,
 } from 'react';
 import {
+  albumKey,
   artistKey,
   groupIntoAlbums,
   searchTracks,
   sortTracks,
+  trackFolderPath,
 } from '../../common/library/grouping';
 import type {
+  ILibraryTrack,
   TLibraryBrowseMode,
   TLibrarySort,
   TLibrarySortDirection,
@@ -139,7 +142,7 @@ interface ILibraryWorkspaceProps {
    * "show me what is playing". Carries a nonce rather than an id alone so that
    * asking twice for the SAME album still reopens it after the user has
    * navigated away; an id-only prop would look unchanged and do nothing. */
-  revealRequest?: { albumId: string; nonce: number };
+  revealRequest?: { albumId: string; trackId: string; nonce: number };
 }
 
 /**
@@ -248,9 +251,11 @@ const LibraryWorkspace = ({
     [sortDirection],
   );
 
-  // Set by a reveal so the browse-mode effect below can tell a mode change it
-  // caused itself from one the user made. See that effect for why.
-  const revealDrivenMode = useRef<TLibraryBrowseMode | undefined>(undefined);
+  // Set by whichever path changed the browse mode *and* set the drill-in for
+  // it in the same pass — a reveal, or a browse chip carrying the open album
+  // across. The effect below closes the drill-in on every other mode change;
+  // this is how it tells the two apart. See that effect for why.
+  const drillInDrivenMode = useRef<TLibraryBrowseMode | undefined>(undefined);
 
   // "Show me what is playing", asked for by the now-playing bar. Browsing has
   // to move to albums first: the drill-in only exists in that mode, and the
@@ -263,20 +268,33 @@ const LibraryWorkspace = ({
     if (revealAlbumId === undefined) {
       return;
     }
-    revealDrivenMode.current = 'album';
+    drillInDrivenMode.current = 'album';
     setBrowseMode('album');
     setOpenArtistId(undefined);
+    setOpenFolderPath(undefined);
     setOpenAlbumId(revealAlbumId);
   }, [revealAlbumId, revealNonce]);
 
-  // An album id means nothing while artists are listed, and the reverse —
-  // switching what is being browsed closes whatever was open.
+  /** The row the drill-in should scroll to and mark once it opens, carried
+   * with its own nonce so asking twice for the same track still moves the
+   * list — the reader may well have scrolled away in between. */
+  const revealTrack = useMemo(
+    () =>
+      revealRequest
+        ? { trackId: revealRequest.trackId, nonce: revealRequest.nonce }
+        : undefined,
+    [revealRequest],
+  );
+
+  // An album id means nothing while artists are listed, and the reverse — a
+  // mode change that brings no drill-in of its own closes whatever was open.
   //
   // Except when the switch was itself part of opening something: a reveal
-  // moves to album mode *in order to* open an album, and this effect fires on
-  // that same commit. The ref lets it recognise a mode change it caused
-  // itself and leave the drill-in alone; every other mode change still closes
-  // it. A boolean would not do — two reveals in a row must both survive.
+  // moves to album mode *in order to* open an album, and a browse chip
+  // re-derives the open album as the folder or artist it belongs to, both
+  // in the same commit this effect fires on. The ref lets it recognise a
+  // mode change that already settled the drill-in and leave it alone. A
+  // boolean would not do — two of those in a row must both survive.
   // And except on the very first run, which is not a mode *change* at all —
   // it is this effect firing once on mount, and left ungated it threw away
   // the drill-in restored from the last session a frame after it was read
@@ -287,8 +305,8 @@ const LibraryWorkspace = ({
       hasSeenBrowseMode.current = true;
       return;
     }
-    if (revealDrivenMode.current === browseMode) {
-      revealDrivenMode.current = undefined;
+    if (drillInDrivenMode.current === browseMode) {
+      drillInDrivenMode.current = undefined;
       return;
     }
     setOpenAlbumId(undefined);
@@ -366,19 +384,66 @@ const LibraryWorkspace = ({
   }, []);
 
   /**
+   * The track that stands for whatever drill-in is open.
+   *
+   * The three grouping ids have nothing in common — an album key is not a
+   * path and neither is an artist name — so a browse-mode change cannot
+   * translate one into another directly. A track can: it belongs to exactly
+   * one album, one artist and one folder, and any of the three ids is
+   * derivable from it.
+   *
+   * The playing track wins whenever it is inside the open grouping, which is
+   * the case that matters most: "show me what is playing" opens that song's
+   * album, and switching to Folders afterwards must land on the folder that
+   * song is in, not on the folder the album's first track happens to sit in
+   * — on a compilation those are different directories.
+   */
+  const drillInAnchor = useMemo(() => {
+    const belongs = (track: ILibraryTrack): boolean => {
+      if (openAlbumId !== undefined) {
+        return albumKey(track) === openAlbumId;
+      }
+      if (openArtistId !== undefined) {
+        return artistKey(track) === openArtistId;
+      }
+      if (openFolderPath !== undefined) {
+        return trackFolderPath(track.path) === openFolderPath;
+      }
+      return false;
+    };
+    if (playingTrack && belongs(playingTrack)) {
+      return playingTrack;
+    }
+    return index.tracks.find(belongs);
+  }, [index.tracks, playingTrack, openAlbumId, openArtistId, openFolderPath]);
+
+  /**
    * A browse chip was pressed.
    *
-   * Closing the drill-in is the whole point. Pressing "Songs" from inside an
-   * album used to set the mode behind a detail view that stayed on screen, so
-   * the chip lit up and nothing happened — the control looked broken from the
-   * one place a reader is most likely to want out of.
+   * The drill-in comes along. Reading an album and pressing "Folders" used to
+   * throw it away and drop the reader at the top of an unrelated list, which
+   * is the same loss as closing a book to change the lamp: the mode is how
+   * the collection is arranged, not what is being read. So whatever is open
+   * is re-derived for the new mode from the anchor above, and only the two
+   * modes with nothing to drill into — songs and videos — actually close it.
    */
-  const handleBrowseMode = useCallback((mode: TLibraryBrowseMode) => {
-    setOpenAlbumId(undefined);
-    setOpenArtistId(undefined);
-    setOpenFolderPath(undefined);
-    setBrowseMode(mode);
-  }, []);
+  const handleBrowseMode = useCallback(
+    (mode: TLibraryBrowseMode) => {
+      const anchor = drillInAnchor;
+      setOpenAlbumId(anchor && mode === 'album' ? albumKey(anchor) : undefined);
+      setOpenArtistId(
+        anchor && mode === 'artist' ? artistKey(anchor) : undefined,
+      );
+      setOpenFolderPath(
+        anchor && mode === 'folder' ? trackFolderPath(anchor.path) : undefined,
+      );
+      // The effect below closes the drill-in on every mode change it did not
+      // cause itself; this is one it did not cause but must not undo.
+      drillInDrivenMode.current = mode;
+      setBrowseMode(mode);
+    },
+    [drillInAnchor],
+  );
 
   const handleOpenFolder = useCallback((folderPath: string) => {
     setOpenAlbumId(undefined);
@@ -393,6 +458,10 @@ const LibraryWorkspace = ({
     (openId: string | undefined) => {
       if (browseMode === 'artist') {
         setOpenArtistId(openId);
+        return;
+      }
+      if (browseMode === 'folder') {
+        setOpenFolderPath(openId);
         return;
       }
       setOpenAlbumId(openId);
@@ -654,6 +723,7 @@ const LibraryWorkspace = ({
             offlineRootIds={offlineRootIds}
             viewMode={viewMode}
             playingTrackId={playingTrack?.id}
+            revealTrack={revealTrack}
           />
         )}
       {index.tracks.length > 0 &&
@@ -711,7 +781,8 @@ const LibraryWorkspace = ({
             sort={viewSort}
             sortDirection={sortDirection}
             playingTrackId={playingTrack?.id}
-            openId={openAlbumId ?? openArtistId}
+            revealTrack={revealTrack}
+            openId={openAlbumId ?? openArtistId ?? openFolderPath}
             onOpenChange={handleCoverFlowOpen}
           />
         )}

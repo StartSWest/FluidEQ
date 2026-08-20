@@ -88,6 +88,10 @@ const LibraryTrackRow = ({
     <div
       role="row"
       tabIndex={0}
+      // The handle "show me what is playing" scrolls to — see
+      // `LibraryListView`'s reveal effect. An id attribute would collide with
+      // the same track listed twice in one view (an album and its strays).
+      data-track-id={track.id}
       aria-selected={isSelected}
       className={className}
       title={isOffline ? t('library.root.offline') : undefined}

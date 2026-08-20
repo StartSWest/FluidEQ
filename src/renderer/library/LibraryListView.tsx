@@ -74,6 +74,11 @@ interface ILibraryListViewProps {
    * same way the other display-only props here are: no test of this view's
    * behaviour needs a player to exercise what it covers. */
   playingTrackId?: string;
+  /** Go to this row: page far enough to have mounted it, scroll it into view
+   * and mark it. Carries a nonce because asking twice for the same track has
+   * to work — the reader may have scrolled away in between, and an id alone
+   * would look unchanged and do nothing. */
+  revealTrack?: { trackId: string; nonce: number };
   /** Rows that share the open album's folder without belonging to the album.
    * Listed in the same run rather than a table of their own, tagged so the
    * distinction is visible without splitting the screen in two. */
@@ -221,6 +226,7 @@ const LibraryListView = ({
   sortDirection,
   onSort,
   playingTrackId,
+  revealTrack,
   folderOnlyIds = NO_FOLDER_ONLY,
   groupByFolder = false,
   resetKey = '',
@@ -294,6 +300,48 @@ const LibraryListView = ({
     },
     [resetKey],
   );
+
+  /**
+   * "Show me what is playing", the second half of it.
+   *
+   * The bar already brings the reader to the right album; this brings them to
+   * the row. Two things have to happen in order and neither is optional: the
+   * list pages a hundred rows at a time, so a track further down has no
+   * element to scroll to yet — hence growing `shownCount` past it first — and
+   * the scroll itself has to wait for React to have rendered those rows,
+   * hence the frame. Marking it as well as scrolling is what makes it findable
+   * on an album where every row looks alike.
+   *
+   * Keyed on the nonce, so pressing the bar twice for the same track works
+   * even after the reader has scrolled away.
+   */
+  const revealNonce = revealTrack?.nonce;
+  const revealTrackId = revealTrack?.trackId;
+  useEffect(() => {
+    if (revealTrackId === undefined) {
+      return undefined;
+    }
+    const index = tracks.findIndex((track) => track.id === revealTrackId);
+    if (index < 0) {
+      return undefined;
+    }
+    setActiveId(revealTrackId);
+    if (index >= shownCountRef.current) {
+      const needed = Math.ceil((index + 1) / PAGE_SIZE) * PAGE_SIZE + PAGE_SIZE;
+      shownCountRef.current = needed;
+      setShownCount(needed);
+    }
+    const frame = requestAnimationFrame(() => {
+      bodyRef.current
+        ?.querySelector(`[data-track-id="${CSS.escape(revealTrackId)}"]`)
+        ?.scrollIntoView({ block: 'center' });
+    });
+    return () => cancelAnimationFrame(frame);
+    // `tracks` is deliberately absent: it is replaced on every scan batch, and
+    // re-running this would drag the reader back to the revealed row for the
+    // whole of a scan.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealTrackId, revealNonce]);
 
   /**
    * Back to where they left it, or to the top if they have not been here.

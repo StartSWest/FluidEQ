@@ -171,6 +171,18 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   gap: $spacing-xs;
 }
 
+// What is being browsed and how it is drawn are two different questions. At
+// the row's own `$spacing-s` between them all eight chips read as one run of
+// options — "Videos" and "List" sat as close together as "Songs" and
+// "Folders", and the eye had nothing to tell it where one choice ended. The
+// hairline is what says it; the space either side of it is what makes the
+// hairline read as a divider rather than as an edge.
+.library-toolbar__view-modes {
+  margin-left: $spacing-xs;
+  padding-left: $spacing-m;
+  border-left: 1px solid rgba($primary-lighter, 0.14);
+}
+
 // `.video-browser__site`'s pill, under this file's own name so the two can
 // diverge later without one silently restyling the other.
 .library-toolbar__chip {

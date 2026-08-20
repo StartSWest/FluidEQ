@@ -61,6 +61,9 @@ interface ILibraryDetailProps {
   viewMode?: TLibraryViewMode;
   /** The track the player is on, forwarded to the table below. */
   playingTrackId?: string;
+  /** A row to scroll to and mark — forwarded straight through. See
+   * `LibraryListView`'s own prop of the same name. */
+  revealTrack?: { trackId: string; nonce: number };
 }
 
 /**
@@ -93,6 +96,7 @@ const LibraryDetail = ({
   offlineRootIds,
   viewMode = 'list',
   playingTrackId,
+  revealTrack,
 }: ILibraryDetailProps) => {
   const { t } = useTranslation();
 
@@ -353,6 +357,7 @@ const LibraryDetail = ({
           offlineRootIds={offlineRootIds}
           folderOnlyIds={folderOnlyIds}
           playingTrackId={playingTrackId}
+          revealTrack={revealTrack}
           sort={sort}
           sortDirection={sortDirection}
           onSort={handleSort}

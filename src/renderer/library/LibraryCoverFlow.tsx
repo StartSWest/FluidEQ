@@ -31,9 +31,12 @@ import {
   artistKey,
   groupIntoAlbums,
   groupIntoArtists,
+  groupIntoFolders,
   normalizeForSearch,
   sortAlbums,
   sortArtists,
+  sortFolders,
+  trackFolderPath,
 } from '../../common/library/grouping';
 import {
   ILibraryTrack,
@@ -165,6 +168,9 @@ interface ILibraryCoverFlowProps {
   onOpenChange?: (openId: string | undefined) => void;
   /** The track the player is on, forwarded to the detail this opens. */
   playingTrackId?: string;
+  /** A track to scroll to and select inside the panel this opens, forwarded
+   * to the same-named prop on `LibraryDetail`. */
+  revealTrack?: { trackId: string; nonce: number };
 }
 
 /** One cover's worth of what this view draws — the same split
@@ -230,6 +236,7 @@ const LibraryCoverFlow = ({
   openId,
   onOpenChange,
   playingTrackId,
+  revealTrack,
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -300,6 +307,21 @@ const LibraryCoverFlow = ({
           artistName: '',
           albumCount: artist.albumCount,
           isPending: artist.isPending,
+        }),
+      );
+    }
+    if (browseMode === 'folder') {
+      const grouped = groupIntoFolders(tracks);
+      return (sort ? sortFolders(grouped, sort, sortDirection) : grouped).map(
+        (folder) => ({
+          id: folder.id,
+          artId: folder.artId,
+          title: folder.name,
+          // The path under the name, exactly as `LibraryGridView` shows it:
+          // two folders called "CD1" are the normal case, and the name alone
+          // cannot tell them apart.
+          artistName: folder.id,
+          isPending: folder.isPending,
         }),
       );
     }
@@ -419,6 +441,9 @@ const LibraryCoverFlow = ({
     if (browseMode === 'artist') {
       return artistKey(playing);
     }
+    if (browseMode === 'folder') {
+      return trackFolderPath(playing.path);
+    }
     return playing.id;
   }, [tracks, playingTrackId, browseMode]);
 
@@ -522,7 +547,11 @@ const LibraryCoverFlow = ({
     if (!item) {
       return;
     }
-    if (browseMode === 'album' || browseMode === 'artist') {
+    if (
+      browseMode === 'album' ||
+      browseMode === 'artist' ||
+      browseMode === 'folder'
+    ) {
       openPanel(expandedId === item.id ? undefined : item.id);
       return;
     }
@@ -903,9 +932,11 @@ const LibraryCoverFlow = ({
             tracks={tracks}
             albumId={browseMode === 'album' ? expandedId : undefined}
             artistId={browseMode === 'artist' ? expandedId : undefined}
+            folderPath={browseMode === 'folder' ? expandedId : undefined}
             onBack={() => openPanel(undefined)}
             onPlayTrack={(trackId) => onPlayTrack?.(trackId)}
             playingTrackId={playingTrackId}
+            revealTrack={revealTrack}
           />
         </div>
       )}

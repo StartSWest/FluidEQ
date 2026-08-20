@@ -510,12 +510,17 @@ const AppContent = () => {
   // makes pressing it twice for the same album work: an id alone would look
   // unchanged after the user had navigated away, and do nothing.
   const [libraryReveal, setLibraryReveal] = useState<
-    { albumId: string; nonce: number } | undefined
+    { albumId: string; trackId: string; nonce: number } | undefined
   >(undefined);
+  /** Opening the album was only half of "show me what is playing": it landed
+   * the reader on the right page and left them to find the row, which on a
+   * forty-track compilation is no answer at all. The track id travels with
+   * the album so the list can scroll to that row and mark it. */
   const revealPlayingTrack = useCallback((track: ILibraryTrack) => {
     setActiveWorkspaceTab('library');
     setLibraryReveal((current) => ({
       albumId: albumKey(track),
+      trackId: track.id,
       nonce: (current?.nonce ?? 0) + 1,
     }));
   }, []);
