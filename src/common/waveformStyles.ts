@@ -169,12 +169,37 @@ export const createWaveformShape = (
   height: number,
   amplitude: number,
   spectrumMagnitudes?: readonly number[],
+  /**
+   * Where the box's top-left corner sits, for a caller drawing into part of
+   * a larger surface.
+   *
+   * The titlebar owns its whole canvas and passes nothing, which is the
+   * zero this defaults to and exactly what it did before. The graph does
+   * not: its plot starts at a left margin wide enough for the decibel
+   * labels, so a figure built from x = 0 would begin outside the plot and
+   * be clipped at the axis.
+   *
+   * Offered rather than having the graph draw its own versions of these ten
+   * shapes. Two copies of a shape are two shapes the moment one of them is
+   * improved, and "the same as the one in the titlebar" is the entire
+   * requirement here — so there is one definition and it is this one.
+   */
+  origin: { x: number; y: number } = { x: 0, y: 0 },
 ): IWaveformShape => {
   if (samples.length < 2) {
     return EMPTY;
   }
-  const centre = height / 2;
+  const centre = origin.y + height / 2;
   const step = width / (samples.length - 1);
+  // Every figure below is laid out from here, so the offset is applied once
+  // rather than at each of the places a horizontal position is worked out.
+  const xAt = (index: number) => origin.x + index * step;
+  // The box's own floor and its own left edge, for the branches that read
+  // real frequency bands: those hang from the bottom of the box rather than
+  // straddling its centre line, so they measure from here instead.
+  const floor = origin.y + height;
+  const bandAt = (position: number, bandStep: number) =>
+    origin.x + position * bandStep;
   const at = (index: number) => samples[index] * amplitude;
 
   switch (style) {
@@ -190,7 +215,7 @@ export const createWaveformShape = (
       const upper: [number, number][] = [];
       const lower: [number, number][] = [];
       for (let index = 0; index < samples.length; index += 1) {
-        const x = index * step;
+        const x = xAt(index);
         const offset = at(index);
         upper.push([x, centre - offset]);
         lower.push([x, centre + offset]);
@@ -229,7 +254,7 @@ export const createWaveformShape = (
             Math.max(0, Math.min(1, spectrumMagnitudes![index])) * height;
           fill += rect(
             index * barStep + (barStep - barWidth) / 2,
-            height - magnitude,
+            floor - magnitude,
             barWidth,
             magnitude,
           );
@@ -239,8 +264,8 @@ export const createWaveformShape = (
         for (let index = 0; index < samples.length; index += 1) {
           const magnitude = Math.abs(at(index)) * 2;
           fill += rect(
-            index * step - barWidth / 2,
-            height - magnitude,
+            xAt(index) - barWidth / 2,
+            floor - magnitude,
             barWidth,
             magnitude,
           );
@@ -272,7 +297,7 @@ export const createWaveformShape = (
         for (let index = 0; index < samples.length; index += 1) {
           const magnitude = Math.abs(at(index));
           fill += rect(
-            index * step - barWidth / 2,
+            xAt(index) - barWidth / 2,
             centre - magnitude,
             barWidth,
             magnitude * 2,
@@ -311,12 +336,12 @@ export const createWaveformShape = (
         let fill = '';
         for (let index = 0; index < bands.length; index += 1) {
           const magnitude = bandHeight(bands[index], height);
-          const cx = (index + 0.5) * bandStep;
+          const cx = bandAt(index + 0.5, bandStep);
           const lit = Math.floor(magnitude / pitch);
           // The bottom bead is always drawn, so silence is a row of
           // beads at rest rather than an empty pane.
           for (let level = 0; level <= lit; level += 1) {
-            fill += circle(cx, height - radius - level * pitch, radius);
+            fill += circle(cx, floor - radius - level * pitch, radius);
           }
         }
         return { line: '', mirror: '', fill };
@@ -342,7 +367,7 @@ export const createWaveformShape = (
             peak = magnitude;
           }
         }
-        const cx = ((start + end - 1) / 2) * step;
+        const cx = origin.x + ((start + end - 1) / 2) * step;
         const lit = Math.floor(peak / pitch);
         // Level zero sits on the centre line and is always drawn, so a
         // silent pane is a row of beads at rest rather than nothing at
@@ -371,14 +396,14 @@ export const createWaveformShape = (
         const half = bandStep * 0.46;
         for (let index = 0; index < bands.length; index += 1) {
           const magnitude = bandHeight(bands[index], height);
-          const cx = (index + 0.5) * bandStep;
-          fill += `M ${(cx - half).toFixed(1)},${height.toFixed(1)} L ${cx.toFixed(1)},${(height - magnitude).toFixed(1)} L ${(cx + half).toFixed(1)},${height.toFixed(1)} Z`;
+          const cx = bandAt(index + 0.5, bandStep);
+          fill += `M ${(cx - half).toFixed(1)},${floor.toFixed(1)} L ${cx.toFixed(1)},${(floor - magnitude).toFixed(1)} L ${(cx + half).toFixed(1)},${floor.toFixed(1)} Z`;
         }
         return { line: '', mirror: '', fill };
       }
       for (let index = 0; index < samples.length; index += 1) {
         const magnitude = Math.abs(at(index));
-        const x = index * step;
+        const x = xAt(index);
         const halfStep = step * 0.5;
         fill += `M ${(x - halfStep).toFixed(1)},${centre.toFixed(1)} L ${x.toFixed(
           1,
@@ -410,8 +435,8 @@ export const createWaveformShape = (
           const lit = Math.max(1, Math.floor(magnitude / segment));
           for (let level = 0; level < lit; level += 1) {
             fill += rect(
-              index * bandStep + (bandStep - barWidth) / 2,
-              height - (level + 1) * segment + 1,
+              bandAt(index, bandStep) + (bandStep - barWidth) / 2,
+              floor - (level + 1) * segment + 1,
               barWidth,
               segment - 2,
             );
@@ -426,8 +451,8 @@ export const createWaveformShape = (
         const lit = Math.floor(magnitude / segment);
         for (let level = 0; level < lit; level += 1) {
           fill += rect(
-            index * step - barWidth / 2,
-            height - (level + 1) * segment + 1,
+            xAt(index) - barWidth / 2,
+            floor - (level + 1) * segment + 1,
             barWidth,
             segment - 2,
           );
@@ -455,15 +480,15 @@ export const createWaveformShape = (
         const points: [number, number][] = [];
         for (let index = 0; index < bands.length; index += 1) {
           points.push([
-            (index + 0.5) * bandStep,
-            height - bandHeight(bands[index], height),
+            bandAt(index + 0.5, bandStep),
+            floor - bandHeight(bands[index], height),
           ]);
         }
         return { line: smoothCurve(points), mirror: '', fill: '' };
       }
       const points: [number, number][] = [];
       for (let index = 0; index < samples.length; index += 1) {
-        points.push([index * step, centre - at(index)]);
+        points.push([xAt(index), centre - at(index)]);
       }
       return { line: smoothCurve(points), mirror: '', fill: '' };
     }
@@ -478,14 +503,14 @@ export const createWaveformShape = (
         const bandStep = width / bands.length;
         for (let index = 0; index < bands.length; index += 1) {
           const magnitude = bandHeight(bands[index], height);
-          const x = ((index + 0.5) * bandStep).toFixed(1);
-          line += `M ${x},${height.toFixed(1)} L ${x},${(height - magnitude).toFixed(1)} `;
+          const x = bandAt(index + 0.5, bandStep).toFixed(1);
+          line += `M ${x},${floor.toFixed(1)} L ${x},${(floor - magnitude).toFixed(1)} `;
         }
         return { line: line.trim(), mirror: '', fill: '' };
       }
       for (let index = 0; index < samples.length; index += 1) {
         const magnitude = Math.abs(at(index));
-        const x = (index * step).toFixed(1);
+        const x = xAt(index).toFixed(1);
         line += `M ${x},${(centre - magnitude).toFixed(1)} L ${x},${(
           centre + magnitude
         ).toFixed(1)} `;
@@ -517,7 +542,7 @@ export const createWaveformShape = (
       for (let index = 0; index < samples.length; index += 1) {
         const x = index / lastIndex;
         const envelope = Math.sin(Math.PI * x) ** 0.7;
-        points.push([index * step, centre - at(index) * envelope]);
+        points.push([xAt(index), centre - at(index) * envelope]);
       }
       return { line: smoothCurve(points), mirror: '', fill: '' };
     }

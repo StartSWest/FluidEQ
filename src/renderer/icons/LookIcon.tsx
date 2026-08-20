@@ -23,11 +23,12 @@ import { isTraceGradient, resolveTracePaint } from '../graph/liveTracePaint';
 /**
  * A look, drawn small enough to sit in a list.
  *
- * The picker holds forty-seven entries — one per form, with the palette on a
- * toggle beside it — and until now every one of them was a line of text. "Terrace", "Crown", "Weave" and "Truss" are names
- * chosen by eye for shapes chosen by eye, and none of them tells anybody what
- * they will get — the only way to find the one you wanted was to select it and
- * look, which for a list this long means selecting a great many of them.
+ * The picker holds fifty-seven entries — one per form, with the palette on a
+ * toggle beside it — and until now every one of them was a line of text.
+ * "Terrace", "Crown", "Weave" and "Truss" are names chosen by eye for shapes
+ * chosen by eye, and none of them tells anybody what they will get: the only
+ * way to find the one you wanted was to select it and look, which for a list
+ * this long means selecting a great many of them.
  *
  * A LOOK IS A FORM AND A COLOURING, so the icon is too, and neither half is
  * invented here:
@@ -86,9 +87,9 @@ interface ILookGlyph {
 /**
  * The drawings, one per family of forms.
  *
- * THIRTY-SIX GLYPHS FOR FORTY-SEVEN FORMS, and the shortfall is deliberate. At
+ * FORTY-TWO GLYPHS FOR FIFTY-SEVEN FORMS, and the shortfall is deliberate. At
  * sixteen pixels a bar chart of sixty-four columns and one of forty-six are the
- * same picture, so a glyph per form would be forty-seven near-identical drawings
+ * same picture, so a glyph per form would be fifty-seven near-identical drawings
  * pretending to a precision the size cannot carry — and the reader would learn
  * to stop looking at them. What the icon has to answer is "is this bars, or a
  * line, or dots, or something hanging off the ceiling", and the families below
@@ -144,6 +145,44 @@ const GLYPHS = {
   spread: {
     d: 'M2 4.6H4V6.6H2ZM2 11.4H4V13.4H2ZM6.5 6.4H8.5V8.4H6.5ZM6.5 9.4H8.5V11.4H6.5ZM11 2.6H13V4.6H11ZM11 12.4H13V14.4H11Z',
     isFilled: true,
+  },
+  /*
+   * The titlebar wave's family.
+   *
+   * Every one is symmetric about the middle of the box, because that is what
+   * tells these apart from the rest of the list at a glance: the spectrum
+   * forms hang off the floor and these straddle a centre line.
+   *
+   * Wave ladder is the exception and is NOT here — it stands on the floor in
+   * the titlebar too, so it takes the ladder glyph with the other stacking
+   * forms. An icon that mirrored it would be describing a shape the form does
+   * not draw.
+   */
+  waveLine: {
+    d: 'M1 5.5C3 5.5 3.6 2.8 5.8 2.8C8 2.8 7.8 6.4 9.8 6.4C11.8 6.4 12.8 4 15 4.4M1 10.5C3 10.5 3.6 13.2 5.8 13.2C8 13.2 7.8 9.6 9.8 9.6C11.8 9.6 12.8 12 15 11.6',
+    isFilled: false,
+  },
+  waveBody: {
+    d: 'M1 5.5C3 5.5 3.6 2.8 5.8 2.8C8 2.8 7.8 6.4 9.8 6.4C11.8 6.4 12.8 4 15 4.4V11.6C12.8 12 11.8 9.6 9.8 9.6C7.8 9.6 8 13.2 5.8 13.2C3.6 13.2 3 10.5 1 10.5Z',
+    isFilled: true,
+  },
+  waveBars: {
+    d: 'M1.6 5H3.8V11H1.6ZM5.2 2.5H7.4V13.5H5.2ZM8.8 6H11V10H8.8ZM12.4 4H14.6V12H12.4Z',
+    isFilled: true,
+  },
+  // Diamonds rather than triangles: a spike mirrored about the centre line
+  // meets its own reflection, and what that draws is a diamond.
+  waveSpikes: {
+    d: 'M1 8L2.7 3.6L4.4 8L2.7 12.4ZM5.4 8L7.1 1.8L8.8 8L7.1 14.2ZM9.8 8L11.5 5L13.2 8L11.5 11Z',
+    isFilled: true,
+  },
+  waveBeads: {
+    d: 'M2 7H4.4V9.4H2ZM2 3.8H4.4V6.2H2ZM2 10.2H4.4V12.6H2ZM6.8 7H9.2V9.4H6.8ZM6.8 3.8H9.2V6.2H6.8ZM6.8 10.2H9.2V12.6H6.8ZM6.8 0.6H9.2V3H6.8ZM11.6 7H14V9.4H11.6ZM11.6 10.2H14V12.6H11.6Z',
+    isFilled: true,
+  },
+  waveLattice: {
+    d: 'M2 5V11M5 2.8V13.2M8 6V10M11 4V12M14 6.6V9.4',
+    isFilled: false,
   },
   // A band whose thickness is the level: fat where it is loud, a thread where
   // it is not.
@@ -326,7 +365,7 @@ type TLookGlyphId = keyof typeof GLYPHS;
  * Which drawing stands for which form. EVERY FORM, BY THE TYPE.
  *
  * `Record<GraphStyle, ...>` rather than a lookup with a fallback, so a
- * forty-eighth form cannot be added without somebody deciding what it looks
+ * fifty-eighth form cannot be added without somebody deciding what it looks
  * like. A fallback would have been kinder to write and would have shipped the
  * new form with the line glyph on it, which is worse than useless: it is a
  * picture that is confidently wrong, and nothing about the picker would look
@@ -408,6 +447,16 @@ const FORM_GLYPHS: Record<GraphStyle, TLookGlyphId> = {
   stitch: 'stitch',
   canyon: 'canyon',
   fluid: 'fluid',
+  'wave-line': 'waveLine',
+  'wave-outline': 'waveLine',
+  'wave-filled': 'waveBody',
+  'wave-ribbon': 'waveBody',
+  'wave-bars': 'waveBars',
+  'wave-mirror': 'waveBars',
+  'wave-spikes': 'waveSpikes',
+  'wave-dots': 'waveBeads',
+  'wave-blocks': 'ladder',
+  'wave-lattice': 'waveLattice',
 };
 
 interface ILookIconProps {
