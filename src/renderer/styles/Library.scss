@@ -834,6 +834,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // — without being one, since it also has to carry a nested cover image and a
 // two-line title cell that a real `<button>` cannot lay out as a grid.
 .library-list__row {
+  // Rendered only when it is near the viewport.
+  //
+  // This list grows a page at a time and never drops what it has mounted,
+  // which is right for the scrollbar — nothing stands in for what is not
+  // there, so it cannot lie — and was ruinous for memory: measured in the
+  // running window, 604 mounted rows held 176MB of decoded cover art, about
+  // 0.29MB each, which across fourteen thousand tracks is several gigabytes
+  // of pictures nobody is looking at.
+  //
+  // `content-visibility` fixes that without giving the scrollbar back its
+  // ability to lie: the rows still exist and still occupy their real height,
+  // Chromium simply skips laying out and painting the ones off screen and
+  // never decodes their covers. `contain-intrinsic-size: auto` remembers the
+  // height each row actually had once it has been seen, so the placeholder
+  // is that row's own measurement rather than a guess.
+  content-visibility: auto;
+  contain-intrinsic-size: auto 46px;
   color: $text-muted;
   border-radius: $radius-xs;
   cursor: pointer;
@@ -1149,6 +1166,11 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // laid out as a card rather than the row `.library-list__row` draws.
 .library-grid__tile {
   @include inset-surface;
+  // Same reasoning as `.library-list__row`, and it matters more here: a tile
+  // shows its cover at four times a row's edge, so an off-screen page of them
+  // is four times the decoded pixels.
+  content-visibility: auto;
+  contain-intrinsic-size: auto 196px;
   display: grid;
   min-width: 0;
   gap: $spacing-xs;
