@@ -28,6 +28,7 @@ import {
   clampGraphColumns,
   getGraphBallistics,
   getGraphColumnCount,
+  getGraphFillOpacity,
   isFilledGraphStyle,
 } from './graphStyles';
 import { hasGraphAccent } from './graphShapes';
@@ -305,7 +306,7 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     releaseMs: ballistics.releaseMs,
     filled: isFilledGraphStyle(style),
     strokeWidth: DEFAULT_STROKE_WIDTH,
-    fillOpacity: DEFAULT_FILL_OPACITY,
+    fillOpacity: getGraphFillOpacity(style, DEFAULT_FILL_OPACITY),
     accents: hasGraphAccent(style),
     glow: DEFAULT_GLOW,
     // Off unless asked for. It is the one part of the mode that decorates the

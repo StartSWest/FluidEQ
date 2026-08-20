@@ -200,12 +200,32 @@ export const advanceSpectrumBars = (
   }
 };
 
-/** Draw them into the given box. */
-export const paintSpectrumBars = (
-  context: CanvasRenderingContext2D,
-  box: { x: number; y: number; width: number; height: number },
+interface ISpectrumBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+/**
+ * Where each bar goes, worked out in one place.
+ *
+ * The painter and the path builder below both need these rectangles, and a
+ * border that is traced from a second set of numbers is a border that does
+ * not sit on the bars — which is exactly what happened when the outline was
+ * taken from the shape module's own bar form instead: a different count at a
+ * different width, drawn around bars it had never seen.
+ */
+const forEachSpectrumBar = (
+  box: ISpectrumBox,
   bars: readonly number[],
-  isRainbow: boolean,
+  visit: (
+    x: number,
+    y: number,
+    width: number,
+    height: number,
+    across: number,
+  ) => void,
 ) => {
   const count = bars.length;
   if (count === 0) {
@@ -214,21 +234,59 @@ export const paintSpectrumBars = (
   const step = box.width / count;
   const width = Math.max(1, step - 2);
   const floor = box.y + box.height;
-  const topAlpha = isRainbow ? 0.5 : 0.42;
   for (let index = 0; index < count; index += 1) {
-    const across = index / Math.max(1, count - 1);
     // Flat rather than arched — no sine envelope — so every bar measures
     // the same share of the box and it reads as a spectrum rather than as
     // a curved decoration.
     const energy = Math.max(0.12, bars[index]);
     const height = Math.max(1, energy * box.height * 0.82);
+    visit(
+      box.x + index * step + 1,
+      floor - height,
+      width,
+      height,
+      index / Math.max(1, count - 1),
+    );
+  }
+};
+
+/** Draw them into the given box. */
+export const paintSpectrumBars = (
+  context: CanvasRenderingContext2D,
+  box: ISpectrumBox,
+  bars: readonly number[],
+  isRainbow: boolean,
+) => {
+  const topAlpha = isRainbow ? 0.5 : 0.42;
+  forEachSpectrumBar(box, bars, (x, y, width, height, across) => {
     const hue = 184 + across * 112;
-    const gradient = context.createLinearGradient(0, floor - height, 0, floor);
+    const gradient = context.createLinearGradient(0, y, 0, y + height);
     gradient.addColorStop(0, `hsla(${hue}, 92%, 65%, ${topAlpha})`);
     gradient.addColorStop(1, `hsla(${hue}, 92%, 58%, 0.06)`);
     context.fillStyle = gradient;
-    context.fillRect(box.x + index * step + 1, floor - height, width, height);
-  }
+    context.fillRect(x, y, width, height);
+  });
+};
+
+/**
+ * The same bars as path data, for anything that has to trace them.
+ *
+ * The border, the halo and the mask that keeps a border outside its own fill
+ * all work on a `Path2D`, and none of them can be handed a painted figure.
+ * Built from the same geometry so they land on the bars rather than near
+ * them.
+ */
+export const spectrumBarsPath = (
+  box: ISpectrumBox,
+  bars: readonly number[],
+): string => {
+  let path = '';
+  forEachSpectrumBar(box, bars, (x, y, width, height) => {
+    path +=
+      `M ${x.toFixed(1)},${y.toFixed(1)} h ${width.toFixed(1)} ` +
+      `v ${height.toFixed(1)} h ${(-width).toFixed(1)} Z`;
+  });
+  return path;
 };
 /** Vertical rules behind the trace, so the pane reads as a meter. */
 export const GRID_DIVISIONS = 12;

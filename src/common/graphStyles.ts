@@ -571,6 +571,18 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
   fence: 46,
   rain: 44,
   stitch: 38,
+
+  /**
+   * The fluid is the dense one, and its default has to be a real number.
+   *
+   * The titlebar draws this form at a bar every eleven pixels, which is a
+   * rule rather than a count and cannot be written here — this table is read
+   * without knowing how wide the plot is. On a typical graph pane that rule
+   * lands near a hundred and thirty, so that is what it starts at: close
+   * enough that the shipped look matches the titlebar, and an ordinary
+   * number the Pieces control can move like any other form's.
+   */
+  fluid: 128,
 };
 
 export const getColumnCount = (style: GraphStyle) =>
@@ -586,6 +598,27 @@ export const getColumnCount = (style: GraphStyle) =>
  */
 export const getGraphColumnCount = (style: GraphStyle): number =>
   getColumnCount(style);
+
+/**
+ * How solid a form's fill starts out, where the shared default is wrong.
+ *
+ * Most forms want the translucent fill the designer defaults to — it is what
+ * lets the grid and the EQ curves stay legible under them. The fluid does
+ * not: its bars carry their own per-bar alpha ramp, from a light top to an
+ * almost-clear foot, and dimming that by a further 55% left a drawing that is
+ * meant to match the titlebar's noticeably fainter than it.
+ *
+ * A table rather than a check, so the next form that needs its own answer is
+ * a line here rather than a branch somewhere.
+ */
+const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
+  fluid: 1,
+};
+
+export const getGraphFillOpacity = (
+  style: GraphStyle,
+  fallback: number,
+): number => FILL_OPACITY_OVERRIDES[style] ?? fallback;
 
 /** The forms drawn one piece per column rather than as a continuous figure. */
 export const DISCRETE_STYLES = new Set<GraphStyle>([
