@@ -674,6 +674,7 @@ const LiveTraceCanvas = ({
             baseline,
             tuning.columns,
             fluidWaveRef.current,
+            tuning.accentStyle,
           )
         : '';
       const accent = accentShape ? new Path2D(accentShape) : undefined;
@@ -961,7 +962,11 @@ const LiveTraceCanvas = ({
            * the look it decorates.
            */
           let accentStroke: string | CanvasGradient;
-          if (isFluidForm) {
+          // Follows the CHOICE, not the form. Any form can wear the wave now,
+          // and the wave is the titlebar's figure wherever it is drawn — so
+          // it takes the titlebar's ramp there too, rather than only on the
+          // one form that used to own it.
+          if (tuning.accentStyle === 'wave') {
             const ramp = context.createLinearGradient(
               plot.left,
               0,
