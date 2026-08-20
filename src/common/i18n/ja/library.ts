@@ -41,6 +41,8 @@ const library: Partial<Dictionary> = {
   'library.browse.song': '曲',
   'library.browse.folder': 'フォルダ',
   'library.jumpTo': '頭文字へ移動',
+  'library.coverflow.previous': '前のジャケット',
+  'library.coverflow.next': '次のジャケット',
   'library.folderCount': '{count} 個のフォルダ',
   'library.filterHere': 'この中の曲を絞り込む',
   'library.groupByFolder': 'フォルダーごとにグループ化',

@@ -41,6 +41,8 @@ const library: Partial<Dictionary> = {
   'library.browse.song': 'Músicas',
   'library.browse.folder': 'Pastas',
   'library.jumpTo': 'Ir para uma letra',
+  'library.coverflow.previous': 'Capa anterior',
+  'library.coverflow.next': 'Próxima capa',
   'library.folderCount': '{count} pastas',
   'library.filterHere': 'Filtrar estas músicas',
   'library.groupByFolder': 'Agrupar por pasta',

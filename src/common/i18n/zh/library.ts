@@ -40,6 +40,8 @@ const library: Partial<Dictionary> = {
   'library.browse.song': '歌曲',
   'library.browse.folder': '文件夹',
   'library.jumpTo': '跳转到字母',
+  'library.coverflow.previous': '上一张封面',
+  'library.coverflow.next': '下一张封面',
   'library.folderCount': '{count} 个文件夹',
   'library.filterHere': '筛选这些歌曲',
   'library.groupByFolder': '按文件夹分组',

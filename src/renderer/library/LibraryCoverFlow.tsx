@@ -423,6 +423,46 @@ const LibraryCoverFlow = ({
   }, [tracks, playingTrackId, browseMode]);
 
   /**
+   * Left and right move the row, whether or not it has been clicked first.
+   *
+   * The stage carries the same keys and always has, but only once it holds
+   * focus — and nothing about a carousel says "click me before the arrow keys
+   * do anything". This is the same handler at window level, refusing to act
+   * whenever the key belongs to somebody else: any text field, any element a
+   * reader is editing, and any modifier combination, which are shortcuts
+   * rather than navigation.
+   */
+  useEffect(() => {
+    const onKey = (event: globalThis.KeyboardEvent) => {
+      if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') {
+        return;
+      }
+      if (event.altKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
+      const target = event.target as HTMLElement | null;
+      const tag = target?.tagName;
+      if (
+        tag === 'INPUT' ||
+        tag === 'TEXTAREA' ||
+        tag === 'SELECT' ||
+        target?.isContentEditable
+      ) {
+        return;
+      }
+      // The stage's own handler already has it, and running both would move
+      // the row two covers for one press.
+      if (target?.closest('.library-coverflow__stage')) {
+        return;
+      }
+      event.preventDefault();
+      moveByRef.current(event.key === 'ArrowRight' ? 1 : -1);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  /**
    * The first cover under each letter of the rail.
    *
    * Built from `items` in their current order, so it follows whatever sort is
@@ -492,6 +532,11 @@ const LibraryCoverFlow = ({
   const moveBy = (delta: number) => {
     setCentre(currentIndex + delta);
   };
+  /** The window-level key handler is bound once and would otherwise close
+   * over the `moveBy` from that first render, and with it a `currentIndex`
+   * that never changes — every press would move to the same cover. */
+  const moveByRef = useRef(moveBy);
+  moveByRef.current = moveBy;
 
   const onStageKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (
@@ -748,6 +793,42 @@ const LibraryCoverFlow = ({
         onPointerCancel={endDrag}
         onPointerLeave={() => setHoveredIndex(undefined)}
       >
+        {/* The two arrows, in the dead space either side of the fan. The row
+            has always been steerable by wheel, drag and keyboard, none of
+            which a first-time reader can see; these are the one affordance
+            that says so without a tooltip. `stopPropagation` because the
+            stage turns a press into "centre the nearest cover" — see
+            `coverIndexAt` — and a press on an arrow means something else. */}
+        <button
+          type="button"
+          className="library-coverflow__arrow library-coverflow__arrow--back"
+          aria-label={t('library.coverflow.previous')}
+          title={t('library.coverflow.previous')}
+          disabled={currentIndex <= 0}
+          onClick={(event) => {
+            event.stopPropagation();
+            moveBy(-1);
+          }}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M15 5L8 12l7 7" />
+          </svg>
+        </button>
+        <button
+          type="button"
+          className="library-coverflow__arrow library-coverflow__arrow--next"
+          aria-label={t('library.coverflow.next')}
+          title={t('library.coverflow.next')}
+          disabled={currentIndex >= items.length - 1}
+          onClick={(event) => {
+            event.stopPropagation();
+            moveBy(1);
+          }}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M9 5l7 7-7 7" />
+          </svg>
+        </button>
         <div className="library-coverflow__track" ref={trackRef}>
           {visible.map(({ item, index }) => {
             const isCentre = index === currentIndex;

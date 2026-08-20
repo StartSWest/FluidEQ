@@ -105,6 +105,8 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 .library-coverflow__stage {
+  // The frame the side arrows position against.
+  position: relative;
   display: flex;
   width: 100%;
   align-items: center;
@@ -121,6 +123,95 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
   &:focus-visible {
     @include focus-ring;
+  }
+}
+
+// *** The side arrows ********************************************************
+//
+// In the dead space either side of the fan, which is the only part of this
+// stage nothing else wants. Quiet until pointed at: the covers are the
+// subject and two permanently bright discs beside them would compete with the
+// thing they exist to steer.
+//
+// `z-index` above the track because the track is a `preserve-3d` subtree and
+// composites as one unit — without it the far covers, which are pushed back
+// in 3D, still paint over a flat sibling.
+.library-coverflow__arrow {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  color: rgba($primary-lighter, 0.72);
+  border: 1px solid rgba($primary-lighter, 0.16);
+  border-radius: 50%;
+  background: rgba(6, 22, 33, 0.55);
+  cursor: pointer;
+  // Its own `translate` rather than a `transform`, so the hover nudge below
+  // composes with the centring instead of replacing it.
+  translate: 0 -50%;
+  backdrop-filter: blur(10px) saturate(1.2);
+  transition:
+    color 160ms $ease-out,
+    border-color 160ms $ease-out,
+    background 160ms $ease-out,
+    box-shadow 160ms $ease-out,
+    scale 160ms $ease-out,
+    opacity 160ms $ease-out;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentcolor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2;
+  }
+
+  &:hover:not(:disabled),
+  &:focus-visible {
+    color: $secondary-light;
+    border-color: rgba($secondary-light, 0.5);
+    background: rgba($secondary-default, 0.16);
+    box-shadow: 0 0 22px rgba($secondary-default, 0.28);
+    scale: 1.08;
+    outline: none;
+  }
+
+  &:active:not(:disabled) {
+    scale: 0.96;
+  }
+
+  // At either end there is nowhere to go. Kept in place rather than removed:
+  // a control that vanishes takes its own affordance with it, and the reader
+  // is left wondering whether the row ended or the button broke.
+  &:disabled {
+    opacity: 0.22;
+    cursor: default;
+  }
+
+  &--back {
+    left: clamp(8px, 3cqw, 44px);
+  }
+
+  &--next {
+    right: clamp(8px, 3cqw, 44px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .library-coverflow__arrow {
+    transition: none;
+
+    &:hover:not(:disabled),
+    &:focus-visible,
+    &:active:not(:disabled) {
+      scale: 1;
+    }
   }
 }
 

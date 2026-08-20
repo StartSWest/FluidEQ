@@ -41,6 +41,8 @@ const library: Partial<Dictionary> = {
   'library.browse.song': 'Chansons',
   'library.browse.folder': 'Dossiers',
   'library.jumpTo': 'Aller à une lettre',
+  'library.coverflow.previous': 'Pochette précédente',
+  'library.coverflow.next': 'Pochette suivante',
   'library.folderCount': '{count} dossiers',
   'library.filterHere': 'Filtrer ces chansons',
   'library.groupByFolder': 'Grouper par dossier',

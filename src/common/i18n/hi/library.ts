@@ -41,6 +41,8 @@ const library: Partial<Dictionary> = {
   'library.browse.song': 'गाने',
   'library.browse.folder': 'फ़ोल्डर',
   'library.jumpTo': 'किसी अक्षर पर जाएँ',
+  'library.coverflow.previous': 'पिछला कवर',
+  'library.coverflow.next': 'अगला कवर',
   'library.folderCount': '{count} फ़ोल्डर',
   'library.filterHere': 'इन गानों को फ़िल्टर करें',
   'library.groupByFolder': 'फ़ोल्डर के अनुसार समूहित करें',

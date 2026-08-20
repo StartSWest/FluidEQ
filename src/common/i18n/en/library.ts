@@ -39,6 +39,8 @@ const library = {
   'library.browse.song': 'Songs',
   'library.browse.folder': 'Folders',
   'library.jumpTo': 'Jump to a letter',
+  'library.coverflow.previous': 'Previous cover',
+  'library.coverflow.next': 'Next cover',
   'library.folderCount': '{count} folders',
   'library.filterHere': 'Filter these songs',
   'library.groupByFolder': 'Group by folder',

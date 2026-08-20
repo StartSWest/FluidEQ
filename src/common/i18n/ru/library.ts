@@ -41,6 +41,8 @@ const library: Partial<Dictionary> = {
   'library.browse.song': 'Песни',
   'library.browse.folder': 'Папки',
   'library.jumpTo': 'Перейти к букве',
+  'library.coverflow.previous': 'Предыдущая обложка',
+  'library.coverflow.next': 'Следующая обложка',
   'library.folderCount': 'Папок: {count}',
   'library.filterHere': 'Фильтр по этим песням',
   'library.groupByFolder': 'Группировать по папке',
