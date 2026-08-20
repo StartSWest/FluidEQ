@@ -519,7 +519,13 @@ const LiveTraceCanvas = ({
       // The same column count as the figure, or the beads sit between the stems
       // they are marking rather than on them.
       const accentShape = tuning.accents
-        ? createGraphAccent(projected, chosen, baseline, tuning.columns)
+        ? createGraphAccent(
+            projected,
+            chosen,
+            baseline,
+            tuning.columns,
+            waveformRef.current,
+          )
         : '';
       const accent = accentShape ? new Path2D(accentShape) : undefined;
 
