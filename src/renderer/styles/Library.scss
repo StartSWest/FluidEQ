@@ -719,16 +719,35 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   overflow: hidden;
 }
 
+// Every row in this list is exactly this tall, and that is a contract, not a
+// coincidence.
+//
+// `LibraryListView` mounts only the rows near the viewport and reserves plain
+// empty space for the rest — space it can only size correctly while every row
+// it has not seen turns out to be the height it reserved. A row that grew to
+// fit a long title would walk the scrollbar away from the content by exactly
+// that much, which is the bug that got an earlier windowed version reverted.
+// The view measures a real row on mount and uses what it finds, so changing
+// this number is safe; letting rows differ from *each other* is not.
+$library-row-height: 46px;
+
 .library-list__header,
 .library-list__row {
   display: grid;
   min-width: 0;
+  height: $library-row-height;
+  // Without this the height above is a suggestion. A row is a flex item in a
+  // column whose content is far taller than it, so it gets shrunk — down to
+  // its automatic minimum, which is the 32px cover inside it. Measured in the
+  // running window: rows declared at 46px came out at 32 and the reserved
+  // space no longer matched them.
+  flex-shrink: 0;
   grid-template-columns:
     $control-height-sm minmax(0, 1.8fr) minmax(0, 1fr) minmax(0, 1fr)
     64px;
   align-items: center;
   column-gap: $spacing-s;
-  padding: 7px $spacing-s;
+  padding: 0 $spacing-s;
 }
 
 @keyframes library-scan-progress-in {
@@ -846,23 +865,16 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // — without being one, since it also has to carry a nested cover image and a
 // two-line title cell that a real `<button>` cannot lay out as a grid.
 .library-list__row {
-  // Rendered only when it is near the viewport.
+  // No `content-visibility` here, deliberately, and it used to be.
   //
-  // This list grows a page at a time and never drops what it has mounted,
-  // which is right for the scrollbar — nothing stands in for what is not
-  // there, so it cannot lie — and was ruinous for memory: measured in the
-  // running window, 604 mounted rows held 176MB of decoded cover art, about
-  // 0.29MB each, which across fourteen thousand tracks is several gigabytes
-  // of pictures nobody is looking at.
-  //
-  // `content-visibility` fixes that without giving the scrollbar back its
-  // ability to lie: the rows still exist and still occupy their real height,
-  // Chromium simply skips laying out and painting the ones off screen and
-  // never decodes their covers. `contain-intrinsic-size: auto` remembers the
-  // height each row actually had once it has been seen, so the placeholder
-  // is that row's own measurement rather than a guess.
-  content-visibility: auto;
-  contain-intrinsic-size: auto 46px;
+  // It was how this list avoided decoding cover art it was not showing, back
+  // when it mounted every row it had ever scrolled past. `LibraryListView`
+  // now mounts a few hundred rows at most and drops the rest, which does the
+  // same job and more — and the two together were worse than either alone: a
+  // skipped row reports a height of zero, so the measurement the window takes
+  // to size the space it reserves came back as nothing, and the scrollbar
+  // went with it. Measured in the running window before this was removed: a
+  // row read 32px at the top of the list and 0px anywhere else.
   color: $text-muted;
   border-radius: $radius-xs;
   cursor: pointer;
@@ -1178,11 +1190,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // laid out as a card rather than the row `.library-list__row` draws.
 .library-grid__tile {
   @include inset-surface;
-  // Same reasoning as `.library-list__row`, and it matters more here: a tile
-  // shows its cover at four times a row's edge, so an off-screen page of them
-  // is four times the decoded pixels.
-  content-visibility: auto;
-  contain-intrinsic-size: auto 196px;
+  // No `content-visibility`, for the reason `.library-list__row` gives at
+  // length: `LibraryGridView` now mounts only the rows of tiles near the
+  // viewport, and a skipped tile measures as nothing, which is the one thing
+  // the window cannot have — it sizes the space it reserves from a real one.
   display: grid;
   min-width: 0;
   gap: $spacing-xs;
@@ -1588,10 +1599,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 // A folder's name over the run of rows that came from it, when the list is
 // asked to group that way. Quiet: it is a label on the rows, not a control.
+// The same height as a row, because to the window above it *is* a row — see
+// `$library-row-height`. It reads as a heading through weight and colour
+// rather than through taking more room than its neighbours.
 .library-list__folder-heading {
   display: flex;
+  height: $library-row-height;
+  flex-shrink: 0;
   align-items: center;
-  padding: 10px $spacing-s 4px;
+  padding: 0 $spacing-s;
   color: $text-faint;
   font-size: 0.64rem;
   font-weight: 700;

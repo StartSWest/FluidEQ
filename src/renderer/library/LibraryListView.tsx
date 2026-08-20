@@ -22,6 +22,7 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -153,31 +154,58 @@ const formatDuration = (durationMs: number | undefined): string => {
  * component, so any value that is not `'album'` or `'artist'` is treated as
  * `'song'` here.
  *
- * The list grows rather than windowing — see `PAGE_SIZE`.
+ * Only the rows near the viewport are ever in the document — see
+ * `OVERSCAN_VIEWPORTS`.
  */
 
 /**
- * How many rows are on screen to begin with, and how many more arrive each
- * time the bottom comes into reach.
+ * Only the rows near the viewport are mounted. Everything else is empty space
+ * on the body's own padding, and nothing else at all.
  *
- * This replaced a fixed window with spacers standing in for the rows above and
- * below. That version was correct on paper and wrong in the hand: the spacer
- * heights come from an assumed row height, every real row that disagreed with
- * it by a pixel moved the scrollbar under the thumb, and dragging the bar
- * quickly outran React and showed blank bands. A list that only ever grows has
- * no spacers to be wrong about — what is rendered is what is there, so the
- * scrollbar cannot lie and nothing can jump.
+ * This was tried once before and reverted, for two reasons worth naming
+ * because both are fixed here rather than tolerated:
  *
- * The cost is that scrolling to the end of fourteen thousand tracks eventually
- * mounts all of them. That is the right trade for a list nobody scrolls to the
- * end of: the first paint is a hundred rows either way, and the memory only
- * grows for someone who actually asked to see that far.
+ * The spacers were sized from an *assumed* row height, so every row that
+ * disagreed with it by a pixel walked the scrollbar away from the content.
+ * `.library-list__row` and `.library-list__folder-heading` now carry an
+ * explicit, identical height in `Library.scss` — the stylesheet says so, in
+ * as many words — and this view measures a real one on mount anyway and uses
+ * what it finds. An assumption that is checked against the thing it assumes
+ * about is not an assumption.
+ *
+ * And dragging the scrollbar quickly outran React, showing blank bands. That
+ * version still built a React element for all fourteen thousand rows on every
+ * window change and threw all but sixty of them away, which is slower than
+ * mounting the lot. The branches below now build elements for the window
+ * only — `renderTable` takes a count and a slice function, never an array —
+ * so a window change costs sixty rows' work, and three viewports of overscan
+ * either way is more than a flick can cross between two scroll events.
  */
-const PAGE_SIZE = 100;
-/** How close to the bottom, in pixels, counts as asking for the next page.
- * Roughly two rows: far enough to load before the user arrives, near enough
- * that it is their scroll doing the asking rather than a stray wheel tick. */
-const NEXT_PAGE_THRESHOLD_PX = 96;
+const OVERSCAN_VIEWPORTS = 3;
+
+/**
+ * One row's height, and the empty space reserved for one that is not mounted.
+ *
+ * A starting value only: `.library-list__row` in `Library.scss` sets exactly
+ * this, and the view measures a mounted row on layout and uses whatever the
+ * stylesheet actually produced. Wrong here costs one frame of a slightly
+ * misjudged window, never a wrong scrollbar.
+ */
+const ROW_HEIGHT = 46;
+
+/** Rows mounted before anything has been measured — enough to fill the
+ * tallest pane this app is usable in, so the first paint is never short while
+ * the layout effect below is still working out the real numbers. */
+const FIRST_WINDOW_ROWS = 60;
+
+/** One row of the song list, as data rather than as an element: what the
+ * window needs in order to count and index rows without building any. A
+ * heading and the track under it are two entries, not one — see `songRows`. */
+interface ISongRow {
+  /** Set only on a folder heading, and then it is the label. */
+  heading?: string;
+  track: ILibraryTrack;
+}
 
 /**
  * Where each list was left, keyed by what that list was showing.
@@ -194,13 +222,8 @@ const NEXT_PAGE_THRESHOLD_PX = 96;
  */
 const rememberedListState = new Map<
   string,
-  { scrollTop: number; shownCount: number; activeId?: string }
+  { scrollTop: number; activeId?: string }
 >();
-
-/** How many frames a restore keeps retrying before giving up. Generous: the
- * cost of one more assignment is nothing, and the cost of stopping a frame
- * too early is the reader losing their place. */
-const RESTORE_ATTEMPTS = 20;
 
 /** What a screen reader is told about a column: only the one actually driving
  * the order claims a direction. */
@@ -233,19 +256,113 @@ const LibraryListView = ({
 }: ILibraryListViewProps) => {
   const { t } = useTranslation();
   const bodyRef = useRef<HTMLDivElement | null>(null);
-  const [shownCount, setShownCount] = useState(
-    () => rememberedListState.get(resetKey)?.shownCount ?? PAGE_SIZE,
-  );
 
-  // Keep a ref in step with the count so the cleanup below saves what is on
-  // screen now, not what was there when the effect was created.
-  const shownCountRef = useRef(shownCount);
-  shownCountRef.current = shownCount;
+  /** The half-open slice of rows that is mounted. Everything outside it is
+   * not in the document at all — see `OVERSCAN_VIEWPORTS`. */
+  const [rowWindow, setRowWindow] = useState({
+    start: 0,
+    end: FIRST_WINDOW_ROWS,
+  });
+  /** The same value, readable from a scroll handler that must not re-render
+   * to find out whether it needs to. */
+  const rowWindowRef = useRef(rowWindow);
+  rowWindowRef.current = rowWindow;
+  /** How many rows the branch below produced, written as it renders. The
+   * scroll handler needs the count to clamp a window against and has no other
+   * way to learn it — which branch ran, and how many rows it made, is decided
+   * after every hook in this component has already run. */
+  const rowCountRef = useRef(0);
+  /** A row's real height, measured once there is a row to measure. */
+  const rowHeightRef = useRef(ROW_HEIGHT);
 
   /** True while the restore below is still assigning, so the scroll events
    * that assignment itself fires do not write the half-restored value back
    * over the one being restored. */
   const isRestoringRef = useRef(false);
+
+  /**
+   * Which rows belong on screen for where the body is scrolled to now.
+   *
+   * Pure arithmetic against a measured row height — no element is consulted
+   * and none needs to exist, which is what lets the reveal below jump
+   * straight to a row ten thousand down without first mounting the ten
+   * thousand above it.
+   */
+  const windowFor = useCallback((element: HTMLElement) => {
+    const rowHeight = rowHeightRef.current;
+    const count = rowCountRef.current;
+    // A body that has not been laid out yet reports nothing; a screenful is a
+    // better guess than none, and the observer below corrects it either way.
+    const viewport = element.clientHeight || rowHeight * FIRST_WINDOW_ROWS;
+    const overscan = viewport * OVERSCAN_VIEWPORTS;
+    const top = Math.max(0, element.scrollTop - overscan);
+    const bottom = element.scrollTop + viewport + overscan;
+    return {
+      start: Math.max(0, Math.min(Math.floor(top / rowHeight), count)),
+      end: Math.max(0, Math.min(Math.ceil(bottom / rowHeight), count)),
+    };
+  }, []);
+
+  /** Applies a window, and only re-renders when it is genuinely a different
+   * one. Scroll fires every frame; three viewports of overscan means the
+   * answer changes every few hundred pixels, so almost every one of those
+   * events ends here without costing anything. */
+  const applyWindow = useCallback((next: { start: number; end: number }) => {
+    const { current } = rowWindowRef;
+    if (next.start === current.start && next.end === current.end) {
+      return;
+    }
+    rowWindowRef.current = next;
+    setRowWindow(next);
+  }, []);
+
+  /**
+   * The song branch's rows as plain data — a folder heading, or a track.
+   *
+   * Built here rather than in the branch because two things need it before
+   * any element exists: the window, which has to know how many rows there are
+   * without making them, and the reveal, which has to turn a track id into a
+   * row *index* — with `groupByFolder` on, the headings interleave and a
+   * track's index in `tracks` is no longer its index down the list.
+   *
+   * Empty in the other three modes: they list groupings, not songs, and
+   * walking fourteen thousand tracks to build rows nobody is going to render
+   * is exactly the work this whole window exists to avoid.
+   */
+  const songRows = useMemo<ISongRow[]>(() => {
+    if (browseMode === 'album' || browseMode === 'artist') {
+      return [];
+    }
+    const entries: ISongRow[] = [];
+    tracks.forEach((track, index) => {
+      // A heading whenever the folder changes, and only when asked for. The
+      // list is already in whatever order the sort chose, so this labels runs
+      // rather than reordering anything — turning it on while sorted by title
+      // gives one heading per row, which is the honest answer to a question
+      // that does not really make sense, not something to prevent.
+      const heading =
+        groupByFolder &&
+        (index === 0 ||
+          folderLabel(tracks[index - 1].path) !== folderLabel(track.path))
+          ? folderLabel(track.path)
+          : undefined;
+      if (heading !== undefined) {
+        entries.push({ heading, track });
+      }
+      entries.push({ track });
+    });
+    return entries;
+  }, [tracks, groupByFolder, browseMode]);
+
+  /** Where a track sits *down the list*, headings included. Held in a ref so
+   * the reveal effect can ask without listing it as a dependency — it changes
+   * on every scan batch, and re-running the reveal for that would drag the
+   * reader back to the same row for the whole of a scan. */
+  const rowIndexOfTrackRef = useRef((trackId: string) =>
+    songRows.findIndex((entry) => !entry.heading && entry.track.id === trackId),
+  );
+  rowIndexOfTrackRef.current = (trackId: string) =>
+    songRows.findIndex((entry) => !entry.heading && entry.track.id === trackId);
 
   /**
    * Where the reader is, recorded as they go.
@@ -267,7 +384,6 @@ const LibraryListView = ({
       }
       rememberedListState.set(resetKey, {
         scrollTop: element.scrollTop,
-        shownCount: shownCountRef.current,
         activeId: rememberedListState.get(resetKey)?.activeId,
       });
     },
@@ -294,7 +410,6 @@ const LibraryListView = ({
           element?.scrollTop ??
           rememberedListState.get(resetKey)?.scrollTop ??
           0,
-        shownCount: shownCountRef.current,
         activeId: id,
       });
     },
@@ -305,12 +420,15 @@ const LibraryListView = ({
    * "Show me what is playing", the second half of it.
    *
    * The bar already brings the reader to the right album; this brings them to
-   * the row. Two things have to happen in order and neither is optional: the
-   * list pages a hundred rows at a time, so a track further down has no
-   * element to scroll to yet — hence growing `shownCount` past it first — and
-   * the scroll itself has to wait for React to have rendered those rows,
-   * hence the frame. Marking it as well as scrolling is what makes it findable
-   * on an album where every row looks alike.
+   * the row, and marks it — which is what makes it findable at all on an album
+   * where every row looks alike.
+   *
+   * The scroll is arithmetic, not a search: the row's position is its index
+   * times a row's height whether or not it is mounted, so this jumps straight
+   * to a track ten thousand down without first putting the ten thousand above
+   * it in the document. That is the whole point of the window — the old
+   * version had to page down to the row, wait for React, then find it, and
+   * retried across frames when it was not there yet.
    *
    * Keyed on the nonce, so pressing the bar twice for the same track works
    * even after the reader has scrolled away.
@@ -319,48 +437,30 @@ const LibraryListView = ({
   const revealTrackId = revealTrack?.trackId;
   useEffect(() => {
     if (revealTrackId === undefined) {
-      return undefined;
+      return;
     }
-    const index = tracks.findIndex((track) => track.id === revealTrackId);
+    const index = rowIndexOfTrackRef.current(revealTrackId);
     if (index < 0) {
-      return undefined;
+      return;
     }
     setActiveId(revealTrackId);
-    if (index >= shownCountRef.current) {
-      const needed = Math.ceil((index + 1) / PAGE_SIZE) * PAGE_SIZE + PAGE_SIZE;
-      shownCountRef.current = needed;
-      setShownCount(needed);
+    const element = bodyRef.current;
+    if (!element) {
+      return;
     }
-    // Retried rather than scrolled on the next frame: the `setShownCount`
-    // above schedules another render, so one frame later the row asked for is
-    // very often not mounted yet, and a single `scrollIntoView` then finds
-    // nothing and silently does nothing. Same bounded retry, and the same
-    // reason, as the restore below.
-    let attempts = 0;
-    let frame = 0;
-    const scrollToRow = () => {
-      frame = 0;
-      const row = bodyRef.current?.querySelector(
-        `[data-track-id="${CSS.escape(revealTrackId)}"]`,
-      );
-      if (row) {
-        row.scrollIntoView({ block: 'center' });
-        return;
-      }
-      attempts += 1;
-      if (attempts < RESTORE_ATTEMPTS) {
-        frame = requestAnimationFrame(scrollToRow);
-      }
-    };
-    frame = requestAnimationFrame(scrollToRow);
-    return () => {
-      if (frame) {
-        cancelAnimationFrame(frame);
-      }
-    };
-    // `tracks` is deliberately absent: it is replaced on every scan batch, and
-    // re-running this would drag the reader back to the revealed row for the
-    // whole of a scan.
+    const rowHeight = rowHeightRef.current;
+    // Centred, and never past either end — `scrollTop` clamps itself, but
+    // asking for a negative one on the first row would land at zero anyway
+    // and this says so.
+    element.scrollTop = Math.max(
+      0,
+      index * rowHeight - (element.clientHeight - rowHeight) / 2,
+    );
+    applyWindow(windowFor(element));
+    remember(element);
+    // Keyed on the request. `tracks` is deliberately absent: it is replaced on
+    // every scan batch, and re-running this would drag the reader back to the
+    // revealed row for the whole of a scan.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealTrackId, revealNonce]);
 
@@ -381,52 +481,53 @@ const LibraryListView = ({
   useLayoutEffect(() => {
     const element = bodyRef.current;
     const remembered = rememberedListState.get(resetKey);
-    let frame = 0;
-    if (!remembered) {
-      setShownCount(PAGE_SIZE);
-      setActiveId(undefined);
-      if (element) {
-        element.scrollTop = 0;
-      }
-      return undefined;
+    if (!element) {
+      return;
     }
-    setShownCount(remembered.shownCount);
-    setActiveId(remembered.activeId);
-    // Assigning once is not enough. `scrollTop` is clamped to the content's
-    // current height, and the page this restore needs has only just been
-    // asked for — until React has rendered those rows the maximum is one
-    // page tall and the assignment quietly becomes that instead. Retried on
-    // following frames until the value survives being read back.
+    // One assignment, and it sticks. The body reserves the full height of
+    // every row from its first paint — that is what the padding is — so
+    // `scrollTop` is no longer clamped to however far the list happened to
+    // have been paged, which is what the old retry loop existed to outlast.
     //
     // `scrollTop` rather than `scrollTo`, which jsdom does not implement and
     // would need mocking in every test that renders this view.
     isRestoringRef.current = true;
-    let attempts = 0;
-    const restore = () => {
-      frame = 0;
-      if (!element) {
-        isRestoringRef.current = false;
-        return;
-      }
-      element.scrollTop = remembered.scrollTop;
-      attempts += 1;
-      if (
-        Math.abs(element.scrollTop - remembered.scrollTop) > 1 &&
-        attempts < RESTORE_ATTEMPTS
-      ) {
-        frame = requestAnimationFrame(restore);
-        return;
-      }
-      isRestoringRef.current = false;
-    };
-    restore();
-    return () => {
-      isRestoringRef.current = false;
-      if (frame) {
-        cancelAnimationFrame(frame);
-      }
-    };
+    setActiveId(remembered?.activeId);
+    element.scrollTop = remembered?.scrollTop ?? 0;
+    applyWindow(windowFor(element));
+    isRestoringRef.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetKey]);
+
+  /**
+   * What a row is really this tall, and how tall the pane really is.
+   *
+   * Both are measured rather than assumed, because the empty space this view
+   * reserves for rows it has not mounted is only right while it matches what
+   * a mounted one comes out as — the previous windowed version was reverted
+   * precisely because an assumed height walked the scrollbar away from the
+   * content a pixel at a time. A `ResizeObserver` rather than a resize
+   * listener so a pane that changes height without the window doing so —
+   * the graph being collapsed, the scan strip appearing — is caught too.
+   */
+  useLayoutEffect(() => {
+    const element = bodyRef.current;
+    if (!element) {
+      return undefined;
+    }
+    const measure = () => {
+      const row = element.querySelector('.library-list__row');
+      const height = row?.getBoundingClientRect().height ?? 0;
+      if (height > 0) {
+        rowHeightRef.current = height;
+      }
+      applyWindow(windowFor(element));
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [applyWindow, windowFor]);
   // The row a right click or a keyboard context-menu request landed on, and
   // the element the menu hangs off — the row itself, since a context menu
   // has no persistent trigger button the way `AnchoredMenu`'s other users
@@ -561,16 +662,18 @@ const LibraryListView = ({
    * listing. */
   const renderTable = (
     headerCells: ReactNode,
-    rows: ReactNode[],
+    count: number,
+    renderRows: (start: number, end: number) => ReactNode[],
     menu?: ReactNode,
   ) => {
-    // A page at a time, growing as the bottom comes into reach. Nothing
-    // stands in for what is not rendered, which is the point: the scrollbar
-    // measures exactly the rows that exist, so it cannot disagree with them
-    // and the thumb cannot move under the pointer.
-    const total = rows.length;
-    const shown = Math.min(total, shownCount);
-    const remaining = total - shown;
+    // Written during render, and read by the scroll handler and both layout
+    // effects — none of which can be told the count any other way, because
+    // which branch runs and how many rows it has is settled after every hook
+    // in this component.
+    rowCountRef.current = count;
+    const rowHeight = rowHeightRef.current;
+    const start = Math.min(rowWindow.start, count);
+    const end = Math.min(Math.max(rowWindow.end, start), count);
     return (
       <div className="library-list" role="table" aria-label={t('tabs.library')}>
         <div className="library-list__header" role="row">
@@ -586,29 +689,44 @@ const LibraryListView = ({
           ref={bodyRef}
           onScroll={(event) => {
             const element = event.currentTarget;
-            if (remaining > 0) {
-              const distanceToBottom =
-                element.scrollHeight - element.scrollTop - element.clientHeight;
-              if (distanceToBottom <= NEXT_PAGE_THRESHOLD_PX) {
-                // The ref, not just the state: `remember` right below reads
-                // it this same tick, and a `setShownCount` has not landed by
-                // then — remembering the count from before the page was
-                // added would restore a list too short to hold the position
-                // remembered beside it.
-                shownCountRef.current += PAGE_SIZE;
-                setShownCount(shownCountRef.current);
-              }
-            }
+            applyWindow(windowFor(element));
             remember(element);
           }}
         >
-          {rows.slice(0, shown)}
-          {remaining > 0 && (
-            <div className="library-list__more" role="row">
-              <span role="cell">
-                {t('library.trackCount', { count: remaining })}
-              </span>
-            </div>
+          {/* The rows that are not mounted, as two empty blocks standing in
+              for them — which is what keeps the scrollbar measuring the whole
+              list from the first paint, and is what lets the restore above
+              assign `scrollTop` once instead of retrying until the list has
+              grown far enough to hold it.
+
+              Blocks and not the body's own padding, which is what this was
+              written as first: a flex item cannot shrink below its own
+              padding, so six hundred thousand pixels of it forced the body
+              past its parent instead of scrolling inside it — measured, the
+              body came out with a `clientHeight` of zero and nothing worked.
+              Content shrinks; padding does not.
+
+              `aria-hidden` rather than a role, because a `rowgroup` may only
+              contain rows: hidden, the subtree is not in the accessibility
+              tree at all and cannot be the wrong kind of child. */}
+          {start > 0 && (
+            <div
+              aria-hidden="true"
+              // `flexShrink: 0` is not decoration. The body is a flex column,
+              // and a flex item's automatic minimum is its content — which
+              // for an empty block is nothing, so without this the spacer
+              // shrinks to zero and takes the scrollbar with it. The rows
+              // stay their own size because they have content to be minimum
+              // about; a spacer has none by definition.
+              style={{ height: start * rowHeight, flexShrink: 0 }}
+            />
+          )}
+          {renderRows(start, end)}
+          {end < count && (
+            <div
+              aria-hidden="true"
+              style={{ height: (count - end) * rowHeight, flexShrink: 0 }}
+            />
           )}
         </div>
         {menu}
@@ -635,71 +753,73 @@ const LibraryListView = ({
           {columnHeader('length')}
         </span>
       </>,
-      albums.map((album) => {
-        const activate = () => {
-          rememberActive(album.id);
-          onOpenAlbum(album.id);
-        };
-        const title = album.title || t('library.unknownAlbum');
-        const isSelected = activeId === album.id;
-        return (
-          <div
-            key={album.id}
-            role="row"
-            tabIndex={0}
-            aria-selected={isSelected}
-            className={`library-list__row${album.isPending ? ' library-list__row--pending' : ''}${
-              isSelected ? ' library-list__row--selected' : ''
-            }`}
-            onClick={activate}
-            onKeyDown={(event) => onActivateKeyDown(event, activate)}
-          >
-            <span
-              role="cell"
-              className="library-list__col library-list__col--art"
+      albums.length,
+      (start, end) =>
+        albums.slice(start, end).map((album) => {
+          const activate = () => {
+            rememberActive(album.id);
+            onOpenAlbum(album.id);
+          };
+          const title = album.title || t('library.unknownAlbum');
+          const isSelected = activeId === album.id;
+          return (
+            <div
+              key={album.id}
+              role="row"
+              tabIndex={0}
+              aria-selected={isSelected}
+              className={`library-list__row${album.isPending ? ' library-list__row--pending' : ''}${
+                isSelected ? ' library-list__row--selected' : ''
+              }`}
+              onClick={activate}
+              onKeyDown={(event) => onActivateKeyDown(event, activate)}
             >
-              <LibraryCoverArt artId={album.artId} label={title} size="row" />
-            </span>
-            <span
-              role="cell"
-              className="library-list__col library-list__col--title"
-            >
-              <span className="library-list__title-text">
-                <span className="library-list__title-label">{title}</span>
-                {/* Every track this folder-derived album currently has is
+              <span
+                role="cell"
+                className="library-list__col library-list__col--art"
+              >
+                <LibraryCoverArt artId={album.artId} label={title} size="row" />
+              </span>
+              <span
+                role="cell"
+                className="library-list__col library-list__col--title"
+              >
+                <span className="library-list__title-text">
+                  <span className="library-list__title-label">{title}</span>
+                  {/* Every track this folder-derived album currently has is
                     still unread -- see `groupIntoAlbums`' own comment on why
                     one resolved member is enough to clear this. */}
-                {album.isPending && (
-                  <span
-                    className="library-list__badge library-list__badge--pending"
-                    title={t('library.pending')}
-                  >
-                    <MenuIcon
-                      name="pending"
-                      className="library-list__badge-icon"
-                    />
-                  </span>
-                )}
+                  {album.isPending && (
+                    <span
+                      className="library-list__badge library-list__badge--pending"
+                      title={t('library.pending')}
+                    >
+                      <MenuIcon
+                        name="pending"
+                        className="library-list__badge-icon"
+                      />
+                    </span>
+                  )}
+                </span>
+                <small className="library-list__subtitle">
+                  {t('library.trackCount', { count: album.trackIds.length })}
+                </small>
               </span>
-              <small className="library-list__subtitle">
-                {t('library.trackCount', { count: album.trackIds.length })}
-              </small>
-            </span>
-            <span role="cell" className="library-list__col">
-              {album.artist || t('library.unknownArtist')}
-            </span>
-            <span role="cell" className="library-list__col">
-              {album.year ?? ''}
-            </span>
-            <span
-              role="cell"
-              className="library-list__col library-list__col--length"
-            >
-              {formatDuration(album.durationMs)}
-            </span>
-          </div>
-        );
-      }),
+              <span role="cell" className="library-list__col">
+                {album.artist || t('library.unknownArtist')}
+              </span>
+              <span role="cell" className="library-list__col">
+                {album.year ?? ''}
+              </span>
+              <span
+                role="cell"
+                className="library-list__col library-list__col--length"
+              >
+                {formatDuration(album.durationMs)}
+              </span>
+            </div>
+          );
+        }),
     );
   }
 
@@ -710,51 +830,55 @@ const LibraryListView = ({
       : groupedFolders;
     return renderTable(
       sortableHeader('title', 'title', 'library-list__col--span'),
-      folders.map((folder) => {
-        const activate = () => {
-          rememberActive(folder.id);
-          onOpenFolder?.(folder.id);
-        };
-        const isSelected = activeId === folder.id;
-        return (
-          <div
-            key={folder.id}
-            role="row"
-            tabIndex={0}
-            aria-selected={isSelected}
-            className={`library-list__row${folder.isPending ? ' library-list__row--pending' : ''}${
-              isSelected ? ' library-list__row--selected' : ''
-            }`}
-            onClick={activate}
-            onKeyDown={(event) => onActivateKeyDown(event, activate)}
-          >
-            <span
-              role="cell"
-              className="library-list__col library-list__col--art"
+      folders.length,
+      (start, end) =>
+        folders.slice(start, end).map((folder) => {
+          const activate = () => {
+            rememberActive(folder.id);
+            onOpenFolder?.(folder.id);
+          };
+          const isSelected = activeId === folder.id;
+          return (
+            <div
+              key={folder.id}
+              role="row"
+              tabIndex={0}
+              aria-selected={isSelected}
+              className={`library-list__row${folder.isPending ? ' library-list__row--pending' : ''}${
+                isSelected ? ' library-list__row--selected' : ''
+              }`}
+              onClick={activate}
+              onKeyDown={(event) => onActivateKeyDown(event, activate)}
             >
-              <LibraryCoverArt
-                artId={folder.artId}
-                label={folder.name}
-                size="row"
-              />
-            </span>
-            <span
-              role="cell"
-              className="library-list__col library-list__col--title library-list__col--span"
-            >
-              <span className="library-list__title-text">
-                <span className="library-list__title-label">{folder.name}</span>
+              <span
+                role="cell"
+                className="library-list__col library-list__col--art"
+              >
+                <LibraryCoverArt
+                  artId={folder.artId}
+                  label={folder.name}
+                  size="row"
+                />
               </span>
-              {/* The path, not the name again: two folders called "CD1" are
+              <span
+                role="cell"
+                className="library-list__col library-list__col--title library-list__col--span"
+              >
+                <span className="library-list__title-text">
+                  <span className="library-list__title-label">
+                    {folder.name}
+                  </span>
+                </span>
+                {/* The path, not the name again: two folders called "CD1" are
                   the normal case, and the only thing that tells them apart is
                   where they live. */}
-              <small className="library-list__subtitle">
-                {`${t('library.trackCount', { count: folder.trackCount })} · ${folder.id}`}
-              </small>
-            </span>
-          </div>
-        );
-      }),
+                <small className="library-list__subtitle">
+                  {`${t('library.trackCount', { count: folder.trackCount })} · ${folder.id}`}
+                </small>
+              </span>
+            </div>
+          );
+        }),
     );
   }
 
@@ -765,61 +889,63 @@ const LibraryListView = ({
       : groupedArtists;
     return renderTable(
       sortableHeader('title', 'title', 'library-list__col--span'),
-      artists.map((artist) => {
-        const activate = () => {
-          rememberActive(artist.id);
-          onOpenArtist(artist.id);
-        };
-        const name = artist.name || t('library.unknownArtist');
-        const isSelected = activeId === artist.id;
-        return (
-          <div
-            key={artist.id}
-            role="row"
-            tabIndex={0}
-            aria-selected={isSelected}
-            className={`library-list__row${artist.isPending ? ' library-list__row--pending' : ''}${
-              isSelected ? ' library-list__row--selected' : ''
-            }`}
-            onClick={activate}
-            onKeyDown={(event) => onActivateKeyDown(event, activate)}
-          >
-            <span
-              role="cell"
-              className="library-list__col library-list__col--art"
+      artists.length,
+      (start, end) =>
+        artists.slice(start, end).map((artist) => {
+          const activate = () => {
+            rememberActive(artist.id);
+            onOpenArtist(artist.id);
+          };
+          const name = artist.name || t('library.unknownArtist');
+          const isSelected = activeId === artist.id;
+          return (
+            <div
+              key={artist.id}
+              role="row"
+              tabIndex={0}
+              aria-selected={isSelected}
+              className={`library-list__row${artist.isPending ? ' library-list__row--pending' : ''}${
+                isSelected ? ' library-list__row--selected' : ''
+              }`}
+              onClick={activate}
+              onKeyDown={(event) => onActivateKeyDown(event, activate)}
             >
-              <LibraryCoverArt artId={artist.artId} label={name} size="row" />
-            </span>
-            <span
-              role="cell"
-              className="library-list__col library-list__col--title library-list__col--span"
-            >
-              <span className="library-list__title-text">
-                <span className="library-list__title-label">{name}</span>
-                {/* Same rule as the album row above: every track grouped
-                    under this artist right now is still unread. */}
-                {artist.isPending && (
-                  <span
-                    className="library-list__badge library-list__badge--pending"
-                    title={t('library.pending')}
-                  >
-                    <MenuIcon
-                      name="pending"
-                      className="library-list__badge-icon"
-                    />
-                  </span>
-                )}
+              <span
+                role="cell"
+                className="library-list__col library-list__col--art"
+              >
+                <LibraryCoverArt artId={artist.artId} label={name} size="row" />
               </span>
-              <small className="library-list__subtitle">
-                {`${t('library.albumCount', { count: artist.albumCount })} · ${t(
-                  'library.trackCount',
-                  { count: artist.trackCount },
-                )}`}
-              </small>
-            </span>
-          </div>
-        );
-      }),
+              <span
+                role="cell"
+                className="library-list__col library-list__col--title library-list__col--span"
+              >
+                <span className="library-list__title-text">
+                  <span className="library-list__title-label">{name}</span>
+                  {/* Same rule as the album row above: every track grouped
+                    under this artist right now is still unread. */}
+                  {artist.isPending && (
+                    <span
+                      className="library-list__badge library-list__badge--pending"
+                      title={t('library.pending')}
+                    >
+                      <MenuIcon
+                        name="pending"
+                        className="library-list__badge-icon"
+                      />
+                    </span>
+                  )}
+                </span>
+                <small className="library-list__subtitle">
+                  {`${t('library.albumCount', { count: artist.albumCount })} · ${t(
+                    'library.trackCount',
+                    { count: artist.trackCount },
+                  )}`}
+                </small>
+              </span>
+            </div>
+          );
+        }),
     );
   }
 
@@ -840,45 +966,36 @@ const LibraryListView = ({
         {columnHeader('length')}
       </span>
     </>,
-    tracks.flatMap((track, trackIndex) => {
-      // A heading whenever the folder changes, and only when asked for. The
-      // list is already in whatever order the sort chose, so this labels runs
-      // rather than reordering anything — turning it on while sorted by title
-      // gives one heading per row, which is the honest answer to a question
-      // that does not really make sense, not something to prevent.
-      const folderHeading =
-        groupByFolder &&
-        (trackIndex === 0 ||
-          folderLabel(tracks[trackIndex - 1].path) !==
-            folderLabel(track.path)) ? (
+    songRows.length,
+    (start, end) =>
+      songRows.slice(start, end).map((entry) =>
+        entry.heading !== undefined ? (
           <div
-            key={`folder-${track.id}`}
+            key={`folder-${entry.track.id}`}
             role="row"
             className="library-list__folder-heading"
           >
             <span role="cell">
               <MenuIcon name="folder" className="library-list__badge-icon" />
-              <span>{folderLabel(track.path)}</span>
+              <span>{entry.heading}</span>
             </span>
           </div>
-        ) : undefined;
-      const row = (
-        <LibraryTrackRow
-          key={track.id}
-          track={track}
-          isOffline={offlineRootIds.has(track.rootId)}
-          isFolderOnly={folderOnlyIds.has(track.id)}
-          isSelected={activeId === track.id}
-          isPlaying={playingTrackId === track.id}
-          duration={formatDuration(track.durationMs)}
-          onPlay={onPlayTrack}
-          onSelect={rememberActive}
-          onKeyDown={onTrackRowKeyDown}
-          onContextMenu={openTrackMenu}
-        />
-      );
-      return folderHeading ? [folderHeading, row] : [row];
-    }),
+        ) : (
+          <LibraryTrackRow
+            key={entry.track.id}
+            track={entry.track}
+            isOffline={offlineRootIds.has(entry.track.rootId)}
+            isFolderOnly={folderOnlyIds.has(entry.track.id)}
+            isSelected={activeId === entry.track.id}
+            isPlaying={playingTrackId === entry.track.id}
+            duration={formatDuration(entry.track.durationMs)}
+            onPlay={onPlayTrack}
+            onSelect={rememberActive}
+            onKeyDown={onTrackRowKeyDown}
+            onContextMenu={openTrackMenu}
+          />
+        ),
+      ),
     <AnchoredMenu
       anchor={trackMenu?.anchor ?? null}
       isOpen={Boolean(trackMenu)}

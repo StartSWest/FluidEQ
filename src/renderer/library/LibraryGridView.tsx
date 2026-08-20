@@ -79,11 +79,19 @@ interface ILibraryGridViewProps {
 
 const NO_OFFLINE_ROOTS: ReadonlySet<string> = new Set();
 
-/** Tiles per page, and how close to the bottom asks for the next one. Larger
- * than the list's hundred rows because a tile is a fraction of a row's height
- * and four to eight sit side by side: a hundred would be barely two screens. */
-const PAGE_SIZE = 180;
-const NEXT_PAGE_THRESHOLD_PX = 320;
+/** How far beyond the viewport stays mounted, each way, in viewports — the
+ * list view's own constant, and everything its comment says applies here. */
+const OVERSCAN_VIEWPORTS = 3;
+
+/** Starting guesses only. Every one of them is measured off the real grid on
+ * layout, because this one cannot assume even the column count: the columns
+ * are `repeat(auto-fill, minmax(150px, 1fr))` and there is deliberately no
+ * right number to hardcode. */
+const TILE_HEIGHT = 196;
+const TILE_COLUMNS = 6;
+/** Tiles mounted before anything has been measured — a few rows' worth at any
+ * plausible column count, so the first paint is never short. */
+const FIRST_WINDOW_TILES = 60;
 
 /** Where each grid was left and which tile was opened out of it, keyed by
  * what the grid was showing. Module-level for the reason `LibraryListView`'s
@@ -91,12 +99,8 @@ const NEXT_PAGE_THRESHOLD_PX = 320;
  * the component survives to put the reader back where they were. */
 const rememberedGridState = new Map<
   string,
-  { scrollTop: number; shownCount: number; activeId?: string }
+  { scrollTop: number; activeId?: string }
 >();
-
-/** Frames a restore keeps retrying before giving up — see the list view's
- * own constant for why one assignment is not enough. */
-const RESTORE_ATTEMPTS = 20;
 
 /**
  * One tile's worth of what `LibraryGridView` draws — deliberately the raw
@@ -150,14 +154,38 @@ const LibraryGridView = ({
   const { t } = useTranslation();
   const gridRef = useRef<HTMLDivElement | null>(null);
   const isRestoringRef = useRef(false);
-  const [shownCount, setShownCount] = useState(
-    () => rememberedGridState.get(resetKey)?.shownCount ?? PAGE_SIZE,
-  );
-  const shownCountRef = useRef(shownCount);
-  shownCountRef.current = shownCount;
   const [activeId, setActiveId] = useState<string | undefined>(
     () => rememberedGridState.get(resetKey)?.activeId,
   );
+
+  /** The half-open slice of tiles that is mounted; everything else is empty
+   * space on the grid's own padding. Always whole rows of tiles — half a row
+   * would leave a ragged edge the reader would read as missing art. */
+  const [tileWindow, setTileWindow] = useState({
+    start: 0,
+    end: FIRST_WINDOW_TILES,
+  });
+  const tileWindowRef = useRef(tileWindow);
+  tileWindowRef.current = tileWindow;
+  /** How many tiles the memo below produced, written as it renders — the
+   * scroll handler has no other way to learn it. */
+  const tileCountRef = useRef(0);
+  /**
+   * What the grid actually laid out: a tile's height, the gap between rows,
+   * how many columns `auto-fill` chose, and the padding the stylesheet puts
+   * around the lot.
+   *
+   * All measured, none assumed. The column count especially: it comes from
+   * the pane's width against a 150px minimum, and there is no one right
+   * number to write down — which is exactly why the earlier attempt at a
+   * window here was abandoned rather than made to guess.
+   */
+  const metricsRef = useRef({
+    tileHeight: TILE_HEIGHT,
+    rowGap: 0,
+    columns: TILE_COLUMNS,
+    padding: 0,
+  });
 
   /** Same contract as `LibraryListView`'s own `remember`, and written for the
    * same reason: recorded as the reader scrolls, never off an element that is
@@ -169,12 +197,50 @@ const LibraryGridView = ({
       }
       rememberedGridState.set(resetKey, {
         scrollTop: element.scrollTop,
-        shownCount: shownCountRef.current,
         activeId: rememberedGridState.get(resetKey)?.activeId,
       });
     },
     [resetKey],
   );
+
+  /**
+   * Which tiles belong on screen for where the grid is scrolled to now.
+   *
+   * Whole rows only, and pure arithmetic against the measured metrics — no
+   * element is consulted, which is what lets the reveal jump straight to a
+   * tile six thousand down without mounting the six thousand above it.
+   */
+  const windowFor = useCallback((element: HTMLElement) => {
+    const { tileHeight, rowGap, columns, padding } = metricsRef.current;
+    const count = tileCountRef.current;
+    const pitch = tileHeight + rowGap;
+    const rows = Math.ceil(count / columns);
+    const viewport = element.clientHeight || pitch * 3;
+    const overscan = viewport * OVERSCAN_VIEWPORTS;
+    const top = element.scrollTop - padding - overscan;
+    const bottom = element.scrollTop - padding + viewport + overscan;
+    const firstRow = Math.max(0, Math.min(Math.floor(top / pitch), rows));
+    const lastRow = Math.max(
+      firstRow,
+      Math.min(Math.ceil(bottom / pitch), rows),
+    );
+    return {
+      start: Math.min(firstRow * columns, count),
+      end: Math.min(lastRow * columns, count),
+    };
+  }, []);
+
+  /** Applies a window, and re-renders only when it is genuinely a different
+   * one — see `LibraryListView`'s twin for why almost every scroll event ends
+   * here having cost nothing. */
+  const applyWindow = useCallback((next: { start: number; end: number }) => {
+    const { current } = tileWindowRef;
+    if (next.start === current.start && next.end === current.end) {
+      return;
+    }
+    tileWindowRef.current = next;
+    setTileWindow(next);
+  }, []);
 
   const rememberActive = useCallback(
     (id: string) => {
@@ -184,58 +250,68 @@ const LibraryGridView = ({
           gridRef.current?.scrollTop ??
           rememberedGridState.get(resetKey)?.scrollTop ??
           0,
-        shownCount: shownCountRef.current,
         activeId: id,
       });
     },
     [resetKey],
   );
 
-  // Back to where the reader left this grid, or to the first page if they
-  // have not been in it. Keyed on `resetKey` rather than on `items`, which
-  // gets a new identity on every scan batch — resetting on that would yank
-  // them to the top several times a second while a scan runs.
+  // Back to where the reader left this grid, or to the top if they have not
+  // been in it. Keyed on `resetKey` rather than on `items`, which gets a new
+  // identity on every scan batch — resetting on that would yank them to the
+  // top several times a second while a scan runs.
+  //
+  // One assignment, and it sticks: the grid reserves the full height of every
+  // row of tiles from its first paint, so `scrollTop` is no longer clamped to
+  // however far the grid happened to have been paged. That clamping is what
+  // the old retry loop existed to outlast.
   useLayoutEffect(() => {
     const element = gridRef.current;
     const remembered = rememberedGridState.get(resetKey);
-    let frame = 0;
-    if (!remembered) {
-      setShownCount(PAGE_SIZE);
-      setActiveId(undefined);
-      if (element) {
-        element.scrollTop = 0;
-      }
+    if (!element) {
+      return;
+    }
+    isRestoringRef.current = true;
+    setActiveId(remembered?.activeId);
+    element.scrollTop = remembered?.scrollTop ?? 0;
+    applyWindow(windowFor(element));
+    isRestoringRef.current = false;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [resetKey]);
+
+  /**
+   * What the grid really laid out, measured rather than assumed.
+   *
+   * `padding` is read from the *left* padding deliberately: the stylesheet
+   * sets all four the same, and top and bottom are the two this view
+   * overwrites to stand in for the tiles it has not mounted — so left is the
+   * only one that still reports what the stylesheet asked for.
+   */
+  useLayoutEffect(() => {
+    const element = gridRef.current;
+    if (!element) {
       return undefined;
     }
-    setShownCount(remembered.shownCount);
-    setActiveId(remembered.activeId);
-    isRestoringRef.current = true;
-    let attempts = 0;
-    const restore = () => {
-      frame = 0;
-      if (!element) {
-        isRestoringRef.current = false;
-        return;
-      }
-      element.scrollTop = remembered.scrollTop;
-      attempts += 1;
-      if (
-        Math.abs(element.scrollTop - remembered.scrollTop) > 1 &&
-        attempts < RESTORE_ATTEMPTS
-      ) {
-        frame = requestAnimationFrame(restore);
-        return;
-      }
-      isRestoringRef.current = false;
+    const measure = () => {
+      const style = getComputedStyle(element);
+      const columns = style.gridTemplateColumns
+        .split(' ')
+        .filter(Boolean).length;
+      const tile = element.querySelector('.library-grid__tile');
+      const tileHeight = tile?.getBoundingClientRect().height ?? 0;
+      metricsRef.current = {
+        tileHeight: tileHeight > 0 ? tileHeight : metricsRef.current.tileHeight,
+        rowGap: parseFloat(style.rowGap) || 0,
+        columns: columns > 0 ? columns : metricsRef.current.columns,
+        padding: parseFloat(style.paddingLeft) || 0,
+      };
+      applyWindow(windowFor(element));
     };
-    restore();
-    return () => {
-      isRestoringRef.current = false;
-      if (frame) {
-        cancelAnimationFrame(frame);
-      }
-    };
-  }, [resetKey]);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, [applyWindow, windowFor]);
 
   // `groupIntoAlbums`/`groupIntoArtists` walk every track in the library.
   // Memoised on the track list and the mode actually being shown, so a
@@ -300,6 +376,13 @@ const LibraryGridView = ({
       isPending: track.isPending === true,
     }));
   }, [tracks, browseMode, sort, sortDirection]);
+
+  /** The same tiles, readable from the reveal without being one of its
+   * dependencies — `items` gets a new identity on every scan batch, and a
+   * reveal that re-ran for that would drag the grid back to the same tile
+   * several times a second for the whole of a scan. */
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
 
   /** The row's primary action, resolved from the always-current callback
    * props rather than baked into the memoised `items` above. */
@@ -378,69 +461,71 @@ const LibraryGridView = ({
   }, [tracks, playingTrackId, browseMode]);
 
   /**
-   * Page to a tile, scroll to it and select it — the grid's half of
-   * `LibraryListView`'s reveal, written the same way and for the same reason.
+   * Scroll to a tile and select it — the grid's half of `LibraryListView`'s
+   * reveal, written the same way and for the same reason.
    *
-   * Paging first is the part that matters: the grid holds a page at a time
-   * and the tile asked for is very often past the end of what is mounted, so
-   * scrolling to it before growing the grid would scroll to nothing.
+   * Arithmetic, not a search: a tile's row is its index over the column
+   * count, so this jumps straight to a tile six thousand down without putting
+   * the six thousand above it in the document first. The version before the
+   * window had to page down to it, wait for React, then find it — and when it
+   * was not there yet it silently scrolled nowhere, which is exactly what was
+   * measured on a 6660-tile grid: the right tile selected 133,743px down a
+   * grid that had not moved.
    */
   const revealNonce = revealTrack?.nonce;
   const revealTrackId = revealTrack?.trackId;
   useEffect(() => {
     if (revealTrackId === undefined) {
-      return undefined;
+      return;
     }
-    const index = items.findIndex((item) => item.id === revealTrackId);
+    const index = itemsRef.current.findIndex(
+      (item) => item.id === revealTrackId,
+    );
     if (index < 0) {
-      return undefined;
+      return;
     }
     rememberActive(revealTrackId);
-    if (index >= shownCountRef.current) {
-      const needed = Math.ceil((index + 1) / PAGE_SIZE) * PAGE_SIZE + PAGE_SIZE;
-      shownCountRef.current = needed;
-      setShownCount(needed);
+    const element = gridRef.current;
+    if (!element) {
+      return;
     }
-    // Retried rather than scrolled on the next frame, for the same reason
-    // `RESTORE_ATTEMPTS` exists at all: the `setShownCount` above schedules
-    // another render, so one frame later the tile asked for very often does
-    // not exist yet and a single `scrollIntoView` finds nothing and silently
-    // does nothing. Measured on a 6660-tile grid, that was exactly the bug —
-    // the right tile was selected 133,743px down a grid that had not moved.
-    let attempts = 0;
-    let frame = 0;
-    const scrollToTile = () => {
-      frame = 0;
-      const tile = gridRef.current?.querySelector(
-        `[data-tile-id="${CSS.escape(revealTrackId)}"]`,
-      );
-      if (tile) {
-        tile.scrollIntoView({ block: 'center' });
-        return;
-      }
-      attempts += 1;
-      if (attempts < RESTORE_ATTEMPTS) {
-        frame = requestAnimationFrame(scrollToTile);
-      }
-    };
-    frame = requestAnimationFrame(scrollToTile);
-    return () => {
-      if (frame) {
-        cancelAnimationFrame(frame);
-      }
-    };
+    const { tileHeight, rowGap, columns, padding } = metricsRef.current;
+    const row = Math.floor(index / columns);
+    element.scrollTop = Math.max(
+      0,
+      padding +
+        row * (tileHeight + rowGap) -
+        (element.clientHeight - tileHeight) / 2,
+    );
+    applyWindow(windowFor(element));
+    remember(element);
     // Keyed on the request, not on `items` — which gets a new identity on
     // every scan batch and would drag the grid back here several times a
     // second while one runs.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealTrackId, revealNonce]);
 
-  // A page at a time, growing as the bottom comes into reach — the same rule
-  // `LibraryListView` follows, and for the same reason: nothing stands in for
-  // what is not rendered, so the scrollbar measures exactly the tiles that
-  // exist and cannot move under the pointer.
-  const shown = Math.min(items.length, shownCount);
-  const remaining = items.length - shown;
+  // Written during render: the scroll handler and both layout effects need
+  // the count and have no other way to learn it.
+  tileCountRef.current = items.length;
+  const { tileHeight, rowGap, columns } = metricsRef.current;
+  const start = Math.min(tileWindow.start, items.length);
+  const end = Math.min(Math.max(tileWindow.end, start), items.length);
+  // The rows of tiles that are not mounted, as one empty block above and one
+  // below. A row is a tile plus the gap that joins it to the next, which is
+  // why the pitch and not the height alone — and a spacer brings a gap of its
+  // own, which is the `- rowGap`: without it every one of them would push the
+  // grid a further sixteen pixels out of step with its own scrollbar.
+  const pitch = tileHeight + rowGap;
+  const rowsAbove = Math.floor(start / columns);
+  const rowsTotal = Math.ceil(items.length / columns);
+  const rowsBelow = Math.max(0, rowsTotal - Math.ceil(end / columns));
+  const spacer = (rows: number) => ({
+    height: Math.max(0, rows * pitch - rowGap),
+    // Full width, so it stands in for whole rows rather than being placed as
+    // one more tile in the flow.
+    gridColumn: '1 / -1',
+  });
 
   return (
     <div
@@ -449,20 +534,12 @@ const LibraryGridView = ({
       ref={gridRef}
       onScroll={(event) => {
         const element = event.currentTarget;
-        if (remaining > 0) {
-          const distanceToBottom =
-            element.scrollHeight - element.scrollTop - element.clientHeight;
-          if (distanceToBottom <= NEXT_PAGE_THRESHOLD_PX) {
-            // The ref as well as the state — `remember` below reads it this
-            // same tick, before a `setShownCount` has landed.
-            shownCountRef.current += PAGE_SIZE;
-            setShownCount(shownCountRef.current);
-          }
-        }
+        applyWindow(windowFor(element));
         remember(element);
       }}
     >
-      {items.slice(0, shown).map((item) => {
+      {rowsAbove > 0 && <div aria-hidden="true" style={spacer(rowsAbove)} />}
+      {items.slice(start, end).map((item) => {
         const title = tileTitle(item);
         const subtitle = tileSubtitle(item);
         // Spec §10: a root missing at rescan is marked offline and its
@@ -515,11 +592,7 @@ const LibraryGridView = ({
           </button>
         );
       })}
-      {remaining > 0 && (
-        <div className="library-grid__more">
-          {t('library.trackCount', { count: remaining })}
-        </div>
-      )}
+      {rowsBelow > 0 && <div aria-hidden="true" style={spacer(rowsBelow)} />}
     </div>
   );
 };
