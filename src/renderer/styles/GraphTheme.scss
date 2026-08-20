@@ -890,6 +890,51 @@ it under the terms of the GNU General Public License version 3 or later.
   }
 }
 
+/**
+ * The look's name, in the bottom corner while it is changing.
+ *
+ * Same treatment as the titlebar wave's announcement, because it answers the
+ * same question in the same way — and two pills that say the same kind of
+ * thing in two different voices read as two unrelated features.
+ *
+ * Out of the flow entirely. The control strip's own height decides how much
+ * headroom the plot gets, so anything that comes and goes up there moves the
+ * drawing; down here it is over the plot and moves nothing.
+ */
+.graph-look-announcement {
+  position: absolute;
+  z-index: 4;
+  right: 14px;
+  bottom: 10px;
+  padding: 3px 7px;
+  color: rgba($white, 0.94);
+  border: 1px solid rgba($secondary-light, 0.32);
+  border-radius: 4px;
+  background: rgba($panel-bottom, 0.78);
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(4px);
+  transition:
+    opacity 260ms cubic-bezier(0.32, 0.72, 0, 1),
+    transform 260ms cubic-bezier(0.32, 0.72, 0, 1);
+
+  &.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .graph-look-announcement {
+    transition: none;
+  }
+}
+
 // *** The view menu ***********************************************************
 
 .graph-view-menu {

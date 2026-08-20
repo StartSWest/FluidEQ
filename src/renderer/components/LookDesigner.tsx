@@ -392,16 +392,22 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
         colours: [...current.colours],
       };
     return {
-      // Always something to edit.
-      //
-      // Two of the palettes store no colours at all, because empty means "the
-      // ones already on screen" — right for a look that ships, useless for a
-      // colour picker, which would have nothing to show. So the panel fills
-      // them in from what is currently drawn: the swatches open on the exact
-      // colours already on the graph, and seeing them is not a change to them.
-      look: look.colours.length
-        ? look
-        : { ...look, colours: seedPaletteColours(look.palette) },
+      /**
+       * Left exactly as it is, EMPTY COLOURS INCLUDED.
+       *
+       * Empty means "the ones already on screen" — the trace's own colour, or
+       * the app's spectrum at its own offsets. The panel used to fill them in
+       * on open so the swatches had something to show, on the reasoning that
+       * seeing them is not a change to them. It is: the seeded stops are
+       * evenly spaced and the spectrum's are not, and the flat seed is a
+       * fixed colour where the drawing was using the curve's. So opening the
+       * panel repainted the graph before anything had been touched, which is
+       * the one thing this whole origin block exists to prevent.
+       *
+       * The swatches show the seed instead — see `shownColours` — and it is
+       * only written into the draft when somebody actually edits a stop.
+       */
+      look,
       isEditing,
     };
   });
@@ -446,31 +452,57 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
     }));
   }, []);
 
-  const setColourAt = useCallback((index: number, colour: string) => {
-    setDraft((current) => {
-      const colours = current.colours.slice();
-      colours[index] = colour;
-      return { ...current, colours };
-    });
-  }, []);
+  /**
+   * The stops as edited, which is not always the stops as stored.
+   *
+   * A look with no colours of its own is drawn in whatever is already on
+   * screen, and that is a real state worth keeping — so the draft holds the
+   * empty list and these three write the seeded ramp in the moment somebody
+   * changes one. Editing a stop is the act that turns "the ones on screen"
+   * into a set of colours; opening the panel is not.
+   */
+  const editableColours = useCallback(
+    (current: ICustomLook) =>
+      current.colours.length
+        ? current.colours
+        : seedPaletteColours(current.palette),
+    [],
+  );
 
-  const removeColourAt = useCallback((index: number) => {
-    setDraft((current) => ({
-      ...current,
-      colours: current.colours.filter((_colour, at) => at !== index),
-    }));
-  }, []);
+  const setColourAt = useCallback(
+    (index: number, colour: string) => {
+      setDraft((current) => {
+        const colours = editableColours(current).slice();
+        colours[index] = colour;
+        return { ...current, colours };
+      });
+    },
+    [editableColours],
+  );
+
+  const removeColourAt = useCallback(
+    (index: number) => {
+      setDraft((current) => ({
+        ...current,
+        colours: editableColours(current).filter((_colour, at) => at !== index),
+      }));
+    },
+    [editableColours],
+  );
 
   /** Repeats the last colour, so a new stop starts where the ramp ended. */
   const addColour = useCallback(() => {
-    setDraft((current) => ({
-      ...current,
-      colours: [
-        ...current.colours,
-        current.colours[current.colours.length - 1] ?? DEFAULT_SIGNAL_COLOUR,
-      ],
-    }));
-  }, []);
+    setDraft((current) => {
+      const colours = editableColours(current);
+      return {
+        ...current,
+        colours: [
+          ...colours,
+          colours[colours.length - 1] ?? DEFAULT_SIGNAL_COLOUR,
+        ],
+      };
+    });
+  }, [editableColours]);
 
   // Whether the mode the glow belongs to is actually running.
   //
@@ -488,6 +520,14 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
   const canAccent = hasGraphAccent(style);
   const fallbackName = t(`graph.styleName.${style}` as TranslationKey);
   const isFull = !origin.isEditing && isCustomLookListFull();
+  /**
+   * What the swatches draw: the draft's own stops, or the seed standing in
+   * for "the ones already on screen". Only the first is ever saved.
+   */
+  const shownColours = draft.colours.length
+    ? draft.colours
+    : seedPaletteColours(draft.palette);
+
   const paletteHintKey = PALETTE_CHOICES.find(
     (choice) => choice.value === draft.palette,
   )?.hint;
@@ -500,16 +540,16 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
    * is repeated — which paints the flat colour the figure will actually be.
    */
   const rampPreview = useMemo(() => {
-    if (!draft.colours.length) {
+    if (!shownColours.length) {
       return 'none';
     }
     const stops =
-      draft.colours.length === 1
-        ? [draft.colours[0], draft.colours[0]]
-        : draft.colours;
+      shownColours.length === 1
+        ? [shownColours[0], shownColours[0]]
+        : shownColours;
     const direction = draft.palette === 'level' ? 'to top' : 'to right';
     return `linear-gradient(${direction}, ${stops.join(', ')})`;
-  }, [draft.colours, draft.palette]);
+  }, [shownColours, draft.palette]);
 
   const handleSave = () => {
     // A blank name is not an error — the placeholder has been showing what it
@@ -667,7 +707,7 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             </button>
           </span>
           <div className="look-designer__swatches">
-            {draft.colours.map((colour, index) => (
+            {shownColours.map((colour, index) => (
               <StopPicker
                 // Keyed by position, which is what a stop actually is: the list
                 // is a ramp read from one end to the other, the same colour may
@@ -677,12 +717,12 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
                 key={index}
                 colour={colour}
                 index={index}
-                canRemove={draft.colours.length > MIN_LOOK_COLOURS}
+                canRemove={shownColours.length > MIN_LOOK_COLOURS}
                 onChange={(next) => setColourAt(index, next)}
                 onRemove={() => removeColourAt(index)}
               />
             ))}
-            {draft.colours.length < getMaxLookColours(draft.palette) && (
+            {shownColours.length < getMaxLookColours(draft.palette) && (
               <button
                 type="button"
                 className="look-designer__swatch-add"
