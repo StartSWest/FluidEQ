@@ -58,7 +58,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import type { AxisScale, NumberValue } from 'd3';
 import { useCallback, useEffect, useRef } from 'react';
-import { DEFAULT_GLOW, DEFAULT_STROKE_WIDTH } from 'common/customLooks';
+import { DEFAULT_GLOW } from 'common/customLooks';
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import {
   createGraphAccent,
@@ -830,6 +830,8 @@ const LiveTraceCanvas = ({
              * this drawing.
              */
             SPECTRUM_HUE_BY_PALETTE[lookRef.current.palette],
+            // Level is a meter: the ramp is pinned to the plot and each bar
+            // shows its own slice of it, so a colour is a decibel.
             lookRef.current.palette === 'level' ? canvasPaint : undefined,
           );
         } else if (tuning.filled) {
@@ -851,10 +853,19 @@ const LiveTraceCanvas = ({
           isSelfColoured,
           euphoria,
         );
+        /**
+         * The fluid is not stroked at all.
+         *
+         * A stroke follows the whole path, and this path is rectangles
+         * standing on the floor — so it drew a line along the bottom of
+         * every bar, brighter than the fade above it, and the plot grew a
+         * lit rail across its foot that nothing had asked for. The form's
+         * edges are its own fade and the wave over it.
+         */
         if (
           figureStroke !== undefined &&
           figureStrokeWidth > 0 &&
-          !(isFluidForm && isEuphoriaEdge)
+          !isFluidForm
         ) {
           setAlpha(context, opacity);
           context.strokeStyle = paintFor(figureStroke);
@@ -952,9 +963,16 @@ const LiveTraceCanvas = ({
               (tuning.glow / DEFAULT_GLOW);
             setAlpha(context, opacity);
             context.strokeStyle = accentStroke;
+            /**
+             * The lit peak's weight, because on this form the lit peak IS
+             * the wave. It was taking Thickness instead, which belongs to a
+             * figure's outline — and the fluid's figure is bars, which have
+             * no outline, so that control had nothing to say here while the
+             * one named for this mark did not reach it.
+             */
             context.lineWidth =
               (isEuphoric ? TRACE_WIDTH_RAINBOW : TRACE_WIDTH_CYAN) *
-              (strokeWidth / DEFAULT_STROKE_WIDTH);
+              tuning.accentWidth;
             context.stroke(accent);
             context.restore();
           } else {
@@ -964,14 +982,14 @@ const LiveTraceCanvas = ({
             );
             context.fillStyle = canvasPaint;
             context.strokeStyle = accentStroke;
-            context.lineWidth = ACCENT_HALO_WIDTH;
+            context.lineWidth = ACCENT_HALO_WIDTH * tuning.accentWidth;
             context.fill(accent);
             context.stroke(accent);
 
             setAlpha(context, ACCENT_CORE_OPACITY);
             context.fillStyle = 'white';
             context.strokeStyle = isEuphoric ? accentStroke : 'white';
-            context.lineWidth = ACCENT_CORE_WIDTH;
+            context.lineWidth = ACCENT_CORE_WIDTH * tuning.accentWidth;
             context.fill(accent);
             context.stroke(accent);
           }

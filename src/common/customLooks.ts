@@ -66,6 +66,16 @@ export interface ILookTuning {
   /** Lit tips, for the forms that have them. */
   accents: boolean;
   /**
+   * How heavy a lit tip is, as a multiple of its own default.
+   *
+   * A multiple rather than a width in pixels, because the mark is drawn in
+   * two passes at two weights — a wide faint one under a narrow hot one —
+   * and a single number cannot be both. Scaling keeps the pair in
+   * proportion, so turning it up makes a fatter mark rather than a mark
+   * with a differently-shaped halo.
+   */
+  accentWidth: number;
+  /**
    * How strongly the euphoria halo burns, from nothing to full.
    *
    * A setting rather than a constant because it trades two things off against
@@ -219,6 +229,14 @@ export interface IResolvedLook {
 export const DEFAULT_STROKE_WIDTH = 2;
 export const DEFAULT_FILL_OPACITY = 0.55;
 
+/**
+ * How heavy a lit tip is, as a multiple. One is what the forms were drawn
+ * with, so an untouched look is exactly what it always was.
+ */
+export const DEFAULT_ACCENT_WIDTH = 1;
+export const MIN_ACCENT_WIDTH = 0.4;
+export const MAX_ACCENT_WIDTH = 3;
+
 export const MIN_ATTACK_MS = 1;
 export const MAX_ATTACK_MS = 60;
 export const MIN_RELEASE_MS = 4;
@@ -308,6 +326,7 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     strokeWidth: DEFAULT_STROKE_WIDTH,
     fillOpacity: getGraphFillOpacity(style, DEFAULT_FILL_OPACITY),
     accents: hasGraphAccent(style),
+    accentWidth: DEFAULT_ACCENT_WIDTH,
     glow: DEFAULT_GLOW,
     // Off unless asked for. It is the one part of the mode that decorates the
     // window rather than the drawing, and a frame nobody chose is furniture.
@@ -373,6 +392,12 @@ export const normalizeTuning = (
     // A form with no lit tips cannot be given them by asking: the accent is a
     // piece of geometry that only exists for the forms in the engine's table.
     accents: hasGraphAccent(style) && readBoolean(source.accents, true),
+    accentWidth: readNumber(
+      source.accentWidth,
+      MIN_ACCENT_WIDTH,
+      MAX_ACCENT_WIDTH,
+      defaults.accentWidth,
+    ),
     glow: readNumber(source.glow, MIN_GLOW, MAX_GLOW, defaults.glow),
     border: readBoolean(source.border, defaults.border),
     borderWidth: readNumber(

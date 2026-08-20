@@ -68,6 +68,7 @@ const look: Partial<Dictionary> = {
     'Circonda il grafico con un colore che percorre l’intero spettro.',
   'look.borderWeight': 'Spessore bordo',
   'look.litPeaks': 'Picchi luminosi',
+  'look.litPeakWeight': 'Spessore del picco',
   'look.noLitPeaks': 'Questa forma non ha punte luminose',
   'look.name': 'Nome',
   'look.resetAll': 'Ripristina tutte le impostazioni',

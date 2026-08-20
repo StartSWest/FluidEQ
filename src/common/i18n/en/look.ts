@@ -67,6 +67,7 @@ const look = {
     'Rings the graph in a colour that travels around the whole wheel.',
   'look.borderWeight': 'Border weight',
   'look.litPeaks': 'Lit peaks',
+  'look.litPeakWeight': 'Lit peak weight',
   'look.noLitPeaks': 'This form has no lit tips to show',
   'look.name': 'Name',
   'look.resetAll': 'Reset every setting',

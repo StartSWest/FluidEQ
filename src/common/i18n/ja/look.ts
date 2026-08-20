@@ -66,6 +66,7 @@ const look: Partial<Dictionary> = {
   'look.rainbowBorderHint': '全色相を巡る色でグラフを囲みます。',
   'look.borderWeight': '枠の太さ',
   'look.litPeaks': 'ピーク発光',
+  'look.litPeakWeight': 'ピークの太さ',
   'look.noLitPeaks': 'この形には発光する先端がありません',
   'look.name': '名前',
   'look.resetAll': 'すべての設定をリセット',

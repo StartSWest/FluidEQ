@@ -68,6 +68,7 @@ const look: Partial<Dictionary> = {
     'Contorna o gráfico com uma cor que percorre todo o espectro.',
   'look.borderWeight': 'Espessura da borda',
   'look.litPeaks': 'Picos iluminados',
+  'look.litPeakWeight': 'Espessura do pico',
   'look.noLitPeaks': 'Esta forma não possui pontas iluminadas',
   'look.name': 'Nome',
   'look.resetAll': 'Redefinir todos os ajustes',

@@ -41,6 +41,8 @@ import {
   MIN_ATTACK_MS,
   MIN_BORDER_WIDTH,
   MAX_BORDER_WIDTH,
+  MIN_ACCENT_WIDTH,
+  MAX_ACCENT_WIDTH,
   MIN_FILL_OPACITY,
   MIN_GLOW,
   MIN_LOOK_COLOURS,
@@ -921,6 +923,26 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             <span className="look-designer__hint">{t('look.noLitPeaks')}</span>
           )}
         </div>
+
+        {/* How heavy the mark is. Only once there is a mark to make heavy —
+            greyed rather than hidden, like the mode's own settings above, so
+            the question is "why is this disabled" and the row above answers
+            it rather than "where did that setting go". */}
+        <SettingRow
+          id="look-designer-accent-width"
+          label={t('look.litPeakWeight')}
+          value={`${Math.round(tuning.accentWidth * 100)}%`}
+          isDisabled={!canAccent || !tuning.accents}
+        >
+          <SettingSlider
+            id="look-designer-accent-width"
+            min={MIN_ACCENT_WIDTH}
+            max={MAX_ACCENT_WIDTH}
+            step={0.1}
+            value={tuning.accentWidth}
+            onChange={(accentWidth) => tune({ accentWidth })}
+          />
+        </SettingRow>
 
         {/* The label is the row, so the field it names is inside it. */}
         <label className="look-designer__row" htmlFor="look-designer-name">

@@ -68,6 +68,7 @@ const look: Partial<Dictionary> = {
     'Rodea la gráfica con un color que recorre todo el espectro.',
   'look.borderWeight': 'Grosor del borde',
   'look.litPeaks': 'Picos iluminados',
+  'look.litPeakWeight': 'Grosor del pico',
   'look.noLitPeaks': 'Esta forma no tiene puntas iluminadas',
   'look.name': 'Nombre',
   'look.resetAll': 'Restablecer todos los ajustes',
