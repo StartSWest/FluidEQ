@@ -33,12 +33,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 // the blur — is `.karaoke-transport`'s own, reused rather than redrawn for a
 // second floating transport bar.
 
+// A card, on the same line as every other outermost card in the shell.
+//
+// It used to run edge to edge with a border along its top only, which is the
+// one thing in this window that was not a card — `.side-bar` and
+// `.right-content` are both inset by the shell's gutter and both rounded, and
+// this sat flush against three window edges beside them. The gutter comes
+// from `--shell-gutter`, declared in `App.scss` and consumed by
+// `.app-workspace`: this bar is fixed and portalled to `document.body`, so it
+// cannot inherit that padding and has to be told the same number. One
+// declaration, read from two places, rather than two that drift.
 .now-playing-bar {
   position: fixed;
   z-index: 1100;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  right: var(--shell-gutter, 16px);
+  bottom: var(--shell-gutter-bottom, 18px);
+  left: var(--shell-gutter, 16px);
   display: grid;
   grid-template-columns: minmax(180px, 1fr) minmax(320px, 2fr) minmax(
       200px,
@@ -47,10 +57,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   align-items: center;
   gap: $spacing-l;
   padding: 9px $spacing-l;
-  border-top: 1px solid rgba($secondary-light, 0.18);
+  // All four sides now, and `$radius-xl` because that is what `panel-surface`
+  // gives every other card — 18px, not a number chosen here. The gradient,
+  // the inset highlight and the blur are untouched: this is the same surface
+  // it always was, cut to the shape the rest of the window uses.
+  border: 1px solid rgba($secondary-light, 0.18);
+  border-radius: $radius-xl;
   background: linear-gradient(180deg, rgba(#163047, 0.94), rgba(#07131f, 0.98));
+  // The cast shadow spreads all round rather than only upward. It was
+  // directional because the card was anchored to the bottom edge and had no
+  // sides to cast from; now it floats and needs the same halo the other cards
+  // sit in.
   box-shadow:
-    0 -16px 42px rgba($black, 0.4),
+    0 10px 38px rgba($black, 0.45),
+    0 -10px 30px rgba($black, 0.28),
     inset 0 1px 0 rgba($white, 0.07);
   backdrop-filter: blur(18px) saturate(1.25);
 }

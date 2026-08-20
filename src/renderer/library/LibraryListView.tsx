@@ -198,6 +198,67 @@ const ROW_HEIGHT = 46;
  * the layout effect below is still working out the real numbers. */
 const FIRST_WINDOW_ROWS = 60;
 
+/**
+ * The most rows this view will mount, whatever it is told about the pane.
+ *
+ * Seven viewports of a tall screen is a few hundred rows; nothing legitimate
+ * ever asks for more, and the thing that asked for more was a bug — see
+ * `rowWindowFor`. A ceiling made of arithmetic cannot be wrong the way one
+ * made of a measurement can.
+ */
+const MAX_WINDOW_ROWS = 600;
+
+/**
+ * Which rows belong on screen, from numbers alone.
+ *
+ * Pure, exported and tested, because getting it wrong once cost the whole
+ * app: `paneHeight` is a measurement, and a measurement can be absurd. This
+ * pane's height comes from a chain that includes a `flex: 0 0 auto`, so a
+ * layout that stops constraining it leaves the scroll container as tall as
+ * its own content — `clientHeight` came back as the full 647,542px of a
+ * fourteen-thousand-row list, which this multiplied by seven and obediently
+ * mounted. Reported as the window freezing and the app reaching 5GB on a
+ * resize.
+ *
+ * Two ceilings answer that, and both are deliberate. Nobody can read more
+ * than a screenful, so a scroll container taller than the screen is a layout
+ * fault and `screenHeight` caps what is believed; and `MAX_WINDOW_ROWS` caps
+ * the result regardless, so no arithmetic on any measurement can get past it.
+ */
+export const rowWindowFor = ({
+  scrollTop,
+  paneHeight,
+  screenHeight,
+  rowHeight,
+  count,
+}: {
+  scrollTop: number;
+  /** The scroll container's own `clientHeight`. Zero before it is laid out. */
+  paneHeight: number;
+  screenHeight: number;
+  rowHeight: number;
+  count: number;
+}): { start: number; end: number } => {
+  // A body that has not been laid out yet reports nothing; a screenful is a
+  // better guess than none, and the observer that calls this corrects it
+  // either way.
+  const viewport = Math.min(
+    paneHeight || rowHeight * FIRST_WINDOW_ROWS,
+    screenHeight,
+  );
+  const overscan = viewport * OVERSCAN_VIEWPORTS;
+  const top = Math.max(0, scrollTop - overscan);
+  const bottom = scrollTop + viewport + overscan;
+  const start = Math.max(0, Math.min(Math.floor(top / rowHeight), count));
+  return {
+    start,
+    end: Math.max(
+      start,
+      Math.min(Math.ceil(bottom / rowHeight), count, start + MAX_WINDOW_ROWS),
+    ),
+  };
+};
+
 /** One row of the song list, as data rather than as an element: what the
  * window needs in order to count and index rows without building any. A
  * heading and the track under it are two entries, not one — see `songRows`. */
@@ -312,20 +373,17 @@ const LibraryListView = ({
    * straight to a row ten thousand down without first mounting the ten
    * thousand above it.
    */
-  const windowFor = useCallback((element: HTMLElement) => {
-    const rowHeight = rowHeightRef.current;
-    const count = rowCountRef.current;
-    // A body that has not been laid out yet reports nothing; a screenful is a
-    // better guess than none, and the observer below corrects it either way.
-    const viewport = element.clientHeight || rowHeight * FIRST_WINDOW_ROWS;
-    const overscan = viewport * OVERSCAN_VIEWPORTS;
-    const top = Math.max(0, element.scrollTop - overscan);
-    const bottom = element.scrollTop + viewport + overscan;
-    return {
-      start: Math.max(0, Math.min(Math.floor(top / rowHeight), count)),
-      end: Math.max(0, Math.min(Math.ceil(bottom / rowHeight), count)),
-    };
-  }, []);
+  const windowFor = useCallback(
+    (element: HTMLElement) =>
+      rowWindowFor({
+        scrollTop: element.scrollTop,
+        paneHeight: element.clientHeight,
+        screenHeight: window.innerHeight,
+        rowHeight: rowHeightRef.current,
+        count: rowCountRef.current,
+      }),
+    [],
+  );
 
   /** Applies a window, and only re-renders when it is genuinely a different
    * one. Scroll fires every frame; three viewports of overscan means the

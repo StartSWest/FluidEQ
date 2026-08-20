@@ -1029,6 +1029,14 @@ textarea,
   user-select: text;
 }
 
+// The shell's gutter, in one place. See `.app-workspace`, which consumes it,
+// and `NowPlayingBar.scss`, which aligns its card to the same line from
+// outside this element's subtree.
+:root {
+  --shell-gutter: 16px;
+  --shell-gutter-bottom: 18px;
+}
+
 .app-workspace {
   display: grid;
   width: 100%;
@@ -1036,7 +1044,14 @@ textarea,
   // free to grow, or the column that grew would push the graph out of view
   // again.
   height: 100%;
-  padding: 16px 16px 18px;
+  // The shell's gutter — the margin every outermost card is inset by, and the
+  // line `.side-bar` and `.right-content` are aligned to. Custom properties
+  // rather than plain values because the now-playing bar has to sit on the
+  // same line and cannot inherit it: it is `position: fixed` and portalled to
+  // `document.body`, outside this element entirely. Declared on `:root` below
+  // so that bar can read it, consumed here, and overridden in one place per
+  // breakpoint instead of in two files that would drift.
+  padding: var(--shell-gutter) var(--shell-gutter) var(--shell-gutter-bottom);
   gap: 12px;
   overflow: hidden;
 
@@ -2017,8 +2032,12 @@ button.graph-legend {
 
 // Two columns: the profile column moves below the workspace and splits in two.
 @media (max-width: $bp-three-column) {
+  :root {
+    --shell-gutter: 12px;
+    --shell-gutter-bottom: 14px;
+  }
+
   .app-workspace {
-    padding: 12px 12px 14px;
     // Two columns only: the sound panel leaves the grid entirely below this
     // breakpoint. Its old fate was a band squashed under the workspace —
     // two panels wide, half of it below the fold — which read as clutter,
@@ -2213,8 +2232,9 @@ button.graph-legend {
 }
 
 @media (max-width: 760px) {
-  .app-workspace {
-    padding: 10px 10px 12px;
+  :root {
+    --shell-gutter: 10px;
+    --shell-gutter-bottom: 12px;
   }
 
   .right-content {

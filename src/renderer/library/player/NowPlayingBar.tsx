@@ -349,9 +349,15 @@ const NowPlayingBar = ({
       return undefined;
     }
     const applyHeight = () => {
+      // Measured from the foot of the window to the top of the card, not the
+      // card's own height. Now that it is inset by the shell's gutter rather
+      // than sitting on the bottom edge, its height is no longer the room it
+      // takes up — and reserving only that would leave the gutter's worth of
+      // content underneath it. Taking it this way needs no second constant
+      // and cannot fall out of step with the stylesheet that sets the inset.
       root.style.setProperty(
         '--now-playing-bar-height',
-        `${element.offsetHeight}px`,
+        `${Math.round(window.innerHeight - element.getBoundingClientRect().top)}px`,
       );
     };
     applyHeight();

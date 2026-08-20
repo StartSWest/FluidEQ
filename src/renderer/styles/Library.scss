@@ -856,7 +856,18 @@ $library-row-height: 46px;
   @include slim-scrollbar;
   display: flex;
   min-height: 0;
-  flex: 1 1 auto;
+  // `flex-basis: 0`, never `auto`, and this is load-bearing.
+  //
+  // `LibraryListView` mounts a few hundred rows and reserves the height of
+  // all fourteen thousand as empty blocks. With a basis of `auto` that
+  // reserved height IS this element's content size, so whenever the chain
+  // above stopped handing down a definite height — which is what a narrow
+  // window does — it grew to 647,542px and took the page with it: a list of
+  // nine rows followed by six hundred screens of nothing, and a scrollbar to
+  // match. From zero, the size comes from the free space it is given and
+  // content cannot inflate it, so this stays a scroll box under every layout
+  // rather than only under the ones that happened to constrain it.
+  flex: 1 1 0;
   flex-direction: column;
   overflow-y: auto;
 }
@@ -1177,7 +1188,11 @@ $library-row-height: 46px;
   // Same floor and the same reason as `.library-list` — about one row of
   // tiles.
   min-height: 220px;
-  flex: 1 1 auto;
+  // `flex-basis: 0` for the reason `.library-list__body` gives at length: this
+  // reserves the height of every row of tiles it has not mounted, and from
+  // `auto` that reservation is its own content size — one narrow window and
+  // the grid grows to the height of the whole library.
+  flex: 1 1 0;
   grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   align-content: start;
   gap: $spacing-m;

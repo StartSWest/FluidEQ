@@ -125,6 +125,61 @@ const rememberGrid = (
   }
 };
 
+/** The most tiles this view will mount, whatever it is told about the pane —
+ * `LibraryListView`'s `MAX_WINDOW_ROWS`, and its comment applies here word for
+ * word. */
+const MAX_WINDOW_TILES = 600;
+
+/** What the grid actually laid out, all of it measured — see `metricsRef`. */
+export interface IGridMetrics {
+  tileHeight: number;
+  rowGap: number;
+  columns: number;
+  padding: number;
+}
+
+/**
+ * Which tiles belong on screen, from numbers alone. Whole rows only: half a
+ * row leaves a ragged edge the reader reads as missing art.
+ *
+ * Pure, exported and tested for the reason `rowWindowFor` is — `paneHeight`
+ * is a measurement and a measurement can be absurd. See that function for the
+ * layout fault that made one absurd, and for why there are two ceilings here
+ * rather than none.
+ */
+export const tileWindowFor = ({
+  scrollTop,
+  paneHeight,
+  screenHeight,
+  metrics,
+  count,
+}: {
+  scrollTop: number;
+  /** The grid's own `clientHeight`. Zero before it is laid out. */
+  paneHeight: number;
+  screenHeight: number;
+  metrics: IGridMetrics;
+  count: number;
+}): { start: number; end: number } => {
+  const { tileHeight, rowGap, columns, padding } = metrics;
+  const pitch = tileHeight + rowGap;
+  const rows = Math.ceil(count / columns);
+  const viewport = Math.min(paneHeight || pitch * 3, screenHeight);
+  const overscan = viewport * OVERSCAN_VIEWPORTS;
+  const top = scrollTop - padding - overscan;
+  const bottom = scrollTop - padding + viewport + overscan;
+  const firstRow = Math.max(0, Math.min(Math.floor(top / pitch), rows));
+  const lastRow = Math.max(firstRow, Math.min(Math.ceil(bottom / pitch), rows));
+  const start = Math.min(firstRow * columns, count);
+  return {
+    start,
+    end: Math.max(
+      start,
+      Math.min(lastRow * columns, count, start + MAX_WINDOW_TILES),
+    ),
+  };
+};
+
 /**
  * One tile's worth of what `LibraryGridView` draws — deliberately the raw
  * tag values, not yet translated and not yet re-derived. Both the
@@ -203,7 +258,7 @@ const LibraryGridView = ({
    * number to write down — which is exactly why the earlier attempt at a
    * window here was abandoned rather than made to guess.
    */
-  const metricsRef = useRef({
+  const metricsRef = useRef<IGridMetrics>({
     tileHeight: TILE_HEIGHT,
     rowGap: 0,
     columns: TILE_COLUMNS,
@@ -233,25 +288,17 @@ const LibraryGridView = ({
    * element is consulted, which is what lets the reveal jump straight to a
    * tile six thousand down without mounting the six thousand above it.
    */
-  const windowFor = useCallback((element: HTMLElement) => {
-    const { tileHeight, rowGap, columns, padding } = metricsRef.current;
-    const count = tileCountRef.current;
-    const pitch = tileHeight + rowGap;
-    const rows = Math.ceil(count / columns);
-    const viewport = element.clientHeight || pitch * 3;
-    const overscan = viewport * OVERSCAN_VIEWPORTS;
-    const top = element.scrollTop - padding - overscan;
-    const bottom = element.scrollTop - padding + viewport + overscan;
-    const firstRow = Math.max(0, Math.min(Math.floor(top / pitch), rows));
-    const lastRow = Math.max(
-      firstRow,
-      Math.min(Math.ceil(bottom / pitch), rows),
-    );
-    return {
-      start: Math.min(firstRow * columns, count),
-      end: Math.min(lastRow * columns, count),
-    };
-  }, []);
+  const windowFor = useCallback(
+    (element: HTMLElement) =>
+      tileWindowFor({
+        scrollTop: element.scrollTop,
+        paneHeight: element.clientHeight,
+        screenHeight: window.innerHeight,
+        metrics: metricsRef.current,
+        count: tileCountRef.current,
+      }),
+    [],
+  );
 
   /** Applies a window, and re-renders only when it is genuinely a different
    * one — see `LibraryListView`'s twin for why almost every scroll event ends
