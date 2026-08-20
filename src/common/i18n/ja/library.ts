@@ -100,6 +100,8 @@ const library: Partial<Dictionary> = {
   'library.pause': '一時停止',
   'library.stop': '停止',
   'library.previous': '前の曲',
+  'library.back5': '5秒戻る',
+  'library.forward5': '5秒進む',
   'library.next': '次の曲',
   'library.shuffle': 'シャッフル',
   'library.repeat': 'リピート',

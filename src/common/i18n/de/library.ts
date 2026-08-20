@@ -98,6 +98,8 @@ const library: Partial<Dictionary> = {
   'library.pause': 'Pause',
   'library.stop': 'Stopp',
   'library.previous': 'Vorheriger Titel',
+  'library.back5': '5 Sekunden zurück',
+  'library.forward5': '5 Sekunden vor',
   'library.next': 'Nächster Titel',
   'library.shuffle': 'Zufallswiedergabe',
   'library.repeat': 'Wiederholen',

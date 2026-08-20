@@ -129,6 +129,15 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-size: 0.66rem;
 }
 
+// Codec, bitrate, sample rate — quieter than the artist above it, because it
+// answers a question nobody asks twice about the same file.
+.now-playing-bar__format {
+  @include truncate;
+  color: rgba($primary-lighter, 0.42);
+  font-size: 0.58rem;
+  letter-spacing: 0.02em;
+}
+
 .now-playing-bar__unplayable {
   flex: 0 0 auto;
   color: $red;
@@ -350,6 +359,29 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   stroke-width: 1.75;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+// The "5" inside the two nudge arrows. Filled rather than stroked, and heavy
+// enough to hold together at the 14px these are drawn at.
+.now-playing-bar__icon-step {
+  fill: currentcolor;
+  stroke: none;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+// Half a step quieter than Play and the skips: these are conveniences beside
+// the controls that matter, not peers of them.
+.now-playing-bar__nudge {
+  opacity: 0.82;
+
+  &:hover:not(:disabled) {
+    opacity: 1;
+  }
+
+  &:disabled {
+    opacity: 0.35;
+  }
 }
 
 .now-playing-bar__play .now-playing-bar__icon {

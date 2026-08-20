@@ -937,43 +937,72 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   font-weight: 700;
 }
 
-// Three bars in front of the playing track's title, rising and falling.
+// The app's own curve over bars, in miniature, in front of the playing
+// track's title.
 //
-// Its own mark rather than a play triangle: a triangle is the control that
+// This is the shape on the response graph rather than a generic equaliser
+// meter, because it is the one mark in the app that can say "this is the
+// thing FluidEQ is playing" and look like FluidEQ while it does. It replaced
+// three plain bars, which said the first half and none of the second.
+//
+// A play triangle was never the alternative: a triangle is the control that
 // starts something, and putting one on the row that is already going says the
-// opposite of what it means. Bars that move say "sound is coming out of this
-// one" without a word, and stand still under prefers-reduced-motion.
+// opposite of what it means.
 .library-list__playing-mark {
   display: inline-flex;
-  height: 11px;
+  width: 20px;
+  height: 12px;
   flex: 0 0 auto;
-  align-items: flex-end;
-  gap: 2px;
+  align-items: center;
 
-  i {
-    width: 2px;
+  svg {
+    width: 100%;
     height: 100%;
-    border-radius: 1px;
-    background: $secondary-light;
-    animation: library-playing-bar 900ms ease-in-out infinite;
-    transform-origin: bottom;
+    overflow: hidden;
   }
+}
 
-  // Offset so the three are never in step — in step they read as one wide
-  // bar pulsing rather than as a meter.
-  i:nth-child(2) {
-    animation-delay: 180ms;
-  }
+// Behind the curve and much quieter than it — they are the texture the line
+// runs over, not a second thing to read.
+.library-list__playing-bars rect {
+  fill: rgba($secondary-light, 0.34);
+  animation: library-playing-bar 1100ms ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: bottom;
+}
 
-  i:nth-child(3) {
-    animation-delay: 360ms;
-  }
+// Never in step: in step they read as one wide block pulsing.
+.library-list__playing-bars rect:nth-child(2) {
+  animation-delay: 150ms;
+}
+
+.library-list__playing-bars rect:nth-child(3) {
+  animation-delay: 300ms;
+}
+
+.library-list__playing-bars rect:nth-child(4) {
+  animation-delay: 450ms;
+}
+
+.library-list__playing-bars rect:nth-child(5) {
+  animation-delay: 600ms;
+}
+
+// Drawn two full periods wide and slid left by exactly one, so a single
+// `translate` runs forever and the loop point lands where the curve already
+// repeats — no seam to see and nothing for the main thread to compute.
+.library-list__playing-wave {
+  fill: none;
+  stroke: $secondary-light;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  animation: library-playing-wave 1400ms linear infinite;
 }
 
 @keyframes library-playing-bar {
   0%,
   100% {
-    scale: 1 0.35;
+    scale: 1 0.4;
   }
 
   50% {
@@ -981,10 +1010,20 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
+@keyframes library-playing-wave {
+  from {
+    translate: 0;
+  }
+
+  to {
+    translate: -12px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .library-list__playing-mark i {
+  .library-list__playing-bars rect,
+  .library-list__playing-wave {
     animation: none;
-    scale: 1 0.7;
   }
 }
 

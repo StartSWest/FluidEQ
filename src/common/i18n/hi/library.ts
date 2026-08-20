@@ -97,6 +97,8 @@ const library: Partial<Dictionary> = {
   'library.pause': 'रोकें',
   'library.stop': 'बंद करें',
   'library.previous': 'पिछला',
+  'library.back5': '5 सेकंड पीछे',
+  'library.forward5': '5 सेकंड आगे',
   'library.next': 'अगला',
   'library.shuffle': 'शफ़ल',
   'library.repeat': 'दोहराएँ',

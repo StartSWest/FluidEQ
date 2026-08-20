@@ -70,11 +70,47 @@ const formatDuration = (ms: number): string => {
   return `${minutes}:${seconds.toString().padStart(2, '0')}`;
 };
 
+/**
+ * What the file actually is: codec, bitrate, sample rate.
+ *
+ * Read from the tags the scan already stored rather than measured off the
+ * decoder — for a constant-bitrate file the two are the same number, and for
+ * a variable one `music-metadata` reports the average, which is the figure
+ * every other player shows and the only one that is stable enough to read.
+ * An instantaneous per-frame rate would flicker several times a second and
+ * tell nobody anything they could act on.
+ *
+ * Each part is optional and the line is only as long as what is known: a
+ * file with no readable header contributes nothing rather than a row of
+ * dashes.
+ */
+const formatSummary = (track: ILibraryTrack): string => {
+  const parts: string[] = [];
+  if (track.codec) {
+    parts.push(track.codec.toUpperCase());
+  }
+  if (track.bitrate !== undefined && track.bitrate > 0) {
+    parts.push(`${Math.round(track.bitrate / 1000)} kbps`);
+  }
+  if (track.sampleRate !== undefined && track.sampleRate > 0) {
+    // One decimal, and no trailing `.0` — 44.1 kHz and 48 kHz both read
+    // naturally, `48.0 kHz` does not.
+    const khz = track.sampleRate / 1000;
+    parts.push(`${Number(khz.toFixed(1))} kHz`);
+  }
+  return parts.join(' · ');
+};
+
 const REPEAT_LABEL_KEYS = {
   off: 'library.repeat.off',
   all: 'library.repeat.all',
   one: 'library.repeat.one',
 } as const;
+
+/** How far the two nudge buttons move the playhead. Five seconds is the step
+ * every player that has this control uses, and it is short enough that
+ * pressing it twice is still faster than aiming at the bar. */
+const NUDGE_MS = 5_000;
 
 type TTransportIcon =
   | 'previous'
@@ -84,6 +120,8 @@ type TTransportIcon =
   | 'stop'
   | 'shuffle'
   | 'repeat'
+  | 'back5'
+  | 'forward5'
   | 'volume';
 
 /**
@@ -168,6 +206,30 @@ const TransportIcon = ({ name }: { name: TTransportIcon }) => {
         height="10"
         rx="1.5"
       />
+    );
+  } else if (name === 'back5' || name === 'forward5') {
+    // A circular arrow with the step written inside it — the shape every
+    // player uses for this, and the only one that says how far it goes
+    // without a tooltip. Mirrored for the two directions rather than drawn
+    // twice, so the pair can never drift apart.
+    const back = name === 'back5';
+    drawing = (
+      <g transform={back ? undefined : 'translate(24 0) scale(-1 1)'}>
+        <path
+          className="now-playing-bar__icon-stroke"
+          d="M4.6 12a7.4 7.4 0 1 0 2.2-5.2"
+        />
+        <path className="now-playing-bar__icon-fill" d="M3.4 3.9v5h5l-5-5z" />
+        <text
+          className="now-playing-bar__icon-step"
+          x="12"
+          y="15.4"
+          textAnchor="middle"
+          transform={back ? undefined : 'translate(24 0) scale(-1 1)'}
+        >
+          5
+        </text>
+      </g>
     );
   } else if (name === 'volume') {
     drawing = (
@@ -301,6 +363,7 @@ const NowPlayingBar = ({
   // the element after a seek and re-reads it on `seeked`, exactly as
   // `useKaraokeSession` does, so there is nothing here left for a held scrub
   // value to protect against.
+  const format = formatSummary(track);
   const clampedPosition = Math.min(positionMs, Math.max(1, durationMs));
   const progressPercent =
     durationMs > 0 ? Math.min(100, (positionMs / durationMs) * 100) : 0;
@@ -334,6 +397,9 @@ const NowPlayingBar = ({
             <span className="now-playing-bar__artist">
               {track.artist ?? t('library.unknownArtist')}
             </span>
+            {format && (
+              <span className="now-playing-bar__format">{format}</span>
+            )}
           </span>
         </button>
         {isUnplayable && (
@@ -354,6 +420,21 @@ const NowPlayingBar = ({
           >
             <TransportIcon name="previous" />
           </button>
+          {/* Five seconds either way, between the track skips and Play.
+              Clamped at both ends here rather than trusting `seek`: a
+              negative position is refused by the element and a position past
+              the end ends the track, and neither is what "back five seconds"
+              near the start or "forward five" near the finish means. */}
+          <button
+            type="button"
+            className="now-playing-bar__control now-playing-bar__nudge"
+            aria-label={t('library.back5')}
+            title={t('library.back5')}
+            disabled={durationMs <= 0 || isUnplayable}
+            onClick={() => onSeek(Math.max(0, positionMs - NUDGE_MS))}
+          >
+            <TransportIcon name="back5" />
+          </button>
           <button
             type="button"
             className={`now-playing-bar__control now-playing-bar__play${
@@ -367,6 +448,16 @@ const NowPlayingBar = ({
             onClick={onToggle}
           >
             <TransportIcon name={isPlaying ? 'pause' : 'play'} />
+          </button>
+          <button
+            type="button"
+            className="now-playing-bar__control now-playing-bar__nudge"
+            aria-label={t('library.forward5')}
+            title={t('library.forward5')}
+            disabled={durationMs <= 0 || isUnplayable}
+            onClick={() => onSeek(Math.min(durationMs, positionMs + NUDGE_MS))}
+          >
+            <TransportIcon name="forward5" />
           </button>
           <button
             type="button"

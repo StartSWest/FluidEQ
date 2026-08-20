@@ -144,9 +144,24 @@ const LibraryTrackRow = ({
               title={t('library.nowPlaying')}
               aria-label={t('library.nowPlaying')}
             >
-              <i />
-              <i />
-              <i />
+              {/* The app's own curve over bars, in miniature — the shape on
+                  the graph two panels down, not a generic equaliser. The
+                  wave is drawn twice its own width and slid left forever, so
+                  one `translate` is the whole animation and the seam never
+                  shows; the bars behind it breathe on their own offsets. */}
+              <svg viewBox="0 0 20 12" aria-hidden="true">
+                <g className="library-list__playing-bars">
+                  <rect x="1" y="5" width="1.6" height="6" rx="0.8" />
+                  <rect x="5" y="5" width="1.6" height="6" rx="0.8" />
+                  <rect x="9" y="5" width="1.6" height="6" rx="0.8" />
+                  <rect x="13" y="5" width="1.6" height="6" rx="0.8" />
+                  <rect x="17" y="5" width="1.6" height="6" rx="0.8" />
+                </g>
+                <path
+                  className="library-list__playing-wave"
+                  d="M0 7c2-4 4-4 6 0s4 4 6 0 4-4 6 0 4 4 6 0 4-4 6 0"
+                />
+              </svg>
             </span>
           )}
           <span className="library-list__title-label">{track.title}</span>

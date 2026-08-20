@@ -95,6 +95,8 @@ const library: Partial<Dictionary> = {
   'library.pause': '暂停',
   'library.stop': '停止',
   'library.previous': '上一首',
+  'library.back5': '后退 5 秒',
+  'library.forward5': '前进 5 秒',
   'library.next': '下一首',
   'library.shuffle': '随机播放',
   'library.repeat': '循环播放',

@@ -96,6 +96,8 @@ const library = {
   'library.pause': 'Pause',
   'library.stop': 'Stop',
   'library.previous': 'Previous',
+  'library.back5': 'Back 5 seconds',
+  'library.forward5': 'Forward 5 seconds',
   'library.next': 'Next',
   'library.shuffle': 'Shuffle',
   'library.repeat': 'Repeat',
