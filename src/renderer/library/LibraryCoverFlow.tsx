@@ -239,51 +239,14 @@ const LibraryCoverFlow = ({
   revealTrack,
 }: ILibraryCoverFlowProps) => {
   const { t } = useTranslation();
-  const [currentIndex, setCurrentIndex] = useState(0);
-  // The id of whatever is currently centred, kept beside the index itself so
-  // that a change to `items` can re-find that same album, artist or track —
-  // see the reconciling effect below, and `setCentre`, which is the only
-  // place this is written.
-  const centredId = useRef<string | undefined>(undefined);
-  /** The `openId` this view has already centred on — see the effect that
-   * reads it for why once per id, not once per `items`. */
-  const appliedOpenId = useRef<string | undefined>(undefined);
-  /**
-   * The album or artist the drill-in below the row is showing, if any.
-   *
-   * Held as an id rather than as "whatever is centred", because turning the
-   * row and choosing something are two different acts. Arrow keys, the wheel
-   * and a drag move the row and leave the panel exactly as it was — it does
-   * not close, and it does not follow along. Only a click on a cover changes
-   * what it shows, and only Back closes it.
-   *
-   * Never set in song mode: a track has nothing to expand into.
-   */
-  const [expandedId, setExpandedId] = useState<string | undefined>(openId);
-
-  /** Every path that opens or closes the panel goes through this, so the
-   * workspace hears about it and the other two views agree. Reporting from
-   * here rather than from an effect on `expandedId` is what keeps the sync
-   * with `openId` below from feeding back on itself. */
-  const openPanel = (next: string | undefined) => {
-    setExpandedId(next);
-    onOpenChange?.(next);
-  };
-  /** The covers' shared parent, measured on every press — see
-   * `coverIndexAt`, which has to work out for itself what was pressed. */
-  const trackRef = useRef<HTMLDivElement | null>(null);
-  /** Which cover the pointer is over, or nothing. React state rather than a
-   * CSS `:hover` rule for the same reason the click is computed: Chromium
-   * does not deliver hover to these rotated covers either, so only the centre
-   * one ever lit up. */
-  const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(
-    undefined,
-  );
 
   // Same memo shape as `LibraryGridView`: keyed only on the two inputs that
   // actually change what is grouped, not on the callbacks `LibraryWorkspace`
   // hands down fresh every render or on `t` — see that component's comment
   // for the scan-tick re-render this avoids repeating.
+  //
+  // Declared above the state rather than beside the rest of the derivations
+  // because `currentIndex` starts from it — see that hook.
   const items: ICoverFlowItem[] = useMemo(() => {
     if (browseMode === 'album') {
       const grouped = groupIntoAlbums(tracks);
@@ -335,6 +298,64 @@ const LibraryCoverFlow = ({
       isPending: track.isPending === true,
     }));
   }, [tracks, browseMode, sort, sortDirection]);
+
+  /**
+   * The centre starts on whatever the workspace already had open.
+   *
+   * Not zero. Switching to this view from an open album used to mount the row
+   * at its first cover and let the hand-off effect below move it on the next
+   * commit — with the covers' 320ms transition live, so the whole carousel
+   * visibly flew from the first album to the one being read every single time
+   * the view was chosen. Starting where it belongs makes the switch a cut,
+   * which is what a view change should be; the effect below is then only for
+   * an album that arrives later, mid-scan.
+   */
+  const [currentIndex, setCurrentIndex] = useState(() => {
+    if (openId === undefined) {
+      return 0;
+    }
+    const index = items.findIndex((item) => item.id === openId);
+    return index < 0 ? 0 : index;
+  });
+  // The id of whatever is currently centred, kept beside the index itself so
+  // that a change to `items` can re-find that same album, artist or track —
+  // see the reconciling effect below, and `setCentre`, which is the only
+  // place this is written.
+  const centredId = useRef<string | undefined>(items[currentIndex]?.id);
+  /** The `openId` this view has already centred on — see the effect that
+   * reads it for why once per id, not once per `items`. */
+  const appliedOpenId = useRef<string | undefined>(undefined);
+  /**
+   * The album or artist the drill-in below the row is showing, if any.
+   *
+   * Held as an id rather than as "whatever is centred", because turning the
+   * row and choosing something are two different acts. Arrow keys, the wheel
+   * and a drag move the row and leave the panel exactly as it was — it does
+   * not close, and it does not follow along. Only a click on a cover changes
+   * what it shows, and only Back closes it.
+   *
+   * Never set in song mode: a track has nothing to expand into.
+   */
+  const [expandedId, setExpandedId] = useState<string | undefined>(openId);
+
+  /** Every path that opens or closes the panel goes through this, so the
+   * workspace hears about it and the other two views agree. Reporting from
+   * here rather than from an effect on `expandedId` is what keeps the sync
+   * with `openId` below from feeding back on itself. */
+  const openPanel = (next: string | undefined) => {
+    setExpandedId(next);
+    onOpenChange?.(next);
+  };
+  /** The covers' shared parent, measured on every press — see
+   * `coverIndexAt`, which has to work out for itself what was pressed. */
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  /** Which cover the pointer is over, or nothing. React state rather than a
+   * CSS `:hover` rule for the same reason the click is computed: Chromium
+   * does not deliver hover to these rotated covers either, so only the centre
+   * one ever lit up. */
+  const [hoveredIndex, setHoveredIndex] = useState<number | undefined>(
+    undefined,
+  );
 
   /** Moves the centre to `index`, clamped to the live `items` array, and
    * records what is now centred. Every path that changes the centre —
@@ -416,6 +437,34 @@ const LibraryCoverFlow = ({
     setCurrentIndex(index);
     setExpandedId(openId);
   }, [openId, items]);
+
+  /**
+   * Song mode's own hand-off: centre the row on a track the workspace asked
+   * for.
+   *
+   * `openId` cannot do this job — it opens a panel, and a track has nothing
+   * to open. So a switch to Songs, or the now-playing bar's "show me what is
+   * playing", arrives here instead and only moves the centre. In the other
+   * three modes the id is an album's, an artist's or a folder's and never
+   * matches a cover here, so the effect stands aside and `openId` above does
+   * the work.
+   */
+  const revealNonce = revealTrack?.nonce;
+  const revealTrackId = revealTrack?.trackId;
+  useEffect(() => {
+    if (revealTrackId === undefined) {
+      return;
+    }
+    const index = items.findIndex((item) => item.id === revealTrackId);
+    if (index < 0) {
+      return;
+    }
+    centredId.current = revealTrackId;
+    setCurrentIndex(index);
+    // Keyed on the request rather than on `items`, which gets a new identity
+    // on every scan batch — see the effect above for what that costs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealTrackId, revealNonce]);
 
   /**
    * The cover the playing track belongs to.

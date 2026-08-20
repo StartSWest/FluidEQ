@@ -257,6 +257,29 @@ const LibraryWorkspace = ({
   // this is how it tells the two apart. See that effect for why.
   const drillInDrivenMode = useRef<TLibraryBrowseMode | undefined>(undefined);
 
+  /**
+   * The row every view should scroll to and mark.
+   *
+   * Carries a nonce of its own so that asking twice for the same track still
+   * moves the list — the reader may well have scrolled away in between, and
+   * an id that looks unchanged would do nothing.
+   *
+   * Two things write it. The now-playing bar's "show me what is playing",
+   * which also opens an album; and a switch to Songs, which is the one browse
+   * mode with no drill-in to carry across and so carries the row instead —
+   * without it, pressing Songs from an album dropped the reader at the top of
+   * fourteen thousand of them with no sign of where they had been.
+   */
+  const [revealTrack, setRevealTrack] = useState<
+    { trackId: string; nonce: number } | undefined
+  >(undefined);
+  const revealRow = useCallback((trackId: string) => {
+    setRevealTrack((current) => ({
+      trackId,
+      nonce: (current?.nonce ?? 0) + 1,
+    }));
+  }, []);
+
   // "Show me what is playing", asked for by the now-playing bar. Browsing has
   // to move to albums first: the drill-in only exists in that mode, and the
   // browse-mode effect below closes any open album when the mode changes, so
@@ -264,6 +287,7 @@ const LibraryWorkspace = ({
   // Keyed on the nonce so pressing it twice for the same album still works.
   const revealNonce = revealRequest?.nonce;
   const revealAlbumId = revealRequest?.albumId;
+  const revealRequestTrackId = revealRequest?.trackId;
   useEffect(() => {
     if (revealAlbumId === undefined) {
       return;
@@ -273,18 +297,15 @@ const LibraryWorkspace = ({
     setOpenArtistId(undefined);
     setOpenFolderPath(undefined);
     setOpenAlbumId(revealAlbumId);
+    if (revealRequestTrackId !== undefined) {
+      revealRow(revealRequestTrackId);
+    }
+    // `revealRequestTrackId` and `revealRow` are deliberately not
+    // dependencies: this runs for a *request*, which the nonce identifies,
+    // and listing the id would fire it again for an unrelated render that
+    // happened to change it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [revealAlbumId, revealNonce]);
-
-  /** The row the drill-in should scroll to and mark once it opens, carried
-   * with its own nonce so asking twice for the same track still moves the
-   * list — the reader may well have scrolled away in between. */
-  const revealTrack = useMemo(
-    () =>
-      revealRequest
-        ? { trackId: revealRequest.trackId, nonce: revealRequest.nonce }
-        : undefined,
-    [revealRequest],
-  );
 
   // An album id means nothing while artists are listed, and the reverse — a
   // mode change that brings no drill-in of its own closes whatever was open.
@@ -426,6 +447,12 @@ const LibraryWorkspace = ({
    * the collection is arranged, not what is being read. So whatever is open
    * is re-derived for the new mode from the anchor above, and only the two
    * modes with nothing to drill into — songs and videos — actually close it.
+   *
+   * Songs is not left empty-handed, though. It has no drill-in to carry, so
+   * what it carries is the row: the list scrolls to the same track and marks
+   * it. Its anchor falls back to whatever is playing, because unlike the
+   * other three, "the song" is a thing the reader has even when nothing is
+   * drilled in at all.
    */
   const handleBrowseMode = useCallback(
     (mode: TLibraryBrowseMode) => {
@@ -437,12 +464,18 @@ const LibraryWorkspace = ({
       setOpenFolderPath(
         anchor && mode === 'folder' ? trackFolderPath(anchor.path) : undefined,
       );
+      if (mode === 'song') {
+        const row = anchor ?? playingTrack;
+        if (row) {
+          revealRow(row.id);
+        }
+      }
       // The effect below closes the drill-in on every mode change it did not
       // cause itself; this is one it did not cause but must not undo.
       drillInDrivenMode.current = mode;
       setBrowseMode(mode);
     },
-    [drillInAnchor],
+    [drillInAnchor, playingTrack, revealRow],
   );
 
   const handleOpenFolder = useCallback((folderPath: string) => {
@@ -744,6 +777,7 @@ const LibraryWorkspace = ({
             onSort={handleSort}
             groupByFolder={groupByFolder}
             playingTrackId={playingTrack?.id}
+            revealTrack={revealTrack}
             resetKey={listResetKey}
           />
         )}
@@ -762,6 +796,8 @@ const LibraryWorkspace = ({
             offlineRootIds={offlineRootIds}
             sort={viewSort}
             sortDirection={sortDirection}
+            playingTrackId={playingTrack?.id}
+            revealTrack={revealTrack}
             resetKey={listResetKey}
           />
         )}

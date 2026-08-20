@@ -331,12 +331,33 @@ const LibraryListView = ({
       shownCountRef.current = needed;
       setShownCount(needed);
     }
-    const frame = requestAnimationFrame(() => {
-      bodyRef.current
-        ?.querySelector(`[data-track-id="${CSS.escape(revealTrackId)}"]`)
-        ?.scrollIntoView({ block: 'center' });
-    });
-    return () => cancelAnimationFrame(frame);
+    // Retried rather than scrolled on the next frame: the `setShownCount`
+    // above schedules another render, so one frame later the row asked for is
+    // very often not mounted yet, and a single `scrollIntoView` then finds
+    // nothing and silently does nothing. Same bounded retry, and the same
+    // reason, as the restore below.
+    let attempts = 0;
+    let frame = 0;
+    const scrollToRow = () => {
+      frame = 0;
+      const row = bodyRef.current?.querySelector(
+        `[data-track-id="${CSS.escape(revealTrackId)}"]`,
+      );
+      if (row) {
+        row.scrollIntoView({ block: 'center' });
+        return;
+      }
+      attempts += 1;
+      if (attempts < RESTORE_ATTEMPTS) {
+        frame = requestAnimationFrame(scrollToRow);
+      }
+    };
+    frame = requestAnimationFrame(scrollToRow);
+    return () => {
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
+    };
     // `tracks` is deliberately absent: it is replaced on every scan batch, and
     // re-running this would drag the reader back to the revealed row for the
     // whole of a scan.

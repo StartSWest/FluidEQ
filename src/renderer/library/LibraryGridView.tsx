@@ -16,14 +16,24 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  albumKey,
+  artistKey,
   groupIntoAlbums,
   groupIntoArtists,
   groupIntoFolders,
   sortAlbums,
   sortArtists,
   sortFolders,
+  trackFolderPath,
 } from '../../common/library/grouping';
 import {
   ILibraryTrack,
@@ -58,6 +68,13 @@ interface ILibraryGridViewProps {
    * nothing else; `tracks` is replaced on every scan batch, which is not a
    * reason to throw away tiles the reader has already scrolled to. */
   resetKey?: string;
+  /** The track the player is on, so a song tile can carry the same mark its
+   * row does. */
+  playingTrackId?: string;
+  /** A tile to page to, scroll to and select, with a nonce so that asking
+   * twice for the same one still moves the grid — `LibraryListView`'s prop of
+   * the same name, and the same reasoning. */
+  revealTrack?: { trackId: string; nonce: number };
 }
 
 const NO_OFFLINE_ROOTS: ReadonlySet<string> = new Set();
@@ -127,6 +144,8 @@ const LibraryGridView = ({
   sort,
   sortDirection = 'asc',
   resetKey = '',
+  playingTrackId,
+  revealTrack,
 }: ILibraryGridViewProps) => {
   const { t } = useTranslation();
   const gridRef = useRef<HTMLDivElement | null>(null);
@@ -328,6 +347,94 @@ const LibraryGridView = ({
     return item.title;
   };
 
+  /**
+   * The tile the playing track belongs to.
+   *
+   * Keyed the way the tiles themselves are grouped — `albumKey` for an album
+   * tile, `artistKey` for an artist one, the folder path for a folder, the
+   * track's own id for a song — so a tile and its songs can never disagree
+   * about which is playing. Same derivation `LibraryCoverFlow` makes for its
+   * covers, and for the same reason: without it the grid gave no sign at all
+   * of where the music was coming from.
+   */
+  const playingItemId = useMemo(() => {
+    if (playingTrackId === undefined) {
+      return undefined;
+    }
+    const playing = tracks.find((track) => track.id === playingTrackId);
+    if (!playing) {
+      return undefined;
+    }
+    if (browseMode === 'album') {
+      return albumKey(playing);
+    }
+    if (browseMode === 'artist') {
+      return artistKey(playing);
+    }
+    if (browseMode === 'folder') {
+      return trackFolderPath(playing.path);
+    }
+    return playing.id;
+  }, [tracks, playingTrackId, browseMode]);
+
+  /**
+   * Page to a tile, scroll to it and select it — the grid's half of
+   * `LibraryListView`'s reveal, written the same way and for the same reason.
+   *
+   * Paging first is the part that matters: the grid holds a page at a time
+   * and the tile asked for is very often past the end of what is mounted, so
+   * scrolling to it before growing the grid would scroll to nothing.
+   */
+  const revealNonce = revealTrack?.nonce;
+  const revealTrackId = revealTrack?.trackId;
+  useEffect(() => {
+    if (revealTrackId === undefined) {
+      return undefined;
+    }
+    const index = items.findIndex((item) => item.id === revealTrackId);
+    if (index < 0) {
+      return undefined;
+    }
+    rememberActive(revealTrackId);
+    if (index >= shownCountRef.current) {
+      const needed = Math.ceil((index + 1) / PAGE_SIZE) * PAGE_SIZE + PAGE_SIZE;
+      shownCountRef.current = needed;
+      setShownCount(needed);
+    }
+    // Retried rather than scrolled on the next frame, for the same reason
+    // `RESTORE_ATTEMPTS` exists at all: the `setShownCount` above schedules
+    // another render, so one frame later the tile asked for very often does
+    // not exist yet and a single `scrollIntoView` finds nothing and silently
+    // does nothing. Measured on a 6660-tile grid, that was exactly the bug —
+    // the right tile was selected 133,743px down a grid that had not moved.
+    let attempts = 0;
+    let frame = 0;
+    const scrollToTile = () => {
+      frame = 0;
+      const tile = gridRef.current?.querySelector(
+        `[data-tile-id="${CSS.escape(revealTrackId)}"]`,
+      );
+      if (tile) {
+        tile.scrollIntoView({ block: 'center' });
+        return;
+      }
+      attempts += 1;
+      if (attempts < RESTORE_ATTEMPTS) {
+        frame = requestAnimationFrame(scrollToTile);
+      }
+    };
+    frame = requestAnimationFrame(scrollToTile);
+    return () => {
+      if (frame) {
+        cancelAnimationFrame(frame);
+      }
+    };
+    // Keyed on the request, not on `items` — which gets a new identity on
+    // every scan batch and would drag the grid back here several times a
+    // second while one runs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [revealTrackId, revealNonce]);
+
   // A page at a time, growing as the bottom comes into reach — the same rule
   // `LibraryListView` follows, and for the same reason: nothing stands in for
   // what is not rendered, so the scrollbar measures exactly the tiles that
@@ -366,11 +473,13 @@ const LibraryGridView = ({
           item.rootId && offlineRootIds.has(item.rootId),
         );
         const isSelected = activeId === item.id;
+        const isPlaying = playingItemId === item.id;
         const tileClassName = [
           'library-grid__tile',
           isOffline ? 'library-grid__tile--offline' : '',
           item.isPending ? 'library-grid__tile--pending' : '',
           isSelected ? 'library-grid__tile--selected' : '',
+          isPlaying ? 'library-grid__tile--playing' : '',
         ]
           .filter(Boolean)
           .join(' ');
@@ -378,6 +487,7 @@ const LibraryGridView = ({
           <button
             key={item.id}
             type="button"
+            data-tile-id={item.id}
             aria-current={isSelected ? 'true' : undefined}
             className={tileClassName}
             title={isOffline ? t('library.root.offline') : undefined}

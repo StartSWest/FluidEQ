@@ -84,21 +84,28 @@ const formatDuration = (ms: number): string => {
  * file with no readable header contributes nothing rather than a row of
  * dashes.
  */
-const formatSummary = (track: ILibraryTrack): string => {
-  const parts: string[] = [];
-  if (track.codec) {
-    parts.push(track.codec.toUpperCase());
-  }
+const formatSummary = (
+  track: ILibraryTrack,
+): { codec?: string; measures: string[] } => {
+  const measures: string[] = [];
   if (track.bitrate !== undefined && track.bitrate > 0) {
-    parts.push(`${Math.round(track.bitrate / 1000)} kbps`);
+    measures.push(`${Math.round(track.bitrate / 1000)} kbps`);
   }
   if (track.sampleRate !== undefined && track.sampleRate > 0) {
     // One decimal, and no trailing `.0` — 44.1 kHz and 48 kHz both read
     // naturally, `48.0 kHz` does not.
     const khz = track.sampleRate / 1000;
-    parts.push(`${Number(khz.toFixed(1))} kHz`);
+    measures.push(`${Number(khz.toFixed(1))} kHz`);
   }
-  return parts.join(' · ');
+  // Returned in pieces rather than joined, because the two that say how good
+  // the file is get the tint and the codec name does not. Which container a
+  // track sits in is trivia; 128 kbps against 320 is the thing worth reading
+  // at a glance, and at one uniform muted grey the whole line was equally
+  // ignorable.
+  return {
+    codec: track.codec ? track.codec.toUpperCase() : undefined,
+    measures,
+  };
 };
 
 const REPEAT_LABEL_KEYS = {
@@ -397,8 +404,18 @@ const NowPlayingBar = ({
             <span className="now-playing-bar__artist">
               {track.artist ?? t('library.unknownArtist')}
             </span>
-            {format && (
-              <span className="now-playing-bar__format">{format}</span>
+            {(format.codec || format.measures.length > 0) && (
+              <span className="now-playing-bar__format">
+                {format.codec}
+                {format.measures.map((measure, index) => (
+                  <span key={measure}>
+                    {/* The separator stays the quiet colour — it belongs to
+                        the line, not to the figure after it. */}
+                    {(index > 0 || format.codec) && ' · '}
+                    <b className="now-playing-bar__measure">{measure}</b>
+                  </span>
+                ))}
+              </span>
             )}
           </span>
         </button>

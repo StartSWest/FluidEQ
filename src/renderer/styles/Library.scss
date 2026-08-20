@@ -1214,6 +1214,22 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
     opacity: 1;
   }
 
+  // Whatever the player is on, wherever it appears — the same answer
+  // `.library-list__row--playing` gives a row, in the only register a tile
+  // has for it. A tile carries no title cell to tint, so the glow does the
+  // work the row's coloured label does: enough to find across a screen of a
+  // hundred and eighty, not so much that it competes with selection, which
+  // is a ring and reads as an outline rather than a light.
+  &--playing {
+    border-color: rgba($secondary-light, 0.45);
+    box-shadow: 0 0 18px rgba($secondary-default, 0.3);
+    opacity: 1;
+
+    .library-grid__title {
+      color: $secondary-light;
+    }
+  }
+
   // Same dimming, and the same reasoning, as `.library-list__row--offline` —
   // shared by `LibraryVideoSection`'s tiles too, since both reuse this exact
   // class rather than drawing their own.

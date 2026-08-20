@@ -130,12 +130,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 }
 
 // Codec, bitrate, sample rate — quieter than the artist above it, because it
-// answers a question nobody asks twice about the same file.
+// answers a question nobody asks twice about the same file. The codec name
+// and the separators keep this grey; the two figures do not, see below.
 .now-playing-bar__format {
   @include truncate;
   color: rgba($primary-lighter, 0.42);
   font-size: 0.58rem;
   letter-spacing: 0.02em;
+}
+
+// The bitrate and the sample rate, which are the only two things on this line
+// anyone actually reads. At the line's own 42% grey they carried the same
+// weight as the container name beside them and vanished into it; the accent
+// is what lets 128 and 320 be told apart at a glance. Deliberately short of
+// full `$secondary-light` and of a real bold — this sits under a title and an
+// artist and must not outrank either.
+.now-playing-bar__measure {
+  color: rgba($secondary-light, 0.92);
+  font-weight: 500;
 }
 
 .now-playing-bar__unplayable {
