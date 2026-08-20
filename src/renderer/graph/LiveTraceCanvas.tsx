@@ -98,8 +98,7 @@ import {
   TRACE_RAINBOW_STOPS,
   SPECTRUM_BAR_ATTACK_MS,
   SPECTRUM_BAR_RELEASE_MS,
-  SPECTRUM_HUE_FLAT,
-  SPECTRUM_HUE_RAINBOW,
+  SPECTRUM_HUE_BY_PALETTE,
   advanceSpectrumBars,
   paintSpectrumBars,
   spectrumBarsPath,
@@ -717,8 +716,23 @@ const LiveTraceCanvas = ({
        * space as the figure, and the mirrored copy's transform is applied when
        * the clip is set rather than when it is built.
        */
+      /**
+       * Not on the fluid, which is the one form it neither suits nor can
+       * afford.
+       *
+       * The mask is an even-odd clip built from the whole figure, and this
+       * figure is a hundred and twenty-eight rectangles that change every
+       * frame — so it is a fresh path of that size, tessellated as a clip,
+       * sixty times a second. And the result is not worth it: a border round
+       * every bar at that density is not an edge on a shape, it is a grid,
+       * and the bars stop being readable behind their own outlines. The wave
+       * is where this form's light belongs.
+       */
       const needsOutside =
-        isEuphoriaEdge && tuning.filled && figureStrokeWidth > 0;
+        isEuphoriaEdge &&
+        tuning.filled &&
+        figureStrokeWidth > 0 &&
+        !isFluidForm;
       let outside: Path2D | undefined;
       if (needsOutside) {
         const bleed = figureStrokeWidth + 1;
@@ -799,21 +813,12 @@ const LiveTraceCanvas = ({
             fluidBarsRef.current,
             isEuphoric,
             /**
-             * Flat is the titlebar's own sweep, so the look that ships
-             * matches it; frequency opens the same sweep out across the
-             * wheel. Both are the form's idea — a bar coloured by where it
-             * sits — said at two widths.
+             * All three keep the form's treatment and differ in what the
+             * hue is taken FROM — position at two widths, or the bar's own
+             * loudness. A palette that filled flat instead stopped being
+             * this drawing.
              */
-            lookRef.current.palette === 'rainbow'
-              ? SPECTRUM_HUE_RAINBOW
-              : SPECTRUM_HUE_FLAT,
-            /**
-             * Level is the one palette that is not a sweep. It runs its
-             * ramp UP the plot, and a per-bar hue running across it would
-             * be two colour systems arguing over the same pixels — so that
-             * one replaces the sweep rather than reshaping it.
-             */
-            lookRef.current.palette === 'level' ? canvasPaint : undefined,
+            SPECTRUM_HUE_BY_PALETTE[lookRef.current.palette],
           );
         } else if (tuning.filled) {
           // The fill and the stroke are composited separately here, where SVG
@@ -824,6 +829,9 @@ const LiveTraceCanvas = ({
           context.fillStyle = canvasPaint;
           context.fill(figure);
         }
+        // The euphoria sweep does not take the fluid's border either — see
+        // `needsOutside`. Its bars are lit by their own hue and the wave over
+        // them; a travelling edge on each of a hundred-odd of them is noise.
         const figureStroke = resolveFigureStroke(
           basePaint,
           tuning.filled,
@@ -831,7 +839,11 @@ const LiveTraceCanvas = ({
           isSelfColoured,
           euphoria,
         );
-        if (figureStroke !== undefined && figureStrokeWidth > 0) {
+        if (
+          figureStroke !== undefined &&
+          figureStrokeWidth > 0 &&
+          !(isFluidForm && isEuphoriaEdge)
+        ) {
           setAlpha(context, opacity);
           context.strokeStyle = paintFor(figureStroke);
           if (outside) {

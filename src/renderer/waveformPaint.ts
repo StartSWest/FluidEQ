@@ -17,6 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { getEaseFactor } from 'common/smoothing';
+import { GraphPalette } from 'common/graphStyles';
 import { WAVEFORM_STYLES, WaveformStyle } from 'common/waveformStyles';
 
 /**
@@ -225,6 +226,7 @@ const forEachSpectrumBar = (
     width: number,
     height: number,
     across: number,
+    energy: number,
   ) => void,
 ) => {
   const count = bars.length;
@@ -246,52 +248,70 @@ const forEachSpectrumBar = (
       width,
       height,
       index / Math.max(1, count - 1),
+      energy,
     );
   }
 };
 
 /**
- * The hue a bar takes at each end of the box, per palette.
+ * What decides a bar's hue.
  *
- * The sweep is the form — a bar's colour comes from WHERE it sits, which is
- * the whole reason it reads as a spectrum rather than as a bar chart — so a
- * palette changes how far the sweep travels rather than replacing it with a
- * flat fill. Flat is the titlebar's own 184-296, cyan through violet.
- * Frequency opens it out to most of the wheel, which is the same idea said
- * louder.
+ * ONE TREATMENT, THREE ANSWERS. The form is a bar with its own hue and its
+ * own vertical fade, light at the top and almost clear at the foot, and that
+ * is what makes it read as a spectrum rather than as a bar chart. A palette
+ * that threw the treatment away and filled flat stopped being this drawing
+ * at all — so the palettes change what the hue is FROM and leave the rest.
+ *
+ * `across` is the bar's place in the box, `energy` how tall it is.
  */
-export const SPECTRUM_HUE_FLAT: readonly [number, number] = [184, 296];
-export const SPECTRUM_HUE_RAINBOW: readonly [number, number] = [200, 520];
+export type SpectrumHue = (across: number, energy: number) => number;
+
+/** The titlebar's own: cyan through violet, coloured by position. */
+export const SPECTRUM_HUE_FLAT: SpectrumHue = (across) => 184 + across * 112;
+
+/** The same idea said louder — position, most of the way round the wheel. */
+export const SPECTRUM_HUE_RAINBOW: SpectrumHue = (across) =>
+  (200 + across * 320) % 360;
 
 /**
- * Draw them into the given box.
+ * Coloured by how loud the bar is, not by where it sits.
  *
- * `paint` replaces the sweep entirely, for a palette that is not a sweep:
- * `level` runs its ramp UP the plot, and a per-bar hue running across it
- * would be two colour systems arguing over the same pixels.
+ * Which is what `level` means everywhere else on the graph: a bar reddens as
+ * it grows. Cyan at rest down through green and amber to red at full height —
+ * the meter ramp, run per bar rather than as one gradient up the plot, so it
+ * keeps the fade that the other two have.
  */
+export const SPECTRUM_HUE_LEVEL: SpectrumHue = (_across, energy) =>
+  190 - Math.max(0, Math.min(1, energy)) * 190;
+
+/**
+ * Which of the three a palette gets.
+ *
+ * A table rather than a chain of conditionals: they are three answers to one
+ * question, and written as nested ternaries at the call site that reads as a
+ * puzzle instead of as a lookup.
+ */
+export const SPECTRUM_HUE_BY_PALETTE: Record<GraphPalette, SpectrumHue> = {
+  signal: SPECTRUM_HUE_FLAT,
+  rainbow: SPECTRUM_HUE_RAINBOW,
+  level: SPECTRUM_HUE_LEVEL,
+};
+
+/** Draw them into the given box. */
 export const paintSpectrumBars = (
   context: CanvasRenderingContext2D,
   box: ISpectrumBox,
   bars: readonly number[],
   isRainbow: boolean,
-  hueRange: readonly [number, number],
-  paint?: string | CanvasGradient,
+  hueAt: SpectrumHue,
 ) => {
   const topAlpha = isRainbow ? 0.5 : 0.42;
-  const [fromHue, toHue] = hueRange;
-  forEachSpectrumBar(box, bars, (x, y, width, height, across) => {
-    if (paint === undefined) {
-      // Wrapped, so a range that runs past a full turn keeps going round the
-      // wheel instead of stopping at red.
-      const hue = (fromHue + across * (toHue - fromHue)) % 360;
-      const gradient = context.createLinearGradient(0, y, 0, y + height);
-      gradient.addColorStop(0, `hsla(${hue}, 92%, 65%, ${topAlpha})`);
-      gradient.addColorStop(1, `hsla(${hue}, 92%, 58%, 0.06)`);
-      context.fillStyle = gradient;
-    } else {
-      context.fillStyle = paint;
-    }
+  forEachSpectrumBar(box, bars, (x, y, width, height, across, energy) => {
+    const hue = hueAt(across, energy);
+    const gradient = context.createLinearGradient(0, y, 0, y + height);
+    gradient.addColorStop(0, `hsla(${hue}, 92%, 65%, ${topAlpha})`);
+    gradient.addColorStop(1, `hsla(${hue}, 92%, 58%, 0.06)`);
+    context.fillStyle = gradient;
     context.fillRect(x, y, width, height);
   });
 };
