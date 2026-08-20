@@ -30,6 +30,11 @@ import {
 } from '../../common/karaoke/files';
 import { findActiveKaraokeLine, TrackClock } from '../../common/karaoke/clock';
 import {
+  claimPlayback,
+  registerPlayer,
+  releasePlayback,
+} from '../audio/playbackOwner';
+import {
   IKaraokeSong,
   KaraokeParseError,
   TKaraokeParseErrorCode,
@@ -362,6 +367,11 @@ export const useKaraokeSession = (isActive: boolean) => {
     }
     try {
       await new TrackClock(audio).play();
+      // Claimed once the element is actually running, not when it is asked to
+      // — `play()` is a promise that can be refused, and claiming on the
+      // request would silence the library for a song that never started. See
+      // `playbackOwner`.
+      claimPlayback('karaoke');
       setError(undefined);
     } catch {
       setError('playback');
@@ -373,6 +383,7 @@ export const useKaraokeSession = (isActive: boolean) => {
     const audio = audioRef.current;
     if (audio) {
       new TrackClock(audio).pause();
+      releasePlayback('karaoke');
     }
   }, []);
 
@@ -383,6 +394,11 @@ export const useKaraokeSession = (isActive: boolean) => {
       play();
     }
   }, [pause, play, status]);
+
+  // How the rest of the app silences this session when something else takes
+  // over. `pause` and not a teardown: the singer keeps their song, their
+  // lyrics and their place in it, and gets them back on the next press.
+  useEffect(() => registerPlayer('karaoke', pause), [pause]);
 
   const seek = useCallback((nextMs: number) => {
     const audio = audioRef.current;

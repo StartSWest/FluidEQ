@@ -57,6 +57,11 @@ import {
   TLibraryRepeat,
 } from '../../../common/library/queue';
 import { libraryMediaUrl } from '../../../common/library/mediaUrl';
+import {
+  claimPlayback,
+  registerPlayer,
+  releasePlayback,
+} from '../../audio/playbackOwner';
 import { ILibraryTrack } from '../../../common/library/types';
 import { useLibrary } from '../LibraryContext';
 import {
@@ -573,8 +578,19 @@ export const LibraryPlayerProvider = ({
           setPositionMs(restore.positionMs);
         }
       };
-      const onPlay = () => setIsPlaying(true);
-      const onPause = () => setIsPlaying(false);
+      // The element is the authority on when sound actually starts, so the
+      // claim is made from its own event rather than from the call that asked
+      // for it: `play()` is a promise that can be refused, and claiming on the
+      // request would have silenced the karaoke tab for a track that never
+      // began. See `playbackOwner`.
+      const onPlay = () => {
+        claimPlayback('library');
+        setIsPlaying(true);
+      };
+      const onPause = () => {
+        releasePlayback('library');
+        setIsPlaying(false);
+      };
       const onEnded = () => handleEnded(element);
       // A track whose file the element cannot actually load — the drive it
       // lives on unplugged after the scan that found it, a permissions
@@ -621,6 +637,19 @@ export const LibraryPlayerProvider = ({
     }
     return bindMediaEvents(element);
   }, [bindMediaEvents]);
+
+  // How the rest of the app silences this player when it takes over. Pausing
+  // rather than clearing the queue: the reader gets their album back where
+  // they left it when they come back to the tab, which is what "something
+  // else started" should cost them and no more.
+  useEffect(
+    () =>
+      registerPlayer('library', () => {
+        audioElementRef.current?.pause();
+        videoElementRef.current?.pause();
+      }),
+    [],
+  );
 
   const registerVideoElement = useCallback(
     (element: HTMLVideoElement | null): (() => void) => {

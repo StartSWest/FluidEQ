@@ -52,6 +52,11 @@ import { useIsAdBlockRevealed } from '../utils/adBlockReveal';
 import { useGraphView } from '../utils/graphStyle';
 import { exitGraphFullScreen } from '../utils/graphViewSettings';
 import VideoSearch from './VideoSearch';
+import {
+  claimPlayback,
+  registerPlayer,
+  releasePlayback,
+} from '../audio/playbackOwner';
 import VideoSiteIcon from './VideoSiteIcon';
 import '../styles/VideoBrowser.scss';
 import {
@@ -421,6 +426,43 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       // No web contents to ask; the page is still where it was.
     }
   }, [pageToken]);
+
+  /**
+   * This pane's half of the one-player rule.
+   *
+   * The guest is a whole browser and we do not own what it is doing, so both
+   * directions go through the two things a `<webview>` will tell us and the
+   * one thing it will let us ask. `media-started-playing` is the claim — by
+   * the time it fires the page is already making sound, which is exactly when
+   * the album underneath it should stop. `media-paused` gives it back. And
+   * being asked to stop is a script that pauses every media element on the
+   * page: not a user gesture, so it cannot start anything, only end it.
+   *
+   * Anything the page opens in its own window is beyond this, and honestly so
+   * — we can only speak to the contents we embedded.
+   */
+  useEffect(() => {
+    const view = webviewRef.current;
+    if (!view) {
+      return undefined;
+    }
+    const onPlaying = () => claimPlayback('media');
+    const onPaused = () => releasePlayback('media');
+    view.addEventListener('media-started-playing', onPlaying);
+    view.addEventListener('media-paused', onPaused);
+    const unregister = registerPlayer('media', () => {
+      try {
+        view.executeJavaScript(STOP_PLAYBACK).catch(() => undefined);
+      } catch {
+        // No web contents to ask — nothing is playing in one that is gone.
+      }
+    });
+    return () => {
+      view.removeEventListener('media-started-playing', onPlaying);
+      view.removeEventListener('media-paused', onPaused);
+      unregister();
+    };
+  }, []);
 
   /**
    * Strip the page back to its player while the graph is over it.
