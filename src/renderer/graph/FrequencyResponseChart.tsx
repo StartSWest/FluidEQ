@@ -29,6 +29,7 @@ import {
   TApoLayer,
 } from 'common/constants';
 import { ErrorDescription } from 'common/errors';
+import { GRAPH_PALETTES, GraphPalette } from 'common/graphStyles';
 import { TranslationKey } from 'common/i18n';
 import {
   CSSProperties,
@@ -65,6 +66,7 @@ import {
   exitGraphFullScreen,
   getSelectableLooks,
   setGraphLook,
+  setGraphPalette,
   setGraphView,
   toggleGraphExpanded,
   toggleGraphFullScreen,
@@ -94,6 +96,8 @@ import {
   useGraphView,
   useFullScreenTopBar,
   useLiveOutputSolo,
+  useGraphPalette,
+  useIsPaletteSelectable,
   useSelectedLookId,
 } from '../utils/graphStyle';
 import { setChromeHeld, useIsChromeIdle } from '../utils/idleChrome';
@@ -158,6 +162,18 @@ const SILENCE_GRACE_MS = 2000;
  * finishing and the panel going, which reads as the app hesitating.
  */
 const DESIGNER_EXIT_MS = 170;
+
+/**
+ * What each palette is called, for the toggle that cycles them.
+ *
+ * The designer's own names, so the same three things are called the same
+ * three words in both places somebody meets them.
+ */
+const PALETTE_LABEL_KEYS: Record<GraphPalette, TranslationKey> = {
+  signal: 'look.palette.flat',
+  rainbow: 'look.palette.frequency',
+  level: 'look.palette.level',
+};
 
 /**
  * WHY TWO COMPONENTS IN THIS FILE DRAW ALMOST NOTHING.
@@ -403,6 +419,8 @@ const FrequencyResponseChart = ({
   // is drawing an unsaved draft whose id is in no list, and a picker handed
   // that id would show nothing.
   const selectedLookId = useSelectedLookId();
+  const graphPalette: GraphPalette = useGraphPalette();
+  const isPaletteSelectable = useIsPaletteSelectable();
   const customLooks = useCustomLooks();
   const [isDesignerOpen, setIsDesignerOpen] = useState(false);
   /**
@@ -489,20 +507,13 @@ const FrequencyResponseChart = ({
   const graphLookOptions = useMemo(
     () =>
       getSelectableLooks(customLooks).map((look) => {
+        // The form's name and nothing else. The palette used to be appended
+        // here, back when the list held every form three times; with one row
+        // per form the suffix would be the same word on all forty-seven and
+        // the toggle beside the list already says which is on.
         const builtInLabel = look.isCustom
           ? look.label
-          : [
-              t(`graph.styleName.${look.style}` as TranslationKey),
-              look.palette === 'signal'
-                ? ''
-                : t(
-                    `look.palette.${
-                      look.palette === 'rainbow' ? 'frequency' : 'level'
-                    }` as TranslationKey,
-                  ),
-            ]
-              .filter(Boolean)
-              .join(' · ');
+          : t(`graph.styleName.${look.style}` as TranslationKey);
         return {
           value: look.id,
           label: builtInLabel,
@@ -1538,6 +1549,46 @@ const FrequencyResponseChart = ({
             >
               <svg viewBox="0 0 16 16" aria-hidden>
                 <path d="M6 3.5l4 4.5-4 4.5" />
+              </svg>
+            </button>
+            {/* How the chosen form is coloured.
+
+                It used to be three rows of every form in the list itself, so
+                the picker was a hundred and forty-one entries and stepping to
+                the next FORM took three clicks. One control cycling the three
+                palettes says the same thing in the space of a button.
+
+                Disabled on a look somebody built, which carries the palette it
+                was designed with — a control that quietly did nothing when it
+                was pressed would be worse than one that says it cannot. */}
+            <button
+              type="button"
+              className="graph-look-step graph-look-step--toggle"
+              aria-pressed={graphPalette !== 'signal'}
+              aria-label={`${t('look.palette.cycle')}: ${t(
+                PALETTE_LABEL_KEYS[graphPalette],
+              )}`}
+              title={`${t('look.palette.cycle')}: ${t(
+                PALETTE_LABEL_KEYS[graphPalette],
+              )}`}
+              disabled={isWaveHidden || !isPaletteSelectable}
+              onClick={() =>
+                setGraphPalette(
+                  GRAPH_PALETTES[
+                    (GRAPH_PALETTES.indexOf(graphPalette) + 1) %
+                      GRAPH_PALETTES.length
+                  ],
+                )
+              }
+            >
+              {/* A ramp: three bars climbing in weight, which is what all
+                  three palettes are — one flat, one across the axis, one up
+                  it. Opacity rather than colour, so it takes the button's
+                  own lit and dimmed states like every other glyph here. */}
+              <svg viewBox="0 0 16 16" aria-hidden>
+                <rect x="2" y="9" width="3" height="5" opacity="0.4" />
+                <rect x="6.5" y="6" width="3" height="8" opacity="0.7" />
+                <rect x="11" y="2.5" width="3" height="11.5" />
               </svg>
             </button>
             {/* Make one of your own.

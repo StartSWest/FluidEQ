@@ -23,8 +23,8 @@ import { isTraceGradient, resolveTracePaint } from '../graph/liveTracePaint';
 /**
  * A look, drawn small enough to sit in a list.
  *
- * The picker holds a hundred and thirty-eight entries and until now every one
- * of them was a line of text. "Terrace", "Crown", "Weave" and "Truss" are names
+ * The picker holds forty-seven entries — one per form, with the palette on a
+ * toggle beside it — and until now every one of them was a line of text. "Terrace", "Crown", "Weave" and "Truss" are names
  * chosen by eye for shapes chosen by eye, and none of them tells anybody what
  * they will get — the only way to find the one you wanted was to select it and
  * look, which for a list this long means selecting a great many of them.
@@ -86,9 +86,9 @@ interface ILookGlyph {
 /**
  * The drawings, one per family of forms.
  *
- * THIRTY-FOUR GLYPHS FOR FORTY-SIX FORMS, and the shortfall is deliberate. At
+ * THIRTY-SIX GLYPHS FOR FORTY-SEVEN FORMS, and the shortfall is deliberate. At
  * sixteen pixels a bar chart of sixty-four columns and one of forty-six are the
- * same picture, so a glyph per form would be forty-six near-identical drawings
+ * same picture, so a glyph per form would be forty-seven near-identical drawings
  * pretending to a precision the size cannot carry — and the reader would learn
  * to stop looking at them. What the icon has to answer is "is this bars, or a
  * line, or dots, or something hanging off the ceiling", and the families below
@@ -119,6 +119,30 @@ const GLYPHS = {
   // Everything under the trace, painted.
   area: {
     d: 'M1 13.5V10.6L4.4 5.4L7.6 9L10.8 3.4L13.2 7.6L15 6.4V13.5Z',
+    isFilled: true,
+  },
+  /**
+   * The area, with the level rule laid across it.
+   *
+   * The rule has to clear the trace's tallest peak in the glyph, because the
+   * whole form is about the gap between the two: drawn crossing the fill it
+   * would read as a horizon line through a landscape rather than as a second
+   * reading sitting above the first.
+   */
+  fluid: {
+    d: 'M1 13.5V10.6L4.4 5.4L7.6 9L10.8 3.4L13.2 7.6L15 6.4V13.5ZM1 2.2H15V3.4H1Z',
+    isFilled: true,
+  },
+  /**
+   * The spread of a band: its loudest point and its quietest, as two marks.
+   *
+   * The pairs have to sit at different distances from each other across the
+   * icon, because the whole reading is how far apart they are — drawn at a
+   * constant gap it would be two dotted rows and would say the opposite of
+   * what the form says.
+   */
+  spread: {
+    d: 'M2 4.6H4V6.6H2ZM2 11.4H4V13.4H2ZM6.5 6.4H8.5V8.4H6.5ZM6.5 9.4H8.5V11.4H6.5ZM11 2.6H13V4.6H11ZM11 12.4H13V14.4H11Z',
     isFilled: true,
   },
   // A band whose thickness is the level: fat where it is loud, a thread where
@@ -302,7 +326,7 @@ type TLookGlyphId = keyof typeof GLYPHS;
  * Which drawing stands for which form. EVERY FORM, BY THE TYPE.
  *
  * `Record<GraphStyle, ...>` rather than a lookup with a fallback, so a
- * forty-seventh form cannot be added without somebody deciding what it looks
+ * forty-eighth form cannot be added without somebody deciding what it looks
  * like. A fallback would have been kinder to write and would have shipped the
  * new form with the line glyph on it, which is worse than useless: it is a
  * picture that is confidently wrong, and nothing about the picker would look
@@ -310,17 +334,23 @@ type TLookGlyphId = keyof typeof GLYPHS;
  *
  * The families, and why each one is a family rather than several:
  *
- *  - `line` also draws Weave, which is the same trace with a fixed wobble
- *    added — a wobble of six pixels in a plot four hundred deep, and of nothing
- *    at all in an icon sixteen across.
+ *  - `line` also draws Weave, which is the same trace with a wobble worked
+ *    into it. The wobble is the band's own level now rather than the fixed six
+ *    pixels it used to be, so it reaches about twelve — still nothing at all in
+ *    an icon sixteen across, which is why the family holds even though the
+ *    reason it was written down no longer does.
  *  - `area` also draws Ridge. They are the same path in the engine; only the
  *    ballistics differ, and an icon cannot draw a time constant.
  *  - `bars` also draws Pillars and Fence, which are bars with the gaps closed
  *    and bars with two rails behind them.
  *  - `spikes` also draws Sawtooth and Crown — a triangle leaning, and a
  *    triangle with its tip cut off.
- *  - `dots` also draws Scatter, which is the same mark with a second one
- *    halfway down the column.
+ *  - `dots` stands alone now. It used to cover Scatter as well, on the grounds
+ *    that Scatter was the same mark with a second one halfway down the column —
+ *    and halfway down was derived from the first rather than measured, so there
+ *    was nothing for an icon to draw. Scatter marks the loudest and quietest
+ *    point of each band now. Two marks at two measured heights is exactly the
+ *    kind of thing sixteen pixels CAN say, so it gets its own.
  *  - `dashes` also draws Floating caps, which is the same mark three pixels
  *    thick instead of one.
  *  - `ladder` draws all four of the stacking forms — LED blocks, Ribs, Dot
@@ -342,7 +372,7 @@ const FORM_GLYPHS: Record<GraphStyle, TLookGlyphId> = {
   stems: 'stems',
   terrace: 'terrace',
   dashes: 'dashes',
-  scatter: 'dots',
+  scatter: 'spread',
   caps: 'dashes',
   ribs: 'ladder',
   pillars: 'bars',
@@ -377,6 +407,7 @@ const FORM_GLYPHS: Record<GraphStyle, TLookGlyphId> = {
   braid: 'braid',
   stitch: 'stitch',
   canyon: 'canyon',
+  fluid: 'fluid',
 };
 
 interface ILookIconProps {

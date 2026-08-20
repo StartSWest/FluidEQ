@@ -27,6 +27,7 @@ const look: Partial<Dictionary> = {
   'look.closeHint': 'Закрыть без сохранения (Esc)',
   'look.pickForm': 'Выберите форму сверху или нажмите Пробел.',
   'look.colourBy': 'Раскрашивать по',
+  'look.palette.cycle': 'Раскраска',
   'look.palette.flat': 'Однотонно',
   'look.palette.flatHint': 'Один цвет для всей фигуры',
   'look.palette.frequency': 'Частота',

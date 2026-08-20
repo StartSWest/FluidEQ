@@ -25,6 +25,7 @@ const look = {
   'look.closeHint': 'Close without saving (Esc)',
   'look.pickForm': 'Pick the form with the picker above, or press Space.',
   'look.colourBy': 'Colour by',
+  'look.palette.cycle': 'Colouring',
   'look.palette.flat': 'Flat',
   'look.palette.flatHint': 'One colour for the whole figure',
   'look.palette.frequency': 'Frequency',

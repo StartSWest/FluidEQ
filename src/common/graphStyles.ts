@@ -78,7 +78,8 @@ export type GraphStyle =
   | 'fence'
   | 'braid'
   | 'stitch'
-  | 'canyon';
+  | 'canyon'
+  | 'fluid';
 
 /** In cycle order. */
 export const GRAPH_STYLES: GraphStyle[] = [
@@ -131,6 +132,9 @@ export const GRAPH_STYLES: GraphStyle[] = [
   'braid',
   'stitch',
   'canyon',
+  // Two inputs rather than one. Appended for the same reason as the row
+  // above it: the order is the cycle order and people learn theirs by count.
+  'fluid',
 ];
 
 /**
@@ -187,6 +191,7 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   braid: 'Braid',
   stitch: 'Cross-stitch',
   canyon: 'Canyon',
+  fluid: 'Fluid',
 };
 
 export const nextGraphStyle = (style: GraphStyle): GraphStyle => {
@@ -266,15 +271,43 @@ export interface IGraphLook {
  * Generated rather than listed, so adding a form adds its whole row and no
  * entry can be forgotten or duplicated.
  */
+/**
+ * The id a form takes under a palette.
+ *
+ * One function rather than the rule written out wherever it is needed. The
+ * signal palette leaves the id bare, which is what makes a form's own name
+ * the id somebody's settings were saved under before palettes existed.
+ */
+export const graphLookId = (style: GraphStyle, palette: GraphPalette) =>
+  palette === 'signal' ? style : `${style}-${palette}`;
+
 export const GRAPH_LOOKS: IGraphLook[] = GRAPH_STYLES.flatMap((style) =>
   GRAPH_PALETTES.map((palette) => ({
-    id: palette === 'signal' ? style : `${style}-${palette}`,
+    id: graphLookId(style, palette),
     style,
     palette,
     label: [GRAPH_STYLE_LABELS[style], GRAPH_PALETTE_LABELS[palette]]
       .filter(Boolean)
       .join(' · '),
   })),
+);
+
+/**
+ * One entry per FORM, which is what a picker should list.
+ *
+ * `GRAPH_LOOKS` is every form times every palette, and two thirds of those
+ * rows say nothing new about the drawing: Bars, Bars · rainbow and Bars ·
+ * level are one figure with three fills. Listed in full it is a hundred and
+ * forty-one rows to scroll and, worse, a hundred and forty-one steps for the
+ * click-on-the-plot cycle — so flicking to the next FORM while listening
+ * meant three clicks, or forty-seven to get back to where you started.
+ *
+ * The palette moves to a toggle beside the list. `GRAPH_LOOKS` stays exactly
+ * as it was and remains the id space, so every stored preference keeps
+ * resolving and nothing has to be migrated.
+ */
+export const GRAPH_FORM_LOOKS: IGraphLook[] = GRAPH_LOOKS.filter(
+  (look) => look.palette === 'signal',
 );
 
 export const getGraphLook = (id: string): IGraphLook =>
@@ -401,6 +434,11 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // The negative space of a landscape, so it moves like one — the slowest of
   // the new forms, for the same reason the ridge and the contour are slow.
   canyon: { attackMs: 15, releaseMs: 82 },
+  // Slow, and on purpose. These are the ballistics of the SPECTRUM half
+  // only — the level rule over it is drawn from the waveform and is not
+  // eased here at all, so a lazy body underneath is what lets the rule's
+  // own speed be visible as speed rather than as both halves twitching.
+  fluid: { attackMs: 14, releaseMs: 60 },
 };
 
 export const getGraphBallistics = (style: GraphStyle): IGraphBallistics =>
