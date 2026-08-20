@@ -34,13 +34,24 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  gap: 22px;
-  padding: 18px 12px 20px;
+  // Tighter than the 22px it was, because the cards below now carry the
+  // separation themselves. Twenty-two pixels of nothing between four
+  // unbounded blocks is not a gap, it is the absence of one — the column read
+  // as a single run of labels and switches with no way to tell where one
+  // concept ended and the next began.
+  gap: 10px;
+  padding: 12px;
   text-align: center;
 
+  // One card per concept: the engine switch, the preamp, the headroom switch,
+  // the visualiser and its meter. `inset-surface` is the same recessed panel
+  // the grid tiles and the library's own cards sit on, so this is the column
+  // joining the app's vocabulary rather than inventing a fifth kind of box.
   > div {
+    @include inset-surface;
     width: 100%;
     flex: 0 0 auto;
+    padding: 10px 8px 12px;
   }
 
   h4 {
