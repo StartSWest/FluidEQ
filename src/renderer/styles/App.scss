@@ -1888,7 +1888,6 @@ button.graph-legend {
 // Only appears when the output is actually railing, so it is allowed to be
 // loud about it.
 .graph-clip-warning {
-  flex: 0 0 auto;
   padding: 3px 8px;
   color: #ffd9de;
   border: 1px solid rgba($red, 0.7);
@@ -1899,6 +1898,30 @@ button.graph-legend {
   letter-spacing: 0.08em;
   white-space: nowrap;
   animation: clip-pulse 900ms ease-in-out infinite;
+}
+
+/**
+ * It floats over the control strip rather than standing in it.
+ *
+ * The strip is a wrapping flex row, and `plotTopMargin` measures that row's
+ * live height to decide how much headroom the plot gets — so a badge taking a
+ * place in it pushed the row onto a second line and the whole graph down with
+ * it. The output rails for a few hundred milliseconds at a time, which made
+ * the drawing jump every time it did.
+ *
+ * Out of the flow it cannot change the row's height, so nothing moves. The
+ * left end is where it goes because the strip's own contents are pushed to the
+ * right, and it ignores the pointer so it cannot swallow a click meant for
+ * whatever it is sitting over.
+ */
+.live-output-controls .graph-clip-warning {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  height: fit-content;
+  margin: auto 0;
+  pointer-events: none;
 }
 
 @keyframes clip-pulse {
