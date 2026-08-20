@@ -13,11 +13,10 @@ it under the terms of the GNU General Public License version 3 or later.
   cursor: ns-resize;
   touch-action: none;
   position: relative;
-  width: 62px;
-  height: 62px;
-  flex: 0 0 62px;
+  width: 78px;
+  height: 78px;
+  flex: 0 0 78px;
   border-radius: 50%;
-  filter: drop-shadow(0 0 8px rgba($secondary-default, 0.12));
   user-select: none;
 
   &__dial {
@@ -43,9 +42,41 @@ it under the terms of the GNU General Public License version 3 or later.
     transition: stroke-dashoffset 120ms ease;
   }
 
-  &__hub {
-    fill: rgba($primary-dark, 0.95);
-    stroke: rgba($secondary-light, 0.24);
+  // What the body casts onto the panel. Offset downward only — one light, from
+  // above, which is the same light the body's own gradient is lit by.
+  &__shadow {
+    fill: rgba($black, 0.55);
+    filter: blur(3px);
+  }
+
+  &__bevel {
+    fill: none;
+    stroke-width: 1.6;
+  }
+
+  // The pointer, and the one part of this that is not metal.
+  //
+  // Cyan against the silver because it has to be findable at a glance on a
+  // body that is deliberately neutral, and because it is the same accent the
+  // filled arc outside it uses — the two say the same thing and should look
+  // like they do. The dark under-stroke is what keeps it legible where it
+  // crosses the bright top of the body.
+  &__notch-groove {
+    stroke: rgba($black, 0.55);
+    stroke-width: 6;
+    stroke-linecap: round;
+  }
+
+  &__notch {
+    stroke: $secondary-light;
+    stroke-width: 3.6;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 5px rgba($secondary-default, 0.95));
+  }
+
+  // Recessed, so the number sits in a well rather than on the metal.
+  &__face {
+    stroke: rgba($black, 0.55);
     stroke-width: 1;
   }
 

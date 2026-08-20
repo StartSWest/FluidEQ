@@ -12,6 +12,7 @@ import {
   ChangeEvent,
   CSSProperties,
   PointerEvent,
+  useId,
   useRef,
   WheelEvent,
 } from 'react';
@@ -54,6 +55,10 @@ const Knob = ({
   handleChange,
 }: IKnobProps) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  // Two knobs can be on screen at once — a band's Q and the preamp — and SVG
+  // gradient ids are document-global, so a fixed one would have the second
+  // silently paint itself with the first one's metal.
+  const ids = useId();
 
   /**
    * How the sweep maps onto the range, decided by the range itself.
@@ -164,11 +169,34 @@ const Knob = ({
       onPointerCancel={endDrag}
     >
       <svg className="knob__dial" viewBox="0 0 72 72" aria-hidden="true">
+        {/* The metal is three gradients rather than one, because that is what
+            a turned aluminium knob under a single light actually is: a body
+            lit from the upper left, a bevel that is bright along the top edge
+            and dark along the bottom, and a recessed face that catches almost
+            none of it. Flat fills with a border read as a circle with a line
+            on it; these read as an object. */}
+        <defs>
+          <radialGradient id={`${ids}-body`} cx="32%" cy="24%" r="82%">
+            <stop offset="0%" stopColor="#f6fafc" />
+            <stop offset="38%" stopColor="#c3cfd8" />
+            <stop offset="74%" stopColor="#8b97a3" />
+            <stop offset="100%" stopColor="#5b6672" />
+          </radialGradient>
+          <linearGradient id={`${ids}-bevel`} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity="0.85" />
+            <stop offset="45%" stopColor="#ffffff" stopOpacity="0.12" />
+            <stop offset="100%" stopColor="#000000" stopOpacity="0.55" />
+          </linearGradient>
+          <radialGradient id={`${ids}-face`} cx="50%" cy="34%" r="70%">
+            <stop offset="0%" stopColor="#20303f" />
+            <stop offset="100%" stopColor="#0b141d" />
+          </radialGradient>
+        </defs>
         <circle
           className="knob__track"
           cx="36"
           cy="36"
-          r="27"
+          r="30"
           pathLength="100"
           strokeDasharray="75 25"
           transform="rotate(135 36 36)"
@@ -177,16 +205,56 @@ const Knob = ({
           className="knob__value"
           cx="36"
           cy="36"
-          r="27"
+          r="30"
           pathLength="100"
           strokeDasharray={`${(75 * clampedProgress) / 100} 100`}
           transform="rotate(135 36 36)"
         />
-        <circle className="knob__hub" cx="36" cy="36" r="19" />
-        <text className="knob__number" x="36" y="37" textAnchor="middle">
+        <circle className="knob__shadow" cx="36" cy="37.5" r="23" />
+        <circle
+          className="knob__body"
+          cx="36"
+          cy="36"
+          r="23"
+          fill={`url(#${ids}-body)`}
+        />
+        <circle
+          className="knob__bevel"
+          cx="36"
+          cy="36"
+          r="22.2"
+          stroke={`url(#${ids}-bevel)`}
+        />
+        {/* Drawn along the +x axis and rotated onto the value, which is the
+            same 135°-plus-sweep the arcs above are rotated by — so the notch
+            and the filled arc always point at the same place by construction
+            rather than by two calculations agreeing. */}
+        <g transform={`rotate(${135 + (clampedProgress / 100) * 270} 36 36)`}>
+          {/* Cyan on near-white is almost invisible, and the brightest part of
+              this body is exactly where the notch sits at the top of its
+              travel. The dark line underneath is what gives it an edge to
+              read against — the same trick a real knob gets for free from
+              the groove being cut into the metal. */}
+          <line
+            className="knob__notch-groove"
+            x1="49"
+            y1="36"
+            x2="57"
+            y2="36"
+          />
+          <line className="knob__notch" x1="49" y1="36" x2="57" y2="36" />
+        </g>
+        <circle
+          className="knob__face"
+          cx="36"
+          cy="36"
+          r="13.5"
+          fill={`url(#${ids}-face)`}
+        />
+        <text className="knob__number" x="36" y="36.5" textAnchor="middle">
           {displayValue}
         </text>
-        <text className="knob__label" x="36" y="48" textAnchor="middle">
+        <text className="knob__label" x="36" y="44" textAnchor="middle">
           {unit}
         </text>
       </svg>
