@@ -358,7 +358,7 @@ export const createGraphShape = (
     }
 
     case 'dots': {
-      const size = Math.max(1.6, step * 0.5);
+      const size = columnWidth(1.6);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
@@ -416,7 +416,7 @@ export const createGraphShape = (
 
     // A dot on the peak with a thread down to the floor.
     case 'stems': {
-      const size = Math.max(1.8, step * 0.42);
+      const size = columnWidth(1.8);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
@@ -438,7 +438,7 @@ export const createGraphShape = (
 
     // Just the tops, floating where the level is.
     case 'dashes': {
-      const width = Math.max(2, step * 0.7);
+      const width = columnWidth(2);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
@@ -463,7 +463,7 @@ export const createGraphShape = (
      * spread the peak-only bucketing throws away everywhere else.
      */
     case 'scatter': {
-      const size = Math.max(1.4, step * 0.34);
+      const size = columnWidth(1.4);
       const troughs = toColumnTroughs(points, figure.length, figure === points);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
@@ -482,7 +482,7 @@ export const createGraphShape = (
 
     // A cap hovering above an empty column, the way a peak-hold reads.
     case 'caps': {
-      const width = Math.max(2, step * 0.66);
+      const width = columnWidth(2);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
@@ -493,7 +493,7 @@ export const createGraphShape = (
 
     // Horizontal rungs stacked up each column.
     case 'ribs': {
-      const width = Math.max(2, step * 0.66);
+      const width = columnWidth(2);
       // Rungs every nine pixels. Named for what it is: `gap` shadowed the
       // column-gap parameter and read as though this form answered it.
       const pitch = 9;
@@ -522,7 +522,7 @@ export const createGraphShape = (
 
     // Tapered towers: wide at the floor, narrow at the peak.
     case 'crown': {
-      const width = Math.max(2, step * 0.8);
+      const width = columnWidth(2);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
@@ -649,7 +649,7 @@ export const createGraphShape = (
     // far as the level reaches — so the picture is quantised in both
     // directions and the eye counts rows instead of measuring heights.
     case 'matrix': {
-      const size = Math.max(1.5, step * 0.36);
+      const size = columnWidth(1.5);
       const cell = 13;
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
@@ -828,7 +828,7 @@ export const createGraphShape = (
     // read upside down — loud is long, and the shape grows towards you from
     // the top of the plot instead of away from the bottom.
     case 'stalactites': {
-      const width = Math.max(2, step * 0.62);
+      const width = columnWidth(2);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
@@ -845,7 +845,7 @@ export const createGraphShape = (
     // spectrum — a small bubble is still unmistakably there, where a two-pixel
     // bar is not.
     case 'bubbles': {
-      const largest = Math.max(2, step * 0.62);
+      const largest = columnWidth(2);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
@@ -867,7 +867,7 @@ export const createGraphShape = (
 
     // Gems on the peaks, cut larger where the signal is stronger.
     case 'diamonds': {
-      const largest = Math.max(2.5, step * 0.85);
+      const largest = columnWidth(2.5);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
@@ -1000,7 +1000,7 @@ export const createGraphShape = (
     // A rank of little sprites hanging at their own levels, eyes cut out of
     // them. Loud bands sit high and quiet ones drift down the screen.
     case 'invaders': {
-      const unit = Math.max(1.2, step * 0.13);
+      const unit = Math.max(1.2, columnWidth(0) / 5);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
@@ -1053,7 +1053,7 @@ export const createGraphShape = (
     // level, which makes a quiet band a small mark in the right place instead
     // of a stub that has to be measured against the bottom of the plot.
     case 'candles': {
-      const width = Math.max(2, step * 0.52);
+      const width = columnWidth(2);
       const wick = Math.max(1, step * 0.14);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
@@ -1126,7 +1126,7 @@ export const createGraphShape = (
     // with a skyline and becomes a texture, and a broad loud region reads as a
     // dense patch rather than as a wide hill.
     case 'barcode': {
-      const widest = Math.max(1.5, step * 0.82);
+      const widest = columnWidth(1.5);
       // The plot's own depth, which is what a level is a fraction of. Guarded
       // because a baseline of zero would divide by it.
       const depth = Math.max(1, baseline);
@@ -1176,7 +1176,7 @@ export const createGraphShape = (
     // tiles: hexagons pack without leaving the gaps a grid of squares does, so
     // a loud column reads as a solid comb rather than as a dotted line.
     case 'honeycomb': {
-      const radius = Math.max(2, step * 0.4);
+      const radius = Math.max(2, columnWidth(0) / 2);
       // A pointy-top hexagon is a full radius tall and √3/2 of one wide, and
       // rows sit one and a half radii apart so they interlock rather than stack.
       const across = radius * 0.866;
@@ -1205,7 +1205,7 @@ export const createGraphShape = (
     // eye a ruler to read the pickets against — which band clears the top rail
     // is a question a bar chart cannot answer at a glance.
     case 'fence': {
-      const width = Math.max(1.5, step * 0.36);
+      const width = columnWidth(1.5);
       const cap = width * 0.9;
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {

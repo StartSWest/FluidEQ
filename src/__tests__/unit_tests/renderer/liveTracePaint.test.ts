@@ -164,14 +164,22 @@ describe('the stroke cascade, in the order the stylesheet resolved it', () => {
     );
   });
 
-  it('recolours a trace with no colours of its own, fill or no fill', () => {
-    // This is the case the old rule reached by specificity: it beat the
-    // `stroke: none` attribute, which is why a filled look grows an outline in
-    // the mode whether or not it asked for a border.
-    expect(resolveFigureStroke('#54ff8a', true, false, false, ON)).toBe(
+  it('recolours a stroke it finds, and never creates one', () => {
+    // A STROKED look with no colours of its own takes the sweep. That is the
+    // rule the old stylesheet reached by specificity and it still holds.
+    expect(resolveFigureStroke('#54ff8a', false, false, false, ON)).toBe(
       euphoriaTraceColour(ON.hue),
     );
-    expect(resolveFigureStroke('#54ff8a', false, false, false, ON)).toBe(
+    // A PAINTED one with the border off does not, and this is the half that
+    // changed. The old rule beat the `stroke: none` attribute, so a filled
+    // look grew an outline in the mode whether or not it had asked for a
+    // border — faithful to the cascade, and wrong once the border was a
+    // switch: the rainbow border appeared on looks whose box was unticked.
+    expect(
+      resolveFigureStroke('#54ff8a', true, false, false, ON),
+    ).toBeUndefined();
+    // And with the box ticked it is back, which is what the switch is for.
+    expect(resolveFigureStroke('#54ff8a', true, true, false, ON)).toBe(
       euphoriaTraceColour(ON.hue),
     );
   });
