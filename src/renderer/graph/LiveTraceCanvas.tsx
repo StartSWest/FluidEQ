@@ -66,6 +66,7 @@ import {
   createGraphPieces,
   createGraphShape,
   getGlowStyle,
+  getGraphPeaks,
   hasGraphPieces,
 } from 'common/graphShapes';
 import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
@@ -75,12 +76,10 @@ import {
   useLiveOutputSolo,
 } from 'renderer/utils/graphStyle';
 import { useLiveAudioFrame } from '../audio/LiveAudioContext';
+import { createAccentState, paintGraphAccent } from './graphAccents';
 import { useLookPreviewPoints } from './lookPreview';
 import { IChartPointData, ILiveCurveData } from './ChartController';
 import {
-  ACCENT_CORE_OPACITY,
-  ACCENT_HALO_EUPHORIC_OPACITY,
-  ACCENT_HALO_OPACITY,
   IEuphoriaPaint,
   TracePaint,
   getWaveTransform,
@@ -174,10 +173,6 @@ const PRESENTATION_SETTLE_MS = 120;
 /** Below these the eased presentation values have arrived and are snapped. */
 const OPACITY_EPSILON = 0.002;
 const STROKE_WIDTH_EPSILON = 0.01;
-
-/** The two passes a lit tip is drawn in: wide and faint, then narrow and hot. */
-const ACCENT_HALO_WIDTH = 7;
-const ACCENT_CORE_WIDTH = 1;
 
 /**
  * The fluid's wave, stroked the titlebar's way and only the titlebar's way.
@@ -345,6 +340,14 @@ const LiveTraceCanvas = ({
    * shape of the sound.
    */
   const fluidWaveRef = useRef<number[]>([]);
+  /**
+   * What the lit peaks remember between frames.
+   *
+   * Per graph rather than per look, so changing the mark mid-song changes
+   * what is drawn on the peaks already held rather than throwing them away —
+   * which is the difference between a setting and a restart.
+   */
+  const accentStateRef = useRef(createAccentState());
   // How hard the halo is being driven, carried between frames.
   const pumpRef = useRef(0);
   // The trace coming forward and going back — see the constant above. Opacity
@@ -672,12 +675,42 @@ const LiveTraceCanvas = ({
             projected,
             chosen,
             baseline,
-            tuning.columns,
             fluidWaveRef.current,
             tuning.accentStyle,
           )
         : '';
       const accent = accentShape ? new Path2D(accentShape) : undefined;
+
+      /**
+       * What the painted marks read: the peaks worth lighting, and every
+       * column's height and position.
+       *
+       * Built once per frame rather than per curve — the mirrored modes draw
+       * the same measurement twice and would otherwise find the peaks twice
+       * and, worse, advance what they remember twice, which halves every
+       * fall rate and doubles every spark.
+       *
+       * Only when a painted mark is on, since it is a pass over the frame.
+       */
+      const wantsPaintedAccent =
+        tuning.accents && tuning.accentStyle !== 'wave';
+      const accentPeaks = wantsPaintedAccent
+        ? getGraphPeaks(projected, chosen, baseline, tuning.columns)
+        : [];
+      const accentHeights: number[] = [];
+      const accentPositions: number[] = [];
+      if (wantsPaintedAccent) {
+        const accentDepth = Math.max(1, baseline);
+        for (let index = 0; index < projected.length; index += 1) {
+          accentPositions.push(projected[index][0]);
+          accentHeights.push(
+            Math.max(
+              0,
+              Math.min(1, (baseline - projected[index][1]) / accentDepth),
+            ),
+          );
+        }
+      }
 
       // The trace's presence, eased rather than transitioned.
       const settle = getEaseFactor(deltaMs, PRESENTATION_SETTLE_MS);
@@ -952,21 +985,29 @@ const LiveTraceCanvas = ({
         // Lit tips. Only the peaks, and only on the forms that have them — the
         // point is that the loudest few bands in the current frame catch the
         // light while the rest of the figure stays as it was.
-        if (accent) {
-          /**
-           * The fluid's wave takes the titlebar's own ramp, not the look's.
-           *
-           * Same stops, same left-to-right across the pane — which is what
-           * keeps a given frequency the same colour whether the frame is
-           * loud or quiet. Every other accent is a lit tip and belongs to
-           * the look it decorates.
-           */
-          let accentStroke: string | CanvasGradient;
-          // Follows the CHOICE, not the form. Any form can wear the wave now,
-          // and the wave is the titlebar's figure wherever it is drawn — so
-          // it takes the titlebar's ramp there too, rather than only on the
-          // one form that used to own it.
-          if (tuning.accentStyle === 'wave') {
+        /**
+         * Lit peaks.
+         *
+         * Two shapes of thing under one setting. The wave is a path — the
+         * titlebar's own curve — so it is stroked like any other figure. The
+         * other nine hang, sink, expand, fly or trail, none of which exists
+         * inside a single frame, so they are painted by something that keeps
+         * what they remember. See `graphAccents`.
+         */
+        if (tuning.accents) {
+          if (tuning.accentStyle === 'wave' && accent) {
+            /**
+             * One stroke over a shadow, which is how the titlebar lights it.
+             *
+             * No halo pass under it: two widths of the same curve read as a
+             * line with a blurrier line drawn around it, which is where the
+             * grey aura came from. And no fill — filling an open curve
+             * closes it, which is where the white slab came from.
+             *
+             * The titlebar's ramp rather than the look's, wherever it is
+             * worn: this accent IS the titlebar's figure, so a given
+             * frequency keeps its colour whether the frame is loud or quiet.
+             */
             const ramp = context.createLinearGradient(
               plot.left,
               0,
@@ -978,23 +1019,6 @@ const LiveTraceCanvas = ({
                 ramp.addColorStop(stop.offset, stop.colour);
               },
             );
-            accentStroke = ramp;
-          } else {
-            accentStroke = paintFor(resolveAccentStroke(basePaint, euphoria));
-          }
-          // The wave is the one accent that is a curve, so it is stroked and
-          // never filled — filling an open path closes it. Asked of the
-          // CHOICE now rather than of the form, since it is a choice.
-          if (tuning.accentStyle === 'wave') {
-            /**
-             * One stroke over a shadow, which is how the titlebar lights it.
-             *
-             * A bead is a closed circle and is filled as well as stroked or
-             * it comes out hollow; an open curve filled closes itself, so
-             * none of that applies here. Nor does the halo pass: two widths
-             * of the same curve read as a line with a blurrier line drawn
-             * around it, which is where the grey aura came from.
-             */
             context.save();
             context.lineJoin = 'round';
             context.lineCap = 'round';
@@ -1003,49 +1027,42 @@ const LiveTraceCanvas = ({
               : TRACE_GLOW_CYAN;
             /**
              * The look's glow and thickness, as multiples of their own
-             * defaults rather than as raw values.
-             *
-             * Both settings have to reach this line — a control that does
-             * nothing on one form is a bug — but multiplying by them
-             * directly would undo the shipped look: `thickness` defaults to
-             * 2 and would have doubled a 4.2px line into 8.4. Normalised,
-             * an untouched look is exactly the titlebar's and the sliders
-             * scale out from there.
+             * defaults rather than as raw values — multiplying by them
+             * directly would undo the shipped look, since thickness defaults
+             * to 2 and would double a 4.2px line into 8.4.
              */
             context.shadowBlur =
               (isEuphoric ? TRACE_BLUR_RAINBOW : TRACE_BLUR_CYAN) *
               (tuning.glow / DEFAULT_GLOW);
             setAlpha(context, opacity);
-            context.strokeStyle = accentStroke;
-            /**
-             * The lit peak's weight, because on this form the lit peak IS
-             * the wave. It was taking Thickness instead, which belongs to a
-             * figure's outline — and the fluid's figure is bars, which have
-             * no outline, so that control had nothing to say here while the
-             * one named for this mark did not reach it.
-             */
+            context.strokeStyle = ramp;
             context.lineWidth =
               (isEuphoric ? TRACE_WIDTH_RAINBOW : TRACE_WIDTH_CYAN) *
               tuning.accentWidth;
             context.stroke(accent);
             context.restore();
-          } else {
-            setAlpha(
-              context,
-              isEuphoric ? ACCENT_HALO_EUPHORIC_OPACITY : ACCENT_HALO_OPACITY,
-            );
-            context.fillStyle = canvasPaint;
-            context.strokeStyle = accentStroke;
-            context.lineWidth = ACCENT_HALO_WIDTH * tuning.accentWidth;
-            context.fill(accent);
-            context.stroke(accent);
-
-            setAlpha(context, ACCENT_CORE_OPACITY);
-            context.fillStyle = 'white';
-            context.strokeStyle = isEuphoric ? accentStroke : 'white';
-            context.lineWidth = ACCENT_CORE_WIDTH * tuning.accentWidth;
-            context.fill(accent);
-            context.stroke(accent);
+          } else if (tuning.accentStyle !== 'wave') {
+            setAlpha(context, opacity);
+            if (
+              paintGraphAccent({
+                context,
+                behaviour: tuning.accentStyle,
+                peaks: accentPeaks,
+                heights: accentHeights,
+                positions: accentPositions,
+                baseline,
+                left: plot.left,
+                right: plot.right,
+                state: accentStateRef.current,
+                deltaMs,
+                weight: tuning.accentWidth,
+                paint: paintFor(resolveAccentStroke(basePaint, euphoria)),
+              })
+            ) {
+              // A mote still in the air is motion, even once the music has
+              // stopped — the loop has to keep drawing until it lands.
+              moving = true;
+            }
           }
         }
 
