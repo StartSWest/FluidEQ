@@ -1412,6 +1412,105 @@ export const createGraphShape = (
  * form can be given one deliberately, one at a time, by somebody who has
  * looked at it and decided it earns one.
  */
+/**
+ * The ways a peak can be marked.
+ *
+ * A lit peak is the one thing on the graph that is pure emphasis — it says
+ * "this one" and nothing else — so which mark suits it is a question about
+ * the form underneath and about taste, and neither is something this file
+ * can answer. It is a choice.
+ *
+ * `wave` is the odd one and the reason the list is not all marks: it is not
+ * a mark at all but a curve laid over the whole figure, which is what the
+ * fluid is half made of. It stays exactly as it is.
+ */
+export type AccentStyle =
+  | 'wave'
+  | 'bead'
+  | 'cap'
+  | 'ring'
+  | 'spark'
+  | 'chevron'
+  | 'halo'
+  | 'pin'
+  | 'crown'
+  | 'cross';
+
+export const ACCENT_STYLES: AccentStyle[] = [
+  'bead',
+  'cap',
+  'ring',
+  'spark',
+  'chevron',
+  'halo',
+  'pin',
+  'crown',
+  'cross',
+  'wave',
+];
+
+/**
+ * The mark itself, drawn at a peak.
+ *
+ * Every one is built around `size`, which is the piece's own width capped to
+ * something a mark should be — so they sit on the thing they are marking at
+ * any density, and none of them can grow into a slab when the count is low.
+ *
+ * They are paths rather than draw calls because the renderer collects the
+ * whole set into one `Path2D` and paints it in two passes, wide and faint
+ * under narrow and hot. A mark that needed its own fill would not fit that.
+ */
+const ACCENT_MARKS: Record<
+  Exclude<AccentStyle, 'wave'>,
+  (x: number, y: number, size: number) => string
+> = {
+  // A box on the peak. The one the stems have always worn.
+  bead: (x, y, size) => rect(x - size / 2, y - size / 2, size, size),
+  // A held rule across the piece, the way a peak-hold reads on a meter.
+  cap: (x, y, size) => rect(x - size, y - size * 0.22, size * 2, size * 0.44),
+  /**
+   * A hollow circle. Two turns, the inner one wound the other way, so the
+   * fill rule cuts the middle out rather than painting it — the same trick
+   * the skyline's windows use, and the same warning applies: reversing it to
+   * match its neighbour fills the hole in.
+   */
+  ring: (x, y, size) => {
+    const r = size * 0.62;
+    const inner = r - Math.max(1, size * 0.22);
+    const turn = (radius: number, sweep: number) =>
+      `M ${(x - radius).toFixed(1)},${y.toFixed(1)} a ${radius.toFixed(1)},${radius.toFixed(1)} 0 1,${sweep} ${(radius * 2).toFixed(1)},0 a ${radius.toFixed(1)},${radius.toFixed(1)} 0 1,${sweep} ${(-radius * 2).toFixed(1)},0 Z`;
+    return turn(r, 0) + turn(Math.max(0.5, inner), 1);
+  },
+  // A tick standing above the peak, clear of the figure entirely.
+  spark: (x, y, size) =>
+    rect(x - size * 0.14, y - size * 2.1, size * 0.28, size * 1.5),
+  // A small arrowhead pointing at it from above.
+  chevron: (x, y, size) =>
+    `M ${(x - size).toFixed(1)},${(y - size * 0.5).toFixed(1)} L ${x.toFixed(1)},${(y - size * 1.5).toFixed(1)} L ${(x + size).toFixed(1)},${(y - size * 0.5).toFixed(1)} L ${x.toFixed(1)},${(y - size * 1.05).toFixed(1)} Z`,
+  /**
+   * A big soft disc with nothing inside it.
+   *
+   * It has no edge worth speaking of at the weights the renderer strokes
+   * these with, which is the point: the other marks say "here", and this one
+   * says "here" without drawing anything you could measure against the axis.
+   */
+  halo: (x, y, size) => {
+    const r = size * 1.15;
+    return `M ${(x - r).toFixed(1)},${y.toFixed(1)} a ${r.toFixed(1)},${r.toFixed(1)} 0 1,0 ${(r * 2).toFixed(1)},0 a ${r.toFixed(1)},${r.toFixed(1)} 0 1,0 ${(-r * 2).toFixed(1)},0 Z`;
+  },
+  // A dot on a stalk, lifted off the peak so it clears a crowded figure.
+  pin: (x, y, size) =>
+    rect(x - size * 0.11, y - size * 1.9, size * 0.22, size * 1.9) +
+    rect(x - size * 0.42, y - size * 2.3, size * 0.84, size * 0.84),
+  // A triangle sitting on it, pointing up.
+  crown: (x, y, size) =>
+    `M ${(x - size * 0.85).toFixed(1)},${(y + size * 0.3).toFixed(1)} L ${x.toFixed(1)},${(y - size * 1.1).toFixed(1)} L ${(x + size * 0.85).toFixed(1)},${(y + size * 0.3).toFixed(1)} Z`,
+  // Two bars through the peak, which marks a position rather than an object.
+  cross: (x, y, size) =>
+    rect(x - size * 1.3, y - size * 0.16, size * 2.6, size * 0.32) +
+    rect(x - size * 0.16, y - size * 1.3, size * 0.32, size * 2.6),
+};
+
 const ACCENTS: Partial<Record<GraphStyle, 'bead' | 'trace'>> = {
   stems: 'bead',
   /**
@@ -1536,23 +1635,18 @@ export const getGlowStyle = (
  * mark says nothing on: a lit tip suits a stem and reads as damage on a
  * smooth curve, so those open without it rather than being denied it.
  */
+/**
+ * Which mark a form starts with.
+ *
+ * The fluid opens on its wave, because that is not decoration on it — it is
+ * half of what the form is. Everything else opens on the box, which is the
+ * mark this graph has always drawn.
+ */
+export const getDefaultAccentStyle = (style: GraphStyle): AccentStyle =>
+  ACCENTS[style] === 'trace' ? 'wave' : 'bead';
+
 export const hasGraphAccent = (style: GraphStyle): boolean =>
   Boolean(ACCENTS[style]);
-
-/**
- * Whether a form's accent is a figure rather than a mark.
- *
- * The painter fills the accent as well as stroking it, which is how a bead is
- * drawn — a bead is a closed circle and a stroke alone would leave it hollow.
- * An open curve filled instead closes itself from end to start, so the fluid's
- * wave line came out as a white slab between the curve and the middle of the
- * plot rather than as a line.
- *
- * Asked here rather than inferred from the path, so the painter and the table
- * agree about what a form's accent IS instead of guessing from its shape.
- */
-export const isGraphAccentTrace = (style: GraphStyle): boolean =>
-  ACCENTS[style] === 'trace';
 
 /**
  * How loud a peak has to be, against the loudest thing on screen, to be lit.
@@ -1594,6 +1688,8 @@ export const createGraphAccent = (
   columns?: number,
   /** The output envelope, for the one accent that is a figure rather than a mark. */
   waveform?: readonly number[],
+  /** Which mark to make. Left out, the form's own starting choice. */
+  accentStyle?: AccentStyle,
 ): string => {
   /**
    * Every form can carry a lit peak; the table only says which ones start
@@ -1606,12 +1702,12 @@ export const createGraphAccent = (
    * `trace` stays what it always was: not a mark at all, but half of the
    * form it belongs to.
    */
-  const accent = ACCENTS[style] ?? 'bead';
+  const accent = accentStyle ?? (ACCENTS[style] === 'trace' ? 'wave' : 'bead');
   if (points.length < 3) {
     return '';
   }
 
-  if (accent === 'trace') {
+  if (accent === 'wave') {
     // The titlebar's own curve, drawn by the titlebar's own code, over bars
     // the figure has already put down — see `ACCENTS` and `WAVE_FORMS`.
     const left = points[0][0];
@@ -1680,7 +1776,7 @@ export const createGraphAccent = (
     if (isLocalPeak && x - lastX >= step * 1.5) {
       lastX = x;
       count += 1;
-      path += rect(x - bead / 2, y - bead / 2, bead, bead);
+      path += ACCENT_MARKS[accent](x, y, bead);
     }
   }
   return path;

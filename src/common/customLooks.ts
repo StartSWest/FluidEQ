@@ -32,7 +32,12 @@ import {
   getGraphFillOpacity,
   isFilledGraphStyle,
 } from './graphStyles';
-import { hasGraphAccent } from './graphShapes';
+import {
+  ACCENT_STYLES,
+  AccentStyle,
+  getDefaultAccentStyle,
+  hasGraphAccent,
+} from './graphShapes';
 import { PRODUCT_NAME } from './branding';
 
 /**
@@ -85,6 +90,15 @@ export interface ILookTuning {
    * with a differently-shaped halo.
    */
   accentWidth: number;
+  /**
+   * Which mark a lit peak makes.
+   *
+   * A choice rather than a property of the form, because emphasis is the one
+   * thing on the graph that says nothing except "this one" — which mark suits
+   * it depends on what is underneath and on taste, and neither is decidable
+   * from here.
+   */
+  accentStyle: AccentStyle;
   /**
    * How strongly the euphoria halo burns, from nothing to full.
    *
@@ -342,6 +356,7 @@ export const getDefaultTuning = (style: GraphStyle): ILookTuning => {
     gap: getGraphBarGap(style),
     accents: hasGraphAccent(style),
     accentWidth: DEFAULT_ACCENT_WIDTH,
+    accentStyle: getDefaultAccentStyle(style),
     glow: DEFAULT_GLOW,
     // Off unless asked for. It is the one part of the mode that decorates the
     // window rather than the drawing, and a frame nobody chose is furniture.
@@ -411,6 +426,9 @@ export const normalizeTuning = (
     // a choice somebody had already made.
     accents: readBoolean(source.accents, hasGraphAccent(style)),
     gap: readNumber(source.gap, MIN_BAR_GAP, MAX_BAR_GAP, defaults.gap),
+    accentStyle: isAccentStyle(source.accentStyle)
+      ? source.accentStyle
+      : defaults.accentStyle,
     accentWidth: readNumber(
       source.accentWidth,
       MIN_ACCENT_WIDTH,
@@ -430,6 +448,9 @@ export const normalizeTuning = (
 
 const isGraphStyle = (value: unknown): value is GraphStyle =>
   typeof value === 'string' && GRAPH_STYLES.includes(value as GraphStyle);
+
+const isAccentStyle = (value: unknown): value is AccentStyle =>
+  typeof value === 'string' && ACCENT_STYLES.includes(value as AccentStyle);
 
 const isGraphPalette = (value: unknown): value is GraphPalette =>
   typeof value === 'string' && GRAPH_PALETTES.includes(value as GraphPalette);
