@@ -27,6 +27,7 @@ const look: Partial<Dictionary> = {
   'look.closeHint': 'Chiudi senza salvare (Esc)',
   'look.pickForm': 'Scegli la forma dal selettore sopra o premi Spazio.',
   'look.colourBy': 'Colora per',
+  'look.palette.cycle': 'Colorazione',
   'look.palette.flat': 'Uniforme',
   'look.palette.flatHint': 'Un colore per tutta la figura',
   'look.palette.frequency': 'Frequenza',

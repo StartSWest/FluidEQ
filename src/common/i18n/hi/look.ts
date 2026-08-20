@@ -27,6 +27,7 @@ const look: Partial<Dictionary> = {
   'look.closeHint': 'बिना सहेजे बंद करें (Esc)',
   'look.pickForm': 'ऊपर चयनक से आकार चुनें या Space दबाएँ।',
   'look.colourBy': 'रंग का आधार',
+  'look.palette.cycle': 'रंग-योजना',
   'look.palette.flat': 'एक रंग',
   'look.palette.flatHint': 'पूरी आकृति के लिए एक रंग',
   'look.palette.frequency': 'आवृत्ति',

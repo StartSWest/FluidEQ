@@ -27,6 +27,7 @@ const look: Partial<Dictionary> = {
   'look.closeHint': '关闭且不保存（Esc）',
   'look.pickForm': '请从上方选择形状，或按空格键。',
   'look.colourBy': '着色依据',
+  'look.palette.cycle': '配色',
   'look.palette.flat': '纯色',
   'look.palette.flatHint': '整个图形使用一种颜色',
   'look.palette.frequency': '频率',

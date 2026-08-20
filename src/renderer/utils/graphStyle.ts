@@ -17,7 +17,13 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
 import { useSyncExternalStore } from 'react';
-import { GRAPH_LOOKS, getGraphLook } from 'common/graphStyles';
+import {
+  GRAPH_FORM_LOOKS,
+  GRAPH_LOOKS,
+  GraphPalette,
+  getGraphLook,
+  graphLookId,
+} from 'common/graphStyles';
 import {
   ICustomLook,
   IResolvedLook,
@@ -115,10 +121,51 @@ const persistSelection = () => {
  */
 export const getSelectableLooks = (
   customLooks: readonly ICustomLook[] = getCustomLooks(),
-): IResolvedLook[] => [
-  ...GRAPH_LOOKS.map(resolveBuiltInLook),
-  ...customLooks.map(resolveCustomLook),
-];
+): IResolvedLook[] => {
+  const palette = getGraphPalette();
+  return [
+    // One row per form, shown in whichever palette is currently on. The
+    // palette is a toggle rather than three rows each, so the list is
+    // forty-seven entries instead of a hundred and forty-one — and the
+    // click-on-the-plot cycle walks forms rather than repainting the same
+    // form three times before reaching the next one.
+    ...GRAPH_FORM_LOOKS.map((form) =>
+      resolveBuiltInLook(getGraphLook(graphLookId(form.style, palette))),
+    ),
+    ...customLooks.map(resolveCustomLook),
+  ];
+};
+
+/**
+ * Which palette is on, read back out of the selection itself.
+ *
+ * Deliberately not stored separately. The saved id already carries both
+ * halves — `bars-rainbow` is the bars form under the rainbow palette — so a
+ * second stored value would be a second source of truth for something
+ * already written down, with all the drift that invites and a migration to
+ * write for nothing.
+ *
+ * A look the user built keeps whatever palette they gave it in the designer,
+ * and the toggle does not reach into one.
+ */
+export const getGraphPalette = (): GraphPalette => {
+  const custom = getCustomLook(selectedId);
+  return custom ? custom.palette : getGraphLook(selectedId).palette;
+};
+
+/**
+ * Repaint the selected form in another palette.
+ *
+ * Selecting the same form's other id rather than storing a mode, which is
+ * what keeps this one line: the palette is part of the look's identity and
+ * always was.
+ */
+export const setGraphPalette = (palette: GraphPalette) => {
+  if (getCustomLook(selectedId)) {
+    return;
+  }
+  setGraphLook(graphLookId(getGraphLook(selectedId).style, palette));
+};
 
 export const getGraphLookId = () => selectedId;
 
@@ -232,6 +279,29 @@ export const useSelectedLookId = () =>
     subscribe,
     () => selectedId,
     () => GRAPH_LOOKS[0].id,
+  );
+
+/**
+ * Which palette the toggle should show as pressed.
+ *
+ * A primitive, so `useSyncExternalStore` compares it by value and the
+ * toggle does not re-render on every unrelated look change.
+ */
+export const useGraphPalette = () =>
+  useSyncExternalStore(subscribe, getGraphPalette, () => 'signal' as const);
+
+/**
+ * Whether the palette toggle applies to what is selected.
+ *
+ * False for a look the user built, which carries the palette it was designed
+ * with. Surfaced so the control can be disabled rather than silently doing
+ * nothing when it is pressed.
+ */
+export const useIsPaletteSelectable = () =>
+  useSyncExternalStore(
+    subscribe,
+    () => !isCustomLookId(selectedId),
+    () => true,
   );
 
 // The two layers beneath this one. Re-exported so every caller keeps one

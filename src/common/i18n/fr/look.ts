@@ -28,6 +28,7 @@ const look: Partial<Dictionary> = {
   'look.pickForm':
     'Choisissez la forme avec le sélecteur ci-dessus ou appuyez sur Espace.',
   'look.colourBy': 'Colorer par',
+  'look.palette.cycle': 'Coloration',
   'look.palette.flat': 'Uniforme',
   'look.palette.flatHint': 'Une couleur pour toute la forme',
   'look.palette.frequency': 'Fréquence',
