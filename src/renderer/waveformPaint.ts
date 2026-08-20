@@ -16,6 +16,7 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
+import { getEaseFactor } from 'common/smoothing';
 import { WAVEFORM_STYLES, WaveformStyle } from 'common/waveformStyles';
 
 /**
@@ -135,6 +136,100 @@ export const SPECTRUM_BAR_RELEASE_MS = 90;
  * pane is reserved for genuine peaks.
  */
 export const SPECTRUM_BAR_RANGE_DB = 80;
+
+/**
+ * The fluid visualiser's spectrum bars, painted the one way there is.
+ *
+ * Extracted so both panes draw them from the same code rather than each
+ * keeping a version. The graph got a copy first and it was not the same
+ * drawing at all: the bars were the shape module's forty-eight columns in
+ * the look's own flat ramp, where these are a bar every eleven pixels —
+ * far tighter on a wide plot — each with its own hue and its own vertical
+ * gradient, which is the thing a single fillStyle on a shared path cannot
+ * express and the reason this is imperative in the first place.
+ *
+ * Every number below is the FluidEQ site's signal-deck, kept as it was:
+ * two-pixel gap, hue sweep 184°→296°, floor at 82% of the box, and a top
+ * alpha dimmer in cyan than in rainbow. The `0.12` energy floor is what
+ * leaves short stumps showing through silence instead of an empty box.
+ */
+export const spectrumBarCount = (width: number) =>
+  Math.max(48, Math.floor(width / 11));
+
+/**
+ * Move the bars toward the frame, snapping up and easing back.
+ *
+ * Per frame rather than per measurement: at a 60Hz display and a 30Hz
+ * analyser, every other frame would sit on the same reading and the bars
+ * would tick rather than breathe.
+ *
+ * `levels` are decibels — the same `.y` both panes' points carry. With no
+ * frame at all they release toward zero, so a pane settles when the audio
+ * stops instead of freezing on its last reading.
+ */
+export const advanceSpectrumBars = (
+  bars: number[],
+  levels: readonly { y: number }[],
+  floorDb: number,
+  deltaMs: number,
+) => {
+  const rise = getEaseFactor(deltaMs, SPECTRUM_BAR_ATTACK_MS);
+  const fall = getEaseFactor(deltaMs, SPECTRUM_BAR_RELEASE_MS);
+  if (levels.length === 0) {
+    for (let bar = 0; bar < bars.length; bar += 1) {
+      bars[bar] += (0 - bars[bar]) * fall;
+    }
+    return;
+  }
+  const stride = levels.length / bars.length;
+  for (let bar = 0; bar < bars.length; bar += 1) {
+    const start = Math.floor(bar * stride);
+    const end = Math.min(levels.length, Math.floor((bar + 1) * stride));
+    let peakDb = floorDb;
+    for (let index = start; index < end; index += 1) {
+      if (levels[index].y > peakDb) {
+        peakDb = levels[index].y;
+      }
+    }
+    const target = Math.max(
+      0,
+      Math.min(1, (peakDb - floorDb) / SPECTRUM_BAR_RANGE_DB),
+    );
+    const gap = target - bars[bar];
+    bars[bar] += gap * (gap > 0 ? rise : fall);
+  }
+};
+
+/** Draw them into the given box. */
+export const paintSpectrumBars = (
+  context: CanvasRenderingContext2D,
+  box: { x: number; y: number; width: number; height: number },
+  bars: readonly number[],
+  isRainbow: boolean,
+) => {
+  const count = bars.length;
+  if (count === 0) {
+    return;
+  }
+  const step = box.width / count;
+  const width = Math.max(1, step - 2);
+  const floor = box.y + box.height;
+  const topAlpha = isRainbow ? 0.5 : 0.42;
+  for (let index = 0; index < count; index += 1) {
+    const across = index / Math.max(1, count - 1);
+    // Flat rather than arched — no sine envelope — so every bar measures
+    // the same share of the box and it reads as a spectrum rather than as
+    // a curved decoration.
+    const energy = Math.max(0.12, bars[index]);
+    const height = Math.max(1, energy * box.height * 0.82);
+    const hue = 184 + across * 112;
+    const gradient = context.createLinearGradient(0, floor - height, 0, floor);
+    gradient.addColorStop(0, `hsla(${hue}, 92%, 65%, ${topAlpha})`);
+    gradient.addColorStop(1, `hsla(${hue}, 92%, 58%, 0.06)`);
+    context.fillStyle = gradient;
+    context.fillRect(box.x + index * step + 1, floor - height, width, height);
+  }
+};
 /** Vertical rules behind the trace, so the pane reads as a meter. */
 export const GRID_DIVISIONS = 12;
 /** How far short of the pane's edges those rules stop. */
