@@ -96,11 +96,34 @@ const FIRST_WINDOW_TILES = 60;
 /** Where each grid was left and which tile was opened out of it, keyed by
  * what the grid was showing. Module-level for the reason `LibraryListView`'s
  * equivalent is: opening an album unmounts this view, so nothing held inside
- * the component survives to put the reader back where they were. */
+ * the component survives to put the reader back where they were. Capped for
+ * that one's reason too — the key holds the search text, so the box writes a
+ * fresh one on every keystroke and the map would grow all session. */
 const rememberedGridState = new Map<
   string,
   { scrollTop: number; activeId?: string }
 >();
+
+/** Grids whose place is worth keeping. Past this the least recently written
+ * one goes. */
+const REMEMBERED_GRIDS = 200;
+
+/** Writes a place, and keeps the map from being a slow leak. Re-inserting
+ * rather than assigning turns `Map`'s insertion order into a recency order,
+ * so what is evicted is what nobody came back to. */
+const rememberGrid = (
+  key: string,
+  value: { scrollTop: number; activeId?: string },
+): void => {
+  rememberedGridState.delete(key);
+  rememberedGridState.set(key, value);
+  if (rememberedGridState.size > REMEMBERED_GRIDS) {
+    const oldest = rememberedGridState.keys().next();
+    if (!oldest.done) {
+      rememberedGridState.delete(oldest.value);
+    }
+  }
+};
 
 /**
  * One tile's worth of what `LibraryGridView` draws — deliberately the raw
@@ -195,7 +218,7 @@ const LibraryGridView = ({
       if (isRestoringRef.current) {
         return;
       }
-      rememberedGridState.set(resetKey, {
+      rememberGrid(resetKey, {
         scrollTop: element.scrollTop,
         activeId: rememberedGridState.get(resetKey)?.activeId,
       });
@@ -245,7 +268,7 @@ const LibraryGridView = ({
   const rememberActive = useCallback(
     (id: string) => {
       setActiveId(id);
-      rememberedGridState.set(resetKey, {
+      rememberGrid(resetKey, {
         scrollTop:
           gridRef.current?.scrollTop ??
           rememberedGridState.get(resetKey)?.scrollTop ??

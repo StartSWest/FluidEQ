@@ -305,7 +305,21 @@ export const LibraryPlayerProvider = ({
     [fadeIn],
   );
 
+  /**
+   * Undoes the half-finished `loadedmetadata` handler of a swap that has been
+   * superseded — see `swapToBlob`, where it is set.
+   *
+   * A `{ once: true }` listener that never fires is never removed either. The
+   * element outlives every track, so an abandoned swap left its handler
+   * sitting on it waiting for *somebody's* metadata — and the next track's
+   * would do: the new song would load and immediately jump to the previous
+   * one's playhead, and start playing if the previous one had been. One
+   * stale listener per abandoned swap, and each one wrong.
+   */
+  const cancelPendingSwap = useRef<(() => void) | undefined>(undefined);
+
   const releaseBlob = useCallback(() => {
+    cancelPendingSwap.current?.();
     if (blobUrlRef.current) {
       URL.revokeObjectURL(blobUrlRef.current);
       blobUrlRef.current = undefined;
@@ -352,16 +366,22 @@ export const LibraryPlayerProvider = ({
       element.src = blobUrlRef.current;
       // Putting the playhead back is what makes the swap invisible; without
       // it the track would jump to its beginning a second in.
-      element.addEventListener(
-        'loadedmetadata',
-        () => {
-          element.currentTime = at;
-          if (wasPlaying) {
-            element.play().catch(() => undefined);
-          }
-        },
-        { once: true },
-      );
+      //
+      // Registered so it can be taken off again: `once` removes a listener
+      // that fires, and this one has to survive being abandoned — see
+      // `cancelPendingSwap`.
+      const onSwapped = () => {
+        cancelPendingSwap.current = undefined;
+        element.currentTime = at;
+        if (wasPlaying) {
+          element.play().catch(() => undefined);
+        }
+      };
+      element.addEventListener('loadedmetadata', onSwapped, { once: true });
+      cancelPendingSwap.current = () => {
+        element.removeEventListener('loadedmetadata', onSwapped);
+        cancelPendingSwap.current = undefined;
+      };
       element.load();
     },
     [releaseBlob],

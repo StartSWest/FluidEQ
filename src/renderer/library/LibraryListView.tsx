@@ -216,14 +216,38 @@ interface ISongRow {
  * Back. Keeping it here is what lets them return to the row they came from
  * instead of the top of a list they had scrolled a thousand rows into.
  *
- * Bounded by the number of distinct browse/search/sort combinations one
- * session produces, each entry two numbers — small enough that it is never
- * worth evicting from, and cleared with the window.
+ * Capped, because the key holds the search text and the search box writes a
+ * new one on every keystroke: this is not "the handful of lists a reader
+ * visits" but one entry per prefix of everything they have ever typed, which
+ * grows for as long as the window is open. The entries are tiny and the
+ * eviction is cheap, so the cap is generous — far more lists than anyone
+ * revisits, and still a ceiling rather than none.
  */
 const rememberedListState = new Map<
   string,
   { scrollTop: number; activeId?: string }
 >();
+
+/** Lists whose place is worth keeping. Past this the least recently written
+ * one goes. */
+const REMEMBERED_LISTS = 200;
+
+/** Writes a place, and keeps the map from being a slow leak. Re-inserting
+ * rather than assigning is what makes `Map`'s insertion order a *recency*
+ * order, so the entry evicted is the one nobody has come back to. */
+const rememberList = (
+  key: string,
+  value: { scrollTop: number; activeId?: string },
+): void => {
+  rememberedListState.delete(key);
+  rememberedListState.set(key, value);
+  if (rememberedListState.size > REMEMBERED_LISTS) {
+    const oldest = rememberedListState.keys().next();
+    if (!oldest.done) {
+      rememberedListState.delete(oldest.value);
+    }
+  }
+};
 
 /** What a screen reader is told about a column: only the one actually driving
  * the order claims a direction. */
@@ -327,10 +351,16 @@ const LibraryListView = ({
    *
    * Empty in the other three modes: they list groupings, not songs, and
    * walking fourteen thousand tracks to build rows nobody is going to render
-   * is exactly the work this whole window exists to avoid.
+   * is exactly the work this whole window exists to avoid. Folder mode is in
+   * that group — it lists directories, and building a row per song there was
+   * fourteen thousand objects held for a branch that never reads them.
    */
   const songRows = useMemo<ISongRow[]>(() => {
-    if (browseMode === 'album' || browseMode === 'artist') {
+    if (
+      browseMode === 'album' ||
+      browseMode === 'artist' ||
+      browseMode === 'folder'
+    ) {
       return [];
     }
     const entries: ISongRow[] = [];
@@ -382,7 +412,7 @@ const LibraryListView = ({
       if (isRestoringRef.current) {
         return;
       }
-      rememberedListState.set(resetKey, {
+      rememberList(resetKey, {
         scrollTop: element.scrollTop,
         activeId: rememberedListState.get(resetKey)?.activeId,
       });
@@ -405,7 +435,7 @@ const LibraryListView = ({
     (id: string) => {
       setActiveId(id);
       const element = bodyRef.current;
-      rememberedListState.set(resetKey, {
+      rememberList(resetKey, {
         scrollTop:
           element?.scrollTop ??
           rememberedListState.get(resetKey)?.scrollTop ??
