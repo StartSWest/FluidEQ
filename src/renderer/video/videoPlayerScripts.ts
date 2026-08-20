@@ -320,3 +320,56 @@ export const EXIT_PAGE_FULLSCREEN = `(() => {
   document.exitFullscreen();
   return 'exit';
 })()`;
+
+/**
+ * Play or pause whatever the page is playing, and say which it did.
+ *
+ * The element chosen is the one that is running, or failing that the largest —
+ * the same preference `READ_POSITION` explains at length, and for the same
+ * reason: a page can hold a muted preview loop bigger than the thing being
+ * listened to.
+ *
+ * This one is run WITH a user gesture, unlike everything else here, and that
+ * is correct rather than an oversight: it exists because somebody pressed play
+ * on our own bar. Granting the activation is what lets the guest's `play()`
+ * through under the autoplay policy the tag is loaded with — see
+ * `VIDEO_WEB_PREFERENCES`. Nothing else in this file asks for it, and nothing
+ * else should.
+ */
+export const TOGGLE_PLAYBACK = `(() => {
+  const media = [...document.querySelectorAll('video, audio')];
+  if (media.length === 0) {
+    return 'none';
+  }
+  const playing = media.find((m) => !m.paused && !m.ended);
+  const target = playing
+    ?? media.reduce((best, m) => {
+      const area = (m.clientWidth || 0) * (m.clientHeight || 0);
+      const bestArea = (best.clientWidth || 0) * (best.clientHeight || 0);
+      return area > bestArea ? m : best;
+    }, media[0]);
+  try {
+    if (target.paused || target.ended) {
+      target.play();
+      return 'playing';
+    }
+    target.pause();
+    return 'paused';
+  } catch (e) {
+    return 'none';
+  }
+})()`;
+
+/**
+ * The guest's own volume, for the fader on our bar.
+ *
+ * Set on every media element rather than only the one being listened to: a
+ * page that swaps players between an ad and the video would otherwise start
+ * the next one back at full volume, having never been told.
+ */
+export const setGuestVolumeScript = (volume: number) => `(() => {
+  document.querySelectorAll('video, audio').forEach((media) => {
+    try { media.volume = ${Math.min(1, Math.max(0, volume))}; } catch (e) { /* gone */ }
+  });
+  return 'ok';
+})()`;

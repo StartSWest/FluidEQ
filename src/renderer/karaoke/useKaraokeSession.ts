@@ -35,6 +35,10 @@ import {
   releasePlayback,
 } from '../audio/playbackOwner';
 import {
+  clearTransportSource,
+  setTransportSource,
+} from '../audio/transportSource';
+import {
   IKaraokeSong,
   KaraokeParseError,
   TKaraokeParseErrorCode,
@@ -537,6 +541,37 @@ export const useKaraokeSession = (isActive: boolean) => {
     },
     [revokeObjectUrl],
   );
+
+  /**
+   * What the bar at the foot of the window shows while this tab is the one
+   * being looked at.
+   *
+   * Published rather than reached for: the bar is rendered from `App`, this
+   * session is held inside the karaoke workspace, and lifting a hook this size
+   * up the tree to share four numbers would be a great deal of moving for very
+   * little. See `transportSource`.
+   *
+   * Withdrawn when the song goes rather than on unmount — this tab is hidden
+   * and not unmounted while another is open, so an unmount cleanup would
+   * almost never run and the bar would keep offering a song that had been
+   * cleared.
+   */
+  useEffect(() => {
+    if (!song) {
+      clearTransportSource('karaoke');
+      return;
+    }
+    setTransportSource({
+      owner: 'karaoke',
+      title: song.title,
+      subtitle: song.artist,
+      isPlaying: status === 'playing',
+      positionMs: playheadMs,
+      durationMs,
+      toggle: togglePlayback,
+      seek,
+    });
+  }, [song, status, playheadMs, durationMs, togglePlayback, seek]);
 
   return {
     audioRef: audioRef as RefObject<HTMLAudioElement>,

@@ -65,6 +65,9 @@ import {
   useLibraryPlayer,
 } from './library/player/LibraryPlayerContext';
 import NowPlayingBar from './library/player/NowPlayingBar';
+import SourceTransportBar from './library/player/SourceTransportBar';
+import type { TPlaybackOwner } from './audio/playbackOwner';
+import { useTransportSource } from './audio/transportSource';
 import KaraokeWorkspace from './karaoke/KaraokeWorkspace';
 import PaneResizer from './components/PaneResizer';
 import {
@@ -246,13 +249,40 @@ const readWorkspaceTab = (): TWorkspaceTab => {
  * button on the bar, so the flip from the current value to the next one
  * happens here rather than inside the view.
  */
+/**
+ * Which tab each transport source belongs to.
+ *
+ * The bar follows the tab being looked at, so a source only takes it over on
+ * its own ground: the karaoke session drives it on the Karaoke tab, the Media
+ * page on the Media tab, and everywhere else — the EQ, Voicing, Config — the
+ * library keeps it. That last part is the important half. A bar that showed
+ * whatever tab you happened to open would take the controls for the music
+ * that is playing away the moment you went to adjust the sound it is playing
+ * through, which is the one time you are most likely to want them.
+ */
+const TRANSPORT_TAB: Record<TPlaybackOwner, TWorkspaceTab> = {
+  library: 'library',
+  karaoke: 'karaoke',
+  media: 'video',
+};
+
 const ConnectedNowPlayingBar = ({
+  activeTab,
   onReveal,
 }: {
+  activeTab: TWorkspaceTab;
   onReveal: (track: ILibraryTrack) => void;
 }) => {
   const player = useLibraryPlayer();
+  const source = useTransportSource();
   const { track } = player;
+  if (
+    source &&
+    source.owner !== 'library' &&
+    TRANSPORT_TAB[source.owner] === activeTab
+  ) {
+    return <SourceTransportBar source={source} />;
+  }
   return (
     <NowPlayingBar
       track={player.track}
@@ -1490,7 +1520,10 @@ const AppContent = () => {
                     isHidden={!isLibraryTab}
                     revealRequest={libraryReveal}
                   />
-                  <ConnectedNowPlayingBar onReveal={revealPlayingTrack} />
+                  <ConnectedNowPlayingBar
+                    activeTab={activeWorkspaceTab}
+                    onReveal={revealPlayingTrack}
+                  />
                 </LibraryPlayerProvider>
               </LibraryProvider>
             )}

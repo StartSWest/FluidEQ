@@ -57,6 +57,10 @@ import {
   registerPlayer,
   releasePlayback,
 } from '../audio/playbackOwner';
+import {
+  clearTransportSource,
+  setTransportSource,
+} from '../audio/transportSource';
 import VideoSiteIcon from './VideoSiteIcon';
 import '../styles/VideoBrowser.scss';
 import {
@@ -64,6 +68,8 @@ import {
   PLAYER_ONLY_CSS,
   READ_POSITION,
   STOP_PLAYBACK,
+  TOGGLE_PLAYBACK,
+  setGuestVolumeScript,
   enterPlayerOnlyScript,
   exitPlayerOnlyScript,
 } from './videoPlayerScripts';
@@ -84,6 +90,9 @@ interface IWebview extends HTMLElement {
   reload(): void;
   stop(): void;
   getURL(): string;
+  /** The guest document's own title — what the bar calls the page while the
+   * Media tab is the one driving it. */
+  getTitle(): string;
   loadURL(url: string): Promise<void>;
   /**
    * The second argument tells Chromium to treat the call as though the user had
@@ -269,6 +278,12 @@ interface IVideoBrowserProps {
 const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
   const { t } = useTranslation();
   const webviewRef = useRef<IWebview | null>(null);
+  /** The guest's own volume, held here because the page cannot be asked what
+   * it is — only told. Starts where a fresh media element does. */
+  const guestVolumeRef = useRef(1);
+  /** Whether the guest is playing, for the description rebuilt when the fader
+   * moves — that has no event of its own to read the state from. */
+  const playingRef = useRef(false);
   const graphView = useGraphView();
 
   // Read once, into a ref as well as into state: the `src` attribute must not
@@ -446,8 +461,59 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
     if (!view) {
       return undefined;
     }
-    const onPlaying = () => claimPlayback('media');
-    const onPaused = () => releasePlayback('media');
+    /**
+     * What the bar shows while the Media tab is the one being looked at.
+     *
+     * Title only, with play and pause and a fader — no seek bar and no skip,
+     * because neither is a thing we can honestly offer for a page. There is
+     * no playhead we own to move, and "next" belongs to whatever site is
+     * loaded and means something different on each of them. A dead slider
+     * would say otherwise.
+     */
+    const describe = (isPlaying: boolean) => {
+      setTransportSource({
+        owner: 'media',
+        title: view.getTitle() || t('tabs.media'),
+        isPlaying,
+        positionMs: 0,
+        durationMs: 0,
+        toggle: () => {
+          try {
+            // The one call in this pane made WITH a user gesture, because it
+            // is one: the reader pressed play on our own bar, and without the
+            // activation the guest's `play()` is refused by the autoplay
+            // policy the tag is loaded under.
+            view
+              .executeJavaScript(TOGGLE_PLAYBACK, true)
+              .catch(() => undefined);
+          } catch {
+            // No web contents to ask.
+          }
+        },
+        volume: guestVolumeRef.current,
+        setVolume: (value: number) => {
+          guestVolumeRef.current = value;
+          try {
+            view
+              .executeJavaScript(setGuestVolumeScript(value))
+              .catch(() => undefined);
+          } catch {
+            // Same: nothing to set it on.
+          }
+          describe(playingRef.current);
+        },
+      });
+    };
+    const onPlaying = () => {
+      playingRef.current = true;
+      claimPlayback('media');
+      describe(true);
+    };
+    const onPaused = () => {
+      playingRef.current = false;
+      releasePlayback('media');
+      describe(false);
+    };
     view.addEventListener('media-started-playing', onPlaying);
     view.addEventListener('media-paused', onPaused);
     const unregister = registerPlayer('media', () => {
@@ -461,7 +527,9 @@ const VideoBrowser = ({ isHidden }: IVideoBrowserProps) => {
       view.removeEventListener('media-started-playing', onPlaying);
       view.removeEventListener('media-paused', onPaused);
       unregister();
+      clearTransportSource('media');
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   /**
