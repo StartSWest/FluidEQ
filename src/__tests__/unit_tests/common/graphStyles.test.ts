@@ -37,6 +37,7 @@ import {
   GLOW_COMPLEXITY_LIMIT,
   getGlowStyle,
   createGraphAccent,
+  getGraphPeaks,
   hasGraphAccent,
   createGraphShape,
 } from 'common/graphShapes';
@@ -231,21 +232,20 @@ describe('the lit peaks', () => {
   });
 
   it('marks the peaks and not the slopes between them', () => {
-    const marks = [
-      ...createGraphAccent(humps, 'stems', BASELINE).matchAll(/M /g),
-    ];
-    expect(marks.length).toBeGreaterThan(0);
-    expect(marks.length).toBeLessThan(6);
+    // Asked of the peak finder rather than of a path: the marks themselves
+    // are painted now — they hang, sink or fly — and WHERE they go is the
+    // part that still belongs to this module.
+    const peaks = getGraphPeaks(humps, 'stems', BASELINE);
+    expect(peaks.length).toBeGreaterThan(0);
+    expect(peaks.length).toBeLessThan(6);
   });
 
   it('ignores a hump that is not loud enough to be a peak', () => {
     // The third one is a third the height of the first. Lighting everything
     // that happens to be a local maximum would put a bead on every ripple in
     // the noise floor, which says nothing about where the music is.
-    const path = createGraphAccent(humps, 'stems', BASELINE);
-    const xs = [...path.matchAll(/M ([d.-]+),/g)].map((match) =>
-      Number(match[1]),
-    );
+    const xs = getGraphPeaks(humps, 'stems', BASELINE).map((peak) => peak.x);
+    expect(xs.length).toBeGreaterThan(0);
     expect(xs.every((x) => x < 400)).toBe(true);
   });
 
@@ -254,7 +254,7 @@ describe('the lit peaks', () => {
       { length: 60 },
       (_value, index) => [index * 8, BASELINE] as Projected,
     );
-    expect(createGraphAccent(silence, 'stems', BASELINE)).toBe('');
+    expect(getGraphPeaks(silence, 'stems', BASELINE)).toEqual([]);
   });
 
   it('caps how many can be lit at once', () => {
@@ -394,17 +394,22 @@ describe('a form drawn at a density it did not ship with', () => {
     });
   });
 
-  it('keeps the lit tips on the stems they are marking', () => {
-    // Same count as the figure or the beads land between the stems.
-    const accent = createGraphAccent(points, 'stems', BASELINE, 20);
-    expect(accent).not.toMatch(/NaN|Infinity|undefined/);
-    expect(createGraphAccent(points, 'stems', BASELINE)).toBe(
-      createGraphAccent(
-        points,
-        'stems',
-        BASELINE,
-        getGraphColumnCount('stems'),
-      ),
+  it('keeps the lit tips on the pieces they are marking', () => {
+    // Same count as the figure or the marks land between the pieces. The
+    // marks themselves are painted rather than pathed now — they hang, sink
+    // or fly, none of which is one frame's geometry — so what is asserted
+    // here is where they GO, which is still decided in this module.
+    // No assertion that there ARE any: this fixture is a plain ramp with
+    // nothing that qualifies as a peak, and the point here is the density
+    // rather than the detection — which the humps above cover.
+    const peaks = getGraphPeaks(points, 'stems', BASELINE, 20);
+    peaks.forEach((peak) => {
+      expect(Number.isFinite(peak.x)).toBe(true);
+      expect(Number.isFinite(peak.y)).toBe(true);
+      expect(peak.size).toBeGreaterThan(0);
+    });
+    expect(getGraphPeaks(points, 'stems', BASELINE)).toEqual(
+      getGraphPeaks(points, 'stems', BASELINE, getGraphColumnCount('stems')),
     );
   });
 });

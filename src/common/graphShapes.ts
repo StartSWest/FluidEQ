@@ -1427,89 +1427,27 @@ export const createGraphShape = (
 export type AccentStyle =
   | 'wave'
   | 'bead'
-  | 'cap'
-  | 'ring'
-  | 'spark'
-  | 'chevron'
-  | 'halo'
-  | 'pin'
-  | 'crown'
-  | 'cross';
+  | 'fall'
+  | 'ghost'
+  | 'ripple'
+  | 'sparks'
+  | 'beam'
+  | 'ceiling'
+  | 'comet'
+  | 'drip';
 
 export const ACCENT_STYLES: AccentStyle[] = [
   'bead',
-  'cap',
-  'ring',
-  'spark',
-  'chevron',
-  'halo',
-  'pin',
-  'crown',
-  'cross',
+  'fall',
+  'ghost',
+  'ripple',
+  'sparks',
+  'beam',
+  'ceiling',
+  'comet',
+  'drip',
   'wave',
 ];
-
-/**
- * The mark itself, drawn at a peak.
- *
- * Every one is built around `size`, which is the piece's own width capped to
- * something a mark should be — so they sit on the thing they are marking at
- * any density, and none of them can grow into a slab when the count is low.
- *
- * They are paths rather than draw calls because the renderer collects the
- * whole set into one `Path2D` and paints it in two passes, wide and faint
- * under narrow and hot. A mark that needed its own fill would not fit that.
- */
-const ACCENT_MARKS: Record<
-  Exclude<AccentStyle, 'wave'>,
-  (x: number, y: number, size: number) => string
-> = {
-  // A box on the peak. The one the stems have always worn.
-  bead: (x, y, size) => rect(x - size / 2, y - size / 2, size, size),
-  // A held rule across the piece, the way a peak-hold reads on a meter.
-  cap: (x, y, size) => rect(x - size, y - size * 0.22, size * 2, size * 0.44),
-  /**
-   * A hollow circle. Two turns, the inner one wound the other way, so the
-   * fill rule cuts the middle out rather than painting it — the same trick
-   * the skyline's windows use, and the same warning applies: reversing it to
-   * match its neighbour fills the hole in.
-   */
-  ring: (x, y, size) => {
-    const r = size * 0.62;
-    const inner = r - Math.max(1, size * 0.22);
-    const turn = (radius: number, sweep: number) =>
-      `M ${(x - radius).toFixed(1)},${y.toFixed(1)} a ${radius.toFixed(1)},${radius.toFixed(1)} 0 1,${sweep} ${(radius * 2).toFixed(1)},0 a ${radius.toFixed(1)},${radius.toFixed(1)} 0 1,${sweep} ${(-radius * 2).toFixed(1)},0 Z`;
-    return turn(r, 0) + turn(Math.max(0.5, inner), 1);
-  },
-  // A tick standing above the peak, clear of the figure entirely.
-  spark: (x, y, size) =>
-    rect(x - size * 0.14, y - size * 2.1, size * 0.28, size * 1.5),
-  // A small arrowhead pointing at it from above.
-  chevron: (x, y, size) =>
-    `M ${(x - size).toFixed(1)},${(y - size * 0.5).toFixed(1)} L ${x.toFixed(1)},${(y - size * 1.5).toFixed(1)} L ${(x + size).toFixed(1)},${(y - size * 0.5).toFixed(1)} L ${x.toFixed(1)},${(y - size * 1.05).toFixed(1)} Z`,
-  /**
-   * A big soft disc with nothing inside it.
-   *
-   * It has no edge worth speaking of at the weights the renderer strokes
-   * these with, which is the point: the other marks say "here", and this one
-   * says "here" without drawing anything you could measure against the axis.
-   */
-  halo: (x, y, size) => {
-    const r = size * 1.15;
-    return `M ${(x - r).toFixed(1)},${y.toFixed(1)} a ${r.toFixed(1)},${r.toFixed(1)} 0 1,0 ${(r * 2).toFixed(1)},0 a ${r.toFixed(1)},${r.toFixed(1)} 0 1,0 ${(-r * 2).toFixed(1)},0 Z`;
-  },
-  // A dot on a stalk, lifted off the peak so it clears a crowded figure.
-  pin: (x, y, size) =>
-    rect(x - size * 0.11, y - size * 1.9, size * 0.22, size * 1.9) +
-    rect(x - size * 0.42, y - size * 2.3, size * 0.84, size * 0.84),
-  // A triangle sitting on it, pointing up.
-  crown: (x, y, size) =>
-    `M ${(x - size * 0.85).toFixed(1)},${(y + size * 0.3).toFixed(1)} L ${x.toFixed(1)},${(y - size * 1.1).toFixed(1)} L ${(x + size * 0.85).toFixed(1)},${(y + size * 0.3).toFixed(1)} Z`,
-  // Two bars through the peak, which marks a position rather than an object.
-  cross: (x, y, size) =>
-    rect(x - size * 1.3, y - size * 0.16, size * 2.6, size * 0.32) +
-    rect(x - size * 0.16, y - size * 1.3, size * 0.32, size * 2.6),
-};
 
 const ACCENTS: Partial<Record<GraphStyle, 'bead' | 'trace'>> = {
   stems: 'bead',
@@ -1681,60 +1619,45 @@ const MAX_ACCENTS = 10;
  * Returns an empty path for every other form, which is the intended answer and
  * not a failure to draw one.
  */
-export const createGraphAccent = (
+/** A peak worth marking: where it is, and how big a mark suits it. */
+export interface IGraphPeak {
+  x: number;
+  y: number;
+  /** The piece's own width, capped to something a mark should be. */
+  size: number;
+  /** How tall it is as a fraction of the plot's depth. */
+  energy: number;
+}
+
+/**
+ * Which peaks are worth lighting, and where.
+ *
+ * Exported because the answer is the same whatever the mark is, and there are
+ * ten of them now — several drawn by the renderer rather than as path data,
+ * because they fall, expand or fade and none of that fits in one frame's
+ * geometry. Three separate opinions about what counts as a peak is three
+ * drawings disagreeing about where the music is.
+ */
+export const getGraphPeaks = (
   points: readonly Projected[],
   style: GraphStyle,
   baseline: number,
   columns?: number,
-  /** The output envelope, for the one accent that is a figure rather than a mark. */
-  waveform?: readonly number[],
-  /** Which mark to make. Left out, the form's own starting choice. */
-  accentStyle?: AccentStyle,
-): string => {
-  /**
-   * Every form can carry a lit peak; the table only says which ones start
-   * with one.
-   *
-   * It used to decide whether a form COULD have one at all, which greyed the
-   * switch out on fifty-odd of them — a mark that suits a stem was being
-   * withheld from everything else on somebody's judgement about taste, and
-   * taste is what the switch is for. The bead is the default answer now, and
-   * `trace` stays what it always was: not a mark at all, but half of the
-   * form it belongs to.
-   */
-  const accent = accentStyle ?? (ACCENTS[style] === 'trace' ? 'wave' : 'bead');
+): IGraphPeak[] => {
   if (points.length < 3) {
-    return '';
+    return [];
   }
-
-  if (accent === 'wave') {
-    // The titlebar's own curve, drawn by the titlebar's own code, over bars
-    // the figure has already put down — see `ACCENTS` and `WAVE_FORMS`.
-    const left = points[0][0];
-    return createWaveformShape(
-      waveform !== undefined && waveform.length >= 2
-        ? waveform
-        : toWaveSamples(toColumns(points, WAVE_SAMPLE_COUNT), baseline),
-      'fluid',
-      Math.max(1, points[points.length - 1][0] - left),
-      baseline,
-      baseline / 2,
-      undefined,
-      { x: left, y: 0 },
-    ).line;
-  }
-  // The same density as the figure, or the beads land between the stems they
+  // The same density as the figure, or the marks land between the pieces they
   // are supposed to be sitting on.
   const figure = toColumns(
     points,
     columns === undefined ? getColumnCount(style) : clampGraphColumns(columns),
   );
   if (figure.length < 3) {
-    return '';
+    return [];
   }
   const span = figure[figure.length - 1][0] - figure[0][0];
   const step = Math.max(1, span / (figure.length - 1));
-
   let tallest = 0;
   for (let index = 0; index < figure.length; index += 1) {
     const height = baseline - figure[index][1];
@@ -1743,41 +1666,71 @@ export const createGraphAccent = (
     }
   }
   if (tallest <= 1) {
-    return '';
+    return [];
   }
-
-  /**
-   * A mark, and capped like one.
-   *
-   * Sized from the column so it sits on the piece it marks rather than
-   * beside it — which is right at sixty-four columns and absurd at eight,
-   * where half a column is a hundred pixels and the "lit peak" arrived as a
-   * white slab wider than the bar under it. A peak mark has a size a peak
-   * mark should be, whatever the density is.
-   */
-  const bead = Math.max(2.6, Math.min(MAX_ACCENT_BEAD, step * 0.5));
+  const size = Math.max(2.6, Math.min(MAX_ACCENT_BEAD, step * 0.5));
   const floor = tallest * ACCENT_THRESHOLD;
-  let path = '';
-  let count = 0;
+  const depth = Math.max(1, baseline);
+  const peaks: IGraphPeak[] = [];
   let lastX = -Infinity;
   for (
     let index = 1;
-    index < figure.length - 1 && count < MAX_ACCENTS;
+    index < figure.length - 1 && peaks.length < MAX_ACCENTS;
     index += 1
   ) {
     const [x, y] = figure[index];
     // Three things make a tip worth lighting: it is loud enough against the
     // rest of the frame, nothing beside it is louder — which keeps a broad
-    // peak to one bead rather than a smear across its shoulders — and it is
+    // peak to one mark rather than a smear across its shoulders — and it is
     // far enough from the last one to be a separate peak at all.
     const isLoud = baseline - y >= floor;
     const isLocalPeak =
       y <= figure[index - 1][1] && y <= figure[index + 1][1] && isLoud;
     if (isLocalPeak && x - lastX >= step * 1.5) {
       lastX = x;
-      count += 1;
-      path += ACCENT_MARKS[accent](x, y, bead);
+      peaks.push({
+        x,
+        y,
+        size,
+        energy: Math.max(0, Math.min(1, (baseline - y) / depth)),
+      });
     }
   }
-  return path;
+  return peaks;
+};
+
+export const createGraphAccent = (
+  points: readonly Projected[],
+  style: GraphStyle,
+  baseline: number,
+  /** The output envelope, which is what this accent is made of. */
+  waveform?: readonly number[],
+  /** Which mark. Left out, the form's own starting choice. */
+  accentStyle?: AccentStyle,
+): string => {
+  /**
+   * Only the wave is a path.
+   *
+   * The other nine hang, sink, expand, fly or trail, and none of that exists
+   * inside one frame's geometry — so they are painted by the renderer, which
+   * is the only place that has the last frame to compare against. See
+   * `graphAccents`. This is the one that is simply a curve, and it is the
+   * titlebar's own curve at that.
+   */
+  const accent = accentStyle ?? (ACCENTS[style] === 'trace' ? 'wave' : 'bead');
+  if (accent !== 'wave' || points.length < 3) {
+    return '';
+  }
+  const left = points[0][0];
+  return createWaveformShape(
+    waveform !== undefined && waveform.length >= 2
+      ? waveform
+      : toWaveSamples(toColumns(points, WAVE_SAMPLE_COUNT), baseline),
+    'fluid',
+    Math.max(1, points[points.length - 1][0] - left),
+    baseline,
+    baseline / 2,
+    undefined,
+    { x: left, y: 0 },
+  ).line;
 };
