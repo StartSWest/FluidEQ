@@ -583,6 +583,23 @@ const COLUMN_OVERRIDES: Partial<Record<GraphStyle, number>> = {
    * number the Pieces control can move like any other form's.
    */
   fluid: 128,
+
+  /**
+   * The wave family's own band count, which is the titlebar's forty-eight.
+   *
+   * Here rather than as a constant in the shape module so there is one
+   * answer to "how many pieces is this form": the designer reads it to seed
+   * the control, and the drawing reads it when nobody has said otherwise.
+   * Two answers is how a form ends up drawn at one density and reported at
+   * another.
+   */
+  'wave-bars': 48,
+  'wave-mirror': 48,
+  'wave-dots': 48,
+  'wave-spikes': 48,
+  'wave-blocks': 48,
+  'wave-outline': 48,
+  'wave-lattice': 48,
 };
 
 export const getColumnCount = (style: GraphStyle) =>
@@ -622,6 +639,27 @@ export const getGraphFillOpacity = (
 
 /** The forms drawn one piece per column rather than as a continuous figure. */
 export const DISCRETE_STYLES = new Set<GraphStyle>([
+  /**
+   * The fluid belongs here, and the designer is why it matters.
+   *
+   * Pieces is disabled for anything this set does not name, so leaving it
+   * out greyed the control out on a form that is one bar per column and
+   * reads `columns` every frame — the setting worked and could not be
+   * reached.
+   *
+   * The wave forms that read frequency bands are here for the same reason:
+   * they are made of pieces and the density reaches them. The three that are
+   * not — line, body and ribbon — draw one continuous figure from the
+   * waveform, so the control stays greyed out on those.
+   */
+  'fluid',
+  'wave-bars',
+  'wave-mirror',
+  'wave-dots',
+  'wave-spikes',
+  'wave-blocks',
+  'wave-outline',
+  'wave-lattice',
   'bars',
   'dots',
   'blocks',

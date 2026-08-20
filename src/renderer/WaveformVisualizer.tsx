@@ -82,6 +82,7 @@ import {
   SPECTRUM_BAR_ATTACK_MS,
   SPECTRUM_BAR_RANGE_DB,
   SPECTRUM_BAR_RELEASE_MS,
+  SPECTRUM_HUE_FLAT,
   SOFT_GLOW_WAVEFORM_STYLES,
   TRACE_CYAN_STOPS,
   TRACE_RAINBOW_STOPS,
@@ -459,6 +460,7 @@ const WaveformVisualizer = () => {
         },
         buffer,
         isEuphoricRef.current,
+        SPECTRUM_HUE_FLAT,
       );
     }
 
