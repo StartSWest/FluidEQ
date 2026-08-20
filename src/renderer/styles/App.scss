@@ -1455,6 +1455,21 @@ $tab-border: rgba($secondary-light, 0.2);
   // only, so nothing can shadow it.
   container-name: autoeq-workspace eq-panel;
   container-type: inline-size;
+
+  // The bottom breathing room, as a flex item rather than as padding.
+  //
+  // These panels are flex columns that scroll, and a scrolling flex
+  // container's bottom padding is not reserved past the end of its content:
+  // scroll to the foot of Voicing or EQ Presets and the last card ends flush
+  // against the border, which reads as clipped rather than as finished. A
+  // real item at the end is the one thing the layout cannot ignore.
+  //
+  // It matches the padding the other three sides keep, so nothing about the
+  // spacing changes — only whether it survives being scrolled to.
+  &::after {
+    flex: 0 0 12px;
+    content: '';
+  }
 }
 
 .workspace-tab-panel--eq,
@@ -1494,7 +1509,11 @@ $tab-border: rgba($secondary-light, 0.2);
   // picture and every pixel of margin around a video is a pixel the video
   // does not get; its bar re-adds the same 12 inline, so the two toolbars sit
   // on the same rule.
-  padding: 10px 12px 12px;
+  // No bottom padding: the `::after` on `.workspace-tab-panel` carries that
+  // instead, because a scrolling flex container does not reserve its bottom
+  // padding past the end of its content. Twelve either way, so the spacing
+  // is unchanged — see that rule.
+  padding: 10px 12px 0;
   border-top-color: $tab-border;
 }
 
