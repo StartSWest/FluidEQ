@@ -58,7 +58,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 import type { AxisScale, NumberValue } from 'd3';
 import { useCallback, useEffect, useRef } from 'react';
-import { getEaseFactor } from 'common/smoothing';
+import { easeTowards, getEaseFactor } from 'common/smoothing';
 import {
   createGraphAccent,
   createGraphShape,
@@ -95,6 +95,8 @@ import {
 import {
   TRACE_CYAN_STOPS,
   TRACE_RAINBOW_STOPS,
+  SPECTRUM_BAR_ATTACK_MS,
+  SPECTRUM_BAR_RELEASE_MS,
   advanceSpectrumBars,
   paintSpectrumBars,
   spectrumBarCount,
@@ -174,16 +176,23 @@ const ACCENT_HALO_WIDTH = 7;
 const ACCENT_CORE_WIDTH = 1;
 
 /**
- * The same two passes for a trace accent, which is a different job.
+ * The fluid's wave, stroked the titlebar's way and only the titlebar's way.
  *
- * A lit tip is a mark on one band and wants to be small and hot. The fluid's
- * wave line is half the form — it has to read across the whole plot, over bars
- * that are themselves several pixels wide — so a one-pixel core disappeared
- * into them. Fat enough to be the thing you look at, with a wide soft pass
- * under it so the edge falls off instead of ending.
+ * One heavy round-capped line over a soft shadow — no halo pass under it. A
+ * pair of strokes was tried and is what the wide grey aura came from: two
+ * widths of the same curve read as a line with a second, blurrier line
+ * around it rather than as a lit one. The shadow does that job properly and
+ * costs one stroke.
+ *
+ * Rainbow gets the wider line and the SMALLER blur: the gradient is already
+ * doing the work there, so the glow does not have to.
  */
-const TRACE_HALO_WIDTH = 11;
-const TRACE_CORE_WIDTH = 3.5;
+const TRACE_WIDTH_RAINBOW = 4.2;
+const TRACE_WIDTH_CYAN = 3.2;
+const TRACE_BLUR_RAINBOW = 14;
+const TRACE_BLUR_CYAN = 18;
+const TRACE_GLOW_RAINBOW = 'rgba(255, 60, 172, 0.55)';
+const TRACE_GLOW_CYAN = 'rgba(156, 255, 244, 0.66)';
 
 interface ILiveTraceCanvasProps {
   /**
@@ -320,6 +329,18 @@ const LiveTraceCanvas = ({
    * other form shares and this one is not supposed to.
    */
   const fluidBarsRef = useRef<number[]>([]);
+  /**
+   * The wave's samples, eased toward each frame rather than drawn raw.
+   *
+   * This is what the titlebar does and the graph did not, and it is the
+   * whole difference between a line that moves and one that shivers: the
+   * envelope arrives about twenty-two times a second, so each frame lands
+   * as a visible jump. The rates are the bars' own — snap up on the frame a
+   * hit lands, ease back over a tenth of a second — because a symmetric
+   * rate that quick tracks the waveform's own oscillation rather than the
+   * shape of the sound.
+   */
+  const fluidWaveRef = useRef<number[]>([]);
   // How hard the halo is being driven, carried between frames.
   const pumpRef = useRef(0);
   // The trace coming forward and going back — see the constant above. Opacity
@@ -505,6 +526,12 @@ const LiveTraceCanvas = ({
           bars.fill(0);
         }
         advanceSpectrumBars(bars, easedRef.current, LEVEL_FLOOR_DB, deltaMs);
+        easeTowards(
+          fluidWaveRef.current,
+          waveformRef.current,
+          getEaseFactor(deltaMs, SPECTRUM_BAR_ATTACK_MS),
+          getEaseFactor(deltaMs, SPECTRUM_BAR_RELEASE_MS),
+        );
         // Still settling counts as motion, or the loop stops with the bars
         // halfway down and leaves them there until the next measurement.
         moving = true;
@@ -575,7 +602,7 @@ const LiveTraceCanvas = ({
             chosen,
             baseline,
             tuning.columns,
-            waveformRef.current,
+            fluidWaveRef.current,
           )
         : '';
       const accent = accentShape ? new Path2D(accentShape) : undefined;
@@ -695,8 +722,16 @@ const LiveTraceCanvas = ({
         const paintFor = (paint: TracePaint) =>
           paint === basePaint ? canvasPaint : toCanvasPaint(context, paint);
 
-        // Behind the figure it echoes.
-        if (haloPath) {
+        /**
+         * Behind the figure it echoes — and the fluid has no figure to echo.
+         *
+         * The halo is stroked from a SILHOUETTE rather than the drawing, and
+         * the fluid's drawing is painted rather than pathed, so the
+         * silhouette was the shape module's bars: a different count at a
+         * different width, which put a row of wide grey ghosts behind bars
+         * that did not line up with them. The wave carries its own light.
+         */
+        if (haloPath && !isFluidForm) {
           context.strokeStyle = paintFor(
             resolveGlowStroke(basePaint, isSelfColoured, euphoria),
           );
@@ -813,46 +848,50 @@ const LiveTraceCanvas = ({
           } else {
             accentStroke = paintFor(resolveAccentStroke(basePaint, euphoria));
           }
-          // A bead is a closed circle and has to be filled or it comes out
-          // hollow. A trace is an open curve, and filling one closes it from
-          // end to start — which turned the fluid's wave line into a slab
-          // between the curve and the middle of the plot.
-          const isTrace = isGraphAccentTrace(chosen);
-          // Round, so a curve this heavy does not show mitre spikes where it
-          // turns. A bead has no joins to round and does not care.
-          if (isTrace) {
+          if (isGraphAccentTrace(chosen)) {
+            /**
+             * One stroke over a shadow, which is how the titlebar lights it.
+             *
+             * A bead is a closed circle and is filled as well as stroked or
+             * it comes out hollow; an open curve filled closes itself, so
+             * none of that applies here. Nor does the halo pass: two widths
+             * of the same curve read as a line with a blurrier line drawn
+             * around it, which is where the grey aura came from.
+             */
+            context.save();
             context.lineJoin = 'round';
             context.lineCap = 'round';
-          }
-          setAlpha(
-            context,
-            isEuphoric ? ACCENT_HALO_EUPHORIC_OPACITY : ACCENT_HALO_OPACITY,
-          );
-          context.fillStyle = canvasPaint;
-          context.strokeStyle = accentStroke;
-          context.lineWidth = isTrace ? TRACE_HALO_WIDTH : ACCENT_HALO_WIDTH;
-          if (!isTrace) {
+            context.shadowColor = isEuphoric
+              ? TRACE_GLOW_RAINBOW
+              : TRACE_GLOW_CYAN;
+            context.shadowBlur = isEuphoric
+              ? TRACE_BLUR_RAINBOW
+              : TRACE_BLUR_CYAN;
+            setAlpha(context, opacity);
+            context.strokeStyle = accentStroke;
+            context.lineWidth = isEuphoric
+              ? TRACE_WIDTH_RAINBOW
+              : TRACE_WIDTH_CYAN;
+            context.stroke(accent);
+            context.restore();
+          } else {
+            setAlpha(
+              context,
+              isEuphoric ? ACCENT_HALO_EUPHORIC_OPACITY : ACCENT_HALO_OPACITY,
+            );
+            context.fillStyle = canvasPaint;
+            context.strokeStyle = accentStroke;
+            context.lineWidth = ACCENT_HALO_WIDTH;
             context.fill(accent);
-          }
-          context.stroke(accent);
+            context.stroke(accent);
 
-          setAlpha(context, ACCENT_CORE_OPACITY);
-          context.fillStyle = 'white';
-          /**
-           * The trace keeps the look's own paint, always.
-           *
-           * A lit tip goes white outside euphoria because it is a highlight
-           * and a highlight is brighter than what it sits on. This is not a
-           * highlight — it is the wave itself, and painting it white threw
-           * away the one thing the palette says. In rainbow it runs the
-           * spectrum across the plot, which is what "the rainbow line" is.
-           */
-          context.strokeStyle = isTrace || isEuphoric ? accentStroke : 'white';
-          context.lineWidth = isTrace ? TRACE_CORE_WIDTH : ACCENT_CORE_WIDTH;
-          if (!isTrace) {
+            setAlpha(context, ACCENT_CORE_OPACITY);
+            context.fillStyle = 'white';
+            context.strokeStyle = isEuphoric ? accentStroke : 'white';
+            context.lineWidth = ACCENT_CORE_WIDTH;
             context.fill(accent);
+            context.stroke(accent);
           }
-          context.stroke(accent);
         }
 
         context.restore();
