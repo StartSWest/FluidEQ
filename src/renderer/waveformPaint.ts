@@ -162,6 +162,27 @@ export const BODY_STOPS = [
   { offset: 1, colour: 'rgba(79, 110, 247, 0.18)' },
 ];
 
+/**
+ * The cyan-tones fallback the spectrum style uses when rainbow mode is off.
+ *
+ * Five stops across the axis, matching `BAND_SPECTRUM_STOPS` position-for-
+ * position so the same bar lines up with the same offset whichever ramp is
+ * in force. The colours are cyan tones — brightest at the middle, softer at
+ * the edges — so the visualiser still reads as a spectrum without borrowing
+ * a mode the rest of the app gates on.
+ *
+ * Comma-separated rgba: a canvas gradient stop is parsed by whatever is
+ * running the code (Chromium and jsdom alike), and the older comma form is
+ * the one nothing argues about.
+ */
+export const SPECTRUM_CYAN_STOPS = [
+  { offset: 0, colour: 'rgba(139, 246, 255, 0.5)' },
+  { offset: 0.28, colour: 'rgba(105, 246, 233, 0.85)' },
+  { offset: 0.52, colour: 'rgba(0, 229, 255, 1)' },
+  { offset: 0.76, colour: 'rgba(79, 200, 247, 0.85)' },
+  { offset: 1, colour: 'rgba(139, 200, 255, 0.5)' },
+];
+
 /** One pass of the bloom: how much wider than the figure, and how faint. */
 export interface IGlowLayer {
   colour: string;
@@ -252,6 +273,10 @@ export const STYLE_PAINT: Partial<Record<WaveformStyle, Partial<IStylePaint>>> =
     lattice: { strokeWidth: 1.4, strokeAlpha: 0.85, lineCap: 'round' },
     // One edge, thicker, because it is carrying the whole picture alone.
     outline: { strokeWidth: 2.4 },
+    // Bars from the floor with a light curve tracing their tips — the graph
+    // panel's LIVE OUTPUT figure in the titlebar. Thin curve, so it reads as
+    // a highlight over the bars rather than as a second competing wave.
+    spectrum: { fill: 'trace', fillAlpha: 0.9, strokeWidth: 1.2 },
   };
 
 export const resolveStylePaint = (style: WaveformStyle): IStylePaint => ({

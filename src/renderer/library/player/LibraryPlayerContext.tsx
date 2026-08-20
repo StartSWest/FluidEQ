@@ -77,6 +77,16 @@ const DEFAULT_VOLUME = 1;
 
 const clampVolume = (value: number): number => Math.min(1, Math.max(0, value));
 
+/**
+ * How long the level takes to come back after a seek.
+ *
+ * Long enough to cover the decoder's re-sync and short enough that nobody
+ * reads it as a fade — about four frames. Ramped on `requestAnimationFrame`
+ * rather than a timer: a timer would keep the renderer awake on a schedule of
+ * its own, and this has to run in step with what is already being painted.
+ */
+const SEEK_FADE_MS = 70;
+
 export interface ILibraryPlayerContextValue {
   queue: ILibraryQueue | undefined;
   track: ILibraryTrack | undefined;
@@ -157,6 +167,13 @@ export const LibraryPlayerProvider = ({
   // the current track is a video.
   const videoElementRef = useRef<HTMLVideoElement | null>(null);
 
+  /** Set once `fadeIn` below exists. The `seeked` listener is bound for the
+   * life of the element and reaches it through here rather than closing over
+   * a function declared further down. */
+  const fadeInRef = useRef<((element: HTMLMediaElement) => void) | undefined>(
+    undefined,
+  );
+
   // Silence the element if this provider ever goes away.
   //
   // It is a bare `new Audio()` in a ref, deliberately never rendered, which
@@ -226,6 +243,134 @@ export const LibraryPlayerProvider = ({
 
   const trackId = queue ? currentTrackId(queue) : undefined;
   const track = trackId ? trackById.get(trackId) : undefined;
+
+  /** The object URL currently backing the element, so it can be revoked when
+   * the next track replaces it. A blob URL that is never revoked pins its
+   * whole buffer for the life of the window. */
+  const blobUrlRef = useRef<string | undefined>(undefined);
+
+  /** The running fade-in, so a second seek arriving mid-ramp cancels the
+   * first rather than fighting it for the volume property. */
+  const fadeFrameRef = useRef(0);
+
+  const fadeIn = useCallback((element: HTMLMediaElement) => {
+    cancelAnimationFrame(fadeFrameRef.current);
+    const target = volumeRef.current;
+    const started = performance.now();
+    const step = () => {
+      const progress = Math.min(
+        1,
+        (performance.now() - started) / SEEK_FADE_MS,
+      );
+      element.volume = clampVolume(target * progress);
+      if (progress < 1) {
+        fadeFrameRef.current = requestAnimationFrame(step);
+        return;
+      }
+      // Land exactly on the user's level rather than on whatever the last
+      // frame's arithmetic produced.
+      element.volume = target;
+      fadeFrameRef.current = 0;
+    };
+    fadeFrameRef.current = requestAnimationFrame(step);
+  }, []);
+  fadeInRef.current = fadeIn;
+
+  /**
+   * Drops the level for a jump, and guarantees it comes back.
+   *
+   * `seeked` is what normally brings it back — see `bindMediaEvents`. The
+   * watchdog here exists because a seek into a range the element cannot serve
+   * never fires it, and a player that silently muted itself forever would be
+   * a far worse bug than the click this is hiding.
+   */
+  const startSeekFade = useCallback(
+    (element: HTMLMediaElement) => {
+      cancelAnimationFrame(fadeFrameRef.current);
+      element.volume = 0;
+      const deadline = performance.now() + 500;
+      const watch = () => {
+        if (element.volume > 0 || fadeFrameRef.current === 0) {
+          // Something else already restored it, or a fade is under way.
+          return;
+        }
+        if (performance.now() > deadline) {
+          fadeIn(element);
+          return;
+        }
+        fadeFrameRef.current = requestAnimationFrame(watch);
+      };
+      fadeFrameRef.current = requestAnimationFrame(watch);
+    },
+    [fadeIn],
+  );
+
+  const releaseBlob = useCallback(() => {
+    if (blobUrlRef.current) {
+      URL.revokeObjectURL(blobUrlRef.current);
+      blobUrlRef.current = undefined;
+    }
+  }, []);
+
+  /**
+   * Re-points a playing element at the same audio held in memory.
+   *
+   * Seeking inside a streamed resource makes Chromium abandon the connection,
+   * ask for a fresh byte range and re-sync the decoder — heard as a stutter
+   * with a moment of the previous passage repeating. Inside a blob there is
+   * nothing to re-establish, so a jump is exact and silent. The Karaoke tab
+   * has loaded its audio this way from the start, which is why it has always
+   * seeked cleanly while this player did not.
+   *
+   * The stream still starts the track, because waiting for a 10MB read before
+   * the first note would trade one visible fault for another. The swap
+   * happens underneath, keeps the playhead where it was, and is abandoned if
+   * the track changed while the bytes were in flight.
+   */
+  const swapToBlob = useCallback(
+    async (element: HTMLAudioElement, forTrackId: string) => {
+      const bytes = window.electron?.ipcRenderer?.libraryTrackBytes;
+      if (!bytes) {
+        return;
+      }
+      let buffer: ArrayBuffer | undefined;
+      try {
+        buffer = await bytes(forTrackId);
+      } catch {
+        // Main could not read it. The stream is already playing and is fine.
+        return;
+      }
+      // The queue moved on while this was in flight, or main declined it —
+      // either way there is nothing to swap to and nothing wrong.
+      if (!buffer || trackIdRef.current !== forTrackId) {
+        return;
+      }
+      const wasPlaying = !element.paused;
+      const at = element.currentTime;
+      releaseBlob();
+      blobUrlRef.current = URL.createObjectURL(new Blob([buffer]));
+      element.src = blobUrlRef.current;
+      // Putting the playhead back is what makes the swap invisible; without
+      // it the track would jump to its beginning a second in.
+      element.addEventListener(
+        'loadedmetadata',
+        () => {
+          element.currentTime = at;
+          if (wasPlaying) {
+            element.play().catch(() => undefined);
+          }
+        },
+        { once: true },
+      );
+      element.load();
+    },
+    [releaseBlob],
+  );
+
+  /** Read inside `swapToBlob`'s async continuation, where the `trackId` it
+   * closed over would be the one from the render that started the read. */
+  const trackIdRef = useRef(trackId);
+  trackIdRef.current = trackId;
 
   /**
    * Puts the last session's queue and playhead back, once.
@@ -364,7 +509,14 @@ export const LibraryPlayerProvider = ({
       // still report the old position for a tick or two after a seek is
       // asked for. Without this the thumb was dragged, released, and then
       // pulled back by a stale tick before the next one caught up.
-      const onSeeked = () => setPositionMs(element.currentTime * 1000);
+      const onSeeked = () => {
+        setPositionMs(element.currentTime * 1000);
+        // Bring the level back after the jump — see `startSeekFade`. Reached
+        // through a ref because this listener is bound once for the life of
+        // the element and must not take a dependency on anything defined
+        // later in this component.
+        fadeInRef.current?.(element);
+      };
       // `durationchange` as well as `loadedmetadata`, and it is the one that
       // matters. A resource the element cannot seek in reports its duration
       // as `Infinity` at metadata time — which this correctly refuses, and
@@ -494,6 +646,7 @@ export const LibraryPlayerProvider = ({
       return;
     }
     audio.pause();
+    releaseBlob();
     if (!trackId || !track) {
       audio.removeAttribute('src');
       setIsUnplayable(false);
@@ -519,6 +672,9 @@ export const LibraryPlayerProvider = ({
       setIsPlaying(true);
       return;
     }
+    // The streaming URL first, so sound starts immediately, then the same
+    // file again as a blob once main has handed the bytes over — see
+    // `swapToBlob` for why the second one is worth the first one's trouble.
     audio.src = libraryMediaUrl('track', track.id);
     // No `audio.currentTime = 0` here, and this is not tidiness: assigning a
     // position on the same tick as the source is what made seeking
@@ -559,6 +715,9 @@ export const LibraryPlayerProvider = ({
     pendingRestore.current = undefined;
     audio.preload = 'auto';
     audio.play().catch(() => undefined);
+    // Deliberately not awaited: the stream is already playing, and this only
+    // improves how the next seek feels. It never rejects — see its own body.
+    swapToBlob(audio, track.id).catch(() => undefined);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- deliberate, see the comment above this effect.
   }, [trackId]);
 
@@ -638,6 +797,13 @@ export const LibraryPlayerProvider = ({
         setPositionMs(clamped);
         return;
       }
+      // Silence first, then jump. Landing mid-frame makes the decoder
+      // re-sync, and what that sounds like is a click or a scrap of the
+      // passage just left — audible however cleanly the bytes arrive,
+      // because it is the decoder catching up rather than the data being
+      // late. Cutting the level for the length of the jump and bringing it
+      // back over a few frames hides the seam without touching the audio.
+      startSeekFade(element);
       element.currentTime = clamped / 1000;
       // Read back rather than trusting the request, the way
       // `useKaraokeSession.seek` does: the element clamps to its own seekable
@@ -645,7 +811,7 @@ export const LibraryPlayerProvider = ({
       // never went to is worse than one that admits it did not move.
       setPositionMs(element.currentTime * 1000);
     },
-    [activeElement],
+    [activeElement, startSeekFade],
   );
 
   const setShuffle = useCallback((isShuffled: boolean) => {

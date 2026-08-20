@@ -962,10 +962,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
   }
 }
 
-// Behind the curve and much quieter than it — they are the texture the line
-// runs over, not a second thing to read.
+// Behind the curve, in the same cyan tones the rest of the row is painted
+// in — the bars are the texture the wave runs over, not a second thing to
+// read. Kept translucent even at full height so the wave riding through the
+// middle of the mark is not swallowed by a wall of solid colour: an opaque
+// bar taller than the wave would hide the line for exactly the two thirds of
+// the pulse it is at its tallest.
 .library-list__playing-bars rect {
-  fill: rgba($secondary-light, 0.34);
+  fill: rgba($secondary-light, 0.32);
   animation: library-playing-bar 1100ms ease-in-out infinite;
   transform-box: fill-box;
   transform-origin: bottom;
@@ -987,6 +991,12 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 .library-list__playing-bars rect:nth-child(5) {
   animation-delay: 600ms;
 }
+
+// No rainbow variant, deliberately. This mark is twenty pixels on a row that
+// already carries a title, an artist, an album and a length; five competing
+// hues in that space read as decoration rather than as the one thing on the
+// row saying "this is what you are hearing". It keeps the same cyan the rest
+// of the row is painted in, in every theme.
 
 // Drawn two full periods wide and slid left by exactly one, so a single
 // `translate` runs forever and the loop point lands where the curve already

@@ -40,7 +40,8 @@ export type WaveformStyle =
   | 'spikes'
   | 'blocks'
   | 'outline'
-  | 'lattice';
+  | 'lattice'
+  | 'spectrum';
 
 /** In cycle order, which is the order clicking walks them. */
 export const WAVEFORM_STYLES: WaveformStyle[] = [
@@ -54,6 +55,7 @@ export const WAVEFORM_STYLES: WaveformStyle[] = [
   'blocks',
   'outline',
   'lattice',
+  'spectrum',
 ];
 
 export const nextWaveformStyle = (style: WaveformStyle): WaveformStyle => {
@@ -234,6 +236,34 @@ export const createWaveformShape = (
         ).toFixed(1)} `;
       }
       return { line: line.trim(), mirror: '', fill: '' };
+    }
+
+    // The live-output spectrum: a bar per band rising from the floor, with a
+    // light curve traced along their tips. The bars are the shape somebody
+    // reading a spectrum expects; the curve is what turns it from a level
+    // meter into the same figure the graph two panels down is drawing. Both
+    // are built from the same samples, so a bar and the point of the curve
+    // above it can never disagree about how loud that band is.
+    case 'spectrum': {
+      const barWidth = Math.max(1, step * 0.6);
+      let fill = '';
+      const tips: string[] = [];
+      for (let index = 0; index < samples.length; index += 1) {
+        const magnitude = Math.abs(at(index)) * 2;
+        fill += rect(
+          index * step - barWidth / 2,
+          height - magnitude,
+          barWidth,
+          magnitude,
+        );
+        // The curve rides one pixel above the bar tip, so a bright stroke
+        // over a bright fill still reads as two things rather than as a
+        // slightly thicker bar edge.
+        tips.push(
+          `${(index * step).toFixed(1)},${(height - magnitude - 1).toFixed(1)}`,
+        );
+      }
+      return { line: `M ${tips.join(' L ')}`, mirror: '', fill };
     }
 
     default:

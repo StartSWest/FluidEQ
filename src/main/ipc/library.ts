@@ -46,6 +46,17 @@ import {
 import { scanLibraryRootOffThread } from '../library/scanHost';
 
 /**
+ * The largest file the renderer is handed whole for playback.
+ *
+ * Generous for music — a CD-length lossless album track lands well under it,
+ * and anything above is a recording long enough that holding it in the
+ * renderer's heap costs more than the clean seek it buys. Past this, and for
+ * video regardless of size, playback falls back to `fluideq-media://` and its
+ * byte ranges.
+ */
+const MAX_PLAYBACK_BLOB_BYTES = 96 * 1024 * 1024;
+
+/**
  * What these handlers need from the process around them.
  *
  * The library channels touch the userData directory -- where the index and
@@ -504,6 +515,50 @@ export const registerLibraryIpc = (deps: ILibraryIpcDeps): void => {
 
   ipcMain.on('library-scan-cancel', () => {
     cancelRequested = true;
+  });
+
+  /**
+   * The whole file, for the renderer to hold as a blob.
+   *
+   * A copy in memory rather than the `fluideq-media://` stream the same track
+   * is perfectly capable of serving, and the reason is seeking. A streamed
+   * resource makes Chromium abandon the connection, issue a fresh byte range
+   * and re-sync the decoder on every jump — heard as a stutter with a moment
+   * of the previous passage repeating. A blob is already entirely in memory,
+   * so a seek is arithmetic. That is precisely why the Karaoke tab, which has
+   * loaded its audio with `URL.createObjectURL` from the start, has always
+   * seeked cleanly while this player did not.
+   *
+   * Audio only and only under the cap. A film is both too large to hold and
+   * the one case where streaming is genuinely the right answer, so video
+   * keeps the protocol and its byte ranges.
+   */
+  ipcMain.handle('library-track-bytes', async (_event, rawTrackId: unknown) => {
+    if (typeof rawTrackId !== 'string') {
+      return undefined;
+    }
+    const trackPath = trackPathById(currentIndex, rawTrackId);
+    if (trackPath === undefined) {
+      return undefined;
+    }
+    try {
+      const stats = await fs.promises.stat(trackPath);
+      if (stats.size > MAX_PLAYBACK_BLOB_BYTES) {
+        return undefined;
+      }
+      const bytes = await fs.promises.readFile(trackPath);
+      // Sliced out of the Buffer rather than handed over as one: a Buffer is
+      // a view onto a pooled allocation, and passing it across would carry
+      // whatever else currently shares that pool.
+      return bytes.buffer.slice(
+        bytes.byteOffset,
+        bytes.byteOffset + bytes.byteLength,
+      );
+    } catch (error) {
+      // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+      console.error(`Could not read track for playback: ${trackPath}`, error);
+      return undefined;
+    }
   });
 
   ipcMain.handle('library-reveal', (_event, rawTrackId: unknown) => {

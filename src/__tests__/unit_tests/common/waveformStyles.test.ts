@@ -36,9 +36,9 @@ const shapeOf = (style: WaveformStyle) =>
   createWaveformShape(samples, style, WIDTH, HEIGHT, AMPLITUDE);
 
 describe('the style cycle', () => {
-  it('offers ten', () => {
-    expect(WAVEFORM_STYLES).toHaveLength(10);
-    expect(new Set(WAVEFORM_STYLES).size).toBe(10);
+  it('offers eleven', () => {
+    expect(WAVEFORM_STYLES).toHaveLength(11);
+    expect(new Set(WAVEFORM_STYLES).size).toBe(11);
   });
 
   it('comes back round', () => {
@@ -49,7 +49,7 @@ describe('the style cycle', () => {
       style = nextWaveformStyle(style);
     }
     // Every style reachable, and back to the start.
-    expect(seen.size).toBe(10);
+    expect(seen.size).toBe(11);
     expect(style).toBe(WAVEFORM_STYLES[0]);
   });
 

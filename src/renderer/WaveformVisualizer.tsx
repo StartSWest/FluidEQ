@@ -67,6 +67,7 @@ import {
   PAUSED_STROKE,
   PEAK_RELEASE_DB,
   SILENCE_DB,
+  SPECTRUM_CYAN_STOPS,
   WAVEFORM_AMPLITUDE,
   WAVEFORM_AMPLITUDE_MAX,
   WAVEFORM_BLEED,
@@ -307,15 +308,30 @@ const WaveformVisualizer = () => {
     // figure — which is what an `objectBoundingBox` gradient across a
     // full-width path amounted to, and what keeps a given frequency the same
     // colour whether the frame is loud or quiet.
+    //
+    // The spectrum style is the one place rainbow mode reaches: it uses the
+    // shared rainbow palette when euphoria is on and a cyan-tones fallback
+    // when it is off, so the visualiser can carry the LIVE OUTPUT figure at
+    // rest without leaning on a mode the rest of the app also gates on. The
+    // other styles keep the trace ramp they have always used — this is an
+    // opt-in for the new style, not a behaviour change to the existing ones.
+    const isSpectrumCyan =
+      styleRef.current === 'spectrum' && !isEuphoricRef.current;
     const traceRamp = context.createLinearGradient(
       WAVEFORM_BLEED,
       0,
       WAVEFORM_BLEED + boxWidth,
       0,
     );
-    BAND_SPECTRUM_STOPS.forEach((stop) => {
-      traceRamp.addColorStop(stop.offset, stop.color);
-    });
+    if (isSpectrumCyan) {
+      SPECTRUM_CYAN_STOPS.forEach((stop) => {
+        traceRamp.addColorStop(stop.offset, stop.colour);
+      });
+    } else {
+      BAND_SPECTRUM_STOPS.forEach((stop) => {
+        traceRamp.addColorStop(stop.offset, stop.color);
+      });
+    }
 
     const chosen = paintRef.current;
     const linePath = shape.line ? bake(shape.line) : undefined;
@@ -532,12 +548,15 @@ const WaveformVisualizer = () => {
         className={`waveform-visualizer waveform-visualizer--${style}${isActive ? ' is-active' : ''}${
           isPaused ? ' is-paused' : ''
         }${isClipping ? ' is-clipping' : ''}`}
-        // Says what pressing it does. It used to pause the analyser and, in
-        // euphoria, open the support panel; clicking now walks the meter
-        // through its styles, and a control whose accessible name describes
-        // something it no longer does is worse than one with no name at all.
-        aria-label={t('waveform.style')}
-        title={t('waveform.style')}
+        // Says what pressing it does AND which style is currently drawn — the
+        // second half is the only place the choice is legible now that the
+        // meter has eleven of them, and hovering is the fastest way to tell
+        // one from the next without cycling through the whole set. The style
+        // keys ('line', 'spectrum', …) are technical identifiers rather than
+        // prose, so they pass through the label as-is rather than each
+        // needing an entry in ten locales.
+        aria-label={`${t('waveform.style')} — ${style}`}
+        title={`${t('waveform.style')} — ${style}`}
         onClick={cycleStyle}
       >
         <div className="waveform-visualizer__meta">

@@ -329,6 +329,21 @@ const onLibraryIndexChanged = (listener: (index: ILibraryIndex) => void) => {
 const revealLibraryTrack = (trackId: string) =>
   ipcRenderer.invoke('library-reveal', trackId) as Promise<void>;
 
+/**
+ * The whole audio file, so the player can hold it as a blob and seek inside
+ * it without a round trip — see the handler's own comment for why that is the
+ * difference between a clean jump and a stutter.
+ *
+ * `undefined` for anything main declines to hand over: an unknown id, a file
+ * it could not read, or one past the size cap. Every caller falls back to the
+ * streaming `fluideq-media://` URL, which plays perfectly well and only seeks
+ * less smoothly.
+ */
+const libraryTrackBytes = (trackId: string) =>
+  ipcRenderer.invoke('library-track-bytes', trackId) as Promise<
+    ArrayBuffer | undefined
+  >;
+
 export default {
   /**
    * What this build is running on, read once while the preload has a `process`.
@@ -385,5 +400,6 @@ export default {
     onLibraryScanProgress,
     onLibraryIndexChanged,
     revealLibraryTrack,
+    libraryTrackBytes,
   },
 };
