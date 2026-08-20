@@ -210,6 +210,128 @@ const polyline = (points: readonly Projected[]) =>
  * look the user has tuned. Left out, the form is drawn at the density it was
  * designed at, which is what every built-in look wants.
  */
+/**
+ * One piece of a form, on its own.
+ *
+ * The renderer draws a form as a single path because that is what makes the
+ * ornate ones affordable — see the note in `LiveTraceCanvas`. One path takes
+ * one fill, though, and a palette whose colour depends on how tall a PIECE is
+ * cannot be expressed that way: it comes out as one colour for the lot, which
+ * is why `heat` lit whole figures at once while the fluid — painted rather
+ * than pathed — lit each bar on its own.
+ *
+ * So a form can also hand over its pieces, each with the two numbers a colour
+ * might depend on. The renderer asks for these only when it has something to
+ * say per piece, and takes the single path the rest of the time.
+ */
+export interface IGraphPiece {
+  /** The piece alone, as path data. */
+  d: string;
+  /** Where it sits across the plot, 0 at the left. */
+  across: number;
+  /** How tall it is as a fraction of the plot's depth. */
+  energy: number;
+}
+
+/**
+ * How each form draws ONE of its pieces.
+ *
+ * The single-path cases below build their figure by calling these in a loop,
+ * so the two are the same geometry rather than two copies of it — the failure
+ * this avoids is a border drawn round pieces that are not quite the pieces
+ * underneath it, which has already happened once on the fluid.
+ */
+const PIECE_BUILDERS: Partial<
+  Record<
+    GraphStyle,
+    (x: number, y: number, baseline: number, width: number) => string
+  >
+> = {
+  bars: (x, y, baseline, width) =>
+    rect(x - width / 2, y, width, Math.max(0, baseline - y)),
+  pillars: (x, y, baseline, width) =>
+    rect(x - width / 2, y, width, Math.max(0, baseline - y)),
+  blocks: (x, y, baseline, width) => {
+    // Taller segments than the meter uses: this pane is far deeper, and a
+    // seven-pixel ladder over it is hundreds of rectangles per column.
+    const segment = 11;
+    const lit = Math.floor(Math.max(0, baseline - y) / segment);
+    let d = '';
+    for (let level = 0; level < lit; level += 1) {
+      d += rect(
+        x - width / 2,
+        baseline - (level + 1) * segment + 1,
+        width,
+        segment - 2,
+      );
+    }
+    return d;
+  },
+  skyline: (x, y, baseline, width) => {
+    const pane = Math.max(1.4, width * 0.16);
+    const floorHeight = 17;
+    let d = rect(x - width / 2, y, width, Math.max(0, baseline - y));
+    for (
+      let floor = baseline - floorHeight;
+      floor > y + floorHeight * 0.7;
+      floor -= floorHeight
+    ) {
+      for (let column = -1; column <= 1; column += 2) {
+        d += hole(
+          x + column * width * 0.22 - pane / 2,
+          floor - pane / 2,
+          pane,
+          pane,
+        );
+      }
+    }
+    return d;
+  },
+};
+
+/** The narrowest each of them may be drawn, whatever the density. */
+const PIECE_WIDTH_FLOORS: Partial<Record<GraphStyle, number>> = {
+  skyline: 4,
+};
+
+export const hasGraphPieces = (style: GraphStyle): boolean =>
+  Boolean(PIECE_BUILDERS[style]);
+
+/**
+ * The pieces, laid out exactly as the single path lays them out.
+ *
+ * Empty for a form that has none — a line, a curve, a contour — which is the
+ * renderer's cue to take the path instead.
+ */
+export const createGraphPieces = (
+  points: readonly Projected[],
+  style: GraphStyle,
+  baseline: number,
+  columns?: number,
+  gap = 0,
+): IGraphPiece[] => {
+  const build = PIECE_BUILDERS[style];
+  if (!build || points.length < 2) {
+    return [];
+  }
+  const figure = toColumns(
+    points,
+    columns === undefined ? getColumnCount(style) : clampGraphColumns(columns),
+  );
+  const span = figure[figure.length - 1][0] - figure[0][0];
+  const step = Math.max(1, span / Math.max(1, figure.length - 1));
+  const width = Math.max(
+    PIECE_WIDTH_FLOORS[style] ?? 1,
+    step * (1 - Math.max(0, Math.min(0.85, gap))),
+  );
+  const depth = Math.max(1, baseline);
+  return figure.map(([x, y], index) => ({
+    d: build(x, y, baseline, width),
+    across: figure.length > 1 ? index / (figure.length - 1) : 0,
+    energy: Math.max(0, Math.min(1, (baseline - y) / depth)),
+  }));
+};
+
 export const createGraphShape = (
   points: readonly Projected[],
   style: GraphStyle,
@@ -347,15 +469,14 @@ export const createGraphShape = (
       )} L ${first[0].toFixed(1)},${baseline.toFixed(1)} Z`;
     }
 
-    case 'bars': {
-      const width = columnWidth(1);
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        path += rect(x - width / 2, y, width, Math.max(0, baseline - y));
-      }
-      return path;
-    }
+    case 'bars':
+      // Built from the same per-piece geometry the renderer asks for when
+      // it has a colour to give each one — see `createGraphPieces`. One
+      // layout, so a border can never be drawn round pieces that are not
+      // the pieces underneath it.
+      return createGraphPieces(points, style, baseline, columns, gap)
+        .map((piece) => piece.d)
+        .join('');
 
     case 'dots': {
       const size = columnWidth(1.6);
@@ -378,27 +499,14 @@ export const createGraphShape = (
       return path;
     }
 
-    case 'blocks': {
-      const width = columnWidth(1);
-      // Taller segments than the meter uses: this pane is far deeper, and a
-      // seven-pixel ladder over it is hundreds of rectangles per column.
-      const segment = 11;
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        const height = Math.max(0, baseline - y);
-        const lit = Math.floor(height / segment);
-        for (let level = 0; level < lit; level += 1) {
-          path += rect(
-            x - width / 2,
-            baseline - (level + 1) * segment + 1,
-            width,
-            segment - 2,
-          );
-        }
-      }
-      return path;
-    }
+    case 'blocks':
+      // Built from the same per-piece geometry the renderer asks for when
+      // it has a colour to give each one — see `createGraphPieces`. One
+      // layout, so a border can never be drawn round pieces that are not
+      // the pieces underneath it.
+      return createGraphPieces(points, style, baseline, columns, gap)
+        .map((piece) => piece.d)
+        .join('');
 
     case 'spikes': {
       let path = '';
@@ -510,15 +618,14 @@ export const createGraphShape = (
     }
 
     // Wide columns with no gap, so the spectrum reads as a solid skyline.
-    case 'pillars': {
-      const width = columnWidth(1);
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        path += rect(x - width / 2, y, width, Math.max(0, baseline - y));
-      }
-      return path;
-    }
+    case 'pillars':
+      // Built from the same per-piece geometry the renderer asks for when
+      // it has a colour to give each one — see `createGraphPieces`. One
+      // layout, so a border can never be drawn round pieces that are not
+      // the pieces underneath it.
+      return createGraphPieces(points, style, baseline, columns, gap)
+        .map((piece) => piece.d)
+        .join('');
 
     // Tapered towers: wide at the floor, narrow at the peak.
     case 'crown': {
@@ -667,31 +774,14 @@ export const createGraphShape = (
     // way round, so the fill rule cuts them rather than painting them over.
     // Fewer, fatter columns than the bars use: sixty-four skyscrapers is a
     // fence, and the point is that you can tell one building from the next.
-    case 'skyline': {
-      const width = columnWidth(4);
-      const pane = Math.max(1.4, width * 0.16);
-      const floorHeight = 17;
-      let path = '';
-      for (let index = 0; index < figure.length; index += 1) {
-        const [x, y] = figure[index];
-        path += rect(x - width / 2, y, width, Math.max(0, baseline - y));
-        for (
-          let floor = baseline - floorHeight;
-          floor > y + floorHeight * 0.7;
-          floor -= floorHeight
-        ) {
-          for (let column = -1; column <= 1; column += 2) {
-            path += hole(
-              x + column * width * 0.22 - pane / 2,
-              floor - pane / 2,
-              pane,
-              pane,
-            );
-          }
-        }
-      }
-      return path;
-    }
+    case 'skyline':
+      // Built from the same per-piece geometry the renderer asks for when
+      // it has a colour to give each one — see `createGraphPieces`. One
+      // layout, so a border can never be drawn round pieces that are not
+      // the pieces underneath it.
+      return createGraphPieces(points, style, baseline, columns, gap)
+        .map((piece) => piece.d)
+        .join('');
 
     // The same data with the corners taken off: a Catmull-Rom spline through
     // every fourth point. A spectrum is spiky by nature and the line style is

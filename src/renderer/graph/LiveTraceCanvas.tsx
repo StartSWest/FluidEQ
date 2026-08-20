@@ -59,11 +59,14 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import type { AxisScale, NumberValue } from 'd3';
 import { useCallback, useEffect, useRef } from 'react';
 import { DEFAULT_GLOW } from 'common/customLooks';
+import { heatHue } from 'common/graphStyles';
 import { easeTowards, getEaseFactor } from 'common/smoothing';
 import {
   createGraphAccent,
+  createGraphPieces,
   createGraphShape,
   getGlowStyle,
+  hasGraphPieces,
   isGraphAccentTrace,
 } from 'common/graphShapes';
 import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
@@ -556,6 +559,28 @@ const LiveTraceCanvas = ({
           );
       const figure = new Path2D(shape);
 
+      /**
+       * The figure again, as one path per piece — but only when something is
+       * going to colour them differently.
+       *
+       * It is a `Path2D` per piece and a fill call per piece, which is the
+       * cost the single path exists to avoid, so it is built for the one
+       * palette that cannot be expressed any other way and for nothing else.
+       */
+      const piecePaths =
+        lookRef.current.palette === 'heat' && hasGraphPieces(chosen)
+          ? createGraphPieces(
+              projected,
+              chosen,
+              baseline,
+              tuning.columns,
+              tuning.gap,
+            ).map((piece) => ({
+              path: new Path2D(piece.d),
+              energy: piece.energy,
+            }))
+          : undefined;
+
       // Nothing at all unless the light is going to be seen.
       //
       // Read off the root class rather than subscribed to: that class is
@@ -837,6 +862,25 @@ const LiveTraceCanvas = ({
             // shows its own slice of it, so a colour is a decibel.
             lookRef.current.palette === 'level' ? canvasPaint : undefined,
           );
+        } else if (tuning.filled && piecePaths) {
+          /**
+           * A colour per piece, for the palette that has one to give.
+           *
+           * Heat's colour is how loud a thing is, and on a form made of
+           * pieces the thing is the piece — so one fill for the whole figure
+           * answers a question nobody asked and lights every bar at once.
+           * That is the difference the fluid always had over the rest, and
+           * it had it only because it is painted rather than pathed.
+           *
+           * Asked for only here, and only for this palette: the other three
+           * colour by POSITION, which a gradient over one path already does
+           * correctly and far more cheaply.
+           */
+          setAlpha(context, opacity * tuning.fillOpacity);
+          piecePaths.forEach((piece) => {
+            context.fillStyle = `hsl(${heatHue(piece.energy)}, 92%, 60%)`;
+            context.fill(piece.path);
+          });
         } else if (tuning.filled) {
           // The fill and the stroke are composited separately here, where SVG
           // composited the element as a group. The only place the two differ is
