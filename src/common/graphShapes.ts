@@ -82,6 +82,44 @@ const toColumns = (
   return columns;
 };
 
+/**
+ * The other end of each bucket: its QUIETEST point.
+ *
+ * `toColumns` keeps the peak, which is the honest summary of a band and is
+ * what every form is drawn from. The information it discards is how even
+ * the band was, and one form is built to show exactly that — so the floor
+ * of each bucket is collected here, by the same bucketing arithmetic, and
+ * the two agree about where a bucket starts and ends by construction.
+ *
+ * `passthrough` is for when there were fewer points than columns and
+ * `toColumns` handed its input straight back: bucketing did not happen, so
+ * every point is its own bucket and its trough is itself.
+ */
+const toColumnTroughs = (
+  points: readonly Projected[],
+  count: number,
+  passthrough: boolean,
+): number[] => {
+  if (passthrough) {
+    return points.map(([, y]) => y);
+  }
+  const perColumn = points.length / count;
+  const troughs: number[] = [];
+  for (let index = 0; index < count; index += 1) {
+    const from = Math.floor(index * perColumn);
+    const to = Math.max(from + 1, Math.floor((index + 1) * perColumn));
+    // Largest y is the quietest: the axis grows downward in pixels.
+    let [, trough] = points[from];
+    for (let at = from + 1; at < to; at += 1) {
+      if (points[at][1] > trough) {
+        [, trough] = points[at];
+      }
+    }
+    troughs.push(trough);
+  }
+  return troughs;
+};
+
 const polyline = (points: readonly Projected[]) =>
   `M ${points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' L ')}`;
 
@@ -101,6 +139,16 @@ export const createGraphShape = (
   style: GraphStyle,
   baseline: number,
   columns?: number,
+  /**
+   * The output envelope, as absolute amplitudes in [0, 1].
+   *
+   * The second reading, and the mirror of the argument the titlebar wave
+   * already takes. It is a TIME series, so nothing here may plot it across
+   * x — this plot's x axis is logarithmic frequency, with grid lines and
+   * labels saying so, and laying a waveform along it would draw seconds
+   * against a hertz scale. Forms use its amplitude, never its shape.
+   */
+  waveform?: readonly number[],
 ): string => {
   if (points.length < 2) {
     return '';
@@ -238,15 +286,33 @@ export const createGraphShape = (
       return path.trim();
     }
 
-    // Two marks per column: the level, and half way down to it.
+    /**
+     * Two marks per column: the loudest point in the band and the quietest.
+     *
+     * The second mark used to sit at `y + (baseline - y) * 0.5` — half way
+     * down to the first. That is derived from the mark above it and was
+     * never measured, so the form drew a decoration that looked exactly
+     * like a second reading. Anything that looks like data has to be data.
+     *
+     * Measured, the pair says something no other form here says: how EVEN
+     * a band is. A flat region closes the two marks together; a narrow
+     * spike sitting in a quiet neighbourhood pulls them apart. That is the
+     * spread the peak-only bucketing throws away everywhere else.
+     */
     case 'scatter': {
       const size = Math.max(1.4, step * 0.34);
+      const troughs = toColumnTroughs(points, figure.length, figure === points);
       let path = '';
       for (let index = 0; index < figure.length; index += 1) {
         const [x, y] = figure[index];
-        const half = y + (baseline - y) * 0.5;
         path += rect(x - size / 2, y - size / 2, size, size);
-        path += rect(x - size / 2, half - size / 2, size, size);
+        const trough = troughs[index];
+        // Only when the two are far enough apart to read as two marks —
+        // otherwise a flat band draws one square on top of another and
+        // looks like a rendering fault.
+        if (trough - y > size) {
+          path += rect(x - size / 2, trough - size / 2, size, size);
+        }
       }
       return path;
     }
@@ -315,8 +381,20 @@ export const createGraphShape = (
     // stacked lines; quiet ones are bare. It reads nothing like a curve, and it
     // is very good at showing how wide a peak is rather than only how tall.
     case 'contour': {
-      const spacing = 16;
       const ceiling = points.reduce((min, [, y]) => Math.min(min, y), Infinity);
+      /**
+       * The thresholds fit the signal rather than sitting at a fixed 16px.
+       *
+       * Fixed, nothing cleared the first one through a quiet passage and
+       * the form fell back to `polyline` — so the pane silently drew
+       * `line` instead of the contour map that was chosen, and did it at
+       * exactly the moments the trace was hardest to read. A map with no
+       * lines on it is not a map.
+       *
+       * Four bands minimum, capped at the original spacing so a loud mix
+       * looks exactly as it did before.
+       */
+      const spacing = Math.max(4, Math.min(16, (baseline - ceiling) / 4));
       const rightEdge = points[points.length - 1][0];
       let path = '';
       for (let level = baseline - spacing; level > ceiling; level -= spacing) {
@@ -365,9 +443,22 @@ export const createGraphShape = (
       let path = polyline(points);
       for (let offset = left - baseline; offset < right; offset += spacing) {
         let from: number | undefined;
-        for (let y = ceiling; y <= baseline; y += stepY) {
+        /**
+         * Only the stretch of the diagonal that can be inside the plot.
+         *
+         * The scan used to run the full ceiling-to-baseline depth for every
+         * offset and test `x >= left && x <= right` inside the loop, so the
+         * diagonals near either edge — which cross only a corner — spent
+         * almost all of their iterations discarding points that were never
+         * going to be in the plot. Since x is y + offset, the x bounds are
+         * y bounds, and clamping the loop to them cuts that work without
+         * changing a single line that gets drawn.
+         */
+        const fromY = Math.max(ceiling, left - offset);
+        const toY = Math.min(baseline, right - offset);
+        for (let y = fromY; y <= toY; y += stepY) {
           const x = y + offset;
-          const inside = x >= left && x <= right && y >= heightAt(x);
+          const inside = y >= heightAt(x);
           if (inside && from === undefined) {
             from = y;
           } else if (!inside && from !== undefined) {
@@ -378,9 +469,12 @@ export const createGraphShape = (
           }
         }
         if (from !== undefined) {
+          // Closed at the end of the clamped scan, not at the baseline: past
+          // `toY` the diagonal has left the plot, and running the stroke on
+          // to the baseline would draw it outside.
           path += ` M ${(from + offset).toFixed(1)},${from.toFixed(1)} L ${(
-            baseline + offset
-          ).toFixed(1)},${baseline.toFixed(1)}`;
+            toY + offset
+          ).toFixed(1)},${toY.toFixed(1)}`;
         }
       }
       return path;
@@ -702,13 +796,34 @@ export const createGraphShape = (
         const [x, y] = points[index];
         path += hole(x - 3, y - 0.7, 6, 1.4);
       }
-      let loudest = 0;
-      for (let index = 1; index < points.length; index += 1) {
-        if (points[index][1] < points[loudest][1]) {
-          loudest = index;
-        }
+      /**
+       * The car rides the centre of energy, not the loudest bin.
+       *
+       * It used to take the argmax over every point, which teleports: two
+       * bands within a hair of each other trade the maximum from frame to
+       * frame and the car jumps the width of the plot between them. There
+       * is nowhere to keep a smoothed position either — this function is
+       * pure and sees one frame at a time.
+       *
+       * A weighted centroid needs no memory and cannot flicker: it is an
+       * average, so a rival band pulls it a little rather than seizing it.
+       * It is also the better reading. The argmax says which single bin
+       * won; the centroid says where the music actually sits.
+       */
+      let weightSum = 0;
+      let weighted = 0;
+      for (let index = 0; index < points.length; index += 1) {
+        // Squared, so the loud region still dominates and the car does not
+        // simply park in the middle of the axis on every mix.
+        const level = Math.max(0, baseline - points[index][1]) ** 2;
+        weightSum += level;
+        weighted += level * index;
       }
-      const [carX, carY] = points[loudest];
+      const focus =
+        weightSum > 0
+          ? Math.round(weighted / weightSum)
+          : Math.floor(points.length / 2);
+      const [carX, carY] = points[Math.min(points.length - 1, focus)];
       const road = carY - half;
       path += rect(carX - 9, road - 9, 18, 6);
       path += rect(carX - 4, road - 13, 9, 4);
@@ -748,7 +863,12 @@ export const createGraphShape = (
         const [x, y] = figure[index];
         const level = Math.max(0, baseline - y);
         for (let depth = 0; depth < 3; depth += 1) {
-          const seed = ((index * 73 + depth * 131) % 97) / 97;
+          // Knuth's multiplicative hash rather than a small modulus. The
+          // fixed-seed principle was right — a fresh `Math.random` every
+          // frame makes the field boil instead of fly — but ninety-seven
+          // possible values across every column and depth meant the same
+          // offsets recurred visibly along the axis, so the sky repeated.
+          const seed = ((index * 2654435761 + depth * 40503) % 65536) / 65536;
           const streakX = x + (seed - 0.5) * step;
           const streakY = y + seed * level * 0.85;
           const length = 2 + level * 0.035 * (depth + 1);
@@ -993,12 +1113,80 @@ export const createGraphShape = (
       return `M ${first[0].toFixed(1)},0 L ${last[0].toFixed(1)},0 ${wall} Z`;
     }
 
-    // A zigzag threading the peaks, alternating above and below each one.
+    /**
+     * The only form here drawn from both inputs.
+     *
+     * The body is the spectrum, filled and eased — where the energy is.
+     * Over it, a rule across the whole plot at the output's instantaneous
+     * peak: how loud the sound is RIGHT NOW.
+     *
+     * They are two genuinely independent readings and they move at
+     * different speeds, which is the entire point. The FFT arrives about
+     * twenty-two times a second and is eased on top of that; the envelope
+     * is sample peaks. So a snare lifts the rule immediately while the body
+     * beneath it is still swelling, and the gap between them for those few
+     * frames is the transient — a thing the spectrum alone cannot show,
+     * because the smoothing that makes it readable is exactly what removes
+     * it.
+     *
+     * WHY A RULE AND NOT A TRACE. The obvious combined form is the wave
+     * drawn across the plot, the way the titlebar draws it. It cannot be
+     * done here: the titlebar has no axis, and this pane's x is logarithmic
+     * frequency with grid lines and labels declaring it, so a waveform laid
+     * along it plots seconds against hertz and every reading taken off it
+     * would be wrong. A scalar amplitude has no x at all, so it can be
+     * shown against a frequency axis without claiming anything false.
+     */
+    case 'fluid': {
+      const first = points[0];
+      const last = points[points.length - 1];
+      const body = `${polyline(points)} L ${last[0].toFixed(
+        1,
+      )},${baseline.toFixed(1)} L ${first[0].toFixed(1)},${baseline.toFixed(
+        1,
+      )} Z`;
+      if (waveform === undefined || waveform.length === 0) {
+        // No second reading yet. The body alone is still true, where a rule
+        // parked on the floor would report a silence nobody measured.
+        return body;
+      }
+      let peak = 0;
+      for (let index = 0; index < waveform.length; index += 1) {
+        if (waveform[index] > peak) {
+          peak = waveform[index];
+        }
+      }
+      // The plot's top is y = 0 in this space — the row `stalactites` hangs
+      // from and `barcode` measures against — so the depth is the baseline.
+      const ruleHeight = 3;
+      const at = Math.max(
+        0,
+        Math.min(
+          baseline - ruleHeight,
+          baseline - baseline * Math.min(1, peak),
+        ),
+      );
+      return `${body} ${rect(first[0], at, last[0] - first[0], ruleHeight)}`;
+    }
+
+    /**
+     * A zigzag threading the peaks, alternating above and below each one.
+     *
+     * The side a stitch falls on comes from the column's parity, which is
+     * what makes it a weave. Its DEPTH used to come from parity as well —
+     * a flat ±6px regardless of the music — so the one part of the figure
+     * that could have carried a reading carried nothing, and the form
+     * zigzagged identically through silence and through a chorus.
+     *
+     * Now the depth is the band's own level, so the plait opens where the
+     * music is and closes to a nearly straight thread where it is not.
+     */
     case 'weave': {
       let path = `M ${figure[0][0].toFixed(1)},${figure[0][1].toFixed(1)}`;
       for (let index = 1; index < figure.length; index += 1) {
         const [x, y] = figure[index];
-        const swing = index % 2 === 0 ? -6 : 6;
+        const depth = 1.5 + Math.min(11, Math.max(0, baseline - y) * 0.055);
+        const swing = index % 2 === 0 ? -depth : depth;
         path += ` L ${x.toFixed(1)},${(y + swing).toFixed(1)}`;
       }
       return path;

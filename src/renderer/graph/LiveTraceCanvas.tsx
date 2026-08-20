@@ -235,7 +235,7 @@ const LiveTraceCanvas = ({
 }: ILiveTraceCanvasProps) => {
   // The measurement, straight from the analyser. This component re-renders with
   // every frame and nothing above it does — which is the entire arrangement.
-  const { points: livePoints } = useLiveAudioFrame();
+  const { points: livePoints, waveform } = useLiveAudioFrame();
 
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   // Held rather than fetched per frame: the computed style is a live object
@@ -280,6 +280,16 @@ const LiveTraceCanvas = ({
   // nothing but the paths it hands to the rasteriser.
   const easedRef = useRef<IChartPointData[]>([]);
   const projectedRef = useRef<[number, number][]>([]);
+  /**
+   * The output envelope, for the one form built from both readings.
+   *
+   * Held in a ref and deliberately NOT eased. The spectrum is smoothed so it
+   * can be read; this is the reading that is supposed to be raw, and easing
+   * it would erase the difference in speed that the combined form exists to
+   * show. See `fluid` in `graphShapes.ts`.
+   */
+  const waveformRef = useRef<readonly number[]>(waveform);
+  waveformRef.current = waveform;
   // How hard the halo is being driven, carried between frames.
   const pumpRef = useRef(0);
   // The trace coming forward and going back — see the constant above. Opacity
@@ -424,6 +434,9 @@ const LiveTraceCanvas = ({
         chosen,
         baseline,
         tuning.columns,
+        // Read through a ref rather than closed over: this loop runs on its
+        // own frames, and the envelope arrives on the pump's.
+        waveformRef.current,
       );
       const figure = new Path2D(shape);
 
