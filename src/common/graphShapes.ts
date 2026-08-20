@@ -26,6 +26,7 @@ import {
   hole,
   rect,
 } from './graphStyles';
+import { WaveformStyle, createWaveformShape } from './waveformStyles';
 
 /**
  * How each of the forty graph forms is actually drawn.
@@ -120,6 +121,62 @@ const toColumnTroughs = (
   return troughs;
 };
 
+/**
+ * How many readings the wave forms are drawn from.
+ *
+ * The titlebar's own `WAVEFORM_POINT_COUNT`, repeated as a constant rather
+ * than imported: that one lives in the renderer's capture module, and this
+ * file is in `common` and draws for both. The number matters because these
+ * forms size their pieces from the gap between samples — see the call site.
+ */
+const WAVE_SAMPLE_COUNT = 96;
+
+/**
+ * The titlebar wave's ten forms, and which of its styles each one is.
+ *
+ * They are not reimplemented here. `createWaveformShape` already draws all
+ * ten and is the thing they are supposed to look exactly like, so the graph
+ * hands it the spectrum and an origin and gets the same figure back. Two
+ * copies of a shape stop being the same shape the first time one of them is
+ * improved.
+ */
+const WAVE_FORMS: Partial<Record<GraphStyle, WaveformStyle>> = {
+  'wave-line': 'line',
+  'wave-filled': 'filled',
+  'wave-bars': 'bars',
+  'wave-mirror': 'mirror-bars',
+  'wave-dots': 'dots',
+  'wave-ribbon': 'ribbon',
+  'wave-spikes': 'spikes',
+  'wave-blocks': 'blocks',
+  'wave-outline': 'outline',
+  'wave-lattice': 'lattice',
+};
+
+/**
+ * The spectrum, as the fractions of full height the wave shapes expect.
+ *
+ * A projected point is a pixel row and the wave shapes take amplitudes in
+ * [0, 1], so this is the same reading in the units the other module speaks.
+ * The mirroring is what the two have in common: a waveform straddles its
+ * centre because a signal swings both ways, and a spectrum drawn this way
+ * straddles it because the figure is reflected — the level is still extent
+ * either way, which is why the reading survives the change of shape.
+ */
+const toWaveSamples = (
+  points: readonly Projected[],
+  baseline: number,
+): number[] => {
+  const depth = Math.max(1, baseline);
+  const samples: number[] = [];
+  for (let index = 0; index < points.length; index += 1) {
+    samples.push(
+      Math.max(0, Math.min(1, (baseline - points[index][1]) / depth)),
+    );
+  }
+  return samples;
+};
+
 const polyline = (points: readonly Projected[]) =>
   `M ${points.map(([x, y]) => `${x.toFixed(1)},${y.toFixed(1)}`).join(' L ')}`;
 
@@ -170,6 +227,48 @@ export const createGraphShape = (
   // a slab at 20kHz.
   const span = figure[figure.length - 1][0] - figure[0][0];
   const step = Math.max(1, span / (figure.length - 1));
+
+  /**
+   * The titlebar's ten, drawn by the titlebar's own code.
+   *
+   * Handled before the switch rather than as ten more cases, because there is
+   * no geometry here to write: the whole point of these is that they are the
+   * same figures, so all this does is convert the units, say where the plot
+   * is, and pick which of the three returned paths this form is made of.
+   *
+   * A filled form takes the body. A stroked one takes both edges — those two
+   * are one figure in every style that has them, and returning only the upper
+   * would draw half a wave.
+   */
+  const waveStyle = WAVE_FORMS[style];
+  if (waveStyle !== undefined) {
+    const left = points[0][0];
+    const shape = createWaveformShape(
+      /**
+       * Bucketed to the titlebar's own sample count first.
+       *
+       * Several of these forms size their pieces from the gap between one
+       * sample and the next, so handing them the plot's three-hundred-odd
+       * points would draw the same figures at a fifth of the width each —
+       * a ladder of hair-thin rungs instead of the ladder in the titlebar.
+       * Matching the count is what makes them match.
+       */
+      toWaveSamples(toColumns(points, WAVE_SAMPLE_COUNT), baseline),
+      waveStyle,
+      Math.max(1, points[points.length - 1][0] - left),
+      baseline,
+      // Half the plot, because the figure is mirrored: a full-scale reading
+      // reaches the ceiling going up and the floor going down, and anything
+      // more would draw outside the plot in both directions at once.
+      baseline / 2,
+      undefined,
+      { x: left, y: 0 },
+    );
+    if (shape.fill) {
+      return shape.fill;
+    }
+    return `${shape.line} ${shape.mirror}`.trim();
+  }
 
   switch (style) {
     case 'line':
@@ -1267,6 +1366,29 @@ export const GLOW_COMPLEXITY_LIMIT = 8000;
  */
 const GLOW_SILHOUETTES: Partial<Record<GraphStyle, GraphStyle>> = {
   skyline: 'pillars',
+  /*
+   * The wave family lights as its own body, not as the fallback.
+   *
+   * The fallback is `area` for a continuous form and `bars` for a discrete
+   * one, and both of those stand on the floor. Under a figure that straddles
+   * the centre line they would put the halo along the bottom of the plot with
+   * the drawing floating above it — light coming from somewhere the shape is
+   * not, which is the one thing a glow must never do.
+   *
+   * `wave-filled` is the family's silhouette because it is the family's
+   * outline: every one of these is that body, drawn in pieces.
+   */
+  'wave-line': 'wave-filled',
+  'wave-bars': 'wave-filled',
+  'wave-mirror': 'wave-filled',
+  'wave-dots': 'wave-filled',
+  'wave-ribbon': 'wave-filled',
+  'wave-spikes': 'wave-filled',
+  'wave-outline': 'wave-filled',
+  'wave-lattice': 'wave-filled',
+  // The one that stands on the floor, so the floor-standing silhouette is
+  // the right one for it.
+  'wave-blocks': 'bars',
 };
 
 export const getGlowStyle = (

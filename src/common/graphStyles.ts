@@ -79,7 +79,17 @@ export type GraphStyle =
   | 'braid'
   | 'stitch'
   | 'canyon'
-  | 'fluid';
+  | 'fluid'
+  | 'wave-line'
+  | 'wave-filled'
+  | 'wave-bars'
+  | 'wave-mirror'
+  | 'wave-dots'
+  | 'wave-ribbon'
+  | 'wave-spikes'
+  | 'wave-blocks'
+  | 'wave-outline'
+  | 'wave-lattice';
 
 /** In cycle order. */
 export const GRAPH_STYLES: GraphStyle[] = [
@@ -135,6 +145,19 @@ export const GRAPH_STYLES: GraphStyle[] = [
   // Two inputs rather than one. Appended for the same reason as the row
   // above it: the order is the cycle order and people learn theirs by count.
   'fluid',
+  // The titlebar wave's own ten, drawn by the titlebar's own code. Appended
+  // for the same reason as everything above them: the order is the cycle
+  // order and people learn theirs by counting clicks.
+  'wave-line',
+  'wave-filled',
+  'wave-bars',
+  'wave-mirror',
+  'wave-dots',
+  'wave-ribbon',
+  'wave-spikes',
+  'wave-blocks',
+  'wave-outline',
+  'wave-lattice',
 ];
 
 /**
@@ -192,6 +215,16 @@ export const GRAPH_STYLE_LABELS: Record<GraphStyle, string> = {
   stitch: 'Cross-stitch',
   canyon: 'Canyon',
   fluid: 'Fluid',
+  'wave-line': 'Wave line',
+  'wave-filled': 'Wave body',
+  'wave-bars': 'Wave bars',
+  'wave-mirror': 'Wave mirror',
+  'wave-dots': 'Wave beads',
+  'wave-ribbon': 'Wave ribbon',
+  'wave-spikes': 'Wave spikes',
+  'wave-blocks': 'Wave ladder',
+  'wave-outline': 'Wave outline',
+  'wave-lattice': 'Wave lattice',
 };
 
 export const nextGraphStyle = (style: GraphStyle): GraphStyle => {
@@ -219,6 +252,9 @@ const STROKED_STYLES = new Set<GraphStyle>([
   'rain',
   'braid',
   'stitch',
+  'wave-line',
+  'wave-outline',
+  'wave-lattice',
 ]);
 
 export const isFilledGraphStyle = (style: GraphStyle): boolean =>
@@ -439,6 +475,19 @@ const BALLISTICS: Partial<Record<GraphStyle, IGraphBallistics>> = {
   // eased here at all, so a lazy body underneath is what lets the rule's
   // own speed be visible as speed rather than as both halves twitching.
   fluid: { attackMs: 14, releaseMs: 60 },
+  // The titlebar family. Quick, because what these draw is a wave and a
+  // wave that lags reads as syrup — the same reason the titlebar runs them
+  // fast. One pair for all ten, which is what makes them a family.
+  'wave-line': { attackMs: 5, releaseMs: 34 },
+  'wave-filled': { attackMs: 5, releaseMs: 34 },
+  'wave-bars': { attackMs: 5, releaseMs: 34 },
+  'wave-mirror': { attackMs: 5, releaseMs: 34 },
+  'wave-dots': { attackMs: 5, releaseMs: 34 },
+  'wave-ribbon': { attackMs: 5, releaseMs: 34 },
+  'wave-spikes': { attackMs: 5, releaseMs: 34 },
+  'wave-blocks': { attackMs: 5, releaseMs: 34 },
+  'wave-outline': { attackMs: 5, releaseMs: 34 },
+  'wave-lattice': { attackMs: 5, releaseMs: 34 },
 };
 
 export const getGraphBallistics = (style: GraphStyle): IGraphBallistics =>

@@ -52,9 +52,9 @@ const shapeOf = (style: GraphStyle) =>
   createGraphShape(points, style, BASELINE);
 
 describe('the graph style cycle', () => {
-  it('offers forty-seven distinct forms', () => {
-    expect(GRAPH_STYLES).toHaveLength(47);
-    expect(new Set(GRAPH_STYLES).size).toBe(47);
+  it('offers fifty-seven distinct forms', () => {
+    expect(GRAPH_STYLES).toHaveLength(57);
+    expect(new Set(GRAPH_STYLES).size).toBe(57);
   });
 
   it('gives every form a name of its own', () => {
