@@ -16,8 +16,11 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <https://www.gnu.org/licenses/>.
 */
 
-import { net, protocol } from 'electron';
-import { pathToFileURL } from 'url';
+import { protocol } from 'electron';
+import { createReadStream } from 'fs';
+import { stat } from 'fs/promises';
+import { extname } from 'path';
+import { Readable } from 'stream';
 import {
   LIBRARY_MEDIA_SCHEME,
   parseLibraryMediaUrl,
@@ -25,6 +28,97 @@ import {
 import { ILibraryIndex } from '../../common/library/types';
 import { artworkPath } from './libraryArtwork';
 import { trackPathById } from './libraryIndex';
+
+/**
+ * What a media element needs to be told before it will let anyone seek.
+ *
+ * `net.fetch` on a `file://` URL answers every request with a plain `200` and
+ * no `Accept-Ranges`, whatever headers are handed to it — so Chromium
+ * classified every track as an unseekable stream. Measured in the running
+ * window, mid-song: `buffered.end = 165.43`, `duration = 210.55`, and
+ * `seekable.end = 0`. Assigning `currentTime` to a resource with an empty
+ * seekable range does not seek; it resets the element to zero, which is
+ * exactly the "it jumps back to the start" this was reported as, and no
+ * amount of work on the slider or the player state could have fixed it.
+ *
+ * So the ranges are served here rather than delegated. `stream: true` on the
+ * scheme (see `registerLibraryMediaScheme`) is what allows a streamed body;
+ * this is the other half it was waiting for.
+ */
+const MEDIA_TYPES: Record<string, string> = {
+  '.mp3': 'audio/mpeg',
+  '.m4a': 'audio/mp4',
+  '.aac': 'audio/aac',
+  '.flac': 'audio/flac',
+  '.ogg': 'audio/ogg',
+  '.opus': 'audio/ogg',
+  '.wav': 'audio/wav',
+  '.wma': 'audio/x-ms-wma',
+  '.mp4': 'video/mp4',
+  '.m4v': 'video/mp4',
+  '.webm': 'video/webm',
+  '.mkv': 'video/x-matroska',
+  '.mov': 'video/quicktime',
+  '.avi': 'video/x-msvideo',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.png': 'image/png',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+};
+
+const mediaTypeFor = (filePath: string): string =>
+  MEDIA_TYPES[extname(filePath).toLowerCase()] ?? 'application/octet-stream';
+
+/**
+ * The byte range a `Range` header asks for, clamped to what the file has.
+ *
+ * Only the single-range `bytes=` form, which is the only one a media element
+ * ever sends. Anything else — a multipart range, a unit that is not bytes, a
+ * start past the end — returns nothing, and the caller answers with the whole
+ * file rather than guessing at what was meant.
+ */
+export const parseByteRange = (
+  header: string | null,
+  size: number,
+): { start: number; end: number } | undefined => {
+  if (!header) {
+    return undefined;
+  }
+  const match = /^bytes=(\d*)-(\d*)$/.exec(header.trim());
+  if (!match || (match[1] === '' && match[2] === '')) {
+    return undefined;
+  }
+  if (match[1] === '') {
+    // `bytes=-500`: the last 500 bytes.
+    const length = Number(match[2]);
+    if (length <= 0) {
+      return undefined;
+    }
+    return { start: Math.max(0, size - length), end: size - 1 };
+  }
+  const start = Number(match[1]);
+  if (start >= size) {
+    return undefined;
+  }
+  const end = match[2] === '' ? size - 1 : Math.min(Number(match[2]), size - 1);
+  if (end < start) {
+    return undefined;
+  }
+  return { start, end };
+};
+
+/** A Node read stream as the web stream `Response` wants. Cast through
+ * `unknown` because Node's own `ReadableStream` type and the DOM's are
+ * structurally identical here but nominally distinct. */
+const webStream = (
+  path: string,
+  start?: number,
+  end?: number,
+): ReadableStream =>
+  Readable.toWeb(
+    createReadStream(path, start === undefined ? undefined : { start, end }),
+  ) as unknown as ReadableStream;
 
 /**
  * Declares the scheme's privileges before the app is ready.
@@ -58,10 +152,10 @@ export const registerLibraryMediaScheme = (): void => {
  * The id is resolved against the index (tracks) or the artwork cache (covers)
  * — both lookups this module does not perform itself, so a track path never
  * comes from anywhere but `trackPathById` and a cover path never comes from
- * anywhere but `artworkPath`. `net.fetch` rather than a manual read is what
- * lets Electron's networking stack answer Range requests for seeking.
- * Anything that fails to parse or fails to resolve gets a 404 — nothing here
- * guesses at what a malformed request meant.
+ * anywhere but `artworkPath`. Byte ranges are served here rather than
+ * delegated — see `parseByteRange` above for why that turned out to be the
+ * whole of seeking. Anything that fails to parse or fails to resolve gets a
+ * 404; nothing here guesses at what a malformed request meant.
  */
 export const handleLibraryMedia = (deps: {
   userDataDir: string;
@@ -90,16 +184,38 @@ export const handleLibraryMedia = (deps: {
       );
       return new Response(undefined, { status: 404 });
     }
-    // The incoming headers are forwarded, and the Range header is the whole
-    // reason. Dropping them made every seek restart the track: Chromium asks
-    // for `bytes=N-`, a bare `net.fetch` asks the file loader for the file,
-    // and a 200 with the whole body where a 206 was expected tells the media
-    // element it is holding a different resource — so it starts over at zero.
-    // `stream: true` on the scheme is only half of Range support; this is the
-    // other half.
-    return net.fetch(pathToFileURL(resolved).toString(), {
-      method: request.method,
-      headers: request.headers,
+    let size = 0;
+    try {
+      size = (await stat(resolved)).size;
+    } catch (error) {
+      // eslint-disable-next-line no-console -- this project's one sanctioned console sink; see libraryIndex.ts
+      console.error(`Library media could not be opened: ${resolved}`, error);
+      return new Response(undefined, { status: 404 });
+    }
+
+    const type = mediaTypeFor(resolved);
+    const range = parseByteRange(request.headers.get('range'), size);
+    if (!range) {
+      // `Accept-Ranges` on the plain response too — it is how the element
+      // learns it may ask for a range at all, and without it Chromium never
+      // sends one and never marks the resource seekable.
+      return new Response(webStream(resolved), {
+        status: 200,
+        headers: {
+          'Content-Type': type,
+          'Content-Length': String(size),
+          'Accept-Ranges': 'bytes',
+        },
+      });
+    }
+    return new Response(webStream(resolved, range.start, range.end), {
+      status: 206,
+      headers: {
+        'Content-Type': type,
+        'Content-Length': String(range.end - range.start + 1),
+        'Content-Range': `bytes ${range.start}-${range.end}/${size}`,
+        'Accept-Ranges': 'bytes',
+      },
     });
   });
 };

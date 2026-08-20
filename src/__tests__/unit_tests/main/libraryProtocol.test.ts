@@ -24,14 +24,6 @@ This file tests a main-process protocol handler, not anything DOM-shaped;
 jsdom, this suite's default test environment, has no reason to run it.
 */
 
-// Typed to take (...unknown[]) rather than a zero-arg form: TS infers a
-// jest.fn's call signature from its implementation's own parameter list, and
-// a zero-arg implementation makes the mock's signature a strict empty tuple
-// -- which the electron mock below cannot spread `args` into (TS2556). Same
-// shape as `showOpenDialog` in libraryIpc.test.ts, for the same reason.
-const netFetch = jest.fn((..._args: unknown[]) =>
-  Promise.resolve(new Response('ok')),
-);
 const handlers = new Map<string, (request: Request) => Promise<Response>>();
 
 jest.mock('electron', () => ({
@@ -44,7 +36,33 @@ jest.mock('electron', () => ({
       handlers.set(scheme, fn);
     },
   },
-  net: { fetch: (...args: unknown[]) => netFetch(...args) },
+}));
+
+// The handler serves byte ranges itself now — `net.fetch` on a `file://` URL
+// answers every request with a plain 200 and no `Accept-Ranges` whatever
+// headers it is given, which left every track unseekable. So the file system
+// is what has to be stood in for here, not the network stack.
+const FILE_SIZE = 5_000;
+const statMock = jest.fn(() => Promise.resolve({ size: FILE_SIZE }));
+/** Records the window each response was opened over, so a test can assert the
+ * bytes actually read match the range that was promised in the headers. */
+const readRanges: { start?: number; end?: number }[] = [];
+
+jest.mock('fs/promises', () => ({
+  stat: (...args: unknown[]) => statMock(...(args as [])),
+}));
+
+jest.mock('fs', () => ({
+  createReadStream: (
+    _path: string,
+    options?: { start: number; end: number },
+  ) => {
+    readRanges.push({ start: options?.start, end: options?.end });
+    const { Readable } = jest.requireActual('stream');
+    const length =
+      options === undefined ? FILE_SIZE : options.end - options.start + 1;
+    return Readable.from([Buffer.alloc(Math.max(0, length))]);
+  },
 }));
 
 // eslint-disable-next-line import/first -- the mock must be installed first
@@ -63,7 +81,8 @@ const emptyIndex: ILibraryIndex = { version: 1, roots: [], tracks: [] };
 
 beforeEach(() => {
   handlers.clear();
-  netFetch.mockClear();
+  statMock.mockClear();
+  readRanges.length = 0;
 });
 
 describe('answering a fluideq-media request for an id the index no longer knows (blocker 4)', () => {
@@ -89,17 +108,17 @@ describe('answering a fluideq-media request for an id the index no longer knows 
     const response = await handler?.(request);
 
     expect(response?.status).toBe(404);
-    expect(netFetch).not.toHaveBeenCalled();
+    expect(statMock).not.toHaveBeenCalled();
     expect(
       consoleError.mock.calls.some((call) => String(call[0]).includes(id)),
     ).toBe(true);
     consoleError.mockRestore();
   });
 
-  it('resolves a known track to net.fetch instead, right beside the refusal above', async () => {
+  it('serves a known track instead, right beside the refusal above', async () => {
     // The positive control the refusal test itself needs: proof the same
-    // handler, given an id the index actually has, really does reach
-    // net.fetch rather than refusing every id alike.
+    // handler, given an id the index actually has, really does open the file
+    // rather than refusing every id alike.
     const trackPath = 'C:\\Music\\known.mp3';
     const id = trackIdForPath(trackPath);
     const index: ILibraryIndex = {
@@ -126,16 +145,24 @@ describe('answering a fluideq-media request for an id the index no longer knows 
     const response = await handler?.(request);
 
     expect(response?.status).toBe(200);
-    expect(netFetch).toHaveBeenCalledTimes(1);
+    expect(statMock).toHaveBeenCalledTimes(1);
+    // `Accept-Ranges` on the plain response is what tells the element it may
+    // ask for a range at all. Without it Chromium never sends one, never
+    // marks the resource seekable, and `currentTime` assignments reset the
+    // playhead to zero instead of moving it.
+    expect(response?.headers.get('accept-ranges')).toBe('bytes');
+    expect(response?.headers.get('content-length')).toBe(String(FILE_SIZE));
+    expect(response?.headers.get('content-type')).toBe('audio/mpeg');
   });
 
-  it('carries the Range header through to net.fetch, which is what makes a seek a seek', async () => {
-    // Without this, every seek restarted the track: Chromium asks for
-    // `bytes=N-`, a bare `net.fetch` fetches the whole file, and a 200 where
-    // a 206 was expected tells the media element it is holding a different
-    // resource, so it starts over at zero. Asserted on the header the handler
-    // actually passes on, not on `net.fetch` merely having been called — that
-    // much was already true for the whole time seeking was broken.
+  it('answers a Range request with 206 and the window it promised', async () => {
+    // This is what makes a seek a seek. Measured in the running window before
+    // it: mid-song, `buffered.end = 165.43` and `duration = 210.55` but
+    // `seekable.end = 0` — assigning `currentTime` to a resource with an
+    // empty seekable range does not move the playhead, it resets it, which is
+    // the "it jumps back to the start" this was reported as. Delegating to
+    // `net.fetch` could never fix it: on a `file://` URL it answers 200 with
+    // no `Accept-Ranges` whatever headers it is handed.
     const trackPath = 'C:\\Music\\seekable.mp3';
     const id = trackIdForPath(trackPath);
     const index: ILibraryIndex = {
@@ -158,22 +185,68 @@ describe('answering a fluideq-media request for an id the index no longer knows 
     handleLibraryMedia({ userDataDir: 'C:\\unused', getIndex: () => index });
     const handler = handlers.get(LIBRARY_MEDIA_SCHEME);
 
-    await handler?.(
+    const ranged = await handler?.(
       new Request(libraryMediaUrl('track', id), {
         headers: { Range: 'bytes=4096-' },
       }),
     );
 
-    const ranged = netFetch.mock.calls[0][1] as { headers: Headers };
-    expect(ranged.headers.get('range')).toBe('bytes=4096-');
+    expect(ranged?.status).toBe(206);
+    expect(ranged?.headers.get('content-range')).toBe(
+      `bytes 4096-${FILE_SIZE - 1}/${FILE_SIZE}`,
+    );
+    expect(ranged?.headers.get('content-length')).toBe(
+      String(FILE_SIZE - 4096),
+    );
+    // The bytes actually opened match the window promised in the headers. A
+    // handler that returned the right headers over the whole file would look
+    // correct here and hand the element the wrong audio.
+    expect(readRanges).toEqual([{ start: 4096, end: FILE_SIZE - 1 }]);
 
-    // The other half of the discrimination: a request with no Range must not
-    // acquire one. A handler that hardcoded a range would satisfy the
-    // assertion above and break every first load.
-    netFetch.mockClear();
-    await handler?.(new Request(libraryMediaUrl('track', id)));
+    // The other half of the discrimination: a request with no Range must get
+    // the whole file and a 200. A handler that always answered 206 would
+    // satisfy every assertion above and break the first load of every track.
+    readRanges.length = 0;
+    const plain = await handler?.(new Request(libraryMediaUrl('track', id)));
 
-    const plain = netFetch.mock.calls[0][1] as { headers: Headers };
-    expect(plain.headers.get('range')).toBeNull();
+    expect(plain?.status).toBe(200);
+    expect(plain?.headers.get('content-range')).toBeNull();
+    expect(readRanges).toEqual([{ start: undefined, end: undefined }]);
+  });
+});
+
+describe('the Range header grammar', () => {
+  it('reads the forms a media element actually sends, and refuses the rest', async () => {
+    const { parseByteRange } =
+      await import('../../../main/library/libraryProtocol');
+
+    // The common one: everything from here on.
+    expect(parseByteRange('bytes=100-', 1000)).toEqual({
+      start: 100,
+      end: 999,
+    });
+    // A closed window, and one that runs past the end is clamped rather than
+    // refused — Chromium asks for more than it can have all the time.
+    expect(parseByteRange('bytes=10-20', 1000)).toEqual({ start: 10, end: 20 });
+    expect(parseByteRange('bytes=900-5000', 1000)).toEqual({
+      start: 900,
+      end: 999,
+    });
+    // A suffix range: the last N bytes, which is how some demuxers find a
+    // trailer.
+    expect(parseByteRange('bytes=-200', 1000)).toEqual({
+      start: 800,
+      end: 999,
+    });
+
+    // Everything below has to fall through to "serve the whole file", because
+    // answering 206 to a request whose bounds we did not understand hands the
+    // element bytes it did not ask for.
+    expect(parseByteRange(null, 1000)).toBeUndefined();
+    expect(parseByteRange('bytes=1000-', 1000)).toBeUndefined();
+    expect(parseByteRange('bytes=50-10', 1000)).toBeUndefined();
+    expect(parseByteRange('bytes=0-10, 20-30', 1000)).toBeUndefined();
+    expect(parseByteRange('items=0-10', 1000)).toBeUndefined();
+    expect(parseByteRange('bytes=-', 1000)).toBeUndefined();
   });
 });
