@@ -69,6 +69,7 @@ const look: Partial<Dictionary> = {
     'Entoure le graphique d’une couleur qui parcourt tout le spectre.',
   'look.borderWeight': 'Épaisseur de bordure',
   'look.litPeaks': 'Pics lumineux',
+  'look.litPeakWeight': 'Épaisseur du pic',
   'look.noLitPeaks': 'Cette forme n’a pas de pointes lumineuses',
   'look.name': 'Nom',
   'look.resetAll': 'Réinitialiser tous les réglages',

@@ -151,9 +151,12 @@ export const SPECTRUM_BAR_RANGE_DB = 80;
  *
  * Every number below is the FluidEQ site's signal-deck, kept as it was:
  * two-pixel gap, hue sweep 184°→296°, floor at 82% of the box, and a top
- * alpha dimmer in cyan than in rainbow. The `0.12` energy floor is what
- * leaves short stumps showing through silence instead of an empty box.
+ * alpha dimmer in cyan than in rainbow. The resting stump is what leaves
+ * bars showing through silence instead of an empty box.
  */
+/** What a bar shows when there is nothing to show. */
+const STUMP_HEIGHT = 6;
+
 export const spectrumBarCount = (width: number) =>
   Math.max(48, Math.floor(width / 11));
 
@@ -240,8 +243,18 @@ const forEachSpectrumBar = (
     // Flat rather than arched — no sine envelope — so every bar measures
     // the same share of the box and it reads as a spectrum rather than as
     // a curved decoration.
-    const energy = Math.max(0.12, bars[index]);
-    const height = Math.max(1, energy * box.height * 0.82);
+    const energy = bars[index];
+    /**
+     * The resting stump, in PIXELS rather than as a share of the box.
+     *
+     * It was twelve per cent of the height, which is six pixels in the
+     * titlebar's fifty-eight and reads as bars at rest. On the graph's plot
+     * it was nearly forty — a permanent band of bars along the floor that
+     * had nothing to do with the audio, and the first thing anybody asked
+     * about. A fixed few pixels is the same thing the titlebar always drew
+     * and stays that thing whatever the pane is.
+     */
+    const height = Math.max(STUMP_HEIGHT, energy * box.height * 0.82);
     visit(
       box.x + index * step + 1,
       floor - height,
@@ -309,24 +322,73 @@ export const paintSpectrumBars = (
   isRainbow: boolean,
   hueAt: SpectrumHue,
   /**
-   * Replaces the sweep entirely, for the one palette that is not one:
-   * `level` runs its ramp up the plot, and a per-bar hue running across it
-   * would be two colour systems arguing over the same pixels.
+   * Replaces the sweep, for the palette that is a meter rather than a map.
+   *
+   * `level` runs its ramp UP the plot and is pinned to the plot, so a colour
+   * is a decibel: a short bar is green all the way, a tall one climbs into
+   * amber and red, and the same height is the same colour whatever else is
+   * on screen. Each bar shows its own slice of that one ramp, which is what
+   * a meter is — and a per-bar hue would say something else entirely.
    */
   paint?: string | CanvasGradient,
 ) => {
   const topAlpha = isRainbow ? 0.5 : 0.42;
   forEachSpectrumBar(box, bars, (x, y, width, height, across, energy) => {
     if (paint === undefined) {
-      const hue = hueAt(across, energy);
       const gradient = context.createLinearGradient(0, y, 0, y + height);
+      const hue = hueAt(across, energy);
       gradient.addColorStop(0, `hsla(${hue}, 92%, 65%, ${topAlpha})`);
       gradient.addColorStop(1, `hsla(${hue}, 92%, 58%, 0.06)`);
       context.fillStyle = gradient;
-    } else {
-      context.fillStyle = paint;
+      context.fillRect(x, y, width, height);
+      return;
     }
+
+    /**
+     * The same bar, in a ramp that belongs to the plot rather than to it.
+     *
+     * A palette that runs UP THE AXIS cannot be a colour per bar — that is
+     * what makes it a meter, and a colour has to mean a decibel. But the
+     * fade down each bar is the form, and filling flat with the ramp took
+     * it away: the bars melted into one wall of gradient with notches cut
+     * out of the top.
+     *
+     * So the ramp is painted and the fade is then ERASED into it, which is
+     * the only way to take an alpha ramp off an arbitrary gradient without
+     * knowing what colours are in it. Safe here because nothing else on
+     * this canvas is under the bars — the trace is the first thing drawn
+     * after the clear, and bars do not overlap each other.
+     */
+    context.save();
+    context.fillStyle = paint;
     context.fillRect(x, y, width, height);
+    /**
+     * Erased to exactly the profile the other three paint.
+     *
+     * They run their bar from `topAlpha` down to six per cent, so the erase
+     * takes away what is left over that: `1 - topAlpha` at the top and 0.94
+     * at the foot. Filling at `topAlpha` first and then erasing looked like
+     * a different drawing, because the two alphas multiplied and the tail
+     * came out at half the weight the others' does.
+     */
+    context.globalAlpha = 1;
+    context.globalCompositeOperation = 'destination-out';
+    const fade = context.createLinearGradient(0, y, 0, y + height);
+    fade.addColorStop(0, `rgba(0, 0, 0, ${1 - topAlpha})`);
+    fade.addColorStop(1, 'rgba(0, 0, 0, 0.94)');
+    context.fillStyle = fade;
+    /**
+     * Erased a pixel wider than it was filled, on every side.
+     *
+     * Both rectangles are anti-aliased, and at the same bounds the erase
+     * leaves the partially-covered edge pixels partially un-erased — which
+     * came out as a bright hairline down each side of every bar, the full
+     * height of the plot, on the one palette drawn this way. Overshooting
+     * covers them, and stays inside the two-pixel gap so it cannot reach
+     * the bar next door.
+     */
+    context.fillRect(x - 1, y - 1, width + 2, height + 2);
+    context.restore();
   });
 };
 

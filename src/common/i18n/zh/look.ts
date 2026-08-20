@@ -64,6 +64,7 @@ const look: Partial<Dictionary> = {
   'look.rainbowBorderHint': '用贯穿整个色谱的颜色环绕图表。',
   'look.borderWeight': '边框粗细',
   'look.litPeaks': '峰值高亮',
+  'look.litPeakWeight': '峰值粗细',
   'look.noLitPeaks': '此形状没有可高亮的尖端',
   'look.name': '名称',
   'look.resetAll': '重置所有设置',

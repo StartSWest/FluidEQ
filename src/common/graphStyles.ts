@@ -660,7 +660,17 @@ export const getGraphColumnCount = (style: GraphStyle): number =>
  * a line here rather than a branch somewhere.
  */
 const FILL_OPACITY_OVERRIDES: Partial<Record<GraphStyle, number>> = {
-  fluid: 1,
+  /**
+   * Brighter than the shared default and dimmer than solid.
+   *
+   * At the designer's 0.55 these were noticeably fainter than the titlebar's,
+   * because the bars carry their own ramp from a light top to an almost-clear
+   * foot and that was being dimmed twice. At 1 they were too lit: the same
+   * alpha over a plot several times the titlebar's size is a great deal more
+   * light on screen, and the bars stopped sitting behind the curves they are
+   * supposed to sit behind.
+   */
+  fluid: 0.7,
 };
 
 export const getGraphFillOpacity = (

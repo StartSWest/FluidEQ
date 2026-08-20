@@ -68,6 +68,7 @@ const look: Partial<Dictionary> = {
     'Umrahmt das Diagramm mit einer Farbe, die das ganze Spektrum durchläuft.',
   'look.borderWeight': 'Randstärke',
   'look.litPeaks': 'Leuchtende Spitzen',
+  'look.litPeakWeight': 'Spitzenstärke',
   'look.noLitPeaks': 'Diese Form hat keine leuchtenden Spitzen',
   'look.name': 'Name',
   'look.resetAll': 'Alle Einstellungen zurücksetzen',

@@ -68,6 +68,7 @@ const look: Partial<Dictionary> = {
     'पूरे रंग चक्र में घूमते रंग से ग्राफ़ को घेरता है।',
   'look.borderWeight': 'बॉर्डर की मोटाई',
   'look.litPeaks': 'चमकते पीक',
+  'look.litPeakWeight': 'शिखर की मोटाई',
   'look.noLitPeaks': 'इस आकार में चमकने वाले सिरे नहीं हैं',
   'look.name': 'नाम',
   'look.resetAll': 'सभी सेटिंग रीसेट करें',

@@ -69,6 +69,7 @@ const look: Partial<Dictionary> = {
     'Обводит график цветом, проходящим через весь спектр.',
   'look.borderWeight': 'Толщина рамки',
   'look.litPeaks': 'Светящиеся пики',
+  'look.litPeakWeight': 'Толщина пика',
   'look.noLitPeaks': 'У этой формы нет светящихся концов',
   'look.name': 'Название',
   'look.resetAll': 'Сбросить все настройки',
