@@ -173,6 +173,7 @@ const PALETTE_LABEL_KEYS: Record<GraphPalette, TranslationKey> = {
   signal: 'look.palette.flat',
   rainbow: 'look.palette.frequency',
   level: 'look.palette.level',
+  heat: 'look.palette.heat',
 };
 
 /**

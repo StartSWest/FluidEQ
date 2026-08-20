@@ -36,6 +36,8 @@ const look: Partial<Dictionary> = {
   'look.palette.level': 'स्तर',
   'look.palette.levelHint':
     'रंग अक्ष पर ऊपर जाता है और हर पट्टी की तीव्रता दिखाता है।',
+  'look.palette.heat': 'ताप',
+  'look.palette.heatHint': 'रंग तेज़ी के साथ बदलता है, ठंडे से लाल तक।',
   'look.colours': 'रंग',
   'look.colourValue': 'रंग {number}: {colour}',
   'look.removeColour': 'रंग {number} हटाएँ',

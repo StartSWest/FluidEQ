@@ -34,6 +34,9 @@ const look = {
   'look.palette.level': 'Level',
   'look.palette.levelHint':
     'Colour runs up the axis and shows how loud a bar is.',
+  'look.palette.heat': 'Heat',
+  'look.palette.heatHint':
+    'Colour follows how loud it is, cool through to red.',
   'look.colours': 'Colours',
   'look.colourValue': 'Colour {number}: {colour}',
   'look.removeColour': 'Remove colour {number}',

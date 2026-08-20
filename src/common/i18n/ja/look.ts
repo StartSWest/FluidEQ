@@ -35,6 +35,8 @@ const look: Partial<Dictionary> = {
     '軸に沿って色が変わり、各バーの周波数位置を示します。',
   'look.palette.level': 'レベル',
   'look.palette.levelHint': '軸の上方向に色が変わり、各バーの音量を示します。',
+  'look.palette.heat': 'ヒート',
+  'look.palette.heatHint': '音量に応じて色が変化します。寒色から赤へ。',
   'look.colours': '色',
   'look.colourValue': '色 {number}：{colour}',
   'look.removeColour': '色 {number} を削除',
