@@ -102,15 +102,39 @@ const EDITOR_DEFAULT_SHARE = 0.7;
 /**
  * The height the two panes actually divide between them.
  *
- * The titlebar and the tab strip are not part of the split, so counting them
- * would make the editor's seventy per cent quietly larger than seventy per cent
- * of what is on screen.
+ * Measured off the column that holds them whenever there is one, because
+ * guessing it from the window is only right while the column *is* most of the
+ * window. Below the two-column breakpoint it is not: the profile panel moves
+ * to a row underneath and the side bar to one above, and the centre column
+ * keeps about half of what the window has. Measured at 640x1000, the column
+ * was 548px tall while the guess said 800 — so the ceiling let the editor be
+ * dragged 250px past what the column could hold, and the graph, which cannot
+ * shrink under `PANE_MIN_HEIGHT`, was pushed out through the bottom of a box
+ * that clips. That is the graph disappearing when the divider is dragged
+ * down.
+ *
+ * The divider and the two gaps around it are not part of the split either,
+ * so they come off the top.
  */
 const splittableHeight = () => {
+  if (typeof document !== 'undefined') {
+    const column = document.querySelector('.center-workspace');
+    if (column instanceof HTMLElement && column.clientHeight > 0) {
+      const divider = column.querySelector(':scope > .pane-resizer');
+      const gap = parseFloat(getComputedStyle(column).rowGap) || 0;
+      const dividerHeight =
+        divider instanceof HTMLElement ? divider.offsetHeight : 0;
+      return Math.max(
+        PANE_MIN_HEIGHT * 2,
+        column.clientHeight - dividerHeight - gap * 2,
+      );
+    }
+  }
   const viewport = typeof window === 'undefined' ? 0 : window.innerHeight || 0;
-  // No window to measure — a test environment, or a render before layout. A
-  // stand-in that is never seen by a user, since the first real read happens
-  // with a window present.
+  // Nothing laid out to measure — a test environment, or a render before the
+  // first layout. The window less an allowance for the chrome around the
+  // column is the best guess available, and it is only ever used for one
+  // frame, since the first real read happens with the column on screen.
   return viewport > 0 ? viewport - CHROME_ALLOWANCE : 614;
 };
 
