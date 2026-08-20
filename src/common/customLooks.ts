@@ -391,7 +391,10 @@ export const normalizeTuning = (
     ),
     // A form with no lit tips cannot be given them by asking: the accent is a
     // piece of geometry that only exists for the forms in the engine's table.
-    accents: hasGraphAccent(style) && readBoolean(source.accents, true),
+    // Not gated on the form any more: every form can carry a lit peak, and
+    // the table only decides where the switch starts. Gating here threw away
+    // a choice somebody had already made.
+    accents: readBoolean(source.accents, hasGraphAccent(style)),
     accentWidth: readNumber(
       source.accentWidth,
       MIN_ACCENT_WIDTH,

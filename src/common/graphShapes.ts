@@ -1409,6 +1409,14 @@ export const getGlowStyle = (
  * has none is a different thing from one that is off because the user turned
  * it off, and the panel says so rather than leaving them to work it out.
  */
+/**
+ * Whether a form comes with a lit peak already on.
+ *
+ * Not whether it can have one — every form can, and the switch is there to
+ * be pressed. This is the starting position, which is off for the forms the
+ * mark says nothing on: a lit tip suits a stem and reads as damage on a
+ * smooth curve, so those open without it rather than being denied it.
+ */
 export const hasGraphAccent = (style: GraphStyle): boolean =>
   Boolean(ACCENTS[style]);
 
@@ -1465,8 +1473,19 @@ export const createGraphAccent = (
   /** The output envelope, for the one accent that is a figure rather than a mark. */
   waveform?: readonly number[],
 ): string => {
-  const accent = ACCENTS[style];
-  if (!accent || points.length < 3) {
+  /**
+   * Every form can carry a lit peak; the table only says which ones start
+   * with one.
+   *
+   * It used to decide whether a form COULD have one at all, which greyed the
+   * switch out on fifty-odd of them — a mark that suits a stem was being
+   * withheld from everything else on somebody's judgement about taste, and
+   * taste is what the switch is for. The bead is the default answer now, and
+   * `trace` stays what it always was: not a mark at all, but half of the
+   * form it belongs to.
+   */
+  const accent = ACCENTS[style] ?? 'bead';
+  if (points.length < 3) {
     return '';
   }
 
