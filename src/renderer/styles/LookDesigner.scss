@@ -251,6 +251,18 @@ it under the terms of the GNU General Public License version 3 or later.
 .look-designer__choice {
   display: flex;
   gap: 6px;
+
+  // Ten of them do not fit on one line of a two-hundred-and-fifty pixel
+  // panel, and squeezed onto one they are twenty-five pixels each — a row of
+  // truncated words, which is a list you cannot read rather than a choice.
+  // Wrapped, they stay legible and the row grows by one line.
+  &--wrap {
+    flex-wrap: wrap;
+
+    .look-designer__pill {
+      flex: 0 1 auto;
+    }
+  }
 }
 
 .look-designer__pill {

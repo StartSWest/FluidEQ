@@ -25,6 +25,7 @@ import {
   getGraphLook,
   isDiscreteGraphStyle,
 } from 'common/graphStyles';
+import { ACCENT_STYLES } from 'common/graphShapes';
 import {
   DEFAULT_LEVEL_COLOURS,
   DEFAULT_SIGNAL_COLOUR,
@@ -1001,6 +1002,33 @@ const LookDesigner = ({ onClose, isClosing = false }: ILookDesignerProps) => {
             greyed rather than hidden, like the mode's own settings above, so
             the question is "why is this disabled" and the row above answers
             it rather than "where did that setting go". */}
+        {/* Which mark, under the switch that turns it on and above the one
+            that sizes it — the three are one decision read top to bottom.
+            Greyed together with them, for the same reason. */}
+        <SettingRow
+          id="look-designer-peak-style"
+          label={t('look.peakStyle')}
+          value={t(`look.peak.${tuning.accentStyle}` as TranslationKey)}
+          isDisabled={!tuning.accents}
+        >
+          <div className="look-designer__choice look-designer__choice--wrap">
+            {ACCENT_STYLES.map((choice) => (
+              <button
+                key={choice}
+                type="button"
+                className={`look-designer__pill${
+                  tuning.accentStyle === choice ? ' is-on' : ''
+                }`}
+                aria-pressed={tuning.accentStyle === choice}
+                disabled={!tuning.accents}
+                onClick={() => tune({ accentStyle: choice })}
+              >
+                {t(`look.peak.${choice}` as TranslationKey)}
+              </button>
+            ))}
+          </div>
+        </SettingRow>
+
         <SettingRow
           id="look-designer-accent-width"
           label={t('look.litPeakWeight')}

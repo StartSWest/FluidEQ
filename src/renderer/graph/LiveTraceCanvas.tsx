@@ -67,7 +67,6 @@ import {
   createGraphShape,
   getGlowStyle,
   hasGraphPieces,
-  isGraphAccentTrace,
 } from 'common/graphShapes';
 import { useSmoothFrames } from 'renderer/utils/useSmoothFrames';
 import {
@@ -978,7 +977,10 @@ const LiveTraceCanvas = ({
           } else {
             accentStroke = paintFor(resolveAccentStroke(basePaint, euphoria));
           }
-          if (isGraphAccentTrace(chosen)) {
+          // The wave is the one accent that is a curve, so it is stroked and
+          // never filled — filling an open path closes it. Asked of the
+          // CHOICE now rather than of the form, since it is a choice.
+          if (tuning.accentStyle === 'wave') {
             /**
              * One stroke over a shadow, which is how the titlebar lights it.
              *
