@@ -506,7 +506,7 @@ const FrequencyResponseChart = ({
    */
   const graphLookOptions = useMemo(
     () =>
-      getSelectableLooks(customLooks).map((look) => {
+      getSelectableLooks(customLooks, graphPalette).map((look) => {
         // The form's name and nothing else. The palette used to be appended
         // here, back when the list held every form three times; with one row
         // per form the suffix would be the same word on all forty-seven and
@@ -551,7 +551,13 @@ const FrequencyResponseChart = ({
           ),
         };
       }),
-    [customLooks, t],
+    // The palette is passed to the resolver rather than left for it to read,
+    // which is what makes this dependency a real one. Every row is drawn in
+    // whichever palette is on, so without it the menu froze in the previous
+    // one and its ids went stale with it — the list still held `bars` while
+    // the selection had become `bars-rainbow`, so the dropdown matched
+    // nothing and cycling walked a list nobody could see.
+    [customLooks, graphPalette, t],
   );
   const isFullScreen = useGraphFullScreen();
   const isChromeIdle = useIsChromeIdle();

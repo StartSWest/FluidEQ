@@ -120,6 +120,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.braid': '辫子',
   'graph.styleName.stitch': '十字绣',
   'graph.styleName.canyon': '峡谷',
+  'graph.styleName.fluid': '流体',
   'graph.meter.aria': '实时输出电平，以满刻度以下的真实分贝显示',
   'graph.meter.left': '左',
   'graph.meter.right': '右',

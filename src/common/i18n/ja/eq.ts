@@ -120,6 +120,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.braid': '編み込み',
   'graph.styleName.stitch': 'クロスステッチ',
   'graph.styleName.canyon': '峡谷',
+  'graph.styleName.fluid': 'フルイド',
   'graph.meter.aria': 'ライブ出力レベル（フルスケール基準の実際のデシベル）',
   'graph.meter.left': 'L',
   'graph.meter.right': 'R',

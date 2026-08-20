@@ -121,6 +121,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.braid': 'चोटी',
   'graph.styleName.stitch': 'क्रॉस-सिलाई',
   'graph.styleName.canyon': 'घाटी',
+  'graph.styleName.fluid': 'फ़्लुइड',
   'graph.meter.aria':
     'लाइव आउटपुट स्तर, फ़ुल स्केल से नीचे वास्तविक डेसिबल में',
   'graph.meter.left': 'L',

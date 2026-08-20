@@ -121,6 +121,7 @@ const eq: Partial<Dictionary> = {
   'graph.styleName.braid': 'Коса',
   'graph.styleName.stitch': 'Крестик',
   'graph.styleName.canyon': 'Каньон',
+  'graph.styleName.fluid': 'Поток',
   'graph.meter.aria':
     'Текущий уровень выхода, в реальных децибелах относительно полной шкалы',
   'graph.meter.left': 'Л',
