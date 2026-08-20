@@ -92,6 +92,14 @@ import {
   resolvePresentedStrokeWidth,
   resolveTracePaint,
 } from './liveTracePaint';
+import {
+  TRACE_CYAN_STOPS,
+  TRACE_RAINBOW_STOPS,
+  advanceSpectrumBars,
+  paintSpectrumBars,
+  spectrumBarCount,
+} from '../waveformPaint';
+import { LEVEL_FLOOR_DB } from './outputLevel';
 
 /**
  * The euphoria halo: two wide, faint copies of the figure behind itself.
@@ -303,6 +311,15 @@ const LiveTraceCanvas = ({
    */
   const waveformRef = useRef<readonly number[]>(waveform);
   waveformRef.current = waveform;
+  /**
+   * The fluid's spectrum bars, carried between frames.
+   *
+   * They have their own ballistics — snap up, ease back — run per frame so
+   * the bars keep moving between the analyser's publishes. The eased points
+   * above cannot serve: those are the graph's own ballistics, which every
+   * other form shares and this one is not supposed to.
+   */
+  const fluidBarsRef = useRef<number[]>([]);
   // How hard the halo is being driven, carried between frames.
   const pumpRef = useRef(0);
   // The trace coming forward and going back — see the constant above. Opacity
@@ -471,6 +488,27 @@ const LiveTraceCanvas = ({
             ? readEuphoriaHue(computedRef.current)
             : 0,
       };
+
+      /**
+       * The fluid is painted rather than pathed, exactly as the titlebar
+       * paints it — a bar every eleven pixels, each with its own hue and its
+       * own vertical gradient, which is what no single fillStyle on a shared
+       * path can express. Advanced once per frame here rather than inside the
+       * curve loop below, which runs twice when the wave is mirrored.
+       */
+      const isFluidForm = chosen === 'fluid';
+      if (isFluidForm) {
+        const barCount = spectrumBarCount(plot.right - plot.left);
+        const bars = fluidBarsRef.current;
+        if (bars.length !== barCount) {
+          bars.length = barCount;
+          bars.fill(0);
+        }
+        advanceSpectrumBars(bars, easedRef.current, LEVEL_FLOOR_DB, deltaMs);
+        // Still settling counts as motion, or the loop stops with the bars
+        // halfway down and leaves them there until the next measurement.
+        moving = true;
+      }
 
       let halo: Path2D | undefined;
       let lit = 0;
@@ -672,7 +710,22 @@ const LiveTraceCanvas = ({
         // One drawing for every style. A filled style paints the same shape
         // rather than stroking it — which is a fill, not a second figure, so
         // cycling styles never changes what is drawn, only how.
-        if (tuning.filled) {
+        if (isFluidForm) {
+          // The titlebar's own bars, from the titlebar's own painter. Nothing
+          // about them comes from the look — the hue sweep is the form.
+          setAlpha(context, opacity);
+          paintSpectrumBars(
+            context,
+            {
+              x: plot.left,
+              y: 0,
+              width: plot.right - plot.left,
+              height: baseline,
+            },
+            fluidBarsRef.current,
+            isEuphoric,
+          );
+        } else if (tuning.filled) {
           // The fill and the stroke are composited separately here, where SVG
           // composited the element as a group. The only place the two differ is
           // the sliver where a translucent stroke sits over its own fill, and
@@ -688,7 +741,14 @@ const LiveTraceCanvas = ({
           isSelfColoured,
           euphoria,
         );
-        if (figureStroke !== undefined && figureStrokeWidth > 0) {
+        // The fluid has no stroked figure. Its two halves are the bars and the
+        // wave over them, and an outline round the bars is a third thing the
+        // titlebar does not draw.
+        if (
+          !isFluidForm &&
+          figureStroke !== undefined &&
+          figureStrokeWidth > 0
+        ) {
           setAlpha(context, opacity);
           context.strokeStyle = paintFor(figureStroke);
           if (outside) {
@@ -728,9 +788,31 @@ const LiveTraceCanvas = ({
         // point is that the loudest few bands in the current frame catch the
         // light while the rest of the figure stays as it was.
         if (accent) {
-          const accentStroke = paintFor(
-            resolveAccentStroke(basePaint, euphoria),
-          );
+          /**
+           * The fluid's wave takes the titlebar's own ramp, not the look's.
+           *
+           * Same stops, same left-to-right across the pane — which is what
+           * keeps a given frequency the same colour whether the frame is
+           * loud or quiet. Every other accent is a lit tip and belongs to
+           * the look it decorates.
+           */
+          let accentStroke: string | CanvasGradient;
+          if (isFluidForm) {
+            const ramp = context.createLinearGradient(
+              plot.left,
+              0,
+              plot.right,
+              0,
+            );
+            (isEuphoric ? TRACE_RAINBOW_STOPS : TRACE_CYAN_STOPS).forEach(
+              (stop) => {
+                ramp.addColorStop(stop.offset, stop.colour);
+              },
+            );
+            accentStroke = ramp;
+          } else {
+            accentStroke = paintFor(resolveAccentStroke(basePaint, euphoria));
+          }
           // A bead is a closed circle and has to be filled or it comes out
           // hollow. A trace is an open curve, and filling one closes it from
           // end to start — which turned the fluid's wave line into a slab

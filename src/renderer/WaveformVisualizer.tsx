@@ -76,6 +76,9 @@ import {
   PAUSED_STROKE,
   PEAK_RELEASE_DB,
   SILENCE_DB,
+  advanceSpectrumBars,
+  paintSpectrumBars,
+  spectrumBarCount,
   SPECTRUM_BAR_ATTACK_MS,
   SPECTRUM_BAR_RANGE_DB,
   SPECTRUM_BAR_RELEASE_MS,
@@ -434,85 +437,29 @@ const WaveformVisualizer = () => {
     // bin; a `Math.max(0.12, energy)` floor keeps short stumps showing
     // through silence the way the site's synthetic movement does.
     if (styleRef.current === 'fluid') {
-      const source = pointsRef.current;
-      const barCount = Math.max(48, Math.floor(boxWidth / 11));
+      const barCount = spectrumBarCount(boxWidth);
       const buffer = spectrumMagnitudesRef.current;
       if (buffer.length !== barCount) {
         buffer.length = barCount;
         buffer.fill(0);
       }
-      // Snap up fast, ease back slowly — classic meter ballistics. Applied
-      // per frame so the bars carry motion between FFT publishes: at 60Hz
-      // display and 30Hz analyser, every other display frame would sit on
-      // the same reading otherwise, and the bars would tick rather than
-      // breathe.
-      const barRise = getEaseFactor(deltaMs, SPECTRUM_BAR_ATTACK_MS);
-      const barFall = getEaseFactor(deltaMs, SPECTRUM_BAR_RELEASE_MS);
-      if (source.length > 0) {
-        const stride = source.length / barCount;
-        for (let bar = 0; bar < barCount; bar += 1) {
-          const start = Math.floor(bar * stride);
-          const end = Math.min(source.length, Math.floor((bar + 1) * stride));
-          let peakDb = LEVEL_FLOOR_DB;
-          for (let index = start; index < end; index += 1) {
-            const value = source[index].y;
-            if (value > peakDb) {
-              peakDb = value;
-            }
-          }
-          const target = Math.max(
-            0,
-            Math.min(1, (peakDb - LEVEL_FLOOR_DB) / SPECTRUM_BAR_RANGE_DB),
-          );
-          const gap = target - buffer[bar];
-          buffer[bar] += gap * (gap > 0 ? barRise : barFall);
-        }
-      } else {
-        // No frames arriving — release toward zero rather than sitting on
-        // the last measurement, so the pane settles down when audio stops
-        // instead of looking frozen.
-        for (let bar = 0; bar < barCount; bar += 1) {
-          buffer[bar] += (0 - buffer[bar]) * barFall;
-        }
-      }
-
-      const rainbowActive = isEuphoricRef.current;
-      const barStep = boxWidth / barCount;
-      const barWidth = Math.max(1, barStep - 2);
-      // The bars stand on the bottom of the stage rather than on 82% of
-      // it. The site's own signal-deck leaves that gap because its canvas
-      // is much taller than this strip; here it read as the spectrum
-      // floating with a band of empty card beneath it.
-      const floor = WAVEFORM_BLEED + boxHeight;
-      // Bumped a shade brighter than the site's own 0.31/0.24 — Ivan asked
-      // for the bars to read a bit stronger, and the pane's dark shell
-      // wants a touch more alpha for the same on-screen weight.
-      const topAlpha = rainbowActive ? 0.5 : 0.42;
+      advanceSpectrumBars(buffer, pointsRef.current, LEVEL_FLOOR_DB, deltaMs);
       setAlpha(context, 1);
-      for (let index = 0; index < barCount; index += 1) {
-        const x = index / Math.max(1, barCount - 1);
-        // Flat rather than arched — no `sin(πx)` envelope — so every bar
-        // measures the same share of the pane and the drawing reads as a
-        // real spectrum rather than as a curved decoration.
-        const energy = Math.max(0.12, buffer[index]);
-        const barHeight = Math.max(1, energy * boxHeight * 0.82);
-        const hue = 184 + x * 112;
-        const gradient = context.createLinearGradient(
-          0,
-          floor - barHeight,
-          0,
-          floor,
-        );
-        gradient.addColorStop(0, `hsla(${hue}, 92%, 65%, ${topAlpha})`);
-        gradient.addColorStop(1, `hsla(${hue}, 92%, 58%, 0.06)`);
-        context.fillStyle = gradient;
-        context.fillRect(
-          WAVEFORM_BLEED + index * barStep + 1,
-          floor - barHeight,
-          barWidth,
-          barHeight,
-        );
-      }
+      paintSpectrumBars(
+        context,
+        // The bars stand on the bottom of the stage rather than on 82% of
+        // it. The site's own signal-deck leaves that gap because its canvas
+        // is much taller than this strip; here it read as the spectrum
+        // floating with a band of empty card beneath it.
+        {
+          x: WAVEFORM_BLEED,
+          y: WAVEFORM_BLEED,
+          width: boxWidth,
+          height: boxHeight,
+        },
+        buffer,
+        isEuphoricRef.current,
+      );
     }
 
     // The spectrum, left to right, pinned to the pane rather than to the
