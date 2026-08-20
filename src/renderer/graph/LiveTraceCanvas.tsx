@@ -494,6 +494,17 @@ const LiveTraceCanvas = ({
        * path can express. Advanced once per frame here rather than inside the
        * curve loop below, which runs twice when the wave is mirrored.
        */
+      /**
+       * The titlebar's ten, which are drawn there in one colour system
+       * whatever the style is: a ramp across the pane, cyan at rest and
+       * rainbow in euphoria. That is what `signal` should mean for these —
+       * the form's own colouring, the same reading the fluid's bars got —
+       * and it is most of why they did not look like the titlebar's.
+       *
+       * The other three palettes still reach them, because a look is a form
+       * AND a colouring and this only decides what the unmarked case is.
+       */
+      const isWaveForm = chosen.startsWith('wave-');
       const isFluidForm = chosen === 'fluid';
       /**
        * The bars span the READING, not the plot.
@@ -840,7 +851,24 @@ const LiveTraceCanvas = ({
           // Only `heat` reads it, and for that one the loudness IS the colour.
           energy,
         );
-        const canvasPaint = toCanvasPaint(context, basePaint);
+        const waveRamp =
+          isWaveForm && lookRef.current.palette === 'signal'
+            ? (() => {
+                const ramp = context.createLinearGradient(
+                  plot.left,
+                  0,
+                  plot.right,
+                  0,
+                );
+                (isEuphoric ? TRACE_RAINBOW_STOPS : TRACE_CYAN_STOPS).forEach(
+                  (stop) => {
+                    ramp.addColorStop(stop.offset, stop.colour);
+                  },
+                );
+                return ramp;
+              })()
+            : undefined;
+        const canvasPaint = waveRamp ?? toCanvasPaint(context, basePaint);
         const paintFor = (paint: TracePaint) =>
           paint === basePaint ? canvasPaint : toCanvasPaint(context, paint);
 
@@ -853,7 +881,11 @@ const LiveTraceCanvas = ({
          * that sets the line's, and turning the line down would have dimmed
          * a row of ghosts nobody was looking at. Glow means the wave here.
          */
-        if (haloPath && !isFluidForm) {
+        // The wave family is lit by its own shadow instead — see below, and
+        // see the titlebar's `SOFT_GLOW_WAVEFORM_STYLES`, which drops the
+        // halo for exactly these. Two lights on one figure is not twice as
+        // lit, it is a smear with no edge left.
+        if (haloPath && !isFluidForm && !isWaveForm) {
           context.strokeStyle = paintFor(
             resolveGlowStroke(basePaint, isSelfColoured, euphoria),
           );
@@ -867,6 +899,24 @@ const LiveTraceCanvas = ({
         // One drawing for every style. A filled style paints the same shape
         // rather than stroking it — which is a fill, not a second figure, so
         // cycling styles never changes what is drawn, only how.
+        /**
+         * The wave family is lit by a soft shadow, not by the neon halo.
+         *
+         * That is how the titlebar lights them, and its own comment gives
+         * the reason: a multi-stroke halo does not suit a figure made of
+         * separate pieces — it outlines each one rather than lighting the
+         * drawing. Scaled by the look's Glow like everything else, so the
+         * setting still means something here and zero is flat.
+         */
+        if (isWaveForm && tuning.glow > 0) {
+          context.shadowColor = isEuphoric
+            ? TRACE_GLOW_RAINBOW
+            : TRACE_GLOW_CYAN;
+          context.shadowBlur =
+            (isEuphoric ? TRACE_BLUR_RAINBOW : TRACE_BLUR_CYAN) *
+            (tuning.glow / DEFAULT_GLOW);
+        }
+
         if (isFluidForm && tuning.filled) {
           // The titlebar's own bars, from the titlebar's own painter. The hue
           // sweep is the form's own fill — it is what makes this drawing this
@@ -926,6 +976,17 @@ const LiveTraceCanvas = ({
         // The euphoria sweep does not take the fluid's border either — see
         // `needsOutside`. Its bars are lit by their own hue and the wave over
         // them; a travelling edge on each of a hundred-odd of them is noise.
+        // Put away before the outline and the marks: a shadow set for the
+        // figure would otherwise light everything drawn after it in the same
+        // save block, and a lit peak wearing the figure's glow reads as a
+        // smudge rather than as a mark.
+        const clearWaveGlow = () => {
+          if (isWaveForm) {
+            context.shadowBlur = 0;
+            context.shadowColor = 'transparent';
+          }
+        };
+
         const figureStroke = resolveFigureStroke(
           basePaint,
           tuning.filled,
@@ -942,6 +1003,7 @@ const LiveTraceCanvas = ({
          * lit rail across its foot that nothing had asked for. The form's
          * edges are its own fade and the wave over it.
          */
+        clearWaveGlow();
         if (
           figureStroke !== undefined &&
           figureStrokeWidth > 0 &&
