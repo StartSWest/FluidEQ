@@ -28,6 +28,7 @@ import {
 import type {
   ILibraryIndex,
   ILibraryScanProgress,
+  ILibraryTrack,
 } from '../../common/library/types';
 
 const EMPTY_INDEX: ILibraryIndex = { version: 1, roots: [], tracks: [] };
@@ -147,12 +148,59 @@ export const LibraryProvider = ({ children }: { children: ReactNode }) => {
     const unsubscribeIndex = window.electron.ipcRenderer.onLibraryIndexChanged(
       (next) => setIndex(next),
     );
+
+    /**
+     * A scan's batches, merged here and coalesced to a frame.
+     *
+     * Main sends the twenty-five tracks a batch read rather than the whole
+     * library — see `ipc/library.ts` for what that cost. Two things still
+     * have to happen on this side or the saving is given straight back.
+     *
+     * The merge is by id, into a Map, so a rescan that re-reads a track it
+     * already knew replaces it instead of listing it twice; and it is a Map
+     * rather than a filter per batch because filtering fourteen thousand
+     * tracks five hundred times is the same quadratic work in a different
+     * process.
+     *
+     * And the state is written once a frame, not once a batch. Batches arrive
+     * far faster than anything can be drawn — the whole library tree renders
+     * off this — so without the frame the renderer spends the scan rendering
+     * lists nobody sees. Exactly the treatment the progress ticks above get,
+     * and for the same reason.
+     */
+    let pendingTracks: ILibraryTrack[] = [];
+    let mergeFrame = 0;
+    const mergePending = () => {
+      mergeFrame = 0;
+      if (pendingTracks.length === 0) {
+        return;
+      }
+      const batch = pendingTracks;
+      pendingTracks = [];
+      setIndex((current) => {
+        const byId = new Map(current.tracks.map((track) => [track.id, track]));
+        batch.forEach((track) => byId.set(track.id, track));
+        return { ...current, tracks: [...byId.values()] };
+      });
+    };
+    const unsubscribeTracks = window.electron.ipcRenderer.onLibraryTracksAdded(
+      (tracks) => {
+        pendingTracks = pendingTracks.concat(tracks);
+        if (!mergeFrame) {
+          mergeFrame = requestAnimationFrame(mergePending);
+        }
+      },
+    );
     return () => {
       if (frame) {
         cancelAnimationFrame(frame);
       }
+      if (mergeFrame) {
+        cancelAnimationFrame(mergeFrame);
+      }
       unsubscribeProgress();
       unsubscribeIndex();
+      unsubscribeTracks();
     };
   }, []);
 

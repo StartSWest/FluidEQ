@@ -128,6 +128,7 @@ beforeEach(() => {
       getLibraryIndex: () =>
         Promise.resolve({ index: initialIndex, wasReset: false }),
       onLibraryScanProgress: () => () => undefined,
+      onLibraryTracksAdded: () => () => undefined,
       onLibraryIndexChanged: (handler: (next: ILibraryIndex) => void) => {
         indexChangedHandler = handler;
         return () => undefined;

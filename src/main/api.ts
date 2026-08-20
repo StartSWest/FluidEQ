@@ -34,6 +34,7 @@ import { VIDEO_DOWNLOAD_REVEAL } from '../common/videoDownloads';
 import type {
   ILibraryIndex,
   ILibraryScanProgress,
+  ILibraryTrack,
 } from '../common/library/types';
 
 export type Channels = string;
@@ -325,6 +326,29 @@ const onLibraryIndexChanged = (listener: (index: ILibraryIndex) => void) => {
   };
 };
 
+/**
+ * The tracks one batch of a scan just read, and only those.
+ *
+ * The whole index used to come down `library-index-changed` for this — every
+ * twenty-five files, the entire library re-sent. On fourteen thousand tracks
+ * that is five hundred and sixty messages carrying fourteen thousand objects
+ * each, which main has to serialise and the renderer has to deserialise before
+ * either can do anything else. That is why the window stopped answering for
+ * the length of a scan, and it was never about which process did the reading.
+ *
+ * A batch is twenty-five. The renderer merges them — see `LibraryContext`.
+ */
+const onLibraryTracksAdded = (
+  listener: (tracks: readonly ILibraryTrack[]) => void,
+) => {
+  const wrapped = (_event: IpcRendererEvent, tracks: ILibraryTrack[]) =>
+    listener(tracks);
+  ipcRenderer.on('library-tracks-added', wrapped);
+  return () => {
+    ipcRenderer.removeListener('library-tracks-added', wrapped);
+  };
+};
+
 /** Shows the file in Explorer/Finder; an id the index no longer knows does nothing. */
 const revealLibraryTrack = (trackId: string) =>
   ipcRenderer.invoke('library-reveal', trackId) as Promise<void>;
@@ -399,6 +423,7 @@ export default {
     cancelLibraryScan,
     onLibraryScanProgress,
     onLibraryIndexChanged,
+    onLibraryTracksAdded,
     revealLibraryTrack,
     libraryTrackBytes,
   },

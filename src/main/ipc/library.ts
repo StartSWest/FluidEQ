@@ -201,9 +201,22 @@ const scanOneRoot = async (
             ...tracks,
           ],
         };
-        deps
-          .getMainWindow()
-          ?.webContents.send('library-index-changed', currentIndex);
+        // The batch, and not the index it was just merged into.
+        //
+        // This used to send `currentIndex` — the whole library, every
+        // twenty-five files. On fourteen thousand tracks that is five hundred
+        // and sixty messages carrying fourteen thousand objects each: main
+        // serialises all of it and the renderer deserialises all of it before
+        // either can do anything else, and that is the window going
+        // unresponsive for the length of a scan. It was never about which
+        // process did the reading — that has been a `utilityProcess` all
+        // along.
+        //
+        // Sending the twenty-five that actually changed leaves main's copy
+        // authoritative for anything that asks for it later, and gives the
+        // renderer the same information for three orders of magnitude less
+        // work. It merges them itself; see `LibraryContext`.
+        deps.getMainWindow()?.webContents.send('library-tracks-added', tracks);
       },
       isCancelled: () => cancelRequested,
     });

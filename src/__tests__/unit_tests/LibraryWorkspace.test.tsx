@@ -109,6 +109,7 @@ beforeEach(() => {
           progressListener = undefined;
         };
       },
+      onLibraryTracksAdded: () => () => {},
       onLibraryIndexChanged: (callback: (index: ILibraryIndex) => void) => {
         indexListener = callback;
         return () => {
