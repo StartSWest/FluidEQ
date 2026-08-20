@@ -100,7 +100,7 @@ import {
   SPECTRUM_BAR_RELEASE_MS,
   advanceSpectrumBars,
   paintSpectrumBars,
-  spectrumBarCount,
+  spectrumBarsPath,
 } from '../waveformPaint';
 import { LEVEL_FLOOR_DB } from './outputLevel';
 
@@ -481,15 +481,76 @@ const LiveTraceCanvas = ({
       const depth = Math.max(1, plot.bottom - plot.top);
 
       const chosen = lookRef.current.style;
-      const shape = createGraphShape(
-        projected,
-        chosen,
-        baseline,
-        tuning.columns,
-        // Read through a ref rather than closed over: this loop runs on its
-        // own frames, and the envelope arrives on the pump's.
-        waveformRef.current,
-      );
+      /**
+       * The fluid is painted rather than pathed, exactly as the titlebar
+       * paints it — a bar every eleven pixels, each with its own hue and its
+       * own vertical gradient, which is what no single fillStyle on a shared
+       * path can express. Advanced once per frame here rather than inside the
+       * curve loop below, which runs twice when the wave is mirrored.
+       */
+      const isFluidForm = chosen === 'fluid';
+      /**
+       * The bars span the READING, not the plot.
+       *
+       * The axis runs 16Hz to 25kHz and the analyser only reaches 20Hz to
+       * 20kHz — a deliberate pair, so the audible marks are not sitting on
+       * the frame — which costs the drawing about three per cent of the plot
+       * at each end. The wave already respects that, because it is built
+       * from the points; the bars were laid out edge to edge and so ran past
+       * both ends of the data, out over the axis labels.
+       */
+      const fluidLeft = projected[0][0];
+      const fluidRight = projected[projected.length - 1][0];
+      if (isFluidForm) {
+        // Whatever Pieces says, like every other form. The catalogue's
+        // default for this one is set near the titlebar's eleven-pixel
+        // spacing — see `COLUMN_OVERRIDES`.
+        const barCount = tuning.columns;
+        const bars = fluidBarsRef.current;
+        if (bars.length !== barCount) {
+          bars.length = barCount;
+          bars.fill(0);
+        }
+        advanceSpectrumBars(bars, easedRef.current, LEVEL_FLOOR_DB, deltaMs);
+        easeTowards(
+          fluidWaveRef.current,
+          waveformRef.current,
+          getEaseFactor(deltaMs, SPECTRUM_BAR_ATTACK_MS),
+          getEaseFactor(deltaMs, SPECTRUM_BAR_RELEASE_MS),
+        );
+        // Still settling counts as motion, or the loop stops with the bars
+        // halfway down and leaves them there until the next measurement.
+        moving = true;
+      }
+
+      /**
+       * The fluid's figure is the bars it actually paints.
+       *
+       * Everything that traces the drawing — the border, the mask that keeps
+       * that border outside its own fill — works on a path, and a painted
+       * figure has none. Taking one from the shape module instead gave a
+       * different count at a different width, so the rainbow border was
+       * drawn around bars it had never seen. Same geometry, same rectangles.
+       */
+      const shape = isFluidForm
+        ? spectrumBarsPath(
+            {
+              x: fluidLeft,
+              y: 0,
+              width: fluidRight - fluidLeft,
+              height: baseline,
+            },
+            fluidBarsRef.current,
+          )
+        : createGraphShape(
+            projected,
+            chosen,
+            baseline,
+            tuning.columns,
+            // Read through a ref rather than closed over: this loop runs on
+            // its own frames, and the envelope arrives on the pump's.
+            waveformRef.current,
+          );
       const figure = new Path2D(shape);
 
       // Nothing at all unless the light is going to be seen.
@@ -510,45 +571,6 @@ const LiveTraceCanvas = ({
             ? readEuphoriaHue(computedRef.current)
             : 0,
       };
-
-      /**
-       * The fluid is painted rather than pathed, exactly as the titlebar
-       * paints it — a bar every eleven pixels, each with its own hue and its
-       * own vertical gradient, which is what no single fillStyle on a shared
-       * path can express. Advanced once per frame here rather than inside the
-       * curve loop below, which runs twice when the wave is mirrored.
-       */
-      const isFluidForm = chosen === 'fluid';
-      if (isFluidForm) {
-        /**
-         * A bar every eleven pixels, unless somebody has said otherwise.
-         *
-         * A look the user built carries a `pieces` setting and it has to
-         * mean something here too. The one that ships does not: its tuning
-         * is the defaults, and the default piece count is the catalogue's
-         * sixty-four — which is not the eleven-pixel rule this form is and
-         * would quietly re-space the bars nobody asked to change. So the
-         * built-in keeps the rule and a custom look gets its own number.
-         */
-        const barCount = lookRef.current.isCustom
-          ? tuning.columns
-          : spectrumBarCount(plot.right - plot.left);
-        const bars = fluidBarsRef.current;
-        if (bars.length !== barCount) {
-          bars.length = barCount;
-          bars.fill(0);
-        }
-        advanceSpectrumBars(bars, easedRef.current, LEVEL_FLOOR_DB, deltaMs);
-        easeTowards(
-          fluidWaveRef.current,
-          waveformRef.current,
-          getEaseFactor(deltaMs, SPECTRUM_BAR_ATTACK_MS),
-          getEaseFactor(deltaMs, SPECTRUM_BAR_RELEASE_MS),
-        );
-        // Still settling counts as motion, or the loop stops with the bars
-        // halfway down and leaves them there until the next measurement.
-        moving = true;
-      }
 
       let halo: Path2D | undefined;
       let lit = 0;
@@ -736,13 +758,13 @@ const LiveTraceCanvas = ({
           paint === basePaint ? canvasPaint : toCanvasPaint(context, paint);
 
         /**
-         * Behind the figure it echoes — and the fluid has no figure to echo.
+         * Behind the figure it echoes — except on the fluid, where Glow
+         * belongs to the wave and to nothing else.
          *
-         * The halo is stroked from a SILHOUETTE rather than the drawing, and
-         * the fluid's drawing is painted rather than pathed, so the
-         * silhouette was the shape module's bars: a different count at a
-         * different width, which put a row of wide grey ghosts behind bars
-         * that did not line up with them. The wave carries its own light.
+         * One setting lighting two things at once is not one setting: the
+         * bars would have taken a halo of their own from the same slider
+         * that sets the line's, and turning the line down would have dimmed
+         * a row of ghosts nobody was looking at. Glow means the wave here.
          */
         if (haloPath && !isFluidForm) {
           context.strokeStyle = paintFor(
@@ -758,17 +780,18 @@ const LiveTraceCanvas = ({
         // One drawing for every style. A filled style paints the same shape
         // rather than stroking it — which is a fill, not a second figure, so
         // cycling styles never changes what is drawn, only how.
-        if (isFluidForm) {
+        if (isFluidForm && tuning.filled) {
           // The titlebar's own bars, from the titlebar's own painter. The hue
-          // sweep is the form and does not come from the look — but how solid
-          // the bars are is a fill, and `fill` is a setting.
+          // sweep is the form's own fill — it is what makes this drawing this
+          // drawing — but WHETHER it is filled, and how solidly, are settings
+          // like anywhere else.
           setAlpha(context, opacity * tuning.fillOpacity);
           paintSpectrumBars(
             context,
             {
-              x: plot.left,
+              x: fluidLeft,
               y: 0,
-              width: plot.right - plot.left,
+              width: fluidRight - fluidLeft,
               height: baseline,
             },
             fluidBarsRef.current,
@@ -790,14 +813,7 @@ const LiveTraceCanvas = ({
           isSelfColoured,
           euphoria,
         );
-        // The fluid has no stroked figure. Its two halves are the bars and the
-        // wave over them, and an outline round the bars is a third thing the
-        // titlebar does not draw.
-        if (
-          !isFluidForm &&
-          figureStroke !== undefined &&
-          figureStrokeWidth > 0
-        ) {
+        if (figureStroke !== undefined && figureStrokeWidth > 0) {
           setAlpha(context, opacity);
           context.strokeStyle = paintFor(figureStroke);
           if (outside) {
