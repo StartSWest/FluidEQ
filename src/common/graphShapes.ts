@@ -132,6 +132,15 @@ const toColumnTroughs = (
 const WAVE_SAMPLE_COUNT = 96;
 
 /**
+ * How many frequency bands the wave forms draw their bars from.
+ *
+ * The titlebar's own count, for the same reason as the one above: these are
+ * meant to be the same figures, and a bar chart of forty-eight and one of
+ * three hundred are not the same picture.
+ */
+const WAVE_BAND_COUNT = 48;
+
+/**
  * The titlebar wave's ten forms, and which of its styles each one is.
  *
  * They are not reimplemented here. `createWaveformShape` already draws all
@@ -141,6 +150,8 @@ const WAVE_SAMPLE_COUNT = 96;
  * improved.
  */
 const WAVE_FORMS: Partial<Record<GraphStyle, WaveformStyle>> = {
+  // Its bars only. The trace over them is the accent — see `ACCENTS`.
+  fluid: 'bars',
   'wave-line': 'line',
   'wave-filled': 'filled',
   'wave-bars': 'bars',
@@ -245,15 +256,20 @@ export const createGraphShape = (
     const left = points[0][0];
     const shape = createWaveformShape(
       /**
-       * Bucketed to the titlebar's own sample count first.
+       * The waveform, bucketed to the titlebar's own sample count.
        *
        * Several of these forms size their pieces from the gap between one
        * sample and the next, so handing them the plot's three-hundred-odd
        * points would draw the same figures at a fifth of the width each —
        * a ladder of hair-thin rungs instead of the ladder in the titlebar.
        * Matching the count is what makes them match.
+       *
+       * The spectrum stands in until the first envelope arrives, so a form
+       * still draws something true rather than a flat line.
        */
-      toWaveSamples(toColumns(points, WAVE_SAMPLE_COUNT), baseline),
+      waveform !== undefined && waveform.length >= 2
+        ? waveform
+        : toWaveSamples(toColumns(points, WAVE_SAMPLE_COUNT), baseline),
       waveStyle,
       Math.max(1, points[points.length - 1][0] - left),
       baseline,
@@ -261,7 +277,20 @@ export const createGraphShape = (
       // reaches the ceiling going up and the floor going down, and anything
       // more would draw outside the plot in both directions at once.
       baseline / 2,
-      undefined,
+      /**
+       * THE SECOND READING, and the thing that was missing.
+       *
+       * Eight of these forms draw their bars off real frequency bands when
+       * they are handed some, and fall back to the waveform when they are
+       * not. The first port passed nothing, so every one of them took the
+       * fallback — which is why they did not look like the titlebar, where
+       * magnitudes are always supplied.
+       *
+       * This is also the arrangement that suits the axis: the bands are a
+       * frequency reading and they land on a frequency axis, which is more
+       * correct here than drawing the spectrum as if it were a wave.
+       */
+      toWaveSamples(toColumns(points, WAVE_BAND_COUNT), baseline),
       { x: left, y: 0 },
     );
     if (shape.fill) {
@@ -1213,62 +1242,6 @@ export const createGraphShape = (
     }
 
     /**
-     * The only form here drawn from both inputs.
-     *
-     * The body is the spectrum, filled and eased — where the energy is.
-     * Over it, a rule across the whole plot at the output's instantaneous
-     * peak: how loud the sound is RIGHT NOW.
-     *
-     * They are two genuinely independent readings and they move at
-     * different speeds, which is the entire point. The FFT arrives about
-     * twenty-two times a second and is eased on top of that; the envelope
-     * is sample peaks. So a snare lifts the rule immediately while the body
-     * beneath it is still swelling, and the gap between them for those few
-     * frames is the transient — a thing the spectrum alone cannot show,
-     * because the smoothing that makes it readable is exactly what removes
-     * it.
-     *
-     * WHY A RULE AND NOT A TRACE. The obvious combined form is the wave
-     * drawn across the plot, the way the titlebar draws it. It cannot be
-     * done here: the titlebar has no axis, and this pane's x is logarithmic
-     * frequency with grid lines and labels declaring it, so a waveform laid
-     * along it plots seconds against hertz and every reading taken off it
-     * would be wrong. A scalar amplitude has no x at all, so it can be
-     * shown against a frequency axis without claiming anything false.
-     */
-    case 'fluid': {
-      const first = points[0];
-      const last = points[points.length - 1];
-      const body = `${polyline(points)} L ${last[0].toFixed(
-        1,
-      )},${baseline.toFixed(1)} L ${first[0].toFixed(1)},${baseline.toFixed(
-        1,
-      )} Z`;
-      if (waveform === undefined || waveform.length === 0) {
-        // No second reading yet. The body alone is still true, where a rule
-        // parked on the floor would report a silence nobody measured.
-        return body;
-      }
-      let peak = 0;
-      for (let index = 0; index < waveform.length; index += 1) {
-        if (waveform[index] > peak) {
-          peak = waveform[index];
-        }
-      }
-      // The plot's top is y = 0 in this space — the row `stalactites` hangs
-      // from and `barcode` measures against — so the depth is the baseline.
-      const ruleHeight = 3;
-      const at = Math.max(
-        0,
-        Math.min(
-          baseline - ruleHeight,
-          baseline - baseline * Math.min(1, peak),
-        ),
-      );
-      return `${body} ${rect(first[0], at, last[0] - first[0], ruleHeight)}`;
-    }
-
-    /**
      * A zigzag threading the peaks, alternating above and below each one.
      *
      * The side a stitch falls on comes from the column's parity, which is
@@ -1312,8 +1285,22 @@ export const createGraphShape = (
  * form can be given one deliberately, one at a time, by somebody who has
  * looked at it and decided it earns one.
  */
-const ACCENTS: Partial<Record<GraphStyle, 'bead'>> = {
+const ACCENTS: Partial<Record<GraphStyle, 'bead' | 'trace'>> = {
   stems: 'bead',
+  /**
+   * The wave line over the fluid's bars.
+   *
+   * Not decoration and not a peak mark — it is the form's second half. The
+   * titlebar draws this one in two layers for a reason its comment gives:
+   * a shared path cannot carry a gradient per bar, so the bars are painted
+   * separately from the trace over them. The graph has the same seam, this
+   * one, and using it means the two panes agree about what fluid is instead
+   * of each assembling its own version.
+   *
+   * A `trace` accent has nothing to do with peaks, so it skips all of the
+   * threshold work below and is simply the curve.
+   */
+  fluid: 'trace',
 };
 
 /**
@@ -1386,9 +1373,10 @@ const GLOW_SILHOUETTES: Partial<Record<GraphStyle, GraphStyle>> = {
   'wave-spikes': 'wave-filled',
   'wave-outline': 'wave-filled',
   'wave-lattice': 'wave-filled',
-  // The one that stands on the floor, so the floor-standing silhouette is
-  // the right one for it.
+  // The two that stand on the floor, so the floor-standing silhouette is the
+  // right one for them.
   'wave-blocks': 'bars',
+  fluid: 'bars',
 };
 
 export const getGlowStyle = (
@@ -1451,9 +1439,29 @@ export const createGraphAccent = (
   style: GraphStyle,
   baseline: number,
   columns?: number,
+  /** The output envelope, for the one accent that is a figure rather than a mark. */
+  waveform?: readonly number[],
 ): string => {
-  if (!ACCENTS[style] || points.length < 3) {
+  const accent = ACCENTS[style];
+  if (!accent || points.length < 3) {
     return '';
+  }
+
+  if (accent === 'trace') {
+    // The titlebar's own curve, drawn by the titlebar's own code, over bars
+    // the figure has already put down — see `ACCENTS` and `WAVE_FORMS`.
+    const left = points[0][0];
+    return createWaveformShape(
+      waveform !== undefined && waveform.length >= 2
+        ? waveform
+        : toWaveSamples(toColumns(points, WAVE_SAMPLE_COUNT), baseline),
+      'fluid',
+      Math.max(1, points[points.length - 1][0] - left),
+      baseline,
+      baseline / 2,
+      undefined,
+      { x: left, y: 0 },
+    ).line;
   }
   // The same density as the figure, or the beads land between the stems they
   // are supposed to be sitting on.

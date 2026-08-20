@@ -123,15 +123,14 @@ const GLYPHS = {
     isFilled: true,
   },
   /**
-   * The area, with the level rule laid across it.
+   * Bars with the wave line running over them, which is what the form is.
    *
-   * The rule has to clear the trace's tallest peak in the glyph, because the
-   * whole form is about the gap between the two: drawn crossing the fill it
-   * would read as a horizon line through a landscape rather than as a second
-   * reading sitting above the first.
+   * The line is drawn as a thin closed band rather than a stroke, because a
+   * glyph is one path with one paint and this one is filled — an open curve
+   * in a filled path closes itself and paints the region under it instead.
    */
   fluid: {
-    d: 'M1 13.5V10.6L4.4 5.4L7.6 9L10.8 3.4L13.2 7.6L15 6.4V13.5ZM1 2.2H15V3.4H1Z',
+    d: 'M1.6 9h2.2v4.5h-2.2ZM5.2 6.5h2.2v7h-2.2ZM8.8 8h2.2v5.5h-2.2ZM12.4 7h2.2v6.5h-2.2ZM1 5.4C3 5.4 4 2.6 6.4 2.6C8.8 2.6 9 5 11 5C13 5 13.4 3.4 15 3.8V5C13.4 4.6 13 6.2 11 6.2C9 6.2 8.8 3.8 6.4 3.8C4 3.8 3 6.6 1 6.6Z',
     isFilled: true,
   },
   /**

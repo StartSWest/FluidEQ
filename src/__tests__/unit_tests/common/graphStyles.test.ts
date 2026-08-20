@@ -270,15 +270,28 @@ describe('the lit peaks', () => {
     expect(marks.length).toBeLessThanOrEqual(10);
   });
 
-  it('is the stems and nothing else', () => {
+  it('lights the stems and nothing else', () => {
     // The point of many drawings is that they do not all behave the same way.
     // A lit tip suits a stem and says nothing on a contour map, a slope field
     // or a bridge truss — so exactly one form has one, and this is the test
     // that stops a well-meaning refactor from handing it to everybody again.
-    const lit = GRAPH_STYLES.filter(
-      (style) => createGraphAccent(humps, style, BASELINE) !== '',
-    );
+    //
+    // `fluid` also draws into this layer and is deliberately not counted: its
+    // accent is the wave line over its bars, which is half of the form rather
+    // than a mark on a peak. The two are told apart by shape — a bead is
+    // straight-edged and a trace is a curve — so the guard still fails if a
+    // peak mark is handed to a second form.
+    const lit = GRAPH_STYLES.filter((style) => {
+      const accent = createGraphAccent(humps, style, BASELINE);
+      return accent !== '' && !accent.includes('Q');
+    });
     expect(lit).toEqual(['stems']);
+  });
+
+  it('draws the fluid a curve rather than a peak mark', () => {
+    const accent = createGraphAccent(humps, 'fluid', BASELINE);
+    expect(accent).toContain('Q');
+    expect(createGraphAccent(humps, 'stems', BASELINE)).not.toContain('Q');
   });
 
   it('emits no NaN for any form', () => {
